@@ -527,6 +527,13 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
 
     for(PlayerMails::iterator itr = pl->GetmailBegin(); itr != pl->GetmailEnd(); ++itr)
     {
+        // packet send mail count as uint8, prevent overflow
+        if(mailsCount >= 254)
+        {
+            realCount += 1;
+            continue;
+        }
+
         // skip deleted or not delivered (deliver delay not expired) mails
         if ((*itr)->state == MAIL_STATE_DELETED || cur_time < (*itr)->deliver_time)
             continue;

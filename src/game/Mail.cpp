@@ -519,7 +519,7 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
     // client can't work with packets > max int16 value
     const uint32 maxPacketSize = 32767;
 
-    uint32 mails_count = 0;                                 // real send to client mails amount
+    uint32 mailsCount = 0;                                  // real send to client mails amount
 
     WorldPacket data(SMSG_MAIL_LIST_RESULT, (200));         // guess size
     data << uint8(0);                                       // mail's count
@@ -529,10 +529,7 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
     {
         // packet send mail count as uint8, prevent overflow
         if(mailsCount >= 254)
-        {
-            realCount += 1;
-            continue;
-        }
+            break;
 
         // skip deleted or not delivered (deliver delay not expired) mails
         if ((*itr)->state == MAIL_STATE_DELETED || cur_time < (*itr)->deliver_time)
@@ -616,10 +613,10 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
             data << (uint32) (item ? item->GetUInt32Value(ITEM_FIELD_DURABILITY) : 0);
         }
 
-        mails_count += 1;
+        mailsCount += 1;
     }
 
-    data.put<uint8>(0, mails_count);                        // set real send mails to client
+    data.put<uint8>(0, mailsCount);                         // set real send mails to client
     SendPacket(&data);
 
     // recalculate m_nextMailDelivereTime and unReadMails

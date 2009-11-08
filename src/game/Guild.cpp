@@ -1215,7 +1215,7 @@ void Guild::LoadGuildBankFromDB()
             continue;
         }
 
-        ItemPrototype const *proto = objmgr.GetItemPrototype(ItemEntry);
+        ItemPrototype const *proto = ObjectMgr::GetItemPrototype(ItemEntry);
 
         if (!proto)
         {

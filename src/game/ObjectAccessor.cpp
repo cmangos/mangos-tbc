@@ -202,7 +202,7 @@ ObjectAccessor::RemoveCorpse(Corpse *corpse)
     CellPair cell_pair = MaNGOS::ComputeCellPair(corpse->GetPositionX(), corpse->GetPositionY());
     uint32 cell_id = (cell_pair.y_coord*TOTAL_NUMBER_OF_CELLS_PER_MAP) + cell_pair.x_coord;
 
-    objmgr.DeleteCorpseCellData(corpse->GetMapId(),cell_id,corpse->GetOwnerGUID());
+    sObjectMgr.DeleteCorpseCellData(corpse->GetMapId(),cell_id,corpse->GetOwnerGUID());
     corpse->RemoveFromWorld();
 
     i_player2corpse.erase(iter);
@@ -221,7 +221,7 @@ ObjectAccessor::AddCorpse(Corpse *corpse)
     CellPair cell_pair = MaNGOS::ComputeCellPair(corpse->GetPositionX(), corpse->GetPositionY());
     uint32 cell_id = (cell_pair.y_coord*TOTAL_NUMBER_OF_CELLS_PER_MAP) + cell_pair.x_coord;
 
-    objmgr.AddCorpseCellData(corpse->GetMapId(),cell_id,corpse->GetOwnerGUID(),corpse->GetInstanceId());
+    sObjectMgr.AddCorpseCellData(corpse->GetMapId(),cell_id,corpse->GetOwnerGUID(),corpse->GetInstanceId());
 }
 
 void
@@ -265,7 +265,7 @@ ObjectAccessor::ConvertCorpseForPlayer(uint64 player_guid, bool insignia)
 
     // remove resurrectble corpse from grid object registry (loaded state checked into call)
     // do not load the map if it's not loaded
-    Map *map = mapmgr.FindMap(corpse->GetMapId(), corpse->GetInstanceId());
+    Map *map = sMapMgr.FindMap(corpse->GetMapId(), corpse->GetInstanceId());
     if(map)
         map->Remove(corpse,false);
 

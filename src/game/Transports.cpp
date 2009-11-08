@@ -102,7 +102,7 @@ void MapManager::LoadTransports()
             m_TransportsByMap[*i].insert(t);
 
         //If we someday decide to use the grid to track transports, here:
-        //MapManager::Instance().LoadGrid(mapid,x,y,true);
+        //sMapMgr.LoadGrid(mapid,x,y,true);
         //t->GetMap()->Add<GameObject>((GameObject *)t);
         ++count;
     } while(result->NextRow());
@@ -205,7 +205,7 @@ struct keyFrame
 bool Transport::GenerateWaypoints(uint32 pathid, std::set<uint32> &mapids)
 {
     TransportPath path;
-    objmgr.GetTransportPathNodes(pathid, path);
+    sObjectMgr.GetTransportPathNodes(pathid, path);
 
     if (path.Empty())
         return false;

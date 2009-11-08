@@ -252,7 +252,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
         }
 
         case SPELLFAMILY_POTION:
-            return spellmgr.GetSpellElixirSpecific(spellInfo->Id);
+            return sSpellMgr.GetSpellElixirSpecific(spellInfo->Id);
     }
 
     // only warlock armor/skin have this (in additional to family cases)
@@ -276,7 +276,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             return SPELL_TRACKER;
 
     // elixirs can have different families, but potion most ofc.
-    if(SpellSpecific sp = spellmgr.GetSpellElixirSpecific(spellInfo->Id))
+    if(SpellSpecific sp = sSpellMgr.GetSpellElixirSpecific(spellInfo->Id))
         return sp;
 
     return SPELL_NORMAL;
@@ -1011,7 +1011,7 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy( SpellProcEventEntry const * spell
         if (!procSpell)
             return false;
 
-        SkillLineAbilityMapBounds bounds = spellmgr.GetSkillLineAbilityMapBounds(procSpell->Id);
+        SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBounds(procSpell->Id);
 
         bool found = false;
         for(SkillLineAbilityMap::const_iterator _spell_idx = bounds.first; _spell_idx != bounds.second; ++_spell_idx)
@@ -2045,8 +2045,8 @@ void SpellMgr::LoadSpellScriptTarget()
         {
             if( spellInfo->EffectImplicitTargetA[j] == TARGET_SCRIPT || spellInfo->EffectImplicitTargetA[j] != TARGET_SELF && spellInfo->EffectImplicitTargetB[j] == TARGET_SCRIPT )
             {
-                SpellScriptTarget::const_iterator lower = spellmgr.GetBeginSpellScriptTarget(spellInfo->Id);
-                SpellScriptTarget::const_iterator upper = spellmgr.GetEndSpellScriptTarget(spellInfo->Id);
+                SpellScriptTarget::const_iterator lower = sSpellMgr.GetBeginSpellScriptTarget(spellInfo->Id);
+                SpellScriptTarget::const_iterator upper = sSpellMgr.GetEndSpellScriptTarget(spellInfo->Id);
                 if(lower==upper)
                 {
                     sLog.outErrorDb("Spell (ID: %u) has effect EffectImplicitTargetA/EffectImplicitTargetB = %u (TARGET_SCRIPT), but does not have record in `spell_script_target`",spellInfo->Id,TARGET_SCRIPT);
@@ -2301,7 +2301,7 @@ void SpellMgr::LoadSpellAreas()
             continue;
         }
 
-        if(spellArea.questStart && !objmgr.GetQuestTemplate(spellArea.questStart))
+        if(spellArea.questStart && !sObjectMgr.GetQuestTemplate(spellArea.questStart))
         {
             sLog.outErrorDb("Spell %u listed in `spell_area` have wrong start quest (%u) requirement", spell,spellArea.questStart);
             continue;
@@ -2309,7 +2309,7 @@ void SpellMgr::LoadSpellAreas()
 
         if(spellArea.questEnd)
         {
-            if(!objmgr.GetQuestTemplate(spellArea.questEnd))
+            if(!sObjectMgr.GetQuestTemplate(spellArea.questEnd))
             {
                 sLog.outErrorDb("Spell %u listed in `spell_area` have wrong end quest (%u) requirement", spell,spellArea.questEnd);
                 continue;
@@ -2453,7 +2453,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const *spell
     }
 
     // DB base check (if non empty then must fit at least single for allow)
-    SpellAreaMapBounds saBounds = spellmgr.GetSpellAreaMapBounds(spellInfo->Id);
+    SpellAreaMapBounds saBounds = sSpellMgr.GetSpellAreaMapBounds(spellInfo->Id);
     if (saBounds.first != saBounds.second)
     {
         for(SpellAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)

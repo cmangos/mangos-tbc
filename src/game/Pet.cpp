@@ -196,7 +196,7 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     }
 
     Map *map = owner->GetMap();
-    uint32 guid = objmgr.GenerateLowGuid(HIGHGUID_PET);
+    uint32 guid = sObjectMgr.GenerateLowGuid(HIGHGUID_PET);
     if (!Create(guid, map, petentry, pet_number))
     {
         delete result;
@@ -753,7 +753,7 @@ bool Pet::CanTakeMoreActiveSpells(uint32 spellid)
     if(IsPassiveSpell(spellid))
         return true;
 
-    chainstartstore[0] = spellmgr.GetFirstSpellInChain(spellid);
+    chainstartstore[0] = sSpellMgr.GetFirstSpellInChain(spellid);
 
     for (PetSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
     {
@@ -763,7 +763,7 @@ bool Pet::CanTakeMoreActiveSpells(uint32 spellid)
         if(IsPassiveSpell(itr->first))
             continue;
 
-        uint32 chainstart = spellmgr.GetFirstSpellInChain(itr->first);
+        uint32 chainstart = sSpellMgr.GetFirstSpellInChain(itr->first);
 
         uint8 x;
 
@@ -796,7 +796,7 @@ int32 Pet::GetTPForSpell(uint32 spellid)
 {
     uint32 basetrainp = 0;
 
-    SkillLineAbilityMapBounds bounds = spellmgr.GetSkillLineAbilityMapBounds(spellid);
+    SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBounds(spellid);
     for(SkillLineAbilityMap::const_iterator _spell_idx = bounds.first; _spell_idx != bounds.second; ++_spell_idx)
     {
         if(!_spell_idx->second->reqtrainpoints)
@@ -807,16 +807,16 @@ int32 Pet::GetTPForSpell(uint32 spellid)
     }
 
     uint32 spenttrainp = 0;
-    uint32 chainstart = spellmgr.GetFirstSpellInChain(spellid);
+    uint32 chainstart = sSpellMgr.GetFirstSpellInChain(spellid);
 
     for (PetSpellMap::iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
     {
         if(itr->second.state == PETSPELL_REMOVED)
             continue;
 
-        if(spellmgr.GetFirstSpellInChain(itr->first) == chainstart)
+        if(sSpellMgr.GetFirstSpellInChain(itr->first) == chainstart)
         {
-            SkillLineAbilityMapBounds _bounds = spellmgr.GetSkillLineAbilityMapBounds(itr->first);
+            SkillLineAbilityMapBounds _bounds = sSpellMgr.GetSkillLineAbilityMapBounds(itr->first);
 
             for(SkillLineAbilityMap::const_iterator _spell_idx2 = _bounds.first; _spell_idx2 != _bounds.second; ++_spell_idx2)
             {
@@ -943,13 +943,13 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
         sLog.outError("CRITICAL: NULL pointer parsed into CreateBaseAtCreature()");
         return false;
     }
-    uint32 guid=objmgr.GenerateLowGuid(HIGHGUID_PET);
+    uint32 guid=sObjectMgr.GenerateLowGuid(HIGHGUID_PET);
 
     sLog.outBasic("SetInstanceID()");
     SetInstanceId(creature->GetInstanceId());
 
     sLog.outBasic("Create pet");
-    uint32 pet_number = objmgr.GeneratePetNumber();
+    uint32 pet_number = sObjectMgr.GeneratePetNumber();
     if(!Create(guid, creature->GetMap(), creature->GetEntry(), pet_number))
         return false;
 
@@ -987,7 +987,7 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
     if(CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cinfo->family))
         SetName(cFamily->Name[sWorld.GetDefaultDbcLocale()]);
     else
-        SetName(creature->GetNameForLocaleIdx(objmgr.GetDBCLocaleIndex()));
+        SetName(creature->GetNameForLocaleIdx(sObjectMgr.GetDBCLocaleIndex()));
 
     m_loyaltyPoints = 1000;
     if(cinfo->type == CREATURE_TYPE_BEAST)
@@ -1098,7 +1098,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
 
             //SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, float(cinfo->attackpower));
 
-            PetLevelInfo const* pInfo = objmgr.GetPetLevelInfo(creature_ID, petlevel);
+            PetLevelInfo const* pInfo = sObjectMgr.GetPetLevelInfo(creature_ID, petlevel);
             if(pInfo)                                       // exist in DB
             {
                 SetCreateHealth(pInfo->health);
@@ -1140,7 +1140,7 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             //damage is increased afterwards as strength and pet scaling modify attack power
 
             //stored standard pet stats are entry 1 in pet_levelinfo
-            PetLevelInfo const* pInfo = objmgr.GetPetLevelInfo(creature_ID, petlevel);
+            PetLevelInfo const* pInfo = sObjectMgr.GetPetLevelInfo(creature_ID, petlevel);
             if(pInfo)                                       // exist in DB
             {
                 SetCreateHealth(pInfo->health);
@@ -1535,16 +1535,16 @@ bool Pet::addSpell(uint32 spell_id,ActiveStates active /*= ACT_DECIDE*/, PetSpel
     else
         newspell.active = active;
 
-    if(spellmgr.GetSpellRank(spell_id)!=0)
+    if(sSpellMgr.GetSpellRank(spell_id)!=0)
     {
         for (PetSpellMap::const_iterator itr2 = m_spells.begin(); itr2 != m_spells.end(); ++itr2)
         {
             if(itr2->second.state == PETSPELL_REMOVED) continue;
 
-            if( spellmgr.IsRankSpellDueToSpell(spellInfo,itr2->first) )
+            if( sSpellMgr.IsRankSpellDueToSpell(spellInfo,itr2->first) )
             {
                 // replace by new high rank
-                if(spellmgr.IsHighRankOfSpell(spell_id,itr2->first))
+                if(sSpellMgr.IsHighRankOfSpell(spell_id,itr2->first))
                 {
                     newspell.active = itr2->second.active;
 
@@ -1556,7 +1556,7 @@ bool Pet::addSpell(uint32 spell_id,ActiveStates active /*= ACT_DECIDE*/, PetSpel
                     break;
                 }
                 // ignore new lesser rank
-                else if(spellmgr.IsHighRankOfSpell(itr2->first,spell_id))
+                else if(sSpellMgr.IsHighRankOfSpell(itr2->first,spell_id))
                     return false;
             }
         }
@@ -1615,7 +1615,7 @@ bool Pet::removeSpell(uint32 spell_id, bool learn_prev, bool clear_ab)
 
     if (learn_prev)
     {
-        if (uint32 prev_id = spellmgr.GetPrevSpellInChain (spell_id))
+        if (uint32 prev_id = sSpellMgr.GetPrevSpellInChain (spell_id))
             learnSpell(prev_id);
         else
             learn_prev = false;
@@ -1653,7 +1653,7 @@ void Pet::InitPetCreateSpells()
     int32 usedtrainpoints = 0;
 
     uint32 petspellid;
-    PetCreateSpellEntry const* CreateSpells = objmgr.GetPetCreateSpellEntry(GetEntry());
+    PetCreateSpellEntry const* CreateSpells = sObjectMgr.GetPetCreateSpellEntry(GetEntry());
     if(CreateSpells)
     {
         for(uint8 i = 0; i < 4; ++i)
@@ -1682,7 +1682,7 @@ void Pet::InitPetCreateSpells()
 
             addSpell(petspellid);
 
-            SkillLineAbilityMapBounds bounds = spellmgr.GetSkillLineAbilityMapBounds(learn_spellproto->EffectTriggerSpell[0]);
+            SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBounds(learn_spellproto->EffectTriggerSpell[0]);
 
             for(SkillLineAbilityMap::const_iterator _spell_idx = bounds.first; _spell_idx != bounds.second; ++_spell_idx)
             {

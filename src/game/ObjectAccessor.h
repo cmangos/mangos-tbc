@@ -184,6 +184,6 @@ class MANGOS_DLL_DECL ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, 
         LockType i_petGuard;
 };
 
-#define objaccessor ObjectAccessor::Instance()
+#define sObjectAccessor ObjectAccessor::Instance()
 
 #endif

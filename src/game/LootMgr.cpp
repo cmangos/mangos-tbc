@@ -131,7 +131,7 @@ void LootStore::LoadLootTable()
             }
 
             // (condition + cond_value1/2) are converted into single conditionId
-            uint16 conditionId = objmgr.GetConditionId(condition, cond_value1, cond_value2);
+            uint16 conditionId = sObjectMgr.GetConditionId(condition, cond_value1, cond_value2);
 
             LootStoreItem storeitem = LootStoreItem(item, chanceOrQuestChance, group, conditionId, mincountOrRef, maxcount);
 
@@ -335,7 +335,7 @@ LootItem::LootItem(LootStoreItem const& li)
 bool LootItem::AllowedForPlayer(Player const * player) const
 {
     // DB conditions check
-    if ( !objmgr.IsPlayerMeetToCondition(player,conditionId) )
+    if ( !sObjectMgr.IsPlayerMeetToCondition(player,conditionId) )
         return false;
 
     if ( needs_quest )

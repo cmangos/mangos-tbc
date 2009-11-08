@@ -95,7 +95,7 @@ void BattleGroundEY::Update(uint32 diff)
             SetStatus(STATUS_IN_PROGRESS);
 
             for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-                if(Player *plr = objmgr.GetPlayer(itr->first))
+                if(Player *plr = sObjectMgr.GetPlayer(itr->first))
                     plr->RemoveAurasDueToSpell(SPELL_PREPARATION);
         }
     }
@@ -161,7 +161,7 @@ void BattleGroundEY::CheckSomeoneJoinedPoint()
         uint8 j = 0;
         while (j < m_PlayersNearPoint[BG_EY_NODES_MAX].size())
         {
-            Player *plr = objmgr.GetPlayer(m_PlayersNearPoint[BG_EY_NODES_MAX][j]);
+            Player *plr = sObjectMgr.GetPlayer(m_PlayersNearPoint[BG_EY_NODES_MAX][j]);
             if (!plr)
             {
                 sLog.outError("BattleGroundEY: Player (GUID: %u) not found!", GUID_LOPART(m_PlayersNearPoint[BG_EY_NODES_MAX][j]));
@@ -197,7 +197,7 @@ void BattleGroundEY::CheckSomeoneLeftPoint()
         uint8 j = 0;
         while (j < m_PlayersNearPoint[i].size())
         {
-            Player *plr = objmgr.GetPlayer(m_PlayersNearPoint[i][j]);
+            Player *plr = sObjectMgr.GetPlayer(m_PlayersNearPoint[i][j]);
             if (!plr)
             {
                 sLog.outError("BattleGroundEY: Player (GUID: %u) not found!", GUID_LOPART(m_PlayersNearPoint[i][j]));
@@ -252,7 +252,7 @@ void BattleGroundEY::UpdatePointStatuses()
 
         for (uint8 i = 0; i < m_PlayersNearPoint[point].size(); ++i)
         {
-            Player *plr = objmgr.GetPlayer(m_PlayersNearPoint[point][i]);
+            Player *plr = sObjectMgr.GetPlayer(m_PlayersNearPoint[point][i]);
             if (plr)
             {
                 UpdateWorldStateForPlayer(PROGRESS_BAR_STATUS, m_PointBarStatus[point], plr);

@@ -122,7 +122,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     {
         if(reset_notify)
         {
-            uint32 timeleft = sInstanceSaveManager.GetResetTimeFor(GetPlayer()->GetMapId()) - time(NULL);
+            uint32 timeleft = sInstanceSaveMgr.GetResetTimeFor(GetPlayer()->GetMapId()) - time(NULL);
             GetPlayer()->SendInstanceResetWarning(GetPlayer()->GetMapId(), timeleft); // greeting at the entrance of the resort raid instance
         }
     }
@@ -263,7 +263,7 @@ void WorldSession::HandleMovementOpcodes( WorldPacket & recv_data )
         if (!GetPlayer()->m_transport)
         {
             // elevators also cause the client to send MOVEMENTFLAG_ONTRANSPORT - just unmount if the guid can be found in the transport list
-            for (MapManager::TransportSet::const_iterator iter = mapmgr.m_Transports.begin(); iter != mapmgr.m_Transports.end(); ++iter)
+            for (MapManager::TransportSet::const_iterator iter = sMapMgr.m_Transports.begin(); iter != sMapMgr.m_Transports.end(); ++iter)
             {
                 if ((*iter)->GetGUID() == movementInfo.t_guid)
                 {

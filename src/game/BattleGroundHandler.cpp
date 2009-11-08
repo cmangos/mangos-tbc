@@ -216,10 +216,10 @@ void WorldSession::HandleBattleGroundPlayerPositionsOpcode( WorldPacket & /*recv
         uint32 count1 = 0;
         uint32 count2 = 0;
 
-        Player *ap = objmgr.GetPlayer(((BattleGroundWS*)bg)->GetAllianceFlagPickerGUID());
+        Player *ap = sObjectMgr.GetPlayer(((BattleGroundWS*)bg)->GetAllianceFlagPickerGUID());
         if(ap) ++count2;
 
-        Player *hp = objmgr.GetPlayer(((BattleGroundWS*)bg)->GetHordeFlagPickerGUID());
+        Player *hp = sObjectMgr.GetPlayer(((BattleGroundWS*)bg)->GetHordeFlagPickerGUID());
         if(hp) ++count2;
 
         WorldPacket data(MSG_BATTLEGROUND_PLAYER_POSITIONS, (4+4+16*count1+16*count2));
@@ -463,7 +463,7 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
                 */
                 if (israted)
                 {
-                    ArenaTeam * at = objmgr.GetArenaTeamById(team);
+                    ArenaTeam * at = sObjectMgr.GetArenaTeamById(team);
                     if (at)
                     {
                         sLog.outDebug("UPDATING memberLost's personal arena rating for %u by opponents rating: %u, because he has left queue!", GUID_LOPART(_player->GetGUID()), opponentsRating);
@@ -719,7 +719,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
     {
         ateamId = _player->GetArenaTeamId(type);
         // check real arenateam existence only here (if it was moved to group->CanJoin .. () then we would ahve to get it twice)
-        ArenaTeam * at = objmgr.GetArenaTeamById(ateamId);
+        ArenaTeam * at = sObjectMgr.GetArenaTeamById(ateamId);
         if(!at)
         {
             _player->GetSession()->SendNotInArenaTeamPacket(arenatype);
@@ -798,7 +798,7 @@ void WorldSession::HandleReportPvPAFK( WorldPacket & recv_data )
 {
     uint64 playerGuid;
     recv_data >> playerGuid;
-    Player *reportedPlayer = objmgr.GetPlayer(playerGuid);
+    Player *reportedPlayer = sObjectMgr.GetPlayer(playerGuid);
 
     if(!reportedPlayer)
     {

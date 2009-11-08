@@ -192,7 +192,7 @@ Map* MapInstanced::GetInstance(const WorldObject* obj)
             {
                 // if no instanceId via group members or instance saves is found
                 // the instance will be created for the first time
-                NewInstanceId = mapmgr.GenerateInstanceId();
+                NewInstanceId = sMapMgr.GenerateInstanceId();
                 return CreateInstance(NewInstanceId, NULL, player->GetDifficulty());
             }
         }

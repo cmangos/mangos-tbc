@@ -442,7 +442,7 @@ ItemPrototype const *Item::GetProto() const
 
 Player* Item::GetOwner()const
 {
-    return objmgr.GetPlayer(GetOwnerGUID());
+    return sObjectMgr.GetPlayer(GetOwnerGUID());
 }
 
 uint32 Item::GetSkill()
@@ -769,7 +769,7 @@ bool Item::IsFitToSpellRequirements(SpellEntry const* spellInfo) const
 
 bool Item::IsTargetValidForItemUse(Unit* pUnitTarget)
 {
-    ItemRequiredTargetMapBounds bounds = objmgr.GetItemRequiredTargetMapBounds(GetProto()->ItemId);
+    ItemRequiredTargetMapBounds bounds = sObjectMgr.GetItemRequiredTargetMapBounds(GetProto()->ItemId);
 
     if (bounds.first == bounds.second)
         return true;
@@ -917,7 +917,7 @@ Item* Item::CreateItem( uint32 item, uint32 count, Player const* player )
         assert(count !=0 && "pProto->Stackable==0 but checked at loading already");
 
         Item *pItem = NewItemOrBag( pProto );
-        if( pItem->Create(objmgr.GenerateLowGuid(HIGHGUID_ITEM), item, player) )
+        if( pItem->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_ITEM), item, player) )
         {
             pItem->SetCount( count );
             return pItem;

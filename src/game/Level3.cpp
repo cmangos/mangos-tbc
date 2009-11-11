@@ -768,10 +768,7 @@ bool ChatHandler::HandleAccountSetGmLevelCommand(const char* args)
         arg2 = arg1;
 
         targetAccountId = targetPlayer->GetSession()->GetAccountId();
-<<<<<<< HEAD
-=======
         sAccountMgr.GetName(targetAccountId, targetAccountName);
->>>>>>> df96899... [8801] Rename accmgr macro to sAccountMgr. Thanks to astriconX for pointing out.
     }
     else
     {

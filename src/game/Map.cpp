@@ -1069,6 +1069,22 @@ void Map::UnloadAll(bool pForce)
     }
 }
 
+uint32 Map::GetMaxPlayers() const
+{
+    InstanceTemplate const* iTemplate = ObjectMgr::GetInstanceTemplate(GetId());
+    if(!iTemplate)
+        return 0;
+    return iTemplate->maxPlayers;
+}
+
+uint32 Map::GetMaxResetDelay() const
+{
+    InstanceTemplate const* iTemplate = ObjectMgr::GetInstanceTemplate(GetId());
+    if(!iTemplate)
+        return 0;
+    return iTemplate->reset_delay;
+}
+
 //*****************************
 // Grid function
 //*****************************
@@ -2447,7 +2463,7 @@ void InstanceMap::SetResetSchedule(bool on)
     // only for normal instances
     // the reset time is only scheduled when there are no payers inside
     // it is assumed that the reset time will rarely (if ever) change while the reset is scheduled
-    if(IsDungeon() && !HavePlayers() && !IsRaid() && !IsHeroic())
+    if(IsDungeon() && !HavePlayers() && !IsRaidOrHeroicDungeon())
     {
         InstanceSave *save = sInstanceSaveMgr.GetInstanceSave(GetInstanceId());
         if(!save) sLog.outError("InstanceMap::SetResetSchedule: cannot turn schedule %s, no save available for instance %d of %d", on ? "on" : "off", GetInstanceId(), GetId());
@@ -2455,18 +2471,10 @@ void InstanceMap::SetResetSchedule(bool on)
     }
 }
 
-uint32 InstanceMap::GetMaxPlayers() const
-{
-    InstanceTemplate const* iTemplate = ObjectMgr::GetInstanceTemplate(GetId());
-    if(!iTemplate)
-        return 0;
-    return iTemplate->maxPlayers;
-}
-
 /* ******* Battleground Instance Maps ******* */
 
 BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId)
-  : Map(id, expiry, InstanceId, DIFFICULTY_NORMAL)
+  : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY)
 {
     //lets initialize visibility distance for BG/Arenas
     BattleGroundMap::InitVisibilityDistance();

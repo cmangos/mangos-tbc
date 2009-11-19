@@ -951,7 +951,7 @@ void ObjectMgr::LoadCreatures()
         }
         else
         {
-            if(data.spawnMask & ~SPAWNMASK_CONTINENT)
+            if(data.spawnMask & ~SPAWNMASK_REGULAR)
                 sLog.outErrorDb("Table `creature` have creature (GUID: %u) that have wrong spawn mask %u for non-dungeon map (Id: %u).",guid, data.spawnMask, data.mapid );
         }
 
@@ -1127,7 +1127,7 @@ void ObjectMgr::LoadGameobjects()
         }
         else
         {
-            if(data.spawnMask & ~SPAWNMASK_CONTINENT)
+            if(data.spawnMask & ~SPAWNMASK_REGULAR)
                 sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that have wrong spawn mask %u for non-dungeon map (Id: %u), skip", guid, data.id, data.spawnMask, data.mapid);
         }
 

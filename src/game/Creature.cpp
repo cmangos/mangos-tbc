@@ -190,7 +190,7 @@ bool Creature::InitEntry(uint32 Entry, uint32 team, const CreatureData *data )
     if(normalInfo->HeroicEntry)
     {
         //we already have valid Map pointer for current creature!
-        if(GetMap()->IsHeroic())
+        if(!GetMap()->IsRegularDifficulty())
         {
             cinfo = ObjectMgr::GetCreatureTemplate(normalInfo->HeroicEntry);
             if(!cinfo)

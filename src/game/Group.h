@@ -402,7 +402,7 @@ class MANGOS_DLL_SPEC Group
         ItemQualities       m_lootThreshold;
         uint64              m_looterGuid;
         Rolls               RollId;
-        BoundInstancesMap   m_boundInstances[TOTAL_DIFFICULTIES];
+        BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY];
         uint8*              m_subGroupsCounts;
 };
 #endif

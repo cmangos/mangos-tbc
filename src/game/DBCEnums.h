@@ -63,6 +63,25 @@ enum AreaFlags
     AREA_FLAG_LOWLEVEL         = 0x00100000                 // used for some starting areas with area_level <=15
 };
 
+enum Difficulty
+{
+    REGULAR_DIFFICULTY           = 0,
+
+    DUNGEON_DIFFICULTY_NORMAL    = 0,
+    DUNGEON_DIFFICULTY_HEROIC    = 1,
+};
+
+#define MAX_DIFFICULTY             2
+
+enum SpawnMask
+{
+    SPAWNMASK_REGULAR           = (1 << REGULAR_DIFFICULTY),// any any maps without spawn modes (continents/subway) or in minimal spawnmode
+
+    SPAWNMASK_DUNGEON_NORMAL    = (1 << DUNGEON_DIFFICULTY_NORMAL),
+    SPAWNMASK_DUNGEON_HEROIC    = (1 << DUNGEON_DIFFICULTY_HEROIC),
+    SPAWNMASK_DUNGEON_ALL       = (SPAWNMASK_DUNGEON_NORMAL | SPAWNMASK_DUNGEON_HEROIC)
+};
+
 enum FactionTemplateFlags
 {
     FACTION_TEMPLATE_FLAG_CONTESTED_GUARD   =   0x00001000, // faction will attack players that were involved in PvP combats

@@ -1974,7 +1974,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_HomebindTimer;
         bool m_InstanceValid;
         // permanent binds and solo binds by difficulty
-        BoundInstancesMap m_boundInstances[TOTAL_DIFFICULTIES];
+        BoundInstancesMap m_boundInstances[MAX_DIFFICULTY];
         InstancePlayerBind* GetBoundInstance(uint32 mapid, uint8 difficulty);
         BoundInstancesMap& GetBoundInstances(uint8 difficulty) { return m_boundInstances[difficulty]; }
         void UnbindInstance(uint32 mapid, uint8 difficulty, bool unload = false);

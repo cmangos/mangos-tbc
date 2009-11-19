@@ -157,6 +157,8 @@ enum EventFlags
     EFLAG_RESERVED_5            = 0x20,
     EFLAG_RESERVED_6            = 0x40,
     EFLAG_DEBUG_ONLY            = 0x80,                     //Event only occurs in debug build
+
+    EFLAG_DIFFICULTY_ALL        = (EFLAG_NORMAL|EFLAG_HEROIC)
 };
 
 enum SpawnedEventMode

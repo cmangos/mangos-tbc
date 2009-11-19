@@ -69,7 +69,7 @@ Group::~Group()
     // it is undefined whether objectmgr (which stores the groups) or instancesavemgr
     // will be unloaded first so we must be prepared for both cases
     // this may unload some instance saves
-    for(uint8 i = 0; i < TOTAL_DIFFICULTIES; ++i)
+    for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
         for(BoundInstancesMap::iterator itr2 = m_boundInstances[i].begin(); itr2 != m_boundInstances[i].end(); ++itr2)
             itr2->second.save->RemoveGroup(this);
 
@@ -92,7 +92,7 @@ bool Group::Create(const uint64 &guid, const char * name)
     m_lootThreshold = ITEM_QUALITY_UNCOMMON;
     m_looterGuid = guid;
 
-    m_difficulty = DIFFICULTY_NORMAL;
+    m_difficulty = DUNGEON_DIFFICULTY_NORMAL;
     if(!isBGGroup())
     {
         Player *leader = sObjectMgr.GetPlayer(guid);
@@ -1101,7 +1101,7 @@ void Group::_setLeader(const uint64 &guid)
         Player *player = sObjectMgr.GetPlayer(slot->guid);
         if(player)
         {
-            for(uint8 i = 0; i < TOTAL_DIFFICULTIES; ++i)
+            for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
             {
                 for(BoundInstancesMap::iterator itr = m_boundInstances[i].begin(); itr != m_boundInstances[i].end();)
                 {
@@ -1432,7 +1432,7 @@ void Group::ResetInstances(uint8 method, Player* SendMsgTo)
         if(method == INSTANCE_RESET_ALL)
         {
             // the "reset all instances" method can only reset normal maps
-            if(dif == DIFFICULTY_HEROIC || entry->map_type == MAP_RAID)
+            if (entry->map_type == MAP_RAID || dif == DUNGEON_DIFFICULTY_HEROIC)
             {
                 ++itr;
                 continue;
@@ -1472,7 +1472,7 @@ InstanceGroupBind* Group::GetBoundInstance(uint32 mapid, uint8 difficulty)
 {
     // some instances only have one difficulty
     const MapEntry* entry = sMapStore.LookupEntry(mapid);
-    if(!entry || !entry->SupportsHeroicMode()) difficulty = DIFFICULTY_NORMAL;
+    if(!entry || !entry->SupportsHeroicMode()) difficulty = DUNGEON_DIFFICULTY_NORMAL;
 
     BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
     if(itr != m_boundInstances[difficulty].end())

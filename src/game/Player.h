@@ -957,7 +957,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void RemoveMiniPet();
         Pet* GetMiniPet();
         void SetMiniPet(Pet* pet) { m_miniPet = pet->GetGUID(); }
-        void Uncharm();
 
         void Say(const std::string& text, const uint32 language);
         void Yell(const std::string& text, const uint32 language);

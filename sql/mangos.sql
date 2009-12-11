@@ -2499,6 +2499,33 @@ LOCK TABLES `locales_page_text` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `locales_points_of_interest`
+--
+
+DROP TABLE IF EXISTS `locales_points_of_interest`; 
+CREATE TABLE `locales_points_of_interest` (
+  `entry` mediumint(8) unsigned NOT NULL default '0',
+  `icon_name_loc1` text,
+  `icon_name_loc2` text,
+  `icon_name_loc3` text,
+  `icon_name_loc4` text,
+  `icon_name_loc5` text,
+  `icon_name_loc6` text,
+  `icon_name_loc7` text,
+  `icon_name_loc8` text,
+  PRIMARY KEY  (`entry`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `locales_points_of_interest`
+--
+
+LOCK TABLES `locales_points_of_interest` WRITE;
+/*!40000 ALTER TABLE `locales_points_of_interest` DISABLE KEYS */;
+/*!40000 ALTER TABLE `locales_points_of_interest` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `locales_quest`
 --
 
@@ -10618,6 +10645,30 @@ INSERT INTO `playercreateinfo_spell` VALUES
 (11,8,28880,'Gift of the Naaru'),
 (11,8,29932,'Language Draenei');
 /*!40000 ALTER TABLE `playercreateinfo_spell` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `points_of_interest`
+--
+
+DROP TABLE IF EXISTS `points_of_interest`; 
+CREATE TABLE `points_of_interest` (
+  `entry` mediumint(8) unsigned NOT NULL default '0',
+  `x` float NOT NULL default '0',
+  `y` float NOT NULL default '0',
+  `icon` mediumint(8) unsigned NOT NULL default '0',
+  `flags` mediumint(8) unsigned NOT NULL default '0',
+  `data` mediumint(8) unsigned NOT NULL default '0',
+  `icon_name` text NOT NULL,
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `points_of_interest`
+--
+
+LOCK TABLES `points_of_interest` WRITE;
+/*!40000 ALTER TABLE `points_of_interest` DISABLE KEYS */;
+/*!40000 ALTER TABLE `points_of_interest` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

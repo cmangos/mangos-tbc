@@ -579,7 +579,27 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
             {
                 // remove custom flag before send
                 if( index == UNIT_NPC_FLAGS )
-                    *data << uint32(m_uint32Values[ index ] & ~UNIT_NPC_FLAG_GUARD);
+                {
+                    // remove custom flag before sending
+                    uint32 appendValue = m_uint32Values[ index ] & ~UNIT_NPC_FLAG_GUARD;
+
+                    if (GetTypeId() == TYPEID_UNIT)
+                    {
+                        if (appendValue & UNIT_NPC_FLAG_TRAINER)
+                        {
+                            if (!((Creature*)this)->isCanTrainingOf(target, false))
+                                appendValue &= ~(UNIT_NPC_FLAG_TRAINER | UNIT_NPC_FLAG_TRAINER_CLASS | UNIT_NPC_FLAG_TRAINER_PROFESSION);
+                        }
+
+                        if (appendValue & UNIT_NPC_FLAG_STABLEMASTER)
+                        {
+                            if (target->getClass() != CLASS_HUNTER)
+                                appendValue &= ~UNIT_NPC_FLAG_STABLEMASTER;
+                        }
+                    }
+
+                    *data << uint32(appendValue);
+                }
                 else if (index == UNIT_FIELD_AURASTATE)
                 {
                     if(IsPerCasterAuraState)

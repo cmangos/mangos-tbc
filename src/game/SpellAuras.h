@@ -316,7 +316,7 @@ class MANGOS_DLL_SPEC Aura
         void PeriodicTick();
         void PeriodicDummyTick();
 
-        void ReapplyAffectedPassiveAuras(Unit* target, SpellModifier const& spellmod);
+        void ReapplyAffectedPassiveAuras(Unit* target, SpellModifier const& spellmod, bool owner_mode);
 
         Modifier m_modifier;
         SpellModifier *m_spellmod;

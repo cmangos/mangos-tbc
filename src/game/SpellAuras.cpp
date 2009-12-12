@@ -1179,28 +1179,44 @@ void Aura::UpdateSlotCounterAndDuration(bool add)
     UpdateAuraDuration();
 }
 
-void Aura::ReapplyAffectedPassiveAuras( Unit* target, SpellModifier const& spellmod )
+void Aura::ReapplyAffectedPassiveAuras( Unit* target, SpellModifier const& spellmod, bool owner_mode )
 {
-    std::set<uint32> affectedPassives;
+    std::set<uint32> affectedSelf;
+    std::set<uint32> affectedAuraCaster;
 
     for(Unit::AuraMap::const_iterator itr = target->GetAuras().begin(); itr != target->GetAuras().end(); ++itr)
     {
-        // permanent passive
-        if (itr->second->IsPassive() && itr->second->IsPermanent() &&
+        // permanent passive or permanent area aura
+        // passive spells can be affected only by own or owner spell mods)
+        if (itr->second->IsPermanent() && (owner_mode && itr->second->IsPassive() || itr->second->IsAreaAura()) &&
             // non deleted and not same aura (any with same spell id)
             !itr->second->IsDeleted() && itr->second->GetId() != GetId() &&
-            // only applied by self and affected by aura
-            itr->second->GetCasterGUID() == target->GetGUID() &&
+            // and affected by spellmod
             sSpellMgr.IsAffectedBySpell(itr->second->GetSpellProto(),spellmod.spellId,spellmod.effectId,spellmod.mask))
         {
-            affectedPassives.insert(itr->second->GetId());
+            // only applied by self or aura caster
+            if (itr->second->GetCasterGUID() == target->GetGUID())
+                affectedSelf.insert(itr->second->GetId());
+            else if (itr->second->GetCasterGUID() == GetCasterGUID())
+                affectedAuraCaster.insert(itr->second->GetId());
         }
     }
 
-    for(std::set<uint32>::const_iterator set_itr = affectedPassives.begin(); set_itr != affectedPassives.end(); ++set_itr)
+    for(std::set<uint32>::const_iterator set_itr = affectedSelf.begin(); set_itr != affectedSelf.end(); ++set_itr)
     {
         target->RemoveAurasDueToSpell(*set_itr);
         target->CastSpell(m_target, *set_itr, true);
+    }
+
+    if (!affectedAuraCaster.empty())
+    {
+        Unit* caster = GetCaster();
+        for(std::set<uint32>::const_iterator set_itr = affectedAuraCaster.begin(); set_itr != affectedAuraCaster.end(); ++set_itr)
+        {
+            target->RemoveAurasDueToSpell(*set_itr);
+            if (caster)
+                caster->CastSpell(m_target, *set_itr, true);
+        }
     }
 }
 
@@ -1262,16 +1278,24 @@ void Aura::HandleAddModifier(bool apply, bool Real)
     ((Player*)m_target)->AddSpellMod(m_spellmod, apply);
 
     // reapply talents to own passive persistent auras
-    ReapplyAffectedPassiveAuras(m_target,spellmod);
+    ReapplyAffectedPassiveAuras(m_target, spellmod, true);
 
-    // re-aplly talents and passives applied to pet (it affected by player spellmods)
+    // re-apply talents/passives/area auras applied to pet (it affected by player spellmods)
     if(Pet* pet = m_target->GetPet())
-        ReapplyAffectedPassiveAuras(pet,spellmod);
+        ReapplyAffectedPassiveAuras(pet, spellmod, true);
 
+    // re-apply talents/passives/area auras applied to totems (it affected by player spellmods)
     for(int i = 0; i < MAX_TOTEM; ++i)
         if(m_target->m_TotemSlot[i])
             if(Creature* totem = m_target->GetMap()->GetCreature(m_target->m_TotemSlot[i]))
-                ReapplyAffectedPassiveAuras(totem,spellmod);
+                ReapplyAffectedPassiveAuras(totem, spellmod, true);
+
+    // re-apply talents/passives/area auras applied to group members (it affected by player spellmods)
+    if (Group* group = ((Player*)m_target)->GetGroup())
+        for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+            if (Player* member = itr->getSource())
+                if (member != m_target && member->IsInMap(m_target))
+                    ReapplyAffectedPassiveAuras(member, spellmod, false);
 }
 
 void Aura::TriggerSpell()

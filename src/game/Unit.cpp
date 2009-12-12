@@ -11327,7 +11327,7 @@ bool Unit::IsTriggeredAtSpellProcEvent(SpellEntry const* spellProto, SpellEntry 
     {
         if(spellProto->EquippedItemClass == ITEM_CLASS_WEAPON)
         {
-            Item *item = ((Player*)this)->GetWeaponForAttack(attType,true);
+            Item *item = ((Player*)this)->GetWeaponForAttack(attType,true,true);
 
             if(!item || !((1<<item->GetProto()->SubClass) & spellProto->EquippedItemSubClassMask))
                 return false;

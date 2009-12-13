@@ -5277,7 +5277,6 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             break;
         case FORM_TREE:
             spellId1 = 5420;
-            spellId2 = 34123;
             break;
         case FORM_TRAVEL:
             spellId1 = 5419;

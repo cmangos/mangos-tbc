@@ -2208,13 +2208,13 @@ void Spell::cast(bool skipCheck)
                 case 25331: AddTriggeredSpell(25329); break;// Holy Nova, rank 7
                 default:break;
             }
-            break;      
+            break;
         }
         case SPELLFAMILY_PALADIN:
         {
             // Divine Shield, Divine Protection, Blessing of Protection or Avenging Wrath
             if(m_spellInfo->CasterAuraStateNot==AURA_STATE_FORBEARANCE || m_spellInfo->TargetAuraStateNot==AURA_STATE_FORBEARANCE)
-                AddPrecastSpell(25771);                     // Forbearance         
+                AddPrecastSpell(25771);                     // Forbearance
           break;
         }
         default:

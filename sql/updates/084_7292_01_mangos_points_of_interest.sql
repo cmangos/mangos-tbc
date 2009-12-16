@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS `points_of_interest`; 
+DROP TABLE IF EXISTS `points_of_interest`;
 CREATE TABLE `points_of_interest` (
   `entry` mediumint(8) unsigned NOT NULL default '0',
   `x` float NOT NULL default '0',

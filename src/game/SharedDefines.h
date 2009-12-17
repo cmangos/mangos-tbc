@@ -2469,4 +2469,10 @@ enum PetTameFailureReason
     PETTAME_UNKNOWNERROR            = 11
 };
 
+// we need to stick to 1 version or half of the stuff will work for someone
+// others will not and opposite
+// will only support WoW and WoW:TBC 2.4.3 client build 8606...
+
+#define EXPECTED_MANGOSD_CLIENT_BUILD        {8606, 0}
+
 #endif

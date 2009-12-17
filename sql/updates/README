@@ -48,11 +48,11 @@ or to DB with already applied this or later SQL update will generate error and n
 === What do for upgrade to MaNGOS 0.13 ====
 
 MaNGOS 0.12 DB structure can have changes not compatibale with sql updates in MaNGOS 0.13 sql/updates directory.
-For resolve this problem you need compatible DB content for tables in mangos.sql, and apply all sql updates from
-sql/updates/before_upgrade_to_0.13 in REVERSED order from high order number prefix to low for characters/realmd DB.
+For resolve this problem you need compatible DB content for tables in mangos.sql and realmd, and apply all sql updates from
+sql/updates/before_upgrade_to_0.13 in REVERSED order from high order number prefix to low for characters DB.
 After this you will have DB structure compatiable with state that exist at moment.
 MaNGOS 0.12 release and then sql updates from MaNGOS 0.13 sql/updates directory will applied without problem in normal order
-(for charcters/realmd DBs) starting from MaNGOS 0.13 sql/updates/2008_12_22_02_characters_character_pet.sql)
+(for charcters DBs) starting from MaNGOS 0.13 sql/updates/2008_12_22_02_characters_character_pet.sql)
 
 === For commiters ===
 
@@ -60,6 +60,8 @@ DO NOT use git_id tool for mangos-0.12 branch or any branch different from maste
 
 1. Rename sql update from master form (7932_01_characters_character_pet.sql) to mangos-0.12 form (041_7932_01_characters_character_pet.sql)
    using next free order_number in sql/updates files list (041 in our case).
+
+   If this realmd sql update preserve existed mangos master sql guards, and do next step with this goal.
 
 2. Replace sql order guards from sql update file
    (ALTER TABLE character_db_version CHANGE COLUMN required_7887_01_characters_character_pet required_7903_01_characters_character_pet bit;)

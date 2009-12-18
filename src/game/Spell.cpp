@@ -526,11 +526,13 @@ void Spell::FillTargetMap()
                             SetTargetMap(i, m_spellInfo->EffectImplicitTargetB[i], tmpUnitMap);
                         }
                         break;
+                    case 0:
+                        SetTargetMap(i, m_spellInfo->EffectImplicitTargetA[i], tmpUnitMap);
+                        tmpUnitMap.push_back(m_caster);
+                        break;
                     default:
-                        {
-                            SetTargetMap(i, m_spellInfo->EffectImplicitTargetA[i], tmpUnitMap);
-                            SetTargetMap(i, m_spellInfo->EffectImplicitTargetB[i], tmpUnitMap);
-                        }
+                        SetTargetMap(i, m_spellInfo->EffectImplicitTargetA[i], tmpUnitMap);
+                        SetTargetMap(i, m_spellInfo->EffectImplicitTargetB[i], tmpUnitMap);
                         break;
                 }
                 break;

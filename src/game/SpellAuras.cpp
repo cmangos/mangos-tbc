@@ -1185,7 +1185,7 @@ void Aura::ReapplyAffectedPassiveAuras( Unit* target, SpellModifier const& spell
             // non deleted and not same aura (any with same spell id)
             !itr->second->IsDeleted() && itr->second->GetId() != GetId() &&
             // and affected by spellmod
-            sSpellMgr.IsAffectedBySpell(itr->second->GetSpellProto(),spellmod.spellId,spellmod.effectId,spellmod.mask))
+            spellmod.isAffectedOnSpell(itr->second->GetSpellProto()))
         {
             // only applied by self or aura caster
             if (itr->second->GetCasterGUID() == target->GetGUID())
@@ -1240,27 +1240,12 @@ void Aura::HandleAddModifier(bool apply, bool Real)
                 break;
         }
 
-        SpellModifier *mod = new SpellModifier;
-        mod->op = SpellModOp(m_modifier.m_miscvalue);
-        mod->value = m_modifier.m_amount;
-        mod->type = SpellModType(m_modifier.m_auraname);    // SpellModType value == spell aura types
-        mod->spellId = GetId();
-        mod->effectId = m_effIndex;
-        mod->lastAffected = NULL;
-
-        uint64 spellAffectMask = sSpellMgr.GetSpellAffectMask(GetId(), m_effIndex);
-
-        if (spellAffectMask)
-            mod->mask = spellAffectMask;
-        else
-            mod->mask = spellInfo->EffectItemType[m_effIndex];
-
-        if (m_procCharges > 0)
-            mod->charges = m_procCharges;
-        else
-            mod->charges = 0;
-
-        m_spellmod = mod;
+        m_spellmod = new SpellModifier(
+            SpellModOp(m_modifier.m_miscvalue),
+            SpellModType(m_modifier.m_auraname),            // SpellModType value == spell aura types
+            m_modifier.m_amount,
+            this,
+            m_procCharges > 0 ? m_procCharges : 0);
     }
 
     uint64 spellFamilyMask = m_spellmod->mask;
@@ -2279,19 +2264,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             if ( GetId() == 34246 && m_target->GetTypeId()==TYPEID_PLAYER )
             {
                 if(apply)
-                {
-                    SpellModifier *mod = new SpellModifier;
-                    mod->op = SPELLMOD_DOT;
-                    mod->value = m_modifier.m_amount/7;
-                    mod->type = SPELLMOD_FLAT;
-                    mod->spellId = GetId();
-                    mod->effectId = m_effIndex;
-                    mod->lastAffected = NULL;
-                    mod->mask = UI64LIT(0x001000000000);
-                    mod->charges = 0;
-
-                    m_spellmod = mod;
-                }
+                    m_spellmod = new SpellModifier(SPELLMOD_DOT,SPELLMOD_FLAT,m_modifier.m_amount/7,GetId(),UI64LIT(0x001000000000));
 
                 ((Player*)m_target)->AddSpellMod(m_spellmod, apply);
                 return;
@@ -2304,20 +2277,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             if( GetId()==38390 && m_target->GetTypeId()==TYPEID_PLAYER )
             {
                 if(apply)
-                {
                     // + effect value for Aspect of the Viper
-                    SpellModifier *mod = new SpellModifier;
-                    mod->op = SPELLMOD_EFFECT1;
-                    mod->value = m_modifier.m_amount;
-                    mod->type = SPELLMOD_FLAT;
-                    mod->spellId = GetId();
-                    mod->effectId = m_effIndex;
-                    mod->lastAffected = NULL;
-                    mod->mask = UI64LIT(0x4000000000000);
-                    mod->charges = 0;
-
-                    m_spellmod = mod;
-                }
+                    m_spellmod = new SpellModifier(SPELLMOD_EFFECT1,SPELLMOD_FLAT,m_modifier.m_amount,GetId(),UI64LIT(0x4000000000000));
 
                 ((Player*)m_target)->AddSpellMod(m_spellmod, apply);
                 return;
@@ -2331,27 +2292,18 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 if(apply)
                 {
-                    SpellModifier *mod = new SpellModifier;
-                    mod->op = SPELLMOD_EFFECT1;
-                    mod->value = m_modifier.m_amount;
-                    mod->type = SPELLMOD_PCT;
-                    mod->spellId = GetId();
-                    mod->effectId = m_effIndex;
-                    mod->lastAffected = NULL;
                     switch (m_effIndex)
                     {
                         case 0:
                             // Windfury Totem
-                            mod->mask = UI64LIT(0x00200000000);
+                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1,SPELLMOD_PCT,m_modifier.m_amount,GetId(),UI64LIT(0x00200000000));
                             break;
                         case 1:
                             // Flametongue Totem
-                            mod->mask = UI64LIT(0x00400000000);
+                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1,SPELLMOD_PCT,m_modifier.m_amount,GetId(),UI64LIT(0x00400000000));
                             break;
+                        default: return;
                     }
-                    mod->charges = 0;
-
-                    m_spellmod = mod;
                 }
 
                 ((Player*)m_target)->AddSpellMod(m_spellmod, apply);

@@ -137,6 +137,7 @@ pkgdata_DATA = \
 	085_8929_01_mangos_gossip_scripts.sql \
 	086_9010_01_realmd_realmlist.sql \
 	087_9074_01_mangos_command.sql \
+	088_9095_01_mangos_command.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -253,4 +254,5 @@ EXTRA_DIST = \
 	085_8929_01_mangos_gossip_scripts.sql \
 	086_9010_01_realmd_realmlist.sql \
 	087_9074_01_mangos_command.sql \
+	088_9095_01_mangos_command.sql \
 	README

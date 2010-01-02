@@ -207,7 +207,6 @@ inline bool IsCasterSourceTarget(uint32 target)
         case TARGET_TOTEM_WATER:
         case TARGET_TOTEM_AIR:
         case TARGET_TOTEM_FIRE:
-        case TARGET_SUMMON:
         case TARGET_AREAEFFECT_CUSTOM_2:
         case TARGET_RANDOM_RAID_MEMBER:
         case TARGET_SELF2:

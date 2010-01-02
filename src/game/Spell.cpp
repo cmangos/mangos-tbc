@@ -1198,7 +1198,6 @@ void Spell::SetTargetMap(uint32 effIndex,uint32 targetMode, UnitList& targetUnit
         case TARGET_SELF2:
         case TARGET_AREAEFFECT_CUSTOM:
         case TARGET_AREAEFFECT_CUSTOM_2:
-        case TARGET_SUMMON:
             targetUnitMap.push_back(m_caster);
             break;
         case TARGET_RANDOM_ENEMY_CHAIN_IN_AREA:
@@ -1795,16 +1794,19 @@ void Spell::SetTargetMap(uint32 effIndex,uint32 targetMode, UnitList& targetUnit
             break;
 
         case TARGET_DYNAMIC_OBJECT_FRONT:
+        case TARGET_DYNAMIC_OBJECT_BEHIND:
         case TARGET_DYNAMIC_OBJECT_LEFT_SIDE:
         case TARGET_DYNAMIC_OBJECT_RIGHT_SIDE:
+        {
             if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
             {
                 float angle = m_caster->GetOrientation();
                 switch(targetMode)
                 {
-                    case TARGET_DYNAMIC_OBJECT_FRONT:                         break;
-                    case TARGET_DYNAMIC_OBJECT_LEFT_SIDE:  angle -= 3*M_PI/4; break;
-                    case TARGET_DYNAMIC_OBJECT_RIGHT_SIDE: angle += 3*M_PI/4; break;
+                    case TARGET_DYNAMIC_OBJECT_FRONT:                        break;
+                    case TARGET_DYNAMIC_OBJECT_BEHIND:      angle += M_PI;   break;
+                    case TARGET_DYNAMIC_OBJECT_LEFT_SIDE:   angle += M_PI/2; break;
+                    case TARGET_DYNAMIC_OBJECT_RIGHT_SIDE:  angle -= M_PI/2; break;
                 }
 
                 float x,y;
@@ -1814,7 +1816,7 @@ void Spell::SetTargetMap(uint32 effIndex,uint32 targetMode, UnitList& targetUnit
 
             targetUnitMap.push_back(m_caster);
             break;
-
+        }
         case TARGET_POINT_AT_NORTH:
         case TARGET_POINT_AT_SOUTH:
         case TARGET_POINT_AT_EAST:

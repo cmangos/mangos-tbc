@@ -1155,6 +1155,35 @@ void Spell::SetTargetMap(uint32 effIndex,uint32 targetMode, UnitList& targetUnit
 
     uint32 unMaxTargets = m_spellInfo->MaxAffectedTargets;
 
+    // custom target amount cases
+    switch(m_spellInfo->SpellFamilyName)
+    {
+        case SPELLFAMILY_GENERIC:
+        {
+            switch(m_spellInfo->Id)
+            {
+                case 31347:                                 // Doom TODO: exclude top threat target from target selection
+                case 33711:                                 // Murmur's Touch
+                case 38794:                                 // Murmur's Touch (h)
+                    unMaxTargets = 1;
+                    break;
+                case 31298:                                 // Sleep
+                    unMaxTargets = 3;
+                    break;
+                case 30843:                                 // Enfeeble
+                case 42005:                                 // Bloodboil TODO: need to be 5 targets(players) furthest away from caster
+                    unMaxTargets = 5;
+                    break;
+                case 28796:                                 // Poison Bolt Volley
+                    unMaxTargets = 10;
+                    break;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
     switch(targetMode)
     {
         case TARGET_RANDOM_NEARBY_LOC:

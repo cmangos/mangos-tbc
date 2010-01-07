@@ -1167,10 +1167,13 @@ void Spell::SetTargetMap(uint32 effIndex,uint32 targetMode, UnitList& targetUnit
                 case 38794:                                 // Murmur's Touch (h)
                     unMaxTargets = 1;
                     break;
+                case 28542:                                 // Life Drain
+                    unMaxTargets = 2;
+                    break;
                 case 31298:                                 // Sleep
                     unMaxTargets = 3;
                     break;
-                case 30843:                                 // Enfeeble
+                case 30843:                                 // Enfeeble TODO: exclude top threat target from target selection
                 case 42005:                                 // Bloodboil TODO: need to be 5 targets(players) furthest away from caster
                     unMaxTargets = 5;
                     break;

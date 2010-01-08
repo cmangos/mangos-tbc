@@ -29,8 +29,6 @@ typedef std::map<uint32, BattleGround*> BattleGroundSet;
 //typedef std::map<uint32, BattleGroundQueue*> BattleGroundQueueSet;
 typedef std::deque<BattleGround*> BGFreeSlotQueueType;
 
-#define MAX_BATTLEGROUND_QUEUES 7                           // for level ranges 10-19, 20-29, 30-39, 40-49, 50-59, 60-69, 70+
-
 typedef UNORDERED_MAP<uint32, BattleGroundTypeId> BattleMastersMap;
 typedef UNORDERED_MAP<uint32, BattleGroundEventIdx> CreatureBattleEventIndexesMap;
 typedef UNORDERED_MAP<uint32, BattleGroundEventIdx> GameObjectBattleEventIndexesMap;
@@ -70,9 +68,9 @@ class BattleGroundQueue
         BattleGroundQueue();
         ~BattleGroundQueue();
 
-        void Update(BattleGroundTypeId bgTypeId, uint32 queue_id, uint8 arenatype = 0, bool isRated = false, uint32 minRating = 0);
+        void Update(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 arenatype = 0, bool isRated = false, uint32 minRating = 0);
 
-        GroupQueueInfo * AddGroup(Player * leader, BattleGroundTypeId bgTypeId, uint8 ArenaType, bool isRated, uint32 ArenaRating, uint32 ArenaTeamId = 0);
+        GroupQueueInfo * AddGroup(Player * leader, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint8 ArenaType, bool isRated, uint32 ArenaRating, uint32 ArenaTeamId = 0);
         void AddPlayer(Player *plr, GroupQueueInfo *ginfo);
         void RemovePlayer(const uint64& guid, bool decreaseInvitedCount);
         void DecreaseGroupLength(uint32 queueId, uint32 AsGroup);
@@ -80,10 +78,10 @@ class BattleGroundQueue
         void AnnounceWorld(GroupQueueInfo *ginfo, const uint64& playerGUID, bool isAddedToQueue);
 
         typedef std::map<uint64, PlayerQueueInfo> QueuedPlayersMap;
-        QueuedPlayersMap m_QueuedPlayers[MAX_BATTLEGROUND_QUEUES];
+        QueuedPlayersMap m_QueuedPlayers[MAX_BATTLEGROUND_BRACKETS];
 
         typedef std::list<GroupQueueInfo*> QueuedGroupsList;
-        QueuedGroupsList m_QueuedGroups[MAX_BATTLEGROUND_QUEUES];
+        QueuedGroupsList m_QueuedGroups[MAX_BATTLEGROUND_BRACKETS];
 
         // class to hold pointers to the groups eligible for a specific selection pool building mode
         class EligibleGroups : public std::list<GroupQueueInfo *>
@@ -125,7 +123,7 @@ class BattleGroundQueue
 
         SelectionPool m_SelectionPools[NUM_SELECTION_POOL_TYPES];
 
-        bool BuildSelectionPool(BattleGroundTypeId bgTypeId, uint32 queue_id, uint32 MinPlayers, uint32 MaxPlayers, SelectionPoolBuildMode mode, uint8 ArenaType = 0, bool isRated = false, uint32 MinRating = 0, uint32 MaxRating = 0, uint32 DisregardTime = 0, uint32 excludeTeam = 0);
+        bool BuildSelectionPool(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id, uint32 MinPlayers, uint32 MaxPlayers, SelectionPoolBuildMode mode, uint8 ArenaType = 0, bool isRated = false, uint32 MinRating = 0, uint32 MaxRating = 0, uint32 DisregardTime = 0, uint32 excludeTeam = 0);
 
     private:
 
@@ -259,7 +257,7 @@ class BattleGroundMgr
 
         static bool IsArenaType(BattleGroundTypeId bgTypeId);
         static bool IsBattleGroundType(BattleGroundTypeId bgTypeId) { return !BattleGroundMgr::IsArenaType(bgTypeId); }
-        static uint32 BGQueueTypeId(BattleGroundTypeId bgTypeId, uint8 arenaType);
+        static BattleGroundQueueTypeId BGQueueTypeId(BattleGroundTypeId bgTypeId, uint8 arenaType);
         static BattleGroundTypeId BGTemplateId(uint32 bgQueueTypeId);
         static uint8 BGArenaType(uint32 bgQueueTypeId);
     private:

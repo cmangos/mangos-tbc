@@ -157,6 +157,23 @@ enum BattleGroundQueueTypeId
 };
 #define MAX_BATTLEGROUND_QUEUE_TYPES 8
 
+enum BattleGroundBracketId                                  // bracketId for level ranges
+{
+    BG_BRACKET_ID_FIRST          = 0,
+
+    BG_BRACKET_ID_MAX_LEVEL_19   = 0,
+    BG_BRACKET_ID_MAX_LEVEL_29   = 1,
+    BG_BRACKET_ID_MAX_LEVEL_39   = 2,
+    BG_BRACKET_ID_MAX_LEVEL_49   = 3,
+    BG_BRACKET_ID_MAX_LEVEL_59   = 4,
+    BG_BRACKET_ID_MAX_LEVEL_69   = 5,
+    BG_BRACKET_ID_MAX_LEVEL_70   = 6,
+
+    BG_BRACKET_ID_LAST           = 6,
+
+    MAX_BATTLEGROUND_BRACKETS    = 7                        // used as one from values, so in enum
+};
+
 enum ScoreType
 {
     SCORE_KILLING_BLOWS         = 1,
@@ -267,7 +284,7 @@ class BattleGround
         // Get methods:
         char const* GetName() const         { return m_Name; }
         BattleGroundTypeId GetTypeID() const { return m_TypeID; }
-        uint32 GetQueueType() const         { return m_Queue_type; }
+        BattleGroundBracketId GetBracketId() const { return m_BracketId; }
         uint32 GetInstanceID() const        { return m_InstanceID; }
         BattleGroundStatus GetStatus() const { return m_Status; }
         uint32 GetStartTime() const         { return m_StartTime; }
@@ -291,7 +308,7 @@ class BattleGround
         // Set methods:
         void SetName(char const* Name)      { m_Name = Name; }
         void SetTypeID(BattleGroundTypeId TypeID) { m_TypeID = TypeID; }
-        void SetQueueType(uint32 ID)        { m_Queue_type = ID; }
+        void SetBracketId(BattleGroundBracketId ID) { m_BracketId = ID; }
         void SetInstanceID(uint32 InstanceID) { m_InstanceID = InstanceID; }
         void SetStatus(BattleGroundStatus Status) { m_Status = Status; }
         void SetStartTime(uint32 Time)      { m_StartTime = Time; }
@@ -527,7 +544,7 @@ class BattleGround
         uint32 m_StartTime;
         bool m_ArenaBuffSpawned;                            // to cache if arenabuff event is started (cause bool is faster than checking IsActiveEvent)
         int32 m_EndTime;                                    // it is set to 120000 when bg is ending and it decreases itself
-        uint32 m_Queue_type;
+        BattleGroundBracketId m_BracketId;
         uint8  m_ArenaType;                                 // 2=2v2, 3=3v3, 5=5v5
         bool   m_InBGFreeSlotQueue;                         // used to make sure that BG is only once inserted into the BattleGroundMgr.BGFreeSlotQueue[bgTypeId] deque
         bool   m_SetDeleteThis;                             // used for safe deletion of the bg after end / all players leave

@@ -1340,7 +1340,7 @@ uint32 Group::CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, uint32 bgQue
     if(!reference)
         return BG_JOIN_ERR_OFFLINE_MEMBER;
 
-    uint32 bgQueueId = reference->GetBattleGroundQueueIdFromLevel();
+    BattleGroundBracketId bracket_id = reference->GetBattleGroundBracketIdFromLevel();
     uint32 arenaTeamId = reference->GetArenaTeamId(arenaSlot);
     uint32 team = reference->GetTeam();
 
@@ -1354,8 +1354,8 @@ uint32 Group::CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, uint32 bgQue
         // don't allow cross-faction join as group
         if(member->GetTeam() != team)
             return BG_JOIN_ERR_MIXED_FACTION;
-        // not in the same battleground level braket, don't let join
-        if(member->GetBattleGroundQueueIdFromLevel() != bgQueueId)
+        // not in the same battleground level bracket, don't let join
+        if(member->GetBattleGroundBracketIdFromLevel() != bracket_id)
             return BG_JOIN_ERR_MIXED_LEVELS;
         // don't let join rated matches if the arena team id doesn't match
         if(isRated && member->GetArenaTeamId(arenaSlot) != arenaTeamId)

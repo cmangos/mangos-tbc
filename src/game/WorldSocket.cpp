@@ -43,6 +43,7 @@
 #include "WorldSession.h"
 #include "WorldSocketMgr.h"
 #include "Log.h"
+#include "DBCStores.h"
 
 #if defined( __GNUC__ )
 #pragma pack(1)
@@ -646,18 +647,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
                 clientSeed);
 
     // Check the version of client trying to connect
-    bool valid_version = false;
-    int accepted_versions[] = EXPECTED_MANGOSD_CLIENT_BUILD;
-    for(int i = 0; accepted_versions[i]; ++i)
-    {
-        if(BuiltNumberClient == accepted_versions[i])
-        {
-            valid_version = true;
-            break;
-        }
-    }
-
-    if(!valid_version)
+    if(!IsAcceptableClientBuild(BuiltNumberClient))
     {
         packet.Initialize (SMSG_AUTH_RESPONSE, 1);
         packet << uint8 (AUTH_VERSION_MISMATCH);

@@ -2698,17 +2698,7 @@ void Spell::SendLoot(uint64 guid, LootType loottype)
                 return;
 
             case GAMEOBJECT_TYPE_QUESTGIVER:
-                // start or end quest
-                player->PrepareQuestMenu(guid);
-                player->SendPreparedQuest(guid);
-                return;
-
             case GAMEOBJECT_TYPE_SPELL_FOCUS:
-                // triggering linked GO
-                if (uint32 trapEntry = gameObjTarget->GetGOInfo()->spellFocus.linkedTrapId)
-                    gameObjTarget->TriggeringLinkedGameObject(trapEntry,m_caster);
-                return;
-
             case GAMEOBJECT_TYPE_GOOBER:
                 // goober_scripts can be triggered if the player don't have the quest
                 if (gameObjTarget->GetGOInfo()->goober.eventId)
@@ -3100,8 +3090,7 @@ void Spell::EffectSummon(uint32 i)
 
     spawnCreature->GetCharmInfo()->SetPetNumber(pet_number, false);
     
-    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-        spawnCreature->UpdateWalkModeForPets(((Player*)m_caster)->HasMovementFlag(MOVEMENTFLAG_WALK_MODE));
+    spawnCreature->UpdateWalkMode(m_caster);
 
     spawnCreature->AIM_Initialize();
     spawnCreature->InitPetCreateSpells();
@@ -3916,8 +3905,7 @@ void Spell::EffectSummonPet(uint32 i)
     NewSummon->SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, 1000);
     NewSummon->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
 
-    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-        NewSummon->UpdateWalkModeForPets(((Player*)m_caster)->HasMovementFlag(MOVEMENTFLAG_WALK_MODE));
+    NewSummon->UpdateWalkMode(m_caster);
 
     NewSummon->GetCharmInfo()->SetPetNumber(pet_number, true);
     // this enables pet details window (Shift+P)

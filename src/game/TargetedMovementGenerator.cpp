@@ -97,9 +97,7 @@ void TargetedMovementGenerator<Player>::Initialize(Player &owner)
 template<>
 void TargetedMovementGenerator<Creature>::Initialize(Creature &owner)
 {
-    if (owner.HasSearchedAssistance())
-        owner.AddMonsterMoveFlag(MONSTER_MOVE_WALK);
-    else if (owner.isInCombat())
+    if (owner.isInCombat())
         owner.RemoveMonsterMoveFlag(MONSTER_MOVE_WALK);
 
     if (((Creature*)&owner)->canFly())

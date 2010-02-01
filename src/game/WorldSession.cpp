@@ -571,7 +571,7 @@ void WorldSession::SendAuthWaitQue(uint32 position)
 void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo *mi)
 {
     data >> mi->flags;
-    data >> mi->unk1;
+    data >> mi->moveFlags2;
     data >> mi->time;
     data >> mi->x;
     data >> mi->y;
@@ -587,7 +587,6 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo *mi)
         data >> mi->t_o;
         data >> mi->t_time;
     }
-
     if(mi->HasMovementFlag(MovementFlags(MOVEMENTFLAG_SWIMMING | MOVEMENTFLAG_FLYING2)))
     {
         data >> mi->s_pitch;
@@ -597,7 +596,7 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo *mi)
 
     if(mi->HasMovementFlag(MOVEMENTFLAG_JUMPING))
     {
-        data >> mi->j_unk;
+        data >> mi->j_velocity;
         data >> mi->j_sinAngle;
         data >> mi->j_cosAngle;
         data >> mi->j_xyspeed;

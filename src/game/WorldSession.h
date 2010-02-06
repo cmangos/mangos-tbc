@@ -29,7 +29,6 @@
 struct ItemPrototype;
 struct AuctionEntry;
 struct DeclinedName;
-struct MovementInfo;
 
 class Creature;
 class Item;
@@ -75,10 +74,7 @@ class MANGOS_DLL_SPEC WorldSession
         bool PlayerLogout() const { return m_playerLogout; }
         bool PlayerLogoutWithSave() const { return m_playerLogout && m_playerSave; }
 
-
         void SizeError(WorldPacket const& packet, uint32 size) const;
-
-        void ReadMovementInfo(WorldPacket &data, MovementInfo *mi);
 
         void SendPacket(WorldPacket const* packet);
         void SendNotification(const char *format,...) ATTR_PRINTF(2,3);

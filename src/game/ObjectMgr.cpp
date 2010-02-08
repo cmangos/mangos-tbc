@@ -285,7 +285,7 @@ void ObjectMgr::LoadCreatureLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.Name.size() <= idx)
+                    if((int32)data.Name.size() <= idx)
                         data.Name.resize(idx+1);
 
                     data.Name[idx] = str;
@@ -297,7 +297,7 @@ void ObjectMgr::LoadCreatureLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.SubName.size() <= idx)
+                    if((int32)data.SubName.size() <= idx)
                         data.SubName.resize(idx+1);
 
                     data.SubName[idx] = str;
@@ -354,7 +354,7 @@ void ObjectMgr::LoadGossipMenuItemsLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.OptionText.size() <= idx)
+                    if((int32)data.OptionText.size() <= idx)
                         data.OptionText.resize(idx+1);
 
                     data.OptionText[idx] = str;
@@ -366,7 +366,7 @@ void ObjectMgr::LoadGossipMenuItemsLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.BoxText.size() <= idx)
+                    if((int32)data.BoxText.size() <= idx)
                         data.BoxText.resize(idx+1);
 
                     data.BoxText[idx] = str;
@@ -418,7 +418,7 @@ void ObjectMgr::LoadPointOfInterestLocales()
             int idx = GetOrNewIndexForLocale(LocaleConstant(i));
             if(idx >= 0)
             {
-                if(data.IconName.size() <= idx)
+                if((int32)data.IconName.size() <= idx)
                     data.IconName.resize(idx+1);
 
                 data.IconName[idx] = str;
@@ -1457,7 +1457,7 @@ void ObjectMgr::LoadItemLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.Name.size() <= idx)
+                    if((int32)data.Name.size() <= idx)
                         data.Name.resize(idx+1);
 
                     data.Name[idx] = str;
@@ -1470,7 +1470,7 @@ void ObjectMgr::LoadItemLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.Description.size() <= idx)
+                    if((int32)data.Description.size() <= idx)
                         data.Description.resize(idx+1);
 
                     data.Description[idx] = str;
@@ -2963,7 +2963,7 @@ void ObjectMgr::LoadGroups()
 
             uint32 leaderGuidLow = fields[0].GetUInt32();
             uint32 mapId = fields[1].GetUInt32();
-            uint32 diff = fields[4].GetUInt8();
+            Difficulty diff = (Difficulty)fields[4].GetUInt8();
 
             if(!group || GUID_LOPART(group->GetLeaderGUID()) != leaderGuidLow)
             {
@@ -2986,7 +2986,7 @@ void ObjectMgr::LoadGroups()
                 continue;
             }
 
-            InstanceSave *save = sInstanceSaveMgr.AddInstanceSave(mapEntry->MapID, fields[2].GetUInt32(), fields[4].GetUInt8(), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true);
+            InstanceSave *save = sInstanceSaveMgr.AddInstanceSave(mapEntry->MapID, fields[2].GetUInt32(), Difficulty(diff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true);
             group->BindToInstance(save, fields[3].GetBool(), true);
         }while( result->NextRow() );
         delete result;
@@ -3757,7 +3757,7 @@ void ObjectMgr::LoadQuestLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.Title.size() <= idx)
+                    if((int32)data.Title.size() <= idx)
                         data.Title.resize(idx+1);
 
                     data.Title[idx] = str;
@@ -3769,7 +3769,7 @@ void ObjectMgr::LoadQuestLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.Details.size() <= idx)
+                    if((int32)data.Details.size() <= idx)
                         data.Details.resize(idx+1);
 
                     data.Details[idx] = str;
@@ -3781,7 +3781,7 @@ void ObjectMgr::LoadQuestLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.Objectives.size() <= idx)
+                    if((int32)data.Objectives.size() <= idx)
                         data.Objectives.resize(idx+1);
 
                     data.Objectives[idx] = str;
@@ -3793,7 +3793,7 @@ void ObjectMgr::LoadQuestLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.OfferRewardText.size() <= idx)
+                    if((int32)data.OfferRewardText.size() <= idx)
                         data.OfferRewardText.resize(idx+1);
 
                     data.OfferRewardText[idx] = str;
@@ -3805,7 +3805,7 @@ void ObjectMgr::LoadQuestLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.RequestItemsText.size() <= idx)
+                    if((int32)data.RequestItemsText.size() <= idx)
                         data.RequestItemsText.resize(idx+1);
 
                     data.RequestItemsText[idx] = str;
@@ -3817,7 +3817,7 @@ void ObjectMgr::LoadQuestLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.EndText.size() <= idx)
+                    if((int32)data.EndText.size() <= idx)
                         data.EndText.resize(idx+1);
 
                     data.EndText[idx] = str;
@@ -3831,7 +3831,7 @@ void ObjectMgr::LoadQuestLocales()
                     int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                     if(idx >= 0)
                     {
-                        if(data.ObjectiveText[k].size() <= idx)
+                        if((int32)data.ObjectiveText[k].size() <= idx)
                             data.ObjectiveText[k].resize(idx+1);
 
                         data.ObjectiveText[k][idx] = str;
@@ -4490,7 +4490,7 @@ void ObjectMgr::LoadPageTextLocales()
             int idx = GetOrNewIndexForLocale(LocaleConstant(i));
             if(idx >= 0)
             {
-                if(data.Text.size() <= idx)
+                if((int32)data.Text.size() <= idx)
                     data.Text.resize(idx+1);
 
                 data.Text[idx] = str;
@@ -4666,7 +4666,7 @@ void ObjectMgr::LoadNpcTextLocales()
                     int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                     if(idx >= 0)
                     {
-                        if(data.Text_0[j].size() <= idx)
+                        if((int32)data.Text_0[j].size() <= idx)
                             data.Text_0[j].resize(idx+1);
 
                         data.Text_0[j][idx] = str0;
@@ -4678,7 +4678,7 @@ void ObjectMgr::LoadNpcTextLocales()
                     int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                     if(idx >= 0)
                     {
-                        if(data.Text_1[j].size() <= idx)
+                        if((int32)data.Text_1[j].size() <= idx)
                             data.Text_1[j].resize(idx+1);
 
                         data.Text_1[j][idx] = str1;
@@ -5718,7 +5718,7 @@ void ObjectMgr::LoadGameObjectLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.Name.size() <= idx)
+                    if((int32)data.Name.size() <= idx)
                         data.Name.resize(idx+1);
 
                     data.Name[idx] = str;
@@ -5734,7 +5734,7 @@ void ObjectMgr::LoadGameObjectLocales()
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
                 if(idx >= 0)
                 {
-                    if(data.CastBarCaption.size() <= idx)
+                    if((int32)data.CastBarCaption.size() <= idx)
                         data.CastBarCaption.resize(idx+1);
 
                     data.CastBarCaption[idx] = str;
@@ -6730,7 +6730,7 @@ int ObjectMgr::GetIndexForLocale( LocaleConstant loc )
 
 LocaleConstant ObjectMgr::GetLocaleForIndex(int i)
 {
-    if (i<0 || i>=m_LocalForIndex.size())
+    if (i<0 || i>=(int32)m_LocalForIndex.size())
         return LOCALE_enUS;
 
     return m_LocalForIndex[i];
@@ -6903,7 +6903,7 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
                 if (idx >= 0)
                 {
                     // 0 -> default, idx in to idx+1
-                    if (data.Content.size() <= idx+1)
+                    if ((int32)data.Content.size() <= idx+1)
                         data.Content.resize(idx+2);
 
                     data.Content[idx+1] = str;
@@ -6929,7 +6929,7 @@ const char *ObjectMgr::GetMangosString(int32 entry, int locale_idx) const
     // Content[0] always exist if exist MangosStringLocale
     if(MangosStringLocale const *msl = GetMangosStringLocale(entry))
     {
-        if(msl->Content.size() > locale_idx+1 && !msl->Content[locale_idx+1].empty())
+        if((int32)msl->Content.size() > locale_idx+1 && !msl->Content[locale_idx+1].empty())
             return msl->Content[locale_idx+1].c_str();
         else
             return msl->Content[0].c_str();
@@ -7053,7 +7053,7 @@ bool PlayerCondition::Meets(Player const * player) const
         case CONDITION_REPUTATION_RANK:
         {
             FactionEntry const* faction = sFactionStore.LookupEntry(value1);
-            return faction && player->GetReputationMgr().GetRank(faction) >= value2;
+            return faction && player->GetReputationMgr().GetRank(faction) >= ReputationRank(value2);
         }
         case CONDITION_TEAM:
             return player->GetTeam() == value1;

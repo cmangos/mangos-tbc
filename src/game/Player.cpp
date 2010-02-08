@@ -1130,7 +1130,7 @@ void Player::Update( uint32 p_time )
                     }
                 }
                 //120 degrees of radiant range
-                else if( !HasInArc( 2*M_PI/3, pVictim ))
+                else if( !HasInArc( 2*M_PI_F/3, pVictim ))
                 {
                     setAttackTimer(BASE_ATTACK,100);
                     if(m_swingErrorMsg != 2)                // send single time (client auto repeat)
@@ -1161,7 +1161,7 @@ void Player::Update( uint32 p_time )
                 {
                     setAttackTimer(OFF_ATTACK,100);
                 }
-                else if( !HasInArc( 2*M_PI/3, pVictim ))
+                else if( !HasInArc( 2*M_PI_F/3, pVictim ))
                 {
                     setAttackTimer(OFF_ATTACK,100);
                 }
@@ -1796,7 +1796,7 @@ void Player::RewardRage( uint32 damage, uint32 weaponSpeedHitFactor, bool attack
 
         // Berserker Rage effect
         if(HasAura(18499,0))
-            addRage *= 1.3;
+            addRage *= 1.3f;
     }
 
     addRage *= sWorld.getRate(RATE_POWER_RAGE_INCOME);
@@ -5676,12 +5676,12 @@ void Player::UpdateArenaFields(void)
 void Player::UpdateHonorFields()
 {
     /// called when rewarding honor and at each save
-    uint64 now = time(NULL);
-    uint64 today = uint64(time(NULL) / DAY) * DAY;
+    time_t now = time(NULL);
+    time_t today = (time(NULL) / DAY) * DAY;
 
     if(m_lastHonorUpdateTime < today)
     {
-        uint64 yesterday = today - DAY;
+        time_t yesterday = today - DAY;
 
         uint16 kills_today = PAIR32_LOPART(GetUInt32Value(PLAYER_FIELD_KILLS));
 
@@ -11860,7 +11860,7 @@ void Player::SendPreparedQuest( uint64 guid )
                         NpcTextLocale const *nl = sObjectMgr.GetNpcTextLocale(textid);
                         if (nl)
                         {
-                            if (nl->Text_0[0].size() > loc_idx && !nl->Text_0[0][loc_idx].empty())
+                            if ((int32)nl->Text_0[0].size() > loc_idx && !nl->Text_0[0][loc_idx].empty())
                                 title = nl->Text_0[0][loc_idx];
                         }
                     }
@@ -11875,7 +11875,7 @@ void Player::SendPreparedQuest( uint64 guid )
                         NpcTextLocale const *nl = sObjectMgr.GetNpcTextLocale(textid);
                         if (nl)
                         {
-                            if (nl->Text_1[0].size() > loc_idx && !nl->Text_1[0][loc_idx].empty())
+                            if ((int32)nl->Text_1[0].size() > loc_idx && !nl->Text_1[0][loc_idx].empty())
                                 title = nl->Text_1[0][loc_idx];
                         }
                     }
@@ -13834,9 +13834,9 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
 
     m_rest_bonus = fields[22].GetFloat();
     //speed collect rest bonus in offline, in logout, far from tavern, city (section/in hour)
-    float bubble0 = 0.031;
+    float bubble0 = 0.031f;
     //speed collect rest bonus in offline, in logout, in tavern, city (section/in hour)
-    float bubble1 = 0.125;
+    float bubble1 = 0.125f;
 
     if(time_diff > 0)
     {
@@ -18805,50 +18805,10 @@ void Player::AutoStoreLoot(uint8 bag, uint8 slot, uint32 loot_id, LootStore cons
     }
 }
 
-void Player::UpdateFallInformationIfNeed( MovementInfo const& minfo,uint16 opcode )
-{
-    if (m_lastFallTime >= minfo.GetFallTime() || m_lastFallZ <= minfo.GetPos()->z || opcode == MSG_MOVE_FALL_LAND)
-        SetFallInformation(minfo.GetFallTime(), minfo.GetPos()->z);
-}
-
-void Player::UnsummonPetTemporaryIfAny()
-{
-    Pet* pet = GetPet();
-    if(!pet)
-        return;
-
-    if(!m_temporaryUnsummonedPetNumber && pet->isControlled() && !pet->isTemporarySummoned() )
-    {
-        m_temporaryUnsummonedPetNumber = pet->GetCharmInfo()->GetPetNumber();
-        m_oldpetspell = pet->GetUInt32Value(UNIT_CREATED_BY_SPELL);
-    }
-
-    RemovePet(pet, PET_SAVE_AS_CURRENT);
-}
-
 uint32 Player::CalculateTalentsPoints() const
 {
     uint32 talentPointsForLevel = getLevel() < 10 ? 0 : getLevel()-9;
     return uint32(talentPointsForLevel * sWorld.getRate(RATE_TALENT));
-}
-
-void Player::ResummonPetTemporaryUnSummonedIfAny()
-{
-    if(!m_temporaryUnsummonedPetNumber)
-        return;
-
-    // not resummon in not appropriate state
-    if(IsPetNeedBeTemporaryUnsummoned())
-        return;
-
-    if(GetPetGUID())
-        return;
-
-    Pet* NewPet = new Pet;
-    if(!NewPet->LoadPetFromDB(this, 0, m_temporaryUnsummonedPetNumber, true))
-        delete NewPet;
-
-    m_temporaryUnsummonedPetNumber = 0;
 }
 
 uint8 Player::CanEquipUniqueItem(Item* pItem, uint8 eslot) const
@@ -19060,6 +19020,46 @@ void Player::SendClearCooldown( uint32 spell_id, Unit* target )
     data << uint32(spell_id);
     data << uint64(target->GetGUID());
     SendDirectMessage(&data);
+}
+
+void Player::UpdateFallInformationIfNeed( MovementInfo const& minfo,uint16 opcode )
+{
+    if (m_lastFallTime >= minfo.GetFallTime() || m_lastFallZ <= minfo.GetPos()->z || opcode == MSG_MOVE_FALL_LAND)
+        SetFallInformation(minfo.GetFallTime(), minfo.GetPos()->z);
+}
+
+void Player::UnsummonPetTemporaryIfAny()
+{
+    Pet* pet = GetPet();
+    if(!pet)
+        return;
+
+    if(!m_temporaryUnsummonedPetNumber && pet->isControlled() && !pet->isTemporarySummoned() )
+    {
+        m_temporaryUnsummonedPetNumber = pet->GetCharmInfo()->GetPetNumber();
+        m_oldpetspell = pet->GetUInt32Value(UNIT_CREATED_BY_SPELL);
+    }
+
+    RemovePet(pet, PET_SAVE_AS_CURRENT);
+}
+
+void Player::ResummonPetTemporaryUnSummonedIfAny()
+{
+    if(!m_temporaryUnsummonedPetNumber)
+        return;
+
+    // not resummon in not appropriate state
+    if(IsPetNeedBeTemporaryUnsummoned())
+        return;
+
+    if(GetPetGUID())
+        return;
+
+    Pet* NewPet = new Pet;
+    if(!NewPet->LoadPetFromDB(this, 0, m_temporaryUnsummonedPetNumber, true))
+        delete NewPet;
+
+    m_temporaryUnsummonedPetNumber = 0;
 }
 
 void Player::RemoveAtLoginFlag( AtLoginFlags f, bool in_db_also /*= false*/ )

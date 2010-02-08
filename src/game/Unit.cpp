@@ -2229,7 +2229,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
     }
 
     // apply melee damage bonus and absorb only if base damage not fully blocked to prevent negative damage or damage with full block
-    if(*victimState != VICTIMSTATE_BLOCKS)
+    if (*victimState != VICTIMSTATE_BLOCKS)
     {
         MeleeDamageBonus(pVictim, damage,attType,spellCasted);
         CalcAbsorbResist(pVictim, damageSchoolMask, DIRECT_DAMAGE, *damage-*blocked_amount, absorbDamage, resistDamage, !spellCasted || !(spellCasted->AttributesEx2 & SPELL_ATTR_EX2_CANT_REFLECTED));
@@ -2913,7 +2913,7 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit *pVictim, SpellEntry const *spell)
     if (HitChance <  100) HitChance =  100;
     if (HitChance > 9900) HitChance = 9900;
 
-    uint32 rand = urand(0,10000);
+    int32 rand = irand(0,10000);
     if (rand > HitChance)
         return SPELL_MISS_RESIST;
     return SPELL_MISS_NONE;
@@ -4973,6 +4973,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
 {
     SpellEntry const *dummySpell = triggeredByAura->GetSpellProto ();
     uint32 effIndex = triggeredByAura->GetEffIndex ();
+    int32  triggerAmount = triggeredByAura->GetModifier()->m_amount;
 
     Item* castItem = triggeredByAura->GetCastItemGUID() && GetTypeId()==TYPEID_PLAYER
         ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGUID()) : NULL;
@@ -4996,9 +4997,9 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                         return false;
 
                     // return damage % to attacker but < 50% own total health
-                    basepoints0 = triggeredByAura->GetModifier()->m_amount*int32(damage)/100;
-                    if(basepoints0 > GetMaxHealth()/2)
-                        basepoints0 = GetMaxHealth()/2;
+                    basepoints0 = triggerAmount*int32(damage)/100;
+                    if(basepoints0 > (int32)GetMaxHealth()/2)
+                        basepoints0 = (int32)GetMaxHealth()/2;
 
                     triggered_spell_id = 25997;
                     break;
@@ -5334,7 +5335,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     return false;
 
                 // mana reward
-                basepoints0 = (triggeredByAura->GetModifier()->m_amount * GetMaxPower(POWER_MANA) / 100);
+                basepoints0 = (triggerAmount * GetMaxPower(POWER_MANA) / 100);
                 target = this;
                 triggered_spell_id = 29442;
                 break;
@@ -5347,7 +5348,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
 
                 // mana cost save
                 int32 cost = procSpell->manaCost + procSpell->ManaCostPercentage * GetCreateMana() / 100;
-                basepoints0 = cost * triggeredByAura->GetModifier()->m_amount/100;
+                basepoints0 = cost * triggerAmount/100;
                 if( basepoints0 <=0 )
                     return false;
 
@@ -5427,7 +5428,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 Modifier* mod = triggeredByAura->GetModifier();
                 // if damage is more than need or target die from damage deal finish spell
                 // FIX ME: not triggered currently at death
-                if( mod->m_amount <= damage || GetHealth() <= damage )
+                if( mod->m_amount <= damage || (int32)GetHealth() <= damage )
                 {
                     // remember guid before aura delete
                     uint64 casterGuid = triggeredByAura->GetCasterGUID();
@@ -5481,7 +5482,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 case 30296:
                 {
                     // health
-                    basepoints0 = int32(damage*triggeredByAura->GetModifier()->m_amount/100);
+                    basepoints0 = int32(damage*triggerAmount/100);
                     target = this;
                     triggered_spell_id = 30294;
                     break;
@@ -5500,7 +5501,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                         return false;
 
                     // heal amount
-                    basepoints0 = damage * triggeredByAura->GetModifier()->m_amount/100;
+                    basepoints0 = damage * triggerAmount/100;
                     triggered_spell_id = 37382;
                     break;
                 }
@@ -5526,7 +5527,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     return false;
 
                 // energize amount
-                basepoints0 = triggeredByAura->GetModifier()->m_amount*damage/100;
+                basepoints0 = triggerAmount*damage/100;
                 pVictim->CastCustomSpell(pVictim,34919,&basepoints0,NULL,NULL,true,castItem,triggeredByAura);
                 return true;                                // no hidden cooldown
             }
@@ -5543,7 +5544,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                         return false;
 
                     // heal amount
-                    basepoints0 = triggeredByAura->GetModifier()->m_amount*damage/100;
+                    basepoints0 = triggerAmount*damage/100;
                     pVictim->CastCustomSpell(pVictim,15290,&basepoints0,NULL,NULL,true,castItem,triggeredByAura);
                     return true;                                // no hidden cooldown
                 }
@@ -5689,7 +5690,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     return false;
 
                 // energy cost save
-                basepoints0 = procSpell->manaCost * triggeredByAura->GetModifier()->m_amount/100;
+                basepoints0 = procSpell->manaCost * triggerAmount/100;
                 if(basepoints0 <= 0)
                     return false;
 
@@ -5748,10 +5749,10 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 float damageBasePoints;
                 if(item && item->GetProto()->InventoryType == INVTYPE_2HWEAPON)
                     // two hand weapon
-                    damageBasePoints=1.20f*triggeredByAura->GetModifier()->m_amount * 1.2f * 1.03f * speed/100.0f + 1;
+                    damageBasePoints=1.20f*triggerAmount * 1.2f * 1.03f * speed/100.0f + 1;
                 else
                     // one hand weapon/no weapon
-                    damageBasePoints=0.85f*ceil(triggeredByAura->GetModifier()->m_amount * 1.2f * 1.03f * speed/100.0f) - 1;
+                    damageBasePoints=0.85f*ceil(triggerAmount * 1.2f * 1.03f * speed/100.0f) - 1;
 
                 int32 damagePoint = int32(damageBasePoints + 0.03f * (GetWeaponDamageRange(BASE_ATTACK,MINDAMAGE)+GetWeaponDamageRange(BASE_ATTACK,MAXDAMAGE))/2.0f) + 1;
 
@@ -5777,7 +5778,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     case 1:
                     {
                         // damage
-                        basepoints0 = triggeredByAura->GetModifier()->m_amount * damage / 100;
+                        basepoints0 = triggerAmount * damage / 100;
                         target = this;
                         triggered_spell_id = 32221;
                         break;
@@ -5836,7 +5837,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                         return false;
 
                     // heal amount
-                    basepoints0 = triggeredByAura->GetModifier()->m_amount*damage/100;
+                    basepoints0 = triggerAmount*damage/100;
                     target = this;
                     triggered_spell_id = 31786;
                     break;
@@ -6017,7 +6018,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     return false;
 
                 // heal
-                basepoints0 = triggeredByAura->GetModifier()->m_amount;
+                basepoints0 = triggerAmount;
                 target = this;
                 triggered_spell_id = 379;
                 break;
@@ -6119,12 +6120,15 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
 {
     SpellEntry const* auraSpellInfo = triggeredByAura->GetSpellProto();
 
-    Item* castItem = triggeredByAura->GetCastItemGUID() && GetTypeId()==TYPEID_PLAYER
-        ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGUID()) : NULL;
+    // Basepoints of trigger aura
+    int32 triggerAmount = triggeredByAura->GetModifier()->m_amount;
 
     uint32 trigger_spell_id = auraSpellInfo->EffectTriggerSpell[triggeredByAura->GetEffIndex()];
     Unit* target = !(procFlags & PROC_FLAG_HEAL) && IsPositiveSpell(trigger_spell_id) ? this : pVictim;
     int32 basepoints0 = 0;
+
+    Item* castItem = triggeredByAura->GetCastItemGUID() && GetTypeId()==TYPEID_PLAYER
+        ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGUID()) : NULL;
 
     switch(auraSpellInfo->SpellFamilyName)
     {
@@ -6232,7 +6236,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 }
                 // Shamanistic Rage triggered spell
                 case 30824:
-                    basepoints0 = int32(GetTotalAttackPowerValue(BASE_ATTACK)*triggeredByAura->GetModifier()->m_amount/100);
+                    basepoints0 = int32(GetTotalAttackPowerValue(BASE_ATTACK)*triggerAmount/100);
                     break;
             }
             break;
@@ -6364,7 +6368,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
                 }
 
-                int32 heal_amount = damage * triggeredByAura->GetModifier()->m_amount / 100;
+                int32 heal_amount = damage * triggerAmount / 100;
                 basepoints0 = heal_amount/3;
                 target = this;
                 break;
@@ -6408,9 +6412,9 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 // Leader of the Pack (triggering Improved Leader of the Pack heal)
                 case 24932:
                 {
-                    if (triggeredByAura->GetModifier()->m_amount == 0)
+                    if (triggerAmount == 0)
                         return false;
-                    basepoints0 = triggeredByAura->GetModifier()->m_amount * GetMaxHealth() / 100;
+                    basepoints0 = triggerAmount * GetMaxHealth() / 100;
                     trigger_spell_id = 34299;
                     break;
                 };
@@ -6647,7 +6651,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         return false;
 
                     // bonus if health < 50%
-                    if(pVictim->GetHealth() >= pVictim->GetMaxHealth()*triggeredByAura->GetModifier()->m_amount/100)
+                    if(pVictim->GetHealth() >= pVictim->GetMaxHealth()*triggerAmount/100)
                         return false;
 
                     // cast at target positive spell
@@ -6721,7 +6725,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         if( cooldown && ((Player*)this)->HasSpellCooldown(trigger_spell_id))
                             return false;
 
-                        basepoints0 = triggeredByAura->GetModifier()->m_amount * GetMaxHealth() / 100;
+                        basepoints0 = triggerAmount * GetMaxHealth() / 100;
                         target = this;
                         if(pVictim && pVictim->isAlive())
                             pVictim->getThreatManager().modifyThreatPercent(this,-10);

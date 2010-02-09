@@ -30,7 +30,7 @@ CREATE TABLE `saved_variables` (
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_066_8409_01_characters_guild` bit(1) default NULL
+  `required_091_9339_01_characters_group` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -703,6 +703,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `groups`;
 CREATE TABLE `groups` (
+  `groupId` int(11) unsigned NOT NULL,
   `leaderGuid` int(11) unsigned NOT NULL,
   `mainTank` int(11) unsigned NOT NULL,
   `mainAssistant` int(11) unsigned NOT NULL,
@@ -719,7 +720,8 @@ CREATE TABLE `groups` (
   `icon8` int(11) unsigned NOT NULL,
   `isRaid` tinyint(1) unsigned NOT NULL,
   `difficulty` tinyint(3) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`leaderGuid`)
+  PRIMARY KEY  (`groupId`),
+  UNIQUE KEY  (`leaderGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Groups';
 
 --
@@ -758,11 +760,11 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `group_member`;
 CREATE TABLE `group_member` (
-  `leaderGuid` int(11) unsigned NOT NULL,
+  `groupId` int(11) unsigned NOT NULL,
   `memberGuid` int(11) unsigned NOT NULL,
   `assistant` tinyint(1) unsigned NOT NULL,
   `subgroup` smallint(6) unsigned NOT NULL,
-  PRIMARY KEY  (`leaderGuid`,`memberGuid`)
+  PRIMARY KEY  (`groupId`,`memberGuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Groups';
 
 --

@@ -1423,7 +1423,7 @@ void Group::ResetInstances(uint8 method, Player* SendMsgTo)
     {
         InstanceSave *p = itr->second.save;
         const MapEntry *entry = sMapStore.LookupEntry(itr->first);
-        if(!entry || (!p->CanReset() && method != INSTANCE_RESET_GROUP_DISBAND))
+        if (!entry || (!p->CanReset() && method != INSTANCE_RESET_GROUP_DISBAND))
         {
             ++itr;
             continue;

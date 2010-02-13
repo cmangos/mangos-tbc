@@ -268,12 +268,12 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
                     moveFlags &= ~MOVEFLAG_ONTRANSPORT;
 
                 // remove unknown, unused etc flags for now
-                moveFlags &= ~MOVEFLAG_SPLINE2;             // will be set manually
+                moveFlags &= ~MOVEFLAG_SPLINE_ENABLED;      // will be set manually
 
                 if(((Player*)this)->isInFlight())
                 {
                     ASSERT(((Player*)this)->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
-                    moveFlags = (MOVEFLAG_FORWARD | MOVEFLAG_SPLINE2);
+                    moveFlags = (MOVEFLAG_FORWARD | MOVEFLAG_SPLINE_ENABLED);
                 }
             }
             break;
@@ -339,7 +339,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
             *data << uint32(0);                             // last fall time
 
         // 0x00001000
-        if(moveFlags & MOVEFLAG_JUMPING)
+        if(moveFlags & MOVEFLAG_FALLING)
         {
             if(GetTypeId() == TYPEID_PLAYER)
             {
@@ -358,7 +358,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         }
 
         // 0x04000000
-        if(moveFlags & MOVEFLAG_SPLINE)
+        if(moveFlags & MOVEFLAG_SPLINE_ELEVATION)
         {
             if(GetTypeId() == TYPEID_PLAYER)
                 *data << float(((Player*)this)->m_movementInfo.u_unk1);
@@ -377,11 +377,11 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         *data << float(unit->GetSpeed(MOVE_TURN_RATE));
 
         // 0x08000000
-        if(moveFlags & MOVEFLAG_SPLINE2)
+        if(moveFlags & MOVEFLAG_SPLINE_ENABLED)
         {
             if(GetTypeId() != TYPEID_PLAYER)
             {
-                sLog.outDebug("_BuildMovementUpdate: MOVEFLAG_SPLINE2 for non-player");
+                sLog.outDebug("_BuildMovementUpdate: MOVEFLAG_SPLINE_ENABLED for non-player");
                 return;
             }
 
@@ -389,7 +389,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
 
             if(!player->isInFlight())
             {
-                sLog.outDebug("_BuildMovementUpdate: MOVEFLAG_SPLINE2 but not in flight");
+                sLog.outDebug("_BuildMovementUpdate: MOVEFLAG_SPLINE_ENABLED but not in flight");
                 return;
             }
 

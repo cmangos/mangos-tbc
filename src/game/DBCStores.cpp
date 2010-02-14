@@ -205,7 +205,7 @@ void LoadDBCStores(const std::string& dataPath)
 
     const uint32 DBCFilesCount = 61;
 
-    barGoLink bar( DBCFilesCount );
+    barGoLink bar( (int)DBCFilesCount );
 
     StoreProblemList bad_dbc_files;
 

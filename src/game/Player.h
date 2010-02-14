@@ -871,7 +871,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void setDeathState(DeathState s);                   // overwrite Unit::setDeathState
 
-        void InnEnter (int time,uint32 mapid, float x,float y,float z)
+        void InnEnter (time_t time, uint32 mapid, float x, float y, float z)
         {
             inn_pos_mapid = mapid;
             inn_pos_x = x;
@@ -891,8 +891,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         float GetInnPosY() const { return inn_pos_y; };
         float GetInnPosZ() const { return inn_pos_z; };
 
-        int GetTimeInnEnter() const { return time_inn_enter; };
-        void UpdateInnerTime (int time) { time_inn_enter = time; };
+        time_t GetTimeInnEnter() const { return time_inn_enter; }
+        void UpdateInnerTime (time_t time) { time_inn_enter = time; }
 
         void RemovePet(Pet* pet, PetSaveMode mode, bool returnreagent = false);
         void RemoveMiniPet();
@@ -1358,7 +1358,7 @@ class MANGOS_DLL_SPEC Player : public Unit
             SpellCooldowns::const_iterator itr = m_spellCooldowns.find(spell_id);
             return itr != m_spellCooldowns.end() && itr->second.end > time(NULL);
         }
-        uint32 GetSpellCooldownDelay(uint32 spell_id) const
+        time_t GetSpellCooldownDelay(uint32 spell_id) const
         {
             SpellCooldowns::const_iterator itr = m_spellCooldowns.find(spell_id);
             time_t t = time(NULL);
@@ -2162,7 +2162,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 m_swingErrorMsg;
         float m_ammoDPS;
         ////////////////////Rest System/////////////////////
-        int time_inn_enter;
+        time_t time_inn_enter;
         uint32 inn_pos_mapid;
         float  inn_pos_x;
         float  inn_pos_y;

@@ -371,7 +371,7 @@ void BattleGroundQueue::AnnounceWorld(GroupQueueInfo *ginfo, const uint64& playe
 
     if(ginfo->ArenaType) //if Arena
     {
-        if( sWorld.getConfig(CONFIG_ARENA_QUEUE_ANNOUNCER_ENABLE) && ginfo->IsRated)
+        if( sWorld.getConfig(CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_ENABLE) && ginfo->IsRated)
         {
             BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(ginfo->BgTypeId);
             if(!bg)
@@ -386,7 +386,7 @@ void BattleGroundQueue::AnnounceWorld(GroupQueueInfo *ginfo, const uint64& playe
     }
     else //if BG
     {
-        if( sWorld.getConfig(CONFIG_BATTLEGROUND_QUEUE_ANNOUNCER_ENABLE) )
+        if( sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_ENABLE) )
         {
             Player *plr = sObjectMgr.GetPlayer(playerGUID);
             if(!plr)
@@ -403,8 +403,8 @@ void BattleGroundQueue::AnnounceWorld(GroupQueueInfo *ginfo, const uint64& playe
             uint32 q_max_level = Player::GetMaxLevelForBattleGroundBracketId(bracket_id);
 
             // replace hardcoded max level by player max level for nice output
-            if(q_max_level > sWorld.getConfig(CONFIG_MAX_PLAYER_LEVEL))
-                q_max_level = sWorld.getConfig(CONFIG_MAX_PLAYER_LEVEL);
+            if(q_max_level > sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+                q_max_level = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
             int8 MinPlayers = bg->GetMinPlayersPerTeam();
 
@@ -430,7 +430,7 @@ void BattleGroundQueue::AnnounceWorld(GroupQueueInfo *ginfo, const uint64& playe
             }
 
             // Show queue status to player only (when joining queue)
-            if(sWorld.getConfig(CONFIG_BATTLEGROUND_QUEUE_ANNOUNCER_PLAYERONLY))
+            if(sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_PLAYERONLY))
             {
                 ChatHandler(plr).PSendSysMessage(LANG_BG_QUEUE_ANNOUNCE_SELF,
                     bgName, q_min_level, q_max_level, qAlliance, MinPlayers, qHorde, MinPlayers);
@@ -781,13 +781,13 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
         {
             // create new battleground
             bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId);
-            if( sWorld.getConfig(CONFIG_BATTLEGROUND_QUEUE_ANNOUNCER_ENABLE) )
+            if( sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_ENABLE) )
             {
                 char const* bgName = bg2->GetName();
                 uint32 q_min_level = Player::GetMinLevelForBattleGroundBracketId(bracket_id);
                 uint32 q_max_level = Player::GetMaxLevelForBattleGroundBracketId(bracket_id);
-                if(q_max_level > sWorld.getConfig(CONFIG_MAX_PLAYER_LEVEL))
-                    q_max_level = sWorld.getConfig(CONFIG_MAX_PLAYER_LEVEL);
+                if(q_max_level > sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+                    q_max_level = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
                 sWorld.SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, bgName, q_min_level, q_max_level);
             }
         }
@@ -1087,7 +1087,7 @@ void BGQueueRemoveEvent::Abort(uint64 /*e_time*/)
 BattleGroundMgr::BattleGroundMgr() : m_AutoDistributionTimeChecker(0), m_ArenaTesting(false)
 {
     m_BattleGrounds.clear();
-    m_NextRatingDiscardUpdate = sWorld.getConfig(CONFIG_ARENA_RATING_DISCARD_TIMER);
+    m_NextRatingDiscardUpdate = sWorld.getConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER);
     m_Testing=false;
 }
 
@@ -1133,7 +1133,7 @@ void BattleGroundMgr::Update(uint32 diff)
         }
     }
     // if rating difference counts, maybe force-update queues
-    if(sWorld.getConfig(CONFIG_ARENA_MAX_RATING_DIFFERENCE))
+    if(sWorld.getConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE))
     {
         // it's time to force update
         if(m_NextRatingDiscardUpdate < diff)
@@ -1142,19 +1142,19 @@ void BattleGroundMgr::Update(uint32 diff)
             m_BattleGroundQueues[BATTLEGROUND_QUEUE_2v2].Update(BATTLEGROUND_AA,BG_BRACKET_ID_MAX_LEVEL_70,ARENA_TYPE_2v2,true,0);
             m_BattleGroundQueues[BATTLEGROUND_QUEUE_3v3].Update(BATTLEGROUND_AA,BG_BRACKET_ID_MAX_LEVEL_70,ARENA_TYPE_3v3,true,0);
             m_BattleGroundQueues[BATTLEGROUND_QUEUE_5v5].Update(BATTLEGROUND_AA,BG_BRACKET_ID_MAX_LEVEL_70,ARENA_TYPE_5v5,true,0);
-            m_NextRatingDiscardUpdate = sWorld.getConfig(CONFIG_ARENA_RATING_DISCARD_TIMER);
+            m_NextRatingDiscardUpdate = sWorld.getConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER);
         }
         else
             m_NextRatingDiscardUpdate -= diff;
     }
-    if(sWorld.getConfig(CONFIG_ARENA_AUTO_DISTRIBUTE_POINTS))
+    if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {
         if(m_AutoDistributionTimeChecker < diff)
         {
             if(sWorld.GetGameTime() > m_NextAutoDistributionTime)
             {
                 DistributeArenaPoints();
-                m_NextAutoDistributionTime = time_t(sWorld.GetGameTime() + BATTLEGROUND_ARENA_POINT_DISTRIBUTION_DAY * sWorld.getConfig(CONFIG_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS));
+                m_NextAutoDistributionTime = time_t(sWorld.GetGameTime() + BATTLEGROUND_ARENA_POINT_DISTRIBUTION_DAY * sWorld.getConfig(CONFIG_UINT32_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS));
                 CharacterDatabase.PExecute("UPDATE saved_variables SET NextArenaPointDistributionTime = '"UI64FMTD"'", uint64(m_NextAutoDistributionTime));
             }
             m_AutoDistributionTimeChecker = 600000; // check 10 minutes
@@ -1585,7 +1585,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
         return;
     }
 
-    barGoLink bar(result->GetRowCount());
+    barGoLink bar((int)result->GetRowCount());
 
     do
     {
@@ -1682,14 +1682,14 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
 
 void BattleGroundMgr::InitAutomaticArenaPointDistribution()
 {
-    if(sWorld.getConfig(CONFIG_ARENA_AUTO_DISTRIBUTE_POINTS))
+    if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {
         sLog.outDebug("Initializing Automatic Arena Point Distribution");
         QueryResult * result = CharacterDatabase.Query("SELECT NextArenaPointDistributionTime FROM saved_variables");
         if(!result)
         {
             sLog.outDebug("Battleground: Next arena point distribution time not found in SavedVariables, reseting it now.");
-            m_NextAutoDistributionTime = time_t(sWorld.GetGameTime() + BATTLEGROUND_ARENA_POINT_DISTRIBUTION_DAY * sWorld.getConfig(CONFIG_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS));
+            m_NextAutoDistributionTime = time_t(sWorld.GetGameTime() + BATTLEGROUND_ARENA_POINT_DISTRIBUTION_DAY * sWorld.getConfig(CONFIG_UINT32_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS));
             CharacterDatabase.PExecute("INSERT INTO saved_variables (NextArenaPointDistributionTime) VALUES ('"UI64FMTD"')", uint64(m_NextAutoDistributionTime));
         }
         else
@@ -1903,17 +1903,17 @@ void BattleGroundMgr::ToggleArenaTesting()
 
 uint32 BattleGroundMgr::GetMaxRatingDifference() const
 {
-    return sWorld.getConfig(CONFIG_ARENA_MAX_RATING_DIFFERENCE);
+    return sWorld.getConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE);
 }
 
 uint32 BattleGroundMgr::GetRatingDiscardTimer() const
 {
-    return sWorld.getConfig(CONFIG_ARENA_RATING_DISCARD_TIMER);
+    return sWorld.getConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER);
 }
 
 uint32 BattleGroundMgr::GetPrematureFinishTime() const
 {
-    return sWorld.getConfig(CONFIG_BATTLEGROUND_PREMATURE_FINISH_TIMER);
+    return sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_PREMATURE_FINISH_TIMER);
 }
 
 void BattleGroundMgr::LoadBattleMastersEntry()
@@ -1934,7 +1934,7 @@ void BattleGroundMgr::LoadBattleMastersEntry()
         return;
     }
 
-    barGoLink bar( result->GetRowCount() );
+    barGoLink bar( (int)result->GetRowCount() );
 
     do
     {
@@ -2015,7 +2015,7 @@ void BattleGroundMgr::LoadBattleEventIndexes()
         return;
     }
 
-    barGoLink bar(result->GetRowCount());
+    barGoLink bar((int)result->GetRowCount());
 
     do
     {

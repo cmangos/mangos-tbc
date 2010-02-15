@@ -415,8 +415,10 @@ bool Unit::haveOffhandWeapon() const
         return false;
 }
 
-void Unit::SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, uint8 type, SplineFlags flags, uint32 moveTime, Player* player)
+void Unit::SendMonsterMove(float NewPosX, float NewPosY, float NewPosZ, uint8 type, SplineFlags flags, uint32 Time, Player* player)
 {
+    float moveTime = (float)Time;
+
     WorldPacket data( SMSG_MONSTER_MOVE, (41 + GetPackGUID().size()) );
     data.append(GetPackGUID());
 
@@ -915,9 +917,9 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         if (pVictim->GetTypeId() != TYPEID_PLAYER)
         {
             if(spellProto && IsDamageToThreatSpell(spellProto))
-                pVictim->AddThreat(this, damage*2, (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
+                pVictim->AddThreat(this, float(damage*2), (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
             else
-                pVictim->AddThreat(this, damage, (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
+                pVictim->AddThreat(this, float(damage), (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
         }
         else                                                // victim is a player
         {
@@ -929,7 +931,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             }
 
             // random durability for items (HIT TAKEN)
-            if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_DAMAGE)))
+            if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_DAMAGE)))
             {
                 EquipmentSlots slot = EquipmentSlots(urand(0,EQUIPMENT_SLOT_END-1));
                 ((Player*)pVictim)->DurabilityPointLossForEquipSlot(slot);
@@ -939,7 +941,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         if(GetTypeId()==TYPEID_PLAYER)
         {
             // random durability for items (HIT DONE)
-            if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_DAMAGE)))
+            if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_DAMAGE)))
             {
                 EquipmentSlots slot = EquipmentSlots(urand(0,EQUIPMENT_SLOT_END-1));
                 ((Player*)this)->DurabilityPointLossForEquipSlot(slot);
@@ -1220,7 +1222,7 @@ void Unit::DealFlatDamage(Unit *pVictim, SpellEntry const *spellInfo, uint32 *da
                 // random durability for main hand weapon (ABSORB)
                 if(damageAfterArmor < *damage)
                     if(pVictim->GetTypeId() == TYPEID_PLAYER)
-                        if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_ABSORB)))
+                        if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_ABSORB)))
                             ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EquipmentSlots(urand(EQUIPMENT_SLOT_START,EQUIPMENT_SLOT_BACK)));
 
                 cleanDamage->damage += *damage - damageAfterArmor;
@@ -1299,7 +1301,7 @@ void Unit::DealFlatDamage(Unit *pVictim, SpellEntry const *spellInfo, uint32 *da
                             ((Player*)pVictim)->UpdateDefense();
 
                             // random durability for main hand weapon (BLOCK)
-                            if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_BLOCK)))
+                            if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_BLOCK)))
                                 ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EQUIPMENT_SLOT_OFFHAND);
                         }
                     }
@@ -1321,7 +1323,7 @@ void Unit::DealFlatDamage(Unit *pVictim, SpellEntry const *spellInfo, uint32 *da
                         // Reduce attack time
                         if (pVictim->haveOffhandWeapon() && offtime < basetime)
                         {
-                            float percent20 = pVictim->GetAttackTime(OFF_ATTACK) * 0.20;
+                            float percent20 = pVictim->GetAttackTime(OFF_ATTACK) * 0.20f;
                             float percent60 = 3 * percent20;
                             if(offtime > percent20 && offtime <= percent60)
                             {
@@ -1335,7 +1337,7 @@ void Unit::DealFlatDamage(Unit *pVictim, SpellEntry const *spellInfo, uint32 *da
                         }
                         else
                         {
-                            float percent20 = pVictim->GetAttackTime(BASE_ATTACK) * 0.20;
+                            float percent20 = pVictim->GetAttackTime(BASE_ATTACK) * 0.20f;
                             float percent60 = 3 * percent20;
                             if(basetime > percent20 && basetime <= percent60)
                             {
@@ -1355,7 +1357,7 @@ void Unit::DealFlatDamage(Unit *pVictim, SpellEntry const *spellInfo, uint32 *da
                         ((Player*)pVictim)->UpdateDefense();
 
                         // random durability for main hand weapon (PARRY)
-                        if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_PARRY)))
+                        if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_PARRY)))
                             ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EQUIPMENT_SLOT_MAINHAND);
                     }
 
@@ -1429,7 +1431,7 @@ void Unit::DealFlatDamage(Unit *pVictim, SpellEntry const *spellInfo, uint32 *da
                         ((Player*)pVictim)->UpdateDefense();
 
                         // random durability for main hand weapon (BLOCK)
-                        if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_BLOCK)))
+                        if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_BLOCK)))
                             ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EQUIPMENT_SLOT_OFFHAND);
                     }
                     break;
@@ -1888,7 +1890,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
 
         //there is a newbie protection, at level 10 just 7% base chance; assuming linear function
         if( pVictim->getLevel() < 30 )
-            Probability = 0.65f*pVictim->getLevel()+0.5;
+            Probability = 0.65f*pVictim->getLevel()+0.5f;
 
         uint32 VictimDefense=pVictim->GetDefenseSkillValue(this);
         uint32 AttackerMeleeSkill=GetUnitMeleeSkill(pVictim);
@@ -1910,7 +1912,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
         // random durability for main hand weapon (ABSORB)
         if(damageAfterArmor < *damage)
             if(pVictim->GetTypeId() == TYPEID_PLAYER)
-                if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_ABSORB)))
+                if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_ABSORB)))
                     ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EquipmentSlots(urand(EQUIPMENT_SLOT_START,EQUIPMENT_SLOT_BACK)));
 
         cleanDamage->damage += *damage - damageAfterArmor;
@@ -2008,7 +2010,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
                     ((Player*)pVictim)->UpdateDefense();
 
                     // random durability for main hand weapon (BLOCK)
-                    if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_BLOCK)))
+                    if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_BLOCK)))
                         ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EQUIPMENT_SLOT_OFFHAND);
                 }
 
@@ -2041,7 +2043,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
                 // The delay cannot be reduced to less than 20% of your weapon base swing delay.
                 if (pVictim->haveOffhandWeapon() && offtime < basetime)
                 {
-                    float percent20 = pVictim->GetAttackTime(OFF_ATTACK)*0.20;
+                    float percent20 = pVictim->GetAttackTime(OFF_ATTACK)*0.20f;
                     float percent60 = 3*percent20;
                     // set to 20% if in range 20%...20+40% of full time
                     if(offtime > percent20 && offtime <= percent60)
@@ -2058,7 +2060,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
                 }
                 else
                 {
-                    float percent20 = pVictim->GetAttackTime(BASE_ATTACK)*0.20;
+                    float percent20 = pVictim->GetAttackTime(BASE_ATTACK)*0.20f;
                     float percent60 = 3*percent20;
                     // set to 20% if in range 20%...20+40% of full time
                     if(basetime > percent20 && basetime <= percent60)
@@ -2081,7 +2083,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
                 ((Player*)pVictim)->UpdateDefense();
 
                 // random durability for main hand weapon (PARRY)
-                if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_PARRY)))
+                if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_PARRY)))
                     ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EQUIPMENT_SLOT_MAINHAND);
             }
 
@@ -2156,7 +2158,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
                 ((Player*)pVictim)->UpdateDefense();
 
                 // random durability for main hand weapon (BLOCK)
-                if (roll_chance_f(sWorld.getRate(RATE_DURABILITY_LOSS_BLOCK)))
+                if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_BLOCK)))
                     ((Player*)pVictim)->DurabilityPointLossForEquipSlot(EQUIPMENT_SLOT_OFFHAND);
             }
 
@@ -2211,7 +2213,7 @@ void Unit::DoAttackDamage (Unit *pVictim, uint32 *damage, CleanDamage *cleanDama
             if(lowEnd > highEnd)                            // prevent negative range size
                 lowEnd = highEnd;
 
-            reducePercent = lowEnd + rand_norm() * ( highEnd - lowEnd );
+            reducePercent = lowEnd + rand_norm_f() * ( highEnd - lowEnd );
 
             *damage = uint32(reducePercent * *damage);
             cleanDamage->damage += *damage;
@@ -7782,8 +7784,8 @@ uint32 Unit::SpellDamageBonus(Unit *pVictim, SpellEntry const *spellProto, uint3
                     if(pVictim->GetTypeId() != TYPEID_PLAYER)
                         continue;
                     float mod = -((Player*)pVictim)->GetRatingBonusValue(CR_CRIT_TAKEN_SPELL)*2*4;
-                    if (mod < (*i)->GetModifier()->m_amount)
-                        mod = (*i)->GetModifier()->m_amount;
+                    if (mod < float((*i)->GetModifier()->m_amount))
+                        mod = float((*i)->GetModifier()->m_amount);
                     TakenTotalMod *= (mod+100.0f)/100.0f;
                 }
                 break;
@@ -8144,7 +8146,7 @@ bool Unit::isSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolM
                 crit_chance = GetFloatValue( PLAYER_SPELL_CRIT_PERCENTAGE1 + GetFirstSchoolInMask(schoolMask));
             else
             {
-                crit_chance = m_baseSpellCritChance;
+                crit_chance = float(m_baseSpellCritChance);
                 crit_chance += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_SPELL_CRIT_CHANCE_SCHOOL, schoolMask);
             }
             // taken
@@ -8261,7 +8263,7 @@ uint32 Unit::SpellHealingBonus(SpellEntry const *spellProto, uint32 healamount, 
     // These Spells are doing fixed amount of healing (TODO found less hack-like check)
     if (spellProto->Id == 38395 || spellProto->Id == 40972)
     {
-        healamount = healamount * TakenTotalMod;
+        healamount = uint32(healamount * TakenTotalMod);
         return healamount < 0 ? 0 : uint32(healamount);
     }
 
@@ -8853,9 +8855,9 @@ float Unit::GetWeaponProcChance() const
 float Unit::GetPPMProcChance(uint32 WeaponSpeed, float PPM) const
 {
     // proc per minute chance calculation
-    if (PPM <= 0) return 0.0f;
-    uint32 result = uint32((WeaponSpeed * PPM) / 600.0f);   // result is chance in percents (probability = Speed_in_sec * (PPM / 60))
-    return result;
+    if (PPM <= 0)
+        return 0.0f;
+    return WeaponSpeed * PPM / 600.0f;                      // result is chance in percents (probability = Speed_in_sec * (PPM / 60))
 }
 
 void Unit::Mount(uint32 mount)
@@ -11774,7 +11776,7 @@ void Unit::CleanupDeletedAuras()
 
 bool Unit::CheckAndIncreaseCastCounter()
 {
-    uint32 maxCasts = sWorld.getConfig(CONFIG_MAX_SPELL_CASTS_IN_CHAIN);
+    uint32 maxCasts = sWorld.getConfig(CONFIG_UINT32_MAX_SPELL_CASTS_IN_CHAIN);
 
     if (maxCasts && m_castCounter >= maxCasts)
         return false;

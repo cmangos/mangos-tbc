@@ -756,6 +756,8 @@ void World::LoadConfigSettings(bool reload)
     m_configs[CONFIG_ARENA_SEASON_IN_PROGRESS]                = sConfig.GetBoolDefault("Arena.ArenaSeason.InProgress", true);
 
     m_configs[CONFIG_CAST_UNSTUCK] = sConfig.GetBoolDefault("CastUnstuck", true);
+    m_configs[CONFIG_MAX_SPELL_CASTS_IN_CHAIN] = sConfig.GetIntDefault("MaxSpellCastsInChain", 10);
+
     m_configs[CONFIG_INSTANCE_RESET_TIME_HOUR]  = sConfig.GetIntDefault("Instance.ResetTimeHour", 4);
     m_configs[CONFIG_INSTANCE_UNLOAD_DELAY] = sConfig.GetIntDefault("Instance.UnloadDelay", 1800000);
 

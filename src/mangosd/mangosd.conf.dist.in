@@ -653,6 +653,7 @@ Battleground.QueueAnnouncer.Enable = 0
 Battleground.QueueAnnouncer.PlayerOnly = 0
 Arena.QueueAnnouncer.Enable = 0
 CastUnstuck = 1
+MaxSpellCastsInChain =10
 Instance.IgnoreLevel = 0
 Instance.IgnoreRaid = 0
 Instance.ResetTimeHour = 4

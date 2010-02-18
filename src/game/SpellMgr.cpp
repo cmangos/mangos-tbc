@@ -146,7 +146,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             {
                 bool food = false;
                 bool drink = false;
-                for(int i = 0; i < 3; ++i)
+                for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
                 {
                     switch(spellInfo->EffectApplyAuraName[i])
                     {
@@ -497,7 +497,7 @@ bool IsPositiveEffect(uint32 spellId, uint32 effIndex)
                         if(spellTriggeredProto)
                         {
                             // non-positive targets of main spell return early
-                            for(int i = 0; i < 3; ++i)
+                            for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
                             {
                                 // if non-positive trigger cast targeted to positive target this main cast is non-positive
                                 // this will place this spell auras as debuffs
@@ -627,7 +627,7 @@ bool IsPositiveSpell(uint32 spellId)
 
     // spells with atleast one negative effect are considered negative
     // some self-applied spells have negative effects but in self casting case negative check ignored.
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         if (!IsPositiveEffect(spellId, i))
             return false;
     return true;
@@ -773,7 +773,7 @@ void SpellMgr::LoadSpellTargetPositions()
         }
 
         bool found = false;
-        for(int i = 0; i < 3; ++i)
+        for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if( spellInfo->EffectImplicitTargetA[i]==TARGET_TABLE_X_Y_Z_COORDINATES || spellInfo->EffectImplicitTargetB[i]==TARGET_TABLE_X_Y_Z_COORDINATES )
             {
@@ -1159,7 +1159,7 @@ bool SpellMgr::canStackSpellRanks(SpellEntry const *spellInfo)
         return false;
 
     // All stance spells. if any better way, change it.
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         switch(spellInfo->SpellFamilyName)
         {
@@ -1520,7 +1520,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         spellInfo_1->SpellIconID != 0 && spellInfo_2->SpellIconID != 0)
     {
         bool isModifier = false;
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if (spellInfo_1->EffectApplyAuraName[i] == SPELL_AURA_ADD_FLAT_MODIFIER ||
                 spellInfo_1->EffectApplyAuraName[i] == SPELL_AURA_ADD_PCT_MODIFIER  ||
@@ -1543,7 +1543,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         return false;
 
     bool dummy_only = true;
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         if (spellInfo_1->Effect[i] != spellInfo_2->Effect[i] ||
         spellInfo_1->EffectItemType[i] != spellInfo_2->EffectItemType[i] ||
@@ -1819,7 +1819,7 @@ void SpellMgr::LoadSpellLearnSkills()
         if(!entry)
             continue;
 
-        for(int i = 0; i < 3; ++i)
+        for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if(entry->Effect[i]==SPELL_EFFECT_SKILL)
             {
@@ -1908,7 +1908,7 @@ void SpellMgr::LoadSpellLearnSpells()
         if (!entry)
             continue;
 
-        for(int i = 0; i < 3; ++i)
+        for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if(entry->Effect[i]==SPELL_EFFECT_LEARN_SPELL)
             {
@@ -1991,7 +1991,7 @@ void SpellMgr::LoadSpellScriptTarget()
         }
 
         bool targetfound = false;
-        for (int i = 0; i < 3; ++i)
+        for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if( spellProto->EffectImplicitTargetA[i] == TARGET_SCRIPT ||
                 spellProto->EffectImplicitTargetB[i] == TARGET_SCRIPT ||

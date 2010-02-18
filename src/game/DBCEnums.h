@@ -152,4 +152,11 @@ enum SummonPropType
     SUMMON_PROP_TYPE_CRITTER         = 5,                   // critter/minipet, 159 spells in 2.4.3
 };
 
+enum SpellEffectIndex
+{
+    EFFECT_INDEX_0  = 0,
+    EFFECT_INDEX_1  = 1,
+    EFFECT_INDEX_2  = 2
+};
+
 #endif

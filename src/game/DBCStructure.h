@@ -720,7 +720,7 @@ struct SpellEntry
     uint32    SchoolMask;                                   // 215 school mask
 
     // helpers
-    int32 CalculateSimpleValue(uint8 eff) const { return EffectBasePoints[eff]+int32(EffectBaseDice[eff]); }
+    int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff]+int32(EffectBaseDice[eff]); }
 
     private:
         // prevent creating custom entries (copy data from original in fact)

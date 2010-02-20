@@ -1382,6 +1382,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
             break;
         }
         case SPELLFAMILY_PRIEST:
+        {
             switch(m_spellInfo->Id )
             {
                 case 28598:                                 // Touch of Weakness triggered spell
@@ -1410,6 +1411,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
             break;
         }
         case SPELLFAMILY_DRUID:
+        {
             switch(m_spellInfo->Id )
             {
                 case 5420:                                  // Tree of Life passive
@@ -1672,6 +1674,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
             break;
         }
         case SPELLFAMILY_SHAMAN:
+        {
             //Shaman Rockbiter Weapon
             if (m_spellInfo->SpellFamilyFlags == UI64LIT(0x400000))
             {

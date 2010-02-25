@@ -392,7 +392,7 @@ void BattleGroundQueue::AnnounceWorld(GroupQueueInfo *ginfo, const uint64& playe
     }
     else //if BG
     {
-        if( sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_ENABLE) )
+        if( sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_QUEUE_ANNOUNCER_JOIN) )
         {
             Player *plr = sObjectMgr.GetPlayer(playerGUID);
             if(!plr)
@@ -436,7 +436,7 @@ void BattleGroundQueue::AnnounceWorld(GroupQueueInfo *ginfo, const uint64& playe
             }
 
             // Show queue status to player only (when joining queue)
-            if(sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_PLAYERONLY))
+            if(sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_QUEUE_ANNOUNCER_JOIN)==1)
             {
                 ChatHandler(plr).PSendSysMessage(LANG_BG_QUEUE_ANNOUNCE_SELF,
                     bgName, q_min_level, q_max_level, qAlliance, MinPlayers, qHorde, MinPlayers);
@@ -787,7 +787,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
         {
             // create new battleground
             bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId);
-            if( sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_ENABLE) )
+            if (sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_QUEUE_ANNOUNCER_START))
             {
                 char const* bgName = bg2->GetName();
                 uint32 q_min_level = Player::GetMinLevelForBattleGroundBracketId(bracket_id);

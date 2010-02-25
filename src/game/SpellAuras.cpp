@@ -36,6 +36,7 @@
 #include "Policies/SingletonImp.h"
 #include "Totem.h"
 #include "Creature.h"
+#include "ScriptCalls.h"
 #include "Formulas.h"
 #include "BattleGround.h"
 #include "CreatureAI.h"

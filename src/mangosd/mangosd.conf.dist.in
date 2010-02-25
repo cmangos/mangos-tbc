@@ -500,10 +500,6 @@ LogColors = ""
 #        Default: 0 (false)
 #                 1 (true)
 #
-#    Arena.QueueAnnouncer.Enable: Enable queue announcer posting to chat
-#        Default: 0 (false)
-#                 1 (true)
-#
 #    CastUnstuck
 #        Allow cast or not Unstuck spell at .start or client Help option use
 #        Default: 1 (true)
@@ -651,7 +647,6 @@ ActivateWeather = 1
 Battleground.CastDeserter = 1
 Battleground.QueueAnnouncer.Enable = 0
 Battleground.QueueAnnouncer.PlayerOnly = 0
-Arena.QueueAnnouncer.Enable = 0
 CastUnstuck = 1
 MaxSpellCastsInChain = 10
 Instance.IgnoreLevel = 0
@@ -1208,47 +1203,70 @@ Death.Bones.World = 1
 Death.Bones.BattlegroundOrArena = 1
 
 ###################################################################################################################
+# BATTLEGROUND CONFIG
 #
-# Rated arena matches config
-#
-# MaxRatingDifference: the maximum rating difference between two groups in rated matches
-#             Default: 0 (disable, rating difference is discarded)
-#
-# RatingDiscardTimer: after the specified milliseconds has passed,
-#                     rating information will be discarded when selecting teams for matches
-#                     also initiates an update by this timer
-#             Default: 60000
-#
-# AutoDistributePoints: set if arena points should be distributed automatically, or by GM command
-#             Default: 0 (disable) (recommended): use gm command or sql query to distribute the points
-#                      1 (enable): arena points are distributed automatically
-#
-# AutoDistributeInterval: how often should the distribution take place
-#                         if automatic distribution is enabled
-#                         in days
-#             Default: 7 (weekly)
-#
-###################################################################################################################
-
-Arena.MaxRatingDifference = 0
-Arena.RatingDiscardTimer = 60000
-Arena.AutoDistributePoints = 0
-Arena.AutoDistributeInterval = 7
-Arena.ArenaSeason.ID = 1
-Arena.ArenaSeason.InProgress = 1
-
-###################################################################################################################
-#
-# Battleground config
-#
-# PrematureFinishTimer: the time to end the bg if there are less than minplayersperteam on one side
-#                       in milliseconds
-#              Default: 300000
-#                       0 - disable
+#    Battleground.PrematureFinishTimer
+#        The time to end the bg if there are less than MinPlayersPerTeam on one side in milliseconds
+#        Default: 300000 (5 minutes)
+#                 0 - disable (not recommended)
 #
 ###################################################################################################################
 
 BattleGround.PrematureFinishTimer = 300000
+
+###################################################################################################################
+# ARENA CONFIG
+#
+#    Arena.MaxRatingDifference
+#        The maximum rating difference between two groups in rated matches
+#        Default: 0 (disable, rating difference is discarded)
+#
+#    Arena.RatingDiscardTimer
+#        After the specified milliseconds has passed,
+#        rating information will be discarded when selecting teams for matches
+#        also initiates an update by this timer
+#        Default: 600000 (10 minutes, recommended)
+#                 0 (disable)
+#
+#    Arena.AutoDistributePoints
+#        Set if arena points should be distributed automatically, or by GM command
+#        Default: 0 (disable) (recommended): use gm command or sql query to distribute the points
+#                 1 (enable)  arena points are distributed automatically
+#
+#    Arena.AutoDistributeInterval
+#        How often should the distribution take place
+#        If automatic distribution is enabled in days
+#        Default: 7 (weekly)
+#
+#    Arena.QueueAnnouncer.Join
+#        Enable arena queue announcer posting to chat at join
+#        Default: 0 (disable)
+#                 1 (enable)
+#
+#    Arena.QueueAnnouncer.Exit
+#        Enable arena queue announcer posting to chat at exit
+#        Default: 0 (disable)
+#                 1 (enable)
+#
+#    Arena.ArenaSeason.ID
+#        Current area season id show in client
+#        Default: 1
+#
+#    Arena.ArenaSeason.InProgress
+#        Current area season state
+#        Default: 1 (active)
+#                 0 (finished)
+#
+###################################################################################################################
+
+Arena.MaxRatingDifference = 0
+Arena.RatingDiscardTimer = 600000
+Arena.AutoDistributePoints = 0
+Arena.AutoDistributeInterval = 7
+Arena.QueueAnnouncer.Join = 0
+Arena.QueueAnnouncer.Exit = 0
+Arena.ArenaSeason.ID = 1
+Arena.ArenaSeason.InProgress = 1
 
 ###################################################################################################################
 #

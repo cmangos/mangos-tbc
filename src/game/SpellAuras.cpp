@@ -2041,16 +2041,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         if (Unit* caster = GetCaster())
                             caster->CastSpell(caster, 13138, true, NULL, this);
                         return;
-                    case 35357:                             // Spawn Feign Death
-                        if (m_target->GetTypeId() == TYPEID_UNIT)
-                        {
-                            // flags not set like it's done in SetFeignDeath(), also this aura expected to be existing always/from spawn
-                            m_target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_29);
-                            m_target->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
-
-                            m_target->addUnitState(UNIT_STAT_DIED);
-                        }
-                        return;
                     case 39850:                             // Rocket Blast
                         if(roll_chance_i(20))               // backfire stun
                             m_target->CastSpell(m_target, 51581, true, NULL, this);
@@ -2236,11 +2226,49 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     m_target->RemoveAurasDueToSpell(spellId);
                     return;
                 }
+                case 29266:                             // Permanent Feign Death
+                case 31261:                             // Permanent Feign Death (Root)
+                case 37493:                             // Feign Death
+                {
+                    // Unclear what the difference really is between them.
+                    // Some has effect1 that makes the difference, however not all.
+                    // Some appear to be used depending on creature location, in water, at solid ground, in air/suspended, etc
+                    // For now, just handle all the same way
+                    if (m_target->GetTypeId() == TYPEID_UNIT)
+                        m_target->SetFeignDeath(apply);
+
+                    return;
+                }
                 // Victorious
                 case 32216:
                     if(m_target->getClass()==CLASS_WARRIOR)
                         m_target->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, apply);
                     return;
+                case 35356:                             // Spawn Feign Death
+                case 35357:                             // Spawn Feign Death
+                {
+                    if (m_target->GetTypeId() == TYPEID_UNIT)
+                    {
+                        // Flags not set like it's done in SetFeignDeath() and apparently always applied at spawn of creature
+                        // All three does however have SPELL_EFFECT_SPAWN(46) as effect1
+                        // It is possible this effect will remove some flags, and then the three here can be handled "normally"
+                        if (apply)
+                        {
+                            m_target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_29);
+                            m_target->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
+
+                            m_target->addUnitState(UNIT_STAT_DIED);
+                        }
+                        else
+                        {
+                            m_target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_29);
+                            m_target->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
+
+                            m_target->clearUnitState(UNIT_STAT_DIED);
+                        }
+                    }
+                    return;
+                }
                 //Summon Fire Elemental
                 case 40133:
                 {

@@ -1932,7 +1932,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case SPELL_EFFECT_LEARN_SPELL:
                 case SPELL_EFFECT_SKILL_STEP:
                 case SPELL_EFFECT_PROFICIENCY:
-                case SPELL_EFFECT_SUMMON_POSSESSED:
                 case SPELL_EFFECT_SUMMON_OBJECT_WILD:
                 case SPELL_EFFECT_SELF_RESURRECT:
                 case SPELL_EFFECT_REPUTATION:
@@ -1973,13 +1972,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                         targetUnitMap.push_back(m_caster);
                     break;
                 case SPELL_EFFECT_SUMMON_CHANGE_ITEM:
-                case SPELL_EFFECT_SUMMON_WILD:
-                case SPELL_EFFECT_SUMMON_GUARDIAN:
                 case SPELL_EFFECT_TRANS_DOOR:
                 case SPELL_EFFECT_ADD_FARSIGHT:
                 case SPELL_EFFECT_STUCK:
                 case SPELL_EFFECT_DESTROY_ALL_TOTEMS:
-                case SPELL_EFFECT_SUMMON_DEMON:
                 case SPELL_EFFECT_SKILL:
                     targetUnitMap.push_back(m_caster);
                     break;
@@ -2966,27 +2962,15 @@ void Spell::SendLogExecute()
                     data << uint32(m_spellInfo->EffectItemType[EFFECT_INDEX_0]);
                     break;
                 case SPELL_EFFECT_SUMMON:
-                case SPELL_EFFECT_SUMMON_WILD:
-                case SPELL_EFFECT_SUMMON_GUARDIAN:
                 case SPELL_EFFECT_TRANS_DOOR:
                 case SPELL_EFFECT_SUMMON_PET:
-                case SPELL_EFFECT_SUMMON_POSSESSED:
-                case SPELL_EFFECT_SUMMON_TOTEM:
                 case SPELL_EFFECT_SUMMON_OBJECT_WILD:
                 case SPELL_EFFECT_CREATE_HOUSE:
                 case SPELL_EFFECT_DUEL:
-                case SPELL_EFFECT_SUMMON_TOTEM_SLOT1:
-                case SPELL_EFFECT_SUMMON_TOTEM_SLOT2:
-                case SPELL_EFFECT_SUMMON_TOTEM_SLOT3:
-                case SPELL_EFFECT_SUMMON_TOTEM_SLOT4:
-                case SPELL_EFFECT_SUMMON_PHANTASM:
-                case SPELL_EFFECT_SUMMON_CRITTER:
                 case SPELL_EFFECT_SUMMON_OBJECT_SLOT1:
                 case SPELL_EFFECT_SUMMON_OBJECT_SLOT2:
                 case SPELL_EFFECT_SUMMON_OBJECT_SLOT3:
                 case SPELL_EFFECT_SUMMON_OBJECT_SLOT4:
-                case SPELL_EFFECT_SUMMON_DEMON:
-                case SPELL_EFFECT_150:
                     if(Unit *unit = m_targets.getUnitTarget())
                         data.append(unit->GetPackGUID());
                     else if(m_targets.getItemTargetGUID())
@@ -4052,20 +4036,6 @@ SpellCastResult Spell::CheckCast(bool strict)
                         break;
                     }
                 }
-                break;
-            }
-            // Don't make this check for SPELL_EFFECT_SUMMON_CRITTER, SPELL_EFFECT_SUMMON_WILD or SPELL_EFFECT_SUMMON_GUARDIAN.
-            // These won't show up in m_caster->GetPetGUID()
-            case SPELL_EFFECT_SUMMON_POSSESSED:
-            case SPELL_EFFECT_SUMMON_PHANTASM:
-            case SPELL_EFFECT_SUMMON_DEMON:
-            {
-                if(m_caster->GetPetGUID())
-                    return SPELL_FAILED_ALREADY_HAVE_SUMMON;
-
-                if(m_caster->GetCharmGUID())
-                    return SPELL_FAILED_ALREADY_HAVE_CHARM;
-
                 break;
             }
             case SPELL_EFFECT_SUMMON_PET:

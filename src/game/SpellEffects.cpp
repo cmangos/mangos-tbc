@@ -66,7 +66,7 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectPowerDrain,                               //  8 SPELL_EFFECT_POWER_DRAIN
     &Spell::EffectHealthLeech,                              //  9 SPELL_EFFECT_HEALTH_LEECH
     &Spell::EffectHeal,                                     // 10 SPELL_EFFECT_HEAL
-    &Spell::EffectNULL,                                     // 11 SPELL_EFFECT_BIND
+    &Spell::EffectBind,                                     // 11 SPELL_EFFECT_BIND
     &Spell::EffectNULL,                                     // 12 SPELL_EFFECT_PORTAL
     &Spell::EffectUnused,                                   // 13 SPELL_EFFECT_RITUAL_BASE              unused
     &Spell::EffectUnused,                                   // 14 SPELL_EFFECT_RITUAL_SPECIALIZE        unused
@@ -210,6 +210,11 @@ pEffect SpellEffects[TOTAL_SPELL_EFFECTS]=
     &Spell::EffectNULL,                                     //152 SPELL_EFFECT_152                      summon Refer-a-Friend
     &Spell::EffectNULL,                                     //153 SPELL_EFFECT_CREATE_PET               misc value is creature entry
 };
+
+void Spell::EffectEmpty(SpellEffectIndex /*eff_idx*/)
+{
+    // NOT NEED ANY IMPLEMENTATION CODE, EFFECT POSISBLE USED AS MARKER OR CLIENT INFORM
+}
 
 void Spell::EffectNULL(SpellEffectIndex /*eff_idx*/)
 {
@@ -6071,4 +6076,40 @@ void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
     WorldPacket data(SMSG_PLAY_MUSIC, 4);
     data << uint32(soundid);
     ((Player*)unitTarget)->GetSession()->SendPacket(&data);
+}
+
+void Spell::EffectBind(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* player = (Player*)unitTarget;
+
+    uint32 area_id;
+    WorldLocation loc;
+    player->GetPosition(loc);
+    area_id = player->GetAreaId();
+
+    player->SetHomebindToLocation(loc,area_id);
+
+    // binding
+    WorldPacket data( SMSG_BINDPOINTUPDATE, (4+4+4+4+4) );
+    data << float(loc.coord_x);
+    data << float(loc.coord_y);
+    data << float(loc.coord_z);
+    data << uint32(loc.mapid);
+    data << uint32(area_id);
+    player->SendDirectMessage( &data );
+
+    DEBUG_LOG("New Home Position X is %f", loc.coord_x);
+    DEBUG_LOG("New Home Position Y is %f", loc.coord_y);
+    DEBUG_LOG("New Home Position Z is %f", loc.coord_z);
+    DEBUG_LOG("New Home MapId is %u", loc.mapid);
+    DEBUG_LOG("New Home AreaId is %u", area_id);
+
+    // zone update
+    data.Initialize(SMSG_PLAYERBOUND, 8+4);
+    data << uint64(player->GetGUID());
+    data << uint32(area_id);
+    player->SendMessageToSet( &data, true );
 }

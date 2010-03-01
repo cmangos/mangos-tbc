@@ -1962,15 +1962,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     }
                     break;
                 case SPELL_EFFECT_SUMMON:
-                    if (m_spellInfo->EffectMiscValueB[effIndex] == SUMMON_TYPE_POSESSED ||
-                        m_spellInfo->EffectMiscValueB[effIndex] == SUMMON_TYPE_POSESSED2)
-                    {
-                        if(m_targets.getUnitTarget())
-                            targetUnitMap.push_back(m_targets.getUnitTarget());
-                    }
-                    else
-                        targetUnitMap.push_back(m_caster);
-                    break;
                 case SPELL_EFFECT_SUMMON_CHANGE_ITEM:
                 case SPELL_EFFECT_TRANS_DOOR:
                 case SPELL_EFFECT_ADD_FARSIGHT:
@@ -4021,22 +4012,17 @@ SpellCastResult Spell::CheckCast(bool strict)
             // These won't show up in m_caster->GetPetGUID()
             case SPELL_EFFECT_SUMMON:
             {
-                switch(m_spellInfo->EffectMiscValueB[i])
+                if(SummonPropertiesEntry const *summon_prop = sSummonPropertiesStore.LookupEntry(m_spellInfo->EffectMiscValueB[i]))
                 {
-                    case SUMMON_TYPE_POSESSED:
-                    case SUMMON_TYPE_POSESSED2:
-                    case SUMMON_TYPE_DEMON:
-                    case SUMMON_TYPE_SUMMON:
+                    if(summon_prop->Group == SUMMON_PROP_GROUP_PETS)
                     {
                         if(m_caster->GetPetGUID())
                             return SPELL_FAILED_ALREADY_HAVE_SUMMON;
 
                         if(m_caster->GetCharmGUID())
                             return SPELL_FAILED_ALREADY_HAVE_CHARM;
-                        break;
                     }
                 }
-                break;
             }
             case SPELL_EFFECT_SUMMON_PET:
             {

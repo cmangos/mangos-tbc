@@ -3076,46 +3076,72 @@ void Spell::EffectApplyAreaAura(SpellEffectIndex eff_idx)
 
 void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 {
-    switch(m_spellInfo->EffectMiscValueB[eff_idx])
+    uint32 prop_id = m_spellInfo->EffectMiscValueB[eff_idx];
+    SummonPropertiesEntry const *summon_prop = sSummonPropertiesStore.LookupEntry(prop_id);
+    if(!summon_prop)
     {
-        case SUMMON_TYPE_GUARDIAN:
-        case SUMMON_TYPE_POSESSED:
-        case SUMMON_TYPE_POSESSED2:
-            // Jewelery statue case (totem like)
-            if(m_spellInfo->SpellIconID == 2056)
-                DoSummonTotem(eff_idx);
-            else
-                DoSummonGuardian(eff_idx);
+        sLog.outError("EffectSummonType: Unhandled summon type %u", prop_id);
+        return;
+    }
+
+    switch(summon_prop->Group)
+    {
+        // faction handled later on, or loaded from template
+        case SUMMON_PROP_GROUP_WILD:
+        case SUMMON_PROP_GROUP_FRIENDLY:
+        {
+            switch(summon_prop->Type)
+            {
+                case SUMMON_PROP_TYPE_OTHER:
+                {
+                    // those are classical totems - effectbasepoints is their hp and not summon ammount!
+                    //SUMMON_TYPE_TOTEM = 121: 23035, battlestands
+                    if(prop_id == 121)
+                        DoSummonTotem(eff_idx);
+                    else
+                        DoSummonWild(eff_idx, summon_prop->FactionId);
+                    break;
+                }
+                case SUMMON_PROP_TYPE_SUMMON:
+                case SUMMON_PROP_TYPE_GUARDIAN:
+                {
+                    // JC golems - 32804, etc  -- fits much better totem AI
+                    if(m_spellInfo->SpellIconID == 2056)
+                        DoSummonTotem(eff_idx);
+                    else
+                        DoSummonGuardian(eff_idx, summon_prop->FactionId);
+                    break;
+                }
+                case SUMMON_PROP_TYPE_TOTEM:
+                {
+                    DoSummonTotem(eff_idx, summon_prop->Slot);
+                    break;
+                }
+                case SUMMON_PROP_TYPE_CRITTER:
+                {
+                    DoSummonCritter(eff_idx, summon_prop->FactionId);
+                    break;
+                }
+                default:
+                    sLog.outError("EffectSummonType: Unhandled summon type %u", summon_prop->Type);
+                break;
+            }
             break;
-        case SUMMON_TYPE_WILD:
-            DoSummonWild(eff_idx);
-            break;
-        case SUMMON_TYPE_DEMON:
-            DoSummonDemon(eff_idx);
-            break;
-        case SUMMON_TYPE_SUMMON:
+        }
+        case SUMMON_PROP_GROUP_PETS:
+        {
             DoSummon(eff_idx);
             break;
-        case SUMMON_TYPE_CRITTER:
-        case SUMMON_TYPE_CRITTER2:
-        case SUMMON_TYPE_CRITTER3:
-            DoSummonCritter(eff_idx);
+        }
+        case SUMMON_PROP_GROUP_CONTROLLABLE:
+        {
+            // no type here
+            // maybe wrong - but thats the handler currently used for those
+            DoSummonGuardian(eff_idx, summon_prop->FactionId);
             break;
-        case SUMMON_TYPE_TOTEM_SLOT1:
-        case SUMMON_TYPE_TOTEM_SLOT2:
-        case SUMMON_TYPE_TOTEM_SLOT3:
-        case SUMMON_TYPE_TOTEM_SLOT4:
-        case SUMMON_TYPE_TOTEM:
-            DoSummonTotem(eff_idx);
-            break;
-        case SUMMON_TYPE_UNKNOWN1:
-        case SUMMON_TYPE_UNKNOWN2:
-        case SUMMON_TYPE_UNKNOWN3:
-        case SUMMON_TYPE_UNKNOWN4:
-        case SUMMON_TYPE_UNKNOWN5:
-            break;
+        }
         default:
-            sLog.outError("EffectSummonType: Unhandled summon type %u", m_spellInfo->EffectMiscValueB[eff_idx]);
+            sLog.outError("EffectSummonType: Unhandled summon group type %u", summon_prop->Group);
             break;
     }
 }
@@ -3133,10 +3159,23 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     uint32 level = m_caster->getLevel();
     Pet* spawnCreature = new Pet(SUMMON_PET);
 
+    int32 duration = GetSpellDuration(m_spellInfo);
+    if(Player* modOwner = m_caster->GetSpellModOwner())
+        modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
+
     if (m_caster->GetTypeId()==TYPEID_PLAYER && spawnCreature->LoadPetFromDB((Player*)m_caster,pet_entry))
     {
+        // Summon in dest location
+        float x, y, z;
+        if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+        {
+            x = m_targets.m_destX;
+            y = m_targets.m_destY;
+            z = m_targets.m_destZ;
+            spawnCreature->Relocate(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, -m_caster->GetOrientation());
+        }
+
         // set timer for unsummon
-        int32 duration = GetSpellDuration(m_spellInfo);
         if (duration > 0)
             spawnCreature->SetDuration(duration);
 
@@ -3174,7 +3213,6 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     }
 
     // set timer for unsummon
-    int32 duration = GetSpellDuration(m_spellInfo);
     if (duration > 0)
         spawnCreature->SetDuration(duration);
 
@@ -3458,7 +3496,7 @@ void Spell::EffectAddFarsight(SpellEffectIndex eff_idx)
     ((Player*)m_caster)->SetFarSightGUID(dynObj->GetGUID());
 }
 
-void Spell::DoSummonWild(SpellEffectIndex eff_idx)
+void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)
 {
     uint32 creature_entry = m_spellInfo->EffectMiscValue[eff_idx];
     if (!creature_entry)
@@ -3474,9 +3512,7 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx)
         {
             uint16 skill202 = ((Player*)m_caster)->GetSkillValue(SKILL_ENGINERING);
             if (skill202)
-            {
                 level = skill202/5;
-            }
         }
     }
 
@@ -3512,25 +3548,22 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx)
         else
             m_caster->GetClosePoint(px, py, pz, 3.0f);
 
-        m_caster->SummonCreature(creature_entry, px, py, pz, m_caster->GetOrientation(), summonType, duration);
+        if(Creature *summon = m_caster->SummonCreature(creature_entry, px, py, pz, m_caster->GetOrientation(), summonType, duration))
+        {
+            summon->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
+            summon->SetCreatorGUID(m_caster->GetGUID());
+
+            if(forceFaction)
+                summon->setFaction(forceFaction);
+        }
     }
 }
 
-void Spell::DoSummonGuardian(SpellEffectIndex eff_idx)
+void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
 {
     uint32 pet_entry = m_spellInfo->EffectMiscValue[eff_idx];
     if (!pet_entry)
         return;
-
-    // set timer for unsummon
-    int32 duration = GetSpellDuration(m_spellInfo);
-
-    // Search old Guardian only for players (if casted spell not have duration or cooldown)
-    // FIXME: some guardians have control spell applied and controlled by player and anyway player can't summon in this time
-    //        so this code hack in fact
-    if (m_caster->GetTypeId() == TYPEID_PLAYER && (duration <= 0 || GetSpellRecoveryTime(m_spellInfo) == 0))
-        if(m_caster->FindGuardianWithEntry(pet_entry))
-            return;                                         // find old guardian, ignore summon
 
     // in another case summon new
     uint32 level = m_caster->getLevel();
@@ -3555,6 +3588,9 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx)
     float center_z = m_targets.m_destZ;
 
     float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+    int32 duration = GetSpellDuration(m_spellInfo);
+    if(Player* modOwner = m_caster->GetSpellModOwner())
+        modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DURATION, duration);
 
     int32 amount = damage > 0 ? damage : 1;
 
@@ -3605,8 +3641,8 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx)
 
         spawnCreature->SetOwnerGUID(m_caster->GetGUID());
         spawnCreature->setPowerType(POWER_MANA);
-        spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
-        spawnCreature->setFaction(m_caster->getFaction());
+        spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, spawnCreature->GetCreatureInfo()->npcflag);
+        spawnCreature->setFaction(forceFaction ? forceFaction : m_caster->getFaction());
         spawnCreature->SetUInt32Value(UNIT_FIELD_FLAGS, 0);
         spawnCreature->SetUInt32Value(UNIT_FIELD_BYTES_1, 0);
         spawnCreature->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, 0);
@@ -5034,21 +5070,10 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
     sWorld.ScriptCommandStart(activateCommand, delay_secs, m_caster, gameObjTarget);
 }
 
-void Spell::DoSummonTotem(SpellEffectIndex eff_idx)
+void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
 {
-    int slot = 0;
-    switch(m_spellInfo->EffectMiscValueB[eff_idx])
-    {
-        case SUMMON_TYPE_TOTEM_SLOT1: slot = TOTEM_SLOT_FIRE;  break;
-        case SUMMON_TYPE_TOTEM_SLOT2: slot = TOTEM_SLOT_EARTH; break;
-        case SUMMON_TYPE_TOTEM_SLOT3: slot = TOTEM_SLOT_WATER; break;
-        case SUMMON_TYPE_TOTEM_SLOT4: slot = TOTEM_SLOT_AIR;   break;
-        // Battle standard case
-        case SUMMON_TYPE_TOTEM:       slot = TOTEM_SLOT_NONE;  break;
-        // jewelery statue case, like totem without slot
-        case SUMMON_TYPE_GUARDIAN:    slot = TOTEM_SLOT_NONE;  break;
-        default: return;
-    }
+    // DBC store slots starting from 1, with no slot 0 value)
+    int slot = slot_dbc ? slot_dbc - 1 : TOTEM_SLOT_NONE;
 
     // unsummon old totem
     if(slot < MAX_TOTEM_SLOT)
@@ -5539,7 +5564,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
         m_caster->Attack(unitTarget, true);
 }
 
-void Spell::DoSummonCritter(SpellEffectIndex eff_idx)
+void Spell::DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction)
 {
     if(m_caster->GetTypeId() != TYPEID_PLAYER)
         return;
@@ -5599,9 +5624,9 @@ void Spell::DoSummonCritter(SpellEffectIndex eff_idx)
 
     critter->SetOwnerGUID(m_caster->GetGUID());
     critter->SetCreatorGUID(m_caster->GetGUID());
-    critter->setFaction(m_caster->getFaction());
-    critter->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
 
+    critter->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
+    critter->setFaction(forceFaction ? forceFaction : m_caster->getFaction());
     critter->AIM_Initialize();
     critter->InitPetCreateSpells();                         // e.g. disgusting oozeling has a create spell as critter...
     critter->SelectLevel(critter->GetCreatureInfo());       // some summoned creaters have different from 1 DB data for level/hp
@@ -5916,31 +5941,6 @@ void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
 void Spell::EffectSkill(SpellEffectIndex /*eff_idx*/)
 {
     sLog.outDebug("WORLD: SkillEFFECT");
-}
-
-void Spell::DoSummonDemon(SpellEffectIndex eff_idx)
-{
-    float px = m_targets.m_destX;
-    float py = m_targets.m_destY;
-    float pz = m_targets.m_destZ;
-
-    Creature* Charmed = m_caster->SummonCreature(m_spellInfo->EffectMiscValue[eff_idx], px, py, pz, m_caster->GetOrientation(),TEMPSUMMON_TIMED_OR_DEAD_DESPAWN,3600000);
-    if (!Charmed)
-        return;
-
-    // might not always work correctly, maybe the creature that dies from CoD casts the effect on itself and is therefore the caster?
-    Charmed->SetLevel(m_caster->getLevel());
-
-    // TODO: Add damage/mana/hp according to level
-
-    if (m_spellInfo->EffectMiscValue[eff_idx] == 89)        // Inferno summon
-    {
-        // Enslave demon effect, without mana cost and cooldown
-        m_caster->CastSpell(Charmed, 20882, true);          // FIXME: enslave does not scale with level, level 62+ minions cannot be enslaved
-
-        // Inferno effect
-        Charmed->CastSpell(Charmed, 22703, true, 0);
-    }
 }
 
 void Spell::EffectSpiritHeal(SpellEffectIndex /*eff_idx*/)

@@ -20,6 +20,7 @@
 -- Table structure for table `saved_variables`
 --
 
+DROP TABLE IF EXISTS `saved_variables`;
 CREATE TABLE `saved_variables` (
     `NextArenaPointDistributionTime` bigint(40) UNSIGNED NOT NULL DEFAULT '0'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Variable Saves';

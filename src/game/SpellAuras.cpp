@@ -1190,7 +1190,20 @@ void Aura::UpdateSlotCounterAndDuration(bool add)
     UpdateAuraDuration();
 }
 
-void Aura::ReapplyAffectedPassiveAuras( Unit* target, SpellModifier const& spellmod, bool owner_mode )
+bool Aura::isAffectedOnSpell(SpellEntry const *spell) const
+{
+    if (m_spellmod)
+        return m_spellmod->isAffectedOnSpell(spell);
+
+    // Check family name
+    if (spell->SpellFamilyName != m_spellProto->SpellFamilyName)
+        return false;
+
+    uint64 mask = sSpellMgr.GetSpellAffectMask(GetId(),GetEffIndex());
+    return (mask & spell->SpellFamilyFlags);
+}
+
+void Aura::ReapplyAffectedPassiveAuras( Unit* target, bool owner_mode )
 {
     std::set<uint32> affectedSelf;
     std::set<uint32> affectedAuraCaster;
@@ -1203,7 +1216,7 @@ void Aura::ReapplyAffectedPassiveAuras( Unit* target, SpellModifier const& spell
             // non deleted and not same aura (any with same spell id)
             !itr->second->IsDeleted() && itr->second->GetId() != GetId() &&
             // and affected by spellmod
-            spellmod.isAffectedOnSpell(itr->second->GetSpellProto()))
+            isAffectedOnSpell(itr->second->GetSpellProto()))
         {
             // only applied by self or aura caster
             if (itr->second->GetCasterGUID() == target->GetGUID())
@@ -1233,13 +1246,12 @@ void Aura::ReapplyAffectedPassiveAuras( Unit* target, SpellModifier const& spell
 
 struct ReapplyAffectedPassiveAurasHelper
 {
-    explicit ReapplyAffectedPassiveAurasHelper(Aura* _aura, SpellModifier const* _spellmod) : aura(_aura), spellmod(_spellmod) {}
-    void operator()(Unit* unit) const { aura->ReapplyAffectedPassiveAuras(unit, *spellmod, true); }
+    explicit ReapplyAffectedPassiveAurasHelper(Aura* _aura) : aura(_aura) {}
+    void operator()(Unit* unit) const { aura->ReapplyAffectedPassiveAuras(unit, true); }
     Aura* aura;
-    SpellModifier const* spellmod;
 };
 
-void Aura::ReapplyAffectedPassiveAuras(SpellModifier const& spellmod)
+void Aura::ReapplyAffectedPassiveAuras()
 {
     // not reapply spell mods with charges (use original value because processed and at remove)
     if (m_spellProto->procCharges)
@@ -1260,17 +1272,17 @@ void Aura::ReapplyAffectedPassiveAuras(SpellModifier const& spellmod)
     }
 
     // reapply talents to own passive persistent auras
-    ReapplyAffectedPassiveAuras(m_target, spellmod, true);
+    ReapplyAffectedPassiveAuras(m_target, true);
 
     // re-apply talents/passives/area auras applied to pet/totems (it affected by player spellmods)
-    m_target->CallForAllControlledUnits(ReapplyAffectedPassiveAurasHelper(this,&spellmod),true,false,false);
+    m_target->CallForAllControlledUnits(ReapplyAffectedPassiveAurasHelper(this),true,false,false);
 
     // re-apply talents/passives/area auras applied to group members (it affected by player spellmods)
     if (Group* group = ((Player*)m_target)->GetGroup())
         for(GroupReference *itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
             if (Player* member = itr->getSource())
                 if (member != m_target && member->IsInMap(m_target))
-                    ReapplyAffectedPassiveAuras(member, spellmod, false);
+                    ReapplyAffectedPassiveAuras(member, false);
 }
 
 bool Aura::isWeaponBuffCoexistableWith(Aura *ref)
@@ -1339,14 +1351,10 @@ void Aura::HandleAddModifier(bool apply, bool Real)
             m_procCharges > 0 ? m_procCharges : 0);
     }
 
-    uint64 spellFamilyMask = m_spellmod->mask;
-
-    SpellModifier spellmod = *m_spellmod;                   // make copy before deletion
-
     // unapply spell mod (including deleting m_spellmod)
     ((Player*)m_target)->AddSpellMod(m_spellmod, apply);
 
-    ReapplyAffectedPassiveAuras(spellmod);
+    ReapplyAffectedPassiveAuras();
 }
 
 void Aura::TriggerSpell()

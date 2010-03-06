@@ -238,8 +238,6 @@ class MANGOS_DLL_SPEC Aura
         uint32 GetAuraTicks() const { return m_periodicTick; }
         uint32 GetAuraMaxTicks() const { return m_maxduration > 0 && m_modifier.periodictime > 0 ? m_maxduration / m_modifier.periodictime : 0; }
 
-        SpellModifier *getAuraSpellMod() {return m_spellmod; }
-
         uint64 const& GetCasterGUID() const { return m_caster_guid; }
         Unit* GetCaster() const;
         Unit* GetTarget() const { return m_target; }
@@ -319,6 +317,7 @@ class MANGOS_DLL_SPEC Aura
 
         void TriggerSpell();
 
+        // more limited that used in future versions (spell_affect table based only), so need be careful with backporting uses
         bool isAffectedOnSpell(SpellEntry const *spell) const;
         bool isWeaponBuffCoexistableWith(Aura *ref);
     protected:
@@ -331,7 +330,7 @@ class MANGOS_DLL_SPEC Aura
         void PeriodicTick();
         void PeriodicDummyTick();
 
-        void ReapplyAffectedPassiveAuras(SpellModifier const& spellmod);
+        void ReapplyAffectedPassiveAuras();
 
         Modifier m_modifier;
         SpellModifier *m_spellmod;
@@ -376,7 +375,7 @@ class MANGOS_DLL_SPEC Aura
         void SetAuraFlag(uint32 slot, bool add);
         void SetAuraLevel(uint32 slot, uint32 level);
         void SetAuraApplication(uint32 slot, int8 count);
-        void ReapplyAffectedPassiveAuras(Unit* target, SpellModifier const& spellmod, bool owner_mode);
+        void ReapplyAffectedPassiveAuras(Unit* target, bool owner_mode);
 };
 
 class MANGOS_DLL_SPEC AreaAura : public Aura

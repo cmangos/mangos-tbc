@@ -20,6 +20,7 @@
 #include "Database/DatabaseEnv.h"
 #include "DBCStores.h"
 #include "ObjectMgr.h"
+#include "ObjectGuid.h"
 #include "Player.h"
 #include "Item.h"
 #include "GameObject.h"

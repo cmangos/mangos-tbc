@@ -134,33 +134,30 @@ void SpellCastTargets::setCorpseTarget(Corpse* corpse)
 
 void SpellCastTargets::Update(Unit* caster)
 {
-    m_GOTarget   = m_GOTargetGUID ? caster->GetMap()->GetGameObject(m_GOTargetGUID) : NULL;
-    m_unitTarget = m_unitTargetGUID ?
-        ( m_unitTargetGUID == caster->GetGUID() ? caster : ObjectAccessor::GetUnit(*caster, m_unitTargetGUID) ) :
+    m_GOTarget   = !m_GOTargetGUID.IsEmpty() ? caster->GetMap()->GetGameObject(m_GOTargetGUID.GetRawValue()) : NULL;
+    m_unitTarget = !m_unitTargetGUID.IsEmpty() ?
+        ( m_unitTargetGUID.GetRawValue() == caster->GetGUID() ? caster : ObjectAccessor::GetUnit(*caster, m_unitTargetGUID.GetRawValue()) ) :
     NULL;
 
     m_itemTarget = NULL;
     if(caster->GetTypeId() == TYPEID_PLAYER)
     {
         if(m_targetMask & TARGET_FLAG_ITEM)
-            m_itemTarget = ((Player*)caster)->GetItemByGuid(m_itemTargetGUID);
+            m_itemTarget = ((Player*)caster)->GetItemByGuid(m_itemTargetGUID.GetRawValue());
         else if(m_targetMask & TARGET_FLAG_TRADE_ITEM)
         {
             Player* pTrader = ((Player*)caster)->GetTrader();
-            if(pTrader && m_itemTargetGUID < TRADE_SLOT_COUNT)
-                m_itemTarget = pTrader->GetItemByPos(pTrader->GetItemPosByTradeSlot(uint32(m_itemTargetGUID)));
+            if(pTrader && m_itemTargetGUID.GetRawValue() < TRADE_SLOT_COUNT)
+                m_itemTarget = pTrader->GetItemByPos(pTrader->GetItemPosByTradeSlot(uint32(m_itemTargetGUID.GetRawValue())));
         }
         if(m_itemTarget)
             m_itemTargetEntry = m_itemTarget->GetEntry();
     }
 }
 
-bool SpellCastTargets::read ( WorldPacket * data, Unit *caster )
+void SpellCastTargets::read( ByteBuffer& data, Unit *caster )
 {
-    if(data->rpos() + 4 > data->size())
-        return false;
-
-    *data >> m_targetMask;
+    data >> m_targetMask;
 
     if(m_targetMask == TARGET_FLAG_SELF)
     {
@@ -169,101 +166,85 @@ bool SpellCastTargets::read ( WorldPacket * data, Unit *caster )
         m_destZ = caster->GetPositionZ();
         m_unitTarget = caster;
         m_unitTargetGUID = caster->GetGUID();
-        return true;
+        return;
     }
 
     // TARGET_FLAG_UNK2 is used for non-combat pets, maybe other?
     if( m_targetMask & ( TARGET_FLAG_UNIT | TARGET_FLAG_UNK2 ))
-        if(!data->readPackGUID(m_unitTargetGUID))
-            return false;
+        data >> m_unitTargetGUID.ReadAsPacked();
 
     if( m_targetMask & ( TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_UNK ))
-        if(!data->readPackGUID(m_GOTargetGUID))
-            return false;
+        data >> m_GOTargetGUID.ReadAsPacked();
 
     if(( m_targetMask & ( TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM )) && caster->GetTypeId() == TYPEID_PLAYER)
-        if(!data->readPackGUID(m_itemTargetGUID))
-            return false;
+        data >> m_itemTargetGUID.ReadAsPacked();
 
     if( m_targetMask & TARGET_FLAG_SOURCE_LOCATION )
     {
-        if(data->rpos() + 4 + 4 + 4 > data->size())
-            return false;
-
-        *data >> m_srcX >> m_srcY >> m_srcZ;
+        data >> m_srcX >> m_srcY >> m_srcZ;
         if(!MaNGOS::IsValidMapCoord(m_srcX, m_srcY, m_srcZ))
-            return false;
+            throw ByteBufferException(false, data.rpos(), 0, data.size());
     }
 
     if( m_targetMask & TARGET_FLAG_DEST_LOCATION )
     {
-        if(data->rpos() + 4 + 4 + 4 > data->size())
-            return false;
-
-        *data >> m_destX >> m_destY >> m_destZ;
+        data >> m_destX >> m_destY >> m_destZ;
         if(!MaNGOS::IsValidMapCoord(m_destX, m_destY, m_destZ))
-            return false;
+            throw ByteBufferException(false, data.rpos(), 0, data.size());
     }
 
     if( m_targetMask & TARGET_FLAG_STRING )
-    {
-        if(data->rpos() + 1 > data->size())
-            return false;
-
-        *data >> m_strTarget;
-    }
+        data >> m_strTarget;
 
     if( m_targetMask & (TARGET_FLAG_CORPSE | TARGET_FLAG_PVP_CORPSE ) )
-        if(!data->readPackGUID(m_CorpseTargetGUID))
-            return false;
+        data >> m_CorpseTargetGUID.ReadAsPacked();
 
     // find real units/GOs
     Update(caster);
-    return true;
 }
 
-void SpellCastTargets::write ( WorldPacket * data )
+void SpellCastTargets::write( ByteBuffer& data ) const
 {
-    *data << uint32(m_targetMask);
+    data << uint32(m_targetMask);
 
     if( m_targetMask & ( TARGET_FLAG_UNIT | TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_OBJECT | TARGET_FLAG_CORPSE | TARGET_FLAG_UNK2 ) )
     {
         if(m_targetMask & TARGET_FLAG_UNIT)
         {
             if(m_unitTarget)
-                data->append(m_unitTarget->GetPackGUID());
+                data << m_unitTarget->GetPackGUID();
             else
-                *data << uint8(0);
+                data << uint8(0);
         }
         else if( m_targetMask & ( TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_UNK ) )
         {
             if(m_GOTarget)
-                data->append(m_GOTarget->GetPackGUID());
+                data << m_GOTarget->GetPackGUID();
             else
-                *data << uint8(0);
+                data << uint8(0);
         }
         else if( m_targetMask & ( TARGET_FLAG_CORPSE | TARGET_FLAG_PVP_CORPSE ) )
-            data->appendPackGUID(m_CorpseTargetGUID);
+            data << m_CorpseTargetGUID.WriteAsPacked();
         else
-            *data << uint8(0);
+            data << uint8(0);
     }
 
     if( m_targetMask & ( TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM ) )
     {
         if(m_itemTarget)
-            data->append(m_itemTarget->GetPackGUID());
+            data << m_itemTarget->GetPackGUID();
         else
-            *data << uint8(0);
+            data << uint8(0);
     }
 
     if( m_targetMask & TARGET_FLAG_SOURCE_LOCATION )
-        *data << m_srcX << m_srcY << m_srcZ;
+        data << m_srcX << m_srcY << m_srcZ;
 
     if( m_targetMask & TARGET_FLAG_DEST_LOCATION )
-        *data << m_destX << m_destY << m_destZ;
+        data << m_destX << m_destY << m_destZ;
 
     if( m_targetMask & TARGET_FLAG_STRING )
-        *data << m_strTarget;
+        data << m_strTarget;
 }
 
 Spell::Spell( Unit* Caster, SpellEntry const *info, bool triggered, uint64 originalCasterGUID, Spell** triggeringContainer )
@@ -2703,7 +2684,7 @@ void Spell::SendCastResult(Player* caster, SpellEntry const* spellInfo, uint8 ca
     if(result == SPELL_CAST_OK)
     {
         WorldPacket data(SMSG_CLEAR_EXTRA_AURA_INFO, (8+4));
-        data.append(caster->GetPackGUID());
+        data << caster->GetPackGUID();
         data << uint32(spellInfo->Id);
         caster->GetSession()->SendPacket(&data);
         return;
@@ -2774,17 +2755,16 @@ void Spell::SendSpellStart()
 
     WorldPacket data(SMSG_SPELL_START, (8+8+4+4+2));
     if (m_CastItem)
-        data.append(m_CastItem->GetPackGUID());
+        data << m_CastItem->GetPackGUID();
     else
-        data.append(m_caster->GetPackGUID());
+        data << m_caster->GetPackGUID();
 
-    data.append(m_caster->GetPackGUID());
-    data << uint32(m_spellInfo->Id);
-    data << uint8(m_cast_count);                            // single cast or multi 2.3 (0/1)
-    data << uint16(castFlags);
-    data << uint32(m_timer);
-
-    m_targets.write(&data);
+    data << m_caster->GetPackGUID();
+    data << uint32(m_spellInfo->Id);;                       // spellId
+    data << uint8(m_cast_count);                            // pending spell cast?
+    data << uint16(castFlags);                              // cast flags
+    data << uint32(m_timer);                                // delay?
+    data << m_targets;
 
     if( castFlags & CAST_FLAG_AMMO )
         WriteAmmoToPacket(&data);
@@ -2807,18 +2787,18 @@ void Spell::SendSpellGo()
     WorldPacket data(SMSG_SPELL_GO, 50);                    // guess size
 
     if(m_CastItem)
-        data.append(m_CastItem->GetPackGUID());
+        data << m_CastItem->GetPackGUID();
     else
-        data.append(m_caster->GetPackGUID());
+        data << m_caster->GetPackGUID();
 
-    data.append(m_caster->GetPackGUID());
-    data << uint32(m_spellInfo->Id);
-    data << uint16(castFlags);
+    data << m_caster->GetPackGUID();
+    data << uint32(m_spellInfo->Id);                        // spellId
+    data << uint16(castFlags);                              // cast flags
     data << uint32(getMSTime());                            // timestamp
 
     WriteSpellGoTargets(&data);
 
-    m_targets.write(&data);
+    data << m_targets;
 
     if( castFlags & CAST_FLAG_AMMO )
         WriteAmmoToPacket(&data);
@@ -2895,9 +2875,9 @@ void Spell::SendLogExecute()
     WorldPacket data(SMSG_SPELLLOGEXECUTE, (8+4+4+4+4+8));
 
     if(m_caster->GetTypeId() == TYPEID_PLAYER)
-        data.append(m_caster->GetPackGUID());
+        data << m_caster->GetPackGUID();
     else
-        data.append(target->GetPackGUID());
+        data << target->GetPackGUID();
 
     data << uint32(m_spellInfo->Id);
     uint32 count1 = 1;
@@ -2913,7 +2893,7 @@ void Spell::SendLogExecute()
             {
                 case SPELL_EFFECT_POWER_DRAIN:
                     if(Unit *unit = m_targets.getUnitTarget())
-                        data.append(unit->GetPackGUID());
+                        data << unit->GetPackGUID();
                     else
                         data << uint8(0);
                     data << uint32(0);
@@ -2922,21 +2902,21 @@ void Spell::SendLogExecute()
                     break;
                 case SPELL_EFFECT_ADD_EXTRA_ATTACKS:
                     if(Unit *unit = m_targets.getUnitTarget())
-                        data.append(unit->GetPackGUID());
+                        data << unit->GetPackGUID();
                     else
                         data << uint8(0);
                     data << uint32(0);                      // count?
                     break;
                 case SPELL_EFFECT_INTERRUPT_CAST:
                     if(Unit *unit = m_targets.getUnitTarget())
-                        data.append(unit->GetPackGUID());
+                        data << unit->GetPackGUID();
                     else
                         data << uint8(0);
                     data << uint32(0);                      // spellid
                     break;
                 case SPELL_EFFECT_DURABILITY_DAMAGE:
                     if(Unit *unit = m_targets.getUnitTarget())
-                        data.append(unit->GetPackGUID());
+                        data << unit->GetPackGUID();
                     else
                         data << uint8(0);
                     data << uint32(0);
@@ -2945,7 +2925,7 @@ void Spell::SendLogExecute()
                 case SPELL_EFFECT_OPEN_LOCK:
                 case SPELL_EFFECT_OPEN_LOCK_ITEM:
                     if(Item *item = m_targets.getItemTarget())
-                        data.append(item->GetPackGUID());
+                        data << item->GetPackGUID();
                     else
                         data << uint8(0);
                     break;
@@ -2963,11 +2943,11 @@ void Spell::SendLogExecute()
                 case SPELL_EFFECT_SUMMON_OBJECT_SLOT3:
                 case SPELL_EFFECT_SUMMON_OBJECT_SLOT4:
                     if(Unit *unit = m_targets.getUnitTarget())
-                        data.append(unit->GetPackGUID());
+                        data << unit->GetPackGUID();
                     else if(m_targets.getItemTargetGUID())
                         data.appendPackGUID(m_targets.getItemTargetGUID());
                     else if(GameObject *go = m_targets.getGOTarget())
-                        data.append(go->GetPackGUID());
+                        data << go->GetPackGUID();
                     else
                         data << uint8(0);                   // guid
                     break;
@@ -2976,7 +2956,7 @@ void Spell::SendLogExecute()
                     break;
                 case SPELL_EFFECT_DISMISS_PET:
                     if(Unit *unit = m_targets.getUnitTarget())
-                        data.append(unit->GetPackGUID());
+                        data << unit->GetPackGUID();
                     else
                         data << uint8(0);
                     break;
@@ -2992,13 +2972,13 @@ void Spell::SendLogExecute()
 void Spell::SendInterrupted(uint8 result)
 {
     WorldPacket data(SMSG_SPELL_FAILURE, (8+4+1));
-    data.append(m_caster->GetPackGUID());
+    data << m_caster->GetPackGUID();
     data << m_spellInfo->Id;
     data << result;
     m_caster->SendMessageToSet(&data, true);
 
     data.Initialize(SMSG_SPELL_FAILED_OTHER, (8+4));
-    data.append(m_caster->GetPackGUID());
+    data << m_caster->GetPackGUID();
     data << m_spellInfo->Id;
     m_caster->SendMessageToSet(&data, true);
 }
@@ -3019,7 +2999,7 @@ void Spell::SendChannelUpdate(uint32 time)
     }
 
     WorldPacket data( MSG_CHANNEL_UPDATE, 8+4 );
-    data.append(m_caster->GetPackGUID());
+    data << m_caster->GetPackGUID();
     data << uint32(time);
     m_caster->SendMessageToSet(&data, true);
 }
@@ -3053,7 +3033,7 @@ void Spell::SendChannelStart(uint32 duration)
     }
 
     WorldPacket data( MSG_CHANNEL_START, (8+4+4) );
-    data.append(m_caster->GetPackGUID());
+    data << m_caster->GetPackGUID();
     data << uint32(m_spellInfo->Id);
     data << uint32(duration);
     m_caster->SendMessageToSet(&data, true);
@@ -5007,7 +4987,7 @@ void Spell::Delayed()
     sLog.outDetail("Spell %u partially interrupted for (%d) ms at damage", m_spellInfo->Id, delaytime);
 
     WorldPacket data(SMSG_SPELL_DELAYED, 8+4);
-    data.append(m_caster->GetPackGUID());
+    data << m_caster->GetPackGUID();
     data << uint32(delaytime);
 
     m_caster->SendMessageToSet(&data, true);

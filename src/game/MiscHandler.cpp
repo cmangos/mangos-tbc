@@ -287,7 +287,7 @@ void WorldSession::HandleLogoutRequestOpcode( WorldPacket & /*recv_data*/ )
         GetPlayer()->SetStandState(UNIT_STAND_STATE_SIT);
 
         WorldPacket data( SMSG_FORCE_MOVE_ROOT, (8+4) );    // guess size
-        data.append(GetPlayer()->GetPackGUID());
+        data << GetPlayer()->GetPackGUID();
         data << (uint32)2;
         SendPacket( &data );
         GetPlayer()->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
@@ -319,7 +319,7 @@ void WorldSession::HandleLogoutCancelOpcode( WorldPacket & /*recv_data*/ )
     {
         //!we can move again
         data.Initialize( SMSG_FORCE_MOVE_UNROOT, 8 );       // guess size
-        data.append(GetPlayer()->GetPackGUID());
+        data << GetPlayer()->GetPackGUID();
         data << uint32(0);
         SendPacket( &data );
 
@@ -904,8 +904,8 @@ void WorldSession::HandleMoveTimeSkippedOpcode( WorldPacket & recv_data )
     /*  WorldSession::Update( getMSTime() );*/
     DEBUG_LOG( "WORLD: Time Lag/Synchronization Resent/Update" );
 
-    recv_data.read_skip<uint64>();
-    recv_data.read_skip<uint32>();
+    recv_data >> Unused<uint64>();
+    recv_data >> Unused<uint32>();
     /*
         uint64 guid;
         uint32 time_skipped;
@@ -1026,7 +1026,7 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recv_data)
     uint32 talent_points = 0x3D;
     uint32 guid_size = plr->GetPackGUID().size();
     WorldPacket data(SMSG_INSPECT_TALENT, 4+talent_points);
-    data.append(plr->GetPackGUID());
+    data << plr->GetPackGUID();
     data << uint32(talent_points);
 
     // fill by 0 talents array
@@ -1415,12 +1415,12 @@ void WorldSession::HandleMoveSetCanFlyAckOpcode( WorldPacket & recv_data )
     sLog.outDebug("WORLD: CMSG_MOVE_SET_CAN_FLY_ACK");
     //recv_data.hexlike();
 
-    recv_data.read_skip<uint64>();                          // guid
-    recv_data.read_skip<uint32>();                          // unk
+    MovementInfo movementInfo;
 
-    MovementInfo movementInfo(recv_data);
-
-    recv_data.read_skip<uint32>();                          // unk2
+    recv_data >> Unused<uint64>();                          // guid
+    recv_data >> Unused<uint32>();                          // unk
+    recv_data >> movementInfo;
+    recv_data >> Unused<uint32>();                          // unk2
 
     _player->m_movementInfo.SetMovementFlags(movementInfo.GetMovementFlags());
 }

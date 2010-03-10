@@ -1650,6 +1650,11 @@ uint16 Map::GetAreaFlag(float x, float y, float z) const
     //       not provided correct areaflag with this hacks
     switch(areaflag)
     {
+        case 1146:                                          // Blade's Edge Mountains
+        case 1409:                                          // Forge Camp: Wrath (Blade's Edge Mountains)
+            if (x > 3025.0f && x < 3207.0f && y > 6987.0f && y < 7165.0f && z < 183.0f)
+                areaflag = 1404;                            // Blackwing Coven (Blade's Edge Mountains)
+            break;
         // Undercity (sewers enter and path)
         case 179:                                           // Tirisfal Glades
             if (x > 1595.0f && x < 1699.0f && y > 535.0f && y < 643.5f && z < 30.5f) areaflag = 685; break;

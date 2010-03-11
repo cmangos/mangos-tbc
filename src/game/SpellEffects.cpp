@@ -3244,7 +3244,7 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     spawnCreature->InitStatsForLevel(level, m_caster);
 
     spawnCreature->GetCharmInfo()->SetPetNumber(pet_number, false);
-    
+
     spawnCreature->UpdateWalkMode(m_caster);
 
     spawnCreature->AIM_Initialize();

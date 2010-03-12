@@ -36,6 +36,7 @@
 #include "BattleGround.h"
 #include "BattleGroundAV.h"
 #include "Util.h"
+#include "ScriptCalls.h"
 
 GameObject::GameObject() : WorldObject()
 {
@@ -906,8 +907,12 @@ void GameObject::Use(Unit* user)
 
             Player* player = (Player*)user;
 
-            player->PrepareGossipMenu(this, GetGOInfo()->questgiver.gossipID);
-            player->SendPreparedGossip(this);
+            if (!Script->GOGossipHello(player, this))
+            {
+                player->PrepareGossipMenu(this, GetGOInfo()->questgiver.gossipID);
+                player->SendPreparedGossip(this);
+            }
+
             return;
         }
         //Sitting: Wooden bench, chairs enzz
@@ -988,8 +993,11 @@ void GameObject::Use(Unit* user)
                 }
                 else if (info->goober.gossipID)             // ...or gossip, if page does not exist
                 {
-                    player->PrepareGossipMenu(this, info->goober.gossipID);
-                    player->SendPreparedGossip(this);
+                    if (!Script->GOGossipHello(player, this))
+                    {
+                        player->PrepareGossipMenu(this, info->goober.gossipID);
+                        player->SendPreparedGossip(this);
+                    }
                 }
 
                 // possible quest objective for active quests

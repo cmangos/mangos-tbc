@@ -610,6 +610,11 @@ inline bool IsProfessionSkill(uint32 skill)
     return  IsPrimaryProfessionSkill(skill) || skill == SKILL_FISHING || skill == SKILL_COOKING || skill == SKILL_FIRST_AID;
 }
 
+inline bool IsProfessionOrRidingSkill(uint32 skill)
+{
+    return  IsProfessionSkill(skill) || skill == SKILL_RIDING;
+}
+
 class SpellMgr
 {
     // Constructors
@@ -774,6 +779,7 @@ class SpellMgr
             return false;
         }
 
+        static bool IsProfessionOrRidingSpell(uint32 spellId);
         static bool IsProfessionSpell(uint32 spellId);
         static bool IsPrimaryProfessionSpell(uint32 spellId);
         bool IsPrimaryProfessionFirstRankSpell(uint32 spellId) const;

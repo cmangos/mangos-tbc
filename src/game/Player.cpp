@@ -5029,7 +5029,7 @@ void Player::UpdateSkillsToMaxSkillsForLevel()
         if (GetUInt32Value(PLAYER_SKILL_INDEX(i)))
     {
         uint32 pskill = GetUInt32Value(PLAYER_SKILL_INDEX(i)) & 0x0000FFFF;
-        if( IsProfessionSkill(pskill) || pskill == SKILL_RIDING )
+        if( IsProfessionOrRidingSkill(pskill))
             continue;
         uint32 data = GetUInt32Value(PLAYER_SKILL_VALUE_INDEX(i));
 
@@ -18038,7 +18038,8 @@ bool Player::IsSpellFitByClassAndRace( uint32 spell_id ) const
 
         return true;
     }
-    return true;
+
+    return false;
 }
 
 bool Player::HasQuestForGO(int32 GOId) const

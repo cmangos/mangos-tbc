@@ -61,7 +61,7 @@ ObjectAccessor::GetCreatureOrPet(WorldObject const &u, uint64 guid)
     if(IS_PET_GUID(guid))
         return GetPet(guid);
 
-    return u.GetMap()->GetCreature(guid);
+    return u.IsInWorld() ? u.GetMap()->GetCreature(guid) : NULL;
 }
 
 Unit*
@@ -147,7 +147,11 @@ Object* ObjectAccessor::GetObjectByTypeMask(WorldObject const &p, uint64 guid, u
 Player*
 ObjectAccessor::FindPlayer(ObjectGuid guid)
 {
-    return GetObjectInWorld(guid.GetRawValue(), (Player*)NULL);
+    Player * plr = GetObjectInWorld(guid.GetRawValue(), (Player*)NULL);
+    if(!plr || !plr->IsInWorld())
+        return NULL;
+
+    return plr;
 }
 
 Player*
@@ -157,7 +161,7 @@ ObjectAccessor::FindPlayerByName(const char *name)
     HashMapHolder<Player>::MapType& m = HashMapHolder<Player>::GetContainer();
     HashMapHolder<Player>::MapType::iterator iter = m.begin();
     for(; iter != m.end(); ++iter)
-        if( ::strcmp(name, iter->second->GetName()) == 0 )
+        if(iter->second->IsInWorld() && ( ::strcmp(name, iter->second->GetName()) == 0 ))
             return iter->second;
     return NULL;
 }

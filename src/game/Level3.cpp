@@ -5753,7 +5753,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(const char* /*args*/)
     uint32 counter = 0;
     for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
     {
-        Player::BoundInstancesMap &binds = player->GetBoundInstances(i);
+        Player::BoundInstancesMap &binds = player->GetBoundInstances(Difficulty(i));
         for(Player::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
         {
             InstanceSave *save = itr->second.save;
@@ -5776,7 +5776,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(const char* /*args*/)
     {
         for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
         {
-            Group::BoundInstancesMap &binds = group->GetBoundInstances(i);
+            Group::BoundInstancesMap &binds = group->GetBoundInstances(Difficulty(i));
             for(Group::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
             {
                 InstanceSave *save = itr->second.save;
@@ -5822,7 +5822,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(const char* args)
 
     for(uint8 i = 0; i < MAX_DIFFICULTY; ++i)
     {
-        Player::BoundInstancesMap &binds = player->GetBoundInstances(i);
+        Player::BoundInstancesMap &binds = player->GetBoundInstances(Difficulty(i));
         for(Player::BoundInstancesMap::iterator itr = binds.begin(); itr != binds.end();)
         {
             if (got_map && mapid != itr->first)
@@ -5842,7 +5842,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(const char* args)
                 }
                 else
                     PSendSysMessage("bound for a nonexistant map %u - try to unbind anyway", itr->first);
-                player->UnbindInstance(itr, i);
+                player->UnbindInstance(itr, Difficulty(i));
                 counter++;
             }
             else

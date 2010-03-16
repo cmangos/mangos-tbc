@@ -133,7 +133,10 @@ bool Group::LoadGroupFromDB(Field* fields)
     if (m_groupType == GROUPTYPE_RAID)
         _initRaidSubGroupsCounter();
 
-    m_difficulty = fields[14].GetUInt8();
+    uint32 diff = fields[14].GetUInt8();
+    if (diff >= MAX_DIFFICULTY)
+        diff = DUNGEON_DIFFICULTY_NORMAL;
+    m_difficulty = Difficulty(diff);
     m_mainTank = fields[0].GetUInt64();
     m_mainAssistant = fields[1].GetUInt64();
     m_lootMethod = (LootMethod)fields[2].GetUInt8();
@@ -257,7 +260,7 @@ bool Group::AddMember(const uint64 &guid, const char* name)
 
             if(player->getLevel() >= LEVELREQUIREMENT_HEROIC && player->GetDifficulty() != GetDifficulty() )
             {
-                player->SetDifficulty(m_difficulty);
+                player->SetDifficulty(GetDifficulty());
                 player->SendDungeonDifficulty(true);
             }
         }
@@ -1019,7 +1022,7 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
         player->SetGroupInvite(NULL);
         player->SetGroup(this, group);
         // if the same group invites the player back, cancel the homebind timer
-        InstanceGroupBind *bind = GetBoundInstance(player->GetMapId(), player->GetDifficulty());
+        InstanceGroupBind *bind = GetBoundInstance(player);
         if(bind && bind->save->GetInstanceId() == player->GetInstanceId())
             player->m_InstanceValid = true;
     }
@@ -1382,7 +1385,7 @@ void Roll::targetObjectBuildLink()
     getTarget()->addLootValidatorRef(this);
 }
 
-void Group::SetDifficulty(uint8 difficulty)
+void Group::SetDifficulty(Difficulty difficulty)
 {
     m_difficulty = difficulty;
     if(!isBGGroup())
@@ -1417,9 +1420,9 @@ void Group::ResetInstances(uint8 method, Player* SendMsgTo)
     // method can be INSTANCE_RESET_ALL, INSTANCE_RESET_CHANGE_DIFFICULTY, INSTANCE_RESET_GROUP_DISBAND
 
     // we assume that when the difficulty changes, all instances that can be reset will be
-    uint8 dif = GetDifficulty();
+    Difficulty diff = GetDifficulty();
 
-    for(BoundInstancesMap::iterator itr = m_boundInstances[dif].begin(); itr != m_boundInstances[dif].end();)
+    for(BoundInstancesMap::iterator itr = m_boundInstances[diff].begin(); itr != m_boundInstances[diff].end();)
     {
         InstanceSave *p = itr->second.save;
         const MapEntry *entry = sMapStore.LookupEntry(itr->first);
@@ -1432,7 +1435,7 @@ void Group::ResetInstances(uint8 method, Player* SendMsgTo)
         if(method == INSTANCE_RESET_ALL)
         {
             // the "reset all instances" method can only reset normal maps
-            if (entry->map_type == MAP_RAID || dif == DUNGEON_DIFFICULTY_HEROIC)
+            if (entry->map_type == MAP_RAID || diff == DUNGEON_DIFFICULTY_HEROIC)
             {
                 ++itr;
                 continue;
@@ -1457,8 +1460,8 @@ void Group::ResetInstances(uint8 method, Player* SendMsgTo)
             if(p->CanReset()) p->DeleteFromDB();
             else CharacterDatabase.PExecute("DELETE FROM group_instance WHERE instance = '%u'", p->GetInstanceId());
             // i don't know for sure if hash_map iterators
-            m_boundInstances[dif].erase(itr);
-            itr = m_boundInstances[dif].begin();
+            m_boundInstances[diff].erase(itr);
+            itr = m_boundInstances[diff].begin();
             // this unloads the instance save unless online players are bound to it
             // (eg. permanent binds or GM solo binds)
             p->RemoveGroup(this);
@@ -1468,13 +1471,30 @@ void Group::ResetInstances(uint8 method, Player* SendMsgTo)
     }
 }
 
-InstanceGroupBind* Group::GetBoundInstance(uint32 mapid, uint8 difficulty)
+InstanceGroupBind* Group::GetBoundInstance(Player* player)
 {
+    uint32 mapid = player->GetMapId();
+    MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
+    if(!mapEntry)
+        return NULL;
+
+    Difficulty difficulty = player->GetDifficulty();
+
     // some instances only have one difficulty
-    const MapEntry* entry = sMapStore.LookupEntry(mapid);
-    if(!entry || !entry->SupportsHeroicMode()) difficulty = DUNGEON_DIFFICULTY_NORMAL;
+    if (!mapEntry->SupportsHeroicMode())
+        difficulty = DUNGEON_DIFFICULTY_NORMAL;
+
 
     BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
+    if(itr != m_boundInstances[difficulty].end())
+        return &itr->second;
+    else
+        return NULL;
+}
+
+InstanceGroupBind* Group::GetBoundInstance(Map* aMap, Difficulty difficulty)
+{
+    BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(aMap->GetId());
     if(itr != m_boundInstances[difficulty].end())
         return &itr->second;
     else

@@ -805,10 +805,14 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
         else if(at->requiredItem2 && !GetPlayer()->HasItemCount(at->requiredItem2, 1))
             missingItem = at->requiredItem2;
 
+        MapEntry const* mapEntry = sMapStore.LookupEntry(at->target_mapId);
+        if(!mapEntry)
+            return;
+
         bool isRegularTargetMap = GetPlayer()->GetDifficulty() == REGULAR_DIFFICULTY;
 
         uint32 missingKey = 0;
-        if(!isRegularTargetMap)
+        if (!isRegularTargetMap)
         {
             if(at->heroicKey)
             {
@@ -830,7 +834,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
             if(missingItem)
                 SendAreaTriggerMessage(GetMangosString(LANG_LEVEL_MINREQUIRED_AND_ITEM), at->requiredLevel, ObjectMgr::GetItemPrototype(missingItem)->Name1);
             else if(missingKey)
-                GetPlayer()->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_DIFFICULTY, DUNGEON_DIFFICULTY_HEROIC);
+                GetPlayer()->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_DIFFICULTY, isRegularTargetMap ? DUNGEON_DIFFICULTY_NORMAL : DUNGEON_DIFFICULTY_HEROIC);
             else if(missingQuest)
                 SendAreaTriggerMessage("%s", at->requiredFailedText.c_str());
             else if(missingLevel)
@@ -1341,14 +1345,14 @@ void WorldSession::HandleSetDungeonDifficultyOpcode( WorldPacket & recv_data )
     uint32 mode;
     recv_data >> mode;
 
-    if(mode == _player->GetDifficulty())
-        return;
-
     if(mode >= MAX_DIFFICULTY)
     {
         sLog.outError("WorldSession::HandleSetDungeonDifficultyOpcode: player %d sent an invalid instance mode %d!", _player->GetGUIDLow(), mode);
         return;
     }
+
+    if(Difficulty(mode) == _player->GetDifficulty())
+        return;
 
     // cannot reset while in an instance
     Map *map = _player->GetMap();
@@ -1368,13 +1372,13 @@ void WorldSession::HandleSetDungeonDifficultyOpcode( WorldPacket & recv_data )
             // the difficulty is set even if the instances can't be reset
             //_player->SendDungeonDifficulty(true);
             pGroup->ResetInstances(INSTANCE_RESET_CHANGE_DIFFICULTY, _player);
-            pGroup->SetDifficulty(mode);
+            pGroup->SetDifficulty(Difficulty(mode));
         }
     }
     else
     {
         _player->ResetInstances(INSTANCE_RESET_CHANGE_DIFFICULTY);
-        _player->SetDifficulty(mode);
+        _player->SetDifficulty(Difficulty(mode));
     }
 }
 

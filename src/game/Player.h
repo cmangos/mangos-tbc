@@ -1478,8 +1478,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 GetArenaTeamIdInvited() { return m_ArenaTeamIdInvited; }
         static void LeaveAllArenaTeams(uint64 guid);
 
-        void SetDifficulty(uint32 dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
-        uint8 GetDifficulty() { return m_dungeonDifficulty; }
+        void SetDifficulty(Difficulty dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
+        Difficulty GetDifficulty() { return m_dungeonDifficulty; }
 
         bool UpdateSkill(uint32 skill_id, uint32 step);
         bool UpdateSkillPro(uint16 SkillId, int32 Chance, uint32 step);
@@ -1957,10 +1957,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool m_InstanceValid;
         // permanent binds and solo binds by difficulty
         BoundInstancesMap m_boundInstances[MAX_DIFFICULTY];
-        InstancePlayerBind* GetBoundInstance(uint32 mapid, uint8 difficulty);
-        BoundInstancesMap& GetBoundInstances(uint8 difficulty) { return m_boundInstances[difficulty]; }
-        void UnbindInstance(uint32 mapid, uint8 difficulty, bool unload = false);
-        void UnbindInstance(BoundInstancesMap::iterator &itr, uint8 difficulty, bool unload = false);
+        InstancePlayerBind* GetBoundInstance(uint32 mapid, Difficulty difficulty);
+        BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
+        void UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload = false);
+        void UnbindInstance(BoundInstancesMap::iterator &itr, Difficulty difficulty, bool unload = false);
         InstancePlayerBind* BindToInstance(InstanceSave *save, bool permanent, bool load = false);
         void SendRaidInfo();
         void SendSavedInstances();
@@ -2093,7 +2093,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint32 m_nextSave;
         time_t m_speakTime;
         uint32 m_speakCount;
-        uint32 m_dungeonDifficulty;
+        Difficulty m_dungeonDifficulty;
 
         uint32 m_atLoginFlags;
 

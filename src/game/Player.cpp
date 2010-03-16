@@ -13778,7 +13778,10 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     uint32 transGUID = fields[31].GetUInt32();
     Relocate(fields[13].GetFloat(),fields[14].GetFloat(),fields[15].GetFloat(),fields[17].GetFloat());
     SetMapId(fields[16].GetUInt32());
-    SetDifficulty(fields[39].GetUInt32());                  // may be changed in _LoadGroup
+    uint32 difficulty = fields[39].GetUInt32();
+    if(difficulty >= MAX_DIFFICULTY)
+        difficulty = DUNGEON_DIFFICULTY_NORMAL;
+    SetDifficulty(Difficulty(difficulty));                  // may be changed in _LoadGroup
 
     _LoadGroup(holder->GetResult(PLAYER_LOGIN_QUERY_LOADGROUP));
 
@@ -14800,7 +14803,7 @@ void Player::_LoadTutorials(QueryResult *result)
 {
     //QueryResult *result = CharacterDatabase.PQuery("SELECT tut0,tut1,tut2,tut3,tut4,tut5,tut6,tut7 FROM character_tutorial WHERE account = '%u' AND realmid = '%u'", GetAccountId(), realmid);
 
-    if(result)
+    if (result)
     {
         do
         {
@@ -14829,7 +14832,7 @@ void Player::_LoadGroup(QueryResult *result)
         {
             uint8 subgroup = group->GetMemberGroup(GetGUID());
             SetGroup(group, subgroup);
-            if(getLevel() >= LEVELREQUIREMENT_HEROIC)
+            if (getLevel() >= LEVELREQUIREMENT_HEROIC)
             {
                 // the group leader may change the instance difficulty while the player is offline
                 SetDifficulty(group->GetDifficulty());
@@ -14855,6 +14858,7 @@ void Player::_LoadBoundInstances(QueryResult *result)
             uint32 mapId = fields[2].GetUInt32();
             uint32 instanceId = fields[0].GetUInt32();
             uint8 difficulty = fields[3].GetUInt8();
+
             time_t resetTime = (time_t)fields[4].GetUInt64();
             // the resettime for normal instances is only saved when the InstanceSave is unloaded
             // so the value read from the DB may be wrong here but only if the InstanceSave is loaded
@@ -14868,6 +14872,13 @@ void Player::_LoadBoundInstances(QueryResult *result)
                 continue;
             }
 
+            if(difficulty >= MAX_DIFFICULTY)
+            {
+                sLog.outError("_LoadBoundInstances: player %s(%d) has bind to not existed difficulty %d instance for map %u", GetName(), GetGUIDLow(), difficulty, mapId);
+                CharacterDatabase.PExecute("DELETE FROM character_instance WHERE guid = '%d' AND instance = '%d'", GetGUIDLow(), instanceId);
+                continue;
+            }
+
             if(!perm && group)
             {
                 sLog.outError("_LoadBoundInstances: player %s(%d) is in group %d but has a non-permanent character bind to map %d,%d,%d", GetName(), GetGUIDLow(), GUID_LOPART(group->GetLeaderGUID()), mapId, instanceId, difficulty);
@@ -14876,18 +14887,19 @@ void Player::_LoadBoundInstances(QueryResult *result)
             }
 
             // since non permanent binds are always solo bind, they can always be reset
-            InstanceSave *save = sInstanceSaveMgr.AddInstanceSave(mapId, instanceId, difficulty, resetTime, !perm, true);
+            InstanceSave *save = sInstanceSaveMgr.AddInstanceSave(mapId, instanceId, Difficulty(difficulty), resetTime, !perm, true);
             if(save) BindToInstance(save, perm, true);
         } while(result->NextRow());
         delete result;
     }
 }
 
-InstancePlayerBind* Player::GetBoundInstance(uint32 mapid, uint8 difficulty)
+InstancePlayerBind* Player::GetBoundInstance(uint32 mapid, Difficulty difficulty)
 {
     // some instances only have one difficulty
     const MapEntry* entry = sMapStore.LookupEntry(mapid);
-    if(!entry || !entry->SupportsHeroicMode()) difficulty = DUNGEON_DIFFICULTY_NORMAL;
+    if(!entry || !entry->SupportsHeroicMode())
+        difficulty = DUNGEON_DIFFICULTY_NORMAL;
 
     BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
     if(itr != m_boundInstances[difficulty].end())
@@ -14896,13 +14908,13 @@ InstancePlayerBind* Player::GetBoundInstance(uint32 mapid, uint8 difficulty)
         return NULL;
 }
 
-void Player::UnbindInstance(uint32 mapid, uint8 difficulty, bool unload)
+void Player::UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload)
 {
     BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
     UnbindInstance(itr, difficulty, unload);
 }
 
-void Player::UnbindInstance(BoundInstancesMap::iterator &itr, uint8 difficulty, bool unload)
+void Player::UnbindInstance(BoundInstancesMap::iterator &itr, Difficulty difficulty, bool unload)
 {
     if(itr != m_boundInstances[difficulty].end())
     {
@@ -14947,13 +14959,13 @@ void Player::SendRaidInfo()
 {
     WorldPacket data(SMSG_RAID_INSTANCE_INFO, 4);
 
-    uint32 counter = 0, i;
-    for(i = 0; i < MAX_DIFFICULTY; i++)
+    uint32 counter = 0;
+    for(int i = 0; i < MAX_DIFFICULTY; ++i)
         for (BoundInstancesMap::iterator itr = m_boundInstances[i].begin(); itr != m_boundInstances[i].end(); ++itr)
             if(itr->second.perm) counter++;
 
     data << counter;
-    for(i = 0; i < MAX_DIFFICULTY; i++)
+    for(int i = 0; i < MAX_DIFFICULTY; ++i)
     {
         for (BoundInstancesMap::const_iterator itr = m_boundInstances[i].begin(); itr != m_boundInstances[i].end(); ++itr)
         {
@@ -15036,7 +15048,8 @@ void Player::ConvertInstancesToGroup(Player *player, Group *group, uint64 player
                 // permanent binds are not removed
                 if(!itr->second.perm)
                 {
-                    player->UnbindInstance(itr, i, true);   // increments itr
+                    // increments itr in call
+                    player->UnbindInstance(itr, Difficulty(i), true);
                     has_solo = true;
                 }
                 else
@@ -15803,9 +15816,9 @@ void Player::ResetInstances(uint8 method)
     // method can be INSTANCE_RESET_ALL, INSTANCE_RESET_CHANGE_DIFFICULTY, INSTANCE_RESET_GROUP_JOIN
 
     // we assume that when the difficulty changes, all instances that can be reset will be
-    uint8 dif = GetDifficulty();
+    Difficulty diff = GetDifficulty();
 
-    for (BoundInstancesMap::iterator itr = m_boundInstances[dif].begin(); itr != m_boundInstances[dif].end();)
+    for (BoundInstancesMap::iterator itr = m_boundInstances[diff].begin(); itr != m_boundInstances[diff].end();)
     {
         InstanceSave *p = itr->second.save;
         const MapEntry *entry = sMapStore.LookupEntry(itr->first);
@@ -15818,7 +15831,7 @@ void Player::ResetInstances(uint8 method)
         if(method == INSTANCE_RESET_ALL)
         {
             // the "reset all instances" method can only reset normal maps
-            if(entry->map_type == MAP_RAID || dif == DUNGEON_DIFFICULTY_HEROIC)
+            if(entry->map_type == MAP_RAID || diff == DUNGEON_DIFFICULTY_HEROIC)
             {
                 ++itr;
                 continue;
@@ -15835,7 +15848,7 @@ void Player::ResetInstances(uint8 method)
             SendResetInstanceSuccess(p->GetMapId());
 
         p->DeleteFromDB();
-        m_boundInstances[dif].erase(itr++);
+        m_boundInstances[diff].erase(itr++);
 
         // the following should remove the instance save from the manager and delete it as well
         p->RemovePlayer(this);

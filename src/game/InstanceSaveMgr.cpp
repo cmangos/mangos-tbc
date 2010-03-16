@@ -72,15 +72,27 @@ InstanceSaveManager::~InstanceSaveManager()
 - adding instance into manager
 - called from InstanceMap::Add, _LoadBoundInstances, LoadGroups
 */
-InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instanceId, uint8 difficulty, time_t resetTime, bool canReset, bool load)
+InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instanceId, Difficulty difficulty, time_t resetTime, bool canReset, bool load)
 {
-    InstanceSave *save = GetInstanceSave(instanceId);
-    if(save) return save;
+    if(InstanceSave *old_save = GetInstanceSave(instanceId))
+        return old_save;
 
     const MapEntry* entry = sMapStore.LookupEntry(mapId);
-    if(!entry || instanceId == 0)
+    if (!entry)
     {
         sLog.outError("InstanceSaveManager::AddInstanceSave: wrong mapid = %d, instanceid = %d!", mapId, instanceId);
+        return NULL;
+    }
+
+    if (instanceId == 0)
+    {
+        sLog.outError("InstanceSaveManager::AddInstanceSave: mapid = %d, wrong instanceid = %d!", mapId, instanceId);
+        return NULL;
+    }
+
+    if (difficulty >= MAX_DIFFICULTY)
+    {
+        sLog.outError("InstanceSaveManager::AddInstanceSave: mapid = %d, instanceid = %d, wrong dificalty %u!", mapId, instanceId, difficulty);
         return NULL;
     }
 
@@ -100,7 +112,7 @@ InstanceSave* InstanceSaveManager::AddInstanceSave(uint32 mapId, uint32 instance
 
     sLog.outDebug("InstanceSaveManager::AddInstanceSave: mapid = %d, instanceid = %d", mapId, instanceId);
 
-    save = new InstanceSave(mapId, instanceId, difficulty, resetTime, canReset);
+    InstanceSave *save = new InstanceSave(mapId, instanceId, difficulty, resetTime, canReset);
     if(!load) save->SaveToDB();
 
     m_instanceSaveById[instanceId] = save;
@@ -136,7 +148,7 @@ void InstanceSaveManager::RemoveInstanceSave(uint32 InstanceId)
     }
 }
 
-InstanceSave::InstanceSave(uint16 MapId, uint32 InstanceId, uint8 difficulty, time_t resetTime, bool canReset)
+InstanceSave::InstanceSave(uint16 MapId, uint32 InstanceId, Difficulty difficulty, time_t resetTime, bool canReset)
 : m_resetTime(resetTime), m_instanceid(InstanceId), m_mapid(MapId),
   m_difficulty(difficulty), m_canReset(canReset)
 {

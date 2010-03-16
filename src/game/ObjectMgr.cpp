@@ -2977,7 +2977,13 @@ void ObjectMgr::LoadGroups()
                 continue;
             }
 
-            InstanceSave *save = sInstanceSaveMgr.AddInstanceSave(mapEntry->MapID, fields[2].GetUInt32(), Difficulty(diff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true);
+            if(diff >= MAX_DIFFICULTY)
+            {
+                sLog.outErrorDb("Wrong dungeon difficulty use in group_instance table: %d", diff);
+                diff = REGULAR_DIFFICULTY;
+            }
+
+            InstanceSave *save = sInstanceSaveMgr.AddInstanceSave(mapEntry->MapID, fields[2].GetUInt32(), diff, (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true);
             group->BindToInstance(save, fields[3].GetBool(), true);
         }while( result->NextRow() );
         delete result;
@@ -4513,7 +4519,9 @@ void ObjectMgr::LoadInstanceTemplate()
     for(uint32 i = 0; i < sInstanceTemplate.MaxEntry; i++)
     {
         InstanceTemplate* temp = (InstanceTemplate*)GetInstanceTemplate(i);
-        if(!temp) continue;
+        if(!temp)
+            continue;
+
         const MapEntry* entry = sMapStore.LookupEntry(temp->map);
         if(!entry)
         {

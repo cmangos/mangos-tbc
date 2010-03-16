@@ -164,7 +164,7 @@ Map* MapInstanced::GetInstance(const WorldObject* obj)
                 InstanceGroupBind *groupBind = NULL;
                 Group *group = player->GetGroup();
                 // use the player's difficulty setting (it may not be the same as the group's)
-                if(group && (groupBind = group->GetBoundInstance(GetId(), player->GetDifficulty())))
+                if(group && (groupBind = group->GetBoundInstance(this,player->GetDifficulty())))
                     pSave = groupBind->save;
             }
 
@@ -189,7 +189,7 @@ Map* MapInstanced::GetInstance(const WorldObject* obj)
     }
 }
 
-InstanceMap* MapInstanced::CreateInstance(uint32 InstanceId, InstanceSave *save, uint8 difficulty)
+InstanceMap* MapInstanced::CreateInstance(uint32 InstanceId, InstanceSave *save, Difficulty difficulty)
 {
     // load/create a map
     Guard guard(*this);

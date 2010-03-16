@@ -2187,11 +2187,11 @@ bool InstanceMap::Add(Player *player)
             if(!mapSave)
             {
                 sLog.outDetail("InstanceMap::Add: creating instance save for map %d spawnmode %d with instance id %d", GetId(), GetSpawnMode(), GetInstanceId());
-                mapSave = sInstanceSaveMgr.AddInstanceSave(GetId(), GetInstanceId(), GetSpawnMode(), 0, true);
+                mapSave = sInstanceSaveMgr.AddInstanceSave(GetId(), GetInstanceId(), Difficulty(GetSpawnMode()), 0, true);
             }
 
             // check for existing instance binds
-            InstancePlayerBind *playerBind = player->GetBoundInstance(GetId(), GetSpawnMode());
+            InstancePlayerBind *playerBind = player->GetBoundInstance(GetId(), Difficulty(GetSpawnMode()));
             if(playerBind && playerBind->perm)
             {
                 // cannot enter other instances if bound permanently
@@ -2207,7 +2207,7 @@ bool InstanceMap::Add(Player *player)
                 if(pGroup)
                 {
                     // solo saves should be reset when entering a group
-                    InstanceGroupBind *groupBind = pGroup->GetBoundInstance(GetId(), GetSpawnMode());
+                    InstanceGroupBind *groupBind = pGroup->GetBoundInstance(this,GetDifficulty());
                     if(playerBind)
                     {
                         sLog.outError("InstanceMap::Add: player %s(%d) is being put in instance %d,%d,%d,%d,%d,%d but he is in group %d and is bound to instance %d,%d,%d,%d,%d,%d!", player->GetName(), player->GetGUIDLow(), mapSave->GetMapId(), mapSave->GetInstanceId(), mapSave->GetDifficulty(), mapSave->GetPlayerCount(), mapSave->GetGroupCount(), mapSave->CanReset(), GUID_LOPART(pGroup->GetLeaderGUID()), playerBind->save->GetMapId(), playerBind->save->GetInstanceId(), playerBind->save->GetDifficulty(), playerBind->save->GetPlayerCount(), playerBind->save->GetGroupCount(), playerBind->save->CanReset());

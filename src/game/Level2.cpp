@@ -3840,8 +3840,6 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player,uint32 skill_id)
 
 bool ChatHandler::HandleLearnAllCraftsCommand(const char* /*args*/)
 {
-    uint32 classmask = m_session->GetPlayer()->getClassMask();
-
     for (uint32 i = 0; i < sSkillLineStore.GetNumRows(); ++i)
     {
         SkillLineEntry const *skillInfo = sSkillLineStore.LookupEntry(i);
@@ -3880,8 +3878,6 @@ bool ChatHandler::HandleLearnAllRecipesCommand(const char* args)
 
     // converting string that we try to find to lower case
     wstrToLower( wnamepart );
-
-    uint32 classmask = m_session->GetPlayer()->getClassMask();
 
     std::string name;
 

@@ -726,8 +726,8 @@ void ObjectMgr::ConvertCreatureAddonAuras(CreatureDataAddon* addon, char const* 
     // replace by new structures array
     const_cast<CreatureDataAddonAura*&>(addon->auras) = new CreatureDataAddonAura[val.size()/2+1];
 
-    int i=0;
-    for(int j=0;j<val.size()/2;++j)
+    uint32 i=0;
+    for(uint32 j = 0; j < val.size()/2; ++j)
     {
         CreatureDataAddonAura& cAura = const_cast<CreatureDataAddonAura&>(addon->auras[i]);
         cAura.spell_id = uint32(val[2*j+0]);
@@ -1001,7 +1001,7 @@ void ObjectMgr::LoadCreatures()
 
         if(heroicCreatures.find(data.id)!=heroicCreatures.end())
         {
-            sLog.outErrorDb("Table `creature` have creature (GUID: %u) that listed as heroic template in `creature_template`, skipped.",guid,data.id );
+            sLog.outErrorDb("Table `creature` have creature (GUID: %u) that listed as heroic template (entry: %u) in `creature_template`, skipped.",guid, data.id );
             continue;
         }
 
@@ -3407,8 +3407,8 @@ void ObjectMgr::LoadQuests()
                     bool found = false;
                     for(int k = 0; k < MAX_EFFECT_INDEX; ++k)
                     {
-                        if( spellInfo->Effect[k]==SPELL_EFFECT_QUEST_COMPLETE && uint32(spellInfo->EffectMiscValue[k])==qinfo->QuestId ||
-                            spellInfo->Effect[k]==SPELL_EFFECT_SEND_EVENT)
+                        if ((spellInfo->Effect[k] == SPELL_EFFECT_QUEST_COMPLETE && uint32(spellInfo->EffectMiscValue[k]) == qinfo->QuestId) ||
+                            spellInfo->Effect[k] == SPELL_EFFECT_SEND_EVENT)
                         {
                             found = true;
                             break;

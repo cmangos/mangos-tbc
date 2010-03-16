@@ -165,7 +165,7 @@ void Creature::RemoveFromWorld()
 
 void Creature::RemoveCorpse()
 {
-    if( getDeathState()!=CORPSE && !m_isDeadByDefault || getDeathState()!=ALIVE && m_isDeadByDefault )
+    if ((getDeathState() != CORPSE && !m_isDeadByDefault) || (getDeathState() != ALIVE && m_isDeadByDefault))
         return;
 
     m_deathTimer = 0;

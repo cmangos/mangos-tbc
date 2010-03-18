@@ -58,6 +58,7 @@
 #include "Database/DatabaseImpl.h"
 #include "Spell.h"
 #include "SocialMgr.h"
+#include "Mail.h"
 
 #include <cmath>
 

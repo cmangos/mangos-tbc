@@ -28,6 +28,7 @@
 #include "Util.h"
 #include "WorldPacket.h"
 #include "ObjectMgr.h"
+#include "MapManager.h"
 
 BattleGroundAB::BattleGroundAB()
 {

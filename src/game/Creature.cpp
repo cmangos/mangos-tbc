@@ -148,8 +148,9 @@ Creature::~Creature()
 void Creature::AddToWorld()
 {
     ///- Register the creature for guid lookup
-    if(!IsInWorld())
-        ObjectAccessor::Instance().AddObject(this);
+    if(!IsInWorld() && GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
+        GetMap()->GetObjectsStore().insert<Creature>(GetGUID(), (Creature*)this);
+
 
     Unit::AddToWorld();
 }
@@ -157,8 +158,8 @@ void Creature::AddToWorld()
 void Creature::RemoveFromWorld()
 {
     ///- Remove the creature from the accessor
-    if(IsInWorld())
-        ObjectAccessor::Instance().RemoveObject(this);
+    if(IsInWorld() && GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
+        GetMap()->GetObjectsStore().erase<Creature>(GetGUID(), (Creature*)NULL);
 
     Unit::RemoveFromWorld();
 }

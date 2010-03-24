@@ -51,7 +51,7 @@
 #include "MovementGenerator.h"
 
 #include <math.h>
-#include <varargs.h>
+#include <stdarg.h>
 
 float baseMoveSpeed[MAX_MOVE_TYPE] =
 {

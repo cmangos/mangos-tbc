@@ -150,6 +150,8 @@ pkgdata_DATA = \
 	098_9622_01_mangos_gameobject.sql \
 	099_9509_01_mangos_item_template.sql \
 	099_9636_01_mangos_item_template.sql \
+	100_9656_01_mangos_command.sql \
+	100_9656_02_mangos_mangos_string.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -279,4 +281,6 @@ EXTRA_DIST = \
 	098_9622_01_mangos_gameobject.sql \
 	099_9509_01_mangos_item_template.sql \
 	099_9636_01_mangos_item_template.sql \
+	100_9656_01_mangos_command.sql \
+	100_9656_02_mangos_mangos_string.sql \
 	README

@@ -13796,6 +13796,11 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
             SetArenaTeamInfoField(arena_slot, ArenaTeamInfoType(j), 0);
     }
 
+    uint32 honor_currency = GetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY);
+    if (honor_currency > sWorld.getConfig(CONFIG_UINT32_MAX_HONOR_POINTS))
+        honor_currency = sWorld.getConfig(CONFIG_UINT32_MAX_HONOR_POINTS);
+    SetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY, honor_currency);
+
     _LoadBoundInstances(holder->GetResult(PLAYER_LOGIN_QUERY_LOADBOUNDINSTANCES));
 
     if(!IsPositionValid())

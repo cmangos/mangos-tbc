@@ -19,15 +19,12 @@
 #include "AuthCrypt.h"
 #include "Hmac.h"
 
+const static size_t CRYPTED_SEND_LEN = 4;
+const static size_t CRYPTED_RECV_LEN = 6;
+
 AuthCrypt::AuthCrypt()
 {
     _initialized = false;
-}
-
-void AuthCrypt::Init()
-{
-    _send_i = _send_j = _recv_i = _recv_j = 0;
-    _initialized = true;
 }
 
 void AuthCrypt::DecryptRecv(uint8 *data, size_t len)
@@ -59,23 +56,22 @@ void AuthCrypt::EncryptSend(uint8 *data, size_t len)
     }
 }
 
-void AuthCrypt::SetKey(BigNumber *bn)
+void AuthCrypt::Init(BigNumber *K)
 {
     uint8 *key = new uint8[SHA_DIGEST_LENGTH];
-    GenerateKey(key, bn);
+    uint8 recvSeed[SEED_KEY_SIZE] = { 0x38, 0xA7, 0x83, 0x15, 0xF8, 0x92, 0x25, 0x30, 0x71, 0x98, 0x67, 0xB1, 0x8C, 0x4, 0xE2, 0xAA };
+    HmacHash recvHash(SEED_KEY_SIZE, (uint8*)recvSeed);
+    recvHash.UpdateBigNumber(K);
+    recvHash.Finalize();
+    memcpy(key, recvHash.GetDigest(), SHA_DIGEST_LENGTH);
     _key.resize(SHA_DIGEST_LENGTH);
     std::copy(key, key + SHA_DIGEST_LENGTH, _key.begin());
     delete[] key;
+
+    _send_i = _send_j = _recv_i = _recv_j = 0;
+    _initialized = true;
 }
 
 AuthCrypt::~AuthCrypt()
 {
-}
-
-void AuthCrypt::GenerateKey(uint8 *key, BigNumber *bn)
-{
-    HmacHash hash;
-    hash.UpdateBigNumber(bn);
-    hash.Finalize();
-    memcpy(key, hash.GetDigest(), SHA_DIGEST_LENGTH);
 }

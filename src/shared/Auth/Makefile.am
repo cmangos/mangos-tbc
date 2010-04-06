@@ -31,8 +31,8 @@ libmangosauth_a_SOURCES = \
 	AuthCrypt.h \
 	BigNumber.cpp \
 	BigNumber.h \
-	Hmac.cpp \
-	Hmac.h \
+	HMACSHA1.cpp \
+	HMACSHA1.h \
 	Sha1.cpp \
 	Sha1.h \
 	md5.c \

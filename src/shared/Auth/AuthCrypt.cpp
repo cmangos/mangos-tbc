@@ -17,7 +17,9 @@
  */
 
 #include "AuthCrypt.h"
-#include "Hmac.h"
+#include "HMACSHA1.h"
+#include "Log.h"
+#include "BigNumber.h"
 
 const static size_t CRYPTED_SEND_LEN = 4;
 const static size_t CRYPTED_RECV_LEN = 6;
@@ -60,7 +62,7 @@ void AuthCrypt::Init(BigNumber *K)
 {
     uint8 *key = new uint8[SHA_DIGEST_LENGTH];
     uint8 recvSeed[SEED_KEY_SIZE] = { 0x38, 0xA7, 0x83, 0x15, 0xF8, 0x92, 0x25, 0x30, 0x71, 0x98, 0x67, 0xB1, 0x8C, 0x4, 0xE2, 0xAA };
-    HmacHash recvHash(SEED_KEY_SIZE, (uint8*)recvSeed);
+    HMACSHA1 recvHash(SEED_KEY_SIZE, (uint8*)recvSeed);
     recvHash.UpdateBigNumber(K);
     recvHash.Finalize();
     memcpy(key, recvHash.GetDigest(), SHA_DIGEST_LENGTH);

@@ -16,10 +16,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "Auth/Hmac.h"
+#include "Auth/HMACSHA1.h"
 #include "BigNumber.h"
 
-HmacHash::HmacHash(uint32 len, uint8 *seed)
+HMACSHA1::HMACSHA1(uint32 len, uint8 *seed)
 {
     ASSERT(len == SEED_KEY_SIZE);
 
@@ -28,28 +28,28 @@ HmacHash::HmacHash(uint32 len, uint8 *seed)
     HMAC_Init_ex(&m_ctx, &m_key, SEED_KEY_SIZE, EVP_sha1(), NULL);
 }
 
-HmacHash::~HmacHash()
+HMACSHA1::~HMACSHA1()
 {
     memset(&m_key, 0x00, SEED_KEY_SIZE);
     HMAC_CTX_cleanup(&m_ctx);
 }
 
-void HmacHash::UpdateBigNumber(BigNumber *bn)
+void HMACSHA1::UpdateBigNumber(BigNumber *bn)
 {
     UpdateData(bn->AsByteArray(), bn->GetNumBytes());
 }
 
-void HmacHash::UpdateData(const uint8 *data, int length)
+void HMACSHA1::UpdateData(const uint8 *data, int length)
 {
     HMAC_Update(&m_ctx, data, length);
 }
 
-void HmacHash::Initialize()
+void HMACSHA1::Initialize()
 {
     HMAC_Init_ex(&m_ctx, &m_key, SEED_KEY_SIZE, EVP_sha1(), NULL);
 }
 
-void HmacHash::Finalize()
+void HMACSHA1::Finalize()
 {
     uint32 length = 0;
     HMAC_Final(&m_ctx, m_digest, &length);

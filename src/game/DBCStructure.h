@@ -94,6 +94,24 @@ struct BattlemasterListEntry
                                                             // 32 unused
 };
 
+/*struct Cfg_CategoriesEntry
+{
+    uint32 Index;                                           // categoryId, sent in RealmList packet
+    uint32 Unk1;
+    uint32 Unk2;
+    uint32 IsTournamentRealm;
+    char *categoryName[16];
+    uint32 categoryNameFlags;
+}*/
+
+/*struct Cfg_ConfigsEntry
+{
+    uint32 Id;
+    uint32 Type;                                            // sent in RealmList packet
+    uint32 IsPvp;
+    uint32 IsRp;
+};*/
+
 #define MAX_OUTFIT_ITEMS 12
 // #define MAX_OUTFIT_ITEMS 24                              // 12->24 in 3.0.x
 

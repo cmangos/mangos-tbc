@@ -15,23 +15,13 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-
---
--- Table structure for table `saved_variables`
---
-
-DROP TABLE IF EXISTS `saved_variables`;
-CREATE TABLE `saved_variables` (
-    `NextArenaPointDistributionTime` bigint(40) UNSIGNED NOT NULL DEFAULT '0'
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Variable Saves';
-
 --
 -- Table structure for table `character_db_version`
 --
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_097_9611_01_characters` bit(1) default NULL
+  `required_102_9687_01_characters_character_queststatus_daily` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -509,7 +499,6 @@ DROP TABLE IF EXISTS `character_queststatus_daily`;
 CREATE TABLE `character_queststatus_daily` (
   `guid` int(11) unsigned NOT NULL default '0' COMMENT 'Global Unique Identifier',
   `quest` int(11) unsigned NOT NULL default '0' COMMENT 'Quest Identifier',
-  `time` bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  (`guid`,`quest`),
   KEY `idx_guid` (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Player System';
@@ -1262,6 +1251,27 @@ LOCK TABLES `petition_sign` WRITE;
 /*!40000 ALTER TABLE `petition_sign` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+--
+-- Table structure for table `saved_variables`
+--
+
+DROP TABLE IF EXISTS `saved_variables`;
+CREATE TABLE `saved_variables` (
+    `NextArenaPointDistributionTime` bigint(40) UNSIGNED NOT NULL DEFAULT '0',
+    `NextDailyQuestResetTime` bigint(40) unsigned NOT NULL default '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Variable Saves';
+
+--
+-- Dumping data for table `saved_variables`
+--
+
+LOCK TABLES `saved_variables` WRITE;
+/*!40000 ALTER TABLE `saved_variables` DISABLE KEYS */;
+/*!40000 ALTER TABLE `saved_variables` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

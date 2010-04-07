@@ -371,7 +371,6 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this)
     m_TutorialsChanged = false;
 
     m_DailyQuestChanged = false;
-    m_lastDailyQuestTime = 0;
 
     m_regenTimer = 0;
     m_weaponChangeTimer = 0;
@@ -14733,7 +14732,7 @@ void Player::_LoadDailyQuestStatus(QueryResult *result)
     for(uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
         SetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx,0);
 
-    //QueryResult *result = CharacterDatabase.PQuery("SELECT quest,time FROM character_queststatus_daily WHERE guid = '%u'", GetGUIDLow());
+    //QueryResult *result = CharacterDatabase.PQuery("SELECT quest FROM character_queststatus_daily WHERE guid = '%u'", GetGUIDLow());
 
     if(result)
     {
@@ -14750,9 +14749,6 @@ void Player::_LoadDailyQuestStatus(QueryResult *result)
             Field *fields = result->Fetch();
 
             uint32 quest_id = fields[0].GetUInt32();
-
-            // save _any_ from daily quest times (it must be after last reset anyway)
-            m_lastDailyQuestTime = (time_t)fields[1].GetUInt64();
 
             Quest const* pQuest = sObjectMgr.GetQuestTemplate(quest_id);
             if( !pQuest )
@@ -15546,16 +15542,14 @@ void Player::_SaveDailyQuestStatus()
     if (!m_DailyQuestChanged)
         return;
 
-    m_DailyQuestChanged = false;
-
-    // save last daily quest time for all quests: we need only mostly reset time for reset check anyway
-
     // we don't need transactions here.
     CharacterDatabase.PExecute("DELETE FROM character_queststatus_daily WHERE guid = '%u'",GetGUIDLow());
     for(uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
         if (GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx))
-            CharacterDatabase.PExecute("INSERT INTO character_queststatus_daily (guid,quest,time) VALUES ('%u', '%u','" UI64FMTD "')",
-                GetGUIDLow(), GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx),uint64(m_lastDailyQuestTime));
+            CharacterDatabase.PExecute("INSERT INTO character_queststatus_daily (guid,quest) VALUES ('%u', '%u')",
+                GetGUIDLow(), GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx));
+
+    m_DailyQuestChanged = false;
 }
 
 void Player::_SaveSpells()
@@ -18040,7 +18034,6 @@ void Player::SetDailyQuestStatus( uint32 quest_id )
         if(!GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx))
         {
             SetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1+quest_daily_idx,quest_id);
-            m_lastDailyQuestTime = time(NULL);              // last daily quest time
             m_DailyQuestChanged = true;
             break;
         }
@@ -18054,7 +18047,6 @@ void Player::ResetDailyQuestStatus()
 
     // DB data deleted in caller
     m_DailyQuestChanged = false;
-    m_lastDailyQuestTime = 0;
 }
 
 BattleGround* Player::GetBattleGround() const

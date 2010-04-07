@@ -37,6 +37,7 @@ pkgdata_DATA = \
 	066_8409_01_characters_guild.sql \
 	091_9339_01_characters_group.sql \
 	097_9611_01_characters.sql \
+	102_9687_01_characters_character_queststatus_daily.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -54,4 +55,5 @@ EXTRA_DIST = \
 	066_8409_01_characters_guild.sql \
 	091_9339_01_characters_group.sql \
 	097_9611_01_characters.sql \
+	102_9687_01_characters_character_queststatus_daily.sql \
 	README

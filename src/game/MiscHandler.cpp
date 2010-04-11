@@ -1278,6 +1278,26 @@ void WorldSession::HandleSetTitleOpcode( WorldPacket & recv_data )
     GetPlayer()->SetUInt32Value(PLAYER_CHOSEN_TITLE, title);
 }
 
+void WorldSession::HandleTimeSyncResp( WorldPacket & recv_data )
+{
+    sLog.outDebug("CMSG_TIME_SYNC_RESP");
+
+    uint32 counter, clientTicks;
+    recv_data >> counter >> clientTicks;
+
+    if(counter != _player->m_timeSyncCounter - 1)
+        sLog.outDebug("Wrong time sync counter from player %s (cheater?)", _player->GetName());
+
+    sLog.outDebug("Time sync received: counter %u, client ticks %u, time since last sync %u", counter, clientTicks, clientTicks - _player->m_timeSyncClient);
+
+    uint32 ourTicks = clientTicks + (getMSTime() - _player->m_timeSyncServer);
+
+    // diff should be small
+    sLog.outDebug("Our ticks: %u, diff %u, latency %u", ourTicks, ourTicks - clientTicks, GetLatency());
+
+    _player->m_timeSyncClient = clientTicks;
+}
+
 void WorldSession::HandleResetInstancesOpcode( WorldPacket & /*recv_data*/ )
 {
     sLog.outDebug("WORLD: CMSG_RESET_INSTANCES");
@@ -1333,19 +1353,6 @@ void WorldSession::HandleSetDungeonDifficultyOpcode( WorldPacket & recv_data )
         _player->ResetInstances(INSTANCE_RESET_CHANGE_DIFFICULTY);
         _player->SetDifficulty(Difficulty(mode));
     }
-}
-
-void WorldSession::HandleTimeSyncResp( WorldPacket & recv_data )
-{
-    sLog.outDebug("CMSG_TIME_SYNC_RESP");
-
-    uint32 counter, time_;
-    recv_data >> counter >> time_;
-
-    // time_ seems always more than getMSTime()
-    uint32 diff = getMSTimeDiff(getMSTime(),time_);
-
-    sLog.outDebug("response sent: counter %u, time %u (HEX: %X), ms. time %u, diff %u", counter, time_, time_, getMSTime(), diff);
 }
 
 void WorldSession::HandleCancelMountAuraOpcode( WorldPacket & /*recv_data*/ )

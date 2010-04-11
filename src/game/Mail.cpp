@@ -227,13 +227,11 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data )
 
     pl->SendMailResult(0, MAIL_SEND, MAIL_OK);
 
-    uint32 itemTextId = !body.empty() ? sObjectMgr.CreateItemText( body ) : 0;
-
     pl->ModifyMoney( -int32(reqmoney) );
 
     bool needItemDelay = false;
 
-    MailDraft draft(subject, itemTextId);
+    MailDraft draft(subject, body);
 
     if (items_count > 0 || money > 0)
     {
@@ -628,16 +626,15 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
                 break;
         }
 
-        data << (uint32) (*itr)->COD;                       // COD
-        data << (uint32) (*itr)->itemTextId;                // sure about this
-        data << (uint32) 0;                                 // unknown
-        data << (uint32) (*itr)->stationery;                // stationery (Stationery.dbc)
-        data << (uint32) (*itr)->money;                     // Gold
-        data << (uint32) show_flags;                        // unknown, 0x4 - auction, 0x10 - normal
-                                                            // Time
-        data << (float)  ((*itr)->expire_time-time(NULL))/DAY;
-        data << (uint32) (*itr)->mailTemplateId;            // mail template (MailTemplate.dbc)
-        data << (*itr)->subject;                            // Subject string - once 00, when mail type = 3
+        data << uint32((*itr)->COD);                        // COD
+        data << uint32((*itr)->itemTextId);                 // item text
+        data << uint32(0);                                  // unknown
+        data << uint32((*itr)->stationery);                 // stationery (Stationery.dbc)
+        data << uint32((*itr)->money);                      // Gold
+        data << uint32(show_flags);                         // unknown, 0x4 - auction, 0x10 - normal
+        data << float(((*itr)->expire_time-time(NULL))/DAY);// Time
+        data << uint32((*itr)->mailTemplateId);             // mail template (MailTemplate.dbc)
+        data << (*itr)->subject;                            // Subject string - once 00, when mail type = 3, max 256
 
         data << (uint8) item_count;
 
@@ -737,7 +734,7 @@ void WorldSession::HandleMailCreateTextItem(WorldPacket & recv_data )
 
     uint32 itemTextId = m->itemTextId;
 
-    // in mail template case we need create new text id
+    // in mail template case we need create new item text
     if(!itemTextId)
     {
         MailTemplateEntry const* mailTemplateEntry = sMailTemplateStore.LookupEntry(m->mailTemplateId);
@@ -760,7 +757,7 @@ void WorldSession::HandleMailCreateTextItem(WorldPacket & recv_data )
     bodyItem->SetUInt32Value( ITEM_FIELD_ITEM_TEXT_ID, itemTextId );
     bodyItem->SetUInt32Value( ITEM_FIELD_CREATOR, m->sender);
 
-    sLog.outDetail("HandleMailCreateTextItem mailid=%u",mailId);
+    sLog.outDetail("HandleMailCreateTextItem mailid=%u", mailId);
 
     ItemPosCountVec dest;
     uint8 msg = _player->CanStoreItem( NULL_BAG, NULL_SLOT, dest, bodyItem, false );
@@ -771,7 +768,6 @@ void WorldSession::HandleMailCreateTextItem(WorldPacket & recv_data )
         pl->m_mailsUpdated = true;
 
         pl->StoreItem(dest, bodyItem, true);
-        //bodyItem->SetState(ITEM_NEW, pl); is set automatically
         pl->SendMailResult(mailId, MAIL_MADE_PERMANENT, MAIL_OK);
     }
     else
@@ -921,7 +917,8 @@ m_bodyId(!text.empty() ? sObjectMgr.CreateItemText(text) : 0), m_money(0), m_COD
  */
 MailDraft& MailDraft::AddItem( Item* item )
 {
-    m_items[item->GetGUIDLow()] = item; return *this;
+    m_items[item->GetGUIDLow()] = item;
+    return *this;
 }
 /**
  * Prepares the items in a MailDraft.

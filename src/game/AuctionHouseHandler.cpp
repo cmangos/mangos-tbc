@@ -60,8 +60,8 @@ void WorldSession::SendAuctionHello( uint64 guid, Creature* unit )
         return;
 
     WorldPacket data( MSG_AUCTION_HELLO, 12 );
-    data << (uint64) guid;
-    data << (uint32) ahEntry->houseId;
+    data << uint64(guid);
+    data << uint32(ahEntry->houseId);
     SendPacket( &data );
 }
 
@@ -73,7 +73,7 @@ void WorldSession::SendAuctionCommandResult(uint32 auctionId, uint32 Action, uin
     data << Action;
     data << ErrorCode;
     if ( !ErrorCode && Action )
-        data << bidError;                                   //when bid, then send 0, once...
+        data << bidError;                                   // when bid, then send 0, once...
     SendPacket(&data);
 }
 

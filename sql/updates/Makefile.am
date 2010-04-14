@@ -155,6 +155,7 @@ pkgdata_DATA = \
 	101_9663_01_mangos_mangos_string.sql \
 	102_9687_01_characters_character_queststatus_daily.sql \
 	103_9746_01_realmd_realmlist.sql \
+	104_9748_01_realmd_realmlist.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -289,4 +290,5 @@ EXTRA_DIST = \
 	101_9663_01_mangos_mangos_string.sql \
 	102_9687_01_characters_character_queststatus_daily.sql \
 	103_9746_01_realmd_realmlist.sql \
+	104_9748_01_realmd_realmlist.sql \
 	README

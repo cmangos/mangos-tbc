@@ -42,6 +42,7 @@ static DumpTable dumpTables[] =
     { "character_spell_cooldown",         DTT_CHAR_TABLE },
     { "character_action",                 DTT_CHAR_TABLE },
     { "character_aura",                   DTT_CHAR_TABLE },
+    { "character_declinedname",           DTT_CHAR_TABLE },
     { "character_homebind",               DTT_CHAR_TABLE },
     { "character_ticket",                 DTT_CHAR_TABLE },
     { "character_inventory",              DTT_INVENTORY  },
@@ -54,6 +55,7 @@ static DumpTable dumpTables[] =
     { "pet_aura",                         DTT_PET_TABLE  },
     { "pet_spell",                        DTT_PET_TABLE  },
     { "pet_spell_cooldown",               DTT_PET_TABLE  },
+    { "character_pet_declinedname",       DTT_PET_TABLE  },
     { NULL,                               DTT_CHAR_TABLE }, // end marker
 };
 
@@ -269,6 +271,7 @@ void PlayerDumpWriter::DumpTableContent(std::string& dump, uint32 guid, char con
         case DTT_ITEM_GIFT: fieldname = "item_guid"; guids = &items; break;
         case DTT_PET:       fieldname = "owner";                     break;
         case DTT_PET_TABLE: fieldname = "guid";      guids = &pets;  break;
+        case DTT_PET_DECL:  fieldname = "id";                        break;
         case DTT_MAIL:      fieldname = "receiver";                  break;
         case DTT_MAIL_ITEM: fieldname = "mail_id";   guids = &mails; break;
         case DTT_ITEM_TEXT: fieldname = "id";        guids = &texts; break;
@@ -636,6 +639,25 @@ DumpReturn PlayerDumpReader::LoadDump(const std::string& file, uint32 account, s
                 snprintf(newpetid, 20, "%d", petids_iter->second);
 
                 if (!changenth(line, 1, newpetid))
+                    ROLLBACK(DUMP_FILE_BROKEN);
+
+                break;
+            }
+            case DTT_PET_DECL:                              // character_pet_declinedname
+            {
+                snprintf(currpetid, 20, "%s", getnth(line, 1).c_str());
+
+                // lookup currpetid and match to new inserted pet id
+                std::map<uint32, uint32> :: const_iterator petids_iter = petids.find(atoi(currpetid));
+                if (petids_iter == petids.end())            // couldn't find new inserted id
+                    ROLLBACK(DUMP_FILE_BROKEN);
+
+                snprintf(newpetid, 20, "%d", petids_iter->second);
+
+                if (!changenth(line, 1, newpetid))          // character_pet_declinedname.id
+                    ROLLBACK(DUMP_FILE_BROKEN);
+
+                if (!changenth(line, 2, newguid))           // character_pet_declinedname.owner update
                     ROLLBACK(DUMP_FILE_BROKEN);
 
                 break;

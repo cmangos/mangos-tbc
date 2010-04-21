@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_108_9752_01_mangos_gameobject_template` bit(1) default NULL
+  `required_109_9753_01_mangos_instance_template` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -1955,15 +1955,11 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `instance_template`;
 CREATE TABLE `instance_template` (
   `map` smallint(5) unsigned NOT NULL,
-  `parent` int(10) unsigned NOT NULL,
+  `parent` smallint(5) unsigned NOT NULL default '0',
   `levelMin` tinyint(3) unsigned NOT NULL default '0',
   `levelMax` tinyint(3) unsigned NOT NULL default '0',
   `maxPlayers` tinyint(3) unsigned NOT NULL default '0',
   `reset_delay` int(10) unsigned NOT NULL default '0',
-  `startLocX` float default NULL,
-  `startLocY` float default NULL,
-  `startLocZ` float default NULL,
-  `startLocO` float default NULL,
   `script` varchar(128) NOT NULL default '',
   PRIMARY KEY  (`map`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -1975,32 +1971,32 @@ CREATE TABLE `instance_template` (
 LOCK TABLES `instance_template` WRITE;
 /*!40000 ALTER TABLE `instance_template` DISABLE KEYS */;
 INSERT INTO `instance_template` VALUES
-(33,0,22,30,10,7200,NULL,NULL,NULL,NULL,''),
-(34,0,24,32,10,7200,NULL,NULL,NULL,NULL,''),
-(36,0,15,20,10,7200,NULL,NULL,NULL,NULL,''),
-(43,0,15,21,10,7200,NULL,NULL,NULL,NULL,''),
-(47,0,29,38,10,7200,NULL,NULL,NULL,NULL,''),
-(48,0,24,32,10,7200,NULL,NULL,NULL,NULL,''),
-(70,0,35,47,10,7200,NULL,NULL,NULL,NULL,''),
-(90,0,29,38,10,7200,NULL,NULL,NULL,NULL,''),
-(109,0,45,55,10,7200,NULL,NULL,NULL,NULL,''),
-(129,0,37,46,10,7200,NULL,NULL,NULL,NULL,''),
-(189,0,34,45,10,7200,NULL,NULL,NULL,NULL,''),
-(209,0,44,54,10,7200,NULL,NULL,NULL,NULL,''),
-(229,0,58,0,10,120000,78.5083,-225.044,49.839,5.1,''),
-(230,0,52,0,5,7200,NULL,NULL,NULL,NULL,''),
-(249,0,60,0,40,432000,NULL,NULL,NULL,NULL,''),
-(289,0,57,0,5,7200,NULL,NULL,NULL,NULL,''),
-(309,0,60,0,20,259200,NULL,NULL,NULL,NULL,''),
-(329,0,58,60,5,7200,NULL,NULL,NULL,NULL,''),
-(349,0,46,55,10,7200,NULL,NULL,NULL,NULL,''),
-(389,0,13,18,10,7200,NULL,NULL,NULL,NULL,''),
-(409,0,60,0,40,604800,NULL,NULL,NULL,NULL,''),
-(429,0,55,60,5,7200,NULL,NULL,NULL,NULL,''),
-(469,0,60,0,40,604800,NULL,NULL,NULL,NULL,''),
-(509,0,60,0,20,259200,NULL,NULL,NULL,NULL,''),
-(531,0,60,0,40,604800,NULL,NULL,NULL,NULL,''),
-(533,0,60,0,40,604800,NULL,NULL,NULL,NULL,'');
+(33,0,22,30,10,7200,''),
+(34,0,24,32,10,7200,''),
+(36,0,15,20,10,7200,''),
+(43,0,15,21,10,7200,''),
+(47,0,29,38,10,7200,''),
+(48,0,24,32,10,7200,''),
+(70,0,35,47,10,7200,''),
+(90,0,29,38,10,7200,''),
+(109,0,45,55,10,7200,''),
+(129,0,37,46,10,7200,''),
+(189,0,34,45,10,7200,''),
+(209,0,44,54,10,7200,''),
+(229,0,58,0,10,120000,''),
+(230,0,52,0,5,7200,''),
+(249,0,60,0,40,432000,''),
+(289,0,57,0,5,7200,''),
+(309,0,60,0,20,259200,''),
+(329,0,58,60,5,7200,''),
+(349,0,46,55,10,7200,''),
+(389,0,13,18,10,7200,''),
+(409,0,60,0,40,604800,''),
+(429,0,55,60,5,7200,''),
+(469,0,60,0,40,604800,''),
+(509,0,60,0,20,259200,''),
+(531,0,60,0,40,604800,''),
+(533,0,60,0,40,604800,'');
 /*!40000 ALTER TABLE `instance_template` ENABLE KEYS */;
 UNLOCK TABLES;
 

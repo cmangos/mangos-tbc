@@ -519,9 +519,9 @@ struct MapEntry
                                                             // 99 text flags
     //chat*     unknownText2                                // 100-115 unknown empty text fields
                                                             // 116 text flags
-    int32       entrance_map;                               // 117 map_id of entrance map
-    float       entrance_x;                                 // 118 entrance x coordinate (if exist single entry)
-    float       entrance_y;                                 // 119 entrance y coordinate (if exist single entry)
+    int32   ghost_entrance_map;                             // 117 map_id of entrance map in ghost mode (continent always and in most cases = normal entrance)
+    float   ghost_entrance_x;                               // 118 entrance x coordinate in ghost mode  (in most cases = normal entrance)
+    float   ghost_entrance_y;                               // 119 entrance y coordinate in ghost mode  (in most cases = normal entrance)
     uint32 resetTimeRaid;                                   // 120
     uint32 resetTimeHeroic;                                 // 121
                                                             // 122-123

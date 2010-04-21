@@ -362,6 +362,9 @@ struct GameObjectInfo
             uint32 data[24];
         } raw;
     };
+
+    uint32 MinMoneyLoot;
+    uint32 MaxMoneyLoot;
     uint32 ScriptId;
 
     // helpers

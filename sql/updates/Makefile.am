@@ -159,6 +159,7 @@ pkgdata_DATA = \
 	105_9680_01_characters_character_stats.sql \
 	106_9751_01_characters.sql \
 	107_9728_01_mangos_gossip_menu_option.sql \
+	108_9752_01_mangos_gameobject_template.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -297,4 +298,5 @@ EXTRA_DIST = \
 	105_9680_01_characters_character_stats.sql \
 	106_9751_01_characters.sql \
 	107_9728_01_mangos_gossip_menu_option.sql \
+	108_9752_01_mangos_gameobject_template.sql \
 	README

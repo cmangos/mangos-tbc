@@ -4593,7 +4593,7 @@ void ObjectMgr::LoadInstanceTemplate()
 
         if (temp->parent > 0)
         {
-            // check existence 
+            // check existence
             MapEntry const* parentEntry = sMapStore.LookupEntry(temp->parent);
             if (!parentEntry)
             {

@@ -5,4 +5,3 @@ ALTER TABLE `character_queststatus_daily`
 
 ALTER TABLE `saved_variables`
   DROP COLUMN `NextDailyQuestResetTime`;
-

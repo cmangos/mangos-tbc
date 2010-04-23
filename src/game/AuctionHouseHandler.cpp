@@ -622,4 +622,3 @@ void WorldSession::HandleAuctionListItems( WorldPacket & recv_data )
     data << uint32(300);                                    // 2.3.0 delay for next list request?
     SendPacket(&data);
 }
-

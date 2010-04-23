@@ -11,4 +11,3 @@ ALTER TABLE groups
 ALTER TABLE groups
   DROP INDEX `leaderGuid`,
   ADD PRIMARY KEY (`leaderGuid`);
-

@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_106_9751_01_characters` bit(1) default NULL
+  `required_111_9767_03_characters_characters` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -210,6 +210,9 @@ CREATE TABLE `characters` (
   `death_expire_time` bigint(20) unsigned NOT NULL default '0',
   `taxi_path` text,
   `arena_pending_points` int(10) UNSIGNED NOT NULL default '0',
+  `deleteInfos_Account` int(11) UNSIGNED default NULL,
+  `deleteInfos_Name` varchar(12) default NULL,
+  `deleteDate` bigint(20) default NULL,
   PRIMARY KEY  (`guid`),
   KEY `idx_account` (`account`),
   KEY `idx_online` (`online`),

@@ -1570,7 +1570,7 @@ void WorldObject::SendMessageToSetExcept(WorldPacket *data, Player const* skippe
     //if object is in world, map for it already created!
     if (Map * _map = IsInWorld() ? GetMap() : sMapMgr.FindMap(GetMapId(), GetInstanceId()))
     {
-        MaNGOS::MessageDelivererExcept notifier(this, data, skipped_receiver);
+        MaNGOS::MessageDelivererExcept notifier(data, skipped_receiver);
         Cell::VisitWorldObjects(this, notifier, _map->GetVisibilityDistance());
     }
 }

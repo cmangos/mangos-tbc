@@ -89,12 +89,11 @@ namespace MaNGOS
 
     struct MessageDelivererExcept
     {
-        uint32        i_phaseMask;
         WorldPacket*  i_message;
         Player const* i_skipped_receiver;
 
-        MessageDelivererExcept(WorldObject const* obj, WorldPacket *msg, Player const* skipped)
-            : i_phaseMask(obj->GetPhaseMask()), i_message(msg), i_skipped_receiver(skipped) {}
+        MessageDelivererExcept(WorldPacket *msg, Player const* skipped)
+            : i_message(msg), i_skipped_receiver(skipped) {}
 
         void Visit(PlayerMapType &m);
         template<class SKIP> void Visit(GridRefManager<SKIP> &) {}

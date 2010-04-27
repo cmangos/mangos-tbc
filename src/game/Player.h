@@ -722,15 +722,15 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADREPUTATION           = 8,
     PLAYER_LOGIN_QUERY_LOADINVENTORY            = 9,
     PLAYER_LOGIN_QUERY_LOADACTIONS              = 10,
-    PLAYER_LOGIN_QUERY_LOADMAILCOUNT            = 11,
-    PLAYER_LOGIN_QUERY_LOADMAILDATE             = 12,
-    PLAYER_LOGIN_QUERY_LOADSOCIALLIST           = 13,
-    PLAYER_LOGIN_QUERY_LOADHOMEBIND             = 14,
-    PLAYER_LOGIN_QUERY_LOADSPELLCOOLDOWNS       = 15,
-    PLAYER_LOGIN_QUERY_LOADDECLINEDNAMES        = 16,
-    PLAYER_LOGIN_QUERY_LOADGUILD                = 17,
-    PLAYER_LOGIN_QUERY_LOADARENAINFO            = 18,
-    PLAYER_LOGIN_QUERY_LOADSKILLS               = 19,
+    PLAYER_LOGIN_QUERY_LOADSOCIALLIST           = 11,
+    PLAYER_LOGIN_QUERY_LOADHOMEBIND             = 12,
+    PLAYER_LOGIN_QUERY_LOADSPELLCOOLDOWNS       = 13,
+    PLAYER_LOGIN_QUERY_LOADDECLINEDNAMES        = 14,
+    PLAYER_LOGIN_QUERY_LOADGUILD                = 15,
+    PLAYER_LOGIN_QUERY_LOADARENAINFO            = 16,
+    PLAYER_LOGIN_QUERY_LOADSKILLS               = 17,
+    PLAYER_LOGIN_QUERY_LOADMAILS                = 18,
+    PLAYER_LOGIN_QUERY_LOADMAILEDITEMS          = 19,
     MAX_PLAYER_LOGIN_QUERY
 };
 
@@ -1228,7 +1228,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         static void DeleteOldCharacters();
         static void DeleteOldCharacters(uint32 keepDays);
 
-        bool m_mailsLoaded;
         bool m_mailsUpdated;
 
         void SendPetTameFailure(PetTameFailureReason reason);
@@ -1294,7 +1293,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendNewMail();
         void UpdateNextMailTimeAndUnreads();
         void AddNewMailDeliverTime(time_t deliver_time);
-        bool IsMailsLoaded() const { return m_mailsLoaded; }
 
         //void SetMail(Mail *m);
         void RemoveMail(uint32 id);
@@ -2060,9 +2058,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _LoadAuras(QueryResult *result, uint32 timediff);
         void _LoadBoundInstances(QueryResult *result);
         void _LoadInventory(QueryResult *result, uint32 timediff);
-        void _LoadMailInit(QueryResult *resultUnread, QueryResult *resultDelivery);
-        void _LoadMail();
-        void _LoadMailedItems(Mail *mail);
+        void _LoadMails(QueryResult *result);
+        void _LoadMailedItems(QueryResult *result);
         void _LoadQuestStatus(QueryResult *result);
         void _LoadDailyQuestStatus(QueryResult *result);
         void _LoadGroup(QueryResult *result);

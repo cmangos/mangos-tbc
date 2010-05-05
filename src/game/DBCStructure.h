@@ -902,14 +902,17 @@ struct TaxiPathEntry
 
 struct TaxiPathNodeEntry
 {
-    uint32    path;
-    uint32    index;
-    uint32    mapid;
-    float     x;
-    float     y;
-    float     z;
-    uint32    actionFlag;
-    uint32    delay;
+                                                            // 0        m_ID
+    uint32    path;                                         // 1        m_PathID
+    uint32    index;                                        // 2        m_NodeIndex
+    uint32    mapid;                                        // 3        m_ContinentID
+    float     x;                                            // 4        m_LocX
+    float     y;                                            // 5        m_LocY
+    float     z;                                            // 6        m_LocZ
+    uint32    actionFlag;                                   // 7        m_flags
+    uint32    delay;                                        // 8        m_delay
+    uint32    arrivalEventID;                               // 9        m_arrivalEventID
+    uint32    departureEventID;                             // 10       m_departureEventID
 };
 
 struct TotemCategoryEntry

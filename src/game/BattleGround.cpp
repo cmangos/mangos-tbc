@@ -467,17 +467,9 @@ void BattleGround::EndBattleGround(uint32 winner)
             winner_rating = winner_arena_team->GetStats().rating;
             int32 winner_change = winner_arena_team->WonAgainst(loser_rating);
             int32 loser_change = loser_arena_team->LostAgainst(winner_rating);
-            sLog.outDebug("--- Winner rating: %u, Loser rating: %u, Winner change: %u, Losser change: %u ---", winner_rating, loser_rating, winner_change, loser_change);
-            if(winner == ALLIANCE)
-            {
-                SetArenaTeamRatingChangeForTeam(ALLIANCE, winner_change);
-                SetArenaTeamRatingChangeForTeam(HORDE, loser_change);
-            }
-            else
-            {
-                SetArenaTeamRatingChangeForTeam(HORDE, winner_change);
-                SetArenaTeamRatingChangeForTeam(ALLIANCE, loser_change);
-            }
+            DEBUG_LOG("--- Winner rating: %u, Loser rating: %u, Winner change: %u, Losser change: %u ---", winner_rating, loser_rating, winner_change, loser_change);
+            SetArenaTeamRatingChangeForTeam(winner, winner_change);
+            SetArenaTeamRatingChangeForTeam(GetOtherTeam(winner), loser_change);
         }
         else
         {
@@ -856,8 +848,7 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
         if(Transport)
             plr->TeleportTo(plr->GetBattleGroundEntryPoint());
 
-        // Log
-        sLog.outDetail("BATTLEGROUND: Removed player %s from BattleGround.", plr->GetName());
+        DETAIL_LOG("BATTLEGROUND: Removed player %s from BattleGround.", plr->GetName());
     }
 
     if(!GetPlayersSize() && !GetInvitedCount(HORDE) && !GetInvitedCount(ALLIANCE))
@@ -980,7 +971,7 @@ void BattleGround::AddPlayer(Player *plr)
     }
 
     // Log
-    sLog.outDetail("BATTLEGROUND: Player %s joined the battle.", plr->GetName());
+    DETAIL_LOG("BATTLEGROUND: Player %s joined the battle.", plr->GetName());
 }
 
 /* This method should be called only once ... it adds pointer to queue */

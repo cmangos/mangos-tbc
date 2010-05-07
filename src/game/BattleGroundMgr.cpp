@@ -289,7 +289,7 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
         return;
     }
 
-    sLog.outDebug("BattleGroundQueue: Removing player GUID %u, from bracket_id %u", GUID_LOPART(guid), (uint32)bracket_id);
+    DEBUG_LOG("BattleGroundQueue: Removing player GUID %u, from bracket_id %u", GUID_LOPART(guid), (uint32)bracket_id);
 
     group = itr->second.GroupInfo;
 
@@ -485,7 +485,7 @@ bool BattleGroundQueue::InviteGroupToBG(GroupQueueInfo * ginfo, BattleGround * b
 
             uint32 queueSlot = plr->GetBattleGroundQueueIndex(bgQueueTypeId);
 
-            sLog.outDebug("Battleground: invited plr %s (%u) to BG instance %u queueindex %u bgtype %u, I can't help it if they don't press the enter battle button.",plr->GetName(),plr->GetGUIDLow(),bg->GetInstanceID(),queueSlot,bg->GetTypeID());
+            DEBUG_LOG("Battleground: invited plr %s (%u) to BG instance %u queueindex %u bgtype %u, I can't help it if they don't press the enter battle button.",plr->GetName(),plr->GetGUIDLow(),bg->GetInstanceID(),queueSlot,bg->GetTypeID());
 
             // send status packet
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, side?side:plr->GetTeam(), queueSlot, STATUS_WAIT_JOIN, INVITE_ACCEPT_WAIT_TIME, 0);
@@ -920,7 +920,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
                 return;
             }
 
-            sLog.outDebug("Battleground: One-faction arena created.");
+            DEBUG_LOG("Battleground: One-faction arena created.");
             // init stats
             if(sBattleGroundMgr.isArenaTesting())
             {
@@ -1060,7 +1060,7 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
                 ArenaTeam * at = sObjectMgr.GetArenaTeamById(qMapItr->second.GroupInfo->ArenaTeamId);
                 if (at)
                 {
-                    sLog.outDebug("UPDATING memberLost's personal arena rating for %u by opponents rating: %u", GUID_LOPART(plr->GetGUID()), qMapItr->second.GroupInfo->OpponentsTeamRating);
+                    DEBUG_LOG("UPDATING memberLost's personal arena rating for %u by opponents rating: %u", GUID_LOPART(plr->GetGUID()), qMapItr->second.GroupInfo->OpponentsTeamRating);
                     at->MemberLost(plr, qMapItr->second.GroupInfo->OpponentsTeamRating);
                     at->SaveToDB();
                 }
@@ -1270,7 +1270,7 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
         {
             *data << uint32(3000-bg->m_ArenaTeamRatingChanges[i]);                      // rating change: showed value - 3000
             *data << uint32(3999);  // huge thanks for TOM_RUS for this!
-            sLog.outDebug("rating change: %d", bg->m_ArenaTeamRatingChanges[i]);
+            DEBUG_LOG("rating change: %d", bg->m_ArenaTeamRatingChanges[i]);
         }
         for(int i = 1; i >= 0; --i)
         {
@@ -1358,7 +1358,7 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
                 *data << (int32)0;                          // 0
                 break;
             default:
-                sLog.outDebug("Unhandled MSG_PVP_LOG_DATA for BG id %u", bg->GetTypeID());
+                DEBUG_LOG("Unhandled MSG_PVP_LOG_DATA for BG id %u", bg->GetTypeID());
                 *data << (int32)0;
                 break;
         }
@@ -1690,11 +1690,11 @@ void BattleGroundMgr::InitAutomaticArenaPointDistribution()
 {
     if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {
-        sLog.outDebug("Initializing Automatic Arena Point Distribution");
+        DEBUG_LOG("Initializing Automatic Arena Point Distribution");
         QueryResult * result = CharacterDatabase.Query("SELECT NextArenaPointDistributionTime FROM saved_variables");
         if(!result)
         {
-            sLog.outDebug("Battleground: Next arena point distribution time not found in SavedVariables, reseting it now.");
+            DEBUG_LOG("Battleground: Next arena point distribution time not found in SavedVariables, reseting it now.");
             m_NextAutoDistributionTime = time_t(sWorld.GetGameTime() + BATTLEGROUND_ARENA_POINT_DISTRIBUTION_DAY * sWorld.getConfig(CONFIG_UINT32_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS));
             CharacterDatabase.PExecute("INSERT INTO saved_variables (NextArenaPointDistributionTime) VALUES ('"UI64FMTD"')", uint64(m_NextAutoDistributionTime));
         }
@@ -1703,7 +1703,7 @@ void BattleGroundMgr::InitAutomaticArenaPointDistribution()
             m_NextAutoDistributionTime = time_t((*result)[0].GetUInt64());
             delete result;
         }
-        sLog.outDebug("Automatic Arena Point Distribution initialized.");
+        DEBUG_LOG("Automatic Arena Point Distribution initialized.");
     }
 }
 
@@ -1804,7 +1804,7 @@ void BattleGroundMgr::SendToBattleGround(Player *pl, uint32 instanceId)
             team = pl->GetTeam();
         bg->GetTeamStartLoc(team, x, y, z, O);
 
-        sLog.outDetail("BATTLEGROUND: Sending %s to map %u, X %f, Y %f, Z %f, O %f", pl->GetName(), mapid, x, y, z, O);
+        DETAIL_LOG("BATTLEGROUND: Sending %s to map %u, X %f, Y %f, Z %f, O %f", pl->GetName(), mapid, x, y, z, O);
         pl->TeleportTo(mapid, x, y, z, O);
     }
     else

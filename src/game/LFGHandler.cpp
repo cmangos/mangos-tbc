@@ -149,7 +149,7 @@ static void AttemptAddMore(Player* _player)
 
 void WorldSession::HandleLfgSetAutoJoinOpcode( WorldPacket & /*recv_data*/ )
 {
-    sLog.outDebug("CMSG_LFG_SET_AUTOJOIN");
+    DEBUG_LOG("CMSG_LFG_SET_AUTOJOIN");
     LookingForGroup_auto_join = true;
 
     if(!_player)                                            // needed because STATUS_AUTHED
@@ -160,13 +160,13 @@ void WorldSession::HandleLfgSetAutoJoinOpcode( WorldPacket & /*recv_data*/ )
 
 void WorldSession::HandleLfgClearAutoJoinOpcode( WorldPacket & /*recv_data*/ )
 {
-    sLog.outDebug("CMSG_LFG_CLEAR_AUTOJOIN");
+    DEBUG_LOG("CMSG_LFG_CLEAR_AUTOJOIN");
     LookingForGroup_auto_join = false;
 }
 
 void WorldSession::HandleLfmSetAutoFillOpcode( WorldPacket & /*recv_data*/ )
 {
-    sLog.outDebug("CMSG_LFM_SET_AUTOFILL");
+    DEBUG_LOG("CMSG_LFM_SET_AUTOFILL");
     LookingForGroup_auto_add = true;
 
     if(!_player)                                            // needed because STATUS_AUTHED
@@ -177,14 +177,14 @@ void WorldSession::HandleLfmSetAutoFillOpcode( WorldPacket & /*recv_data*/ )
 
 void WorldSession::HandleLfmClearAutoFillOpcode( WorldPacket & /*recv_data*/ )
 {
-    sLog.outDebug("CMSG_LFM_CLEAR_AUTOFILL");
+    DEBUG_LOG("CMSG_LFM_CLEAR_AUTOFILL");
     LookingForGroup_auto_add = false;
 }
 
 void WorldSession::HandleLfgClearOpcode( WorldPacket & /*recv_data */ )
 {
     // empty packet
-    sLog.outDebug("CMSG_CLEAR_LOOKING_FOR_GROUP");
+    DEBUG_LOG("CMSG_CLEAR_LOOKING_FOR_GROUP");
 
     for(int i = 0; i < MAX_LOOKING_FOR_GROUP_SLOT; ++i)
         _player->m_lookingForGroup.slots[i].Clear();
@@ -196,14 +196,14 @@ void WorldSession::HandleLfgClearOpcode( WorldPacket & /*recv_data */ )
 void WorldSession::HandleLfmClearOpcode( WorldPacket & /*recv_data */)
 {
     // empty packet
-    sLog.outDebug("CMSG_CLEAR_LOOKING_FOR_MORE");
+    DEBUG_LOG("CMSG_CLEAR_LOOKING_FOR_MORE");
 
     _player->m_lookingForGroup.more.Clear();
 }
 
 void WorldSession::HandleSetLfmOpcode( WorldPacket & recv_data )
 {
-    sLog.outDebug("CMSG_SET_LOOKING_FOR_MORE");
+    DEBUG_LOG("CMSG_SET_LOOKING_FOR_MORE");
     //recv_data.hexlike();
     uint32 temp, entry, type;
 
@@ -213,7 +213,7 @@ void WorldSession::HandleSetLfmOpcode( WorldPacket & recv_data )
     type = ( (temp >> 24) & 0xFFFF);
 
     _player->m_lookingForGroup.more.Set(entry,type);
-    sLog.outDebug("LFM set: temp %u, zone %u, type %u", temp, entry, type);
+    DEBUG_LOG("LFM set: temp %u, zone %u, type %u", temp, entry, type);
 
     if(LookingForGroup_auto_add)
         AttemptAddMore(_player);
@@ -223,24 +223,24 @@ void WorldSession::HandleSetLfmOpcode( WorldPacket & recv_data )
 
 void WorldSession::HandleSetLfgCommentOpcode( WorldPacket & recv_data )
 {
-    sLog.outDebug("CMSG_SET_LFG_COMMENT");
+    DEBUG_LOG("CMSG_SET_LFG_COMMENT");
     //recv_data.hexlike();
 
     std::string comment;
     recv_data >> comment;
-    sLog.outDebug("LFG comment %s", comment.c_str());
+    DEBUG_LOG("LFG comment %s", comment.c_str());
 
     _player->m_lookingForGroup.comment = comment;
 }
 
 void WorldSession::HandleLookingForGroup(WorldPacket& recv_data)
 {
-    sLog.outDebug("MSG_LOOKING_FOR_GROUP");
+    DEBUG_LOG("MSG_LOOKING_FOR_GROUP");
     //recv_data.hexlike();
     uint32 type, entry, unk;
 
     recv_data >> type >> entry >> unk;
-    sLog.outDebug("MSG_LOOKING_FOR_GROUP: type %u, entry %u, unk %u", type, entry, unk);
+    DEBUG_LOG("MSG_LOOKING_FOR_GROUP: type %u, entry %u, unk %u", type, entry, unk);
 
     if(LookingForGroup_auto_add)
         AttemptAddMore(_player);
@@ -319,8 +319,8 @@ void WorldSession::SendLfgResult(uint32 type, uint32 entry, uint8 lfg_type)
 
 void WorldSession::HandleSetLfgOpcode( WorldPacket & recv_data )
 {
-    sLog.outDebug("CMSG_SET_LOOKING_FOR_GROUP");
-    //recv_data.hexlike();
+    DEBUG_LOG("CMSG_SET_LOOKING_FOR_GROUP");
+
     uint32 slot, temp, entry, type;
 
     recv_data >> slot >> temp;
@@ -332,7 +332,7 @@ void WorldSession::HandleSetLfgOpcode( WorldPacket & recv_data )
         return;
 
     _player->m_lookingForGroup.slots[slot].Set(entry,type);
-    sLog.outDebug("LFG set: looknumber %u, temp %X, type %u, entry %u", slot, temp, type, entry);
+    DEBUG_LOG("LFG set: looknumber %u, temp %X, type %u, entry %u", slot, temp, type, entry);
 
     if(LookingForGroup_auto_join)
         AttemptJoin(_player);

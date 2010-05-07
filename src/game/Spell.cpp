@@ -2770,7 +2770,7 @@ void Spell::SendSpellStart()
     if (!IsNeedSendToClient())
         return;
 
-    sLog.outDebug("Sending SMSG_SPELL_START id=%u", m_spellInfo->Id);
+    DEBUG_LOG("Sending SMSG_SPELL_START id=%u", m_spellInfo->Id);
 
     uint32 castFlags = CAST_FLAG_UNKNOWN1;
     if (IsRangedSpell())
@@ -2801,7 +2801,7 @@ void Spell::SendSpellGo()
     if(!IsNeedSendToClient())
         return;
 
-    sLog.outDebug("Sending SMSG_SPELL_GO id=%u", m_spellInfo->Id);
+    DEBUG_LOG("Sending SMSG_SPELL_GO id=%u", m_spellInfo->Id);
 
     uint32 castFlags = CAST_FLAG_UNKNOWN3;
     if(IsRangedSpell())
@@ -3264,7 +3264,7 @@ void Spell::HandleEffects(Unit *pUnitTarget,Item *pItemTarget,GameObject *pGOTar
 
     damage = int32(CalculateDamage(i, unitTarget) * DamageMultiplier);
 
-    sLog.outDebug("Spell %u Effect%d : %u", m_spellInfo->Id, i, eff);
+    DEBUG_LOG("Spell %u Effect%d : %u", m_spellInfo->Id, i, eff);
 
     //Simply return. Do not display "immune" in red text on client
     if(unitTarget && unitTarget->IsImmunedToSpellEffect(m_spellInfo, i))
@@ -3272,7 +3272,7 @@ void Spell::HandleEffects(Unit *pUnitTarget,Item *pItemTarget,GameObject *pGOTar
 
     if(eff < TOTAL_SPELL_EFFECTS)
     {
-        //sLog.outDebug( "WORLD: Spell FX %d < TOTAL_SPELL_EFFECTS ", eff);
+        //DEBUG_LOG( "WORLD: Spell FX %d < TOTAL_SPELL_EFFECTS ", eff);
         (*this.*SpellEffects[eff])(i);
     }
     else
@@ -4978,7 +4978,7 @@ void Spell::Delayed()
     else
         m_timer += delaytime;
 
-    sLog.outDetail("Spell %u partially interrupted for (%d) ms at damage", m_spellInfo->Id, delaytime);
+    DETAIL_LOG("Spell %u partially interrupted for (%d) ms at damage", m_spellInfo->Id, delaytime);
 
     WorldPacket data(SMSG_SPELL_DELAYED, 8+4);
     data << m_caster->GetPackGUID();
@@ -5009,7 +5009,7 @@ void Spell::DelayedChannel()
     else
         m_timer -= delaytime;
 
-    sLog.outDebug("Spell %u partially interrupted for %i ms, new duration: %u ms", m_spellInfo->Id, delaytime, m_timer);
+    DEBUG_LOG("Spell %u partially interrupted for %i ms, new duration: %u ms", m_spellInfo->Id, delaytime, m_timer);
 
     for(std::list<TargetInfo>::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
     {

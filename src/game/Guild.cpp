@@ -79,7 +79,7 @@ bool Guild::Create(Player* leader, std::string gname)
     m_PurchasedTabs = 0;
     m_Id = sObjectMgr.GenerateGuildId();
 
-    sLog.outDebug("GUILD: creating guild %s to leader: %u", gname.c_str(), GUID_LOPART(m_LeaderGuid));
+    DEBUG_LOG("GUILD: creating guild %s to leader: %u", gname.c_str(), GUID_LOPART(m_LeaderGuid));
 
     // gname already assigned to Guild::name, use it to encode string for DB
     CharacterDatabase.escape_string(gname);
@@ -771,7 +771,7 @@ void Guild::Roster(WorldSession *session /*= NULL*/)
         session->SendPacket(&data);
     else
         BroadcastPacket(&data);
-    sLog.outDebug( "WORLD: Sent (SMSG_GUILD_ROSTER)" );
+    DEBUG_LOG( "WORLD: Sent (SMSG_GUILD_ROSTER)" );
 }
 
 void Guild::Query(WorldSession *session)
@@ -796,7 +796,7 @@ void Guild::Query(WorldSession *session)
     data << uint32(m_BackgroundColor);
 
     session->SendPacket( &data );
-    sLog.outDebug( "WORLD: Sent (SMSG_GUILD_QUERY_RESPONSE)" );
+    DEBUG_LOG( "WORLD: Sent (SMSG_GUILD_QUERY_RESPONSE)" );
 }
 
 void Guild::SetEmblem(uint32 emblemStyle, uint32 emblemColor, uint32 borderStyle, uint32 borderColor, uint32 backgroundColor)
@@ -857,7 +857,7 @@ void Guild::DisplayGuildEventLog(WorldSession *session)
         data << uint32(time(NULL)-itr->TimeStamp);
     }
     session->SendPacket(&data);
-    sLog.outDebug("WORLD: Sent (MSG_GUILD_EVENT_LOG_QUERY)");
+    DEBUG_LOG("WORLD: Sent (MSG_GUILD_EVENT_LOG_QUERY)");
 }
 
 // Load guild eventlog from DB
@@ -962,7 +962,7 @@ void Guild::DisplayGuildBankContent(WorldSession *session, uint8 TabId)
 
     session->SendPacket(&data);
 
-    sLog.outDebug("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
+    DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
 
 void Guild::DisplayGuildBankMoneyUpdate()
@@ -976,7 +976,7 @@ void Guild::DisplayGuildBankMoneyUpdate()
     data << uint8(0);                                       // not send items
     BroadcastPacket(&data);
 
-    sLog.outDebug("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
+    DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
 
 void Guild::DisplayGuildBankContentUpdate(uint8 TabId, int32 slot1, int32 slot2)
@@ -1024,7 +1024,7 @@ void Guild::DisplayGuildBankContentUpdate(uint8 TabId, int32 slot1, int32 slot2)
         player->GetSession()->SendPacket(&data);
     }
 
-    sLog.outDebug("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
+    DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
 
 void Guild::DisplayGuildBankContentUpdate(uint8 TabId, GuildItemPosCountVec const& slots)
@@ -1060,7 +1060,7 @@ void Guild::DisplayGuildBankContentUpdate(uint8 TabId, GuildItemPosCountVec cons
         player->GetSession()->SendPacket(&data);
     }
 
-    sLog.outDebug("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
+    DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
 
 Item* Guild::GetItem(uint8 TabId, uint8 SlotId)
@@ -1096,7 +1096,7 @@ void Guild::DisplayGuildBankTabsInfo(WorldSession *session)
     data << uint8(0);                                       // Do not send tab content
     session->SendPacket(&data);
 
-    sLog.outDebug("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
+    DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
 
 void Guild::CreateNewBankTab()
@@ -1257,7 +1257,7 @@ void Guild::SendMoneyInfo(WorldSession *session, uint32 LowGuid)
     WorldPacket data(MSG_GUILD_BANK_MONEY_WITHDRAWN, 4);
     data << uint32(GetMemberMoneyWithdrawRem(LowGuid));
     session->SendPacket(&data);
-    sLog.outDebug("WORLD: Sent MSG_GUILD_BANK_MONEY_WITHDRAWN");
+    DEBUG_LOG("WORLD: Sent MSG_GUILD_BANK_MONEY_WITHDRAWN");
 }
 
 bool Guild::MemberMoneyWithdraw(uint32 amount, uint32 LowGuid)
@@ -1603,7 +1603,7 @@ void Guild::DisplayGuildBankLogs(WorldSession *session, uint8 TabId)
         }
         session->SendPacket(&data);
     }
-    sLog.outDebug("WORLD: Sent (MSG_GUILD_BANK_LOG_QUERY)");
+    DEBUG_LOG("WORLD: Sent (MSG_GUILD_BANK_LOG_QUERY)");
 }
 
 void Guild::LogBankEvent(uint8 EventType, uint8 TabId, uint32 PlayerGuidLow, uint32 ItemOrMoney, uint8 ItemStackCount, uint8 DestTabId)
@@ -1716,7 +1716,7 @@ Item* Guild::_StoreItem( uint8 tab, uint8 slot, Item *pItem, uint32 count, bool 
     if (!pItem)
         return NULL;
 
-    sLog.outDebug( "GUILD STORAGE: StoreItem tab = %u, slot = %u, item = %u, count = %u", tab, slot, pItem->GetEntry(), count);
+    DEBUG_LOG( "GUILD STORAGE: StoreItem tab = %u, slot = %u, item = %u, count = %u", tab, slot, pItem->GetEntry(), count);
 
     Item* pItem2 = m_TabListMap[tab]->Slots[slot];
 
@@ -1866,7 +1866,7 @@ uint8 Guild::_CanStoreItem_InTab( uint8 tab, GuildItemPosCountVec &dest, uint32&
 
 uint8 Guild::CanStoreItem( uint8 tab, uint8 slot, GuildItemPosCountVec &dest, uint32 count, Item *pItem, bool swap ) const
 {
-    sLog.outDebug( "GUILD STORAGE: CanStoreItem tab = %u, slot = %u, item = %u, count = %u", tab, slot, pItem->GetEntry(), count);
+    DEBUG_LOG( "GUILD STORAGE: CanStoreItem tab = %u, slot = %u, item = %u, count = %u", tab, slot, pItem->GetEntry(), count);
 
     if (count > pItem->GetCount())
         return EQUIP_ERR_COULDNT_SPLIT_ITEMS;
@@ -2387,7 +2387,7 @@ void Guild::BroadcastEvent(GuildEvents event, uint64 guid, uint8 strCount, std::
 
     BroadcastPacket(&data);
 
-    sLog.outDebug("WORLD: Sent SMSG_GUILD_EVENT");
+    DEBUG_LOG("WORLD: Sent SMSG_GUILD_EVENT");
 }
 
 bool GuildItemPosCount::isContainedIn(GuildItemPosCountVec const &vec) const

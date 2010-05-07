@@ -56,7 +56,7 @@ bool ArenaTeam::Create(uint64 captainGuid, uint32 type, std::string ArenaTeamNam
     if(sObjectMgr.GetArenaTeamByName(ArenaTeamName))            // arena team with this name already exist
         return false;
 
-    sLog.outDebug("GUILD: creating arena team %s to leader: %u", ArenaTeamName.c_str(), GUID_LOPART(captainGuid));
+    DEBUG_LOG("GUILD: creating arena team %s to leader: %u", ArenaTeamName.c_str(), GUID_LOPART(captainGuid));
 
     m_CaptainGuid = captainGuid;
     m_Name = ArenaTeamName;
@@ -342,7 +342,7 @@ void ArenaTeam::Roster(WorldSession *session)
     }
 
     session->SendPacket(&data);
-    sLog.outDebug("WORLD: Sent SMSG_ARENA_TEAM_ROSTER");
+    DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_ROSTER");
 }
 
 void ArenaTeam::Query(WorldSession *session)
@@ -357,7 +357,7 @@ void ArenaTeam::Query(WorldSession *session)
     data << uint32(m_BorderStyle);                          // border style
     data << uint32(m_BorderColor);                          // border color
     session->SendPacket(&data);
-    sLog.outDebug("WORLD: Sent SMSG_ARENA_TEAM_QUERY_RESPONSE");
+    DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_QUERY_RESPONSE");
 }
 
 void ArenaTeam::Stats(WorldSession *session)
@@ -443,7 +443,7 @@ void ArenaTeam::SetStats(uint32 stat_type, uint32 value)
             CharacterDatabase.PExecute("UPDATE arena_team_stats SET rank = '%u' WHERE arenateamid = '%u'", value, GetId());
             break;
         default:
-            sLog.outDebug("unknown stat type in ArenaTeam::SetStats() %u", stat_type);
+            DEBUG_LOG("unknown stat type in ArenaTeam::SetStats() %u", stat_type);
             break;
     }
 }
@@ -486,7 +486,7 @@ void ArenaTeam::BroadcastEvent(ArenaTeamEvents event, uint64 guid, uint8 strCoun
 
     BroadcastPacket(&data);
 
-    sLog.outDebug("WORLD: Sent SMSG_ARENA_TEAM_EVENT");
+    DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_EVENT");
 }
 
 uint8 ArenaTeam::GetSlotByType( uint32 type )

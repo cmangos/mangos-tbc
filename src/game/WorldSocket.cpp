@@ -605,7 +605,7 @@ int WorldSocket::ProcessIncoming (WorldPacket* new_pct)
                 opcode, GetRemoteAddress().c_str(), m_Session?m_Session->GetAccountId():-1);
         if (sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG))
         {
-            sLog.outDebug("Dumping error-causing packet:");
+            DEBUG_LOG("Dumping error-causing packet:");
             new_pct->hexlike();
         }
 

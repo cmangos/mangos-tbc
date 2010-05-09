@@ -288,7 +288,7 @@ bool Guild::LoadGuildFromDB(uint32 GuildId)
             ChangeRank(itr->first, GR_OFFICER);
     }
 
-    sLog.outDebug("Guild %u Creation time Loaded day: %u, month: %u, year: %u", GuildId, m_CreatedDay, m_CreatedMonth, m_CreatedYear);
+    DEBUG_LOG("Guild %u Creation time Loaded day: %u, month: %u, year: %u", GuildId, m_CreatedDay, m_CreatedMonth, m_CreatedYear);
 
     return true;
 }

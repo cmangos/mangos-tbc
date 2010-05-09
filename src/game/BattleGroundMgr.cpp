@@ -515,7 +515,7 @@ bool BattleGroundQueue::BuildSelectionPool(BattleGroundTypeId bgTypeId, BattleGr
             break;
         default:
             //unknown mode, return false
-            sLog.outDebug("Battleground: unknown selection pool build mode, returning...");
+            DEBUG_LOG("Battleground: unknown selection pool build mode, returning...");
             return false;
     }
 
@@ -525,7 +525,7 @@ bool BattleGroundQueue::BuildSelectionPool(BattleGroundTypeId bgTypeId, BattleGr
     m_SelectionPools[mode].Init();
     while(!(m_EligibleGroups.empty()))
     {
-        sLog.outDebug("m_EligibleGroups is not empty, continue building selection pool");
+        DEBUG_LOG("m_EligibleGroups is not empty, continue building selection pool");
         // in decreasing group size, add groups to join if they fit in the MaxPlayersPerTeam players
         for(EligibleGroups::iterator itr= m_EligibleGroups.begin(); itr!=m_EligibleGroups.end(); ++itr)
         {
@@ -540,7 +540,7 @@ bool BattleGroundQueue::BuildSelectionPool(BattleGroundTypeId bgTypeId, BattleGr
         if(m_SelectionPools[mode].GetPlayerCount()>=MinPlayers)
         {
             // the selection pool is set, return
-            sLog.outDebug("pool build succeeded, return true");
+            DEBUG_LOG("pool build succeeded, return true");
             return true;
         }
         // if the selection pool's not set, then remove the group with the highest player count, and try again with the rest.
@@ -728,14 +728,14 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
     // try to build the selection pools
     bool bAllyOK = BuildSelectionPool(bgTypeId, bracket_id, MinPlayersPerTeam, MaxPlayersPerTeam, NORMAL_ALLIANCE, arenatype, isRated, arenaMinRating, arenaMaxRating, discardTime);
     if(bAllyOK)
-        sLog.outDebug("Battleground: ally pool succesfully build");
+        DEBUG_LOG("Battleground: ally pool succesfully build");
     else
-        sLog.outDebug("Battleground: ally pool wasn't created");
+        DEBUG_LOG("Battleground: ally pool wasn't created");
     bool bHordeOK = BuildSelectionPool(bgTypeId, bracket_id, MinPlayersPerTeam, MaxPlayersPerTeam, NORMAL_HORDE, arenatype, isRated, arenaMinRating, arenaMaxRating, discardTime);
     if(bHordeOK)
-        sLog.outDebug("Battleground: horde pool succesfully built");
+        DEBUG_LOG("Battleground: horde pool succesfully built");
     else
-        sLog.outDebug("Battleground: horde pool wasn't created");
+        DEBUG_LOG("Battleground: horde pool wasn't created");
 
     // if selection pools are ready, create the new bg
     if ((bAllyOK && bHordeOK) || ( sBattleGroundMgr.isTesting() && (bAllyOK || bHordeOK)))
@@ -831,9 +831,9 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
             std::list<GroupQueueInfo* >::iterator itr_alliance = m_SelectionPools[NORMAL_ALLIANCE].SelectedGroups.begin();
             std::list<GroupQueueInfo* >::iterator itr_horde = m_SelectionPools[NORMAL_HORDE].SelectedGroups.begin();
             (*itr_alliance)->OpponentsTeamRating = (*itr_horde)->ArenaTeamRating;
-            sLog.outDebug("setting oposite teamrating for team %u to %u", (*itr_alliance)->ArenaTeamId, (*itr_alliance)->OpponentsTeamRating);
+            DEBUG_LOG("setting oposite teamrating for team %u to %u", (*itr_alliance)->ArenaTeamId, (*itr_alliance)->OpponentsTeamRating);
             (*itr_horde)->OpponentsTeamRating = (*itr_alliance)->ArenaTeamRating;
-            sLog.outDebug("setting oposite teamrating for team %u to %u", (*itr_horde)->ArenaTeamId, (*itr_horde)->OpponentsTeamRating);
+            DEBUG_LOG("setting oposite teamrating for team %u to %u", (*itr_horde)->ArenaTeamId, (*itr_horde)->OpponentsTeamRating);
         }
 
         // start the battleground
@@ -1045,7 +1045,7 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
     if (!bg)
         return true;
 
-    sLog.outDebug("Battleground: removing player %u from bg queue for instance %u because of not pressing enter battle in time.",plr->GetGUIDLow(),m_BgInstanceGUID);
+    DEBUG_LOG("Battleground: removing player %u from bg queue for instance %u because of not pressing enter battle in time.",plr->GetGUIDLow(),m_BgInstanceGUID);
 
     uint32 bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bg->GetTypeID(), bg->GetArenaType());
     uint32 queueSlot = plr->GetBattleGroundQueueIndex(bgQueueTypeId);
@@ -1074,7 +1074,7 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
         }
     }
     else
-        sLog.outDebug("Battleground: Player was already removed from queue");
+        DEBUG_LOG("Battleground: Player was already removed from queue");
 
     //event will be deleted
     return true;

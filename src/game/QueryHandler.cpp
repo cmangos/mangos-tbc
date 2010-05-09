@@ -409,7 +409,7 @@ void WorldSession::HandlePageTextQueryOpcode( WorldPacket & recv_data )
     uint32 pageID;
 
     recv_data >> pageID;
-    sLog.outDetail("WORLD: Received CMSG_PAGE_TEXT_QUERY for pageID '%u'", pageID);
+    DETAIL_LOG("WORLD: Received CMSG_PAGE_TEXT_QUERY for pageID '%u'", pageID);
 
     while (pageID)
     {

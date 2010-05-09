@@ -264,7 +264,7 @@ void BattleGroundAV::Update(uint32 diff)
                 return;
             }
 
-            sLog.outDebug("Alterac Valley: entering state STATUS_WAIT_JOIN ...");
+            DEBUG_LOG("Alterac Valley: entering state STATUS_WAIT_JOIN ...");
             SetStartDelayTime(START_DELAY0);
         }
         // After 1 minute, warning is signalled

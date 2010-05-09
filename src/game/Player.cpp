@@ -6872,7 +6872,7 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
 
 void Player::_RemoveAllItemMods()
 {
-    sLog.outDebug("_RemoveAllItemMods start.");
+    DEBUG_LOG("_RemoveAllItemMods start.");
 
     for (int i = 0; i < INVENTORY_SLOT_BAG_END; ++i)
     {

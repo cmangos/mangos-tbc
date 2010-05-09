@@ -169,6 +169,7 @@ pkgdata_DATA = \
 	112_8874_01_characters_character_skills.sql \
 	113_9794_01_mangos_mangos_string.sql \
 	113_9794_02_mangos_command.sql \
+	114_9849_01_characters_saved_variables.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -317,4 +318,5 @@ EXTRA_DIST = \
 	112_8874_01_characters_character_skills.sql \
 	113_9794_01_mangos_mangos_string.sql \
 	113_9794_02_mangos_command.sql \
+	114_9849_01_characters_saved_variables.sql \
 	README

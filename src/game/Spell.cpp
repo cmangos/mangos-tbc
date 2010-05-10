@@ -1288,7 +1288,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             else
             {
                 Unit* pUnitTarget = m_targets.getUnitTarget();
-                Unit* originalCaster = GetAffectiveCaster();
+                WorldObject* originalCaster = GetAffectiveCasterObject();
                 if(!pUnitTarget || !originalCaster)
                     break;
 
@@ -5463,6 +5463,16 @@ void Spell::FillRaidOrPartyTargets( UnitList &TagUnitMap, Unit* target, float ra
                     pet!=m_caster && m_caster->IsWithinDistInMap(pet, radius))
                     TagUnitMap.push_back(pet);
     }
+}
+
+WorldObject* Spell::GetAffectiveCasterObject() const
+{
+    if (m_originalCasterGUID.IsEmpty())
+        return m_caster;
+
+    if (m_originalCasterGUID.IsGameobject() && m_caster->IsInWorld())
+        return m_caster->GetMap()->GetGameObject(m_originalCasterGUID);
+    return m_originalCaster;
 }
 
 WorldObject* Spell::GetCastingObject() const

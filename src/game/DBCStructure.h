@@ -637,6 +637,10 @@ struct SoundEntriesEntry
                                                             // 24-28, unknown
 };
 
+#define MAX_SPELL_REAGENTS 8
+#define MAX_SPELL_TOTEMS 2
+#define MAX_SPELL_TOTEM_CATEGORIES 2
+
 struct SpellEntry
 {
     uint32    Id;                                           // 0 normally counted from 0 field (but some tools start counting from 1, check this before tool use for data view!)
@@ -683,9 +687,9 @@ struct SpellEntry
     float     speed;                                        // 41
     //uint32    modalNextSpell;                             // 42
     uint32    StackAmount;                                  // 43
-    uint32    Totem[2];                                     // 44-45
-    int32     Reagent[8];                                   // 46-53
-    uint32    ReagentCount[8];                              // 54-61
+    uint32    Totem[MAX_SPELL_TOTEMS];                      // 44-45
+    int32     Reagent[MAX_SPELL_REAGENTS];                  // 46-53
+    uint32    ReagentCount[MAX_SPELL_REAGENTS];             // 54-61
     int32     EquippedItemClass;                            // 62 (value)
     int32     EquippedItemSubClassMask;                     // 63 (mask)
     int32     EquippedItemInventoryTypeMask;                // 64 (mask)
@@ -735,7 +739,7 @@ struct SpellEntry
     //uint32    MinFactionId;                               // 209 not used, and 0 in 2.4.2
     //uint32    MinReputation;                              // 210 not used, and 0 in 2.4.2
     //uint32    RequiredAuraVision;                         // 211 not used
-    uint32    TotemCategory[2];                             // 212-213
+    uint32    TotemCategory[MAX_SPELL_TOTEM_CATEGORIES];    // 212-213
     uint32    AreaId;                                       // 214
     uint32    SchoolMask;                                   // 215 school mask
 

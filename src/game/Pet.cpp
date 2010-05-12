@@ -938,8 +938,6 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
 
     uint32 guid = creature->GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
 
-    SetInstanceId(creature->GetInstanceId());
-
     BASIC_LOG("Create pet");
     uint32 pet_number = sObjectMgr.GeneratePetNumber();
     if(!Create(guid, creature->GetMap(), creature->GetEntry(), pet_number))
@@ -1796,8 +1794,7 @@ bool Pet::IsPermanentPetFor(Player* owner)
 
 bool Pet::Create(uint32 guidlow, Map *map, uint32 Entry, uint32 pet_number)
 {
-    SetMapId(map->GetId());
-    SetInstanceId(map->GetInstanceId());
+    SetMap(map);
 
     Object::_Create(guidlow, pet_number, HIGHGUID_PET);
 

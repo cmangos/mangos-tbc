@@ -536,7 +536,7 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
     for (int i = 0; i < PLAYER_SLOTS_COUNT; ++i)
         m_items[i] = NULL;
 
-    SetMapId(info->mapId);
+    SetLocationMapId(info->mapId);
     Relocate(info->positionX,info->positionY,info->positionZ);
 
     ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(class_);
@@ -545,6 +545,8 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
         sLog.outError("Class %u not found in DBC (Wrong DBC files?)",class_);
         return false;
     }
+
+    SetMap(MapManager::Instance().CreateMap(info->mapId, this));
 
     uint8 powertype = cEntry->powerType;
 
@@ -1744,10 +1746,11 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
                 }
                 GetSession()->SendPacket( &data );
                 SendSavedInstances();
-
-                // remove from old map now
-                if(oldmap) oldmap->Remove(this, false);
             }
+
+            // remove from old map now
+            if(oldmap)
+                oldmap->Remove(this, false);
 
             // new final coordinates
             float final_x = x;
@@ -11944,7 +11947,11 @@ void Player::PrepareQuestMenu( uint64 guid )
     }
     else
     {
-        GameObject *pGameObject = GetMap()->GetGameObject(guid);
+        //we should obtain map pointer from GetMap() in 99% of cases. Special case
+        //only for quests which cast teleport spells on player
+        Map * _map = IsInWorld() ? GetMap() : MapManager::Instance().FindMap(GetMapId(), GetInstanceId());
+        ASSERT(_map);
+        GameObject *pGameObject = _map->GetGameObject(guid);
         if( pGameObject )
         {
             pObject = (Object*)pGameObject;
@@ -13882,7 +13889,8 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
     // init saved position, and fix it later if problematic
     uint32 transGUID = fields[31].GetUInt32();
     Relocate(fields[13].GetFloat(),fields[14].GetFloat(),fields[15].GetFloat(),fields[17].GetFloat());
-    SetMapId(fields[16].GetUInt32());
+    SetLocationMapId(fields[16].GetUInt32());
+
     uint32 difficulty = fields[39].GetUInt32();
     if(difficulty >= MAX_DIFFICULTY)
         difficulty = DUNGEON_DIFFICULTY_NORMAL;
@@ -13969,7 +13977,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
 
                 m_transport = *iter;
                 m_transport->AddPassenger(this);
-                SetMapId(m_transport->GetMapId());
+                SetLocationMapId(m_transport->GetMapId());
                 break;
             }
         }
@@ -13999,11 +14007,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
 
     // NOW player must have valid map
     // load the player's map here if it's not already loaded
-    Map *map = GetMap();
-
-    // since the player may not be bound to the map yet, make sure subsequent
-    // getmap calls won't create new maps
-    SetInstanceId(map->GetInstanceId());
+    SetMap(MapManager::Instance().CreateMap(GetMapId(), this));
 
     // if the player is in an instance and it has been reset in the meantime teleport him to the entrance
     if(GetInstanceId() && !sInstanceSaveMgr.GetInstanceSave(GetInstanceId()))
@@ -14182,15 +14186,19 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         {
             sLog.outError("Character %u have wrong data in taxi destination list, teleport to homebind.",GetGUIDLow());
             RelocateToHomebind();
-            SaveRecallPosition();                           // save as recall also to prevent recall and fall from sky
         }
         else                                                // have start node, to it
         {
             sLog.outError("Character %u have too short taxi destination list, teleport to original node.",GetGUIDLow());
-            SetMapId(nodeEntry->map_id);
+            SetLocationMapId(nodeEntry->map_id);
             Relocate(nodeEntry->x, nodeEntry->y, nodeEntry->z,0.0f);
-            SaveRecallPosition();                           // save as recall also to prevent recall and fall from sky
         }
+
+        //we can be relocated from taxi and still have an outdated Map pointer!
+        //so we need to get a new Map pointer!
+        SetMap(MapManager::Instance().CreateMap(GetMapId(), this));
+        SaveRecallPosition();                           // save as recall also to prevent recall and fall from sky
+
         m_taxi.ClearTaxiDestinations();
     }
     else if(uint32 node_id = m_taxi.GetTaxiSource())

@@ -85,8 +85,13 @@ void WaypointManager::Load()
 
     //                                   0           1           2           3            4       5
     result = WorldDatabase.Query("SELECT position_x, position_y, position_z, orientation, model1, model2,"
-    //   6         7      8      9        10       11       12       13       14  15
-        "waittime, emote, spell, textid1, textid2, textid3, textid4, textid5, id, point FROM creature_movement");
+    //   6         7      8      9        10       11       12       13       14  15     16
+        "waittime, emote, spell, textid1, textid2, textid3, textid4, textid5, id, point, script_id FROM creature_movement");
+
+    std::set<uint32> movementScriptSet;
+
+    for(ScriptMapMap::const_iterator itr = sCreatureMovementScripts.begin(); itr != sCreatureMovementScripts.end(); ++itr)
+        movementScriptSet.insert(itr->first);
 
     barGoLink bar( (int)result->GetRowCount() );
     do
@@ -111,6 +116,7 @@ void WaypointManager::Load()
         node.z              = fields[2].GetFloat();
         node.orientation    = fields[3].GetFloat();
         node.delay          = fields[6].GetUInt32();
+        node.script_id      = fields[16].GetUInt32();
 
         // prevent using invalid coordinates
         if(!MaNGOS::IsValidMapCoord(node.x, node.y, node.z, node.orientation))
@@ -132,6 +138,20 @@ void WaypointManager::Load()
             }
             WorldDatabase.PExecute("UPDATE creature_movement SET position_x = '%f', position_y = '%f', position_z = '%f' WHERE id = '%u' AND point = '%u'", node.x, node.y, node.z, id, point);
         }
+
+        if (node.script_id)
+        {
+            if (sCreatureMovementScripts.find(node.script_id) == sCreatureMovementScripts.end())
+            {
+                sLog.outErrorDb("Table creature_movement for id %u, point %u have script_id %u that does not exist in `creature_movement_scripts`, ignoring", id, point, node.script_id);
+                continue;
+            }
+
+            movementScriptSet.erase(node.script_id);
+        }
+
+        // WaypointBehavior can be dropped in time. Script_id added may 2010 and can handle all the below behavior.
+
         WaypointBehavior be;
         be.model1           = fields[4].GetUInt32();
         be.model2           = fields[5].GetUInt32();
@@ -172,6 +192,12 @@ void WaypointManager::Load()
             node.behavior   = NULL;
     } while( result->NextRow() );
     delete result;
+
+    if (!movementScriptSet.empty())
+    {
+        for(std::set<uint32>::const_iterator itr = movementScriptSet.begin(); itr != movementScriptSet.end(); ++itr)
+            sLog.outErrorDb("Table `creature_movement_scripts` contain unused script, id %u.", *itr);
+    }
 
     sLog.outString();
     sLog.outString( ">> Waypoints and behaviors loaded" );
@@ -233,7 +259,7 @@ void WaypointManager::_addNode(uint32 id, uint32 point, float x, float y, float 
     WaypointPathMap::iterator itr = m_pathMap.find(id);
     if(itr == m_pathMap.end())
         itr = m_pathMap.insert(WaypointPathMap::value_type(id, WaypointPath())).first;
-    itr->second.insert(itr->second.begin() + (point - 1), WaypointNode(x, y, z, o, delay, NULL));
+    itr->second.insert(itr->second.begin() + (point - 1), WaypointNode(x, y, z, o, delay, 0, NULL));
 }
 
 uint32 WaypointManager::GetLastPoint(uint32 id, uint32 default_notfound)
@@ -365,6 +391,30 @@ void WaypointManager::CheckTextsExistance(std::set<int32>& ids)
                     }
                 }
             }
+        }
+    }
+}
+
+void WaypointManager::CheckScriptExistance(std::set<uint32>& ids)
+{
+    WaypointPathMap::iterator pmItr = m_pathMap.begin();
+    for ( ; pmItr != m_pathMap.end(); ++pmItr)
+    {
+        for (size_t i = 0; i < pmItr->second.size(); ++i)
+        {
+            uint32 script_id = pmItr->second[i].script_id;
+            if (!script_id)
+                continue;
+
+            // Now we check text existence and put all zero texts ids to the end of array
+            if (sCreatureMovementScripts.find(script_id)==sCreatureMovementScripts.end())
+            {
+                sLog.outErrorDb("Some waypoint has not existing scriptid %u.", script_id);
+                pmItr->second[i].script_id = 0;
+                continue;
+            }
+            else
+                ids.erase(script_id);
         }
     }
 }

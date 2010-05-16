@@ -57,6 +57,7 @@ ScriptMapMap sSpellScripts;
 ScriptMapMap sGameObjectScripts;
 ScriptMapMap sEventScripts;
 ScriptMapMap sGossipScripts;
+ScriptMapMap sCreatureMovementScripts;
 
 bool normalizePlayerName(std::string& name)
 {
@@ -4448,6 +4449,21 @@ void ObjectMgr::LoadGossipScripts()
     // checks are done in LoadGossipMenuItems
 }
 
+void ObjectMgr::LoadCreatureMovementScripts()
+{
+    LoadScripts(sCreatureMovementScripts, "creature_movement_scripts");
+
+    std::set<uint32> ids;
+
+    for(ScriptMapMap::const_iterator itr = sCreatureMovementScripts.begin(); itr != sEventScripts.end(); ++itr)
+        ids.insert(itr->first);
+
+    sWaypointMgr.CheckScriptExistance(ids);
+
+    for(std::set<uint32>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr)
+        sLog.outErrorDb("Table `creature_movement_scripts` has script (Id: %u) not referring to any waypoint.", *itr);
+}
+
 void ObjectMgr::LoadItemTexts()
 {
     QueryResult *result = CharacterDatabase.Query("SELECT id, text FROM item_text");
@@ -8112,7 +8128,7 @@ uint32 ObjectMgr::GetScriptId(const char *name)
     return uint32(itr - m_scriptNames.begin());
 }
 
-void ObjectMgr::CheckScripts(ScriptMapMap const& scripts,std::set<int32>& ids)
+void ObjectMgr::CheckScriptTexts(ScriptMapMap const& scripts,std::set<int32>& ids)
 {
     for(ScriptMapMap::const_iterator itrMM = scripts.begin(); itrMM != scripts.end(); ++itrMM)
     {
@@ -8143,12 +8159,13 @@ void ObjectMgr::LoadDbScriptStrings()
         if(GetMangosStringLocale(i))
             ids.insert(i);
 
-    CheckScripts(sQuestEndScripts,ids);
-    CheckScripts(sQuestStartScripts,ids);
-    CheckScripts(sSpellScripts,ids);
-    CheckScripts(sGameObjectScripts,ids);
-    CheckScripts(sEventScripts,ids);
-    CheckScripts(sGossipScripts,ids);
+    CheckScriptTexts(sQuestEndScripts,ids);
+    CheckScriptTexts(sQuestStartScripts,ids);
+    CheckScriptTexts(sSpellScripts,ids);
+    CheckScriptTexts(sGameObjectScripts,ids);
+    CheckScriptTexts(sEventScripts,ids);
+    CheckScriptTexts(sGossipScripts,ids);
+    CheckScriptTexts(sCreatureMovementScripts,ids);
 
     sWaypointMgr.CheckTextsExistance(ids);
 

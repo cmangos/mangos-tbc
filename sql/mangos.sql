@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_113_9794_02_mangos_command` bit(1) default NULL
+  `required_115_9883_01_mangos_scripts` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -1299,6 +1299,9 @@ CREATE TABLE `event_scripts` (
   `command` mediumint(8) unsigned NOT NULL default '0',
   `datalong` mediumint(8) unsigned NOT NULL default '0',
   `datalong2` int(10) unsigned NOT NULL default '0',
+  `datalong3` int(10) unsigned NOT NULL default '0',
+  `datalong4` int(10) unsigned NOT NULL default '0',
+  `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
@@ -1775,6 +1778,9 @@ CREATE TABLE `gameobject_scripts` (
   `command` mediumint(8) unsigned NOT NULL default '0',
   `datalong` mediumint(8) unsigned NOT NULL default '0',
   `datalong2` int(10) unsigned NOT NULL default '0',
+  `datalong3` int(10) unsigned NOT NULL default '0',
+  `datalong4` int(10) unsigned NOT NULL default '0',
+  `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
@@ -1937,6 +1943,9 @@ CREATE TABLE `gossip_scripts` (
   `command` mediumint(8) unsigned NOT NULL default '0',
   `datalong` mediumint(8) unsigned NOT NULL default '0',
   `datalong2` int(10) unsigned NOT NULL default '0',
+  `datalong3` int(10) unsigned NOT NULL default '0',
+  `datalong4` int(10) unsigned NOT NULL default '0',
+  `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
@@ -11006,6 +11015,9 @@ CREATE TABLE `quest_end_scripts` (
   `command` mediumint(8) unsigned NOT NULL default '0',
   `datalong` mediumint(8) unsigned NOT NULL default '0',
   `datalong2` int(10) unsigned NOT NULL default '0',
+  `datalong3` int(10) unsigned NOT NULL default '0',
+  `datalong4` int(10) unsigned NOT NULL default '0',
+  `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
@@ -11033,6 +11045,9 @@ CREATE TABLE `quest_start_scripts` (
   `command` mediumint(8) unsigned NOT NULL default '0',
   `datalong` mediumint(8) unsigned NOT NULL default '0',
   `datalong2` int(10) unsigned NOT NULL default '0',
+  `datalong3` int(10) unsigned NOT NULL default '0',
+  `datalong4` int(10) unsigned NOT NULL default '0',
+  `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
@@ -15783,6 +15798,9 @@ CREATE TABLE `spell_scripts` (
   `command` mediumint(8) unsigned NOT NULL default '0',
   `datalong` mediumint(8) unsigned NOT NULL default '0',
   `datalong2` int(10) unsigned NOT NULL default '0',
+  `datalong3` int(10) unsigned NOT NULL default '0',
+  `datalong4` int(10) unsigned NOT NULL default '0',
+  `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',

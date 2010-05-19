@@ -34,9 +34,9 @@ struct GameEventData
     GameEventData() : start(1),end(0),occurence(0),length(0) {}
     time_t start;
     time_t end;
-    uint32 occurence;
-    uint32 length;
-    uint32 holiday_id;
+    uint32 occurence;                                       // Delay in minutes between occurences of the event
+    uint32 length;                                          // Length in minutes of the event
+    HolidayIds holiday_id;
     std::string description;
 
     bool isValid() const { return length > 0; }

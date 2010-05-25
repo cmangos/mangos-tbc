@@ -614,9 +614,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         pVictim->SetHealth(0);
 
         // allow loot only if has loot_id in creature_template
-        CreatureInfo const* cInfo = ((Creature*)pVictim)->GetCreatureInfo();
-        if(cInfo && cInfo->lootid)
-            pVictim->SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+        ((Creature*)pVictim)->PrepareBodyLootState();
 
         // some critters required for quests (need normal entry instead possible heroic in any cases)
         if(GetTypeId() == TYPEID_PLAYER)
@@ -831,7 +829,8 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             if(!cVictim->isPet())
             {
                 cVictim->DeleteThreatList();
-                cVictim->SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                // only lootable if it has loot or can drop gold
+                cVictim->PrepareBodyLootState();
             }
             // Call creature just died function
             if (cVictim->AI())

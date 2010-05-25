@@ -252,8 +252,8 @@ void WorldSession::HandleGossipHelloOpcode( WorldPacket & recv_data )
     uint64 guid;
     recv_data >> guid;
 
-    Creature *unit = GetPlayer()->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
-    if (!unit)
+    Creature *pCreature = GetPlayer()->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_NONE);
+    if (!pCreature)
     {
         DEBUG_LOG("WORLD: HandleGossipHelloOpcode - Unit (GUID: %u) not found or you can't interact with him.", uint32(GUID_LOPART(guid)));
         return;
@@ -263,19 +263,18 @@ void WorldSession::HandleGossipHelloOpcode( WorldPacket & recv_data )
     if(GetPlayer()->hasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
 
-    if( unit->isArmorer() || unit->isCivilian() || unit->isQuestGiver() || unit->isServiceProvider())
+    if( pCreature->isArmorer() || pCreature->isCivilian() || pCreature->isQuestGiver() || pCreature->isServiceProvider())
     {
-        unit->StopMoving();
+        pCreature->StopMoving();
     }
 
-    if (unit->isSpiritGuide())
-        unit->SendAreaSpiritHealerQueryOpcode(_player);
+    if (pCreature->isSpiritGuide())
+        pCreature->SendAreaSpiritHealerQueryOpcode(_player);
 
-    if(!Script->GossipHello( _player, unit ))
+    if(!Script->GossipHello( _player, pCreature ))
     {
-        _player->TalkedToCreature(unit->GetEntry(), unit->GetGUID());
-        _player->PrepareGossipMenu(unit, unit->GetCreatureInfo()->GossipMenuId);
-        _player->SendPreparedGossip(unit);
+        _player->PrepareGossipMenu(pCreature, pCreature->GetCreatureInfo()->GossipMenuId);
+        _player->SendPreparedGossip(pCreature);
     }
 }
 

@@ -4036,7 +4036,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                     if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->getClass() == CLASS_WARLOCK)
                     {
-                        if (strict)                         //starting cast, trigger pet stun (cast by pet so it doesn't attack player)
+                        if (strict)                         //Summoning Disorientation, trigger pet stun (cast by pet so it doesn't attack player)
                             pet->CastSpell(pet, 32752, true, NULL, NULL, pet->GetGUID());
                     }
                     else
@@ -4311,7 +4311,9 @@ SpellCastResult Spell::CheckCasterAuras() const
     // Flag drop spells totally immuned to caster auras
     // FIXME: find more nice check for all totally immuned spells
     // AttributesEx3 & 0x10000000?
-    if(m_spellInfo->Id == 23336 || m_spellInfo->Id == 23334 || m_spellInfo->Id == 34991)
+    if (m_spellInfo->Id == 23336 ||                         // Alliance Flag Drop
+        m_spellInfo->Id == 23334 ||                         // Horde Flag Drop
+        m_spellInfo->Id == 34991)                           // Summon Netherstorm Flag
         return SPELL_CAST_OK;
 
     uint8 school_immune = 0;
@@ -4334,7 +4336,7 @@ SpellCastResult Spell::CheckCasterAuras() const
                 dispel_immune |= GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[i]));
         }
         // immune movement impairment and loss of control
-        if (m_spellInfo->Id == 42292)
+        if (m_spellInfo->Id == 42292)                       // PvP Trinket
             mechanic_immune = IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK;
     }
 

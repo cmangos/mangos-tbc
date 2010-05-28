@@ -683,14 +683,18 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         }
     }
 
-    if(pVictim->GetTypeId() == TYPEID_PLAYER && GetTypeId() == TYPEID_PLAYER)
+    if (GetTypeId() == TYPEID_PLAYER && this != pVictim)
     {
-        if(((Player*)pVictim)->InBattleGround())
+        Player *killer = ((Player*)this);
+
+        // in bg, count dmg if victim is also a player
+        if (pVictim->GetTypeId()==TYPEID_PLAYER)
         {
-            Player *killer = ((Player*)this);
-            if(killer != ((Player*)pVictim))
-                if(BattleGround *bg = killer->GetBattleGround())
-                    bg->UpdatePlayerScore(killer, SCORE_DAMAGE_DONE, damage);
+            if (BattleGround *bg = killer->GetBattleGround())
+            {
+                // FIXME: kept by compatibility. don't know in BG if the restriction apply.
+                bg->UpdatePlayerScore(killer, SCORE_DAMAGE_DONE, damage);
+            }
         }
     }
 

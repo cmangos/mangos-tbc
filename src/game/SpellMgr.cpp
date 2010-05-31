@@ -972,14 +972,22 @@ void SpellMgr::LoadSpellProcEvents()
 
         mSpellProcEventMap[entry] = spe;
 
-        if (spell->procFlags==0)
+        if (spe.procFlags == 0)
         {
-            if (spe.procFlags == 0)
+            if (spell->procFlags==0)
             {
                 sLog.outErrorDb("Spell %u listed in `spell_proc_event` probally not triggered spell", entry);
                 continue;
             }
             customProc++;
+        }
+        else
+        {
+            if (spell->procFlags==spe.procFlags)
+            {
+                sLog.outErrorDb("Spell %u listed in `spell_proc_event` have exactly same proc flags as in spell.dbc, field value redundent", entry);
+                continue;
+            }
         }
         ++count;
     } while( result->NextRow() );

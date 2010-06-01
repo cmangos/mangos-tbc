@@ -922,6 +922,13 @@ void SpellMgr::LoadSpellAffects()
     }
 }
 
+struct DoSpellProcEvent
+{
+    DoSpellProcEvent(SpellProcEventEntry const& _spe) : spe(_spe) {}
+    void operator() (uint32 spell_id) { sSpellMgr.mSpellProcEventMap[spell_id] = spe; }
+    SpellProcEventEntry const& spe;
+};
+
 void SpellMgr::LoadSpellProcEvents()
 {
     mSpellProcEventMap.clear();                             // need for reload case
@@ -959,6 +966,15 @@ void SpellMgr::LoadSpellProcEvents()
             continue;
         }
 
+        uint32 first_id = GetFirstSpellInChain(entry);
+
+        if ( first_id != entry )
+        {
+            sLog.outErrorDb("Spell %u listed in `spell_proc_event` is not first rank (%u) in chain", entry, first_id);
+            // prevent loading since it won't have an effect anyway
+            continue;
+        }
+
         SpellProcEventEntry spe;
 
         spe.schoolMask      = fields[1].GetUInt32();
@@ -972,62 +988,60 @@ void SpellMgr::LoadSpellProcEvents()
 
         mSpellProcEventMap[entry] = spe;
 
+        bool isCustom = false;
+
+        // also add to high ranks
+        DoSpellProcEvent worker(spe);
+        doForHighRanks(entry,worker);
+
         if (spe.procFlags == 0)
         {
             if (spell->procFlags==0)
-            {
-                sLog.outErrorDb("Spell %u listed in `spell_proc_event` probally not triggered spell", entry);
-                continue;
-            }
-            customProc++;
+                sLog.outErrorDb("Spell %u listed in `spell_proc_event` probally not triggered spell (no proc flags)", entry);
         }
         else
         {
             if (spell->procFlags==spe.procFlags)
-            {
                 sLog.outErrorDb("Spell %u listed in `spell_proc_event` have exactly same proc flags as in spell.dbc, field value redundent", entry);
-                continue;
-            }
+            else
+                isCustom = true;
         }
-        ++count;
+
+        if (spe.customChance == 0)
+        {
+            /* enable for re-check cases, 0 chance ok for some cases because in some cases it set by another spell/talent spellmod)
+            if (spell->procChance==0 && !spe.ppmRate)
+                sLog.outErrorDb("Spell %u listed in `spell_proc_event` probally not triggered spell (no chance or ppm)", entry);
+            */
+        }
+        else
+        {
+            if (spell->procChance==spe.customChance)
+                sLog.outErrorDb("Spell %u listed in `spell_proc_event` have exactly same custom chance as in spell.dbc, field value redundent", entry);
+            else
+                isCustom = true;
+        }
+
+        // totally redundant record
+        if (!spe.schoolMask && !spe.spellFamilyMask && !spe.procFlags &&
+            !spe.procEx && !spe.ppmRate && !spe.customChance && !spe.cooldown)
+        {
+            sLog.outErrorDb("Spell %u listed in `spell_proc_event` not have any useful data", entry);
+        }
+
+        if (isCustom)
+            ++customProc;
+        else
+            ++count;
     } while( result->NextRow() );
 
     delete result;
 
     sLog.outString();
     if (customProc)
-        sLog.outString( ">> Loaded %u custom spell proc event conditions +%u custom",  count, customProc );
+        sLog.outString( ">> Loaded %u extra spell proc event conditions +%u custom",  count, customProc );
     else
         sLog.outString( ">> Loaded %u spell proc event conditions", count );
-
-    /*
-    // Commented for now, as it still produces many errors (still quite many spells miss spell_proc_event)
-    for (uint32 id = 0; id < sSpellStore.GetNumRows(); ++id)
-    {
-        SpellEntry const* spellInfo = sSpellStore.LookupEntry(id);
-        if (!spellInfo)
-            continue;
-
-        bool found = false;
-        for (int effectId = 0; effectId < 3; ++effectId)
-        {
-            // at this moment check only SPELL_AURA_PROC_TRIGGER_SPELL
-            if( spellInfo->EffectApplyAuraName[effectId] == SPELL_AURA_PROC_TRIGGER_SPELL )
-            {
-                found = true;
-                break;
-            }
-        }
-
-        if(!found)
-            continue;
-
-        if(GetSpellProcEvent(id))
-            continue;
-
-        sLog.outErrorDb("Spell %u (%s) misses spell_proc_event",id,spellInfo->SpellName[sWorld.GetDBClang()]);
-    }
-    */
 }
 
 bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const * spellProcEvent, uint32 EventProcFlag, SpellEntry const * procSpell, uint32 procFlags, uint32 procExtra, bool active)

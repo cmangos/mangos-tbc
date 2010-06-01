@@ -670,6 +670,8 @@ inline bool IsProfessionOrRidingSkill(uint32 skill)
 
 class SpellMgr
 {
+    friend struct DoSpellProcEvent;
+
     // Constructors
     public:
         SpellMgr();
@@ -768,6 +770,17 @@ class SpellMgr
         }
 
         SpellChainMapNext const& GetSpellChainNext() const { return mSpellChainsNext; }
+
+        template<typename Worker>
+        void doForHighRanks(uint32 spellid, Worker& worker)
+        {
+            SpellChainMapNext const& nextMap = GetSpellChainNext();
+            for(SpellChainMapNext::const_iterator itr = nextMap.lower_bound(spellid); itr != nextMap.upper_bound(spellid); ++itr)
+            {
+                worker(itr->second);
+                doForHighRanks(itr->second,worker);
+            }
+        }
 
         // Note: not use rank for compare to spell ranks: spell chains isn't linear order
         // Use IsHighRankOfSpell instead

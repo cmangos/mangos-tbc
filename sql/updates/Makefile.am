@@ -182,6 +182,7 @@ pkgdata_DATA = \
 	120_xxxx_01_mangos_spell_proc_event.sql \
 	121_10008_01_realmd_realmd_db_version.sql \
 	122_10015_01_mangos_spell_proc_event.sql \
+	123_10017_01_mangos_spell_proc_event.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -343,4 +344,5 @@ EXTRA_DIST = \
 	120_xxxx_01_mangos_spell_proc_event.sql \
 	121_10008_01_realmd_realmd_db_version.sql \
 	122_10015_01_mangos_spell_proc_event.sql \
+	123_10017_01_mangos_spell_proc_event.sql \
 	README

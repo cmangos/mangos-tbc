@@ -402,6 +402,13 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 }
                 break;
             }
+            case SPELLFAMILY_PRIEST:
+            {
+                // Shadow Word: Death - deals damage equal to damage done to caster
+                if (m_spellInfo->SpellFamilyFlags & 0x0000000200000000LL)
+                    m_caster->CastCustomSpell(m_caster, 32409, &damage, 0, 0, true);
+                break;
+            }
             case SPELLFAMILY_DRUID:
             {
                 // Ferocious Bite

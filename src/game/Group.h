@@ -306,7 +306,7 @@ class MANGOS_DLL_SPEC Group
         void BroadcastReadyCheck(WorldPacket *packet);
         void OfflineReadyCheck();
 
-        bool RewardGroupAtKill(Unit* pVictim, Player* player_tap);
+        void RewardGroupAtKill(Unit* pVictim, Player* player_tap);
 
         /*********************************************************/
         /***                   LOOT SYSTEM                     ***/

@@ -929,21 +929,8 @@ void Spell::DoAllEffectOnTarget(TargetInfo *target)
 
         caster->DealSpellDamage(&damageInfo, true);
 
-        // Shadow Word: Death - deals damage equal to damage done to caster if victim is not killed
-        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PRIEST && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000200000000) &&
-            caster != unitTarget && unitTarget->isAlive())
-        {
-            // Redirect damage to caster if victim Alive
-            damageInfo.target = caster;
-            damageInfo.absorb = 0;
-            damageInfo.resist = 0;
-            damageInfo.blocked = 0;
-            // Send log damage message to client
-            caster->SendSpellNonMeleeDamageLog(&damageInfo);
-            caster->DealSpellDamage(&damageInfo, true);
-        }
         // Judgement of Blood
-        else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000800000000) && m_spellInfo->SpellIconID==153)
+        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000800000000) && m_spellInfo->SpellIconID==153)
         {
             int32 damagePoint  = damageInfo.damage * 33 / 100;
             m_caster->CastCustomSpell(m_caster, 32220, &damagePoint, NULL, NULL, true);

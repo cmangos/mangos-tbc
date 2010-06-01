@@ -734,6 +734,8 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         // call kill spell proc event (before real die and combat stop to triggering auras removed at death/combat stop)
         if(player_tap && player_tap != pVictim)
         {
+            player_tap->ProcDamageAndSpell(pVictim, PROC_FLAG_KILL, PROC_FLAG_KILLED, PROC_EX_NONE, 0);
+
             WorldPacket data(SMSG_PARTYKILLLOG, (8+8)); //send event PARTY_KILL
             data << player_tap->GetObjectGuid();            //player with killing blow
             data << pVictim->GetObjectGuid();              //victim
@@ -747,19 +749,10 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
         // Reward player, his pets, and group/raid members
         if (player_tap != pVictim)
         {
-            bool xpkill = false;
             if (group_tap)
-                xpkill = group_tap->RewardGroupAtKill(pVictim, player_tap);
+                group_tap->RewardGroupAtKill(pVictim, player_tap);
             else if (player_tap)
-                xpkill = player_tap->RewardSinglePlayerAtKill(pVictim);
-
-            if (player_tap)
-            {
-                if(xpkill)
-                    player_tap->ProcDamageAndSpell(pVictim, PROC_FLAG_KILL_AND_GET_XP, PROC_FLAG_KILLED, PROC_EX_NONE, 0);
-                else
-                    player_tap->ProcDamageAndSpell(pVictim, PROC_FLAG_NONE, PROC_FLAG_KILLED,PROC_EX_NONE, 0);
-            }
+                player_tap->RewardSinglePlayerAtKill(pVictim);
         }
 
         DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE,"DealDamageAttackStop");
@@ -10302,6 +10295,7 @@ void InitTriggerAuraData()
       isTriggerAura[i]=false;
       isNonTriggerAura[i] = false;
     }
+    isTriggerAura[SPELL_AURA_PERIODIC_DAMAGE] = true;
     isTriggerAura[SPELL_AURA_DUMMY] = true;
     isTriggerAura[SPELL_AURA_MOD_CONFUSE] = true;
     isTriggerAura[SPELL_AURA_MOD_THREAT] = true;
@@ -10372,18 +10366,8 @@ uint32 createProcExtendMask(SpellNonMeleeDamage *damageInfo, SpellMissInfo missC
     return procEx;
 }
 
-static int deep = 0;
 void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, SpellEntry const * procSpell, uint32 damage )
 {
-    deep ++;
-    if (deep > 5)
-    {
-        sLog.outError("Prevent possible stack owerflow in Unit::ProcDamageAndSpellFor");
-        if (procSpell)
-            sLog.outError("  Spell %u", procSpell->Id);
-        deep--;
-        return;
-    }
     // For melee/ranged based attack need update skills and set some Aura states
     if (procFlag & MELEE_BASED_TRIGGER_MASK)
     {
@@ -10467,7 +10451,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
     for(AuraMap::const_iterator itr = GetAuras().begin(); itr!= GetAuras().end(); ++itr)
     {
         SpellProcEventEntry const* spellProcEvent = NULL;
-        if(!IsTriggeredAtSpellProcEvent(itr->second, procSpell, procFlag, procExtra, attType, isVictim, (damage > 0), spellProcEvent))
+        if(!IsTriggeredAtSpellProcEvent(pTarget, itr->second, procSpell, procFlag, procExtra, attType, isVictim, (damage > 0), spellProcEvent))
            continue;
 
         procTriggered.push_back( ProcTriggeredData(spellProcEvent, itr->second) );
@@ -10637,7 +10621,6 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
         for(RemoveSpellList::const_iterator i = removedSpells.begin(); i != removedSpells.end();i++)
             RemoveAurasDueToSpell(*i);
     }
-    deep--;
 }
 
 SpellSchoolMask Unit::GetMeleeDamageSchoolMask() const
@@ -11320,7 +11303,7 @@ Pet* Unit::CreateTamedPetFrom(Creature* creatureTarget,uint32 spell_id)
     return pet;
 }
 
-bool Unit::IsTriggeredAtSpellProcEvent(Aura* aura, SpellEntry const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, bool active, SpellProcEventEntry const*& spellProcEvent )
+bool Unit::IsTriggeredAtSpellProcEvent(Unit *pVictim, Aura* aura, SpellEntry const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, bool active, SpellProcEventEntry const*& spellProcEvent )
 {
     SpellEntry const* spellProto = aura->GetSpellProto();
 
@@ -11350,7 +11333,17 @@ bool Unit::IsTriggeredAtSpellProcEvent(Aura* aura, SpellEntry const* procSpell, 
     if(!SpellMgr::IsSpellProcEventCanTriggeredBy(spellProcEvent, EventProcFlag, procSpell, procFlag, procExtra, active))
         return false;
 
-    // Aura added by spell can`t trogger from self (prevent drop cahres/do triggers)
+    // In most cases req get honor or XP from kill
+    if (EventProcFlag & PROC_FLAG_KILL && GetTypeId() == TYPEID_PLAYER)
+    {
+        bool allow = ((Player*)this)->isHonorOrXPTarget(pVictim);
+        // Shadow Word: Death - can trigger from every kill
+        if (aura->GetId() == 32409)
+            allow = true;
+        if (!allow)
+            return false;
+    }
+    // Aura added by spell can`t trogger from self (prevent drop charges/do triggers)
     // But except periodic triggers (can triggered from self)
     if(procSpell && procSpell->Id == spellProto->Id && !(spellProto->procFlags&PROC_FLAG_ON_TAKE_PERIODIC))
         return false;

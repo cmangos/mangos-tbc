@@ -553,7 +553,7 @@ struct ItemPrototype
     _Socket Socket[MAX_ITEM_PROTO_SOCKETS];
     uint32 socketBonus;                                     // id from SpellItemEnchantment.dbc
     uint32 GemProperties;                                   // id from GemProperties.dbc
-    uint32 RequiredDisenchantSkill;
+    int32 RequiredDisenchantSkill;
     float  ArmorDamageModifier;
     uint32 ScriptId;
     uint32 DisenchantID;

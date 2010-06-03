@@ -43,7 +43,7 @@ static DumpTable dumpTables[] =
     { "character_spell_cooldown",         DTT_CHAR_TABLE },
     { "character_action",                 DTT_CHAR_TABLE },
     { "character_aura",                   DTT_CHAR_TABLE },
-    { "character_declinedname",           DTT_CHAR_TABLE },
+    { "character_declinedname",           DTT_CHAR_NAME_TABLE },
     { "character_homebind",               DTT_CHAR_TABLE },
     { "character_skills",                 DTT_CHAR_TABLE },
     { "character_ticket",                 DTT_CHAR_TABLE },

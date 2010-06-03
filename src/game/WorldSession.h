@@ -625,8 +625,8 @@ class MANGOS_DLL_SPEC WorldSession
 
         void HandleGuildBankUpdateTab(WorldPacket& recv_data);
         void HandleGuildBankBuyTab(WorldPacket& recv_data);
-        void HandleQueryGuildBankTabText(WorldPacket& recv_data);
-        void HandleSetGuildBankTabText(WorldPacket& recv_data);
+        void HandleGuildBankTabText(WorldPacket& recv_data);
+        void HandleGuildBankSetTabText(WorldPacket& recv_data);
     private:
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);

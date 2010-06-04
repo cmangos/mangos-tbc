@@ -3290,7 +3290,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
 
 void Spell::EffectDualWield(SpellEffectIndex /*eff_idx*/)
 {
-    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
+    if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
         ((Player*)unitTarget)->SetCanDualWield(true);
 }
 
@@ -5236,18 +5236,14 @@ void Spell::EffectAddExtraAttacks(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectParry(SpellEffectIndex /*eff_idx*/)
 {
-    if (unitTarget->GetTypeId() == TYPEID_PLAYER)
-    {
+    if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
         ((Player*)unitTarget)->SetCanParry(true);
-    }
 }
 
 void Spell::EffectBlock(SpellEffectIndex /*eff_idx*/)
 {
-    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
-        return;
-
-    ((Player*)unitTarget)->SetCanBlock(true);
+    if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)unitTarget)->SetCanBlock(true);
 }
 
 void Spell::EffectLeapForward(SpellEffectIndex eff_idx)

@@ -2700,7 +2700,7 @@ void Spell::SendLoot(uint64 guid, LootType loottype)
                 // if send spell id then this line will duplicate to spell casting call (double counting)
                 // So we or have this line and not required in quest_template have reqSpellIdN
                 // or must remove this line and required in DB have data in quest_template have reqSpellIdN for all quest using cases.
-                player->CastedCreatureOrGO(gameObjTarget->GetEntry(), gameObjTarget->GetGUID(), 0);
+                player->RewardPlayerAndGroupAtCast(gameObjTarget);
 
                 // triggering linked GO
                 if (uint32 trapEntry = gameObjTarget->GetGOInfo()->goober.linkedTrapId)

@@ -4592,7 +4592,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
         {
             switch (dummySpell->Id)
             {
-                // Eye of Eye
+                // Eye for an Eye
                 case 9799:
                 case 25988:
                 {
@@ -5203,7 +5203,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     triggered_spell_id = 39373;
                     break;
                 }
-                // Vestments of Faith (Priest Tier 3) - 4 pieces bonus
+                // Greater Heal (Vestments of Faith (Priest Tier 3) - 4 pieces bonus)
                 case 28809:
                 {
                     triggered_spell_id = 28810;
@@ -5434,7 +5434,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     }
                     break;
                 }
-                //Seal of Vengeance
+                // Seal of Vengeance
                 case 31801:
                 {
                     if(effIndex != 0)                       // effect 1,2 used by seal unleashing code

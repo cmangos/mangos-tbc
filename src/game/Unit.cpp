@@ -5758,13 +5758,15 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
      //=====================================================================
      case SPELLFAMILY_GENERIC:
 //     if (auraSpellInfo->Id==34082)      // Advantaged State (DND)
-//          trigger_spell_id = ???;
      if (auraSpellInfo->Id == 23780)      // Aegis of Preservation (Aegis of Preservation trinket)
-          trigger_spell_id = 23781;
+         trigger_spell_id = 23781;
 //     else if (auraSpellInfo->Id==43504) // Alterac Valley OnKill Proc Aura
-//          trigger_spell_id = ;
+//     else if (auraSpellInfo->Id==46939)   // Black Bow of the Betrayer
+//     {
+//         trigger_spell_id = 29471; // gain mana
+//         27526; // drain mana if possible
+//     }
 //     else if (auraSpellInfo->Id==37030) // Chaotic Temperament
-//          trigger_spell_id = ;
      else if (auraSpellInfo->Id==43820)   // Charm of the Witch Doctor (Amani Charm of the Witch Doctor trinket)
      {
           // Pct value stored in dummy
@@ -5774,31 +5776,24 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
      }
 //     else if (auraSpellInfo->Id==41248) // Consuming Strikes
 //          trigger_spell_id = 41249;
+//     else if (auraSpellInfo->Id==45205) // Copy Offhand Weapon
 //     else if (auraSpellInfo->Id==41054) // Copy Weapon
 //          trigger_spell_id = 41055;
+//     else if (auraSpellInfo->Id==45343) // Dark Flame Aura
+//     else if (auraSpellInfo->Id==47300) // Dark Flame Aura
 //     else if (auraSpellInfo->Id==31255) // Deadly Swiftness (Rank 1)
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==5301)  // Defensive State (DND)
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==13358) // Defensive State (DND)
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==16092) // Defensive State (DND)
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==24949) // Defensive State 2 (DND)
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==40329) // Demo Shout Sensor
-//          trigger_spell_id = ;
      // Desperate Defense (Stonescythe Whelp, Stonescythe Alpha, Stonescythe Ambusher)
      else if (auraSpellInfo->Id == 33896)
          trigger_spell_id = 33898;
 //     else if (auraSpellInfo->Id==18943) // Double Attack
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==19194) // Double Attack
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==19817) // Double Attack
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==19818) // Double Attack
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==22835) // Drunken Rage
 //          trigger_spell_id = 14822;
  /*
@@ -5831,20 +5826,14 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
          }
      }*/
 //     else if (auraSpellInfo->Id==6542)  // Enraged Defense
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==40364) // Entangling Roots Sensor
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==33207) // Gossip NPC Periodic - Fidget
-//          trigger_spell_id = ;
+//     else if (auraSpellInfo->Id==50051) // Ethereal Pet Aura
 //     else if (auraSpellInfo->Id==35321) // Gushing Wound
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==38363) // Gushing Wound
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==39215) // Gushing Wound
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==40250) // Improved Duration
-//          trigger_spell_id = ;
-     else if (auraSpellInfo->Id==27522)   // Mana Drain Trigger
+     else if (auraSpellInfo->Id==27522 || auraSpellInfo->Id==40336)   // Mana Drain Trigger
      {
          // On successful melee or ranged attack gain $29471s1 mana and if possible drain $27526s1 mana from the target.
          if (this && this->isAlive())
@@ -5860,20 +5849,16 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
          basepoints[0] = GetTotalAttackPowerValue(BASE_ATTACK) * 30 / 100;
          target = this;
      }
+//     else if (auraSpellInfo->Id==44326) // Pure Energy Passive
 //     else if (auraSpellInfo->Id==43453) // Rune Ward
-//          trigger_spell_id = ;
-//     else if (auraSpellInfo->Id==7137)  // Shadow Charge (Rank 1)
-//          trigger_spell_id = ;
-       // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
-//     else if (auraSpellInfo->Id==36576)
-//          trigger_spell_id = ;
+//     else if (auraSpellInfo->Id== 7137) // Shadow Charge (Rank 1)
+//     else if (auraSpellInfo->Id==36576) // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
 //     else if (auraSpellInfo->Id==34783) // Spell Reflection
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==36096) // Spell Reflection
-//          trigger_spell_id = ;
 //     else if (auraSpellInfo->Id==36207) // Steal Weapon
-//          trigger_spell_id = ;
+//     else if (auraSpellInfo->Id== 7377) // Take Immune Periodic Damage <Not Working>
 //     else if (auraSpellInfo->Id==35205) // Vanish
+//     else if (auraSpellInfo->Id==46146) // [PH] Ahune  Spanky Hands
      break;
      //=====================================================================
      // Mage

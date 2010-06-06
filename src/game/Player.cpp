@@ -447,6 +447,9 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this)
         m_auraBaseMod[i][PCT_MOD] = 1.0f;
     }
 
+    for (int i = 0; i < MAX_COMBAT_RATING; i++)
+        m_baseRatingValue[i] = 0;
+
     // Honor System
     m_lastHonorUpdateTime = time(NULL);
 
@@ -4799,10 +4802,41 @@ float Player::OCTRegenMPPerSpirit()
 
 void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
 {
-    ApplyModUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + cr, value, apply);
+    m_baseRatingValue[cr]+=(apply ? value : -value);
 
-    float RatingCoeffecient = GetRatingCoefficient(cr);
-    float RatingChange = 0.0f;
+    // explicit affected values
+    switch (cr)
+    {
+        case CR_HASTE_MELEE:
+        {
+            float RatingChange = value / GetRatingCoefficient(cr);
+            ApplyAttackTimePercentMod(BASE_ATTACK,RatingChange,apply);
+            ApplyAttackTimePercentMod(OFF_ATTACK,RatingChange,apply);
+            break;
+        }
+        case CR_HASTE_RANGED:
+        {
+            float RatingChange = value / GetRatingCoefficient(cr);
+            ApplyAttackTimePercentMod(RANGED_ATTACK, RatingChange, apply);
+            break;
+        }
+        case CR_HASTE_SPELL:
+        {
+            float RatingChange = value / GetRatingCoefficient(cr);
+            ApplyCastTimePercentMod(RatingChange,apply);
+            break;
+        }
+    }
+
+    UpdateRating(cr);
+}
+
+void Player::UpdateRating(CombatRating cr)
+{
+    int32 amount = m_baseRatingValue[cr];
+    if (amount < 0)
+        amount = 0;
+    SetUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + cr, uint32(amount));
 
     bool affectStats = CanModifyStats();
 
@@ -4822,16 +4856,13 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
             UpdateBlockPercentage();
             break;
         case CR_HIT_MELEE:
-            RatingChange = value / RatingCoeffecient;
-            m_modMeleeHitChance += apply ? RatingChange : -RatingChange;
+            UpdateMeleeHitChances();
             break;
         case CR_HIT_RANGED:
-            RatingChange = value / RatingCoeffecient;
-            m_modRangedHitChance += apply ? RatingChange : -RatingChange;
+            UpdateRangedHitChances();
             break;
         case CR_HIT_SPELL:
-            RatingChange = value / RatingCoeffecient;
-            m_modSpellHitChance += apply ? RatingChange : -RatingChange;
+            UpdateSpellHitChances();
             break;
         case CR_CRIT_MELEE:
             if(affectStats)
@@ -4858,18 +4889,9 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
             break;
         case CR_CRIT_TAKEN_SPELL:                           // Implemented in Unit::SpellCriticalBonus (only for chance to crit)
             break;
-        case CR_HASTE_MELEE:
-            RatingChange = value / RatingCoeffecient;
-            ApplyAttackTimePercentMod(BASE_ATTACK,RatingChange,apply);
-            ApplyAttackTimePercentMod(OFF_ATTACK,RatingChange,apply);
-            break;
+        case CR_HASTE_MELEE:                                // Implemented in Player::ApplyRatingMod
         case CR_HASTE_RANGED:
-            RatingChange = value / RatingCoeffecient;
-            ApplyAttackTimePercentMod(RANGED_ATTACK, RatingChange, apply);
-            break;
         case CR_HASTE_SPELL:
-            RatingChange = value / RatingCoeffecient;
-            ApplyCastTimePercentMod(RatingChange,apply);
             break;
         case CR_WEAPON_SKILL_MAINHAND:                      // Implemented in Unit::RollMeleeOutcomeAgainst
         case CR_WEAPON_SKILL_OFFHAND:
@@ -4883,6 +4905,12 @@ void Player::ApplyRatingMod(CombatRating cr, int32 value, bool apply)
             }
             break;
     }
+}
+
+void Player::UpdateAllRatings()
+{
+    for(int cr = 0; cr < MAX_COMBAT_RATING; ++cr)
+        UpdateRating(CombatRating(cr));
 }
 
 void Player::SetRegularAttackTime()

@@ -49,24 +49,17 @@ bool Player::UpdateStats(Stats stat)
     switch(stat)
     {
         case STAT_STRENGTH:
-            UpdateAttackPowerAndDamage();
             UpdateShieldBlockValue();
             break;
         case STAT_AGILITY:
             UpdateArmor();
-            UpdateAttackPowerAndDamage(true);
-            if(getClass() == CLASS_ROGUE || getClass() == CLASS_HUNTER || getClass() == CLASS_DRUID && m_form==FORM_CAT)
-                UpdateAttackPowerAndDamage();
-
             UpdateAllCritPercentages();
             UpdateDodgePercentage();
             break;
-
         case STAT_STAMINA:   UpdateMaxHealth(); break;
         case STAT_INTELLECT:
             UpdateMaxPower(POWER_MANA);
             UpdateAllSpellCritChances();
-            UpdateAttackPowerAndDamage(true);               //SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT, only intelect currently
             UpdateArmor();                                  //SPELL_AURA_MOD_RESISTANCE_OF_INTELLECT_PERCENT, only armor currently
             break;
 
@@ -76,8 +69,13 @@ bool Player::UpdateStats(Stats stat)
         default:
             break;
     }
+    // Need update (exist AP from stat auras)
+    UpdateAttackPowerAndDamage();
+    UpdateAttackPowerAndDamage(true);
+
     UpdateSpellDamageAndHealingBonus();
     UpdateManaRegen();
+
     return true;
 }
 
@@ -108,6 +106,7 @@ bool Player::UpdateAllStats()
     for(int i = POWER_MANA; i < MAX_POWERS; ++i)
         UpdateMaxPower(Powers(i));
 
+    UpdateAllRatings();
     UpdateAllCritPercentages();
     UpdateAllSpellCritChances();
     UpdateDefenseBonusesMod();
@@ -311,11 +310,14 @@ void Player::UpdateAttackPowerAndDamage(bool ranged )
     float attPowerMod = GetModifierValue(unitMod, TOTAL_VALUE);
 
     //add dynamic flat mods
-    if( ranged && (getClassMask() & CLASSMASK_WAND_USERS)==0)
+    if ((getClassMask() & CLASSMASK_WAND_USERS)==0)
     {
-        AuraList const& mRAPbyIntellect = GetAurasByType(SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT);
-        for(AuraList::const_iterator i = mRAPbyIntellect.begin();i != mRAPbyIntellect.end(); ++i)
-            attPowerMod += int32(GetStat(Stats((*i)->GetModifier()->m_miscvalue)) * (*i)->GetModifier()->m_amount / 100.0f);
+        if( ranged )
+        {
+            AuraList const& mRAPbyIntellect = GetAurasByType(SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT);
+            for(AuraList::const_iterator i = mRAPbyIntellect.begin();i != mRAPbyIntellect.end(); ++i)
+                attPowerMod += int32(GetStat(Stats((*i)->GetModifier()->m_miscvalue)) * (*i)->GetModifier()->m_amount / 100.0f);
+        }
     }
 
     float attPowerMultiplier = GetModifierValue(unitMod, TOTAL_PCT) - 1.0f;
@@ -552,6 +554,24 @@ void Player::UpdateSpellCritChance(uint32 school)
 
     // Store crit value
     SetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + school, crit);
+}
+
+void Player::UpdateMeleeHitChances()
+{
+    m_modMeleeHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_HIT_CHANCE);
+    m_modMeleeHitChance+=  GetRatingBonusValue(CR_HIT_MELEE);
+}
+
+void Player::UpdateRangedHitChances()
+{
+    m_modRangedHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_HIT_CHANCE);
+    m_modRangedHitChance+= GetRatingBonusValue(CR_HIT_RANGED);
+}
+
+void Player::UpdateSpellHitChances()
+{
+    m_modSpellHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_SPELL_HIT_CHANCE);
+    m_modSpellHitChance+= GetRatingBonusValue(CR_HIT_SPELL);
 }
 
 void Player::UpdateAllSpellCritChances()

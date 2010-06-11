@@ -160,6 +160,7 @@ class SpellCastTargets
         Item* getItemTarget() const { return m_itemTarget; }
         uint32 getItemTargetEntry() const { return m_itemTargetEntry; }
         void setItemTarget(Item* item);
+        void setTradeItemTarget(Player* caster);
         void updateTradeSlotItem()
         {
             if(m_itemTarget && (m_targetMask & TARGET_FLAG_TRADE_ITEM))
@@ -472,6 +473,7 @@ class Spell
     protected:
 
         void SendLoot(uint64 guid, LootType loottype);
+        bool IgnoreItemRequirements() const;                        // some item use spells have unexpected reagent data
         void UpdateOriginalCasterPointer();
 
         Unit* m_caster;

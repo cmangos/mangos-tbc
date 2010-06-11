@@ -250,8 +250,10 @@ static void clearAcceptTradeMode(Item **myItems, Item **hisItems)
     }
 }
 
-void WorldSession::HandleAcceptTradeOpcode(WorldPacket& /*recvPacket*/)
+void WorldSession::HandleAcceptTradeOpcode(WorldPacket& recvPacket)
 {
+    recvPacket.read_skip<uint32>();
+
     TradeData* my_trade = _player->m_trade;
     if (!my_trade)
         return;

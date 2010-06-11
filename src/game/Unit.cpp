@@ -6076,7 +6076,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 // procspell is triggered spell but we need mana cost of original casted spell
                 uint32 originalSpellId = procSpell->Id;
                 // Holy Shock
-                if(procSpell->SpellFamilyFlags & UI64LIT(0x0000000000200000))
+                if(procSpell->SpellFamilyFlags & UI64LIT(0x0001000000000000))
                 {
                     switch(procSpell->Id)
                     {

@@ -1399,6 +1399,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void RemovePetActionBar();
 
         bool HasSpell(uint32 spell) const;
+        bool HasActiveSpell(uint32 spell) const;            // show in spellbook
         TrainerSpellState GetTrainerSpellState(TrainerSpell const* trainer_spell) const;
         bool IsSpellFitByClassAndRace( uint32 spell_id ) const;
 
@@ -1964,6 +1965,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsFlying() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FLYING); }
 
         void SetClientControl(Unit* target, uint8 allowMove);
+        void SetMover(Unit* target) { m_mover = target ? target : this; }
+        Unit* GetMover() const { return m_mover; }
+        bool IsSelfMover() const { return m_mover == this; }// normal case for player not controlling other unit
 
         uint64 GetFarSight() const { return GetUInt64Value(PLAYER_FARSIGHT); }
         void SetFarSightGUID(uint64 guid);
@@ -2311,6 +2315,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void ScheduleDelayedOperation(uint32 operation);
 
+        Unit *m_mover;
         Camera m_camera;
 
         GridReference<Player> m_gridRef;

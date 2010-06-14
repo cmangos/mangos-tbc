@@ -106,7 +106,7 @@ template<> void addUnitState(Creature *obj, CellPair const& cell_pair)
 }
 
 template <class T>
-void LoadHelper(CellGuidSet const& guid_set, CellPair &cell, GridRefManager<T> &m, uint32 &count, Map* map)
+void LoadHelper(CellGuidSet const& guid_set, CellPair &cell, GridRefManager<T> &m, uint32 &count, Map* map, GridType& grid)
 {
     BattleGround* bg = map->IsBattleGroundOrArena() ? ((BattleGroundMap*)map)->GetBG() : NULL;
 
@@ -121,13 +121,16 @@ void LoadHelper(CellGuidSet const& guid_set, CellPair &cell, GridRefManager<T> &
             continue;
         }
 
-        obj->GetGridRef().link(&m, obj);
+        grid.AddGridObject(obj);
 
         addUnitState(obj,cell);
         obj->SetMap(map);
         obj->AddToWorld();
         if(obj->isActiveObject())
             map->AddToActive(obj);
+
+        obj->GetViewPoint().Event_AddedToWorld(&grid);
+
         if (bg)
             bg->OnObjectDBLoad(obj);
 
@@ -135,7 +138,7 @@ void LoadHelper(CellGuidSet const& guid_set, CellPair &cell, GridRefManager<T> &
     }
 }
 
-void LoadHelper(CellCorpseSet const& cell_corpses, CellPair &cell, CorpseMapType &m, uint32 &count, Map* map)
+void LoadHelper(CellCorpseSet const& cell_corpses, CellPair &cell, CorpseMapType &m, uint32 &count, Map* map, GridType& grid)
 {
     if(cell_corpses.empty())
         return;
@@ -151,7 +154,7 @@ void LoadHelper(CellCorpseSet const& cell_corpses, CellPair &cell, CorpseMapType
         if(!obj)
             continue;
 
-        obj->GetGridRef().link(&m, obj);
+        grid.AddWorldObject(obj);
 
         addUnitState(obj,cell);
         obj->SetMap(map);
@@ -173,7 +176,8 @@ ObjectGridLoader::Visit(GameObjectMapType &m)
 
     CellObjectGuids const& cell_guids = sObjectMgr.GetCellObjectGuids(i_map->GetId(), i_map->GetSpawnMode(), cell_id);
 
-    LoadHelper(cell_guids.gameobjects, cell_pair, m, i_gameObjects, i_map);
+    GridType& grid = (*i_map->getNGrid(i_cell.GridX(),i_cell.GridY())) (i_cell.CellX(),i_cell.CellY());
+    LoadHelper(cell_guids.gameobjects, cell_pair, m, i_gameObjects, i_map, grid);
 }
 
 void
@@ -186,7 +190,8 @@ ObjectGridLoader::Visit(CreatureMapType &m)
 
     CellObjectGuids const& cell_guids = sObjectMgr.GetCellObjectGuids(i_map->GetId(), i_map->GetSpawnMode(), cell_id);
 
-    LoadHelper(cell_guids.creatures, cell_pair, m, i_creatures, i_map);
+    GridType& grid = (*i_map->getNGrid(i_cell.GridX(),i_cell.GridY())) (i_cell.CellX(),i_cell.CellY());
+    LoadHelper(cell_guids.creatures, cell_pair, m, i_creatures, i_map, grid);
 }
 
 void
@@ -199,7 +204,8 @@ ObjectWorldLoader::Visit(CorpseMapType &m)
 
     // corpses are always added to spawn mode 0 and they are spawned by their instance id
     CellObjectGuids const& cell_guids = sObjectMgr.GetCellObjectGuids(i_map->GetId(), 0, cell_id);
-    LoadHelper(cell_guids.corpses, cell_pair, m, i_corpses, i_map);
+    GridType& grid = (*i_map->getNGrid(i_cell.GridX(),i_cell.GridY())) (i_cell.CellX(),i_cell.CellY());
+    LoadHelper(cell_guids.corpses, cell_pair, m, i_corpses, i_map, grid);
 }
 
 void

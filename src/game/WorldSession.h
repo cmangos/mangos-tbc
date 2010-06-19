@@ -42,6 +42,8 @@ class QueryResult;
 class LoginQueryHolder;
 class CharacterHandler;
 
+struct OpcodeHandler;
+
 enum PartyOperation
 {
     PARTY_OP_INVITE = 0,
@@ -630,6 +632,8 @@ class MANGOS_DLL_SPEC WorldSession
     private:
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);
+
+        void ExecuteOpcode( OpcodeHandler& opHandle, WorldPacket* packet );
 
         // logging helper
         void LogUnexpectedOpcode(WorldPacket *packet, const char * reason);

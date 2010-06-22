@@ -573,7 +573,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
         }
 
         if(damage >= 0)
-            m_damage+= damage;
+            m_damage += damage;
     }
 }
 
@@ -2279,7 +2279,7 @@ void Spell::EffectPowerBurn(SpellEffectIndex eff_idx)
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_MULTIPLE_VALUE, multiplier);
 
     new_damage = int32(new_damage * multiplier);
-    m_damage+=new_damage;
+    m_damage += new_damage;
 }
 
 void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
@@ -3560,7 +3560,7 @@ void Spell::EffectTeleUnitsFaceCaster(SpellEffectIndex eff_idx)
     float fx, fy, fz;
     m_caster->GetClosePoint(fx, fy, fz, unitTarget->GetObjectSize(), dis);
 
-    unitTarget->NearTeleportTo(fx,fy,fz,-m_caster->GetOrientation(),unitTarget==m_caster);
+    unitTarget->NearTeleportTo(fx, fy, fz, -m_caster->GetOrientation(), unitTarget==m_caster);
 }
 
 void Spell::EffectLearnSkill(SpellEffectIndex eff_idx)
@@ -4262,7 +4262,8 @@ void Spell::EffectHealMaxHealth(SpellEffectIndex /*eff_idx*/)
     if(!unitTarget->isAlive())
         return;
     uint32 heal = m_caster->GetMaxHealth();
-    m_healing+=heal;
+
+    m_healing += heal;
 }
 
 void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
@@ -4491,7 +4492,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 case 29830:                                 // Mirren's Drinking Hat
                 {
                     uint32 item = 0;
-                    switch ( urand(1,6) )
+                    switch ( urand(1, 6) )
                     {
                         case 1:
                         case 2:
@@ -5263,7 +5264,7 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
             unitTarget->UpdateGroundPositionZ(fx, fy, fz);
         }
 
-        unitTarget->NearTeleportTo(fx, fy, fz, unitTarget->GetOrientation(),unitTarget==m_caster);
+        unitTarget->NearTeleportTo(fx, fy, fz, unitTarget->GetOrientation(), unitTarget == m_caster);
     }
 }
 

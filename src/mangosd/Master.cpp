@@ -221,8 +221,8 @@ int Master::Run()
     // set realmbuilds depend on mangosd expected builds, and set server online
     {
         std::string builds = AcceptableClientBuildsListStr();
-        loginDatabase.escape_string(builds);
-        loginDatabase.PExecute("UPDATE realmlist SET realmflags = realmflags & ~(%u), population = 0, realmbuilds = '%s'  WHERE id = '%d'", REALM_FLAG_OFFLINE, builds.c_str(), realmID);
+        LoginDatabase.escape_string(builds);
+        LoginDatabase.PExecute("UPDATE realmlist SET realmflags = realmflags & ~(%u), population = 0, realmbuilds = '%s'  WHERE id = '%d'", REALM_FLAG_OFFLINE, builds.c_str(), realmID);
     }
 
     ACE_Based::Thread* cliThread = NULL;
@@ -344,7 +344,7 @@ int Master::Run()
     }
 
     ///- Set server offline in realmlist
-    loginDatabase.PExecute("UPDATE realmlist SET realmflags = realmflags | %u WHERE id = '%d'", REALM_FLAG_OFFLINE, realmID);
+    LoginDatabase.PExecute("UPDATE realmlist SET realmflags = realmflags | %u WHERE id = '%d'", REALM_FLAG_OFFLINE, realmID);
 
     ///- Remove signal handling before leaving
     _UnhookSignals();
@@ -366,7 +366,7 @@ int Master::Run()
     ///- Wait for DB delay threads to end
     CharacterDatabase.HaltDelayThread();
     WorldDatabase.HaltDelayThread();
-    loginDatabase.HaltDelayThread();
+    LoginDatabase.HaltDelayThread();
 
     sLog.outString( "Halting process..." );
 
@@ -497,7 +497,7 @@ bool Master::_StartDB()
 
     ///- Initialise the login database
     sLog.outString("Login Database: %s", dbstring.c_str() );
-    if(!loginDatabase.Initialize(dbstring.c_str()))
+    if(!LoginDatabase.Initialize(dbstring.c_str()))
     {
         sLog.outError("Cannot connect to login database %s",dbstring.c_str());
 
@@ -507,12 +507,12 @@ bool Master::_StartDB()
         return false;
     }
 
-    if(!loginDatabase.CheckRequiredField("realmd_db_version",REVISION_DB_REALMD))
+    if(!LoginDatabase.CheckRequiredField("realmd_db_version",REVISION_DB_REALMD))
     {
         ///- Wait for already started DB delay threads to end
         WorldDatabase.HaltDelayThread();
         CharacterDatabase.HaltDelayThread();
-        loginDatabase.HaltDelayThread();
+        LoginDatabase.HaltDelayThread();
         return false;
     }
 
@@ -525,7 +525,7 @@ bool Master::_StartDB()
         ///- Wait for already started DB delay threads to end
         WorldDatabase.HaltDelayThread();
         CharacterDatabase.HaltDelayThread();
-        loginDatabase.HaltDelayThread();
+        LoginDatabase.HaltDelayThread();
         return false;
     }
 
@@ -546,7 +546,7 @@ void Master::clearOnlineAccounts()
 {
     // Cleanup online status for characters hosted at current realm
     /// \todo Only accounts with characters logged on *this* realm should have online status reset. Move the online column from 'account' to 'realmcharacters'?
-    loginDatabase.PExecute("UPDATE account SET active_realm_id = 0 WHERE active_realm_id = '%d'", realmID);
+    LoginDatabase.PExecute("UPDATE account SET active_realm_id = 0 WHERE active_realm_id = '%d'", realmID);
 
     CharacterDatabase.Execute("UPDATE characters SET online = 0 WHERE online<>0");
 }

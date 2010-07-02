@@ -57,7 +57,7 @@ static DumpTable dumpTables[] =
     { "pet_aura",                         DTT_PET_TABLE  },
     { "pet_spell",                        DTT_PET_TABLE  },
     { "pet_spell_cooldown",               DTT_PET_TABLE  },
-    { "character_pet_declinedname",       DTT_PET_TABLE  },
+    { "character_pet_declinedname",       DTT_PET_DECL   },
     { NULL,                               DTT_CHAR_TABLE }, // end marker
 };
 

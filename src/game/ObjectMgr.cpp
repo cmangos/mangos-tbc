@@ -4372,14 +4372,10 @@ void ObjectMgr::LoadScripts(ScriptMapMap& scripts, char const* tablename)
             }
             case SCRIPT_COMMAND_PLAY_MOVIE:
             {
-                if (!sMovieStore.LookupEntry(tmp.datalong))
-                {
-                    sLog.outErrorDb("Table `%s` use non-existing movie_id (id: %u) in SCRIPT_COMMAND_PLAY_MOVIE for script id %u",
-                        tablename, tmp.datalong, tmp.id);
-                    continue;
-                }
-                break;
-           }
+                sLog.outErrorDb("Table `%s` use unsupported SCRIPT_COMMAND_PLAY_MOVIE for script id %u",
+                    tablename, tmp.id);
+                continue;
+            }
         }
 
         if (scripts.find(tmp.id) == scripts.end())

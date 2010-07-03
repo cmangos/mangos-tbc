@@ -780,9 +780,14 @@ struct SpellRadiusEntry
 
 struct SpellRangeEntry
 {
-    uint32    ID;
-    float     minRange;
-    float     maxRange;
+    uint32    ID;                                           // 0
+    float     minRange;                                     // 1
+    float     maxRange;                                     // 2
+    //uint32   Flags;                                       // 3
+    //char*  Name[16];                                      // 4-19 unused
+    //uint32 NameFlags;                                     // 20 unused
+    //char*  ShortName[16];                                 // 21-36 unused
+    //uint32 NameFlags;                                     // 37 unused
 };
 
 struct SpellShapeshiftEntry

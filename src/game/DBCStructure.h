@@ -348,7 +348,8 @@ struct GameObjectDisplayInfoEntry
     uint32      Displayid;                                  // 0        m_ID
     // char* filename;                                      // 1
     // uint32 unknown2[10];                                 // 2-11     unknown data
-    // float  unknown12[6];                                 // 12-17    unknown data
+    float  unknown12;                                       // 12-17    unknown size data, use first value as interact dist, mostly in hacks way
+    // float  unknown13[5];                                 // 12-17    unknown size data
 };
 
 struct GemPropertiesEntry

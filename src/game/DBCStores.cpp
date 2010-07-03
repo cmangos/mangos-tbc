@@ -460,29 +460,25 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sWorldSafeLocsStore,       dbcPath,"WorldSafeLocs.dbc");
 
     // error checks
-    if(bad_dbc_files.size() >= DBCFilesCount )
+    if (bad_dbc_files.size() >= DBCFilesCount )
     {
         sLog.outError("\nIncorrect DataDir value in mangosd.conf or ALL required *.dbc files (%d) not found by path: %sdbc",DBCFilesCount,dataPath.c_str());
+        Log::WaitBeforeContinueIfNeed();
         exit(1);
     }
-    else if(!bad_dbc_files.empty() )
+    else if (!bad_dbc_files.empty() )
     {
         std::string str;
         for(std::list<std::string>::iterator i = bad_dbc_files.begin(); i != bad_dbc_files.end(); ++i)
             str += *i + "\n";
 
         sLog.outError("\nSome required *.dbc files (%u from %d) not found or not compatible:\n%s",(uint32)bad_dbc_files.size(),DBCFilesCount,str.c_str());
+        Log::WaitBeforeContinueIfNeed();
         exit(1);
     }
 
-    // check at up-to-date DBC files (53085 is last added spell in 2.4.3)
-    // check at up-to-date DBC files (17514 is last ID in SkillLineAbilities in 2.4.3)
-    // check at up-to-date DBC files (598 is last map added in 2.4.3)
-    // check at up-to-date DBC files (1127 is last gem property added in 2.4.3)
-    // check at up-to-date DBC files (2425 is last item extended cost added in 2.4.3)
-    // check at up-to-date DBC files (71 is last char title added in 2.4.3)
-    // check at up-to-date DBC files (1768 is last area added in 2.4.3)
-    if( !sSpellStore.LookupEntry(53085)            ||
+    // Check loaded DBC files proper version
+    if (!sSpellStore.LookupEntry(53085)            ||
         !sSkillLineAbilityStore.LookupEntry(17514) ||
         !sMapStore.LookupEntry(598)                ||
         !sGemPropertiesStore.LookupEntry(1127)     ||
@@ -491,6 +487,7 @@ void LoadDBCStores(const std::string& dataPath)
         !sAreaStore.LookupEntry(1768)              )
     {
         sLog.outError("\nYou have _outdated_ DBC files. Please re-extract DBC files for one from client build: %s",AcceptableClientBuildsListStr().c_str());
+        Log::WaitBeforeContinueIfNeed();
         exit(1);
     }
 

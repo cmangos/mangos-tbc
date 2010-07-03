@@ -3564,9 +3564,7 @@ INSERT INTO `mangos_string` VALUES
 (1149,' (Pool %u)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1150,' (Event %i)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1151,' (Pool %u Event %i)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(1200,'You try to view cinemitic %u but it doesn\'t exist.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(1135,'List known talents:',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(1136,'   (Found talents: %u used talent points: %u)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+(1200,'You try to view cinemitic %u but it doesn\'t exist.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `mangos_string` ENABLE KEYS */;
 UNLOCK TABLES;
 

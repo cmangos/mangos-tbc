@@ -483,10 +483,8 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     // consume from stack dozes not more that have combo-points
                     if(uint32 combo = ((Player*)m_caster)->GetComboPoints())
                     {
-                        // count consumed deadly poison doses at target
-                        uint32 doses = 0;
-
-                        // remove consumed poison doses
+                        Aura *poison = 0;
+                        // Lookup for Deadly poison (only attacker applied)
                         Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                         for(Unit::AuraList::const_iterator itr = auras.begin(); itr!=auras.end() && combo;)
                         {
@@ -494,20 +492,22 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             if( (*itr)->GetSpellProto()->SpellFamilyName==SPELLFAMILY_ROGUE && ((*itr)->GetSpellProto()->SpellFamilyFlags & UI64LIT(0x10000)) &&
                                 (*itr)->GetSpellProto()->SpellVisual==5100 && (*itr)->GetCasterGUID()==m_caster->GetGUID() )
                             {
-                                --combo;
-                                ++doses;
-
-                                unitTarget->RemoveSingleAuraFromStack((*itr)->GetId(), (*itr)->GetEffIndex());
-
-                                itr = auras.begin();
+                                poison = *itr;
+                                break;
                             }
-                            else
-                                ++itr;
                         }
-
-                        damage *= doses;
-                        damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * doses);
-
+                        // count consumed deadly poison doses at target
+                        if (poison)
+                        {
+                            uint32 spellId = poison->GetId();
+                            uint32 doses = poison->GetStackAmount();
+                            if (doses > combo)
+                                doses = combo;
+                            for (uint32 i=0; i < doses; ++i)
+                                unitTarget->RemoveSingleSpellAurasFromStack(spellId);
+                            damage *= doses;
+                            damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * doses);
+                        }
                         // Eviscerate and Envenom Bonus Damage (item set effect)
                         if(m_caster->GetDummyAura(37169))
                             damage += ((Player*)m_caster)->GetComboPoints()*40;
@@ -557,11 +557,17 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 //Judgement of Vengeance
                 if((m_spellInfo->SpellFamilyFlags & UI64LIT(0x800000000)) && m_spellInfo->SpellIconID==2292)
                 {
+                    // Get stack of Holy Vengeance on the target added by caster
                     uint32 stacks = 0;
                     Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                     for(Unit::AuraList::const_iterator itr = auras.begin(); itr!=auras.end(); ++itr)
+                    {
                         if((*itr)->GetId() == 31803 && (*itr)->GetCasterGUID()==m_caster->GetGUID())
-                            ++stacks;
+                        {
+                            stacks = (*itr)->GetStackAmount();
+                            break;
+                        }
+                    }
                     if(!stacks)
                         //No damage if the target isn't affected by this
                         damage = -1;
@@ -883,16 +889,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 28730:                                 // Arcane Torrent (Mana)
                 {
-                    int32 count = 0;
-                    Unit::AuraList const& m_dummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
-                    for(Unit::AuraList::const_iterator i = m_dummyAuras.begin(); i != m_dummyAuras.end(); ++i)
-                        if ((*i)->GetId() == 28734)
-                            ++count;
-                    if (count)
-                    {
-                        m_caster->RemoveAurasDueToSpell(28734);
-                        int32 bp = damage * count;
+                    Aura * dummy = m_caster->GetDummyAura(28734);
+                    if (dummy)
+                    {                        
+                        int32 bp = damage * dummy->GetStackAmount();
                         m_caster->CastCustomSpell(m_caster, 28733, &bp, NULL, NULL, true);
+                        m_caster->RemoveAurasDueToSpell(28734);
                     }
                     return;
                 }
@@ -4070,10 +4072,10 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                     SpellEntry const *proto = (*itr)->GetSpellProto();
                     if(proto->SpellVisual == 406 && proto->SpellIconID == 565)
                     {
-                        int32 duration = GetSpellDuration(proto);
-                        (*itr)->SetAuraDuration(duration);
-                        (*itr)->UpdateAuraDuration();
-                        bonusDamagePercentMod += 1.0f;      // +100%
+                        (*itr)->RefreshAura();
+                        
+                        // +100% * stack 
+                        bonusDamagePercentMod += 1.0f * (*itr)->GetStackAmount();
                     }
                 }
             }
@@ -4396,8 +4398,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     return;
                 }
                 case 24590:                                 // Brittle Armor - need remove one 24575 Brittle Armor aura
-                    unitTarget->RemoveSingleAuraFromStack(24575,EFFECT_INDEX_0);
-                    unitTarget->RemoveSingleAuraFromStack(24575,EFFECT_INDEX_1);
+                    unitTarget->RemoveSingleSpellAurasFromStack(24575);
                     return;
                 case 26275:                                 // PX-238 Winter Wondervolt TRAP
                 {

@@ -952,7 +952,7 @@ void Aura::_AddAura()
     if (!secondaura)
     {
         // Update Seals information
-        if( IsSealSpell(GetSpellProto()) )
+        if (IsSealSpell(GetSpellProto()))
             m_target->ModifyAuraState(AURA_STATE_JUDGEMENT, true);
 
         // Conflagrate aura state
@@ -1055,11 +1055,17 @@ bool Aura::_RemoveAura()
                     removeState = AURA_STATE_CONFLAGRATE;   // Conflagrate aura state
                 break;
             case SPELLFAMILY_DRUID:
-                if(m_spellProto->SpellFamilyFlags & 0x50)
+                if(m_spellProto->SpellFamilyFlags & UI64LIT(0x0000000000000400))
+                    removeState = AURA_STATE_FAERIE_FIRE;   // Faerie Fire (druid versions)
+                else if(m_spellProto->SpellFamilyFlags & UI64LIT(0x0000000000000050))
                 {
-                    removeFamilyFlag = 0x50;
+                    removeFamilyFlag = UI64LIT(0x0000000000000050);
                     removeState = AURA_STATE_SWIFTMEND;     // Swiftmend aura state
                 }
+                break;
+            case SPELLFAMILY_ROGUE:
+                if(m_spellProto->SpellFamilyFlags & UI64LIT(0x0000000000010000))
+                    removeState = AURA_STATE_DEADLY_POISON; // Deadly poison aura state
                 break;
         }
 
@@ -1082,26 +1088,6 @@ bool Aura::_RemoveAura()
             // this has been last aura
             if(!found)
                 m_target->ModifyAuraState(AuraState(removeState), false);
-        }
-
-        // Deadly poison aura state
-        if(m_spellProto->SpellFamilyName == SPELLFAMILY_ROGUE && m_spellProto->SpellFamilyFlags & 0x10000)
-        {
-            // current aura already removed, search present of another
-            bool found = false;
-            Unit::AuraList const& auras = m_target->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
-            for(Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-            {
-                SpellEntry const* itr_spell = (*itr)->GetSpellProto();
-                if(itr_spell && itr_spell->SpellFamilyName==SPELLFAMILY_ROGUE && itr_spell->SpellFamilyFlags & 0x10000)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            // this has been last deadly poison aura
-            if(!found)
-                m_target->ModifyAuraState(AURA_STATE_DEADLY_POISON,false);
         }
 
         // reset cooldown state for spells

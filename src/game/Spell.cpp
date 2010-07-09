@@ -2997,8 +2997,13 @@ void Spell::WriteSpellGoTargets( WorldPacket * data )
 {
     *data << (uint8)m_countOfHit;
     for(std::list<TargetInfo>::const_iterator ihit= m_UniqueTargetInfo.begin();ihit != m_UniqueTargetInfo.end();++ihit)
+    {
         if ((*ihit).missCondition == SPELL_MISS_NONE)       // Add only hits
+        {
             *data << ihit->targetGUID;
+            m_needAliveTargetMask |=ihit->effectMask;
+        }
+    }
 
     for(std::list<GOTargetInfo>::const_iterator ighit = m_UniqueGOTargetInfo.begin(); ighit != m_UniqueGOTargetInfo.end(); ++ighit)
         *data << ighit->targetGUID;                         // Always hits
@@ -3014,6 +3019,9 @@ void Spell::WriteSpellGoTargets( WorldPacket * data )
                 *data << uint8(ihit->reflectResult);
         }
     }
+    // Reset m_needAliveTargetMask for non channeled spell
+    if(!IsChanneledSpell(m_spellInfo))
+        m_needAliveTargetMask = 0;
 }
 
 void Spell::SendLogExecute()

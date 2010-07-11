@@ -1765,8 +1765,13 @@ void Aura::TriggerSpell()
 //                    case 38751: break;
 //                    // Murmur's Touch
 //                    case 38794: break;
-//                    // Activate Nether-wraith Beacon (31742 Nether-wraith Beacon item)
-//                    case 39105: break;
+                    case 39105:                             // Activate Nether-wraith Beacon (31742 Nether-wraith Beacon item)
+                    {
+                        float fX, fY, fZ;
+                        target->GetClosePoint(fX, fY, fZ, target->GetObjectBoundingRadius(), 20.0f);
+                        target->SummonCreature(22408, fX, fY, fZ, target->GetOrientation(), TEMPSUMMON_DEAD_DESPAWN, 0);
+                        return;
+                    }
 //                    // Drain World Tree Visual
 //                    case 39140: break;
 //                    // Quest - Dustin's Undead Dragon Visual aura

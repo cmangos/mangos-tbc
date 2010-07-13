@@ -598,7 +598,6 @@ ContentLevels GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId)
     {
         default: return CONTENT_1_60;
         case 1:  return CONTENT_61_70;
-        case 2:  return CONTENT_71_80;
     }
 }
 

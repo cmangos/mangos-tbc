@@ -57,7 +57,7 @@ char remotes[NUM_REMOTES][MAX_REMOTE] = {
     "git://github.com/mangos/mangos.git"        // used for fetch if present
 };
 
-char remote_branch[MAX_REMOTE] = "master";
+char remote_branch[MAX_REMOTE] = "mangos-0.12";
 char rev_nr_file[MAX_PATH] = "src/shared/revision_nr.h";
 char rev_sql_file[MAX_PATH] = "src/shared/revision_sql.h";
 char sql_update_dir[MAX_PATH] = "sql/updates";

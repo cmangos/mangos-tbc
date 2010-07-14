@@ -2125,11 +2125,6 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
     if(!unitTarget)
         return;
 
-    SpellImmuneList const& list = unitTarget->m_spellImmune[IMMUNITY_STATE];
-    for(SpellImmuneList::const_iterator itr = list.begin(); itr != list.end(); ++itr)
-        if(itr->type == m_spellInfo->EffectApplyAuraName[eff_idx])
-            return;
-
     // ghost spell check, allow apply any auras at player loading in ghost mode (will be cleanup after load)
     if ( (!unitTarget->isAlive() && !(IsDeathOnlySpell(m_spellInfo) || IsDeathPersistentSpell(m_spellInfo))) &&
         (unitTarget->GetTypeId() != TYPEID_PLAYER || !((Player*)unitTarget)->GetSession()->PlayerLoading()) )
@@ -4976,9 +4971,6 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
 
     if(m_caster->IsPvP())
         pTotem->SetPvP(true);
-
-    pTotem->ApplySpellImmune(m_spellInfo->Id,IMMUNITY_STATE,SPELL_AURA_MOD_FEAR,true);
-    pTotem->ApplySpellImmune(m_spellInfo->Id,IMMUNITY_STATE,SPELL_AURA_TRANSFORM,true);
 
     pTotem->Summon(m_caster);
 

@@ -8080,9 +8080,10 @@ bool Unit::IsImmunedToSpell(SpellEntry const* spellInfo)
 bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index) const
 {
     //If m_immuneToEffect type contain this effect type, IMMUNE effect.
+    uint32 effect = spellInfo->Effect[index];
     SpellImmuneList const& effectList = m_spellImmune[IMMUNITY_EFFECT];
     for (SpellImmuneList::const_iterator itr = effectList.begin(); itr != effectList.end(); ++itr)
-        if(itr->type == spellInfo->Effect[index])
+        if(itr->type == effect)
             return true;
 
     if (uint32 mechanic = spellInfo->EffectMechanic[index])
@@ -8098,6 +8099,14 @@ bool Unit::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
                 return true;
     }
 
+    uint32 aura = spellInfo->EffectApplyAuraName[index];
+    if (aura)
+    {
+        SpellImmuneList const& list = m_spellImmune[IMMUNITY_STATE];
+        for(SpellImmuneList::const_iterator itr = list.begin(); itr != list.end(); ++itr)
+            if(itr->type == aura)
+                return true;
+    }
     return false;
 }
 

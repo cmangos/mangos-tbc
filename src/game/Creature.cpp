@@ -1434,7 +1434,7 @@ bool Creature::IsImmunedToSpell(SpellEntry const* spellInfo)
 
 bool Creature::IsImmunedToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index) const
 {
-    if (GetCreatureInfo()->MechanicImmuneMask & (1 << (spellInfo->EffectMechanic[index]-1)))
+    if (GetCreatureInfo()->MechanicImmuneMask & (1 << (spellInfo->EffectMechanic[index] - 1)))
         return true;
 
     // Taunt immunity special flag check

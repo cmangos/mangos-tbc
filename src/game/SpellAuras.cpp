@@ -2070,6 +2070,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
     if (!Real)
         return;
 
+    Unit *target = GetTarget();
+
     // AT APPLY
     if (apply)
     {
@@ -2096,28 +2098,29 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         if (Unit* caster = GetCaster())
                             caster->CastSpell(caster, 13138, true, NULL, this);
                         return;
+                    // Gender spells
+                    case 38224:                             // Illidari Agent Illusion
+                    case 37096:                             // Blood Elf Illusion
+                    case 46354:                             // Blood Elf Illusion
+                    {
+                        uint8 gender = target->getGender();
+                        uint32 spellId;
+                        switch (GetId())
+                        {
+                            case 38224: spellId = (gender == GENDER_MALE ? 38225 : 38227); break;
+                            case 37096: spellId = (gender == GENDER_MALE ? 37092 : 37094); break;
+                            case 46354: spellId = (gender == GENDER_MALE ? 46355 : 46356); break;
+                            default: return;
+                        }
+                        target->CastSpell(target, spellId, true, NULL, this);
+                        return;
+                    }
                     case 39850:                             // Rocket Blast
                         if (roll_chance_i(20))              // backfire stun
                             m_target->CastSpell(m_target, 51581, true, NULL, this);
                         return;
                     case 43873:                             // Headless Horseman Laugh
                         m_target->PlayDistanceSound(11965);
-                        return;
-                    case 46354:                             // Blood Elf Illusion
-                        if (Unit* caster = GetCaster())
-                        {
-                            switch(caster->getGender())
-                            {
-                                case GENDER_FEMALE:
-                                    caster->CastSpell(m_target, 46356, true, NULL, this);
-                                    break;
-                                case GENDER_MALE:
-                                    caster->CastSpell(m_target, 46355, true, NULL, this);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
                         return;
                     case 46699:                             // Requires No Ammo
                         if (m_target->GetTypeId() == TYPEID_PLAYER)

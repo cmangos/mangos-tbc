@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_139_10171_01_mangos_mangos_string` bit(1) default NULL
+  `required_s0020_10197_01_mangos_playercreateinfo` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -8542,6 +8542,7 @@ CREATE TABLE `playercreateinfo` (
   `position_x` float NOT NULL default '0',
   `position_y` float NOT NULL default '0',
   `position_z` float NOT NULL default '0',
+  `orientation` float NOT NULL default '0',
   PRIMARY KEY  (`race`,`class`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 

@@ -270,7 +270,7 @@ struct VendorItem
     uint32 item;
     uint32 maxcount;                                        // 0 for infinity item amount
     uint32 incrtime;                                        // time for restore items amount if maxcount != 0
-    uint32 ExtendedCost;
+    uint32 ExtendedCost;                                    // index in ItemExtendedCost.dbc
 };
 typedef std::vector<VendorItem*> VendorItemList;
 

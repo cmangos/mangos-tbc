@@ -36,12 +36,26 @@
 
 #define LOOT_ROLL_TIMEOUT  (1*MINUTE*IN_MILLISECONDS)
 
+//===================================================
+//============== Roll ===============================
+//===================================================
+
+void Roll::targetObjectBuildLink()
+{
+    // called from link()
+    getTarget()->addLootValidatorRef(this);
+}
+
+//===================================================
+//============== Group ==============================
+//===================================================
+
 Group::Group() : m_Id(0), m_leaderGuid(0), m_mainTank(0), m_mainAssistant(0),  m_groupType(GROUPTYPE_NORMAL),
     m_difficulty(REGULAR_DIFFICULTY),
     m_bgGroup(NULL), m_lootMethod(FREE_FOR_ALL), m_looterGuid(0), m_lootThreshold(ITEM_QUALITY_UNCOMMON),
     m_subGroupsCounts(NULL)
 {
-    for (int i = 0; i < TARGETICONCOUNT; ++i)
+    for (int i = 0; i < TARGET_ICON_COUNT; ++i)
         m_targetIcons[i] = 0;
 }
 
@@ -149,7 +163,7 @@ bool Group::LoadGroupFromDB(Field* fields)
     m_looterGuid = MAKE_NEW_GUID(fields[3].GetUInt32(), 0, HIGHGUID_PLAYER);
     m_lootThreshold = (ItemQualities)fields[4].GetUInt16();
 
-    for(int i = 0; i < TARGETICONCOUNT; ++i)
+    for(int i = 0; i < TARGET_ICON_COUNT; ++i)
         m_targetIcons[i] = fields[5+i].GetUInt64();
 
     return true;
@@ -412,8 +426,10 @@ void Group::SendLootStartRoll(uint32 CountDown, const Roll &r)
         if(!p || !p->GetSession())
             continue;
 
-        if(itr->second != ROLL_NOT_VALID)
-            p->GetSession()->SendPacket( &data );
+        if(itr->second == ROLL_NOT_VALID)
+            continue;
+
+        p->GetSession()->SendPacket( &data );
     }
 }
 
@@ -498,7 +514,7 @@ void Group::GroupLoot(Creature *creature, Loot *loot)
 
         //roll for over-threshold item if it's one-player loot
         if (itemProto->Quality >= uint32(m_lootThreshold) && !lootItem.freeforall)
-            StartLootRool(creature,loot,itemSlot,false);
+            StartLootRool(creature, GROUP_LOOT, loot, itemSlot);
         else
             lootItem.is_underthreshold = 1;
     }
@@ -518,7 +534,7 @@ void Group::NeedBeforeGreed(Creature *creature, Loot *loot)
 
         //only roll for one-player items, not for ones everyone can get
         if (itemProto->Quality >= uint32(m_lootThreshold) && !lootItem.freeforall)
-            StartLootRool(creature, loot, itemSlot, true);
+            StartLootRool(creature, NEED_BEFORE_GREED, loot, itemSlot);
         else
             lootItem.is_underthreshold = 1;
     }
@@ -563,7 +579,7 @@ void Group::MasterLoot(Creature *creature, Loot* loot)
     }
 }
 
-void Group::CountRollVote(ObjectGuid const& playerGUID, ObjectGuid const& lootedTarget, uint32 itemSlot, RollVote choise)
+bool Group::CountRollVote(Player* player, ObjectGuid const& lootedTarget, uint32 itemSlot, RollVote vote)
 {
     Rolls::iterator rollI = RollId.begin();
     for (; rollI != RollId.end(); ++rollI)
@@ -571,12 +587,13 @@ void Group::CountRollVote(ObjectGuid const& playerGUID, ObjectGuid const& looted
             break;
 
     if (rollI == RollId.end())
-        return;
+        return false;
 
-    CountRollVote(playerGUID, rollI, choise);
+    CountRollVote(player->GetObjectGuid(), rollI, vote);    // result not related this function result meaning, ignore
+    return true;
 }
 
-bool Group::CountRollVote(ObjectGuid const& playerGUID, Rolls::iterator& rollI, RollVote choise)
+bool Group::CountRollVote(ObjectGuid const& playerGUID, Rolls::iterator& rollI, RollVote vote)
 {
     Roll* roll = *rollI;
 
@@ -589,7 +606,7 @@ bool Group::CountRollVote(ObjectGuid const& playerGUID, Rolls::iterator& rollI, 
         if (roll->getLoot()->items.empty())
             return false;
 
-    switch (choise)
+    switch (vote)
     {
         case ROLL_PASS:                                     // Player choose pass
         {
@@ -625,7 +642,7 @@ bool Group::CountRollVote(ObjectGuid const& playerGUID, Rolls::iterator& rollI, 
     return false;
 }
 
-void Group::StartLootRool(Creature* lootTarget, Loot* loot, uint8 itemSlot, bool skipIfCanNotUse)
+void Group::StartLootRool(Creature* lootTarget, LootMethod method, Loot* loot, uint8 itemSlot)
 {
     if (itemSlot >= loot->items.size())
         return;
@@ -643,7 +660,7 @@ void Group::StartLootRool(Creature* lootTarget, Loot* loot, uint8 itemSlot, bool
         if(!playerToRoll || !playerToRoll->GetSession())
             continue;
 
-        if ((!skipIfCanNotUse || playerToRoll->CanUseItem(item)) && lootItem.AllowedForPlayer(playerToRoll) )
+        if ((method != NEED_BEFORE_GREED || playerToRoll->CanUseItem(item)==EQUIP_ERR_OK) && lootItem.AllowedForPlayer(playerToRoll) )
         {
             if (playerToRoll->IsWithinDist(lootTarget, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
             {
@@ -653,12 +670,12 @@ void Group::StartLootRool(Creature* lootTarget, Loot* loot, uint8 itemSlot, bool
         }
     }
 
-    if (r->totalPlayersRolling > 0)                 // has looters
+    if (r->totalPlayersRolling > 0)                         // has looters
     {
         r->setLoot(loot);
         r->itemSlot = itemSlot;
 
-        if (r->totalPlayersRolling == 1)            // single looter
+        if (r->totalPlayersRolling == 1)                    // single looter
             r->playerVote.begin()->second = ROLL_NEED;
         else
         {
@@ -797,12 +814,12 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
 
 void Group::SetTargetIcon(uint8 id, uint64 guid)
 {
-    if(id >= TARGETICONCOUNT)
+    if(id >= TARGET_ICON_COUNT)
         return;
 
     // clean other icons
     if( guid != 0 )
-        for(int i = 0; i < TARGETICONCOUNT; ++i)
+        for(int i = 0; i < TARGET_ICON_COUNT; ++i)
             if( m_targetIcons[i] == guid )
                 SetTargetIcon(i, 0);
 
@@ -861,10 +878,10 @@ void Group::SendTargetIconList(WorldSession *session)
     if(!session)
         return;
 
-    WorldPacket data(MSG_RAID_TARGET_UPDATE, (1+TARGETICONCOUNT*9));
+    WorldPacket data(MSG_RAID_TARGET_UPDATE, (1+TARGET_ICON_COUNT*9));
     data << (uint8)1;
 
-    for(int i = 0; i < TARGETICONCOUNT; ++i)
+    for(int i = 0; i < TARGET_ICON_COUNT; ++i)
     {
         if(m_targetIcons[i] == 0)
             continue;
@@ -981,9 +998,9 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant)
     if (m_subGroupsCounts)
     {
         bool groupFound = false;
-        for (; groupid < MAXRAIDSIZE / MAXGROUPSIZE; ++groupid)
+        for (; groupid < MAX_RAID_SUBGROUPS; ++groupid)
         {
-            if (m_subGroupsCounts[groupid] < MAXGROUPSIZE)
+            if (m_subGroupsCounts[groupid] < MAX_GROUP_SIZE)
             {
                 groupFound = true;
                 break;
@@ -1028,7 +1045,7 @@ bool Group::_addMember(const uint64 &guid, const char* name, bool isAssistant, u
 
     if(!isRaidGroup())                                      // reset targetIcons for non-raid-groups
     {
-        for(int i = 0; i < TARGETICONCOUNT; ++i)
+        for(int i = 0; i < TARGET_ICON_COUNT; ++i)
             m_targetIcons[i] = 0;
     }
 
@@ -1381,16 +1398,6 @@ uint32 Group::CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, BattleGround
             return BG_JOIN_ERR_ALL_QUEUES_USED;
     }
     return BG_JOIN_ERR_OK;
-}
-
-//===================================================
-//============== Roll ===============================
-//===================================================
-
-void Roll::targetObjectBuildLink()
-{
-    // called from link()
-    getTarget()->addLootValidatorRef(this);
 }
 
 void Group::SetDifficulty(Difficulty difficulty)

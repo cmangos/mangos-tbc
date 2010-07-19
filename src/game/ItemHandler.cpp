@@ -732,12 +732,20 @@ void WorldSession::SendListInventory( uint64 vendorguid )
 
     for(int i = 0; i < numitems; ++i )
     {
-        if(VendorItem const* crItem = vItems->GetItem(i))
+        if (VendorItem const* crItem = vItems->GetItem(i))
         {
-            if(ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(crItem->item))
+            if (ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(crItem->item))
             {
-                if((pProto->AllowableClass & _player->getClassMask()) == 0 && pProto->Bonding == BIND_WHEN_PICKED_UP && !_player->isGameMaster())
-                    continue;
+                if (!_player->isGameMaster())
+                {
+                    // class wrong item skip only for bindable case
+                    if ((pProto->AllowableClass & _player->getClassMask()) == 0 && pProto->Bonding == BIND_WHEN_PICKED_UP)
+                        continue;
+
+                    // race wrong item skip always
+                    if ((pProto->AllowableRace & _player->getRaceMask()) == 0)
+                        continue;
+                }
 
                 ++count;
 

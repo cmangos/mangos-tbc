@@ -257,14 +257,16 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         {
             case TYPEID_UNIT:
             {
-                moveFlags = ((Unit*)this)->isInFlight() ? (MOVEFLAG_FORWARD | MOVEFLAG_LEVITATING) : MOVEFLAG_NONE;
+                moveFlags = ((Creature*)this)->canFly() ? (MOVEFLAG_FORWARD | MOVEFLAG_LEVITATING) : MOVEFLAG_NONE;
             }
             break;
             case TYPEID_PLAYER:
             {
-                moveFlags = ((Player*)this)->m_movementInfo.GetMovementFlags();
+                Player *player = ((Player*)this);
 
-                if(((Player*)this)->GetTransport())
+                moveFlags = player->m_movementInfo.GetMovementFlags();
+
+                if(player->GetTransport())
                     moveFlags |= MOVEFLAG_ONTRANSPORT;
                 else
                     moveFlags &= ~MOVEFLAG_ONTRANSPORT;
@@ -272,9 +274,9 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
                 // remove unknown, unused etc flags for now
                 moveFlags &= ~MOVEFLAG_SPLINE_ENABLED;      // will be set manually
 
-                if(((Player*)this)->isInFlight())
+                if(player->IsTaxiFlying())
                 {
-                    ASSERT(((Player*)this)->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
+                    ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
                     moveFlags = (MOVEFLAG_FORWARD | MOVEFLAG_SPLINE_ENABLED);
                 }
             }
@@ -389,7 +391,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
 
             Player *player = ((Player*)unit);
 
-            if(!player->isInFlight())
+            if(!player->IsTaxiFlying())
             {
                 DEBUG_LOG("_BuildMovementUpdate: MOVEFLAG_SPLINE_ENABLED but not in flight");
                 return;

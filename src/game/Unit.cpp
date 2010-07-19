@@ -5925,13 +5925,13 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                         trigger_spell_id = 31643;
                         break;
                     default:
-                        sLog.outError("Unit::HandleProcTriggerSpell: Spell %u miss posibly Blazing Speed",auraSpellInfo->Id);
+                        sLog.outError("Unit::HandleProcTriggerSpell: Spell %u miss possibly Blazing Speed",auraSpellInfo->Id);
                         return false;
                 }
             }
-            // Persistent Shield (Scarab Brooch trinket)
-            else if(auraSpellInfo->Id == 26467)
+            else if(auraSpellInfo->Id == 26467)             // Persistent Shield (Scarab Brooch trinket)
             {
+                // This spell originally trigger 13567 - Dummy Trigger (vs dummy effect)
                 basepoints[0] = damage * 15 / 100;
                 target = pVictim;
                 trigger_spell_id = 26470;

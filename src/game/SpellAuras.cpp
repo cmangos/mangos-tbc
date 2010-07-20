@@ -276,7 +276,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleUnused,                                    //224 unused
     &Aura::HandleNoImmediateEffect,                         //225 SPELL_AURA_PRAYER_OF_MENDING
     &Aura::HandleAuraPeriodicDummy,                         //226 SPELL_AURA_PERIODIC_DUMMY
-    &Aura::HandleNULL,                                      //227 periodic trigger spell
+    &Aura::HandlePeriodicTriggerSpellWithValue,             //227 SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE
     &Aura::HandleNoImmediateEffect,                         //228 stealth detection
     &Aura::HandleNoImmediateEffect,                         //229 SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE        implemented in Unit::SpellDamageBonus
     &Aura::HandleAuraModIncreaseMaxHealth,                  //230 Commanding Shout
@@ -319,7 +319,7 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBas
 m_spellmod(NULL), m_caster_guid(0), m_castItemGuid(castItem?castItem->GetGUID():0), m_target(target),
 m_timeCla(1000), m_periodicTimer(0), m_periodicTick(0), m_removeMode(AURA_REMOVE_BY_DEFAULT), m_AuraDRGroup(DIMINISHING_NONE),
 m_effIndex(eff), m_auraSlot(MAX_AURAS), m_procCharges(0), m_stackAmount(1),
-m_positive(false), m_permanent(false), m_isPeriodic(false), m_isTrigger(false), m_isAreaAura(false), m_isPersistent(false), 
+m_positive(false), m_permanent(false), m_isPeriodic(false), m_isAreaAura(false), m_isPersistent(false), 
 m_isRemovedOnShapeLost(true), m_in_use(false)
 {
     ASSERT(target);
@@ -588,12 +588,8 @@ void Aura::Update(uint32 diff)
             }
             // update before applying (aura can be removed in TriggerSpell or PeriodicTick calls)
             m_periodicTimer += m_modifier.periodictime;
-
             ++m_periodicTick;                               // for some infinity auras in some cases can overflow and reset
-            if(m_isTrigger)
-                TriggerSpell();
-            else
-                PeriodicTick();
+            PeriodicTick();
         }
     }
 }
@@ -2058,6 +2054,21 @@ void Aura::TriggerSpell()
     }
     // All ok cast by default case
     target->CastSpell(target, triggeredSpellInfo, true, NULL, this, casterGUID);
+}
+
+void Aura::TriggerSpellWithValue()
+{
+    const uint64& casterGUID = GetCasterGUID();
+    Unit* target = GetTriggerTarget();
+
+    if(!casterGUID || !target)
+        return;
+
+    // generic casting code with custom spells and target/caster customs
+    uint32 trigger_spell_id = GetSpellProto()->EffectTriggerSpell[m_effIndex];
+    int32  basepoints0 = GetModifier()->m_amount;
+
+    target->CastCustomSpell(target, trigger_spell_id, &basepoints0, NULL, NULL, true, NULL, this, casterGUID);
 }
 
 /*********************************************************/
@@ -4316,8 +4327,6 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
         m_periodicTimer += m_modifier.periodictime;
 
     m_isPeriodic = apply;
-    m_isTrigger = apply;
-
     if (!apply)
     {
         switch(m_spellProto->Id)
@@ -4335,6 +4344,14 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                 break;
         }
     }
+}
+
+void Aura::HandlePeriodicTriggerSpellWithValue(bool apply, bool Real)
+{
+    if (m_periodicTimer <= 0)
+        m_periodicTimer += m_modifier.periodictime;
+
+    m_isPeriodic = apply;
 }
 
 void Aura::HandlePeriodicEnergize(bool apply, bool /*Real*/)
@@ -6433,6 +6450,16 @@ void Aura::PeriodicTick()
         case SPELL_AURA_PERIODIC_DUMMY:
         {
             PeriodicDummyTick();
+            break;
+        }
+        case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
+        {
+            TriggerSpell();
+            break;
+        }
+        case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
+        {
+            TriggerSpellWithValue();
             break;
         }
         default:

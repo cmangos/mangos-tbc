@@ -169,7 +169,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
+            if (ChatHandler(this).ParseCommands(msg.c_str()))
                 break;
 
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
@@ -239,7 +239,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
+            if (ChatHandler(this).ParseCommands(msg.c_str()))
                 break;
 
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
@@ -265,7 +265,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
+            if (ChatHandler(this).ParseCommands(msg.c_str()))
                 break;
 
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
@@ -291,7 +291,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
+            if (ChatHandler(this).ParseCommands(msg.c_str()))
                 break;
 
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
@@ -316,7 +316,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
+            if (ChatHandler(this).ParseCommands(msg.c_str()))
                 break;
 
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
@@ -341,7 +341,7 @@ void WorldSession::HandleMessagechatOpcode( WorldPacket & recv_data )
             if(msg.empty())
                 break;
 
-            if (ChatHandler(this).ParseCommands(msg.c_str()) > 0)
+            if (ChatHandler(this).ParseCommands(msg.c_str()))
                 break;
 
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))

@@ -32,6 +32,7 @@
 #include "Creature.h"
 #include "Pet.h"
 #include "Guild.h"
+#include "Chat.h"
 
 enum StableResultCode
 {
@@ -540,7 +541,8 @@ bool WorldSession::CheckStableMaster(ObjectGuid guid)
     // spell case or GM
     if (guid == GetPlayer()->GetObjectGuid())
     {
-        if (!GetPlayer()->isGameMaster())
+        // command case will return only if player have real access to command
+        if (!ChatHandler(GetPlayer()).FindCommand("stable"))
         {
             DEBUG_LOG("%s attempt open stable in cheating way.", guid.GetString().c_str());
             return false;

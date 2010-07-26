@@ -3869,7 +3869,7 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player,uint32 skill_id)
         if(!spellInfo || !SpellMgr::IsSpellValid(spellInfo,player,false))
             continue;
 
-        player->learnSpell(skillLine->spellId);
+        player->learnSpell(skillLine->spellId, false);
     }
 }
 

@@ -1261,7 +1261,7 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
     uint8 type = (bg->isArena() ? 1 : 0);
                                                             // last check on 2.4.1
     data->Initialize(MSG_PVP_LOG_DATA, (1+1+4+40*bg->GetPlayerScoresSize()));
-    *data << uint8(type);                                   // seems to be type (battleground=0/arena=1)
+    *data << uint8(type);                                   // type (battleground=0/arena=1)
 
     if(type)                                                // arena
     {
@@ -1283,9 +1283,9 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
         }
     }
 
-    if(bg->GetWinner() == 2)
+    if(bg->GetStatus() != STATUS_WAIT_LEAVE)
     {
-        *data << uint8(0);                                  // bg in progress
+        *data << uint8(0);                                  // bg not ended
     }
     else
     {
@@ -1299,9 +1299,6 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
     {
         *data << (uint64)itr->first;
         *data << (int32)itr->second->KillingBlows;
-        Player *plr = sObjectMgr.GetPlayer(itr->first);
-        uint32 team = bg->GetPlayerTeam(itr->first);
-        if(!team && plr) team = plr->GetTeam();
         if(type == 0)
         {
             *data << (int32)itr->second->HonorableKills;
@@ -1310,18 +1307,12 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket *data, BattleGround *bg)
         }
         else
         {
-            // that part probably wrong
-            if(plr)
-            {
-                if(team == HORDE)
-                    *data << uint8(0);
-                else if(team == ALLIANCE)
-                {
-                    *data << uint8(1);
-                }
-                else
-                    *data << uint8(0);
-            }
+            Player *plr = sObjectMgr.GetPlayer(itr->first);
+            uint32 team = bg->GetPlayerTeam(itr->first);
+            if(!team && plr)
+                team = plr->GetTeam();
+            if( ( bg->GetWinner()==0 && team == ALLIANCE ) || ( bg->GetWinner()==1 && team==HORDE ) )
+                *data << uint8(1);
             else
                 *data << uint8(0);
         }

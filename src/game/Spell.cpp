@@ -4199,6 +4199,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                             return SPELL_FAILED_ALREADY_HAVE_CHARM;
                     }
                 }
+
+                break;
             }
             case SPELL_EFFECT_SUMMON_PET:
             {

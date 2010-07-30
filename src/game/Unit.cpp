@@ -7918,7 +7918,7 @@ uint32 Unit::SpellHealingBonus(SpellEntry const *spellProto, uint32 healamount, 
     }
 
 
-    if (DoneAdvertisedBenefit != 0 && TakenAdvertisedBenefit!=0)
+    if (DoneAdvertisedBenefit || TakenAdvertisedBenefit)
     {
         // Healing over Time spells
         float DotFactor = 1.0f;

@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0046_10263_03_mangos_pool_pool` bit(1) default NULL
+  `required_s0065_10286_01_mangos_creature_addon` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -781,7 +781,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `creature_addon`;
 CREATE TABLE `creature_addon` (
-  `guid` int(11) NOT NULL default '0',
+  `guid` int(10) unsigned NOT NULL default '0',
   `mount` mediumint(8) unsigned NOT NULL default '0',
   `bytes0` int(10) unsigned NOT NULL default '0',
   `bytes1` int(10) unsigned NOT NULL default '0',

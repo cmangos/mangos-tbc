@@ -211,6 +211,7 @@ pkgdata_DATA = \
 	s0046_10263_01_mangos_pool_creature.sql \
 	s0046_10263_02_mangos_pool_gameobject.sql \
 	s0046_10263_03_mangos_pool_pool.sql \
+	s0065_10286_01_mangos_creature_addon.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -401,4 +402,5 @@ EXTRA_DIST = \
 	s0046_10263_01_mangos_pool_creature.sql \
 	s0046_10263_02_mangos_pool_gameobject.sql \
 	s0046_10263_03_mangos_pool_pool.sql \
+	s0065_10286_01_mangos_creature_addon.sql \
 	README

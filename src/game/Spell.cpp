@@ -2424,10 +2424,11 @@ void Spell::cast(bool skipCheck)
     {
         case SPELLFAMILY_GENERIC:
         {
-            if (m_spellInfo->Mechanic == MECHANIC_BANDAGE)  // Bandages
+            // Bandages
+            if (m_spellInfo->Mechanic == MECHANIC_BANDAGE)
                 AddPrecastSpell(11196);                     // Recently Bandaged
+            // Blood Fury (Racial)
             else if(m_spellInfo->SpellIconID == 1662 && m_spellInfo->AttributesEx & 0x20)
-                                                            // Blood Fury (Racial)
                 AddPrecastSpell(23230);                     // Blood Fury - Healing Reduction
             break;
         }
@@ -2438,6 +2439,8 @@ void Spell::cast(bool skipCheck)
                 AddPrecastSpell(41425);                     // Hypothermia
             break;
         }
+        case SPELLFAMILY_WARRIOR:
+            break;
         case SPELLFAMILY_PRIEST:
         {
             // Power Word: Shield

@@ -6283,6 +6283,7 @@ void Aura::PeriodicTick()
 void Aura::PeriodicDummyTick()
 {
     SpellEntry const* spell = GetSpellProto();
+    Unit *target = GetTarget();
     switch (spell->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
@@ -6311,17 +6312,12 @@ void Aura::PeriodicDummyTick()
                     {
                         if ((*i)->GetId() == GetId())
                         {
-                            // Get tick number
-                            int32 tick = (m_maxduration - m_duration) / m_modifier.periodictime;
-                            // Default case (not on arenas)
-                            if (tick == 0)
-                            {
-                                (*i)->GetModifier()->m_amount = m_modifier.m_amount;
-                                ((Player*)m_target)->UpdateManaRegen();
-                                // Disable continue
-                                m_isPeriodic = false;
-                            }
+                            (*i)->GetModifier()->m_amount = m_modifier.m_amount;
+                            ((Player*)target)->UpdateManaRegen();
+                            // Disable continue
+                            m_isPeriodic = false;
                             return;
+                            // TODO: not sure is it need 
                             //**********************************************
                             // Code commended since arena patch not added
                             // This feature uses only in arenas

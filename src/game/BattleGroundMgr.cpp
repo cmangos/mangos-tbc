@@ -1637,7 +1637,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
         }
         else
         {
-            sLog.outErrorDb("Table `battleground_template` for id %u have non-existed WorldSafeLocs.dbc id %u in field `AllianceStartLoc`. BG not created.",bgTypeID,start1);
+            sLog.outErrorDb("Table `battleground_template` for id %u have nonexistent WorldSafeLocs.dbc id %u in field `AllianceStartLoc`. BG not created.", bgTypeID, start1);
             continue;
         }
 
@@ -1660,7 +1660,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
         }
         else
         {
-            sLog.outErrorDb("Table `battleground_template` for id %u have non-existed WorldSafeLocs.dbc id %u in field `HordeStartLoc`. BG not created.",bgTypeID,start2);
+            sLog.outErrorDb("Table `battleground_template` for id %u have nonexistent WorldSafeLocs.dbc id %u in field `HordeStartLoc`. BG not created.", bgTypeID, start2);
             continue;
         }
 
@@ -1800,7 +1800,7 @@ void BattleGroundMgr::SendToBattleGround(Player *pl, uint32 instanceId)
     }
     else
     {
-        sLog.outError("player %u trying to port to non-existent bg instance %u",pl->GetGUIDLow(), instanceId);
+        sLog.outError("player %u trying to port to nonexistent bg instance %u",pl->GetGUIDLow(), instanceId);
     }
 }
 
@@ -1861,7 +1861,7 @@ BattleGroundTypeId BattleGroundMgr::BGTemplateId(uint32 bgQueueTypeId)
         case BATTLEGROUND_QUEUE_5v5:
             return BATTLEGROUND_AA;
         default:
-            return BattleGroundTypeId(0);                   // used for unknown template (it existed and do nothing)
+            return BattleGroundTypeId(0);                   // used for unknown template (it exist and do nothing)
     }
 }
 
@@ -1944,7 +1944,7 @@ void BattleGroundMgr::LoadBattleMastersEntry()
         uint32 bgTypeId  = fields[1].GetUInt32();
         if (!sBattlemasterListStore.LookupEntry(bgTypeId))
         {
-            sLog.outErrorDb("Table `battlemaster_entry` contain entry %u for not existed battleground type %u, ignored.",entry,bgTypeId);
+            sLog.outErrorDb("Table `battlemaster_entry` contain entry %u for nonexistent battleground type %u, ignored.",entry,bgTypeId);
             continue;
         }
 
@@ -2035,7 +2035,7 @@ void BattleGroundMgr::LoadBattleEventIndexes()
         // checking for NULL - through right outer join this will mean following:
         if (fields[5].GetUInt32() != dbTableGuidLow)
         {
-            sLog.outErrorDb("BattleGroundEvent: %s with nonexistant guid %u for event: map:%u, event1:%u, event2:%u (\"%s\")",
+            sLog.outErrorDb("BattleGroundEvent: %s with nonexistent guid %u for event: map:%u, event1:%u, event2:%u (\"%s\")",
                 (gameobject) ? "gameobject" : "creature", dbTableGuidLow, map, events.event1, events.event2, description);
             continue;
         }
@@ -2052,7 +2052,7 @@ void BattleGroundMgr::LoadBattleEventIndexes()
             // we have an event which shouldn't exist
             else
             {
-                sLog.outErrorDb("BattleGroundEvent: %s with guid %u is registered, for a nonexistant event: map:%u, event1:%u, event2:%u",
+                sLog.outErrorDb("BattleGroundEvent: %s with guid %u is registered, for a nonexistent event: map:%u, event1:%u, event2:%u",
                     (gameobject) ? "gameobject" : "creature", dbTableGuidLow, map, events.event1, events.event2);
                 continue;
             }

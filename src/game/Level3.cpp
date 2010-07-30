@@ -5762,7 +5762,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(const char* /*args*/)
                     save->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", save->CanReset() ? "yes" : "no", timeleft.c_str());
             }
             else
-                PSendSysMessage("bound for a nonexistant map %u", itr->first);
+                PSendSysMessage("bound for a nonexistent map %u", itr->first);
             counter++;
         }
     }
@@ -5786,7 +5786,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(const char* /*args*/)
                         save->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", save->CanReset() ? "yes" : "no", timeleft.c_str());
                 }
                 else
-                    PSendSysMessage("bound for a nonexistant map %u", itr->first);
+                    PSendSysMessage("bound for a nonexistent map %u", itr->first);
                 counter++;
             }
         }
@@ -5838,7 +5838,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(const char* args)
                         save->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", save->CanReset() ? "yes" : "no", timeleft.c_str());
                 }
                 else
-                    PSendSysMessage("bound for a nonexistant map %u - try to unbind anyway", itr->first);
+                    PSendSysMessage("bound for a nonexistent map %u", itr->first);
                 player->UnbindInstance(itr, Difficulty(i));
                 counter++;
             }
@@ -6111,7 +6111,7 @@ bool ChatHandler::HandleSendItemsCommand(const char* args)
         }
     }
 
-    // from console show not existed sender
+    // from console show nonexistent sender
     MailSender sender(MAIL_NORMAL,m_session ? m_session->GetPlayer()->GetGUIDLow() : 0, MAIL_STATIONERY_GM);
 
     // fill mail
@@ -6169,7 +6169,7 @@ bool ChatHandler::HandleSendMoneyCommand(const char* args)
     std::string subject = msgSubject;
     std::string text    = msgText;
 
-    // from console show not existed sender
+    // from console show nonexistent sender
     MailSender sender(MAIL_NORMAL,m_session ? m_session->GetPlayer()->GetGUIDLow() : 0, MAIL_STATIONERY_GM);
 
     MailDraft(subject, text)

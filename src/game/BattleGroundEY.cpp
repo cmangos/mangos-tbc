@@ -201,8 +201,8 @@ void BattleGroundEY::CheckSomeoneLeftPoint()
             Player *plr = sObjectMgr.GetPlayer(m_PlayersNearPoint[i][j]);
             if (!plr)
             {
-                sLog.outError("BattleGroundEY: Player (GUID: %u) not found!", GUID_LOPART(m_PlayersNearPoint[i][j]));
-                //move not existed player to "free space" - this will cause many error showing in log, but it is a very important bug
+                sLog.outError("BattleGroundEY:CheckSomeoneLeftPoint Player (GUID: %u) not found!", GUID_LOPART(m_PlayersNearPoint[i][j]));
+                //move nonexistent player to "free space" - this will cause many error showing in log, but it is a very important bug
                 m_PlayersNearPoint[BG_EY_PLAYERS_OUT_OF_POINTS].push_back(m_PlayersNearPoint[i][j]);
                 m_PlayersNearPoint[i].erase(m_PlayersNearPoint[i].begin() + j);
                 ++j;

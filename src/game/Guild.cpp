@@ -40,6 +40,7 @@ Guild::Guild()
     m_BorderStyle = 0;
     m_BorderColor = 0;
     m_BackgroundColor = 0;
+    m_accountsNumber = 0;
 
     m_CreatedYear = 0;
     m_CreatedMonth = 0;
@@ -139,6 +140,7 @@ bool Guild::AddMember(uint64 plGuid, uint32 plRank)
 
     if (pl)
     {
+        newmember.accountId = pl->GetSession()->GetAccountId();
         newmember.Name   = pl->GetName();
         newmember.Level  = pl->getLevel();
         newmember.Class  = pl->getClass();
@@ -146,8 +148,8 @@ bool Guild::AddMember(uint64 plGuid, uint32 plRank)
     }
     else
     {
-        //                                                     0    1     2     3
-        QueryResult *result = CharacterDatabase.PQuery("SELECT name,level,class,zone FROM characters WHERE guid = '%u'", GUID_LOPART(plGuid));
+        //                                                     0    1     2     3    4
+        QueryResult *result = CharacterDatabase.PQuery("SELECT name,level,class,zone,account FROM characters WHERE guid = '%u'", GUID_LOPART(plGuid));
         if (!result)
             return false;                                   // player doesn't exist
 
@@ -156,6 +158,7 @@ bool Guild::AddMember(uint64 plGuid, uint32 plRank)
         newmember.Level  = fields[1].GetUInt8();
         newmember.Class  = fields[2].GetUInt8();
         newmember.ZoneId = fields[3].GetUInt32();
+        newmember.accountId = fields[4].GetInt32();
         delete result;
         if (newmember.Level < 1 || newmember.Level > STRONG_MAX_LEVEL ||
             newmember.Class < CLASS_WARRIOR || newmember.Class >= MAX_CLASSES)
@@ -189,6 +192,9 @@ bool Guild::AddMember(uint64 plGuid, uint32 plRank)
         pl->SetRank(newmember.RankId);
         pl->SetGuildIdInvited(0);
     }
+
+    UpdateAccountsNumber();
+
     return true;
 }
 
@@ -367,8 +373,8 @@ bool Guild::LoadMembersFromDB(uint32 GuildId)
         "BankResetTimeTab0, BankRemSlotsTab0, BankResetTimeTab1, BankRemSlotsTab1, BankResetTimeTab2, BankRemSlotsTab2,"
     //   12                 13                14                 15                16                 17
         "BankResetTimeTab3, BankRemSlotsTab3, BankResetTimeTab4, BankRemSlotsTab4, BankResetTimeTab5, BankRemSlotsTab5,"
-    //   18               19                20                21               22
-        "characters.name, characters.level, characters.class, characters.zone, characters.logout_time "
+    //   18               19                20                21               22                      23
+        "characters.name, characters.level, characters.class, characters.zone, characters.logout_time, characters.account "
         "FROM guild_member LEFT JOIN characters ON characters.guid = guild_member.guid WHERE guildid = '%u'", GuildId);
 
     if (!result)
@@ -399,6 +405,7 @@ bool Guild::LoadMembersFromDB(uint32 GuildId)
         newmember.Class                 = fields[20].GetUInt8();
         newmember.ZoneId                = fields[21].GetUInt32();
         newmember.LogoutTime            = fields[22].GetUInt64();
+        newmember.accountId             = fields[23].GetInt32();
 
         // this code will remove not existing character guids from guild
         if (newmember.Level < 1 || newmember.Level > STRONG_MAX_LEVEL) // can be at broken `data` field
@@ -428,6 +435,8 @@ bool Guild::LoadMembersFromDB(uint32 GuildId)
 
     if (members.empty())
         return false;
+
+    UpdateAccountsNumber();
 
     return true;
 }
@@ -510,6 +519,9 @@ void Guild::DelMember(uint64 guid, bool isDisbanding)
     }
 
     CharacterDatabase.PExecute("DELETE FROM guild_member WHERE guid = '%u'", GUID_LOPART(guid));
+
+    if (!isDisbanding)
+        UpdateAccountsNumber();
 }
 
 void Guild::ChangeRank(uint64 guid, uint32 newRank)
@@ -825,6 +837,26 @@ void Guild::UpdateLogoutTime(uint64 guid)
         UnloadGuildBank();
         UnloadGuildEventLog();
     }
+}
+
+/**
+ * Return the number of accounts that are in the guild after possible update if required
+ * A player may have many characters in the guild, but with the same account
+ */
+uint32 Guild::GetAccountsNumber()
+{
+    // not need recalculation
+    if (m_accountsNumber)
+        return m_accountsNumber;
+
+    //We use a set to be sure each element will be unique
+    std::set<uint32> accountsIdSet;
+    for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
+        accountsIdSet.insert(itr->second.accountId);
+
+    m_accountsNumber = accountsIdSet.size();
+
+    return m_accountsNumber;
 }
 
 // *************************************************

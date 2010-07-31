@@ -42,6 +42,7 @@ pkgdata_DATA = \
 	111_9767_03_characters_characters.sql \
 	112_8874_01_characters_character_skills.sql \
 	114_9849_01_characters_saved_variables.sql \
+	s0041_10254_01_characters_auctionhouse.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -64,4 +65,5 @@ EXTRA_DIST = \
 	111_9767_03_characters_characters.sql \
 	112_8874_01_characters_character_skills.sql \
 	114_9849_01_characters_saved_variables.sql \
+	s0041_10254_01_characters_auctionhouse.sql \
 	README

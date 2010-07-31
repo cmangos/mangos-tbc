@@ -80,6 +80,13 @@ bool Guild::Create(Player* leader, std::string gname)
     m_PurchasedTabs = 0;
     m_Id = sObjectMgr.GenerateGuildId();
 
+    // creating data
+    time_t now = time(0);
+    tm local = *(localtime(&now));                          // dereference and assign
+    m_CreatedDay   = local.tm_mday;
+    m_CreatedMonth = local.tm_mon + 1;
+    m_CreatedYear  = local.tm_year + 1900;
+
     DEBUG_LOG("GUILD: creating guild %s to leader: %u", gname.c_str(), GUID_LOPART(m_LeaderGuid));
 
     // gname already assigned to Guild::name, use it to encode string for DB
@@ -94,8 +101,8 @@ bool Guild::Create(Player* leader, std::string gname)
     // CharacterDatabase.PExecute("DELETE FROM guild WHERE guildid='%u'", Id); - MAX(guildid)+1 not exist
     CharacterDatabase.PExecute("DELETE FROM guild_member WHERE guildid='%u'", m_Id);
     CharacterDatabase.PExecute("INSERT INTO guild (guildid,name,leaderguid,info,motd,createdate,EmblemStyle,EmblemColor,BorderStyle,BorderColor,BackgroundColor,BankMoney) "
-        "VALUES('%u','%s','%u', '%s', '%s', UNIX_TIMESTAMP(NOW()),'%u','%u','%u','%u','%u','" UI64FMTD "')",
-        m_Id, gname.c_str(), GUID_LOPART(m_LeaderGuid), dbGINFO.c_str(), dbMOTD.c_str(), m_EmblemStyle, m_EmblemColor, m_BorderStyle, m_BorderColor, m_BackgroundColor, m_GuildBankMoney);
+        "VALUES('%u','%s','%u', '%s', '%s','" UI64FMTD "','%u','%u','%u','%u','%u','" UI64FMTD "')",
+        m_Id, gname.c_str(), GUID_LOPART(m_LeaderGuid), dbGINFO.c_str(), dbMOTD.c_str(), uint64(now), m_EmblemStyle, m_EmblemColor, m_BorderStyle, m_BorderColor, m_BackgroundColor, m_GuildBankMoney);
     CharacterDatabase.CommitTransaction();
 
     CreateDefaultGuildRanks(lSession->GetSessionDbLocaleIndex());

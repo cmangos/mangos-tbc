@@ -115,7 +115,6 @@ class ReputationMgr
         void SendInitialReputations();
         void SendForceReactions();
         void SendState(FactionState const* faction) const;
-        void SendStates() const;
 
     private:                                                // internal helper functions
         void Initialize();
@@ -126,7 +125,6 @@ class ReputationMgr
         void SetAtWar(FactionState* faction, bool atWar);
         void SetInactive(FactionState* faction, bool inactive);
         void SendVisible(FactionState const* faction) const;
-        void UpdateRankCounters( ReputationRank old_rank, ReputationRank new_rank );
     private:
         Player* m_player;
         FactionStateList m_factions;

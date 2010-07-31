@@ -213,6 +213,7 @@ pkgdata_DATA = \
 	s0046_10263_03_mangos_pool_pool.sql \
 	s0065_10286_01_mangos_creature_addon.sql \
 	s0069_10252_01_mangos_reputation_reward_rate.sql \
+	s0070_10270_01_mangos_reputation_spillover_template.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -405,4 +406,5 @@ EXTRA_DIST = \
 	s0046_10263_03_mangos_pool_pool.sql \
 	s0065_10286_01_mangos_creature_addon.sql \
 	s0069_10252_01_mangos_reputation_reward_rate.sql \
+	s0070_10270_01_mangos_reputation_spillover_template.sql \
 	README

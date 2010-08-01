@@ -216,6 +216,7 @@ pkgdata_DATA = \
 	s0070_10270_01_mangos_reputation_spillover_template.sql \
 	s0075_10289_01_mangos_creature_template.sql \
 	s0075_10289_02_mangos_creature_model_info.sql \
+	s0077_10299_01_mangos_event_id_scripts.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -411,4 +412,5 @@ EXTRA_DIST = \
 	s0070_10270_01_mangos_reputation_spillover_template.sql \
 	s0075_10289_01_mangos_creature_template.sql \
 	s0075_10289_02_mangos_creature_model_info.sql \
+	s0077_10299_01_mangos_event_id_scripts.sql \
 	README

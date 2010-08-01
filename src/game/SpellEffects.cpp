@@ -2219,8 +2219,10 @@ void Spell::EffectSendEvent(SpellEffectIndex eff_idx)
     /*
     we do not handle a flag dropping or clicking on flag in battleground by sendevent system
     */
-    DEBUG_LOG("Spell ScriptStart %u for spellid %u in EffectSendEvent ", m_spellInfo->EffectMiscValue[eff_idx], m_spellInfo->Id);
-    m_caster->GetMap()->ScriptsStart(sEventScripts, m_spellInfo->EffectMiscValue[eff_idx], m_caster, focusObject);
+    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell ScriptStart %u for spellid %u in EffectSendEvent ", m_spellInfo->EffectMiscValue[eff_idx], m_spellInfo->Id);
+
+    if (!Script->ProcessEventId(m_spellInfo->EffectMiscValue[eff_idx], m_caster, focusObject, true))
+        m_caster->GetMap()->ScriptsStart(sEventScripts, m_spellInfo->EffectMiscValue[eff_idx], m_caster, focusObject);
 }
 
 void Spell::EffectPowerBurn(SpellEffectIndex eff_idx)
@@ -2687,7 +2689,8 @@ void Spell::SendLoot(uint64 guid, LootType loottype)
                 if (gameObjTarget->GetGOInfo()->chest.eventId)
                 {
                     DEBUG_LOG("Chest ScriptStart id %u for GO %u", gameObjTarget->GetGOInfo()->chest.eventId,gameObjTarget->GetDBTableGUIDLow());
-                    player->GetMap()->ScriptsStart(sEventScripts, gameObjTarget->GetGOInfo()->chest.eventId, player, gameObjTarget);
+                    if (!Script->ProcessEventId(gameObjTarget->GetGOInfo()->chest.eventId, player, gameObjTarget, true))
+                        player->GetMap()->ScriptsStart(sEventScripts, gameObjTarget->GetGOInfo()->chest.eventId, player, gameObjTarget);
                 }
 
                 // triggering linked GO

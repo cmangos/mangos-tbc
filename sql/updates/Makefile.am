@@ -217,6 +217,9 @@ pkgdata_DATA = \
 	s0075_10289_01_mangos_creature_template.sql \
 	s0075_10289_02_mangos_creature_model_info.sql \
 	s0077_10299_01_mangos_event_id_scripts.sql \
+	s0080_10307_01_mangos_instance_template.sql \
+	s0080_10307_02_mangos_scripted_areatrigger.sql \
+	s0080_10307_03_mangos_scripted_event_id.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -413,4 +416,7 @@ EXTRA_DIST = \
 	s0075_10289_01_mangos_creature_template.sql \
 	s0075_10289_02_mangos_creature_model_info.sql \
 	s0077_10299_01_mangos_event_id_scripts.sql \
+	s0080_10307_01_mangos_instance_template.sql \
+	s0080_10307_02_mangos_scripted_areatrigger.sql \
+	s0080_10307_03_mangos_scripted_event_id.sql \
 	README

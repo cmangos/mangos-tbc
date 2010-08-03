@@ -86,7 +86,7 @@ pkgdata_DATA = \
 	046_7349_01_mangos_spell_area.sql \
 	047_7376_01_mangos_spell_area.sql \
 	048_7382_01_mangos_creature_template.sql \
-        049_8104_01_characters.sql \
+	049_8104_01_characters.sql \
 	050_8115_01_mangos_playercreateinfo_action.sql \
 	051_8158_01_mangos_playercreateinfo_action.sql \
 	052_8072_01_characters_characters.sql \
@@ -202,6 +202,7 @@ pkgdata_DATA = \
 	137_7053_01_mangos_spell_proc_event.sql \
 	138_7056_01_mangos_spell_proc_event.sql \
 	139_10171_01_mangos_mangos_string.sql \
+	README \
 	s0020_10197_01_mangos_playercreateinfo.sql \
 	s0028_10208_01_mangos_playercreateinfo.sql \
 	s0038_10251_01_mangos_command.sql \
@@ -222,7 +223,8 @@ pkgdata_DATA = \
 	s0080_10307_03_mangos_scripted_event_id.sql \
 	s0083_7193_01_mangos_mangos_string.sql \
 	s0084_10008_01_realmd_realmd_db_version.sql \
-	README
+	s0087_10312_01_characters_character_aura.sql \
+	s0087_10312_02_characters_pet_aura.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -287,7 +289,7 @@ EXTRA_DIST = \
 	046_7349_01_mangos_spell_area.sql \
 	047_7376_01_mangos_spell_area.sql \
 	048_7382_01_mangos_creature_template.sql \
-        049_8104_01_characters.sql \
+	049_8104_01_characters.sql \
 	050_8115_01_mangos_playercreateinfo_action.sql \
 	051_8158_01_mangos_playercreateinfo_action.sql \
 	052_8072_01_characters_characters.sql \
@@ -312,7 +314,7 @@ EXTRA_DIST = \
 	066_8402_02_characters_guild_bank_eventlog.sql \
 	066_8409_01_characters_guild.sql \
 	067_8573_01_mangos_mangos_string.sql \
-	068_8600_01_mangos_command \
+	068_8600_01_mangos_command.sql \
 	069_8548_01_mangos_creature_battleground.sql \
 	070_8548_02_mangos_gameobject_battleground.sql \
 	071_8549_03_mangos_battleground_events.sql \
@@ -403,6 +405,7 @@ EXTRA_DIST = \
 	137_7053_01_mangos_spell_proc_event.sql \
 	138_7056_01_mangos_spell_proc_event.sql \
 	139_10171_01_mangos_mangos_string.sql \
+	README \
 	s0020_10197_01_mangos_playercreateinfo.sql \
 	s0028_10208_01_mangos_playercreateinfo.sql \
 	s0038_10251_01_mangos_command.sql \
@@ -423,4 +426,5 @@ EXTRA_DIST = \
 	s0080_10307_03_mangos_scripted_event_id.sql \
 	s0083_7193_01_mangos_mangos_string.sql \
 	s0084_10008_01_realmd_realmd_db_version.sql \
-	README
+	s0087_10312_01_characters_character_aura.sql \
+	s0087_10312_02_characters_pet_aura.sql

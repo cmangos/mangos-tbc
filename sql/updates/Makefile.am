@@ -224,7 +224,9 @@ pkgdata_DATA = \
 	s0083_7193_01_mangos_mangos_string.sql \
 	s0084_10008_01_realmd_realmd_db_version.sql \
 	s0087_10312_01_characters_character_aura.sql \
-	s0087_10312_02_characters_pet_aura.sql
+	s0087_10312_02_characters_pet_aura.sql \
+	s0091_10314_01_mangos_mangos_string.sql \
+	s0091_10314_02_mangos_command.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -427,4 +429,6 @@ EXTRA_DIST = \
 	s0083_7193_01_mangos_mangos_string.sql \
 	s0084_10008_01_realmd_realmd_db_version.sql \
 	s0087_10312_01_characters_character_aura.sql \
-	s0087_10312_02_characters_pet_aura.sql
+	s0087_10312_02_characters_pet_aura.sql \
+	s0091_10314_01_mangos_mangos_string.sql \
+	s0091_10314_02_mangos_command.sql

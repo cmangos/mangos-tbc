@@ -67,6 +67,8 @@ MaNGOS 0.12 release and then sql updates from MaNGOS 0.13 sql/updates directory 
 
 IMPORTNAT: Need use git_id tool from mangos-0.12 branch.
 
+===== For backporting sql updates =====
+
 1. Rename sql update from master form (7932_01_characters_character_pet.sql) to mangos-0.12 form (041_7932_01_characters_character_pet.sql)
    using any free order_number in sql/updates files list (it will replaced by proper at git_id -s use).
 
@@ -89,3 +91,12 @@ IMPORTNAT: Need use git_id tool from mangos-0.12 branch.
      if field renamed then field renamed back, etc)
 4.4: Add undo sql update file name into slq/updates/before_upgrade_to_0.13/Makefile.am
 
+===== For new sql updates =====
+
+1. Name sql update in mangos-0.12 form (041_xxxxxx_01_characters_character_pet.sql)
+   using any free order_number in sql/updates files list (it will replaced by proper at git_id -s use).
+
+2. Add sql update to commit and manually include sql update changes in to related DB sql file.
+
+3. Now use git_id -s (sql update revison will updates in name, sql guards will added to sql update,
+   required revision data will update in related DB sql file and in revision_sql.h)

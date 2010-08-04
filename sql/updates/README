@@ -65,33 +65,27 @@ MaNGOS 0.12 release and then sql updates from MaNGOS 0.13 sql/updates directory 
 
 === For Commiters ====
 
-DO NOT use git_id tool for mangos-0.12 branch or any branch different from master.
+IMPORTNAT: Need use git_id tool from mangos-0.12 branch.
 
 1. Rename sql update from master form (7932_01_characters_character_pet.sql) to mangos-0.12 form (041_7932_01_characters_character_pet.sql)
-   using next free order_number in sql/updates files list (041 in our case).
+   using any free order_number in sql/updates files list (it will replaced by proper at git_id -s use).
 
    If this realmd sql update preserve existed mangos master sql guards, and do next step with this goal.
 
-2. Replace sql order guards from sql update file
-   (ALTER TABLE character_db_version CHANGE COLUMN required_7887_01_characters_character_pet required_7903_01_characters_character_pet bit;)
-   to 0.12 form for targeted guard name
-   (ALTER TABLE character_db_version CHANGE COLUMN required_032_7059_02_characters_pet_spell required_041_7903_01_characters_character_pet bit;)
-2.1: Look at current guard field name in affected DB (sql/mangos.sql) and replace first (old) name (`required_7887_01_characters_character_pet`)
-     by found (`required_032_7059_02_characters_pet_spell`)
-2.2: Create new field name base at 0.12 sql update name (`required_041_7903_01_characters_character_pet`)
-2.3: Form final 0.12 guard query
-     (ALTER TABLE character_db_version CHANGE COLUMN required_032_7059_02_characters_pet_spell required_041_7903_01_characters_character_pet bit;)
-2.4: Update field name in db version table (db_version in mangos.sql in our case) to new field name (required_041_7903_01_characters_character_pet)
-2.5: Update field name in affected DB related define (REVISION_DB_MANGOS) in src/shared/revision_sql.h
-     to new field name (required_041_7903_01_characters_character_pet)
-3. Fix/update sql update file name in slq/updates/Makefile.am
+2. You can ignore sql order guards in sql update file. It will fixed at git_id -s use.
+   You can ignore content and changes/conflicts in sql/update/Makefile.am. It will regenerated at git_id -s use.
+   For make possible test code part build you can resolve revision_sql.h conflicts in any way.
+   Work test better do after apply git_id -s to comit when revision_sql.h will regenerated.
+   You also need resolve conflicts in DB sql file before git_id tool use (used revison in DB version not important and will replaced by git_id -s)
 
-4. If this sql updates for characters/realmd DB write undo sql update for sql/updates/before_upgrade_to_0.13 directory.
+3. Now use git_id -s
+
+4. If this sql updates for characters DB write undo sql update for sql/updates/before_upgrade_to_0.13 directory.
 4.1: Name it in same way as added sql update (041_7932_01_characters_character_pet.sql)
 4.2: Use REVERSED order for guard query field names
      (ALTER TABLE character_db_version CHANGE COLUMN required_041_7903_01_characters_character_pet required_032_7059_02_characters_pet_spell bit;)
 4.3: Write required sql queries that will restore DB structure to state _before_ related sql update apply
      (if field added then field drop, if field drop then field re-added with some useful value,
      if field renamed then field renamed back, etc)
-5. Add undo sql update file name into slq/updates/before_upgrade_to_0.13/Makefile.am
+4.4: Add undo sql update file name into slq/updates/before_upgrade_to_0.13/Makefile.am
 

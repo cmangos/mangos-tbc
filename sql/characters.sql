@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s0087_10312_02_characters_pet_aura` bit(1) default NULL
+  `required_s0099_10332_02_characters_pet_aura` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -257,6 +257,7 @@ DROP TABLE IF EXISTS `character_aura`;
 CREATE TABLE `character_aura` (
   `guid` int(11) unsigned NOT NULL default '0' COMMENT 'Global Unique Identifier',
   `caster_guid` bigint(20) unsigned NOT NULL default '0' COMMENT 'Full Global Unique Identifier',
+  `item_guid` int(11) unsigned NOT NULL default '0',
   `spell` int(11) unsigned NOT NULL default '0',
   `effect_index` int(11) unsigned NOT NULL default '0',
   `stackcount` int(11) NOT NULL default '1',
@@ -264,7 +265,7 @@ CREATE TABLE `character_aura` (
   `maxduration` int(11) NOT NULL default '0',
   `remaintime` int(11) NOT NULL default '0',
   `remaincharges` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`guid`,`caster_guid`,`spell`,`effect_index`)
+  PRIMARY KEY  (`guid`,`caster_guid`,`item_guid`,`spell`,`effect_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Player System';
 
 --
@@ -1216,6 +1217,7 @@ DROP TABLE IF EXISTS `pet_aura`;
 CREATE TABLE `pet_aura` (
   `guid` int(11) unsigned NOT NULL default '0' COMMENT 'Global Unique Identifier',
   `caster_guid` bigint(20) unsigned NOT NULL default '0' COMMENT 'Full Global Unique Identifier',
+  `item_guid` int(11) unsigned NOT NULL default '0',
   `spell` int(11) unsigned NOT NULL default '0',
   `effect_index` int(11) unsigned NOT NULL default '0',
   `stackcount` int(11) NOT NULL default '1',
@@ -1223,7 +1225,7 @@ CREATE TABLE `pet_aura` (
   `maxduration` int(11) NOT NULL default '0',
   `remaintime` int(11) NOT NULL default '0',
   `remaincharges` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`guid`,`caster_guid`,`spell`,`effect_index`)
+  PRIMARY KEY  (`guid`,`caster_guid`,`item_guid`,`spell`,`effect_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Pet System';
 
 --

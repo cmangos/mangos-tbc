@@ -1977,7 +1977,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
             else if(unitTarget->getVictim())
                 pTarget = unitTarget->getVictim();
             else if(unitTarget->GetTypeId() == TYPEID_PLAYER)
-                pTarget = ObjectAccessor::GetUnit(*unitTarget, ((Player*)unitTarget)->GetSelection());
+                pTarget = unitTarget->GetMap()->GetUnit(((Player*)unitTarget)->GetSelection());
 
             // Init dest coordinates
             float x = m_targets.m_destX;

@@ -45,6 +45,8 @@ pkgdata_DATA = \
 	s0041_10254_01_characters_auctionhouse.sql \
 	s0087_10312_01_characters_character_aura.sql \
 	s0087_10312_02_characters_pet_aura.sql \
+	s0099_10332_01_characters_character_aura.sql \
+	s0099_10332_02_characters_pet_aura.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -70,4 +72,6 @@ EXTRA_DIST = \
 	s0041_10254_01_characters_auctionhouse.sql \
 	s0087_10312_01_characters_character_aura.sql \
 	s0087_10312_02_characters_pet_aura.sql \
+	s0099_10332_01_characters_character_aura.sql \
+	s0099_10332_02_characters_pet_aura.sql \
 	README

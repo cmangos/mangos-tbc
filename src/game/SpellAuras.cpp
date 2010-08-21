@@ -2105,6 +2105,11 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         }
                         return;
                     }
+                    case 13139:                             // net-o-matic
+                        // root to self part of (root_target->charge->root_self sequence
+                        if (Unit* caster = GetCaster())
+                            caster->CastSpell(caster, 13138, true, NULL, this);
+                        return;
                     case 31606:                             // Stormcrow Amulet
                     {
                         CreatureInfo const * cInfo = ObjectMgr::GetCreatureTemplate(17970);
@@ -2115,11 +2120,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
                         return;
                     }
-                    case 13139:                             // net-o-matic
-                        // root to self part of (root_target->charge->root_self sequence
-                        if (Unit* caster = GetCaster())
-                            caster->CastSpell(caster, 13138, true, NULL, this);
+                    case 32045:                             // Soul Charge
+                    case 32051:
+                    case 32052:
+                    {
+                        // max duration is 2 minutes, but expected to be random duration
+                        // real time randomness is unclear, using max 30 seconds here
+                        // see further down for expire of this aura
+                        SetAuraDuration(rand()%30*IN_MILLISECONDS);
                         return;
+                    }
                     // Gender spells
                     case 38224:                             // Illidari Agent Illusion
                     case 37096:                             // Blood Elf Illusion

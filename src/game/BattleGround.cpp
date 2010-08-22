@@ -509,7 +509,7 @@ void BattleGround::EndBattleGround(uint32 winner)
         // per player calculation
         if(isArena() && isRated() && winner_arena_team && loser_arena_team)
         {
-            if(team == winner)
+            if (team == winner)
                 winner_arena_team->MemberWon(plr,loser_rating);
             else
                 loser_arena_team->MemberLost(plr,winner_rating);

@@ -458,7 +458,7 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 {
                     if (CreatureInfo const* ci = GetCreatureTemplateStore(action.morph.creatureId))
                     {
-                        uint32 display_id = Creature::ChooseDisplayId(0,ci);
+                        uint32 display_id = Creature::ChooseDisplayId(ci);
                         m_creature->SetDisplayId(display_id);
                     }
                 }
@@ -819,7 +819,7 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 {
                     if (CreatureInfo const* cInfo = GetCreatureTemplateStore(action.mount.creatureId))
                     {
-                        uint32 display_id = Creature::ChooseDisplayId(0, cInfo);
+                        uint32 display_id = Creature::ChooseDisplayId(cInfo);
                         m_creature->Mount(display_id);
                     }
                 }

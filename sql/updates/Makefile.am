@@ -233,7 +233,8 @@ pkgdata_DATA = \
 	s0103_10331_02_mangos_command.sql \
 	s0114_09136_01_characters_character_ticket.sql \
 	s0114_10353_02_mangos_command.sql \
-	s0114_10353_03_mangos_mangos_string.sql
+	s0114_10353_03_mangos_mangos_string.sql \
+	s0116_10362_01_mangos_creature_movement_template.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -445,4 +446,5 @@ EXTRA_DIST = \
 	s0103_10331_02_mangos_command.sql \
 	s0114_09136_01_characters_character_ticket.sql \
 	s0114_10353_02_mangos_command.sql \
-	s0114_10353_03_mangos_mangos_string.sql
+	s0114_10353_03_mangos_mangos_string.sql \
+	s0116_10362_01_mangos_creature_movement_template.sql

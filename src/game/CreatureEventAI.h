@@ -109,6 +109,7 @@ enum EventAI_ActionType
     ACTION_T_SET_SHEATH                 = 40,               // Sheath (0-passive,1-melee,2-ranged)
     ACTION_T_FORCE_DESPAWN              = 41,               // No Params
     ACTION_T_SET_INVINCIBILITY_HP_LEVEL = 42,               // MinHpValue, format(0-flat,1-percent from max health)
+    ACTION_T_MOUNT_TO_ENTRY_OR_MODEL    = 43,               // Creature_template entry(param1) OR ModelId (param2) (or 0 for both to unmount)
     ACTION_T_END,
 };
 
@@ -144,12 +145,12 @@ enum EventFlags
     EFLAG_REPEATABLE            = 0x01,                     //Event repeats
     EFLAG_NORMAL                = 0x02,                     //Event only occurs in Normal instance difficulty
     EFLAG_HEROIC                = 0x04,                     //Event only occurs in Heroic instance difficulty
-    EFLAG_RESERVED_3            = 0x08,
-    EFLAG_RESERVED_4            = 0x10,
-    EFLAG_RESERVED_5            = 0x20,
+    EFLAG_RESERVED_3            = 0x08,                     //Used in master for difficulty 2
+    EFLAG_RESERVED_4            = 0x10,                     //Used in master for difficulty 3
+    EFLAG_RANDOM_ACTION         = 0x20,                     //Event only execute one from existed actions instead each action.
     EFLAG_RESERVED_6            = 0x40,
     EFLAG_DEBUG_ONLY            = 0x80,                     //Event only occurs in debug build
-
+    // no free bits, uint8 field
     EFLAG_DIFFICULTY_ALL        = (EFLAG_NORMAL|EFLAG_HEROIC)
 };
 
@@ -377,6 +378,12 @@ struct CreatureEventAI_Action
             uint32 hp_level;
             uint32 is_percent;
         } invincibility_hp_level;
+        // ACTION_T_MOUNT_TO_ENTRY_OR_MODEL                 = 43
+        struct
+        {
+            uint32 creatureId;                              // set one from fields (or 0 for both to dismount)
+            uint32 modelId;
+        } mount;
         // RAW
         struct
         {

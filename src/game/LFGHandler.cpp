@@ -279,7 +279,7 @@ void WorldSession::SendLfgResult(uint32 type, uint32 entry, uint8 lfg_type)
 
         ++number;
 
-        data << plr->GetPackGUID();                         // packed guid
+        data << plr->GetObjectGuid().WriteAsPacked();       // packed guid
         data << plr->getLevel();                            // level
         data << plr->GetZoneId();                           // current zone
         data << lfg_type;                                   // 0x00 - LFG, 0x01 - LFM

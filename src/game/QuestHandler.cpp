@@ -651,7 +651,7 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
             if( questStatus > 6 )
                 questStatus = getDialogStatus(_player, questgiver, defstatus);
 
-            data << uint64(questgiver->GetGUID());
+            data << questgiver->GetObjectGuid();
             data << uint8(questStatus);
             ++count;
         }
@@ -666,7 +666,7 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
             if( questStatus > 6 )
                 questStatus = getDialogStatus(_player, questgiver, defstatus);
 
-            data << uint64(questgiver->GetGUID());
+            data << questgiver->GetObjectGuid();
             data << uint8(questStatus);
             ++count;
         }

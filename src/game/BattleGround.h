@@ -22,6 +22,7 @@
 #include "Common.h"
 #include "SharedDefines.h"
 #include "ByteBuffer.h"
+#include "ObjectGuid.h"
 
 // magic event-numbers
 #define BG_EVENT_NONE 255

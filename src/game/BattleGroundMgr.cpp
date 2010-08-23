@@ -1747,7 +1747,7 @@ void BattleGroundMgr::DistributeArenaPoints()
     sWorld.SendWorldText(LANG_DIST_ARENA_POINTS_END);
 }
 
-void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket *data, const uint64& guid, Player* plr, BattleGroundTypeId bgTypeId)
+void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket *data, ObjectGuid guid, Player* plr, BattleGroundTypeId bgTypeId)
 {
     if (!plr)
         return;
@@ -1755,7 +1755,7 @@ void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket *data, const uint6
     uint32 PlayerLevel = plr->getLevel();
 
     data->Initialize(SMSG_BATTLEFIELD_LIST);
-    *data << uint64(guid);                                  // battlemaster guid
+    *data << guid;                                          // battlemaster guid
     *data << uint32(bgTypeId);                              // battleground id
     if(bgTypeId == BATTLEGROUND_AA)                         // arena
     {

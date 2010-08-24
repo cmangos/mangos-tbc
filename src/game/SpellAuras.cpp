@@ -2677,38 +2677,16 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
             modelid = ssEntry->modelID_A;
         else
         {
-            // players are a bit difficult since the dbc has seldomly an horde modelid
-            // so we add hacks here to set the right model
-            if (Player::TeamForRace(m_target->getRace()) == ALLIANCE)
-                modelid = ssEntry->modelID_A;
-            // no model found, if player is horde we look here for our hardcoded modelids
-            else if (Player::TeamForRace(m_target->getRace()) == HORDE)
+            // players are a bit different since the dbc has seldomly an horde modelid
+            if (Player::TeamForRace(target->getRace()) == HORDE)
             {
-                switch(form)
-                {
-                    case FORM_CAT:
-                        modelid = 8571;
-                        break;
-                    case FORM_BEAR:
-                    case FORM_DIREBEAR:
-                        modelid = 2289;
-                        break;
-                    case FORM_MOONKIN:
-                        modelid = 15375;
-                        break;
-                    case FORM_FLIGHT:
-                        modelid = 20872;
-                        break;
-                    case FORM_FLIGHT_EPIC:
-                        modelid = 21244;
-                        break;
-                    // per default use alliance modelid
-                    // mostly horde and alliance share the same
-                    default:
-                        modelid = ssEntry->modelID_A;
-                        break;
-                }
+                // get model for race ( in 2.2.4 no horde models in dbc field, only 0 in it
+                modelid = sObjectMgr.GetModelForRace(ssEntry->modelID_A, target->getRaceMask());
             }
+
+            // nothing found in above, so use default
+            if (!modelid)
+                modelid = ssEntry->modelID_A;
         }
     }
 

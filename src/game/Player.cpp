@@ -36,6 +36,7 @@
 #include "MapManager.h"
 #include "MapInstanced.h"
 #include "InstanceSaveMgr.h"
+#include "InstanceData.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
@@ -1466,7 +1467,11 @@ void Player::setDeathState(DeathState s)
         // passive spell
         if(!ressSpellId)
             ressSpellId = GetResurrectionSpellId();
+
+        if (InstanceData* mapInstance = GetInstanceData())
+            mapInstance->OnPlayerDeath(this);
     }
+
     Unit::setDeathState(s);
 
     // restore resurrection spell id for player after aura remove

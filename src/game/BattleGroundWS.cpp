@@ -576,7 +576,7 @@ void BattleGroundWS::ResetBGSubclass()
         m_FlagState[i]       = BG_WS_FLAG_STATE_ON_BASE;
         m_TeamScores[i]      = 0;
     }
-    bool isBGWeekend = false; // TODO implement: BattleGroundMgr::IsBGWeekend(GetTypeID());
+    bool isBGWeekend = sBattleGroundMgr.IsBGWeekend(GetTypeID());
     m_ReputationCapture = (isBGWeekend) ? 45 : 35;
     m_HonorWinKills = (isBGWeekend) ? 3 : 1;
     m_HonorEndKills = (isBGWeekend) ? 4 : 2;

@@ -260,6 +260,10 @@ class BattleGroundMgr
         static BattleGroundQueueTypeId BGQueueTypeId(BattleGroundTypeId bgTypeId, uint8 arenaType);
         static BattleGroundTypeId BGTemplateId(uint32 bgQueueTypeId);
         static uint8 BGArenaType(uint32 bgQueueTypeId);
+
+        static HolidayIds BGTypeToWeekendHolidayId(BattleGroundTypeId bgTypeId);
+        static BattleGroundTypeId WeekendHolidayIdToBGType(HolidayIds holiday);
+        static bool IsBGWeekend(BattleGroundTypeId bgTypeId);
     private:
         BattleMastersMap    mBattleMastersMap;
         CreatureBattleEventIndexesMap m_CreatureBattleEventIndexMap;

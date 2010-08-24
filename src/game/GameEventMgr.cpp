@@ -25,6 +25,7 @@
 #include "Language.h"
 #include "Log.h"
 #include "MapManager.h"
+#include "BattleGroundMgr.h"
 #include "Policies/SingletonImp.h"
 
 INSTANTIATE_SINGLETON_1(GameEventMgr);
@@ -842,6 +843,9 @@ GameEventMgr::GameEventMgr()
 
 MANGOS_DLL_SPEC bool IsHolidayActive( HolidayIds id )
 {
+    if (id == HOLIDAY_NONE)
+        return false;
+
     GameEventMgr::GameEventDataMap const& events = sGameEventMgr.GetEventMap();
     GameEventMgr::ActiveEvents const& ae = sGameEventMgr.GetActiveEventList();
 

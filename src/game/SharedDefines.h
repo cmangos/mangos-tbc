@@ -1809,12 +1809,14 @@ enum CreatureEliteType
 
 enum HolidayIds
 {
+    HOLIDAY_NONE                     = 0,
+
     HOLIDAY_FIREWORKS_SPECTACULAR    = 62,
     HOLIDAY_FEAST_OF_WINTER_VEIL     = 141,
     HOLIDAY_NOBLEGARDEN              = 181,
     HOLIDAY_CHILDRENS_WEEK           = 201,
     HOLIDAY_CALL_TO_ARMS_AV          = 283,
-    HOLIDAY_CALL_TO_ARMS_WG          = 284,
+    HOLIDAY_CALL_TO_ARMS_WS          = 284,
     HOLIDAY_CALL_TO_ARMS_AB          = 285,
     HOLIDAY_FISHING_EXTRAVAGANZA     = 301,
     HOLIDAY_HARVEST_FESTIVAL         = 321,
@@ -1822,7 +1824,7 @@ enum HolidayIds
     HOLIDAY_LUNAR_FESTIVAL           = 327,
     HOLIDAY_LOVE_IS_IN_THE_AIR       = 335,
     HOLIDAY_FIRE_FESTIVAL            = 341,
-    HOLIDAY_CALL_TO_ARMS_ES          = 353,
+    HOLIDAY_CALL_TO_ARMS_EY          = 353,
     HOLIDAY_BREWFEST                 = 372,
     HOLIDAY_DARKMOON_FAIRE_ELWYNN    = 374,
     HOLIDAY_DARKMOON_FAIRE_THUNDER   = 375,

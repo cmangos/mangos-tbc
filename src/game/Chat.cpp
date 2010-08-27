@@ -728,6 +728,12 @@ ChatCommand * ChatHandler::getCommandTable()
     return commandTable;
 }
 
+ChatHandler::ChatHandler(WorldSession* session) : m_session(session) {}
+
+ChatHandler::ChatHandler(Player* player) : m_session(player->GetSession()) {}
+
+ChatHandler::~ChatHandler() {}
+
 const char *ChatHandler::GetMangosString(int32 entry) const
 {
     return m_session->GetMangosString(entry);
@@ -747,6 +753,11 @@ bool ChatHandler::isAvailable(ChatCommand const& cmd) const
 {
     // check security level only for simple  command (without child commands)
     return GetAccessLevel() >= (AccountTypes)cmd.SecurityLevel;
+}
+
+std::string ChatHandler::GetNameLink() const
+{
+    return GetNameLink(m_session->GetPlayer());
 }
 
 bool ChatHandler::HasLowerSecurity(Player* target, uint64 guid, bool strong)
@@ -3101,6 +3112,11 @@ uint32 ChatHandler::ExtractAccountId(char** args, std::string* accountName /*= N
         *targetIfNullArg = NULL;
 
     return account_id;
+}
+
+std::string ChatHandler::GetNameLink(Player* chr) const
+{
+    return playerLink(chr->GetName());
 }
 
 bool ChatHandler::needReportToTarget(Player* chr) const

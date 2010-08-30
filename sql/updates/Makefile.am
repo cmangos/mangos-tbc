@@ -237,7 +237,9 @@ pkgdata_DATA = \
 	s0116_10362_01_mangos_creature_movement_template.sql \
 	s0117_10365_01_mangos_creature_ai_scripts.sql \
 	s0134_10381_01_mangos_creature_model_race.sql \
-	s0148_10419_01_mangos_spell_chain.sql
+	s0148_10419_01_mangos_spell_chain.sql \
+	s0150_10423_01_mangos_spell_chain.sql \
+	s0150_10427_02_mangos_spell_proc_event.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -453,4 +455,6 @@ EXTRA_DIST = \
 	s0116_10362_01_mangos_creature_movement_template.sql \
 	s0117_10365_01_mangos_creature_ai_scripts.sql \
 	s0134_10381_01_mangos_creature_model_race.sql \
-	s0148_10419_01_mangos_spell_chain.sql
+	s0148_10419_01_mangos_spell_chain.sql \
+	s0150_10423_01_mangos_spell_chain.sql \
+	s0150_10427_02_mangos_spell_proc_event.sql

@@ -20,7 +20,7 @@
     \ingroup world
 */
 
-#include "Common.h"
+#include "World.h"
 #include "Database/DatabaseEnv.h"
 #include "Config/Config.h"
 #include "SystemConfig.h"
@@ -32,7 +32,6 @@
 #include "Player.h"
 #include "SkillExtraItems.h"
 #include "SkillDiscovery.h"
-#include "World.h"
 #include "AccountMgr.h"
 #include "AuctionHouseMgr.h"
 #include "ObjectMgr.h"
@@ -190,7 +189,7 @@ void World::AddSession(WorldSession* s)
 void
 World::AddSession_ (WorldSession* s)
 {
-    ASSERT (s);
+    MANGOS_ASSERT (s);
 
     //NOTE - Still there is race condition in WorldSession* being used in the Sockets
 

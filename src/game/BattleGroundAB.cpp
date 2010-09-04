@@ -283,7 +283,7 @@ const char* BattleGroundAB::_GetNodeName(uint8 node)
         case BG_AB_NODE_GOLD_MINE:
             return GetMangosString(LANG_BG_AB_NODE_GOLD_MINE);
         default:
-            ASSERT(0);
+            MANGOS_ASSERT(0);
     }
     return "";
 }

@@ -21,7 +21,7 @@
 
 HMACSHA1::HMACSHA1(uint32 len, uint8 *seed)
 {
-    ASSERT(len == SEED_KEY_SIZE);
+    MANGOS_ASSERT(len == SEED_KEY_SIZE);
 
     memcpy(&m_key, seed, len);
     HMAC_CTX_init(&m_ctx);
@@ -53,5 +53,5 @@ void HMACSHA1::Finalize()
 {
     uint32 length = 0;
     HMAC_Final(&m_ctx, m_digest, &length);
-    ASSERT(length == SHA_DIGEST_LENGTH);
+    MANGOS_ASSERT(length == SHA_DIGEST_LENGTH);
 }

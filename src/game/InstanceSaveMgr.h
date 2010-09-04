@@ -27,10 +27,11 @@
 #include <map>
 #include "Utilities/UnorderedMapSet.h"
 #include "Database/DatabaseEnv.h"
+#include "DBCEnums.h"
+#include "ObjectGuid.h"
 
 struct InstanceTemplate;
 struct MapEntry;
-struct MapDifficulty;
 class Player;
 class Group;
 

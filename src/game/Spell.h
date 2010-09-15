@@ -285,6 +285,7 @@ class Spell
         void EffectCharge(SpellEffectIndex eff_idx);
         void EffectCharge2(SpellEffectIndex eff_idx);
         void EffectProspecting(SpellEffectIndex eff_idx);
+        void EffectRedirectThreat(SpellEffectIndex eff_idx);
         void EffectSendTaxi(SpellEffectIndex eff_idx);
         void EffectKnockBack(SpellEffectIndex eff_idx);
         void EffectPlayerPull(SpellEffectIndex eff_idx);

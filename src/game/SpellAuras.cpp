@@ -2247,6 +2247,12 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
                 return;
             }
+            case 35079:                                     // Misdirection, triggered buff
+            {
+                if (Unit* pCaster = GetCaster())
+                    pCaster->RemoveAurasDueToSpell(34477);
+                return;
+            }
             case 36730:                                     // Flame Strike
             {
                 m_target->CastSpell(m_target, 36731, true, NULL, this);
@@ -2491,17 +2497,25 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             }
             break;
         }
+        case SPELLFAMILY_ROGUE:
+            break;
         case SPELLFAMILY_HUNTER:
         {
-            // Improved Aspect of the Viper
-            if( GetId()==38390 && m_target->GetTypeId()==TYPEID_PLAYER )
+            switch(GetId())
             {
-                if(apply)
-                    // + effect value for Aspect of the Viper
-                    m_spellmod = new SpellModifier(SPELLMOD_EFFECT1,SPELLMOD_FLAT,m_modifier.m_amount,GetId(),UI64LIT(0x4000000000000));
+                // Improved Aspect of the Viper
+                case 38390:
+                {
+                    if (m_target->GetTypeId()==TYPEID_PLAYER)
+                    {
+                        if(apply)
+                            // + effect value for Aspect of the Viper
+                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1,SPELLMOD_FLAT,m_modifier.m_amount,GetId(),UI64LIT(0x4000000000000));
 
-                ((Player*)m_target)->AddSpellMod(m_spellmod, apply);
-                return;
+                        ((Player*)m_target)->AddSpellMod(m_spellmod, apply);
+                    }
+                    return;
+                }
             }
             break;
         }
@@ -5518,17 +5532,28 @@ void Aura::HandleSpellSpecificBoosts(bool apply)
         }
         case SPELLFAMILY_HUNTER:
         {
-            // The Beast Within and Bestial Wrath - immunity
-            if (GetId() == 19574 || GetId() == 34471)
+            switch(GetId())
             {
-                spellId1 = 24395;
-                spellId2 = 24396;
-                spellId3 = 24397;
-                spellId4 = 26592;
+                // The Beast Within and Bestial Wrath - immunity
+                case 19574:
+                case 34471:
+                {
+                    spellId1 = 24395;
+                    spellId2 = 24396;
+                    spellId3 = 24397;
+                    spellId4 = 26592;
+                    break;
+                }
+                // Misdirection, main spell
+                case 34477:
+                {
+                    if (!apply)
+                        m_target->getHostileRefManager().ResetThreatRedirection();
+                    return;
+                }
+                default:
+                    return;
             }
-            else
-                return;
-
             break;
         }
         default:

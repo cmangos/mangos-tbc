@@ -389,6 +389,23 @@ void ThreatManager::addThreat(Unit* pVictim, float pThreat, bool crit, SpellScho
 
     float threat = ThreatCalcHelper::calcThreat(pVictim, iOwner, pThreat, crit, schoolMask, pThreatSpell);
 
+    if (threat > 0.0f)
+    {
+        if (Unit* redirectedTarget = pVictim->getHostileRefManager().GetThreatRedirectionTarget())
+        {
+            if (redirectedTarget != getOwner() && redirectedTarget->isAlive())
+            {
+                addThreatDirectly(redirectedTarget, threat);
+                threat = 0;                                 // but still need add to threat list
+            }
+        }
+    }
+
+    addThreatDirectly(pVictim, threat);
+}
+
+void ThreatManager::addThreatDirectly(Unit* pVictim, float threat)
+{
     HostileReference* ref = iThreatContainer.addThreat(pVictim, threat);
     // Ref is not in the online refs, search the offline refs next
     if (!ref)
@@ -396,7 +413,7 @@ void ThreatManager::addThreat(Unit* pVictim, float pThreat, bool crit, SpellScho
 
     if(!ref)                                                // there was no ref => create a new one
     {
-                                                            // threat has to be 0 here
+        // threat has to be 0 here
         HostileReference* hostileReference = new HostileReference(pVictim, this, 0);
         iThreatContainer.addReference(hostileReference);
         hostileReference->addThreat(threat);                // now we add the real threat

@@ -20,6 +20,7 @@
 #define _HOSTILEREFMANAGER
 
 #include "Common.h"
+#include "ObjectGuid.h"
 #include "Utilities/LinkedReference/RefManager.h"
 
 class Unit;
@@ -31,10 +32,8 @@ struct SpellEntry;
 
 class HostileRefManager : public RefManager<Unit, ThreatManager>
 {
-    private:
-        Unit *iOwner;
     public:
-        explicit HostileRefManager(Unit *pOwner) { iOwner = pOwner; }
+        explicit HostileRefManager(Unit *pOwner);
         ~HostileRefManager();
 
         Unit* getOwner() { return iOwner; }
@@ -64,6 +63,24 @@ class HostileRefManager : public RefManager<Unit, ThreatManager>
 
         // delete one reference, defined by Unit
         void deleteReference(Unit *pCreature);
+
+        // redirection threat data
+        void SetThreatRedirection(ObjectGuid guid)
+        {
+            m_redirectionTargetGuid = guid;
+        }
+
+        void ResetThreatRedirection()
+        {
+            m_redirectionTargetGuid.Clear();
+        }
+
+        Unit*  GetThreatRedirectionTarget() const;
+
+    private:
+        Unit* iOwner;                                       // owner of manager variable, back ref. to it, always exist
+
+        ObjectGuid m_redirectionTargetGuid;                 // in 2.x redirected only full threat
 };
 //=================================================
 #endif

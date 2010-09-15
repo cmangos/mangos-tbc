@@ -2507,6 +2507,23 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
         }
         case SPELLFAMILY_SHAMAN:
         {
+            switch(GetId())
+            {
+                case 6495:                                  // Sentry Totem
+                {
+                    if (target->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    Totem* totem = target->GetTotem(TOTEM_SLOT_AIR);
+
+                    if (totem && apply)
+                        ((Player*)target)->GetCamera().SetView(totem);
+                    else
+                        ((Player*)target)->GetCamera().ResetView(totem);
+
+                    return;
+                }
+            }
             // Improved Weapon Totems
             if( GetSpellProto()->SpellIconID == 57 && m_target->GetTypeId()==TYPEID_PLAYER )
             {

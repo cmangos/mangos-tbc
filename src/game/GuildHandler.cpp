@@ -1208,7 +1208,7 @@ void WorldSession::HandleGuildBankLogQuery( WorldPacket & recv_data )
     pGuild->DisplayGuildBankLogs(this, TabId);
 }
 
-void WorldSession::HandleGuildBankTabText(WorldPacket &recv_data)
+void WorldSession::HandleQueryGuildBankTabText(WorldPacket &recv_data)
 {
     DEBUG_LOG("WORLD: Received MSG_QUERY_GUILD_BANK_TEXT");
 
@@ -1229,7 +1229,7 @@ void WorldSession::HandleGuildBankTabText(WorldPacket &recv_data)
     pGuild->SendGuildBankTabText(this, TabId);
 }
 
-void WorldSession::HandleGuildBankSetTabText(WorldPacket &recv_data)
+void WorldSession::HandleSetGuildBankTabText(WorldPacket &recv_data)
 {
     DEBUG_LOG("WORLD: Received CMSG_SET_GUILD_BANK_TEXT");
 

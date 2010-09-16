@@ -678,7 +678,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder * holder)
     delete holder;
 }
 
-void WorldSession::HandleSetFactionAtWar( WorldPacket & recv_data )
+void WorldSession::HandleSetFactionAtWarOpcode( WorldPacket & recv_data )
 {
     DEBUG_LOG( "WORLD: Received CMSG_SET_FACTION_ATWAR" );
 
@@ -691,7 +691,7 @@ void WorldSession::HandleSetFactionAtWar( WorldPacket & recv_data )
     GetPlayer()->GetReputationMgr().SetAtWar(repListID,flag);
 }
 
-void WorldSession::HandleMeetingStoneInfo( WorldPacket & /*recv_data*/ )
+void WorldSession::HandleMeetingStoneInfoOpcode( WorldPacket & /*recv_data*/ )
 {
     DEBUG_LOG( "WORLD: Received CMSG_MEETING_STONE_INFO" );
 
@@ -700,7 +700,7 @@ void WorldSession::HandleMeetingStoneInfo( WorldPacket & /*recv_data*/ )
     SendPacket(&data);
 }
 
-void WorldSession::HandleTutorialFlag( WorldPacket & recv_data )
+void WorldSession::HandleTutorialFlagOpcode( WorldPacket & recv_data )
 {
     uint32 iFlag;
     recv_data >> iFlag;
@@ -720,13 +720,13 @@ void WorldSession::HandleTutorialFlag( WorldPacket & recv_data )
     //DEBUG_LOG("Received Tutorial Flag Set {%u}.", iFlag);
 }
 
-void WorldSession::HandleTutorialClear( WorldPacket & /*recv_data*/ )
+void WorldSession::HandleTutorialClearOpcode( WorldPacket & /*recv_data*/ )
 {
     for (int i = 0; i < 8; ++i)
         GetPlayer()->SetTutorialInt( i, 0xFFFFFFFF );
 }
 
-void WorldSession::HandleTutorialReset( WorldPacket & /*recv_data*/ )
+void WorldSession::HandleTutorialResetOpcode( WorldPacket & /*recv_data*/ )
 {
     for (int i = 0; i < 8; ++i)
         GetPlayer()->SetTutorialInt( i, 0x00000000 );
@@ -844,7 +844,7 @@ void WorldSession::HandleChangePlayerNameOpcodeCallBack(QueryResult *result, uin
     session->SendPacket(&data);
 }
 
-void WorldSession::HandleSetPlayerDeclinedNames(WorldPacket& recv_data)
+void WorldSession::HandleSetPlayerDeclinedNamesOpcode(WorldPacket& recv_data)
 {
     uint64 guid;
 

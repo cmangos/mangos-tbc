@@ -821,12 +821,12 @@ struct SpellItemEnchantmentEntry
     uint32      amount[3];                                  // 4-6
     //uint32    amount2[3]                                  // 7-9 always same as similar `amount` value
     uint32      spellid[3];                                 // 10-12
-    char*       description[16];                            // 13-29
-                                                            // 30 description flags
-    uint32      aura_id;                                    // 31
-    uint32      slot;                                       // 32
-    uint32      GemID;                                      // 33
-    uint32      EnchantmentCondition;                       // 34
+    char*       description[16];                            // 13-28
+                                                            // 29 description flags
+    uint32      aura_id;                                    // 30
+    uint32      slot;                                       // 31
+    uint32      GemID;                                      // 32
+    uint32      EnchantmentCondition;                       // 33
 };
 
 struct SpellItemEnchantmentConditionEntry

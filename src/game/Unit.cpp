@@ -7299,17 +7299,8 @@ uint32 Unit::SpellDamageBonus(Unit *pVictim, SpellEntry const *spellProto, uint3
             // Starfire Bonus
             case 5481:
             {
-                AuraList const& auras = pVictim->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
-                for(AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-                {
-                    SpellEntry const* m_spell = (*itr)->GetSpellProto();
-                    if (m_spell->SpellFamilyName == SPELLFAMILY_DRUID &&
-                        m_spell->SpellFamilyFlags & UI64LIT(0x0000000000200002))
-                    {
-                        DoneTotalMod *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
-                        break;
-                    }
-                }
+                if (pVictim->GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_DRUID, UI64LIT(0x0000000000200002)))
+                    DoneTotalMod *= ((*i)->GetModifier()->m_amount+100.0f)/100.0f;
                 break;
             }
             case 4418: // Increased Shock Damage
@@ -7320,7 +7311,7 @@ uint32 Unit::SpellDamageBonus(Unit *pVictim, SpellEntry const *spellProto, uint3
             case 5148: // Idol of the Shooting Star
             case 6008: // Increased Lightning Damage / Totem of Hex
             {
-                pdamage+=(*i)->GetModifier()->m_amount;
+                DoneTotal+=(*i)->GetModifier()->m_amount;
                 break;
             }
         }

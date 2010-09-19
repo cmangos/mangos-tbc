@@ -39,12 +39,12 @@ class BattleGroundRL : public BattleGround
 
         /* inherited from BattlegroundClass */
         virtual void AddPlayer(Player *plr);
+        virtual void Reset();
         virtual void FillInitialWorldStates(WorldPacket &d, uint32& count);
 
         void RemovePlayer(Player *plr, uint64 guid);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);
         bool SetupBattleGround();
-        virtual void ResetBGSubclass();
         void HandleKillPlayer(Player* player, Player *killer);
         bool HandlePlayerUnderMap(Player * plr);
 };

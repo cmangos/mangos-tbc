@@ -265,7 +265,7 @@ class BattleGroundEY : public BattleGround
         void HandleKillPlayer(Player *player, Player *killer);
         virtual WorldSafeLocsEntry const* GetClosestGraveYard(Player* player);
         virtual bool SetupBattleGround();
-        virtual void ResetBGSubclass();
+        virtual void Reset();
         void UpdateTeamScore(uint32 Team);
         void EndBattleGround(uint32 winner);
         void UpdatePlayerScore(Player *Source, uint32 type, uint32 value);

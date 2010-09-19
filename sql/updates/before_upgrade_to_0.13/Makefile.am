@@ -48,6 +48,7 @@ pkgdata_DATA = \
 	s0099_10332_01_characters_character_aura.sql \
 	s0099_10332_02_characters_pet_aura.sql \
 	s0114_09136_01_characters_character_ticket.sql \
+	s0201_7255_01_characters_characters.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -76,4 +77,5 @@ EXTRA_DIST = \
 	s0099_10332_01_characters_character_aura.sql \
 	s0099_10332_02_characters_pet_aura.sql \
 	s0114_09136_01_characters_character_ticket.sql \
+	s0201_7255_01_characters_characters.sql \
 	README

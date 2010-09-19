@@ -183,9 +183,10 @@ void BattleGroundNA::FillInitialWorldStates(WorldPacket &data, uint32& count)
     FillInitialWorldState(data, count, 0xa11, 1);
 }
 
-void BattleGroundNA::ResetBGSubclass()
+void BattleGroundNA::Reset()
 {
-
+    //call parent's class reset
+    BattleGround::Reset();
 }
 
 bool BattleGroundNA::SetupBattleGround()

@@ -165,8 +165,6 @@ void BattleGround::Update(uint32 diff)
         m_RemovedPlayers.clear();
     }
 
-    // this code isn't efficient and its idea isn't implemented yet
-    /* offline players are removed from battleground in worldsession::LogoutPlayer()
     // remove offline players from bg after ~5 minutes
     if(GetPlayersSize())
     {
@@ -181,7 +179,7 @@ void BattleGround::Update(uint32 diff)
                 if(itr->second.LastOnlineTime >= MAX_OFFLINE_TIME)                   // 5 minutes
                     m_RemovedPlayers[itr->first] = 1;       // add to remove list (BG)
         }
-    }*/
+    }
 
     /*********************************************************/
     /***           BATTLEGROUND BALLANCE SYSTEM            ***/
@@ -287,7 +285,7 @@ void BattleGround::SendPacketToTeam(uint32 TeamID, WorldPacket *packet, Player *
         if(!self && sender == plr)
             continue;
 
-        uint32 team = itr->second.Team;//GetPlayerTeam(plr->GetGUID());
+        uint32 team = itr->second.Team;
         if(!team) team = plr->GetTeam();
 
         if(team == TeamID)
@@ -316,7 +314,7 @@ void BattleGround::PlaySoundToTeam(uint32 SoundID, uint32 TeamID)
             continue;
         }
 
-        uint32 team = itr->second.Team;//GetPlayerTeam(plr->GetGUID());
+        uint32 team = itr->second.Team;
         if(!team) team = plr->GetTeam();
 
         if(team == TeamID)
@@ -339,7 +337,7 @@ void BattleGround::CastSpellOnTeam(uint32 SpellID, uint32 TeamID)
             continue;
         }
 
-        uint32 team = itr->second.Team;//GetPlayerTeam(plr->GetGUID());
+        uint32 team = itr->second.Team;
         if(!team) team = plr->GetTeam();
 
         if(team == TeamID)
@@ -359,7 +357,7 @@ void BattleGround::RewardHonorToTeam(uint32 Honor, uint32 TeamID)
             continue;
         }
 
-        uint32 team = itr->second.Team;//GetPlayerTeam(plr->GetGUID());
+        uint32 team = itr->second.Team;
         if(!team) team = plr->GetTeam();
 
         if(team == TeamID)
@@ -384,7 +382,7 @@ void BattleGround::RewardReputationToTeam(uint32 faction_id, uint32 Reputation, 
             continue;
         }
 
-        uint32 team = itr->second.Team;//GetPlayerTeam(plr->GetGUID());
+        uint32 team = itr->second.Team;
         if(!team) team = plr->GetTeam();
 
         if(team == TeamID)
@@ -886,9 +884,6 @@ void BattleGround::Reset()
     for(BattleGroundScoreMap::const_iterator itr = m_PlayerScores.begin(); itr != m_PlayerScores.end(); ++itr)
         delete itr->second;
     m_PlayerScores.clear();
-
-    // reset BGSubclass
-    ResetBGSubclass();
 }
 
 void BattleGround::StartBattleGround()
@@ -959,9 +954,36 @@ void BattleGround::AddPlayer(Player *plr)
             plr->CastSpell(plr, SPELL_PREPARATION, true);   // reduces all mana cost of spells.
     }
 
+    // setup BG group membership
+    PlayerRelogin(plr);
+    AddOrSetPlayerToCorrectBgGroup(plr, guid, team);
+
     // Log
     DETAIL_LOG("BATTLEGROUND: Player %s joined the battle.", plr->GetName());
 }
+
+/* this method adds player to his team's bg group, or sets his correct group if player is already in bg group */
+void BattleGround::AddOrSetPlayerToCorrectBgGroup(Player *plr, ObjectGuid plr_guid, uint32 team)
+{
+    Group* group = GetBgRaid(team);
+    if(!group)                                      // first player joined
+    {
+        group = new Group;
+        SetBgRaid(team, group);
+        group->Create(plr_guid, plr->GetName());
+    }
+    else                                            // raid already exist
+    {
+        if(group->IsMember(plr_guid))
+        {
+            uint8 subgroup = group->GetMemberGroup(plr_guid);
+            plr->SetGroup(group, subgroup);
+        }
+        else
+            GetBgRaid(team)->AddMember(plr_guid, plr->GetName());
+    }
+}
+
 
 /* This method should be called only once ... it adds pointer to queue */
 void BattleGround::AddToBGFreeSlotQueue()
@@ -1495,6 +1517,31 @@ uint32 BattleGround::GetPlayerTeam(uint64 guid)
     if(itr!=m_Players.end())
         return itr->second.Team;
     return 0;
+}
+
+bool BattleGround::IsPlayerInBattleGround(uint64 guid)
+{
+    std::map<uint64, BattleGroundPlayer>::const_iterator itr = m_Players.find(guid);
+    if(itr!=m_Players.end())
+        return true;
+    return false;
+}
+
+void BattleGround::PlayerRelogin(Player* plr)
+{
+    if(GetStatus() != STATUS_WAIT_LEAVE)
+        return;
+
+    WorldPacket data;
+    uint32 bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType());
+
+    BlockMovement(plr);
+
+    sBattleGroundMgr.BuildPvpLogDataPacket(&data, this);
+    plr->GetSession()->SendPacket(&data);
+
+    sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, this, plr->GetTeam(), plr->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_IN_PROGRESS, TIME_TO_AUTOREMOVE, GetStartTime());
+    plr->GetSession()->SendPacket(&data);
 }
 
 uint32 BattleGround::GetAlivePlayersCountByTeam(uint32 Team) const

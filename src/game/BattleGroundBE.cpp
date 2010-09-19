@@ -187,9 +187,10 @@ void BattleGroundBE::FillInitialWorldStates(WorldPacket &data, uint32& count)
     FillInitialWorldState(data, count, 0x9f3, 1);
 }
 
-void BattleGroundBE::ResetBGSubclass()
+void BattleGroundBE::Reset()
 {
-
+    //call parent's class reset
+    BattleGround::Reset();
 }
 
 bool BattleGroundBE::SetupBattleGround()

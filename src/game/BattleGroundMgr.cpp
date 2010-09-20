@@ -256,13 +256,12 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
             break;
     }
 
-    // couldn't find the player in bg queue, return
-    if(itr == m_QueuedPlayers[bracket_id].end())
+    //player can't be in queue without group, but just in case
+    if (bracket_id == -1)
     {
-        sLog.outError("Battleground: couldn't find player to remove.");
+        sLog.outError("BattleGroundQueue: ERROR Cannot find groupinfo for player GUID: %u", GUID_LOPART(guid));
         return;
     }
-
     DEBUG_LOG("BattleGroundQueue: Removing player GUID %u, from bracket_id %u", GUID_LOPART(guid), (uint32)bracket_id);
 
     GroupQueueInfo* group = itr->second.GroupInfo;

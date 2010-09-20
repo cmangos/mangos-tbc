@@ -1378,7 +1378,7 @@ void Group::UpdateLooterGuid( Creature* creature, bool ifneed )
     SendUpdate();
 }
 
-uint32 Group::CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, BattleGroundQueueTypeId bgQueueType, uint32 MinPlayerCount, uint32 MaxPlayerCount, bool isRated, uint32 arenaSlot)
+uint32 Group::CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, BattleGroundQueueTypeId bgQueueTypeId, uint32 MinPlayerCount, uint32 MaxPlayerCount, bool isRated, uint32 arenaSlot)
 {
     // check for min / max count
     uint32 memberscount = GetMembersCount();
@@ -1414,7 +1414,7 @@ uint32 Group::CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, BattleGround
         if(isRated && member->GetArenaTeamId(arenaSlot) != arenaTeamId)
             return BG_JOIN_ERR_MIXED_ARENATEAM;
         // don't let join if someone from the group is already in that bg queue
-        if(member->InBattleGroundQueueForBattleGroundQueueType(bgQueueType))
+        if(member->InBattleGroundQueueForBattleGroundQueueType(bgQueueTypeId))
             return BG_JOIN_ERR_GROUP_MEMBER_ALREADY_IN_QUEUE;
         // check for deserter debuff in case not arena queue
         if(bgTypeId != BATTLEGROUND_AA && !member->CanJoinToBattleground())

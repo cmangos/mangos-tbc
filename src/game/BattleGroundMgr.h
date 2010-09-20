@@ -258,8 +258,8 @@ class BattleGroundMgr
         static bool IsArenaType(BattleGroundTypeId bgTypeId);
         static bool IsBattleGroundType(BattleGroundTypeId bgTypeId) { return !BattleGroundMgr::IsArenaType(bgTypeId); }
         static BattleGroundQueueTypeId BGQueueTypeId(BattleGroundTypeId bgTypeId, uint8 arenaType);
-        static BattleGroundTypeId BGTemplateId(uint32 bgQueueTypeId);
-        static uint8 BGArenaType(uint32 bgQueueTypeId);
+        static BattleGroundTypeId BGTemplateId(BattleGroundQueueTypeId bgQueueTypeId);
+        static uint8 BGArenaType(BattleGroundQueueTypeId bgQueueTypeId);
 
         static HolidayIds BGTypeToWeekendHolidayId(BattleGroundTypeId bgTypeId);
         static BattleGroundTypeId WeekendHolidayIdToBGType(HolidayIds holiday);

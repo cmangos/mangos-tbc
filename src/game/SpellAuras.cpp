@@ -382,7 +382,12 @@ m_isRemovedOnShapeLost(true), m_in_use(false)
     Player* modOwner = caster ? caster->GetSpellModOwner() : NULL;
 
     if(!m_permanent && modOwner)
+    {
         modOwner->ApplySpellMod(GetId(), SPELLMOD_DURATION, m_maxduration);
+        // Get zero duration aura after - need set m_maxduration > 0 for apply/remove aura work
+        if (m_maxduration<=0)
+            m_maxduration = 1;
+    }
 
     m_duration = m_maxduration;
 
@@ -1838,11 +1843,8 @@ void Aura::TriggerSpell()
                 {
                     // Invisibility
                     case 66:
-                    {
-                        if(!m_duration)
-                            m_target->CastSpell(m_target, 32612, true, NULL, this);
+                        // Here need periodic triger reducing threat spell (or do it manually)
                         return;
-                    }
                     default:
                         break;
                 }
@@ -4336,6 +4338,10 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
     {
         switch(m_spellProto->Id)
         {
+            case 66:                                        // Invisibility
+                if (m_removeMode == AURA_REMOVE_BY_DEFAULT && m_duration<=0)
+                    m_target->CastSpell(m_target, 32612, true, NULL, this);
+                return;
             case 29213:                                     // Curse of the Plaguebringer
                 if (m_removeMode != AURA_REMOVE_BY_DISPEL)
                     // Cast Wrath of the Plaguebringer if not dispelled

@@ -1849,9 +1849,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         BattleGround* GetBattleGround() const;
         bool InArena() const;
 
-        static uint32 GetMinLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id);
-        static uint32 GetMaxLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id);
-        BattleGroundBracketId GetBattleGroundBracketIdFromLevel() const;
+        static uint32 GetMinLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id, BattleGroundTypeId bgTypeId);
+        static uint32 GetMaxLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id, BattleGroundTypeId bgTypeId);
+        BattleGroundBracketId GetBattleGroundBracketIdFromLevel(BattleGroundTypeId bgTypeId) const;
 
         bool InBattleGroundQueue() const
         {

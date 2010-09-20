@@ -246,8 +246,7 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
 
     int32 bracket_id = 0;                                   // signed for proper for-loop finish
     QueuedPlayersMap::iterator itr;
-    GroupQueueInfo * group;
-    QueuedGroupsList::iterator group_itr;
+
     // mostly people with the highest levels are in battlegrounds, thats why
     // we count from MAX_BATTLEGROUND_QUEUES to 0
     for (bracket_id = MAX_BATTLEGROUND_BRACKETS-1; bracket_id >= 0; bracket_id--)
@@ -266,11 +265,12 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
 
     DEBUG_LOG("BattleGroundQueue: Removing player GUID %u, from bracket_id %u", GUID_LOPART(guid), (uint32)bracket_id);
 
-    group = itr->second.GroupInfo;
+    GroupQueueInfo* group = itr->second.GroupInfo;
 
-    for(group_itr=m_QueuedGroups[bracket_id].begin(); group_itr != m_QueuedGroups[bracket_id].end(); ++group_itr)
+    QueuedGroupsList::iterator group_itr = m_QueuedGroups[bracket_id].begin();
+    for(; group_itr != m_QueuedGroups[bracket_id].end(); ++group_itr)
     {
-        if(group == (GroupQueueInfo*)(*group_itr))
+        if(group == *group_itr)
             break;
     }
 

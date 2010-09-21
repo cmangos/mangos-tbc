@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0199_7242_01_mangos_spell_bonus_data` bit(1) default NULL
+  `required_s0221_10500_01_mangos_scripts` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -1001,10 +1001,14 @@ CREATE TABLE `creature_movement_scripts` (
   `datalong4` int(10) unsigned NOT NULL default '0',
   `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
+  `dataint2` int(11) NOT NULL default '0',
+  `dataint3` int(11) NOT NULL default '0',
+  `dataint4` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
-  `o` float NOT NULL default '0'
+  `o` float NOT NULL default '0',
+  ´comments´ varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -1409,10 +1413,14 @@ CREATE TABLE `event_scripts` (
   `datalong4` int(10) unsigned NOT NULL default '0',
   `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
+  `dataint2` int(11) NOT NULL default '0',
+  `dataint3` int(11) NOT NULL default '0',
+  `dataint4` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
-  `o` float NOT NULL default '0'
+  `o` float NOT NULL default '0',
+  ´comments´ varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -1888,10 +1896,14 @@ CREATE TABLE `gameobject_scripts` (
   `datalong4` int(10) unsigned NOT NULL default '0',
   `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
+  `dataint2` int(11) NOT NULL default '0',
+  `dataint3` int(11) NOT NULL default '0',
+  `dataint4` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
-  `o` float NOT NULL default '0'
+  `o` float NOT NULL default '0',
+  ´comments´ varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -2053,10 +2065,14 @@ CREATE TABLE `gossip_scripts` (
   `datalong4` int(10) unsigned NOT NULL default '0',
   `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
+  `dataint2` int(11) NOT NULL default '0',
+  `dataint3` int(11) NOT NULL default '0',
+  `dataint4` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
-  `o` float NOT NULL default '0'
+  `o` float NOT NULL default '0',
+  ´comments´ varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -11145,10 +11161,14 @@ CREATE TABLE `quest_end_scripts` (
   `datalong4` int(10) unsigned NOT NULL default '0',
   `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
+  `dataint2` int(11) NOT NULL default '0',
+  `dataint3` int(11) NOT NULL default '0',
+  `dataint4` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
-  `o` float NOT NULL default '0'
+  `o` float NOT NULL default '0',
+  ´comments´ varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -11175,10 +11195,14 @@ CREATE TABLE `quest_start_scripts` (
   `datalong4` int(10) unsigned NOT NULL default '0',
   `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
+  `dataint2` int(11) NOT NULL default '0',
+  `dataint3` int(11) NOT NULL default '0',
+  `dataint4` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
-  `o` float NOT NULL default '0'
+  `o` float NOT NULL default '0',
+  ´comments´ varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -15229,10 +15253,14 @@ CREATE TABLE `spell_scripts` (
   `datalong4` int(10) unsigned NOT NULL default '0',
   `data_flags` tinyint(3) unsigned NOT NULL default '0',
   `dataint` int(11) NOT NULL default '0',
+  `dataint2` int(11) NOT NULL default '0',
+  `dataint3` int(11) NOT NULL default '0',
+  `dataint4` int(11) NOT NULL default '0',
   `x` float NOT NULL default '0',
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
-  `o` float NOT NULL default '0'
+  `o` float NOT NULL default '0',
+  ´comments´ varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --

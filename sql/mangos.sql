@@ -1008,7 +1008,7 @@ CREATE TABLE `creature_movement_scripts` (
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
   `o` float NOT NULL default '0',
-  ´comments´ varchar(255) NOT NULL
+  `comments` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -1420,7 +1420,7 @@ CREATE TABLE `event_scripts` (
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
   `o` float NOT NULL default '0',
-  ´comments´ varchar(255) NOT NULL
+  `comments` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -1903,7 +1903,7 @@ CREATE TABLE `gameobject_scripts` (
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
   `o` float NOT NULL default '0',
-  ´comments´ varchar(255) NOT NULL
+  `comments` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -2072,7 +2072,7 @@ CREATE TABLE `gossip_scripts` (
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
   `o` float NOT NULL default '0',
-  ´comments´ varchar(255) NOT NULL
+  `comments` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -11168,7 +11168,7 @@ CREATE TABLE `quest_end_scripts` (
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
   `o` float NOT NULL default '0',
-  ´comments´ varchar(255) NOT NULL
+  `comments` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -11202,7 +11202,7 @@ CREATE TABLE `quest_start_scripts` (
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
   `o` float NOT NULL default '0',
-  ´comments´ varchar(255) NOT NULL
+  `comments` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -15260,7 +15260,7 @@ CREATE TABLE `spell_scripts` (
   `y` float NOT NULL default '0',
   `z` float NOT NULL default '0',
   `o` float NOT NULL default '0',
-  ´comments´ varchar(255) NOT NULL
+  `comments` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --

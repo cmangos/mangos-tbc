@@ -7853,6 +7853,12 @@ bool PlayerCondition::Meets(Player const * player) const
         case CONDITION_RESERVED_1:
         case CONDITION_RESERVED_2:
             return false;
+        case CONDITION_QUEST_NONE:
+        {
+            if (!player->IsCurrentQuest(value1) && !player->GetQuestRewardStatus(value1))
+                return true;
+            return false;
+        }
         default:
             return false;
     }
@@ -7964,6 +7970,7 @@ bool PlayerCondition::IsValid(ConditionType condition, uint32 value1, uint32 val
         case CONDITION_QUESTREWARDED:
         case CONDITION_QUESTTAKEN:
         case CONDITION_QUESTAVAILABLE:
+        case CONDITION_QUEST_NONE:
         {
             Quest const *Quest = sObjectMgr.GetQuestTemplate(value1);
             if (!Quest)

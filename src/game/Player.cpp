@@ -17797,7 +17797,7 @@ void Player::SendCooldownEvent(SpellEntry const *spellInfo, uint32 itemId, Spell
     data << GetObjectGuid();
     SendDirectMessage(&data);
 }
-                                                           //slot to be excluded while counting
+
 bool Player::EnchantmentFitsRequirements(uint32 enchantmentcondition, int8 slot)
 {
     if(!enchantmentcondition)

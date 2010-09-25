@@ -315,7 +315,9 @@ class Spell
         ~Spell();
 
         void prepare(SpellCastTargets const* targets, Aura* triggeredByAura = NULL);
+
         void cancel();
+
         void update(uint32 difftime);
         void cast(bool skipCheck = false);
         void finish(bool ok = true);
@@ -446,6 +448,9 @@ class Spell
 
         void CleanupTargetList();
     protected:
+        bool HasGlobalCooldown();
+        void TriggerGlobalCooldown();
+        void CancelGlobalCooldown();
 
         void SendLoot(uint64 guid, LootType loottype);
         bool IgnoreItemRequirements() const;                        // some item use spells have unexpected reagent data

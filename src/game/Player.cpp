@@ -494,6 +494,7 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this), m_mover(t
     m_DetectInvTimer = 1*IN_MILLISECONDS;
 
     m_bgBattleGroundID = 0;
+    m_bgTypeID = BATTLEGROUND_TYPE_NONE;
     for (int j=0; j < PLAYER_MAX_BATTLEGROUND_QUEUES; ++j)
     {
         m_bgBattleGroundQueueID[j].bgQueueTypeId  = BATTLEGROUND_QUEUE_NONE;
@@ -14253,7 +14254,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if(!mapEntry || mapEntry->Instanceable() || !MapManager::IsValidMapCoord(m_bgEntryPoint))
             SetBattleGroundEntryPoint(m_homebindMapId,m_homebindX,m_homebindY,m_homebindZ,0.0f);
 
-        BattleGround *currentBg = sBattleGroundMgr.GetBattleGround(bgid);
+        BattleGround *currentBg = sBattleGroundMgr.GetBattleGround(bgid, BATTLEGROUND_TYPE_NONE);
 
         bool player_at_bg = currentBg && currentBg->IsPlayerInBattleGround(GetGUID());
 
@@ -14262,7 +14263,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
             BattleGroundQueueTypeId bgQueueTypeId = sBattleGroundMgr.BGQueueTypeId(currentBg->GetTypeID(), currentBg->GetArenaType());
             uint32 queueSlot = AddBattleGroundQueueId(bgQueueTypeId);
 
-            SetBattleGroundId(currentBg->GetInstanceID());
+            SetBattleGroundId(currentBg->GetInstanceID(), currentBg->GetTypeID());
             SetBGTeam(bgteam);
 
             //join player to battleground group
@@ -18615,7 +18616,7 @@ BattleGround* Player::GetBattleGround() const
     if(GetBattleGroundId()==0)
         return NULL;
 
-    return sBattleGroundMgr.GetBattleGround(GetBattleGroundId());
+    return sBattleGroundMgr.GetBattleGround(GetBattleGroundId(), m_bgTypeID);
 }
 
 bool Player::InArena() const

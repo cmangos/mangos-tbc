@@ -1022,7 +1022,7 @@ void Creature::SaveToDB(uint32 mapid, uint8 spawnMask)
         << m_DBTableGuid << ","
         << GetEntry() << ","
         << mapid <<","
-        << (uint32)spawnMask << ","
+        << uint32(spawnMask) << ","                         // cast to prevent save as symbol
         << displayId <<","
         << GetEquipmentId() <<","
         << GetPositionX() << ","

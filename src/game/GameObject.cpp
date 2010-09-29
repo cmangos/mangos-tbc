@@ -515,7 +515,7 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask)
         << m_DBTableGuid << ", "
         << GetEntry() << ", "
         << mapid << ", "
-        << (uint32)spawnMask << ", "
+        << uint32(spawnMask) << ","                         // cast to prevent save as symbol
         << GetFloatValue(GAMEOBJECT_POS_X) << ", "
         << GetFloatValue(GAMEOBJECT_POS_Y) << ", "
         << GetFloatValue(GAMEOBJECT_POS_Z) << ", "

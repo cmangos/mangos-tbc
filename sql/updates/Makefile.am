@@ -250,7 +250,8 @@ pkgdata_DATA = \
 	s0224_10503_01_characters_creature_respawn.sql \
 	s0224_10503_02_characters_gameobject_respawn.sql \
 	s0224_10503_03_mangos_creature_respawn.sql \
-	s0224_10503_04_mangos_gameobject_respawn.sql
+	s0224_10503_04_mangos_gameobject_respawn.sql \
+	s0251_10537_01_mangos_command.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -479,4 +480,5 @@ EXTRA_DIST = \
 	s0224_10503_01_characters_creature_respawn.sql \
 	s0224_10503_02_characters_gameobject_respawn.sql \
 	s0224_10503_03_mangos_creature_respawn.sql \
-	s0224_10503_04_mangos_gameobject_respawn.sql
+	s0224_10503_04_mangos_gameobject_respawn.sql \
+	s0251_10537_01_mangos_command.sql

@@ -3399,6 +3399,19 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank)
         }
     }
 
+    // for shaman Dual-wield
+    if (CanDualWield())
+    {
+        SpellEntry const *spellInfo = sSpellStore.LookupEntry(spell_id);
+
+        if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_DUAL_WIELD))
+            SetCanDualWield(false);
+    }
+
+    // for talents and normal spell unlearn that allow offhand use for some weapons
+    if(sWorld.getConfig(CONFIG_BOOL_OFFHAND_CHECK_AT_TALENTS_RESET))
+        AutoUnequipOffhandIfNeed();
+
     // remove from spell book if not replaced by lesser rank
     if(!prev_activate)
     {
@@ -6496,6 +6509,9 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
     // if player resurrected at teleport this will be applied in resurrect code
     if(isAlive())
         DestroyZoneLimitedItem( true, newZone );
+
+    // check some item equip limitations (in result lost CanTitanGrip at talent reset, for example)
+    AutoUnequipOffhandIfNeed();
 
     // recent client version not send leave/join channel packets for built-in local channels
     UpdateLocalChannels( newZone );
@@ -18826,7 +18842,8 @@ void Player::AutoUnequipOffhandIfNeed()
         return;
 
     // need unequip offhand for 2h-weapon
-    if (!IsTwoHandUsed())
+    if ((CanDualWield() || offItem->GetProto()->InventoryType == INVTYPE_SHIELD || offItem->GetProto()->InventoryType == INVTYPE_HOLDABLE) &&
+        !IsTwoHandUsed())
         return;
 
     ItemPosCountVec off_dest;

@@ -312,6 +312,8 @@ class BattleGroundAV : public BattleGround
         virtual void OnObjectDBLoad(Creature* creature);
         virtual void OnCreatureRespawn(Creature* creature);
 
+        virtual void StartingEventCloseDoors();
+        virtual void StartingEventOpenDoors();
         // world states
         virtual void FillInitialWorldStates(WorldPacket& data, uint32& count);
 

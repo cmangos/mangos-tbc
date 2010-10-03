@@ -103,14 +103,19 @@ enum BattleGroundTimeIntervals
     INVITE_ACCEPT_WAIT_TIME         = 80000,                // ms
     TIME_TO_AUTOREMOVE              = 120000,               // ms
     MAX_OFFLINE_TIME                = 300000,               // ms
-    START_DELAY0                    = 120000,               // ms
-    START_DELAY1                    = 60000,                // ms
-    START_DELAY2                    = 30000,                // ms
-    START_DELAY3                    = 15000,                // ms used only in arena
     RESPAWN_ONE_DAY                 = 86400,                // secs
     RESPAWN_IMMEDIATELY             = 0,                    // secs
     BUFF_RESPAWN_TIME               = 180,                  // secs
     ARENA_SPAWN_BUFF_OBJECTS        = 90000,                // ms - 90sec after start
+};
+
+enum BattleGroundStartTimeIntervals
+{
+    BG_START_DELAY_2M               = 120000,               // ms (2 minutes)
+    BG_START_DELAY_1M               = 60000,                // ms (1 minute)
+    BG_START_DELAY_30S              = 30000,                // ms (30 seconds)
+    BG_START_DELAY_15S              = 15000,                // ms (15 seconds) Used only in arena
+    BG_START_DELAY_NONE             = 0,                    // ms
 };
 
 enum BattleGroundBuffObjects
@@ -218,6 +223,24 @@ enum BattleGroundTeamId
 };
 #define BG_TEAMS_COUNT  2
 
+enum BattleGroundStartingEvents
+{
+    BG_STARTING_EVENT_NONE  = 0x00,
+    BG_STARTING_EVENT_1     = 0x01,
+    BG_STARTING_EVENT_2     = 0x02,
+    BG_STARTING_EVENT_3     = 0x04,
+    BG_STARTING_EVENT_4     = 0x08
+};
+
+enum BattleGroundStartingEventsIds
+{
+    BG_STARTING_EVENT_FIRST     = 0,
+    BG_STARTING_EVENT_SECOND    = 1,
+    BG_STARTING_EVENT_THIRD     = 2,
+    BG_STARTING_EVENT_FOURTH    = 3
+};
+#define BG_STARTING_EVENT_COUNT 4
+
 enum BattleGroundJoinError
 {
     BG_JOIN_ERR_OK = 0,
@@ -270,6 +293,8 @@ class BattleGround
             return true;
         }
         virtual void Reset();                               // resets all common properties for battlegrounds, must be implemented and called in BG subclass
+        virtual void StartingEventCloseDoors() {}
+        virtual void StartingEventOpenDoors() {}
 
         /* Battleground */
         // Get methods:
@@ -392,12 +417,11 @@ class BattleGround
         void BlockMovement(Player *plr);
 
         // must be remopved at full backport
-        void SendMessageToAll(char const* text);
-        void SendMessageToAll(int32 entry);
+        void SendMessageToAll(char const* text, ChatMsg type);
 
         void SendMessageToAll(int32 entry, ChatMsg type, Player const* source = NULL);
         void SendYellToAll(int32 entry, uint32 language, uint64 const& guid);
-        void PSendMessageToAll(int32 entry, ...  );         // partly backported API
+        void PSendMessageToAll(int32 entry, ChatMsg type, ...  );
 
         // specialized version with 2 string id args
         void SendYell2ToAll(int32 entry, uint32 language, uint64 const& guid, int32 arg1, int32 arg2);
@@ -424,6 +448,7 @@ class BattleGround
         uint32 GetArenaTeamIdForTeam(uint32 Team) const             { return m_ArenaTeamIds[GetTeamIndexByTeamId(Team)]; }
         void SetArenaTeamRatingChangeForTeam(uint32 Team, int32 RatingChange) { m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)] = RatingChange; }
         int32 GetArenaTeamRatingChangeForTeam(uint32 Team) const    { return m_ArenaTeamRatingChanges[GetTeamIndexByTeamId(Team)]; }
+        void CheckArenaWinConditions();
 
         /* Triggers handle */
         // must be implemented in BG subclass
@@ -436,6 +461,7 @@ class BattleGround
         virtual void EventPlayerDroppedFlag(Player* /*player*/) {}
         virtual void EventPlayerClickedOnFlag(Player* /*player*/, GameObject* /*target_obj*/) {}
         virtual void EventPlayerCapturedFlag(Player* /*player*/) {}
+        void EventPlayerLoggedOut(Player* player);
 
         /* Death related */
         virtual WorldSafeLocsEntry const* GetClosestGraveYard(Player* player);
@@ -531,6 +557,9 @@ class BattleGround
         these are important variables used for starting messages
         */
         uint8 m_Events;
+        BattleGroundStartTimeIntervals  m_StartDelayTimes[BG_STARTING_EVENT_COUNT];
+        //this must be filled in constructors!
+        uint32 m_StartMessageIds[BG_STARTING_EVENT_COUNT];
 
         bool   m_BuffChange;
 

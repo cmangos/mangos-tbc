@@ -41,6 +41,8 @@ class BattleGroundRL : public BattleGround
         virtual void AddPlayer(Player *plr);
         virtual void Reset();
         virtual void FillInitialWorldStates(WorldPacket &d, uint32& count);
+        virtual void StartingEventCloseDoors();
+        virtual void StartingEventOpenDoors();
 
         void RemovePlayer(Player *plr, uint64 guid);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);

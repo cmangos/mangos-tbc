@@ -34,6 +34,11 @@ BattleGroundAB::BattleGroundAB()
 {
     m_BuffChange = true;
     m_BgObjects.resize(BG_AB_OBJECT_MAX);
+
+    m_StartMessageIds[BG_STARTING_EVENT_FIRST]  = 0;
+    m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_AB_START_ONE_MINUTE;
+    m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_AB_START_HALF_MINUTE;
+    m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_AB_HAS_BEGUN;
 }
 
 BattleGroundAB::~BattleGroundAB()
@@ -44,67 +49,9 @@ void BattleGroundAB::Update(uint32 diff)
 {
     BattleGround::Update(diff);
 
-    if (GetStatus() == STATUS_WAIT_JOIN && GetPlayersSize())
+    if (GetStatus() == STATUS_IN_PROGRESS)
     {
-        ModifyStartDelayTime(diff);
-
-        if (!(m_Events & 0x01))
-        {
-            m_Events |= 0x01;
-
-            // setup here, only when at least one player has ported to the map
-            if (!SetupBattleGround())
-            {
-                EndNow();
-                return;
-            }
-
-            DEBUG_LOG("Arathi Basin: entering state STATUS_WAIT_JOIN ...");
-
-            // despawn buffs
-            for (int i = 0; i < BG_AB_NODES_MAX * 3; ++i)
-                SpawnBGObject(m_BgObjects[BG_AB_OBJECT_SPEEDBUFF_STABLES + i], RESPAWN_ONE_DAY);
-
-            SetStartDelayTime(START_DELAY0);
-        }
-        // After 1 minute, warning is signalled
-        else if (GetStartDelayTime() <= START_DELAY1 && !(m_Events & 0x04))
-        {
-            m_Events |= 0x04;
-            SendMessageToAll(GetMangosString(LANG_BG_AB_ONEMINTOSTART));
-        }
-        // After 1,5 minute, warning is signalled
-        else if (GetStartDelayTime() <= START_DELAY2 && !(m_Events & 0x08))
-        {
-            m_Events |= 0x08;
-            SendMessageToAll(GetMangosString(LANG_BG_AB_HALFMINTOSTART));
-        }
-        // After 2 minutes, gates OPEN ! x)
-        else if (GetStartDelayTime() < 0 && !(m_Events & 0x10))
-        {
-            m_Events |= 0x10;
-            SendMessageToAll(GetMangosString(LANG_BG_AB_STARTED));
-
-            for (int i = 0; i < BG_AB_NODES_MAX; ++i)
-            {
-                //randomly select buff to spawn
-                uint8 buff = urand(0, 2);
-                SpawnBGObject(m_BgObjects[BG_AB_OBJECT_SPEEDBUFF_STABLES + buff + i * 3], RESPAWN_IMMEDIATELY);
-            }
-            OpenDoorEvent(BG_EVENT_DOOR);
-
-            PlaySoundToAll(SOUND_BG_START);
-            SetStatus(STATUS_IN_PROGRESS);
-
-            for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-                if (Player* plr = sObjectMgr.GetPlayer(itr->first))
-                    plr->RemoveAurasDueToSpell(SPELL_PREPARATION);
-        }
-
-    }
-    else if (GetStatus() == STATUS_IN_PROGRESS)
-    {
-        int team_points[2] = { 0, 0 };
+        int team_points[BG_TEAMS_COUNT] = { 0, 0 };
 
         for (int node = 0; node < BG_AB_NODES_MAX; ++node)
         {
@@ -135,7 +82,7 @@ void BattleGroundAB::Update(uint32 diff)
                     // create new occupied banner
                     _CreateBanner(node, BG_AB_NODE_TYPE_OCCUPIED, teamIndex, true);
                     _SendNodeUpdate(node);
-                    _NodeOccupied(node,(teamIndex == BG_TEAM_ALLIANCE) ? ALLIANCE:HORDE);
+                    _NodeOccupied(node,(teamIndex == 0) ? ALLIANCE:HORDE);
                     // Message to chatlog
                     char buf[256];
                     uint8 type = (teamIndex == BG_TEAM_ALLIANCE) ? CHAT_MSG_BG_SYSTEM_ALLIANCE : CHAT_MSG_BG_SYSTEM_HORDE;
@@ -178,9 +125,9 @@ void BattleGroundAB::Update(uint32 diff)
                 if (!m_IsInformedNearVictory && m_TeamScores[team] > BG_AB_WARNING_NEAR_VICTORY_SCORE)
                 {
                     if (team == BG_TEAM_ALLIANCE)
-                        SendMessageToAll(GetMangosString(LANG_BG_AB_A_NEAR_VICTORY));
+                        SendMessageToAll(GetMangosString(LANG_BG_AB_A_NEAR_VICTORY), CHAT_MSG_BG_SYSTEM_NEUTRAL);
                     else
-                        SendMessageToAll(GetMangosString(LANG_BG_AB_H_NEAR_VICTORY));
+                        SendMessageToAll(GetMangosString(LANG_BG_AB_H_NEAR_VICTORY), CHAT_MSG_BG_SYSTEM_NEUTRAL);
                     PlaySoundToAll(BG_AB_SOUND_NEAR_VICTORY);
                     m_IsInformedNearVictory = true;
                 }
@@ -200,6 +147,24 @@ void BattleGroundAB::Update(uint32 diff)
         if (m_TeamScores[BG_TEAM_HORDE] >= BG_AB_MAX_TEAM_SCORE)
             EndBattleGround(HORDE);
     }
+}
+
+void BattleGroundAB::StartingEventCloseDoors()
+{
+    // despawn buffs
+    for (int i = 0; i < BG_AB_NODES_MAX * 3; ++i)
+        SpawnBGObject(m_BgObjects[BG_AB_OBJECT_SPEEDBUFF_STABLES + i], RESPAWN_ONE_DAY);
+}
+
+void BattleGroundAB::StartingEventOpenDoors()
+{
+    for (int i = 0; i < BG_AB_NODES_MAX; ++i)
+    {
+        //randomly select buff to spawn
+        uint8 buff = urand(0, 2);
+        SpawnBGObject(m_BgObjects[BG_AB_OBJECT_SPEEDBUFF_STABLES + buff + i * 3], RESPAWN_IMMEDIATELY);
+    }
+    OpenDoorEvent(BG_EVENT_DOOR);
 }
 
 void BattleGroundAB::AddPlayer(Player *plr)
@@ -484,7 +449,7 @@ void BattleGroundAB::Reset()
     }
 
     m_IsInformedNearVictory                 = false;
-    bool isBGWeekend = sBattleGroundMgr.IsBGWeekend(GetTypeID());
+    bool isBGWeekend = BattleGroundMgr::IsBGWeekend(GetTypeID());
     m_HonorTics = (isBGWeekend) ? BG_AB_ABBGWeekendHonorTicks : BG_AB_NotABBGWeekendHonorTicks;
     m_ReputationTics = (isBGWeekend) ? BG_AB_ABBGWeekendReputationTicks : BG_AB_NotABBGWeekendReputationTicks;
 

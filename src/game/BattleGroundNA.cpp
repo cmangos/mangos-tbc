@@ -26,6 +26,15 @@
 
 BattleGroundNA::BattleGroundNA()
 {
+    m_StartDelayTimes[BG_STARTING_EVENT_FIRST]  = BG_START_DELAY_1M;
+    m_StartDelayTimes[BG_STARTING_EVENT_SECOND] = BG_START_DELAY_30S;
+    m_StartDelayTimes[BG_STARTING_EVENT_THIRD]  = BG_START_DELAY_15S;
+    m_StartDelayTimes[BG_STARTING_EVENT_FOURTH] = BG_START_DELAY_NONE;
+    //we must set messageIds
+    m_StartMessageIds[BG_STARTING_EVENT_FIRST]  = LANG_ARENA_ONE_MINUTE;
+    m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_ARENA_THIRTY_SECONDS;
+    m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_ARENA_FIFTEEN_SECONDS;
+    m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_ARENA_HAS_BEGUN;
 }
 
 BattleGroundNA::~BattleGroundNA()
@@ -37,61 +46,19 @@ void BattleGroundNA::Update(uint32 diff)
 {
     BattleGround::Update(diff);
 
-    // after bg start we get there
-    if (GetStatus() == STATUS_WAIT_JOIN && GetPlayersSize())
-    {
-        ModifyStartDelayTime(diff);
-
-        if (!(m_Events & 0x01))
-        {
-            m_Events |= 0x01;
-            // setup here, only when at least one player has ported to the map
-            if(!SetupBattleGround())
-            {
-                EndNow();
-                return;
-            }
-            SetStartDelayTime(START_DELAY1);
-            SendMessageToAll(LANG_ARENA_ONE_MINUTE);
-        }
-        // After 30 seconds, warning is signalled
-        else if (GetStartDelayTime() <= START_DELAY2 && !(m_Events & 0x04))
-        {
-            m_Events |= 0x04;
-            SendMessageToAll(LANG_ARENA_THIRTY_SECONDS);
-        }
-        // After 15 seconds, warning is signalled
-        else if (GetStartDelayTime() <= START_DELAY3 && !(m_Events & 0x08))
-        {
-            m_Events |= 0x08;
-            SendMessageToAll(LANG_ARENA_FIFTEEN_SECONDS);
-        }
-        // delay expired (1 minute)
-        else if (GetStartDelayTime() <= 0 && !(m_Events & 0x10))
-        {
-            m_Events |= 0x10;
-
-            OpenDoorEvent(BG_EVENT_DOOR);
-
-            SendMessageToAll(LANG_ARENA_BEGUN);
-            SetStatus(STATUS_IN_PROGRESS);
-            SetStartDelayTime(0);
-
-            for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-                if(Player *plr = sObjectMgr.GetPlayer(itr->first))
-                    plr->RemoveAurasDueToSpell(SPELL_ARENA_PREPARATION);
-
-            if(!GetPlayersCountByTeam(ALLIANCE) && GetPlayersCountByTeam(HORDE))
-                EndBattleGround(HORDE);
-            else if(GetPlayersCountByTeam(ALLIANCE) && !GetPlayersCountByTeam(HORDE))
-                EndBattleGround(ALLIANCE);
-        }
-    }
-
     /*if(GetStatus() == STATUS_IN_PROGRESS)
     {
         // update something
     }*/
+}
+
+void BattleGroundNA::StartingEventCloseDoors()
+{
+}
+
+void BattleGroundNA::StartingEventOpenDoors()
+{
+    OpenDoorEvent(BG_EVENT_DOOR);
 }
 
 void BattleGroundNA::AddPlayer(Player *plr)
@@ -114,10 +81,7 @@ void BattleGroundNA::RemovePlayer(Player* /*plr*/, uint64 /*guid*/)
     UpdateWorldState(0xa0f, GetAlivePlayersCountByTeam(ALLIANCE));
     UpdateWorldState(0xa10, GetAlivePlayersCountByTeam(HORDE));
 
-    if(!GetAlivePlayersCountByTeam(ALLIANCE) && GetPlayersCountByTeam(HORDE))
-        EndBattleGround(HORDE);
-    else if(GetPlayersCountByTeam(ALLIANCE) && !GetAlivePlayersCountByTeam(HORDE))
-        EndBattleGround(ALLIANCE);
+    CheckArenaWinConditions();
 }
 
 void BattleGroundNA::HandleKillPlayer(Player *player, Player *killer)
@@ -136,16 +100,7 @@ void BattleGroundNA::HandleKillPlayer(Player *player, Player *killer)
     UpdateWorldState(0xa0f, GetAlivePlayersCountByTeam(ALLIANCE));
     UpdateWorldState(0xa10, GetAlivePlayersCountByTeam(HORDE));
 
-    if(!GetAlivePlayersCountByTeam(ALLIANCE))
-    {
-        // all opponents killed
-        EndBattleGround(HORDE);
-    }
-    else if(!GetAlivePlayersCountByTeam(HORDE))
-    {
-        // all opponents killed
-        EndBattleGround(ALLIANCE);
-    }
+    CheckArenaWinConditions();
 }
 
 bool BattleGroundNA::HandlePlayerUnderMap(Player *player)

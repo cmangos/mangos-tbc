@@ -38,6 +38,11 @@ BattleGroundEY::BattleGroundEY()
     m_Points_Trigger[BG_EY_NODE_BLOOD_ELF]     = TR_BLOOD_ELF_BUFF;
     m_Points_Trigger[BG_EY_NODE_DRAENEI_RUINS] = TR_DRAENEI_RUINS_BUFF;
     m_Points_Trigger[BG_EY_NODE_MAGE_TOWER]    = TR_MAGE_TOWER_BUFF;
+
+    m_StartMessageIds[BG_STARTING_EVENT_FIRST]  = 0;
+    m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_EY_START_ONE_MINUTE;
+    m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_EY_START_HALF_MINUTE;
+    m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_EY_HAS_BEGUN;
 }
 
 BattleGroundEY::~BattleGroundEY()
@@ -47,61 +52,8 @@ BattleGroundEY::~BattleGroundEY()
 void BattleGroundEY::Update(uint32 diff)
 {
     BattleGround::Update(diff);
-    // after bg start we get there (once)
-    if (GetStatus() == STATUS_WAIT_JOIN && GetPlayersSize())
-    {
-        ModifyStartDelayTime(diff);
 
-        if(!(m_Events & 0x01))
-        {
-            m_Events |= 0x01;
-
-            // setup here, only when at least one player has ported to the map
-            if(!SetupBattleGround())
-            {
-                EndNow();
-                return;
-            }
-
-            SetStartDelayTime(START_DELAY0);
-        }
-        // After 1 minute, warning is signalled
-        else if(GetStartDelayTime() <= START_DELAY1 && !(m_Events & 0x04))
-        {
-            m_Events |= 0x04;
-            SendMessageToAll(GetMangosString(LANG_BG_EY_ONE_MINUTE));
-        }
-        // After 1,5 minute, warning is signalled
-        else if(GetStartDelayTime() <= START_DELAY2 && !(m_Events & 0x08))
-        {
-            m_Events |= 0x08;
-            SendMessageToAll(GetMangosString(LANG_BG_EY_HALF_MINUTE));
-        }
-        // After 2 minutes, gates OPEN ! x)
-        else if(GetStartDelayTime() < 0 && !(m_Events & 0x10))
-        {
-            m_Events |= 0x10;
-            // eye-doors are despawned, not opened
-            SpawnEvent(BG_EVENT_DOOR, 0, false);
-
-            for(uint32 i = 0; i < BG_EY_NODES_MAX; ++i)
-            {
-                //randomly spawn buff
-                uint8 buff = urand(0, 2);
-                SpawnBGObject(m_BgObjects[BG_EY_OBJECT_SPEEDBUFF_FEL_REAVER + buff + i * 3], RESPAWN_IMMEDIATELY);
-            }
-
-            SendMessageToAll(GetMangosString(LANG_BG_EY_BEGIN));
-
-            PlaySoundToAll(SOUND_BG_START);
-            SetStatus(STATUS_IN_PROGRESS);
-
-            for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-                if(Player *plr = sObjectMgr.GetPlayer(itr->first))
-                    plr->RemoveAurasDueToSpell(SPELL_PREPARATION);
-        }
-    }
-    else if(GetStatus() == STATUS_IN_PROGRESS)
+    if (GetStatus() == STATUS_IN_PROGRESS)
     {
         m_PointAddingTimer -= diff;
         if (m_PointAddingTimer <= 0)
@@ -140,6 +92,23 @@ void BattleGroundEY::Update(uint32 diff)
             UpdatePointStatuses();
             m_TowerCapCheckTimer = BG_EY_FPOINTS_TICK_TIME;
         }
+    }
+}
+
+void BattleGroundEY::StartingEventCloseDoors()
+{
+}
+
+void BattleGroundEY::StartingEventOpenDoors()
+{
+    // eye-doors are despawned, not opened
+    SpawnEvent(BG_EVENT_DOOR, 0, false);
+
+    for(uint32 i = 0; i < BG_EY_NODES_MAX; ++i)
+    {
+        //randomly spawn buff
+        uint8 buff = urand(0, 2);
+        SpawnBGObject(m_BgObjects[BG_EY_OBJECT_SPEEDBUFF_FEL_REAVER + buff + i * 3], RESPAWN_IMMEDIATELY);
     }
 }
 
@@ -277,16 +246,6 @@ void BattleGroundEY::UpdatePointStatuses()
 void BattleGroundEY::UpdateTeamScore(uint32 Team)
 {
     uint32 score = GetTeamScore(Team);
-    //TODO there should be some sound played when one team is near victory!! - and define variables
-    /*if (!m_IsInformedNearVictory && score >= BG_EY_WARNING_NEAR_VICTORY_SCORE)
-    {
-        if (Team == ALLIANCE)
-            SendMessageToAll(LANG_BG_EY_A_NEAR_VICTORY, CHAT_MSG_BG_SYSTEM_NEUTRAL);
-        else
-            SendMessageToAll(LANG_BG_EY_H_NEAR_VICTORY, CHAT_MSG_BG_SYSTEM_NEUTRAL);
-        PlaySoundToAll(BG_EY_SOUND_NEAR_VICTORY);
-        m_IsInformedNearVictory = true;
-    }*/
 
     if (score >= BG_EY_MAX_TEAM_SCORE)
     {
@@ -464,7 +423,7 @@ void BattleGroundEY::Reset()
     m_DroppedFlagGUID = 0;
     m_PointAddingTimer = 0;
     m_TowerCapCheckTimer = 0;
-    bool isBGWeekend = sBattleGroundMgr.IsBGWeekend(GetTypeID());
+    bool isBGWeekend = BattleGroundMgr::IsBGWeekend(GetTypeID());
     m_HonorTics = (isBGWeekend) ? BG_EY_EYWeekendHonorTicks : BG_EY_NotEYWeekendHonorTicks;
 
 
@@ -492,7 +451,7 @@ void BattleGroundEY::RespawnFlag(bool send_message)
 
     if (send_message)
     {
-        SendMessageToAll(GetMangosString(LANG_BG_EY_RESETED_FLAG));
+        SendMessageToAll(GetMangosString(LANG_BG_EY_RESETED_FLAG), CHAT_MSG_BG_SYSTEM_NEUTRAL);
         PlaySoundToAll(BG_EY_SOUND_FLAG_RESET);             // flags respawned sound...
     }
 

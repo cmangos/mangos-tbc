@@ -28,6 +28,10 @@
 
 BattleGroundAV::BattleGroundAV()
 {
+    m_StartMessageIds[BG_STARTING_EVENT_FIRST]  = 0;
+    m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_AV_START_ONE_MINUTE;
+    m_StartMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_BG_AV_START_HALF_MINUTE;
+    m_StartMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_BG_AV_HAS_BEGUN;
 }
 
 BattleGroundAV::~BattleGroundAV()
@@ -250,56 +254,6 @@ void BattleGroundAV::Update(uint32 diff)
 {
     BattleGround::Update(diff);
 
-    if (GetStatus() == STATUS_WAIT_JOIN && GetPlayersSize())
-    {
-        ModifyStartDelayTime(diff);
-
-        if (!(m_Events & 0x01))
-        {
-            m_Events |= 0x01;
-
-            if(!SetupBattleGround())
-            {
-                EndNow();
-                return;
-            }
-
-            DEBUG_LOG("Alterac Valley: entering state STATUS_WAIT_JOIN ...");
-            SetStartDelayTime(START_DELAY0);
-        }
-        // After 1 minute, warning is signalled
-        else if (GetStartDelayTime() <= START_DELAY1 && !(m_Events & 0x04))
-        {
-            m_Events |= 0x04;
-            SendMessageToAll(GetMangosString(LANG_BG_AV_START_ONE_MINUTE));
-        }
-        // After 1,5 minute, warning is signalled
-        else if (GetStartDelayTime() <= START_DELAY2 && !(m_Events & 0x08))
-        {
-            m_Events |= 0x08;
-            SendMessageToAll(GetMangosString(LANG_BG_AV_START_HALF_MINUTE));
-        }
-        // After 2 minutes, gates OPEN ! x)
-        else if (GetStartDelayTime() <= 0 && !(m_Events & 0x10))
-        {
-            UpdateWorldState(BG_AV_SHOW_H_SCORE, 1);
-            UpdateWorldState(BG_AV_SHOW_A_SCORE, 1);
-
-            m_Events |= 0x10;
-
-            SendMessageToAll(GetMangosString(LANG_BG_AV_HAS_BEGUN));
-            PlaySoundToAll(SOUND_BG_START);
-            SetStatus(STATUS_IN_PROGRESS);
-
-            OpenDoorEvent(BG_EVENT_DOOR);
-
-            for(BattleGroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
-                if(Player* plr = sObjectMgr.GetPlayer(itr->first))
-                    plr->RemoveAurasDueToSpell(SPELL_PREPARATION);
-        }
-    }
-
-
     if (GetStatus() != STATUS_IN_PROGRESS)
         return;
 
@@ -333,6 +287,16 @@ void BattleGroundAV::Update(uint32 diff)
                 EventPlayerDestroyedPoint(i);
         }
     }
+}
+
+void BattleGroundAV::StartingEventCloseDoors()
+{
+    DEBUG_LOG("BattleGroundAV: entering state STATUS_WAIT_JOIN ...");
+}
+
+void BattleGroundAV::StartingEventOpenDoors()
+{
+    OpenDoorEvent(BG_EVENT_DOOR);
 }
 
 void BattleGroundAV::AddPlayer(Player *plr)

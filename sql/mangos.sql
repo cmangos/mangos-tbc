@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0251_10537_01_mangos_command` bit(1) default NULL
+  `required_s0262_xxxxx_01_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -15057,13 +15057,13 @@ INSERT INTO `spell_bonus_data` VALUES
 (20167, 0.25,   0,       0.16,  'Paladin - Seal of Light Proc'),
 (25742, 0.07,   0,       0.039, 'Paladin - Seal of Righteousness Dummy Proc'),
 /* Priest */
-(32546, 0.8068, 0,       0,     'Priest - Binding Heal'),
+(32546, 0.4286, 0,       0,     'Priest - Binding Heal'),
 (34861, 0.402,  0,       0,     'Priest - Circle of Healing'),
-(13908, 0.8068, 0,       0,     'Priest - Desperate Prayer'),
+(13908, 0.4286, 0,       0,     'Priest - Desperate Prayer'),
 (2944,  0.1849, 0,       0,     'Priest - Devouring Plague'),
 (379,   0,      0,       0,     'Shaman - Earth Shield Triggered'),
-(2061,  0.8068, 0,       0,     'Priest - Flash Heal'),
-(2060,  1.6135, 0,       0,     'Priest - Greater Heal'),
+(2061,  0.6177, 0,       0,     'Priest - Flash Heal'),
+(2060,  1.2353, 0,       0,     'Priest - Greater Heal'),
 (14914, 0.5711, 0.024,   0,     'Priest - Holy Fire'),
 (15237, 0.1606, 0,       0,     'Priest - Holy Nova Damage'),
 (23455, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 1'),
@@ -15077,7 +15077,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (8092,  0.4296, 0,       0,     'Priest - Mind Blast'),
 (15407, 0.257,  0,       0,     'Priest - Mind Flay'),
 (17,    0.8068, 0,       0,     'Priest - Power Word: Shield'),
-(596,   0.8086, 0,       0,     'Priest - Prayer of Healing'),
+(596,   0.4285, 0,       0,     'Priest - Prayer of Healing'),
 (33110, 0.8068, 0,       0,     'Priest - Prayer of Mending Heal Proc'),
 (139,   0,      0.376,   0,     'Priest - Renew'),
 (34433, 0.65,   0,       0,     'Priest - Shadowfiend'),
@@ -15112,6 +15112,11 @@ INSERT INTO `spell_bonus_data` VALUES
 (16352, 0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 4'),
 (16353, 0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 5'),
 (25501, 0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 6'),
+(5672,  0.0450, 0,       0,     'Shaman - Healing Stream Totem Rank 1'),
+(6371,  0.0450, 0,       0,     'Shaman - Healing Stream Totem Rank 2'),
+(6372,  0.0450, 0,       0,     'Shaman - Healing Stream Totem Rank 3'),
+(10460, 0.0450, 0,       0,     'Shaman - Healing Stream Totem Rank 4'),
+(10461, 0.0450, 0,       0,     'Shaman - Healing Stream Totem Rank 5'),
 (331,   1.6106, 0,       0,     'Shaman - Healing Wave'),
 (8004,  0.8082, 0,       0,     'Shaman - Lesser Healing Wave'),
 (403,   0.7143, 0,       0,     'Shaman - Lightning Bolt'),

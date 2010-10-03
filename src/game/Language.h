@@ -624,8 +624,9 @@ enum MangosStrings
     LANG_BG_EY_START_HALF_MINUTE        = 637,
     LANG_BG_EY_HAS_BEGUN                = 638,
 
-    LANG_BG_AB_ALLY                     = 650,
-    LANG_BG_AB_HORDE                    = 651,
+    LANG_BG_ALLY                        = 650,
+    LANG_BG_HORDE                       = 651,
+
     LANG_BG_AB_NODE_STABLES             = 652,
     LANG_BG_AB_NODE_BLACKSMITH          = 653,
     LANG_BG_AB_NODE_FARM                = 654,

@@ -401,6 +401,10 @@ class BattleGround
         virtual void FillInitialWorldStates(WorldPacket& /*data*/, uint32& /*count*/) {}
         void SendPacketToTeam(uint32 TeamID, WorldPacket *packet, Player *sender = NULL, bool self = true);
         void SendPacketToAll(WorldPacket *packet);
+
+        template<class Do>
+        void BroadcastWorker(Do& _do);
+
         void PlaySoundToTeam(uint32 SoundID, uint32 TeamID);
         void PlaySoundToAll(uint32 SoundID);
         void CastSpellOnTeam(uint32 SpellID, uint32 TeamID);
@@ -416,14 +420,12 @@ class BattleGround
         void EndBattleGround(uint32 winner);
         void BlockMovement(Player *plr);
 
-        // must be remopved at full backport
-        void SendMessageToAll(char const* text, ChatMsg type);
-
         void SendMessageToAll(int32 entry, ChatMsg type, Player const* source = NULL);
         void SendYellToAll(int32 entry, uint32 language, uint64 const& guid);
-        void PSendMessageToAll(int32 entry, ChatMsg type, ...  );
+        void PSendMessageToAll(int32 entry, ChatMsg type, Player const* source, ...  );
 
         // specialized version with 2 string id args
+        void SendMessage2ToAll(int32 entry, ChatMsg type, Player const* source, int32 strId1 = 0, int32 strId2 = 0);
         void SendYell2ToAll(int32 entry, uint32 language, uint64 const& guid, int32 arg1, int32 arg2);
 
         /* Raid Group */
@@ -509,7 +511,6 @@ class BattleGround
 
         void DoorOpen(uint64 const& guid);
         void DoorClose(uint64 const& guid);
-        const char *GetMangosString(int32 entry);
 
         virtual bool HandlePlayerUnderMap(Player * /*plr*/) { return false; }
 

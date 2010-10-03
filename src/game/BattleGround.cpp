@@ -23,16 +23,187 @@
 #include "Creature.h"
 #include "MapManager.h"
 #include "Language.h"
-#include "Chat.h"
 #include "SpellAuras.h"
 #include "ArenaTeam.h"
-#include "World.h"
 #include "Group.h"
 #include "ObjectGuid.h"
 #include "ObjectMgr.h"
 #include "Mail.h"
 #include "WorldPacket.h"
+#include "Util.h"
 #include "Formulas.h"
+#include "GridNotifiersImpl.h"
+
+namespace MaNGOS
+{
+    class BattleGroundChatBuilder
+    {
+        public:
+            BattleGroundChatBuilder(ChatMsg msgtype, int32 textId, Player const* source, va_list* args = NULL)
+                : i_msgtype(msgtype), i_textId(textId), i_source(source), i_args(args) {}
+            void operator()(WorldPacket& data, int32 loc_idx)
+            {
+                char const* text = sObjectMgr.GetMangosString(i_textId,loc_idx);
+
+                if (i_args)
+                {
+                    // we need copy va_list before use or original va_list will corrupted
+                    va_list ap;
+                    va_copy(ap,*i_args);
+
+                    char str [2048];
+                    vsnprintf(str,2048,text, ap );
+                    va_end(ap);
+
+                    do_helper(data,&str[0]);
+                }
+                else
+                    do_helper(data,text);
+            }
+        private:
+            void do_helper(WorldPacket& data, char const* text)
+            {
+                uint64 target_guid = i_source  ? i_source ->GetGUID() : 0;
+
+                data << uint8(i_msgtype);
+                data << uint32(LANG_UNIVERSAL);
+                data << uint64(target_guid);                // there 0 for BG messages
+                data << uint32(0);                          // can be chat msg group or something
+                data << uint64(target_guid);
+                data << uint32(strlen(text)+1);
+                data << text;
+                data << uint8(i_source ? i_source->chatTag() : uint8(0));
+            }
+
+            ChatMsg i_msgtype;
+            int32 i_textId;
+            Player const* i_source;
+            va_list* i_args;
+    };
+
+    class BattleGroundYellBuilder
+    {
+        public:
+            BattleGroundYellBuilder(uint32 language, int32 textId, Creature const* source, va_list* args = NULL)
+                : i_language(language), i_textId(textId), i_source(source), i_args(args) {}
+            void operator()(WorldPacket& data, int32 loc_idx)
+            {
+                char const* text = sObjectMgr.GetMangosString(i_textId,loc_idx);
+
+                if(i_args)
+                {
+                    // we need copy va_list before use or original va_list will corrupted
+                    va_list ap;
+                    va_copy(ap,*i_args);
+
+                    char str [2048];
+                    vsnprintf(str,2048,text, ap );
+                    va_end(ap);
+
+                    do_helper(data,&str[0]);
+                }
+                else
+                    do_helper(data,text);
+            }
+        private:
+            void do_helper(WorldPacket& data, char const* text)
+            {
+                //copyied from BuildMonsterChat
+                data << (uint8)CHAT_MSG_MONSTER_YELL;
+                data << (uint32)i_language;
+                data << (uint64)i_source->GetGUID();
+                data << (uint32)0;                                     //2.1.0
+                data << (uint32)(strlen(i_source->GetName())+1);
+                data << i_source->GetName();
+                data << (uint64)0;                            //Unit Target - isn't important for bgs
+                data << (uint32)strlen(text)+1;
+                data << text;
+                data << (uint8)0;                                      // ChatTag - for bgs allways 0?
+            }
+
+            uint32 i_language;
+            int32 i_textId;
+            Creature const* i_source;
+            va_list* i_args;
+    };
+
+
+    class BattleGround2ChatBuilder
+    {
+        public:
+            BattleGround2ChatBuilder(ChatMsg msgtype, int32 textId, Player const* source, int32 arg1, int32 arg2)
+                : i_msgtype(msgtype), i_textId(textId), i_source(source), i_arg1(arg1), i_arg2(arg2) {}
+            void operator()(WorldPacket& data, int32 loc_idx)
+            {
+                char const* text = sObjectMgr.GetMangosString(i_textId,loc_idx);
+                char const* arg1str = i_arg1 ? sObjectMgr.GetMangosString(i_arg1,loc_idx) : "";
+                char const* arg2str = i_arg2 ? sObjectMgr.GetMangosString(i_arg2,loc_idx) : "";
+
+                char str [2048];
+                snprintf(str,2048,text, arg1str, arg2str );
+
+                uint64 target_guid = i_source  ? i_source ->GetGUID() : 0;
+
+                data << uint8(i_msgtype);
+                data << uint32(LANG_UNIVERSAL);
+                data << uint64(target_guid);                // there 0 for BG messages
+                data << uint32(0);                          // can be chat msg group or something
+                data << uint64(target_guid);
+                data << uint32(strlen(str)+1);
+                data << str;
+                data << uint8(i_source ? i_source->chatTag() : uint8(0));
+            }
+        private:
+
+            ChatMsg i_msgtype;
+            int32 i_textId;
+            Player const* i_source;
+            int32 i_arg1;
+            int32 i_arg2;
+    };
+
+    class BattleGround2YellBuilder
+    {
+        public:
+            BattleGround2YellBuilder(uint32 language, int32 textId, Creature const* source, int32 arg1, int32 arg2)
+                : i_language(language), i_textId(textId), i_source(source), i_arg1(arg1), i_arg2(arg2) {}
+            void operator()(WorldPacket& data, int32 loc_idx)
+            {
+                char const* text = sObjectMgr.GetMangosString(i_textId,loc_idx);
+                char const* arg1str = i_arg1 ? sObjectMgr.GetMangosString(i_arg1,loc_idx) : "";
+                char const* arg2str = i_arg2 ? sObjectMgr.GetMangosString(i_arg2,loc_idx) : "";
+
+                char str [2048];
+                snprintf(str,2048,text, arg1str, arg2str );
+                //copyied from BuildMonsterChat
+                data << (uint8)CHAT_MSG_MONSTER_YELL;
+                data << (uint32)i_language;
+                data << (uint64)i_source->GetGUID();
+                data << (uint32)0;                                     //2.1.0
+                data << (uint32)(strlen(i_source->GetName())+1);
+                data << i_source->GetName();
+                data << (uint64)0;                            //Unit Target - isn't important for bgs
+                data << (uint32)strlen(str)+1;
+                data << str;
+                data << (uint8)0;                                      // ChatTag - for bgs allways 0?
+            }
+        private:
+
+            uint32 i_language;
+            int32 i_textId;
+            Creature const* i_source;
+            int32 i_arg1;
+            int32 i_arg2;
+    };
+}                                                           // namespace MaNGOS
+
+template<class Do>
+void BattleGround::BroadcastWorker(Do& _do)
+{
+    for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+        if (Player *plr = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first)))
+            _do(plr);
+}
 
 BattleGround::BattleGround()
 {
@@ -203,13 +374,13 @@ void BattleGround::Update(uint32 diff)
             if (newtime > (MINUTE * IN_MILLISECONDS))
             {
                 if (newtime / (MINUTE * IN_MILLISECONDS) != m_PrematureCountDownTimer / (MINUTE * IN_MILLISECONDS))
-                    PSendMessageToAll(LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING, CHAT_MSG_SYSTEM, (uint32)(m_PrematureCountDownTimer / (MINUTE * IN_MILLISECONDS)));
+                    PSendMessageToAll(LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING, CHAT_MSG_SYSTEM, NULL, (uint32)(m_PrematureCountDownTimer / (MINUTE * IN_MILLISECONDS)));
             }
             else
             {
                 //announce every 15 seconds
                 if (newtime / (15 * IN_MILLISECONDS) != m_PrematureCountDownTimer / (15 * IN_MILLISECONDS))
-                    PSendMessageToAll(LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING_SECS, CHAT_MSG_SYSTEM, (uint32)(m_PrematureCountDownTimer / IN_MILLISECONDS));
+                    PSendMessageToAll(LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING_SECS, CHAT_MSG_SYSTEM, NULL, (uint32)(m_PrematureCountDownTimer / IN_MILLISECONDS));
             }
             m_PrematureCountDownTimer = newtime;
         }
@@ -492,26 +663,19 @@ void BattleGround::EndBattleGround(uint32 winner)
     uint32 loser_rating = 0;
     uint32 winner_rating = 0;
     WorldPacket data;
-    Player *Source = NULL;
-    const char *winmsg = "";
+    int32 winmsg_id = 0;
 
     if (winner == ALLIANCE)
     {
-        if(isBattleGround())
-            winmsg = GetMangosString(LANG_BG_A_WINS);
-        else
-            winmsg = GetMangosString(LANG_ARENA_GOLD_WINS);
+        winmsg_id = isBattleGround() ? LANG_BG_A_WINS : LANG_ARENA_GOLD_WINS;
 
         PlaySoundToAll(SOUND_ALLIANCE_WINS);                // alliance wins sound
 
         SetWinner(WINNER_ALLIANCE);
     }
-    else if(winner == HORDE)
+    else if (winner == HORDE)
     {
-        if(isBattleGround())
-            winmsg = GetMangosString(LANG_BG_H_WINS);
-        else
-            winmsg = GetMangosString(LANG_ARENA_GREEN_WINS);
+        winmsg_id = isBattleGround() ? LANG_BG_H_WINS : LANG_ARENA_GREEN_WINS;
 
         PlaySoundToAll(SOUND_HORDE_WINS);                   // horde wins sound
 
@@ -528,17 +692,9 @@ void BattleGround::EndBattleGround(uint32 winner)
     // arena rating calculation
     if (isArena() && isRated())
     {
-        if(winner == ALLIANCE)
-        {
-            winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(ALLIANCE));
-            loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(HORDE));
-        }
-        else if(winner == HORDE)
-        {
-            winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(HORDE));
-            loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(ALLIANCE));
-        }
-        if(winner_arena_team && loser_arena_team)
+        winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(winner));
+        loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(winner)));
+        if (winner_arena_team && loser_arena_team)
         {
             loser_rating = loser_arena_team->GetStats().rating;
             winner_rating = winner_arena_team->GetStats().rating;
@@ -594,8 +750,6 @@ void BattleGround::EndBattleGround(uint32 winner)
 
         if (team == winner)
         {
-            if(!Source)
-                Source = plr;
             RewardMark(plr,ITEM_WINNER_COUNT);
             UpdatePlayerScore(plr, SCORE_BONUS_HONOR, 20);
             RewardQuestComplete(plr);
@@ -632,11 +786,8 @@ void BattleGround::EndBattleGround(uint32 winner)
     // inform invited players about the removal
     sBattleGroundMgr.m_BattleGroundQueues[BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType())].BGEndedRemoveInvites(this);
 
-    if(Source)
-    {
-        ChatHandler(Source).FillMessageData(&data, CHAT_MSG_BG_SYSTEM_NEUTRAL, LANG_UNIVERSAL, Source->GetGUID(), winmsg);
-        SendPacketToAll(&data);
-    }
+    if (winmsg_id)
+        SendMessageToAll(winmsg_id, CHAT_MSG_BG_SYSTEM_NEUTRAL);
 }
 
 uint32 BattleGround::GetBonusHonorFromKill(uint32 kills) const
@@ -856,18 +1007,8 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
                 if (isRated() && GetStatus() == STATUS_IN_PROGRESS)
                 {
                     //left a rated match while the encounter was in progress, consider as loser
-                    ArenaTeam * winner_arena_team = 0;
-                    ArenaTeam * loser_arena_team = 0;
-                    if(team == HORDE)
-                    {
-                        winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(ALLIANCE));
-                        loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(HORDE));
-                    }
-                    else
-                    {
-                        winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(HORDE));
-                        loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(ALLIANCE));
-                    }
+                    ArenaTeam * winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
+                    ArenaTeam * loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
                     if (winner_arena_team && loser_arena_team)
                     {
                         loser_arena_team->MemberLost(plr,winner_arena_team->GetRating());
@@ -1392,19 +1533,11 @@ bool BattleGround::DelObject(uint32 type)
     return true;
 }
 
-void BattleGround::SendMessageToAll(char const* text, ChatMsg type)
+void BattleGround::SendMessageToAll(int32 entry, ChatMsg type, Player const* source)
 {
-    WorldPacket data;
-    ChatHandler::FillMessageData(&data, NULL, type, LANG_UNIVERSAL, NULL, 0, text, NULL);
-    SendPacketToAll(&data);
-}
-
-void BattleGround::SendMessageToAll(int32 entry, ChatMsg type, Player const* /*source*/)
-{
-    char const* text = GetMangosString(entry);
-    WorldPacket data;
-    ChatHandler::FillMessageData(&data, NULL, type, LANG_UNIVERSAL, NULL, 0, text, NULL);
-    SendPacketToAll(&data);
+    MaNGOS::BattleGroundChatBuilder bg_builder(type, entry, source);
+    MaNGOS::LocalizedPacketDo<MaNGOS::BattleGroundChatBuilder> bg_do(bg_builder);
+    BroadcastWorker(bg_do);
 }
 
 void BattleGround::SendYellToAll(int32 entry, uint32 language, uint64 const& guid)
@@ -1412,31 +1545,28 @@ void BattleGround::SendYellToAll(int32 entry, uint32 language, uint64 const& gui
     Creature* source = GetBgMap()->GetCreature(guid);
     if(!source)
         return;
-    char buf[256];
-    sprintf(buf, "%s", GetMangosString(entry));
-    for(std::map<uint64, BattleGroundPlayer>::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-    {
-        WorldPacket data(SMSG_MESSAGECHAT, 200);
-        Player *plr = sObjectMgr.GetPlayer(itr->first);
-        if(!plr)
-        {
-            sLog.outError("BattleGround: Player " UI64FMTD " not found!", itr->first);
-            continue;
-        }
-        source->BuildMonsterChat(&data, CHAT_MSG_MONSTER_YELL, buf, language, source->GetName(), itr->first);
-        plr->GetSession()->SendPacket(&data);
-    }
+    MaNGOS::BattleGroundYellBuilder bg_builder(language, entry, source);
+    MaNGOS::LocalizedPacketDo<MaNGOS::BattleGroundYellBuilder> bg_do(bg_builder);
+    BroadcastWorker(bg_do);
 }
 
-void BattleGround::PSendMessageToAll(int32 entry, ChatMsg type, ...)
+void BattleGround::PSendMessageToAll(int32 entry, ChatMsg type, Player const* source, ...)
 {
-    const char *format = GetMangosString(entry);
     va_list ap;
-    char str [2048];
-    va_start(ap, type);
-    vsnprintf(str,2048,format, ap );
+    va_start(ap, source);
+
+    MaNGOS::BattleGroundChatBuilder bg_builder(type, entry, source, &ap);
+    MaNGOS::LocalizedPacketDo<MaNGOS::BattleGroundChatBuilder> bg_do(bg_builder);
+    BroadcastWorker(bg_do);
+
     va_end(ap);
-    SendMessageToAll(str, type);
+}
+
+void BattleGround::SendMessage2ToAll(int32 entry, ChatMsg type, Player const* source, int32 arg1, int32 arg2)
+{
+    MaNGOS::BattleGround2ChatBuilder bg_builder(type, entry, source, arg1, arg2);
+    MaNGOS::LocalizedPacketDo<MaNGOS::BattleGround2ChatBuilder> bg_do(bg_builder);
+    BroadcastWorker(bg_do);
 }
 
 void BattleGround::SendYell2ToAll(int32 entry, uint32 language, uint64 const& guid, int32 arg1, int32 arg2)
@@ -1444,20 +1574,9 @@ void BattleGround::SendYell2ToAll(int32 entry, uint32 language, uint64 const& gu
     Creature* source = GetBgMap()->GetCreature(guid);
     if(!source)
         return;
-    char buf[256];
-    sprintf(buf, GetMangosString(entry), GetMangosString(arg1), GetMangosString(arg2));
-    for(std::map<uint64, BattleGroundPlayer>::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-    {
-        WorldPacket data(SMSG_MESSAGECHAT, 200);
-        Player *plr = sObjectMgr.GetPlayer(itr->first);
-        if(!plr)
-        {
-            sLog.outError("BattleGround: Player " UI64FMTD " not found!", itr->first);
-            continue;
-        }
-        source->BuildMonsterChat(&data, CHAT_MSG_MONSTER_YELL, buf, language, source->GetName(), itr->first);
-        plr->GetSession()->SendPacket(&data);
-    }
+    MaNGOS::BattleGround2YellBuilder bg_builder(language, entry, source, arg1, arg2);
+    MaNGOS::LocalizedPacketDo<MaNGOS::BattleGround2YellBuilder> bg_do(bg_builder);
+    BroadcastWorker(bg_do);
 }
 
 void BattleGround::EndNow()
@@ -1467,13 +1586,6 @@ void BattleGround::EndNow()
     SetEndTime(TIME_TO_AUTOREMOVE);
     // inform invited players about the removal
     sBattleGroundMgr.m_BattleGroundQueues[BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType())].BGEndedRemoveInvites(this);
-}
-
-// Battleground messages are localized using the dbc lang, they are not client language dependent
-const char *BattleGround::GetMangosString(int32 entry)
-{
-    // FIXME: now we have different DBC locales and need localized message for each target client
-    return sObjectMgr.GetMangosStringForDBCLocale(entry);
 }
 
 /*
@@ -1575,7 +1687,7 @@ bool BattleGround::IsPlayerInBattleGround(uint64 guid)
 
 void BattleGround::PlayerRelogin(Player* plr)
 {
-    if(GetStatus() != STATUS_WAIT_LEAVE)
+    if (GetStatus() != STATUS_WAIT_LEAVE)
         return;
 
     WorldPacket data;

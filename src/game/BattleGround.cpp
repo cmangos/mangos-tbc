@@ -323,6 +323,7 @@ void BattleGround::Update(uint32 diff)
             {
                 RemovePlayerAtLeave(itr->first, true, true);// remove player from BG
                 m_OfflineQueue.pop_front();                 // remove from offline queue
+                //do not use itr for anything, because it is erased in RemovePlayerAtLeave()
             }
         }
     }
@@ -466,9 +467,15 @@ void BattleGround::Update(uint32 diff)
         m_EndTime += diff;
         if(m_EndTime >= TIME_TO_AUTOREMOVE)                 // 2 minutes
         {
-            for(BattleGroundPlayerMap::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+            BattleGroundPlayerMap::iterator itr, next;
+            for(itr = m_Players.begin(); itr != m_Players.end(); itr = next)
+            {
+                next = itr;
+                ++next;
+                //itr is erased here!
                 RemovePlayerAtLeave(itr->first, true, true);// remove player from BG
-            // do not change any battleground's private variables
+                // do not change any battleground's private variables
+            }
         }
     }
 
@@ -694,9 +701,9 @@ void BattleGround::EndBattleGround(uint32 winner)
         if (itr->second.OfflineRemoveTime)
         {
             //if rated arena match - make member lost!
-            if(isArena() && isRated() && winner_arena_team && loser_arena_team)
+            if (isArena() && isRated() && winner_arena_team && loser_arena_team)
             {
-                if(team == winner)
+                if (team == winner)
                     winner_arena_team->OfflineMemberLost(itr->first, loser_rating);
                 else
                     loser_arena_team->OfflineMemberLost(itr->first, winner_rating);
@@ -1017,20 +1024,20 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
         else
         // removing offline participant
         {
-            if(isRated() && GetStatus() == STATUS_IN_PROGRESS)
+            if (isRated() && GetStatus() == STATUS_IN_PROGRESS)
             {
                 //left a rated match while the encounter was in progress, consider as loser
                 ArenaTeam * others_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
                 ArenaTeam * players_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
-                if( others_arena_team && players_arena_team )
+                if (others_arena_team && players_arena_team)
                     players_arena_team->OfflineMemberLost(guid, others_arena_team->GetRating());
             }
         }
 
         // remove from raid group if player is member
-        if(Group *group = GetBgRaid(team))
+        if (Group *group = GetBgRaid(team))
         {
-            if( !group->RemoveMember(guid, 0) )               // group was disbanded
+            if( !group->RemoveMember(guid, 0) )             // group was disbanded
             {
                 SetBgRaid(team, NULL);
                 delete group;

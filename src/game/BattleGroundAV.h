@@ -309,8 +309,6 @@ class BattleGroundAV : public BattleGround
 
         /* inherited from BattlegroundClass */
         virtual void AddPlayer(Player *plr);
-        virtual void OnObjectDBLoad(Creature* creature);
-        virtual void OnCreatureRespawn(Creature* creature);
 
         virtual void StartingEventCloseDoors();
         virtual void StartingEventOpenDoors();
@@ -319,7 +317,7 @@ class BattleGroundAV : public BattleGround
 
         void RemovePlayer(Player *plr,uint64 guid);
         void HandleAreaTrigger(Player *Source, uint32 Trigger);
-        void ResetBGSubclass();
+        virtual void Reset();
 
         /*general stuff*/
         void UpdateScore(BattleGroundTeamId team, int32 points);

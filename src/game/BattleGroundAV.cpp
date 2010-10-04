@@ -233,23 +233,6 @@ void BattleGroundAV::UpdateScore(BattleGroundTeamId team, int32 points )
     UpdateWorldState(((team == BG_TEAM_HORDE) ? BG_AV_Horde_Score : BG_AV_Alliance_Score), m_TeamScores[team]);
 }
 
-void BattleGroundAV::OnObjectDBLoad(Creature* creature)
-{
-    uint32 level = creature->getLevel();
-    if (level != 0)
-        level += GetMaxLevel() - 60;                        // maybe we can do this more generic for custom level - range.. actually it's ok
-    creature->SetLevel(level);
-    BattleGround::OnObjectDBLoad(creature);
-}
-
-void BattleGroundAV::OnCreatureRespawn(Creature* creature)
-{
-    uint32 level = creature->getLevel();
-    if (level != 0)
-        level += GetMaxLevel() - 60;                        // maybe we can do this more generic for custom level - range.. actually it's ok
-    creature->SetLevel(level);
-}
-
 void BattleGroundAV::Update(uint32 diff)
 {
     BattleGround::Update(diff);
@@ -794,10 +777,11 @@ void BattleGroundAV::DefendNode(BG_AV_Nodes node, uint32 team)
     m_Nodes[node].Timer      = 0;
 }
 
-void BattleGroundAV::ResetBGSubclass()
+void BattleGroundAV::Reset()
 {
+    BattleGround::Reset();
     // set the reputation and honor variables:
-    bool isBGWeekend = false; // TODO implement it: sBattleGroundMgr.IsBGWeekend(GetTypeID());
+    bool isBGWeekend = BattleGroundMgr::IsBGWeekend(GetTypeID());
 
     m_HonorMapComplete    = (isBGWeekend) ? BG_AV_KILL_MAP_COMPLETE_HOLIDAY : BG_AV_KILL_MAP_COMPLETE;
     m_RepTowerDestruction = (isBGWeekend) ? BG_AV_REP_TOWER_HOLIDAY         : BG_AV_REP_TOWER;

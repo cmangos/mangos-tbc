@@ -525,7 +525,6 @@ void BattleGroundWS::Reset()
     m_ReputationCapture = (isBGWeekend) ? 45 : 35;
     m_HonorWinKills = (isBGWeekend) ? 3 : 1;
     m_HonorEndKills = (isBGWeekend) ? 4 : 2;
-
 }
 
 void BattleGroundWS::EndBattleGround(uint32 winner)

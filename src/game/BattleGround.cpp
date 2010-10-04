@@ -343,7 +343,13 @@ void BattleGround::Update(uint32 diff)
         else if (m_PrematureCountDownTimer < diff)
         {
             // time's up!
-            EndBattleGround(0); // noone wins
+            uint32 winner = 0;
+            if (GetPlayersCountByTeam(ALLIANCE) >= GetMinPlayersPerTeam())
+                winner = ALLIANCE;
+            else if (GetPlayersCountByTeam(HORDE) >= GetMinPlayersPerTeam())
+                winner = HORDE;
+
+            EndBattleGround(winner);
             m_PrematureCountDown = false;
         }
         else if (!sBattleGroundMgr.isTesting())
@@ -748,7 +754,6 @@ void BattleGround::EndBattleGround(uint32 winner)
         if (team == winner)
         {
             RewardMark(plr,ITEM_WINNER_COUNT);
-            UpdatePlayerScore(plr, SCORE_BONUS_HONOR, 20);
             RewardQuestComplete(plr);
         }
         else
@@ -1056,7 +1061,7 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
     if (plr)
     {
         // Do next only if found in battleground
-        plr->SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);      // We're not in BG.
+        plr->SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);  // We're not in BG.
         // reset destination bg team
         plr->SetBGTeam(0);
 
@@ -1218,7 +1223,7 @@ void BattleGround::EventPlayerLoggedIn(Player* player, uint64 plr_guid)
     // player is correct pointer
     for(std::deque<uint64>::iterator itr = m_OfflineQueue.begin(); itr != m_OfflineQueue.end(); ++itr)
     {
-        if( *itr == plr_guid )
+        if (*itr == plr_guid)
         {
             m_OfflineQueue.erase(itr);
             break;
@@ -1236,9 +1241,9 @@ void BattleGround::EventPlayerLoggedOut(Player* player)
     // player is correct pointer, it is checked in WorldSession::LogoutPlayer()
     m_OfflineQueue.push_back(player->GetGUID());
     m_Players[player->GetGUID()].OfflineRemoveTime = sWorld.GetGameTime() + MAX_OFFLINE_TIME;
-    if( GetStatus() == STATUS_IN_PROGRESS )
+    if (GetStatus() == STATUS_IN_PROGRESS)
     {
-        if( isBattleGround() )
+        if (isBattleGround())
             EventPlayerDroppedFlag(player);
         else
             CheckArenaWinConditions();

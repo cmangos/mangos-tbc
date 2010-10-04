@@ -309,43 +309,21 @@ BattleGround::~BattleGround()
 
 void BattleGround::Update(uint32 diff)
 {
-    if (!GetPlayersSize() && !GetRemovedPlayersSize())
+    if (!GetPlayersSize())
         //BG is empty
         return;
 
-    if(GetRemovedPlayersSize())
-    {
-        for(std::map<uint64, uint8>::iterator itr = m_RemovedPlayers.begin(); itr != m_RemovedPlayers.end(); ++itr)
-        {
-            Player *plr = sObjectMgr.GetPlayer(itr->first);
-            switch(itr->second)
-            {
-                case 1:                                     // currently in bg and was removed from bg
-                    if(plr)
-                        RemovePlayerAtLeave(itr->first, true, true);
-                    else
-                        RemovePlayerAtLeave(itr->first, false, false);
-                    break;
-                default:
-                    sLog.outError("BattleGround: Unknown remove player case!");
-            }
-        }
-        m_RemovedPlayers.clear();
-    }
-
     // remove offline players from bg after 5 minutes
-    if(GetPlayersSize())
+    if (!m_OfflineQueue.empty())
     {
-        for(std::map<uint64, BattleGroundPlayer>::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+        BattleGroundPlayerMap::iterator itr = m_Players.find(*(m_OfflineQueue.begin()));
+        if (itr != m_Players.end())
         {
-            Player *plr = sObjectMgr.GetPlayer(itr->first);
-            itr->second.LastOnlineTime += diff;
-
-            if(plr)
-                itr->second.LastOnlineTime = 0;                 // update last online time
-            else
-                if(itr->second.LastOnlineTime >= MAX_OFFLINE_TIME)
-                    m_RemovedPlayers[itr->first] = 1;           // add to remove list (BG)
+            if (itr->second.OfflineRemoveTime <= sWorld.GetGameTime())
+            {
+                RemovePlayerAtLeave(itr->first, true, true);// remove player from BG
+                m_OfflineQueue.pop_front();                 // remove from offline queue
+            }
         }
     }
 
@@ -488,10 +466,8 @@ void BattleGround::Update(uint32 diff)
         m_EndTime += diff;
         if(m_EndTime >= TIME_TO_AUTOREMOVE)                 // 2 minutes
         {
-            for(std::map<uint64, BattleGroundPlayer>::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-            {
-                m_RemovedPlayers[itr->first] = 1;           // add to remove list (BG)
-            }
+            for(BattleGroundPlayerMap::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
+                RemovePlayerAtLeave(itr->first, true, true);// remove player from BG
             // do not change any battleground's private variables
         }
     }
@@ -713,6 +689,20 @@ void BattleGround::EndBattleGround(uint32 winner)
 
     for(BattleGroundPlayerMap::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
+        uint32 team = itr->second.Team;
+
+        if (itr->second.OfflineRemoveTime)
+        {
+            //if rated arena match - make member lost!
+            if(isArena() && isRated() && winner_arena_team && loser_arena_team)
+            {
+                if(team == winner)
+                    winner_arena_team->OfflineMemberLost(itr->first, loser_rating);
+                else
+                    loser_arena_team->OfflineMemberLost(itr->first, winner_rating);
+            }
+            continue;
+        }
         Player *plr = sObjectMgr.GetPlayer(itr->first);
         if (!plr)
         {
@@ -736,8 +726,8 @@ void BattleGround::EndBattleGround(uint32 winner)
             plr->getHostileRefManager().deleteReferences();
         }
 
-        uint32 team = itr->second.Team;
-        if(!team) team = plr->GetTeam();
+        //this line is obsolete - team is set ALWAYS
+        //if(!team) team = plr->GetTeam();
 
         // per player calculation
         if (isArena() && isRated() && winner_arena_team && loser_arena_team)
@@ -984,16 +974,16 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
 
     RemovePlayer(plr, guid);                                // BG subclass specific code
 
-    if(plr)
+    if(participant) // if the player was a match participant, remove auras, calc rating, update queue
     {
-        plr->ClearAfkReports();
-
-        if(participant) // if the player was a match participant, remove auras, calc rating, update queue
+        BattleGroundTypeId bgTypeId = GetTypeID();
+        BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType());
+        if(plr)
         {
+            plr->ClearAfkReports();
+
             if(!team) team = plr->GetTeam();
 
-            BattleGroundTypeId bgTypeId = GetTypeID();
-            BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType());
             // if arena, remove the specific arena auras
             if(isArena())
             {
@@ -1010,9 +1000,7 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
                     ArenaTeam * winner_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
                     ArenaTeam * loser_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
                     if (winner_arena_team && loser_arena_team)
-                    {
                         loser_arena_team->MemberLost(plr,winner_arena_team->GetRating());
-                    }
                 }
             }
 
@@ -1025,29 +1013,41 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
 
             // this call is important, because player, when joins to battleground, this method is not called, so it must be called when leaving bg
             plr->RemoveBattleGroundQueueId(bgQueueTypeId);
-
-            DecreaseInvitedCount(team);
-            //we should update battleground queue, but only if bg isn't ending
-            if (GetStatus() < STATUS_WAIT_LEAVE)
-                sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].Update(bgTypeId, GetBracketId());
-
-            Group * group = plr->GetGroup();
-            // remove from raid group if exist
-            if(group && group == GetBgRaid(team))
+        }
+        else
+        // removing offline participant
+        {
+            if(isRated() && GetStatus() == STATUS_IN_PROGRESS)
             {
-                if(!group->RemoveMember(guid, 0))               // group was disbanded
-                {
-                    SetBgRaid(team, NULL);
-                    delete group;
-                }
+                //left a rated match while the encounter was in progress, consider as loser
+                ArenaTeam * others_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(GetOtherTeam(team)));
+                ArenaTeam * players_arena_team = sObjectMgr.GetArenaTeamById(GetArenaTeamIdForTeam(team));
+                if( others_arena_team && players_arena_team )
+                    players_arena_team->OfflineMemberLost(guid, others_arena_team->GetRating());
             }
-
-            // Let others know
-            WorldPacket data;
-            sBattleGroundMgr.BuildPlayerLeftBattleGroundPacket(&data, plr);
-            SendPacketToTeam(team, &data, plr, false);
         }
 
+        // remove from raid group if player is member
+        if(Group *group = GetBgRaid(team))
+        {
+            if( !group->RemoveMember(guid, 0) )               // group was disbanded
+            {
+                SetBgRaid(team, NULL);
+                delete group;
+            }
+        }
+        DecreaseInvitedCount(team);
+        //we should update battleground queue, but only if bg isn't ending
+        if (isBattleGround() && GetStatus() < STATUS_WAIT_LEAVE)
+            sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].Update(bgTypeId, GetBracketId());
+        // Let others know
+        WorldPacket data;
+        sBattleGroundMgr.BuildPlayerLeftBattleGroundPacket(&data, guid);
+        SendPacketToTeam(team, &data, plr, false);
+    }
+
+    if (plr)
+    {
         // Do next only if found in battleground
         plr->SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);      // We're not in BG.
         // reset destination bg team
@@ -1075,7 +1075,6 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
 // this method is called when no players remains in battleground
 void BattleGround::Reset()
 {
-    SetBracketId(MAX_BATTLEGROUND_BRACKETS);
     SetWinner(WINNER_NONE);
     SetStatus(STATUS_WAIT_QUEUE);
     SetStartTime(0);
@@ -1125,7 +1124,7 @@ void BattleGround::AddPlayer(Player *plr)
     uint32 team = plr->GetBGTeam();
 
     BattleGroundPlayer bp;
-    bp.LastOnlineTime = 0;
+    bp.OfflineRemoveTime = 0;
     bp.Team = team;
 
     // Add to list/maps
@@ -1176,7 +1175,7 @@ void BattleGround::AddPlayer(Player *plr)
     }
 
     // setup BG group membership
-    PlayerRelogin(plr);
+    PlayerAddedToBGCheckIfBGIsRunning(plr);
     AddOrSetPlayerToCorrectBgGroup(plr, guid, team);
 
     // Log
@@ -1206,9 +1205,30 @@ void BattleGround::AddOrSetPlayerToCorrectBgGroup(Player *plr, ObjectGuid plr_gu
     }
 }
 
+// This method should be called when player logs into running battleground
+void BattleGround::EventPlayerLoggedIn(Player* player, uint64 plr_guid)
+{
+    // player is correct pointer
+    for(std::deque<uint64>::iterator itr = m_OfflineQueue.begin(); itr != m_OfflineQueue.end(); ++itr)
+    {
+        if( *itr == plr_guid )
+        {
+            m_OfflineQueue.erase(itr);
+            break;
+        }
+    }
+    m_Players[plr_guid].OfflineRemoveTime = 0;
+    PlayerAddedToBGCheckIfBGIsRunning(player);
+    // if battleground is starting, then add preparation aura
+    // we don't have to do that, because preparation aura isn't removed when player logs out
+}
+
 // This method should be called when player logs out from running battleground
 void BattleGround::EventPlayerLoggedOut(Player* player)
 {
+    // player is correct pointer, it is checked in WorldSession::LogoutPlayer()
+    m_OfflineQueue.push_back(player->GetGUID());
+    m_Players[player->GetGUID()].OfflineRemoveTime = sWorld.GetGameTime() + MAX_OFFLINE_TIME;
     if( GetStatus() == STATUS_IN_PROGRESS )
     {
         if( isBattleGround() )
@@ -1677,6 +1697,11 @@ uint32 BattleGround::GetPlayerTeam(uint64 guid)
     return 0;
 }
 
+uint32 BattleGround::GetOtherTeam(uint32 teamId)
+{
+    return (teamId) ? ((teamId == ALLIANCE) ? HORDE : ALLIANCE) : 0;
+}
+
 bool BattleGround::IsPlayerInBattleGround(uint64 guid)
 {
     BattleGroundPlayerMap::const_iterator itr = m_Players.find(guid);
@@ -1685,7 +1710,7 @@ bool BattleGround::IsPlayerInBattleGround(uint64 guid)
     return false;
 }
 
-void BattleGround::PlayerRelogin(Player* plr)
+void BattleGround::PlayerAddedToBGCheckIfBGIsRunning(Player* plr)
 {
     if (GetStatus() != STATUS_WAIT_LEAVE)
         return;

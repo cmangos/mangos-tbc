@@ -254,6 +254,22 @@ void BattleGroundQueue::RemovePlayer(const uint64& guid, bool decreaseInvitedCou
     if (group->ArenaType && group->IsRated && group->Players.empty())
         AnnounceWorld(group, guid, false);
 
+    //if player leaves queue and he is invited to rated arena match, then he have to loose
+    if( group->IsInvitedToBGInstanceGUID && group->IsRated && decreaseInvitedCount )
+    {
+        ArenaTeam * at = sObjectMgr.GetArenaTeamById(group->ArenaTeamId);
+        if( at )
+        {
+            sLog.outDebug("UPDATING memberLost's personal arena rating for %u by opponents rating: %u", GUID_LOPART(guid), group->OpponentsTeamRating);
+            Player *plr = sObjectMgr.GetPlayer(guid);
+            if( plr )
+                at->MemberLost(plr, group->OpponentsTeamRating);
+            else
+                at->OfflineMemberLost(guid, group->OpponentsTeamRating);
+            at->SaveToDB();
+        }
+    }
+
     // remove group queue info if needed
     if (group->Players.empty())
     {
@@ -1049,16 +1065,6 @@ bool BGQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
         BattleGroundQueue::QueuedPlayersMap::iterator qMapItr = qpMap.find(m_PlayerGuid);
         if (qMapItr != qpMap.end() && qMapItr->second.GroupInfo && qMapItr->second.GroupInfo->IsInvitedToBGInstanceGUID == m_BgInstanceGUID)
         {
-            if (qMapItr->second.GroupInfo->IsRated)
-            {
-                ArenaTeam * at = sObjectMgr.GetArenaTeamById(qMapItr->second.GroupInfo->ArenaTeamId);
-                if (at)
-                {
-                    DEBUG_LOG("UPDATING memberLost's personal arena rating for %u by opponents rating: %u", GUID_LOPART(plr->GetGUID()), qMapItr->second.GroupInfo->OpponentsTeamRating);
-                    at->MemberLost(plr, qMapItr->second.GroupInfo->OpponentsTeamRating);
-                    at->SaveToDB();
-                }
-            }
             plr->RemoveBattleGroundQueueId(bgQueueTypeId);
             sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].RemovePlayer(m_PlayerGuid, true);
             sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].Update(bg->GetTypeID(),bg->GetBracketId());
@@ -1388,10 +1394,10 @@ void BattleGroundMgr::BuildPlaySoundPacket(WorldPacket *data, uint32 soundid)
     *data << uint32(soundid);
 }
 
-void BattleGroundMgr::BuildPlayerLeftBattleGroundPacket(WorldPacket *data, Player *plr)
+void BattleGroundMgr::BuildPlayerLeftBattleGroundPacket(WorldPacket *data, const uint64& guid)
 {
     data->Initialize(SMSG_BATTLEGROUND_PLAYER_LEFT, 8);
-    *data << uint64(plr->GetGUID());
+    *data << uint64(guid);
 }
 
 void BattleGroundMgr::BuildPlayerJoinedBattleGroundPacket(WorldPacket *data, Player *plr)

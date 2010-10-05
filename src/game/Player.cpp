@@ -18268,7 +18268,8 @@ void Player::ClearComboPoints()
 
 void Player::SetGroup(Group *group, int8 subgroup)
 {
-    if(group == NULL) m_group.unlink();
+    if(group == NULL)
+        m_group.unlink();
     else
     {
         // never use SetGroup without a subgroup unless you specify NULL for group
@@ -19304,6 +19305,41 @@ PartyResult Player::CanUninviteFromGroup() const
         return ERR_INVITE_RESTRICTED;
 
     return ERR_PARTY_RESULT_OK;
+}
+
+void Player::SetBattleGroundRaid(Group* group, int8 subgroup)
+{
+    //we must move references from m_group to m_originalGroup
+    SetOriginalGroup(GetGroup(), GetSubGroup());
+
+    m_group.unlink();
+    m_group.link(group, this);
+    m_group.setSubGroup((uint8)subgroup);
+}
+
+void Player::RemoveFromBattleGroundRaid()
+{
+    //remove existing reference
+    m_group.unlink();
+    if( Group* group = GetOriginalGroup() )
+    {
+        m_group.link(group, this);
+        m_group.setSubGroup(GetOriginalSubGroup());
+    }
+    SetOriginalGroup(NULL);
+}
+
+void Player::SetOriginalGroup(Group *group, int8 subgroup)
+{
+    if( group == NULL )
+        m_originalGroup.unlink();
+    else
+    {
+        // never use SetOriginalGroup without a subgroup unless you specify NULL for group
+        assert(subgroup >= 0);
+        m_originalGroup.link(group, this);
+        m_originalGroup.setSubGroup((uint8)subgroup);
+    }
 }
 
 void Player::UpdateUnderwaterState( Map* m, float x, float y, float z )

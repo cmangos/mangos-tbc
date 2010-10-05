@@ -993,14 +993,14 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
     {
         BattleGroundTypeId bgTypeId = GetTypeID();
         BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType());
-        if(plr)
+        if (plr)
         {
             plr->ClearAfkReports();
 
             if(!team) team = plr->GetTeam();
 
             // if arena, remove the specific arena auras
-            if(isArena())
+            if (isArena())
             {
                 plr->RemoveArenaAuras(true);                // removes debuffs / dots etc., we don't want the player to die after porting out
                 bgTypeId=BATTLEGROUND_AA;                   // set the bg type to all arenas (it will be used for queue refreshing)
@@ -1018,7 +1018,6 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
                         loser_arena_team->MemberLost(plr,winner_arena_team->GetRating());
                 }
             }
-
             if (SendPacket)
             {
                 WorldPacket data;
@@ -1205,11 +1204,14 @@ void BattleGround::AddOrSetPlayerToCorrectBgGroup(Player *plr, ObjectGuid plr_gu
         if (group->IsMember(plr_guid))
         {
             uint8 subgroup = group->GetMemberGroup(plr_guid);
-            plr->SetGroup(group, subgroup);
+            plr->SetBattleGroundRaid(group, subgroup);
         }
         else
         {
             group->AddMember(plr_guid, plr->GetName());
+            if (Group* originalGroup = plr->GetOriginalGroup())
+                if (originalGroup->IsLeader(plr_guid))
+                    group->ChangeLeader(plr_guid);
         }
     }
     else                                                    // first player joined
@@ -1249,7 +1251,11 @@ void BattleGround::EventPlayerLoggedOut(Player* player)
         if (isBattleGround())
             EventPlayerDroppedFlag(player);
         else
-            CheckArenaWinConditions();
+        {
+            //1 player is logging out, if it is the last, then end arena!
+            if( GetAlivePlayersCountByTeam(player->GetTeam()) <= 1 && GetPlayersCountByTeam(GetOtherTeam(player->GetTeam())) )
+                EndBattleGround(GetOtherTeam(player->GetTeam()));
+        }
     }
 }
 

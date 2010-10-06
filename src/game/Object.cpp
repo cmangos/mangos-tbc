@@ -1919,4 +1919,3 @@ bool WorldObject::IsControlledByPlayer() const
             return false;
     }
 }
-

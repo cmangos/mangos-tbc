@@ -257,7 +257,8 @@ pkgdata_DATA = \
 	s0264_7390_01_mangos_areatrigger_teleport.sql \
 	s0283_7472_01_mangos_mangos_string.sql \
 	s0298_7196_01_mangos_spell_chain.sql \
-	s0298_7196_02_mangos_spell_bonus_data.sql
+	s0298_7196_02_mangos_spell_bonus_data.sql \
+	s0308_7560_01_mangos_gameobject_template.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -493,4 +494,5 @@ EXTRA_DIST = \
 	s0264_7390_01_mangos_areatrigger_teleport.sql \
 	s0283_7472_01_mangos_mangos_string.sql \
 	s0298_7196_01_mangos_spell_chain.sql \
-	s0298_7196_02_mangos_spell_bonus_data.sql
+	s0298_7196_02_mangos_spell_bonus_data.sql \
+	s0308_7560_01_mangos_gameobject_template.sql

@@ -473,9 +473,6 @@ Player::Player (WorldSession *session): Unit(), m_reputationMgr(this), m_mover(t
 
     m_DailyQuestChanged = false;
 
-    m_regenTimer = 0;
-    m_weaponChangeTimer = 0;
-
     for (int i=0; i<MAX_TIMERS; i++)
         m_MirrorTimer[i] = DISABLED_MIRROR_TIMER;
 

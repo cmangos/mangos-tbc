@@ -147,23 +147,6 @@ struct CreatureInfo
     }
 };
 
-struct CreatureLocale
-{
-    std::vector<std::string> Name;
-    std::vector<std::string> SubName;
-};
-
-struct GossipMenuItemsLocale
-{
-    std::vector<std::string> OptionText;
-    std::vector<std::string> BoxText;
-};
-
-struct PointOfInterestLocale
-{
-    std::vector<std::string> IconName;
-};
-
 struct EquipmentInfo
 {
     uint32  entry;
@@ -230,6 +213,30 @@ struct CreatureModelRace
     uint32 modelid_racial;                                  // Explicit modelid. Used if creature_template entry is not defined
 };
 
+// GCC have alternative #pragma pack() syntax and old gcc version not support pack(pop), also any gcc version not support it at some platform
+#if defined( __GNUC__ )
+#pragma pack()
+#else
+#pragma pack(pop)
+#endif
+
+struct CreatureLocale
+{
+    std::vector<std::string> Name;
+    std::vector<std::string> SubName;
+};
+
+struct GossipMenuItemsLocale
+{
+    std::vector<std::string> OptionText;
+    std::vector<std::string> BoxText;
+};
+
+struct PointOfInterestLocale
+{
+    std::vector<std::string> IconName;
+};
+
 enum InhabitTypeValues
 {
     INHABIT_GROUND = 1,
@@ -262,13 +269,6 @@ enum AttackingTarget
     ATTACKING_TARGET_BOTTOMAGGRO_PLAYER,                    //Selects targets from bottom aggro to top (player only)
     */
 };
-
-// GCC have alternative #pragma pack() syntax and old gcc version not support pack(pop), also any gcc version not support it at some platform
-#if defined( __GNUC__ )
-#pragma pack()
-#else
-#pragma pack(pop)
-#endif
 
 // Vendors
 struct VendorItem

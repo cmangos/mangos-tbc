@@ -45,7 +45,7 @@ void BattleGroundBE::Update(uint32 diff)
 {
     BattleGround::Update(diff);
 
-    /*if(GetStatus() == STATUS_IN_PROGRESS)
+    /*if (GetStatus() == STATUS_IN_PROGRESS)
     {
         // update something
     }*/
@@ -74,7 +74,7 @@ void BattleGroundBE::AddPlayer(Player *plr)
 
 void BattleGroundBE::RemovePlayer(Player* /*plr*/, uint64 /*guid*/)
 {
-    if(GetStatus() == STATUS_WAIT_LEAVE)
+    if (GetStatus() == STATUS_WAIT_LEAVE)
         return;
 
     UpdateWorldState(0x9f1, GetAlivePlayersCountByTeam(ALLIANCE));
@@ -85,10 +85,10 @@ void BattleGroundBE::RemovePlayer(Player* /*plr*/, uint64 /*guid*/)
 
 void BattleGroundBE::HandleKillPlayer(Player *player, Player *killer)
 {
-    if(GetStatus() != STATUS_IN_PROGRESS)
+    if (GetStatus() != STATUS_IN_PROGRESS)
         return;
 
-    if(!killer)
+    if (!killer)
     {
         sLog.outError("Killer player not found");
         return;
@@ -111,7 +111,7 @@ bool BattleGroundBE::HandlePlayerUnderMap(Player *player)
 void BattleGroundBE::HandleAreaTrigger(Player *Source, uint32 Trigger)
 {
     // this is wrong way to implement these things. On official it done by gameobject spell cast.
-    if(GetStatus() != STATUS_IN_PROGRESS)
+    if (GetStatus() != STATUS_IN_PROGRESS)
         return;
 
     //uint32 SpellId = 0;
@@ -130,7 +130,7 @@ void BattleGroundBE::HandleAreaTrigger(Player *Source, uint32 Trigger)
             break;
     }
 
-    //if(buff_guid)
+    //if (buff_guid)
     //    HandleTriggerBuff(buff_guid,Source);
 }
 

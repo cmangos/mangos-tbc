@@ -472,7 +472,7 @@ void BattleGround::Update(uint32 diff)
     {
         // remove all players from battleground after 2 minutes
         m_EndTime -= diff;
-        if( m_EndTime <= 0)
+        if (m_EndTime <= 0)
         {
             m_EndTime = 0;
             BattleGroundPlayerMap::iterator itr, next;
@@ -788,9 +788,6 @@ void BattleGround::EndBattleGround(uint32 winner)
         loser_arena_team->NotifyStatsChanged();
     }
 
-    // inform invited players about the removal
-    sBattleGroundMgr.m_BattleGroundQueues[BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType())].BGEndedRemoveInvites(this);
-
     if (winmsg_id)
         SendMessageToAll(winmsg_id, CHAT_MSG_BG_SYSTEM_NEUTRAL);
 }
@@ -923,10 +920,6 @@ void BattleGround::SendRewardMarkByMail(Player *plr,uint32 mark, uint32 count)
 
 void BattleGround::RewardQuestComplete(Player *plr)
 {
-    // 'Inactive' this aura prevents the player from gaining honor points and battleground tokens
-    if(plr->GetDummyAura(SPELL_AURA_PLAYER_INACTIVE))
-        return;
-
     uint32 quest;
     switch(GetTypeID())
     {
@@ -1067,13 +1060,13 @@ void BattleGround::RemovePlayerAtLeave(uint64 guid, bool Transport, bool SendPac
         // reset destination bg team
         plr->SetBGTeam(0);
 
-        if(Transport)
+        if (Transport)
             plr->TeleportTo(plr->GetBattleGroundEntryPoint());
 
         DETAIL_LOG("BATTLEGROUND: Removed player %s from BattleGround.", plr->GetName());
     }
 
-    if(!GetPlayersSize() && !GetInvitedCount(HORDE) && !GetInvitedCount(ALLIANCE))
+    if (!GetPlayersSize() && !GetInvitedCount(HORDE) && !GetInvitedCount(ALLIANCE))
     {
         // if no players left AND no invitees left, set this bg to delete in next update
         // direct deletion could cause crashes
@@ -1253,7 +1246,7 @@ void BattleGround::EventPlayerLoggedOut(Player* player)
         else
         {
             //1 player is logging out, if it is the last, then end arena!
-            if( GetAlivePlayersCountByTeam(player->GetTeam()) <= 1 && GetPlayersCountByTeam(GetOtherTeam(player->GetTeam())) )
+            if (GetAlivePlayersCountByTeam(player->GetTeam()) <= 1 && GetPlayersCountByTeam(GetOtherTeam(player->GetTeam())))
                 EndBattleGround(GetOtherTeam(player->GetTeam()));
         }
     }
@@ -1625,8 +1618,6 @@ void BattleGround::EndNow()
     RemoveFromBGFreeSlotQueue();
     SetStatus(STATUS_WAIT_LEAVE);
     SetEndTime(0);
-    // inform invited players about the removal
-    sBattleGroundMgr.m_BattleGroundQueues[BattleGroundMgr::BGQueueTypeId(GetTypeID(), GetArenaType())].BGEndedRemoveInvites(this);
 }
 
 /*
@@ -1716,11 +1707,6 @@ uint32 BattleGround::GetPlayerTeam(uint64 guid)
     if (itr!=m_Players.end())
         return itr->second.Team;
     return 0;
-}
-
-uint32 BattleGround::GetOtherTeam(uint32 teamId)
-{
-    return (teamId) ? ((teamId == ALLIANCE) ? HORDE : ALLIANCE) : 0;
 }
 
 bool BattleGround::IsPlayerInBattleGround(uint64 guid)

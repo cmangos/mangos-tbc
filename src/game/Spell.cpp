@@ -1468,9 +1468,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         {
             if (EffectChainTarget <= 1)
             {
-                Unit* pUnitTarget = SelectMagnetTarget();
-                if(pUnitTarget)
+                if(Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), m_spellInfo))
+                {
+                    m_targets.setUnitTarget(pUnitTarget);
                     targetUnitMap.push_back(pUnitTarget);
+                }
             }
             else
             {
@@ -1736,9 +1738,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 }
                 else
                 {
-                    Unit* pUnitTarget = SelectMagnetTarget();
-                    if(pUnitTarget)
+                    if(Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), m_spellInfo))
+                    {
+                        m_targets.setUnitTarget(pUnitTarget);
                         targetUnitMap.push_back(pUnitTarget);
+                    }
                 }
             }
             break;
@@ -1764,9 +1768,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_SINGLE_ENEMY:
         {
-            Unit* pUnitTarget = SelectMagnetTarget();
-            if(pUnitTarget)
+            if(Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), m_spellInfo))
+            {
+                m_targets.setUnitTarget(pUnitTarget);
                 targetUnitMap.push_back(pUnitTarget);
+            }
             break;
         }
         case TARGET_AREAEFFECT_PARTY:
@@ -5481,30 +5487,6 @@ bool Spell::CheckTarget( Unit* target, SpellEffectIndex eff )
     }
 
     return true;
-}
-
-Unit* Spell::SelectMagnetTarget()
-{
-    Unit* target = m_targets.getUnitTarget();
-
-    if(target && target->HasAuraType(SPELL_AURA_SPELL_MAGNET) && !(m_spellInfo->Attributes & 0x10))
-    {
-        Unit::AuraList const& magnetAuras = target->GetAurasByType(SPELL_AURA_SPELL_MAGNET);
-        for(Unit::AuraList::const_iterator itr = magnetAuras.begin(); itr != magnetAuras.end(); ++itr)
-        {
-            if(Unit* magnet = (*itr)->GetCaster())
-            {
-                if(magnet->IsWithinLOSInMap(m_caster))
-                {
-                    target = magnet;
-                    m_targets.setUnitTarget(target);
-                    break;
-                }
-            }
-        }
-    }
-
-    return target;
 }
 
 bool Spell::IsNeedSendToClient() const

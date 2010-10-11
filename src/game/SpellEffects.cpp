@@ -4539,7 +4539,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    uint32 spellId;
+                    uint32 spellId = 0;
                     switch(rand()%4)
                     {
                         case 0: spellId = 46740; break;

@@ -569,7 +569,7 @@ void WorldSession::HandleBattlefieldStatusOpcode( WorldPacket & /*recv_data*/ )
         }
         else
         {
-            BattleGround *bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
+            bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
             if (!bg)
                 continue;
             uint32 avgTime = sBattleGroundMgr.m_BattleGroundQueues[bgQueueTypeId].GetAverageQueueWaitTime(itrPlayerStatus->second.GroupInfo, _player->GetBattleGroundBracketIdFromLevel(bgTypeId));

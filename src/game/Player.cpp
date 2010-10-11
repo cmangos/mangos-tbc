@@ -10152,7 +10152,7 @@ Item* Player::_StoreItem( uint16 pos, Item *pItem, uint32 count, bool clone, boo
             pItem->SetSlot( slot );
             pItem->SetContainer( NULL );
 
-            if( IsInWorld() && update )
+            if (IsInWorld() && update)
             {
                 pItem->AddToWorld();
                 pItem->SendCreateUpdateToPlayer( this );
@@ -14266,7 +14266,7 @@ bool Player::LoadFromDB( uint32 guid, SqlQueryHolder *holder )
         if(player_at_bg && currentBg->GetStatus() != STATUS_WAIT_LEAVE)
         {
             BattleGroundQueueTypeId bgQueueTypeId = sBattleGroundMgr.BGQueueTypeId(currentBg->GetTypeID(), currentBg->GetArenaType());
-            uint32 queueSlot = AddBattleGroundQueueId(bgQueueTypeId);
+            AddBattleGroundQueueId(bgQueueTypeId);
 
             SetBattleGroundId(currentBg->GetInstanceID(), currentBg->GetTypeID());
             SetBGTeam(bgteam);

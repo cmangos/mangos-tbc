@@ -346,7 +346,6 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
                 BattleGround * bg = NULL;
                 // get possibly needed data from groupinfo
                 uint8 arenatype = itrPlayerStatus->second.GroupInfo->ArenaType;
-                uint8 israted = itrPlayerStatus->second.GroupInfo->IsRated;
                 uint8 status = 0;
 
                 if (!itrPlayerStatus->second.GroupInfo->IsInvitedToBGInstanceGUID)

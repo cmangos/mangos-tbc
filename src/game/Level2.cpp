@@ -1539,7 +1539,7 @@ bool ChatHandler::HandleNpcAddMoveCommand(char* args)
         pCreature->GetMotionMaster()->Initialize();
         if (pCreature->isAlive())                           // dead creature will reset movement generator at respawn
         {
-            pCreature->setDeathState(JUST_DIED);
+            pCreature->SetDeathState(JUST_DIED);
             pCreature->Respawn();
         }
         pCreature->SaveToDB();
@@ -1572,7 +1572,7 @@ bool ChatHandler::HandleNpcChangeLevelCommand(char* args)
         return false;
     }
 
-    if (pCreature->isPet())
+    if (pCreature->IsPet())
     {
         if (((Pet*)pCreature)->getPetType()==HUNTER_PET)
         {
@@ -1638,7 +1638,7 @@ bool ChatHandler::HandleNpcDeleteCommand(char* args)
     else
         unit = getSelectedCreature();
 
-    if (!unit || unit->isPet() || unit->isTotem())
+    if (!unit || unit->IsPet() || unit->IsTotem())
     {
         SendSysMessage(LANG_SELECT_CREATURE);
         SetSentErrorMessage(true);
@@ -1708,7 +1708,7 @@ bool ChatHandler::HandleNpcMoveCommand(char* args)
         pCreature->GetMotionMaster()->Initialize();
         if (pCreature->isAlive())                           // dead creature will reset movement generator at respawn
         {
-            pCreature->setDeathState(JUST_DIED);
+            pCreature->SetDeathState(JUST_DIED);
             pCreature->Respawn();
         }
     }
@@ -1745,7 +1745,7 @@ bool ChatHandler::HandleNpcSetMoveTypeCommand(char* args)
     if (!ExtractUInt32(&args, lowguid))                     // case .setmovetype $move_type (with selected creature)
     {
         pCreature = getSelectedCreature();
-        if (!pCreature || pCreature->isPet())
+        if (!pCreature || pCreature->IsPet())
             return false;
         lowguid = pCreature->GetDBTableGUIDLow();
     }
@@ -1799,7 +1799,7 @@ bool ChatHandler::HandleNpcSetMoveTypeCommand(char* args)
         pCreature->GetMotionMaster()->Initialize();
         if (pCreature->isAlive())                           // dead creature will reset movement generator at respawn
         {
-            pCreature->setDeathState(JUST_DIED);
+            pCreature->SetDeathState(JUST_DIED);
             pCreature->Respawn();
         }
         pCreature->SaveToDB();
@@ -1823,7 +1823,7 @@ bool ChatHandler::HandleNpcSetModelCommand(char* args)
 
     Creature *pCreature = getSelectedCreature();
 
-    if (!pCreature || pCreature->isPet())
+    if (!pCreature || pCreature->IsPet())
     {
         SendSysMessage(LANG_SELECT_CREATURE);
         SetSentErrorMessage(true);
@@ -1907,7 +1907,7 @@ bool ChatHandler::HandleNpcSpawnDistCommand(char* args)
     pCreature->GetMotionMaster()->Initialize();
     if(pCreature->isAlive())                                // dead creature will reset movement generator at respawn
     {
-        pCreature->setDeathState(JUST_DIED);
+        pCreature->SetDeathState(JUST_DIED);
         pCreature->Respawn();
     }
 
@@ -1998,7 +1998,8 @@ bool ChatHandler::HandleNpcUnFollowCommand(char* /*args*/)
 bool ChatHandler::HandleNpcTameCommand(char* /*args*/)
 {
     Creature *creatureTarget = getSelectedCreature ();
-    if (!creatureTarget || creatureTarget->isPet())
+
+    if (!creatureTarget || creatureTarget->IsPet())
     {
         PSendSysMessage(LANG_SELECT_CREATURE);
         SetSentErrorMessage(true);
@@ -2073,7 +2074,7 @@ bool ChatHandler::HandleNpcSetDeathStateCommand(char* args)
     }
 
     Creature* pCreature = getSelectedCreature();
-    if (!pCreature || pCreature->isPet())
+    if (!pCreature || pCreature->IsPet())
     {
         SendSysMessage(LANG_SELECT_CREATURE);
         SetSentErrorMessage(true);
@@ -2644,7 +2645,7 @@ bool ChatHandler::HandleWpAddCommand(char* args)
         // No GUID provided
         // -> Player must have selected a creature
 
-        if(!target || target->isPet())
+        if (!target || target->IsPet())
         {
             SendSysMessage(LANG_SELECT_CREATURE);
             SetSentErrorMessage(true);
@@ -2728,7 +2729,7 @@ bool ChatHandler::HandleWpAddCommand(char* args)
         }
 
         target = m_session->GetPlayer()->GetMap()->GetCreature(ObjectGuid(HIGHGUID_UNIT, data->id, lowguid));
-        if (!target || target->isPet())
+        if (!target || target->IsPet())
         {
             PSendSysMessage(LANG_WAYPOINT_CREATNOTFOUND, lowguid);
             SetSentErrorMessage(true);
@@ -2751,7 +2752,7 @@ bool ChatHandler::HandleWpAddCommand(char* args)
         target->GetMotionMaster()->Initialize();
         if(target->isAlive())                               // dead creature will reset movement generator at respawn
         {
-            target->setDeathState(JUST_DIED);
+            target->SetDeathState(JUST_DIED);
             target->Respawn();
         }
         target->SaveToDB();
@@ -2967,7 +2968,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
             npcCreature->GetMotionMaster()->Initialize();
             if(npcCreature->isAlive())                      // dead creature will reset movement generator at respawn
             {
-                npcCreature->setDeathState(JUST_DIED);
+                npcCreature->SetDeathState(JUST_DIED);
                 npcCreature->Respawn();
             }
         }
@@ -3055,7 +3056,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
             npcCreature->GetMotionMaster()->Initialize();
             if(npcCreature->isAlive())                      // dead creature will reset movement generator at respawn
             {
-                npcCreature->setDeathState(JUST_DIED);
+                npcCreature->SetDeathState(JUST_DIED);
                 npcCreature->Respawn();
             }
             npcCreature->SaveToDB();
@@ -3125,7 +3126,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
                 npcCreature->GetMotionMaster()->Initialize();
                 if(npcCreature->isAlive())                  // dead creature will reset movement generator at respawn
                 {
-                    npcCreature->setDeathState(JUST_DIED);
+                    npcCreature->SetDeathState(JUST_DIED);
                     npcCreature->Respawn();
                 }
             }
@@ -3159,7 +3160,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
         npcCreature->GetMotionMaster()->Initialize();
         if(npcCreature->isAlive())                          // dead creature will reset movement generator at respawn
         {
-            npcCreature->setDeathState(JUST_DIED);
+            npcCreature->SetDeathState(JUST_DIED);
             npcCreature->Respawn();
         }
     }

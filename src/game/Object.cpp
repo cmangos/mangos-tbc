@@ -256,7 +256,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         {
             case TYPEID_UNIT:
             {
-                moveFlags = ((Creature*)this)->canFly() ? (MOVEFLAG_FORWARD | MOVEFLAG_LEVITATING) : MOVEFLAG_NONE;
+                moveFlags = ((Creature*)this)->CanFly() ? (MOVEFLAG_FORWARD | MOVEFLAG_LEVITATING) : MOVEFLAG_NONE;
             }
             break;
             case TYPEID_PLAYER:
@@ -579,7 +579,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                     {
                         if (appendValue & UNIT_NPC_FLAG_TRAINER)
                         {
-                            if (!((Creature*)this)->isCanTrainingOf(target, false))
+                            if (!((Creature*)this)->IsTrainerOf(target, false))
                                 appendValue &= ~(UNIT_NPC_FLAG_TRAINER | UNIT_NPC_FLAG_TRAINER_CLASS | UNIT_NPC_FLAG_TRAINER_PROFESSION);
                         }
 

@@ -128,7 +128,7 @@ void WorldSession::SendTrainerList( uint64 guid, const std::string& strTitle )
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
 
     // trainer list loaded at check;
-    if(!unit->isCanTrainingOf(_player,true))
+    if(!unit->IsTrainerOf(_player,true))
         return;
 
     CreatureInfo const *ci = unit->GetCreatureInfo();
@@ -210,7 +210,7 @@ void WorldSession::HandleTrainerBuySpellOpcode( WorldPacket & recv_data )
     if(GetPlayer()->hasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
 
-    if(!unit->isCanTrainingOf(_player,true))
+    if(!unit->IsTrainerOf(_player,true))
         return;
 
     // check present spell in trainer spell list
@@ -273,7 +273,7 @@ void WorldSession::HandleGossipHelloOpcode( WorldPacket & recv_data )
     if(GetPlayer()->hasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
 
-    if( pCreature->isArmorer() || pCreature->isCivilian() || pCreature->isQuestGiver() || pCreature->isServiceProvider())
+    if( pCreature->isArmorer() || pCreature->IsCivilian() || pCreature->isQuestGiver() || pCreature->isServiceProvider())
     {
         pCreature->StopMoving();
     }

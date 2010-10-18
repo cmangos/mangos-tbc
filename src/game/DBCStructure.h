@@ -512,8 +512,7 @@ struct MapEntry
     //char*     hordeIntro                                  // 28-43 text for PvP Zones
                                                             // 44 intro text flags
     //char*     allianceIntro                               // 45-60 text for PvP Zones
-                                                            // 46 intro text flags
-                                                            // 47-61 not used
+                                                            // 61 intro text flags
     uint32      multimap_id;                                // 62
                                                             // 63-65 not used
     //chat*     unknownText1                                // 66-81 unknown empty text fields, possible normal Intro text.

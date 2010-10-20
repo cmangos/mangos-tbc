@@ -1073,7 +1073,7 @@ void Unit::CastSpell(Unit* Victim, SpellEntry const *spellInfo, bool triggered, 
     if (triggeredByAura)
     {
         if(originalCaster.IsEmpty())
-            originalCaster = triggeredByAura->GetCasterGUID();
+            originalCaster = triggeredByAura->GetCasterGuid();
 
         triggeredBy = triggeredByAura->GetSpellProto();
     }
@@ -1119,7 +1119,7 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const *spellInfo, int32 cons
     if (triggeredByAura)
     {
         if(originalCaster.IsEmpty())
-            originalCaster = triggeredByAura->GetCasterGUID();
+            originalCaster = triggeredByAura->GetCasterGuid();
 
         triggeredBy = triggeredByAura->GetSpellProto();
     }
@@ -1176,7 +1176,7 @@ void Unit::CastSpell(float x, float y, float z, SpellEntry const *spellInfo, boo
     if (triggeredByAura)
     {
         if(originalCaster.IsEmpty())
-            originalCaster = triggeredByAura->GetCasterGUID();
+            originalCaster = triggeredByAura->GetCasterGuid();
 
         triggeredBy = triggeredByAura->GetSpellProto();
     }
@@ -8697,7 +8697,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
             // Hunter mark functionality
             AuraList const& auras = GetAurasByType(SPELL_AURA_MOD_STALKED);
             for(AuraList::const_iterator iter = auras.begin(); iter != auras.end(); ++iter)
-                if((*iter)->GetCasterGUID()==u->GetGUID())
+                if ((*iter)->GetCasterGuid() == u->GetObjectGuid())
                     return true;
 
             // else apply detecting check for stealth

@@ -398,7 +398,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     for(Unit::AuraList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)
                     {
                         if ((*i)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK &&
-                            (*i)->GetCasterGUID()==m_caster->GetGUID() &&
+                            (*i)->GetCasterGuid() == m_caster->GetObjectGuid() &&
                             // Immolate
                             ((*i)->GetSpellProto()->SpellFamilyFlags & UI64LIT(0x0000000000000004)))
                         {
@@ -464,8 +464,8 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                         for(Unit::AuraList::const_iterator itr = auras.begin(); itr!=auras.end(); ++itr)
                         {
                             // Deadly poison (only attacker applied)
-                            if( (*itr)->GetSpellProto()->SpellFamilyName==SPELLFAMILY_ROGUE && ((*itr)->GetSpellProto()->SpellFamilyFlags & UI64LIT(0x10000)) &&
-                                (*itr)->GetSpellProto()->SpellVisual==5100 && (*itr)->GetCasterGUID()==m_caster->GetGUID() )
+                            if ((*itr)->GetSpellProto()->SpellFamilyName==SPELLFAMILY_ROGUE && ((*itr)->GetSpellProto()->SpellFamilyFlags & UI64LIT(0x10000)) &&
+                                (*itr)->GetSpellProto()->SpellVisual==5100 && (*itr)->GetCasterGuid() == m_caster->GetObjectGuid())
                             {
                                 poison = *itr;
                                 break;
@@ -537,7 +537,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                     for(Unit::AuraList::const_iterator itr = auras.begin(); itr!=auras.end(); ++itr)
                     {
-                        if((*itr)->GetId() == 31803 && (*itr)->GetCasterGUID()==m_caster->GetGUID())
+                        if (((*itr)->GetId() == 31803) && (*itr)->GetCasterGuid()==m_caster->GetObjectGuid())
                         {
                             stacks = (*itr)->GetStackAmount();
                             break;
@@ -5679,7 +5679,7 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
     {
         case GAMEOBJECT_TYPE_FISHINGNODE:
         {
-            m_caster->SetChannelObjectGUID(pGameObj->GetGUID());
+            m_caster->SetChannelObjectGuid(pGameObj->GetObjectGuid());
             m_caster->AddGameObject(pGameObj);              // will removed at spell cancel
 
             // end time of range when possible catch fish (FISHING_BOBBER_READY_TIME..GetDuration(m_spellInfo))

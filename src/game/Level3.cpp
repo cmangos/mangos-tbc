@@ -3267,7 +3267,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
         return false;
     }
 
-    if( !target->isAlive() )
+    if (!target->isAlive())
         return true;
 
     int32 damage_int;
@@ -3313,6 +3313,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
 
         damage -= absorb + resist;
 
+        m_session->GetPlayer()->DealDamageMods(target,damage,&absorb);
         m_session->GetPlayer()->DealDamage(target, damage, NULL, DIRECT_DAMAGE, schoolmask, NULL, false);
         m_session->GetPlayer()->SendAttackStateUpdate (HITINFO_NORMALSWING2, target, 1, schoolmask, damage, absorb, resist, VICTIMSTATE_NORMAL, 0);
         return true;

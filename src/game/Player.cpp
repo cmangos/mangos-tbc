@@ -9502,7 +9502,7 @@ uint8 Player::CanStoreItems( Item **pItems,int count) const
 
             if (b_found) continue;
 
-            for(int t = INVENTORY_SLOT_BAG_START; !b_found && t < INVENTORY_SLOT_BAG_END; t++)
+            for(int t = INVENTORY_SLOT_BAG_START; !b_found && t < INVENTORY_SLOT_BAG_END; ++t)
             {
                 pBag = (Bag*)GetItemByPos( INVENTORY_SLOT_BAG_0, t );
                 if( pBag )

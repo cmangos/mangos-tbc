@@ -331,7 +331,7 @@ void WorldSession::HandleSetLfgOpcode( WorldPacket & recv_data )
     if(slot >= MAX_LOOKING_FOR_GROUP_SLOT)
         return;
 
-    _player->m_lookingForGroup.slots[slot].Set(entry,type);
+    _player->m_lookingForGroup.slots[slot].Set(entry, type);
     DEBUG_LOG("LFG set: looknumber %u, temp %X, type %u, entry %u", slot, temp, type, entry);
 
     if(LookingForGroup_auto_join)

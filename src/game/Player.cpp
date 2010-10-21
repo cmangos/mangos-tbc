@@ -6785,8 +6785,12 @@ void Player::_ApplyItemBonuses(ItemPrototype const *proto,uint8 slot,bool apply)
         }
     }
 
-    if (proto->Armor)
-        HandleStatModifier(UNIT_MOD_ARMOR, BASE_VALUE, float(proto->Armor), apply);
+    uint32 armor = proto->Armor;
+    // Add armor bonus from ArmorDamageModifier if > 0
+    if (proto->ArmorDamageModifier > 0)
+        armor += proto->ArmorDamageModifier;
+    if (armor)
+        HandleStatModifier(UNIT_MOD_ARMOR, BASE_VALUE, float(armor), apply);
 
     if (proto->Block)
         HandleBaseModValue(SHIELD_BLOCK_VALUE, FLAT_MOD, float(proto->Block), apply);

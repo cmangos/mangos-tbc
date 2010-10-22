@@ -550,7 +550,7 @@ void WorldSession::HandleTextEmoteOpcode( WorldPacket & recv_data )
     }
 
     uint32 text_emote, emoteNum;
-    uint64 guid;
+    ObjectGuid guid;
 
     recv_data >> text_emote;
     recv_data >> emoteNum;

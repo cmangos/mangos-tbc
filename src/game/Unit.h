@@ -841,6 +841,8 @@ struct SpellPeriodicAuraLogInfo
     float  multiplier;
 };
 
+uint32 createProcExtendMask(SpellNonMeleeDamage *damageInfo, SpellMissInfo missCondition);
+
 #define MAX_DECLINED_NAME_CASES 5
 
 struct DeclinedName
@@ -912,8 +914,6 @@ enum CommandStates
 #define UNIT_ACTION_BUTTON_TYPE(X)   ((uint32(X) & 0xFF000000) >> 24)
 #define MAX_UNIT_ACTION_BUTTON_ACTION_VALUE (0x00FFFFFF+1)
 #define MAKE_UNIT_ACTION_BUTTON(A,T) (uint32(A) | (uint32(T) << 24))
-
-uint32 createProcExtendMask(SpellNonMeleeDamage *damageInfo, SpellMissInfo missCondition);
 
 struct UnitActionBarEntry
 {

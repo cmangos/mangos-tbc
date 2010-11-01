@@ -579,7 +579,10 @@ namespace VMAP
     {
         bool result = true;
         float maxDist = abs((pos2 - pos1).magnitude());
-                                                            // direction with length of 1
+        // prevent NaN values which can cause BIH intersection to enter infinite loop
+        if (maxDist < 1e-10f)
+            return true;
+        // direction with length of 1
         Ray ray = Ray::fromOriginAndDirection(pos1, (pos2 - pos1)/maxDist);
         float resultDist = getIntersectionTime(ray, maxDist, true);
         if(resultDist < maxDist)

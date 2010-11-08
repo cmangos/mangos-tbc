@@ -2938,11 +2938,30 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                     break;
                 }
                 case SUMMON_PROP_TYPE_SUMMON:
+                    DoSummonGuardian(eff_idx, summon_prop->FactionId);
+                    break;
                 case SUMMON_PROP_TYPE_GUARDIAN:
                 {
-                    // JC golems - 32804, etc  -- fits much better totem AI
-                    if(m_spellInfo->SpellIconID == 2056)
-                        DoSummonTotem(eff_idx);
+                    if (prop_id == 61)                      // mixed guardians, totems, statues
+                    {
+                        // * Stone Statue, etc  -- fits much better totem AI
+                        if (m_spellInfo->SpellIconID == 2056)
+                            DoSummonTotem(eff_idx);
+                        else
+                        {
+                            // possible sort totems/guardians only by summon creature type
+                            CreatureInfo const* cInfo = sObjectMgr.GetCreatureTemplate(m_spellInfo->EffectMiscValue[eff_idx]);
+
+                            if (!cInfo)
+                                return;
+
+                            // FIXME: not all totems and similar cases seelcted by this check...
+                            if (cInfo->type == CREATURE_TYPE_TOTEM)
+                                DoSummonTotem(eff_idx);
+                            else
+                                DoSummonGuardian(eff_idx, summon_prop->FactionId);
+                        }
+                    }
                     else
                         DoSummonGuardian(eff_idx, summon_prop->FactionId);
                     break;

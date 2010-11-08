@@ -2753,6 +2753,10 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
         return;
     }
 
+    // mark item as unlocked
+    if (itemTarget)
+        itemTarget->SetFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_UNLOCKED);
+
     SendLoot(guid, LOOT_SKINNING);
 
     // not allow use skill grow at item base open
@@ -5754,17 +5758,17 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
 
 void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
 {
-    if(m_caster->GetTypeId() != TYPEID_PLAYER)
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
         return;
 
     Player* p_caster = (Player*)m_caster;
-    if(!itemTarget || !(itemTarget->GetProto()->BagFamily & BAG_FAMILY_MASK_MINING_SUPP))
+    if (!itemTarget || !(itemTarget->GetProto()->Flags & ITEM_FLAG_PROSPECTABLE))
         return;
 
-    if(itemTarget->GetCount() < 5)
+    if (itemTarget->GetCount() < 5)
         return;
 
-    if( sWorld.getConfig(CONFIG_BOOL_SKILL_PROSPECTING))
+    if (sWorld.getConfig(CONFIG_BOOL_SKILL_PROSPECTING))
     {
         uint32 SkillValue = p_caster->GetPureSkillValue(SKILL_JEWELCRAFTING);
         uint32 reqSkillValue = itemTarget->GetProto()->RequiredSkillRank;

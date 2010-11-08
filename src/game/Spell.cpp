@@ -4222,7 +4222,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                     || m_spellInfo->EffectImplicitTargetA[i] == TARGET_GAMEOBJECT && !m_targets.getGOTarget()
                     // we need a go target, or an openable item target in case of TARGET_GAMEOBJECT_ITEM
                     || m_spellInfo->EffectImplicitTargetA[i] == TARGET_GAMEOBJECT_ITEM && !m_targets.getGOTarget() &&
-                    (!m_targets.getItemTarget() || !m_targets.getItemTarget()->GetProto()->LockID || m_targets.getItemTarget()->GetOwner() != m_caster ) )
+                    (!m_targets.getItemTarget() || m_targets.getItemTarget()->GetOwner() != m_caster ||
+                    !m_targets.getItemTarget()->GetProto()->LockID || m_targets.getItemTarget()->HasFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_UNLOCKED)))
                     return SPELL_FAILED_BAD_TARGETS;
 
                 // In BattleGround players can use only flags and banners
@@ -5171,7 +5172,7 @@ SpellCastResult Spell::CheckItems()
                 if(!m_targets.getItemTarget())
                     return SPELL_FAILED_CANT_BE_PROSPECTED;
                 // ensure item is a prospectable ore
-                if(!(m_targets.getItemTarget()->GetProto()->BagFamily & BAG_FAMILY_MASK_MINING_SUPP) || m_targets.getItemTarget()->GetProto()->Class != ITEM_CLASS_TRADE_GOODS)
+                if (!(m_targets.getItemTarget()->GetProto()->Flags & ITEM_FLAG_PROSPECTABLE))
                     return SPELL_FAILED_CANT_BE_PROSPECTED;
                 // prevent prospecting in trade slot
                 if( m_targets.getItemTarget()->GetOwnerGUID() != m_caster->GetGUID() )

@@ -329,10 +329,10 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         {
             if(GetTypeId() == TYPEID_PLAYER)
             {
-                *data << float(((Player*)this)->m_movementInfo.j_velocity);
-                *data << float(((Player*)this)->m_movementInfo.j_sinAngle);
-                *data << float(((Player*)this)->m_movementInfo.j_cosAngle);
-                *data << float(((Player*)this)->m_movementInfo.j_xyspeed);
+                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().velocity);
+                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().sinAngle);
+                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().cosAngle);
+                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().xyspeed);
             }
             else
             {

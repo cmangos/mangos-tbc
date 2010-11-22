@@ -129,6 +129,8 @@ Quest::Quest(Field * questRecord)
     QuestStartScript = questRecord[125].GetUInt32();
     QuestCompleteScript = questRecord[126].GetUInt32();
 
+    m_isActive = true;
+
     m_reqitemscount = 0;
     m_reqCreatureOrGOcount = 0;
     m_rewitemscount = 0;

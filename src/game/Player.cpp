@@ -12247,6 +12247,12 @@ void Player::PrepareQuestMenu(ObjectGuid guid)
     for(QuestRelationsMap::const_iterator itr = irbounds.first; itr != irbounds.second; ++itr)
     {
         uint32 quest_id = itr->second;
+
+        Quest const* pQuest = sObjectMgr.GetQuestTemplate(quest_id);
+
+        if (!pQuest || !pQuest->IsActive())
+            continue;
+
         QuestStatus status = GetQuestStatus(quest_id);
 
         if (status == QUEST_STATUS_COMPLETE && !GetQuestRewardStatus(quest_id))
@@ -12260,9 +12266,10 @@ void Player::PrepareQuestMenu(ObjectGuid guid)
     for(QuestRelationsMap::const_iterator itr = rbounds.first; itr != rbounds.second; ++itr)
     {
         uint32 quest_id = itr->second;
+
         Quest const* pQuest = sObjectMgr.GetQuestTemplate(quest_id);
 
-        if (!pQuest)
+        if (!pQuest || !pQuest->IsActive())
             continue;
 
         QuestStatus status = GetQuestStatus(quest_id);
@@ -12418,7 +12425,8 @@ bool Player::CanSeeStartQuest(Quest const *pQuest) const
     if (SatisfyQuestClass(pQuest, false) && SatisfyQuestRace(pQuest, false) && SatisfyQuestSkill(pQuest, false) &&
         SatisfyQuestExclusiveGroup(pQuest, false) && SatisfyQuestReputation(pQuest, false) &&
         SatisfyQuestPreviousQuest(pQuest, false) && SatisfyQuestNextChain(pQuest, false) &&
-        SatisfyQuestPrevChain(pQuest, false) && SatisfyQuestDay(pQuest, false))
+        SatisfyQuestPrevChain(pQuest, false) && SatisfyQuestDay(pQuest, false) &&
+        pQuest->IsActive())
     {
         return getLevel() + sWorld.getConfig(CONFIG_UINT32_QUEST_HIGH_LEVEL_HIDE_DIFF) >= pQuest->GetMinLevel();
     }
@@ -12433,7 +12441,8 @@ bool Player::CanTakeQuest(Quest const *pQuest, bool msg) const
         SatisfyQuestSkill(pQuest, msg) && SatisfyQuestReputation(pQuest, msg) &&
         SatisfyQuestPreviousQuest(pQuest, msg) && SatisfyQuestTimed(pQuest, msg) &&
         SatisfyQuestNextChain(pQuest, msg) && SatisfyQuestPrevChain(pQuest, msg) &&
-        SatisfyQuestDay(pQuest, msg);
+        SatisfyQuestDay(pQuest, msg) &&
+        pQuest->IsActive();
 }
 
 bool Player::CanAddQuest(Quest const *pQuest, bool msg) const

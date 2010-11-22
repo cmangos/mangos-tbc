@@ -153,7 +153,7 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode( WorldPacket & recv_data )
         {
             _player->AddQuest( qInfo, pObject );
 
-            if (qInfo->HasFlag(QUEST_FLAGS_PARTY_ACCEPT))
+            if (qInfo->HasQuestFlag(QUEST_FLAGS_PARTY_ACCEPT))
             {
                 if (Group* pGroup = _player->GetGroup())
                 {
@@ -372,7 +372,7 @@ void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recv_data)
 
             if (const Quest *pQuest = sObjectMgr.GetQuestTemplate(quest))
             {
-                if (pQuest->HasFlag(QUEST_MANGOS_FLAGS_TIMED))
+                if (pQuest->HasQuestFlag(QUEST_MANGOS_FLAGS_TIMED))
                     _player->RemoveTimedQuest(quest);
             }
 
@@ -392,7 +392,7 @@ void WorldSession::HandleQuestConfirmAccept(WorldPacket& recv_data)
 
     if (const Quest* pQuest =sObjectMgr.GetQuestTemplate(quest))
     {
-        if (!pQuest->HasFlag(QUEST_FLAGS_PARTY_ACCEPT))
+        if (!pQuest->HasQuestFlag(QUEST_FLAGS_PARTY_ACCEPT))
             return;
 
         Player* pOriginalPlayer = ObjectAccessor::FindPlayer(_player->GetDivider());
@@ -601,7 +601,7 @@ uint32 WorldSession::getDialogStatus(Player *pPlayer, Object* questgiver, uint32
                         result2 = DIALOG_STATUS_REWARD_REP;
                     else if (pPlayer->getLevel() <= pPlayer->GetQuestLevel(pQuest) + sWorld.getConfig(CONFIG_UINT32_QUEST_LOW_LEVEL_HIDE_DIFF) )
                     {
-                        if (pQuest->HasFlag(QUEST_FLAGS_DAILY))
+                        if (pQuest->HasQuestFlag(QUEST_FLAGS_DAILY))
                             result2 = DIALOG_STATUS_AVAILABLE_REP;
                         else
                             result2 = DIALOG_STATUS_AVAILABLE;

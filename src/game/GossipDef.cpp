@@ -593,8 +593,8 @@ void PlayerMenu::SendQuestQueryResponse( Quest const *pQuest )
 
     // rewarded honor points
     data << uint32(MaNGOS::Honor::hk_honor_at_level(GetMenuSession()->GetPlayer()->getLevel(), pQuest->GetRewHonorableKills()));
-    data << uint32(pQuest->GetSrcItemId());
-    data << uint32(pQuest->GetFlags() & 0xFFFF);
+    data << uint32(pQuest->GetSrcItemId());                 // source item id
+    data << uint32(pQuest->GetQuestFlags());                // quest flags
     data << uint32(pQuest->GetCharTitleId());               // CharTitleId, new 2.4.0, player gets this title (id from CharTitles)
 
     int iI;

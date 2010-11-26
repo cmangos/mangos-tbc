@@ -339,7 +339,7 @@ m_isRemovedOnShapeLost(true), m_in_use(false)
     m_applyTime = time(NULL);
 
     int32 damage;
-    if(!caster)
+    if (!caster)
     {
         m_caster_guid = target->GetGUID();
         damage = m_currentBasePoints;
@@ -355,34 +355,36 @@ m_isRemovedOnShapeLost(true), m_in_use(false)
         if (!damage && castItem && castItem->GetItemSuffixFactor())
         {
             ItemRandomSuffixEntry const *item_rand_suffix = sItemRandomSuffixStore.LookupEntry(abs(castItem->GetItemRandomPropertyId()));
-            if(item_rand_suffix)
+            if (item_rand_suffix)
             {
                 for (int k = 0; k < 3; ++k)
                 {
                     SpellItemEnchantmentEntry const *pEnchant = sSpellItemEnchantmentStore.LookupEntry(item_rand_suffix->enchant_id[k]);
-                    if(pEnchant)
+                    if (pEnchant)
                     {
                         for (int t = 0; t < 3; ++t)
-                            if(pEnchant->spellid[t] == m_spellProto->Id)
                         {
+                            if(pEnchant->spellid[t] != spellproto->Id)
+                                continue;
+
                             damage = uint32((item_rand_suffix->prefix[k]*castItem->GetItemSuffixFactor()) / 10000 );
                             break;
                         }
                     }
 
-                    if(damage)
+                    if (damage)
                         break;
                 }
             }
         }
     }
 
-    if(m_maxduration == -1 || m_isPassive && m_spellProto->DurationIndex == 0)
+    if (m_maxduration == -1 || (m_isPassive && m_spellProto->DurationIndex == 0))
         m_permanent = true;
 
     Player* modOwner = caster ? caster->GetSpellModOwner() : NULL;
 
-    if(!m_permanent && modOwner)
+    if (!m_permanent && modOwner)
     {
         modOwner->ApplySpellMod(GetId(), SPELLMOD_DURATION, m_maxduration);
         // Get zero duration aura after - need set m_maxduration > 0 for apply/remove aura work
@@ -2787,10 +2789,10 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
                 uint32 aurMechMask = GetAllSpellMechanicMask(aurSpellInfo);
 
                 // If spell that caused this aura has Croud Control or Daze effect
-                if((aurMechMask & MECHANIC_NOT_REMOVED_BY_SHAPESHIFT) ||
+                if ((aurMechMask & MECHANIC_NOT_REMOVED_BY_SHAPESHIFT) ||
                     // some Daze spells have these parameters instead of MECHANIC_DAZE (skip snare spells)
-                    aurSpellInfo->SpellIconID == 15 && aurSpellInfo->Dispel == 0 &&
-                    (aurMechMask & (1 << (MECHANIC_SNARE-1)))==0)
+                    (aurSpellInfo->SpellIconID == 15 && aurSpellInfo->Dispel == 0 &&
+                    (aurMechMask & (1 << (MECHANIC_SNARE-1))) == 0))
                 {
                     ++iter;
                     continue;
@@ -3101,7 +3103,7 @@ void Aura::HandleForceReaction(bool apply, bool Real)
     player->GetReputationMgr().SendForceReactions();
 
     // stop fighting if at apply forced rank friendly or at remove real rank friendly
-    if (apply && faction_rank >= REP_FRIENDLY || !apply && player->GetReputationRank(faction_id) >= REP_FRIENDLY)
+    if ((apply && faction_rank >= REP_FRIENDLY) || (!apply && player->GetReputationRank(faction_id) >= REP_FRIENDLY))
         player->StopAttackFaction(faction_id);
 }
 
@@ -3120,16 +3122,16 @@ void Aura::HandleAuraModSkill(bool apply, bool /*Real*/)
 
 void Aura::HandleChannelDeathItem(bool apply, bool Real)
 {
-    if(Real && !apply)
+    if (Real && !apply)
     {
-        if(m_removeMode != AURA_REMOVE_BY_DEATH)
+        if (m_removeMode != AURA_REMOVE_BY_DEATH)
             return;
         // Item amount
         if (m_modifier.m_amount <= 0)
             return;
 
         SpellEntry const *spellInfo = GetSpellProto();
-        if(spellInfo->EffectItemType[m_effIndex] == 0)
+        if (spellInfo->EffectItemType[m_effIndex] == 0)
             return;
 
         Unit* victim = GetTarget();
@@ -3142,7 +3144,7 @@ void Aura::HandleChannelDeathItem(bool apply, bool Real)
         {
             // Only from non-grey units
             if (!((Player*)caster)->isHonorOrXPTarget(victim) ||
-                victim->GetTypeId() == TYPEID_UNIT && !((Player*)caster)->isAllowedToLoot((Creature*)victim))
+                (victim->GetTypeId() == TYPEID_UNIT && !((Player*)caster)->isAllowedToLoot((Creature*)victim)))
                 return;
         }
 

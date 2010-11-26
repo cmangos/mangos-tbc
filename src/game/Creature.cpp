@@ -2148,6 +2148,11 @@ VendorItemData const* Creature::GetVendorItems() const
     return sObjectMgr.GetNpcVendorItemList(GetEntry());
 }
 
+VendorItemData const* Creature::GetVendorTemplateItems() const
+{
+    return GetCreatureInfo()->vendorId ? sObjectMgr.GetNpcVendorItemList(GetCreatureInfo()->vendorId) : NULL;
+}
+
 uint32 Creature::GetVendorItemCurrentCount(VendorItem const* vItem)
 {
     if(!vItem->maxcount)

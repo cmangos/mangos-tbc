@@ -5559,7 +5559,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     triggered_spell_id = 31803;
                     break;
                 }
-                // Spiritual Att.
+                // Spiritual Attunement
                 case 31785:
                 case 33776:
                 {
@@ -5567,8 +5567,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     if(this == pVictim)
                         return false;
 
-                    // heal amount
-                    basepoints0 = triggerAmount*damage/100;
+                    // dont count overhealing
+                    uint32 diff = GetMaxHealth()-GetHealth();
+                    if (!diff)
+                        return false;
+                    if (damage > diff)
+                        basepoints0 = triggerAmount*diff/100;
+                    else
+                        basepoints0 = triggerAmount*damage/100;
                     target = this;
                     triggered_spell_id = 31786;
                     break;

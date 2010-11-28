@@ -1158,26 +1158,10 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    uint32 spellId = 0;
+                    if (BattleGround* bg = ((Player*)m_caster)->GetBattleGround())
+                        bg->EventPlayerDroppedFlag((Player*)m_caster);
 
-                    switch(m_spellInfo->Id)
-                    {
-                        case 46167: spellId = 46773; break;
-                        case 50926: spellId = 50927; break;
-                        case 51026: spellId = 50737; break;
-                        case 51592: spellId = 51593; break;
-                        case 51961: spellId = 51037; break;
-                    }
-
-                    if (const SpellEntry *pSpell = sSpellStore.LookupEntry(spellId))
-                    {
-                        unitTarget->CastSpell(m_caster, spellId, true);
-
-                        Creature* creatureTarget = (Creature*)unitTarget;
-
-                        if (const SpellCastTimesEntry *pCastTime = sSpellCastTimesStore.LookupEntry(pSpell->CastingTimeIndex))
-                            creatureTarget->ForcedDespawn(pCastTime->CastTime + 1);
-                    }
+                    m_caster->CastSpell(m_caster, 30452, true, NULL);
                     return;
                 }
             }

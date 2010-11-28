@@ -490,7 +490,7 @@ struct GossipMenuItems
     std::string     option_text;
     uint32          option_id;
     uint32          npc_option_npcflag;
-    uint32          action_menu_id;
+    int32           action_menu_id;
     uint32          action_poi_id;
     uint32          action_script_id;
     bool            box_coded;

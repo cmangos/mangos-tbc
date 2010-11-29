@@ -36,6 +36,7 @@
 #include "ReputationMgr.h"
 #include "BattleGround.h"
 #include "DBCStores.h"
+#include "SharedDefines.h"
 
 #include<string>
 #include<vector>
@@ -1675,7 +1676,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendExplorationExperience(uint32 Area, uint32 Experience);
 
         void SendDungeonDifficulty(bool IsInGroup);
-        void ResetInstances(uint8 method);
+        void ResetInstances(InstanceResetMethod method);
         void SendResetInstanceSuccess(uint32 MapId);
         void SendResetInstanceFailed(uint32 reason, uint32 MapId);
         void SendResetFailedNotify(uint32 mapid);

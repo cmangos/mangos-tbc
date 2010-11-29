@@ -26,6 +26,7 @@
 #include "BattleGround.h"
 #include "LootMgr.h"
 #include "DBCEnums.h"
+#include "SharedDefines.h"
 
 #include <map>
 #include <vector>
@@ -285,7 +286,7 @@ class MANGOS_DLL_SPEC Group
         Difficulty GetDifficulty() const { return m_difficulty; }
         uint16 InInstance();
         bool InCombatToInstance(uint32 instanceId);
-        void ResetInstances(uint8 method, Player* SendMsgTo);
+        void ResetInstances(InstanceResetMethod method, Player* SendMsgTo);
 
         void SendTargetIconList(WorldSession *session);
         void SendUpdate();

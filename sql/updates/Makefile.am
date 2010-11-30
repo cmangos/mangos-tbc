@@ -269,7 +269,10 @@ pkgdata_DATA = \
 	s0386_10662_01_characters_item_loot.sql \
 	s0391_10679_01_mangos_npc_vendor_template.sql \
 	s0391_10679_02_mangos_creature_template.sql \
-	s0407_10704_01_mangos_gossip_menu_option.sql
+	s0407_10704_01_mangos_gossip_menu_option.sql \
+	s0418_7908_01_mangos_creature_template.sql \
+	s0418_7908_02_mangos_creature_addon.sql \
+	s0418_7908_03_mangos_creature_template_addon.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -517,4 +520,7 @@ EXTRA_DIST = \
 	s0386_10662_01_characters_item_loot.sql \
 	s0391_10679_01_mangos_npc_vendor_template.sql \
 	s0391_10679_02_mangos_creature_template.sql \
-	s0407_10704_01_mangos_gossip_menu_option.sql
+	s0407_10704_01_mangos_gossip_menu_option.sql \
+	s0418_7908_01_mangos_creature_template.sql \
+	s0418_7908_02_mangos_creature_addon.sql \
+	s0418_7908_03_mangos_creature_template_addon.sql

@@ -765,7 +765,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
         if(!mapEntry)
             return;
 
-        bool isRegularTargetMap = GetPlayer()->GetDifficulty() == REGULAR_DIFFICULTY;
+        bool isRegularTargetMap = !mapEntry->IsDungeon() || GetPlayer()->GetDifficulty() == REGULAR_DIFFICULTY;
 
         uint32 missingKey = 0;
         if (!isRegularTargetMap)
@@ -781,14 +781,14 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
         }
 
         uint32 missingQuest = 0;
-        if(GetPlayer()->GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC)
+        if (!isRegularTargetMap)
         {
             if (at->requiredQuestHeroic && !GetPlayer()->GetQuestRewardStatus(at->requiredQuestHeroic))
                 missingQuest = at->requiredQuestHeroic;
         }
         else
         {
-            if(at->requiredQuest && !GetPlayer()->GetQuestRewardStatus(at->requiredQuest))
+            if (at->requiredQuest && !GetPlayer()->GetQuestRewardStatus(at->requiredQuest))
                 missingQuest = at->requiredQuest;
         }
 

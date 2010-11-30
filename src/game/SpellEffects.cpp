@@ -1395,7 +1395,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                 case 31231:                                 // Cheat Death
                 {
-                    m_caster->CastSpell(m_caster,45182,true);
+                    m_caster->CastSpell(m_caster, 45182, true);
                     return;
                 }
             }
@@ -4506,7 +4506,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     uint32 spellId = 0;
-                    switch(rand()%4)
+                    switch(rand() % 4)
                     {
                         case 0: spellId = 46740; break;
                         case 1: spellId = 46739; break;

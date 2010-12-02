@@ -4578,9 +4578,6 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
 
         if(_target)                                         //for target dead/target not valid
         {
-            if(!_target->isAlive())
-                return SPELL_FAILED_BAD_TARGETS;
-
             if (!_target->isTargetableForAttack())
                 return SPELL_FAILED_BAD_TARGETS;            // guessed error
 

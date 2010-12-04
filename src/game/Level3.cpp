@@ -4435,7 +4435,7 @@ bool ChatHandler::HandleServerShutDownCommand(char* args)
     // Exit code should be in range of 0-125, 126-255 is used
     // in many shells for their own return codes and code > 255
     // is not supported in many others
-    if (exitcode < 0 || exitcode > 125)
+    if (exitcode > 125)
         return false;
 
     sWorld.ShutdownServ (delay, 0, exitcode);
@@ -4455,7 +4455,7 @@ bool ChatHandler::HandleServerRestartCommand(char* args)
     // Exit code should be in range of 0-125, 126-255 is used
     // in many shells for their own return codes and code > 255
     // is not supported in many others
-    if (exitcode < 0 || exitcode > 125)
+    if (exitcode > 125)
         return false;
 
     sWorld.ShutdownServ(delay, SHUTDOWN_MASK_RESTART, exitcode);
@@ -4475,7 +4475,7 @@ bool ChatHandler::HandleServerIdleRestartCommand(char* args)
     // Exit code should be in range of 0-125, 126-255 is used
     // in many shells for their own return codes and code > 255
     // is not supported in many others
-    if (exitcode < 0 || exitcode > 125)
+    if (exitcode > 125)
         return false;
 
     sWorld.ShutdownServ(delay, SHUTDOWN_MASK_RESTART|SHUTDOWN_MASK_IDLE, exitcode);
@@ -4495,7 +4495,7 @@ bool ChatHandler::HandleServerIdleShutDownCommand(char* args)
     // Exit code should be in range of 0-125, 126-255 is used
     // in many shells for their own return codes and code > 255
     // is not supported in many others
-    if (exitcode < 0 || exitcode > 125)
+    if (exitcode > 125)
         return false;
 
     sWorld.ShutdownServ(delay, SHUTDOWN_MASK_IDLE, exitcode);

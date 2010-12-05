@@ -4130,20 +4130,21 @@ void Aura::HandleAuraModDecreaseSpeed(bool apply, bool Real)
     if(!Real)
         return;
 
+    Unit* target = GetTarget();
+
     if (apply)
     {
         // Gronn Lord's Grasp, becomes stoned
         if (GetId() == 33572)
         {
-            if (m_target->GetAuras().count(Unit::spellEffectPair(GetId(),GetEffIndex())) >= 5 &&
-                !m_target->HasAura(33652))
-                m_target->CastSpell(m_target, 33652, true);
+            if (GetStackAmount() >= 5 && !target->HasAura(33652))
+                target->CastSpell(m_target, 33652, true);
         }
     }
 
-    m_target->UpdateSpeed(MOVE_RUN, true);
-    m_target->UpdateSpeed(MOVE_SWIM, true);
-    m_target->UpdateSpeed(MOVE_FLIGHT, true);
+    target->UpdateSpeed(MOVE_RUN, true);
+    target->UpdateSpeed(MOVE_SWIM, true);
+    target->UpdateSpeed(MOVE_FLIGHT, true);
 }
 
 void Aura::HandleAuraModUseNormalSpeed(bool /*apply*/, bool Real)

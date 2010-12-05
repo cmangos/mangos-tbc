@@ -5410,7 +5410,7 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 case 32748:
                 {
                     // Prevent cast Deadly Throw Interrupt on self from last effect (apply dummy) of Deadly Throw
-                    if(this == pVictim)
+                    if (this == pVictim)
                         return false;
 
                     triggered_spell_id = 32747;
@@ -5418,14 +5418,14 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                 }
             }
             // Quick Recovery
-            if( dummySpell->SpellIconID == 2116 )
+            if (dummySpell->SpellIconID == 2116)
             {
                 if(!procSpell)
                     return false;
 
                 // energy cost save
                 basepoints0 = procSpell->manaCost * triggerAmount/100;
-                if(basepoints0 <= 0)
+                if (basepoints0 <= 0)
                     return false;
 
                 target = this;

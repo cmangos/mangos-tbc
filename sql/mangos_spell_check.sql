@@ -41,7 +41,8 @@ INSERT INTO spell_check (spellid,SpellFamilyName,SpellFamilyMask,SpellIcon,Spell
 (18789,-1,                -1,  -1,  -1,  -1, -1, -1,-1,'',                                   'Spell::EffectInstaKill'),
 (18790,-1,                -1,  -1,  -1,  -1, -1, -1,-1,'',                                   'Spell::EffectInstaKill'),
 (18791,-1,                -1,  -1,  -1,  -1, -1, -1,-1,'',                                   'Spell::EffectInstaKill'),
-(18792,-1,                -1,  -1,  -1,  -1, -1, -1,-1,'',                                   'Spell::EffectInstaKill');
+(18792,-1,                -1,  -1,  -1,  -1, -1, -1,-1,'',                                   'Spell::EffectInstaKill'),
 /* sorted by spell names */
 /*id   fm familyMask         icon vis  cat  eff aur ef name                                  code                   */
-/* no at this moment                                                                                                */
+(    0, 4,0x0000000000004000,  -1,  -1,  -1, -1, 22, 0,'Sunder Armor',                       'Spell::EffectDummy'    );
+/*id   fm familyMaskA        fmMaskB    icon vis  cat  eff aur ef name                       code                   */

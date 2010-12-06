@@ -671,14 +671,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
 
                     //immediately finishes the cooldown on certain Rogue abilities
-                    const PlayerSpellMap& sp_list = ((Player *)m_caster)->GetSpellMap();
-                    for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
+                    const SpellCooldowns& cm = ((Player *)m_caster)->GetSpellCooldownMap();
+                    for (SpellCooldowns::const_iterator itr = cm.begin(); itr != cm.end();)
                     {
-                        uint32 classspell = itr->first;
-                        SpellEntry const *spellInfo = sSpellStore.LookupEntry(classspell);
+                        SpellEntry const *spellInfo = sSpellStore.LookupEntry(itr->first);
 
-                        if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (spellInfo->SpellFamilyFlags & UI64LIT(0x26000000860)))
-                            ((Player*)m_caster)->RemoveSpellCooldown(classspell,true);
+                        if (spellInfo->SpellFamilyName == SPELLFAMILY_ROGUE && (spellInfo->SpellFamilyFlags & UI64LIT(0x0000024000000860)))
+                            ((Player*)m_caster)->RemoveSpellCooldown((itr++)->first,true);
+                        else
+                            ++itr;
                     }
                     return;
                 }

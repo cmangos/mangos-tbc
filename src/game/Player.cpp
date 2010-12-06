@@ -651,22 +651,6 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
 
     uint8 powertype = cEntry->powerType;
 
-    uint32 unitfield;
-
-    switch(powertype)
-    {
-        case POWER_ENERGY:
-        case POWER_MANA:
-            unitfield = 0x00000000;
-            break;
-        case POWER_RAGE:
-            unitfield = 0x00110000;
-            break;
-        default:
-            sLog.outError("Invalid default powertype %u for player (class %u)",powertype,class_);
-            return false;
-    }
-
     setFactionForRace(race);
 
     SetByteValue(UNIT_FIELD_BYTES_0, 0, race);
@@ -676,7 +660,6 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
 
     InitDisplayIds();                                       // model, scale and model data
 
-    SetUInt32Value(UNIT_FIELD_BYTES_1, unitfield);
     SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_UNK3 | UNIT_BYTE2_FLAG_UNK5 );
     SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE );
     SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);               // fix cast time showed in spell tooltip on client

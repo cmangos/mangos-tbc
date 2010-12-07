@@ -54,6 +54,8 @@ pkgdata_DATA = \
 	s0224_10503_02_characters_gameobject_respawn.sql \
 	s0224_10503_03_mangos_creature_respawn.sql \
 	s0224_10503_04_mangos_gameobject_respawn.sql \
+	s0384_10664_01_characters_arena_team_stats.sql \
+	s0386_10662_01_characters_item_loot.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -88,4 +90,6 @@ EXTRA_DIST = \
 	s0224_10503_02_characters_gameobject_respawn.sql \
 	s0224_10503_03_mangos_creature_respawn.sql \
 	s0224_10503_04_mangos_gameobject_respawn.sql \
+	s0384_10664_01_characters_arena_team_stats.sql \
+	s0386_10662_01_characters_item_loot.sql \
 	README

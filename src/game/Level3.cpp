@@ -4243,19 +4243,6 @@ static bool HandleResetStatsOrLevelHelper(Player* player)
 
     uint8 powertype = cEntry->powerType;
 
-    uint32 unitfield;
-    if(powertype == POWER_RAGE)
-        unitfield = 0x1100EE00;
-    else if(powertype == POWER_ENERGY)
-        unitfield = 0x00000000;
-    else if(powertype == POWER_MANA)
-        unitfield = 0x0000EE00;
-    else
-    {
-        sLog.outError("Invalid default powertype %u for player (class %u)",powertype,player->getClass());
-        return false;
-    }
-
     // reset m_form if no aura
     if(!player->HasAuraType(SPELL_AURA_MOD_SHAPESHIFT))
         player->m_form = FORM_NONE;
@@ -4265,14 +4252,11 @@ static bool HandleResetStatsOrLevelHelper(Player* player)
 
     player->setFactionForRace(player->getRace());
 
-    player->SetByteValue(UNIT_FIELD_BYTES_0, 3, powertype);
-
     // reset only if player not in some form;
     if(player->m_form==FORM_NONE)
         player->InitDisplayIds();
 
     // set UNIT_FIELD_BYTES_1 to init state but preserve m_form value
-    player->SetUInt32Value(UNIT_FIELD_BYTES_1, unitfield);
     player->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_UNK3 | UNIT_BYTE2_FLAG_UNK5 );
     player->SetByteValue(UNIT_FIELD_BYTES_2, 3, player->m_form);
 

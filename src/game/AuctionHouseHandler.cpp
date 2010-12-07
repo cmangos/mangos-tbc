@@ -128,7 +128,7 @@ void WorldSession::SendAuctionOutbiddedMail(AuctionEntry *auction, uint32 newPri
 
         MailDraft(msgAuctionOutbiddedSubject.str())
             .AddMoney(auction->bid)
-            .SendMailTo(MailReceiver(oldBidder, auction->bidder), auction, MAIL_CHECK_MASK_COPIED);
+            .SendMailTo(MailReceiver(oldBidder, oldBidder_guid), auction, MAIL_CHECK_MASK_COPIED);
     }
 }
 
@@ -150,7 +150,7 @@ void WorldSession::SendAuctionCancelledToBidderMail( AuctionEntry* auction )
 
         MailDraft(msgAuctionCancelledSubject.str())
             .AddMoney(auction->bid)
-            .SendMailTo(MailReceiver(bidder, auction->bidder), auction, MAIL_CHECK_MASK_COPIED);
+            .SendMailTo(MailReceiver(bidder, bidder_guid), auction, MAIL_CHECK_MASK_COPIED);
     }
 }
 

@@ -427,8 +427,9 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     m_caster->SetPower(POWER_ENERGY,0);
                 }
                 // Rake
-                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000001000))
+                else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000000001000) && m_spellInfo->Effect[EFFECT_INDEX_2]==SPELL_EFFECT_ADD_COMBO_POINTS)
                 {
+                    // $AP*0.01 bonus
                     damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) / 100);
                 }
                 // Swipe

@@ -4477,7 +4477,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             case SPELLFAMILY_DRUID:
             {
                 // Rake
-                if (m_spellProto->SpellFamilyFlags & UI64LIT(0x0000000000001000))
+                if (m_spellProto->SpellFamilyFlags & UI64LIT(0x0000000000001000) && m_spellProto->Effect[2]==SPELL_EFFECT_ADD_COMBO_POINTS)
                 {
                     // $AP*0.06/3 bonus per tick
                     m_modifier.m_amount += int32(caster->GetTotalAttackPowerValue(BASE_ATTACK) * 2 / 100);

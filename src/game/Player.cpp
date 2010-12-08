@@ -14035,7 +14035,7 @@ void Player::_LoadDeclinedNames(QueryResult* result)
 void Player::_LoadArenaTeamInfo(QueryResult *result)
 {
     // arenateamid, played_week, played_season, personal_rating
-    memset((void*)&m_uint32Values[PLAYER_FIELD_ARENA_TEAM_INFO_1_1], 0, sizeof(uint32)*18);
+    memset((void*)&m_uint32Values[PLAYER_FIELD_ARENA_TEAM_INFO_1_1], 0, sizeof(uint32) * MAX_ARENA_SLOT * ARENA_TEAM_END);
     if (!result)
         return;
 
@@ -14063,7 +14063,7 @@ void Player::_LoadArenaTeamInfo(QueryResult *result)
         SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_WINS_SEASON, 0);
         SetArenaTeamInfoField(arenaSlot, ARENA_TEAM_PERSONAL_RATING, personal_rating);
 
-    }while (result->NextRow());
+    } while (result->NextRow());
     delete result;
 }
 
@@ -17726,7 +17726,7 @@ uint32 Player::GetMaxPersonalArenaRatingRequirement()
         {
             uint32 p_rating = GetArenaPersonalRating(i);
             uint32 t_rating = at->GetRating();
-            p_rating = p_rating<t_rating? p_rating : t_rating;
+            p_rating = p_rating < t_rating ? p_rating : t_rating;
             if(max_personal_rating < p_rating)
                 max_personal_rating = p_rating;
         }
@@ -17766,7 +17766,7 @@ void Player::UpdateHomebindTime(uint32 time)
         m_HomebindTimer = 60000;
         // send message to player
         WorldPacket data(SMSG_RAID_GROUP_ONLY, 4+4);
-        data << m_HomebindTimer;
+        data << uint32(m_HomebindTimer);
         data << uint32(1);
         GetSession()->SendPacket(&data);
         DEBUG_LOG("PLAYER: Player '%s' (GUID: %u) will be teleported to homebind in 60 seconds", GetName(),GetGUIDLow());
@@ -17896,7 +17896,7 @@ void Player::AddSpellCooldown(uint32 spellid, uint32 itemid, time_t end_time)
 void Player::SendCooldownEvent(SpellEntry const *spellInfo, uint32 itemId, Spell* spell)
 {
     // start cooldowns at server side, if any
-    AddSpellAndCategoryCooldowns(spellInfo,itemId,spell);
+    AddSpellAndCategoryCooldowns(spellInfo, itemId, spell);
 
     // Send activate cooldown timer (possible 0) at client side
     WorldPacket data(SMSG_COOLDOWN_EVENT, (4+8));
@@ -18023,7 +18023,7 @@ void Player::CorrectMetaGemEnchants(uint8 exceptslot, bool apply)
                 {
                     // ignore item gem conditions
                                                             //if state changed, (dis)apply enchant
-                    ApplyEnchantment(pItem,EnchantmentSlot(enchant_slot),!wasactive,true,true);
+                    ApplyEnchantment(pItem, EnchantmentSlot(enchant_slot), !wasactive, true, true);
                 }
             }
         }
@@ -18114,7 +18114,7 @@ void Player::ReportedAfkBy(Player* reporter)
         return;
 
     // check if player has 'Idle' or 'Inactive' debuff
-    if(m_bgAfkReporter.find(reporter->GetGUIDLow())==m_bgAfkReporter.end() && !HasAura(43680,EFFECT_INDEX_0) && !HasAura(43681,EFFECT_INDEX_0) && reporter->CanReportAfkDueToLimit())
+    if(m_bgAfkReporter.find(reporter->GetGUIDLow()) == m_bgAfkReporter.end() && !HasAura(43680,EFFECT_INDEX_0) && !HasAura(43681,EFFECT_INDEX_0) && reporter->CanReportAfkDueToLimit())
     {
         m_bgAfkReporter.insert(reporter->GetGUIDLow());
         // 3 players have to complain to apply debuff

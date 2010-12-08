@@ -653,8 +653,8 @@ void ArenaTeam::OfflineMemberLost(uint64 guid, uint32 againstRating)
             else
                 itr->personal_rating += mod;
             // update personal played stats
-            itr->games_week +=1;
-            itr->games_season +=1;
+            itr->games_week += 1;
+            itr->games_season += 1;
             return;
         }
     }
@@ -672,8 +672,8 @@ void ArenaTeam::MemberWon(Player * plr, uint32 againstRating)
             int32 mod = (int32)floor(32.0f * (1.0f - chance));
             itr->ModifyPersonalRating(plr, mod, GetSlot());
             // update personal stats
-            itr->games_week +=1;
-            itr->games_season +=1;
+            itr->games_week += 1;
+            itr->games_season += 1;
             itr->wins_season += 1;
             itr->wins_week += 1;
             // update unit fields

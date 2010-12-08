@@ -186,7 +186,7 @@ struct ChrRacesEntry
     //char*       nameNeutralGender[16];                    // 48-63, if different from base (male) case
                                                             // 64 string flags, unused
                                                             // 65-67 unused
-    uint32      addon;                                      // 68 (0 - original race, 1 - tbc addon, ...)
+    uint32      expansion;                                  // 68 (0 - original race, 1 - tbc addon, ...)
 };
 
 /* not used

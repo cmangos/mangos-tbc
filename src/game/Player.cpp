@@ -15817,27 +15817,20 @@ void Player::SaveToDB()
         ss << "0";
 
     ss << ", ";
-    ss << m_ExtraFlags;
 
-    ss << ", ";
-    ss << uint32(m_stableSlots);                            // to prevent save uint8 as char
+    ss << m_ExtraFlags << ", ";
 
-    ss << ", ";
-    ss << uint32(m_atLoginFlags);
+    ss << uint32(m_stableSlots) << ", ";                    // to prevent save uint8 as char
 
-    ss << ", ";
-    ss << GetZoneId();
+    ss << uint32(m_atLoginFlags) << ", ";
+    ss << GetZoneId() << ", ";
 
-    ss << ", ";
-    ss << (uint64)m_deathExpireTime;
+    ss << (uint64)m_deathExpireTime << ", '";
 
-    ss << ", '";
     ss << m_taxi.SaveTaxiDestinationsToString();
     ss << "', '0', ";
-    ss << GetBattleGroundId();
-    ss << ", ";
-    ss << GetBGTeam();
-    ss << ", ";
+    ss << GetBattleGroundId() << ", ";
+    ss << GetBGTeam() << ", ";
     ss << m_bgEntryPoint.mapid << ", "
        << finiteAlways(m_bgEntryPoint.coord_x) << ", "
        << finiteAlways(m_bgEntryPoint.coord_y) << ", "

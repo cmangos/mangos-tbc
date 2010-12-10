@@ -510,6 +510,7 @@ typedef UNORDERED_MAP<uint32, SpellBonusEntry>     SpellBonusMap;
 #define ELIXIR_WELL_FED       0x10                          // Some foods have SPELLFAMILY_POTION
 
 typedef std::map<uint32, uint8> SpellElixirMap;
+typedef std::map<uint32, float> SpellProcItemEnchantMap;
 typedef std::map<uint32, uint16> SpellThreatMap;
 
 // Spell script target related declarations (accessed using SpellMgr functions)
@@ -684,6 +685,7 @@ class SpellMgr
 {
     friend struct DoSpellBonusess;
     friend struct DoSpellProcEvent;
+    friend struct DoSpellProcItemEnchant;
 
     // Constructors
     public:
@@ -743,6 +745,16 @@ class SpellMgr
             if( itr != mSpellProcEventMap.end( ) )
                 return &itr->second;
             return NULL;
+        }
+
+        // Spell procs from item enchants
+        float GetItemEnchantProcChance(uint32 spellid) const
+        {
+            SpellProcItemEnchantMap::const_iterator itr = mSpellProcItemEnchantMap.find(spellid);
+            if(itr==mSpellProcItemEnchantMap.end())
+                return 0.0f;
+
+            return itr->second;
         }
 
         static bool IsSpellProcEventCanTriggeredBy( SpellProcEventEntry const * spellProcEvent, uint32 EventProcFlag, SpellEntry const * procSpell, uint32 procFlags, uint32 procExtra, bool active);
@@ -948,6 +960,7 @@ class SpellMgr
         void LoadSpellAffects();
         void LoadSpellElixirs();
         void LoadSpellProcEvents();
+        void LoadSpellProcItemEnchant();
         void LoadSpellBonusess();
         void LoadSpellTargetPositions();
         void LoadSpellThreats();
@@ -966,6 +979,7 @@ class SpellMgr
         SpellElixirMap     mSpellElixirs;
         SpellThreatMap     mSpellThreatMap;
         SpellProcEventMap  mSpellProcEventMap;
+        SpellProcItemEnchantMap mSpellProcItemEnchantMap;
         SpellBonusMap      mSpellBonusMap;
         SkillLineAbilityMap mSkillLineAbilityMap;
         SpellPetAuraMap     mSpellPetAuraMap;

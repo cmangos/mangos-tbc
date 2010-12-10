@@ -42,7 +42,10 @@ pkgdata_DATA = \
 	s0407_10704_01_mangos_gossip_menu_option.sql \
 	s0418_7908_01_mangos_creature_template.sql \
 	s0418_7908_02_mangos_creature_addon.sql \
-	s0418_7908_03_mangos_creature_template_addon.sql
+	s0418_7908_03_mangos_creature_template_addon.sql \
+	s0481_8249_01_mangos_spell_proc_item_enchant.sql \
+	s0481_8249_02_mangos_spell_chain.sql \
+	s0481_xxxxx_03_mangos_spell_bonus_data.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -63,4 +66,7 @@ EXTRA_DIST = \
 	s0407_10704_01_mangos_gossip_menu_option.sql \
 	s0418_7908_01_mangos_creature_template.sql \
 	s0418_7908_02_mangos_creature_addon.sql \
-	s0418_7908_03_mangos_creature_template_addon.sql
+	s0418_7908_03_mangos_creature_template_addon.sql \
+	s0481_8249_01_mangos_spell_proc_item_enchant.sql \
+	s0481_8249_02_mangos_spell_chain.sql \
+	s0481_xxxxx_03_mangos_spell_bonus_data.sql

@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0418_7908_03_mangos_creature_template_addon` bit(1) default NULL
+  `required_s0481_xxxxx_03_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -12860,6 +12860,13 @@ INSERT INTO `spell_chain` VALUES
 (17862,0,17862,1,0),
 (17937,17862,17862,2,0),
 (27229,17937,17862,3,0),
+/* Frostbrand Attack */
+(8034,0,8034,1,0),
+(8037,8034,8034,2,0),
+(10458,8037,8034,3,0),
+(16352,10458,8034,4,0),
+(16353,16352,8034,5,0),
+(25501,16353,8034,6,0),
 /* Healing Stream totem spell */
 (5672,0,5672, 1,0),
 (6371,5672,5672,2,0),
@@ -12867,12 +12874,26 @@ INSERT INTO `spell_chain` VALUES
 (10460,6372,5672,4,0),
 (10461,10460,5672,5,0),
 (25566,10461,5672,6,0),
+/* Instant Poison */
+(8680,0,8680,1,0),
+(8685,8680,8680,2,0),
+(8689,8685,8680,3,0),
+(11335,8689,8680,4,0),
+(11336,11335,8680,5,0),
+(11337,11336,8680,6,0),
+(26890,11337,8680,7,0),
 /* Tranquility triggered */
 (44203,    0,44203,1,0),
 (44205,44203,44203,2,0),
 (44206,44205,44203,3,0),
 (44207,44206,44203,4,0),
 (44208,44207,44203,5,0),
+/* Wound Poison */
+(13218,0,13218,1,0),
+(13222,13218,13218,2,0),
+(13223,13222,13218,3,0),
+(13224,13223,13218,4,0),
+(27189,13224,13218,5,0),
 -- ------------------
 -- (6) Frost
 -- ------------------
@@ -13035,9 +13056,6 @@ INSERT INTO `spell_chain` VALUES
 (11342,11341,8681,5,0),
 (11343,11342,8681,6,0),
 (26892,11343,8681,7,0),
-(8835,0,8835,1,0),
-(10627,8835,8835,2,0),
-(25359,10627,8835,3,0),
 /* Mind-numbing Poison */
 (5763,0,5763,1,0),
 (8694,5763,5763,2,0),
@@ -13822,6 +13840,10 @@ INSERT INTO `spell_chain` VALUES
 (16355,10456,8033,4,0),
 (16356,16355,8033,5,0),
 (25500,16356,8033,6,0),
+/* Grace of Air Totem */
+(8835,0,8835,1,0),
+(10627,8835,8835,2,0),
+(25359,10627,8835,3,0),
 /* Lightning Shield */
 (324,0,324,1,0),
 (325,324,324,2,0),
@@ -15161,11 +15183,6 @@ INSERT INTO `spell_bonus_data` VALUES
 (25488, 0.1,    0,       0,     'Shaman - Flametongue Weapon Proc Rank 7'),
 (8056,  0.3858, 0,       0,     'Shaman - Frost Shock'),
 (8034,  0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 1'),
-(8037,  0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 2'),
-(10458, 0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 3'),
-(16352, 0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 4'),
-(16353, 0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 5'),
-(25501, 0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 6'),
 (5672,  0,      0.0450,  0,     'Shaman - Healing Stream Totem'),
 (331,   0.8571, 0,       0,     'Shaman - Healing Wave'),
 (8004,  0.4286, 0,       0,     'Shaman - Lesser Healing Wave'),
@@ -15227,6 +15244,28 @@ INSERT INTO `spell_bonus_data` VALUES
 (30108, 0,      0.24,    0,     'Warlock - Unstable Affliction'),
 (31117, 1.8,    0,       0,     'Warlock - Unstable Affliction Dispell');
 /*!40000 ALTER TABLE `spell_bonus_data` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for spell_proc_item_enchant
+--
+
+DROP TABLE IF EXISTS `spell_proc_item_enchant`;
+CREATE TABLE `spell_proc_item_enchant` (
+  `entry` mediumint unsigned NOT NULL,
+  `ppmRate` float NOT NULL default '0',
+  PRIMARY KEY  (`entry`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `spell_proc_item_enchant`
+--
+
+LOCK TABLES `spell_proc_item_enchant` WRITE;
+/*!40000 ALTER TABLE `spell_proc_item_enchant` DISABLE KEYS */;
+INSERT INTO `spell_proc_item_enchant` (`entry`, `ppmRate`) VALUES
+(8034, 9);        -- Frostbrand Weapon
+/*!40000 ALTER TABLE `spell_proc_item_enchant` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

@@ -1769,7 +1769,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
     // special cases
     switch(triggered_spell_id)
     {
-        // Vanish
+        // Vanish (not exist)
         case 18461:
         {
             unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOD_ROOT);
@@ -1818,7 +1818,8 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
         // Brittle Armor - (need add max stack of 24575 Brittle Armor)
         case 29284:
         {
-            const SpellEntry *spell = sSpellStore.LookupEntry(24575);
+            // Brittle Armor
+            SpellEntry const* spell = sSpellStore.LookupEntry(24575);
             if (!spell)
                 return;
 
@@ -1829,7 +1830,8 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
         // Mercurial Shield - (need add max stack of 26464 Mercurial Shield)
         case 29286:
         {
-            const SpellEntry *spell = sSpellStore.LookupEntry(26464);
+            // Mercurial Shield
+            SpellEntry const* spell = sSpellStore.LookupEntry(26464);
             if (!spell)
                 return;
 
@@ -1844,7 +1846,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
             return;
         }
         // Cloak of Shadows
-        case 35729 :
+        case 35729:
         {
             Unit::AuraMap& Auras = unitTarget->GetAuras();
             for(Unit::AuraMap::iterator iter = Auras.begin(); iter != Auras.end(); ++iter)
@@ -3218,7 +3220,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
             }
             m_caster->SendMessageToSet(&data, true);
 
-            // On succes dispel
+            // On success dispel
             // Devour Magic
             if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->Category == SPELLCATEGORY_DEVOUR_MAGIC)
             {

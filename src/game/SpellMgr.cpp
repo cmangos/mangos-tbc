@@ -1208,7 +1208,7 @@ struct DoSpellBonuses
     SpellBonusEntry const& spellBonus;
 };
 
-void SpellMgr::LoadSpellBonusess()
+void SpellMgr::LoadSpellBonuses()
 {
     mSpellBonusMap.clear();                             // need for reload case
     uint32 count = 0;

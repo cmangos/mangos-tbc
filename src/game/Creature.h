@@ -127,6 +127,7 @@ struct CreatureInfo
     bool    RacialLeader;
     bool    RegenHealth;
     uint32  equipmentId;
+    uint32  trainerId;
     uint32  vendorId;
     uint32  MechanicImmuneMask;
     uint32  flags_extra;
@@ -496,6 +497,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         uint32 GetVendorItemCurrentCount(VendorItem const* vItem);
         uint32 UpdateVendorItemCurrentCount(VendorItem const* vItem, uint32 used_count);
 
+        TrainerSpellData const* GetTrainerTemplateSpells() const;
         TrainerSpellData const* GetTrainerSpells() const;
 
         CreatureInfo const *GetCreatureInfo() const { return m_creatureInfo; }

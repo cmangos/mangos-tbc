@@ -109,6 +109,28 @@ void WorldSession::SendTrainerList(ObjectGuid guid)
     SendTrainerList(guid, str);
 }
 
+
+static void SendTrainerSpellHelper(WorldPacket& data, TrainerSpell const* tSpell, TrainerSpellState state, float fDiscountMod, bool can_learn_primary_prof)
+{
+    bool primary_prof_first_rank = sSpellMgr.IsPrimaryProfessionFirstRankSpell(tSpell->spell);
+
+    SpellChainNode const* chain_node = sSpellMgr.GetSpellChainNode(tSpell->spell);
+
+    data << uint32(tSpell->spell);
+    data << uint8(state==TRAINER_SPELL_GREEN_DISABLED ? TRAINER_SPELL_GREEN : state);
+    data << uint32(floor(tSpell->spellCost * fDiscountMod));
+
+    data << uint32(primary_prof_first_rank && can_learn_primary_prof ? 1 : 0);
+    // primary prof. learn confirmation dialog
+    data << uint32(primary_prof_first_rank ? 1 : 0);    // must be equal prev. field to have learn button in enabled state
+    data << uint8(tSpell->reqLevel);
+    data << uint32(tSpell->reqSkill);
+    data << uint32(tSpell->reqSkillValue);
+    data << uint32(chain_node ? (chain_node->prev ? chain_node->prev : chain_node->req) : 0);
+    data << uint32(chain_node && chain_node->prev ? chain_node->req : 0);
+    data << uint32(0);
+}
+
 void WorldSession::SendTrainerList(ObjectGuid guid, const std::string& strTitle)
 {
     DEBUG_LOG( "WORLD: SendTrainerList" );
@@ -132,58 +154,69 @@ void WorldSession::SendTrainerList(ObjectGuid guid, const std::string& strTitle)
     if (!ci)
         return;
 
-    TrainerSpellData const* trainer_spells = unit->GetTrainerSpells();
-    if (!trainer_spells)
+    TrainerSpellData const* cSpells = unit->GetTrainerSpells();
+    TrainerSpellData const* tSpells = unit->GetTrainerTemplateSpells();
+
+    if (!cSpells && !tSpells)
     {
         DEBUG_LOG("WORLD: SendTrainerList - Training spells not found for %s", guid.GetString().c_str());
         return;
     }
 
-    WorldPacket data( SMSG_TRAINER_LIST, 8+4+4+trainer_spells->spellList.size()*38 + strTitle.size()+1);
+    uint32 maxcount = (cSpells ? cSpells->spellList.size() : 0) + (tSpells ? tSpells->spellList.size() : 0);
+    uint32 trainer_type = cSpells && cSpells->trainerType ? cSpells->trainerType : (tSpells ? tSpells->trainerType : 0);
+
+    WorldPacket data( SMSG_TRAINER_LIST, 8+4+4+maxcount*38 + strTitle.size()+1);
     data << ObjectGuid(guid);
-    data << uint32(trainer_spells->trainerType);
+    data << uint32(trainer_type);
 
     size_t count_pos = data.wpos();
-    data << uint32(trainer_spells->spellList.size());
+    data << uint32(maxcount);
 
     // reputation discount
     float fDiscountMod = _player->GetReputationPriceDiscount(unit);
     bool can_learn_primary_prof = GetPlayer()->GetFreePrimaryProfessionPoints() > 0;
 
     uint32 count = 0;
-    for(TrainerSpellMap::const_iterator itr = trainer_spells->spellList.begin(); itr != trainer_spells->spellList.end(); ++itr)
+
+    if (cSpells)
     {
-        TrainerSpell const* tSpell = &itr->second;
+        for(TrainerSpellMap::const_iterator itr = cSpells->spellList.begin(); itr != cSpells->spellList.end(); ++itr)
+        {
+            TrainerSpell const* tSpell = &itr->second;
 
-        if(!_player->IsSpellFitByClassAndRace(tSpell->spell))
-            continue;
+            if(!_player->IsSpellFitByClassAndRace(tSpell->spell))
+                continue;
 
-        bool primary_prof_first_rank = sSpellMgr.IsPrimaryProfessionFirstRankSpell(tSpell->spell);
+            TrainerSpellState state = _player->GetTrainerSpellState(tSpell);
 
-        SpellChainNode const* chain_node = sSpellMgr.GetSpellChainNode(tSpell->spell);
-        TrainerSpellState state = _player->GetTrainerSpellState(tSpell);
+            SendTrainerSpellHelper(data, tSpell, state, fDiscountMod, can_learn_primary_prof);
 
-        data << uint32(tSpell->spell);
-        data << uint8(state==TRAINER_SPELL_GREEN_DISABLED ? TRAINER_SPELL_GREEN : state);
-        data << uint32(floor(tSpell->spellCost * fDiscountMod));
+            ++count;
+        }
+    }
 
-        data << uint32(primary_prof_first_rank && can_learn_primary_prof ? 1 : 0);
-                                                            // primary prof. learn confirmation dialog
-        data << uint32(primary_prof_first_rank ? 1 : 0);    // must be equal prev. field to have learn button in enabled state
-        data << uint8(tSpell->reqLevel);
-        data << uint32(tSpell->reqSkill);
-        data << uint32(tSpell->reqSkillValue);
-        data << uint32(chain_node ? (chain_node->prev ? chain_node->prev : chain_node->req) : 0);
-        data << uint32(chain_node && chain_node->prev ? chain_node->req : 0);
-        data << uint32(0);
+    if (tSpells)
+    {
+        for(TrainerSpellMap::const_iterator itr = tSpells->spellList.begin(); itr != tSpells->spellList.end(); ++itr)
+        {
+            TrainerSpell const* tSpell = &itr->second;
 
-        ++count;
+            if(!_player->IsSpellFitByClassAndRace(tSpell->spell))
+                continue;
+
+            TrainerSpellState state = _player->GetTrainerSpellState(tSpell);
+
+            SendTrainerSpellHelper(data, tSpell, state, fDiscountMod, can_learn_primary_prof);
+
+            ++count;
+        }
     }
 
     data << strTitle;
 
     data.put<uint32>(count_pos,count);
-    SendPacket( &data );
+    SendPacket(&data);
 }
 
 void WorldSession::HandleTrainerBuySpellOpcode( WorldPacket & recv_data )
@@ -209,12 +242,17 @@ void WorldSession::HandleTrainerBuySpellOpcode( WorldPacket & recv_data )
         return;
 
     // check present spell in trainer spell list
-    TrainerSpellData const* trainer_spells = unit->GetTrainerSpells();
-    if (!trainer_spells)
+    TrainerSpellData const* cSpells = unit->GetTrainerSpells();
+    TrainerSpellData const* tSpells = unit->GetTrainerTemplateSpells();
+
+    if (!cSpells && !tSpells)
         return;
 
     // not found, cheat?
-    TrainerSpell const* trainer_spell = trainer_spells->Find(spellId);
+    TrainerSpell const* trainer_spell = cSpells->Find(spellId);
+    if (!trainer_spell)
+        trainer_spell = tSpells->Find(spellId);
+
     if (!trainer_spell)
         return;
 

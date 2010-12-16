@@ -738,6 +738,7 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADDECLINEDNAMES,
     PLAYER_LOGIN_QUERY_LOADGUILD,
     PLAYER_LOGIN_QUERY_LOADARENAINFO,
+    PLAYER_LOGIN_QUERY_LOADBGDATA,
     PLAYER_LOGIN_QUERY_LOADSKILLS,
     PLAYER_LOGIN_QUERY_LOADMAILS,
     PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,
@@ -747,9 +748,9 @@ enum PlayerLoginQueryIndex
 
 enum PlayerDelayedOperations
 {
-    DELAYED_SAVE_PLAYER = 1,
-    DELAYED_RESURRECT_PLAYER = 2,
-    DELAYED_SPELL_CAST_DESERTER = 4,
+    DELAYED_SAVE_PLAYER         = 0x01,
+    DELAYED_RESURRECT_PLAYER    = 0x02,
+    DELAYED_SPELL_CAST_DESERTER = 0x04,
     DELAYED_END
 };
 
@@ -826,6 +827,27 @@ class MANGOS_DLL_SPEC PlayerTaxi
 };
 
 std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi);
+
+/// Holder for BattleGround data
+struct BGData
+{
+    BGData() : bgInstanceID(0), bgTypeID(BATTLEGROUND_TYPE_NONE), bgAfkReportedCount(0), bgAfkReportedTimer(0),
+        bgTeam(0), m_needSave(false) {}
+
+    uint32 bgInstanceID;                                    ///< This variable is set to bg->m_InstanceID, saved
+                                                            ///  when player is teleported to BG - (it is battleground's GUID)
+    BattleGroundTypeId bgTypeID;
+
+    std::set<uint32>   bgAfkReporter;
+    uint8              bgAfkReportedCount;
+    time_t             bgAfkReportedTimer;
+
+    uint32 bgTeam;                                          ///< What side the player will be added to, saved
+
+    WorldLocation joinPos;                                  ///< From where player entered BG, saved
+
+    bool m_needSave;                                        ///< true, if saved to DB fields modified after prev. save (marked as "saved" above)
+};
 
 class TradeData
 {
@@ -904,6 +926,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         {
             return TeleportTo(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation, options);
         }
+
+        bool TeleportToBGEntryPoint();
 
         void SetSummonPoint(uint32 mapid, float x, float y, float z)
         {
@@ -1847,10 +1871,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         /***               BATTLEGROUND SYSTEM                 ***/
         /*********************************************************/
 
-        bool InBattleGround()       const                { return m_bgBattleGroundID != 0; }
+        bool InBattleGround()       const                { return m_bgData.bgInstanceID != 0; }
         bool InArena()              const;
-        uint32 GetBattleGroundId()  const                { return m_bgBattleGroundID; }
-        BattleGroundTypeId GetBattleGroundTypeId() const { return m_bgTypeID; }
+        uint32 GetBattleGroundId()  const                { return m_bgData.bgInstanceID; }
+        BattleGroundTypeId GetBattleGroundTypeId() const { return m_bgData.bgTypeID; }
         BattleGround* GetBattleGround() const;
 
 
@@ -1888,8 +1912,9 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void SetBattleGroundId(uint32 val, BattleGroundTypeId bgTypeId)
         {
-            m_bgBattleGroundID = val;
-            m_bgTypeID = bgTypeId;
+            m_bgData.bgInstanceID = val;
+            m_bgData.bgTypeID = bgTypeId;
+            m_bgData.m_needSave = true;
         }
         uint32 AddBattleGroundQueueId(BattleGroundQueueTypeId val)
         {
@@ -1936,28 +1961,17 @@ class MANGOS_DLL_SPEC Player : public Unit
                     return true;
             return false;
         }
-        WorldLocation const& GetBattleGroundEntryPoint() const { return m_bgEntryPoint; }
-        void SetBattleGroundEntryPoint(uint32 Map, float PosX, float PosY, float PosZ, float PosO )
-        {
-            //FIXME: temp function unitl full backporting bg relogin code and related commits
-            m_bgEntryPoint = WorldLocation(Map,PosX,PosY,PosZ,PosO);
-        }
-        void SetBattleGroundEntryPoint(Player* leader = NULL)
-        {
-            if (!leader)
-                leader = this;
+        WorldLocation const& GetBattleGroundEntryPoint() const { return m_bgData.joinPos; }
+        void SetBattleGroundEntryPoint(Player* leader = NULL);
 
-            m_bgEntryPoint = WorldLocation(leader->GetMapId(),leader->GetPositionX(),leader->GetPositionY(),leader->GetPositionZ(),leader->GetOrientation());
-        }
-
-        void SetBGTeam(uint32 team) { m_bgTeam = team; }
-        uint32 GetBGTeam() const { return m_bgTeam ? m_bgTeam : GetTeam(); }
+        void SetBGTeam(uint32 team) { m_bgData.bgTeam = team; m_bgData.m_needSave = true; }
+        uint32 GetBGTeam() const { return m_bgData.bgTeam ? m_bgData.bgTeam : GetTeam(); }
 
         void LeaveBattleground(bool teleportToEntryPoint = true);
         bool CanJoinToBattleground() const;
         bool CanReportAfkDueToLimit();
         void ReportedAfkBy(Player* reporter);
-        void ClearAfkReports() { m_bgAfkReporter.clear(); }
+        void ClearAfkReports() { m_bgData.bgAfkReporter.clear(); }
 
         bool GetBGAccessByLevel(BattleGroundTypeId bgTypeId) const;
         bool CanUseBattleGroundObject();
@@ -2137,13 +2151,12 @@ class MANGOS_DLL_SPEC Player : public Unit
 
     protected:
 
+        uint32 m_contestedPvPTimer;
+
         /*********************************************************/
         /***               BATTLEGROUND SYSTEM                 ***/
         /*********************************************************/
 
-        /* this variable is set to bg->m_InstanceID, when player is teleported to BG - (it is battleground's GUID)*/
-        uint32 m_bgBattleGroundID;
-        BattleGroundTypeId m_bgTypeID;
         /*
         this is an array of BG queues (BgTypeIDs) in which is player
         */
@@ -2152,15 +2165,9 @@ class MANGOS_DLL_SPEC Player : public Unit
             BattleGroundQueueTypeId bgQueueTypeId;
             uint32 invitedToInstance;
         };
+
         BgBattleGroundQueueID_Rec m_bgBattleGroundQueueID[PLAYER_MAX_BATTLEGROUND_QUEUES];
-        WorldLocation m_bgEntryPoint;
-
-        std::set<uint32> m_bgAfkReporter;
-        uint8 m_bgAfkReportedCount;
-        time_t m_bgAfkReportedTimer;
-        uint32 m_contestedPvPTimer;
-
-        uint32 m_bgTeam;                                    // what side the player will be added to
+        BGData                    m_bgData;
 
         /*********************************************************/
         /***                    QUEST SYSTEM                   ***/
@@ -2194,6 +2201,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool _LoadHomeBind(QueryResult *result);
         void _LoadDeclinedNames(QueryResult *result);
         void _LoadArenaTeamInfo(QueryResult *result);
+        void _LoadBGData(QueryResult* result);
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
@@ -2208,6 +2216,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _SaveSkills();
         void _SaveSpells();
         void _SaveTutorials();
+        void _SaveBGData();
         void _SaveStats();
 
         void _SetCreateBits(UpdateMask *updateMask, Player *target) const;

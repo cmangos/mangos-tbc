@@ -441,6 +441,7 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
             case 1:                                         // port to battleground
                 if (!_player->IsInvitedForBattleGroundQueueType(bgQueueTypeId))
                     return;                                 // cheating?
+
                 // resurrect the player
                 if (!_player->isAlive())
                 {

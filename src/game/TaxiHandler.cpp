@@ -29,8 +29,6 @@
 #include "WaypointMovementGenerator.h"
 #include "DestinationHolderImp.h"
 
-#include <cassert>
-
 void WorldSession::HandleTaxiNodeStatusQueryOpcode( WorldPacket & recv_data )
 {
     DEBUG_LOG("WORLD: Received CMSG_TAXINODE_STATUS_QUERY");

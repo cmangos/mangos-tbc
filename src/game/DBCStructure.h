@@ -212,10 +212,29 @@ struct CinematicSequencesEntry
 
 struct CreatureDisplayInfoEntry
 {
-    uint32      Displayid;                                  // 0
-                                                            // 1-3,unused
-    float       scale;                                      // 4
-                                                            // 5-13,unused
+    uint32      Displayid;                                  // 0        m_ID
+                                                            // 1        m_modelID
+                                                            // 2        m_soundID
+    uint32      ExtendedDisplayInfoID;                      // 3        m_extendedDisplayInfoID -> CreatureDisplayInfoExtraEntry::DisplayExtraId
+    float       scale;                                      // 4        m_creatureModelScale
+                                                            // 5        m_creatureModelAlpha
+                                                            // 6-8      m_textureVariation[3]
+                                                            // 9        m_portraitTextureName
+                                                            // 10       m_sizeClass
+                                                            // 11       m_bloodID
+                                                            // 12       m_NPCSoundID
+                                                            // 13       m_particleColorID
+};
+
+struct CreatureDisplayInfoExtraEntry
+{
+    uint32      DisplayExtraId;                             // 0        CreatureDisplayInfoEntry::m_extendedDisplayInfoID
+    uint32      Race;                                       // 1
+                                                            // 2        unknown, 0/1
+                                                            // 3-7      unknown, 0..~2x
+    //uint32      Equipment[11]                             // 8-18     equipped static items EQUIPMENT_SLOT_HEAD..EQUIPMENT_SLOT_HANDS, client show its by self
+                                                            // 19       unknown, 0/1
+    //char*                                                 // 20       CreatureDisplayExtra-*.blp
 };
 
 struct CreatureFamilyEntry

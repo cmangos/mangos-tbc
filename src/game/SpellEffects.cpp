@@ -986,7 +986,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 37573:                                 // Temporal Phase Modulator
                 {
-                    if(!unitTarget)
+                    if (!unitTarget)
                         return;
 
                     TemporarySummon* tempSummon = dynamic_cast<TemporarySummon*>(unitTarget);
@@ -1696,9 +1696,9 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
     // So called only for not processed cases
     if (gameObjTarget)
         Script->EffectDummyGameObj(m_caster, m_spellInfo->Id, eff_idx, gameObjTarget);
-    else if(unitTarget && unitTarget->GetTypeId()==TYPEID_UNIT)
+    else if (unitTarget && unitTarget->GetTypeId()==TYPEID_UNIT)
         Script->EffectDummyCreature(m_caster, m_spellInfo->Id, eff_idx, (Creature*)unitTarget);
-    else if(itemTarget)
+    else if (itemTarget)
         Script->EffectDummyItem(m_caster, m_spellInfo->Id, eff_idx, itemTarget);
 }
 
@@ -2351,7 +2351,7 @@ void Spell::EffectHealPct(SpellEffectIndex /*eff_idx*/)
             return;
 
         uint32 addhealth = unitTarget->GetMaxHealth() * damage / 100;
-        if(Player* modOwner = m_caster->GetSpellModOwner())
+        if (Player* modOwner = m_caster->GetSpellModOwner())
             modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_DAMAGE, addhealth, this);
 
         int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo);
@@ -2402,8 +2402,6 @@ void Spell::EffectHealthLeech(SpellEffectIndex eff_idx)
         new_damage = m_caster->SpellHealingBonus(m_caster, m_spellInfo, new_damage, HEAL);
         m_caster->DealHeal(m_caster, uint32(new_damage), m_spellInfo);
     }
-//    m_healthLeech+=tmpvalue;
-//    m_damage+=new_damage;
 }
 
 void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)

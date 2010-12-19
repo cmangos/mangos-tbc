@@ -1926,7 +1926,7 @@ bool SpellMgr::IsSkillBonusSpell(uint32 spellId) const
         if (!pAbility || pAbility->learnOnGetSkill != ABILITY_LEARNED_ON_GET_PROFESSION_SKILL)
             continue;
 
-        if(pAbility->req_skill_value > 0)
+        if (pAbility->req_skill_value > 0)
             return true;
     }
 

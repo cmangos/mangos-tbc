@@ -59,6 +59,7 @@ pkgdata_DATA = \
 	s0507_8339_01_characters_characters.sql \
 	s0507_8339_02_characters_character_battleground_data.sql \
 	s0531_8596_01_characters_bugreport.sql \
+	s0540_8469_01_characters_character_spell.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -98,4 +99,5 @@ EXTRA_DIST = \
 	s0507_8339_01_characters_characters.sql \
 	s0507_8339_02_characters_character_battleground_data.sql \
 	s0531_8596_01_characters_bugreport.sql \
+	s0540_8469_01_characters_character_spell.sql \
 	README

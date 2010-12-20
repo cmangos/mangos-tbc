@@ -2298,8 +2298,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         TradeData* m_trade;
 
-        time_t m_nextThinkTime;
-
         uint32 m_Tutorials[8];
         bool   m_TutorialsChanged;
 

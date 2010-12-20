@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s0507_8339_02_characters_character_battleground_data` bit(1) default NULL
+  `required_s0531_8596_01_characters_bugreport` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -149,8 +149,8 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `bugreport`;
 CREATE TABLE `bugreport` (
   `id` int(11) NOT NULL auto_increment COMMENT 'Identifier',
-  `type` varchar(255) NOT NULL default '',
-  `content` varchar(255) NOT NULL default '',
+  `type` longtext NOT NULL default '',
+  `content` longtext NOT NULL default '',
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Debug System';
 

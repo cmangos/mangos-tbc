@@ -520,7 +520,7 @@ void WorldSession::HandleLootMasterGiveOpcode( WorldPacket & recv_data )
 
         pLoot = &pCreature->loot;
     }
-    else if(lootguid.IsGameobject())
+    else if(lootguid.IsGameObject())
     {
         GameObject *pGO = GetPlayer()->GetMap()->GetGameObject(lootguid);
         if(!pGO)

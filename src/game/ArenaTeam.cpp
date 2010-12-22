@@ -304,7 +304,6 @@ void ArenaTeam::DelMember(ObjectGuid guid)
 
     if (Player *player = sObjectMgr.GetPlayer(guid))
     {
-        player->SetInArenaTeam(0, GetSlot());
         player->GetSession()->SendArenaTeamCommandResult(ERR_ARENA_TEAM_QUIT_S, GetName(), "", 0);
         // delete all info regarding this team
         for(int i = 0; i < ARENA_TEAM_END; ++i)
@@ -582,8 +581,6 @@ void ArenaTeam::FinishGame(int32 mod)
         if (i->second->GetType() == this->m_Type && i->second->GetStats().rating > m_stats.rating)
             ++m_stats.rank;
     }
-
-
 }
 
 int32 ArenaTeam::WonAgainst(uint32 againstRating)
@@ -749,25 +746,3 @@ bool ArenaTeam::IsFighting() const
     }
     return false;
 }
-
-/*
-arenateam fields (id from 2.3.3 client):
-1414 - arena team id 2v2
-1415 - 0=captain, 1=member
-1416 - played this week
-1417 - played this season
-1418 - unk - rank?
-1419 - personal arena rating
-1420 - arena team id 3v3
-1421 - 0=captain, 1=member
-1422 - played this week
-1423 - played this season
-1424 - unk - rank?
-1425 - personal arena rating
-1426 - arena team id 5v5
-1427 - 0=captain, 1=member
-1428 - played this week
-1429 - played this season
-1430 - unk - rank?
-1431 - personal arena rating
-*/

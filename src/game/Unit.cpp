@@ -7095,6 +7095,7 @@ void Unit::ModifyAuraState(AuraState flag, bool apply)
         }
     }
 }
+
 Unit *Unit::GetOwner() const
 {
     ObjectGuid ownerid = GetOwnerGuid();
@@ -7193,12 +7194,10 @@ void Unit::SetCharm(Unit* pet)
     SetCharmGuid(pet ? pet->GetObjectGuid() : ObjectGuid());
 }
 
-
 void Unit::AddGuardian( Pet* pet )
 {
     m_guardianPets.insert(pet->GetGUID());
 }
-
 
 void Unit::RemoveGuardian( Pet* pet )
 {

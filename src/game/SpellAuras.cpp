@@ -673,7 +673,35 @@ void AreaAura::Update(uint32 diff)
 
             for(std::list<Unit *>::iterator tIter = targets.begin(); tIter != targets.end(); tIter++)
             {
-                if((*tIter)->HasAura(GetId(), m_effIndex))
+                // flag for seelction is need apply aura to current iteration target
+                bool apply = true;
+
+                // we need ignore present caster self applied are auras sometime
+                // in cases if this only auras applied for spell effect
+                Unit::spellEffectPair spair = Unit::spellEffectPair(GetId(), m_effIndex);
+                for(Unit::AuraMap::const_iterator i = (*tIter)->GetAuras().lower_bound(spair); i != (*tIter)->GetAuras().upper_bound(spair); ++i)
+                {
+                    if (i->second->IsDeleted())
+                        continue;
+
+                    switch(m_areaAuraType)
+                    {
+                        case AREA_AURA_ENEMY:
+                            // non caster self-casted auras (non stacked)
+                            if(i->second->GetModifier()->m_auraname != SPELL_AURA_NONE)
+                                apply = false;
+                            break;
+                        default:
+                            // in generic case not allow stacking area auras
+                            apply = false;
+                            break;
+                    }
+
+                    if(!apply)
+                        break;
+                }
+
+                if(!apply)
                     continue;
 
                 if(SpellEntry const *actualSpellInfo = sSpellMgr.SelectAuraRankForLevel(GetSpellProto(), (*tIter)->getLevel()))
@@ -707,7 +735,7 @@ void AreaAura::Update(uint32 diff)
             caster->IsFriendlyTo(target) != needFriendly
            )
         {
-            target->RemoveAura(GetId(), GetEffIndex());
+            target->RemoveAurasByCasterSpell(GetId(), GetEffIndex(), GetCasterGUID());
         }
         else if( m_areaAuraType == AREA_AURA_PARTY)         // check if in same sub group
         {
@@ -730,7 +758,7 @@ void AreaAura::Update(uint32 diff)
         else if (m_areaAuraType == AREA_AURA_PET || m_areaAuraType == AREA_AURA_OWNER)
         {
             if (target->GetObjectGuid() != caster->GetCharmerOrOwnerGuid())
-                target->RemoveAura(GetId(), GetEffIndex());
+                target->RemoveAurasByCasterSpell(GetId(), GetEffIndex(), GetCasterGUID());
         }
     }
 }
@@ -909,8 +937,7 @@ void Aura::_AddAura()
         }
     }
 
-    SetAuraSlot( slot );
-
+    SetAuraSlot(slot);
 
     // Not update fields for not first spell's aura, all data already in fields
     if (slot < MAX_AURAS)                                   // slot found

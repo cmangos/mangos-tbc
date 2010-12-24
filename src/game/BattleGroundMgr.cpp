@@ -1181,16 +1181,13 @@ void BattleGroundMgr::Update(uint32 diff)
     if (!m_QueueUpdateScheduler.empty())
     {
         //copy vector and clear the other
-        // TODO add lock
-        // TODO maybe std::list would be better and then unlock after end of cycle
         std::vector<uint32> scheduled(m_QueueUpdateScheduler);
         m_QueueUpdateScheduler.clear();
-        // TODO drop lock
         for (uint8 i = 0; i < scheduled.size(); i++)
         {
-            BattleGroundQueueTypeId bgQueueTypeId = BattleGroundQueueTypeId(scheduled[i] >> 16);
-            BattleGroundTypeId bgTypeId = BattleGroundTypeId((scheduled[i] >> 8) & 255);
-            BattleGroundBracketId bracket_id = BattleGroundBracketId(scheduled[i] & 256);
+            BattleGroundQueueTypeId bgQueueTypeId = BattleGroundQueueTypeId(scheduled[i] / 65536);
+            BattleGroundTypeId bgTypeId = BattleGroundTypeId((scheduled[i] % 65536) / 256);
+            BattleGroundBracketId bracket_id = BattleGroundBracketId(scheduled[i] % 256);
             m_BattleGroundQueues[bgQueueTypeId].Update(bgTypeId, bracket_id);
         }
     }
@@ -1545,6 +1542,12 @@ BattleGround * BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeI
     bg->SetBracketId(bracket_id);
     bg->SetArenaType(arenaType);
     bg->SetRated(isRated);
+
+    // add BG to free slot queue
+    bg->AddToBGFreeSlotQueue();
+
+    // add bg to update list
+    AddBattleGround(bg->GetInstanceID(), bg->GetTypeID(), bg);
 
     return bg;
 }
@@ -1924,9 +1927,9 @@ void BattleGroundMgr::ToggleArenaTesting()
 
 void BattleGroundMgr::ScheduleQueueUpdate(BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id)
 {
-    //This method must be atomic, TODO add mutex
+    //This method must be atomic!
     //we will use only 1 number created of bgTypeId and bracket_id
-    uint32 schedule_id = (bgQueueTypeId << 16) | (bgTypeId << 8) | bracket_id;
+    uint32 schedule_id = (bgQueueTypeId * 65536) + (bgTypeId * 256) + bracket_id;
     bool found = false;
     for (uint8 i = 0; i < m_QueueUpdateScheduler.size(); i++)
     {

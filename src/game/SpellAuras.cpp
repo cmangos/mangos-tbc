@@ -5904,7 +5904,7 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
                     }
                     break;
                 case SPELLFAMILY_WARLOCK:
-                    if(m_spellProto->SpellFamilyFlags == UI64LIT(0x00))
+                    if (m_spellProto->SpellFamilyFlags == UI64LIT(0x00))
                     {
                         //shadow ward
                         //+10% from +spd bonus

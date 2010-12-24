@@ -4107,6 +4107,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                     }
                 }
             }
+            break;
         }
     }
 

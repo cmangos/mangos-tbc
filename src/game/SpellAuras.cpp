@@ -6733,7 +6733,7 @@ void Aura::HandleManaShield(bool apply, bool Real)
             switch(m_spellProto->SpellFamilyName)
             {
                 case SPELLFAMILY_MAGE:
-                    if(m_spellProto->SpellFamilyFlags & UI64LIT(0x8000))
+                    if(m_spellProto->SpellFamilyFlags & UI64LIT(0x0000000000008000))
                     {
                         // Mana Shield
                         // +50% from +spd bonus

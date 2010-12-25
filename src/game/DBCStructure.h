@@ -481,22 +481,22 @@ struct ItemExtendedCostEntry
 
 struct ItemRandomPropertiesEntry
 {
-    uint32    ID;                                           // 0
-    //char*     internalName                                // 1   unused
-    uint32    enchant_id[3];                                // 2-4
-                                                            // 5-6 unused, 0 only values, reserved for additional enchantments?
-    char*     nameSuffix[16];                               // 7-22
-                                                            // 23 nameSufix flags, unused
+    uint32    ID;                                           // 0        m_ID
+    //char*     internalName                                // 1        m_Name
+    uint32    enchant_id[3];                                // 2-4      m_Enchantment
+                                                            // 5-6 unused, 0 only values, reserved for additional enchantments
+    char*     nameSuffix[16];                               // 7-22     m_name_lang
+                                                            // 23 name flags
 };
 
 struct ItemRandomSuffixEntry
 {
-    uint32    ID;                                           // 0
-    char*     nameSuffix[16];                               // 1-16
-                                                            // 17, name flags, unused
-                                                            // 18  unused
-    uint32    enchant_id[3];                                // 19-21
-    uint32    prefix[3];                                    // 22-24
+    uint32    ID;                                           // 0        m_ID
+    char*     nameSuffix[16];                               // 1-16     m_name_lang
+                                                            // 17, name flags
+                                                            // 18       m_internalName
+    uint32    enchant_id[3];                                // 19-21    m_enchantment
+    uint32    prefix[3];                                    // 22-24    m_allocationPct
 };
 
 struct ItemSetEntry

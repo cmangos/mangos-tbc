@@ -37,7 +37,6 @@ void WorldSession::SendNameQueryOpcode(Player *p)
 {
     if(!p)
         return;
-
                                                             // guess size
     WorldPacket data( SMSG_NAME_QUERY_RESPONSE, (8+1+4+4+4+10) );
     data << p->GetGUID();
@@ -100,7 +99,6 @@ void WorldSession::SendNameQueryOpcodeFromDBCallBack(QueryResult *result, uint32
         pGender      = fields[3].GetUInt8();
         pClass       = fields[4].GetUInt8();
     }
-
                                                             // guess size
     WorldPacket data( SMSG_NAME_QUERY_RESPONSE, (8+1+4+4+4+10) );
     data << ObjectGuid(HIGHGUID_PLAYER, lowguid);

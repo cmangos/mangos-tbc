@@ -2736,7 +2736,8 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit *pVictim, SpellEntry const *spell)
 
     int32 rand = irand(0,10000);
     if (rand > HitChance)
-        return SPELL_MISS_RESIST;
+        return SPELL_MISS_MISS;
+
     return SPELL_MISS_NONE;
 }
 

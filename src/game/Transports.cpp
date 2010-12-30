@@ -27,7 +27,6 @@
 #include "WorldPacket.h"
 #include "DBCStores.h"
 #include "ProgressBar.h"
-#include "ScriptCalls.h"
 #include "ScriptMgr.h"
 
 void MapManager::LoadTransports()
@@ -566,7 +565,7 @@ void Transport::DoEventIfAny(WayPointMap::value_type const& node, bool departure
     {
         DEBUG_FILTER_LOG(LOG_FILTER_TRANSPORT_MOVES, "Taxi %s event %u of node %u of %s (%s) path", departure ? "departure" : "arrival", eventid, node.first, GetName(), GetObjectGuid().GetString().c_str());
 
-        if (!Script->ProcessEventId(eventid, this, this, departure))
+        if (!sScriptMgr.OnProcessEvent(eventid, this, this, departure))
             GetMap()->ScriptsStart(sEventScripts, eventid, this, this);
     }
 }

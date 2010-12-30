@@ -390,6 +390,7 @@ class ChatHandler
         bool HandleReloadLootTemplatesSkinningCommand(char* args);
         bool HandleReloadMangosStringCommand(char* args);
         bool HandleReloadNpcGossipCommand(char* args);
+        bool HandleReloadNpcTextCommand(char* args);
         bool HandleReloadNpcTrainerCommand(char* args);
         bool HandleReloadNpcVendorCommand(char* args);
         bool HandleReloadPageTextsCommand(char* args);

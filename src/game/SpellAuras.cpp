@@ -2973,70 +2973,69 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
 
 void Aura::HandleAuraTransform(bool apply, bool Real)
 {
+    Unit *target = GetTarget();
     if (apply)
     {
         // special case (spell specific functionality)
         if (m_modifier.m_miscvalue == 0)
         {
-            // player applied only
-            if (m_target->GetTypeId() != TYPEID_PLAYER)
-                return;
-
             switch (GetId())
             {
-                // Orb of Deception
-                case 16739:
+                case 16739:                                 // Orb of Deception
                 {
-                    uint32 orb_model = m_target->GetNativeDisplayId();
+                    uint32 orb_model = target->GetNativeDisplayId();
                     switch(orb_model)
                     {
                         // Troll Female
-                        case 1479: m_target->SetDisplayId(10134); break;
+                        case 1479: target->SetDisplayId(10134); break;
                         // Troll Male
-                        case 1478: m_target->SetDisplayId(10135); break;
+                        case 1478: target->SetDisplayId(10135); break;
                         // Tauren Male
-                        case 59:   m_target->SetDisplayId(10136); break;
+                        case 59:   target->SetDisplayId(10136); break;
                         // Human Male
-                        case 49:   m_target->SetDisplayId(10137); break;
+                        case 49:   target->SetDisplayId(10137); break;
                         // Human Female
-                        case 50:   m_target->SetDisplayId(10138); break;
+                        case 50:   target->SetDisplayId(10138); break;
                         // Orc Male
-                        case 51:   m_target->SetDisplayId(10139); break;
+                        case 51:   target->SetDisplayId(10139); break;
                         // Orc Female
-                        case 52:   m_target->SetDisplayId(10140); break;
+                        case 52:   target->SetDisplayId(10140); break;
                         // Dwarf Male
-                        case 53:   m_target->SetDisplayId(10141); break;
+                        case 53:   target->SetDisplayId(10141); break;
                         // Dwarf Female
-                        case 54:   m_target->SetDisplayId(10142); break;
+                        case 54:   target->SetDisplayId(10142); break;
                         // NightElf Male
-                        case 55:   m_target->SetDisplayId(10143); break;
+                        case 55:   target->SetDisplayId(10143); break;
                         // NightElf Female
-                        case 56:   m_target->SetDisplayId(10144); break;
+                        case 56:   target->SetDisplayId(10144); break;
                         // Undead Female
-                        case 58:   m_target->SetDisplayId(10145); break;
+                        case 58:   target->SetDisplayId(10145); break;
                         // Undead Male
-                        case 57:   m_target->SetDisplayId(10146); break;
+                        case 57:   target->SetDisplayId(10146); break;
                         // Tauren Female
-                        case 60:   m_target->SetDisplayId(10147); break;
+                        case 60:   target->SetDisplayId(10147); break;
                         // Gnome Male
-                        case 1563: m_target->SetDisplayId(10148); break;
+                        case 1563: target->SetDisplayId(10148); break;
                         // Gnome Female
-                        case 1564: m_target->SetDisplayId(10149); break;
+                        case 1564: target->SetDisplayId(10149); break;
                         // BloodElf Female
-                        case 15475: m_target->SetDisplayId(17830); break;
+                        case 15475: target->SetDisplayId(17830); break;
                         // BloodElf Male
-                        case 15476: m_target->SetDisplayId(17829); break;
+                        case 15476: target->SetDisplayId(17829); break;
                         // Dranei Female
-                        case 16126: m_target->SetDisplayId(17828); break;
+                        case 16126: target->SetDisplayId(17828); break;
                         // Dranei Male
-                        case 16125: m_target->SetDisplayId(17827); break;
+                        case 16125: target->SetDisplayId(17827); break;
                         default: break;
                     }
                     break;
                 }
-                // Murloc costume
-                case 42365: m_target->SetDisplayId(21723); break;
-                default: break;
+                case 42365:                                 // Murloc costume
+                    target->SetDisplayId(21723);
+                    break;
+                default:
+                    sLog.outError("Aura::HandleAuraTransform, spell %u does not have creature entry defined, need custom defined model.", GetId());
+                    break;
             }
         }
         else
@@ -3052,46 +3051,46 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
             else
                 model_id = Creature::ChooseDisplayId(ci);   // Will use the default model here
 
-            m_target->SetDisplayId(model_id);
+            target->SetDisplayId(model_id);
 
             // creature case, need to update equipment
-            if (ci && m_target->GetTypeId() == TYPEID_UNIT)
-                ((Creature*)m_target)->LoadEquipment(ci->equipmentId, true);
+            if (ci && target->GetTypeId() == TYPEID_UNIT)
+                ((Creature*)target)->LoadEquipment(ci->equipmentId, true);
 
             // Dragonmaw Illusion (set mount model also)
-            if(GetId()==42016 && m_target->GetMountID() && !m_target->GetAurasByType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED).empty())
-                m_target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID,16314);
+            if(GetId()==42016 && target->GetMountID() && !target->GetAurasByType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED).empty())
+                target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID,16314);
         }
 
         // update active transform spell only not set or not overwriting negative by positive case
-        if (!m_target->getTransForm() || !IsPositiveSpell(GetId()) || IsPositiveSpell(m_target->getTransForm()))
-            m_target->setTransForm(GetId());
+        if (!target->getTransForm() || !IsPositiveSpell(GetId()) || IsPositiveSpell(target->getTransForm()))
+            target->setTransForm(GetId());
 
         // polymorph case
-        if (Real && m_target->GetTypeId() == TYPEID_PLAYER && m_target->IsPolymorphed())
+        if (Real && target->GetTypeId() == TYPEID_PLAYER && target->IsPolymorphed())
         {
             // for players, start regeneration after 1s (in polymorph fast regeneration case)
             // only if caster is Player (after patch 2.4.2)
             if (IS_PLAYER_GUID(GetCasterGUID()) )
-                ((Player*)m_target)->setRegenTimer(1*IN_MILLISECONDS);
+                ((Player*)target)->setRegenTimer(1*IN_MILLISECONDS);
 
             //dismount polymorphed target (after patch 2.4.2)
-            if (m_target->IsMounted())
-                m_target->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED, this);
+            if (target->IsMounted())
+                target->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED, this);
         }
     }
     else
     {
         // ApplyModifier(true) will reapply it if need
-        m_target->setTransForm(0);
-        m_target->SetDisplayId(m_target->GetNativeDisplayId());
+        target->setTransForm(0);
+        target->SetDisplayId(m_target->GetNativeDisplayId());
 
         // apply default equipment for creature case
-        if (m_target->GetTypeId() == TYPEID_UNIT)
-            ((Creature*)m_target)->LoadEquipment(((Creature*)m_target)->GetCreatureInfo()->equipmentId, true);
+        if (target->GetTypeId() == TYPEID_UNIT)
+            ((Creature*)target)->LoadEquipment(((Creature*)target)->GetCreatureInfo()->equipmentId, true);
 
         // re-apply some from still active with preference negative cases
-        Unit::AuraList const& otherTransforms = m_target->GetAurasByType(SPELL_AURA_TRANSFORM);
+        Unit::AuraList const& otherTransforms = target->GetAurasByType(SPELL_AURA_TRANSFORM);
         if (!otherTransforms.empty())
         {
             // look for other transform auras
@@ -3109,11 +3108,11 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
         }
 
         // Dragonmaw Illusion (restore mount model)
-        if (GetId() == 42016 && m_target->GetMountID() == 16314)
+        if (GetId() == 42016 && target->GetMountID() == 16314)
         {
-            if (!m_target->GetAurasByType(SPELL_AURA_MOUNTED).empty())
+            if (!target->GetAurasByType(SPELL_AURA_MOUNTED).empty())
             {
-                uint32 cr_id = m_target->GetAurasByType(SPELL_AURA_MOUNTED).front()->GetModifier()->m_miscvalue;
+                uint32 cr_id = target->GetAurasByType(SPELL_AURA_MOUNTED).front()->GetModifier()->m_miscvalue;
                 if (CreatureInfo const* ci = ObjectMgr::GetCreatureTemplate(cr_id))
                 {
                     uint32 display_id = Creature::ChooseDisplayId(ci);
@@ -3121,7 +3120,7 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                     if (minfo)
                         display_id = minfo->modelid;
 
-                    m_target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, display_id);
+                    target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, display_id);
                 }
             }
         }

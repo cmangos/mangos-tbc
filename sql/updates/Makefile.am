@@ -57,7 +57,9 @@ pkgdata_DATA = \
 	s0566_8818_01_mangos_mangos_string.sql \
 	s0600_10932_01_mangos_game_event_creature_data.sql \
 	s0610_8769_01_mangos_mail_level_reward.sql \
-	s0611_10945_01_mangos_mangos_string.sql
+	s0611_10945_01_mangos_mangos_string.sql \
+	s0612_10946_01_mangos_spell_proc_event.sql \
+	s0612_xxxxx_02_mangos_spell_chain.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -93,4 +95,6 @@ EXTRA_DIST = \
 	s0566_8818_01_mangos_mangos_string.sql \
 	s0600_10932_01_mangos_game_event_creature_data.sql \
 	s0610_8769_01_mangos_mail_level_reward.sql \
-	s0611_10945_01_mangos_mangos_string.sql
+	s0611_10945_01_mangos_mangos_string.sql \
+	s0612_10946_01_mangos_spell_proc_event.sql \
+	s0612_xxxxx_02_mangos_spell_chain.sql

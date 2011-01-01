@@ -68,6 +68,7 @@ bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
     HandleReloadAllGossipsCommand((char*)"");
     HandleReloadAllLocalesCommand((char*)"");
 
+    HandleReloadMailLevelRewardCommand((char*)"");
     HandleReloadCommandCommand((char*)"");
     HandleReloadReservedNameCommand((char*)"");
     HandleReloadMangosStringCommand((char*)"");
@@ -853,6 +854,14 @@ bool ChatHandler::HandleReloadLocalesQuestCommand(char* /*args*/)
     sLog.outString( "Re-Loading Locales Quest ... ");
     sObjectMgr.LoadQuestLocales();
     SendGlobalSysMessage("DB table `locales_quest` reloaded.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadMailLevelRewardCommand(char* /*args*/)
+{
+    sLog.outString( "Re-Loading Player level dependent mail rewards..." );
+    sObjectMgr.LoadMailLevelRewards();
+    SendGlobalSysMessage("DB table `mail_level_reward` reloaded.");
     return true;
 }
 

@@ -472,9 +472,6 @@ void Creature::Update(uint32 diff)
                 else
                     SetDeathState( JUST_ALIVED );
 
-                if (GetMap()->IsBattleGround() && ((BattleGroundMap*)GetMap())->GetBG())
-                    ((BattleGroundMap*)GetMap())->GetBG()->OnCreatureRespawn(this); // for alterac valley needed to adjust the correct level again
-
                 //Call AI respawn virtual function
                 if (AI())
                     AI()->JustRespawned();

@@ -26,7 +26,7 @@ Quest::Quest(Field * questRecord)
     QuestMethod = questRecord[1].GetUInt32();
     ZoneOrSort = questRecord[2].GetInt32();
     MinLevel = questRecord[3].GetUInt32();
-    QuestLevel = questRecord[4].GetUInt32();
+    QuestLevel = questRecord[4].GetInt32();
     Type = questRecord[5].GetUInt32();
     RequiredClasses = questRecord[6].GetUInt32();
     RequiredRaces = questRecord[7].GetUInt32();
@@ -164,7 +164,7 @@ uint32 Quest::XPValue( Player *pPlayer ) const
         if( RewMoneyMaxLevel > 0 )
         {
             uint32 pLevel = pPlayer->getLevel();
-            uint32 qLevel = QuestLevel;
+            uint32 qLevel = QuestLevel > 0 ? (uint32)QuestLevel : 0;
             float fullxp = 0;
             if (qLevel >= 65)
                 fullxp = RewMoneyMaxLevel / 6.0f;

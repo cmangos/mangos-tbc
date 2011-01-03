@@ -86,8 +86,8 @@ void WorldRunnable::run()
 
     sWorldSocketMgr->StopNetwork();
 
-    MapManager::Instance().UnloadAll();                     // unload all grids (including locked in memory)
+    sMapMgr.UnloadAll();                                    // unload all grids (including locked in memory)
 
     ///- End the database thread
-    WorldDatabase.ThreadEnd();                                  // free mySQL thread resources
+    WorldDatabase.ThreadEnd();                              // free mySQL thread resources
 }

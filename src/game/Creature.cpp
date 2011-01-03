@@ -344,14 +344,13 @@ bool Creature::UpdateEntry(uint32 Entry, uint32 team, const CreatureData *data /
     SetCanModifyStats(true);
     UpdateAllStats();
 
-    FactionTemplateEntry const* factionTemplate = sFactionTemplateStore.LookupEntry(GetCreatureInfo()->faction_A);
-    if (factionTemplate)                                    // check and error show at loading templates
+    // checked and error show at loading templates
+    if (FactionTemplateEntry const* factionTemplate = sFactionTemplateStore.LookupEntry(GetCreatureInfo()->faction_A))
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionTemplate->faction);
-        if (factionEntry)
-            if( !(GetCreatureInfo()->flags_extra & CREATURE_FLAG_EXTRA_CIVILIAN) &&
-                (factionEntry->team == ALLIANCE || factionEntry->team == HORDE) )
-                SetPvP(true);
+        if (factionTemplate->factionFlags & FACTION_TEMPLATE_FLAG_PVP)
+            SetPvP(true);
+        else
+            SetPvP(false);
     }
 
     for(int i = 0; i < CREATURE_MAX_SPELLS; ++i)

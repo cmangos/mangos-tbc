@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0636_10973_03_mangos_game_event_mail` bit(1) default NULL
+  `required_s0638_xxxxx_02_mangos_spell_proc_event` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13083,6 +13083,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (5138,  0,      0,       0,     'Warlock - Drain Mana'),
 (1120,  0,      0.4286,  0,     'Warlock - Drain Soul'),
 (28176, 0,      0,       0,     'Warlock - Fel Armor'),
+(18790, 0,      0,       0,     'Warlock - Fel Stamina'),
 (755,   0,      0.4485,  0,     'Warlock - Health Funnel'),
 (1949,  0,      0.0946,  0,     'Warlock - Hellfire'),
 (5857,  0.1428, 0,       0,     'Warlock - Hellfire Effect on Enemy Rank 1'),
@@ -15008,7 +15009,7 @@ INSERT INTO `spell_proc_event` VALUES
 (12704, 0x00,  0, 0x0000000000000000, 0x00000000, 0x00000000, 1.662600, 0.000000,  0),
 (12797, 0x00,  4, 0x0000000000000400, 0x00000000, 0x00000000, 0.000000, 0.000000,  0),
 (12834, 0x00,  0, 0x0000000000000000, 0x00000000, 0x00000002, 0.000000, 0.000000,  0),
-(12880, 0x00,  0, 0x0000000000000000, 0x00000000, 0x00000000, 0.000000, 0.000000,  0),
+(12880, 0x00,  0, 0x0000000000000000, 0x00000000, 0x00010000, 0.000000, 0.000000,  0),
 (12999, 0x00,  0, 0x0000000000000000, 0x00000000, 0x00000000, 4.000000, 0.000000,  0),
 (13000, 0x00,  0, 0x0000000000000000, 0x00000000, 0x00000000, 6.000000, 0.000000,  0),
 (13001, 0x00,  0, 0x0000000000000000, 0x00000000, 0x00000000, 8.000000, 0.000000,  0),

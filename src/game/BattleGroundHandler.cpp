@@ -413,7 +413,7 @@ void WorldSession::HandleBattleFieldPortOpcode( WorldPacket &recv_data )
             // set the destination instance id
             _player->SetBattleGroundId(bg->GetInstanceID(), bgTypeId);
             // set the destination team
-            _player->SetBGTeam(ginfo.Team);
+            _player->SetBGTeam(ginfo.GroupTeam);
             // bg->HandleBeforeTeleportToBattleGround(_player);
             sBattleGroundMgr.SendToBattleGround(_player, ginfo.IsInvitedToBGInstanceGUID, bgTypeId);
             // add only in HandleMoveWorldPortAck()
@@ -578,7 +578,6 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
     uint8 arenaslot;                                        // 2v2, 3v3 or 5v5
     uint8 asGroup;                                          // asGroup
     uint8 isRated;                                          // isRated
-    Group * grp;
 
     recv_data >> guid >> arenaslot >> asGroup >> isRated;
 
@@ -624,9 +623,15 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
     BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bgTypeId, arenatype);
     BattleGroundBracketId bgBracketId = _player->GetBattleGroundBracketIdFromLevel(bgTypeId);
 
+    Group * grp = NULL;
+
     // check queue conditions
     if (!asGroup)
     {
+        // you can't join in this way by client
+        if (isRated)
+            return;
+
         // check if already in queue
         if (_player->GetBattleGroundQueueIndex(bgQueueTypeId) < PLAYER_MAX_BATTLEGROUND_QUEUES)
             //player is already in this queue

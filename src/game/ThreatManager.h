@@ -133,7 +133,7 @@ typedef std::list<HostileReference*> ThreatList;
 class MANGOS_DLL_SPEC ThreatContainer
 {
     private:
-        std::list<HostileReference*> iThreatList;
+        ThreatList iThreatList;
         bool iDirty;
     protected:
         friend class ThreatManager;

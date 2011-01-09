@@ -1580,10 +1580,8 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         (spellInfo_2->SpellVisual == 99 && spellInfo_1->SpellVisual == 0)))
                         return false;
 
-                    // Heart of the Wild and (Primal Instinct (Idol of Terror) triggering spell or Agility)
-                    if (spellInfo_1->SpellIconID == 240 && spellInfo_2->SpellIconID == 240 && (
-                        (spellInfo_1->SpellVisual == 0 && spellInfo_2->SpellVisual == 78) ||
-                        (spellInfo_2->SpellVisual == 0 && spellInfo_1->SpellVisual == 78)))
+                    // Heart of the Wild, Agility and various Idol Triggers
+                    if (spellInfo_1->SpellIconID == 240 && spellInfo_2->SpellIconID == 240)
                         return false;
 
                     // Personalized Weather (thunder effect should overwrite rainy aura)

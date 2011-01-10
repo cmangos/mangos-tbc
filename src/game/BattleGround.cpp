@@ -517,6 +517,8 @@ void BattleGround::SendPacketToAll(WorldPacket *packet)
 {
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
+        if (itr->second.OfflineRemoveTime)
+            continue;
         Player *plr = sObjectMgr.GetPlayer(itr->first);
         if (plr)
             plr->GetSession()->SendPacket(packet);
@@ -529,6 +531,8 @@ void BattleGround::SendPacketToTeam(Team teamId, WorldPacket *packet, Player *se
 {
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
+        if (itr->second.OfflineRemoveTime)
+            continue;
         Player *plr = sObjectMgr.GetPlayer(itr->first);
         if (!plr)
         {
@@ -560,6 +564,8 @@ void BattleGround::PlaySoundToTeam(uint32 SoundID, Team teamId)
 
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
+        if (itr->second.OfflineRemoveTime)
+            continue;
         Player *plr = sObjectMgr.GetPlayer(itr->first);
 
         if (!plr)
@@ -583,6 +589,8 @@ void BattleGround::CastSpellOnTeam(uint32 SpellID, Team teamId)
 {
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
+        if (itr->second.OfflineRemoveTime)
+            continue;
         Player *plr = sObjectMgr.GetPlayer(itr->first);
 
         if (!plr)
@@ -603,6 +611,8 @@ void BattleGround::RewardHonorToTeam(uint32 Honor, Team teamId)
 {
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
+        if (itr->second.OfflineRemoveTime)
+            continue;
         Player *plr = sObjectMgr.GetPlayer(itr->first);
 
         if (!plr)
@@ -628,6 +638,8 @@ void BattleGround::RewardReputationToTeam(uint32 faction_id, uint32 Reputation, 
 
     for(BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
     {
+        if (itr->second.OfflineRemoveTime)
+            continue;
         Player *plr = sObjectMgr.GetPlayer(itr->first);
 
         if (!plr)
@@ -732,6 +744,7 @@ void BattleGround::EndBattleGround(Team winner)
             }
             continue;
         }
+
         Player *plr = sObjectMgr.GetPlayer(itr->first);
         if (!plr)
         {
@@ -1256,14 +1269,13 @@ void BattleGround::EventPlayerLoggedOut(Player* player)
     m_Players[player->GetGUID()].OfflineRemoveTime = sWorld.GetGameTime() + MAX_OFFLINE_TIME;
     if (GetStatus() == STATUS_IN_PROGRESS)
     {
-        if (isBattleGround())
-            EventPlayerDroppedFlag(player);
-        else
-        {
-            //1 player is logging out, if it is the last, then end arena!
+        // drop flag and handle other cleanups
+        RemovePlayer(player, player->GetGUID());
+
+        // 1 player is logging out, if it is the last, then end arena!
+        if (isArena())
             if (GetAlivePlayersCountByTeam(player->GetTeam()) <= 1 && GetPlayersCountByTeam(GetOtherTeam(player->GetTeam())))
                 EndBattleGround(GetOtherTeam(player->GetTeam()));
-        }
     }
 }
 

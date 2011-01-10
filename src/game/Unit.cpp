@@ -5546,15 +5546,6 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                     }
                     break;
                 }
-                // Seal of Vengeance
-                case 31801:
-                {
-                    if(effIndex != 0)                       // effect 1,2 used by seal unleashing code
-                        return false;
-
-                    triggered_spell_id = 31803;
-                    break;
-                }
                 // Spiritual Attunement
                 case 31785:
                 case 33776:
@@ -5573,6 +5564,15 @@ bool Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura* triggeredByAu
                         basepoints0 = triggerAmount*damage/100;
                     target = this;
                     triggered_spell_id = 31786;
+                    break;
+                }
+                // Seal of Vengeance (damage calc on apply aura)
+                case 31801:
+                {
+                    if(effIndex != 0)                       // effect 1,2 used by seal unleashing code
+                        return false;
+
+                    triggered_spell_id = 31803;
                     break;
                 }
                 // Paladin Tier 6 Trinket (Ashtongue Talisman of Zeal)

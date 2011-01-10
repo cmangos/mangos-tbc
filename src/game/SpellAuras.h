@@ -267,6 +267,7 @@ class MANGOS_DLL_SPEC Aura
         {
             if (m_procCharges == 0)
                 return false;
+
             m_procCharges--;
             UpdateAuraCharges();
             return m_procCharges == 0;
@@ -435,4 +436,5 @@ class MANGOS_DLL_SPEC SingleEnemyTargetAura : public Aura
 };
 
 Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 *currentBasePoints, Unit *target, Unit *caster = NULL, Item* castItem = NULL);
+
 #endif

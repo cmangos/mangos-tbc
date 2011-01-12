@@ -1731,8 +1731,9 @@ void Unit::DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss)
                WorldPacket data(SMSG_SPELLDAMAGESHIELD,(8+8+4+4));
                data << pVictim->GetObjectGuid();
                data << GetObjectGuid();
+               data << uint32(i_spellProto->Id);
+               data << uint32(damage);                  // Damage
                data << uint32(i_spellProto->SchoolMask);
-               data << uint32(damage);
                pVictim->SendMessageToSet(&data, true );
 
                pVictim->DealDamage(this, damage, 0, SPELL_DIRECT_DAMAGE, GetSpellSchoolMask(i_spellProto), i_spellProto, true);

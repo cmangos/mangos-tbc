@@ -5677,6 +5677,7 @@ void Aura::HandleSpellSpecificBoosts(bool apply)
             }
             else
                 return;
+            break;
         }
         case SPELLFAMILY_HUNTER:
         {

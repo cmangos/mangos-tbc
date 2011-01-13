@@ -7897,10 +7897,10 @@ uint32 Unit::SpellHealingBonus(Unit *pVictim, SpellEntry const *spellProto, uint
             {
                 // Flash of Light
                 if ((spellProto->SpellFamilyFlags & UI64LIT(0x0000000040000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_1)
-                    TakenAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+                    TakenTotal += (*i)->GetModifier()->m_amount;
                 // Holy Light
                 else if ((spellProto->SpellFamilyFlags & UI64LIT(0x0000000080000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_0)
-                    TakenAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+                    TakenTotal += (*i)->GetModifier()->m_amount;
             }
         }
     }

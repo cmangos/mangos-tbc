@@ -5885,20 +5885,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
         case SPELLFAMILY_GENERIC:
             switch(auraSpellInfo->Id)
             {
-                //case 191:                                 // Elemental Response
-                //{
-                //    switch (auraSpellInfo->Id && auraSpellInfo->AttributesEx==0)
-                //    {
-                //        case 34191:
-                //        case 34329:
-                //        case 34524:
-                //        case 34582:
-                //        case 36733:break;
-                //        default:
-                //            sLog.outError("Unit::HandleProcTriggerSpell: Spell %u miss posibly Elemental Response",auraSpellInfo->Id);
-                //            return false;
-                //    }
-                //    //This generic aura self-triggers a different spell for each school of magic that lands on the wearer:
+                //case 191:                               // Elemental Response
                 //    switch (procSpell->School)
                 //    {
                 //        case SPELL_SCHOOL_FIRE:  trigger_spell_id = 34192; break;
@@ -5908,16 +5895,11 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
                 //        case SPELL_SCHOOL_SHADOW:trigger_spell_id = 34196; break;
                 //        case SPELL_SCHOOL_HOLY:  trigger_spell_id = 34197; break;
                 //        case SPELL_SCHOOL_NORMAL:trigger_spell_id = 34198; break;
-                //        default:
-                //            sLog.outError("Unit::HandleProcTriggerSpell: Spell %u Elemental Response wrong school",auraSpellInfo->Id);
-                //        return false;
                 //    }
                 //    break;
-                //}
                 //case 5301:  break;                        // Defensive State (DND)
-                //case 6542:  break;                        // Enraged Defense
-                //case 7137:  break;                        // Shadow Charge (Rank 1)
-                //case 7377:  break;                        // Take Immune Periodic Damage <Not Working>
+                //case 7137:  break:                        // Shadow Charge (Rank 1)
+                //case 7377:  break:                        // Take Immune Periodic Damage <Not Working>
                 //case 13358: break;                        // Defensive State (DND)
                 //case 16092: break;                        // Defensive State (DND)
                 //case 18943: break;                        // Double Attack
@@ -6375,7 +6357,7 @@ bool Unit::HandleProcTriggerSpell(Unit *pVictim, uint32 damage, Aura* triggeredB
     if (m_extraAttacks && IsSpellHaveEffect(triggerEntry, SPELL_EFFECT_ADD_EXTRA_ATTACKS))
         return false;
 
-    // Costum basepoints/target for exist spell
+    // Custom basepoints/target for exist spell
     // dummy basepoints or other customs
     switch(trigger_spell_id)
     {

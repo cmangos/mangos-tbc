@@ -4911,11 +4911,11 @@ SpellCastResult Spell::CheckItems()
 
         uint32 itemid = m_CastItem->GetEntry();
         if( !p_caster->HasItemCount(itemid, 1) )
-            return SPELL_FAILED_ITEM_NOT_READY;
+            return SPELL_FAILED_ITEM_NOT_FOUND;
 
         ItemPrototype const *proto = m_CastItem->GetProto();
         if(!proto)
-            return SPELL_FAILED_ITEM_NOT_READY;
+            return SPELL_FAILED_ITEM_NOT_FOUND;
 
         for (int i = 0; i < 5; ++i)
             if (proto->Spells[i].SpellCharges)

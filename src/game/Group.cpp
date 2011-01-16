@@ -858,8 +858,8 @@ void Group::SetTargetIcon(uint8 id, ObjectGuid targetGuid)
     m_targetIcons[id] = targetGuid;
 
     WorldPacket data(MSG_RAID_TARGET_UPDATE, (2+8));
-    data << (uint8)0;
-    data << id;
+    data << uint8(0);
+    data << uint8(id);
     data << targetGuid;
     BroadcastPacket(&data, true);
 }

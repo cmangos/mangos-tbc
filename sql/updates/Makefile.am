@@ -76,7 +76,8 @@ pkgdata_DATA = \
 	s0671_11002_01_mangos_spell_proc_event.sql \
 	s0681_8992_01_mangos_spell_proc_event.sql \
 	s0687_9007_01_mangos_spell_proc_event.sql \
-	s0693_11018_01_mangos_command.sql
+	s0693_11018_01_mangos_command.sql \
+	s0696_11023_01_mangos_spell_threat.sql
 
 ## Additional files to include when running 'make dist'
 #  SQL update files, to upgrade database schema from older revisions
@@ -131,4 +132,5 @@ EXTRA_DIST = \
 	s0671_11002_01_mangos_spell_proc_event.sql \
 	s0681_8992_01_mangos_spell_proc_event.sql \
 	s0687_9007_01_mangos_spell_proc_event.sql \
-	s0693_11018_01_mangos_command.sql
+	s0693_11018_01_mangos_command.sql \
+	s0696_11023_01_mangos_spell_threat.sql

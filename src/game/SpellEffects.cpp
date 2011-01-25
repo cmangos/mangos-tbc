@@ -4963,7 +4963,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
 
     static ScriptInfo activateCommand = generateActivateCommand();
 
-    int32 delay_secs = m_spellInfo->CalculateSimpleValue(effect_idx);
+    int32 delay_secs = m_spellInfo->CalculateSimpleValue(eff_idx);
 
     gameObjTarget->GetMap()->ScriptCommandStart(activateCommand, delay_secs, m_caster, gameObjTarget);
 }

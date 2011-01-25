@@ -420,6 +420,8 @@ void Pet::SavePetToDB(PetSaveMode mode)
         if (mode != PET_SAVE_AS_CURRENT)
             RemoveAllAuras();
 
+        //save pet's data as one single transaction
+        CharacterDatabase.BeginTransaction();
         _SaveSpells();
         _SaveSpellCooldowns();
         _SaveAuras();
@@ -431,7 +433,6 @@ void Pet::SavePetToDB(PetSaveMode mode)
         uint32 ownerLow = GetOwnerGuid().GetCounter();
         std::string name = m_name;
         CharacterDatabase.escape_string(name);
-        CharacterDatabase.BeginTransaction();
         // remove current data
         CharacterDatabase.PExecute("DELETE FROM character_pet WHERE owner = '%u' AND id = '%u'", ownerLow, m_charmInfo->GetPetNumber());
 
@@ -498,13 +499,19 @@ void Pet::SavePetToDB(PetSaveMode mode)
     }
 }
 
-void Pet::DeleteFromDB(uint32 guidlow)
+void Pet::DeleteFromDB(uint32 guidlow, bool separate_transaction)
 {
+    if(separate_transaction)
+        CharacterDatabase.BeginTransaction();
+
     CharacterDatabase.PExecute("DELETE FROM character_pet WHERE id = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM character_pet_declinedname WHERE id = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_aura WHERE guid = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_spell WHERE guid = '%u'", guidlow);
     CharacterDatabase.PExecute("DELETE FROM pet_spell_cooldown WHERE guid = '%u'", guidlow);
+
+    if(separate_transaction)
+        CharacterDatabase.CommitTransaction();
 }
 
 void Pet::SetDeathState(DeathState s)                       // overwrite virtual Creature::SetDeathState and Unit::SetDeathState

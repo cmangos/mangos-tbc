@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s0636_10973_02_characters_game_event_status` bit(1) default NULL
+  `required_s0738_9246_01_characters_character` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -209,7 +209,24 @@ CREATE TABLE `characters` (
   `zone` int(11) unsigned NOT NULL default '0',
   `death_expire_time` bigint(20) unsigned NOT NULL default '0',
   `taxi_path` text,
-  `arena_pending_points` int(10) UNSIGNED NOT NULL default '0',
+  `arenaPoints` int(10) UNSIGNED NOT NULL default '0',
+  `totalHonorPoints` int(10) UNSIGNED NOT NULL default '0',
+  `todayHonorPoints` int(10) UNSIGNED NOT NULL default '0',
+  `yesterdayHonorPoints` int(10) UNSIGNED NOT NULL default '0',
+  `totalKills` int(10) UNSIGNED NOT NULL default '0',
+  `todayKills` smallint(5) UNSIGNED NOT NULL default '0',
+  `yesterdayKills` smallint(5) UNSIGNED NOT NULL default '0',
+  `chosenTitle` int(10) UNSIGNED NOT NULL default '0',
+  `watchedFaction` int(10) UNSIGNED NOT NULL default '0',
+  `drunk` smallint(5) UNSIGNED NOT NULL default '0',
+  `health` int(10) UNSIGNED NOT NULL default '0',
+  `power1` int(10) UNSIGNED NOT NULL default '0',
+  `power2` int(10) UNSIGNED NOT NULL default '0',
+  `power3` int(10) UNSIGNED NOT NULL default '0',
+  `power4` int(10) UNSIGNED NOT NULL default '0',
+  `power5` int(10) UNSIGNED NOT NULL default '0',
+  `power6` int(10) UNSIGNED NOT NULL default '0',
+  `power7` int(10) UNSIGNED NOT NULL default '0',
   `deleteInfos_Account` int(11) UNSIGNED default NULL,
   `deleteInfos_Name` varchar(12) default NULL,
   `deleteDate` bigint(20) default NULL,

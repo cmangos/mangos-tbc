@@ -61,6 +61,7 @@ pkgdata_DATA = \
 	s0531_8596_01_characters_bugreport.sql \
 	s0540_8469_01_characters_character_spell.sql \
 	s0636_10973_02_characters_game_event_status.sql \
+	s0738_9246_01_characters_character.sql \
 	README
 
 ## Additional files to include when running 'make dist'
@@ -102,4 +103,5 @@ EXTRA_DIST = \
 	s0531_8596_01_characters_bugreport.sql \
 	s0540_8469_01_characters_character_spell.sql \
 	s0636_10973_02_characters_game_event_status.sql \
+	s0738_9246_01_characters_character.sql \
 	README

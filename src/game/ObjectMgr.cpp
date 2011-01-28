@@ -7554,14 +7554,8 @@ bool PlayerCondition::IsValid(ConditionType condition, uint32 value1, uint32 val
         }
         case CONDITION_ACTIVE_HOLIDAY:
         case CONDITION_NOT_ACTIVE_HOLIDAY:
-        {
-            if (!sHolidaysStore.LookupEntry(value1))
-            {
-                sLog.outErrorDb("Active holiday (%u) condition requires existing holiday id (%u), skipped", condition, value1);
-                return false;
-            }
+            // no way check holidays in pre-3.x
             break;
-        }
         case CONDITION_NONE:
             break;
     }

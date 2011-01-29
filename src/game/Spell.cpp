@@ -5034,11 +5034,11 @@ SpellCastResult Spell::CheckItems()
                 uint32 itemcount = m_spellInfo->ReagentCount[i];
 
                 // if CastItem is also spell reagent
-                if( m_CastItem && m_CastItem->GetEntry() == itemid )
+                if (m_CastItem && m_CastItem->GetEntry() == itemid)
                 {
                     ItemPrototype const *proto = m_CastItem->GetProto();
-                    if(!proto)
-                        return SPELL_FAILED_ITEM_NOT_READY;
+                    if (!proto)
+                        return SPELL_FAILED_REAGENTS;
                     for(int s = 0; s < MAX_ITEM_PROTO_SPELLS; ++s)
                     {
                         // CastItem will be used up and does not count as reagent
@@ -5050,8 +5050,9 @@ SpellCastResult Spell::CheckItems()
                         }
                     }
                 }
-                if( !p_caster->HasItemCount(itemid, itemcount) )
-                    return SPELL_FAILED_ITEM_NOT_READY;         //0x54
+
+                if (!p_caster->HasItemCount(itemid, itemcount))
+                    return SPELL_FAILED_REAGENTS;
             }
         }
 
@@ -5059,9 +5060,9 @@ SpellCastResult Spell::CheckItems()
         uint32 totems = MAX_SPELL_TOTEMS;
         for(int i = 0; i < MAX_SPELL_TOTEMS ; ++i)
         {
-            if(m_spellInfo->Totem[i] != 0)
+            if (m_spellInfo->Totem[i] != 0)
             {
-                if( p_caster->HasItemCount(m_spellInfo->Totem[i], 1) )
+                if (p_caster->HasItemCount(m_spellInfo->Totem[i], 1))
                 {
                     totems -= 1;
                     continue;
@@ -5078,9 +5079,9 @@ SpellCastResult Spell::CheckItems()
         uint32 TotemCategory = MAX_SPELL_TOTEM_CATEGORIES;
         for(int i= 0; i < MAX_SPELL_TOTEM_CATEGORIES; ++i)
         {
-            if(m_spellInfo->TotemCategory[i] != 0)
+            if (m_spellInfo->TotemCategory[i] != 0)
             {
-                if( p_caster->HasItemTotemCategory(m_spellInfo->TotemCategory[i]) )
+                if (p_caster->HasItemTotemCategory(m_spellInfo->TotemCategory[i]))
                 {
                     TotemCategory -= 1;
                     continue;
@@ -5093,7 +5094,6 @@ SpellCastResult Spell::CheckItems()
         if (TotemCategory != 0)
             return SPELL_FAILED_TOTEM_CATEGORY;                 //0x7B
     }
-
     // special checks for spell effects
     for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {

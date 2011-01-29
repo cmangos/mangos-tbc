@@ -211,3 +211,11 @@ bool Quest::IsAllowedInRaid() const
 
     return sWorld.getConfig(CONFIG_BOOL_QUEST_IGNORE_RAID);
 }
+
+uint32 Quest::GetCharTitleBitIndex() const
+{
+    if (!CharTitleId)
+        return 0;
+    CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(CharTitleId);
+    return titleEntry ? titleEntry->bit_index : 0;
+}

@@ -518,7 +518,7 @@ void PlayerMenu::SendQuestGiverQuestDetails(Quest const *pQuest, ObjectGuid npcG
     data << uint32(10*MaNGOS::Honor::hk_honor_at_level(GetMenuSession()->GetPlayer()->getLevel(), pQuest->GetRewHonorableKills()));
     data << uint32(pQuest->GetRewSpell());                  // reward spell, this spell will display (icon) (casted if RewSpellCast==0)
     data << uint32(pQuest->GetRewSpellCast());              // casted spell
-    data << uint32(pQuest->GetCharTitleId());               // CharTitleId, new 2.4.0, player gets this title (id from CharTitles)
+    data << uint32(pQuest->GetCharTitleBitIndex());         // CharTitle, new 2.4.0, player gets this title (bit index from CharTitles)
 
     data << uint32(QUEST_EMOTE_COUNT);
 
@@ -731,7 +731,7 @@ void PlayerMenu::SendQuestGiverOfferReward(Quest const* pQuest, ObjectGuid npcGU
     data << uint32(0x08);                                   // unused by client?
     data << uint32(pQuest->GetRewSpell());                  // reward spell, this spell will display (icon) (casted if RewSpellCast==0)
     data << uint32(pQuest->GetRewSpellCast());              // casted spell
-    data << uint32(0x00);                                   // unk, NOT honor
+    data << uint32(pQuest->GetCharTitleBitIndex());         // character title
     GetMenuSession()->SendPacket(&data);
     DEBUG_LOG("WORLD: Sent SMSG_QUESTGIVER_OFFER_REWARD NPCGuid = %s, questid = %u", npcGUID.GetString().c_str(), pQuest->GetQuestId());
 }

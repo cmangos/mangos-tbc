@@ -968,6 +968,23 @@ struct TotemCategoryEntry
     uint32    categoryMask;                                 // 19 (compatibility mask for same type: different for totems, compatible from high to low for rods)
 };
 
+struct WMOAreaTableEntry
+{
+    uint32 Id;                                              // 0 index
+    int32 rootId;                                           // 1 used in root WMO
+    int32 adtId;                                            // 2 used in adt file
+    int32 groupId;                                          // 3 used in group WMO
+    //uint32 field4;
+    //uint32 field5;
+    //uint32 field6;
+    //uint32 field7;
+    //uint32 field8;
+    uint32 Flags;                                           // 9 used for indoor/outdoor determination
+    uint32 areaId;                                          // 10 link to AreaTableEntry.ID
+    //char *Name[16];
+    //uint32 nameFlags;
+};
+
 struct WorldMapAreaEntry
 {
     //uint32    ID;                                         // 0

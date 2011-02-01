@@ -18,7 +18,7 @@ class Model
 public:
     ModelHeader header;
     ModelVertex *origVertices;
-    Vec3D *vertices, *normals;
+    Vec3D *vertices;
     uint16 *indices;
     size_t nIndices;
 
@@ -35,7 +35,7 @@ private:
     char outfilename;
 };
 
-class ModelInstance 
+class ModelInstance
 {
 public:
     Model *model;

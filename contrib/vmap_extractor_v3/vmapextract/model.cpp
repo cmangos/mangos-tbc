@@ -27,16 +27,11 @@ bool Model::open()
     if(header.nBoundingTriangles > 0)
     {
         origVertices = (ModelVertex*)(f.getBuffer() + header.ofsVertices);
-
         vertices = new Vec3D[header.nVertices];
-        normals = new Vec3D[header.nVertices];
 
         for (size_t i=0; i<header.nVertices; i++)
         {
-            origVertices[i].pos = fixCoordSystem(origVertices[i].pos);
-            origVertices[i].normal = fixCoordSystem(origVertices[i].normal);
-            vertices[i] = origVertices[i].pos;
-            normals[i] = origVertices[i].normal.normalize();
+            vertices[i] = fixCoordSystem(origVertices[i].pos);;
         }
 
         ModelView *view = (ModelView*)(f.getBuffer() + header.ofsViews);
@@ -86,7 +81,7 @@ bool Model::ConvertToVMAPModel(char * outfilename)
     fwrite(&wsize, sizeof(int), 1, output);
     fwrite(&branches,sizeof(branches), 1, output);
     uint32 nIndexes = (uint32) nIndices;
-    fwrite(&nIndices,sizeof(uint32), 1, output);
+    fwrite(&nIndexes,sizeof(uint32), 1, output);
     fwrite("INDX",4, 1, output);
     wsize = sizeof(uint32) + sizeof(unsigned short) * nIndexes;
     fwrite(&wsize, sizeof(int), 1, output);
@@ -101,7 +96,7 @@ bool Model::ConvertToVMAPModel(char * outfilename)
     fwrite(&nVertices, sizeof(int), 1, output);
     if(nVertices >0)
     {
-        for(int vpos=0; vpos <nVertices; ++vpos)
+        for(uint32 vpos=0; vpos <nVertices; ++vpos)
         {
             float sy = vertices[vpos].y;
             vertices[vpos].y = vertices[vpos].z;
@@ -112,7 +107,6 @@ bool Model::ConvertToVMAPModel(char * outfilename)
 
     delete[] vertices;
     delete[] indices;
-    delete[] normals;
 
     fclose(output);
 

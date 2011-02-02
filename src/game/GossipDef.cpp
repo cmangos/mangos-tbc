@@ -462,7 +462,7 @@ void PlayerMenu::SendQuestGiverQuestDetails(Quest const *pQuest, ObjectGuid npcG
     data << Title;
     data << Details;
     data << Objectives;
-    data << uint32(ActivateAccept);
+    data << uint32(ActivateAccept ? 1 : 0);                 // auto finish
     data << uint32(pQuest->GetSuggestedPlayers());
 
     if (pQuest->HasQuestFlag(QUEST_FLAGS_HIDDEN_REWARDS))
@@ -677,7 +677,7 @@ void PlayerMenu::SendQuestGiverOfferReward(Quest const* pQuest, ObjectGuid npcGU
     data << Title;
     data << OfferRewardText;
 
-    data << uint32( EnableNext );
+    data << uint32(EnableNext ? 1 : 0);                     // Auto Finish
     data << uint32(pQuest->GetSuggestedPlayers());          // SuggestedGroupNum
 
     uint32 EmoteCount = 0;
@@ -769,10 +769,10 @@ void PlayerMenu::SendQuestGiverRequestItems(Quest const *pQuest, ObjectGuid npcG
     data << Title;
     data << RequestItemsText;
 
-    data << uint32(0x00);                                   // unknown
+    data << uint32(0x00);                                   // emote delay
 
     if(Completable)
-        data << pQuest->GetCompleteEmote();
+        data << pQuest->GetCompleteEmote();                 // emote id
     else
         data << pQuest->GetIncompleteEmote();
 

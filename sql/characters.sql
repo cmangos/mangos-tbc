@@ -225,8 +225,6 @@ CREATE TABLE `characters` (
   `power3` int(10) UNSIGNED NOT NULL default '0',
   `power4` int(10) UNSIGNED NOT NULL default '0',
   `power5` int(10) UNSIGNED NOT NULL default '0',
-  `power6` int(10) UNSIGNED NOT NULL default '0',
-  `power7` int(10) UNSIGNED NOT NULL default '0',
   `deleteInfos_Account` int(11) UNSIGNED default NULL,
   `deleteInfos_Name` varchar(12) default NULL,
   `deleteDate` bigint(20) default NULL,

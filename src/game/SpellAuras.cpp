@@ -1877,8 +1877,9 @@ void Aura::TriggerSpell()
 //                    case 45050: break;
 //                    // Earthquake
 //                    case 46240: break;
-                    // Personalized Weather
-                    case 46736: trigger_spell_id = 46737; break;
+                    case 46736:                             // Personalized Weather
+                        trigger_spell_id = 46737;
+                        break;
 //                    // Stay Submerged
 //                    case 46981: break;
 //                    // Dragonblight Ram
@@ -1894,9 +1895,8 @@ void Aura::TriggerSpell()
             {
                 switch(auraId)
                 {
-                    // Invisibility
-                    case 66:
-                        // Here need periodic triger reducing threat spell (or do it manually)
+                    case 66:                                // Invisibility
+                        // Here need periodic trigger reducing threat spell (or do it manually)
                         return;
                     default:
                         break;
@@ -1933,12 +1933,10 @@ void Aura::TriggerSpell()
             {
                 switch(auraId)
                 {
-                    // Cat Form
-                    // trigger_spell_id not set and unknown effect triggered in this case, ignoring for while
-                    case 768:
+                    case 768:                               // Cat Form
+                        // trigger_spell_id not set and unknown effect triggered in this case, ignoring for while
                         return;
-                    // Frenzied Regeneration
-                    case 22842:
+                    case 22842:                             // Frenzied Regeneration
                     case 22895:
                     case 22896:
                     case 26999:
@@ -2704,7 +2702,7 @@ void Aura::HandleAuraMounted(bool apply, bool Real)
     }
     else
     {
-        m_target->Unmount();
+        m_target->Unmount(true);
     }
 }
 

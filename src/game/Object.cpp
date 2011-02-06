@@ -264,7 +264,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
 
         *data << uint32(moveFlags);                         // movement flags
         *data << uint8(0);                                  // moveFlags2
-        *data << uint32(getMSTime());                       // time (in milliseconds)
+        *data << uint32(WorldTimer::getMSTime());           // time (in milliseconds)
     }
 
     // 0x40
@@ -488,7 +488,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
     // 0x2
     if(updateFlags & UPDATEFLAG_TRANSPORT)
     {
-        *data << uint32(getMSTime());                       // ms time
+        *data << uint32(WorldTimer::getMSTime());                       // ms time
     }
 }
 

@@ -93,7 +93,7 @@ bool DynamicObject::Create( uint32 guidlow, Unit *caster, uint32 spellId, SpellE
     SetFloatValue(DYNAMICOBJECT_POS_X, x);
     SetFloatValue(DYNAMICOBJECT_POS_Y, y);
     SetFloatValue(DYNAMICOBJECT_POS_Z, z);
-    SetUInt32Value(DYNAMICOBJECT_CASTTIME, getMSTime());    // new 2.4.0
+    SetUInt32Value(DYNAMICOBJECT_CASTTIME, WorldTimer::getMSTime());    // new 2.4.0
 
     m_aliveDuration = duration;
     m_radius = radius;
@@ -109,7 +109,7 @@ Unit* DynamicObject::GetCaster() const
     return ObjectAccessor::GetUnit(*this, GetCasterGUID());
 }
 
-void DynamicObject::Update(uint32 p_time)
+void DynamicObject::Update(uint32 update_diff, uint32 p_time)
 {
     // caster can be not in world at time dynamic object update, but dynamic object not yet deleted in Unit destructor
     Unit* caster = GetCaster();

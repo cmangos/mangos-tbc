@@ -447,7 +447,7 @@ bool Database::CheckRequiredField( char const* table_name, char const* required_
         else
         {
             sLog.outErrorDb("The table `%s` in your [%s] database is missing its version info.",table_name,db_name);
-            sLog.outErrorDb("MaNGOS cannot find the version info needed to check that the db is up to date.",table_name,db_name);
+            sLog.outErrorDb("MaNGOS cannot find the version info needed to check that the db is up to date.");
             sLog.outErrorDb();
             sLog.outErrorDb("This revision of MaNGOS requires a database updated to:");
             sLog.outErrorDb("`%s.sql`",req_sql_update_name);
@@ -462,7 +462,7 @@ bool Database::CheckRequiredField( char const* table_name, char const* required_
     else
     {
         sLog.outErrorDb("The table `%s` in your [%s] database is missing or corrupt.",table_name,db_name);
-        sLog.outErrorDb("MaNGOS cannot find the version info needed to check that the db is up to date.",table_name,db_name);
+        sLog.outErrorDb("MaNGOS cannot find the version info needed to check that the db is up to date.");
         sLog.outErrorDb();
         sLog.outErrorDb("This revision of mangos requires a database updated to:");
         sLog.outErrorDb("`%s.sql`",req_sql_update_name);

@@ -8811,17 +8811,18 @@ uint8 Player::_CanTakeMoreSimilarItems(uint32 entry, uint32 count, Item* pItem, 
     }
 
     // no maximum
-    if(pProto->MaxCount == 0)
-        return EQUIP_ERR_OK;
-
-    uint32 curcount = GetItemCount(pProto->ItemId,true,pItem);
-
-    if( curcount + count > pProto->MaxCount )
+    if(pProto->MaxCount > 0)
     {
-        if(no_space_count)
-            *no_space_count = count +curcount - pProto->MaxCount;
-        return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
+        uint32 curcount = GetItemCount(pProto->ItemId,true,pItem);
+
+        if (curcount + count > uint32(pProto->MaxCount))
+        {
+            if(no_space_count)
+                *no_space_count = count +curcount - pProto->MaxCount;
+            return EQUIP_ERR_CANT_CARRY_MORE_OF_THIS;
+        }
     }
+
 
     return EQUIP_ERR_OK;
 }
@@ -10098,12 +10099,12 @@ void Player::SetAmmo( uint32 item )
         return;
 
     // check ammo
-    if(item)
+    if (item)
     {
         uint8 msg = CanUseAmmo( item );
-        if( msg != EQUIP_ERR_OK )
+        if (msg != EQUIP_ERR_OK)
         {
-            SendEquipError( msg, NULL, NULL );
+            SendEquipError(msg, NULL, NULL, item);
             return;
         }
     }
@@ -10119,7 +10120,7 @@ void Player::RemoveAmmo()
 
     m_ammoDPS = 0.0f;
 
-    if(CanModifyStats())
+    if (CanModifyStats())
         UpdateDamagePhysical(RANGED_ATTACK);
 }
 
@@ -13346,7 +13347,7 @@ bool Player::CanGiveQuestSourceItem( Quest const *pQuest, ItemPosCountVec* dest 
         else if (msg == EQUIP_ERR_CANT_CARRY_MORE_OF_THIS)
             return true;
         else
-            SendEquipError( msg, NULL, NULL );
+            SendEquipError( msg, NULL, NULL, srcitem );
         return false;
     }
 
@@ -13387,7 +13388,7 @@ bool Player::TakeQuestSourceItem( uint32 quest_id, bool msg )
             if(res != EQUIP_ERR_OK)
             {
                 if(msg)
-                    SendEquipError( res, NULL, NULL );
+                    SendEquipError( res, NULL, NULL, srcitem );
                 return false;
             }
 
@@ -17700,7 +17701,7 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
         uint8 msg = CanStoreNewItem( bag, slot, dest, item, pProto->BuyCount * count );
         if (msg != EQUIP_ERR_OK)
         {
-            SendEquipError( msg, NULL, NULL );
+            SendEquipError( msg, NULL, NULL, item );
             return false;
         }
 
@@ -17745,7 +17746,7 @@ bool Player::BuyItemFromVendor(uint64 vendorguid, uint32 item, uint8 count, uint
         uint8 msg = CanEquipNewItem( slot, dest, item, false );
         if (msg != EQUIP_ERR_OK)
         {
-            SendEquipError( msg, NULL, NULL );
+            SendEquipError( msg, NULL, NULL, item );
             return false;
         }
 
@@ -19711,7 +19712,7 @@ void Player::AutoStoreLoot(Loot& loot, bool broadcast, uint8 bag, uint8 slot)
             msg = CanStoreNewItem( NULL_BAG, NULL_SLOT,dest,lootItem->itemid,lootItem->count);
         if(msg != EQUIP_ERR_OK)
         {
-            SendEquipError( msg, NULL, NULL );
+            SendEquipError( msg, NULL, NULL, lootItem->itemid );
             continue;
         }
 

@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0806_xxxxx_01_mangos_spell_threat` bit(1) default NULL
+  `required_s0808_9539_01_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13111,6 +13111,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (30108, 0,      0.24,    0,     'Warlock - Unstable Affliction'),
 (31117, 1.8,    0,       0,     'Warlock - Unstable Affliction Dispell'),
 /* Item */
+(46567, 0,      0,       0,     'Item - Goblin Rocket Launcher'),
 (17712, 0,      0,       0,     'Item - Lifestone Healing'),
 (5707,  0,      0,       0,     'Item - Lifestone Regeneration'),
 (31024, 0,      0,       0,     'Item - Living Ruby Pedant'),

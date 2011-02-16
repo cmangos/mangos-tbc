@@ -346,6 +346,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             damage = 200;
                         break;
                     }
+                    // percent max target health
+                    case 35139:                             // Throw Boom's Doom
+                    {
+                        damage = damage * unitTarget->GetMaxHealth() / 100;
+                        break;
+                    }
                     // Cataclysmic Bolt
                     case 38441:
                         damage = unitTarget->GetMaxHealth() / 2;

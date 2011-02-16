@@ -2421,7 +2421,7 @@ void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
         else
             addhealth = caster->SpellHealingBonus(unitTarget, m_spellInfo, addhealth, HEAL);
 
-         m_healing+=addhealth;
+        m_healing += addhealth;
     }
 }
 

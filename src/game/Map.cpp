@@ -103,6 +103,9 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
 
     //add reference for TerrainData object
     m_TerrainData->AddRef();
+
+    m_instanceSave = sInstanceSaveMgr.AddInstanceSave(i_mapEntry, GetInstanceId(), GetDifficulty(), 0, IsDungeon());
+    m_instanceSave->SetUsedByMapState(true);
 }
 
 void Map::InitVisibilityDistance()
@@ -1308,13 +1311,6 @@ InstanceMap::InstanceMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 Spaw
     // the timer is started by default, and stopped when the first player joins
     // this make sure it gets unloaded if for some reason no player joins
     m_unloadTimer = std::max(sWorld.getConfig(CONFIG_UINT32_INSTANCE_UNLOAD_DELAY), (uint32)MIN_UNLOAD_DELAY);
-
-    // Dungeon only code
-    if(IsDungeon())
-    {
-        m_instanceSave = sInstanceSaveMgr.AddInstanceSave(GetId(), GetInstanceId(), Difficulty(GetSpawnMode()), 0, true);
-        m_instanceSave->SetUsedByMapState(true);
-    }
 }
 
 InstanceMap::~InstanceMap()
@@ -1434,11 +1430,8 @@ bool InstanceMap::Add(Player *player)
                                 pGroup->GetId(), groupBind->save->GetMapId(),
                                 groupBind->save->GetInstanceId(), groupBind->save->GetDifficulty());
 
-                            if (GetInstanceSave())
-                                sLog.outError("MapSave players: %d, group count: %d",
-                                    GetInstanceSave()->GetPlayerCount(), GetInstanceSave()->GetGroupCount());
-                            else
-                                sLog.outError("MapSave NULL");
+                            sLog.outError("MapSave players: %d, group count: %d",
+                                GetInstanceSave()->GetPlayerCount(), GetInstanceSave()->GetGroupCount());
 
                             if (groupBind->save)
                                 sLog.outError("GroupBind save players: %d, group count: %d", groupBind->save->GetPlayerCount(), groupBind->save->GetGroupCount());
@@ -1593,7 +1586,7 @@ void InstanceMap::UnloadAll(bool pForce)
     }
 
     if(m_resetAfterUnload == true)
-        sObjectMgr.DeleteRespawnTimeForInstance(GetInstanceId());
+        GetInstanceSave()->DeleteRespawnTimes();
 
     Map::UnloadAll(pForce);
 }

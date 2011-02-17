@@ -2609,7 +2609,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     if (totem && apply)
                         ((Player*)target)->GetCamera().SetView(totem);
                     else
-                        ((Player*)target)->GetCamera().ResetView(totem);
+                        ((Player*)target)->GetCamera().ResetView();
 
                     return;
                 }

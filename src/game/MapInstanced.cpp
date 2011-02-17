@@ -101,13 +101,11 @@ Map* MapInstanced::CreateInstance(Player * player)
 
     if(IsBattleGroundOrArena())
     {
-        // instantiate or find existing bg map for player
-        // the instance id is set in battlegroundid
+        // find existing bg map for player
         NewInstanceId = player->GetBattleGroundId();
         MANGOS_ASSERT(NewInstanceId);
         map = _FindMap(NewInstanceId);
-        if(!map)
-            map = CreateBattleGroundMap(NewInstanceId, player->GetBattleGround());
+        MANGOS_ASSERT(map);
     }
     else if (InstanceSave* pSave = player->GetBoundInstanceSaveForSelfOrGroup(GetId()))
     {

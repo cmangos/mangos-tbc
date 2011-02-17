@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0811_xxxxx_01_mangos_spell_threat` bit(1) default NULL
+  `required_s0817_11117_01_mangos_world_template` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -15571,8 +15571,28 @@ LOCK TABLES `transports` WRITE;
 /*!40000 ALTER TABLE `transports` DISABLE KEYS */;
 /*!40000 ALTER TABLE `transports` ENABLE KEYS */;
 UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
+--
+-- Table structure for table `world_template`
+--
+
+DROP TABLE IF EXISTS `world_template`;
+CREATE TABLE `world_template` (
+  `map` smallint(5) unsigned NOT NULL,
+  `ScriptName` varchar(128) NOT NULL default '',
+  PRIMARY KEY  (`map`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `world_template`
+--
+
+LOCK TABLES `world_template` WRITE;
+/*!40000 ALTER TABLE `world_template` DISABLE KEYS */;
+/*!40000 ALTER TABLE `world_template` ENABLE KEYS */;
+UNLOCK TABLES;
+
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;

@@ -641,7 +641,7 @@ void ArenaTeam::MemberLost(Player * plr, uint32 againstRating)
     }
 }
 
-void ArenaTeam::OfflineMemberLost(uint64 guid, uint32 againstRating)
+void ArenaTeam::OfflineMemberLost(ObjectGuid guid, uint32 againstRating)
 {
     // called for offline player after ending rated arena match!
     for(MemberList::iterator itr = m_members.begin(); itr !=  m_members.end(); ++itr)

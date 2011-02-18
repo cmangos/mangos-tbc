@@ -2308,7 +2308,7 @@ enum InstanceResetMethod
     INSTANCE_RESET_GLOBAL,
     INSTANCE_RESET_GROUP_DISBAND,
     INSTANCE_RESET_GROUP_JOIN,
-    INSTANCE_RESET_RESPAWN_DELAY
+    INSTANCE_RESET_RESPAWN_DELAY                            // called from reset scheduler for request reset at map unload when map loaded at reset attempt for normal dungeon difficulty
 };
 
 // high byte (3 from 0..3) of UNIT_FIELD_BYTES_2

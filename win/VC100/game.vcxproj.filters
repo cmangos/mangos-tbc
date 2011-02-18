@@ -123,9 +123,6 @@
     <ClCompile Include="..\..\src\game\InstanceData.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\InstanceSaveMgr.cpp">
-      <Filter>World/Handlers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\game\ItemHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
@@ -142,6 +139,9 @@
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\MapManager.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\MapPersistentStateMgr.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\MassMailMgr.cpp">
@@ -525,9 +525,6 @@
     <ClInclude Include="..\..\src\game\InstanceData.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\InstanceSaveMgr.h">
-      <Filter>World/Handlers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\game\Mail.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
@@ -535,6 +532,9 @@
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\MapManager.h">
+      <Filter>World/Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\MapPersistentStateMgr.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\MassMailMgr.h">

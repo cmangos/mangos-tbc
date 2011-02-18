@@ -50,7 +50,7 @@ class Transport;
 class UpdateMask;
 class SpellCastTargets;
 class PlayerSocial;
-class InstanceSave;
+class DungeonPersistentState;
 class Spell;
 class Item;
 
@@ -779,12 +779,12 @@ enum ReputationSource
 
 struct InstancePlayerBind
 {
-    InstanceSave *save;
+    DungeonPersistentState *state;
     bool perm;
     /* permanent PlayerInstanceBinds are created in Raid/Heroic instances for players
        that aren't already permanently bound when they are inside when a boss is killed
        or when they enter an instance that the group leader is permanently bound to. */
-    InstancePlayerBind() : save(NULL), perm(false) {}
+    InstancePlayerBind() : state(NULL), perm(false) {}
 };
 
 class MANGOS_DLL_SPEC PlayerTaxi
@@ -2117,11 +2117,11 @@ class MANGOS_DLL_SPEC Player : public Unit
         BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
         void UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload = false);
         void UnbindInstance(BoundInstancesMap::iterator &itr, Difficulty difficulty, bool unload = false);
-        InstancePlayerBind* BindToInstance(InstanceSave *save, bool permanent, bool load = false);
+        InstancePlayerBind* BindToInstance(DungeonPersistentState *save, bool permanent, bool load = false);
         void SendRaidInfo();
         void SendSavedInstances();
         static void ConvertInstancesToGroup(Player *player, Group *group = NULL, ObjectGuid player_guid = ObjectGuid());
-        InstanceSave* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
+        DungeonPersistentState* GetBoundInstanceSaveForSelfOrGroup(uint32 mapid);
 
         /*********************************************************/
         /***                   GROUP SYSTEM                    ***/

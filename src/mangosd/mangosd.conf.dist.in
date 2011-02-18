@@ -1070,10 +1070,6 @@ GM.LowerSecurity         = 0
 #        Max limited by active player zone: ~ 333
 #        Min limit is max aggro radius (45) * Rate.Creature.Aggro
 #
-#    Visibility.Distance.Object
-#        Visible distance for gameobject, dynobject, bodies, corpses, bones
-#        Min limit is iteraction distance (5)
-#
 #    Visibility.Distance.InFlight
 #        Visible distance for player in flight
 #        Min limit is 0 (not show any objects)
@@ -1096,8 +1092,7 @@ Visibility.GroupMode = 0
 Visibility.Distance.Continents    = 90
 Visibility.Distance.Instances     = 120
 Visibility.Distance.BGArenas      = 180
-Visibility.Distance.Object        = 66
-Visibility.Distance.InFlight      = 66
+Visibility.Distance.InFlight      = 100
 Visibility.Distance.Grey.Unit   = 1
 Visibility.Distance.Grey.Object = 10
 

@@ -1,3 +1,0 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_s0636_10973_02_characters_game_event_status required_s0540_8469_01_characters_character_spell bit;
-
-DROP TABLE IF EXISTS `game_event_status`;

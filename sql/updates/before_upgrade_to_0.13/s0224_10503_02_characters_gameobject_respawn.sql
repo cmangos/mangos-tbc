@@ -1,3 +1,0 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_s0224_10503_02_characters_gameobject_respawn required_s0224_10503_01_characters_creature_respawn bit;
-
-DROP TABLE IF EXISTS `gameobject_respawn`;

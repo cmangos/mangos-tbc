@@ -1,3 +1,0 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_s0507_8339_02_characters_character_battleground_data required_s0507_8339_01_characters_characters bit;
-
-DROP TABLE IF EXISTS `character_battleground_data`;

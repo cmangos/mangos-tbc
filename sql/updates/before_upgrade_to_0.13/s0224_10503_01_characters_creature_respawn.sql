@@ -1,3 +1,0 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_s0224_10503_01_characters_creature_respawn required_s0216_7307_01_characters_arena_team_member bit;
-
-DROP TABLE IF EXISTS `creature_respawn`;

@@ -1,3 +1,0 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_112_8874_01_characters_character_skills required_111_9767_03_characters_characters bit;
-
-DROP TABLE IF EXISTS `character_skills`;

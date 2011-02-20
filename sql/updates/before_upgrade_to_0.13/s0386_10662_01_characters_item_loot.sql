@@ -1,3 +1,0 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_s0386_10662_01_characters_item_loot required_s0384_10664_01_characters_arena_team_stats bit;
-
-DROP TABLE IF EXISTS `item_loot`;

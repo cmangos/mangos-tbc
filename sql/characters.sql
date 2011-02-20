@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s0817_11117_02_characters_world` bit(1) default NULL
+  `required_s0858_xxxxx_01_characters_characters` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -171,7 +171,6 @@ DROP TABLE IF EXISTS `characters`;
 CREATE TABLE `characters` (
   `guid` int(11) unsigned NOT NULL default '0' COMMENT 'Global Unique Identifier',
   `account` int(11) unsigned NOT NULL default '0' COMMENT 'Account Identifier',
-  `data` longtext,
   `name` varchar(12) NOT NULL default '',
   `race` tinyint(3) unsigned NOT NULL default '0',
   `class` tinyint(3) unsigned NOT NULL default '0',
@@ -225,6 +224,11 @@ CREATE TABLE `characters` (
   `power3` int(10) UNSIGNED NOT NULL default '0',
   `power4` int(10) UNSIGNED NOT NULL default '0',
   `power5` int(10) UNSIGNED NOT NULL default '0',
+  `exploredZones` longtext,
+  `equipmentCache` longtext,
+  `ammoId` int(10) UNSIGNED NOT NULL default '0',
+  `knownTitles` longtext,
+  `actionBars` tinyint(3) UNSIGNED NOT NULL default '0',
   `deleteInfos_Account` int(11) UNSIGNED default NULL,
   `deleteInfos_Name` varchar(12) default NULL,
   `deleteDate` bigint(20) default NULL,

@@ -1,1 +1,0 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_s0087_10312_01_characters_character_aura required_s0041_10254_01_characters_auctionhouse bit;

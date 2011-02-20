@@ -54,14 +54,11 @@ SQL updates include special protection against multiple and wrong order of updat
 Attempts to apply sql updates to an older DB without previous SQL updates in list for the database
 or to DB with already applied this or later SQL update will generate an error and not be applied.
 
-=== What do for upgrade to MaNGOS 0.13 ====
+=== What do for upgrade to MaNGOS Master ====
 
-MaNGOS 0.12 DB structure can have changes not compatibale with sql updates in MaNGOS 0.13 sql/updates directory.
-For resolve this problem you need compatible DB content for tables in mangos.sql and realmd, and apply all sql updates from
-sql/updates/before_upgrade_to_0.13 in REVERSED order from high order number prefix to low for characters DB.
-After this you will have DB structure compatiable with state that exist at moment.
-MaNGOS 0.12 release and then sql updates from MaNGOS 0.13 sql/updates directory will applied without problem in normal order
-(for charcters DBs) starting from MaNGOS 0.13 sql/updates/2008_12_22_02_characters_character_pet.sql)
+Use sql/tools/characters_convert_sXXXX_to_YYYYY.sql file fro convert Mangos One characters
+(in state compatible with sXXXX revision) to Mangos Master characters DB (with state compatible with revision YYYYY).
+Then apply post-YYYYY slq updates for make characters DB up-to-date.
 
 === For Commiters ====
 
@@ -81,16 +78,6 @@ IMPORTANT: Need use git_id tool from mangos-0.12 branch.
    You also need resolve conflicts in DB sql file before git_id tool use (used revison in DB version not important and will replaced by git_id -s)
 
 3. Now use git_id -s
-
-4. If this sql updates for characters DB write undo sql update for sql/updates/before_upgrade_to_0.13 directory.
-   This part better go after commit creating and apply git_id -s to it. Described new fiels and chnages need --ammend to created commit.
-4.1: Name it in same way as added sql update (s0041_7932_01_characters_character_pet.sql)
-4.2: Use REVERSED order for guard query field names
-     (ALTER TABLE character_db_version CHANGE COLUMN required_s0041_7903_01_characters_character_pet required_s0032_7059_02_characters_pet_spell bit;)
-4.3: Write required sql queries that will restore DB structure to state _before_ related sql update apply
-     (if field added then field drop, if field drop then field re-added with some useful value,
-     if field renamed then field renamed back, etc)
-4.4: Add undo sql update file name into slq/updates/before_upgrade_to_0.13/Makefile.am
 
 ===== For new sql updates =====
 

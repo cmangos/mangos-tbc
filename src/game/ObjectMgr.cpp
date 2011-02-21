@@ -1139,14 +1139,18 @@ void ObjectMgr::LoadCreatureModelRace()
 void ObjectMgr::LoadCreatures()
 {
     uint32 count = 0;
-    //                                                0              1   2    3
-    QueryResult *result = WorldDatabase.Query("SELECT creature.guid, id, map, modelid,"
+    //                                                0                       1   2    3
+    QueryResult *result = WorldDatabase.Query("SELECT creature.guid, creature.id, map, modelid,"
     //   4             5           6           7           8            9              10         11
         "equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint,"
-    //   12         13       14          15            16         17     18
-        "curhealth, curmana, DeathState, MovementType, spawnMask, event, pool_entry "
-        "FROM creature LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
-        "LEFT OUTER JOIN pool_creature ON creature.guid = pool_creature.guid");
+    //   12         13       14          15            16         17
+        "curhealth, curmana, DeathState, MovementType, spawnMask, event,"
+    //   18                        19
+        "pool_creature.pool_entry, pool_creature_template.pool_entry "
+        "FROM creature "
+        "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
+        "LEFT OUTER JOIN pool_creature ON creature.guid = pool_creature.guid "
+        "LEFT OUTER JOIN pool_creature_template ON creature.id = pool_creature_template.id");
 
     if(!result)
     {
@@ -1202,7 +1206,8 @@ void ObjectMgr::LoadCreatures()
         data.movementType       = fields[15].GetUInt8();
         data.spawnMask          = fields[16].GetUInt8();
         int16 gameEvent         = fields[17].GetInt16();
-        int16 PoolId            = fields[18].GetInt16();
+        int16 GuidPoolId        = fields[18].GetInt16();
+        int16 EntryPoolId       = fields[19].GetInt16();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
         if(!mapEntry)
@@ -1291,7 +1296,7 @@ void ObjectMgr::LoadCreatures()
             }
         }
 
-        if (gameEvent==0 && PoolId==0)                      // if not this is to be managed by GameEvent System or Pool system
+        if (gameEvent==0 && GuidPoolId==0 && EntryPoolId==0)// if not this is to be managed by GameEvent System or Pool system
             AddCreatureToGrid(guid, &data);
         ++count;
 
@@ -1339,12 +1344,16 @@ void ObjectMgr::LoadGameobjects()
 {
     uint32 count = 0;
 
-    //                                                0                1   2    3           4           5           6
-    QueryResult *result = WorldDatabase.Query("SELECT gameobject.guid, id, map, position_x, position_y, position_z, orientation,"
-    //   7          8          9          10         11             12            13     14         15     16
-        "rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, spawnMask, event, pool_entry "
-        "FROM gameobject LEFT OUTER JOIN game_event_gameobject ON gameobject.guid = game_event_gameobject.guid "
-        "LEFT OUTER JOIN pool_gameobject ON gameobject.guid = pool_gameobject.guid");
+    //                                                0                           1   2    3           4           5           6
+    QueryResult *result = WorldDatabase.Query("SELECT gameobject.guid, gameobject.id, map, position_x, position_y, position_z, orientation,"
+    //   7          8          9          10         11             12            13     14         15
+        "rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, spawnMask, event,"
+    //   16                          17
+        "pool_gameobject.pool_entry, pool_gameobject_template.pool_entry "
+        "FROM gameobject "
+        "LEFT OUTER JOIN game_event_gameobject ON gameobject.guid = game_event_gameobject.guid "
+        "LEFT OUTER JOIN pool_gameobject ON gameobject.guid = pool_gameobject.guid "
+        "LEFT OUTER JOIN pool_gameobject_template ON gameobject.id = pool_gameobject_template.id");
 
     if(!result)
     {
@@ -1429,7 +1438,8 @@ void ObjectMgr::LoadGameobjects()
 
         data.spawnMask      = fields[14].GetUInt8();
         int16 gameEvent     = fields[15].GetInt16();
-        int16 PoolId        = fields[16].GetInt16();
+        int16 GuidPoolId    = fields[16].GetInt16();
+        int16 EntryPoolId   = fields[17].GetInt16();
 
         if (data.rotation2 < -1.0f || data.rotation2 > 1.0f)
         {
@@ -1449,7 +1459,7 @@ void ObjectMgr::LoadGameobjects()
             continue;
         }
 
-        if (gameEvent == 0 && PoolId == 0)                  // if not this is to be managed by GameEvent System or Pool system
+        if (gameEvent==0 && GuidPoolId==0 && EntryPoolId==0)// if not this is to be managed by GameEvent System or Pool system
             AddGameobjectToGrid(guid, &data);
         ++count;
 

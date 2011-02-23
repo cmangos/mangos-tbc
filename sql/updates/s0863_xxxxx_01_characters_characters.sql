@@ -11,5 +11,6 @@ WHERE length(SUBSTRING_INDEX(exploredZones, ' ', 127)) < length(exploredZones) a
 UPDATE characters, data_backup SET
   exploredZones = SUBSTRING(data,
   length(SUBSTRING_INDEX(data, ' ', 1332))+2,
-  length(SUBSTRING_INDEX(data, ' ', 1459+1))- length(SUBSTRING_INDEX(data, ' ', 1332)) - 1);
+  length(SUBSTRING_INDEX(data, ' ', 1459+1))- length(SUBSTRING_INDEX(data, ' ', 1332)) - 1)
+  WHERE characters.guid = data_backup.guid;
 */

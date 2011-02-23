@@ -10,7 +10,7 @@ ALTER TABLE characters
 UPDATE characters SET
 exploredZones = SUBSTRING(data,
   length(SUBSTRING_INDEX(data, ' ', 1332))+2,
-  length(SUBSTRING_INDEX(data, ' ', 1458+1))- length(SUBSTRING_INDEX(data, ' ', 1332)) - 1),
+  length(SUBSTRING_INDEX(data, ' ', 1459+1))- length(SUBSTRING_INDEX(data, ' ', 1332)) - 1),
 equipmentCache = '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ',
 ammoId = SUBSTRING(data,
   length(SUBSTRING_INDEX(data, ' ', 1487))+2,

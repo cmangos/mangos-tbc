@@ -5226,7 +5226,7 @@ void ObjectMgr::LoadAreaTriggerTeleports()
 
     //                                                0   1               2              3               4           5            6                    7                           8                     9           10                 11                 12                 13
     QueryResult *result = WorldDatabase.Query("SELECT id, required_level, required_item, required_item2, heroic_key, heroic_key2, required_quest_done, required_quest_done_heroic, required_failed_text, target_map, target_position_x, target_position_y, target_position_z, target_orientation FROM areatrigger_teleport");
-    if( !result )
+    if (!result)
     {
 
         barGoLink bar( 1 );
@@ -5323,12 +5323,12 @@ void ObjectMgr::LoadAreaTriggerTeleports()
             }
         }
 
-        if(at.requiredQuestHeroic)
+        if (at.requiredQuestHeroic)
         {
             QuestMap::iterator qReqItr = mQuestTemplates.find(at.requiredQuestHeroic);
-            if(qReqItr == mQuestTemplates.end())
+            if (qReqItr == mQuestTemplates.end())
             {
-                sLog.outErrorDb("Required Quest %u not exist for trigger %u, remove quest done requirement.",at.requiredQuestHeroic,Trigger_ID);
+                sLog.outErrorDb("Table `areatrigger_teleport` has not existed required heroic quest %u for trigger %u, remove quest done requirement.",at.requiredQuestHeroic,Trigger_ID);
                 at.requiredQuestHeroic = 0;
             }
         }

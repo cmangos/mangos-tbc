@@ -220,7 +220,7 @@ inline bool IsCasterSourceTarget(uint32 target)
         case TARGET_TOTEM_WATER:
         case TARGET_TOTEM_AIR:
         case TARGET_TOTEM_FIRE:
-        case TARGET_AREAEFFECT_CUSTOM_2:
+        case TARGET_AREAEFFECT_GO_AROUND_DEST:
         case TARGET_SELF2:
         case TARGET_NONCOMBAT_PET:
             return true;
@@ -309,7 +309,7 @@ inline bool IsAreaEffectTarget( Targets target )
         case TARGET_ALL_PARTY:
         case TARGET_ALL_PARTY_AROUND_CASTER_2:
         case TARGET_AREAEFFECT_PARTY:
-        case TARGET_AREAEFFECT_CUSTOM_2:
+        case TARGET_AREAEFFECT_GO_AROUND_DEST:
         case TARGET_ALL_RAID_AROUND_CASTER:
         case TARGET_AREAEFFECT_PARTY_AND_CLASS:
             return true;

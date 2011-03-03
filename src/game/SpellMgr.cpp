@@ -1493,18 +1493,7 @@ void SpellMgr::LoadSpellBonuses()
         float direct_diff = 1000.0f;                        // for have big diff if no DB field value
         if (sbe.direct_damage)
         {
-            bool isHeal = false;
-            for(int i = 0; i < 3; ++i)
-            {
-                // Heals (Also count Mana Shield and Absorb effects as heals)
-                if (spell->Effect[i] == SPELL_EFFECT_HEAL || spell->Effect[i] == SPELL_EFFECT_HEAL_MAX_HEALTH ||
-                    (spell->Effect[i] == SPELL_EFFECT_APPLY_AURA && (spell->EffectApplyAuraName[i] == SPELL_AURA_SCHOOL_ABSORB || spell->EffectApplyAuraName[i] == SPELL_AURA_PERIODIC_HEAL)) )
-                {
-                    isHeal = true;
-                    break;
-                }
-            }
-            direct_calc = CalculateDefaultCoefficient(spell, SPELL_DIRECT_DAMAGE) * (isHeal ? 1.88f : 1.0f);
+            direct_calc = CalculateDefaultCoefficient(spell, SPELL_DIRECT_DAMAGE);
             direct_diff = std::abs(sbe.direct_damage - direct_calc);
         }
 
@@ -1513,17 +1502,7 @@ void SpellMgr::LoadSpellBonuses()
         float dot_diff = 1000.0f;                           // for have big diff if no DB field value
         if (sbe.dot_damage)
         {
-            bool isHeal = false;
-            for(int i = 0; i < 3; ++i)
-            {
-                // Periodic Heals
-                if (spell->Effect[i] == SPELL_EFFECT_APPLY_AURA && spell->EffectApplyAuraName[i] == SPELL_AURA_PERIODIC_HEAL)
-                {
-                    isHeal = true;
-                    break;
-                }
-            }
-            dot_calc = CalculateDefaultCoefficient(spell, DOT) * (isHeal ? 1.88f : 1.0f);
+            dot_calc = CalculateDefaultCoefficient(spell, DOT);
             dot_diff = std::abs(sbe.dot_damage - dot_calc);
         }
 

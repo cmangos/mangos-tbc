@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0859_11190_01_mangos_pool_gameobject_template` bit(1) default NULL
+  `required_s0901_xxxxx_01_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13005,12 +13005,10 @@ INSERT INTO `spell_bonus_data` VALUES
 (5185,  1.6104, 0,       0,     'Druid - Healing Touch'),
 (42231, 0.12898,0,       0,     'Druid - Hurricane Triggered'),
 (5570,  0,      0.127,   0,     'Druid - Insect Swarm'),
-(33763, 0.3429, 0.074,   0,     'Druid - Lifebloom'),
+(33763, 0.3429, 0,       0,     'Druid - Lifebloom'),
 (8921,  0.1515, 0.13,    0,     'Druid - Moonfire'),
-(8936,  0.3,    0.1,     0,     'Druid - Regrowth'),
-(774,   0,      0.37604, 0,     'Druid - Rejuvenation'),
+(8936,  0,      0.1,     0,     'Druid - Regrowth'),
 (18562, 0,      0,       0,     'Druid - Swiftmend'),
-(44203, 0.2,    0,       0,     'Druid - Tranquility Triggered'),
 (5176,  0.5714, 0,       0,     'Druid - Wrath'),
 /* Mage */
 (7268,  0.2857, 0,       0,     'Mage - Arcane Missiles Triggered Spell Rank 1'),
@@ -13046,13 +13044,6 @@ INSERT INTO `spell_bonus_data` VALUES
 (31935, 0.07,   0,       0.07,  'Paladin - Avengers Shiled'),
 (26573, 0,      0.04,    0.04,  'Paladin - Consecration'),
 (879,   0.15,   0,       0.15,  'Paladin - Exorcism'),
-(19750, 0.4286, 0,       0,     'Paladin - Flash of Light'),
-(635,   0.7143, 0,       0,     'Paladin - Holy Light'),
-(25914, 0.4286, 0,       0,     'Paladin - Holy Shock Triggered Heal Rank 1'),
-(25913, 0.4286, 0,       0,     'Paladin - Holy Shock Triggered Heal Rank 2'),
-(25903, 0.4286, 0,       0,     'Paladin - Holy Shock Triggered Heal Rank 3'),
-(27175, 0.4286, 0,       0,     'Paladin - Holy Shock Triggered Heal Rank 4'),
-(33074, 0.4286, 0,       0,     'Paladin - Holy Shock Triggered Heal Rank 5'),
 (24275, 0.15,   0,       0.15,  'Paladin - Hammer of Wrath'),
 (20925, 0.09,   0,       0.056, 'Paladin - Holy Shield'),
 (31803, 0,      0.013,   0.15,  'Paladin - Holy Vengeance'),
@@ -13063,8 +13054,6 @@ INSERT INTO `spell_bonus_data` VALUES
 (20167, 0.25,   0,       0.16,  'Paladin - Seal of Light Proc'),
 (25742, 0.07,   0,       0.039, 'Paladin - Seal of Righteousness Dummy Proc'),
 /* Priest */
-(32546, 0.4286, 0,       0,     'Priest - Binding Heal'),
-(13908, 0.4286, 0,       0,     'Priest - Desperate Prayer'),
 (2061,  0.6177, 0,       0,     'Priest - Flash Heal'),
 (2060,  1.2353, 0,       0,     'Priest - Greater Heal'),
 (14914, 0.5711, 0.024,   0,     'Priest - Holy Fire'),
@@ -13078,8 +13067,6 @@ INSERT INTO `spell_bonus_data` VALUES
 (25329, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 7'),
 (8129,  0,      0,       0,     'Priest - Mana Burn'),
 (15407, 0,      0.19,    0,     'Priest - Mind Flay'),
-(596,   0.4285, 0,       0,     'Priest - Prayer of Healing'),
-(139,   0,      0.2,     0,     'Priest - Renew'),
 (34433, 0.65,   0,       0,     'Priest - Shadowfiend'),
 (585,   0.714,  0,       0,     'Priest - Smite'),
 (34914, 0,      0.4,     0,     'Priest - Vampiric Touch'),
@@ -13106,7 +13093,6 @@ INSERT INTO `spell_bonus_data` VALUES
 (8034,  0.1,    0,       0,     'Shaman - Frostbrand Attack Rank 1'),
 (5672,  0,      0.0450,  0,     'Shaman - Healing Stream Totem'),
 (331,   0.8571, 0,       0,     'Shaman - Healing Wave'),
-(8004,  0.4286, 0,       0,     'Shaman - Lesser Healing Wave'),
 (403,   0.7143, 0,       0,     'Shaman - Lightning Bolt'),
 (26364, 0.33,   0,       0,     'Shaman - Lightning Shield Proc Rank 1'),
 (26365, 0.33,   0,       0,     'Shaman - Lightning Shield Proc Rank 2'),

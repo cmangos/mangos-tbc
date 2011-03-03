@@ -177,6 +177,7 @@ class ChatHandler
         bool HandleDebugSetItemValueCommand(char* args);
         bool HandleDebugSetValueCommand(char* args);
         bool HandleDebugSpellCheckCommand(char* args);
+        bool HandleDebugSpellCoefsCommand(char* args);
         bool HandleDebugSpellModsCommand(char* args);
         bool HandleDebugUpdateWorldStateCommand(char* args);
 

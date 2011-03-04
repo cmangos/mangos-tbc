@@ -1066,14 +1066,14 @@ void SpellMgr::LoadSpellAffects()
         // Spell.dbc have own data for low part of SpellFamilyMask
         if (spellInfo->EffectItemType[effectId])
         {
-            if (spellInfo->EffectItemType[effectId] == spellAffectMask)
+            if (static_cast<uint64>(spellInfo->EffectItemType[effectId]) == spellAffectMask)
             {
                 sLog.outErrorDb("Spell %u listed in `spell_affect` have redundant (same with EffectItemType%d) data for effect index (%u) and not needed, skipped.", entry,effectId+1,effectId);
                 continue;
             }
 
             // 24429 have wrong data in EffectItemType and overwrites by DB, possible bug in client
-            if (spellInfo->Id!=24429 && spellInfo->EffectItemType[effectId] != spellAffectMask)
+            if (spellInfo->Id!=24429 && spellInfo->EffectItemType[effectId] != static_cast<uint32>(spellAffectMask))
             {
                 sLog.outErrorDb("Spell %u listed in `spell_affect` have different low part from EffectItemType%d for effect index (%u) and not needed, skipped.", entry,effectId+1,effectId);
                 continue;

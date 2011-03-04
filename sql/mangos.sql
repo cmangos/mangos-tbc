@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0902_11214_02_mangos_command` bit(1) default NULL
+  `required_s0904_xxxxx_01_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13008,13 +13008,15 @@ LOCK TABLES `spell_bonus_data` WRITE;
 INSERT INTO `spell_bonus_data` VALUES
 /* Druid */
 (339,   0,      0.1,     0,     'Druid - Entangling Roots'),
-(5185,  1.6104, 0,       0,     'Druid - Healing Touch'),
+(5185,  1,      0,       0,     'Druid - Healing Touch'),
 (42231, 0.12898,0,       0,     'Druid - Hurricane Triggered'),
 (5570,  0,      0.127,   0,     'Druid - Insect Swarm'),
 (33763, 0.3429, 0,       0,     'Druid - Lifebloom'),
 (8921,  0.1515, 0.13,    0,     'Druid - Moonfire'),
-(8936,  0,      0.1,     0,     'Druid - Regrowth'),
+(8936,  0.3,    0.1,     0,     'Druid - Regrowth'),
+(774,   0,      0.16,    0,     'Druid - Rejuvenation'),
 (18562, 0,      0,       0,     'Druid - Swiftmend'),
+(44203, 0.1825, 0,       0,     'Druid - Tranquility Triggered'),
 (5176,  0.5714, 0,       0,     'Druid - Wrath'),
 /* Mage */
 (7268,  0.2857, 0,       0,     'Mage - Arcane Missiles Triggered Spell Rank 1'),
@@ -13060,17 +13062,15 @@ INSERT INTO `spell_bonus_data` VALUES
 (20167, 0.25,   0,       0.16,  'Paladin - Seal of Light Proc'),
 (25742, 0.07,   0,       0.039, 'Paladin - Seal of Righteousness Dummy Proc'),
 /* Priest */
-(2061,  0.6177, 0,       0,     'Priest - Flash Heal'),
-(2060,  1.2353, 0,       0,     'Priest - Greater Heal'),
 (14914, 0.5711, 0.024,   0,     'Priest - Holy Fire'),
 (15237, 0.1606, 0,       0,     'Priest - Holy Nova Damage'),
-(23455, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 1'),
-(23458, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 2'),
-(23459, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 3'),
-(27803, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 4'),
-(27804, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 5'),
-(27805, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 6'),
-(25329, 0.3035, 0,       0,     'Priest - Holy Nova Heal Rank 7'),
+(23455, 0.1606, 0,       0,     'Priest - Holy Nova Heal Rank 1'),
+(23458, 0.1606, 0,       0,     'Priest - Holy Nova Heal Rank 2'),
+(23459, 0.1606, 0,       0,     'Priest - Holy Nova Heal Rank 3'),
+(27803, 0.1606, 0,       0,     'Priest - Holy Nova Heal Rank 4'),
+(27804, 0.1606, 0,       0,     'Priest - Holy Nova Heal Rank 5'),
+(27805, 0.1606, 0,       0,     'Priest - Holy Nova Heal Rank 6'),
+(25329, 0.1606, 0,       0,     'Priest - Holy Nova Heal Rank 7'),
 (8129,  0,      0,       0,     'Priest - Mana Burn'),
 (15407, 0,      0.19,    0,     'Priest - Mind Flay'),
 (34433, 0.65,   0,       0,     'Priest - Shadowfiend'),
@@ -13130,7 +13130,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (1120,  0,      0.4286,  0,     'Warlock - Drain Soul'),
 (28176, 0,      0,       0,     'Warlock - Fel Armor'),
 (18790, 0,      0,       0,     'Warlock - Fel Stamina'),
-(755,   0,      0.4485,  0,     'Warlock - Health Funnel'),
+(755,   0,      0.2857,  0,     'Warlock - Health Funnel'),
 (1949,  0,      0.0946,  0,     'Warlock - Hellfire'),
 (5857,  0.1428, 0,       0,     'Warlock - Hellfire Effect on Enemy Rank 1'),
 (11681, 0.1428, 0,       0,     'Warlock - Hellfire Effect on Enemy Rank 2'),

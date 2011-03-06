@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0904_xxxxx_01_mangos_spell_bonus_data` bit(1) default NULL
+  `required_s0915_11217_01_mangos_creature_addon` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --

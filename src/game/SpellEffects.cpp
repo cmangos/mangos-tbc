@@ -3870,10 +3870,10 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
 
     pet->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
 
-    if(plr->IsPvP())
+    if (plr->IsPvP())
         pet->SetPvP(true);
 
-    if(!pet->InitStatsForLevel(creatureTarget->getLevel()))
+    if (!pet->InitStatsForLevel(creatureTarget->getLevel()))
     {
         sLog.outError("Pet::InitStatsForLevel() failed for creature (Entry: %u)!",creatureTarget->GetEntry());
         delete pet;

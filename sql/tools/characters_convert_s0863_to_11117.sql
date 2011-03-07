@@ -1,5 +1,5 @@
 -- Query let convert characters DB from format
--- MaNGOS One characters DB `required_s0858_xxxxx_01_characters_characters` to
+-- MaNGOS One characters DB `required_s0863_xxxxx_01_characters_characters` to
 -- MaNGOS Master characters DB required_11117_02_characters_world.
 
 -- Expected that in case Mangos One characters DB changes it will updated for more up-to-date versions.
@@ -8,7 +8,7 @@
 
 -- Note: ALWAYS DO BACKUP before use it. You will CAN NOT easy restore original DB state after tool use.
 
-ALTER TABLE character_db_version CHANGE COLUMN required_s0858_xxxxx_01_characters_characters `required_11117_02_characters_world` bit;
+ALTER TABLE character_db_version CHANGE COLUMN required_s0863_xxxxx_01_characters_characters `required_11117_02_characters_world` bit;
 
 
 -- MODIFID TABLES

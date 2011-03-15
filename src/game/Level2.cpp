@@ -1563,7 +1563,9 @@ bool ChatHandler::HandleNpcChangeLevelCommand(char* args)
         pCreature->SetMaxHealth(100 + 30*lvl);
         pCreature->SetHealth(100 + 30*lvl);
         pCreature->SetLevel(lvl);
-        pCreature->SaveToDB();
+
+        if (pCreature->HasStaticDBSpawnData())
+            pCreature->SaveToDB();
     }
 
     return true;
@@ -1722,7 +1724,7 @@ bool ChatHandler::HandleNpcSetMoveTypeCommand(char* args)
     if (!ExtractUInt32(&args, lowguid))                     // case .setmovetype $move_type (with selected creature)
     {
         pCreature = getSelectedCreature();
-        if (!pCreature || pCreature->IsPet())
+        if (!pCreature || !pCreature->HasStaticDBSpawnData())
             return false;
         lowguid = pCreature->GetGUIDLow();
     }
@@ -1813,7 +1815,8 @@ bool ChatHandler::HandleNpcSetModelCommand(char* args)
     pCreature->SetDisplayId(displayId);
     pCreature->SetNativeDisplayId(displayId);
 
-    pCreature->SaveToDB();
+    if (pCreature->HasStaticDBSpawnData())
+        pCreature->SaveToDB();
 
     return true;
 }
@@ -2011,7 +2014,7 @@ bool ChatHandler::HandleNpcSetDeathStateCommand(char* args)
     }
 
     Creature* pCreature = getSelectedCreature();
-    if (!pCreature || pCreature->IsPet())
+    if (!pCreature || !pCreature->HasStaticDBSpawnData())
     {
         SendSysMessage(LANG_SELECT_CREATURE);
         SetSentErrorMessage(true);
@@ -2024,6 +2027,7 @@ bool ChatHandler::HandleNpcSetDeathStateCommand(char* args)
         pCreature->SetDeadByDefault(false);
 
     pCreature->SaveToDB();
+
     pCreature->Respawn();
 
     return true;
@@ -2581,13 +2585,14 @@ bool ChatHandler::HandleWpAddCommand(char* args)
         // No GUID provided
         // -> Player must have selected a creature
 
-        if (!target || target->IsPet())
+        if (!target || !target->HasStaticDBSpawnData())
         {
             SendSysMessage(LANG_SELECT_CREATURE);
             SetSentErrorMessage(true);
             return false;
         }
-        if (target->GetEntry() == VISUAL_WAYPOINT )
+
+        if (target->GetEntry() == VISUAL_WAYPOINT)
         {
             DEBUG_LOG("DEBUG: HandleWpAddCommand - target->GetEntry() == VISUAL_WAYPOINT (1) ");
 

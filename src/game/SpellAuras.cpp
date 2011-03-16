@@ -2223,6 +2223,64 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 }
                 break;
             }
+            case SPELLFAMILY_WARRIOR:
+            {
+                switch(GetId())
+                {
+                    case 41099:                             // Battle Stance
+                    {
+                        if (target->GetTypeId() != TYPEID_UNIT)
+                            return;
+
+                        // Stance Cooldown
+                        target->CastSpell(target, 41102, true, NULL, this);
+
+                        // Battle Aura
+                        target->CastSpell(target, 41106, true, NULL, this);
+
+                        // equipment
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 32614);
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_2, 0);
+                        return;
+                    }
+                    case 41100:                             // Berserker Stance
+                    {
+                        if (target->GetTypeId() != TYPEID_UNIT)
+                            return;
+
+                        // Stance Cooldown
+                        target->CastSpell(target, 41102, true, NULL, this);
+
+                        // Berserker Aura
+                        target->CastSpell(target, 41107, true, NULL, this);
+
+                        // equipment
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 32614);
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_2, 0);
+                        return;
+                    }
+                    case 41101:                             // Defensive Stance
+                    {
+                        if (target->GetTypeId() != TYPEID_UNIT)
+                            return;
+
+                        // Stance Cooldown
+                        target->CastSpell(target, 41102, true, NULL, this);
+
+                        // Defensive Aura
+                        target->CastSpell(target, 41105, true, NULL, this);
+
+                        // equipment (unknown, but should be axe+shield)
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 32604);
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 31467);
+                        ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_2, 0);
+                        return;
+                    }
+                }
+                break;
+            }
             case SPELLFAMILY_SHAMAN:
             {
                 // Earth Shield
@@ -2322,6 +2380,24 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             case 36730:                                     // Flame Strike
             {
                 m_target->CastSpell(m_target, 36731, true, NULL, this);
+                return;
+            }
+            case 41099:                                     // Battle Stance
+            {
+                // Battle Aura
+                target->RemoveAurasDueToSpell(41106);
+                return;
+            }
+            case 41100:                                     // Berserker Stance
+            {
+                // Berserker Aura
+                target->RemoveAurasDueToSpell(41107);
+                return;
+            }
+            case 41101:                                     // Defensive Stance
+            {
+                // Defensive Aura
+                target->RemoveAurasDueToSpell(41105);
                 return;
             }
             case 42517:                                     // Beam to Zelfrax

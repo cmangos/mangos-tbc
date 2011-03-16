@@ -4708,14 +4708,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     if (Item* pItem = ((Player*)unitTarget)->GetWeaponForAttack(BASE_ATTACK))
                     {
-                        ItemPrototype const* proto = pItem->GetProto();
-                        m_caster->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_DISPLAY + 0, proto->DisplayInfoID);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (0 * 2) + 0, 0, proto->Class);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (0 * 2) + 0, 1, proto->SubClass);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (0 * 2) + 0, 2, proto->Unk0);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (0 * 2) + 0, 3, proto->Material);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (0 * 2) + 1, 0, proto->InventoryType);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (0 * 2) + 1, 1, proto->Sheath);
+                        ((Creature*)m_caster)->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, pItem->GetEntry());
 
                         // Unclear what this spell should do
                         unitTarget->CastSpell(m_caster, m_spellInfo->CalculateSimpleValue(eff_idx), true);
@@ -4746,14 +4739,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     if (Item* pItem = ((Player*)unitTarget)->GetWeaponForAttack(OFF_ATTACK))
                     {
-                        ItemPrototype const* proto = pItem->GetProto();
-                        m_caster->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_DISPLAY + 1, proto->DisplayInfoID);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 0, 0, proto->Class);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 0, 1, proto->SubClass);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 0, 2, proto->Unk0);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 0, 3, proto->Material);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 1, 0, proto->InventoryType);
-                        m_caster->SetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 1, 1, proto->Sheath);
+                        ((Creature*)m_caster)->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, pItem->GetEntry());
 
                         // Unclear what this spell should do
                         unitTarget->CastSpell(m_caster, m_spellInfo->CalculateSimpleValue(eff_idx), true);

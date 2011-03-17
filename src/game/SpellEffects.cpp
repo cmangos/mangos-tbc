@@ -485,13 +485,15 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             uint32 doses = poison->GetStackAmount();
                             if (doses > combo)
                                 doses = combo;
+
                             for (uint32 i=0; i < doses; ++i)
-                                unitTarget->RemoveSingleSpellAurasFromStack(spellId);
+                                unitTarget->RemoveSingleSpellAurasByCasterSpell(spellId, m_caster->GetGUID());
+
                             damage *= doses;
                             damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * doses);
                         }
                         // Eviscerate and Envenom Bonus Damage (item set effect)
-                        if(m_caster->GetDummyAura(37169))
+                        if (m_caster->GetDummyAura(37169))
                             damage += ((Player*)m_caster)->GetComboPoints()*40;
                     }
                 }

@@ -34,8 +34,7 @@ void WorldSession::HandleQuestgiverStatusQueryOpcode( WorldPacket & recv_data )
 {
     ObjectGuid guid;
     recv_data >> guid;
-    uint8 questStatus = DIALOG_STATUS_NONE;
-    uint8 defstatus = DIALOG_STATUS_NONE;
+    uint8 dialogStatus = DIALOG_STATUS_NONE;
 
     Object* questgiver = _player->GetObjectByTypeMask(guid, TYPEMASK_CREATURE_OR_GAMEOBJECT);
     if(!questgiver)
@@ -54,18 +53,19 @@ void WorldSession::HandleQuestgiverStatusQueryOpcode( WorldPacket & recv_data )
 
             if (!cr_questgiver->IsHostileTo(_player))       // not show quest status to enemies
             {
-                questStatus = sScriptMgr.GetDialogStatus(_player, cr_questgiver);
-                if( questStatus > 6 )
-                    questStatus = getDialogStatus(_player, cr_questgiver, defstatus);
+                dialogStatus = sScriptMgr.GetDialogStatus(_player, cr_questgiver);
+
+                if (dialogStatus > 6)
+                    dialogStatus = getDialogStatus(_player, cr_questgiver, DIALOG_STATUS_NONE);
             }
             break;
         }
         case TYPEID_GAMEOBJECT:
         {
             GameObject* go_questgiver = (GameObject*)questgiver;
-            questStatus = sScriptMgr.GetDialogStatus(_player, go_questgiver);
-            if( questStatus > 6 )
-                questStatus = getDialogStatus(_player, go_questgiver, defstatus);
+            dialogStatus = sScriptMgr.GetDialogStatus(_player, go_questgiver);
+            if (dialogStatus > 6)
+                dialogStatus = getDialogStatus(_player, go_questgiver, DIALOG_STATUS_NONE);
             break;
         }
         default:
@@ -74,7 +74,7 @@ void WorldSession::HandleQuestgiverStatusQueryOpcode( WorldPacket & recv_data )
     }
 
     //inform client about status of quest
-    _player->PlayerTalkClass->SendQuestGiverStatus(questStatus, guid);
+    _player->PlayerTalkClass->SendQuestGiverStatus(dialogStatus, guid);
 }
 
 void WorldSession::HandleQuestgiverHelloOpcode(WorldPacket & recv_data)
@@ -521,7 +521,7 @@ void WorldSession::HandleQuestPushResult(WorldPacket& recvPacket)
 
 uint32 WorldSession::getDialogStatus(Player *pPlayer, Object* questgiver, uint32 defstatus)
 {
-    uint32 result = defstatus;
+    uint32 dialogStatus = defstatus;
 
     QuestRelationsMapBounds rbounds;
     QuestRelationsMapBounds irbounds;
@@ -548,68 +548,71 @@ uint32 WorldSession::getDialogStatus(Player *pPlayer, Object* questgiver, uint32
 
     for(QuestRelationsMap::const_iterator itr = irbounds.first; itr != irbounds.second; ++itr)
     {
-        uint32 result2 = 0;
+        uint32 dialogStatusNew = 0;
         uint32 quest_id = itr->second;
         Quest const *pQuest = sObjectMgr.GetQuestTemplate(quest_id);
 
         if (!pQuest || !pQuest->IsActive())
             continue;
 
-        QuestStatus status = pPlayer->GetQuestStatus( quest_id );
+        QuestStatus status = pPlayer->GetQuestStatus(quest_id);
 
         if ((status == QUEST_STATUS_COMPLETE && !pPlayer->GetQuestRewardStatus(quest_id)) ||
             (pQuest->IsAutoComplete() && pPlayer->CanTakeQuest(pQuest, false)))
         {
-            if ( pQuest->IsAutoComplete() && pQuest->IsRepeatable() )
-                result2 = DIALOG_STATUS_REWARD_REP;
+            if (pQuest->IsAutoComplete() && pQuest->IsRepeatable())
+                dialogStatusNew = DIALOG_STATUS_REWARD_REP;
             else
-                result2 = DIALOG_STATUS_REWARD;
+                dialogStatusNew = DIALOG_STATUS_REWARD;
         }
-        else if ( status == QUEST_STATUS_INCOMPLETE )
-            result2 = DIALOG_STATUS_INCOMPLETE;
+        else if (status == QUEST_STATUS_INCOMPLETE)
+            dialogStatusNew = DIALOG_STATUS_INCOMPLETE;
 
-        if (result2 > result)
-            result = result2;
+        if (dialogStatusNew > dialogStatus)
+            dialogStatus = dialogStatusNew;
     }
 
     for(QuestRelationsMap::const_iterator itr = rbounds.first; itr != rbounds.second; ++itr)
     {
-        uint32 result2 = 0;
+        uint32 dialogStatusNew = 0;
         uint32 quest_id = itr->second;
         Quest const *pQuest = sObjectMgr.GetQuestTemplate(quest_id);
 
         if (!pQuest || !pQuest->IsActive())
             continue;
 
-        QuestStatus status = pPlayer->GetQuestStatus( quest_id );
-        if ( status == QUEST_STATUS_NONE )
+        QuestStatus status = pPlayer->GetQuestStatus(quest_id);
+
+        if (status == QUEST_STATUS_NONE)
         {
-            if ( pPlayer->CanSeeStartQuest( pQuest ) )
+            if (pPlayer->CanSeeStartQuest(pQuest))
             {
-                if ( pPlayer->SatisfyQuestLevel(pQuest, false) )
+                if (pPlayer->SatisfyQuestLevel(pQuest, false))
                 {
-                    if ( pQuest->IsAutoComplete() || (pQuest->IsRepeatable() && pPlayer->getQuestStatusMap()[quest_id].m_rewarded))
-                        result2 = DIALOG_STATUS_REWARD_REP;
-                    else if (pPlayer->getLevel() <= pPlayer->GetQuestLevelForPlayer(pQuest) + sWorld.getConfig(CONFIG_UINT32_QUEST_LOW_LEVEL_HIDE_DIFF) )
+                    if (pQuest->IsAutoComplete() || (pQuest->IsRepeatable() && pPlayer->getQuestStatusMap()[quest_id].m_rewarded))
+                    {
+                        dialogStatusNew = DIALOG_STATUS_REWARD_REP;
+                    }
+                    else if (pPlayer->getLevel() <= pPlayer->GetQuestLevelForPlayer(pQuest) + sWorld.getConfig(CONFIG_UINT32_QUEST_LOW_LEVEL_HIDE_DIFF))
                     {
                         if (pQuest->HasQuestFlag(QUEST_FLAGS_DAILY))
-                            result2 = DIALOG_STATUS_AVAILABLE_REP;
+                            dialogStatusNew = DIALOG_STATUS_AVAILABLE_REP;
                         else
-                            result2 = DIALOG_STATUS_AVAILABLE;
+                            dialogStatusNew = DIALOG_STATUS_AVAILABLE;
                     }
                     else
-                        result2 = DIALOG_STATUS_CHAT;
+                        dialogStatusNew = DIALOG_STATUS_CHAT;
                 }
                 else
-                    result2 = DIALOG_STATUS_UNAVAILABLE;
+                    dialogStatusNew = DIALOG_STATUS_UNAVAILABLE;
             }
         }
 
-        if (result2 > result)
-            result = result2;
+        if (dialogStatusNew > dialogStatus)
+            dialogStatus = dialogStatusNew;
     }
 
-    return result;
+    return dialogStatus;
 }
 
 void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket*/)
@@ -623,8 +626,7 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
 
     for(ObjectGuidSet::const_iterator itr = _player->m_clientGUIDs.begin(); itr != _player->m_clientGUIDs.end(); ++itr)
     {
-        uint8 questStatus = DIALOG_STATUS_NONE;
-        uint8 defstatus = DIALOG_STATUS_NONE;
+        uint8 dialogStatus = DIALOG_STATUS_NONE;
 
         if (itr->IsCreatureOrPet())
         {
@@ -635,12 +637,13 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
                 continue;
             if(!questgiver->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER))
                 continue;
-            questStatus = sScriptMgr.GetDialogStatus(_player, questgiver);
-            if( questStatus > 6 )
-                questStatus = getDialogStatus(_player, questgiver, defstatus);
+            dialogStatus = sScriptMgr.GetDialogStatus(_player, questgiver);
+
+            if (dialogStatus > 6)
+                dialogStatus = getDialogStatus(_player, questgiver, DIALOG_STATUS_NONE);
 
             data << questgiver->GetObjectGuid();
-            data << uint8(questStatus);
+            data << uint8(dialogStatus);
             ++count;
         }
         else if (itr->IsGameObject())
@@ -650,12 +653,14 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
                 continue;
             if(questgiver->GetGoType() != GAMEOBJECT_TYPE_QUESTGIVER)
                 continue;
-            questStatus = sScriptMgr.GetDialogStatus(_player, questgiver);
-            if( questStatus > 6 )
-                questStatus = getDialogStatus(_player, questgiver, defstatus);
+
+            dialogStatus = sScriptMgr.GetDialogStatus(_player, questgiver);
+
+            if (dialogStatus > 6)
+                dialogStatus = getDialogStatus(_player, questgiver, DIALOG_STATUS_NONE);
 
             data << questgiver->GetObjectGuid();
-            data << uint8(questStatus);
+            data << uint8(dialogStatus);
             ++count;
         }
     }

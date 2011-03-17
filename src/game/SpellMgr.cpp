@@ -1878,6 +1878,10 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         (spellInfo_2->Id == 8326 && spellInfo_1->Id == 20584))
                          return false;
 
+                    // Blood Fury and Rage of the Unraveller
+                    if (spellInfo_1->SpellIconID == 1662 && spellInfo_2->SpellIconID == 1662)
+                        return false;
+
                     break;
                 }
                 case SPELLFAMILY_MAGE:

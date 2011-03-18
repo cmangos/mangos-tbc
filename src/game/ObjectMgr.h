@@ -453,6 +453,7 @@ class ObjectMgr
         uint32 GetCreatureModelAlternativeModel(uint32 modelId);
 
         EquipmentInfo const *GetEquipmentInfo( uint32 entry );
+        EquipmentInfoRaw const *GetEquipmentInfoRaw( uint32 entry );
         static CreatureDataAddon const *GetCreatureAddon( uint32 lowguid )
         {
             return sCreatureDataAddonStorage.LookupEntry<CreatureDataAddon>(lowguid);

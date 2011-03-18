@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0939_9967_01_mangos_spell_proc_event` bit(1) default NULL
+  `required_s0955_xxxxx_01_mangos_creature_equip_template` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -822,6 +822,28 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `creature_equip_template`;
 CREATE TABLE `creature_equip_template` (
   `entry` mediumint(8) unsigned NOT NULL default '0' COMMENT 'Unique entry',
+  `equipentry1` mediumint(8) unsigned NOT NULL default '0',
+  `equipentry2` mediumint(8) unsigned NOT NULL default '0',
+  `equipentry3` mediumint(8) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`entry`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Creature System (Equipment)';
+
+--
+-- Dumping data for table `creature_equip_template`
+--
+
+LOCK TABLES `creature_equip_template` WRITE;
+/*!40000 ALTER TABLE `creature_equip_template` DISABLE KEYS */;
+/*!40000 ALTER TABLE `creature_equip_template` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `creature_equip_template_raw`
+--
+
+DROP TABLE IF EXISTS `creature_equip_template_raw`;
+CREATE TABLE `creature_equip_template_raw` (
+  `entry` mediumint(8) unsigned NOT NULL default '0' COMMENT 'Unique entry',
   `equipmodel1` mediumint(8) unsigned NOT NULL default '0',
   `equipmodel2` mediumint(8) unsigned NOT NULL default '0',
   `equipmodel3` mediumint(8) unsigned NOT NULL default '0',
@@ -835,12 +857,12 @@ CREATE TABLE `creature_equip_template` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Creature System (Equipment)';
 
 --
--- Dumping data for table `creature_equip_template`
+-- Dumping data for table `creature_equip_template_raw`
 --
 
-LOCK TABLES `creature_equip_template` WRITE;
-/*!40000 ALTER TABLE `creature_equip_template` DISABLE KEYS */;
-/*!40000 ALTER TABLE `creature_equip_template` ENABLE KEYS */;
+LOCK TABLES `creature_equip_template_raw` WRITE;
+/*!40000 ALTER TABLE `creature_equip_template_raw` DISABLE KEYS */;
+/*!40000 ALTER TABLE `creature_equip_template_raw` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

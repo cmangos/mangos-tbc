@@ -65,7 +65,7 @@ class SQLStorage
 
         char const* GetTableName() const { return table; }
 
-        void Load();
+        void Load(bool error_at_empty = true);
         void Free();
 
         void EraseEntry(uint32 id);

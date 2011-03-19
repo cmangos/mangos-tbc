@@ -2367,7 +2367,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             }
             case 32286:                                     // Focus Target Visual
             {
-                if (m_removeMode == AURA_REMOVE_BY_DEFAULT)
+                if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                     target->CastSpell(target, 32301, true, NULL, this);
 
                 return;

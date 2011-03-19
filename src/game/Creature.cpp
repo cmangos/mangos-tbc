@@ -308,7 +308,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=NULL*/, GameE
         else
             LoadEquipment(cinfo->equipmentId);              // else use from diff template
     }
-    else if(data && data->equipmentId != -1)
+    else if (data && data->equipmentId != -1)
     {                                                       // override, -1 means no equipment
         LoadEquipment(data->equipmentId);
     }

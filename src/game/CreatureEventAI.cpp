@@ -312,10 +312,8 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
             break;
         case EVENT_T_AURA:
         {
-            //Note: checked only aura for effect 0, if need check aura for effect 1/2 then
-            // possible way: pack in event.buffed.amount 2 uint16 (ammount+effectIdx)
-            Aura* aura = m_creature->GetAura(event.buffed.spellId,EFFECT_INDEX_0);
-            if (!aura || aura->GetStackAmount() < event.buffed.amount)
+            SpellAuraHolder* holder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+            if (!holder || holder->GetStackAmount() < event.buffed.amount)
                 return false;
 
             //Repeat Timers
@@ -327,10 +325,8 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
             if (!m_creature->isInCombat() || !m_creature->getVictim())
                 return false;
 
-            //Note: checked only aura for effect 0, if need check aura for effect 1/2 then
-            // possible way: pack in event.buffed.amount 2 uint16 (ammount+effectIdx)
-            Aura* aura = m_creature->getVictim()->GetAura(event.buffed.spellId,EFFECT_INDEX_0);
-            if (!aura || aura->GetStackAmount() < event.buffed.amount)
+            SpellAuraHolder* holder = m_creature->getVictim()->GetSpellAuraHolder(event.buffed.spellId);
+            if(!holder || holder->GetStackAmount() < event.buffed.amount)
                 return false;
 
             //Repeat Timers
@@ -339,10 +335,8 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
         }
         case EVENT_T_MISSING_AURA:
         {
-            //Note: checked only aura for effect 0, if need check aura for effect 1/2 then
-            // possible way: pack in event.buffed.amount 2 uint16 (ammount+effectIdx)
-            Aura* aura = m_creature->GetAura(event.buffed.spellId,EFFECT_INDEX_0);
-            if (aura && aura->GetStackAmount() >= event.buffed.amount)
+            SpellAuraHolder* holder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+            if (holder && holder->GetStackAmount() >= event.buffed.amount)
                 return false;
 
             //Repeat Timers
@@ -354,8 +348,8 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
             if (!m_creature->isInCombat() || !m_creature->getVictim())
                 return false;
 
-            Aura* aura = m_creature->getVictim()->GetAura(event.buffed.spellId,EFFECT_INDEX_0);
-            if (aura && aura->GetStackAmount() >= event.buffed.amount)
+            SpellAuraHolder* holder = m_creature->getVictim()->GetSpellAuraHolder(event.buffed.spellId);
+            if (holder && holder->GetStackAmount() >= event.buffed.amount)
                 return false;
 
             //Repeat Timers

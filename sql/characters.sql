@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s0863_xxxxx_01_characters_characters` bit(1) default NULL
+  `required_s0963_10156_02_characters_pet_aura` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -279,13 +279,19 @@ CREATE TABLE `character_aura` (
   `caster_guid` bigint(20) unsigned NOT NULL default '0' COMMENT 'Full Global Unique Identifier',
   `item_guid` int(11) unsigned NOT NULL default '0',
   `spell` int(11) unsigned NOT NULL default '0',
-  `effect_index` int(11) unsigned NOT NULL default '0',
   `stackcount` int(11) NOT NULL default '1',
-  `amount` int(11) NOT NULL default '0',
-  `maxduration` int(11) NOT NULL default '0',
-  `remaintime` int(11) NOT NULL default '0',
   `remaincharges` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`guid`,`caster_guid`,`item_guid`,`spell`,`effect_index`)
+  `basepoints0` INT(11) NOT NULL DEFAULT '0',
+  `basepoints1` INT(11) NOT NULL DEFAULT '0',
+  `basepoints2` INT(11) NOT NULL DEFAULT '0',
+  `maxduration0` INT(11) NOT NULL DEFAULT '0',
+  `maxduration1` INT(11) NOT NULL DEFAULT '0',
+  `maxduration2` INT(11) NOT NULL DEFAULT '0',
+  `remaintime0` INT(11) NOT NULL DEFAULT '0',
+  `remaintime1` INT(11) NOT NULL DEFAULT '0',
+  `remaintime2` INT(11) NOT NULL DEFAULT '0',
+  `effIndexMask` INT(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`caster_guid`,`item_guid`,`spell`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Player System';
 
 --
@@ -1351,13 +1357,19 @@ CREATE TABLE `pet_aura` (
   `caster_guid` bigint(20) unsigned NOT NULL default '0' COMMENT 'Full Global Unique Identifier',
   `item_guid` int(11) unsigned NOT NULL default '0',
   `spell` int(11) unsigned NOT NULL default '0',
-  `effect_index` int(11) unsigned NOT NULL default '0',
   `stackcount` int(11) NOT NULL default '1',
-  `amount` int(11) NOT NULL default '0',
-  `maxduration` int(11) NOT NULL default '0',
-  `remaintime` int(11) NOT NULL default '0',
   `remaincharges` int(11) NOT NULL default '0',
-  PRIMARY KEY  (`guid`,`caster_guid`,`item_guid`,`spell`,`effect_index`)
+  `basepoints0` INT(11) NOT NULL DEFAULT '0',
+  `basepoints1` INT(11) NOT NULL DEFAULT '0',
+  `basepoints2` INT(11) NOT NULL DEFAULT '0',
+  `maxduration0` INT(11) NOT NULL DEFAULT '0',
+  `maxduration1` INT(11) NOT NULL DEFAULT '0',
+  `maxduration2` INT(11) NOT NULL DEFAULT '0',
+  `remaintime0` INT(11) NOT NULL DEFAULT '0',
+  `remaintime1` INT(11) NOT NULL DEFAULT '0',
+  `remaintime2` INT(11) NOT NULL DEFAULT '0',
+  `effIndexMask` INT(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`guid`,`caster_guid`,`item_guid`,`spell`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Pet System';
 
 --

@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s0967_10156_01_mangos_spell_proc_event` bit(1) default NULL
+  `required_s0972_10237_01_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13117,6 +13117,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (25538, 0.2142, 0,       0,     'Shaman - Fire Nova Totem Casted by Totem Rank 6'),
 (25539, 0.2142, 0,       0,     'Shaman - Fire Nova Totem Casted by Totem Rank 7'),
 (8050,  0.2142, 0.1,     0,     'Shaman - Flame Shock'),
+(10444, 0,      0,       0,     'Shaman - Flametongue Attack'),
 (8026,  0.1,    0,       0,     'Shaman - Flametongue Weapon Proc Rank 1'),
 (8028,  0.1,    0,       0,     'Shaman - Flametongue Weapon Proc Rank 2'),
 (8029,  0.1,    0,       0,     'Shaman - Flametongue Weapon Proc Rank 3'),

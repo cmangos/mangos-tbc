@@ -6186,68 +6186,6 @@ void Aura::PeriodicDummyTick()
         {
             switch (spell->Id)
             {
-
-                case 430:
-                case 431:
-                case 432:
-                case 1133:
-                case 1135:
-                case 1137:
-                case 10250:
-                case 22734:
-                case 27089:
-                case 34291:
-                case 43706:
-                case 46755:
-                {
-                    if (target->GetTypeId() != TYPEID_PLAYER)
-                        return;
-                    // Search SPELL_AURA_MOD_POWER_REGEN aura for this spell and add bonus
-                    Unit::AuraList const& aura = target->GetAurasByType(SPELL_AURA_MOD_POWER_REGEN);
-                    for(Unit::AuraList::const_iterator i = aura.begin(); i != aura.end(); ++i)
-                    {
-                        if ((*i)->GetId() == GetId())
-                        {
-                            (*i)->GetModifier()->m_amount = m_modifier.m_amount;
-                            ((Player*)target)->UpdateManaRegen();
-                            // Disable continue
-                            m_isPeriodic = false;
-                            return;
-                            // TODO: not sure is it need 
-                            //**********************************************
-                            // Code commended since arena patch not added
-                            // This feature uses only in arenas
-                            //**********************************************
-                            // Here need increase mana regen per tick (6 second rule)
-                            // on 0 tick -   0  (handled in 2 second)
-                            // on 1 tick - 166% (handled in 4 second)
-                            // on 2 tick - 133% (handled in 6 second)
-                            // Not need update after 3 tick
-                            /*
-                            if (tick > 3)
-                                return;
-                            // Apply bonus for 0 - 3 tick
-                            switch (tick)
-                            {
-                                case 0:   // 0%
-                                    (*i)->GetModifier()->m_amount = m_modifier.m_amount = 0;
-                                    break;
-                                case 1:   // 166%
-                                    (*i)->GetModifier()->m_amount = m_modifier.m_amount * 5 / 3;
-                                    break;
-                                case 2:   // 133%
-                                    (*i)->GetModifier()->m_amount = m_modifier.m_amount * 4 / 3;
-                                    break;
-                                default:  // 100% - normal regen
-                                    (*i)->GetModifier()->m_amount = m_modifier.m_amount;
-                                    break;
-                            }
-                            ((Player*)m_target)->UpdateManaRegen();
-                            return;*/
-                        }
-                    }
-                    return;
-                }
                 // Forsaken Skills
                 case 7054:
                 {
@@ -6414,6 +6352,26 @@ void Aura::PeriodicDummyTick()
 //              case 50493: break;
 //              // Love Rocket Barrage
 //              case 50530: break;
+// Exist more after, need add later
+                default:
+                    break;
+            }
+
+            // Drink (item drink spells)
+            if (GetEffIndex() > EFFECT_INDEX_0 && spell->EffectApplyAuraName[GetEffIndex()-1] == SPELL_AURA_MOD_POWER_REGEN)
+            {
+                if (target->GetTypeId() != TYPEID_PLAYER)
+                    return;
+                // Search SPELL_AURA_MOD_POWER_REGEN aura for this spell and add bonus
+                if (Aura* aura = GetHolder()->GetAuraByEffectIndex(SpellEffectIndex(GetEffIndex() - 1)))
+                {
+                    aura->GetModifier()->m_amount = m_modifier.m_amount;
+                    ((Player*)target)->UpdateManaRegen();
+                    // Disable continue
+                    m_isPeriodic = false;
+                    return;
+                }
+                return;
             }
             break;
         }

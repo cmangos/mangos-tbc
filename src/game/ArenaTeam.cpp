@@ -646,7 +646,7 @@ void ArenaTeam::OfflineMemberLost(ObjectGuid guid, uint32 againstRating)
     // called for offline player after ending rated arena match!
     for(MemberList::iterator itr = m_members.begin(); itr !=  m_members.end(); ++itr)
     {
-        if(itr->guid == guid)
+        if (itr->guid == guid)
         {
             // update personal rating
             float chance = GetChanceAgainst(itr->personal_rating, againstRating);

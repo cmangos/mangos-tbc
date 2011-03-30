@@ -1,5 +1,5 @@
 -- Query let convert characters DB from format
--- MaNGOS One characters DB `required_s0863_xxxxx_01_characters_characters` to
+-- MaNGOS One characters DB `required_s0999_10568_01_characters_character_tutorial` to
 -- MaNGOS Master characters DB required_11117_02_characters_world.
 
 -- Expected that in case Mangos One characters DB changes it will updated for more up-to-date versions.
@@ -8,7 +8,7 @@
 
 -- Note: ALWAYS DO BACKUP before use it. You will CAN NOT easy restore original DB state after tool use.
 
-ALTER TABLE character_db_version CHANGE COLUMN required_s0963_10156_02_characters_pet_aura required_11117_02_characters_world bit;
+ALTER TABLE character_db_version CHANGE COLUMN required_s0999_10568_01_characters_character_tutorial required_11117_02_characters_world bit;
 
 
 -- MODIFID TABLES
@@ -395,21 +395,7 @@ DELETE FROM `character_action` WHERE `action` IN (31892, 53720) AND `type`=0;
 DELETE FROM `character_spell_cooldown`;
 DELETE FROM `character_aura`;
 DELETE FROM `pet_aura`;
-
-
-DROP TABLE IF EXISTS `character_tutorial`;
-CREATE TABLE `character_tutorial` (
-  `account` bigint(20) unsigned NOT NULL auto_increment COMMENT 'Account Identifier',
-  `tut0` int(11) unsigned NOT NULL default '0',
-  `tut1` int(11) unsigned NOT NULL default '0',
-  `tut2` int(11) unsigned NOT NULL default '0',
-  `tut3` int(11) unsigned NOT NULL default '0',
-  `tut4` int(11) unsigned NOT NULL default '0',
-  `tut5` int(11) unsigned NOT NULL default '0',
-  `tut6` int(11) unsigned NOT NULL default '0',
-  `tut7` int(11) unsigned NOT NULL default '0',
-  PRIMARY KEY  (`account`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Player System';
+DELETE FROM `character_tutorial`;
 
 DROP TABLE IF EXISTS `corpse`;
 CREATE TABLE `corpse` (

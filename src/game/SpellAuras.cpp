@@ -5900,17 +5900,20 @@ void Aura::PeriodicTick()
             DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s heal of %s for %u health inflicted by %u",
                 GetCasterGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str(), pdamage, GetId());
 
+            int32 gain = target->ModifyHealth(pdamage);
             SpellPeriodicAuraLogInfo pInfo(this, pdamage, 0, 0, 0.0f);
             target->SendPeriodicAuraLog(&pInfo);
 
-            int32 gain = target->ModifyHealth(pdamage);
+            // Set trigger flag
+            uint32 procAttacker = PROC_FLAG_ON_DO_PERIODIC;
+            uint32 procVictim   = PROC_FLAG_ON_TAKE_PERIODIC;
+            uint32 procEx = PROC_EX_NORMAL_HIT | PROC_EX_PERIODIC_POSITIVE;
+            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, spellProto);
 
             // add HoTs to amount healed in bgs
             if( pCaster->GetTypeId() == TYPEID_PLAYER )
                 if( BattleGround *bg = ((Player*)pCaster)->GetBattleGround() )
                     bg->UpdatePlayerScore(((Player*)pCaster), SCORE_HEALING_DONE, gain);
-            //Do check before because m_modifier.auraName can be invalidate by DealDamage.
-            bool procSpell = (m_modifier.m_auraname == SPELL_AURA_PERIODIC_HEAL && target != pCaster);
 
             target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
 
@@ -5937,9 +5940,6 @@ void Aura::PeriodicTick()
                     pCaster->DealDamage(pCaster, damage, &cleanDamage, NODAMAGE, GetSpellSchoolMask(spellProto), spellProto, true);
                 }
             }
-
-            uint32 procAttacker = PROC_FLAG_ON_DO_PERIODIC;//   | PROC_FLAG_SUCCESSFUL_HEAL;
-            uint32 procVictim   = 0;// PROC_FLAG_ON_TAKE_PERIODIC | PROC_FLAG_TAKEN_HEAL;
             break;
         }
         case SPELL_AURA_PERIODIC_MANA_LEECH:

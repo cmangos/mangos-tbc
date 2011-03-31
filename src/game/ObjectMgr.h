@@ -708,9 +708,6 @@ class ObjectMgr
                 return "There is no info for this item";
         }
 
-        typedef std::multimap<int32, uint32> ExclusiveQuestGroups;
-        ExclusiveQuestGroups mExclusiveQuestGroups;
-
         MailLevelReward const* GetMailLevelReward(uint32 level,uint32 raceMask)
         {
             MailLevelRewardMap::const_iterator map_itr = m_mailLevelRewardMap.find(level);

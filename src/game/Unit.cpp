@@ -2550,7 +2550,7 @@ float Unit::MeleeSpellMissChance(Unit *pVictim, WeaponAttackType attType, int32 
     if (pVictim->GetTypeId() == TYPEID_PLAYER)
         hitChance = 95.0f + skillDiff * 0.04f;
     else if (skillDiff < -10)
-        hitChance = 94.0f + (skillDiff + 10) * 0.4f;
+        hitChance = 93.0f + (skillDiff + 10) * 0.4f;        // 7% base chance to miss for big skill diff (%6 in 3.x)
     else
         hitChance = 95.0f + skillDiff * 0.1f;
 
@@ -2857,7 +2857,7 @@ float Unit::MeleeMissChanceCalc(const Unit *pVictim, WeaponAttackType attType) c
     if ( pVictim->GetTypeId() == TYPEID_PLAYER )
         missChance -= skillDiff * 0.04f;
     else if ( skillDiff < -10 )
-        missChance -= (skillDiff + 10) * 0.4f - 1.0f;
+        missChance -= (skillDiff + 10) * 0.4f - 2.0f;       // 7% base chance to miss for big skill diff (%6 in 3.x)
     else
         missChance -=  skillDiff * 0.1f;
 

@@ -781,7 +781,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket & recv_data)
         }
 
         uint32 missingQuest = 0;
-        if (!isRegularTargetMap)
+        if (!isRegularTargetMap && mapEntry->IsDungeon())
         {
             if (at->requiredQuestHeroic && !GetPlayer()->GetQuestRewardStatus(at->requiredQuestHeroic))
                 missingQuest = at->requiredQuestHeroic;

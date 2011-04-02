@@ -144,14 +144,14 @@ enum SummonPropGroup
 };
 
 // SummonProperties.dbc, col 3
-enum SummonPropType
+enum UnitNameSummonTitle
 {
-    SUMMON_PROP_TYPE_OTHER           = 0,                   // different summons, 730 spells in 2.4.3
-    SUMMON_PROP_TYPE_SUMMON          = 1,                   // generic summons, 59 spells in 2.4.3
-    SUMMON_PROP_TYPE_GUARDIAN        = 2,                   // summon guardian, 311 spells in 2.4.3
-    //SUMMON_PROP_TYPE_ARMY            = 3,                   // summon army, 0 spells in 2.4.3
-    SUMMON_PROP_TYPE_TOTEM           = 4,                   // summon totem, 148 spells in 2.4.3
-    SUMMON_PROP_TYPE_CRITTER         = 5,                   // critter/minipet, 159 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_NONE         = 0,                 // no default title, different summons, 730 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_PET          = 1,                 // 's Pet,           generic summons, 59 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_GUARDIAN     = 2,                 // 's Guardian,      summon guardian, 311 spells in 2.4.3
+    //UNITNAME_SUMMON_TITLE_MINION     = 3,                 // 's Minion,        summon army, 0 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_TOTEM        = 4,                 // 's Totem,         summon totem, 148 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_COMPANION    = 5,                 // 's Companion,     critter/minipet, 159 spells in 2.4.3
 };
 
 // SummonProperties.dbc, col 5

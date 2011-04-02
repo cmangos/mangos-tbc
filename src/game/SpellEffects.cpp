@@ -3028,22 +3028,22 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         case SUMMON_PROP_GROUP_WILD:
         case SUMMON_PROP_GROUP_FRIENDLY:
         {
-            switch(summon_prop->Type)
+            switch(summon_prop->Title)
             {
-                case SUMMON_PROP_TYPE_OTHER:
+                case UNITNAME_SUMMON_TITLE_NONE:
                 {
                     // those are classical totems - effectbasepoints is their hp and not summon ammount!
-                    //SUMMON_TYPE_TOTEM = 121: 23035, battlestands
+                    //UNITNAME_SUMMON_TITLE_TOTEM = 121: 23035, battlestands
                     if(prop_id == 121)
                         DoSummonTotem(eff_idx);
                     else
                         DoSummonWild(eff_idx, summon_prop->FactionId);
                     break;
                 }
-                case SUMMON_PROP_TYPE_SUMMON:
+                case UNITNAME_SUMMON_TITLE_PET:
                     DoSummonGuardian(eff_idx, summon_prop->FactionId);
                     break;
-                case SUMMON_PROP_TYPE_GUARDIAN:
+                case UNITNAME_SUMMON_TITLE_GUARDIAN:
                 {
                     if (prop_id == 61)                      // mixed guardians, totems, statues
                     {
@@ -3069,18 +3069,18 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                         DoSummonGuardian(eff_idx, summon_prop->FactionId);
                     break;
                 }
-                case SUMMON_PROP_TYPE_TOTEM:
+                case UNITNAME_SUMMON_TITLE_TOTEM:
                 {
                     DoSummonTotem(eff_idx, summon_prop->Slot);
                     break;
                 }
-                case SUMMON_PROP_TYPE_CRITTER:
+                case UNITNAME_SUMMON_TITLE_COMPANION:
                 {
                     DoSummonCritter(eff_idx, summon_prop->FactionId);
                     break;
                 }
                 default:
-                    sLog.outError("EffectSummonType: Unhandled summon type %u", summon_prop->Type);
+                    sLog.outError("EffectSummonType: Unhandled summon title %u", summon_prop->Title);
                 break;
             }
             break;
@@ -3098,7 +3098,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             break;
         }
         default:
-            sLog.outError("EffectSummonType: Unhandled summon group type %u", summon_prop->Group);
+            sLog.outError("EffectSummonType: Unhandled summon group %u", summon_prop->Group);
             break;
     }
 }

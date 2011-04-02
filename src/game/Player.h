@@ -1046,11 +1046,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         // use only in Pet::Unsummon/Spell::DoSummon
         void _SetMiniPet(Pet* pet) { m_miniPetGuid = pet ? pet->GetObjectGuid() : ObjectGuid(); }
 
-        template<typename Func>
-        void CallForAllControlledUnits(Func const& func, bool withTotems, bool withGuardians, bool withCharms, bool withMiniPet);
-        template<typename Func>
-        bool CheckAllControlledUnits(Func const& func, bool withTotems, bool withGuardians, bool withCharms, bool withMiniPet) const;
-
         void Say(const std::string& text, const uint32 language);
         void Yell(const std::string& text, const uint32 language);
         void TextEmote(const std::string& text);
@@ -1547,8 +1542,9 @@ class MANGOS_DLL_SPEC Player : public Unit
         void UpdateArea(uint32 newArea);
         uint32 GetCachedZoneId() const { return m_zoneUpdateId; }
 
-        void UpdateZoneDependentAuras( uint32 zone_id );    // zones
-        void UpdateAreaDependentAuras( uint32 area_id );    // subzones
+        void UpdateZoneDependentAuras();
+        void UpdateAreaDependentAuras();                    // subzones
+        void UpdateZoneDependentPets();
 
         void UpdateAfkReport(time_t currTime);
         void UpdatePvPFlag(time_t currTime);
@@ -2469,27 +2465,6 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
     float diff = (float)basevalue*(float)totalpct/100.0f + (float)totalflat;
     basevalue = T((float)basevalue + diff);
     return T(diff);
-}
-
-template<typename Func>
-void Player::CallForAllControlledUnits(Func const& func, bool withTotems, bool withGuardians, bool withCharms, bool withMiniPet)
-{
-    if (withMiniPet)
-        if(Unit* mini = GetMiniPet())
-            func(mini);
-
-    Unit::CallForAllControlledUnits(func,withTotems,withGuardians,withCharms);
-}
-
-template<typename Func>
-bool Player::CheckAllControlledUnits(Func const& func, bool withTotems, bool withGuardians, bool withCharms, bool withMiniPet) const
-{
-    if (withMiniPet)
-        if(Unit const* mini = GetMiniPet())
-            if (func(mini))
-                return true;
-
-    return Unit::CheckAllControlledUnits(func,withTotems,withGuardians,withCharms);
 }
 
 #endif

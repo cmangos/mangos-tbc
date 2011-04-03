@@ -4205,7 +4205,7 @@ bool ChatHandler::HandleListAurasCommand (char* /*args*/)
                     aur->GetModifier()->m_auraname, aur->GetAuraDuration(), aur->GetAuraMaxDuration(),
                     ss_name.str().c_str(),
                     (holder->IsPassive() ? passiveStr : ""),(talent ? talentStr : ""),
-                    IS_PLAYER_GUID(holder->GetCasterGUID()) ? "player" : "creature",GUID_LOPART(holder->GetCasterGUID()));
+                    holder->GetCasterGuid().GetString().c_str());
             }
             else
             {
@@ -4213,7 +4213,7 @@ bool ChatHandler::HandleListAurasCommand (char* /*args*/)
                     aur->GetModifier()->m_auraname, aur->GetAuraDuration(), aur->GetAuraMaxDuration(),
                     name,
                     (holder->IsPassive() ? passiveStr : ""),(talent ? talentStr : ""),
-                    IS_PLAYER_GUID(holder->GetCasterGUID()) ? "player" : "creature",GUID_LOPART(holder->GetCasterGUID()));
+                    holder->GetCasterGuid().GetString().c_str());
             }
         }
     }

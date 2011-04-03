@@ -311,7 +311,7 @@ void AuctionHouseMgr::LoadAuctionItems()
 
         Item *item = NewItemOrBag(proto);
 
-        if(!item->LoadFromDB(item_guid,0, fields))
+        if(!item->LoadFromDB(item_guid, fields))
         {
             delete item;
             continue;

@@ -23,9 +23,9 @@
 
 const char CreatureInfosrcfmt[]="iiiiiiiisssiiiiiiiiiiifffiffiifiiiiiiiiiiffiiiiiiiiiiiiiiiiiiisiifflliiiiis";
 const char CreatureInfodstfmt[]="iiiiiiiisssiiiiiiiiiiifffiffiifiiiiiiiiiiffiiiiiiiiiiiiiiiiiiisiifflliiiiii";
-const char CreatureDataAddonInfofmt[]="iiiiiis";
+const char CreatureDataAddonInfofmt[]="iiibbiis";
 const char CreatureModelfmt[]="iffbii";
-const char CreatureInfoAddonInfofmt[]="iiiiiis";
+const char CreatureInfoAddonInfofmt[]="iiibbiis";
 const char EquipmentInfofmt[]="iiii";
 const char EquipmentInfoRawfmt[]="iiiiiiiiii";
 const char GameObjectInfosrcfmt[]="iiisssiifiiiiiiiiiiiiiiiiiiiiiiiiiis";

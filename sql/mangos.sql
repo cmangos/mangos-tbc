@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1035_10786_01_mangos_spell_proc_item_enchant` bit(1) default NULL
+  `required_s1036_10788_02_mangos_creature_template_addon` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -777,7 +777,8 @@ CREATE TABLE `creature_addon` (
   `guid` int(10) unsigned NOT NULL default '0',
   `mount` mediumint(8) unsigned NOT NULL default '0',
   `bytes1` int(10) unsigned NOT NULL default '0',
-  `bytes2` int(10) unsigned NOT NULL default '0',
+  `b2_0_sheath` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `b2_1_flags` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `emote` int(10) unsigned NOT NULL default '0',
   `moveflags` int(10) unsigned NOT NULL default '0',
   `auras` text,
@@ -1238,7 +1239,8 @@ CREATE TABLE `creature_template_addon` (
   `entry` mediumint(8) unsigned NOT NULL default '0',
   `mount` mediumint(8) unsigned NOT NULL default '0',
   `bytes1` int(10) unsigned NOT NULL default '0',
-  `bytes2` int(10) unsigned NOT NULL default '0',
+  `b2_0_sheath` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `b2_1_flags` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `emote` mediumint(8) unsigned NOT NULL default '0',
   `moveflags` int(10) unsigned NOT NULL default '0',
   `auras` text,

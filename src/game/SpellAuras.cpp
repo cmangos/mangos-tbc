@@ -3506,8 +3506,8 @@ void Aura::HandleModStealth(bool apply, bool Real)
         {
             target->SetStandFlags(UNIT_STAND_FLAGS_CREEP);
 
-            if(target->GetTypeId()==TYPEID_PLAYER)
-                target->SetFlag(PLAYER_FIELD_BYTES2, 0x2000);
+            if (target->GetTypeId()==TYPEID_PLAYER)
+                target->SetByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_STEALTH);
 
             // apply only if not in GM invisibility (and overwrite invisibility state)
             if (target->GetVisibility()!=VISIBILITY_OFF)
@@ -3552,8 +3552,8 @@ void Aura::HandleModStealth(bool apply, bool Real)
             {
                 target->RemoveStandFlags(UNIT_STAND_FLAGS_CREEP);
 
-                if(target->GetTypeId()==TYPEID_PLAYER)
-                    target->RemoveFlag(PLAYER_FIELD_BYTES2, 0x2000);
+                if (target->GetTypeId()==TYPEID_PLAYER)
+                    target->RemoveByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_STEALTH);
 
                 // restore invisibility if any
                 if (target->HasAuraType(SPELL_AURA_MOD_INVISIBILITY))
@@ -3584,21 +3584,21 @@ void Aura::HandleInvisibility(bool apply, bool Real)
 {
     Unit *target = GetTarget();
 
-    if(apply)
+    if (apply)
     {
         target->m_invisibilityMask |= (1 << m_modifier.m_miscvalue);
 
         target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
 
-        if(Real && target->GetTypeId()==TYPEID_PLAYER)
+        if (Real && target->GetTypeId()==TYPEID_PLAYER)
         {
             // apply glow vision
-            target->SetFlag(PLAYER_FIELD_BYTES2,PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
+            target->SetByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
 
         }
 
         // apply only if not in GM invisibility and not stealth
-        if(target->GetVisibility() == VISIBILITY_ON)
+        if (target->GetVisibility() == VISIBILITY_ON)
         {
             // Aura not added yet but visibility code expect temporary add aura
             target->SetVisibility(VISIBILITY_GROUP_NO_DETECT);
@@ -3614,17 +3614,17 @@ void Aura::HandleInvisibility(bool apply, bool Real)
             target->m_invisibilityMask |= (1 << (*itr)->GetModifier()->m_miscvalue);
 
         // only at real aura remove and if not have different invisibility auras.
-        if(Real && target->m_invisibilityMask == 0)
+        if (Real && target->m_invisibilityMask == 0)
         {
             // remove glow vision
-            if(target->GetTypeId() == TYPEID_PLAYER)
-                target->RemoveFlag(PLAYER_FIELD_BYTES2,PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
+            if (target->GetTypeId() == TYPEID_PLAYER)
+                target->RemoveByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
 
             // apply only if not in GM invisibility & not stealthed while invisible
-            if(target->GetVisibility() != VISIBILITY_OFF)
+            if (target->GetVisibility() != VISIBILITY_OFF)
             {
                 // if have stealth aura then already have stealth visibility
-                if(!target->HasAuraType(SPELL_AURA_MOD_STEALTH))
+                if (!target->HasAuraType(SPELL_AURA_MOD_STEALTH))
                     target->SetVisibility(VISIBILITY_ON);
             }
         }

@@ -14326,6 +14326,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
 
     SetUInt32Value(PLAYER_AMMO_ID, fields[57].GetUInt32());
 
+    // Action bars state
     SetByteValue(PLAYER_FIELD_BYTES, 2, fields[59].GetUInt8());
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
@@ -16199,7 +16200,7 @@ void Player::_SaveMail()
         else if (m->state == MAIL_STATE_DELETED)
         {
             if (m->HasItems())
-                for(std::vector<MailItemInfo>::const_iterator itr2 = m->items.begin(); itr2 != m->items.end(); ++itr2)
+                for(MailItemInfoVec::const_iterator itr2 = m->items.begin(); itr2 != m->items.end(); ++itr2)
                     CharacterDatabase.PExecute("DELETE FROM item_instance WHERE guid = '%u'", itr2->item_guid);
             if (m->itemTextId)
                 CharacterDatabase.PExecute("DELETE FROM item_text WHERE id = '%u'", m->itemTextId);

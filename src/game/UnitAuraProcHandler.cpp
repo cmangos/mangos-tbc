@@ -1545,8 +1545,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
 
                 CastSpell(pVictim, spellId, true, castItem, triggeredByAura);
 
-                if (cooldown && GetTypeId()==TYPEID_PLAYER)
-                    ((Player*)this)->AddSpellCooldown(dummySpell->Id,0,time(NULL) + cooldown);
+                if (cooldown && GetTypeId() == TYPEID_PLAYER)
+                    ((Player*)this)->AddSpellCooldown(dummySpell->Id, 0, time(NULL) + cooldown);
 
                 return SPELL_AURA_PROC_OK;
             }

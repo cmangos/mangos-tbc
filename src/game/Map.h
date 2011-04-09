@@ -35,6 +35,7 @@
 #include "GameSystem/GridRefManager.h"
 #include "MapRefManager.h"
 #include "Utilities/TypeList.h"
+#include "ScriptMgr.h"
 
 #include <bitset>
 #include <list>
@@ -49,7 +50,6 @@ class WorldPersistentState;
 class DungeonPersistentState;
 class BattleGroundPersistentState;
 struct ScriptInfo;
-struct ScriptAction;
 class BattleGround;
 class GridMap;
 
@@ -91,7 +91,7 @@ enum LevelRequirementVsMode
 
 #define MIN_UNLOAD_DELAY      1                             // immediate unload
 
-class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::ObjectLevelLockable<Map, ACE_Thread_Mutex>
+class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
 {
     friend class MapReference;
     friend class ObjectGridLoader;
@@ -292,7 +292,6 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>, public MaNGOS::Obj
         void SendObjectUpdates();
         std::set<Object *> i_objectsToClientUpdate;
     protected:
-        typedef MaNGOS::ObjectLevelLockable<Map, ACE_Thread_Mutex>::Lock Guard;
 
         MapEntry const* i_mapEntry;
         uint8 i_spawnMode;

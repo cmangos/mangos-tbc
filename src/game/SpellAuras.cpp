@@ -1791,7 +1791,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                             ((Player*)target)->RemoveAmmo();
                         return;
                     case 48025:                             // Headless Horseman's Mount
-                        Spell::SelectMountByAreaAndSkill(target, 51621, 48024, 51617, 48023, 0);
+                        Spell::SelectMountByAreaAndSkill(target, GetSpellProto(), 51621, 48024, 51617, 48023, 0);
                         return;
                 }
                 break;

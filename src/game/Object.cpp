@@ -1953,3 +1953,9 @@ bool WorldObject::IsControlledByPlayer() const
             return false;
     }
 }
+
+bool WorldObject::PrintCoordinatesError(float x, float y, float z, char const* descr) const
+{
+    sLog.outError("%s with invalid %s coordinates: mapid = %uu, x = %f, y = %f, z = %f", GetGuidStr().c_str(), descr, GetMapId(), x, y, z);
+    return false;                                           // always false for continue assert fail
+}

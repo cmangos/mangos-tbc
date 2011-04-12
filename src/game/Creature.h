@@ -138,6 +138,11 @@ struct CreatureInfo
     uint32  ScriptID;
 
     // helpers
+    HighGuid GetHighGuid() const
+    {
+        return HIGHGUID_UNIT;                               // in pre-3.x always HIGHGUID_UNIT
+    }
+
     SkillType GetRequiredLootSkill() const
     {
         if(type_flags & CREATURE_TYPEFLAGS_HERBLOOT)
@@ -188,6 +193,14 @@ struct CreatureData
     bool  is_dead;
     uint8 movementType;
     uint8 spawnMask;
+
+    // helper function
+    HighGuid GetHighGuid() const
+    {
+        return HIGHGUID_UNIT;                               // in pre-3.x always HIGHGUID_UNIT
+    }
+
+    ObjectGuid GetObjectGuid(uint32 lowguid) const { return ObjectGuid(GetHighGuid(), id, lowguid); }
 };
 
 struct CreatureDataAddonAura
@@ -443,7 +456,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void AddToWorld();
         void RemoveFromWorld();
 
-        bool Create(uint32 guidlow, CreatureCreatePos& cPos, uint32 Entry, Team team = TEAM_NONE, const CreatureData *data = NULL, GameEventCreatureData const* eventData = NULL);
+        bool Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, Team team = TEAM_NONE, const CreatureData *data = NULL, GameEventCreatureData const* eventData = NULL);
         bool LoadCreatureAddon(bool reload = false);
         void SelectLevel(const CreatureInfo *cinfo, float percentHealth = 100.0f, float percentMana = 100.0f);
         void LoadEquipment(uint32 equip_entry, bool force=false);
@@ -698,7 +711,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void SetVirtualItem(VirtualItemSlot slot, uint32 item_id);
         void SetVirtualItemRaw(VirtualItemSlot slot, uint32 display_id, uint32 info0, uint32 info1);
     protected:
-        bool CreateFromProto(uint32 guidlow,uint32 Entry, Team team, const CreatureData *data = NULL, GameEventCreatureData const* eventData =NULL);
+        bool CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, Team team, const CreatureData *data = NULL, GameEventCreatureData const* eventData =NULL);
         bool InitEntry(uint32 entry, const CreatureData* data = NULL, GameEventCreatureData const* eventData = NULL);
 
         uint32 m_groupLootTimer;                            // (msecs)timer used for group loot

@@ -18872,7 +18872,7 @@ void Player::learnSkillRewardedSpells(uint32 skill_id, uint32 skill_value )
 
 void Player::SendAuraDurationsForTarget(Unit* target)
 {
-    SpellAuraHolderMap const& auraHolders = GetSpellAuraHolderMap();
+    SpellAuraHolderMap const& auraHolders = target->GetSpellAuraHolderMap();
     for(SpellAuraHolderMap::const_iterator itr = auraHolders.begin(); itr != auraHolders.end(); ++itr)
     {
         SpellAuraHolder *holder = itr->second;

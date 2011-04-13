@@ -3681,14 +3681,9 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
 
     // Send information dependend on difficulty mode
     CreatureInfo const* baseInfo = ObjectMgr::GetCreatureTemplate(Entry);
-    uint32 diff = 1;
-    for (; diff < MAX_DIFFICULTY; ++diff)
-        if (baseInfo->DifficultyEntry[diff-1] == target->GetCreatureInfo()->Entry)
-            break;
-
-    if (diff < MAX_DIFFICULTY)
+    if (baseInfo->HeroicEntry == target->GetCreatureInfo()->Entry)
         PSendSysMessage(LANG_NPCINFO_CHAR_DIFFICULTY,  target->GetGUIDLow(), faction, npcflags,
-            Entry, target->GetCreatureInfo()->Entry, diff,
+            Entry, target->GetCreatureInfo()->Entry, 1,
             displayid, nativeid);
     else
         PSendSysMessage(LANG_NPCINFO_CHAR,  target->GetGUIDLow(), faction, npcflags, Entry, displayid, nativeid);

@@ -1654,14 +1654,13 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                 //case 24949: break;                        // Defensive State 2 (DND)
                 case 27522:                                 // Mana Drain Trigger
                 case 40336:                                 // Mana Drain Trigger
-                {
-                    // On successful melee or ranged attack gain $29471s1 mana and if possible drain $27526s1 mana from the target.
+                case 46939:                                 // Black Bow of the Betrayer
+                    // On successful melee or ranged attack gain 8 mana and if possible drain 8 mana from the target.
                     if (isAlive())
                         CastSpell(this, 29471, true, castItem, triggeredByAura);
                     if (pVictim && pVictim->isAlive())
                         CastSpell(pVictim, 27526, true, castItem, triggeredByAura);
                     return SPELL_AURA_PROC_OK;
-                }
                 case 31255:                                 // Deadly Swiftness (Rank 1)
                 {
                     // whenever you deal damage to a target who is below 20% health.
@@ -1713,9 +1712,6 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                 //case 45205: break;                        // Copy Offhand Weapon
                 //case 45343: break;                        // Dark Flame Aura
                 //case 46146: break;                        // [PH] Ahune  Spanky Hands
-                //case 46939:                               // Black Bow of the Betrayer
-                //    trigger_spell_id = 29471; - gain mana
-                //    27526;                    - drain mana if possible
                 //case 47300: break;                        // Dark Flame Aura
                 //case 50051: break;                        // Ethereal Pet Aura
                 break;

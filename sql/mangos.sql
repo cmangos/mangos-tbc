@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1120_11335_02_mangos_mangos_string` bit(1) default NULL
+  `required_s1130_11348_01_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13200,6 +13200,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (46567, 0,      0,       0,     0,     'Item - Goblin Rocket Launcher'),
 (17712, 0,      0,       0,     0,     'Item - Lifestone Healing'),
 (5707,  0,      0,       0,     0,     'Item - Lifestone Regeneration'),
+(43733, 0,      0,       0,     0,     'Item - Lightning Zap'),
 (31024, 0,      0,       0,     0,     'Item - Living Ruby Pedant'),
 (38395, 0,      0,       0,     0,     'Item - Siphon Essence'),
 (40293, 0,      0,       0,     0,     'Item - Siphon Essence');

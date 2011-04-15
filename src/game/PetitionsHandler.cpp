@@ -489,7 +489,10 @@ void WorldSession::HandlePetitionSignOpcode(WorldPacket & recv_data)
             return;
         }
 
-        uint8 slot = ArenaTeam::GetSlotByType(type);
+        if (!IsArenaTypeValid(ArenaType(type)))
+            return;
+
+        uint8 slot = ArenaTeam::GetSlotByType(ArenaType(type));
         if(slot >= MAX_ARENA_SLOT)
             return;
 
@@ -640,7 +643,10 @@ void WorldSession::HandleOfferPetitionOpcode(WorldPacket & recv_data)
             return;
         }
 
-        uint8 slot = ArenaTeam::GetSlotByType(type);
+        if (!IsArenaTypeValid(ArenaType(type)))
+            return;
+
+        uint8 slot = ArenaTeam::GetSlotByType(ArenaType(type));
         if(slot >= MAX_ARENA_SLOT)
             return;
 
@@ -745,7 +751,10 @@ void WorldSession::HandleTurnInPetitionOpcode(WorldPacket & recv_data)
     }
     else
     {
-        uint8 slot = ArenaTeam::GetSlotByType(type);
+        if (!IsArenaTypeValid(ArenaType(type)))
+            return;
+
+        uint8 slot = ArenaTeam::GetSlotByType(ArenaType(type));
         if (slot >= MAX_ARENA_SLOT)
             return;
 
@@ -837,7 +846,7 @@ void WorldSession::HandleTurnInPetitionOpcode(WorldPacket & recv_data)
     else                                                    // or arena team
     {
         ArenaTeam* at = new ArenaTeam;
-        if (!at->Create(_player->GetObjectGuid(), type, name))
+        if (!at->Create(_player->GetObjectGuid(), ArenaType(type), name))
         {
             sLog.outError("PetitionsHandler: arena team create failed.");
             delete at;

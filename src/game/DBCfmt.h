@@ -23,7 +23,7 @@ const char AreaTableEntryfmt[]="iiinixxxxxissssssssssssssssxixxxxxx";
 const char AreaTriggerEntryfmt[]="niffffffff";
 const char AuctionHouseEntryfmt[]="niiixxxxxxxxxxxxxxxxx";
 const char BankBagSlotPricesEntryfmt[]="ni";
-const char BattlemasterListEntryfmt[]="niiixxxxxiiiixxssssssssssssssssxx";
+const char BattlemasterListEntryfmt[]="niiiiiiiiiiiixxssssssssssssssssxx";
 const char CharStartOutfitEntryfmt[]="diiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxx";
 // 3*12 new item fields in 3.0.x
 //const char CharStartOutfitEntryfmt[]="diiiiiiiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
@@ -77,7 +77,7 @@ const char SpellEntryfmt[]="nixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifxiiiiiiiii
 const char SpellFocusObjectfmt[]="nxxxxxxxxxxxxxxxxx";
 const char SpellItemEnchantmentfmt[]="niiiiiixxxiiissssssssssssssssxiiii";
 const char SpellItemEnchantmentConditionfmt[]="nbbbbbxxxxxbbbbbbbbbbiiiiiXXXXX";
-const char SpellRadiusfmt[]="nfxf";
+const char SpellRadiusfmt[]="nfxx";
 const char SpellRangefmt[]="nffxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char SpellShapeshiftfmt[]="nxxxxxxxxxxxxxxxxxxiixiixxxiiiiiiii";
 const char StableSlotPricesfmt[] = "ni";

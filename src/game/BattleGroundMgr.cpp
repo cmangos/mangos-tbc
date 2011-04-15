@@ -1607,8 +1607,8 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
         }
         if (MinLvl == 0 || MaxLvl == 0 || MinLvl > MaxLvl)
         {
-            MinLvl = bl->minlvl;
-            MaxLvl = bl->maxlvl;
+            MinLvl = bl->minLevel;
+            MaxLvl = bl->maxLevel;
         }
 
         float AStartLoc[4];

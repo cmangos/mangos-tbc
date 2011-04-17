@@ -1892,8 +1892,16 @@ CreatureDataAddon const* Creature::GetCreatureAddon() const
     if (CreatureDataAddon const* addon = ObjectMgr::GetCreatureAddon(GetGUIDLow()))
         return addon;
 
-    // dependent from heroic mode entry
-    return ObjectMgr::GetCreatureTemplateAddon(GetCreatureInfo()->Entry);
+    // dependent from difficulty mode entry
+    if (GetEntry() != GetCreatureInfo()->Entry)
+    {
+        // If CreatureTemplateAddon for heroic exist, it's there for a reason
+        if (CreatureDataAddon const* addon =  ObjectMgr::GetCreatureTemplateAddon(GetCreatureInfo()->Entry))
+            return addon;
+    }
+
+    // Return CreatureTemplateAddon when nothing else exist
+    return ObjectMgr::GetCreatureTemplateAddon(GetEntry());
 }
 
 //creature_addon table

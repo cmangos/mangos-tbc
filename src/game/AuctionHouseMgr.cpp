@@ -76,10 +76,10 @@ uint32 AuctionHouseMgr::GetAuctionDeposit(AuctionHouseEntry const* entry, uint32
     return uint32(deposit * sWorld.getConfig(CONFIG_FLOAT_RATE_AUCTION_DEPOSIT));
 }
 
-//does not clear ram
+// does not clear ram
 void AuctionHouseMgr::SendAuctionWonMail( AuctionEntry *auction )
 {
-    Item *pItem = GetAItem(auction->item_guidlow);
+    Item *pItem = GetAItem(auction->itemGuidLow);
     if(!pItem)
         return;
 
@@ -131,7 +131,7 @@ void AuctionHouseMgr::SendAuctionWonMail( AuctionEntry *auction )
     if(bidder || bidder_accId)
     {
         std::ostringstream msgAuctionWonSubject;
-        msgAuctionWonSubject << auction->item_template << ":0:" << AUCTION_WON;
+        msgAuctionWonSubject << auction->itemTemplate << ":0:" << AUCTION_WON;
 
         std::ostringstream msgAuctionWonBody;
         msgAuctionWonBody.width(16);
@@ -145,7 +145,7 @@ void AuctionHouseMgr::SendAuctionWonMail( AuctionEntry *auction )
         CharacterDatabase.CommitTransaction();
 
         if (bidder)
-            bidder->GetSession()->SendAuctionBidderNotification( auction->GetHouseId(), auction->Id, bidder_guid, 0, 0, auction->item_template);
+            bidder->GetSession()->SendAuctionBidderNotification(auction, true);
         else
             RemoveAItem(pItem->GetGUIDLow());               // we have to remove the item, before we delete it !!
 
@@ -172,7 +172,7 @@ void AuctionHouseMgr::SendAuctionSalePendingMail( AuctionEntry * auction )
     if(owner || sObjectMgr.GetPlayerAccountIdByGUID(owner_guid))
     {
         std::ostringstream msgAuctionSalePendingSubject;
-        msgAuctionSalePendingSubject << auction->item_template << ":0:" << AUCTION_SALE_PENDING;
+        msgAuctionSalePendingSubject << auction->itemTemplate << ":0:" << AUCTION_SALE_PENDING;
 
         std::ostringstream msgAuctionSalePendingBody;
         uint32 auctionCut = auction->GetAuctionCut();
@@ -192,7 +192,7 @@ void AuctionHouseMgr::SendAuctionSalePendingMail( AuctionEntry * auction )
     }
 }
 
-//call this method to send mail to auction owner, when auction is successful, it does not clear ram
+// call this method to send mail to auction owner, when auction is successful, it does not clear ram
 void AuctionHouseMgr::SendAuctionSuccessfulMail( AuctionEntry * auction )
 {
     ObjectGuid owner_guid = ObjectGuid(HIGHGUID_PLAYER, auction->owner);
@@ -206,7 +206,7 @@ void AuctionHouseMgr::SendAuctionSuccessfulMail( AuctionEntry * auction )
     if(owner || owner_accId)
     {
         std::ostringstream msgAuctionSuccessfulSubject;
-        msgAuctionSuccessfulSubject << auction->item_template << ":0:" << AUCTION_SUCCESSFUL;
+        msgAuctionSuccessfulSubject << auction->itemTemplate << ":0:" << AUCTION_SUCCESSFUL;
 
         std::ostringstream auctionSuccessfulBody;
         uint32 auctionCut = auction->GetAuctionCut();
@@ -223,7 +223,7 @@ void AuctionHouseMgr::SendAuctionSuccessfulMail( AuctionEntry * auction )
         if (owner)
         {
             //send auction owner notification, bidder must be current!
-            owner->GetSession()->SendAuctionOwnerNotification( auction );
+            owner->GetSession()->SendAuctionOwnerNotification( auction, true );
         }
 
         MailDraft(msgAuctionSuccessfulSubject.str(), auctionSuccessfulBody.str())
@@ -232,13 +232,13 @@ void AuctionHouseMgr::SendAuctionSuccessfulMail( AuctionEntry * auction )
     }
 }
 
-//does not clear ram
+// does not clear ram
 void AuctionHouseMgr::SendAuctionExpiredMail( AuctionEntry * auction )
-{                                                           //return an item in auction to its owner by mail
-    Item *pItem = GetAItem(auction->item_guidlow);
+{                                                           // return an item in auction to its owner by mail
+    Item *pItem = GetAItem(auction->itemGuidLow);
     if(!pItem)
     {
-        sLog.outError("Auction item (GUID: %u) not found, and lost.",auction->item_guidlow);
+        sLog.outError("Auction item (GUID: %u) not found, and lost.", auction->itemGuidLow);
         return;
     }
 
@@ -253,10 +253,10 @@ void AuctionHouseMgr::SendAuctionExpiredMail( AuctionEntry * auction )
     if(owner || owner_accId)
     {
         std::ostringstream subject;
-        subject << auction->item_template << ":0:" << AUCTION_EXPIRED;
+        subject << auction->itemTemplate << ":0:" << AUCTION_EXPIRED;
 
         if ( owner )
-            owner->GetSession()->SendAuctionOwnerNotification( auction );
+            owner->GetSession()->SendAuctionOwnerNotification( auction, false );
         else
             RemoveAItem(pItem->GetGUIDLow());               // we have to remove the item, before we delete it !!
 
@@ -375,11 +375,11 @@ void AuctionHouseMgr::LoadAuctions()
         auction = new AuctionEntry;
         auction->Id = fields[0].GetUInt32();
         uint32 houseid  = fields[1].GetUInt32();
-        auction->item_guidlow = fields[2].GetUInt32();
-        auction->item_template = fields[3].GetUInt32();
+        auction->itemGuidLow = fields[2].GetUInt32();
+        auction->itemTemplate = fields[3].GetUInt32();
         auction->owner = fields[4].GetUInt32();
         auction->buyout = fields[5].GetUInt32();
-        auction->expire_time = fields[6].GetUInt32();
+        auction->expireTime = fields[6].GetUInt32();
         auction->bidder = fields[7].GetUInt32();
         auction->bid = fields[8].GetUInt32();
         auction->startbid = fields[9].GetUInt32();
@@ -388,11 +388,11 @@ void AuctionHouseMgr::LoadAuctions()
 
         // check if sold item exists for guid
         // and item_template in fact (GetAItem will fail if problematic in result check in AuctionHouseMgr::LoadAuctionItems)
-        Item* pItem = GetAItem(auction->item_guidlow);
+        Item* pItem = GetAItem(auction->itemGuidLow);
         if (!pItem)
         {
             auction->DeleteFromDB();
-            sLog.outError("Auction %u has not a existing item : %u, deleted", auction->Id, auction->item_guidlow);
+            sLog.outError("Auction %u has not a existing item : %u, deleted", auction->Id, auction->itemGuidLow);
             delete auction;
             continue;
         }
@@ -406,14 +406,14 @@ void AuctionHouseMgr::LoadAuctions()
 
             // Attempt send item back to owner
             std::ostringstream msgAuctionCanceledOwner;
-            msgAuctionCanceledOwner << auction->item_template << ":0:" << AUCTION_CANCELED;
+            msgAuctionCanceledOwner << auction->itemTemplate << ":0:" << AUCTION_CANCELED;
 
             // item will deleted or added to received mail list
             MailDraft(msgAuctionCanceledOwner.str(), "")    // TODO: fix body
                 .AddItem(pItem)
                 .SendMailTo(MailReceiver(ObjectGuid(HIGHGUID_PLAYER, auction->owner)), auction, MAIL_CHECK_MASK_COPIED);
 
-            RemoveAItem(auction->item_guidlow);
+            RemoveAItem(auction->itemGuidLow);
             auction->DeleteFromDB();
             delete auction;
 
@@ -536,11 +536,11 @@ void AuctionHouseObject::Update()
     time_t curTime = sWorld.GetGameTime();
     ///- Handle expired auctions
     AuctionEntryMap::iterator next;
-    for (AuctionEntryMap::iterator itr = AuctionsMap.begin(); itr != AuctionsMap.end();itr = next)
+    for (AuctionEntryMap::iterator itr = AuctionsMap.begin(); itr != AuctionsMap.end(); itr = next)
     {
         next = itr;
         ++next;
-        if (curTime > (itr->second->expire_time))
+        if (curTime > (itr->second->expireTime))
         {
             ///- Either cancel the auction if there was no bidder
             if (itr->second->bidder == 0)
@@ -559,7 +559,7 @@ void AuctionHouseObject::Update()
 
             ///- In any case clear the auction
             itr->second->DeleteFromDB();
-            sAuctionMgr.RemoveAItem(itr->second->item_guidlow);
+            sAuctionMgr.RemoveAItem(itr->second->itemGuidLow);
             delete itr->second;
             RemoveAuction(itr->first);
         }
@@ -604,7 +604,7 @@ void AuctionHouseObject::BuildListAuctionItems(WorldPacket& data, Player* player
     for (AuctionEntryMap::const_iterator itr = AuctionsMap.begin();itr != AuctionsMap.end();++itr)
     {
         AuctionEntry *Aentry = itr->second;
-        Item *item = sAuctionMgr.GetAItem(Aentry->item_guidlow);
+        Item *item = sAuctionMgr.GetAItem(Aentry->itemGuidLow);
         if (!item)
             continue;
 
@@ -655,10 +655,10 @@ void AuctionHouseObject::BuildListAuctionItems(WorldPacket& data, Player* player
     }
 }
 
-//this function inserts to WorldPacket auction's data
+// this function inserts to WorldPacket auction's data
 bool AuctionEntry::BuildAuctionInfo(WorldPacket & data) const
 {
-    Item *pItem = sAuctionMgr.GetAItem(item_guidlow);
+    Item *pItem = sAuctionMgr.GetAItem(itemGuidLow);
     if (!pItem)
     {
         sLog.outError("auction to item, that doesn't exist !!!!");
@@ -674,19 +674,18 @@ bool AuctionEntry::BuildAuctionInfo(WorldPacket & data) const
         data << uint32(pItem->GetEnchantmentCharges(EnchantmentSlot(i)));
     }
 
-    data << uint32(pItem->GetItemRandomPropertyId());       //random item property id
-    data << uint32(pItem->GetItemSuffixFactor());           //SuffixFactor
-    data << uint32(pItem->GetCount());                      //item->count
-    data << uint32(pItem->GetSpellCharges());               //item->charge FFFFFFF
-    data << uint32(0);                                      //Unknown
-    data << ObjectGuid(HIGHGUID_PLAYER, owner);             //Auction->owner
-    data << uint32(startbid);                               //Auction->startbid (not sure if useful)
-    data << uint32(bid ? GetAuctionOutBid() : 0);
-    //minimal outbid
-    data << uint32(buyout);                                 //auction->buyout
-    data << uint32((expire_time-time(NULL))*IN_MILLISECONDS);//time left
-    data << ObjectGuid(HIGHGUID_PLAYER, bidder);            //auction->bidder current
-    data << uint32(bid);                                    //current bid
+    data << uint32(pItem->GetItemRandomPropertyId());       // random item property id
+    data << uint32(pItem->GetItemSuffixFactor());           // SuffixFactor
+    data << uint32(pItem->GetCount());                      // item->count
+    data << uint32(pItem->GetSpellCharges());               // item->charge FFFFFFF
+    data << uint32(0);                                      // item flags (dynamic?) (0x04 no lockId?)
+    data << ObjectGuid(HIGHGUID_PLAYER, owner);             // Auction->owner
+    data << uint32(startbid);                               // Auction->startbid (not sure if useful)
+    data << uint32(bid ? GetAuctionOutBid() : 0);           // minimal outbid
+    data << uint32(buyout);                                 // auction->buyout
+    data << uint32((expireTime-time(NULL))*IN_MILLISECONDS);// time left
+    data << ObjectGuid(HIGHGUID_PLAYER, bidder);            // auction->bidder current
+    data << uint32(bid);                                    // current bid
     return true;
 }
 
@@ -715,5 +714,5 @@ void AuctionEntry::SaveToDB() const
     //No SQL injection (no strings)
     CharacterDatabase.PExecute("INSERT INTO auction (id,houseid,itemguid,item_template,itemowner,buyoutprice,time,buyguid,lastbid,startbid,deposit) "
         "VALUES ('%u', '%u', '%u', '%u', '%u', '%u', '" UI64FMTD "', '%u', '%u', '%u', '%u')",
-        Id, auctionHouseEntry->houseId, item_guidlow, item_template, owner, buyout, (uint64)expire_time, bidder, bid, startbid, deposit);
+        Id, auctionHouseEntry->houseId, itemGuidLow, itemTemplate, owner, buyout, (uint64)expireTime, bidder, bid, startbid, deposit);
 }

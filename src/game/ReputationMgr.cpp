@@ -158,7 +158,7 @@ void ReputationMgr::SendInitialReputations()
 
     RepListID a = 0;
 
-    for (FactionStateList::const_iterator itr = m_factions.begin(); itr != m_factions.end(); ++itr)
+    for (FactionStateList::iterator itr = m_factions.begin(); itr != m_factions.end(); ++itr)
     {
         // fill in absent fields
         for (; a != itr->first; a++)
@@ -170,6 +170,8 @@ void ReputationMgr::SendInitialReputations()
         // fill in encountered data
         data << uint8  (itr->second.Flags);
         data << uint32 (itr->second.Standing);
+
+        itr->second.needSend = false;
 
         ++a;
     }

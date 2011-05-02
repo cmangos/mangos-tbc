@@ -213,25 +213,12 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     {
         case SUMMON_PET:
             petlevel=owner->getLevel();
-
-            SetByteValue(UNIT_FIELD_BYTES_0, 1, CLASS_MAGE);
-            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
-                                                            // this enables popup window (pet dismiss, cancel)
             break;
         case HUNTER_PET:
-            SetByteValue(UNIT_FIELD_BYTES_0, 1, CLASS_WARRIOR);
-            SetByteValue(UNIT_FIELD_BYTES_0, 2, GENDER_NONE);
-            SetByteValue(UNIT_FIELD_BYTES_0, 3, POWER_FOCUS);
-
             // loyalty
             SetByteValue(UNIT_FIELD_BYTES_1, 1, fields[8].GetUInt32());
 
-            SetSheath(SHEATH_STATE_MELEE);
-            SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_UNK3 | UNIT_BYTE2_FLAG_AURAS | UNIT_BYTE2_FLAG_UNK5 );
             SetByteFlag(UNIT_FIELD_BYTES_2, 2, fields[12].GetBool() ? UNIT_CAN_BE_ABANDONED : UNIT_CAN_BE_RENAMED | UNIT_CAN_BE_ABANDONED);
-
-            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
-                                                            // this enables popup window (pet abandon, cancel)
             SetTP(fields[9].GetInt32());
             SetMaxPower(POWER_HAPPINESS, GetCreatePowers(POWER_HAPPINESS));
             SetPower(   POWER_HAPPINESS,fields[15].GetUInt32());
@@ -1102,6 +1089,25 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
     }
 
     uint32 creature_ID = (getPetType() == HUNTER_PET) ? 1 : cinfo->Entry;
+
+    switch (getPetType())
+    {
+        case SUMMON_PET:
+            SetByteValue(UNIT_FIELD_BYTES_0, 1, CLASS_MAGE);
+
+            // this enables popup window (pet dismiss, cancel)
+            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
+            break;
+        case HUNTER_PET:
+            SetByteValue(UNIT_FIELD_BYTES_0, 1, CLASS_WARRIOR);
+            SetByteValue(UNIT_FIELD_BYTES_0, 2, GENDER_NONE);
+            SetSheath(SHEATH_STATE_MELEE);
+            SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_UNK3 | UNIT_BYTE2_FLAG_AURAS | UNIT_BYTE2_FLAG_UNK5 );
+
+            // this enables popup window (pet abandon, cancel)
+            SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
+            break;
+    }
 
     SetLevel(petlevel);
 

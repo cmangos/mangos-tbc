@@ -30,6 +30,8 @@ class Unit;
 class WorldPacket;
 
 #define MIN_AUCTION_TIME (12*HOUR)
+#define MAX_AUCTION_SORT 12
+#define AUCTION_SORT_REVERSED 0x10
 
 enum AuctionError
 {
@@ -57,6 +59,7 @@ struct AuctionEntry
     uint32 itemGuidLow;
     uint32 itemTemplate;
     uint32 owner;
+    std::wstring ownerName;                                 // cache name for sorting
     uint32 startbid;                                        // maybe useless
     uint32 bid;
     uint32 buyout;
@@ -73,6 +76,9 @@ struct AuctionEntry
     bool BuildAuctionInfo(WorldPacket & data) const;
     void DeleteFromDB() const;
     void SaveToDB() const;
+
+    // -1,0,+1 order result
+    int CompareAuctionEntry(uint32 column, const AuctionEntry *auc, Player* viewPlayer) const;
 };
 
 //this class is used as auctionhouse instance
@@ -88,7 +94,9 @@ class AuctionHouseObject
 
         typedef std::map<uint32, AuctionEntry*> AuctionEntryMap;
 
-        uint32 Getcount() { return AuctionsMap.size(); }
+        uint32 GetCount() { return AuctionsMap.size(); }
+
+        AuctionEntryMap *GetAuctions() { return &AuctionsMap; }
 
         void AddAuction(AuctionEntry *ah)
         {
@@ -111,13 +119,21 @@ class AuctionHouseObject
 
         void BuildListBidderItems(WorldPacket& data, Player* player, uint32& count, uint32& totalcount);
         void BuildListOwnerItems(WorldPacket& data, Player* player, uint32& count, uint32& totalcount);
-        void BuildListAuctionItems(WorldPacket& data, Player* player,
-            std::wstring const& searchedname, uint32 listfrom, uint32 levelmin, uint32 levelmax, uint32 usable,
-            uint32 inventoryType, uint32 itemClass, uint32 itemSubClass, uint32 quality,
-            uint32& count, uint32& totalcount);
 
     private:
         AuctionEntryMap AuctionsMap;
+};
+
+class AuctionSorter
+{
+    public:
+        AuctionSorter(AuctionSorter const& sorter) : m_sort(sorter.m_sort), m_viewPlayer(sorter.m_viewPlayer) {}
+        AuctionSorter(uint8 *sort, Player* viewPlayer) : m_sort(sort), m_viewPlayer(viewPlayer) {}
+        bool operator()(const AuctionEntry *auc1, const AuctionEntry *auc2) const;
+
+    private:
+        uint8* m_sort;
+        Player* m_viewPlayer;
 };
 
 class AuctionHouseMgr

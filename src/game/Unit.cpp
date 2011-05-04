@@ -5827,17 +5827,6 @@ uint32 Unit::SpellDamageBonusTaken(Unit *pCaster, SpellEntry const *spellProto, 
                     TakenTotalMod *= (mod+100.0f)/100.0f;
                 }
                 break;
-            // Mangle
-            case 2312:
-                for(int j = 0; j < MAX_EFFECT_INDEX; ++j)
-                {
-                    if(GetEffectMechanic(spellProto, SpellEffectIndex(j))==MECHANIC_BLEED)
-                    {
-                        TakenTotalMod *= (100.0f+(*i)->GetModifier()->m_amount)/100.0f;
-                        break;
-                    }
-                }
-                break;
         }
     }
 
@@ -6504,6 +6493,11 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
     // differentiate for weapon damage based spells
     bool isWeaponDamageBasedSpell = !(spellProto && (damagetype == DOT || IsSpellHaveEffect(spellProto, SPELL_EFFECT_SCHOOL_DAMAGE)));
     uint32 schoolMask       = spellProto ? spellProto->SchoolMask : GetMeleeDamageSchoolMask();
+    uint32 mechanicMask     = spellProto ? GetAllSpellMechanicMask(spellProto) : 0;
+
+    // Shred also have bonus as MECHANIC_BLEED damages
+    if (spellProto && spellProto->SpellFamilyName==SPELLFAMILY_DRUID && spellProto->SpellFamilyFlags & UI64LIT(0x00008000))
+        mechanicMask |= (1 << (MECHANIC_BLEED-1));
 
     // FLAT damage bonus auras
     // =======================
@@ -6560,10 +6554,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
                 break;
             //Mangle
             case 2312:
-                if(spellProto==NULL)
-                    break;
-                // Should increase Shred (initial Damage of Lacerate and Rake handled in Spell::EffectSchoolDMG)
-                if(spellProto->SpellFamilyName==SPELLFAMILY_DRUID && (spellProto->SpellFamilyFlags == UI64LIT(0x00008000)))
+                if (mechanicMask & (1 << (MECHANIC_BLEED-1)))
                     TakenPercent *= (100.0f+(*i)->GetModifier()->m_amount)/100.0f;
                 break;
         }

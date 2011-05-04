@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1130_11348_01_mangos_spell_bonus_data` bit(1) default NULL
+  `required_s1180_xxxxx_01_mangos_spell_bonus_data` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13047,7 +13047,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (42231, 0.12898,0,       0,     0,     'Druid - Hurricane Triggered'),
 (5570,  0,      0.127,   0,     0,     'Druid - Insect Swarm'),
 (33745, 0,      0,       0.01,  0.01,  'Druid - Lacerate'),
-(33763, 0.3429, 0,       0,     0,     'Druid - Lifebloom'),
+(33763, 0.3429, 0.0742,  0,     0,     'Druid - Lifebloom'),
 (8921,  0.1515, 0.13,    0,     0,     'Druid - Moonfire'),
 (9007,  0,      0,       0,     0.03,  'Druid - Pounce Bleed'),
 (8936,  0.3,    0.1,     0,     0,     'Druid - Regrowth'),

@@ -1217,3 +1217,14 @@ uint32 GetScriptId(const char *name)
 {
     return sScriptMgr.GetScriptId(name);
 }
+
+char const* GetScriptName(uint32 id)
+{
+    return sScriptMgr.GetScriptName(id);
+}
+
+uint32 GetScriptIdsCount()
+{
+    return sScriptMgr.GetScriptIdsCount();
+}
+

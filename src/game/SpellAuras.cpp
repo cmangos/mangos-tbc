@@ -296,7 +296,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS]=
     &Aura::HandleComprehendLanguage,                        //244 SPELL_AURA_COMPREHEND_LANGUAGE
     &Aura::HandleUnused,                                    //245 unused
     &Aura::HandleUnused,                                    //246 unused
-    &Aura::HandleUnused,                                    //247 unused
+    &Aura::HandleAuraMirrorImage,                           //247 SPELL_AURA_MIRROR_IMAGE                      target to become a clone of the caster
     &Aura::HandleNoImmediateEffect,                         //248 SPELL_AURA_MOD_COMBAT_RESULT_CHANCE         implemented in Unit::RollMeleeOutcomeAgainst
     &Aura::HandleNULL,                                      //249
     &Aura::HandleAuraModIncreaseHealth,                     //250 SPELL_AURA_MOD_INCREASE_HEALTH_2
@@ -6417,6 +6417,44 @@ void Aura::HandleManaShield(bool apply, bool Real)
 
             m_modifier.m_amount += (int32)DoneActualBenefit;
         }
+    }
+}
+
+void Aura::HandleAuraMirrorImage(bool apply, bool Real)
+{
+    if (!Real)
+        return;
+
+    // Target of aura should always be creature (ref Spell::CheckCast)
+    Creature* pCreature = (Creature*)GetTarget();
+
+    if (apply)
+    {
+        // Caster can be player or creature, the unit who pCreature will become an clone of.
+        Unit* caster = GetCaster();
+
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 0, caster->getRace());
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 1, caster->getClass());
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 2, caster->getGender());
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 3, caster->getPowerType());
+
+        pCreature->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_CLONED);
+
+        pCreature->SetDisplayId(caster->GetNativeDisplayId());
+    }
+    else
+    {
+        const CreatureInfo* cinfo = pCreature->GetCreatureInfo();
+        const CreatureModelInfo* minfo = sObjectMgr.GetCreatureModelInfo(pCreature->GetNativeDisplayId());
+
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 0, 0);
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 1, cinfo->unit_class);
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
+        pCreature->SetByteValue(UNIT_FIELD_BYTES_0, 3, 0);
+
+        pCreature->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_CLONED);
+
+        pCreature->SetDisplayId(pCreature->GetNativeDisplayId());
     }
 }
 

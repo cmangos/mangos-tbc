@@ -1006,11 +1006,11 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                 // Vampiric Embrace
                 case 15286:
                 {
-                    if(!pVictim || !pVictim->isAlive())
+                    if (!pVictim || !pVictim->isAlive())
                         return SPELL_AURA_PROC_FAILED;
 
                     // pVictim is caster of aura
-                    if(triggeredByAura->GetCasterGUID() != pVictim->GetGUID())
+                    if (triggeredByAura->GetCasterGuid() != pVictim->GetObjectGuid())
                         return SPELL_AURA_PROC_FAILED;
 
                     // heal amount
@@ -2293,10 +2293,10 @@ SpellAuraProcResult Unit::HandleMendingAuraProc( Unit* /*pVictim*/, uint32 /*dam
 
                 // remove before apply next (locked against deleted)
                 triggeredByAura->SetInUse(true);
-                RemoveAurasByCasterSpell(spellProto->Id,caster->GetGUID());
+                RemoveAurasByCasterSpell(spellProto->Id,caster->GetObjectGuid());
 
                 caster->AddSpellMod(mod, true);
-                CastCustomSpell(target,spellProto->Id,&heal,NULL,NULL,true,NULL,triggeredByAura,caster->GetGUID());
+                CastCustomSpell(target, spellProto->Id, &heal, NULL, NULL, true, NULL, triggeredByAura, caster->GetObjectGuid());
                 caster->AddSpellMod(mod, false);
                 triggeredByAura->SetInUse(false);
             }

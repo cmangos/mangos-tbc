@@ -474,7 +474,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                             if (doses > combo)
                                 doses = combo;
 
-                            unitTarget->RemoveAuraHolderFromStack(spellId, doses, m_caster->GetGUID());
+                            unitTarget->RemoveAuraHolderFromStack(spellId, doses, m_caster->GetObjectGuid());
 
                             damage *= doses;
                             damage += int32(((Player*)m_caster)->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * doses);
@@ -3358,7 +3358,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
                 bool foundDispelled = false;
                 for (std::list<std::pair<SpellAuraHolder* ,uint32> >::iterator success_iter = success_list.begin(); success_iter != success_list.end(); ++success_iter)
                 {
-                    if (success_iter->first->GetId() == holder->GetId() && success_iter->first->GetCasterGUID() == holder->GetCasterGUID())
+                    if (success_iter->first->GetId() == holder->GetId() && success_iter->first->GetCasterGuid() == holder->GetCasterGuid())
                     {
                         success_iter->second += 1;
                         foundDispelled = true;
@@ -3384,7 +3384,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
                 SpellAuraHolder* dispelledHolder = j->first;
                 data << uint32(dispelledHolder->GetId());   // Spell Id
                 data << uint8(0);                           // 0 - dispelled !=0 cleansed
-                unitTarget->RemoveAuraHolderDueToSpellByDispel(dispelledHolder->GetId(), j->second, dispelledHolder->GetCasterGUID(), m_caster);
+                unitTarget->RemoveAuraHolderDueToSpellByDispel(dispelledHolder->GetId(), j->second, dispelledHolder->GetCasterGuid(), m_caster);
             }
             m_caster->SendMessageToSet(&data, true);
 
@@ -6173,7 +6173,8 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
     if(!unitTarget || unitTarget==m_caster)                 // can't steal from self
         return;
 
-    std::vector <SpellAuraHolder *> steal_list;
+    typedef std::vector<SpellAuraHolder*> StealList;
+    StealList steal_list;
     // Create dispel mask by dispel type
     uint32 dispelMask  = GetDispellMask( DispelType(m_spellInfo->EffectMiscValue[eff_idx]) );
     Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
@@ -6190,7 +6191,8 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
     // Ok if exist some buffs for dispel try dispel it
     if (!steal_list.empty())
     {
-        std::list < std::pair<uint32,uint64> > success_list;
+        typedef std::list < std::pair<uint32, ObjectGuid> > SuccessList;
+        SuccessList success_list;
         int32 list_size = steal_list.size();
         // Dispell N = damage buffs (or while exist buffs for dispel)
         for (int32 count=0; count < damage && list_size > 0; ++count)
@@ -6199,13 +6201,13 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
             SpellAuraHolder *holder = steal_list[urand(0, list_size-1)];
             // Not use chance for steal
             // TODO possible need do it
-            success_list.push_back( std::pair<uint32,uint64>(holder->GetId(),holder->GetCasterGUID()));
+            success_list.push_back(SuccessList::value_type(holder->GetId(),holder->GetCasterGuid()));
 
             // Remove buff from list for prevent doubles
-            for (std::vector<SpellAuraHolder *>::iterator j = steal_list.begin(); j != steal_list.end(); )
+            for (StealList::iterator j = steal_list.begin(); j != steal_list.end(); )
             {
                 SpellAuraHolder *stealed = *j;
-                if (stealed->GetId() == holder->GetId() && stealed->GetCasterGUID() == holder->GetCasterGUID())
+                if (stealed->GetId() == holder->GetId() && stealed->GetCasterGuid() == holder->GetCasterGuid())
                 {
                     j = steal_list.erase(j);
                     --list_size;
@@ -6224,7 +6226,7 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
             data << uint32(m_spellInfo->Id);         // Dispell spell id
             data << uint8(0);                        // not used
             data << uint32(count);                   // count
-            for (std::list<std::pair<uint32,uint64> >::iterator j = success_list.begin(); j != success_list.end(); ++j)
+            for (SuccessList::iterator j = success_list.begin(); j != success_list.end(); ++j)
             {
                 SpellEntry const* spellInfo = sSpellStore.LookupEntry(j->first);
                 data << uint32(spellInfo->Id);       // Spell Id

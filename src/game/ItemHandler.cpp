@@ -459,7 +459,7 @@ void WorldSession::HandleReadItemOpcode( WorldPacket & recv_data )
             DETAIL_LOG("STORAGE: Unable to read item");
             _player->SendEquipError( msg, pItem, NULL );
         }
-        data << pItem->GetGUID();
+        data << ObjectGuid(pItem->GetObjectGuid());
         SendPacket(&data);
     }
     else

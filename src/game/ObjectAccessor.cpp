@@ -76,7 +76,10 @@ Corpse* ObjectAccessor::GetCorpseInMap(ObjectGuid guid, uint32 mapid)
 Player*
 ObjectAccessor::FindPlayer(ObjectGuid guid)
 {
-    Player * plr = HashMapHolder<Player>::Find(guid.GetRawValue());
+    if (guid.IsEmpty())
+        return NULL;
+
+    Player * plr = HashMapHolder<Player>::Find(guid);;
     if(!plr || !plr->IsInWorld())
         return NULL;
 

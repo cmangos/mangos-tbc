@@ -297,7 +297,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         {
             if(GetTypeId() == TYPEID_PLAYER)
             {
-                *data << uint64(((Player*)this)->GetTransport()->GetGUID());
+                *data << ObjectGuid(((Player*)this)->GetTransport()->GetObjectGuid());
                 *data << float(((Player*)this)->GetTransOffsetX());
                 *data << float(((Player*)this)->GetTransOffsetY());
                 *data << float(((Player*)this)->GetTransOffsetZ());

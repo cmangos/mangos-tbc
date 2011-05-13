@@ -537,7 +537,7 @@ uint8 ArenaTeam::GetSlotByType(ArenaType type )
 bool ArenaTeam::HaveMember(ObjectGuid guid) const
 {
     for (MemberList::const_iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
-        if(itr->guid == guid.GetRawValue())
+        if(itr->guid == guid)
             return true;
 
     return false;

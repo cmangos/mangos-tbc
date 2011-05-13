@@ -188,7 +188,6 @@ Item* Bag::GetItemByEntry(uint32 item) const
 
 uint32 Bag::GetItemCount(uint32 item, Item* eItem) const
 {
-    Item *pItem;
     uint32 count = 0;
 
     for (uint32 i = 0; i < GetBagSize(); ++i)

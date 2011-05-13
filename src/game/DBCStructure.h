@@ -711,7 +711,7 @@ struct SpellEntry
     //uint32     castUI                                     // 2 not used
     uint32    Dispel;                                       // 3        m_dispelType
     uint32    Mechanic;                                     // 4        m_mechanic
-    uint32    Attributes;                                   // 5        m_attribute
+    uint32    Attributes;                                   // 5        m_attributes
     uint32    AttributesEx;                                 // 6        m_attributesEx
     uint32    AttributesEx2;                                // 7        m_attributesExB
     uint32    AttributesEx3;                                // 8        m_attributesExC

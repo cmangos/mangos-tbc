@@ -1195,7 +1195,10 @@ void WorldSession::HandleSocketOpcode(WorldPacket& recv_data)
     //cheat -> tried to socket same gem multiple times
     for(int i = 0; i < MAX_GEM_SOCKETS; ++i)
     {
-        ObjectGuid gemGuid = gemGuids[0];
+        ObjectGuid gemGuid = gemGuids[i];
+        if (gemGuid.IsEmpty())
+            continue;
+
         if (!gemGuid.IsItem())
             return;
 

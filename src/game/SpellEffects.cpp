@@ -5491,9 +5491,7 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
         default: return;
     }
 
-    ObjectGuid guid = m_caster->m_ObjectSlotGuid[slot];
-
-    if (!guid.IsEmpty())
+    if (ObjectGuid guid = m_caster->m_ObjectSlotGuid[slot])
     {
         if (GameObject* obj = m_caster ? m_caster->GetMap()->GetGameObject(guid) : NULL)
             obj->SetLootState(GO_JUST_DEACTIVATED);

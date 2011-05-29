@@ -88,6 +88,8 @@ class ChatHandler
 
         // function with different implementation for chat/console
         virtual const char *GetMangosString(int32 entry) const;
+        const char *GetOnOffStr(bool value) const;
+
         virtual void SendSysMessage(  const char *str);
 
         void SendSysMessage(          int32     entry);
@@ -307,6 +309,7 @@ class ChatHandler
         bool HandleNpcAddCommand(char* args);
         bool HandleNpcAddMoveCommand(char* args);
         bool HandleNpcAddVendorItemCommand(char* args);
+        bool HandleNpcAIInfoCommand(char* args);
         bool HandleNpcAllowMovementCommand(char* args);
         bool HandleNpcChangeEntryCommand(char* args);
         bool HandleNpcChangeLevelCommand(char* args);

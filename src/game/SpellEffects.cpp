@@ -1590,6 +1590,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                 case 31231:                                 // Cheat Death
                 {
+                    // Cheating Death
                     m_caster->CastSpell(m_caster, 45182, true);
                     return;
                 }

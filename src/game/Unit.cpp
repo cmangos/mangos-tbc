@@ -6533,8 +6533,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
     {
         switch((*i)->GetSpellProto()->SpellIconID)
         {
-            //Cheat Death
-            case 2109:
+            case 2109:                                      // Cheating Death
                 if((*i)->GetModifier()->m_miscvalue & SPELL_SCHOOL_MASK_NORMAL)
                 {
                     if(GetTypeId() != TYPEID_PLAYER)
@@ -6547,8 +6546,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit *pCaster, uint32 pdamage,WeaponAttackTyp
                     TakenPercent *= (mod + 100.0f) / 100.0f;
                 }
                 break;
-            //Mangle
-            case 2312:
+            case 2312:                                      // Mangle
                 if (mechanicMask & (1 << (MECHANIC_BLEED-1)))
                     TakenPercent *= (100.0f+(*i)->GetModifier()->m_amount)/100.0f;
                 break;

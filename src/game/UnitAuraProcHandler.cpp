@@ -1701,16 +1701,20 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                     target = pVictim;
                     break;
                 }
-                //case 44326: break;                        // Pure Energy Passive
+                //case 44326: break:                        // Pure Energy Passive
+                //case 44526: break;                        // Hate Monster (Spar) (30 sec)
+                //case 44527: break;                        // Hate Monster (Spar Buddy) (30 sec)
+                //case 44819: break;                        // Hate Monster (Spar Buddy) (>30% Health)
+                //case 44820: break;                        // Hate Monster (Spar) (<30%)
                 case 45057:                                 // Evasive Maneuvers (Commendation of Kael`thas trinket)
-                {
-                    // reduce you below $s1% health
-                    if (GetHealth() - damage > GetMaxHealth() * triggerAmount / 100)
+                    // reduce you below $s1% health (in fact in this specific case can proc from any attack while health in result less $s1%)
+                    if (int32(GetHealth()) - int32(damage) >= int32(GetMaxHealth() * triggerAmount / 100))
                         return SPELL_AURA_PROC_FAILED;
                     break;
-                }
                 //case 45205: break;                        // Copy Offhand Weapon
                 //case 45343: break;                        // Dark Flame Aura
+                //case 45903: break:                        // Offensive State
+                //case 46146: break:                        // [PH] Ahune  Spanky Hands
                 //case 46146: break;                        // [PH] Ahune  Spanky Hands
                 //case 47300: break;                        // Dark Flame Aura
                 //case 50051: break;                        // Ethereal Pet Aura
@@ -1808,7 +1812,8 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
             else if (auraSpellInfo->Id == 28845)
             {
                 // When your health drops below 20% ....
-                if (GetHealth() - damage > GetMaxHealth() / 5 || GetHealth() < GetMaxHealth() / 5)
+                int32 health20 = int32(GetMaxHealth()) / 5;
+                if (int32(GetHealth()) - int32(damage) >= health20 || int32(GetHealth()) < health20)
                     return SPELL_AURA_PROC_FAILED;
             }
             break;
@@ -2047,8 +2052,9 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
             // Nature's Guardian
             else if (auraSpellInfo->SpellIconID == 2013)
             {
-                // Check health condition - should drop to less 30% (damage deal after this!)
-                if (!(10*(int32(GetHealth() - damage)) < int32(3 * GetMaxHealth())))
+                // Check health condition - should drop to less 30% (trigger at any attack with result health less 30%, independent original health state)
+                int32 health30 = int32(GetMaxHealth()) * 3 / 10;
+                if (int32(GetHealth()) - int32(damage) >= health30)
                     return SPELL_AURA_PROC_FAILED;
 
                 if(pVictim && pVictim->isAlive())

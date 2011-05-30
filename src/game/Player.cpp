@@ -18554,6 +18554,13 @@ void Player::SendComboPoints()
         data << uint8(m_comboPoints);
         GetSession()->SendPacket(&data);
     }
+    /*else
+    {
+        // can be NULL, and then points=0. Use unknown; to reset points of some sort?
+        data << PackedGuid();
+        data << uint8(0);
+        GetSession()->SendPacket(&data);
+    }*/
 }
 
 void Player::AddComboPoints(Unit* target, int8 count)

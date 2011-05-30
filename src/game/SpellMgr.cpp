@@ -438,7 +438,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
                 return SPELL_CURSE;
 
             // family flag 37 (only part spells have family name)
-            if (spellInfo->SpellFamilyFlags & UI64LIT(0x2000000000))
+            if (spellInfo->IsFitToFamilyMask(UI64LIT(0x0000002000000000)))
                 return SPELL_WARLOCK_ARMOR;
 
             break;
@@ -459,7 +459,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
                 return SPELL_STING;
 
             // only hunter aspects have this (one have generic family)
-            if (spellInfo->SpellFamilyFlags & UI64LIT(0x0044000000380000))
+            if (spellInfo->IsFitToFamilyMask(UI64LIT(0x0044000000380000)))
                 return SPELL_ASPECT;
 
             break;
@@ -469,10 +469,10 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (IsSealSpell(spellInfo))
                 return SPELL_SEAL;
 
-            if (spellInfo->SpellFamilyFlags & UI64LIT(0x10000100))
+            if (spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000010000100)))
                 return SPELL_BLESSING;
 
-            if ((spellInfo->SpellFamilyFlags & UI64LIT(0x00000820180400)) && (spellInfo->AttributesEx3 & 0x200))
+            if ((spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000820180400))) && (spellInfo->AttributesEx3 & 0x200))
                 return SPELL_JUDGEMENT;
 
             for (int i = 0; i < 3; ++i)

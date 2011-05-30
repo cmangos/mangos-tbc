@@ -5255,10 +5255,9 @@ bool Unit::HasAuraStateForCaster(AuraState flag, ObjectGuid casterGuid) const
         Unit::AuraList const& dotList = GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
         for (Unit::AuraList::const_iterator i = dotList.begin(); i != dotList.end(); ++i)
         {
-            if ((*i)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_WARLOCK &&
-                (*i)->GetCasterGuid() == casterGuid &&
+            if ((*i)->GetCasterGuid() == casterGuid &&
                 //  Immolate
-                ((*i)->GetSpellProto()->SpellFamilyFlags & UI64LIT(0x0000000000000004)))
+                (*i)->GetSpellProto()->IsFitToFamily(SPELLFAMILY_WARLOCK, UI64LIT(0x0000000000000004)))
             {
                 return true;
             }
@@ -8760,7 +8759,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
                 {
                     if (spellProcEvent->spellFamilyMask[i])
                     {
-                        if ((spellProcEvent->spellFamilyMask[i] & procSpell->SpellFamilyFlags) == 0)
+                        if (!procSpell->IsFitToFamilyMask(spellProcEvent->spellFamilyMask[i]))
                             continue;
                     }
                     // don't check dbc FamilyFlags if schoolMask exists

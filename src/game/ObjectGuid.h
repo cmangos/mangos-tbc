@@ -69,6 +69,7 @@ enum HighGuid
     HIGHGUID_DYNAMICOBJECT  = 0xF100,                       // blizz F100
     HIGHGUID_CORPSE         = 0xF101,                       // blizz F100
     HIGHGUID_MO_TRANSPORT   = 0x1FC0,                       // blizz 1FC0 (for GAMEOBJECT_TYPE_MO_TRANSPORT)
+    HIGHGUID_GROUP          = 0x1F50,                       // blizz 1F5x
 };
 
 class ObjectGuid;
@@ -121,19 +122,20 @@ class MANGOS_DLL_SPEC ObjectGuid
 
         uint32 GetMaxCounter() const { return GetMaxCounter(GetHigh()); }
 
-        bool IsEmpty()         const { return m_guid == 0; }
-        bool IsCreature()      const { return GetHigh() == HIGHGUID_UNIT; }
-        bool IsPet()           const { return GetHigh() == HIGHGUID_PET; }
-        bool IsCreatureOrPet() const { return IsCreature() || IsPet(); }
-        bool IsAnyTypeCreature() const { return IsCreature() || IsPet(); }
-        bool IsPlayer()        const { return !IsEmpty() && GetHigh() == HIGHGUID_PLAYER; }
-        bool IsUnit()          const { return IsAnyTypeCreature() || IsPlayer(); }
-        bool IsItem()          const { return GetHigh() == HIGHGUID_ITEM; }
-        bool IsGameObject()    const { return GetHigh() == HIGHGUID_GAMEOBJECT; }
-        bool IsDynamicObject() const { return GetHigh() == HIGHGUID_DYNAMICOBJECT; }
-        bool IsCorpse()        const { return GetHigh() == HIGHGUID_CORPSE; }
-        bool IsTransport()     const { return GetHigh() == HIGHGUID_TRANSPORT; }
-        bool IsMOTransport()   const { return GetHigh() == HIGHGUID_MO_TRANSPORT; }
+        bool IsEmpty()             const { return m_guid == 0; }
+        bool IsCreature()          const { return GetHigh() == HIGHGUID_UNIT; }
+        bool IsPet()               const { return GetHigh() == HIGHGUID_PET; }
+        bool IsCreatureOrPet()     const { return IsCreature() || IsPet(); }
+        bool IsAnyTypeCreature()   const { return IsCreature() || IsPet(); }
+        bool IsPlayer()            const { return !IsEmpty() && GetHigh() == HIGHGUID_PLAYER; }
+        bool IsUnit()              const { return IsAnyTypeCreature() || IsPlayer(); }
+        bool IsItem()              const { return GetHigh() == HIGHGUID_ITEM; }
+        bool IsGameObject()        const { return GetHigh() == HIGHGUID_GAMEOBJECT; }
+        bool IsDynamicObject()     const { return GetHigh() == HIGHGUID_DYNAMICOBJECT; }
+        bool IsCorpse()            const { return GetHigh() == HIGHGUID_CORPSE; }
+        bool IsTransport()         const { return GetHigh() == HIGHGUID_TRANSPORT; }
+        bool IsMOTransport()       const { return GetHigh() == HIGHGUID_MO_TRANSPORT; }
+        bool IsGroup()             const { return GetHigh() == HIGHGUID_GROUP;                }
 
         static TypeID GetTypeId(HighGuid high)
         {
@@ -149,6 +151,7 @@ class MANGOS_DLL_SPEC ObjectGuid
                 case HIGHGUID_CORPSE:       return TYPEID_CORPSE;
                 case HIGHGUID_MO_TRANSPORT: return TYPEID_GAMEOBJECT;
                 // unknown
+                case HIGHGUID_GROUP:
                 default:                    return TYPEID_OBJECT;
             }
         }
@@ -175,6 +178,7 @@ class MANGOS_DLL_SPEC ObjectGuid
                 case HIGHGUID_DYNAMICOBJECT:
                 case HIGHGUID_CORPSE:
                 case HIGHGUID_MO_TRANSPORT:
+                case HIGHGUID_GROUP:
                     return false;
                 case HIGHGUID_GAMEOBJECT:
                 case HIGHGUID_TRANSPORT:

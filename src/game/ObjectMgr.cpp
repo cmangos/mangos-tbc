@@ -129,8 +129,7 @@ ObjectMgr::ObjectMgr() :
     m_GuildIds("Guild ids"),
     m_ItemTextIds("Item text ids"),
     m_MailIds("Mail ids"),
-    m_PetNumbers("Pet numbers"),
-    m_GroupIds("Group ids")
+    m_PetNumbers("Pet numbers")
 {
     // Only zero condition left, others will be added while loading DB tables
     mConditions.resize(1);
@@ -5393,8 +5392,6 @@ void ObjectMgr::PackGroupIds()
         bar.step();
     }
 
-    m_GroupIds.Set(groupId);
-
     sLog.outString( ">> Group Ids remapped, next group id is %u", groupId );
     sLog.outString();
 }
@@ -5482,7 +5479,7 @@ void ObjectMgr::SetHighestGuids()
     result = CharacterDatabase.Query( "SELECT MAX(groupId) FROM groups" );
     if (result)
     {
-        m_GroupIds.Set((*result)[0].GetUInt32()+1);
+        m_GroupGuids.Set((*result)[0].GetUInt32()+1);
         delete result;
     }
 

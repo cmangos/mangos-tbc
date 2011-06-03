@@ -110,7 +110,7 @@ void GameEventMgr::LoadFromDB()
     }
 
     QueryResult *result = WorldDatabase.Query("SELECT entry,UNIX_TIMESTAMP(start_time),UNIX_TIMESTAMP(end_time),occurence,length,holiday,description FROM game_event");
-    if( !result )
+    if (!result)
     {
         mGameEvent.clear();
         sLog.outString(">> Table game_event is empty!");
@@ -121,7 +121,7 @@ void GameEventMgr::LoadFromDB()
     uint32 count = 0;
 
     {
-        barGoLink bar( (int)result->GetRowCount() );
+        BarGoLink bar(result->GetRowCount());
         do
         {
             ++count;
@@ -173,9 +173,9 @@ void GameEventMgr::LoadFromDB()
         "FROM creature JOIN game_event_creature ON creature.guid = game_event_creature.guid");
 
     count = 0;
-    if( !result )
+    if (!result)
     {
-        barGoLink bar(1);
+        BarGoLink bar(1);
         bar.step();
 
         sLog.outString();
@@ -184,7 +184,7 @@ void GameEventMgr::LoadFromDB()
     else
     {
 
-        barGoLink bar( (int)result->GetRowCount() );
+        BarGoLink bar(result->GetRowCount());
         do
         {
             Field *fields = result->Fetch();
@@ -251,9 +251,9 @@ void GameEventMgr::LoadFromDB()
         "FROM gameobject JOIN game_event_gameobject ON gameobject.guid=game_event_gameobject.guid");
 
     count = 0;
-    if( !result )
+    if (!result)
     {
-        barGoLink bar(1);
+        BarGoLink bar(1);
         bar.step();
 
         sLog.outString();
@@ -262,7 +262,7 @@ void GameEventMgr::LoadFromDB()
     else
     {
 
-        barGoLink bar( (int)result->GetRowCount() );
+        BarGoLink bar(result->GetRowCount());
         do
         {
             Field *fields = result->Fetch();
@@ -342,9 +342,9 @@ void GameEventMgr::LoadFromDB()
         "FROM creature JOIN game_event_creature_data ON creature.guid=game_event_creature_data.guid");
 
     count = 0;
-    if( !result )
+    if (!result)
     {
-        barGoLink bar(1);
+        BarGoLink bar(1);
         bar.step();
 
         sLog.outString();
@@ -353,7 +353,7 @@ void GameEventMgr::LoadFromDB()
     else
     {
 
-        barGoLink bar( (int)result->GetRowCount() );
+        BarGoLink bar(result->GetRowCount());
         do
         {
             Field *fields = result->Fetch();
@@ -422,9 +422,9 @@ void GameEventMgr::LoadFromDB()
     result = WorldDatabase.Query("SELECT quest, event FROM game_event_quest");
 
     count = 0;
-    if( !result )
+    if (!result)
     {
-        barGoLink bar(1);
+        BarGoLink bar(1);
         bar.step();
 
         sLog.outString();
@@ -433,7 +433,7 @@ void GameEventMgr::LoadFromDB()
     else
     {
 
-        barGoLink bar( (int)result->GetRowCount() );
+        BarGoLink bar(result->GetRowCount());
         do
         {
             Field *fields = result->Fetch();
@@ -484,7 +484,7 @@ void GameEventMgr::LoadFromDB()
     count = 0;
     if (!result)
     {
-        barGoLink bar(1);
+        BarGoLink bar(1);
         bar.step();
 
         sLog.outString();
@@ -493,7 +493,7 @@ void GameEventMgr::LoadFromDB()
     else
     {
 
-        barGoLink bar((int)result->GetRowCount());
+        BarGoLink bar(result->GetRowCount());
         do
         {
             Field *fields = result->Fetch();

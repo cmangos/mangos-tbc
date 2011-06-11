@@ -1955,7 +1955,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit *pCaster, SpellSchoolMask schoolM
             case SPELLFAMILY_PRIEST:
             {
                 // Reflective Shield
-                if (spellProto->SpellFamilyFlags == 0x1 && canReflect)
+                if (spellProto->IsFitToFamilyMask(UI64LIT(0x0000000000000001)) && canReflect)
                 {
                     if (pCaster == this)
                         break;
@@ -5308,7 +5308,7 @@ void Unit::ModifyAuraState(AuraState flag, bool apply)
                 {
                     // exceptions (applied at state but not removed at state change)
                     // Rampage
-                    if(spellProto->SpellIconID==2006 && spellProto->SpellFamilyName==SPELLFAMILY_WARRIOR && spellProto->SpellFamilyFlags==UI64LIT(0x100000))
+                    if (spellProto->SpellIconID == 2006 && spellProto->IsFitToFamilyMask(UI64LIT(0x0000000000100000)))
                     {
                         ++itr;
                         continue;

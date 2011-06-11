@@ -7220,7 +7220,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
     switch(mtype)
     {
         case MOVE_WALK:
-            return;
+            break;
         case MOVE_RUN:
         {
             if (IsMounted()) // Use on mount auras

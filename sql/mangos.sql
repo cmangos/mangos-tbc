@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1272_11565_01_mangos_mangos_string` bit(1) default NULL
+  `required_s1308_xxxxx_01_mangos_instance_template` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -2112,7 +2112,7 @@ CREATE TABLE `instance_template` (
   `levelMin` tinyint(3) unsigned NOT NULL default '0',
   `levelMax` tinyint(3) unsigned NOT NULL default '0',
   `maxPlayers` tinyint(3) unsigned NOT NULL default '0',
-  `reset_delay` int(10) unsigned NOT NULL default '0',
+  `reset_delay` int(10) unsigned NOT NULL default '0' COMMENT 'Reset time in days',
   `ScriptName` varchar(128) NOT NULL default '',
   PRIMARY KEY  (`map`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -2124,32 +2124,32 @@ CREATE TABLE `instance_template` (
 LOCK TABLES `instance_template` WRITE;
 /*!40000 ALTER TABLE `instance_template` DISABLE KEYS */;
 INSERT INTO `instance_template` VALUES
-(33,0,22,30,10,7200,''),
-(34,0,24,32,10,7200,''),
-(36,0,15,20,10,7200,''),
-(43,0,15,21,10,7200,''),
-(47,0,29,38,10,7200,''),
-(48,0,24,32,10,7200,''),
-(70,0,35,47,10,7200,''),
-(90,0,29,38,10,7200,''),
-(109,0,45,55,10,7200,''),
-(129,0,37,46,10,7200,''),
-(189,0,34,45,10,7200,''),
-(209,0,44,54,10,7200,''),
-(229,0,58,0,10,120000,''),
-(230,0,52,0,5,7200,''),
-(249,0,60,0,40,432000,''),
-(289,0,57,0,5,7200,''),
-(309,0,60,0,20,259200,''),
-(329,0,58,60,5,7200,''),
-(349,0,46,55,10,7200,''),
-(389,0,13,18,10,7200,''),
-(409,0,60,0,40,604800,''),
-(429,0,55,60,5,7200,''),
-(469,0,60,0,40,604800,''),
-(509,0,60,0,20,259200,''),
-(531,0,60,0,40,604800,''),
-(533,0,60,0,40,604800,'');
+(33,0,22,30,10,0,''),
+(34,0,24,32,10,0,''),
+(36,0,15,20,10,0,''),
+(43,0,15,21,10,0,''),
+(47,0,29,38,10,0,''),
+(48,0,24,32,10,0,''),
+(70,0,35,47,10,0,''),
+(90,0,29,38,10,0,''),
+(109,0,45,55,10,0,''),
+(129,0,37,46,10,0,''),
+(189,0,34,45,10,0,''),
+(209,0,44,54,10,0,''),
+(229,0,58,0,10,0,''),
+(230,0,52,0,5,0,''),
+(249,0,60,0,40,0,''),
+(289,0,57,0,5,0,''),
+(309,0,60,0,20,0,''),
+(329,0,58,60,5,0,''),
+(349,0,46,55,10,0,''),
+(389,0,13,18,10,0,''),
+(409,0,60,0,40,0,''),
+(429,0,55,60,5,0,''),
+(469,0,60,0,40,0,''),
+(509,0,60,0,20,0,''),
+(531,0,60,0,40,0,''),
+(533,0,60,0,40,0,'');
 /*!40000 ALTER TABLE `instance_template` ENABLE KEYS */;
 UNLOCK TABLES;
 

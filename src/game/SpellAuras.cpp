@@ -6482,6 +6482,29 @@ void Aura::HandleManaShield(bool apply, bool Real)
     }
 }
 
+void Aura::HandleArenaPreparation(bool apply, bool Real)
+{
+    if(!Real)
+        return;
+
+    Unit* target = GetTarget();
+
+    target->ApplyModFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PREPARATION, apply);
+
+    if (apply)
+    {
+        // max regen powers at start preparation
+        target->SetHealth(target->GetMaxHealth());
+        target->SetPower(POWER_MANA, target->GetMaxPower(POWER_MANA));
+        target->SetPower(POWER_ENERGY, target->GetMaxPower(POWER_ENERGY));
+    }
+    else
+    {
+        // reset originally 0 powers at start/leave
+        target->SetPower(POWER_RAGE, 0);
+    }
+}
+
 void Aura::HandleAuraMirrorImage(bool apply, bool Real)
 {
     if (!Real)
@@ -6518,6 +6541,15 @@ void Aura::HandleAuraMirrorImage(bool apply, bool Real)
 
         pCreature->SetDisplayId(pCreature->GetNativeDisplayId());
     }
+}
+
+void Aura::HandleAuraSafeFall( bool Apply, bool Real )
+{
+    // implemented in WorldSession::HandleMovementOpcodes
+
+    // only special case
+    if(Apply && Real && GetId() == 32474 && GetTarget()->GetTypeId() == TYPEID_PLAYER)
+        ((Player*)GetTarget())->ActivateTaxiPathTo(506, GetId());
 }
 
 bool Aura::IsLastAuraOnHolder()
@@ -7080,26 +7112,6 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
     }
 
     SetInUse(false);
-}
-
-void Aura::HandleArenaPreparation(bool apply, bool Real)
-{
-    if(!Real)
-        return;
-
-    if(apply)
-        GetTarget()->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PREPARATION);
-    else
-        GetTarget()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PREPARATION);
-}
-
-void Aura::HandleAuraSafeFall( bool Apply, bool Real )
-{
-    // implemented in WorldSession::HandleMovementOpcodes
-
-    // only special case
-    if(Apply && Real && GetId() == 32474 && GetTarget()->GetTypeId() == TYPEID_PLAYER)
-        ((Player*)GetTarget())->ActivateTaxiPathTo(506, GetId());
 }
 
 SpellAuraHolder::~SpellAuraHolder()

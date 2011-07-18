@@ -3774,41 +3774,41 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         case SPELLFAMILY_ROGUE:
         {
             // Kidney Shot
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x00000200000))
+            if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000200000)))
                 return DIMINISHING_KIDNEYSHOT;
             // Blind
-            else if (spellproto->SpellFamilyFlags & UI64LIT(0x00001000000))
+            else if (spellproto->IsFitToFamilyMask(UI64LIT(0x00001000000)))
                 return DIMINISHING_BLIND_CYCLONE;
             break;
         }
         case SPELLFAMILY_HUNTER:
         {
             // Freezing trap
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x00000000008))
+            if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000008)))
                 return DIMINISHING_FREEZE;
             break;
         }
         case SPELLFAMILY_WARLOCK:
         {
             // Fear
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x40840000000))
+            if (spellproto->IsFitToFamilyMask(UI64LIT(0x40840000000)))
                 return DIMINISHING_WARLOCK_FEAR;
             // Curses/etc
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x00080000000))
+            if (spellproto->IsFitToFamilyMask(UI64LIT(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
             break;
         }
         case SPELLFAMILY_DRUID:
         {
             // Cyclone
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x02000000000))
+            if (spellproto->IsFitToFamilyMask(UI64LIT(0x02000000000)))
                 return DIMINISHING_BLIND_CYCLONE;
             break;
         }
         case SPELLFAMILY_WARRIOR:
         {
             // Hamstring - limit duration to 10s in PvP
-            if (spellproto->SpellFamilyFlags & UI64LIT(0x00000000002))
+            if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000002)))
                 return DIMINISHING_LIMITONLY;
             break;
         }

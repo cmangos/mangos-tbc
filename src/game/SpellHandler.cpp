@@ -148,7 +148,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
         uint32 spellid = 0;
         for(int i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
         {
-            if( proto->Spells[i].SpellTrigger == ITEM_SPELLTRIGGER_ON_USE || proto->Spells[i].SpellTrigger == ITEM_SPELLTRIGGER_ON_NO_DELAY_USE)
+            if( proto->Spells[i].SpellTrigger == ITEM_SPELLTRIGGER_ON_USE)
             {
                 spellid = proto->Spells[i].SpellId;
                 break;

@@ -4048,7 +4048,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     NewSummon->InitStatsForLevel(petlevel, m_caster);
     NewSummon->InitPetCreateSpells();
 
-    if(NewSummon->getPetType()==SUMMON_PET)
+    if (NewSummon->getPetType() == SUMMON_PET)
     {
         // Remove Demonic Sacrifice auras (new pet)
         Unit::AuraList const& auraClassScripts = m_caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
@@ -4062,13 +4062,17 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
             else
                 ++itr;
         }
+    }
 
+    if (m_caster->GetTypeId() == TYPEID_PLAYER && NewSummon->getPetType() == SUMMON_PET)
+    {
         // generate new name for summon pet
         std::string new_name=sObjectMgr.GeneratePetName(petentry);
-        if(!new_name.empty())
+        if (!new_name.empty())
             NewSummon->SetName(new_name);
     }
-    else if(NewSummon->getPetType() == HUNTER_PET)
+
+    if (NewSummon->getPetType() == HUNTER_PET)
     {
         NewSummon->RemoveByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED);
         NewSummon->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_ABANDONED);

@@ -13079,16 +13079,32 @@ void Player::RewardQuest(Quest const *pQuest, uint32 reward, Object* questGiver,
 
     QuestStatusData& q_status = mQuestStatus[quest_id];
 
-    // Not give XP in case already completed once repeatable quest
-    uint32 XP = q_status.m_rewarded ? 0 : uint32(pQuest->XPValue(this)*sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
+    // Used for client inform but rewarded only in case not max level
+    uint32 xp = uint32(pQuest->XPValue(this) * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
 
     if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
-        GiveXP(XP , NULL);
-    else
-        ModifyMoney( int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY)) );
+    {
+        GiveXP(xp , NULL);
 
-    // Give player extra money if GetRewOrReqMoney > 0 and get ReqMoney if negative
-    ModifyMoney(pQuest->GetRewOrReqMoney());
+        // Give player extra money (for max level already included in pQuest->GetRewMoneyMaxLevel())
+        if (pQuest->GetRewOrReqMoney() > 0)
+            ModifyMoney(pQuest->GetRewOrReqMoney());
+    }
+    else
+    {
+        // reward money for max level already included in pQuest->GetRewMoneyMaxLevel()
+        uint32 money = uint32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY));
+
+        // reward money used if > xp replacement money
+        if (pQuest->GetRewOrReqMoney() > int32(money))
+            money = pQuest->GetRewOrReqMoney();
+
+        ModifyMoney(money);
+    }
+
+    // req money case
+    if (pQuest->GetRewOrReqMoney() < 0)
+        ModifyMoney(pQuest->GetRewOrReqMoney());
 
     // honor reward
     if (pQuest->GetRewHonorableKills())
@@ -13118,7 +13134,7 @@ void Player::RewardQuest(Quest const *pQuest, uint32 reward, Object* questGiver,
         q_status.uState = QUEST_CHANGED;
 
     if (announce)
-        SendQuestReward(pQuest, XP, questGiver);
+        SendQuestReward(pQuest, xp, questGiver);
 
     bool handled = false;
 

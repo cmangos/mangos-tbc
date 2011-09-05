@@ -399,21 +399,12 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE *output, WMORoot *rootWMO, bool pPrecis
         int LIQU_h[] = {0x5551494C, sizeof(WMOLiquidHeader) + LiquEx_size + hlq->xtiles*hlq->ytiles};// "LIQU"
         fwrite(LIQU_h, 4, 2, output);
 
-        // according to WoW.Dev Wiki:
-        uint32 liquidEntry;
-        if (rootWMO->liquidType & 4)
-            liquidEntry = liquidType;
-        else if (liquidType == 15)
-            liquidEntry = 1; // first entry, generic "Water"
-        else
-            liquidEntry = liquidType + 1;
-        // overwrite material type in header...
-        hlq->type = LiqType[liquidEntry];
-
         /* std::ofstream llog("Buildings/liquid.log", ios_base::out | ios_base::app);
         llog << filename;
-        llog << ":\nliquidEntry: " << liquidEntry << " type: " << hlq->type << " (root:" << rootWMO->liquidType << " group:" << liquidType << ")\n";
+        llog << ":\ntype: " << hlq->type << " (root:" << rootWMO->liquidType << " group:" << liquidType << ")\n";
         llog.close(); */
+
+        hlq->type = ConvertLiquidType(hlq->type, filename);
 
         fwrite(hlq, sizeof(WMOLiquidHeader), 1, output);
         // only need height values, the other values are unknown anyway
@@ -424,6 +415,24 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE *output, WMORoot *rootWMO, bool pPrecis
     }
 
     return nColTriangles;
+}
+
+int WMOGroup::ConvertLiquidType(int hlqLiquid, std::string &filename)
+{
+    if (hlqLiquid == 4)                                             // lava in Blackrock Mountain, Blackrock Depths, Blackrock Spire and Old Ironforge
+        return 2;
+
+    filename = filename.substr(0, filename.find_last_of("\\"));     // trim filename
+    filename = filename.substr(filename.find_last_of("\\") + 1);    // trim everything except current wmo path part
+
+    if (hlqLiquid == 3 && filename == "AZ_Blackrock")               // lava in Molten Core
+        return 2;
+    else if (filename == "KL_OrgrimmarLavaDungeon")                 // lava in Ragefire Chasm
+        return 2;
+    else if (hlqLiquid == 8 && filename == "LD_Stratholme")         // slime in Naxxramas
+        return 3;
+    else
+        return 0;
 }
 
 WMOGroup::~WMOGroup()

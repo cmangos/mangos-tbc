@@ -57,6 +57,7 @@ const char GtRegenHPPerSptfmt[]="f";
 const char GtRegenMPPerSptfmt[]="f";
 const char Itemfmt[]="niii";
 const char ItemBagFamilyfmt[]="nxxxxxxxxxxxxxxxxx";
+const char ItemClassfmt[]="nxxssssssssssssssssx";
 //const char ItemDisplayTemplateEntryfmt[]="nxxxxxxxxxxixxxxxxxxxxx";
 //const char ItemCondExtCostsEntryfmt[]="xiii";
 const char ItemExtendedCostEntryfmt[]="niiiiiiiiiiiii";

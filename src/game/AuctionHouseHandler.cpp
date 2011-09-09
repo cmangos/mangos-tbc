@@ -119,12 +119,13 @@ void WorldSession::SendAuctionOwnerNotification(AuctionEntry* auction, bool sold
     data << uint32(auction->bid);                           // if 0, client shows ERR_AUCTION_EXPIRED_S, else ERR_AUCTION_SOLD_S (works only when guid==0)
     data << uint32(auction->GetAuctionOutBid());            // AuctionOutBid?
 
-    ObjectGuid guid = ObjectGuid();
+    ObjectGuid bidder_guid = ObjectGuid();
     if (!sold)                                               // not sold yet
-        guid = ObjectGuid(HIGHGUID_PLAYER, auction->bidder);// bidder==0 and !sold for expired auctions, so it will show error message properly
+        bidder_guid = ObjectGuid(HIGHGUID_PLAYER, auction->bidder);
 
-    // if guid!=0, client updates auctions with new bid, outbid and bidderGuid, else it shows error messages as described above
-    data << guid;                                           // bidder guid
+    // bidder==0 and moneyDeliveryTime==0 for expired auctions, and client shows error messages as described above
+    // if bidder!=0 client updates auctions with new bid, outbid and bidderGuid
+    data << bidder_guid;                                    // bidder guid
     data << uint32(auction->itemTemplate);                  // item entry
     data << uint32(auction->itemRandomPropertyId);
 
@@ -149,7 +150,7 @@ void WorldSession::SendAuctionOutbiddedMail(AuctionEntry *auction)
     Player *oldBidder = sObjectMgr.GetPlayer(oldBidder_guid);
 
     uint32 oldBidder_accId = 0;
-    if(!oldBidder)
+    if(!oldBidder && oldBidder_guid)
         oldBidder_accId = sObjectMgr.GetPlayerAccountIdByGUID(oldBidder_guid);
 
     // old bidder exist
@@ -174,7 +175,7 @@ void WorldSession::SendAuctionCancelledToBidderMail(AuctionEntry* auction)
     Player *bidder = sObjectMgr.GetPlayer(bidder_guid);
 
     uint32 bidder_accId = 0;
-    if (!bidder)
+    if (!bidder && bidder_guid)
         bidder_accId = sObjectMgr.GetPlayerAccountIdByGUID(bidder_guid);
 
     // bidder exist
@@ -371,10 +372,6 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket & recv_data)
         return;
     }
 
-    // cheating
-    if (price < auction->startbid)
-        return;
-
     // cheating or client lags
     if (price <= auction->bid)
     {
@@ -399,61 +396,13 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket & recv_data)
         return;
     }
 
-    if ((price < auction->buyout) || (auction->buyout == 0))// bid
-    {
-        if (pl->GetGUIDLow() == auction->bidder)
-        {
-            pl->ModifyMoney(-int32(price - auction->bid));
-        }
-        else
-        {
-            pl->ModifyMoney(-int32(price));
-            if (auction->bidder)                            // return money to old bidder if present
-                SendAuctionOutbiddedMail(auction);
-        }
+    // cheating
+    if (price < auction->startbid)
+        return;
 
-        auction->bidder = pl->GetGUIDLow();
-        auction->bid = price;
+    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
 
-        SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
-
-        if (auction_owner)
-            auction_owner->GetSession()->SendAuctionOwnerNotification(auction, false);
-
-        // after this update we should save player's money ...
-        CharacterDatabase.PExecute("UPDATE auction SET buyguid = '%u', lastbid = '%u' WHERE id = '%u'", auction->bidder, auction->bid, auction->Id);
-    }
-    else                                                    // buyout
-    {
-        if (pl->GetGUIDLow() == auction->bidder)
-        {
-            pl->ModifyMoney(-int32(auction->buyout - auction->bid));
-        }
-        else
-        {
-            pl->ModifyMoney(-int32(auction->buyout));
-            if (auction->bidder)                            // return money to old bidder if present
-                SendAuctionOutbiddedMail(auction);
-        }
-
-        auction->bidder = pl->GetGUIDLow();
-        auction->bid = auction->buyout;
-
-        SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
-
-        sAuctionMgr.SendAuctionSalePendingMail(auction);
-        sAuctionMgr.SendAuctionSuccessfulMail(auction);
-        sAuctionMgr.SendAuctionWonMail(auction);
-
-        sAuctionMgr.RemoveAItem(auction->itemGuidLow);
-        auctionHouse->RemoveAuction(auction->Id);
-        auction->DeleteFromDB();
-
-        delete auction;
-    }
-    CharacterDatabase.BeginTransaction();
-    pl->SaveInventoryAndGoldToDB();
-    CharacterDatabase.CommitTransaction();
+    auction->UpdateBid(price, pl);
 }
 
 // this void is called when auction_owner cancels his auction
@@ -496,13 +445,15 @@ void WorldSession::HandleAuctionRemoveItem(WorldPacket & recv_data)
         return;
     }
 
-    if (auction->bidder > 0)                        // If we have a bidder, we have to send him the money he paid
+    if (auction->bid)                                       // If we have a bid, we have to send him the money he paid
     {
         uint32 auctionCut = auction->GetAuctionCut();
-        if (pl->GetMoney() < auctionCut)            // player doesn't have enough money, maybe message needed
+        if (pl->GetMoney() < auctionCut)                    // player doesn't have enough money, maybe message needed
             return;
 
-        SendAuctionCancelledToBidderMail(auction);
+        if (auction->bidder)                                // if auction have real existed bidder send mail
+            SendAuctionCancelledToBidderMail(auction);
+
         pl->ModifyMoney(-int32(auctionCut));
     }
     // Return the item by mail

@@ -131,7 +131,7 @@ void AuctionHouseMgr::SendAuctionWonMail(AuctionEntry *auction)
     if (bidder || bidder_accId)
     {
         std::ostringstream msgAuctionWonSubject;
-        msgAuctionWonSubject << auction->itemTemplate << ":0:" << AUCTION_WON;
+        msgAuctionWonSubject << auction->itemTemplate << ":" << auction->itemRandomPropertyId << ":" << AUCTION_WON;
 
         std::ostringstream msgAuctionWonBody;
         msgAuctionWonBody.width(16);
@@ -173,7 +173,7 @@ void AuctionHouseMgr::SendAuctionSalePendingMail(AuctionEntry * auction)
     if (owner || owner_guid && sObjectMgr.GetPlayerAccountIdByGUID(owner_guid))
     {
         std::ostringstream msgAuctionSalePendingSubject;
-        msgAuctionSalePendingSubject << auction->itemTemplate << ":0:" << AUCTION_SALE_PENDING;
+        msgAuctionSalePendingSubject << auction->itemTemplate << ":" << auction->itemRandomPropertyId << ":" << AUCTION_SALE_PENDING;
 
         std::ostringstream msgAuctionSalePendingBody;
         uint32 auctionCut = auction->GetAuctionCut();
@@ -207,7 +207,7 @@ void AuctionHouseMgr::SendAuctionSuccessfulMail(AuctionEntry * auction)
     if (owner || owner_accId)
     {
         std::ostringstream msgAuctionSuccessfulSubject;
-        msgAuctionSuccessfulSubject << auction->itemTemplate << ":0:" << AUCTION_SUCCESSFUL;
+        msgAuctionSuccessfulSubject << auction->itemTemplate << ":" << auction->itemRandomPropertyId << ":" << AUCTION_SUCCESSFUL;
 
         std::ostringstream auctionSuccessfulBody;
         uint32 auctionCut = auction->GetAuctionCut();
@@ -254,7 +254,7 @@ void AuctionHouseMgr::SendAuctionExpiredMail(AuctionEntry * auction)
     if (owner || owner_accId)
     {
         std::ostringstream subject;
-        subject << auction->itemTemplate << ":0:" << AUCTION_EXPIRED;
+        subject << auction->itemTemplate << ":" << auction->itemRandomPropertyId << ":" << AUCTION_EXPIRED;
 
         if (owner)
             owner->GetSession()->SendAuctionOwnerNotification(auction, false);
@@ -443,7 +443,7 @@ void AuctionHouseMgr::LoadAuctions()
 
             // Attempt send item back to owner
             std::ostringstream msgAuctionCanceledOwner;
-            msgAuctionCanceledOwner << auction->itemTemplate << ":0:" << AUCTION_CANCELED;
+            msgAuctionCanceledOwner << auction->itemTemplate << ":" << auction->itemRandomPropertyId << ":" << AUCTION_CANCELED;
 
             if (auction->itemGuidLow)
             {

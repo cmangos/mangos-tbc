@@ -56,8 +56,10 @@ enum AuctionAction
 struct AuctionEntry
 {
     uint32 Id;
-    uint32 itemGuidLow;
+    uint32 itemGuidLow;                                     // can be 0 after send won mail with item
     uint32 itemTemplate;
+    uint32 itemCount;
+    int32 itemRandomPropertyId;
     uint32 owner;                                           // player low guid, can be 0 for server generated auction
     std::wstring ownerName;                                 // cache name for sorting
     uint32 startbid;                                        // maybe useless

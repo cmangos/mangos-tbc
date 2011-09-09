@@ -117,7 +117,7 @@ class AuctionHouseObject
 
         bool RemoveAuction(uint32 id)
         {
-            return AuctionsMap.erase(id) ? true : false;
+            return AuctionsMap.erase(id);
         }
 
         void Update();

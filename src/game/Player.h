@@ -1841,7 +1841,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void CastItemUseSpell(Item *item,SpellCastTargets const& targets,uint8 cast_count);
 
         void ApplyItemOnStoreSpell(Item *item, bool apply);
-        void DestroyItemWithOnStoreSpell(Item* item);
+        void DestroyItemWithOnStoreSpell(Item* item, uint32 spellId);
 
         void SendInitWorldStates(uint32 zone, uint32 area);
         void SendUpdateWorldState(uint32 Field, uint32 Value);

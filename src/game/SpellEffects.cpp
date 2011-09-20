@@ -4083,7 +4083,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     if (m_caster->GetTypeId() == TYPEID_PLAYER && NewSummon->getPetType() == SUMMON_PET)
     {
         // generate new name for summon pet
-        std::string new_name=sObjectMgr.GeneratePetName(petentry);
+        std::string new_name = sObjectMgr.GeneratePetName(petentry);
         if (!new_name.empty())
             NewSummon->SetName(new_name);
     }
@@ -4511,7 +4511,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     uint32 spell_id = 0;
-                    switch(urand(1,5))
+                    switch(urand(1, 5))
                     {
                         case 1:  spell_id = 8854; break;
                         default: spell_id = 8855; break;
@@ -4823,6 +4823,22 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 38353, true, NULL, NULL, m_caster->GetObjectGuid());
                     return;
                 }
+                case 29395:                                 // Break Kaliri Egg
+                {
+                    uint32 creature_id = 0;
+                    uint32 rand = urand(0, 99);
+
+                    if (rand < 10)
+                        creature_id = 17034;
+                    else if (rand < 60)
+                        creature_id = 17035;
+                    else
+                        creature_id = 17039;
+
+                    if (WorldObject* pSource = GetAffectiveCasterObject())
+                        pSource->SummonCreature(creature_id, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OR_DEAD_DESPAWN, 120*IN_MILLISECONDS);
+                    return;
+                }
                 case 41055:                                 // Copy Weapon
                 {
                     if (m_caster->GetTypeId() != TYPEID_UNIT || !unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -5053,7 +5069,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     // don't overwrite an existing aura
                     for(uint8 i = 0; i < 5; ++i)
-                        if(unitTarget->HasAura(spellid+i, EFFECT_INDEX_0))
+                        if (unitTarget->HasAura(spellid + i, EFFECT_INDEX_0))
                             return;
 
                     unitTarget->CastSpell(unitTarget, spellid+urand(0, 4), true);
@@ -6112,7 +6128,8 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
     pGameObj->SummonLinkedTrapIfAny();
 
     if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
-        ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);}
+        ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
+}
 
 void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
 {

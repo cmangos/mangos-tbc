@@ -74,7 +74,7 @@ class MANGOS_DLL_SPEC WaypointMovementGenerator<Creature>
 public PathMovementBase<Creature, WaypointPath const*>
 {
     public:
-        WaypointMovementGenerator(Creature &) : i_nextMoveTime(0), m_isArrivalDone(false), m_isStoppedByPlayer(false) {}
+        WaypointMovementGenerator(Creature &) : i_nextMoveTime(0), m_isArrivalDone(false) {}
         ~WaypointMovementGenerator() { i_path = NULL; }
         void Initialize(Creature &u);
         void Interrupt(Creature &);
@@ -89,19 +89,34 @@ public PathMovementBase<Creature, WaypointPath const*>
         // now path movement implmementation
         void LoadPath(Creature &c);
 
-        // Player stoping creature
-        bool IsStoppedByPlayer() { return m_isStoppedByPlayer; }
-        void SetStoppedByPlayer(bool val) { m_isStoppedByPlayer = val; }
-
         // allow use for overwrite empty implementation
         bool GetDestination(float& x, float& y, float& z) const { return PathMovementBase<Creature, WaypointPath const*>::GetDestination(x,y,z); }
 
         bool GetResetPosition(Creature&, float& x, float& y, float& z);
 
     private:
+
+        void Stop(int32 time) { i_nextMoveTime.Reset(time);}
+
+        bool Stopped() { return !i_nextMoveTime.Passed();}
+
+        bool CanMove(int32 diff)
+        {
+            i_nextMoveTime.Update(diff);
+            return i_nextMoveTime.Passed();
+        }
+
+        void OnArrived(Creature&);
+        void StartMove(Creature&);
+
+        void StartMoveNow(Creature& creature)
+        {
+            i_nextMoveTime.Reset(0);
+            StartMove(creature);
+        }
+
         ShortTimeTracker i_nextMoveTime;
         bool m_isArrivalDone;
-        bool m_isStoppedByPlayer;
 };
 
 /** FlightPathMovementGenerator generates movement of the player for the paths

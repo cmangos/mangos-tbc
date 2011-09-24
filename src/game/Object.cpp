@@ -38,10 +38,9 @@
 #include "CellImpl.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
-
 #include "ObjectPosSelector.h"
-
 #include "TemporarySummon.h"
+#include "movement/packet_builder.h"
 
 Object::Object( )
 {
@@ -250,37 +249,20 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
     if (updateFlags & UPDATEFLAG_LIVING)
     {
         Unit *unit = ((Unit*)this);
-        MovementInfo& moveInfo = unit->m_movementInfo;
 
-        switch(GetTypeId())
+        if (GetTypeId() == TYPEID_PLAYER)
         {
-            case TYPEID_UNIT:
-            {
-                moveInfo.SetMovementFlags(((Creature*)this)->CanFly() ? MOVEMENTFLAG_FORWARD : MOVEMENTFLAG_NONE);
-            }
-            break;
-            case TYPEID_PLAYER:
-            {
-                Player *player = ((Player*)this);
-                if (player->GetTransport())
-                    moveInfo.AddMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
-                else
-                    moveInfo.RemoveMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
-
-                // remove unknown, unused etc flags for now
-                moveInfo.RemoveMovementFlag(MOVEMENTFLAG_SPLINE_ENABLED);      // will be set manually
-
-                if(player->IsTaxiFlying())
-                {
-                    MANGOS_ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
-                    moveInfo.AddMovementFlag(MovementFlags(MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_SPLINE_ENABLED));
-                }
-            }
-            break;
+            Player *player = ((Player*)unit);
+            if(player->GetTransport())
+                player->m_movementInfo.AddMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
+            else
+                player->m_movementInfo.RemoveMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
         }
 
+        // Update movement info time
         unit->m_movementInfo.UpdateTime(WorldTimer::getMSTime());
-        *data << unit->m_movementInfo;
+        // Write movement info
+        unit->m_movementInfo.Write(*data);
 
         // Unit speeds
         *data << float(unit->GetSpeed(MOVE_WALK));
@@ -293,73 +275,8 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         *data << float(unit->GetSpeed(MOVE_TURN_RATE));
 
         // 0x08000000
-        if(moveInfo.GetMovementFlags() & MOVEMENTFLAG_SPLINE_ENABLED)
-        {
-            if(GetTypeId() != TYPEID_PLAYER)
-            {
-                DEBUG_LOG("_BuildMovementUpdate: MOVEMENTFLAG_SPLINE_ENABLED for non-player");
-                return;
-            }
-
-            Player *player = ((Player*)unit);
-
-            if(!player->IsTaxiFlying())
-            {
-                DEBUG_LOG("_BuildMovementUpdate: MOVEMENTFLAG_SPLINE_ENABLED but not in flight");
-                return;
-            }
-
-            MANGOS_ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
-
-            FlightPathMovementGenerator *fmg = (FlightPathMovementGenerator*)(player->GetMotionMaster()->top());
-
-            uint32 flags3 = 0x00000300;
-
-            *data << uint32(flags3);                        // splines flag?
-
-            if(flags3 & 0x10000)                            // probably x,y,z coords there
-            {
-                *data << (float)0;
-                *data << (float)0;
-                *data << (float)0;
-            }
-
-            if(flags3 & 0x20000)                            // probably guid there
-            {
-                *data << uint64(0);
-            }
-
-            if(flags3 & 0x40000)                            // may be orientation
-            {
-                *data << (float)0;
-            }
-
-            TaxiPathNodeList const& path = fmg->GetPath();
-
-            float x, y, z;
-            player->GetPosition(x, y, z);
-
-            uint32 inflighttime = uint32(path.GetPassedLength(fmg->GetCurrentNode(), x, y, z) * 32);
-            uint32 traveltime = uint32(path.GetTotalLength() * 32);
-
-            *data << uint32(inflighttime);                  // passed move time?
-            *data << uint32(traveltime);                    // full move time?
-            *data << uint32(0);                             // sequenceId
-
-            uint32 poscount = uint32(path.size());
-            *data << uint32(poscount);                      // points count
-
-            for(uint32 i = 0; i < poscount; ++i)
-            {
-                *data << float(path[i].x);
-                *data << float(path[i].y);
-                *data << float(path[i].z);
-            }
-
-            *data << float(path[poscount-1].x);
-            *data << float(path[poscount-1].y);
-            *data << float(path[poscount-1].z);
-        }
+        if (unit->m_movementInfo.GetMovementFlags() & MOVEMENTFLAG_SPLINE_ENABLED)
+            Movement::PacketBuilder::WriteCreate(*unit->movespline, *data);
     }
     // 0x40
     else if (updateFlags & UPDATEFLAG_HAS_POSITION)

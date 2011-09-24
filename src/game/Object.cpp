@@ -245,128 +245,42 @@ void Object::DestroyForPlayer( Player *target ) const
 
 void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
 {
-    uint32 moveFlags = MOVEFLAG_NONE;
-
     *data << uint8(updateFlags);                            // update flags
 
     if (updateFlags & UPDATEFLAG_LIVING)
     {
+        Unit *unit = ((Unit*)this);
+        MovementInfo& moveInfo = unit->m_movementInfo;
+
         switch(GetTypeId())
         {
             case TYPEID_UNIT:
             {
-                moveFlags = ((Creature*)this)->CanFly() ? (MOVEFLAG_FORWARD | MOVEFLAG_LEVITATING) : MOVEFLAG_NONE;
+                moveInfo.SetMovementFlags(((Creature*)this)->CanFly() ? MOVEMENTFLAG_FORWARD : MOVEMENTFLAG_NONE);
             }
             break;
             case TYPEID_PLAYER:
             {
                 Player *player = ((Player*)this);
-
-                moveFlags = player->m_movementInfo.GetMovementFlags();
-
-                if(player->GetTransport())
-                    moveFlags |= MOVEFLAG_ONTRANSPORT;
+                if (player->GetTransport())
+                    moveInfo.AddMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
                 else
-                    moveFlags &= ~MOVEFLAG_ONTRANSPORT;
+                    moveInfo.RemoveMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
 
                 // remove unknown, unused etc flags for now
-                moveFlags &= ~MOVEFLAG_SPLINE_ENABLED;      // will be set manually
+                moveInfo.RemoveMovementFlag(MOVEMENTFLAG_SPLINE_ENABLED);      // will be set manually
 
                 if(player->IsTaxiFlying())
                 {
                     MANGOS_ASSERT(player->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE);
-                    moveFlags = (MOVEFLAG_FORWARD | MOVEFLAG_SPLINE_ENABLED);
+                    moveInfo.AddMovementFlag(MovementFlags(MOVEMENTFLAG_FORWARD | MOVEMENTFLAG_SPLINE_ENABLED));
                 }
             }
             break;
         }
 
-        *data << uint32(moveFlags);                         // movement flags
-        *data << uint8(0);                                  // moveFlags2
-        *data << uint32(WorldTimer::getMSTime());           // time (in milliseconds)
-    }
-
-    // 0x40
-    if (updateFlags & UPDATEFLAG_HAS_POSITION)
-    {
-        // 0x02
-        if (updateFlags & UPDATEFLAG_TRANSPORT && ((GameObject*)this)->GetGoType() == GAMEOBJECT_TYPE_MO_TRANSPORT)
-        {
-            *data << float(0);
-            *data << float(0);
-            *data << float(0);
-            *data << float(((WorldObject*)this)->GetOrientation());
-        }
-        else
-        {
-            *data << float(((WorldObject*)this)->GetPositionX());
-            *data << float(((WorldObject*)this)->GetPositionY());
-            *data << float(((WorldObject*)this)->GetPositionZ());
-            *data << float(((WorldObject*)this)->GetOrientation());
-        }
-    }
-
-    // 0x20
-    if(updateFlags & UPDATEFLAG_LIVING)
-    {
-        Unit *unit = ((Unit*)this);
-
-        // 0x00000200
-        if(moveFlags & MOVEFLAG_ONTRANSPORT)
-        {
-            if(GetTypeId() == TYPEID_PLAYER)
-            {
-                *data << ObjectGuid(((Player*)this)->GetTransport()->GetObjectGuid());
-                *data << float(((Player*)this)->GetTransOffsetX());
-                *data << float(((Player*)this)->GetTransOffsetY());
-                *data << float(((Player*)this)->GetTransOffsetZ());
-                *data << float(((Player*)this)->GetTransOffsetO());
-                *data << uint32(((Player*)this)->GetTransTime());
-            }
-            //MaNGOS currently not have support for other than player on transport
-        }
-
-        // 0x02200000
-        if(moveFlags & (MOVEFLAG_SWIMMING | MOVEFLAG_FLYING2))
-        {
-            if(GetTypeId() == TYPEID_PLAYER)
-                *data << float(((Player*)this)->m_movementInfo.s_pitch);
-            else
-                *data << float(0);                          // is't part of movement packet, we must store and send it...
-        }
-
-        if(GetTypeId() == TYPEID_PLAYER)
-            *data << uint32(((Player*)this)->m_movementInfo.GetFallTime());
-        else
-            *data << uint32(0);                             // last fall time
-
-        // 0x00001000
-        if(moveFlags & MOVEFLAG_FALLING)
-        {
-            if(GetTypeId() == TYPEID_PLAYER)
-            {
-                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().velocity);
-                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().sinAngle);
-                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().cosAngle);
-                *data << float(((Player*)this)->m_movementInfo.GetJumpInfo().xyspeed);
-            }
-            else
-            {
-                *data << float(0);
-                *data << float(0);
-                *data << float(0);
-                *data << float(0);
-            }
-        }
-
-        // 0x04000000
-        if(moveFlags & MOVEFLAG_SPLINE_ELEVATION)
-        {
-            if(GetTypeId() == TYPEID_PLAYER)
-                *data << float(((Player*)this)->m_movementInfo.u_unk1);
-            else
-                *data << float(0);
-        }
+        unit->m_movementInfo.UpdateTime(WorldTimer::getMSTime());
+        *data << unit->m_movementInfo;
 
         // Unit speeds
         *data << float(unit->GetSpeed(MOVE_WALK));
@@ -379,11 +293,11 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         *data << float(unit->GetSpeed(MOVE_TURN_RATE));
 
         // 0x08000000
-        if(moveFlags & MOVEFLAG_SPLINE_ENABLED)
+        if(moveInfo.GetMovementFlags() & MOVEMENTFLAG_SPLINE_ENABLED)
         {
             if(GetTypeId() != TYPEID_PLAYER)
             {
-                DEBUG_LOG("_BuildMovementUpdate: MOVEFLAG_SPLINE_ENABLED for non-player");
+                DEBUG_LOG("_BuildMovementUpdate: MOVEMENTFLAG_SPLINE_ENABLED for non-player");
                 return;
             }
 
@@ -391,7 +305,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
 
             if(!player->IsTaxiFlying())
             {
-                DEBUG_LOG("_BuildMovementUpdate: MOVEFLAG_SPLINE_ENABLED but not in flight");
+                DEBUG_LOG("_BuildMovementUpdate: MOVEMENTFLAG_SPLINE_ENABLED but not in flight");
                 return;
             }
 
@@ -445,6 +359,25 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
             *data << float(path[poscount-1].x);
             *data << float(path[poscount-1].y);
             *data << float(path[poscount-1].z);
+        }
+    }
+    // 0x40
+    else if (updateFlags & UPDATEFLAG_HAS_POSITION)
+    {
+        // 0x02
+        if (updateFlags & UPDATEFLAG_TRANSPORT && ((GameObject*)this)->GetGoType() == GAMEOBJECT_TYPE_MO_TRANSPORT)
+        {
+            *data << float(0);
+            *data << float(0);
+            *data << float(0);
+            *data << float(((WorldObject*)this)->GetOrientation());
+        }
+        else
+        {
+            *data << float(((WorldObject*)this)->GetPositionX());
+            *data << float(((WorldObject*)this)->GetPositionY());
+            *data << float(((WorldObject*)this)->GetPositionZ());
+            *data << float(((WorldObject*)this)->GetOrientation());
         }
     }
 
@@ -1033,8 +966,8 @@ void WorldObject::Relocate(float x, float y, float z, float orientation)
     m_position.z = z;
     m_position.o = orientation;
 
-    if(GetTypeId()==TYPEID_PLAYER)
-        ((Player*)this)->m_movementInfo.ChangePosition(x, y, z, orientation);
+    if (isType(TYPEMASK_UNIT))
+        ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, orientation);
 }
 
 void WorldObject::Relocate(float x, float y, float z)
@@ -1043,16 +976,16 @@ void WorldObject::Relocate(float x, float y, float z)
     m_position.y = y;
     m_position.z = z;
 
-    if(GetTypeId()==TYPEID_PLAYER)
-        ((Player*)this)->m_movementInfo.ChangePosition(x, y, z, GetOrientation());
+    if (isType(TYPEMASK_UNIT))
+        ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, GetOrientation());
 }
 
 void WorldObject::SetOrientation(float orientation)
 {
     m_position.o = orientation;
 
-    if(GetTypeId() == TYPEID_PLAYER)                        //FIXME: to Unit at move moveinfor to Unit
-        ((Player*)this)->m_movementInfo.ChangeOrientation(orientation);
+    if (isType(TYPEMASK_UNIT))
+        ((Unit*)this)->m_movementInfo.ChangeOrientation(orientation);
 }
 
 uint32 WorldObject::GetZoneId() const
@@ -1074,7 +1007,6 @@ InstanceData* WorldObject::GetInstanceData() const
 {
     return GetMap()->GetInstanceData();
 }
-
                                                             //slow
 float WorldObject::GetDistance(const WorldObject* obj) const
 {

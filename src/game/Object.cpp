@@ -188,7 +188,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData *data, Player *target) c
     //DEBUG_LOG("BuildCreateUpdate: update-type: %u, object-type: %u got updateFlags: %X", updatetype, m_objectTypeId, updateFlags);
 
     ByteBuffer buf(500);
-    buf << (uint8)updatetype;
+    buf << uint8(updatetype);
     buf << GetPackGUID();
     buf << uint8(m_objectTypeId);
 
@@ -246,6 +246,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
 {
     *data << uint8(updateFlags);                            // update flags
 
+    // 0x20
     if (updateFlags & UPDATEFLAG_LIVING)
     {
         Unit *unit = ((Unit*)this);
@@ -254,9 +255,9 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         {
             Player *player = ((Player*)unit);
             if(player->GetTransport())
-                player->m_movementInfo.AddMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
+                player->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
             else
-                player->m_movementInfo.RemoveMovementFlag(MOVEMENTFLAG_ONTRANSPORT);
+                player->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
         }
 
         // Update movement info time
@@ -275,7 +276,7 @@ void Object::BuildMovementUpdate(ByteBuffer * data, uint8 updateFlags) const
         *data << float(unit->GetSpeed(MOVE_TURN_RATE));
 
         // 0x08000000
-        if (unit->m_movementInfo.GetMovementFlags() & MOVEMENTFLAG_SPLINE_ENABLED)
+        if (unit->m_movementInfo.GetMovementFlags() & MOVEFLAG_SPLINE_ENABLED)
             Movement::PacketBuilder::WriteCreate(*unit->movespline, *data);
     }
     // 0x40
@@ -478,9 +479,9 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
                 else if (index == UNIT_DYNAMIC_FLAGS && GetTypeId() == TYPEID_UNIT)
                 {
                     if (!target->isAllowedToLoot((Creature*)this))
-                        *data << (m_uint32Values[ index ] & ~UNIT_DYNFLAG_LOOTABLE);
+                        *data << (m_uint32Values[index] & ~UNIT_DYNFLAG_LOOTABLE);
                     else
-                        *data << (m_uint32Values[ index ] & ~UNIT_DYNFLAG_TAPPED);
+                        *data << (m_uint32Values[index] & ~UNIT_DYNFLAG_TAPPED);
                 }
                 else
                 {
@@ -497,7 +498,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer * data, UpdateMask *
             if (updateMask->GetBit(index))
             {
                 // send in current format (float as float, uint32 as uint32)
-                if ( index == GAMEOBJECT_DYN_FLAGS )
+                if (index == GAMEOBJECT_DYN_FLAGS)
                 {
                     // GAMEOBJECT_TYPE_DUNGEON_DIFFICULTY can have lo flag = 2
                     //      most likely related to "can enter map" and then should be 0 if can not enter
@@ -924,6 +925,7 @@ InstanceData* WorldObject::GetInstanceData() const
 {
     return GetMap()->GetInstanceData();
 }
+
                                                             //slow
 float WorldObject::GetDistance(const WorldObject* obj) const
 {
@@ -1403,9 +1405,9 @@ void WorldObject::BuildMonsterChat(WorldPacket *data, ObjectGuid senderGuid, uin
         *data << uint32(strlen(targetName)+1);              // target name length
         *data << targetName;                                // target name
     }
-    *data << (uint32)(strlen(text)+1);
+    *data << uint32(strlen(text)+1);
     *data << text;
-    *data << (uint8)0;                                      // ChatTag
+    *data << uint8(0);                                      // ChatTag
 }
 
 void WorldObject::SendMessageToSet(WorldPacket *data, bool /*bToSelf*/)

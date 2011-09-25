@@ -88,7 +88,7 @@ namespace Movement
         MoveSplineInitArgs args;
         Unit&  unit;
     };
-    
+
     inline void MoveSplineInit::SetFly() { args.flags.flying = true;}
     inline void MoveSplineInit::SetWalk(bool enable) { args.flags.runmode = !enable;}
     inline void MoveSplineInit::SetCyclic() { args.flags.cyclic = true;}

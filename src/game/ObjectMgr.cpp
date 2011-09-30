@@ -1400,9 +1400,15 @@ void ObjectMgr::LoadGameObjects()
         data.rotation2      = fields[ 9].GetFloat();
         data.rotation3      = fields[10].GetFloat();
         data.spawntimesecs  = fields[11].GetInt32();
+        data.animprogress   = fields[12].GetUInt32();
+        uint32 go_state     = fields[13].GetUInt32();
+        data.spawnMask      = fields[14].GetUInt8();
+        int16 gameEvent     = fields[15].GetInt16();
+        int16 GuidPoolId    = fields[16].GetInt16();
+        int16 EntryPoolId   = fields[17].GetInt16();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
-        if(!mapEntry)
+        if (!mapEntry)
         {
             sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that spawned at nonexistent map (Id: %u), skip", guid, data.id, data.mapid);
             continue;
@@ -1410,12 +1416,12 @@ void ObjectMgr::LoadGameObjects()
 
         if(mapEntry->IsDungeon())
         {
-            if(data.spawnMask & ~SPAWNMASK_DUNGEON_ALL)
+            if (data.spawnMask & ~SPAWNMASK_DUNGEON_ALL)
                 sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that have wrong spawn mask %u for dungeon map (Id: %u), skip", guid, data.id, data.spawnMask, data.mapid);
         }
         else
         {
-            if(data.spawnMask & ~SPAWNMASK_REGULAR)
+            if (data.spawnMask & ~SPAWNMASK_REGULAR)
                 sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that have wrong spawn mask %u for non-dungeon map (Id: %u), skip", guid, data.id, data.spawnMask, data.mapid);
         }
 
@@ -1424,20 +1430,12 @@ void ObjectMgr::LoadGameObjects()
             sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) with `spawntimesecs` (0) value, but gameobejct marked as despawnable at action.", guid, data.id);
         }
 
-        data.animprogress   = fields[12].GetUInt32();
-
-        uint32 go_state     = fields[13].GetUInt32();
         if (go_state >= MAX_GO_STATE)
         {
             sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) with invalid `state` (%u) value, skip", guid, data.id, go_state);
             continue;
         }
         data.go_state       = GOState(go_state);
-
-        data.spawnMask      = fields[14].GetUInt8();
-        int16 gameEvent     = fields[15].GetInt16();
-        int16 GuidPoolId    = fields[16].GetInt16();
-        int16 EntryPoolId   = fields[17].GetInt16();
 
         if (data.rotation0 < -1.0f || data.rotation0 > 1.0f)
         {
@@ -1471,6 +1469,7 @@ void ObjectMgr::LoadGameObjects()
 
         if (gameEvent==0 && GuidPoolId==0 && EntryPoolId==0)// if not this is to be managed by GameEvent System or Pool system
             AddGameobjectToGrid(guid, &data);
+
         ++count;
 
     } while (result->NextRow());

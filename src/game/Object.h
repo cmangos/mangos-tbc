@@ -569,6 +569,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang,TempSummonType spwtype,uint32 despwtime, bool asActiveObject = false);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
+        void SetActiveObjectState(bool active);
 
         ViewPoint& GetViewPoint() { return m_viewPoint; }
 
@@ -585,7 +586,6 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         std::string m_name;
 
-        bool m_isActiveObject;
     private:
         Map * m_currMap;                                    //current object's Map location
 
@@ -593,10 +593,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         uint32 m_InstanceId;                                // in map copy with instance id
 
         Position m_position;
-
         ViewPoint m_viewPoint;
-
         WorldUpdateCounter m_updateTracker;
+        bool m_isActiveObject;
 };
 
 #endif

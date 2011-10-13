@@ -509,6 +509,8 @@ void Creature::Update(uint32 update_diff, uint32 diff)
         }
         case CORPSE:
         {
+            Unit::Update(update_diff, diff);
+
             if (m_isDeadByDefault)
                 break;
 
@@ -1486,7 +1488,7 @@ void Creature::SetDeathState(DeathState s)
         Unit::SetDeathState(ALIVE);
 
         clearUnitState(UNIT_STAT_ALL_STATE);
-        i_motionMaster.Clear();
+        i_motionMaster.Initialize();
 
         SetMeleeDamageSchool(SpellSchools(cinfo->dmgschool));
 
@@ -1524,19 +1526,10 @@ bool Creature::FallGround()
 
     Unit::SetDeathState(CORPSE_FALLING);
 
-    // For creatures that are moving towards target and dies, the visual effect is not nice.
-    // It is possibly caused by a xyz mismatch in DestinationHolder's GetLocationNow and the location
-    // of the mob in client. For mob that are already reached target or dies while not moving
-    // the visual appear to be fairly close to the expected.
-
     Movement::MoveSplineInit init(*this);
     init.MoveTo(GetPositionX(),GetPositionY(),tz);
     init.SetFall();
     init.Launch();
-
-    // hacky solution: by some reason died creatures not updated, that's why need finalize movement state
-    GetMap()->CreatureRelocation(this, GetPositionX(), GetPositionY(), tz, GetOrientation());
-    DisableSpline();
     return true;
 }
 

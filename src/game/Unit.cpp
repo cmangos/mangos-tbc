@@ -7313,8 +7313,9 @@ void Unit::SetDeathState(DeathState s)
         RemoveGuardians();
         UnsummonAllTotems();
 
+        i_motionMaster.Clear(false,true);
+        i_motionMaster.MoveIdle();
         StopMoving();
-        DisableSpline();
 
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);

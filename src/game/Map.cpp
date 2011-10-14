@@ -2487,7 +2487,7 @@ void Map::ScriptsProcess()
                         if (target && target->GetTypeId() == TYPEID_UNIT)
                             pMover = (Creature*)target;
                     }
-                    else if (pSource->GetTypeId() == TYPEID_UNIT)
+                    else
                         pMover = (Creature*)pSource;
                 }
                 else                                        // If step has a buddy entry defined, search for it
@@ -2548,7 +2548,7 @@ void Map::ScriptsProcess()
                         if (target && target->GetTypeId() == TYPEID_UNIT)
                             pOwner = (Creature*)target;
                     }
-                    else if (pSource->GetTypeId() == TYPEID_UNIT)
+                    else
                         pOwner = (Creature*)pSource;
                 }
                 else                                        // If step has a buddy entry defined, search for it
@@ -2594,7 +2594,7 @@ void Map::ScriptsProcess()
                         if (target && target->GetTypeId() == TYPEID_UNIT)
                             pOwner = (Creature*)target;
                     }
-                    else if (pSource->GetTypeId() == TYPEID_UNIT)
+                    else
                         pOwner = (Creature*)pSource;
                 }
                 else                                        // If step has a buddy entry defined, search for it
@@ -2644,7 +2644,7 @@ void Map::ScriptsProcess()
                         if (target && target->GetTypeId() == TYPEID_UNIT)
                             pOwner = (Creature*)target;
                     }
-                    else if (pSource->GetTypeId() == TYPEID_UNIT)
+                    else
                         pOwner = (Creature*)pSource;
                 }
                 else                                        // If step has a buddy entry defined, search for it
@@ -2701,7 +2701,7 @@ void Map::ScriptsProcess()
                         if (target && target->GetTypeId() == TYPEID_UNIT)
                             pOwner = (Creature*)target;
                     }
-                    else if (pSource->GetTypeId() == TYPEID_UNIT)
+                    else
                         pOwner = (Creature*)pSource;
                 }
                 else                                        // If step has a buddy entry defined, search for it
@@ -2758,7 +2758,7 @@ void Map::ScriptsProcess()
                         if (target && target->GetTypeId() == TYPEID_UNIT)
                             pOwner = (Creature*)target;
                     }
-                    else if (pSource->GetTypeId() == TYPEID_UNIT)
+                    else
                         pOwner = (Creature*)pSource;
                 }
                 else                                        // If step has a buddy entry defined, search for it
@@ -2937,8 +2937,66 @@ void Map::ScriptsProcess()
                 ((Unit*)pSource)->SetStandState(step.script->standState.stand_state);
                 break;
             }
+            case SCRIPT_COMMAND_MODIFY_NPC_FLAGS:
+            {
+                if (!source && !target)
+                {
+                    sLog.outError("SCRIPT_COMMAND_MODIFY_NPC_FLAGS (script id %u) call for NULL source and NULL target.", step.script->id);
+                    break;
+                }
+
+                if ((!source || !source->isType(TYPEMASK_WORLDOBJECT)) && (!target || !target->isType(TYPEMASK_WORLDOBJECT)))
+                {
+                    sLog.outError("SCRIPT_COMMAND_MODIFY_NPC_FLAGS (script id %u) call for unsupported non-worldobject (TypeId: %u), skipping.", step.script->id, source ? source->GetTypeId() : target->GetTypeId());
+                    break;
+                }
+
+                WorldObject* pSource = source && source->isType(TYPEMASK_WORLDOBJECT) ? (WorldObject*)source : (WorldObject*)target;
+                Creature* pBuddy = NULL;
+
+                // No buddy defined, so try use source (or target if source is not creature)
+                if (!step.script->npcFlag.creatureEntry)
+                {
+                    if (pSource->GetTypeId() != TYPEID_UNIT)
+                    {
+                        // we can't be non-creature, so see if target is creature
+                        if (target && target->GetTypeId() == TYPEID_UNIT)
+                            pBuddy = (Creature*)target;
+                    }
+                    else
+                        pBuddy = (Creature*)pSource;
+                }
+                else                                        // If step has a buddy entry defined, search for it
+                {
+                    MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck u_check(*pSource, step.script->npcFlag.creatureEntry, true, step.script->npcFlag.searchRadius);
+                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(pBuddy, u_check);
+
+                    Cell::VisitGridObjects(pSource, searcher, step.script->npcFlag.searchRadius);
+                }
+
+                if (!pBuddy)
+                {
+                    sLog.outError("SCRIPT_COMMAND_MODIFY_NPC_FLAGS (script id %u) call for non-creature (TypeIdSource: %u)(TypeIdTarget: %u), skipping.", step.script->id, source ? source->GetTypeId() : 0, target ? target->GetTypeId() : 0);
+                    break;
+                }
+
+                // Add Flags
+                if (step.script->npcFlag.data_flags & 0x01)
+                    pBuddy->SetFlag(UNIT_NPC_FLAGS, step.script->npcFlag.flag);
+                // Remove Flags
+                else if (step.script->npcFlag.data_flags & 0x02)
+                    pBuddy->RemoveFlag(UNIT_NPC_FLAGS, step.script->npcFlag.flag);
+                // Toggle Flags
+                else
+                {
+                    if (pBuddy->HasFlag(UNIT_NPC_FLAGS, step.script->npcFlag.flag))
+                        pBuddy->RemoveFlag(UNIT_NPC_FLAGS, step.script->npcFlag.flag);
+                    else
+                        pBuddy->SetFlag(UNIT_NPC_FLAGS, step.script->npcFlag.flag);
+                }
+            }
             default:
-                sLog.outError("Unknown SCRIPT_COMMAND_ %u called for script id %u.",step.script->command, step.script->id);
+                sLog.outError("Unknown SCRIPT_COMMAND_ %u called for script id %u.", step.script->command, step.script->id);
                 break;
         }
 

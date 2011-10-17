@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1413_11827_01_mangos_creature_linking_template` bit(1) default NULL
+  `required_s1415_11754_01_mangos_mangos_string` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -3480,6 +3480,7 @@ INSERT INTO `mangos_string` VALUES
 (535,'   Home movement to (X:%f Y:%f Z:%f)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (536,'   Home movement used for player?!?',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (537,'   Taxi flight',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(1192,'  Effect movement',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (538,'   Unknown movement generator (%u)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (539,'Player selected: %s.\nFaction: %u.\nnpcFlags: %u.\nEntry: %u.\nDisplayID: %u (Native: %u).',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (540,'Level: %u.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),

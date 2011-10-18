@@ -5954,7 +5954,7 @@ bool Unit::IsSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolM
                         continue;
                     switch((*i)->GetModifier()->m_miscvalue)
                     {
-                        // Shatter 
+                        // Shatter
                         case 849: if (pVictim->isFrozen()) crit_chance+= 10.0f; break;
                         case 910: if (pVictim->isFrozen()) crit_chance+= 20.0f; break;
                         case 911: if (pVictim->isFrozen()) crit_chance+= 30.0f; break;

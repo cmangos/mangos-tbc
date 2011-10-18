@@ -47,7 +47,7 @@ Location MoveSpline::ComputePosition() const
         else if (splineflags.final_point)
             c.orientation = atan2(facing.f.y-c.y, facing.f.x-c.x);
         //nothing to do for MoveSplineFlag::Final_Target flag
-    } 
+    }
     else
     {
         Vector3 hermite;

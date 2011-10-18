@@ -162,7 +162,7 @@ enum UnitNameSummonTitle
 // SummonProperties.dbc, col 5
 enum SummonPropFlags
 {
-    SUMMON_PROP_FLAG_NONE              = 0x0000,            // 
+    SUMMON_PROP_FLAG_NONE              = 0x0000,            //
     SUMMON_PROP_FLAG_UNK1              = 0x0001,            // something unfriendly
     SUMMON_PROP_FLAG_UNK2              = 0x0002,            // something friendly
     SUMMON_PROP_FLAG_UNK3              = 0x0004,            // no idea...

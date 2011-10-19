@@ -208,8 +208,7 @@ GroupQueueInfo * BattleGroundQueue::AddGroup(Player *leader, Group* grp, BattleG
         //announce to world, this code needs mutex
         if (arenaType == ARENA_TYPE_NONE && !isRated && !isPremade && sWorld.getConfig(CONFIG_UINT32_BATTLEGROUND_QUEUE_ANNOUNCER_JOIN))
         {
-            BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(ginfo->BgTypeId);
-            if (bg)
+            if (BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(ginfo->BgTypeId))
             {
                 char const* bgName = bg->GetName();
                 uint32 MinPlayers = bg->GetMinPlayersPerTeam();
@@ -460,7 +459,7 @@ bool BattleGroundQueue::InviteGroupToBG(GroupQueueInfo * ginfo, BattleGround * b
         {
             // get the player
             Player* plr = sObjectMgr.GetPlayer(itr->first);
-            // if offline, skip him
+            // if offline, skip him, this should not happen - player is removed from queue when he logs out
             if (!plr)
                 continue;
 
@@ -797,6 +796,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
         sLog.outError("Battleground: Update: bg template not found for %u", bgTypeId);
         return;
     }
+
     // get the min. players per team, properly for larger arenas as well. (must have full teams for arena matches!)
     uint32 MinPlayersPerTeam = bg_template->GetMinPlayersPerTeam();
     uint32 MaxPlayersPerTeam = bg_template->GetMaxPlayersPerTeam();
@@ -1171,9 +1171,11 @@ void BattleGroundMgr::Update(uint32 diff)
         if (m_NextRatingDiscardUpdate < diff)
         {
             // forced update for level 70 rated arenas
+            DEBUG_LOG("BattleGroundMgr: UPDATING ARENA QUEUES");
             m_BattleGroundQueues[BATTLEGROUND_QUEUE_2v2].Update(BATTLEGROUND_AA,BG_BRACKET_ID_LAST,ARENA_TYPE_2v2,true,0);
             m_BattleGroundQueues[BATTLEGROUND_QUEUE_3v3].Update(BATTLEGROUND_AA,BG_BRACKET_ID_LAST,ARENA_TYPE_3v3,true,0);
             m_BattleGroundQueues[BATTLEGROUND_QUEUE_5v5].Update(BATTLEGROUND_AA,BG_BRACKET_ID_LAST,ARENA_TYPE_5v5,true,0);
+
             m_NextRatingDiscardUpdate = sWorld.getConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER);
         }
         else
@@ -1616,7 +1618,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
 
         uint32 start1 = fields[5].GetUInt32();
 
-        WorldSafeLocsEntry const* start = sWorldSafeLocsStore.LookupEntry(start1);
+        WorldSafeLocsEntry const *start = sWorldSafeLocsStore.LookupEntry(start1);
         if (start)
         {
             AStartLoc[0] = start->x;
@@ -1747,8 +1749,6 @@ void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket *data, ObjectGuid 
 {
     if (!plr)
         return;
-
-    uint32 PlayerLevel = plr->getLevel();
 
     data->Initialize(SMSG_BATTLEFIELD_LIST);
     *data << guid;                                          // battlemaster guid
@@ -1901,7 +1901,7 @@ void BattleGroundMgr::ToggleArenaTesting()
 void BattleGroundMgr::ScheduleQueueUpdate(uint32 arenaRating, ArenaType arenaType, BattleGroundQueueTypeId bgQueueTypeId, BattleGroundTypeId bgTypeId, BattleGroundBracketId bracket_id)
 {
     //ACE_Guard<ACE_Thread_Mutex> guard(SchedulerLock);
-    //we will use only 1 number created of bgTypeId and queue_id
+    //we will use only 1 number created of bgTypeId and bracket_id
     uint64 schedule_id = ((uint64)arenaRating << 32) | (arenaType << 24) | (bgQueueTypeId << 16) | (bgTypeId << 8) | bracket_id;
     bool found = false;
     for (uint8 i = 0; i < m_QueueUpdateScheduler.size(); i++)

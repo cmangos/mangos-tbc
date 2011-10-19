@@ -291,6 +291,7 @@ BattleGround::~BattleGround()
     // map can be null at bg destruction
     if (m_Map)
         m_Map->SetUnload();
+
     // remove from bg free slot queue
     this->RemoveFromBGFreeSlotQueue();
 
@@ -1359,7 +1360,7 @@ bool BattleGround::AddObject(uint32 type, uint32 entry, float x, float y, float 
     // and when loading it (in go::LoadFromDB()), a new guid would be assigned to the object, and a new object would be created
     // so we must create it specific for this instance
     GameObject * go = new GameObject;
-    if(!go->Create(GetBgMap()->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT),entry, GetBgMap(),
+    if (!go->Create(GetBgMap()->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT),entry, GetBgMap(),
         x,y,z,o,rotation0,rotation1,rotation2,rotation3))
     {
         sLog.outErrorDb("Gameobject template %u not found in database! BattleGround not created!", entry);

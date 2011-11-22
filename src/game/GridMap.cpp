@@ -796,9 +796,13 @@ float TerrainInfo::GetHeight(float x, float y, float z, bool pUseVmaps, float ma
     return mapHeight;
 }
 
-inline bool IsOutdoorWMO(uint32 mogpFlags)
+inline bool IsOutdoorWMO(uint32 mogpFlags, uint32 mapId)
 {
-    return mogpFlags & 0x8008;
+    // in flyable areas mounting up is also allowed if 0x0008 flag is set
+    if (mapId == 530)
+        return mogpFlags & 0x8008;
+
+    return mogpFlags & 0x8000;
 }
 
 bool TerrainInfo::IsOutdoors(float x, float y, float z) const
@@ -810,7 +814,7 @@ bool TerrainInfo::IsOutdoors(float x, float y, float z) const
     if(!GetAreaInfo(x, y, z, mogpFlags, adtId, rootId, groupId))
         return true;
 
-    return IsOutdoorWMO(mogpFlags);
+    return IsOutdoorWMO(mogpFlags, GetMapId());
 }
 
 bool TerrainInfo::GetAreaInfo(float x, float y, float z, uint32 &flags, int32 &adtId, int32 &rootId, int32 &groupId) const
@@ -863,7 +867,7 @@ uint16 TerrainInfo::GetAreaFlag(float x, float y, float z, bool *isOutdoors) con
     if (isOutdoors)
     {
         if (haveAreaInfo)
-            *isOutdoors = IsOutdoorWMO(mogpFlags);
+            *isOutdoors = IsOutdoorWMO(mogpFlags, GetMapId());
         else
             *isOutdoors = true;
     }

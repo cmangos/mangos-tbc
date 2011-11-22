@@ -1289,6 +1289,25 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(m_caster, 45088, true);
                     return;
                 }
+                case 45976:                                 // Open Portal
+                case 46177:                                 // Open All Portals
+                {
+                    if (!unitTarget)
+                        return;
+
+                    // portal visual
+                    unitTarget->CastSpell(unitTarget, 45977, true);
+
+                    // break in case additional procressing in scripting library required
+                    break;
+                }
+                case 45989:                                 // Summon Void Sentinel Summoner Visual
+                {
+                    // summon void sentinel
+                    unitTarget->CastSpell(unitTarget, 45988, true);
+
+                    return;
+                }
                 case 49357:                                 // Brewfest Mount Transformation
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)

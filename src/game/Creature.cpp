@@ -781,7 +781,7 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
         cPos.GetMap()->GetCreatureLinkingHolder()->AddMasterToHolder(this);
     }
 
-    LoadCreatureAddon();
+    LoadCreatureAddon(false);
 
     return true;
 }

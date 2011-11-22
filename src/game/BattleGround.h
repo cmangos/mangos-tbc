@@ -168,11 +168,12 @@ enum BattleGroundQueueTypeId
 
 enum BattleGroundBracketId                                  // bracketId for level ranges
 {
+    BG_BRACKET_ID_TEMPLATE       = -1,                      // used to mark bg as template
     BG_BRACKET_ID_FIRST          = 0,                       // brackets start from specific BG min level and each include 10 levels range
     BG_BRACKET_ID_LAST           = 6,                       // so for start level 10 will be 10-19, 20-29, ...  all greater max bg level included in last breaket
-
-    MAX_BATTLEGROUND_BRACKETS    = 7                        // used as one from values, so in enum
 };
+
+#define MAX_BATTLEGROUND_BRACKETS  7
 
 enum ScoreType
 {

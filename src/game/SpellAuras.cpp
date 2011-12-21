@@ -1703,6 +1703,12 @@ void Aura::TriggerSpell()
                     caster->CastSpell(triggerTarget, trigger_spell_id, true, NULL, this);
                 return;
             }
+            case 44883:                                     // Encapsulate
+            {
+                // Self cast spell, hence overwrite caster (only channeled spell where the triggered spell deals dmg to SELF)
+                triggerCaster = triggerTarget;
+                break;
+            }
         }
     }
 

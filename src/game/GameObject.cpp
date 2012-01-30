@@ -1642,7 +1642,7 @@ void GameObject::UpdateRotationFields(float rotation2 /*=0.0f*/, float rotation3
 bool GameObject::IsHostileTo(Unit const* unit) const
 {
     // always non-hostile to GM in GM mode
-    if(unit->GetTypeId()==TYPEID_PLAYER && ((Player const*)unit)->isGameMaster())
+    if (unit->GetTypeId()==TYPEID_PLAYER && ((Player const*)unit)->isGameMaster())
         return false;
 
     // test owner instead if have
@@ -1653,24 +1653,28 @@ bool GameObject::IsHostileTo(Unit const* unit) const
         return IsHostileTo(targetOwner);
 
     // for not set faction case (wild object) use hostile case
-    if(!GetGOInfo()->faction)
+    if (!GetGOInfo()->faction)
         return true;
 
     // faction base cases
     FactionTemplateEntry const*tester_faction = sFactionTemplateStore.LookupEntry(GetGOInfo()->faction);
     FactionTemplateEntry const*target_faction = unit->getFactionTemplateEntry();
-    if(!tester_faction || !target_faction)
+    if (!tester_faction || !target_faction)
         return false;
 
     // GvP forced reaction and reputation case
-    if (unit->GetTypeId()==TYPEID_PLAYER)
+    if (unit->GetTypeId() == TYPEID_PLAYER)
     {
         if (tester_faction->faction)
         {
+            // forced reaction
+            if (ReputationRank const* force = ((Player*)unit)->GetReputationMgr().GetForcedRankIfAny(tester_faction))
+                return *force <= REP_HOSTILE;
+
             // apply reputation state
             FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry(tester_faction->faction);
-            if (raw_tester_faction && raw_tester_faction->reputationListID >=0 )
-                return ((Player const*)unit)->GetReputationMgr().GetRank(raw_tester_faction, true) <= REP_HOSTILE;
+            if (raw_tester_faction && raw_tester_faction->reputationListID >= 0)
+                return ((Player const*)unit)->GetReputationMgr().GetRank(raw_tester_faction) <= REP_HOSTILE;
         }
     }
 
@@ -1681,7 +1685,7 @@ bool GameObject::IsHostileTo(Unit const* unit) const
 bool GameObject::IsFriendlyTo(Unit const* unit) const
 {
     // always friendly to GM in GM mode
-    if(unit->GetTypeId()==TYPEID_PLAYER && ((Player const*)unit)->isGameMaster())
+    if (unit->GetTypeId()==TYPEID_PLAYER && ((Player const*)unit)->isGameMaster())
         return true;
 
     // test owner instead if have
@@ -1692,24 +1696,28 @@ bool GameObject::IsFriendlyTo(Unit const* unit) const
         return IsFriendlyTo(targetOwner);
 
     // for not set faction case (wild object) use hostile case
-    if(!GetGOInfo()->faction)
+    if (!GetGOInfo()->faction)
         return false;
 
     // faction base cases
     FactionTemplateEntry const*tester_faction = sFactionTemplateStore.LookupEntry(GetGOInfo()->faction);
     FactionTemplateEntry const*target_faction = unit->getFactionTemplateEntry();
-    if(!tester_faction || !target_faction)
+    if (!tester_faction || !target_faction)
         return false;
 
     // GvP forced reaction and reputation case
-    if (unit->GetTypeId()==TYPEID_PLAYER)
+    if (unit->GetTypeId() == TYPEID_PLAYER)
     {
         if (tester_faction->faction)
         {
+            // forced reaction
+            if (ReputationRank const* force =((Player*)unit)->GetReputationMgr().GetForcedRankIfAny(tester_faction))
+                return *force >= REP_FRIENDLY;
+
             // apply reputation state
             if (FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry(tester_faction->faction))
-                if (raw_tester_faction->reputationListID >=0 )
-                    return ((Player const*)unit)->GetReputationMgr().GetRank(raw_tester_faction, true) >= REP_FRIENDLY;
+                if (raw_tester_faction->reputationListID >= 0)
+                    return ((Player const*)unit)->GetReputationMgr().GetRank(raw_tester_faction) >= REP_FRIENDLY;
         }
     }
 

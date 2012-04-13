@@ -2290,7 +2290,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         target->CastSpell(target, 42517, true);
                     return;
                 }
-                case 10848:
                 case 27978:
                 case 40131:
                     if (apply)

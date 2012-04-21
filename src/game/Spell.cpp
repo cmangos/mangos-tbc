@@ -371,6 +371,8 @@ WorldObject* Spell::FindCorpseUsing()
 void Spell::FillTargetMap()
 {
     // TODO: ADD the correct target FILLS!!!!!!
+    UnitList tmpUnitLists[MAX_EFFECT_INDEX];                // Stores the temporary Target Lists for each effect
+    uint8 effToIndex[MAX_EFFECT_INDEX] = {0, 1, 2};         // Helper array, to link to another tmpUnitList, if the targets for both effects match
 
     for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {

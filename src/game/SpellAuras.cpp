@@ -884,8 +884,10 @@ void Aura::HandleAddModifier(bool apply, bool Real)
 
     if (apply)
     {
+        SpellEntry const* spellProto = GetSpellProto();
+
         // Add custom charges for some mod aura
-        switch (GetSpellProto()->Id)
+        switch (spellProto->Id)
         {
             case 17941:                                     // Shadow Trance
             case 22008:                                     // Netherwind Focus
@@ -901,7 +903,7 @@ void Aura::HandleAddModifier(bool apply, bool Real)
             this,
             // prevent expire spell mods with (charges > 0 && m_stackAmount > 1)
             // all this spell expected expire not at use but at spell proc event check
-            GetSpellProto()->StackAmount > 1 ? 0 : GetHolder()->GetAuraCharges());
+            spellProto->StackAmount > 1 ? 0 : GetHolder()->GetAuraCharges());
     }
 
     ((Player*)GetTarget())->AddSpellMod(m_spellmod, apply);
@@ -1053,7 +1055,7 @@ void Aura::TriggerSpell()
                     }
                     case 23493:                             // Restoration
                     {
-                        int32 heal = triggerTarget->GetMaxHealth() / 10;
+                        uint32 heal = triggerTarget->GetMaxHealth() / 10;
                         triggerTarget->DealHeal(triggerTarget, heal, auraSpellInfo);
 
                         if (int32 mana = triggerTarget->GetMaxPower(POWER_MANA))

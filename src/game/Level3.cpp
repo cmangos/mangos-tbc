@@ -1084,7 +1084,7 @@ bool ChatHandler::HandleAccountSetGmLevelCommand(char* args)
     }
 
     /// can set security level only for target with less security and to less security that we have
-    /// This is also reject self apply in fact
+    /// This will reject self apply by specify account name
     if(HasLowerSecurityAccount(NULL,targetAccountId,true))
         return false;
 
@@ -2527,7 +2527,7 @@ bool ChatHandler::HandleListObjectCommand(char* args)
     }
 
     GameObjectInfo const * gInfo = ObjectMgr::GetGameObjectInfo(go_id);
-    if(!gInfo)
+    if (!gInfo)
     {
         PSendSysMessage(LANG_COMMAND_LISTOBJINVALIDID, go_id);
         SetSentErrorMessage(true);
@@ -2541,14 +2541,14 @@ bool ChatHandler::HandleListObjectCommand(char* args)
     QueryResult *result;
 
     uint32 obj_count = 0;
-    result=WorldDatabase.PQuery("SELECT COUNT(guid) FROM gameobject WHERE id='%u'",go_id);
-    if(result)
+    result = WorldDatabase.PQuery("SELECT COUNT(guid) FROM gameobject WHERE id='%u'", go_id);
+    if (result)
     {
         obj_count = (*result)[0].GetUInt32();
         delete result;
     }
 
-    if(m_session)
+    if (m_session)
     {
         Player* pl = m_session->GetPlayer();
         result = WorldDatabase.PQuery("SELECT guid, position_x, position_y, position_z, map, (POW(position_x - '%f', 2) + POW(position_y - '%f', 2) + POW(position_z - '%f', 2)) AS order_ FROM gameobject WHERE id = '%u' ORDER BY order_ ASC LIMIT %u",
@@ -2578,7 +2578,7 @@ bool ChatHandler::HandleListObjectCommand(char* args)
         delete result;
     }
 
-    PSendSysMessage(LANG_COMMAND_LISTOBJMESSAGE,go_id,obj_count);
+    PSendSysMessage(LANG_COMMAND_LISTOBJMESSAGE, go_id, obj_count);
     return true;
 }
 
@@ -2597,7 +2597,7 @@ bool ChatHandler::HandleListCreatureCommand(char* args)
     }
 
     CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(cr_id);
-    if(!cInfo)
+    if (!cInfo)
     {
         PSendSysMessage(LANG_COMMAND_INVALIDCREATUREID, cr_id);
         SetSentErrorMessage(true);
@@ -2611,14 +2611,14 @@ bool ChatHandler::HandleListCreatureCommand(char* args)
     QueryResult *result;
 
     uint32 cr_count = 0;
-    result=WorldDatabase.PQuery("SELECT COUNT(guid) FROM creature WHERE id='%u'",cr_id);
-    if(result)
+    result = WorldDatabase.PQuery("SELECT COUNT(guid) FROM creature WHERE id='%u'",cr_id);
+    if (result)
     {
         cr_count = (*result)[0].GetUInt32();
         delete result;
     }
 
-    if(m_session)
+    if (m_session)
     {
         Player* pl = m_session->GetPlayer();
         result = WorldDatabase.PQuery("SELECT guid, position_x, position_y, position_z, map, (POW(position_x - '%f', 2) + POW(position_y - '%f', 2) + POW(position_z - '%f', 2)) AS order_ FROM creature WHERE id = '%u' ORDER BY order_ ASC LIMIT %u",
@@ -2648,7 +2648,7 @@ bool ChatHandler::HandleListCreatureCommand(char* args)
         delete result;
     }
 
-    PSendSysMessage(LANG_COMMAND_LISTCREATUREMESSAGE,cr_id,cr_count);
+    PSendSysMessage(LANG_COMMAND_LISTCREATUREMESSAGE, cr_id, cr_count);
     return true;
 }
 
@@ -4898,7 +4898,7 @@ bool ChatHandler::HandleQuestCompleteCommand(char* args)
         if (msg == EQUIP_ERR_OK)
         {
             Item* item = player->StoreNewItem( dest, id, true);
-            player->SendNewItem(item,count-curItemCount,true,false);
+            player->SendNewItem(item,count-curItemCount, true, false);
         }
     }
 

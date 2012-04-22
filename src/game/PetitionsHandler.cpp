@@ -209,7 +209,6 @@ void WorldSession::HandlePetitionBuyOpcode(WorldPacket & recv_data)
 
     if (result)
     {
-
         do
         {
             Field *fields = result->Fetch();
@@ -362,6 +361,7 @@ void WorldSession::SendPetitionQueryOpcode(ObjectGuid petitionguid)
         data << uint32(0);                                  // 15 0 - guild, 1 - arena team
     else
         data << uint32(1);
+
     SendPacket(&data);
 }
 

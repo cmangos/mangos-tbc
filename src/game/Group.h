@@ -166,7 +166,6 @@ class MANGOS_DLL_SPEC Group
     protected:
         typedef MemberSlotList::iterator member_witerator;
         typedef std::set<Player*> InvitesList;
-
         typedef std::vector<Roll*> Rolls;
 
     public:
@@ -193,8 +192,8 @@ class MANGOS_DLL_SPEC Group
         // properties accessories
         uint32 GetId() const { return m_Id; }
         ObjectGuid GetObjectGuid() const { return ObjectGuid(HIGHGUID_GROUP, GetId()); }
-        bool IsFull() const { return (m_groupType==GROUPTYPE_NORMAL) ? (m_memberSlots.size()>=MAX_GROUP_SIZE) : (m_memberSlots.size()>=MAX_RAID_SIZE); }
-        bool isRaidGroup() const { return m_groupType==GROUPTYPE_RAID; }
+        bool IsFull() const { return (m_groupType == GROUPTYPE_NORMAL) ? (m_memberSlots.size() >= MAX_GROUP_SIZE) : (m_memberSlots.size() >= MAX_RAID_SIZE); }
+        bool isRaidGroup() const { return m_groupType == GROUPTYPE_RAID; }
         bool isBGGroup()   const { return m_bgGroup != NULL; }
         bool IsCreated()   const { return GetMembersCount() > 0; }
         ObjectGuid GetLeaderGuid() const { return m_leaderGuid; }
@@ -344,7 +343,7 @@ class MANGOS_DLL_SPEC Group
             if (!m_subGroupsCounts)
                 m_subGroupsCounts = new uint8[MAX_RAID_SUBGROUPS];
 
-            memset((void*)m_subGroupsCounts, 0, MAX_RAID_SUBGROUPS*sizeof(uint8));
+            memset((void*)m_subGroupsCounts, 0, MAX_RAID_SUBGROUPS * sizeof(uint8));
 
             for (member_citerator itr = m_memberSlots.begin(); itr != m_memberSlots.end(); ++itr)
                 ++m_subGroupsCounts[itr->group];

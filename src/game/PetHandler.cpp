@@ -691,7 +691,7 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
 
     pet->clearUnitState(UNIT_STAT_MOVING);
 
-    Spell *spell = new Spell(pet, spellInfo, false);
+    Spell* spell = new Spell(pet, spellInfo, false);
     spell->m_targets = targets;
 
     SpellCastResult result = spell->CheckPetCast(NULL);
@@ -702,8 +702,8 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
         {
             ((Pet*)pet)->CheckLearning(spellid);
 
-            //10% chance to play special pet attack talk, else growl
-            //actually this only seems to happen on special spells, fire shield for imp, torment for voidwalker, but it's stupid to check every spell
+            // 10% chance to play special pet attack talk, else growl
+            // actually this only seems to happen on special spells, fire shield for imp, torment for voidwalker, but it's stupid to check every spell
             if (((Pet*)pet)->getPetType() == SUMMON_PET && (urand(0, 100) < 10))
                 pet->SendPetTalk((uint32)PET_TALK_SPECIAL_SPELL);
             else

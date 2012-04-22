@@ -514,16 +514,18 @@ void PlayerMenu::SendQuestGiverQuestDetails(Quest const* pQuest, ObjectGuid guid
     DEBUG_LOG("WORLD: Sent SMSG_QUESTGIVER_QUEST_DETAILS - for %s of %s, questid = %u", GetMenuSession()->GetPlayer()->GetGuidStr().c_str(), guid.GetString().c_str(), pQuest->GetQuestId());
 }
 
+// send only static data in this packet!
 void PlayerMenu::SendQuestQueryResponse( Quest const *pQuest )
 {
-    std::string Title,Details,Objectives,EndText;
+    std::string Title, Details, Objectives, EndText;
     std::string ObjectiveText[QUEST_OBJECTIVES_COUNT];
     Title = pQuest->GetTitle();
     Details = pQuest->GetDetails();
     Objectives = pQuest->GetObjectives();
     EndText = pQuest->GetEndText();
-    for (int i=0;i<QUEST_OBJECTIVES_COUNT;++i)
-        ObjectiveText[i]=pQuest->ObjectiveText[i];
+
+    for (int i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
+        ObjectiveText[i] = pQuest->ObjectiveText[i];
 
     int loc_idx = GetMenuSession()->GetSessionDbLocaleIndex();
     if (loc_idx >= 0)
@@ -541,7 +543,7 @@ void PlayerMenu::SendQuestQueryResponse( Quest const *pQuest )
 
             for (int i = 0;i < QUEST_OBJECTIVES_COUNT; ++i)
                 if (ql->ObjectiveText[i].size() > (size_t)loc_idx && !ql->ObjectiveText[i][loc_idx].empty())
-                    ObjectiveText[i]=ql->ObjectiveText[i][loc_idx];
+                    ObjectiveText[i] = ql->ObjectiveText[i][loc_idx];
         }
     }
 

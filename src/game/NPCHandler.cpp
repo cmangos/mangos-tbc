@@ -294,7 +294,7 @@ void WorldSession::HandleTrainerBuySpellOpcode( WorldPacket & recv_data )
     data << uint32(0x016A);                                 // index from SpellVisualKit.dbc
     SendPacket(&data);
 
-    // learn explicitly to prevent lost money at lags, learning spell will be only show spell animation
+    // learn explicitly
     _player->learnSpell(trainer_spell->spell, false);
 
     data.Initialize(SMSG_TRAINER_BUY_SUCCEEDED, 12);

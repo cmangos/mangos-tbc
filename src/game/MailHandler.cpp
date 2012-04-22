@@ -569,7 +569,7 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
     // client can't work with packets > max int16 value
     const uint32 maxPacketSize = 32767;
 
-    uint32 mailsCount = 0;                                  // real send to client mails amount
+    uint32 mailsCount = 0;                                  // send to client mails amount
 
     WorldPacket data(SMSG_MAIL_LIST_RESULT, (200));         // guess size
     data << uint8(0);                                       // mail's count
@@ -621,7 +621,7 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
         data << uint32((*itr)->mailTemplateId);             // mail template (MailTemplate.dbc)
         data << (*itr)->subject;                            // Subject string - once 00, when mail type = 3, max 256
 
-        data << (uint8) item_count;
+        data << (uint8)item_count;
 
         for(uint8 i = 0; i < item_count; ++i)
         {
@@ -646,7 +646,7 @@ void WorldSession::HandleGetMailList(WorldPacket & recv_data )
             // unk
             data << uint32(item ? item->GetItemSuffixFactor() : 0);
             // stack count
-            data << (uint8)  (item ? item->GetCount() : 0);
+            data << (uint8)(item ? item->GetCount() : 0);
             // charges
             data << uint32(item ? item->GetSpellCharges() : 0);
             // durability

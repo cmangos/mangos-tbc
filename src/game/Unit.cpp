@@ -966,7 +966,7 @@ uint32 Unit::DealDamage(Unit *pVictim, uint32 damage, CleanDamage const* cleanDa
             next = i; ++next;
             if (spellProto && spellProto->Id == se->Id) // Not drop auras added by self
                 continue;
-            if( se->AuraInterruptFlags & AURA_INTERRUPT_FLAG_DAMAGE )
+            if (se->AuraInterruptFlags & AURA_INTERRUPT_FLAG_DAMAGE)
             {
                 bool remove = true;
                 if (se->procFlags & (1<<3))
@@ -1418,6 +1418,7 @@ void Unit::CalculateMeleeDamage(Unit *pVictim, uint32 damage, CalcDamageInfo *da
     // Add melee damage bonus
     damage = MeleeDamageBonusDone(damageInfo->target, damage, damageInfo->attackType);
     damage = damageInfo->target->MeleeDamageBonusTaken(this, damage, damageInfo->attackType);
+
     // Calculate armor reduction
     damageInfo->damage = CalcArmorReducedDamage(damageInfo->target, damage);
     damageInfo->cleanDamage += damage - damageInfo->damage;
@@ -1719,32 +1720,32 @@ void Unit::DealMeleeDamage(CalcDamageInfo *damageInfo, bool durabilityLoss)
         AuraList const& vDamageShields = pVictim->GetAurasByType(SPELL_AURA_DAMAGE_SHIELD);
         for(AuraList::const_iterator i = vDamageShields.begin(); i != vDamageShields.end();)
         {
-           if (alreadyDone.find(*i) == alreadyDone.end())
-           {
-               alreadyDone.insert(*i);
-               uint32 damage=(*i)->GetModifier()->m_amount;
-               SpellEntry const *i_spellProto = (*i)->GetSpellProto();
-               //Calculate absorb resist ??? no data in opcode for this possibly unable to absorb or resist?
-               //uint32 absorb;
-               //uint32 resist;
-               //CalcAbsorbResist(pVictim, SpellSchools(spellProto->School), SPELL_DIRECT_DAMAGE, damage, &absorb, &resist);
-               //damage-=absorb + resist;
+            if (alreadyDone.find(*i) == alreadyDone.end())
+            {
+                alreadyDone.insert(*i);
+                uint32 damage=(*i)->GetModifier()->m_amount;
+                SpellEntry const *i_spellProto = (*i)->GetSpellProto();
+                //Calculate absorb resist ??? no data in opcode for this possibly unable to absorb or resist?
+                //uint32 absorb;
+                //uint32 resist;
+                //CalcAbsorbResist(pVictim, SpellSchools(spellProto->School), SPELL_DIRECT_DAMAGE, damage, &absorb, &resist);
+                //damage-=absorb + resist;
 
-               pVictim->DealDamageMods(this,damage,NULL);
+                pVictim->DealDamageMods(this,damage,NULL);
 
-               WorldPacket data(SMSG_SPELLDAMAGESHIELD,(8+8+4+4+4));
-               data << pVictim->GetObjectGuid();
-               data << GetObjectGuid();
-               data << uint32(i_spellProto->Id);
-               data << uint32(damage);                  // Damage
-               data << uint32(i_spellProto->SchoolMask);
-               pVictim->SendMessageToSet(&data, true );
+                WorldPacket data(SMSG_SPELLDAMAGESHIELD,(8+8+4+4+4));
+                data << pVictim->GetObjectGuid();
+                data << GetObjectGuid();
+                data << uint32(i_spellProto->Id);
+                data << uint32(damage);                  // Damage
+                data << uint32(i_spellProto->SchoolMask);
+                pVictim->SendMessageToSet(&data, true );
 
-               pVictim->DealDamage(this, damage, 0, SPELL_DIRECT_DAMAGE, GetSpellSchoolMask(i_spellProto), i_spellProto, true);
+                pVictim->DealDamage(this, damage, 0, SPELL_DIRECT_DAMAGE, GetSpellSchoolMask(i_spellProto), i_spellProto, true);
 
-               i = vDamageShields.begin();
-           }
-           else
+                i = vDamageShields.begin();
+            }
+            else
                 ++i;
         }
     }
@@ -2680,7 +2681,6 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit *pVictim, SpellEntry const *spell)
         }
     }
 
-
     if (canDodge)
     {
         // Roll dodge
@@ -2692,7 +2692,6 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit *pVictim, SpellEntry const *spell)
             dodgeChance-=int32(((Player*)this)->GetExpertiseDodgeOrParryReduction(attType) * 100.0f);
         if (dodgeChance < 0)
             dodgeChance = 0;
-
 
         tmp += dodgeChance;
         if (roll < tmp)
@@ -2706,6 +2705,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit *pVictim, SpellEntry const *spell)
         // Reduce parry chance by attacker expertise rating
         if (GetTypeId() == TYPEID_PLAYER)
             parryChance-=int32(((Player*)this)->GetExpertiseDodgeOrParryReduction(attType) * 100.0f);
+
         // Can`t parry from behind
         if (parryChance < 0)
             parryChance = 0;
@@ -5665,7 +5665,7 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const *spellProto, int32 total, int3
  */
 uint32 Unit::SpellDamageBonusDone(Unit *pVictim, SpellEntry const *spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack)
 {
-    if(!spellProto || !pVictim || damagetype==DIRECT_DAMAGE )
+    if (!spellProto || !pVictim || damagetype == DIRECT_DAMAGE)
         return pdamage;
 
     // For totems get damage bonus from owner (statue isn't totem in fact)
@@ -5957,7 +5957,7 @@ bool Unit::IsSpellCrit(Unit *pVictim, SpellEntry const *spellProto, SpellSchoolM
                         crit_chance -= ((Player*)pVictim)->GetRatingBonusValue(CR_CRIT_TAKEN_SPELL);
                 }
 
-                // scripted (increase crit chance ... against ... target by x%
+                // scripted (increase crit chance ... against ... target by x%)
                 AuraList const& mOverrideClassScript = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
                 for(AuraList::const_iterator i = mOverrideClassScript.begin(); i != mOverrideClassScript.end(); ++i)
                 {
@@ -6319,8 +6319,7 @@ bool Unit::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex i
                 return true;
     }
 
-    uint32 aura = spellInfo->EffectApplyAuraName[index];
-    if (aura)
+    if (uint32 aura = spellInfo->EffectApplyAuraName[index])
     {
         SpellImmuneList const& list = m_spellImmune[IMMUNITY_STATE];
         for(SpellImmuneList::const_iterator itr = list.begin(); itr != list.end(); ++itr)
@@ -7359,6 +7358,7 @@ void Unit::SetSpeedRate(UnitMoveType mtype, float rate, bool forced)
         else
         {
             m_movementInfo.UpdateTime(WorldTimer::getMSTime());
+
             WorldPacket data(SetSpeed2Opc_table[mtype][0], 64);
             data << GetPackGUID();
             data << m_movementInfo;
@@ -7959,14 +7959,14 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
         case UNIT_MOD_RAGE:
         case UNIT_MOD_FOCUS:
         case UNIT_MOD_ENERGY:
-        case UNIT_MOD_HAPPINESS:           UpdateMaxPower(GetPowerTypeByAuraGroup(unitMod));         break;
+        case UNIT_MOD_HAPPINESS:           UpdateMaxPower(GetPowerTypeByAuraGroup(unitMod)); break;
 
         case UNIT_MOD_RESISTANCE_HOLY:
         case UNIT_MOD_RESISTANCE_FIRE:
         case UNIT_MOD_RESISTANCE_NATURE:
         case UNIT_MOD_RESISTANCE_FROST:
         case UNIT_MOD_RESISTANCE_SHADOW:
-        case UNIT_MOD_RESISTANCE_ARCANE:   UpdateResistances(GetSpellSchoolByAuraGroup(unitMod));      break;
+        case UNIT_MOD_RESISTANCE_ARCANE:   UpdateResistances(GetSpellSchoolByAuraGroup(unitMod)); break;
 
         case UNIT_MOD_ATTACK_POWER:        UpdateAttackPowerAndDamage();         break;
         case UNIT_MOD_ATTACK_POWER_RANGED: UpdateAttackPowerAndDamage(true);     break;
@@ -8773,6 +8773,7 @@ void Unit::ProcDamageAndSpellFor( bool isVictim, Unit * pTarget, uint32 procFlag
 
             anyAuraProc = true;
         }
+
         // Remove charge (aura can be removed by triggers)
         if(useCharges && procSuccess && anyAuraProc && !triggeredByHolder->IsDeleted())
         {
@@ -9095,7 +9096,6 @@ void Unit::ClearComboPointHolders()
 
 void Unit::ClearAllReactives()
 {
-
     for(int i=0; i < MAX_REACTIVE; ++i)
         m_reactiveTimer[i] = 0;
 

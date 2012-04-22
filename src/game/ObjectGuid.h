@@ -122,19 +122,19 @@ class MANGOS_DLL_SPEC ObjectGuid
 
         uint32 GetMaxCounter() const { return GetMaxCounter(GetHigh()); }
 
-        bool IsEmpty()             const { return m_guid == 0; }
-        bool IsCreature()          const { return GetHigh() == HIGHGUID_UNIT; }
-        bool IsPet()               const { return GetHigh() == HIGHGUID_PET; }
-        bool IsCreatureOrPet()     const { return IsCreature() || IsPet(); }
-        bool IsAnyTypeCreature()   const { return IsCreature() || IsPet(); }
+        bool IsEmpty()             const { return m_guid == 0;                                }
+        bool IsCreature()          const { return GetHigh() == HIGHGUID_UNIT;                 }
+        bool IsPet()               const { return GetHigh() == HIGHGUID_PET;                  }
+        bool IsCreatureOrPet()     const { return IsCreature() || IsPet();                    }
+        bool IsAnyTypeCreature()   const { return IsCreature() || IsPet();                    } // wrapper to master branch
         bool IsPlayer()            const { return !IsEmpty() && GetHigh() == HIGHGUID_PLAYER; }
-        bool IsUnit()              const { return IsAnyTypeCreature() || IsPlayer(); }
-        bool IsItem()              const { return GetHigh() == HIGHGUID_ITEM; }
-        bool IsGameObject()        const { return GetHigh() == HIGHGUID_GAMEOBJECT; }
-        bool IsDynamicObject()     const { return GetHigh() == HIGHGUID_DYNAMICOBJECT; }
-        bool IsCorpse()            const { return GetHigh() == HIGHGUID_CORPSE; }
-        bool IsTransport()         const { return GetHigh() == HIGHGUID_TRANSPORT; }
-        bool IsMOTransport()       const { return GetHigh() == HIGHGUID_MO_TRANSPORT; }
+        bool IsUnit()              const { return IsAnyTypeCreature() || IsPlayer();          }
+        bool IsItem()              const { return GetHigh() == HIGHGUID_ITEM;                 }
+        bool IsGameObject()        const { return GetHigh() == HIGHGUID_GAMEOBJECT;           }
+        bool IsDynamicObject()     const { return GetHigh() == HIGHGUID_DYNAMICOBJECT;        }
+        bool IsCorpse()            const { return GetHigh() == HIGHGUID_CORPSE;               }
+        bool IsTransport()         const { return GetHigh() == HIGHGUID_TRANSPORT;            }
+        bool IsMOTransport()       const { return GetHigh() == HIGHGUID_MO_TRANSPORT;         }
         bool IsGroup()             const { return GetHigh() == HIGHGUID_GROUP;                }
 
         static TypeID GetTypeId(HighGuid high)

@@ -222,7 +222,7 @@ class MailDraft
         std::string const& GetSubject() const { return m_subject; }
         /// Returns the ID of the text of this MailDraft.
         uint32 GetBodyId() const { return m_bodyId; }
-        /// Returns the ammount of money in this MailDraft.
+        /// Returns the amount of money in this MailDraft.
         uint32 GetMoney() const { return m_money; }
         /// Returns the Cost of delivery of this MailDraft.
         uint32 GetCOD() const { return m_COD; }
@@ -290,8 +290,8 @@ typedef std::vector<MailItemInfo> MailItemInfoVec;
 struct Mail
 {
     /// the ID of the message contained in the mail.
-       uint32 messageID;
-       /// the type of the message
+    uint32 messageID;
+    /// the type of the message
     uint8 messageType;
     /// the stationary used in this mail.
     uint8 stationery;

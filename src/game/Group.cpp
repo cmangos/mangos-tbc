@@ -109,7 +109,8 @@ bool Group::Create(ObjectGuid guid, const char * name)
         m_Id = sObjectMgr.GenerateGroupLowGuid();
 
         Player *leader = sObjectMgr.GetPlayer(guid);
-        if(leader) m_difficulty = leader->GetDifficulty();
+        if(leader)
+            m_difficulty = leader->GetDifficulty();
 
         Player::ConvertInstancesToGroup(leader, this, guid);
 
@@ -1524,7 +1525,7 @@ bool Group::InCombatToInstance(uint32 instanceId)
 
 void Group::ResetInstances(InstanceResetMethod method, Player* SendMsgTo)
 {
-    if(isBGGroup())
+    if (isBGGroup())
         return;
 
     // method can be INSTANCE_RESET_ALL, INSTANCE_RESET_CHANGE_DIFFICULTY, INSTANCE_RESET_GROUP_DISBAND
@@ -1596,7 +1597,6 @@ InstanceGroupBind* Group::GetBoundInstance(uint32 mapid, Player* player)
     // some instances only have one difficulty
     if (!mapEntry->SupportsHeroicMode())
         difficulty = DUNGEON_DIFFICULTY_NORMAL;
-
 
     BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
     if (itr != m_boundInstances[difficulty].end())

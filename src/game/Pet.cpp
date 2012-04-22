@@ -100,12 +100,12 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
 
     QueryResult *result;
 
-    if(petnumber)
+    if (petnumber)
         // known petnumber entry                  0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22
         result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType "
             "FROM character_pet WHERE owner = '%u' AND id = '%u'",
             ownerid, petnumber);
-    else if(current)
+    else if (current)
         // current pet (slot 0)                   0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22
         result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType "
             "FROM character_pet WHERE owner = '%u' AND slot = '%u'",
@@ -158,7 +158,7 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     }
 
     PetType pet_type = PetType(fields[22].GetUInt8());
-    if(pet_type==HUNTER_PET)
+    if(pet_type == HUNTER_PET)
     {
         if (!creatureInfo->isTameable())
         {
@@ -177,6 +177,7 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     }
 
     Map *map = owner->GetMap();
+
     CreatureCreatePos pos(owner, owner->GetOrientation(), PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
 
     uint32 guid = pos.GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
@@ -221,7 +222,7 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
             SetByteFlag(UNIT_FIELD_BYTES_2, 2, fields[12].GetBool() ? UNIT_CAN_BE_ABANDONED : UNIT_CAN_BE_RENAMED | UNIT_CAN_BE_ABANDONED);
             SetTP(fields[9].GetInt32());
             SetMaxPower(POWER_HAPPINESS, GetCreatePowers(POWER_HAPPINESS));
-            SetPower(   POWER_HAPPINESS,fields[15].GetUInt32());
+            SetPower(POWER_HAPPINESS, fields[15].GetUInt32());
             setPowerType(POWER_FOCUS);
             break;
         default:
@@ -247,7 +248,7 @@ bool Pet::LoadPetFromDB( Player* owner, uint32 petentry, uint32 petnumber, bool 
     // 0=current
     // 1..MAX_PET_STABLES in stable slot
     // PET_SAVE_NOT_IN_SLOT(100) = not stable slot (summoning))
-    if(fields[10].GetUInt32() != 0)
+    if (fields[10].GetUInt32() != 0)
     {
         CharacterDatabase.BeginTransaction();
 
@@ -612,10 +613,10 @@ void Pet::Update(uint32 update_diff, uint32 diff)
 
 void Pet::RegenerateAll( uint32 update_diff )
 {
-    //regenerate Focus
-    if(m_regenTimer <= update_diff)
+    //regenerate focus
+    if (m_regenTimer <= update_diff)
     {
-        if(getPetType() == HUNTER_PET)
+        if (getPetType() == HUNTER_PET)
             RegenerateFocus();
 
         if (!isInCombat() || IsPolymorphed())
@@ -623,13 +624,12 @@ void Pet::RegenerateAll( uint32 update_diff )
 
         RegenerateMana();
 
-
         m_regenTimer = 4000;
     }
     else
         m_regenTimer -= update_diff;
 
-    if(getPetType() != HUNTER_PET)
+    if (getPetType() != HUNTER_PET)
         return;
 
     if(m_happinessTimer <= update_diff)
@@ -660,6 +660,7 @@ void Pet::RegenerateFocus()
 
     float addvalue = 24 * sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_FOCUS);
 
+    // Apply modifiers (if any).
     AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
     for(AuraList::const_iterator i = ModPowerRegenPCTAuras.begin(); i != ModPowerRegenPCTAuras.end(); ++i)
         if ((*i)->GetModifier()->m_miscvalue == int32(POWER_FOCUS))
@@ -1465,7 +1466,7 @@ void Pet::_LoadAuras(uint32 timediff)
     for(int i = UNIT_FIELD_AURA; i <= UNIT_FIELD_AURASTATE; ++i)
         SetUInt32Value(i, 0);
 
-    QueryResult *result = CharacterDatabase.PQuery("SELECT caster_guid,item_guid,spell,stackcount,remaincharges,basepoints0,basepoints1,basepoints2,periodictime0,periodictime1,periodictime2,maxduration,remaintime,effIndexMask FROM pet_aura WHERE guid = '%u'",m_charmInfo->GetPetNumber());
+    QueryResult *result = CharacterDatabase.PQuery("SELECT caster_guid,item_guid,spell,stackcount,remaincharges,basepoints0,basepoints1,basepoints2,periodictime0,periodictime1,periodictime2,maxduration,remaintime,effIndexMask FROM pet_aura WHERE guid = '%u'", m_charmInfo->GetPetNumber());
 
     if(result)
     {
@@ -2059,7 +2060,7 @@ void Pet::SynchronizeLevelWithOwner()
             break;
         // can't be greater owner level
         case HUNTER_PET:
-            if(getLevel() > owner->getLevel())
+            if (getLevel() > owner->getLevel())
                 GivePetLevel(owner->getLevel());
             break;
         default:

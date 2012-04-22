@@ -380,7 +380,7 @@ void ObjectMgr::LoadPointOfInterestLocales()
 
         bar.step();
 
-        sLog.outString("");
+        sLog.outString();
         sLog.outString(">> Loaded 0 points_of_interest locale strings. DB table `locales_points_of_interest` is empty.");
         return;
     }
@@ -1296,6 +1296,7 @@ void ObjectMgr::LoadCreatures()
 
         if (gameEvent==0 && GuidPoolId==0 && EntryPoolId==0)// if not this is to be managed by GameEvent System or Pool system
             AddCreatureToGrid(guid, &data);
+
         ++count;
 
     } while (result->NextRow());
@@ -3264,7 +3265,7 @@ void ObjectMgr::LoadGroups()
                 continue;
             }
 
-            if(diff >= MAX_DIFFICULTY)
+            if (diff >= MAX_DIFFICULTY)
             {
                 sLog.outErrorDb("Wrong dungeon difficulty use in group_instance table: %d", diff);
                 diff = REGULAR_DIFFICULTY;
@@ -3570,7 +3571,7 @@ void ObjectMgr::LoadQuests()
                 if (qinfo->ReqItemCount[j] == 0)
                 {
                     sLog.outErrorDb("Quest %u has `ReqItemId%d` = %u but `ReqItemCount%d` = 0, quest can't be done.",
-                        qinfo->GetQuestId(),j+1,id,j+1);
+                        qinfo->GetQuestId(), j+1, id, j+1);
                     // no changes, quest can't be done for this requirement
                 }
 
@@ -3579,14 +3580,14 @@ void ObjectMgr::LoadQuests()
                 if (!sItemStorage.LookupEntry<ItemPrototype>(id))
                 {
                     sLog.outErrorDb("Quest %u has `ReqItemId%d` = %u but item with entry %u does not exist, quest can't be done.",
-                        qinfo->GetQuestId(),j+1,id,id);
+                        qinfo->GetQuestId(), j+1, id, id);
                     qinfo->ReqItemCount[j] = 0;             // prevent incorrect work of quest
                 }
             }
             else if (qinfo->ReqItemCount[j] > 0)
             {
                 sLog.outErrorDb("Quest %u has `ReqItemId%d` = 0 but `ReqItemCount%d` = %u, quest can't be done.",
-                    qinfo->GetQuestId(),j+1,j+1,qinfo->ReqItemCount[j]);
+                    qinfo->GetQuestId(), j+1, j+1, qinfo->ReqItemCount[j]);
                 qinfo->ReqItemCount[j] = 0;                 // prevent incorrect work of quest
             }
         }
@@ -3761,23 +3762,20 @@ void ObjectMgr::LoadQuests()
 
         for(int j = 0; j < QUEST_REPUTATIONS_COUNT; ++j)
         {
-            if(qinfo->RewRepFaction[j])
+            if (qinfo->RewRepFaction[j])
             {
-                if(!qinfo->RewRepValue[j])
-                {
+                if (!qinfo->RewRepValue[j])
                     sLog.outErrorDb("Quest %u has `RewRepFaction%d` = %u but `RewRepValue%d` = 0, quest will not reward this reputation.",
-                        qinfo->GetQuestId(),j+1,qinfo->RewRepValue[j],j+1);
-                    // no changes
-                }
+                        qinfo->GetQuestId(), j+1, qinfo->RewRepValue[j], j+1);
 
-                if(!sFactionStore.LookupEntry(qinfo->RewRepFaction[j]))
+                if (!sFactionStore.LookupEntry(qinfo->RewRepFaction[j]))
                 {
                     sLog.outErrorDb("Quest %u has `RewRepFaction%d` = %u but raw faction (faction.dbc) %u does not exist, quest will not reward reputation for this faction.",
-                        qinfo->GetQuestId(),j+1,qinfo->RewRepFaction[j] ,qinfo->RewRepFaction[j] );
+                        qinfo->GetQuestId(),j+1,qinfo->RewRepFaction[j] , qinfo->RewRepFaction[j] );
                     qinfo->RewRepFaction[j] = 0;            // quest will not reward this
                 }
             }
-            else if(qinfo->RewRepValue[j]!=0)
+            else if (qinfo->RewRepValue[j] != 0)
             {
                 sLog.outErrorDb("Quest %u has `RewRepFaction%d` = 0 but `RewRepValue%d` = %i.",
                     qinfo->GetQuestId(),j+1,j+1,qinfo->RewRepValue[j]);
@@ -5972,10 +5970,10 @@ void ObjectMgr::LoadCorpses()
     uint32 count = 0;
     //                                                    0            1       2                  3                  4                  5                   6
     QueryResult *result = CharacterDatabase.Query("SELECT corpse.guid, player, corpse.position_x, corpse.position_y, corpse.position_z, corpse.orientation, corpse.map, "
-    //   7     8            9     10      11    12     13           14            15              16       17
-    "time, corpse_type, instance, gender, race, class, playerBytes, playerBytes2, equipmentCache, guildId, playerFlags FROM corpse "
-    "JOIN characters ON player = characters.guid "
-    "LEFT JOIN guild_member ON player=guild_member.guid WHERE corpse_type <> 0");
+    //   7     8            9         10      11    12     13           14            15              16       17
+        "time, corpse_type, instance, gender, race, class, playerBytes, playerBytes2, equipmentCache, guildId, playerFlags FROM corpse "
+        "JOIN characters ON player = characters.guid "
+        "LEFT JOIN guild_member ON player=guild_member.guid WHERE corpse_type <> 0");
 
     if (!result)
     {
@@ -8488,8 +8486,8 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
 
     if (vItems && vItems->FindItem(item_id))
     {
-        if(pl)
-            ChatHandler(pl).PSendSysMessage(LANG_ITEM_ALREADY_IN_LIST,item_id);
+        if (pl)
+            ChatHandler(pl).PSendSysMessage(LANG_ITEM_ALREADY_IN_LIST, item_id);
         else
             sLog.outErrorDb( "Table `%s` has duplicate items %u for %s %u, ignoring",
                 tableName, item_id, idStr, vendor_entry);

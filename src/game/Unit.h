@@ -443,7 +443,7 @@ enum UnitMoveType
     MOVE_FLIGHT_BACK    = 7,
 };
 
-#define MAX_MOVE_TYPE 8
+#define MAX_MOVE_TYPE     8
 
 extern float baseMoveSpeed[MAX_MOVE_TYPE];
 
@@ -1693,7 +1693,10 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
             return SPELL_AURA_PROC_CANT_TRIGGER;
         }
 
-        void SetLastManaUse() { m_lastManaUseTimer = 5000; }
+        void SetLastManaUse()
+        {
+            m_lastManaUseTimer = 5000;
+        }
         bool IsUnderLastManaUseEffect() const { return m_lastManaUseTimer; }
 
         void SetContestedPvP(Player *attackedPlayer = NULL);

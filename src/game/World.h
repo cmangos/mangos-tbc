@@ -571,6 +571,7 @@ class World
 
         void InitDailyQuestResetTime();
         void ResetDailyQuests();
+
     private:
         void setConfig(eConfigUInt32Values index, char const* fieldname, uint32 defvalue);
         void setConfig(eConfigInt32Values index, char const* fieldname, int32 defvalue);

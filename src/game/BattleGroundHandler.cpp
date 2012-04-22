@@ -172,7 +172,8 @@ void WorldSession::HandleBattlemasterJoinOpcode( WorldPacket & recv_data )
         for(GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
         {
             Player *member = itr->getSource();
-            if(!member) continue;   // this should never happen
+            if(!member)
+                continue;                                   // this should never happen
 
             uint32 queueSlot = member->AddBattleGroundQueueId(bgQueueTypeId);           // add to queue
 
@@ -220,8 +221,8 @@ void WorldSession::HandleBattleGroundPlayerPositionsOpcode( WorldPacket & /*recv
     {
         case BATTLEGROUND_WS:
             {
-                uint32 count1 = 0;                                  //always constant zero?
-                uint32 count2 = 0;                                  //count of next fields
+                uint32 count1 = 0;                          // always constant zero?
+                uint32 count2 = 0;                          // count of next fields
 
                 Player *ali_plr = sObjectMgr.GetPlayer(((BattleGroundWS*)bg)->GetAllianceFlagPickerGuid());
                 if (ali_plr)
@@ -532,6 +533,7 @@ void WorldSession::HandleBattlefieldStatusOpcode( WorldPacket & /*recv_data*/ )
             bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
             if (!bg)
                 continue;
+
             uint32 avgTime = bgQueue.GetAverageQueueWaitTime(&ginfo, _player->GetBattleGroundBracketIdFromLevel(bgTypeId));
             // send status in BattleGround Queue
             sBattleGroundMgr.BuildBattleGroundStatusPacket(&data, bg, i, STATUS_WAIT_QUEUE, avgTime, WorldTimer::getMSTimeDiff(ginfo.JoinTime, WorldTimer::getMSTime()), arenaType);
@@ -624,7 +626,7 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
             return;
     }
 
-    // check existance
+    // check existence
     BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(BATTLEGROUND_AA);
     if (!bg)
     {
@@ -714,9 +716,11 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
         for(GroupReference *itr = grp->GetFirstMember(); itr != NULL; itr = itr->next())
         {
             Player *member = itr->getSource();
-            if(!member) continue;
+            if(!member)
+                continue;
 
-            uint32 queueSlot = member->AddBattleGroundQueueId(bgQueueTypeId);// add to queue
+            // add to queue
+            uint32 queueSlot = member->AddBattleGroundQueueId(bgQueueTypeId);
 
             // store entry point coords (same as leader entry point)
             member->SetBattleGroundEntryPoint(_player);
@@ -730,7 +734,6 @@ void WorldSession::HandleBattlemasterJoinArena( WorldPacket & recv_data )
             DEBUG_LOG("Battleground: player joined queue for arena as group bg queue type %u bg type %u: GUID %u, NAME %s",bgQueueTypeId,bgTypeId,member->GetGUIDLow(), member->GetName());
         }
         DEBUG_LOG("Battleground: arena join as group end");
-        //announce to world ... removed
     }
     else
     {

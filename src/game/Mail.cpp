@@ -148,9 +148,9 @@ bool MailDraft::prepareItems(Player* receiver)
     uint32 max_slot = mailLoot.GetMaxSlotInLootFor(receiver);
     for(uint32 i = 0; m_items.size() < MAX_MAIL_ITEMS && i < max_slot; ++i)
     {
-        if (LootItem* lootitem = mailLoot.LootItemInSlot(i,receiver))
+        if (LootItem* lootitem = mailLoot.LootItemInSlot(i, receiver))
         {
-            if (Item* item = Item::CreateItem(lootitem->itemid,lootitem->count,receiver))
+            if (Item* item = Item::CreateItem(lootitem->itemid, lootitem->count, receiver))
             {
                 item->SaveToDB();                           // save for prevent lost at next mail load, if send fail then item will deleted
                 AddItem(item);
@@ -217,7 +217,7 @@ void MailDraft::CloneFrom(MailDraft const& draft)
  * Returns a mail to its sender.
  * @param sender_acc           The id of the account of the sender.
  * @param sender_guid          The low part of the GUID of the sender.
- * @param receiver_guid        The low part of the GUID of the reciever.
+ * @param receiver_guid        The low part of the GUID of the receiver.
  */
 void MailDraft::SendReturnToSender(uint32 sender_acc, ObjectGuid sender_guid, ObjectGuid receiver_guid)
 {

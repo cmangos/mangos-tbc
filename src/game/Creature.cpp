@@ -252,7 +252,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=NULL*/, GameE
     CreatureInfo const *cinfo = normalInfo;
     if(normalInfo->HeroicEntry)
     {
-        //we already have valid Map pointer for current creature!
+        // we already have valid Map pointer for current creature!
         if(!GetMap()->IsRegularDifficulty())
         {
             cinfo = ObjectMgr::GetCreatureTemplate(normalInfo->HeroicEntry);
@@ -304,7 +304,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=NULL*/, GameE
         LoadEquipment(eventData->equipment_id);             // use event equipment if any for active event
     }
     else if (!data || data->equipmentId == 0)
-    {                                                       // use default from the template
+    {
         if (cinfo->equipmentId == 0)
             LoadEquipment(normalInfo->equipmentId);         // use default from normal template if diff does not have any
         else
@@ -788,7 +788,7 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
 
 bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
 {
-    if(!isTrainer())
+    if (!isTrainer())
         return false;
 
     TrainerSpellData const* cSpells = GetTrainerSpells();
@@ -805,9 +805,9 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
     switch(GetCreatureInfo()->trainer_type)
     {
         case TRAINER_TYPE_CLASS:
-            if(pPlayer->getClass() != GetCreatureInfo()->trainer_class)
+            if (pPlayer->getClass() != GetCreatureInfo()->trainer_class)
             {
-                if(msg)
+                if (msg)
                 {
                     pPlayer->PlayerTalkClass->ClearMenus();
                     switch(GetCreatureInfo()->trainer_class)
@@ -827,7 +827,7 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
             }
             break;
         case TRAINER_TYPE_PETS:
-            if(pPlayer->getClass() != CLASS_HUNTER)
+            if (pPlayer->getClass() != CLASS_HUNTER)
             {
                 if (msg)
                 {
@@ -838,7 +838,7 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
             }
             break;
         case TRAINER_TYPE_MOUNTS:
-            if(GetCreatureInfo()->trainer_race && pPlayer->getRace() != GetCreatureInfo()->trainer_race)
+            if (GetCreatureInfo()->trainer_race && pPlayer->getRace() != GetCreatureInfo()->trainer_race)
             {
                 // Allowed to train if exalted
                 if (FactionTemplateEntry const* faction_template = getFactionTemplateEntry())
@@ -868,9 +868,9 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
             }
             break;
         case TRAINER_TYPE_TRADESKILLS:
-            if(GetCreatureInfo()->trainer_spell && !pPlayer->HasSpell(GetCreatureInfo()->trainer_spell))
+            if (GetCreatureInfo()->trainer_spell && !pPlayer->HasSpell(GetCreatureInfo()->trainer_spell))
             {
-                if(msg)
+                if (msg)
                 {
                     pPlayer->PlayerTalkClass->ClearMenus();
                     pPlayer->PlayerTalkClass->SendGossipMenu(11031, GetObjectGuid());

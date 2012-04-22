@@ -1204,7 +1204,7 @@ void BattleGroundMgr::BuildBattleGroundStatusPacket(WorldPacket *data, BattleGro
 
     if (StatusID == 0 || !bg)
     {
-        data->Initialize(SMSG_BATTLEFIELD_STATUS, 4*3);
+        data->Initialize(SMSG_BATTLEFIELD_STATUS, 4+8);
         *data << uint32(QueueSlot);                         // queue id (0...2)
         *data << uint64(0);
         return;

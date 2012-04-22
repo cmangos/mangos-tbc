@@ -815,6 +815,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                 triggered_spell_id = 29077;
                 break;
             }
+
             switch(dummySpell->Id)
             {
                 // Ignite
@@ -1405,11 +1406,11 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit *pVictim, uint32 damage, Aura
                     uint32 spellId;
                     switch (castItem->GetEnchantmentId(EnchantmentSlot(TEMP_ENCHANTMENT_SLOT)))
                     {
-                        case 283: spellId = 33757; break;   //1 Rank
-                        case 284: spellId = 33756; break;   //2 Rank
-                        case 525: spellId = 33755; break;   //3 Rank
-                        case 1669:spellId = 33754; break;   //4 Rank
-                        case 2636:spellId = 33727; break;   //5 Rank
+                        case 283: spellId = 33757; break;   // 1 Rank
+                        case 284: spellId = 33756; break;   // 2 Rank
+                        case 525: spellId = 33755; break;   // 3 Rank
+                        case 1669:spellId = 33754; break;   // 4 Rank
+                        case 2636:spellId = 33727; break;   // 5 Rank
                         default:
                         {
                             sLog.outError("Unit::HandleDummyAuraProc: non handled item enchantment (rank?) %u for spell id: %u (Windfury)",
@@ -1673,12 +1674,12 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                     trigger_spell_id = 33898;
                     break;
                 //case 34082: break;                        // Advantaged State (DND)
-                //case 34783: break;                        // Spell Reflection
-                //case 35205: break;                        // Vanish
+                //case 34783: break:                        // Spell Reflection
+                //case 35205: break:                        // Vanish
                 //case 35321: break;                        // Gushing Wound
-                //case 36096: break;                        // Spell Reflection
-                //case 36207: break;                        // Steal Weapon
-                //case 36576: break;                        // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
+                //case 36096: break:                        // Spell Reflection
+                //case 36207: break:                        // Steal Weapon
+                //case 36576: break:                        // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
                 //case 37030: break;                        // Chaotic Temperament
                 //case 38363: break;                        // Gushing Wound
                 //case 39215: break;                        // Gushing Wound
@@ -1689,7 +1690,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
                 //    trigger_spell_id = 41055; break;
                 //case 41248: break;                        // Consuming Strikes
                 //    trigger_spell_id = 41249; break;
-                //case 43453: break;                        // Rune Ward
+                //case 43453: break:                        // Rune Ward
                 //case 43504: break;                        // Alterac Valley OnKill Proc Aura
                 case 43820:                                 // Charm of the Witch Doctor (Amani Charm of the Witch Doctor trinket)
                 {
@@ -2043,23 +2044,23 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit *pVictim, uint32 d
             {
                 switch(auraSpellInfo->Id)
                 {
-                    case 324:                               // Rank 1
+                    case 324:                           // Rank 1
                         trigger_spell_id = 26364; break;
-                    case 325:                               // Rank 2
+                    case 325:                           // Rank 2
                         trigger_spell_id = 26365; break;
-                    case 905:                               // Rank 3
+                    case 905:                           // Rank 3
                         trigger_spell_id = 26366; break;
-                    case 945:                               // Rank 4
+                    case 945:                           // Rank 4
                         trigger_spell_id = 26367; break;
-                    case 8134:                              // Rank 5
+                    case 8134:                          // Rank 5
                         trigger_spell_id = 26369; break;
-                    case 10431:                             // Rank 6
+                    case 10431:                         // Rank 6
                         trigger_spell_id = 26370; break;
-                    case 10432:                             // Rank 7
+                    case 10432:                         // Rank 7
                         trigger_spell_id = 26363; break;
-                    case 25469:                             // Rank 8
+                    case 25469:                         // Rank 8
                         trigger_spell_id = 26371; break;
-                    case 25472:                             // Rank 9
+                    case 25472:                         // Rank 9
                         trigger_spell_id = 26372; break;
                     default:
                         sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u not handled in LShield", auraSpellInfo->Id);
@@ -2325,7 +2326,7 @@ SpellAuraProcResult Unit::HandleMendingAuraProc( Unit* /*pVictim*/, uint32 /*dam
 
         if(Player* caster = ((Player*)triggeredByAura->GetCaster()))
         {
-            caster->ApplySpellMod(spellProto->Id, SPELLMOD_RADIUS, radius,NULL);
+            caster->ApplySpellMod(spellProto->Id, SPELLMOD_RADIUS, radius, NULL);
 
             if(Player* target = ((Player*)this)->GetNextRandomRaidMember(radius))
             {
@@ -2407,14 +2408,14 @@ SpellAuraProcResult Unit::HandleManaShieldAuraProc(Unit *pVictim, uint32 /*damag
     }
 
     // processed charge only counting case
-    if(!triggered_spell_id)
+    if (!triggered_spell_id)
         return SPELL_AURA_PROC_FAILED;
 
     SpellEntry const* triggerEntry = sSpellStore.LookupEntry(triggered_spell_id);
 
-    if(!triggerEntry)
+    if (!triggerEntry)
     {
-        sLog.outError("Unit::HandleManaShieldAuraProc: Spell %u have not existed triggered spell %u",dummySpell->Id,triggered_spell_id);
+        sLog.outError("Unit::HandleManaShieldAuraProc: Spell %u have nonexistent triggered spell %u",dummySpell->Id,triggered_spell_id);
         return SPELL_AURA_PROC_FAILED;
     }
 
@@ -2422,7 +2423,7 @@ SpellAuraProcResult Unit::HandleManaShieldAuraProc(Unit *pVictim, uint32 /*damag
     if (!target || (target != this && !target->isAlive()))
         return SPELL_AURA_PROC_FAILED;
 
-    if( cooldown && GetTypeId()==TYPEID_PLAYER && ((Player*)this)->HasSpellCooldown(triggered_spell_id))
+    if (cooldown && GetTypeId()==TYPEID_PLAYER && ((Player*)this)->HasSpellCooldown(triggered_spell_id))
         return SPELL_AURA_PROC_FAILED;
 
     CastSpell(target, triggered_spell_id, true, castItem, triggeredByAura);

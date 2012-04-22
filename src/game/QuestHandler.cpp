@@ -37,7 +37,7 @@ void WorldSession::HandleQuestgiverStatusQueryOpcode(WorldPacket & recv_data)
     uint8 dialogStatus = DIALOG_STATUS_NONE;
 
     Object* questgiver = _player->GetObjectByTypeMask(guid, TYPEMASK_CREATURE_OR_GAMEOBJECT);
-    if(!questgiver)
+    if (!questgiver)
     {
         DETAIL_LOG("Error in CMSG_QUESTGIVER_STATUS_QUERY, called for not found questgiver %s", guid.GetString().c_str());
         return;
@@ -49,7 +49,7 @@ void WorldSession::HandleQuestgiverStatusQueryOpcode(WorldPacket & recv_data)
     {
         case TYPEID_UNIT:
         {
-            Creature* cr_questgiver=(Creature*)questgiver;
+            Creature* cr_questgiver = (Creature*)questgiver;
 
             if (!cr_questgiver->IsHostileTo(_player))       // not show quest status to enemies
             {
@@ -64,8 +64,10 @@ void WorldSession::HandleQuestgiverStatusQueryOpcode(WorldPacket & recv_data)
         {
             GameObject* go_questgiver = (GameObject*)questgiver;
             dialogStatus = sScriptMgr.GetDialogStatus(_player, go_questgiver);
+
             if (dialogStatus > 6)
                 dialogStatus = getDialogStatus(_player, go_questgiver, DIALOG_STATUS_NONE);
+
             break;
         }
         default:
@@ -342,7 +344,7 @@ void WorldSession::HandleQuestConfirmAccept(WorldPacket& recv_data)
 
     DEBUG_LOG("WORLD: Received CMSG_QUEST_CONFIRM_ACCEPT quest = %u", quest);
 
-    if (const Quest* pQuest =sObjectMgr.GetQuestTemplate(quest))
+    if (const Quest* pQuest = sObjectMgr.GetQuestTemplate(quest))
     {
         if (!pQuest->HasQuestFlag(QUEST_FLAGS_PARTY_ACCEPT))
             return;
@@ -598,8 +600,10 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
 
             if (!questgiver || questgiver->IsHostileTo(_player))
                 continue;
-            if(!questgiver->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER))
+
+            if (!questgiver->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER))
                 continue;
+
             dialogStatus = sScriptMgr.GetDialogStatus(_player, questgiver);
 
             if (dialogStatus > 6)
@@ -612,9 +616,11 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
         else if (itr->IsGameObject())
         {
             GameObject *questgiver = GetPlayer()->GetMap()->GetGameObject(*itr);
-            if(!questgiver)
+
+            if (!questgiver)
                 continue;
-            if(questgiver->GetGoType() != GAMEOBJECT_TYPE_QUESTGIVER)
+
+            if (questgiver->GetGoType() != GAMEOBJECT_TYPE_QUESTGIVER)
                 continue;
 
             dialogStatus = sScriptMgr.GetDialogStatus(_player, questgiver);

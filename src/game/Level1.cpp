@@ -303,7 +303,7 @@ bool ChatHandler::HandleGPSCommand(char* args)
     uint32 have_map = GridMap::ExistMap(obj->GetMapId(),gx,gy) ? 1 : 0;
     uint32 have_vmap = GridMap::ExistVMap(obj->GetMapId(),gx,gy) ? 1 : 0;
 
-    if(have_vmap)
+    if (have_vmap)
     {
         if(map->IsOutdoors(obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ()))
             PSendSysMessage("You are OUTdoor");
@@ -1758,7 +1758,8 @@ bool ChatHandler::HandleTeleNameCommand(char* args)
         std::string nameLink = playerLink(target_name);
 
         PSendSysMessage(LANG_TELEPORTING_TO, nameLink.c_str(), GetMangosString(LANG_OFFLINE), tele->name.c_str());
-        Player::SavePositionInDB(target_guid, tele->mapId,tele->position_x,tele->position_y,tele->position_z,tele->orientation,
+        Player::SavePositionInDB(target_guid, tele->mapId,
+            tele->position_x, tele->position_y, tele->position_z, tele->orientation,
             sTerrainMgr.GetZoneId(tele->mapId,tele->position_x,tele->position_y,tele->position_z));
     }
 

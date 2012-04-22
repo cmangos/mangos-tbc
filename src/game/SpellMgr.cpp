@@ -841,9 +841,11 @@ bool IsPositiveEffect(SpellEntry const *spellproto, SpellEffectIndex effIndex)
                     }
                 }   break;
                 case SPELL_AURA_FORCE_REACTION:
-                    if(spellproto->Id==42792)               // Recently Dropped Flag (prevent cancel)
+                {
+                    if (spellproto->Id == 42792)            // Recently Dropped Flag (prevent cancel)
                         return false;
                     break;
+                }
                 default:
                     break;
             }
@@ -1223,7 +1225,7 @@ struct DoSpellProcEvent
                 }
             }
             if (empty)
-                sLog.outErrorDb("Spell %u listed in `spell_proc_event` not have any useful data", spell->Id);
+                sLog.outErrorDb("Spell %u listed in `spell_proc_event` doesn't have any useful data", spell->Id);
         }
 
         if (isCustom)
@@ -2181,10 +2183,10 @@ bool SpellMgr::IsProfessionOrRidingSpell(uint32 spellId)
     if(!spellInfo)
         return false;
 
-    if(spellInfo->Effect[1] != SPELL_EFFECT_SKILL)
+    if (spellInfo->Effect[EFFECT_INDEX_1] != SPELL_EFFECT_SKILL)
         return false;
 
-    uint32 skill = spellInfo->EffectMiscValue[1];
+    uint32 skill = spellInfo->EffectMiscValue[EFFECT_INDEX_1];
 
     return IsProfessionOrRidingSkill(skill);
 }
@@ -3088,7 +3090,7 @@ bool SpellMgr::IsSpellValid(SpellEntry const* spellInfo, Player* pl, bool msg)
             // craft spell for crafting nonexistent item (break client recipes list show)
             case SPELL_EFFECT_CREATE_ITEM:
             {
-                if(!ObjectMgr::GetItemPrototype( spellInfo->EffectItemType[i] ))
+                if (!ObjectMgr::GetItemPrototype( spellInfo->EffectItemType[i] ))
                 {
                     if(msg)
                     {
@@ -3796,7 +3798,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         }
         case SPELLFAMILY_HUNTER:
         {
-            // Freezing trap
+            // Freezing Trap
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000008)))
                 return DIMINISHING_FREEZE;
             break;

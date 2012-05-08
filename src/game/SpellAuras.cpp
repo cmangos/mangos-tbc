@@ -2229,7 +2229,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 {
                     if (target->GetTypeId() == TYPEID_UNIT)
                     {
-                        // Flags not set like it's done in SetFeignDeath()1
+                        // Flags not set like it's done in SetFeignDeath()
                         // UNIT_DYNFLAG_DEAD does not appear with these spells.
                         // All of the spells appear to be present at spawn and not used to feign in combat or similar.
                         if (apply)

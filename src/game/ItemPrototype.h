@@ -559,12 +559,12 @@ struct ItemPrototype
     uint32 GemProperties;                                   // id from GemProperties.dbc
     int32 RequiredDisenchantSkill;
     float  ArmorDamageModifier;
-    uint32 Duration;
     uint32 ScriptId;
     uint32 DisenchantID;
     uint32 FoodType;
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;
+    uint32 Duration;
     uint32 ExtraFlags;                                      // see ItemExtraFlags
 
     // helpers

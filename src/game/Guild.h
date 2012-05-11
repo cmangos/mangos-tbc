@@ -199,7 +199,6 @@ inline uint32 GetGuildBankTabPrice(uint8 Index)
         default:
             return 0;
     }
-    return 0;
 }
 
 struct GuildEventLogEntry

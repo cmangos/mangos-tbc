@@ -663,6 +663,8 @@ class ObjectMgr
 
         void LoadPointsOfInterest();
 
+        void LoadSpellTemplate();
+
         void LoadWeatherZoneChances();
         void LoadGameTele();
 

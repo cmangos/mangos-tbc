@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1582_11994_01_mangos_creature_linking` bit(1) default NULL
+  `required_s1588_12000_01_mangos_spell_template` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -15712,6 +15712,37 @@ CREATE TABLE `spell_target_position` (
 LOCK TABLES `spell_target_position` WRITE;
 /*!40000 ALTER TABLE `spell_target_position` DISABLE KEYS */;
 /*!40000 ALTER TABLE `spell_target_position` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `spell_template`
+--
+
+DROP TABLE IF EXISTS `spell_template`;
+CREATE TABLE `spell_template` (
+  `id` int(11) unsigned NOT NULL DEFAULT '0',
+  `proc_flags` int(11) unsigned NOT NULL DEFAULT '0',
+  `proc_chance` int(11) unsigned NOT NULL DEFAULT '0',
+  `duration_index` int(11) unsigned NOT NULL DEFAULT '0',
+  `effect0` int(11) unsigned NOT NULL DEFAULT '0',
+  `effect0_implicit_target_a` int(11) unsigned NOT NULL DEFAULT '0',
+  `effect0_radius_idx` int(11) unsigned NOT NULL DEFAULT '0',
+  `effect0_apply_aura_name` int(11) unsigned NOT NULL DEFAULT '0',
+  `effect0_misc_value` int(11) unsigned NOT NULL DEFAULT '0',
+  `effect0_trigger_spell` int(11) unsigned NOT NULL DEFAULT '0',
+  `comments` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='MaNGOS server side spells';
+
+--
+-- Dumping data for table `spell_template`
+--
+LOCK TABLES `spell_template` WRITE;
+/*!40000 ALTER TABLE `spell_template` DISABLE KEYS */;
+INSERT INTO `spell_template` VALUES
+-- ID   proc_flags chnce dur  ef0 tarA0 rad  aur  misc    trigger
+(21387, 0x00000028,  15,  21,   6,   1,   0,  42, 0,      21388, 'Melt-Weapon trigger aura related used by Ragnaros');
+/*!40000 ALTER TABLE `spell_template` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

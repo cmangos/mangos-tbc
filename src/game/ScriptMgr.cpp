@@ -34,6 +34,7 @@ ScriptMapMapName sQuestEndScripts;
 ScriptMapMapName sQuestStartScripts;
 ScriptMapMapName sSpellScripts;
 ScriptMapMapName sGameObjectScripts;
+ScriptMapMapName sGameObjectTemplateScripts;
 ScriptMapMapName sEventScripts;
 ScriptMapMapName sGossipScripts;
 ScriptMapMapName sCreatureMovementScripts;
@@ -594,6 +595,18 @@ void ScriptMgr::LoadGameObjectScripts()
     }
 }
 
+void ScriptMgr::LoadGameObjectTemplateScripts()
+{
+    LoadScripts(sGameObjectTemplateScripts, "gameobject_template_scripts");
+
+    // check ids
+    for (ScriptMapMap::const_iterator itr = sGameObjectTemplateScripts.second.begin(); itr != sGameObjectTemplateScripts.second.end(); ++itr)
+    {
+        if (!sObjectMgr.GetGameObjectInfo(itr->first))
+            sLog.outErrorDb("Table `gameobject_template_scripts` has not existing gameobject (Entry: %u) as script id", itr->first);
+    }
+}
+
 void ScriptMgr::LoadQuestEndScripts()
 {
     LoadScripts(sQuestEndScripts, "quest_end_scripts");
@@ -750,6 +763,7 @@ void ScriptMgr::LoadDbScriptStrings()
     CheckScriptTexts(sQuestStartScripts, ids);
     CheckScriptTexts(sSpellScripts, ids);
     CheckScriptTexts(sGameObjectScripts, ids);
+    CheckScriptTexts(sGameObjectTemplateScripts, ids);
     CheckScriptTexts(sEventScripts, ids);
     CheckScriptTexts(sGossipScripts, ids);
     CheckScriptTexts(sCreatureMovementScripts, ids);

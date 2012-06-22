@@ -26,6 +26,7 @@
 #include "ace/Atomic_Op.h"
 
 struct AreaTriggerEntry;
+struct SpellEntry;
 class Aura;
 class Creature;
 class CreatureAI;
@@ -437,6 +438,7 @@ class ScriptMgr
         uint32 DecreaseScheduledScriptCount() { return (uint32)--m_scheduledScripts; }
         uint32 DecreaseScheduledScriptCount(size_t count) { return (uint32)(m_scheduledScripts -= count); }
         bool IsScriptScheduled() const { return m_scheduledScripts > 0; }
+        static bool CanSpellEffectStartDBScript(SpellEntry const* spellinfo, SpellEffectIndex effIdx);
 
         CreatureAI* GetCreatureAI(Creature* pCreature);
         InstanceData* CreateInstanceData(Map* pMap);

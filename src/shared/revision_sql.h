@@ -1,6 +1,6 @@
 #ifndef __REVISION_SQL_H__
 #define __REVISION_SQL_H__
  #define REVISION_DB_CHARACTERS "required_s1350_11716_09_characters_mail"
- #define REVISION_DB_MANGOS "required_s1574_11985_01_mangos_gameobject_template_scripts"
+ #define REVISION_DB_MANGOS "required_s1582_11994_01_mangos_creature_linking"
  #define REVISION_DB_REALMD "required_10008_01_realmd_realmd_db_version"
 #endif // __REVISION_SQL_H__

@@ -1495,8 +1495,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 39992:                                 // Needle Spine Targeting (BT, Warlord Najentus)
                     unMaxTargets = 3;
                     break;
-                case 30843:                                 // Enfeeble TODO: exclude top threat target from target selection
-                case 42005:                                 // Bloodboil TODO: need to be 5 targets(players) furthest away from caster
+                case 30843:                                 // Enfeeble
+                case 42005:                                 // Bloodboil
                 case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
                     unMaxTargets = 5;
                     break;
@@ -1818,14 +1818,18 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ALL_ENEMY_IN_AREA:
             FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_DAMAGE);
 
-            if (m_spellInfo->Id == 42005)                   // Bloodboil
+            if (m_spellInfo->Id == 42005)                   // Bloodboil (spell hits only the 5 furthest away targets)
             {
-                // manually cuting, because the spell hits only the 5 furthest away targets
                 if (targetUnitMap.size() > unMaxTargets)
                 {
                     targetUnitMap.sort(TargetDistanceOrderFarAway(m_caster));
                     targetUnitMap.resize(unMaxTargets);
                 }
+            }
+            else if (m_spellInfo->Id == 30843)              // Enfeeble (do not target current victim)
+            {
+                if (Unit* pVictim = m_caster->getVictim())
+                    targetUnitMap.remove(pVictim);
             }
             break;
         case TARGET_AREAEFFECT_INSTANT:

@@ -139,33 +139,36 @@ enum TotemCategoryType
     TOTEM_CATEGORY_TYPE_SPANNER = 24
 };
 
-// SummonProperties.dbc, col 1
+// SummonProperties.dbc, col 0          == Id               (m_id)
+// SummonProperties.dbc, col 1          == Group            (m_control)
 enum SummonPropGroup
 {
-    SUMMON_PROP_GROUP_WILD           = 0,
-    SUMMON_PROP_GROUP_FRIENDLY       = 1,
-    SUMMON_PROP_GROUP_PETS           = 2,
-    SUMMON_PROP_GROUP_CONTROLLABLE   = 3,
+    SUMMON_PROP_GROUP_WILD              = 0,
+    SUMMON_PROP_GROUP_FRIENDLY          = 1,
+    SUMMON_PROP_GROUP_PETS              = 2,
+    SUMMON_PROP_GROUP_CONTROLLABLE      = 3,
 };
 
-// SummonProperties.dbc, col 3
+// SummonProperties.dbc, col 2          == FactionId        (m_faction)
+// SummonProperties.dbc, col 3          == Title            (m_title)
 enum UnitNameSummonTitle
 {
-    UNITNAME_SUMMON_TITLE_NONE         = 0,                 // no default title, different summons, 730 spells in 2.4.3
-    UNITNAME_SUMMON_TITLE_PET          = 1,                 // 's Pet,           generic summons, 59 spells in 2.4.3
-    UNITNAME_SUMMON_TITLE_GUARDIAN     = 2,                 // 's Guardian,      summon guardian, 311 spells in 2.4.3
-    //UNITNAME_SUMMON_TITLE_MINION     = 3,                 // 's Minion,        summon army, 0 spells in 2.4.3
-    UNITNAME_SUMMON_TITLE_TOTEM        = 4,                 // 's Totem,         summon totem, 148 spells in 2.4.3
-    UNITNAME_SUMMON_TITLE_COMPANION    = 5,                 // 's Companion,     critter/minipet, 159 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_NONE          = 0,                // no default title, different summons, 730 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_PET           = 1,                // 's Pet,           generic summons, 59 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_GUARDIAN      = 2,                // 's Guardian,      summon guardian, 311 spells in 2.4.3
+    //UNITNAME_SUMMON_TITLE_MINION      = 3,                // 's Minion,        summon army, 0 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_TOTEM         = 4,                // 's Totem,         summon totem, 148 spells in 2.4.3
+    UNITNAME_SUMMON_TITLE_COMPANION     = 5,                // 's Companion,     critter/minipet, 159 spells in 2.4.3
 };
 
-// SummonProperties.dbc, col 5
+// SummonProperties.dbc, col 4          == Slot             (m_slot)
+// SummonProperties.dbc, col 5          == Flags            (m_flags)
 enum SummonPropFlags
 {
-    SUMMON_PROP_FLAG_NONE              = 0x0000,            //
-    SUMMON_PROP_FLAG_UNK1              = 0x0001,            // something unfriendly
-    SUMMON_PROP_FLAG_UNK2              = 0x0002,            // something friendly
-    SUMMON_PROP_FLAG_UNK3              = 0x0004,            // no idea...
+    SUMMON_PROP_FLAG_NONE               = 0x0000,           //
+    SUMMON_PROP_FLAG_UNK1               = 0x0001,           // something unfriendly
+    SUMMON_PROP_FLAG_UNK2               = 0x0002,           // something friendly
+    SUMMON_PROP_FLAG_UNK3               = 0x0004,           // no idea...
 };
 
 // SpellEntry::Targets

@@ -3244,9 +3244,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         }
         case SUMMON_PROP_GROUP_CONTROLLABLE:
         {
-            // no type here
-            // maybe wrong - but thats the handler currently used for those
-            DoSummonGuardian(eff_idx, summon_prop->FactionId);
+            DoSummonPossessed(eff_idx, summon_prop->FactionId);
             break;
         }
         default:
@@ -5574,6 +5572,60 @@ void Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     }
 
     pTotem->Summon(m_caster);
+}
+
+bool Spell::DoSummonPossessed(SpellEffectIndex eff_idx, uint32 forceFaction)
+{
+    uint32 creatureEntry = m_spellInfo->EffectMiscValue[eff_idx];
+    CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(creatureEntry);
+    if (!cInfo)
+    {
+        sLog.outErrorDb("Spell::DoSummonPossessed: creature entry %u not found for spell %u.", creatureEntry, m_spellInfo->Id);
+        return false;
+    }
+
+    Creature* spawnCreature = m_caster->SummonCreature(creatureEntry, m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, m_caster->GetOrientation(), TEMPSUMMON_CORPSE_DESPAWN, 0);
+    if (!spawnCreature)
+    {
+        sLog.outError("Spell::DoSummonPossessed: creature entry %u for spell %u could not be summoned.", creatureEntry, m_spellInfo->Id);
+        return false;
+    }
+
+    // Changes to be sent
+    spawnCreature->SetCharmerGuid(m_caster->GetObjectGuid());
+    spawnCreature->SetCreatorGuid(m_caster->GetObjectGuid());
+    spawnCreature->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
+    spawnCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+
+    spawnCreature->SetLevel(m_caster->getLevel());
+
+    spawnCreature->SetWalk(m_caster->IsWalking());
+    // TODO: Set Fly
+
+    // Internal changes
+    spawnCreature->addUnitState(UNIT_STAT_CONTROLLED);
+
+    // Changes to owner
+    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player* player = (Player*)m_caster;
+
+        player->GetCamera().SetView(spawnCreature);
+
+        player->SetCharm(spawnCreature);
+        player->SetClientControl(spawnCreature, 1);
+        player->SetMover(spawnCreature);
+
+        if (CharmInfo* charmInfo = spawnCreature->InitCharmInfo(spawnCreature))
+            charmInfo->InitPossessCreateSpells();
+        player->PossessSpellInitialize();
+    }
+
+    // Notify Summoner
+    if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
+        ((Creature*)m_originalCaster)->AI()->JustSummoned(spawnCreature);
+
+    return true;
 }
 
 void Spell::EffectEnchantHeldItem(SpellEffectIndex eff_idx)

@@ -50,17 +50,17 @@ enum CorpseFlags
 class Corpse : public WorldObject
 {
     public:
-        explicit Corpse( CorpseType type = CORPSE_BONES );
-        ~Corpse( );
+        explicit Corpse(CorpseType type = CORPSE_BONES);
+        ~Corpse();
 
         void AddToWorld();
         void RemoveFromWorld();
 
-        bool Create( uint32 guidlow );
-        bool Create( uint32 guidlow, Player *owner );
+        bool Create(uint32 guidlow);
+        bool Create(uint32 guidlow, Player* owner);
 
         void SaveToDB();
-        bool LoadFromDB(uint32 guid, Field *fields);
+        bool LoadFromDB(uint32 guid, Field* fields);
 
         void DeleteBonesFromWorld();
         void DeleteFromDB();

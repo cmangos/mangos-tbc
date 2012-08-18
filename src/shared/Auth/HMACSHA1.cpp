@@ -19,7 +19,7 @@
 #include "Auth/HMACSHA1.h"
 #include "BigNumber.h"
 
-HMACSHA1::HMACSHA1(uint32 len, uint8 *seed)
+HMACSHA1::HMACSHA1(uint32 len, uint8* seed)
 {
     MANGOS_ASSERT(len == SEED_KEY_SIZE);
 
@@ -34,12 +34,12 @@ HMACSHA1::~HMACSHA1()
     HMAC_CTX_cleanup(&m_ctx);
 }
 
-void HMACSHA1::UpdateBigNumber(BigNumber *bn)
+void HMACSHA1::UpdateBigNumber(BigNumber* bn)
 {
     UpdateData(bn->AsByteArray(), bn->GetNumBytes());
 }
 
-void HMACSHA1::UpdateData(const uint8 *data, int length)
+void HMACSHA1::UpdateData(const uint8* data, int length)
 {
     HMAC_Update(&m_ctx, data, length);
 }

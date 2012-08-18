@@ -109,15 +109,15 @@ class MANGOS_DLL_SPEC ObjectGuid
         uint32   GetCounter()  const
         {
             return HasEntry()
-                ? uint32(m_guid & UI64LIT(0x0000000000FFFFFF))
-                : uint32(m_guid & UI64LIT(0x00000000FFFFFFFF));
+                   ? uint32(m_guid & UI64LIT(0x0000000000FFFFFF))
+                   : uint32(m_guid & UI64LIT(0x00000000FFFFFFFF));
         }
 
         static uint32 GetMaxCounter(HighGuid high)
         {
             return HasEntry(high)
-                ? uint32(0x00FFFFFF)
-                : uint32(0xFFFFFFFF);
+                   ? uint32(0x00FFFFFF)
+                   : uint32(0xFFFFFFFF);
         }
 
         uint32 GetMaxCounter() const { return GetMaxCounter(GetHigh()); }
@@ -139,10 +139,10 @@ class MANGOS_DLL_SPEC ObjectGuid
 
         static TypeID GetTypeId(HighGuid high)
         {
-            switch(high)
+            switch (high)
             {
                 case HIGHGUID_ITEM:         return TYPEID_ITEM;
-                //case HIGHGUID_CONTAINER:    return TYPEID_CONTAINER; HIGHGUID_CONTAINER==HIGHGUID_ITEM currently
+                    //case HIGHGUID_CONTAINER:    return TYPEID_CONTAINER; HIGHGUID_CONTAINER==HIGHGUID_ITEM currently
                 case HIGHGUID_UNIT:         return TYPEID_UNIT;
                 case HIGHGUID_PET:          return TYPEID_UNIT;
                 case HIGHGUID_PLAYER:       return TYPEID_PLAYER;
@@ -150,7 +150,7 @@ class MANGOS_DLL_SPEC ObjectGuid
                 case HIGHGUID_DYNAMICOBJECT:return TYPEID_DYNAMICOBJECT;
                 case HIGHGUID_CORPSE:       return TYPEID_CORPSE;
                 case HIGHGUID_MO_TRANSPORT: return TYPEID_GAMEOBJECT;
-                // unknown
+                    // unknown
                 case HIGHGUID_GROUP:
                 default:                    return TYPEID_OBJECT;
             }
@@ -158,7 +158,7 @@ class MANGOS_DLL_SPEC ObjectGuid
 
         TypeID GetTypeId() const { return GetTypeId(GetHigh()); }
 
-        bool operator! () const { return IsEmpty(); }
+        bool operator!() const { return IsEmpty(); }
         bool operator== (ObjectGuid const& guid) const { return GetRawValue() == guid.GetRawValue(); }
         bool operator!= (ObjectGuid const& guid) const { return GetRawValue() != guid.GetRawValue(); }
         bool operator< (ObjectGuid const& guid) const { return GetRawValue() < guid.GetRawValue(); }
@@ -171,7 +171,7 @@ class MANGOS_DLL_SPEC ObjectGuid
     private:                                                // internal functions
         static bool HasEntry(HighGuid high)
         {
-            switch(high)
+            switch (high)
             {
                 case HIGHGUID_ITEM:
                 case HIGHGUID_PLAYER:
@@ -205,7 +205,7 @@ typedef std::vector<ObjectGuid> GuidVector;
 
 class PackedGuid
 {
-    friend ByteBuffer& operator<< (ByteBuffer& buf, PackedGuid const& guid);
+        friend ByteBuffer& operator<< (ByteBuffer& buf, PackedGuid const& guid);
 
     public:                                                 // constructors
         explicit PackedGuid() : m_packedGuid(PACKED_GUID_MIN_BUFFER_SIZE) { m_packedGuid.appendPackGUID(0); }
@@ -250,16 +250,16 @@ inline PackedGuid ObjectGuid::WriteAsPacked() const { return PackedGuid(*this); 
 
 HASH_NAMESPACE_START
 
-    template<>
-    class hash<ObjectGuid>
-    {
-        public:
+template<>
+class hash<ObjectGuid>
+{
+    public:
 
-            size_t operator() (ObjectGuid const& key) const
-            {
-                return hash<uint64>()(key.GetRawValue());
-            }
-    };
+        size_t operator()(ObjectGuid const& key) const
+        {
+            return hash<uint64>()(key.GetRawValue());
+        }
+};
 
 HASH_NAMESPACE_END
 

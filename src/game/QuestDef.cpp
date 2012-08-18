@@ -20,7 +20,7 @@
 #include "Player.h"
 #include "World.h"
 
-Quest::Quest(Field * questRecord)
+Quest::Quest(Field* questRecord)
 {
     QuestId = questRecord[0].GetUInt32();
     QuestMethod = questRecord[1].GetUInt32();
@@ -136,33 +136,33 @@ Quest::Quest(Field * questRecord)
     m_rewitemscount = 0;
     m_rewchoiceitemscount = 0;
 
-    for (int i=0; i < QUEST_OBJECTIVES_COUNT; ++i)
+    for (int i = 0; i < QUEST_OBJECTIVES_COUNT; ++i)
     {
-        if ( ReqItemId[i] )
+        if (ReqItemId[i])
             ++m_reqitemscount;
 
-        if ( ReqCreatureOrGOId[i] )
+        if (ReqCreatureOrGOId[i])
             ++m_reqCreatureOrGOcount;
     }
 
-    for (int i=0; i < QUEST_REWARDS_COUNT; ++i)
+    for (int i = 0; i < QUEST_REWARDS_COUNT; ++i)
     {
-        if ( RewItemId[i] )
+        if (RewItemId[i])
             ++m_rewitemscount;
     }
 
-    for (int i=0; i < QUEST_REWARD_CHOICES_COUNT; ++i)
+    for (int i = 0; i < QUEST_REWARD_CHOICES_COUNT; ++i)
     {
         if (RewChoiceItemId[i])
             ++m_rewchoiceitemscount;
     }
 }
 
-uint32 Quest::XPValue(Player *pPlayer) const
+uint32 Quest::XPValue(Player* pPlayer) const
 {
     if (pPlayer)
     {
-        if( RewMoneyMaxLevel > 0 )
+        if (RewMoneyMaxLevel > 0)
         {
             uint32 pLevel = pPlayer->getLevel();
             uint32 qLevel = QuestLevel > 0 ? (uint32)QuestLevel : 0;
@@ -180,15 +180,15 @@ uint32 Quest::XPValue(Player *pPlayer) const
             else if (qLevel > 0 && qLevel <= 60)
                 fullxp = RewMoneyMaxLevel / 0.6f;
 
-            if( pLevel <= qLevel +  5 )
+            if (pLevel <= qLevel +  5)
                 return uint32(ceilf(fullxp));
-            else if( pLevel == qLevel +  6 )
+            else if (pLevel == qLevel +  6)
                 return uint32(ceilf(fullxp * 0.8f));
-            else if( pLevel == qLevel +  7 )
+            else if (pLevel == qLevel +  7)
                 return uint32(ceilf(fullxp * 0.6f));
-            else if( pLevel == qLevel +  8 )
+            else if (pLevel == qLevel +  8)
                 return uint32(ceilf(fullxp * 0.4f));
-            else if( pLevel == qLevel +  9 )
+            else if (pLevel == qLevel +  9)
                 return uint32(ceilf(fullxp * 0.2f));
             else
                 return uint32(ceilf(fullxp * 0.1f));
@@ -200,7 +200,7 @@ uint32 Quest::XPValue(Player *pPlayer) const
 
 int32  Quest::GetRewOrReqMoney() const
 {
-    if(RewOrReqMoney <=0)
+    if (RewOrReqMoney <= 0)
         return RewOrReqMoney;
 
     return int32(RewOrReqMoney * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY));

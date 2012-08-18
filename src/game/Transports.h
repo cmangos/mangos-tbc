@@ -45,7 +45,7 @@ class Transport : public GameObject
             WayPoint() : mapid(0), x(0), y(0), z(0), teleport(false) {}
             WayPoint(uint32 _mapid, float _x, float _y, float _z, bool _teleport, uint32 _arrivalEventID = 0, uint32 _departureEventID = 0)
                 : mapid(_mapid), x(_x), y(_y), z(_z), teleport(_teleport),
-                arrivalEventID(_arrivalEventID), departureEventID(_departureEventID)
+                  arrivalEventID(_arrivalEventID), departureEventID(_departureEventID)
             {
             }
 

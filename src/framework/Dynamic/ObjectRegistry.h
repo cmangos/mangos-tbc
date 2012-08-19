@@ -29,7 +29,7 @@
 
 /** ObjectRegistry holds all registry item of the same type
  */
-template<class T, class Key = std::string>
+template < class T, class Key = std::string >
 class MANGOS_DLL_DECL ObjectRegistry
 {
     public:
@@ -100,7 +100,7 @@ class MANGOS_DLL_DECL ObjectRegistry
         ObjectRegistry() {}
         ~ObjectRegistry()
         {
-            for (typename RegistryMapType::iterator iter=i_registeredObjects.begin(); iter != i_registeredObjects.end(); ++iter)
+            for (typename RegistryMapType::iterator iter = i_registeredObjects.begin(); iter != i_registeredObjects.end(); ++iter)
                 delete iter->second;
             i_registeredObjects.clear();
         }

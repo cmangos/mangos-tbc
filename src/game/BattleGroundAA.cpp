@@ -53,7 +53,7 @@ void BattleGroundAA::StartingEventOpenDoors()
 {
 }
 
-void BattleGroundAA::AddPlayer(Player *plr)
+void BattleGroundAA::AddPlayer(Player* plr)
 {
     BattleGround::AddPlayer(plr);
     //create score and add it to map, default values are set in constructor

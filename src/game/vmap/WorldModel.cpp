@@ -135,7 +135,7 @@ namespace VMAP
         if (other.iHeight)
         {
             iHeight = new float[(iTilesX+1)*(iTilesY+1)];
-            memcpy(iHeight, other.iHeight, (iTilesX+1)*(iTilesY+1)*sizeof(float));
+            memcpy(iHeight, other.iHeight, (iTilesX + 1)*(iTilesY + 1)*sizeof(float));
         }
         else
             iHeight = 0;
@@ -151,11 +151,11 @@ namespace VMAP
 
     bool WmoLiquid::GetLiquidHeight(const Vector3& pos, float& liqHeight) const
     {
-        float tx_f = (pos.x - iCorner.x)/LIQUID_TILE_SIZE;
+        float tx_f = (pos.x - iCorner.x) / LIQUID_TILE_SIZE;
         uint32 tx = uint32(tx_f);
         if (tx_f < 0.0f || tx >= iTilesX)
             return false;
-        float ty_f = (pos.y - iCorner.y)/LIQUID_TILE_SIZE;
+        float ty_f = (pos.y - iCorner.y) / LIQUID_TILE_SIZE;
         uint32 ty = uint32(ty_f);
         if (ty_f < 0.0f || ty >= iTilesY)
             return false;
@@ -201,7 +201,7 @@ namespace VMAP
     {
         return 2 * sizeof(uint32) +
                sizeof(Vector3) +
-               (iTilesX + 1)*(iTilesY + 1) * sizeof(float) +
+               (iTilesX + 1) * (iTilesY + 1) * sizeof(float) +
                iTilesX * iTilesY;
     }
 
@@ -212,9 +212,9 @@ namespace VMAP
         if (result && fwrite(&iTilesY, sizeof(uint32), 1, wf) != 1) result = false;
         if (result && fwrite(&iCorner, sizeof(Vector3), 1, wf) != 1) result = false;
         if (result && fwrite(&iType, sizeof(uint32), 1, wf) != 1) result = false;
-        uint32 size = (iTilesX + 1)*(iTilesY + 1);
+        uint32 size = (iTilesX + 1) * (iTilesY + 1);
         if (result && fwrite(iHeight, sizeof(float), size, wf) != size) result = false;
-        size = iTilesX*iTilesY;
+        size = iTilesX * iTilesY;
         if (result && fwrite(iFlags, sizeof(uint8), size, wf) != size) result = false;
         return result;
     }
@@ -227,7 +227,7 @@ namespace VMAP
         if (result && fread(&liquid->iTilesY, sizeof(uint32), 1, rf) != 1) result = false;
         if (result && fread(&liquid->iCorner, sizeof(Vector3), 1, rf) != 1) result = false;
         if (result && fread(&liquid->iType, sizeof(uint32), 1, rf) != 1) result = false;
-        uint32 size = (liquid->iTilesX + 1)*(liquid->iTilesY + 1);
+        uint32 size = (liquid->iTilesX + 1) * (liquid->iTilesY + 1);
         liquid->iHeight = new float[size];
         if (result && fread(liquid->iHeight, sizeof(float), size, rf) != size) result = false;
         size = liquid->iTilesX * liquid->iTilesY;
@@ -269,7 +269,7 @@ namespace VMAP
         // write vertices
         if (result && fwrite("VERT", 1, 4, wf) != 4) result = false;
         count = vertices.size();
-        chunkSize = sizeof(uint32)+ sizeof(Vector3)*count;
+        chunkSize = sizeof(uint32) + sizeof(Vector3) * count;
         if (result && fwrite(&chunkSize, sizeof(uint32), 1, wf) != 1) result = false;
         if (result && fwrite(&count, sizeof(uint32), 1, wf) != 1) result = false;
         if (!count) // models without (collision) geometry end here, unsure if they are useful
@@ -279,7 +279,7 @@ namespace VMAP
         // write triangle mesh
         if (result && fwrite("TRIM", 1, 4, wf) != 4) result = false;
         count = triangles.size();
-        chunkSize = sizeof(uint32)+ sizeof(MeshTriangle)*count;
+        chunkSize = sizeof(uint32) + sizeof(MeshTriangle) * count;
         if (result && fwrite(&chunkSize, sizeof(uint32), 1, wf) != 1) result = false;
         if (result && fwrite(&count, sizeof(uint32), 1, wf) != 1) result = false;
         if (result && fwrite(&triangles[0], sizeof(MeshTriangle), count, wf) != count) result = false;
@@ -352,7 +352,7 @@ namespace VMAP
         bool operator()(const G3D::Ray& ray, uint32 entry, float& distance, bool pStopAtFirstHit)
         {
             bool result = IntersectTriangle(triangles[entry], vertices, ray, distance);
-            if (result)  hit=true;
+            if (result)  hit = true;
             return hit;
         }
         std::vector<Vector3>::const_iterator vertices;
@@ -412,7 +412,7 @@ namespace VMAP
         bool operator()(const G3D::Ray& ray, uint32 entry, float& distance, bool pStopAtFirstHit)
         {
             bool result = models[entry].IntersectRay(ray, distance, pStopAtFirstHit);
-            if (result)  hit=true;
+            if (result)  hit = true;
             return hit;
         }
         std::vector<GroupModel>::const_iterator models;
@@ -510,21 +510,21 @@ namespace VMAP
 
         bool result = true;
         uint32 chunkSize, count;
-        result = fwrite(VMAP_MAGIC,1,8,wf) == 8;
+        result = fwrite(VMAP_MAGIC, 1, 8, wf) == 8;
         if (result && fwrite("WMOD", 1, 4, wf) != 4) result = false;
         chunkSize = sizeof(uint32) + sizeof(uint32);
         if (result && fwrite(&chunkSize, sizeof(uint32), 1, wf) != 1) result = false;
         if (result && fwrite(&RootWMOID, sizeof(uint32), 1, wf) != 1) result = false;
 
         // write group models
-        count=groupModels.size();
+        count = groupModels.size();
         if (count)
         {
             if (result && fwrite("GMOD", 1, 4, wf) != 4) result = false;
             //chunkSize = sizeof(uint32)+ sizeof(GroupModel)*count;
             //if (result && fwrite(&chunkSize, sizeof(uint32), 1, wf) != 1) result = false;
             if (result && fwrite(&count, sizeof(uint32), 1, wf) != 1) result = false;
-            for (uint32 i=0; i<groupModels.size() && result; ++i)
+            for (uint32 i = 0; i < groupModels.size() && result; ++i)
                 result = groupModels[i].writeToFile(wf);
 
             // write group BIH
@@ -559,7 +559,7 @@ namespace VMAP
             if (result && fread(&count, sizeof(uint32), 1, rf) != 1) result = false;
             if (result) groupModels.resize(count);
             //if (result && fread(&groupModels[0], sizeof(GroupModel), count, rf) != count) result = false;
-            for (uint32 i=0; i<count && result; ++i)
+            for (uint32 i = 0; i < count && result; ++i)
                 result = groupModels[i].readFromFile(rf);
 
             // read group BIH

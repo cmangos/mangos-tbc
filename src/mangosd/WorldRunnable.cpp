@@ -41,7 +41,7 @@ extern int m_ServiceStatus;
 void WorldRunnable::run()
 {
     ///- Init new SQL thread for the world database
-    WorldDatabase.ThreadStart();                                // let thread do safe mySQL requests (one connection call enough)
+    WorldDatabase.ThreadStart();                            // let thread do safe mySQL requests (one connection call enough)
     sWorld.InitResultQueue();
 
     uint32 realCurrTime = 0;

@@ -180,16 +180,16 @@ enum ScoreType
     SCORE_DEATHS                = 2,
     SCORE_HONORABLE_KILLS       = 3,
     SCORE_BONUS_HONOR           = 4,
-    //EY, but in MSG_PVP_LOG_DATA opcode!
+    // EY, but in MSG_PVP_LOG_DATA opcode!
     SCORE_DAMAGE_DONE           = 5,
     SCORE_HEALING_DONE          = 6,
-    //WS
+    // WS
     SCORE_FLAG_CAPTURES         = 7,
     SCORE_FLAG_RETURNS          = 8,
-    //AB
+    // AB
     SCORE_BASES_ASSAULTED       = 9,
     SCORE_BASES_DEFENDED        = 10,
-    //AV
+    // AV
     SCORE_GRAVEYARDS_ASSAULTED  = 11,
     SCORE_GRAVEYARDS_DEFENDED   = 12,
     SCORE_TOWERS_ASSAULTED      = 13,
@@ -249,7 +249,7 @@ class BattleGroundScore
         BattleGroundScore() : KillingBlows(0), Deaths(0), HonorableKills(0),
             BonusHonor(0), DamageDone(0), HealingDone(0)
         {}
-        virtual ~BattleGroundScore() {}                     //virtual destructor is used when deleting score from scores map
+        virtual ~BattleGroundScore() {}                     // virtual destructor is used when deleting score from scores map
 
         uint32 KillingBlows;
         uint32 Deaths;
@@ -333,8 +333,8 @@ class BattleGround
         void SetMaxPlayersPerTeam(uint32 MaxPlayers) { m_MaxPlayersPerTeam = MaxPlayers; }
         void SetMinPlayersPerTeam(uint32 MinPlayers) { m_MinPlayersPerTeam = MinPlayers; }
 
-        void AddToBGFreeSlotQueue();                        //this queue will be useful when more battlegrounds instances will be available
-        void RemoveFromBGFreeSlotQueue();                   //this method could delete whole BG instance, if another free is available
+        void AddToBGFreeSlotQueue();                        // this queue will be useful when more battlegrounds instances will be available
+        void RemoveFromBGFreeSlotQueue();                   // this method could delete whole BG instance, if another free is available
 
         void DecreaseInvitedCount(Team team)      { (team == ALLIANCE) ? --m_InvitedAlliance : --m_InvitedHorde; }
         void IncreaseInvitedCount(Team team)      { (team == ALLIANCE) ? ++m_InvitedAlliance : ++m_InvitedHorde; }
@@ -523,7 +523,7 @@ class BattleGround
 
 
     protected:
-        //this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround
+        // this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround
         void EndNow();
         void PlayerAddedToBGCheckIfBGIsRunning(Player* plr);
 
@@ -541,7 +541,7 @@ class BattleGround
         */
         uint8 m_Events;
         BattleGroundStartTimeIntervals  m_StartDelayTimes[BG_STARTING_EVENT_COUNT];
-        //this must be filled in constructors!
+        // this must be filled in constructors!
         uint32 m_StartMessageIds[BG_STARTING_EVENT_COUNT];
 
         bool   m_BuffChange;
@@ -550,7 +550,7 @@ class BattleGround
         /* Battleground */
         BattleGroundTypeId m_TypeID;
         BattleGroundStatus m_Status;
-        uint32 m_ClientInstanceID;                          //the instance-id which is sent to the client and without any other internal use
+        uint32 m_ClientInstanceID;                          // the instance-id which is sent to the client and without any other internal use
         uint32 m_StartTime;
         bool m_ArenaBuffSpawned;                            // to cache if arenabuff event is started (cause bool is faster than checking IsActiveEvent)
         int32 m_EndTime;                                    // it is set to 120000 when bg is ending and it decreases itself
@@ -576,7 +576,7 @@ class BattleGround
         uint32 m_InvitedHorde;
 
         /* Raid Group */
-        Group* m_BgRaids[BG_TEAMS_COUNT];                                // 0 - alliance, 1 - horde
+        Group* m_BgRaids[BG_TEAMS_COUNT];                   // 0 - alliance, 1 - horde
 
         /* Players count by team */
         uint32 m_PlayersCount[BG_TEAMS_COUNT];

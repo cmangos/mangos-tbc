@@ -470,7 +470,7 @@ enum Opcodes
     SMSG_TRAINER_LIST                               = 0x1B1,
     CMSG_TRAINER_BUY_SPELL                          = 0x1B2,
     SMSG_TRAINER_BUY_SUCCEEDED                      = 0x1B3,
-    SMSG_TRAINER_BUY_FAILED                         = 0x1B4, // uint64, uint32, uint32 (0...2)
+    SMSG_TRAINER_BUY_FAILED                         = 0x1B4,// uint64, uint32, uint32 (0...2)
     CMSG_BINDER_ACTIVATE                            = 0x1B5,
     SMSG_PLAYERBINDERROR                            = 0x1B6,
     CMSG_BANKER_ACTIVATE                            = 0x1B7,
@@ -692,7 +692,7 @@ enum Opcodes
     CMSG_GROUP_ASSISTANT_LEADER                     = 0x28F,
     CMSG_BUYBACK_ITEM                               = 0x290,
     SMSG_SERVER_MESSAGE                             = 0x291,
-    CMSG_MEETINGSTONE_JOIN                          = 0x292, // lua: SetSavedInstanceExtend
+    CMSG_MEETINGSTONE_JOIN                          = 0x292,// lua: SetSavedInstanceExtend
     SMSG_MEETINGSTONE_LEAVE                         = 0x293,
     CMSG_MEETINGSTONE_CHEAT                         = 0x294,
     SMSG_MEETINGSTONE_SETQUEUE                      = 0x295,
@@ -1112,9 +1112,9 @@ enum SessionStatus
 
 enum PacketProcessing
 {
-    PROCESS_INPLACE = 0,                                    //process packet whenever we receive it - mostly for non-handled or non-implemented packets
-    PROCESS_THREADUNSAFE,                                   //packet is not thread-safe - process it in World::UpdateSessions()
-    PROCESS_THREADSAFE                                      //packet is thread-safe - process it in Map::Update()
+    PROCESS_INPLACE = 0,                                    // process packet whenever we receive it - mostly for non-handled or non-implemented packets
+    PROCESS_THREADUNSAFE,                                   // packet is not thread-safe - process it in World::UpdateSessions()
+    PROCESS_THREADSAFE                                      // packet is thread-safe - process it in Map::Update()
 };
 
 class WorldPacket;

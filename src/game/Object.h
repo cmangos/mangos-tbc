@@ -88,8 +88,8 @@ struct WorldLocation
 };
 
 
-//use this class to measure time between world update ticks
-//essential for units updating their spells after cells become active
+// use this class to measure time between world update ticks
+// essential for units updating their spells after cells become active
 class WorldUpdateCounter
 {
     public:
@@ -560,10 +560,10 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         void SetMap(Map* map);
         Map* GetMap() const { MANGOS_ASSERT(m_currMap); return m_currMap; }
-        //used to check all object's GetMap() calls when object is not in world!
+        // used to check all object's GetMap() calls when object is not in world!
         void ResetMap() { m_currMap = NULL; }
 
-        //obtain terrain data for map where this object belong...
+        // obtain terrain data for map where this object belong...
         TerrainInfo const* GetTerrain() const;
 
         void AddToClientUpdateList() override;
@@ -596,7 +596,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         std::string m_name;
 
     private:
-        Map* m_currMap;                                     //current object's Map location
+        Map* m_currMap;                                     // current object's Map location
 
         uint32 m_mapId;                                     // object at map with map_id
         uint32 m_InstanceId;                                // in map copy with instance id

@@ -90,7 +90,7 @@ void MapManager::InitializeVisibilityDistanceInfo()
 Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
 {
     MANGOS_ASSERT(obj);
-    //if(!obj->IsInWorld()) sLog.outError("GetMap: called for map %d with object (typeid %d, guid %d, mapid %d, instanceid %d) who is not in world!", id, obj->GetTypeId(), obj->GetGUIDLow(), obj->GetMapId(), obj->GetInstanceId());
+    // if(!obj->IsInWorld()) sLog.outError("GetMap: called for map %d with object (typeid %d, guid %d, mapid %d, instanceid %d) who is not in world!", id, obj->GetTypeId(), obj->GetGUIDLow(), obj->GetMapId(), obj->GetInstanceId());
     Guard _guard(*this);
 
     Map* m = NULL;
@@ -102,18 +102,18 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
     if (entry->Instanceable())
     {
         MANGOS_ASSERT(obj->GetTypeId() == TYPEID_PLAYER);
-        //create DungeonMap object
+        // create DungeonMap object
         if (obj->GetTypeId() == TYPEID_PLAYER)
             m = CreateInstance(id, (Player*)obj);
     }
     else
     {
-        //create regular non-instanceable map
+        // create regular non-instanceable map
         m = FindMap(id);
         if (m == NULL)
         {
             m = new WorldMap(id, i_gridCleanUpDelay);
-            //add map into container
+            // add map into container
             i_maps[MapID(id)] = m;
 
             // non-instanceable maps always expected have saved state
@@ -140,7 +140,7 @@ Map* MapManager::FindMap(uint32 mapid, uint32 instanceId) const
     if (iter == i_maps.end())
         return NULL;
 
-    //this is a small workaround for transports
+    // this is a small workaround for transports
     if (instanceId == 0 && iter->second->Instanceable())
     {
         assert(false);
@@ -182,10 +182,10 @@ bool MapManager::CanPlayerEnter(uint32 mapid, Player* player)
             }
         }
 
-        //The player has a heroic mode and tries to enter into instance which has no a heroic mode
+        // The player has a heroic mode and tries to enter into instance which has no a heroic mode
         if (!entry->SupportsHeroicMode() && player->GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC)
         {
-            //Send aborted message
+            // Send aborted message
             player->SendTransferAborted(mapid, TRANSFER_ABORT_DIFFICULTY, DUNGEON_DIFFICULTY_HEROIC);
             return false;
         }
@@ -236,12 +236,12 @@ MapManager::Update(uint32 diff)
         helper.Update((uint32)i_timer.GetCurrent());
     }
 
-    //remove all maps which can be unloaded
+    // remove all maps which can be unloaded
     MapMapType::iterator iter = i_maps.begin();
     while (iter != i_maps.end())
     {
         Map* pMap = iter->second;
-        //check if map can be unloaded
+        // check if map can be unloaded
         if (pMap->CanUnload((uint32)i_timer.GetCurrent()))
         {
             pMap->UnloadAll(true);
@@ -335,7 +335,7 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
 {
     Map* map = NULL;
     Map* pNewMap = NULL;
-    uint32 NewInstanceId = 0;                                   // instanceId of the resulting map
+    uint32 NewInstanceId = 0;                               // instanceId of the resulting map
     const MapEntry* entry = sMapStore.LookupEntry(id);
 
     if (entry->IsBattleGroundOrArena())
@@ -365,7 +365,7 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
         pNewMap = CreateDungeonMap(id, NewInstanceId, diff);
     }
 
-    //add a new map object into the registry
+    // add a new map object into the registry
     if (pNewMap)
     {
         i_maps[MapID(id, NewInstanceId)] = pNewMap;
@@ -414,7 +414,7 @@ BattleGroundMap* MapManager::CreateBattleGroundMap(uint32 id, uint32 InstanceId,
     map->SetBG(bg);
     bg->SetBgMap(map);
 
-    //add map into map container
+    // add map into map container
     i_maps[MapID(id, InstanceId)] = map;
 
     // BGs/Arenas not have saved instance data

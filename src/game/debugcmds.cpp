@@ -226,7 +226,7 @@ bool ChatHandler::HandleDebugPlayCinematicCommand(char* args)
     return true;
 }
 
-//Play sound
+// Play sound
 bool ChatHandler::HandleDebugPlaySoundCommand(char* args)
 {
     // USAGE: .debug playsound #soundid
@@ -259,7 +259,7 @@ bool ChatHandler::HandleDebugPlaySoundCommand(char* args)
     return true;
 }
 
-//Send notification in channel
+// Send notification in channel
 bool ChatHandler::HandleDebugSendChannelNotifyCommand(char* args)
 {
     const char* name = "test";
@@ -277,7 +277,7 @@ bool ChatHandler::HandleDebugSendChannelNotifyCommand(char* args)
     return true;
 }
 
-//Send notification in chat
+// Send notification in chat
 bool ChatHandler::HandleDebugSendChatMsgCommand(char* args)
 {
     const char* msg = "testtest";
@@ -632,7 +632,7 @@ bool ChatHandler::HandleDebugSpellCheckCommand(char* /*args*/)
     return true;
 }
 
-//show animation
+// show animation
 bool ChatHandler::HandleDebugAnimCommand(char* args)
 {
     uint32 emote_id;

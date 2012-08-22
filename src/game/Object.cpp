@@ -72,10 +72,10 @@ Object::~Object()
 
     if (m_uint32Values)
     {
-        //DEBUG_LOG("Object desctr 1 check (%p)",(void*)this);
+        // DEBUG_LOG("Object desctr 1 check (%p)",(void*)this);
         delete [] m_uint32Values;
         delete [] m_uint32Values_mirror;
-        //DEBUG_LOG("Object desctr 2 check (%p)",(void*)this);
+        // DEBUG_LOG("Object desctr 2 check (%p)",(void*)this);
     }
 }
 
@@ -185,7 +185,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
         }
     }
 
-    //DEBUG_LOG("BuildCreateUpdate: update-type: %u, object-type: %u got updateFlags: %X", updatetype, m_objectTypeId, updateFlags);
+    // DEBUG_LOG("BuildCreateUpdate: update-type: %u, object-type: %u got updateFlags: %X", updatetype, m_objectTypeId, updateFlags);
 
     ByteBuffer buf(500);
     buf << uint8(updatetype);
@@ -358,7 +358,7 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
     // 0x2
     if (updateFlags & UPDATEFLAG_TRANSPORT)
     {
-        *data << uint32(WorldTimer::getMSTime());                       // ms time
+        *data << uint32(WorldTimer::getMSTime());           // ms time
     }
 }
 
@@ -935,7 +935,7 @@ InstanceData* WorldObject::GetInstanceData() const
     return GetMap()->GetInstanceData();
 }
 
-//slow
+// slow
 float WorldObject::GetDistance(const WorldObject* obj) const
 {
     float dx = GetPositionX() - obj->GetPositionX();
@@ -1133,7 +1133,7 @@ float WorldObject::GetAngle(const WorldObject* obj) const
         return 0.0f;
 
     // Rework the assert, when more cases where such a call can happen have been fixed
-    //MANGOS_ASSERT(obj != this || PrintEntryError("GetAngle (for self)"));
+    // MANGOS_ASSERT(obj != this || PrintEntryError("GetAngle (for self)"));
     if (obj == this)
     {
         sLog.outError("INVALID CALL for GetAngle for %s", obj->GetGuidStr().c_str());
@@ -1429,21 +1429,21 @@ void WorldObject::BuildMonsterChat(WorldPacket* data, ObjectGuid senderGuid, uin
 
 void WorldObject::SendMessageToSet(WorldPacket* data, bool /*bToSelf*/)
 {
-    //if object is in world, map for it already created!
+    // if object is in world, map for it already created!
     if (IsInWorld())
         GetMap()->MessageBroadcast(this, data);
 }
 
 void WorldObject::SendMessageToSetInRange(WorldPacket* data, float dist, bool /*bToSelf*/)
 {
-    //if object is in world, map for it already created!
+    // if object is in world, map for it already created!
     if (IsInWorld())
         GetMap()->MessageDistBroadcast(this, data, dist);
 }
 
 void WorldObject::SendMessageToSetExcept(WorldPacket* data, Player const* skipped_receiver)
 {
-    //if object is in world, map for it already created!
+    // if object is in world, map for it already created!
     if (IsInWorld())
     {
         MaNGOS::MessageDelivererExcept notifier(data, skipped_receiver);
@@ -1470,7 +1470,7 @@ void WorldObject::SetMap(Map* map)
 {
     MANGOS_ASSERT(map);
     m_currMap = map;
-    //lets save current map's Id/instanceId
+    // lets save current map's Id/instanceId
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
 }
@@ -1666,7 +1666,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     float angle;                                            // candidate of angle for free pos
 
     // select in positions after current nodes (selection one by one)
-    while (selector.NextAngle(angle))                        // angle for free pos
+    while (selector.NextAngle(angle))                       // angle for free pos
     {
         GetNearPoint2D(x, y, distance2d + searcher_bounding_radius, absAngle + angle);
         z = GetPositionZ();

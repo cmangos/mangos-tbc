@@ -541,7 +541,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     {
                         case SPELL_SCHOOL_NORMAL:
                         case SPELL_SCHOOL_HOLY:
-                            return SPELL_AURA_PROC_FAILED;                   // ignored
+                            return SPELL_AURA_PROC_FAILED;  // ignored
                         case SPELL_SCHOOL_FIRE:   triggered_spell_id = 28765; break;
                         case SPELL_SCHOOL_NATURE: triggered_spell_id = 28768; break;
                         case SPELL_SCHOOL_FROST:  triggered_spell_id = 28766; break;
@@ -563,7 +563,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     switch (GetFirstSchoolInMask(GetSpellSchoolMask(procSpell)))
                     {
                         case SPELL_SCHOOL_NORMAL:
-                            return SPELL_AURA_PROC_FAILED;                   // ignore
+                            return SPELL_AURA_PROC_FAILED;  // ignore
                         case SPELL_SCHOOL_HOLY:   triggered_spell_id = 27536; break;
                         case SPELL_SCHOOL_FIRE:   triggered_spell_id = 27533; break;
                         case SPELL_SCHOOL_NATURE: triggered_spell_id = 27538; break;
@@ -585,7 +585,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     if (!target)
                         return SPELL_AURA_PROC_FAILED;
 
-                    basepoints[0] = int32(damage * 2.5f);     // manaregen
+                    basepoints[0] = int32(damage * 2.5f);   // manaregen
                     triggered_spell_id = 34650;
                     break;
                 }
@@ -603,7 +603,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                 // Vampiric Aura (boss spell)
                 case 38196:
                 {
-                    basepoints[0] = 3 * damage;               // 300%
+                    basepoints[0] = 3 * damage;             // 300%
                     if (basepoints[0] < 0)
                         return SPELL_AURA_PROC_FAILED;
 
@@ -781,7 +781,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                 // cast ??? Light's Wrath if Exalted by Aldor
                 // cast ??? Arcane Bolt if Exalted by Scryers*/
                 case 46569:
-                    return SPELL_AURA_PROC_FAILED;                           // old unused version
+                    return SPELL_AURA_PROC_FAILED;          // old unused version
             }
             break;
         }
@@ -843,7 +843,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                 // Combustion
                 case 11129:
                 {
-                    //last charge and crit
+                    // last charge and crit
                     if (triggeredByAura->GetHolder()->GetAuraCharges() <= 1 && (procEx & PROC_EX_CRITICAL_HIT))
                     {
                         RemoveAurasDueToSpell(28682);       //-> remove Combustion auras
@@ -909,7 +909,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 
                     // Cast finish spell (triggeredByAura already not exist!)
                     CastSpell(this, 27285, true, castItem, NULL, casterGuid);
-                    return SPELL_AURA_PROC_OK;                            // no hidden cooldown
+                    return SPELL_AURA_PROC_OK;              // no hidden cooldown
                 }
 
                 // Damage counting
@@ -931,7 +931,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
 
                     // Cast finish spell (triggeredByAura already not exist!)
                     CastSpell(this, 32865, true, castItem, NULL, casterGuid);
-                    return SPELL_AURA_PROC_OK;                            // no hidden cooldown
+                    return SPELL_AURA_PROC_OK;              // no hidden cooldown
                 }
                 // Damage counting
                 mod->m_amount -= damage;
@@ -947,7 +947,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     triggered_spell_id = 17941;
                     break;
                 }
-                //Soul Leech
+                // Soul Leech
                 case 30293:
                 case 30295:
                 case 30296:
@@ -1000,7 +1000,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                 // energize amount
                 basepoints[0] = triggerAmount * damage / 100;
                 pVictim->CastCustomSpell(pVictim, 34919, &basepoints[0], NULL, NULL, true, castItem, triggeredByAura);
-                return SPELL_AURA_PROC_OK;                                // no hidden cooldown
+                return SPELL_AURA_PROC_OK;                  // no hidden cooldown
             }
             switch (dummySpell->Id)
             {
@@ -1017,7 +1017,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                     // heal amount
                     basepoints[0] = triggerAmount * damage / 100;
                     pVictim->CastCustomSpell(pVictim, 15290, &basepoints[0], NULL, NULL, true, castItem, triggeredByAura);
-                    return SPELL_AURA_PROC_OK;                                // no hidden cooldown
+                    return SPELL_AURA_PROC_OK;              // no hidden cooldown
                 }
                 // Priest Tier 6 Trinket (Ashtongue Talisman of Acumen)
                 case 40438:
@@ -1237,7 +1237,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                 }
 
                 CastCustomSpell(pVictim, spellId, &damagePoint, NULL, NULL, true, NULL, triggeredByAura);
-                return SPELL_AURA_PROC_OK;                                // no hidden cooldown
+                return SPELL_AURA_PROC_OK;                  // no hidden cooldown
             }
             // Seal of Blood do damage trigger
             if (dummySpell->SpellFamilyFlags & UI64LIT(0x0000040000000000))
@@ -1615,7 +1615,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
         case SPELLFAMILY_GENERIC:
             switch (auraSpellInfo->Id)
             {
-                    //case 191:                               // Elemental Response
+                    // case 191:                            // Elemental Response
                     //    switch (procSpell->School)
                     //    {
                     //        case SPELL_SCHOOL_FIRE:  trigger_spell_id = 34192; break;
@@ -1627,16 +1627,16 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     //        case SPELL_SCHOOL_NORMAL:trigger_spell_id = 34198; break;
                     //    }
                     //    break;
-                    //case 5301:  break;                        // Defensive State (DND)
-                    //case 7137:  break:                        // Shadow Charge (Rank 1)
-                    //case 7377:  break:                        // Take Immune Periodic Damage <Not Working>
-                    //case 13358: break;                        // Defensive State (DND)
-                    //case 16092: break;                        // Defensive State (DND)
-                    //case 18943: break;                        // Double Attack
-                    //case 19194: break;                        // Double Attack
-                    //case 19817: break;                        // Double Attack
-                    //case 19818: break;                        // Double Attack
-                    //case 22835: break;                        // Drunken Rage
+                    // case 5301:  break;                   // Defensive State (DND)
+                    // case 7137:  break:                   // Shadow Charge (Rank 1)
+                    // case 7377:  break:                   // Take Immune Periodic Damage <Not Working>
+                    // case 13358: break;                   // Defensive State (DND)
+                    // case 16092: break;                   // Defensive State (DND)
+                    // case 18943: break;                   // Double Attack
+                    // case 19194: break;                   // Double Attack
+                    // case 19817: break;                   // Double Attack
+                    // case 19818: break;                   // Double Attack
+                    // case 22835: break;                   // Drunken Rage
                     //    trigger_spell_id = 14822; break;
                 case 23780:                                 // Aegis of Preservation (Aegis of Preservation trinket)
                     trigger_spell_id = 23781;
@@ -1649,7 +1649,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     target = this;
                     break;
                 }
-                //case 24949: break;                        // Defensive State 2 (DND)
+                // case 24949: break;                       // Defensive State 2 (DND)
                 case 27522:                                 // Mana Drain Trigger
                 case 40336:                                 // Mana Drain Trigger
                 case 46939:                                 // Black Bow of the Betrayer
@@ -1669,29 +1669,29 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     trigger_spell_id = 22588;
                     break;
                 }
-                //case 33207: break;                        // Gossip NPC Periodic - Fidget
+                // case 33207: break;                       // Gossip NPC Periodic - Fidget
                 case 33896:                                 // Desperate Defense (Stonescythe Whelp, Stonescythe Alpha, Stonescythe Ambusher)
                     trigger_spell_id = 33898;
                     break;
-                    //case 34082: break;                        // Advantaged State (DND)
-                    //case 34783: break:                        // Spell Reflection
-                    //case 35205: break:                        // Vanish
-                    //case 35321: break;                        // Gushing Wound
-                    //case 36096: break:                        // Spell Reflection
-                    //case 36207: break:                        // Steal Weapon
-                    //case 36576: break:                        // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
-                    //case 37030: break;                        // Chaotic Temperament
-                    //case 38363: break;                        // Gushing Wound
-                    //case 39215: break;                        // Gushing Wound
-                    //case 40250: break;                        // Improved Duration
-                    //case 40329: break;                        // Demo Shout Sensor
-                    //case 40364: break;                        // Entangling Roots Sensor
-                    //case 41054: break;                        // Copy Weapon
+                    // case 34082: break;                   // Advantaged State (DND)
+                    // case 34783: break:                   // Spell Reflection
+                    // case 35205: break:                   // Vanish
+                    // case 35321: break;                   // Gushing Wound
+                    // case 36096: break:                   // Spell Reflection
+                    // case 36207: break:                   // Steal Weapon
+                    // case 36576: break:                   // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
+                    // case 37030: break;                   // Chaotic Temperament
+                    // case 38363: break;                   // Gushing Wound
+                    // case 39215: break;                   // Gushing Wound
+                    // case 40250: break;                   // Improved Duration
+                    // case 40329: break;                   // Demo Shout Sensor
+                    // case 40364: break;                   // Entangling Roots Sensor
+                    // case 41054: break;                   // Copy Weapon
                     //    trigger_spell_id = 41055; break;
-                    //case 41248: break;                        // Consuming Strikes
+                    // case 41248: break;                   // Consuming Strikes
                     //    trigger_spell_id = 41249; break;
-                    //case 43453: break:                        // Rune Ward
-                    //case 43504: break;                        // Alterac Valley OnKill Proc Aura
+                    // case 43453: break:                   // Rune Ward
+                    // case 43504: break;                   // Alterac Valley OnKill Proc Aura
                 case 43820:                                 // Charm of the Witch Doctor (Amani Charm of the Witch Doctor trinket)
                 {
                     // Pct value stored in dummy
@@ -1699,23 +1699,23 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     target = pVictim;
                     break;
                 }
-                //case 44326: break:                        // Pure Energy Passive
-                //case 44526: break;                        // Hate Monster (Spar) (30 sec)
-                //case 44527: break;                        // Hate Monster (Spar Buddy) (30 sec)
-                //case 44819: break;                        // Hate Monster (Spar Buddy) (>30% Health)
-                //case 44820: break;                        // Hate Monster (Spar) (<30%)
+                // case 44326: break:                       // Pure Energy Passive
+                // case 44526: break;                       // Hate Monster (Spar) (30 sec)
+                // case 44527: break;                       // Hate Monster (Spar Buddy) (30 sec)
+                // case 44819: break;                       // Hate Monster (Spar Buddy) (>30% Health)
+                // case 44820: break;                       // Hate Monster (Spar) (<30%)
                 case 45057:                                 // Evasive Maneuvers (Commendation of Kael`thas trinket)
                     // reduce you below $s1% health (in fact in this specific case can proc from any attack while health in result less $s1%)
                     if (int32(GetHealth()) - int32(damage) >= int32(GetMaxHealth() * triggerAmount / 100))
                         return SPELL_AURA_PROC_FAILED;
                     break;
-                    //case 45205: break;                        // Copy Offhand Weapon
-                    //case 45343: break;                        // Dark Flame Aura
-                    //case 45903: break:                        // Offensive State
-                    //case 46146: break:                        // [PH] Ahune  Spanky Hands
-                    //case 46146: break;                        // [PH] Ahune  Spanky Hands
-                    //case 47300: break;                        // Dark Flame Aura
-                    //case 50051: break;                        // Ethereal Pet Aura
+                    // case 45205: break;                   // Copy Offhand Weapon
+                    // case 45343: break;                   // Dark Flame Aura
+                    // case 45903: break:                   // Offensive State
+                    // case 46146: break:                   // [PH] Ahune  Spanky Hands
+                    // case 46146: break;                   // [PH] Ahune  Spanky Hands
+                    // case 47300: break;                   // Dark Flame Aura
+                    // case 50051: break;                   // Ethereal Pet Aura
                     break;
             }
             break;
@@ -2313,7 +2313,7 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(Unit* /*pVictim*/, uint32 /*dama
     int32 jumps = triggeredByAura->GetHolder()->GetAuraCharges() - 1;
 
     // current aura expire
-    triggeredByAura->GetHolder()->SetAuraCharges(1);             // will removed at next charges decrease
+    triggeredByAura->GetHolder()->SetAuraCharges(1);        // will removed at next charges decrease
 
     // next target selection
     if (jumps > 0 && GetTypeId() == TYPEID_PLAYER && caster_guid.IsPlayer())

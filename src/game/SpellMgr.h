@@ -64,8 +64,8 @@ enum SpellSpecific
     SPELL_BATTLE_ELIXIR     = 14,
     SPELL_GUARDIAN_ELIXIR   = 15,
     SPELL_FLASK_ELIXIR      = 16,
-    //SPELL_PRESENCE          = 17,                         // used in 3.x
-    //SPELL_HAND              = 18,                         // used in 3.x
+    // SPELL_PRESENCE          = 17,                        // used in 3.x
+    // SPELL_HAND              = 18,                        // used in 3.x
     SPELL_WELL_FED          = 19,
     SPELL_FOOD              = 20,
     SPELL_DRINK             = 21,
@@ -170,7 +170,7 @@ bool IsNoStackAuraDueToAura(uint32 spellId_1, uint32 spellId_2);
 
 inline bool IsSealSpell(SpellEntry const* spellInfo)
 {
-    //Collection of all the seal family flags. No other paladin spell has any of those.
+    // Collection of all the seal family flags. No other paladin spell has any of those.
     return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, UI64LIT(0x000004000A000200)) &&
            // avoid counting target triggered effect as seal for avoid remove it or seal by it.
            spellInfo->EffectImplicitTargetA[0] == TARGET_SELF;

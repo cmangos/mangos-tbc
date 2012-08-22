@@ -161,7 +161,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    //Note: If script stop casting it must send appropriate data to client to prevent stuck item in gray state.
+    // Note: If script stop casting it must send appropriate data to client to prevent stuck item in gray state.
     if (!sScriptMgr.OnItemUse(pUser, pItem, targets))
     {
         // no script or script not process request by self
@@ -330,8 +330,8 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         if (!((Player*)mover)->HasActiveSpell(spellId) || IsPassiveSpell(spellInfo))
         {
             sLog.outError("World: Player %u casts spell %u which he shouldn't have", mover->GetGUIDLow(), spellId);
-            //cheater? kick? ban?
-            recvPacket.rpos(recvPacket.wpos());                 // prevent spam at ignore packet
+            // cheater? kick? ban?
+            recvPacket.rpos(recvPacket.wpos());             // prevent spam at ignore packet
             return;
         }
     }
@@ -340,8 +340,8 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         // not have spell in spellbook or spell passive and not casted by client
         if (!((Creature*)mover)->HasSpell(spellId) || IsPassiveSpell(spellInfo))
         {
-            //cheater? kick? ban?
-            recvPacket.rpos(recvPacket.wpos());                 // prevent spam at ignore packet
+            // cheater? kick? ban?
+            recvPacket.rpos(recvPacket.wpos());             // prevent spam at ignore packet
             return;
         }
     }
@@ -375,7 +375,7 @@ void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
     if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
         return;
 
-    //FIXME: hack, ignore unexpected client cancel Deadly Throw cast
+    // FIXME: hack, ignore unexpected client cancel Deadly Throw cast
     if (spellId == 26679)
         return;
 
@@ -570,7 +570,7 @@ void WorldSession::HandleGetMirrorimageData(WorldPacket& recv_data)
 
     data << (uint8)pCreature->getRace();
     data << (uint8)pCreature->getGender();
-    //data << (uint8)pCreature->getClass();                 // added in 3.x
+    // data << (uint8)pCreature->getClass();                // added in 3.x
 
     if (pCaster && pCaster->GetTypeId() == TYPEID_PLAYER)
     {

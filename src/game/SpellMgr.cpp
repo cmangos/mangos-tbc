@@ -768,7 +768,7 @@ bool IsPositiveEffect(SpellEntry const* spellproto, SpellEffectIndex effIndex)
                 case SPELL_AURA_PROC_TRIGGER_SPELL:
                     // many positive auras have negative triggered spells at damage for example and this not make it negative (it can be canceled for example)
                     break;
-                case SPELL_AURA_MOD_STUN:                   //have positive and negative spells, we can't sort its correctly at this moment.
+                case SPELL_AURA_MOD_STUN:                   // have positive and negative spells, we can't sort its correctly at this moment.
                     if (effIndex == EFFECT_INDEX_0 && spellproto->Effect[EFFECT_INDEX_1] == 0 && spellproto->Effect[EFFECT_INDEX_2] == 0)
                         return false;                       // but all single stun aura spells is negative
 
@@ -995,7 +995,7 @@ SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 f
 
 void SpellMgr::LoadSpellTargetPositions()
 {
-    mSpellTargetPositions.clear();                                // need for reload case
+    mSpellTargetPositions.clear();                          // need for reload case
 
     uint32 count = 0;
 
@@ -1467,7 +1467,7 @@ void SpellMgr::LoadSpellBonuses()
             }
         }
 
-        //TODO: maybe add explicit list possible direct damage spell effects...
+        // TODO: maybe add explicit list possible direct damage spell effects...
         if (x < MAX_EFFECT_INDEX)
             need_direct = true;
 
@@ -1967,7 +1967,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         (spellInfo_2->SpellIconID == 152 && spellInfo_1->SpellIconID == 546))
                     return false;
 
-                //Corruption & Seed of corruption
+                // Corruption & Seed of corruption
                 if ((spellInfo_1->SpellIconID == 313 && spellInfo_2->SpellIconID == 1932) ||
                         (spellInfo_2->SpellIconID == 313 && spellInfo_1->SpellIconID == 1932))
                     if (spellInfo_1->SpellVisual != 0 && spellInfo_2->SpellVisual != 0)
@@ -2022,12 +2022,12 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_PRIEST:
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_PRIEST)
             {
-                //Devouring Plague and Shadow Vulnerability
+                // Devouring Plague and Shadow Vulnerability
                 if (((spellInfo_1->SpellFamilyFlags & UI64LIT(0x2000000)) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x800000000))) ||
                         ((spellInfo_2->SpellFamilyFlags & UI64LIT(0x2000000)) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x800000000))))
                     return false;
 
-                //StarShards and Shadow Word: Pain
+                // StarShards and Shadow Word: Pain
                 if (((spellInfo_1->SpellFamilyFlags & UI64LIT(0x200000)) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x8000))) ||
                         ((spellInfo_2->SpellFamilyFlags & UI64LIT(0x200000)) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x8000))))
                     return false;
@@ -2036,7 +2036,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         case SPELLFAMILY_DRUID:
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_DRUID)
             {
-                //Omen of Clarity and Blood Frenzy
+                // Omen of Clarity and Blood Frenzy
                 if (((spellInfo_1->SpellFamilyFlags == UI64LIT(0x0) && spellInfo_1->SpellIconID == 108) && (spellInfo_2->SpellFamilyFlags & UI64LIT(0x20000000000000))) ||
                         ((spellInfo_2->SpellFamilyFlags == UI64LIT(0x0) && spellInfo_2->SpellIconID == 108) && (spellInfo_1->SpellFamilyFlags & UI64LIT(0x20000000000000))))
                     return false;
@@ -2396,7 +2396,7 @@ void SpellMgr::LoadSpellChains()
 
             if (!sSpellStore.LookupEntry(spell_id))
             {
-                //sLog.outErrorDb("Talent %u not exist as spell",spell_id);
+                // sLog.outErrorDb("Talent %u not exist as spell",spell_id);
                 continue;
             }
 
@@ -2424,7 +2424,7 @@ void SpellMgr::LoadSpellChains()
 
             // some forward spells not exist and can be ignored (some outdated data)
             SpellEntry const* spell_entry = sSpellStore.LookupEntry(spell_id);
-            if (!spell_entry)                                   // no cases
+            if (!spell_entry)                               // no cases
                 continue;
 
             // ignore spell without forwards (non ranked or missing info in skill abilities)
@@ -3015,7 +3015,7 @@ void SpellMgr::LoadSpellScriptTarget()
 
 void SpellMgr::LoadSpellPetAuras()
 {
-    mSpellPetAuraMap.clear();                                  // need for reload case
+    mSpellPetAuraMap.clear();                               // need for reload case
 
     uint32 count = 0;
 

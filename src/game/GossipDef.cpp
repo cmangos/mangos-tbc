@@ -188,7 +188,7 @@ void PlayerMenu::SendGossipMenu(uint32 TitleTextId, ObjectGuid objectGuid)
     }
 
     GetMenuSession()->SendPacket(&data);
-    //DEBUG_LOG( "WORLD: Sent SMSG_GOSSIP_MESSAGE NPCGuid=%u",GUID_LOPART(npcGUID) );
+    // DEBUG_LOG( "WORLD: Sent SMSG_GOSSIP_MESSAGE NPCGuid=%u",GUID_LOPART(npcGUID) );
 }
 
 void PlayerMenu::CloseGossip()
@@ -196,7 +196,7 @@ void PlayerMenu::CloseGossip()
     WorldPacket data(SMSG_GOSSIP_COMPLETE, 0);
     GetMenuSession()->SendPacket(&data);
 
-    //DEBUG_LOG( "WORLD: Sent SMSG_GOSSIP_COMPLETE" );
+    // DEBUG_LOG( "WORLD: Sent SMSG_GOSSIP_COMPLETE" );
 }
 
 // Outdated
@@ -211,7 +211,7 @@ void PlayerMenu::SendPointOfInterest(float X, float Y, uint32 Icon, uint32 Flags
     data << locName;
 
     GetMenuSession()->SendPacket(&data);
-    //DEBUG_LOG("WORLD: Sent SMSG_GOSSIP_POI");
+    // DEBUG_LOG("WORLD: Sent SMSG_GOSSIP_POI");
 }
 
 void PlayerMenu::SendPointOfInterest(uint32 poi_id)
@@ -240,7 +240,7 @@ void PlayerMenu::SendPointOfInterest(uint32 poi_id)
     data << icon_name;
 
     GetMenuSession()->SendPacket(&data);
-    //DEBUG_LOG("WORLD: Sent SMSG_GOSSIP_POI");
+    // DEBUG_LOG("WORLD: Sent SMSG_GOSSIP_POI");
 }
 
 void PlayerMenu::SendTalking(uint32 textID)

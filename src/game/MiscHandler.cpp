@@ -61,7 +61,7 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
         GetPlayer()->KillPlayer();
     }
 
-    //this is spirit release confirm?
+    // this is spirit release confirm?
     GetPlayer()->RemovePet(PET_SAVE_REAGENTS);
     GetPlayer()->BuildPlayerRepop();
     GetPlayer()->RepopAtGraveyard();
@@ -70,7 +70,7 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
 void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("WORLD: Recvd CMSG_WHO Message");
-    //recv_data.hexlike();
+    // recv_data.hexlike();
 
     uint32 clientcount = 0;
 
@@ -266,9 +266,9 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket & /*recv_data*/)
     if (ObjectGuid lootGuid = GetPlayer()->GetLootGuid())
         DoLootRelease(lootGuid);
 
-    //Can not logout if...
+    // Can not logout if...
     if (GetPlayer()->isInCombat() ||                        //...is in combat
-            GetPlayer()->duel         ||                        //...is in Duel
+            GetPlayer()->duel         ||                    //...is in Duel
             //...is jumping ...is falling
             GetPlayer()->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
     {
@@ -281,7 +281,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket & /*recv_data*/)
         return;
     }
 
-    //instant logout in taverns/cities or on taxi or for admins, gm's, mod's if its enabled in mangosd.conf
+    // instant logout in taverns/cities or on taxi or for admins, gm's, mod's if its enabled in mangosd.conf
     if (GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) || GetPlayer()->IsTaxiFlying() ||
             GetSecurity() >= (AccountTypes)sWorld.getConfig(CONFIG_UINT32_INSTANT_LOGOUT))
     {
@@ -860,13 +860,13 @@ void WorldSession::HandleUpdateAccountData(WorldPacket& recv_data)
 {
     DETAIL_LOG("WORLD: Received CMSG_UPDATE_ACCOUNT_DATA");
     recv_data.rpos(recv_data.wpos());                       // prevent spam at unimplemented packet
-    //recv_data.hexlike();
+    // recv_data.hexlike();
 }
 
 void WorldSession::HandleRequestAccountData(WorldPacket& /*recv_data*/)
 {
     DETAIL_LOG("WORLD: Received CMSG_REQUEST_ACCOUNT_DATA");
-    //recv_data.hexlike();
+    // recv_data.hexlike();
 }
 
 void WorldSession::HandleSetActionButtonOpcode(WorldPacket& recv_data)
@@ -959,13 +959,13 @@ void WorldSession::HandleMoveUnRootAck(WorldPacket& recv_data)
         // now can skip not our packet
         if(_player->GetGUID() != guid)
         {
-            recv_data.rpos(recv_data.wpos());                   // prevent warnings spam
+            recv_data.rpos(recv_data.wpos());               // prevent warnings spam
             return;
         }
 
         DEBUG_LOG( "WORLD: CMSG_FORCE_MOVE_UNROOT_ACK" );
 
-        recv_data.read_skip<uint32>();                          // unk
+        recv_data.read_skip<uint32>();                      // unk
 
         MovementInfo movementInfo;
         ReadMovementInfo(recv_data, &movementInfo);
@@ -983,13 +983,13 @@ void WorldSession::HandleMoveRootAck(WorldPacket& recv_data)
         // now can skip not our packet
         if(_player->GetObjectGuid() != guid)
         {
-            recv_data.rpos(recv_data.wpos());                   // prevent warnings spam
+            recv_data.rpos(recv_data.wpos());               // prevent warnings spam
             return;
         }
 
         DEBUG_LOG( "WORLD: CMSG_FORCE_MOVE_ROOT_ACK" );
 
-        recv_data.read_skip<uint32>();                          // unk
+        recv_data.read_skip<uint32>();                      // unk
 
         MovementInfo movementInfo;
         ReadMovementInfo(recv_data, &movementInfo);
@@ -1160,7 +1160,7 @@ void WorldSession::HandleWorldTeleportOpcode(WorldPacket& recv_data)
     recv_data >> PositionZ;
     recv_data >> Orientation;                               // o (3.141593 = 180 degrees)
 
-    //DEBUG_LOG("Received opcode CMSG_WORLD_TELEPORT");
+    // DEBUG_LOG("Received opcode CMSG_WORLD_TELEPORT");
 
     if (GetPlayer()->IsTaxiFlying())
     {
@@ -1292,13 +1292,13 @@ void WorldSession::HandleRealmSplitOpcode(WorldPacket& recv_data)
     // 0x2 realm split pending
     data << split_date;
     SendPacket(&data);
-    //DEBUG_LOG("response sent %u", unk);
+    // DEBUG_LOG("response sent %u", unk);
 }
 
 void WorldSession::HandleFarSightOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("WORLD: CMSG_FAR_SIGHT");
-    //recv_data.hexlike();
+    // recv_data.hexlike();
 
     uint8 op;
     recv_data >> op;
@@ -1420,7 +1420,7 @@ void WorldSession::HandleCancelMountAuraOpcode(WorldPacket & /*recv_data*/)
 {
     DEBUG_LOG("WORLD: CMSG_CANCEL_MOUNT_AURA");
 
-    //If player is not mounted, so go out :)
+    // If player is not mounted, so go out :)
     if (!_player->IsMounted())                              // not blizz like; no any messages on blizz
     {
         ChatHandler(this).SendSysMessage(LANG_CHAR_NON_MOUNTED);
@@ -1441,7 +1441,7 @@ void WorldSession::HandleMoveSetCanFlyAckOpcode(WorldPacket& recv_data)
 {
     // fly mode on/off
     DEBUG_LOG("WORLD: CMSG_MOVE_SET_CAN_FLY_ACK");
-    //recv_data.hexlike();
+    // recv_data.hexlike();
 
     MovementInfo movementInfo;
 

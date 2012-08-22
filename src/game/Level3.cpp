@@ -224,7 +224,7 @@ bool ChatHandler::HandleAHBotStatusCommand(char* args)
     return true;
 }
 
-//reload commands
+// reload commands
 bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
 {
     HandleReloadSkillFishingBaseLevelCommand((char*)"");
@@ -250,7 +250,7 @@ bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
 
 bool ChatHandler::HandleReloadAllAreaCommand(char* /*args*/)
 {
-    //HandleReloadQuestAreaTriggersCommand((char*)""); -- reloaded in HandleReloadAllQuestCommand
+    // HandleReloadQuestAreaTriggersCommand((char*)""); -- reloaded in HandleReloadAllQuestCommand
     HandleReloadAreaTriggerTeleportCommand((char*)"");
     HandleReloadAreaTriggerTavernCommand((char*)"");
     HandleReloadGameGraveyardZoneCommand((char*)"");
@@ -1956,8 +1956,8 @@ bool ChatHandler::HandleLearnAllGMCommand(char* /*args*/)
         "29878",                                            // Kill My Self
         "26644",                                            // More Kill
 
-        "28550",                                            //Invisible 24
-        "23452",                                            //Invisible + Target
+        "28550",                                            // Invisible 24
+        "23452",                                            // Invisible + Target
         "0"
     };
 
@@ -2187,7 +2187,7 @@ bool ChatHandler::HandleAddItemCommand(char* args)
         return false;
     }
 
-    //Subtract
+    // Subtract
     if (count < 0)
     {
         plTarget->DestroyItemCount(itemId, -count, true, false);
@@ -2195,7 +2195,7 @@ bool ChatHandler::HandleAddItemCommand(char* args)
         return true;
     }
 
-    //Adding items
+    // Adding items
     uint32 noSpaceForCount = 0;
 
     // check space and find places
@@ -3706,7 +3706,7 @@ bool ChatHandler::HandleNearGraveCommand(char* args)
             team_name = GetMangosString(LANG_COMMAND_GRAVEYARD_HORDE);
         else if (data->team == ALLIANCE)
             team_name = GetMangosString(LANG_COMMAND_GRAVEYARD_ALLIANCE);
-        else                                                                // Actually, this case cannot happen
+        else                                                // Actually, this case cannot happen
             team_name = GetMangosString(LANG_COMMAND_GRAVEYARD_NOTEAM);
 
         PSendSysMessage(LANG_COMMAND_GRAVEYARDNEAREST, g_id, team_name.c_str(), zone_id);
@@ -3825,7 +3825,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     return true;
 }
 
-//play npc emote
+// play npc emote
 bool ChatHandler::HandleNpcPlayEmoteCommand(char* args)
 {
     uint32 emote = atoi(args);
@@ -3843,7 +3843,7 @@ bool ChatHandler::HandleNpcPlayEmoteCommand(char* args)
     return true;
 }
 
-//TODO: NpcCommands that needs to be fixed :
+// TODO: NpcCommands that needs to be fixed :
 
 bool ChatHandler::HandleNpcAddWeaponCommand(char* /*args*/)
 {
@@ -3971,7 +3971,7 @@ void ChatHandler::HandleCharacterLevel(Player* player, ObjectGuid player_guid, u
                 ChatHandler(player).PSendSysMessage(LANG_YOURS_LEVEL_PROGRESS_RESET, GetNameLink().c_str());
             else if (oldlevel < newlevel)
                 ChatHandler(player).PSendSysMessage(LANG_YOURS_LEVEL_UP, GetNameLink().c_str(), newlevel);
-            else                                                // if(oldlevel > newlevel)
+            else                                            // if(oldlevel > newlevel)
                 ChatHandler(player).PSendSysMessage(LANG_YOURS_LEVEL_DOWN, GetNameLink().c_str(), newlevel);
         }
     }
@@ -4272,7 +4272,7 @@ bool ChatHandler::HandleStableCommand(char* /*args*/)
 
 bool ChatHandler::HandleChangeWeatherCommand(char* args)
 {
-    //Weather is OFF
+    // Weather is OFF
     if (!sWorld.getConfig(CONFIG_BOOL_WEATHER))
     {
         SendSysMessage(LANG_WEATHER_DISABLED);
@@ -4537,7 +4537,7 @@ static bool HandleResetStatsOrLevelHelper(Player* player)
     //-1 is default value
     player->SetInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, -1);
 
-    //player->SetUInt32Value(PLAYER_FIELD_BYTES, 0xEEE00000 );
+    // player->SetUInt32Value(PLAYER_FIELD_BYTES, 0xEEE00000 );
     return true;
 }
 
@@ -6487,11 +6487,11 @@ bool ChatHandler::HandleSendMessageCommand(char* args)
     }
 
     ///- Send the message
-    //Use SendAreaTriggerMessage for fastest delivery.
+    // Use SendAreaTriggerMessage for fastest delivery.
     rPlayer->GetSession()->SendAreaTriggerMessage("%s", args);
     rPlayer->GetSession()->SendAreaTriggerMessage("|cffff0000[Message from administrator]:|r");
 
-    //Confirmation message
+    // Confirmation message
     std::string nameLink = GetNameLink(rPlayer);
     PSendSysMessage(LANG_SENDMESSAGE, nameLink.c_str(), args);
     return true;
@@ -6526,7 +6526,7 @@ bool ChatHandler::HandleModifyGenderCommand(char* args)
 
     Gender gender;
 
-    if (!strncmp(gender_str, "male", gender_len))            // MALE
+    if (!strncmp(gender_str, "male", gender_len))           // MALE
     {
         if (player->getGender() == GENDER_MALE)
             return true;

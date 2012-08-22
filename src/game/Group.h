@@ -130,7 +130,7 @@ class Roll : public LootValidatorRef
         int32  itemRandomPropId;
         uint32 itemRandomSuffix;
         typedef UNORDERED_MAP<ObjectGuid, RollVote> PlayerVote;
-        PlayerVote playerVote;                              //vote position correspond with player position (in group)
+        PlayerVote playerVote;                              // vote position correspond with player position (in group)
         uint8 totalPlayersRolling;
         uint8 totalNeed;
         uint8 totalGreed;

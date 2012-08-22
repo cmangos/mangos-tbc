@@ -29,7 +29,7 @@ static void AttemptJoin(Player* _player)
     if (!_player->m_lookingForGroup.canAutoJoin() || _player->GetGroup())
         return;
 
-    //TODO: Guard Player Map
+    // TODO: Guard Player Map
     HashMapHolder<Player>::MapType const& players = sObjectAccessor.GetPlayers();
     for (HashMapHolder<Player>::MapType::const_iterator iter = players.begin(); iter != players.end(); ++iter)
     {
@@ -39,7 +39,7 @@ static void AttemptJoin(Player* _player)
         if (!plr || plr == _player || plr->GetTeam() != _player->GetTeam())
             continue;
 
-        //skip players not in world
+        // skip players not in world
         if (!plr->IsInWorld())
             continue;
 
@@ -89,7 +89,7 @@ static void AttemptAddMore(Player* _player)
     if (!_player->m_lookingForGroup.more.canAutoJoin())
         return;
 
-    //TODO: Guard Player map
+    // TODO: Guard Player map
     HashMapHolder<Player>::MapType const& players = sObjectAccessor.GetPlayers();
     for (HashMapHolder<Player>::MapType::const_iterator iter = players.begin(); iter != players.end(); ++iter)
     {
@@ -203,7 +203,7 @@ void WorldSession::HandleLfmClearOpcode(WorldPacket & /*recv_data */)
 void WorldSession::HandleSetLfmOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("CMSG_SET_LOOKING_FOR_MORE");
-    //recv_data.hexlike();
+    // recv_data.hexlike();
     uint32 temp;
 
     recv_data >> temp;
@@ -223,7 +223,7 @@ void WorldSession::HandleSetLfmOpcode(WorldPacket& recv_data)
 void WorldSession::HandleSetLfgCommentOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("CMSG_SET_LFG_COMMENT");
-    //recv_data.hexlike();
+    // recv_data.hexlike();
 
     std::string comment;
     recv_data >> comment;
@@ -235,7 +235,7 @@ void WorldSession::HandleSetLfgCommentOpcode(WorldPacket& recv_data)
 void WorldSession::HandleLookingForGroup(WorldPacket& recv_data)
 {
     DEBUG_LOG("MSG_LOOKING_FOR_GROUP");
-    //recv_data.hexlike();
+    // recv_data.hexlike();
     uint32 type, entry, unk;
 
     recv_data >> type >> entry >> unk;
@@ -261,7 +261,7 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
     data << uint32(0);                                      // count, placeholder
     data << uint32(0);                                      // count again, strange, placeholder
 
-    //TODO: Guard Player map
+    // TODO: Guard Player map
     HashMapHolder<Player>::MapType const& players = sObjectAccessor.GetPlayers();
     for (HashMapHolder<Player>::MapType::const_iterator iter = players.begin(); iter != players.end(); ++iter)
     {

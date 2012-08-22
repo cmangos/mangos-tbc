@@ -180,7 +180,7 @@ class MANGOS_DLL_SPEC Pet : public Creature
                 return m_autospells[pos];
         }
 
-        void RegenerateAll(uint32 update_diff) override;             // overwrite Creature::RegenerateAll
+        void RegenerateAll(uint32 update_diff) override;    // overwrite Creature::RegenerateAll
         void RegenerateFocus();
         void LooseHappiness();
         void TickLoyaltyChange();
@@ -279,7 +279,7 @@ class MANGOS_DLL_SPEC Pet : public Creature
     private:
         PetModeFlags m_petModeFlags;
 
-        void SaveToDB(uint32, uint8) override                       // overwrited of Creature::SaveToDB     - don't must be called
+        void SaveToDB(uint32, uint8) override               // overwrited of Creature::SaveToDB     - don't must be called
         {
             MANGOS_ASSERT(false);
         }

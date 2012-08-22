@@ -194,7 +194,7 @@ struct ActionButton
     }
 };
 
-#define  MAX_ACTION_BUTTONS 132                             //checked in 2.3.0
+#define  MAX_ACTION_BUTTONS 132                             // checked in 2.3.0
 
 typedef std::map<uint8, ActionButton> ActionButtonList;
 
@@ -523,8 +523,8 @@ enum AtLoginFlags
     AT_LOGIN_RENAME            = 0x01,
     AT_LOGIN_RESET_SPELLS      = 0x02,
     AT_LOGIN_RESET_TALENTS     = 0x04,
-    //AT_LOGIN_CUSTOMIZE         = 0x08, -- used in post-3.x
-    //AT_LOGIN_RESET_PET_TALENTS = 0x10, -- used in post-3.x
+    // AT_LOGIN_CUSTOMIZE         = 0x08, -- used in post-3.x
+    // AT_LOGIN_RESET_PET_TALENTS = 0x10, -- used in post-3.x
     AT_LOGIN_FIRST             = 0x20,
 };
 
@@ -1446,7 +1446,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void AddMItem(Item* it)
         {
             MANGOS_ASSERT(it);
-            //ASSERT deleted, because items can be added before loading
+            // ASSERT deleted, because items can be added before loading
             mMitems[it->GetGUIDLow()] = it;
         }
 
@@ -1820,7 +1820,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint32 GetMaxPersonalArenaRatingRequirement();
 
-        //End of PvP System
+        // End of PvP System
 
         void SetDrunkValue(uint16 newDrunkValue, uint32 itemid = 0);
         uint16 GetDrunkValue() const { return m_drunk; }
@@ -2196,7 +2196,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         /***                    QUEST SYSTEM                   ***/
         /*********************************************************/
 
-        //We allow only one timed quest active at the same time. Below can then be simple value instead of set.
+        // We allow only one timed quest active at the same time. Below can then be simple value instead of set.
         typedef std::set<uint32> QuestSet;
         QuestSet m_timedquests;
 
@@ -2341,12 +2341,12 @@ class MANGOS_DLL_SPEC Player : public Unit
         uint8 m_swingErrorMsg;
         float m_ammoDPS;
 
-        ////////////////////Rest System/////////////////////
+        //////////////////// Rest System/////////////////////
         time_t time_inn_enter;
         uint32 inn_trigger_id;
         float m_rest_bonus;
         RestType rest_type;
-        ////////////////////Rest System/////////////////////
+        //////////////////// Rest System/////////////////////
 
         // Transports
         Transport* m_transport;

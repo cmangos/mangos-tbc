@@ -60,7 +60,7 @@ static uint32 ReputationRankStrIndex[MAX_REPUTATION_RANK] =
     LANG_REP_FRIENDLY, LANG_REP_HONORED, LANG_REP_REVERED,    LANG_REP_EXALTED
 };
 
-//mute player for some times
+// mute player for some times
 bool ChatHandler::HandleMuteCommand(char* args)
 {
     char* nameStr = ExtractOptNotLastArg(&args);
@@ -104,7 +104,7 @@ bool ChatHandler::HandleMuteCommand(char* args)
     return true;
 }
 
-//unmute player
+// unmute player
 bool ChatHandler::HandleUnmuteCommand(char* args)
 {
     Player* target;
@@ -487,7 +487,7 @@ static char const* const creatureKeys[] =
 *                             Warning: If there is more than one mob with this "id"
 *                                      you will be teleported to the first one that is found.
 */
-//teleport to creature
+// teleport to creature
 bool ChatHandler::HandleGoCreatureCommand(char* args)
 {
     if (!*args)
@@ -637,7 +637,7 @@ static char const* const gameobjectKeys[] =
     NULL
 };
 
-//teleport to gameobject
+// teleport to gameobject
 bool ChatHandler::HandleGoObjectCommand(char* args)
 {
     Player* _player = m_session->GetPlayer();
@@ -891,7 +891,7 @@ bool ChatHandler::HandleGameObjectTargetCommand(char* args)
     return true;
 }
 
-//delete object by selection or guid
+// delete object by selection or guid
 bool ChatHandler::HandleGameObjectDeleteCommand(char* args)
 {
     // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
@@ -937,7 +937,7 @@ bool ChatHandler::HandleGameObjectDeleteCommand(char* args)
     return true;
 }
 
-//turn selected object
+// turn selected object
 bool ChatHandler::HandleGameObjectTurnCommand(char* args)
 {
     // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
@@ -981,7 +981,7 @@ bool ChatHandler::HandleGameObjectTurnCommand(char* args)
     return true;
 }
 
-//move selected object
+// move selected object
 bool ChatHandler::HandleGameObjectMoveCommand(char* args)
 {
     // number or [name] Shift-click form |color|Hgameobject:go_guid|h[name]|h|r
@@ -1059,7 +1059,7 @@ bool ChatHandler::HandleGameObjectMoveCommand(char* args)
     return true;
 }
 
-//spawn go
+// spawn go
 bool ChatHandler::HandleGameObjectAddCommand(char* args)
 {
     // number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
@@ -1392,7 +1392,7 @@ bool ChatHandler::HandleModifyRepCommand(char* args)
 }
 
 //-----------------------Npc Commands-----------------------
-//add spawn of creature
+// add spawn of creature
 bool ChatHandler::HandleNpcAddCommand(char* args)
 {
     if (!*args)
@@ -1443,7 +1443,7 @@ bool ChatHandler::HandleNpcAddCommand(char* args)
     return true;
 }
 
-//add item in vendorlist
+// add item in vendorlist
 bool ChatHandler::HandleNpcAddVendorItemCommand(char* args)
 {
     uint32 itemId;
@@ -1484,7 +1484,7 @@ bool ChatHandler::HandleNpcAddVendorItemCommand(char* args)
     return true;
 }
 
-//del item from vendor list
+// del item from vendor list
 bool ChatHandler::HandleNpcDelVendorItemCommand(char* args)
 {
     if (!*args)
@@ -1519,7 +1519,7 @@ bool ChatHandler::HandleNpcDelVendorItemCommand(char* args)
     return true;
 }
 
-//show info about AI
+// show info about AI
 bool ChatHandler::HandleNpcAIInfoCommand(char* /*args*/)
 {
     Creature* pTarget = getSelectedCreature();
@@ -1548,7 +1548,7 @@ bool ChatHandler::HandleNpcAIInfoCommand(char* /*args*/)
     return true;
 }
 
-//add move for creature
+// add move for creature
 bool ChatHandler::HandleNpcAddMoveCommand(char* args)
 {
     uint32 lowguid;
@@ -1599,7 +1599,7 @@ bool ChatHandler::HandleNpcAddMoveCommand(char* args)
     return true;
 }
 
-//change level of creature or pet
+// change level of creature or pet
 bool ChatHandler::HandleNpcChangeLevelCommand(char* args)
 {
     if (!*args)
@@ -1636,7 +1636,7 @@ bool ChatHandler::HandleNpcChangeLevelCommand(char* args)
     return true;
 }
 
-//set npcflag of creature
+// set npcflag of creature
 bool ChatHandler::HandleNpcFlagCommand(char* args)
 {
     if (!*args)
@@ -1721,7 +1721,7 @@ bool ChatHandler::HandleNpcDeleteCommand(char* args)
     return true;
 }
 
-//move selected creature
+// move selected creature
 bool ChatHandler::HandleNpcMoveCommand(char* args)
 {
     uint32 lowguid = 0;
@@ -1882,7 +1882,7 @@ bool ChatHandler::HandleNpcSetMoveTypeCommand(char* args)
     return true;
 }
 
-//set model of creature
+// set model of creature
 bool ChatHandler::HandleNpcSetModelCommand(char* args)
 {
     if (!*args)
@@ -1907,7 +1907,7 @@ bool ChatHandler::HandleNpcSetModelCommand(char* args)
 
     return true;
 }
-//set faction of creature
+// set faction of creature
 bool ChatHandler::HandleNpcFactionIdCommand(char* args)
 {
     if (!*args)
@@ -1947,7 +1947,7 @@ bool ChatHandler::HandleNpcFactionIdCommand(char* args)
 
     return true;
 }
-//set spawn dist of creature
+// set spawn dist of creature
 bool ChatHandler::HandleNpcSpawnDistCommand(char* args)
 {
     if (!*args)
@@ -1985,7 +1985,7 @@ bool ChatHandler::HandleNpcSpawnDistCommand(char* args)
     PSendSysMessage(LANG_COMMAND_SPAWNDIST, option);
     return true;
 }
-//spawn time handling
+// spawn time handling
 bool ChatHandler::HandleNpcSpawnTimeCommand(char* args)
 {
     uint32 stime;
@@ -2008,7 +2008,7 @@ bool ChatHandler::HandleNpcSpawnTimeCommand(char* args)
 
     return true;
 }
-//npc follow handling
+// npc follow handling
 bool ChatHandler::HandleNpcFollowCommand(char* /*args*/)
 {
     Player* player = m_session->GetPlayer();
@@ -2027,7 +2027,7 @@ bool ChatHandler::HandleNpcFollowCommand(char* /*args*/)
     PSendSysMessage(LANG_CREATURE_FOLLOW_YOU_NOW, creature->GetName());
     return true;
 }
-//npc unfollow handling
+// npc unfollow handling
 bool ChatHandler::HandleNpcUnFollowCommand(char* /*args*/)
 {
     Player* player = m_session->GetPlayer();
@@ -2064,7 +2064,7 @@ bool ChatHandler::HandleNpcUnFollowCommand(char* /*args*/)
     PSendSysMessage(LANG_CREATURE_NOT_FOLLOW_YOU_NOW, creature->GetName());
     return true;
 }
-//npc tame handling
+// npc tame handling
 bool ChatHandler::HandleNpcTameCommand(char* /*args*/)
 {
     Creature* creatureTarget = getSelectedCreature();
@@ -2089,7 +2089,7 @@ bool ChatHandler::HandleNpcTameCommand(char* /*args*/)
     return true;
 }
 
-//npc deathstate handling
+// npc deathstate handling
 bool ChatHandler::HandleNpcSetDeathStateCommand(char* args)
 {
     bool value;
@@ -2119,7 +2119,7 @@ bool ChatHandler::HandleNpcSetDeathStateCommand(char* args)
     return true;
 }
 
-//TODO: NpcCommands that need to be fixed :
+// TODO: NpcCommands that need to be fixed :
 
 bool ChatHandler::HandleNpcNameCommand(char* /*args*/)
 {
@@ -2213,7 +2213,7 @@ bool ChatHandler::HandleNpcSubNameCommand(char* /*args*/)
     return true;
 }
 
-//move item to other slot
+// move item to other slot
 bool ChatHandler::HandleItemMoveCommand(char* args)
 {
     if (!*args)
@@ -2249,7 +2249,7 @@ bool ChatHandler::HandleItemMoveCommand(char* args)
     return true;
 }
 
-//demorph player or unit
+// demorph player or unit
 bool ChatHandler::HandleDeMorphCommand(char* /*args*/)
 {
     Unit* target = getSelectedUnit();
@@ -2266,7 +2266,7 @@ bool ChatHandler::HandleDeMorphCommand(char* /*args*/)
     return true;
 }
 
-//morph creature or player
+// morph creature or player
 bool ChatHandler::HandleModifyMorphCommand(char* args)
 {
     if (!*args)
@@ -2295,7 +2295,7 @@ bool ChatHandler::HandleModifyMorphCommand(char* args)
     return true;
 }
 
-//kick player
+// kick player
 bool ChatHandler::HandleKickPlayerCommand(char* args)
 {
     Player* target;
@@ -2319,7 +2319,7 @@ bool ChatHandler::HandleKickPlayerCommand(char* args)
     return true;
 }
 
-//show info of player
+// show info of player
 bool ChatHandler::HandlePInfoCommand(char* args)
 {
     Player* target;
@@ -2406,7 +2406,7 @@ bool ChatHandler::HandlePInfoCommand(char* args)
     return true;
 }
 
-//show tickets
+// show tickets
 void ChatHandler::ShowTicket(GMTicket const* ticket)
 {
     std::string lastupdated = TimeToTimestampStr(ticket->GetLastUpdate());
@@ -2424,7 +2424,7 @@ void ChatHandler::ShowTicket(GMTicket const* ticket)
         PSendSysMessage(LANG_COMMAND_TICKETRESPONSE, ticket->GetResponse());
 }
 
-//ticket commands
+// ticket commands
 bool ChatHandler::HandleTicketCommand(char* args)
 {
     char* px = ExtractLiteralArg(&args);
@@ -2567,7 +2567,7 @@ bool ChatHandler::HandleTicketCommand(char* args)
     return true;
 }
 
-//dell all tickets
+// dell all tickets
 bool ChatHandler::HandleDelTicketCommand(char* args)
 {
     char* px = ExtractLiteralArg(&args);
@@ -2604,7 +2604,7 @@ bool ChatHandler::HandleDelTicketCommand(char* args)
 
         sTicketMgr.Delete(guid);
 
-        //notify player
+        // notify player
         if (Player* pl = sObjectMgr.GetPlayer(guid))
         {
             pl->GetSession()->SendGMTicketGetTicket(0x0A);
@@ -3142,7 +3142,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
                 // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells();
                 wpCreature2->LoadFromDB(wpCreature2->GetGUIDLow(), map);
                 map->Add(wpCreature2);
-                //npcCreature->GetMap()->Add(wpCreature2);
+                // npcCreature->GetMap()->Add(wpCreature2);
             }
 
             sWaypointMgr.SetNodePosition(lowguid, point, chr->GetPositionX(), chr->GetPositionY(), chr->GetPositionZ());
@@ -3240,7 +3240,7 @@ bool ChatHandler::HandleWpShowCommand(char* args)
     // second arg: GUID (optional, if a creature is selected)
     char* guid_str = strtok((char*)NULL, " ");
     DEBUG_LOG("DEBUG: HandleWpShowCommand: show_str: %s guid_str: %s", show_str, guid_str);
-    //if (!guid_str) {
+    // if (!guid_str) {
     //    return false;
     //}
 
@@ -3313,9 +3313,9 @@ bool ChatHandler::HandleWpShowCommand(char* args)
             return false;
         }
 
-        //PSendSysMessage("wp on, GUID: %u", lowguid);
+        // PSendSysMessage("wp on, GUID: %u", lowguid);
 
-        //pCreature->GetPositionX();
+        // pCreature->GetPositionX();
 
         QueryResult* result =
             WorldDatabase.PQuery("SELECT id, point, waittime, emote, spell, textid1, textid2, textid3, textid4, textid5, model1, model2 FROM creature_movement WHERE wpguid = %u",
@@ -3445,7 +3445,7 @@ bool ChatHandler::HandleWpShowCommand(char* args)
             // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells();
             wpCreature->LoadFromDB(wpCreature->GetGUIDLow(), map);
             map->Add(wpCreature);
-            //wpCreature->GetMap()->Add(wpCreature);
+            // wpCreature->GetMap()->Add(wpCreature);
         }
         while (result->NextRow());
 
@@ -3485,7 +3485,7 @@ bool ChatHandler::HandleWpShowCommand(char* args)
         pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()));
         pCreature->LoadFromDB(pCreature->GetGUIDLow(), map);
         map->Add(pCreature);
-        //player->PlayerTalkClass->SendPointOfInterest(x, y, 6, 6, 0, "First Waypoint");
+        // player->PlayerTalkClass->SendPointOfInterest(x, y, 6, 6, 0, "First Waypoint");
 
         // Cleanup memory
         delete result;
@@ -3533,7 +3533,7 @@ bool ChatHandler::HandleWpShowCommand(char* args)
         pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()));
         pCreature->LoadFromDB(pCreature->GetGUIDLow(), map);
         map->Add(pCreature);
-        //player->PlayerTalkClass->SendPointOfInterest(x, y, 6, 6, 0, "Last Waypoint");
+        // player->PlayerTalkClass->SendPointOfInterest(x, y, 6, 6, 0, "Last Waypoint");
         // Cleanup memory
         delete result;
         return true;
@@ -3724,7 +3724,7 @@ bool ChatHandler::HandleWpImportCommand(char* args)
         while (! infile.eof())
         {
             getline(infile, line);
-            //cout << line << endl;
+            // cout << line << endl;
             QueryResult* result = WorldDatabase.Query(line.c_str());
             delete result;
         }
@@ -3735,7 +3735,7 @@ bool ChatHandler::HandleWpImportCommand(char* args)
     return true;
 }
 
-//rename characters
+// rename characters
 bool ChatHandler::HandleCharacterRenameCommand(char* args)
 {
     Player* target;
@@ -3787,7 +3787,7 @@ bool ChatHandler::HandleCharacterReputationCommand(char* args)
     return true;
 }
 
-//change standstate
+// change standstate
 bool ChatHandler::HandleModifyStandStateCommand(char* args)
 {
     uint32 anim_id;
@@ -4948,7 +4948,7 @@ bool ChatHandler::HandleTitlesRemoveCommand(char* args)
     return true;
 }
 
-//Edit Player KnownTitles
+// Edit Player KnownTitles
 bool ChatHandler::HandleTitlesSetMaskCommand(char* args)
 {
     if (!*args)

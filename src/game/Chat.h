@@ -346,7 +346,7 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleNpcWhisperCommand(char* args);
         bool HandleNpcYellCommand(char* args);
 
-        //TODO: NpcCommands that needs to be fixed :
+        // TODO: NpcCommands that needs to be fixed :
         bool HandleNpcAddWeaponCommand(char* args);
         bool HandleNpcNameCommand(char* args);
         bool HandleNpcSubNameCommand(char* args);

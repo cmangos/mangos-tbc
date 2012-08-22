@@ -120,7 +120,7 @@ void WorldSession::SendAuctionOwnerNotification(AuctionEntry* auction, bool sold
     data << uint32(auction->GetAuctionOutBid());            // AuctionOutBid?
 
     ObjectGuid bidder_guid = ObjectGuid();
-    if (!sold)                                               // not sold yet
+    if (!sold)                                              // not sold yet
         bidder_guid = ObjectGuid(HIGHGUID_PLAYER, auction->bidder);
 
     // bidder==0 and moneyDeliveryTime==0 for expired auctions, and client shows error messages as described above
@@ -414,7 +414,7 @@ void WorldSession::HandleAuctionRemoveItem(WorldPacket& recv_data)
     uint32 auctionId;
     recv_data >> auctioneerGuid;
     recv_data >> auctionId;
-    //DEBUG_LOG("Cancel AUCTION AuctionID: %u", auctionId);
+    // DEBUG_LOG("Cancel AUCTION AuctionID: %u", auctionId);
 
     AuctionHouseEntry const* auctionHouseEntry = GetCheckedAuctionHouseForAuctioneer(auctioneerGuid);
     if (!auctionHouseEntry)
@@ -625,7 +625,7 @@ void WorldSession::HandleAuctionListItems(WorldPacket& recv_data)
     if (GetPlayer()->hasUnitState(UNIT_STAT_DIED))
         GetPlayer()->RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
 
-    //DEBUG_LOG("Auctionhouse search %s list from: %u, searchedname: %s, levelmin: %u, levelmax: %u, auctionSlotID: %u, auctionMainCategory: %u, auctionSubCategory: %u, quality: %u, usable: %u",
+    // DEBUG_LOG("Auctionhouse search %s list from: %u, searchedname: %s, levelmin: %u, levelmax: %u, auctionSlotID: %u, auctionMainCategory: %u, auctionSubCategory: %u, quality: %u, usable: %u",
     //  auctioneerGuid.GetString().c_str(), listfrom, searchedname.c_str(), levelmin, levelmax, auctionSlotID, auctionMainCategory, auctionSubCategory, quality, usable);
 
     WorldPacket data(SMSG_AUCTION_LIST_RESULT, (4 + 4 + 4));

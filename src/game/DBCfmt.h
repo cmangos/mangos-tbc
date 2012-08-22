@@ -26,7 +26,7 @@ const char BankBagSlotPricesEntryfmt[] = "ni";
 const char BattlemasterListEntryfmt[] = "niiiiiiiiiiiixxssssssssssssssssxx";
 const char CharStartOutfitEntryfmt[] = "diiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxx";
 // 3*12 new item fields in 3.0.x
-//const char CharStartOutfitEntryfmt[]="diiiiiiiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+// const char CharStartOutfitEntryfmt[]="diiiiiiiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char CharTitlesEntryfmt[] = "nxssssssssssssssssxxxxxxxxxxxxxxxxxxi";
 const char ChatChannelsEntryfmt[] = "iixssssssssssssssssxxxxxxxxxxxxxxxxxx";
 // ChatChannelsEntryfmt, index not used (more compact store)
@@ -52,14 +52,14 @@ const char GtChanceToMeleeCritfmt[] = "f";
 const char GtChanceToSpellCritBasefmt[] = "f";
 const char GtChanceToSpellCritfmt[] = "f";
 const char GtOCTRegenHPfmt[] = "f";
-//const char GtOCTRegenMPfmt[]="f";
+// const char GtOCTRegenMPfmt[]="f";
 const char GtRegenHPPerSptfmt[] = "f";
 const char GtRegenMPPerSptfmt[] = "f";
 const char Itemfmt[] = "niii";
 const char ItemBagFamilyfmt[] = "nxxxxxxxxxxxxxxxxx";
 const char ItemClassfmt[] = "nxxssssssssssssssssx";
-//const char ItemDisplayTemplateEntryfmt[]="nxxxxxxxxxxixxxxxxxxxxx";
-//const char ItemCondExtCostsEntryfmt[]="xiii";
+// const char ItemDisplayTemplateEntryfmt[]="nxxxxxxxxxxixxxxxxxxxxx";
+// const char ItemCondExtCostsEntryfmt[]="xiii";
 const char ItemExtendedCostEntryfmt[] = "niiiiiiiiiiiii";
 const char ItemRandomPropertiesfmt[] = "nxiiixxssssssssssssssssx";
 const char ItemRandomSuffixfmt[] = "nssssssssssssssssxxiiiiii";
@@ -92,7 +92,7 @@ const char TaxiPathNodeEntryfmt[] = "diiifffiiii";
 const char TotemCategoryEntryfmt[] = "nxxxxxxxxxxxxxxxxxii";
 const char WMOAreaTableEntryfmt[] = "niiixxxxxiixxxxxxxxxxxxxxxxx";
 const char WorldMapAreaEntryfmt[] = "xinxffffi";
-//const char WorldMapOverlayEntryfmt[]="nxiiiixxxxxxxxxxx";
+// const char WorldMapOverlayEntryfmt[]="nxiiiixxxxxxxxxxx";
 const char WorldSafeLocsEntryfmt[] = "nifffxxxxxxxxxxxxxxxxx";
 
 #endif

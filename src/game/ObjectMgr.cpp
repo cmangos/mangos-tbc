@@ -1293,7 +1293,7 @@ void ObjectMgr::LoadCreatures()
 void ObjectMgr::AddCreatureToGrid(uint32 guid, CreatureData const* data)
 {
     uint8 mask = data->spawnMask;
-    for (uint8 i = 0; mask != 0; i++, mask >>= 1)
+    for (uint8 i = 0; mask != 0; ++i, mask >>= 1)
     {
         if (mask & 1)
         {
@@ -1309,7 +1309,7 @@ void ObjectMgr::AddCreatureToGrid(uint32 guid, CreatureData const* data)
 void ObjectMgr::RemoveCreatureFromGrid(uint32 guid, CreatureData const* data)
 {
     uint8 mask = data->spawnMask;
-    for (uint8 i = 0; mask != 0; i++, mask >>= 1)
+    for (uint8 i = 0; mask != 0; ++i, mask >>= 1)
     {
         if (mask & 1)
         {
@@ -1468,7 +1468,7 @@ void ObjectMgr::LoadGameObjects()
 void ObjectMgr::AddGameobjectToGrid(uint32 guid, GameObjectData const* data)
 {
     uint8 mask = data->spawnMask;
-    for (uint8 i = 0; mask != 0; i++, mask >>= 1)
+    for (uint8 i = 0; mask != 0; ++i, mask >>= 1)
     {
         if (mask & 1)
         {
@@ -1484,7 +1484,7 @@ void ObjectMgr::AddGameobjectToGrid(uint32 guid, GameObjectData const* data)
 void ObjectMgr::RemoveGameobjectFromGrid(uint32 guid, GameObjectData const* data)
 {
     uint8 mask = data->spawnMask;
-    for (uint8 i = 0; mask != 0; i++, mask >>= 1)
+    for (uint8 i = 0; mask != 0; ++i, mask >>= 1)
     {
         if (mask & 1)
         {
@@ -2325,7 +2325,7 @@ void ObjectMgr::LoadPetLevelInfo()
             pLevelInfo->mana   = fields[3].GetUInt16();
             pLevelInfo->armor  = fields[9].GetUInt16();
 
-            for (int i = 0; i < MAX_STATS; i++)
+            for (int i = 0; i < MAX_STATS; ++i)
             {
                 pLevelInfo->stats[i] = fields[i+4].GetUInt16();
             }
@@ -3178,7 +3178,7 @@ void ObjectMgr::LoadGroups()
         {
             bar2.step();
             Field* fields = result->Fetch();
-            count++;
+            ++count;
 
             uint32 memberGuidlow = fields[0].GetUInt32();
             ObjectGuid memberGuid = ObjectGuid(HIGHGUID_PLAYER, memberGuidlow);
@@ -3248,7 +3248,7 @@ void ObjectMgr::LoadGroups()
         {
             bar2.step();
             Field* fields = result->Fetch();
-            count++;
+            ++count;
 
             uint32 leaderGuidLow = fields[0].GetUInt32();
             uint32 mapId = fields[1].GetUInt32();
@@ -4382,7 +4382,7 @@ void ObjectMgr::LoadInstanceTemplate()
     SQLInstanceLoader loader;
     loader.Load(sInstanceTemplate);
 
-    for (uint32 i = 0; i < sInstanceTemplate.MaxEntry; i++)
+    for (uint32 i = 0; i < sInstanceTemplate.MaxEntry; ++i)
     {
         InstanceTemplate const* temp = GetInstanceTemplate(i);
         if (!temp)
@@ -5732,7 +5732,7 @@ void ObjectMgr::LoadGameobjectInfo()
     loader.Load(sGOStorage);
 
     // some checks
-    for (uint32 id = 1; id < sGOStorage.MaxEntry; id++)
+    for (uint32 id = 1; id < sGOStorage.MaxEntry; ++id)
     {
         GameObjectInfo const* goInfo = sGOStorage.LookupEntry<GameObjectInfo>(id);
         if (!goInfo)
@@ -6927,7 +6927,7 @@ void ObjectMgr::LoadGameObjectForQuests()
                 if (goInfo->_generic.questID)               // quest related objects, has visual effects
                 {
                     mGameObjectForQuestSet.insert(go_entry);
-                    count++;
+                    ++count;
                 }
                 break;
             }
@@ -6936,7 +6936,7 @@ void ObjectMgr::LoadGameObjectForQuests()
                 if (goInfo->spellFocus.questID)             // quest related objects, has visual effect
                 {
                     mGameObjectForQuestSet.insert(go_entry);
-                    count++;
+                    ++count;
                 }
                 break;
             }
@@ -6945,7 +6945,7 @@ void ObjectMgr::LoadGameObjectForQuests()
                 if (goInfo->goober.questId)                 //quests objects
                 {
                     mGameObjectForQuestSet.insert(go_entry);
-                    count++;
+                    ++count;
                 }
                 break;
             }

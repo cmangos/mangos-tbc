@@ -2388,7 +2388,7 @@ void SpellMgr::LoadSpellChains()
         if (!talentInfo->RankID[1])
             continue;
 
-        for (int j = 0; j < MAX_TALENT_RANK; j++)
+        for (int j = 0; j < MAX_TALENT_RANK; ++j)
         {
             uint32 spell_id = talentInfo->RankID[j];
             if (!spell_id)

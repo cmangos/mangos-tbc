@@ -2254,7 +2254,7 @@ bool ChatHandler::HandleAddItemSetCommand(char* args)
     DETAIL_LOG(GetMangosString(LANG_ADDITEMSET), itemsetId);
 
     bool found = false;
-    for (uint32 id = 0; id < sItemStorage.MaxEntry; id++)
+    for (uint32 id = 0; id < sItemStorage.MaxEntry; ++id)
     {
         ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype>(id);
         if (!pProto)
@@ -2743,7 +2743,7 @@ bool ChatHandler::HandleLookupItemSetCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in ItemSet.dbc
-    for (uint32 id = 0; id < sItemSetStore.GetNumRows(); id++)
+    for (uint32 id = 0; id < sItemSetStore.GetNumRows(); ++id)
     {
         ItemSetEntry const* set = sItemSetStore.LookupEntry(id);
         if (set)
@@ -2806,7 +2806,7 @@ bool ChatHandler::HandleLookupSkillCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in SkillLine.dbc
-    for (uint32 id = 0; id < sSkillLineStore.GetNumRows(); id++)
+    for (uint32 id = 0; id < sSkillLineStore.GetNumRows(); ++id)
     {
         SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(id);
         if (skillInfo)
@@ -2931,7 +2931,7 @@ bool ChatHandler::HandleLookupSpellCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in Spell.dbc
-    for (uint32 id = 0; id < sSpellStore.GetNumRows(); id++)
+    for (uint32 id = 0; id < sSpellStore.GetNumRows(); ++id)
     {
         SpellEntry const* spellInfo = sSpellStore.LookupEntry(id);
         if (spellInfo)
@@ -3108,7 +3108,7 @@ bool ChatHandler::HandleLookupObjectCommand(char* args)
 
     uint32 counter = 0;
 
-    for (uint32 id = 0; id < sGOStorage.MaxEntry; id++)
+    for (uint32 id = 0; id < sGOStorage.MaxEntry; ++id)
     {
         GameObjectInfo const* gInfo = sGOStorage.LookupEntry<GameObjectInfo>(id);
         if (!gInfo)
@@ -3174,7 +3174,7 @@ bool ChatHandler::HandleLookupTaxiNodeCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in TaxiNodes.dbc
-    for (uint32 id = 0; id < sTaxiNodesStore.GetNumRows(); id++)
+    for (uint32 id = 0; id < sTaxiNodesStore.GetNumRows(); ++id)
     {
         TaxiNodesEntry const* nodeEntry = sTaxiNodesStore.LookupEntry(id);
         if (nodeEntry)
@@ -5944,7 +5944,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
             }
             else
                 PSendSysMessage("bound for a nonexistent map %u", itr->first);
-            counter++;
+            ++counter;
         }
     }
     PSendSysMessage("player binds: %d", counter);
@@ -5967,7 +5967,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
                 }
                 else
                     PSendSysMessage("bound for a nonexistent map %u", itr->first);
-                counter++;
+                ++counter;
             }
         }
     }
@@ -6021,7 +6021,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(char* args)
                 else
                     PSendSysMessage("bound for a nonexistent map %u", itr->first);
                 player->UnbindInstance(itr, Difficulty(i));
-                counter++;
+                ++counter;
             }
             else
                 ++itr;

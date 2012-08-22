@@ -792,7 +792,7 @@ void Aura::ReapplyAffectedPassiveAuras(Unit* target, bool owner_mode)
     {
         // permanent passive or permanent area aura
         // passive spells can be affected only by own or owner spell mods)
-        if ((itr->second->IsPermanent() && (owner_mode && itr->second->IsPassive() || itr->second->IsAreaAura())) &&
+        if ((itr->second->IsPermanent() && ((owner_mode && itr->second->IsPassive()) || itr->second->IsAreaAura())) &&
                 // non deleted and not same aura (any with same spell id)
                 !itr->second->IsDeleted() && itr->second->GetId() != GetId() &&
                 // and affected by aura

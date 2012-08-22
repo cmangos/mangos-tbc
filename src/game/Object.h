@@ -406,8 +406,8 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
     public:
 
-        //class is used to manipulate with WorldUpdateCounter
-        //it is needed in order to get time diff between two object's Update() calls
+        // class is used to manipulate with WorldUpdateCounter
+        // it is needed in order to get time diff between two object's Update() calls
         class MANGOS_DLL_SPEC UpdateHelper
         {
             public:
@@ -566,9 +566,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         //obtain terrain data for map where this object belong...
         TerrainInfo const* GetTerrain() const;
 
-        void AddToClientUpdateList();
-        void RemoveFromClientUpdateList();
-        void BuildUpdateData(UpdateDataMapType&);
+        void AddToClientUpdateList() override;
+        void RemoveFromClientUpdateList() override;
+        void BuildUpdateData(UpdateDataMapType&) override;
 
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject = false);
 
@@ -585,9 +585,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
     protected:
         explicit WorldObject();
 
-        //these functions are used mostly for Relocate() and Corpse/Player specific stuff...
-        //use them ONLY in LoadFromDB()/Create() funcs and nowhere else!
-        //mapId/instanceId should be set in SetMap() function!
+        // these functions are used mostly for Relocate() and Corpse/Player specific stuff...
+        // use them ONLY in LoadFromDB()/Create() funcs and nowhere else!
+        // mapId/instanceId should be set in SetMap() function!
         void SetLocationMapId(uint32 _mapId) { m_mapId = _mapId; }
         void SetLocationInstanceId(uint32 _instanceId) { m_InstanceId = _instanceId; }
 

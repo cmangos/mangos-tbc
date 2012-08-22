@@ -125,9 +125,9 @@ class MapSessionFilter : public PacketFilter
         explicit MapSessionFilter(WorldSession* pSession) : PacketFilter(pSession) {}
         ~MapSessionFilter() {}
 
-        virtual bool Process(WorldPacket* packet);
-        //in Map::Update() we do not process player logout!
-        virtual bool ProcessLogout() const { return false; }
+        virtual bool Process(WorldPacket* packet) override;
+        // in Map::Update() we do not process player logout!
+        virtual bool ProcessLogout() const override { return false; }
 };
 
 //class used to filer only thread-unsafe packets from queue
@@ -138,7 +138,7 @@ class WorldSessionFilter : public PacketFilter
         explicit WorldSessionFilter(WorldSession* pSession) : PacketFilter(pSession) {}
         ~WorldSessionFilter() {}
 
-        virtual bool Process(WorldPacket* packet);
+        virtual bool Process(WorldPacket* packet) override;
 };
 
 /// Player session in the World

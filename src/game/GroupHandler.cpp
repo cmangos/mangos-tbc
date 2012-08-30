@@ -50,14 +50,6 @@ void WorldSession::SendPartyResult(PartyOperation operation, const std::string& 
     SendPacket(&data);
 }
 
-void WorldSession::SendGroupInvite(Player* player, bool alreadyInGroup /*= false*/)
-{
-    // ok, we do it
-    WorldPacket data(SMSG_GROUP_INVITE, 10);                // guess size
-    data << GetPlayer()->GetName();
-    player->GetSession()->SendPacket(&data);
-}
-
 void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
 {
     std::string membername;
@@ -105,23 +97,13 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
     if (group && group->isBGGroup())
         group = GetPlayer()->GetOriginalGroup();
 
-    // player already invited
-    if (player->GetGroupInvite())
-    {
-        SendPartyResult(PARTY_OP_INVITE, membername, ERR_ALREADY_IN_GROUP_S);
-        return;
-    }
-
     Group* group2 = player->GetGroup();
     if (group2 && group2->isBGGroup())
         group2 = player->GetOriginalGroup();
-
-    // player already in another group
-    if (group2)
+    // player already in another group or invited
+    if (group2 || player->GetGroupInvite())
     {
         SendPartyResult(PARTY_OP_INVITE, membername, ERR_ALREADY_IN_GROUP_S);
-        // tell the player that they were invited but it failed as they were already in a group
-        SendGroupInvite(player, true);
         return;
     }
 
@@ -168,7 +150,11 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
         }
     }
 
-    SendGroupInvite(player);
+    // ok, we do it
+    WorldPacket data(SMSG_GROUP_INVITE, 10);                // guess size
+    data << GetPlayer()->GetName();
+    player->GetSession()->SendPacket(&data);
+
     SendPartyResult(PARTY_OP_INVITE, membername, ERR_PARTY_RESULT_OK);
 }
 

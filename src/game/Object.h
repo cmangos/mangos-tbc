@@ -65,6 +65,7 @@ class Map;
 class UpdateMask;
 class InstanceData;
 class TerrainInfo;
+class TransportInfo;
 
 typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
 
@@ -434,6 +435,10 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         void _Create(uint32 guidlow, HighGuid guidhigh);
 
+        TransportInfo* GetTransportInfo() const { return m_transportInfo; }
+        bool IsBoarded() const { return m_transportInfo != NULL; }
+        void SetTransportInfo(TransportInfo* transportInfo) { m_transportInfo = transportInfo; }
+
         void Relocate(float x, float y, float z, float orientation);
         void Relocate(float x, float y, float z);
 
@@ -595,6 +600,8 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         virtual void StopGroupLoot() {}
 
         std::string m_name;
+
+        TransportInfo* m_transportInfo;
 
     private:
         Map* m_currMap;                                     // current object's Map location

@@ -26,7 +26,7 @@
 #include "Corpse.h"
 #include "World.h"
 #include "CellImpl.h"
-#include "BattleGround.h"
+#include "BattleGround/BattleGround.h"
 
 class MANGOS_DLL_DECL ObjectGridRespawnMover
 {

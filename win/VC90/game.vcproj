@@ -543,87 +543,87 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGround.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGround.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGround.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGround.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundAA.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundAA.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundAA.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundAA.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundAB.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundAB.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundAB.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundAB.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundAV.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundAV.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundAV.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundAV.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundBE.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundBE.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundBE.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundBE.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundEY.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundEY.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundEY.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundEY.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundHandler.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundHandler.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundMgr.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundMgr.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundMgr.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundMgr.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundNA.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundNA.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundNA.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundNA.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundRL.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundRL.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundRL.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundRL.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundWS.cpp"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundWS.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\game\BattleGroundWS.h"
+				RelativePath="..\..\src\game\BattleGround\BattleGroundWS.h"
 				>
 			</File>
 			<File

@@ -32,7 +32,7 @@
 #include "Item.h"
 #include "Player.h"
 #include "World.h"
-#include "BattleGroundMgr.h"
+#include "BattleGround/BattleGroundMgr.h"
 
 /**
  * Creates a new MailSender object.

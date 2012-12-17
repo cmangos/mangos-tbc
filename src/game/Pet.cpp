@@ -1107,6 +1107,10 @@ bool Pet::InitStatsForLevel(uint32 petlevel, Unit* owner)
             // this enables popup window (pet abandon, cancel)
             SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
             break;
+        case GUARDIAN_PET:
+        case MINI_PET:
+        default:
+            break;
     }
 
     SetLevel(petlevel);

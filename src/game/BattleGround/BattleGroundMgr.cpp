@@ -17,8 +17,8 @@
  */
 
 #include "Common.h"
-#include "../SharedDefines.h"
-#include "../Player.h"
+#include "SharedDefines.h"
+#include "Player.h"
 #include "BattleGroundMgr.h"
 #include "BattleGroundAV.h"
 #include "BattleGroundAB.h"
@@ -28,15 +28,15 @@
 #include "BattleGroundBE.h"
 #include "BattleGroundAA.h"
 #include "BattleGroundRL.h"
-#include "../MapManager.h"
-#include "../Map.h"
-#include "../ObjectMgr.h"
+#include "MapManager.h"
+#include "Map.h"
+#include "ObjectMgr.h"
 #include "ProgressBar.h"
-#include "../Chat.h"
-#include "../ArenaTeam.h"
-#include "../World.h"
+#include "Chat.h"
+#include "ArenaTeam.h"
+#include "World.h"
 #include "WorldPacket.h"
-#include "../GameEventMgr.h"
+#include "GameEventMgr.h"
 
 #include "Policies/SingletonImp.h"
 

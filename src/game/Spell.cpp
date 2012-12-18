@@ -2123,8 +2123,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_DUELVSPLAYER:
         {
-            Unit* target = m_targets.getUnitTarget();
-            if (target)
+            if (Unit* target = m_targets.getUnitTarget())
             {
                 if (m_caster->IsFriendlyTo(target))
                 {
@@ -2132,9 +2131,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 }
                 else
                 {
-                    if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
+                    if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(target, this, effIndex))
                     {
-                        m_targets.setUnitTarget(pUnitTarget);
+                        if (target != pUnitTarget)
+                            m_targets.setUnitTarget(pUnitTarget);
+
                         targetUnitMap.push_back(pUnitTarget);
                     }
                 }

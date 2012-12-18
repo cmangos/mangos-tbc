@@ -1555,7 +1555,7 @@ uint8 Player::GetChatTag() const
     return tag;
 }
 
-bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options)
+bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options /*=0*/, AreaTrigger const* at /*=NULL*/)
 {
     if (!MapManager::IsValidMapCoord(mapid, x, y, z, orientation))
     {
@@ -1572,23 +1572,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     // don't let gm level > 1 either
     if (!InBattleGround() && mEntry->IsBattleGroundOrArena())
         return false;
-
-    // client without expansion support
-    if (GetSession()->Expansion() < mEntry->Expansion())
-    {
-        DEBUG_LOG("Player %s using client without required expansion tried teleport to non accessible map %u", GetName(), mapid);
-
-        if (GetTransport())
-            RepopAtGraveyard();                             // teleport to near graveyard if on transport, looks blizz like :)
-
-        SendTransferAborted(mapid, TRANSFER_ABORT_INSUF_EXPAN_LVL, mEntry->Expansion());
-
-        return false;                                       // normal client can't teleport to this map...
-    }
-    else
-    {
-        DEBUG_LOG("Player %s is being teleported to map %u", GetName(), mapid);
-    }
 
     // if we were on a transport, leave
     if (!(options & TELE_TO_NOT_LEAVE_TRANSPORT) && m_transport)
@@ -1609,8 +1592,20 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
     DisableSpline();
 
-    if ((GetMapId() == mapid) && (!m_transport))
+    if ((GetMapId() == mapid) && (!m_transport))            // TODO the !m_transport might have unexpected effects when teleporting from transport to other place on same map
     {
+        // If we are teleported by an areatrigger, check the requirements
+        if (at)
+        {
+            uint32 miscRequirement = 0;
+            AreaLockStatus lockStatus = GetAreaTriggerLockStatus(at, miscRequirement);
+            if (lockStatus != AREA_LOCKSTATUS_OK)
+            {
+                SendTransferAbortedByLockStatus(mEntry, lockStatus, miscRequirement);
+                return false;
+            }
+        }
+
         // lets reset far teleport flag if it wasn't reset during chained teleports
         SetSemaphoreTeleportFar(false);
         // setup delayed teleport flag
@@ -1657,15 +1652,19 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         // check if we can enter before stopping combat / removing pet / totems / interrupting spells
 
         // Check enter rights before map getting to avoid creating instance copy for player
-        // this check not dependent from map instance copy and same for all instance copies of selected map
-        if (!sMapMgr.CanPlayerEnter(mapid, this))
+        uint32 miscRequirement = 0;
+        AreaLockStatus lockStatus = GetAreaTriggerLockStatus(at ? at : sObjectMgr.GetMapEntranceTrigger(mapid), miscRequirement);
+        if (lockStatus != AREA_LOCKSTATUS_OK)
+        {
+            SendTransferAbortedByLockStatus(mEntry, lockStatus, miscRequirement);
             return false;
+        }
 
         // If the map is not created, assume it is possible to enter it.
         // It will be created in the WorldPortAck.
         DungeonPersistentState* state = GetBoundInstanceSaveForSelfOrGroup(mapid);
         Map* map = sMapMgr.FindMap(mapid, state ? state->GetInstanceId() : 0);
-        if (!map ||  map->CanEnter(this))
+        if (!map || map->CanEnter(this))
         {
             // lets reset near teleport flag if it wasn't reset during chained teleports
             SetSemaphoreTeleportNear(false);
@@ -1777,7 +1776,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
                 SendSavedInstances();
             }
         }
-        else
+        else                                                // !map->CanEnter(this)
             return false;
     }
     return true;
@@ -18943,22 +18942,57 @@ void Player::SendUpdateToOutOfRangeGroupMembers()
         pet->ResetAuraUpdateMask();
 }
 
-void Player::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg)
+void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaLockStatus lockStatus, uint32 miscRequirement)
 {
-    WorldPacket data(SMSG_TRANSFER_ABORTED, 4 + 2);
-    data << uint32(mapid);
-    data << uint8(reason);                                  // transfer abort reason
-    switch (reason)
+    MANGOS_ASSERT(mapEntry);
+
+    DEBUG_LOG("SendTransferAbortedByLockStatus: Called for %s on map %u, LockAreaStatus %u, miscRequirement %u)", GetGuidStr().c_str(), mapEntry->MapID, lockStatus, miscRequirement);
+
+    switch (lockStatus)
     {
-        case TRANSFER_ABORT_INSUF_EXPAN_LVL:
-        case TRANSFER_ABORT_DIFFICULTY:
-            data << uint8(arg);
+        case AREA_LOCKSTATUS_TOO_LOW_LEVEL:
+            GetSession()->SendAreaTriggerMessage(GetSession()->GetMangosString(LANG_LEVEL_MINREQUIRED), miscRequirement);
             break;
-        default:                                            // possible not neaded (absent in 0.13, but add at backport for safe)
-            data << uint8(0);
+        case AREA_LOCKSTATUS_ZONE_IN_COMBAT:
+            GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_ZONE_IN_COMBAT);
+            break;
+        case AREA_LOCKSTATUS_INSTANCE_IS_FULL:
+            GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_MAX_PLAYERS);
+            break;
+        case AREA_LOCKSTATUS_QUEST_NOT_COMPLETED:
+            if (mapEntry->MapID == 269)                     // Exception for Black Morass
+            {
+                GetSession()->SendAreaTriggerMessage(GetSession()->GetMangosString(LANG_TELEREQ_QUEST_BLACK_MORASS));
+                break;
+            }
+            else if (mapEntry->IsContinent())               // do not report anything for quest areatrigge
+            {
+                DEBUG_LOG("SendTransferAbortedByLockStatus: LockAreaStatus %u, do not teleport, no message sent (mapId %u)", lockStatus, mapEntry->MapID);
+                break;
+            }
+            // No break here!
+        case AREA_LOCKSTATUS_MISSING_ITEM:
+            GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_DIFFICULTY, GetDifficulty());
+            break;
+        case AREA_LOCKSTATUS_MISSING_DIFFICULTY:
+            {
+                Difficulty difficulty = GetDifficulty();
+                GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_DIFFICULTY, difficulty);
+                break;
+            }
+        case AREA_LOCKSTATUS_INSUFFICIENT_EXPANSION:
+            if (GetTransport())
+                RepopAtGraveyard();
+            GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_INSUF_EXPAN_LVL, miscRequirement);
+            break;
+        case AREA_LOCKSTATUS_OK:
+            sLog.outError("SendTransferAbortedByLockStatus: LockAreaStatus AREA_LOCKSTATUS_OK received for %s (mapId %u)", GetGuidStr().c_str(), mapEntry->MapID);
+            MANGOS_ASSERT(false);
+            break;
+        default:
+            sLog.outError("SendTransfertAbortedByLockstatus: unhandled LockAreaStatus %u, when %s attempts to enter in map %u", lockStatus, GetGuidStr().c_str(), mapEntry->MapID);
             break;
     }
-    GetSession()->SendPacket(&data);
 }
 
 void Player::SendInstanceResetWarning(uint32 mapid, uint32 time)
@@ -20833,9 +20867,4 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
     }
 
     return AREA_LOCKSTATUS_OK;
-};
-
-AreaLockStatus Player::GetAreaLockStatus(uint32 mapId, uint32& miscRequirement)
-{
-    return GetAreaTriggerLockStatus(sObjectMgr.GetMapEntranceTrigger(mapId), miscRequirement);
 };

@@ -1251,13 +1251,14 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket* data, BattleGround* bg)
     if (type)                                               // arena
     {
         // it seems this must be according to BG_WINNER_A/H and _NOT_ BG_TEAM_A/H
-        for (uint8 i = 1; i >= 0; --i)
+        for (int8 i = 1; i >= 0; --i)
         {
             *data << uint32(3000 - bg->m_ArenaTeamRatingChanges[i]);                    // rating change: showed value - 3000
             *data << uint32(3999);                          // huge thanks for TOM_RUS for this!
             DEBUG_LOG("rating change: %d", bg->m_ArenaTeamRatingChanges[i]);
         }
-        for (uint8 i = 1; i >= 0; --i)
+
+        for (int8 i = 1; i >= 0; --i)
         {
             uint32 at_id = bg->m_ArenaTeamIds[i];
             ArenaTeam* at = sObjectMgr.GetArenaTeamById(at_id);

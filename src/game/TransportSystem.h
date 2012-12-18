@@ -93,7 +93,6 @@ class TransportInfo
 
         // Set local positions
         void SetLocalPosition(float lx, float ly, float lz, float lo);
-        void SetTransportSeat(uint8 seat) { m_seat = seat; }
 
         // Accessors
         WorldObject* GetTransport() const { return m_transport->GetOwner(); }

@@ -133,7 +133,7 @@ void TransportBase::CalculateGlobalPositionOf(float lx, float ly, float lz, floa
 
 void TransportBase::BoardPassenger(WorldObject* passenger, float lx, float ly, float lz, float lo, uint8 seat)
 {
-    TransportInfo* transportInfo = new TransportInfo(passenger, this, lx, ly, lz, lo, seat);
+    TransportInfo* transportInfo = new TransportInfo(passenger, this, lx, ly, lz, lo);
 
     // Insert our new passenger
     m_passengers.insert(PassengerMap::value_type(passenger, transportInfo));

@@ -248,9 +248,6 @@ struct GossipMenuItems
     bool            box_coded;
     uint32          box_money;
     std::string     box_text;
-    uint16          cond_1;
-    uint16          cond_2;
-    uint16          cond_3;
     uint16          conditionId;
 };
 
@@ -259,8 +256,6 @@ struct GossipMenus
     uint32          entry;
     uint32          text_id;
     uint32          script_id;
-    uint16          cond_1;
-    uint16          cond_2;
     uint16          conditionId;
 };
 
@@ -297,7 +292,7 @@ typedef std::pair<GraveYardMap::const_iterator, GraveYardMap::const_iterator> Gr
 
 enum ConditionType
 {
-    // value1       value2  for the Condition enumed
+    //                                                      // value1       value2  for the Condition enumed
     CONDITION_NOT                   = -3,                   // cond-id-1    0          returns !cond-id-1
     CONDITION_OR                    = -2,                   // cond-id-1    cond-id-2  returns cond-id-1 OR cond-id-2
     CONDITION_AND                   = -1,                   // cond-id-1    cond-id-2  returns cond-id-1 AND cond-id-2
@@ -353,12 +348,6 @@ class PlayerCondition
         static bool IsValid(uint16 entry, ConditionType condition, uint32 value1, uint32 value2);
 
         bool Meets(Player const* pPlayer) const;            // Checks if the player meets the condition
-
-        // TODO: old system, remove soon!
-        bool operator == (PlayerCondition const& lc) const
-        {
-            return (lc.m_condition == m_condition && lc.m_value1 == m_value1 && lc.m_value2 == m_value2);
-        }
 
     private:
         uint16 m_entry;                                     // entry of the condition
@@ -897,17 +886,8 @@ class ObjectMgr
         int GetIndexForLocale(LocaleConstant loc);
         LocaleConstant GetLocaleForIndex(int i);
 
-        // TODO: Outdated version, rename NEW and remove soon
-        uint16 GetConditionId(ConditionType condition, uint32 value1, uint32 value2);
-        bool IsPlayerMeetToCondition(Player const* player, uint16 condition_id) const
-        {
-            if (condition_id >= mConditions.size())
-                return false;
-
-            return mConditions[condition_id].Meets(player);
-        }
-
-        bool IsPlayerMeetToNEWCondition(Player const* pPlayer, uint16 conditionId) const;
+        // Check if a player meets condition conditionId
+        bool IsPlayerMeetToCondition(Player const* pPlayer, uint16 conditionId) const;
 
         GameTele const* GetGameTele(uint32 id) const
         {
@@ -1141,10 +1121,6 @@ class ObjectMgr
         MangosStringLocaleMap mMangosStringLocaleMap;
         GossipMenuItemsLocaleMap mGossipMenuItemsLocaleMap;
         PointOfInterestLocaleMap mPointOfInterestLocaleMap;
-
-        // Storage for Conditions. First element (index 0) is reserved for zero-condition (nothing required)
-        typedef std::vector<PlayerCondition> ConditionStore;
-        ConditionStore mConditions;
 
         CreatureModelRaceMap    m_mCreatureModelRaceMap;
 

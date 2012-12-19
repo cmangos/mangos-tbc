@@ -177,8 +177,8 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket& recv_data)
         for (int i = 0; i < MAX_CREATURE_MODEL; ++i)
             data << uint32(ci->ModelId[i]);
 
-        data << float(ci->unk16);                           // health modifier
-        data << float(ci->unk17);                           // power modifier
+        data << float(ci->healthModifier);                  // health modifier
+        data << float(ci->powerModifier);                   // power modifier
         data << uint8(ci->RacialLeader);
         SendPacket(&data);
         DEBUG_LOG("WORLD: Sent SMSG_CREATURE_QUERY_RESPONSE");

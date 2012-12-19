@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1723_12148_02_mangos_mangos_string` bit(1) default NULL
+  `required_s1750_12189_01_mangos_creature_template_spells` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -1333,10 +1333,30 @@ CREATE TABLE `creature_template_addon` (
 --
 -- Dumping data for table `creature_template_addon`
 --
-
 LOCK TABLES `creature_template_addon` WRITE;
 /*!40000 ALTER TABLE `creature_template_addon` DISABLE KEYS */;
 /*!40000 ALTER TABLE `creature_template_addon` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `creature_template_spells`
+--
+DROP TABLE IF EXISTS `creature_template_spells`;
+CREATE TABLE `creature_template_spells` (
+  `entry` mediumint(8) unsigned NOT NULL,
+  `spell1` mediumint(8) unsigned NOT NULL,
+  `spell2` mediumint(8) unsigned NOT NULL default '0',
+  `spell3` mediumint(8) unsigned NOT NULL default '0',
+  `spell4` mediumint(8) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`entry`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Creature System (Spells used by creature)';
+
+--
+-- Dumping data for table `creature_template_spells`
+--
+LOCK TABLES `creature_template_spells` WRITE;
+/*!40000 ALTER TABLE `creature_template_spells` DISABLE KEYS */;
+/*!40000 ALTER TABLE `creature_template_spells` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

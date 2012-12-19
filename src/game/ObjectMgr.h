@@ -650,6 +650,7 @@ class ObjectMgr
         void LoadPointsOfInterest();
 
         void LoadSpellTemplate();
+        void LoadCreatureTemplateSpells();
 
         void LoadWeatherZoneChances();
         void LoadGameTele();

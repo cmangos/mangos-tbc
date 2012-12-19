@@ -131,7 +131,7 @@ void TransportBase::CalculateGlobalPositionOf(float lx, float ly, float lz, floa
     go = MapManager::NormalizeOrientation(lo + m_owner->GetOrientation());
 }
 
-void TransportBase::BoardPassenger(WorldObject* passenger, float lx, float ly, float lz, float lo, uint8 seat)
+void TransportBase::BoardPassenger(WorldObject* passenger, float lx, float ly, float lz, float lo)
 {
     TransportInfo* transportInfo = new TransportInfo(passenger, this, lx, ly, lz, lo);
 

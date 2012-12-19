@@ -1153,7 +1153,7 @@ void Aura::TriggerSpell()
                         else
                             newAngle -= M_PI_F/40;
 
-                        MapManager::NormalizeOrientation(newAngle);
+                        newAngle = MapManager::NormalizeOrientation(newAngle);
 
                         target->SetFacingTo(newAngle);
 

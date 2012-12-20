@@ -399,6 +399,59 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE* output, WMORoot* rootWMO, bool pPrecis
         int LIQU_h[] = {0x5551494C, sizeof(WMOLiquidHeader) + LiquEx_size + hlq->xtiles* hlq->ytiles}; // "LIQU"
         fwrite(LIQU_h, 4, 2, output);
 
+        // according to WoW.Dev Wiki:
+        uint32 liquidEntry;
+        if (rootWMO->liquidType & 4)
+            liquidEntry = liquidType;
+        else if (liquidType == 15)
+            liquidEntry = 0;
+        else
+            liquidEntry = liquidType + 1;
+
+        if (!liquidEntry)
+        {
+            int v1; // edx@1
+            int v2; // eax@1
+
+            v1 = hlq->xtiles * hlq->ytiles;
+            v2 = 0;
+            if (v1 > 0)
+            {
+                while ((LiquBytes[v2] & 0xF) == 15)
+                {
+                    ++v2;
+                    if (v2 >= v1)
+                        break;
+                }
+
+                if (v2 < v1 && (LiquBytes[v2] & 0xF) != 15)
+                    liquidEntry = (LiquBytes[v2] & 0xF) + 1;
+            }
+        }
+
+        if (liquidEntry && liquidEntry < 21)
+        {
+            switch (((uint8)liquidEntry - 1) & 3)
+            {
+                case 0:
+                    liquidEntry = ((mogpFlags & 0x80000) != 0) + 13;
+                    break;
+                case 1:
+                    liquidEntry = 14;
+                    break;
+                case 2:
+                    liquidEntry = 19;
+                    break;
+                case 3:
+                    liquidEntry = 20;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        hlq->type = liquidEntry;
+
         /* std::ofstream llog("Buildings/liquid.log", ios_base::out | ios_base::app);
         llog << filename;
         llog << ":\ntype: " << hlq->type << " (root:" << rootWMO->liquidType << " group:" << liquidType << ")\n";

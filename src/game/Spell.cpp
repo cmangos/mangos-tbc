@@ -1484,43 +1484,48 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         {
             switch (m_spellInfo->Id)
             {
-                case 802:                                   // Mutate Bug
-                case 804:                                   // Explode Bug
-                case 23138:                                 // Gate of Shazzrah
-                case 28560:                                 // Summon Blizzard
+                case 802:                                   // Mutate Bug (AQ40, Emperor Vek'nilash)
+                case 804:                                   // Explode Bug (AQ40, Emperor Vek'lor)
+                case 23138:                                 // Gate of Shazzrah (MC, Shazzrah)
+                case 28560:                                 // Summon Blizzard (Naxx, Sapphiron)
                 case 30541:                                 // Blaze (Magtheridon)
                 case 30572:                                 // Quake (Magtheridon)
-                case 30769:                                 // Pick Red Riding Hood
-                case 30835:                                 // Infernal Relay
-                case 31347:                                 // Doom TODO: exclude top threat target from target selection
-                case 33711:                                 // Murmur's Touch
-                case 38794:                                 // Murmur's Touch (h)
-                case 44869:                                 // Spectral Blast
-                case 45976:                                 // Open Portal
+                case 30769:                                 // Pick Red Riding Hood (Karazhan, Big Bad Wolf)
+                case 30835:                                 // Infernal Relay (Karazhan, Prince Malchezaar)
+                case 31347:                                 // Doom (Hyjal Summit, Azgalor)
+                case 33711:                                 // Murmur's Touch (Shadow Labyrinth, Murmur)
+                case 38794:                                 // Murmur's Touch (h) (Shadow Labyrinth, Murmur)
+                case 41537:                                 // Summon Enslaved Soul (BT, Reliquary of Souls)
+                case 44869:                                 // Spectral Blast (SWP, Kalecgos)
+                case 45892:                                 // Sinister Reflection (SWP, Kil'jaeden)
+                case 45976:                                 // Open Portal (SWP, M'uru)
                     unMaxTargets = 1;
                     break;
-                case 28542:                                 // Life Drain
+                case 28542:                                 // Life Drain (Naxx, Sapphiron)
                     unMaxTargets = 2;
                     break;
-                case 30004:                                 // Flame Wreath
-                case 31298:                                 // Sleep
+                case 30004:                                 // Flame Wreath (Karazhan, Shade of Aran)
+                case 31298:                                 // Sleep (Hyjal Summit, Anetheron)
                 case 39992:                                 // Needle Spine Targeting (BT, Warlord Najentus)
+                case 41303:                                 // Soul Drain (BT, Reliquary of Souls)
+                case 41376:                                 // Spite (BT, Reliquary of Souls)
                     unMaxTargets = 3;
                     break;
-                case 37676:                                 // Insidious Whisper
-                case 38028:                                 // Watery Grave
+                case 37676:                                 // Insidious Whisper (SSC, Leotheras the Blind)
+                case 38028:                                 // Watery Grave (SSC, Morogrim Tidewalker)
                     unMaxTargets = 4;
                     break;
-                case 30843:                                 // Enfeeble
-                case 42005:                                 // Bloodboil
+                case 30843:                                 // Enfeeble (Karazhan, Prince Malchezaar)
+                case 40243:                                 // Crushing Shadows (BT, Teron Gorefiend)
+                case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)
                 case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
                     unMaxTargets = 5;
                     break;
-                case 28796:                                 // Poison Bolt Volley
-                case 29213:                                 // Curse of the Plaguebringer
+                case 28796:                                 // Poison Bolt Volley (Naxx, Faerlina)
+                case 29213:                                 // Curse of the Plaguebringer (Naxx, Noth the Plaguebringer)
                     unMaxTargets = 10;
                     break;
-                case 25991:                                 // Poison Bolt Volley (Pincess Huhuran)
+                case 25991:                                 // Poison Bolt Volley (AQ40, Pincess Huhuran)
                     unMaxTargets = 15;
                     break;
                 case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)
@@ -1852,8 +1857,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 switch (m_spellInfo->Id)
                 {
                     case 30843:                             // Enfeeble
+                    case 31347:                             // Doom
                     case 37676:                             // Insidious Whisper
                     case 38028:                             // Watery Grave
+                    case 40618:                             // Insignificance
+                    case 41376:                             // Spite
                         if (Unit* pVictim = m_caster->getVictim())
                             targetUnitMap.remove(pVictim);
                         break;

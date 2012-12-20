@@ -70,11 +70,6 @@ GameObject::GameObject() : WorldObject(),
 
 GameObject::~GameObject()
 {
-    // store the capture point slider value (for non visual, non locked capture points)
-    GameObjectInfo const* goInfo = GetGOInfo();
-    if (goInfo && goInfo->type == GAMEOBJECT_TYPE_CAPTURE_POINT && goInfo->capturePoint.radius && m_lootState == GO_ACTIVATED)
-        sOutdoorPvPMgr.SetCapturePointSlider(GetEntry(), m_captureSlider);
-
     delete m_model;
 }
 
@@ -95,6 +90,13 @@ void GameObject::AddToWorld()
 
 void GameObject::RemoveFromWorld()
 {
+    // store the slider value for non instance, non locked capture points
+    if (!GetMap()->IsBattleGroundOrArena())
+    {
+        if (GetGOInfo()->type == GAMEOBJECT_TYPE_CAPTURE_POINT && m_lootState == GO_ACTIVATED)
+            sOutdoorPvPMgr.SetCapturePointSlider(GetEntry(), m_captureSlider);
+    }
+
     ///- Remove the gameobject from the accessor
     if (IsInWorld())
     {
@@ -177,11 +179,19 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
 
     SetGoAnimProgress(animprogress);
 
-    // Notify the battleground or outdoor pvp script
+    // Notify the battleground script
     if (map->IsBattleGroundOrArena())
         ((BattleGroundMap*)map)->GetBG()->HandleGameObjectCreate(this);
-    else if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(GetZoneId()))
-        outdoorPvP->HandleGameObjectCreate(this);
+    else
+    {
+        // set initial data and activate non instance capture points
+        if (goinfo->type == GAMEOBJECT_TYPE_CAPTURE_POINT)
+            SetCapturePointSlider(sOutdoorPvPMgr.GetCapturePointSliderValue(goinfo->id));
+
+        // Notify the outdoor pvp script
+        if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(GetZoneId()))
+            outdoorPvP->HandleGameObjectCreate(this);
+    }
 
     // Notify the map's instance data.
     // Only works if you create the object in it, not if it is moves to that map.

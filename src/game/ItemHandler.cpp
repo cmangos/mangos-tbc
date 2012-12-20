@@ -426,7 +426,7 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandleReadItemOpcode(WorldPacket& recv_data)
 {
-    // DEBUG_LOG( "WORLD: CMSG_READ_ITEM");
+    // DEBUG_LOG("WORLD: Received opcode CMSG_READ_ITEM");
 
     uint8 bag, slot;
     recv_data >> bag >> slot;
@@ -459,7 +459,7 @@ void WorldSession::HandleReadItemOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandlePageQuerySkippedOpcode(WorldPacket& recv_data)
 {
-    DEBUG_LOG("WORLD: Received CMSG_PAGE_TEXT_QUERY");
+    DEBUG_LOG("WORLD: Received opcode CMSG_PAGE_TEXT_QUERY");
 
     uint32 itemid;
     ObjectGuid guid;
@@ -471,7 +471,7 @@ void WorldSession::HandlePageQuerySkippedOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandleSellItemOpcode(WorldPacket& recv_data)
 {
-    DEBUG_LOG("WORLD: Received CMSG_SELL_ITEM");
+    DEBUG_LOG("WORLD: Received opcode CMSG_SELL_ITEM");
 
     ObjectGuid vendorGuid;
     ObjectGuid itemGuid;
@@ -586,7 +586,7 @@ void WorldSession::HandleSellItemOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandleBuybackItem(WorldPacket& recv_data)
 {
-    DEBUG_LOG("WORLD: Received CMSG_BUYBACK_ITEM");
+    DEBUG_LOG("WORLD: Received opcode CMSG_BUYBACK_ITEM");
     ObjectGuid vendorGuid;
     uint32 slot;
 
@@ -633,7 +633,7 @@ void WorldSession::HandleBuybackItem(WorldPacket& recv_data)
 
 void WorldSession::HandleBuyItemInSlotOpcode(WorldPacket& recv_data)
 {
-    DEBUG_LOG("WORLD: Received CMSG_BUY_ITEM_IN_SLOT");
+    DEBUG_LOG("WORLD: Received opcode CMSG_BUY_ITEM_IN_SLOT");
     ObjectGuid vendorGuid;
     ObjectGuid bagGuid;
     uint32 item;
@@ -670,7 +670,7 @@ void WorldSession::HandleBuyItemInSlotOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandleBuyItemOpcode(WorldPacket& recv_data)
 {
-    DEBUG_LOG("WORLD: Received CMSG_BUY_ITEM");
+    DEBUG_LOG("WORLD: Received opcode CMSG_BUY_ITEM");
     ObjectGuid vendorGuid;
     uint32 item;
     uint8 count, unk1;
@@ -689,7 +689,7 @@ void WorldSession::HandleListInventoryOpcode(WorldPacket& recv_data)
     if (!GetPlayer()->isAlive())
         return;
 
-    DEBUG_LOG("WORLD: Recvd CMSG_LIST_INVENTORY");
+    DEBUG_LOG("WORLD: Received opcode CMSG_LIST_INVENTORY");
 
     SendListInventory(guid);
 }

@@ -1149,9 +1149,9 @@ void Aura::TriggerSpell()
                         float newAngle = target->GetOrientation();
 
                         if (auraId == 26009)
-                            newAngle += M_PI_F/40;
+                            newAngle += M_PI_F / 40;
                         else
-                            newAngle -= M_PI_F/40;
+                            newAngle -= M_PI_F / 40;
 
                         newAngle = MapManager::NormalizeOrientation(newAngle);
 
@@ -1407,9 +1407,9 @@ void Aura::TriggerSpell()
                         float newAngle = target->GetOrientation();
 
                         if (auraId == 37429)
-                            newAngle += 2*M_PI_F/100;
+                            newAngle += 2 * M_PI_F / 100;
                         else
-                            newAngle -= 2*M_PI_F/100;
+                            newAngle -= 2 * M_PI_F / 100;
 
                         newAngle = MapManager::NormalizeOrientation(newAngle);
 
@@ -6467,7 +6467,7 @@ void Aura::PeriodicDummyTick()
                     uint32 rand = urand(0, 99);
                     for (uint32 i = 1; i <= 6; ++i)
                     {
-                        if (rand < i * (i+1) /2 * 5)
+                        if (rand < i * (i + 1) / 2 * 5)
                         {
                             target->CastSpell(target, spell->Id + i, true);
                             break;

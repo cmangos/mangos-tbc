@@ -927,7 +927,7 @@ enum Mechanics
     MECHANIC_FEAR             = 5,
     MECHANIC_FUMBLE           = 6,
     MECHANIC_ROOT             = 7,
-    MECHANIC_PACIFY           = 8,                          //0 spells use this mechanic
+    MECHANIC_PACIFY           = 8,                          // No spells use this mechanic
     MECHANIC_SILENCE          = 9,
     MECHANIC_SLEEP            = 10,
     MECHANIC_SNARE            = 11,

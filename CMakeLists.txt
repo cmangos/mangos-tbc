@@ -17,7 +17,7 @@
 #
 
 project(MaNGOS)
-set(MANGOS_VERSION 0.12.1)
+set(MANGOS_VERSION 0.12.2)
 
 # CMake policies
 cmake_minimum_required(VERSION 2.8)

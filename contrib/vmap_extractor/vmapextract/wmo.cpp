@@ -434,16 +434,29 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE* output, WMORoot* rootWMO, bool pPrecis
             switch (((uint8)liquidEntry - 1) & 3)
             {
                 case 0:
-                    liquidEntry = ((mogpFlags & 0x80000) != 0) + 13;
+                    liquidEntry = ((mogpFlags & 0x80000) != 0) + 1;
+                    if (liquidEntry == 1)   // water type
+                    {
+                        if (filename.find("Coilfang_Raid") != string::npos)
+                        {
+                            // set water type to special coilfang raid water
+                            liquidEntry = 41;
+                        }
+                    }
                     break;
                 case 1:
-                    liquidEntry = 14;
+                    liquidEntry = 2;        // ocean
                     break;
                 case 2:
-                    liquidEntry = 19;
+                    liquidEntry = 3;        // magma
                     break;
                 case 3:
-                    liquidEntry = 20;
+                    if (filename.find("Stratholme_raid") != string::npos)
+                    {
+                        liquidEntry = 21;   // Naxxramas slime
+                    }
+                    else
+                        liquidEntry = 4;    // Normal slime
                     break;
                 default:
                     break;
@@ -457,8 +470,6 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE* output, WMORoot* rootWMO, bool pPrecis
         llog << ":\ntype: " << hlq->type << " (root:" << rootWMO->liquidType << " group:" << liquidType << ")\n";
         llog.close(); */
 
-        hlq->type = ConvertLiquidType(hlq->type, filename);
-
         fwrite(hlq, sizeof(WMOLiquidHeader), 1, output);
         // only need height values, the other values are unknown anyway
         for (uint32 i = 0; i < LiquEx_size / sizeof(WMOLiquidVert); ++i)
@@ -468,24 +479,6 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE* output, WMORoot* rootWMO, bool pPrecis
     }
 
     return nColTriangles;
-}
-
-int WMOGroup::ConvertLiquidType(int hlqLiquid, std::string& filename)
-{
-    if (hlqLiquid == 4)                                             // lava in Blackrock Mountain, Blackrock Depths, Blackrock Spire and Old Ironforge
-        return 2;
-
-    filename = filename.substr(0, filename.find_last_of("\\"));     // trim filename
-    filename = filename.substr(filename.find_last_of("\\") + 1);    // trim everything except current wmo path part
-
-    if (hlqLiquid == 3 && filename == "AZ_Blackrock")               // lava in Molten Core
-        return 2;
-    else if (filename == "KL_OrgrimmarLavaDungeon")                 // lava in Ragefire Chasm
-        return 2;
-    else if (hlqLiquid == 8 && filename == "LD_Stratholme")         // slime in Naxxramas
-        return 3;
-    else
-        return 0;
 }
 
 WMOGroup::~WMOGroup()

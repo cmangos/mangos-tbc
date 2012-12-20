@@ -1220,7 +1220,7 @@ void WorldObject::GetRandomPoint(float x, float y, float z, float distance, floa
 
 void WorldObject::UpdateGroundPositionZ(float x, float y, float& z) const
 {
-    float new_z = GetMap()->GetHeight(x, y, z, true);
+    float new_z = GetMap()->GetHeight(x, y, z);
     if (new_z > INVALID_HEIGHT)
         z = new_z + 0.05f;                                  // just to be sure that we are not a few pixel under the surface
 }
@@ -1239,7 +1239,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z) const
                 float ground_z = z;
                 float max_z = canSwim
                               ? GetTerrain()->GetWaterOrGroundLevel(x, y, z, &ground_z, !((Unit const*)this)->HasAuraType(SPELL_AURA_WATER_WALK))
-                              : ((ground_z = GetMap()->GetHeight(x, y, z, true)));
+                              : ((ground_z = GetMap()->GetHeight(x, y, z)));
                 if (max_z > INVALID_HEIGHT)
                 {
                     if (z > max_z)
@@ -1250,7 +1250,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z) const
             }
             else
             {
-                float ground_z = GetMap()->GetHeight(x, y, z, true);
+                float ground_z = GetMap()->GetHeight(x, y, z);
                 if (z < ground_z)
                     z = ground_z;
             }
@@ -1273,7 +1273,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z) const
             }
             else
             {
-                float ground_z = GetMap()->GetHeight(x, y, z, true);
+                float ground_z = GetMap()->GetHeight(x, y, z);
                 if (z < ground_z)
                     z = ground_z;
             }
@@ -1281,7 +1281,7 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z) const
         }
         default:
         {
-            float ground_z = GetMap()->GetHeight(x, y, z, true);
+            float ground_z = GetMap()->GetHeight(x, y, z);
             if (ground_z > INVALID_HEIGHT)
                 z = ground_z;
             break;

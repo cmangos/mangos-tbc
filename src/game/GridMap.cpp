@@ -943,10 +943,6 @@ GridMapLiquidStatus TerrainInfo::getLiquidStatus(float x, float y, float z, uint
             // All ok in water -> store data
             if (data)
             {
-                // hardcoded in client like this convert ocean to lava
-                if (GetMapId() == 530 && liquid_type == 2)
-                    liquid_type = 3;
-
                 uint32 liquidFlagType = 0;
                 if (LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(liquid_type))
                     liquidFlagType = 1 << liq->Type;
@@ -979,15 +975,8 @@ GridMapLiquidStatus TerrainInfo::getLiquidStatus(float x, float y, float z, uint
         if (map_result != LIQUID_MAP_NO_WATER && (map_data.level > ground_level))
         {
             if (data)
-            {
-                // hardcoded in client like this
-                if (GetMapId() == 530 && map_data.entry == 2)
-                {
-                    map_data.entry = 3;
-                    map_data.type_flags = MAP_LIQUID_TYPE_MAGMA;
-                }
                 *data = map_data;
-            }
+
             return map_result;
         }
     }

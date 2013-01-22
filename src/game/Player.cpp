@@ -18960,6 +18960,11 @@ void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaLockS
         case AREA_LOCKSTATUS_INSUFFICIENT_EXPANSION:
             GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_INSUF_EXPAN_LVL, miscRequirement);
             break;
+        case AREA_LOCKSTATUS_NOT_ALLOWED:
+        case AREA_LOCKSTATUS_RAID_LOCKED:
+        case AREA_LOCKSTATUS_UNKNOWN_ERROR:
+            // ToDo: SendAreaTriggerMessage or Transfer Abort for these cases!
+            break;
         case AREA_LOCKSTATUS_OK:
             sLog.outError("SendTransferAbortedByLockStatus: LockAreaStatus AREA_LOCKSTATUS_OK received for %s (mapId %u)", GetGuidStr().c_str(), mapEntry->MapID);
             MANGOS_ASSERT(false);

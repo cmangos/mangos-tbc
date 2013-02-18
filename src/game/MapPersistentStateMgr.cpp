@@ -944,8 +944,19 @@ void MapPersistentStateManager::LoadCreatureRespawnTimes()
             continue;
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data->mapid);
-        if (!mapEntry || (instanceId && (mapId != data->mapid || mapEntry->Instanceable())))
+        if (!mapEntry)
             continue;
+
+        if (instanceId)                                     // In instance - mapId must be data->mapid and mapEntry must be Instanceable
+        {
+            if (mapId != data->mapid || !mapEntry->Instanceable())
+                continue;
+        }
+        else                                                // Not in instance, mapEntry must not be Instanceable
+        {
+            if (mapEntry->Instanceable())
+                continue;
+        }
 
         if (difficulty >= (!mapEntry->Instanceable() ? REGULAR_DIFFICULTY + 1 : MAX_DIFFICULTY))
             continue;
@@ -957,7 +968,6 @@ void MapPersistentStateManager::LoadCreatureRespawnTimes()
         state->SetCreatureRespawnTime(loguid, time_t(respawn_time));
 
         ++count;
-
     }
     while (result->NextRow());
 
@@ -1007,8 +1017,19 @@ void MapPersistentStateManager::LoadGameobjectRespawnTimes()
             continue;
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data->mapid);
-        if (!mapEntry || (instanceId && (mapId != data->mapid || mapEntry->Instanceable())))
+        if (!mapEntry)
             continue;
+
+        if (instanceId)                                     // In instance - mapId must be data->mapid and mapEntry must be Instanceable
+        {
+            if (mapId != data->mapid || !mapEntry->Instanceable())
+                continue;
+        }
+        else                                                // Not in instance, mapEntry must not be Instanceable
+        {
+            if (mapEntry->Instanceable())
+                continue;
+        }
 
         if (difficulty >= (!mapEntry->Instanceable() ? REGULAR_DIFFICULTY + 1 : MAX_DIFFICULTY))
             continue;
@@ -1020,7 +1041,6 @@ void MapPersistentStateManager::LoadGameobjectRespawnTimes()
         state->SetGORespawnTime(loguid, time_t(respawn_time));
 
         ++count;
-
     }
     while (result->NextRow());
 

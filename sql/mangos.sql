@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) default NULL,
   `creature_ai_version` varchar(120) default NULL,
-  `required_s1878_12344_01_mangos_command` bit(1) default NULL
+  `required_s1882_12349_01_mangos_dbscripts_on_creature_death` bit(1) default NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -1376,7 +1376,7 @@ CREATE TABLE `dbscripts_on_creature_movement` (
 --
 -- Table structure of `dbscripts_on_event`, `dbscripts_on_go_use`, `dbscripts_on_go_template_use`,
 --                    `dbscripts_on_gossip`, `dbscripts_on_quest_end`, `dbscripts_on_quest_start`,
---                    `dbscripts_on_spell`
+--                    `dbscripts_on_spell`, `dbscripts_on_creature_death`
 DROP TABLE IF EXISTS dbscripts_on_event;
 CREATE TABLE dbscripts_on_event LIKE dbscripts_on_creature_movement;
 DROP TABLE IF EXISTS dbscripts_on_go_use;
@@ -1391,6 +1391,8 @@ DROP TABLE IF EXISTS dbscripts_on_quest_start;
 CREATE TABLE dbscripts_on_quest_start LIKE dbscripts_on_creature_movement;
 DROP TABLE IF EXISTS dbscripts_on_spell;
 CREATE TABLE dbscripts_on_spell LIKE dbscripts_on_creature_movement;
+DROP TABLE IF EXISTS dbscripts_on_creature_death;
+CREATE TABLE dbscripts_on_creature_death LIKE dbscripts_on_creature_movement;
 
 
 --

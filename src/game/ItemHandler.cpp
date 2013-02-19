@@ -760,6 +760,9 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid)
                     // race wrong item skip always
                     if ((pProto->AllowableRace & _player->getRaceMask()) == 0)
                         continue;
+
+                    if (crItem->conditionId && !sObjectMgr.IsPlayerMeetToCondition(crItem->conditionId, _player, pCreature->GetMap(), pCreature, CONDITION_FROM_VENDOR))
+                        continue;
                 }
 
                 ++count;

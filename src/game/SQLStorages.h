@@ -38,4 +38,6 @@ extern SQLHashStorage sSpellTemplate;
 extern SQLHashStorage sGOStorage;
 extern SQLHashStorage sCreatureTemplateSpellsStorage;
 
+extern SQLMultiStorage sSpellScriptTargetStorage;
+
 #endif

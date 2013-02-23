@@ -2648,6 +2648,12 @@ enum TrackedAuraType
 // account with expansion > client supported will rejected at connection by client
 // because if client receive unsupported expansion level it think
 // that it not have expansion installed and reject
+enum Expansions
+{
+    EXPANSION_NONE                      = 0,                // classic
+    EXPANSION_TBC                       = 1,                // TBC
+};
+
 #define MAX_EXPANSION 1
 
 // Maxlevel for expansion

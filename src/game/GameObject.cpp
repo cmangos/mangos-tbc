@@ -43,10 +43,10 @@
 #include "SQLStorages.h"
 
 GameObject::GameObject() : WorldObject(),
-    m_goInfo(NULL),
-    m_displayInfo(NULL),
     loot(this),
-    m_model(NULL)
+    m_model(NULL),
+    m_goInfo(NULL),
+    m_displayInfo(NULL)
 {
     m_objectType |= TYPEMASK_GAMEOBJECT;
     m_objectTypeId = TYPEID_GAMEOBJECT;

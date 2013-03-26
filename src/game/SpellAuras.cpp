@@ -6633,6 +6633,12 @@ void Aura::PeriodicDummyTick()
         default:
             break;
     }
+
+    if (Unit* caster = GetCaster())
+    {
+        if (target && target->GetTypeId() == TYPEID_UNIT)
+            sScriptMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)target);
+    }
 }
 
 void Aura::HandlePreventFleeing(bool apply, bool Real)

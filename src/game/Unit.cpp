@@ -7496,14 +7496,11 @@ void Unit::SetSpeedRate(UnitMoveType mtype, float rate, bool forced)
             {MSG_MOVE_SET_FLIGHT_BACK_SPEED, SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE},
         };
 
-        if (forced)
+        if (forced && GetTypeId() == TYPEID_PLAYER)
         {
-            if (GetTypeId() == TYPEID_PLAYER)
-            {
-                // register forced speed changes for WorldSession::HandleForceSpeedChangeAck
-                // and do it only for real sent packets and use run for run/mounted as client expected
-                ++((Player*)this)->m_forced_speed_changes[mtype];
-            }
+            // register forced speed changes for WorldSession::HandleForceSpeedChangeAck
+            // and do it only for real sent packets and use run for run/mounted as client expected
+            ++((Player*)this)->m_forced_speed_changes[mtype];
 
             WorldPacket data(Opcodes(SetSpeed2Opc_table[mtype][1]), 18);
             data << GetPackGUID();
@@ -7511,18 +7508,18 @@ void Unit::SetSpeedRate(UnitMoveType mtype, float rate, bool forced)
             if (mtype == MOVE_RUN)
                 data << uint8(0);                           // new 2.1.0
             data << float(GetSpeed(mtype));
-            SendMessageToSet(&data, true);
-        }
-        else
-        {
-            m_movementInfo.UpdateTime(WorldTimer::getMSTime());
 
-            WorldPacket data(Opcodes(SetSpeed2Opc_table[mtype][0]), 64);
-            data << GetPackGUID();
-            data << m_movementInfo;
-            data << float(GetSpeed(mtype));
-            SendMessageToSet(&data, true);
+            ((Player*)this)->GetSession()->SendPacket(&data);
         }
+
+        m_movementInfo.UpdateTime(WorldTimer::getMSTime());
+
+        // TODO: Actually such opcodes should (always?) be packed with SMSG_COMPRESSED_MOVES
+        WorldPacket data(Opcodes(SetSpeed2Opc_table[mtype][0]), 64);
+        data << GetPackGUID();
+        data << m_movementInfo;
+        data << float(GetSpeed(mtype));
+        SendMessageToSet(&data, false);
     }
 
     CallForAllControlledUnits(SetSpeedRateHelper(mtype, forced), CONTROLLED_PET | CONTROLLED_GUARDIANS | CONTROLLED_CHARM | CONTROLLED_MINIPET);

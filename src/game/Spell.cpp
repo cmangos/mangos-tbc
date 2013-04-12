@@ -6639,6 +6639,7 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
                 case 45976:                                 // Open Portal (SWP, M'uru)
                     unMaxTargets = 1;
                     break;
+                case 10258:                                 // Awaken Vault Warder (Uldaman)
                 case 28542:                                 // Life Drain (Naxx, Sapphiron)
                     unMaxTargets = 2;
                     break;

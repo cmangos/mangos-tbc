@@ -5691,6 +5691,10 @@ int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellPro
             bg->UpdatePlayerScore((Player*)unit, SCORE_HEALING_DONE, gain);
     }
 
+    // Script Event HealedBy
+    if (pVictim->GetTypeId() == TYPEID_UNIT && ((Creature*)pVictim)->AI())
+        ((Creature*)pVictim)->AI()->HealedBy(this, addhealth);
+
     return gain;
 }
 

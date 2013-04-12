@@ -7220,7 +7220,8 @@ char const* conditionSourceToStr[] =
     "event AI",
     "hardcoded",
     "vendor's item check",
-    "spell_area check"
+    "spell_area check",
+    "DBScript engine"
 };
 
 // Checks if player meets the condition

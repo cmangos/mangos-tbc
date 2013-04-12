@@ -1794,6 +1794,12 @@ void Aura::TriggerSpell()
                     caster->CastSpell(triggerTarget, trigger_spell_id, true, NULL, this);
                 return;
             }
+            case 43149:                                     // Claw Rage
+            {
+                // Need to provide explicit target for trigger spell target combination
+                target->CastSpell(target->getVictim(), trigger_spell_id, true, NULL, this);
+                return;
+            }
             case 44883:                                     // Encapsulate
             {
                 // Self cast spell, hence overwrite caster (only channeled spell where the triggered spell deals dmg to SELF)
@@ -2395,6 +2401,19 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     // Beam to Zelfrax at remove
                     if (!apply)
                         target->CastSpell(target, 42517, true);
+                    return;
+                }
+                case 42583:                                 // Claw Rage
+                {
+                    Unit* caster = GetCaster();
+                    if (!caster || target->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    if (apply)
+                        caster->FixateTarget(target);
+                    else if (target->GetObjectGuid() == caster->GetFixateTargetGuid())
+                        caster->FixateTarget(NULL);
+
                     return;
                 }
                 case 27978:

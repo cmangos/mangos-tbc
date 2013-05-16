@@ -9051,10 +9051,10 @@ void Unit::SendPetAIReaction()
 
 void Unit::StopMoving(bool forceSendStop /*=false*/)
 {
-    clearUnitState(UNIT_STAT_MOVING);
-
     if (IsStopped() && !forceSendStop)
         return;
+
+    clearUnitState(UNIT_STAT_MOVING);
 
     // not need send any packets if not in world
     if (!IsInWorld())

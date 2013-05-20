@@ -1,0 +1,3 @@
+ALTER TABLE db_version CHANGE COLUMN required_s1997_xxxxx_02_mangos_mangos_string required_s2010_xxxxx_01_mangos_spell_proc_event bit;
+
+UPDATE spell_proc_event SET procFlags=0x10510 WHERE entry=31233;

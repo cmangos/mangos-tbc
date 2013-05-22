@@ -39,11 +39,11 @@ void strToLower(char* str);
 
 bool ExtractSingleWmo(std::string& fname);
 
-/* @param origPath = original path of the model, only cleaned with fixnamen
- * @param fixedName = name of model, fixed with fixnamen and fixname2 (corrected blanks)
+/* @param origPath = original path of the model, cleaned with fixnamen and fixname2
+ * @param fixedName = will store the translated name (if changed)
  * @param failedPaths = Set to collect errors
  */
-bool ExtractSingleModel(std::string& origPath, char const* fixedName, StringSet& failedPaths);
+bool ExtractSingleModel(std::string& origPath, std::string& fixedName, StringSet& failedPaths);
 
 void ExtractGameobjectModels();
 

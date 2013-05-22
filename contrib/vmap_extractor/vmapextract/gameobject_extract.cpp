@@ -6,13 +6,9 @@
 #include <algorithm>
 #include <stdio.h>
 
-bool ExtractSingleModel(std::string& origPath, char const* fixedName, StringSet& failedPaths)
+bool ExtractSingleModel(std::string& origPath, std::string& fixedName, StringSet& failedPaths)
 {
-    char const* ext = GetExtension(origPath.c_str());
-
-    std::string output(szWorkDirWmo);                       // Stores output filename (original)
-    output += "/";
-    output += fixedName;
+    char const* ext = GetExtension(GetPlainName(origPath.c_str()));
 
     // < 3.1.0 ADT MMDX section store filename.mdx filenames for corresponded .m2 file
     if (!strcmp(ext, ".mdx"))
@@ -23,6 +19,12 @@ bool ExtractSingleModel(std::string& origPath, char const* fixedName, StringSet&
     }
     // >= 3.1.0 ADT MMDX section store filename.m2 filenames for corresponded .m2 file
     // nothing do
+
+    fixedName = GetPlainName(origPath.c_str());
+
+    std::string output(szWorkDirWmo);                       // Stores output filename (possible changed)
+    output += "/";
+    output += fixedName;
 
     if (FileExists(output.c_str()))
         return true;
@@ -81,7 +83,8 @@ void ExtractGameobjectModels()
         }
         else //if (!strcmp(ch_ext, ".mdx") || !strcmp(ch_ext, ".m2"))
         {
-            result = ExtractSingleModel(path, name, failedPaths);
+            std::string fixedName;
+            result = ExtractSingleModel(path, fixedName, failedPaths);
         }
 
         if (result)

@@ -737,6 +737,13 @@ namespace MMAP
         {
             for (vector<MeshTriangle>::iterator it = source.begin(); it != source.end(); ++it)
             {
+                dest.push_back((*it).idx0 + offset);
+                dest.push_back((*it).idx1 + offset);
+                dest.push_back((*it).idx2 + offset);
+            }
+
+            for (vector<MeshTriangle>::iterator it = source.begin(); it != source.end(); ++it)
+            {
                 dest.push_back((*it).idx2 + offset);
                 dest.push_back((*it).idx1 + offset);
                 dest.push_back((*it).idx0 + offset);
@@ -744,6 +751,13 @@ namespace MMAP
         }
         else
         {
+            for (vector<MeshTriangle>::iterator it = source.begin(); it != source.end(); ++it)
+            {
+                dest.push_back((*it).idx2 + offset);
+                dest.push_back((*it).idx1 + offset);
+                dest.push_back((*it).idx0 + offset);
+            }
+
             for (vector<MeshTriangle>::iterator it = source.begin(); it != source.end(); ++it)
             {
                 dest.push_back((*it).idx0 + offset);

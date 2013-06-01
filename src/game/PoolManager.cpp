@@ -633,7 +633,6 @@ void PoolManager::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar2(result->GetRowCount());
         do
         {
@@ -774,7 +773,6 @@ void PoolManager::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar2(result->GetRowCount());
         do
         {
@@ -847,7 +845,6 @@ void PoolManager::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar2(result->GetRowCount());
         do
         {
@@ -933,7 +930,6 @@ void PoolManager::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar2(result->GetRowCount());
         do
         {

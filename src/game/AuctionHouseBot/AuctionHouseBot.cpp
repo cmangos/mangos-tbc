@@ -560,7 +560,6 @@ uint32 AuctionBotBuyer::GetBuyableEntry(AHB_Buyer_Config& config)
 
                 if (!Aentry->owner)
                 {
-
                     if ((Aentry->bid != 0) && Aentry->bidder) // Add bided by player
                     {
                         config.CheckedEntry[Aentry->Id].LastExist = Now;
@@ -621,7 +620,6 @@ bool AuctionBotBuyer::IsBuyableEntry(uint32 buyoutPrice, double InGame_BuyPrice,
             Chance = MaxChance;
         else
         {
-
             if ((buyoutPrice > 0) && (MaxBuyablePrice > 0))
             {
                 ratio = buyoutPrice / MaxBuyablePrice;
@@ -637,7 +635,6 @@ bool AuctionBotBuyer::IsBuyableEntry(uint32 buyoutPrice, double InGame_BuyPrice,
             Chance = MaxChance / 5;
         else
         {
-
             if ((buyoutPrice > 0) && (MaxBuyablePrice > 0))
             {
                 ratio = buyoutPrice / MaxBuyablePrice;

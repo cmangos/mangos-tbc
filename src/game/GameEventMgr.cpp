@@ -190,7 +190,6 @@ void GameEventMgr::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar(result->GetRowCount());
         do
         {
@@ -269,7 +268,6 @@ void GameEventMgr::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar(result->GetRowCount());
         do
         {
@@ -361,7 +359,6 @@ void GameEventMgr::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar(result->GetRowCount());
         do
         {
@@ -442,7 +439,6 @@ void GameEventMgr::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar(result->GetRowCount());
         do
         {
@@ -503,7 +499,6 @@ void GameEventMgr::LoadFromDB()
     }
     else
     {
-
         BarGoLink bar(result->GetRowCount());
         do
         {

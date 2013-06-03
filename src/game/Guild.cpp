@@ -481,7 +481,6 @@ bool Guild::LoadMembersFromDB(QueryResult* guildMembersResult)
         }
 
         members[lowguid]      = newmember;
-
     }
     while (guildMembersResult->NextRow());
 
@@ -914,7 +913,6 @@ void Guild::LoadGuildEventLogFromDB()
 
         // Add entry to list
         m_GuildEventLog.push_front(NewEvent);
-
     }
     while (result->NextRow());
     delete result;
@@ -1443,7 +1441,6 @@ bool Guild::LoadBankRightsFromDB(QueryResult* guildBankTabRightsResult)
         uint16 SlotPerDay  = fields[4].GetUInt16();
 
         SetBankRightsAndSlots(rankId, TabId, right, SlotPerDay, false);
-
     }
     while (guildBankTabRightsResult->NextRow());
 
@@ -1535,7 +1532,6 @@ void Guild::LoadGuildBankEventLogFromDB()
             // add event to list
             // events are ordered from oldest (in beginning) to latest (in the end)
             m_GuildBankEventLog_Money.push_front(NewEvent);
-
     }
     while (result->NextRow());
     delete result;

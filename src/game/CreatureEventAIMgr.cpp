@@ -159,7 +159,6 @@ void CreatureEventAIMgr::CheckUnusedAISummons()
                     }
                     default: break;
                 }
-
             }
         }
     }

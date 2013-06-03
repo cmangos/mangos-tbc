@@ -286,5 +286,4 @@ namespace VMAP
     {
         return StaticMapTree::CanLoadMap(std::string(pBasePath), pMapId, x, y);
     }
-
 } // namespace VMAP

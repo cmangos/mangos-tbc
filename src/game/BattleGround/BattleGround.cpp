@@ -373,7 +373,6 @@ void BattleGround::Update(uint32 diff)
             }
             m_PrematureCountDownTimer = newtime;
         }
-
     }
     else if (m_PrematureCountDown)
         m_PrematureCountDown = false;

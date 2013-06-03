@@ -91,7 +91,6 @@ struct SellerItemClassInfo
     uint32 AmountOfItems;
     uint32 MissItems;
     uint32 Quantity;
-
 };
 
 struct SellerItemInfo
@@ -898,7 +897,6 @@ bool AuctionBotSeller::Initialize()
         std::string temp;
         while (getline(excludeStream, temp, ','))
             excludeItems.push_back(atoi(temp.c_str()));
-
     }
     sLog.outString("Forced Inclusion " SIZEFMTD " items", includeItems.size());
     sLog.outString("Forced Exclusion " SIZEFMTD " items", excludeItems.size());
@@ -913,7 +911,6 @@ bool AuctionBotSeller::Initialize()
             bar.step();
             Field* fields = result->Fetch();
             npcItems.push_back(fields[0].GetUInt32());
-
         }
         while (result->NextRow());
         delete result;
@@ -1387,7 +1384,6 @@ void AuctionBotSeller::LoadSellerValues(AHB_Seller_Config& config)
     DEBUG_FILTER_LOG(LOG_FILTER_AHBOT_SELLER, "AHBot: PurpleItems = %u", config.GetItemsAmountPerQuality(AUCTION_QUALITY_PURPLE));
     DEBUG_FILTER_LOG(LOG_FILTER_AHBOT_SELLER, "AHBot: OrangeItems = %u", config.GetItemsAmountPerQuality(AUCTION_QUALITY_ORANGE));
     DEBUG_FILTER_LOG(LOG_FILTER_AHBOT_SELLER, "AHBot: YellowItems = %u", config.GetItemsAmountPerQuality(AUCTION_QUALITY_YELLOW));
-
 }
 
 // Set static of items on one AH faction.

@@ -1004,7 +1004,6 @@ void ObjectMgr::LoadCreatureModelInfo()
         }
         else
             sLog.outErrorDb("Table `creature_model_info` expect have data for character race %u male model id %u", race, raceEntry->model_m);
-
     }
 
     sLog.outString(">> Loaded %u creature model based info", sCreatureModelStorage.GetRecordCount());
@@ -1294,7 +1293,6 @@ void ObjectMgr::LoadCreatures()
             AddCreatureToGrid(guid, &data);
 
         ++count;
-
     }
     while (result->NextRow());
 
@@ -1473,7 +1471,6 @@ void ObjectMgr::LoadGameObjects()
         //sLog.outErrorDb("UPDATE gameobject SET zone_id=%u, area_id=%u WHERE guid=%u;", zoneId, areaId, guid);
 
         ++count;
-
     }
     while (result->NextRow());
 
@@ -4269,7 +4266,6 @@ void ObjectMgr::LoadItemTexts()
         mItemTexts[ fields[0].GetUInt32()] = fields[1].GetCppString();
 
         ++count;
-
     }
     while (result->NextRow());
 
@@ -4370,7 +4366,6 @@ void ObjectMgr::LoadPageTextLocales()
                 data.Text[idx] = str;
             }
         }
-
     }
     while (result->NextRow());
 
@@ -4840,7 +4835,6 @@ void ObjectMgr::LoadQuestAreaTriggers()
         }
 
         mQuestAreaTriggerMap[trigger_ID] = quest_ID;
-
     }
     while (result->NextRow());
 
@@ -5358,7 +5352,6 @@ void ObjectMgr::LoadAreaTriggerTeleports()
         }
 
         mAreaTriggers[Trigger_ID] = at;
-
     }
     while (result->NextRow());
 
@@ -5680,7 +5673,6 @@ void ObjectMgr::LoadGameObjectLocales()
                 }
             }
         }
-
     }
     while (result->NextRow());
 
@@ -8312,7 +8304,6 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
             data.trainerType = 2;
 
         ++count;
-
     }
     while (result->NextRow());
     delete result;
@@ -8394,7 +8385,6 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
 
         vList.AddItem(item_id, maxcount, incrtime, ExtendedCost, conditionId);
         ++count;
-
     }
     while (result->NextRow());
     delete result;
@@ -8474,7 +8464,6 @@ void ObjectMgr::LoadNpcGossips()
 
         m_mCacheNpcTextIdMap[guid] = textid ;
         ++count;
-
     }
     while (result->NextRow());
     delete result;
@@ -8730,7 +8719,6 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
         m_mGossipMenuItemsMap.insert(GossipMenuItemsMap::value_type(gMenuItem.menu_id, gMenuItem));
 
         ++count;
-
     }
     while (result->NextRow());
 

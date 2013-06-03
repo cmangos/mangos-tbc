@@ -303,5 +303,4 @@ namespace Movement
 
         return str.str();
     }
-
 }

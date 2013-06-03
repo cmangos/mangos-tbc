@@ -707,7 +707,6 @@ void TerrainInfo::Unload(const uint32 x, const uint32 y)
         if (UnrefGrid(x, y) == 0)
         {
             // TODO: add your additional logic here
-
         }
     }
 }

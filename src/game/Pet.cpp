@@ -646,7 +646,6 @@ void Pet::RegenerateAll(uint32 update_diff)
     }
     else
         m_loyaltyTimer -= update_diff;
-
 }
 
 void Pet::RegenerateFocus()

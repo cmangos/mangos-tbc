@@ -6691,6 +6691,7 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
                     break;
                 case 37676:                                 // Insidious Whisper (SSC, Leotheras the Blind)
                 case 38028:                                 // Watery Grave (SSC, Morogrim Tidewalker)
+                case 46650:                                 // Open Brutallus Back Door (SWP, Felmyst)
                     unMaxTargets = 4;
                     break;
                 case 30843:                                 // Enfeeble (Karazhan, Prince Malchezaar)

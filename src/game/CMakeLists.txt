@@ -291,6 +291,8 @@ set(SRC_GRP_VMAPS
 set(SRC_GRP_WORLD_HANDLERS
     AccountMgr.cpp
     AccountMgr.h
+    AddonHandler.cpp
+    AddonHandler.h
     ArenaTeamHandler.cpp
     AuctionHouseHandler.cpp
     Cell.h

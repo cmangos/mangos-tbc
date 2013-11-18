@@ -53,6 +53,24 @@ class DBCStorage
             return indexTable!=NULL;
         }
 
+        void SetEntry(uint32 id, T* t) // Cryptic they say..
+        {
+            if(!loaded)
+            {
+                for (uint32 i = 0; i < GetNumRows(); ++i)
+                {
+                    T const* node = LookupEntry(i);
+                    if (!node)
+                        continue;
+                    data[i] = node;
+                }
+                loaded = true;
+            }
+            if (id > nCount)
+                nCount = id+1;
+            data[id] = t;
+        }
+
         bool LoadStringsFrom(char const* fn)
         {
             // DBC must be already loaded using Load
@@ -72,6 +90,12 @@ class DBCStorage
 
         void Clear()
         {
+            if (loaded)
+            {
+                data.clear();
+                loaded = false;
+            }
+
             if (!indexTable)
                 return;
 
@@ -97,6 +121,8 @@ class DBCStorage
         char const* fmt;
         T** indexTable;
         T* m_dataTable;
+        std::map<uint32, T const*> data;
+        bool loaded;
         StringPoolList m_stringPoolList;
 };
 

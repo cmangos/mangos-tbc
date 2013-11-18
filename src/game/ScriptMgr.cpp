@@ -31,6 +31,8 @@
 #include "BattleGround/BattleGround.h"
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "WaypointMovementGenerator.h"
+#include "HookMgr.h"
+#include "LuaEngine.h"
 
 #include "revision_nr.h"
 
@@ -1953,6 +1955,9 @@ char const* ScriptMgr::GetScriptLibraryVersion() const
 
 CreatureAI* ScriptMgr::GetCreatureAI(Creature* pCreature)
 {
+    if( CreatureAI* luaAI = sEluna.LuaCreatureAI->GetAI(pCreature))
+        return luaAI;
+
     if (!m_pGetCreatureAI)
         return NULL;
 
@@ -1969,6 +1974,9 @@ InstanceData* ScriptMgr::CreateInstanceData(Map* pMap)
 
 bool ScriptMgr::OnGossipHello(Player* pPlayer, Creature* pCreature)
 {
+    if (sHookMgr.OnGossipHello(pPlayer, pCreature))
+        return true;
+
     return m_pOnGossipHello != NULL && m_pOnGossipHello(pPlayer, pCreature);
 }
 
@@ -1979,6 +1987,15 @@ bool ScriptMgr::OnGossipHello(Player* pPlayer, GameObject* pGameObject)
 
 bool ScriptMgr::OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 sender, uint32 action, const char* code)
 {
+    if (code)
+    {
+        if (sHookMgr.OnGossipSelectCode(pPlayer, pCreature, sender, action, code))
+            return true;
+    }
+    else
+        if (sHookMgr.OnGossipSelect(pPlayer, pCreature, sender, action))
+            return true;
+
     if (code)
         return m_pOnGossipSelectWithCode != NULL && m_pOnGossipSelectWithCode(pPlayer, pCreature, sender, action, code);
     else

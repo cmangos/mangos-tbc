@@ -3529,7 +3529,7 @@ int LuaUnit::GetGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    //sEluna.PushULong(L, unit->GetGUID());
+    sEluna.PushULong(L, unit->GetGUIDLow());
     return 1;
 }
 

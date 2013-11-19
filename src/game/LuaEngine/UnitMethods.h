@@ -500,17 +500,6 @@ namespace LuaUnit
     int SetByteValue(lua_State*, Unit*);
     int SetUInt16Value(lua_State*, Unit*);
     int SetInt16Value(lua_State*, Unit*);
-    int IsOnVehicle(lua_State*, Unit*);
-    int DismissVehicle(lua_State*, Unit*);
-    int AddVehiclePassenger(lua_State*, Unit*);
-    int EjectPassenger(lua_State*, Unit*);
-    int RemovePassenger(lua_State*, Unit*);
-    int RemoveAllPassengers(lua_State*, Unit*);
-    int GetPassenger(lua_State*, Unit*);
-    int GetNextEmptySeat(lua_State*, Unit*);
-    int GetAvailableSeats(lua_State*, Unit*);
-    int GetVehicleBase(lua_State*, Unit*);
-    int HasEmptySeat(lua_State*, Unit*);
     int StartTaxi(lua_State*, Unit*);
     int SetPlayerLock(lua_State*, Unit*);
     int GetNearestPlayer(lua_State*, Unit*);

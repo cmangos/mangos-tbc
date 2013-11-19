@@ -645,18 +645,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"FindNearestGameObject", &LuaUnit::FindNearestGameObject},                                             // :FindNearestGameObject(entry, range) - Finds the nearest gameobject and returns it
     {"FindNearestCreature", &LuaUnit::FindNearestCreature},                                                 // :FindNearestCreature(entry, range[, alive]) - Finds the nearest creature and returns it. Alive is optional, if true it checks if the creature is alive
 
-    /* Vehicle */
-    {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger},                                                 // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
-    {"IsOnVehicle", &LuaUnit::IsOnVehicle},                                                                 // :IsOnVehicle() - Checks if the (unit) is in a vehicle
-    {"DismissVehicle", &LuaUnit::DismissVehicle},                                                           // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
-    // {"EjectPassenger", &LuaUnit::EjectPassenger},                                                        // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
-    {"RemovePassenger", &LuaUnit::RemovePassenger},                                                         // :RemovePassenger(unit) - Removes a specific unit from the vehicle
-    {"RemoveAllPassengers", &LuaUnit::RemoveAllPassengers},                                                 // :RemoveAllPassengers() - Removes all the passengers from the vehicle
-    {"GetPassenger", &LuaUnit::GetPassenger},                                                               // :GetPassenger(seatId) - Gets a passenger by their seatId
-    {"GetNextEmptySeat", &LuaUnit::GetNextEmptySeat},                                                       // :GetNextEmptySeat(seatId) - Gets(returns) the next empty seat
-    {"GetAvailableSeats", &LuaUnit::GetAvailableSeats},                                                     // :GetAvailableSeats() - Returns the available seats count
-    {"GetVehicleBase", &LuaUnit::GetVehicleBase},                                                           // :GetVehicleBase() - Returns the unit's vehicle base
-    {"HasEmptySeat", &LuaUnit::HasEmptySeat},                                                               // :HasEmptySeat(seatId) - Checks if the specified seatId is empty(nobody in it)
     { NULL, NULL },
 };
 

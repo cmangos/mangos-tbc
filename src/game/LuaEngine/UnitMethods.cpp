@@ -5620,7 +5620,7 @@ int LuaUnit::ClearUnitState(lua_State* L, Unit* unit)
 
     uint32 state = luaL_checkunsigned(L, 1);
 
-    //unit->ClearUnitState(state);
+    unit->clearUnitState(state);
     return 0;
 }
 

@@ -1006,7 +1006,7 @@ int LuaUnit::GetCritterGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushULong(L, unit->GetCritterGuid());
+    //sEluna.PushULong(L, unit->GetCritterGuid());
     return 1;
 }
 
@@ -1063,9 +1063,9 @@ int LuaUnit::SendMailMenu(lua_State* L, Unit* unit)
     if (!object)
         return 0;
 
-    WorldPacket data(SMSG_SHOW_MAILBOX, 8);
-    data << uint64(object->GetGUIDLow());
-    player->GetSession()->HandleGetMailList(data);
+    //WorldPacket data(SMSG_SHOW_MAILBOX, 8);
+    //data << uint64(object->GetGUIDLow());
+    //player->GetSession()->HandleGetMailList(data);
     return 0;
 }
 
@@ -1154,7 +1154,7 @@ int LuaUnit::ResetAchievements(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    player->GetAchievementMgr().Reset();
+    //player->GetAchievementMgr().Reset();
     return 0;
 }
 
@@ -1164,7 +1164,7 @@ int LuaUnit::HasAchieved(lua_State* L, Unit* unit)
 
     uint32 achievementId = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, player->GetAchievementMgr().HasAchievement(achievementId));
+    //sEluna.PushBoolean(L, player->GetAchievementMgr().HasAchievement(achievementId));
     return 1;
 }
 
@@ -1436,7 +1436,7 @@ int LuaUnit::CanTameExoticPets(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->CanTameExoticPets());
+    //sEluna.PushBoolean(L, player->CanTameExoticPets());
     return 1;
 }
 
@@ -1444,7 +1444,7 @@ int LuaUnit::CanTitanGrip(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->CanTitanGrip());
+    //sEluna.PushBoolean(L, player->CanTitanGrip());
     return 1;
 }
 
@@ -1804,7 +1804,7 @@ int LuaUnit::GetDifficulty(lua_State* L, Unit* unit)
 
     bool isRaid = luaL_optbool(L, 1, true);
 
-    sEluna.PushUnsigned(L, player->GetDifficulty(isRaid));
+    //sEluna.PushUnsigned(L, player->GetDifficulty(isRaid));
     return 1;
 }
 
@@ -1892,10 +1892,10 @@ int LuaUnit::SetFFA(lua_State* L, Unit* unit)
 
     bool apply = luaL_optbool(L, 1, true);
 
-    if (apply)
+    /*if (apply)
         unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
     else
-        unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
+        unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);*/
 
     return 0;
 }
@@ -1906,14 +1906,14 @@ int LuaUnit::SetSanctuary(lua_State* L, Unit* unit)
 
     bool apply = luaL_optbool(L, 1, true);
 
-    if (apply)
+    /*if (apply)
     {
         unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);
         unit->CombatStop();
         unit->CombatStopWithPets();
     }
     else
-        unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);
+        unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);*/
 
     return 0;
 }
@@ -1971,7 +1971,7 @@ int LuaUnit::GetSpecsCount(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetSpecsCount());
+    //sEluna.PushUnsigned(L, player->GetSpecsCount());
     return 1;
 }
 
@@ -1979,7 +1979,7 @@ int LuaUnit::GetActiveSpec(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetActiveSpec());
+    //sEluna.PushUnsigned(L, player->GetActiveSpec());
     return 1;
 }
 
@@ -2025,7 +2025,7 @@ int LuaUnit::ResetTalents(lua_State* L, Unit* unit)
     bool no_cost = luaL_optbool(L, 1, false);
 
     player->resetTalents(no_cost);
-    player->SendTalentsInfoData(false);
+    //player->SendTalentsInfoData(false);
     return 0;
 }
 
@@ -2442,7 +2442,7 @@ int LuaUnit::GetItemByEntry(lua_State* L, Unit* unit)
 
     uint32 entry = luaL_checkunsigned(L, 1);
 
-    sEluna.PushItem(L, player->GetItemByEntry(entry));
+    //sEluna.PushItem(L, player->GetItemByEntry(entry));
     return 1;
 }
 
@@ -2509,7 +2509,7 @@ int LuaUnit::GetPhaseMaskForSpawn(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetPhaseMaskForSpawn());
+    //sEluna.PushUnsigned(L, player->GetPhaseMaskForSpawn());
     return 1;
 }
 
@@ -2953,7 +2953,7 @@ int LuaUnit::EquipItem(lua_State* L, Unit* unit)
             return 0;
         }
         player->ItemAddedQuestCheck(entry, 1);
-        player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_RECEIVE_EPIC_ITEM, entry, 1);
+        //player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_RECEIVE_EPIC_ITEM, entry, 1);
     }
     else
     {
@@ -3175,7 +3175,7 @@ int LuaUnit::JumpToCoords(lua_State* L, Unit* unit)
     float z = luaL_checknumber(L, 3);
     float speedXY = luaL_checknumber(L, 4);
     float speedZ = luaL_checknumber(L, 5);
-    unit->GetMotionMaster()->MoveJump(x, y, z, speedXY, speedZ);
+    //unit->GetMotionMaster()->MoveJump(x, y, z, speedXY, speedZ);
     return 0;
 }
 
@@ -3505,7 +3505,7 @@ int LuaUnit::GetPhaseMask(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetPhaseMask());
+    //sEluna.PushUnsigned(L, unit->GetPhaseMask());
     return 1;
 }
 
@@ -3558,7 +3558,7 @@ int LuaUnit::GetPower(lua_State* L, Unit* unit)
             type = POWER_ENERGY;
             break;
         case 6:
-            type = POWER_RUNIC_POWER;
+            //type = POWER_RUNIC_POWER;
             break;
         case 2:
         case 3:
@@ -3600,7 +3600,7 @@ int LuaUnit::GetMaxPower(lua_State* L, Unit* unit)
             type = POWER_ENERGY;
             break;
         case 6:
-            type = POWER_RUNIC_POWER;
+            //type = POWER_RUNIC_POWER;
             break;
         case 2:
         case 3:
@@ -3854,7 +3854,7 @@ int LuaUnit::SetPhaseMask(lua_State* L, Unit* unit)
     TO_UNIT();
     uint32 phaseMask = luaL_checkunsigned(L, 1);
     bool Update = luaL_optbool(L, 2, true);
-    unit->SetPhaseMask(phaseMask, Update);
+    //unit->SetPhaseMask(phaseMask, Update);
     return 0;
 }
 
@@ -3921,9 +3921,9 @@ int LuaUnit::SetPower(lua_State* L, Unit* unit)
     case POWER_ENERGY:
         unit->SetPower(POWER_ENERGY, amt);
         break;
-    case POWER_RUNIC_POWER:
+    /*case POWER_RUNIC_POWER:
         unit->SetPower(POWER_RUNIC_POWER, amt);
-        break;
+        break;*/
     default:
         luaL_error(L, "Invalid power type (%d)", type);
         break;
@@ -3949,9 +3949,9 @@ int LuaUnit::SetMaxPower(lua_State* L, Unit* unit)
     case POWER_ENERGY:
         unit->SetMaxPower(POWER_ENERGY, amt);
         break;
-    case POWER_RUNIC_POWER:
+    /*case POWER_RUNIC_POWER:
         unit->SetMaxPower(POWER_RUNIC_POWER, amt);
-        break;
+        break;*/
     default:
         luaL_error(L, "Invalid power type (%d)", type);
         break;
@@ -4107,7 +4107,7 @@ int LuaUnit::AdvanceAllSkills(lua_State* L, Unit * unit)
 
     static const uint32 skillsArray[] = { SKILL_BOWS, SKILL_CROSSBOWS, SKILL_DAGGERS, SKILL_DEFENSE, SKILL_UNARMED, SKILL_GUNS, SKILL_AXES, SKILL_MACES, SKILL_SWORDS, SKILL_POLEARMS,
         SKILL_STAVES, SKILL_2H_AXES, SKILL_2H_MACES, SKILL_2H_SWORDS, SKILL_WANDS, SKILL_SHIELD, SKILL_FISHING, SKILL_MINING, SKILL_ENCHANTING, SKILL_BLACKSMITHING,
-        SKILL_ALCHEMY, SKILL_HERBALISM, SKILL_ENGINEERING, SKILL_JEWELCRAFTING, SKILL_LEATHERWORKING, SKILL_LOCKPICKING, SKILL_INSCRIPTION, SKILL_SKINNING, SKILL_TAILORING };
+        SKILL_ALCHEMY, SKILL_HERBALISM, SKILL_ENGINEERING, SKILL_JEWELCRAFTING, SKILL_LEATHERWORKING, SKILL_LOCKPICKING, SKILL_SKINNING, SKILL_TAILORING };
     static const uint32 skillsSize = sizeof(skillsArray)/sizeof(*skillsArray);
 
     for (int i = 0; i < skillsSize; ++i)
@@ -4896,7 +4896,7 @@ int LuaUnit::InterruptSpell(lua_State* L, Unit* unit)
         spellType = CURRENT_AUTOREPEAT_SPELL;
         break;
     }
-    unit->InterruptSpell((CurrentSpellTypes)spellType, delayed, instant);
+    //unit->InterruptSpell((CurrentSpellTypes)spellType, delayed, instant);
     return 0;
 }
 

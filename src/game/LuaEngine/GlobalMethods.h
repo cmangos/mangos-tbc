@@ -504,9 +504,9 @@ namespace LuaGlobalFunctions
         float o = luaL_checknumber(L, 8);
         bool save = luaL_optbool(L, 9, false);
         uint32 durorresptime = luaL_optunsigned(L, 10, 0);
-        uint32 phase = luaL_optunsigned(L, 11, PHASEMASK_NORMAL);
+        /*uint32 phase = luaL_optunsigned(L, 11, PHASEMASK_NORMAL);
         if (!phase)
-            return 0;
+            return 0;*/
 
         Map* map = sMapMgr.FindMap(mapID, instanceID);
         if (!map)

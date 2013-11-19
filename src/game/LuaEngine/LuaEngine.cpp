@@ -82,7 +82,7 @@ void Eluna::StartEluna(bool restart)
     sLog.outString("Eluna: Lua Engine loaded.");
 
     LoadedScripts loadedScripts;
-    LoadDirectory("scripts", &loadedScripts);
+    LoadDirectory("lua_scripts", &loadedScripts);
     luaL_openlibs(LuaState);
     //Register Globals Here
     RegisterGlobals(LuaState);

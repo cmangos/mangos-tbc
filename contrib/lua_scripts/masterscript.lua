@@ -41,5 +41,5 @@ print("\n")
 -- Here you can include your script files.
 -- 
 --
-include ('scripts/examples/example.lua')
+include ('lua_scripts/examples/example.lua')
 print("\n")

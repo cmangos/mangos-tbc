@@ -408,7 +408,7 @@ int LuaUnit::RemoveCorpse(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    //creature-RemoveCorpse();
+    creature->RemoveCorpse();
     return 0;
 }
 

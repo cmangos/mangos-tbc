@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*#ifndef GAMEOBJECTMETHODS_H
+#ifndef GAMEOBJECTMETHODS_H
 #define GAMEOBJECTMETHODS_H
 
 namespace LuaGameObject
@@ -80,4 +80,4 @@ namespace LuaGameObject
     int Respawn(lua_State*, GameObject*);
     int RemoveFromWorld(lua_State*, GameObject*);
 };
-#endif*/
+#endif

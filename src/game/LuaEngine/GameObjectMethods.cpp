@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*#include "LuaEngine.h"
+#include "LuaEngine.h"
 #include "GameObjectMethods.h"
 
 int LuaGameObject::GetMap(lua_State* L, GameObject* go)
@@ -25,11 +25,12 @@ int LuaGameObject::GetMap(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushMap(L, go->GetMap());
+    sEluna.PushMap(L, go->GetMap());
     return 1;
 }
 
-int LuaGameObject::GetRelativePoint(lua_State* L, GameObject* go)
+
+/*int LuaGameObject::GetRelativePoint(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -37,32 +38,35 @@ int LuaGameObject::GetRelativePoint(lua_State* L, GameObject* go)
     float dist = luaL_checknumber(L, 1);
     int deg = luaL_checkinteger(L, 2);
 
-    float o = Position::NormalizeOrientation(go->GetOrientation() + (deg*M_PI/180));
-    sEluna->PushFloat(L, go->GetPositionX()+(dist*cosf(o)));
-    sEluna->PushFloat(L, go->GetPositionY()+(dist*sinf(o)));
+    float o = Position::NormalizeOrientation(go->GetOrientation() + (deg*M_PI / 180));
+    sEluna->PushFloat(L, go->GetPositionX() + (dist*cosf(o)));
+    sEluna->PushFloat(L, go->GetPositionY() + (dist*sinf(o)));
     sEluna->PushFloat(L, o);
     return 3;
-}
+}*/
+
 
 int LuaGameObject::GetUnitType(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushString(L, "GameObject");
+    sEluna.PushString(L, "GameObject");
     return 1;
 }
+
 
 int LuaGameObject::GetGUID(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushULong(L, go->GetGUID());
+    sEluna.PushULong(L, go->GetGUIDLow());
     return 1;
 }
 
-int LuaGameObject::CastSpell(lua_State* L, GameObject* go)
+
+/*int LuaGameObject::CastSpell(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -72,32 +76,35 @@ int LuaGameObject::CastSpell(lua_State* L, GameObject* go)
     if (target)
         go->CastSpell(target, spell);
     return 0;
-}
+}*/
+
 
 int LuaGameObject::GetX(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetPositionX());
+    sEluna.PushFloat(L, go->GetPositionX());
     return 1;
 }
+
 
 int LuaGameObject::GetY(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetPositionY());
+    sEluna.PushFloat(L, go->GetPositionY());
     return 1;
 }
+
 
 int LuaGameObject::GetZ(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetPositionZ());
+    sEluna.PushFloat(L, go->GetPositionZ());
     return 1;
 }
 
@@ -106,7 +113,7 @@ int LuaGameObject::GetO(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetOrientation());
+    sEluna.PushFloat(L, go->GetOrientation());
     return 1;
 }
 
@@ -115,10 +122,10 @@ int LuaGameObject::GetLocation(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetPositionX());
-    sEluna->PushFloat(L, go->GetPositionY());
-    sEluna->PushFloat(L, go->GetPositionZ());
-    sEluna->PushFloat(L, go->GetOrientation());
+    sEluna.PushFloat(L, go->GetPositionX());
+    sEluna.PushFloat(L, go->GetPositionY());
+    sEluna.PushFloat(L, go->GetPositionZ());
+    sEluna.PushFloat(L, go->GetOrientation());
     return 4;
 }
 
@@ -127,7 +134,7 @@ int LuaGameObject::GetMapId(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetMapId());
+    sEluna.PushFloat(L, go->GetMapId());
     return 1;
 }
 
@@ -136,38 +143,40 @@ int LuaGameObject::GetZoneId(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetZoneId());
+    sEluna.PushFloat(L, go->GetZoneId());
     return 1;
 }
+
 
 int LuaGameObject::GetAreaId(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetAreaId());
+    sEluna.PushFloat(L, go->GetAreaId());
     return 1;
 }
 
-int LuaGameObject::GetName(lua_State* L, GameObject* go)
+
+/*int LuaGameObject::GetName(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
     sEluna->PushString(L, go->GetName().c_str());
     return 1;
-}
+}*/
 
 int LuaGameObject::GetEntry(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushUnsigned(L, go->GetEntry());
+    sEluna.PushUnsigned(L, go->GetEntry());
     return 1;
 }
 
-int LuaGameObject::SummonCreature(lua_State* L, GameObject* go)
+/*int LuaGameObject::SummonCreature(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -225,43 +234,43 @@ int LuaGameObject::SummonGameObject(lua_State* L, GameObject* go)
     uint32 respawnDelay = luaL_optunsigned(L, 6, 30);
     sEluna->PushGO(L, go->SummonGameObject(entry, x, y, z, o, 0, 0, 0, 0, respawnDelay));
     return 1;
-}
+}*/
 
 int LuaGameObject::GetDisplayId(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushUnsigned(L, go->GetDisplayId());
+    sEluna.PushUnsigned(L, go->GetDisplayId());
     return 1;
 }
 
-int LuaGameObject::GetScale(lua_State* L, GameObject* go)
+/*int LuaGameObject::GetScale(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
     sEluna->PushFloat(L, go->GetObjectSize());
     return 1;
-}
+}*/
 
 int LuaGameObject::IsInWorld(lua_State* L, GameObject* go)
 {
     if (!go)
-        sEluna->PushBoolean(L, false);
+        sEluna.PushBoolean(L, false);
     else
-        sEluna->PushBoolean(L, go->IsInWorld());
+        sEluna.PushBoolean(L, go->IsInWorld());
     return 1;
 }
 
 int LuaGameObject::HasQuest(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
-        sEluna->PushBoolean(L, false);
+        sEluna.PushBoolean(L, false);
     else
     {
         uint32 questId = luaL_checkunsigned(L, 1);
-        sEluna->PushBoolean(L, go->hasQuest(questId));
+        sEluna.PushBoolean(L, go->HasQuest(questId));
     }
     return 1;
 }
@@ -269,36 +278,36 @@ int LuaGameObject::HasQuest(lua_State* L, GameObject* go)
 int LuaGameObject::IsSpawned(lua_State* L, GameObject * go)
 {
     if (!go || !go->IsInWorld())
-        sEluna->PushBoolean(L, false);
+        sEluna.PushBoolean(L, false);
     else
-        sEluna->PushBoolean(L, go->isSpawned());
+        sEluna.PushBoolean(L, go->isSpawned());
     return 1;
 }
 
 int LuaGameObject::IsTransport(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
-        sEluna->PushBoolean(L, false);
+        sEluna.PushBoolean(L, false);
     else
-        sEluna->PushBoolean(L, go->IsTransport());
+        sEluna.PushBoolean(L, go->IsTransport());
     return 1;
 }
 
-int LuaGameObject::IsDestructible(lua_State* L, GameObject* go)
+/*int LuaGameObject::IsDestructible(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         sEluna->PushBoolean(L, false);
     else
         sEluna->PushBoolean(L, go->IsDestructibleBuilding());
     return 1;
-}
+}*/
 
 int LuaGameObject::IsActive(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
-        sEluna->PushBoolean(L, false);
+        sEluna.PushBoolean(L, false);
     else
-        sEluna->PushBoolean(L, go->isActiveObject());
+        sEluna.PushBoolean(L, go->isActiveObject());
     return 1;
 }
 
@@ -365,7 +374,7 @@ int LuaGameObject::RegisterEvent(lua_State* L, GameObject* go)
 
     int functionRef = lua_ref(L, true);
     eventMap->ScriptEventCreate(functionRef, delay, repeats);
-    sEluna->PushInteger(L, functionRef);
+    sEluna.PushInteger(L, functionRef);
     return 1;
 }
 
@@ -398,7 +407,7 @@ int LuaGameObject::GetInt32Value(lua_State* L, GameObject* go)
         return 0;
 
     uint16 index = luaL_checkunsigned(L, 1);
-    sEluna->PushInteger(L, go->GetInt32Value(index));
+    sEluna.PushInteger(L, go->GetInt32Value(index));
     return 1;
 }
 
@@ -408,7 +417,7 @@ int LuaGameObject::GetUInt32Value(lua_State* L, GameObject* go)
         return 0;
 
     uint16 index = luaL_checkunsigned(L, 1);
-    sEluna->PushUnsigned(L, go->GetUInt32Value(index));
+    sEluna.PushUnsigned(L, go->GetUInt32Value(index));
     return 1;
 }
 
@@ -418,7 +427,7 @@ int LuaGameObject::GetFloatValue(lua_State* L, GameObject* go)
         return 0;
 
     uint16 index = luaL_checkunsigned(L, 1);
-    sEluna->PushFloat(L, go->GetFloatValue(index));
+    sEluna.PushFloat(L, go->GetFloatValue(index));
     return 1;
 }
 
@@ -429,7 +438,7 @@ int LuaGameObject::GetByteValue(lua_State* L, GameObject* go)
 
     uint16 index = luaL_checkunsigned(L, 1);
     uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna->PushUnsigned(L, go->GetByteValue(index, offset));
+    sEluna.PushUnsigned(L, go->GetByteValue(index, offset));
     return 1;
 }
 
@@ -440,7 +449,7 @@ int LuaGameObject::GetUInt16Value(lua_State* L, GameObject* go)
 
     uint16 index = luaL_checkunsigned(L, 1);
     uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna->PushUnsigned(L, go->GetUInt16Value(index, offset));
+    sEluna.PushUnsigned(L, go->GetUInt16Value(index, offset));
     return 1;
 }
 
@@ -466,7 +475,7 @@ int LuaGameObject::SetUInt32Value(lua_State* L, GameObject* go)
     return 0;
 }
 
-int LuaGameObject::UpdateUInt32Value(lua_State* L, GameObject* go)
+/*int LuaGameObject::UpdateUInt32Value(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -475,7 +484,7 @@ int LuaGameObject::UpdateUInt32Value(lua_State* L, GameObject* go)
     uint32 value = luaL_checkunsigned(L, 2);
     go->UpdateUInt32Value(index, value);
     return 0;
-}
+}*/
 
 int LuaGameObject::SetFloatValue(lua_State* L, GameObject* go)
 {
@@ -529,11 +538,11 @@ int LuaGameObject::GetGUIDLow(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushUnsigned(L, go->GetGUIDLow());
+    sEluna.PushUnsigned(L, go->GetGUIDLow());
     return 1;
 }
 
-int LuaGameObject::GetNearestPlayer(lua_State* L, GameObject* go)
+/*int LuaGameObject::GetNearestPlayer(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -581,7 +590,7 @@ int LuaGameObject::GetNearestCreature(lua_State* L, GameObject* go)
 
     sEluna->PushUnit(L, target);
     return 1;
-}
+}*/
 
 int LuaGameObject::UseDoorOrButton(lua_State* L, GameObject* go)
 {
@@ -616,7 +625,7 @@ int LuaGameObject::GetGoState(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushUnsigned(L, go->GetGoState());
+    sEluna.PushUnsigned(L, go->GetGoState());
     return 1;
 }
 
@@ -644,7 +653,7 @@ int LuaGameObject::GetLootState(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushUnsigned(L, go->getLootState());
+    sEluna.PushUnsigned(L, go->getLootState());
     return 1;
 }
 
@@ -670,7 +679,7 @@ int LuaGameObject::RemoveFlag(lua_State* L, GameObject* go)
     return 0;
 }
 
-int LuaGameObject::Despawn(lua_State* L, GameObject* go)
+/*int LuaGameObject::Despawn(lua_State* L, GameObject* go)
 {
     if (!go)
         return 0;

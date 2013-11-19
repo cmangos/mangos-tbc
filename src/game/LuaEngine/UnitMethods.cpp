@@ -167,10 +167,10 @@ int LuaUnit::GetRelativePoint(lua_State* L, Unit* unit)
     float dist = luaL_checknumber(L, 1);
     float rad = luaL_checknumber(L, 2);
 
-    /*float o = Position::NormalizeOrientation(unit->GetOrientation() + rad);
+    float o = MapManager::NormalizeOrientation(unit->GetOrientation() + rad);
     sEluna.PushFloat(L, unit->GetPositionX()+(dist*cosf(o)));
     sEluna.PushFloat(L, unit->GetPositionY()+(dist*sinf(o)));
-    sEluna.PushFloat(L, o);*/
+    sEluna.PushFloat(L, o);
     return 3;
 }
 
@@ -328,7 +328,7 @@ int LuaUnit::IsRegeneratingHealth(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    //sEluna.PushBoolean(L, creature-IsRegeneratingHealth());
+    sEluna.PushBoolean(L, creature->IsRegeneratingHealth());
     return 1;
 }
 
@@ -627,7 +627,7 @@ int LuaUnit::HasLootRecipient(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    //sEluna.PushBoolean(L, creature->hasLootRecipient());
+    sEluna.PushBoolean(L, creature->HasLootRecipient());
     return 1;
 }
 
@@ -2235,7 +2235,7 @@ int LuaUnit::TalkedToCreature(lua_State* L, Unit* unit)
     if (!creature)
         return 0;
 
-    //player->TalkedToCreature(entry, creature->GetGUIDLow());
+    player->TalkedToCreature(entry, creature->GetObjectGuid());
     return 0;
 }
 

@@ -48,7 +48,7 @@ void Eluna::StartEluna(bool restart)
     if (restart)
     {
         sHookMgr.OnEngineRestart();
-        sLog.outBasic("Eluna::Restarting Lua Engine");
+        sLog.outString("Eluna: Restarting Lua Engine");
 
         if (LuaState)
         {
@@ -78,7 +78,8 @@ void Eluna::StartEluna(bool restart)
         AddScriptHooks();
 
     LuaState = luaL_newstate();
-    sLog.outBasic("Eluna Lua Engine loaded.");
+    sLog.outString();
+    sLog.outString("Eluna: Lua Engine loaded.");
 
     LoadedScripts loadedScripts;
     LoadDirectory("scripts", &loadedScripts);
@@ -106,7 +107,7 @@ void Eluna::StartEluna(bool restart)
         strcpy(filename, itr->c_str());
         if (luaL_loadfile(LuaState, filename) != 0)
         {
-            sLog.outError("Eluna::Error loading `%s`.", itr->c_str());
+            sLog.outError("Eluna: Error loading `%s`.", itr->c_str());
             report(LuaState);
         }
         else
@@ -114,7 +115,7 @@ void Eluna::StartEluna(bool restart)
             int err = lua_pcall(LuaState, 0, 0, 0);
             if (err != 0 && err == LUA_ERRRUN)
             {
-                sLog.outError("Eluna::Error loading `%s`.", itr->c_str());
+                sLog.outError("Eluna: Error loading `%s`.", itr->c_str());
                 report(LuaState);
             }
         }
@@ -135,7 +136,8 @@ void Eluna::StartEluna(bool restart)
         }
     }*/
 
-    sLog.outBasic("Eluna::Loaded %u Lua scripts..", count);
+    sLog.outString("Eluna: Loaded %u Lua scripts..", count);
+    sLog.outString();
 }
 
 // Loads lua scripts from given directory
@@ -153,7 +155,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
     hFile = FindFirstFile(SearchName, &FindData);
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        sLog.outError("Eluna::No `scripts` directory found! Creating a 'scripts' directory and restarting Eluna.");
+        sLog.outError("Eluna: No `scripts` directory found! Creating a 'scripts' directory and restarting Eluna.");
         CreateDirectory("scripts", NULL);
         StartEluna(true);
         return;

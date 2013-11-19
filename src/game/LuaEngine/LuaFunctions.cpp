@@ -21,17 +21,17 @@
 #include "GlobalMethods.h"
 #include "UnitMethods.h"
 
-/*#include "GroupMethods.h"
-#include "GuildMethods.h"
+//#include "GroupMethods.h"
+//#include "GuildMethods.h"
 #include "GameObjectMethods.h"
-#include "QueryMethods.h"
-#include "AuraMethods.h"
-#include "ItemMethods.h"
-#include "WorldPacketMethods.h"
-#include "SpellMethods.h"
-#include "QuestMethods.h"
-#include "MapMethods.h"
-#include "CorpseMethods.h"*/
+//#include "QueryMethods.h"
+//#include "AuraMethods.h"
+//#include "ItemMethods.h"
+//#include "WorldPacketMethods.h"
+//#include "SpellMethods.h"
+//#include "QuestMethods.h"
+//#include "MapMethods.h"
+//#include "CorpseMethods.h"
 
 void RegisterGlobals(lua_State* L)
 {
@@ -660,7 +660,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { NULL, NULL },
 };
 
-/*ElunaRegister<GameObject> GameObjectMethods[] =
+ElunaRegister<GameObject> GameObjectMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaGameObject::GetUnitType},                                                           // :GetUnitType() - Returns unit type Ex. GameObject
@@ -726,7 +726,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"Respawn", &LuaGameObject::Respawn},                                                                   // :Respawn([delay]) - respawns the object after delay
 
     { NULL, NULL },
-};*/
+};
 
 /*ElunaRegister<Item> ItemMethods[] =
 {

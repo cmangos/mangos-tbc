@@ -30,7 +30,7 @@ int LuaGameObject::GetMap(lua_State* L, GameObject* go)
 }
 
 
-/*int LuaGameObject::GetRelativePoint(lua_State* L, GameObject* go)
+int LuaGameObject::GetRelativePoint(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -38,12 +38,12 @@ int LuaGameObject::GetMap(lua_State* L, GameObject* go)
     float dist = luaL_checknumber(L, 1);
     int deg = luaL_checkinteger(L, 2);
 
-    float o = Position::NormalizeOrientation(go->GetOrientation() + (deg*M_PI / 180));
-    sEluna->PushFloat(L, go->GetPositionX() + (dist*cosf(o)));
-    sEluna->PushFloat(L, go->GetPositionY() + (dist*sinf(o)));
-    sEluna->PushFloat(L, o);
+    //float o = Position::NormalizeOrientation(go->GetOrientation() + (deg*M_PI / 180));
+    //sEluna.PushFloat(L, go->GetPositionX() + (dist*cosf(o)));
+    //sEluna.PushFloat(L, go->GetPositionY() + (dist*sinf(o)));
+    //sEluna.PushFloat(L, o);
     return 3;
-}*/
+}
 
 
 int LuaGameObject::GetUnitType(lua_State* L, GameObject* go)
@@ -66,17 +66,17 @@ int LuaGameObject::GetGUID(lua_State* L, GameObject* go)
 }
 
 
-/*int LuaGameObject::CastSpell(lua_State* L, GameObject* go)
+int LuaGameObject::CastSpell(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
     uint32 spell = luaL_checkunsigned(L, 1);
-    Unit* target = sEluna->CHECK_UNIT(L, 2);
-    if (target)
-        go->CastSpell(target, spell);
+    Unit* target = sEluna.CHECK_UNIT(L, 2);
+    /*if (target)
+        go->CastSpell(target, spell);*/
     return 0;
-}*/
+}
 
 
 int LuaGameObject::GetX(lua_State* L, GameObject* go)
@@ -158,14 +158,14 @@ int LuaGameObject::GetAreaId(lua_State* L, GameObject* go)
 }
 
 
-/*int LuaGameObject::GetName(lua_State* L, GameObject* go)
+int LuaGameObject::GetName(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushString(L, go->GetName().c_str());
+    //sEluna.PushString(L, go->GetName().c_str());
     return 1;
-}*/
+}
 
 int LuaGameObject::GetEntry(lua_State* L, GameObject* go)
 {
@@ -176,7 +176,7 @@ int LuaGameObject::GetEntry(lua_State* L, GameObject* go)
     return 1;
 }
 
-/*int LuaGameObject::SummonCreature(lua_State* L, GameObject* go)
+int LuaGameObject::SummonCreature(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -202,7 +202,7 @@ int LuaGameObject::GetEntry(lua_State* L, GameObject* go)
             type = TEMPSUMMON_TIMED_DESPAWN;
             break;
         case 4:
-            type = TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT;
+            //type = TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT;
             break;
         case 5:
             type = TEMPSUMMON_CORPSE_DESPAWN;
@@ -217,7 +217,7 @@ int LuaGameObject::GetEntry(lua_State* L, GameObject* go)
             type = TEMPSUMMON_MANUAL_DESPAWN;
             break;
     }
-    sEluna->PushUnit(L, go->SummonCreature(entry, x, y, z, o, type, despawnTimer));
+    sEluna.PushUnit(L, go->SummonCreature(entry, x, y, z, o, type, despawnTimer));
     return 1;
 }
 
@@ -232,9 +232,9 @@ int LuaGameObject::SummonGameObject(lua_State* L, GameObject* go)
     float z = luaL_checknumber(L, 4);
     float o = luaL_checknumber(L, 5);
     uint32 respawnDelay = luaL_optunsigned(L, 6, 30);
-    sEluna->PushGO(L, go->SummonGameObject(entry, x, y, z, o, 0, 0, 0, 0, respawnDelay));
+    //sEluna.PushGO(L, go->SummonGameObject(entry, x, y, z, o, 0, 0, 0, 0, respawnDelay));
     return 1;
-}*/
+}
 
 int LuaGameObject::GetDisplayId(lua_State* L, GameObject* go)
 {
@@ -245,14 +245,14 @@ int LuaGameObject::GetDisplayId(lua_State* L, GameObject* go)
     return 1;
 }
 
-/*int LuaGameObject::GetScale(lua_State* L, GameObject* go)
+int LuaGameObject::GetScale(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
-    sEluna->PushFloat(L, go->GetObjectSize());
+    //sEluna.PushFloat(L, go->GetObjectSize());
     return 1;
-}*/
+}
 
 int LuaGameObject::IsInWorld(lua_State* L, GameObject* go)
 {
@@ -293,14 +293,14 @@ int LuaGameObject::IsTransport(lua_State* L, GameObject* go)
     return 1;
 }
 
-/*int LuaGameObject::IsDestructible(lua_State* L, GameObject* go)
+int LuaGameObject::IsDestructible(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
-        sEluna->PushBoolean(L, false);
+        sEluna.PushBoolean(L, false);
     else
-        sEluna->PushBoolean(L, go->IsDestructibleBuilding());
+        //sEluna.PushBoolean(L, go->IsDestructibleBuilding());
     return 1;
-}*/
+}
 
 int LuaGameObject::IsActive(lua_State* L, GameObject* go)
 {
@@ -475,16 +475,16 @@ int LuaGameObject::SetUInt32Value(lua_State* L, GameObject* go)
     return 0;
 }
 
-/*int LuaGameObject::UpdateUInt32Value(lua_State* L, GameObject* go)
+int LuaGameObject::UpdateUInt32Value(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
 
     uint16 index = luaL_checkunsigned(L, 1);
     uint32 value = luaL_checkunsigned(L, 2);
-    go->UpdateUInt32Value(index, value);
+    //go->UpdateUInt32Value(index, value);
     return 0;
-}*/
+}
 
 int LuaGameObject::SetFloatValue(lua_State* L, GameObject* go)
 {
@@ -542,7 +542,7 @@ int LuaGameObject::GetGUIDLow(lua_State* L, GameObject* go)
     return 1;
 }
 
-/*int LuaGameObject::GetNearestPlayer(lua_State* L, GameObject* go)
+int LuaGameObject::GetNearestPlayer(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;
@@ -551,10 +551,10 @@ int LuaGameObject::GetGUIDLow(lua_State* L, GameObject* go)
 
     Player* target = NULL;
     Eluna::NearestTypeWithEntryInRangeCheck checker(go, distance, TYPEID_PLAYER);
-    Trinity::PlayerLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
-    go->VisitNearbyObject(distance, searcher);
+    //MaNGOS::PlayerLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
+    //go->VisitNearbyObject(distance, searcher);
 
-    sEluna->PushUnit(L, target);
+    sEluna.PushUnit(L, target);
     return 1;
 }
 
@@ -568,10 +568,10 @@ int LuaGameObject::GetNearestGameObject(lua_State* L, GameObject* go)
 
     GameObject* target = NULL;
     Eluna::NearestTypeWithEntryInRangeCheck checker(go, range, TYPEID_GAMEOBJECT, entry);
-    Trinity::GameObjectLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
-    go->VisitNearbyGridObject(range, searcher);
+    //MaNGOS::GameObjectLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
+    //go->VisitNearbyGridObject(range, searcher);
 
-    sEluna->PushGO(L, target);
+    sEluna.PushGO(L, target);
     return 1;
 }
 
@@ -585,12 +585,12 @@ int LuaGameObject::GetNearestCreature(lua_State* L, GameObject* go)
 
     Creature* target = NULL;
     Eluna::NearestTypeWithEntryInRangeCheck checker(go, range, TYPEID_UNIT, entry);
-    Trinity::CreatureLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
-    go->VisitNearbyGridObject(range, searcher);
+    //MaNGOS::CreatureLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
+    //go->VisitNearbyGridObject(range, searcher);
 
-    sEluna->PushUnit(L, target);
+    sEluna.PushUnit(L, target);
     return 1;
-}*/
+}
 
 int LuaGameObject::UseDoorOrButton(lua_State* L, GameObject* go)
 {
@@ -679,7 +679,7 @@ int LuaGameObject::RemoveFlag(lua_State* L, GameObject* go)
     return 0;
 }
 
-/*int LuaGameObject::Despawn(lua_State* L, GameObject* go)
+int LuaGameObject::Despawn(lua_State* L, GameObject* go)
 {
     if (!go)
         return 0;
@@ -688,7 +688,7 @@ int LuaGameObject::RemoveFlag(lua_State* L, GameObject* go)
 
     if (delay <= 0)
         delay = 1;
-    go->SetSpawnedByDefault(false);
+    //go->SetSpawnedByDefault(false);
     go->SetRespawnTime(delay);
     return 0;
 }
@@ -702,7 +702,7 @@ int LuaGameObject::Respawn(lua_State* L, GameObject* go)
 
     if (delay <= 0)
         delay = 1;
-    go->SetSpawnedByDefault(true);
+    //go->SetSpawnedByDefault(true);
     go->SetRespawnTime(delay);
     return 0;
-}*/
+}

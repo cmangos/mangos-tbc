@@ -4006,7 +4006,7 @@ int LuaUnit::SetBindPoint(lua_State * L, Unit* unit)
     uint32 areaId = luaL_checkunsigned(L, 5);
 
     WorldLocation loc(mapId, x, y, z);
-    //player->SetHomebind(loc, areaId);
+    player->SetHomebindToLocation(loc, areaId);
     return 0;
 }
 

@@ -3414,7 +3414,7 @@ int LuaUnit::GetName(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    //sEluna.PushString(L, unit->GetName().c_str());
+    sEluna.PushString(L, unit->GetName());
     return 1;
 }
 

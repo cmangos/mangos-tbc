@@ -155,8 +155,8 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
     hFile = FindFirstFile(SearchName, &FindData);
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        sLog.outError("Eluna: No `scripts` directory found! Creating a 'scripts' directory and restarting Eluna.");
-        CreateDirectory("scripts", NULL);
+        sLog.outError("Eluna: No `lua_scripts` directory found! Creating a 'lua_scripts' directory and restarting Eluna.");
+        CreateDirectory("lua_scripts", NULL);
         StartEluna(true);
         return;
     }

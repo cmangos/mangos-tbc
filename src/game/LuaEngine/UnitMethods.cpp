@@ -190,8 +190,8 @@ int LuaUnit::Dismount(lua_State* L, Unit* unit)
 
     if (unit->IsMounted())
     {
-        //unit->Dismount();
-        //unit->RemoveAurasByType(SPELL_AURA_MOUNTED);
+        unit->Unmount();
+        unit->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
     }
 
     return 0;

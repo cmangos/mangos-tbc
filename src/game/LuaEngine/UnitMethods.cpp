@@ -4367,7 +4367,7 @@ int LuaUnit::AddItem(lua_State* L, Unit* unit)
 
     uint32 itemId = luaL_checkunsigned(L, 1);
     uint32 itemCount = luaL_checkunsigned(L, 2);
-    //sEluna.PushBoolean(L, player->AddItem(itemId, itemCount));
+    sEluna.PushBoolean(L, player->StoreNewItemInInventorySlot(itemId, itemCount));
     return 0;
 }
 

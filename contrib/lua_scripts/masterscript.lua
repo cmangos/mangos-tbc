@@ -3,13 +3,6 @@
 -- This is the Eluna for MaNGOS MasterScript
 --
 --
-
--- this includes file
-function include(file)
-	print("Eluna: Loading file : \n", file )
-	assert(loadfile(file))()
-end
-
 print("\n")
 print("_______________$$$$") 
 print("______________$$$$$$$") 
@@ -35,11 +28,4 @@ print("___________$$_____$______$$$")
 print("____________$$__________$$$") 
 print("______________$$$___$$$$$") 
 print("________________$$$$$")
-print("\n")
---
---
--- Here you can include your script files.
--- 
---
-include ('lua_scripts/examples/example.lua')
 print("\n")

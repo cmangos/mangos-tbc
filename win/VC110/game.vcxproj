@@ -179,6 +179,9 @@
       <AdditionalDependencies>.\lualib__$(Platform)_$(Configuration)\lualib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\contrib\lua_scripts\*" "..\..\bin\$(Platform)_$(Configuration)/lua_scripts" /E /I /F /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|X64'">
     <Midl>
@@ -213,6 +216,9 @@
       <AdditionalDependencies>.\lualib__$(Platform)_$(Configuration)\lualib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\contrib\lua_scripts\*" "..\..\bin\$(Platform)_$(Configuration)/lua_scripts" /E /I /F /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -243,6 +249,9 @@
       <AdditionalDependencies>.\lualib__$(Platform)_$(Configuration)\lualib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\contrib\lua_scripts\*" "..\..\bin\$(Platform)_$(Configuration)/lua_scripts" /E /I /F /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'">
     <Midl>
@@ -277,6 +286,9 @@
       <AdditionalDependencies>.\lualib__$(Platform)_$(Configuration)\lualib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\contrib\lua_scripts\*" "..\..\bin\$(Platform)_$(Configuration)/lua_scripts" /E /I /F /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|Win32'">
     <ClCompile>
@@ -307,6 +319,9 @@
       <AdditionalDependencies>.\lualib__$(Platform)_$(Configuration)\lualib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\contrib\lua_scripts\*" "..\..\bin\$(Platform)_$(Configuration)/lua_scripts" /E /I /F /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_NoPCH|X64'">
     <Midl>
@@ -341,6 +356,9 @@
       <AdditionalDependencies>.\lualib__$(Platform)_$(Configuration)\lualib.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Command>XCOPY "..\..\contrib\lua_scripts\*" "..\..\bin\$(Platform)_$(Configuration)/lua_scripts" /E /I /F /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\game\AccountMgr.cpp" />

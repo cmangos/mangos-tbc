@@ -5610,7 +5610,7 @@ int LuaUnit::AddUnitState(lua_State* L, Unit* unit)
 
     uint32 state = luaL_checkunsigned(L, 1);
 
-    //unit->AddUnitState(state);
+    unit->addUnitState(state);
     return 0;
 }
 

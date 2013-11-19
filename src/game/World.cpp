@@ -867,6 +867,8 @@ void World::LoadConfigSettings(bool reload)
     std::string ignoreMapIds = sConfig.GetStringDefault("mmap.ignoreMapIds", "");
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: mmap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
+
+    setConfig(CONFIG_BOOL_ELUNA_ENABLED, "Eluna.Enabled", false);
 }
 
 /// Initialize the World
@@ -1276,7 +1278,10 @@ void World::SetInitialWorldSettings()
             break;
     }
 
-    sEluna.StartEluna(false);
+    if (sWorld.getConfig(CONFIG_BOOL_ELUNA_ENABLED))
+        sEluna.StartEluna(false);
+    else
+        sLog.outError("Eluna: LuaEngine is Disabled");
 
     ///- Initialize game time and timers
     sLog.outString("DEBUG:: Initialize game time and timers");

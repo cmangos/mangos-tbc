@@ -5560,7 +5560,7 @@ int LuaUnit::IsQuestGiver(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    //sEluna.PushBoolean(L, unit->IsQuestGiver());
+    sEluna.PushBoolean(L, unit->isQuestGiver());
     return 1;
 }
 

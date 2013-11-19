@@ -5630,7 +5630,7 @@ int LuaUnit::HasUnitState(lua_State* L, Unit* unit)
 
     uint32 state = luaL_checkunsigned(L, 1);
 
-    //sEluna.PushBoolean(L, unit->HasUnitState(state));
+    sEluna.PushBoolean(L, unit->hasUnitState(state));
     return 1;
 }
 

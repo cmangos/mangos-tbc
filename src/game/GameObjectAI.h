@@ -19,17 +19,35 @@
 #ifndef MANGOS_GAMEOBJECTAI_H
 #define MANGOS_GAMEOBJECTAI_H
 
+#include <list>
+#include "Object.h"
+#include "GameObject.h"
+#include "CreatureAI.h"
+
 class GameObjectAI
 {
-    protected:
-        GameObject* const go;
-    public:
-        explicit GameObjectAI(GameObject* g) : go(g) { }
-        virtual ~GameObjectAI() { }
+protected:
+    GameObject * const go;
+public:
+    explicit GameObjectAI(GameObject *g) : go(g) {}
+    virtual ~GameObjectAI() {}
+
+    virtual void UpdateAI(const uint32 diff) {}
+
+    virtual void InitializeAI() { Reset(); }
+
+    virtual void Reset() {};
+
+    static int Permissible(const GameObject* go);
 };
 
 class NullGameObjectAI : public GameObjectAI
 {
+public:
+    explicit NullGameObjectAI(GameObject *g);
 
+    void UpdateAI(const uint32) {}
+
+    static int Permissible(const GameObject* go) { return PERMIT_BASE_IDLE; }
 };
 #endif

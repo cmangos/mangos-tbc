@@ -40,13 +40,15 @@
 #include "Util.h"
 #include "ScriptMgr.h"
 #include "vmap/GameObjectModel.h"
+#include "CreatureAISelector.h"
 #include "SQLStorages.h"
 
 GameObject::GameObject() : WorldObject(),
     loot(this),
     m_model(NULL),
     m_goInfo(NULL),
-    m_displayInfo(NULL)
+    m_displayInfo(NULL),
+    m_AI(NULL)
 {
     m_objectType |= TYPEMASK_GAMEOBJECT;
     m_objectTypeId = TYPEID_GAMEOBJECT;
@@ -72,6 +74,20 @@ GameObject::GameObject() : WorldObject(),
 GameObject::~GameObject()
 {
     delete m_model;
+}
+
+bool GameObject::AIM_Initialize()
+{
+    m_AI = FactorySelector::SelectGameObjectAI(this);
+
+    if (!m_AI) return false;
+        m_AI->InitializeAI();
+    return true;
+}
+
+std::string GameObject::GetAIName() const
+{
+    return ObjectMgr::GetGameObjectInfo(GetEntry())->AIName;
 }
 
 void GameObject::AddToWorld()
@@ -203,6 +219,11 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
         //((Transport*)this)->Update(p_time);
         return;
     }
+
+    if (AI())
+        AI()->UpdateAI(update_diff);
+    else if (!AIM_Initialize())
+        sLog.outError("Could not initialize GameObjectAI");
 
     switch (m_lootState)
     {

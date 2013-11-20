@@ -21,6 +21,7 @@
 
 class CreatureAI;
 class Creature;
+class GameObjectAI;
 class MovementGenerator;
 
 namespace FactorySelector

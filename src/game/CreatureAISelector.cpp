@@ -120,6 +120,9 @@ namespace FactorySelector
         const GameObjectAICreator* ai_factory = NULL;
         GameObjectAIRegistry& ai_registry(GameObjectAIRepository::Instance());
 
+        if (GameObjectAI* scriptedAI = sScriptMgr.GetGameObjectAI(go))
+            return scriptedAI;
+
         ai_factory = ai_registry.GetRegistryItem(go->GetAIName());
 
         std::string ainame = (ai_factory == NULL) ? "NullGameObjectAI" : ai_factory->key();

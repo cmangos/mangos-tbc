@@ -2007,8 +2007,14 @@ bool ScriptMgr::OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 send
 
 bool ScriptMgr::OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 sender, uint32 action, const char* code)
 {
-    if (sHookMgr.OnGossipSelect(pPlayer, pGameObject, sender, action))
-        return true;
+    if (code)
+    {
+        if (sHookMgr.OnGossipSelect(pPlayer, pGameObject, sender, action, code))
+            return true;
+    }
+    else
+        if (sHookMgr.OnGossipSelect(pPlayer, pGameObject, sender, action))
+            return true;
 
     if (code)
         return m_pOnGOGossipSelectWithCode != NULL && m_pOnGOGossipSelectWithCode(pPlayer, pGameObject, sender, action, code);

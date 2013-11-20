@@ -609,10 +609,10 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         }
         break;
 
-    /*case REGTYPE_GAMEOBJECT_GOSSIP:
+    case REGTYPE_GAMEOBJECT_GOSSIP:
         if (evt < GOSSIP_EVENT_COUNT)
         {
-            if (!sObjectMgr.GetGameObjectTemplate(id))
+            if (!sObjectMgr.GetGameObjectInfo(id))
             {
                 luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
                 return;
@@ -623,7 +623,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         }
         break;
 
-    case REGTYPE_ITEM:
+    /*case REGTYPE_ITEM:
         if (evt < ITEM_EVENT_COUNT)
         {
             if (!sObjectMgr.GetItemTemplate(id))

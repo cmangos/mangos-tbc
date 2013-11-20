@@ -78,16 +78,24 @@ GameObject::~GameObject()
 
 bool GameObject::AIM_Initialize()
 {
+    if (m_AI)
+        delete m_AI;
+
     m_AI = FactorySelector::SelectGameObjectAI(this);
 
-    if (!m_AI) return false;
-        m_AI->InitializeAI();
+    if (!m_AI)
+        return false;
+
+    m_AI->InitializeAI();
     return true;
 }
 
 std::string GameObject::GetAIName() const
 {
-    return ObjectMgr::GetGameObjectInfo(GetEntry())->AIName;
+    if (GameObjectInfo const* got = sObjectMgr.GetGameObjectInfo(GetEntry()))
+        return got->AIName;
+
+    return "";
 }
 
 void GameObject::AddToWorld()

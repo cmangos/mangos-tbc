@@ -365,10 +365,9 @@ struct GameObjectInfo
         } raw;
     };
 
-    char const* AIName;
-
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;
+    char const* AIName;
     uint32 ScriptId;
 
     // helpers
@@ -715,10 +714,10 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         GridReference<GameObject> &GetGridRef() { return m_gridRef; }
 
         GameObjectModel* m_model;
-
         GameObjectAI* AI() const { return (GameObjectAI*)m_AI; }
 
         std::string GetAIName() const;
+        bool AIM_Initialize();
     protected:
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
@@ -759,7 +758,6 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         GridReference<GameObject> m_gridRef;
 
         GameObjectAI* m_AI;
-        bool AIM_Initialize();
 };
 
 #endif

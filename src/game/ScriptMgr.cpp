@@ -2009,7 +2009,7 @@ bool ScriptMgr::OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 
 {
     if (code)
     {
-        if (sHookMgr.OnGossipSelect(pPlayer, pGameObject, sender, action, code))
+        if (sHookMgr.OnGossipSelectCode(pPlayer, pGameObject, sender, action, code))
             return true;
     }
     else

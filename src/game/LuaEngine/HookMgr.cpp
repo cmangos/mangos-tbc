@@ -229,7 +229,7 @@ uint32 HookMgr::GetDialogStatus(Player* player, Creature* creature)
     return result;
 }
 // gameobject
-/*bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target)
+bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
@@ -315,7 +315,7 @@ void HookMgr::OnGameObjectStateChanged(GameObject* go, uint32 state)
         (*it)->OnGameObjectStateChanged(go, state);
 }
 // areatrigger
-bool HookMgr::OnTrigger(Player* player, AreaTriggerEntry const* trigger)
+/*bool HookMgr::OnTrigger(Player* player, AreaTriggerEntry const* trigger)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)

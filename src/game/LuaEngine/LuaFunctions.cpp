@@ -1028,8 +1028,8 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 
 template<typename T> ElunaRegister<T>* GetMethodTable() { return NULL; }
 template<> ElunaRegister<Unit>* GetMethodTable<Unit>() { return UnitMethods; }
-/*template<> ElunaRegister<GameObject>* GetMethodTable<GameObject>() { return GameObjectMethods; }
-template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
+template<> ElunaRegister<GameObject>* GetMethodTable<GameObject>() { return GameObjectMethods; }
+/*template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
 template<> ElunaRegister<Guild>* GetMethodTable<Guild>() { return GuildMethods; }
 template<> ElunaRegister<QueryResult>* GetMethodTable<QueryResult>() { return QueryMethods; }
 template<> ElunaRegister<Aura>* GetMethodTable<Aura>() { return AuraMethods; }

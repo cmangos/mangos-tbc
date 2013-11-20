@@ -253,7 +253,9 @@ public:
     class LuaEventMap;
     struct LuaEventData;
     class Eluna_CreatureScript;
+    class Eluna_GameObjectScript;
     Eluna_CreatureScript* LuaCreatureAI;
+    Eluna_GameObjectScript* LuaGameObjectAI;
 
     typedef std::map<int, int> ElunaBindingMap;
     typedef UNORDERED_MAP<uint32, ElunaBindingMap> ElunaEntryMap;
@@ -1203,22 +1205,20 @@ public:
         return luaCreatureAI;
     }
 };
-/*
-class Eluna::Eluna_GameObjectScript : public GameObjectScript
+
+class Eluna::Eluna_GameObjectScript
 {
 public:
-    Eluna_GameObjectScript() : GameObjectScript("SmartEluna_GameObjectScript") { } // Smart suppressing error @startup
-    ~Eluna_GameObjectScript() { }
 
     struct ScriptGameObjectAI : public GameObjectAI, public Eluna::LuaEventMap
     {
         ScriptGameObjectAI(GameObject* _go) : GameObjectAI(_go), LuaEventMap() { }
         ~ScriptGameObjectAI()
         {
-            LuaEventMap::LuaEventMaps.erase(go->GetGUID());
+            LuaEventMap::LuaEventMaps.erase(go->GetGUIDLow());
         }
 
-        void UpdateAI(uint32 diff)
+        void UpdateAI(uint32 const diff)
         {
             ScriptEventsUpdate(diff);
             ScriptEventsExecute();
@@ -1233,7 +1233,7 @@ public:
         }
 
         // executed when a timed event fires
-        void OnScriptEvent(int funcRef, uint32 delay, uint32 calls) OVERRIDE
+        void OnScriptEvent(int funcRef, uint32 delay, uint32 calls)
         {
             sEluna.BeginCall(funcRef);
             sEluna.PushUnsigned(sEluna.LuaState, funcRef);
@@ -1243,7 +1243,7 @@ public:
             sEluna.ExecuteCall(4, 0);
         }
 
-        void Reset() OVERRIDE
+        void Reset()
         {
             sEluna.BeginCall(sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_RESET));
             sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_RESET);
@@ -1258,10 +1258,10 @@ public:
             return NULL;
 
         ScriptGameObjectAI* luaGameObjectAI = new ScriptGameObjectAI(gameObject);
-        LuaEventMap::LuaEventMaps[gameObject->GetGUID()] = luaGameObjectAI;
+        LuaEventMap::LuaEventMaps[gameObject->GetGUIDLow()] = luaGameObjectAI;
         return luaGameObjectAI;
     }
-};*/
+};
 
 struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::eventData
 {

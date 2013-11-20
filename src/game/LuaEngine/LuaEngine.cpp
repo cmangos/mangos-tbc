@@ -88,8 +88,8 @@ void Eluna::StartEluna(bool restart)
     RegisterGlobals(LuaState);
     //Register Templates Here
     ElunaTemplate<Unit>::Register(LuaState);
-    /*ElunaTemplate<GameObject>::Register(LuaState);
-    ElunaTemplate<Group>::Register(LuaState);
+    ElunaTemplate<GameObject>::Register(LuaState);
+    /*ElunaTemplate<Group>::Register(LuaState);
     ElunaTemplate<Guild>::Register(LuaState);
     ElunaTemplate<QueryResult>::Register(LuaState);
     ElunaTemplate<Aura>::Register(LuaState);
@@ -595,10 +595,10 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         }
         break;
 
-    /*case REGTYPE_GAMEOBJECT:
+    case REGTYPE_GAMEOBJECT:
         if (evt < GAMEOBJECT_EVENT_COUNT)
         {
-            if (!sObjectMgr.GetGameObjectTemplate(id))
+            if (!sObjectMgr.GetGameObjectInfo(id))
             {
                 luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
                 return;
@@ -609,7 +609,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         }
         break;
 
-    case REGTYPE_GAMEOBJECT_GOSSIP:
+    /*case REGTYPE_GAMEOBJECT_GOSSIP:
         if (evt < GOSSIP_EVENT_COUNT)
         {
             if (!sObjectMgr.GetGameObjectTemplate(id))

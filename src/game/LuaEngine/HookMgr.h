@@ -62,7 +62,7 @@ public:
     bool OnQuestReward(Player* player, Creature* creature, Quest const* quest, uint32 opt);
     uint32 GetDialogStatus(Player* player, Creature* creature);
     // gameobject
-    /*bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target);
+    bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target);
     bool OnGossipHello(Player* player, GameObject* go);
     bool OnGossipSelect(Player* player, GameObject* go, uint32 sender, uint32 action);
     bool OnGossipSelectCode(Player* player, GameObject* go, uint32 sender, uint32 action, const char* code);
@@ -74,7 +74,7 @@ public:
     void OnLootStateChanged(GameObject* go, uint32 state, Unit* unit);
     void OnGameObjectStateChanged(GameObject* go, uint32 state);
     // areatrigger
-    bool OnTrigger(Player* player, AreaTriggerEntry const* trigger);
+    /*bool OnTrigger(Player* player, AreaTriggerEntry const* trigger);
     // weather
     void OnChange(Weather* weather, WeatherState state, float grade);
     // condition
@@ -127,7 +127,7 @@ public:
     virtual bool OnQuestReward(Player* player, Creature* creature, Quest const* quest, uint32 opt) { return false; }
     virtual uint32 GetDialogStatus(Player* player, Creature* creature) { return 100; }
     // gameobject
-    /*virtual bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target) { return false; }
+    virtual bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target) { return false; }
     virtual bool OnGossipHello(Player* player, GameObject* go) { return false; }
     virtual bool OnGossipSelect(Player* player, GameObject* go, uint32 sender, uint32 action) { return false; }
     virtual bool OnGossipSelectCode(Player* player, GameObject* go, uint32 sender, uint32 action, const char* code) { return false; }
@@ -139,7 +139,7 @@ public:
     virtual void OnLootStateChanged(GameObject* go, uint32 state, Unit* unit) { }
     virtual void OnGameObjectStateChanged(GameObject* go, uint32 state) { }
     // areatrigger
-    virtual bool OnTrigger(Player* player, AreaTriggerEntry const* trigger) { return false; }
+    /*virtual bool OnTrigger(Player* player, AreaTriggerEntry const* trigger) { return false; }
     // weather
     virtual void OnChange(Weather* weather, WeatherState state, float grade) { }
     // condition

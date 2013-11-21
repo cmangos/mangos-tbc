@@ -39,6 +39,8 @@ public:
     virtual void Reset() {};
 
     static int Permissible(const GameObject* go);
+
+    virtual bool GossipHello(Player* player) { return false; }
 };
 
 class NullGameObjectAI : public GameObjectAI

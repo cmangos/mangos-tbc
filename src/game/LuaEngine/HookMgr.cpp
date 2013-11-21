@@ -25,7 +25,7 @@
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnLootItem(player, item, count, guid);
-}
+}*/
 
 void HookMgr::OnFirstLogin(Player* player)
 {
@@ -33,7 +33,7 @@ void HookMgr::OnFirstLogin(Player* player)
         (*it)->OnFirstLogin(player);
 }
 
-void HookMgr::OnEquip(Player* player, Item* item, uint8 bag, uint8 slot)
+/*void HookMgr::OnEquip(Player* player, Item* item, uint8 bag, uint8 slot)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnEquip(player, item, bag, slot);

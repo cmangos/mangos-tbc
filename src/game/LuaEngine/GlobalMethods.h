@@ -232,7 +232,7 @@ namespace LuaGlobalFunctions
     static int SendWorldMessage(lua_State* L)
     {
         const char* message = luaL_checkstring(L, 1);
-        //sWorld->SendServerMessage(SERVER_MSG_STRING, message);
+        sWorld.SendServerMessage(SERVER_MSG_CUSTOM, message);
         return 0;
     }
 

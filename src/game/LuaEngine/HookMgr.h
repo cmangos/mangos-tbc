@@ -34,9 +34,9 @@ public:
     HookMgr() { }
 
     // misc
-    /*void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid);
+    /*void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid);*/
     void OnFirstLogin(Player* player);
-    void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot);
+    /*void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot);
     void OnRepop(Player* player);
     void OnResurrect(Player* player);
     InventoryResult OnCanUseItem(const Player* player, uint32 itemEntry);
@@ -99,9 +99,9 @@ public:
         sHookMgr.hookPointers.erase(this);
     }
     // misc
-    /*virtual void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid) { }
+    /*virtual void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid) { }*/
     virtual void OnFirstLogin(Player* player) { }
-    virtual void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot) { }
+    /*virtual void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot) { }
     virtual void OnRepop(Player* player) { }
     virtual void OnResurrect(Player* player) { }
     virtual InventoryResult OnCanUseItem(Player* player, uint32 itemEntry) { return EQUIP_ERR_OK; }

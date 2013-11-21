@@ -44,5 +44,6 @@
 #include "Spell.h"
 #include "GameObject.h"
 #include "Weather.h"
+#include "World.h"
 
 #endif

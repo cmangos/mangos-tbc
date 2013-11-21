@@ -39,6 +39,7 @@
 #include "ArenaTeam.h"
 #include "Language.h"
 #include "SpellMgr.h"
+#include "HookMgr.h"
 
 // config option SkipCinematics supported values
 enum CinematicsSkipMode
@@ -685,6 +686,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         pCurrChar->resetTalents(true);
         SendNotification(LANG_RESET_TALENTS);               // we can use SMSG_TALENTS_INVOLUNTARILY_RESET here
     }
+
+    if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
+        sHookMgr.OnFirstLogin(pCurrChar);
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_FIRST);

@@ -89,16 +89,16 @@ void Eluna::StartEluna(bool restart)
     //Register Templates Here
     ElunaTemplate<Unit>::Register(LuaState);
     ElunaTemplate<GameObject>::Register(LuaState);
-    /*ElunaTemplate<Group>::Register(LuaState);
-    ElunaTemplate<Guild>::Register(LuaState);
-    ElunaTemplate<QueryResult>::Register(LuaState);
-    ElunaTemplate<Aura>::Register(LuaState);
-    ElunaTemplate<WorldPacket>::Register(LuaState);
+    //ElunaTemplate<Group>::Register(LuaState);
+    //ElunaTemplate<Guild>::Register(LuaState);
+    //ElunaTemplate<QueryResult>::Register(LuaState);
+    //ElunaTemplate<Aura>::Register(LuaState);
+    //ElunaTemplate<WorldPacket>::Register(LuaState);
     ElunaTemplate<Item>::Register(LuaState);
-    ElunaTemplate<Spell>::Register(LuaState);
-    ElunaTemplate<Quest>::Register(LuaState);
-    ElunaTemplate<Map>::Register(LuaState);
-    ElunaTemplate<Corpse>::Register(LuaState);*/
+    //ElunaTemplate<Spell>::Register(LuaState);
+    //ElunaTemplate<Quest>::Register(LuaState);
+    //ElunaTemplate<Map>::Register(LuaState);
+    //ElunaTemplate<Corpse>::Register(LuaState);
 
     uint32 count = 0;
     char filename[200];
@@ -623,10 +623,10 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         }
         break;
 
-    /*case REGTYPE_ITEM:
+    case REGTYPE_ITEM:
         if (evt < ITEM_EVENT_COUNT)
         {
-            if (!sObjectMgr.GetItemTemplate(id))
+            if (!sObjectMgr.GetItemPrototype(id))
             {
                 luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
                 return;
@@ -640,7 +640,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
     case REGTYPE_ITEM_GOSSIP:
         if (evt < GOSSIP_EVENT_COUNT)
         {
-            if (!sObjectMgr.GetItemTemplate(id))
+            if (!sObjectMgr.GetItemPrototype(id))
             {
                 luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
                 return;
@@ -651,7 +651,7 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         }
         break;
 
-    case REGTYPE_PLAYER_GOSSIP:
+    /*case REGTYPE_PLAYER_GOSSIP:
         if (evt < GOSSIP_EVENT_COUNT)
         {
             sEluna.playerGossipBindings->Insert(id, evt, functionRef);

@@ -43,12 +43,12 @@ public:
     bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg);
     bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group);
     bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel);
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel);*/
     // item
     bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Item* target);
     bool OnQuestAccept(Player* player, Item* item, Quest const* quest);
     bool OnUse(Player* player, Item* item, SpellCastTargets const& targets);
-    bool OnExpire(Player* player, ItemPrototype const* proto);*/
+    bool OnExpire(Player* player, ItemPrototype const* proto);
     void OnEngineRestart();
     void HandleGossipSelectOption(Player* player, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId);
     // creature
@@ -109,11 +109,11 @@ public:
     virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group) { return true; }
     virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild) { return true; }
     virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel) { return true; }
-    // item
+    // item*/
     virtual bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Item* target) { return false; }
     virtual bool OnQuestAccept(Player* player, Item* item, Quest const* quest) { return false; }
     virtual bool OnUse(Player* player, Item* item, SpellCastTargets const& targets) { return false; }
-    virtual bool OnExpire(Player* player, ItemPrototype const* proto) { return false; }*/
+    virtual bool OnExpire(Player* player, ItemPrototype const* proto) { return false; }
     virtual void OnEngineRestart() { }
     virtual void HandleGossipSelectOption(Player* player, uint64 guid, uint32 sender, uint32 action, std::string code, uint32 menuId) { }
     // creature

@@ -338,7 +338,7 @@ public:
         return true;
     }
 
-    bool OnExpire(Player* player, ItemPrototype const* proto)
+    bool OnExpire(Player* player, ItemPrototype const* proto) // TODO: Implement
     {
         int bind = sEluna.ItemEventBindings->GetBind(proto->ItemId, ITEM_EVENT_ON_EXPIRE);
         if (!bind)

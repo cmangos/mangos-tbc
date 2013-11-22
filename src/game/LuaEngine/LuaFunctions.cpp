@@ -26,7 +26,7 @@
 #include "GameObjectMethods.h"
 //#include "QueryMethods.h"
 //#include "AuraMethods.h"
-//#include "ItemMethods.h"
+#include "ItemMethods.h"
 //#include "WorldPacketMethods.h"
 //#include "SpellMethods.h"
 //#include "QuestMethods.h"
@@ -716,7 +716,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     { NULL, NULL },
 };
 
-/*ElunaRegister<Item> ItemMethods[] =
+ElunaRegister<Item> ItemMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaItem::GetUnitType},                                                                 // :GetUnitType() - Returns object type, IE: Item, Creature
@@ -736,7 +736,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"GetEnchantmentId", &LuaItem::GetEnchantmentId},                                                       // :GetEnchantmentId(enchant_slot) - Returns the enchantment in given slot. (permanent = 0)
     {"GetSpellId", &LuaItem::GetSpellId},                                                                   // :GetSpellId(index) - Returns spellID at given index (0 - 4)
     {"GetSpellTrigger", &LuaItem::GetSpellTrigger},                                                         // :GetSpellTrigger(index) - Returns spell trigger at given index (0 - 4)
-    {"GetItemLink", &LuaItem::GetItemLink},                                                                 // :GetItemLink([localeID]) - Returns the shift clickable link of the item. Name translated if locale given and exists
+    //{"GetItemLink", &LuaItem::GetItemLink},                                                                 // :GetItemLink([localeID]) - Returns the shift clickable link of the item. Name translated if locale given and exists
     {"GetEntry", &LuaItem::GetEntry},                                                                       // :GetEntry()
     {"GetClass", &LuaItem::GetClass},                                                                       // :GetClass()
     {"GetSubClass", &LuaItem::GetSubClass},                                                                 // :GetSubClass()
@@ -794,7 +794,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 
     // Other
     {NULL, NULL},
-};*/
+};
 
 /*ElunaRegister<Aura> AuraMethods[] =
 {
@@ -1029,13 +1029,13 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 template<typename T> ElunaRegister<T>* GetMethodTable() { return NULL; }
 template<> ElunaRegister<Unit>* GetMethodTable<Unit>() { return UnitMethods; }
 template<> ElunaRegister<GameObject>* GetMethodTable<GameObject>() { return GameObjectMethods; }
-/*template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
-template<> ElunaRegister<Guild>* GetMethodTable<Guild>() { return GuildMethods; }
-template<> ElunaRegister<QueryResult>* GetMethodTable<QueryResult>() { return QueryMethods; }
-template<> ElunaRegister<Aura>* GetMethodTable<Aura>() { return AuraMethods; }
+//template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
+//template<> ElunaRegister<Guild>* GetMethodTable<Guild>() { return GuildMethods; }
+//template<> ElunaRegister<QueryResult>* GetMethodTable<QueryResult>() { return QueryMethods; }
+//template<> ElunaRegister<Aura>* GetMethodTable<Aura>() { return AuraMethods; }
 template<> ElunaRegister<Item>* GetMethodTable<Item>() { return ItemMethods; }
-template<> ElunaRegister<WorldPacket>* GetMethodTable<WorldPacket>() { return PacketMethods; }
-template<> ElunaRegister<Spell>* GetMethodTable<Spell>() { return SpellMethods; }
-template<> ElunaRegister<Quest>* GetMethodTable<Quest>() { return QuestMethods; }
-template<> ElunaRegister<Map>* GetMethodTable<Map>() { return MapMethods; }
-template<> ElunaRegister<Corpse>* GetMethodTable<Corpse>() { return CorpseMethods; }*/
+//template<> ElunaRegister<WorldPacket>* GetMethodTable<WorldPacket>() { return PacketMethods; }
+//template<> ElunaRegister<Spell>* GetMethodTable<Spell>() { return SpellMethods; }
+//template<> ElunaRegister<Quest>* GetMethodTable<Quest>() { return QuestMethods; }
+//template<> ElunaRegister<Map>* GetMethodTable<Map>() { return MapMethods; }
+//template<> ElunaRegister<Corpse>* GetMethodTable<Corpse>() { return CorpseMethods; }

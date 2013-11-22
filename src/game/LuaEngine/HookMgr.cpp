@@ -113,7 +113,7 @@ void HookMgr::OnEngineRestart()
         (*it)->OnEngineRestart();
 }
 // item
-/*bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Item* target)
+bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Item* target)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
@@ -147,7 +147,7 @@ bool HookMgr::OnExpire(Player* player, ItemPrototype const* proto)
         if ((*it)->OnExpire(player, proto))
             result = true;
     return result;
-}*/
+}
 // creature
 bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Creature* target)
 {

@@ -293,13 +293,14 @@ int LuaGameObject::IsTransport(lua_State* L, GameObject* go)
     return 1;
 }
 
-int LuaGameObject::IsDestructible(lua_State* L, GameObject* go)
+int LuaGameObject::IsDestructible(lua_State* L, GameObject* go) // TODO: Implementation core side
 {
-    if (!go || !go->IsInWorld())
+    /*if (!go || !go->IsInWorld())
         sEluna.PushBoolean(L, false);
     else
-        //sEluna.PushBoolean(L, go->IsDestructibleBuilding());
-    return 1;
+        sEluna.PushBoolean(L, go->IsDestructibleBuilding());
+    return 1;*/
+	return 0; // temp return 0
 }
 
 int LuaGameObject::IsActive(lua_State* L, GameObject* go)

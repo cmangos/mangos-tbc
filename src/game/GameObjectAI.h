@@ -50,6 +50,6 @@ public:
 
     void UpdateAI(const uint32) {}
 
-    static int Permissible(const GameObject* go) { return PERMIT_BASE_IDLE; }
+    static int Permissible(const GameObject* go) { return 1; }
 };
 #endif

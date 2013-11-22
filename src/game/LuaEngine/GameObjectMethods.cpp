@@ -300,7 +300,7 @@ int LuaGameObject::IsDestructible(lua_State* L, GameObject* go) // TODO: Impleme
     else
         sEluna.PushBoolean(L, go->IsDestructibleBuilding());
     return 1;*/
-	return 0; // temp return 0
+    return 0; // temp return 0
 }
 
 int LuaGameObject::IsActive(lua_State* L, GameObject* go)

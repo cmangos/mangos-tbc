@@ -289,8 +289,7 @@ int LuaUnit::SetDisableReputationGain(lua_State* L, Unit* unit)
 int LuaUnit::SelectVictim(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
-
-    //sEluna.PushUnit(L, creature->SelectVictim());
+    sEluna.PushUnit(L, creature->getVictim());
     return 1;
 }
 
@@ -408,7 +407,7 @@ int LuaUnit::RemoveCorpse(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    //creature-RemoveCorpse();
+    creature->RemoveCorpse();
     return 0;
 }
 
@@ -438,8 +437,8 @@ int LuaUnit::IsTargetAcceptable(lua_State* L, Unit* unit)
 
     if (!target)
         sEluna.PushBoolean(L, false);
-    //else
-        //sEluna.PushBoolean(L, creature->_IsTargetAcceptable(unit));
+    else
+        sEluna.PushBoolean(L, creature->isTargetableForAttack(target));
     return 1;
 }
 
@@ -522,8 +521,7 @@ int LuaUnit::GetAggroRange(lua_State* L, Unit* unit)
 
     if (!target)
         return 0;
-
-    //sEluna.PushFloat(L, creature->GetAggroRange(target));
+    sEluna.PushFloat(L, creature->GetAttackDistance(target));
     return 1;
 }
 
@@ -540,7 +538,7 @@ int LuaUnit::GetAttackDistance(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::CanStartAttack(lua_State* L, Unit* unit)
+int LuaUnit::CanStartAttack(lua_State* L, Unit* unit) // TODO: Implement core side
 {
     TO_CREATURE_BOOL();
 
@@ -554,7 +552,7 @@ int LuaUnit::CanStartAttack(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::ResetLootMode(lua_State* L, Unit* unit)
+int LuaUnit::ResetLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode features
 {
     TO_CREATURE();
 
@@ -562,7 +560,7 @@ int LuaUnit::ResetLootMode(lua_State* L, Unit* unit)
     return 0;
 }
 
-int LuaUnit::RemoveLootMode(lua_State* L, Unit* unit)
+int LuaUnit::RemoveLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode features
 {
     TO_CREATURE();
 
@@ -572,7 +570,7 @@ int LuaUnit::RemoveLootMode(lua_State* L, Unit* unit)
     return 0;
 }
 
-int LuaUnit::AddLootMode(lua_State* L, Unit* unit)
+int LuaUnit::AddLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode features
 {
     TO_CREATURE();
 
@@ -582,7 +580,7 @@ int LuaUnit::AddLootMode(lua_State* L, Unit* unit)
     return 0;
 }
 
-int LuaUnit::SetLootMode(lua_State* L, Unit* unit)
+int LuaUnit::SetLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode features
 {
     TO_CREATURE();
 
@@ -592,7 +590,7 @@ int LuaUnit::SetLootMode(lua_State* L, Unit* unit)
     return 0;
 }
 
-int LuaUnit::HasLootMode(lua_State* L, Unit* unit)
+int LuaUnit::HasLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode features
 {
     TO_CREATURE_BOOL();
 
@@ -602,7 +600,7 @@ int LuaUnit::HasLootMode(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::GetLootMode(lua_State* L, Unit* unit)
+int LuaUnit::GetLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode features
 {
     TO_CREATURE();
 
@@ -617,8 +615,8 @@ int LuaUnit::IsTappedBy(lua_State* L, Unit* unit)
     Player* player = sEluna.CHECK_PLAYER(L, 1);
 
     if (!player)
-        //sEluna.PushBoolean(L, creature->isTappedBy(player));
-   //else
+        sEluna.PushBoolean(L, creature->isTappedBy(player));
+   else
         sEluna.PushBoolean(L, false);
     return 1;
 }
@@ -635,7 +633,7 @@ int LuaUnit::GetLootRecipientGroup(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    //sEluna.PushGroup(L, creature->GetLootRecipientGroup());
+    sEluna.PushGroup(L, creature->GetGroupLootRecipient());
     return 1;
 }
 
@@ -693,8 +691,6 @@ int LuaUnit::CanFly(lua_State* L, Unit* unit)
         sEluna.PushBoolean(L, player->CanFly());
     else if (Creature* creature = unit->ToCreature())
         sEluna.PushBoolean(L, creature->CanFly());
-    //else
-        //sEluna.PushBoolean(L, unit->CanFly());
     return 1;
 }
 
@@ -860,13 +856,13 @@ int LuaUnit::GetHomePosition(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    /*float x,y,z,o;
-    creature->GetHomePosition(x,y,z,o);
+    float x,y,z,o;
+    creature->GetRespawnCoord(x,y,z,&o);
 
     sEluna.PushFloat(L, x);
     sEluna.PushFloat(L, y);
     sEluna.PushFloat(L, z);
-    sEluna.PushFloat(L, o);*/
+    sEluna.PushFloat(L, o);
     return 4;
 }
 

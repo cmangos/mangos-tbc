@@ -105,7 +105,7 @@ public:
         if (!item || !item->IsInWorld())
             return 0;
 
-		sEluna.PushULong(L, item->GetGUIDLow());
+        sEluna.PushULong(L, item->GetGUIDLow());
         return 1;
     }
 
@@ -114,7 +114,7 @@ public:
         if (!item || !item->IsInWorld())
             return 0;
 
-		sEluna.PushULong(L, item->GetOwnerGuid());
+        sEluna.PushULong(L, item->GetOwnerGuid());
         return 1;
     }
 
@@ -135,7 +135,7 @@ public:
         Player* player = sEluna.CHECK_PLAYER(L, 1);
 
         if (player)
-			item->SetOwnerGuid(player->GetObjectGuid());
+            item->SetOwnerGuid(player->GetObjectGuid());
         return 0;
     }
 
@@ -378,7 +378,7 @@ public:
         else
             sEluna.PushBoolean(L, item->IsRefundExpired());
         return 1;*/
-		return 0; // Temp till supported
+        return 0; // Temp till supported
     }
 
     static int GetInt32Value(lua_State* L, Item* item)

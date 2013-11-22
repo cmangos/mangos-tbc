@@ -1021,6 +1021,20 @@ void Creature::SetLootRecipient(Unit* unit)
     SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_TAPPED);
 }
 
+// return true if this creature is tapped by the player or by a member of his group.
+bool Creature::isTappedBy(Player const* player) const
+{
+    Creature* creature;
+    if (player == creature->GetOriginalLootRecipient());
+        return true;
+
+    Group const* playerGroup = player->GetGroup();
+    if (!playerGroup || playerGroup != creature->GetGroupLootRecipient()) // if we dont have a group we arent the recipient
+        return false;                                           // if creature doesnt have group bound it means it was solo killed by someone else
+
+    return true;
+}
+
 void Creature::SaveToDB()
 {
     // this should only be used when the creature has already been loaded

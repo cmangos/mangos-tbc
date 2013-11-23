@@ -21,7 +21,7 @@
 #define WORLDPACKETMETHODS_H
 
 class LuaPacket
-{/*
+{
 public:
     // GetUnitType()
     static int GetUnitType(lua_State* L, WorldPacket* packet)
@@ -39,7 +39,7 @@ public:
         if (!packet)
             return 0;
 
-        sEluna->PushUnsigned(L, packet->GetOpcode());
+        sEluna.PushUnsigned(L, packet->GetOpcode());
         return 1;
     }
 
@@ -49,7 +49,7 @@ public:
         if (!packet)
             return 0;
 
-        sEluna->PushUnsigned(L, packet->size());
+        sEluna.PushUnsigned(L, packet->size());
         return 1;
     }
 
@@ -63,7 +63,7 @@ public:
         if (opcode >= NUM_MSG_TYPES)
             luaL_error(L, "Invalid opcode type (%d)", opcode);
         else
-            packet->SetOpcode(opcode);
+            packet->SetOpcode((Opcodes)opcode);
         return 0;
     }
 
@@ -75,7 +75,7 @@ public:
 
         int8 byte;
         (*packet) >> byte;
-        sEluna->PushInteger(L, byte);
+        sEluna.PushInteger(L, byte);
         return 1;
     }
 
@@ -87,7 +87,7 @@ public:
 
         uint8 byte;
         (*packet) >> byte;
-        sEluna->PushUnsigned(L, byte);
+        sEluna.PushUnsigned(L, byte);
         return 1;
     }
 
@@ -99,7 +99,7 @@ public:
 
         int16 _short;
         (*packet) >> _short;
-        sEluna->PushInteger(L, _short);
+        sEluna.PushInteger(L, _short);
         return 1;
     }
 
@@ -111,7 +111,7 @@ public:
 
         uint16 _ushort;
         (*packet) >> _ushort;
-        sEluna->PushUnsigned(L, _ushort);
+        sEluna.PushUnsigned(L, _ushort);
         return 1;
     }
 
@@ -123,7 +123,7 @@ public:
 
         int32 _long;
         (*packet) >> _long;
-        sEluna->PushInteger(L, _long);
+        sEluna.PushInteger(L, _long);
         return 1;
     }
 
@@ -135,7 +135,7 @@ public:
 
         uint32 _ulong;
         (*packet) >> _ulong;
-        sEluna->PushUnsigned(L, _ulong);
+        sEluna.PushUnsigned(L, _ulong);
         return 1;
     }
 
@@ -147,7 +147,7 @@ public:
 
         float _val;
         (*packet) >> _val;
-        sEluna->PushFloat(L, _val);
+        sEluna.PushFloat(L, _val);
         return 1;
     }
 
@@ -159,7 +159,7 @@ public:
 
         double _val;
         (*packet) >> _val;
-        sEluna->PushDouble(L, _val);
+        sEluna.PushDouble(L, _val);
         return 1;
     }
 
@@ -171,7 +171,7 @@ public:
 
         uint64 guid;
         (*packet) >> guid;
-        sEluna->PushULong(L, guid);
+        sEluna.PushULong(L, guid);
         return 1;
     }
 
@@ -183,7 +183,7 @@ public:
 
         std::string _val;
         (*packet) >> _val;
-        sEluna->PushString(L, _val.c_str());
+        sEluna.PushString(L, _val.c_str());
         return 1;
     }
 
@@ -193,7 +193,7 @@ public:
         if (!packet)
             return 0;
 
-        uint64 guid = sEluna->CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
         (*packet) << guid;
         return 0;
@@ -296,7 +296,7 @@ public:
         double _val = luaL_checknumber(L, 1);
         (*packet) << _val;
         return 0;
-    }*/
+    }
 };
 
 #endif

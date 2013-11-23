@@ -21,11 +21,11 @@
 #define GUILDMETHODS_H
 
 class LuaGuild
-{/*
+{
 public:
 
-    static int GetMembers(lua_State* L, Guild* guild)
-    {
+    static int GetMembers(lua_State* L, Guild* guild) // TODO: Implementation
+    {/*
         if (!guild)
             return 0;
 
@@ -42,14 +42,15 @@ public:
             if (itr->second->GetGuildId() == guild->GetId())
             {
                 ++i;
-                sEluna->PushUnsigned(L, i);
-                sEluna->PushUnit(L, itr->second);
+                sEluna.PushUnsigned(L, i);
+                sEluna.PushUnit(L, itr->second);
                 lua_settable(L, tbl);
             }
         }
 
         lua_settop(L, tbl); // push table to top of stack
-        return 1;
+        return 1;*/
+        return 0; // Temporary to prevent conflicts
     }
 
     static int GetUnitType(lua_State* L, Guild* guild)
@@ -57,7 +58,7 @@ public:
         if (!guild)
             return 0;
 
-        sEluna->PushString(L, "Guild");
+        sEluna.PushString(L, "Guild");
         return 1;
     }
 
@@ -66,7 +67,7 @@ public:
         if (!guild)
             return 0;
 
-        sEluna->PushULong(L, guild->GetLeaderGUID());
+        sEluna.PushULong(L, guild->GetLeaderGuid());
         return 1;
     }
 
@@ -76,7 +77,7 @@ public:
         if (!guild)
             return 0;
 
-        WorldPacket* data = sEluna->CHECK_PACKET(L, 1);
+        WorldPacket* data = sEluna.CHECK_PACKET(L, 1);
 
         if (data)
             guild->BroadcastPacket(data);
@@ -89,7 +90,7 @@ public:
         if (!guild)
             return 0;
 
-        WorldPacket* data = sEluna->CHECK_PACKET(L, 1);
+        WorldPacket* data = sEluna.CHECK_PACKET(L, 1);
         uint8 ranked = luaL_checkunsigned(L, 2);
 
         if (data)
@@ -111,7 +112,7 @@ public:
         if (!guild)
             return 0;
 
-        sEluna->PushUnsigned(L, guild->GetId());
+        sEluna.PushUnsigned(L, guild->GetId());
         return 1;
     }
 
@@ -120,7 +121,7 @@ public:
         if (!guild)
             return 0;
 
-        sEluna->PushString(L, guild->GetName().c_str());
+        sEluna.PushString(L, guild->GetName().c_str());
         return 1;
     }
 
@@ -129,7 +130,7 @@ public:
         if (!guild)
             return 0;
 
-        sEluna->PushString(L, guild->GetMOTD().c_str());
+        sEluna.PushString(L, guild->GetMOTD().c_str());
         return 1;
     }
 
@@ -138,7 +139,7 @@ public:
         if (!guild)
             return 0;
 
-        sEluna->PushString(L, guild->GetInfo().c_str());
+        sEluna.PushString(L, guild->GetGINFO().c_str());
         return 1;
     }
 
@@ -147,11 +148,11 @@ public:
         if (!guild)
             return 0;
 
-        Player* player = sEluna->CHECK_PLAYER(L, 1);
+        Player* player = sEluna.CHECK_PLAYER(L, 1);
         uint8 rankId = luaL_optint(L, 2, GUILD_RANK_NONE);
 
         if (player)
-            guild->AddMember(player->GetGUID(), rankId);
+            guild->AddMember(player->GetObjectGuid(), rankId);
         return 0;
     }
 
@@ -160,12 +161,12 @@ public:
         if (!guild)
             return 0;
 
-        Player* player = sEluna->CHECK_PLAYER(L, 1);
+        Player* player = sEluna.CHECK_PLAYER(L, 1);
         bool isDisbanding = luaL_optbool(L, 2, false);
-        bool isKicked = luaL_optbool(L, 3, false);
+        //bool isKicked = luaL_optbool(L, 3, false); Not supported in MaNGOS
 
         if (player)
-            guild->DeleteMember(player->GetGUID(), isDisbanding, isKicked);
+            guild->DelMember(player->GetObjectGuid(), isDisbanding);
         return 0;
     }
 
@@ -174,11 +175,11 @@ public:
         if (!guild)
             return 0;
 
-        Player* player = sEluna->CHECK_PLAYER(L, 1);
+        Player* player = sEluna.CHECK_PLAYER(L, 1);
         uint8 newRank = luaL_checkunsigned(L, 2);
 
-        if (player)
-            guild->ChangeMemberRank(player->GetGUID(), newRank);
+        //if (player)
+            //guild->ChangeMemberRank(player->GetGUID(), newRank); // TODO: Implementation
         return 0;
     }
 
@@ -189,9 +190,8 @@ public:
 
         uint8 tabId = luaL_checkunsigned(L, 1);
         const char* text = luaL_checkstring(L, 2);
-
-        guild->SetBankTabText(tabId, text);
+        guild->SetGuildBankTabText(tabId, text);
         return 0;
-    }*/
+    }
 };
 #endif

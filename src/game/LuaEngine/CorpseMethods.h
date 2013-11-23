@@ -21,14 +21,14 @@
 #define CORPSEMETHODS_H
 
 class LuaCorpse
-{/*
+{
 public:
     // GetOwnerGUID() [CORPSE_FIELD_OWNER]
     static int GetOwnerGUID(lua_State* L, Corpse* corpse)
     {
         if (!corpse)
             return 0;
-        sEluna->PushULong(L, corpse->GetOwnerGUID());
+        sEluna.PushULong(L, corpse->GetOwnerGuid());
         return 1;
     }
 
@@ -37,7 +37,7 @@ public:
     {
         if (!corpse)
             return 0;
-        sEluna->PushUnsigned(L, corpse->GetGhostTime());
+        sEluna.PushUnsigned(L, corpse->GetGhostTime());
         return 1;
     }
 
@@ -46,18 +46,18 @@ public:
     {
         if (!corpse)
             return 0;
-        sEluna->PushUnsigned(L, corpse->GetType());
+        sEluna.PushUnsigned(L, corpse->GetType());
         return 1;
     }
 
     // Create(map)
     static int Create(lua_State* L, Corpse* corpse)
     {
-        Player* player = sEluna->CHECK_PLAYER(L, 1);
+        Player* player = sEluna.CHECK_PLAYER(L, 1);
         if (!player || !corpse)
             return 0;
-        if (corpse->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_CORPSE), player))
-            return 0;
+        //if (corpse->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_CORPSE), player)) // TODO: Implementation
+        //    return 0;
         return 0;
     }
 
@@ -86,6 +86,6 @@ public:
             return 0;
         corpse->DeleteBonesFromWorld();
         return 0;
-    }*/
+    }
 };
 #endif

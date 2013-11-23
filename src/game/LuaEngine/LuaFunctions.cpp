@@ -21,17 +21,17 @@
 #include "GlobalMethods.h"
 #include "UnitMethods.h"
 
-//#include "GroupMethods.h"
-//#include "GuildMethods.h"
+#include "GroupMethods.h"
+#include "GuildMethods.h"
 #include "GameObjectMethods.h"
 //#include "QueryMethods.h"
-//#include "AuraMethods.h"
+#include "AuraMethods.h"
 #include "ItemMethods.h"
-//#include "WorldPacketMethods.h"
-//#include "SpellMethods.h"
-//#include "QuestMethods.h"
-//#include "MapMethods.h"
-//#include "CorpseMethods.h"
+#include "WorldPacketMethods.h"
+#include "SpellMethods.h"
+#include "QuestMethods.h"
+#include "MapMethods.h"
+#include "CorpseMethods.h"
 
 void RegisterGlobals(lua_State* L)
 {
@@ -796,14 +796,14 @@ ElunaRegister<Item> ItemMethods[] =
     {NULL, NULL},
 };
 
-/*ElunaRegister<Aura> AuraMethods[] =
+ElunaRegister<Aura> AuraMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaAura::GetUnitType},                                                                 // :GetUnitType() - Returns object type, IE: Aura, Creature
     {"GetCaster", &LuaAura::GetCaster},                                                                     // :GetCaster() - Returns caster as object
     {"GetCasterGUID", &LuaAura::GetCasterGUID},                                                             // :GetCasterGUID() - Returns caster as GUID
     {"GetCasterLevel", &LuaAura::GetCasterLevel},                                                           // :GetCasterLevel() - Returns casters level
-    // {"GetDuration", &LuaAura::GetDuration},                                                              // :GetDuration() - Returns remaining duration
+    {"GetDuration", &LuaAura::GetDuration},                                                                 // :GetDuration() - Returns remaining duration
     {"GetMaxDuration", &LuaAura::GetMaxDuration},                                                           // :GetMaxDuration() - Returns maximum duration
     {"GetCharges", &LuaAura::GetCharges},                                                                   // :GetCharges() - Returns remaining charges
     {"GetAuraId", &LuaAura::GetAuraId},                                                                     // :GetAuraId() - Returns aura ID
@@ -818,9 +818,9 @@ ElunaRegister<Item> ItemMethods[] =
     // Other
     {"Remove", &LuaAura::Remove},                                                                           // :Remove() - Removes the aura
     {NULL, NULL},
-};*/
+};
 
-/*ElunaRegister<Spell> SpellMethods[] =
+ElunaRegister<Spell> SpellMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaSpell::GetUnitType},                                                                // :GetUnitType() - Returns the unit type (Spell)
@@ -842,9 +842,9 @@ ElunaRegister<Item> ItemMethods[] =
     {"Cast", &LuaSpell::Cast},                                                                              // :Cast(skipCheck) - Casts the spell (if true, removes the check for instant spells, etc)
     {"Finish", &LuaSpell::Finish},                                                                          // :Finish() - Finishes the spell (SPELL_STATE_FINISH)
     {NULL, NULL},
-};*/
+};
 
-/*ElunaRegister<Quest> QuestMethods[] =
+ElunaRegister<Quest> QuestMethods[] =
 {
     // Getters
     {"GetUnitType", &LuaQuest::GetUnitType},                                                                // :GetUnitType() - Returns the unit type (Quest)
@@ -866,9 +866,9 @@ ElunaRegister<Item> ItemMethods[] =
     // Setters
     {"SetFlag", &LuaQuest::SetFlag},                                                                        // :SetFlag(flag) - Sets the flag of the quest by the specified flag
     {NULL, NULL},
-};*/
+};
 
-/*ElunaRegister<Group> GroupMethods[] =
+ElunaRegister<Group> GroupMethods[] =
 {
     // Getters
     {"GetMembers", &LuaGroup::GetMembers},                                                                  // :GetMembers() - returns a table the players in this group. (Online?)
@@ -905,9 +905,9 @@ ElunaRegister<Item> ItemMethods[] =
     {"ConvertToLFG", &LuaGroup::ConvertToLFG},                                                              // :ConvertToLFG() - Converts the group to an LFG group
     {"ConvertToRaid", &LuaGroup::ConvertToRaid},                                                            // :ConvertToRaid() - Converts the group to a raid group
     {NULL, NULL},
-};*/
+};
 
-/*ElunaRegister<Guild> GuildMethods[] =
+ElunaRegister<Guild> GuildMethods[] =
 {
     // Getters
     {"GetMembers", &LuaGuild::GetMembers},                                                                  // :GetMembers() - returns a table containing the players in this guild. (Online?)
@@ -931,7 +931,7 @@ ElunaRegister<Item> ItemMethods[] =
     {"AddMember", &LuaGuild::AddMember},                                                                    // :AddMember(player, rank) - adds the player to the guild. Rank is optional
     {"DeleteMember", &LuaGuild::DeleteMember},                                                              // :DeleteMember(player, disbanding, kicked) - Deletes the player from the guild. Disbanding and kicked are optional bools
     {NULL, NULL},
-};*/
+};
 
 /*ElunaRegister<QueryResult> QueryMethods[] =
 {
@@ -957,7 +957,7 @@ ElunaRegister<Item> ItemMethods[] =
     {NULL, NULL},
 };*/
 
-/*ElunaRegister<WorldPacket> PacketMethods[] =
+ElunaRegister<WorldPacket> PacketMethods[] =
 {
     // Getters
     {"GetOpcode", &LuaPacket::GetOpcode},                                                                   // :GetOpcode() - Returns an opcode
@@ -991,9 +991,9 @@ ElunaRegister<Item> ItemMethods[] =
     {"WriteFloat", &LuaPacket::WriteFloat},                                                                 // :WriteFloat(val) - Writes a float value
     {"WriteDouble", &LuaPacket::WriteDouble},                                                               // :WriteDouble(val) - Writes a double value
     {NULL, NULL},
-};*/
+};
 
-/*ElunaRegister<Map> MapMethods[] =
+ElunaRegister<Map> MapMethods[] =
 {
     // Getters
     {"GetName", &LuaMap::GetName},                                                                          // :GetName() - Returns the map's name UNDOCUMENTED
@@ -1012,9 +1012,9 @@ ElunaRegister<Item> ItemMethods[] =
     {"IsHeroic", &LuaMap::IsHeroic},                                                                        // :IsHeroic() - Returns the true if the map is a heroic dungeon, else false UNDOCUMENTED
     {"IsRaid", &LuaMap::IsRaid},                                                                            // :IsRaid() - Returns the true if the map is a raid map, else false UNDOCUMENTED
     {NULL, NULL},
-};*/
+};
 
-/*ElunaRegister<Corpse> CorpseMethods[] =
+ElunaRegister<Corpse> CorpseMethods[] =
 {
     {"GetOwnerGUID", &LuaCorpse::GetOwnerGUID},                                                             // :GetOwnerGUID() - Returns the corpse owner GUID
     {"GetGhostTime", &LuaCorpse::GetGhostTime},                                                             // :GetGhostTime() - Returns the ghost time of a corpse
@@ -1024,18 +1024,18 @@ ElunaRegister<Item> ItemMethods[] =
     {"SaveToDB", &LuaCorpse::SaveToDB},                                                                     // :SaveToDB() - Saves the corpse data to the corpse database table.
     {"DeleteBonesFromWorld", &LuaCorpse::DeleteBonesFromWorld},                                             // :DeleteBonesFromWorld() - Deletes all bones from the world
     {NULL, NULL}
-};*/
+};
 
 template<typename T> ElunaRegister<T>* GetMethodTable() { return NULL; }
 template<> ElunaRegister<Unit>* GetMethodTable<Unit>() { return UnitMethods; }
 template<> ElunaRegister<GameObject>* GetMethodTable<GameObject>() { return GameObjectMethods; }
-//template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
-//template<> ElunaRegister<Guild>* GetMethodTable<Guild>() { return GuildMethods; }
+template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
+template<> ElunaRegister<Guild>* GetMethodTable<Guild>() { return GuildMethods; }
 //template<> ElunaRegister<QueryResult>* GetMethodTable<QueryResult>() { return QueryMethods; }
-//template<> ElunaRegister<Aura>* GetMethodTable<Aura>() { return AuraMethods; }
+template<> ElunaRegister<Aura>* GetMethodTable<Aura>() { return AuraMethods; }
 template<> ElunaRegister<Item>* GetMethodTable<Item>() { return ItemMethods; }
-//template<> ElunaRegister<WorldPacket>* GetMethodTable<WorldPacket>() { return PacketMethods; }
-//template<> ElunaRegister<Spell>* GetMethodTable<Spell>() { return SpellMethods; }
-//template<> ElunaRegister<Quest>* GetMethodTable<Quest>() { return QuestMethods; }
-//template<> ElunaRegister<Map>* GetMethodTable<Map>() { return MapMethods; }
-//template<> ElunaRegister<Corpse>* GetMethodTable<Corpse>() { return CorpseMethods; }
+template<> ElunaRegister<WorldPacket>* GetMethodTable<WorldPacket>() { return PacketMethods; }
+template<> ElunaRegister<Spell>* GetMethodTable<Spell>() { return SpellMethods; }
+template<> ElunaRegister<Quest>* GetMethodTable<Quest>() { return QuestMethods; }
+template<> ElunaRegister<Map>* GetMethodTable<Map>() { return MapMethods; }
+template<> ElunaRegister<Corpse>* GetMethodTable<Corpse>() { return CorpseMethods; }

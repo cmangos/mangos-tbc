@@ -21,7 +21,7 @@
 #define SPELLMETHODS_H
 
 class LuaSpell
-{/*
+{
 public:
     // :GetUnitType()
     static int GetUnitType(lua_State* L, Spell* spell)
@@ -39,7 +39,7 @@ public:
         if (!spell)
             return 0;
 
-        sEluna->PushUnit(L, spell->GetCaster());
+        sEluna.PushUnit(L, spell->GetCaster());
         return 1;
     }
 
@@ -49,7 +49,7 @@ public:
         if (!spell)
             return 0;
 
-        sEluna->PushInteger(L, spell->GetCastTime());
+        sEluna.PushInteger(L, spell->GetCastTime());
         return 1;
     }
 
@@ -58,8 +58,8 @@ public:
     {
         if (!spell)
             return 0;
-
-        sEluna->PushUnsigned(L, spell->GetSpellInfo()->Id);
+        
+        sEluna.PushUnsigned(L, spell->m_spellInfo->Id);
         return 1;
     }
 
@@ -69,18 +69,19 @@ public:
         if (!spell)
             return 0;
 
-        sEluna->PushInteger(L, spell->GetPowerCost());
+        sEluna.PushInteger(L, spell->GetPowerCost());
         return 1;
     }
 
     // GetDuration()
-    static int GetDuration(lua_State* L, Spell* spell)
+    static int GetDuration(lua_State* L, Spell* spell) // TODO: Implementation
     {
         if (!spell)
             return 0;
 
-        sEluna->PushInteger(L, spell->GetSpellInfo()->GetDuration());
-        return 1;
+        //sEluna.PushInteger(L, spell->m_spellInfo->GetDuration());
+        //return 1;
+        return 0; // Temp to not cause conflicts
     }
 
     // Cast(skipCheck)
@@ -98,11 +99,11 @@ public:
     static int IsAutoRepeat(lua_State* L, Spell* spell)
     {
         if (!spell)
-            sEluna->PushBoolean(L, false);
+            sEluna.PushBoolean(L, false);
         else
         {
             bool repeat = spell->IsAutoRepeat();
-            sEluna->PushBoolean(L, repeat);
+            sEluna.PushBoolean(L, repeat);
         }
         return 1;
     }
@@ -139,21 +140,22 @@ public:
     }
 
     // GetTargetDest()
-    static int GetTargetDest(lua_State* L, Spell* spell)
+    static int GetTargetDest(lua_State* L, Spell* spell) // TODO: Implementation
     {
-        if (!spell)
+        /*if (!spell)
             return 0;
 
         if (!spell->m_targets.HasDst())
             return 0;
         float x, y, z, o;
         spell->m_targets.GetDstPos()->GetPosition(x,y,z,o);
-        sEluna->PushFloat(L, x);
-        sEluna->PushFloat(L, y);
-        sEluna->PushFloat(L, z);
-        sEluna->PushFloat(L, o);
-        sEluna->PushUnsigned(L, spell->m_targets.GetDstPos()->GetMapId());
-        return 5;
-    }*/
+        sEluna.PushFloat(L, x);
+        sEluna.PushFloat(L, y);
+        sEluna.PushFloat(L, z);
+        sEluna.PushFloat(L, o);
+        sEluna.PushUnsigned(L, spell->m_targets.GetDstPos()->GetMapId());
+        return 5;*/
+        return 0; // Temporary to prevent conflicts
+    }
 };
 #endif

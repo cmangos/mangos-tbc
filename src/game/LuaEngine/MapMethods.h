@@ -21,7 +21,7 @@
 #define MAPMETHODS_H
 
 class LuaMap
-{/*
+{
 public:
     // :GetName()
     static int GetName(lua_State* L, Map* map)
@@ -29,7 +29,7 @@ public:
         if(!map)
             return 0;
 
-        sEluna->PushString(L, map->GetMapName());
+        sEluna.PushString(L, map->GetMapName());
         return 1;
     }
 
@@ -43,7 +43,7 @@ public:
         float z = map->GetHeight(phasemask, x, y, MAX_HEIGHT);
         if (z == INVALID_HEIGHT)
             return 0;
-        sEluna->PushFloat(L, z);
+        sEluna.PushFloat(L, z);
         return 1;
     }
 
@@ -53,7 +53,7 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushUnsigned(L, map->GetDifficulty());
+        sEluna.PushUnsigned(L, map->GetDifficulty());
         return 1;
     }
 
@@ -63,7 +63,7 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushUnsigned(L, map->GetInstanceId());
+        sEluna.PushUnsigned(L, map->GetInstanceId());
         return 1;
     }
 
@@ -73,7 +73,7 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushUnsigned(L, map->GetPlayersCountExceptGMs());
+        sEluna.PushUnsigned(L, map->GetPlayersCountExceptGMs());
         return 1;
     }
 
@@ -83,12 +83,12 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushUnsigned(L, map->GetId());
+        sEluna.PushUnsigned(L, map->GetId());
         return 1;
     }
 
     // :GetAreaId(x, y, z)
-    static int GetAreaId(lua_State* L, Map* map)
+    static int GetAreaId(lua_State* L, Map* map) // TODO: Implementation
     {
         if(!map)
             return 0;
@@ -97,8 +97,9 @@ public:
         float y = luaL_checknumber(L, 2);
         float z = luaL_checknumber(L, 3);
 
-        sEluna->PushUnsigned(L, map->GetAreaId(x, y, z));
-        return 1;
+        //sEluna.PushUnsigned(L, map->GetAreaId(x, y, z));
+        //return 1;
+        return 0; // Temporary to prevent conflicts
     }
 
     // :IsArena()
@@ -107,7 +108,7 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushBoolean(L, map->IsBattleArena());
+        sEluna.PushBoolean(L, map->IsBattleArena());
         return 1;
     }
 
@@ -117,7 +118,7 @@ public:
         if(!map)
             return 0;
 
-        sEluna->PushBoolean(L, map->IsBattleground());
+        sEluna.PushBoolean(L, map->IsBattleGround());
         return 1;
     }
 
@@ -127,7 +128,7 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushBoolean(L, map->IsDungeon());
+        sEluna.PushBoolean(L, map->IsDungeon());
         return 1;
     }
 
@@ -137,7 +138,7 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushBoolean(L, map->isEmpty());
+        sEluna.PushBoolean(L, map->isEmpty());
         return 1;
     }
 
@@ -147,7 +148,7 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushBoolean(L, map->IsHeroic());
+        sEluna.PushBoolean(L, map->IsHeroic());
         return 1;
     }
 
@@ -157,8 +158,8 @@ public:
         if(!map)
             return 0;
         
-        sEluna->PushBoolean(L, map->IsRaid());
+        sEluna.PushBoolean(L, map->IsRaid());
         return 1;
-    }*/
+    }
 };
 #endif

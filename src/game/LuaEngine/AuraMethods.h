@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*#ifndef AURAMETHODS_H
+#ifndef AURAMETHODS_H
 #define AURAMETHODS_H
 
 namespace LuaAura
@@ -37,4 +37,4 @@ namespace LuaAura
     int Remove(lua_State*, Aura*);
     int GetOwner(lua_State*, Aura*);
 };
-#endif*/
+#endif

@@ -29,6 +29,7 @@
 
 class Item;
 
+#define GUILD_RANK_NONE         0xFF
 #define GUILD_RANKS_MIN_COUNT   5
 #define GUILD_RANKS_MAX_COUNT   10
 

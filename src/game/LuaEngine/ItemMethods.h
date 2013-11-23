@@ -245,7 +245,7 @@ public:
         {
             bool mail = luaL_optbool(L, 1, false);
             //bool trade = luaL_optbool(L, 2, false);
-            //sEluna.PushBoolean(L, item->CanBeTraded(mail/*, trade*/));
+            sEluna.PushBoolean(L, item->CanBeTraded());
         }
         return 1;
     }

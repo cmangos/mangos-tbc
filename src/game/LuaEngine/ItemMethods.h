@@ -161,10 +161,10 @@ public:
 
     static int IsBoundAccountWide(lua_State* L, Item* item)
     {
-        if (!item || !item->IsInWorld())
+        /*if (!item || !item->IsInWorld())
             sEluna.PushBoolean(L, false);
         else
-            sEluna.PushBoolean(L, item->IsBoundAccountWide());
+            sEluna.PushBoolean(L, item->IsBoundAccountWide());*/
         return 1;
     }
 
@@ -245,7 +245,7 @@ public:
         {
             bool mail = luaL_optbool(L, 1, false);
             //bool trade = luaL_optbool(L, 2, false);
-            sEluna.PushBoolean(L, item->CanBeTraded(mail/*, trade*/));
+            //sEluna.PushBoolean(L, item->CanBeTraded(mail/*, trade*/));
         }
         return 1;
     }
@@ -772,7 +772,7 @@ public:
         if (!item || !item->IsInWorld())
             return 0;
 
-        sEluna.PushUnsigned(L, item->GetProto()->StatsCount);
+        //sEluna.PushUnsigned(L, item->GetProto()->StatsCount);
         return 1;
     }
 

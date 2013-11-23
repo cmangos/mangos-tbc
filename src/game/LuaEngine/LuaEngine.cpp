@@ -651,13 +651,13 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
         }
         break;
 
-    /*case REGTYPE_PLAYER_GOSSIP:
+    case REGTYPE_PLAYER_GOSSIP:
         if (evt < GOSSIP_EVENT_COUNT)
         {
             sEluna.playerGossipBindings->Insert(id, evt, functionRef);
             return;
         }
-        break;*/
+        break;
 
     default:
         luaL_error(LuaState, "Unknown register type (regtype %d, id %d, event %d)", regtype, id, evt);

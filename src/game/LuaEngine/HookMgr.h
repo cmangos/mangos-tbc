@@ -115,7 +115,7 @@ public:
     virtual bool OnUse(Player* player, Item* item, SpellCastTargets const& targets) { return false; }
     virtual bool OnExpire(Player* player, ItemPrototype const* proto) { return false; }
     virtual void OnEngineRestart() { }
-    virtual void HandleGossipSelectOption(Player* player, uint64 guid, uint32 sender, uint32 action, std::string code, uint32 menuId) { }
+    virtual void HandleGossipSelectOption(Player* player, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId) { }
     // creature
     virtual bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Creature* target) { return false; }
     virtual bool OnGossipHello(Player* player, Creature* creature) { return false; }

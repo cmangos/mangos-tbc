@@ -65,8 +65,6 @@ InventoryResult HookMgr::OnCanUseItem(const Player* player, uint32 itemEntry)
 
 void HookMgr::HandleGossipSelectOption(Player* player, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId)
 {
-    if (!player || !player->IsInWorld() || player->PlayerTalkClass->GetGossipMenu().GetMenuId() != menuId)
-        return;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->HandleGossipSelectOption(player, guid, sender, action, code, menuId);
 }
@@ -148,6 +146,7 @@ bool HookMgr::OnExpire(Player* player, ItemPrototype const* proto)
             result = true;
     return result;
 }
+
 // creature
 bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Creature* target)
 {

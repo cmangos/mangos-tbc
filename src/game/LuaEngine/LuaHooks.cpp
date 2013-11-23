@@ -120,7 +120,7 @@ public:
         if (player->hasUnitState(UNIT_STAT_DIED))
             player->RemoveAurasDueToSpell(SPELL_AURA_FEIGN_DEATH);
         player->PlayerTalkClass->ClearMenus();
-
+        
         if (guid.IsItem())
         {
             Item* item = player->GetItemByGuid(guid);
@@ -1391,8 +1391,22 @@ public:
 
 void Eluna::AddScriptHooks()
 {
-    /* AI */
+    // AI
     LuaCreatureAI = new Eluna_CreatureScript;
-    /* Other */
+    LuaGameObjectAI = new Eluna_GameObjectScript;
+    //LuaWorldAI = new Eluna_WorldScript;
+    // Custom
     new Eluna_HookScript;
+    // TC
+    //new Eluna_ServerScript;
+    //new Eluna_FormulaScript;
+    //new Eluna_MapScript;
+    //new Eluna_InstanceMapScript;
+    //new Eluna_AuctionHouseScript;
+    //new Eluna_ConditionScript;
+    //new Eluna_VehicleScript;
+    //new Eluna_TransportScript;
+    //new Eluna_PlayerScript;
+    //new Eluna_GuildScript;
+    //new Eluna_GroupScript;
 }

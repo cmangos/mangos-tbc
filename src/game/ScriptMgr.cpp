@@ -66,6 +66,8 @@ ScriptMgr::ScriptMgr() :
     m_pOnGOGossipSelect(NULL),
     m_pOnGossipSelectWithCode(NULL),
     m_pOnGOGossipSelectWithCode(NULL),
+    m_pOnItemGossipSelect(NULL),
+    m_pOnItemGossipSelectWithCode(NULL),
     m_pOnQuestAccept(NULL),
     m_pOnGOQuestAccept(NULL),
     m_pOnItemQuestAccept(NULL),

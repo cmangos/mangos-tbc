@@ -1025,7 +1025,7 @@ void Creature::SetLootRecipient(Unit* unit)
 bool Creature::isTappedBy(Player const* player) const
 {
     Creature* creature;
-    if (player == creature->GetOriginalLootRecipient());
+    if (player == creature->GetOriginalLootRecipient())
         return true;
 
     Group const* playerGroup = player->GetGroup();

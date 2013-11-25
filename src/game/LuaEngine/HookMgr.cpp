@@ -111,11 +111,11 @@ void HookMgr::OnEngineRestart()
         (*it)->OnEngineRestart();
 }
 // item
-bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Item* target)
+bool HookMgr::OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if ((*it)->OnDummyEffect(caster, spellId, effIndex, target))
+        if ((*it)->OnDummyEffect(pCaster, spellId, effIndex, pTarget))
             result = true;
     return result;
 }
@@ -148,11 +148,11 @@ bool HookMgr::OnExpire(Player* player, ItemPrototype const* proto)
 }
 
 // creature
-bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Creature* target)
+bool HookMgr::OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if ((*it)->OnDummyEffect(caster, spellId, effIndex, target))
+        if ((*it)->OnDummyEffect(pCaster, spellId, effIndex, pTarget))
             result = true;
     return result;
 }
@@ -211,11 +211,11 @@ bool HookMgr::OnQuestComplete(Player* player, Creature* creature, Quest const* q
     return result;
 }
 
-bool HookMgr::OnQuestReward(Player* player, Creature* creature, Quest const* quest, uint32 opt)
+bool HookMgr::OnQuestReward(Player* player, Creature* creature, Quest const* quest)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if ((*it)->OnQuestReward(player, creature, quest, opt))
+        if ((*it)->OnQuestReward(player, creature, quest))
             result = true;
     return result;
 }
@@ -228,11 +228,11 @@ uint32 HookMgr::GetDialogStatus(Player* player, Creature* creature)
     return result;
 }
 // gameobject
-bool HookMgr::OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target)
+bool HookMgr::OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if ((*it)->OnDummyEffect(caster, spellId, effIndex, target))
+        if ((*it)->OnDummyEffect(pCaster, spellId, effIndex, pTarget))
             result = true;
     return result;
 }
@@ -273,11 +273,20 @@ bool HookMgr::OnQuestAccept(Player* player, GameObject* go, Quest const* quest)
     return result;
 }
 
-bool HookMgr::OnQuestReward(Player* player, GameObject* go, Quest const* quest, uint32 opt)
+bool HookMgr::OnQuestReward(Player* player, GameObject* go, Quest const* quest)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if ((*it)->OnQuestReward(player, go, quest, opt))
+        if ((*it)->OnQuestReward(player, go, quest))
+            result = true;
+    return result;
+}
+
+bool HookMgr::OnGameObjectUse(Player* player, GameObject* go)
+{
+    bool result = false;
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        if ((*it)->OnGameObjectUse(player, go))
             result = true;
     return result;
 }
@@ -314,7 +323,7 @@ void HookMgr::OnGameObjectStateChanged(GameObject* go, uint32 state)
         (*it)->OnGameObjectStateChanged(go, state);
 }
 // areatrigger
-/*bool HookMgr::OnTrigger(Player* player, AreaTriggerEntry const* trigger)
+bool HookMgr::OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
@@ -323,7 +332,7 @@ void HookMgr::OnGameObjectStateChanged(GameObject* go, uint32 state)
     return result;
 }
 // weather
-void HookMgr::OnChange(Weather* weather, WeatherState state, float grade)
+/*void HookMgr::OnChange(Weather* weather, WeatherState state, float grade)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnChange(weather, state, grade);

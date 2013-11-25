@@ -274,17 +274,17 @@ public:
     }
 
     // item
-    bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Item* target)
+    bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget)
     {
-        int bind = sEluna.ItemEventBindings->GetBind(target->GetEntry(), ITEM_EVENT_ON_DUMMY_EFFECT);
+        int bind = sEluna.ItemEventBindings->GetBind(pTarget->GetEntry(), ITEM_EVENT_ON_DUMMY_EFFECT);
         if (!bind)
             return false;
         sEluna.BeginCall(bind);
         sEluna.PushUnsigned(sEluna.LuaState, ITEM_EVENT_ON_DUMMY_EFFECT);
-        sEluna.PushUnit(sEluna.LuaState, caster);
+        sEluna.PushUnit(sEluna.LuaState, pCaster);
         sEluna.PushUnsigned(sEluna.LuaState, spellId);
         sEluna.PushInteger(sEluna.LuaState, effIndex);
-        sEluna.PushItem(sEluna.LuaState, target);
+        sEluna.PushItem(sEluna.LuaState, pTarget);
         sEluna.ExecuteCall(5, 0);
         return true;
     }
@@ -351,17 +351,17 @@ public:
         return true;
     }
     // creature
-    bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, Creature* target)
+    bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget)
     {
-        int bind = sEluna.CreatureEventBindings->GetBind(target->GetEntry(), CREATURE_EVENT_ON_DUMMY_EFFECT);
+        int bind = sEluna.CreatureEventBindings->GetBind(pTarget->GetEntry(), CREATURE_EVENT_ON_DUMMY_EFFECT);
         if (!bind)
             return false;
         sEluna.BeginCall(bind);
         sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_DUMMY_EFFECT);
-        sEluna.PushUnit(sEluna.LuaState, caster);
+        sEluna.PushUnit(sEluna.LuaState, pCaster);
         sEluna.PushUnsigned(sEluna.LuaState, spellId);
         sEluna.PushInteger(sEluna.LuaState, effIndex);
-        sEluna.PushUnit(sEluna.LuaState, target);
+        sEluna.PushUnit(sEluna.LuaState, pTarget);
         sEluna.ExecuteCall(5, 0);
         return true;
     }
@@ -455,7 +455,7 @@ public:
         return true;
     }
 
-    bool OnQuestReward(Player* player, Creature* creature, Quest const* quest, uint32 opt)
+    bool OnQuestReward(Player* player, Creature* creature, Quest const* quest)
     {
         int bind = sEluna.CreatureEventBindings->GetBind(creature->GetEntry(), CREATURE_EVENT_ON_QUEST_REWARD);
         if (!bind)
@@ -465,8 +465,7 @@ public:
         sEluna.PushUnit(sEluna.LuaState, player);
         sEluna.PushUnit(sEluna.LuaState, creature);
         sEluna.PushQuest(sEluna.LuaState, quest);
-        sEluna.PushUnsigned(sEluna.LuaState, opt);
-        sEluna.ExecuteCall(5, 0);
+        sEluna.ExecuteCall(4, 0);
         return true;
     }
 
@@ -483,17 +482,17 @@ public:
         return 100;
     }
     // gameobject
-    bool OnDummyEffect(Unit* caster, uint32 spellId, SpellEffectIndex effIndex, GameObject* target)
+    bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget)
     {
-        int bind = sEluna.GameObjectEventBindings->GetBind(target->GetEntry(), GAMEOBJECT_EVENT_ON_DUMMY_EFFECT);
+        int bind = sEluna.GameObjectEventBindings->GetBind(pTarget->GetEntry(), GAMEOBJECT_EVENT_ON_DUMMY_EFFECT);
         if (!bind)
             return false;
         sEluna.BeginCall(bind);
         sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_DUMMY_EFFECT);
-        sEluna.PushUnit(sEluna.LuaState, caster);
+        sEluna.PushUnit(sEluna.LuaState, pCaster);
         sEluna.PushUnsigned(sEluna.LuaState, spellId);
         sEluna.PushInteger(sEluna.LuaState, effIndex);
-        sEluna.PushGO(sEluna.LuaState, target);
+        sEluna.PushGO(sEluna.LuaState, pTarget);
         sEluna.ExecuteCall(5, 0);
         return true;
     }
@@ -559,7 +558,7 @@ public:
         return true;
     }
 
-    bool OnQuestReward(Player* player, GameObject* go, Quest const* quest, uint32 opt)
+    bool OnQuestReward(Player* player, GameObject* go, Quest const* quest)
     {
         int bind = sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_QUEST_REWARD);
         if (!bind)
@@ -569,8 +568,7 @@ public:
         sEluna.PushUnit(sEluna.LuaState, player);
         sEluna.PushGO(sEluna.LuaState, go);
         sEluna.PushQuest(sEluna.LuaState, quest);
-        sEluna.PushUnsigned(sEluna.LuaState, opt);
-        sEluna.ExecuteCall(5, 0);
+        sEluna.ExecuteCall(4, 0);
         return true;
     }
 
@@ -636,7 +634,7 @@ public:
         sEluna.ExecuteCall(3, 0);
     }
     // areatrigger
-    bool OnTrigger(Player* player, AreaTriggerEntry const* trigger)
+    bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)
     {
         for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].begin();
             itr != sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].end(); ++itr)

@@ -141,7 +141,7 @@ public:
     virtual void OnLootStateChanged(GameObject* go, uint32 state, Unit* unit) { }
     virtual void OnGameObjectStateChanged(GameObject* go, uint32 state) { }
     // areatrigger
-    virtual bool OnTrigger(Player* player, AreaTriggerEntry const* trigger) { return false; }
+    virtual bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger) { return false; }
     // weather
     /*virtual void OnChange(Weather* weather, WeatherState state, float grade) { }
     // condition

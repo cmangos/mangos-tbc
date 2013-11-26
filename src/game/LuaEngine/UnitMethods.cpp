@@ -4635,29 +4635,16 @@ int LuaUnit::CastSpell(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    Object* obj = sEluna.CHECK_OBJECT(L, 1);
-    if (!obj)
+    Unit* target = sEluna.CHECK_UNIT(L, 1);
+    if (!target)
         return 0;
     uint32 spell = luaL_checkunsigned(L, 2);
-    /*SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell);
-    if (!spellInfo)
+    SpellEntry const* spellEntry = sSpellStore.LookupEntry(spell);
+    if (!spellEntry)
         return 0;
     bool triggered = luaL_optbool(L, 3, true);
 
-    SpellCastTargets targets;
-    if (Unit* unitTarget = obj->ToUnit())
-        targets.SetUnitTarget(unitTarget);
-    else if (GameObject* goTarget = obj->ToGameObject())
-        targets.SetGOTarget(goTarget);
-    else if (obj->GetTypeId() == TYPEID_ITEM)
-    {
-        if (Item* itemTarget = reinterpret_cast<Item*>(obj))
-            targets.SetItemTarget(itemTarget);
-    }
-    else
-        return 0;
-
-    unit->CastSpell(targets, spellInfo, NULL, triggered ? TRIGGERED_FULL_MASK : TRIGGERED_NONE);*/
+    unit->CastSpell(target, spellEntry, triggered);
     return 0;
 }
 
@@ -4824,7 +4811,7 @@ int LuaUnit::IsWorldBoss(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    //sEluna.PushBoolean(L, creature->isWorldBoss());
+    sEluna.PushBoolean(L, creature->IsWorldBoss());
     return 1;
 }
 
@@ -4913,8 +4900,7 @@ int LuaUnit::RemoveAura(lua_State* L, Unit* unit)
     TO_UNIT();
 
     uint32 spellId = luaL_checkunsigned(L, 1);
-    uint64 casterGUID = sEluna.CHECK_ULONG(L, 2);
-    //unit->RemoveAurasDueToSpell(spellId, casterGUID);
+    unit->RemoveAurasDueToSpell(spellId);
     return 0;
 }
 

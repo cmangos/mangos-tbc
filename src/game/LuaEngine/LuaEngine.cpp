@@ -89,16 +89,16 @@ void Eluna::StartEluna(bool restart)
     //Register Templates Here
     ElunaTemplate<Unit>::Register(LuaState);
     ElunaTemplate<GameObject>::Register(LuaState);
-    //ElunaTemplate<Group>::Register(LuaState);
-    //ElunaTemplate<Guild>::Register(LuaState);
+    ElunaTemplate<Group>::Register(LuaState);
+    ElunaTemplate<Guild>::Register(LuaState);
     //ElunaTemplate<QueryResult>::Register(LuaState);
-    //ElunaTemplate<Aura>::Register(LuaState);
-    //ElunaTemplate<WorldPacket>::Register(LuaState);
+    ElunaTemplate<Aura>::Register(LuaState);
+    ElunaTemplate<WorldPacket>::Register(LuaState);
     ElunaTemplate<Item>::Register(LuaState);
-    //ElunaTemplate<Spell>::Register(LuaState);
-    //ElunaTemplate<Quest>::Register(LuaState);
-    //ElunaTemplate<Map>::Register(LuaState);
-    //ElunaTemplate<Corpse>::Register(LuaState);
+    ElunaTemplate<Spell>::Register(LuaState);
+    ElunaTemplate<Quest>::Register(LuaState);
+    ElunaTemplate<Map>::Register(LuaState);
+    ElunaTemplate<Corpse>::Register(LuaState);
 
     uint32 count = 0;
     char filename[200];

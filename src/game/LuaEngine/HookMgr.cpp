@@ -327,7 +327,7 @@ bool HookMgr::OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)
 {
     bool result = false;
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if ((*it)->OnTrigger(player, trigger))
+        if ((*it)->OnAreaTrigger(player, trigger))
             result = true;
     return result;
 }

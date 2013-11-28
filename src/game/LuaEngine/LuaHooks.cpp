@@ -167,101 +167,6 @@ public:
         }
     }
 
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg)
-    {
-        bool Result = true;
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHAT].begin();
-            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHAT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHAT);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushString(sEluna.LuaState, msg.c_str());
-            sEluna.PushUnsigned(sEluna.LuaState, type);
-            sEluna.PushUnsigned(sEluna.LuaState, lang);
-            if (sEluna.ExecuteCall(5, 1))
-            {
-                lua_State* L = sEluna.LuaState;
-                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
-                    Result = false;
-                sEluna.EndCall(1);
-            }
-        }
-        return Result;
-    }
-
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group)
-    {
-        bool Result = true;
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].begin();
-            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_GROUP_CHAT);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushString(sEluna.LuaState, msg.c_str());
-            sEluna.PushUnsigned(sEluna.LuaState, type);
-            sEluna.PushUnsigned(sEluna.LuaState, lang);
-            sEluna.PushGroup(sEluna.LuaState, group);
-            if (sEluna.ExecuteCall(6, 1))
-            {
-                lua_State* L = sEluna.LuaState;
-                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
-                    Result = false;
-                sEluna.EndCall(1);
-            }
-        }
-        return Result;
-    }
-
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild)
-    {
-        bool Result = true;
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].begin();
-            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_GUILD_CHAT);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushString(sEluna.LuaState, msg.c_str());
-            sEluna.PushUnsigned(sEluna.LuaState, type);
-            sEluna.PushUnsigned(sEluna.LuaState, lang);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            if (sEluna.ExecuteCall(6, 1))
-            {
-                lua_State* L = sEluna.LuaState;
-                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
-                    Result = false;
-                sEluna.EndCall(1);
-            }
-        }
-        return Result;
-    }
-
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel)
-    {
-        bool Result = true;
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].begin();
-            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHANNEL_CHAT);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushString(sEluna.LuaState, msg.c_str());
-            sEluna.PushUnsigned(sEluna.LuaState, type);
-            sEluna.PushUnsigned(sEluna.LuaState, lang);
-            sEluna.PushUnsigned(sEluna.LuaState, channel->GetChannelId());
-            if (sEluna.ExecuteCall(6, 1))
-            {
-                lua_State* L = sEluna.LuaState;
-                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
-                    Result = false;
-                sEluna.EndCall(1);
-            }
-        }
-        return Result;
-    }
-
     void OnEngineRestart()
     {
         for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[ELUNA_EVENT_ON_RESTART].begin();
@@ -633,150 +538,7 @@ public:
         sEluna.PushUnsigned(sEluna.LuaState, state);
         sEluna.ExecuteCall(3, 0);
     }
-    // areatrigger
-    bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].begin();
-            itr != sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, TRIGGER_EVENT_ON_TRIGGER);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushUnsigned(sEluna.LuaState, trigger->id);
-            sEluna.ExecuteCall(3, 0);
-        }
-        return false;
-    }
-    // weather
-    void OnChange(Weather* weather, WeatherState state, float grade)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].begin();
-            itr != sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WEATHER_EVENT_ON_CHANGE);
-            sEluna.PushUnsigned(sEluna.LuaState, (weather->GetZone()));
-            sEluna.PushInteger(sEluna.LuaState, state);
-            sEluna.PushFloat(sEluna.LuaState, grade);
-            sEluna.ExecuteCall(4, 0);
-        }
-    }
-    // transport
-    void OnAddPassenger(Transport* transport, Player* player)
-    {
-    }
-    void OnAddCreaturePassenger(Transport* transport, Creature* creature)
-    {
-    }
-    void OnRemovePassenger(Transport* transport, Player* player)
-    {
-    }
-    void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z)
-    {
-    }
-};
-
-/*class Eluna_ServerScript : public ServerScript
-{
-public:
-    Eluna_ServerScript() : ServerScript("Eluna_ServerScript") { }
-    void OnNetworkStart()
-    {
-    }
-    void OnNetworkStop()
-    {
-    }
-    void OnSocketOpen(WorldSocket* socket)
-    {
-    }
-    void OnSocketClose(WorldSocket* socket, bool wasNew)
-    {
-    }
-    void OnPacketSend(WorldSocket* socket, WorldPacket& packet)
-    {
-    }
-    void OnPacketReceive(WorldSocket* socket, WorldPacket& packet)
-    {
-    }
-    void OnUnknownPacketReceive(WorldSocket* socket, WorldPacket& packet)
-    {
-    }
-};
-
-class Eluna_FormulaScript : public FormulaScript
-{
-public:
-    Eluna_FormulaScript() : FormulaScript("Eluna_FormulaScript") { }
-    void OnHonorCalculation(float& honor, uint8 level, float multiplier)
-    {
-    }
-    void OnGrayLevelCalculation(uint8& grayLevel, uint8 playerLevel)
-    {
-    }
-    void OnColorCodeCalculation(XPColorChar& color, uint8 playerLevel, uint8 mobLevel)
-    {
-    }
-    void OnZeroDifferenceCalculation(uint8& diff, uint8 playerLevel)
-    {
-    }
-    void OnBaseGainCalculation(uint32& gain, uint8 playerLevel, uint8 mobLevel, ContentLevels content)
-    {
-    }
-    void OnGainCalculation(uint32& gain, Player* player, Unit* unit)
-    {
-    }
-    void OnGroupRateCalculation(float& rate, uint32 count, bool isRaid)
-    {
-    }
-};
-
-class Eluna_AuctionHouseScript : public AuctionHouseScript
-{
-public:
-    Eluna_AuctionHouseScript() : AuctionHouseScript("Eluna_AuctionHouseScript") { }
-    void OnAuctionAdd(AuctionHouseObject* ah, AuctionEntry* entry)
-    {
-    }
-    void OnAuctionRemove(AuctionHouseObject* ah, AuctionEntry* entry)
-    {
-    }
-    void OnAuctionSuccessful(AuctionHouseObject* ah, AuctionEntry* entry)
-    {
-    }
-    void OnAuctionExpire(AuctionHouseObject* ah, AuctionEntry* entry)
-    {
-    }
-};
-
-class Eluna_VehicleScript : public VehicleScript
-{
-public:
-    Eluna_VehicleScript() : VehicleScript("Eluna_VehicleScript") { }
-
-    void OnInstall(VehicleInfo* veh)
-    {
-    }
-    void OnUninstall(VehicleInfo* veh)
-    {
-    }
-    void OnReset(VehicleInfo* veh)
-    {
-    }
-    void OnInstallAccessory(VehicleInfo* veh, Creature* accessory)
-    {
-    }
-    void OnAddPassenger(VehicleInfo* veh, Unit* passenger, int8 seatId)
-    {
-    }
-    void OnRemovePassenger(VehicleInfo* veh, Unit* passenger)
-    {
-    }
-};
-
-class Eluna_PlayerScript : public PlayerScript
-{
-public:
-    Eluna_PlayerScript() : PlayerScript("Eluna_PlayerScript") { }
+    // Player
     void OnPlayerEnterCombat(Player* player, Unit* enemy)
     {
         for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].begin();
@@ -962,11 +724,6 @@ public:
         }
     }
 
-    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg)
-    {
-        // implemented in ChatHandler.cpp
-    }
-
     void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver)
     {
         for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_WHISPER].begin();
@@ -981,21 +738,6 @@ public:
             sEluna.PushUnit(sEluna.LuaState, receiver);
             sEluna.ExecuteCall(6, 0);
         }
-    }
-
-    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group)
-    {
-        // implemented in ChatHandler.cpp
-    }
-
-    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild)
-    {
-        // implemented in ChatHandler.cpp
-    }
-
-    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel)
-    {
-        // implemented in ChatHandler.cpp
     }
 
     void OnEmote(Player* player, uint32 emote)
@@ -1076,7 +818,7 @@ public:
         }
     }
 
-    void OnDelete(uint64 guid)
+    void OnDelete(uint32 guid)
     {
         for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].begin();
             itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].end(); ++itr)
@@ -1140,7 +882,241 @@ public:
             sEluna.ExecuteCall(2, 0);
         }
     }
+
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg)
+    {
+        bool Result = true;
+        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHAT].begin();
+            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHAT].end(); ++itr)
+        {
+            sEluna.BeginCall((*itr));
+            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHAT);
+            sEluna.PushUnit(sEluna.LuaState, player);
+            sEluna.PushString(sEluna.LuaState, msg.c_str());
+            sEluna.PushUnsigned(sEluna.LuaState, type);
+            sEluna.PushUnsigned(sEluna.LuaState, lang);
+            if (sEluna.ExecuteCall(5, 1))
+            {
+                lua_State* L = sEluna.LuaState;
+                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
+                    Result = false;
+                sEluna.EndCall(1);
+            }
+        }
+        return Result;
+    }
+
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group)
+    {
+        bool Result = true;
+        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].begin();
+            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].end(); ++itr)
+        {
+            sEluna.BeginCall((*itr));
+            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_GROUP_CHAT);
+            sEluna.PushUnit(sEluna.LuaState, player);
+            sEluna.PushString(sEluna.LuaState, msg.c_str());
+            sEluna.PushUnsigned(sEluna.LuaState, type);
+            sEluna.PushUnsigned(sEluna.LuaState, lang);
+            sEluna.PushGroup(sEluna.LuaState, group);
+            if (sEluna.ExecuteCall(6, 1))
+            {
+                lua_State* L = sEluna.LuaState;
+                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
+                    Result = false;
+                sEluna.EndCall(1);
+            }
+        }
+        return Result;
+    }
+
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild)
+    {
+        bool Result = true;
+        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].begin();
+            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].end(); ++itr)
+        {
+            sEluna.BeginCall((*itr));
+            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_GUILD_CHAT);
+            sEluna.PushUnit(sEluna.LuaState, player);
+            sEluna.PushString(sEluna.LuaState, msg.c_str());
+            sEluna.PushUnsigned(sEluna.LuaState, type);
+            sEluna.PushUnsigned(sEluna.LuaState, lang);
+            sEluna.PushGuild(sEluna.LuaState, guild);
+            if (sEluna.ExecuteCall(6, 1))
+            {
+                lua_State* L = sEluna.LuaState;
+                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
+                    Result = false;
+                sEluna.EndCall(1);
+            }
+        }
+        return Result;
+    }
+
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel)
+    {
+        bool Result = true;
+        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].begin();
+            itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].end(); ++itr)
+        {
+            sEluna.BeginCall((*itr));
+            sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHANNEL_CHAT);
+            sEluna.PushUnit(sEluna.LuaState, player);
+            sEluna.PushString(sEluna.LuaState, msg.c_str());
+            sEluna.PushUnsigned(sEluna.LuaState, type);
+            sEluna.PushUnsigned(sEluna.LuaState, lang);
+            sEluna.PushUnsigned(sEluna.LuaState, channel->GetChannelId());
+            if (sEluna.ExecuteCall(6, 1))
+            {
+                lua_State* L = sEluna.LuaState;
+                if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
+                    Result = false;
+                sEluna.EndCall(1);
+            }
+        }
+        return Result;
+    }
+    // areatrigger
+    bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)
+    {
+        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].begin();
+            itr != sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].end(); ++itr)
+        {
+            sEluna.BeginCall((*itr));
+            sEluna.PushUnsigned(sEluna.LuaState, TRIGGER_EVENT_ON_TRIGGER);
+            sEluna.PushUnit(sEluna.LuaState, player);
+            sEluna.PushUnsigned(sEluna.LuaState, trigger->id);
+            sEluna.ExecuteCall(3, 0);
+        }
+        return false;
+    }
+    // weather
+    void OnChange(Weather* weather, WeatherState state, float grade)
+    {
+        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].begin();
+            itr != sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].end(); ++itr)
+        {
+            sEluna.BeginCall((*itr));
+            sEluna.PushUnsigned(sEluna.LuaState, WEATHER_EVENT_ON_CHANGE);
+            sEluna.PushUnsigned(sEluna.LuaState, (weather->GetZone()));
+            sEluna.PushInteger(sEluna.LuaState, state);
+            sEluna.PushFloat(sEluna.LuaState, grade);
+            sEluna.ExecuteCall(4, 0);
+        }
+    }
+    // transport
+    void OnAddPassenger(Transport* transport, Player* player)
+    {
+    }
+    void OnAddCreaturePassenger(Transport* transport, Creature* creature)
+    {
+    }
+    void OnRemovePassenger(Transport* transport, Player* player)
+    {
+    }
+    void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z)
+    {
+    }
 };
+
+/*class Eluna_ServerScript : public ServerScript
+{
+public:
+    Eluna_ServerScript() : ServerScript("Eluna_ServerScript") { }
+    void OnNetworkStart()
+    {
+    }
+    void OnNetworkStop()
+    {
+    }
+    void OnSocketOpen(WorldSocket* socket)
+    {
+    }
+    void OnSocketClose(WorldSocket* socket, bool wasNew)
+    {
+    }
+    void OnPacketSend(WorldSocket* socket, WorldPacket& packet)
+    {
+    }
+    void OnPacketReceive(WorldSocket* socket, WorldPacket& packet)
+    {
+    }
+    void OnUnknownPacketReceive(WorldSocket* socket, WorldPacket& packet)
+    {
+    }
+};
+
+class Eluna_FormulaScript : public FormulaScript
+{
+public:
+    Eluna_FormulaScript() : FormulaScript("Eluna_FormulaScript") { }
+    void OnHonorCalculation(float& honor, uint8 level, float multiplier)
+    {
+    }
+    void OnGrayLevelCalculation(uint8& grayLevel, uint8 playerLevel)
+    {
+    }
+    void OnColorCodeCalculation(XPColorChar& color, uint8 playerLevel, uint8 mobLevel)
+    {
+    }
+    void OnZeroDifferenceCalculation(uint8& diff, uint8 playerLevel)
+    {
+    }
+    void OnBaseGainCalculation(uint32& gain, uint8 playerLevel, uint8 mobLevel, ContentLevels content)
+    {
+    }
+    void OnGainCalculation(uint32& gain, Player* player, Unit* unit)
+    {
+    }
+    void OnGroupRateCalculation(float& rate, uint32 count, bool isRaid)
+    {
+    }
+};
+
+class Eluna_AuctionHouseScript : public AuctionHouseScript
+{
+public:
+    Eluna_AuctionHouseScript() : AuctionHouseScript("Eluna_AuctionHouseScript") { }
+    void OnAuctionAdd(AuctionHouseObject* ah, AuctionEntry* entry)
+    {
+    }
+    void OnAuctionRemove(AuctionHouseObject* ah, AuctionEntry* entry)
+    {
+    }
+    void OnAuctionSuccessful(AuctionHouseObject* ah, AuctionEntry* entry)
+    {
+    }
+    void OnAuctionExpire(AuctionHouseObject* ah, AuctionEntry* entry)
+    {
+    }
+};
+
+class Eluna_VehicleScript : public VehicleScript
+{
+public:
+    Eluna_VehicleScript() : VehicleScript("Eluna_VehicleScript") { }
+
+    void OnInstall(VehicleInfo* veh)
+    {
+    }
+    void OnUninstall(VehicleInfo* veh)
+    {
+    }
+    void OnReset(VehicleInfo* veh)
+    {
+    }
+    void OnInstallAccessory(VehicleInfo* veh, Creature* accessory)
+    {
+    }
+    void OnAddPassenger(VehicleInfo* veh, Unit* passenger, int8 seatId)
+    {
+    }
+    void OnRemovePassenger(VehicleInfo* veh, Unit* passenger)
+    {
+    }
+};
+
 class Eluna_GuildScript : public GuildScript
 {
 public:

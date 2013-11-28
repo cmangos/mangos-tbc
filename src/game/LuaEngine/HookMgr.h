@@ -34,16 +34,12 @@ public:
     HookMgr() { }
 
     // misc
-    /*void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid);*/
+    void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid);
     void OnFirstLogin(Player* player);
-    /*void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot);
+    void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot);
     void OnRepop(Player* player);
     void OnResurrect(Player* player);
     InventoryResult OnCanUseItem(const Player* player, uint32 itemEntry);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel);*/
     // item
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget);
     bool OnQuestAccept(Player* player, Item* item, Quest const* quest);
@@ -74,6 +70,37 @@ public:
     void OnDamaged(GameObject* go, Player* player);
     void OnLootStateChanged(GameObject* go, uint32 state, Unit* unit);
     void OnGameObjectStateChanged(GameObject* go, uint32 state);
+    // Player
+    void OnPlayerEnterCombat(Player* player, Unit* enemy);
+    void OnPlayerLeaveCombat(Player* player);
+    void OnPVPKill(Player* killer, Player* killed);
+    void OnCreatureKill(Player* killer, Creature* killed);
+    void OnPlayerKilledByCreature(Creature* killer, Player* killed);
+    void OnLevelChanged(Player* player, uint8 oldLevel);
+    void OnFreeTalentPointsChanged(Player* player, uint32 newPoints);
+    void OnTalentsReset(Player* player, bool noCost);
+    void OnMoneyChanged(Player* player, int32& amount);
+    void OnGiveXP(Player* player, uint32& amount, Unit* victim);
+    void OnReputationChange(Player* player, uint32 factionID, int32& standing, bool incremental);
+    void OnDuelRequest(Player* target, Player* challenger);
+    void OnDuelStart(Player* player1, Player* player2);
+    void OnDuelEnd(Player* winner, Player* loser, DuelCompleteType type);
+    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver);
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg);
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group);
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild);
+    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel);
+    void OnEmote(Player* player, uint32 emote);
+    void OnTextEmote(Player* player, uint32 textEmote, uint32 emoteNum, uint64 guid);
+    void OnSpellCast(Player* player, Spell* spell, bool skipCheck);
+    void OnLogin(Player* player);
+    void OnLogout(Player* player);
+    void OnCreate(Player* player);
+    void OnDelete(uint32 guid);
+    void OnSave(Player* player);
+    void OnBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent);
+    void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea);
+    void OnMapChanged(Player* player);
     // areatrigger
     bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger);
     // weather
@@ -100,16 +127,12 @@ public:
         sHookMgr.hookPointers.erase(this);
     }
     // misc
-    /*virtual void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid) { }*/
+    virtual void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid) { }
     virtual void OnFirstLogin(Player* player) { }
-    /*virtual void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot) { }
+    virtual void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot) { }
     virtual void OnRepop(Player* player) { }
     virtual void OnResurrect(Player* player) { }
     virtual InventoryResult OnCanUseItem(Player* player, uint32 itemEntry) { return EQUIP_ERR_OK; }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg) { return true; }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group) { return true; }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild) { return true; }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel) { return true; }
     // item*/
     virtual bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget) { return false; }
     virtual bool OnQuestAccept(Player* player, Item* item, Quest const* quest) { return false; }
@@ -140,6 +163,37 @@ public:
     virtual void OnDamaged(GameObject* go, Player* player) { }
     virtual void OnLootStateChanged(GameObject* go, uint32 state, Unit* unit) { }
     virtual void OnGameObjectStateChanged(GameObject* go, uint32 state) { }
+    // Player
+    virtual void OnPlayerEnterCombat(Player* player, Unit* enemy) { }
+    virtual void OnPlayerLeaveCombat(Player* player) { }
+    virtual void OnPVPKill(Player* killer, Player* killed) { }
+    virtual void OnCreatureKill(Player* killer, Creature* killed) { }
+    virtual void OnPlayerKilledByCreature(Creature* killer, Player* killed) { }
+    virtual void OnLevelChanged(Player* player, uint8 oldLevel) { }
+    virtual void OnFreeTalentPointsChanged(Player* player, uint32 newPoints) { }
+    virtual void OnTalentsReset(Player* player, bool noCost) { }
+    virtual void OnMoneyChanged(Player* player, int32& amount) { }
+    virtual void OnGiveXP(Player* player, uint32& amount, Unit* victim) { }
+    virtual void OnReputationChange(Player* player, uint32 factionID, int32& standing, bool incremental) { }
+    virtual void OnDuelRequest(Player* target, Player* challenger) { }
+    virtual void OnDuelStart(Player* player1, Player* player2) { }
+    virtual void OnDuelEnd(Player* winner, Player* loser, DuelCompleteType type) { }
+    virtual void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver) { }
+    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg) { return true; }
+    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group) { return true; }
+    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild) { return true; }
+    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel) { return true; }
+    virtual void OnEmote(Player* player, uint32 emote) { }
+    virtual void OnTextEmote(Player* player, uint32 textEmote, uint32 emoteNum, uint64 guid) { }
+    virtual void OnSpellCast(Player* player, Spell* spell, bool skipCheck) { }
+    virtual void OnLogin(Player* player) { }
+    virtual void OnLogout(Player* player) { }
+    virtual void OnCreate(Player* player) { }
+    virtual void OnDelete(uint32 guid) { }
+    virtual void OnSave(Player* player) { }
+    virtual void OnBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent) { }
+    virtual void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea) { }
+    virtual void OnMapChanged(Player* player) { }
     // areatrigger
     virtual bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger) { return false; }
     // weather

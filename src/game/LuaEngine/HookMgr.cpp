@@ -21,11 +21,11 @@
 #include "Includes.h"
 
 // misc
-/*void HookMgr::OnLootItem(Player* player, Item* item, uint32 count, uint64 guid)
+void HookMgr::OnLootItem(Player* player, Item* item, uint32 count, uint64 guid)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnLootItem(player, item, count, guid);
-}*/
+}
 
 void HookMgr::OnFirstLogin(Player* player)
 {
@@ -33,7 +33,7 @@ void HookMgr::OnFirstLogin(Player* player)
         (*it)->OnFirstLogin(player);
 }
 
-/*void HookMgr::OnEquip(Player* player, Item* item, uint8 bag, uint8 slot)
+void HookMgr::OnEquip(Player* player, Item* item, uint8 bag, uint8 slot)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnEquip(player, item, bag, slot);
@@ -61,49 +61,13 @@ InventoryResult HookMgr::OnCanUseItem(const Player* player, uint32 itemEntry)
             return value;
     }
     return EQUIP_ERR_OK;
-}*/
+}
 
 void HookMgr::HandleGossipSelectOption(Player* player, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->HandleGossipSelectOption(player, guid, sender, action, code, menuId);
 }
-
-/*bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg)
-{
-    bool result = true;
-    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if (!(*it)->OnChat(player, type, lang, msg))
-            result = false;
-    return result;
-}
-
-bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group)
-{
-    bool result = true;
-    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if (!(*it)->OnChat(player, type, lang, msg, group))
-            result = false;
-    return result;
-}
-
-bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild)
-{
-    bool result = true;
-    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if (!(*it)->OnChat(player, type, lang, msg, guild))
-            result = false;
-    return result;
-}
-
-bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel)
-{
-    bool result = true;
-    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        if (!(*it)->OnChat(player, type, lang, msg, channel))
-            result = false;
-    return result;
-}*/
 
 void HookMgr::OnEngineRestart()
 {
@@ -321,6 +285,198 @@ void HookMgr::OnGameObjectStateChanged(GameObject* go, uint32 state)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnGameObjectStateChanged(go, state);
+}
+// Player
+void HookMgr::OnPlayerEnterCombat(Player* player, Unit* enemy)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnPlayerEnterCombat(player, enemy);
+}
+
+void HookMgr::OnPlayerLeaveCombat(Player* player)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnPlayerLeaveCombat(player);
+}
+
+void HookMgr::OnPVPKill(Player* killer, Player* killed)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnPVPKill(killer, killed);
+}
+
+void HookMgr::OnCreatureKill(Player* killer, Creature* killed)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnCreatureKill(killer, killed);
+}
+
+void HookMgr::OnPlayerKilledByCreature(Creature* killer, Player* killed)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnPlayerKilledByCreature(killer, killed);
+}
+
+void HookMgr::OnLevelChanged(Player* player, uint8 oldLevel)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnLevelChanged(player, oldLevel);
+}
+
+void HookMgr::OnFreeTalentPointsChanged(Player* player, uint32 newPoints)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnFreeTalentPointsChanged(player, newPoints);
+}
+
+void HookMgr::OnTalentsReset(Player* player, bool noCost)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnTalentsReset(player, noCost);
+}
+
+void HookMgr::OnMoneyChanged(Player* player, int32& amount)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnMoneyChanged(player, amount);
+}
+
+void HookMgr::OnGiveXP(Player* player, uint32& amount, Unit* victim)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnGiveXP(player, amount, victim);
+}
+
+void HookMgr::OnReputationChange(Player* player, uint32 factionID, int32& standing, bool incremental)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnReputationChange(player, factionID, standing, incremental);
+}
+
+void HookMgr::OnDuelRequest(Player* target, Player* challenger)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnDuelRequest(target, challenger);
+}
+
+void HookMgr::OnDuelStart(Player* starter, Player* challenger)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnDuelStart(starter, challenger);
+}
+
+void HookMgr::OnDuelEnd(Player* winner, Player* loser, DuelCompleteType type)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnDuelEnd(winner, loser, type);
+}
+
+void HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnChat(player, type, lang, msg, receiver);
+}
+
+bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg)
+{
+    bool result = true;
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        if (!(*it)->OnChat(player, type, lang, msg))
+            result = false;
+    return result;
+}
+
+bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group)
+{
+    bool result = true;
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        if (!(*it)->OnChat(player, type, lang, msg, group))
+            result = false;
+    return result;
+}
+
+bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild)
+{
+    bool result = true;
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        if (!(*it)->OnChat(player, type, lang, msg, guild))
+            result = false;
+    return result;
+}
+
+bool HookMgr::OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel)
+{
+    bool result = true;
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        if (!(*it)->OnChat(player, type, lang, msg, channel))
+            result = false;
+    return result;
+}
+
+void HookMgr::OnEmote(Player* player, uint32 emote)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnEmote(player, emote);
+}
+
+void HookMgr::OnTextEmote(Player* player, uint32 textEmote, uint32 emoteNum, uint64 guid)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnTextEmote(player, textEmote, emoteNum, guid);
+}
+
+void HookMgr::OnSpellCast(Player* player, Spell* spell, bool skipCheck)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnSpellCast(player, spell, skipCheck);
+}
+
+void HookMgr::OnLogin(Player* player)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnLogin(player);
+}
+
+void HookMgr::OnLogout(Player* player)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnLogout(player);
+}
+
+void HookMgr::OnCreate(Player* player)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnCreate(player);
+}
+
+void HookMgr::OnDelete(uint32 lowGuid)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnDelete(lowGuid);
+}
+
+void HookMgr::OnSave(Player* pPlayer)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnSave(pPlayer);
+}
+
+void HookMgr::OnBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnBindToInstance(player, difficulty, mapid, permanent);
+}
+
+void HookMgr::OnUpdateZone(Player* player, uint32 newZone, uint32 newArea)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnUpdateZone(player, newZone, newArea);
+}
+
+void HookMgr::OnMapChanged(Player* player) // Not Implemented
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnMapChanged(player);
 }
 // areatrigger
 bool HookMgr::OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger)

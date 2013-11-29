@@ -63,7 +63,7 @@ InventoryResult HookMgr::OnCanUseItem(const Player* pPlayer, uint32 itemEntry)
     return EQUIP_ERR_OK;
 }
 
-void HookMgr::HandleGossipSelectOption(Player*pPlayer, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId)
+void HookMgr::HandleGossipSelectOption(Player* pPlayer, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->HandleGossipSelectOption(pPlayer, guid, sender, action, code, menuId);

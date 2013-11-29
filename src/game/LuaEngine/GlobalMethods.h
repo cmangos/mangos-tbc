@@ -40,7 +40,7 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    //RegisterCreatureGossipEvent(entry, event, function)
+    // RegisterCreatureGossipEvent(entry, event, function)
     static int RegisterCreatureGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -183,7 +183,7 @@ namespace LuaGlobalFunctions
     // ReloadEluna() - Gets core version as a string
     static int GetCoreVersion(lua_State* L)
     {
-        //sEluna.PushString(L, _FULLVERSION);
+        // sEluna.PushString(L, _FULLVERSION);
         return 1;
     }
 
@@ -209,7 +209,7 @@ namespace LuaGlobalFunctions
     static int GetPlayerByGUID(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        //sEluna.PushUnit(L, sObjectAccessor.FindPlayer(guid));
+        // sEluna.PushUnit(L, sObjectAccessor.FindPlayer(guid));
         return 1;
     }
 
@@ -392,22 +392,22 @@ namespace LuaGlobalFunctions
         if (!sMapStore.LookupEntry(mapid))
             return 0;
 
-        //sEluna.PushMap(L, sMapMgr.CreateBaseMap(mapid));
+        // sEluna.PushMap(L, sMapMgr.CreateBaseMap(mapid));
         return 1;
     }
 
     // GetGuildByLeaderGUID(leaderGUID) - Gets guild object
     static int GetGuildByLeaderGUID(lua_State* L)
     {
-        //ObjectGuid guid = sEluna.CHECK_OBJGUID(L, 1);
-        //sEluna.PushGuild(L, sGuildMgr.GetGuildByLeader(guid));
+        // ObjectGuid guid = sEluna.CHECK_OBJGUID(L, 1);
+        // sEluna.PushGuild(L, sGuildMgr.GetGuildByLeader(guid));
         return 1;
     }
 
     // GetPlayerCount() - Gets server player count
     static int GetPlayerCount(lua_State* L)
     {
-        //sEluna.PushUnsigned(L, sWorld->GetPlayerCount());
+        // sEluna.PushUnsigned(L, sWorld->GetPlayerCount());
         return 1;
     }
 
@@ -415,7 +415,7 @@ namespace LuaGlobalFunctions
     static int FindUnit(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        //sEluna.PushUnit(L, sObjectAccessor.FindUnit(guid));
+        // sEluna.PushUnit(L, sObjectAccessor.FindUnit(guid));
         return 1;
     }
 
@@ -423,7 +423,7 @@ namespace LuaGlobalFunctions
     static int GetPlayerGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
-        //sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_PLAYER));
+        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_PLAYER));
         return 1;
     }
 
@@ -431,7 +431,7 @@ namespace LuaGlobalFunctions
     static int GetItemGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
-        //sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_ITEM));
+        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_ITEM));
         return 1;
     }
 
@@ -440,7 +440,7 @@ namespace LuaGlobalFunctions
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
-        //sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_GAMEOBJECT));
+        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_GAMEOBJECT));
         return 1;
     }
 
@@ -449,7 +449,7 @@ namespace LuaGlobalFunctions
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
-        //sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_UNIT));
+        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_UNIT));
         return 1;
     }
 
@@ -462,7 +462,7 @@ namespace LuaGlobalFunctions
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        //sEluna.LuaWorldAI->ScriptEventCreate(functionRef, delay, repeats);
+        // sEluna.LuaWorldAI->ScriptEventCreate(functionRef, delay, repeats);
         sEluna.PushInteger(L, functionRef);
         return 1;
     }
@@ -471,7 +471,7 @@ namespace LuaGlobalFunctions
     static int DestroyEventByID(lua_State* L)
     {
         int functionRef = luaL_checkinteger(L, 1);
-        //sEluna.LuaWorldAI->ScriptEventCancel(functionRef);
+        // sEluna.LuaWorldAI->ScriptEventCancel(functionRef);
         return 0;
     }
 
@@ -485,8 +485,8 @@ namespace LuaGlobalFunctions
             Eluna::LuaEventMap::ScriptEventsResetAll();
             Eluna::LuaEventData::RemoveAll();
         }
-       // else
-            //sEluna.LuaWorldAI->ScriptEventsReset();
+        // else
+        // sEluna.LuaWorldAI->ScriptEventsReset();
         return 0;
     }
 
@@ -512,7 +512,7 @@ namespace LuaGlobalFunctions
         if (!map)
             return 0;
 
-        //Position pos = {x,y,z,o};
+        // Position pos = {x,y,z,o};
 
         /*if (spawntype == 1) // spawn creature
         {
@@ -631,9 +631,9 @@ namespace LuaGlobalFunctions
             return 0;
         }
 
-        //if (!sObjectMgr.IsVendorItemValid(entry, item, maxcount, incrtime, extendedcost))
-            //return 0;
-        //sObjectMgr.AddVendorItem(entry, item, maxcount, incrtime, extendedcost, persist);
+        // if (!sObjectMgr.IsVendorItemValid(entry, item, maxcount, incrtime, extendedcost))
+        // return 0;
+        // sObjectMgr.AddVendorItem(entry, item, maxcount, incrtime, extendedcost, persist);
         return 0;
     }
 
@@ -649,7 +649,7 @@ namespace LuaGlobalFunctions
             return 0;
         }
 
-        //sObjectMgr.RemoveVendorItem(entry, item, persist);
+        // sObjectMgr.RemoveVendorItem(entry, item, persist);
         return 0;
     }
 
@@ -664,8 +664,8 @@ namespace LuaGlobalFunctions
             return 0;
 
         VendorItemList const itemlist = items->m_items;
-        //for (VendorItemList::const_iterator itr = itemlist.begin(); itr != itemlist.end(); ++itr)
-            //sObjectMgr.RemoveVendorItem(entry, (*itr)->item, persist);
+        // for (VendorItemList::const_iterator itr = itemlist.begin(); itr != itemlist.end(); ++itr)
+        // sObjectMgr.RemoveVendorItem(entry, (*itr)->item, persist);
         return 0;
     }
 
@@ -692,20 +692,20 @@ namespace LuaGlobalFunctions
 
         switch (banMode)
         {
-        case BAN_ACCOUNT:
-            if (!AccountMgr::normalizeString(nameOrIP))
+            case BAN_ACCOUNT:
+                if (!AccountMgr::normalizeString(nameOrIP))
+                    return 0;
+                break;
+            case BAN_CHARACTER:
+                if (!normalizePlayerName(nameOrIP))
+                    return 0;
+                break;
+            case BAN_IP:
+                if (!IsIPAddress(nameOrIP.c_str()))
+                    return 0;
+                break;
+            default:
                 return 0;
-            break;
-        case BAN_CHARACTER:
-            if (!normalizePlayerName(nameOrIP))
-                return 0;
-            break;
-        case BAN_IP:
-            if (!IsIPAddress(nameOrIP.c_str()))
-                return 0;
-            break;
-        default:
-            return 0;
         }
 
         /*switch (sWorld->BanAccount((BanMode)banMode, nameOrIP, duration, reason, whoBanned->GetSession() ? whoBanned->GetName() : ""))
@@ -736,7 +736,7 @@ namespace LuaGlobalFunctions
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
-        //sEluna.PushUnsigned(L, GUID_LOPART(guid));
+        // sEluna.PushUnsigned(L, GUID_LOPART(guid));
         return 1;
     }
 
@@ -842,14 +842,14 @@ namespace LuaGlobalFunctions
     static int GetGUIDType(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        //sEluna.PushUnsigned(L, GUID_HIPART(guid));
+        // sEluna.PushUnsigned(L, GUID_HIPART(guid));
         return 1;
     }
 
     static int GetGUIDEntry(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        //sEluna.PushUnsigned(L, GUID_ENPART(guid));
+        // sEluna.PushUnsigned(L, GUID_ENPART(guid));
         return 1;
     }
 
@@ -879,14 +879,14 @@ namespace LuaGlobalFunctions
             }
             if (start == end)
                 continue;
-            if (end-start < 4) // no mandatory args, dont add
+            if (end - start < 4) // no mandatory args, dont add
             {
                 while (end != start)
                     lua_remove(L, --end);
                 continue;
             }
 
-            while (end-start < 8) // fill optional args with 0
+            while (end - start < 8) // fill optional args with 0
             {
                 lua_pushunsigned(L, 0);
                 lua_insert(L, end++);
@@ -894,14 +894,14 @@ namespace LuaGlobalFunctions
             TaxiPathNodeEntry* entry = new TaxiPathNodeEntry();
             // mandatory
             entry->mapid = luaL_checkunsigned(L, start);
-            entry->x = luaL_checknumber(L, start+1);
-            entry->y = luaL_checknumber(L, start+2);
-            entry->z = luaL_checknumber(L, start+3);
+            entry->x = luaL_checknumber(L, start + 1);
+            entry->y = luaL_checknumber(L, start + 2);
+            entry->z = luaL_checknumber(L, start + 3);
             // optional
-            entry->actionFlag = luaL_checkunsigned(L, start+4);
-            entry->delay = luaL_checkunsigned(L, start+5);
-            entry->arrivalEventID = luaL_checkunsigned(L, start+6);
-            entry->departureEventID = luaL_checkunsigned(L, start+7);
+            entry->actionFlag = luaL_checkunsigned(L, start + 4);
+            entry->delay = luaL_checkunsigned(L, start + 5);
+            entry->arrivalEventID = luaL_checkunsigned(L, start + 6);
+            entry->departureEventID = luaL_checkunsigned(L, start + 7);
 
             nodes.push_back(*entry);
 
@@ -1081,7 +1081,7 @@ namespace LuaGlobalFunctions
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         bool insignia = luaL_optbool(L, 2, false);
-        //sObjectAccessor.ConvertCorpseForPlayer(guid, insignia);
+        // sObjectAccessor.ConvertCorpseForPlayer(guid, insignia);
         return 0;
     }
 

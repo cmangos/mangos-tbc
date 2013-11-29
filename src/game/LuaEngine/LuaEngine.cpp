@@ -84,14 +84,14 @@ void Eluna::StartEluna(bool restart)
     LoadedScripts loadedScripts;
     LoadDirectory("lua_scripts", &loadedScripts);
     luaL_openlibs(LuaState);
-    //Register Globals Here
+    // Register Globals Here
     RegisterGlobals(LuaState);
-    //Register Templates Here
+    // Register Templates Here
     ElunaTemplate<Unit>::Register(LuaState);
     ElunaTemplate<GameObject>::Register(LuaState);
     ElunaTemplate<Group>::Register(LuaState);
     ElunaTemplate<Guild>::Register(LuaState);
-    //ElunaTemplate<QueryResult>::Register(LuaState);
+    // ElunaTemplate<QueryResult>::Register(LuaState);
     ElunaTemplate<Aura>::Register(LuaState);
     ElunaTemplate<WorldPacket>::Register(LuaState);
     ElunaTemplate<Item>::Register(LuaState);
@@ -162,7 +162,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
     }
 
     FindNextFile(hFile, &FindData);
-    while ( FindNextFile(hFile, &FindData) )
+    while (FindNextFile(hFile, &FindData))
     {
         if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
@@ -186,12 +186,12 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
                     break;
             }
             ext[i++] = '\0';
-            if (!_stricmp(ext,"aul."))
+            if (!_stricmp(ext, "aul."))
                 lscr->luaFiles.insert(fname);
         }
     }
     FindClose(hFile);
-#else    
+#else
     char* dir = strrchr(Dirname, '/');
     if (strcmp(Dirname, "..") == 0 || strcmp(Dirname, ".") == 0)
         return;
@@ -239,14 +239,14 @@ void Eluna::report(lua_State* L)
     while (msg)
     {
         lua_pop(L, -1);
-        printf("\t%s\n",msg);
+        printf("\t%s\n", msg);
         msg = lua_tostring(L, -1);
     }
 }
 
 void Eluna::BeginCall(int fReference)
 {
-    lua_settop(LuaState, 0); //stack should be empty
+    lua_settop(LuaState, 0); // stack should be empty
     lua_rawgeti(LuaState, LUA_REGISTRYINDEX, (fReference));
 }
 
@@ -255,9 +255,9 @@ bool Eluna::ExecuteCall(uint8 params, uint8 res)
     bool ret = true;
     int top = lua_gettop(LuaState);
 
-    if (lua_type(LuaState, top-params) == LUA_TFUNCTION) // is function
+    if (lua_type(LuaState, top - params) == LUA_TFUNCTION) // is function
     {
-        if (lua_pcall(LuaState,params,res,0) )
+        if (lua_pcall(LuaState, params, res, 0))
         {
             report(LuaState);
             ret = false;
@@ -268,9 +268,9 @@ bool Eluna::ExecuteCall(uint8 params, uint8 res)
         ret = false;
         if (params > 0)
         {
-            for (int i = top; i >= (top-params); i--)
+            for (int i = top; i >= (top - params); i--)
             {
-                if (!lua_isnone(LuaState, i) )
+                if (!lua_isnone(LuaState, i))
                     lua_remove(LuaState, i);
             }
         }
@@ -282,8 +282,8 @@ void Eluna::EndCall(uint8 res)
 {
     for (int i = res; i > 0; i--)
     {
-        if (!lua_isnone(LuaState,res))
-            lua_remove(LuaState,res);
+        if (!lua_isnone(LuaState, res))
+            lua_remove(LuaState, res);
     }
 }
 
@@ -473,7 +473,7 @@ WorldObject* Eluna::CHECK_WORLDOBJECT(lua_State* L, int narg)
 Unit* Eluna::CHECK_UNIT(lua_State* L, int narg)
 {
     WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
-    if(!obj)
+    if (!obj)
         return NULL;
     return obj->ToUnit();
 }
@@ -481,7 +481,7 @@ Unit* Eluna::CHECK_UNIT(lua_State* L, int narg)
 Player* Eluna::CHECK_PLAYER(lua_State* L, int narg)
 {
     WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
-    if(!obj)
+    if (!obj)
         return NULL;
     return obj->ToPlayer();
 }
@@ -489,7 +489,7 @@ Player* Eluna::CHECK_PLAYER(lua_State* L, int narg)
 Creature* Eluna::CHECK_CREATURE(lua_State* L, int narg)
 {
     WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
-    if(!obj)
+    if (!obj)
         return NULL;
     return obj->ToCreature();
 }
@@ -497,7 +497,7 @@ Creature* Eluna::CHECK_CREATURE(lua_State* L, int narg)
 GameObject* Eluna::CHECK_GAMEOBJECT(lua_State* L, int narg)
 {
     WorldObject* obj = CHECK_WORLDOBJECT(L, narg);
-    if(!obj)
+    if (!obj)
         return NULL;
     return obj->ToGameObject();
 }
@@ -557,111 +557,111 @@ int64 Eluna::CHECK_LONG(lua_State* L, int narg)
 // Saves the function reference ID given to the register type's store for given entry under the given event
 void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
 {
-    switch(regtype)
+    switch (regtype)
     {
-    case REGTYPE_SERVER:
-        if (evt < SERVER_EVENT_COUNT)
-        {
-            ServerEventBindings[evt].push_back(functionRef);
-            return;
-        }
-        break;
-
-    case REGTYPE_CREATURE:
-        if (evt < CREATURE_EVENT_COUNT)
-        {
-            if (!sObjectMgr.GetCreatureTemplate(id))
+        case REGTYPE_SERVER:
+            if (evt < SERVER_EVENT_COUNT)
             {
-                luaL_error(LuaState, "Couldn't find a creature with (ID: %d)!", id);
+                ServerEventBindings[evt].push_back(functionRef);
                 return;
             }
+            break;
 
-            sEluna.CreatureEventBindings->Insert(id, evt, functionRef);
-            return;
-        }
-        break;
-
-    case REGTYPE_CREATURE_GOSSIP:
-        if (evt < GOSSIP_EVENT_COUNT)
-        {
-            if (!sObjectMgr.GetCreatureTemplate(id))
+        case REGTYPE_CREATURE:
+            if (evt < CREATURE_EVENT_COUNT)
             {
-                luaL_error(LuaState, "Couldn't find a creature with (ID: %d)!", id);
+                if (!sObjectMgr.GetCreatureTemplate(id))
+                {
+                    luaL_error(LuaState, "Couldn't find a creature with (ID: %d)!", id);
+                    return;
+                }
+
+                sEluna.CreatureEventBindings->Insert(id, evt, functionRef);
                 return;
             }
+            break;
 
-            sEluna.CreatureGossipBindings->Insert(id, evt, functionRef);
-            return;
-        }
-        break;
-
-    case REGTYPE_GAMEOBJECT:
-        if (evt < GAMEOBJECT_EVENT_COUNT)
-        {
-            if (!sObjectMgr.GetGameObjectInfo(id))
+        case REGTYPE_CREATURE_GOSSIP:
+            if (evt < GOSSIP_EVENT_COUNT)
             {
-                luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
+                if (!sObjectMgr.GetCreatureTemplate(id))
+                {
+                    luaL_error(LuaState, "Couldn't find a creature with (ID: %d)!", id);
+                    return;
+                }
+
+                sEluna.CreatureGossipBindings->Insert(id, evt, functionRef);
                 return;
             }
+            break;
 
-            sEluna.GameObjectEventBindings->Insert(id, evt, functionRef);
-            return;
-        }
-        break;
-
-    case REGTYPE_GAMEOBJECT_GOSSIP:
-        if (evt < GOSSIP_EVENT_COUNT)
-        {
-            if (!sObjectMgr.GetGameObjectInfo(id))
+        case REGTYPE_GAMEOBJECT:
+            if (evt < GAMEOBJECT_EVENT_COUNT)
             {
-                luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
+                if (!sObjectMgr.GetGameObjectInfo(id))
+                {
+                    luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
+                    return;
+                }
+
+                sEluna.GameObjectEventBindings->Insert(id, evt, functionRef);
                 return;
             }
+            break;
 
-            sEluna.GameObjectGossipBindings->Insert(id, evt, functionRef);
-            return;
-        }
-        break;
-
-    case REGTYPE_ITEM:
-        if (evt < ITEM_EVENT_COUNT)
-        {
-            if (!sObjectMgr.GetItemPrototype(id))
+        case REGTYPE_GAMEOBJECT_GOSSIP:
+            if (evt < GOSSIP_EVENT_COUNT)
             {
-                luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
+                if (!sObjectMgr.GetGameObjectInfo(id))
+                {
+                    luaL_error(LuaState, "Couldn't find a gameobject with (ID: %d)!", id);
+                    return;
+                }
+
+                sEluna.GameObjectGossipBindings->Insert(id, evt, functionRef);
                 return;
             }
+            break;
 
-            sEluna.ItemEventBindings->Insert(id, evt, functionRef);
-            return;
-        }
-        break;
-
-    case REGTYPE_ITEM_GOSSIP:
-        if (evt < GOSSIP_EVENT_COUNT)
-        {
-            if (!sObjectMgr.GetItemPrototype(id))
+        case REGTYPE_ITEM:
+            if (evt < ITEM_EVENT_COUNT)
             {
-                luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
+                if (!sObjectMgr.GetItemPrototype(id))
+                {
+                    luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
+                    return;
+                }
+
+                sEluna.ItemEventBindings->Insert(id, evt, functionRef);
                 return;
             }
+            break;
 
-            sEluna.ItemGossipBindings->Insert(id, evt, functionRef);
+        case REGTYPE_ITEM_GOSSIP:
+            if (evt < GOSSIP_EVENT_COUNT)
+            {
+                if (!sObjectMgr.GetItemPrototype(id))
+                {
+                    luaL_error(LuaState, "Couldn't find a item with (ID: %d)!", id);
+                    return;
+                }
+
+                sEluna.ItemGossipBindings->Insert(id, evt, functionRef);
+                return;
+            }
+            break;
+
+        case REGTYPE_PLAYER_GOSSIP:
+            if (evt < GOSSIP_EVENT_COUNT)
+            {
+                sEluna.playerGossipBindings->Insert(id, evt, functionRef);
+                return;
+            }
+            break;
+
+        default:
+            luaL_error(LuaState, "Unknown register type (regtype %d, id %d, event %d)", regtype, id, evt);
             return;
-        }
-        break;
-
-    case REGTYPE_PLAYER_GOSSIP:
-        if (evt < GOSSIP_EVENT_COUNT)
-        {
-            sEluna.playerGossipBindings->Insert(id, evt, functionRef);
-            return;
-        }
-        break;
-
-    default:
-        luaL_error(LuaState, "Unknown register type (regtype %d, id %d, event %d)", regtype, id, evt);
-        return;
     }
     luaL_error(LuaState, "Unknown event type (regtype %d, id %d, event %d)", regtype, id, evt);
 }
@@ -698,7 +698,7 @@ void Eluna::LuaEventMap::ScriptEventsResetAll()
             if (itr->second)
                 itr->second->ScriptEventsReset();
     // Global events reset
-    //sEluna.LuaWorldAI->ScriptEventsReset();
+    // sEluna.LuaWorldAI->ScriptEventsReset();
 }
 void Eluna::LuaEventMap::ScriptEventsReset()
 {
@@ -746,7 +746,7 @@ void Eluna::LuaEventMap::ScriptEventsExecute()
         if (itr->second.calls != 1)
         {
             if (itr->second.calls > 1)
-                itr->second.calls = itr->second.calls-1;
+                itr->second.calls = itr->second.calls - 1;
             _eventMap.insert(EventStore::value_type(_time + itr->second.delay, itr->second));
         }
         else
@@ -769,7 +769,7 @@ void LuaTaxiMgr::StartTaxi(Player* player, uint32 pathid)
     std::vector<uint32> nodes;
     nodes.resize(2);
     nodes[0] = path[0].index;
-    nodes[1] = path[path.size()-1].index;
+    nodes[1] = path[path.size() - 1].index;
 
     player->ActivateTaxiPathTo(nodes);
 }
@@ -780,7 +780,7 @@ uint32 LuaTaxiMgr::AddPath(std::list<TaxiPathNodeEntry> nodes, uint32 mountA, ui
     if (!pathId)
         pathId = sTaxiPathNodesByPath.size();
     if (sTaxiPathNodesByPath.size() <= pathId)
-        sTaxiPathNodesByPath.resize(pathId+1);
+        sTaxiPathNodesByPath.resize(pathId + 1);
     sTaxiPathNodesByPath[pathId].clear();
     sTaxiPathNodesByPath[pathId].resize(nodes.size());
     uint32 startNode = nodeId;
@@ -803,6 +803,6 @@ uint32 LuaTaxiMgr::AddPath(std::list<TaxiPathNodeEntry> nodes, uint32 mountA, ui
     }
     if (startNode >= nodeId)
         return 0;
-    sTaxiPathSetBySource[startNode][nodeId-1] = TaxiPathBySourceAndDestination(pathId, price);
+    sTaxiPathSetBySource[startNode][nodeId - 1] = TaxiPathBySourceAndDestination(pathId, price);
     return pathId;
 }

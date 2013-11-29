@@ -33,77 +33,77 @@ public:
 
     HookMgr() { }
 
-    // misc
-    void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid);
-    void OnFirstLogin(Player* player);
-    void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot);
-    void OnRepop(Player* player);
-    void OnResurrect(Player* player);
-    InventoryResult OnCanUseItem(const Player* player, uint32 itemEntry);
-    // item
+    /* Misc */
+    void OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid);
+    void OnFirstLogin(Player* pPlayer);
+    void OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot);
+    void OnRepop(Player* pPlayer);
+    void OnResurrect(Player* pPlayer);
+    InventoryResult OnCanUseItem(const Player* pPlayer, uint32 itemEntry);
+    /* Item */
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget);
-    bool OnQuestAccept(Player* player, Item* item, Quest const* quest);
-    bool OnUse(Player* player, Item* item, SpellCastTargets const& targets);
-    bool OnExpire(Player* player, ItemPrototype const* proto);
+    bool OnQuestAccept(Player* pPlayer, Item* pItem, Quest const* pQuest);
+    bool OnUse(Player* pPlayer, Item* pItem, SpellCastTargets const& targets);
+    bool OnExpire(Player* pPlayer, ItemPrototype const* pProto);
     void OnEngineRestart();
-    void HandleGossipSelectOption(Player* player, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId);
-    // creature
+    void HandleGossipSelectOption(Player* pPlayer, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId);
+    /* Creature */
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget);
-    bool OnGossipHello(Player* player, Creature* creature);
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action);
-    bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, const char* code);
-    bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest);
-    bool OnQuestSelect(Player* player, Creature* creature, Quest const* quest);
-    bool OnQuestComplete(Player* player, Creature* creature, Quest const* quest);
-    bool OnQuestReward(Player* player, Creature* creature, Quest const* quest);
-    uint32 GetDialogStatus(Player* player, Creature* creature);
-    // gameobject
+    bool OnGossipHello(Player* pPlayer, Creature* pCreature);
+    bool OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 sender, uint32 action);
+    bool OnGossipSelectCode(Player* pPlayer, Creature* pCreature, uint32 sender, uint32 action, const char* code);
+    bool OnQuestAccept(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
+    bool OnQuestSelect(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
+    bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
+    bool OnQuestReward(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
+    uint32 GetDialogStatus(Player* pPlayer, Creature* pCreature);
+    /* GameObject */
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget);
-    bool OnGossipHello(Player* player, GameObject* go);
-    bool OnGossipSelect(Player* player, GameObject* go, uint32 sender, uint32 action);
-    bool OnGossipSelectCode(Player* player, GameObject* go, uint32 sender, uint32 action, const char* code);
-    bool OnQuestAccept(Player* player, GameObject* go, Quest const* quest);
-    bool OnQuestReward(Player* player, GameObject* go, Quest const* quest);
+    bool OnGossipHello(Player* pPlayer, GameObject* pGameObject);
+    bool OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 sender, uint32 action);
+    bool OnGossipSelectCode(Player* pPlayer, GameObject* pGameObject, uint32 sender, uint32 action, const char* code);
+    bool OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
+    bool OnQuestReward(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
     bool OnGameObjectUse(Player* pPlayer, GameObject* pGameObject);
-    uint32 GetDialogStatus(Player* player, GameObject* go);
-    void OnDestroyed(GameObject* go, Player* player);
-    void OnDamaged(GameObject* go, Player* player);
-    void OnLootStateChanged(GameObject* go, uint32 state, Unit* unit);
-    void OnGameObjectStateChanged(GameObject* go, uint32 state);
-    // Player
-    void OnPlayerEnterCombat(Player* player, Unit* enemy);
-    void OnPlayerLeaveCombat(Player* player);
-    void OnPVPKill(Player* killer, Player* killed);
-    void OnCreatureKill(Player* killer, Creature* killed);
-    void OnPlayerKilledByCreature(Creature* killer, Player* killed);
-    void OnLevelChanged(Player* player, uint8 oldLevel);
-    void OnFreeTalentPointsChanged(Player* player, uint32 newPoints);
-    void OnTalentsReset(Player* player, bool noCost);
-    void OnMoneyChanged(Player* player, int32& amount);
-    void OnGiveXP(Player* player, uint32& amount, Unit* victim);
-    void OnReputationChange(Player* player, uint32 factionID, int32& standing, bool incremental);
-    void OnDuelRequest(Player* target, Player* challenger);
-    void OnDuelStart(Player* player1, Player* player2);
-    void OnDuelEnd(Player* winner, Player* loser, DuelCompleteType type);
-    void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild);
-    bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel);
-    void OnEmote(Player* player, uint32 emote);
-    void OnTextEmote(Player* player, uint32 textEmote, uint32 emoteNum, uint64 guid);
-    void OnSpellCast(Player* player, Spell* spell, bool skipCheck);
-    void OnLogin(Player* player);
-    void OnLogout(Player* player);
-    void OnCreate(Player* player);
+    uint32 GetDialogStatus(Player* pPlayer, GameObject* pGameObject);
+    void OnDestroyed(GameObject* pGameObject, Player* pPlayer);
+    void OnDamaged(GameObject* pGameObject, Player* pPlayer);
+    void OnLootStateChanged(GameObject* pGameObject, uint32 state, Unit* pUnit);
+    void OnGameObjectStateChanged(GameObject* pGameObject, uint32 state);
+    /* Player */
+    void OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy);
+    void OnPlayerLeaveCombat(Player* pPlayer);
+    void OnPVPKill(Player* pKiller, Player* pKilled);
+    void OnCreatureKill(Player* pKiller, Creature* pKilled);
+    void OnPlayerKilledByCreature(Creature* pKiller, Player* pKilled);
+    void OnLevelChanged(Player* pPlayer, uint8 oldLevel);
+    void OnFreeTalentPointsChanged(Player* pPlayer, uint32 newPoints);
+    void OnTalentsReset(Player* pPlayer, bool noCost);
+    void OnMoneyChanged(Player* pPlayer, int32& amount);
+    void OnGiveXP(Player* pPlayer, uint32& amount, Unit* pVictim);
+    void OnReputationChange(Player* pPlayer, uint32 factionID, int32& standing, bool incremental);
+    void OnDuelRequest(Player* pTarget, Player* pChallenger);
+    void OnDuelStart(Player* pStarter, Player* pChallenger);
+    void OnDuelEnd(Player* pWinner, Player* pLoser, DuelCompleteType type);
+    void OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Player* pReceiver);
+    bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg);
+    bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Group* pGroup);
+    bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Guild* pGuild);
+    bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Channel* pChannel);
+    void OnEmote(Player* pPlayer, uint32 emote);
+    void OnTextEmote(Player* pPlayer, uint32 textEmote, uint32 emoteNum, uint64 guid);
+    void OnSpellCast(Player* pPlayer, Spell* pSpell, bool skipCheck);
+    void OnLogin(Player* pPlayer);
+    void OnLogout(Player* pPlayer);
+    void OnCreate(Player* pPlayer);
     void OnDelete(uint32 guid);
-    void OnSave(Player* player);
-    void OnBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent);
-    void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea);
-    void OnMapChanged(Player* player);
-    // areatrigger
-    bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger);
-    // weather
+    void OnSave(Player* pPlayer);
+    void OnBindToInstance(Player* pPlayer, Difficulty difficulty, uint32 mapid, bool permanent);
+    void OnUpdateZone(Player* pPlayer, uint32 newZone, uint32 newArea);
+    void OnMapChanged(Player* pPlayer);
+    /* AreaTrigger */
+    bool OnAreaTrigger(Player* pPlayer, AreaTriggerEntry const* pTrigger);
+    /* Weather */
     /*void OnChange(Weather* weather, WeatherState state, float grade);
     // condition
     //bool OnConditionCheck(Condition* condition, ConditionSourceInfo& sourceInfo);
@@ -126,82 +126,82 @@ public:
     {
         sHookMgr.hookPointers.erase(this);
     }
-    // misc
-    virtual void OnLootItem(Player* player, Item* item, uint32 count, uint64 guid) { }
-    virtual void OnFirstLogin(Player* player) { }
-    virtual void OnEquip(Player* player, Item* item, uint8 bag, uint8 slot) { }
-    virtual void OnRepop(Player* player) { }
-    virtual void OnResurrect(Player* player) { }
-    virtual InventoryResult OnCanUseItem(Player* player, uint32 itemEntry) { return EQUIP_ERR_OK; }
-    // item*/
-    virtual bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget) { return false; }
-    virtual bool OnQuestAccept(Player* player, Item* item, Quest const* quest) { return false; }
-    virtual bool OnUse(Player* player, Item* item, SpellCastTargets const& targets) { return false; }
-    virtual bool OnExpire(Player* player, ItemPrototype const* proto) { return false; }
+    /* Misc */
+    virtual void OnLootItem(Player* /*pPlayer*/, Item* /*pItem*/, uint32 /*count*/, uint64 /*guid*/) { }
+    virtual void OnFirstLogin(Player* /*pPlayer*/) { }
+    virtual void OnEquip(Player* /*pPlayer*/, Item* /*pItem*/, uint8 /*bag*/, uint8 /*slot*/) { }
+    virtual void OnRepop(Player* /*pPlayer*/) { }
+    virtual void OnResurrect(Player* /*pPlayer*/) { }
+    virtual InventoryResult OnCanUseItem(Player* /*pPlayer*/, uint32 /*itemEntry*/) { return EQUIP_ERR_OK; }
+    /* Item */
+    virtual bool OnDummyEffect(Unit* /*pCaster*/, uint32 /*spellId*/, SpellEffectIndex /*effIndex*/, Item* /*pTarget*/) { return false; }
+    virtual bool OnQuestAccept(Player* /*pPlayer*/, Item* /*pItem*/, Quest const* /*pQuest*/) { return false; }
+    virtual bool OnUse(Player* /*pPlayer*/, Item* /*pItem*/, SpellCastTargets const& /*targets*/) { return false; }
+    virtual bool OnExpire(Player* /*pPlayer*/, ItemPrototype const* /*pProto*/) { return false; }
     virtual void OnEngineRestart() { }
-    virtual void HandleGossipSelectOption(Player* player, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId) { }
-    // creature
-    virtual bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget) { return false; }
-    virtual bool OnGossipHello(Player* player, Creature* creature) { return false; }
-    virtual bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) { return false; }
-    virtual bool OnGossipSelectCode(Player* player, Creature* creature, uint32 sender, uint32 action, const char* code) { return false; }
-    virtual bool OnQuestAccept(Player* player, Creature* creature, Quest const* quest) { return false; }
-    virtual bool OnQuestSelect(Player* player, Creature* creature, Quest const* quest) { return false; }
-    virtual bool OnQuestComplete(Player* player, Creature* creature, Quest const* quest) { return false; }
-    virtual bool OnQuestReward(Player* player, Creature* creature, Quest const* quest) { return false; }
-    virtual uint32 GetDialogStatus(Player* player, Creature* creature) { return 100; }
-    // gameobject
-    virtual bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget) { return false; }
-    virtual bool OnGossipHello(Player* player, GameObject* go) { return false; }
-    virtual bool OnGossipSelect(Player* player, GameObject* go, uint32 sender, uint32 action) { return false; }
-    virtual bool OnGossipSelectCode(Player* player, GameObject* go, uint32 sender, uint32 action, const char* code) { return false; }
-    virtual bool OnQuestAccept(Player* player, GameObject* go, Quest const* quest) { return false; }
-    virtual bool OnQuestReward(Player* player, GameObject* go, Quest const* quest) { return false; }
-    virtual bool OnGameObjectUse(Player* pPlayer, GameObject* pGameObject) { return false; }
-    virtual uint32 GetDialogStatus(Player* player, GameObject* go) { return 100; }
-    virtual void OnDestroyed(GameObject* go, Player* player) { }
-    virtual void OnDamaged(GameObject* go, Player* player) { }
-    virtual void OnLootStateChanged(GameObject* go, uint32 state, Unit* unit) { }
-    virtual void OnGameObjectStateChanged(GameObject* go, uint32 state) { }
-    // Player
-    virtual void OnPlayerEnterCombat(Player* player, Unit* enemy) { }
-    virtual void OnPlayerLeaveCombat(Player* player) { }
-    virtual void OnPVPKill(Player* killer, Player* killed) { }
-    virtual void OnCreatureKill(Player* killer, Creature* killed) { }
-    virtual void OnPlayerKilledByCreature(Creature* killer, Player* killed) { }
-    virtual void OnLevelChanged(Player* player, uint8 oldLevel) { }
-    virtual void OnFreeTalentPointsChanged(Player* player, uint32 newPoints) { }
-    virtual void OnTalentsReset(Player* player, bool noCost) { }
-    virtual void OnMoneyChanged(Player* player, int32& amount) { }
-    virtual void OnGiveXP(Player* player, uint32& amount, Unit* victim) { }
-    virtual void OnReputationChange(Player* player, uint32 factionID, int32& standing, bool incremental) { }
-    virtual void OnDuelRequest(Player* target, Player* challenger) { }
-    virtual void OnDuelStart(Player* player1, Player* player2) { }
-    virtual void OnDuelEnd(Player* winner, Player* loser, DuelCompleteType type) { }
-    virtual void OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Player* receiver) { }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg) { return true; }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Group* group) { return true; }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Guild* guild) { return true; }
-    virtual bool OnChat(Player* player, uint32 type, uint32 lang, std::string& msg, Channel* channel) { return true; }
-    virtual void OnEmote(Player* player, uint32 emote) { }
-    virtual void OnTextEmote(Player* player, uint32 textEmote, uint32 emoteNum, uint64 guid) { }
-    virtual void OnSpellCast(Player* player, Spell* spell, bool skipCheck) { }
-    virtual void OnLogin(Player* player) { }
-    virtual void OnLogout(Player* player) { }
-    virtual void OnCreate(Player* player) { }
-    virtual void OnDelete(uint32 guid) { }
-    virtual void OnSave(Player* player) { }
-    virtual void OnBindToInstance(Player* player, Difficulty difficulty, uint32 mapid, bool permanent) { }
-    virtual void OnUpdateZone(Player* player, uint32 newZone, uint32 newArea) { }
-    virtual void OnMapChanged(Player* player) { }
-    // areatrigger
-    virtual bool OnAreaTrigger(Player* player, AreaTriggerEntry const* trigger) { return false; }
-    // weather
-    /*virtual void OnChange(Weather* weather, WeatherState state, float grade) { }
-    // condition
+    virtual void HandleGossipSelectOption(Player* /*pPlayer*/, ObjectGuid /*guid*/, uint32 /*sender*/, uint32 /*action*/, std::string /*code*/, uint32 /*menuId*/) { }
+    /* Creature */
+    virtual bool OnDummyEffect(Unit* /*pCaster*/, uint32 /*spellId*/, SpellEffectIndex /*effIndex*/, Creature* /*pTarget*/) { return false; }
+    virtual bool OnGossipHello(Player* /*pPlayer*/, Creature* /*pCreature*/) { return false; }
+    virtual bool OnGossipSelect(Player* /*pPlayer*/, Creature* /*pCreature*/, uint32 /*sender*/, uint32 /*action*/) { return false; }
+    virtual bool OnGossipSelectCode(Player* /*pPlayer*/, Creature* /*pCreature*/, uint32 /*sender*/, uint32 /*action*/, const char* /*code*/) { return false; }
+    virtual bool OnQuestAccept(Player* /*pPlayer*/, Creature* /*pCreature*/, Quest const* /*pQuest*/) { return false; }
+    virtual bool OnQuestSelect(Player* /*pPlayer*/, Creature* /*pCreature*/, Quest const* /*pQuest*/) { return false; }
+    virtual bool OnQuestComplete(Player* /*pPlayer*/, Creature* /*pCreature*/, Quest const* /*pQuest*/) { return false; }
+    virtual bool OnQuestReward(Player* /*pPlayer*/, Creature* /*pCreature*/, Quest const* /*pQuest*/) { return false; }
+    virtual uint32 GetDialogStatus(Player* /*pPlayer*/, Creature* /*pCreature*/) { return 100; }
+    /* GameObject */
+    virtual bool OnDummyEffect(Unit* /*pCaster*/, uint32 /*spellId*/, SpellEffectIndex /*effIndex*/, GameObject* /*pTarget*/) { return false; }
+    virtual bool OnGossipHello(Player* /*pPlayer*/, GameObject* /*pGameObject*/) { return false; }
+    virtual bool OnGossipSelect(Player* /*pPlayer*/, GameObject* /*pGameObject*/, uint32 /*sender*/, uint32 /*action*/) { return false; }
+    virtual bool OnGossipSelectCode(Player* /*pPlayer*/, GameObject* /*pGameObject*/, uint32 /*sender*/, uint32 /*action*/, const char* /*code*/) { return false; }
+    virtual bool OnQuestAccept(Player* /*pPlayer*/, GameObject* /*pGameObject*/, Quest const* /*pQuest*/) { return false; }
+    virtual bool OnQuestReward(Player* /*pPlayer*/, GameObject* /*pGameObject*/, Quest const* /*pQuest*/) { return false; }
+    virtual bool OnGameObjectUse(Player* /*pPlayer*/, GameObject* /*pGameObject*/) { return false; }
+    virtual uint32 GetDialogStatus(Player* /*pPlayer*/, GameObject* /*pGameObject*/) { return 100; }
+    virtual void OnDestroyed(GameObject* /*pGameObject*/, Player* /*pPlayer*/) { }
+    virtual void OnDamaged(GameObject* /*pGameObject*/, Player* /*pPlayer*/) { }
+    virtual void OnLootStateChanged(GameObject* /*pGameObject*/, uint32 /*state*/, Unit* /*pUnit*/) { }
+    virtual void OnGameObjectStateChanged(GameObject* /*pGameObject*/, uint32 /*state*/) { }
+    /* Player */
+    virtual void OnPlayerEnterCombat(Player* /*pPlayer*/, Unit* /*pEnemy*/) { }
+    virtual void OnPlayerLeaveCombat(Player* /*pPlayer*/) { }
+    virtual void OnPVPKill(Player* /*pKiller*/, Player* /*pKilled*/) { }
+    virtual void OnCreatureKill(Player* /*pKiller*/, Creature* /*pKilled*/) { }
+    virtual void OnPlayerKilledByCreature(Creature* /*pKiller*/, Player* /*pKilled*/) { }
+    virtual void OnLevelChanged(Player* /*pPlayer*/, uint8 /*oldLevel*/) { }
+    virtual void OnFreeTalentPointsChanged(Player* /*pPlayer*/, uint32 /*newPoints*/) { }
+    virtual void OnTalentsReset(Player* /*pPlayer*/, bool /*noCost*/) { }
+    virtual void OnMoneyChanged(Player* /*pPlayer*/, int32& /*amount*/) { }
+    virtual void OnGiveXP(Player* /*pPlayer*/, uint32& /*amount*/, Unit* /*pVictim*/) { }
+    virtual void OnReputationChange(Player* /*pPlayer*/, uint32 /*factionID*/, int32& /*standing*/, bool /*incremental*/) { }
+    virtual void OnDuelRequest(Player* /*pTarget*/, Player* /*pChallenger*/) { }
+    virtual void OnDuelStart(Player* /*pStarter*/, Player* /*pChallenger*/) { }
+    virtual void OnDuelEnd(Player* /*pWinner*/, Player* /*pLoser*/, DuelCompleteType /*type*/) { }
+    virtual void OnChat(Player* /*pPlayer*/, uint32 /*type*/, uint32 /*lang*/, std::string& /*msg*/, Player* /*pReceiver*/) { }
+    virtual bool OnChat(Player* /*pPlayer*/, uint32 /*type*/, uint32 /*lang*/, std::string& /*msg*/) { return true; }
+    virtual bool OnChat(Player* /*pPlayer*/, uint32 /*type*/, uint32 /*lang*/, std::string& /*msg*/, Group* /*pGroup*/) { return true; }
+    virtual bool OnChat(Player* /*pPlayer*/, uint32 /*type*/, uint32 /*lang*/, std::string& /*msg*/, Guild* /*pGuild*/) { return true; }
+    virtual bool OnChat(Player* /*pPlayer*/, uint32 /*type*/, uint32 /*lang*/, std::string& /*msg*/, Channel* /*pChannel*/) { return true; }
+    virtual void OnEmote(Player* /*pPlayer*/, uint32 /*emote*/) { }
+    virtual void OnTextEmote(Player* /*pPlayer*/, uint32 /*textEmote*/, uint32 /*emoteNum*/, uint64 /*guid*/) { }
+    virtual void OnSpellCast(Player* /*pPlayer*/, Spell* /*pSpell*/, bool /*skipCheck*/) { }
+    virtual void OnLogin(Player* /*pPlayer*/) { }
+    virtual void OnLogout(Player* /*pPlayer*/) { }
+    virtual void OnCreate(Player* /*pPlayer*/) { }
+    virtual void OnDelete(uint32 /*guid*/) { }
+    virtual void OnSave(Player* /*pPlayer*/) { }
+    virtual void OnBindToInstance(Player* /*pPlayer*/, Difficulty /*difficulty*/, uint32 /*mapid*/, bool /*permanent*/) { }
+    virtual void OnUpdateZone(Player* /*pPlayer*/, uint32 /*newZone*/, uint32 /*newArea*/) { }
+    virtual void OnMapChanged(Player* /*pPlayer*/) { }
+    /* AreaTrigger */
+    virtual bool OnAreaTrigger(Player* /*pPlayer*/, AreaTriggerEntry const* /*pTrigger*/) { return false; }
+    /* Weather */
+    //virtual void OnChange(Weather* weather, WeatherState state, float grade) { }
+    /* Condition */
     //virtual bool OnConditionCheck(Condition* condition, ConditionSourceInfo& sourceInfo) { return true; }
-    // transport
-    virtual void OnAddPassenger(Transport* transport, Player* player) { }
+    /* Transport */
+    /*virtual void OnAddPassenger(Transport* transport, Player* player) { }
     virtual void OnAddCreaturePassenger(Transport* transport, Creature* creature) { }
     virtual void OnRemovePassenger(Transport* transport, Player* player) { }
     virtual void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z) { }*/

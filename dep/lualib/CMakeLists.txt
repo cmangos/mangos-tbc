@@ -1,5 +1,5 @@
 #
-# This file is part of the CMaNGOS Project. See AUTHORS file for Copyright information
+# This code is part of MaNGOS. Contributor & Copyright details are in AUTHORS/THANKS.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,17 +16,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-if(NOT (TBB_USE_EXTERNAL OR USE_STD_MALLOC))
-  add_subdirectory(tbb)
-endif()
+file(GLOB sources *.c)
 
-if(NOT ACE_USE_EXTERNAL)
-  add_subdirectory(ACE_wrappers)
-endif()
+set(lua_STAT_SRCS
+  ${sources}
+)
 
-if (ELUNA)
-  add_subdirectory(lualib)
-endif()
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-add_subdirectory(recastnavigation)
-add_subdirectory(src)
+add_library(lua STATIC ${lua_STAT_SRCS})

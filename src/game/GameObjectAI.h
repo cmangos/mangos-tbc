@@ -50,6 +50,7 @@ public:
 
     void UpdateAI(const uint32) {}
 
-    static int Permissible(const GameObject* go) { return (Permitions)PERMIT_BASE_IDLE; }
+    // static int Permissible(const GameObject* go) { return (Permitions)PERMIT_BASE_IDLE; } // Thats give error with ScriptDev2 i have no idea to fix this, set for the moment to 1
+    static int Permissible(const GameObject* go) { return 1; }
 };
 #endif

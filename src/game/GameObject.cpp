@@ -73,6 +73,7 @@ GameObject::GameObject() : WorldObject(),
 
 GameObject::~GameObject()
 {
+    delete m_AI;
     delete m_model;
 }
 

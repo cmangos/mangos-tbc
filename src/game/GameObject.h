@@ -714,7 +714,9 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         GridReference<GameObject> &GetGridRef() { return m_gridRef; }
 
         GameObjectModel* m_model;
-        GameObjectAI* AI() const { return (GameObjectAI*)m_AI; }
+
+        virtual uint32 GetScriptId() const { return GetGOInfo()->ScriptId; }
+        GameObjectAI* AI() const { return m_AI; }
 
         std::string GetAIName() const;
         bool AIM_Initialize();

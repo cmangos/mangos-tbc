@@ -265,6 +265,7 @@ namespace LuaUnit
     int IsActiveQuest(lua_State*, Unit*);
     int GetQuestLevel(lua_State*, Unit*);
     int GetItemByEntry(lua_State*, Unit*);
+    int GetEquippedItemBySlot(lua_State*, Unit*);
     int SetSheath(lua_State*, Unit*);
     int SetName(lua_State*, Unit*);
     int Whisper(lua_State*, Unit*);

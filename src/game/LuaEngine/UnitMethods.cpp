@@ -2442,6 +2442,19 @@ int LuaUnit::GetItemByEntry(lua_State* L, Unit* unit)
     return 1;
 }
 
+int LuaUnit::GetEquippedItemBySlot(lua_State* L, Unit* unit)
+{
+    TO_PLAYER();
+
+    uint8 slot = luaL_checkunsigned(L, 1);
+    if (slot >= EQUIPMENT_SLOT_END)
+        return 0;
+
+    Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+    sEluna.PushItem(L, item);
+    return 1;
+}
+
 int LuaUnit::SetSheath(lua_State* L, Unit* unit)
 {
     TO_UNIT();

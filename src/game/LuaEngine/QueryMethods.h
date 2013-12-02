@@ -130,7 +130,7 @@ class LuaQuery
                return 1;
            }
 
-           static int GetInt8(lua_State* L, QueryResult* result)
+           static int GetInt8(lua_State* L, QueryResult* result)    // TODO: Implementation
            {
                uint32 col = luaL_checkunsigned(L, 1);
                /*if (!result || result || col >= result->GetFieldCount())
@@ -160,7 +160,7 @@ class LuaQuery
                return 1;
            }
 
-           static int GetInt64(lua_State* L, QueryResult* result)
+           static int GetInt64(lua_State* L, QueryResult* result)    // TODO: Implementation
            {
                uint32 col = luaL_checkunsigned(L, 1);
                /*if (!result || result || col >= result->GetFieldCount())
@@ -190,7 +190,7 @@ class LuaQuery
                return 1;
            }
 
-           static int GetString(lua_State* L, QueryResult* result)
+           static int GetString(lua_State* L, QueryResult* result)    // TODO: Implementation
            {
                uint32 col = luaL_checkunsigned(L, 1);
                /*if (!result || result || col >= result->GetFieldCount())

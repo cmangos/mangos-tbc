@@ -5631,11 +5631,11 @@ int LuaUnit::CanUseItem(lua_State* L, Unit* unit)
     else
     {
         uint32 entry = luaL_checkunsigned(L, 1);
-        /*const ItemTemplate* temp = sObjectMgr->GetItemTemplate(entry);
+        const ItemPrototype* temp = sObjectMgr.GetItemPrototype(entry);
         if(temp)
             sEluna.PushInteger(L, player->CanUseItem(temp));
         else
-            sEluna.PushInteger(L, EQUIP_ERR_ITEM_NOT_FOUND);*/
+            sEluna.PushInteger(L, EQUIP_ERR_ITEM_NOT_FOUND);
     }
     return 1;
 }

@@ -1485,10 +1485,10 @@ int LuaUnit::GetBaseSpellPower(lua_State* L, Unit* unit)
     TO_UNIT();
     uint32 spellschool = luaL_checkunsigned(L, 1);
 
-    // if(spellschool >= MAX_SPELL_SCHOOL)
-    //    return 0;
+    if (spellschool >= MAX_SPELL_SCHOOL)
+        return 0;
 
-    // sEluna.PushUnsigned(L, unit->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + spellschool));
+    sEluna.PushUnsigned(L, unit->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + spellschool));
     return 1;
 }
 

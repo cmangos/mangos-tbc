@@ -163,7 +163,7 @@ int LuaGameObject::GetName(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    // sEluna.PushString(L, go->GetName().c_str());
+    sEluna.PushString(L, go->GetName());
     return 1;
 }
 

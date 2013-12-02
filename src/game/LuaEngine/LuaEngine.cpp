@@ -91,7 +91,7 @@ void Eluna::StartEluna(bool restart)
     ElunaTemplate<GameObject>::Register(LuaState);
     ElunaTemplate<Group>::Register(LuaState);
     ElunaTemplate<Guild>::Register(LuaState);
-    // ElunaTemplate<QueryResult>::Register(LuaState);
+    ElunaTemplate<QueryResult>::Register(LuaState);
     ElunaTemplate<Aura>::Register(LuaState);
     ElunaTemplate<WorldPacket>::Register(LuaState);
     ElunaTemplate<Item>::Register(LuaState);

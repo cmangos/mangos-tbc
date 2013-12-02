@@ -24,7 +24,7 @@
 #include "GroupMethods.h"
 #include "GuildMethods.h"
 #include "GameObjectMethods.h"
-//#include "QueryMethods.h"
+#include "QueryMethods.h"
 #include "AuraMethods.h"
 #include "ItemMethods.h"
 #include "WorldPacketMethods.h"
@@ -934,7 +934,7 @@ ElunaRegister<Guild> GuildMethods[] =
     {NULL, NULL},
 };
 
-/*ElunaRegister<QueryResult> QueryMethods[] =
+ElunaRegister<QueryResult> QueryMethods[] =
 {
     {"GetUnitType", &LuaQuery::GetUnitType},                // :GetUnitType() - Returns object type, IE: QueryResult
 
@@ -956,7 +956,7 @@ ElunaRegister<Guild> GuildMethods[] =
     {"GetString", &LuaQuery::GetString},                    // :GetString(column) - returns the value of a string column
     {"IsNull", &LuaQuery::IsNull},                          // :IsNull(column) - returns true if the column is null
     {NULL, NULL},
-};*/
+};
 
 ElunaRegister<WorldPacket> PacketMethods[] =
 {
@@ -1032,7 +1032,7 @@ template<> ElunaRegister<Unit>* GetMethodTable<Unit>() { return UnitMethods; }
 template<> ElunaRegister<GameObject>* GetMethodTable<GameObject>() { return GameObjectMethods; }
 template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
 template<> ElunaRegister<Guild>* GetMethodTable<Guild>() { return GuildMethods; }
-// template<> ElunaRegister<QueryResult>* GetMethodTable<QueryResult>() { return QueryMethods; }
+template<> ElunaRegister<QueryResult>* GetMethodTable<QueryResult>() { return QueryMethods; }
 template<> ElunaRegister<Aura>* GetMethodTable<Aura>() { return AuraMethods; }
 template<> ElunaRegister<Item>* GetMethodTable<Item>() { return ItemMethods; }
 template<> ElunaRegister<WorldPacket>* GetMethodTable<WorldPacket>() { return PacketMethods; }

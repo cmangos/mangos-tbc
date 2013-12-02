@@ -73,10 +73,10 @@ class LuaQuery
            static int IsNull(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               /*if (!result || result || col >= result->GetFieldCount())
+               if (!result || result || col >= result->GetFieldCount())
                    sEluna.PushBoolean(L, true);
                else
-                   sEluna.PushBoolean(L, result->Fetch()[col].IsNull());*/
+                   sEluna.PushBoolean(L, result->Fetch()[col].IsNULL());
                return 1;
            }
 

@@ -1473,10 +1473,10 @@ int LuaUnit::GetStat(lua_State* L, Unit* unit)
     TO_UNIT();
     uint32 stat = luaL_checkunsigned(L, 1);
 
-    // if(stat >= MAX_STATS)
-    //    return 0;
+    if (stat >= MAX_STATS)
+        return 0;
 
-    // sEluna.PushUnsigned(L, unit->GetStat((Stats)stat));
+    sEluna.PushUnsigned(L, unit->GetStat((Stats)stat));
     return 1;
 }
 

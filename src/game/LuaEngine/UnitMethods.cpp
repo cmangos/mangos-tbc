@@ -1800,7 +1800,7 @@ int LuaUnit::GetDifficulty(lua_State* L, Unit* unit)
 
     bool isRaid = luaL_optbool(L, 1, true);
 
-    // sEluna.PushUnsigned(L, player->GetDifficulty(isRaid));
+    sEluna.PushUnsigned(L, player->GetDifficulty());
     return 1;
 }
 

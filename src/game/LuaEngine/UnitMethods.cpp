@@ -1090,8 +1090,8 @@ int LuaUnit::SendTabardVendorActivate(lua_State* L, Unit* unit)
 
     WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
 
-    // if (obj)
-    // player->GetSession()->SendTabardVendorActivate(obj->GetGUIDLow());
+    if (obj)
+        player->GetSession()->SendTabardVendorActivate(obj->GetObjectGuid());
     return 0;
 }
 
@@ -1101,8 +1101,8 @@ int LuaUnit::SendShowBank(lua_State* L, Unit* unit)
 
     WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
 
-    // if (obj)
-    // player->GetSession()->SendShowBank(obj->GetGUIDLow());
+    if (obj)
+        player->GetSession()->SendShowBank(obj->GetObjectGuid());
     return 0;
 }
 
@@ -1112,8 +1112,8 @@ int LuaUnit::SendListInventory(lua_State* L, Unit* unit)
 
     WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
 
-    // if (obj)
-    // player->GetSession()->SendListInventory(obj->GetGUIDLow());
+    if (obj)
+        player->GetSession()->SendListInventory(obj->GetObjectGuid());
     return 0;
 }
 
@@ -1123,8 +1123,8 @@ int LuaUnit::SendTrainerList(lua_State* L, Unit* unit)
 
     WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
 
-    // if (obj)
-    // player->GetSession()->SendTrainerList(obj->GetGUIDLow());
+    if (obj)
+        player->GetSession()->SendTrainerList(obj->GetObjectGuid());
     return 0;
 }
 

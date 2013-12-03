@@ -661,7 +661,7 @@ int LuaUnit::SetReactState(lua_State* L, Unit* unit)
 
     int32 state = luaL_checkinteger(L, 1);
 
-    // creature->SetReactState((ReactStates)state);
+    creature->GetCharmInfo()->SetReactState((ReactStates)state);
     return 0;
 }
 
@@ -669,7 +669,7 @@ int LuaUnit::GetReactState(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    // sEluna.PushInteger(L, creature->GetReactState());
+    sEluna.PushInteger(L, creature->GetCharmInfo()->GetReactState());
     return 1;
 }
 
@@ -679,7 +679,7 @@ int LuaUnit::HasReactState(lua_State* L, Unit* unit)
 
     int32 state = luaL_checkinteger(L, 1);
 
-    // sEluna.PushBoolean(L, creature->HasReactState((ReactStates)state));
+    sEluna.PushBoolean(L, creature->GetCharmInfo()->HasReactState((ReactStates)state));
     return 1;
 }
 

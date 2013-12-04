@@ -3566,9 +3566,6 @@ int LuaUnit::GetPower(lua_State* L, Unit* unit)
             case 4:
                 type = POWER_ENERGY;
                 break;
-            case 6:
-                // type = POWER_RUNIC_POWER;
-                break;
             case 2:
             case 3:
             case 5:
@@ -3607,9 +3604,6 @@ int LuaUnit::GetMaxPower(lua_State* L, Unit* unit)
                 break;
             case 4:
                 type = POWER_ENERGY;
-                break;
-            case 6:
-                // type = POWER_RUNIC_POWER;
                 break;
             case 2:
             case 3:
@@ -3719,9 +3713,6 @@ int LuaUnit::GetClassAsString(lua_State* L, Unit* unit)
             break;
         case 5:
             str = "Priest";
-            break;
-        case 6:
-            str = "Death Knight";
             break;
         case 7:
             str = "Shaman";

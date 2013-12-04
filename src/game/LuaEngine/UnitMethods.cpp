@@ -3921,9 +3921,6 @@ int LuaUnit::SetPower(lua_State* L, Unit* unit)
         case POWER_ENERGY:
             unit->SetPower(POWER_ENERGY, amt);
             break;
-        /*case POWER_RUNIC_POWER:
-            unit->SetPower(POWER_RUNIC_POWER, amt);
-            break;*/
         default:
             luaL_error(L, "Invalid power type (%d)", type);
             break;

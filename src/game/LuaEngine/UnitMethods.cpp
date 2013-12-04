@@ -1027,13 +1027,6 @@ int LuaUnit::SendAuctionMenu(lua_State* L, Unit* unit)
     TO_PLAYER();
 
     Creature* creature = sEluna.CHECK_CREATURE(L, 1);
-    /*Unit* unit = sEluna.CHECK_UNIT(L, 2);
-
-    if (player->getLevel() < sWorld.getIntConfig(CONFIG_AUCTION_LEVEL_REQ))
-    {
-        player->GetSession()->SendNotification(player->GetSession()->GetTrinityString(LANG_AUCTION_REQ), sWorld->getIntConfig(CONFIG_AUCTION_LEVEL_REQ));
-        return 0;
-    }
 
     uint64 guid = creature ? creature->GetGUIDLow() : player->GetGUIDLow();
     if (!unit)
@@ -1047,7 +1040,7 @@ int LuaUnit::SendAuctionMenu(lua_State* L, Unit* unit)
     data << uint64(guid);
     data << uint32(ahEntry->houseId);
     data << uint8(1);
-    player->GetSession()->SendPacket(&data);*/
+    player->GetSession()->SendPacket(&data);
     return 0;
 }
 

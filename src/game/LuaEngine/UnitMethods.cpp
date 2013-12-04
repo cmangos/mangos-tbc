@@ -3355,8 +3355,8 @@ int LuaUnit::SetSpeed(lua_State* L, Unit* unit)
     bool forced = luaL_optbool(L, 3, false);
     if (type >= MAX_MOVE_TYPE)
         luaL_error(L, "Invalid movement type (%d)", type);
-    // else
-    // unit->SetSpeed((UnitMoveType)type, rate, forced);
+    else
+        unit->SetSpeedRate((UnitMoveType)type, rate, forced);
     return 0;
 }
 

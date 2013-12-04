@@ -2041,7 +2041,7 @@ int LuaUnit::GetReputation(lua_State* L, Unit* unit)
 
     uint32 faction = luaL_checkunsigned(L, 1);
 
-    // sEluna.PushUnsigned(L, player->GetReputation(faction));
+    sEluna.PushUnsigned(L, player->GetReputationMgr().GetReputation(faction));
     return 1;
 }
 

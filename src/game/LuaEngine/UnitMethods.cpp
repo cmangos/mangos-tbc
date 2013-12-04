@@ -848,7 +848,7 @@ int LuaUnit::GetCorpseDelay(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    // sEluna.PushUnsigned(L, creature->GetCorpseDelay());
+    sEluna.PushUnsigned(L, creature->GetCorpseDelay());
     return 1;
 }
 

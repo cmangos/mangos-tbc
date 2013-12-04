@@ -458,13 +458,12 @@ class LuaItem
 
         static int UpdateUInt32Value(lua_State* L, Item* item) // TODO: Implement core support
         {
-            /*
-               if (!item || !item->IsInWorld())
-                   return 0;
+            if (!item || !item->IsInWorld())
+                return 0;
 
-               uint16 index = luaL_checkunsigned(L, 1);
-               uint32 value = luaL_checkunsigned(L, 2);
-               item->UpdateUInt32Value(index, value);*/
+            uint16 index = luaL_checkunsigned(L, 1);
+            uint32 value = luaL_checkunsigned(L, 2);
+            item->UpdateUInt32Value(index, value);
             return 0;
         }
 

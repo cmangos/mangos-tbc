@@ -483,7 +483,7 @@ int LuaGameObject::UpdateUInt32Value(lua_State* L, GameObject* go)
 
     uint16 index = luaL_checkunsigned(L, 1);
     uint32 value = luaL_checkunsigned(L, 2);
-    // go->UpdateUInt32Value(index, value);
+    go->UpdateUInt32Value(index, value);
     return 0;
 }
 

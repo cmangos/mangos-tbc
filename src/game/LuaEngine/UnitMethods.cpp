@@ -4595,7 +4595,7 @@ int LuaUnit::SendVendorWindow(lua_State* L, Unit* unit)
     Unit* sendTo = sEluna.CHECK_UNIT(L, 1);
     if (!sendTo)
         return 0;
-    // player->GetSession()->SendListInventory(sendTo->GetGUIDLow());
+    player->GetSession()->SendListInventory(sendTo->GetObjectGuid());
     return 0;
 }
 
@@ -5343,16 +5343,16 @@ int LuaUnit::GossipAddQuests(lua_State* L, Unit* unit)
     if (!source)
         return 0;
 
-    /*if (source->GetTypeId() == TYPEID_UNIT)
+    if (source->GetTypeId() == TYPEID_UNIT)
     {
         if (source->GetUInt32Value(UNIT_NPC_FLAGS) & UNIT_NPC_FLAG_QUESTGIVER)
-            player->PrepareQuestMenu(source->GetGUID());
+            player->PrepareQuestMenu(source->GetObjectGuid());
     }
     else if (source->GetTypeId() == TYPEID_GAMEOBJECT)
     {
         if (source->ToGameObject()->GetGoType() == GAMEOBJECT_TYPE_QUESTGIVER)
-            player->PrepareQuestMenu(source->GetGUID());
-    }*/
+            player->PrepareQuestMenu(source->GetObjectGuid());
+    }
     return 0;
 }
 
@@ -5556,7 +5556,7 @@ int LuaUnit::SendQuestTemplate(lua_State* L, Unit* unit)
     if (!quest)
         return 0;
 
-    // player->PlayerTalkClass->SendQuestGiverQuestDetails(quest, player->GetGUID(), activeAccept);
+    player->PlayerTalkClass->SendQuestGiverQuestDetails(quest, player->GetObjectGuid(), activeAccept);
     return 0;
 }
 

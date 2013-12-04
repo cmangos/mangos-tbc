@@ -1146,24 +1146,6 @@ int LuaUnit::GetChampioningFaction(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::ResetAchievements(lua_State* L, Unit* unit)
-{
-    TO_PLAYER();
-
-    // player->GetAchievementMgr().Reset();
-    return 0;
-}
-
-int LuaUnit::HasAchieved(lua_State* L, Unit* unit)
-{
-    TO_PLAYER_BOOL();
-
-    uint32 achievementId = luaL_checkunsigned(L, 1);
-
-    // sEluna.PushBoolean(L, player->GetAchievementMgr().HasAchievement(achievementId));
-    return 1;
-}
-
 int LuaUnit::GetOriginalSubGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
@@ -2514,14 +2496,6 @@ int LuaUnit::Say(lua_State* L, Unit* unit)
     return 0;
 }
 
-int LuaUnit::GetPhaseMaskForSpawn(lua_State* L, Unit* unit)
-{
-    TO_PLAYER();
-
-    // sEluna.PushUnsigned(L, player->GetPhaseMaskForSpawn());
-    return 1;
-}
-
 int LuaUnit::SummonPet(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
@@ -3846,15 +3820,6 @@ int LuaUnit::SetLevel(lua_State* L, Unit* unit)
 
     uint32 newLevel = luaL_checkunsigned(L, 1);
     unit->SetLevel(newLevel);
-    return 0;
-}
-
-int LuaUnit::SetPhaseMask(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-    uint32 phaseMask = luaL_checkunsigned(L, 1);
-    bool Update = luaL_optbool(L, 2, true);
-    // unit->SetPhaseMask(phaseMask, Update);
     return 0;
 }
 

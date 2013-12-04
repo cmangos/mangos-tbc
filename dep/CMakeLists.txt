@@ -24,9 +24,6 @@ if(NOT ACE_USE_EXTERNAL)
   add_subdirectory(ACE_wrappers)
 endif()
 
-if (ELUNA)
-  add_subdirectory(lualib)
-endif()
-
+add_subdirectory(lualib)
 add_subdirectory(recastnavigation)
 add_subdirectory(src)

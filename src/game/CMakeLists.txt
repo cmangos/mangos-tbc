@@ -23,11 +23,13 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/vmap
   ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouseBot
   ${CMAKE_CURRENT_SOURCE_DIR}/BattleGround
+  ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine
   ${CMAKE_CURRENT_SOURCE_DIR}/OutdoorPvP
   ${CMAKE_SOURCE_DIR}/dep/include/g3dlite
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation/
   ${CMAKE_SOURCE_DIR}/dep/include
+  ${CMAKE_SOURCE_DIR}/dep/lualib
   ${CMAKE_SOURCE_DIR}/src/shared
   ${CMAKE_SOURCE_DIR}/src/framework
   ${CMAKE_BINARY_DIR}
@@ -63,6 +65,32 @@ set(SRC_GRP_BATTLEGROUND
     BattleGround/BattleGroundRL.h
     BattleGround/BattleGroundWS.cpp
     BattleGround/BattleGroundWS.h
+)
+
+set(SRC_GRP_LUAENGINE
+    LuaEngine/AuraMethods.cpp
+    LuaEngine/AuraMethods.h
+    LuaEngine/CorpseMethods.h
+    LuaEngine/GameObjectMethods.cpp
+    LuaEngine/GameObjectMethods.h
+    LuaEngine/GlobalMethods.h
+    LuaEngine/GroupMethods.h
+    LuaEngine/GuildMethods.h
+    LuaEngine/HookMgr.cpp
+    LuaEngine/HookMgr.h
+    LuaEngine/Includes.h
+    LuaEngine/ItemMethods.h
+    LuaEngine/LuaEngine.cpp
+    LuaEngine/LuaEngine.h
+    LuaEngine/LuaFunctions.cpp
+    LuaEngine/LuaHooks.cpp
+    LuaEngine/MapMethods.h
+    LuaEngine/QueryMethods.h
+    LuaEngine/QuestMethods.h
+    LuaEngine/SpellMethods.h
+    LuaEngine/UnitMethods.cpp
+    LuaEngine/UnitMethods.h
+    LuaEngine/WorldPacketMethods.h
 )
 
 set(SRC_GRP_CHAT_COMMANDS
@@ -398,6 +426,7 @@ set(SRC_GRP_WORLD_HANDLERS
 set(LIBRARY_SRCS
     ${SRC_GRP_AHBOT}
     ${SRC_GRP_BATTLEGROUND}
+    ${SRC_GRP_LUAENGINE}
     ${SRC_GRP_CHAT_COMMANDS}
     ${SRC_GRP_MOTION_GEN}
     ${SRC_GRP_MOVEMENT}
@@ -420,6 +449,11 @@ source_group("AhBot"
 source_group("BattleGround"
   FILES
     ${SRC_GRP_BATTLEGROUND}
+)
+
+source_group("LuaEngine"
+  FILES
+    ${SRC_GRP_LUAENGINE}
 )
 
 source_group("Chat Commands"

@@ -4893,7 +4893,7 @@ int LuaUnit::InterruptSpell(lua_State* L, Unit* unit)
             spellType = CURRENT_AUTOREPEAT_SPELL;
             break;
     }
-    // unit->InterruptSpell((CurrentSpellTypes)spellType, delayed, instant);
+    unit->InterruptSpell((CurrentSpellTypes)spellType, delayed);
     return 0;
 }
 

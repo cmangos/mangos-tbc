@@ -3055,7 +3055,7 @@ int LuaUnit::SummonGameObject(lua_State* L, Unit* unit)
     float z = luaL_checknumber(L, 4);
     float o = luaL_checknumber(L, 5);
     uint32 respawnDelay = luaL_optunsigned(L, 6, 30);
-    // sEluna.PushGO(L, unit->SummonGameObject(entry, x, y, z, o, 0, 0, 0, 0, respawnDelay));
+    sEluna.PushGO(L, unit->SummonGameObject(entry, x, y, z, o, respawnDelay));
     return 1;
 }
 
@@ -4352,11 +4352,11 @@ int LuaUnit::Teleport(lua_State* L, Unit* unit)
     float Y = luaL_checknumber(L, 3);
     float Z = luaL_checknumber(L, 4);
     float O = luaL_checknumber(L, 5);
-    /*if (player->IsInFlight())
+    if (player->IsTaxiFlying())
     {
         player->GetMotionMaster()->MovementExpired();
-        player->CleanupAfterTaxiFlight();
-    }*/
+        player->m_taxi.ClearTaxiDestinations();
+    }
     sEluna.PushBoolean(L, player->TeleportTo(mapId, X, Y, Z, O));
     return 1;
 }

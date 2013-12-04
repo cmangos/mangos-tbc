@@ -456,7 +456,7 @@ class LuaItem
             return 0;
         }
 
-        static int UpdateUInt32Value(lua_State* L, Item* item) // TODO: Implement core support
+        static int UpdateUInt32Value(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
                 return 0;

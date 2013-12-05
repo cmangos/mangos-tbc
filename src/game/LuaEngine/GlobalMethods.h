@@ -842,14 +842,14 @@ namespace LuaGlobalFunctions
     static int GetGUIDType(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        // sEluna.PushUnsigned(L, GUID_HIPART(guid));
+        sEluna.PushUnsigned(L, ObjectGuid(guid));
         return 1;
     }
 
     static int GetGUIDEntry(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        // sEluna.PushUnsigned(L, GUID_ENPART(guid));
+        sEluna.PushUnsigned(L, ObjectGuid(guid));
         return 1;
     }
 

@@ -423,7 +423,7 @@ namespace LuaGlobalFunctions
     static int GetPlayerGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
-        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_PLAYER));
+        sEluna.PushULong(L, ObjectGuid(HIGHGUID_PLAYER, lowguid));
         return 1;
     }
 
@@ -431,7 +431,7 @@ namespace LuaGlobalFunctions
     static int GetItemGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
-        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, 0, HIGHGUID_ITEM));
+        sEluna.PushULong(L, ObjectGuid(HIGHGUID_ITEM, lowguid));
         return 1;
     }
 
@@ -440,7 +440,7 @@ namespace LuaGlobalFunctions
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
-        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_GAMEOBJECT));
+        sEluna.PushULong(L, ObjectGuid(HIGHGUID_GAMEOBJECT, lowguid, entry));
         return 1;
     }
 
@@ -449,7 +449,7 @@ namespace LuaGlobalFunctions
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
-        // sEluna.PushULong(L, MAKE_NEW_GUID(lowguid, entry, HIGHGUID_UNIT));
+        sEluna.PushULong(L, ObjectGuid(HIGHGUID_UNIT, lowguid, entry));
         return 1;
     }
 

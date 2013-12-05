@@ -48,7 +48,7 @@ void Eluna::StartEluna(bool restart)
     if (restart)
     {
         sHookMgr.OnEngineRestart();
-        sLog.outString("Eluna: Restarting Lua Engine");
+        sLog.outString("[Eluna]: Restarting Lua Engine");
 
         if (LuaState)
         {
@@ -79,7 +79,8 @@ void Eluna::StartEluna(bool restart)
 
     LuaState = luaL_newstate();
     sLog.outString();
-    sLog.outString("Eluna: Lua Engine loaded.");
+    sLog.outString("[Eluna]: Lua Engine loaded.");
+    sLog.outString();
 
     LoadedScripts loadedScripts;
     LoadDirectory("lua_scripts", &loadedScripts);
@@ -107,7 +108,7 @@ void Eluna::StartEluna(bool restart)
         strcpy(filename, itr->c_str());
         if (luaL_loadfile(LuaState, filename) != 0)
         {
-            sLog.outError("Eluna: Error loading `%s`.", itr->c_str());
+            sLog.outError("[Eluna]: Error loading file `%s`.", itr->c_str());
             report(LuaState);
         }
         else
@@ -115,7 +116,7 @@ void Eluna::StartEluna(bool restart)
             int err = lua_pcall(LuaState, 0, 0, 0);
             if (err != 0 && err == LUA_ERRRUN)
             {
-                sLog.outError("Eluna: Error loading `%s`.", itr->c_str());
+                sLog.outError("[Eluna]: Error loading file `%s`.", itr->c_str());
                 report(LuaState);
             }
         }
@@ -136,7 +137,7 @@ void Eluna::StartEluna(bool restart)
         }
     }*/
 
-    sLog.outString("Eluna: Loaded %u Lua scripts..", count);
+    sLog.outString("[Eluna]: Loaded %u Lua scripts..", count);
     sLog.outString();
 }
 
@@ -155,7 +156,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
     hFile = FindFirstFile(SearchName, &FindData);
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        sLog.outError("Eluna: No `lua_scripts` directory found! Creating a 'lua_scripts' directory and restarting Eluna.");
+        sLog.outError("[Eluna]: No `lua_scripts` directory found! Creating a 'lua_scripts' directory and restarting Eluna.");
         CreateDirectory("lua_scripts", NULL);
         StartEluna(true);
         return;
@@ -187,7 +188,10 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
             }
             ext[i++] = '\0';
             if (!_stricmp(ext, "aul."))
+            {
+                sLog.outDebug("[Eluna]: Load File: %s", fname.c_str());
                 lscr->luaFiles.insert(fname);
+            }
         }
     }
     FindClose(hFile);

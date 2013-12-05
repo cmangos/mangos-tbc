@@ -610,7 +610,7 @@ void Object::SetUInt32Value(uint16 index, uint32 value)
     }
 }
 
-+void Object::UpdateUInt32Value(uint16 index, uint32 value)
+void Object::UpdateUInt32Value(uint16 index, uint32 value)
 {
     MANGOS_ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 

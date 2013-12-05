@@ -232,7 +232,7 @@ int LuaGameObject::SummonGameObject(lua_State* L, GameObject* go)
     float z = luaL_checknumber(L, 4);
     float o = luaL_checknumber(L, 5);
     uint32 respawnDelay = luaL_optunsigned(L, 6, 30);
-    // sEluna.PushGO(L, go->SummonGameObject(entry, x, y, z, o, 0, 0, 0, 0, respawnDelay));
+    sEluna.PushGO(L, go->SummonGameObject(entry, x, y, z, o, respawnDelay));
     return 1;
 }
 

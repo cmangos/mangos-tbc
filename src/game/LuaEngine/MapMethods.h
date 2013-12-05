@@ -88,7 +88,7 @@ class LuaMap
         }
 
         // :GetAreaId(x, y, z)
-        static int GetAreaId(lua_State* L, Map* map) // TODO: Implementation
+        static int GetAreaId(lua_State* L, Map* map)
         {
             if (!map)
                 return 0;
@@ -97,9 +97,8 @@ class LuaMap
             float y = luaL_checknumber(L, 2);
             float z = luaL_checknumber(L, 3);
 
-            // sEluna.PushUnsigned(L, map->GetAreaId(x, y, z));
-            // return 1;
-            return 0; // Temporary to prevent conflicts
+            sEluna.PushUnsigned(L, map->GetTerrain()->GetAreaId(x, y, z));
+            return 1;
         }
 
         // :IsArena()

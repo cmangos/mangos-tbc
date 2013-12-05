@@ -73,7 +73,7 @@ class LuaQuery
            static int IsNull(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushBoolean(L, true);
                else
                    sEluna.PushBoolean(L, result->Fetch()[col].IsNULL());
@@ -83,7 +83,7 @@ class LuaQuery
            static int GetBool(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushBoolean(L, false);
                else
                    sEluna.PushBoolean(L, result->Fetch()[col].GetBool());
@@ -93,7 +93,7 @@ class LuaQuery
            static int GetUInt8(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushUnsigned(L, 0);
                else
                    sEluna.PushUnsigned(L, result->Fetch()[col].GetUInt8());
@@ -103,7 +103,7 @@ class LuaQuery
            static int GetUInt16(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushUnsigned(L, 0);
                else
                    sEluna.PushUnsigned(L, result->Fetch()[col].GetUInt16());
@@ -113,7 +113,7 @@ class LuaQuery
            static int GetUInt32(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushUnsigned(L, 0);
                else
                    sEluna.PushUnsigned(L, result->Fetch()[col].GetUInt32());
@@ -123,27 +123,27 @@ class LuaQuery
            static int GetUInt64(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushULong(L, 0);
                else
                    sEluna.PushULong(L, result->Fetch()[col].GetUInt64());
                return 1;
            }
 
-           static int GetInt8(lua_State* L, QueryResult* result)    // TODO: Implementation
+           static int GetInt8(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               /*if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushInteger(L, 0);
                else
-                   sEluna.PushInteger(L, result->Fetch()[col].GetInt8());*/
+                   sEluna.PushInteger(L, result->Fetch()[col].GetInt8());
                return 1;
            }
 
            static int GetInt16(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushInteger(L, 0);
                else
                    sEluna.PushInteger(L, result->Fetch()[col].GetInt16());
@@ -153,27 +153,27 @@ class LuaQuery
            static int GetInt32(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushInteger(L, 0);
                else
                    sEluna.PushInteger(L, result->Fetch()[col].GetInt32());
                return 1;
            }
 
-           static int GetInt64(lua_State* L, QueryResult* result)    // TODO: Implementation
+           static int GetInt64(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               /*if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushLong(L, 0);
                else
-                   sEluna.PushLong(L, result->Fetch()[col].GetInt64());*/
+                   sEluna.PushLong(L, result->Fetch()[col].GetInt64());
                return 1;
            }
 
            static int GetFloat(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushFloat(L, 0.0f);
                else
                    sEluna.PushFloat(L, result->Fetch()[col].GetFloat());
@@ -183,20 +183,20 @@ class LuaQuery
            static int GetDouble(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               /*if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushDouble(L, 0.0);
                else
-                   sEluna.PushDouble(L, result->Fetch()[col].GetDouble());*/
+                   sEluna.PushDouble(L, result->Fetch()[col].GetDouble());
                return 1;
            }
 
-           static int GetString(lua_State* L, QueryResult* result)    // TODO: Implementation
+           static int GetString(lua_State* L, QueryResult* result)
            {
                uint32 col = luaL_checkunsigned(L, 1);
-               /*if (!result || result || col >= result->GetFieldCount())
+               if (!result || col >= result->GetFieldCount())
                    sEluna.PushString(L, "");
                else
-                   sEluna.PushString(L, result->Fetch()[col].GetString().c_str());*/
+                   sEluna.PushString(L, result->Fetch()[col].GetString());
                return 1;
            }
 };

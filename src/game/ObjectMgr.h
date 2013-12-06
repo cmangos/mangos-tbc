@@ -292,6 +292,7 @@ struct WeatherSeasonChances
 struct WeatherZoneChances
 {
     WeatherSeasonChances data[WEATHER_SEASONS];
+    uint32 ScriptId;
 };
 
 struct GraveYardData

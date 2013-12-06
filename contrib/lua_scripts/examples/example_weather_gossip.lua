@@ -15,6 +15,7 @@ function TestMenuSelectWeather(event, plr, unit, sender, intid, code)
         end
 
         print (weather:GetZoneId())
+        print (weather:GetScriptId())
 	
         weather:SetWeather(2, 3)
         plr:GossipComplete()

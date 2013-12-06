@@ -29,7 +29,7 @@ public:
         if (!weather)
             return 0;
 
-        // sEluna.PushUnsigned(L, weather->GetScriptId());
+        sEluna.PushUnsigned(L, weather->GetScriptId());
         return 1;
     }
 

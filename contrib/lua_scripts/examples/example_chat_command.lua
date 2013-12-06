@@ -1,0 +1,9 @@
+local ChatPrefix = "#example";
+
+function ChatSystem(event, player, msg, _, lang)
+        if (msg:sub(1, ChatPrefix:len()) == ChatPrefix) then
+            player:SendNotification("Example Chat Command Works")
+        end
+end
+
+RegisterServerHook(18, ChatSystem);

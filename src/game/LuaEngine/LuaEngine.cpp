@@ -220,7 +220,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
         if (stat(_path, &attributes) == -1)
         {
             error = true;
-            sLog.outError("Eluna::Error opening `%s`", _path);
+            sLog.outError("[Eluna]: Error opening `%s`", _path);
         }
         else
             error = false;

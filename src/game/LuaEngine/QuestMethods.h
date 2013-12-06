@@ -54,14 +54,13 @@ class LuaQuest
         }
 
         // :GetMaxLevel()
-        static int GetMaxLevel(lua_State* L, Quest* quest) // TODO: Implementation core side
+        static int GetMaxLevel(lua_State* L, Quest* quest)
         {
             if (!quest)
                 return 0;
 
-            // sEluna.PushUnsigned(L, quest->GetMaxLevel());
-            // return 1;
-            return 0; // Temporary to prevent conflicts
+            sEluna.PushUnsigned(L, quest->GetMaxLevel());
+            return 1;
         }
 
         // :GetMinLevel()

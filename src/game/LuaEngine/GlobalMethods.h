@@ -1066,8 +1066,11 @@ namespace LuaGlobalFunctions
     static int AddCorpse(lua_State* L)
     {
         Corpse* corpse = sEluna.CHECK_CORPSE(L, 1);
+        if (!corpse)
+            return 0;
+
         sObjectAccessor.AddCorpse(corpse);
-        return 1;
+        return 0;
     }
 
     static int RemoveCorpse(lua_State* L)
@@ -1081,13 +1084,48 @@ namespace LuaGlobalFunctions
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         bool insignia = luaL_optbool(L, 2, false);
-        // sObjectAccessor.ConvertCorpseForPlayer(guid, insignia);
+
+        // sEluna->PushCorpse(L, sObjectAccessor->ConvertCorpseForPlayer(guid, insignia));
         return 0;
     }
 
     static int RemoveOldCorpses(lua_State* L)
     {
         sObjectAccessor.RemoveOldCorpses();
+        return 0;
+    }
+
+    static int FindWeather(lua_State* L)
+    {
+        uint32 zoneId = luaL_checkunsigned(L, 1);
+        /*Weather* weather = Weather::FindWeather(zoneId);
+        sEluna.PushWeather(L, weather);*/
+        return 1;
+    }
+
+    static int AddWeather(lua_State* L)
+    {
+        uint32 zoneId = luaL_checkunsigned(L, 1);
+        /*Weather* weather = Weather::AddWeather(zoneId);
+        sEluna.PushWeather(L, weather);*/
+        return 1;
+    }
+
+    static int RemoveWeather(lua_State* L)
+    {
+        uint32 zoneId = luaL_checkunsigned(L, 1);
+
+        // Weather::RemoveWeather(zoneId);
+        return 0;
+    }
+
+    static int SendFineWeatherToPlayer(lua_State* L)
+    {
+        Player* player = sEluna.CHECK_PLAYER(L, 1);
+        if (!player)
+            return 0;
+
+        Weather::SendFineWeatherUpdateToPlayer(player);
         return 0;
     }
 }

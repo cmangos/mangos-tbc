@@ -90,6 +90,7 @@ set(SRC_GRP_LUAENGINE
     LuaEngine/SpellMethods.h
     LuaEngine/UnitMethods.cpp
     LuaEngine/UnitMethods.h
+    LuaEngine/WeatherMethods.h
     LuaEngine/WorldPacketMethods.h
 )
 

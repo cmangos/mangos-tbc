@@ -40,6 +40,7 @@ template<> const char* GetTName<Spell>() { return "Spell"; }
 template<> const char* GetTName<Quest>() { return "Quest"; }
 template<> const char* GetTName<Map>() { return "Map"; }
 template<> const char* GetTName<Corpse>() { return "Corpse"; }
+template<> const char* GetTName<Weather>() { return "Weather"; }
 
 extern void RegisterGlobals(lua_State* L);
 
@@ -100,6 +101,7 @@ void Eluna::StartEluna(bool restart)
     ElunaTemplate<Quest>::Register(LuaState);
     ElunaTemplate<Map>::Register(LuaState);
     ElunaTemplate<Corpse>::Register(LuaState);
+    ElunaTemplate<Weather>::Register(LuaState);
 
     uint32 count = 0;
     char filename[200];
@@ -454,6 +456,15 @@ void Eluna::PushCorpse(lua_State* L, Corpse* corpse)
     if (!L) L = LuaState;
     if (corpse)
         ElunaTemplate<Corpse>::push(L, corpse);
+    else
+        lua_pushnil(L);
+}
+
+void Eluna::PushWeather(lua_State* L, Weather* weather)
+{
+    if (!L) L = LuaState;
+    if (weather)
+        ElunaTemplate<Weather>::push(L, weather);
     else
         lua_pushnil(L);
 }

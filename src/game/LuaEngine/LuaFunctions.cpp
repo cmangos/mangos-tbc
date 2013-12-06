@@ -32,6 +32,7 @@
 #include "QuestMethods.h"
 #include "MapMethods.h"
 #include "CorpseMethods.h"
+#include "WeatherMethods.h"
 
 void RegisterGlobals(lua_State* L)
 {
@@ -105,6 +106,10 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "RemoveCorpse", &LuaGlobalFunctions::RemoveCorpse);                                     // RemoveCorpse(corpse) - Removes the player's corpse from the world.
     lua_register(L, "ConvertCorpseForPlayer", &LuaGlobalFunctions::ConvertCorpseForPlayer);                 // ConvertCorpseFromPlayer(guid[, insignia]) - Converts the player's corpse to bones. Adding insignia for PvP is optional (true or false).
     lua_register(L, "RemoveOldCorpses", &LuaGlobalFunctions::RemoveOldCorpses);                             // RemoveOldCorpses() - Converts (removes) old corpses that aren't bones.
+    lua_register(L, "FindWeather", &LuaGlobalFunctions::FindWeather);                                       // FindWeather(zoneId) - Finds the weather by zoneId and returns the weather
+    lua_register(L, "AddWeather", &LuaGlobalFunctions::AddWeather);                                         // AddWeather(zoneId) - Adds weather to the following zone, also returns weather
+    lua_register(L, "RemoveWeather", &LuaGlobalFunctions::RemoveWeather);                                   // RemoveWeather(zoneId) - Removes weather from a zone
+    lua_register(L, "SendFineWeatherToPlayer", &LuaGlobalFunctions::SendFineWeatherToPlayer);               // SendFineWeatherToPlayer(player) - Sends WEATHER_STATE_FINE weather to the
 }
 
 ElunaRegister<Unit> UnitMethods[] =
@@ -1023,6 +1028,24 @@ ElunaRegister<Corpse> CorpseMethods[] =
     {NULL, NULL}
 };
 
+ElunaRegister<Weather> WeatherMethods[] =
+{
+    // Getters
+    {"GetScriptId", &LuaWeather::GetScriptId},                                                               // :GetScriptId() - Returns the weather's scriptId
+    {"GetZoneId", &LuaWeather::GetZoneId},                                                                   // :GetZoneId() - Returns the weather's zoneId
+
+    // Setters
+    {"SetWeather", &LuaWeather::SetWeather},                                                                 // :SetWeather(weatherType, grade) - Sets the weather by weather type and grade
+
+    // Boolean
+    {"Regenerate", &LuaWeather::Regenerate},                                                                 // :Regenerate() - Calculates weather, returns true if the weather changed
+    {"UpdateWeather", &LuaWeather::UpdateWeather},                                                           // :UpdateWeather() - Updates the weather in a zone that has players in it, returns false if players aren't found
+
+    // Other
+    {"SendWeatherUpdateToPlayer", &LuaWeather::SendWeatherUpdateToPlayer},                                   // :SendWeatherUpdateToPlayer(player) - Sends weather update to the player
+    {NULL, NULL}
+};
+
 template<typename T> ElunaRegister<T>* GetMethodTable() { return NULL; }
 template<> ElunaRegister<Unit>* GetMethodTable<Unit>() { return UnitMethods; }
 template<> ElunaRegister<GameObject>* GetMethodTable<GameObject>() { return GameObjectMethods; }
@@ -1036,3 +1059,4 @@ template<> ElunaRegister<Spell>* GetMethodTable<Spell>() { return SpellMethods; 
 template<> ElunaRegister<Quest>* GetMethodTable<Quest>() { return QuestMethods; }
 template<> ElunaRegister<Map>* GetMethodTable<Map>() { return MapMethods; }
 template<> ElunaRegister<Corpse>* GetMethodTable<Corpse>() { return CorpseMethods; }
+template<> ElunaRegister<Weather>* GetMethodTable<Weather>() { return WeatherMethods; }

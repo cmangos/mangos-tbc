@@ -1085,7 +1085,7 @@ namespace LuaGlobalFunctions
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         bool insignia = luaL_optbool(L, 2, false);
 
-        // sEluna->PushCorpse(L, sObjectAccessor->ConvertCorpseForPlayer(guid, insignia));
+        // sEluna.PushCorpse(L, sObjectAccessor.ConvertCorpseForPlayer(guid, insignia));
         return 0;
     }
 
@@ -1098,16 +1098,16 @@ namespace LuaGlobalFunctions
     static int FindWeather(lua_State* L)
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
-        /*Weather* weather = Weather::FindWeather(zoneId);
-        sEluna.PushWeather(L, weather);*/
+        Weather* weather = sWorld.FindWeather(zoneId);
+        sEluna.PushWeather(L, weather);
         return 1;
     }
 
     static int AddWeather(lua_State* L)
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
-        /*Weather* weather = Weather::AddWeather(zoneId);
-        sEluna.PushWeather(L, weather);*/
+        Weather* weather = sWorld.AddWeather(zoneId);
+        sEluna.PushWeather(L, weather);
         return 1;
     }
 
@@ -1115,7 +1115,7 @@ namespace LuaGlobalFunctions
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
 
-        // Weather::RemoveWeather(zoneId);
+        sWorld.RemoveWeather(zoneId);
         return 0;
     }
 

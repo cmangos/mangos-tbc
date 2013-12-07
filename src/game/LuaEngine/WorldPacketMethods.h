@@ -23,8 +23,8 @@
 class LuaPacket
 {
     public:
-        // GetUnitType()
-        static int GetUnitType(lua_State* L, WorldPacket* packet)
+        // GetObjectType()
+        static int GetObjectType(lua_State* L, WorldPacket* packet)
         {
             if (!packet)
                 return 0;

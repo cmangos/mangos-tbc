@@ -23,8 +23,8 @@
 class LuaQuest
 {
     public:
-        // :GetUnitType()
-        static int GetUnitType(lua_State* L, Quest* quest)
+        // :GetObjectType()
+        static int GetObjectType(lua_State* L, Quest* quest)
         {
             if (!quest)
                 return 0;

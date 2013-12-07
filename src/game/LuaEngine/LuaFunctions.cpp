@@ -481,7 +481,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetRace", &LuaUnit::GetRace},                         // :GetRace()
     {"GetClass", &LuaUnit::GetClass},                       // :GetClass()
     {"GetClassAsString", &LuaUnit::GetClassAsString},       // :GetClassAsString()
-    {"GetUnitType", &LuaUnit::GetUnitType},                 // :GetUnitType() - Returns object type, IE: Player, Creature
+    {"GetObjectType", &LuaUnit::GetObjectType},                 // :GetObjectType() - Returns object type, IE: Player, Creature
     {"GetEntry", &LuaUnit::GetEntry},                       // :GetEntry() - Returns the unit's entryId
     {"GetAura", &LuaUnit::GetAura},                         // :GetAura(spellID) - returns aura object
     {"GetInt32Value", &LuaUnit::GetInt32Value},             // :GetInt32Value(index) - returns an int value from unit fields
@@ -654,7 +654,7 @@ ElunaRegister<Unit> UnitMethods[] =
 ElunaRegister<GameObject> GameObjectMethods[] =
 {
     // Getters
-    {"GetUnitType", &LuaGameObject::GetUnitType},           // :GetUnitType() - Returns unit type Ex. GameObject
+    {"GetObjectType", &LuaGameObject::GetObjectType},           // :GetObjectType() - Returns unit type Ex. GameObject
     {"GetGUID", &LuaGameObject::GetGUID},                   // :GetGUID() - Returns uint64 guid as hex string
     {"GetName", &LuaGameObject::GetName},                   // :GetName()
     {"GetDisplayId", &LuaGameObject::GetDisplayId},         // :GetDisplayId()
@@ -722,7 +722,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 ElunaRegister<Item> ItemMethods[] =
 {
     // Getters
-    {"GetUnitType", &LuaItem::GetUnitType},                 // :GetUnitType() - Returns object type, IE: Item, Creature
+    {"GetObjectType", &LuaItem::GetObjectType},                 // :GetObjectType() - Returns object type, IE: Item, Creature
     {"GetGUID", &LuaItem::GetGUID},                         // :GetGUID() - Returns uint64 guid as hex string
     {"GetOwnerGUID", &LuaItem::GetOwnerGUID},               // :GetOwnerGUID() - Returns the owner's guid
     {"GetOwner", &LuaItem::GetOwner},                       // :GetOwner() - Returns the owner object (player)
@@ -802,7 +802,7 @@ ElunaRegister<Item> ItemMethods[] =
 ElunaRegister<Aura> AuraMethods[] =
 {
     // Getters
-    {"GetUnitType", &LuaAura::GetUnitType},                 // :GetUnitType() - Returns object type, IE: Aura, Creature
+    {"GetObjectType", &LuaAura::GetObjectType},                 // :GetObjectType() - Returns object type, IE: Aura, Creature
     {"GetCaster", &LuaAura::GetCaster},                     // :GetCaster() - Returns caster as object
     {"GetCasterGUID", &LuaAura::GetCasterGUID},             // :GetCasterGUID() - Returns caster as GUID
     {"GetCasterLevel", &LuaAura::GetCasterLevel},           // :GetCasterLevel() - Returns casters level
@@ -826,7 +826,7 @@ ElunaRegister<Aura> AuraMethods[] =
 ElunaRegister<Spell> SpellMethods[] =
 {
     // Getters
-    {"GetUnitType", &LuaSpell::GetUnitType},                // :GetUnitType() - Returns the unit type (Spell)
+    {"GetObjectType", &LuaSpell::GetObjectType},                // :GetObjectType() - Returns the unit type (Spell)
     {"GetCaster", &LuaSpell::GetCaster},                    // :GetCaster() - Returns the spell's caster (UNIT)
     {"GetCastTime", &LuaSpell::GetCastTime},                // :GetCastTime() - Returns the spell cast time
     {"GetEntry", &LuaSpell::GetId},                         // :GetEntry() - Returns the spell's ID
@@ -850,7 +850,7 @@ ElunaRegister<Spell> SpellMethods[] =
 ElunaRegister<Quest> QuestMethods[] =
 {
     // Getters
-    {"GetUnitType", &LuaQuest::GetUnitType},                // :GetUnitType() - Returns the unit type (Quest)
+    {"GetObjectType", &LuaQuest::GetObjectType},                // :GetObjectType() - Returns the unit type (Quest)
     {"GetId", &LuaQuest::GetId},                            // :GetId() - Returns the quest's Id
     {"GetLevel", &LuaQuest::GetLevel},                      // :GetLevel() - Returns the quest's level
     {"GetMaxLevel", &LuaQuest::GetMaxLevel},                // :GetMaxLevel() - Returns the quest's max level
@@ -877,7 +877,7 @@ ElunaRegister<Group> GroupMethods[] =
     {"GetMembers", &LuaGroup::GetMembers},                  // :GetMembers() - returns a table the players in this group. (Online?)
     {"GetLeaderGUID", &LuaGroup::GetLeaderGUID},
     {"GetLeader", &LuaGroup::GetLeader},
-    {"GetUnitType", &LuaGroup::GetUnitType},
+    {"GetObjectType", &LuaGroup::GetObjectType},
     {"GetGUID", &LuaGroup::GetGUID},
     {"GetMemberGroup", &LuaGroup::GetMemberGroup},          // :GetMemberGroup(player) - Returns the player's subgroup ID
     {"GetMemberGUID", &LuaGroup::GetMemberGUID},            // :GetMemberGUID("name") - Returns the member's GUID
@@ -914,7 +914,7 @@ ElunaRegister<Guild> GuildMethods[] =
 {
     // Getters
     {"GetMembers", &LuaGuild::GetMembers},                  // :GetMembers() - returns a table containing the players in this guild. (Online?)
-    {"GetUnitType", &LuaGuild::GetUnitType},                // :GetUnitType() - Returns the unit type. Eg: Guild
+    {"GetObjectType", &LuaGuild::GetObjectType},                // :GetObjectType() - Returns the unit type. Eg: Guild
     {"GetLeader", &LuaGuild::GetLeader},                    // :GetLeader() - Returns the guild learder's object
     {"GetLeaderGUID", &LuaGuild::GetLeaderGUID},            // :GetLeaderGUID() - Returns the guild learder's guid
     {"GetId", &LuaGuild::GetId},                            // :GetId() - Gets the guild's ID
@@ -945,7 +945,7 @@ ElunaRegister<Guild> GuildMethods[] =
 
 ElunaRegister<QueryResult> QueryMethods[] =
 {
-    {"GetUnitType", &LuaQuery::GetUnitType},                // :GetUnitType() - Returns object type, IE: QueryResult
+    {"GetObjectType", &LuaQuery::GetObjectType},                // :GetObjectType() - Returns object type, IE: QueryResult
 
     {"NextRow", &LuaQuery::NextRow},                        // :NextRow() - Advances to next rown in the query. Returns true if there is a next row, otherwise false
     {"GetColumnCount", &LuaQuery::GetColumnCount},          // :GetColumnCount() - Gets the column count of the query
@@ -972,7 +972,7 @@ ElunaRegister<WorldPacket> PacketMethods[] =
     // Getters
     {"GetOpcode", &LuaPacket::GetOpcode},                   // :GetOpcode() - Returns an opcode
     {"GetSize", &LuaPacket::GetSize},                       // :GetSize() - Returns the packet size
-    {"GetUnitType", &LuaPacket::GetOpcode},                 // :GetUnitType() - Returns the unit type: Packet
+    {"GetObjectType", &LuaPacket::GetOpcode},                 // :GetObjectType() - Returns the unit type: Packet
 
     // Setters
     {"SetOpcode", &LuaPacket::SetOpcode},                   // :SetOpcode(opcode) - Sets the opcode by specifying an opcode

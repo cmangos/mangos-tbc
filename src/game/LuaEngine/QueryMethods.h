@@ -26,7 +26,7 @@ class LuaQuery
 
            // QueryResult methods
 
-           static int GetUnitType(lua_State* L, QueryResult* result)
+           static int GetObjectType(lua_State* L, QueryResult* result)
            {
                if (!result)
                    return 0;

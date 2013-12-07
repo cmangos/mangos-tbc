@@ -372,7 +372,7 @@ namespace LuaUnit
     int GetPlayerIP(lua_State*, Unit*);
     int GetLevelPlayedTime(lua_State*, Unit*);
     int GetTotalPlayedTime(lua_State*, Unit*);
-    int GetUnitType(lua_State*, Unit*);
+    int GetObjectType(lua_State*, Unit*);
     int GetGuild(lua_State*, Unit*);
     int GetGroup(lua_State*, Unit*);
     int GetGearLevel(lua_State*, Unit*);

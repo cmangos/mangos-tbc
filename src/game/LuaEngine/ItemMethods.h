@@ -91,7 +91,7 @@ class LuaItem
             return 1;
         }*/
 
-        static int GetUnitType(lua_State* L, Item* item)
+        static int GetObjectType(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
                 return 0;

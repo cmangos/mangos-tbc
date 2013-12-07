@@ -209,7 +209,7 @@ namespace LuaGlobalFunctions
     static int GetPlayerByGUID(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        // sEluna.PushUnit(L, sObjectAccessor.FindPlayer(guid));
+        sEluna.PushUnit(L, sObjectAccessor.FindPlayer((ObjectGuid)guid));
         return 1;
     }
 
@@ -392,15 +392,16 @@ namespace LuaGlobalFunctions
         if (!sMapStore.LookupEntry(mapid))
             return 0;
 
-        // sEluna.PushMap(L, sMapMgr.CreateBaseMap(mapid));
+        sEluna.PushMap(L, sMapMgr.FindMap(mapid));
         return 1;
     }
 
     // GetGuildByLeaderGUID(leaderGUID) - Gets guild object
     static int GetGuildByLeaderGUID(lua_State* L)
     {
-        // ObjectGuid guid = sEluna.CHECK_OBJGUID(L, 1);
-        // sEluna.PushGuild(L, sGuildMgr.GetGuildByLeader(guid));
+        Object* obj = sEluna.CHECK_OBJECT(L, 1);
+
+        sEluna.PushGuild(L, sGuildMgr.GetGuildByLeader((ObjectGuid)obj->GetObjectGuid()));
         return 1;
     }
 
@@ -649,7 +650,7 @@ namespace LuaGlobalFunctions
             return 0;
         }
 
-        // sObjectMgr.RemoveVendorItem(entry, item, persist);
+        sObjectMgr.RemoveVendorItem(entry, item/*, persist*/); // MaNGOS does not support persist
         return 0;
     }
 
@@ -664,8 +665,8 @@ namespace LuaGlobalFunctions
             return 0;
 
         VendorItemList const itemlist = items->m_items;
-        // for (VendorItemList::const_iterator itr = itemlist.begin(); itr != itemlist.end(); ++itr)
-        // sObjectMgr.RemoveVendorItem(entry, (*itr)->item, persist);
+        for (VendorItemList::const_iterator itr = itemlist.begin(); itr != itemlist.end(); ++itr)
+        sObjectMgr.RemoveVendorItem(entry, (*itr)->item/*, persist*/); // MaNGOS does not support persist
         return 0;
     }
 
@@ -684,7 +685,7 @@ namespace LuaGlobalFunctions
     {
         int banMode = luaL_checkint(L, 1);
         std::string nameOrIP = luaL_checkstring(L, 2);
-        const char* duration = luaL_checkstring(L, 3);
+        uint32 duration = luaL_checkunsigned(L, 3);
         const char* reason = luaL_checkstring(L, 4);
         Player* whoBanned = sEluna.CHECK_PLAYER(L, 5);
         if (!whoBanned)
@@ -708,11 +709,11 @@ namespace LuaGlobalFunctions
                 return 0;
         }
 
-        /*switch (sWorld->BanAccount((BanMode)banMode, nameOrIP, duration, reason, whoBanned->GetSession() ? whoBanned->GetName() : ""))
+        switch (sWorld.BanAccount((BanMode)banMode, nameOrIP, duration, reason, whoBanned->GetSession() ? whoBanned->GetName() : ""))
         {
         case BAN_SUCCESS:
-            if (atoi(duration) > 0)
-                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_YOUBANNED, nameOrIP.c_str(), secsToTimeString(TimeStringToSecs(duration), true).c_str(), reason);
+            if (duration > 0)
+                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_YOUBANNED, nameOrIP.c_str(), secsToTimeString(duration, true).c_str(), reason);
             else
                 ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_YOUPERMBANNED, nameOrIP.c_str(), reason);
             break;
@@ -720,7 +721,7 @@ namespace LuaGlobalFunctions
             return 0;
         case BAN_NOTFOUND:
             return 0;
-        }*/
+        }
         return 0;
     }
 
@@ -929,14 +930,14 @@ namespace LuaGlobalFunctions
         LOCALE_ruRU = 8
         */
         uint32 entry = luaL_checkunsigned(L, 1);
-        /*int loc_idx = luaL_optint(L, 2, DEFAULT_LOCALE);
-        if (loc_idx < 0 || loc_idx >= TOTAL_LOCALES)
+        int loc_idx = luaL_optint(L, 2, DEFAULT_LOCALE);
+        if (loc_idx < 0 || loc_idx >= MAX_LOCALE)
         {
             luaL_error(L, "Invalid locale index (%d)", loc_idx);
             return 0;
         }
 
-        const ItemTemplate* temp = sObjectMgr->GetItemTemplate(entry);
+        const ItemPrototype* temp = sObjectMgr.GetItemPrototype(entry);
         if (!temp)
         {
             luaL_error(L, "Invalid item entry (%d)", entry);
@@ -944,14 +945,14 @@ namespace LuaGlobalFunctions
         }
 
         std::string name = temp->Name1;
-        if (ItemLocale const* il = sObjectMgr->GetItemLocale(entry))
+        if (ItemLocale const* il = sObjectMgr.GetItemLocale(entry))
             ObjectMgr::GetLocaleString(il->Name, loc_idx, name);
 
         std::ostringstream oss;
         oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec <<
             "|Hitem:" << entry << ":0:0:0:0:0:0:0:0:0|h[" << name << "]|h|r";
 
-        sEluna.PushString(L, oss.str().c_str());*/
+        sEluna.PushString(L, oss.str().c_str());
         return 1;
     }
 

@@ -3756,7 +3756,7 @@ int LuaUnit::GetTotalPlayedTime(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::GetUnitType(lua_State* L, Unit* unit)
+int LuaUnit::GetObjectType(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 

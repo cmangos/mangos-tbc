@@ -68,7 +68,7 @@ class LuaGroup
             return 1;
         }
 
-        static int GetUnitType(lua_State* L, Group* group)
+        static int GetObjectType(lua_State* L, Group* group)
         {
             if (!group)
                 return 0;

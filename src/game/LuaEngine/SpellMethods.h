@@ -23,8 +23,8 @@
 class LuaSpell
 {
     public:
-        // :GetUnitType()
-        static int GetUnitType(lua_State* L, Spell* spell)
+        // :GetObjectType()
+        static int GetObjectType(lua_State* L, Spell* spell)
         {
             if (!spell)
                 return 0;

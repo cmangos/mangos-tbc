@@ -46,7 +46,7 @@ int LuaGameObject::GetRelativePoint(lua_State* L, GameObject* go)
 }
 
 
-int LuaGameObject::GetUnitType(lua_State* L, GameObject* go)
+int LuaGameObject::GetObjectType(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
         return 0;

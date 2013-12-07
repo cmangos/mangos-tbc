@@ -20,7 +20,7 @@
 #include "LuaEngine.h"
 #include "AuraMethods.h"
 
-int LuaAura::GetUnitType(lua_State* L, Aura* aura)
+int LuaAura::GetObjectType(lua_State* L, Aura* aura)
 {
     if (!aura)
         return 0;

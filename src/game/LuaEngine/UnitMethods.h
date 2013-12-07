@@ -451,6 +451,7 @@ namespace LuaUnit
     int SendPacketToGuild(lua_State*, Unit*);
     int SendPacketToRankedInGuild(lua_State*, Unit*);
     int SendVendorWindow(lua_State*, Unit*);
+    int SendGuildInvite(lua_State*, Unit*);
     int KickPlayer(lua_State*, Unit*);
     int ModifyMoney(lua_State*, Unit*);
     int LearnSpell(lua_State*, Unit*);

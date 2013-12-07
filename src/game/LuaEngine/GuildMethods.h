@@ -26,32 +26,39 @@ class LuaGuild
 
         static int GetMembers(lua_State* L, Guild* guild) // TODO: Implementation
         {
-            /*
-               if (!guild)
-                   return 0;
+            if (!guild)
+                return 0;
 
-               lua_newtable(L);
-               int tbl = lua_gettop(L);
-               uint32 i = 0;
+            lua_newtable(L);
+            int tbl = lua_gettop(L);
+            uint32 i = 0;
 
-               // Note that the following is very hacky, I don't like it and it SHOULD be changed ASAP.
+            SessionMap const& sessions = sWorld.GetAllSessions();
+            for (SessionMap::const_iterator it = sessions.begin(); it != sessions.end(); ++it)
+            {
+                if (Player* player = it->second->GetPlayer())
+                {
+                    if (player->GetSession() && (player->GetGuildId() == guild->GetId()))
+                    {
+                        ++i;
+                        sEluna.PushUnsigned(L, i);
+                        sEluna.PushUnit(L, player);
+                        lua_settable(L, tbl);
+                    }
+                }
+            }
 
-               TRINITY_READ_GUARD(HashMapHolder<Player>::LockType, *HashMapHolder<Player>::GetLock());
-               HashMapHolder<Player>::MapType const& m = sObjectAccessor->GetPlayers();
-               for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
-               {
-                   if (itr->second->GetGuildId() == guild->GetId())
-                   {
-                       ++i;
-                       sEluna.PushUnsigned(L, i);
-                       sEluna.PushUnit(L, itr->second);
-                       lua_settable(L, tbl);
-                   }
-               }
+            lua_settop(L, tbl); // push table to top of stack
+            return 1;
+        }
 
-               lua_settop(L, tbl); // push table to top of stack
-               return 1;*/
-            return 0; // Temporary to prevent conflicts
+        static int GetMemberCount(lua_State* L, Guild* guild) // TODO: Implementation
+        {
+            if (!guild)
+                return 0;
+            
+            sEluna.PushULong(L, guild->GetMemberSize());
+            return 1;
         }
 
         static int GetUnitType(lua_State* L, Guild* guild)
@@ -61,6 +68,28 @@ class LuaGuild
 
             sEluna.PushString(L, "Guild");
             return 1;
+        }
+
+        static int GetLeader(lua_State* L, Guild* guild)
+        {
+            if (!guild)
+                return 0;
+
+            sEluna.PushUnit(L, sObjectMgr.GetPlayer(guild->GetLeaderGuid()));
+            return 1;
+        }
+
+        static int SetLeader(lua_State* L, Guild* guild)
+        {
+            if (!guild)
+                return 0;
+
+            Player* player = sEluna.CHECK_PLAYER(L, 1);
+            if (!player)
+                return 0;
+
+            guild->SetLeader(player->GetObjectGuid());
+            return 0;
         }
 
         static int GetLeaderGUID(lua_State* L, Guild* guild)
@@ -179,8 +208,8 @@ class LuaGuild
             Player* player = sEluna.CHECK_PLAYER(L, 1);
             uint8 newRank = luaL_checkunsigned(L, 2);
 
-            // if (player)
-            // guild->ChangeMemberRank(player->GetGUID(), newRank); // TODO: Implementation
+            if (player)
+                guild->ChangeMemberRank(player->GetObjectGuid(), newRank); // TODO: Implementation
             return 0;
         }
 
@@ -192,6 +221,41 @@ class LuaGuild
             uint8 tabId = luaL_checkunsigned(L, 1);
             const char* text = luaL_checkstring(L, 2);
             guild->SetGuildBankTabText(tabId, text);
+            return 0;
+        }
+
+        static int GetBankMoney(lua_State* L, Guild* guild)
+        {
+            if (!guild)
+                return 0;
+
+            sEluna.PushULong(L, guild->GetGuildBankMoney());
+            return 1;
+        }
+
+        static int WithdrawBankMoney(lua_State* L, Guild* guild)
+        {
+            Player* player = sEluna.CHECK_PLAYER(L, 1);
+            uint32 money = luaL_checknumber(L, 2);
+
+            if (!guild || !player || (guild->GetGuildBankMoney()-money) < 0)
+                return 0;
+
+            player->SetMoney(player->GetMoney()+money);
+            guild->SetBankMoney(guild->GetGuildBankMoney()-money);
+            return 0;
+        }
+
+        static int DepositBankMoney(lua_State* L, Guild* guild)
+        {
+            Player* player = sEluna.CHECK_PLAYER(L, 1);
+            uint32 money = luaL_checknumber(L, 2);
+
+            if (!guild || !player || (player->GetMoney()-money) < 0)
+                return 0;
+
+            player->SetMoney(player->GetMoney()-money);
+            guild->SetBankMoney(guild->GetGuildBankMoney()+money);
             return 0;
         }
 };

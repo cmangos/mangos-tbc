@@ -239,19 +239,19 @@ namespace LuaGlobalFunctions
     // GetPlayersInWorld([team, onlyGM]) - Gets a table with players in world. Team can be 0 for ally, 1 for horde and 2 for both.
     static int GetPlayersInWorld(lua_State* L)
     {
-        /*uint32 team = luaL_optunsigned(L, 1, TEAM_NEUTRAL);
+        uint32 team = luaL_optunsigned(L, 1, TEAM_NEUTRAL);
         bool onlyGM = luaL_optbool(L, 2, false);
 
         lua_newtable(L);
         int tbl = lua_gettop(L);
         uint32 i = 0;
 
-        SessionMap const& sessions = sWorld->GetAllSessions();
+        SessionMap const& sessions = sWorld.GetAllSessions();
         for (SessionMap::const_iterator it = sessions.begin(); it != sessions.end(); ++it)
         {
             if (Player* player = it->second->GetPlayer())
             {
-                if (player->GetSession() && ((team >= TEAM_NEUTRAL || player->GetTeamId() == team) && (!onlyGM || player->IsGameMaster())))
+                if (player->GetSession() && ((team >= TEAM_NEUTRAL || player->GetTeam() == team) && (!onlyGM || player->isGameMaster())))
                 {
                     ++i;
                     sEluna.PushUnsigned(L, i);
@@ -261,7 +261,7 @@ namespace LuaGlobalFunctions
             }
         }
 
-        lua_settop(L, tbl);*/ // push table to top of stack
+        lua_settop(L, tbl); // push table to top of stack
         return 1;
     }
 

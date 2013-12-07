@@ -573,6 +573,17 @@ bool Guild::DelMember(ObjectGuid guid, bool isDisbanding)
     return members.empty();
 }
 
+bool Guild::ChangeMemberRank(ObjectGuid guid, uint8 newRank)
+{
+    if (newRank <= GetLowestRank())                    // Validate rank (allow only existing ranks)
+        if (MemberSlot* member = GetMemberSlot(guid))
+        {
+            member->ChangeRank(newRank);
+            return true;
+        }
+    return false;
+}
+
 void Guild::BroadcastToGuild(WorldSession* session, const std::string& msg, uint32 language)
 {
     if (session && session->GetPlayer() && HasRankRight(session->GetPlayer()->GetRank(), GR_RIGHT_GCHATSPEAK))

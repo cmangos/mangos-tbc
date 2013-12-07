@@ -1121,6 +1121,17 @@ int LuaUnit::SendTrainerList(lua_State* L, Unit* unit)
     return 0;
 }
 
+int LuaUnit::SendGuildInvite(lua_State* L, Unit* unit)
+{
+    TO_PLAYER();
+
+    WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
+
+    if (obj)
+        player->GetSession()->SendGuildInvite(sObjectMgr.GetPlayer(obj->GetObjectGuid()));
+    return 0;
+}
+
 int LuaUnit::LogoutPlayer(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
@@ -2024,7 +2035,7 @@ int LuaUnit::GetGuildName(lua_State* L, Unit* unit)
 
     if (!player->GetGuildId())
         return 0;
-    // sEluna.PushString(L, player->GetGuildName().c_str());
+    sEluna.PushString(L, sGuildMgr.GetGuildNameById(player->GetGuildId()).c_str());
     return 1;
 }
 
@@ -3762,7 +3773,7 @@ int LuaUnit::GetGuild(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushGuild(L, player->GetGuild());
+    sEluna.PushGuild(L, sGuildMgr.GetGuildById(player->GetGuildId()));
     return 1;
 }
 

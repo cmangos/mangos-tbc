@@ -374,6 +374,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"CreateCorpse", &LuaUnit::CreateCorpse},               // :CreateCorpse() - Creates the player's corpse
     {"SpawnBones", &LuaUnit::SpawnBones},                   // :SpawnBones() - Removes the player's corpse and spawns bones
     {"RemovedInsignia", &LuaUnit::RemovedInsignia},         // :RemovedInsignia(looter) - Looter removes the player's corpse, looting the player and replacing with lootable bones
+    {"SendGuildInvite", &LuaUnit::SendGuildInvite},         // :SendGuildInvite(player) - Sends a guild invite to the specific player
 
     // Creature methods
     // Getters
@@ -914,24 +915,31 @@ ElunaRegister<Guild> GuildMethods[] =
     // Getters
     {"GetMembers", &LuaGuild::GetMembers},                  // :GetMembers() - returns a table containing the players in this guild. (Online?)
     {"GetUnitType", &LuaGuild::GetUnitType},                // :GetUnitType() - Returns the unit type. Eg: Guild
+    {"GetLeader", &LuaGuild::GetLeader},                    // :GetLeader() - Returns the guild learder's object
     {"GetLeaderGUID", &LuaGuild::GetLeaderGUID},            // :GetLeaderGUID() - Returns the guild learder's guid
     {"GetId", &LuaGuild::GetId},                            // :GetId() - Gets the guild's ID
     {"GetName", &LuaGuild::GetName},                        // :GetName() - Gets the guild name
     {"GetMOTD", &LuaGuild::GetMOTD},                        // :GetMOTD() - Gets the guild MOTD string
     {"GetInfo", &LuaGuild::GetInfo},                        // :GetInfo() - Gets the guild info string
+    {"GetBankMoney", &LuaGuild::GetBankMoney},              // :GetBankMoney() - Returns the money currently in the guild bank
+    {"GetMemberCount", &LuaGuild::GetMemberCount},          // :GetMemberCount() - Returns the amount of players in the guild
 
     // Setters
     {"SetBankTabText", &LuaGuild::SetBankTabText},          // :SetBankTabText(tabId, text)
     {"SetMemberRank", &LuaGuild::ChangeMemberRank},         // :SetMemberRank(player, newRank) - Sets the player rank in the guild to the new rank
+    {"SetLeader", &LuaGuild::SetLeader},                    // :SetLeader() - Sets the guild's leader
 
     // Boolean
 
     // Other
+    {"ChangeMemberRank", &LuaGuild::ChangeMemberRank},      // :ChangeMemberRank(player, rankId) - Changes players rank to rank specified
     {"SendPacket", &LuaGuild::SendPacket},                  // :SendPacket(packet) - sends packet to guild
     {"SendPacketToRanked", &LuaGuild::SendPacketToRanked},  // :SendPacketToRanked(packet, rankId) - sends packet to guild, specifying a rankId will only send the packet to your ranked members
     {"Disband", &LuaGuild::Disband},                        // :Disband() - Disbands the guild
     {"AddMember", &LuaGuild::AddMember},                    // :AddMember(player, rank) - adds the player to the guild. Rank is optional
     {"DeleteMember", &LuaGuild::DeleteMember},              // :DeleteMember(player, disbanding, kicked) - Deletes the player from the guild. Disbanding and kicked are optional bools
+    {"DepositBankMoney", &LuaGuild::DepositBankMoney},      // :DepositBankMoney(money) - Deposits money into the guild bank
+    {"WithdrawBankMoney", &LuaGuild::WithdrawBankMoney},    // :WithdrawBankMoney(money) - Withdraws money from the guild bank
     {NULL, NULL},
 };
 

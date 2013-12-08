@@ -269,6 +269,7 @@ class Eluna
         ElunaBind* ItemGossipBindings;
         ElunaBind* playerGossipBindings;
 
+        void Initialize();
         void StartEluna(bool restart);
         void AddScriptHooks();
         static void report(lua_State*);

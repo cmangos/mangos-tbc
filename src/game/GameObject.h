@@ -33,6 +33,8 @@
 #pragma pack(push,1)
 #endif
 
+class GameObjectAI;
+
 // from `gameobject_template`
 struct GameObjectInfo
 {

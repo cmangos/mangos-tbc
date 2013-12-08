@@ -35,6 +35,7 @@
 #include "MapPersistentStateMgr.h"
 #include "ObjectAccessor.h"
 #include "ObjectGuid.h"
+#include "Weather.h"
 #include "Policies/Singleton.h"
 
 #include <string>
@@ -279,20 +280,6 @@ typedef std::pair<GossipMenuItemsMap::const_iterator, GossipMenuItemsMap::const_
 struct PetCreateSpellEntry
 {
     uint32 spellid[4];
-};
-
-#define WEATHER_SEASONS 4
-struct WeatherSeasonChances
-{
-    uint32 rainChance;
-    uint32 snowChance;
-    uint32 stormChance;
-};
-
-struct WeatherZoneChances
-{
-    WeatherSeasonChances data[WEATHER_SEASONS];
-    uint32 ScriptId;
 };
 
 struct GraveYardData

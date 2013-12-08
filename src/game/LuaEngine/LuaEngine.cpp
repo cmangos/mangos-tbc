@@ -50,7 +50,7 @@ void Eluna::Initialize()
     if (sWorld.getConfig(CONFIG_BOOL_ELUNA_ENABLED))
         sEluna.StartEluna(false);
     else
-         sLog.outError("[Eluna]: LuaEngine is Disabled. (If you want to use it please set config in 'mangosd.conf')");
+        sLog.outError("[Eluna]: LuaEngine is Disabled. (If you want to use it please set config in 'mangosd.conf')");
 }
 
 void Eluna::StartEluna(bool restart)

@@ -1281,7 +1281,7 @@ void World::SetInitialWorldSettings()
     if (sWorld.getConfig(CONFIG_BOOL_ELUNA_ENABLED))
         sEluna.StartEluna(false);
     else
-        sLog.outError("Eluna: LuaEngine is Disabled");
+        sLog.outError("Eluna: LuaEngine is Disabled. (If you want to use it please set config in 'mangosd.conf')");
 
     ///- Initialize game time and timers
     sLog.outString("DEBUG:: Initialize game time and timers");

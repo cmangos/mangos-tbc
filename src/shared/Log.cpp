@@ -263,6 +263,7 @@ void Log::Initialize()
 
     charLogfile = openLogFile("CharLogFile", "CharLogTimestamp", "a");
     dberLogfile = openLogFile("DBErrorLogFile", NULL, "a");
+    elunaErrLogfile = openLogFile("ElunaErrorLogFile", NULL, "a");
     eventAiErLogfile = openLogFile("EventAIErrorLogFile", NULL, "a");
     raLogfile = openLogFile("RaLogFile", NULL, "a");
     worldLogfile = openLogFile("WorldLogFile", "WorldLogTimestamp", "a");

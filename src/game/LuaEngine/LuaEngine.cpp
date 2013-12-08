@@ -110,7 +110,7 @@ void Eluna::StartEluna(bool restart)
         strcpy(filename, itr->c_str());
         if (luaL_loadfile(LuaState, filename) != 0)
         {
-            sLog.outError("[Eluna]: Error loading file `%s`.", itr->c_str());
+            sLog.outErrorEluna("[Eluna]: Error loading file `%s`.", itr->c_str());
             report(LuaState);
         }
         else
@@ -118,7 +118,7 @@ void Eluna::StartEluna(bool restart)
             int err = lua_pcall(LuaState, 0, 0, 0);
             if (err != 0 && err == LUA_ERRRUN)
             {
-                sLog.outError("[Eluna]: Error loading file `%s`.", itr->c_str());
+                sLog.outErrorEluna("[Eluna]: Error loading file `%s`.", itr->c_str());
                 report(LuaState);
             }
         }
@@ -158,7 +158,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
     hFile = FindFirstFile(SearchName, &FindData);
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        sLog.outError("[Eluna]: No `lua_scripts` directory found! Creating a 'lua_scripts' directory and restarting Eluna.");
+        sLog.outErrorEluna("[Eluna]: Error No `lua_scripts` directory found! Creating a 'lua_scripts' directory and restarting Eluna.");
         CreateDirectory("lua_scripts", NULL);
         StartEluna(true);
         return;
@@ -220,7 +220,7 @@ void Eluna::LoadDirectory(char* Dirname, LoadedScripts* lscr)
         if (stat(_path, &attributes) == -1)
         {
             error = true;
-            sLog.outError("[Eluna]: Error opening `%s`", _path);
+            sLog.outErrorEluna("[Eluna]: Error opening `%s`", _path);
         }
         else
             error = false;
@@ -245,7 +245,7 @@ void Eluna::report(lua_State* L)
     while (msg)
     {
         lua_pop(L, -1);
-        printf("\t%s\n", msg);
+        sLog.outErrorEluna("\t%s\n", msg);
         msg = lua_tostring(L, -1);
     }
 }

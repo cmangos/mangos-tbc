@@ -144,6 +144,8 @@ enum Powers
     POWER_FOCUS                         = 2,
     POWER_ENERGY                        = 3,
     POWER_HAPPINESS                     = 4,
+    MAX_POWERS                          = 5,
+    POWER_ALL                           = 127,          // default for class? - need check for TBC
     POWER_HEALTH                        = 0xFFFFFFFE    // (-2 as signed value)
 };
 

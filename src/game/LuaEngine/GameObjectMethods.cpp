@@ -250,7 +250,7 @@ int LuaGameObject::GetScale(lua_State* L, GameObject* go)
     if (!go || !go->IsInWorld())
         return 0;
 
-    // sEluna.PushFloat(L, go->GetObjectSize());
+    sEluna.PushFloat(L, go->GetObjectScale());
     return 1;
 }
 

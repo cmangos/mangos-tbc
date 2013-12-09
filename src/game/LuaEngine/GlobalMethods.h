@@ -180,11 +180,12 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // ReloadEluna() - Gets core version as a string
+    // GetCoreVersion() - Gets core version as a string
     static int GetCoreVersion(lua_State* L)
     {
         // sEluna.PushString(L, _FULLVERSION);
-        return 1;
+        // return 1;
+        return 0;
     }
 
     // GetQuest(questId)
@@ -251,7 +252,7 @@ namespace LuaGlobalFunctions
         {
             if (Player* player = it->second->GetPlayer())
             {
-                if (player->GetSession() && ((team >= TEAM_NEUTRAL || player->GetTeam() == team) && (!onlyGM || player->isGameMaster())))
+                if (player->GetSession() && ((team >= TEAM_NEUTRAL || player->GetTeamId() == team) && (!onlyGM || player->isGameMaster())))
                 {
                     ++i;
                     sEluna.PushUnsigned(L, i);
@@ -408,7 +409,7 @@ namespace LuaGlobalFunctions
     // GetPlayerCount() - Gets server player count
     static int GetPlayerCount(lua_State* L)
     {
-        // sEluna.PushUnsigned(L, sWorld->GetPlayerCount());
+        sEluna.PushUnsigned(L, sWorld.GetActiveSessionCount());
         return 1;
     }
 

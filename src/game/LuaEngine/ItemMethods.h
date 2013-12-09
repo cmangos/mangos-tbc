@@ -23,7 +23,7 @@
 class LuaItem
 {
     public:
-        /*static int GetItemLink(lua_State* L, Item* item) // TODO: Implement
+        static int GetItemLink(lua_State* L, Item* item) // TODO: Implement
         {
             if (!item || !item->IsInWorld())
                 return 0;
@@ -39,15 +39,15 @@ class LuaItem
             // LOCALE_ruRU = 8
 
             int loc_idx = luaL_optint(L, 1, DEFAULT_LOCALE);
-            if (loc_idx < 0 || loc_idx >= TOTAL_LOCALES)
+            if (loc_idx < 0 || loc_idx >= MAX_LOCALE)
             {
                 luaL_error(L, "Invalid locale index (%d)", loc_idx);
                 return 0;
             }
 
-            const ItemTemplate* temp = item->GetProto();
+            const ItemPrototype* temp = item->GetProto();
             std::string name = temp->Name1;
-            if (ItemLocale const* il = sObjectMgr->GetItemLocale(temp->ItemId))
+            if (ItemLocale const* il = sObjectMgr.GetItemLocale(temp->ItemId))
                 ObjectMgr::GetLocaleString(il->Name, loc_idx, name);
 
             if (int32 itemRandPropId = item->GetItemRandomPropertyId())
@@ -89,7 +89,7 @@ class LuaItem
 
             sEluna.PushString(L, oss.str().c_str());
             return 1;
-        }*/
+        }
 
         static int GetObjectType(lua_State* L, Item* item)
         {

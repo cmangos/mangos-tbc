@@ -24,7 +24,7 @@ class LuaGuild
 {
     public:
 
-        static int GetMembers(lua_State* L, Guild* guild) // TODO: Implementation
+        static int GetMembers(lua_State* L, Guild* guild)
         {
             if (!guild)
                 return 0;
@@ -52,7 +52,7 @@ class LuaGuild
             return 1;
         }
 
-        static int GetMemberCount(lua_State* L, Guild* guild) // TODO: Implementation
+        static int GetMemberCount(lua_State* L, Guild* guild)
         {
             if (!guild)
                 return 0;
@@ -209,7 +209,7 @@ class LuaGuild
             uint8 newRank = luaL_checkunsigned(L, 2);
 
             if (player)
-                guild->ChangeMemberRank(player->GetObjectGuid(), newRank); // TODO: Implementation
+                guild->ChangeMemberRank(player->GetObjectGuid(), newRank);
             return 0;
         }
 

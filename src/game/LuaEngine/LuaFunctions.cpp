@@ -140,7 +140,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetReputation", &LuaUnit::GetReputation},             // :GetReputation(faction) - Gets player's reputation with given faction
     {"GetItemByEntry", &LuaUnit::GetItemByEntry},           // :GetItemByEntry(entry) - Gets an item if the player has it
     {"GetEquippedItemBySlot", &LuaUnit::GetEquippedItemBySlot},// :GetEquippedItemBySlot(slotId) - Returns equipped item by slot
-    //{"GetQuestLevel", &LuaUnit::GetQuestLevel},             // :GetQuestLevel(quest) - Returns quest's level
+    {"GetQuestLevel", &LuaUnit::GetQuestLevel},             // :GetQuestLevel(quest) - Returns quest's level
     {"GetChatTag", &LuaUnit::GetChatTag},                   // :GetChatTag() - Returns player chat tag ID
     {"GetRestBonus", &LuaUnit::GetRestBonus},               // :GetRestBonus() - Gets player's rest bonus
     {"GetRestType", &LuaUnit::GetRestType},                 // :GetRestType() - Returns the player's rest type

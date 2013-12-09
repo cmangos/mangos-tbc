@@ -6018,6 +6018,9 @@ void Player::RewardReputation(Unit* pVictim, float rate)
     if (!pVictim || pVictim->GetTypeId() == TYPEID_PLAYER)
         return;
 
+    if (((Creature*)pVictim)->IsReputationGainDisabled())
+        return;
+
     // used current difficulty creature entry instead normal version (GetEntry())
     ReputationOnKillEntry const* Rep = sObjectMgr.GetReputationOnKillEntry(((Creature*)pVictim)->GetCreatureInfo()->Entry);
 

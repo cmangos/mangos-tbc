@@ -709,6 +709,10 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         void SetVirtualItem(VirtualItemSlot slot, uint32 item_id);
         void SetVirtualItemRaw(VirtualItemSlot slot, uint32 display_id, uint32 info0, uint32 info1);
+
+        void SetDisableReputationGain(bool disable) { DisableReputationGain = disable; }
+        bool IsReputationGainDisabled() { return DisableReputationGain; }
+
     protected:
         bool MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* pSpellInfo, uint32 selectFlags) const;
 
@@ -761,6 +765,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
         float m_combatStartZ;
 
         Position m_respawnPos;
+
+        bool DisableReputationGain;
 
     private:
         GridReference<Creature> m_gridRef;

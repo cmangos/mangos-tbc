@@ -272,7 +272,7 @@ int LuaUnit::IsReputationGainDisabled(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    // sEluna.PushBoolean(L, creature->IsReputationGainDisabled());
+    sEluna.PushBoolean(L, creature->IsReputationGainDisabled());
     return 1;
 }
 
@@ -282,7 +282,7 @@ int LuaUnit::SetDisableReputationGain(lua_State* L, Unit* unit)
 
     bool disable = luaL_optbool(L, 1, true);
 
-    // creature->SetDisableReputationGain(disable);
+    creature->SetDisableReputationGain(disable);
     return 0;
 }
 

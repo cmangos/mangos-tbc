@@ -416,7 +416,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetRespawnDelay", &LuaUnit::SetRespawnDelay},         // :SetRespawnDelay(delay) - Sets the respawn delay
     {"SetRespawnRadius", &LuaUnit::SetRespawnRadius},       // :SetRespawnRadius(dist) - Sets the respawn radius
     {"SetInCombatWithZone", &LuaUnit::SetInCombatWithZone}, // :SetInCombatWithZone() - Sets the creature in combat with everyone in zone
-    //{"SetDisableReputationGain", &LuaUnit::SetDisableReputationGain},                                       // :SetDisableReputationGain([disable]) - Disables or enables reputation gain from creature
+    {"SetDisableReputationGain", &LuaUnit::SetDisableReputationGain},                                       // :SetDisableReputationGain([disable]) - Disables or enables reputation gain from creature
     //{"SetLootMode", &LuaUnit::SetLootMode},                 // :SetLootMode(lootMode) - Sets the lootmode
     {"SetNPCFlags", &LuaUnit::SetNPCFlags},                 // :SetNPCFlags(flags) - Sets NPC flags
 
@@ -439,7 +439,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsTargetAcceptable", &LuaUnit::IsTargetAcceptable},   // :IsTargetAcceptable(unit) - Returns true if the creature can target unit
     {"HasInvolvedQuest", &LuaUnit::HasInvolvedQuest},       // :HasInvolvedQuest(questId) - Returns true if the creature can finish the quest for players
     {"IsRegeneratingHealth", &LuaUnit::IsRegeneratingHealth},                                               // :IsRegeneratingHealth() - Returns true if the creature is regenerating health
-    //{"IsReputationGainDisabled", &LuaUnit::IsReputationGainDisabled},                                       // :IsReputationGainDisabled() - Returns true if the creature has reputation gain disabled
+    {"IsReputationGainDisabled", &LuaUnit::IsReputationGainDisabled},                                       // :IsReputationGainDisabled() - Returns true if the creature has reputation gain disabled
     //{"IsDamageEnoughForLootingAndReward", &LuaUnit::IsDamageEnoughForLootingAndReward},                     // :IsDamageEnoughForLootingAndReward()
     //{"HasLootMode", &LuaUnit::HasLootMode},
 

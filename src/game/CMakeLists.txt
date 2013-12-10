@@ -531,6 +531,7 @@ if(UNIX)
 endif()
 
 add_dependencies(${LIBRARY_NAME} revision.h)
+add_dependencies(${LIBRARY_NAME} lualib)
 if(NOT ACE_USE_EXTERNAL)
   add_dependencies(${LIBRARY_NAME} ACE_Project)
 endif()

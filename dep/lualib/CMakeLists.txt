@@ -16,14 +16,71 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-file(GLOB sources *.c)
+set(LIBRARY_NAME lualib)
 
-set(lua_STAT_SRCS
-  ${sources}
+set(LIBRARY_SRCS
+  lapi.c
+  lapi.h
+  lauxlib.h
+  lbaselib.c
+  lbitlib.c
+  lcode.c
+  lcode.h
+  lcorolib.c
+  lctype.c
+  lctype.h
+  ldblib.c
+  ldebug.c
+  ldebug.h
+  ldo.c
+  ldo.h
+  ldump.c
+  lfunc.c
+  lfunc.h
+  lgc.c
+  lgc.h
+  linit.c
+  liolib.c
+  llex.c
+  llex.h
+  llimits.h
+  lmathlib.c
+  lmem.c
+  lmem.h
+  loadlib.c
+  lobject.c
+  lobject.h
+  lopcodes.c
+  lopcodes.h
+  loslib.c
+  lparser.c
+  lparser.h
+  lstate.c
+  lstate.h
+  lstring.c
+  lstring.h
+  lstrlib.c
+  ltable.c
+  ltable.h
+  ltablib.c
+  ltm.c
+  ltm.h
+  lua.c
+  lua.h
+  luaconf.h
+  lualib.h
+  lundump.c
+  lundump.h
+  lvm.c
+  lvm.h
+  lzio.c
+  lzio.h
 )
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_library(lua STATIC ${lua_STAT_SRCS})
+add_library(${LIBRARY_NAME} STATIC
+  ${LIBRARY_SRCS}
+)

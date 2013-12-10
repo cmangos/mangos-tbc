@@ -4140,7 +4140,7 @@ int LuaUnit::IsDying(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    // sEluna.PushBoolean(L, unit->isDying());
+    sEluna.PushBoolean(L, unit->isDying());
     return 1;
 }
 

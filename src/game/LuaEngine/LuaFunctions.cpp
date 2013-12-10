@@ -564,7 +564,7 @@ ElunaRegister<Unit> UnitMethods[] =
     // Boolean
     {"IsAlive", &LuaUnit::IsAlive},                         // :IsAlive()
     {"IsDead", &LuaUnit::IsDead},                           // :IsDead() - Returns true if the unit is dead, false if they are alive
-    //{"IsDying", &LuaUnit::IsDying},                         // :IsDying() - Returns true if the unit death state is JUST_DIED.
+    {"IsDying", &LuaUnit::IsDying},                         // :IsDying() - Returns true if the unit death state is JUST_DIED.
     {"IsInWorld", &LuaUnit::IsInWorld},                     // :IsInWorld()
     {"IsPvPFlagged", &LuaUnit::IsPvPFlagged},               // :IsPvPFlagged()
     {"HasQuest", &LuaUnit::HasQuest},                       // :HasQuest(id)

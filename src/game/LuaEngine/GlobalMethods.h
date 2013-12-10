@@ -1087,7 +1087,7 @@ namespace LuaGlobalFunctions
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         bool insignia = luaL_optbool(L, 2, false);
 
-        // sEluna.PushCorpse(L, sObjectAccessor.ConvertCorpseForPlayer(guid, insignia));
+        sEluna.PushCorpse(L, sObjectAccessor.ConvertCorpseForPlayer((ObjectGuid)guid, insignia));
         return 0;
     }
 

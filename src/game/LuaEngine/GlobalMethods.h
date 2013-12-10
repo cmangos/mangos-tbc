@@ -738,7 +738,7 @@ namespace LuaGlobalFunctions
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
-        // sEluna.PushUnsigned(L, GUID_LOPART(guid));
+        sEluna.PushUnsigned(L, ObjectGuid(guid));
         return 1;
     }
 

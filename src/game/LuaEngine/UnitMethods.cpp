@@ -819,7 +819,7 @@ int LuaUnit::GetCreatureSpellCooldownDelay(lua_State* L, Unit* unit)
 
     uint32 spell = luaL_checkunsigned(L, 1);
 
-    // sEluna.PushUnsigned(L, creature->GetCreatureSpellCooldownDelay(spell));
+    sEluna.PushUnsigned(L, creature->GetCreatureSpellCooldownDelay(spell));
     return 1;
 }
 

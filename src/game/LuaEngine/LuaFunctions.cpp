@@ -389,7 +389,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetHomePosition", &LuaUnit::GetHomePosition},         // :GetHomePosition() - Returns x,y,z,o of spawn position
     //{"GetTransportHomePosition", &LuaUnit::GetTransportHomePosition},                                       // :GetTransportHomePosition() - Returns x,y,z,o of transport spawn position
     {"GetCorpseDelay", &LuaUnit::GetCorpseDelay},           // :GetCorpseDelay() - Returns corpse delay
-    //{"GetCreatureSpellCooldownDelay", &LuaUnit::GetCreatureSpellCooldownDelay},                             // :GetCreatureSpellCooldownDelay(spellId) - Returns spell cooldown delay
+    {"GetCreatureSpellCooldownDelay", &LuaUnit::GetCreatureSpellCooldownDelay},                             // :GetCreatureSpellCooldownDelay(spellId) - Returns spell cooldown delay
     {"GetScriptId", &LuaUnit::GetScriptId},                 // :GetScriptId() - Returns creature's script ID
     {"GetAIName", &LuaUnit::GetAIName},                     // :GetAIName() - Returns creature's AI name
     {"GetScriptName", &LuaUnit::GetScriptName},             // :GetScriptName() - Returns creature's script name

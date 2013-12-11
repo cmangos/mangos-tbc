@@ -498,7 +498,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetPhaseMask", &LuaUnit::GetPhaseMask},               // :GetPhaseMask() - gets the phase mask of the unit
     {"GetCombatTime", &LuaUnit::GetCombatTime},             // :GetCombatTime() - Returns how long the unit has been in combat
     {"GetFaction", &LuaUnit::GetFaction},                   // :GetFaction() - Returns the unit's factionId
-    //{"GetCurrentSpell", &LuaUnit::GetCurrentSpell},         // :GetCurrentSpell(type) - Returns the currently casted spell of given type if any
+    {"GetCurrentSpell", &LuaUnit::GetCurrentSpell},         // :GetCurrentSpell(type) - Returns the currently casted spell of given type if any
     {"GetCreatureType", &LuaUnit::GetCreatureType},         // :GetCreatureType() - Returns the unit's type
     //{"GetNearbyTarget", &LuaUnit::GetNearbyTarget},         // :GetNearbyTarget([radius[, exclude]]) - Returns nearby target within sight or given radius. Excludes current target and given unit
     {"GetShieldBlockValue", &LuaUnit::GetShieldBlockValue}, // :GetShieldBlockValue() - Returns block value

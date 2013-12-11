@@ -289,7 +289,7 @@ int LuaUnit::SetDisableReputationGain(lua_State* L, Unit* unit)
 int LuaUnit::SelectVictim(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
-    sEluna.PushUnit(L, creature->getVictim());
+    // sEluna.PushUnit(L, creature->SelectVictim());
     return 1;
 }
 

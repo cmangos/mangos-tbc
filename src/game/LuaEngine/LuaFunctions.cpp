@@ -407,7 +407,7 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"GetAITarget", &LuaUnit::GetAITarget},                 // :GetAITarget(type[, playeronly, position, distance, aura]) - Get an unit in threat list
     //{"GetAITargets", &LuaUnit::GetAITargets},               // :GetAITargets() - Get units in threat list
     {"GetAITargetsCount", &LuaUnit::GetAITargetsCount},     // :GetAITargetsCount() - Get threat list size
-    //{"GetVictim", &LuaUnit::GetVictim},                     // :GetVictim() - Returns creature's current target
+    {"GetVictim", &LuaUnit::GetVictim},                     // :GetVictim() - Returns creature's current target
     //{"GetNearestTargetInAttackDistance", &LuaUnit::GetNearestTargetInAttackDistance},                       // :GetNearestTargetInAttackDistance([radius]) - Returns nearest target in attack distance and within given radius, if set
     //{"GetNearestTarget", &LuaUnit::GetNearestTarget},       // :GetNearestTarget([radius]) - Returns nearest target in sight or given radius
     //{"GetNearestHostileTargetInAggroRange", &LuaUnit::GetNearestHostileTargetInAggroRange},                 // :GetNearestHostileTargetInAggroRange([checkLOS]) - Returns closest hostile target in aggro range of the creature

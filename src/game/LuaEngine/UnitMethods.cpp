@@ -2768,9 +2768,7 @@ int LuaUnit::IsInWater(lua_State* L, Unit* unit)
 
 int LuaUnit::GetVictim(lua_State* L, Unit* unit)
 {
-    TO_CREATURE();
-
-    // sEluna.Push(L, creature->SelectVictim());
+    sEluna.Push(L, unit->getVictim());
     return 1;
 }
 

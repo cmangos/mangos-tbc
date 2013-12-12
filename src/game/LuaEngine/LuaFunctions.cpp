@@ -119,15 +119,43 @@ void RegisterGlobals(lua_State* L)
 
 ElunaRegister<Object> ObjectMethods[] =
 {
+    // Getters
+    {"GetScale", &LuaObject::GetScale},                             // :GetScale()
+    {"GetEntry", &LuaObject::GetEntry},                             // :GetEntry() - Returns the object's entryId
     {"GetGUID", &LuaObject::GetGUID},                               // :GetGUID() - Returns uint64 guid as hex string
     {"GetGUIDLow", &LuaObject::GetGUIDLow},                         // :GetGUIDLow() - Returns uint32 guid (low guid) that is used in database.
-    {"IsInWorld", &LuaObject::IsInWorld},                           // :IsInWorld()
+    {"GetInt32Value", &LuaObject::GetInt32Value},                   // :GetInt32Value(index) - returns an int value from object fields
+    {"GetUInt32Value", &LuaObject::GetUInt32Value},                 // :GetUInt32Value(index) - returns an uint value from object fields
+    {"GetFloatValue", &LuaObject::GetFloatValue},                   // :GetFloatValue(index) - returns a float value from object fields
+    {"GetByteValue", &LuaObject::GetByteValue},                     // :GetByteValue(index, offset) - returns a byte value from object fields
+    {"GetUInt16Value", &LuaObject::GetUInt16Value},                 // :GetUInt16Value(index, offset) - returns a uint16 value from object fields
+
+    // Setters
+    {"SetInt32Value", &LuaObject::SetInt32Value},                   // :SetInt32Value(index, value) - Sets an int value for the object
+    {"SetUInt32Value", &LuaObject::SetUInt32Value},                 // :SetUInt32Value(index, value) - Sets an uint value for the object
+    {"UpdateUInt32Value", &LuaObject::UpdateUInt32Value},           // :UpdateUInt32Value(index, value) - Updates an uint value for the object
+    {"SetFloatValue", &LuaObject::SetFloatValue},                   // :SetFloatValue(index, value) - Sets a float value for the object
+    {"SetByteValue", &LuaObject::SetByteValue},                     // :SetByteValue(index, offset, value) - Sets a byte value for the object
+    {"SetUInt16Value", &LuaObject::SetUInt16Value},                 // :SetUInt16Value(index, offset, value) - Sets an uint16 value for the object
+    {"SetInt16Value", &LuaObject::SetInt16Value},                   // :SetInt16Value(index, offset, value) - Sets an int16 value for the object
+    {"SetScale", &LuaObject::SetScale},                             // :SetScale(scale)
+
+    // Boolean
+    {"IsInWorld", &LuaObject::IsInWorld},                           // :IsInWorld() - Returns if the object is in world
+
+    // Other
+    {"ToGameObject", &LuaObject::ToGameObject},                     // :ToGameObject()
+    {"ToUnit", &LuaObject::ToUnit},                                 // :ToUnit()
+    {"ToCreature", &LuaObject::ToCreature},                         // :ToCreature()
+    {"ToPlayer", &LuaObject::ToPlayer},                             // :ToPlayer()
+    {"ToCorpse", &LuaObject::ToCorpse},                             // :ToCorpse()
 
     {NULL, NULL},
 };
 
 ElunaRegister<WorldObject> WorldObjectMethods[] =
 {
+    // Getters
     {"GetX", &LuaWorldObject::GetX},                               // :GetX()
     {"GetY", &LuaWorldObject::GetY},                               // :GetY()
     {"GetZ", &LuaWorldObject::GetZ},                               // :GetZ()
@@ -508,13 +536,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetRace", &LuaUnit::GetRace},                         // :GetRace()
     {"GetClass", &LuaUnit::GetClass},                       // :GetClass()
     {"GetClassAsString", &LuaUnit::GetClassAsString},       // :GetClassAsString()
-    {"GetEntry", &LuaUnit::GetEntry},                       // :GetEntry() - Returns the unit's entryId
     //{"GetAura", &LuaUnit::GetAura},                         // :GetAura(spellID) - returns aura object
-    {"GetInt32Value", &LuaUnit::GetInt32Value},             // :GetInt32Value(index) - returns an int value from unit fields
-    {"GetUInt32Value", &LuaUnit::GetUInt32Value},           // :GetUInt32Value(index) - returns an uint value from unit fields
-    {"GetFloatValue", &LuaUnit::GetFloatValue},             // :GetFloatValue(index) - returns a float value from unit fields
-    {"GetByteValue", &LuaUnit::GetByteValue},               // :GetByteValue(index, offset) - returns a byte value from unit fields
-    {"GetUInt16Value", &LuaUnit::GetUInt16Value},           // :GetUInt16Value(index, offset) - returns a uint16 value from unit fields
     {"GetInstanceId", &LuaUnit::GetInstanceId},             // :GetInstanceId() - Gets the instance id of the unit
     {"GetPhaseMask", &LuaUnit::GetPhaseMask},               // :GetPhaseMask() - gets the phase mask of the unit
     {"GetCombatTime", &LuaUnit::GetCombatTime},             // :GetCombatTime() - Returns how long the unit has been in combat
@@ -524,7 +546,6 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"GetNearbyTarget", &LuaUnit::GetNearbyTarget},         // :GetNearbyTarget([radius[, exclude]]) - Returns nearby target within sight or given radius. Excludes current target and given unit
     {"GetShieldBlockValue", &LuaUnit::GetShieldBlockValue}, // :GetShieldBlockValue() - Returns block value
     {"GetMountId", &LuaUnit::GetMountId},                   // :GetMountId()
-    {"GetScale", &LuaUnit::GetScale},                       // :GetScale()
     {"GetDistance", &LuaUnit::GetDistance},                 // :GetDistance(WorldObject or x, y, z)
     //{"GetNearestPlayer", &LuaUnit::GetNearestPlayer},       // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
     //{"GetNearestGameObject", &LuaUnit::GetNearestGameObject},                                               // :GetNearestGameObject([entry, radius]) - Returns nearest gameobject with given entry in sight or given radius entry can be 0.
@@ -557,13 +578,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetNativeDisplayId", &LuaUnit::SetNativeDisplayId},   // :SetNativeDisplayId(id)
     {"SetFacing", &LuaUnit::SetFacing},                     // :SetFacing(o) - Sets the Unit facing to arg
     {"SetDeathState", &LuaUnit::SetDeathState},             // :SetDeathState(value) - 0 = alive 1 = just died 2 = corpse 3 = dead
-    {"SetInt32Value", &LuaUnit::SetInt32Value},             // :SetInt32Value(index, value) - Sets an int value for the unit
-    {"SetUInt32Value", &LuaUnit::SetUInt32Value},           // :SetUInt32Value(index, value) - Sets an uint value for the unit
-    {"UpdateUInt32Value", &LuaUnit::UpdateUInt32Value},     // :UpdateUInt32Value(index, value) - Updates an uint value for the unit
-    {"SetFloatValue", &LuaUnit::SetFloatValue},             // :SetFloatValue(index, value) - Sets a float value for the unit
-    {"SetByteValue", &LuaUnit::SetByteValue},               // :SetByteValue(index, offset, value) - Sets a byte value for the unit
-    {"SetUInt16Value", &LuaUnit::SetUInt16Value},           // :SetUInt16Value(index, offset, value) - Sets an uint16 value for the unit
-    {"SetInt16Value", &LuaUnit::SetInt16Value},             // :SetInt16Value(index, offset, value) - Sets an int16 value for the unit
     //{"SetPhaseMask", &LuaUnit::SetPhaseMask},               // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
     //{"SetWalk", &LuaUnit::SetWalk},                         // :SetWalk([enable]) - If false, creature runs, otherwise walks
     {"SetSpeed", &LuaUnit::SetSpeed},                       // :SetSpeed(type, speed[, forced]) - Sets speed for the movement type (0 = walk, 1 = run ..)
@@ -575,7 +589,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetPvP", &LuaUnit::SetPvP},                           // :SetPvP([apply]) - Sets the units PvP on or off
     {"SetFFA", &LuaUnit::SetFFA},                           // :SetFFA([apply]) - Sets the units FFA tag on or off
     {"SetSanctuary", &LuaUnit::SetSanctuary},               // :SetSanctuary([apply]) - Enables or disables units sanctuary flag
-    {"SetScale", &LuaUnit::SetScale},                       // :SetScale(scale)
     //{"SetCanFly", &LuaUnit::SetCanFly},                     // :SetCanFly(apply)
     //{"SetVisible", &LuaUnit::SetVisible},                   // :SetVisible(x)
     {"SetOwnerGUID", &LuaUnit::SetOwnerGUID},               // :SetOwnerGUID(guid) - Sets the guid of the owner
@@ -704,16 +717,9 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     // Getters
     {"GetName", &LuaGameObject::GetName},                   // :GetName()
     {"GetDisplayId", &LuaGameObject::GetDisplayId},         // :GetDisplayId()
-    {"GetScale", &LuaGameObject::GetScale},                 // :GetScale()
-    {"GetEntry", &LuaGameObject::GetEntry},                 // :GetEntry()
     {"GetMapId", &LuaGameObject::GetMapId},                 // :GetMapId()
     {"GetAreaId", &LuaGameObject::GetAreaId},               // :GetAreaId()
     {"GetZoneId", &LuaGameObject::GetZoneId},               // :GetZoneId()
-    {"GetInt32Value", &LuaGameObject::GetInt32Value},       // :GetInt32Value(index) - returns an int value from object fields
-    {"GetUInt32Value", &LuaGameObject::GetUInt32Value},     // :GetUInt32Value(index) - returns an uint value from object fields
-    {"GetFloatValue", &LuaGameObject::GetFloatValue},       // :GetFloatValue(index) - returns a float value from object fields
-    {"GetByteValue", &LuaGameObject::GetByteValue},         // :GetByteValue(index, offset) - returns a byte value from object fields
-    {"GetUInt16Value", &LuaGameObject::GetUInt16Value},     // :GetUInt16Value(index, offset) - returns a uint16 value from object fields
     //{"GetNearestPlayer", &LuaGameObject::GetNearestPlayer}, // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
     //{"GetNearestGameObject", &LuaGameObject::GetNearestGameObject},                                         // :GetNearestGameObject([radius, entry]) - Returns nearest gameobject with given entry in sight or given radius.
     //{"GetNearestCreature", &LuaGameObject::GetNearestCreature},                                             // :GetNearestCreatureEntry([radius, entry]) - Returns nearest creature with given entry in sight or given radius.
@@ -723,14 +729,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"GetMap", &LuaGameObject::GetMap},                     // :GetMap() - Returns the map the gameobject is on
 
     // Setters
-    {"SetScale", &LuaGameObject::SetScale},                 // :SetScale(scale)
-    {"SetInt32Value", &LuaGameObject::SetInt32Value},       // :SetInt32Value(index, value) - Sets an int value for the object
-    {"SetUInt32Value", &LuaGameObject::SetUInt32Value},     // :SetUInt32Value(index, value) - Sets an uint value for the object
-    {"UpdateUInt32Value", &LuaGameObject::UpdateUInt32Value},                                               // :UpdateUInt32Value(index, value) - Updates an uint value for the object
-    {"SetFloatValue", &LuaGameObject::SetFloatValue},       // :SetFloatValue(index, value) - Sets a float value for the object
-    {"SetByteValue", &LuaGameObject::SetByteValue},         // :SetByteValue(index, offset, value) - Sets a byte value for the object
-    {"SetUInt16Value", &LuaGameObject::SetUInt16Value},     // :SetUInt16Value(index, offset, value) - Sets an uint16 value for the object
-    {"SetInt16Value", &LuaGameObject::SetInt16Value},       // :SetInt16Value(index, offset, value) - Sets an int16 value for the object
     {"SetGoState", &LuaGameObject::SetGoState},
     {"SetLootState", &LuaGameObject::SetLootState},
     {"SetFlag", &LuaGameObject::SetFlag},
@@ -767,16 +765,10 @@ ElunaRegister<Item> ItemMethods[] =
     {"GetMaxStackCount", &LuaItem::GetMaxStackCount},       // :GetMaxStackCount() - Returns item max stack count
     {"GetSlot", &LuaItem::GetSlot},                         // :GetSlot() - returns the slot the item is in
     {"GetBagSlot", &LuaItem::GetBagSlot},                   // :GetBagSlot() - returns the bagslot of the bag the item is in
-    {"GetInt32Value", &LuaItem::GetInt32Value},             // :GetInt32Value(index) - returns an int value from item fields
-    {"GetUInt32Value", &LuaItem::GetUInt32Value},           // :GetUInt32Value(index) - returns an uint value from item fields
-    {"GetFloatValue", &LuaItem::GetFloatValue},             // :GetFloatValue(index) - returns a float value from item fields
-    {"GetByteValue", &LuaItem::GetByteValue},               // :GetByteValue(index, offset) - returns a byte value from item fields
-    {"GetUInt16Value", &LuaItem::GetUInt16Value},           // :GetUInt16Value(index, offset) - returns a uint16 value from item fields
     {"GetEnchantmentId", &LuaItem::GetEnchantmentId},       // :GetEnchantmentId(enchant_slot) - Returns the enchantment in given slot. (permanent = 0)
     {"GetSpellId", &LuaItem::GetSpellId},                   // :GetSpellId(index) - Returns spellID at given index (0 - 4)
     {"GetSpellTrigger", &LuaItem::GetSpellTrigger},         // :GetSpellTrigger(index) - Returns spell trigger at given index (0 - 4)
     {"GetItemLink", &LuaItem::GetItemLink},               // :GetItemLink([localeID]) - Returns the shift clickable link of the item. Name translated if locale given and exists
-    {"GetEntry", &LuaItem::GetEntry},                       // :GetEntry()
     {"GetClass", &LuaItem::GetClass},                       // :GetClass()
     {"GetSubClass", &LuaItem::GetSubClass},                 // :GetSubClass()
     {"GetName", &LuaItem::GetName},                         // :GetName()
@@ -800,13 +792,6 @@ ElunaRegister<Item> ItemMethods[] =
     {"SetOwner", &LuaItem::SetOwner},                       // :SetOwner(player) - Sets the owner of the item
     {"SetBinding", &LuaItem::SetBinding},                   // :SetBinding(bound) - Sets the item binding to true or false
     {"SetCount", &LuaItem::SetCount},                       // :SetCount(count) - Sets the item count
-    {"SetInt32Value", &LuaItem::SetInt32Value},             // :SetInt32Value(index, value) - Sets an int value for the item
-    {"SetUInt32Value", &LuaItem::SetUInt32Value},           // :SetUInt32Value(index, value) - Sets an uint value for the item
-    {"UpdateUInt32Value", &LuaItem::UpdateUInt32Value},     // :UpdateUInt32Value(index, value) - Updates an uint value for the item
-    {"SetFloatValue", &LuaItem::SetFloatValue},             // :SetFloatValue(index, value) - Sets a float value for the item
-    {"SetByteValue", &LuaItem::SetByteValue},               // :SetByteValue(index, offset, value) - Sets a byte value for the item
-    {"SetUInt16Value", &LuaItem::SetUInt16Value},           // :SetUInt16Value(index, offset, value) - Sets an uint16 value for the item
-    {"SetInt16Value", &LuaItem::SetInt16Value},             // :SetInt16Value(index, offset, value) - Sets an int16 value for the item
 
     // Boolean
     {"IsSoulBound", &LuaItem::IsSoulBound},                 // :IsSoulBound() - Returns true if the item is soulbound

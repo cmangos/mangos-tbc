@@ -26,9 +26,6 @@ class LuaSpell
         // GetCaster()
         static int GetCaster(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             sEluna.Push(L, spell->GetCaster());
             return 1;
         }
@@ -36,9 +33,6 @@ class LuaSpell
         // GetCastTime()
         static int GetCastTime(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             sEluna.Push(L, spell->GetCastTime());
             return 1;
         }
@@ -46,9 +40,6 @@ class LuaSpell
         // GetId()
         static int GetId(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             sEluna.Push(L, spell->m_spellInfo->Id);
             return 1;
         }
@@ -56,9 +47,6 @@ class LuaSpell
         // GetPowerCost()
         static int GetPowerCost(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             sEluna.Push(L, spell->GetPowerCost());
             return 1;
         }
@@ -66,9 +54,6 @@ class LuaSpell
         // GetDuration()
         static int GetDuration(lua_State* L, Spell* spell) // TODO: Implementation
         {
-            if (!spell)
-                return 0;
-
             // sEluna.Push(L, spell->m_spellInfo->GetDuration());
             // return 1;
             return 0; // Temp to not cause conflicts
@@ -77,9 +62,6 @@ class LuaSpell
         // Cast(skipCheck)
         static int Cast(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             bool skipCheck = lua_toboolean(L, 1);
             spell->cast(skipCheck);
             return 0;
@@ -88,22 +70,13 @@ class LuaSpell
         // IsAutoRepeat()
         static int IsAutoRepeat(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                sEluna.Push(L, false);
-            else
-            {
-                bool repeat = spell->IsAutoRepeat();
-                sEluna.Push(L, repeat);
-            }
+            sEluna.Push(L, spell->IsAutoRepeat());
             return 1;
         }
 
         // SetAutoRepeat(boolean)
         static int SetAutoRepeat(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             bool repeat = luaL_checkbool(L, 1);
             spell->SetAutoRepeat(repeat);
             return 0;
@@ -112,9 +85,6 @@ class LuaSpell
         // Cancel()
         static int cancel(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             spell->cancel();
             return 0;
         }
@@ -122,9 +92,6 @@ class LuaSpell
         // Finish()
         static int Finish(lua_State* L, Spell* spell)
         {
-            if (!spell)
-                return 0;
-
             spell->finish();
             return 0;
         }
@@ -132,10 +99,7 @@ class LuaSpell
         // GetTargetDest()
         static int GetTargetDest(lua_State* L, Spell* spell)// TODO: Implementation
         {
-            /*if (!spell)
-                return 0;
-
-            if (!spell->m_targets.HasDst())
+            /*if (!spell->m_targets.HasDst())
                 return 0;
             float x, y, z, o;
             spell->m_targets.GetDstPos()->GetPosition(x,y,z,o);

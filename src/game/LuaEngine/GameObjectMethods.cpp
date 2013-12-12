@@ -157,15 +157,6 @@ int LuaGameObject::GetName(lua_State* L, GameObject* go)
     return 1;
 }
 
-int LuaGameObject::GetEntry(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    sEluna.Push(L, go->GetEntry());
-    return 1;
-}
-
 int LuaGameObject::SummonCreature(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
@@ -232,15 +223,6 @@ int LuaGameObject::GetDisplayId(lua_State* L, GameObject* go)
         return 0;
 
     sEluna.Push(L, go->GetDisplayId());
-    return 1;
-}
-
-int LuaGameObject::GetScale(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    sEluna.Push(L, go->GetObjectScale());
     return 1;
 }
 
@@ -336,16 +318,6 @@ int LuaGameObject::RemoveFromWorld(lua_State* L, GameObject* go)
     return 0;
 }
 
-int LuaGameObject::SetScale(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    float scale = luaL_checknumber(L, 1);
-    go->SetObjectScale(scale);
-    return 0;
-}
-
 int LuaGameObject::RegisterEvent(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
@@ -390,147 +362,6 @@ int LuaGameObject::RemoveEvents(lua_State* L, GameObject* go)
     if (eventMap)
         eventMap->ScriptEventsReset();
     return 0;
-}
-
-int LuaGameObject::GetInt32Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.Push(L, go->GetInt32Value(index));
-    return 1;
-}
-
-int LuaGameObject::GetUInt32Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.Push(L, go->GetUInt32Value(index));
-    return 1;
-}
-
-int LuaGameObject::GetFloatValue(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.Push(L, go->GetFloatValue(index));
-    return 1;
-}
-
-int LuaGameObject::GetByteValue(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna.Push(L, go->GetByteValue(index, offset));
-    return 1;
-}
-
-int LuaGameObject::GetUInt16Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna.Push(L, go->GetUInt16Value(index, offset));
-    return 1;
-}
-
-int LuaGameObject::SetInt32Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    int32 value = luaL_checkinteger(L, 2);
-    go->SetInt32Value(index, value);
-    return 0;
-}
-
-int LuaGameObject::SetUInt32Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint32 value = luaL_checkunsigned(L, 2);
-    go->SetUInt32Value(index, value);
-    return 0;
-}
-
-int LuaGameObject::UpdateUInt32Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint32 value = luaL_checkunsigned(L, 2);
-    go->UpdateUInt32Value(index, value);
-    return 0;
-}
-
-int LuaGameObject::SetFloatValue(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    float value = luaL_checknumber(L, 2);
-    go->SetFloatValue(index, value);
-    return 0;
-}
-
-int LuaGameObject::SetByteValue(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    uint8 value = luaL_checkunsigned(L, 3);
-    go->SetByteValue(index, offset, value);
-    return 0;
-}
-
-int LuaGameObject::SetUInt16Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    uint16 value = luaL_checkunsigned(L, 3);
-    go->SetUInt16Value(index, offset, value);
-    return 0;
-}
-
-int LuaGameObject::SetInt16Value(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    int16 value = luaL_checkinteger(L, 3);
-    go->SetInt16Value(index, offset, value);
-    return 0;
-}
-
-int LuaGameObject::GetGUIDLow(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    sEluna.Push(L, go->GetGUIDLow());
-    return 1;
 }
 
 int LuaGameObject::GetNearestPlayer(lua_State* L, GameObject* go)

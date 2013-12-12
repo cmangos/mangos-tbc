@@ -37,8 +37,6 @@ namespace LuaUnit
     int Dismount(lua_State*, Unit*);
     int IsMounted(lua_State*, Unit*);
     int IsWithinLoS(lua_State*, Unit*);
-    int GetScale(lua_State*, Unit*);
-    int SetScale(lua_State*, Unit*);
     int IsDamageEnoughForLootingAndReward(lua_State*, Unit*);
     int IsReputationGainDisabled(lua_State*, Unit*);
     int SetDisableReputationGain(lua_State*, Unit*);
@@ -370,7 +368,6 @@ namespace LuaUnit
     int GetGroup(lua_State*, Unit*);
     int GetGearLevel(lua_State*, Unit*);
     int GetGossipTextId(lua_State*, Unit*);
-    int GetEntry(lua_State*, Unit*);
     int GetFaction(lua_State*, Unit*);
     int GetStandState(lua_State*, Unit*);
     int SetFaction(lua_State*, Unit*);
@@ -480,18 +477,6 @@ namespace LuaUnit
     int RegisterEvent(lua_State*, Unit*);
     int RemoveEventById(lua_State*, Unit*);
     int RemoveEvents(lua_State*, Unit*);
-    int GetInt32Value(lua_State*, Unit*);
-    int GetUInt32Value(lua_State*, Unit*);
-    int GetFloatValue(lua_State*, Unit*);
-    int GetByteValue(lua_State*, Unit*);
-    int GetUInt16Value(lua_State*, Unit*);
-    int SetInt32Value(lua_State*, Unit*);
-    int SetUInt32Value(lua_State*, Unit*);
-    int UpdateUInt32Value(lua_State*, Unit*);
-    int SetFloatValue(lua_State*, Unit*);
-    int SetByteValue(lua_State*, Unit*);
-    int SetUInt16Value(lua_State*, Unit*);
-    int SetInt16Value(lua_State*, Unit*);
     int IsOnVehicle(lua_State*, Unit*);
     int DismissVehicle(lua_State*, Unit*);
     int AddVehiclePassenger(lua_State*, Unit*);

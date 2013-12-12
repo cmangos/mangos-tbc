@@ -26,9 +26,6 @@ class LuaPacket
         // GetOpcode()
         static int GetOpcode(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             sEluna.Push(L, packet->GetOpcode());
             return 1;
         }
@@ -36,9 +33,6 @@ class LuaPacket
         // GetSize()
         static int GetSize(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             sEluna.Push(L, packet->size());
             return 1;
         }
@@ -46,9 +40,6 @@ class LuaPacket
         // SetOpcode(opcode)
         static int SetOpcode(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint16 opcode = luaL_checkunsigned(L, 1);
             if (opcode >= NUM_MSG_TYPES)
                 luaL_error(L, "Invalid opcode type (%d)", opcode);
@@ -60,9 +51,6 @@ class LuaPacket
         // ReadByte()
         static int ReadByte(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             int8 byte;
             (*packet) >> byte;
             sEluna.Push(L, byte);
@@ -72,9 +60,6 @@ class LuaPacket
         // ReadUByte()
         static int ReadUByte(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint8 byte;
             (*packet) >> byte;
             sEluna.Push(L, byte);
@@ -84,9 +69,6 @@ class LuaPacket
         // ReadShort()
         static int ReadShort(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             int16 _short;
             (*packet) >> _short;
             sEluna.Push(L, _short);
@@ -96,9 +78,6 @@ class LuaPacket
         // ReadUShort()
         static int ReadUShort(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint16 _ushort;
             (*packet) >> _ushort;
             sEluna.Push(L, _ushort);
@@ -108,9 +87,6 @@ class LuaPacket
         // ReadLong()
         static int ReadLong(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             int32 _long;
             (*packet) >> _long;
             sEluna.Push(L, _long);
@@ -120,9 +96,6 @@ class LuaPacket
         // ReadULong()
         static int ReadULong(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint32 _ulong;
             (*packet) >> _ulong;
             sEluna.Push(L, _ulong);
@@ -132,9 +105,6 @@ class LuaPacket
         // ReadFloat()
         static int ReadFloat(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             float _val;
             (*packet) >> _val;
             sEluna.Push(L, _val);
@@ -144,9 +114,6 @@ class LuaPacket
         // ReadDouble()
         static int ReadDouble(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             double _val;
             (*packet) >> _val;
             sEluna.Push(L, _val);
@@ -156,9 +123,6 @@ class LuaPacket
         // ReadGUID()
         static int ReadGUID(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint64 guid;
             (*packet) >> guid;
             sEluna.Push(L, guid);
@@ -168,9 +132,6 @@ class LuaPacket
         // ReadString()
         static int ReadString(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             std::string _val;
             (*packet) >> _val;
             sEluna.Push(L, _val);
@@ -180,11 +141,7 @@ class LuaPacket
         // WriteGUID(guid)
         static int WriteGUID(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint64 guid = sEluna.CHECK_ULONG(L, 1);
-
             (*packet) << guid;
             return 0;
         }
@@ -192,9 +149,6 @@ class LuaPacket
         // WriteString(string)
         static int WriteString(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             std::string _val = std::string(luaL_checkstring(L, 1));
             (*packet) << _val;
             return 0;
@@ -203,9 +157,6 @@ class LuaPacket
         // WriteBye(byte)
         static int WriteByte(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             int8 byte = luaL_checkinteger(L, 1);
             (*packet) << byte;
             return 0;
@@ -214,9 +165,6 @@ class LuaPacket
         // WriteUByte(byte)
         static int WriteUByte(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint8 byte = luaL_checkunsigned(L, 1);
             (*packet) << byte;
             return 0;
@@ -225,9 +173,6 @@ class LuaPacket
         // WriteUShort(short)
         static int WriteUShort(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint16 _ushort = luaL_checkunsigned(L, 1);
             (*packet) << _ushort;
             return 0;
@@ -236,9 +181,6 @@ class LuaPacket
         // WriteShort(short)
         static int WriteShort(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             int16 _short = luaL_checkinteger(L, 1);
             (*packet) << _short;
             return 0;
@@ -247,9 +189,6 @@ class LuaPacket
         // WriteLong(long)
         static int WriteLong(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             int32 _long = luaL_checkinteger(L, 1);
             (*packet) << _long;
             return 0;
@@ -258,9 +197,6 @@ class LuaPacket
         // WriteULong(long)
         static int WriteULong(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             uint32 _ulong = luaL_checkunsigned(L, 1);
             (*packet) << _ulong;
             return 0;
@@ -269,9 +205,6 @@ class LuaPacket
         // WriteFloat(float)
         static int WriteFloat(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             float _val = luaL_checknumber(L, 1);
             (*packet) << _val;
             return 0;
@@ -280,9 +213,6 @@ class LuaPacket
         // WriteDouble(double)
         static int WriteDouble(lua_State* L, WorldPacket* packet)
         {
-            if (!packet)
-                return 0;
-
             double _val = luaL_checknumber(L, 1);
             (*packet) << _val;
             return 0;

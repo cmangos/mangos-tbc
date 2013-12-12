@@ -26,9 +26,6 @@ class LuaMap
         // :GetName()
         static int GetName(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->GetMapName());
             return 1;
         }
@@ -50,9 +47,6 @@ class LuaMap
         // :GetDifficulty()
         static int GetDifficulty(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->GetDifficulty());
             return 1;
         }
@@ -60,9 +54,6 @@ class LuaMap
         // :GetInstanceId()
         static int GetInstanceId(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->GetInstanceId());
             return 1;
         }
@@ -70,9 +61,6 @@ class LuaMap
         // :GetPlayerCount()
         static int GetPlayerCount(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->GetPlayersCountExceptGMs());
             return 1;
         }
@@ -80,9 +68,6 @@ class LuaMap
         // :GetMapId()
         static int GetMapId(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->GetId());
             return 1;
         }
@@ -90,9 +75,6 @@ class LuaMap
         // :GetAreaId(x, y, z)
         static int GetAreaId(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             float x = luaL_checknumber(L, 1);
             float y = luaL_checknumber(L, 2);
             float z = luaL_checknumber(L, 3);
@@ -104,9 +86,6 @@ class LuaMap
         // :IsArena()
         static int IsArena(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->IsBattleArena());
             return 1;
         }
@@ -114,9 +93,6 @@ class LuaMap
         // :IsBattleground()
         static int IsBattleground(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->IsBattleGround());
             return 1;
         }
@@ -124,9 +100,6 @@ class LuaMap
         // :IsDungeon()
         static int IsDungeon(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->IsDungeon());
             return 1;
         }
@@ -134,9 +107,6 @@ class LuaMap
         // :IsEmpty()
         static int IsEmpty(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->isEmpty());
             return 1;
         }
@@ -144,9 +114,6 @@ class LuaMap
         // :IsHeroic()
         static int IsHeroic(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->IsHeroic());
             return 1;
         }
@@ -154,9 +121,6 @@ class LuaMap
         // :IsRaid()
         static int IsRaid(lua_State* L, Map* map)
         {
-            if (!map)
-                return 0;
-
             sEluna.Push(L, map->IsRaid());
             return 1;
         }

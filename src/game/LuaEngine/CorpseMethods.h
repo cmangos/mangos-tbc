@@ -26,8 +26,6 @@ class LuaCorpse
         // GetOwnerGUID() [CORPSE_FIELD_OWNER]
         static int GetOwnerGUID(lua_State* L, Corpse* corpse)
         {
-            if (!corpse)
-                return 0;
             sEluna.Push(L, corpse->GetOwnerGuid());
             return 1;
         }
@@ -35,8 +33,6 @@ class LuaCorpse
         // GetGhostTime()
         static int GetGhostTime(lua_State* L, Corpse* corpse)
         {
-            if (!corpse)
-                return 0;
             sEluna.Push(L, corpse->GetGhostTime());
             return 1;
         }
@@ -44,8 +40,6 @@ class LuaCorpse
         // GetType()
         static int GetType(lua_State* L, Corpse* corpse)
         {
-            if (!corpse)
-                return 0;
             sEluna.Push(L, corpse->GetType());
             return 1;
         }
@@ -54,7 +48,7 @@ class LuaCorpse
         static int Create(lua_State* L, Corpse* corpse)
         {
             Player* player = sEluna.CHECK_PLAYER(L, 1);
-            if (!player || !corpse)
+            if (!player)
                 return 0;
             // if (corpse->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_CORPSE), player)) // TODO: Implementation
             //    return 0;
@@ -64,8 +58,6 @@ class LuaCorpse
         // ResetGhostTime()
         static int ResetGhostTime(lua_State* L, Corpse* corpse)
         {
-            if (!corpse)
-                return 0;
             corpse->ResetGhostTime();
             return 0;
         }
@@ -73,8 +65,6 @@ class LuaCorpse
         // SaveToDB()
         static int SaveToDB(lua_State* L, Corpse* corpse)
         {
-            if (!corpse)
-                return 0;
             corpse->SaveToDB();
             return 0;
         }
@@ -82,8 +72,6 @@ class LuaCorpse
         // DeleteBonesFromWorld()
         static int DeleteBonesFromWorld(lua_State* L, Corpse* corpse)
         {
-            if (!corpse)
-                return 0;
             corpse->DeleteBonesFromWorld();
             return 0;
         }

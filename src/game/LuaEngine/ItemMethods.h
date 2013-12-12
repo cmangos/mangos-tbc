@@ -276,102 +276,6 @@ class LuaItem
             return 0; // Temp till supported
         }
 
-        static int GetInt32Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            sEluna.Push(L, item->GetInt32Value(index));
-            return 1;
-        }
-
-        static int GetUInt32Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            sEluna.Push(L, item->GetUInt32Value(index));
-            return 1;
-        }
-
-        static int GetFloatValue(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            sEluna.Push(L, item->GetFloatValue(index));
-            return 1;
-        }
-
-        static int GetByteValue(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            uint8 offset = luaL_checkunsigned(L, 2);
-            sEluna.Push(L, item->GetByteValue(index, offset));
-            return 1;
-        }
-
-        static int GetUInt16Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            uint8 offset = luaL_checkunsigned(L, 2);
-            sEluna.Push(L, item->GetUInt16Value(index, offset));
-            return 1;
-        }
-
-        static int SetInt32Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            int32 value = luaL_checkinteger(L, 2);
-            item->SetInt32Value(index, value);
-            return 0;
-        }
-
-        static int SetUInt32Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            uint32 value = luaL_checkunsigned(L, 2);
-            item->SetUInt32Value(index, value);
-            return 0;
-        }
-
-        static int UpdateUInt32Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            uint32 value = luaL_checkunsigned(L, 2);
-            item->UpdateUInt32Value(index, value);
-            return 0;
-        }
-
-        static int SetFloatValue(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            float value = luaL_checknumber(L, 2);
-            item->SetFloatValue(index, value);
-            return 0;
-        }
-
-        static int SetByteValue(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            uint8 offset = luaL_checkunsigned(L, 2);
-            uint8 value = luaL_checkunsigned(L, 3);
-            item->SetByteValue(index, offset, value);
-            return 0;
-        }
-
-        static int SetUInt16Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            uint8 offset = luaL_checkunsigned(L, 2);
-            uint16 value = luaL_checkunsigned(L, 3);
-            item->SetUInt16Value(index, offset, value);
-            return 0;
-        }
-
-        static int SetInt16Value(lua_State* L, Item* item)
-        {
-            uint16 index = luaL_checkunsigned(L, 1);
-            uint8 offset = luaL_checkunsigned(L, 2);
-            int16 value = luaL_checkinteger(L, 3);
-            item->SetInt16Value(index, offset, value);
-            return 0;
-        }
-
         static int SetEnchantment(lua_State* L, Item* item)
         {
             Player* owner = item->GetOwner();
@@ -473,12 +377,6 @@ class LuaItem
             }
 
             sEluna.Push(L, item->GetProto()->Spells[index].SpellTrigger);
-            return 1;
-        }
-
-        static int GetEntry(lua_State* L, Item* item)
-        {
-            sEluna.Push(L, item->GetEntry());
             return 1;
         }
 

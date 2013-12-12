@@ -201,24 +201,6 @@ int LuaUnit::IsInAccessiblePlaceFor(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::GetScale(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.Push(L, unit->GetFloatValue(OBJECT_FIELD_SCALE_X));
-    return 1;
-}
-
-int LuaUnit::SetScale(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    float size = luaL_checknumber(L, 1);
-
-    unit->SetObjectScale(size);
-    return 0;
-}
-
 int LuaUnit::IsDamageEnoughForLootingAndReward(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
@@ -3713,14 +3695,6 @@ int LuaUnit::GetGearLevel(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::GetEntry(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.Push(L, unit->GetEntry());
-    return 1;
-}
-
 int LuaUnit::GetFaction(lua_State* L, Unit* unit)
 {
     TO_UNIT();
@@ -4948,127 +4922,6 @@ int LuaUnit::RemoveEvents(lua_State* L, Unit* unit)
     TO_UNIT();
 
     Eluna::LuaEventData::RemoveAll(unit);
-    return 0;
-}
-
-int LuaUnit::GetInt32Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.Push(L, unit->GetInt32Value(index));
-    return 1;
-}
-
-int LuaUnit::GetUInt32Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.Push(L, unit->GetUInt32Value(index));
-    return 1;
-}
-
-int LuaUnit::GetFloatValue(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.Push(L, unit->GetFloatValue(index));
-    return 1;
-}
-
-int LuaUnit::GetByteValue(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna.Push(L, unit->GetByteValue(index, offset));
-    return 1;
-}
-
-int LuaUnit::GetUInt16Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna.Push(L, unit->GetUInt16Value(index, offset));
-    return 1;
-}
-
-int LuaUnit::SetInt32Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    int32 value = luaL_checkinteger(L, 2);
-    unit->SetInt32Value(index, value);
-    return 0;
-}
-
-int LuaUnit::SetUInt32Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint32 value = luaL_checkunsigned(L, 2);
-    unit->SetUInt32Value(index, value);
-    return 0;
-}
-
-int LuaUnit::UpdateUInt32Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint32 value = luaL_checkunsigned(L, 2);
-    unit->UpdateUInt32Value(index, value);
-    return 0;
-}
-
-int LuaUnit::SetFloatValue(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    float value = luaL_checknumber(L, 2);
-
-    unit->SetFloatValue(index, value);
-    return 0;
-}
-
-int LuaUnit::SetByteValue(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    uint8 value = luaL_checkunsigned(L, 3);
-    unit->SetByteValue(index, offset, value);
-    return 0;
-}
-
-int LuaUnit::SetUInt16Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    uint16 value = luaL_checkunsigned(L, 3);
-    unit->SetUInt16Value(index, offset, value);
-    return 0;
-}
-
-int LuaUnit::SetInt16Value(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint8 offset = luaL_checkunsigned(L, 2);
-    int16 value = luaL_checkinteger(L, 3);
-    unit->SetInt16Value(index, offset, value);
     return 0;
 }
 

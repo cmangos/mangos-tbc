@@ -682,7 +682,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     //{"GetNearestPlayer", &LuaGameObject::GetNearestPlayer}, // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
     //{"GetNearestGameObject", &LuaGameObject::GetNearestGameObject},                                         // :GetNearestGameObject([radius, entry]) - Returns nearest gameobject with given entry in sight or given radius.
     //{"GetNearestCreature", &LuaGameObject::GetNearestCreature},                                             // :GetNearestCreatureEntry([radius, entry]) - Returns nearest creature with given entry in sight or given radius.
-    //{"GetRelativePoint", &LuaGameObject::GetRelativePoint}, // :GetRelativePoint(dist, radians) - Returns the X, Y and orientation of a point dist away from gob. Radian 0 point is the direction the unit is facing.
+    {"GetRelativePoint", &LuaGameObject::GetRelativePoint}, // :GetRelativePoint(dist, radians) - Returns the X, Y and orientation of a point dist away from gob. Radian 0 point is the direction the unit is facing.
     {"GetGoState", &LuaGameObject::GetGoState},             // :GetGoState() - Returns state
     {"GetLootState", &LuaGameObject::GetLootState},         // :GetLootState() - Returns loot state
     {"GetMap", &LuaGameObject::GetMap},                     // :GetMap() - Returns the map the gameobject is on

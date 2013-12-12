@@ -26,6 +26,7 @@
 #include "Chat.h"
 #include "Channel.h"
 #include "Creature.h"
+#include "GridNotifiers.h"
 #include "Group.h"
 #include "Guild.h"
 #include "GuildMgr.h"

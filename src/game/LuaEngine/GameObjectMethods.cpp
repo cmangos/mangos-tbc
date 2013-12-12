@@ -38,10 +38,10 @@ int LuaGameObject::GetRelativePoint(lua_State* L, GameObject* go)
     float dist = luaL_checknumber(L, 1);
     int deg = luaL_checkinteger(L, 2);
 
-    // float o = Position::NormalizeOrientation(go->GetOrientation() + (deg*M_PI / 180));
-    // sEluna.PushFloat(L, go->GetPositionX() + (dist*cosf(o)));
-    // sEluna.PushFloat(L, go->GetPositionY() + (dist*sinf(o)));
-    // sEluna.PushFloat(L, o);
+    float o = MapManager::NormalizeOrientation(go->GetOrientation() + (deg*M_PI / 180));
+    sEluna.PushFloat(L, go->GetPositionX() + (dist*cosf(o)));
+    sEluna.PushFloat(L, go->GetPositionY() + (dist*sinf(o)));
+    sEluna.PushFloat(L, o);
     return 3;
 }
 

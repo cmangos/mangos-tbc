@@ -130,7 +130,7 @@ class LuaSpell
         }
 
         // GetTargetDest()
-        static int GetTargetDest(lua_State* L, Spell* spell) // TODO: Implementation
+        static int GetTargetDest(lua_State* L, Spell* spell)// TODO: Implementation
         {
             /*if (!spell)
                 return 0;

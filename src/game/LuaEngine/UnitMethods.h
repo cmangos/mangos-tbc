@@ -134,6 +134,8 @@ namespace LuaUnit
     int SendTrainerList(lua_State*, Unit*);
     int LogoutPlayer(lua_State*, Unit*);
     int GetChampioningFaction(lua_State*, Unit*);
+    int ResetAchievements(lua_State*, Unit*);
+    int HasAchieved(lua_State*, Unit*);
     int GetOriginalSubGroup(lua_State*, Unit*);
     int GetOriginalGroup(lua_State*, Unit*);
     int RemoveFromBattlegroundOrBattlefieldRaid(lua_State*, Unit*);
@@ -268,6 +270,7 @@ namespace LuaUnit
     int TextEmote(lua_State*, Unit*);
     int Yell(lua_State*, Unit*);
     int Say(lua_State*, Unit*);
+    int GetPhaseMaskForSpawn(lua_State*, Unit*);
     int SummonPet(lua_State*, Unit*);
     int RemovePet(lua_State*, Unit*);
     int GetRestType(lua_State*, Unit*);
@@ -372,6 +375,7 @@ namespace LuaUnit
     int GetStandState(lua_State*, Unit*);
     int SetFaction(lua_State*, Unit*);
     int SetLevel(lua_State*, Unit*);
+    int SetPhaseMask(lua_State*, Unit*);
     int SetArenaPoints(lua_State*, Unit*);
     int SetHonorPoints(lua_State*, Unit*);
     int SetLifetimeKills(lua_State*, Unit*);
@@ -488,6 +492,17 @@ namespace LuaUnit
     int SetByteValue(lua_State*, Unit*);
     int SetUInt16Value(lua_State*, Unit*);
     int SetInt16Value(lua_State*, Unit*);
+    int IsOnVehicle(lua_State*, Unit*);
+    int DismissVehicle(lua_State*, Unit*);
+    int AddVehiclePassenger(lua_State*, Unit*);
+    int EjectPassenger(lua_State*, Unit*);
+    int RemovePassenger(lua_State*, Unit*);
+    int RemoveAllPassengers(lua_State*, Unit*);
+    int GetPassenger(lua_State*, Unit*);
+    int GetNextEmptySeat(lua_State*, Unit*);
+    int GetAvailableSeats(lua_State*, Unit*);
+    int GetVehicleBase(lua_State*, Unit*);
+    int HasEmptySeat(lua_State*, Unit*);
     int StartTaxi(lua_State*, Unit*);
     int SetPlayerLock(lua_State*, Unit*);
     int GetNearestPlayer(lua_State*, Unit*);

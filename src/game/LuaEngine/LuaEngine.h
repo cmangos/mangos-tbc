@@ -628,7 +628,7 @@ class Eluna::LuaEventMap
                 funcRef(_funcRef), delay(_delay), calls(_calls) {}
         };
 
-        typedef std::multimap<uint32, eventData> EventStore; // Not to use multimap? Can same function ref ID be used multiple times?
+        typedef std::multimap<uint32, eventData> EventStore;// Not to use multimap? Can same function ref ID be used multiple times?
 
         virtual void OnScriptEvent(int funcRef, uint32 delay, uint32 calls) { }
 
@@ -663,7 +663,7 @@ class Eluna::LuaEventMap
             _eventMap.insert(EventStore::value_type(_time + delay, eventData(funcRef, delay, calls)));
         }
 
-        static UNORDERED_MAP<uint64, LuaEventMap*> LuaEventMaps;// Creature and gameobject timed events
+        static UNORDERED_MAP<uint64, LuaEventMap*> LuaEventMaps; // Creature and gameobject timed events
 
     private:
         EventStore _eventMap;

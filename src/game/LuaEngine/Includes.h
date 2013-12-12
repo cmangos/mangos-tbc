@@ -42,6 +42,7 @@
 #include "SharedDefines.h"
 #include "SystemConfig.h"
 #include "SpellAuras.h"
+//#include "Vehicle.h"
 #include "ItemPrototype.h"
 #include "Spell.h"
 #include "GameObject.h"

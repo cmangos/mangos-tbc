@@ -234,9 +234,9 @@ class LuaItem
                 sEluna.Push(L, false);
             else
             {
-                bool mail = luaL_optbool(L, 1, false);
-
-                sEluna.Push(L, item->CanBeTraded());
+                // bool mail = luaL_optbool(L, 1, false);
+                // bool trade = luaL_optbool(L, 2, false);
+                sEluna.Push(L, item->CanBeTraded(/*mail, trade*/));
             }
             return 1;
         }
@@ -362,7 +362,7 @@ class LuaItem
             return 1;
         }
 
-        static int IsRefundExpired(lua_State* L, Item* item) // TODO: Implement core support
+        static int IsRefundExpired(lua_State* L, Item* item)// TODO: Implement core support
         {
             /*
                if (!item || !item->IsInWorld())
@@ -764,7 +764,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            // sEluna.sEluna.Push(L, item->GetProto()->StatsCount);
+            // sEluna.Push(L, item->GetProto()->StatsCount);
             return 1;
         }
 

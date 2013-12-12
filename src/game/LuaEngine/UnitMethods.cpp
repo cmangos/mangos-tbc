@@ -1109,6 +1109,24 @@ int LuaUnit::GetChampioningFaction(lua_State* L, Unit* unit)
     return 1;
 }
 
+int LuaUnit::ResetAchievements(lua_State* L, Unit* unit)
+{
+    TO_PLAYER();
+
+    // player->GetAchievementMgr().Reset();
+    return 0;
+}
+
+int LuaUnit::HasAchieved(lua_State* L, Unit* unit)
+{
+    TO_PLAYER_BOOL();
+
+    uint32 achievementId = luaL_checkunsigned(L, 1);
+
+    // sEluna.Push(L, player->GetAchievementMgr().HasAchievement(achievementId));
+    return 1;
+}
+
 int LuaUnit::GetOriginalSubGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
@@ -1745,7 +1763,7 @@ int LuaUnit::GetDifficulty(lua_State* L, Unit* unit)
 
     bool isRaid = luaL_optbool(L, 1, true);
 
-    sEluna.Push(L, player->GetDifficulty());
+    sEluna.Push(L, player->GetDifficulty(/*isRaid*/));
     return 1;
 }
 
@@ -2457,6 +2475,14 @@ int LuaUnit::Say(lua_State* L, Unit* unit)
 
     player->Say(text, lang);
     return 0;
+}
+
+int LuaUnit::GetPhaseMaskForSpawn(lua_State* L, Unit* unit)
+{
+    TO_PLAYER();
+
+    // sEluna.Push(L, player->GetPhaseMaskForSpawn());
+    return 1;
 }
 
 int LuaUnit::SummonPet(lua_State* L, Unit* unit)
@@ -3442,6 +3468,9 @@ int LuaUnit::GetPower(lua_State* L, Unit* unit)
             case 4:
                 type = POWER_ENERGY;
                 break;
+            /*case 6:
+                type = POWER_RUNIC_POWER;
+                break;*/
             case 2:
             case 3:
             case 5:
@@ -3481,6 +3510,9 @@ int LuaUnit::GetMaxPower(lua_State* L, Unit* unit)
             case 4:
                 type = POWER_ENERGY;
                 break;
+            /*case 6:
+                type = POWER_RUNIC_POWER;
+                break;*/
             case 2:
             case 3:
             case 5:
@@ -3590,6 +3622,9 @@ int LuaUnit::GetClassAsString(lua_State* L, Unit* unit)
         case 5:
             str = "Priest";
             break;
+        /*case 6:
+            str = "Death Knight";
+            break;*/
         case 7:
             str = "Shaman";
             break;
@@ -3712,6 +3747,15 @@ int LuaUnit::SetLevel(lua_State* L, Unit* unit)
     return 0;
 }
 
+int LuaUnit::SetPhaseMask(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+    uint32 phaseMask = luaL_checkunsigned(L, 1);
+    bool Update = luaL_optbool(L, 2, true);
+    // unit->SetPhaseMask(phaseMask, Update);
+    return 0;
+}
+
 int LuaUnit::SetArenaPoints(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
@@ -3775,6 +3819,9 @@ int LuaUnit::SetPower(lua_State* L, Unit* unit)
         case POWER_ENERGY:
             unit->SetPower(POWER_ENERGY, amt);
             break;
+        /*case POWER_RUNIC_POWER:
+            unit->SetPower(POWER_RUNIC_POWER, amt);
+            break;*/
         default:
             luaL_error(L, "Invalid power type (%d)", type);
             break;
@@ -3800,6 +3847,9 @@ int LuaUnit::SetMaxPower(lua_State* L, Unit* unit)
         case POWER_ENERGY:
             unit->SetMaxPower(POWER_ENERGY, amt);
             break;
+        /*case POWER_RUNIC_POWER:
+            unit->SetMaxPower(POWER_RUNIC_POWER, amt);
+            break;*/
         default:
             luaL_error(L, "Invalid power type (%d)", type);
             break;
@@ -3955,7 +4005,7 @@ int LuaUnit::AdvanceAllSkills(lua_State* L, Unit* unit)
 
     static const uint32 skillsArray[] = { SKILL_BOWS, SKILL_CROSSBOWS, SKILL_DAGGERS, SKILL_DEFENSE, SKILL_UNARMED, SKILL_GUNS, SKILL_AXES, SKILL_MACES, SKILL_SWORDS, SKILL_POLEARMS,
                                           SKILL_STAVES, SKILL_2H_AXES, SKILL_2H_MACES, SKILL_2H_SWORDS, SKILL_WANDS, SKILL_SHIELD, SKILL_FISHING, SKILL_MINING, SKILL_ENCHANTING, SKILL_BLACKSMITHING,
-                                          SKILL_ALCHEMY, SKILL_HERBALISM, SKILL_ENGINEERING, SKILL_JEWELCRAFTING, SKILL_LEATHERWORKING, SKILL_LOCKPICKING, SKILL_SKINNING, SKILL_TAILORING
+                                          SKILL_ALCHEMY, SKILL_HERBALISM, SKILL_ENGINEERING, SKILL_JEWELCRAFTING, SKILL_LEATHERWORKING, SKILL_LOCKPICKING, /*SKILL_INSCRIPTION,*/ SKILL_SKINNING, SKILL_TAILORING
                                         };
     static const uint32 skillsSize = sizeof(skillsArray) / sizeof(*skillsArray);
 
@@ -4732,7 +4782,7 @@ int LuaUnit::InterruptSpell(lua_State* L, Unit* unit)
             spellType = CURRENT_AUTOREPEAT_SPELL;
             break;
     }
-    unit->InterruptSpell((CurrentSpellTypes)spellType, delayed);
+    unit->InterruptSpell((CurrentSpellTypes)spellType, delayed/*, instant*/);
     return 0;
 }
 
@@ -5020,6 +5070,144 @@ int LuaUnit::SetInt16Value(lua_State* L, Unit* unit)
     int16 value = luaL_checkinteger(L, 3);
     unit->SetInt16Value(index, offset, value);
     return 0;
+}
+
+/* Vehicle */
+
+int LuaUnit::IsOnVehicle(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    /*if (unit->GetVehicleInfo() || (unit->ToPlayer() && unit->IsVehicle()))
+        sEluna.Push(L, true);
+    else
+        sEluna.Push(L, false);*/
+    return 1;
+}
+
+int LuaUnit::DismissVehicle(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    // if (Creature* vehicle = unit->GetVehicleCreatureBase())
+    // vehicle->DespawnOrUnsummon();
+    return 0;
+}
+
+int LuaUnit::AddVehiclePassenger(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    Unit* passenger = sEluna.CHECK_UNIT(L, 1);
+    int8 seatId = luaL_checkunsigned(L, 2);
+    // Vehicle* _vehicle = unit->GetVehicle();
+    // if (!_vehicle)
+    // return 0;
+
+    //_vehicle->AddPassenger(passenger, seatId);
+    return 0;
+}
+
+/* Not coded in core
+int LuaUnit::EjectPassenger(lua_State* L, Unit* unit)
+{
+TO_UNIT();
+
+Unit* passenger = sEluna.CHECK_UNIT(L, 1);
+Vehicle* _vehicle = unit->GetVehicle();
+if (!_vehicle)
+return 0;
+
+_vehicle->EjectPassenger(passenger, unit);
+return 0;
+}
+*/
+
+int LuaUnit::RemovePassenger(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    Unit* passenger = sEluna.CHECK_UNIT(L, 1);
+    // Vehicle* _vehicle = unit->GetVehicle();
+    // if (!_vehicle)
+    // return 0;
+
+    //_vehicle->RemovePassenger(passenger);
+    return 0;
+}
+
+int LuaUnit::RemoveAllPassengers(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    // Unit* _unit = unit->GetVehicleBase();
+    // if (!_unit)
+    // return 0;
+
+    //_unit->GetVehicle()->RemoveAllPassengers();
+    return 0;
+}
+
+int LuaUnit::GetPassenger(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    int8 seatId = luaL_checkunsigned(L, 1);
+    // Unit* _unit = unit->GetVehicleBase();
+    // if (!_unit)
+    // return 0;
+
+    // sEluna.Push(L, _unit->GetVehicle()->GetPassenger(seatId));
+    return 1;
+}
+
+int LuaUnit::GetNextEmptySeat(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    int8 seatId = luaL_checkunsigned(L, 1);
+    // Unit* _unit = unit->GetVehicleBase();
+    // if (!_unit)
+    // return 0;
+
+    return 0;
+}
+
+int LuaUnit::GetAvailableSeats(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    // Unit* _unit = unit->GetVehicleBase();
+    // if (!_unit)
+    // return 0;
+
+    // sEluna.Push(L, _unit->GetVehicle()->GetAvailableSeatCount());
+    return 1;
+}
+
+int LuaUnit::GetVehicleBase(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    // Unit* _unit = unit->GetVehicleBase();
+    // if (_unit)
+    // sEluna.Push(L, _unit);
+    // else
+    // lua_pushnil(L);
+    return 1;
+}
+
+int LuaUnit::HasEmptySeat(lua_State* L, Unit* unit)
+{
+    TO_UNIT();
+
+    int8 seatId = luaL_checkunsigned(L, 1);
+    // Unit* _unit = unit->GetVehicleBase();
+    // if (!_unit)
+    // return 0;
+
+    // sEluna.Push(L, _unit->GetVehicle()->HasEmptySeat(seatId));
+    return 1;
 }
 
 int LuaUnit::StartTaxi(lua_State* L, Unit* unit)

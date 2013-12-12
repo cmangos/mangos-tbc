@@ -412,12 +412,12 @@ void WorldSession::HandleQuestgiverQuestAutoLaunch(WorldPacket& /*recvPacket*/)
     DEBUG_LOG("WORLD: Received opcode CMSG_QUESTGIVER_QUEST_AUTOLAUNCH");
 }
 
-void WorldSession::HandlePushToParty(WorldPacket& recvPacket)
+void WorldSession::HandlePushQuestToParty(WorldPacket& recvPacket)
 {
     uint32 questId;
     recvPacket >> questId;
 
-    DEBUG_LOG("WORLD: Received opcode CMSG_PushTOPARTY quest = %u", questId);
+    DEBUG_LOG("WORLD: Received opcode CMSG_PUSHQUESTTOPARTY quest = %u", questId);
 
     if (Quest const* pQuest = sObjectMgr.GetQuestTemplate(questId))
     {

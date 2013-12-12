@@ -439,7 +439,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x19A*/ { "SMSG_QUESTUPDATE_ADD_ITEM",                    STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x19B*/ { "CMSG_QUEST_CONFIRM_ACCEPT",                    STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleQuestConfirmAccept        },
     /*0x19C*/ { "SMSG_QUEST_CONFIRM_ACCEPT",                    STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
-    /*0x19D*/ { "CMSG_PushTOPARTY",                        STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandlePushToParty          },
+    /*0x19D*/ { "CMSG_PUSHQUESTTOPARTY",                        STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandlePushQuestToParty          },
     /*0x19E*/ { "CMSG_LIST_INVENTORY",                          STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleListInventoryOpcode       },
     /*0x19F*/ { "SMSG_LIST_INVENTORY",                          STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x1A0*/ { "CMSG_SELL_ITEM",                               STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleSellItemOpcode            },

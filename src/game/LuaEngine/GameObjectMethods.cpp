@@ -672,9 +672,6 @@ int LuaGameObject::RemoveFlag(lua_State* L, GameObject* go)
 
 int LuaGameObject::Despawn(lua_State* L, GameObject* go)
 {
-    if (!go)
-        return 0;
-
     int32 delay = luaL_optint(L, 1, 1);
 
     if (delay <= 0)
@@ -686,9 +683,6 @@ int LuaGameObject::Despawn(lua_State* L, GameObject* go)
 
 int LuaGameObject::Respawn(lua_State* L, GameObject* go)
 {
-    if (!go)
-        return 0;
-
     int32 delay = luaL_optint(L, 1, 1);
 
     if (delay <= 0)

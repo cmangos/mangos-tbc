@@ -234,6 +234,8 @@ struct LoadedScripts
     std::set<std::string> luaFiles;
 };
 
+template<typename T> const char* GetTName();
+
 template<class T>
 struct ElunaRegister
 {
@@ -241,14 +243,207 @@ struct ElunaRegister
     int(*mfunc)(lua_State*, T*);
 };
 
-template<typename T> ElunaRegister<T>* GetMethodTable();
-template<typename T> const char* GetTName();
+template<typename T>
+void SetMethods(lua_State* L, ElunaRegister<T>* methodTable)
+{
+    if (!methodTable)
+        return;
+    if (!lua_istable(L,1))
+        return;
+    lua_pushstring(L, "GetObjectType");
+    lua_pushcclosure(L, ElunaTemplate<T>::type, 0);
+    lua_settable(L, 1);
+    for (; methodTable->name; ++methodTable)
+    {
+        lua_pushstring(L, methodTable->name);
+        lua_pushlightuserdata(L, (void*)methodTable);
+        lua_pushcclosure(L, ElunaTemplate<T>::thunk, 1);
+        lua_settable(L, 1);
+    }
+}
+
+template<typename T>
+class ElunaTemplate
+{
+public:
+    static int type(lua_State* L)
+    {
+        lua_pushstring(L, GetTName<T>());
+        return 1;
+    }
+
+    static void Register(lua_State* L)
+    {
+        lua_settop(L, 0); // clean stack
+
+        lua_newtable(L);
+        int methods = lua_gettop(L);
+
+        luaL_newmetatable(L, GetTName<T>());
+        int metatable = lua_gettop(L);
+
+        // store method table in globals so that
+        // scripts can add functions in Lua
+        lua_pushvalue(L, methods);
+        lua_setglobal(L, GetTName<T>());
+
+        // hide metatable
+        lua_pushvalue(L, methods);
+        lua_setfield(L, metatable, "__metatable");
+
+        lua_pushvalue(L, methods);
+        lua_setfield(L, metatable, "__index");
+
+        lua_pushcfunction(L, tostringT);
+        lua_setfield(L, metatable, "__tostring");
+
+        lua_pushcfunction(L, gcT);
+        lua_setfield(L, metatable, "__gc");
+
+        lua_newtable(L);
+        lua_setmetatable(L, methods);
+    }
+
+    static int push(lua_State* L, T const* obj, bool gc = false)
+    {
+        if (!obj)
+        {
+            lua_pushnil(L);
+            return lua_gettop(L);
+        }
+        luaL_getmetatable(L, GetTName<T>());
+        if (lua_isnil(L, -1))
+            luaL_error(L, "%s missing metatable", GetTName<T>());
+        int idxMt = lua_gettop(L);
+        T const** ptrHold = (T const**)lua_newuserdata(L, sizeof(T**));
+        int ud = lua_gettop(L);
+        if (ptrHold)
+        {
+            *ptrHold = obj;
+            lua_pushvalue(L, idxMt);
+            lua_setmetatable(L, -2);
+            char name[32];
+            tostring(name, obj);
+            lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
+            if (lua_isnil(L, -1))
+            {
+                luaL_newmetatable(L, "DO NOT TRASH");
+                lua_pop(L, 1);
+            }
+            lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
+            if (gc == false)
+            {
+                lua_pushboolean(L, 1);
+                lua_setfield(L, -2, name);
+            }
+            lua_pop(L, 1);
+        }
+        lua_settop(L, ud);
+        lua_replace(L, idxMt);
+        lua_settop(L, idxMt);
+        return idxMt;
+    }
+
+    static T* check(lua_State* L, int narg)
+    {
+        T** ptrHold = static_cast<T**>(lua_touserdata(L, narg));
+        if (!ptrHold)
+            return NULL;
+        return *ptrHold;
+    }
+
+    static int thunk(lua_State* L)
+    {
+        T* obj = check(L, 1); // get self
+        lua_remove(L, 1); // remove self
+        ElunaRegister<T>* l = static_cast<ElunaRegister<T>*>(lua_touserdata(L, lua_upvalueindex(1)));
+        if (!obj)
+            return 0;
+        return l->mfunc(L, obj);
+    }
+
+    static int gcT(lua_State* L)
+    {
+        T* obj = check(L, 1);
+        if (!obj)
+            return 0;
+        lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
+        if (lua_istable(L, -1))
+        {
+            char name[32];
+            tostring(name, obj);
+            lua_getfield(L, -1, std::string(name).c_str());
+            if (lua_isnil(L, -1))
+            {
+                delete obj;
+                obj = NULL;
+            }
+        }
+        return 1;
+    }
+
+    static int tostringT(lua_State* L)
+    {
+        char buff[32];
+        T** ptrHold = (T**)lua_touserdata(L, 1);
+        T* obj = *ptrHold;
+        sprintf(buff, "%p", obj);
+        lua_pushfstring(L, "%s (%s)", GetTName<T>(), buff);
+        return 1;
+    }
+
+    inline static void tostring(char* buff, void const* obj)
+    {
+        sprintf(buff, "%p", obj);
+    }
+
+    static int index(lua_State* L)
+    {
+        lua_getglobal(L, GetTName<T>());
+        const char* key = lua_tostring(L, 2);
+        if (lua_istable(L, - 1))
+        {
+            lua_pushvalue(L, 2);
+            lua_rawget(L, -2);
+            if (lua_isnil(L, -1))
+            {
+                lua_getmetatable(L, -2);
+                if (lua_istable(L, -1))
+                {
+                    lua_getfield(L, -1, "__index");
+                    if (lua_isfunction(L, -1))
+                    {
+                        lua_pushvalue(L, 1);
+                        lua_pushvalue(L, 2);
+                        lua_pcall(L, 2, 1, 0);
+                    }
+                    else if (lua_istable(L, -1))
+                        lua_getfield(L, -1, key);
+                    else
+                        lua_pushnil(L);
+                }
+                else
+                    lua_pushnil(L);
+            }
+            else if (lua_istable(L, -1))
+            {
+                lua_pushvalue(L, 2);
+                lua_rawget(L, -2);
+            }
+        }
+        else
+            lua_pushnil(L);
+        lua_insert(L, 1);
+        lua_settop(L, 1);
+        return 1;
+    }
+};
 
 class Eluna
 {
     public:
         friend class ScriptMgr;
-        lua_State* LuaState;
+        lua_State* L;
 
         class LuaEventMap;
         struct LuaEventData;
@@ -278,28 +473,23 @@ class Eluna
         bool ExecuteCall(uint8 params, uint8 res);
         void EndCall(uint8 res);
         void LoadDirectory(char* directory, LoadedScripts* scr);
-        // Pushes
-        void PushULong(lua_State*, uint64);
-        void PushLong(lua_State*, int64);
-        void PushInteger(lua_State*, int);
-        void PushUnsigned(lua_State*, uint32);
-        void PushBoolean(lua_State*, bool);
-        void PushFloat(lua_State*, float);
-        void PushDouble(lua_State*, double);
-        void PushString(lua_State*, const char*);
-        void PushGroup(lua_State*, Group*);
-        void PushGuild(lua_State*, Guild*);
-        void PushUnit(lua_State*, Unit*);
-        void PushMap(lua_State*, Map*);
-        void PushGO(lua_State*, GameObject*);
-        void PushQueryResult(lua_State*, QueryResult*);
-        void PushAura(lua_State*, Aura*);
-        void PushItem(lua_State*, Item*);
-        void PushSpell(lua_State*, Spell*);
-        void PushQuest(lua_State*, Quest const*);
-        void PushPacket(lua_State*, WorldPacket*);
-        void PushCorpse(lua_State*, Corpse*);
-        void PushWeather(lua_State*, Weather*);
+        // Pushes  
+        void Push(lua_State*); // nil      
+        void Push(lua_State*, uint64);
+        void Push(lua_State*, int64);
+        void Push(lua_State*, uint32);
+        void Push(lua_State*, int32);
+        void Push(lua_State*, bool);
+        void Push(lua_State*, float);
+        void Push(lua_State*, double);
+        void Push(lua_State*, const char*);
+        void Push(lua_State*, std::string);
+        template<typename T>
+        void Push(lua_State* L, T const* ptr)
+        {
+            ElunaTemplate<T>::push(L, ptr);
+        }
+
         // Checks
         WorldPacket* CHECK_PACKET(lua_State* L, int narg);
         Object* CHECK_OBJECT(lua_State* L, int narg);
@@ -317,7 +507,7 @@ class Eluna
         // Creates new binding stores
         Eluna()
         {
-            LuaState = NULL;
+            L = NULL;
             LuaCreatureAI = NULL;
 
             for (int i = 0; i < SERVER_EVENT_COUNT; ++i)
@@ -339,7 +529,7 @@ class Eluna
             for (std::map<int, std::vector<int> >::iterator itr = ServerEventBindings.begin(); itr != ServerEventBindings.end(); ++itr)
             {
                 for (std::vector<int>::iterator it = itr->second.begin(); it != itr->second.end(); ++it)
-                    luaL_unref(LuaState, LUA_REGISTRYINDEX, (*it));
+                    luaL_unref(L, LUA_REGISTRYINDEX, (*it));
                 itr->second.clear();
             }
             ServerEventBindings.clear();
@@ -351,7 +541,7 @@ class Eluna
             ItemGossipBindings->Clear();
             playerGossipBindings->Clear();
 
-            lua_close(LuaState); // Closing
+            lua_close(L); // Closing
         }
 
         struct ElunaBind
@@ -385,7 +575,7 @@ class Eluna
         Item* CHECK_ITEM(lua_State* L, int narg)
         {
             if (!L)
-                return ElunaTemplate<Item>::check(LuaState, narg);
+                return ElunaTemplate<Item>::check(L, narg);
             else
                 return ElunaTemplate<Item>::check(L, narg);
         }
@@ -422,194 +612,6 @@ class Eluna
                 NearestTypeWithEntryInRangeCheck(NearestTypeWithEntryInRangeCheck const&);
         };
 
-    protected:
-        template<typename T>
-        class ElunaTemplate
-        {
-            public:
-                typedef int (*_funcptr)(lua_State* L, T* ptr);
-                typedef struct { const char* name; _funcptr mfunc; } ElunaRegister;
-
-                static void Register(lua_State* L)
-                {
-                    lua_newtable(L);
-                    int methods = lua_gettop(L);
-
-                    luaL_newmetatable(L, GetTName<T>());
-                    int metatable = lua_gettop(L);
-
-                    // store method table in globals so that
-                    // scripts can add functions in Lua
-                    lua_pushvalue(L, methods);
-                    lua_setglobal(L, GetTName<T>());
-
-                    // hide metatable
-                    lua_pushvalue(L, methods);
-                    lua_setfield(L, metatable, "__metatable");
-
-                    lua_pushvalue(L, methods);
-                    lua_setfield(L, metatable, "__index");
-
-                    lua_pushcfunction(L, tostringT);
-                    lua_setfield(L, metatable, "__tostring");
-
-                    lua_pushcfunction(L, gcT);
-                    lua_setfield(L, metatable, "__gc");
-
-                    lua_newtable(L);
-                    lua_setmetatable(L, methods);
-
-                    // fill method table.
-                    if (!GetMethodTable<T>())
-                    {
-                        lua_pop(L, 2);
-                        return;
-                    }
-
-                    for (ElunaRegister* l = ((ElunaRegister*)GetMethodTable<T>()); l->name; ++l)
-                    {
-                        lua_pushstring(L, l->name);
-                        lua_pushlightuserdata(L, (void*)l);
-                        lua_pushcclosure(L, thunk, 1);
-                        lua_settable(L, methods);
-                    }
-
-                    lua_pop(L, 2);
-                }
-
-                static int push(lua_State* L, T* obj, bool gc = false)
-                {
-                    if (!obj)
-                    {
-                        lua_pushnil(L);
-                        return lua_gettop(L);
-                    }
-                    luaL_getmetatable(L, GetTName<T>());
-                    if (lua_isnil(L, -1))
-                        luaL_error(L, "%s missing metatable", GetTName<T>());
-                    int idxMt = lua_gettop(L);
-                    T** ptrHold = (T**)lua_newuserdata(L, sizeof(T**));
-                    int ud = lua_gettop(L);
-                    if (ptrHold)
-                    {
-                        *ptrHold = obj;
-                        lua_pushvalue(L, idxMt);
-                        lua_setmetatable(L, -2);
-                        char name[32];
-                        tostring(name, obj);
-                        lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
-                        if (lua_isnil(L, -1))
-                        {
-                            luaL_newmetatable(L, "DO NOT TRASH");
-                            lua_pop(L, 1);
-                        }
-                        lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
-                        if (gc == false)
-                        {
-                            lua_pushboolean(L, 1);
-                            lua_setfield(L, -2, name);
-                        }
-                        lua_pop(L, 1);
-                    }
-                    lua_settop(L, ud);
-                    lua_replace(L, idxMt);
-                    lua_settop(L, idxMt);
-                    return idxMt;
-                }
-
-                static T* check(lua_State* L, int narg)
-                {
-                    T** ptrHold = static_cast<T**>(lua_touserdata(L, narg));
-                    if (!ptrHold)
-                        return NULL;
-                    return *ptrHold;
-                }
-
-            private:
-                static int thunk(lua_State* L)
-                {
-                    T* obj = check(L, 1); // get self
-                    lua_remove(L, 1); // remove self
-                    ElunaRegister* l = static_cast<ElunaRegister*>(lua_touserdata(L, lua_upvalueindex(1)));
-                    return l->mfunc(L, obj);
-                }
-
-                static int gcT(lua_State* L)
-                {
-                    T* obj = check(L, 1);
-                    if (!obj)
-                        return 0;
-                    lua_getfield(L, LUA_REGISTRYINDEX, "DO NO TRASH");
-                    if (lua_istable(L, -1))
-                    {
-                        char name[32];
-                        tostring(name, obj);
-                        lua_getfield(L, -1, std::string(name).c_str());
-                        if (lua_isnil(L, -1))
-                        {
-                            delete obj;
-                            obj = NULL;
-                        }
-                    }
-                    return 1;
-                }
-
-                static int tostringT(lua_State* L)
-                {
-                    char buff[32];
-                    T** ptrHold = (T**)lua_touserdata(L, 1);
-                    T* obj = *ptrHold;
-                    sprintf(buff, "%p", obj);
-                    lua_pushfstring(L, "%s (%s)", GetTName<T>(), buff);
-                    return 1;
-                }
-
-                inline static void tostring(char* buff, void* obj)
-                {
-                    sprintf(buff, "%p", obj);
-                }
-
-                static int index(lua_State* L)
-                {
-                    lua_getglobal(L, GetTName<T>());
-                    const char* key = lua_tostring(L, 2);
-                    if (lua_istable(L, - 1))
-                    {
-                        lua_pushvalue(L, 2);
-                        lua_rawget(L, -2);
-                        if (lua_isnil(L, -1))
-                        {
-                            lua_getmetatable(L, -2);
-                            if (lua_istable(L, -1))
-                            {
-                                lua_getfield(L, -1, "__index");
-                                if (lua_isfunction(L, -1))
-                                {
-                                    lua_pushvalue(L, 1);
-                                    lua_pushvalue(L, 2);
-                                    lua_pcall(L, 2, 1, 0);
-                                }
-                                else if (lua_istable(L, -1))
-                                    lua_getfield(L, -1, key);
-                                else
-                                    lua_pushnil(L);
-                            }
-                            else
-                                lua_pushnil(L);
-                        }
-                        else if (lua_istable(L, -1))
-                        {
-                            lua_pushvalue(L, 2);
-                            lua_rawget(L, -2);
-                        }
-                    }
-                    else
-                        lua_pushnil(L);
-                    lua_insert(L, 1);
-                    lua_settop(L, 1);
-                    return 1;
-                }
-        };
 };
 #define sEluna MaNGOS::Singleton<Eluna>::Instance()
 
@@ -680,8 +682,8 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_OPEN_STATE_CHANGE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_OPEN_STATE_CHANGE);
-            sEluna.PushBoolean(sEluna.LuaState, open);
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_OPEN_STATE_CHANGE);
+            sEluna.Push(sEluna.L, open);
             sEluna.ExecuteCall(2, 0);
         }
     }
@@ -692,8 +694,8 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_CONFIG_LOAD].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_CONFIG_LOAD);
-            sEluna.PushBoolean(sEluna.LuaState, reload);
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_CONFIG_LOAD);
+            sEluna.Push(sEluna.L, reload);
             sEluna.ExecuteCall(2, 0);
         }
     }
@@ -704,8 +706,8 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_MOTD_CHANGE);
-            sEluna.PushString(sEluna.LuaState, newMotd.c_str());
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_MOTD_CHANGE);
+            sEluna.Push(sEluna.L, newMotd);
             sEluna.ExecuteCall(2, 0);
         }
     }
@@ -716,9 +718,9 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN_INIT].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_SHUTDOWN_INIT);
-            sEluna.PushInteger(sEluna.LuaState, code);
-            sEluna.PushInteger(sEluna.LuaState, mask);
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_SHUTDOWN_INIT);
+            sEluna.Push(sEluna.L, code);
+            sEluna.Push(sEluna.L, mask);
             sEluna.ExecuteCall(3, 0);
         }
     }
@@ -729,7 +731,7 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN_CANCEL].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_SHUTDOWN_CANCEL);
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_SHUTDOWN_CANCEL);
             sEluna.ExecuteCall(1, 0);
         }
     }
@@ -742,8 +744,8 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_UPDATE);
-            sEluna.PushUnsigned(sEluna.LuaState, diff);
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_UPDATE);
+            sEluna.Push(sEluna.L, diff);
             sEluna.ExecuteCall(2, 0);
         }
     }
@@ -751,9 +753,9 @@ public:
     void OnScriptEvent(int funcRef, uint32 delay, uint32 calls)
     {
         sEluna.BeginCall(funcRef);
-        sEluna.PushUnsigned(sEluna.LuaState, funcRef);
-        sEluna.PushUnsigned(sEluna.LuaState, delay);
-        sEluna.PushUnsigned(sEluna.LuaState, calls);
+        sEluna.Push(sEluna.L, funcRef);
+        sEluna.Push(sEluna.L, delay);
+        sEluna.Push(sEluna.L, calls);
         sEluna.ExecuteCall(3, 0);
     }
 
@@ -763,7 +765,7 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_STARTUP].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_STARTUP);
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_STARTUP);
             sEluna.ExecuteCall(1, 0);
         }
     }
@@ -774,7 +776,7 @@ public:
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, WORLD_EVENT_ON_SHUTDOWN);
+            sEluna.Push(sEluna.L, WORLD_EVENT_ON_SHUTDOWN);
             sEluna.ExecuteCall(1, 0);
         }
     }
@@ -783,22 +785,22 @@ class Eluna::Eluna_CreatureScript
 {
     public:
 
-        struct ScriptCreatureAI : public CreatureAI
+        struct ScriptReactorAI : public ReactorAI
         {
-            ScriptCreatureAI(Creature* creature) : CreatureAI(creature) { }
-            ~ScriptCreatureAI() { }
+            ScriptReactorAI(Creature* creature) : ReactorAI(creature) { }
+            ~ScriptReactorAI() { }
 
             // Called at World update tick
             void UpdateAI(uint32 const diff)
             {
-                CreatureAI::UpdateAI(diff);
+                ReactorAI::UpdateAI(diff);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_AIUPDATE);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_AIUPDATE);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnsigned(sEluna.LuaState, diff);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_AIUPDATE);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, diff);
                 sEluna.ExecuteCall(3, 0);
             }
 
@@ -806,130 +808,130 @@ class Eluna::Eluna_CreatureScript
             // Called at creature aggro either by MoveInLOS or Attack Start
             void EnterCombat(Unit* target)
             {
-                CreatureAI::EnterCombat(target);
+                ReactorAI::EnterCombat(target);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_ENTER_COMBAT);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_ENTER_COMBAT);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, target);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_ENTER_COMBAT);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, target);
                 sEluna.ExecuteCall(3, 0);
             }
 
             // Called at any Damage from any attacker (before damage apply)
             void DamageTaken(Unit* attacker, uint32& damage)
             {
-                CreatureAI::DamageTaken(attacker, damage);
+                ReactorAI::DamageTaken(attacker, damage);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_DAMAGE_TAKEN);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_DAMAGE_TAKEN);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, attacker);
-                sEluna.PushUnsigned(sEluna.LuaState, damage);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_DAMAGE_TAKEN);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, attacker);
+                sEluna.Push(sEluna.L, damage);
                 sEluna.ExecuteCall(4, 0);
             }
 
             // Called at creature death
             void JustDied(Unit* killer)
             {
-                CreatureAI::JustDied(killer);
+                ReactorAI::JustDied(killer);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_DIED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_DIED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, killer);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_DIED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, killer);
                 sEluna.ExecuteCall(3, 0);
             }
 
             // Called at creature killing another unit
             void KilledUnit(Unit* victim)
             {
-                CreatureAI::KilledUnit(victim);
+                ReactorAI::KilledUnit(victim);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_TARGET_DIED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_TARGET_DIED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, victim);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_TARGET_DIED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, victim);
                 sEluna.ExecuteCall(3, 0);
             }
 
             // Called when the creature summon successfully other creature
             void JustSummoned(Creature* summon)
             {
-                CreatureAI::JustSummoned(summon);
+                ReactorAI::JustSummoned(summon);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_JUST_SUMMONED_CREATURE);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_JUST_SUMMONED_CREATURE);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, summon);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_JUST_SUMMONED_CREATURE);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, summon);
                 sEluna.ExecuteCall(3, 0);
             }
 
             // Called when a summoned creature is despawned
             void SummonedCreatureDespawn(Creature* summon)
             {
-                CreatureAI::SummonedCreatureDespawn(summon);
+                ReactorAI::SummonedCreatureDespawn(summon);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SUMMONED_CREATURE_DESPAWN);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_SUMMONED_CREATURE_DESPAWN);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, summon);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SUMMONED_CREATURE_DESPAWN);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, summon);
                 sEluna.ExecuteCall(3, 0);
             }
 
             // Called when hit by a spell
             void SpellHit(Unit* caster, SpellEntry const* spell)
             {
-                CreatureAI::SpellHit(caster, spell);
+                ReactorAI::SpellHit(caster, spell);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_HIT_BY_SPELL);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_HIT_BY_SPELL);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, caster);
-                sEluna.PushUnsigned(sEluna.LuaState, spell->Id);// Pass spell object?
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_HIT_BY_SPELL);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, caster);
+                sEluna.Push(sEluna.L, spell->Id); // Pass spell object?
                 sEluna.ExecuteCall(4, 0);
             }
 
             // Called when spell hits a target
             void SpellHitTarget(Unit* target, SpellEntry const* spell)
             {
-                CreatureAI::SpellHitTarget(target, spell);
+                ReactorAI::SpellHitTarget(target, spell);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SPELL_HIT_TARGET);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_SPELL_HIT_TARGET);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, target);
-                sEluna.PushUnsigned(sEluna.LuaState, spell->Id);// Pass spell object?
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SPELL_HIT_TARGET);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, target);
+                sEluna.Push(sEluna.L, spell->Id); // Pass spell object?
                 sEluna.ExecuteCall(4, 0);
             }
 
             // Called at waypoint reached or PointMovement end
             void MovementInform(uint32 type, uint32 id)
             {
-                CreatureAI::MovementInform(type, id);
+                ReactorAI::MovementInform(type, id);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_REACH_WP);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_REACH_WP);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnsigned(sEluna.LuaState, type);
-                sEluna.PushUnsigned(sEluna.LuaState, id);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_REACH_WP);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, type);
+                sEluna.Push(sEluna.L, id);
                 sEluna.ExecuteCall(4, 0);
             }
 
@@ -937,41 +939,41 @@ class Eluna::Eluna_CreatureScript
             /*
             void OnPossess(bool apply)
             {
-                CreatureAI::OnPossess(apply);
+                ReactorAI::OnPossess(apply);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_POSSESS);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_POSSESS);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushBoolean(sEluna.LuaState, apply);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_POSSESS);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, apply);
                 sEluna.ExecuteCall(3, 0);
             }*/
 
             // Called at creature reset either by death or evade
             /*void Reset()
             {
-                CreatureAI::Reset();
+                ReactorAI::Reset();
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_RESET);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_RESET);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_RESET);
+                sEluna.Push(sEluna.L, m_creature);
                 sEluna.ExecuteCall(2, 0);
             }*/
 
             // Called before EnterCombat even before the creature is in combat.
             void AttackStart(Unit* target)
             {
-                CreatureAI::AttackStart(target);
+                ReactorAI::AttackStart(target);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_PRE_COMBAT);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_PRE_COMBAT);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, target);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_PRE_COMBAT);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, target);
                 sEluna.ExecuteCall(3, 0);
             }
 
@@ -979,13 +981,13 @@ class Eluna::Eluna_CreatureScript
             /*
             bool CanRespawn()
             {
-                CreatureAI::CanRespawn();
+                ReactorAI::CanRespawn();
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_CAN_RESPAWN);
                 if (!bind)
                     return true;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_CAN_RESPAWN);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_CAN_RESPAWN);
+                sEluna.Push(sEluna.L, m_creature);
                 sEluna.ExecuteCall(2, 0);
                 return true;
             }*/
@@ -993,218 +995,218 @@ class Eluna::Eluna_CreatureScript
             // Called for reaction at stopping attack at no attackers or targets
             void EnterEvadeMode()
             {
-                CreatureAI::EnterEvadeMode();
+                ReactorAI::EnterEvadeMode();
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_LEAVE_COMBAT);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_LEAVE_COMBAT);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_LEAVE_COMBAT);
+                sEluna.Push(sEluna.L, m_creature);
                 sEluna.ExecuteCall(2, 0);
             }
 
             // Called when the creature is summoned successfully by other creature
             /*void IsSummonedBy(Unit* summoner)
             {
-                CreatureAI::IsSummonedBy(summoner);
+                ReactorAI::IsSummonedBy(summoner);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SUMMONED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_SUMMONED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, summoner);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SUMMONED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, summoner);
                 sEluna.ExecuteCall(3, 0);
             }*/
 
             /*void SummonedCreatureDies(Creature* summon, Unit* killer)
             {
-                CreatureAI::SummonedCreatureDies(summon, killer);
+                ReactorAI::SummonedCreatureDies(summon, killer);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SUMMONED_CREATURE_DIED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_SUMMONED_CREATURE_DIED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, summon);
-                sEluna.PushUnit(sEluna.LuaState, killer);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SUMMONED_CREATURE_DIED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, summon);
+                sEluna.Push(sEluna.L, killer);
                 sEluna.ExecuteCall(4, 0);
             }*/
 
             // Called when the creature is target of hostile action: swing, hostile spell landed, fear/etc)
             void AttackedBy(Unit* attacker)
             {
-                CreatureAI::AttackedBy(attacker);
+                ReactorAI::AttackedBy(attacker);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_ATTACKED_AT);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_ATTACKED_AT);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, attacker);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_ATTACKED_AT);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, attacker);
                 sEluna.ExecuteCall(3, 0);
             }
 
             // Called when creature is spawned or respawned (for reseting variables)
             void JustRespawned()
             {
-                CreatureAI::JustRespawned();
+                ReactorAI::JustRespawned();
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SPAWN);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_SPAWN);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SPAWN);
+                sEluna.Push(sEluna.L, m_creature);
                 sEluna.ExecuteCall(2, 0);
             }
 
             /*void OnCharmed(bool apply)
             {
-                CreatureAI::OnCharmed(apply);
+                ReactorAI::OnCharmed(apply);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_CHARMED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_CHARMED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushBoolean(sEluna.LuaState, apply);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_CHARMED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, apply);
                 sEluna.ExecuteCall(3, 0);
             }*/
 
             // Called at reaching home after evade
             void JustReachedHome()
             {
-                CreatureAI::JustReachedHome();
+                ReactorAI::JustReachedHome();
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_REACH_HOME);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_REACH_HOME);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_REACH_HOME);
+                sEluna.Push(sEluna.L, m_creature);
                 sEluna.ExecuteCall(2, 0);
             }
 
             // Called at text emote receive from player
             void ReceiveEmote(Player* player, uint32 emoteId)
             {
-                CreatureAI::ReceiveEmote(player, emoteId);
+                ReactorAI::ReceiveEmote(player, emoteId);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_RECEIVE_EMOTE);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_RECEIVE_EMOTE);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, player);
-                sEluna.PushUnsigned(sEluna.LuaState, emoteId);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_RECEIVE_EMOTE);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, player);
+                sEluna.Push(sEluna.L, emoteId);
                 sEluna.ExecuteCall(4, 0);
             }
 
             // Called when owner takes damage
             /*void OwnerAttackedBy(Unit* attacker)
             {
-                CreatureAI::OwnerAttackedBy(attacker);
+                ReactorAI::OwnerAttackedBy(attacker);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_OWNER_ATTACKED_AT);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_OWNER_ATTACKED_AT);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, attacker);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_OWNER_ATTACKED_AT);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, attacker);
                 sEluna.ExecuteCall(3, 0);
             }*/
 
             // Called when owner attacks something
             /*void OwnerAttacked(Unit* target)
             {
-                CreatureAI::OwnerAttacked(target);
+                ReactorAI::OwnerAttacked(target);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_OWNER_ATTACKED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_OWNER_ATTACKED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, target);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_OWNER_ATTACKED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, target);
                 sEluna.ExecuteCall(3, 0);
             }*/
 
             // called when the corpse of this creature gets removed
             void CorpseRemoved(uint32& respawnDelay)
             {
-                CreatureAI::CorpseRemoved(respawnDelay);
+                ReactorAI::CorpseRemoved(respawnDelay);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_CORPSE_REMOVED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_CORPSE_REMOVED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnsigned(sEluna.LuaState, respawnDelay);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_CORPSE_REMOVED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, respawnDelay);
                 sEluna.ExecuteCall(3, 0);
             }
 
             /*void PassengerBoarded(Unit* passenger, int8 seatId, bool apply)
             {
-                CreatureAI::PassengerBoarded(passenger, seatId, apply);
+                ReactorAI::PassengerBoarded(passenger, seatId, apply);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_PASSANGER_BOARDED);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_PASSANGER_BOARDED);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, passenger);
-                sEluna.PushInteger(sEluna.LuaState, seatId);
-                sEluna.PushBoolean(sEluna.LuaState, apply);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_PASSANGER_BOARDED);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, passenger);
+                sEluna.Push(sEluna.L, seatId);
+                sEluna.Push(sEluna.L, apply);
                 sEluna.ExecuteCall(5, 0);
             }*/
 
             /*void OnSpellClick(Unit* clicker, bool& result)
             {
-                CreatureAI::OnSpellClick(clicker, result);
+                ReactorAI::OnSpellClick(clicker, result);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SPELL_CLICK);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_SPELL_CLICK);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, clicker);
-                sEluna.PushBoolean(sEluna.LuaState, result);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SPELL_CLICK);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, clicker);
+                sEluna.Push(sEluna.L, result);
                 sEluna.ExecuteCall(4, 0);
             }*/
 
             void MoveInLineOfSight(Unit* who)
             {
-                CreatureAI::MoveInLineOfSight(who);
+                ReactorAI::MoveInLineOfSight(who);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_MOVE_IN_LOS);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_MOVE_IN_LOS);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, who);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_MOVE_IN_LOS);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, who);
                 sEluna.ExecuteCall(3, 0);
             }
 
             // Called if IsVisible(Unit* who) is true at each who move, reaction at visibility zone enter
             /*void MoveInLineOfSight_Safe(Unit* who)
             {
-                CreatureAI::MoveInLineOfSight_Safe(who);
+                ReactorAI::MoveInLineOfSight_Safe(who);
                 int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_VISIBLE_MOVE_IN_LOS);
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_VISIBLE_MOVE_IN_LOS);
-                sEluna.PushUnit(sEluna.LuaState, m_creature);
-                sEluna.PushUnit(sEluna.LuaState, who);
+                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_VISIBLE_MOVE_IN_LOS);
+                sEluna.Push(sEluna.L, m_creature);
+                sEluna.Push(sEluna.L, who);
                 sEluna.ExecuteCall(3, 0);
             }*/
         };
 
-        CreatureAI* GetAI(Creature* creature)
+        ReactorAI* GetAI(Creature* creature)
         {
             if (!sEluna.CreatureEventBindings->GetBindMap(creature->GetEntry()))
                 return NULL;
 
-            ScriptCreatureAI* luaCreatureAI = new ScriptCreatureAI(creature);
-            return luaCreatureAI;
+            ScriptReactorAI* luaReactorAI = new ScriptReactorAI(creature);
+            return luaReactorAI;
         }
 };
 
@@ -1228,9 +1230,9 @@ class Eluna::Eluna_GameObjectScript
                 if (!bind)
                     return;
                 sEluna.BeginCall(bind);
-                sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_AIUPDATE);
-                sEluna.PushGO(sEluna.LuaState, go);
-                sEluna.PushUnsigned(sEluna.LuaState, diff);
+                sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_AIUPDATE);
+                sEluna.Push(sEluna.L, go);
+                sEluna.Push(sEluna.L, diff);
                 sEluna.ExecuteCall(3, 0);
             }
 
@@ -1238,18 +1240,18 @@ class Eluna::Eluna_GameObjectScript
             void OnScriptEvent(int funcRef, uint32 delay, uint32 calls)
             {
                 sEluna.BeginCall(funcRef);
-                sEluna.PushUnsigned(sEluna.LuaState, funcRef);
-                sEluna.PushUnsigned(sEluna.LuaState, delay);
-                sEluna.PushUnsigned(sEluna.LuaState, calls);
-                sEluna.PushGO(sEluna.LuaState, go);
+                sEluna.Push(sEluna.L, funcRef);
+                sEluna.Push(sEluna.L, delay);
+                sEluna.Push(sEluna.L, calls);
+                sEluna.Push(sEluna.L, go);
                 sEluna.ExecuteCall(4, 0);
             }
 
             void Reset()
             {
                 sEluna.BeginCall(sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_RESET));
-                sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_RESET);
-                sEluna.PushGO(sEluna.LuaState, go);
+                sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_RESET);
+                sEluna.Push(sEluna.L, go);
                 sEluna.ExecuteCall(2, 0);
             }
         };
@@ -1281,7 +1283,7 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
 
     ~LuaEventData()
     {
-        luaL_unref(sEluna.LuaState, LUA_REGISTRYINDEX, funcRef);
+        luaL_unref(sEluna.L, LUA_REGISTRYINDEX, funcRef);
         LuaEvents.erase(funcRef);
         EventIDs[GUID].erase(funcRef);
     }
@@ -1330,10 +1332,10 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
     bool Execute(uint64 time, uint32 diff) // Should NEVER execute on dead events
     {
         sEluna.BeginCall(funcRef);
-        sEluna.PushUnsigned(sEluna.LuaState, funcRef);
-        sEluna.PushUnsigned(sEluna.LuaState, delay);
-        sEluna.PushUnsigned(sEluna.LuaState, calls);
-        sEluna.PushUnit(sEluna.LuaState, _unit);
+        sEluna.Push(sEluna.L, funcRef);
+        sEluna.Push(sEluna.L, delay);
+        sEluna.Push(sEluna.L, calls);
+        sEluna.Push(sEluna.L, _unit);
         sEluna.ExecuteCall(4, 0);
         if (calls && !--calls) // dont repeat anymore
         {

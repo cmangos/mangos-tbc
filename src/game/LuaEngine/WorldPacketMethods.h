@@ -23,23 +23,13 @@
 class LuaPacket
 {
     public:
-        // GetObjectType()
-        static int GetObjectType(lua_State* L, WorldPacket* packet)
-        {
-            if (!packet)
-                return 0;
-
-            lua_pushstring(L, "Packet");
-            return 1;
-        }
-
         // GetOpcode()
         static int GetOpcode(lua_State* L, WorldPacket* packet)
         {
             if (!packet)
                 return 0;
 
-            sEluna.PushUnsigned(L, packet->GetOpcode());
+            sEluna.Push(L, packet->GetOpcode());
             return 1;
         }
 
@@ -49,7 +39,7 @@ class LuaPacket
             if (!packet)
                 return 0;
 
-            sEluna.PushUnsigned(L, packet->size());
+            sEluna.Push(L, packet->size());
             return 1;
         }
 
@@ -75,7 +65,7 @@ class LuaPacket
 
             int8 byte;
             (*packet) >> byte;
-            sEluna.PushInteger(L, byte);
+            sEluna.Push(L, byte);
             return 1;
         }
 
@@ -87,7 +77,7 @@ class LuaPacket
 
             uint8 byte;
             (*packet) >> byte;
-            sEluna.PushUnsigned(L, byte);
+            sEluna.Push(L, byte);
             return 1;
         }
 
@@ -99,7 +89,7 @@ class LuaPacket
 
             int16 _short;
             (*packet) >> _short;
-            sEluna.PushInteger(L, _short);
+            sEluna.Push(L, _short);
             return 1;
         }
 
@@ -111,7 +101,7 @@ class LuaPacket
 
             uint16 _ushort;
             (*packet) >> _ushort;
-            sEluna.PushUnsigned(L, _ushort);
+            sEluna.Push(L, _ushort);
             return 1;
         }
 
@@ -123,7 +113,7 @@ class LuaPacket
 
             int32 _long;
             (*packet) >> _long;
-            sEluna.PushInteger(L, _long);
+            sEluna.Push(L, _long);
             return 1;
         }
 
@@ -135,7 +125,7 @@ class LuaPacket
 
             uint32 _ulong;
             (*packet) >> _ulong;
-            sEluna.PushUnsigned(L, _ulong);
+            sEluna.Push(L, _ulong);
             return 1;
         }
 
@@ -147,7 +137,7 @@ class LuaPacket
 
             float _val;
             (*packet) >> _val;
-            sEluna.PushFloat(L, _val);
+            sEluna.Push(L, _val);
             return 1;
         }
 
@@ -159,7 +149,7 @@ class LuaPacket
 
             double _val;
             (*packet) >> _val;
-            sEluna.PushDouble(L, _val);
+            sEluna.Push(L, _val);
             return 1;
         }
 
@@ -171,7 +161,7 @@ class LuaPacket
 
             uint64 guid;
             (*packet) >> guid;
-            sEluna.PushULong(L, guid);
+            sEluna.Push(L, guid);
             return 1;
         }
 
@@ -183,7 +173,7 @@ class LuaPacket
 
             std::string _val;
             (*packet) >> _val;
-            sEluna.PushString(L, _val.c_str());
+            sEluna.Push(L, _val);
             return 1;
         }
 

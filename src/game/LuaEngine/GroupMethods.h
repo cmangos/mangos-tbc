@@ -41,8 +41,8 @@ class LuaGroup
                     continue;
 
                 ++i;
-                sEluna.PushUnsigned(L, i);
-                sEluna.PushUnit(L, member);
+                sEluna.Push(L, i);
+                sEluna.Push(L, member);
                 lua_settable(L, tbl);
             }
 
@@ -55,7 +55,7 @@ class LuaGroup
             if (!group)
                 return 0;
 
-            sEluna.PushULong(L, group->GetLeaderGuid());
+            sEluna.Push(L, group->GetLeaderGuid());
             return 1;
         }
 
@@ -64,16 +64,7 @@ class LuaGroup
             if (!group)
                 return 0;
 
-            sEluna.PushUnit(L, sObjectAccessor.FindPlayer(group->GetLeaderGuid()));
-            return 1;
-        }
-
-        static int GetObjectType(lua_State* L, Group* group)
-        {
-            if (!group)
-                return 0;
-
-            sEluna.PushString(L, "Group");
+            sEluna.Push(L, sObjectAccessor.FindPlayer(group->GetLeaderGuid()));
             return 1;
         }
 
@@ -82,7 +73,7 @@ class LuaGroup
             if (!group)
                 return 0;
 
-            sEluna.PushULong(L, group->GetObjectGuid());
+            sEluna.Push(L, group->GetObjectGuid());
             return 1;
         }
 
@@ -90,7 +81,7 @@ class LuaGroup
         {
             if (!group)
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
@@ -98,10 +89,10 @@ class LuaGroup
             if (leader)
             {
                 group->ChangeLeader(leader->GetObjectGuid());
-                sEluna.PushBoolean(L, true);
+                sEluna.Push(L, true);
             }
             else
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             return 1;
         }
 
@@ -109,7 +100,7 @@ class LuaGroup
         {
             if (!group)
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
@@ -119,9 +110,9 @@ class LuaGroup
                     player = sObjectAccessor.FindPlayerByName(name);
 
             if (player)
-                sEluna.PushBoolean(L, group->IsLeader(player->GetObjectGuid()));
+                sEluna.Push(L, group->IsLeader(player->GetObjectGuid()));
             else
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             return 1;
         }
 
@@ -144,15 +135,15 @@ class LuaGroup
         {
             if (!group)
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
             Player* player = sEluna.CHECK_PLAYER(L, 1);
             if (player)
-                sEluna.PushBoolean(L, group->AddInvite(player));
+                sEluna.Push(L, group->AddInvite(player));
             else
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             return 1;
         }
 
@@ -160,7 +151,7 @@ class LuaGroup
         {
             if (!group)
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
@@ -168,9 +159,9 @@ class LuaGroup
             bool method = luaL_optbool(L, 2, 0);
 
             if (player)
-                sEluna.PushBoolean(L, group->RemoveMember(player->GetObjectGuid(), method));
+                sEluna.Push(L, group->RemoveMember(player->GetObjectGuid(), method));
             else
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             return 1;
         }
 
@@ -186,9 +177,9 @@ class LuaGroup
         static int IsFull(lua_State* L, Group* group)
         {
             if (!group)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, group->IsFull());
+                sEluna.Push(L, group->IsFull());
             return 1;
         }
 
@@ -196,9 +187,9 @@ class LuaGroup
         {
             /*
                if (!group)
-                   sEluna.PushBoolean(L, false);
+                   sEluna.Push(L, false);
                else
-                   sEluna.PushBoolean(L, group->isLFGGroup());
+                   sEluna.Push(L, group->isLFGGroup());
                return 1;*/
             return 0; // Temporary to prevent conflicts
         }
@@ -206,18 +197,18 @@ class LuaGroup
         static int isRaidGroup(lua_State* L, Group* group)
         {
             if (!group)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, group->isRaidGroup());
+                sEluna.Push(L, group->isRaidGroup());
             return 1;
         }
 
         static int isBGGroup(lua_State* L, Group* group)
         {
             if (!group)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, group->isBGGroup());
+                sEluna.Push(L, group->isBGGroup());
             return 1;
         }
 
@@ -225,9 +216,9 @@ class LuaGroup
         {
             /*
                if (!group)
-                   sEluna.PushBoolean(L, false);
+                   sEluna.Push(L, false);
                else
-                   sEluna.PushBoolean(L, group->isBFGroup());
+                   sEluna.Push(L, group->isBFGroup());
                return 1;*/
             return 0; // Temporary to prevent conflicts
         }
@@ -235,14 +226,14 @@ class LuaGroup
         static int IsMember(lua_State* L, Group* group)
         {
             if (!group)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 Player* player = sEluna.CHECK_PLAYER(L, 1);
                 if (player)
-                    sEluna.PushBoolean(L, group->IsMember(player->GetObjectGuid()));
+                    sEluna.Push(L, group->IsMember(player->GetObjectGuid()));
                 else
-                    sEluna.PushBoolean(L, false);
+                    sEluna.Push(L, false);
             }
             return 1;
         }
@@ -250,14 +241,14 @@ class LuaGroup
         static int IsAssistant(lua_State* L, Group* group)
         {
             if (!group)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 Player* player = sEluna.CHECK_PLAYER(L, 1);
                 if (player)
-                    sEluna.PushBoolean(L, group->IsAssistant(player->GetObjectGuid()));
+                    sEluna.Push(L, group->IsAssistant(player->GetObjectGuid()));
                 else
-                    sEluna.PushBoolean(L, false);
+                    sEluna.Push(L, false);
             }
             return 1;
         }
@@ -265,15 +256,15 @@ class LuaGroup
         static int SameSubGroup(lua_State* L, Group* group)
         {
             if (!group)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 Player* player1 = sEluna.CHECK_PLAYER(L, 1);
                 Player* player2 = sEluna.CHECK_PLAYER(L, 2);
                 if (player1 && player2)
-                    sEluna.PushBoolean(L, group->SameSubGroup(player1, player2));
+                    sEluna.Push(L, group->SameSubGroup(player1, player2));
                 else
-                    sEluna.PushBoolean(L, false);
+                    sEluna.Push(L, false);
             }
             return 1;
         }
@@ -281,11 +272,11 @@ class LuaGroup
         static int HasFreeSlotSubGroup(lua_State* L, Group* group)
         {
             if (!group)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 uint8 subGroup = luaL_checkunsigned(L, 1);
-                sEluna.PushBoolean(L, group->HasFreeSlotSubGroup(subGroup));
+                sEluna.Push(L, group->HasFreeSlotSubGroup(subGroup));
             }
             return 1;
         }
@@ -296,7 +287,7 @@ class LuaGroup
                 return 0;
 
             const char* name = luaL_checkstring(L, 1);
-            sEluna.PushULong(L, group->GetMemberGuid(name));
+            sEluna.Push(L, group->GetMemberGuid(name));
             return 1;
         }
 
@@ -305,7 +296,7 @@ class LuaGroup
             if (!group)
                 return 0;
 
-            sEluna.PushUnsigned(L, group->GetMembersCount());
+            sEluna.Push(L, group->GetMembersCount());
             return 1;
         }
 
@@ -350,7 +341,7 @@ class LuaGroup
             if (!player)
                 return 0;
 
-            sEluna.PushUnsigned(L, group->GetMemberGroup(player->GetObjectGuid()));
+            sEluna.Push(L, group->GetMemberGroup(player->GetObjectGuid()));
             return 1;
         }
 };

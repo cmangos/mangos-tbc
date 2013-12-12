@@ -38,7 +38,7 @@
 #include "QuestDef.h"
 #include "GossipDef.h"
 #include "ScriptMgr.h"
-#include "CreatureAI.h"
+#include "ReactorAI.h"
 #include "SharedDefines.h"
 #include "SystemConfig.h"
 #include "SpellAuras.h"

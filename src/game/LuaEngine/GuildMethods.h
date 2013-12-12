@@ -41,8 +41,8 @@ class LuaGuild
                     if (player->GetSession() && (player->GetGuildId() == guild->GetId()))
                     {
                         ++i;
-                        sEluna.PushUnsigned(L, i);
-                        sEluna.PushUnit(L, player);
+                        sEluna.Push(L, i);
+                        sEluna.Push(L, player);
                         lua_settable(L, tbl);
                     }
                 }
@@ -57,16 +57,7 @@ class LuaGuild
             if (!guild)
                 return 0;
             
-            sEluna.PushULong(L, guild->GetMemberSize());
-            return 1;
-        }
-
-        static int GetObjectType(lua_State* L, Guild* guild)
-        {
-            if (!guild)
-                return 0;
-
-            sEluna.PushString(L, "Guild");
+            sEluna.Push(L, guild->GetMemberSize());
             return 1;
         }
 
@@ -75,7 +66,7 @@ class LuaGuild
             if (!guild)
                 return 0;
 
-            sEluna.PushUnit(L, sObjectMgr.GetPlayer(guild->GetLeaderGuid()));
+            sEluna.Push(L, sObjectMgr.GetPlayer(guild->GetLeaderGuid()));
             return 1;
         }
 
@@ -97,7 +88,7 @@ class LuaGuild
             if (!guild)
                 return 0;
 
-            sEluna.PushULong(L, guild->GetLeaderGuid());
+            sEluna.Push(L, guild->GetLeaderGuid());
             return 1;
         }
 
@@ -142,7 +133,7 @@ class LuaGuild
             if (!guild)
                 return 0;
 
-            sEluna.PushUnsigned(L, guild->GetId());
+            sEluna.Push(L, guild->GetId());
             return 1;
         }
 
@@ -151,7 +142,7 @@ class LuaGuild
             if (!guild)
                 return 0;
 
-            sEluna.PushString(L, guild->GetName().c_str());
+            sEluna.Push(L, guild->GetName());
             return 1;
         }
 
@@ -160,7 +151,7 @@ class LuaGuild
             if (!guild)
                 return 0;
 
-            sEluna.PushString(L, guild->GetMOTD().c_str());
+            sEluna.Push(L, guild->GetMOTD());
             return 1;
         }
 
@@ -169,7 +160,7 @@ class LuaGuild
             if (!guild)
                 return 0;
 
-            sEluna.PushString(L, guild->GetGINFO().c_str());
+            sEluna.Push(L, guild->GetGINFO());
             return 1;
         }
 
@@ -229,7 +220,7 @@ class LuaGuild
             if (!guild)
                 return 0;
 
-            sEluna.PushULong(L, guild->GetGuildBankMoney());
+            sEluna.Push(L, guild->GetGuildBankMoney());
             return 1;
         }
 

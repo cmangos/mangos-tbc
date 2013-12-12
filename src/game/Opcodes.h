@@ -447,7 +447,7 @@ enum Opcodes
     SMSG_QUESTUPDATE_ADD_ITEM                       = 0x19A,
     CMSG_QUEST_CONFIRM_ACCEPT                       = 0x19B,
     SMSG_QUEST_CONFIRM_ACCEPT                       = 0x19C,
-    CMSG_PUSHQUESTTOPARTY                           = 0x19D,
+    CMSG_PushTOPARTY                           = 0x19D,
     CMSG_LIST_INVENTORY                             = 0x19E,
     SMSG_LIST_INVENTORY                             = 0x19F,
     CMSG_SELL_ITEM                                  = 0x1A0,

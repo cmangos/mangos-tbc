@@ -28,7 +28,7 @@ class LuaCorpse
         {
             if (!corpse)
                 return 0;
-            sEluna.PushULong(L, corpse->GetOwnerGuid());
+            sEluna.Push(L, corpse->GetOwnerGuid());
             return 1;
         }
 
@@ -37,7 +37,7 @@ class LuaCorpse
         {
             if (!corpse)
                 return 0;
-            sEluna.PushUnsigned(L, corpse->GetGhostTime());
+            sEluna.Push(L, corpse->GetGhostTime());
             return 1;
         }
 
@@ -46,7 +46,7 @@ class LuaCorpse
         {
             if (!corpse)
                 return 0;
-            sEluna.PushUnsigned(L, corpse->GetType());
+            sEluna.Push(L, corpse->GetType());
             return 1;
         }
 

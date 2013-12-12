@@ -19,7 +19,12 @@
 
 #include "LuaEngine.h"
 #include "GlobalMethods.h"
+
+#include "ObjectMethods.h"
+#include "WorldObjectMethods.h"
 #include "UnitMethods.h"
+#include "PlayerMethods.h"
+#include "CreatureMethods.h"
 
 #include "GroupMethods.h"
 #include "GuildMethods.h"
@@ -65,7 +70,7 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "GetUnitGUID", &LuaGlobalFunctions::GetUnitGUID);                                       // GetUnitGUID(lowguid, entry) - Generates GUID (uint64) string from unit (creature) lowguid and entry UNDOCUMENTED
     lua_register(L, "GetGUIDLow", &LuaGlobalFunctions::GetGUIDLow);                                         // GetGUIDLow(guid) - Returns GUIDLow (uint32) from guid (uint64 as string) UNDOCUMENTED
     lua_register(L, "GetGUIDType", &LuaGlobalFunctions::GetGUIDType);                                       // GetGUIDType(guid) - Returns Type (uint32) from guid (uint64 as string) UNDOCUMENTED
-    lua_register(L, "GetGUIDEntry", &LuaGlobalFunctions::GetGUIDEntry);                                     // GetGUIDLow(guid) - Returns Entry (uint32) from guid (uint64 as string), may be always 0 UNDOCUMENTED
+    lua_register(L, "GetGUIDEntry", &LuaGlobalFunctions::GetGUIDEntry);                                     // GetGUIDEntry(guid) - Returns Entry (uint32) from guid (uint64 as string), may be always 0 UNDOCUMENTED
     lua_register(L, "bit_not", &LuaGlobalFunctions::bit_not);                                               // bit_not(a) - Returns ~a UNDOCUMENTED
     lua_register(L, "bit_xor", &LuaGlobalFunctions::bit_xor);                                               // bit_xor(a, b) - Returns a ^ b UNDOCUMENTED
     lua_register(L, "bit_rshift", &LuaGlobalFunctions::bit_rshift);                                         // bit_rshift(a, b) - Returns a >> b UNDOCUMENTED
@@ -111,7 +116,27 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "RemoveWeather", &LuaGlobalFunctions::RemoveWeather);                                   // RemoveWeather(zoneId) - Removes weather from a zone
     lua_register(L, "SendFineWeatherToPlayer", &LuaGlobalFunctions::SendFineWeatherToPlayer);               // SendFineWeatherToPlayer(player) - Sends WEATHER_STATE_FINE weather to the
 }
+ 
+ElunaRegister<Object> ObjectMethods[] =
+{
+    {"GetGUID", &LuaObject::GetGUID},                               // :GetGUID() - Returns uint64 guid as hex string
+    {"GetGUIDLow", &LuaObject::GetGUIDLow},                         // :GetGUIDLow() - Returns uint32 guid (low guid) that is used in database.
+    {"IsInWorld", &LuaObject::IsInWorld},                           // :IsInWorld()
 
+    {NULL, NULL},
+};
+
+ElunaRegister<WorldObject> WorldObjectMethods[] =
+{
+    {"GetX", &LuaWorldObject::GetX},                               // :GetX()
+    {"GetY", &LuaWorldObject::GetY},                               // :GetY()
+    {"GetZ", &LuaWorldObject::GetZ},                               // :GetZ()
+    {"GetO", &LuaWorldObject::GetO},                               // :GetO()
+    {"GetLocation", &LuaWorldObject::GetLocation},                 // :GetLocation() - returns X, Y, Z and O co - ords (in that order)
+
+    {NULL, NULL},
+};
+ 
 ElunaRegister<Unit> UnitMethods[] =
 {
     // Player Methods
@@ -467,13 +492,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetHealth", &LuaUnit::GetHealth},                     // :GetHealth()
     {"GetDisplayId", &LuaUnit::GetDisplayId},               // :GetDisplayId()
     {"GetNativeDisplayId", &LuaUnit::GetNativeDisplayId},   // :GetNativeDisplayId()
-    {"GetGUID", &LuaUnit::GetGUID},                         // :GetGUID() - Returns uint64 guid as hex string
     {"GetMapId", &LuaUnit::GetMapId},                       // :GetMapId()
-    {"GetX", &LuaUnit::GetX},                               // :GetX()
-    {"GetY", &LuaUnit::GetY},                               // :GetY()
-    {"GetZ", &LuaUnit::GetZ},                               // :GetZ()
-    {"GetO", &LuaUnit::GetO},                               // :GetO()
-    {"GetLocation", &LuaUnit::GetLocation},                 // :GetLocation() - returns X, Y, Z and O co - ords (in that order)
     {"GetAreaId", &LuaUnit::GetAreaId},                     // :GetAreaId()
     {"GetZoneId", &LuaUnit::GetZoneId},                     // :GetZoneId()
     {"GetPower", &LuaUnit::GetPower},                       // :GetPower(index) - returns power at index. Index can be omitted
@@ -486,7 +505,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetRace", &LuaUnit::GetRace},                         // :GetRace()
     {"GetClass", &LuaUnit::GetClass},                       // :GetClass()
     {"GetClassAsString", &LuaUnit::GetClassAsString},       // :GetClassAsString()
-    {"GetObjectType", &LuaUnit::GetObjectType},                 // :GetObjectType() - Returns object type, IE: Player, Creature
     {"GetEntry", &LuaUnit::GetEntry},                       // :GetEntry() - Returns the unit's entryId
     //{"GetAura", &LuaUnit::GetAura},                         // :GetAura(spellID) - returns aura object
     {"GetInt32Value", &LuaUnit::GetInt32Value},             // :GetInt32Value(index) - returns an int value from unit fields
@@ -505,7 +523,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetMountId", &LuaUnit::GetMountId},                   // :GetMountId()
     {"GetScale", &LuaUnit::GetScale},                       // :GetScale()
     {"GetDistance", &LuaUnit::GetDistance},                 // :GetDistance(WorldObject or x, y, z)
-    {"GetGUIDLow", &LuaUnit::GetGUIDLow},                   // :GetGUIDLow() - Returns uint32 guid (low guid) that is used in database.
     //{"GetNearestPlayer", &LuaUnit::GetNearestPlayer},       // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
     //{"GetNearestGameObject", &LuaUnit::GetNearestGameObject},                                               // :GetNearestGameObject([entry, radius]) - Returns nearest gameobject with given entry in sight or given radius entry can be 0.
     //{"GetNearestCreature", &LuaUnit::GetNearestCreature},   // :GetNearestCreatureEntry([entry, radius]) - Returns nearest creature with given entry in sight or given radius entry can be 0.
@@ -565,7 +582,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsAlive", &LuaUnit::IsAlive},                         // :IsAlive()
     {"IsDead", &LuaUnit::IsDead},                           // :IsDead() - Returns true if the unit is dead, false if they are alive
     {"IsDying", &LuaUnit::IsDying},                         // :IsDying() - Returns true if the unit death state is JUST_DIED.
-    {"IsInWorld", &LuaUnit::IsInWorld},                     // :IsInWorld()
     {"IsPvPFlagged", &LuaUnit::IsPvPFlagged},               // :IsPvPFlagged()
     {"HasQuest", &LuaUnit::HasQuest},                       // :HasQuest(id)
     {"IsInCombat", &LuaUnit::IsInCombat},                   // :IsInCombat()
@@ -637,8 +653,6 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth},                                             // :CountPctFromMaxHealth()
     {"Dismount", &LuaUnit::Dismount},                       // :Dismount() - Dismounts the unit.
     {"Mount", &LuaUnit::Mount},                             // :Mount(displayId) - Mounts the unit on the specified displayId.
-    //{"Mute", &LuaUnit::Mute},                               // :Mute(time[, reason]) - Mutes the player for given time in seconds.
-    {"SummonPlayer", &LuaUnit::SummonPlayer},               // :SummonPlayer(player, map, x, y, z, zoneId[, delay]) - Sends a popup to the player asking if he wants to be summoned if yes, teleported to coords. ZoneID defines the location name shown in the popup Delay is the time until the popup closes automatically.
     //{"RestoreDisplayId", &LuaUnit::RestoreDisplayId},       // :RestoreDisplayId()
     //{"RestoreFaction", &LuaUnit::RestoreFaction},           // :RestoreFaction()
     //{"RemoveBindSightAuras", &LuaUnit::RemoveBindSightAuras},                                               // :RemoveBindSightAuras()
@@ -655,22 +669,28 @@ ElunaRegister<Unit> UnitMethods[] =
 
     { NULL, NULL },
 };
+ 
+ElunaRegister<Player> PlayerMethods[] =
+{
+    //{"Mute", &LuaUnit::Mute},                               // :Mute(time[, reason]) - Mutes the player for given time in seconds.
+    {"SummonPlayer", &LuaPlayer::SummonPlayer},               // :SummonPlayer(player, map, x, y, z, zoneId[, delay]) - Sends a popup to the player asking if he wants to be summoned if yes, teleported to coords. ZoneID defines the location name shown in the popup Delay is the time until the popup closes automatically.
+    {"HasSpell", &LuaPlayer::HasSpell},                       // :HasSpell(id)
+    {NULL, NULL},
+};
+ 
+ElunaRegister<Creature> CreatureMethods[] =
+{
+    {NULL, NULL},
+};
 
 ElunaRegister<GameObject> GameObjectMethods[] =
 {
     // Getters
-    {"GetObjectType", &LuaGameObject::GetObjectType},           // :GetObjectType() - Returns unit type Ex. GameObject
-    {"GetGUID", &LuaGameObject::GetGUID},                   // :GetGUID() - Returns uint64 guid as hex string
     {"GetName", &LuaGameObject::GetName},                   // :GetName()
     {"GetDisplayId", &LuaGameObject::GetDisplayId},         // :GetDisplayId()
     {"GetScale", &LuaGameObject::GetScale},                 // :GetScale()
     {"GetEntry", &LuaGameObject::GetEntry},                 // :GetEntry()
     {"GetMapId", &LuaGameObject::GetMapId},                 // :GetMapId()
-    {"GetX", &LuaGameObject::GetX},                         // :GetX()
-    {"GetY", &LuaGameObject::GetY},                         // :GetY()
-    {"GetZ", &LuaGameObject::GetZ},                         // :GetZ()
-    {"GetO", &LuaGameObject::GetO},                         // :GetO()
-    {"GetLocation", &LuaGameObject::GetLocation},           // :GetLocation() - returns X, Y, Z and O co - ords (in that order)
     {"GetAreaId", &LuaGameObject::GetAreaId},               // :GetAreaId()
     {"GetZoneId", &LuaGameObject::GetZoneId},               // :GetZoneId()
     {"GetInt32Value", &LuaGameObject::GetInt32Value},       // :GetInt32Value(index) - returns an int value from object fields
@@ -678,7 +698,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"GetFloatValue", &LuaGameObject::GetFloatValue},       // :GetFloatValue(index) - returns a float value from object fields
     {"GetByteValue", &LuaGameObject::GetByteValue},         // :GetByteValue(index, offset) - returns a byte value from object fields
     {"GetUInt16Value", &LuaGameObject::GetUInt16Value},     // :GetUInt16Value(index, offset) - returns a uint16 value from object fields
-    {"GetGUIDLow", &LuaGameObject::GetGUIDLow},             // :GetGUIDLow() - Returns uint32 guid (low guid) that is used in database.
     //{"GetNearestPlayer", &LuaGameObject::GetNearestPlayer}, // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
     //{"GetNearestGameObject", &LuaGameObject::GetNearestGameObject},                                         // :GetNearestGameObject([radius, entry]) - Returns nearest gameobject with given entry in sight or given radius.
     //{"GetNearestCreature", &LuaGameObject::GetNearestCreature},                                             // :GetNearestCreatureEntry([radius, entry]) - Returns nearest creature with given entry in sight or given radius.
@@ -701,7 +720,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"SetFlag", &LuaGameObject::SetFlag},
 
     // Boolean
-    {"IsInWorld", &LuaGameObject::IsInWorld},               // :IsInWorld()
     {"IsTransport", &LuaGameObject::IsTransport},           // :IsTransport()
     //{"IsDestructible", &LuaGameObject::IsDestructible},     // :IsDestructible()
     {"IsActive", &LuaGameObject::IsActive},                 // :IsActive()
@@ -727,8 +745,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 ElunaRegister<Item> ItemMethods[] =
 {
     // Getters
-    {"GetObjectType", &LuaItem::GetObjectType},                 // :GetObjectType() - Returns object type, IE: Item, Creature
-    {"GetGUID", &LuaItem::GetGUID},                         // :GetGUID() - Returns uint64 guid as hex string
     {"GetOwnerGUID", &LuaItem::GetOwnerGUID},               // :GetOwnerGUID() - Returns the owner's guid
     {"GetOwner", &LuaItem::GetOwner},                       // :GetOwner() - Returns the owner object (player)
     {"GetCount", &LuaItem::GetCount},                       // :GetCount() - Returns item stack count
@@ -740,7 +756,6 @@ ElunaRegister<Item> ItemMethods[] =
     {"GetFloatValue", &LuaItem::GetFloatValue},             // :GetFloatValue(index) - returns a float value from item fields
     {"GetByteValue", &LuaItem::GetByteValue},               // :GetByteValue(index, offset) - returns a byte value from item fields
     {"GetUInt16Value", &LuaItem::GetUInt16Value},           // :GetUInt16Value(index, offset) - returns a uint16 value from item fields
-    {"GetGUIDLow", &LuaItem::GetGUIDLow},                   // :GetGUIDLow() - Returns uint32 guid (low guid) that is used in database.
     {"GetEnchantmentId", &LuaItem::GetEnchantmentId},       // :GetEnchantmentId(enchant_slot) - Returns the enchantment in given slot. (permanent = 0)
     {"GetSpellId", &LuaItem::GetSpellId},                   // :GetSpellId(index) - Returns spellID at given index (0 - 4)
     {"GetSpellTrigger", &LuaItem::GetSpellTrigger},         // :GetSpellTrigger(index) - Returns spell trigger at given index (0 - 4)
@@ -807,7 +822,6 @@ ElunaRegister<Item> ItemMethods[] =
 ElunaRegister<Aura> AuraMethods[] =
 {
     // Getters
-    {"GetObjectType", &LuaAura::GetObjectType},                 // :GetObjectType() - Returns object type, IE: Aura, Creature
     {"GetCaster", &LuaAura::GetCaster},                     // :GetCaster() - Returns caster as object
     {"GetCasterGUID", &LuaAura::GetCasterGUID},             // :GetCasterGUID() - Returns caster as GUID
     {"GetCasterLevel", &LuaAura::GetCasterLevel},           // :GetCasterLevel() - Returns casters level
@@ -831,7 +845,6 @@ ElunaRegister<Aura> AuraMethods[] =
 ElunaRegister<Spell> SpellMethods[] =
 {
     // Getters
-    {"GetObjectType", &LuaSpell::GetObjectType},                // :GetObjectType() - Returns the unit type (Spell)
     {"GetCaster", &LuaSpell::GetCaster},                    // :GetCaster() - Returns the spell's caster (UNIT)
     {"GetCastTime", &LuaSpell::GetCastTime},                // :GetCastTime() - Returns the spell cast time
     {"GetEntry", &LuaSpell::GetId},                         // :GetEntry() - Returns the spell's ID
@@ -855,7 +868,6 @@ ElunaRegister<Spell> SpellMethods[] =
 ElunaRegister<Quest> QuestMethods[] =
 {
     // Getters
-    {"GetObjectType", &LuaQuest::GetObjectType},                // :GetObjectType() - Returns the unit type (Quest)
     {"GetId", &LuaQuest::GetId},                            // :GetId() - Returns the quest's Id
     {"GetLevel", &LuaQuest::GetLevel},                      // :GetLevel() - Returns the quest's level
     {"GetMaxLevel", &LuaQuest::GetMaxLevel},                // :GetMaxLevel() - Returns the quest's max level
@@ -882,7 +894,6 @@ ElunaRegister<Group> GroupMethods[] =
     {"GetMembers", &LuaGroup::GetMembers},                  // :GetMembers() - returns a table the players in this group. (Online?)
     {"GetLeaderGUID", &LuaGroup::GetLeaderGUID},
     {"GetLeader", &LuaGroup::GetLeader},
-    {"GetObjectType", &LuaGroup::GetObjectType},
     {"GetGUID", &LuaGroup::GetGUID},
     {"GetMemberGroup", &LuaGroup::GetMemberGroup},          // :GetMemberGroup(player) - Returns the player's subgroup ID
     {"GetMemberGUID", &LuaGroup::GetMemberGUID},            // :GetMemberGUID("name") - Returns the member's GUID
@@ -919,7 +930,6 @@ ElunaRegister<Guild> GuildMethods[] =
 {
     // Getters
     {"GetMembers", &LuaGuild::GetMembers},                  // :GetMembers() - returns a table containing the players in this guild. (Online?)
-    {"GetObjectType", &LuaGuild::GetObjectType},                // :GetObjectType() - Returns the unit type. Eg: Guild
     {"GetLeader", &LuaGuild::GetLeader},                    // :GetLeader() - Returns the guild learder's object
     {"GetLeaderGUID", &LuaGuild::GetLeaderGUID},            // :GetLeaderGUID() - Returns the guild learder's guid
     {"GetId", &LuaGuild::GetId},                            // :GetId() - Gets the guild's ID
@@ -950,8 +960,6 @@ ElunaRegister<Guild> GuildMethods[] =
 
 ElunaRegister<QueryResult> QueryMethods[] =
 {
-    {"GetObjectType", &LuaQuery::GetObjectType},                // :GetObjectType() - Returns object type, IE: QueryResult
-
     {"NextRow", &LuaQuery::NextRow},                        // :NextRow() - Advances to next rown in the query. Returns true if there is a next row, otherwise false
     {"GetColumnCount", &LuaQuery::GetColumnCount},          // :GetColumnCount() - Gets the column count of the query
     {"GetRowCount", &LuaQuery::GetRowCount},                // :GetRowCount() - Gets the row count of the query
@@ -977,7 +985,6 @@ ElunaRegister<WorldPacket> PacketMethods[] =
     // Getters
     {"GetOpcode", &LuaPacket::GetOpcode},                   // :GetOpcode() - Returns an opcode
     {"GetSize", &LuaPacket::GetSize},                       // :GetSize() - Returns the packet size
-    {"GetObjectType", &LuaPacket::GetOpcode},                 // :GetObjectType() - Returns the unit type: Packet
 
     // Setters
     {"SetOpcode", &LuaPacket::SetOpcode},                   // :SetOpcode(opcode) - Sets the opcode by specifying an opcode
@@ -1059,17 +1066,75 @@ ElunaRegister<Weather> WeatherMethods[] =
     {NULL, NULL}
 };
 
-template<typename T> ElunaRegister<T>* GetMethodTable() { return NULL; }
-template<> ElunaRegister<Unit>* GetMethodTable<Unit>() { return UnitMethods; }
-template<> ElunaRegister<GameObject>* GetMethodTable<GameObject>() { return GameObjectMethods; }
-template<> ElunaRegister<Group>* GetMethodTable<Group>() { return GroupMethods; }
-template<> ElunaRegister<Guild>* GetMethodTable<Guild>() { return GuildMethods; }
-template<> ElunaRegister<QueryResult>* GetMethodTable<QueryResult>() { return QueryMethods; }
-template<> ElunaRegister<Aura>* GetMethodTable<Aura>() { return AuraMethods; }
-template<> ElunaRegister<Item>* GetMethodTable<Item>() { return ItemMethods; }
-template<> ElunaRegister<WorldPacket>* GetMethodTable<WorldPacket>() { return PacketMethods; }
-template<> ElunaRegister<Spell>* GetMethodTable<Spell>() { return SpellMethods; }
-template<> ElunaRegister<Quest>* GetMethodTable<Quest>() { return QuestMethods; }
-template<> ElunaRegister<Map>* GetMethodTable<Map>() { return MapMethods; }
-template<> ElunaRegister<Corpse>* GetMethodTable<Corpse>() { return CorpseMethods; }
-template<> ElunaRegister<Weather>* GetMethodTable<Weather>() { return WeatherMethods; }
+void RegisterFunctions(lua_State* L)
+{
+    RegisterGlobals(L);
+    lua_settop(L, 0); // clean stack
+
+    ElunaTemplate<Object>::Register(L);
+    SetMethods(L, ObjectMethods);
+
+    ElunaTemplate<WorldObject>::Register(L);
+    SetMethods(L, ObjectMethods);
+    SetMethods(L, WorldObjectMethods);
+
+    ElunaTemplate<Unit>::Register(L);
+    SetMethods(L, ObjectMethods);
+    SetMethods(L, WorldObjectMethods);
+    SetMethods(L, UnitMethods);
+    
+    ElunaTemplate<Player>::Register(L);
+    SetMethods(L, ObjectMethods);
+    SetMethods(L, WorldObjectMethods);
+    SetMethods(L, UnitMethods);
+    SetMethods(L, PlayerMethods);
+
+    ElunaTemplate<Creature>::Register(L);
+    SetMethods(L, ObjectMethods);
+    SetMethods(L, WorldObjectMethods);
+    SetMethods(L, UnitMethods);
+    SetMethods(L, CreatureMethods);
+
+    ElunaTemplate<GameObject>::Register(L);
+    SetMethods(L, ObjectMethods);
+    SetMethods(L, WorldObjectMethods);
+    SetMethods(L, GameObjectMethods);
+
+    ElunaTemplate<Corpse>::Register(L);
+    SetMethods(L, ObjectMethods);
+    SetMethods(L, WorldObjectMethods);
+    SetMethods(L, CorpseMethods);
+
+    ElunaTemplate<Item>::Register(L);
+    SetMethods(L, ObjectMethods);
+    SetMethods(L, ItemMethods);
+
+    ElunaTemplate<Group>::Register(L);
+    SetMethods(L, GroupMethods);
+
+    ElunaTemplate<Guild>::Register(L);
+    SetMethods(L, GuildMethods);
+
+    ElunaTemplate<QueryResult>::Register(L);
+    SetMethods(L, QueryMethods);
+
+    ElunaTemplate<Aura>::Register(L);
+    SetMethods(L, AuraMethods);
+
+    ElunaTemplate<WorldPacket>::Register(L);
+    SetMethods(L, PacketMethods);
+
+    ElunaTemplate<Spell>::Register(L);
+    SetMethods(L, SpellMethods);
+
+    ElunaTemplate<Quest>::Register(L);
+    SetMethods(L, QuestMethods);
+
+    ElunaTemplate<Map>::Register(L);
+    SetMethods(L, MapMethods);
+
+    ElunaTemplate<Weather>::Register(L);
+    SetMethods(L, WeatherMethods);
+
+    lua_settop(L, 0); // clean stack
+}

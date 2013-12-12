@@ -31,11 +31,11 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_LOOT_ITEM);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushItem(sEluna.LuaState, pItem);
-                sEluna.PushUnsigned(sEluna.LuaState, count);
-                sEluna.PushULong(sEluna.LuaState, guid);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOOT_ITEM);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, pItem);
+                sEluna.Push(sEluna.L, count);
+                sEluna.Push(sEluna.L, guid);
                 sEluna.ExecuteCall(5, 0);
             }
         }
@@ -46,8 +46,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_FIRST_LOGIN);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_FIRST_LOGIN);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -58,8 +58,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_REPOP].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_REPOP);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_REPOP);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -70,8 +70,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_RESURRECT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_RESURRECT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_RESURRECT);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -82,11 +82,11 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_EQUIP].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_EQUIP);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushItem(sEluna.LuaState, pItem);
-                sEluna.PushUnsigned(sEluna.LuaState, bag);
-                sEluna.PushUnsigned(sEluna.LuaState, slot);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_EQUIP);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, pItem);
+                sEluna.Push(sEluna.L, bag);
+                sEluna.Push(sEluna.L, slot);
                 sEluna.ExecuteCall(5, 0);
             }
         }
@@ -98,12 +98,12 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CAN_USE_ITEM);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, itemEntry);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CAN_USE_ITEM);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, itemEntry);
                 if (sEluna.ExecuteCall(3, 1))
                 {
-                    lua_State* L = sEluna.LuaState;
+                    lua_State* L = sEluna.L;
                     if (!lua_isnoneornil(L, 1))
                         result = (InventoryResult)lua_tounsigned(L, 1);
                     sEluna.EndCall(1);
@@ -131,15 +131,15 @@ class Eluna_HookScript : public HookScript
                 if (bind)
                 {
                     sEluna.BeginCall(bind);
-                    sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_SELECT);
-                    sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                    sEluna.PushItem(sEluna.LuaState, item);
-                    sEluna.PushUnsigned(sEluna.LuaState, sender);
-                    sEluna.PushUnsigned(sEluna.LuaState, action);
+                    sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+                    sEluna.Push(sEluna.L, pPlayer);
+                    sEluna.Push(sEluna.L, item);
+                    sEluna.Push(sEluna.L, sender);
+                    sEluna.Push(sEluna.L, action);
                     if (code.empty())
-                        lua_pushnil(sEluna.LuaState);
+                        lua_pushnil(sEluna.L);
                     else
-                        sEluna.PushString(sEluna.LuaState, code.c_str());
+                        sEluna.Push(sEluna.L, code);
                     sEluna.ExecuteCall(6, 0);
                 }
             }
@@ -152,16 +152,16 @@ class Eluna_HookScript : public HookScript
                 if (bind)
                 {
                     sEluna.BeginCall(bind);
-                    sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_SELECT);
-                    sEluna.PushUnit(sEluna.LuaState, pPlayer); // receiver
-                    sEluna.PushUnit(sEluna.LuaState, pPlayer); // sender, just not to mess up the amount of args.
-                    sEluna.PushUnsigned(sEluna.LuaState, sender);
-                    sEluna.PushUnsigned(sEluna.LuaState, action);
+                    sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+                    sEluna.Push(sEluna.L, pPlayer); // receiver
+                    sEluna.Push(sEluna.L, pPlayer); // sender, just not to mess up the amount of args.
+                    sEluna.Push(sEluna.L, sender);
+                    sEluna.Push(sEluna.L, action);
                     if (code.empty())
-                        lua_pushnil(sEluna.LuaState);
+                        lua_pushnil(sEluna.L);
                     else
-                        sEluna.PushString(sEluna.LuaState, code.c_str());
-                    sEluna.PushUnsigned(sEluna.LuaState, menuId);
+                        sEluna.Push(sEluna.L, code);
+                    sEluna.Push(sEluna.L, menuId);
                     sEluna.ExecuteCall(7, 0);
                 }
             }
@@ -173,7 +173,7 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[ELUNA_EVENT_ON_RESTART].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, ELUNA_EVENT_ON_RESTART);
+                sEluna.Push(sEluna.L, ELUNA_EVENT_ON_RESTART);
                 sEluna.ExecuteCall(1, 0);
             }
         }
@@ -185,11 +185,11 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, ITEM_EVENT_ON_DUMMY_EFFECT);
-            sEluna.PushUnit(sEluna.LuaState, pCaster);
-            sEluna.PushUnsigned(sEluna.LuaState, spellId);
-            sEluna.PushInteger(sEluna.LuaState, effIndex);
-            sEluna.PushItem(sEluna.LuaState, pTarget);
+            sEluna.Push(sEluna.L, ITEM_EVENT_ON_DUMMY_EFFECT);
+            sEluna.Push(sEluna.L, pCaster);
+            sEluna.Push(sEluna.L, spellId);
+            sEluna.Push(sEluna.L, effIndex);
+            sEluna.Push(sEluna.L, pTarget);
             sEluna.ExecuteCall(5, 0);
             return true;
         }
@@ -200,10 +200,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, ITEM_EVENT_ON_QUEST_ACCEPT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushItem(sEluna.LuaState, pItem);
-            sEluna.PushQuest(sEluna.LuaState, pQuest);
+            sEluna.Push(sEluna.L, ITEM_EVENT_ON_QUEST_ACCEPT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pItem);
+            sEluna.Push(sEluna.L, pQuest);
             sEluna.ExecuteCall(4, 0);
             return true;
         }
@@ -218,25 +218,25 @@ class Eluna_HookScript : public HookScript
             {
                 pPlayer->PlayerTalkClass->ClearMenus();
                 sEluna.BeginCall(bind1);
-                sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_HELLO);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushItem(sEluna.LuaState, pItem);
+                sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_HELLO);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, pItem);
                 sEluna.ExecuteCall(3, 0);
             }
             if (bind2)
             {
                 sEluna.BeginCall(bind2);
-                sEluna.PushUnsigned(sEluna.LuaState, ITEM_EVENT_ON_USE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushItem(sEluna.LuaState, pItem);
+                sEluna.Push(sEluna.L, ITEM_EVENT_ON_USE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, pItem);
                 if (GameObject* target = targets.getGOTarget())
-                    sEluna.PushGO(sEluna.LuaState, target);
+                    sEluna.Push(sEluna.L, target);
                 else if (Item* target = targets.getItemTarget())
-                    sEluna.PushItem(sEluna.LuaState, target);
+                    sEluna.Push(sEluna.L, target);
                 else if (Unit* target = targets.getUnitTarget())
-                    sEluna.PushUnit(sEluna.LuaState, target);
+                    sEluna.Push(sEluna.L, target);
                 else
-                    lua_pushnil(sEluna.LuaState);
+                    lua_pushnil(sEluna.L);
                 sEluna.ExecuteCall(4, 0);
             }
             pPlayer->SendEquipError((InventoryResult)83, pItem, NULL);
@@ -249,9 +249,9 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, ITEM_EVENT_ON_EXPIRE);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnsigned(sEluna.LuaState, pProto->ItemId);
+            sEluna.Push(sEluna.L, ITEM_EVENT_ON_EXPIRE);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pProto->ItemId);
             sEluna.ExecuteCall(3, 0);
             return true;
         }
@@ -262,11 +262,11 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_DUMMY_EFFECT);
-            sEluna.PushUnit(sEluna.LuaState, pCaster);
-            sEluna.PushUnsigned(sEluna.LuaState, spellId);
-            sEluna.PushInteger(sEluna.LuaState, effIndex);
-            sEluna.PushUnit(sEluna.LuaState, pTarget);
+            sEluna.Push(sEluna.L, CREATURE_EVENT_ON_DUMMY_EFFECT);
+            sEluna.Push(sEluna.L, pCaster);
+            sEluna.Push(sEluna.L, spellId);
+            sEluna.Push(sEluna.L, effIndex);
+            sEluna.Push(sEluna.L, pTarget);
             sEluna.ExecuteCall(5, 0);
             return true;
         }
@@ -278,9 +278,9 @@ class Eluna_HookScript : public HookScript
                 return false;
             pPlayer->PlayerTalkClass->ClearMenus();
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_HELLO);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
+            sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_HELLO);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
             sEluna.ExecuteCall(3, 0);
             return true;
         }
@@ -292,11 +292,11 @@ class Eluna_HookScript : public HookScript
                 return false;
             pPlayer->PlayerTalkClass->ClearMenus();
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_SELECT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
-            sEluna.PushUnsigned(sEluna.LuaState, sender);
-            sEluna.PushUnsigned(sEluna.LuaState, action);
+            sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
+            sEluna.Push(sEluna.L, sender);
+            sEluna.Push(sEluna.L, action);
             sEluna.ExecuteCall(5, 0);
             return true;
         }
@@ -308,12 +308,12 @@ class Eluna_HookScript : public HookScript
                 return false;
             pPlayer->PlayerTalkClass->ClearMenus();
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_SELECT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
-            sEluna.PushUnsigned(sEluna.LuaState, sender);
-            sEluna.PushUnsigned(sEluna.LuaState, action);
-            sEluna.PushString(sEluna.LuaState, code);
+            sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
+            sEluna.Push(sEluna.L, sender);
+            sEluna.Push(sEluna.L, action);
+            sEluna.Push(sEluna.L, code);
             sEluna.ExecuteCall(6, 0);
             return true;
         }
@@ -324,10 +324,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_QUEST_ACCEPT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
-            sEluna.PushQuest(sEluna.LuaState, pQuest);
+            sEluna.Push(sEluna.L, CREATURE_EVENT_ON_QUEST_ACCEPT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
+            sEluna.Push(sEluna.L, pQuest);
             sEluna.ExecuteCall(4, 0);
             return true;
         }
@@ -338,10 +338,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_QUEST_SELECT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
-            sEluna.PushQuest(sEluna.LuaState, pQuest);
+            sEluna.Push(sEluna.L, CREATURE_EVENT_ON_QUEST_SELECT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
+            sEluna.Push(sEluna.L, pQuest);
             sEluna.ExecuteCall(4, 0);
             return true;
         }
@@ -352,10 +352,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_QUEST_COMPLETE);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
-            sEluna.PushQuest(sEluna.LuaState, pQuest);
+            sEluna.Push(sEluna.L, CREATURE_EVENT_ON_QUEST_COMPLETE);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
+            sEluna.Push(sEluna.L, pQuest);
             sEluna.ExecuteCall(4, 0);
             return true;
         }
@@ -366,10 +366,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_QUEST_REWARD);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
-            sEluna.PushQuest(sEluna.LuaState, pQuest);
+            sEluna.Push(sEluna.L, CREATURE_EVENT_ON_QUEST_REWARD);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
+            sEluna.Push(sEluna.L, pQuest);
             sEluna.ExecuteCall(4, 0);
             return true;
         }
@@ -380,9 +380,9 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return 0;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, CREATURE_EVENT_ON_DIALOG_STATUS);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushUnit(sEluna.LuaState, pCreature);
+            sEluna.Push(sEluna.L, CREATURE_EVENT_ON_DIALOG_STATUS);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pCreature);
             sEluna.ExecuteCall(3, 0);
             return 100;
         }
@@ -393,11 +393,11 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_DUMMY_EFFECT);
-            sEluna.PushUnit(sEluna.LuaState, pCaster);
-            sEluna.PushUnsigned(sEluna.LuaState, spellId);
-            sEluna.PushInteger(sEluna.LuaState, effIndex);
-            sEluna.PushGO(sEluna.LuaState, pTarget);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_DUMMY_EFFECT);
+            sEluna.Push(sEluna.L, pCaster);
+            sEluna.Push(sEluna.L, spellId);
+            sEluna.Push(sEluna.L, effIndex);
+            sEluna.Push(sEluna.L, pTarget);
             sEluna.ExecuteCall(5, 0);
             return true;
         }
@@ -409,9 +409,9 @@ class Eluna_HookScript : public HookScript
                 return false;
             pPlayer->PlayerTalkClass->ClearMenus();
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_HELLO);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
+            sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_HELLO);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pGameObject);
             sEluna.ExecuteCall(3, 0);
             return true;
         }
@@ -423,11 +423,11 @@ class Eluna_HookScript : public HookScript
                 return false;
             pPlayer->PlayerTalkClass->ClearMenus();
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_SELECT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushUnsigned(sEluna.LuaState, sender);
-            sEluna.PushUnsigned(sEluna.LuaState, action);
+            sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, sender);
+            sEluna.Push(sEluna.L, action);
             sEluna.ExecuteCall(5, 0);
             return true;
         }
@@ -439,12 +439,12 @@ class Eluna_HookScript : public HookScript
                 return false;
             pPlayer->PlayerTalkClass->ClearMenus();
             sEluna.BeginCall(bind);
-            sEluna.PushUnsigned(sEluna.LuaState, GOSSIP_EVENT_ON_SELECT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushUnsigned(sEluna.LuaState, sender);
-            sEluna.PushUnsigned(sEluna.LuaState, action);
-            sEluna.PushString(sEluna.LuaState, code);
+            sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, sender);
+            sEluna.Push(sEluna.L, action);
+            sEluna.Push(sEluna.L, code);
             sEluna.ExecuteCall(6, 0);
             return true;
         }
@@ -455,10 +455,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_QUEST_ACCEPT);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushQuest(sEluna.LuaState, pQuest);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_QUEST_ACCEPT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, pQuest);
             sEluna.ExecuteCall(4, 0);
             return true;
         }
@@ -469,10 +469,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_QUEST_REWARD);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushQuest(sEluna.LuaState, pQuest);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_QUEST_REWARD);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, pQuest);
             sEluna.ExecuteCall(4, 0);
             return true;
         }
@@ -483,9 +483,9 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return 0;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_DIALOG_STATUS);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_DIALOG_STATUS);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pGameObject);
             sEluna.ExecuteCall(3, 0);
             return 100;
         }
@@ -496,9 +496,9 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_DESTROYED);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_DESTROYED);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, pPlayer);
             sEluna.ExecuteCall(3, 0);
         }
 
@@ -508,9 +508,9 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_DAMAGED);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushUnit(sEluna.LuaState, pPlayer);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_DAMAGED);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, pPlayer);
             sEluna.ExecuteCall(3, 0);
         }
 
@@ -520,10 +520,10 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_LOOT_STATE_CHANGE);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushUnsigned(sEluna.LuaState, state);
-            sEluna.PushUnit(sEluna.LuaState, pUnit);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_LOOT_STATE_CHANGE);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, state);
+            sEluna.Push(sEluna.L, pUnit);
             sEluna.ExecuteCall(4, 0);
         }
 
@@ -533,9 +533,9 @@ class Eluna_HookScript : public HookScript
             if (!bind)
                 return;
             sEluna.BeginCall(bind);
-            sEluna.PushInteger(sEluna.LuaState, GAMEOBJECT_EVENT_ON_GO_STATE_CHANGED);
-            sEluna.PushGO(sEluna.LuaState, pGameObject);
-            sEluna.PushUnsigned(sEluna.LuaState, state);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_GO_STATE_CHANGED);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, state);
             sEluna.ExecuteCall(3, 0);
         }
         // Player
@@ -545,9 +545,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_ENTER_COMBAT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnit(sEluna.LuaState, pEnemy);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_ENTER_COMBAT);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, pEnemy);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -558,8 +558,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_LEAVE_COMBAT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LEAVE_COMBAT);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -570,9 +570,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_KILL_PLAYER);
-                sEluna.PushUnit(sEluna.LuaState, pKiller);
-                sEluna.PushUnit(sEluna.LuaState, pKilled);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILL_PLAYER);
+                sEluna.Push(sEluna.L, pKiller);
+                sEluna.Push(sEluna.L, pKilled);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -583,9 +583,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_KILL_CREATURE);
-                sEluna.PushUnit(sEluna.LuaState, pKiller);
-                sEluna.PushUnit(sEluna.LuaState, pKilled);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILL_CREATURE);
+                sEluna.Push(sEluna.L, pKiller);
+                sEluna.Push(sEluna.L, pKilled);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -596,9 +596,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_KILLED_BY_CREATURE);
-                sEluna.PushUnit(sEluna.LuaState, pKiller);
-                sEluna.PushUnit(sEluna.LuaState, pKilled);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILLED_BY_CREATURE);
+                sEluna.Push(sEluna.L, pKiller);
+                sEluna.Push(sEluna.L, pKilled);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -609,9 +609,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_LEVEL_CHANGE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, oldLevel);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LEVEL_CHANGE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, oldLevel);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -622,9 +622,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_TALENTS_CHANGE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, newPoints);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TALENTS_CHANGE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, newPoints);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -635,9 +635,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_TALENTS_RESET);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushBoolean(sEluna.LuaState, noCost);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TALENTS_RESET);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, noCost);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -648,9 +648,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_MONEY_CHANGE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushInteger(sEluna.LuaState, amount);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_MONEY_CHANGE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, amount);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -661,10 +661,10 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GIVE_XP].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_GIVE_XP);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, amount);
-                sEluna.PushUnit(sEluna.LuaState, pVictim);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GIVE_XP);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, amount);
+                sEluna.Push(sEluna.L, pVictim);
                 sEluna.ExecuteCall(4, 0);
             }
         }
@@ -675,11 +675,11 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_REPUTATION_CHANGE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, factionID);
-                sEluna.PushInteger(sEluna.LuaState, standing);
-                sEluna.PushBoolean(sEluna.LuaState, incremental);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_REPUTATION_CHANGE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, factionID);
+                sEluna.Push(sEluna.L, standing);
+                sEluna.Push(sEluna.L, incremental);
                 sEluna.ExecuteCall(5, 0);
             }
         }
@@ -690,9 +690,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_DUEL_REQUEST);
-                sEluna.PushUnit(sEluna.LuaState, pTarget);
-                sEluna.PushUnit(sEluna.LuaState, pChallenger);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_REQUEST);
+                sEluna.Push(sEluna.L, pTarget);
+                sEluna.Push(sEluna.L, pChallenger);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -703,9 +703,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_START].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_DUEL_START);
-                sEluna.PushUnit(sEluna.LuaState, pStarter);
-                sEluna.PushUnit(sEluna.LuaState, pChallenger);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_START);
+                sEluna.Push(sEluna.L, pStarter);
+                sEluna.Push(sEluna.L, pChallenger);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -716,10 +716,10 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_END].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_DUEL_END);
-                sEluna.PushUnit(sEluna.LuaState, pWinner);
-                sEluna.PushUnit(sEluna.LuaState, pLoser);
-                sEluna.PushInteger(sEluna.LuaState, type);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_END);
+                sEluna.Push(sEluna.L, pWinner);
+                sEluna.Push(sEluna.L, pLoser);
+                sEluna.Push(sEluna.L, type);
                 sEluna.ExecuteCall(4, 0);
             }
         }
@@ -730,12 +730,12 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_WHISPER].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_WHISPER);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushString(sEluna.LuaState, msg.c_str());
-                sEluna.PushUnsigned(sEluna.LuaState, type);
-                sEluna.PushUnsigned(sEluna.LuaState, lang);
-                sEluna.PushUnit(sEluna.LuaState, pReceiver);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_WHISPER);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, msg);
+                sEluna.Push(sEluna.L, type);
+                sEluna.Push(sEluna.L, lang);
+                sEluna.Push(sEluna.L, pReceiver);
                 sEluna.ExecuteCall(6, 0);
             }
         }
@@ -746,9 +746,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_EMOTE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_EMOTE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, emote);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_EMOTE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, emote);
                 sEluna.ExecuteCall(3, 0);
             }
         }
@@ -759,11 +759,11 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_TEXT_EMOTE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, textEmote);
-                sEluna.PushUnsigned(sEluna.LuaState, emoteNum);
-                sEluna.PushULong(sEluna.LuaState, guid);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TEXT_EMOTE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, textEmote);
+                sEluna.Push(sEluna.L, emoteNum);
+                sEluna.Push(sEluna.L, guid);
                 sEluna.ExecuteCall(5, 0);
             }
         }
@@ -774,10 +774,10 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_SPELL_CAST);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushSpell(sEluna.LuaState, pSpell);
-                sEluna.PushBoolean(sEluna.LuaState, skipCheck);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_SPELL_CAST);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, pSpell);
+                sEluna.Push(sEluna.L, skipCheck);
                 sEluna.ExecuteCall(4, 0);
             }
         }
@@ -788,8 +788,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOGIN].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_LOGIN);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOGIN);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -800,8 +800,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOGOUT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_LOGOUT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOGOUT);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -812,8 +812,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHARACTER_CREATE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHARACTER_CREATE);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -824,8 +824,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHARACTER_DELETE);
-                sEluna.PushULong(sEluna.LuaState, guidlow);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHARACTER_DELETE);
+                sEluna.Push(sEluna.L, guidlow);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -836,8 +836,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_SAVE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_SAVE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_SAVE);
+                sEluna.Push(sEluna.L, pPlayer);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -848,11 +848,11 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_BIND_TO_INSTANCE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushInteger(sEluna.LuaState, difficulty);
-                sEluna.PushUnsigned(sEluna.LuaState, mapid);
-                sEluna.PushBoolean(sEluna.LuaState, permanent);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_BIND_TO_INSTANCE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, difficulty);
+                sEluna.Push(sEluna.L, mapid);
+                sEluna.Push(sEluna.L, permanent);
                 sEluna.ExecuteCall(5, 0);
             }
         }
@@ -863,10 +863,10 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_UPDATE_ZONE);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, newZone);
-                sEluna.PushUnsigned(sEluna.LuaState, newArea);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_UPDATE_ZONE);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, newZone);
+                sEluna.Push(sEluna.L, newArea);
                 sEluna.ExecuteCall(4, 0);
             }
         }
@@ -877,8 +877,8 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_MAP_CHANGE);
-                sEluna.PushUnit(sEluna.LuaState, player);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_MAP_CHANGE);
+                sEluna.Push(sEluna.L, player);
                 sEluna.ExecuteCall(2, 0);
             }
         }
@@ -890,14 +890,14 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHAT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushString(sEluna.LuaState, msg.c_str());
-                sEluna.PushUnsigned(sEluna.LuaState, type);
-                sEluna.PushUnsigned(sEluna.LuaState, lang);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHAT);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, msg);
+                sEluna.Push(sEluna.L, type);
+                sEluna.Push(sEluna.L, lang);
                 if (sEluna.ExecuteCall(5, 1))
                 {
-                    lua_State* L = sEluna.LuaState;
+                    lua_State* L = sEluna.L;
                     if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
                         Result = false;
                     sEluna.EndCall(1);
@@ -913,15 +913,15 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_GROUP_CHAT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushString(sEluna.LuaState, msg.c_str());
-                sEluna.PushUnsigned(sEluna.LuaState, type);
-                sEluna.PushUnsigned(sEluna.LuaState, lang);
-                sEluna.PushGroup(sEluna.LuaState, pGroup);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GROUP_CHAT);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, msg);
+                sEluna.Push(sEluna.L, type);
+                sEluna.Push(sEluna.L, lang);
+                sEluna.Push(sEluna.L, pGroup);
                 if (sEluna.ExecuteCall(6, 1))
                 {
-                    lua_State* L = sEluna.LuaState;
+                    lua_State* L = sEluna.L;
                     if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
                         Result = false;
                     sEluna.EndCall(1);
@@ -937,15 +937,15 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_GUILD_CHAT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushString(sEluna.LuaState, msg.c_str());
-                sEluna.PushUnsigned(sEluna.LuaState, type);
-                sEluna.PushUnsigned(sEluna.LuaState, lang);
-                sEluna.PushGuild(sEluna.LuaState, pGuild);
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GUILD_CHAT);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, msg);
+                sEluna.Push(sEluna.L, type);
+                sEluna.Push(sEluna.L, lang);
+                sEluna.Push(sEluna.L, pGuild);
                 if (sEluna.ExecuteCall(6, 1))
                 {
-                    lua_State* L = sEluna.LuaState;
+                    lua_State* L = sEluna.L;
                     if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
                         Result = false;
                     sEluna.EndCall(1);
@@ -961,15 +961,15 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, PLAYER_EVENT_ON_CHANNEL_CHAT);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushString(sEluna.LuaState, msg.c_str());
-                sEluna.PushUnsigned(sEluna.LuaState, type);
-                sEluna.PushUnsigned(sEluna.LuaState, lang);
-                sEluna.PushUnsigned(sEluna.LuaState, pChannel->GetChannelId());
+                sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHANNEL_CHAT);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, msg);
+                sEluna.Push(sEluna.L, type);
+                sEluna.Push(sEluna.L, lang);
+                sEluna.Push(sEluna.L, pChannel->GetChannelId());
                 if (sEluna.ExecuteCall(6, 1))
                 {
-                    lua_State* L = sEluna.LuaState;
+                    lua_State* L = sEluna.L;
                     if (!lua_isnoneornil(L, 1) && !lua_toboolean(L, 1))
                         Result = false;
                     sEluna.EndCall(1);
@@ -984,9 +984,9 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, TRIGGER_EVENT_ON_TRIGGER);
-                sEluna.PushUnit(sEluna.LuaState, pPlayer);
-                sEluna.PushUnsigned(sEluna.LuaState, pTrigger->id);
+                sEluna.Push(sEluna.L, TRIGGER_EVENT_ON_TRIGGER);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, pTrigger->id);
                 sEluna.ExecuteCall(3, 0);
             }
             return false;
@@ -998,10 +998,10 @@ class Eluna_HookScript : public HookScript
                     itr != sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
-                sEluna.PushUnsigned(sEluna.LuaState, WEATHER_EVENT_ON_CHANGE);
-                sEluna.PushUnsigned(sEluna.LuaState, (weather->GetZone()));
-                sEluna.PushInteger(sEluna.LuaState, state);
-                sEluna.PushFloat(sEluna.LuaState, grade);
+                sEluna.Push(sEluna.L, WEATHER_EVENT_ON_CHANGE);
+                sEluna.Push(sEluna.L, (weather->GetZone()));
+                sEluna.Push(sEluna.L, state);
+                sEluna.Push(sEluna.L, grade);
                 sEluna.ExecuteCall(4, 0);
             }
         }
@@ -1032,10 +1032,10 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ADD_MEMBER].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_ADD_MEMBER);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushUnsigned(sEluna.LuaState, plRank);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_ADD_MEMBER);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, player);
+            sEluna.Push(sEluna.L, plRank);
             sEluna.ExecuteCall(4, 0);
         }
     }
@@ -1046,11 +1046,11 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_REMOVE_MEMBER);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushBoolean(sEluna.LuaState, isDisbanding);
-            sEluna.PushBoolean(sEluna.LuaState, isKicked);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_REMOVE_MEMBER);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, player);
+            sEluna.Push(sEluna.L, isDisbanding);
+            sEluna.Push(sEluna.L, isKicked);
             sEluna.ExecuteCall(5, 0);
         }
     }
@@ -1061,9 +1061,9 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_MOTD_CHANGE);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushString(sEluna.LuaState, newMotd.c_str());
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_MOTD_CHANGE);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, newMotd);
             sEluna.ExecuteCall(3, 0);
         }
     }
@@ -1074,9 +1074,9 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_INFO_CHANGE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_INFO_CHANGE);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushString(sEluna.LuaState, newInfo.c_str());
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_INFO_CHANGE);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, newInfo);
             sEluna.ExecuteCall(3, 0);
         }
     }
@@ -1087,10 +1087,10 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_CREATE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_CREATE);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnit(sEluna.LuaState, leader);
-            sEluna.PushString(sEluna.LuaState, name.c_str());
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_CREATE);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, leader);
+            sEluna.Push(sEluna.L, name);
             sEluna.ExecuteCall(4, 0);
         }
     }
@@ -1101,8 +1101,8 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_DISBAND].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_DISBAND);
-            sEluna.PushGuild(sEluna.LuaState, guild);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_DISBAND);
+            sEluna.Push(sEluna.L, guild);
             sEluna.ExecuteCall(2, 0);
         }
     }
@@ -1113,11 +1113,11 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_MONEY_WITHDRAW);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushUnsigned(sEluna.LuaState, amount);
-            sEluna.PushBoolean(sEluna.LuaState, isRepair);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_WITHDRAW);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, player);
+            sEluna.Push(sEluna.L, amount);
+            sEluna.Push(sEluna.L, isRepair);
             sEluna.ExecuteCall(5, 0);
         }
     }
@@ -1128,10 +1128,10 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_MONEY_DEPOSIT);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushUnsigned(sEluna.LuaState, amount);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_DEPOSIT);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, player);
+            sEluna.Push(sEluna.L, amount);
             sEluna.ExecuteCall(4, 0);
         }
     }
@@ -1143,16 +1143,16 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ITEM_MOVE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_ITEM_MOVE);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnit(sEluna.LuaState, player);
-            sEluna.PushItem(sEluna.LuaState, pItem);
-            sEluna.PushBoolean(sEluna.LuaState, isSrcBank);
-            sEluna.PushUnsigned(sEluna.LuaState, srcContainer);
-            sEluna.PushUnsigned(sEluna.LuaState, srcSlotId);
-            sEluna.PushBoolean(sEluna.LuaState, isDestBank);
-            sEluna.PushUnsigned(sEluna.LuaState, destContainer);
-            sEluna.PushUnsigned(sEluna.LuaState, destSlotId);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_ITEM_MOVE);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, player);
+            sEluna.Push(sEluna.L, pItem);
+            sEluna.Push(sEluna.L, isSrcBank);
+            sEluna.Push(sEluna.L, srcContainer);
+            sEluna.Push(sEluna.L, srcSlotId);
+            sEluna.Push(sEluna.L, isDestBank);
+            sEluna.Push(sEluna.L, destContainer);
+            sEluna.Push(sEluna.L, destSlotId);
             sEluna.ExecuteCall(10, 0);
         }
     }
@@ -1163,12 +1163,12 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_EVENT].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_EVENT);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnsigned(sEluna.LuaState, eventType);
-            sEluna.PushUnsigned(sEluna.LuaState, playerGuid1);
-            sEluna.PushUnsigned(sEluna.LuaState, playerGuid2);
-            sEluna.PushUnsigned(sEluna.LuaState, newRank);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_EVENT);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, eventType);
+            sEluna.Push(sEluna.L, playerGuid1);
+            sEluna.Push(sEluna.L, playerGuid2);
+            sEluna.Push(sEluna.L, newRank);
             sEluna.ExecuteCall(6, 0);
         }
     }
@@ -1179,14 +1179,14 @@ public:
             itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_BANK_EVENT].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GUILD_EVENT_ON_BANK_EVENT);
-            sEluna.PushGuild(sEluna.LuaState, guild);
-            sEluna.PushUnsigned(sEluna.LuaState, eventType);
-            sEluna.PushUnsigned(sEluna.LuaState, tabId);
-            sEluna.PushUnsigned(sEluna.LuaState, playerGuid);
-            sEluna.PushUnsigned(sEluna.LuaState, itemOrMoney);
-            sEluna.PushUnsigned(sEluna.LuaState, itemStackCount);
-            sEluna.PushUnsigned(sEluna.LuaState, destTabId);
+            sEluna.Push(sEluna.L, GUILD_EVENT_ON_BANK_EVENT);
+            sEluna.Push(sEluna.L, guild);
+            sEluna.Push(sEluna.L, eventType);
+            sEluna.Push(sEluna.L, tabId);
+            sEluna.Push(sEluna.L, playerGuid);
+            sEluna.Push(sEluna.L, itemOrMoney);
+            sEluna.Push(sEluna.L, itemStackCount);
+            sEluna.Push(sEluna.L, destTabId);
             sEluna.ExecuteCall(8, 0);
         }
     }
@@ -1202,9 +1202,9 @@ public:
             itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_ADD].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GROUP_EVENT_ON_MEMBER_ADD);
-            sEluna.PushGroup(sEluna.LuaState, group);
-            sEluna.PushULong(sEluna.LuaState, guid);
+            sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_ADD);
+            sEluna.Push(sEluna.L, group);
+            sEluna.Push(sEluna.L, guid);
             sEluna.ExecuteCall(3, 0);
         }
     }
@@ -1215,9 +1215,9 @@ public:
             itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GROUP_EVENT_ON_MEMBER_INVITE);
-            sEluna.PushGroup(sEluna.LuaState, group);
-            sEluna.PushULong(sEluna.LuaState, guid);
+            sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_INVITE);
+            sEluna.Push(sEluna.L, group);
+            sEluna.Push(sEluna.L, guid);
             sEluna.ExecuteCall(3, 0);
         }
     }
@@ -1228,12 +1228,12 @@ public:
             itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GROUP_EVENT_ON_MEMBER_REMOVE);
-            sEluna.PushGroup(sEluna.LuaState, group);
-            sEluna.PushULong(sEluna.LuaState, guid);
-            sEluna.PushInteger(sEluna.LuaState, method);
-            sEluna.PushULong(sEluna.LuaState, kicker);
-            sEluna.PushString(sEluna.LuaState, reason);
+            sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_REMOVE);
+            sEluna.Push(sEluna.L, group);
+            sEluna.Push(sEluna.L, guid);
+            sEluna.Push(sEluna.L, method);
+            sEluna.Push(sEluna.L, kicker);
+            sEluna.Push(sEluna.L, reason);
             sEluna.ExecuteCall(6, 0);
         }
     }
@@ -1244,10 +1244,10 @@ public:
             itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GROUP_EVENT_ON_LEADER_CHANGE);
-            sEluna.PushGroup(sEluna.LuaState, group);
-            sEluna.PushULong(sEluna.LuaState, newLeaderGuid);
-            sEluna.PushULong(sEluna.LuaState, oldLeaderGuid);
+            sEluna.Push(sEluna.L, GROUP_EVENT_ON_LEADER_CHANGE);
+            sEluna.Push(sEluna.L, group);
+            sEluna.Push(sEluna.L, newLeaderGuid);
+            sEluna.Push(sEluna.L, oldLeaderGuid);
             sEluna.ExecuteCall(4, 0);
         }
     }
@@ -1258,8 +1258,8 @@ public:
             itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_DISBAND].end(); ++itr)
         {
             sEluna.BeginCall((*itr));
-            sEluna.PushUnsigned(sEluna.LuaState, GROUP_EVENT_ON_DISBAND);
-            sEluna.PushGroup(sEluna.LuaState, group);
+            sEluna.Push(sEluna.L, GROUP_EVENT_ON_DISBAND);
+            sEluna.Push(sEluna.L, group);
             sEluna.ExecuteCall(2, 0);
         }
     }

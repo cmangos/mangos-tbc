@@ -29,7 +29,7 @@ public:
         if (!weather)
             return 0;
 
-        sEluna.PushUnsigned(L, weather->GetScriptId());
+        sEluna.Push(L, weather->GetScriptId());
         return 1;
     }
 
@@ -38,7 +38,7 @@ public:
         if (!weather)
             return 0;
 
-        sEluna.PushUnsigned(L, weather->GetZone());
+        sEluna.Push(L, weather->GetZone());
         return 1;
     }
 
@@ -72,7 +72,7 @@ public:
         if (!weather)
             return 0;
 
-        sEluna.PushBoolean(L, weather->ReGenerate());
+        sEluna.Push(L, weather->ReGenerate());
         return 1;
     }
 
@@ -81,7 +81,7 @@ public:
         if (!weather)
             return 0;
 
-        sEluna.PushBoolean(L, weather->UpdateWeather());
+        sEluna.Push(L, weather->UpdateWeather());
         return 1;
     }
 };

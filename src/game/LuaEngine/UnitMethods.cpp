@@ -24,9 +24,9 @@
 #define TO_CREATURE() Creature* creature; if (!unit || !unit->IsInWorld() || !(creature = unit->ToCreature())) { return 0; } else (void)0;
 #define TO_UNIT() if (!unit || !unit->IsInWorld() || !unit->ToUnit()) { return 0; } else (void)0;
 
-#define TO_PLAYER_BOOL() Player* player; if (!unit || !unit->IsInWorld() || !(player = unit->ToPlayer())) { sEluna.PushBoolean(L, false); return 1; } else (void)0;
-#define TO_CREATURE_BOOL() Creature* creature; if (!unit || !unit->IsInWorld() || !(creature = unit->ToCreature())) { sEluna.PushBoolean(L, false); return 1; } else (void)0;
-#define TO_UNIT_BOOL() if (!unit || !unit->IsInWorld() || !unit->ToUnit()) { sEluna.PushBoolean(L, false); return 1; } else (void)0;
+#define TO_PLAYER_BOOL() Player* player; if (!unit || !unit->IsInWorld() || !(player = unit->ToPlayer())) { sEluna.Push(L, false); return 1; } else (void)0;
+#define TO_CREATURE_BOOL() Creature* creature; if (!unit || !unit->IsInWorld() || !(creature = unit->ToCreature())) { sEluna.Push(L, false); return 1; } else (void)0;
+#define TO_UNIT_BOOL() if (!unit || !unit->IsInWorld() || !unit->ToUnit()) { sEluna.Push(L, false); return 1; } else (void)0;
 
 
 int LuaUnit::Attack(lua_State* L, Unit* unit)
@@ -37,9 +37,9 @@ int LuaUnit::Attack(lua_State* L, Unit* unit)
     bool meleeAttack = luaL_optbool(L, 2, false);
 
     if (!who)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, unit->Attack(who, meleeAttack));
+        sEluna.Push(L, unit->Attack(who, meleeAttack));
     return 1;
 }
 
@@ -98,7 +98,7 @@ int LuaUnit::GetOwner(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnit(L, unit->GetOwner());
+    sEluna.Push(L, unit->GetOwner());
     return 1;
 }
 
@@ -106,49 +106,8 @@ int LuaUnit::GetOwnerGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushULong(L, unit->GetOwnerGuid());
+    sEluna.Push(L, unit->GetOwnerGuid());
     return 1;
-}
-
-int LuaUnit::SummonPlayer(lua_State* L, Unit* unit)
-{
-    TO_PLAYER();
-
-    Player* target = sEluna.CHECK_PLAYER(L, 1);
-    uint32 map = luaL_checkunsigned(L, 2);
-    float x = luaL_checknumber(L, 3);
-    float y = luaL_checknumber(L, 4);
-    float z = luaL_checknumber(L, 5);
-    float zoneId = luaL_checkunsigned(L, 6);
-    uint32 delay = luaL_optunsigned(L, 7, 0);
-    if (!target || !MapManager::IsValidMapCoord(map, x, y, z))
-        return 0;
-
-    target->SetSummonPoint(map, x, y, z);
-    WorldPacket data(SMSG_SUMMON_REQUEST, 8 + 4 + 4);
-    data << uint64(player->GetGUIDLow());
-    data << uint32(zoneId);
-    data << uint32(delay ? delay* IN_MILLISECONDS : MAX_PLAYER_SUMMON_DELAY * IN_MILLISECONDS);
-    target->GetSession()->SendPacket(&data);
-    return 0;
-}
-
-int LuaUnit::Mute(lua_State* L, Unit* unit)
-{
-    TO_PLAYER();
-
-    uint32 muteseconds = luaL_checkunsigned(L, 1);
-    const char* reason = luaL_checkstring(L, 2);
-
-    /*PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_MUTE_TIME);
-    int64 muteTime = time(NULL) + muteseconds;
-    player->GetSession()->m_muteTime = muteTime;
-    stmt->setInt64(0, muteTime);
-    stmt->setString(1, reason ? reason : "");
-    stmt->setString(2, "Eluna");
-    stmt->setUInt32(3, player->GetSession()->GetAccountId());
-    LoginDatabase.Execute(stmt);*/
-    return 0;
 }
 
 int LuaUnit::GetMap(lua_State* L, Unit* unit)
@@ -156,7 +115,7 @@ int LuaUnit::GetMap(lua_State* L, Unit* unit)
     TO_UNIT();
 
     Map* map = unit->GetMap();
-    sEluna.PushMap(L, map);
+    sEluna.Push(L, map);
     return 1;
 }
 
@@ -168,9 +127,9 @@ int LuaUnit::GetRelativePoint(lua_State* L, Unit* unit)
     float rad = luaL_checknumber(L, 2);
 
     float o = MapManager::NormalizeOrientation(unit->GetOrientation() + rad);
-    sEluna.PushFloat(L, unit->GetPositionX() + (dist * cosf(o)));
-    sEluna.PushFloat(L, unit->GetPositionY() + (dist * sinf(o)));
-    sEluna.PushFloat(L, o);
+    sEluna.Push(L, unit->GetPositionX() + (dist * cosf(o)));
+    sEluna.Push(L, unit->GetPositionY() + (dist * sinf(o)));
+    sEluna.Push(L, o);
     return 3;
 }
 
@@ -201,7 +160,7 @@ int LuaUnit::IsMounted(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->IsMounted());
+    sEluna.Push(L, unit->IsMounted());
     return 1;
 }
 
@@ -213,7 +172,7 @@ int LuaUnit::IsWithinLoS(lua_State* L, Unit* unit)
     float y = luaL_checknumber(L, 2);
     float z = luaL_checknumber(L, 3);
 
-    sEluna.PushBoolean(L, unit->IsWithinLOS(x, y, z));
+    sEluna.Push(L, unit->IsWithinLOS(x, y, z));
     return 1;
 }
 
@@ -226,7 +185,7 @@ int LuaUnit::IsWithinDistInMap(lua_State* L, Unit* unit)
         return 0;
     float radius = luaL_checknumber(L, 2);
 
-    sEluna.PushBoolean(L, unit->IsWithinDistInMap(obj, radius));
+    sEluna.Push(L, unit->IsWithinDistInMap(obj, radius));
     return 1;
 }
 
@@ -238,7 +197,7 @@ int LuaUnit::IsInAccessiblePlaceFor(lua_State* L, Unit* unit)
     if (!creature)
         return 0;
 
-    sEluna.PushBoolean(L, unit->isInAccessablePlaceFor(creature));
+    sEluna.Push(L, unit->isInAccessablePlaceFor(creature));
     return 1;
 }
 
@@ -246,7 +205,7 @@ int LuaUnit::GetScale(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushFloat(L, unit->GetFloatValue(OBJECT_FIELD_SCALE_X));
+    sEluna.Push(L, unit->GetFloatValue(OBJECT_FIELD_SCALE_X));
     return 1;
 }
 
@@ -264,7 +223,7 @@ int LuaUnit::IsDamageEnoughForLootingAndReward(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    // sEluna.PushBoolean(L, creature->IsDamageEnoughForLootingAndReward());
+    // sEluna.Push(L, creature->IsDamageEnoughForLootingAndReward());
     return 1;
 }
 
@@ -272,7 +231,7 @@ int LuaUnit::IsReputationGainDisabled(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsReputationGainDisabled());
+    sEluna.Push(L, creature->IsReputationGainDisabled());
     return 1;
 }
 
@@ -289,7 +248,7 @@ int LuaUnit::SetDisableReputationGain(lua_State* L, Unit* unit)
 int LuaUnit::SelectVictim(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
-    // sEluna.PushUnit(L, creature->SelectVictim());
+    // sEluna.Push(L, creature->SelectVictim());
     return 1;
 }
 
@@ -297,7 +256,7 @@ int LuaUnit::GetCurrentWaypointId(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    // sEluna.PushUnsigned(L, creature->GetCurrentWaypointID());
+    // sEluna.Push(L, creature->GetCurrentWaypointID());
     return 1;
 }
 
@@ -305,7 +264,7 @@ int LuaUnit::GetWaypointPath(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    // sEluna.PushUnsigned(L, creature->GetWaypointPath());
+    // sEluna.Push(L, creature->GetWaypointPath());
     return 1;
 }
 
@@ -316,10 +275,10 @@ int LuaUnit::GetTransportHomePosition(lua_State* L, Unit* unit)
     /*float x,y,z,o;
     creature->GetTransportHomePosition(x,y,z,o);
 
-    sEluna.PushFloat(L, x);
-    sEluna.PushFloat(L, y);
-    sEluna.PushFloat(L, z);
-    sEluna.PushFloat(L, o);*/
+    sEluna.Push(L, x);
+    sEluna.Push(L, y);
+    sEluna.Push(L, z);
+    sEluna.Push(L, o);*/
     return 4;
 }
 
@@ -327,7 +286,7 @@ int LuaUnit::IsRegeneratingHealth(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsRegeneratingHealth());
+    sEluna.Push(L, creature->IsRegeneratingHealth());
     return 1;
 }
 
@@ -337,7 +296,7 @@ int LuaUnit::HasInvolvedQuest(lua_State* L, Unit* unit)
 
     uint32 quest_id = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, creature->HasInvolvedQuest(quest_id));
+    sEluna.Push(L, creature->HasInvolvedQuest(quest_id));
     return 1;
 }
 
@@ -363,7 +322,7 @@ int LuaUnit::GetRespawnRadius(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushFloat(L, creature->GetRespawnRadius());
+    sEluna.Push(L, creature->GetRespawnRadius());
     return 1;
 }
 
@@ -389,7 +348,7 @@ int LuaUnit::GetRespawnDelay(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushUnsigned(L, creature->GetRespawnDelay());
+    sEluna.Push(L, creature->GetRespawnDelay());
     return 1;
 }
 
@@ -425,7 +384,7 @@ int LuaUnit::GetDefaultMovementType(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushInteger(L, creature->GetDefaultMovementType());
+    sEluna.Push(L, creature->GetDefaultMovementType());
     return 1;
 }
 
@@ -436,9 +395,9 @@ int LuaUnit::IsTargetAcceptable(lua_State* L, Unit* unit)
     Unit* target = sEluna.CHECK_UNIT(L, 1);
 
     if (!target)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, creature->isTargetableForAttack(target));
+        sEluna.Push(L, creature->isTargetableForAttack(target));
     return 1;
 }
 
@@ -451,11 +410,11 @@ int LuaUnit::CanAssistTo(lua_State* L, Unit* unit)
     bool checkfaction = luaL_optbool(L, 3, true);
 
     if (!u)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     if (!enemy)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, creature->CanAssistTo(u, enemy, checkfaction));
+        sEluna.Push(L, creature->CanAssistTo(u, enemy, checkfaction));
     return 1;
 }
 
@@ -463,7 +422,7 @@ int LuaUnit::HasSearchedAssistance(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->HasSearchedAssistance());
+    sEluna.Push(L, creature->HasSearchedAssistance());
     return 1;
 }
 
@@ -521,7 +480,7 @@ int LuaUnit::GetAggroRange(lua_State* L, Unit* unit)
 
     if (!target)
         return 0;
-    sEluna.PushFloat(L, creature->GetAttackDistance(target));
+    sEluna.Push(L, creature->GetAttackDistance(target));
     return 1;
 }
 
@@ -534,7 +493,7 @@ int LuaUnit::GetAttackDistance(lua_State* L, Unit* unit)
     if (!target)
         return 0;
 
-    sEluna.PushFloat(L, creature->GetAttackDistance(target));
+    sEluna.Push(L, creature->GetAttackDistance(target));
     return 1;
 }
 
@@ -548,7 +507,7 @@ int LuaUnit::CanStartAttack(lua_State* L, Unit* unit) // TODO: Implement core si
     if (!target)
         return 0;
 
-    // sEluna.PushBoolean(L, creature->CanStartAttack(target, force));
+    // sEluna.Push(L, creature->CanStartAttack(target, force));
     return 1;
 }
 
@@ -596,7 +555,7 @@ int LuaUnit::HasLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode f
 
     uint16 lootMode = luaL_checkunsigned(L, 1);
 
-    // sEluna.PushBoolean(L, creature->HasLootMode(lootMode));
+    // sEluna.Push(L, creature->HasLootMode(lootMode));
     return 1;
 }
 
@@ -604,7 +563,7 @@ int LuaUnit::GetLootMode(lua_State* L, Unit* unit) // TODO: Implement LootMode f
 {
     TO_CREATURE();
 
-    // sEluna.PushUnsigned(L, creature->GetLootMode());
+    // sEluna.Push(L, creature->GetLootMode());
     return 1;
 }
 
@@ -615,9 +574,9 @@ int LuaUnit::IsTappedBy(lua_State* L, Unit* unit)
     Player* player = sEluna.CHECK_PLAYER(L, 1);
 
     if (!player)
-        sEluna.PushBoolean(L, creature->isTappedBy(player));
+        sEluna.Push(L, creature->isTappedBy(player));
     else
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     return 1;
 }
 
@@ -625,7 +584,7 @@ int LuaUnit::HasLootRecipient(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->HasLootRecipient());
+    sEluna.Push(L, creature->HasLootRecipient());
     return 1;
 }
 
@@ -633,7 +592,7 @@ int LuaUnit::GetLootRecipientGroup(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushGroup(L, creature->GetGroupLootRecipient());
+    sEluna.Push(L, creature->GetGroupLootRecipient());
     return 1;
 }
 
@@ -641,7 +600,7 @@ int LuaUnit::GetLootRecipient(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushUnit(L, creature->GetLootRecipient());
+    sEluna.Push(L, creature->GetLootRecipient());
     return 1;
 }
 
@@ -669,7 +628,7 @@ int LuaUnit::GetReactState(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushInteger(L, creature->GetCharmInfo()->GetReactState());
+    sEluna.Push(L, creature->GetCharmInfo()->GetReactState());
     return 1;
 }
 
@@ -679,7 +638,7 @@ int LuaUnit::HasReactState(lua_State* L, Unit* unit)
 
     int32 state = luaL_checkinteger(L, 1);
 
-    sEluna.PushBoolean(L, creature->GetCharmInfo()->HasReactState((ReactStates)state));
+    sEluna.Push(L, creature->GetCharmInfo()->HasReactState((ReactStates)state));
     return 1;
 }
 
@@ -688,9 +647,9 @@ int LuaUnit::CanFly(lua_State* L, Unit* unit)
     TO_UNIT_BOOL();
 
     if (Player* player = unit->ToPlayer())
-        sEluna.PushBoolean(L, player->CanFly());
+        sEluna.Push(L, player->CanFly());
     else if (Creature* creature = unit->ToCreature())
-        sEluna.PushBoolean(L, creature->CanFly());
+        sEluna.Push(L, creature->CanFly());
     return 1;
 }
 
@@ -698,7 +657,7 @@ int LuaUnit::CanSwim(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->CanSwim());
+    sEluna.Push(L, creature->CanSwim());
     return 1;
 }
 
@@ -706,7 +665,7 @@ int LuaUnit::CanWalk(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->CanWalk());
+    sEluna.Push(L, creature->CanWalk());
     return 1;
 }
 
@@ -717,7 +676,7 @@ int LuaUnit::SetDisableGravity(lua_State* L, Unit* unit)
     bool disable = luaL_optbool(L, 1, true);
     bool packetOnly = luaL_optbool(L, 2, false);
 
-    // sEluna.PushBoolean(L, creature->SetDisableGravity(disable, packetOnly));
+    // sEluna.Push(L, creature->SetDisableGravity(disable, packetOnly));
     return 1;
 }
 
@@ -727,7 +686,7 @@ int LuaUnit::SetHover(lua_State* L, Unit* unit)
 
     bool enable = luaL_optbool(L, 1, true);
 
-    // sEluna.PushBoolean(L, creature->SetHover(enable));
+    // sEluna.Push(L, creature->SetHover(enable));
     return 1;
 }
 
@@ -735,7 +694,7 @@ int LuaUnit::IsInEvadeMode(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsInEvadeMode());
+    sEluna.Push(L, creature->IsInEvadeMode());
     return 1;
 }
 
@@ -743,7 +702,7 @@ int LuaUnit::IsElite(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsElite());
+    sEluna.Push(L, creature->IsElite());
     return 1;
 }
 
@@ -751,7 +710,7 @@ int LuaUnit::IsGuard(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsGuard());
+    sEluna.Push(L, creature->IsGuard());
     return 1;
 }
 
@@ -759,7 +718,7 @@ int LuaUnit::IsTrigger(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    // sEluna.PushBoolean(L, creature->isTrigger());
+    // sEluna.Push(L, creature->isTrigger());
     return 1;
 }
 
@@ -767,7 +726,7 @@ int LuaUnit::IsCivilian(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsCivilian());
+    sEluna.Push(L, creature->IsCivilian());
     return 1;
 }
 
@@ -775,7 +734,7 @@ int LuaUnit::IsRacialLeader(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsRacialLeader());
+    sEluna.Push(L, creature->IsRacialLeader());
     return 1;
 }
 
@@ -785,7 +744,7 @@ int LuaUnit::HasCategoryCooldown(lua_State* L, Unit* unit)
 
     uint32 spell = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, creature->HasCategoryCooldown(spell));
+    sEluna.Push(L, creature->HasCategoryCooldown(spell));
     return 1;
 }
 
@@ -793,7 +752,7 @@ int LuaUnit::GetScriptName(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushString(L, creature->GetScriptName().c_str());
+    sEluna.Push(L, creature->GetScriptName());
     return 1;
 }
 
@@ -801,7 +760,7 @@ int LuaUnit::GetAIName(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushString(L, creature->GetAIName().c_str());
+    sEluna.Push(L, creature->GetAIName());
     return 1;
 }
 
@@ -809,7 +768,7 @@ int LuaUnit::GetScriptId(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushUnsigned(L, creature->GetScriptId());
+    sEluna.Push(L, creature->GetScriptId());
     return 1;
 }
 
@@ -819,7 +778,7 @@ int LuaUnit::GetCreatureSpellCooldownDelay(lua_State* L, Unit* unit)
 
     uint32 spell = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, creature->GetCreatureSpellCooldownDelay(spell));
+    sEluna.Push(L, creature->GetCreatureSpellCooldownDelay(spell));
     return 1;
 }
 
@@ -828,11 +787,11 @@ int LuaUnit::GetShieldBlockValue(lua_State* L, Unit* unit)
     TO_UNIT();
 
     if (Player* player = unit->ToPlayer())
-        sEluna.PushUnsigned(L, player->GetShieldBlockValue());
+        sEluna.Push(L, player->GetShieldBlockValue());
     if (Creature* creature = unit->ToCreature())
-        sEluna.PushUnsigned(L, creature->GetShieldBlockValue());
+        sEluna.Push(L, creature->GetShieldBlockValue());
     else
-        sEluna.PushUnsigned(L, unit->GetShieldBlockValue());
+        sEluna.Push(L, unit->GetShieldBlockValue());
     return 1;
 }
 
@@ -840,7 +799,7 @@ int LuaUnit::GetMountId(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetMountID());
+    sEluna.Push(L, unit->GetMountID());
     return 1;
 }
 
@@ -848,7 +807,7 @@ int LuaUnit::GetCorpseDelay(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushUnsigned(L, creature->GetCorpseDelay());
+    sEluna.Push(L, creature->GetCorpseDelay());
     return 1;
 }
 
@@ -859,10 +818,10 @@ int LuaUnit::GetHomePosition(lua_State* L, Unit* unit)
     float x, y, z, o;
     creature->GetRespawnCoord(x, y, z, &o);
 
-    sEluna.PushFloat(L, x);
-    sEluna.PushFloat(L, y);
-    sEluna.PushFloat(L, z);
-    sEluna.PushFloat(L, o);
+    sEluna.Push(L, x);
+    sEluna.Push(L, y);
+    sEluna.Push(L, z);
+    sEluna.Push(L, o);
     return 4;
 }
 
@@ -897,7 +856,7 @@ int LuaUnit::HasAura(lua_State* L, Unit* unit)
     uint32 spell = luaL_checkunsigned(L, 1);
     WorldObject* caster = sEluna.CHECK_WORLDOBJECT(L, 2);
 
-    // sEluna.PushBoolean(L, player->HasAura(spell, caster ? caster->GetGUIDLow() : 0));
+    // sEluna.Push(L, player->HasAura(spell, caster ? caster->GetGUIDLow() : 0));
     return 1;
 }
 
@@ -905,7 +864,7 @@ int LuaUnit::IsARecruiter(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->GetSession()->IsARecruiter() || (player->GetSession()->GetRecruiterId() != 0));
+    // sEluna.Push(L, player->GetSession()->IsARecruiter() || (player->GetSession()->GetRecruiterId() != 0));
     return 1;
 }
 
@@ -913,7 +872,7 @@ int LuaUnit::GetRecruiterId(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnsigned(L, player->GetSession()->GetRecruiterId());
+    // sEluna.Push(L, player->GetSession()->GetRecruiterId());
     return 1;
 }
 
@@ -921,7 +880,7 @@ int LuaUnit::GetSelectedPlayer(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnit(L, player->GetSelectedPlayer());
+    // sEluna.Push(L, player->GetSelectedPlayer());
     return 1;
 }
 
@@ -929,7 +888,7 @@ int LuaUnit::GetSelectedUnit(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnit(L, player->GetSelectedUnit());
+    // sEluna.Push(L, player->GetSelectedUnit());
     return 1;
 }
 
@@ -939,13 +898,13 @@ int LuaUnit::GetDistance(lua_State* L, Unit* unit)
 
     WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
     if (obj && obj->IsInWorld())
-        sEluna.PushFloat(L, unit->GetDistance(obj));
+        sEluna.Push(L, unit->GetDistance(obj));
     else
     {
         float X = luaL_checknumber(L, 1);
         float Y = luaL_checknumber(L, 2);
         float Z = luaL_checknumber(L, 3);
-        sEluna.PushFloat(L, unit->GetDistance(X, Y, Z));
+        sEluna.Push(L, unit->GetDistance(X, Y, Z));
     }
     return 1;
 }
@@ -954,7 +913,7 @@ int LuaUnit::GetLatency(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetSession()->GetLatency());
+    sEluna.Push(L, player->GetSession()->GetLatency());
     return 1;
 }
 
@@ -962,7 +921,7 @@ int LuaUnit::GetCreatorGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    // sEluna.PushULong(L, unit->GetCreatGetCreatorGuid());
+    // sEluna.Push(L, unit->GetCreatGetCreatorGuid());
     return 1;
 }
 
@@ -970,7 +929,7 @@ int LuaUnit::GetMinionGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    // sEluna.PushULong(L, unit->GetMinionGuid());
+    // sEluna.Push(L, unit->GetMinionGuid());
     return 1;
 }
 
@@ -978,7 +937,7 @@ int LuaUnit::GetCharmerGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushULong(L, unit->GetCharmerGuid());
+    sEluna.Push(L, unit->GetCharmerGuid());
     return 1;
 }
 
@@ -986,7 +945,7 @@ int LuaUnit::GetCharmGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushULong(L, unit->GetCharmGuid());
+    sEluna.Push(L, unit->GetCharmGuid());
     return 1;
 }
 
@@ -994,7 +953,7 @@ int LuaUnit::GetPetGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushULong(L, unit->GetPetGuid());
+    sEluna.Push(L, unit->GetPetGuid());
     return 1;
 }
 
@@ -1002,7 +961,7 @@ int LuaUnit::GetCritterGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    // sEluna.PushULong(L, unit->GetCritterGuid());
+    // sEluna.Push(L, unit->GetCritterGuid());
     return 1;
 }
 
@@ -1010,7 +969,7 @@ int LuaUnit::GetControllerGUID(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushULong(L, unit->GetCharmerOrOwnerGuid());
+    sEluna.Push(L, unit->GetCharmerOrOwnerGuid());
     return 1;
 }
 
@@ -1018,7 +977,7 @@ int LuaUnit::GetControllerGUIDS(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushULong(L, unit->GetCharmerOrOwnerOrOwnGuid());
+    sEluna.Push(L, unit->GetCharmerOrOwnerOrOwnGuid());
     return 1;
 }
 
@@ -1146,7 +1105,7 @@ int LuaUnit::GetChampioningFaction(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnsigned(L, player->GetChampioningFaction());
+    // sEluna.Push(L, player->GetChampioningFaction());
     return 1;
 }
 
@@ -1154,7 +1113,7 @@ int LuaUnit::GetOriginalSubGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetOriginalSubGroup());
+    sEluna.Push(L, player->GetOriginalSubGroup());
     return 1;
 }
 
@@ -1162,7 +1121,7 @@ int LuaUnit::GetOriginalGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushGroup(L, player->GetOriginalGroup());
+    sEluna.Push(L, player->GetOriginalGroup());
     return 1;
 }
 
@@ -1178,7 +1137,7 @@ int LuaUnit::CanUninviteFromGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->CanUninviteFromGroup() == ERR_PARTY_RESULT_OK);
+    sEluna.Push(L, player->CanUninviteFromGroup() == ERR_PARTY_RESULT_OK);
     return 1;
 }
 
@@ -1188,7 +1147,7 @@ int LuaUnit::GetNextRandomRaidMember(lua_State* L, Unit* unit)
 
     float radius = luaL_checknumber(L, 1);
 
-    sEluna.PushUnit(L, player->GetNextRandomRaidMember(radius));
+    sEluna.Push(L, player->GetNextRandomRaidMember(radius));
     return 1;
 }
 
@@ -1196,7 +1155,7 @@ int LuaUnit::GetSubGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetSubGroup());
+    sEluna.Push(L, player->GetSubGroup());
     return 1;
 }
 
@@ -1204,7 +1163,7 @@ int LuaUnit::GetGroupInvite(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushGroup(L, player->GetGroupInvite());
+    sEluna.Push(L, player->GetGroupInvite());
     return 1;
 }
 
@@ -1212,7 +1171,7 @@ int LuaUnit::HasPendingBind(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->PendingHasPendingBind());
+    // sEluna.Push(L, player->PendingHasPendingBind());
     return 1;
 }
 
@@ -1250,7 +1209,7 @@ int LuaUnit::InRandomLfgDungeon(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->inRandomLfgDungeon());
+    // sEluna.Push(L, player->inRandomLfgDungeon());
     return 1;
 }
 
@@ -1258,7 +1217,7 @@ int LuaUnit::IsUsingLfg(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->isUsingLfg());
+    // sEluna.Push(L, player->isUsingLfg());
     return 1;
 }
 
@@ -1268,7 +1227,7 @@ int LuaUnit::HasAtLoginFlag(lua_State* L, Unit* unit)
 
     uint32 flag = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, player->HasAtLoginFlag((AtLoginFlags)flag));
+    sEluna.Push(L, player->HasAtLoginFlag((AtLoginFlags)flag));
     return 1;
 }
 
@@ -1279,9 +1238,9 @@ int LuaUnit::IsVisibleForPlayer(lua_State* L, Unit* unit)
     Player* target = sEluna.CHECK_PLAYER(L, 1);
 
     if (target)
-        sEluna.PushBoolean(L, player->IsVisibleGloballyFor(target));
+        sEluna.Push(L, player->IsVisibleGloballyFor(target));
     else
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     return 1;
 }
 
@@ -1289,7 +1248,7 @@ int LuaUnit::IsNeverVisible(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->IsNeverVisible());
+    // sEluna.Push(L, player->IsNeverVisible());
     return 1;
 }
 
@@ -1300,7 +1259,7 @@ int LuaUnit::CanFlyInZone(lua_State* L, Unit* unit)
     uint32 mapid = luaL_checkunsigned(L, 1);
     uint32 zone = luaL_checkunsigned(L, 1);
 
-    // sEluna.PushBoolean(L, player->IsKnowHowFlyIn(mapid, zone));
+    // sEluna.Push(L, player->IsKnowHowFlyIn(mapid, zone));
     return 1;
 }
 
@@ -1318,7 +1277,7 @@ int LuaUnit::GetRestTime(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetRestTime());
+    sEluna.Push(L, player->GetRestTime());
     return 1;
 }
 
@@ -1328,7 +1287,7 @@ int LuaUnit::GetXPRestBonus(lua_State* L, Unit* unit)
 
     uint32 xp = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetXPRestBonus(xp));
+    sEluna.Push(L, player->GetXPRestBonus(xp));
     return 1;
 }
 
@@ -1336,7 +1295,7 @@ int LuaUnit::CanSpeak(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->CanSpeak());
+    sEluna.Push(L, player->CanSpeak());
     return 1;
 }
 
@@ -1344,7 +1303,7 @@ int LuaUnit::IsImmuneToEnvironmentalDamage(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->IsImmuneToEnvironmentalDamage());
+    // sEluna.Push(L, player->IsImmuneToEnvironmentalDamage());
     return 1;
 }
 
@@ -1352,7 +1311,7 @@ int LuaUnit::IsRested(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isRested());
+    sEluna.Push(L, player->isRested());
     return 1;
 }
 
@@ -1370,7 +1329,7 @@ int LuaUnit::InBattlegroundQueue(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->InBattleGroundQueue());
+    sEluna.Push(L, player->InBattleGroundQueue());
     return 1;
 }
 
@@ -1378,7 +1337,7 @@ int LuaUnit::GetBattlegroundTypeId(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetBattleGroundTypeId());
+    sEluna.Push(L, player->GetBattleGroundTypeId());
     return 1;
 }
 
@@ -1386,7 +1345,7 @@ int LuaUnit::GetBattlegroundId(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetBattleGroundId());
+    sEluna.Push(L, player->GetBattleGroundId());
     return 1;
 }
 
@@ -1394,7 +1353,7 @@ int LuaUnit::IsOutdoorPvPActive(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->IsOutdoorPvPActive());
+    // sEluna.Push(L, player->IsOutdoorPvPActive());
     return 1;
 }
 
@@ -1402,7 +1361,7 @@ int LuaUnit::InArena(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->InArena());
+    sEluna.Push(L, player->InArena());
     return 1;
 }
 
@@ -1410,7 +1369,7 @@ int LuaUnit::InBattleground(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->InBattleGround());
+    sEluna.Push(L, player->InBattleGround());
     return 1;
 }
 
@@ -1418,7 +1377,7 @@ int LuaUnit::CanTameExoticPets(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->CanTameExoticPets());
+    // sEluna.Push(L, player->CanTameExoticPets());
     return 1;
 }
 
@@ -1426,7 +1385,7 @@ int LuaUnit::CanTitanGrip(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->CanTitanGrip());
+    // sEluna.Push(L, player->CanTitanGrip());
     return 1;
 }
 
@@ -1434,7 +1393,7 @@ int LuaUnit::CanBlock(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->CanBlock());
+    sEluna.Push(L, player->CanBlock());
     return 1;
 }
 
@@ -1442,7 +1401,7 @@ int LuaUnit::CanParry(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->CanParry());
+    sEluna.Push(L, player->CanParry());
     return 1;
 }
 
@@ -1450,7 +1409,7 @@ int LuaUnit::GetDrunkValue(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetDrunkValue());
+    sEluna.Push(L, player->GetDrunkValue());
     return 1;
 }
 
@@ -1462,7 +1421,7 @@ int LuaUnit::GetStat(lua_State* L, Unit* unit)
     if (stat >= MAX_STATS)
         return 0;
 
-    sEluna.PushUnsigned(L, unit->GetStat((Stats)stat));
+    sEluna.Push(L, unit->GetStat((Stats)stat));
     return 1;
 }
 
@@ -1474,7 +1433,7 @@ int LuaUnit::GetBaseSpellPower(lua_State* L, Unit* unit)
     if (spellschool >= MAX_SPELL_SCHOOL)
         return 0;
 
-    sEluna.PushUnsigned(L, unit->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + spellschool));
+    sEluna.Push(L, unit->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + spellschool));
     return 1;
 }
 
@@ -1499,8 +1458,8 @@ int LuaUnit::GetSpellCooldowns(lua_State* L, Unit* unit)
     for (SpellCooldowns::const_iterator it = player->GetSpellCooldownMap().begin(); it != player->GetSpellCooldownMap().end(); ++it)
     {
         ++i;
-        sEluna.PushUnsigned(L, it->first);
-        sEluna.PushUnsigned(L, it->second.end);
+        sEluna.Push(L, it->first);
+        sEluna.Push(L, it->second.end);
         lua_settable(L, tbl);
     }
 
@@ -1534,7 +1493,7 @@ int LuaUnit::GetReputationRank(lua_State* L, Unit* unit)
 
     uint32 faction = luaL_checkunsigned(L, 1);
 
-    sEluna.PushInteger(L, player->GetReputationRank(faction));
+    sEluna.Push(L, player->GetReputationRank(faction));
     return 1;
 }
 
@@ -1545,9 +1504,9 @@ int LuaUnit::IsHonorOrXPTarget(lua_State* L, Unit* unit)
     Unit* victim = sEluna.CHECK_UNIT(L, 1);
 
     if (victim)
-        sEluna.PushBoolean(L, player->isHonorOrXPTarget(victim));
+        sEluna.Push(L, player->isHonorOrXPTarget(victim));
     else
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     return 1;
 }
 
@@ -1580,7 +1539,7 @@ int LuaUnit::HasSkill(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, player->HasSkill(skill));
+    sEluna.Push(L, player->HasSkill(skill));
     return 1;
 }
 
@@ -1590,7 +1549,7 @@ int LuaUnit::GetSkillTempBonusValue(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushInteger(L, player->GetSkillTempBonusValue(skill));
+    sEluna.Push(L, player->GetSkillTempBonusValue(skill));
     return 1;
 }
 
@@ -1600,7 +1559,7 @@ int LuaUnit::GetSkillPermBonusValue(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushInteger(L, player->GetSkillPermBonusValue(skill));
+    sEluna.Push(L, player->GetSkillPermBonusValue(skill));
     return 1;
 }
 
@@ -1610,7 +1569,7 @@ int LuaUnit::GetSkillStep(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    // sEluna.PushUnsigned(L, player->GetSkillStep(skill));
+    // sEluna.Push(L, player->GetSkillStep(skill));
     return 1;
 }
 
@@ -1620,7 +1579,7 @@ int LuaUnit::GetPureSkillValue(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetPureSkillValue(skill));
+    sEluna.Push(L, player->GetPureSkillValue(skill));
     return 1;
 }
 
@@ -1630,7 +1589,7 @@ int LuaUnit::GetBaseSkillValue(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetBaseSkillValue(skill));
+    sEluna.Push(L, player->GetBaseSkillValue(skill));
     return 1;
 }
 
@@ -1640,7 +1599,7 @@ int LuaUnit::GetSkillValue(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetSkillValue(skill));
+    sEluna.Push(L, player->GetSkillValue(skill));
     return 1;
 }
 
@@ -1650,7 +1609,7 @@ int LuaUnit::GetPureMaxSkillValue(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetPureMaxSkillValue(skill));
+    sEluna.Push(L, player->GetPureMaxSkillValue(skill));
     return 1;
 }
 
@@ -1660,7 +1619,7 @@ int LuaUnit::GetMaxSkillValue(lua_State* L, Unit* unit)
 
     uint32 skill = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetMaxSkillValue(skill));
+    sEluna.Push(L, player->GetMaxSkillValue(skill));
     return 1;
 }
 
@@ -1683,7 +1642,7 @@ int LuaUnit::DurabilityRepair(lua_State* L, Unit* unit)
     float discountMod = luaL_checkinteger(L, 3);
     bool guildBank = luaL_optbool(L, 4, false);
 
-    sEluna.PushUnsigned(L, player->DurabilityRepair(position, cost, discountMod, guildBank));
+    sEluna.Push(L, player->DurabilityRepair(position, cost, discountMod, guildBank));
     return 1;
 }
 
@@ -1695,7 +1654,7 @@ int LuaUnit::DurabilityRepairAll(lua_State* L, Unit* unit)
     float discountMod = luaL_checkinteger(L, 2);
     bool guildBank = luaL_optbool(L, 3, false);
 
-    sEluna.PushUnsigned(L, player->DurabilityRepairAll(cost, discountMod, guildBank));
+    sEluna.Push(L, player->DurabilityRepairAll(cost, discountMod, guildBank));
     return 1;
 }
 
@@ -1768,7 +1727,7 @@ int LuaUnit::GetManaBonusFromIntellect(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushFloat(L, player->GetManaBonusFromIntellect());
+    sEluna.Push(L, player->GetManaBonusFromIntellect());
     return 1;
 }
 
@@ -1776,7 +1735,7 @@ int LuaUnit::GetHealthBonusFromStamina(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushFloat(L, player->GetHealthBonusFromStamina());
+    sEluna.Push(L, player->GetHealthBonusFromStamina());
     return 1;
 }
 
@@ -1786,7 +1745,7 @@ int LuaUnit::GetDifficulty(lua_State* L, Unit* unit)
 
     bool isRaid = luaL_optbool(L, 1, true);
 
-    sEluna.PushUnsigned(L, player->GetDifficulty());
+    sEluna.Push(L, player->GetDifficulty());
     return 1;
 }
 
@@ -1794,7 +1753,7 @@ int LuaUnit::GetGuildRank(lua_State* L, Unit* unit) // TODO: Move to Guild Metho
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetRank());
+    sEluna.Push(L, player->GetRank());
     return 1;
 }
 
@@ -1828,9 +1787,9 @@ int LuaUnit::IsGroupVisibleFor(lua_State* L, Unit* unit)
 
     Player* target = sEluna.CHECK_PLAYER(L, 1);
     if (!target)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, player->IsGroupVisibleFor(target));
+        sEluna.Push(L, player->IsGroupVisibleFor(target));
     return 1;
 }
 
@@ -1840,9 +1799,9 @@ int LuaUnit::IsInSameRaidWith(lua_State* L, Unit* unit)
 
     Player* target = sEluna.CHECK_PLAYER(L, 1);
     if (!target)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, player->IsInSameRaidWith(target));
+        sEluna.Push(L, player->IsInSameRaidWith(target));
     return 1;
 }
 
@@ -1852,9 +1811,9 @@ int LuaUnit::IsInSameGroupWith(lua_State* L, Unit* unit)
 
     Player* target = sEluna.CHECK_PLAYER(L, 1);
     if (!target)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, player->IsInSameGroupWith(target));
+        sEluna.Push(L, player->IsInSameGroupWith(target));
     return 1;
 }
 
@@ -1906,7 +1865,7 @@ int LuaUnit::GetSpellCooldownDelay(lua_State* L, Unit* unit)
 
     uint32 spellId = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetSpellCooldownDelay(spellId));
+    sEluna.Push(L, player->GetSpellCooldownDelay(spellId));
     return 1;
 }
 
@@ -1917,11 +1876,11 @@ int LuaUnit::HasSpellCooldown(lua_State* L, Unit* unit)
     uint32 spellId = luaL_checkunsigned(L, 1);
 
     if (Player* player = unit->ToPlayer())
-        sEluna.PushBoolean(L, player->HasSpellCooldown(spellId));
+        sEluna.Push(L, player->HasSpellCooldown(spellId));
     else if (Creature* creature = unit->ToCreature())
-        sEluna.PushBoolean(L, creature->HasSpellCooldown(spellId));
+        sEluna.Push(L, creature->HasSpellCooldown(spellId));
     else
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     return 1;
 }
 
@@ -1929,7 +1888,7 @@ int LuaUnit::IsAuctioneer(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isAuctioner());
+    sEluna.Push(L, unit->isAuctioner());
     return 1;
 }
 
@@ -1937,7 +1896,7 @@ int LuaUnit::HealthBelowPct(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    // sEluna.PushBoolean(L, unit->HealthBelowPct(luaL_checkint(L, 1)));
+    // sEluna.Push(L, unit->HealthBelowPct(luaL_checkint(L, 1)));
     return 1;
 }
 
@@ -1945,7 +1904,7 @@ int LuaUnit::HealthAbovePct(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    // sEluna.PushBoolean(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
+    // sEluna.Push(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
     return 1;
 }
 
@@ -1953,7 +1912,7 @@ int LuaUnit::GetSpecsCount(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnsigned(L, player->GetSpecsCount());
+    // sEluna.Push(L, player->GetSpecsCount());
     return 1;
 }
 
@@ -1961,7 +1920,7 @@ int LuaUnit::GetActiveSpec(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnsigned(L, player->GetActiveSpec());
+    // sEluna.Push(L, player->GetActiveSpec());
     return 1;
 }
 
@@ -1972,9 +1931,9 @@ int LuaUnit::HasTalent(lua_State* L, Unit* unit)
     uint32 spellId = luaL_checkunsigned(L, 1);
     uint8 spec = luaL_checkunsigned(L, 2);
     /*if (spec >= MAX_TALENT_SPECS)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, player->HasTalent(spellId, spec));*/
+        sEluna.Push(L, player->HasTalent(spellId, spec));*/
     return 1;
 }
 
@@ -1986,9 +1945,9 @@ int LuaUnit::AddTalent(lua_State* L, Unit* unit)
     uint8 spec = luaL_checkunsigned(L, 2);
     bool learning = luaL_optbool(L, 3, true);
     /*if (spec >= MAX_TALENT_SPECS)
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     else
-        sEluna.PushBoolean(L, player->AddTalent(spellId, spec, learning));*/
+        sEluna.Push(L, player->AddTalent(spellId, spec, learning));*/
     return 1;
 }
 
@@ -1996,7 +1955,7 @@ int LuaUnit::ResetTalentsCost(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->resetTalentsCost());
+    sEluna.Push(L, player->resetTalentsCost());
     return 1;
 }
 
@@ -2025,7 +1984,7 @@ int LuaUnit::GetFreeTalentPoints(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetFreeTalentPoints());
+    sEluna.Push(L, player->GetFreeTalentPoints());
     return 1;
 }
 
@@ -2035,7 +1994,7 @@ int LuaUnit::GetGuildName(lua_State* L, Unit* unit)
 
     if (!player->GetGuildId())
         return 0;
-    sEluna.PushString(L, sGuildMgr.GetGuildNameById(player->GetGuildId()).c_str());
+    sEluna.Push(L, sGuildMgr.GetGuildNameById(player->GetGuildId()));
     return 1;
 }
 
@@ -2045,7 +2004,7 @@ int LuaUnit::GetReputation(lua_State* L, Unit* unit)
 
     uint32 faction = luaL_checkunsigned(L, 1);
 
-    sEluna.PushUnsigned(L, player->GetReputationMgr().GetReputation(faction));
+    sEluna.Push(L, player->GetReputationMgr().GetReputation(faction));
     return 1;
 }
 
@@ -2107,7 +2066,7 @@ int LuaUnit::GetComboTarget(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnit(L, sObjectAccessor->FindUnit(player->GetComboTarget()));
+    // sEluna.Push(L, sObjectAccessor->FindUnit(player->GetComboTarget()));
     return 1;
 }
 
@@ -2115,7 +2074,7 @@ int LuaUnit::GetComboPoints(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetComboPoints());
+    sEluna.Push(L, player->GetComboPoints());
     return 1;
 }
 
@@ -2125,7 +2084,7 @@ int LuaUnit::HasReceivedQuestReward(lua_State* L, Unit* unit)
 
     uint32 entry = luaL_checkunsigned(L, 1);
 
-    // sEluna.PushBoolean(L, player->IsQuestRewarded(entry));
+    // sEluna.Push(L, player->IsQuestRewarded(entry));
     return 1;
 }
 
@@ -2188,7 +2147,7 @@ int LuaUnit::CountPctFromCurHealth(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    // sEluna.PushUnsigned(L, unit->CountPctFromCurHealth(luaL_checkint(L, 1)));
+    // sEluna.Push(L, unit->CountPctFromCurHealth(luaL_checkint(L, 1)));
     return 1;
 }
 
@@ -2196,7 +2155,7 @@ int LuaUnit::CountPctFromMaxHealth(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    // sEluna.PushUnsigned(L, unit->CountPctFromMaxHealth(luaL_checkint(L, 1)));
+    // sEluna.Push(L, unit->CountPctFromMaxHealth(luaL_checkint(L, 1)));
     return 1;
 }
 
@@ -2204,7 +2163,7 @@ int LuaUnit::GetInGameTime(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetInGameTime());
+    sEluna.Push(L, player->GetInGameTime());
     return 1;
 }
 
@@ -2278,7 +2237,7 @@ int LuaUnit::CanShareQuest(lua_State* L, Unit* unit)
 
     uint32 entry = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, player->CanShareQuest(entry));
+    sEluna.Push(L, player->CanShareQuest(entry));
     return 1;
 }
 
@@ -2288,7 +2247,7 @@ int LuaUnit::HasQuestForGO(lua_State* L, Unit* unit)
 
     int32 entry = luaL_checkinteger(L, 1);
 
-    sEluna.PushBoolean(L, player->HasQuestForGO(entry));
+    sEluna.Push(L, player->HasQuestForGO(entry));
     return 1;
 }
 
@@ -2298,7 +2257,7 @@ int LuaUnit::HasQuestForItem(lua_State* L, Unit* unit)
 
     uint32 entry = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, player->HasQuestForItem(entry));
+    sEluna.Push(L, player->HasQuestForItem(entry));
     return 1;
 }
 
@@ -2309,7 +2268,7 @@ int LuaUnit::GetReqKillOrCastCurrentCount(lua_State* L, Unit* unit)
     uint32 questId = luaL_checkunsigned(L, 1);
     int32 entry = luaL_checkinteger(L, 2);
 
-    sEluna.PushUnsigned(L, player->GetReqKillOrCastCurrentCount(questId, entry));
+    sEluna.Push(L, player->GetReqKillOrCastCurrentCount(questId, entry));
     return 1;
 }
 
@@ -2352,7 +2311,7 @@ int LuaUnit::GetQuestStatus(lua_State* L, Unit* unit)
 
     uint32 entry = luaL_checkunsigned(L, 1);
 
-    sEluna.PushInteger(L, player->GetQuestStatus(entry));
+    sEluna.Push(L, player->GetQuestStatus(entry));
     return 1;
 }
 
@@ -2362,7 +2321,7 @@ int LuaUnit::GetQuestRewardStatus(lua_State* L, Unit* unit)
 
     uint32 questId = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, player->GetQuestRewardStatus(questId));
+    sEluna.Push(L, player->GetQuestRewardStatus(questId));
     return 1;
 }
 
@@ -2402,7 +2361,7 @@ int LuaUnit::IsActiveQuest(lua_State* L, Unit* unit)
 
     uint32 entry = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, player->IsActiveQuest(entry));
+    sEluna.Push(L, player->IsActiveQuest(entry));
     return 1;
 }
 
@@ -2414,7 +2373,7 @@ int LuaUnit::GetQuestLevel(lua_State* L, Unit* unit)
     if (!quest)
         return 0;
 
-    sEluna.PushInteger(L, player->GetQuestLevelForPlayer(quest));
+    sEluna.Push(L, player->GetQuestLevelForPlayer(quest));
     return 1;
 }
 
@@ -2424,7 +2383,7 @@ int LuaUnit::GetItemByEntry(lua_State* L, Unit* unit)
 
     uint32 entry = luaL_checkunsigned(L, 1);
 
-    // sEluna.PushItem(L, player->GetItemByEntry(entry));
+    // sEluna.Push(L, player->GetItemByEntry(entry));
     return 1;
 }
 
@@ -2437,7 +2396,7 @@ int LuaUnit::GetEquippedItemBySlot(lua_State* L, Unit* unit)
         return 0;
 
     Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-    sEluna.PushItem(L, item);
+    sEluna.Push(L, item);
     return 1;
 }
 
@@ -2537,7 +2496,7 @@ int LuaUnit::GetRestType(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushInteger(L, player->GetRestType());
+    sEluna.Push(L, player->GetRestType());
     return 1;
 }
 
@@ -2565,7 +2524,7 @@ int LuaUnit::GetRestBonus(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushFloat(L, player->GetRestBonus());
+    sEluna.Push(L, player->GetRestBonus());
     return 1;
 }
 
@@ -2652,7 +2611,7 @@ int LuaUnit::IsGMVisible(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isGMVisible());
+    sEluna.Push(L, player->isGMVisible());
     return 1;
 }
 
@@ -2660,7 +2619,7 @@ int LuaUnit::IsTaxiCheater(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isTaxiCheater());
+    sEluna.Push(L, player->isTaxiCheater());
     return 1;
 }
 
@@ -2668,7 +2627,7 @@ int LuaUnit::IsGMChat(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isGMChat());
+    sEluna.Push(L, player->isGMChat());
     return 1;
 }
 
@@ -2676,7 +2635,7 @@ int LuaUnit::IsAcceptingWhispers(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isAcceptWhispers());
+    sEluna.Push(L, player->isAcceptWhispers());
     return 1;
 }
 
@@ -2744,7 +2703,7 @@ int LuaUnit::GetChatTag(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetChatTag());
+    sEluna.Push(L, player->GetChatTag());
     return 1;
 }
 
@@ -2752,7 +2711,7 @@ int LuaUnit::IsDND(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isDND());
+    sEluna.Push(L, player->isDND());
     return 1;
 }
 
@@ -2760,7 +2719,7 @@ int LuaUnit::IsAFK(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isAFK());
+    sEluna.Push(L, player->isAFK());
     return 1;
 }
 
@@ -2784,7 +2743,7 @@ int LuaUnit::IsFalling(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    // sEluna.PushBoolean(L, player->IsFalling());
+    // sEluna.Push(L, player->IsFalling());
     return 1;
 }
 
@@ -2792,7 +2751,7 @@ int LuaUnit::IsUnderWater(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->IsUnderWater());
+    sEluna.Push(L, unit->IsUnderWater());
     return 1;
 }
 
@@ -2801,9 +2760,9 @@ int LuaUnit::IsInWater(lua_State* L, Unit* unit)
     TO_UNIT_BOOL();
 
     if (Player* player = unit->ToPlayer())
-        sEluna.PushBoolean(L, player->IsInWater());
+        sEluna.Push(L, player->IsInWater());
     else
-        sEluna.PushBoolean(L, unit->IsInWater());
+        sEluna.Push(L, unit->IsInWater());
     return 1;
 }
 
@@ -2811,7 +2770,7 @@ int LuaUnit::GetVictim(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    // sEluna.PushUnit(L, creature->SelectVictim());
+    // sEluna.Push(L, creature->SelectVictim());
     return 1;
 }
 
@@ -2820,7 +2779,7 @@ int LuaUnit::GetNearestTargetInAttackDistance(lua_State* L, Unit* unit)
     TO_CREATURE();
 
     float dist = luaL_optnumber(L, 1, 0.0f);
-    // sEluna.PushUnit(L, creature->SelectNearestTargetInAttackDistance(dist));
+    // sEluna.Push(L, creature->SelectNearestTargetInAttackDistance(dist));
     return 1;
 }
 
@@ -2829,7 +2788,7 @@ int LuaUnit::GetNearestTarget(lua_State* L, Unit* unit)
     TO_CREATURE();
 
     float dist = luaL_optnumber(L, 1, 0.0f);
-    // sEluna.PushUnit(L, creature->SelectNearestTarget(dist));
+    // sEluna.Push(L, creature->SelectNearestTarget(dist));
     return 1;
 }
 
@@ -2838,7 +2797,7 @@ int LuaUnit::GetNearestHostileTargetInAggroRange(lua_State* L, Unit* unit)
     TO_CREATURE();
 
     bool checkLOS = luaL_optbool(L, 1, false);
-    // sEluna.PushUnit(L, creature->SelectNearestHostileUnitInAggroRange(checkLOS));
+    // sEluna.Push(L, creature->SelectNearestHostileUnitInAggroRange(checkLOS));
     return 1;
 }
 
@@ -2849,7 +2808,7 @@ int LuaUnit::GetNearbyTarget(lua_State* L, Unit* unit)
     float dist = luaL_optnumber(L, 1, 5.0f);
     Unit* exclude = sEluna.CHECK_UNIT(L, 2);
 
-    // sEluna.PushUnit(L, unit->SelectNearbyTarget(exclude, dist));
+    // sEluna.Push(L, unit->SelectNearbyTarget(exclude, dist));
     return 1;
 }
 
@@ -2860,7 +2819,7 @@ int LuaUnit::GetObjectGlobally(lua_State* L, Unit* unit)
     uint32 lowguid = luaL_checkunsigned(L, 1);
     uint32 entry = luaL_checkunsigned(L, 2);
 
-    // sEluna.PushGO(L, ChatHandler(player->GetSession()).GetObjectGlobalyWithGuidOrNearWithDbGuid(lowguid, entry));
+    // sEluna.Push(L, ChatHandler(player->GetSession()).GetObjectGlobalyWithGuidOrNearWithDbGuid(lowguid, entry));
     return 1;
 }
 
@@ -2868,7 +2827,7 @@ int LuaUnit::GetNearbyGameObject(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushGO(L, ChatHandler(player->GetSession()).GetNearbyGameObject());
+    // sEluna.Push(L, ChatHandler(player->GetSession()).GetNearbyGameObject());
     return 1;
 }
 
@@ -2911,7 +2870,7 @@ int LuaUnit::GetCurrentSpell(lua_State* L, Unit* unit)
         luaL_error(L, "Invalid spell type (%d)", type);
         return 0;
     }
-    sEluna.PushSpell(L, unit->GetCurrentSpell(type));
+    sEluna.Push(L, unit->GetCurrentSpell(type));
     return 1;
 }
 
@@ -2950,7 +2909,7 @@ int LuaUnit::EquipItem(lua_State* L, Unit* unit)
         player->RemoveItem(item->GetBagSlot(), item->GetSlot(), true);
     }
 
-    sEluna.PushItem(L, player->EquipItem(dest, item, true));
+    sEluna.Push(L, player->EquipItem(dest, item, true));
     return 1;
 }
 
@@ -2962,7 +2921,7 @@ int LuaUnit::CanEquipItem(lua_State* L, Unit* unit)
     uint32 slot = luaL_checkunsigned(L, 2);
     if (slot >= EQUIPMENT_SLOT_END)
     {
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
         return 1;
     }
 
@@ -2973,7 +2932,7 @@ int LuaUnit::CanEquipItem(lua_State* L, Unit* unit)
         InventoryResult msg = player->CanEquipNewItem(slot, dest, entry, false);
         if (msg != EQUIP_ERR_OK)
         {
-            sEluna.PushBoolean(L, false);
+            sEluna.Push(L, false);
             return 1;
         }
     }
@@ -2983,11 +2942,11 @@ int LuaUnit::CanEquipItem(lua_State* L, Unit* unit)
         InventoryResult msg = player->CanEquipItem(slot, dest, item, false);
         if (msg != EQUIP_ERR_OK)
         {
-            sEluna.PushBoolean(L, false);
+            sEluna.Push(L, false);
             return 1;
         }
     }
-    sEluna.PushBoolean(L, true);
+    sEluna.Push(L, true);
     return 1;
 }
 
@@ -3000,7 +2959,7 @@ int LuaUnit::GetInventoryItem(lua_State* L, Unit* unit)
         return 0;
 
     Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-    sEluna.PushItem(L, item);
+    sEluna.Push(L, item);
     return 1;
 }
 
@@ -3019,7 +2978,7 @@ int LuaUnit::GetBagItem(lua_State* L, Unit* unit)
         return 0;*/
 
     Item* item = player->GetItemByPos(bagslot, slot);
-    sEluna.PushItem(L, item);
+    sEluna.Push(L, item);
     return 1;
 }
 
@@ -3033,7 +2992,7 @@ int LuaUnit::SummonGameObject(lua_State* L, Unit* unit)
     float z = luaL_checknumber(L, 4);
     float o = luaL_checknumber(L, 5);
     uint32 respawnDelay = luaL_optunsigned(L, 6, 30);
-    sEluna.PushGO(L, unit->SummonGameObject(entry, x, y, z, o, respawnDelay));
+    sEluna.Push(L, unit->SummonGameObject(entry, x, y, z, o, respawnDelay));
     return 1;
 }
 
@@ -3074,7 +3033,7 @@ int LuaUnit::SpawnCreature(lua_State* L, Unit* unit)
             type = TEMPSUMMON_MANUAL_DESPAWN;
             break;
     }
-    sEluna.PushUnit(L, unit->SummonCreature(entry, x, y, z, o, type, despawnTimer));
+    sEluna.Push(L, unit->SummonCreature(entry, x, y, z, o, type, despawnTimer));
     return 1;
 }
 
@@ -3105,7 +3064,7 @@ int LuaUnit::GetStandState(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->getStandState());
+    sEluna.Push(L, unit->getStandState());
     return 0;
 }
 
@@ -3113,7 +3072,7 @@ int LuaUnit::GetArenaPoints(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetArenaPoints());
+    sEluna.Push(L, player->GetArenaPoints());
     return 1;
 }
 
@@ -3318,9 +3277,9 @@ int LuaUnit::SetWalk(lua_State* L, Unit* unit)
 
     bool enable = luaL_optbool(L, 1, true);
     /*if (Creature* creature = unit->ToCreature())
-        sEluna.PushBoolean(L, creature->SetWalk(enable));
+        sEluna.Push(L, creature->SetWalk(enable));
     else
-        sEluna.PushBoolean(L, unit->SetWalk(enable));*/
+        sEluna.Push(L, unit->SetWalk(enable));*/
     return 1;
 }
 
@@ -3342,7 +3301,7 @@ int LuaUnit::GetHonorPoints(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetHonorPoints());
+    sEluna.Push(L, player->GetHonorPoints());
     return 1;
 }
 
@@ -3353,7 +3312,7 @@ int LuaUnit::GetGossipTextId(lua_State* L, Unit* unit)
     WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
     if (!obj)
         return 0;
-    sEluna.PushUnsigned(L, player->GetGossipTextId(obj));
+    sEluna.Push(L, player->GetGossipTextId(obj));
     return 1;
 }
 
@@ -3361,7 +3320,7 @@ int LuaUnit::GetSelection(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushUnit(L, player->GetSelectedUnit());
+    // sEluna.Push(L, player->GetSelectedUnit());
     return 1;
 }
 
@@ -3369,7 +3328,7 @@ int LuaUnit::GetGMRank(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushInteger(L, player->GetSession()->GetSecurity());
+    sEluna.Push(L, player->GetSession()->GetSecurity());
     return 1;
 }
 
@@ -3377,7 +3336,7 @@ int LuaUnit::GetCoinage(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetMoney());
+    sEluna.Push(L, player->GetMoney());
     return 1;
 }
 
@@ -3385,7 +3344,7 @@ int LuaUnit::GetDisplayId(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetDisplayId());
+    sEluna.Push(L, unit->GetDisplayId());
     return 1;
 }
 
@@ -3393,7 +3352,7 @@ int LuaUnit::GetNativeDisplayId(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetNativeDisplayId());
+    sEluna.Push(L, unit->GetNativeDisplayId());
     return 1;
 }
 
@@ -3401,7 +3360,7 @@ int LuaUnit::GetName(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushString(L, unit->GetName());
+    sEluna.Push(L, unit->GetName());
     return 1;
 }
 
@@ -3409,7 +3368,7 @@ int LuaUnit::GetLevel(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->getLevel());
+    sEluna.Push(L, unit->getLevel());
     return 1;
 }
 
@@ -3417,7 +3376,7 @@ int LuaUnit::GetHealth(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetHealth());
+    sEluna.Push(L, unit->GetHealth());
     return 1;
 }
 
@@ -3425,58 +3384,15 @@ int LuaUnit::GetGuildId(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetGuildId());
+    sEluna.Push(L, player->GetGuildId());
     return 1;
-}
-
-int LuaUnit::GetX(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.PushFloat(L, unit->GetPositionX());
-    return 1;
-}
-
-int LuaUnit::GetY(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.PushFloat(L, unit->GetPositionY());
-    return 1;
-}
-
-int LuaUnit::GetZ(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.PushFloat(L, unit->GetPositionZ());
-    return 1;
-}
-
-int LuaUnit::GetO(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.PushFloat(L, unit->GetOrientation());
-    return 1;
-}
-
-int LuaUnit::GetLocation(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.PushFloat(L, unit->GetPositionX());
-    sEluna.PushFloat(L, unit->GetPositionY());
-    sEluna.PushFloat(L, unit->GetPositionZ());
-    sEluna.PushFloat(L, unit->GetOrientation());
-    return 4;
 }
 
 int LuaUnit::GetZoneId(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetZoneId());
+    sEluna.Push(L, unit->GetZoneId());
     return 1;
 }
 
@@ -3484,7 +3400,7 @@ int LuaUnit::GetInstanceId(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetInstanceId());
+    sEluna.Push(L, unit->GetInstanceId());
     return 1;
 }
 
@@ -3492,7 +3408,7 @@ int LuaUnit::GetPhaseMask(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    // sEluna.PushUnsigned(L, unit->GetPhaseMask());
+    // sEluna.Push(L, unit->GetPhaseMask());
     return 1;
 }
 
@@ -3500,7 +3416,7 @@ int LuaUnit::GetAreaId(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetAreaId());
+    sEluna.Push(L, unit->GetAreaId());
     return 1;
 }
 
@@ -3508,23 +3424,7 @@ int LuaUnit::GetTeam(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushInteger(L, player->GetTeamId());
-    return 1;
-}
-
-int LuaUnit::GetGUID(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.PushULong(L, unit->GetGUIDLow());
-    return 1;
-}
-
-int LuaUnit::GetGUIDLow(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.PushUnsigned(L, unit->GetGUIDLow());
+    sEluna.Push(L, player->GetTeamId());
     return 1;
 }
 
@@ -3563,7 +3463,7 @@ int LuaUnit::GetPower(lua_State* L, Unit* unit)
         return 0;
     }
 
-    sEluna.PushUnsigned(L, unit->GetPower((Powers) type));
+    sEluna.Push(L, unit->GetPower((Powers) type));
     return 1;
 }
 
@@ -3602,7 +3502,7 @@ int LuaUnit::GetMaxPower(lua_State* L, Unit* unit)
         return 0;
     }
 
-    sEluna.PushUnsigned(L, unit->GetMaxPower((Powers) type));
+    sEluna.Push(L, unit->GetMaxPower((Powers) type));
     return 1;
 }
 
@@ -3610,7 +3510,7 @@ int LuaUnit::GetPowerType(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushInteger(L, unit->getPowerType());
+    sEluna.Push(L, unit->getPowerType());
     return 1;
 }
 
@@ -3618,7 +3518,7 @@ int LuaUnit::GetMaxHealth(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetMaxHealth());
+    sEluna.Push(L, unit->GetMaxHealth());
     return 1;
 }
 
@@ -3626,7 +3526,7 @@ int LuaUnit::GetHealthPct(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushFloat(L, unit->GetHealthPercent());
+    sEluna.Push(L, unit->GetHealthPercent());
     return 1;
 }
 
@@ -3635,14 +3535,14 @@ int LuaUnit::GetPowerPct(lua_State* L, Unit* unit)
     TO_UNIT();
 
     float percent = (unit->GetPower(unit->getPowerType()) / unit->GetMaxPower(unit->getPowerType())) * 100;
-    sEluna.PushFloat(L, percent);
+    sEluna.Push(L, percent);
     return 1;
 }
 
 int LuaUnit::GetGender(lua_State* L, Unit* unit)
 {
     TO_UNIT();
-    sEluna.PushUnsigned(L, unit->getGender());
+    sEluna.Push(L, unit->getGender());
     return 1;
 }
 
@@ -3650,7 +3550,7 @@ int LuaUnit::GetRace(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->getRace());
+    sEluna.Push(L, unit->getRace());
     return 1;
 }
 
@@ -3658,7 +3558,7 @@ int LuaUnit::GetClass(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->getClass());
+    sEluna.Push(L, unit->getClass());
     return 1;
 }
 
@@ -3666,7 +3566,7 @@ int LuaUnit::GetCreatureType(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetCreatureType());
+    sEluna.Push(L, unit->GetCreatureType());
     return 1;
 }
 
@@ -3709,7 +3609,7 @@ int LuaUnit::GetClassAsString(lua_State* L, Unit* unit)
             break;
     }
 
-    sEluna.PushString(L, str);
+    sEluna.Push(L, str);
     return 1;
 }
 
@@ -3719,7 +3619,7 @@ int LuaUnit::GetItemCount(lua_State* L, Unit* unit)
 
     int id = luaL_checknumber(L, 1);
     bool checkinBank = luaL_optbool(L, 2, false);
-    sEluna.PushUnsigned(L, player->GetItemCount(id, checkinBank));
+    sEluna.Push(L, player->GetItemCount(id, checkinBank));
     return 1;
 }
 
@@ -3728,7 +3628,7 @@ int LuaUnit::GetLifetimeKills(lua_State* L, Unit* unit)
     TO_PLAYER();
 
     uint32 currentKills = player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS);
-    sEluna.PushUnsigned(L, currentKills);
+    sEluna.Push(L, currentKills);
     return 1;
 }
 
@@ -3736,7 +3636,7 @@ int LuaUnit::GetPlayerIP(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushString(L, player->GetSession()->GetRemoteAddress().c_str());
+    sEluna.Push(L, player->GetSession()->GetRemoteAddress());
     return 1;
 }
 
@@ -3744,7 +3644,7 @@ int LuaUnit::GetLevelPlayedTime(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetLevelPlayedTime());
+    sEluna.Push(L, player->GetLevelPlayedTime());
     return 1;
 }
 
@@ -3752,20 +3652,7 @@ int LuaUnit::GetTotalPlayedTime(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetTotalPlayedTime());
-    return 1;
-}
-
-int LuaUnit::GetObjectType(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    if (unit->ToPlayer())
-        sEluna.PushString(L, "Player");
-    else if (unit->ToCreature())
-        sEluna.PushString(L, "Creature");
-    else
-        sEluna.PushString(L, "Unknown");
+    sEluna.Push(L, player->GetTotalPlayedTime());
     return 1;
 }
 
@@ -3773,7 +3660,7 @@ int LuaUnit::GetGuild(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushGuild(L, sGuildMgr.GetGuildById(player->GetGuildId()));
+    sEluna.Push(L, sGuildMgr.GetGuildById(player->GetGuildId()));
     return 1;
 }
 
@@ -3781,7 +3668,7 @@ int LuaUnit::GetGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushGroup(L, player->GetGroup());
+    sEluna.Push(L, player->GetGroup());
     return 1;
 }
 
@@ -3789,7 +3676,7 @@ int LuaUnit::GetGearLevel(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    // sEluna.PushFloat(L, player->GetAverageItemLevel());
+    // sEluna.Push(L, player->GetAverageItemLevel());
     return 1;
 }
 
@@ -3797,7 +3684,7 @@ int LuaUnit::GetEntry(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetEntry());
+    sEluna.Push(L, unit->GetEntry());
     return 1;
 }
 
@@ -3805,7 +3692,7 @@ int LuaUnit::GetFaction(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->getFaction());
+    sEluna.Push(L, unit->getFaction());
     return 1;
 }
 
@@ -4100,7 +3987,7 @@ int LuaUnit::IsInGroup(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, (player->GetGroup() != NULL));
+    sEluna.Push(L, (player->GetGroup() != NULL));
     return 1;
 }
 
@@ -4108,7 +3995,7 @@ int LuaUnit::IsInGuild(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, (player->GetGuildId() != 0));
+    sEluna.Push(L, (player->GetGuildId() != 0));
     return 1;
 }
 
@@ -4116,7 +4003,7 @@ int LuaUnit::IsGM(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, player->isGameMaster());
+    sEluna.Push(L, player->isGameMaster());
     return 1;
 }
 
@@ -4124,7 +4011,7 @@ int LuaUnit::IsAlive(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isAlive());
+    sEluna.Push(L, unit->isAlive());
     return 1;
 }
 
@@ -4132,7 +4019,7 @@ int LuaUnit::IsDead(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isDead());
+    sEluna.Push(L, unit->isDead());
     return 1;
 }
 
@@ -4140,7 +4027,7 @@ int LuaUnit::IsDying(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isDying());
+    sEluna.Push(L, unit->isDying());
     return 1;
 }
 
@@ -4148,7 +4035,7 @@ int LuaUnit::IsBanker(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isBanker());
+    sEluna.Push(L, unit->isBanker());
     return 1;
 }
 
@@ -4156,7 +4043,7 @@ int LuaUnit::IsVendor(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isVendor());
+    sEluna.Push(L, unit->isVendor());
     return 1;
 }
 
@@ -4164,7 +4051,7 @@ int LuaUnit::IsBattleMaster(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isBattleMaster());
+    sEluna.Push(L, unit->isBattleMaster());
     return 1;
 }
 
@@ -4172,7 +4059,7 @@ int LuaUnit::IsCharmed(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isCharmed());
+    sEluna.Push(L, unit->isCharmed());
     return 1;
 }
 
@@ -4180,7 +4067,7 @@ int LuaUnit::IsArmorer(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isArmorer());
+    sEluna.Push(L, unit->isArmorer());
     return 1;
 }
 
@@ -4188,7 +4075,7 @@ int LuaUnit::IsAttackingPlayer(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isAttackingPlayer());
+    sEluna.Push(L, unit->isAttackingPlayer());
     return 1;
 }
 
@@ -4198,9 +4085,9 @@ int LuaUnit::IsInArenaTeam(lua_State* L, Unit* unit)
 
     uint32 type = luaL_checkunsigned(L, 1);
     if (type < MAX_ARENA_SLOT && player->GetArenaTeamId(type))
-        sEluna.PushBoolean(L, true);
+        sEluna.Push(L, true);
     else
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     return 1;
 }
 
@@ -4208,7 +4095,7 @@ int LuaUnit::IsInWorld(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->IsInWorld());
+    sEluna.Push(L, unit->IsInWorld());
     return 1;
 }
 
@@ -4216,7 +4103,7 @@ int LuaUnit::IsPvPFlagged(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->IsPvP());
+    sEluna.Push(L, unit->IsPvP());
     return 1;
 }
 
@@ -4227,11 +4114,11 @@ int LuaUnit::HasQuest(lua_State* L, Unit* unit)
     uint32 questId = luaL_checkunsigned(L, 1);
 
     if (Player* player = unit->ToPlayer())
-        sEluna.PushBoolean(L, player->HasQuest(questId));
+        sEluna.Push(L, player->HasQuest(questId));
     else if (Creature* creature = unit->ToCreature())
-        sEluna.PushBoolean(L, creature->HasQuest(questId));
+        sEluna.Push(L, creature->HasQuest(questId));
     else
-        sEluna.PushBoolean(L, unit->HasQuest(questId));
+        sEluna.Push(L, unit->HasQuest(questId));
     return 1;
 }
 
@@ -4239,7 +4126,7 @@ int LuaUnit::IsHorde(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, (player->GetTeam() == HORDE));
+    sEluna.Push(L, (player->GetTeam() == HORDE));
     return 1;
 }
 
@@ -4247,7 +4134,7 @@ int LuaUnit::IsAlliance(lua_State* L, Unit* unit)
 {
     TO_PLAYER_BOOL();
 
-    sEluna.PushBoolean(L, (player->GetTeam() == ALLIANCE));
+    sEluna.Push(L, (player->GetTeam() == ALLIANCE));
     return 1;
 }
 
@@ -4255,7 +4142,7 @@ int LuaUnit::IsInCombat(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isInCombat());
+    sEluna.Push(L, unit->isInCombat());
     return 1;
 }
 
@@ -4266,9 +4153,9 @@ int LuaUnit::HasTitle(lua_State* L, Unit* unit)
     uint32 id = luaL_checkunsigned(L, 1);
     CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
     if (titleInfo)
-        sEluna.PushBoolean(L, player->HasTitle(titleInfo));
+        sEluna.Push(L, player->HasTitle(titleInfo));
     else
-        sEluna.PushBoolean(L, false);
+        sEluna.Push(L, false);
     return 1;
 }
 
@@ -4278,11 +4165,11 @@ int LuaUnit::HasSpell(lua_State* L, Unit* unit)
 
     uint32 id = luaL_checkunsigned(L, 1);
     if (Player* player = unit->ToPlayer())
-        sEluna.PushBoolean(L, player->HasSpell(id));
+        sEluna.Push(L, player->HasSpell(id));
     else if (Creature* creature = unit->ToCreature())
-        sEluna.PushBoolean(L, creature->HasSpell(id));
+        sEluna.Push(L, creature->HasSpell(id));
     else
-        sEluna.PushBoolean(L, unit->HasSpell(id));
+        sEluna.Push(L, unit->HasSpell(id));
     return 1;
 }
 
@@ -4293,7 +4180,7 @@ int LuaUnit::HasItem(lua_State* L, Unit* unit)
     uint32 itemId = luaL_checkunsigned(L, 1);
     uint32 count = luaL_optunsigned(L, 2, 1);
     bool check_bank = luaL_optbool(L, 3, false);
-    sEluna.PushBoolean(L, player->HasItemCount(itemId, count, check_bank));
+    sEluna.Push(L, player->HasItemCount(itemId, count, check_bank));
     return 1;
 }
 
@@ -4311,7 +4198,7 @@ int LuaUnit::Teleport(lua_State* L, Unit* unit)
         player->GetMotionMaster()->MovementExpired();
         player->m_taxi.ClearTaxiDestinations();
     }
-    sEluna.PushBoolean(L, player->TeleportTo(mapId, X, Y, Z, O));
+    sEluna.Push(L, player->TeleportTo(mapId, X, Y, Z, O));
     return 1;
 }
 
@@ -4331,7 +4218,7 @@ int LuaUnit::AddItem(lua_State* L, Unit* unit)
 
     uint32 itemId = luaL_checkunsigned(L, 1);
     uint32 itemCount = luaL_checkunsigned(L, 2);
-    sEluna.PushBoolean(L, player->StoreNewItemInInventorySlot(itemId, itemCount));
+    sEluna.Push(L, player->StoreNewItemInInventorySlot(itemId, itemCount));
     return 0;
 }
 
@@ -4633,7 +4520,7 @@ int LuaUnit::GetAccountId(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushUnsigned(L, player->GetSession()->GetAccountId());
+    sEluna.Push(L, player->GetSession()->GetAccountId());
     return 1;
 }
 
@@ -4643,7 +4530,7 @@ int LuaUnit::GetAccountName(lua_State* L, Unit* unit)
 
     std::string accName;
     if (sAccountMgr.GetName(player->GetSession()->GetAccountId(), accName))
-        sEluna.PushString(L, accName.c_str());
+        sEluna.Push(L, accName);
     else
         return 0;
     return 1;
@@ -4653,7 +4540,7 @@ int LuaUnit::GetCorpse(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushCorpse(L, player->GetCorpse());
+    sEluna.Push(L, player->GetCorpse());
     return 1;
 }
 
@@ -4671,7 +4558,7 @@ int LuaUnit::GetAITarget(lua_State* L, Unit* unit)
     ThreatContainer::StorageType const& threatlist = creature->getThreatManager().getThreatList();
     if (position >= threatlist.size())
     {
-        sEluna.PushUnit(L, NULL);
+        sEluna.Push(L, NULL);
         return 1;
     }
 
@@ -4694,7 +4581,7 @@ int LuaUnit::GetAITarget(lua_State* L, Unit* unit)
 
     if (position >= targetList.size())
     {
-        sEluna.PushUnit(L, NULL);
+        sEluna.Push(L, NULL);
         return 1;
     }
 
@@ -4708,7 +4595,7 @@ int LuaUnit::GetAITarget(lua_State* L, Unit* unit)
         {
             std::list<Unit*>::const_iterator itr = targetList.begin();
             std::advance(itr, position);
-            sEluna.PushUnit(L, *itr);
+            sEluna.Push(L, *itr);
             return 1;
         }
     case SELECT_TARGET_FARTHEST:
@@ -4716,21 +4603,21 @@ int LuaUnit::GetAITarget(lua_State* L, Unit* unit)
         {
             std::list<Unit*>::reverse_iterator ritr = targetList.rbegin();
             std::advance(ritr, position);
-            sEluna.PushUnit(L, *ritr);
+            sEluna.Push(L, *ritr);
             return 1;
         }
     case SELECT_TARGET_RANDOM:
         {
             std::list<Unit*>::const_iterator itr = targetList.begin();
             std::advance(itr, urand(position, targetList.size() - 1));
-            sEluna.PushUnit(L, *itr);
+            sEluna.Push(L, *itr);
             return 1;
         }
     default:
         break;
     }*/
 
-    sEluna.PushUnit(L, NULL);
+    sEluna.Push(L, NULL);
     return 1;
 }
 
@@ -4750,8 +4637,8 @@ int LuaUnit::GetAITargets(lua_State* L, Unit* unit)
         if (!target)
             continue;
         ++i;
-        sEluna.PushUnsigned(L, i);
-        sEluna.PushUnit(L, target);
+        sEluna.Push(L, i);
+        sEluna.Push(L, target);
         lua_settable(L, tbl);
     }
 
@@ -4763,7 +4650,7 @@ int LuaUnit::GetAITargetsCount(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushUnsigned(L, creature->getThreatManager().getThreatList().size());
+    sEluna.Push(L, creature->getThreatManager().getThreatList().size());
     return 1;
 }
 
@@ -4771,7 +4658,7 @@ int LuaUnit::IsDungeonBoss(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    // sEluna.PushBoolean(L, creature->IsDungeonBoss());
+    // sEluna.Push(L, creature->IsDungeonBoss());
     return 1;
 }
 
@@ -4779,7 +4666,7 @@ int LuaUnit::IsWorldBoss(lua_State* L, Unit* unit)
 {
     TO_CREATURE_BOOL();
 
-    sEluna.PushBoolean(L, creature->IsWorldBoss());
+    sEluna.Push(L, creature->IsWorldBoss());
     return 1;
 }
 
@@ -4788,7 +4675,7 @@ int LuaUnit::GetAura(lua_State* L, Unit* unit)
     TO_UNIT();
 
     uint32 spellID = luaL_checkunsigned(L, 1);
-    // sEluna.PushAura(L, unit->GetAura(spellID));
+    // sEluna.Push(L, unit->GetAura(spellID));
     return 1;
 }
 
@@ -4796,7 +4683,7 @@ int LuaUnit::GetMapId(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetMapId());
+    sEluna.Push(L, unit->GetMapId());
     return 1;
 }
 
@@ -4804,7 +4691,7 @@ int LuaUnit::GetCombatTime(lua_State* L, Unit* unit)
 {
     TO_UNIT();
 
-    sEluna.PushUnsigned(L, unit->GetCombatTimer());
+    sEluna.Push(L, unit->GetCombatTimer());
     return 1;
 }
 
@@ -4859,7 +4746,7 @@ int LuaUnit::AddAura(lua_State* L, Unit* unit)
     Unit* target = sEluna.CHECK_UNIT(L, 2);
     if (!target)
         return 0;
-    // sEluna.PushAura(L, unit->AddAura(spellId, target));
+    // sEluna.Push(L, unit->AddAura(spellId, target));
     return 1;
 }
 
@@ -4995,7 +4882,7 @@ int LuaUnit::RegisterEvent(lua_State* L, Unit* unit)
     lua_settop(L, 1);
     int functionRef = lua_ref(L, true);
     unit->m_Events.AddEvent(new Eluna::LuaEventData(functionRef, delay, repeats, unit), unit->m_Events.CalculateTime(delay));
-    sEluna.PushInteger(L, functionRef);
+    sEluna.Push(L, functionRef);
     return 1;
 }
 
@@ -5021,7 +4908,7 @@ int LuaUnit::GetInt32Value(lua_State* L, Unit* unit)
     TO_UNIT();
 
     uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.PushInteger(L, unit->GetInt32Value(index));
+    sEluna.Push(L, unit->GetInt32Value(index));
     return 1;
 }
 
@@ -5030,7 +4917,7 @@ int LuaUnit::GetUInt32Value(lua_State* L, Unit* unit)
     TO_UNIT();
 
     uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.PushUnsigned(L, unit->GetUInt32Value(index));
+    sEluna.Push(L, unit->GetUInt32Value(index));
     return 1;
 }
 
@@ -5039,7 +4926,7 @@ int LuaUnit::GetFloatValue(lua_State* L, Unit* unit)
     TO_UNIT();
 
     uint16 index = luaL_checkunsigned(L, 1);
-    sEluna.PushFloat(L, unit->GetFloatValue(index));
+    sEluna.Push(L, unit->GetFloatValue(index));
     return 1;
 }
 
@@ -5049,7 +4936,7 @@ int LuaUnit::GetByteValue(lua_State* L, Unit* unit)
 
     uint16 index = luaL_checkunsigned(L, 1);
     uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna.PushUnsigned(L, unit->GetByteValue(index, offset));
+    sEluna.Push(L, unit->GetByteValue(index, offset));
     return 1;
 }
 
@@ -5059,7 +4946,7 @@ int LuaUnit::GetUInt16Value(lua_State* L, Unit* unit)
 
     uint16 index = luaL_checkunsigned(L, 1);
     uint8 offset = luaL_checkunsigned(L, 2);
-    sEluna.PushUnsigned(L, unit->GetUInt16Value(index, offset));
+    sEluna.Push(L, unit->GetUInt16Value(index, offset));
     return 1;
 }
 
@@ -5177,7 +5064,7 @@ int LuaUnit::GetNearestPlayer(lua_State* L, Unit* unit)
     // Trinity::PlayerLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
     // unit->VisitNearbyWorldObject(distance, searcher);
 
-    sEluna.PushUnit(L, target);
+    sEluna.Push(L, target);
     return 1;
 }
 
@@ -5193,7 +5080,7 @@ int LuaUnit::GetNearestGameObject(lua_State* L, Unit* unit)
     // Trinity::GameObjectLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
     // unit->VisitNearbyGridObject(range, searcher);
 
-    sEluna.PushGO(L, target);
+    sEluna.Push(L, target);
     return 1;
 }
 
@@ -5209,7 +5096,7 @@ int LuaUnit::GetNearestCreature(lua_State* L, Unit* unit)
     // Trinity::CreatureLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
     // unit->VisitNearbyGridObject(range, searcher);
 
-    sEluna.PushUnit(L, target);
+    sEluna.Push(L, target);
     return 1;
 }
 
@@ -5231,8 +5118,8 @@ int LuaUnit::GetFriendlyUnitsInRange(lua_State* L, Unit* unit)
 
     for (UnitList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-        sEluna.PushUnsigned(L, ++i);
-        sEluna.PushUnit(L, *it);
+        sEluna.Push(L, ++i);
+        sEluna.Push(L, *it);
         lua_settable(L, tbl);
     }
 
@@ -5258,8 +5145,8 @@ int LuaUnit::GetUnfriendlyUnitsInRange(lua_State* L, Unit* unit)
 
     for (UnitList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-        sEluna.PushUnsigned(L, ++i);
-        sEluna.PushUnit(L, *it);
+        sEluna.Push(L, ++i);
+        sEluna.Push(L, *it);
         lua_settable(L, tbl);
     }
 
@@ -5314,7 +5201,7 @@ int LuaUnit::AttackStop(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->AttackStop());
+    sEluna.Push(L, unit->AttackStop());
     return 1;
 }
 
@@ -5340,7 +5227,7 @@ int LuaUnit::IsVisible(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    // sEluna.PushBoolean(L, unit->IsVisible());
+    // sEluna.Push(L, unit->IsVisible());
     return 1;
 }
 
@@ -5348,7 +5235,7 @@ int LuaUnit::IsMoving(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    // sEluna.PushBoolean(L, unit->isMoving());
+    // sEluna.Push(L, unit->isMoving());
     return 1;
 }
 
@@ -5356,7 +5243,7 @@ int LuaUnit::IsFlying(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    // sEluna.PushBoolean(L, unit->IsFlying());
+    // sEluna.Push(L, unit->IsFlying());
     return 1;
 }
 
@@ -5364,7 +5251,7 @@ int LuaUnit::IsStopped(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->IsStopped());
+    sEluna.Push(L, unit->IsStopped());
     return 1;
 }
 
@@ -5372,7 +5259,7 @@ int LuaUnit::IsQuestGiver(lua_State* L, Unit* unit)
 {
     TO_UNIT_BOOL();
 
-    sEluna.PushBoolean(L, unit->isQuestGiver());
+    sEluna.Push(L, unit->isQuestGiver());
     return 1;
 }
 
@@ -5442,7 +5329,7 @@ int LuaUnit::HasUnitState(lua_State* L, Unit* unit)
 
     uint32 state = luaL_checkunsigned(L, 1);
 
-    sEluna.PushBoolean(L, unit->hasUnitState(state));
+    sEluna.Push(L, unit->hasUnitState(state));
     return 1;
 }
 
@@ -5495,7 +5382,7 @@ int LuaUnit::SummonGuardian(lua_State* L, Unit* unit)
     }
     summon->AI()->EnterEvadeMode();
 
-    sEluna.PushUnit(L, summon);*/
+    sEluna.Push(L, summon);*/
     return 1;
 }
 
@@ -5545,7 +5432,7 @@ int LuaUnit::GetNPCFlags(lua_State* L, Unit* unit)
 {
     TO_CREATURE();
 
-    sEluna.PushUnsigned(L, creature->GetUInt32Value(UNIT_NPC_FLAGS));
+    sEluna.Push(L, creature->GetUInt32Value(UNIT_NPC_FLAGS));
     return 1;
 }
 
@@ -5563,7 +5450,7 @@ int LuaUnit::GetDbLocaleIndex(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushInteger(L, player->GetSession()->GetSessionDbLocaleIndex());
+    sEluna.Push(L, player->GetSession()->GetSessionDbLocaleIndex());
     return 1;
 }
 
@@ -5571,7 +5458,7 @@ int LuaUnit::GetDbcLocale(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
 
-    sEluna.PushInteger(L, player->GetSession()->GetSessionDbcLocale());
+    sEluna.Push(L, player->GetSession()->GetSessionDbcLocale());
     return 1;
 }
 
@@ -5581,15 +5468,15 @@ int LuaUnit::CanUseItem(lua_State* L, Unit* unit)
 
     Item* item = sEluna.CHECK_ITEM(L, 1);
     if (item)
-        sEluna.PushInteger(L, player->CanUseItem(item));
+        sEluna.Push(L, player->CanUseItem(item));
     else
     {
         uint32 entry = luaL_checkunsigned(L, 1);
         const ItemPrototype* temp = sObjectMgr.GetItemPrototype(entry);
         if(temp)
-            sEluna.PushInteger(L, player->CanUseItem(temp));
+            sEluna.Push(L, player->CanUseItem(temp));
         else
-            sEluna.PushInteger(L, EQUIP_ERR_ITEM_NOT_FOUND);
+            sEluna.Push(L, EQUIP_ERR_ITEM_NOT_FOUND);
     }
     return 1;
 }
@@ -5601,7 +5488,7 @@ int LuaUnit::FindNearestGameObject(lua_State* L, Unit* unit)
     uint32 entry = luaL_checkunsigned(L, 1);
     float range = luaL_checknumber(L, 2);
 
-    // sEluna.PushGO(L, unit->FindNearestGameObject(entry, range));
+    // sEluna.Push(L, unit->FindNearestGameObject(entry, range));
     return 1;
 }
 
@@ -5613,6 +5500,6 @@ int LuaUnit::FindNearestCreature(lua_State* L, Unit* unit)
     float range = luaL_checknumber(L, 2);
     bool alive = luaL_optbool(L, 3, true);
 
-    // sEluna.PushUnit(L, unit->FindNearestCreature(entry, range, alive));
+    // sEluna.Push(L, unit->FindNearestCreature(entry, range, alive));
     return 1;
 }

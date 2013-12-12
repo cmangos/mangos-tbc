@@ -176,14 +176,14 @@ namespace LuaGlobalFunctions
     // GetLuaEngine() - Gets lua engine name
     static int GetLuaEngine(lua_State* L)
     {
-        sEluna.PushString(L, "ElunaEngine");
+        sEluna.Push(L, "ElunaEngine");
         return 1;
     }
 
     // GetCoreVersion() - Gets core version as a string
     static int GetCoreVersion(lua_State* L)
     {
-        // sEluna.PushString(L, _FULLVERSION);
+        // sEluna.Push(L, _FULLVERSION);
         // return 1;
         return 0;
     }
@@ -195,7 +195,7 @@ namespace LuaGlobalFunctions
         if (!questId)
             return 0;
 
-        sEluna.PushQuest(L, sObjectMgr.GetQuestTemplate(questId));
+        sEluna.Push(L, sObjectMgr.GetQuestTemplate(questId));
         return 1;
     }
 
@@ -210,7 +210,7 @@ namespace LuaGlobalFunctions
     static int GetPlayerByGUID(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        sEluna.PushUnit(L, sObjectAccessor.FindPlayer((ObjectGuid)guid));
+        sEluna.Push(L, sObjectAccessor.FindPlayer((ObjectGuid)guid));
         return 1;
     }
 
@@ -218,14 +218,14 @@ namespace LuaGlobalFunctions
     static int GetPlayerByName(lua_State* L)
     {
         const char* message = luaL_checkstring(L, 1);
-        sEluna.PushUnit(L, sObjectAccessor.FindPlayerByName(message));
+        sEluna.Push(L, sObjectAccessor.FindPlayerByName(message));
         return 1;
     }
 
     // GetGameTime() - Gets ingame time as seconds (server time?)
     static int GetGameTime(lua_State* L)
     {
-        sEluna.PushUnsigned(L, sWorld.GetGameTime());
+        sEluna.Push(L, sWorld.GetGameTime());
         return 1;
     }
 
@@ -255,8 +255,8 @@ namespace LuaGlobalFunctions
                 if (player->GetSession() && ((team >= TEAM_NEUTRAL || player->GetTeamId() == team) && (!onlyGM || player->isGameMaster())))
                 {
                     ++i;
-                    sEluna.PushUnsigned(L, i);
-                    sEluna.PushUnit(L, player);
+                    sEluna.Push(L, i);
+                    sEluna.Push(L, player);
                     lua_settable(L, tbl);
                 }
             }
@@ -290,8 +290,8 @@ namespace LuaGlobalFunctions
             if (player->GetSession() && (team >= TEAM_BOTH_ALLOWED || player->GetTeam() == team))
             {
                 ++i;
-                sEluna.PushUnsigned(L, i);
-                sEluna.PushUnit(L, player);
+                sEluna.Push(L, i);
+                sEluna.Push(L, player);
                 lua_settable(L, tbl);
             }
         }
@@ -311,7 +311,7 @@ namespace LuaGlobalFunctions
         if (!Result)
             return 0;
 
-        sEluna.PushQueryResult(L, Result);
+        sEluna.Push(L, Result);
         return 1;
     }
 
@@ -337,7 +337,7 @@ namespace LuaGlobalFunctions
         if (!Result)
             return 0;
 
-        sEluna.PushQueryResult(L, Result);
+        sEluna.Push(L, Result);
         return 1;
     }
 
@@ -363,7 +363,7 @@ namespace LuaGlobalFunctions
         if (!Result)
             return 0;
 
-        sEluna.PushQueryResult(L, Result);
+        sEluna.Push(L, Result);
         return 1;
     }
 
@@ -382,7 +382,7 @@ namespace LuaGlobalFunctions
     static int GetGuildByName(lua_State* L)
     {
         const char* name = luaL_checkstring(L, 1);
-        sEluna.PushGuild(L, sGuildMgr.GetGuildByName(name));
+        sEluna.Push(L, sGuildMgr.GetGuildByName(name));
         return 1;
     }
 
@@ -393,7 +393,7 @@ namespace LuaGlobalFunctions
         if (!sMapStore.LookupEntry(mapid))
             return 0;
 
-        sEluna.PushMap(L, sMapMgr.FindMap(mapid));
+        sEluna.Push(L, sMapMgr.FindMap(mapid));
         return 1;
     }
 
@@ -402,14 +402,14 @@ namespace LuaGlobalFunctions
     {
         Object* obj = sEluna.CHECK_OBJECT(L, 1);
 
-        sEluna.PushGuild(L, sGuildMgr.GetGuildByLeader((ObjectGuid)obj->GetObjectGuid()));
+        sEluna.Push(L, sGuildMgr.GetGuildByLeader((ObjectGuid)obj->GetObjectGuid()));
         return 1;
     }
 
     // GetPlayerCount() - Gets server player count
     static int GetPlayerCount(lua_State* L)
     {
-        sEluna.PushUnsigned(L, sWorld.GetActiveSessionCount());
+        sEluna.Push(L, sWorld.GetActiveSessionCount());
         return 1;
     }
 
@@ -417,7 +417,7 @@ namespace LuaGlobalFunctions
     static int FindUnit(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        // sEluna.PushUnit(L, sObjectAccessor.FindUnit(guid));
+        // sEluna.Push(L, sObjectAccessor.FindUnit(guid));
         return 1;
     }
 
@@ -425,7 +425,7 @@ namespace LuaGlobalFunctions
     static int GetPlayerGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
-        sEluna.PushULong(L, ObjectGuid(HIGHGUID_PLAYER, lowguid));
+        sEluna.Push(L, ObjectGuid(HIGHGUID_PLAYER, lowguid));
         return 1;
     }
 
@@ -433,7 +433,7 @@ namespace LuaGlobalFunctions
     static int GetItemGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
-        sEluna.PushULong(L, ObjectGuid(HIGHGUID_ITEM, lowguid));
+        sEluna.Push(L, ObjectGuid(HIGHGUID_ITEM, lowguid));
         return 1;
     }
 
@@ -442,7 +442,7 @@ namespace LuaGlobalFunctions
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
-        sEluna.PushULong(L, ObjectGuid(HIGHGUID_GAMEOBJECT, lowguid, entry));
+        sEluna.Push(L, ObjectGuid(HIGHGUID_GAMEOBJECT, lowguid, entry));
         return 1;
     }
 
@@ -451,7 +451,7 @@ namespace LuaGlobalFunctions
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
-        sEluna.PushULong(L, ObjectGuid(HIGHGUID_UNIT, lowguid, entry));
+        sEluna.Push(L, ObjectGuid(HIGHGUID_UNIT, lowguid, entry));
         return 1;
     }
 
@@ -465,7 +465,7 @@ namespace LuaGlobalFunctions
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
         // sEluna.LuaWorldAI->ScriptEventCreate(functionRef, delay, repeats);
-        sEluna.PushInteger(L, functionRef);
+        sEluna.Push(L, functionRef);
         return 1;
     }
 
@@ -537,7 +537,7 @@ namespace LuaGlobalFunctions
                 }
 
                 sObjectMgr->AddCreatureToGrid(db_lowguid, sObjectMgr->GetCreatureData(db_lowguid));
-                sEluna.PushUnit(L, creature);
+                sEluna.Push(L, creature);
             }
             else
             {
@@ -550,7 +550,7 @@ namespace LuaGlobalFunctions
                 else
                     creature->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
 
-                sEluna.PushUnit(L, creature);
+                sEluna.Push(L, creature);
             }
 
             return 1;
@@ -594,7 +594,7 @@ namespace LuaGlobalFunctions
             }
             else
                 map->AddToMap(object);
-            sEluna.PushGO(L, object);
+            sEluna.Push(L, object);
             return 1;
         }*/
 
@@ -612,7 +612,7 @@ namespace LuaGlobalFunctions
         else
         {
             WorldPacket* _packet = new WorldPacket((Opcodes)opcode, size);
-            sEluna.PushPacket(L, _packet);
+            sEluna.Push(L, _packet);
             return 1;
         }
         return 0;
@@ -738,7 +738,7 @@ namespace LuaGlobalFunctions
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
-        sEluna.PushUnsigned(L, ObjectGuid(guid));
+        sEluna.Push(L, ObjectGuid(guid));
         return 1;
     }
 
@@ -793,7 +793,7 @@ namespace LuaGlobalFunctions
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
-        sEluna.PushUnsigned(L, a & b);
+        sEluna.Push(L, a & b);
         return 1;
     }
 
@@ -802,7 +802,7 @@ namespace LuaGlobalFunctions
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
-        sEluna.PushUnsigned(L, a | b);
+        sEluna.Push(L, a | b);
         return 1;
     }
 
@@ -811,7 +811,7 @@ namespace LuaGlobalFunctions
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
-        sEluna.PushUnsigned(L, a << b);
+        sEluna.Push(L, a << b);
         return 1;
     }
 
@@ -820,7 +820,7 @@ namespace LuaGlobalFunctions
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
-        sEluna.PushUnsigned(L, a >> b);
+        sEluna.Push(L, a >> b);
         return 1;
     }
 
@@ -829,7 +829,7 @@ namespace LuaGlobalFunctions
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
-        sEluna.PushUnsigned(L, a ^ b);
+        sEluna.Push(L, a ^ b);
         return 1;
     }
 
@@ -837,21 +837,21 @@ namespace LuaGlobalFunctions
     static int bit_not(lua_State* L)
     {
         uint32 a = luaL_checkunsigned(L, 1);
-        sEluna.PushUnsigned(L, ~ a);
+        sEluna.Push(L, ~ a);
         return 1;
     }
 
     static int GetGUIDType(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        sEluna.PushUnsigned(L, ObjectGuid(guid));
+        sEluna.Push(L, ObjectGuid(guid));
         return 1;
     }
 
     static int GetGUIDEntry(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        sEluna.PushUnsigned(L, ObjectGuid(guid));
+        sEluna.Push(L, ObjectGuid(guid));
         return 1;
     }
 
@@ -913,7 +913,7 @@ namespace LuaGlobalFunctions
             lua_pop(L, 1);
         }
 
-        sEluna.PushUnsigned(L, LuaTaxiMgr::AddPath(nodes, mountA, mountH, price, pathId));
+        sEluna.Push(L, LuaTaxiMgr::AddPath(nodes, mountA, mountH, price, pathId));
         return 1;
     }
 
@@ -953,7 +953,7 @@ namespace LuaGlobalFunctions
         oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec <<
             "|Hitem:" << entry << ":0:0:0:0:0:0:0:0:0|h[" << name << "]|h|r";
 
-        sEluna.PushString(L, oss.str().c_str());
+        sEluna.Push(L, oss.str());
         return 1;
     }
 
@@ -977,8 +977,8 @@ namespace LuaGlobalFunctions
 
         for (std::list<Player*>::const_iterator it = list.begin(); it != list.end(); ++it)
         {
-            sEluna.PushUnsigned(L, ++i);
-            sEluna.PushUnit(L, *it);
+            sEluna.Push(L, ++i);
+            sEluna.Push(L, *it);
             lua_settable(L, tbl);
         }
 
@@ -1006,8 +1006,8 @@ namespace LuaGlobalFunctions
 
         for (std::list<Creature*>::const_iterator it = list.begin(); it != list.end(); ++it)
         {
-            sEluna.PushUnsigned(L, ++i);
-            sEluna.PushUnit(L, *it);
+            sEluna.Push(L, ++i);
+            sEluna.Push(L, *it);
             lua_settable(L, tbl);
         }
 
@@ -1037,8 +1037,8 @@ namespace LuaGlobalFunctions
 
         for (std::list<GameObject*>::const_iterator it = list.begin(); it != list.end(); ++it)
         {
-            sEluna.PushUnsigned(L, ++i);
-            sEluna.PushGO(L, *it);
+            sEluna.Push(L, ++i);
+            sEluna.Push(L, *it);
             lua_settable(L, tbl);
         }
 
@@ -1053,13 +1053,13 @@ namespace LuaGlobalFunctions
 
         /*switch (GUID_HIPART(guid))
         {
-        case HIGHGUID_PLAYER:        sEluna.PushUnit(L, sObjectAccessor->GetPlayer(*p, guid)); break;
+        case HIGHGUID_PLAYER:        sEluna.Push(L, sObjectAccessor->GetPlayer(*p, guid)); break;
         case HIGHGUID_TRANSPORT:
         case HIGHGUID_MO_TRANSPORT:
-        case HIGHGUID_GAMEOBJECT:    sEluna.PushGO(L, sObjectAccessor->GetGameObject(*p, guid)); break;
+        case HIGHGUID_GAMEOBJECT:    sEluna.Push(L, sObjectAccessor->GetGameObject(*p, guid)); break;
         case HIGHGUID_VEHICLE:
-        case HIGHGUID_UNIT:          sEluna.PushUnit(L, sObjectAccessor->GetCreature(*p, guid)); break;
-        case HIGHGUID_PET:           sEluna.PushUnit(L, sObjectAccessor->GetPet(*p, guid)); break;
+        case HIGHGUID_UNIT:          sEluna.Push(L, sObjectAccessor->GetCreature(*p, guid)); break;
+        case HIGHGUID_PET:           sEluna.Push(L, sObjectAccessor->GetPet(*p, guid)); break;
         default:                     return 0;
         }*/
         return 1;
@@ -1087,7 +1087,7 @@ namespace LuaGlobalFunctions
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         bool insignia = luaL_optbool(L, 2, false);
 
-        sEluna.PushCorpse(L, sObjectAccessor.ConvertCorpseForPlayer((ObjectGuid)guid, insignia));
+        sEluna.Push(L, sObjectAccessor.ConvertCorpseForPlayer((ObjectGuid)guid, insignia));
         return 0;
     }
 
@@ -1101,7 +1101,7 @@ namespace LuaGlobalFunctions
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
         Weather* weather = sWorld.FindWeather(zoneId);
-        sEluna.PushWeather(L, weather);
+        sEluna.Push(L, weather);
         return 1;
     }
 
@@ -1109,7 +1109,7 @@ namespace LuaGlobalFunctions
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
         Weather* weather = sWorld.AddWeather(zoneId);
-        sEluna.PushWeather(L, weather);
+        sEluna.Push(L, weather);
         return 1;
     }
 

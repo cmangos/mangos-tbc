@@ -23,23 +23,13 @@
 class LuaQuest
 {
     public:
-        // :GetObjectType()
-        static int GetObjectType(lua_State* L, Quest* quest)
-        {
-            if (!quest)
-                return 0;
-
-            lua_pushstring(L, "Quest");
-            return 1;
-        }
-
         // :GetId()
         static int GetId(lua_State* L, Quest* quest)
         {
             if (!quest)
                 return 0;
 
-            sEluna.PushUnsigned(L, quest->GetQuestId());
+            sEluna.Push(L, quest->GetQuestId());
             return 1;
         }
 
@@ -49,7 +39,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushInteger(L, quest->GetQuestLevel());
+            sEluna.Push(L, quest->GetQuestLevel());
             return 1;
         }
 
@@ -59,7 +49,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushUnsigned(L, quest->GetMaxLevel());
+            sEluna.Push(L, quest->GetMaxLevel());
             return 1;
         }
 
@@ -69,7 +59,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushUnsigned(L, quest->GetMinLevel());
+            sEluna.Push(L, quest->GetMinLevel());
             return 1;
         }
 
@@ -79,7 +69,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushInteger(L, quest->GetNextQuestId());
+            sEluna.Push(L, quest->GetNextQuestId());
             return 1;
         }
 
@@ -89,7 +79,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushInteger(L, quest->GetPrevQuestId());
+            sEluna.Push(L, quest->GetPrevQuestId());
             return 1;
         }
 
@@ -99,7 +89,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushInteger(L, quest->GetNextQuestInChain());
+            sEluna.Push(L, quest->GetNextQuestInChain());
             return 1;
         }
 
@@ -109,7 +99,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushUnsigned(L, quest->GetQuestFlags());
+            sEluna.Push(L, quest->GetQuestFlags());
             return 1;
         }
 
@@ -119,7 +109,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushUnsigned(L, quest->GetType());
+            sEluna.Push(L, quest->GetType());
             return 1;
         }
 
@@ -130,7 +120,7 @@ class LuaQuest
                 return 0;
 
             uint32 flag = luaL_checkunsigned(L, 1);
-            sEluna.PushBoolean(L, quest->HasQuestFlag((QuestFlags)flag));
+            sEluna.Push(L, quest->HasQuestFlag((QuestFlags)flag));
             return 1;
         }
 
@@ -140,7 +130,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushBoolean(L, quest->IsDaily());
+            sEluna.Push(L, quest->IsDaily());
             return 1;
         }
 
@@ -150,7 +140,7 @@ class LuaQuest
             if (!quest)
                 return 0;
 
-            sEluna.PushBoolean(L, quest->IsRepeatable());
+            sEluna.Push(L, quest->IsRepeatable());
             return 1;
         }
 

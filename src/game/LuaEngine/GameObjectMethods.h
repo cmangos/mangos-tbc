@@ -24,7 +24,6 @@ namespace LuaGameObject
 {
     int GetMap(lua_State*, GameObject*);
     int GetRelativePoint(lua_State*, GameObject*);
-    int GetObjectType(lua_State*, GameObject*);
     int GetGUID(lua_State*, GameObject*);
     int CastSpell(lua_State*, GameObject*);
     int GetX(lua_State*, GameObject*);

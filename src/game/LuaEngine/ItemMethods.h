@@ -87,16 +87,7 @@ class LuaItem
                 item->GetItemRandomPropertyId() << ":" << item->GetItemSuffixFactor() << ":" <<
                 (uint32)item->GetOwner()->getLevel() << "|h[" << name << "]|h|r";
 
-            sEluna.PushString(L, oss.str().c_str());
-            return 1;
-        }
-
-        static int GetObjectType(lua_State* L, Item* item)
-        {
-            if (!item || !item->IsInWorld())
-                return 0;
-
-            sEluna.PushString(L, "Item");
+            sEluna.Push(L, oss.str());
             return 1;
         }
 
@@ -105,7 +96,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushULong(L, item->GetGUIDLow());
+            sEluna.Push(L, item->GetGUIDLow());
             return 1;
         }
 
@@ -114,7 +105,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushULong(L, item->GetOwnerGuid());
+            sEluna.Push(L, item->GetOwnerGuid());
             return 1;
         }
 
@@ -123,7 +114,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnit(L, item->GetOwner());
+            sEluna.Push(L, item->GetOwner());
             return 1;
         }
 
@@ -153,41 +144,41 @@ class LuaItem
         static int IsSoulBound(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsSoulBound());
+                sEluna.Push(L, item->IsSoulBound());
             return 1;
         }
 
         static int IsBoundAccountWide(lua_State* L, Item* item)
         {
             /*if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsBoundAccountWide());*/
+                sEluna.Push(L, item->IsBoundAccountWide());*/
             return 1;
         }
 
         static int IsBoundByEnchant(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsBoundByEnchant());
+                sEluna.Push(L, item->IsBoundByEnchant());
             return 1;
         }
 
         static int IsNotBoundToPlayer(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 Player* player = sEluna.CHECK_PLAYER(L, 1);
                 if (player)
-                    sEluna.PushBoolean(L, item->IsBindedNotWith(player));
+                    sEluna.Push(L, item->IsBindedNotWith(player));
                 else
-                    sEluna.PushBoolean(L, false);
+                    sEluna.Push(L, false);
             }
             return 1;
         }
@@ -195,57 +186,57 @@ class LuaItem
         static int IsLocked(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsLocked());
+                sEluna.Push(L, item->IsLocked());
             return 1;
         }
 
         static int IsBag(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsBag());
+                sEluna.Push(L, item->IsBag());
             return 1;
         }
 
         static int IsCurrencyToken(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsCurrencyToken());
+                sEluna.Push(L, item->IsCurrencyToken());
             return 1;
         }
 
         static int IsNotEmptyBag(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsNotEmptyBag());
+                sEluna.Push(L, item->IsNotEmptyBag());
             return 1;
         }
 
         static int IsBroken(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsBroken());
+                sEluna.Push(L, item->IsBroken());
             return 1;
         }
 
         static int CanBeTraded(lua_State* L, Item* item) // TODO: Implement trade bool
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 bool mail = luaL_optbool(L, 1, false);
-                // bool trade = luaL_optbool(L, 2, false);
-                sEluna.PushBoolean(L, item->CanBeTraded());
+
+                sEluna.Push(L, item->CanBeTraded());
             }
             return 1;
         }
@@ -253,9 +244,9 @@ class LuaItem
         static int IsInTrade(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsInTrade());
+                sEluna.Push(L, item->IsInTrade());
             return 1;
         }
 
@@ -264,7 +255,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetCount());
+            sEluna.Push(L, item->GetCount());
             return 1;
         }
 
@@ -283,7 +274,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetMaxStackCount());
+            sEluna.Push(L, item->GetMaxStackCount());
             return 1;
         }
 
@@ -292,7 +283,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetSlot());
+            sEluna.Push(L, item->GetSlot());
             return 1;
         }
 
@@ -301,36 +292,36 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetBagSlot());
+            sEluna.Push(L, item->GetBagSlot());
             return 1;
         }
 
         static int IsInBag(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsInBag());
+                sEluna.Push(L, item->IsInBag());
             return 1;
         }
 
         static int IsEquipped(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsEquipped());
+                sEluna.Push(L, item->IsEquipped());
             return 1;
         }
 
         static int hasQuest(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 uint32 quest = luaL_checkunsigned(L, 1);
-                sEluna.PushBoolean(L, item->HasQuest(quest));
+                sEluna.Push(L, item->HasQuest(quest));
             }
             return 1;
         }
@@ -338,36 +329,36 @@ class LuaItem
         static int IsPotion(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsPotion());
+                sEluna.Push(L, item->IsPotion());
             return 1;
         }
 
         static int IsWeaponVellum(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsWeaponVellum());
+                sEluna.Push(L, item->IsWeaponVellum());
             return 1;
         }
 
         static int IsArmorVellum(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsArmorVellum());
+                sEluna.Push(L, item->IsArmorVellum());
             return 1;
         }
 
         static int IsConjuredConsumable(lua_State* L, Item* item)
         {
             if (!item || !item->IsInWorld())
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
-                sEluna.PushBoolean(L, item->IsConjuredConsumable());
+                sEluna.Push(L, item->IsConjuredConsumable());
             return 1;
         }
 
@@ -375,9 +366,9 @@ class LuaItem
         {
             /*
                if (!item || !item->IsInWorld())
-                   sEluna.PushBoolean(L, false);
+                   sEluna.Push(L, false);
                else
-                   sEluna.PushBoolean(L, item->IsRefundExpired());
+                   sEluna.Push(L, item->IsRefundExpired());
                return 1;*/
             return 0; // Temp till supported
         }
@@ -388,7 +379,7 @@ class LuaItem
                 return 0;
 
             uint16 index = luaL_checkunsigned(L, 1);
-            sEluna.PushInteger(L, item->GetInt32Value(index));
+            sEluna.Push(L, item->GetInt32Value(index));
             return 1;
         }
 
@@ -398,7 +389,7 @@ class LuaItem
                 return 0;
 
             uint16 index = luaL_checkunsigned(L, 1);
-            sEluna.PushUnsigned(L, item->GetUInt32Value(index));
+            sEluna.Push(L, item->GetUInt32Value(index));
             return 1;
         }
 
@@ -408,7 +399,7 @@ class LuaItem
                 return 0;
 
             uint16 index = luaL_checkunsigned(L, 1);
-            sEluna.PushFloat(L, item->GetFloatValue(index));
+            sEluna.Push(L, item->GetFloatValue(index));
             return 1;
         }
 
@@ -419,7 +410,7 @@ class LuaItem
 
             uint16 index = luaL_checkunsigned(L, 1);
             uint8 offset = luaL_checkunsigned(L, 2);
-            sEluna.PushUnsigned(L, item->GetByteValue(index, offset));
+            sEluna.Push(L, item->GetByteValue(index, offset));
             return 1;
         }
 
@@ -430,7 +421,7 @@ class LuaItem
 
             uint16 index = luaL_checkunsigned(L, 1);
             uint8 offset = luaL_checkunsigned(L, 2);
-            sEluna.PushUnsigned(L, item->GetUInt16Value(index, offset));
+            sEluna.Push(L, item->GetUInt16Value(index, offset));
             return 1;
         }
 
@@ -518,21 +509,21 @@ class LuaItem
         {
             if (!item || !item->IsInWorld())
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
             Player* owner = item->GetOwner();
             if (!owner)
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
             uint32 enchant = luaL_checkunsigned(L, 1);
             if (!sSpellItemEnchantmentStore.LookupEntry(enchant))
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
@@ -540,14 +531,14 @@ class LuaItem
             if (slot >= MAX_INSPECTED_ENCHANTMENT_SLOT)
             {
                 luaL_error(L, "Invalid enchantment slot (%d)", slot);
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
             owner->ApplyEnchantment(item, slot, false);
             item->SetEnchantment(slot, enchant, 0, 0);
             owner->ApplyEnchantment(item, slot, true);
-            sEluna.PushBoolean(L, true);
+            sEluna.Push(L, true);
             return 1;
         }
 
@@ -555,14 +546,14 @@ class LuaItem
         {
             if (!item || !item->IsInWorld())
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
             Player* owner = item->GetOwner();
             if (!owner)
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
@@ -570,19 +561,19 @@ class LuaItem
             if (slot >= MAX_INSPECTED_ENCHANTMENT_SLOT)
             {
                 luaL_error(L, "Invalid enchantment slot (%d)", slot);
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
             if (!item->GetEnchantmentId(slot))
             {
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
                 return 1;
             }
 
             owner->ApplyEnchantment(item, slot, false);
             item->ClearEnchantment(slot);
-            sEluna.PushBoolean(L, true);
+            sEluna.Push(L, true);
             return 1;
         }
 
@@ -591,7 +582,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetGUIDLow());
+            sEluna.Push(L, item->GetGUIDLow());
             return 1;
         }
 
@@ -604,9 +595,9 @@ class LuaItem
 
             EnchantmentSlot slot = EnchantmentSlot(luaL_checkunsigned(L, 2));
             if (slot >= MAX_INSPECTED_ENCHANTMENT_SLOT)
-                sEluna.PushUnsigned(L, 0);
+                sEluna.Push(L, 0);
             else
-                sEluna.PushUnsigned(L, item->GetEnchantmentId(EnchantmentSlot(enchant_slot)));
+                sEluna.Push(L, item->GetEnchantmentId(EnchantmentSlot(enchant_slot)));
             return 1;
         }
 
@@ -622,7 +613,7 @@ class LuaItem
                 return 0;
             }
 
-            sEluna.PushUnsigned(L, item->GetProto()->Spells[index].SpellId);
+            sEluna.Push(L, item->GetProto()->Spells[index].SpellId);
             return 1;
         }
 
@@ -638,7 +629,7 @@ class LuaItem
                 return 0;
             }
 
-            sEluna.PushUnsigned(L, item->GetProto()->Spells[index].SpellTrigger);
+            sEluna.Push(L, item->GetProto()->Spells[index].SpellTrigger);
             return 1;
         }
 
@@ -647,7 +638,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetEntry());
+            sEluna.Push(L, item->GetEntry());
             return 1;
         }
 
@@ -656,7 +647,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->Class);
+            sEluna.Push(L, item->GetProto()->Class);
             return 1;
         }
 
@@ -665,7 +656,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->SubClass);
+            sEluna.Push(L, item->GetProto()->SubClass);
             return 1;
         }
 
@@ -674,7 +665,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushString(L, item->GetProto()->Name1);
+            sEluna.Push(L, item->GetProto()->Name1);
             return 1;
         }
 
@@ -683,7 +674,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->DisplayInfoID);
+            sEluna.Push(L, item->GetProto()->DisplayInfoID);
             return 1;
         }
 
@@ -692,7 +683,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->Quality);
+            sEluna.Push(L, item->GetProto()->Quality);
             return 1;
         }
 
@@ -701,7 +692,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->BuyCount);
+            sEluna.Push(L, item->GetProto()->BuyCount);
             return 1;
         }
 
@@ -710,7 +701,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushInteger(L, item->GetProto()->BuyPrice);
+            sEluna.Push(L, item->GetProto()->BuyPrice);
             return 1;
         }
 
@@ -719,7 +710,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->SellPrice);
+            sEluna.Push(L, item->GetProto()->SellPrice);
             return 1;
         }
 
@@ -728,7 +719,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->InventoryType);
+            sEluna.Push(L, item->GetProto()->InventoryType);
             return 1;
         }
 
@@ -737,7 +728,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->AllowableClass);
+            sEluna.Push(L, item->GetProto()->AllowableClass);
             return 1;
         }
 
@@ -746,7 +737,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->AllowableRace);
+            sEluna.Push(L, item->GetProto()->AllowableRace);
             return 1;
         }
 
@@ -755,7 +746,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->ItemLevel);
+            sEluna.Push(L, item->GetProto()->ItemLevel);
             return 1;
         }
 
@@ -764,7 +755,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->RequiredLevel);
+            sEluna.Push(L, item->GetProto()->RequiredLevel);
             return 1;
         }
 
@@ -773,7 +764,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            // sEluna.PushUnsigned(L, item->GetProto()->StatsCount);
+            // sEluna.sEluna.Push(L, item->GetProto()->StatsCount);
             return 1;
         }
 
@@ -782,7 +773,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushInteger(L, item->GetProto()->RandomProperty);
+            sEluna.Push(L, item->GetProto()->RandomProperty);
             return 1;
         }
 
@@ -791,7 +782,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushInteger(L, item->GetProto()->RandomSuffix);
+            sEluna.Push(L, item->GetProto()->RandomSuffix);
             return 1;
         }
 
@@ -800,7 +791,7 @@ class LuaItem
             if (!item || !item->IsInWorld())
                 return 0;
 
-            sEluna.PushUnsigned(L, item->GetProto()->ItemSet);
+            sEluna.Push(L, item->GetProto()->ItemSet);
             return 1;
         }
 
@@ -810,9 +801,9 @@ class LuaItem
                 return 0;
 
             if (Bag* bag = item->ToBag())
-                sEluna.PushUnsigned(L, bag->GetBagSize());
+                sEluna.Push(L, bag->GetBagSize());
             else
-                sEluna.PushUnsigned(L, 0);
+                sEluna.Push(L, 0);
             return 1;
         }
 };

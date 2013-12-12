@@ -31,8 +31,6 @@ namespace LuaUnit
     int SetOwnerGUID(lua_State*, Unit*);
     int GetOwner(lua_State*, Unit*);
     int GetOwnerGUID(lua_State*, Unit*);
-    int SummonPlayer(lua_State*, Unit*);
-    int Mute(lua_State*, Unit*);
     int GetMap(lua_State*, Unit*);
     int GetRelativePoint(lua_State*, Unit*);
     int Mount(lua_State*, Unit*);
@@ -344,18 +342,11 @@ namespace LuaUnit
     int GetLevel(lua_State*, Unit*);
     int GetHealth(lua_State*, Unit*);
     int GetGuildId(lua_State*, Unit*);
-    int GetX(lua_State*, Unit*);
-    int GetY(lua_State*, Unit*);
-    int GetZ(lua_State*, Unit*);
-    int GetO(lua_State*, Unit*);
-    int GetLocation(lua_State*, Unit*);
     int GetZoneId(lua_State*, Unit*);
     int GetInstanceId(lua_State*, Unit*);
     int GetPhaseMask(lua_State*, Unit*);
     int GetAreaId(lua_State*, Unit*);
     int GetTeam(lua_State*, Unit*);
-    int GetGUID(lua_State*, Unit*);
-    int GetGUIDLow(lua_State*, Unit*);
     int GetPower(lua_State*, Unit*);
     int GetMaxPower(lua_State*, Unit*);
     int GetPowerType(lua_State*, Unit*);
@@ -372,7 +363,6 @@ namespace LuaUnit
     int GetPlayerIP(lua_State*, Unit*);
     int GetLevelPlayedTime(lua_State*, Unit*);
     int GetTotalPlayedTime(lua_State*, Unit*);
-    int GetObjectType(lua_State*, Unit*);
     int GetGuild(lua_State*, Unit*);
     int GetGroup(lua_State*, Unit*);
     int GetGearLevel(lua_State*, Unit*);

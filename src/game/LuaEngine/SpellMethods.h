@@ -23,23 +23,13 @@
 class LuaSpell
 {
     public:
-        // :GetObjectType()
-        static int GetObjectType(lua_State* L, Spell* spell)
-        {
-            if (!spell)
-                return 0;
-
-            lua_pushstring(L, "Spell");
-            return 1;
-        }
-
         // GetCaster()
         static int GetCaster(lua_State* L, Spell* spell)
         {
             if (!spell)
                 return 0;
 
-            sEluna.PushUnit(L, spell->GetCaster());
+            sEluna.Push(L, spell->GetCaster());
             return 1;
         }
 
@@ -49,7 +39,7 @@ class LuaSpell
             if (!spell)
                 return 0;
 
-            sEluna.PushInteger(L, spell->GetCastTime());
+            sEluna.Push(L, spell->GetCastTime());
             return 1;
         }
 
@@ -59,7 +49,7 @@ class LuaSpell
             if (!spell)
                 return 0;
 
-            sEluna.PushUnsigned(L, spell->m_spellInfo->Id);
+            sEluna.Push(L, spell->m_spellInfo->Id);
             return 1;
         }
 
@@ -69,7 +59,7 @@ class LuaSpell
             if (!spell)
                 return 0;
 
-            sEluna.PushInteger(L, spell->GetPowerCost());
+            sEluna.Push(L, spell->GetPowerCost());
             return 1;
         }
 
@@ -79,7 +69,7 @@ class LuaSpell
             if (!spell)
                 return 0;
 
-            // sEluna.PushInteger(L, spell->m_spellInfo->GetDuration());
+            // sEluna.Push(L, spell->m_spellInfo->GetDuration());
             // return 1;
             return 0; // Temp to not cause conflicts
         }
@@ -99,11 +89,11 @@ class LuaSpell
         static int IsAutoRepeat(lua_State* L, Spell* spell)
         {
             if (!spell)
-                sEluna.PushBoolean(L, false);
+                sEluna.Push(L, false);
             else
             {
                 bool repeat = spell->IsAutoRepeat();
-                sEluna.PushBoolean(L, repeat);
+                sEluna.Push(L, repeat);
             }
             return 1;
         }
@@ -149,11 +139,11 @@ class LuaSpell
                 return 0;
             float x, y, z, o;
             spell->m_targets.GetDstPos()->GetPosition(x,y,z,o);
-            sEluna.PushFloat(L, x);
-            sEluna.PushFloat(L, y);
-            sEluna.PushFloat(L, z);
-            sEluna.PushFloat(L, o);
-            sEluna.PushUnsigned(L, spell->m_targets.GetDstPos()->GetMapId());
+            sEluna.Push(L, x);
+            sEluna.Push(L, y);
+            sEluna.Push(L, z);
+            sEluna.Push(L, o);
+            sEluna.Push(L, spell->m_targets.GetDstPos()->GetMapId());
             return 5;*/
             return 0; // Temporary to prevent conflicts
         }

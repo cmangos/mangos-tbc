@@ -29,7 +29,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushString(L, map->GetMapName());
+            sEluna.Push(L, map->GetMapName());
             return 1;
         }
 
@@ -43,7 +43,7 @@ class LuaMap
             float z = map->GetHeight(x, y, MAX_HEIGHT);
             if (z == INVALID_HEIGHT)
                 return 0;
-            sEluna.PushFloat(L, z);
+            sEluna.Push(L, z);
             return 1;
         }
 
@@ -53,7 +53,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushUnsigned(L, map->GetDifficulty());
+            sEluna.Push(L, map->GetDifficulty());
             return 1;
         }
 
@@ -63,7 +63,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushUnsigned(L, map->GetInstanceId());
+            sEluna.Push(L, map->GetInstanceId());
             return 1;
         }
 
@@ -73,7 +73,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushUnsigned(L, map->GetPlayersCountExceptGMs());
+            sEluna.Push(L, map->GetPlayersCountExceptGMs());
             return 1;
         }
 
@@ -83,7 +83,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushUnsigned(L, map->GetId());
+            sEluna.Push(L, map->GetId());
             return 1;
         }
 
@@ -97,7 +97,7 @@ class LuaMap
             float y = luaL_checknumber(L, 2);
             float z = luaL_checknumber(L, 3);
 
-            sEluna.PushUnsigned(L, map->GetTerrain()->GetAreaId(x, y, z));
+            sEluna.Push(L, map->GetTerrain()->GetAreaId(x, y, z));
             return 1;
         }
 
@@ -107,7 +107,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushBoolean(L, map->IsBattleArena());
+            sEluna.Push(L, map->IsBattleArena());
             return 1;
         }
 
@@ -117,7 +117,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushBoolean(L, map->IsBattleGround());
+            sEluna.Push(L, map->IsBattleGround());
             return 1;
         }
 
@@ -127,7 +127,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushBoolean(L, map->IsDungeon());
+            sEluna.Push(L, map->IsDungeon());
             return 1;
         }
 
@@ -137,7 +137,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushBoolean(L, map->isEmpty());
+            sEluna.Push(L, map->isEmpty());
             return 1;
         }
 
@@ -147,7 +147,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushBoolean(L, map->IsHeroic());
+            sEluna.Push(L, map->IsHeroic());
             return 1;
         }
 
@@ -157,7 +157,7 @@ class LuaMap
             if (!map)
                 return 0;
 
-            sEluna.PushBoolean(L, map->IsRaid());
+            sEluna.Push(L, map->IsRaid());
             return 1;
         }
 };

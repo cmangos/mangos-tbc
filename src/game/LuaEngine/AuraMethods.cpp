@@ -20,21 +20,12 @@
 #include "LuaEngine.h"
 #include "AuraMethods.h"
 
-int LuaAura::GetObjectType(lua_State* L, Aura* aura)
-{
-    if (!aura)
-        return 0;
-
-    sEluna.PushString(L, "Aura");
-    return 1;
-}
-
 int LuaAura::GetCaster(lua_State* L, Aura* aura)
 {
     if (!aura)
         return 0;
 
-    sEluna.PushUnit(L, aura->GetCaster());
+    sEluna.Push(L, aura->GetCaster());
     return 1;
 }
 
@@ -43,7 +34,7 @@ int LuaAura::GetCasterGUID(lua_State* L, Aura* aura)
     if (!aura)
         return 0;
 
-    sEluna.PushULong(L, aura->GetCasterGuid());
+    sEluna.Push(L, aura->GetCasterGuid());
     return 1;
 }
 
@@ -52,7 +43,7 @@ int LuaAura::GetCasterLevel(lua_State* L, Aura* aura)
     if (!aura)
         return 0;
 
-    sEluna.PushUnsigned(L, aura->GetCaster()->getLevel());
+    sEluna.Push(L, aura->GetCaster()->getLevel());
     return 1;
 }
 
@@ -61,7 +52,7 @@ int LuaAura::GetDuration(lua_State* L, Aura* aura)
     if (!aura)
         return 0;
 
-    sEluna.PushInteger(L, aura->GetAuraDuration());
+    sEluna.Push(L, aura->GetAuraDuration());
     return 1;
 }
 
@@ -70,7 +61,7 @@ int LuaAura::GetCharges(lua_State* L, Aura* aura)
     if (!aura)
         return 0;
 
-    sEluna.PushUnsigned(L, aura->GetStackAmount());
+    sEluna.Push(L, aura->GetStackAmount());
     return 1;
 }
 
@@ -79,7 +70,7 @@ int LuaAura::GetAuraId(lua_State* L, Aura* aura)
     if (!aura)
         return 0;
 
-    sEluna.PushUnsigned(L, aura->GetId());
+    sEluna.Push(L, aura->GetId());
     return 1;
 }
 
@@ -88,7 +79,7 @@ int LuaAura::GetMaxDuration(lua_State* L, Aura* aura)
     if (!aura)
         return 0;
 
-    sEluna.PushInteger(L, aura->GetAuraMaxDuration());
+    sEluna.Push(L, aura->GetAuraMaxDuration());
     return 1;
 }
 
@@ -97,7 +88,7 @@ int LuaAura::GetStackAmount(lua_State* L, Aura* aura)
     if (!aura)
         return 0;
 
-    sEluna.PushUnsigned(L, aura->GetStackAmount());
+    sEluna.Push(L, aura->GetStackAmount());
     return 1;
 }
 
@@ -147,7 +138,7 @@ int LuaAura::GetOwner(lua_State* L, Aura* aura) // TODO: Implement
     if (aura->GetType() != UNIT_AURA_TYPE)
         return 0;
 
-    sEluna.PushUnit(L, aura->GetUnitOwner());
+    sEluna.Push(L, aura->GetUnitOwner());
     return 1;*/
     return 0; // Temp return to prevent errors
 }

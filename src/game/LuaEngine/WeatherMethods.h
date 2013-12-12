@@ -16,74 +16,74 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 #ifndef WEATHERMETHODS_H
 #define WEATHERMETHODS_H
 
 class LuaWeather
 {
-public:
+    public:
 
-    static int GetScriptId(lua_State* L, Weather* weather)
-    {
-        if (!weather)
+        static int GetScriptId(lua_State* L, Weather* weather)
+        {
+            if (!weather)
+                return 0;
+
+            sEluna.Push(L, weather->GetScriptId());
+            return 1;
+        }
+
+        static int GetZoneId(lua_State* L, Weather* weather)
+        {
+            if (!weather)
+                return 0;
+
+            sEluna.Push(L, weather->GetZone());
+            return 1;
+        }
+
+        static int SetWeather(lua_State* L, Weather* weather)
+        {
+            if (!weather)
+                return 0;
+
+            uint32 weatherType = luaL_checkunsigned(L, 1);
+            float grade = luaL_checknumber(L, 2);
+
+            weather->SetWeather((WeatherType)weatherType, grade);
             return 0;
+        }
 
-        sEluna.Push(L, weather->GetScriptId());
-        return 1;
-    }
+        static int SendWeatherUpdateToPlayer(lua_State* L, Weather* weather)
+        {
+            if (!weather)
+                return 0;
 
-    static int GetZoneId(lua_State* L, Weather* weather)
-    {
-        if (!weather)
+            Player* player = sEluna.CHECK_PLAYER(L, 1);
+            if (!player)
+                return 0;
+
+            weather->SendWeatherUpdateToPlayer(player);
             return 0;
+        }
 
-        sEluna.Push(L, weather->GetZone());
-        return 1;
-    }
+        static int Regenerate(lua_State* L, Weather* weather)
+        {
+            if (!weather)
+                return 0;
 
-    static int SetWeather(lua_State* L, Weather* weather)
-    {
-        if (!weather)
-            return 0;
+            sEluna.Push(L, weather->ReGenerate());
+            return 1;
+        }
 
-        uint32 weatherType = luaL_checkunsigned(L, 1);
-        float grade = luaL_checknumber(L, 2);
+        static int UpdateWeather(lua_State* L, Weather* weather)
+        {
+            if (!weather)
+                return 0;
 
-        weather->SetWeather((WeatherType)weatherType, grade);
-        return 0;
-    }
-
-    static int SendWeatherUpdateToPlayer(lua_State* L, Weather* weather)
-    {
-        if (!weather)
-            return 0;
-
-        Player* player = sEluna.CHECK_PLAYER(L, 1);
-        if (!player)
-            return 0;
-
-        weather->SendWeatherUpdateToPlayer(player);
-        return 0;
-    }
-
-    static int Regenerate(lua_State* L, Weather* weather)
-    {
-        if (!weather)
-            return 0;
-
-        sEluna.Push(L, weather->ReGenerate());
-        return 1;
-    }
-
-    static int UpdateWeather(lua_State* L, Weather* weather)
-    {
-        if (!weather)
-            return 0;
-
-        sEluna.Push(L, weather->UpdateWeather());
-        return 1;
-    }
+            sEluna.Push(L, weather->UpdateWeather());
+            return 1;
+        }
 };
 
 #endif

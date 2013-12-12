@@ -116,7 +116,7 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "RemoveWeather", &LuaGlobalFunctions::RemoveWeather);                                   // RemoveWeather(zoneId) - Removes weather from a zone
     lua_register(L, "SendFineWeatherToPlayer", &LuaGlobalFunctions::SendFineWeatherToPlayer);               // SendFineWeatherToPlayer(player) - Sends WEATHER_STATE_FINE weather to the
 }
- 
+
 ElunaRegister<Object> ObjectMethods[] =
 {
     {"GetGUID", &LuaObject::GetGUID},                               // :GetGUID() - Returns uint64 guid as hex string
@@ -136,7 +136,7 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
 
     {NULL, NULL},
 };
- 
+
 ElunaRegister<Unit> UnitMethods[] =
 {
     // Player Methods
@@ -669,7 +669,7 @@ ElunaRegister<Unit> UnitMethods[] =
 
     { NULL, NULL },
 };
- 
+
 ElunaRegister<Player> PlayerMethods[] =
 {
     //{"Mute", &LuaUnit::Mute},                               // :Mute(time[, reason]) - Mutes the player for given time in seconds.
@@ -677,7 +677,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasSpell", &LuaPlayer::HasSpell},                       // :HasSpell(id)
     {NULL, NULL},
 };
- 
+
 ElunaRegister<Creature> CreatureMethods[] =
 {
     {NULL, NULL},
@@ -1082,7 +1082,7 @@ void RegisterFunctions(lua_State* L)
     SetMethods(L, ObjectMethods);
     SetMethods(L, WorldObjectMethods);
     SetMethods(L, UnitMethods);
-    
+
     ElunaTemplate<Player>::Register(L);
     SetMethods(L, ObjectMethods);
     SetMethods(L, WorldObjectMethods);

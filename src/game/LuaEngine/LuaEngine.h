@@ -248,7 +248,7 @@ void SetMethods(lua_State* L, ElunaRegister<T>* methodTable)
 {
     if (!methodTable)
         return;
-    if (!lua_istable(L,1))
+    if (!lua_istable(L, 1))
         return;
     lua_pushstring(L, "GetObjectType");
     lua_pushcclosure(L, ElunaTemplate<T>::type, 0);
@@ -265,178 +265,178 @@ void SetMethods(lua_State* L, ElunaRegister<T>* methodTable)
 template<typename T>
 class ElunaTemplate
 {
-public:
-    static int type(lua_State* L)
-    {
-        lua_pushstring(L, GetTName<T>());
-        return 1;
-    }
-
-    static void Register(lua_State* L)
-    {
-        lua_settop(L, 0); // clean stack
-
-        lua_newtable(L);
-        int methods = lua_gettop(L);
-
-        luaL_newmetatable(L, GetTName<T>());
-        int metatable = lua_gettop(L);
-
-        // store method table in globals so that
-        // scripts can add functions in Lua
-        lua_pushvalue(L, methods);
-        lua_setglobal(L, GetTName<T>());
-
-        // hide metatable
-        lua_pushvalue(L, methods);
-        lua_setfield(L, metatable, "__metatable");
-
-        lua_pushvalue(L, methods);
-        lua_setfield(L, metatable, "__index");
-
-        lua_pushcfunction(L, tostringT);
-        lua_setfield(L, metatable, "__tostring");
-
-        lua_pushcfunction(L, gcT);
-        lua_setfield(L, metatable, "__gc");
-
-        lua_newtable(L);
-        lua_setmetatable(L, methods);
-    }
-
-    static int push(lua_State* L, T const* obj, bool gc = false)
-    {
-        if (!obj)
+    public:
+        static int type(lua_State* L)
         {
-            lua_pushnil(L);
-            return lua_gettop(L);
+            lua_pushstring(L, GetTName<T>());
+            return 1;
         }
-        luaL_getmetatable(L, GetTName<T>());
-        if (lua_isnil(L, -1))
-            luaL_error(L, "%s missing metatable", GetTName<T>());
-        int idxMt = lua_gettop(L);
-        T const** ptrHold = (T const**)lua_newuserdata(L, sizeof(T**));
-        int ud = lua_gettop(L);
-        if (ptrHold)
+
+        static void Register(lua_State* L)
         {
-            *ptrHold = obj;
-            lua_pushvalue(L, idxMt);
-            lua_setmetatable(L, -2);
-            char name[32];
-            tostring(name, obj);
-            lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
-            if (lua_isnil(L, -1))
+            lua_settop(L, 0); // clean stack
+
+            lua_newtable(L);
+            int methods = lua_gettop(L);
+
+            luaL_newmetatable(L, GetTName<T>());
+            int metatable = lua_gettop(L);
+
+            // store method table in globals so that
+            // scripts can add functions in Lua
+            lua_pushvalue(L, methods);
+            lua_setglobal(L, GetTName<T>());
+
+            // hide metatable
+            lua_pushvalue(L, methods);
+            lua_setfield(L, metatable, "__metatable");
+
+            lua_pushvalue(L, methods);
+            lua_setfield(L, metatable, "__index");
+
+            lua_pushcfunction(L, tostringT);
+            lua_setfield(L, metatable, "__tostring");
+
+            lua_pushcfunction(L, gcT);
+            lua_setfield(L, metatable, "__gc");
+
+            lua_newtable(L);
+            lua_setmetatable(L, methods);
+        }
+
+        static int push(lua_State* L, T const* obj, bool gc = false)
+        {
+            if (!obj)
             {
-                luaL_newmetatable(L, "DO NOT TRASH");
+                lua_pushnil(L);
+                return lua_gettop(L);
+            }
+            luaL_getmetatable(L, GetTName<T>());
+            if (lua_isnil(L, -1))
+                luaL_error(L, "%s missing metatable", GetTName<T>());
+            int idxMt = lua_gettop(L);
+            T const** ptrHold = (T const**)lua_newuserdata(L, sizeof(T**));
+            int ud = lua_gettop(L);
+            if (ptrHold)
+            {
+                *ptrHold = obj;
+                lua_pushvalue(L, idxMt);
+                lua_setmetatable(L, -2);
+                char name[32];
+                tostring(name, obj);
+                lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
+                if (lua_isnil(L, -1))
+                {
+                    luaL_newmetatable(L, "DO NOT TRASH");
+                    lua_pop(L, 1);
+                }
+                lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
+                if (gc == false)
+                {
+                    lua_pushboolean(L, 1);
+                    lua_setfield(L, -2, name);
+                }
                 lua_pop(L, 1);
             }
+            lua_settop(L, ud);
+            lua_replace(L, idxMt);
+            lua_settop(L, idxMt);
+            return idxMt;
+        }
+
+        static T* check(lua_State* L, int narg)
+        {
+            T** ptrHold = static_cast<T**>(lua_touserdata(L, narg));
+            if (!ptrHold)
+                return NULL;
+            return *ptrHold;
+        }
+
+        static int thunk(lua_State* L)
+        {
+            T* obj = check(L, 1); // get self
+            lua_remove(L, 1); // remove self
+            ElunaRegister<T>* l = static_cast<ElunaRegister<T>*>(lua_touserdata(L, lua_upvalueindex(1)));
+            if (!obj)
+                return 0;
+            return l->mfunc(L, obj);
+        }
+
+        static int gcT(lua_State* L)
+        {
+            T* obj = check(L, 1);
+            if (!obj)
+                return 0;
             lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
-            if (gc == false)
+            if (lua_istable(L, -1))
             {
-                lua_pushboolean(L, 1);
-                lua_setfield(L, -2, name);
-            }
-            lua_pop(L, 1);
-        }
-        lua_settop(L, ud);
-        lua_replace(L, idxMt);
-        lua_settop(L, idxMt);
-        return idxMt;
-    }
-
-    static T* check(lua_State* L, int narg)
-    {
-        T** ptrHold = static_cast<T**>(lua_touserdata(L, narg));
-        if (!ptrHold)
-            return NULL;
-        return *ptrHold;
-    }
-
-    static int thunk(lua_State* L)
-    {
-        T* obj = check(L, 1); // get self
-        lua_remove(L, 1); // remove self
-        ElunaRegister<T>* l = static_cast<ElunaRegister<T>*>(lua_touserdata(L, lua_upvalueindex(1)));
-        if (!obj)
-            return 0;
-        return l->mfunc(L, obj);
-    }
-
-    static int gcT(lua_State* L)
-    {
-        T* obj = check(L, 1);
-        if (!obj)
-            return 0;
-        lua_getfield(L, LUA_REGISTRYINDEX, "DO NOT TRASH");
-        if (lua_istable(L, -1))
-        {
-            char name[32];
-            tostring(name, obj);
-            lua_getfield(L, -1, std::string(name).c_str());
-            if (lua_isnil(L, -1))
-            {
-                delete obj;
-                obj = NULL;
-            }
-        }
-        return 1;
-    }
-
-    static int tostringT(lua_State* L)
-    {
-        char buff[32];
-        T** ptrHold = (T**)lua_touserdata(L, 1);
-        T* obj = *ptrHold;
-        sprintf(buff, "%p", obj);
-        lua_pushfstring(L, "%s (%s)", GetTName<T>(), buff);
-        return 1;
-    }
-
-    inline static void tostring(char* buff, void const* obj)
-    {
-        sprintf(buff, "%p", obj);
-    }
-
-    static int index(lua_State* L)
-    {
-        lua_getglobal(L, GetTName<T>());
-        const char* key = lua_tostring(L, 2);
-        if (lua_istable(L, - 1))
-        {
-            lua_pushvalue(L, 2);
-            lua_rawget(L, -2);
-            if (lua_isnil(L, -1))
-            {
-                lua_getmetatable(L, -2);
-                if (lua_istable(L, -1))
+                char name[32];
+                tostring(name, obj);
+                lua_getfield(L, -1, std::string(name).c_str());
+                if (lua_isnil(L, -1))
                 {
-                    lua_getfield(L, -1, "__index");
-                    if (lua_isfunction(L, -1))
-                    {
-                        lua_pushvalue(L, 1);
-                        lua_pushvalue(L, 2);
-                        lua_pcall(L, 2, 1, 0);
-                    }
-                    else if (lua_istable(L, -1))
-                        lua_getfield(L, -1, key);
-                    else
-                        lua_pushnil(L);
+                    delete obj;
+                    obj = NULL;
                 }
-                else
-                    lua_pushnil(L);
             }
-            else if (lua_istable(L, -1))
+            return 1;
+        }
+
+        static int tostringT(lua_State* L)
+        {
+            char buff[32];
+            T** ptrHold = (T**)lua_touserdata(L, 1);
+            T* obj = *ptrHold;
+            sprintf(buff, "%p", obj);
+            lua_pushfstring(L, "%s (%s)", GetTName<T>(), buff);
+            return 1;
+        }
+
+        inline static void tostring(char* buff, void const* obj)
+        {
+            sprintf(buff, "%p", obj);
+        }
+
+        static int index(lua_State* L)
+        {
+            lua_getglobal(L, GetTName<T>());
+            const char* key = lua_tostring(L, 2);
+            if (lua_istable(L, - 1))
             {
                 lua_pushvalue(L, 2);
                 lua_rawget(L, -2);
+                if (lua_isnil(L, -1))
+                {
+                    lua_getmetatable(L, -2);
+                    if (lua_istable(L, -1))
+                    {
+                        lua_getfield(L, -1, "__index");
+                        if (lua_isfunction(L, -1))
+                        {
+                            lua_pushvalue(L, 1);
+                            lua_pushvalue(L, 2);
+                            lua_pcall(L, 2, 1, 0);
+                        }
+                        else if (lua_istable(L, -1))
+                            lua_getfield(L, -1, key);
+                        else
+                            lua_pushnil(L);
+                    }
+                    else
+                        lua_pushnil(L);
+                }
+                else if (lua_istable(L, -1))
+                {
+                    lua_pushvalue(L, 2);
+                    lua_rawget(L, -2);
+                }
             }
+            else
+                lua_pushnil(L);
+            lua_insert(L, 1);
+            lua_settop(L, 1);
+            return 1;
         }
-        else
-            lua_pushnil(L);
-        lua_insert(L, 1);
-        lua_settop(L, 1);
-        return 1;
-    }
 };
 
 class Eluna
@@ -473,8 +473,8 @@ class Eluna
         bool ExecuteCall(uint8 params, uint8 res);
         void EndCall(uint8 res);
         void LoadDirectory(char* directory, LoadedScripts* scr);
-        // Pushes  
-        void Push(lua_State*); // nil      
+        // Pushes
+        void Push(lua_State*); // nil
         void Push(lua_State*, uint64);
         void Push(lua_State*, int64);
         void Push(lua_State*, uint32);

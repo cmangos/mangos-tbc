@@ -56,7 +56,7 @@ class LuaGuild
         {
             if (!guild)
                 return 0;
-            
+
             sEluna.Push(L, guild->GetMemberSize());
             return 1;
         }
@@ -229,11 +229,11 @@ class LuaGuild
             Player* player = sEluna.CHECK_PLAYER(L, 1);
             uint32 money = luaL_checknumber(L, 2);
 
-            if (!guild || !player || (guild->GetGuildBankMoney()-money) < 0)
+            if (!guild || !player || (guild->GetGuildBankMoney() - money) < 0)
                 return 0;
 
-            player->SetMoney(player->GetMoney()+money);
-            guild->SetBankMoney(guild->GetGuildBankMoney()-money);
+            player->SetMoney(player->GetMoney() + money);
+            guild->SetBankMoney(guild->GetGuildBankMoney() - money);
             return 0;
         }
 
@@ -242,11 +242,11 @@ class LuaGuild
             Player* player = sEluna.CHECK_PLAYER(L, 1);
             uint32 money = luaL_checknumber(L, 2);
 
-            if (!guild || !player || (player->GetMoney()-money) < 0)
+            if (!guild || !player || (player->GetMoney() - money) < 0)
                 return 0;
 
-            player->SetMoney(player->GetMoney()-money);
-            guild->SetBankMoney(guild->GetGuildBankMoney()+money);
+            player->SetMoney(player->GetMoney() - money);
+            guild->SetBankMoney(guild->GetGuildBankMoney() + money);
             return 0;
         }
 };

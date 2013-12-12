@@ -5471,7 +5471,7 @@ int LuaUnit::CanUseItem(lua_State* L, Unit* unit)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
         const ItemPrototype* temp = sObjectMgr.GetItemPrototype(entry);
-        if(temp)
+        if (temp)
             sEluna.Push(L, player->CanUseItem(temp));
         else
             sEluna.Push(L, EQUIP_ERR_ITEM_NOT_FOUND);

@@ -122,7 +122,7 @@ void Eluna::StartEluna(bool restart)
         }
         ++count;
     }
-    
+
     /*
     if (restart)
     {

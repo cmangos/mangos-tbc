@@ -667,7 +667,7 @@ namespace LuaGlobalFunctions
 
         VendorItemList const itemlist = items->m_items;
         for (VendorItemList::const_iterator itr = itemlist.begin(); itr != itemlist.end(); ++itr)
-        sObjectMgr.RemoveVendorItem(entry, (*itr)->item/*, persist*/); // MaNGOS does not support persist
+            sObjectMgr.RemoveVendorItem(entry, (*itr)->item/*, persist*/); // MaNGOS does not support persist
         return 0;
     }
 
@@ -712,16 +712,16 @@ namespace LuaGlobalFunctions
 
         switch (sWorld.BanAccount((BanMode)banMode, nameOrIP, duration, reason, whoBanned->GetSession() ? whoBanned->GetName() : ""))
         {
-        case BAN_SUCCESS:
-            if (duration > 0)
-                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_YOUBANNED, nameOrIP.c_str(), secsToTimeString(duration, true).c_str(), reason);
-            else
-                ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_YOUPERMBANNED, nameOrIP.c_str(), reason);
-            break;
-        case BAN_SYNTAX_ERROR:
-            return 0;
-        case BAN_NOTFOUND:
-            return 0;
+            case BAN_SUCCESS:
+                if (duration > 0)
+                    ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_YOUBANNED, nameOrIP.c_str(), secsToTimeString(duration, true).c_str(), reason);
+                else
+                    ChatHandler(whoBanned->GetSession()).PSendSysMessage(LANG_BAN_YOUPERMBANNED, nameOrIP.c_str(), reason);
+                break;
+            case BAN_SYNTAX_ERROR:
+                return 0;
+            case BAN_NOTFOUND:
+                return 0;
         }
         return 0;
     }

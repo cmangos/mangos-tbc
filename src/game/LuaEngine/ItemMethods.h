@@ -78,7 +78,7 @@ class LuaItem
 
             std::ostringstream oss;
             oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec <<
-                "|Hitem:" << temp->ItemId <<":" <<
+                "|Hitem:" << temp->ItemId << ":" <<
                 item->GetEnchantmentId(PERM_ENCHANTMENT_SLOT) << ":" <<
                 item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT) << ":" <<
                 item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_2) << ":" <<

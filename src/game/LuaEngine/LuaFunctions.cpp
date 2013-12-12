@@ -169,7 +169,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetChatTag", &LuaUnit::GetChatTag},                   // :GetChatTag() - Returns player chat tag ID
     {"GetRestBonus", &LuaUnit::GetRestBonus},               // :GetRestBonus() - Gets player's rest bonus
     {"GetRestType", &LuaUnit::GetRestType},                 // :GetRestType() - Returns the player's rest type
-    {"GetPhaseMaskForSpawn", &LuaUnit::GetPhaseMaskForSpawn},                                               // :GetPhaseMaskForSpawn() - Gets the real phasemask for spawning things. Used if the player is in GM mode
+    //{"GetPhaseMaskForSpawn", &LuaUnit::GetPhaseMaskForSpawn},                                               // :GetPhaseMaskForSpawn() - Gets the real phasemask for spawning things. Used if the player is in GM mode
     //{"GetReqKillOrCastCurrentCount", &LuaUnit::RemoveRewardedQuest},                                        // :GetReqKillOrCastCurrentCount(questId, entry) - Gets the objective (kill or cast) current count done
     {"GetQuestStatus", &LuaUnit::GetQuestStatus},           // :GetQuestStatus(entry) - Gets the quest's status
     {"GetInGameTime", &LuaUnit::GetInGameTime},             // :GetInGameTime() - Returns player's ingame time
@@ -285,7 +285,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"HasAtLoginFlag", &LuaUnit::HasAtLoginFlag},           // :HasAtLoginFlag(flag) - returns true if the player has the login flag
     //{"InRandomLfgDungeon", &LuaUnit::InRandomLfgDungeon},   // :InRandomLfgDungeon() - Returns true if the player is in a random LFG dungeon
     //{"HasPendingBind", &LuaUnit::HasPendingBind},           // :HasPendingBind() - Returns true if the player has a pending instance bind
-    {"HasAchieved", &LuaUnit::HasAchieved},                 // :HasAchieved(achievementID) - Returns true if the player has achieved the achievement
+    //{"HasAchieved", &LuaUnit::HasAchieved},                 // :HasAchieved(achievementID) - Returns true if the player has achieved the achievement
     {"CanUninviteFromGroup", &LuaUnit::CanUninviteFromGroup},                                               // :CanUninviteFromGroup() - Returns true if the player can uninvite from group
     {"IsRested", &LuaUnit::IsRested},                       // :IsRested() - Returns true if the player is rested
     //{"CanFlyInZone", &LuaUnit::CanFlyInZone},               // :CanFlyInZone(mapid, zone) - Returns true if the player can fly in the area
@@ -384,7 +384,7 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"BindToInstance", &LuaUnit::BindToInstance},           // :BindToInstance() - Binds the player to the current instance
     {"UnbindInstance", &LuaUnit::UnbindInstance},           // :UnbindInstance(map, difficulty) - Unbinds the player from an instance
     {"RemoveFromBattlegroundOrBattlefieldRaid", &LuaUnit::RemoveFromBattlegroundOrBattlefieldRaid},         // :RemoveFromBattlegroundOrBattlefieldRaid() - Removes the player from a battleground or battlefield raid
-    {"ResetAchievements", &LuaUnit::ResetAchievements},     // :ResetAchievements() - Resets playeräs achievements
+    //{"ResetAchievements", &LuaUnit::ResetAchievements},     // :ResetAchievements() - Resets playeräs achievements
     {"KickPlayer", &LuaUnit::KickPlayer},                   // :KickPlayer() - Kicks player from server
     {"LogoutPlayer", &LuaUnit::LogoutPlayer},               // :LogoutPlayer([save]) - Logs the player out and saves if true
     {"SendTrainerList", &LuaUnit::SendTrainerList},         // :SendTrainerList(WorldObject) - Sends trainer list from object to player
@@ -564,7 +564,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetByteValue", &LuaUnit::SetByteValue},               // :SetByteValue(index, offset, value) - Sets a byte value for the unit
     {"SetUInt16Value", &LuaUnit::SetUInt16Value},           // :SetUInt16Value(index, offset, value) - Sets an uint16 value for the unit
     {"SetInt16Value", &LuaUnit::SetInt16Value},             // :SetInt16Value(index, offset, value) - Sets an int16 value for the unit
-    {"SetPhaseMask", &LuaUnit::SetPhaseMask},               // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
+    //{"SetPhaseMask", &LuaUnit::SetPhaseMask},               // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
     //{"SetWalk", &LuaUnit::SetWalk},                         // :SetWalk([enable]) - If false, creature runs, otherwise walks
     {"SetSpeed", &LuaUnit::SetSpeed},                       // :SetSpeed(type, speed[, forced]) - Sets speed for the movement type (0 = walk, 1 = run ..)
     //{"SetStunned", &LuaUnit::SetStunned},                   // :SetStunned([enable]) - Stuns or removes stun
@@ -673,7 +673,7 @@ ElunaRegister<Unit> UnitMethods[] =
 
     /* Vehicle */
     //{"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
-    {"IsOnVehicle", &LuaUnit::IsOnVehicle},                 // :IsOnVehicle() - Checks if the (unit) is in a vehicle
+    //{"IsOnVehicle", &LuaUnit::IsOnVehicle},                 // :IsOnVehicle() - Checks if the (unit) is in a vehicle
     //{"DismissVehicle", &LuaUnit::DismissVehicle},           // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
     // {"EjectPassenger", &LuaUnit::EjectPassenger},        // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
     //{"RemovePassenger", &LuaUnit::RemovePassenger},         // :RemovePassenger(unit) - Removes a specific unit from the vehicle

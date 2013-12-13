@@ -23,7 +23,7 @@
 namespace LuaGlobalFunctions
 {
     // RegisterServerHook(event, function)
-    static int RegisterServerHook(lua_State* L)
+    int RegisterServerHook(lua_State* L)
     {
         lua_settop(L, 2);
         uint32 ev = luaL_checkunsigned(L, 1);
@@ -41,7 +41,7 @@ namespace LuaGlobalFunctions
     }
 
     // RegisterCreatureGossipEvent(entry, event, function)
-    static int RegisterCreatureGossipEvent(lua_State* L)
+    int RegisterCreatureGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -60,7 +60,7 @@ namespace LuaGlobalFunctions
     }
 
     // RegisterGameObjectGossipEvent(entry, event, function)
-    static int RegisterGameObjectGossipEvent(lua_State* L)
+    int RegisterGameObjectGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -79,7 +79,7 @@ namespace LuaGlobalFunctions
     }
 
     // RegisterItemEvent(entry, event, function)
-    static int RegisterItemEvent(lua_State* L)
+    int RegisterItemEvent(lua_State* L)
     {
         lua_settop(L, 3);
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -98,7 +98,7 @@ namespace LuaGlobalFunctions
     }
 
     // RegisterItemGossipEvent(entry, event, function)
-    static int RegisterItemGossipEvent(lua_State* L)
+    int RegisterItemGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -117,7 +117,7 @@ namespace LuaGlobalFunctions
     }
 
     // RegisterPlayerGossipEvent(menu_id, event, function)
-    static int RegisterPlayerGossipEvent(lua_State* L)
+    int RegisterPlayerGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
         uint32 menu_id = luaL_checkunsigned(L, 1);
@@ -136,7 +136,7 @@ namespace LuaGlobalFunctions
     }
 
     // RegisterCreatureEvent(entry, event, function)
-    static int RegisterCreatureEvent(lua_State* L)
+    int RegisterCreatureEvent(lua_State* L)
     {
         lua_settop(L, 3);
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -155,7 +155,7 @@ namespace LuaGlobalFunctions
     }
 
     // RegisterGameObjectEvent(entry, event, function)
-    static int RegisterGameObjectEvent(lua_State* L)
+    int RegisterGameObjectEvent(lua_State* L)
     {
         lua_settop(L, 3);
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -174,14 +174,14 @@ namespace LuaGlobalFunctions
     }
 
     // GetLuaEngine() - Gets lua engine name
-    static int GetLuaEngine(lua_State* L)
+    int GetLuaEngine(lua_State* L)
     {
         sEluna.Push(L, "ElunaEngine");
         return 1;
     }
 
     // GetCoreVersion() - Gets core version as a string
-    static int GetCoreVersion(lua_State* L)
+    int GetCoreVersion(lua_State* L)
     {
         // sEluna.Push(L, _FULLVERSION);
         // return 1;
@@ -189,7 +189,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetQuest(questId)
-    static int GetQuest(lua_State* L)
+    int GetQuest(lua_State* L)
     {
         uint32 questId = luaL_checkunsigned(L, 1);
         if (!questId)
@@ -200,14 +200,14 @@ namespace LuaGlobalFunctions
     }
 
     // ReloadEluna() - Reloads eluna
-    static int ReloadEluna(lua_State* L)
+    int ReloadEluna(lua_State* L)
     {
         sEluna.StartEluna(true);
         return 0;
     }
 
     // GetPlayerByGUID(guid) - Gets Player object by its guid
-    static int GetPlayerByGUID(lua_State* L)
+    int GetPlayerByGUID(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         sEluna.Push(L, sObjectAccessor.FindPlayer((ObjectGuid)guid));
@@ -215,7 +215,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetPlayerByName("name") - Gets player object by name
-    static int GetPlayerByName(lua_State* L)
+    int GetPlayerByName(lua_State* L)
     {
         const char* message = luaL_checkstring(L, 1);
         sEluna.Push(L, sObjectAccessor.FindPlayerByName(message));
@@ -223,14 +223,14 @@ namespace LuaGlobalFunctions
     }
 
     // GetGameTime() - Gets ingame time as seconds (server time?)
-    static int GetGameTime(lua_State* L)
+    int GetGameTime(lua_State* L)
     {
         sEluna.Push(L, sWorld.GetGameTime());
         return 1;
     }
 
     // SendWorldMessage("msg") - Sends a broadcast message to everyone
-    static int SendWorldMessage(lua_State* L)
+    int SendWorldMessage(lua_State* L)
     {
         const char* message = luaL_checkstring(L, 1);
         sWorld.SendServerMessage(SERVER_MSG_CUSTOM, message);
@@ -238,7 +238,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetPlayersInWorld([team, onlyGM]) - Gets a table with players in world. Team can be 0 for ally, 1 for horde and 2 for both.
-    static int GetPlayersInWorld(lua_State* L)
+    int GetPlayersInWorld(lua_State* L)
     {
         uint32 team = luaL_optunsigned(L, 1, TEAM_NEUTRAL);
         bool onlyGM = luaL_optbool(L, 2, false);
@@ -267,7 +267,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetPlayersInMap(mapid[, instanceid, team]) - Gets a table with players in the map. Instanceid optional (0 for normal map). Team can be 0 for ally, 1 for horde and 2 for both
-    static int GetPlayersInMap(lua_State* L)
+    int GetPlayersInMap(lua_State* L)
     {
         uint32 mapID = luaL_checkunsigned(L, 1);
         uint32 instanceID = luaL_optunsigned(L, 2, 0);
@@ -301,7 +301,7 @@ namespace LuaGlobalFunctions
     }
 
     // WorldDBQuery("sql") - Executes SQL to world database and returns the query Result or nil (instant)
-    static int WorldDBQuery(lua_State* L)
+    int WorldDBQuery(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
         if (!query)
@@ -316,7 +316,7 @@ namespace LuaGlobalFunctions
     }
 
     // WorldDBExecute("sql") - Executes SQL to world database (not instant)
-    static int WorldDBExecute(lua_State* L)
+    int WorldDBExecute(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
         if (!query)
@@ -327,7 +327,7 @@ namespace LuaGlobalFunctions
     }
 
     // CharDBQuery("sql") - Executes SQL to characters database and returns the query Result or nil (instant)
-    static int CharDBQuery(lua_State* L)
+    int CharDBQuery(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
         if (!query)
@@ -342,7 +342,7 @@ namespace LuaGlobalFunctions
     }
 
     // CharDBExecute("sql") - Executes SQL to characters database (not instant)
-    static int CharDBExecute(lua_State* L)
+    int CharDBExecute(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
         if (!query)
@@ -353,7 +353,7 @@ namespace LuaGlobalFunctions
     }
 
     // AuthDBQuery("sql") - Executes SQL to auth database and returns the query Result or nil (instant)
-    static int AuthDBQuery(lua_State* L)
+    int AuthDBQuery(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
         if (!query)
@@ -368,7 +368,7 @@ namespace LuaGlobalFunctions
     }
 
     // AuthDBExecute("sql") - Executes SQL to auth database (not instant)
-    static int AuthDBExecute(lua_State* L)
+    int AuthDBExecute(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
         if (!query)
@@ -379,7 +379,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetGuildByName("name") - Gets guild object
-    static int GetGuildByName(lua_State* L)
+    int GetGuildByName(lua_State* L)
     {
         const char* name = luaL_checkstring(L, 1);
         sEluna.Push(L, sGuildMgr.GetGuildByName(name));
@@ -387,7 +387,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetMapById()
-    static int GetMapById(lua_State* L)
+    int GetMapById(lua_State* L)
     {
         uint32 mapid = luaL_checkunsigned(L, 1);
         if (!sMapStore.LookupEntry(mapid))
@@ -398,7 +398,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetGuildByLeaderGUID(leaderGUID) - Gets guild object
-    static int GetGuildByLeaderGUID(lua_State* L)
+    int GetGuildByLeaderGUID(lua_State* L)
     {
         Object* obj = sEluna.CHECK_OBJECT(L, 1);
 
@@ -407,14 +407,14 @@ namespace LuaGlobalFunctions
     }
 
     // GetPlayerCount() - Gets server player count
-    static int GetPlayerCount(lua_State* L)
+    int GetPlayerCount(lua_State* L)
     {
         sEluna.Push(L, sWorld.GetActiveSessionCount());
         return 1;
     }
 
     // FindUnit(guid)
-    static int FindUnit(lua_State* L)
+    int FindUnit(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         // sEluna.Push(L, sObjectAccessor.FindUnit(guid));
@@ -422,7 +422,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetPlayerGUID(lowguid)
-    static int GetPlayerGUID(lua_State* L)
+    int GetPlayerGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         sEluna.Push(L, ObjectGuid(HIGHGUID_PLAYER, lowguid));
@@ -430,7 +430,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetItemGUID(lowguid)
-    static int GetItemGUID(lua_State* L)
+    int GetItemGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         sEluna.Push(L, ObjectGuid(HIGHGUID_ITEM, lowguid));
@@ -438,7 +438,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetObjectGUID(lowguid, entry)
-    static int GetObjectGUID(lua_State* L)
+    int GetObjectGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
@@ -447,7 +447,7 @@ namespace LuaGlobalFunctions
     }
 
     // GetUnitGUID(lowguid, entry)
-    static int GetUnitGUID(lua_State* L)
+    int GetUnitGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
@@ -456,7 +456,7 @@ namespace LuaGlobalFunctions
     }
 
     // CreateLuaEvent(function, delay, calls) - Creates a timed event. Calls set to 0 will call inf returns eventID.
-    static int CreateLuaEvent(lua_State* L)
+    int CreateLuaEvent(lua_State* L)
     {
         luaL_checktype(L, 1, LUA_TFUNCTION);
         uint32 delay = luaL_checkunsigned(L, 2);
@@ -470,7 +470,7 @@ namespace LuaGlobalFunctions
     }
 
     // DestroyEventByID(eventID) - removes all global lua events with eventid
-    static int DestroyEventByID(lua_State* L)
+    int DestroyEventByID(lua_State* L)
     {
         int functionRef = luaL_checkinteger(L, 1);
         // sEluna.LuaWorldAI->ScriptEventCancel(functionRef);
@@ -478,7 +478,7 @@ namespace LuaGlobalFunctions
     }
 
     // DestroyEvents([all_events]) - removes all global lua events, if all_events is true, removes creature and gameobject events too
-    static int DestroyEvents(lua_State* L)
+    int DestroyEvents(lua_State* L)
     {
         bool all_Events = luaL_optbool(L, 1, false);
 
@@ -494,7 +494,7 @@ namespace LuaGlobalFunctions
 
     // PerformIngameSpawn(spawntype, entry, mapid, instanceid, x, y, z, o[, save, DurOrResptime, phase])
     // spawntype: 1 Creature, 2 Object. DurOrResptime is respawntime for gameobjects and despawntime for creatures if creature is not saved
-    static int PerformIngameSpawn(lua_State* L)
+    int PerformIngameSpawn(lua_State* L)
     {
         int spawntype = luaL_checkinteger(L, 1);
         uint32 entry = luaL_checkunsigned(L, 2);
@@ -602,7 +602,7 @@ namespace LuaGlobalFunctions
     }
 
     // CreatePacket(opcode, size)
-    static int CreatePacket(lua_State* L)
+    int CreatePacket(lua_State* L)
     {
         uint16 opcode = luaL_checkunsigned(L, 1);
         size_t size = luaL_checkunsigned(L, 2);
@@ -619,7 +619,7 @@ namespace LuaGlobalFunctions
     }
 
     // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost[, persist(bool)])
-    static int AddVendorItem(lua_State* L)
+    int AddVendorItem(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
         uint32 item = luaL_checkunsigned(L, 2);
@@ -640,7 +640,7 @@ namespace LuaGlobalFunctions
     }
 
     // VendorRemoveItem(entry, item[, persist(bool)])
-    static int VendorRemoveItem(lua_State* L)
+    int VendorRemoveItem(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
         uint32 item = luaL_checkunsigned(L, 2);
@@ -656,7 +656,7 @@ namespace LuaGlobalFunctions
     }
 
     // VendorRemoveAllItems(entry, persist(bool))
-    static int VendorRemoveAllItems(lua_State* L)
+    int VendorRemoveAllItems(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
         bool persist = luaL_optbool(L, 2, true);
@@ -672,7 +672,7 @@ namespace LuaGlobalFunctions
     }
 
     // Kick(player)
-    static int Kick(lua_State* L)
+    int Kick(lua_State* L)
     {
         Player* player = sEluna.CHECK_PLAYER(L, 1);
         if (!player)
@@ -682,7 +682,7 @@ namespace LuaGlobalFunctions
     }
 
     // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned))
-    static int Ban(lua_State* L)
+    int Ban(lua_State* L)
     {
         int banMode = luaL_checkint(L, 1);
         std::string nameOrIP = luaL_checkstring(L, 2);
@@ -727,14 +727,14 @@ namespace LuaGlobalFunctions
     }
 
     // SaveAllPlayers()
-    static int SaveAllPlayers(lua_State* L)
+    int SaveAllPlayers(lua_State* L)
     {
         sObjectAccessor.SaveAllPlayers();
         return 0;
     }
 
     // GetGUIDLow(guid)
-    static int GetGUIDLow(lua_State* L)
+    int GetGUIDLow(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
@@ -743,7 +743,7 @@ namespace LuaGlobalFunctions
     }
 
     // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...])
-    static int SendMail(lua_State* L)
+    int SendMail(lua_State* L)
     {
         int i = 0;
         std::string subject = luaL_checkstring(L, ++i);
@@ -789,7 +789,7 @@ namespace LuaGlobalFunctions
     }
 
     // bit_and(a, b)
-    static int bit_and(lua_State* L)
+    int bit_and(lua_State* L)
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
@@ -798,7 +798,7 @@ namespace LuaGlobalFunctions
     }
 
     // bit_or(a, b)
-    static int bit_or(lua_State* L)
+    int bit_or(lua_State* L)
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
@@ -807,7 +807,7 @@ namespace LuaGlobalFunctions
     }
 
     // bit_lshift(a, b)
-    static int bit_lshift(lua_State* L)
+    int bit_lshift(lua_State* L)
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
@@ -816,7 +816,7 @@ namespace LuaGlobalFunctions
     }
 
     // bit_rshift(a, b)
-    static int bit_rshift(lua_State* L)
+    int bit_rshift(lua_State* L)
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
@@ -825,7 +825,7 @@ namespace LuaGlobalFunctions
     }
 
     // bit_xor(a, b)
-    static int bit_xor(lua_State* L)
+    int bit_xor(lua_State* L)
     {
         uint32 a = luaL_checkunsigned(L, 1);
         uint32 b = luaL_checkunsigned(L, 2);
@@ -834,21 +834,21 @@ namespace LuaGlobalFunctions
     }
 
     // bit_not(a)
-    static int bit_not(lua_State* L)
+    int bit_not(lua_State* L)
     {
         uint32 a = luaL_checkunsigned(L, 1);
         sEluna.Push(L, ~ a);
         return 1;
     }
 
-    static int GetGUIDType(lua_State* L)
+    int GetGUIDType(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         sEluna.Push(L, ObjectGuid(guid));
         return 1;
     }
 
-    static int GetGUIDEntry(lua_State* L)
+    int GetGUIDEntry(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         sEluna.Push(L, ObjectGuid(guid));
@@ -856,7 +856,7 @@ namespace LuaGlobalFunctions
     }
 
     // AddTaxiPath(pathTable, mountA, mountH[, price, pathId])
-    static int AddTaxiPath(lua_State* L)
+    int AddTaxiPath(lua_State* L)
     {
         luaL_checktype(L, 1, LUA_TTABLE);
         uint32 mountA = luaL_checkunsigned(L, 2);
@@ -917,7 +917,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int GetItemLink(lua_State* L)
+    int GetItemLink(lua_State* L)
     {
         /*
         LOCALE_enUS = 0,
@@ -957,7 +957,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int GetPlayersInRange(lua_State* L)
+    int GetPlayersInRange(lua_State* L)
     {
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
         float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
@@ -986,7 +986,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int GetCreaturesInRange(lua_State* L)
+    int GetCreaturesInRange(lua_State* L)
     {
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
         float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
@@ -1015,7 +1015,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int GetGameObjectsInRange(lua_State* L)
+    int GetGameObjectsInRange(lua_State* L)
     {
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
         float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
@@ -1046,7 +1046,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int GetWorldObject(lua_State* L)
+    int GetWorldObject(lua_State* L)
     {
         WorldObject* p = sEluna.CHECK_WORLDOBJECT(L, 1);
         uint64 guid = sEluna.CHECK_ULONG(L, 2);
@@ -1065,7 +1065,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int AddCorpse(lua_State* L)
+    int AddCorpse(lua_State* L)
     {
         Corpse* corpse = sEluna.CHECK_CORPSE(L, 1);
         if (!corpse)
@@ -1075,14 +1075,14 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    static int RemoveCorpse(lua_State* L)
+    int RemoveCorpse(lua_State* L)
     {
         Corpse* corpse = sEluna.CHECK_CORPSE(L, 1);
         sObjectAccessor.RemoveCorpse(corpse);
         return 1;
     }
 
-    static int ConvertCorpseForPlayer(lua_State* L)
+    int ConvertCorpseForPlayer(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         bool insignia = luaL_optbool(L, 2, false);
@@ -1091,13 +1091,13 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    static int RemoveOldCorpses(lua_State* L)
+    int RemoveOldCorpses(lua_State* L)
     {
         sObjectAccessor.RemoveOldCorpses();
         return 0;
     }
 
-    static int FindWeather(lua_State* L)
+    int FindWeather(lua_State* L)
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
         Weather* weather = sWorld.FindWeather(zoneId);
@@ -1105,7 +1105,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int AddWeather(lua_State* L)
+    int AddWeather(lua_State* L)
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
         Weather* weather = sWorld.AddWeather(zoneId);
@@ -1113,7 +1113,7 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    static int RemoveWeather(lua_State* L)
+    int RemoveWeather(lua_State* L)
     {
         uint32 zoneId = luaL_checkunsigned(L, 1);
 
@@ -1121,7 +1121,7 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    static int SendFineWeatherToPlayer(lua_State* L)
+    int SendFineWeatherToPlayer(lua_State* L)
     {
         Player* player = sEluna.CHECK_PLAYER(L, 1);
         if (!player)

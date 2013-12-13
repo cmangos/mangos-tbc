@@ -65,17 +65,6 @@ int LuaUnit::RemoveFlag(lua_State* L, Unit* unit)
     return 0;
 }
 
-int LuaUnit::HasFlag(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint32 flag = luaL_checkunsigned(L, 2);
-
-    unit->HasFlag(index, flag);
-    return 0;
-}
-
 int LuaUnit::ClearThreatList(lua_State* L, Unit* unit)
 {
     TO_UNIT();

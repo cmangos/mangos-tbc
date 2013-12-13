@@ -26,7 +26,6 @@ namespace LuaUnit
     int DealDamage(lua_State*, Unit*);
     int SetFlag(lua_State*, Unit*);
     int RemoveFlag(lua_State*, Unit*);
-    int HasFlag(lua_State*, Unit*);
     int ClearThreatList(lua_State*, Unit*);
     int SetOwnerGUID(lua_State*, Unit*);
     int GetOwner(lua_State*, Unit*);

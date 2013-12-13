@@ -142,6 +142,7 @@ ElunaRegister<Object> ObjectMethods[] =
 
     // Boolean
     {"IsInWorld", &LuaObject::IsInWorld},                           // :IsInWorld() - Returns if the object is in world
+    {"HasFlag", &LuaObject::HasFlag},                               // :HasFlag(index, flag)
 
     // Other
     {"ToGameObject", &LuaObject::ToGameObject},                     // :ToGameObject()
@@ -623,7 +624,6 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"IsMoving", &LuaUnit::IsMoving},                       // :IsMoving()
     //{"IsFlying", &LuaUnit::IsFlying},                       // :IsFlying()
     {"IsStopped", &LuaUnit::IsStopped},                     // :IsStopped()
-    {"HasFlag", &LuaUnit::HasFlag},                         // :HasFlag(index, flag)
     {"HasUnitState", &LuaUnit::HasUnitState},               // :HasUnitState(state) - state from UnitState enum
     {"IsQuestGiver", &LuaUnit::IsQuestGiver},               // :IsQuestGiver() - Returns true if the unit is a quest giver, false if not
     {"IsWithinDistInMap", &LuaUnit::IsWithinDistInMap},     // :IsWithinDistInMap(worldObject, radius) - Returns if the unit is within distance in map of the worldObject
@@ -688,7 +688,7 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
     //{"IsOnVehicle", &LuaUnit::IsOnVehicle},                 // :IsOnVehicle() - Checks if the (unit) is in a vehicle
     //{"DismissVehicle", &LuaUnit::DismissVehicle},           // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
-    // {"EjectPassenger", &LuaUnit::EjectPassenger},        // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
+    //{"EjectPassenger", &LuaUnit::EjectPassenger},           // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
     //{"RemovePassenger", &LuaUnit::RemovePassenger},         // :RemovePassenger(unit) - Removes a specific unit from the vehicle
     //{"RemoveAllPassengers", &LuaUnit::RemoveAllPassengers}, // :RemoveAllPassengers() - Removes all the passengers from the vehicle
     //{"GetPassenger", &LuaUnit::GetPassenger},               // :GetPassenger(seatId) - Gets a passenger by their seatId

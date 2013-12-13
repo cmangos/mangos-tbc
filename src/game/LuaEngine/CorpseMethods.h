@@ -20,60 +20,59 @@
 #ifndef CORPSEMETHODS_H
 #define CORPSEMETHODS_H
 
-class LuaCorpse
+namespace LuaCorpse
 {
-    public:
-        // GetOwnerGUID() [CORPSE_FIELD_OWNER]
-        static int GetOwnerGUID(lua_State* L, Corpse* corpse)
-        {
-            sEluna.Push(L, corpse->GetOwnerGuid());
-            return 1;
-        }
+    // GetOwnerGUID() [CORPSE_FIELD_OWNER]
+    int GetOwnerGUID(lua_State* L, Corpse* corpse)
+    {
+        sEluna.Push(L, corpse->GetOwnerGuid());
+        return 1;
+    }
 
-        // GetGhostTime()
-        static int GetGhostTime(lua_State* L, Corpse* corpse)
-        {
-            sEluna.Push(L, corpse->GetGhostTime());
-            return 1;
-        }
+    // GetGhostTime()
+    int GetGhostTime(lua_State* L, Corpse* corpse)
+    {
+        sEluna.Push(L, corpse->GetGhostTime());
+        return 1;
+    }
 
-        // GetType()
-        static int GetType(lua_State* L, Corpse* corpse)
-        {
-            sEluna.Push(L, corpse->GetType());
-            return 1;
-        }
+    // GetType()
+    int GetType(lua_State* L, Corpse* corpse)
+    {
+        sEluna.Push(L, corpse->GetType());
+        return 1;
+    }
 
-        // Create(map)
-        static int Create(lua_State* L, Corpse* corpse)
-        {
-            Player* player = sEluna.CHECK_PLAYER(L, 1);
-            if (!player)
-                return 0;
-            // if (corpse->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_CORPSE), player)) // TODO: Implementation
-            //    return 0;
+    // Create(map)
+    int Create(lua_State* L, Corpse* corpse)
+    {
+        Player* player = sEluna.CHECK_PLAYER(L, 1);
+        if (!player)
             return 0;
-        }
+        // if (corpse->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_CORPSE), player)) // TODO: Implementation
+        //    return 0;
+        return 0;
+    }
 
-        // ResetGhostTime()
-        static int ResetGhostTime(lua_State* L, Corpse* corpse)
-        {
-            corpse->ResetGhostTime();
-            return 0;
-        }
+    // ResetGhostTime()
+    int ResetGhostTime(lua_State* L, Corpse* corpse)
+    {
+        corpse->ResetGhostTime();
+        return 0;
+    }
 
-        // SaveToDB()
-        static int SaveToDB(lua_State* L, Corpse* corpse)
-        {
-            corpse->SaveToDB();
-            return 0;
-        }
+    // SaveToDB()
+    int SaveToDB(lua_State* L, Corpse* corpse)
+    {
+        corpse->SaveToDB();
+        return 0;
+    }
 
-        // DeleteBonesFromWorld()
-        static int DeleteBonesFromWorld(lua_State* L, Corpse* corpse)
-        {
-            corpse->DeleteBonesFromWorld();
-            return 0;
-        }
+    // DeleteBonesFromWorld()
+    int DeleteBonesFromWorld(lua_State* L, Corpse* corpse)
+    {
+        corpse->DeleteBonesFromWorld();
+        return 0;
+    }
 };
 #endif

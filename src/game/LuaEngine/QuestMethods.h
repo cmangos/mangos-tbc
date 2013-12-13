@@ -20,100 +20,86 @@
 #ifndef QUESTMETHODS_H
 #define QUESTMETHODS_H
 
-class LuaQuest
+namespace LuaQuest
 {
-    public:
-        // :GetId()
-        static int GetId(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetQuestId());
-            return 1;
-        }
+    int GetId(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetQuestId());
+        return 1;
+    }
 
-        // :GetLevel()
-        static int GetLevel(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetQuestLevel());
-            return 1;
-        }
+    int GetLevel(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetQuestLevel());
+        return 1;
+    }
 
-        // :GetMaxLevel()
-        static int GetMaxLevel(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetMaxLevel());
-            return 1;
-        }
+    int GetMaxLevel(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetMaxLevel());
+        return 1;
+    }
 
-        // :GetMinLevel()
-        static int GetMinLevel(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetMinLevel());
-            return 1;
-        }
+    int GetMinLevel(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetMinLevel());
+        return 1;
+    }
 
-        // :GetNextQuestId()
-        static int GetNextQuestId(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetNextQuestId());
-            return 1;
-        }
+    int GetNextQuestId(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetNextQuestId());
+        return 1;
+    }
 
-        // :GetPrevQuestId()
-        static int GetPrevQuestId(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetPrevQuestId());
-            return 1;
-        }
+    int GetPrevQuestId(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetPrevQuestId());
+        return 1;
+    }
 
-        // :GetNextQuestInChain()
-        static int GetNextQuestInChain(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetNextQuestInChain());
-            return 1;
-        }
+    int GetNextQuestInChain(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetNextQuestInChain());
+        return 1;
+    }
 
-        // :GetFlags()
-        static int GetFlags(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetQuestFlags());
-            return 1;
-        }
+    int GetFlags(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetQuestFlags());
+        return 1;
+    }
 
-        // :GetType()
-        static int GetType(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->GetType());
-            return 1;
-        }
+    int GetType(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->GetType());
+        return 1;
+    }
 
-        // :HasFlag(flag)
-        static int HasFlag(lua_State* L, Quest* quest)
-        {
-            uint32 flag = luaL_checkunsigned(L, 1);
-            sEluna.Push(L, quest->HasQuestFlag((QuestFlags)flag));
-            return 1;
-        }
+    int HasFlag(lua_State* L, Quest* quest)
+    {
+        uint32 flag = luaL_checkunsigned(L, 1);
+        sEluna.Push(L, quest->HasQuestFlag((QuestFlags)flag));
+        return 1;
+    }
 
-        // :IsDaily()
-        static int IsDaily(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->IsDaily());
-            return 1;
-        }
+    int IsDaily(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->IsDaily());
+        return 1;
+    }
 
-        // :IsRepeatable()
-        static int IsRepeatable(lua_State* L, Quest* quest)
-        {
-            sEluna.Push(L, quest->IsRepeatable());
-            return 1;
-        }
+    int IsRepeatable(lua_State* L, Quest* quest)
+    {
+        sEluna.Push(L, quest->IsRepeatable());
+        return 1;
+    }
 
-        // :SetFlag(flag)
-        static int SetFlag(lua_State* L, Quest* quest)
-        {
-            uint32 flag = luaL_checkunsigned(L, 1);
-            quest->SetSpecialFlag((QuestSpecialFlags)flag);
-            return 0;
-        }
+    int SetFlag(lua_State* L, Quest* quest)
+    {
+        uint32 flag = luaL_checkunsigned(L, 1);
+        quest->SetSpecialFlag((QuestSpecialFlags)flag);
+        return 0;
+    }
 };
 #endif

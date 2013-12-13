@@ -22,6 +22,14 @@
 
 namespace LuaObject
 {
+    int HasFlag(lua_State* L, Object* obj)
+    {
+        uint16 index = luaL_checkunsigned(L, 1);
+        uint32 flag = luaL_checkunsigned(L, 2);
+
+        sEluna.Push(L, obj->HasFlag(index, flag));
+        return 1;
+    }
     int GetInt32Value(lua_State* L, Object* obj)
     {
         uint16 index = luaL_checkunsigned(L, 1);

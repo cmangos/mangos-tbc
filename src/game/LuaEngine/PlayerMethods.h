@@ -29,7 +29,6 @@ namespace LuaPlayer
         return 1;
     }
 
-
     int SummonPlayer(lua_State* L, Player* player)
     {
         Player* target = sEluna.CHECK_PLAYER(L, 1);
@@ -66,6 +65,5 @@ namespace LuaPlayer
         LoginDatabase.Execute(stmt);*/
         return 0;
     }
-
 };
 #endif

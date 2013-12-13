@@ -463,7 +463,7 @@ namespace LuaGlobalFunctions
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        // sEluna.LuaWorldAI->ScriptEventCreate(functionRef, delay, repeats);
+        sEluna.LuaWorldAI->ScriptEventCreate(functionRef, delay, repeats);
         sEluna.Push(L, functionRef);
         return 1;
     }
@@ -472,7 +472,7 @@ namespace LuaGlobalFunctions
     int DestroyEventByID(lua_State* L)
     {
         int functionRef = luaL_checkinteger(L, 1);
-        // sEluna.LuaWorldAI->ScriptEventCancel(functionRef);
+        sEluna.LuaWorldAI->ScriptEventCancel(functionRef);
         return 0;
     }
 
@@ -486,8 +486,8 @@ namespace LuaGlobalFunctions
             Eluna::LuaEventMap::ScriptEventsResetAll();
             Eluna::LuaEventData::RemoveAll();
         }
-        // else
-        // sEluna.LuaWorldAI->ScriptEventsReset();
+        else
+        sEluna.LuaWorldAI->ScriptEventsReset();
         return 0;
     }
 

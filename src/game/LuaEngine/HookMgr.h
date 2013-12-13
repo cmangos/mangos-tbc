@@ -34,6 +34,7 @@ class HookMgr
         HookMgr() { }
 
         /* Misc */
+        void OnWorldUpdate(uint32 diff);
         void OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid);
         void OnFirstLogin(Player* pPlayer);
         void OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot);
@@ -127,6 +128,7 @@ class HookScript
             sHookMgr.hookPointers.erase(this);
         }
         /* Misc */
+        virtual void OnWorldUpdate(uint32 /*diff*/) { }
         virtual void OnLootItem(Player* /*pPlayer*/, Item* /*pItem*/, uint32 /*count*/, uint64 /*guid*/) { }
         virtual void OnFirstLogin(Player* /*pPlayer*/) { }
         virtual void OnEquip(Player* /*pPlayer*/, Item* /*pItem*/, uint8 /*bag*/, uint8 /*slot*/) { }

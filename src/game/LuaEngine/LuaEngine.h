@@ -451,6 +451,7 @@ class Eluna
         class Eluna_GameObjectScript;
         Eluna_CreatureScript* LuaCreatureAI;
         Eluna_GameObjectScript* LuaGameObjectAI;
+        LuaEventMap* LuaWorldAI;
 
         typedef std::map<int, int> ElunaBindingMap;
         typedef UNORDERED_MAP<uint32, ElunaBindingMap> ElunaEntryMap;
@@ -510,6 +511,8 @@ class Eluna
         {
             L = NULL;
             LuaCreatureAI = NULL;
+            LuaGameObjectAI = NULL;
+            LuaWorldAI = NULL;
 
             for (int i = 0; i < SERVER_EVENT_COUNT; ++i)
             {

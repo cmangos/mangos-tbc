@@ -25,6 +25,20 @@ class Eluna_HookScript : public HookScript
     public:
         Eluna_HookScript() : HookScript() { }
         // misc
+        void OnWorldUpdate(uint32 diff)
+        {
+            sEluna.LuaWorldAI->ScriptEventsUpdate(diff);
+            sEluna.LuaWorldAI->ScriptEventsExecute();
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].begin();
+                itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, WORLD_EVENT_ON_UPDATE);
+                sEluna.Push(sEluna.L, diff);
+                sEluna.ExecuteCall(2, 0);
+            }
+        }
+
         void OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid)
         {
             for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].begin();
@@ -1272,6 +1286,7 @@ void Eluna::AddScriptHooks()
     // AI
     LuaCreatureAI = new Eluna_CreatureScript;
     LuaGameObjectAI = new Eluna_GameObjectScript;
+    LuaWorldAI = new Eluna::LuaEventMap;
     // Eluna Hooks
     new Eluna_HookScript;
 }

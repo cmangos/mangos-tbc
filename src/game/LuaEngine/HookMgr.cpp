@@ -21,6 +21,12 @@
 #include "Includes.h"
 
 // misc
+void HookMgr::OnWorldUpdate(uint32 diff)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnWorldUpdate(diff);
+}
+
 void HookMgr::OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid)
 {
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)

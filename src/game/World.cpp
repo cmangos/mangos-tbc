@@ -66,6 +66,7 @@
 #include "CharacterDatabaseCleaner.h"
 #include "CreatureLinkingMgr.h"
 #include "LuaEngine.h"
+#include "HookMgr.h"
 
 INSTANTIATE_SINGLETON_1(World);
 
@@ -1488,6 +1489,8 @@ void World::Update(uint32 diff)
     sMapMgr.Update(diff);
     sBattleGroundMgr.Update(diff);
     sOutdoorPvPMgr.Update(diff);
+
+    sHookMgr.OnWorldUpdate(diff);
 
     ///- Delete all characters which have been deleted X days before
     if (m_timers[WUPDATE_DELETECHARS].Passed())

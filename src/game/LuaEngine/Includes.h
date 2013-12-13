@@ -52,5 +52,6 @@
 #include "CellImpl.h"
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
+#include "SpellMgr.h"
 
 #endif

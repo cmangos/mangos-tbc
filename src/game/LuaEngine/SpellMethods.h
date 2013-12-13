@@ -46,11 +46,10 @@ namespace LuaSpell
         return 1;
     }
 
-    int GetDuration(lua_State* L, Spell* spell) // TODO: Implementation
+    int GetDuration(lua_State* L, Spell* spell)
     {
-        // sEluna.Push(L, spell->m_spellInfo->GetDuration());
-        // return 1;
-        return 0; // Temp to not cause conflicts
+        sEluna.Push(L, GetSpellDuration(spell->m_spellInfo));
+        return 1;
     }
 
     int Cast(lua_State* L, Spell* spell)
@@ -86,19 +85,16 @@ namespace LuaSpell
         return 0;
     }
 
-    int GetTargetDest(lua_State* L, Spell* spell)// TODO: Implementation
+    int GetTargetDest(lua_State* L, Spell* spell)
     {
-        /*if (!spell->m_targets.HasDst())
-        return 0;
+        if (!(spell->m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+            return 0;
         float x, y, z, o;
-        spell->m_targets.GetDstPos()->GetPosition(x,y,z,o);
+        spell->m_targets.getDestination(x,y,z);
         sEluna.Push(L, x);
         sEluna.Push(L, y);
         sEluna.Push(L, z);
-        sEluna.Push(L, o);
-        sEluna.Push(L, spell->m_targets.GetDstPos()->GetMapId());
-        return 5;*/
-        return 0; // Temporary to prevent conflicts
+        return 3;
     }
 };
 #endif

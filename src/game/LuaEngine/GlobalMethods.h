@@ -183,9 +183,8 @@ namespace LuaGlobalFunctions
     // GetCoreVersion() - Gets core version as a string
     int GetCoreVersion(lua_State* L)
     {
-        // sEluna.Push(L, _FULLVERSION);
-        // return 1;
-        return 0;
+        sEluna.Push(L, REVISION_ID);
+        return 1;
     }
 
     // GetQuest(questId)

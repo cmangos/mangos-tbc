@@ -53,7 +53,7 @@ void RegisterGlobals(lua_State* L)
 
     // Getters
     lua_register(L, "GetLuaEngine", &LuaGlobalFunctions::GetLuaEngine);                                     // GetLuaEngine() - Returns ElunaEngine
-    //lua_register(L, "GetCoreVersion", &LuaGlobalFunctions::GetCoreVersion);                                 // GetCoreVersion() - Returns core version string
+    lua_register(L, "GetCoreVersion", &LuaGlobalFunctions::GetCoreVersion);                                 // GetCoreVersion() - Returns core version string
     lua_register(L, "GetQuest", &LuaGlobalFunctions::GetQuest);                                             // GetQuest(questId) - Returns quest object
     lua_register(L, "GetPlayerByGUID", &LuaGlobalFunctions::GetPlayerByGUID);                               // GetPlayerByGUID(guid) - Returns player object by GUID
     lua_register(L, "GetPlayerByName", &LuaGlobalFunctions::GetPlayerByName);                               // GetPlayerByName(name) - Returns player object by player name
@@ -75,7 +75,7 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "bit_xor", &LuaGlobalFunctions::bit_xor);                                               // bit_xor(a, b) - Returns a ^ b UNDOCUMENTED
     lua_register(L, "bit_rshift", &LuaGlobalFunctions::bit_rshift);                                         // bit_rshift(a, b) - Returns a >> b UNDOCUMENTED
     lua_register(L, "bit_lshift", &LuaGlobalFunctions::bit_lshift);                                         // bit_lshift(a, b) - Returns a << b UNDOCUMENTED
-    lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or); // bit_or(a, b) - Returns a | b UNDOCUMENTED
+    lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or);                                                 // bit_or(a, b) - Returns a | b UNDOCUMENTED
     lua_register(L, "bit_and", &LuaGlobalFunctions::bit_and);                                               // bit_and(a, b) - Returns a & b UNDOCUMENTED
     lua_register(L, "GetItemLink", &LuaGlobalFunctions::GetItemLink);                                       // GetItemLink(entry[, localeIndex]) - Returns the shift clickable link of the item. Item name translated if translate available for provided locale index UNDOCUMENTED
     lua_register(L, "GetMapById", &LuaGlobalFunctions::GetMapById);                                         // GetMapById(mapId) - Returns map object of id specified. UNDOCUMENTED
@@ -98,10 +98,10 @@ void RegisterGlobals(lua_State* L)
     //lua_register(L, "AddVendorItem", &LuaGlobalFunctions::AddVendorItem);                                   // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost[, persist(bool)]) - Adds an item to vendor entry. If persist is false, wont be saved to database.
     lua_register(L, "VendorRemoveItem", &LuaGlobalFunctions::VendorRemoveItem);                             // VendorRemoveItem(entry, item[, persist(bool)]) - Removes an item from vendor entry. If persist is false, wont be saved to database.
     lua_register(L, "VendorRemoveAllItems", &LuaGlobalFunctions::VendorRemoveAllItems);                     // VendorRemoveAllItems(entry[, persist(bool)]) - Removes all items from vendor entry. If persist is false, wont be saved to database.
-    lua_register(L, "Kick", &LuaGlobalFunctions::Kick);     // Kick(player) - Kicks given player
-    lua_register(L, "Ban", &LuaGlobalFunctions::Ban);       // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned)) - Banmode: 0 account, 1 character, 2 IP
+    lua_register(L, "Kick", &LuaGlobalFunctions::Kick);                                                     // Kick(player) - Kicks given player
+    lua_register(L, "Ban", &LuaGlobalFunctions::Ban);                                                       // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned)) - Banmode: 0 account, 1 character, 2 IP
     lua_register(L, "SaveAllPlayers", &LuaGlobalFunctions::SaveAllPlayers);                                 // SaveAllPlayers() - Saves all players
-    //lua_register(L, "SendMail", &LuaGlobalFunctions::SendMail);                                             // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...]) - Sends a mail to player with lowguid. use nil to use default values on optional arguments. Sender is an optional player object. UNDOCUMENTED
+    //lua_register(L, "SendMail", &LuaGlobalFunctions::SendMail);                                           // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...]) - Sends a mail to player with lowguid. use nil to use default values on optional arguments. Sender is an optional player object. UNDOCUMENTED
     lua_register(L, "AddTaxiPath", &LuaGlobalFunctions::AddTaxiPath);                                       // AddTaxiPath(pathTable, mountA, mountH[, price, pathId]) - Adds a new taxi path. Returns the path's ID. Will replace an existing path if pathId provided and already used. path table structure: T = {{map, x, y, z[, actionFlag, delay, arrivalEvId, departEvId]}, {...}, ...} UDOCUMENTED
     lua_register(L, "AddCorpse", &LuaGlobalFunctions::AddCorpse);                                           // AddCorpse(corpse) - Adds the player's corpse to the world. More specifically, the cell.
     lua_register(L, "RemoveCorpse", &LuaGlobalFunctions::RemoveCorpse);                                     // RemoveCorpse(corpse) - Removes the player's corpse from the world.
@@ -155,11 +155,13 @@ ElunaRegister<Object> ObjectMethods[] =
 ElunaRegister<WorldObject> WorldObjectMethods[] =
 {
     // Getters
+    {"GetName", &LuaWorldObject::GetName},                                  // :GetName()
+    {"GetMap", &LuaWorldObject::GetMap},                                    // :GetMap()
     //{"GetPhaseMask", &LuaWorldObject::GetPhaseMask},                        // :GetPhaseMask()
     {"GetInstanceId", &LuaWorldObject::GetInstanceId},                      // :GetInstanceId()
     {"GetAreaId", &LuaWorldObject::GetAreaId},                              // :GetAreaId()
     {"GetZoneId", &LuaWorldObject::GetZoneId},                              // :GetZoneId()
-    {"GetMapId", &LuaWorldObject::GetMapId},                                // :GetMapId()
+    {"GetMapId", &LuaWorldObject::GetMapId},                                // :GetMapId() - Returns the WorldObject's current map object
     {"GetX", &LuaWorldObject::GetX},                                        // :GetX()
     {"GetY", &LuaWorldObject::GetY},                                        // :GetY()
     {"GetZ", &LuaWorldObject::GetZ},                                        // :GetZ()
@@ -272,7 +274,6 @@ ElunaRegister<Unit> UnitMethods[] =
 
     // Unit Methods
     // Getters
-    {"GetName", &LuaUnit::GetName},                         // :GetName()
     {"GetLevel", &LuaUnit::GetLevel},                       // :GetLevel()
     {"GetHealth", &LuaUnit::GetHealth},                     // :GetHealth()
     {"GetDisplayId", &LuaUnit::GetDisplayId},               // :GetDisplayId()
@@ -300,7 +301,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetOwner", &LuaUnit::GetOwner},                       // :GetOwner() - Returns the owner
     //{"GetFriendlyUnitsInRange", &LuaUnit::GetFriendlyUnitsInRange},                                         // :GetFriendlyUnitsInRange([range]) - Returns a list of friendly units in range, can return nil
     //{"GetUnfriendlyUnitsInRange", &LuaUnit::GetUnfriendlyUnitsInRange},                                     // :GetUnfriendlyUnitsInRange([range]) - Returns a list of unfriendly units in range, can return nil
-    {"GetMap", &LuaUnit::GetMap},                           // :GetMap() - Returns the unit's current map object
     {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the UNIT_FIELD_SUMMONEDBY owner
     //{"GetCreatorGUID", &LuaUnit::GetCreatorGUID},           // :GetCreatorGUID() - Returns the UNIT_FIELD_CREATEDBY creator
     //{"GetMinionGUID", &LuaUnit::GetMinionGUID},             // :GetMinionGUID() - Returns the UNIT_FIELD_SUMMON unit's minion GUID
@@ -712,12 +712,10 @@ ElunaRegister<Creature> CreatureMethods[] =
 ElunaRegister<GameObject> GameObjectMethods[] =
 {
     // Getters
-    {"GetName", &LuaGameObject::GetName},                   // :GetName()
     {"GetDisplayId", &LuaGameObject::GetDisplayId},         // :GetDisplayId()
     {"GetRelativePoint", &LuaGameObject::GetRelativePoint}, // :GetRelativePoint(dist, radians) - Returns the X, Y and orientation of a point dist away from gob. Radian 0 point is the direction the unit is facing.
     {"GetGoState", &LuaGameObject::GetGoState},             // :GetGoState() - Returns state
     {"GetLootState", &LuaGameObject::GetLootState},         // :GetLootState() - Returns loot state
-    {"GetMap", &LuaGameObject::GetMap},                     // :GetMap() - Returns the map the gameobject is on
 
     // Setters
     {"SetGoState", &LuaGameObject::SetGoState},
@@ -731,7 +729,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"IsSpawned", &LuaGameObject::IsSpawned},               // :IsSpawned()
 
     // Other
-    //{"CastSpell", &LuaGameObject::CastSpell},               // :CastSpellOnTarget(target, spellId) - Casts the spell on target, no manacost or cast time
     {"Move", &LuaGameObject::Move},                         // :Move(x, y, z, o) - Moves the GO to coordinates
     {"SpawnCreature", &LuaGameObject::SummonCreature},      // :SpawnCreature(entry, x, y, z, o, [, spawnType, despawnTimer]) - Spawns a creature to location that despawns depending on your TempSummon type and how long you give it to despawn. SpawnType [TempSummon Type] and despawnTimer are optional.
     {"RegisterEvent", &LuaGameObject::RegisterEvent},       // :RegisterEvent(function, delay, calls)
@@ -739,8 +736,8 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"RemoveEvents", &LuaGameObject::RemoveEvents},         // :RemoveEvents()
     {"SummonGameObject", &LuaGameObject::SummonGameObject}, // :SummonGameObject(entry, x, y, z, o[, respawnDelay]) - Spawns an object to location. Returns the object or nil
     {"UseDoorOrButton", &LuaGameObject::UseDoorOrButton},   // :UseDoorOrButton(delay) - Activates/closes/opens after X delay UNDOCUMENTED
-    //{"Despawn", &LuaGameObject::Despawn},                   // :Despawn([delay]) - Despawns the object after delay
-    //{"Respawn", &LuaGameObject::Respawn},                   // :Respawn([delay]) - respawns the object after delay
+    {"Despawn", &LuaGameObject::Despawn},                   // :Despawn([delay]) - Despawns the object after delay
+    {"Respawn", &LuaGameObject::Respawn},                   // :Respawn([delay]) - respawns the object after delay
 
     { NULL, NULL },
 };

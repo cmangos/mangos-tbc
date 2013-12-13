@@ -22,16 +22,6 @@
 
 namespace LuaGameObject
 {
-    int GetMap(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetMap());
-        return 1;
-    }
-
-
     int GetRelativePoint(lua_State* L, GameObject* go)
     {
         if (!go || !go->IsInWorld())
@@ -45,118 +35,6 @@ namespace LuaGameObject
         sEluna.Push(L, go->GetPositionY() + (dist * sinf(o)));
         sEluna.Push(L, o);
         return 3;
-    }
-
-
-    int GetGUID(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetGUIDLow());
-        return 1;
-    }
-
-
-    int CastSpell(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        uint32 spell = luaL_checkunsigned(L, 1);
-        Unit* target = sEluna.CHECK_UNIT(L, 2);
-        /*if (target)
-        go->CastSpell(target, spell);*/
-        return 0;
-    }
-
-
-    int GetX(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetPositionX());
-        return 1;
-    }
-
-
-    int GetY(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetPositionY());
-        return 1;
-    }
-
-
-    int GetZ(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetPositionZ());
-        return 1;
-    }
-
-    int GetO(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetOrientation());
-        return 1;
-    }
-
-    int GetLocation(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetPositionX());
-        sEluna.Push(L, go->GetPositionY());
-        sEluna.Push(L, go->GetPositionZ());
-        sEluna.Push(L, go->GetOrientation());
-        return 4;
-    }
-
-    int GetMapId(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetMapId());
-        return 1;
-    }
-
-    int GetZoneId(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetZoneId());
-        return 1;
-    }
-
-
-    int GetAreaId(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetAreaId());
-        return 1;
-    }
-
-
-    int GetName(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        sEluna.Push(L, go->GetName());
-        return 1;
     }
 
     int SummonCreature(lua_State* L, GameObject* go)
@@ -184,9 +62,9 @@ namespace LuaGameObject
         case 3:
             type = TEMPSUMMON_TIMED_DESPAWN;
             break;
-        case 4:
-            // type = TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT;
-            break;
+        //case 4:
+        //     type = TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT;
+        //    break;
         case 5:
             type = TEMPSUMMON_CORPSE_DESPAWN;
             break;
@@ -199,6 +77,8 @@ namespace LuaGameObject
         case 8:
             type = TEMPSUMMON_MANUAL_DESPAWN;
             break;
+        default:
+            return 0;
         }
         sEluna.Push(L, go->SummonCreature(entry, x, y, z, o, type, despawnTimer));
         return 1;
@@ -225,15 +105,6 @@ namespace LuaGameObject
             return 0;
 
         sEluna.Push(L, go->GetDisplayId());
-        return 1;
-    }
-
-    int IsInWorld(lua_State* L, GameObject* go)
-    {
-        if (!go)
-            sEluna.Push(L, false);
-        else
-            sEluna.Push(L, go->IsInWorld());
         return 1;
     }
 
@@ -433,22 +304,22 @@ namespace LuaGameObject
 
     int Despawn(lua_State* L, GameObject* go)
     {
-        int32 delay = luaL_optint(L, 1, 1);
-
-        if (delay <= 0)
+        uint32 delay = luaL_optunsigned(L, 1, 1);
+        if (!delay)
             delay = 1;
-        // go->SetSpawnedByDefault(false);
+
+        go->SetSpawnedByDefault(false);
         go->SetRespawnTime(delay);
         return 0;
     }
 
     int Respawn(lua_State* L, GameObject* go)
     {
-        int32 delay = luaL_optint(L, 1, 1);
-
-        if (delay <= 0)
+        uint32 delay = luaL_optunsigned(L, 1, 1);
+        if (!delay)
             delay = 1;
-        // go->SetSpawnedByDefault(true);
+
+        go->SetSpawnedByDefault(true);
         go->SetRespawnTime(delay);
         return 0;
     }

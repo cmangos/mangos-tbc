@@ -22,6 +22,16 @@
 
 namespace LuaWorldObject
 {
+    int GetName(lua_State* L, WorldObject* obj)
+    {
+        sEluna.Push(L, obj->GetName());
+        return 1;
+    }
+    int GetMap(lua_State* L, WorldObject* obj)
+    {
+        sEluna.Push(L, obj->GetMap());
+        return 1;
+    }
     int GetPhaseMask(lua_State* L, WorldObject* obj)
     {
         // sEluna.Push(L, obj->GetPhaseMask());

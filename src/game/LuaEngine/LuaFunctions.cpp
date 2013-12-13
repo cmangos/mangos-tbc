@@ -439,7 +439,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GossipSendPOI", &LuaUnit::GossipSendPOI},             // :GossipSendPOI(X, Y, Icon, Flags, Data, Name) - Sends a point of interest to the player
     {"GossipAddQuests", &LuaUnit::GossipAddQuests},         // :GossipAddQuests(unit) - Adds unit's quests to player's gossip menu
     {"SendQuestTemplate", &LuaUnit::SendQuestTemplate},     // :SendQuestTemplate(questId, activeAccept) -- Sends quest template to player
-    {"CreateCorpse", &LuaUnit::CreateCorpse},               // :CreateCorpse() - Creates the player's corpse
     {"SpawnBones", &LuaUnit::SpawnBones},                   // :SpawnBones() - Removes the player's corpse and spawns bones
     {"RemovedInsignia", &LuaUnit::RemovedInsignia},         // :RemovedInsignia(looter) - Looter removes the player's corpse, looting the player and replacing with lootable bones
     {"SendGuildInvite", &LuaUnit::SendGuildInvite},         // :SendGuildInvite(player) - Sends a guild invite to the specific player
@@ -703,6 +702,7 @@ ElunaRegister<Player> PlayerMethods[] =
     //{"Mute", &LuaUnit::Mute},                               // :Mute(time[, reason]) - Mutes the player for given time in seconds.
     {"SummonPlayer", &LuaPlayer::SummonPlayer},               // :SummonPlayer(player, map, x, y, z, zoneId[, delay]) - Sends a popup to the player asking if he wants to be summoned if yes, teleported to coords. ZoneID defines the location name shown in the popup Delay is the time until the popup closes automatically.
     {"HasSpell", &LuaPlayer::HasSpell},                       // :HasSpell(id)
+    {"CreateCorpse", &LuaPlayer::CreateCorpse},               // :CreateCorpse() - Creates the player's corpse
     {NULL, NULL},
 };
 
@@ -822,7 +822,7 @@ ElunaRegister<Aura> AuraMethods[] =
     {"GetCharges", &LuaAura::GetCharges},                   // :GetCharges() - Returns remaining charges
     {"GetAuraId", &LuaAura::GetAuraId},                     // :GetAuraId() - Returns aura ID
     {"GetStackAmount", &LuaAura::GetStackAmount},           // :GetStackAmount() - Returns current stack amount
-    //{"GetOwner", &LuaAura::GetOwner},                       // :GetOwner() - Gets the unit wearing the aura
+    {"GetOwner", &LuaAura::GetOwner},                       // :GetOwner() - Gets the unit wearing the aura
 
     // Setters
     {"SetDuration", &LuaAura::SetDuration},                 // :SetDuration(duration) - Sets remaining duration
@@ -1033,7 +1033,6 @@ ElunaRegister<Corpse> CorpseMethods[] =
     {"GetOwnerGUID", &LuaCorpse::GetOwnerGUID},             // :GetOwnerGUID() - Returns the corpse owner GUID
     {"GetGhostTime", &LuaCorpse::GetGhostTime},             // :GetGhostTime() - Returns the ghost time of a corpse
     {"GetType", &LuaCorpse::GetType},                       // :GetType() - Returns the (CorpseType) of a corpse
-    //{"Create", &LuaCorpse::Create},                         // :Create(player) - Creates the player's corpse
     {"ResetGhostTime", &LuaCorpse::ResetGhostTime},         // :ResetGhostTime() - Resets the corpse's ghost time
     {"SaveToDB", &LuaCorpse::SaveToDB},                     // :SaveToDB() - Saves the corpse data to the corpse database table.
     {"DeleteBonesFromWorld", &LuaCorpse::DeleteBonesFromWorld},                                             // :DeleteBonesFromWorld() - Deletes all bones from the world

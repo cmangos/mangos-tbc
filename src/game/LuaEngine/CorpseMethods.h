@@ -22,7 +22,7 @@
 
 namespace LuaCorpse
 {
-    // GetOwnerGUID() [CORPSE_FIELD_OWNER]
+    // GetOwnerGUID()
     int GetOwnerGUID(lua_State* L, Corpse* corpse)
     {
         sEluna.Push(L, corpse->GetOwnerGuid());
@@ -41,17 +41,6 @@ namespace LuaCorpse
     {
         sEluna.Push(L, corpse->GetType());
         return 1;
-    }
-
-    // Create(map)
-    int Create(lua_State* L, Corpse* corpse)
-    {
-        Player* player = sEluna.CHECK_PLAYER(L, 1);
-        if (!player)
-            return 0;
-        // if (corpse->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_CORPSE), player)) // TODO: Implementation
-        //    return 0;
-        return 0;
     }
 
     // ResetGhostTime()

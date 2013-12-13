@@ -95,12 +95,8 @@ int LuaAura::Remove(lua_State* L, Aura* aura)
     return 0;
 }
 
-int LuaAura::GetOwner(lua_State* L, Aura* aura) // TODO: Implement
+int LuaAura::GetOwner(lua_State* L, Aura* aura)
 {
-    /*if (aura->GetType() != UNIT_AURA_TYPE)
-        return 0;
-
-    sEluna.Push(L, aura->GetUnitOwner());
-    return 1;*/
-    return 0; // Temp return to prevent errors
+    sEluna.Push(L, aura->GetTarget());
+    return 1;
 }

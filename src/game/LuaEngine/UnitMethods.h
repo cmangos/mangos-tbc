@@ -116,7 +116,6 @@ namespace LuaUnit
     int GetControllerGUIDS(lua_State*, Unit*);
     int GetCorpse(lua_State*, Unit*);
     int GetQuestRewardStatus(lua_State*, Unit*);
-    int CreateCorpse(lua_State*, Unit*);
     int SpawnBones(lua_State*, Unit*);
     int RemovedInsignia(lua_State*, Unit*);
     int SendAuctionMenu(lua_State*, Unit*);

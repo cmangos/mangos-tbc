@@ -65,5 +65,11 @@ namespace LuaPlayer
         LoginDatabase.Execute(stmt);*/
         return 0;
     }
+
+    int CreateCorpse(lua_State* L, Player* player)
+    {
+        player->CreateCorpse();
+        return 0;
+    }
 };
 #endif

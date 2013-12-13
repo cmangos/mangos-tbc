@@ -5320,14 +5320,6 @@ int LuaUnit::SendQuestTemplate(lua_State* L, Unit* unit)
     return 0;
 }
 
-int LuaUnit::CreateCorpse(lua_State* L, Unit* unit)
-{
-    TO_PLAYER();
-
-    player->CreateCorpse();
-    return 0;
-}
-
 int LuaUnit::SpawnBones(lua_State* L, Unit* unit)
 {
     TO_PLAYER();

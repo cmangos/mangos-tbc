@@ -4424,7 +4424,7 @@ namespace LuaUnit
     {
         int spellType = luaL_checkint(L, 1);
         bool delayed = luaL_optbool(L, 2, true);
-        bool instant = luaL_optbool(L, 3, true);
+        // bool instant = luaL_optbool(L, 3, true);
         switch (spellType)
         {
         case 0:
@@ -4440,7 +4440,7 @@ namespace LuaUnit
             spellType = CURRENT_AUTOREPEAT_SPELL;
             break;
         }
-        unit->InterruptSpell((CurrentSpellTypes)spellType, delayed, instant);
+        unit->InterruptSpell((CurrentSpellTypes)spellType, delayed/*, instant*/);
         return 0;
     }
 

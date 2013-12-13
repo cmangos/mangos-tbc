@@ -513,43 +513,69 @@ namespace LuaGlobalFunctions
         if (!map)
             return 0;
 
-        // Position pos = {x,y,z,o};
-
-        /*if (spawntype == 1) // spawn creature
+        if (spawntype == 1) // spawn creature
         {
             if (save)
             {
-                Creature* creature = new Creature();
-                if (!creature->Create(sObjectMgr.GenerateLowGuid(HIGHGUID_UNIT), map, phase, entry, 0, 0, x, y, z, o))
+                CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(entry);
+                if (!cinfo)
+                    return 0;
+
+                CreatureCreatePos pos(map, x, y, z, o, phase);
+                Creature* pCreature = new Creature;
+                // used guids from specially reserved range (can be 0 if no free values)
+                uint32 lowguid = sObjectMgr.GenerateStaticCreatureLowGuid();
+                if (!lowguid)
+                    return 0;
+
+                if (!pCreature->Create(lowguid, pos, cinfo))
                 {
-                    delete creature;
+                    delete pCreature;
                     return 0;
                 }
 
-                creature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
+                pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
 
-                uint32 db_lowguid = creature->GetDBTableGUIDLow();
-                if (!creature->LoadCreatureFromDB(db_lowguid, map))
-                {
-                    delete creature;
-                    return 0;
-                }
+                uint32 db_guid = pCreature->GetGUIDLow();
 
-                sObjectMgr->AddCreatureToGrid(db_lowguid, sObjectMgr->GetCreatureData(db_lowguid));
-                sEluna.Push(L, creature);
+                // To call _LoadGoods(); _LoadQuests(); CreateTrainerSpells();
+                pCreature->LoadFromDB(db_guid, map);
+
+                map->Add(pCreature);
+                sObjectMgr.AddCreatureToGrid(db_guid, sObjectMgr.GetCreatureData(db_guid));
+                if (durorresptime)
+                    pCreature->ForcedDespawn(durorresptime);
+
+                sEluna.Push(L, pCreature);
             }
             else
             {
-                TempSummon* creature = map->SummonCreature(entry, pos, NULL, durorresptime);
-                if (!creature)
+                CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(entry);
+                if (!cinfo)
                     return 0;
 
-                if (durorresptime)
-                    creature->SetTempSummonType(TEMPSUMMON_TIMED_OR_DEAD_DESPAWN);
-                else
-                    creature->SetTempSummonType(TEMPSUMMON_MANUAL_DESPAWN);
+                TemporarySummon* pCreature = new TemporarySummon(ObjectGuid(uint64(0)));
+                CreatureCreatePos pos(map, x, y, z, o, phase);
 
-                sEluna.Push(L, creature);
+                if (!pCreature->Create(map->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo, TEAM_NONE))
+                {
+                    delete pCreature;
+                    return NULL;
+                }
+
+                pCreature->SetRespawnCoord(pos);
+
+                // Active state set before added to map
+                pCreature->SetActiveObjectState(false);
+
+                // Also initializes the AI and MMGen
+                pCreature->Summon(durorresptime ? TEMPSUMMON_TIMED_OR_DEAD_DESPAWN : TEMPSUMMON_MANUAL_DESPAWN, durorresptime);
+
+                // Creature Linking, Initial load is handled like respawn
+                if (pCreature->IsLinkingEventTrigger())
+                    map->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_RESPAWN, pCreature);
+
+                sEluna.Push(L, pCreature);
             }
 
             return 1;
@@ -557,45 +583,63 @@ namespace LuaGlobalFunctions
 
         if (spawntype == 2) // Spawn object
         {
-
-            const GameObjectTemplate* objectInfo = sObjectMgr->GetGameObjectTemplate(entry);
-            if (!objectInfo)
-                return 0;
-
-            if (objectInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(objectInfo->displayId))
-                return 0;
-
-            GameObject* object = new GameObject;
-            uint32 lowguid = sObjectMgr->GenerateLowGuid(HIGHGUID_GAMEOBJECT);
-
-            if (!object->Create(lowguid, objectInfo->entry, map, phase, x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f, 0, GO_STATE_READY))
-            {
-                delete object;
-                return 0;
-            }
-
-            if (durorresptime)
-                object->SetRespawnTime(durorresptime);
-
             if (save)
             {
-                // fill the gameobject data and save to the db
-                object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
+                const GameObjectInfo* gInfo = ObjectMgr::GetGameObjectInfo(entry);
+                if (!gInfo)
+                    return 0;
 
-                // this will generate a new lowguid if the object is in an instance
-                if (!object->LoadGameObjectFromDB(lowguid, map))
+                // used guids from specially reserved range (can be 0 if no free values)
+                uint32 db_lowGUID = sObjectMgr.GenerateStaticGameObjectLowGuid();
+                if (!db_lowGUID)
+                    return 0;
+
+                GameObject* pGameObj = new GameObject;
+                if (!pGameObj->Create(db_lowGUID, gInfo->id, map, phase, x, y, z, o))
                 {
-                    delete object;
+                    delete pGameObj;
+                    return 0;
+                }
+
+                if (durorresptime)
+                    pGameObj->SetRespawnTime(durorresptime);
+
+                // fill the gameobject data and save to the db
+                pGameObj->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
+
+                // this will generate a new guid if the object is in an instance
+                if (!pGameObj->LoadFromDB(db_lowGUID, map))
+                {
+                    delete pGameObj;
                     return false;
                 }
 
-                sObjectMgr->AddGameobjectToGrid(lowguid, sObjectMgr->GetGOData(lowguid));
+                // DEBUG_LOG(GetMangosString(LANG_GAMEOBJECT_CURRENT), gInfo->name, db_lowGUID, x, y, z, o);
+
+                map->Add(pGameObj);
+
+                sObjectMgr.AddGameobjectToGrid(db_lowGUID, sObjectMgr.GetGOData(db_lowGUID));
+
+                sEluna.Push(L, pGameObj);
             }
             else
-                map->AddToMap(object);
-            sEluna.Push(L, object);
+            {
+                GameObject* pGameObj = new GameObject;
+
+                if (!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), entry, map, phase, x, y, z, o))
+                {
+                    delete pGameObj;
+                    return NULL;
+                }
+
+                pGameObj->SetRespawnTime(durorresptime/IN_MILLISECONDS);
+
+                map->Add(pGameObj);
+
+                sEluna.Push(L, pGameObj);
+            }
             return 1;
-        }*/
+        }
 
         return 0;
     }
@@ -625,16 +669,16 @@ namespace LuaGlobalFunctions
         int maxcount = luaL_checkinteger(L, 3);
         uint32 incrtime = luaL_checkunsigned(L, 4);
         uint32 extendedcost = luaL_checkunsigned(L, 5);
-        bool persist = luaL_optbool(L, 6, true);
+        // bool persist = luaL_optbool(L, 6, true);
         if (!sObjectMgr.GetCreatureTemplate(entry))
         {
             luaL_error(L, "Couldn't find a creature with (ID: %d)!", entry);
             return 0;
         }
 
-        // if (!sObjectMgr.IsVendorItemValid(entry, item, maxcount, incrtime, extendedcost))
-        // return 0;
-        // sObjectMgr.AddVendorItem(entry, item, maxcount, incrtime, extendedcost, persist);
+        if (!sObjectMgr.IsVendorItemValid(false, "npc_vendor", entry, item, maxcount, incrtime, extendedcost, 0))
+            return 0;
+        sObjectMgr.AddVendorItem(entry, item, maxcount, incrtime, extendedcost/*, persist*/); // MaNGOS does not support persist
         return 0;
     }
 
@@ -744,26 +788,27 @@ namespace LuaGlobalFunctions
     // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...])
     int SendMail(lua_State* L)
     {
-        int i = 0;
+        uint8 i = 0;
         std::string subject = luaL_checkstring(L, ++i);
         std::string text = luaL_checkstring(L, ++i);
         uint32 receiverGUIDLow = luaL_checkunsigned(L, ++i);
         Player* senderPlayer = sEluna.CHECK_PLAYER(L, ++i);
-        /*uint32 stationary = luaL_optunsigned(L, ++i, MAIL_STATIONERY_DEFAULT);
+        uint32 stationary = luaL_optunsigned(L, ++i, MAIL_STATIONERY_DEFAULT);
         uint32 delay = luaL_optunsigned(L, ++i, 0);
         int32 argAmount = lua_gettop(L);
 
-        MailSender sender(MAIL_NORMAL, senderPlayer ? senderPlayer->GetGUIDLow() : 0, (MailStationery)stationary);
-        MailDraft draft(subject, text);
+        MailDraft draft;
 
-        SQLTransaction trans = CharacterDatabase.BeginTransaction();
+        // fill draft
+        draft.SetSubjectAndBody(subject, text);
+
         uint8 addedItems = 0;
         while (addedItems <= MAX_MAIL_ITEMS && i+2 <= argAmount)
         {
             uint32 entry = luaL_checkunsigned(L, ++i);
             uint32 amount = luaL_checkunsigned(L, ++i);
 
-            ItemTemplate const* item_proto = sObjectMgr->GetItemTemplate(entry);
+            ItemPrototype const* item_proto = ObjectMgr::GetItemPrototype(entry);
             if (!item_proto)
             {
                 luaL_error(L, "Item entry %d does not exist", entry);
@@ -774,16 +819,18 @@ namespace LuaGlobalFunctions
                 luaL_error(L, "Item entry %d has invalid amount %d", entry, amount);
                 continue;
             }
-            if (Item* item = Item::CreateItem(entry, amount, senderPlayer ? senderPlayer : 0))
+            if (Item* item = Item::CreateItem(entry, amount, senderPlayer))
             {
-                item->SaveToDB(trans);
+                item->SaveToDB();
                 draft.AddItem(item);
                 ++addedItems;
             }
         }
 
-        draft.SendMailTo(trans, MailReceiver(receiverGUIDLow), sender, MAIL_CHECK_MASK_NONE, delay);
-        CharacterDatabase.CommitTransaction(trans);*/
+        // from console show nonexistent sender
+        MailSender sender(MAIL_NORMAL, senderPlayer ? senderPlayer->GetObjectGuid().GetCounter() : 0, MailStationery(stationary));
+
+        draft.SendMailTo(MailReceiver(ObjectGuid(HIGHGUID_PLAYER, receiverGUIDLow)), sender);
         return 0;
     }
 

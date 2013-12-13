@@ -54,5 +54,7 @@
 #include "GridNotifiersImpl.h"
 #include "SpellMgr.h"
 #include "revision_nr.h"
+#include "TemporarySummon.h"
+#include "Mail.h"
 
 #endif

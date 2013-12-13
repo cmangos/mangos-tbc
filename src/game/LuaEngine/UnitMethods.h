@@ -1330,7 +1330,8 @@ namespace LuaUnit
     }
 
     int GetStat(lua_State* L, Unit* unit)
-    {        uint32 stat = luaL_checkunsigned(L, 1);
+    {
+        uint32 stat = luaL_checkunsigned(L, 1);
 
         if (stat >= MAX_STATS)
             return 0;
@@ -1340,7 +1341,8 @@ namespace LuaUnit
     }
 
     int GetBaseSpellPower(lua_State* L, Unit* unit)
-    {        uint32 spellschool = luaL_checkunsigned(L, 1);
+    {
+        uint32 spellschool = luaL_checkunsigned(L, 1);
 
         if (spellschool >= MAX_SPELL_SCHOOL)
             return 0;
@@ -3334,7 +3336,8 @@ namespace LuaUnit
     }
 
     int GetGender(lua_State* L, Unit* unit)
-    {        sEluna.Push(L, unit->getGender());
+    {
+        sEluna.Push(L, unit->getGender());
         return 1;
     }
 
@@ -3488,7 +3491,8 @@ namespace LuaUnit
     }
 
     int SetPhaseMask(lua_State* L, Unit* unit)
-    {        uint32 phaseMask = luaL_checkunsigned(L, 1);
+    {
+        uint32 phaseMask = luaL_checkunsigned(L, 1);
         bool Update = luaL_optbool(L, 2, true);
         // unit->SetPhaseMask(phaseMask, Update);
         return 0;
@@ -4735,7 +4739,8 @@ namespace LuaUnit
     }
 
     int GetFriendlyUnitsInRange(lua_State* L, Unit* unit)
-    {        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+    {
+        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
 
         /*UnitList list;
         Trinity::AnyFriendlyUnitInObjectRangeCheck checker(unit, unit, range);
@@ -4760,7 +4765,8 @@ namespace LuaUnit
     }
 
     int GetUnfriendlyUnitsInRange(lua_State* L, Unit* unit)
-    {        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+    {
+        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
 
         /*UnitList list;
         Trinity::AnyUnfriendlyUnitInObjectRangeCheck checker(unit, unit, range);

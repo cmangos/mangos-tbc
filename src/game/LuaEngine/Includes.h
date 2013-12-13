@@ -53,6 +53,6 @@
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "SpellMgr.h"
-#include "revision.h"
+#include "revision_nr.h"
 
 #endif

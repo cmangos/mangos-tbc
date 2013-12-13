@@ -22,18 +22,85 @@
 
 namespace LuaAura
 {
-    int GetCaster(lua_State*, Aura*);
-    int GetCasterGUID(lua_State*, Aura*);
-    int GetCasterLevel(lua_State*, Aura*);
-    int GetDuration(lua_State*, Aura*);
-    int GetCharges(lua_State*, Aura*);
-    int GetAuraId(lua_State*, Aura*);
-    int GetMaxDuration(lua_State*, Aura*);
-    int GetStackAmount(lua_State*, Aura*);
-    int SetDuration(lua_State*, Aura*);
-    int SetMaxDuration(lua_State*, Aura*);
-    int SetStackAmount(lua_State*, Aura*);
-    int Remove(lua_State*, Aura*);
-    int GetOwner(lua_State*, Aura*);
+    int GetCaster(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetCaster());
+        return 1;
+    }
+
+    int GetCasterGUID(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetCasterGuid());
+        return 1;
+    }
+
+    int GetCasterLevel(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetCaster()->getLevel());
+        return 1;
+    }
+
+    int GetDuration(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetAuraDuration());
+        return 1;
+    }
+
+    int GetCharges(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetStackAmount());
+        return 1;
+    }
+
+    int GetAuraId(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetId());
+        return 1;
+    }
+
+    int GetMaxDuration(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetAuraMaxDuration());
+        return 1;
+    }
+
+    int GetStackAmount(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetStackAmount());
+        return 1;
+    }
+
+    int SetDuration(lua_State* L, Aura* aura)
+    {
+        int duration = luaL_checkinteger(L, 1);
+        aura->GetHolder()->SetAuraDuration(duration);
+        return 0;
+    }
+
+    int SetMaxDuration(lua_State* L, Aura* aura)
+    {
+        int duration = luaL_checkinteger(L, 1);
+        aura->GetHolder()->SetAuraMaxDuration(duration);
+        return 0;
+    }
+
+    int SetStackAmount(lua_State* L, Aura* aura)
+    {
+        int amount = luaL_checkunsigned(L, 1);
+        aura->GetHolder()->SetStackAmount(amount);
+        return 0;
+    }
+
+    int Remove(lua_State* L, Aura* aura)
+    {
+        aura->GetHolder()->RemoveAura(aura->GetEffIndex());
+        return 0;
+    }
+
+    int GetOwner(lua_State* L, Aura* aura)
+    {
+        sEluna.Push(L, aura->GetTarget());
+        return 1;
+    }
 };
 #endif

@@ -78,10 +78,6 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or); // bit_or(a, b) - Returns a | b UNDOCUMENTED
     lua_register(L, "bit_and", &LuaGlobalFunctions::bit_and);                                               // bit_and(a, b) - Returns a & b UNDOCUMENTED
     lua_register(L, "GetItemLink", &LuaGlobalFunctions::GetItemLink);                                       // GetItemLink(entry[, localeIndex]) - Returns the shift clickable link of the item. Item name translated if translate available for provided locale index UNDOCUMENTED
-    //lua_register(L, "GetPlayersInRange", &LuaGlobalFunctions::GetPlayersInRange);                           // GetPlayersInRange(WorldObject[, range]) - Returns a table with players in range of the object inserted (player, npc, gameobject..), range defaults to max. Can return nil
-    //lua_register(L, "GetCreaturesInRange", &LuaGlobalFunctions::GetCreaturesInRange);                       // GetCreaturesInRange(WorldObject[, range]) - Returns a table with creatures in range of the object inserted (player, npc, gameobject..), range defaults to max. Can return nil
-    //lua_register(L, "GetGameObjectsInRange", &LuaGlobalFunctions::GetGameObjectsInRange);                   // GetGameObjectsInRange(WorldObject[, range]) - Returns a table with gameobjects in range of the object inserted (player, npc, gameobject..), range defaults to max. Can return nil
-    //lua_register(L, "GetWorldObject", &LuaGlobalFunctions::GetWorldObject);                                 // GetWorldObject(WorldObject, guid) - Returns a world object (creature, player, gameobject) from the guid. The world object returned must be on the same map as the world object in the arguments.
     lua_register(L, "GetMapById", &LuaGlobalFunctions::GetMapById);                                         // GetMapById(mapId) - Returns map object of id specified. UNDOCUMENTED
 
     // Other
@@ -120,7 +116,6 @@ void RegisterGlobals(lua_State* L)
 ElunaRegister<Object> ObjectMethods[] =
 {
     // Getters
-    {"GetScale", &LuaObject::GetScale},                             // :GetScale()
     {"GetEntry", &LuaObject::GetEntry},                             // :GetEntry() - Returns the object's entryId
     {"GetGUID", &LuaObject::GetGUID},                               // :GetGUID() - Returns uint64 guid as hex string
     {"GetGUIDLow", &LuaObject::GetGUIDLow},                         // :GetGUIDLow() - Returns uint32 guid (low guid) that is used in database.
@@ -129,6 +124,7 @@ ElunaRegister<Object> ObjectMethods[] =
     {"GetFloatValue", &LuaObject::GetFloatValue},                   // :GetFloatValue(index) - returns a float value from object fields
     {"GetByteValue", &LuaObject::GetByteValue},                     // :GetByteValue(index, offset) - returns a byte value from object fields
     {"GetUInt16Value", &LuaObject::GetUInt16Value},                 // :GetUInt16Value(index, offset) - returns a uint16 value from object fields
+    {"GetScale", &LuaObject::GetScale},                             // :GetScale()
 
     // Setters
     {"SetInt32Value", &LuaObject::SetInt32Value},                   // :SetInt32Value(index, value) - Sets an int value for the object
@@ -139,6 +135,7 @@ ElunaRegister<Object> ObjectMethods[] =
     {"SetUInt16Value", &LuaObject::SetUInt16Value},                 // :SetUInt16Value(index, offset, value) - Sets an uint16 value for the object
     {"SetInt16Value", &LuaObject::SetInt16Value},                   // :SetInt16Value(index, offset, value) - Sets an int16 value for the object
     {"SetScale", &LuaObject::SetScale},                             // :SetScale(scale)
+    {"SetFlag", &LuaObject::SetFlag},                               // :SetFlag(index, flag)
 
     // Boolean
     {"IsInWorld", &LuaObject::IsInWorld},                           // :IsInWorld() - Returns if the object is in world
@@ -150,6 +147,7 @@ ElunaRegister<Object> ObjectMethods[] =
     {"ToCreature", &LuaObject::ToCreature},                         // :ToCreature()
     {"ToPlayer", &LuaObject::ToPlayer},                             // :ToPlayer()
     {"ToCorpse", &LuaObject::ToCorpse},                             // :ToCorpse()
+    {"RemoveFlag", &LuaObject::RemoveFlag},                         // :RemoveFlag(index, flag)
 
     {NULL, NULL},
 };
@@ -157,11 +155,23 @@ ElunaRegister<Object> ObjectMethods[] =
 ElunaRegister<WorldObject> WorldObjectMethods[] =
 {
     // Getters
-    {"GetX", &LuaWorldObject::GetX},                               // :GetX()
-    {"GetY", &LuaWorldObject::GetY},                               // :GetY()
-    {"GetZ", &LuaWorldObject::GetZ},                               // :GetZ()
-    {"GetO", &LuaWorldObject::GetO},                               // :GetO()
-    {"GetLocation", &LuaWorldObject::GetLocation},                 // :GetLocation() - returns X, Y, Z and O co - ords (in that order)
+    {"GetPhaseMask", &LuaWorldObject::GetPhaseMask},                        // :GetPhaseMask()
+    {"GetInstanceId", &LuaWorldObject::GetInstanceId},                      // :GetInstanceId()
+    {"GetAreaId", &LuaWorldObject::GetAreaId},                              // :GetAreaId()
+    {"GetZoneId", &LuaWorldObject::GetZoneId},                              // :GetZoneId()
+    {"GetMapId", &LuaWorldObject::GetMapId},                                // :GetMapId()
+    {"GetX", &LuaWorldObject::GetX},                                        // :GetX()
+    {"GetY", &LuaWorldObject::GetY},                                        // :GetY()
+    {"GetZ", &LuaWorldObject::GetZ},                                        // :GetZ()
+    {"GetO", &LuaWorldObject::GetO},                                        // :GetO()
+    {"GetLocation", &LuaWorldObject::GetLocation},                          // :GetLocation() - returns X, Y, Z and O co - ords (in that order)
+    {"GetPlayersInRange", &LuaWorldObject::GetPlayersInRange},              // :GetPlayersInRange([range]) - Returns a table with players in range of the WorldObject.
+    {"GetCreaturesInRange", &LuaWorldObject::GetCreaturesInRange},          // :GetCreaturesInRange([range, entry]) - Returns a table with creatures of given entry in range of the WorldObject.
+    {"GetGameObjectsInRange", &LuaWorldObject::GetGameObjectsInRange},      // :GetGameObjectsInRange([range, entry]) - Returns a table with gameobjects of given entry in range of the WorldObject.
+    {"GetNearestPlayer", &LuaWorldObject::GetNearestPlayer},                // :GetNearestPlayer([range]) - Returns nearest player in sight or given range.
+    {"GetNearestGameObject", &LuaWorldObject::GetNearestGameObject},        // :GetNearestGameObject([range, entry]) - Returns nearest gameobject with given entry in sight or given range entry can be 0 or nil for any.
+    {"GetNearestCreature", &LuaWorldObject::GetNearestCreature},            // :GetNearestCreature([range, entry]) - Returns nearest creature with given entry in sight or given range entry can be 0 or nil for any.
+    {"GetWorldObject", &LuaWorldObject::GetWorldObject},                    // :GetWorldObject(guid) - Returns a world object (creature, player, gameobject) from the guid. The world object returned must be on the same map as the world object in the arguments.
 
     {NULL, NULL},
 };
@@ -524,9 +534,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetHealth", &LuaUnit::GetHealth},                     // :GetHealth()
     {"GetDisplayId", &LuaUnit::GetDisplayId},               // :GetDisplayId()
     {"GetNativeDisplayId", &LuaUnit::GetNativeDisplayId},   // :GetNativeDisplayId()
-    {"GetMapId", &LuaUnit::GetMapId},                       // :GetMapId()
-    {"GetAreaId", &LuaUnit::GetAreaId},                     // :GetAreaId()
-    {"GetZoneId", &LuaUnit::GetZoneId},                     // :GetZoneId()
     {"GetPower", &LuaUnit::GetPower},                       // :GetPower(index) - returns power at index. Index can be omitted
     {"GetMaxPower", &LuaUnit::GetMaxPower},                 // :GetMaxPower(index) - returns power at index. Index can be omitted
     {"GetPowerType", &LuaUnit::GetPowerType},               // :GetPowerType() - Returns the power type
@@ -538,8 +545,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetClass", &LuaUnit::GetClass},                       // :GetClass()
     {"GetClassAsString", &LuaUnit::GetClassAsString},       // :GetClassAsString()
     //{"GetAura", &LuaUnit::GetAura},                         // :GetAura(spellID) - returns aura object
-    {"GetInstanceId", &LuaUnit::GetInstanceId},             // :GetInstanceId() - Gets the instance id of the unit
-    {"GetPhaseMask", &LuaUnit::GetPhaseMask},               // :GetPhaseMask() - gets the phase mask of the unit
     {"GetCombatTime", &LuaUnit::GetCombatTime},             // :GetCombatTime() - Returns how long the unit has been in combat
     {"GetFaction", &LuaUnit::GetFaction},                   // :GetFaction() - Returns the unit's factionId
     {"GetCurrentSpell", &LuaUnit::GetCurrentSpell},         // :GetCurrentSpell(type) - Returns the currently casted spell of given type if any
@@ -547,11 +552,7 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"GetNearbyTarget", &LuaUnit::GetNearbyTarget},         // :GetNearbyTarget([radius[, exclude]]) - Returns nearby target within sight or given radius. Excludes current target and given unit
     {"GetShieldBlockValue", &LuaUnit::GetShieldBlockValue}, // :GetShieldBlockValue() - Returns block value
     {"GetMountId", &LuaUnit::GetMountId},                   // :GetMountId()
-    {"GetDistance", &LuaUnit::GetDistance},                 // :GetDistance(WorldObject or x, y, z)
-    //{"GetNearestPlayer", &LuaUnit::GetNearestPlayer},       // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
-    //{"GetNearestGameObject", &LuaUnit::GetNearestGameObject},                                               // :GetNearestGameObject([entry, radius]) - Returns nearest gameobject with given entry in sight or given radius entry can be 0.
-    //{"GetNearestCreature", &LuaUnit::GetNearestCreature},   // :GetNearestCreatureEntry([entry, radius]) - Returns nearest creature with given entry in sight or given radius entry can be 0.
-    {"GetRelativePoint", &LuaUnit::GetRelativePoint},       // :GetRelativePoint(dist, rad) - Returns the X, Y and orientation of a point dist away from unit.
+    {"GetDistance", &LuaUnit::GetDistance},                 // :GetDistance(WorldObject or x, y, z){"GetRelativePoint", &LuaUnit::GetRelativePoint},       // :GetRelativePoint(dist, rad) - Returns the X, Y and orientation of a point dist away from unit.
     {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the GUID of the owner
     {"GetOwner", &LuaUnit::GetOwner},                       // :GetOwner() - Returns the owner
     //{"GetFriendlyUnitsInRange", &LuaUnit::GetFriendlyUnitsInRange},                                         // :GetFriendlyUnitsInRange([range]) - Returns a list of friendly units in range, can return nil
@@ -593,7 +594,6 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"SetCanFly", &LuaUnit::SetCanFly},                     // :SetCanFly(apply)
     //{"SetVisible", &LuaUnit::SetVisible},                   // :SetVisible(x)
     {"SetOwnerGUID", &LuaUnit::SetOwnerGUID},               // :SetOwnerGUID(guid) - Sets the guid of the owner
-    {"SetFlag", &LuaUnit::SetFlag},                         // :SetFlag(index, flag)
     {"SetName", &LuaUnit::SetName},                         // :SetName(name) - Sets the unit's name
 
     // Boolean
@@ -676,7 +676,6 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"RemoveCharmAuras", &LuaUnit::RemoveCharmAuras},       // :RemoveCharmAuras()
     {"StopMoving", &LuaUnit::StopMoving},                   // :StopMoving()
     {"ClearThreatList", &LuaUnit::ClearThreatList},         // :ClearThreatList()
-    {"RemoveFlag", &LuaUnit::RemoveFlag},                   // :RemoveFlag(index, flag)
     {"ClearUnitState", &LuaUnit::ClearUnitState},           // :ClearUnitState(state)
     {"AddUnitState", &LuaUnit::AddUnitState},               // :AddUnitState(state)
     //{"DisableMelee", &LuaUnit::DisableMelee},               // :DisableMelee([disable]) - if true, enables
@@ -717,12 +716,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     // Getters
     {"GetName", &LuaGameObject::GetName},                   // :GetName()
     {"GetDisplayId", &LuaGameObject::GetDisplayId},         // :GetDisplayId()
-    {"GetMapId", &LuaGameObject::GetMapId},                 // :GetMapId()
-    {"GetAreaId", &LuaGameObject::GetAreaId},               // :GetAreaId()
-    {"GetZoneId", &LuaGameObject::GetZoneId},               // :GetZoneId()
-    //{"GetNearestPlayer", &LuaGameObject::GetNearestPlayer}, // :GetNearestPlayer([radius]) - Returns nearest player in sight or given radius.
-    //{"GetNearestGameObject", &LuaGameObject::GetNearestGameObject},                                         // :GetNearestGameObject([radius, entry]) - Returns nearest gameobject with given entry in sight or given radius.
-    //{"GetNearestCreature", &LuaGameObject::GetNearestCreature},                                             // :GetNearestCreatureEntry([radius, entry]) - Returns nearest creature with given entry in sight or given radius.
     {"GetRelativePoint", &LuaGameObject::GetRelativePoint}, // :GetRelativePoint(dist, radians) - Returns the X, Y and orientation of a point dist away from gob. Radian 0 point is the direction the unit is facing.
     {"GetGoState", &LuaGameObject::GetGoState},             // :GetGoState() - Returns state
     {"GetLootState", &LuaGameObject::GetLootState},         // :GetLootState() - Returns loot state
@@ -731,7 +724,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     // Setters
     {"SetGoState", &LuaGameObject::SetGoState},
     {"SetLootState", &LuaGameObject::SetLootState},
-    {"SetFlag", &LuaGameObject::SetFlag},
 
     // Boolean
     {"IsTransport", &LuaGameObject::IsTransport},           // :IsTransport()
@@ -748,7 +740,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"RemoveEventById", &LuaGameObject::RemoveEventById},   // :RemoveEventById(eventID)
     {"RemoveEvents", &LuaGameObject::RemoveEvents},         // :RemoveEvents()
     {"SummonGameObject", &LuaGameObject::SummonGameObject}, // :SummonGameObject(entry, x, y, z, o[, respawnDelay]) - Spawns an object to location. Returns the object or nil
-    {"RemoveFlag", &LuaGameObject::RemoveFlag},
     {"UseDoorOrButton", &LuaGameObject::UseDoorOrButton},   // :UseDoorOrButton(delay) - Activates/closes/opens after X delay UNDOCUMENTED
     //{"Despawn", &LuaGameObject::Despawn},                   // :Despawn([delay]) - Despawns the object after delay
     //{"Respawn", &LuaGameObject::Respawn},                   // :Respawn([delay]) - respawns the object after delay

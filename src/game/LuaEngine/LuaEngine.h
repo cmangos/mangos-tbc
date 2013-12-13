@@ -503,6 +503,7 @@ class Eluna
         Spell* CHECK_SPELL(lua_State* L, int narg);
         uint64 CHECK_ULONG(lua_State* L, int narg);
         int64 CHECK_LONG(lua_State* L, int narg);
+        Item* CHECK_ITEM(lua_State* L, int narg);
 
         // Creates new binding stores
         Eluna()
@@ -572,46 +573,39 @@ class Eluna
             ElunaEntryMap Bindings; // Binding store Bindings[entryId][eventId] = funcRef;
         };
 
-        Item* CHECK_ITEM(lua_State* L, int narg)
+        // Doesn't get self
+        struct WorldObjectInRangeCheck
         {
-            if (!L)
-                return ElunaTemplate<Item>::check(L, narg);
-            else
-                return ElunaTemplate<Item>::check(L, narg);
-        }
-
-        class NearestTypeWithEntryInRangeCheck // not self
-        {
-            public:
-                NearestTypeWithEntryInRangeCheck(WorldObject const* obj, float range, TypeID typeId, uint32 entry = 0) : i_obj(obj), i_range(range), i_typeId(typeId), i_entry(entry)
-                {
-                }
-
-                bool operator()(WorldObject* u)
-                {
-                    if (u->GetTypeId() == i_typeId && i_obj->GetGUIDLow() != u->GetGUIDLow() && (!i_entry || u->GetEntry() == i_entry) && i_obj->IsWithinDistInMap(u, i_range))
-                    {
-                        if (Unit* unit = u->ToUnit())
-                        {
-                            if (!unit->isAlive())
-                                return false;
-                        }
-
-                        i_range = i_obj->GetDistance(u);
-                        return true;
-                    }
-
+            WorldObjectInRangeCheck(bool nearest, WorldObject const* obj, float range,
+                TypeID typeId = TYPEID_OBJECT, uint32 entry = 0) : i_nearest(nearest),
+                i_obj(obj), i_range(range), i_typeId(typeId), i_entry(entry) {}
+            WorldObject const& GetFocusObject() const { return *i_obj; }
+            bool operator()(WorldObject* u)
+            {
+                if (i_typeId && u->GetTypeId() != i_typeId)
                     return false;
-                }
-            private:
-                WorldObject const* i_obj;
-                float i_range;
-                TypeID i_typeId;
-                uint32 i_entry;
+                if (i_entry && u->GetEntry() != i_entry)
+                    return false;
+                if (i_obj->GetObjectGuid() == u->GetObjectGuid())
+                    return false;
+                if (!i_obj->IsWithinDistInMap(u, i_range))
+                    return false;
+                if (Unit* unit = u->ToUnit())
+                    if (!unit->isAlive())
+                        return false;
+                if (i_nearest)
+                    i_range = i_obj->GetDistance(u);
+                return true;
+            }
 
-                NearestTypeWithEntryInRangeCheck(NearestTypeWithEntryInRangeCheck const&);
+            WorldObject const* i_obj;
+            float i_range;
+            TypeID i_typeId;
+            uint32 i_entry;
+            bool i_nearest;
+
+            WorldObjectInRangeCheck(WorldObjectInRangeCheck const&);
         };
-
 };
 #define sEluna MaNGOS::Singleton<Eluna>::Instance()
 

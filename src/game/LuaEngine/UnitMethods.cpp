@@ -43,28 +43,6 @@ int LuaUnit::Attack(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::SetFlag(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint32 flag = luaL_checkunsigned(L, 2);
-
-    unit->SetFlag(index, flag);
-    return 0;
-}
-
-int LuaUnit::RemoveFlag(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint16 index = luaL_checkunsigned(L, 1);
-    uint32 flag = luaL_checkunsigned(L, 2);
-
-    unit->RemoveFlag(index, flag);
-    return 0;
-}
-
 int LuaUnit::ClearThreatList(lua_State* L, Unit* unit)
 {
     TO_UNIT();
@@ -3383,38 +3361,6 @@ int LuaUnit::GetGuildId(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::GetZoneId(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.Push(L, unit->GetZoneId());
-    return 1;
-}
-
-int LuaUnit::GetInstanceId(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.Push(L, unit->GetInstanceId());
-    return 1;
-}
-
-int LuaUnit::GetPhaseMask(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    // sEluna.Push(L, unit->GetPhaseMask());
-    return 1;
-}
-
-int LuaUnit::GetAreaId(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.Push(L, unit->GetAreaId());
-    return 1;
-}
-
 int LuaUnit::GetTeam(lua_State* L, Unit* unit)
 {
     TO_PLAYER();
@@ -4690,14 +4636,6 @@ int LuaUnit::GetAura(lua_State* L, Unit* unit)
     return 1;
 }
 
-int LuaUnit::GetMapId(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    sEluna.Push(L, unit->GetMapId());
-    return 1;
-}
-
 int LuaUnit::GetCombatTime(lua_State* L, Unit* unit)
 {
     TO_UNIT();
@@ -5079,53 +5017,6 @@ int LuaUnit::SetPlayerLock(lua_State* L, Unit* unit)
         player->SetClientControl(player, 1);
     }
     return 0;
-}
-
-int LuaUnit::GetNearestPlayer(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    float distance = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
-
-    Player* target = NULL;
-    Eluna::NearestTypeWithEntryInRangeCheck checker(unit, distance, TYPEID_PLAYER);
-    // Trinity::PlayerLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
-    // unit->VisitNearbyWorldObject(distance, searcher);
-
-    sEluna.Push(L, target);
-    return 1;
-}
-
-int LuaUnit::GetNearestGameObject(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint32 entry = luaL_optunsigned(L, 1, 0);
-    float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
-
-    GameObject* target = NULL;
-    Eluna::NearestTypeWithEntryInRangeCheck checker(unit, range, TYPEID_GAMEOBJECT, entry);
-    // Trinity::GameObjectLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
-    // unit->VisitNearbyGridObject(range, searcher);
-
-    sEluna.Push(L, target);
-    return 1;
-}
-
-int LuaUnit::GetNearestCreature(lua_State* L, Unit* unit)
-{
-    TO_UNIT();
-
-    uint32 entry = luaL_optunsigned(L, 1, 0);
-    float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
-
-    Creature* target = NULL;
-    Eluna::NearestTypeWithEntryInRangeCheck checker(unit, range, TYPEID_UNIT, entry);
-    // Trinity::CreatureLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(unit, target, checker);
-    // unit->VisitNearbyGridObject(range, searcher);
-
-    sEluna.Push(L, target);
-    return 1;
 }
 
 int LuaUnit::GetFriendlyUnitsInRange(lua_State* L, Unit* unit)

@@ -49,5 +49,8 @@
 #include "Weather.h"
 #include "World.h"
 #include "Weather.h"
+#include "CellImpl.h"
+#include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
 
 #endif

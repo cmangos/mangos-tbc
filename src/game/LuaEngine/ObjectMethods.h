@@ -22,6 +22,22 @@
 
 namespace LuaObject
 {
+    int RemoveFlag(lua_State* L, Object* obj)
+    {
+        uint16 index = luaL_checkunsigned(L, 1);
+        uint32 flag = luaL_checkunsigned(L, 2);
+
+        obj->RemoveFlag(index, flag);
+        return 0;
+    }
+    int SetFlag(lua_State* L, Object* obj)
+    {
+        uint16 index = luaL_checkunsigned(L, 1);
+        uint32 flag = luaL_checkunsigned(L, 2);
+
+        obj->SetFlag(index, flag);
+        return 0;
+    }
     int HasFlag(lua_State* L, Object* obj)
     {
         uint16 index = luaL_checkunsigned(L, 1);

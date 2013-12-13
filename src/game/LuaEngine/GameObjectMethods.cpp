@@ -364,56 +364,6 @@ int LuaGameObject::RemoveEvents(lua_State* L, GameObject* go)
     return 0;
 }
 
-int LuaGameObject::GetNearestPlayer(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    float distance = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
-
-    Player* target = NULL;
-    Eluna::NearestTypeWithEntryInRangeCheck checker(go, distance, TYPEID_PLAYER);
-    // MaNGOS::PlayerLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
-    // go->VisitNearbyObject(distance, searcher);
-
-    sEluna.Push(L, target);
-    return 1;
-}
-
-int LuaGameObject::GetNearestGameObject(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint32 entry = luaL_optunsigned(L, 1, 0);
-    float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
-
-    GameObject* target = NULL;
-    Eluna::NearestTypeWithEntryInRangeCheck checker(go, range, TYPEID_GAMEOBJECT, entry);
-    // MaNGOS::GameObjectLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
-    // go->VisitNearbyGridObject(range, searcher);
-
-    sEluna.Push(L, target);
-    return 1;
-}
-
-int LuaGameObject::GetNearestCreature(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint32 entry = luaL_optunsigned(L, 1, 0);
-    float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
-
-    Creature* target = NULL;
-    Eluna::NearestTypeWithEntryInRangeCheck checker(go, range, TYPEID_UNIT, entry);
-    // MaNGOS::CreatureLastSearcher<Eluna::NearestTypeWithEntryInRangeCheck> searcher(go, target, checker);
-    // go->VisitNearbyGridObject(range, searcher);
-
-    sEluna.Push(L, target);
-    return 1;
-}
-
 int LuaGameObject::UseDoorOrButton(lua_State* L, GameObject* go)
 {
     if (!go || !go->IsInWorld())
@@ -477,28 +427,6 @@ int LuaGameObject::GetLootState(lua_State* L, GameObject* go)
 
     sEluna.Push(L, go->getLootState());
     return 1;
-}
-
-int LuaGameObject::SetFlag(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint32 flag = luaL_optunsigned(L, 1, 0);
-
-    go->SetFlag(GAMEOBJECT_FLAGS, flag);
-    return 0;
-}
-
-int LuaGameObject::RemoveFlag(lua_State* L, GameObject* go)
-{
-    if (!go || !go->IsInWorld())
-        return 0;
-
-    uint32 flag = luaL_optunsigned(L, 1, 0);
-
-    go->RemoveFlag(GAMEOBJECT_FLAGS, flag);
-    return 0;
 }
 
 int LuaGameObject::Despawn(lua_State* L, GameObject* go)

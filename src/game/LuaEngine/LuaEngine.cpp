@@ -432,6 +432,11 @@ int64 Eluna::CHECK_LONG(lua_State* L, int narg)
     return strtol(c_str, NULL, 0);
 }
 
+Item* Eluna::CHECK_ITEM(lua_State* L, int narg)
+{
+    return ElunaTemplate<Item>::check(L, narg);
+}
+
 // Saves the function reference ID given to the register type's store for given entry under the given event
 void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
 {

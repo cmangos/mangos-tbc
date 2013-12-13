@@ -24,8 +24,6 @@ namespace LuaUnit
 {
     int Attack(lua_State*, Unit*);
     int DealDamage(lua_State*, Unit*);
-    int SetFlag(lua_State*, Unit*);
-    int RemoveFlag(lua_State*, Unit*);
     int ClearThreatList(lua_State*, Unit*);
     int SetOwnerGUID(lua_State*, Unit*);
     int GetOwner(lua_State*, Unit*);
@@ -342,10 +340,6 @@ namespace LuaUnit
     int GetLevel(lua_State*, Unit*);
     int GetHealth(lua_State*, Unit*);
     int GetGuildId(lua_State*, Unit*);
-    int GetZoneId(lua_State*, Unit*);
-    int GetInstanceId(lua_State*, Unit*);
-    int GetPhaseMask(lua_State*, Unit*);
-    int GetAreaId(lua_State*, Unit*);
     int GetTeam(lua_State*, Unit*);
     int GetPower(lua_State*, Unit*);
     int GetMaxPower(lua_State*, Unit*);
@@ -457,7 +451,6 @@ namespace LuaUnit
     int IsDungeonBoss(lua_State*, Unit*);
     int IsWorldBoss(lua_State*, Unit*);
     int GetAura(lua_State*, Unit*);
-    int GetMapId(lua_State*, Unit*);
     int GetCombatTime(lua_State*, Unit*);
     int ClearInCombat(lua_State*, Unit*);
     int StopSpellCast(lua_State*, Unit*);
@@ -489,9 +482,6 @@ namespace LuaUnit
     int HasEmptySeat(lua_State*, Unit*);
     int StartTaxi(lua_State*, Unit*);
     int SetPlayerLock(lua_State*, Unit*);
-    int GetNearestPlayer(lua_State*, Unit*);
-    int GetNearestGameObject(lua_State*, Unit*);
-    int GetNearestCreature(lua_State*, Unit*);
     int GossipSendPOI(lua_State*, Unit*);
     int GossipAddQuests(lua_State*, Unit*);
     int AttackStop(lua_State*, Unit*);

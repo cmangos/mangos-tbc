@@ -49,16 +49,11 @@ namespace LuaGameObject
     int RegisterEvent(lua_State*, GameObject*);
     int RemoveEventById(lua_State*, GameObject*);
     int RemoveEvents(lua_State*, GameObject*);
-    int GetNearestPlayer(lua_State*, GameObject*);
-    int GetNearestGameObject(lua_State*, GameObject*);
-    int GetNearestCreature(lua_State*, GameObject*);
     int UseDoorOrButton(lua_State*, GameObject*);
     int SetGoState(lua_State*, GameObject*);
     int GetGoState(lua_State*, GameObject*);
     int GetLootState(lua_State*, GameObject*);
     int SetLootState(lua_State*, GameObject*);
-    int SetFlag(lua_State*, GameObject*);
-    int RemoveFlag(lua_State*, GameObject*);
     int Despawn(lua_State*, GameObject*);
     int Respawn(lua_State*, GameObject*);
     int RemoveFromWorld(lua_State*, GameObject*);

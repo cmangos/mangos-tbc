@@ -178,271 +178,6 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
 
 ElunaRegister<Unit> UnitMethods[] =
 {
-    // Player Methods
-    // Getters
-    //{"GetSelection", &LuaUnit::GetSelection},               // :GetSelection()
-    {"GetGMRank", &LuaUnit::GetGMRank},                     // :GetSecurity()
-    {"GetGuildId", &LuaUnit::GetGuildId},                   // :GetGuildId() - nil on no guild
-    {"GetCoinage", &LuaUnit::GetCoinage},                   // :GetCoinage()
-    {"GetTeam", &LuaUnit::GetTeam},                         // :GetTeam() - returns the player's team. 0 for ally, 1 for horde
-    {"GetItemCount", &LuaUnit::GetItemCount},               // :GetItemCount(item_id[, check_bank])
-    {"GetGroup", &LuaUnit::GetGroup},                       // :GetGroup()
-    {"GetGuild", &LuaUnit::GetGuild},                       // :GetGuild()
-    //{"GetGearLevel", &LuaUnit::GetGearLevel},               // :GetGearLevel() - Returns the player's average gear level
-    {"GetAccountId", &LuaUnit::GetAccountId},               // :GetAccountId()
-    {"GetAccountName", &LuaUnit::GetAccountName},           // :GetAccountName()
-    {"GetArenaPoints", &LuaUnit::GetArenaPoints},           // :GetArenaPoints()
-    {"GetHonorPoints", &LuaUnit::GetHonorPoints},           // :GetHonorPoints()
-    {"GetLifetimeKills", &LuaUnit::GetLifetimeKills},       // :GetLifetimeKills() - Returns the player's lifetime (honorable) kills
-    {"GetPlayerIP", &LuaUnit::GetPlayerIP},                 // :GetPlayerIP() - Returns the player's IP Address
-    {"GetLevelPlayedTime", &LuaUnit::GetLevelPlayedTime},   // :GetLevelPlayedTime() - Returns the player's played time at that level
-    {"GetTotalPlayedTime", &LuaUnit::GetTotalPlayedTime},   // :GetTotalPlayedTime() - Returns the total played time of that player
-    {"GetInventoryItem", &LuaUnit::GetInventoryItem},       // :GetInventoryItem(slot) - Returns item at given inventory slot (0, 1, 2.. for equipment 19 - 23 for bags, 23 - 39 for backpack)
-    //{"GetBagItem", &LuaUnit::GetBagItem},                   // :GetBagItem(bagSlot, slot) - Returns item at given slot (0, 1, 2 .. max slots for bag) in a bag (19 - 23)
-    //{"GetObjectGlobally", &LuaUnit::GetObjectGlobally},     // :GetObjectGlobally(lowguid, entry) - Returns the gameobject of given lowguid and entry if in world
-    //{"GetNearbyGameObject", &LuaUnit::GetNearbyGameObject}, // :GetNearbyGameObject() - Returns nearby gameobject if found
-    {"GetReputation", &LuaUnit::GetReputation},             // :GetReputation(faction) - Gets player's reputation with given faction
-    {"GetItemByEntry", &LuaUnit::GetItemByEntry},           // :GetItemByEntry(entry) - Gets an item if the player has it
-    {"GetEquippedItemBySlot", &LuaUnit::GetEquippedItemBySlot},// :GetEquippedItemBySlot(slotId) - Returns equipped item by slot
-    {"GetQuestLevel", &LuaUnit::GetQuestLevel},             // :GetQuestLevel(quest) - Returns quest's level
-    {"GetChatTag", &LuaUnit::GetChatTag},                   // :GetChatTag() - Returns player chat tag ID
-    {"GetRestBonus", &LuaUnit::GetRestBonus},               // :GetRestBonus() - Gets player's rest bonus
-    {"GetRestType", &LuaUnit::GetRestType},                 // :GetRestType() - Returns the player's rest type
-    //{"GetPhaseMaskForSpawn", &LuaUnit::GetPhaseMaskForSpawn},                                               // :GetPhaseMaskForSpawn() - Gets the real phasemask for spawning things. Used if the player is in GM mode
-    //{"GetReqKillOrCastCurrentCount", &LuaUnit::RemoveRewardedQuest},                                        // :GetReqKillOrCastCurrentCount(questId, entry) - Gets the objective (kill or cast) current count done
-    {"GetQuestStatus", &LuaUnit::GetQuestStatus},           // :GetQuestStatus(entry) - Gets the quest's status
-    {"GetInGameTime", &LuaUnit::GetInGameTime},             // :GetInGameTime() - Returns player's ingame time
-    {"GetComboPoints", &LuaUnit::GetComboPoints},           // :GetComboPoints() - Returns player's combo points
-    //{"GetComboTarget", &LuaUnit::GetComboTarget},           // :GetComboTarget() - Returns the player's combo target
-    {"GetGuildName", &LuaUnit::GetGuildName},               // :GetGuildName() - Returns player's guild's name or nil
-    {"GetFreeTalentPoints", &LuaUnit::GetFreeTalentPoints}, // :GetFreeTalentPoints() - Returns the amount of unused talent points
-    {"GetActiveSpec", &LuaUnit::GetActiveSpec},             // :GetActiveSpec() - Returns the active specID
-    {"GetSpecsCount", &LuaUnit::GetSpecsCount},             // :GetSpecsCount() - Returns the player's spec count
-    {"GetSpellCooldownDelay", &LuaUnit::GetSpellCooldownDelay},                                             // :GetSpellCooldownDelay(spellId) - Returns the spell's cooldown
-    {"GetGuildRank", &LuaUnit::GetGuildRank},               // :GetGuildRank() - Gets the player's guild rank
-    {"GetDifficulty", &LuaUnit::GetDifficulty},             // :GetDifficulty([isRaid]) - Returns the current difficulty
-    {"GetHealthBonusFromStamina", &LuaUnit::GetHealthBonusFromStamina},                                     // :GetHealthBonusFromStamina() - Returns the HP bonus from stamina
-    {"GetManaBonusFromIntellect", &LuaUnit::GetManaBonusFromIntellect},                                     // :GetManaBonusFromIntellect() - Returns the mana bonus from intellect
-    {"GetMaxSkillValue", &LuaUnit::GetMaxSkillValue},       // :GetMaxSkillValue(skill) - Gets max skill value for the given skill
-    {"GetPureMaxSkillValue", &LuaUnit::GetPureMaxSkillValue},                                               // :GetPureMaxSkillValue(skill) - Gets max base skill value
-    {"GetSkillValue", &LuaUnit::GetSkillValue},             // :GetSkillValue(skill) - Gets current skill value
-    {"GetBaseSkillValue", &LuaUnit::GetBaseSkillValue},     // :GetBaseSkillValue(skill) - Gets current base skill value (no temp bonus)
-    {"GetPureSkillValue", &LuaUnit::GetPureSkillValue},     // :GetPureSkillValue(skill) - Gets current base skill value (no bonuses)
-    //{"GetSkillStep", &LuaUnit::GetSkillStep},               // :GetSkillStep(skill) - Returns current skillstep
-    {"GetSkillPermBonusValue", &LuaUnit::GetSkillPermBonusValue},                                           // :GetSkillPermBonusValue(skill) - Returns current permanent bonus
-    {"GetSkillTempBonusValue", &LuaUnit::GetSkillTempBonusValue},                                           // :GetSkillTempBonusValue(skill) - Returns current temp bonus
-    {"GetReputationRank", &LuaUnit::GetReputationRank},     // :GetReputationRank(faction) - Returns the reputation rank with given faction
-    {"GetSpellCooldowns", &LuaUnit::GetSpellCooldowns},     // :GetSpellCooldowns() - Gets a table where spellIDs are the keys and values are cooldowns
-    {"GetDrunkValue", &LuaUnit::GetDrunkValue},             // :GetDrunkValue() - Returns the current drunkness value
-    {"GetBattlegroundId", &LuaUnit::GetBattlegroundId},     // :GetBattlegroundId() - Returns the player's current battleground ID
-    {"GetBattlegroundTypeId", &LuaUnit::GetBattlegroundTypeId},                                             // :GetBattlegroundTypeId() - Returns the player's current battleground type ID
-    {"GetXPRestBonus", &LuaUnit::GetXPRestBonus},           // :GetXPRestBonus(xp) - Returns the rested bonus XP from given XP
-    {"GetRestTime", &LuaUnit::GetRestTime},                 // :GetRestTime() - Returns the timed rested
-    {"GetGroupInvite", &LuaUnit::GetGroupInvite},           // :GetGroupInvite() - Returns the group invited to
-    {"GetSubGroup", &LuaUnit::GetSubGroup},                 // :GetSubGroup() - Gets the player's current subgroup ID
-    {"GetNextRandomRaidMember", &LuaUnit::GetNextRandomRaidMember},                                         // :GetNextRandomRaidMember(radius) - Gets a random raid member in given radius
-    {"GetOriginalGroup", &LuaUnit::GetOriginalGroup},       // :GetOriginalGroup() - Gets the original group object
-    {"GetOriginalSubGroup", &LuaUnit::GetOriginalSubGroup}, // :GetOriginalSubGroup() - Returns the original subgroup ID
-    //{"GetChampioningFaction", &LuaUnit::GetChampioningFaction},                                             // :GetChampioningFaction() - Returns the player's championing faction
-    {"GetLatency", &LuaUnit::GetLatency},                   // :GetLatency() - Returns player's latency
-    //{"GetRecruiterId", &LuaUnit::GetRecruiterId},           // :GetRecruiterId() - Returns player's recruiter's ID
-    //{"GetSelectedPlayer", &LuaUnit::GetSelectedPlayer},     // :GetSelectedPlayer() - Returns player's selected player.
-    //{"GetSelectedUnit", &LuaUnit::GetSelectedUnit},         // :GetSelectedUnit() - Returns player's selected unit.
-    {"GetDbLocaleIndex", &LuaUnit::GetDbLocaleIndex},       // :GetDbLocaleIndex() - Returns locale index
-    {"GetDbcLocale", &LuaUnit::GetDbcLocale},               // :GetDbcLocale() - Returns DBC locale
-    {"GetCorpse", &LuaUnit::GetCorpse},                     // :GetCorpse() - Returns the player's corpse
-    {"GetGossipTextId", &LuaUnit::GetGossipTextId},         // :GetGossipTextId(worldObject) - Returns the WorldObject's gossip textId
-    {"GetQuestRewardStatus", &LuaUnit::GetQuestRewardStatus},                                               // :GetQuestRewardStatus(questId) - Returns the true/false of the quest reward status
-    {"GetStat", &LuaUnit::GetStat},
-    {"GetBaseSpellPower", &LuaUnit::GetBaseSpellPower},
-
-    // Setters
-    {"AdvanceSkillsToMax", &LuaUnit::AdvanceSkillsToMax},   // :AdvanceSkillsToMax() - Advances all currently known skills to the currently known max level
-    {"AdvanceSkill", &LuaUnit::AdvanceSkill},               // :AdvanceSkill(skill_id, step) - Advances skill by ID and the amount(step)
-    {"AdvanceAllSkills", &LuaUnit::AdvanceAllSkills},       // :AdvanceAllSkills(value) - Advances all current skills to your input(value)
-    {"AddLifetimeKills", &LuaUnit::AddLifetimeKills},       // :AddLifetimeKills(val) - Adds lifetime (honorable) kills to your current lifetime kills
-    {"SetCoinage", &LuaUnit::SetCoinage},                   // :SetCoinage(amount) - sets plr's coinage to this
-    {"SetKnownTitle", &LuaUnit::SetKnownTitle},             // :SetKnownTitle(id)
-    {"UnsetKnownTitle", &LuaUnit::UnsetKnownTitle},         // :UnsetKnownTitle(id)
-    {"SetBindPoint", &LuaUnit::SetBindPoint},               // :SetBindPoint(x, y, z, map, areaid) - sets home for hearthstone
-    //{"SetBindPointAtPlayerLoc", &LuaUnit::SetBindPointAtPlayerLoc},                                         // :SetBindPointAtPlayerLoc() - Set's home for hearthstone at player's location
-    {"SetArenaPoints", &LuaUnit::SetArenaPoints},           // :SetArenaPoints(amount)
-    {"SetHonorPoints", &LuaUnit::SetHonorPoints},           // :SetHonorPoints(amount)
-    {"SetLifetimeKills", &LuaUnit::SetLifetimeKills},       // :SetLifetimeKills(val) - Sets the overall lifetime (honorable) kills of the player
-    {"SetGameMaster", &LuaUnit::SetGameMaster},             // :SetGameMaster([on]) - Sets GM mode on or off
-    {"SetGMChat", &LuaUnit::SetGMChat},                     // :SetGMChat([on]) - Sets GM chat on or off
-    {"SetTaxiCheat", &LuaUnit::SetTaxiCheat},               // :SetTaxiCheat([on]) - Sets taxi cheat on or off
-    {"SetGMVisible", &LuaUnit::SetGMVisible},               // :SetGMVisible([on]) - Sets gm visibility on or off
-    {"SetPvPDeath", &LuaUnit::SetPvPDeath},                 // :SetPvPDeath([on]) - Sets PvP death on or off
-    {"SetAcceptWhispers", &LuaUnit::SetAcceptWhispers},     // :SetAcceptWhispers([on]) - Sets whisper accepting death on or off
-    {"SetRestBonus", &LuaUnit::SetRestBonus},               // :SetRestBonus(bonusrate) - Sets new restbonus rate
-    {"SetRestType", &LuaUnit::SetRestType},                 // :SetRestType() - Sets rest type
-    {"SetSheath", &LuaUnit::SetSheath},                     // :SetSheath(SheathState) - Sets player's seathstate
-    {"SetQuestStatus", &LuaUnit::SetQuestStatus},           // :SetQuestStatus(entry, status) - Sets the quest's status
-    //{"SetReputation", &LuaUnit::SetReputation},             // :SetReputation(faction, value) - Sets the faction reputation for the player
-    {"SetFreeTalentPoints", &LuaUnit::SetFreeTalentPoints}, // :SetFreeTalentPoints(points) - Sets the amount of unused talent points
-    //{"SetGuildRank", &LuaUnit::SetGuildRank},               // :SetGuildRank(rank) - Sets player's guild rank
-    //{"SetMovement", &LuaUnit::SetMovement},                 // :SetMovement(type) - Sets player's movement type
-    {"SetSkill", &LuaUnit::SetSkill},                       // :SetSkill(skill, step, currVal, maxVal) - Sets the skill's boundaries and value
-    {"SetFactionForRace", &LuaUnit::SetFactionForRace},     // :SetFactionForRace(race) - Sets the faction by raceID
-    {"SetDrunkValue", &LuaUnit::SetDrunkValue},             // :SetDrunkValue(newDrunkValue) - Sets drunkness value
-    {"SetRestTime", &LuaUnit::SetRestTime},                 // :SetRestTime(value) - Sets the rested time
-    {"SetAtLoginFlag", &LuaUnit::SetAtLoginFlag},           // :SetAtLoginFlag(flag) - Adds an at login flag
-    {"SetPlayerLock", &LuaUnit::SetPlayerLock},             // :SetPlayerLock(on/off)
-    {"SetCreatorGUID", &LuaUnit::SetCreatorGUID},           // :SetOwnerGUID(uint64 ownerGUID) - Sets the owner's guid of a summoned creature, etc
-    //{"SetMinionGUID", &LuaUnit::SetMinionGUID},             // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
-    {"SetCharmerGUID", &LuaUnit::SetCharmerGUID},           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
-    {"SetPetGUID", &LuaUnit::SetPetGUID},                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
-    //{"SetCritterGUID", &LuaUnit::SetCritterGUID},           // :SetCritterGUID(uint64 guid) - Sets the critter's guid
-
-    // Boolean
-    {"IsWithinLoS", &LuaUnit::IsWithinLoS},                 // :IsWithinLoS(x, y, z)
-    {"IsInGroup", &LuaUnit::IsInGroup},                     // :IsInGroup()
-    {"IsInGuild", &LuaUnit::IsInGuild},                     // :IsInGuild()
-    {"IsGM", &LuaUnit::IsGM},                               // :IsGM()
-    {"IsAlliance", &LuaUnit::IsAlliance},                   // :IsAlliance()
-    {"IsHorde", &LuaUnit::IsHorde},                         // :IsHorde()
-    {"HasTitle", &LuaUnit::HasTitle},                       // :HasTitle(id)
-    {"HasItem", &LuaUnit::HasItem},                         // :HasItem(itemId[, count, check_bank]) - Returns true if the player has the item(itemId) and specified count, else it will return false
-    {"Teleport", &LuaUnit::Teleport},                       // :Teleport(Map, X, Y, Z, O) - Teleports player to specified co - ordinates. Returns true if success and false if not
-    {"AddItem", &LuaUnit::AddItem},                         // :AddItem(id, amount) - Adds amount of item to player. Returns true if success and false if not
-    {"IsInArenaTeam", &LuaUnit::IsInArenaTeam},             // :IsInArenaTeam(type) - type : 0 = 2v2, 1 = 3v3, 2 = 5v5
-    {"CanEquipItem", &LuaUnit::CanEquipItem},               // :CanEquipItem(entry/item, slot) - Returns true if the player can equip given item/item entry
-    //{"IsFalling", &LuaUnit::IsFalling},                     // :IsFalling() - Returns true if the unit is falling
-    {"ToggleAFK", &LuaUnit::ToggleAFK},                     // :ToggleAFK() - Toggles AFK state for player
-    {"ToggleDND", &LuaUnit::ToggleDND},                     // :ToggleDND() - Toggles DND state for player
-    {"IsAFK", &LuaUnit::IsAFK},                             // :IsAFK() - Returns true if the player is afk
-    {"IsDND", &LuaUnit::IsDND},                             // :IsDND() - Returns true if the player is in dnd mode
-    {"IsAcceptingWhispers", &LuaUnit::IsAcceptingWhispers}, // :IsAcceptWhispers() - Returns true if the player accepts whispers
-    {"IsGMChat", &LuaUnit::IsGMChat},                       // :IsGMChat() - Returns true if the player has GM chat on
-    {"IsTaxiCheater", &LuaUnit::IsTaxiCheater},             // :IsTaxiCheater() - Returns true if the player has taxi cheat on
-    {"IsGMVisible", &LuaUnit::IsGMVisible},                 // :IsGMVisible() - Returns true if the player is GM visible
-    {"IsActiveQuest", &LuaUnit::IsActiveQuest},             // :IsActiveQuest(entry) - Returns true if the quest entry is active for the player
-    {"InBattlegroundQueue", &LuaUnit::InBattlegroundQueue}, // :InBattlegroundQueue() - Returns true if the player is in a battleground queue
-    //{"IsImmuneToEnvironmentalDamage", &LuaUnit::IsImmuneToEnvironmentalDamage},                             // :IsImmuneToEnvironmentalDamage() - Returns true if the player is immune to enviromental damage
-    {"CanSpeak", &LuaUnit::CanSpeak},                       // :CanSpeak() - Returns true if the player can speak
-    {"HasAtLoginFlag", &LuaUnit::HasAtLoginFlag},           // :HasAtLoginFlag(flag) - returns true if the player has the login flag
-    //{"InRandomLfgDungeon", &LuaUnit::InRandomLfgDungeon},   // :InRandomLfgDungeon() - Returns true if the player is in a random LFG dungeon
-    //{"HasPendingBind", &LuaUnit::HasPendingBind},           // :HasPendingBind() - Returns true if the player has a pending instance bind
-    //{"HasAchieved", &LuaUnit::HasAchieved},                 // :HasAchieved(achievementID) - Returns true if the player has achieved the achievement
-    {"CanUninviteFromGroup", &LuaUnit::CanUninviteFromGroup},                                               // :CanUninviteFromGroup() - Returns true if the player can uninvite from group
-    {"IsRested", &LuaUnit::IsRested},                       // :IsRested() - Returns true if the player is rested
-    //{"CanFlyInZone", &LuaUnit::CanFlyInZone},               // :CanFlyInZone(mapid, zone) - Returns true if the player can fly in the area
-    //{"IsNeverVisible", &LuaUnit::IsNeverVisible},           // :IsNeverVisible() - Returns true if the player is never visible
-    {"IsVisibleForPlayer", &LuaUnit::IsVisibleForPlayer},   // :IsVisibleForPlayer(player) - Returns true if the player is visible for the target player
-    //{"IsUsingLfg", &LuaUnit::IsUsingLfg},                   // :IsUsingLfg() - Returns true if the player is using LFG
-    {"HasQuestForItem", &LuaUnit::HasQuestForItem},         // :HasQuestForItem(entry) - Returns true if the player has the quest for the item
-    {"HasQuestForGO", &LuaUnit::HasQuestForGO},             // :HasQuestForGO(entry) - Returns true if the player has the quest for the gameobject
-    {"CanShareQuest", &LuaUnit::CanShareQuest},             // :CanShareQuest(entry) - Returns true if the quest entry is shareable by the player
-    //{"HasReceivedQuestReward", &LuaUnit::HasReceivedQuestReward},                                           // :HasReceivedQuestReward(entry) - Returns true if the player has recieved the quest's reward
-    //{"HasTalent", &LuaUnit::HasTalent},                     // :HasTalent(spellid, spec) - Returns true if the player has the talent spell in given spec
-    {"IsInSameGroupWith", &LuaUnit::IsInSameGroupWith},     // :IsInSameGroupWith(player) - Returns true if the players are in the same group
-    {"IsInSameRaidWith", &LuaUnit::IsInSameRaidWith},       // :IsInSameRaidWith(player) - Returns true if the players are in the same raid
-    {"IsGroupVisibleFor", &LuaUnit::IsGroupVisibleFor},     // :IsGroupVisibleFor(player) - Player is group visible for the target
-    {"HasSkill", &LuaUnit::HasSkill},                       // :HasSkill(skill) - Returns true if the player has the skill
-    {"IsHonorOrXPTarget", &LuaUnit::IsHonorOrXPTarget},     // :IsHonorOrXPTarget(victim) - Returns true if the victim gives honor or XP
-    {"CanParry", &LuaUnit::CanParry},                       // :CanParry() - Returns true if the player can parry
-    {"CanBlock", &LuaUnit::CanBlock},                       // :CanBlock() - Returns true if the player can block
-    {"CanTitanGrip", &LuaUnit::CanTitanGrip},               // :CanTitanGrip() - Returns true if the player has titan grip
-    {"CanTameExoticPets", &LuaUnit::CanTameExoticPets},     // :CanTameExoticPets() - Returns true if the player can tame exotic pets
-    {"InBattleground", &LuaUnit::InBattleground},           // :InBattleground() - Returns true if the player is in a battleground
-    {"InArena", &LuaUnit::InArena},                         // :InArena() - Returns true if the player is in an arena
-    //{"IsOutdoorPvPActive", &LuaUnit::IsOutdoorPvPActive},   // :IsOutdoorPvPActive() - Returns true if the player is outdoor pvp active
-    //{"IsARecruiter", &LuaUnit::IsARecruiter},               // :IsARecruiter() - Returns true if the player is a recruiter
-    {"CanUseItem", &LuaUnit::CanUseItem},                   // :CanUseItem(item/entry) - Returns true if the player can use the item or item entry
-
-    // Gossip
-    {"GossipMenuAddItem", &LuaUnit::GossipMenuAddItem},     // :GossipMenuAddItem(icon, msg, sender, intid[, code, popup, money])
-    {"GossipSendMenu", &LuaUnit::GossipSendMenu},           // :GossipSendMenu(npc_text, unit[, menu_id]) - If unit is a player, you need to use a menu_id. menu_id is used to hook the gossip select function to the menu
-    {"GossipComplete", &LuaUnit::GossipComplete},           // :GossipComplete()
-    {"GossipClearMenu", &LuaUnit::GossipClearMenu},         // :GossipClearMenu() - Clears the gossip menu of options. Pretty much only useful with player gossip. Need to use before creating a new menu for the player
-
-    // Other
-    {"SendClearCooldowns", &LuaUnit::SendClearCooldowns },  // :SendClearCooldowns(spellId, (unit)target) - Clears the cooldown of the target with a specified spellId
-    {"SendBroadcastMessage", &LuaUnit::SendBroadcastMessage},                                               // :SendBroadcastMessage(message)
-    {"SendAreaTriggerMessage", &LuaUnit::SendAreaTriggerMessage},                                           // :SendAreaTriggerMessage(message) - Sends a yellow message in the middle of your screen
-    {"SendNotification", &LuaUnit::SendNotification},       // :SendNotification(message) - Sends a red message in the middle of your screen
-    {"SendPacketToPlayer", &LuaUnit::SendPacketToPlayer},   // :SendPacketToPlayer(packet) - Sends a specified packet to the player
-    {"SendPacket", &LuaUnit::SendPacket},                   // :SendPacket(packet) - Sends a specified packet
-    //{"SendPacketToGroup", &LuaUnit::SendPacketToGroup},     // :SendPacketToGroup(packet[, sendToPlayersInBattleground(bool)]) - Sends a specified packet to the group with the choice (true/false) to send it to players in a battleground
-    //{"SendPacketToGuild", &LuaUnit::SendPacketToGuild},     // :SendPacketToGuild(packet) - Sends a specified packet to your guild
-    //{"SendPacketToRankedInGuild", &LuaUnit::SendPacketToRankedInGuild},                                     // :SendPacketToRankedInGuild(packet, rankId) - Sends a specified packet to your guild, specifying a rankId will only send the packet to your ranked members
-    {"SendVendorWindow", &LuaUnit::SendVendorWindow},       // :SendVendorWindow(unit) - Sends the unit's vendor window to the player
-    {"ModifyMoney", &LuaUnit::ModifyMoney},                 // :ModifyMoney(amount[, sendError]) - Modifies (does not set) money (copper count) of the player. Amount can be negative to remove copper
-    {"LearnSpell", &LuaUnit::LearnSpell},                   // :LearnSpell(id) - learns the given spell
-    {"RemoveItem", &LuaUnit::RemoveItem},                   // :RemoveItem(item/entry, amount) - Removes amount of item from player
-    {"RemoveLifetimeKills", &LuaUnit::RemoveLifetimeKills}, // :RemoveLifetimeKills(val) - Removes a specified amount(val) of the player's lifetime (honorable) kills
-    {"ResurrectPlayer", &LuaUnit::ResurrectPlayer},         // :ResurrectPlayer([percent[, sickness(bool)]]) - Resurrects the player at percentage, player gets resurrection sickness if sickness set to true
-    {"PlaySoundToPlayer", &LuaUnit::PlaySoundToPlayer},     // :PlaySoundToPlayer(soundId) - Plays the specified sound to the player
-    {"EquipItem", &LuaUnit::EquipItem},                     // :EquipItem(entry/item, slot) - Equips given item or item entry for player to given slot. Returns the equipped item or nil
-    {"ResetSpellCooldown", &LuaUnit::ResetSpellCooldown},   // :ResetSpellCooldown(spellId, update(bool~optional)) - Resets cooldown of the specified spellId. If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
-    {"ResetTypeCooldowns", &LuaUnit::ResetTypeCooldowns},   // :ResetTypeCooldowns(category, update(bool~optional)) - Resets all cooldowns for the spell category(type). If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
-    {"ResetAllCooldowns", &LuaUnit::ResetAllCooldowns},     // :ResetAllCooldowns() - Resets all spell cooldowns
-    {"GiveLevel", &LuaUnit::GiveLevel},                     // :GiveLevel(level) - Gives levels to the player
-    //{"GiveXP", &LuaUnit::GiveXP},                           // :GiveXP(xp[, victim, group_rate, pureXP, triggerHook]) - Gives XP to the player. If pure is false, bonuses are count in. If triggerHook is false, GiveXp hook is not triggered.
-    //{"RemovePet", &LuaUnit::RemovePet},                     // :RemovePet([mode, returnreagent]) - Removes the player's pet. Mode determines if the pet is saved and how
-    //{"SummonPet", &LuaUnit::SummonPet},                     // :SummonPet(entry, x, y, z, o, petType, despwtime) - Summons a pet for the player
-    {"Say", &LuaUnit::Say},                                 // :Say(text, lang) - The player says the text
-    {"Yell", &LuaUnit::Yell},                               // :Yell(text, lang) - The player yells the text
-    {"TextEmote", &LuaUnit::TextEmote},                     // :TextEmote(text) - The player does a textemote with the text
-    {"Whisper", &LuaUnit::Whisper},                         // :Whisper(text, lang, receiverGuid) - The player whispers the text to the guid
-    {"CompleteQuest", &LuaUnit::CompleteQuest},             // :CompleteQuest(entry) - Completes a quest by entry
-    {"IncompleteQuest", &LuaUnit::IncompleteQuest},         // :IncompleteQuest(entry) - Uncompletes the quest by entry for the player
-    {"FailQuest", &LuaUnit::FailQuest},                     // :FailQuest(entry) - Player fails the quest entry
-    //{"RemoveActiveQuest", &LuaUnit::RemoveActiveQuest},     // :RemoveActiveQuest(entry) - Removes an active quest
-    //{"RemoveRewardedQuest", &LuaUnit::RemoveRewardedQuest}, // :RemoveRewardedQuest(entry) - Removes a rewarded quest
-    {"AreaExploredOrEventHappens", &LuaUnit::AreaExploredOrEventHappens},                                   // :AreaExploredOrEventHappens(questId) - Satisfies an area or event requrement for the questId
-    {"GroupEventHappens", &LuaUnit::GroupEventHappens},     // :GroupEventHappens(questId, worldObject) - Satisfies a group event for the questId with the world object
-    //{"KilledMonsterCredit", &LuaUnit::KilledMonsterCredit}, // :KilledMonsterCredit(entry) - Satisfies a monsterkill for the player
-    //{"KilledPlayerCredit", &LuaUnit::KilledPlayerCredit},   // :KilledPlayerCredit() - Satisfies a player kill for the player
-    //{"KillGOCredit", &LuaUnit::KillGOCredit},               // :KillGOCredit(GOEntry[, GUID]) - Credits the player for destroying a GO, guid is optional
-    {"TalkedToCreature", &LuaUnit::TalkedToCreature},       // :TalkedToCreature(npcEntry, creature) - Satisfies creature talk objective for the player
-    //{"ResetPetTalents", &LuaUnit::ResetPetTalents},         // :ResetPetTalents() - Resets player's pet's talents
-    {"RegenerateAll", &LuaUnit::RegenerateAll},             // :RegenerateAll() - Regenerates all player's powers
-    //{"Regenerate", &LuaUnit::Regenerate},                   // :Regenerate(powerType) - Regenerates the given power type
-    //{"RegenerateHealth", &LuaUnit::RegenerateHealth},       // :RegenerateHealth() - Regenerates health
-    {"AddComboPoints", &LuaUnit::AddComboPoints},           // :AddComboPoints(target, count[, spell]) - Adds combo points to the target for the player
-    //{"GainSpellComboPoints", &LuaUnit::GainSpellComboPoints},                                               // :GainSpellComboPoints(amount) - Player gains spell combo points
-    {"ClearComboPoints", &LuaUnit::ClearComboPoints},       // :ClearComboPoints() - Clears player's combo points
-    {"RemoveSpell", &LuaUnit::RemoveSpell},                 // :RemoveSpell(entry[, disabled, learn_low_rank]) - Removes (unlearn) the given spell
-    {"ResetTalents", &LuaUnit::ResetTalents},               // :ResetTalents([no_cost]) - Resets player's talents
-    {"ResetTalentsCost", &LuaUnit::ResetTalentsCost},       // :ResetTalentsCost() - Returns the reset talents cost
-    //{"AddTalent", &LuaUnit::AddTalent},                     // :AddTalent(spellid, spec, learning) - Adds a talent spell for the player to given spec
-    {"RemoveFromGroup", &LuaUnit::RemoveFromGroup},         // :RemoveFromGroup() - Removes the player from his group
-    {"KillPlayer", &LuaUnit::KillPlayer},                   // :KillPlayer() - Kills the player
-    {"DurabilityLossAll", &LuaUnit::DurabilityLossAll},     // :DurabilityLossAll(percent[, inventory]) - The player's items lose durability. Inventory true by default
-    {"DurabilityLoss", &LuaUnit::DurabilityLoss},           // :DurabilityLoss(item, percent) - The given item loses durability
-    {"DurabilityPointsLoss", &LuaUnit::DurabilityPointsLoss},                                               // :DurabilityPointsLoss(item, points) - The given item loses durability
-    {"DurabilityPointsLossAll", &LuaUnit::DurabilityPointsLossAll},                                         // :DurabilityPointsLossAll(points, inventory) - Player's items lose durability
-    {"DurabilityPointLossForEquipSlot", &LuaUnit::DurabilityPointLossForEquipSlot},                         // :DurabilityPointLossForEquipSlot(slot) - Causes durability loss for the item in the given slot
-    {"DurabilityRepairAll", &LuaUnit::DurabilityRepairAll}, // :DurabilityRepairAll([has_cost, discount, guildBank]) - Repairs all durability
-    {"DurabilityRepair", &LuaUnit::DurabilityRepair},       // :DurabilityRepair(position[, has_cost, discount, guildBank]) - Repairs item durability of item in given position
-    {"ModifyHonorPoints", &LuaUnit::ModifyHonorPoints},     // :ModifyHonorPoints(amount) - Modifies the player's honor points
-    {"ModifyArenaPoints", &LuaUnit::ModifyArenaPoints},     // :ModifyArenaPoints(amount) - Modifies the player's arena points
-    {"LeaveBattleground", &LuaUnit::LeaveBattleground},     // :LeaveBattleground([teleToEntryPoint]) - The player leaves the battleground
-    //{"BindToInstance", &LuaUnit::BindToInstance},           // :BindToInstance() - Binds the player to the current instance
-    {"UnbindInstance", &LuaUnit::UnbindInstance},           // :UnbindInstance(map, difficulty) - Unbinds the player from an instance
-    {"RemoveFromBattlegroundOrBattlefieldRaid", &LuaUnit::RemoveFromBattlegroundOrBattlefieldRaid},         // :RemoveFromBattlegroundOrBattlefieldRaid() - Removes the player from a battleground or battlefield raid
-    //{"ResetAchievements", &LuaUnit::ResetAchievements},     // :ResetAchievements() - Resets playeräs achievements
-    {"KickPlayer", &LuaUnit::KickPlayer},                   // :KickPlayer() - Kicks player from server
-    {"LogoutPlayer", &LuaUnit::LogoutPlayer},               // :LogoutPlayer([save]) - Logs the player out and saves if true
-    {"SendTrainerList", &LuaUnit::SendTrainerList},         // :SendTrainerList(WorldObject) - Sends trainer list from object to player
-    {"SendListInventory", &LuaUnit::SendListInventory},     // :SendListInventory(WorldObject) - Sends vendor list from object to player
-    {"SendShowBank", &LuaUnit::SendShowBank},               // :SendShowBank(WorldObject) - Sends bank window from object to player
-    {"SendTabardVendorActivate", &LuaUnit::SendTabardVendorActivate},                                       // :SendTabardVendorActivate(WorldObject) - Sends tabard vendor window from object to player
-    {"SendSpiritResurrect", &LuaUnit::SendSpiritResurrect}, // :SendSpiritResurrect() - Sends resurrect window to player
-    {"SendTaxiMenu", &LuaUnit::SendTaxiMenu},               // :SendTaxiMenu(creature) - Sends flight window to player from creature
-    {"RewardQuest", &LuaUnit::RewardQuest},                 // :RewardQuest(entry) - Gives quest rewards for the player
-    {"SendAuctionMenu", &LuaUnit::SendAuctionMenu},         // :SendAuctionMenu([creature, faction]) - Sends auction window to player. Auction house is sent by creature if provided. AH entry is searched with faction or creature's faction if provided
-    {"SendMailMenu", &LuaUnit::SendMailMenu},               // :SendMailMenu(object) - Sends mail window to player from gameobject
-    {"StartTaxi", &LuaUnit::StartTaxi},                     // :StartTaxi(pathId) - player starts the given flight path
-    {"GossipSendPOI", &LuaUnit::GossipSendPOI},             // :GossipSendPOI(X, Y, Icon, Flags, Data, Name) - Sends a point of interest to the player
-    {"GossipAddQuests", &LuaUnit::GossipAddQuests},         // :GossipAddQuests(unit) - Adds unit's quests to player's gossip menu
-    {"SendQuestTemplate", &LuaUnit::SendQuestTemplate},     // :SendQuestTemplate(questId, activeAccept) -- Sends quest template to player
-    {"SpawnBones", &LuaUnit::SpawnBones},                   // :SpawnBones() - Removes the player's corpse and spawns bones
-    {"RemovedInsignia", &LuaUnit::RemovedInsignia},         // :RemovedInsignia(looter) - Looter removes the player's corpse, looting the player and replacing with lootable bones
-    {"SendGuildInvite", &LuaUnit::SendGuildInvite},         // :SendGuildInvite(player) - Sends a guild invite to the specific player
-
     // Creature methods
     // Getters
     //{"GetAITarget", &LuaUnit::GetAITarget},                 // :GetAITarget(type[, playeronly, position, distance, aura]) - Get an unit in threat list
@@ -471,6 +206,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetLootRecipient", &LuaUnit::GetLootRecipient},       // :GetLootRecipient() - Returns loot receiver
     {"GetLootRecipientGroup", &LuaUnit::GetLootRecipientGroup},                                             // :GetLootRecipientGroup() - Returns loot receiver group
     {"GetNPCFlags", &LuaUnit::GetNPCFlags},                 // :GetNPCFlags() - Returns NPC flags
+    {"GetStat", &LuaUnit::GetStat},
+    {"GetBaseSpellPower", &LuaUnit::GetBaseSpellPower},
 
     // Setters
     //{"SetHover", &LuaUnit::SetHover},                       // :SetHover([enable]) - Sets hover on or off
@@ -485,6 +222,12 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetDisableReputationGain", &LuaUnit::SetDisableReputationGain},                                       // :SetDisableReputationGain([disable]) - Disables or enables reputation gain from creature
     //{"SetLootMode", &LuaUnit::SetLootMode},                 // :SetLootMode(lootMode) - Sets the lootmode
     {"SetNPCFlags", &LuaUnit::SetNPCFlags},                 // :SetNPCFlags(flags) - Sets NPC flags
+    {"SetSheath", &LuaUnit::SetSheath},                     // :SetSheath(SheathState) - Sets player's seathstate
+    {"SetCreatorGUID", &LuaUnit::SetCreatorGUID},           // :SetOwnerGUID(uint64 ownerGUID) - Sets the owner's guid of a summoned creature, etc
+    //{"SetMinionGUID", &LuaUnit::SetMinionGUID},             // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
+    {"SetCharmerGUID", &LuaUnit::SetCharmerGUID},           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
+    {"SetPetGUID", &LuaUnit::SetPetGUID},                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
+    //{"SetCritterGUID", &LuaUnit::SetCritterGUID},           // :SetCritterGUID(uint64 guid) - Sets the critter's guid
 
     // Booleans
     {"IsWorldBoss", &LuaUnit::IsWorldBoss},                 // :IsWorldBoss() - Returns true if the creature is a WorldBoss, false if not
@@ -508,6 +251,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsReputationGainDisabled", &LuaUnit::IsReputationGainDisabled},                                       // :IsReputationGainDisabled() - Returns true if the creature has reputation gain disabled
     //{"IsDamageEnoughForLootingAndReward", &LuaUnit::IsDamageEnoughForLootingAndReward},                     // :IsDamageEnoughForLootingAndReward()
     //{"HasLootMode", &LuaUnit::HasLootMode},
+    {"IsWithinLoS", &LuaUnit::IsWithinLoS},                 // :IsWithinLoS(x, y, z)
 
     // Other
     //{"Despawn", &LuaUnit::Despawn},                         // :Despawn([despawnDelay]) - Creature despawns after given time
@@ -563,7 +307,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetCharmerGUID", &LuaUnit::GetCharmerGUID},           // :GetCharmerGUID() - Returns the UNIT_FIELD_CHARMEDBY charmer
     {"GetCharmGUID", &LuaUnit::GetCharmGUID},               // :GetCharmGUID() - Returns the unit's UNIT_FIELD_CHARM guid
     {"GetPetGUID", &LuaUnit::GetPetGUID},                   // :GetPetGUID() - Returns the unit's pet GUID
-    {"GetCritterGUID", &LuaUnit::GetCritterGUID},           // :GetCritterGUID() - Returns the critter's GUID
+    //{"GetCritterGUID", &LuaUnit::GetCritterGUID},           // :GetCritterGUID() - Returns the critter's GUID
     {"GetControllerGUID", &LuaUnit::GetControllerGUID},     // :GetControllerGUID() - Returns the Charmer or Owner GUID
     {"GetControllerGUIDS", &LuaUnit::GetControllerGUIDS},   // :GetControllerGUIDS() - Returns the charmer, owner or unit's own GUID
     {"GetStandState", &LuaUnit::GetStandState},             // :GetStandState() - Returns the unit's stand state
@@ -586,10 +330,9 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"SetRooted", &LuaUnit::SetRooted},                     // :SetRooted([enable]) - Roots or removes root
     //{"SetConfused", &LuaUnit::SetConfused},                 // :SetConfused([enable]) - Sets confused or removes confusion
     //{"SetFeared", &LuaUnit::SetFeared},                     // :SetFeared([enable]) - Fears or removes fear
-    {"SetGender", &LuaUnit::SetGender},                     // :SetGender(value) - 0 = male 1 = female
     {"SetPvP", &LuaUnit::SetPvP},                           // :SetPvP([apply]) - Sets the units PvP on or off
-    {"SetFFA", &LuaUnit::SetFFA},                           // :SetFFA([apply]) - Sets the units FFA tag on or off
-    {"SetSanctuary", &LuaUnit::SetSanctuary},               // :SetSanctuary([apply]) - Enables or disables units sanctuary flag
+    //{"SetFFA", &LuaUnit::SetFFA},                           // :SetFFA([apply]) - Sets the units FFA tag on or off
+    //{"SetSanctuary", &LuaUnit::SetSanctuary},               // :SetSanctuary([apply]) - Enables or disables units sanctuary flag
     //{"SetCanFly", &LuaUnit::SetCanFly},                     // :SetCanFly(apply)
     //{"SetVisible", &LuaUnit::SetVisible},                   // :SetVisible(x)
     {"SetOwnerGUID", &LuaUnit::SetOwnerGUID},               // :SetOwnerGUID(guid) - Sets the guid of the owner
@@ -650,7 +393,7 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"KnockbackFrom", &LuaUnit::KnockbackFrom},             // :KnockbackFrom(x, y, speedXY, speedZ) - Knocks the player to the opposite direction from x,y at the defined speeds
     //{"JumpTo", &LuaUnit::JumpTo},                           // :JumpTo(WorldObj, speedZ) - Unit jumps to world object
     //{"Jump", &LuaUnit::Jump},                               // :Jump(speedXY, speedZ[, forward]) - Unit jumps at given speeds
-    {"JumpToCoords", &LuaUnit::JumpToCoords},               // :JumpToCoords(x, y, z, speedXY, speedZ) - Unit jumps to coordinates at given speeds
+    //{"JumpToCoords", &LuaUnit::JumpToCoords},               // :JumpToCoords(x, y, z, speedXY, speedZ) - Unit jumps to coordinates at given speeds
     {"MoveTo", &LuaUnit::MoveTo},                           // :MoveTo(id, x, y, z[, generatePath]) - Unit moves to point. ID is sent to WP reach hook
     //{"MoveCharge", &LuaUnit::MoveCharge},                   // :MoveCharge(x, y, z, speed) - Charges to target location
     {"MoveChase", &LuaUnit::MoveChase},                     // :MoveChase(target[, dist, angle]) - Chases target unit
@@ -686,7 +429,7 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
     //{"IsOnVehicle", &LuaUnit::IsOnVehicle},                 // :IsOnVehicle() - Checks if the (unit) is in a vehicle
     //{"DismissVehicle", &LuaUnit::DismissVehicle},           // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
-    //{"EjectPassenger", &LuaUnit::EjectPassenger},           // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
+    //{"EjectPassenger", &LuaUnit::EjectPassenger},         // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
     //{"RemovePassenger", &LuaUnit::RemovePassenger},         // :RemovePassenger(unit) - Removes a specific unit from the vehicle
     //{"RemoveAllPassengers", &LuaUnit::RemoveAllPassengers}, // :RemoveAllPassengers() - Removes all the passengers from the vehicle
     //{"GetPassenger", &LuaUnit::GetPassenger},               // :GetPassenger(seatId) - Gets a passenger by their seatId
@@ -699,10 +442,265 @@ ElunaRegister<Unit> UnitMethods[] =
 
 ElunaRegister<Player> PlayerMethods[] =
 {
+    // Getters
+    //{"GetSelection", &LuaPlayer::GetSelection},               // :GetSelection()
+    {"GetGMRank", &LuaPlayer::GetGMRank},                     // :GetSecurity()
+    {"GetGuildId", &LuaPlayer::GetGuildId},                   // :GetGuildId() - nil on no guild
+    {"GetCoinage", &LuaPlayer::GetCoinage},                   // :GetCoinage()
+    {"GetTeam", &LuaPlayer::GetTeam},                         // :GetTeam() - returns the player's team. 0 for ally, 1 for horde
+    {"GetItemCount", &LuaPlayer::GetItemCount},               // :GetItemCount(item_id[, check_bank])
+    {"GetGroup", &LuaPlayer::GetGroup},                       // :GetGroup()
+    {"GetGuild", &LuaPlayer::GetGuild},                       // :GetGuild()
+    //{"GetGearLevel", &LuaPlayer::GetGearLevel},               // :GetGearLevel() - Returns the player's average gear level
+    {"GetAccountId", &LuaPlayer::GetAccountId},               // :GetAccountId()
+    {"GetAccountName", &LuaPlayer::GetAccountName},           // :GetAccountName()
+    {"GetArenaPoints", &LuaPlayer::GetArenaPoints},           // :GetArenaPoints()
+    {"GetHonorPoints", &LuaPlayer::GetHonorPoints},           // :GetHonorPoints()
+    {"GetLifetimeKills", &LuaPlayer::GetLifetimeKills},       // :GetLifetimeKills() - Returns the player's lifetime (honorable) kills
+    {"GetPlayerIP", &LuaPlayer::GetPlayerIP},                 // :GetPlayerIP() - Returns the player's IP Address
+    {"GetLevelPlayedTime", &LuaPlayer::GetLevelPlayedTime},   // :GetLevelPlayedTime() - Returns the player's played time at that level
+    {"GetTotalPlayedTime", &LuaPlayer::GetTotalPlayedTime},   // :GetTotalPlayedTime() - Returns the total played time of that player
+    {"GetInventoryItem", &LuaPlayer::GetInventoryItem},       // :GetInventoryItem(slot) - Returns item at given inventory slot (0, 1, 2.. for equipment 19 - 23 for bags, 23 - 39 for backpack)
+    //{"GetBagItem", &LuaPlayer::GetBagItem},                   // :GetBagItem(bagSlot, slot) - Returns item at given slot (0, 1, 2 .. max slots for bag) in a bag (19 - 23)
+    //{"GetObjectGlobally", &LuaPlayer::GetObjectGlobally},     // :GetObjectGlobally(lowguid, entry) - Returns the gameobject of given lowguid and entry if in world
+    //{"GetNearbyGameObject", &LuaPlayer::GetNearbyGameObject}, // :GetNearbyGameObject() - Returns nearby gameobject if found
+    {"GetReputation", &LuaPlayer::GetReputation},             // :GetReputation(faction) - Gets player's reputation with given faction
+    //{"GetItemByEntry", &LuaPlayer::GetItemByEntry},           // :GetItemByEntry(entry) - Gets an item if the player has it
+    {"GetEquippedItemBySlot", &LuaPlayer::GetEquippedItemBySlot},// :GetEquippedItemBySlot(slotId) - Returns equipped item by slot
+    {"GetQuestLevel", &LuaPlayer::GetQuestLevel},             // :GetQuestLevel(quest) - Returns quest's level
+    {"GetChatTag", &LuaPlayer::GetChatTag},                   // :GetChatTag() - Returns player chat tag ID
+    {"GetRestBonus", &LuaPlayer::GetRestBonus},               // :GetRestBonus() - Gets player's rest bonus
+    {"GetRestType", &LuaPlayer::GetRestType},                 // :GetRestType() - Returns the player's rest type
+    //{"GetPhaseMaskForSpawn", &LuaPlayer::GetPhaseMaskForSpawn},                                               // :GetPhaseMaskForSpawn() - Gets the real phasemask for spawning things. Used if the player is in GM mode
+    //{"GetReqKillOrCastCurrentCount", &LuaPlayer::RemoveRewardedQuest},                                        // :GetReqKillOrCastCurrentCount(questId, entry) - Gets the objective (kill or cast) current count done
+    {"GetQuestStatus", &LuaPlayer::GetQuestStatus},           // :GetQuestStatus(entry) - Gets the quest's status
+    {"GetInGameTime", &LuaPlayer::GetInGameTime},             // :GetInGameTime() - Returns player's ingame time
+    {"GetComboPoints", &LuaPlayer::GetComboPoints},           // :GetComboPoints() - Returns player's combo points
+    //{"GetComboTarget", &LuaPlayer::GetComboTarget},           // :GetComboTarget() - Returns the player's combo target
+    {"GetGuildName", &LuaPlayer::GetGuildName},               // :GetGuildName() - Returns player's guild's name or nil
+    {"GetFreeTalentPoints", &LuaPlayer::GetFreeTalentPoints}, // :GetFreeTalentPoints() - Returns the amount of unused talent points
+    //{"GetActiveSpec", &LuaPlayer::GetActiveSpec},             // :GetActiveSpec() - Returns the active specID
+    //{"GetSpecsCount", &LuaPlayer::GetSpecsCount},             // :GetSpecsCount() - Returns the player's spec count
+    {"GetSpellCooldownDelay", &LuaPlayer::GetSpellCooldownDelay},                                             // :GetSpellCooldownDelay(spellId) - Returns the spell's cooldown
+    {"GetGuildRank", &LuaPlayer::GetGuildRank},               // :GetGuildRank() - Gets the player's guild rank
+    {"GetDifficulty", &LuaPlayer::GetDifficulty},             // :GetDifficulty([isRaid]) - Returns the current difficulty
+    {"GetHealthBonusFromStamina", &LuaPlayer::GetHealthBonusFromStamina},                                     // :GetHealthBonusFromStamina() - Returns the HP bonus from stamina
+    {"GetManaBonusFromIntellect", &LuaPlayer::GetManaBonusFromIntellect},                                     // :GetManaBonusFromIntellect() - Returns the mana bonus from intellect
+    {"GetMaxSkillValue", &LuaPlayer::GetMaxSkillValue},       // :GetMaxSkillValue(skill) - Gets max skill value for the given skill
+    {"GetPureMaxSkillValue", &LuaPlayer::GetPureMaxSkillValue},                                               // :GetPureMaxSkillValue(skill) - Gets max base skill value
+    {"GetSkillValue", &LuaPlayer::GetSkillValue},             // :GetSkillValue(skill) - Gets current skill value
+    {"GetBaseSkillValue", &LuaPlayer::GetBaseSkillValue},     // :GetBaseSkillValue(skill) - Gets current base skill value (no temp bonus)
+    {"GetPureSkillValue", &LuaPlayer::GetPureSkillValue},     // :GetPureSkillValue(skill) - Gets current base skill value (no bonuses)
+    //{"GetSkillStep", &LuaPlayer::GetSkillStep},               // :GetSkillStep(skill) - Returns current skillstep
+    {"GetSkillPermBonusValue", &LuaPlayer::GetSkillPermBonusValue},                                           // :GetSkillPermBonusValue(skill) - Returns current permanent bonus
+    {"GetSkillTempBonusValue", &LuaPlayer::GetSkillTempBonusValue},                                           // :GetSkillTempBonusValue(skill) - Returns current temp bonus
+    {"GetReputationRank", &LuaPlayer::GetReputationRank},     // :GetReputationRank(faction) - Returns the reputation rank with given faction
+    {"GetSpellCooldowns", &LuaPlayer::GetSpellCooldowns},     // :GetSpellCooldowns() - Gets a table where spellIDs are the keys and values are cooldowns
+    {"GetDrunkValue", &LuaPlayer::GetDrunkValue},             // :GetDrunkValue() - Returns the current drunkness value
+    {"GetBattlegroundId", &LuaPlayer::GetBattlegroundId},     // :GetBattlegroundId() - Returns the player's current battleground ID
+    {"GetBattlegroundTypeId", &LuaPlayer::GetBattlegroundTypeId},                                             // :GetBattlegroundTypeId() - Returns the player's current battleground type ID
+    {"GetXPRestBonus", &LuaPlayer::GetXPRestBonus},           // :GetXPRestBonus(xp) - Returns the rested bonus XP from given XP
+    {"GetRestTime", &LuaPlayer::GetRestTime},                 // :GetRestTime() - Returns the timed rested
+    {"GetGroupInvite", &LuaPlayer::GetGroupInvite},           // :GetGroupInvite() - Returns the group invited to
+    {"GetSubGroup", &LuaPlayer::GetSubGroup},                 // :GetSubGroup() - Gets the player's current subgroup ID
+    {"GetNextRandomRaidMember", &LuaPlayer::GetNextRandomRaidMember},                                         // :GetNextRandomRaidMember(radius) - Gets a random raid member in given radius
+    {"GetOriginalGroup", &LuaPlayer::GetOriginalGroup},       // :GetOriginalGroup() - Gets the original group object
+    {"GetOriginalSubGroup", &LuaPlayer::GetOriginalSubGroup}, // :GetOriginalSubGroup() - Returns the original subgroup ID
+    //{"GetChampioningFaction", &LuaPlayer::GetChampioningFaction},                                             // :GetChampioningFaction() - Returns the player's championing faction
+    {"GetLatency", &LuaPlayer::GetLatency},                   // :GetLatency() - Returns player's latency
+    //{"GetRecruiterId", &LuaPlayer::GetRecruiterId},           // :GetRecruiterId() - Returns player's recruiter's ID
+    //{"GetSelectedPlayer", &LuaPlayer::GetSelectedPlayer},     // :GetSelectedPlayer() - Returns player's selected player.
+    //{"GetSelectedUnit", &LuaPlayer::GetSelectedUnit},         // :GetSelectedUnit() - Returns player's selected unit.
+    {"GetDbLocaleIndex", &LuaPlayer::GetDbLocaleIndex},       // :GetDbLocaleIndex() - Returns locale index
+    {"GetDbcLocale", &LuaPlayer::GetDbcLocale},               // :GetDbcLocale() - Returns DBC locale
+    {"GetCorpse", &LuaPlayer::GetCorpse},                     // :GetCorpse() - Returns the player's corpse
+    {"GetGossipTextId", &LuaPlayer::GetGossipTextId},         // :GetGossipTextId(worldObject) - Returns the WorldObject's gossip textId
+    {"GetQuestRewardStatus", &LuaPlayer::GetQuestRewardStatus},                                               // :GetQuestRewardStatus(questId) - Returns the true/false of the quest reward status
+	
+	// Setters
+    {"AdvanceSkillsToMax", &LuaPlayer::AdvanceSkillsToMax},   // :AdvanceSkillsToMax() - Advances all currently known skills to the currently known max level
+    {"AdvanceSkill", &LuaPlayer::AdvanceSkill},               // :AdvanceSkill(skill_id, step) - Advances skill by ID and the amount(step)
+    {"AdvanceAllSkills", &LuaPlayer::AdvanceAllSkills},       // :AdvanceAllSkills(value) - Advances all current skills to your input(value)
+    {"AddLifetimeKills", &LuaPlayer::AddLifetimeKills},       // :AddLifetimeKills(val) - Adds lifetime (honorable) kills to your current lifetime kills
+    {"SetCoinage", &LuaPlayer::SetCoinage},                   // :SetCoinage(amount) - sets plr's coinage to this
+    {"SetKnownTitle", &LuaPlayer::SetKnownTitle},             // :SetKnownTitle(id)
+    {"UnsetKnownTitle", &LuaPlayer::UnsetKnownTitle},         // :UnsetKnownTitle(id)
+    {"SetBindPoint", &LuaPlayer::SetBindPoint},               // :SetBindPoint(x, y, z, map, areaid) - sets home for hearthstone
+    //{"SetBindPointAtPlayerLoc", &LuaPlayer::SetBindPointAtPlayerLoc},                                         // :SetBindPointAtPlayerLoc() - Set's home for hearthstone at player's location
+    {"SetArenaPoints", &LuaPlayer::SetArenaPoints},           // :SetArenaPoints(amount)
+    {"SetHonorPoints", &LuaPlayer::SetHonorPoints},           // :SetHonorPoints(amount)
+    {"SetLifetimeKills", &LuaPlayer::SetLifetimeKills},       // :SetLifetimeKills(val) - Sets the overall lifetime (honorable) kills of the player
+    {"SetGameMaster", &LuaPlayer::SetGameMaster},             // :SetGameMaster([on]) - Sets GM mode on or off
+    {"SetGMChat", &LuaPlayer::SetGMChat},                     // :SetGMChat([on]) - Sets GM chat on or off
+    {"SetTaxiCheat", &LuaPlayer::SetTaxiCheat},               // :SetTaxiCheat([on]) - Sets taxi cheat on or off
+    {"SetGMVisible", &LuaPlayer::SetGMVisible},               // :SetGMVisible([on]) - Sets gm visibility on or off
+    {"SetPvPDeath", &LuaPlayer::SetPvPDeath},                 // :SetPvPDeath([on]) - Sets PvP death on or off
+    {"SetAcceptWhispers", &LuaPlayer::SetAcceptWhispers},     // :SetAcceptWhispers([on]) - Sets whisper accepting death on or off
+    {"SetRestBonus", &LuaPlayer::SetRestBonus},               // :SetRestBonus(bonusrate) - Sets new restbonus rate
+    {"SetRestType", &LuaPlayer::SetRestType},                 // :SetRestType() - Sets rest type
+	{"SetQuestStatus", &LuaPlayer::SetQuestStatus},           // :SetQuestStatus(entry, status) - Sets the quest's status
+    //{"SetReputation", &LuaPlayer::SetReputation},           // :SetReputation(faction, value) - Sets the faction reputation for the player
+    {"SetFreeTalentPoints", &LuaPlayer::SetFreeTalentPoints}, // :SetFreeTalentPoints(points) - Sets the amount of unused talent points
+    //{"SetGuildRank", &LuaPlayer::SetGuildRank},             // :SetGuildRank(rank) - Sets player's guild rank
+    //{"SetMovement", &LuaPlayer::SetMovement},               // :SetMovement(type) - Sets player's movement type
+    {"SetSkill", &LuaPlayer::SetSkill},                       // :SetSkill(skill, step, currVal, maxVal) - Sets the skill's boundaries and value
+    {"SetFactionForRace", &LuaPlayer::SetFactionForRace},     // :SetFactionForRace(race) - Sets the faction by raceID
+    {"SetDrunkValue", &LuaPlayer::SetDrunkValue},             // :SetDrunkValue(newDrunkValue) - Sets drunkness value
+    {"SetRestTime", &LuaPlayer::SetRestTime},                 // :SetRestTime(value) - Sets the rested time
+    {"SetAtLoginFlag", &LuaPlayer::SetAtLoginFlag},           // :SetAtLoginFlag(flag) - Adds an at login flag
+    {"SetPlayerLock", &LuaPlayer::SetPlayerLock},             // :SetPlayerLock(on/off)
+	{"SetGender", &LuaPlayer::SetGender},                     // :SetGender(value) - 0 = male 1 = female
+	
+	// Boolean
+	{"IsInGroup", &LuaPlayer::IsInGroup},                     // :IsInGroup()
+    {"IsInGuild", &LuaPlayer::IsInGuild},                     // :IsInGuild()
+    {"IsGM", &LuaPlayer::IsGM},                               // :IsGM()
+    {"IsAlliance", &LuaPlayer::IsAlliance},                   // :IsAlliance()
+    {"IsHorde", &LuaPlayer::IsHorde},                         // :IsHorde()
+    {"HasTitle", &LuaPlayer::HasTitle},                       // :HasTitle(id)
+    {"HasItem", &LuaPlayer::HasItem},                         // :HasItem(itemId[, count, check_bank]) - Returns true if the player has the item(itemId) and specified count, else it will return false
+    {"Teleport", &LuaPlayer::Teleport},                       // :Teleport(Map, X, Y, Z, O) - Teleports player to specified co - ordinates. Returns true if success and false if not
+    {"AddItem", &LuaPlayer::AddItem},                         // :AddItem(id, amount) - Adds amount of item to player. Returns true if success and false if not
+    {"IsInArenaTeam", &LuaPlayer::IsInArenaTeam},             // :IsInArenaTeam(type) - type : 0 = 2v2, 1 = 3v3, 2 = 5v5
+    {"CanEquipItem", &LuaPlayer::CanEquipItem},               // :CanEquipItem(entry/item, slot) - Returns true if the player can equip given item/item entry
+    //{"IsFalling", &LuaPlayer::IsFalling},                   // :IsFalling() - Returns true if the unit is falling
+    {"ToggleAFK", &LuaPlayer::ToggleAFK},                     // :ToggleAFK() - Toggles AFK state for player
+    {"ToggleDND", &LuaPlayer::ToggleDND},                     // :ToggleDND() - Toggles DND state for player
+    {"IsAFK", &LuaPlayer::IsAFK},                             // :IsAFK() - Returns true if the player is afk
+    {"IsDND", &LuaPlayer::IsDND},                             // :IsDND() - Returns true if the player is in dnd mode
+    {"IsAcceptingWhispers", &LuaPlayer::IsAcceptingWhispers}, // :IsAcceptWhispers() - Returns true if the player accepts whispers
+    {"IsGMChat", &LuaPlayer::IsGMChat},                       // :IsGMChat() - Returns true if the player has GM chat on
+    {"IsTaxiCheater", &LuaPlayer::IsTaxiCheater},             // :IsTaxiCheater() - Returns true if the player has taxi cheat on
+    {"IsGMVisible", &LuaPlayer::IsGMVisible},                 // :IsGMVisible() - Returns true if the player is GM visible
+    {"IsActiveQuest", &LuaPlayer::IsActiveQuest},             // :IsActiveQuest(entry) - Returns true if the quest entry is active for the player
+    {"InBattlegroundQueue", &LuaPlayer::InBattlegroundQueue}, // :InBattlegroundQueue() - Returns true if the player is in a battleground queue
+    //{"IsImmuneToEnvironmentalDamage", &LuaPlayer::IsImmuneToEnvironmentalDamage},                             // :IsImmuneToEnvironmentalDamage() - Returns true if the player is immune to enviromental damage
+    {"CanSpeak", &LuaPlayer::CanSpeak},                       // :CanSpeak() - Returns true if the player can speak
+    {"HasAtLoginFlag", &LuaPlayer::HasAtLoginFlag},           // :HasAtLoginFlag(flag) - returns true if the player has the login flag
+    //{"InRandomLfgDungeon", &LuaPlayer::InRandomLfgDungeon},   // :InRandomLfgDungeon() - Returns true if the player is in a random LFG dungeon
+    //{"HasPendingBind", &LuaPlayer::HasPendingBind},           // :HasPendingBind() - Returns true if the player has a pending instance bind
+    //{"HasAchieved", &LuaPlayer::HasAchieved},                 // :HasAchieved(achievementID) - Returns true if the player has achieved the achievement
+    {"CanUninviteFromGroup", &LuaPlayer::CanUninviteFromGroup},                                               // :CanUninviteFromGroup() - Returns true if the player can uninvite from group
+    {"IsRested", &LuaPlayer::IsRested},                       // :IsRested() - Returns true if the player is rested
+    //{"CanFlyInZone", &LuaPlayer::CanFlyInZone},               // :CanFlyInZone(mapid, zone) - Returns true if the player can fly in the area
+    //{"IsNeverVisible", &LuaPlayer::IsNeverVisible},           // :IsNeverVisible() - Returns true if the player is never visible
+    {"IsVisibleForPlayer", &LuaPlayer::IsVisibleForPlayer},   // :IsVisibleForPlayer(player) - Returns true if the player is visible for the target player
+    //{"IsUsingLfg", &LuaPlayer::IsUsingLfg},                   // :IsUsingLfg() - Returns true if the player is using LFG
+    {"HasQuestForItem", &LuaPlayer::HasQuestForItem},         // :HasQuestForItem(entry) - Returns true if the player has the quest for the item
+    {"HasQuestForGO", &LuaPlayer::HasQuestForGO},             // :HasQuestForGO(entry) - Returns true if the player has the quest for the gameobject
+    {"CanShareQuest", &LuaPlayer::CanShareQuest},             // :CanShareQuest(entry) - Returns true if the quest entry is shareable by the player
+    //{"HasReceivedQuestReward", &LuaPlayer::HasReceivedQuestReward},                                           // :HasReceivedQuestReward(entry) - Returns true if the player has recieved the quest's reward
+    //{"HasTalent", &LuaPlayer::HasTalent},                     // :HasTalent(spellid, spec) - Returns true if the player has the talent spell in given spec
+    {"IsInSameGroupWith", &LuaPlayer::IsInSameGroupWith},     // :IsInSameGroupWith(player) - Returns true if the players are in the same group
+    {"IsInSameRaidWith", &LuaPlayer::IsInSameRaidWith},       // :IsInSameRaidWith(player) - Returns true if the players are in the same raid
+    {"IsGroupVisibleFor", &LuaPlayer::IsGroupVisibleFor},     // :IsGroupVisibleFor(player) - Player is group visible for the target
+    {"HasSkill", &LuaPlayer::HasSkill},                       // :HasSkill(skill) - Returns true if the player has the skill
+    {"IsHonorOrXPTarget", &LuaPlayer::IsHonorOrXPTarget},     // :IsHonorOrXPTarget(victim) - Returns true if the victim gives honor or XP
+    {"CanParry", &LuaPlayer::CanParry},                       // :CanParry() - Returns true if the player can parry
+    {"CanBlock", &LuaPlayer::CanBlock},                       // :CanBlock() - Returns true if the player can block
+    //{"CanTitanGrip", &LuaPlayer::CanTitanGrip},               // :CanTitanGrip() - Returns true if the player has titan grip
+    //{"CanTameExoticPets", &LuaPlayer::CanTameExoticPets},     // :CanTameExoticPets() - Returns true if the player can tame exotic pets
+    {"InBattleground", &LuaPlayer::InBattleground},           // :InBattleground() - Returns true if the player is in a battleground
+    {"InArena", &LuaPlayer::InArena},                         // :InArena() - Returns true if the player is in an arena
+    //{"IsOutdoorPvPActive", &LuaPlayer::IsOutdoorPvPActive},   // :IsOutdoorPvPActive() - Returns true if the player is outdoor pvp active
+    //{"IsARecruiter", &LuaPlayer::IsARecruiter},               // :IsARecruiter() - Returns true if the player is a recruiter
+    {"CanUseItem", &LuaPlayer::CanUseItem},                   // :CanUseItem(item/entry) - Returns true if the player can use the item or item entry
+    {"HasSpell", &LuaPlayer::HasSpell},                       // :HasSpell(id)
+	
+	// Gossip
+    {"GossipMenuAddItem", &LuaPlayer::GossipMenuAddItem},     // :GossipMenuAddItem(icon, msg, sender, intid[, code, popup, money])
+    {"GossipSendMenu", &LuaPlayer::GossipSendMenu},           // :GossipSendMenu(npc_text, unit[, menu_id]) - If unit is a player, you need to use a menu_id. menu_id is used to hook the gossip select function to the menu
+    {"GossipComplete", &LuaPlayer::GossipComplete},           // :GossipComplete()
+    {"GossipClearMenu", &LuaPlayer::GossipClearMenu},         // :GossipClearMenu() - Clears the gossip menu of options. Pretty much only useful with player gossip. Need to use before creating a new menu for the player
+
+    // Other
+    {"SendClearCooldowns", &LuaPlayer::SendClearCooldowns },  // :SendClearCooldowns(spellId, (unit)target) - Clears the cooldown of the target with a specified spellId
+    {"SendBroadcastMessage", &LuaPlayer::SendBroadcastMessage},                                               // :SendBroadcastMessage(message)
+    {"SendAreaTriggerMessage", &LuaPlayer::SendAreaTriggerMessage},                                           // :SendAreaTriggerMessage(message) - Sends a yellow message in the middle of your screen
+    {"SendNotification", &LuaPlayer::SendNotification},       // :SendNotification(message) - Sends a red message in the middle of your screen
+    {"SendPacketToPlayer", &LuaPlayer::SendPacketToPlayer},   // :SendPacketToPlayer(packet) - Sends a specified packet to the player
+    {"SendPacket", &LuaPlayer::SendPacket},                   // :SendPacket(packet) - Sends a specified packet
+    //{"SendPacketToGroup", &LuaPlayer::SendPacketToGroup},     // :SendPacketToGroup(packet[, sendToPlayersInBattleground(bool)]) - Sends a specified packet to the group with the choice (true/false) to send it to players in a battleground
+    //{"SendPacketToGuild", &LuaPlayer::SendPacketToGuild},     // :SendPacketToGuild(packet) - Sends a specified packet to your guild
+    //{"SendPacketToRankedInGuild", &LuaPlayer::SendPacketToRankedInGuild},                                     // :SendPacketToRankedInGuild(packet, rankId) - Sends a specified packet to your guild, specifying a rankId will only send the packet to your ranked members
+    {"SendVendorWindow", &LuaPlayer::SendVendorWindow},       // :SendVendorWindow(unit) - Sends the unit's vendor window to the player
+    {"ModifyMoney", &LuaPlayer::ModifyMoney},                 // :ModifyMoney(amount[, sendError]) - Modifies (does not set) money (copper count) of the player. Amount can be negative to remove copper
+    {"LearnSpell", &LuaPlayer::LearnSpell},                   // :LearnSpell(id) - learns the given spell
+    {"RemoveItem", &LuaPlayer::RemoveItem},                   // :RemoveItem(item/entry, amount) - Removes amount of item from player
+    {"RemoveLifetimeKills", &LuaPlayer::RemoveLifetimeKills}, // :RemoveLifetimeKills(val) - Removes a specified amount(val) of the player's lifetime (honorable) kills
+    {"ResurrectPlayer", &LuaPlayer::ResurrectPlayer},         // :ResurrectPlayer([percent[, sickness(bool)]]) - Resurrects the player at percentage, player gets resurrection sickness if sickness set to true
+    {"PlaySoundToPlayer", &LuaPlayer::PlaySoundToPlayer},     // :PlaySoundToPlayer(soundId) - Plays the specified sound to the player
+    {"EquipItem", &LuaPlayer::EquipItem},                     // :EquipItem(entry/item, slot) - Equips given item or item entry for player to given slot. Returns the equipped item or nil
+    {"ResetSpellCooldown", &LuaPlayer::ResetSpellCooldown},   // :ResetSpellCooldown(spellId, update(bool~optional)) - Resets cooldown of the specified spellId. If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
+    {"ResetTypeCooldowns", &LuaPlayer::ResetTypeCooldowns},   // :ResetTypeCooldowns(category, update(bool~optional)) - Resets all cooldowns for the spell category(type). If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
+    {"ResetAllCooldowns", &LuaPlayer::ResetAllCooldowns},     // :ResetAllCooldowns() - Resets all spell cooldowns
+    {"GiveLevel", &LuaPlayer::GiveLevel},                     // :GiveLevel(level) - Gives levels to the player
+    //{"GiveXP", &LuaPlayer::GiveXP},                           // :GiveXP(xp[, victim, group_rate, pureXP, triggerHook]) - Gives XP to the player. If pure is false, bonuses are count in. If triggerHook is false, GiveXp hook is not triggered.
+    //{"RemovePet", &LuaPlayer::RemovePet},                     // :RemovePet([mode, returnreagent]) - Removes the player's pet. Mode determines if the pet is saved and how
+    //{"SummonPet", &LuaPlayer::SummonPet},                     // :SummonPet(entry, x, y, z, o, petType, despwtime) - Summons a pet for the player
+    {"Say", &LuaPlayer::Say},                                 // :Say(text, lang) - The player says the text
+    {"Yell", &LuaPlayer::Yell},                               // :Yell(text, lang) - The player yells the text
+    {"TextEmote", &LuaPlayer::TextEmote},                     // :TextEmote(text) - The player does a textemote with the text
+    {"Whisper", &LuaPlayer::Whisper},                         // :Whisper(text, lang, receiverGuid) - The player whispers the text to the guid
+    {"CompleteQuest", &LuaPlayer::CompleteQuest},             // :CompleteQuest(entry) - Completes a quest by entry
+    {"IncompleteQuest", &LuaPlayer::IncompleteQuest},         // :IncompleteQuest(entry) - Uncompletes the quest by entry for the player
+    {"FailQuest", &LuaPlayer::FailQuest},                     // :FailQuest(entry) - Player fails the quest entry
+    //{"RemoveActiveQuest", &LuaPlayer::RemoveActiveQuest},     // :RemoveActiveQuest(entry) - Removes an active quest
+    //{"RemoveRewardedQuest", &LuaPlayer::RemoveRewardedQuest}, // :RemoveRewardedQuest(entry) - Removes a rewarded quest
+    {"AreaExploredOrEventHappens", &LuaPlayer::AreaExploredOrEventHappens},                                   // :AreaExploredOrEventHappens(questId) - Satisfies an area or event requrement for the questId
+    {"GroupEventHappens", &LuaPlayer::GroupEventHappens},     // :GroupEventHappens(questId, worldObject) - Satisfies a group event for the questId with the world object
+    //{"KilledMonsterCredit", &LuaPlayer::KilledMonsterCredit}, // :KilledMonsterCredit(entry) - Satisfies a monsterkill for the player
+    //{"KilledPlayerCredit", &LuaPlayer::KilledPlayerCredit},   // :KilledPlayerCredit() - Satisfies a player kill for the player
+    //{"KillGOCredit", &LuaPlayer::KillGOCredit},               // :KillGOCredit(GOEntry[, GUID]) - Credits the player for destroying a GO, guid is optional
+    {"TalkedToCreature", &LuaPlayer::TalkedToCreature},       // :TalkedToCreature(npcEntry, creature) - Satisfies creature talk objective for the player
+    //{"ResetPetTalents", &LuaPlayer::ResetPetTalents},         // :ResetPetTalents() - Resets player's pet's talents
+    {"RegenerateAll", &LuaPlayer::RegenerateAll},             // :RegenerateAll() - Regenerates all player's powers
+    //{"Regenerate", &LuaPlayer::Regenerate},                   // :Regenerate(powerType) - Regenerates the given power type
+    //{"RegenerateHealth", &LuaPlayer::RegenerateHealth},       // :RegenerateHealth() - Regenerates health
+    {"AddComboPoints", &LuaPlayer::AddComboPoints},           // :AddComboPoints(target, count[, spell]) - Adds combo points to the target for the player
+    //{"GainSpellComboPoints", &LuaPlayer::GainSpellComboPoints},                                               // :GainSpellComboPoints(amount) - Player gains spell combo points
+    {"ClearComboPoints", &LuaPlayer::ClearComboPoints},       // :ClearComboPoints() - Clears player's combo points
+    {"RemoveSpell", &LuaPlayer::RemoveSpell},                 // :RemoveSpell(entry[, disabled, learn_low_rank]) - Removes (unlearn) the given spell
+    //{"ResetTalents", &LuaPlayer::ResetTalents},               // :ResetTalents([no_cost]) - Resets player's talents
+    {"ResetTalentsCost", &LuaPlayer::ResetTalentsCost},       // :ResetTalentsCost() - Returns the reset talents cost
+    //{"AddTalent", &LuaPlayer::AddTalent},                     // :AddTalent(spellid, spec, learning) - Adds a talent spell for the player to given spec
+    {"RemoveFromGroup", &LuaPlayer::RemoveFromGroup},         // :RemoveFromGroup() - Removes the player from his group
+    {"KillPlayer", &LuaPlayer::KillPlayer},                   // :KillPlayer() - Kills the player
+    {"DurabilityLossAll", &LuaPlayer::DurabilityLossAll},     // :DurabilityLossAll(percent[, inventory]) - The player's items lose durability. Inventory true by default
+    {"DurabilityLoss", &LuaPlayer::DurabilityLoss},           // :DurabilityLoss(item, percent) - The given item loses durability
+    {"DurabilityPointsLoss", &LuaPlayer::DurabilityPointsLoss},                                               // :DurabilityPointsLoss(item, points) - The given item loses durability
+    {"DurabilityPointsLossAll", &LuaPlayer::DurabilityPointsLossAll},                                         // :DurabilityPointsLossAll(points, inventory) - Player's items lose durability
+    {"DurabilityPointLossForEquipSlot", &LuaPlayer::DurabilityPointLossForEquipSlot},                         // :DurabilityPointLossForEquipSlot(slot) - Causes durability loss for the item in the given slot
+    {"DurabilityRepairAll", &LuaPlayer::DurabilityRepairAll}, // :DurabilityRepairAll([has_cost, discount, guildBank]) - Repairs all durability
+    {"DurabilityRepair", &LuaPlayer::DurabilityRepair},       // :DurabilityRepair(position[, has_cost, discount, guildBank]) - Repairs item durability of item in given position
+    {"ModifyHonorPoints", &LuaPlayer::ModifyHonorPoints},     // :ModifyHonorPoints(amount) - Modifies the player's honor points
+    {"ModifyArenaPoints", &LuaPlayer::ModifyArenaPoints},     // :ModifyArenaPoints(amount) - Modifies the player's arena points
+    {"LeaveBattleground", &LuaPlayer::LeaveBattleground},     // :LeaveBattleground([teleToEntryPoint]) - The player leaves the battleground
+    //{"BindToInstance", &LuaPlayer::BindToInstance},           // :BindToInstance() - Binds the player to the current instance
+    {"UnbindInstance", &LuaPlayer::UnbindInstance},           // :UnbindInstance(map, difficulty) - Unbinds the player from an instance
+    {"RemoveFromBattlegroundOrBattlefieldRaid", &LuaPlayer::RemoveFromBattlegroundOrBattlefieldRaid},         // :RemoveFromBattlegroundOrBattlefieldRaid() - Removes the player from a battleground or battlefield raid
+    //{"ResetAchievements", &LuaPlayer::ResetAchievements},     // :ResetAchievements() - Resets playeräs achievements
+    {"KickPlayer", &LuaPlayer::KickPlayer},                   // :KickPlayer() - Kicks player from server
+    {"LogoutPlayer", &LuaPlayer::LogoutPlayer},               // :LogoutPlayer([save]) - Logs the player out and saves if true
+    {"SendTrainerList", &LuaPlayer::SendTrainerList},         // :SendTrainerList(WorldObject) - Sends trainer list from object to player
+    {"SendListInventory", &LuaPlayer::SendListInventory},     // :SendListInventory(WorldObject) - Sends vendor list from object to player
+    {"SendShowBank", &LuaPlayer::SendShowBank},               // :SendShowBank(WorldObject) - Sends bank window from object to player
+    {"SendTabardVendorActivate", &LuaPlayer::SendTabardVendorActivate},                                       // :SendTabardVendorActivate(WorldObject) - Sends tabard vendor window from object to player
+    {"SendSpiritResurrect", &LuaPlayer::SendSpiritResurrect}, // :SendSpiritResurrect() - Sends resurrect window to player
+    {"SendTaxiMenu", &LuaPlayer::SendTaxiMenu},               // :SendTaxiMenu(creature) - Sends flight window to player from creature
+    {"RewardQuest", &LuaPlayer::RewardQuest},                 // :RewardQuest(entry) - Gives quest rewards for the player
+    {"SendAuctionMenu", &LuaPlayer::SendAuctionMenu},         // :SendAuctionMenu([creature, faction]) - Sends auction window to player. Auction house is sent by creature if provided. AH entry is searched with faction or creature's faction if provided
+    //{"SendMailMenu", &LuaPlayer::SendMailMenu},               // :SendMailMenu(object) - Sends mail window to player from gameobject
+    {"StartTaxi", &LuaPlayer::StartTaxi},                     // :StartTaxi(pathId) - player starts the given flight path
+    {"GossipSendPOI", &LuaPlayer::GossipSendPOI},             // :GossipSendPOI(X, Y, Icon, Flags, Data, Name) - Sends a point of interest to the player
+    {"GossipAddQuests", &LuaPlayer::GossipAddQuests},         // :GossipAddQuests(unit) - Adds unit's quests to player's gossip menu
+    {"SendQuestTemplate", &LuaPlayer::SendQuestTemplate},     // :SendQuestTemplate(questId, activeAccept) -- Sends quest template to player
+    {"SpawnBones", &LuaPlayer::SpawnBones},                   // :SpawnBones() - Removes the player's corpse and spawns bones
+    {"RemovedInsignia", &LuaPlayer::RemovedInsignia},         // :RemovedInsignia(looter) - Looter removes the player's corpse, looting the player and replacing with lootable bones
+    {"SendGuildInvite", &LuaPlayer::SendGuildInvite},         // :SendGuildInvite(player) - Sends a guild invite to the specific player
+    {"CreateCorpse", &LuaPlayer::CreateCorpse},               // :CreateCorpse() - Creates the player's corpse
     //{"Mute", &LuaUnit::Mute},                               // :Mute(time[, reason]) - Mutes the player for given time in seconds.
     {"SummonPlayer", &LuaPlayer::SummonPlayer},               // :SummonPlayer(player, map, x, y, z, zoneId[, delay]) - Sends a popup to the player asking if he wants to be summoned if yes, teleported to coords. ZoneID defines the location name shown in the popup Delay is the time until the popup closes automatically.
-    {"HasSpell", &LuaPlayer::HasSpell},                       // :HasSpell(id)
-    {"CreateCorpse", &LuaPlayer::CreateCorpse},               // :CreateCorpse() - Creates the player's corpse
     {NULL, NULL},
 };
 

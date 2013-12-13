@@ -1332,7 +1332,12 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
         sEluna.Push(sEluna.L, funcRef);
         sEluna.Push(sEluna.L, delay);
         sEluna.Push(sEluna.L, calls);
-        sEluna.Push(sEluna.L, _unit);
+        if (_unit->ToCreature())
+            sEluna.Push(sEluna.L, _unit->ToCreature());
+        else if (_unit->ToPlayer())
+            sEluna.Push(sEluna.L, _unit->ToPlayer());
+        else
+            sEluna.Push(sEluna.L, _unit);
         sEluna.ExecuteCall(4, 0);
         if (calls && !--calls) // dont repeat anymore
         {

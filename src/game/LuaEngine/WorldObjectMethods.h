@@ -200,14 +200,14 @@ namespace LuaWorldObject
 
         switch (guid.GetHigh())
         {
-        case HIGHGUID_PLAYER:        sEluna.Push(L, obj->GetMap()->GetPlayer(guid)); break;
-        case HIGHGUID_TRANSPORT:
-        case HIGHGUID_MO_TRANSPORT:
-        case HIGHGUID_GAMEOBJECT:    sEluna.Push(L, obj->GetMap()->GetGameObject(guid)); break;
-        //case HIGHGUID_VEHICLE:
-        case HIGHGUID_UNIT:
-        case HIGHGUID_PET:           sEluna.Push(L, obj->GetMap()->GetAnyTypeCreature(guid)); break;
-        default:                     return 0;
+            case HIGHGUID_PLAYER:        sEluna.Push(L, obj->GetMap()->GetPlayer(guid)); break;
+            case HIGHGUID_TRANSPORT:
+            case HIGHGUID_MO_TRANSPORT:
+            case HIGHGUID_GAMEOBJECT:    sEluna.Push(L, obj->GetMap()->GetGameObject(guid)); break;
+            // case HIGHGUID_VEHICLE:
+            case HIGHGUID_UNIT:
+            case HIGHGUID_PET:           sEluna.Push(L, obj->GetMap()->GetAnyTypeCreature(guid)); break;
+            default:                     return 0;
         }
         return 1;
     }

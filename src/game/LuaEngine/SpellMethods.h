@@ -90,7 +90,7 @@ namespace LuaSpell
         if (!(spell->m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
             return 0;
         float x, y, z;
-        spell->m_targets.getDestination(x,y,z);
+        spell->m_targets.getDestination(x, y, z);
         sEluna.Push(L, x);
         sEluna.Push(L, y);
         sEluna.Push(L, z);

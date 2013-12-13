@@ -447,27 +447,27 @@ namespace LuaUnit
         TempSummonType type;
         switch (spawnType)
         {
-        case 1:
-            type = TEMPSUMMON_TIMED_OR_DEAD_DESPAWN;
-            break;
-        case 2:
-            type = TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN;
-            break;
-        case 3:
-            type = TEMPSUMMON_TIMED_DESPAWN;
-            break;
-        case 5:
-            type = TEMPSUMMON_CORPSE_DESPAWN;
-            break;
-        case 6:
-            type = TEMPSUMMON_CORPSE_TIMED_DESPAWN;
-            break;
-        case 7:
-            type = TEMPSUMMON_DEAD_DESPAWN;
-            break;
-        case 8:
-            type = TEMPSUMMON_MANUAL_DESPAWN;
-            break;
+            case 1:
+                type = TEMPSUMMON_TIMED_OR_DEAD_DESPAWN;
+                break;
+            case 2:
+                type = TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN;
+                break;
+            case 3:
+                type = TEMPSUMMON_TIMED_DESPAWN;
+                break;
+            case 5:
+                type = TEMPSUMMON_CORPSE_DESPAWN;
+                break;
+            case 6:
+                type = TEMPSUMMON_CORPSE_TIMED_DESPAWN;
+                break;
+            case 7:
+                type = TEMPSUMMON_DEAD_DESPAWN;
+                break;
+            case 8:
+                type = TEMPSUMMON_MANUAL_DESPAWN;
+                break;
         }
         sEluna.Push(L, unit->SummonCreature(entry, x, y, z, o, type, despawnTimer));
         return 1;
@@ -684,26 +684,26 @@ namespace LuaUnit
 
             switch (unit->getClass())
             {
-            case 1:
-                type = POWER_RAGE;
-                break;
-            case 4:
-                type = POWER_ENERGY;
-                break;
-            /*case 6:
-                type = POWER_RUNIC_POWER;
-                break;*/
-            case 2:
-            case 3:
-            case 5:
-            case 7:
-            case 8:
-            case 9:
-            case 11:
-                type = POWER_MANA;
-                break;
-            default:
-                type = POWER_MANA;
+                case 1:
+                    type = POWER_RAGE;
+                    break;
+                case 4:
+                    type = POWER_ENERGY;
+                    break;
+                /*case 6:
+                    type = POWER_RUNIC_POWER;
+                    break;*/
+                case 2:
+                case 3:
+                case 5:
+                case 7:
+                case 8:
+                case 9:
+                case 11:
+                    type = POWER_MANA;
+                    break;
+                default:
+                    type = POWER_MANA;
             }
         }
         else if (type >= POWER_ALL)
@@ -724,26 +724,26 @@ namespace LuaUnit
 
             switch (unit->getClass())
             {
-            case 1:
-                type = POWER_RAGE;
-                break;
-            case 4:
-                type = POWER_ENERGY;
-                break;
-            /*case 6:
-                type = POWER_RUNIC_POWER;
-                break;*/
-            case 2:
-            case 3:
-            case 5:
-            case 7:
-            case 8:
-            case 9:
-            case 11:
-                type = POWER_MANA;
-                break;
-            default:
-                type = POWER_MANA;
+                case 1:
+                    type = POWER_RAGE;
+                    break;
+                case 4:
+                    type = POWER_ENERGY;
+                    break;
+                /*case 6:
+                    type = POWER_RUNIC_POWER;
+                    break;*/
+                case 2:
+                case 3:
+                case 5:
+                case 7:
+                case 8:
+                case 9:
+                case 11:
+                    type = POWER_MANA;
+                    break;
+                default:
+                    type = POWER_MANA;
             }
         }
         else if (type < 0 || type >= POWER_ALL)
@@ -810,39 +810,39 @@ namespace LuaUnit
         const char* str = NULL;
         switch (unit->getClass())
         {
-        case 1:
-            str = "Warrior";
-            break;
-        case 2:
-            str = "Paladin";
-            break;
-        case 3:
-            str = "Hunter";
-            break;
-        case 4:
-            str = "Rogue";
-            break;
-        case 5:
-            str = "Priest";
-            break;
-        case 6:
-            str = "Death Knight";
-            break;
-        case 7:
-            str = "Shaman";
-            break;
-        case 8:
-            str = "Mage";
-            break;
-        case 9:
-            str = "Warlock";
-            break;
-        case 11:
-            str = "Druid";
-            break;
-        default:
-            str = "NULL";
-            break;
+            case 1:
+                str = "Warrior";
+                break;
+            case 2:
+                str = "Paladin";
+                break;
+            case 3:
+                str = "Hunter";
+                break;
+            case 4:
+                str = "Rogue";
+                break;
+            case 5:
+                str = "Priest";
+                break;
+            case 6:
+                str = "Death Knight";
+                break;
+            case 7:
+                str = "Shaman";
+                break;
+            case 8:
+                str = "Mage";
+                break;
+            case 9:
+                str = "Warlock";
+                break;
+            case 11:
+                str = "Druid";
+                break;
+            default:
+                str = "NULL";
+                break;
         }
 
         sEluna.Push(L, str);
@@ -898,21 +898,21 @@ namespace LuaUnit
 
         switch (type)
         {
-        case POWER_MANA:
-            unit->SetPower(POWER_MANA, amt);
-            break;
-        case POWER_RAGE:
-            unit->SetPower(POWER_RAGE, amt);
-            break;
-        case POWER_ENERGY:
-            unit->SetPower(POWER_ENERGY, amt);
-            break;
-        /*case POWER_RUNIC_POWER:
-            unit->SetPower(POWER_RUNIC_POWER, amt);
-            break;*/
-        default:
-            luaL_error(L, "Invalid power type (%d)", type);
-            break;
+            case POWER_MANA:
+                unit->SetPower(POWER_MANA, amt);
+                break;
+            case POWER_RAGE:
+                unit->SetPower(POWER_RAGE, amt);
+                break;
+            case POWER_ENERGY:
+                unit->SetPower(POWER_ENERGY, amt);
+                break;
+            /*case POWER_RUNIC_POWER:
+                unit->SetPower(POWER_RUNIC_POWER, amt);
+                break;*/
+            default:
+                luaL_error(L, "Invalid power type (%d)", type);
+                break;
         }
         return 0;
     }
@@ -924,21 +924,21 @@ namespace LuaUnit
 
         switch (type)
         {
-        case POWER_MANA:
-            unit->SetMaxPower(POWER_MANA, amt);
-            break;
-        case POWER_RAGE:
-            unit->SetMaxPower(POWER_RAGE, amt);
-            break;
-        case POWER_ENERGY:
-            unit->SetMaxPower(POWER_ENERGY, amt);
-            break;
-        /*case POWER_RUNIC_POWER:
-            unit->SetMaxPower(POWER_RUNIC_POWER, amt);
-            break;*/
-        default:
-            luaL_error(L, "Invalid power type (%d)", type);
-            break;
+            case POWER_MANA:
+                unit->SetMaxPower(POWER_MANA, amt);
+                break;
+            case POWER_RAGE:
+                unit->SetMaxPower(POWER_RAGE, amt);
+                break;
+            case POWER_ENERGY:
+                unit->SetMaxPower(POWER_ENERGY, amt);
+                break;
+            /*case POWER_RUNIC_POWER:
+                unit->SetMaxPower(POWER_RUNIC_POWER, amt);
+                break;*/
+            default:
+                luaL_error(L, "Invalid power type (%d)", type);
+                break;
         }
         return 0;
     }
@@ -1199,18 +1199,18 @@ namespace LuaUnit
         // bool instant = luaL_optbool(L, 3, true);
         switch (spellType)
         {
-        case 0:
-            spellType = CURRENT_MELEE_SPELL;
-            break;
-        case 1:
-            spellType = CURRENT_GENERIC_SPELL;
-            break;
-        case 2:
-            spellType = CURRENT_CHANNELED_SPELL;
-            break;
-        case 3:
-            spellType = CURRENT_AUTOREPEAT_SPELL;
-            break;
+            case 0:
+                spellType = CURRENT_MELEE_SPELL;
+                break;
+            case 1:
+                spellType = CURRENT_GENERIC_SPELL;
+                break;
+            case 2:
+                spellType = CURRENT_CHANNELED_SPELL;
+                break;
+            case 3:
+                spellType = CURRENT_AUTOREPEAT_SPELL;
+                break;
         }
         unit->InterruptSpell((CurrentSpellTypes)spellType, delayed/*, instant*/);
         return 0;

@@ -53,32 +53,32 @@ namespace LuaGameObject
         TempSummonType type;
         switch (spawnType)
         {
-        case 1:
-            type = TEMPSUMMON_TIMED_OR_DEAD_DESPAWN;
-            break;
-        case 2:
-            type = TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN;
-            break;
-        case 3:
-            type = TEMPSUMMON_TIMED_DESPAWN;
-            break;
-        //case 4:
-        //     type = TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT;
-        //    break;
-        case 5:
-            type = TEMPSUMMON_CORPSE_DESPAWN;
-            break;
-        case 6:
-            type = TEMPSUMMON_CORPSE_TIMED_DESPAWN;
-            break;
-        case 7:
-            type = TEMPSUMMON_DEAD_DESPAWN;
-            break;
-        case 8:
-            type = TEMPSUMMON_MANUAL_DESPAWN;
-            break;
-        default:
-            return 0;
+            case 1:
+                type = TEMPSUMMON_TIMED_OR_DEAD_DESPAWN;
+                break;
+            case 2:
+                type = TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN;
+                break;
+            case 3:
+                type = TEMPSUMMON_TIMED_DESPAWN;
+                break;
+            // case 4:
+            //     type = TEMPSUMMON_TIMED_DESPAWN_OUT_OF_COMBAT;
+            //    break;
+            case 5:
+                type = TEMPSUMMON_CORPSE_DESPAWN;
+                break;
+            case 6:
+                type = TEMPSUMMON_CORPSE_TIMED_DESPAWN;
+                break;
+            case 7:
+                type = TEMPSUMMON_DEAD_DESPAWN;
+                break;
+            case 8:
+                type = TEMPSUMMON_MANUAL_DESPAWN;
+                break;
+            default:
+                return 0;
         }
         sEluna.Push(L, go->SummonCreature(entry, x, y, z, o, type, despawnTimer));
         return 1;

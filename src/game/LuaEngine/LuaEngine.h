@@ -577,7 +577,7 @@ class Eluna
         struct WorldObjectInRangeCheck
         {
             WorldObjectInRangeCheck(bool nearest, WorldObject const* obj, float range,
-                TypeID typeId = TYPEID_OBJECT, uint32 entry = 0) : i_nearest(nearest),
+                                    TypeID typeId = TYPEID_OBJECT, uint32 entry = 0) : i_nearest(nearest),
                 i_obj(obj), i_range(range), i_typeId(typeId), i_entry(entry) {}
             WorldObject const& GetFocusObject() const { return *i_obj; }
             bool operator()(WorldObject* u)
@@ -895,7 +895,7 @@ class Eluna::Eluna_CreatureScript
                 sEluna.Push(sEluna.L, CREATURE_EVENT_ON_HIT_BY_SPELL);
                 sEluna.Push(sEluna.L, m_creature);
                 sEluna.Push(sEluna.L, caster);
-                sEluna.Push(sEluna.L, spell->Id); // Pass spell object?
+                sEluna.Push(sEluna.L, spell->Id);           // Pass spell object?
                 sEluna.ExecuteCall(4, 0);
             }
 
@@ -910,7 +910,7 @@ class Eluna::Eluna_CreatureScript
                 sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SPELL_HIT_TARGET);
                 sEluna.Push(sEluna.L, m_creature);
                 sEluna.Push(sEluna.L, target);
-                sEluna.Push(sEluna.L, spell->Id); // Pass spell object?
+                sEluna.Push(sEluna.L, spell->Id);           // Pass spell object?
                 sEluna.ExecuteCall(4, 0);
             }
 

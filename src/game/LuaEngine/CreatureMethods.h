@@ -43,7 +43,8 @@ namespace LuaCreature
     }
 
     int SelectVictim(lua_State* L, Creature* creature)
-    {        // sEluna.Push(L, creature->SelectVictim());
+    {
+        // sEluna.Push(L, creature->SelectVictim());
         return 1;
     }
 
@@ -512,7 +513,7 @@ namespace LuaCreature
         return 0;
     }
 
-        int SendCreatureTalk(lua_State* L, Creature* creature)
+    int SendCreatureTalk(lua_State* L, Creature* creature)
     {
         uint8 id = luaL_checknumber(L, 1);
         uint64 playerGUID = sEluna.CHECK_ULONG(L, 2);

@@ -155,7 +155,7 @@ ElunaRegister<Object> ObjectMethods[] =
 ElunaRegister<WorldObject> WorldObjectMethods[] =
 {
     // Getters
-    {"GetPhaseMask", &LuaWorldObject::GetPhaseMask},                        // :GetPhaseMask()
+    //{"GetPhaseMask", &LuaWorldObject::GetPhaseMask},                        // :GetPhaseMask()
     {"GetInstanceId", &LuaWorldObject::GetInstanceId},                      // :GetInstanceId()
     {"GetAreaId", &LuaWorldObject::GetAreaId},                              // :GetAreaId()
     {"GetZoneId", &LuaWorldObject::GetZoneId},                              // :GetZoneId()

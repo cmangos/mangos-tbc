@@ -22,18 +22,14 @@
 
 #define TO_PLAYER() Player* player; if (!unit || !unit->IsInWorld() || !(player = unit->ToPlayer())) { return 0; } else (void)0;
 #define TO_CREATURE() Creature* creature; if (!unit || !unit->IsInWorld() || !(creature = unit->ToCreature())) { return 0; } else (void)0;
-#define TO_UNIT() if (!unit || !unit->IsInWorld() || !unit->ToUnit()) { return 0; } else (void)0;
 
 #define TO_PLAYER_BOOL() Player* player; if (!unit || !unit->IsInWorld() || !(player = unit->ToPlayer())) { sEluna.Push(L, false); return 1; } else (void)0;
 #define TO_CREATURE_BOOL() Creature* creature; if (!unit || !unit->IsInWorld() || !(creature = unit->ToCreature())) { sEluna.Push(L, false); return 1; } else (void)0;
-#define TO_UNIT_BOOL() if (!unit || !unit->IsInWorld() || !unit->ToUnit()) { sEluna.Push(L, false); return 1; } else (void)0;
 
 namespace LuaUnit
 {
     int Attack(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         Unit* who = sEluna.CHECK_UNIT(L, 1);
         bool meleeAttack = luaL_optbool(L, 2, false);
 
@@ -46,16 +42,12 @@ namespace LuaUnit
 
     int ClearThreatList(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         unit->getThreatManager().clearReferences();
         return 0;
     }
 
     int SetOwnerGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         ObjectGuid guid = unit->GetObjectGuid();
 
         unit->SetOwnerGuid(guid);
@@ -64,24 +56,18 @@ namespace LuaUnit
 
     int GetOwner(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetOwner());
         return 1;
     }
 
     int GetOwnerGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetOwnerGuid());
         return 1;
     }
 
     int GetMap(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Map* map = unit->GetMap();
         sEluna.Push(L, map);
         return 1;
@@ -89,8 +75,6 @@ namespace LuaUnit
 
     int GetRelativePoint(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float dist = luaL_checknumber(L, 1);
         float rad = luaL_checknumber(L, 2);
 
@@ -103,8 +87,6 @@ namespace LuaUnit
 
     int Mount(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 displayId = luaL_checkunsigned(L, 1);
 
         unit->Mount(displayId);
@@ -113,8 +95,6 @@ namespace LuaUnit
 
     int Dismount(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         if (unit->IsMounted())
         {
             unit->Unmount();
@@ -126,16 +106,12 @@ namespace LuaUnit
 
     int IsMounted(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->IsMounted());
         return 1;
     }
 
     int IsWithinLoS(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         float z = luaL_checknumber(L, 3);
@@ -146,8 +122,6 @@ namespace LuaUnit
 
     int IsWithinDistInMap(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
         if (!obj)
             return 0;
@@ -159,8 +133,6 @@ namespace LuaUnit
 
     int IsInAccessiblePlaceFor(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         Creature* creature = sEluna.CHECK_CREATURE(L, 1);
         if (!creature)
             return 0;
@@ -594,8 +566,6 @@ namespace LuaUnit
 
     int CanFly(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         if (Player* player = unit->ToPlayer())
             sEluna.Push(L, player->CanFly());
         else if (Creature* creature = unit->ToCreature())
@@ -734,8 +704,6 @@ namespace LuaUnit
 
     int GetShieldBlockValue(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         if (Player* player = unit->ToPlayer())
             sEluna.Push(L, player->GetShieldBlockValue());
         if (Creature* creature = unit->ToCreature())
@@ -747,8 +715,6 @@ namespace LuaUnit
 
     int GetMountId(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetMountID());
         return 1;
     }
@@ -844,8 +810,6 @@ namespace LuaUnit
 
     int GetDistance(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
         if (obj && obj->IsInWorld())
             sEluna.Push(L, unit->GetDistance(obj));
@@ -869,64 +833,48 @@ namespace LuaUnit
 
     int GetCreatorGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // sEluna.Push(L, unit->GetCreatGetCreatorGuid());
         return 1;
     }
 
     int GetMinionGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // sEluna.Push(L, unit->GetMinionGuid());
         return 1;
     }
 
     int GetCharmerGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetCharmerGuid());
         return 1;
     }
 
     int GetCharmGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetCharmGuid());
         return 1;
     }
 
     int GetPetGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetPetGuid());
         return 1;
     }
 
     int GetCritterGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // sEluna.Push(L, unit->GetCritterGuid());
         return 1;
     }
 
     int GetControllerGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetCharmerOrOwnerGuid());
         return 1;
     }
 
     int GetControllerGUIDS(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetCharmerOrOwnerOrOwnGuid());
         return 1;
     }
@@ -1382,9 +1330,7 @@ namespace LuaUnit
     }
 
     int GetStat(lua_State* L, Unit* unit)
-    {
-        TO_UNIT();
-        uint32 stat = luaL_checkunsigned(L, 1);
+    {        uint32 stat = luaL_checkunsigned(L, 1);
 
         if (stat >= MAX_STATS)
             return 0;
@@ -1394,9 +1340,7 @@ namespace LuaUnit
     }
 
     int GetBaseSpellPower(lua_State* L, Unit* unit)
-    {
-        TO_UNIT();
-        uint32 spellschool = luaL_checkunsigned(L, 1);
+    {        uint32 spellschool = luaL_checkunsigned(L, 1);
 
         if (spellschool >= MAX_SPELL_SCHOOL)
             return 0;
@@ -1787,8 +1731,6 @@ namespace LuaUnit
 
     int SetPvP(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
 
         unit->SetPvP(apply);
@@ -1797,8 +1739,6 @@ namespace LuaUnit
 
     int SetFFA(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
 
         /*if (apply)
@@ -1811,8 +1751,6 @@ namespace LuaUnit
 
     int SetSanctuary(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
 
         /*if (apply)
@@ -1839,8 +1777,6 @@ namespace LuaUnit
 
     int HasSpellCooldown(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         uint32 spellId = luaL_checkunsigned(L, 1);
 
         if (Player* player = unit->ToPlayer())
@@ -1854,24 +1790,18 @@ namespace LuaUnit
 
     int IsAuctioneer(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isAuctioner());
         return 1;
     }
 
     int HealthBelowPct(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         // sEluna.Push(L, unit->HealthBelowPct(luaL_checkint(L, 1)));
         return 1;
     }
 
     int HealthAbovePct(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         // sEluna.Push(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
         return 1;
     }
@@ -2094,8 +2024,6 @@ namespace LuaUnit
 
     int SaveToDB(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         if (Player* player = unit->ToPlayer())
             player->SaveToDB();
         if (Creature* creature = unit->ToCreature())
@@ -2105,24 +2033,18 @@ namespace LuaUnit
 
     int Emote(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         unit->HandleEmoteCommand(luaL_checkunsigned(L, 1));
         return 0;
     }
 
     int CountPctFromCurHealth(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // sEluna.Push(L, unit->CountPctFromCurHealth(luaL_checkint(L, 1)));
         return 1;
     }
 
     int CountPctFromMaxHealth(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // sEluna.Push(L, unit->CountPctFromMaxHealth(luaL_checkint(L, 1)));
         return 1;
     }
@@ -2370,8 +2292,6 @@ namespace LuaUnit
 
     int SetSheath(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 sheathed = luaL_checkunsigned(L, 1);
         if (sheathed >= MAX_SHEATH_STATE)
             return 0;
@@ -2725,16 +2645,12 @@ namespace LuaUnit
 
     int IsUnderWater(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->IsUnderWater());
         return 1;
     }
 
     int IsInWater(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         if (Player* player = unit->ToPlayer())
             sEluna.Push(L, player->IsInWater());
         else
@@ -2777,8 +2693,6 @@ namespace LuaUnit
 
     int GetNearbyTarget(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float dist = luaL_optnumber(L, 1, 5.0f);
         Unit* exclude = sEluna.CHECK_UNIT(L, 2);
 
@@ -2807,8 +2721,6 @@ namespace LuaUnit
 
     int SendChatMessageToPlayer(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint8 type = luaL_checkunsigned(L, 1);
         uint32 lang = luaL_checkunsigned(L, 2);
         const char* msg = luaL_checkstring(L, 3);
@@ -2836,8 +2748,6 @@ namespace LuaUnit
 
     int GetCurrentSpell(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 type = luaL_checkunsigned(L, 1);
         if (type >= CURRENT_MAX_SPELL)
         {
@@ -2958,8 +2868,6 @@ namespace LuaUnit
 
     int SummonGameObject(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 entry = luaL_checkunsigned(L, 1);
         float x = luaL_checknumber(L, 2);
         float y = luaL_checknumber(L, 3);
@@ -2972,8 +2880,6 @@ namespace LuaUnit
 
     int SpawnCreature(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 entry = luaL_checkunsigned(L, 1);
         float x = luaL_checknumber(L, 2);
         float y = luaL_checknumber(L, 3);
@@ -3013,8 +2919,6 @@ namespace LuaUnit
 
     int DealDamage(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Unit* target = sEluna.CHECK_UNIT(L, 1);
         uint32 amount = luaL_checkunsigned(L, 2);
 
@@ -3036,8 +2940,6 @@ namespace LuaUnit
 
     int GetStandState(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->getStandState());
         return 0;
     }
@@ -3052,8 +2954,6 @@ namespace LuaUnit
 
     int KnockbackFrom(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         float speedXY = luaL_checknumber(L, 3);
@@ -3064,8 +2964,6 @@ namespace LuaUnit
 
     int JumpTo(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
         float speedZ = luaL_checknumber(L, 2);
         if (!obj)
@@ -3077,8 +2975,6 @@ namespace LuaUnit
 
     int Jump(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float speedXY = luaL_checknumber(L, 1);
         float speedZ = luaL_checknumber(L, 2);
         bool forward = luaL_optbool(L, 3, true);
@@ -3088,8 +2984,6 @@ namespace LuaUnit
 
     int JumpToCoords(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         float z = luaL_checknumber(L, 3);
@@ -3101,8 +2995,6 @@ namespace LuaUnit
 
     int MoveCharge(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         float z = luaL_checknumber(L, 3);
@@ -3113,8 +3005,6 @@ namespace LuaUnit
 
     int MoveChase(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Unit* target = sEluna.CHECK_UNIT(L, 1);
         float dist = luaL_optnumber(L, 2, 0.0f);
         float angle = luaL_optnumber(L, 3, 0.0f);
@@ -3124,8 +3014,6 @@ namespace LuaUnit
 
     int SetName(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         const char* name = luaL_checkstring(L, 1);
         if (std::string(name).length() > 0)
             unit->SetName(name);
@@ -3134,8 +3022,6 @@ namespace LuaUnit
 
     int SetStunned(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
         // unit->SetControlled(apply, UNIT_STATE_STUNNED);
         return 0;
@@ -3143,8 +3029,6 @@ namespace LuaUnit
 
     int SetRooted(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
         // unit->SetControlled(apply, UNIT_STATE_ROOT);
         return 0;
@@ -3152,8 +3036,6 @@ namespace LuaUnit
 
     int SetConfused(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
         // unit->SetControlled(apply, UNIT_STATE_CONFUSED);
         return 0;
@@ -3161,8 +3043,6 @@ namespace LuaUnit
 
     int SetFeared(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
         // unit->SetControlled(apply, UNIT_STATE_FLEEING);
         return 0;
@@ -3196,8 +3076,6 @@ namespace LuaUnit
 
     int MoveTo(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float id = luaL_checknumber(L, 1);
         float x = luaL_checknumber(L, 2);
         float y = luaL_checknumber(L, 3);
@@ -3209,8 +3087,6 @@ namespace LuaUnit
 
     int MoveFollow(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Unit* target = sEluna.CHECK_UNIT(L, 1);
         float dist = luaL_checknumber(L, 2);
         float angle = luaL_checknumber(L, 3);
@@ -3220,25 +3096,21 @@ namespace LuaUnit
 
     int MoveClear(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         unit->GetMotionMaster()->Clear();
         return 0;
     }
 
     int MoveRandom(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float radius = luaL_checknumber(L, 1);
-        // unit->GetMotionMaster()->MoveRandom(radius);
+        float x, y, z;
+        unit->GetPosition(x, y, z);
+        unit->GetMotionMaster()->MoveRandomAroundPoint(x, y, z, radius);
         return 0;
     }
 
     int MoveRotate(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 time = luaL_checkunsigned(L, 1);
         bool left = luaL_optbool(L, 2, true);
         // unit->GetMotionMaster()->MoveRotate(time, left ? ROTATE_DIRECTION_LEFT : ROTATE_DIRECTION_RIGHT);
@@ -3247,8 +3119,6 @@ namespace LuaUnit
 
     int SetWalk(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool enable = luaL_optbool(L, 1, true);
         /*if (Creature* creature = unit->ToCreature())
         sEluna.Push(L, creature->SetWalk(enable));
@@ -3259,8 +3129,6 @@ namespace LuaUnit
 
     int SetSpeed(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 type = luaL_checkunsigned(L, 1);
         float rate = luaL_checknumber(L, 2);
         bool forced = luaL_optbool(L, 3, false);
@@ -3316,40 +3184,30 @@ namespace LuaUnit
 
     int GetDisplayId(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetDisplayId());
         return 1;
     }
 
     int GetNativeDisplayId(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetNativeDisplayId());
         return 1;
     }
 
     int GetName(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetName());
         return 1;
     }
 
     int GetLevel(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->getLevel());
         return 1;
     }
 
     int GetHealth(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetHealth());
         return 1;
     }
@@ -3372,8 +3230,6 @@ namespace LuaUnit
 
     int GetPower(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int type = luaL_optint(L, 1, -1);
         if (type == -1)
         {
@@ -3414,8 +3270,6 @@ namespace LuaUnit
 
     int GetMaxPower(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int type = luaL_optint(L, 1, -1);
         if (type == -1)
         {
@@ -3456,72 +3310,54 @@ namespace LuaUnit
 
     int GetPowerType(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->getPowerType());
         return 1;
     }
 
     int GetMaxHealth(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetMaxHealth());
         return 1;
     }
 
     int GetHealthPct(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetHealthPercent());
         return 1;
     }
 
     int GetPowerPct(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float percent = (unit->GetPower(unit->getPowerType()) / unit->GetMaxPower(unit->getPowerType())) * 100;
         sEluna.Push(L, percent);
         return 1;
     }
 
     int GetGender(lua_State* L, Unit* unit)
-    {
-        TO_UNIT();
-        sEluna.Push(L, unit->getGender());
+    {        sEluna.Push(L, unit->getGender());
         return 1;
     }
 
     int GetRace(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->getRace());
         return 1;
     }
 
     int GetClass(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->getClass());
         return 1;
     }
 
     int GetCreatureType(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetCreatureType());
         return 1;
     }
 
     int GetClassAsString(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         const char* str = NULL;
         switch (unit->getClass())
         {
@@ -3633,16 +3469,12 @@ namespace LuaUnit
 
     int GetFaction(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->getFaction());
         return 1;
     }
 
     int SetFaction(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 factionId = luaL_checkunsigned(L, 1);
         unit->setFaction(factionId);
         return 0;
@@ -3650,17 +3482,13 @@ namespace LuaUnit
 
     int SetLevel(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 newLevel = luaL_checkunsigned(L, 1);
         unit->SetLevel(newLevel);
         return 0;
     }
 
     int SetPhaseMask(lua_State* L, Unit* unit)
-    {
-        TO_UNIT();
-        uint32 phaseMask = luaL_checkunsigned(L, 1);
+    {        uint32 phaseMask = luaL_checkunsigned(L, 1);
         bool Update = luaL_optbool(L, 2, true);
         // unit->SetPhaseMask(phaseMask, Update);
         return 0;
@@ -3695,8 +3523,6 @@ namespace LuaUnit
 
     int SetHealth(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 amt = luaL_checkunsigned(L, 1);
         unit->SetHealth(amt);
         return 0;
@@ -3704,8 +3530,6 @@ namespace LuaUnit
 
     int SetMaxHealth(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 amt = luaL_checkunsigned(L, 1);
         unit->SetMaxHealth(amt);
         return 0;
@@ -3713,8 +3537,6 @@ namespace LuaUnit
 
     int SetPower(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int type = luaL_checkinteger(L, 1);
         uint32 amt = luaL_checkunsigned(L, 2);
 
@@ -3741,8 +3563,6 @@ namespace LuaUnit
 
     int SetMaxPower(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int type = luaL_checkinteger(L, 1);
         int amt = luaL_checkunsigned(L, 2);
 
@@ -3769,8 +3589,6 @@ namespace LuaUnit
 
     int SetDisplayId(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 model = luaL_checkunsigned(L, 1);
         unit->SetDisplayId(model);
         return 0;
@@ -3778,8 +3596,6 @@ namespace LuaUnit
 
     int SetNativeDisplayId(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 model = luaL_checkunsigned(L, 1);
         unit->SetNativeDisplayId(model);
         return 0;
@@ -3787,8 +3603,6 @@ namespace LuaUnit
 
     int SetFacing(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float o = luaL_checknumber(L, 1);
         unit->SetFacingTo(o);
         return 0;
@@ -3853,8 +3667,6 @@ namespace LuaUnit
 
     int SetCreatorGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         ObjectGuid guid = unit->GetObjectGuid();
         unit->SetCreatorGuid(guid);
         return 0;
@@ -3862,8 +3674,6 @@ namespace LuaUnit
 
     int SetMinionGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // ObjectGuid guid = unit->GetObjectGuid();
         // unit->SetMinionGuid(guid);
         return 0;
@@ -3871,8 +3681,6 @@ namespace LuaUnit
 
     int SetCharmerGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         ObjectGuid guid = unit->GetObjectGuid();
         unit->SetCharmerGuid(guid);
         return 0;
@@ -3880,8 +3688,6 @@ namespace LuaUnit
 
     int SetPetGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         ObjectGuid guid = unit->GetObjectGuid();
         unit->SetPetGuid(guid);
         return 0;
@@ -3889,8 +3695,6 @@ namespace LuaUnit
 
     int SetCritterGUID(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // ObjectGuid guid = unit->GetObjectGuid();
         // unit->SetCritterGuid(guid);
         return 0;
@@ -3967,72 +3771,54 @@ namespace LuaUnit
 
     int IsAlive(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isAlive());
         return 1;
     }
 
     int IsDead(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isDead());
         return 1;
     }
 
     int IsDying(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isDying());
         return 1;
     }
 
     int IsBanker(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isBanker());
         return 1;
     }
 
     int IsVendor(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isVendor());
         return 1;
     }
 
     int IsBattleMaster(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isBattleMaster());
         return 1;
     }
 
     int IsCharmed(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isCharmed());
         return 1;
     }
 
     int IsArmorer(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isArmorer());
         return 1;
     }
 
     int IsAttackingPlayer(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isAttackingPlayer());
         return 1;
     }
@@ -4051,24 +3837,18 @@ namespace LuaUnit
 
     int IsInWorld(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->IsInWorld());
         return 1;
     }
 
     int IsPvPFlagged(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->IsPvP());
         return 1;
     }
 
     int HasQuest(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         uint32 questId = luaL_checkunsigned(L, 1);
 
         if (Player* player = unit->ToPlayer())
@@ -4098,8 +3878,6 @@ namespace LuaUnit
 
     int IsInCombat(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isInCombat());
         return 1;
     }
@@ -4119,8 +3897,6 @@ namespace LuaUnit
 
     int HasSpell(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         uint32 id = luaL_checkunsigned(L, 1);
         if (Player* player = unit->ToPlayer())
             sEluna.Push(L, player->HasSpell(id));
@@ -4281,8 +4057,6 @@ namespace LuaUnit
 
     int SendUnitWhisper(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         const char* msg = luaL_checkstring(L, 1);
         Unit* receiver = sEluna.CHECK_UNIT(L, 2);
         bool bossWhisper = luaL_optbool(L, 3, false);
@@ -4293,8 +4067,6 @@ namespace LuaUnit
 
     int SendUnitEmote(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         const char* msg = luaL_checkstring(L, 1);
         Unit* receiver = sEluna.CHECK_UNIT(L, 2);
         bool bossEmote = luaL_optbool(L, 3, false);
@@ -4305,8 +4077,6 @@ namespace LuaUnit
 
     int SendUnitSay(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         const char* msg = luaL_checkstring(L, 1);
         uint32 language = luaL_checknumber(L, 2);
         if (std::string(msg).length() > 0)
@@ -4316,8 +4086,6 @@ namespace LuaUnit
 
     int SendUnitYell(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         const char* msg = luaL_checkstring(L, 1);
         uint32 language = luaL_checknumber(L, 2);
         if (std::string(msg).length() > 0)
@@ -4427,8 +4195,6 @@ namespace LuaUnit
 
     int DeMorph(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         unit->DeMorph();
         return 0;
     }
@@ -4446,8 +4212,6 @@ namespace LuaUnit
 
     int CastSpell(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Unit* target = sEluna.CHECK_UNIT(L, 1);
         if (!target)
             return 0;
@@ -4463,8 +4227,6 @@ namespace LuaUnit
 
     int CastSpellAoF(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         float _x = luaL_checknumber(L, 1);
         float _y = luaL_checknumber(L, 2);
         float _z = luaL_checknumber(L, 3);
@@ -4630,8 +4392,6 @@ namespace LuaUnit
 
     int GetAura(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 spellID = luaL_checkunsigned(L, 1);
         // sEluna.Push(L, unit->GetAura(spellID));
         return 1;
@@ -4639,24 +4399,18 @@ namespace LuaUnit
 
     int GetCombatTime(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         sEluna.Push(L, unit->GetCombatTimer());
         return 1;
     }
 
     int ClearInCombat(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         unit->ClearInCombat();
         return 0;
     }
 
     int StopSpellCast(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 spellId = luaL_optunsigned(L, 1, 0);
         unit->CastStop(spellId);
         return 0;
@@ -4664,8 +4418,6 @@ namespace LuaUnit
 
     int InterruptSpell(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int spellType = luaL_checkint(L, 1);
         bool delayed = luaL_optbool(L, 2, true);
         bool instant = luaL_optbool(L, 3, true);
@@ -4690,8 +4442,6 @@ namespace LuaUnit
 
     int AddAura(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 spellId = luaL_checkunsigned(L, 1);
         Unit* target = sEluna.CHECK_UNIT(L, 2);
         if (!target)
@@ -4702,8 +4452,6 @@ namespace LuaUnit
 
     int RemoveAura(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 spellId = luaL_checkunsigned(L, 1);
         unit->RemoveAurasDueToSpell(spellId);
         return 0;
@@ -4711,8 +4459,6 @@ namespace LuaUnit
 
     int RemoveAllAuras(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         unit->RemoveAllAuras();
         return 0;
     }
@@ -4781,8 +4527,6 @@ namespace LuaUnit
 
     int PlayDirectSound(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 soundId = luaL_checkunsigned(L, 1);
         Player* player = sEluna.CHECK_PLAYER(L, 2);
         if (!sSoundEntriesStore.LookupEntry(soundId))
@@ -4797,8 +4541,6 @@ namespace LuaUnit
 
     int PlayDistanceSound(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 soundId = luaL_checkunsigned(L, 1);
         Player* player = sEluna.CHECK_PLAYER(L, 2);
         if (!sSoundEntriesStore.LookupEntry(soundId))
@@ -4813,8 +4555,6 @@ namespace LuaUnit
 
     int Kill(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Unit* target = sEluna.CHECK_UNIT(L, 1);
         bool durLoss = luaL_optbool(L, 2, true);
         // unit->Kill((target ? target : unit), durLoss);
@@ -4823,8 +4563,6 @@ namespace LuaUnit
 
     int RegisterEvent(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         luaL_checktype(L, 1, LUA_TFUNCTION);
         uint32 delay = luaL_checkunsigned(L, 2);
         uint32 repeats = luaL_checkunsigned(L, 3);
@@ -4838,8 +4576,6 @@ namespace LuaUnit
 
     int RemoveEventById(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int eventID = luaL_checkinteger(L, 1);
         Eluna::LuaEventData::Remove(unit->GetGUIDLow(), eventID);
         return 0;
@@ -4847,8 +4583,6 @@ namespace LuaUnit
 
     int RemoveEvents(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Eluna::LuaEventData::RemoveAll(unit);
         return 0;
     }
@@ -4857,8 +4591,6 @@ namespace LuaUnit
 
     int IsOnVehicle(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         /*if (unit->GetVehicleInfo() || (unit->ToPlayer() && unit->IsVehicle()))
             sEluna.Push(L, true);
         else
@@ -4868,8 +4600,6 @@ namespace LuaUnit
 
     int DismissVehicle(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // if (Creature* vehicle = unit->GetVehicleCreatureBase())
         // vehicle->DespawnOrUnsummon();
         return 0;
@@ -4877,8 +4607,6 @@ namespace LuaUnit
 
     int AddVehiclePassenger(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Unit* passenger = sEluna.CHECK_UNIT(L, 1);
         int8 seatId = luaL_checkunsigned(L, 2);
         // Vehicle* _vehicle = unit->GetVehicle();
@@ -4906,8 +4634,6 @@ namespace LuaUnit
 
     int RemovePassenger(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         Unit* passenger = sEluna.CHECK_UNIT(L, 1);
         // Vehicle* _vehicle = unit->GetVehicle();
         // if (!_vehicle)
@@ -4919,8 +4645,6 @@ namespace LuaUnit
 
     int RemoveAllPassengers(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // Unit* _unit = unit->GetVehicleBase();
         // if (!_unit)
         // return 0;
@@ -4931,8 +4655,6 @@ namespace LuaUnit
 
     int GetPassenger(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int8 seatId = luaL_checkunsigned(L, 1);
         // Unit* _unit = unit->GetVehicleBase();
         // if (!_unit)
@@ -4944,8 +4666,6 @@ namespace LuaUnit
 
     int GetNextEmptySeat(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int8 seatId = luaL_checkunsigned(L, 1);
         // Unit* _unit = unit->GetVehicleBase();
         // if (!_unit)
@@ -4956,8 +4676,6 @@ namespace LuaUnit
 
     int GetAvailableSeats(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // Unit* _unit = unit->GetVehicleBase();
         // if (!_unit)
         // return 0;
@@ -4968,8 +4686,6 @@ namespace LuaUnit
 
     int GetVehicleBase(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // Unit* _unit = unit->GetVehicleBase();
         // if (_unit)
         // sEluna.Push(L, _unit);
@@ -4980,8 +4696,6 @@ namespace LuaUnit
 
     int HasEmptySeat(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         int8 seatId = luaL_checkunsigned(L, 1);
         // Unit* _unit = unit->GetVehicleBase();
         // if (!_unit)
@@ -5021,9 +4735,7 @@ namespace LuaUnit
     }
 
     int GetFriendlyUnitsInRange(lua_State* L, Unit* unit)
-    {
-        TO_UNIT();
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+    {        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
 
         /*UnitList list;
         Trinity::AnyFriendlyUnitInObjectRangeCheck checker(unit, unit, range);
@@ -5048,9 +4760,7 @@ namespace LuaUnit
     }
 
     int GetUnfriendlyUnitsInRange(lua_State* L, Unit* unit)
-    {
-        TO_UNIT();
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+    {        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
 
         /*UnitList list;
         Trinity::AnyUnfriendlyUnitInObjectRangeCheck checker(unit, unit, range);
@@ -5119,16 +4829,12 @@ namespace LuaUnit
 
     int AttackStop(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->AttackStop());
         return 1;
     }
 
     int SetCanFly(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
         // unit->SetCanFly(apply);
         return 0;
@@ -5136,8 +4842,6 @@ namespace LuaUnit
 
     int SetVisible(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool x = luaL_optbool(L, 1, true);
         // unit->SetVisible(x);
         return 0;
@@ -5145,88 +4849,66 @@ namespace LuaUnit
 
     int IsVisible(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         // sEluna.Push(L, unit->IsVisible());
         return 1;
     }
 
     int IsMoving(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         // sEluna.Push(L, unit->isMoving());
         return 1;
     }
 
     int IsFlying(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         // sEluna.Push(L, unit->IsFlying());
         return 1;
     }
 
     int IsStopped(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->IsStopped());
         return 1;
     }
 
     int IsQuestGiver(lua_State* L, Unit* unit)
     {
-        TO_UNIT_BOOL();
-
         sEluna.Push(L, unit->isQuestGiver());
         return 1;
     }
 
     int RestoreDisplayId(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // unit->RestoreDisplayId();
         return 0;
     }
 
     int RestoreFaction(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // unit->RestoreFaction();
         return 0;
     }
 
     int RemoveBindSightAuras(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // unit->RemoveBindSightAuras();
         return 0;
     }
 
     int RemoveCharmAuras(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         // unit->RemoveCharmAuras();
         return 0;
     }
 
     int StopMoving(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         unit->StopMoving();
         return 0;
     }
 
     int AddUnitState(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 state = luaL_checkunsigned(L, 1);
 
         unit->addUnitState(state);
@@ -5235,8 +4917,6 @@ namespace LuaUnit
 
     int ClearUnitState(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 state = luaL_checkunsigned(L, 1);
 
         unit->clearUnitState(state);
@@ -5245,8 +4925,6 @@ namespace LuaUnit
 
     int HasUnitState(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 state = luaL_checkunsigned(L, 1);
 
         sEluna.Push(L, unit->hasUnitState(state));
@@ -5255,8 +4933,6 @@ namespace LuaUnit
 
     int DisableMelee(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         bool apply = luaL_optbool(L, 1, true);
 
         /*if (apply)
@@ -5268,8 +4944,6 @@ namespace LuaUnit
 
     int SummonGuardian(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 entry = luaL_checkunsigned(L, 1);
         float x = luaL_checknumber(L, 2);
         float y = luaL_checknumber(L, 3);
@@ -5395,8 +5069,6 @@ namespace LuaUnit
 
     int FindNearestGameObject(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 entry = luaL_checkunsigned(L, 1);
         float range = luaL_checknumber(L, 2);
 
@@ -5406,8 +5078,6 @@ namespace LuaUnit
 
     int FindNearestCreature(lua_State* L, Unit* unit)
     {
-        TO_UNIT();
-
         uint32 entry = luaL_checkunsigned(L, 1);
         float range = luaL_checknumber(L, 2);
         bool alive = luaL_optbool(L, 3, true);

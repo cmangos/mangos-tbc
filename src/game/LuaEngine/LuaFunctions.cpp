@@ -656,7 +656,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"MoveChase", &LuaUnit::MoveChase},                     // :MoveChase(target[, dist, angle]) - Chases target unit
     {"MoveFollow", &LuaUnit::MoveFollow},                   // :MoveFollow(target, dist, angle) - Follows target unit
     {"MoveClear", &LuaUnit::MoveClear},                     // :MoveClear() - Stops movement
-    //{"MoveRandom", &LuaUnit::MoveRandom},                   // :MoveRandom() - Moves randomly inside radius
+    {"MoveRandom", &LuaUnit::MoveRandom},                   // :MoveRandom(radius) - Moves randomly inside radius
     //{"MoveRotate", &LuaUnit::MoveRotate},                   // :MoveRotate(time, left) - Turns left (true or nil) or right (false) for given time
     {"SummonGameObject", &LuaUnit::SummonGameObject},       // :SummonGameObject(entry, x, y, z, o[, respawnDelay]) - Spawns an object to location. Returns the object or nil
     {"SpawnCreature", &LuaUnit::SpawnCreature},             // :SpawnCreature(entry, x, y, z, o[, despawnDelay]) - Spawns a creature to location that despawns after given time (0 for infinite). Returns the creature or nil

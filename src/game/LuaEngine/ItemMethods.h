@@ -130,7 +130,7 @@ namespace LuaItem
 
     int IsBoundAccountWide(lua_State* L, Item* item)
     {
-        sEluna.Push(L, item->IsBoundAccountWide());
+        // sEluna.Push(L, item->IsBoundAccountWide());
         return 1;
     }
 
@@ -182,9 +182,9 @@ namespace LuaItem
 
     int CanBeTraded(lua_State* L, Item* item) // TODO: Implement trade bool
     {
-        bool mail = luaL_optbool(L, 1, false);
+        // bool mail = luaL_optbool(L, 1, false);
         // bool trade = luaL_optbool(L, 2, false);
-        sEluna.Push(L, item->CanBeTraded(mail/*, trade*/));
+        sEluna.Push(L, item->CanBeTraded(/*mail, trade*/));
         return 1;
     }
 
@@ -459,7 +459,7 @@ namespace LuaItem
 
     int GetStatsCount(lua_State* L, Item* item)
     {
-        sEluna.Push(L, item->GetProto()->StatsCount);
+        // sEluna.Push(L, item->GetProto()->StatsCount);
         return 1;
     }
 

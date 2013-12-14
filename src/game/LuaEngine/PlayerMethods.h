@@ -1137,7 +1137,7 @@ namespace LuaPlayer
     {
         uint32 entry = luaL_checkunsigned(L, 1);
 
-        // sEluna.Push(L, player->GetItemByEntry(entry));
+        sEluna.Push(L, player->GetItemByEntry(entry));
         return 1;
     }
 

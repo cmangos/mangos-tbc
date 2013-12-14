@@ -485,10 +485,63 @@ class Eluna
         void Push(lua_State*, double);
         void Push(lua_State*, const char*);
         void Push(lua_State*, std::string);
-        template<typename T>
-        void Push(lua_State* L, T const* ptr)
+        template<typename T> void Push(lua_State* L, T const* ptr)
         {
             ElunaTemplate<T>::push(L, ptr);
+        }
+        template<> void Eluna::Push<Unit>(lua_State* L, Unit const* unit)
+        {
+            switch (unit->GetTypeId())
+            {
+                case TYPEID_UNIT:
+                    Push(L, unit->ToCreature());
+                    break;
+                case TYPEID_PLAYER:
+                    Push(L, unit->ToPlayer());
+                    break;
+                default:
+                    ElunaTemplate<Unit>::push(L, unit);
+            }
+        }
+        template<> void Eluna::Push<WorldObject>(lua_State*, WorldObject const* obj)
+        {
+            switch (obj->GetTypeId())
+            {
+                case TYPEID_UNIT:
+                    Push(L, obj->ToCreature());
+                    break;
+                case TYPEID_PLAYER:
+                    Push(L, obj->ToPlayer());
+                    break;
+                case TYPEID_GAMEOBJECT:
+                    Push(L, obj->ToGameObject());
+                    break;
+                case TYPEID_CORPSE:
+                    Push(L, obj->ToCorpse());
+                    break;
+                default:
+                    ElunaTemplate<WorldObject>::push(L, obj);
+            }
+        }
+        template<> void Eluna::Push<Object>(lua_State* L, Object const* obj)
+        {
+            switch (obj->GetTypeId())
+            {
+                case TYPEID_UNIT:
+                    Push(L, obj->ToCreature());
+                    break;
+                case TYPEID_PLAYER:
+                    Push(L, obj->ToPlayer());
+                    break;
+                case TYPEID_GAMEOBJECT:
+                    Push(L, obj->ToGameObject());
+                    break;
+                case TYPEID_CORPSE:
+                    Push(L, obj->ToCorpse());
+                    break;
+                default:
+                    ElunaTemplate<Object>::push(L, obj);
+            }
         }
 
         // Checks
@@ -574,6 +627,30 @@ class Eluna
             }
 
             ElunaEntryMap Bindings; // Binding store Bindings[entryId][eventId] = funcRef;
+        };
+
+        struct ObjectGUIDCheck
+        {
+            ObjectGUIDCheck(ObjectGuid GUID) : _GUID(GUID) { }
+            bool operator()(WorldObject* object)
+            {
+                return object->GetObjectGuid() == _GUID;
+            }
+
+            ObjectGuid _GUID;
+        };
+
+        // Binary predicate to sort WorldObjects based on the distance to a reference WorldObject
+        struct ObjectDistanceOrderPred
+        {
+            ObjectDistanceOrderPred(WorldObject const* pRefObj, bool ascending = true) : m_refObj(pRefObj), m_ascending(ascending) { }
+            bool operator()(WorldObject const* pLeft, WorldObject const* pRight) const
+            {
+                return m_ascending ? m_refObj->GetDistanceOrder(pLeft, pRight) : !m_refObj->GetDistanceOrder(pLeft, pRight);
+            }
+
+            WorldObject const* m_refObj;
+            const bool m_ascending;
         };
 
         // Doesn't get self
@@ -1332,12 +1409,7 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
         sEluna.Push(sEluna.L, funcRef);
         sEluna.Push(sEluna.L, delay);
         sEluna.Push(sEluna.L, calls);
-        if (_unit->ToCreature())
-            sEluna.Push(sEluna.L, _unit->ToCreature());
-        else if (_unit->ToPlayer())
-            sEluna.Push(sEluna.L, _unit->ToPlayer());
-        else
-            sEluna.Push(sEluna.L, _unit);
+        sEluna.Push(sEluna.L, _unit);
         sEluna.ExecuteCall(4, 0);
         if (calls && !--calls) // dont repeat anymore
         {

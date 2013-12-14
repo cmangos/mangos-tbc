@@ -205,8 +205,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetDistance", &LuaUnit::GetDistance},                 // :GetDistance(WorldObject or x, y, z){"GetRelativePoint", &LuaUnit::GetRelativePoint},       // :GetRelativePoint(dist, rad) - Returns the X, Y and orientation of a point dist away from unit.
     {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the GUID of the owner
     {"GetOwner", &LuaUnit::GetOwner},                       // :GetOwner() - Returns the owner
-    //{"GetFriendlyUnitsInRange", &LuaUnit::GetFriendlyUnitsInRange},                                         // :GetFriendlyUnitsInRange([range]) - Returns a list of friendly units in range, can return nil
-    //{"GetUnfriendlyUnitsInRange", &LuaUnit::GetUnfriendlyUnitsInRange},                                     // :GetUnfriendlyUnitsInRange([range]) - Returns a list of unfriendly units in range, can return nil
+    {"GetFriendlyUnitsInRange", &LuaUnit::GetFriendlyUnitsInRange},                                         // :GetFriendlyUnitsInRange([range]) - Returns a list of friendly units in range, can return nil
+    {"GetUnfriendlyUnitsInRange", &LuaUnit::GetUnfriendlyUnitsInRange},                                     // :GetUnfriendlyUnitsInRange([range]) - Returns a list of unfriendly units in range, can return nil
     {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the UNIT_FIELD_SUMMONEDBY owner
     //{"GetCreatorGUID", &LuaUnit::GetCreatorGUID},         // :GetCreatorGUID() - Returns the UNIT_FIELD_CREATEDBY creator
     //{"GetMinionGUID", &LuaUnit::GetMinionGUID},           // :GetMinionGUID() - Returns the UNIT_FIELD_SUMMON unit's minion GUID
@@ -337,8 +337,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"AddUnitState", &LuaUnit::AddUnitState},               // :AddUnitState(state)
     //{"DisableMelee", &LuaUnit::DisableMelee},             // :DisableMelee([disable]) - if true, enables
     //{"SummonGuardian", &LuaUnit::SummonGuardian},         // :SummonGuardian(entry, x, y, z, o[, duration]) - summons a guardian to location. Scales with summoner, is friendly to him and guards him.
-    //{"FindNearestGameObject", &LuaUnit::FindNearestGameObject},                                             // :FindNearestGameObject(entry, range) - Finds the nearest gameobject and returns it
-    //{"FindNearestCreature", &LuaUnit::FindNearestCreature}, // :FindNearestCreature(entry, range[, alive]) - Finds the nearest creature and returns it. Alive is optional, if true it checks if the creature is alive
+    {"SelectVictim", &LuaUnit::SelectVictim},               // :SelectVictim() - Selects a victim
 
     /* Vehicle */
     //{"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
@@ -358,7 +357,7 @@ ElunaRegister<Unit> UnitMethods[] =
 ElunaRegister<Player> PlayerMethods[] =
 {
     // Getters
-    //{"GetSelection", &LuaPlayer::GetSelection},           // :GetSelection()
+    {"GetSelection", &LuaPlayer::GetSelection},             // :GetSelection()
     {"GetGMRank", &LuaPlayer::GetGMRank},                   // :GetSecurity()
     {"GetGuildId", &LuaPlayer::GetGuildId},                 // :GetGuildId() - nil on no guild
     {"GetCoinage", &LuaPlayer::GetCoinage},                 // :GetCoinage()
@@ -366,7 +365,6 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetItemCount", &LuaPlayer::GetItemCount},             // :GetItemCount(item_id[, check_bank])
     {"GetGroup", &LuaPlayer::GetGroup},                     // :GetGroup()
     {"GetGuild", &LuaPlayer::GetGuild},                     // :GetGuild()
-    //{"GetGearLevel", &LuaPlayer::GetGearLevel},           // :GetGearLevel() - Returns the player's average gear level
     {"GetAccountId", &LuaPlayer::GetAccountId},             // :GetAccountId()
     {"GetAccountName", &LuaPlayer::GetAccountName},         // :GetAccountName()
     {"GetArenaPoints", &LuaPlayer::GetArenaPoints},         // :GetArenaPoints()
@@ -375,10 +373,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetPlayerIP", &LuaPlayer::GetPlayerIP},               // :GetPlayerIP() - Returns the player's IP Address
     {"GetLevelPlayedTime", &LuaPlayer::GetLevelPlayedTime}, // :GetLevelPlayedTime() - Returns the player's played time at that level
     {"GetTotalPlayedTime", &LuaPlayer::GetTotalPlayedTime}, // :GetTotalPlayedTime() - Returns the total played time of that player
-    {"GetInventoryItem", &LuaPlayer::GetInventoryItem},     // :GetInventoryItem(slot) - Returns item at given inventory slot (0, 1, 2.. for equipment 19 - 23 for bags, 23 - 39 for backpack)
-    //{"GetBagItem", &LuaPlayer::GetBagItem},               // :GetBagItem(bagSlot, slot) - Returns item at given slot (0, 1, 2 .. max slots for bag) in a bag (19 - 23)
-    //{"GetObjectGlobally", &LuaPlayer::GetObjectGlobally}, // :GetObjectGlobally(lowguid, entry) - Returns the gameobject of given lowguid and entry if in world
-    //{"GetNearbyGameObject", &LuaPlayer::GetNearbyGameObject}, // :GetNearbyGameObject() - Returns nearby gameobject if found
+    {"GetItemByPos", &LuaPlayer::GetItemByPos},             // :GetItemByPos(bag, slot) - Returns item in given slot in a bag (bag: 19-22 slot : 0-35) or inventory (bag: -1 slot : 0-38)
     {"GetReputation", &LuaPlayer::GetReputation},           // :GetReputation(faction) - Gets player's reputation with given faction
     //{"GetItemByEntry", &LuaPlayer::GetItemByEntry},       // :GetItemByEntry(entry) - Gets an item if the player has it
     {"GetEquippedItemBySlot", &LuaPlayer::GetEquippedItemBySlot},// :GetEquippedItemBySlot(slotId) - Returns equipped item by slot
@@ -387,11 +382,11 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetRestBonus", &LuaPlayer::GetRestBonus},             // :GetRestBonus() - Gets player's rest bonus
     {"GetRestType", &LuaPlayer::GetRestType},               // :GetRestType() - Returns the player's rest type
     //{"GetPhaseMaskForSpawn", &LuaPlayer::GetPhaseMaskForSpawn},                                               // :GetPhaseMaskForSpawn() - Gets the real phasemask for spawning things. Used if the player is in GM mode
-    //{"GetReqKillOrCastCurrentCount", &LuaPlayer::RemoveRewardedQuest},                                        // :GetReqKillOrCastCurrentCount(questId, entry) - Gets the objective (kill or cast) current count done
+    {"GetReqKillOrCastCurrentCount", &LuaPlayer::GetReqKillOrCastCurrentCount},                                        // :GetReqKillOrCastCurrentCount(questId, entry) - Gets the objective (kill or cast) current count done
     {"GetQuestStatus", &LuaPlayer::GetQuestStatus},         // :GetQuestStatus(entry) - Gets the quest's status
     {"GetInGameTime", &LuaPlayer::GetInGameTime},           // :GetInGameTime() - Returns player's ingame time
     {"GetComboPoints", &LuaPlayer::GetComboPoints},         // :GetComboPoints() - Returns player's combo points
-    //{"GetComboTarget", &LuaPlayer::GetComboTarget},       // :GetComboTarget() - Returns the player's combo target
+    {"GetComboTarget", &LuaPlayer::GetComboTarget},       // :GetComboTarget() - Returns the player's combo target
     {"GetGuildName", &LuaPlayer::GetGuildName},             // :GetGuildName() - Returns player's guild's name or nil
     {"GetFreeTalentPoints", &LuaPlayer::GetFreeTalentPoints}, // :GetFreeTalentPoints() - Returns the amount of unused talent points
     //{"GetActiveSpec", &LuaPlayer::GetActiveSpec},         // :GetActiveSpec() - Returns the active specID
@@ -406,7 +401,6 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetSkillValue", &LuaPlayer::GetSkillValue},           // :GetSkillValue(skill) - Gets current skill value
     {"GetBaseSkillValue", &LuaPlayer::GetBaseSkillValue},   // :GetBaseSkillValue(skill) - Gets current base skill value (no temp bonus)
     {"GetPureSkillValue", &LuaPlayer::GetPureSkillValue},   // :GetPureSkillValue(skill) - Gets current base skill value (no bonuses)
-    //{"GetSkillStep", &LuaPlayer::GetSkillStep},           // :GetSkillStep(skill) - Returns current skillstep
     {"GetSkillPermBonusValue", &LuaPlayer::GetSkillPermBonusValue},                                           // :GetSkillPermBonusValue(skill) - Returns current permanent bonus
     {"GetSkillTempBonusValue", &LuaPlayer::GetSkillTempBonusValue},                                           // :GetSkillTempBonusValue(skill) - Returns current temp bonus
     {"GetReputationRank", &LuaPlayer::GetReputationRank},   // :GetReputationRank(faction) - Returns the reputation rank with given faction
@@ -424,8 +418,6 @@ ElunaRegister<Player> PlayerMethods[] =
     //{"GetChampioningFaction", &LuaPlayer::GetChampioningFaction},                                             // :GetChampioningFaction() - Returns the player's championing faction
     {"GetLatency", &LuaPlayer::GetLatency},                 // :GetLatency() - Returns player's latency
     //{"GetRecruiterId", &LuaPlayer::GetRecruiterId},       // :GetRecruiterId() - Returns player's recruiter's ID
-    //{"GetSelectedPlayer", &LuaPlayer::GetSelectedPlayer}, // :GetSelectedPlayer() - Returns player's selected player.
-    //{"GetSelectedUnit", &LuaPlayer::GetSelectedUnit},     // :GetSelectedUnit() - Returns player's selected unit.
     {"GetDbLocaleIndex", &LuaPlayer::GetDbLocaleIndex},     // :GetDbLocaleIndex() - Returns locale index
     {"GetDbcLocale", &LuaPlayer::GetDbcLocale},             // :GetDbcLocale() - Returns DBC locale
     {"GetCorpse", &LuaPlayer::GetCorpse},                   // :GetCorpse() - Returns the player's corpse
@@ -441,7 +433,6 @@ ElunaRegister<Player> PlayerMethods[] =
     {"SetKnownTitle", &LuaPlayer::SetKnownTitle},           // :SetKnownTitle(id)
     {"UnsetKnownTitle", &LuaPlayer::UnsetKnownTitle},       // :UnsetKnownTitle(id)
     {"SetBindPoint", &LuaPlayer::SetBindPoint},             // :SetBindPoint(x, y, z, map, areaid) - sets home for hearthstone
-    //{"SetBindPointAtPlayerLoc", &LuaPlayer::SetBindPointAtPlayerLoc},                                         // :SetBindPointAtPlayerLoc() - Set's home for hearthstone at player's location
     {"SetArenaPoints", &LuaPlayer::SetArenaPoints},         // :SetArenaPoints(amount)
     {"SetHonorPoints", &LuaPlayer::SetHonorPoints},         // :SetHonorPoints(amount)
     {"SetLifetimeKills", &LuaPlayer::SetLifetimeKills},     // :SetLifetimeKills(val) - Sets the overall lifetime (honorable) kills of the player
@@ -454,7 +445,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"SetRestBonus", &LuaPlayer::SetRestBonus},             // :SetRestBonus(bonusrate) - Sets new restbonus rate
     {"SetRestType", &LuaPlayer::SetRestType},               // :SetRestType() - Sets rest type
     {"SetQuestStatus", &LuaPlayer::SetQuestStatus},         // :SetQuestStatus(entry, status) - Sets the quest's status
-    //{"SetReputation", &LuaPlayer::SetReputation},         // :SetReputation(faction, value) - Sets the faction reputation for the player
+    {"SetReputation", &LuaPlayer::SetReputation},         // :SetReputation(faction, value) - Sets the faction reputation for the player
     {"SetFreeTalentPoints", &LuaPlayer::SetFreeTalentPoints}, // :SetFreeTalentPoints(points) - Sets the amount of unused talent points
     //{"SetGuildRank", &LuaPlayer::SetGuildRank},           // :SetGuildRank(rank) - Sets player's guild rank
     //{"SetMovement", &LuaPlayer::SetMovement},             // :SetMovement(type) - Sets player's movement type
@@ -550,7 +541,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"ResetTypeCooldowns", &LuaPlayer::ResetTypeCooldowns}, // :ResetTypeCooldowns(category, update(bool~optional)) - Resets all cooldowns for the spell category(type). If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
     {"ResetAllCooldowns", &LuaPlayer::ResetAllCooldowns},   // :ResetAllCooldowns() - Resets all spell cooldowns
     {"GiveLevel", &LuaPlayer::GiveLevel},                   // :GiveLevel(level) - Gives levels to the player
-    //{"GiveXP", &LuaPlayer::GiveXP},                       // :GiveXP(xp[, victim, group_rate, pureXP, triggerHook]) - Gives XP to the player. If pure is false, bonuses are count in. If triggerHook is false, GiveXp hook is not triggered.
+    {"GiveXP", &LuaPlayer::GiveXP},                       // :GiveXP(xp[, victim, pureXP, triggerHook]) - Gives XP to the player. If pure is false, bonuses are count in. If triggerHook is false, GiveXp hook is not triggered.
     //{"RemovePet", &LuaPlayer::RemovePet},                 // :RemovePet([mode, returnreagent]) - Removes the player's pet. Mode determines if the pet is saved and how
     //{"SummonPet", &LuaPlayer::SummonPet},                 // :SummonPet(entry, x, y, z, o, petType, despwtime) - Summons a pet for the player
     {"Say", &LuaPlayer::Say},                               // :Say(text, lang) - The player says the text
@@ -622,8 +613,8 @@ ElunaRegister<Player> PlayerMethods[] =
 ElunaRegister<Creature> CreatureMethods[] =
 {
     // Getters
-    //{"GetAITarget", &LuaCreature::GetAITarget},           // :GetAITarget(type[, playeronly, position, distance, aura]) - Get an unit in threat list
-    //{"GetAITargets", &LuaCreature::GetAITargets},         // :GetAITargets() - Get units in threat list
+    {"GetAITarget", &LuaCreature::GetAITarget},           // :GetAITarget(type[, playeronly, position, distance, aura]) - Get an unit in threat list
+    {"GetAITargets", &LuaCreature::GetAITargets},         // :GetAITargets() - Get units in threat list
     {"GetAITargetsCount", &LuaCreature::GetAITargetsCount}, // :GetAITargetsCount() - Get threat list size
     //{"GetNearestTargetInAttackDistance", &LuaCreature::GetNearestTargetInAttackDistance},                       // :GetNearestTargetInAttackDistance([radius]) - Returns nearest target in attack distance and within given radius, if set
     //{"GetNearestTarget", &LuaCreature::GetNearestTarget}, // :GetNearestTarget([radius]) - Returns nearest target in sight or given radius
@@ -694,7 +685,6 @@ ElunaRegister<Creature> CreatureMethods[] =
     {"RemoveCorpse", &LuaCreature::RemoveCorpse},           // :RemoveCorpse([setSpawnTime]) - Removes corpse
     {"DespawnOrUnsummon", &LuaCreature::DespawnOrUnsummon}, // :DespawnOrUnsummon([Delay]) - Despawns the creature after delay if given
     {"Respawn", &LuaCreature::Respawn},                     // :Respawn([force]) - Respawns the creature
-    //{"SelectVictim", &LuaCreature::SelectVictim},         // :SelectVictim() - Returns a victim or nil
     //{"AddLootMode", &LuaCreature::AddLootMode},           // :AddLootMode(lootMode)
     //{"DealDamage", &LuaCreature::DealDamage},             // :DealDamage(target, amount) - Deals damage to target (if target) : if no target, unit will damage self
     //{"SendCreatureTalk", &LuaCreature::SendCreatureTalk}, // :SendCreatureTalk(id, playerGUID) - Sends a chat message to a playerGUID (player) by id. Id can be found in creature_text under the 'group_id' column

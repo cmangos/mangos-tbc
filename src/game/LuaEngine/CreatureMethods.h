@@ -42,12 +42,6 @@ namespace LuaCreature
         return 0;
     }
 
-    int SelectVictim(lua_State* L, Creature* creature)
-    {
-        // sEluna.Push(L, creature->SelectVictim());
-        return 1;
-    }
-
     int GetCurrentWaypointId(lua_State* L, Creature* creature)
     {
         // sEluna.Push(L, creature->GetCurrentWaypointID());
@@ -523,99 +517,100 @@ namespace LuaCreature
 
     int GetAITarget(lua_State* L, Creature* creature)
     {
-        /*SelectAggroTarget targetType = (SelectAggroTarget)luaL_checkunsigned(L, 1);
+        SelectAggroTarget targetType = (SelectAggroTarget)luaL_checkunsigned(L, 1);
         bool playerOnly = luaL_optbool(L, 2, false);
         uint32 position = luaL_optunsigned(L, 3, 0);
         float dist = luaL_optnumber(L, 4, 0.0f);
         int32 aura = luaL_optint(L, 5, 0);
 
-        ;
-        ThreatContainer::StorageType const& threatlist = creature->getThreatManager().getThreatList();
+        ThreatList const&  threatlist = creature->getThreatManager().getThreatList();
         if (position >= threatlist.size())
         {
-        sEluna.Push(L, NULL);
-        return 1;
+            sEluna.Push(L);
+            return 1;
         }
 
         std::list<Unit*> targetList;
-        for (ThreatContainer::StorageType::const_iterator itr = threatlist.begin(); itr != threatlist.end(); ++itr)
+        for (ThreatList::const_iterator itr = threatlist.begin(); itr != threatlist.end(); ++itr)
         {
-        Unit* target = (*itr)->getTarget();
-        if (!target)
-        continue;
-        if (playerOnly && !target->ToPlayer())
-        continue;
-        if (aura > 0 && !target->HasAura(aura))
-        continue;
-        else if (aura < 0 && target->HasAura(-aura))
-        continue;
-        if (dist > 0.0f && !creature->IsWithinDist(target, dist))
-        continue;
-        targetList.push_back(target);
+            Unit* target = (*itr)->getTarget();
+            if (!target)
+                continue;
+            if (playerOnly && !target->ToPlayer())
+                continue;
+            if (aura > 0 && !target->HasAura(aura))
+                continue;
+            else if (aura < 0 && target->HasAura(-aura))
+                continue;
+            if (dist > 0.0f && !creature->IsWithinDist(target, dist))
+                continue;
+            targetList.push_back(target);
         }
 
         if (position >= targetList.size())
         {
-        sEluna.Push(L, NULL);
-        return 1;
+            sEluna.Push(L);
+            return 1;
         }
 
         if (targetType == SELECT_TARGET_NEAREST || targetType == SELECT_TARGET_FARTHEST)
-        targetList.sort(Trinity::ObjectDistanceOrderPred(creature));
+            targetList.sort(Eluna::ObjectDistanceOrderPred(creature));
 
         switch (targetType)
         {
         case SELECT_TARGET_NEAREST:
         case SELECT_TARGET_TOPAGGRO:
-        {
-        std::list<Unit*>::const_iterator itr = targetList.begin();
-        std::advance(itr, position);
-        sEluna.Push(L, *itr);
-        return 1;
-        }
+            {
+                std::list<Unit*>::const_iterator itr = targetList.begin();
+                std::advance(itr, position);
+                sEluna.Push(L, *itr);
+                return 1;
+            }
         case SELECT_TARGET_FARTHEST:
         case SELECT_TARGET_BOTTOMAGGRO:
-        {
-        std::list<Unit*>::reverse_iterator ritr = targetList.rbegin();
-        std::advance(ritr, position);
-        sEluna.Push(L, *ritr);
-        return 1;
-        }
+            {
+                std::list<Unit*>::reverse_iterator ritr = targetList.rbegin();
+                std::advance(ritr, position);
+                sEluna.Push(L, *ritr);
+                return 1;
+            }
         case SELECT_TARGET_RANDOM:
-        {
-        std::list<Unit*>::const_iterator itr = targetList.begin();
-        std::advance(itr, urand(position, targetList.size() - 1));
-        sEluna.Push(L, *itr);
-        return 1;
-        }
+            {
+                std::list<Unit*>::const_iterator itr = targetList.begin();
+                std::advance(itr, urand(position, targetList.size() - 1));
+                sEluna.Push(L, *itr);
+                return 1;
+            }
         default:
-        break;
-        }*/
+            break;
+        }
 
-        sEluna.Push(L, NULL);
+        sEluna.Push(L);
         return 1;
     }
 
     int GetAITargets(lua_State* L, Creature* creature)
     {
+        Corpse* corp;
+        sEluna.Push(L, corp);
         lua_newtable(L);
         int tbl = lua_gettop(L);
         uint32 i = 0;
 
-        /*ThreatContainer::StorageType const &threatList = creature->getThreatManager().getThreatList();
-        ThreatContainer::StorageType::const_iterator itr;
+        ThreatList const& threatList = creature->getThreatManager().getThreatList();
+        ThreatList::const_iterator itr;
         for (itr = threatList.begin(); itr != threatList.end(); ++itr)
         {
-        Unit* target = (*itr)->getTarget();
-        if (!target)
-        continue;
-        ++i;
-        sEluna.Push(L, i);
-        sEluna.Push(L, target);
-        lua_settable(L, tbl);
+            Unit* target = (*itr)->getTarget();
+            if (!target)
+                continue;
+            ++i;
+            sEluna.Push(L, i);
+            sEluna.Push(L, target);
+            lua_settable(L, tbl);
         }
 
-        lua_settop(L, tbl);*/
+        lua_settop(L, tbl);
         return 1;
     }
 

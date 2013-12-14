@@ -577,14 +577,6 @@ namespace LuaPlayer
         return 1;
     }
 
-    int GetSkillStep(lua_State* L, Player* player)
-    {
-        uint32 skill = luaL_checkunsigned(L, 1);
-
-        // sEluna.Push(L, player->GetSkillStep(skill));
-        return 1;
-    }
-
     int GetPureSkillValue(lua_State* L, Player* player)
     {
         uint32 skill = luaL_checkunsigned(L, 1);
@@ -874,9 +866,10 @@ namespace LuaPlayer
     int SetReputation(lua_State* L, Player* player)
     {
         uint32 faction = luaL_checkunsigned(L, 1);
-        uint32 value = luaL_checkunsigned(L, 2);
-
-        // player->SetReputation(faction, value);
+        int32 value = luaL_checkinteger(L, 2);
+        
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction);
+        player->GetReputationMgr().SetReputation(factionEntry, value);
         return 0;
     }
 
@@ -917,7 +910,7 @@ namespace LuaPlayer
 
     int GetComboTarget(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, sObjectAccessor->FindUnit(player->GetComboTarget()));
+        sEluna.Push(L, player->GetMap()->GetUnit(player->GetComboTargetGuid()));
         return 1;
     }
 
@@ -1270,66 +1263,66 @@ namespace LuaPlayer
     {
         uint32 xp = luaL_checkunsigned(L, 1);
         Unit* victim = sEluna.CHECK_UNIT(L, 2);
-        float group_rate = luaL_optnumber(L, 3, 1.0f);
-        bool pureXP = luaL_optbool(L, 4, true);
-        bool triggerHook = luaL_optbool(L, 5, true);
+        bool pureXP = luaL_optbool(L, 3, true);
+        bool triggerHook = luaL_optbool(L, 4, true);
 
         if (xp < 1)
             return 0;
-        /*if (player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_NO_XP_GAIN))
-        return 0;
-        if (victim && victim->GetTypeId() == TYPEID_UNIT && !victim->ToCreature()->hasLootRecipient())
-        return 0;
 
-        uint8 level = player->getLevel();
+        if (!player->isAlive())
+            return 0;
+
+        if (player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
+            return 0;
+
+        uint32 level = player->getLevel();
 
         if (triggerHook)
-        sScriptMgr->OnGivePlayerXP(player, xp, victim);
-
-        if (!pureXP)
-        {
-        // Favored experience increase START
-        uint32 zone = player->GetZoneId();
-        float favored_exp_mult = 0;
-        if ((player->HasAura(32096) || player->HasAura(32098)) && (zone == 3483 || zone == 3562 || zone == 3836 || zone == 3713 || zone == 3714))
-        favored_exp_mult = 0.05f; // Thrallmar's Favor and Honor Hold's Favor
-        xp = uint32(xp * (1 + favored_exp_mult));
-        // Favored experience increase END
-        }
+            sHookMgr.OnGiveXP(player, xp, victim);
 
         // XP to money conversion processed in Player::RewardQuest
-        if (level >= sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
-        return 0;
+        if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+            return 0;
 
-        uint32 bonus_xp = 0;
-        bool recruitAFriend = pureXP ? false : player->GetsRecruitAFriendBonus(true);
         if (!pureXP)
         {
-        // RaF does NOT stack with rested experience
-        if (recruitAFriend)
-        bonus_xp = 2 * xp; // xp + bonus_xp must add up to 3 * xp for RaF; calculation for quests done client-side
-        else
-        bonus_xp = victim ? player->GetXPRestBonus(xp) : 0; // XP resting bonus
+            if (victim)
+            {
+                // handle SPELL_AURA_MOD_KILL_XP_PCT auras
+                Unit::AuraList const& ModXPPctAuras = player->GetAurasByType(SPELL_AURA_MOD_KILL_XP_PCT);
+                for (Unit::AuraList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
+                    xp = uint32(xp * (1.0f + (*i)->GetModifier()->m_amount / 100.0f));
+            }
+            else
+            {
+                // handle SPELL_AURA_MOD_QUEST_XP_PCT auras
+                Unit::AuraList const& ModXPPctAuras = player->GetAurasByType(SPELL_AURA_MOD_QUEST_XP_PCT);
+                for (Unit::AuraList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
+                    xp = uint32(xp * (1.0f + (*i)->GetModifier()->m_amount / 100.0f));
+            }
         }
 
-        player->SendLogXPGain(xp, victim, bonus_xp, recruitAFriend, group_rate);
+        // XP resting bonus for kill
+        uint32 rested_bonus_xp = victim ? player->GetXPRestBonus(xp) : 0;
+
+        player->SendLogXPGain(xp, victim, rested_bonus_xp);
 
         uint32 curXP = player->GetUInt32Value(PLAYER_XP);
         uint32 nextLvlXP = player->GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
-        uint32 newXP = curXP + xp + bonus_xp;
+        uint32 newXP = curXP + xp + rested_bonus_xp;
 
-        while (newXP >= nextLvlXP && level < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
+        while (newXP >= nextLvlXP && level < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         {
-        newXP -= nextLvlXP;
+            newXP -= nextLvlXP;
 
-        if (level < sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL))
-        player->GiveLevel(level + 1);
+            if (level < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+                player->GiveLevel(level + 1);
 
-        level = player->getLevel();
-        nextLvlXP = player->GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
+            level = player->getLevel();
+            nextLvlXP = player->GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
         }
 
-        player->SetUInt32Value(PLAYER_XP, newXP);*/
+        player->SetUInt32Value(PLAYER_XP, newXP);
         return 0;
     }
 
@@ -1441,15 +1434,6 @@ namespace LuaPlayer
         return 1;
     }
 
-    int GetObjectGlobally(lua_State* L, Player* player)
-    {
-        uint32 lowguid = luaL_checkunsigned(L, 1);
-        uint32 entry = luaL_checkunsigned(L, 2);
-
-        // sEluna.Push(L, ChatHandler(player->GetSession()).GetObjectGlobalyWithGuidOrNearWithDbGuid(lowguid, entry));
-        return 1;
-    }
-
     int GetNearbyGameObject(lua_State* L, Player* player)
     {
         // sEluna.Push(L, ChatHandler(player->GetSession()).GetNearbyGameObject());
@@ -1528,31 +1512,19 @@ namespace LuaPlayer
         return 1;
     }
 
-    int GetInventoryItem(lua_State* L, Player* player)
+    int GetItemByPos(lua_State* L, Player* player)
     {
-        uint8 slot = luaL_checkunsigned(L, 1);
-        if (slot >= INVENTORY_SLOT_ITEM_END)
-            return 0;
-
-        Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-        sEluna.Push(L, item);
-        return 1;
-    }
-
-    int GetBagItem(lua_State* L, Player* player)
-    {
-        uint8 bagslot = luaL_checkunsigned(L, 1);
+        /*
+        bag = -1 for inventory and backpack, 19-22 other bags
+        slots 0-18 equipment
+        slots 19-22 bags
+        slots 23-38 backpack
+        slots 0-35 other bags
+        */
+        uint8 bag = luaL_checkunsigned(L, 1);
         uint8 slot = luaL_checkunsigned(L, 2);
 
-        if (bagslot < INVENTORY_SLOT_BAG_START && bagslot >= INVENTORY_SLOT_BAG_END)
-            return 0;
-
-        /*Bag* bag = player->GetBagByPos(bagslot);
-        if (!bag || slot >= bag->GetBagSize())
-        return 0;*/
-
-        Item* item = player->GetItemByPos(bagslot, slot);
-        sEluna.Push(L, item);
+        sEluna.Push(L, player->GetItemByPos(bag, slot));
         return 1;
     }
 
@@ -1603,7 +1575,7 @@ namespace LuaPlayer
 
     int GetSelection(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->GetSelectedUnit());
+        sEluna.Push(L, player->GetMap()->GetUnit(player->GetSelectionGuid()));
         return 1;
     }
 
@@ -1676,12 +1648,6 @@ namespace LuaPlayer
         return 1;
     }
 
-    int GetGearLevel(lua_State* L, Player* player)
-    {
-        // sEluna.Push(L, player->GetAverageItemLevel());
-        return 1;
-    }
-
     int SetArenaPoints(lua_State* L, Player* player)
     {
         uint32 arenaP = luaL_checkunsigned(L, 1);
@@ -1720,15 +1686,6 @@ namespace LuaPlayer
 
         WorldLocation loc(mapId, x, y, z);
         player->SetHomebindToLocation(loc, areaId);
-        return 0;
-    }
-
-    int SetBindPointAtPlayerLoc(lua_State* L, Player* player)
-    {
-        WorldLocation loc;
-        /*player->GetPosition(&loc);
-        loc.m_mapId = player->GetMapId();
-        player->SetHomebind(loc, player->GetAreaId());*/
         return 0;
     }
 
@@ -2021,7 +1978,6 @@ namespace LuaPlayer
 
     int ModifyMoney(lua_State* L, Player* player)
     {
-
         int32 amt = luaL_checkinteger(L, 1);
 
         player->ModifyMoney(amt); // MaNGOS does not support a bool being sent with an error value like Trinity

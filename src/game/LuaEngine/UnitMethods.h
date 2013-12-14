@@ -374,6 +374,12 @@ namespace LuaUnit
         return 1;
     }
 
+    int SelectVictim(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->SelectHostileTarget());
+        return 1;
+    }
+
     int GetNearbyTarget(lua_State* L, Unit* unit)
     {
         float dist = luaL_optnumber(L, 1, 5.0f);
@@ -1423,25 +1429,25 @@ namespace LuaUnit
     {
         float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
 
-        /*UnitList list;
-        Trinity::AnyFriendlyUnitInObjectRangeCheck checker(unit, unit, range);
-        Trinity::UnitListSearcher<Trinity::AnyFriendlyUnitInObjectRangeCheck> searcher(unit, list, checker);
-        unit->VisitNearbyObject(range, searcher);
-        Trinity::ObjectGUIDCheck guidCheck(unit->GetGUID());
+        std::list<Unit*> list;
+        MaNGOS::AnyFriendlyUnitInObjectRangeCheck checker(unit, range);
+        MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> searcher(list, checker);
+        Cell::VisitGridObjects(unit, searcher, range);
+        Eluna::ObjectGUIDCheck guidCheck(unit->GetObjectGuid());
         list.remove_if (guidCheck);
 
         lua_newtable(L);
         int tbl = lua_gettop(L);
         uint32 i = 0;
 
-        for (UnitList::const_iterator it = list.begin(); it != list.end(); ++it)
+        for (std::list<Unit*>::const_iterator it = list.begin(); it != list.end(); ++it)
         {
-        sEluna.Push(L, ++i);
-        sEluna.Push(L, *it);
-        lua_settable(L, tbl);
+            sEluna.Push(L, ++i);
+            sEluna.Push(L, *it);
+            lua_settable(L, tbl);
         }
 
-        lua_settop(L, tbl);*/
+        lua_settop(L, tbl);
         return 1;
     }
 
@@ -1449,25 +1455,25 @@ namespace LuaUnit
     {
         float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
 
-        /*UnitList list;
-        Trinity::AnyUnfriendlyUnitInObjectRangeCheck checker(unit, unit, range);
-        Trinity::UnitListSearcher<Trinity::AnyUnfriendlyUnitInObjectRangeCheck> searcher(unit, list, checker);
-        unit->VisitNearbyObject(range, searcher);
-        Trinity::ObjectGUIDCheck guidCheck(unit->GetGUID());
+        std::list<Unit*> list;
+        MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck checker(unit, range);
+        MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(list, checker);
+        Cell::VisitGridObjects(unit, searcher, range);
+        Eluna::ObjectGUIDCheck guidCheck(unit->GetObjectGuid());
         list.remove_if (guidCheck);
 
         lua_newtable(L);
         int tbl = lua_gettop(L);
         uint32 i = 0;
 
-        for (UnitList::const_iterator it = list.begin(); it != list.end(); ++it)
+        for (std::list<Unit*>::const_iterator it = list.begin(); it != list.end(); ++it)
         {
-        sEluna.Push(L, ++i);
-        sEluna.Push(L, *it);
-        lua_settable(L, tbl);
+            sEluna.Push(L, ++i);
+            sEluna.Push(L, *it);
+            lua_settable(L, tbl);
         }
 
-        lua_settop(L, tbl);*/
+        lua_settop(L, tbl);
         return 1;
     }
 
@@ -1621,25 +1627,6 @@ namespace LuaUnit
         summon->AI()->EnterEvadeMode();
 
         sEluna.Push(L, summon);*/
-        return 1;
-    }
-
-    int FindNearestGameObject(lua_State* L, Unit* unit)
-    {
-        uint32 entry = luaL_checkunsigned(L, 1);
-        float range = luaL_checknumber(L, 2);
-
-        // sEluna.Push(L, unit->FindNearestGameObject(entry, range));
-        return 1;
-    }
-
-    int FindNearestCreature(lua_State* L, Unit* unit)
-    {
-        uint32 entry = luaL_checkunsigned(L, 1);
-        float range = luaL_checknumber(L, 2);
-        bool alive = luaL_optbool(L, 3, true);
-
-        // sEluna.Push(L, unit->FindNearestCreature(entry, range, alive));
         return 1;
     }
 };

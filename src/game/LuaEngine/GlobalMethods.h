@@ -521,7 +521,7 @@ namespace LuaGlobalFunctions
                 if (!cinfo)
                     return 0;
 
-                CreatureCreatePos pos(map, x, y, z, o, phase);
+                CreatureCreatePos pos(map, x, y, z, o/*, phase*/);
                 Creature* pCreature = new Creature;
                 // used guids from specially reserved range (can be 0 if no free values)
                 uint32 lowguid = sObjectMgr.GenerateStaticCreatureLowGuid();
@@ -534,7 +534,7 @@ namespace LuaGlobalFunctions
                     return 0;
                 }
 
-                pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
+                pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode())/*, phase*/);
 
                 uint32 db_guid = pCreature->GetGUIDLow();
 
@@ -555,7 +555,7 @@ namespace LuaGlobalFunctions
                     return 0;
 
                 TemporarySummon* pCreature = new TemporarySummon(ObjectGuid(uint64(0)));
-                CreatureCreatePos pos(map, x, y, z, o, phase);
+                CreatureCreatePos pos(map, x, y, z, o/*, phase*/);
 
                 if (!pCreature->Create(map->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo, TEAM_NONE))
                 {
@@ -595,7 +595,7 @@ namespace LuaGlobalFunctions
                     return 0;
 
                 GameObject* pGameObj = new GameObject;
-                if (!pGameObj->Create(db_lowGUID, gInfo->id, map, phase, x, y, z, o))
+                if (!pGameObj->Create(db_lowGUID, gInfo->id, map, /*phase,*/ x, y, z, o))
                 {
                     delete pGameObj;
                     return 0;
@@ -605,7 +605,7 @@ namespace LuaGlobalFunctions
                     pGameObj->SetRespawnTime(durorresptime);
 
                 // fill the gameobject data and save to the db
-                pGameObj->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
+                pGameObj->SaveToDB(map->GetId(), (1 << map->GetSpawnMode())/*, phase*/);
 
                 // this will generate a new guid if the object is in an instance
                 if (!pGameObj->LoadFromDB(db_lowGUID, map))
@@ -626,7 +626,7 @@ namespace LuaGlobalFunctions
             {
                 GameObject* pGameObj = new GameObject;
 
-                if (!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), entry, map, phase, x, y, z, o))
+                if (!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), entry, map, /*phase,*/ x, y, z, o))
                 {
                     delete pGameObj;
                     return NULL;

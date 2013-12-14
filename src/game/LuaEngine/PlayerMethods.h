@@ -1272,8 +1272,8 @@ namespace LuaPlayer
         if (!player->isAlive())
             return 0;
 
-        if (player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
-            return 0;
+        /*if (player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
+            return 0;*/
 
         uint32 level = player->getLevel();
 
@@ -1284,7 +1284,7 @@ namespace LuaPlayer
         if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
             return 0;
 
-        if (!pureXP)
+        /*if (!pureXP)
         {
             if (victim)
             {
@@ -1300,7 +1300,7 @@ namespace LuaPlayer
                 for (Unit::AuraList::const_iterator i = ModXPPctAuras.begin(); i != ModXPPctAuras.end(); ++i)
                     xp = uint32(xp * (1.0f + (*i)->GetModifier()->m_amount / 100.0f));
             }
-        }
+        }*/
 
         // XP resting bonus for kill
         uint32 rested_bonus_xp = victim ? player->GetXPRestBonus(xp) : 0;

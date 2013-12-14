@@ -1083,7 +1083,7 @@ namespace LuaUnit
         SpellEntry const* spellEntry = sSpellStore.LookupEntry(spell);
         if (!spellEntry)
             return 0;
-        bool triggered = luaL_optbool(L, 3, true);
+        bool triggered = luaL_optbool(L, 3, false);
 
         unit->CastSpell(target, spellEntry, triggered);
         return 0;

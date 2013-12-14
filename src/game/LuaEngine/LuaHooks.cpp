@@ -241,7 +241,7 @@ class Eluna_HookScript : public HookScript
             return false;
         }
 
-        bool OnExpire(Player* pPlayer, ItemPrototype const* pProto) // TODO: Implement
+        bool OnExpire(Player* pPlayer, ItemPrototype const* pProto)
         {
             int bind = sEluna.ItemEventBindings->GetBind(pProto->ItemId, ITEM_EVENT_ON_EXPIRE);
             if (!bind)

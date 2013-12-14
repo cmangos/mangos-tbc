@@ -236,7 +236,7 @@ namespace LuaPlayer
 
     int GetChampioningFaction(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->GetChampioningFaction());
+        sEluna.Push(L, player->GetChampioningFaction());
         return 1;
     }
 

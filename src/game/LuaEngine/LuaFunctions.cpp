@@ -194,7 +194,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetRace", &LuaUnit::GetRace},                         // :GetRace()
     {"GetClass", &LuaUnit::GetClass},                       // :GetClass()
     {"GetClassAsString", &LuaUnit::GetClassAsString},       // :GetClassAsString()
-    //{"GetAura", &LuaUnit::GetAura},                       // :GetAura(spellID) - returns aura object
+    {"GetAura", &LuaUnit::GetAura},                         // :GetAura(spellID) - returns aura object
     {"GetCombatTime", &LuaUnit::GetCombatTime},             // :GetCombatTime() - Returns how long the unit has been in combat
     {"GetFaction", &LuaUnit::GetFaction},                   // :GetFaction() - Returns the unit's factionId
     {"GetCurrentSpell", &LuaUnit::GetCurrentSpell},         // :GetCurrentSpell(type) - Returns the currently casted spell of given type if any
@@ -207,8 +207,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetFriendlyUnitsInRange", &LuaUnit::GetFriendlyUnitsInRange},                                         // :GetFriendlyUnitsInRange([range]) - Returns a list of friendly units in range, can return nil
     {"GetUnfriendlyUnitsInRange", &LuaUnit::GetUnfriendlyUnitsInRange},                                     // :GetUnfriendlyUnitsInRange([range]) - Returns a list of unfriendly units in range, can return nil
     {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the UNIT_FIELD_SUMMONEDBY owner
-    //{"GetCreatorGUID", &LuaUnit::GetCreatorGUID},         // :GetCreatorGUID() - Returns the UNIT_FIELD_CREATEDBY creator
-    //{"GetMinionGUID", &LuaUnit::GetMinionGUID},           // :GetMinionGUID() - Returns the UNIT_FIELD_SUMMON unit's minion GUID
+    {"GetCreatorGUID", &LuaUnit::GetCreatorGUID},           // :GetCreatorGUID() - Returns the UNIT_FIELD_CREATEDBY creator
+    {"GetMinionGUID", &LuaUnit::GetMinionGUID},             // :GetMinionGUID() - Returns the UNIT_FIELD_SUMMON unit's minion GUID
     {"GetCharmerGUID", &LuaUnit::GetCharmerGUID},           // :GetCharmerGUID() - Returns the UNIT_FIELD_CHARMEDBY charmer
     {"GetCharmGUID", &LuaUnit::GetCharmGUID},               // :GetCharmGUID() - Returns the unit's UNIT_FIELD_CHARM guid
     {"GetPetGUID", &LuaUnit::GetPetGUID},                   // :GetPetGUID() - Returns the unit's pet GUID
@@ -246,7 +246,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetName", &LuaUnit::SetName},                         // :SetName(name) - Sets the unit's name
     {"SetSheath", &LuaUnit::SetSheath},                     // :SetSheath(SheathState) - Sets unit's sheathstate
     {"SetCreatorGUID", &LuaUnit::SetCreatorGUID},           // :SetOwnerGUID(uint64 ownerGUID) - Sets the owner's guid of a summoned creature, etc
-    //{"SetMinionGUID", &LuaUnit::SetMinionGUID},           // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
+    {"SetMinionGUID", &LuaUnit::SetMinionGUID},             // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
     {"SetCharmerGUID", &LuaUnit::SetCharmerGUID},           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
     {"SetPetGUID", &LuaUnit::SetPetGUID},                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
     //{"SetCritterGUID", &LuaUnit::SetCritterGUID},         // :SetCritterGUID(uint64 guid) - Sets the critter's guid
@@ -264,10 +264,9 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsAttackingPlayer", &LuaUnit::IsAttackingPlayer},     // :IsAttackingPlayer() - Returns true if the unit is attacking a player, false if not
     {"IsInWater", &LuaUnit::IsInWater},                     // :IsInWater() - Returns true if the unit is in water
     {"IsUnderWater", &LuaUnit::IsUnderWater},               // :IsUnderWater() - Returns true if the unit is under water
-    //{"HasAura", &LuaUnit::HasAura},                       // :HasAura(spellId[, caster]) - Returns true if the unit has the aura from the spell and casted by the caster if provided
     {"IsAuctioneer", &LuaUnit::IsAuctioneer},               // :IsAuctioneer()
-    //{"HealthBelowPct", &LuaUnit::HealthBelowPct},         // :HealthBelowPct(int32 pct)
-    //{"HealthAbovePct", &LuaUnit::HealthAbovePct},         // :HealthAbovePct(int32 pct)
+    {"HealthBelowPct", &LuaUnit::HealthBelowPct},           // :HealthBelowPct(int32 pct)
+    {"HealthAbovePct", &LuaUnit::HealthAbovePct},           // :HealthAbovePct(int32 pct)
     {"IsMounted", &LuaUnit::IsMounted},                     // :IsMounted()
     {"AttackStop", &LuaUnit::AttackStop},                   // :AttackStop()
     {"Attack", &LuaUnit::Attack},                           // :Attack(who[, meleeAttack])
@@ -317,8 +316,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"InterruptSpell", &LuaUnit::InterruptSpell},           // :InterruptSpell(spellType, delayed(optional), instant(optional)) - Interrupts the unit's spell by the spellType. If delayed is true it will skip if the spell is delayed. If instant is true, it will skip that the spell has a cast time
     {"SendChatMessageToPlayer", &LuaUnit::SendChatMessageToPlayer},                                         // :SendChatMessageToPlayer(type, lang, msg, target) - Unit sends a chat message to the given target player
     {"Emote", &LuaUnit::Emote},                             // :Emote(emote)
-    //{"CountPctFromCurHealth", &LuaUnit::CountPctFromCurHealth},                                             // :CountPctFromCurHealth(int32 pct)
-    //{"CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth},                                             // :CountPctFromMaxHealth()
+    {"CountPctFromCurHealth", &LuaUnit::CountPctFromCurHealth},                                             // :CountPctFromCurHealth(int32 pct)
+    {"CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth},                                             // :CountPctFromMaxHealth()
     {"Dismount", &LuaUnit::Dismount},                       // :Dismount() - Dismounts the unit.
     {"Mount", &LuaUnit::Mount},                             // :Mount(displayId) - Mounts the unit on the specified displayId.
     //{"RestoreDisplayId", &LuaUnit::RestoreDisplayId},     // :RestoreDisplayId()
@@ -380,7 +379,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetQuestStatus", &LuaPlayer::GetQuestStatus},         // :GetQuestStatus(entry) - Gets the quest's status
     {"GetInGameTime", &LuaPlayer::GetInGameTime},           // :GetInGameTime() - Returns player's ingame time
     {"GetComboPoints", &LuaPlayer::GetComboPoints},         // :GetComboPoints() - Returns player's combo points
-    {"GetComboTarget", &LuaPlayer::GetComboTarget},       // :GetComboTarget() - Returns the player's combo target
+    {"GetComboTarget", &LuaPlayer::GetComboTarget},         // :GetComboTarget() - Returns the player's combo target
     {"GetGuildName", &LuaPlayer::GetGuildName},             // :GetGuildName() - Returns player's guild's name or nil
     {"GetFreeTalentPoints", &LuaPlayer::GetFreeTalentPoints}, // :GetFreeTalentPoints() - Returns the amount of unused talent points
     //{"GetActiveSpec", &LuaPlayer::GetActiveSpec},         // :GetActiveSpec() - Returns the active specID
@@ -409,7 +408,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetNextRandomRaidMember", &LuaPlayer::GetNextRandomRaidMember},                                         // :GetNextRandomRaidMember(radius) - Gets a random raid member in given radius
     {"GetOriginalGroup", &LuaPlayer::GetOriginalGroup},     // :GetOriginalGroup() - Gets the original group object
     {"GetOriginalSubGroup", &LuaPlayer::GetOriginalSubGroup}, // :GetOriginalSubGroup() - Returns the original subgroup ID
-    //{"GetChampioningFaction", &LuaPlayer::GetChampioningFaction},                                             // :GetChampioningFaction() - Returns the player's championing faction
+    {"GetChampioningFaction", &LuaPlayer::GetChampioningFaction},                                             // :GetChampioningFaction() - Returns the player's championing faction
     {"GetLatency", &LuaPlayer::GetLatency},                 // :GetLatency() - Returns player's latency
     //{"GetRecruiterId", &LuaPlayer::GetRecruiterId},       // :GetRecruiterId() - Returns player's recruiter's ID
     {"GetDbLocaleIndex", &LuaPlayer::GetDbLocaleIndex},     // :GetDbLocaleIndex() - Returns locale index
@@ -440,7 +439,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"SetRestBonus", &LuaPlayer::SetRestBonus},             // :SetRestBonus(bonusrate) - Sets new restbonus rate
     {"SetRestType", &LuaPlayer::SetRestType},               // :SetRestType() - Sets rest type
     {"SetQuestStatus", &LuaPlayer::SetQuestStatus},         // :SetQuestStatus(entry, status) - Sets the quest's status
-    {"SetReputation", &LuaPlayer::SetReputation},         // :SetReputation(faction, value) - Sets the faction reputation for the player
+    {"SetReputation", &LuaPlayer::SetReputation},           // :SetReputation(faction, value) - Sets the faction reputation for the player
     {"SetFreeTalentPoints", &LuaPlayer::SetFreeTalentPoints}, // :SetFreeTalentPoints(points) - Sets the amount of unused talent points
     //{"SetGuildRank", &LuaPlayer::SetGuildRank},           // :SetGuildRank(rank) - Sets player's guild rank
     //{"SetMovement", &LuaPlayer::SetMovement},             // :SetMovement(type) - Sets player's movement type
@@ -511,6 +510,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasSpellCooldown", &LuaPlayer::HasSpellCooldown},     // :HasSpellCooldown(spellId) - Returns true if the spell is on cooldown
     {"IsInWater", &LuaPlayer::IsInWater},                   // :IsInWater() - Returns true if the player is in water
     {"CanFly", &LuaPlayer::CanFly},                         // :CanFly() - Returns true if the player can fly
+    {"HasAura", &LuaPlayer::HasAura},                       // :HasAura(spellId[, caster]) - Returns true if the unit has the aura from the spell and casted by the caster if provided
 
     // Gossip
     {"GossipMenuAddItem", &LuaPlayer::GossipMenuAddItem},   // :GossipMenuAddItem(icon, msg, sender, intid[, code, popup, money])

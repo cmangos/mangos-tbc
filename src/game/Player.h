@@ -2139,6 +2139,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool HasTitle(CharTitlesEntry const* title) const { return HasTitle(title->bit_index); }
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
+        uint32 GetChampioningFaction() const { return m_ChampioningFaction; }
+        void SetChampioningFaction(uint32 faction) { m_ChampioningFaction = faction; }
+        Spell* m_spellModTakingSpell;
+
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2258,6 +2262,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         PlayerMails m_mail;
         PlayerSpellMap m_spells;
         SpellCooldowns m_spellCooldowns;
+
+        uint32 m_ChampioningFaction;
 
         GlobalCooldownMgr m_GlobalCooldownMgr;
 

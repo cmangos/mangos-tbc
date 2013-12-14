@@ -158,13 +158,13 @@ namespace LuaUnit
 
     int GetCreatorGUID(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->GetCreatGetCreatorGuid());
+        sEluna.Push(L, unit->GetCreatorGuid());
         return 1;
     }
 
     int GetMinionGUID(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->GetMinionGuid());
+        sEluna.Push(L, unit->GetPetGuid());
         return 1;
     }
 
@@ -270,13 +270,13 @@ namespace LuaUnit
 
     int HealthBelowPct(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->HealthBelowPct(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->HealthBelowPct(luaL_checkint(L, 1)));
         return 1;
     }
 
     int HealthAbovePct(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
         return 1;
     }
 
@@ -288,13 +288,13 @@ namespace LuaUnit
 
     int CountPctFromCurHealth(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->CountPctFromCurHealth(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->CountPctFromCurHealth(luaL_checkint(L, 1)));
         return 1;
     }
 
     int CountPctFromMaxHealth(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->CountPctFromMaxHealth(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->CountPctFromMaxHealth(luaL_checkint(L, 1)));
         return 1;
     }
 
@@ -932,8 +932,8 @@ namespace LuaUnit
 
     int SetMinionGUID(lua_State* L, Unit* unit)
     {
-        // ObjectGuid guid = unit->GetObjectGuid();
-        // unit->SetMinionGuid(guid);
+        ObjectGuid guid = unit->GetObjectGuid();
+        unit->SetPetGuid(guid); // TC MinionGuid methods = same field as Mangos PetGuid
         return 0;
     }
 
@@ -1103,7 +1103,7 @@ namespace LuaUnit
     int GetAura(lua_State* L, Unit* unit)
     {
         uint32 spellID = luaL_checkunsigned(L, 1);
-        // sEluna.Push(L, unit->GetAura(spellID));
+        sEluna.Push(L, unit->GetAura(spellID, EFFECT_INDEX_0)); // Unsure if correct index, double check please?
         return 1;
     }
 

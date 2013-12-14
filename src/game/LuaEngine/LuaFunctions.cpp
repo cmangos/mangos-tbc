@@ -200,7 +200,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetCurrentSpell", &LuaUnit::GetCurrentSpell},         // :GetCurrentSpell(type) - Returns the currently casted spell of given type if any
     {"GetCreatureType", &LuaUnit::GetCreatureType},         // :GetCreatureType() - Returns the unit's type
     //{"GetNearbyTarget", &LuaUnit::GetNearbyTarget},       // :GetNearbyTarget([radius[, exclude]]) - Returns nearby target within sight or given radius. Excludes current target and given unit
-    {"GetShieldBlockValue", &LuaUnit::GetShieldBlockValue}, // :GetShieldBlockValue() - Returns block value
     {"GetMountId", &LuaUnit::GetMountId},                   // :GetMountId()
     {"GetDistance", &LuaUnit::GetDistance},                 // :GetDistance(WorldObject or x, y, z){"GetRelativePoint", &LuaUnit::GetRelativePoint},       // :GetRelativePoint(dist, rad) - Returns the X, Y and orientation of a point dist away from unit.
     {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the GUID of the owner
@@ -245,7 +244,7 @@ ElunaRegister<Unit> UnitMethods[] =
     //{"SetVisible", &LuaUnit::SetVisible},                 // :SetVisible(x)
     {"SetOwnerGUID", &LuaUnit::SetOwnerGUID},               // :SetOwnerGUID(guid) - Sets the guid of the owner
     {"SetName", &LuaUnit::SetName},                         // :SetName(name) - Sets the unit's name
-    {"SetSheath", &LuaUnit::SetSheath},                     // :SetSheath(SheathState) - Sets player's seathstate
+    {"SetSheath", &LuaUnit::SetSheath},                     // :SetSheath(SheathState) - Sets unit's sheathstate
     {"SetCreatorGUID", &LuaUnit::SetCreatorGUID},           // :SetOwnerGUID(uint64 ownerGUID) - Sets the owner's guid of a summoned creature, etc
     //{"SetMinionGUID", &LuaUnit::SetMinionGUID},           // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
     {"SetCharmerGUID", &LuaUnit::SetCharmerGUID},           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
@@ -257,9 +256,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsDead", &LuaUnit::IsDead},                           // :IsDead() - Returns true if the unit is dead, false if they are alive
     {"IsDying", &LuaUnit::IsDying},                         // :IsDying() - Returns true if the unit death state is JUST_DIED.
     {"IsPvPFlagged", &LuaUnit::IsPvPFlagged},               // :IsPvPFlagged()
-    {"HasQuest", &LuaUnit::HasQuest},                       // :HasQuest(id)
     {"IsInCombat", &LuaUnit::IsInCombat},                   // :IsInCombat()
-    {"HasSpell", &LuaUnit::HasSpell},                       // :HasSpell(id)
     {"IsBanker", &LuaUnit::IsBanker},                       // :IsBanker() - Returns true if the unit is a banker, false if not
     {"IsBattleMaster", &LuaUnit::IsBattleMaster},           // :IsBattleMaster() - Returns true if the unit is a battle master, false if not
     {"IsCharmed", &LuaUnit::IsCharmed},                     // :IsCharmed() - Returns true if the unit is charmed, false if not
@@ -268,8 +265,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsInWater", &LuaUnit::IsInWater},                     // :IsInWater() - Returns true if the unit is in water
     {"IsUnderWater", &LuaUnit::IsUnderWater},               // :IsUnderWater() - Returns true if the unit is under water
     //{"HasAura", &LuaUnit::HasAura},                       // :HasAura(spellId[, caster]) - Returns true if the unit has the aura from the spell and casted by the caster if provided
-    {"CanFly", &LuaUnit::CanFly},                           // :CanFly() - Returns true if the unit can fly
-    {"HasSpellCooldown", &LuaUnit::HasSpellCooldown},       // :HasSpellCooldown(spellId) - Returns true if the spell is on cooldown
     {"IsAuctioneer", &LuaUnit::IsAuctioneer},               // :IsAuctioneer()
     //{"HealthBelowPct", &LuaUnit::HealthBelowPct},         // :HealthBelowPct(int32 pct)
     //{"HealthAbovePct", &LuaUnit::HealthAbovePct},         // :HealthAbovePct(int32 pct)
@@ -321,7 +316,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"StopSpellCast", &LuaUnit::StopSpellCast},             // :StopSpellCast(spellId(optional)) - Stops the unit from casting a spell. If a spellId is defined, it will stop that unit from casting that spell
     {"InterruptSpell", &LuaUnit::InterruptSpell},           // :InterruptSpell(spellType, delayed(optional), instant(optional)) - Interrupts the unit's spell by the spellType. If delayed is true it will skip if the spell is delayed. If instant is true, it will skip that the spell has a cast time
     {"SendChatMessageToPlayer", &LuaUnit::SendChatMessageToPlayer},                                         // :SendChatMessageToPlayer(type, lang, msg, target) - Unit sends a chat message to the given target player
-    {"SaveToDB", &LuaUnit::SaveToDB},                       // :SaveToDB() - Saves the unit to database
     {"Emote", &LuaUnit::Emote},                             // :Emote(emote)
     //{"CountPctFromCurHealth", &LuaUnit::CountPctFromCurHealth},                                             // :CountPctFromCurHealth(int32 pct)
     //{"CountPctFromMaxHealth", &LuaUnit::CountPctFromMaxHealth},                                             // :CountPctFromMaxHealth()
@@ -423,6 +417,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetCorpse", &LuaPlayer::GetCorpse},                   // :GetCorpse() - Returns the player's corpse
     {"GetGossipTextId", &LuaPlayer::GetGossipTextId},       // :GetGossipTextId(worldObject) - Returns the WorldObject's gossip textId
     {"GetQuestRewardStatus", &LuaPlayer::GetQuestRewardStatus},                                               // :GetQuestRewardStatus(questId) - Returns the true/false of the quest reward status
+    {"GetShieldBlockValue", &LuaPlayer::GetShieldBlockValue}, // :GetShieldBlockValue() - Returns block value
 
     // Setters
     {"AdvanceSkillsToMax", &LuaPlayer::AdvanceSkillsToMax}, // :AdvanceSkillsToMax() - Advances all currently known skills to the currently known max level
@@ -456,6 +451,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"SetAtLoginFlag", &LuaPlayer::SetAtLoginFlag},         // :SetAtLoginFlag(flag) - Adds an at login flag
     {"SetPlayerLock", &LuaPlayer::SetPlayerLock},           // :SetPlayerLock(on/off)
     {"SetGender", &LuaPlayer::SetGender},                   // :SetGender(value) - 0 = male 1 = female
+    {"SetSheath", &LuaPlayer::SetSheath},                   // :SetSheath(SheathState) - Sets player's sheathstate
 
     // Boolean
     {"IsInGroup", &LuaPlayer::IsInGroup},                   // :IsInGroup()
@@ -478,7 +474,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"IsGMChat", &LuaPlayer::IsGMChat},                     // :IsGMChat() - Returns true if the player has GM chat on
     {"IsTaxiCheater", &LuaPlayer::IsTaxiCheater},           // :IsTaxiCheater() - Returns true if the player has taxi cheat on
     {"IsGMVisible", &LuaPlayer::IsGMVisible},               // :IsGMVisible() - Returns true if the player is GM visible
-    {"IsActiveQuest", &LuaPlayer::IsActiveQuest},           // :IsActiveQuest(entry) - Returns true if the quest entry is active for the player
+    {"HasQuest", &LuaPlayer::HasQuest},                     // :HasQuest(entry) - Returns true if player has the quest
     {"InBattlegroundQueue", &LuaPlayer::InBattlegroundQueue}, // :InBattlegroundQueue() - Returns true if the player is in a battleground queue
     //{"IsImmuneToEnvironmentalDamage", &LuaPlayer::IsImmuneToEnvironmentalDamage},                             // :IsImmuneToEnvironmentalDamage() - Returns true if the player is immune to enviromental damage
     {"CanSpeak", &LuaPlayer::CanSpeak},                     // :CanSpeak() - Returns true if the player can speak
@@ -512,6 +508,9 @@ ElunaRegister<Player> PlayerMethods[] =
     //{"IsARecruiter", &LuaPlayer::IsARecruiter},           // :IsARecruiter() - Returns true if the player is a recruiter
     {"CanUseItem", &LuaPlayer::CanUseItem},                 // :CanUseItem(item/entry) - Returns true if the player can use the item or item entry
     {"HasSpell", &LuaPlayer::HasSpell},                     // :HasSpell(id)
+    {"HasSpellCooldown", &LuaPlayer::HasSpellCooldown},     // :HasSpellCooldown(spellId) - Returns true if the spell is on cooldown
+    {"IsInWater", &LuaPlayer::IsInWater},                   // :IsInWater() - Returns true if the player is in water
+    {"CanFly", &LuaPlayer::CanFly},                         // :CanFly() - Returns true if the player can fly
 
     // Gossip
     {"GossipMenuAddItem", &LuaPlayer::GossipMenuAddItem},   // :GossipMenuAddItem(icon, msg, sender, intid[, code, popup, money])
@@ -607,6 +606,8 @@ ElunaRegister<Player> PlayerMethods[] =
     {"CreateCorpse", &LuaPlayer::CreateCorpse},             // :CreateCorpse() - Creates the player's corpse
     //{"Mute", &LuaUnit::Mute},                             // :Mute(time[, reason]) - Mutes the player for given time in seconds.
     {"SummonPlayer", &LuaPlayer::SummonPlayer},             // :SummonPlayer(player, map, x, y, z, zoneId[, delay]) - Sends a popup to the player asking if he wants to be summoned if yes, teleported to coords. ZoneID defines the location name shown in the popup Delay is the time until the popup closes automatically.
+    {"SaveToDB", &LuaPlayer::SaveToDB},                     // :SaveToDB() - Saves to database
+
     {NULL, NULL},
 };
 
@@ -638,6 +639,7 @@ ElunaRegister<Creature> CreatureMethods[] =
     {"GetLootRecipient", &LuaCreature::GetLootRecipient},   // :GetLootRecipient() - Returns loot receiver
     {"GetLootRecipientGroup", &LuaCreature::GetLootRecipientGroup},                                             // :GetLootRecipientGroup() - Returns loot receiver group
     {"GetNPCFlags", &LuaCreature::GetNPCFlags},             // :GetNPCFlags() - Returns NPC flags
+    {"GetShieldBlockValue", &LuaCreature::GetShieldBlockValue}, // :GetShieldBlockValue() - Returns block value
 
     // Setters
     //{"SetHover", &LuaCreature::SetHover},                 // :SetHover([enable]) - Sets hover on or off
@@ -676,6 +678,10 @@ ElunaRegister<Creature> CreatureMethods[] =
     {"IsReputationGainDisabled", &LuaCreature::IsReputationGainDisabled},                                       // :IsReputationGainDisabled() - Returns true if the creature has reputation gain disabled
     //{"IsDamageEnoughForLootingAndReward", &LuaCreature::IsDamageEnoughForLootingAndReward},                     // :IsDamageEnoughForLootingAndReward()
     //{"HasLootMode", &LuaCreature::HasLootMode},
+    {"HasSpell", &LuaCreature::HasSpell},                   // :HasSpell(id)
+    {"HasQuest", &LuaCreature::HasQuest},                   // :HasQuest(id)
+    {"HasSpellCooldown", &LuaCreature::HasSpellCooldown},   // :HasSpellCooldown(spellId) - Returns true if the spell is on cooldown
+    {"CanFly", &LuaCreature::CanFly},                       // :CanFly() - Returns true if the creature can fly
 
     // Other
     //{"Despawn", &LuaCreature::Despawn},                   // :Despawn([despawnDelay]) - Creature despawns after given time
@@ -691,6 +697,8 @@ ElunaRegister<Creature> CreatureMethods[] =
     {"AttackStart", &LuaCreature::AttackStart},             // :AttackStart(target) - Creature attacks the specified target
     //{"ResetLootMode", &LuaCreature::ResetLootMode},
     //{"RemoveLootMode", &LuaCreature::RemoveLootMode},
+    {"SaveToDB", &LuaCreature::SaveToDB},                     // :SaveToDB() - Saves to database
+
     {NULL, NULL},
 };
 
@@ -723,6 +731,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"UseDoorOrButton", &LuaGameObject::UseDoorOrButton},   // :UseDoorOrButton(delay) - Activates/closes/opens after X delay UNDOCUMENTED
     {"Despawn", &LuaGameObject::Despawn},                   // :Despawn([delay]) - Despawns the object after delay
     {"Respawn", &LuaGameObject::Respawn},                   // :Respawn([delay]) - respawns the object after delay
+    {"SaveToDB", &LuaGameObject::SaveToDB},                 // :SaveToDB() - Saves to database
 
     { NULL, NULL },
 };
@@ -778,7 +787,7 @@ ElunaRegister<Item> ItemMethods[] =
     {"IsInTrade", &LuaItem::IsInTrade},                     // :IsInTrade() - Returns true if the item is in trade
     {"IsInBag", &LuaItem::IsInBag},                         // :IsInBag() - Returns true if the item is in a bag
     {"IsEquipped", &LuaItem::IsEquipped},                   // :IsEquipped() - Returns true if the item is equipped
-    {"HasQuest", &LuaItem::hasQuest},                       // :HasQuest(questId) - Returns true if the item starts the quest
+    {"HasQuest", &LuaItem::HasQuest},                       // :HasQuest(questId) - Returns true if the item starts the quest
     {"IsPotion", &LuaItem::IsPotion},                       // :IsPotion() - Returns true if the item is a potion
     {"IsWeaponVellum", &LuaItem::IsWeaponVellum},           // :IsWeaponVellum() - Returns true if the item is a weapon vellum
     {"IsArmorVellum", &LuaItem::IsArmorVellum},             // :IsArmorVellum() - Returns true if the item is an armor vellum
@@ -788,6 +797,8 @@ ElunaRegister<Item> ItemMethods[] =
     {"ClearEnchantment", &LuaItem::ClearEnchantment},       // :ClearEnchantment(enchantmentslot) - Removes the enchantment from the item if one exists. Returns true on success
 
     // Other
+    {"SaveToDB", &LuaItem::SaveToDB},                       // :SaveToDB() - Saves to database
+
     {NULL, NULL},
 };
 
@@ -1014,7 +1025,7 @@ ElunaRegister<Corpse> CorpseMethods[] =
     {"GetGhostTime", &LuaCorpse::GetGhostTime},             // :GetGhostTime() - Returns the ghost time of a corpse
     {"GetType", &LuaCorpse::GetType},                       // :GetType() - Returns the (CorpseType) of a corpse
     {"ResetGhostTime", &LuaCorpse::ResetGhostTime},         // :ResetGhostTime() - Resets the corpse's ghost time
-    {"SaveToDB", &LuaCorpse::SaveToDB},                     // :SaveToDB() - Saves the corpse data to the corpse database table.
+    {"SaveToDB", &LuaCorpse::SaveToDB},                     // :SaveToDB() - Saves to database
     {"DeleteBonesFromWorld", &LuaCorpse::DeleteBonesFromWorld},                                             // :DeleteBonesFromWorld() - Deletes all bones from the world
     {NULL, NULL}
 };

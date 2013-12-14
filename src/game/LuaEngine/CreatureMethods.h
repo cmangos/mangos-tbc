@@ -536,7 +536,7 @@ namespace LuaCreature
             Unit* target = (*itr)->getTarget();
             if (!target)
                 continue;
-            if (playerOnly && !target->ToPlayer())
+            if (playerOnly && target->GetTypeId() != TYPEID_PLAYER)
                 continue;
             if (aura > 0 && !target->HasAura(aura))
                 continue;
@@ -642,6 +642,48 @@ namespace LuaCreature
 
         creature->SetUInt32Value(UNIT_NPC_FLAGS, flags);
         return 0;
+    }
+
+    int HasSpell(lua_State* L, Creature* creature)
+    {
+        uint32 id = luaL_checkunsigned(L, 1);
+
+        sEluna.Push(L, creature->HasSpell(id));
+        return 1;
+    }
+
+    int HasQuest(lua_State* L, Creature* creature)
+    {
+        uint32 questId = luaL_checkunsigned(L, 1);
+
+        sEluna.Push(L, creature->HasQuest(questId));
+        return 1;
+    }
+
+    int SaveToDB(lua_State* L, Creature* creature)
+    {
+        creature->SaveToDB();
+        return 0;
+    }
+
+    int HasSpellCooldown(lua_State* L, Creature* creature)
+    {
+        uint32 spellId = luaL_checkunsigned(L, 1);
+
+        sEluna.Push(L, creature->HasSpellCooldown(spellId));
+        return 1;
+    }
+
+    int GetShieldBlockValue(lua_State* L, Creature* creature)
+    {
+        sEluna.Push(L, creature->GetShieldBlockValue());
+        return 1;
+    }
+
+    int CanFly(lua_State* L, Creature* creature)
+    {
+        sEluna.Push(L, creature->CanFly());
+        return 1;
     }
 };
 #endif

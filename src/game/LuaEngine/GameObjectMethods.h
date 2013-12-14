@@ -110,13 +110,9 @@ namespace LuaGameObject
 
     int HasQuest(lua_State* L, GameObject* go)
     {
-        if (!go || !go->IsInWorld())
-            sEluna.Push(L, false);
-        else
-        {
-            uint32 questId = luaL_checkunsigned(L, 1);
-            sEluna.Push(L, go->HasQuest(questId));
-        }
+        uint32 questId = luaL_checkunsigned(L, 1);
+
+        sEluna.Push(L, go->HasQuest(questId));
         return 1;
     }
 
@@ -172,9 +168,6 @@ namespace LuaGameObject
 
     int SaveToDB(lua_State* L, GameObject* go)
     {
-        if (!go || !go->IsInWorld())
-            return 0;
-
         go->SaveToDB();
         return 0;
     }

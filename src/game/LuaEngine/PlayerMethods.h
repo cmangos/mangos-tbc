@@ -22,9 +22,24 @@
 
 namespace LuaPlayer
 {
+    int SaveToDB(lua_State* L, Player* player)
+    {
+        player->SaveToDB();
+        return 0;
+    }
+
+    int HasQuest(lua_State* L, Player* player)
+    {
+        uint32 quest = luaL_checkunsigned(L, 1);
+
+        sEluna.Push(L, player->IsActiveQuest(quest));
+        return 1;
+    }
+
     int HasSpell(lua_State* L, Player* player)
     {
         uint32 id = luaL_checkunsigned(L, 1);
+
         sEluna.Push(L, player->HasSpell(id));
         return 1;
     }
@@ -2047,7 +2062,7 @@ namespace LuaPlayer
         WorldObject* sender = sEluna.CHECK_WORLDOBJECT(L, 2);
         if (sender)
         {
-            if (sender->ToPlayer())
+            if (sender->GetTypeId() == TYPEID_PLAYER)
             {
                 uint32 menu_id = luaL_checkunsigned(L, 3);
                 player->PlayerTalkClass->GetGossipMenu().SetMenuId(menu_id);
@@ -2192,6 +2207,42 @@ namespace LuaPlayer
             else
                 sEluna.Push(L, EQUIP_ERR_ITEM_NOT_FOUND);
         }
+        return 1;
+    }
+
+    int HasSpellCooldown(lua_State* L, Player* player)
+    {
+        uint32 spellId = luaL_checkunsigned(L, 1);
+
+        sEluna.Push(L, player->HasSpellCooldown(spellId));
+        return 1;
+    }
+
+    int GetShieldBlockValue(lua_State* L, Player* player)
+    {
+        sEluna.Push(L, player->GetShieldBlockValue());
+        return 1;
+    }
+
+    int IsInWater(lua_State* L, Player* player)
+    {
+        sEluna.Push(L, player->IsInWater());
+        return 1;
+    }
+
+    int SetSheath(lua_State* L, Player* player)
+    {
+        uint32 sheathed = luaL_checkunsigned(L, 1);
+        if (sheathed >= MAX_SHEATH_STATE)
+            return 0;
+        
+        player->SetSheath((SheathState)sheathed);
+        return 0;
+    }
+
+    int CanFly(lua_State* L, Player* player)
+    {
+        sEluna.Push(L, player->CanFly());
         return 1;
     }
 };

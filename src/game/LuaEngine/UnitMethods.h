@@ -135,26 +135,6 @@ namespace LuaUnit
         return 1;
     }
 
-    int CanFly(lua_State* L, Unit* unit)
-    {
-        if (Player* player = unit->ToPlayer())
-            sEluna.Push(L, player->CanFly());
-        else if (Creature* creature = unit->ToCreature())
-            sEluna.Push(L, creature->CanFly());
-        return 1;
-    }
-
-    int GetShieldBlockValue(lua_State* L, Unit* unit)
-    {
-        if (Player* player = unit->ToPlayer())
-            sEluna.Push(L, player->GetShieldBlockValue());
-        if (Creature* creature = unit->ToCreature())
-            sEluna.Push(L, creature->GetShieldBlockValue());
-        else
-            sEluna.Push(L, unit->GetShieldBlockValue());
-        return 1;
-    }
-
     int GetMountId(lua_State* L, Unit* unit)
     {
         sEluna.Push(L, unit->GetMountID());
@@ -282,19 +262,6 @@ namespace LuaUnit
         return 0;
     }
 
-    int HasSpellCooldown(lua_State* L, Unit* unit)
-    {
-        uint32 spellId = luaL_checkunsigned(L, 1);
-
-        if (Player* player = unit->ToPlayer())
-            sEluna.Push(L, player->HasSpellCooldown(spellId));
-        else if (Creature* creature = unit->ToCreature())
-            sEluna.Push(L, creature->HasSpellCooldown(spellId));
-        else
-            sEluna.Push(L, false);
-        return 1;
-    }
-
     int IsAuctioneer(lua_State* L, Unit* unit)
     {
         sEluna.Push(L, unit->isAuctioner());
@@ -311,15 +278,6 @@ namespace LuaUnit
     {
         // sEluna.Push(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
         return 1;
-    }
-
-    int SaveToDB(lua_State* L, Unit* unit)
-    {
-        if (Player* player = unit->ToPlayer())
-            player->SaveToDB();
-        if (Creature* creature = unit->ToCreature())
-            creature->SaveToDB();
-        return 0;
     }
 
     int Emote(lua_State* L, Unit* unit)
@@ -345,11 +303,8 @@ namespace LuaUnit
         uint32 sheathed = luaL_checkunsigned(L, 1);
         if (sheathed >= MAX_SHEATH_STATE)
             return 0;
-
-        if (Player* player = unit->ToPlayer())
-            player->SetSheath((SheathState)sheathed);
-        else
-            unit->SetSheath((SheathState)sheathed);
+        
+        unit->SetSheath((SheathState)sheathed);
         return 0;
     }
 
@@ -361,10 +316,7 @@ namespace LuaUnit
 
     int IsInWater(lua_State* L, Unit* unit)
     {
-        if (Player* player = unit->ToPlayer())
-            sEluna.Push(L, player->IsInWater());
-        else
-            sEluna.Push(L, unit->IsInWater());
+        sEluna.Push(L, unit->IsInWater());
         return 1;
     }
 
@@ -639,6 +591,7 @@ namespace LuaUnit
     int SetWalk(lua_State* L, Unit* unit)
     {
         bool enable = luaL_optbool(L, 1, true);
+        // Todo, also separate to Player and Creature method files
         /*if (Creature* creature = unit->ToCreature())
         sEluna.Push(L, creature->SetWalk(enable));
         else
@@ -1071,34 +1024,9 @@ namespace LuaUnit
         return 1;
     }
 
-    int HasQuest(lua_State* L, Unit* unit)
-    {
-        uint32 questId = luaL_checkunsigned(L, 1);
-
-        if (Player* player = unit->ToPlayer())
-            sEluna.Push(L, player->HasQuest(questId));
-        else if (Creature* creature = unit->ToCreature())
-            sEluna.Push(L, creature->HasQuest(questId));
-        else
-            sEluna.Push(L, unit->HasQuest(questId));
-        return 1;
-    }
-
     int IsInCombat(lua_State* L, Unit* unit)
     {
         sEluna.Push(L, unit->isInCombat());
-        return 1;
-    }
-
-    int HasSpell(lua_State* L, Unit* unit)
-    {
-        uint32 id = luaL_checkunsigned(L, 1);
-        if (Player* player = unit->ToPlayer())
-            sEluna.Push(L, player->HasSpell(id));
-        else if (Creature* creature = unit->ToCreature())
-            sEluna.Push(L, creature->HasSpell(id));
-        else
-            sEluna.Push(L, unit->HasSpell(id));
         return 1;
     }
 
@@ -1311,10 +1239,7 @@ namespace LuaUnit
 
     int IsOnVehicle(lua_State* L, Unit* unit)
     {
-        /*if (unit->GetVehicleInfo() || (unit->ToPlayer() && unit->IsVehicle()))
-            sEluna.Push(L, true);
-        else
-            sEluna.Push(L, false);*/
+        // sEluna.Push(L, unit->GetVehicleInfo() || (unit->GetTypeId() == TYPEID_PLAYER && unit->IsVehicle()));
         return 1;
     }
 

@@ -237,7 +237,7 @@ namespace LuaItem
         return 1;
     }
 
-    int hasQuest(lua_State* L, Item* item)
+    int HasQuest(lua_State* L, Item* item)
     {
         uint32 quest = luaL_checkunsigned(L, 1);
         sEluna.Push(L, item->HasQuest(quest));
@@ -488,6 +488,12 @@ namespace LuaItem
         else
             sEluna.Push(L, 0);
         return 1;
+    }
+
+    int SaveToDB(lua_State* L, Item* item)
+    {
+        item->SaveToDB();
+        return 0;
     }
 };
 #endif

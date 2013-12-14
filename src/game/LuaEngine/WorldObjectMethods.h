@@ -94,7 +94,7 @@ namespace LuaWorldObject
         MaNGOS::UnitLastSearcher<Eluna::WorldObjectInRangeCheck> searcher(target, checker);
         Cell::VisitWorldObjects(obj, searcher, range);
 
-        sEluna.Push(L, target->ToPlayer());
+        sEluna.Push(L, target);
         return 1;
     }
     int GetNearestGameObject(lua_State* L, WorldObject* obj)

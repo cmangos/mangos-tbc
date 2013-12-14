@@ -581,7 +581,7 @@ void Eluna::LuaEventMap::ScriptEventsResetAll()
             if (itr->second)
                 itr->second->ScriptEventsReset();
     // Global events reset
-    // sEluna.LuaWorldAI->ScriptEventsReset();
+    sEluna.LuaWorldAI->ScriptEventsReset();
 }
 void Eluna::LuaEventMap::ScriptEventsReset()
 {

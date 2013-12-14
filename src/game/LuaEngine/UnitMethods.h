@@ -1225,7 +1225,7 @@ namespace LuaUnit
     int RemoveEventById(lua_State* L, Unit* unit)
     {
         int eventID = luaL_checkinteger(L, 1);
-        Eluna::LuaEventData::Remove(unit->GetGUIDLow(), eventID);
+        Eluna::LuaEventData::Remove(unit->GetObjectGuid().GetRawValue(), eventID);
         return 0;
     }
 

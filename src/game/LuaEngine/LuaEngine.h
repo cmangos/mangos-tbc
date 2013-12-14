@@ -717,7 +717,7 @@ class Eluna::LuaEventMap
                 funcRef(_funcRef), delay(_delay), calls(_calls) {}
         };
 
-        typedef std::multimap<uint32, eventData> EventStore;// Not to use multimap? Can same function ref ID be used multiple times?
+        typedef std::multimap<uint32, eventData> EventStore;
 
         virtual void OnScriptEvent(int funcRef, uint32 delay, uint32 calls) { }
 
@@ -731,7 +731,7 @@ class Eluna::LuaEventMap
         {
             if (!obj)
                 return NULL;
-            UNORDERED_MAP<uint64, LuaEventMap*>::const_iterator it = LuaEventMaps.find(obj->GetGUIDLow());
+            UNORDERED_MAP<uint64, LuaEventMap*>::const_iterator it = LuaEventMaps.find(obj->GetObjectGuid().GetRawValue());
             if (it != LuaEventMaps.end())
                 return it->second;
             return NULL;
@@ -1308,7 +1308,7 @@ class Eluna::Eluna_GameObjectScript
             ScriptGameObjectAI(GameObject* _go) : GameObjectAI(_go), LuaEventMap() { }
             ~ScriptGameObjectAI()
             {
-                LuaEventMap::LuaEventMaps.erase(go->GetGUIDLow());
+                LuaEventMap::LuaEventMaps.erase(go->GetObjectGuid().GetRawValue());
             }
 
             void UpdateAI(uint32 const diff)
@@ -1351,7 +1351,7 @@ class Eluna::Eluna_GameObjectScript
                 return NULL;
 
             ScriptGameObjectAI* luaGameObjectAI = new ScriptGameObjectAI(gameObject);
-            LuaEventMap::LuaEventMaps[gameObject->GetGUIDLow()] = luaGameObjectAI;
+            LuaEventMap::LuaEventMaps[gameObject->GetObjectGuid().GetRawValue()] = luaGameObjectAI;
             return luaGameObjectAI;
         }
 };
@@ -1364,10 +1364,10 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
     uint64 GUID;
 
     LuaEventData(int funcRef, uint32 delay, uint32 calls, Unit* unit) :
-        _unit(unit), GUID(unit->GetGUIDLow()), Eluna::LuaEventMap::eventData(funcRef, delay, calls)
+        _unit(unit), GUID(unit->GetObjectGuid().GetRawValue()), Eluna::LuaEventMap::eventData(funcRef, delay, calls)
     {
         LuaEvents[funcRef] = this;
-        EventIDs[unit->GetGUIDLow()].insert(funcRef);
+        EventIDs[unit->GetObjectGuid().GetRawValue()].insert(funcRef);
     }
 
     ~LuaEventData()
@@ -1402,13 +1402,19 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
     {
         if (!unit)
             return;
-        unit->m_Events.KillAllEvents(true); // should delete the objects
-        for (std::set<int>::const_iterator it = EventIDs[unit->GetGUIDLow()].begin(); it != EventIDs[unit->GetGUIDLow()].end(); ++it)
-            LuaEvents.erase(*it); // deletes pointers
-        EventIDs.erase(unit->GetGUIDLow());
+        // unit->m_Events.KillAllEvents(true); // should delete the objects
+        for (std::set<int>::const_iterator it = EventIDs[unit->GetObjectGuid().GetRawValue()].begin(); it != EventIDs[unit->GetObjectGuid().GetRawValue()].end(); ++it)
+        {
+            if (LuaEvents.find(*it) != LuaEvents.end())
+            {
+                LuaEvents[*it]->to_Abort = true; // delete on next cycle
+                LuaEvents.erase(*it);
+            }
+        }
+        EventIDs.erase(unit->GetObjectGuid().GetRawValue());
     }
 
-    static void Remove(uint32 guid, int eventID)
+    static void Remove(uint64 guid, int eventID)
     {
         if (LuaEvents.find(eventID) != LuaEvents.end())
         {

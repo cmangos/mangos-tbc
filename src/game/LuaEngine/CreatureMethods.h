@@ -591,8 +591,6 @@ namespace LuaCreature
 
     int GetAITargets(lua_State* L, Creature* creature)
     {
-        Corpse* corp;
-        sEluna.Push(L, corp);
         lua_newtable(L);
         int tbl = lua_gettop(L);
         uint32 i = 0;

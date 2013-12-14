@@ -201,10 +201,10 @@ enum GameObjectEvents
     GAMEOBJECT_EVENT_ON_QUEST_ACCEPT                = 4,    // (event, player, go, quest)
     GAMEOBJECT_EVENT_ON_QUEST_REWARD                = 5,    // (event, player, go, quest, opt)
     GAMEOBJECT_EVENT_ON_DIALOG_STATUS               = 6,    // (event, player, go)
-    GAMEOBJECT_EVENT_ON_DESTROYED                   = 7,    // (event, go, player)
-    GAMEOBJECT_EVENT_ON_DAMAGED                     = 8,    // (event, go, player)
-    GAMEOBJECT_EVENT_ON_LOOT_STATE_CHANGE           = 9,    // (event, go, state, unit)
-    GAMEOBJECT_EVENT_ON_GO_STATE_CHANGED            = 10,   // (event, go, state)
+    GAMEOBJECT_EVENT_ON_DESTROYED                   = 7,    // (event, go, player)          // TODO
+    GAMEOBJECT_EVENT_ON_DAMAGED                     = 8,    // (event, go, player)          // TODO
+    GAMEOBJECT_EVENT_ON_LOOT_STATE_CHANGE           = 9,    // (event, go, state, unit)     // TODO
+    GAMEOBJECT_EVENT_ON_GO_STATE_CHANGED            = 10,   // (event, go, state)           // TODO
     GAMEOBJECT_EVENT_COUNT
 };
 

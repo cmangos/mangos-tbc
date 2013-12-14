@@ -71,8 +71,28 @@ InventoryResult HookMgr::OnCanUseItem(const Player* pPlayer, uint32 itemEntry)
 
 void HookMgr::HandleGossipSelectOption(Player* pPlayer, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId)
 {
-    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
-        (*it)->HandleGossipSelectOption(pPlayer, guid, sender, action, code, menuId);
+    if (!pPlayer->isAlive() || pPlayer->GetCharmerGuid())
+        return;
+
+    if (pPlayer->hasUnitState(UNIT_STAT_DIED))
+        pPlayer->RemoveAurasDueToSpell(SPELL_AURA_FEIGN_DEATH);
+    pPlayer->PlayerTalkClass->ClearMenus();
+
+    if (guid.IsItem())
+    {
+        Item* item = pPlayer->GetItemByGuid(guid);
+        if (!item)
+            return;
+        for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+            (*it)->HandleGossipSelectOption(pPlayer, item, sender, action, code);
+    }
+    else if (guid.IsPlayer())
+    {
+        if (pPlayer->GetGUIDLow() != guid || pPlayer->PlayerTalkClass->GetGossipMenu().GetMenuId() != menuId)
+            return;
+        for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+            (*it)->HandleGossipSelectOption(pPlayer, sender, action, code, menuId);
+    }
 }
 
 void HookMgr::OnEngineRestart()

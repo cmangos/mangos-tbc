@@ -125,59 +125,43 @@ class Eluna_HookScript : public HookScript
             }
             return result;
         }
-
-        void HandleGossipSelectOption(Player* pPlayer, ObjectGuid guid, uint32 sender, uint32 action, std::string code, uint32 menuId)
+        
+        void HandleGossipSelectOption(Player* pPlayer, Item* item, uint32 sender, uint32 action, std::string code)
         {
-            if (!pPlayer->isAlive() || pPlayer->GetCharmerGuid())
-                return;
-
-            if (pPlayer->hasUnitState(UNIT_STAT_DIED))
-                pPlayer->RemoveAurasDueToSpell(SPELL_AURA_FEIGN_DEATH);
-            pPlayer->PlayerTalkClass->ClearMenus();
-
-            if (guid.IsItem())
+            int bind = sEluna.ItemGossipBindings->GetBind(item->GetEntry(), GOSSIP_EVENT_ON_SELECT);
+            if (bind)
             {
-                Item* item = pPlayer->GetItemByGuid(guid);
-                if (!item)
-                    return;
-
-                int bind = sEluna.ItemGossipBindings->GetBind(item->GetEntry(), GOSSIP_EVENT_ON_SELECT);
-                if (bind)
-                {
-                    sEluna.BeginCall(bind);
-                    sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
-                    sEluna.Push(sEluna.L, pPlayer);
-                    sEluna.Push(sEluna.L, item);
-                    sEluna.Push(sEluna.L, sender);
-                    sEluna.Push(sEluna.L, action);
-                    if (code.empty())
-                        lua_pushnil(sEluna.L);
-                    else
-                        sEluna.Push(sEluna.L, code);
-                    sEluna.ExecuteCall(6, 0);
-                }
+                sEluna.BeginCall(bind);
+                sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+                sEluna.Push(sEluna.L, pPlayer);
+                sEluna.Push(sEluna.L, item);
+                sEluna.Push(sEluna.L, sender);
+                sEluna.Push(sEluna.L, action);
+                if (code.empty())
+                    lua_pushnil(sEluna.L);
+                else
+                    sEluna.Push(sEluna.L, code);
+                sEluna.ExecuteCall(6, 0);
             }
-            else if (guid.IsPlayer())
-            {
-                if (pPlayer->GetGUIDLow() != guid)
-                    return;
+        }
 
-                int bind = sEluna.playerGossipBindings->GetBind(menuId, GOSSIP_EVENT_ON_SELECT);
-                if (bind)
-                {
-                    sEluna.BeginCall(bind);
-                    sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
-                    sEluna.Push(sEluna.L, pPlayer); // receiver
-                    sEluna.Push(sEluna.L, pPlayer); // sender, just not to mess up the amount of args.
-                    sEluna.Push(sEluna.L, sender);
-                    sEluna.Push(sEluna.L, action);
-                    if (code.empty())
-                        lua_pushnil(sEluna.L);
-                    else
-                        sEluna.Push(sEluna.L, code);
-                    sEluna.Push(sEluna.L, menuId);
-                    sEluna.ExecuteCall(7, 0);
-                }
+        void HandleGossipSelectOption(Player* pPlayer, uint32 sender, uint32 action, std::string code, uint32 menuId)
+        {
+            int bind = sEluna.playerGossipBindings->GetBind(menuId, GOSSIP_EVENT_ON_SELECT);
+            if (bind)
+            {
+                sEluna.BeginCall(bind);
+                sEluna.Push(sEluna.L, GOSSIP_EVENT_ON_SELECT);
+                sEluna.Push(sEluna.L, pPlayer); // receiver
+                sEluna.Push(sEluna.L, pPlayer); // sender, just not to mess up the amount of args.
+                sEluna.Push(sEluna.L, sender);
+                sEluna.Push(sEluna.L, action);
+                if (code.empty())
+                    lua_pushnil(sEluna.L);
+                else
+                    sEluna.Push(sEluna.L, code);
+                sEluna.Push(sEluna.L, menuId);
+                sEluna.ExecuteCall(7, 0);
             }
         }
 
@@ -250,11 +234,11 @@ class Eluna_HookScript : public HookScript
                 else if (Unit* target = targets.getUnitTarget())
                     sEluna.Push(sEluna.L, target);
                 else
-                    lua_pushnil(sEluna.L);
+                    sEluna.Push(sEluna.L);
                 sEluna.ExecuteCall(4, 0);
             }
-            pPlayer->SendEquipError((InventoryResult)83, pItem, NULL);
-            return true;
+            // pPlayer->SendEquipError((InventoryResult)83, pItem, NULL);
+            return false;
         }
 
         bool OnExpire(Player* pPlayer, ItemPrototype const* pProto) // TODO: Implement

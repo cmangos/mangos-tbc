@@ -141,7 +141,8 @@ class HookScript
         virtual bool OnUse(Player* /*pPlayer*/, Item* /*pItem*/, SpellCastTargets const& /*targets*/) { return false; }
         virtual bool OnExpire(Player* /*pPlayer*/, ItemPrototype const* /*pProto*/) { return false; }
         virtual void OnEngineRestart() { }
-        virtual void HandleGossipSelectOption(Player* /*pPlayer*/, ObjectGuid /*guid*/, uint32 /*sender*/, uint32 /*action*/, std::string /*code*/, uint32 /*menuId*/) { }
+        virtual void HandleGossipSelectOption(Player* /*pPlayer*/, Item* /*item*/, uint32 /*sender*/, uint32 /*action*/, std::string /*code*/) { }
+        virtual void HandleGossipSelectOption(Player* /*pPlayer*/, uint32 /*sender*/, uint32 /*action*/, std::string /*code*/, uint32 /*menuId*/) { }
         /* Creature */
         virtual bool OnDummyEffect(Unit* /*pCaster*/, uint32 /*spellId*/, SpellEffectIndex /*effIndex*/, Creature* /*pTarget*/) { return false; }
         virtual bool OnGossipHello(Player* /*pPlayer*/, Creature* /*pCreature*/) { return false; }

@@ -491,6 +491,11 @@ class Eluna
         }
         template<> void Eluna::Push<Unit>(lua_State* L, Unit const* unit)
         {
+            if (!unit)
+            {
+                Push(L);
+                return;
+            }
             switch (unit->GetTypeId())
             {
                 case TYPEID_UNIT:
@@ -505,6 +510,11 @@ class Eluna
         }
         template<> void Eluna::Push<WorldObject>(lua_State*, WorldObject const* obj)
         {
+            if (!obj)
+            {
+                Push(L);
+                return;
+            }
             switch (obj->GetTypeId())
             {
                 case TYPEID_UNIT:
@@ -525,6 +535,11 @@ class Eluna
         }
         template<> void Eluna::Push<Object>(lua_State* L, Object const* obj)
         {
+            if (!obj)
+            {
+                Push(L);
+                return;
+            }
             switch (obj->GetTypeId())
             {
                 case TYPEID_UNIT:

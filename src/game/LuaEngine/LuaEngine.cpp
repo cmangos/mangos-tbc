@@ -569,6 +569,17 @@ void Eluna::ElunaBind::Insert(uint32 entryId, uint32 eventId, int funcRef)
 }
 
 EventMgr::EventMap EventMgr::LuaEvents;
+EventMgr::LuaEvent::~LuaEvent()
+{
+    if (events)
+    {
+        // Attempt to remove the pointer from LuaEvents
+        EventMap::const_iterator it = LuaEvents.find(events); // Get event set
+        if (it != LuaEvents.end())
+            LuaEvents[events].erase(this); // Remove pointer
+    }
+    luaL_unref(sEluna.L, LUA_REGISTRYINDEX, funcRef); // Free lua function ref
+}
 bool EventMgr::LuaEvent::Execute(uint64 time, uint32 diff)
 {
     sEluna.BeginCall(funcRef);

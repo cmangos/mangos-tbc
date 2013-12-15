@@ -451,24 +451,39 @@ struct EventMgr
         LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj) :
             events(_events), funcRef(_funcRef), delay(_delay), calls(_calls), obj(_obj)
         {
-            LuaEvents[_events].insert(this); // Able to access the event if we have the processor
+            if (_events)
+                LuaEvents[_events].insert(this); // Able to access the event if we have the processor
         }
+
+        ~LuaEvent();
 
         // Should never execute on dead events
         bool Execute(uint64 time, uint32 diff);
 
-        Object* obj;    // Owner of processor
+        Object* obj;    // Object to push
         int funcRef;    // Lua function reference ID, also used as event ID
         uint32 delay;   // Delay between event calls
-        uint32 calls;   // amount of calls to make, 0 for infinite
-        EventProcessor* events; // pointer to events
+        uint32 calls;   // Amount of calls to make, 0 for infinite
+        EventProcessor* events; // Pointer to events (holds the timed event)
     };
+
+    // Aborts all lua events
+    static void KillAllEvents(EventProcessor* events)
+    {
+        if (!events)
+            return;
+        EventMap::const_iterator it = LuaEvents.find(events); // Get event set
+        if (it == LuaEvents.end())
+            return;
+        for (EventSet::const_iterator itr = it->second.begin(); itr != it->second.end(); ++itr) // Loop events
+            (*itr)->to_Abort = true; // Abort event
+    }
 
     // Remove all timed events
     static void RemoveEvents()
     {
         for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end(); ++it) // loop processors
-            it->first->KillAllEvents(false); // remove events
+            KillAllEvents(it->first);
         LuaEvents.clear(); // remove pointer sets
     }
 
@@ -477,7 +492,7 @@ struct EventMgr
     {
         if (!events)
             return;
-        events->KillAllEvents(false); // remove events
+        KillAllEvents(events);
         LuaEvents.erase(events); // remove pointer set
     }
 
@@ -514,7 +529,7 @@ struct EventMgr
         if (!luaEvent)
             return false;
         luaEvent->to_Abort = true; // Set to remove on next call
-        LuaEvents[events].erase(luaEvent); // Remove pointer
+        // LuaEvents[events].erase(luaEvent); // Remove pointer
         return true;
     }
 

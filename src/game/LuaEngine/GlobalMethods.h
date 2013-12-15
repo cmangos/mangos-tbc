@@ -454,7 +454,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // CreateLuaEvent(function, delay, calls) - Creates a timed event. Calls set to 0 will call inf returns eventID.
     int CreateLuaEvent(lua_State* L)
     {
         luaL_checktype(L, 1, LUA_TFUNCTION);
@@ -463,31 +462,30 @@ namespace LuaGlobalFunctions
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        sEluna.LuaWorldAI->ScriptEventCreate(functionRef, delay, repeats);
-        sEluna.Push(L, functionRef);
+        sEluna.Push(L, EventMgr::AddEvent(&sEluna.WorldEvents, functionRef, delay, repeats));
         return 1;
     }
 
-    // DestroyEventByID(eventID) - removes all global lua events with eventid
-    int DestroyEventByID(lua_State* L)
+    int RemoveEventById(lua_State* L)
     {
-        int functionRef = luaL_checkinteger(L, 1);
-        sEluna.LuaWorldAI->ScriptEventCancel(functionRef);
+        int eventId = luaL_checkinteger(L, 1);
+        bool all_Events = luaL_optbool(L, 1, false);
+
+        if (all_Events)
+            EventMgr::RemoveEvent(eventId);
+        else
+            EventMgr::RemoveEvent(&sEluna.WorldEvents, eventId);
         return 0;
     }
 
-    // DestroyEvents([all_events]) - removes all global lua events, if all_events is true, removes creature and gameobject events too
-    int DestroyEvents(lua_State* L)
+    int RemoveEvents(lua_State* L)
     {
         bool all_Events = luaL_optbool(L, 1, false);
 
         if (all_Events)
-        {
-            Eluna::LuaEventMap::ScriptEventsResetAll();
-            Eluna::LuaEventData::RemoveAll();
-        }
+            EventMgr::RemoveEvents();
         else
-            sEluna.LuaWorldAI->ScriptEventsReset();
+            EventMgr::RemoveEvents(&sEluna.WorldEvents);
         return 0;
     }
 

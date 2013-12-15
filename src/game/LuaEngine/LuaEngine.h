@@ -439,6 +439,96 @@ class ElunaTemplate
         }
 };
 
+struct EventMgr
+{
+    struct LuaEvent;
+    typedef std::set<LuaEvent*> EventSet;
+    typedef std::map<EventProcessor*, EventSet> EventMap;
+    static EventMap LuaEvents; // LuaEvents[events] = {LuaEvents}
+
+    struct LuaEvent : public BasicEvent
+    {
+        LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj) :
+            events(_events), funcRef(_funcRef), delay(_delay), calls(_calls), obj(_obj)
+        {
+            LuaEvents[_events].insert(this); // Able to access the event if we have the processor
+        }
+
+        // Should never execute on dead events
+        bool Execute(uint64 time, uint32 diff);
+
+        Object* obj;    // Owner of processor
+        int funcRef;    // Lua function reference ID, also used as event ID
+        uint32 delay;   // Delay between event calls
+        uint32 calls;   // amount of calls to make, 0 for infinite
+        EventProcessor* events; // pointer to events
+    };
+
+    // Remove all timed events
+    static void RemoveEvents()
+    {
+        for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end(); ++it) // loop processors
+            it->first->KillAllEvents(false); // remove events
+        LuaEvents.clear(); // remove pointer sets
+    }
+
+    // Remove timed events from processor
+    static void RemoveEvents(EventProcessor* events)
+    {
+        if (!events)
+            return;
+        events->KillAllEvents(false); // remove events
+        LuaEvents.erase(events); // remove pointer set
+    }
+
+    // Adds a new event to the processor and returns the eventID or 0 (Never negative)
+    static int AddEvent(EventProcessor* events, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
+    {
+        if (!events || funcRef <= 0) // If funcRef <= 0, function reference failed
+            return 0; // on fail always return 0. funcRef can be negative.
+        events->AddEvent(new LuaEvent(events, funcRef, delay, calls, obj), events->CalculateTime(delay));
+        return funcRef; // return the event ID
+    }
+
+    // Finds the event that has the ID from events
+    static LuaEvent* GetEvent(EventProcessor* events, int eventId)
+    {
+        if (!events || !eventId)
+            return NULL;
+        EventMap::const_iterator it = LuaEvents.find(events); // Get event set
+        if (it == LuaEvents.end())
+            return NULL;
+        for (EventSet::const_iterator itr = it->second.begin(); itr != it->second.end(); ++itr) // Loop events
+            if ((*itr) && (*itr)->funcRef == eventId) // Check if the event has our ID
+                return *itr; // Return the event if found
+        return NULL;
+    }
+
+    // Remove the event with the eventId from processor
+    // Returns true if event is removed
+    static bool RemoveEvent(EventProcessor* events, int eventId) // eventId = funcRef
+    {
+        if (!events || !eventId)
+            return false;
+        LuaEvent* luaEvent = GetEvent(events, eventId);
+        if (!luaEvent)
+            return false;
+        luaEvent->to_Abort = true; // Set to remove on next call
+        LuaEvents[events].erase(luaEvent); // Remove pointer
+        return true;
+    }
+
+    // Removes the eventId from all events
+    static void RemoveEvent(int eventId)
+    {
+        if (!eventId)
+            return;
+        for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end(); ++it) // loop processors
+            if (RemoveEvent(it->first, eventId))
+                break; // succesfully remove the event, stop loop.
+    }
+};
+
 class Eluna
 {
     public:
@@ -447,11 +537,15 @@ class Eluna
 
         class LuaEventMap;
         struct LuaEventData;
+        struct LuaEventHandler;
+        class Eluna_WorldScript;
         class Eluna_CreatureScript;
         class Eluna_GameObjectScript;
+        // Eluna_WorldScript* LuaWorldAI;
         Eluna_CreatureScript* LuaCreatureAI;
         Eluna_GameObjectScript* LuaGameObjectAI;
-        LuaEventMap* LuaWorldAI;
+        EventProcessor WorldEvents; // Updated on OnWorldUpdate hook tick
+        EventProcessor GameobjectEvents; // Updated on OnWorldUpdate hook tick
 
         typedef std::map<int, int> ElunaBindingMap;
         typedef UNORDERED_MAP<uint32, ElunaBindingMap> ElunaEntryMap;
@@ -580,7 +674,7 @@ class Eluna
             L = NULL;
             LuaCreatureAI = NULL;
             LuaGameObjectAI = NULL;
-            LuaWorldAI = NULL;
+            // LuaWorldAI = NULL;
 
             for (int i = 0; i < SERVER_EVENT_COUNT; ++i)
             {
@@ -704,65 +798,10 @@ class Eluna
 };
 #define sEluna MaNGOS::Singleton<Eluna>::Instance()
 
-class Eluna::LuaEventMap
-{
-    public:
-        LuaEventMap() { }
-        ~LuaEventMap() { ScriptEventsReset(); }
-
-        struct eventData
-        {
-            int funcRef; uint32 delay; uint32 calls;
-            eventData(int _funcRef, uint32 _delay, uint32 _calls) :
-                funcRef(_funcRef), delay(_delay), calls(_calls) {}
-        };
-
-        typedef std::multimap<uint32, eventData> EventStore;
-
-        virtual void OnScriptEvent(int funcRef, uint32 delay, uint32 calls) { }
-
-        static void ScriptEventsResetAll(); // Unregisters and stops all timed events
-        void ScriptEventsReset();
-        void ScriptEventCancel(int funcRef);
-        void ScriptEventsExecute();
-
-        // Gets the event map saved for a guid
-        static LuaEventMap* GetEvents(WorldObject* obj)
-        {
-            if (!obj)
-                return NULL;
-            UNORDERED_MAP<uint64, LuaEventMap*>::const_iterator it = LuaEventMaps.find(obj->GetObjectGuid().GetRawValue());
-            if (it != LuaEventMaps.end())
-                return it->second;
-            return NULL;
-        }
-
-        void ScriptEventsUpdate(uint32 time)
-        {
-            _time += time;
-        }
-
-        bool ScriptEventsEmpty() const
-        {
-            return _eventMap.empty();
-        }
-
-        void ScriptEventCreate(int funcRef, uint32 delay, uint32 calls)
-        {
-            _eventMap.insert(EventStore::value_type(_time + delay, eventData(funcRef, delay, calls)));
-        }
-
-        static UNORDERED_MAP<uint64, LuaEventMap*> LuaEventMaps; // timed events
-
-    private:
-        EventStore _eventMap;
-        uint32 _time;
-};
-
-/*class Eluna::Eluna_WorldScript : public WorldScript, public Eluna::LuaEventMap
+/*class Eluna::Eluna_WorldScript : public WorldScript
 {
 public:
-    Eluna_WorldScript() : WorldScript("SmartEluna_WorldScript"), LuaEventMap() { }
+    Eluna_WorldScript() : WorldScript("SmartEluna_WorldScript") { }
     ~Eluna_WorldScript() { }
 
     void OnOpenStateChange(bool open)
@@ -827,8 +866,6 @@ public:
 
     void OnUpdate(uint32 diff)
     {
-        ScriptEventsUpdate(diff);
-        ScriptEventsExecute();
         for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].begin();
             itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
         {
@@ -1293,9 +1330,7 @@ class Eluna::Eluna_CreatureScript
         {
             if (!sEluna.CreatureEventBindings->GetBindMap(creature->GetEntry()))
                 return NULL;
-
-            ScriptReactorAI* luaReactorAI = new ScriptReactorAI(creature);
-            return luaReactorAI;
+            return new ScriptReactorAI(creature);
         }
 };
 
@@ -1303,18 +1338,15 @@ class Eluna::Eluna_GameObjectScript
 {
     public:
 
-        struct ScriptGameObjectAI : public GameObjectAI, public Eluna::LuaEventMap
+        struct ScriptGameObjectAI : public GameObjectAI
         {
-            ScriptGameObjectAI(GameObject* _go) : GameObjectAI(_go), LuaEventMap() { }
+            ScriptGameObjectAI(GameObject* _go) : GameObjectAI(_go) { }
             ~ScriptGameObjectAI()
             {
-                LuaEventMap::LuaEventMaps.erase(go->GetObjectGuid().GetRawValue());
             }
 
             void UpdateAI(uint32 const diff)
             {
-                ScriptEventsUpdate(diff);
-                ScriptEventsExecute();
                 int bind = sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_AIUPDATE);
                 if (!bind)
                     return;
@@ -1349,89 +1381,8 @@ class Eluna::Eluna_GameObjectScript
         {
             if (!sEluna.GameObjectEventBindings->GetBindMap(gameObject->GetEntry()))
                 return NULL;
-
-            ScriptGameObjectAI* luaGameObjectAI = new ScriptGameObjectAI(gameObject);
-            LuaEventMap::LuaEventMaps[gameObject->GetObjectGuid().GetRawValue()] = luaGameObjectAI;
-            return luaGameObjectAI;
+            return new ScriptGameObjectAI(gameObject);
         }
-};
-
-struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::eventData
-{
-    static UNORDERED_MAP<int, LuaEventData*> LuaEvents;
-    static UNORDERED_MAP<uint64, std::set<int> > EventIDs;
-    Unit* _unit;
-    uint64 GUID;
-
-    LuaEventData(int funcRef, uint32 delay, uint32 calls, Unit* unit) :
-        _unit(unit), GUID(unit->GetObjectGuid().GetRawValue()), Eluna::LuaEventMap::eventData(funcRef, delay, calls)
-    {
-        LuaEvents[funcRef] = this;
-        EventIDs[unit->GetObjectGuid().GetRawValue()].insert(funcRef);
-    }
-
-    ~LuaEventData()
-    {
-        luaL_unref(sEluna.L, LUA_REGISTRYINDEX, funcRef);
-        LuaEvents.erase(funcRef);
-        EventIDs[GUID].erase(funcRef);
-    }
-
-    // eventID = funcref
-    static void RemoveEvent(int eventID)
-    {
-        if (LuaEvents.find(eventID) != LuaEvents.end())
-        {
-            LuaEvents[eventID]->to_Abort = true; // delete on next cycle
-            LuaEvents.erase(eventID);
-        }
-    }
-
-    static void RemoveAll()
-    {
-        for (UNORDERED_MAP<uint64, std::set<int> >::const_iterator it = EventIDs.begin(); it != EventIDs.end(); ++it)
-        {
-            if (it->second.empty())
-                continue;
-            for (std::set<int>::const_iterator itr = it->second.begin(); itr != it->second.end(); ++itr)
-                RemoveEvent(*itr);
-        }
-        LuaEvents.clear();
-        EventIDs.clear();
-    }
-
-    static void RemoveAll(Unit* unit)
-    {
-        if (!unit)
-            return;
-        // unit->m_Events.KillAllEvents(true); // should delete the objects
-        for (std::set<int>::const_iterator it = EventIDs[unit->GetObjectGuid().GetRawValue()].begin(); it != EventIDs[unit->GetObjectGuid().GetRawValue()].end(); ++it)
-            RemoveEvent(*it);
-        EventIDs.erase(unit->GetObjectGuid().GetRawValue());
-    }
-
-    static void Remove(uint64 guid, int eventID)
-    {
-        RemoveEvent(eventID);
-        EventIDs[guid].erase(eventID);
-    }
-
-    bool Execute(uint64 time, uint32 diff) // Should NEVER execute on dead events
-    {
-        sEluna.BeginCall(funcRef);
-        sEluna.Push(sEluna.L, funcRef);
-        sEluna.Push(sEluna.L, delay);
-        sEluna.Push(sEluna.L, calls);
-        sEluna.Push(sEluna.L, _unit);
-        sEluna.ExecuteCall(4, 0);
-        if (calls && !--calls) // dont repeat anymore
-        {
-            Remove(GUID, funcRef);
-            return true; // destory event
-        }
-        _unit->m_Events.AddEvent(this, _unit->m_Events.CalculateTime(delay));
-        return false; // dont destory event
-    }
 };
 
 class LuaTaxiMgr

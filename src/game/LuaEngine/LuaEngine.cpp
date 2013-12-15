@@ -66,8 +66,7 @@ void Eluna::StartEluna(bool restart)
         if (L)
         {
             // Unregisters and stops all timed events
-            LuaEventMap::ScriptEventsResetAll();
-            LuaEventData::RemoveAll();
+            EventMgr::RemoveEvents();
 
             // Remove bindings
             for (std::map<int, std::vector<int> >::iterator itr = ServerEventBindings.begin(); itr != ServerEventBindings.end(); ++itr)
@@ -569,73 +568,20 @@ void Eluna::ElunaBind::Insert(uint32 entryId, uint32 eventId, int funcRef)
         Bindings[entryId][eventId] = funcRef;
 }
 
-UNORDERED_MAP<uint64, Eluna::LuaEventMap*> Eluna::LuaEventMap::LuaEventMaps;
-UNORDERED_MAP<int, Eluna::LuaEventData*> Eluna::LuaEventData::LuaEvents;
-UNORDERED_MAP<uint64, std::set<int> > Eluna::LuaEventData::EventIDs;
-
-void Eluna::LuaEventMap::ScriptEventsResetAll()
+EventMgr::EventMap EventMgr::LuaEvents;
+bool EventMgr::LuaEvent::Execute(uint64 time, uint32 diff)
 {
-    // GameObject events reset
-    if (!LuaEventMaps.empty())
-        for (UNORDERED_MAP<uint64, LuaEventMap*>::const_iterator itr = LuaEventMaps.begin(); itr != LuaEventMaps.end(); ++itr)
-            if (itr->second)
-                itr->second->ScriptEventsReset();
-    // Global events reset
-    sEluna.LuaWorldAI->ScriptEventsReset();
-}
-void Eluna::LuaEventMap::ScriptEventsReset()
-{
-    _time = 0;
-    if (ScriptEventsEmpty())
-        return;
-    for (EventStore::const_iterator itr = _eventMap.begin(); itr != _eventMap.end();)
-    {
-        luaL_unref(sEluna.L, LUA_REGISTRYINDEX, itr->second.funcRef);
-        ++itr;
-    }
-    _eventMap.clear();
-}
-void Eluna::LuaEventMap::ScriptEventCancel(int funcRef)
-{
-    if (ScriptEventsEmpty())
-        return;
-
-    for (EventStore::iterator itr = _eventMap.begin(); itr != _eventMap.end();)
-    {
-        if (funcRef == itr->second.funcRef)
-        {
-            luaL_unref(sEluna.L, LUA_REGISTRYINDEX, itr->second.funcRef);
-            _eventMap.erase(itr++);
-        }
-        else
-            ++itr;
-    }
-}
-void Eluna::LuaEventMap::ScriptEventsExecute()
-{
-    if (ScriptEventsEmpty())
-        return;
-
-    for (EventStore::iterator itr = _eventMap.begin(); itr != _eventMap.end();)
-    {
-        if (itr->first > _time)
-        {
-            ++itr;
-            continue;
-        }
-
-        OnScriptEvent(itr->second.funcRef, itr->second.delay, itr->second.calls);
-
-        if (itr->second.calls != 1)
-        {
-            if (itr->second.calls > 1)
-                itr->second.calls = itr->second.calls - 1;
-            _eventMap.insert(EventStore::value_type(_time + itr->second.delay, itr->second));
-        }
-        else
-            luaL_unref(sEluna.L, LUA_REGISTRYINDEX, itr->second.funcRef);
-        _eventMap.erase(itr++);
-    }
+    sEluna.BeginCall(funcRef);
+    sEluna.Push(sEluna.L, funcRef);
+    sEluna.Push(sEluna.L, delay);
+    sEluna.Push(sEluna.L, calls);
+    sEluna.Push(sEluna.L, obj);
+    if (calls == 1)
+        LuaEvents[events].erase(this); // Remove pointer to event since its no longer run
+    else
+        events->AddEvent(this, events->CalculateTime(delay)); // Reschedule before calling incase RemoveEvents used
+    sEluna.ExecuteCall(4, 0);
+    return !(!calls || --calls); // Destory (true) event if not run
 }
 
 // Lua taxi helper functions

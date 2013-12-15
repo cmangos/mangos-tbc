@@ -27,8 +27,8 @@ class Eluna_HookScript : public HookScript
         // misc
         void OnWorldUpdate(uint32 diff)
         {
-            sEluna.LuaWorldAI->ScriptEventsUpdate(diff);
-            sEluna.LuaWorldAI->ScriptEventsExecute();
+            sEluna.WorldEvents.Update(diff);
+            sEluna.GameobjectEvents.Update(diff);
             for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].begin();
                 itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
             {
@@ -1270,7 +1270,7 @@ void Eluna::AddScriptHooks()
     // AI
     LuaCreatureAI = new Eluna_CreatureScript;
     LuaGameObjectAI = new Eluna_GameObjectScript;
-    LuaWorldAI = new Eluna::LuaEventMap;
+    // LuaWorldAI = new Eluna_WorldScript;
     // Eluna Hooks
     new Eluna_HookScript;
 }

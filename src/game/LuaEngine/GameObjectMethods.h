@@ -186,47 +186,26 @@ namespace LuaGameObject
 
     int RegisterEvent(lua_State* L, GameObject* go)
     {
-        if (!go || !go->IsInWorld())
-            return 0;
-
         luaL_checktype(L, 1, LUA_TFUNCTION);
         uint32 delay = luaL_checkunsigned(L, 2);
         uint32 repeats = luaL_checkunsigned(L, 3);
 
         lua_settop(L, 1);
-        Eluna::LuaEventMap* eventMap = Eluna::LuaEventMap::GetEvents(go);
-        if (!eventMap)
-        {
-            luaL_error(L, "You need to use RegisterGameObjectEvent for the gameobject first");
-            return 0;
-        }
-
         int functionRef = lua_ref(L, true);
-        eventMap->ScriptEventCreate(functionRef, delay, repeats);
-        sEluna.Push(L, functionRef);
+        sEluna.Push(L, EventMgr::AddEvent(&sEluna.GameobjectEvents, functionRef, delay, repeats, go));
         return 1;
     }
 
     int RemoveEventById(lua_State* L, GameObject* go)
     {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        int eventID = luaL_checkinteger(L, 1);
-        Eluna::LuaEventMap* eventMap = Eluna::LuaEventMap::GetEvents(go);
-        if (eventMap)
-            eventMap->ScriptEventCancel(eventID);
+        int eventId = luaL_checkinteger(L, 1);
+        EventMgr::RemoveEvent(&sEluna.GameobjectEvents, eventId);
         return 0;
     }
 
     int RemoveEvents(lua_State* L, GameObject* go)
     {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        Eluna::LuaEventMap* eventMap = Eluna::LuaEventMap::GetEvents(go);
-        if (eventMap)
-            eventMap->ScriptEventsReset();
+        EventMgr::RemoveEvents(&sEluna.GameobjectEvents);
         return 0;
     }
 

@@ -1217,21 +1217,20 @@ namespace LuaUnit
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        unit->m_Events.AddEvent(new Eluna::LuaEventData(functionRef, delay, repeats, unit), unit->m_Events.CalculateTime(delay));
-        sEluna.Push(L, functionRef);
+        sEluna.Push(L, EventMgr::AddEvent(&unit->m_Events, functionRef, delay, repeats, unit));
         return 1;
     }
 
     int RemoveEventById(lua_State* L, Unit* unit)
     {
-        int eventID = luaL_checkinteger(L, 1);
-        Eluna::LuaEventData::Remove(unit->GetObjectGuid().GetRawValue(), eventID);
+        int eventId = luaL_checkinteger(L, 1);
+        EventMgr::RemoveEvent(&unit->m_Events, eventId);
         return 0;
     }
 
     int RemoveEvents(lua_State* L, Unit* unit)
     {
-        Eluna::LuaEventData::RemoveAll(unit);
+        EventMgr::RemoveEvents(&unit->m_Events);
         return 0;
     }
 

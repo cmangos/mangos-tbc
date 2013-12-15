@@ -231,7 +231,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetNativeDisplayId", &LuaUnit::SetNativeDisplayId},   // :SetNativeDisplayId(id)
     {"SetFacing", &LuaUnit::SetFacing},                     // :SetFacing(o) - Sets the Unit facing to arg
     //{"SetPhaseMask", &LuaUnit::SetPhaseMask},             // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
-    //{"SetWalk", &LuaUnit::SetWalk},                       // :SetWalk([enable]) - If false, creature runs, otherwise walks
     {"SetSpeed", &LuaUnit::SetSpeed},                       // :SetSpeed(type, speed[, forced]) - Sets speed for the movement type (0 = walk, 1 = run ..)
     //{"SetStunned", &LuaUnit::SetStunned},                 // :SetStunned([enable]) - Stuns or removes stun
     //{"SetRooted", &LuaUnit::SetRooted},                   // :SetRooted([enable]) - Roots or removes root
@@ -655,6 +654,7 @@ ElunaRegister<Creature> CreatureMethods[] =
     //{"SetLootMode", &LuaCreature::SetLootMode},           // :SetLootMode(lootMode) - Sets the lootmode
     {"SetNPCFlags", &LuaCreature::SetNPCFlags},             // :SetNPCFlags(flags) - Sets NPC flags
     {"SetDeathState", &LuaCreature::SetDeathState},         // :SetDeathState(value) - 0 = alive 1 = just died 2 = corpse 3 = dead
+    {"SetWalk", &LuaCreature::SetWalk},                     // :SetWalk([enable]) - If false, creature runs, otherwise walks
 
     // Booleans
     {"IsWorldBoss", &LuaCreature::IsWorldBoss},             // :IsWorldBoss() - Returns true if the creature is a WorldBoss, false if not

@@ -330,6 +330,14 @@ namespace LuaCreature
         return 0;
     }
 
+    int SetWalk(lua_State* L, Creature* creature) // TODO: Move same to Player ?
+    {
+        bool enable = luaL_optbool(L, 1, true);
+
+        creature->SetWalk(enable);
+        return 0;
+    }
+
     int SetReactState(lua_State* L, Creature* creature)
     {
         int32 state = luaL_checkinteger(L, 1);

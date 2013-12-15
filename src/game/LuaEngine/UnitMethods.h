@@ -588,17 +588,6 @@ namespace LuaUnit
         return 0;
     }
 
-    int SetWalk(lua_State* L, Unit* unit)
-    {
-        bool enable = luaL_optbool(L, 1, true);
-        // Todo, also separate to Player and Creature method files
-        /*if (Creature* creature = unit->ToCreature())
-        sEluna.Push(L, creature->SetWalk(enable));
-        else
-        sEluna.Push(L, unit->SetWalk(enable));*/
-        return 1;
-    }
-
     int SetSpeed(lua_State* L, Unit* unit)
     {
         uint32 type = luaL_checkunsigned(L, 1);

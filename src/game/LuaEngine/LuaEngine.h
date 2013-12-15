@@ -535,9 +535,6 @@ class Eluna
         friend class ScriptMgr;
         lua_State* L;
 
-        class LuaEventMap;
-        struct LuaEventData;
-        struct LuaEventHandler;
         class Eluna_WorldScript;
         class Eluna_CreatureScript;
         class Eluna_GameObjectScript;

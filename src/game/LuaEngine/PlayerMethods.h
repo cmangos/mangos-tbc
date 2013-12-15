@@ -1440,7 +1440,7 @@ namespace LuaPlayer
 
     int IsFalling(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->IsFalling());
+        sEluna.Push(L, player->IsFalling());
         return 1;
     }
 

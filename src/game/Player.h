@@ -952,6 +952,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         bool IsInWater() const override { return m_isInWater; }
         bool IsUnderWater() const override;
+        bool IsFalling() { return GetPositionZ() < m_lastFallZ; }
 
         void SendInitialPacketsBeforeAddToMap();
         void SendInitialPacketsAfterAddToMap();

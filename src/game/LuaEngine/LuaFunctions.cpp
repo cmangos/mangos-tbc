@@ -464,7 +464,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"AddItem", &LuaPlayer::AddItem},                       // :AddItem(id, amount) - Adds amount of item to player. Returns true if success and false if not
     {"IsInArenaTeam", &LuaPlayer::IsInArenaTeam},           // :IsInArenaTeam(type) - type : 0 = 2v2, 1 = 3v3, 2 = 5v5
     {"CanEquipItem", &LuaPlayer::CanEquipItem},             // :CanEquipItem(entry/item, slot) - Returns true if the player can equip given item/item entry
-    //{"IsFalling", &LuaPlayer::IsFalling},                 // :IsFalling() - Returns true if the unit is falling
+    {"IsFalling", &LuaPlayer::IsFalling},                 // :IsFalling() - Returns true if the unit is falling
     {"ToggleAFK", &LuaPlayer::ToggleAFK},                   // :ToggleAFK() - Toggles AFK state for player
     {"ToggleDND", &LuaPlayer::ToggleDND},                   // :ToggleDND() - Toggles DND state for player
     {"IsAFK", &LuaPlayer::IsAFK},                           // :IsAFK() - Returns true if the player is afk

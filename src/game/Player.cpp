@@ -3769,12 +3769,6 @@ bool Player::HasSpell(uint32 spell) const
             !itr->second.disabled);
 }
 
-bool Player::HasTalent(uint32 spell, uint8 spec) const
-{
-    PlayerTalentMap::const_iterator itr = m_talents[spec].find(spell);
-    return (itr != m_talents[spec].end() && itr->second.state != PLAYERSPELL_REMOVED);
-}
-
 bool Player::HasActiveSpell(uint32 spell) const
 {
     PlayerSpellMap::const_iterator itr = m_spells.find(spell);

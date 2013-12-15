@@ -805,14 +805,14 @@ namespace LuaPlayer
         return 1;
     }
 
-    int HasTalent(lua_State* L, Player* player)
+    int HasTalent(lua_State* L, Player* player) // Need to check for TBC
     {
-        uint32 talentId = luaL_checkunsigned(L, 1);
+        uint32 spellId = luaL_checkunsigned(L, 1);
         uint8 spec = luaL_checkunsigned(L, 2);
-        if (spec >= MAX_TALENT_SPEC_COUNT)
+        /*if (spec >= MAX_TALENT_SPECS)
             sEluna.Push(L, false);
         else
-            sEluna.Push(L, player->HasTalent(talentId, spec));
+            sEluna.Push(L, player->HasTalent(spellId, spec));*/
         return 1;
     }
 
@@ -940,7 +940,7 @@ namespace LuaPlayer
 
     int RegenerateHealth(lua_State* L, Player* player)
     {
-        player->RegenerateHealth(REGEN_TIME_FULL);
+        player->RegenerateHealth();
         return 0;
     }
 
@@ -950,7 +950,7 @@ namespace LuaPlayer
         if (power >= MAX_POWERS)
             return 0;
 
-        player->Regenerate((Powers)power, REGEN_TIME_FULL);
+        player->Regenerate((Powers)power);
         return 0;
     }
 

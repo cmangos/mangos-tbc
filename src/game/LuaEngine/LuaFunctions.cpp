@@ -491,7 +491,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasQuestForGO", &LuaPlayer::HasQuestForGO},           // :HasQuestForGO(entry) - Returns true if the player has the quest for the gameobject
     {"CanShareQuest", &LuaPlayer::CanShareQuest},           // :CanShareQuest(entry) - Returns true if the quest entry is shareable by the player
     //{"HasReceivedQuestReward", &LuaPlayer::HasReceivedQuestReward},                                           // :HasReceivedQuestReward(entry) - Returns true if the player has recieved the quest's reward
-    {"HasTalent", &LuaPlayer::HasTalent},                   // :HasTalent(spellid, spec) - Returns true if the player has the talent spell in given spec
+    //{"HasTalent", &LuaPlayer::HasTalent},                   // :HasTalent(spellid, spec) - Returns true if the player has the talent spell in given spec
     {"IsInSameGroupWith", &LuaPlayer::IsInSameGroupWith},   // :IsInSameGroupWith(player) - Returns true if the players are in the same group
     {"IsInSameRaidWith", &LuaPlayer::IsInSameRaidWith},     // :IsInSameRaidWith(player) - Returns true if the players are in the same raid
     {"IsGroupVisibleFor", &LuaPlayer::IsGroupVisibleFor},   // :IsGroupVisibleFor(player) - Player is group visible for the target

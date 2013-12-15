@@ -441,7 +441,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"SetQuestStatus", &LuaPlayer::SetQuestStatus},         // :SetQuestStatus(entry, status) - Sets the quest's status
     {"SetReputation", &LuaPlayer::SetReputation},           // :SetReputation(faction, value) - Sets the faction reputation for the player
     {"SetFreeTalentPoints", &LuaPlayer::SetFreeTalentPoints}, // :SetFreeTalentPoints(points) - Sets the amount of unused talent points
-    //{"SetGuildRank", &LuaPlayer::SetGuildRank},           // :SetGuildRank(rank) - Sets player's guild rank
+    {"SetGuildRank", &LuaPlayer::SetGuildRank},             // :SetGuildRank(rank) - Sets player's guild rank
     //{"SetMovement", &LuaPlayer::SetMovement},             // :SetMovement(type) - Sets player's movement type
     {"SetSkill", &LuaPlayer::SetSkill},                     // :SetSkill(skill, step, currVal, maxVal) - Sets the skill's boundaries and value
     {"SetFactionForRace", &LuaPlayer::SetFactionForRace},   // :SetFactionForRace(race) - Sets the faction by raceID
@@ -491,7 +491,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasQuestForGO", &LuaPlayer::HasQuestForGO},           // :HasQuestForGO(entry) - Returns true if the player has the quest for the gameobject
     {"CanShareQuest", &LuaPlayer::CanShareQuest},           // :CanShareQuest(entry) - Returns true if the quest entry is shareable by the player
     //{"HasReceivedQuestReward", &LuaPlayer::HasReceivedQuestReward},                                           // :HasReceivedQuestReward(entry) - Returns true if the player has recieved the quest's reward
-    //{"HasTalent", &LuaPlayer::HasTalent},                 // :HasTalent(spellid, spec) - Returns true if the player has the talent spell in given spec
+    {"HasTalent", &LuaPlayer::HasTalent},                   // :HasTalent(spellid, spec) - Returns true if the player has the talent spell in given spec
     {"IsInSameGroupWith", &LuaPlayer::IsInSameGroupWith},   // :IsInSameGroupWith(player) - Returns true if the players are in the same group
     {"IsInSameRaidWith", &LuaPlayer::IsInSameRaidWith},     // :IsInSameRaidWith(player) - Returns true if the players are in the same raid
     {"IsGroupVisibleFor", &LuaPlayer::IsGroupVisibleFor},   // :IsGroupVisibleFor(player) - Player is group visible for the target
@@ -540,7 +540,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"ResetTypeCooldowns", &LuaPlayer::ResetTypeCooldowns}, // :ResetTypeCooldowns(category, update(bool~optional)) - Resets all cooldowns for the spell category(type). If update is true, it will send WorldPacket SMSG_CLEAR_COOLDOWN to the player, else it will just clear the spellId from m_spellCooldowns. This is true by default
     {"ResetAllCooldowns", &LuaPlayer::ResetAllCooldowns},   // :ResetAllCooldowns() - Resets all spell cooldowns
     {"GiveLevel", &LuaPlayer::GiveLevel},                   // :GiveLevel(level) - Gives levels to the player
-    {"GiveXP", &LuaPlayer::GiveXP},                       // :GiveXP(xp[, victim, pureXP, triggerHook]) - Gives XP to the player. If pure is false, bonuses are count in. If triggerHook is false, GiveXp hook is not triggered.
+    {"GiveXP", &LuaPlayer::GiveXP},                         // :GiveXP(xp[, victim, pureXP, triggerHook]) - Gives XP to the player. If pure is false, bonuses are count in. If triggerHook is false, GiveXp hook is not triggered.
     //{"RemovePet", &LuaPlayer::RemovePet},                 // :RemovePet([mode, returnreagent]) - Removes the player's pet. Mode determines if the pet is saved and how
     //{"SummonPet", &LuaPlayer::SummonPet},                 // :SummonPet(entry, x, y, z, o, petType, despwtime) - Summons a pet for the player
     {"Say", &LuaPlayer::Say},                               // :Say(text, lang) - The player says the text
@@ -560,8 +560,8 @@ ElunaRegister<Player> PlayerMethods[] =
     {"TalkedToCreature", &LuaPlayer::TalkedToCreature},     // :TalkedToCreature(npcEntry, creature) - Satisfies creature talk objective for the player
     //{"ResetPetTalents", &LuaPlayer::ResetPetTalents},     // :ResetPetTalents() - Resets player's pet's talents
     {"RegenerateAll", &LuaPlayer::RegenerateAll},           // :RegenerateAll() - Regenerates all player's powers
-    //{"Regenerate", &LuaPlayer::Regenerate},               // :Regenerate(powerType) - Regenerates the given power type
-    //{"RegenerateHealth", &LuaPlayer::RegenerateHealth},   // :RegenerateHealth() - Regenerates health
+    {"Regenerate", &LuaPlayer::Regenerate},                 // :Regenerate(powerType) - Regenerates the given power type
+    {"RegenerateHealth", &LuaPlayer::RegenerateHealth},     // :RegenerateHealth() - Regenerates health
     {"AddComboPoints", &LuaPlayer::AddComboPoints},         // :AddComboPoints(target, count[, spell]) - Adds combo points to the target for the player
     //{"GainSpellComboPoints", &LuaPlayer::GainSpellComboPoints},                                               // :GainSpellComboPoints(amount) - Player gains spell combo points
     {"ClearComboPoints", &LuaPlayer::ClearComboPoints},     // :ClearComboPoints() - Clears player's combo points
@@ -604,7 +604,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"RemovedInsignia", &LuaPlayer::RemovedInsignia},       // :RemovedInsignia(looter) - Looter removes the player's corpse, looting the player and replacing with lootable bones
     {"SendGuildInvite", &LuaPlayer::SendGuildInvite},       // :SendGuildInvite(player) - Sends a guild invite to the specific player
     {"CreateCorpse", &LuaPlayer::CreateCorpse},             // :CreateCorpse() - Creates the player's corpse
-    //{"Mute", &LuaUnit::Mute},                             // :Mute(time[, reason]) - Mutes the player for given time in seconds.
+    {"Mute", &LuaPlayer::Mute},                             // :Mute(time[, reason]) - Mutes the player for given time in seconds.
     {"SummonPlayer", &LuaPlayer::SummonPlayer},             // :SummonPlayer(player, map, x, y, z, zoneId[, delay]) - Sends a popup to the player asking if he wants to be summoned if yes, teleported to coords. ZoneID defines the location name shown in the popup Delay is the time until the popup closes automatically.
     {"SaveToDB", &LuaPlayer::SaveToDB},                     // :SaveToDB() - Saves to database
 

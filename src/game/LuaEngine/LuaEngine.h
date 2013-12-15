@@ -451,6 +451,7 @@ struct EventMgr
         LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj) :
             events(_events), funcRef(_funcRef), delay(_delay), calls(_calls), obj(_obj)
         {
+            hasObject = _obj;
             if (_events)
                 LuaEvents[_events].insert(this); // Able to access the event if we have the processor
         }
@@ -460,6 +461,7 @@ struct EventMgr
         // Should never execute on dead events
         bool Execute(uint64 time, uint32 diff);
 
+        bool hasObject; // Dont call event if object no longer exists
         Object* obj;    // Object to push
         int funcRef;    // Lua function reference ID, also used as event ID
         uint32 delay;   // Delay between event calls

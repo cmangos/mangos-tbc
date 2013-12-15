@@ -582,15 +582,15 @@ EventMgr::LuaEvent::~LuaEvent()
 }
 bool EventMgr::LuaEvent::Execute(uint64 time, uint32 diff)
 {
+    if (hasObject && !obj) // interrupt event if object doesnt exist anymore and should exist.
+        return true;
+    if (calls != 1)
+        events->AddEvent(this, events->CalculateTime(delay)); // Reschedule before calling incase RemoveEvents used
     sEluna.BeginCall(funcRef);
     sEluna.Push(sEluna.L, funcRef);
     sEluna.Push(sEluna.L, delay);
     sEluna.Push(sEluna.L, calls);
     sEluna.Push(sEluna.L, obj);
-    if (calls == 1)
-        LuaEvents[events].erase(this); // Remove pointer to event since its no longer run
-    else
-        events->AddEvent(this, events->CalculateTime(delay)); // Reschedule before calling incase RemoveEvents used
     sEluna.ExecuteCall(4, 0);
     return !(!calls || --calls); // Destory (true) event if not run
 }

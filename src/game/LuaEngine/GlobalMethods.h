@@ -487,7 +487,7 @@ namespace LuaGlobalFunctions
             Eluna::LuaEventData::RemoveAll();
         }
         else
-        sEluna.LuaWorldAI->ScriptEventsReset();
+            sEluna.LuaWorldAI->ScriptEventsReset();
         return 0;
     }
 

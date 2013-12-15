@@ -752,7 +752,7 @@ class Eluna::LuaEventMap
             _eventMap.insert(EventStore::value_type(_time + delay, eventData(funcRef, delay, calls)));
         }
 
-        static UNORDERED_MAP<uint64, LuaEventMap*> LuaEventMaps; // Creature and gameobject timed events
+        static UNORDERED_MAP<uint64, LuaEventMap*> LuaEventMaps; // timed events
 
     private:
         EventStore _eventMap;
@@ -1377,6 +1377,16 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
         EventIDs[GUID].erase(funcRef);
     }
 
+    // eventID = funcref
+    static void RemoveEvent(int eventID)
+    {
+        if (LuaEvents.find(eventID) != LuaEvents.end())
+        {
+            LuaEvents[eventID]->to_Abort = true; // delete on next cycle
+            LuaEvents.erase(eventID);
+        }
+    }
+
     static void RemoveAll()
     {
         for (UNORDERED_MAP<uint64, std::set<int> >::const_iterator it = EventIDs.begin(); it != EventIDs.end(); ++it)
@@ -1384,15 +1394,7 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
             if (it->second.empty())
                 continue;
             for (std::set<int>::const_iterator itr = it->second.begin(); itr != it->second.end(); ++itr)
-            {
-                if (LuaEvents.find(*itr) == LuaEvents.end())
-                    continue;
-                if (LuaEvents[*itr]->_unit)
-                {
-                    LuaEvents[*itr]->_unit->m_Events.KillAllEvents(true);
-                    break;
-                }
-            }
+                RemoveEvent(*itr);
         }
         LuaEvents.clear();
         EventIDs.clear();
@@ -1404,23 +1406,13 @@ struct Eluna::LuaEventData : public BasicEvent, public Eluna::LuaEventMap::event
             return;
         // unit->m_Events.KillAllEvents(true); // should delete the objects
         for (std::set<int>::const_iterator it = EventIDs[unit->GetObjectGuid().GetRawValue()].begin(); it != EventIDs[unit->GetObjectGuid().GetRawValue()].end(); ++it)
-        {
-            if (LuaEvents.find(*it) != LuaEvents.end())
-            {
-                LuaEvents[*it]->to_Abort = true; // delete on next cycle
-                LuaEvents.erase(*it);
-            }
-        }
+            RemoveEvent(*it);
         EventIDs.erase(unit->GetObjectGuid().GetRawValue());
     }
 
     static void Remove(uint64 guid, int eventID)
     {
-        if (LuaEvents.find(eventID) != LuaEvents.end())
-        {
-            LuaEvents[eventID]->to_Abort = true; // delete on next cycle
-            LuaEvents.erase(eventID);
-        }
+        RemoveEvent(eventID);
         EventIDs[guid].erase(eventID);
     }
 

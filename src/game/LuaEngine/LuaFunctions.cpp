@@ -280,6 +280,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsInAccessiblePlaceFor", &LuaUnit::IsInAccessiblePlaceFor},                                           // :IsInAccessiblePlaceFor(creature) - Returns if the unit is in an accessible place for the specified creature
     {"IsVendor", &LuaUnit::IsVendor},                       // :IsVendor() - Returns if the unit is a vendor or not
     {"IsWithinLoS", &LuaUnit::IsWithinLoS},                 // :IsWithinLoS(x, y, z)
+    {"IsRooted", &LuaUnit::IsRooted},                       // :IsRooted()
+    {"IsFullHealth", &LuaUnit::IsFullHealth},               // :IsFullHealth() - Returns if the unit is full health
 
     // Other
     {"RegisterEvent", &LuaUnit::RegisterEvent},             // :RegisterEvent(function, delay, calls)

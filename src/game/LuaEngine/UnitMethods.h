@@ -114,6 +114,18 @@ namespace LuaUnit
         return 1;
     }
 
+    int IsRooted(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->IsRooted());
+        return 1;
+    }
+
+    int IsFullHealth(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->IsFullHealth());
+        return 1;
+    }
+
     int IsWithinDistInMap(lua_State* L, Unit* unit)
     {
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);

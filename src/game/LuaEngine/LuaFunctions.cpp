@@ -265,6 +265,14 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsInWater", &LuaUnit::IsInWater},                     // :IsInWater() - Returns true if the unit is in water
     {"IsUnderWater", &LuaUnit::IsUnderWater},               // :IsUnderWater() - Returns true if the unit is under water
     {"IsAuctioneer", &LuaUnit::IsAuctioneer},               // :IsAuctioneer()
+    {"IsGuildMaster", &LuaUnit::IsGuildMaster},             // :IsGuildMaster()
+    {"IsInnkeeper", &LuaUnit::IsInnkeeper},                 // :IsInnkeeper()
+    {"IsTrainer", &LuaUnit::IsTrainer},                     // :IsTrainer()
+    {"IsGossip", &LuaUnit::IsGossip},                       // :IsGossip()
+    {"IsTaxi", &LuaUnit::IsTaxi},                           // :IsTaxi()
+    {"IsSpiritHealer", &LuaUnit::IsSpiritHealer},           // :IsSpiritHealer()
+    {"IsSpiritGuide", &LuaUnit::IsSpiritGuide},             // :IsSpiritGuide()
+    {"IsTabardDesigner", &LuaUnit::IsTabardDesigner},       // :IsSpiritGuide()
     {"HealthBelowPct", &LuaUnit::HealthBelowPct},           // :HealthBelowPct(int32 pct)
     {"HealthAbovePct", &LuaUnit::HealthAbovePct},           // :HealthAbovePct(int32 pct)
     {"IsMounted", &LuaUnit::IsMounted},                     // :IsMounted()

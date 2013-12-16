@@ -280,6 +280,54 @@ namespace LuaUnit
         return 1;
     }
 
+    int IsGuildMaster(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isGuildMaster());
+        return 1;
+    }
+
+    int IsInnkeeper(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isInnkeeper());
+        return 1;
+    }
+
+    int IsTrainer(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isTrainer());
+        return 1;
+    }
+
+    int IsGossip(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isGossip());
+        return 1;
+    }
+
+    int IsTaxi(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isTaxi());
+        return 1;
+    }
+
+    int IsSpiritHealer(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isSpiritHealer());
+        return 1;
+    }
+
+    int IsSpiritGuide(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isSpiritGuide());
+        return 1;
+    }
+
+    int IsTabardDesigner(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isTabardDesigner());
+        return 1;
+    }
+
     int HealthBelowPct(lua_State* L, Unit* unit)
     {
         sEluna.Push(L, unit->HealthBelowPct(luaL_checkint(L, 1)));

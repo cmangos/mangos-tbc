@@ -249,6 +249,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetCharmerGUID", &LuaUnit::SetCharmerGUID},           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
     {"SetPetGUID", &LuaUnit::SetPetGUID},                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
     //{"SetCritterGUID", &LuaUnit::SetCritterGUID},         // :SetCritterGUID(uint64 guid) - Sets the critter's guid
+    {"SetWaterWalk", &LuaUnit::SetWaterWalk},               // :SetWaterWalk([enable]) - Sets WaterWalk on or off
 
     // Boolean
     {"IsAlive", &LuaUnit::IsAlive},                         // :IsAlive()
@@ -642,6 +643,7 @@ ElunaRegister<Creature> CreatureMethods[] =
 
     // Setters
     //{"SetHover", &LuaCreature::SetHover},                 // :SetHover([enable]) - Sets hover on or off
+    {"SetLevitate", &LuaCreature::SetLevitate},             // :SetLevitate([enable]) - Sets Levitate on or off
     //{"SetDisableGravity", &LuaCreature::SetDisableGravity},     // :SetDisableGravity([disable, packetOnly]) - Disables or enables gravity
     {"SetReactState", &LuaCreature::SetReactState},         // :SetReactState(state) - Sets react state
     {"SetNoCallAssistance", &LuaCreature::SetNoCallAssistance}, // :SetNoCallAssistance([noCall]) - Sets call assistance to false or true

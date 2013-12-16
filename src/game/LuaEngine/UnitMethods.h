@@ -947,6 +947,14 @@ namespace LuaUnit
         return 0;
     }
 
+    int SetWaterWalk(lua_State* L, Unit* unit)
+    {
+        bool enable = luaL_optbool(L, 1, true);
+
+        unit->SetWaterWalk(enable);
+        return 0;
+    }
+
     int IsAlive(lua_State* L, Unit* unit)
     {
         sEluna.Push(L, unit->isAlive());

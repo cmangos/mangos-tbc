@@ -389,6 +389,14 @@ namespace LuaCreature
         return 1;
     }
 
+    int SetLevitate(lua_State* L, Creature* creature)
+    {
+        bool enable = luaL_optbool(L, 1, true);
+
+        creature->SetLevitate(enable);
+        return 0;
+    }
+
     int IsInEvadeMode(lua_State* L, Creature* creature)
     {
         sEluna.Push(L, creature->IsInEvadeMode());

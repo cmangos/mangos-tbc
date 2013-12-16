@@ -328,6 +328,18 @@ namespace LuaUnit
         return 1;
     }
 
+    int IsServiceProvider(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isServiceProvider());
+        return 1;
+    }
+
+    int IsSpiritService(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->isSpiritService());
+        return 1;
+    }
+
     int HealthBelowPct(lua_State* L, Unit* unit)
     {
         sEluna.Push(L, unit->HealthBelowPct(luaL_checkint(L, 1)));

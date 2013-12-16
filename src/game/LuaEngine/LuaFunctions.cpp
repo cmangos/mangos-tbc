@@ -273,6 +273,8 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsSpiritHealer", &LuaUnit::IsSpiritHealer},           // :IsSpiritHealer()
     {"IsSpiritGuide", &LuaUnit::IsSpiritGuide},             // :IsSpiritGuide()
     {"IsTabardDesigner", &LuaUnit::IsTabardDesigner},       // :IsSpiritGuide()
+    {"IsServiceProvider", &LuaUnit::IsServiceProvider},     // :IsServiceProvider()
+    {"IsSpiritService", &LuaUnit::IsSpiritService},         // :IsSpiritService()
     {"HealthBelowPct", &LuaUnit::HealthBelowPct},           // :HealthBelowPct(int32 pct)
     {"HealthAbovePct", &LuaUnit::HealthAbovePct},           // :HealthAbovePct(int32 pct)
     {"IsMounted", &LuaUnit::IsMounted},                     // :IsMounted()

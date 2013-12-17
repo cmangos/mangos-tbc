@@ -540,3 +540,71 @@ void HookMgr::OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, 
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnRelocate(transport, waypointId, mapId, x, y, z);
 }*/
+// Guild
+void HookMgr::OnAddMember(Guild* guild, Player* player, uint32 plRank)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnAddMember(guild, player, plRank);
+}
+
+void HookMgr::OnRemoveMember(Guild* guild, Player* player, bool isDisbanding/*, bool isKicked*/) // isKicked not a part of Mangos, implement?
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnRemoveMember(guild, player, isDisbanding/*, isKicked*/);
+}
+
+void HookMgr::OnMOTDChanged(Guild* guild, const std::string& newMotd)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnMOTDChanged(guild, newMotd);
+}
+
+void HookMgr::OnInfoChanged(Guild* guild, const std::string& newInfo)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnInfoChanged(guild, newInfo);
+}
+
+void HookMgr::OnCreate(Guild* guild, Player* leader, const std::string& name)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnCreate(guild, leader, name);
+}
+
+void HookMgr::OnDisband(Guild* guild)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnDisband(guild);
+}
+
+void HookMgr::OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount/*, bool isRepair*/) // isRepair not a part of Mangos, implement?
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnMemberWitdrawMoney(guild, player, amount/*, isRepair*/);
+}
+
+void HookMgr::OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnMemberDepositMoney(guild, player, amount);
+}
+
+void HookMgr::OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId,
+            bool isDestBank, uint8 destContainer, uint8 destSlotId)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnItemMove(guild, player, pItem, isSrcBank, srcContainer, srcSlotId,
+            isDestBank, destContainer, destSlotId);
+}
+
+void HookMgr::OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnEvent(guild, eventType, playerGuid1, playerGuid2, newRank);
+}
+
+void HookMgr::OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnBankEvent(guild, eventType, tabId, playerGuid, itemOrMoney, itemStackCount, destTabId);
+}

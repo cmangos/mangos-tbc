@@ -105,7 +105,7 @@ class Eluna_HookScript : public HookScript
             }
         }
 
-        InventoryResult OnCanUseItem(Player* pPlayer, uint32 itemEntry)
+        InventoryResult OnCanUseItem(Player* pPlayer, uint32 itemEntry) // TODO: Add in Core support for hook
         {
             InventoryResult result = EQUIP_ERR_OK;
             for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].begin();
@@ -330,7 +330,7 @@ class Eluna_HookScript : public HookScript
             return true;
         }
 
-        bool OnQuestSelect(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
+        bool OnQuestSelect(Player* pPlayer, Creature* pCreature, Quest const* pQuest) // TODO: Add in Core support for hook
         {
             int bind = sEluna.CreatureEventBindings->GetBind(pCreature->GetEntry(), CREATURE_EVENT_ON_QUEST_SELECT);
             if (!bind)
@@ -344,7 +344,7 @@ class Eluna_HookScript : public HookScript
             return true;
         }
 
-        bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
+        bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest) // TODO: Add in Core support for hook
         {
             int bind = sEluna.CreatureEventBindings->GetBind(pCreature->GetEntry(), CREATURE_EVENT_ON_QUEST_COMPLETE);
             if (!bind)
@@ -488,7 +488,7 @@ class Eluna_HookScript : public HookScript
             return 100;
         }
 
-        void OnDestroyed(GameObject* pGameObject, Player* pPlayer)
+        void OnDestroyed(GameObject* pGameObject, Player* pPlayer) // TODO: Add in Core support for hook
         {
             int bind = sEluna.GameObjectEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_DESTROYED);
             if (!bind)
@@ -500,7 +500,7 @@ class Eluna_HookScript : public HookScript
             sEluna.ExecuteCall(3, 0);
         }
 
-        void OnDamaged(GameObject* pGameObject, Player* pPlayer)
+        void OnDamaged(GameObject* pGameObject, Player* pPlayer) // TODO: Add in Core support for hook
         {
             int bind = sEluna.GameObjectEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_DAMAGED);
             if (!bind)
@@ -512,7 +512,7 @@ class Eluna_HookScript : public HookScript
             sEluna.ExecuteCall(3, 0);
         }
 
-        void OnLootStateChanged(GameObject* pGameObject, uint32 state, Unit* pUnit)
+        void OnLootStateChanged(GameObject* pGameObject, uint32 state, Unit* pUnit) // TODO: Add in Core support for hook
         {
             int bind = sEluna.GameObjectEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_LOOT_STATE_CHANGE);
             if (!bind)
@@ -525,7 +525,7 @@ class Eluna_HookScript : public HookScript
             sEluna.ExecuteCall(4, 0);
         }
 
-        void OnGameObjectStateChanged(GameObject* pGameObject, uint32 state)
+        void OnGameObjectStateChanged(GameObject* pGameObject, uint32 state) // TODO: Add in Core support for hook
         {
             int bind = sEluna.GameObjectEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_GO_STATE_CHANGED);
             if (!bind)
@@ -869,7 +869,7 @@ class Eluna_HookScript : public HookScript
             }
         }
 
-        void OnMapChanged(Player* player)
+        void OnMapChanged(Player* player) // TODO: Add in Core support for hook
         {
             for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].begin();
                     itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].end(); ++itr)
@@ -1016,179 +1016,176 @@ class Eluna_HookScript : public HookScript
         void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z)
         {
         }
+        // Guild
+        void OnAddMember(Guild* guild, Player* player, uint32 plRank)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_ADD_MEMBER].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ADD_MEMBER].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_ADD_MEMBER);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, player);
+                sEluna.Push(sEluna.L, plRank);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
+
+        void OnRemoveMember(Guild* guild, Player* player, bool isDisbanding/*, bool isKicked*/) // IsKicked not a part of Mangos, implement?
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_REMOVE_MEMBER);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, player);
+                sEluna.Push(sEluna.L, isDisbanding);
+                // sEluna.Push(sEluna.L, isKicked); // IsKicked not a part of Mangos, implement?
+                // sEluna.ExecuteCall(5, 0);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
+
+        void OnMOTDChanged(Guild* guild, const std::string& newMotd)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_MOTD_CHANGE);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, newMotd);
+                sEluna.ExecuteCall(3, 0);
+            }
+        }
+
+        void OnInfoChanged(Guild* guild, const std::string& newInfo)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_INFO_CHANGE].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_INFO_CHANGE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_INFO_CHANGE);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, newInfo);
+                sEluna.ExecuteCall(3, 0);
+            }
+        }
+
+        void OnCreate(Guild* guild, Player* leader, const std::string& name)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_CREATE].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_CREATE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_CREATE);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, leader);
+                sEluna.Push(sEluna.L, name);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
+
+        void OnDisband(Guild* guild)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_DISBAND].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_DISBAND].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_DISBAND);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.ExecuteCall(2, 0);
+            }
+        }
+
+        void OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount/*, bool isRepair*/) // isRepair not a part of Mangos, implement?
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_WITHDRAW);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, player);
+                sEluna.Push(sEluna.L, amount);
+                // sEluna.Push(sEluna.L, isRepair); // isRepair not a part of Mangos, implement?
+                // sEluna.ExecuteCall(5, 0);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
+
+        void OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_DEPOSIT);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, player);
+                sEluna.Push(sEluna.L, amount);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
+
+        void OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId,
+            bool isDestBank, uint8 destContainer, uint8 destSlotId)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_ITEM_MOVE].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ITEM_MOVE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_ITEM_MOVE);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, player);
+                sEluna.Push(sEluna.L, pItem);
+                sEluna.Push(sEluna.L, isSrcBank);
+                sEluna.Push(sEluna.L, srcContainer);
+                sEluna.Push(sEluna.L, srcSlotId);
+                sEluna.Push(sEluna.L, isDestBank);
+                sEluna.Push(sEluna.L, destContainer);
+                sEluna.Push(sEluna.L, destSlotId);
+                sEluna.ExecuteCall(10, 0);
+            }
+        }
+
+        void OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_EVENT].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_EVENT].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_EVENT);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, eventType);
+                sEluna.Push(sEluna.L, playerGuid1);
+                sEluna.Push(sEluna.L, playerGuid2);
+                sEluna.Push(sEluna.L, newRank);
+                sEluna.ExecuteCall(6, 0);
+            }
+        }
+
+        void OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_BANK_EVENT].begin();
+                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_BANK_EVENT].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GUILD_EVENT_ON_BANK_EVENT);
+                sEluna.Push(sEluna.L, guild);
+                sEluna.Push(sEluna.L, eventType);
+                sEluna.Push(sEluna.L, tabId);
+                sEluna.Push(sEluna.L, playerGuid);
+                sEluna.Push(sEluna.L, itemOrMoney);
+                sEluna.Push(sEluna.L, itemStackCount);
+                sEluna.Push(sEluna.L, destTabId);
+                sEluna.ExecuteCall(8, 0);
+            }
+        }
 };
 
 /*
-class Eluna_GuildScript : public GuildScript
-{
-public:
-    Eluna_GuildScript() : GuildScript("Eluna_GuildScript") { }
-
-    void OnAddMember(Guild* guild, Player* player, uint8& plRank)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_ADD_MEMBER].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ADD_MEMBER].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_ADD_MEMBER);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, player);
-            sEluna.Push(sEluna.L, plRank);
-            sEluna.ExecuteCall(4, 0);
-        }
-    }
-
-    void OnRemoveMember(Guild* guild, Player* player, bool isDisbanding, bool isKicked)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_REMOVE_MEMBER);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, player);
-            sEluna.Push(sEluna.L, isDisbanding);
-            sEluna.Push(sEluna.L, isKicked);
-            sEluna.ExecuteCall(5, 0);
-        }
-    }
-
-    void OnMOTDChanged(Guild* guild, const std::string& newMotd)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_MOTD_CHANGE);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, newMotd);
-            sEluna.ExecuteCall(3, 0);
-        }
-    }
-
-    void OnInfoChanged(Guild* guild, const std::string& newInfo)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_INFO_CHANGE].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_INFO_CHANGE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_INFO_CHANGE);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, newInfo);
-            sEluna.ExecuteCall(3, 0);
-        }
-    }
-
-    void OnCreate(Guild* guild, Player* leader, const std::string& name)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_CREATE].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_CREATE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_CREATE);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, leader);
-            sEluna.Push(sEluna.L, name);
-            sEluna.ExecuteCall(4, 0);
-        }
-    }
-
-    void OnDisband(Guild* guild)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_DISBAND].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_DISBAND].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_DISBAND);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.ExecuteCall(2, 0);
-        }
-    }
-
-    void OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount, bool isRepair)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_WITHDRAW);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, player);
-            sEluna.Push(sEluna.L, amount);
-            sEluna.Push(sEluna.L, isRepair);
-            sEluna.ExecuteCall(5, 0);
-        }
-    }
-
-    void OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_DEPOSIT);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, player);
-            sEluna.Push(sEluna.L, amount);
-            sEluna.ExecuteCall(4, 0);
-        }
-    }
-
-    void OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId,
-        bool isDestBank, uint8 destContainer, uint8 destSlotId)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_ITEM_MOVE].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ITEM_MOVE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_ITEM_MOVE);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, player);
-            sEluna.Push(sEluna.L, pItem);
-            sEluna.Push(sEluna.L, isSrcBank);
-            sEluna.Push(sEluna.L, srcContainer);
-            sEluna.Push(sEluna.L, srcSlotId);
-            sEluna.Push(sEluna.L, isDestBank);
-            sEluna.Push(sEluna.L, destContainer);
-            sEluna.Push(sEluna.L, destSlotId);
-            sEluna.ExecuteCall(10, 0);
-        }
-    }
-
-    void OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_EVENT].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_EVENT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_EVENT);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, eventType);
-            sEluna.Push(sEluna.L, playerGuid1);
-            sEluna.Push(sEluna.L, playerGuid2);
-            sEluna.Push(sEluna.L, newRank);
-            sEluna.ExecuteCall(6, 0);
-        }
-    }
-
-    void OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_BANK_EVENT].begin();
-            itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_BANK_EVENT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GUILD_EVENT_ON_BANK_EVENT);
-            sEluna.Push(sEluna.L, guild);
-            sEluna.Push(sEluna.L, eventType);
-            sEluna.Push(sEluna.L, tabId);
-            sEluna.Push(sEluna.L, playerGuid);
-            sEluna.Push(sEluna.L, itemOrMoney);
-            sEluna.Push(sEluna.L, itemStackCount);
-            sEluna.Push(sEluna.L, destTabId);
-            sEluna.ExecuteCall(8, 0);
-        }
-    }
-};
 class Eluna_GroupScript : public GroupScript
 {
 public:

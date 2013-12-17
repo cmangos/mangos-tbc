@@ -113,6 +113,18 @@ class HookMgr
         void OnAddCreaturePassenger(Transport* transport, Creature* creature);
         void OnRemovePassenger(Transport* transport, Player* player);
         void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z);*/
+        /* Guild */
+        void OnAddMember(Guild* guild, Player* player, uint32 plRank);
+        void OnRemoveMember(Guild* guild, Player* player, bool isDisbanding/*, bool isKicked*/); // IsKicked not a part of Mangos, implement?
+        void OnMOTDChanged(Guild* guild, const std::string& newMotd);
+        void OnInfoChanged(Guild* guild, const std::string& newInfo);
+        void OnCreate(Guild* guild, Player* leader, const std::string& name);
+        void OnDisband(Guild* guild);
+        void OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount/*, bool isRepair*/);
+        void OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount);
+        void OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId, bool isDestBank, uint8 destContainer, uint8 destSlotId); // TODO: Implement
+        void OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank); // TODO: Implement
+        void OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId);
 };
 #define sHookMgr MaNGOS::Singleton<HookMgr>::Instance()
 
@@ -208,5 +220,17 @@ class HookScript
         virtual void OnAddCreaturePassenger(Transport* transport, Creature* creature) { }
         virtual void OnRemovePassenger(Transport* transport, Player* player) { }
         virtual void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z) { }*/
+        /* Guild */
+        virtual void OnAddMember(Guild* /*guild*/, Player* /*player*/, uint32 /*plRank*/) { }
+        virtual void OnRemoveMember(Guild* /*guild*/, Player* /*player*/, bool /*isDisbanding, bool isKicked*/) { } // IsKicked not a part of Mangos, implement?
+        virtual void OnMOTDChanged(Guild* /*guild*/, const std::string& /*newMotd*/) { }
+        virtual void OnInfoChanged(Guild* /*guild*/, const std::string& /*newInfo*/) { }
+        virtual void OnCreate(Guild* /*guild*/, Player* /*leader*/, const std::string& /*name*/) { }
+        virtual void OnDisband(Guild* /*guild*/) { }
+        virtual void OnMemberWitdrawMoney(Guild* /*guild*/, Player* /*player*/, uint32 /*&amount, bool isRepair*/) { }
+        virtual void OnMemberDepositMoney(Guild* /*guild*/, Player* /*player*/, uint32 /*&amount*/) { }
+        virtual void OnItemMove(Guild* /*guild*/, Player* /*player*/, Item* /*pItem*/, bool /*isSrcBank*/, uint8 /*srcContainer*/, uint8 /*srcSlotId*/, bool /*isDestBank*/, uint8 /*destContainer*/, uint8 /*destSlotId*/) { } // TODO: Implement
+        virtual void OnEvent(Guild* /*guild*/, uint8 /*eventType*/, uint32 /*playerGuid1*/, uint32 /*playerGuid2*/, uint8 /*newRank*/) { } // TODO: Implement
+        virtual void OnBankEvent(Guild* /*guild*/, uint8 /*eventType*/, uint8 /*tabId*/, uint32 /*playerGuid*/, uint32 /*itemOrMoney*/, uint16 /*itemStackCount*/, uint8 /*destTabId*/) { }
 };
 #endif

@@ -24,7 +24,7 @@
 #include "GameObject.h"
 #include "CreatureAI.h"
 
-class GameObjectAI
+class MANGOS_DLL_SPEC GameObjectAI
 {
 protected:
     GameObject * const go;

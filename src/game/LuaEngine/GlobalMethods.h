@@ -22,8 +22,8 @@
 
 namespace LuaGlobalFunctions
 {
-    // RegisterServerHook(event, function)
-    int RegisterServerHook(lua_State* L)
+    // RegisterServerEvent(event, function)
+    int RegisterServerEvent(lua_State* L)
     {
         lua_settop(L, 2);
         uint32 ev = luaL_checkunsigned(L, 1);
@@ -37,6 +37,60 @@ namespace LuaGlobalFunctions
         int functionRef  = lua_ref(L, true);
         if (functionRef > 0)
             sEluna.Register(REGTYPE_SERVER, 0, ev, functionRef);
+        return 0;
+    }
+
+    // RegisterPlayerEvent(event, function)
+    int RegisterPlayerEvent(lua_State* L)
+    {
+        lua_settop(L, 2);
+        uint32 ev = luaL_checkunsigned(L, 1);
+        if (ev == 0)
+        {
+            luaL_error(L, "0 is not a valid event");
+            return 0;
+        }
+        luaL_checktype(L, lua_gettop(L), LUA_TFUNCTION);
+
+        int functionRef  = lua_ref(L, true);
+        if (functionRef > 0)
+            sEluna.Register(REGTYPE_PLAYER, 0, ev, functionRef);
+        return 0;
+    }
+
+    // RegisterGuildEvent(event, function)
+    int RegisterGuildEvent(lua_State* L)
+    {
+        lua_settop(L, 2);
+        uint32 ev = luaL_checkunsigned(L, 1);
+        if (ev == 0)
+        {
+            luaL_error(L, "0 is not a valid event");
+            return 0;
+        }
+        luaL_checktype(L, lua_gettop(L), LUA_TFUNCTION);
+
+        int functionRef  = lua_ref(L, true);
+        if (functionRef > 0)
+            sEluna.Register(REGTYPE_GUILD, 0, ev, functionRef);
+        return 0;
+    }
+
+    // RegisterGroupEvent(event, function)
+    int RegisterGroupEvent(lua_State* L)
+    {
+        lua_settop(L, 2);
+        uint32 ev = luaL_checkunsigned(L, 1);
+        if (ev == 0)
+        {
+            luaL_error(L, "0 is not a valid event");
+            return 0;
+        }
+        luaL_checktype(L, lua_gettop(L), LUA_TFUNCTION);
+
+        int functionRef  = lua_ref(L, true);
+        if (functionRef > 0)
+            sEluna.Register(REGTYPE_GROUP, 0, ev, functionRef);
         return 0;
     }
 

@@ -41,8 +41,8 @@ class Eluna_HookScript : public HookScript
 
         void OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOOT_ITEM);
@@ -56,8 +56,8 @@ class Eluna_HookScript : public HookScript
 
         void OnFirstLogin(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_FIRST_LOGIN);
@@ -68,8 +68,8 @@ class Eluna_HookScript : public HookScript
 
         void OnRepop(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_REPOP].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_REPOP].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPOP].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPOP].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_REPOP);
@@ -80,8 +80,8 @@ class Eluna_HookScript : public HookScript
 
         void OnResurrect(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_RESURRECT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_RESURRECT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_RESURRECT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_RESURRECT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_RESURRECT);
@@ -92,8 +92,8 @@ class Eluna_HookScript : public HookScript
 
         void OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_EQUIP].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_EQUIP].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_EQUIP);
@@ -108,8 +108,8 @@ class Eluna_HookScript : public HookScript
         InventoryResult OnCanUseItem(Player* pPlayer, uint32 itemEntry) // TODO: Add in Core support for hook
         {
             InventoryResult result = EQUIP_ERR_OK;
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CAN_USE_ITEM);
@@ -539,8 +539,8 @@ class Eluna_HookScript : public HookScript
         // Player
         void OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_ENTER_COMBAT);
@@ -552,8 +552,8 @@ class Eluna_HookScript : public HookScript
 
         void OnPlayerLeaveCombat(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LEAVE_COMBAT);
@@ -564,8 +564,8 @@ class Eluna_HookScript : public HookScript
 
         void OnPVPKill(Player* pKiller, Player* pKilled)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILL_PLAYER);
@@ -577,8 +577,8 @@ class Eluna_HookScript : public HookScript
 
         void OnCreatureKill(Player* pKiller, Creature* pKilled)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILL_CREATURE);
@@ -590,8 +590,8 @@ class Eluna_HookScript : public HookScript
 
         void OnPlayerKilledByCreature(Creature* pKiller, Player* pKilled)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILLED_BY_CREATURE);
@@ -603,8 +603,8 @@ class Eluna_HookScript : public HookScript
 
         void OnLevelChanged(Player* pPlayer, uint8 oldLevel)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LEVEL_CHANGE);
@@ -616,8 +616,8 @@ class Eluna_HookScript : public HookScript
 
         void OnFreeTalentPointsChanged(Player* pPlayer, uint32 newPoints)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TALENTS_CHANGE);
@@ -629,8 +629,8 @@ class Eluna_HookScript : public HookScript
 
         void OnTalentsReset(Player* pPlayer, bool noCost)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TALENTS_RESET);
@@ -642,8 +642,8 @@ class Eluna_HookScript : public HookScript
 
         void OnMoneyChanged(Player* pPlayer, int32& amount)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_MONEY_CHANGE);
@@ -655,8 +655,8 @@ class Eluna_HookScript : public HookScript
 
         void OnGiveXP(Player* pPlayer, uint32& amount, Unit* pVictim)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_GIVE_XP].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GIVE_XP].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GIVE_XP].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GIVE_XP].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GIVE_XP);
@@ -669,8 +669,8 @@ class Eluna_HookScript : public HookScript
 
         void OnReputationChange(Player* pPlayer, uint32 factionID, int32& standing, bool incremental)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_REPUTATION_CHANGE);
@@ -684,8 +684,8 @@ class Eluna_HookScript : public HookScript
 
         void OnDuelRequest(Player* pTarget, Player* pChallenger)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_REQUEST);
@@ -697,8 +697,8 @@ class Eluna_HookScript : public HookScript
 
         void OnDuelStart(Player* pStarter, Player* pChallenger)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_START].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_START].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_START].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_START].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_START);
@@ -710,8 +710,8 @@ class Eluna_HookScript : public HookScript
 
         void OnDuelEnd(Player* pWinner, Player* pLoser, DuelCompleteType type)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_END].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_DUEL_END].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_END].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_END].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_END);
@@ -724,8 +724,8 @@ class Eluna_HookScript : public HookScript
 
         void OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Player* pReceiver)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_WHISPER].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_WHISPER].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_WHISPER].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_WHISPER].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_WHISPER);
@@ -740,8 +740,8 @@ class Eluna_HookScript : public HookScript
 
         void OnEmote(Player* pPlayer, uint32 emote)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_EMOTE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_EMOTE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EMOTE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EMOTE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_EMOTE);
@@ -753,8 +753,8 @@ class Eluna_HookScript : public HookScript
 
         void OnTextEmote(Player* pPlayer, uint32 textEmote, uint32 emoteNum, uint64 guid)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TEXT_EMOTE);
@@ -768,8 +768,8 @@ class Eluna_HookScript : public HookScript
 
         void OnSpellCast(Player* pPlayer, Spell* pSpell, bool skipCheck)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_SPELL_CAST);
@@ -782,8 +782,8 @@ class Eluna_HookScript : public HookScript
 
         void OnLogin(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOGIN].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOGIN].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGIN].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGIN].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOGIN);
@@ -794,8 +794,8 @@ class Eluna_HookScript : public HookScript
 
         void OnLogout(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOGOUT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_LOGOUT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGOUT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGOUT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOGOUT);
@@ -806,8 +806,8 @@ class Eluna_HookScript : public HookScript
 
         void OnCreate(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHARACTER_CREATE);
@@ -818,8 +818,8 @@ class Eluna_HookScript : public HookScript
 
         void OnDelete(uint32 guidlow)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHARACTER_DELETE);
@@ -830,8 +830,8 @@ class Eluna_HookScript : public HookScript
 
         void OnSave(Player* pPlayer)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_SAVE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_SAVE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SAVE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SAVE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_SAVE);
@@ -842,8 +842,8 @@ class Eluna_HookScript : public HookScript
 
         void OnBindToInstance(Player* pPlayer, Difficulty difficulty, uint32 mapid, bool permanent)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_BIND_TO_INSTANCE);
@@ -857,8 +857,8 @@ class Eluna_HookScript : public HookScript
 
         void OnUpdateZone(Player* pPlayer, uint32 newZone, uint32 newArea)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_UPDATE_ZONE);
@@ -871,8 +871,8 @@ class Eluna_HookScript : public HookScript
 
         void OnMapChanged(Player* player) // TODO: Add in Core support for hook
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_MAP_CHANGE);
@@ -884,8 +884,8 @@ class Eluna_HookScript : public HookScript
         bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg)
         {
             bool Result = true;
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHAT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHAT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHAT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHAT);
@@ -907,8 +907,8 @@ class Eluna_HookScript : public HookScript
         bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Group* pGroup)
         {
             bool Result = true;
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GROUP_CHAT);
@@ -931,8 +931,8 @@ class Eluna_HookScript : public HookScript
         bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Guild* pGuild)
         {
             bool Result = true;
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GUILD_CHAT);
@@ -955,8 +955,8 @@ class Eluna_HookScript : public HookScript
         bool OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Channel* pChannel)
         {
             bool Result = true;
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].begin();
-                    itr != sEluna.ServerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].begin();
+                    itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHANNEL_CHAT);
@@ -1019,8 +1019,8 @@ class Eluna_HookScript : public HookScript
         // Guild
         void OnAddMember(Guild* guild, Player* player, uint32 plRank)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_ADD_MEMBER].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ADD_MEMBER].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_ADD_MEMBER].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_ADD_MEMBER].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_ADD_MEMBER);
@@ -1033,8 +1033,8 @@ class Eluna_HookScript : public HookScript
 
         void OnRemoveMember(Guild* guild, Player* player, bool isDisbanding/*, bool isKicked*/) // IsKicked not a part of Mangos, implement?
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_REMOVE_MEMBER);
@@ -1049,8 +1049,8 @@ class Eluna_HookScript : public HookScript
 
         void OnMOTDChanged(Guild* guild, const std::string& newMotd)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_MOTD_CHANGE);
@@ -1062,8 +1062,8 @@ class Eluna_HookScript : public HookScript
 
         void OnInfoChanged(Guild* guild, const std::string& newInfo)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_INFO_CHANGE].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_INFO_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_INFO_CHANGE].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_INFO_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_INFO_CHANGE);
@@ -1075,8 +1075,8 @@ class Eluna_HookScript : public HookScript
 
         void OnCreate(Guild* guild, Player* leader, const std::string& name)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_CREATE].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_CREATE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_CREATE].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_CREATE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_CREATE);
@@ -1089,8 +1089,8 @@ class Eluna_HookScript : public HookScript
 
         void OnDisband(Guild* guild)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_DISBAND].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_DISBAND].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_DISBAND].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_DISBAND].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_DISBAND);
@@ -1101,8 +1101,8 @@ class Eluna_HookScript : public HookScript
 
         void OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount/*, bool isRepair*/) // isRepair not a part of Mangos, implement?
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_WITHDRAW);
@@ -1117,8 +1117,8 @@ class Eluna_HookScript : public HookScript
 
         void OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_DEPOSIT);
@@ -1132,8 +1132,8 @@ class Eluna_HookScript : public HookScript
         void OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId,
             bool isDestBank, uint8 destContainer, uint8 destSlotId)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_ITEM_MOVE].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_ITEM_MOVE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_ITEM_MOVE].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_ITEM_MOVE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_ITEM_MOVE);
@@ -1152,8 +1152,8 @@ class Eluna_HookScript : public HookScript
 
         void OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_EVENT].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_EVENT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_EVENT].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_EVENT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_EVENT);
@@ -1168,8 +1168,8 @@ class Eluna_HookScript : public HookScript
 
         void OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GUILD_EVENT_ON_BANK_EVENT].begin();
-                itr != sEluna.ServerEventBindings[GUILD_EVENT_ON_BANK_EVENT].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_BANK_EVENT].begin();
+                itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_BANK_EVENT].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GUILD_EVENT_ON_BANK_EVENT);
@@ -1186,8 +1186,8 @@ class Eluna_HookScript : public HookScript
         // Group
         void OnAddMember(Group* group, uint64 guid)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_ADD].begin();
-                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_ADD].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_ADD].begin();
+                itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_ADD].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_ADD);
@@ -1199,8 +1199,8 @@ class Eluna_HookScript : public HookScript
 
         void OnInviteMember(Group* group, uint64 guid)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].begin();
-                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].begin();
+                itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_INVITE);
@@ -1212,8 +1212,8 @@ class Eluna_HookScript : public HookScript
 
         void OnRemoveMember(Group* group, uint64 guid, uint8 method, uint64 kicker, const char* reason) // Kicker and Reason not a part of Mangos, implement?
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].begin();
-                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].begin();
+                itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_REMOVE);
@@ -1229,8 +1229,8 @@ class Eluna_HookScript : public HookScript
 
         void OnChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeaderGuid)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].begin();
-                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].begin();
+                itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GROUP_EVENT_ON_LEADER_CHANGE);
@@ -1243,8 +1243,8 @@ class Eluna_HookScript : public HookScript
 
         void OnDisband(Group* group)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_DISBAND].begin();
-                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_DISBAND].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_DISBAND].begin();
+                itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_DISBAND].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GROUP_EVENT_ON_DISBAND);
@@ -1255,8 +1255,8 @@ class Eluna_HookScript : public HookScript
 
         void OnCreate(Group* group, uint64 leaderGuid, GroupType groupType)
         {
-            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_CREATE].begin();
-                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_CREATE].end(); ++itr)
+            for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_CREATE].begin();
+                itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_CREATE].end(); ++itr)
             {
                 sEluna.BeginCall((*itr));
                 sEluna.Push(sEluna.L, GROUP_EVENT_ON_CREATE);

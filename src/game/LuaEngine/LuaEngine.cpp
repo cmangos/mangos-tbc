@@ -75,6 +75,27 @@ void Eluna::StartEluna(bool restart)
                     luaL_unref(L, LUA_REGISTRYINDEX, (*it));
                 itr->second.clear();
             }
+
+            for (std::map<int, std::vector<int> >::iterator itr = PlayerEventBindings.begin(); itr != PlayerEventBindings.end(); ++itr)
+            {
+                for (std::vector<int>::const_iterator it = itr->second.begin(); it != itr->second.end(); ++it)
+                    luaL_unref(L, LUA_REGISTRYINDEX, (*it));
+                itr->second.clear();
+            }
+
+            for (std::map<int, std::vector<int> >::iterator itr = GuildEventBindings.begin(); itr != GuildEventBindings.end(); ++itr)
+            {
+                for (std::vector<int>::const_iterator it = itr->second.begin(); it != itr->second.end(); ++it)
+                    luaL_unref(L, LUA_REGISTRYINDEX, (*it));
+                itr->second.clear();
+            }
+
+            for (std::map<int, std::vector<int> >::iterator itr = GroupEventBindings.begin(); itr != GroupEventBindings.end(); ++itr)
+            {
+                for (std::vector<int>::const_iterator it = itr->second.begin(); it != itr->second.end(); ++it)
+                    luaL_unref(L, LUA_REGISTRYINDEX, (*it));
+                itr->second.clear();
+            }
             CreatureEventBindings->Clear();
             CreatureGossipBindings->Clear();
             GameObjectEventBindings->Clear();
@@ -445,6 +466,30 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
             if (evt < SERVER_EVENT_COUNT)
             {
                 ServerEventBindings[evt].push_back(functionRef);
+                return;
+            }
+            break;
+
+        case REGTYPE_PLAYER:
+            if (evt < PLAYER_EVENT_COUNT)
+            {
+                PlayerEventBindings[evt].push_back(functionRef);
+                return;
+            }
+            break;
+
+        case REGTYPE_GUILD:
+            if (evt < GUILD_EVENT_COUNT)
+            {
+                GuildEventBindings[evt].push_back(functionRef);
+                return;
+            }
+            break;
+
+        case REGTYPE_GROUP:
+            if (evt < GROUP_EVENT_COUNT)
+            {
+                GroupEventBindings[evt].push_back(functionRef);
                 return;
             }
             break;

@@ -32,6 +32,9 @@ extern "C"
 enum RegisterTypes
 {
     REGTYPE_SERVER,
+    REGTYPE_PLAYER,
+    REGTYPE_GUILD,
+    REGTYPE_GROUP,
     REGTYPE_CREATURE,
     REGTYPE_CREATURE_GOSSIP,
     REGTYPE_GAMEOBJECT,
@@ -42,52 +45,9 @@ enum RegisterTypes
     REGTYPE_COUNT
 };
 
-// RegisterServerHook(EventId, function)
+// RegisterServerEvent(EventId, function)
 enum ServerEvents
 {
-    // Player
-    PLAYER_EVENT_ON_CHARACTER_CREATE        =     1,        // (event, player)
-    PLAYER_EVENT_ON_CHARACTER_DELETE        =     2,        // (event, guid)
-    PLAYER_EVENT_ON_LOGIN                   =     3,        // (event, player)
-    PLAYER_EVENT_ON_LOGOUT                  =     4,        // (event, player)
-    PLAYER_EVENT_ON_SPELL_CAST              =     5,        // (event, player, spell, skipCheck)
-    PLAYER_EVENT_ON_KILL_PLAYER             =     6,        // (event, killer, killed)
-    PLAYER_EVENT_ON_KILL_CREATURE           =     7,        // (event, killer, killed)
-    PLAYER_EVENT_ON_KILLED_BY_CREATURE      =     8,        // (event, killer, killed)
-    PLAYER_EVENT_ON_DUEL_REQUEST            =     9,        // (event, target, challenger)
-    PLAYER_EVENT_ON_DUEL_START              =     10,       // (event, player1, player2)
-    PLAYER_EVENT_ON_DUEL_END                =     11,       // (event, winner, loser, type)
-    PLAYER_EVENT_ON_GIVE_XP                 =     12,       // (event, player, amount, victim)
-    PLAYER_EVENT_ON_LEVEL_CHANGE            =     13,       // (event, player, oldLevel)
-    PLAYER_EVENT_ON_MONEY_CHANGE            =     14,       // (event, player, amount)
-    PLAYER_EVENT_ON_REPUTATION_CHANGE       =     15,       // (event, player, factionId, standing, incremental)
-    PLAYER_EVENT_ON_TALENTS_CHANGE          =     16,       // (event, player, points)
-    PLAYER_EVENT_ON_TALENTS_RESET           =     17,       // (event, player, noCost)
-    PLAYER_EVENT_ON_CHAT                    =     18,       // (event, player, msg, Type, lang) - Can return false
-    PLAYER_EVENT_ON_WHISPER                 =     19,       // (event, player, msg, Type, lang, receiver)
-    PLAYER_EVENT_ON_GROUP_CHAT              =     20,       // (event, player, msg, Type, lang, group) - Can return false
-    PLAYER_EVENT_ON_GUILD_CHAT              =     21,       // (event, player, msg, Type, lang, guild) - Can return false
-    PLAYER_EVENT_ON_CHANNEL_CHAT            =     22,       // (event, player, msg, Type, lang, channel) - Can return false
-    PLAYER_EVENT_ON_EMOTE                   =     23,       // (event, player, emote) - Not triggered on any known emote
-    PLAYER_EVENT_ON_TEXT_EMOTE              =     24,       // (event, player, textEmote, emoteNum, guid)
-    PLAYER_EVENT_ON_SAVE                    =     25,       // (event, player)
-    PLAYER_EVENT_ON_BIND_TO_INSTANCE        =     26,       // (event, player, difficulty, mapid, permanent)
-    PLAYER_EVENT_ON_UPDATE_ZONE             =     27,       // (event, player, newZone, newArea)
-    PLAYER_EVENT_ON_MAP_CHANGE              =     28,       // (event, player)
-
-    // Guild
-    GUILD_EVENT_ON_ADD_MEMBER               =     29,       // (event, guild, player, rank)
-    GUILD_EVENT_ON_REMOVE_MEMBER            =     30,       // (event, guild, isDisbanding, isKicked)
-    GUILD_EVENT_ON_MOTD_CHANGE              =     31,       // (event, guild, newMotd)
-    GUILD_EVENT_ON_INFO_CHANGE              =     32,       // (event, guild, newInfo)
-    GUILD_EVENT_ON_CREATE                   =     33,       // (event, guild, leader, name)
-    GUILD_EVENT_ON_DISBAND                  =     34,       // (event, guild)
-    GUILD_EVENT_ON_MONEY_WITHDRAW           =     35,       // (event, guild, player, amount, isRepair)
-    GUILD_EVENT_ON_MONEY_DEPOSIT            =     36,       // (event, guild, player, amount)
-    GUILD_EVENT_ON_ITEM_MOVE                =     37,       // (event, guild, player, item, isSrcBank, srcContainer, srcSlotId, isDestBank, destContainer, destSlotId)
-    GUILD_EVENT_ON_EVENT                    =     38,       // (event, guild, eventType, plrGUIDLow1, plrGUIDLow2, newRank)
-    GUILD_EVENT_ON_BANK_EVENT               =     39,       // (event, guild, eventType, tabId, playerGUIDLow, itemOrMoney, itemStackCount, destTabId)
-
     // Server
     SERVER_EVENT_ON_NETWORK_START           =     40,       // Not Implemented
     SERVER_EVENT_ON_NETWORK_STOP            =     41,       // Not Implemented
@@ -131,25 +91,84 @@ enum ServerEvents
     AUCTION_EVENT_ON_SUCCESFUL              =     67,       // Not Implemented
     AUCTION_EVENT_ON_EXPIRE                 =     68,       // Not Implemented
 
-    // Group
-    GROUP_EVENT_ON_MEMBER_ADD               =     69,       // (event, group, guid)
-    GROUP_EVENT_ON_MEMBER_INVITE            =     70,       // (event, group, guid)
-    GROUP_EVENT_ON_MEMBER_REMOVE            =     71,       // (event, group, guid, method, kicker, reason)
-    GROUP_EVENT_ON_LEADER_CHANGE            =     72,       // (event, group, newLeaderGuid, oldLeaderGuid)
-    GROUP_EVENT_ON_DISBAND                  =     73,       // (event, group)
-    GROUP_EVENT_ON_CREATE                   =     82,       // (event, group, leaderGuid, groupType) God, please fix this! I can't deal with the event ID being out of order... ROCHET!
-
-    // Custom
-    PLAYER_EVENT_ON_EQUIP                   =     74,       // (event, player, item, bag, slot)
-    PLAYER_EVENT_ON_FIRST_LOGIN             =     75,       // (event, player)
-    PLAYER_EVENT_ON_CAN_USE_ITEM            =     76,       // (event, player, itemEntry)
-    PLAYER_EVENT_ON_LOOT_ITEM               =     77,       // (event, player, item, count)
-    PLAYER_EVENT_ON_ENTER_COMBAT            =     78,       // (event, player, enemy)
-    PLAYER_EVENT_ON_LEAVE_COMBAT            =     79,       // (event, player)
-    PLAYER_EVENT_ON_REPOP                   =     80,       // (event, player)
-    PLAYER_EVENT_ON_RESURRECT               =     81,       // (event, player)
-
     SERVER_EVENT_COUNT
+};
+
+// RegisterPlayerEvent(eventId, function)
+enum PlayerEvents
+{
+    PLAYER_EVENT_ON_CHARACTER_CREATE        =     1,        // (event, player)
+    PLAYER_EVENT_ON_CHARACTER_DELETE        =     2,        // (event, guid)
+    PLAYER_EVENT_ON_LOGIN                   =     3,        // (event, player)
+    PLAYER_EVENT_ON_LOGOUT                  =     4,        // (event, player)
+    PLAYER_EVENT_ON_SPELL_CAST              =     5,        // (event, player, spell, skipCheck)
+    PLAYER_EVENT_ON_KILL_PLAYER             =     6,        // (event, killer, killed)
+    PLAYER_EVENT_ON_KILL_CREATURE           =     7,        // (event, killer, killed)
+    PLAYER_EVENT_ON_KILLED_BY_CREATURE      =     8,        // (event, killer, killed)
+    PLAYER_EVENT_ON_DUEL_REQUEST            =     9,        // (event, target, challenger)
+    PLAYER_EVENT_ON_DUEL_START              =     10,       // (event, player1, player2)
+    PLAYER_EVENT_ON_DUEL_END                =     11,       // (event, winner, loser, type)
+    PLAYER_EVENT_ON_GIVE_XP                 =     12,       // (event, player, amount, victim)
+    PLAYER_EVENT_ON_LEVEL_CHANGE            =     13,       // (event, player, oldLevel)
+    PLAYER_EVENT_ON_MONEY_CHANGE            =     14,       // (event, player, amount)
+    PLAYER_EVENT_ON_REPUTATION_CHANGE       =     15,       // (event, player, factionId, standing, incremental)
+    PLAYER_EVENT_ON_TALENTS_CHANGE          =     16,       // (event, player, points)
+    PLAYER_EVENT_ON_TALENTS_RESET           =     17,       // (event, player, noCost)
+    PLAYER_EVENT_ON_CHAT                    =     18,       // (event, player, msg, Type, lang) - Can return false
+    PLAYER_EVENT_ON_WHISPER                 =     19,       // (event, player, msg, Type, lang, receiver)
+    PLAYER_EVENT_ON_GROUP_CHAT              =     20,       // (event, player, msg, Type, lang, group) - Can return false
+    PLAYER_EVENT_ON_GUILD_CHAT              =     21,       // (event, player, msg, Type, lang, guild) - Can return false
+    PLAYER_EVENT_ON_CHANNEL_CHAT            =     22,       // (event, player, msg, Type, lang, channel) - Can return false
+    PLAYER_EVENT_ON_EMOTE                   =     23,       // (event, player, emote) - Not triggered on any known emote
+    PLAYER_EVENT_ON_TEXT_EMOTE              =     24,       // (event, player, textEmote, emoteNum, guid)
+    PLAYER_EVENT_ON_SAVE                    =     25,       // (event, player)
+    PLAYER_EVENT_ON_BIND_TO_INSTANCE        =     26,       // (event, player, difficulty, mapid, permanent)
+    PLAYER_EVENT_ON_UPDATE_ZONE             =     27,       // (event, player, newZone, newArea)
+    PLAYER_EVENT_ON_MAP_CHANGE              =     28,       // (event, player)
+    // Custom
+    PLAYER_EVENT_ON_EQUIP                   =     29,       // (event, player, item, bag, slot)
+    PLAYER_EVENT_ON_FIRST_LOGIN             =     30,       // (event, player)
+    PLAYER_EVENT_ON_CAN_USE_ITEM            =     31,       // (event, player, itemEntry)
+    PLAYER_EVENT_ON_LOOT_ITEM               =     32,       // (event, player, item, count)
+    PLAYER_EVENT_ON_ENTER_COMBAT            =     33,       // (event, player, enemy)
+    PLAYER_EVENT_ON_LEAVE_COMBAT            =     34,       // (event, player)
+    PLAYER_EVENT_ON_REPOP                   =     35,       // (event, player)
+    PLAYER_EVENT_ON_RESURRECT               =     36,       // (event, player)
+
+    PLAYER_EVENT_COUNT
+};
+
+// RegisterGuildEvent(eventId, function)
+enum GuildEventTypes
+{
+    // Guild
+    GUILD_EVENT_ON_ADD_MEMBER               =     1,       // (event, guild, player, rank)
+    GUILD_EVENT_ON_REMOVE_MEMBER            =     2,       // (event, guild, isDisbanding, isKicked)
+    GUILD_EVENT_ON_MOTD_CHANGE              =     3,       // (event, guild, newMotd)
+    GUILD_EVENT_ON_INFO_CHANGE              =     4,       // (event, guild, newInfo)
+    GUILD_EVENT_ON_CREATE                   =     5,       // (event, guild, leader, name)
+    GUILD_EVENT_ON_DISBAND                  =     6,       // (event, guild)
+    GUILD_EVENT_ON_MONEY_WITHDRAW           =     7,       // (event, guild, player, amount, isRepair)
+    GUILD_EVENT_ON_MONEY_DEPOSIT            =     8,       // (event, guild, player, amount)
+    GUILD_EVENT_ON_ITEM_MOVE                =     9,       // (event, guild, player, item, isSrcBank, srcContainer, srcSlotId, isDestBank, destContainer, destSlotId)
+    GUILD_EVENT_ON_EVENT                    =     10,      // (event, guild, eventType, plrGUIDLow1, plrGUIDLow2, newRank)
+    GUILD_EVENT_ON_BANK_EVENT               =     11,      // (event, guild, eventType, tabId, playerGUIDLow, itemOrMoney, itemStackCount, destTabId)
+
+    GUILD_EVENT_COUNT
+};
+
+// RegisterGroupEvent(eventId, function)
+enum GroupEvents
+{
+    // Group
+    GROUP_EVENT_ON_MEMBER_ADD               =     1,       // (event, group, guid)
+    GROUP_EVENT_ON_MEMBER_INVITE            =     2,       // (event, group, guid)
+    GROUP_EVENT_ON_MEMBER_REMOVE            =     3,       // (event, group, guid, method, kicker, reason)
+    GROUP_EVENT_ON_LEADER_CHANGE            =     4,       // (event, group, newLeaderGuid, oldLeaderGuid)
+    GROUP_EVENT_ON_DISBAND                  =     5,       // (event, group)
+    GROUP_EVENT_ON_CREATE                   =     6,       // (event, group, leaderGuid, groupType)
+
+    GROUP_EVENT_COUNT
 };
 
 // RegisterCreatureEvent(entry, EventId, function)
@@ -566,6 +585,9 @@ class Eluna
         typedef UNORDERED_MAP<uint32, ElunaBindingMap> ElunaEntryMap;
         struct ElunaBind;
         std::map<int, std::vector<int> > ServerEventBindings;
+        std::map<int, std::vector<int> > PlayerEventBindings;
+        std::map<int, std::vector<int> > GuildEventBindings;
+        std::map<int, std::vector<int> > GroupEventBindings;
         ElunaBind* CreatureEventBindings;
         ElunaBind* CreatureGossipBindings;
         ElunaBind* GameObjectEventBindings;
@@ -696,6 +718,24 @@ class Eluna
                 std::vector<int> _vector;
                 ServerEventBindings.insert(std::pair<int, std::vector<int> >(i, _vector));
             }
+
+            for (int i = 0; i < PLAYER_EVENT_COUNT; ++i)
+            {
+                std::vector<int> _vector;
+                PlayerEventBindings.insert(std::pair<int, std::vector<int> >(i, _vector));
+            }
+
+            for (int i = 0; i < GUILD_EVENT_COUNT; ++i)
+            {
+                std::vector<int> _vector;
+                GuildEventBindings.insert(std::pair<int, std::vector<int> >(i, _vector));
+            }
+
+            for (int i = 0; i < GROUP_EVENT_COUNT; ++i)
+            {
+                std::vector<int> _vector;
+                GroupEventBindings.insert(std::pair<int, std::vector<int> >(i, _vector));
+            }
             CreatureEventBindings = new ElunaBind;
             CreatureGossipBindings = new ElunaBind;
             GameObjectEventBindings = new ElunaBind;
@@ -713,7 +753,31 @@ class Eluna
                     luaL_unref(L, LUA_REGISTRYINDEX, (*it));
                 itr->second.clear();
             }
+
+            for (std::map<int, std::vector<int> >::iterator itr = PlayerEventBindings.begin(); itr != PlayerEventBindings.end(); ++itr)
+            {
+                for (std::vector<int>::iterator it = itr->second.begin(); it != itr->second.end(); ++it)
+                    luaL_unref(L, LUA_REGISTRYINDEX, (*it));
+                itr->second.clear();
+            }
+
+            for (std::map<int, std::vector<int> >::iterator itr = GuildEventBindings.begin(); itr != GuildEventBindings.end(); ++itr)
+            {
+                for (std::vector<int>::iterator it = itr->second.begin(); it != itr->second.end(); ++it)
+                    luaL_unref(L, LUA_REGISTRYINDEX, (*it));
+                itr->second.clear();
+            }
+
+            for (std::map<int, std::vector<int> >::iterator itr = GroupEventBindings.begin(); itr != GroupEventBindings.end(); ++itr)
+            {
+                for (std::vector<int>::iterator it = itr->second.begin(); it != itr->second.end(); ++it)
+                    luaL_unref(L, LUA_REGISTRYINDEX, (*it));
+                itr->second.clear();
+            }
             ServerEventBindings.clear();
+            PlayerEventBindings.clear();
+            GuildEventBindings.clear();
+            GroupEventBindings.clear();
             CreatureEventBindings->Clear();
             CreatureGossipBindings->Clear();
             GameObjectEventBindings->Clear();

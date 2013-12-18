@@ -14356,8 +14356,10 @@ void Player::SendQuestCompleteEvent(uint32 quest_id)
     }
 }
 
-void Player::SendQuestReward(Quest const* pQuest, uint32 XP, Object* /*questGiver*/)
+void Player::SendQuestReward(Quest const* pQuest, uint32 XP, Object* questGiver)
 {
+    Player* pPlayer = m_session->GetPlayer();
+
     uint32 questid = pQuest->GetQuestId();
     DEBUG_LOG("WORLD: Sent SMSG_QUESTGIVER_QUEST_COMPLETE quest = %u", questid);
     WorldPacket data(SMSG_QUESTGIVER_QUEST_COMPLETE, (4 + 4 + 4 + 4 + 4 + 4 + pQuest->GetRewItemsCount() * 8));
@@ -14385,6 +14387,9 @@ void Player::SendQuestReward(Quest const* pQuest, uint32 XP, Object* /*questGive
             data << uint32(0) << uint32(0);
     }
     GetSession()->SendPacket(&data);
+
+    if (Creature* pCreature = questGiver->ToCreature())
+        sScriptMgr.OnQuestComplete(pPlayer, pCreature, pQuest);
 }
 
 void Player::SendQuestFailed(uint32 quest_id)

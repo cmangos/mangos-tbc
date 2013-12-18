@@ -137,6 +137,7 @@ enum ServerEvents
     GROUP_EVENT_ON_MEMBER_REMOVE            =     71,       // (event, group, guid, method, kicker, reason)
     GROUP_EVENT_ON_LEADER_CHANGE            =     72,       // (event, group, newLeaderGuid, oldLeaderGuid)
     GROUP_EVENT_ON_DISBAND                  =     73,       // (event, group)
+    GROUP_EVENT_ON_CREATE                   =     82,       // (event, group, leaderGuid, groupType) God, please fix this! I can't deal with the event ID being out of order... ROCHET!
 
     // Custom
     PLAYER_EVENT_ON_EQUIP                   =     74,       // (event, player, item, bag, slot)

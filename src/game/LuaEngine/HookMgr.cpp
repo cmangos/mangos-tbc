@@ -608,3 +608,39 @@ void HookMgr::OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 pla
     for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
         (*it)->OnBankEvent(guild, eventType, tabId, playerGuid, itemOrMoney, itemStackCount, destTabId);
 }
+// Group
+void HookMgr::OnAddMember(Group* group, uint64 guid)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnAddMember(group, guid);
+}
+
+void HookMgr::OnInviteMember(Group* group, uint64 guid)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnInviteMember(group, guid);
+}
+
+void HookMgr::OnRemoveMember(Group* group, uint64 guid, uint8 method/*, uint64 kicker, const char* reason*/) // Kicker and Reason not a part of Mangos, implement?
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnRemoveMember(group, guid, method/*, kicker, reason*/);
+}
+
+void HookMgr::OnChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeaderGuid)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnChangeLeader(group, newLeaderGuid, oldLeaderGuid);
+}
+
+void HookMgr::OnDisband(Group* group)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnDisband(group);
+}
+
+void HookMgr::OnCreate(Group* group, uint64 leaderGuid, GroupType groupType)
+{
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        (*it)->OnCreate(group, leaderGuid, groupType);
+}

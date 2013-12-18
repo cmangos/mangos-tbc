@@ -1183,84 +1183,90 @@ class Eluna_HookScript : public HookScript
                 sEluna.ExecuteCall(8, 0);
             }
         }
+        // Group
+        void OnAddMember(Group* group, uint64 guid)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_ADD].begin();
+                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_ADD].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_ADD);
+                sEluna.Push(sEluna.L, group);
+                sEluna.Push(sEluna.L, guid);
+                sEluna.ExecuteCall(3, 0);
+            }
+        }
+
+        void OnInviteMember(Group* group, uint64 guid)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].begin();
+                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_INVITE);
+                sEluna.Push(sEluna.L, group);
+                sEluna.Push(sEluna.L, guid);
+                sEluna.ExecuteCall(3, 0);
+            }
+        }
+
+        void OnRemoveMember(Group* group, uint64 guid, uint8 method, uint64 kicker, const char* reason) // Kicker and Reason not a part of Mangos, implement?
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].begin();
+                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_REMOVE);
+                sEluna.Push(sEluna.L, group);
+                sEluna.Push(sEluna.L, guid);
+                sEluna.Push(sEluna.L, method);
+                // sEluna.Push(sEluna.L, kicker); // Kicker and Reason not a part of Mangos, implement?
+                // sEluna.Push(sEluna.L, reason);
+                // sEluna.ExecuteCall(6, 0);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
+
+        void OnChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeaderGuid)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].begin();
+                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GROUP_EVENT_ON_LEADER_CHANGE);
+                sEluna.Push(sEluna.L, group);
+                sEluna.Push(sEluna.L, newLeaderGuid);
+                sEluna.Push(sEluna.L, oldLeaderGuid);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
+
+        void OnDisband(Group* group)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_DISBAND].begin();
+                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_DISBAND].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GROUP_EVENT_ON_DISBAND);
+                sEluna.Push(sEluna.L, group);
+                sEluna.ExecuteCall(2, 0);
+            }
+        }
+
+        void OnCreate(Group* group, uint64 leaderGuid, GroupType groupType)
+        {
+            for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_CREATE].begin();
+                itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_CREATE].end(); ++itr)
+            {
+                sEluna.BeginCall((*itr));
+                sEluna.Push(sEluna.L, GROUP_EVENT_ON_CREATE);
+                sEluna.Push(sEluna.L, group);
+                sEluna.Push(sEluna.L, leaderGuid);
+                sEluna.Push(sEluna.L, groupType);
+                sEluna.ExecuteCall(4, 0);
+            }
+        }
 };
-
-/*
-class Eluna_GroupScript : public GroupScript
-{
-public:
-    Eluna_GroupScript() : GroupScript("Eluna_GroupScript") { }
-
-    void OnAddMember(Group* group, uint64 guid)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_ADD].begin();
-            itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_ADD].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_ADD);
-            sEluna.Push(sEluna.L, group);
-            sEluna.Push(sEluna.L, guid);
-            sEluna.ExecuteCall(3, 0);
-        }
-    }
-
-    void OnInviteMember(Group* group, uint64 guid)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].begin();
-            itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_INVITE);
-            sEluna.Push(sEluna.L, group);
-            sEluna.Push(sEluna.L, guid);
-            sEluna.ExecuteCall(3, 0);
-        }
-    }
-
-    void OnRemoveMember(Group* group, uint64 guid, RemoveMethod method, uint64 kicker, const char* reason)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].begin();
-            itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_REMOVE);
-            sEluna.Push(sEluna.L, group);
-            sEluna.Push(sEluna.L, guid);
-            sEluna.Push(sEluna.L, method);
-            sEluna.Push(sEluna.L, kicker);
-            sEluna.Push(sEluna.L, reason);
-            sEluna.ExecuteCall(6, 0);
-        }
-    }
-
-    void OnChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeaderGuid)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].begin();
-            itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GROUP_EVENT_ON_LEADER_CHANGE);
-            sEluna.Push(sEluna.L, group);
-            sEluna.Push(sEluna.L, newLeaderGuid);
-            sEluna.Push(sEluna.L, oldLeaderGuid);
-            sEluna.ExecuteCall(4, 0);
-        }
-    }
-
-    void OnDisband(Group* group)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[GROUP_EVENT_ON_DISBAND].begin();
-            itr != sEluna.ServerEventBindings[GROUP_EVENT_ON_DISBAND].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, GROUP_EVENT_ON_DISBAND);
-            sEluna.Push(sEluna.L, group);
-            sEluna.ExecuteCall(2, 0);
-        }
-    }
-};*/
-
-
 
 void Eluna::AddScriptHooks()
 {

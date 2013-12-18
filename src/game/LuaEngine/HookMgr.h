@@ -125,6 +125,13 @@ class HookMgr
         void OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId, bool isDestBank, uint8 destContainer, uint8 destSlotId); // TODO: Implement
         void OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank); // TODO: Implement
         void OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId);
+        /* Group */
+        void OnAddMember(Group* group, uint64 guid);
+        void OnInviteMember(Group* group, uint64 guid);
+        void OnRemoveMember(Group* group, uint64 guid, uint8 method/*, uint64 kicker, const char* reason*/); // Kicker and Reason not a part of Mangos, implement?
+        void OnChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeaderGuid);
+        void OnDisband(Group* group);
+        void OnCreate(Group* group, uint64 leaderGuid, GroupType groupType);
 };
 #define sHookMgr MaNGOS::Singleton<HookMgr>::Instance()
 
@@ -232,5 +239,12 @@ class HookScript
         virtual void OnItemMove(Guild* /*guild*/, Player* /*player*/, Item* /*pItem*/, bool /*isSrcBank*/, uint8 /*srcContainer*/, uint8 /*srcSlotId*/, bool /*isDestBank*/, uint8 /*destContainer*/, uint8 /*destSlotId*/) { } // TODO: Implement
         virtual void OnEvent(Guild* /*guild*/, uint8 /*eventType*/, uint32 /*playerGuid1*/, uint32 /*playerGuid2*/, uint8 /*newRank*/) { } // TODO: Implement
         virtual void OnBankEvent(Guild* /*guild*/, uint8 /*eventType*/, uint8 /*tabId*/, uint32 /*playerGuid*/, uint32 /*itemOrMoney*/, uint16 /*itemStackCount*/, uint8 /*destTabId*/) { }
+        /* Group */
+        virtual void OnAddMember(Group* /*group*/, uint64 /*guid*/) { }
+        virtual void OnInviteMember(Group* /*group*/, uint64 /*guid*/) { }
+        virtual void OnRemoveMember(Group* /*group*/, uint64 /*guid*/, uint8 /*method, uint64 kicker, const char* reason*/) { } // Kicker and Reason not a part of Mangos, implement?
+        virtual void OnChangeLeader(Group* /*group*/, uint64 /*newLeaderGuid*/, uint64 /*oldLeaderGuid*/) { }
+        virtual void OnDisband(Group* /*group*/) { }
+        virtual void OnCreate(Group* /*group*/, uint64 /*leaderGuid*/, GroupType /*groupType*/) { }
 };
 #endif

@@ -263,6 +263,15 @@ bool HookMgr::OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest cons
     return result;
 }
 
+bool HookMgr::OnQuestComplete(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
+{
+    bool result = false;
+    for (HookPointerSet::const_iterator it = hookPointers.begin(); it != hookPointers.end(); ++it)
+        if ((*it)->OnQuestComplete(pPlayer, pGameObject, pQuest))
+            result = true;
+    return result;
+}
+
 bool HookMgr::OnQuestReward(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
 {
     bool result = false;

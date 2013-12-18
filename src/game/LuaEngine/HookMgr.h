@@ -64,6 +64,7 @@ class HookMgr
         bool OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 sender, uint32 action);
         bool OnGossipSelectCode(Player* pPlayer, GameObject* pGameObject, uint32 sender, uint32 action, const char* code);
         bool OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
+        bool OnQuestComplete(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
         bool OnQuestReward(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
         bool OnGameObjectUse(Player* pPlayer, GameObject* pGameObject);
         uint32 GetDialogStatus(Player* pPlayer, GameObject* pGameObject);
@@ -178,6 +179,7 @@ class HookScript
         virtual bool OnGossipSelect(Player* /*pPlayer*/, GameObject* /*pGameObject*/, uint32 /*sender*/, uint32 /*action*/) { return false; }
         virtual bool OnGossipSelectCode(Player* /*pPlayer*/, GameObject* /*pGameObject*/, uint32 /*sender*/, uint32 /*action*/, const char* /*code*/) { return false; }
         virtual bool OnQuestAccept(Player* /*pPlayer*/, GameObject* /*pGameObject*/, Quest const* /*pQuest*/) { return false; }
+        virtual bool OnQuestComplete(Player* /*pPlayer*/, GameObject* /*pGameObject*/, Quest const* /*pQuest*/) { return false; }
         virtual bool OnQuestReward(Player* /*pPlayer*/, GameObject* /*pGameObject*/, Quest const* /*pQuest*/) { return false; }
         virtual bool OnGameObjectUse(Player* /*pPlayer*/, GameObject* /*pGameObject*/) { return false; }
         virtual uint32 GetDialogStatus(Player* /*pPlayer*/, GameObject* /*pGameObject*/) { return 100; }

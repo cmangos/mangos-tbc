@@ -70,6 +70,7 @@ ScriptMgr::ScriptMgr() :
     m_pOnGOQuestAccept(NULL),
     m_pOnItemQuestAccept(NULL),
     m_pOnQuestComplete(NULL),
+    m_pOnGOQuestComplete(NULL),
     m_pOnQuestRewarded(NULL),
     m_pOnGOQuestRewarded(NULL),
     m_pGetNPCDialogStatus(NULL),
@@ -2068,6 +2069,14 @@ bool ScriptMgr::OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest cons
     return m_pOnQuestComplete != NULL && m_pOnQuestComplete(pPlayer, pCreature, pQuest);
 }
 
+bool ScriptMgr::OnQuestComplete(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
+{
+    if (sHookMgr.OnQuestComplete(pPlayer, pGameObject, pQuest))
+        return true;
+
+    return m_pOnGOQuestComplete != NULL && m_pOnGOQuestComplete(pPlayer, pGameObject, pQuest);
+}
+
 bool ScriptMgr::OnQuestRewarded(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
 {
     if (sHookMgr.OnQuestReward(pPlayer, pCreature, pQuest))
@@ -2219,6 +2228,7 @@ ScriptLoadResult ScriptMgr::LoadScriptLibrary(const char* libName)
     GET_SCRIPT_HOOK_PTR(m_pOnGOQuestAccept,            "GOQuestAccept");
     GET_SCRIPT_HOOK_PTR(m_pOnItemQuestAccept,          "ItemQuestAccept");
     GET_SCRIPT_HOOK_PTR(m_pOnQuestComplete,            "QuestComplete");
+    GET_SCRIPT_HOOK_PTR(m_pOnGOQuestComplete,          "GOQuestComplete");
     GET_SCRIPT_HOOK_PTR(m_pOnQuestRewarded,            "QuestRewarded");
     GET_SCRIPT_HOOK_PTR(m_pOnGOQuestRewarded,          "GOQuestRewarded");
     GET_SCRIPT_HOOK_PTR(m_pGetNPCDialogStatus,         "GetNPCDialogStatus");
@@ -2275,6 +2285,7 @@ void ScriptMgr::UnloadScriptLibrary()
     m_pOnGOQuestAccept          = NULL;
     m_pOnItemQuestAccept        = NULL;
     m_pOnQuestComplete          = NULL;
+    m_pOnGOQuestComplete        = NULL;
     m_pOnQuestRewarded          = NULL;
     m_pOnGOQuestRewarded        = NULL;
     m_pGetNPCDialogStatus       = NULL;

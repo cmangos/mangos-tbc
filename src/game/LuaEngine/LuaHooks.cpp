@@ -344,7 +344,7 @@ class Eluna_HookScript : public HookScript
             return true;
         }
 
-        bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest) // TODO: Add in Core support for hook
+        bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
         {
             int bind = sEluna.CreatureEventBindings->GetBind(pCreature->GetEntry(), CREATURE_EVENT_ON_QUEST_COMPLETE);
             if (!bind)
@@ -454,6 +454,20 @@ class Eluna_HookScript : public HookScript
                 return false;
             sEluna.BeginCall(bind);
             sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_QUEST_ACCEPT);
+            sEluna.Push(sEluna.L, pPlayer);
+            sEluna.Push(sEluna.L, pGameObject);
+            sEluna.Push(sEluna.L, pQuest);
+            sEluna.ExecuteCall(4, 0);
+            return true;
+        }
+
+        bool OnQuestComplete(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
+        {
+            int bind = sEluna.CreatureEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_QUEST_COMPLETE);
+            if (!bind)
+                return false;
+            sEluna.BeginCall(bind);
+            sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_QUEST_COMPLETE);
             sEluna.Push(sEluna.L, pPlayer);
             sEluna.Push(sEluna.L, pGameObject);
             sEluna.Push(sEluna.L, pQuest);

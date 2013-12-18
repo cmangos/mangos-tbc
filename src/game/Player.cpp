@@ -14390,6 +14390,9 @@ void Player::SendQuestReward(Quest const* pQuest, uint32 XP, Object* questGiver)
 
     if (Creature* pCreature = questGiver->ToCreature())
         sScriptMgr.OnQuestComplete(pPlayer, pCreature, pQuest);
+
+    if (GameObject* pGameObject = questGiver->ToGameObject())
+        sScriptMgr.OnQuestComplete(pPlayer, pGameObject, pQuest);
 }
 
 void Player::SendQuestFailed(uint32 quest_id)

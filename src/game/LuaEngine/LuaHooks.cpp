@@ -463,7 +463,7 @@ class Eluna_HookScript : public HookScript
 
         bool OnQuestComplete(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
         {
-            int bind = sEluna.CreatureEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_QUEST_COMPLETE);
+            int bind = sEluna.GameObjectEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_QUEST_COMPLETE);
             if (!bind)
                 return false;
             sEluna.BeginCall(bind);

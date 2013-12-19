@@ -362,7 +362,7 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
         Disband(true);
 
     // Trigger OnRemoveMember event
-    sHookMgr.OnRemoveMember(this, guid, method/*, kicker, reason*/); // Kicker and Reason not a part of Mangos, implement?
+    sHookMgr.OnRemoveMember(this, guid, method, NULL, NULL); // Kicker and Reason not a part of Mangos, implement?
 
     return m_memberSlots.size();
 }

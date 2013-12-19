@@ -584,7 +584,7 @@ bool Guild::DelMember(ObjectGuid guid, bool isDisbanding)
         UpdateAccountsNumber();
 
     // Trigger OnRemoveMember event
-    sHookMgr.OnRemoveMember(this, player, isDisbanding/*, isKicked*/); // IsKicked not a part of Mangos, implement?
+    sHookMgr.OnRemoveMember(this, player, isDisbanding, true); // IsKicked not a part of Mangos, implement?
 
     return members.empty();
 }
@@ -1283,7 +1283,7 @@ bool Guild::MemberMoneyWithdraw(uint32 amount, uint32 LowGuid)
 
     // Trigger OnMemberWitdrawMoney event
     Player* player = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, LowGuid));
-    sHookMgr.OnMemberWitdrawMoney(this, player, amount/*, isRepair*/);
+    sHookMgr.OnMemberWitdrawMoney(this, player, amount, false); // IsRepair not a part of Mangos, implement?
 
     return true;
 }

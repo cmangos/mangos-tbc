@@ -20,6 +20,8 @@
 #ifndef GLOBALMETHODS_H
 #define GLOBALMETHODS_H
 
+extern void StartEluna(bool restart);
+
 namespace LuaGlobalFunctions
 {
     // RegisterServerEvent(event, function)
@@ -255,7 +257,7 @@ namespace LuaGlobalFunctions
     // ReloadEluna() - Reloads eluna
     int ReloadEluna(lua_State* L)
     {
-        sEluna.StartEluna(true);
+        StartEluna(true);
         return 0;
     }
 
@@ -516,7 +518,7 @@ namespace LuaGlobalFunctions
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        sEluna.Push(L, EventMgr::AddEvent(&sEluna.WorldEvents, functionRef, delay, repeats));
+        sEluna.Push(L, sEluna.EventMgr.AddEvent(&sEluna.EventMgr.GlobalEvents, functionRef, delay, repeats));
         return 1;
     }
 
@@ -526,9 +528,9 @@ namespace LuaGlobalFunctions
         bool all_Events = luaL_optbool(L, 1, false);
 
         if (all_Events)
-            EventMgr::RemoveEvent(eventId);
+            sEluna.EventMgr.RemoveEvent(eventId);
         else
-            EventMgr::RemoveEvent(&sEluna.WorldEvents, eventId);
+            sEluna.EventMgr.RemoveEvent(&sEluna.EventMgr.GlobalEvents, eventId);
         return 0;
     }
 
@@ -537,9 +539,9 @@ namespace LuaGlobalFunctions
         bool all_Events = luaL_optbool(L, 1, false);
 
         if (all_Events)
-            EventMgr::RemoveEvents();
+            sEluna.EventMgr.RemoveEvents();
         else
-            EventMgr::RemoveEvents(&sEluna.WorldEvents);
+            sEluna.EventMgr.RemoveEvents(&sEluna.EventMgr.GlobalEvents);
         return 0;
     }
 

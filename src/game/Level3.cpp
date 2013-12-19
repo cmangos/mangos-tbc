@@ -57,7 +57,6 @@
 #include "CreatureEventAIMgr.h"
 #include "AuctionHouseBot/AuctionHouseBot.h"
 #include "SQLStorages.h"
-#include "LuaEngine.h"
 
 static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
 {
@@ -376,10 +375,11 @@ bool ChatHandler::HandleReloadConfigCommand(char* /*args*/)
     return true;
 }
 
+extern void StartEluna(bool restart);
 bool ChatHandler::HandleReloadElunaCommand(char* /*args*/)
 {
     sLog.outString("Re-Loading Eluna LuaEngine...");
-    sEluna.StartEluna(true);
+    StartEluna(true);
     SendGlobalSysMessage("Eluna LuaEngine reloaded.");
     return true;
 }

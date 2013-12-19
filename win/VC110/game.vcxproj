@@ -444,7 +444,6 @@
     <ClCompile Include="..\..\src\game\LuaEngine\HookMgr.cpp" />
     <ClCompile Include="..\..\src\game\LuaEngine\LuaEngine.cpp" />
     <ClCompile Include="..\..\src\game\LuaEngine\LuaFunctions.cpp" />
-    <ClCompile Include="..\..\src\game\LuaEngine\LuaHooks.cpp" />
     <ClCompile Include="..\..\src\game\Mail.cpp" />
     <ClCompile Include="..\..\src\game\MailHandler.cpp" />
     <ClCompile Include="..\..\src\game\Map.cpp" />

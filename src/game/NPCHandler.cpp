@@ -391,17 +391,17 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recv_data)
             return;
         }
 
-        sHookMgr.HandleGossipSelectOption(GetPlayer(), guid, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code, menuId);
+        sHookMgr.HandleGossipSelectOption(GetPlayer(), item, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code);
     }
     else if (guid.IsPlayer())
     {
-        if (GetPlayer()->GetGUIDLow() != guid)
+        if (GetPlayer()->GetGUIDLow() != guid || GetPlayer()->PlayerTalkClass->GetGossipMenu().GetMenuId() != menuId)
         {
             DEBUG_LOG("WORLD: HandleGossipSelectOptionOpcode - %s not found or you can't interact with it.", guid.GetString().c_str());
             return;
         }
 
-        sHookMgr.HandleGossipSelectOption(GetPlayer(), guid, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code, menuId);
+        sHookMgr.HandleGossipSelectOption(GetPlayer(), menuId, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code);
     }
 }
 

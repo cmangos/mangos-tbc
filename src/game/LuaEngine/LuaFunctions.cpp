@@ -18,8 +18,8 @@
  */
 
 #include "LuaEngine.h"
-#include "GlobalMethods.h"
 
+#include "GlobalMethods.h"
 #include "ObjectMethods.h"
 #include "WorldObjectMethods.h"
 #include "UnitMethods.h"

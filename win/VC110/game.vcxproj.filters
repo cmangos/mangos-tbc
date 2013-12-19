@@ -93,9 +93,6 @@
     <ClCompile Include="..\..\src\game\LuaEngine\LuaEngine.cpp">
       <Filter>LuaEngine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\LuaEngine\LuaHooks.cpp">
-      <Filter>LuaEngine</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\game\LuaEngine\LuaFunctions.cpp">
       <Filter>LuaEngine</Filter>
     </ClCompile>

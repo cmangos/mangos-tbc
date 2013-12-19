@@ -197,9 +197,10 @@ namespace LuaPlayer
     int SendListInventory(lua_State* L, Player* player)
     {
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
+        uint32 entry = luaL_optunsigned(L, 2, 0);
 
         if (obj)
-            player->GetSession()->SendListInventory(obj->GetObjectGuid());
+            player->GetSession()->SendListInventory(obj->GetObjectGuid()), entry;
         return 0;
     }
 

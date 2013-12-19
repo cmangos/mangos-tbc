@@ -29,231 +29,7 @@ extern "C"
 
 #include "Includes.h"
 
-enum RegisterTypes
-{
-    REGTYPE_SERVER,
-    REGTYPE_PLAYER,
-    REGTYPE_GUILD,
-    REGTYPE_GROUP,
-    REGTYPE_CREATURE,
-    REGTYPE_CREATURE_GOSSIP,
-    REGTYPE_GAMEOBJECT,
-    REGTYPE_GAMEOBJECT_GOSSIP,
-    REGTYPE_ITEM,
-    REGTYPE_ITEM_GOSSIP,
-    REGTYPE_PLAYER_GOSSIP,
-    REGTYPE_COUNT
-};
-
-// RegisterServerEvent(EventId, function)
-enum ServerEvents
-{
-    // Server
-    SERVER_EVENT_ON_NETWORK_START           =     40,       // Not Implemented
-    SERVER_EVENT_ON_NETWORK_STOP            =     41,       // Not Implemented
-    SERVER_EVENT_ON_SOCKET_OPEN             =     42,       // Not Implemented
-    SERVER_EVENT_ON_SOCKET_CLOSE            =     43,       // Not Implemented
-    SERVER_EVENT_ON_PACKET_RECEIVE          =     44,       // Not Implemented
-    SERVER_EVENT_ON_PACKET_RECEIVE_UNKNOWN  =     45,       // Not Implemented
-    SERVER_EVENT_ON_PACKET_SEND             =     46,       // Not Implemented
-
-    // World
-    WORLD_EVENT_ON_OPEN_STATE_CHANGE        =     47,       // (event, open)
-    WORLD_EVENT_ON_CONFIG_LOAD              =     48,       // (event, reload)
-    WORLD_EVENT_ON_MOTD_CHANGE              =     49,       // (event, newMOTD)
-    WORLD_EVENT_ON_SHUTDOWN_INIT            =     50,       // (event, code, mask)
-    WORLD_EVENT_ON_SHUTDOWN_CANCEL          =     51,       // (event)
-    WORLD_EVENT_ON_UPDATE                   =     52,       // (event, diff)
-    WORLD_EVENT_ON_STARTUP                  =     53,       // (event)
-    WORLD_EVENT_ON_SHUTDOWN                 =     54,       // (event)
-
-    // Eluna
-    ELUNA_EVENT_ON_RESTART                  =     55,       // (event)
-
-    // Map
-    MAP_EVENT_ON_CREATE                     =     56,       // Not Implemented
-    MAP_EVENT_ON_DESTROY                    =     57,       // Not Implemented
-    MAP_EVENT_ON_LOAD                       =     58,       // Not Implemented
-    MAP_EVENT_ON_UNLOAD                     =     59,       // Not Implemented
-    MAP_EVENT_ON_PLAYER_ENTER               =     60,       // Not Implemented
-    MAP_EVENT_ON_PLAYER_LEAVE               =     61,       // Not Implemented
-    MAP_EVENT_ON_UPDATE                     =     62,       // Not Implemented
-
-    // Area trigger
-    TRIGGER_EVENT_ON_TRIGGER                =     63,       // (event, player, triggerId)
-
-    // Weather
-    WEATHER_EVENT_ON_CHANGE                 =     64,       // (event, weather, state, grade)
-
-    // Auction house
-    AUCTION_EVENT_ON_ADD                    =     65,       // Not Implemented
-    AUCTION_EVENT_ON_REMOVE                 =     66,       // Not Implemented
-    AUCTION_EVENT_ON_SUCCESFUL              =     67,       // Not Implemented
-    AUCTION_EVENT_ON_EXPIRE                 =     68,       // Not Implemented
-
-    SERVER_EVENT_COUNT
-};
-
-// RegisterPlayerEvent(eventId, function)
-enum PlayerEvents
-{
-    PLAYER_EVENT_ON_CHARACTER_CREATE        =     1,        // (event, player)
-    PLAYER_EVENT_ON_CHARACTER_DELETE        =     2,        // (event, guid)
-    PLAYER_EVENT_ON_LOGIN                   =     3,        // (event, player)
-    PLAYER_EVENT_ON_LOGOUT                  =     4,        // (event, player)
-    PLAYER_EVENT_ON_SPELL_CAST              =     5,        // (event, player, spell, skipCheck)
-    PLAYER_EVENT_ON_KILL_PLAYER             =     6,        // (event, killer, killed)
-    PLAYER_EVENT_ON_KILL_CREATURE           =     7,        // (event, killer, killed)
-    PLAYER_EVENT_ON_KILLED_BY_CREATURE      =     8,        // (event, killer, killed)
-    PLAYER_EVENT_ON_DUEL_REQUEST            =     9,        // (event, target, challenger)
-    PLAYER_EVENT_ON_DUEL_START              =     10,       // (event, player1, player2)
-    PLAYER_EVENT_ON_DUEL_END                =     11,       // (event, winner, loser, type)
-    PLAYER_EVENT_ON_GIVE_XP                 =     12,       // (event, player, amount, victim)
-    PLAYER_EVENT_ON_LEVEL_CHANGE            =     13,       // (event, player, oldLevel)
-    PLAYER_EVENT_ON_MONEY_CHANGE            =     14,       // (event, player, amount)
-    PLAYER_EVENT_ON_REPUTATION_CHANGE       =     15,       // (event, player, factionId, standing, incremental)
-    PLAYER_EVENT_ON_TALENTS_CHANGE          =     16,       // (event, player, points)
-    PLAYER_EVENT_ON_TALENTS_RESET           =     17,       // (event, player, noCost)
-    PLAYER_EVENT_ON_CHAT                    =     18,       // (event, player, msg, Type, lang) - Can return false
-    PLAYER_EVENT_ON_WHISPER                 =     19,       // (event, player, msg, Type, lang, receiver)
-    PLAYER_EVENT_ON_GROUP_CHAT              =     20,       // (event, player, msg, Type, lang, group) - Can return false
-    PLAYER_EVENT_ON_GUILD_CHAT              =     21,       // (event, player, msg, Type, lang, guild) - Can return false
-    PLAYER_EVENT_ON_CHANNEL_CHAT            =     22,       // (event, player, msg, Type, lang, channel) - Can return false
-    PLAYER_EVENT_ON_EMOTE                   =     23,       // (event, player, emote) - Not triggered on any known emote
-    PLAYER_EVENT_ON_TEXT_EMOTE              =     24,       // (event, player, textEmote, emoteNum, guid)
-    PLAYER_EVENT_ON_SAVE                    =     25,       // (event, player)
-    PLAYER_EVENT_ON_BIND_TO_INSTANCE        =     26,       // (event, player, difficulty, mapid, permanent)
-    PLAYER_EVENT_ON_UPDATE_ZONE             =     27,       // (event, player, newZone, newArea)
-    PLAYER_EVENT_ON_MAP_CHANGE              =     28,       // (event, player)
-    // Custom
-    PLAYER_EVENT_ON_EQUIP                   =     29,       // (event, player, item, bag, slot)
-    PLAYER_EVENT_ON_FIRST_LOGIN             =     30,       // (event, player)
-    PLAYER_EVENT_ON_CAN_USE_ITEM            =     31,       // (event, player, itemEntry)
-    PLAYER_EVENT_ON_LOOT_ITEM               =     32,       // (event, player, item, count)
-    PLAYER_EVENT_ON_ENTER_COMBAT            =     33,       // (event, player, enemy)
-    PLAYER_EVENT_ON_LEAVE_COMBAT            =     34,       // (event, player)
-    PLAYER_EVENT_ON_REPOP                   =     35,       // (event, player)
-    PLAYER_EVENT_ON_RESURRECT               =     36,       // (event, player)
-
-    PLAYER_EVENT_COUNT
-};
-
-// RegisterGuildEvent(eventId, function)
-enum GuildEventTypes
-{
-    // Guild
-    GUILD_EVENT_ON_ADD_MEMBER               =     1,       // (event, guild, player, rank)
-    GUILD_EVENT_ON_REMOVE_MEMBER            =     2,       // (event, guild, isDisbanding, isKicked)
-    GUILD_EVENT_ON_MOTD_CHANGE              =     3,       // (event, guild, newMotd)
-    GUILD_EVENT_ON_INFO_CHANGE              =     4,       // (event, guild, newInfo)
-    GUILD_EVENT_ON_CREATE                   =     5,       // (event, guild, leader, name)
-    GUILD_EVENT_ON_DISBAND                  =     6,       // (event, guild)
-    GUILD_EVENT_ON_MONEY_WITHDRAW           =     7,       // (event, guild, player, amount, isRepair)
-    GUILD_EVENT_ON_MONEY_DEPOSIT            =     8,       // (event, guild, player, amount)
-    GUILD_EVENT_ON_ITEM_MOVE                =     9,       // (event, guild, player, item, isSrcBank, srcContainer, srcSlotId, isDestBank, destContainer, destSlotId)
-    GUILD_EVENT_ON_EVENT                    =     10,      // (event, guild, eventType, plrGUIDLow1, plrGUIDLow2, newRank)
-    GUILD_EVENT_ON_BANK_EVENT               =     11,      // (event, guild, eventType, tabId, playerGUIDLow, itemOrMoney, itemStackCount, destTabId)
-
-    GUILD_EVENT_COUNT
-};
-
-// RegisterGroupEvent(eventId, function)
-enum GroupEvents
-{
-    // Group
-    GROUP_EVENT_ON_MEMBER_ADD               =     1,       // (event, group, guid)
-    GROUP_EVENT_ON_MEMBER_INVITE            =     2,       // (event, group, guid)
-    GROUP_EVENT_ON_MEMBER_REMOVE            =     3,       // (event, group, guid, method, kicker, reason)
-    GROUP_EVENT_ON_LEADER_CHANGE            =     4,       // (event, group, newLeaderGuid, oldLeaderGuid)
-    GROUP_EVENT_ON_DISBAND                  =     5,       // (event, group)
-    GROUP_EVENT_ON_CREATE                   =     6,       // (event, group, leaderGuid, groupType)
-
-    GROUP_EVENT_COUNT
-};
-
-// RegisterCreatureEvent(entry, EventId, function)
-enum CreatureEvents
-{
-    CREATURE_EVENT_ON_ENTER_COMBAT                    = 1,  // (event, creature, target)
-    CREATURE_EVENT_ON_LEAVE_COMBAT                    = 2,  // (event, creature)
-    CREATURE_EVENT_ON_TARGET_DIED                     = 3,  // (event, creature, victim)
-    CREATURE_EVENT_ON_DIED                            = 4,  // (event, creature, killer)
-    CREATURE_EVENT_ON_SPAWN                           = 5,  // (event, creature)
-    CREATURE_EVENT_ON_REACH_WP                        = 6,  // (event, creature, type, id)
-    CREATURE_EVENT_ON_AIUPDATE                        = 7,  // (event, creature, diff)
-    CREATURE_EVENT_ON_RECEIVE_EMOTE                   = 8,  // (event, creature, player, emoteid)
-    CREATURE_EVENT_ON_DAMAGE_TAKEN                    = 9,  // (event, creature, attacker, damage)
-    CREATURE_EVENT_ON_PRE_COMBAT                      = 10, // (event, creature, target)
-    CREATURE_EVENT_ON_ATTACKED_AT                     = 11, // (event, creature, attacker)
-    CREATURE_EVENT_ON_OWNER_ATTACKED                  = 12, // (event, creature, target)
-    CREATURE_EVENT_ON_OWNER_ATTACKED_AT               = 13, // (event, creature, attacker)
-    CREATURE_EVENT_ON_HIT_BY_SPELL                    = 14, // (event, creature, caster, spellid)
-    CREATURE_EVENT_ON_SPELL_HIT_TARGET                = 15, // (event, creature, target, spellid)
-    CREATURE_EVENT_ON_SPELL_CLICK                     = 16, // (event, creature, clicker)
-    CREATURE_EVENT_ON_CHARMED                         = 17, // (event, creature, apply)
-    CREATURE_EVENT_ON_POSSESS                         = 18, // (event, creature, apply)
-    CREATURE_EVENT_ON_JUST_SUMMONED_CREATURE          = 19, // (event, creature, summon)
-    CREATURE_EVENT_ON_SUMMONED_CREATURE_DESPAWN       = 20, // (event, creature, summon)
-    CREATURE_EVENT_ON_SUMMONED_CREATURE_DIED          = 21, // (event, creature, summon, killer)
-    CREATURE_EVENT_ON_SUMMONED                        = 22, // (event, creature, summoner)
-    CREATURE_EVENT_ON_RESET                           = 23, // (event, creature)
-    CREATURE_EVENT_ON_REACH_HOME                      = 24, // (event, creature)
-    CREATURE_EVENT_ON_CAN_RESPAWN                     = 25, // (event, creature)
-    CREATURE_EVENT_ON_CORPSE_REMOVED                  = 26, // (event, creature, respawndelay)
-    CREATURE_EVENT_ON_MOVE_IN_LOS                     = 27, // (event, creature, unit)
-    CREATURE_EVENT_ON_VISIBLE_MOVE_IN_LOS             = 28, // (event, creature, unit)
-    CREATURE_EVENT_ON_PASSANGER_BOARDED               = 29, // (event, creature, passanger, seatid, apply)
-    CREATURE_EVENT_ON_DUMMY_EFFECT                    = 30, // (event, caster, spellid, effindex, creature)
-    CREATURE_EVENT_ON_QUEST_ACCEPT                    = 31, // (event, player, creature, quest)
-    CREATURE_EVENT_ON_QUEST_SELECT                    = 32, // (event, player, creature, quest)
-    CREATURE_EVENT_ON_QUEST_COMPLETE                  = 33, // (event, player, creature, quest)
-    CREATURE_EVENT_ON_QUEST_REWARD                    = 34, // (event, player, creature, quest, opt)
-    CREATURE_EVENT_ON_DIALOG_STATUS                   = 35, // (event, player, creature)
-    CREATURE_EVENT_COUNT
-};
-
-// RegisterGameObjectEvent(entry, EventId, function)
-enum GameObjectEvents
-{
-    GAMEOBJECT_EVENT_ON_AIUPDATE                    = 1,    // (event, go, diff)
-    GAMEOBJECT_EVENT_ON_RESET                       = 2,    // (event, go)
-    GAMEOBJECT_EVENT_ON_DUMMY_EFFECT                = 3,    // (event, caster, spellid, effindex, go)
-    GAMEOBJECT_EVENT_ON_QUEST_ACCEPT                = 4,    // (event, player, go, quest)
-    GAMEOBJECT_EVENT_ON_QUEST_REWARD                = 5,    // (event, player, go, quest, opt)
-    GAMEOBJECT_EVENT_ON_DIALOG_STATUS               = 6,    // (event, player, go)
-    GAMEOBJECT_EVENT_ON_DESTROYED                   = 7,    // (event, go, player)          // TODO
-    GAMEOBJECT_EVENT_ON_DAMAGED                     = 8,    // (event, go, player)          // TODO
-    GAMEOBJECT_EVENT_ON_LOOT_STATE_CHANGE           = 9,    // (event, go, state, unit)     // TODO
-    GAMEOBJECT_EVENT_ON_GO_STATE_CHANGED            = 10,   // (event, go, state)           // TODO
-    GAMEOBJECT_EVENT_ON_QUEST_COMPLETE              = 11,   // (event, player, go, quest)
-    GAMEOBJECT_EVENT_COUNT
-};
-
-// RegisterItemEvent(entry, EventId, function)
-enum ItemEvents
-{
-    ITEM_EVENT_ON_DUMMY_EFFECT                      = 1,    // (event, caster, spellid, effindex, item)
-    ITEM_EVENT_ON_USE                               = 2,    // (event, player, item, target)
-    ITEM_EVENT_ON_QUEST_ACCEPT                      = 3,    // (event, player, item, quest)
-    ITEM_EVENT_ON_EXPIRE                            = 4,    // (event, player, itemid)
-    ITEM_EVENT_COUNT
-};
-
-// RegisterCreatureGossipEvent(entry, EventId, function)
-// RegisterGameObjectGossipEvent(entry, EventId, function)
-// RegisterItemGossipEvent(entry, EventId, function)
-// RegisterPlayerGossipEvent(menu_id, EventId, function)
-enum GossipEvents
-{
-    GOSSIP_EVENT_ON_HELLO                           = 1,    // (event, player, object) - Object is the Creature/GameObject/Item
-    GOSSIP_EVENT_ON_SELECT                          = 2,    // (event, player, object, sender, intid, code, menu_id) - Object is the Creature/GameObject/Item/Player, menu_id is only for player gossip
-    GOSSIP_EVENT_COUNT
-};
-
-struct LoadedScripts
-{
-    std::set<std::string> luaFiles;
-};
+typedef std::set<std::string> LoadedScripts;
 
 template<typename T> const char* GetTName();
 
@@ -463,19 +239,18 @@ class ElunaTemplate
 struct EventMgr
 {
     struct LuaEvent;
+
     typedef std::set<LuaEvent*> EventSet;
     typedef std::map<EventProcessor*, EventSet> EventMap;
-    static EventMap LuaEvents; // LuaEvents[events] = {LuaEvents}
+    typedef UNORDERED_MAP<uint64, EventProcessor> ProcessorMap;
+
+    EventMap LuaEvents; // LuaEvents[events] = {LuaEvents}
+    ProcessorMap Processors; // Processors[guid] = processor
+    EventProcessor GlobalEvents;
 
     struct LuaEvent : public BasicEvent
     {
-        LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj) :
-            events(_events), funcRef(_funcRef), delay(_delay), calls(_calls), obj(_obj)
-        {
-            hasObject = _obj;
-            if (_events)
-                LuaEvents[_events].insert(this); // Able to access the event if we have the processor
-        }
+        LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj);
 
         ~LuaEvent();
 
@@ -490,8 +265,28 @@ struct EventMgr
         EventProcessor* events; // Pointer to events (holds the timed event)
     };
 
+    // Updates all processors stored in the manager
+    // Should be run on world tick
+    void Update(uint32 diff)
+    {
+        GlobalEvents.Update(diff);
+        for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end(); ++it)
+            it->second.Update(diff);
+    }
+
+    /*
+    // Updates processor stored for guid || remove from Update()
+    // Should be run on gameobject tick
+    static void Update(uint64 guid, uint32 diff)
+    {
+        if (Processors.find(guid) == Processors.end())
+            return;
+        Processors[guid].Update(diff);
+    }
+    */
+
     // Aborts all lua events
-    static void KillAllEvents(EventProcessor* events)
+    void KillAllEvents(EventProcessor* events)
     {
         if (!events)
             return;
@@ -503,15 +298,18 @@ struct EventMgr
     }
 
     // Remove all timed events
-    static void RemoveEvents()
+    void RemoveEvents()
     {
+        for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end(); ++it)
+            it->second.KillAllEvents(true);
+        Processors.clear();
         for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end(); ++it) // loop processors
             KillAllEvents(it->first);
         LuaEvents.clear(); // remove pointer sets
     }
-
+    
     // Remove timed events from processor
-    static void RemoveEvents(EventProcessor* events)
+    void RemoveEvents(EventProcessor* events)
     {
         if (!events)
             return;
@@ -519,8 +317,17 @@ struct EventMgr
         LuaEvents.erase(events); // remove pointer set
     }
 
+    // Remove timed events from guid
+    void RemoveEvents(uint64 guid)
+    {
+        if (Processors.find(guid) == Processors.end())
+            return;
+        Processors[guid].KillAllEvents(true); // remove events
+        Processors.erase(guid); // remove processor
+    }
+
     // Adds a new event to the processor and returns the eventID or 0 (Never negative)
-    static int AddEvent(EventProcessor* events, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
+    int AddEvent(EventProcessor* events, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
     {
         if (!events || funcRef <= 0) // If funcRef <= 0, function reference failed
             return 0; // on fail always return 0. funcRef can be negative.
@@ -528,8 +335,16 @@ struct EventMgr
         return funcRef; // return the event ID
     }
 
+    // Creates a processor for the guid if needed and adds the event to it
+    int AddEvent(uint64 guid, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
+    {
+        if (!guid) // 0 should be unused
+            return 0;
+        return AddEvent(&Processors[guid], funcRef, delay, calls, obj);
+    }
+
     // Finds the event that has the ID from events
-    static LuaEvent* GetEvent(EventProcessor* events, int eventId)
+    LuaEvent* GetEvent(EventProcessor* events, int eventId)
     {
         if (!events || !eventId)
             return NULL;
@@ -544,7 +359,7 @@ struct EventMgr
 
     // Remove the event with the eventId from processor
     // Returns true if event is removed
-    static bool RemoveEvent(EventProcessor* events, int eventId) // eventId = funcRef
+    bool RemoveEvent(EventProcessor* events, int eventId) // eventId = funcRef
     {
         if (!events || !eventId)
             return false;
@@ -556,8 +371,16 @@ struct EventMgr
         return true;
     }
 
+    // Remove event by ID from processor stored for guid
+    bool RemoveEvent(uint64 guid, int eventId)
+    {
+        if (!guid || Processors.find(guid) == Processors.end())
+            return false;
+        return RemoveEvent(&Processors[guid], eventId);
+    }
+
     // Removes the eventId from all events
-    static void RemoveEvent(int eventId)
+    void RemoveEvent(int eventId)
     {
         if (!eventId)
             return;
@@ -572,15 +395,7 @@ class Eluna
     public:
         friend class ScriptMgr;
         lua_State* L;
-
-        class Eluna_WorldScript;
-        class Eluna_CreatureScript;
-        class Eluna_GameObjectScript;
-        // Eluna_WorldScript* LuaWorldAI;
-        Eluna_CreatureScript* LuaCreatureAI;
-        Eluna_GameObjectScript* LuaGameObjectAI;
-        EventProcessor WorldEvents; // Updated on OnWorldUpdate hook tick
-        EventProcessor GameobjectEvents; // Updated on OnWorldUpdate hook tick
+        EventMgr EventMgr;
 
         typedef std::map<int, int> ElunaBindingMap;
         typedef UNORDERED_MAP<uint32, ElunaBindingMap> ElunaEntryMap;
@@ -598,8 +413,6 @@ class Eluna
         ElunaBind* playerGossipBindings;
 
         void Initialize();
-        void StartEluna(bool restart);
-        void AddScriptHooks();
         static void report(lua_State*);
         void Register(uint8 reg, uint32 id, uint32 evt, int func);
         void BeginCall(int fReference);
@@ -710,9 +523,6 @@ class Eluna
         Eluna()
         {
             L = NULL;
-            LuaCreatureAI = NULL;
-            LuaGameObjectAI = NULL;
-            // LuaWorldAI = NULL;
 
             for (int i = 0; i < SERVER_EVENT_COUNT; ++i)
             {
@@ -877,593 +687,6 @@ class Eluna
         };
 };
 #define sEluna MaNGOS::Singleton<Eluna>::Instance()
-
-/*class Eluna::Eluna_WorldScript : public WorldScript
-{
-public:
-    Eluna_WorldScript() : WorldScript("SmartEluna_WorldScript") { }
-    ~Eluna_WorldScript() { }
-
-    void OnOpenStateChange(bool open)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_OPEN_STATE_CHANGE].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_OPEN_STATE_CHANGE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_OPEN_STATE_CHANGE);
-            sEluna.Push(sEluna.L, open);
-            sEluna.ExecuteCall(2, 0);
-        }
-    }
-
-    void OnConfigLoad(bool reload)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_CONFIG_LOAD].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_CONFIG_LOAD].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_CONFIG_LOAD);
-            sEluna.Push(sEluna.L, reload);
-            sEluna.ExecuteCall(2, 0);
-        }
-    }
-
-    void OnMotdChange(std::string& newMotd)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_MOTD_CHANGE].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_MOTD_CHANGE);
-            sEluna.Push(sEluna.L, newMotd);
-            sEluna.ExecuteCall(2, 0);
-        }
-    }
-
-    void OnShutdownInitiate(ShutdownExitCode code, ShutdownMask mask)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN_INIT].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN_INIT].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_SHUTDOWN_INIT);
-            sEluna.Push(sEluna.L, code);
-            sEluna.Push(sEluna.L, mask);
-            sEluna.ExecuteCall(3, 0);
-        }
-    }
-
-    void OnShutdownCancel()
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN_CANCEL].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN_CANCEL].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_SHUTDOWN_CANCEL);
-            sEluna.ExecuteCall(1, 0);
-        }
-    }
-
-    void OnUpdate(uint32 diff)
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_UPDATE);
-            sEluna.Push(sEluna.L, diff);
-            sEluna.ExecuteCall(2, 0);
-        }
-    }
-    // executed when a  timed event fires
-    void OnScriptEvent(int funcRef, uint32 delay, uint32 calls)
-    {
-        sEluna.BeginCall(funcRef);
-        sEluna.Push(sEluna.L, funcRef);
-        sEluna.Push(sEluna.L, delay);
-        sEluna.Push(sEluna.L, calls);
-        sEluna.ExecuteCall(3, 0);
-    }
-
-    void OnStartup()
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_STARTUP].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_STARTUP].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_STARTUP);
-            sEluna.ExecuteCall(1, 0);
-        }
-    }
-
-    void OnShutdown()
-    {
-        for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN].begin();
-            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_SHUTDOWN].end(); ++itr)
-        {
-            sEluna.BeginCall((*itr));
-            sEluna.Push(sEluna.L, WORLD_EVENT_ON_SHUTDOWN);
-            sEluna.ExecuteCall(1, 0);
-        }
-    }
-};*/
-class Eluna::Eluna_CreatureScript
-{
-    public:
-
-        struct ScriptReactorAI : public ReactorAI
-        {
-            ScriptReactorAI(Creature* creature) : ReactorAI(creature) { }
-            ~ScriptReactorAI() { }
-
-            // Called at World update tick
-            void UpdateAI(uint32 const diff)
-            {
-                ReactorAI::UpdateAI(diff);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_AIUPDATE);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_AIUPDATE);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, diff);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called for reaction at enter to combat if not in combat yet (enemy can be NULL)
-            // Called at creature aggro either by MoveInLOS or Attack Start
-            void EnterCombat(Unit* target)
-            {
-                ReactorAI::EnterCombat(target);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_ENTER_COMBAT);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_ENTER_COMBAT);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, target);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called at any Damage from any attacker (before damage apply)
-            void DamageTaken(Unit* attacker, uint32& damage)
-            {
-                ReactorAI::DamageTaken(attacker, damage);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_DAMAGE_TAKEN);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_DAMAGE_TAKEN);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, attacker);
-                sEluna.Push(sEluna.L, damage);
-                sEluna.ExecuteCall(4, 0);
-            }
-
-            // Called at creature death
-            void JustDied(Unit* killer)
-            {
-                ReactorAI::JustDied(killer);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_DIED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_DIED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, killer);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called at creature killing another unit
-            void KilledUnit(Unit* victim)
-            {
-                ReactorAI::KilledUnit(victim);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_TARGET_DIED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_TARGET_DIED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, victim);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called when the creature summon successfully other creature
-            void JustSummoned(Creature* summon)
-            {
-                ReactorAI::JustSummoned(summon);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_JUST_SUMMONED_CREATURE);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_JUST_SUMMONED_CREATURE);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, summon);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called when a summoned creature is despawned
-            void SummonedCreatureDespawn(Creature* summon)
-            {
-                ReactorAI::SummonedCreatureDespawn(summon);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SUMMONED_CREATURE_DESPAWN);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SUMMONED_CREATURE_DESPAWN);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, summon);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called when hit by a spell
-            void SpellHit(Unit* caster, SpellEntry const* spell)
-            {
-                ReactorAI::SpellHit(caster, spell);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_HIT_BY_SPELL);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_HIT_BY_SPELL);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, caster);
-                sEluna.Push(sEluna.L, spell->Id);           // Pass spell object?
-                sEluna.ExecuteCall(4, 0);
-            }
-
-            // Called when spell hits a target
-            void SpellHitTarget(Unit* target, SpellEntry const* spell)
-            {
-                ReactorAI::SpellHitTarget(target, spell);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SPELL_HIT_TARGET);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SPELL_HIT_TARGET);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, target);
-                sEluna.Push(sEluna.L, spell->Id);           // Pass spell object?
-                sEluna.ExecuteCall(4, 0);
-            }
-
-            // Called at waypoint reached or PointMovement end
-            void MovementInform(uint32 type, uint32 id)
-            {
-                ReactorAI::MovementInform(type, id);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_REACH_WP);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_REACH_WP);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, type);
-                sEluna.Push(sEluna.L, id);
-                sEluna.ExecuteCall(4, 0);
-            }
-
-            // Called when AI is temporarily replaced or put back when possess is applied or removed
-            /*
-            void OnPossess(bool apply)
-            {
-                ReactorAI::OnPossess(apply);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_POSSESS);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_POSSESS);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, apply);
-                sEluna.ExecuteCall(3, 0);
-            }*/
-
-            // Called at creature reset either by death or evade
-            /*void Reset()
-            {
-                ReactorAI::Reset();
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_RESET);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_RESET);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.ExecuteCall(2, 0);
-            }*/
-
-            // Called before EnterCombat even before the creature is in combat.
-            void AttackStart(Unit* target)
-            {
-                ReactorAI::AttackStart(target);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_PRE_COMBAT);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_PRE_COMBAT);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, target);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called in Creature::Update when deathstate = DEAD. Inherited classes may maniuplate the ability to respawn based on scripted events.
-            /*
-            bool CanRespawn()
-            {
-                ReactorAI::CanRespawn();
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_CAN_RESPAWN);
-                if (!bind)
-                    return true;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_CAN_RESPAWN);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.ExecuteCall(2, 0);
-                return true;
-            }*/
-
-            // Called for reaction at stopping attack at no attackers or targets
-            void EnterEvadeMode()
-            {
-                ReactorAI::EnterEvadeMode();
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_LEAVE_COMBAT);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_LEAVE_COMBAT);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.ExecuteCall(2, 0);
-            }
-
-            // Called when the creature is summoned successfully by other creature
-            /*void IsSummonedBy(Unit* summoner)
-            {
-                ReactorAI::IsSummonedBy(summoner);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SUMMONED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SUMMONED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, summoner);
-                sEluna.ExecuteCall(3, 0);
-            }*/
-
-            /*void SummonedCreatureDies(Creature* summon, Unit* killer)
-            {
-                ReactorAI::SummonedCreatureDies(summon, killer);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SUMMONED_CREATURE_DIED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SUMMONED_CREATURE_DIED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, summon);
-                sEluna.Push(sEluna.L, killer);
-                sEluna.ExecuteCall(4, 0);
-            }*/
-
-            // Called when the creature is target of hostile action: swing, hostile spell landed, fear/etc)
-            void AttackedBy(Unit* attacker)
-            {
-                ReactorAI::AttackedBy(attacker);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_ATTACKED_AT);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_ATTACKED_AT);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, attacker);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called when creature is spawned or respawned (for reseting variables)
-            void JustRespawned()
-            {
-                ReactorAI::JustRespawned();
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SPAWN);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SPAWN);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.ExecuteCall(2, 0);
-            }
-
-            /*void OnCharmed(bool apply)
-            {
-                ReactorAI::OnCharmed(apply);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_CHARMED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_CHARMED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, apply);
-                sEluna.ExecuteCall(3, 0);
-            }*/
-
-            // Called at reaching home after evade
-            void JustReachedHome()
-            {
-                ReactorAI::JustReachedHome();
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_REACH_HOME);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_REACH_HOME);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.ExecuteCall(2, 0);
-            }
-
-            // Called at text emote receive from player
-            void ReceiveEmote(Player* player, uint32 emoteId)
-            {
-                ReactorAI::ReceiveEmote(player, emoteId);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_RECEIVE_EMOTE);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_RECEIVE_EMOTE);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, player);
-                sEluna.Push(sEluna.L, emoteId);
-                sEluna.ExecuteCall(4, 0);
-            }
-
-            // Called when owner takes damage
-            /*void OwnerAttackedBy(Unit* attacker)
-            {
-                ReactorAI::OwnerAttackedBy(attacker);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_OWNER_ATTACKED_AT);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_OWNER_ATTACKED_AT);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, attacker);
-                sEluna.ExecuteCall(3, 0);
-            }*/
-
-            // Called when owner attacks something
-            /*void OwnerAttacked(Unit* target)
-            {
-                ReactorAI::OwnerAttacked(target);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_OWNER_ATTACKED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_OWNER_ATTACKED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, target);
-                sEluna.ExecuteCall(3, 0);
-            }*/
-
-            // called when the corpse of this creature gets removed
-            void CorpseRemoved(uint32& respawnDelay)
-            {
-                ReactorAI::CorpseRemoved(respawnDelay);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_CORPSE_REMOVED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_CORPSE_REMOVED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, respawnDelay);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            /*void PassengerBoarded(Unit* passenger, int8 seatId, bool apply)
-            {
-                ReactorAI::PassengerBoarded(passenger, seatId, apply);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_PASSANGER_BOARDED);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_PASSANGER_BOARDED);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, passenger);
-                sEluna.Push(sEluna.L, seatId);
-                sEluna.Push(sEluna.L, apply);
-                sEluna.ExecuteCall(5, 0);
-            }*/
-
-            /*void OnSpellClick(Unit* clicker, bool& result)
-            {
-                ReactorAI::OnSpellClick(clicker, result);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_SPELL_CLICK);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SPELL_CLICK);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, clicker);
-                sEluna.Push(sEluna.L, result);
-                sEluna.ExecuteCall(4, 0);
-            }*/
-
-            void MoveInLineOfSight(Unit* who)
-            {
-                ReactorAI::MoveInLineOfSight(who);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_MOVE_IN_LOS);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_MOVE_IN_LOS);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, who);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // Called if IsVisible(Unit* who) is true at each who move, reaction at visibility zone enter
-            /*void MoveInLineOfSight_Safe(Unit* who)
-            {
-                ReactorAI::MoveInLineOfSight_Safe(who);
-                int bind = sEluna.CreatureEventBindings->GetBind(m_creature->GetEntry(), CREATURE_EVENT_ON_VISIBLE_MOVE_IN_LOS);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, CREATURE_EVENT_ON_VISIBLE_MOVE_IN_LOS);
-                sEluna.Push(sEluna.L, m_creature);
-                sEluna.Push(sEluna.L, who);
-                sEluna.ExecuteCall(3, 0);
-            }*/
-        };
-
-        ReactorAI* GetAI(Creature* creature)
-        {
-            if (!sEluna.CreatureEventBindings->GetBindMap(creature->GetEntry()))
-                return NULL;
-            return new ScriptReactorAI(creature);
-        }
-};
-
-class Eluna::Eluna_GameObjectScript
-{
-    public:
-
-        struct ScriptGameObjectAI : public GameObjectAI
-        {
-            ScriptGameObjectAI(GameObject* _go) : GameObjectAI(_go) { }
-            ~ScriptGameObjectAI()
-            {
-            }
-
-            void UpdateAI(uint32 const diff)
-            {
-                int bind = sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_AIUPDATE);
-                if (!bind)
-                    return;
-                sEluna.BeginCall(bind);
-                sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_AIUPDATE);
-                sEluna.Push(sEluna.L, go);
-                sEluna.Push(sEluna.L, diff);
-                sEluna.ExecuteCall(3, 0);
-            }
-
-            // executed when a timed event fires
-            void OnScriptEvent(int funcRef, uint32 delay, uint32 calls)
-            {
-                sEluna.BeginCall(funcRef);
-                sEluna.Push(sEluna.L, funcRef);
-                sEluna.Push(sEluna.L, delay);
-                sEluna.Push(sEluna.L, calls);
-                sEluna.Push(sEluna.L, go);
-                sEluna.ExecuteCall(4, 0);
-            }
-
-            void Reset()
-            {
-                sEluna.BeginCall(sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_RESET));
-                sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_RESET);
-                sEluna.Push(sEluna.L, go);
-                sEluna.ExecuteCall(2, 0);
-            }
-        };
-
-        GameObjectAI* GetAI(GameObject* gameObject) const
-        {
-            if (!sEluna.GameObjectEventBindings->GetBindMap(gameObject->GetEntry()))
-                return NULL;
-            return new ScriptGameObjectAI(gameObject);
-        }
-};
 
 class LuaTaxiMgr
 {

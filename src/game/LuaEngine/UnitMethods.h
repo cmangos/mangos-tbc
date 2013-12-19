@@ -1286,20 +1286,20 @@ namespace LuaUnit
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        sEluna.Push(L, EventMgr::AddEvent(&unit->m_Events, functionRef, delay, repeats, unit));
+        sEluna.Push(L, sEluna.EventMgr.AddEvent(&unit->m_Events, functionRef, delay, repeats, unit));
         return 1;
     }
 
     int RemoveEventById(lua_State* L, Unit* unit)
     {
         int eventId = luaL_checkinteger(L, 1);
-        EventMgr::RemoveEvent(&unit->m_Events, eventId);
+        sEluna.EventMgr.RemoveEvent(&unit->m_Events, eventId);
         return 0;
     }
 
     int RemoveEvents(lua_State* L, Unit* unit)
     {
-        EventMgr::RemoveEvents(&unit->m_Events);
+        sEluna.EventMgr.RemoveEvents(&unit->m_Events);
         return 0;
     }
 

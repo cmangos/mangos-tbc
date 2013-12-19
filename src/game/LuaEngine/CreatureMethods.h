@@ -701,5 +701,12 @@ namespace LuaCreature
         sEluna.Push(L, creature->CanFly());
         return 1;
     }
+
+    // Actually unit method, but not on TC
+    int SelectVictim(lua_State* L, Creature* creature)
+    {
+        sEluna.Push(L, creature->SelectHostileTarget());
+        return 1;
+    }
 };
 #endif

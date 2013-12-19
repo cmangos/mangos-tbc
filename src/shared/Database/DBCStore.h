@@ -29,10 +29,21 @@ class DBCStorage
         explicit DBCStorage(const char* f) : nCount(0), fieldCount(0), fmt(f), indexTable(NULL), m_dataTable(NULL) { }
         ~DBCStorage() { Clear(); }
 
-        T const* LookupEntry(uint32 id) const { return (id >= nCount) ? NULL : indexTable[id]; }
         uint32  GetNumRows() const { return nCount; }
         char const* GetFormat() const { return fmt; }
         uint32 GetFieldCount() const { return fieldCount; }
+
+        T const* LookupEntry(uint32 id) const
+        {
+            if(loaded)
+            {
+                typename std::map<uint32, T const*>::const_iterator it = data.find(id);
+                if (it == data.end())
+                    return NULL;
+                return it->second;
+            }
+            return (id >= nCount) ? NULL : indexTable[id];
+        }
 
         bool Load(char const* fn)
         {

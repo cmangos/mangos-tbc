@@ -835,7 +835,7 @@ namespace LuaGlobalFunctions
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
-        sEluna.Push(L, ObjectGuid(guid));
+        sEluna.Push(L, ObjectGuid(guid).GetCounter());
         return 1;
     }
 
@@ -944,14 +944,14 @@ namespace LuaGlobalFunctions
     int GetGUIDType(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        sEluna.Push(L, ObjectGuid(guid));
+        sEluna.Push(L, ObjectGuid(guid).GetHigh());
         return 1;
     }
 
     int GetGUIDEntry(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        sEluna.Push(L, ObjectGuid(guid));
+        sEluna.Push(L, ObjectGuid(guid).GetEntry());
         return 1;
     }
 

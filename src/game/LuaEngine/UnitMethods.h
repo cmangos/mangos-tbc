@@ -42,9 +42,9 @@ namespace LuaUnit
 
     int SetOwnerGUID(lua_State* L, Unit* unit)
     {
-        ObjectGuid guid = unit->GetObjectGuid();
+        uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
-        unit->SetOwnerGuid(guid);
+        unit->SetOwnerGuid((ObjectGuid)guid);
         return 0;
     }
 
@@ -395,12 +395,6 @@ namespace LuaUnit
     int GetVictim(lua_State* L, Unit* unit)
     {
         sEluna.Push(L, unit->getVictim());
-        return 1;
-    }
-
-    int SelectVictim(lua_State* L, Unit* unit)
-    {
-        sEluna.Push(L, unit->SelectHostileTarget());
         return 1;
     }
 
@@ -986,36 +980,36 @@ namespace LuaUnit
 
     int SetCreatorGUID(lua_State* L, Unit* unit)
     {
-        ObjectGuid guid = unit->GetObjectGuid();
-        unit->SetCreatorGuid(guid);
+        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        unit->SetOwnerGuid((ObjectGuid)guid);
         return 0;
     }
 
     int SetMinionGUID(lua_State* L, Unit* unit)
     {
-        ObjectGuid guid = unit->GetObjectGuid();
-        unit->SetPetGuid(guid); // TC MinionGuid methods = same field as Mangos PetGuid
+        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        unit->SetPetGuid((ObjectGuid)guid); // TC MinionGuid methods = same field as Mangos PetGuid
         return 0;
     }
 
     int SetCharmerGUID(lua_State* L, Unit* unit)
     {
-        ObjectGuid guid = unit->GetObjectGuid();
-        unit->SetCharmerGuid(guid);
+        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        unit->SetCharmerGuid((ObjectGuid)guid);
         return 0;
     }
 
     int SetPetGUID(lua_State* L, Unit* unit)
     {
-        ObjectGuid guid = unit->GetObjectGuid();
-        unit->SetPetGuid(guid);
+        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        unit->SetPetGuid((ObjectGuid)guid);
         return 0;
     }
 
     int SetCritterGUID(lua_State* L, Unit* unit)
     {
-        // ObjectGuid guid = unit->GetObjectGuid();
-        // unit->SetCritterGuid(guid);
+        // uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        // unit->SetCritterGuid((ObjectGuid)guid);
         return 0;
     }
 

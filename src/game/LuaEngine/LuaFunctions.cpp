@@ -344,7 +344,6 @@ ElunaRegister<Unit> UnitMethods[] =
     {"AddUnitState", &LuaUnit::AddUnitState},               // :AddUnitState(state)
     //{"DisableMelee", &LuaUnit::DisableMelee},             // :DisableMelee([disable]) - if true, enables
     //{"SummonGuardian", &LuaUnit::SummonGuardian},         // :SummonGuardian(entry, x, y, z, o[, duration]) - summons a guardian to location. Scales with summoner, is friendly to him and guards him.
-    {"SelectVictim", &LuaUnit::SelectVictim},               // :SelectVictim() - Selects a victim
 
     /* Vehicle */
     //{"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
@@ -714,6 +713,7 @@ ElunaRegister<Creature> CreatureMethods[] =
     //{"ResetLootMode", &LuaCreature::ResetLootMode},
     //{"RemoveLootMode", &LuaCreature::RemoveLootMode},
     {"SaveToDB", &LuaCreature::SaveToDB},                     // :SaveToDB() - Saves to database
+    {"SelectVictim", &LuaCreature::SelectVictim},           // :SelectVictim() - Selects a victim
 
     {NULL, NULL},
 };

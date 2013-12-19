@@ -1167,9 +1167,9 @@ namespace LuaPlayer
     {
         std::string text = luaL_checkstring(L, 1);
         uint32 lang = luaL_checkunsigned(L, 2);
-        ObjectGuid guid = player->GetObjectGuid();
+        uint64 guid = sEluna.CHECK_ULONG(L, 3);
 
-        player->Whisper(text, lang, guid);
+        player->Whisper(text, lang, (ObjectGuid)guid);
         return 0;
     }
 
@@ -1624,8 +1624,7 @@ namespace LuaPlayer
 
     int GetLifetimeKills(lua_State* L, Player* player)
     {
-        uint32 currentKills = player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS);
-        sEluna.Push(L, currentKills);
+        sEluna.Push(L, player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS));
         return 1;
     }
 
@@ -1846,7 +1845,7 @@ namespace LuaPlayer
         uint32 itemId = luaL_checkunsigned(L, 1);
         uint32 itemCount = luaL_checkunsigned(L, 2);
         sEluna.Push(L, player->StoreNewItemInInventorySlot(itemId, itemCount));
-        return 0;
+        return 1;
     }
 
     int RemoveItem(lua_State* L, Player* player)
@@ -1991,7 +1990,7 @@ namespace LuaPlayer
     {
         int32 amt = luaL_checkinteger(L, 1);
 
-        player->ModifyMoney(amt); // MaNGOS does not support a bool being sent with an error value like Trinity
+        player->ModifyMoney(amt);
         return 1;
     }
 

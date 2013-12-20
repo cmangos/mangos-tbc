@@ -112,7 +112,7 @@ namespace LuaGroup
     int RemoveMember(lua_State* L, Group* group)
     {
         Player* player = sEluna.CHECK_PLAYER(L, 1);
-        bool method = luaL_optbool(L, 2, 0);
+        int method = luaL_optint(L, 2, 0);
         if (!player)
             return 0;
 

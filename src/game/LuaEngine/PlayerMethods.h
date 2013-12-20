@@ -215,10 +215,10 @@ namespace LuaPlayer
 
     int SendGuildInvite(lua_State* L, Player* player)
     {
-        WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
+        Player* plr = sEluna.CHECK_PLAYER(L, 1);
 
-        if (obj)
-            player->GetSession()->SendGuildInvite(sObjectMgr.GetPlayer(obj->GetObjectGuid()));
+        if (plr)
+            player->GetSession()->SendGuildInvite(plr);
         return 0;
     }
 

@@ -629,7 +629,7 @@ namespace LuaGlobalFunctions
                 if (pCreature->IsLinkingEventTrigger())
                     map->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_RESPAWN, pCreature);
 
-                sEluna.Push(L, pCreature->ToCreature());
+                sEluna.Push(L, pCreature);
             }
 
             return 1;

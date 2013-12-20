@@ -140,7 +140,6 @@ namespace LuaGuild
     {
         Player* player = sEluna.CHECK_PLAYER(L, 1);
         bool isDisbanding = luaL_optbool(L, 2, false);
-        // bool isKicked = luaL_optbool(L, 3, false); Not supported in MaNGOS
 
         if (player)
             guild->DelMember(player->GetObjectGuid(), isDisbanding);

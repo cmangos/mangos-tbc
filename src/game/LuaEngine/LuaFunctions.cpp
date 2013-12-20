@@ -381,7 +381,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetTotalPlayedTime", &LuaPlayer::GetTotalPlayedTime}, // :GetTotalPlayedTime() - Returns the total played time of that player
     {"GetItemByPos", &LuaPlayer::GetItemByPos},             // :GetItemByPos(bag, slot) - Returns item in given slot in a bag (bag: 19-22 slot : 0-35) or inventory (bag: -1 slot : 0-38)
     {"GetReputation", &LuaPlayer::GetReputation},           // :GetReputation(faction) - Gets player's reputation with given faction
-    {"GetItemByEntry", &LuaPlayer::GetItemByEntry},       // :GetItemByEntry(entry) - Gets an item if the player has it
+    {"GetItemByEntry", &LuaPlayer::GetItemByEntry},         // :GetItemByEntry(entry) - Gets an item if the player has it
     {"GetEquippedItemBySlot", &LuaPlayer::GetEquippedItemBySlot},// :GetEquippedItemBySlot(slotId) - Returns equipped item by slot
     {"GetQuestLevel", &LuaPlayer::GetQuestLevel},           // :GetQuestLevel(quest) - Returns quest's level
     {"GetChatTag", &LuaPlayer::GetChatTag},                 // :GetChatTag() - Returns player chat tag ID

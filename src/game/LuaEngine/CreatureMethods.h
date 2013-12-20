@@ -22,11 +22,11 @@
 
 namespace LuaCreature
 {
-    int IsDamageEnoughForLootingAndReward(lua_State* L, Creature* creature)
+    /*int IsDamageEnoughForLootingAndReward(lua_State* L, Creature* creature)
     {
-        // sEluna.Push(L, creature->IsDamageEnoughForLootingAndReward());
+        sEluna.Push(L, creature->IsDamageEnoughForLootingAndReward());
         return 1;
-    }
+    }*/
 
     int IsReputationGainDisabled(lua_State* L, Creature* creature)
     {
@@ -42,29 +42,29 @@ namespace LuaCreature
         return 0;
     }
 
-    int GetCurrentWaypointId(lua_State* L, Creature* creature)
+    /*int GetCurrentWaypointId(lua_State* L, Creature* creature)
     {
-        // sEluna.Push(L, creature->GetCurrentWaypointID());
+        sEluna.Push(L, creature->GetCurrentWaypointID());
         return 1;
-    }
+    }*/
 
-    int GetWaypointPath(lua_State* L, Creature* creature)
+    /*int GetWaypointPath(lua_State* L, Creature* creature)
     {
-        // sEluna.Push(L, creature->GetWaypointPath());
+        sEluna.Push(L, creature->GetWaypointPath());
         return 1;
-    }
+    }*/
 
-    int GetTransportHomePosition(lua_State* L, Creature* creature)
+    /*int GetTransportHomePosition(lua_State* L, Creature* creature)
     {
-        /*float x,y,z,o;
+        float x,y,z,o;
         creature->GetTransportHomePosition(x,y,z,o);
 
         sEluna.Push(L, x);
         sEluna.Push(L, y);
         sEluna.Push(L, z);
-        sEluna.Push(L, o);*/
+        sEluna.Push(L, o);
         return 4;
-    }
+    }*/
 
     int IsRegeneratingHealth(lua_State* L, Creature* creature)
     {
@@ -237,7 +237,7 @@ namespace LuaCreature
         return 1;
     }
 
-    int CanStartAttack(lua_State* L, Creature* creature) // TODO: Implement core side
+    /*int CanStartAttack(lua_State* L, Creature* creature) // TODO: Implement core side
     {
         Unit* target = sEluna.CHECK_UNIT(L, 1);
         bool force = luaL_optbool(L, 2, true);
@@ -245,53 +245,53 @@ namespace LuaCreature
         if (!target)
             return 0;
 
-        // sEluna.Push(L, creature->CanStartAttack(target, force));
+        sEluna.Push(L, creature->CanStartAttack(target, force));
         return 1;
-    }
+    }*/
 
-    int ResetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    /*int ResetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
     {
-        // creature->ResetLootMode();
+        creature->ResetLootMode();
         return 0;
-    }
+    }*/
 
-    int RemoveLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    /*int RemoveLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
     {
         uint16 lootMode = luaL_checkunsigned(L, 1);
 
-        // creature->RemoveLootMode(lootMode);
+        creature->RemoveLootMode(lootMode);
         return 0;
-    }
+    }*/
 
-    int AddLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    /*int AddLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
     {
         uint16 lootMode = luaL_checkunsigned(L, 1);
 
-        // creature->AddLootMode(lootMode);
+        creature->AddLootMode(lootMode);
         return 0;
-    }
+    }*/
 
-    int SetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    /*int SetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
     {
         uint16 lootMode = luaL_checkunsigned(L, 1);
 
-        // creature->SetLootMode(lootMode);
+        creature->SetLootMode(lootMode);
         return 0;
-    }
+    }*/
 
-    int HasLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    /*int HasLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
     {
         uint16 lootMode = luaL_checkunsigned(L, 1);
 
-        // sEluna.Push(L, creature->HasLootMode(lootMode));
+        sEluna.Push(L, creature->HasLootMode(lootMode));
         return 1;
-    }
+    }*/
 
-    int GetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
+    /*int GetLootMode(lua_State* L, Creature* creature) // TODO: Implement LootMode features
     {
-        // sEluna.Push(L, creature->GetLootMode());
+        sEluna.Push(L, creature->GetLootMode());
         return 1;
-    }
+    }*/
 
     int IsTappedBy(lua_State* L, Creature* creature)
     {
@@ -372,29 +372,21 @@ namespace LuaCreature
         return 1;
     }
 
-    int SetDisableGravity(lua_State* L, Creature* creature)
+    /*int SetDisableGravity(lua_State* L, Creature* creature)
     {
         bool disable = luaL_optbool(L, 1, true);
         bool packetOnly = luaL_optbool(L, 2, false);
 
-        // sEluna.Push(L, creature->SetDisableGravity(disable, packetOnly));
+        sEluna.Push(L, creature->SetDisableGravity(disable, packetOnly));
         return 1;
-    }
+    }*/
 
     int SetHover(lua_State* L, Creature* creature)
     {
         bool enable = luaL_optbool(L, 1, true);
 
-        // sEluna.Push(L, creature->SetHover(enable));
-        return 1;
-    }
-
-    int SetLevitate(lua_State* L, Creature* creature)
-    {
-        bool enable = luaL_optbool(L, 1, true);
-
         creature->SetLevitate(enable);
-        return 0;
+        return 1;
     }
 
     int IsInEvadeMode(lua_State* L, Creature* creature)
@@ -415,11 +407,11 @@ namespace LuaCreature
         return 1;
     }
 
-    int IsTrigger(lua_State* L, Creature* creature)
+    /*int IsTrigger(lua_State* L, Creature* creature)
     {
-        // sEluna.Push(L, creature->isTrigger());
+        sEluna.Push(L, creature->isTrigger());
         return 1;
-    }
+    }*/
 
     int IsCivilian(lua_State* L, Creature* creature)
     {
@@ -495,41 +487,41 @@ namespace LuaCreature
         return 0;
     }
 
-    int GetNearestTargetInAttackDistance(lua_State* L, Creature* creature)
+    /*int GetNearestTargetInAttackDistance(lua_State* L, Creature* creature)
     {
         float dist = luaL_optnumber(L, 1, 0.0f);
-        // sEluna.Push(L, creature->SelectNearestTargetInAttackDistance(dist));
+        sEluna.Push(L, creature->SelectNearestTargetInAttackDistance(dist));
         return 1;
-    }
+    }*/
 
-    int GetNearestTarget(lua_State* L, Creature* creature)
+    /*int GetNearestTarget(lua_State* L, Creature* creature)
     {
         float dist = luaL_optnumber(L, 1, 0.0f);
-        // sEluna.Push(L, creature->SelectNearestTarget(dist));
+        sEluna.Push(L, creature->SelectNearestTarget(dist));
         return 1;
-    }
+    }*/
 
-    int GetNearestHostileTargetInAggroRange(lua_State* L, Creature* creature)
+    /*int GetNearestHostileTargetInAggroRange(lua_State* L, Creature* creature)
     {
         bool checkLOS = luaL_optbool(L, 1, false);
-        // sEluna.Push(L, creature->SelectNearestHostileUnitInAggroRange(checkLOS));
+        sEluna.Push(L, creature->SelectNearestHostileUnitInAggroRange(checkLOS));
         return 1;
-    }
+    }*/
 
-    int Despawn(lua_State* L, Creature* creature)
+    /*int Despawn(lua_State* L, Creature* creature)
     {
         uint32 time = luaL_optunsigned(L, 1, 0);
-        // creature->DespawnOrUnsummon(time);
+        creature->DespawnOrUnsummon(time);
         return 0;
-    }
+    }*/
 
-    int SendCreatureTalk(lua_State* L, Creature* creature)
+    /*int SendCreatureTalk(lua_State* L, Creature* creature)
     {
         uint8 id = luaL_checknumber(L, 1);
         uint64 playerGUID = sEluna.CHECK_ULONG(L, 2);
-        // creature->AI()->Talk(id, playerGUID);
+        creature->AI()->Talk(id, playerGUID);
         return 0;
-    }
+    }*/
 
     int GetAITarget(lua_State* L, Creature* creature)
     {
@@ -634,11 +626,11 @@ namespace LuaCreature
         return 1;
     }
 
-    int IsDungeonBoss(lua_State* L, Creature* creature)
+    /*int IsDungeonBoss(lua_State* L, Creature* creature)
     {
-        // sEluna.Push(L, creature->IsDungeonBoss());
+        sEluna.Push(L, creature->IsDungeonBoss());
         return 1;
-    }
+    }*/
 
     int IsWorldBoss(lua_State* L, Creature* creature)
     {

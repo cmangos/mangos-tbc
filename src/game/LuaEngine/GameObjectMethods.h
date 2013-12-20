@@ -134,15 +134,14 @@ namespace LuaGameObject
         return 1;
     }
 
-    int IsDestructible(lua_State* L, GameObject* go) // TODO: Implementation core side
+    /*int IsDestructible(lua_State* L, GameObject* go) // TODO: Implementation core side
     {
-        /*if (!go || !go->IsInWorld())
-        sEluna.Push(L, false);
+        if (!go || !go->IsInWorld())
+            sEluna.Push(L, false);
         else
-        sEluna.Push(L, go->IsDestructibleBuilding());
-        return 1;*/
-        return 0; // temp return 0
-    }
+            sEluna.Push(L, go->IsDestructibleBuilding());
+        return 1;
+    }*/
 
     int IsActive(lua_State* L, GameObject* go)
     {

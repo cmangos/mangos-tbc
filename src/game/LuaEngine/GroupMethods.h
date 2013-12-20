@@ -132,12 +132,11 @@ namespace LuaGroup
         return 1;
     }
 
-    int isLFGGroup(lua_State* L, Group* group) // TODO: Implementation
+    /*int isLFGGroup(lua_State* L, Group* group) // TODO: Implementation
     {
-        /*sEluna.Push(L, group->isLFGGroup());
-        return 1;*/
-        return 0; // Temporary to prevent conflicts
-    }
+        sEluna.Push(L, group->isLFGGroup());
+        return 1;
+    }*/
 
     int isRaidGroup(lua_State* L, Group* group)
     {
@@ -151,12 +150,11 @@ namespace LuaGroup
         return 1;
     }
 
-    int isBFGroup(lua_State* L, Group* group) // TODO: Implementation
+    /*int isBFGroup(lua_State* L, Group* group) // TODO: Implementation
     {
-        /*sEluna.Push(L, group->isBFGroup());
-        return 1;*/
-        return 0; // Temporary to prevent conflicts
-    }
+        sEluna.Push(L, group->isBFGroup());
+        return 1;
+    }*/
 
     int IsMember(lua_State* L, Group* group)
     {
@@ -207,11 +205,11 @@ namespace LuaGroup
         return 1;
     }
 
-    int ConvertToLFG(lua_State* L, Group* group) // TODO: Implementation
+    /*int ConvertToLFG(lua_State* L, Group* group) // TODO: Implementation
     {
-        // group->ConvertToLFG();
+        group->ConvertToLFG();
         return 0;
-    }
+    }*/
 
     int ConvertToRaid(lua_State* L, Group* group)
     {

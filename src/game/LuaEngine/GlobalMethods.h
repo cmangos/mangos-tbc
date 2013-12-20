@@ -469,12 +469,12 @@ namespace LuaGlobalFunctions
     }
 
     // FindUnit(guid)
-    int FindUnit(lua_State* L)
+    /*int FindUnit(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        // sEluna.Push(L, sObjectAccessor.FindUnit(guid));
+        sEluna.Push(L, sObjectAccessor.FindUnit(guid));
         return 1;
-    }
+    }*/
 
     // GetPlayerGUID(lowguid)
     int GetPlayerGUID(lua_State* L)

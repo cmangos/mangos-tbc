@@ -250,7 +250,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetMinionGUID", &LuaUnit::SetMinionGUID},             // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
     {"SetCharmerGUID", &LuaUnit::SetCharmerGUID},           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
     {"SetPetGUID", &LuaUnit::SetPetGUID},                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
-    {"SetCritterGUID", &LuaUnit::SetCritterGUID},           // :SetCritterGUID(uint64 guid) - Sets the critter's guid
+    // {"SetCritterGUID", &LuaUnit::SetCritterGUID},        // :SetCritterGUID(uint64 guid) - Sets the critter's guid
     {"SetWaterWalk", &LuaUnit::SetWaterWalk},               // :SetWaterWalk([enable]) - Sets WaterWalk on or off
 
     // Boolean

@@ -1006,12 +1006,12 @@ namespace LuaUnit
         return 0;
     }
 
-    int SetCritterGUID(lua_State* L, Unit* unit)
+    /*int SetCritterGUID(lua_State* L, Unit* unit)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
         unit->SetCritterGuid((ObjectGuid)guid);
         return 0;
-    }
+    }*/
 
     int SetWaterWalk(lua_State* L, Unit* unit)
     {

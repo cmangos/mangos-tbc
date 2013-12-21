@@ -346,7 +346,7 @@ ElunaRegister<Unit> UnitMethods[] =
     // {"SummonGuardian", &LuaUnit::SummonGuardian},        // :SummonGuardian(entry, x, y, z, o[, duration]) - summons a guardian to location. Scales with summoner, is friendly to him and guards him.
 
     /* Vehicle */
-    //{"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger},  // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
+    // {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
     // {"IsOnVehicle", &LuaUnit::IsOnVehicle},                 // :IsOnVehicle() - Checks if the (unit) is in a vehicle
     // {"DismissVehicle", &LuaUnit::DismissVehicle},           // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
     // {"EjectPassenger", &LuaUnit::EjectPassenger},           // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle

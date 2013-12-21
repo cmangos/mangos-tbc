@@ -198,11 +198,11 @@ namespace LuaUnit
         return 1;
     }
 
-    int GetCritterGUID(lua_State* L, Unit* unit)
+    /*int GetCritterGUID(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->GetCritterGuid());
+        sEluna.Push(L, unit->GetCritterGuid());
         return 1;
-    }
+    }*/
 
     int GetControllerGUID(lua_State* L, Unit* unit)
     {
@@ -246,17 +246,17 @@ namespace LuaUnit
         return 0;
     }
 
-    int SetFFA(lua_State* L, Unit* unit)
+    /*int SetFFA(lua_State* L, Unit* unit)
     {
         bool apply = luaL_optbool(L, 1, true);
 
-        /*if (apply)
+        if (apply)
             unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
         else
-            unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);*/
+            unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
 
         return 0;
-    }
+    }*/
 
     int SetSanctuary(lua_State* L, Unit* unit)
     {
@@ -883,13 +883,13 @@ namespace LuaUnit
         return 0;
     }
 
-    int SetPhaseMask(lua_State* L, Unit* unit)
+    /*int SetPhaseMask(lua_State* L, Unit* unit)
     {
         uint32 phaseMask = luaL_checkunsigned(L, 1);
         bool Update = luaL_optbool(L, 2, true);
-        // unit->SetPhaseMask(phaseMask, Update);
+        unit->SetPhaseMask(phaseMask, Update);
         return 0;
-    }
+    }*/
 
     int SetHealth(lua_State* L, Unit* unit)
     {
@@ -1299,11 +1299,11 @@ namespace LuaUnit
 
     /* Vehicle */
 
-    int IsOnVehicle(lua_State* L, Unit* unit)
+    /*int IsOnVehicle(lua_State* L, Unit* unit)
     {
-        // sEluna.Push(L, unit->GetVehicleInfo() || (unit->GetTypeId() == TYPEID_PLAYER && unit->IsVehicle()));
+        sEluna.Push(L, unit->GetVehicleInfo() || (unit->GetTypeId() == TYPEID_PLAYER && unit->IsVehicle()));
         return 1;
-    }
+    }*/
 
     /*int DismissVehicle(lua_State* L, Unit* unit)
     {

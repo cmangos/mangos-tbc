@@ -149,17 +149,17 @@ namespace LuaPlayer
         return 0;
     }
 
-    int SendMailMenu(lua_State* L, Player* player)
+    /*int SendMailMenu(lua_State* L, Player* player)
     {
         GameObject* object = sEluna.CHECK_GAMEOBJECT(L, 1);
         if (!object)
             return 0;
 
-        // WorldPacket data(SMSG_SHOW_MAILBOX, 8);
-        // data << uint64(object->GetGUIDLow());
-        // player->GetSession()->HandleGetMailList(data);
+        WorldPacket data(SMSG_SHOW_MAILBOX, 8);
+        data << uint64(object->GetGUIDLow());
+        player->GetSession()->HandleGetMailList(data);
         return 0;
-    }
+    }*/
 
     int SendTaxiMenu(lua_State* L, Player* player)
     {
@@ -236,19 +236,19 @@ namespace LuaPlayer
         return 1;
     }
 
-    int ResetAchievements(lua_State* L, Player* player)
+    /*int ResetAchievements(lua_State* L, Player* player)
     {
-        // player->GetAchievementMgr().Reset();
+        player->GetAchievementMgr().Reset();
         return 0;
-    }
+    }*/
 
-    int HasAchieved(lua_State* L, Player* player)
+    /*int HasAchieved(lua_State* L, Player* player)
     {
         uint32 achievementId = luaL_checkunsigned(L, 1);
 
-        // sEluna.Push(L, player->GetAchievementMgr().HasAchievement(achievementId));
+        sEluna.Push(L, player->GetAchievementMgr().HasAchievement(achievementId));
         return 1;
-    }
+    }*/
 
     int GetOriginalSubGroup(lua_State* L, Player* player)
     {
@@ -454,17 +454,17 @@ namespace LuaPlayer
         return 1;
     }
 
-    int CanTameExoticPets(lua_State* L, Player* player)
+    /*int CanTameExoticPets(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->CanTameExoticPets());
+        sEluna.Push(L, player->CanTameExoticPets());
         return 1;
-    }
+    }*/
 
-    int CanTitanGrip(lua_State* L, Player* player)
+    /*int CanTitanGrip(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->CanTitanGrip());
+        sEluna.Push(L, player->CanTitanGrip());
         return 1;
-    }
+    }*/
 
     int CanBlock(lua_State* L, Player* player)
     {
@@ -794,28 +794,28 @@ namespace LuaPlayer
         return 1;
     }
 
-    int GetSpecsCount(lua_State* L, Player* player)
+    /*int GetSpecsCount(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->GetSpecsCount());
+        sEluna.Push(L, player->GetSpecsCount());
         return 1;
-    }
+    }*/
 
-    int GetActiveSpec(lua_State* L, Player* player)
+    /*int GetActiveSpec(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->GetActiveSpec());
+        sEluna.Push(L, player->GetActiveSpec());
         return 1;
-    }
+    }*/
 
-    int HasTalent(lua_State* L, Player* player) // Need to check for TBC
+    /*int HasTalent(lua_State* L, Player* player) // Need to check for TBC
     {
         uint32 spellId = luaL_checkunsigned(L, 1);
         uint8 spec = luaL_checkunsigned(L, 2);
-        /*if (spec >= MAX_TALENT_SPECS)
+        if (spec >= MAX_TALENT_SPECS)
             sEluna.Push(L, false);
         else
-            sEluna.Push(L, player->HasTalent(spellId, spec));*/
+            sEluna.Push(L, player->HasTalent(spellId, spec));
         return 1;
-    }
+    }*/
 
     /*int AddTalent(lua_State* L, Player* player)
     {
@@ -835,14 +835,14 @@ namespace LuaPlayer
         return 1;
     }
 
-    int ResetTalents(lua_State* L, Player* player)
+    /*int ResetTalents(lua_State* L, Player* player)
     {
         bool no_cost = luaL_optbool(L, 1, false);
 
         player->resetTalents(no_cost);
-        // player->SendTalentsInfoData(false);
+        player->SendTalentsInfoData(false);
         return 0;
-    }
+    }*/
 
     int SetFreeTalentPoints(lua_State* L, Player* player)
     {
@@ -1199,11 +1199,11 @@ namespace LuaPlayer
         return 0;
     }
 
-    int GetPhaseMaskForSpawn(lua_State* L, Player* player)
+    /*int GetPhaseMaskForSpawn(lua_State* L, Player* player)
     {
-        // sEluna.Push(L, player->GetPhaseMaskForSpawn());
+        sEluna.Push(L, player->GetPhaseMaskForSpawn());
         return 1;
-    }
+    }*/
 
     /*int SummonPet(lua_State* L, Player* player)
     {

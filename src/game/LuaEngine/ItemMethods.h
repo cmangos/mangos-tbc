@@ -128,11 +128,11 @@ namespace LuaItem
         return 1;
     }
 
-    int IsBoundAccountWide(lua_State* L, Item* item)
+    /*int IsBoundAccountWide(lua_State* L, Item* item)
     {
-        // sEluna.Push(L, item->IsBoundAccountWide());
+        sEluna.Push(L, item->IsBoundAccountWide());
         return 1;
-    }
+    }*/
 
     int IsBoundByEnchant(lua_State* L, Item* item)
     {
@@ -457,11 +457,11 @@ namespace LuaItem
         return 1;
     }
 
-    int GetStatsCount(lua_State* L, Item* item)
+    /*int GetStatsCount(lua_State* L, Item* item)
     {
-        // sEluna.Push(L, item->GetProto()->StatsCount);
+        sEluna.Push(L, item->GetProto()->StatsCount);
         return 1;
-    }
+    }*/
 
     int GetRandomProperty(lua_State* L, Item* item)
     {

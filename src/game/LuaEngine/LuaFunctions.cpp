@@ -158,7 +158,7 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
     // Getters
     {"GetName", &LuaWorldObject::GetName},                  // :GetName()
     {"GetMap", &LuaWorldObject::GetMap},                    // :GetMap()
-    //{"GetPhaseMask", &LuaWorldObject::GetPhaseMask},      // :GetPhaseMask()
+    // {"GetPhaseMask", &LuaWorldObject::GetPhaseMask},     // :GetPhaseMask()
     {"GetInstanceId", &LuaWorldObject::GetInstanceId},      // :GetInstanceId()
     {"GetAreaId", &LuaWorldObject::GetAreaId},              // :GetAreaId()
     {"GetZoneId", &LuaWorldObject::GetZoneId},              // :GetZoneId()
@@ -214,7 +214,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"GetCharmerGUID", &LuaUnit::GetCharmerGUID},           // :GetCharmerGUID() - Returns the UNIT_FIELD_CHARMEDBY charmer
     {"GetCharmGUID", &LuaUnit::GetCharmGUID},               // :GetCharmGUID() - Returns the unit's UNIT_FIELD_CHARM guid
     {"GetPetGUID", &LuaUnit::GetPetGUID},                   // :GetPetGUID() - Returns the unit's pet GUID
-    //{"GetCritterGUID", &LuaUnit::GetCritterGUID},         // :GetCritterGUID() - Returns the critter's GUID
+    // {"GetCritterGUID", &LuaUnit::GetCritterGUID},        // :GetCritterGUID() - Returns the critter's GUID
     {"GetControllerGUID", &LuaUnit::GetControllerGUID},     // :GetControllerGUID() - Returns the Charmer or Owner GUID
     {"GetControllerGUIDS", &LuaUnit::GetControllerGUIDS},   // :GetControllerGUIDS() - Returns the charmer, owner or unit's own GUID
     {"GetStandState", &LuaUnit::GetStandState},             // :GetStandState() - Returns the unit's stand state
@@ -232,7 +232,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetDisplayId", &LuaUnit::SetDisplayId},               // :SetDisplayId(id)
     {"SetNativeDisplayId", &LuaUnit::SetNativeDisplayId},   // :SetNativeDisplayId(id)
     {"SetFacing", &LuaUnit::SetFacing},                     // :SetFacing(o) - Sets the Unit facing to arg
-    //{"SetPhaseMask", &LuaUnit::SetPhaseMask},             // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
+    // {"SetPhaseMask", &LuaUnit::SetPhaseMask},            // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
     {"SetSpeed", &LuaUnit::SetSpeed},                       // :SetSpeed(type, speed[, forced]) - Sets speed for the movement type (0 = walk, 1 = run ..)
     // {"SetStunned", &LuaUnit::SetStunned},                // :SetStunned([enable]) - Stuns or removes stun
     // {"SetRooted", &LuaUnit::SetRooted},                  // :SetRooted([enable]) - Roots or removes root
@@ -299,7 +299,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"RegisterEvent", &LuaUnit::RegisterEvent},             // :RegisterEvent(function, delay, calls)
     {"RemoveEventById", &LuaUnit::RemoveEventById},         // :RemoveEventById(eventID)
     {"RemoveEvents", &LuaUnit::RemoveEvents},               // :RemoveEvents()
-    //{"AddAura", &LuaUnit::AddAura},                       // :AddAura(spellId, target) - Adds an aura to the specified target
+    // {"AddAura", &LuaUnit::AddAura},                      // :AddAura(spellId, target) - Adds an aura to the specified target
     {"RemoveAura", &LuaUnit::RemoveAura},                   // :RemoveAura(spellId[, casterGUID]) - Removes an aura from the unit by the spellId, casterGUID(Original caster) is optional
     {"RemoveAllAuras", &LuaUnit::RemoveAllAuras},           // :RemoveAllAuras() - Removes all the unit's auras
     {"ClearInCombat", &LuaUnit::ClearInCombat},             // :ClearInCombat() - Clears the unit's combat list (unit will be out of combat), resets the timer to 0, etc
@@ -387,7 +387,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetChatTag", &LuaPlayer::GetChatTag},                 // :GetChatTag() - Returns player chat tag ID
     {"GetRestBonus", &LuaPlayer::GetRestBonus},             // :GetRestBonus() - Gets player's rest bonus
     {"GetRestType", &LuaPlayer::GetRestType},               // :GetRestType() - Returns the player's rest type
-    //{"GetPhaseMaskForSpawn", &LuaPlayer::GetPhaseMaskForSpawn},                                               // :GetPhaseMaskForSpawn() - Gets the real phasemask for spawning things. Used if the player is in GM mode
+    // {"GetPhaseMaskForSpawn", &LuaPlayer::GetPhaseMaskForSpawn},                                              // :GetPhaseMaskForSpawn() - Gets the real phasemask for spawning things. Used if the player is in GM mode
     {"GetReqKillOrCastCurrentCount", &LuaPlayer::GetReqKillOrCastCurrentCount},                                        // :GetReqKillOrCastCurrentCount(questId, entry) - Gets the objective (kill or cast) current count done
     {"GetQuestStatus", &LuaPlayer::GetQuestStatus},         // :GetQuestStatus(entry) - Gets the quest's status
     {"GetInGameTime", &LuaPlayer::GetInGameTime},           // :GetInGameTime() - Returns player's ingame time
@@ -395,8 +395,8 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetComboTarget", &LuaPlayer::GetComboTarget},         // :GetComboTarget() - Returns the player's combo target
     {"GetGuildName", &LuaPlayer::GetGuildName},             // :GetGuildName() - Returns player's guild's name or nil
     {"GetFreeTalentPoints", &LuaPlayer::GetFreeTalentPoints}, // :GetFreeTalentPoints() - Returns the amount of unused talent points
-    //{"GetActiveSpec", &LuaPlayer::GetActiveSpec},         // :GetActiveSpec() - Returns the active specID
-    //{"GetSpecsCount", &LuaPlayer::GetSpecsCount},         // :GetSpecsCount() - Returns the player's spec count
+    // {"GetActiveSpec", &LuaPlayer::GetActiveSpec},        // :GetActiveSpec() - Returns the active specID
+    // {"GetSpecsCount", &LuaPlayer::GetSpecsCount},        // :GetSpecsCount() - Returns the player's spec count
     {"GetSpellCooldownDelay", &LuaPlayer::GetSpellCooldownDelay},                                             // :GetSpellCooldownDelay(spellId) - Returns the spell's cooldown
     {"GetGuildRank", &LuaPlayer::GetGuildRank},             // :GetGuildRank() - Gets the player's guild rank
     {"GetDifficulty", &LuaPlayer::GetDifficulty},           // :GetDifficulty([isRaid]) - Returns the current difficulty
@@ -493,7 +493,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasAtLoginFlag", &LuaPlayer::HasAtLoginFlag},         // :HasAtLoginFlag(flag) - returns true if the player has the login flag
     // {"InRandomLfgDungeon", &LuaPlayer::InRandomLfgDungeon},   // :InRandomLfgDungeon() - Returns true if the player is in a random LFG dungeon
     // {"HasPendingBind", &LuaPlayer::HasPendingBind},      // :HasPendingBind() - Returns true if the player has a pending instance bind
-    // {"HasAchieved", &LuaPlayer::HasAchieved},               // :HasAchieved(achievementID) - Returns true if the player has achieved the achievement
+    // {"HasAchieved", &LuaPlayer::HasAchieved},            // :HasAchieved(achievementID) - Returns true if the player has achieved the achievement
     {"CanUninviteFromGroup", &LuaPlayer::CanUninviteFromGroup},                                               // :CanUninviteFromGroup() - Returns true if the player can uninvite from group
     {"IsRested", &LuaPlayer::IsRested},                     // :IsRested() - Returns true if the player is rested
     // {"CanFlyInZone", &LuaPlayer::CanFlyInZone},          // :CanFlyInZone(mapid, zone) - Returns true if the player can fly in the area
@@ -512,8 +512,8 @@ ElunaRegister<Player> PlayerMethods[] =
     {"IsHonorOrXPTarget", &LuaPlayer::IsHonorOrXPTarget},   // :IsHonorOrXPTarget(victim) - Returns true if the victim gives honor or XP
     {"CanParry", &LuaPlayer::CanParry},                     // :CanParry() - Returns true if the player can parry
     {"CanBlock", &LuaPlayer::CanBlock},                     // :CanBlock() - Returns true if the player can block
-    //{"CanTitanGrip", &LuaPlayer::CanTitanGrip},           // :CanTitanGrip() - Returns true if the player has titan grip
-    //{"CanTameExoticPets", &LuaPlayer::CanTameExoticPets}, // :CanTameExoticPets() - Returns true if the player can tame exotic pets
+    // {"CanTitanGrip", &LuaPlayer::CanTitanGrip},          // :CanTitanGrip() - Returns true if the player has titan grip
+    // {"CanTameExoticPets", &LuaPlayer::CanTameExoticPets},// :CanTameExoticPets() - Returns true if the player can tame exotic pets
     {"InBattleground", &LuaPlayer::InBattleground},         // :InBattleground() - Returns true if the player is in a battleground
     {"InArena", &LuaPlayer::InArena},                       // :InArena() - Returns true if the player is in an arena
     // {"IsOutdoorPvPActive", &LuaPlayer::IsOutdoorPvPActive},   // :IsOutdoorPvPActive() - Returns true if the player is outdoor pvp active
@@ -579,7 +579,7 @@ ElunaRegister<Player> PlayerMethods[] =
     // {"GainSpellComboPoints", &LuaPlayer::GainSpellComboPoints},                                               // :GainSpellComboPoints(amount) - Player gains spell combo points
     {"ClearComboPoints", &LuaPlayer::ClearComboPoints},     // :ClearComboPoints() - Clears player's combo points
     {"RemoveSpell", &LuaPlayer::RemoveSpell},               // :RemoveSpell(entry[, disabled, learn_low_rank]) - Removes (unlearn) the given spell
-    {"ResetTalents", &LuaPlayer::ResetTalents},             // :ResetTalents([no_cost]) - Resets player's talents
+    // {"ResetTalents", &LuaPlayer::ResetTalents},          // :ResetTalents([no_cost]) - Resets player's talents
     {"ResetTalentsCost", &LuaPlayer::ResetTalentsCost},     // :ResetTalentsCost() - Returns the reset talents cost
     // {"AddTalent", &LuaPlayer::AddTalent},                // :AddTalent(spellid, spec, learning) - Adds a talent spell for the player to given spec
     {"RemoveFromGroup", &LuaPlayer::RemoveFromGroup},       // :RemoveFromGroup() - Removes the player from his group
@@ -597,7 +597,7 @@ ElunaRegister<Player> PlayerMethods[] =
     // {"BindToInstance", &LuaPlayer::BindToInstance},      // :BindToInstance() - Binds the player to the current instance
     {"UnbindInstance", &LuaPlayer::UnbindInstance},         // :UnbindInstance(map, difficulty) - Unbinds the player from an instance
     {"RemoveFromBattlegroundOrBattlefieldRaid", &LuaPlayer::RemoveFromBattlegroundOrBattlefieldRaid},         // :RemoveFromBattlegroundOrBattlefieldRaid() - Removes the player from a battleground or battlefield raid
-    //{"ResetAchievements", &LuaPlayer::ResetAchievements}, // :ResetAchievements() - Resets playeräs achievements
+    // {"ResetAchievements", &LuaPlayer::ResetAchievements},// :ResetAchievements() - Resets playeräs achievements
     {"KickPlayer", &LuaPlayer::KickPlayer},                 // :KickPlayer() - Kicks player from server
     {"LogoutPlayer", &LuaPlayer::LogoutPlayer},             // :LogoutPlayer([save]) - Logs the player out and saves if true
     {"SendTrainerList", &LuaPlayer::SendTrainerList},       // :SendTrainerList(WorldObject) - Sends trainer list from object to player
@@ -608,7 +608,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"SendTaxiMenu", &LuaPlayer::SendTaxiMenu},             // :SendTaxiMenu(creature) - Sends flight window to player from creature
     {"RewardQuest", &LuaPlayer::RewardQuest},               // :RewardQuest(entry) - Gives quest rewards for the player
     {"SendAuctionMenu", &LuaPlayer::SendAuctionMenu},       // :SendAuctionMenu([creature, faction]) - Sends auction window to player. Auction house is sent by creature if provided. AH entry is searched with faction or creature's faction if provided
-    //{"SendMailMenu", &LuaPlayer::SendMailMenu},           // :SendMailMenu(object) - Sends mail window to player from gameobject
+    // {"SendMailMenu", &LuaPlayer::SendMailMenu},          // :SendMailMenu(object) - Sends mail window to player from gameobject
     {"StartTaxi", &LuaPlayer::StartTaxi},                   // :StartTaxi(pathId) - player starts the given flight path
     {"GossipSendPOI", &LuaPlayer::GossipSendPOI},           // :GossipSendPOI(X, Y, Icon, Flags, Data, Name) - Sends a point of interest to the player
     {"GossipAddQuests", &LuaPlayer::GossipAddQuests},       // :GossipAddQuests(unit) - Adds unit's quests to player's gossip menu
@@ -777,7 +777,7 @@ ElunaRegister<Item> ItemMethods[] =
     {"GetAllowableRace", &LuaItem::GetAllowableRace},       // :GetAllowableRace()
     {"GetItemLevel", &LuaItem::GetItemLevel},               // :GetItemLevel()
     {"GetRequiredLevel", &LuaItem::GetRequiredLevel},       // :GetRequiredLevel()
-    {"GetStatsCount", &LuaItem::GetStatsCount},             // :GetStatsCount()
+    // {"GetStatsCount", &LuaItem::GetStatsCount},          // :GetStatsCount()
     {"GetRandomProperty", &LuaItem::GetRandomProperty},     // :GetRandomProperty()
     {"GetRandomSuffix", &LuaItem::GetRandomSuffix},         // :GetRandomSuffix()
     {"GetItemSet", &LuaItem::GetItemSet},                   // :GetItemSet()
@@ -790,7 +790,7 @@ ElunaRegister<Item> ItemMethods[] =
 
     // Boolean
     {"IsSoulBound", &LuaItem::IsSoulBound},                 // :IsSoulBound() - Returns true if the item is soulbound
-    {"IsBoundAccountWide", &LuaItem::IsBoundAccountWide},   // :IsBoundAccountWide() - Returns true if the item is account bound
+    // {"IsBoundAccountWide", &LuaItem::IsBoundAccountWide},// :IsBoundAccountWide() - Returns true if the item is account bound
     {"IsBoundByEnchant", &LuaItem::IsBoundByEnchant},       // :IsBoundByEnchant() - Returns true if the item is bound with an enchant
     {"IsNotBoundToPlayer", &LuaItem::IsNotBoundToPlayer},   // :IsNotBoundToPlayer(player) - Returns true if the item is not bound with player
     {"IsLocked", &LuaItem::IsLocked},                       // :IsLocked() - Returns true if the item is locked

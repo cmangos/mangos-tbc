@@ -1,10 +1,12 @@
-local npcId =
-local questId =
+local NpcId =
+local QuestId =
+
+local SAY_01 = "Example OnQuestComplete Works"
 
 local function OnQuestComplete(event, player, creature, quest)
-    if (quest:GetId() == questId) then
-        player:SendNotification("Example OnQuestComplete Works")
+    if (quest:GetId() == QuestId) then
+        creature:SendUnitSay(SAY_01, 0)
     end
 end
 
-RegisterCreatureEvent(npcId, 33, OnQuestComplete)
+RegisterCreatureEvent(NpcId, 33, OnQuestComplete)

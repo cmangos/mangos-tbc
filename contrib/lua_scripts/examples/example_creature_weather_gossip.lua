@@ -1,4 +1,4 @@
-local npcid =
+local NpcId =
 
 local function TestMenuWeather(event, plr, unit)
     plr:GossipMenuAddItem(0, "Test Weather", 0, 1)
@@ -24,5 +24,5 @@ local function TestMenuSelectWeather(event, plr, unit, sender, intid, code)
     end
 end
 
-RegisterCreatureGossipEvent(npcid, 1, TestMenuWeather)
-RegisterCreatureGossipEvent(npcid, 2, TestMenuSelectWeather)
+RegisterCreatureGossipEvent(NpcId, 1, TestMenuWeather)
+RegisterCreatureGossipEvent(NpcId, 2, TestMenuSelectWeather)

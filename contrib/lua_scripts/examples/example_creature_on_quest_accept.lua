@@ -1,10 +1,12 @@
-local npcId =
-local questId =
+local NpcId =
+local QuestId =
+
+local SAY_01 = "Example OnQuestAccept Works"
 
 local function OnQuestAccept(event, player, creature, quest)
-    if (quest:GetId() == questId) then
-        player:SendNotification("Example OnQuestAccept Works")
+    if (quest:GetId() == QuestId) then
+        creature:SendUnitSay(SAY_01, 0)
     end
 end
 
-RegisterCreatureEvent(npcId, 31, OnQuestAccept)
+RegisterCreatureEvent(NpcId, 31, OnQuestAccept)

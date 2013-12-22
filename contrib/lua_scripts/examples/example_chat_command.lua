@@ -6,4 +6,4 @@ local function ChatSystem(event, player, msg, _, lang)
     end
 end
 
-RegisterServerHook(18, ChatSystem)
+RegisterServerEvent(18, ChatSystem)

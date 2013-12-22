@@ -1,5 +1,5 @@
-local npcId = 2079
-local questId = 456
+local npcId =
+local questId =
 
 local function OnQuestAccept(event, player, creature, quest)
     if (quest:GetId() == questId) then

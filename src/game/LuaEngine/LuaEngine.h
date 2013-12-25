@@ -395,7 +395,7 @@ class Eluna
     public:
         friend class ScriptMgr;
         lua_State* L;
-        EventMgr EventMgr;
+        EventMgr m_EventMgr;
 
         typedef std::map<int, int> ElunaBindingMap;
         typedef UNORDERED_MAP<uint32, ElunaBindingMap> ElunaEntryMap;
@@ -434,15 +434,18 @@ class Eluna
         {
             ElunaTemplate<T>::push(L, ptr);
         }
-        template<> void Eluna::Push<Pet>(lua_State* L, Pet const* pet)
+
+        void Push(lua_State* L, Pet const* pet)
         {
             Push(L, pet->ToCreature());
         }
-        template<> void Eluna::Push<TemporarySummon>(lua_State* L, TemporarySummon const* summon)
+
+        void Push(lua_State* L, TemporarySummon const* summon)
         {
             Push(L, summon->ToCreature());
         }
-        template<> void Eluna::Push<Unit>(lua_State* L, Unit const* unit)
+
+        void Push(lua_State* L, Unit const* unit)
         {
             if (!unit)
             {
@@ -461,7 +464,8 @@ class Eluna
                     ElunaTemplate<Unit>::push(L, unit);
             }
         }
-        template<> void Eluna::Push<WorldObject>(lua_State*, WorldObject const* obj)
+
+        void Push(lua_State*, WorldObject const* obj)
         {
             if (!obj)
             {
@@ -486,7 +490,8 @@ class Eluna
                     ElunaTemplate<WorldObject>::push(L, obj);
             }
         }
-        template<> void Eluna::Push<Object>(lua_State* L, Object const* obj)
+
+        void Push(lua_State* L, Object const* obj)
         {
             if (!obj)
             {

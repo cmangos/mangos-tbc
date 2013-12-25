@@ -22,7 +22,7 @@
 
 void HookMgr::OnWorldUpdate(uint32 diff)
 {
-    sEluna.EventMgr.Update(diff);
+    sEluna.m_EventMgr.Update(diff);
     for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].begin();
         itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
     {

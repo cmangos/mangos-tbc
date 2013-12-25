@@ -1280,20 +1280,20 @@ namespace LuaUnit
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        sEluna.Push(L, sEluna.EventMgr.AddEvent(&unit->m_Events, functionRef, delay, repeats, unit));
+        sEluna.Push(L, sEluna.m_EventMgr.AddEvent(&unit->m_Events, functionRef, delay, repeats, unit));
         return 1;
     }
 
     int RemoveEventById(lua_State* L, Unit* unit)
     {
         int eventId = luaL_checkinteger(L, 1);
-        sEluna.EventMgr.RemoveEvent(&unit->m_Events, eventId);
+        sEluna.m_EventMgr.RemoveEvent(&unit->m_Events, eventId);
         return 0;
     }
 
     int RemoveEvents(lua_State* L, Unit* unit)
     {
-        sEluna.EventMgr.RemoveEvents(&unit->m_Events);
+        sEluna.m_EventMgr.RemoveEvents(&unit->m_Events);
         return 0;
     }
 

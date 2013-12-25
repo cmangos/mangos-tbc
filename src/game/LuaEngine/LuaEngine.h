@@ -41,25 +41,6 @@ struct ElunaRegister
 };
 
 template<typename T>
-void SetMethods(lua_State* L, ElunaRegister<T>* methodTable)
-{
-    if (!methodTable)
-        return;
-    if (!lua_istable(L, 1))
-        return;
-    lua_pushstring(L, "GetObjectType");
-    lua_pushcclosure(L, ElunaTemplate<T>::type, 0);
-    lua_settable(L, 1);
-    for (; methodTable->name; ++methodTable)
-    {
-        lua_pushstring(L, methodTable->name);
-        lua_pushlightuserdata(L, (void*)methodTable);
-        lua_pushcclosure(L, ElunaTemplate<T>::thunk, 1);
-        lua_settable(L, 1);
-    }
-}
-
-template<typename T>
 class ElunaTemplate
 {
     public:
@@ -235,6 +216,25 @@ class ElunaTemplate
             return 1;
         }
 };
+
+template<typename T>
+void SetMethods(lua_State* L, ElunaRegister<T>* methodTable)
+{
+    if (!methodTable)
+        return;
+    if (!lua_istable(L, 1))
+        return;
+    lua_pushstring(L, "GetObjectType");
+    lua_pushcclosure(L, ElunaTemplate<T>::type, 0);
+    lua_settable(L, 1);
+    for (; methodTable->name; ++methodTable)
+    {
+        lua_pushstring(L, methodTable->name);
+        lua_pushlightuserdata(L, (void*)methodTable);
+        lua_pushcclosure(L, ElunaTemplate<T>::thunk, 1);
+        lua_settable(L, 1);
+    }
+}
 
 struct EventMgr
 {

@@ -636,7 +636,7 @@ EventMgr::LuaEvent::~LuaEvent()
         // Attempt to remove the pointer from LuaEvents
         EventMgr::EventMap::const_iterator it = sEluna.m_EventMgr.LuaEvents.find(events); // Get event set
         if (it != sEluna.m_EventMgr.LuaEvents.end())
-            sEluna.m_EventMgr.LuaEvents[events].erase(this); // Remove pointer
+            sEluna.m_EventMgr.LuaEvents[events].erase(this);// Remove pointer
     }
     luaL_unref(sEluna.L, LUA_REGISTRYINDEX, funcRef); // Free lua function ref
 }

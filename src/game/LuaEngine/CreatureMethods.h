@@ -330,7 +330,7 @@ namespace LuaCreature
         return 0;
     }
 
-    int SetWalk(lua_State* L, Creature* creature) // TODO: Move same to Player ?
+    int SetWalk(lua_State* L, Creature* creature)           // TODO: Move same to Player ?
     {
         bool enable = luaL_optbool(L, 1, true);
 
@@ -566,31 +566,31 @@ namespace LuaCreature
 
         switch (targetType)
         {
-        case SELECT_TARGET_NEAREST:
-        case SELECT_TARGET_TOPAGGRO:
+            case SELECT_TARGET_NEAREST:
+            case SELECT_TARGET_TOPAGGRO:
             {
                 std::list<Unit*>::const_iterator itr = targetList.begin();
                 std::advance(itr, position);
                 sEluna.Push(L, *itr);
                 return 1;
             }
-        case SELECT_TARGET_FARTHEST:
-        case SELECT_TARGET_BOTTOMAGGRO:
+            case SELECT_TARGET_FARTHEST:
+            case SELECT_TARGET_BOTTOMAGGRO:
             {
                 std::list<Unit*>::reverse_iterator ritr = targetList.rbegin();
                 std::advance(ritr, position);
                 sEluna.Push(L, *ritr);
                 return 1;
             }
-        case SELECT_TARGET_RANDOM:
+            case SELECT_TARGET_RANDOM:
             {
                 std::list<Unit*>::const_iterator itr = targetList.begin();
                 std::advance(itr, urand(position, targetList.size() - 1));
                 sEluna.Push(L, *itr);
                 return 1;
             }
-        default:
-            break;
+            default:
+                break;
         }
 
         sEluna.Push(L);

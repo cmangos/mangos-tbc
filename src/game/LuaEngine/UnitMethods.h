@@ -375,7 +375,7 @@ namespace LuaUnit
         uint32 sheathed = luaL_checkunsigned(L, 1);
         if (sheathed >= MAX_SHEATH_STATE)
             return 0;
-        
+
         unit->SetSheath((SheathState)sheathed);
         return 0;
     }
@@ -1419,7 +1419,7 @@ namespace LuaUnit
         MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> searcher(list, checker);
         Cell::VisitGridObjects(unit, searcher, range);
         Eluna::ObjectGUIDCheck guidCheck(unit->GetObjectGuid());
-        list.remove_if (guidCheck);
+        list.remove_if(guidCheck);
 
         lua_newtable(L);
         int tbl = lua_gettop(L);
@@ -1445,7 +1445,7 @@ namespace LuaUnit
         MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(list, checker);
         Cell::VisitGridObjects(unit, searcher, range);
         Eluna::ObjectGUIDCheck guidCheck(unit->GetObjectGuid());
-        list.remove_if (guidCheck);
+        list.remove_if(guidCheck);
 
         lua_newtable(L);
         int tbl = lua_gettop(L);

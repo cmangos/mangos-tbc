@@ -24,7 +24,7 @@ void HookMgr::OnWorldUpdate(uint32 diff)
 {
     sEluna.m_EventMgr.Update(diff);
     for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].begin();
-        itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
+            itr != sEluna.ServerEventBindings[WORLD_EVENT_ON_UPDATE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, WORLD_EVENT_ON_UPDATE);
@@ -36,7 +36,7 @@ void HookMgr::OnWorldUpdate(uint32 diff)
 void HookMgr::OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOOT_ITEM].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOOT_ITEM);
@@ -51,7 +51,7 @@ void HookMgr::OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid
 void HookMgr::OnFirstLogin(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_FIRST_LOGIN].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_FIRST_LOGIN);
@@ -63,7 +63,7 @@ void HookMgr::OnFirstLogin(Player* pPlayer)
 void HookMgr::OnRepop(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPOP].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPOP].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPOP].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_REPOP);
@@ -75,7 +75,7 @@ void HookMgr::OnRepop(Player* pPlayer)
 void HookMgr::OnResurrect(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_RESURRECT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_RESURRECT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_RESURRECT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_RESURRECT);
@@ -87,7 +87,7 @@ void HookMgr::OnResurrect(Player* pPlayer)
 void HookMgr::OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_EQUIP);
@@ -103,7 +103,7 @@ InventoryResult HookMgr::OnCanUseItem(const Player* pPlayer, uint32 itemEntry)
 {
     InventoryResult result = EQUIP_ERR_OK;
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CAN_USE_ITEM].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CAN_USE_ITEM);
@@ -164,7 +164,7 @@ void HookMgr::HandleGossipSelectOption(Player* pPlayer, uint32 menuId, uint32 se
 void HookMgr::OnEngineRestart()
 {
     for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[ELUNA_EVENT_ON_RESTART].begin();
-        itr != sEluna.ServerEventBindings[ELUNA_EVENT_ON_RESTART].end(); ++itr)
+            itr != sEluna.ServerEventBindings[ELUNA_EVENT_ON_RESTART].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, ELUNA_EVENT_ON_RESTART);
@@ -550,7 +550,7 @@ void HookMgr::OnGameObjectStateChanged(GameObject* pGameObject, uint32 state)
 void HookMgr::OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_ENTER_COMBAT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_ENTER_COMBAT);
@@ -563,7 +563,7 @@ void HookMgr::OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy)
 void HookMgr::OnPlayerLeaveCombat(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEAVE_COMBAT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LEAVE_COMBAT);
@@ -575,7 +575,7 @@ void HookMgr::OnPlayerLeaveCombat(Player* pPlayer)
 void HookMgr::OnPVPKill(Player* pKiller, Player* pKilled)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_PLAYER].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILL_PLAYER);
@@ -588,7 +588,7 @@ void HookMgr::OnPVPKill(Player* pKiller, Player* pKilled)
 void HookMgr::OnCreatureKill(Player* pKiller, Creature* pKilled)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILL_CREATURE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILL_CREATURE);
@@ -601,7 +601,7 @@ void HookMgr::OnCreatureKill(Player* pKiller, Creature* pKilled)
 void HookMgr::OnPlayerKilledByCreature(Creature* pKiller, Player* pKilled)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_KILLED_BY_CREATURE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_KILLED_BY_CREATURE);
@@ -614,7 +614,7 @@ void HookMgr::OnPlayerKilledByCreature(Creature* pKiller, Player* pKilled)
 void HookMgr::OnLevelChanged(Player* pPlayer, uint8 oldLevel)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LEVEL_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LEVEL_CHANGE);
@@ -627,7 +627,7 @@ void HookMgr::OnLevelChanged(Player* pPlayer, uint8 oldLevel)
 void HookMgr::OnFreeTalentPointsChanged(Player* pPlayer, uint32 newPoints)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TALENTS_CHANGE);
@@ -640,7 +640,7 @@ void HookMgr::OnFreeTalentPointsChanged(Player* pPlayer, uint32 newPoints)
 void HookMgr::OnTalentsReset(Player* pPlayer, bool noCost)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TALENTS_RESET].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TALENTS_RESET);
@@ -653,7 +653,7 @@ void HookMgr::OnTalentsReset(Player* pPlayer, bool noCost)
 void HookMgr::OnMoneyChanged(Player* pPlayer, int32& amount)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MONEY_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_MONEY_CHANGE);
@@ -666,7 +666,7 @@ void HookMgr::OnMoneyChanged(Player* pPlayer, int32& amount)
 void HookMgr::OnGiveXP(Player* pPlayer, uint32& amount, Unit* pVictim)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GIVE_XP].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GIVE_XP].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GIVE_XP].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GIVE_XP);
@@ -680,7 +680,7 @@ void HookMgr::OnGiveXP(Player* pPlayer, uint32& amount, Unit* pVictim)
 void HookMgr::OnReputationChange(Player* pPlayer, uint32 factionID, int32& standing, bool incremental)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_REPUTATION_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_REPUTATION_CHANGE);
@@ -695,7 +695,7 @@ void HookMgr::OnReputationChange(Player* pPlayer, uint32 factionID, int32& stand
 void HookMgr::OnDuelRequest(Player* pTarget, Player* pChallenger)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_REQUEST].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_REQUEST);
@@ -708,7 +708,7 @@ void HookMgr::OnDuelRequest(Player* pTarget, Player* pChallenger)
 void HookMgr::OnDuelStart(Player* pStarter, Player* pChallenger)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_START].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_START].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_START].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_START);
@@ -721,7 +721,7 @@ void HookMgr::OnDuelStart(Player* pStarter, Player* pChallenger)
 void HookMgr::OnDuelEnd(Player* pWinner, Player* pLoser, DuelCompleteType type)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_END].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_END].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_DUEL_END].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_DUEL_END);
@@ -735,7 +735,7 @@ void HookMgr::OnDuelEnd(Player* pWinner, Player* pLoser, DuelCompleteType type)
 void HookMgr::OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg, Player* pReceiver)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_WHISPER].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_WHISPER].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_WHISPER].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_WHISPER);
@@ -751,7 +751,7 @@ void HookMgr::OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg
 void HookMgr::OnEmote(Player* pPlayer, uint32 emote)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EMOTE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EMOTE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EMOTE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_EMOTE);
@@ -764,7 +764,7 @@ void HookMgr::OnEmote(Player* pPlayer, uint32 emote)
 void HookMgr::OnTextEmote(Player* pPlayer, uint32 textEmote, uint32 emoteNum, uint64 guid)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_TEXT_EMOTE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_TEXT_EMOTE);
@@ -779,7 +779,7 @@ void HookMgr::OnTextEmote(Player* pPlayer, uint32 textEmote, uint32 emoteNum, ui
 void HookMgr::OnSpellCast(Player* pPlayer, Spell* pSpell, bool skipCheck)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SPELL_CAST].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_SPELL_CAST);
@@ -793,7 +793,7 @@ void HookMgr::OnSpellCast(Player* pPlayer, Spell* pSpell, bool skipCheck)
 void HookMgr::OnLogin(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGIN].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGIN].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGIN].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOGIN);
@@ -805,7 +805,7 @@ void HookMgr::OnLogin(Player* pPlayer)
 void HookMgr::OnLogout(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGOUT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGOUT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_LOGOUT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_LOGOUT);
@@ -817,7 +817,7 @@ void HookMgr::OnLogout(Player* pPlayer)
 void HookMgr::OnCreate(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_CREATE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHARACTER_CREATE);
@@ -829,7 +829,7 @@ void HookMgr::OnCreate(Player* pPlayer)
 void HookMgr::OnDelete(uint32 guidlow)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHARACTER_DELETE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHARACTER_DELETE);
@@ -841,7 +841,7 @@ void HookMgr::OnDelete(uint32 guidlow)
 void HookMgr::OnSave(Player* pPlayer)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SAVE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SAVE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_SAVE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_SAVE);
@@ -853,7 +853,7 @@ void HookMgr::OnSave(Player* pPlayer)
 void HookMgr::OnBindToInstance(Player* pPlayer, Difficulty difficulty, uint32 mapid, bool permanent)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_BIND_TO_INSTANCE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_BIND_TO_INSTANCE);
@@ -868,7 +868,7 @@ void HookMgr::OnBindToInstance(Player* pPlayer, Difficulty difficulty, uint32 ma
 void HookMgr::OnUpdateZone(Player* pPlayer, uint32 newZone, uint32 newArea)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_UPDATE_ZONE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_UPDATE_ZONE);
@@ -882,7 +882,7 @@ void HookMgr::OnUpdateZone(Player* pPlayer, uint32 newZone, uint32 newArea)
 void HookMgr::OnMapChanged(Player* player)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_MAP_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_MAP_CHANGE);
@@ -895,7 +895,7 @@ bool HookMgr::OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg
 {
     bool Result = true;
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHAT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHAT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHAT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHAT);
@@ -918,7 +918,7 @@ bool HookMgr::OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg
 {
     bool Result = true;
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GROUP_CHAT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GROUP_CHAT);
@@ -942,7 +942,7 @@ bool HookMgr::OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg
 {
     bool Result = true;
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GUILD_CHAT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GUILD_CHAT);
@@ -966,7 +966,7 @@ bool HookMgr::OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg
 {
     bool Result = true;
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].begin();
-        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].end(); ++itr)
+            itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_CHANNEL_CHAT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, PLAYER_EVENT_ON_CHANNEL_CHAT);
@@ -989,7 +989,7 @@ bool HookMgr::OnChat(Player* pPlayer, uint32 type, uint32 lang, std::string& msg
 bool HookMgr::OnAreaTrigger(Player* pPlayer, AreaTriggerEntry const* pTrigger)
 {
     for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].begin();
-        itr != sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].end(); ++itr)
+            itr != sEluna.ServerEventBindings[TRIGGER_EVENT_ON_TRIGGER].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, TRIGGER_EVENT_ON_TRIGGER);
@@ -1003,7 +1003,7 @@ bool HookMgr::OnAreaTrigger(Player* pPlayer, AreaTriggerEntry const* pTrigger)
 void HookMgr::OnChange(Weather* weather, WeatherState state, float grade)
 {
     for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].begin();
-        itr != sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].end(); ++itr)
+            itr != sEluna.ServerEventBindings[WEATHER_EVENT_ON_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, WEATHER_EVENT_ON_CHANGE);
@@ -1596,7 +1596,7 @@ struct HookMgr::ElunaGameObjectAI : public GameObjectAI
 void HookMgr::OnAddMember(Guild* guild, Player* player, uint32 plRank)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_ADD_MEMBER].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_ADD_MEMBER].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_ADD_MEMBER].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_ADD_MEMBER);
@@ -1610,7 +1610,7 @@ void HookMgr::OnAddMember(Guild* guild, Player* player, uint32 plRank)
 void HookMgr::OnRemoveMember(Guild* guild, Player* player, bool isDisbanding, bool isKicked) // IsKicked not a part of Mangos, implement?
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_REMOVE_MEMBER].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_REMOVE_MEMBER);
@@ -1625,7 +1625,7 @@ void HookMgr::OnRemoveMember(Guild* guild, Player* player, bool isDisbanding, bo
 void HookMgr::OnMOTDChanged(Guild* guild, const std::string& newMotd)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MOTD_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_MOTD_CHANGE);
@@ -1638,7 +1638,7 @@ void HookMgr::OnMOTDChanged(Guild* guild, const std::string& newMotd)
 void HookMgr::OnInfoChanged(Guild* guild, const std::string& newInfo)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_INFO_CHANGE].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_INFO_CHANGE].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_INFO_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_INFO_CHANGE);
@@ -1651,7 +1651,7 @@ void HookMgr::OnInfoChanged(Guild* guild, const std::string& newInfo)
 void HookMgr::OnCreate(Guild* guild, Player* leader, const std::string& name)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_CREATE].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_CREATE].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_CREATE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_CREATE);
@@ -1665,7 +1665,7 @@ void HookMgr::OnCreate(Guild* guild, Player* leader, const std::string& name)
 void HookMgr::OnDisband(Guild* guild)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_DISBAND].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_DISBAND].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_DISBAND].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_DISBAND);
@@ -1674,10 +1674,10 @@ void HookMgr::OnDisband(Guild* guild)
     }
 }
 
-void HookMgr::OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount, bool isRepair) // isRepair not a part of Mangos, implement?
+void HookMgr::OnMemberWitdrawMoney(Guild* guild, Player* player, uint32& amount, bool isRepair) // isRepair not a part of Mangos, implement?
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_WITHDRAW].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_WITHDRAW);
@@ -1689,10 +1689,10 @@ void HookMgr::OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount,
     }
 }
 
-void HookMgr::OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount)
+void HookMgr::OnMemberDepositMoney(Guild* guild, Player* player, uint32& amount)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_MONEY_DEPOSIT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_MONEY_DEPOSIT);
@@ -1704,10 +1704,10 @@ void HookMgr::OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount)
 }
 
 void HookMgr::OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId,
-                bool isDestBank, uint8 destContainer, uint8 destSlotId)
+                         bool isDestBank, uint8 destContainer, uint8 destSlotId)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_ITEM_MOVE].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_ITEM_MOVE].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_ITEM_MOVE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_ITEM_MOVE);
@@ -1727,7 +1727,7 @@ void HookMgr::OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBa
 void HookMgr::OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_EVENT].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_EVENT].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_EVENT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_EVENT);
@@ -1743,7 +1743,7 @@ void HookMgr::OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 
 void HookMgr::OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_BANK_EVENT].begin();
-        itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_BANK_EVENT].end(); ++itr)
+            itr != sEluna.GuildEventBindings[GUILD_EVENT_ON_BANK_EVENT].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GUILD_EVENT_ON_BANK_EVENT);
@@ -1761,7 +1761,7 @@ void HookMgr::OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 pla
 void HookMgr::OnAddMember(Group* group, uint64 guid)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_ADD].begin();
-        itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_ADD].end(); ++itr)
+            itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_ADD].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_ADD);
@@ -1774,7 +1774,7 @@ void HookMgr::OnAddMember(Group* group, uint64 guid)
 void HookMgr::OnInviteMember(Group* group, uint64 guid)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].begin();
-        itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].end(); ++itr)
+            itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_INVITE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_INVITE);
@@ -1787,7 +1787,7 @@ void HookMgr::OnInviteMember(Group* group, uint64 guid)
 void HookMgr::OnRemoveMember(Group* group, uint64 guid, uint8 method, uint64 kicker, const char* reason) // Kicker and Reason not a part of Mangos, implement?
 {
     for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].begin();
-        itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].end(); ++itr)
+            itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_MEMBER_REMOVE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GROUP_EVENT_ON_MEMBER_REMOVE);
@@ -1803,7 +1803,7 @@ void HookMgr::OnRemoveMember(Group* group, uint64 guid, uint8 method, uint64 kic
 void HookMgr::OnChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeaderGuid)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].begin();
-        itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].end(); ++itr)
+            itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_LEADER_CHANGE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GROUP_EVENT_ON_LEADER_CHANGE);
@@ -1817,7 +1817,7 @@ void HookMgr::OnChangeLeader(Group* group, uint64 newLeaderGuid, uint64 oldLeade
 void HookMgr::OnDisband(Group* group)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_DISBAND].begin();
-        itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_DISBAND].end(); ++itr)
+            itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_DISBAND].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GROUP_EVENT_ON_DISBAND);
@@ -1829,7 +1829,7 @@ void HookMgr::OnDisband(Group* group)
 void HookMgr::OnCreate(Group* group, uint64 leaderGuid, GroupType groupType)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GroupEventBindings[GROUP_EVENT_ON_CREATE].begin();
-        itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_CREATE].end(); ++itr)
+            itr != sEluna.GroupEventBindings[GROUP_EVENT_ON_CREATE].end(); ++itr)
     {
         sEluna.BeginCall((*itr));
         sEluna.Push(sEluna.L, GROUP_EVENT_ON_CREATE);

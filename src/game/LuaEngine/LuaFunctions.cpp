@@ -77,7 +77,7 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "bit_xor", &LuaGlobalFunctions::bit_xor);                                               // bit_xor(a, b) - Returns a ^ b UNDOCUMENTED
     lua_register(L, "bit_rshift", &LuaGlobalFunctions::bit_rshift);                                         // bit_rshift(a, b) - Returns a >> b UNDOCUMENTED
     lua_register(L, "bit_lshift", &LuaGlobalFunctions::bit_lshift);                                         // bit_lshift(a, b) - Returns a << b UNDOCUMENTED
-    lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or);                                                 // bit_or(a, b) - Returns a | b UNDOCUMENTED
+    lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or); // bit_or(a, b) - Returns a | b UNDOCUMENTED
     lua_register(L, "bit_and", &LuaGlobalFunctions::bit_and);                                               // bit_and(a, b) - Returns a & b UNDOCUMENTED
     lua_register(L, "GetItemLink", &LuaGlobalFunctions::GetItemLink);                                       // GetItemLink(entry[, localeIndex]) - Returns the shift clickable link of the item. Item name translated if translate available for provided locale index UNDOCUMENTED
     lua_register(L, "GetMapById", &LuaGlobalFunctions::GetMapById);                                         // GetMapById(mapId) - Returns map object of id specified. UNDOCUMENTED
@@ -99,8 +99,8 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "AddVendorItem", &LuaGlobalFunctions::AddVendorItem);                                   // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost[, persist(bool)]) - Adds an item to vendor entry.
     lua_register(L, "VendorRemoveItem", &LuaGlobalFunctions::VendorRemoveItem);                             // VendorRemoveItem(entry, item[, persist(bool)]) - Removes an item from vendor entry. If persist is false, wont be saved to database.
     lua_register(L, "VendorRemoveAllItems", &LuaGlobalFunctions::VendorRemoveAllItems);                     // VendorRemoveAllItems(entry[, persist(bool)]) - Removes all items from vendor entry. If persist is false, wont be saved to database.
-    lua_register(L, "Kick", &LuaGlobalFunctions::Kick);                                                     // Kick(player) - Kicks given player
-    lua_register(L, "Ban", &LuaGlobalFunctions::Ban);                                                       // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned)) - Banmode: 0 account, 1 character, 2 IP
+    lua_register(L, "Kick", &LuaGlobalFunctions::Kick);     // Kick(player) - Kicks given player
+    lua_register(L, "Ban", &LuaGlobalFunctions::Ban);       // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned)) - Banmode: 0 account, 1 character, 2 IP
     lua_register(L, "SaveAllPlayers", &LuaGlobalFunctions::SaveAllPlayers);                                 // SaveAllPlayers() - Saves all players
     lua_register(L, "SendMail", &LuaGlobalFunctions::SendMail);                                             // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...]) - Sends a mail to player with lowguid. use nil to use default values on optional arguments. Sender is an optional player object. UNDOCUMENTED
     lua_register(L, "AddTaxiPath", &LuaGlobalFunctions::AddTaxiPath);                                       // AddTaxiPath(pathTable, mountA, mountH[, price, pathId]) - Adds a new taxi path. Returns the path's ID. Will replace an existing path if pathId provided and already used. path table structure: T = {{map, x, y, z[, actionFlag, delay, arrivalEvId, departEvId]}, {...}, ...} UDOCUMENTED
@@ -347,16 +347,16 @@ ElunaRegister<Unit> UnitMethods[] =
 
     /* Vehicle */
     // {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId
-    // {"IsOnVehicle", &LuaUnit::IsOnVehicle},                 // :IsOnVehicle() - Checks if the (unit) is in a vehicle
-    // {"DismissVehicle", &LuaUnit::DismissVehicle},           // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
-    // {"EjectPassenger", &LuaUnit::EjectPassenger},           // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
-    // {"RemovePassenger", &LuaUnit::RemovePassenger},         // :RemovePassenger(unit) - Removes a specific unit from the vehicle
+    // {"IsOnVehicle", &LuaUnit::IsOnVehicle},              // :IsOnVehicle() - Checks if the (unit) is in a vehicle
+    // {"DismissVehicle", &LuaUnit::DismissVehicle},        // :DismissVehicle() - Dismisses the (unit)'s vehicle (Unmounts)
+    // {"EjectPassenger", &LuaUnit::EjectPassenger},        // :EjectPassenger(unit) - Ejects a specified unit out of the vehicle
+    // {"RemovePassenger", &LuaUnit::RemovePassenger},      // :RemovePassenger(unit) - Removes a specific unit from the vehicle
     // {"RemoveAllPassengers", &LuaUnit::RemoveAllPassengers}, // :RemoveAllPassengers() - Removes all the passengers from the vehicle
-    // {"GetPassenger", &LuaUnit::GetPassenger},               // :GetPassenger(seatId) - Gets a passenger by their seatId
-    // {"GetNextEmptySeat", &LuaUnit::GetNextEmptySeat},       // :GetNextEmptySeat(seatId) - Gets(returns) the next empty seat
-    // {"GetAvailableSeats", &LuaUnit::GetAvailableSeats},     // :GetAvailableSeats() - Returns the available seats count
-    // {"GetVehicleBase", &LuaUnit::GetVehicleBase},           // :GetVehicleBase() - Returns the unit's vehicle base
-    // {"HasEmptySeat", &LuaUnit::HasEmptySeat},               // :HasEmptySeat(seatId) - Checks if the specified seatId is empty(nobody in it)
+    // {"GetPassenger", &LuaUnit::GetPassenger},            // :GetPassenger(seatId) - Gets a passenger by their seatId
+    // {"GetNextEmptySeat", &LuaUnit::GetNextEmptySeat},    // :GetNextEmptySeat(seatId) - Gets(returns) the next empty seat
+    // {"GetAvailableSeats", &LuaUnit::GetAvailableSeats},  // :GetAvailableSeats() - Returns the available seats count
+    // {"GetVehicleBase", &LuaUnit::GetVehicleBase},        // :GetVehicleBase() - Returns the unit's vehicle base
+    // {"HasEmptySeat", &LuaUnit::HasEmptySeat},            // :HasEmptySeat(seatId) - Checks if the specified seatId is empty(nobody in it)
     { NULL, NULL },
 };
 
@@ -504,7 +504,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasQuestForGO", &LuaPlayer::HasQuestForGO},           // :HasQuestForGO(entry) - Returns true if the player has the quest for the gameobject
     {"CanShareQuest", &LuaPlayer::CanShareQuest},           // :CanShareQuest(entry) - Returns true if the quest entry is shareable by the player
     // {"HasReceivedQuestReward", &LuaPlayer::HasReceivedQuestReward},                                           // :HasReceivedQuestReward(entry) - Returns true if the player has recieved the quest's reward
-    // {"HasTalent", &LuaPlayer::HasTalent},                   // :HasTalent(talentId, spec) - Returns true if the player has the talent in given spec
+    // {"HasTalent", &LuaPlayer::HasTalent},                // :HasTalent(talentId, spec) - Returns true if the player has the talent in given spec
     {"IsInSameGroupWith", &LuaPlayer::IsInSameGroupWith},   // :IsInSameGroupWith(player) - Returns true if the players are in the same group
     {"IsInSameRaidWith", &LuaPlayer::IsInSameRaidWith},     // :IsInSameRaidWith(player) - Returns true if the players are in the same raid
     {"IsGroupVisibleFor", &LuaPlayer::IsGroupVisibleFor},   // :IsGroupVisibleFor(player) - Player is group visible for the target
@@ -629,9 +629,9 @@ ElunaRegister<Creature> CreatureMethods[] =
     // Getters
     {"GetAITarget", &LuaCreature::GetAITarget},           // :GetAITarget(type[, playeronly, position, distance, aura]) - Get an unit in threat list
     {"GetAITargets", &LuaCreature::GetAITargets},         // :GetAITargets() - Get units in threat list
-    {"GetAITargetsCount", &LuaCreature::GetAITargetsCount},                                                     // :GetAITargetsCount() - Get threat list size
+    {"GetAITargetsCount", &LuaCreature::GetAITargetsCount}, // :GetAITargetsCount() - Get threat list size
     // {"GetNearestTargetInAttackDistance", &LuaCreature::GetNearestTargetInAttackDistance},                    // :GetNearestTargetInAttackDistance([radius]) - Returns nearest target in attack distance and within given radius, if set
-    // {"GetNearestTarget", &LuaCreature::GetNearestTarget},                                                    // :GetNearestTarget([radius]) - Returns nearest target in sight or given radius
+    // {"GetNearestTarget", &LuaCreature::GetNearestTarget},// :GetNearestTarget([radius]) - Returns nearest target in sight or given radius
     // {"GetNearestHostileTargetInAggroRange", &LuaCreature::GetNearestHostileTargetInAggroRange},              // :GetNearestHostileTargetInAggroRange([checkLOS]) - Returns closest hostile target in aggro range of the creature
     {"GetHomePosition", &LuaCreature::GetHomePosition},     // :GetHomePosition() - Returns x,y,z,o of spawn position
     // {"GetTransportHomePosition", &LuaCreature::GetTransportHomePosition},                                       // :GetTransportHomePosition() - Returns x,y,z,o of transport spawn position
@@ -687,7 +687,7 @@ ElunaRegister<Creature> CreatureMethods[] =
     {"HasSearchedAssistance", &LuaCreature::HasSearchedAssistance},                                             // :HasSearchedAssistance() - Returns true if the creature has searched assistance
     {"CanAssistTo", &LuaCreature::CanAssistTo},             // :CanAssistTo(unit, enemy[, checkfaction]) - Returns true if the creature can assist unit with enemy
     {"IsTargetAcceptable", &LuaCreature::IsTargetAcceptable},                                                   // :IsTargetAcceptable(unit) - Returns true if the creature can target unit
-    {"HasInvolvedQuest", &LuaCreature::HasInvolvedQuest},                                                       // :HasInvolvedQuest(questId) - Returns true if the creature can finish the quest for players
+    {"HasInvolvedQuest", &LuaCreature::HasInvolvedQuest},   // :HasInvolvedQuest(questId) - Returns true if the creature can finish the quest for players
     {"IsRegeneratingHealth", &LuaCreature::IsRegeneratingHealth},                                               // :IsRegeneratingHealth() - Returns true if the creature is regenerating health
     {"IsReputationGainDisabled", &LuaCreature::IsReputationGainDisabled},                                       // :IsReputationGainDisabled() - Returns true if the creature has reputation gain disabled
     // {"IsDamageEnoughForLootingAndReward", &LuaCreature::IsDamageEnoughForLootingAndReward},                  // :IsDamageEnoughForLootingAndReward()
@@ -698,21 +698,21 @@ ElunaRegister<Creature> CreatureMethods[] =
     {"CanFly", &LuaCreature::CanFly},                       // :CanFly() - Returns true if the creature can fly
 
     // Other
-    // {"Despawn", &LuaCreature::Despawn},                   // :Despawn([despawnDelay]) - Creature despawns after given time
+    // {"Despawn", &LuaCreature::Despawn},                  // :Despawn([despawnDelay]) - Creature despawns after given time
     {"FleeToGetAssistance", &LuaCreature::FleeToGetAssistance},                                                 // :FleeToGetAssistance() - Creature flees for assistance
-    {"CallForHelp", &LuaCreature::CallForHelp},              // :CallForHelp(radius) - Creature calls for help from units in radius
-    {"CallAssistance", &LuaCreature::CallAssistance},        // :CallAssistance() - Creature calls for assistance
-    {"RemoveCorpse", &LuaCreature::RemoveCorpse},            // :RemoveCorpse([setSpawnTime]) - Removes corpse
-    {"DespawnOrUnsummon", &LuaCreature::DespawnOrUnsummon},  // :DespawnOrUnsummon([Delay]) - Despawns the creature after delay if given
-    {"Respawn", &LuaCreature::Respawn},                      // :Respawn([force]) - Respawns the creature
-    // {"AddLootMode", &LuaCreature::AddLootMode},           // :AddLootMode(lootMode)
-    // {"DealDamage", &LuaCreature::DealDamage},             // :DealDamage(target, amount) - Deals damage to target (if target) : if no target, unit will damage self
-    // {"SendCreatureTalk", &LuaCreature::SendCreatureTalk}, // :SendCreatureTalk(id, playerGUID) - Sends a chat message to a playerGUID (player) by id. Id can be found in creature_text under the 'group_id' column
-    {"AttackStart", &LuaCreature::AttackStart},              // :AttackStart(target) - Creature attacks the specified target
+    {"CallForHelp", &LuaCreature::CallForHelp},             // :CallForHelp(radius) - Creature calls for help from units in radius
+    {"CallAssistance", &LuaCreature::CallAssistance},       // :CallAssistance() - Creature calls for assistance
+    {"RemoveCorpse", &LuaCreature::RemoveCorpse},           // :RemoveCorpse([setSpawnTime]) - Removes corpse
+    {"DespawnOrUnsummon", &LuaCreature::DespawnOrUnsummon}, // :DespawnOrUnsummon([Delay]) - Despawns the creature after delay if given
+    {"Respawn", &LuaCreature::Respawn},                     // :Respawn([force]) - Respawns the creature
+    // {"AddLootMode", &LuaCreature::AddLootMode},          // :AddLootMode(lootMode)
+    // {"DealDamage", &LuaCreature::DealDamage},            // :DealDamage(target, amount) - Deals damage to target (if target) : if no target, unit will damage self
+    // {"SendCreatureTalk", &LuaCreature::SendCreatureTalk},// :SendCreatureTalk(id, playerGUID) - Sends a chat message to a playerGUID (player) by id. Id can be found in creature_text under the 'group_id' column
+    {"AttackStart", &LuaCreature::AttackStart},             // :AttackStart(target) - Creature attacks the specified target
     // {"ResetLootMode", &LuaCreature::ResetLootMode},
     // {"RemoveLootMode", &LuaCreature::RemoveLootMode},
-    {"SaveToDB", &LuaCreature::SaveToDB},                    // :SaveToDB() - Saves to database
-    {"SelectVictim", &LuaCreature::SelectVictim},            // :SelectVictim() - Selects a victim
+    {"SaveToDB", &LuaCreature::SaveToDB},                   // :SaveToDB() - Saves to database
+    {"SelectVictim", &LuaCreature::SelectVictim},           // :SelectVictim() - Selects a victim
 
     {NULL, NULL},
 };

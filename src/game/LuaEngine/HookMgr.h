@@ -354,8 +354,8 @@ struct HookMgr
     void OnInfoChanged(Guild* guild, const std::string& newInfo);
     void OnCreate(Guild* guild, Player* leader, const std::string& name);
     void OnDisband(Guild* guild);
-    void OnMemberWitdrawMoney(Guild* guild, Player* player, uint32 &amount, bool isRepair);
-    void OnMemberDepositMoney(Guild* guild, Player* player, uint32 &amount);
+    void OnMemberWitdrawMoney(Guild* guild, Player* player, uint32& amount, bool isRepair);
+    void OnMemberDepositMoney(Guild* guild, Player* player, uint32& amount);
     void OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId, bool isDestBank, uint8 destContainer, uint8 destSlotId); // TODO: Implement
     void OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank); // TODO: Implement
     void OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId);

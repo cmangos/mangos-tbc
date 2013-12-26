@@ -686,7 +686,7 @@ namespace LuaGlobalFunctions
                     return NULL;
                 }
 
-                pGameObj->SetRespawnTime(durorresptime/IN_MILLISECONDS);
+                pGameObj->SetRespawnTime(durorresptime / IN_MILLISECONDS);
 
                 map->Add(pGameObj);
 
@@ -857,7 +857,7 @@ namespace LuaGlobalFunctions
         draft.SetSubjectAndBody(subject, text);
 
         uint8 addedItems = 0;
-        while (addedItems <= MAX_MAIL_ITEMS && i+2 <= argAmount)
+        while (addedItems <= MAX_MAIL_ITEMS && i + 2 <= argAmount)
         {
             uint32 entry = luaL_checkunsigned(L, ++i);
             uint32 amount = luaL_checkunsigned(L, ++i);

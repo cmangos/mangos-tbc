@@ -29,7 +29,7 @@ class DBCStorage
         explicit DBCStorage(const char* f) : nCount(0), fieldCount(0), fmt(f), indexTable(NULL), m_dataTable(NULL) { }
         ~DBCStorage() { Clear(); }
 
-        uint32  GetNumRows() const { return nCount; }
+        uint32  GetNumRows() const { return loaded ? data.size() : nCount; }
         char const* GetFormat() const { return fmt; }
         uint32 GetFieldCount() const { return fieldCount; }
 
@@ -67,7 +67,7 @@ class DBCStorage
         {
             if(!loaded)
             {
-                for (uint32 i = 0; i < GetNumRows(); ++i)
+                for (uint32 i = 0; i < nCount; ++i)
                 {
                     T const* node = LookupEntry(i);
                     if (!node)
@@ -76,8 +76,6 @@ class DBCStorage
                 }
                 loaded = true;
             }
-            if (id > nCount)
-                nCount = id+1;
             data[id] = t;
         }
 

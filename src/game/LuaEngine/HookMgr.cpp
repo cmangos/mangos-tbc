@@ -97,7 +97,6 @@ void HookMgr::OnQuestAbandon(Player* pPlayer, uint32 questId)
     }
 }
 
-
 void HookMgr::OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].begin();

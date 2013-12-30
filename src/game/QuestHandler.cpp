@@ -29,6 +29,7 @@
 #include "ObjectAccessor.h"
 #include "ScriptMgr.h"
 #include "Group.h"
+#include "HookMgr.h"
 
 void WorldSession::HandleQuestgiverStatusQueryOpcode(WorldPacket& recv_data)
 {
@@ -340,6 +341,7 @@ void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recv_data)
             }
 
             _player->SetQuestStatus(quest, QUEST_STATUS_NONE);
+            sHookMgr.OnQuestAbandon(_player, quest);
         }
 
         _player->SetQuestSlot(slot, 0);

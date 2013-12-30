@@ -84,6 +84,20 @@ void HookMgr::OnResurrect(Player* pPlayer)
     }
 }
 
+void HookMgr::OnQuestAbandon(Player* pPlayer, uint32 questId)
+{
+    for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_QUEST_ABANDON].begin();
+        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_QUEST_ABANDON].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, PLAYER_EVENT_ON_QUEST_ABANDON);
+        sEluna.Push(sEluna.L, pPlayer);
+        sEluna.Push(sEluna.L, questId);
+        sEluna.ExecuteCall(3, 0);
+    }
+}
+
+
 void HookMgr::OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].begin();

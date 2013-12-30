@@ -142,6 +142,7 @@ enum PlayerEvents
     PLAYER_EVENT_ON_LEAVE_COMBAT            =     34,       // (event, player)
     PLAYER_EVENT_ON_REPOP                   =     35,       // (event, player)
     PLAYER_EVENT_ON_RESURRECT               =     36,       // (event, player)
+    PLAYER_EVENT_ON_QUEST_ABANDON           =     37,       // (event, player, questId)
 
     PLAYER_EVENT_COUNT
 };
@@ -272,6 +273,7 @@ struct HookMgr
     void OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot);
     void OnRepop(Player* pPlayer);
     void OnResurrect(Player* pPlayer);
+    void OnQuestAbandon(Player* pPlayer, uint32 questId);
     InventoryResult OnCanUseItem(const Player* pPlayer, uint32 itemEntry);
     void OnEngineRestart();
     /* Item */

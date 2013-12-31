@@ -743,6 +743,7 @@ ElunaRegister<GameObject> GameObjectMethods[] =
     {"RegisterEvent", &LuaGameObject::RegisterEvent},       // :RegisterEvent(function, delay, calls)
     {"RemoveEventById", &LuaGameObject::RemoveEventById},   // :RemoveEventById(eventID)
     {"RemoveEvents", &LuaGameObject::RemoveEvents},         // :RemoveEvents()
+    {"RemoveFromWorld", &LuaGameObject::RemoveFromWorld},   // :RemoveFromWorld(del)
     {"SummonGameObject", &LuaGameObject::SummonGameObject}, // :SummonGameObject(entry, x, y, z, o[, respawnDelay]) - Spawns an object to location. Returns the object or nil
     {"UseDoorOrButton", &LuaGameObject::UseDoorOrButton},   // :UseDoorOrButton(delay) - Activates/closes/opens after X delay UNDOCUMENTED
     {"Despawn", &LuaGameObject::Despawn},                   // :Despawn([delay]) - Despawns the object after delay

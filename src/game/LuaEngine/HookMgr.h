@@ -66,8 +66,8 @@ enum ServerEvents
     SERVER_EVENT_ON_PACKET_SEND             =     7,       // Not Implemented
 
     // World
-    WORLD_EVENT_ON_OPEN_STATE_CHANGE        =     8,       // (event, open)
-    WORLD_EVENT_ON_CONFIG_LOAD              =     9,       // (event, reload)
+    WORLD_EVENT_ON_OPEN_STATE_CHANGE        =     8,        // (event, open)
+    WORLD_EVENT_ON_CONFIG_LOAD              =     9,        // (event, reload)
     WORLD_EVENT_ON_MOTD_CHANGE              =     10,       // (event, newMOTD)
     WORLD_EVENT_ON_SHUTDOWN_INIT            =     11,       // (event, code, mask)
     WORLD_EVENT_ON_SHUTDOWN_CANCEL          =     12,       // (event)
@@ -143,6 +143,9 @@ enum PlayerEvents
     PLAYER_EVENT_ON_REPOP                   =     35,       // (event, player)
     PLAYER_EVENT_ON_RESURRECT               =     36,       // (event, player)
     PLAYER_EVENT_ON_QUEST_ABANDON           =     37,       // (event, player, questId)
+    PLAYER_EVENT_ON_GM_TICKET_CREATE        =     38,       // (event, player, ticketText)
+    PLAYER_EVENT_ON_GM_TICKET_UPDATE        =     39,       // (event, player, ticketText)
+    PLAYER_EVENT_ON_GM_TICKET_DELETE        =     40,       // (event, player)
 
     PLAYER_EVENT_COUNT
 };
@@ -274,6 +277,9 @@ struct HookMgr
     void OnRepop(Player* pPlayer);
     void OnResurrect(Player* pPlayer);
     void OnQuestAbandon(Player* pPlayer, uint32 questId);
+    void OnGmTicketCreate(Player* pPlayer, std::string& ticketText);
+    void OnGmTicketUpdate(Player* pPlayer, std::string& ticketText);
+    void OnGmTicketDelete(Player* pPlayer);
     InventoryResult OnCanUseItem(const Player* pPlayer, uint32 itemEntry);
     void OnEngineRestart();
     /* Item */

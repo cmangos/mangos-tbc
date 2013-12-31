@@ -97,6 +97,44 @@ void HookMgr::OnQuestAbandon(Player* pPlayer, uint32 questId)
     }
 }
 
+void HookMgr::OnGmTicketCreate(Player* pPlayer, std::string& ticketText)
+{
+    for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GM_TICKET_CREATE].begin();
+        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GM_TICKET_CREATE].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GM_TICKET_CREATE);
+        sEluna.Push(sEluna.L, pPlayer);
+        sEluna.Push(sEluna.L, ticketText);
+        sEluna.ExecuteCall(3, 0);
+    }
+}
+
+void HookMgr::OnGmTicketUpdate(Player* pPlayer, std::string& ticketText)
+{
+    for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GM_TICKET_UPDATE].begin();
+        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GM_TICKET_UPDATE].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GM_TICKET_UPDATE);
+        sEluna.Push(sEluna.L, pPlayer);
+        sEluna.Push(sEluna.L, ticketText);
+        sEluna.ExecuteCall(3, 0);
+    }
+}
+
+void HookMgr::OnGmTicketDelete(Player* pPlayer)
+{
+    for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GM_TICKET_DELETE].begin();
+        itr != sEluna.PlayerEventBindings[PLAYER_EVENT_ON_GM_TICKET_DELETE].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, PLAYER_EVENT_ON_GM_TICKET_DELETE);
+        sEluna.Push(sEluna.L, pPlayer);
+        sEluna.ExecuteCall(2, 0);
+    }
+}
+
 void HookMgr::OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot)
 {
     for (std::vector<int>::const_iterator itr = sEluna.PlayerEventBindings[PLAYER_EVENT_ON_EQUIP].begin();

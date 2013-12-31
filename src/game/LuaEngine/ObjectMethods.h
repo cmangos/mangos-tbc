@@ -183,6 +183,11 @@ namespace LuaObject
         sEluna.Push(L, obj->GetGUIDLow());
         return 1;
     }
+    static int GetTypeId(lua_State* L, Object* obj)
+    {
+        sEluna.Push(L, obj->GetTypeId());
+        return 1;
+    }
     static int IsInWorld(lua_State* L, Object* obj)
     {
         sEluna.Push(L, obj->IsInWorld());

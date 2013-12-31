@@ -126,6 +126,7 @@ ElunaRegister<Object> ObjectMethods[] =
     {"GetByteValue", &LuaObject::GetByteValue},             // :GetByteValue(index, offset) - returns a byte value from object fields
     {"GetUInt16Value", &LuaObject::GetUInt16Value},         // :GetUInt16Value(index, offset) - returns a uint16 value from object fields
     {"GetScale", &LuaObject::GetScale},                     // :GetScale()
+    {"GetTypeId", &LuaObject::GetTypeId},                   // :GetTypeId() - Returns the object's typeId
 
     // Setters
     {"SetInt32Value", &LuaObject::SetInt32Value},           // :SetInt32Value(index, value) - Sets an int value for the object

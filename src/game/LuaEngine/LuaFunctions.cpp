@@ -1074,6 +1074,11 @@ ElunaRegister<Weather> WeatherMethods[] =
     {NULL, NULL}
 };
 
+ElunaRegister<AuctionHouseObject> AuctionMethods[] =
+{
+    {NULL, NULL}
+};
+
 void RegisterFunctions(lua_State* L)
 {
     RegisterGlobals(L);
@@ -1143,6 +1148,8 @@ void RegisterFunctions(lua_State* L)
 
     ElunaTemplate<Weather>::Register(L);
     SetMethods(L, WeatherMethods);
+
+    ElunaTemplate<AuctionHouseObject>::Register(L);
 
     lua_settop(L, 0); // clean stack
 }

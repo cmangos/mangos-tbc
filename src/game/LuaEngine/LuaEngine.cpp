@@ -44,6 +44,7 @@ template<> const char* GetTName<Quest>() { return "Quest"; }
 template<> const char* GetTName<Map>() { return "Map"; }
 template<> const char* GetTName<Corpse>() { return "Corpse"; }
 template<> const char* GetTName<Weather>() { return "Weather"; }
+template<> const char* GetTName<AuctionHouseObject>() { return "AuctionHouse"; }
 
 extern void RegisterFunctions(lua_State* L);
 

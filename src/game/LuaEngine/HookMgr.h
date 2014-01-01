@@ -94,10 +94,10 @@ enum ServerEvents
     WEATHER_EVENT_ON_CHANGE                 =     25,       // (event, weather, state, grade)
 
     // Auction house
-    AUCTION_EVENT_ON_ADD                    =     26,       // Not Implemented
-    AUCTION_EVENT_ON_REMOVE                 =     27,       // Not Implemented
-    AUCTION_EVENT_ON_SUCCESFUL              =     28,       // Not Implemented
-    AUCTION_EVENT_ON_EXPIRE                 =     29,       // Not Implemented
+    AUCTION_EVENT_ON_ADD                    =     26,       // (event, AHObject)
+    AUCTION_EVENT_ON_REMOVE                 =     27,       // (event, AHObject)
+    AUCTION_EVENT_ON_SUCCESSFUL             =     28,       // (event, AHObject) // NOT SUPPORTED YET
+    AUCTION_EVENT_ON_EXPIRE                 =     29,       // (event, AHObject) // NOT SUPPORTED YET
 
     SERVER_EVENT_COUNT
 };
@@ -348,9 +348,14 @@ struct HookMgr
     bool OnAreaTrigger(Player* pPlayer, AreaTriggerEntry const* pTrigger);
     /* Weather */
     void OnChange(Weather* weather, WeatherState state, float grade); // TODO
-    // condition
+    /* Auction House */
+    void OnAdd(AuctionHouseObject* auctionHouse);
+    void OnRemove(AuctionHouseObject* auctionHouse);
+    void OnSuccessful(AuctionHouseObject* auctionHouse);
+    void OnExpire(AuctionHouseObject* auctionHouse);
+    /* Condition */
     // bool OnConditionCheck(Condition* condition, ConditionSourceInfo& sourceInfo); // TODO ?
-    // transport
+    /* Transport */
     void OnAddPassenger(Transport* transport, Player* player); // TODO
     void OnAddCreaturePassenger(Transport* transport, Creature* creature); // TODO
     void OnRemovePassenger(Transport* transport, Player* player); // TODO

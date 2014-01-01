@@ -60,6 +60,12 @@ To be able to accomplish these goals, we support and promote:
   * [Contributing Guidelines](CONTRIBUTING.md)
   * Documentation can be found in the doc/ subdirectory and on the github wiki
 
+# ![logo](https://dl.dropbox.com/u/98478761/eluna-DBCA-Designs.png)
+
+  You can find further information about Eluna at the following places:
+  * [Eluna Wiki](http://wiki.emudevs.com/doku.php?id=eluna)
+  * [Eluna Support Forum](http://emudevs.com)
+
 ## License
 
   CMaNGOS is free software; you can redistribute it and/or modify

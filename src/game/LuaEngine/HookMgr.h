@@ -133,6 +133,7 @@ enum PlayerEvents
     PLAYER_EVENT_ON_BIND_TO_INSTANCE        =     26,       // (event, player, difficulty, mapid, permanent)
     PLAYER_EVENT_ON_UPDATE_ZONE             =     27,       // (event, player, newZone, newArea)
     PLAYER_EVENT_ON_MAP_CHANGE              =     28,       // (event, player)
+
     // Custom
     PLAYER_EVENT_ON_EQUIP                   =     29,       // (event, player, item, bag, slot)
     PLAYER_EVENT_ON_FIRST_LOGIN             =     30,       // (event, player)
@@ -282,12 +283,14 @@ struct HookMgr
     void OnGmTicketDelete(Player* pPlayer);
     InventoryResult OnCanUseItem(const Player* pPlayer, uint32 itemEntry);
     void OnEngineRestart();
+
     /* Item */
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget);
     bool OnQuestAccept(Player* pPlayer, Item* pItem, Quest const* pQuest);
     bool OnUse(Player* pPlayer, Item* pItem, SpellCastTargets const& targets);
     bool OnExpire(Player* pPlayer, ItemPrototype const* pProto);
     void HandleGossipSelectOption(Player* pPlayer, Item* item, uint32 sender, uint32 action, std::string code);
+
     /* Creature */
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget);
     bool OnGossipHello(Player* pPlayer, Creature* pCreature);
@@ -298,6 +301,7 @@ struct HookMgr
     bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
     bool OnQuestReward(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
     uint32 GetDialogStatus(Player* pPlayer, Creature* pCreature);
+
     /* GameObject */
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget);
     bool OnGossipHello(Player* pPlayer, GameObject* pGameObject);
@@ -312,6 +316,7 @@ struct HookMgr
     void OnDamaged(GameObject* pGameObject, Player* pPlayer); // TODO
     void OnLootStateChanged(GameObject* pGameObject, uint32 state, Unit* pUnit); // TODO
     void OnGameObjectStateChanged(GameObject* pGameObject, uint32 state); // TODO
+
     /* Player */
     void OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy);
     void OnPlayerLeaveCombat(Player* pPlayer);
@@ -344,22 +349,28 @@ struct HookMgr
     void OnUpdateZone(Player* pPlayer, uint32 newZone, uint32 newArea);
     void OnMapChanged(Player* pPlayer); // TODO
     void HandleGossipSelectOption(Player* pPlayer, uint32 menuId, uint32 sender, uint32 action, std::string code);
+
     /* AreaTrigger */
     bool OnAreaTrigger(Player* pPlayer, AreaTriggerEntry const* pTrigger);
+
     /* Weather */
     void OnChange(Weather* weather, WeatherState state, float grade); // TODO
+
     /* Auction House */
     void OnAdd(AuctionHouseObject* auctionHouse);
     void OnRemove(AuctionHouseObject* auctionHouse);
     void OnSuccessful(AuctionHouseObject* auctionHouse);
     void OnExpire(AuctionHouseObject* auctionHouse);
+
     /* Condition */
     // bool OnConditionCheck(Condition* condition, ConditionSourceInfo& sourceInfo); // TODO ?
+
     /* Transport */
     void OnAddPassenger(Transport* transport, Player* player); // TODO
     void OnAddCreaturePassenger(Transport* transport, Creature* creature); // TODO
     void OnRemovePassenger(Transport* transport, Player* player); // TODO
     void OnRelocate(Transport* transport, uint32 waypointId, uint32 mapId, float x, float y, float z); // TODO
+
     /* Guild */
     void OnAddMember(Guild* guild, Player* player, uint32 plRank);
     void OnRemoveMember(Guild* guild, Player* player, bool isDisbanding, bool isKicked); // IsKicked not a part of Mangos, implement?
@@ -372,6 +383,7 @@ struct HookMgr
     void OnItemMove(Guild* guild, Player* player, Item* pItem, bool isSrcBank, uint8 srcContainer, uint8 srcSlotId, bool isDestBank, uint8 destContainer, uint8 destSlotId); // TODO: Implement
     void OnEvent(Guild* guild, uint8 eventType, uint32 playerGuid1, uint32 playerGuid2, uint8 newRank); // TODO: Implement
     void OnBankEvent(Guild* guild, uint8 eventType, uint8 tabId, uint32 playerGuid, uint32 itemOrMoney, uint16 itemStackCount, uint8 destTabId);
+
     /* Group */
     void OnAddMember(Group* group, uint64 guid);
     void OnInviteMember(Group* group, uint64 guid);

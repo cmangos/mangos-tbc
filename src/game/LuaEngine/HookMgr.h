@@ -143,10 +143,11 @@ enum PlayerEvents
     PLAYER_EVENT_ON_LEAVE_COMBAT            =     34,       // (event, player)
     PLAYER_EVENT_ON_REPOP                   =     35,       // (event, player)
     PLAYER_EVENT_ON_RESURRECT               =     36,       // (event, player)
-    PLAYER_EVENT_ON_QUEST_ABANDON           =     37,       // (event, player, questId)
-    PLAYER_EVENT_ON_GM_TICKET_CREATE        =     38,       // (event, player, ticketText)
-    PLAYER_EVENT_ON_GM_TICKET_UPDATE        =     39,       // (event, player, ticketText)
-    PLAYER_EVENT_ON_GM_TICKET_DELETE        =     40,       // (event, player)
+    PLAYER_EVENT_ON_LOOT_MONEY              =     37,       // (event, player, amount)
+    PLAYER_EVENT_ON_QUEST_ABANDON           =     38,       // (event, player, questId)
+    PLAYER_EVENT_ON_GM_TICKET_CREATE        =     39,       // (event, player, ticketText)
+    PLAYER_EVENT_ON_GM_TICKET_UPDATE        =     40,       // (event, player, ticketText)
+    PLAYER_EVENT_ON_GM_TICKET_DELETE        =     41,       // (event, player)
 
     PLAYER_EVENT_COUNT
 };
@@ -273,6 +274,7 @@ struct HookMgr
     /* Misc */
     void OnWorldUpdate(uint32 diff);
     void OnLootItem(Player* pPlayer, Item* pItem, uint32 count, uint64 guid);
+    void OnLootMoney(Player* pPlayer, uint32 amount);
     void OnFirstLogin(Player* pPlayer);
     void OnEquip(Player* pPlayer, Item* pItem, uint8 bag, uint8 slot);
     void OnRepop(Player* pPlayer);

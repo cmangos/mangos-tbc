@@ -262,6 +262,8 @@ void WorldSession::HandleLootMoneyOpcode(WorldPacket & /*recv_data*/)
         else
             player->ModifyMoney(pLoot->gold);
 
+        sHookMgr.OnLootMoney(player, pLoot->gold);
+
         pLoot->gold = 0;
 
         if (pItem)

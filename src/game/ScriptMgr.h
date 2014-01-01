@@ -498,8 +498,6 @@ class ScriptMgr
         bool OnQuestAccept(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
         bool OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
         bool OnQuestAccept(Player* pPlayer, Item* pItem, Quest const* pQuest);
-        bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
-        bool OnQuestComplete(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
         bool OnQuestRewarded(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
         bool OnQuestRewarded(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest);
         uint32 GetDialogStatus(Player* pPlayer, Creature* pCreature);
@@ -555,8 +553,6 @@ class ScriptMgr
         bool (MANGOS_IMPORT* m_pOnQuestAccept)(Player*, Creature*, Quest const*);
         bool (MANGOS_IMPORT* m_pOnGOQuestAccept)(Player*, GameObject*, Quest const*);
         bool (MANGOS_IMPORT* m_pOnItemQuestAccept)(Player*, Item*, Quest const*);
-        bool (MANGOS_IMPORT* m_pOnQuestComplete)(Player*, Creature*, Quest const*);
-        bool (MANGOS_IMPORT* m_pOnGOQuestComplete)(Player*, GameObject*, Quest const*);
         bool (MANGOS_IMPORT* m_pOnQuestRewarded)(Player*, Creature*, Quest const*);
         bool (MANGOS_IMPORT* m_pOnGOQuestRewarded)(Player*, GameObject*, Quest const*);
         uint32(MANGOS_IMPORT* m_pGetNPCDialogStatus)(Player*, Creature*);

@@ -266,7 +266,7 @@ void Guild::SetMOTD(std::string motd)
     CharacterDatabase.escape_string(motd);
     CharacterDatabase.PExecute("UPDATE guild SET motd='%s' WHERE guildid='%u'", motd.c_str(), m_Id);
 
-// used by eluna
+    // used by eluna
     sHookMgr.OnMOTDChanged(this, motd);
 }
 

@@ -180,6 +180,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (msg.empty())
                 break;
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg))
                 return;
 
@@ -227,6 +228,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                 }
             }
 
+            // used by eluna
             sHookMgr.OnChat(GetPlayer(), type, lang, msg, player);
             GetPlayer()->Whisper(msg, lang, player->GetObjectGuid());
         } break;
@@ -257,6 +259,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                     return;
             }
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, group))
                 return;
 
@@ -286,6 +289,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (GetPlayer()->GetGuildId())
                 if (Guild* guild = sGuildMgr.GetGuildById(GetPlayer()->GetGuildId()))
                 {
+                    // used by eluna
                     if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, guild))
                         return;
 
@@ -314,6 +318,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (GetPlayer()->GetGuildId())
                 if (Guild* guild = sGuildMgr.GetGuildById(GetPlayer()->GetGuildId()))
                 {
+                    // used by eluna
                     if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, guild))
                         return;
 
@@ -348,6 +353,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                     return;
             }
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, group))
                 return;
 
@@ -381,6 +387,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                     return;
             }
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, group))
                 return;
 
@@ -405,6 +412,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                     !(group->IsLeader(GetPlayer()->GetObjectGuid()) || group->IsAssistant(GetPlayer()->GetObjectGuid())))
                 return;
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, group))
                 return;
 
@@ -430,6 +438,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (!group || !group->isBGGroup())
                 return;
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, group))
                 return;
 
@@ -454,6 +463,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (!group || !group->isBGGroup() || !group->IsLeader(GetPlayer()->GetObjectGuid()))
                 return;
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, group))
                 return;
 
@@ -477,6 +487,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (ChannelMgr* cMgr = channelMgr(_player->GetTeam()))
                 if (Channel* chn = cMgr->GetChannel(channel, _player))
                 {
+                    // used by eluna
                     if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, chn))
                         return;
 
@@ -508,6 +519,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                     _player->ToggleAFK();
                 }
 
+                // used by eluna
                 if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg))
                     return;
             }
@@ -535,6 +547,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                 _player->ToggleDND();
             }
 
+            // used by eluna
             if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg))
                 return;
 
@@ -554,6 +567,8 @@ void WorldSession::HandleEmoteOpcode(WorldPacket& recv_data)
 
     uint32 emote;
     recv_data >> emote;
+
+    // used by eluna
     sHookMgr.OnEmote(GetPlayer(), emote);
     GetPlayer()->HandleEmoteCommand(emote);
 }
@@ -609,6 +624,7 @@ void WorldSession::HandleTextEmoteOpcode(WorldPacket& recv_data)
     recv_data >> emoteNum;
     recv_data >> guid;
 
+    // used by eluna
     sHookMgr.OnTextEmote(GetPlayer(), text_emote, emoteNum, guid);
 
     EmotesTextEntry const* em = sEmotesTextStore.LookupEntry(text_emote);

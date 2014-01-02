@@ -463,6 +463,7 @@ void WorldSession::LogoutPlayer(bool Save)
         sSocialMgr.SendFriendStatus(_player, FRIEND_OFFLINE, _player->GetObjectGuid(), true);
         sSocialMgr.RemovePlayerSocial(_player->GetGUIDLow());
 
+        ///- used by eluna
         sHookMgr.OnLogout(_player);
 
         ///- Remove the player from the world

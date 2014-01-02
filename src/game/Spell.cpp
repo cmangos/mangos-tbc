@@ -2904,6 +2904,7 @@ void Spell::cast(bool skipCheck)
     // set to real guid to be sent later to the client
     m_targets.updateTradeSlotItem();
 
+    // used by eluna
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
         sHookMgr.OnSpellCast(m_caster->ToPlayer(), this, skipCheck);
 

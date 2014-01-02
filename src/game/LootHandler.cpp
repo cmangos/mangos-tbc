@@ -262,6 +262,7 @@ void WorldSession::HandleLootMoneyOpcode(WorldPacket & /*recv_data*/)
         else
             player->ModifyMoney(pLoot->gold);
 
+        // used by eluna
         sHookMgr.OnLootMoney(player, pLoot->gold);
 
         pLoot->gold = 0;
@@ -558,6 +559,7 @@ void WorldSession::HandleLootMasterGiveOpcode(WorldPacket& recv_data)
     Item* newitem = target->StoreNewItem(dest, item.itemid, true, item.randomPropertyId);
     target->SendNewItem(newitem, uint32(item.count), false, false, true);
 
+    // used by eluna
     sHookMgr.OnLootItem(target, newitem, item.count, lootguid);
 
     // mark as looted

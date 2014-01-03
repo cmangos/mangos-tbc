@@ -1213,15 +1213,37 @@ namespace LuaUnit
         return 0;
     }
 
-    /*int AddAura(lua_State* L, Unit* unit)
+    int AddAura(lua_State* L, Unit* unit)
     {
         uint32 spellId = luaL_checkunsigned(L, 1);
         Unit* target = sEluna.CHECK_UNIT(L, 2);
         if (!target)
             return 0;
-        sEluna.Push(L, unit->AddAura(spellId, target));
+        SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+        if (!spellInfo)
+            return 0;
+
+        if (!IsSpellAppliesAura(spellInfo) && !IsSpellHaveEffect(spellInfo, SPELL_EFFECT_PERSISTENT_AREA_AURA))
+            return 0;
+
+        SpellAuraHolder* holder = CreateSpellAuraHolder(spellInfo, target, unit);
+
+        for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+        {
+            uint8 eff = spellInfo->Effect[i];
+            if (eff >= TOTAL_SPELL_EFFECTS)
+                continue;
+            if (IsAreaAuraEffect(eff)           ||
+                    eff == SPELL_EFFECT_APPLY_AURA  ||
+                    eff == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+            {
+                Aura* aur = CreateAura(spellInfo, SpellEffectIndex(i), NULL, holder, target);
+                holder->AddAura(aur, SpellEffectIndex(i));
+            }
+        }
+        sEluna.Push(L, target->AddSpellAuraHolder(holder));
         return 1;
-    }*/
+    }
 
     int RemoveAura(lua_State* L, Unit* unit)
     {

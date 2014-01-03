@@ -26,26 +26,6 @@ INSTANTIATE_SINGLETON_1(Eluna);
 #include <dirent.h>
 #endif
 
-template<typename T> const char* GetTName() { return NULL; }
-template<> const char* GetTName<Object>() { return "Object"; }
-template<> const char* GetTName<WorldObject>() { return "WorldObject"; }
-template<> const char* GetTName<Unit>() { return "Unit"; }
-template<> const char* GetTName<Player>() { return "Player"; }
-template<> const char* GetTName<Creature>() { return "Creature"; }
-template<> const char* GetTName<GameObject>() { return "GameObject"; }
-template<> const char* GetTName<Group>() { return "Group"; }
-template<> const char* GetTName<Guild>() { return "Guild"; }
-template<> const char* GetTName<QueryResult>() { return "QueryResult"; }
-template<> const char* GetTName<Aura>() { return "Aura"; }
-template<> const char* GetTName<WorldPacket>() { return "WorldPacket"; }
-template<> const char* GetTName<Item>() { return "Item"; }
-template<> const char* GetTName<Spell>() { return "Spell"; }
-template<> const char* GetTName<Quest>() { return "Quest"; }
-template<> const char* GetTName<Map>() { return "Map"; }
-template<> const char* GetTName<Corpse>() { return "Corpse"; }
-template<> const char* GetTName<Weather>() { return "Weather"; }
-template<> const char* GetTName<AuctionHouseObject>() { return "AuctionHouse"; }
-
 extern void RegisterFunctions(lua_State* L);
 
 void StartEluna(bool restart)

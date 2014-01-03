@@ -295,6 +295,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"IsWithinLoS", &LuaUnit::IsWithinLoS},                 // :IsWithinLoS(x, y, z)
     // {"IsRooted", &LuaUnit::IsRooted},                    // :IsRooted()
     {"IsFullHealth", &LuaUnit::IsFullHealth},               // :IsFullHealth() - Returns if the unit is full health
+    {"HasAura", &LuaUnit::HasAura},                         // :HasAura(spellId) - Returns true if the unit has the aura from the spell
 
     // Other
     {"RegisterEvent", &LuaUnit::RegisterEvent},             // :RegisterEvent(function, delay, calls)
@@ -524,7 +525,6 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasSpellCooldown", &LuaPlayer::HasSpellCooldown},     // :HasSpellCooldown(spellId) - Returns true if the spell is on cooldown
     {"IsInWater", &LuaPlayer::IsInWater},                   // :IsInWater() - Returns true if the player is in water
     {"CanFly", &LuaPlayer::CanFly},                         // :CanFly() - Returns true if the player can fly
-    {"HasAura", &LuaPlayer::HasAura},                       // :HasAura(spellId[, caster]) - Returns true if the unit has the aura from the spell and casted by the caster if provided
 
     // Gossip
     {"GossipMenuAddItem", &LuaPlayer::GossipMenuAddItem},   // :GossipMenuAddItem(icon, msg, sender, intid[, code, popup, money])

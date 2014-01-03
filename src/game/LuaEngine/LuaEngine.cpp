@@ -313,17 +313,14 @@ void Eluna::Push(lua_State* L)
 void Eluna::Push(lua_State* L, uint64 l)
 {
     std::ostringstream ss;
-    ss << "0x" << std::hex << l;
+    ss << l;
     sEluna.Push(L, ss.str());
 }
 
 void Eluna::Push(lua_State* L, int64 l)
 {
     std::ostringstream ss;
-    if (l < 0)
-        ss << "-0x" << std::hex << -l;
-    else
-        ss << "0x" << std::hex << l;
+    ss << l;
     sEluna.Push(L, ss.str());
 }
 
@@ -429,14 +426,18 @@ Spell* Eluna::CHECK_SPELL(lua_State* L, int narg)
 
 uint64 Eluna::CHECK_ULONG(lua_State* L, int narg)
 {
-    const char* c_str = luaL_optstring(L, narg, "0x0");
-    return strtoul(c_str, NULL, 0);
+    uint64 l = 0;
+    const char* c_str = luaL_optstring(L, narg, "0");
+    sscanf(c_str, UI64FMTD, &l);
+    return l;
 }
 
 int64 Eluna::CHECK_LONG(lua_State* L, int narg)
 {
-    const char* c_str = luaL_optstring(L, narg, "0x0");
-    return strtol(c_str, NULL, 0);
+    int64 l = 0;
+    const char* c_str = luaL_optstring(L, narg, "0");
+    sscanf(c_str, SI64FMTD, &l);
+    return l;
 }
 
 Item* Eluna::CHECK_ITEM(lua_State* L, int narg)

@@ -20,20 +20,32 @@
 #ifndef LUAHOOKS_H
 #define LUAHOOKS_H
 
+#include "Common.h"
+#include "Policies/Singleton.h"
+#include "ObjectGuid.h"
+#include "DBCEnums.h"
+#include "ace/Atomic_Op.h"
+
 struct AreaTriggerEntry;
 struct SpellEntry;
 class Aura;
+class AuctionHouseObject;
+class Channel;
 class Creature;
 class CreatureAI;
 class GameObject;
+class Group;
 class InstanceData;
 class Item;
 class Map;
 class Object;
 class Player;
 class Quest;
+class Spell;
 class SpellCastTargets;
+class Transport;
 class Unit;
+class Weather;
 class WorldObject;
 
 enum RegisterTypes

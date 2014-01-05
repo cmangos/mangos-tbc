@@ -6793,20 +6793,7 @@ void Player::_ApplyItemBonuses(ItemPrototype const* proto, uint8 slot, bool appl
         armor += uint32(proto->ArmorDamageModifier);
 
     if (armor)
-    {
-        switch (proto->InventoryType)
-        {
-            case INVTYPE_TRINKET:
-            case INVTYPE_NECK:
-            case INVTYPE_CLOAK:
-            case INVTYPE_FINGER:
-                HandleStatModifier(UNIT_MOD_ARMOR, TOTAL_VALUE, float(armor), apply);
-                break;
-            default:
-                HandleStatModifier(UNIT_MOD_ARMOR, BASE_VALUE, float(armor), apply);
-                break;
-        }
-    }
+        HandleStatModifier(UNIT_MOD_ARMOR, BASE_VALUE, float(armor), apply);
 
     if (proto->Block)
         HandleBaseModValue(SHIELD_BLOCK_VALUE, FLAT_MOD, float(proto->Block), apply);

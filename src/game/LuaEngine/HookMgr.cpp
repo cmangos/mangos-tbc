@@ -610,6 +610,20 @@ void HookMgr::OnGameObjectStateChanged(GameObject* pGameObject, uint32 state)
     sEluna.Push(sEluna.L, state);
     sEluna.ExecuteCall(3, 0);
 }
+
+void HookMgr::UpdateAI(GameObject* pGameObject, uint32 update_diff, uint32 p_time)
+{
+    sEluna.m_EventMgr.Update(pGameObject->GetObjectGuid(), update_diff);
+    int bind = sEluna.GameObjectEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_AIUPDATE);
+    if (!bind)
+        return;
+    sEluna.BeginCall(bind);
+    sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_AIUPDATE);
+    sEluna.Push(sEluna.L, pGameObject);
+    sEluna.Push(sEluna.L, update_diff);
+    sEluna.ExecuteCall(3, 0);
+}
+
 // Player
 void HookMgr::OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy)
 {
@@ -1667,45 +1681,6 @@ struct HookMgr::ElunaCreatureAI : public ReactorAI
     }*/
 };
 
-struct HookMgr::ElunaGameObjectAI : public GameObjectAI
-{
-    ElunaGameObjectAI(GameObject* _go) : GameObjectAI(_go) { }
-    ~ElunaGameObjectAI()
-    {
-    }
-
-    void UpdateAI(uint32 const diff)
-    {
-        int bind = sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_AIUPDATE);
-        if (!bind)
-            return;
-        sEluna.BeginCall(bind);
-        sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_AIUPDATE);
-        sEluna.Push(sEluna.L, go);
-        sEluna.Push(sEluna.L, diff);
-        sEluna.ExecuteCall(3, 0);
-    }
-
-    // executed when a timed event fires
-    void OnScriptEvent(int funcRef, uint32 delay, uint32 calls)
-    {
-        sEluna.BeginCall(funcRef);
-        sEluna.Push(sEluna.L, funcRef);
-        sEluna.Push(sEluna.L, delay);
-        sEluna.Push(sEluna.L, calls);
-        sEluna.Push(sEluna.L, go);
-        sEluna.ExecuteCall(4, 0);
-    }
-
-    void Reset()
-    {
-        sEluna.BeginCall(sEluna.GameObjectEventBindings->GetBind(go->GetEntry(), GAMEOBJECT_EVENT_ON_RESET));
-        sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_RESET);
-        sEluna.Push(sEluna.L, go);
-        sEluna.ExecuteCall(2, 0);
-    }
-};
-
 void HookMgr::OnAddMember(Guild* guild, Player* player, uint32 plRank)
 {
     for (std::vector<int>::const_iterator itr = sEluna.GuildEventBindings[GUILD_EVENT_ON_ADD_MEMBER].begin();
@@ -1958,10 +1933,4 @@ CreatureAI* HookMgr::GetAI(Creature* creature)
     if (!sEluna.CreatureEventBindings->GetBindMap(creature->GetEntry()))
         return NULL;
     return new ElunaCreatureAI(creature);
-}
-GameObjectAI* HookMgr::GetAI(GameObject* gameObject)
-{
-    if (!sEluna.GameObjectEventBindings->GetBindMap(gameObject->GetEntry()))
-        return NULL;
-    return new ElunaGameObjectAI(gameObject);
 }

@@ -24,7 +24,6 @@
 #include "Object.h"
 #include "LootMgr.h"
 #include "Database/DatabaseEnv.h"
-#include "GameObjectAI.h"
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
 #if defined( __GNUC__ )
@@ -32,8 +31,6 @@
 #else
 #pragma pack(push,1)
 #endif
-
-class GameObjectAI;
 
 // from `gameobject_template`
 struct GameObjectInfo
@@ -369,7 +366,6 @@ struct GameObjectInfo
 
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;
-    char const* AIName;
     uint32 ScriptId;
 
     // helpers
@@ -718,11 +714,6 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
 
         GameObjectModel* m_model;
 
-        virtual uint32 GetScriptId() const { return GetGOInfo()->ScriptId; }
-        GameObjectAI* AI() const { return m_AI; }
-
-        std::string GetAIName() const;
-        bool AIM_Initialize();
     protected:
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
@@ -761,8 +752,6 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         void UpdateCollisionState() const;                  // updates state in Map's dynamic collision tree
 
         GridReference<GameObject> m_gridRef;
-
-        GameObjectAI* m_AI;
 };
 
 #endif

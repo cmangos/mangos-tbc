@@ -187,25 +187,19 @@ struct EventMgr
             EventProcessor* events; // Pointer to events (holds the timed event)
         };
 
-        // Updates all processors stored in the manager
         // Should be run on world tick
         void Update(uint32 diff)
         {
             GlobalEvents.Update(diff);
-            for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end(); ++it)
-                it->second.Update(diff);
         }
 
-        /*
-        // Updates processor stored for guid || remove from Update()
         // Should be run on gameobject tick
-        static void Update(uint64 guid, uint32 diff)
+        void Update(uint64 guid, uint32 diff)
         {
             if (Processors.find(guid) == Processors.end())
                 return;
             Processors[guid].Update(diff);
         }
-        */
 
         // Aborts all lua events
         void KillAllEvents(EventProcessor* events)

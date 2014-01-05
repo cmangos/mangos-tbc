@@ -351,9 +351,6 @@
     <ClCompile Include="..\..\src\game\GameObject.cpp">
       <Filter>Object</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\game\GameObjectAI.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\game\GMTicketMgr.cpp">
       <Filter>Object</Filter>
     </ClCompile>
@@ -784,9 +781,6 @@
       <Filter>Object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\GameObject.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\GameObjectAI.h">
       <Filter>Object</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\GMTicketMgr.h">

@@ -56,7 +56,6 @@ ScriptMgr::ScriptMgr() :
     m_pGetScriptLibraryVersion(NULL),
 
     m_pGetCreatureAI(NULL),
-    m_pGetGameObjectAI(NULL),
     m_pCreateInstanceData(NULL),
 
     m_pOnGossipHello(NULL),
@@ -1975,18 +1974,6 @@ InstanceData* ScriptMgr::CreateInstanceData(Map* pMap)
     return m_pCreateInstanceData(pMap);
 }
 
-GameObjectAI* ScriptMgr::GetGameObjectAI(GameObject* pGameObject)
-{
-    // used by eluna
-    if (GameObjectAI* luaAI = sHookMgr.GetAI(pGameObject))
-        return luaAI;
-
-    if (!m_pGetGameObjectAI)
-        return NULL;
-
-    return m_pGetGameObjectAI(pGameObject);
-}
-
 bool ScriptMgr::OnGossipHello(Player* pPlayer, Creature* pCreature)
 {
     // used by eluna
@@ -2211,7 +2198,6 @@ ScriptLoadResult ScriptMgr::LoadScriptLibrary(const char* libName)
     GET_SCRIPT_HOOK_PTR(m_pGetScriptLibraryVersion,    "GetScriptLibraryVersion");
 
     GET_SCRIPT_HOOK_PTR(m_pGetCreatureAI,              "GetCreatureAI");
-    GET_SCRIPT_HOOK_PTR(m_pGetGameObjectAI,            "GetGameObjectAI");
     GET_SCRIPT_HOOK_PTR(m_pCreateInstanceData,         "CreateInstanceData");
 
     GET_SCRIPT_HOOK_PTR(m_pOnGossipHello,              "GossipHello");
@@ -2266,7 +2252,6 @@ void ScriptMgr::UnloadScriptLibrary()
     m_pGetScriptLibraryVersion  = NULL;
 
     m_pGetCreatureAI            = NULL;
-    m_pGetGameObjectAI          = NULL;
     m_pCreateInstanceData       = NULL;
 
     m_pOnGossipHello            = NULL;

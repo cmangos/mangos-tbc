@@ -26,7 +26,6 @@ class Aura;
 class Creature;
 class CreatureAI;
 class GameObject;
-class GameObjectAI;
 class InstanceData;
 class Item;
 class Map;
@@ -230,7 +229,7 @@ enum CreatureEvents
 enum GameObjectEvents
 {
     GAMEOBJECT_EVENT_ON_AIUPDATE                    = 1,    // (event, go, diff)
-    GAMEOBJECT_EVENT_ON_RESET                       = 2,    // (event, go)
+    GAMEOBJECT_EVENT_ON_RESET                       = 2,    // (event, go)                  // TODO
     GAMEOBJECT_EVENT_ON_DUMMY_EFFECT                = 3,    // (event, caster, spellid, effindex, go)
     GAMEOBJECT_EVENT_ON_QUEST_ACCEPT                = 4,    // (event, player, go, quest)
     GAMEOBJECT_EVENT_ON_QUEST_REWARD                = 5,    // (event, player, go, quest, opt)
@@ -267,9 +266,7 @@ enum GossipEvents
 struct HookMgr
 {
     struct ElunaCreatureAI;
-    struct ElunaGameObjectAI;
     CreatureAI* GetAI(Creature* creature);
-    GameObjectAI* GetAI(GameObject* gameObject);
 
     /* Misc */
     void OnWorldUpdate(uint32 diff);
@@ -318,6 +315,7 @@ struct HookMgr
     void OnDamaged(GameObject* pGameObject, Player* pPlayer); // TODO
     void OnLootStateChanged(GameObject* pGameObject, uint32 state, Unit* pUnit); // TODO
     void OnGameObjectStateChanged(GameObject* pGameObject, uint32 state); // TODO
+    void UpdateAI(GameObject* pGameObject, uint32 update_diff, uint32 p_time);
 
     /* Player */
     void OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy);

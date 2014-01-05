@@ -31,7 +31,6 @@ class Aura;
 class Creature;
 class CreatureAI;
 class GameObject;
-class GameObjectAI;
 class InstanceData;
 class Item;
 class Map;
@@ -487,7 +486,6 @@ class ScriptMgr
         static bool CanSpellEffectStartDBScript(SpellEntry const* spellinfo, SpellEffectIndex effIdx);
 
         CreatureAI* GetCreatureAI(Creature* pCreature);
-        GameObjectAI* GetGameObjectAI(GameObject* pGameObject);
         InstanceData* CreateInstanceData(Map* pMap);
 
         char const* GetScriptLibraryVersion() const;
@@ -541,7 +539,6 @@ class ScriptMgr
         const char*(MANGOS_IMPORT* m_pGetScriptLibraryVersion)();
 
         CreatureAI*(MANGOS_IMPORT* m_pGetCreatureAI)(Creature*);
-        GameObjectAI* (MANGOS_IMPORT* m_pGetGameObjectAI)(GameObject*);
         InstanceData*(MANGOS_IMPORT* m_pCreateInstanceData)(Map*);
 
         bool (MANGOS_IMPORT* m_pOnGossipHello)(Player*, Creature*);

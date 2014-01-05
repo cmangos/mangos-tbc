@@ -34,7 +34,7 @@ class Channel;
 class Creature;
 class CreatureAI;
 class GameObject;
-class Guild
+class Guild;
 class Group;
 class InstanceData;
 class Item;

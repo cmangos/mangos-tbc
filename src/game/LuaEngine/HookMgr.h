@@ -26,6 +26,8 @@
 #include "DBCEnums.h"
 #include "ace/Atomic_Op.h"
 
+#include "Weather.h" // No idea way he need for linux this here
+
 struct AreaTriggerEntry;
 struct SpellEntry;
 class Aura;

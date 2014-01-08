@@ -1251,22 +1251,17 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket* data, BattleGround* bg)
     if (type)                                               // arena
     {
         // it seems this must be according to BG_WINNER_A/H and _NOT_ BG_TEAM_A/H
-        for (int8 i = 1; i >= 0; --i)
-        {
-            *data << uint32(3000 - bg->m_ArenaTeamRatingChanges[i]);                    // rating change: showed value - 3000
-            *data << uint32(3999);                          // huge thanks for TOM_RUS for this!
-            DEBUG_LOG("rating change: %d", bg->m_ArenaTeamRatingChanges[i]);
-        }
 
-        for (int8 i = 1; i >= 0; --i)
-        {
-            uint32 at_id = bg->m_ArenaTeamIds[i];
-            ArenaTeam* at = sObjectMgr.GetArenaTeamById(at_id);
-            if (at)
-                *data << at->GetName();
-            else
-                *data << (uint8)0;
-        }
+        ArenaTeam* at1 = sObjectMgr.GetArenaTeamById(bg->m_ArenaTeamIds[1]); // Winner
+        ArenaTeam* at2 = sObjectMgr.GetArenaTeamById(bg->m_ArenaTeamIds[0]); // Loser
+
+        *data << uint32(at1 ? uint32(at1->GetRating()) : 0);
+        *data << uint32(at1 ? uint32(at1->GetRating() + bg->m_ArenaTeamRatingChanges[1]) : 0);
+        *data << uint32(at2 ? uint32(at2->GetRating()) : 0);
+        *data << uint32(at2 ? uint32(at2->GetRating() + bg->m_ArenaTeamRatingChanges[0]) : 0);
+        
+        *data << (at1 ? at1->GetName().c_str() : "Unknown");
+        *data << (at2 ? at2->GetName().c_str() : "Unknown");
     }
 
     if (bg->GetStatus() != STATUS_WAIT_LEAVE)

@@ -70,50 +70,58 @@ enum CreatureFlagsExtra
 struct CreatureInfo
 {
     uint32  Entry;
-    uint32  HeroicEntry;
-    uint32  KillCredit[MAX_KILL_CREDIT];
-    uint32  ModelId[MAX_CREATURE_MODEL];
     char*   Name;
     char*   SubName;
     char*   IconName;
-    uint32  GossipMenuId;
+    uint32  HeroicEntry;
+    uint32  ModelId[MAX_CREATURE_MODEL];
+    uint32  faction_A;
+    uint32  faction_H;
+    float   scale;
+    uint32  family;                                         // enum CreatureFamily values (optional)
+    uint32  type;                                           // enum CreatureType values
+    uint32  InhabitType;
+    bool    RacialLeader;
+    bool    RegenHealth;
+    uint32  npcflag;
+    uint32  unit_flags;                                     // enum UnitFlags mask values
+    uint32  dynamicflags;
+    uint32  flags_extra;
+    uint32  type_flags;                                     // enum CreatureTypeFlags mask values
+    float   speed_walk;
+    float   speed_run;
+    uint32  unit_class;                                     // enum Classes. Note only 4 classes are known for creatures.
+    uint32  rank;
+    uint32  Expansion;
+    float   healthModifier;
+    float   powerModifier;
+    float   dmg_multiplier;
+    float   ArmorMultiplier;
+    float   ExperienceMultiplier;
     uint32  minlevel;
     uint32  maxlevel;
     uint32  minhealth;
     uint32  maxhealth;
     uint32  minmana;
     uint32  maxmana;
-    uint32  armor;
-    uint32  faction_A;
-    uint32  faction_H;
-    uint32  npcflag;
-    float   speed_walk;
-    float   speed_run;
-    float   scale;
-    uint32  rank;
     float   mindmg;
     float   maxdmg;
-    uint32  dmgschool;
-    uint32  attackpower;
-    float   dmg_multiplier;
-    uint32  baseattacktime;
-    uint32  rangeattacktime;
-    uint32  unit_class;                                     // enum Classes. Note only 4 classes are known for creatures.
-    uint32  unit_flags;                                     // enum UnitFlags mask values
-    uint32  dynamicflags;
-    uint32  family;                                         // enum CreatureFamily values (optional)
-    uint32  trainer_type;
-    uint32  trainer_spell;
-    uint32  trainer_class;
-    uint32  trainer_race;
     float   minrangedmg;
     float   maxrangedmg;
+    uint32  armor;
+    uint32  MaxLevelArmor;
+    uint32  attackpower;
     uint32  rangedattackpower;
-    uint32  type;                                           // enum CreatureType values
-    uint32  type_flags;                                     // enum CreatureTypeFlags mask values
+    uint32  baseattacktime;
+    uint32  rangeattacktime;
+    uint32  dmgschool;
+    uint32  mingold;
+    uint32  maxgold;
     uint32  lootid;
     uint32  pickpocketLootId;
     uint32  SkinLootId;
+    uint32  KillCredit[MAX_KILL_CREDIT];
+    uint32  MechanicImmuneMask;
     int32   resistance1;
     int32   resistance2;
     int32   resistance3;
@@ -121,20 +129,16 @@ struct CreatureInfo
     int32   resistance5;
     int32   resistance6;
     uint32  PetSpellDataId;
-    uint32  mingold;
-    uint32  maxgold;
-    char const* AIName;
     uint32  MovementType;
-    uint32  InhabitType;
-    float   healthModifier;
-    float   powerModifier;
-    bool    RacialLeader;
-    bool    RegenHealth;
-    uint32  equipmentId;
+    uint32  trainer_type;
+    uint32  trainer_spell;
+    uint32  trainer_class;
+    uint32  trainer_race;
     uint32  trainerId;
     uint32  vendorId;
-    uint32  MechanicImmuneMask;
-    uint32  flags_extra;
+    uint32  GossipMenuId;
+    uint32  equipmentId;
+    char const* AIName;
     uint32  ScriptID;
 
     // helpers

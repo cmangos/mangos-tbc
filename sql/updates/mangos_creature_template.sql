@@ -30,6 +30,7 @@ CREATE TABLE `creature_template` (
   `HealthMultiplier` float NOT NULL DEFAULT '0',
   `ManaMultiplier` float NOT NULL DEFAULT '0',
   `DamageMultiplier` float NOT NULL DEFAULT '0',
+  `DamageVariance` float NOT NULL DEFAULT '0',
   `ArmorMultiplier` float NOT NULL DEFAULT '0',
   `ExperienceMultiplier` float NOT NULL DEFAULT '0',
   `MinLevel` tinyint(3) unsigned NOT NULL DEFAULT '1',

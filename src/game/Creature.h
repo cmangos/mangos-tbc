@@ -79,7 +79,7 @@ struct CreatureInfo
     uint32  FactionHorde;
     float   Scale;
     uint32  Family;                                         // enum CreatureFamily values (optional)
-    uint32  CreatureType;                                           // enum CreatureType values
+    uint32  CreatureType;                                   // enum CreatureType values
     uint32  InhabitType;
     bool    RegenerateHealth;
     bool    RacialLeader;
@@ -87,7 +87,7 @@ struct CreatureInfo
     uint32  UnitFlags;                                     // enum UnitFlags mask values
     uint32  DynamicFlags;
     uint32  ExtraFlags;
-    uint32  CreatureTypeFlags;                                     // enum CreatureTypeFlags mask values
+    uint32  CreatureTypeFlags;                             // enum CreatureTypeFlags mask values
     float   SpeedWalk;
     float   SpeedRun;
     uint32  UnitClass;                                     // enum Classes. Note only 4 classes are known for creatures.
@@ -96,6 +96,7 @@ struct CreatureInfo
     float   HealthModifier;
     float   ManaMultiplier;
     float   DamageMultiplier;
+    float   DamageVariance;
     float   ArmorMultiplier;
     float   ExperienceMultiplier;
     uint32  MinLevel;

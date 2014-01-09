@@ -35,11 +35,11 @@ void StartEluna(bool restart)
         sHookMgr.OnEngineRestart();
         sLog.outString("[Eluna]: Restarting Lua Engine");
 
+        // Unregisters and stops all timed events
+        sEluna.m_EventMgr.RemoveEvents();
+
         if (sEluna.L)
         {
-            // Unregisters and stops all timed events
-            sEluna.m_EventMgr.RemoveEvents();
-
             // Remove bindings
             for (std::map<int, std::vector<int> >::iterator itr = sEluna.ServerEventBindings.begin(); itr != sEluna.ServerEventBindings.end(); ++itr)
             {
@@ -627,15 +627,18 @@ bool EventMgr::LuaEvent::Execute(uint64 time, uint32 diff)
 {
     if (hasObject && !obj) // interrupt event if object doesnt exist anymore and should exist.
         return true;
-    if (calls != 1)
+    bool remove = (calls == 1);
+    if (!remove)
         events->AddEvent(this, events->CalculateTime(delay)); // Reschedule before calling incase RemoveEvents used
     sEluna.BeginCall(funcRef);
     sEluna.Push(sEluna.L, funcRef);
     sEluna.Push(sEluna.L, delay);
     sEluna.Push(sEluna.L, calls);
+    if (!remove && calls)
+        --calls;
     sEluna.Push(sEluna.L, obj);
     sEluna.ExecuteCall(4, 0);
-    return !(!calls || --calls); // Destory (true) event if not run
+    return remove; // Destory (true) event if not run
 }
 
 // Lua taxi helper functions

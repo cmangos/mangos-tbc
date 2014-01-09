@@ -613,7 +613,7 @@ void HookMgr::OnGameObjectStateChanged(GameObject* pGameObject, uint32 state)
 
 void HookMgr::UpdateAI(GameObject* pGameObject, uint32 update_diff, uint32 p_time)
 {
-    sEluna.m_EventMgr.Update(pGameObject->GetObjectGuid(), update_diff);
+    // sEluna.m_EventMgr.Update(update_diff);
     int bind = sEluna.GameObjectEventBindings->GetBind(pGameObject->GetEntry(), GAMEOBJECT_EVENT_ON_AIUPDATE);
     if (!bind)
         return;

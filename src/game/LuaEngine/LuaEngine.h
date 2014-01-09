@@ -160,150 +160,163 @@ void SetMethods(lua_State* L, ElunaRegister<T>* methodTable)
 
 struct EventMgr
 {
-        struct LuaEvent;
+    struct LuaEvent;
 
-        typedef std::set<LuaEvent*> EventSet;
-        typedef std::map<EventProcessor*, EventSet> EventMap;
-        typedef UNORDERED_MAP<uint64, EventProcessor> ProcessorMap;
+    typedef std::set<LuaEvent*> EventSet;
+    typedef std::map<EventProcessor*, EventSet> EventMap;
+    typedef UNORDERED_MAP<uint64, EventProcessor> ProcessorMap;
 
-        EventMap LuaEvents; // LuaEvents[events] = {LuaEvents}
-        ProcessorMap Processors; // Processors[guid] = processor
-        EventProcessor GlobalEvents;
+    EventMap LuaEvents; // LuaEvents[processor] = {LuaEvent, LuaEvent...}
+    ProcessorMap Processors; // Processors[guid] = processor
+    EventProcessor GlobalEvents;
 
-        struct LuaEvent : public BasicEvent
-        {
-            LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj);
+    struct LuaEvent : public BasicEvent
+    {
+        LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj);
 
-            ~LuaEvent();
+        ~LuaEvent();
 
-            // Should never execute on dead events
-            bool Execute(uint64 time, uint32 diff);
+        // Should never execute on dead events
+        bool Execute(uint64 time, uint32 diff);
 
-            bool hasObject; // Dont call event if object no longer exists
-            Object* obj;    // Object to push
-            int funcRef;    // Lua function reference ID, also used as event ID
-            uint32 delay;   // Delay between event calls
-            uint32 calls;   // Amount of calls to make, 0 for infinite
-            EventProcessor* events; // Pointer to events (holds the timed event)
-        };
+        bool hasObject; // Dont call event if object no longer exists
+        Object* obj;    // Object to push
+        int funcRef;    // Lua function reference ID, also used as event ID
+        uint32 delay;   // Delay between event calls
+        uint32 calls;   // Amount of calls to make, 0 for infinite
+        EventProcessor* events; // Pointer to events (holds the timed event)
+    };
 
-        // Should be run on world tick
-        void Update(uint32 diff)
-        {
-            GlobalEvents.Update(diff);
-        }
+    // Updates all processors stored in the manager
+    // Should be run on world tick
+    void Update(uint32 diff)
+    {
+        GlobalEvents.Update(diff);
+        for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end(); ++it)
+            it->second.Update(diff);
+    }
 
-        // Should be run on gameobject tick
-        void Update(uint64 guid, uint32 diff)
-        {
-            if (Processors.find(guid) == Processors.end())
-                return;
-            Processors[guid].Update(diff);
-        }
+    /*
+    // Updates processor stored for guid || remove from Update()
+    // Should be run on gameobject tick
+    static void Update(uint64 guid, uint32 diff)
+    {
+        if (Processors.find(guid) == Processors.end())
+            return;
+        Processors[guid].Update(diff);
+    }
+    */
 
-        // Aborts all lua events
-        void KillAllEvents(EventProcessor* events)
-        {
-            if (!events)
-                return;
-            EventMap::const_iterator it = LuaEvents.find(events); // Get event set
-            if (it == LuaEvents.end())
-                return;
-            for (EventSet::const_iterator itr = it->second.begin(); itr != it->second.end(); ++itr) // Loop events
-                (*itr)->to_Abort = true; // Abort event
-        }
+    // Aborts all lua events
+    void KillAllEvents(EventProcessor* events)
+    {
+        if (!events)
+            return;
+        EventMap::const_iterator it = LuaEvents.find(events); // Get event set
+        if (it == LuaEvents.end())
+            return;
+        for (EventSet::const_iterator itr = it->second.begin(); itr != it->second.end();) // Loop events
+            (*(itr++))->to_Abort = true; // Abort event
+    }
 
-        // Remove all timed events
-        void RemoveEvents()
-        {
-            for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end(); ++it)
-                it->second.KillAllEvents(true);
-            Processors.clear();
-            for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end(); ++it) // loop processors
-                KillAllEvents(it->first);
-            LuaEvents.clear(); // remove pointer sets
-        }
+    // Remove all timed events
+    void RemoveEvents()
+    {
+        for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end();) // loop processors
+            KillAllEvents((it++)->first);
+        LuaEvents.clear(); // remove pointers
+        // This is handled automatically on delete
+        /*for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end();)
+            (it++)->second.KillAllEvents(true);*/
+        Processors.clear(); // remove guid saved processors
+        GlobalEvents.KillAllEvents(true);
+    }
+    
+    // Remove timed events from processor
+    void RemoveEvents(EventProcessor* events)
+    {
+        if (!events)
+            return;
+        KillAllEvents(events);
+        LuaEvents.erase(events); // remove pointer set
+    }
 
-        // Remove timed events from processor
-        void RemoveEvents(EventProcessor* events)
-        {
-            if (!events)
-                return;
-            KillAllEvents(events);
-            LuaEvents.erase(events); // remove pointer set
-        }
+    // Remove timed events from guid
+    void RemoveEvents(uint64 guid)
+    {
+        if (Processors.find(guid) != Processors.end())
+            LuaEvents.erase(&Processors[guid]);
+        //Processors[guid].KillAllEvents(true); // remove events
+        Processors.erase(guid); // remove processor
+    }
 
-        // Remove timed events from guid
-        void RemoveEvents(uint64 guid)
-        {
-            if (Processors.find(guid) == Processors.end())
-                return;
-            Processors[guid].KillAllEvents(true);           // remove events
-            Processors.erase(guid); // remove processor
-        }
+    // Adds a new event to the processor and returns the eventID or 0 (Never negative)
+    int AddEvent(EventProcessor* events, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
+    {
+        if (!events || funcRef <= 0) // If funcRef <= 0, function reference failed
+            return 0; // on fail always return 0. funcRef can be negative.
+        events->AddEvent(new LuaEvent(events, funcRef, delay, calls, obj), events->CalculateTime(delay));
+        return funcRef; // return the event ID
+    }
 
-        // Adds a new event to the processor and returns the eventID or 0 (Never negative)
-        int AddEvent(EventProcessor* events, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
-        {
-            if (!events || funcRef <= 0) // If funcRef <= 0, function reference failed
-                return 0; // on fail always return 0. funcRef can be negative.
-            events->AddEvent(new LuaEvent(events, funcRef, delay, calls, obj), events->CalculateTime(delay));
-            return funcRef; // return the event ID
-        }
+    // Creates a processor for the guid if needed and adds the event to it
+    int AddEvent(uint64 guid, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
+    {
+        if (!guid) // 0 should be unused
+            return 0;
+        return AddEvent(&Processors[guid], funcRef, delay, calls, obj);
+    }
 
-        // Creates a processor for the guid if needed and adds the event to it
-        int AddEvent(uint64 guid, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
-        {
-            if (!guid) // 0 should be unused
-                return 0;
-            return AddEvent(&Processors[guid], funcRef, delay, calls, obj);
-        }
-
-        // Finds the event that has the ID from events
-        LuaEvent* GetEvent(EventProcessor* events, int eventId)
-        {
-            if (!events || !eventId)
-                return NULL;
-            EventMap::const_iterator it = LuaEvents.find(events); // Get event set
-            if (it == LuaEvents.end())
-                return NULL;
-            for (EventSet::const_iterator itr = it->second.begin(); itr != it->second.end(); ++itr) // Loop events
-                if ((*itr) && (*itr)->funcRef == eventId) // Check if the event has our ID
-                    return *itr; // Return the event if found
+    // Finds the event that has the ID from events
+    LuaEvent* GetEvent(EventProcessor* events, int eventId)
+    {
+        if (!events || !eventId)
             return NULL;
-        }
+        EventMap::const_iterator it = LuaEvents.find(events); // Get event set
+        if (it == LuaEvents.end())
+            return NULL;
+        for (EventSet::const_iterator itr = it->second.begin(); itr != it->second.end(); ++itr) // Loop events
+            if ((*itr) && (*itr)->funcRef == eventId) // Check if the event has our ID
+                return *itr; // Return the event if found
+        return NULL;
+    }
 
-        // Remove the event with the eventId from processor
-        // Returns true if event is removed
-        bool RemoveEvent(EventProcessor* events, int eventId) // eventId = funcRef
-        {
-            if (!events || !eventId)
-                return false;
-            LuaEvent* luaEvent = GetEvent(events, eventId);
-            if (!luaEvent)
-                return false;
-            luaEvent->to_Abort = true; // Set to remove on next call
-            // LuaEvents[events].erase(luaEvent);           // Remove pointer
-            return true;
-        }
+    // Remove the event with the eventId from processor
+    // Returns true if event is removed
+    bool RemoveEvent(EventProcessor* events, int eventId) // eventId = funcRef
+    {
+        if (!events || !eventId)
+            return false;
+        LuaEvent* luaEvent = GetEvent(events, eventId);
+        if (!luaEvent)
+            return false;
+        luaEvent->to_Abort = true; // Set to remove on next call
+        LuaEvents[events].erase(luaEvent); // Remove pointer
+        return true;
+    }
 
-        // Remove event by ID from processor stored for guid
-        bool RemoveEvent(uint64 guid, int eventId)
-        {
-            if (!guid || Processors.find(guid) == Processors.end())
-                return false;
-            return RemoveEvent(&Processors[guid], eventId);
-        }
+    // Remove event by ID from processor stored for guid
+    bool RemoveEvent(uint64 guid, int eventId)
+    {
+        if (!guid || Processors.find(guid) == Processors.end())
+            return false;
+        return RemoveEvent(&Processors[guid], eventId);
+    }
 
-        // Removes the eventId from all events
-        void RemoveEvent(int eventId)
-        {
-            if (!eventId)
-                return;
-            for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end(); ++it) // loop processors
-                if (RemoveEvent(it->first, eventId))
-                    break; // succesfully remove the event, stop loop.
-        }
+    // Removes the eventId from all events
+    void RemoveEvent(int eventId)
+    {
+        if (!eventId)
+            return;
+        for (EventMap::const_iterator it = LuaEvents.begin(); it != LuaEvents.end();) // loop processors
+            if (RemoveEvent((it++)->first, eventId))
+                break; // succesfully remove the event, stop loop.
+    }
+
+    ~EventMgr()
+    {
+        RemoveEvents();
+    }
 };
 
 class Eluna

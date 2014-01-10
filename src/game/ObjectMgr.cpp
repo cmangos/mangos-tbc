@@ -791,6 +791,37 @@ void ObjectMgr::LoadCreatureAddons()
                 sLog.outErrorDb("Creature (GUID: %u) does not exist but has a record in `creature_addon`", addon->guidOrEntry);
 }
 
+void ObjectMgr::LoadCreatureClassLvlStats()
+{
+    sCreatureClassLvlStatsStorage.Load();
+
+    sLog.outString(">> Loaded %u creature stats definitions", sCreatureClassLvlStatsStorage.GetRecordCount());
+    //sLog.outString();
+
+    // check data correctness
+    for (uint32 level = 1; level < MAX_LEVEL_TBC + 1; ++level)
+    {
+        SQLMultiStorage::SQLMSIteratorBounds<CreatureClassLvlStats> bounds = sCreatureClassLvlStatsStorage.getBounds<CreatureClassLvlStats>(level);
+        if (bounds.first == bounds.second)
+        {
+            sLog.outErrorDb("No bases values found on creature_template_classlevelstats table for level(%u)!", level);
+            continue;
+        }
+
+        uint32 totalLevel = 0;
+        SQLMultiStorage::SQLMultiSIterator<CreatureClassLvlStats> itr = bounds.first;
+        while (itr != bounds.second)
+        {
+            ++totalLevel;
+            ++itr;
+        }
+
+        if (totalLevel < MAX_UNIT_CLASS)
+            sLog.outErrorDb("Found only (%u) level where we need (%u) in creature_template_classlevelstats!", totalLevel, uint32(MAX_UNIT_CLASS));
+    }
+    sLog.outString();
+}
+
 void ObjectMgr::LoadEquipmentTemplates()
 {
     sEquipmentStorage.Load(true);

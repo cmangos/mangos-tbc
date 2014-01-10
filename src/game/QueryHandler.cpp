@@ -177,7 +177,7 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket& recv_data)
         for (int i = 0; i < MAX_CREATURE_MODEL; ++i)
             data << uint32(ci->ModelId[i]);
 
-        data << float(ci->HealthModifier);                  // health modifier
+        data << float(ci->HealthMultiplier);                  // health modifier
         data << float(ci->ManaMultiplier);                   // power modifier
         data << uint8(ci->RacialLeader);
         SendPacket(&data);

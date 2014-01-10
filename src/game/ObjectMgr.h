@@ -646,6 +646,7 @@ class ObjectMgr
         void LoadCreatureAddons();
         void LoadCreatureModelInfo();
         void LoadCreatureModelRace();
+        void LoadCreatureClassLvlStats();
         void LoadEquipmentTemplates();
         void LoadGameObjectLocales();
         void LoadGameObjects();

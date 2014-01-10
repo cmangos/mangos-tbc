@@ -93,7 +93,7 @@ struct CreatureInfo
     uint32  UnitClass;                                     // enum Classes. Note only 4 classes are known for creatures.
     uint32  Rank;
     uint32  Expansion;
-    float   HealthModifier;
+    float   HealthMultiplier;
     float   ManaMultiplier;
     float   DamageMultiplier;
     float   DamageVariance;
@@ -246,6 +246,19 @@ struct CreatureModelRace
     uint32 racemask;                                        // Races it applies to (and then a player source must exist for selection)
     uint32 creature_entry;                                  // Modelid from creature_template.entry will be selected
     uint32 modelid_racial;                                  // Explicit modelid. Used if creature_template entry is not defined
+};
+
+struct CreatureClassLvlStats
+{
+    uint32  Level;                                          // Creature level
+    uint32  Class;                                          // UnitClass (not same as player classes)
+    // Bases values for given Level and UnitClass
+    uint32  BaseHealth[MAX_EXPANSION + 1];
+    uint32  BaseMana;
+    float   BaseDamage[MAX_EXPANSION + 1];
+    float   BaseMeleeAttackPower;
+    float   BaseRangedAttackPower;
+    uint32  BaseArmor;
 };
 
 // GCC have alternative #pragma pack() syntax and old gcc version not support pack(pop), also any gcc version not support it at some platform
@@ -712,7 +725,9 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         void SetVirtualItem(VirtualItemSlot slot, uint32 item_id);
         void SetVirtualItemRaw(VirtualItemSlot slot, uint32 display_id, uint32 info0, uint32 info1);
+
     protected:
+        CreatureClassLvlStats const* GetCreatureClassLvlStats(uint32 level, UnitClassIndex unitClass) const;
         bool MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* pSpellInfo, uint32 selectFlags) const;
 
         bool CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, Team team, const CreatureData* data = NULL, GameEventCreatureData const* eventData = NULL);

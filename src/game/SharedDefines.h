@@ -2676,4 +2676,14 @@ enum MaxLevel
 
 static const MaxLevel maxLevelForExpansion[MAX_EXPANSION + 1] = { MAX_LEVEL_CLASSIC, MAX_LEVEL_TBC };
 
+// Unit class used to define all creatures stats
+// Defined in db by 1, 2, 4, 8
+enum UnitClassIndex
+{
+    UNIT_CLASS_WARRIOR                  = 1,
+    UNIT_CLASS_PALADIN                  = 2,
+    UNIT_CLASS_MAGE                     = 8,
+};
+#define MAX_UNIT_CLASS                  3
+static const UnitClassIndex getUnitClassIndex[MAX_UNIT_CLASS] = { UNIT_CLASS_WARRIOR, UNIT_CLASS_PALADIN, UNIT_CLASS_MAGE };
 #endif

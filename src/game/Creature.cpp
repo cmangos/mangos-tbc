@@ -366,7 +366,6 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
     uint32 dynFlags = GetUInt32Value(UNIT_DYNAMIC_FLAGS);
     SetUInt32Value(UNIT_DYNAMIC_FLAGS, dynFlags ? dynFlags : GetCreatureInfo()->DynamicFlags);
 
-    SetModifierValue(UNIT_MOD_ARMOR,             BASE_VALUE, float(GetCreatureInfo()->MinLevelArmor));
     SetModifierValue(UNIT_MOD_RESISTANCE_HOLY,   BASE_VALUE, float(GetCreatureInfo()->ResistanceHoly));
     SetModifierValue(UNIT_MOD_RESISTANCE_FIRE,   BASE_VALUE, float(GetCreatureInfo()->ResistanceFire));
     SetModifierValue(UNIT_MOD_RESISTANCE_NATURE, BASE_VALUE, float(GetCreatureInfo()->ResistanceNature));
@@ -1120,14 +1119,39 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
     uint32 level = minlevel == maxlevel ? minlevel : urand(minlevel, maxlevel);
     SetLevel(level);
 
-    float rellevel = maxlevel == minlevel ? 0 : (float(level - minlevel)) / (maxlevel - minlevel);
+    
 
-    // health
-    float healthmod = _GetHealthMod(rank);
+    uint32 health = 0;
+    uint32 mana = 0;
+    uint32 armor = 0;
+    if ((cinfo->Expansion < 0) || (cinfo->UnitClass == 0))
+    {
+        float rellevel = maxlevel == minlevel ? 0 : (float(level - minlevel)) / (maxlevel - minlevel);
+        
+        // health
+        float healthmod = _GetHealthMod(rank);
 
-    uint32 minhealth = std::min(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
-    uint32 maxhealth = std::max(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
-    uint32 health = uint32(healthmod * (minhealth + uint32(rellevel * (maxhealth - minhealth))));
+        uint32 minhealth = std::min(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
+        uint32 maxhealth = std::max(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
+        health = uint32(healthmod * (minhealth + uint32(rellevel * (maxhealth - minhealth))));
+
+        // mana
+        uint32 minmana = std::min(cinfo->MaxLevelMana, cinfo->MinLevelMana);
+        uint32 maxmana = std::max(cinfo->MaxLevelMana, cinfo->MinLevelMana);
+        mana = minmana + uint32(rellevel * (maxmana - minmana));
+        armor = cinfo->MinLevelArmor;
+        DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"Old value used for %s, guid(%u)", GetName(), GetObjectGuid().GetCounter());
+    }
+    else
+    {
+        CreatureClassLvlStats const* cCLS = GetCreatureClassLvlStats(level, UnitClassIndex(cinfo->UnitClass));
+        MANGOS_ASSERT(cCLS);
+        health = cCLS->BaseHealth[cinfo->Expansion] * cinfo->HealthMultiplier;
+        mana = cCLS->BaseMana * cinfo->ManaMultiplier;
+        armor = cCLS->BaseArmor * cinfo->ArmorMultiplier;
+        sLog.outString("==> New value used for %s, guid(%u)", GetName(), GetObjectGuid().GetCounter());
+        DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"==> New value used for %s, guid(%u)", GetName(), GetObjectGuid().GetCounter());
+    }
 
     SetCreateHealth(health);
     SetMaxHealth(health);
@@ -1137,20 +1161,15 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
     else
         SetHealthPercent(percentHealth);
 
-    // mana
-    uint32 minmana = std::min(cinfo->MaxLevelMana, cinfo->MinLevelMana);
-    uint32 maxmana = std::max(cinfo->MaxLevelMana, cinfo->MinLevelMana);
-    uint32 mana = minmana + uint32(rellevel * (maxmana - minmana));
-
     SetCreateMana(mana);
     SetMaxPower(POWER_MANA, mana);                          // MAX Mana
     SetPower(POWER_MANA, mana);
 
     // TODO: set UNIT_FIELD_POWER*, for some creature class case (energy, etc)
 
-    SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, float(health));
-    SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, float(mana));
-
+    SetModifierValue(UNIT_MOD_HEALTH,           BASE_VALUE, float(health));
+    SetModifierValue(UNIT_MOD_MANA,             BASE_VALUE, float(mana));
+    SetModifierValue(UNIT_MOD_ARMOR,            BASE_VALUE, float(armor));
     // damage
     float damagemod = _GetDamageMod(rank);
 
@@ -2574,4 +2593,20 @@ void Creature::SetWaterWalk(bool enable)
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_WATER_WALK : SMSG_SPLINE_MOVE_LAND_WALK, 9);
     data << GetPackGUID();
     SendMessageToSet(&data, true);
+}
+
+CreatureClassLvlStats const* Creature::GetCreatureClassLvlStats(uint32 level, UnitClassIndex unitClass) const
+{
+    SQLMultiStorage::SQLMSIteratorBounds<CreatureClassLvlStats> bounds = sCreatureClassLvlStatsStorage.getBounds<CreatureClassLvlStats>(level);
+    if (bounds.first == bounds.second)
+        return NULL;
+
+    SQLMultiStorage::SQLMultiSIterator<CreatureClassLvlStats> itr = bounds.first;
+    while (itr != bounds.second)
+    {
+        if (itr->Class == uint32(unitClass))
+            return *itr;
+        ++itr;
+    }
+    return NULL;
 }

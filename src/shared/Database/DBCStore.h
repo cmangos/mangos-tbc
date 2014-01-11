@@ -35,7 +35,7 @@ class DBCStorage
 
         T const* LookupEntry(uint32 id) const
         {
-            if(loaded)
+            if (loaded)
             {
                 typename std::map<uint32, T const*>::const_iterator it = data.find(id);
                 if (it != data.end())
@@ -65,7 +65,7 @@ class DBCStorage
 
         void SetEntry(uint32 id, T* t) // Cryptic they say..
         {
-            if(!loaded)
+            if (!loaded)
             {
                 for (uint32 i = 0; i < nCount; ++i)
                 {

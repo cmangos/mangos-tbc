@@ -32,11 +32,7 @@ namespace LuaCorpse
     // GetGhostTime()
     int GetGhostTime(lua_State* L, Corpse* corpse)
     {
-        time_t time = corpse->GetGhostTime();
-        if (time < 0)
-            sEluna.Push(L, int32(time));
-        else
-            sEluna.Push(L, uint32(time));
+        sEluna.Push(L, uint32(corpse->GetGhostTime()));
         return 1;
     }
 

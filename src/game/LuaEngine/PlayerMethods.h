@@ -493,7 +493,7 @@ namespace LuaPlayer
         {
             ++i;
             sEluna.Push(L, it->first);
-            sEluna.Push(L, it->second.end);
+            sEluna.Push(L, uint32(it->second.end));
             lua_settable(L, tbl);
         }
 
@@ -781,7 +781,7 @@ namespace LuaPlayer
     {
         uint32 spellId = luaL_checkunsigned(L, 1);
 
-        sEluna.Push(L, player->GetSpellCooldownDelay(spellId));
+        sEluna.Push(L, uint32(player->GetSpellCooldownDelay(spellId)));
         return 1;
     }
 

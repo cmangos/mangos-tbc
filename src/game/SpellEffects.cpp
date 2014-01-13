@@ -4575,7 +4575,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
     float totalDamagePercentMod  = 1.0f;                    // applied to final bonus+weapon damage
     bool normalized = false;
 
-    int32 spell_bonus = 0;                                  // bonus specific for spell
+    float spell_bonus = 0;                                  // bonus specific for spell
 
     switch (m_spellInfo->SpellFamilyName)
     {
@@ -4643,8 +4643,8 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
             // Seal of Command - receive benefit from Spell Damage and Healing
             if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x00000002000000))
             {
-                spell_bonus += int32(0.20f * m_caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(m_spellInfo)));
-                spell_bonus += int32(0.29f * unitTarget->SpellBaseDamageBonusTaken(GetSpellSchoolMask(m_spellInfo)));
+                spell_bonus += 0.20f * m_caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(m_spellInfo));
+                spell_bonus += 0.29f * unitTarget->SpellBaseDamageBonusTaken(GetSpellSchoolMask(m_spellInfo));
             }
             break;
         }
@@ -4669,7 +4669,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
         }
     }
 
-    int32 fixed_bonus = 0;
+    float fixed_bonus = 0;
     for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
     {
         switch (m_spellInfo->Effect[j])
@@ -4683,13 +4683,13 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 normalized = true;
                 break;
             case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
-                weaponDamagePercentMod *= float(CalculateDamage(SpellEffectIndex(j), unitTarget)) / 100.0f;
+                weaponDamagePercentMod *= CalculateDamage(SpellEffectIndex(j), unitTarget) / 100.0f;
 
                 // applied only to prev.effects fixed damage
                 if (customBonusDamagePercentMod)
-                    fixed_bonus = int32(fixed_bonus * bonusDamagePercentMod);
+                    fixed_bonus = fixed_bonus * bonusDamagePercentMod;
                 else
-                    fixed_bonus = int32(fixed_bonus * weaponDamagePercentMod);
+                    fixed_bonus = fixed_bonus * weaponDamagePercentMod;
                 break;
             default:
                 break;                                      // not weapon damage effect, just skip
@@ -4697,7 +4697,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
     }
 
     // non-weapon damage
-    int32 bonus = spell_bonus + fixed_bonus;
+    float bonus = spell_bonus + fixed_bonus;
 
     // apply to non-weapon bonus weapon total pct effect, weapon total flat effect included in weapon damage
     if (bonus)
@@ -4712,17 +4712,17 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
         }
 
         float weapon_total_pct  = m_caster->GetModifierValue(unitMod, TOTAL_PCT);
-        bonus = int32(bonus * weapon_total_pct);
+        bonus = bonus * weapon_total_pct;
     }
 
     // + weapon damage with applied weapon% dmg to base weapon damage in call
-    bonus += int32(m_caster->CalculateDamage(m_attackType, normalized) * weaponDamagePercentMod);
+    bonus += m_caster->CalculateDamage(m_attackType, normalized) * weaponDamagePercentMod;
 
     // total damage
-    bonus = int32(bonus * totalDamagePercentMod);
+    bonus = bonus * totalDamagePercentMod;
 
     // prevent negative damage
-    m_damage += uint32(bonus > 0 ? bonus : 0);
+    m_damage += bonus > 0 ? static_cast<int>(bonus + 0.5f) : 0;
 
     // Hemorrhage
     if (m_spellInfo->IsFitToFamily(SPELLFAMILY_ROGUE, UI64LIT(0x0000000002000000)))

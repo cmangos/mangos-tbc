@@ -1041,6 +1041,20 @@ class ObjectMgr
         QuestRelationsMap& GetCreatureQuestRelationsMap() { return m_CreatureQuestRelations; }
 
         uint32 GetModelForRace(uint32 sourceModelId, uint32 racemask);
+
+        /**
+        * \brief: Data returned is used to compute health, mana, armor, damage of creatures. May be NULL.
+        * \param UnitClassIndex index
+        * \param int32          expansion
+        * \param uint32         level
+        * \return: CreatureClassLvlStats const* or NULL
+        *
+        * Description: GetCreatureClassLvlStats give fast access to creature stats data.
+        * FullName: ObjectMgr::GetCreatureClassLvlStats
+        * Access: public 
+        * Qualifier: const
+        **/
+        CreatureClassLvlStats const* GetCreatureClassLvlStats(UnitClassIndex index, int32 expansion, uint32 level) const;
     protected:
 
         // first free id for selected id type
@@ -1154,6 +1168,9 @@ class ObjectMgr
         typedef std::map<uint32, std::vector<std::string> > HalfNameMap;
         HalfNameMap PetHalfName0;
         HalfNameMap PetHalfName1;
+
+        // Array to store creature stats
+        CreatureClassLvlStats m_creatureClassLvlStats[MAX_UNIT_CLASS][MAX_EXPANSION+1][MAX_LEVEL_TBC];
 
         MapObjectGuids mMapObjectGuids;
         CreatureDataMap mCreatureDataMap;

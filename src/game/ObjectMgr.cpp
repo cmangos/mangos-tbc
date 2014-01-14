@@ -793,33 +793,99 @@ void ObjectMgr::LoadCreatureAddons()
 
 void ObjectMgr::LoadCreatureClassLvlStats()
 {
-    sCreatureClassLvlStatsStorage.Load();
+    Sleep(10000);
+    QueryResult* result = WorldDatabase.Query("SELECT Class, Level, BaseHealthExp0, BaseHealthExp1, BaseMana, "
+        "BaseDamageExp0, BaseDamageExp1, BaseMeleeAttackPower, BaseRangedAttackPower, BaseArmor "
+        "FROM creature_template_classlevelstats ORDER BY Class, Level");
 
-    sLog.outString(">> Loaded %u creature stats definitions", sCreatureClassLvlStatsStorage.GetRecordCount());
-    //sLog.outString();
-
-    // check data correctness
-    for (uint32 level = 1; level < MAX_LEVEL_TBC + 1; ++level)
+    if (!result)
     {
-        SQLMultiStorage::SQLMSIteratorBounds<CreatureClassLvlStats> bounds = sCreatureClassLvlStatsStorage.getBounds<CreatureClassLvlStats>(level);
-        if (bounds.first == bounds.second)
-        {
-            sLog.outErrorDb("No bases values found on creature_template_classlevelstats table for level(%u)!", level);
-            continue;
-        }
+        BarGoLink bar(1);
 
-        uint32 totalLevel = 0;
-        SQLMultiStorage::SQLMultiSIterator<CreatureClassLvlStats> itr = bounds.first;
-        while (itr != bounds.second)
-        {
-            ++totalLevel;
-            ++itr;
-        }
+        bar.step();
 
-        if (totalLevel < MAX_UNIT_CLASS)
-            sLog.outErrorDb("Found only (%u) level where we need (%u) in creature_template_classlevelstats!", totalLevel, uint32(MAX_UNIT_CLASS));
+        sLog.outString();
+        sLog.outString(">> Loaded 0 creature stats. DB table `creature_template_classlevelstats` is empty.");
+        return;
     }
+
+    BarGoLink bar(result->GetRowCount());
+    uint32 totalRow = result->GetRowCount();
+    uint32 storedRow = 0;
+    do
+    {
+        Field* fields = result->Fetch();
+        bar.step();
+
+        CreatureClassLvlStats cCLSExp0;
+        cCLSExp0.Class                  = fields[0].GetUInt32();
+        cCLSExp0.Level                  = fields[1].GetUInt32();
+        cCLSExp0.BaseHealth             = fields[2].GetUInt32();
+        //BaseHealth[EXPANSION_TBC]     = fields[3].GetUInt32();
+        cCLSExp0.BaseMana               = fields[4].GetUInt32();
+        cCLSExp0.BaseDamage             = fields[5].GetFloat();
+        //BaseDamage[EXPANSION_TBC]     = fields[6].GetFloat();
+        cCLSExp0.BaseMeleeAttackPower   = fields[7].GetFloat();
+        cCLSExp0.BaseRangedAttackPower  = fields[8].GetFloat();
+        cCLSExp0.BaseArmor              = fields[9].GetUInt32();
+
+        CreatureClassLvlStats cCLSExp1 = cCLSExp0;
+        cCLSExp1.BaseHealth             = fields[3].GetUInt32();
+        cCLSExp1.BaseDamage             = fields[6].GetFloat();
+
+        uint32 classArrayIndex = 0;
+        if ((cCLSExp0.Level > 0) && (cCLSExp0.Level <= MAX_LEVEL_TBC))
+        {
+            switch (cCLSExp0.Class)
+            {
+                case UNIT_CLASS_WARRIOR: classArrayIndex = 0; break;
+                case UNIT_CLASS_PALADIN: classArrayIndex = 1; break;
+                case UNIT_CLASS_MAGE:    classArrayIndex = 2; break;
+
+                default:
+                    continue;
+                    break;
+            }
+
+            m_creatureClassLvlStats[classArrayIndex][uint32(EXPANSION_NONE)][cCLSExp0.Level - 1] = cCLSExp0;
+            m_creatureClassLvlStats[classArrayIndex][uint32(EXPANSION_TBC)][cCLSExp1.Level - 1] = cCLSExp1;
+            ++storedRow;
+        }
+    }
+    while (result->NextRow());
+
+    delete result;
+
     sLog.outString();
+    if (storedRow == (MAX_LEVEL_TBC * MAX_UNIT_CLASS))
+        sLog.outString(">> Found %u creature stats definitions.", storedRow);
+    else
+        sLog.outErrorDb("Found only %u valids row when expected %u! Some creature will not have valid data!", storedRow, uint32(MAX_LEVEL_TBC * MAX_UNIT_CLASS));
+}
+
+CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(UnitClassIndex index, int32 expansion, uint32 level) const
+{
+    if ((level == 0) || (level > MAX_LEVEL_TBC) || (expansion < 0) || (expansion > MAX_EXPANSION))
+        return NULL;
+
+    uint32 classArrayIndex = 0;
+    switch (index)
+    {
+        case UNIT_CLASS_WARRIOR:
+            classArrayIndex = 0;
+        	break;
+        case UNIT_CLASS_PALADIN:
+            classArrayIndex = 1;
+            break;
+        case UNIT_CLASS_MAGE:
+            classArrayIndex = 2;
+            break;
+        default:
+            return NULL;
+            break;
+    }
+
+    return &m_creatureClassLvlStats[classArrayIndex][expansion][level-1];
 }
 
 void ObjectMgr::LoadEquipmentTemplates()

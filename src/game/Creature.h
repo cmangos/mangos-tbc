@@ -250,12 +250,13 @@ struct CreatureModelRace
 
 struct CreatureClassLvlStats
 {
+    CreatureClassLvlStats() : Level(0), Class(1), BaseHealth(1), BaseMana(1), BaseDamage(1.0f), BaseMeleeAttackPower(1.0f), BaseRangedAttackPower(1.0f), BaseArmor(1)  {}
     uint32  Level;                                          // Creature level
     uint32  Class;                                          // UnitClass (not same as player classes)
     // Bases values for given Level and UnitClass
-    uint32  BaseHealth[MAX_EXPANSION + 1];
+    uint32  BaseHealth;
     uint32  BaseMana;
-    float   BaseDamage[MAX_EXPANSION + 1];
+    float   BaseDamage;
     float   BaseMeleeAttackPower;
     float   BaseRangedAttackPower;
     uint32  BaseArmor;
@@ -727,7 +728,6 @@ class MANGOS_DLL_SPEC Creature : public Unit
         void SetVirtualItemRaw(VirtualItemSlot slot, uint32 display_id, uint32 info0, uint32 info1);
 
     protected:
-        CreatureClassLvlStats const* GetCreatureClassLvlStats(uint32 level, UnitClassIndex unitClass) const;
         bool MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* pSpellInfo, uint32 selectFlags) const;
 
         bool CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, Team team, const CreatureData* data = NULL, GameEventCreatureData const* eventData = NULL);

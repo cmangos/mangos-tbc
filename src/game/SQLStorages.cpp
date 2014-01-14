@@ -23,7 +23,6 @@ const char CreatureInfodstfmt[] = "isssiiiiiiifiiilliiiiiffiiiffffffiiiiiiffffii
 const char CreatureDataAddonInfofmt[] = "iiibbiis";
 const char CreatureModelfmt[] = "iffbii";
 const char CreatureInfoAddonInfofmt[] = "iiibbiis";
-const char CreatureClassLvlStatsfmt[] = "iiiiiffffixxxxx";
 const char EquipmentInfofmt[] = "iiii";
 const char EquipmentInfoRawfmt[] = "iiiiiiiiii";
 const char GameObjectInfosrcfmt[] = "iiisssiifiiiiiiiiiiiiiiiiiiiiiiiiiis";
@@ -61,4 +60,3 @@ SQLHashStorage sSpellTemplate(SpellTemplatesrcfmt, SpellTemplatedstfmt, "id", "s
 SQLHashStorage sCreatureTemplateSpellsStorage(CreatureTemplateSpellsFmt, "entry", "creature_template_spells");
 
 SQLMultiStorage sSpellScriptTargetStorage(SpellScriptTargetFmt, "entry", "spell_script_target");
-SQLMultiStorage sCreatureClassLvlStatsStorage(CreatureClassLvlStatsfmt, "Level", "creature_template_classlevelstats");

@@ -1130,7 +1130,9 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
     float offMaxDmg = 0;
     float minRangedDmg = 0;
     float maxRangedDmg = 0;
-    if ((cinfo->Expansion < 0) || (cinfo->UnitClass == 0))
+
+    CreatureClassLvlStats const* cCLS = sObjectMgr.GetCreatureClassLvlStats(UnitClassIndex(cinfo->UnitClass), cinfo->Expansion, level);
+    if (!cCLS)
     {
         // All this code will be removed when db will be complete and update
         float rellevel = maxlevel == minlevel ? 0 : (float(level - minlevel)) / (maxlevel - minlevel);
@@ -1163,22 +1165,20 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
     }
     else
     {
-        CreatureClassLvlStats const* cCLS = GetCreatureClassLvlStats(level, UnitClassIndex(cinfo->UnitClass));
-        MANGOS_ASSERT(cCLS);
-        health = cCLS->BaseHealth[cinfo->Expansion] * cinfo->HealthMultiplier;
+        health = cCLS->BaseHealth * cinfo->HealthMultiplier;
         mana = cCLS->BaseMana * cinfo->ManaMultiplier;
         armor = cCLS->BaseArmor * cinfo->ArmorMultiplier;
         DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"==> New value used for %s, guid(%u)", GetName(), GetObjectGuid().GetCounter());
 
         // damage
-        mainMinDmg = ( ((cCLS->BaseDamage[cinfo->Expansion] * cinfo->DamageVariance) + (cCLS->BaseMeleeAttackPower/14.0f)) * (cinfo->MeleeBaseAttackTime/1000.0f) * cinfo->DamageMultiplier );
-        mainMaxDmg = ( ((cCLS->BaseDamage[cinfo->Expansion] * 1.5f) + (cCLS->BaseMeleeAttackPower/14)) * (cinfo->MeleeBaseAttackTime/1000) * cinfo->DamageMultiplier );
+        mainMinDmg = ( ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseMeleeAttackPower/14.0f)) * (cinfo->MeleeBaseAttackTime/1000.0f) * cinfo->DamageMultiplier );
+        mainMaxDmg = ( ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseMeleeAttackPower/14)) * (cinfo->MeleeBaseAttackTime/1000) * cinfo->DamageMultiplier );
 
         offMinDmg = mainMinDmg / 2.0f;
         offMaxDmg = mainMinDmg / 2.0f;
 
-        minRangedDmg = ( ((cCLS->BaseDamage[cinfo->Expansion] * cinfo->DamageVariance) + (cCLS->BaseRangedAttackPower/14.0f)) * (cinfo->RangedBaseAttackTime/1000.0f) * cinfo->DamageMultiplier );
-        maxRangedDmg = ( ((cCLS->BaseDamage[cinfo->Expansion] * 1.5f) + (cCLS->BaseRangedAttackPower/14)) * (cinfo->RangedBaseAttackTime/1000) * cinfo->DamageMultiplier );
+        minRangedDmg = ( ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseRangedAttackPower/14.0f)) * (cinfo->RangedBaseAttackTime/1000.0f) * cinfo->DamageMultiplier );
+        maxRangedDmg = ( ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseRangedAttackPower/14)) * (cinfo->RangedBaseAttackTime/1000) * cinfo->DamageMultiplier );
 
         // not sure about the next line
         SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, cinfo->MeleeAttackPower);
@@ -2617,20 +2617,4 @@ void Creature::SetWaterWalk(bool enable)
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_WATER_WALK : SMSG_SPLINE_MOVE_LAND_WALK, 9);
     data << GetPackGUID();
     SendMessageToSet(&data, true);
-}
-
-CreatureClassLvlStats const* Creature::GetCreatureClassLvlStats(uint32 level, UnitClassIndex unitClass) const
-{
-    SQLMultiStorage::SQLMSIteratorBounds<CreatureClassLvlStats> bounds = sCreatureClassLvlStatsStorage.getBounds<CreatureClassLvlStats>(level);
-    if (bounds.first == bounds.second)
-        return NULL;
-
-    SQLMultiStorage::SQLMultiSIterator<CreatureClassLvlStats> itr = bounds.first;
-    while (itr != bounds.second)
-    {
-        if (itr->Class == uint32(unitClass))
-            return *itr;
-        ++itr;
-    }
-    return NULL;
 }

@@ -816,9 +816,30 @@ void ObjectMgr::LoadCreatureClassLvlStats()
         Field* fields = result->Fetch();
         bar.step();
 
+        uint32 Class                    = fields[0].GetUInt32();
+        uint32 Level                    = fields[1].GetUInt32();
+
+        if ((Level == 0) || (Level > MAX_CREATURE_LEVEL_TBC))
+        {
+            sLog.outErrorDb("Found stats for creature level [%u], incorrect for this core. Skip!", Level);
+            continue;
+        }
+        
+        uint32 classArrayIndex = 0;
+        switch (Class)
+        {
+            case CLASS_WARRIOR: classArrayIndex = 0; break;
+            case CLASS_PALADIN: classArrayIndex = 1; break;
+            case CLASS_ROGUE:   classArrayIndex = 2; break;
+            case CLASS_MAGE:    classArrayIndex = 3; break;
+
+            default:
+                sLog.outErrorDb("Found stats for creature class [%u], incorrect for this core. Skip!", Class);
+                continue;
+                break;
+        }
+
         CreatureClassLvlStats cCLSExp0;
-        cCLSExp0.Class                  = fields[0].GetUInt32();
-        cCLSExp0.Level                  = fields[1].GetUInt32();
         cCLSExp0.BaseHealth             = fields[2].GetUInt32();
         //BaseHealth[EXPANSION_TBC]     = fields[3].GetUInt32();
         cCLSExp0.BaseMana               = fields[4].GetUInt32();
@@ -832,40 +853,25 @@ void ObjectMgr::LoadCreatureClassLvlStats()
         cCLSExp1.BaseHealth             = fields[3].GetUInt32();
         cCLSExp1.BaseDamage             = fields[6].GetFloat();
 
-        uint32 classArrayIndex = 0;
-        if ((cCLSExp0.Level > 0) && (cCLSExp0.Level <= MAX_LEVEL_TBC))
-        {
-            switch (cCLSExp0.Class)
-            {
-                case CLASS_WARRIOR: classArrayIndex = 0; break;
-                case CLASS_PALADIN: classArrayIndex = 1; break;
-                case CLASS_ROGUE:   classArrayIndex = 2; break;
-                case CLASS_MAGE:    classArrayIndex = 3; break;
-
-                default:
-                    continue;
-                    break;
-            }
-
-            m_creatureClassLvlStats[classArrayIndex][uint32(EXPANSION_NONE)][cCLSExp0.Level - 1] = cCLSExp0;
-            m_creatureClassLvlStats[classArrayIndex][uint32(EXPANSION_TBC)][cCLSExp1.Level - 1] = cCLSExp1;
-            ++storedRow;
-        }
+        m_creatureClassLvlStats[classArrayIndex][uint32(EXPANSION_NONE)][Level] = cCLSExp0;
+        m_creatureClassLvlStats[classArrayIndex][uint32(EXPANSION_TBC)][Level] = cCLSExp1;
+        ++storedRow;
+        
     }
     while (result->NextRow());
 
     delete result;
 
     sLog.outString();
-    if (storedRow == (MAX_LEVEL_TBC * MAX_CREATURE_CLASS))
+    if (storedRow == (MAX_CREATURE_LEVEL_TBC * MAX_CREATURE_CLASS))
         sLog.outString(">> Found %u creature stats definitions.", storedRow);
     else
-        sLog.outErrorDb("Found only %u valids row when expected %u! Some creature will not have valid data!", storedRow, uint32(MAX_LEVEL_TBC * MAX_CREATURE_CLASS));
+        sLog.outErrorDb("Found only %u valids row when expected %u! Some creature will not have valid data!", storedRow, uint32(MAX_CREATURE_LEVEL_TBC * MAX_CREATURE_CLASS));
 }
 
 CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(uint32 index, int32 expansion, uint32 level) const
 {
-    if ((level == 0) || (level > MAX_LEVEL_TBC) || (expansion < 0) || (expansion > MAX_EXPANSION))
+    if ((level == 0) || (level > MAX_CREATURE_LEVEL_TBC) || (expansion < 0) || (expansion > MAX_EXPANSION))
         return NULL;
 
     uint32 classArrayIndex = 0;
@@ -880,7 +886,7 @@ CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(uint32 index, i
             break;
     }
 
-    return &m_creatureClassLvlStats[classArrayIndex][expansion][level-1];
+    return &m_creatureClassLvlStats[classArrayIndex][expansion][level];
 }
 
 void ObjectMgr::LoadEquipmentTemplates()

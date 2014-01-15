@@ -250,9 +250,7 @@ struct CreatureModelRace
 
 struct CreatureClassLvlStats
 {
-    CreatureClassLvlStats() : Level(0), Class(1), BaseHealth(1), BaseMana(1), BaseDamage(1.0f), BaseMeleeAttackPower(1.0f), BaseRangedAttackPower(1.0f), BaseArmor(1)  {}
-    uint32  Level;                                          // Creature level
-    uint32  Class;                                          // UnitClass (not same as player classes)
+    CreatureClassLvlStats() : BaseHealth(1), BaseMana(1), BaseDamage(1.0f), BaseMeleeAttackPower(1.0f), BaseRangedAttackPower(1.0f), BaseArmor(1)  {}
     // Bases values for given Level and UnitClass
     uint32  BaseHealth;
     uint32  BaseMana;

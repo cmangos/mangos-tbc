@@ -1169,8 +1169,8 @@ class ObjectMgr
         HalfNameMap PetHalfName0;
         HalfNameMap PetHalfName1;
 
-        // Array to store creature stats
-        CreatureClassLvlStats m_creatureClassLvlStats[MAX_CREATURE_CLASS][MAX_EXPANSION+1][MAX_LEVEL_TBC];
+        // Array to store creature stats, MAX_LEVEL_TBC = 70, Max creature level is 73, + 1 (for data alignement with level)
+        CreatureClassLvlStats m_creatureClassLvlStats[MAX_CREATURE_CLASS][MAX_EXPANSION+1][MAX_CREATURE_LEVEL_TBC + 1];
 
         MapObjectGuids mMapObjectGuids;
         CreatureDataMap mCreatureDataMap;

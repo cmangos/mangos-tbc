@@ -1166,19 +1166,20 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
     else
     {
         health = cCLS->BaseHealth * cinfo->HealthMultiplier;
+        health = std::max(health, uint32(1));                   // set minimul health to 1 for little mob like cat
         mana = cCLS->BaseMana * cinfo->ManaMultiplier;
         armor = cCLS->BaseArmor * cinfo->ArmorMultiplier;
         DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"==> New value used for %s, %s", GetName(), GetGuidStr().c_str());
 
         // damage
-        mainMinDmg = ( ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseMeleeAttackPower/14.0f)) * (cinfo->MeleeBaseAttackTime/1000.0f) * cinfo->DamageMultiplier );
-        mainMaxDmg = ( ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseMeleeAttackPower/14)) * (cinfo->MeleeBaseAttackTime/1000) * cinfo->DamageMultiplier );
+        mainMinDmg = ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseMeleeAttackPower/14.0f)) * (cinfo->MeleeBaseAttackTime/1000.0f) * cinfo->DamageMultiplier;
+        mainMaxDmg = ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseMeleeAttackPower/14)) * (cinfo->MeleeBaseAttackTime/1000) * cinfo->DamageMultiplier;
 
         offMinDmg = mainMinDmg / 2.0f;
         offMaxDmg = mainMinDmg / 2.0f;
 
-        minRangedDmg = ( ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseRangedAttackPower/14.0f)) * (cinfo->RangedBaseAttackTime/1000.0f) * cinfo->DamageMultiplier );
-        maxRangedDmg = ( ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseRangedAttackPower/14)) * (cinfo->RangedBaseAttackTime/1000) * cinfo->DamageMultiplier );
+        minRangedDmg = ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseRangedAttackPower/14.0f)) * (cinfo->RangedBaseAttackTime/1000.0f) * cinfo->DamageMultiplier;
+        maxRangedDmg = ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseRangedAttackPower/14)) * (cinfo->RangedBaseAttackTime/1000) * cinfo->DamageMultiplier;
 
         // not sure about the next line
         SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, cinfo->MeleeAttackPower);

@@ -1131,7 +1131,7 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
     float minRangedDmg = 0;
     float maxRangedDmg = 0;
 
-    CreatureClassLvlStats const* cCLS = sObjectMgr.GetCreatureClassLvlStats(UnitClassIndex(cinfo->UnitClass), cinfo->Expansion, level);
+    CreatureClassLvlStats const* cCLS = sObjectMgr.GetCreatureClassLvlStats(cinfo->UnitClass, cinfo->Expansion, level);
     if (!cCLS)
     {
         // All this code will be removed when db will be complete and update
@@ -1149,7 +1149,7 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
         uint32 maxmana = std::max(cinfo->MaxLevelMana, cinfo->MinLevelMana);
         mana = minmana + uint32(rellevel * (maxmana - minmana));
         armor = cinfo->MinLevelArmor;
-        DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"Old value used for %s, guid(%u)", GetName(), GetObjectGuid().GetCounter());
+        DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"Old value used for %s, %s", GetName(), GetGuidStr().c_str());
 
         // damage coded old way style
         float damagemod = _GetDamageMod(rank);
@@ -1168,7 +1168,7 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
         health = cCLS->BaseHealth * cinfo->HealthMultiplier;
         mana = cCLS->BaseMana * cinfo->ManaMultiplier;
         armor = cCLS->BaseArmor * cinfo->ArmorMultiplier;
-        DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"==> New value used for %s, guid(%u)", GetName(), GetObjectGuid().GetCounter());
+        DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS,"==> New value used for %s, %s", GetName(), GetGuidStr().c_str());
 
         // damage
         mainMinDmg = ( ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseMeleeAttackPower/14.0f)) * (cinfo->MeleeBaseAttackTime/1000.0f) * cinfo->DamageMultiplier );

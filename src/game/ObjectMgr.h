@@ -1044,9 +1044,9 @@ class ObjectMgr
 
         /**
         * \brief: Data returned is used to compute health, mana, armor, damage of creatures. May be NULL.
-        * \param UnitClassIndex index
-        * \param int32          expansion
-        * \param uint32         level
+        * \param uint32 index       creature class
+        * \param int32 expansion    creature expansion
+        * \param uint32 level       creature level
         * \return: CreatureClassLvlStats const* or NULL
         *
         * Description: GetCreatureClassLvlStats give fast access to creature stats data.
@@ -1054,7 +1054,7 @@ class ObjectMgr
         * Access: public 
         * Qualifier: const
         **/
-        CreatureClassLvlStats const* GetCreatureClassLvlStats(UnitClassIndex index, int32 expansion, uint32 level) const;
+        CreatureClassLvlStats const* GetCreatureClassLvlStats(uint32 index, int32 expansion, uint32 level) const;
     protected:
 
         // first free id for selected id type
@@ -1170,7 +1170,7 @@ class ObjectMgr
         HalfNameMap PetHalfName1;
 
         // Array to store creature stats
-        CreatureClassLvlStats m_creatureClassLvlStats[MAX_UNIT_CLASS][MAX_EXPANSION+1][MAX_LEVEL_TBC];
+        CreatureClassLvlStats m_creatureClassLvlStats[MAX_CREATURE_CLASS][MAX_EXPANSION+1][MAX_LEVEL_TBC];
 
         MapObjectGuids mMapObjectGuids;
         CreatureDataMap mCreatureDataMap;

@@ -793,7 +793,6 @@ void ObjectMgr::LoadCreatureAddons()
 
 void ObjectMgr::LoadCreatureClassLvlStats()
 {
-    Sleep(10000);
     QueryResult* result = WorldDatabase.Query("SELECT Class, Level, BaseHealthExp0, BaseHealthExp1, BaseMana, "
         "BaseDamageExp0, BaseDamageExp1, BaseMeleeAttackPower, BaseRangedAttackPower, BaseArmor "
         "FROM creature_template_classlevelstats ORDER BY Class, Level");
@@ -838,9 +837,10 @@ void ObjectMgr::LoadCreatureClassLvlStats()
         {
             switch (cCLSExp0.Class)
             {
-                case UNIT_CLASS_WARRIOR: classArrayIndex = 0; break;
-                case UNIT_CLASS_PALADIN: classArrayIndex = 1; break;
-                case UNIT_CLASS_MAGE:    classArrayIndex = 2; break;
+                case CLASS_WARRIOR: classArrayIndex = 0; break;
+                case CLASS_PALADIN: classArrayIndex = 1; break;
+                case CLASS_ROGUE:   classArrayIndex = 2; break;
+                case CLASS_MAGE:    classArrayIndex = 3; break;
 
                 default:
                     continue;
@@ -857,13 +857,13 @@ void ObjectMgr::LoadCreatureClassLvlStats()
     delete result;
 
     sLog.outString();
-    if (storedRow == (MAX_LEVEL_TBC * MAX_UNIT_CLASS))
+    if (storedRow == (MAX_LEVEL_TBC * MAX_CREATURE_CLASS))
         sLog.outString(">> Found %u creature stats definitions.", storedRow);
     else
-        sLog.outErrorDb("Found only %u valids row when expected %u! Some creature will not have valid data!", storedRow, uint32(MAX_LEVEL_TBC * MAX_UNIT_CLASS));
+        sLog.outErrorDb("Found only %u valids row when expected %u! Some creature will not have valid data!", storedRow, uint32(MAX_LEVEL_TBC * MAX_CREATURE_CLASS));
 }
 
-CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(UnitClassIndex index, int32 expansion, uint32 level) const
+CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(uint32 index, int32 expansion, uint32 level) const
 {
     if ((level == 0) || (level > MAX_LEVEL_TBC) || (expansion < 0) || (expansion > MAX_EXPANSION))
         return NULL;
@@ -871,15 +871,10 @@ CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(UnitClassIndex 
     uint32 classArrayIndex = 0;
     switch (index)
     {
-        case UNIT_CLASS_WARRIOR:
-            classArrayIndex = 0;
-        	break;
-        case UNIT_CLASS_PALADIN:
-            classArrayIndex = 1;
-            break;
-        case UNIT_CLASS_MAGE:
-            classArrayIndex = 2;
-            break;
+        case CLASS_WARRIOR: classArrayIndex = 0; break;
+        case CLASS_PALADIN: classArrayIndex = 1; break;
+        case CLASS_ROGUE:   classArrayIndex = 2; break;
+        case CLASS_MAGE:    classArrayIndex = 3; break;
         default:
             return NULL;
             break;

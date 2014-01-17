@@ -1173,13 +1173,13 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
 
         // damage
         mainMinDmg = ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseMeleeAttackPower/14.0f)) * (cinfo->MeleeBaseAttackTime/1000.0f) * cinfo->DamageMultiplier;
-        mainMaxDmg = ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseMeleeAttackPower/14)) * (cinfo->MeleeBaseAttackTime/1000) * cinfo->DamageMultiplier;
+        mainMaxDmg = ((cCLS->BaseDamage * cinfo->DamageVariance *1.5f) + (cCLS->BaseMeleeAttackPower/14.0f)) * (cinfo->MeleeBaseAttackTime/1000.0f) * cinfo->DamageMultiplier;
 
         offMinDmg = mainMinDmg / 2.0f;
         offMaxDmg = mainMinDmg / 2.0f;
 
         minRangedDmg = ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseRangedAttackPower/14.0f)) * (cinfo->RangedBaseAttackTime/1000.0f) * cinfo->DamageMultiplier;
-        maxRangedDmg = ((cCLS->BaseDamage * 1.5f) + (cCLS->BaseRangedAttackPower/14)) * (cinfo->RangedBaseAttackTime/1000) * cinfo->DamageMultiplier;
+        maxRangedDmg = ((cCLS->BaseDamage * cinfo->DamageVariance * 1.5f) + (cCLS->BaseRangedAttackPower/14.0f)) * (cinfo->RangedBaseAttackTime/1000.0f) * cinfo->DamageMultiplier;
 
         // not sure about the next line
         SetModifierValue(UNIT_MOD_ATTACK_POWER, BASE_VALUE, cinfo->MeleeAttackPower);

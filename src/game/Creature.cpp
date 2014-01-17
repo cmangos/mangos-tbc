@@ -1206,8 +1206,10 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, mainMaxDmg);
     SetBaseWeaponDamage(OFF_ATTACK, MINDAMAGE, offMinDmg);
     SetBaseWeaponDamage(OFF_ATTACK, MAXDAMAGE, offMaxDmg);
+
     SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE, minRangedDmg);
     SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE, maxRangedDmg);
+    UpdateAllStats();
 }
 
 float Creature::_GetHealthMod(int32 Rank)

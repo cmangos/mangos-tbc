@@ -490,6 +490,7 @@ void Creature::Update(uint32 update_diff, uint32 diff)
                 CreatureInfo const* cinfo = GetCreatureInfo();
 
                 SelectLevel(cinfo);
+                UpdateAllStats();
                 SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);
                 if (m_isDeadByDefault)
                 {
@@ -1209,7 +1210,6 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth, float
 
     SetFloatValue(UNIT_FIELD_MINRANGEDDAMAGE, minRangedDmg);
     SetFloatValue(UNIT_FIELD_MAXRANGEDDAMAGE, maxRangedDmg);
-    UpdateAllStats();
 }
 
 float Creature::_GetHealthMod(int32 Rank)

@@ -3941,6 +3941,8 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)
             // Notify original caster if not done already
             if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
                 ((Creature*)m_originalCaster)->AI()->JustSummoned(summon);
+            if (Unit* summoner = m_originalCaster->ToUnit())
+                sHookMgr.OnSummoned(summon, summoner);
         }
     }
 }
@@ -4043,6 +4045,11 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
             ((Creature*)m_caster)->AI()->JustSummoned(spawnCreature);
         if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
             ((Creature*)m_originalCaster)->AI()->JustSummoned(spawnCreature);
+        if (Unit* summoner = m_caster->ToUnit())
+            sHookMgr.OnSummoned(spawnCreature, summoner);
+        if (m_originalCaster)
+            if (Unit* summoner = m_originalCaster->ToUnit())
+                sHookMgr.OnSummoned(spawnCreature, summoner);
     }
 }
 
@@ -6130,6 +6137,8 @@ bool Spell::DoSummonPossessed(SpellEffectIndex eff_idx, uint32 forceFaction)
     // Notify Summoner
     if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
         ((Creature*)m_originalCaster)->AI()->JustSummoned(spawnCreature);
+    if (Unit* summoner = m_originalCaster->ToUnit())
+        sHookMgr.OnSummoned(spawnCreature, summoner);
 
     return true;
 }

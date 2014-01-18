@@ -449,7 +449,15 @@ Item* Eluna::CHECK_ITEM(lua_State* L, int narg)
 void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
 {
     switch (regtype)
-    {
+        {
+        case REGTYPE_PACKET:
+            if (evt < NUM_MSG_TYPES)
+            {
+                PacketEventBindings[evt].push_back(functionRef);
+                return;
+            }
+            break;
+
         case REGTYPE_SERVER:
             if (evt < SERVER_EVENT_COUNT)
             {
@@ -583,6 +591,8 @@ void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
 
 void Eluna::ElunaBind::Clear()
 {
+    if (Bindings.empty())
+        return;
     for (ElunaEntryMap::iterator itr = Bindings.begin(); itr != Bindings.end(); ++itr)
     {
         for (ElunaBindingMap::const_iterator it = itr->second.begin(); it != itr->second.end(); ++it)

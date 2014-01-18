@@ -50,14 +50,18 @@ class Transport;
 class Unit;
 class Weather;
 class WorldObject;
+class WorldPacket;
+class WorldSocket;
 
 enum RegisterTypes
 {
+    REGTYPE_PACKET,
     REGTYPE_SERVER,
     REGTYPE_PLAYER,
     REGTYPE_GUILD,
     REGTYPE_GROUP,
     REGTYPE_CREATURE,
+    REGTYPE_VEHICLE,
     REGTYPE_CREATURE_GOSSIP,
     REGTYPE_GAMEOBJECT,
     REGTYPE_GAMEOBJECT_GOSSIP,
@@ -67,6 +71,11 @@ enum RegisterTypes
     REGTYPE_COUNT
 };
 
+// RegisterPacketEvent(Opcode, function)
+// SERVER_EVENT_ON_PACKET_RECEIVE          =     5,       // (event, packet, player) - Player only if accessible. Can return false or a new packet
+// SERVER_EVENT_ON_PACKET_RECEIVE_UNKNOWN  =     6,       // Not Implemented
+// SERVER_EVENT_ON_PACKET_SEND             =     7,       // (event, packet, player) - Player only if accessible. Can return false or a new packet
+
 // RegisterServerEvent(EventId, function)
 enum ServerEvents
 {
@@ -75,9 +84,9 @@ enum ServerEvents
     SERVER_EVENT_ON_NETWORK_STOP            =     2,       // Not Implemented
     SERVER_EVENT_ON_SOCKET_OPEN             =     3,       // Not Implemented
     SERVER_EVENT_ON_SOCKET_CLOSE            =     4,       // Not Implemented
-    SERVER_EVENT_ON_PACKET_RECEIVE          =     5,       // Not Implemented
+    SERVER_EVENT_ON_PACKET_RECEIVE          =     5,       // (event, packet, player) - Player only if accessible. Can return false or a new packet
     SERVER_EVENT_ON_PACKET_RECEIVE_UNKNOWN  =     6,       // Not Implemented
-    SERVER_EVENT_ON_PACKET_SEND             =     7,       // Not Implemented
+    SERVER_EVENT_ON_PACKET_SEND             =     7,       // (event, packet, player) - Player only if accessible. Can return false or a new packet
 
     // World
     WORLD_EVENT_ON_OPEN_STATE_CHANGE        =     8,        // (event, open)
@@ -280,7 +289,6 @@ enum GossipEvents
 
 struct HookMgr
 {
-    struct ElunaCreatureAI;
     CreatureAI* GetAI(Creature* creature);
 
     /* Misc */
@@ -315,6 +323,7 @@ struct HookMgr
     bool OnQuestComplete(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
     bool OnQuestReward(Player* pPlayer, Creature* pCreature, Quest const* pQuest);
     uint32 GetDialogStatus(Player* pPlayer, Creature* pCreature);
+    void OnSummoned(Creature* creature, Unit* summoner);
 
     /* GameObject */
     bool OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget);
@@ -331,6 +340,10 @@ struct HookMgr
     void OnLootStateChanged(GameObject* pGameObject, uint32 state, Unit* pUnit); // TODO
     void OnGameObjectStateChanged(GameObject* pGameObject, uint32 state); // TODO
     void UpdateAI(GameObject* pGameObject, uint32 update_diff, uint32 p_time);
+    
+    /* Packet */
+    bool OnPacketSend(WorldSession* session, WorldPacket& packet);
+    bool OnPacketReceive(WorldSession* session, WorldPacket& packet);
 
     /* Player */
     void OnPlayerEnterCombat(Player* pPlayer, Unit* pEnemy);

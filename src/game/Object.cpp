@@ -42,6 +42,7 @@
 #include "TemporarySummon.h"
 #include "movement/packet_builder.h"
 #include "CreatureLinkingMgr.h"
+#include "HookMgr.h"
 
 Object::Object()
 {
@@ -1530,6 +1531,8 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
 
     if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->AI())
         ((Creature*)this)->AI()->JustSummoned(pCreature);
+    if (Unit* summoner = ToUnit())
+        sHookMgr.OnSummoned(pCreature, summoner);
 
     // Creature Linking, Initial load is handled like respawn
     if (pCreature->IsLinkingEventTrigger())

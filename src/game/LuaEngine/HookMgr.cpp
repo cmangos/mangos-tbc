@@ -19,6 +19,7 @@
 
 #include "LuaEngine.h"
 #include "HookMgr.h"
+#include "WorldSocket.h"
 
 void HookMgr::OnWorldUpdate(uint32 diff)
 {
@@ -444,6 +445,19 @@ uint32 HookMgr::GetDialogStatus(Player* pPlayer, Creature* pCreature)
     sEluna.ExecuteCall(3, 0);
     return 100;
 }
+
+void HookMgr::OnSummoned(Creature* pCreature, Unit* pSummoner)
+{
+    int bind = sEluna.CreatureEventBindings->GetBind(pCreature->GetEntry(), CREATURE_EVENT_ON_SUMMONED);
+    if (!bind)
+        return;
+    sEluna.BeginCall(bind);
+    sEluna.Push(sEluna.L, CREATURE_EVENT_ON_SUMMONED);
+    sEluna.Push(sEluna.L, pCreature);
+    sEluna.Push(sEluna.L, pSummoner);
+    sEluna.ExecuteCall(3, 0);
+}
+
 // gameobject
 bool HookMgr::OnDummyEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget)
 {
@@ -622,6 +636,108 @@ void HookMgr::UpdateAI(GameObject* pGameObject, uint32 update_diff, uint32 p_tim
     sEluna.Push(sEluna.L, pGameObject);
     sEluna.Push(sEluna.L, update_diff);
     sEluna.ExecuteCall(3, 0);
+}
+
+// Packet
+bool HookMgr::OnPacketSend(WorldSession* session, WorldPacket& packet)
+{
+    Player* player = NULL;
+    if (session)
+        player = session->GetPlayer();
+    bool Result = true;
+    for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[SERVER_EVENT_ON_PACKET_SEND].begin();
+        itr != sEluna.ServerEventBindings[SERVER_EVENT_ON_PACKET_SEND].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, SERVER_EVENT_ON_PACKET_SEND);
+        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, player);
+        if (sEluna.ExecuteCall(3, 1))
+        {
+            lua_State* L = sEluna.L;
+            if (!lua_isnoneornil(L, 1))
+            {
+                WorldPacket* data = sEluna.CHECK_PACKET(L, 1);
+                if (data)
+                    packet = *data;
+                if (!lua_toboolean(L, 1))
+                    Result = false;
+            }
+            sEluna.EndCall(1);
+        }
+    }
+    for (std::vector<int>::const_iterator itr = sEluna.PacketEventBindings[packet.GetOpcode()].begin();
+        itr != sEluna.PacketEventBindings[packet.GetOpcode()].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, SERVER_EVENT_ON_PACKET_SEND);
+        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, player);
+        if (sEluna.ExecuteCall(3, 1))
+        {
+            lua_State* L = sEluna.L;
+            if (!lua_isnoneornil(L, 1))
+            {
+                WorldPacket* data = sEluna.CHECK_PACKET(L, 1);
+                if (data)
+                    packet = *data;
+                if (!lua_toboolean(L, 1))
+                    Result = false;
+            }
+            sEluna.EndCall(1);
+        }
+    }
+    return Result;
+}
+bool HookMgr::OnPacketReceive(WorldSession* session, WorldPacket& packet)
+{
+    Player* player = NULL;
+    if (session)
+        player = session->GetPlayer();
+    bool Result = true;
+    for (std::vector<int>::const_iterator itr = sEluna.ServerEventBindings[SERVER_EVENT_ON_PACKET_RECEIVE].begin();
+        itr != sEluna.ServerEventBindings[SERVER_EVENT_ON_PACKET_RECEIVE].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, SERVER_EVENT_ON_PACKET_RECEIVE);
+        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, player);
+        if (sEluna.ExecuteCall(3, 1))
+        {
+            lua_State* L = sEluna.L;
+            if (!lua_isnoneornil(L, 1))
+            {
+                WorldPacket* data = sEluna.CHECK_PACKET(L, 1);
+                if (data)
+                    packet = *data;
+                if (!lua_toboolean(L, 1))
+                    Result = false;
+            }
+            sEluna.EndCall(1);
+        }
+    }
+    for (std::vector<int>::const_iterator itr = sEluna.PacketEventBindings[packet.GetOpcode()].begin();
+        itr != sEluna.PacketEventBindings[packet.GetOpcode()].end(); ++itr)
+    {
+        sEluna.BeginCall((*itr));
+        sEluna.Push(sEluna.L, SERVER_EVENT_ON_PACKET_RECEIVE);
+        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, player);
+        if (sEluna.ExecuteCall(3, 1))
+        {
+            lua_State* L = sEluna.L;
+            if (!lua_isnoneornil(L, 1))
+            {
+                WorldPacket* data = sEluna.CHECK_PACKET(L, 1);
+                if (data)
+                    packet = *data;
+                if (!lua_toboolean(L, 1))
+                    Result = false;
+            }
+            sEluna.EndCall(1);
+        }
+    }
+    return Result;
 }
 
 // Player
@@ -1266,7 +1382,7 @@ public:
 };
 */
 
-struct HookMgr::ElunaCreatureAI : public ReactorAI
+struct ElunaCreatureAI : public ReactorAI
 {
     ElunaCreatureAI(Creature* creature) : ReactorAI(creature) { }
     ~ElunaCreatureAI() { }

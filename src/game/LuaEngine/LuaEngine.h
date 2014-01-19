@@ -51,7 +51,7 @@ class ElunaTemplate
             lua_pushstring(L, tname);
             return 1;
         }
-        
+
         // If assertion fails, should check if obj really should have gc on
         // If gc / memory management is true, may need specialized function for GetTPointer to copy object using GetNewTPointerin LuaEngine.cpp
         static T const* GetNewTPointer(T const& obj) { MANGOS_ASSERT(manageMemory); return new T(obj); }

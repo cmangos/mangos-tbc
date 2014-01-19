@@ -720,14 +720,14 @@ namespace LuaGlobalFunctions
         size_t size = luaL_checkunsigned(L, 2);
 
         if (opcode >= NUM_MSG_TYPES)
-            luaL_error(L, "Invalid opcode type (%d)", opcode);
-        else
         {
-            WorldPacket* _packet = new WorldPacket((Opcodes)opcode, size);
-            sEluna.Push(L, _packet);
-            return 1;
+            luaL_error(L, "Invalid opcode type (%d)", opcode);
+            return 0;
         }
-        return 0;
+        WorldPacket* data = new WorldPacket((Opcodes)opcode, size);
+        sEluna.Push(L, data);
+        delete data;
+        return 1;
     }
 
     // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost[, persist(bool)])

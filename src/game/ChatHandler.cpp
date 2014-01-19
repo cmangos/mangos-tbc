@@ -491,7 +491,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                     if (!sHookMgr.OnChat(GetPlayer(), type, lang, msg, chn))
                         return;
 
-                    chn->Say(_player->GetObjectGuid(), msg.c_str(), lang);
+                    chn->Say(_player, msg.c_str(), lang);
                 }
         } break;
 

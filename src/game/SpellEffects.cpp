@@ -6632,6 +6632,11 @@ void Spell::DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction)
         ((Creature*)m_caster)->AI()->JustSummoned(critter);
     if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
         ((Creature*)m_originalCaster)->AI()->JustSummoned(critter);
+    if (Unit* summoner = m_caster->ToUnit())
+        sHookMgr.OnSummoned(critter, summoner);
+    if (m_originalCaster)
+        if (Unit* summoner = m_originalCaster->ToUnit())
+            sHookMgr.OnSummoned(critter, summoner);
 }
 
 void Spell::EffectKnockBack(SpellEffectIndex eff_idx)

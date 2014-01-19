@@ -577,9 +577,6 @@ namespace LuaGlobalFunctions
         float o = luaL_checknumber(L, 8);
         bool save = luaL_optbool(L, 9, false);
         uint32 durorresptime = luaL_optunsigned(L, 10, 0);
-        /*uint32 phase = luaL_optunsigned(L, 11, PHASEMASK_NORMAL);
-        if (!phase)
-            return 0;*/
 
         Map* map = sMapMgr.FindMap(mapID, instanceID);
         if (!map)
@@ -593,7 +590,7 @@ namespace LuaGlobalFunctions
                 if (!cinfo)
                     return 0;
 
-                CreatureCreatePos pos(map, x, y, z, o/*, phase*/);
+                CreatureCreatePos pos(map, x, y, z, o);
                 Creature* pCreature = new Creature;
                 // used guids from specially reserved range (can be 0 if no free values)
                 uint32 lowguid = sObjectMgr.GenerateStaticCreatureLowGuid();
@@ -606,7 +603,7 @@ namespace LuaGlobalFunctions
                     return 0;
                 }
 
-                pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode())/*, phase*/);
+                pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()));
 
                 uint32 db_guid = pCreature->GetGUIDLow();
 
@@ -627,7 +624,7 @@ namespace LuaGlobalFunctions
                     return 0;
 
                 TemporarySummon* pCreature = new TemporarySummon(ObjectGuid(uint64(0)));
-                CreatureCreatePos pos(map, x, y, z, o/*, phase*/);
+                CreatureCreatePos pos(map, x, y, z, o);
 
                 if (!pCreature->Create(map->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo, TEAM_NONE))
                 {
@@ -667,7 +664,7 @@ namespace LuaGlobalFunctions
                     return 0;
 
                 GameObject* pGameObj = new GameObject;
-                if (!pGameObj->Create(db_lowGUID, gInfo->id, map, /*phase,*/ x, y, z, o))
+                if (!pGameObj->Create(db_lowGUID, gInfo->id, map, x, y, z, o))
                 {
                     delete pGameObj;
                     return 0;
@@ -677,7 +674,7 @@ namespace LuaGlobalFunctions
                     pGameObj->SetRespawnTime(durorresptime);
 
                 // fill the gameobject data and save to the db
-                pGameObj->SaveToDB(map->GetId(), (1 << map->GetSpawnMode())/*, phase*/);
+                pGameObj->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()));
 
                 // this will generate a new guid if the object is in an instance
                 if (!pGameObj->LoadFromDB(db_lowGUID, map))
@@ -698,7 +695,7 @@ namespace LuaGlobalFunctions
             {
                 GameObject* pGameObj = new GameObject;
 
-                if (!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), entry, map, /*phase,*/ x, y, z, o))
+                if (!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), entry, map, x, y, z, o))
                 {
                     delete pGameObj;
                     return NULL;

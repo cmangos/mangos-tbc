@@ -23,9 +23,9 @@ git:
   depth: 1
 
 # only run travis on the master branch
-branches:
-  only:
-    - master
+# branches:
+#   only:
+#     - master
 
 compiler:
   - gcc

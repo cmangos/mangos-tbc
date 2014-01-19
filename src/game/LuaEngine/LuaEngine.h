@@ -65,8 +65,6 @@ class ElunaTemplate
             delete obj; // Deleting NULL should be safe
             return 1;
         }
-        // fix compile error about accessing vehicle destructor (TC)
-        // static int gcT<Vehicle>(lua_State* L) { return 0; }
 
         // name will be used as type name
         // If gc is true, lua will handle the memory management for object pushed

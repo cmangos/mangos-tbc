@@ -95,7 +95,7 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "CreateLuaEvent", &LuaGlobalFunctions::CreateLuaEvent);                                 // CreateLuaEvent(function, delay, calls) - Creates a global timed event. Returns Event ID. Calls set to 0 calls infinitely.
     lua_register(L, "RemoveEventById", &LuaGlobalFunctions::RemoveEventById);                               // RemoveEventById(eventId, [all_events]) - Removes a global timed event by it's ID. If all_events is true, can remove any timed event by ID (unit, gameobject, global..)
     lua_register(L, "RemoveEvents", &LuaGlobalFunctions::RemoveEvents);                                     // RemoveEvents([all_events]) - Removes all global timed events. Removes all timed events (unit, gameobject, global) if all_events is true
-    lua_register(L, "PerformIngameSpawn", &LuaGlobalFunctions::PerformIngameSpawn);                         // PerformIngameSpawn(spawntype, entry, mapid, instanceid, x, y, z, o[, save, DurOrResptime, phase]) - spawntype: 1 Creature, 2 Object. DurOrResptime is respawntime for gameobjects and despawntime for creatures if creature is not saved. Returns spawned creature/gameobject
+    lua_register(L, "PerformIngameSpawn", &LuaGlobalFunctions::PerformIngameSpawn);                         // PerformIngameSpawn(spawntype, entry, mapid, instanceid, x, y, z, o[, save, DurOrResptime]) - spawntype: 1 Creature, 2 Object. DurOrResptime is respawntime for gameobjects and despawntime for creatures if creature is not saved. Returns spawned creature/gameobject
     lua_register(L, "CreatePacket", &LuaGlobalFunctions::CreatePacket);                                     // CreatePacket(opcode, size) - Creates a new packet object
     lua_register(L, "AddVendorItem", &LuaGlobalFunctions::AddVendorItem);                                   // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost[, persist(bool)]) - Adds an item to vendor entry.
     lua_register(L, "VendorRemoveItem", &LuaGlobalFunctions::VendorRemoveItem);                             // VendorRemoveItem(entry, item[, persist(bool)]) - Removes an item from vendor entry. If persist is false, wont be saved to database.
@@ -1033,7 +1033,7 @@ ElunaRegister<Map> MapMethods[] =
     {"GetPlayerCount", &LuaMap::GetPlayerCount},            // :GetPlayerCount() - Returns the amount of players on map except GM's UNDOCUMENTED
     {"GetMapId", &LuaMap::GetMapId},                        // :GetMapId() - Returns the map's ID UNDOCUMENTED
     {"GetAreaId", &LuaMap::GetAreaId},                      // :GetAreaId(x, y, z) - Returns the map's area ID based on coords UNDOCUMENTED
-    {"GetHeight", &LuaMap::GetHeight},                      // :GetHeight(x, y[, phasemask]) - Returns ground Z coordinate. UNDOCUMENTED
+    {"GetHeight", &LuaMap::GetHeight},                      // :GetHeight(x, y) - Returns ground Z coordinate. UNDOCUMENTED
 
     // Booleans
     {"IsArena", &LuaMap::IsArena},                          // :IsArena() - Returns the true if the map is an arena, else false UNDOCUMENTED

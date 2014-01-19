@@ -826,21 +826,21 @@ namespace LuaPlayer
         return 1;
     }
 
-    /*int ResetTalents(lua_State* L, Player* player)
+    int ResetTalents(lua_State* L, Player* player)
     {
         bool no_cost = luaL_optbool(L, 1, false);
 
         player->resetTalents(no_cost);
-        player->SendTalentsInfoData(false);
+        // player->SendTalentsInfoData(false);
         return 0;
-    }*/
+    }
 
     int SetFreeTalentPoints(lua_State* L, Player* player)
     {
         uint32 points = luaL_checkunsigned(L, 1);
 
         player->SetFreeTalentPoints(points);
-        player->SendTalentsInfoData(false);
+        // player->SendTalentsInfoData(false);
         return 0;
     }
 

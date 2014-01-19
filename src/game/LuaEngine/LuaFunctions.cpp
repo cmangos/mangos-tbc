@@ -583,7 +583,7 @@ ElunaRegister<Player> PlayerMethods[] =
     // {"GainSpellComboPoints", &LuaPlayer::GainSpellComboPoints},                                               // :GainSpellComboPoints(amount) - Player gains spell combo points
     {"ClearComboPoints", &LuaPlayer::ClearComboPoints},     // :ClearComboPoints() - Clears player's combo points
     {"RemoveSpell", &LuaPlayer::RemoveSpell},               // :RemoveSpell(entry[, disabled, learn_low_rank]) - Removes (unlearn) the given spell
-    // {"ResetTalents", &LuaPlayer::ResetTalents},          // :ResetTalents([no_cost]) - Resets player's talents
+    {"ResetTalents", &LuaPlayer::ResetTalents},             // :ResetTalents([no_cost]) - Resets player's talents
     {"ResetTalentsCost", &LuaPlayer::ResetTalentsCost},     // :ResetTalentsCost() - Returns the reset talents cost
     // {"AddTalent", &LuaPlayer::AddTalent},                // :AddTalent(spellid, spec, learning) - Adds a talent spell for the player to given spec
     {"RemoveFromGroup", &LuaPlayer::RemoveFromGroup},       // :RemoveFromGroup() - Removes the player from his group

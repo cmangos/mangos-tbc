@@ -3616,6 +3616,11 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         ((Creature*)m_caster)->AI()->JustSummoned((Creature*)spawnCreature);
     if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
         ((Creature*)m_originalCaster)->AI()->JustSummoned((Creature*)spawnCreature);
+    if (Unit* summoner = m_caster->ToUnit())
+        sHookMgr.OnSummoned(spawnCreature, summoner);
+    else if (m_originalCaster)
+        if (Unit* summoner = m_originalCaster->ToUnit())
+            sHookMgr.OnSummoned(spawnCreature, summoner);
 }
 
 void Spell::EffectLearnSpell(SpellEffectIndex eff_idx)

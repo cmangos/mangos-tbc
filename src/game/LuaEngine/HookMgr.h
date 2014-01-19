@@ -26,10 +26,11 @@
 #include "DBCEnums.h"
 #include "ace/Atomic_Op.h"
 
-#include "Weather.h" // No idea way he need for linux this here
+// Linux requred includes for enums
+#include "Weather.h"
+#include "Player.h"
+#include "Group.h"
 
-enum DuelCompleteType;
-enum GroupType;
 struct AreaTriggerEntry;
 struct SpellEntry;
 class Aura;

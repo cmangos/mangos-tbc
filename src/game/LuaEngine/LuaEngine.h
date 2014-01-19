@@ -32,7 +32,7 @@ extern "C"
 
 typedef std::set<std::string> LoadedScripts;
 
-template<class T>
+template<typename T>
 struct ElunaRegister
 {
     const char* name;
@@ -51,16 +51,12 @@ class ElunaTemplate
             lua_pushstring(L, tname);
             return 1;
         }
-
+        
         // If assertion fails, should check if obj really should have gc on
-        template<typename T> static T const* GetTPointer(T const& obj) { return &obj; }
-        template<typename T> static T const* GetNewTPointer(T const& obj) { MANGOS_ASSERT(manageMemory); return new T(obj); }
-        // If gc / memory management is true, should have specialized function:
-        static WorldPacket const* GetTPointer(WorldPacket const& obj) { return GetNewTPointer(obj); }
-        // Mangos doesnt use autoptr
-        // static QueryResult const* GetTPointer(QueryResult const& obj) { return GetNewTPointer(obj); }
+        // If gc / memory management is true, may need specialized function for GetTPointer to copy object using GetNewTPointerin LuaEngine.cpp
+        static T const* GetNewTPointer(T const& obj) { MANGOS_ASSERT(manageMemory); return new T(obj); }
+        static T const* GetTPointer(T const& obj) { return &obj; }
 
-        template<typename T>
         static int gcT(lua_State* L)
         {
             if (!manageMemory)
@@ -70,7 +66,7 @@ class ElunaTemplate
             return 1;
         }
         // fix compile error about accessing vehicle destructor (TC)
-        // template<> static int gcT<Vehicle>(lua_State* L) { return 0; }
+        // static int gcT<Vehicle>(lua_State* L) { return 0; }
 
         // name will be used as type name
         // If gc is true, lua will handle the memory management for object pushed
@@ -104,7 +100,7 @@ class ElunaTemplate
             lua_pushcfunction(L, tostringT);
             lua_setfield(L, metatable, "__tostring");
 
-            lua_pushcfunction(L, gcT<T>);
+            lua_pushcfunction(L, gcT);
             lua_setfield(L, metatable, "__gc");
 
             lua_newtable(L);

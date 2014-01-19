@@ -28,6 +28,8 @@
 
 #include "Weather.h" // No idea way he need for linux this here
 
+enum DuelCompleteType;
+enum GroupType;
 struct AreaTriggerEntry;
 struct SpellEntry;
 class Aura;

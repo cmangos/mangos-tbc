@@ -24,7 +24,6 @@ extern void StartEluna(bool restart);
 
 namespace LuaGlobalFunctions
 {
-    // RegisterPacketEvent(event, function)
     int RegisterPacketEvent(lua_State* L)
     {
         lua_settop(L, 2);
@@ -42,7 +41,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
     
-    // RegisterServerEvent(event, function)
     int RegisterServerEvent(lua_State* L)
     {
         lua_settop(L, 2);
@@ -60,7 +58,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterPlayerEvent(event, function)
     int RegisterPlayerEvent(lua_State* L)
     {
         lua_settop(L, 2);
@@ -78,7 +75,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterGuildEvent(event, function)
     int RegisterGuildEvent(lua_State* L)
     {
         lua_settop(L, 2);
@@ -96,7 +92,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterGroupEvent(event, function)
     int RegisterGroupEvent(lua_State* L)
     {
         lua_settop(L, 2);
@@ -114,7 +109,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterCreatureGossipEvent(entry, event, function)
     int RegisterCreatureGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -133,7 +127,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterGameObjectGossipEvent(entry, event, function)
     int RegisterGameObjectGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -152,7 +145,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterItemEvent(entry, event, function)
     int RegisterItemEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -171,7 +163,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterItemGossipEvent(entry, event, function)
     int RegisterItemGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -190,7 +181,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterPlayerGossipEvent(menu_id, event, function)
     int RegisterPlayerGossipEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -209,7 +199,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterCreatureEvent(entry, event, function)
     int RegisterCreatureEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -228,7 +217,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // RegisterGameObjectEvent(entry, event, function)
     int RegisterGameObjectEvent(lua_State* L)
     {
         lua_settop(L, 3);
@@ -247,39 +235,38 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // GetLuaEngine() - Gets lua engine name
     int GetLuaEngine(lua_State* L)
     {
         sEluna.Push(L, "ElunaEngine");
         return 1;
     }
 
-    // GetCoreVersion() - Gets core version as a string
+    int GetCoreName(lua_State* L)
+    {
+        sEluna.Push(L, "MaNGOS");
+        return 1;
+    }
+
     int GetCoreVersion(lua_State* L)
     {
         sEluna.Push(L, REVISION_NR);
         return 1;
     }
 
-    // GetQuest(questId)
     int GetQuest(lua_State* L)
     {
         uint32 questId = luaL_checkunsigned(L, 1);
-        if (!questId)
-            return 0;
 
         sEluna.Push(L, sObjectMgr.GetQuestTemplate(questId));
         return 1;
     }
 
-    // ReloadEluna() - Reloads eluna
     int ReloadEluna(lua_State* L)
     {
         StartEluna(true);
         return 0;
     }
 
-    // GetPlayerByGUID(guid) - Gets Player object by its guid
     int GetPlayerByGUID(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
@@ -287,7 +274,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // GetPlayerByName("name") - Gets player object by name
     int GetPlayerByName(lua_State* L)
     {
         const char* message = luaL_checkstring(L, 1);
@@ -295,14 +281,16 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // GetGameTime() - Gets ingame time as seconds (server time?)
     int GetGameTime(lua_State* L)
     {
-        sEluna.Push(L, uint32(sWorld.GetGameTime()));
+        time_t time = sWorld.GetGameTime();
+        if (time < 0)
+            sEluna.Push(L, int32(time));
+        else
+            sEluna.Push(L, uint32(time));
         return 1;
     }
 
-    // SendWorldMessage("msg") - Sends a broadcast message to everyone
     int SendWorldMessage(lua_State* L)
     {
         const char* message = luaL_checkstring(L, 1);
@@ -310,7 +298,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // GetPlayersInWorld([team, onlyGM]) - Gets a table with players in world. Team can be 0 for ally, 1 for horde and 2 for both.
     int GetPlayersInWorld(lua_State* L)
     {
         uint32 team = luaL_optunsigned(L, 1, TEAM_NEUTRAL);
@@ -339,12 +326,11 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // GetPlayersInMap(mapid[, instanceid, team]) - Gets a table with players in the map. Instanceid optional (0 for normal map). Team can be 0 for ally, 1 for horde and 2 for both
     int GetPlayersInMap(lua_State* L)
     {
         uint32 mapID = luaL_checkunsigned(L, 1);
         uint32 instanceID = luaL_optunsigned(L, 2, 0);
-        uint32 team = luaL_optunsigned(L, 3, TEAM_BOTH_ALLOWED);
+        uint32 team = luaL_optunsigned(L, 3, TEAM_NEUTRAL);
 
         Map* map = sMapMgr.FindMap(mapID, instanceID);
         if (!map)
@@ -360,7 +346,7 @@ namespace LuaGlobalFunctions
             Player* player = itr->getSource();
             if (!player)
                 continue;
-            if (player->GetSession() && (team >= TEAM_BOTH_ALLOWED || player->GetTeam() == team))
+            if (player->GetSession() && (team >= TEAM_NEUTRAL || player->GetTeamId() == team))
             {
                 ++i;
                 sEluna.Push(L, i);
@@ -373,7 +359,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // WorldDBQuery("sql") - Executes SQL to world database and returns the query Result or nil (instant)
     int WorldDBQuery(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
@@ -388,7 +373,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // WorldDBExecute("sql") - Executes SQL to world database (not instant)
     int WorldDBExecute(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
@@ -399,7 +383,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // CharDBQuery("sql") - Executes SQL to characters database and returns the query Result or nil (instant)
     int CharDBQuery(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
@@ -414,7 +397,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // CharDBExecute("sql") - Executes SQL to characters database (not instant)
     int CharDBExecute(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
@@ -425,7 +407,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // AuthDBQuery("sql") - Executes SQL to auth database and returns the query Result or nil (instant)
     int AuthDBQuery(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
@@ -440,7 +421,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // AuthDBExecute("sql") - Executes SQL to auth database (not instant)
     int AuthDBExecute(lua_State* L)
     {
         const char* query = luaL_checkstring(L, 1);
@@ -451,7 +431,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // GetGuildByName("name") - Gets guild object
     int GetGuildByName(lua_State* L)
     {
         const char* name = luaL_checkstring(L, 1);
@@ -459,34 +438,29 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // GetMapById()
     int GetMapById(lua_State* L)
     {
         uint32 mapid = luaL_checkunsigned(L, 1);
-        if (!sMapStore.LookupEntry(mapid))
-            return 0;
+        uint32 instance = luaL_checkunsigned(L, 2);
 
-        sEluna.Push(L, sMapMgr.FindMap(mapid));
+        sEluna.Push(L, sMapMgr.FindMap(mapid, instance));
         return 1;
     }
 
-    // GetGuildByLeaderGUID(leaderGUID) - Gets guild object
     int GetGuildByLeaderGUID(lua_State* L)
     {
-        Object* obj = sEluna.CHECK_OBJECT(L, 1);
+        uint64 guid = sEluna.CHECK_ULONG(L, 1);
 
-        sEluna.Push(L, sGuildMgr.GetGuildByLeader((ObjectGuid)obj->GetObjectGuid()));
+        sEluna.Push(L, sGuildMgr.GetGuildByLeader((ObjectGuid)guid));
         return 1;
     }
 
-    // GetPlayerCount() - Gets server player count
     int GetPlayerCount(lua_State* L)
     {
         sEluna.Push(L, sWorld.GetActiveSessionCount());
         return 1;
     }
 
-    // GetPlayerGUID(lowguid)
     int GetPlayerGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
@@ -494,7 +468,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // GetItemGUID(lowguid)
     int GetItemGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
@@ -502,7 +475,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // GetObjectGUID(lowguid, entry)
     int GetObjectGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
@@ -511,7 +483,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // GetUnitGUID(lowguid, entry)
     int GetUnitGUID(lua_State* L)
     {
         uint32 lowguid = luaL_checkunsigned(L, 1);
@@ -555,8 +526,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // PerformIngameSpawn(spawntype, entry, mapid, instanceid, x, y, z, o[, save, DurOrResptime, phase])
-    // spawntype: 1 Creature, 2 Object. DurOrResptime is respawntime for gameobjects and despawntime for creatures if creature is not saved
     int PerformIngameSpawn(lua_State* L)
     {
         int spawntype = luaL_checkinteger(L, 1);
@@ -717,8 +686,8 @@ namespace LuaGlobalFunctions
             return 0;
         }
         WorldPacket* data = new WorldPacket((Opcodes)opcode, size);
-        sEluna.Push(L, data);
-        delete data;
+        sEluna.Push(L, data); // copies the packet
+        delete data; // Can delete original
         return 1;
     }
 
@@ -769,7 +738,6 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // Kick(player)
     int Kick(lua_State* L)
     {
         Player* player = sEluna.CHECK_PLAYER(L, 1);
@@ -779,16 +747,20 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned))
     int Ban(lua_State* L)
     {
         int banMode = luaL_checkint(L, 1);
-        std::string nameOrIP = luaL_checkstring(L, 2);
+        const char* nameOrIP_cstr = luaL_checkstring(L, 2);
         uint32 duration = luaL_checkunsigned(L, 3);
         const char* reason = luaL_checkstring(L, 4);
         Player* whoBanned = sEluna.CHECK_PLAYER(L, 5);
+        if (!nameOrIP_cstr)
+            return 0;
+        if (!reason)
+            return 0;
         if (!whoBanned)
             return 0;
+        std::string nameOrIP(nameOrIP_cstr);
 
         switch (banMode)
         {
@@ -824,14 +796,12 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
-    // SaveAllPlayers()
     int SaveAllPlayers(lua_State* L)
     {
         sObjectAccessor.SaveAllPlayers();
         return 0;
     }
 
-    // GetGUIDLow(guid)
     int GetGUIDLow(lua_State* L)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);
@@ -840,17 +810,22 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...])
     int SendMail(lua_State* L)
     {
         uint8 i = 0;
-        std::string subject = luaL_checkstring(L, ++i);
-        std::string text = luaL_checkstring(L, ++i);
+        const char* subject_cstr = luaL_checkstring(L, ++i);
+        const char* text_cstr = luaL_checkstring(L, ++i);
         uint32 receiverGUIDLow = luaL_checkunsigned(L, ++i);
         Player* senderPlayer = sEluna.CHECK_PLAYER(L, ++i);
         uint32 stationary = luaL_optunsigned(L, ++i, MAIL_STATIONERY_DEFAULT);
         uint32 delay = luaL_optunsigned(L, ++i, 0);
         int32 argAmount = lua_gettop(L);
+        if (!subject_cstr)
+            return 0;
+        if (!text_cstr)
+            return 0;
+        std::string subject(subject_cstr);
+        std::string text(text_cstr);
 
         MailDraft draft;
 

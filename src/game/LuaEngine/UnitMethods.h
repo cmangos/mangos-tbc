@@ -981,6 +981,13 @@ namespace LuaUnit
         return 0;
     }
 
+    int SetFacingToObject(lua_State* L, Unit* unit)
+    {
+        WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
+        unit->SetFacingToObject(obj);
+        return 0;
+    }
+
     int SetCreatorGUID(lua_State* L, Unit* unit)
     {
         uint64 guid = sEluna.CHECK_ULONG(L, 1);

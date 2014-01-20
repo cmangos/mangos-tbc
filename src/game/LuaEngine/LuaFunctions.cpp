@@ -235,6 +235,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetDisplayId", &LuaUnit::SetDisplayId},               // :SetDisplayId(id)
     {"SetNativeDisplayId", &LuaUnit::SetNativeDisplayId},   // :SetNativeDisplayId(id)
     {"SetFacing", &LuaUnit::SetFacing},                     // :SetFacing(o) - Sets the Unit facing to arg
+    {"SetFacingToObject", &LuaUnit::SetFacingToObject},     // :SetFacingToObject(worldObject) - Sets the Unit facing towards the WorldObject
     // {"SetPhaseMask", &LuaUnit::SetPhaseMask},            // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
     {"SetSpeed", &LuaUnit::SetSpeed},                       // :SetSpeed(type, speed[, forced]) - Sets speed for the movement type (0 = walk, 1 = run ..)
     // {"SetStunned", &LuaUnit::SetStunned},                // :SetStunned([enable]) - Stuns or removes stun

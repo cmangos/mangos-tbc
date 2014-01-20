@@ -256,6 +256,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"SetPetGUID", &LuaUnit::SetPetGUID},                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
     // {"SetCritterGUID", &LuaUnit::SetCritterGUID},        // :SetCritterGUID(uint64 guid) - Sets the critter's guid
     {"SetWaterWalk", &LuaUnit::SetWaterWalk},               // :SetWaterWalk([enable]) - Sets WaterWalk on or off
+    {"SetStandState", &LuaUnit::SetStandState},             // :SetStandState(state)
 
     // Boolean
     {"IsAlive", &LuaUnit::IsAlive},                         // :IsAlive()
@@ -299,6 +300,7 @@ ElunaRegister<Unit> UnitMethods[] =
     // {"IsRooted", &LuaUnit::IsRooted},                    // :IsRooted()
     {"IsFullHealth", &LuaUnit::IsFullHealth},               // :IsFullHealth() - Returns if the unit is full health
     {"HasAura", &LuaUnit::HasAura},                         // :HasAura(spellId) - Returns true if the unit has the aura from the spell
+    {"IsStandState", &LuaUnit::IsStandState},               // :IsStandState()
 
     // Other
     {"RegisterEvent", &LuaUnit::RegisterEvent},             // :RegisterEvent(function, delay, calls)

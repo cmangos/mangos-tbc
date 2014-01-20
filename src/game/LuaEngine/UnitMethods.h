@@ -1030,6 +1030,13 @@ namespace LuaUnit
         unit->SetWaterWalk(enable);
         return 0;
     }
+	
+    int SetStandState(lua_State* L, Unit* unit)
+    {
+        uint8 state = sEluna.CHECK_ULONG(L, 1);
+        unit->SetStandState(state);
+        return 0;
+    }
 
     int IsAlive(lua_State* L, Unit* unit)
     {
@@ -1260,6 +1267,12 @@ namespace LuaUnit
         uint32 spell = luaL_checkunsigned(L, 1);
 
         sEluna.Push(L, unit->HasAura(spell));
+        return 1;
+    }
+
+    int IsStandState(lua_State* L, Unit* unit)
+    {
+        sEluna.Push(L, unit->IsStandState());
         return 1;
     }
 

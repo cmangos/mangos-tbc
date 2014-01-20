@@ -398,15 +398,6 @@ namespace LuaUnit
         return 1;
     }
 
-    /*int GetNearbyTarget(lua_State* L, Unit* unit)
-    {
-        float dist = luaL_optnumber(L, 1, 5.0f);
-        Unit* exclude = sEluna.CHECK_UNIT(L, 2);
-
-        sEluna.Push(L, unit->SelectNearbyTarget(exclude, dist));
-        return 1;
-    }*/
-
     int SendChatMessageToPlayer(lua_State* L, Unit* unit)
     {
         uint8 type = luaL_checkunsigned(L, 1);
@@ -984,7 +975,8 @@ namespace LuaUnit
     int SetFacingToObject(lua_State* L, Unit* unit)
     {
         WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
-        unit->SetFacingToObject(obj);
+        if (obj)
+            unit->SetFacingToObject(obj);
         return 0;
     }
 

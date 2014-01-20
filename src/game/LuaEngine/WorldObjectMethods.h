@@ -152,7 +152,7 @@ namespace LuaWorldObject
         uint32 entry = luaL_optunsigned(L, 2, 0);
 
         std::list<Creature*> list;
-        Eluna::WorldObjectInRangeCheck checker(false, obj, range, TYPEMASK_UNIT);
+        Eluna::WorldObjectInRangeCheck checker(false, obj, range, TYPEMASK_UNIT, entry);
         MaNGOS::CreatureListSearcher<Eluna::WorldObjectInRangeCheck> searcher(list, checker);
         Cell::VisitGridObjects(obj, searcher, range);
 
@@ -176,7 +176,7 @@ namespace LuaWorldObject
         uint32 entry = luaL_optunsigned(L, 2, 0);
 
         std::list<GameObject*> list;
-        Eluna::WorldObjectInRangeCheck checker(false, obj, range, TYPEMASK_GAMEOBJECT);
+        Eluna::WorldObjectInRangeCheck checker(false, obj, range, TYPEMASK_GAMEOBJECT, entry);
         MaNGOS::GameObjectListSearcher<Eluna::WorldObjectInRangeCheck> searcher(list, checker);
         Cell::VisitGridObjects(obj, searcher, range);
 
@@ -251,6 +251,50 @@ namespace LuaWorldObject
             case HIGHGUID_UNIT:
             case HIGHGUID_PET:           sEluna.Push(L, obj->GetMap()->GetAnyTypeCreature(guid)); break;
             default:                     return 0;
+        }
+        return 1;
+    }
+
+    int GetDistance(lua_State* L, WorldObject* obj)
+    {
+        WorldObject* target = sEluna.CHECK_WORLDOBJECT(L, 1);
+        if (target && target->IsInWorld())
+            sEluna.Push(L, obj->GetDistance(target));
+        else
+        {
+            float X = luaL_checknumber(L, 1);
+            float Y = luaL_checknumber(L, 2);
+            float Z = luaL_checknumber(L, 3);
+            sEluna.Push(L, obj->GetDistance(X, Y, Z));
+        }
+        return 1;
+    }
+
+    int GetRelativePoint(lua_State* L, WorldObject* obj)
+    {
+        float dist = luaL_checknumber(L, 1);
+        float rad = luaL_checknumber(L, 2);
+
+        float x, y, z;
+        obj->GetClosePoint(x, y, z, 0.0f, dist, rad);
+
+        sEluna.Push(L, x);
+        sEluna.Push(L, y);
+        sEluna.Push(L, z);
+        return 3;
+    }
+
+    int GetAngle(lua_State* L, WorldObject* obj)
+    {
+        WorldObject* target = sEluna.CHECK_WORLDOBJECT(L, 1);
+
+        if (target && target->IsInWorld())
+            sEluna.Push(L, obj->GetAngle(target));
+        else
+        {
+            float x = luaL_checknumber(L, 1);
+            float y = luaL_checknumber(L, 2);
+            sEluna.Push(L, obj->GetAngle(x, y));
         }
         return 1;
     }

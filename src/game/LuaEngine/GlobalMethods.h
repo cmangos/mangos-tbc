@@ -486,14 +486,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // FindUnit(guid)
-    /*int FindUnit(lua_State* L)
-    {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
-        sEluna.Push(L, sObjectAccessor.FindUnit(guid));
-        return 1;
-    }*/
-
     // GetPlayerGUID(lowguid)
     int GetPlayerGUID(lua_State* L)
     {
@@ -730,7 +722,6 @@ namespace LuaGlobalFunctions
         return 1;
     }
 
-    // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost[, persist(bool)])
     int AddVendorItem(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
@@ -738,7 +729,6 @@ namespace LuaGlobalFunctions
         int maxcount = luaL_checkinteger(L, 3);
         uint32 incrtime = luaL_checkunsigned(L, 4);
         uint32 extendedcost = luaL_checkunsigned(L, 5);
-        // bool persist = luaL_optbool(L, 6, true);
         if (!sObjectMgr.GetCreatureTemplate(entry))
         {
             luaL_error(L, "Couldn't find a creature with (ID: %d)!", entry);
@@ -747,31 +737,27 @@ namespace LuaGlobalFunctions
 
         if (!sObjectMgr.IsVendorItemValid(false, "npc_vendor", entry, item, maxcount, incrtime, extendedcost, 0))
             return 0;
-        sObjectMgr.AddVendorItem(entry, item, maxcount, incrtime, extendedcost/*, persist*/); // MaNGOS does not support persist
+        sObjectMgr.AddVendorItem(entry, item, maxcount, incrtime, extendedcost);
         return 0;
     }
 
-    // VendorRemoveItem(entry, item[, persist(bool)])
     int VendorRemoveItem(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
         uint32 item = luaL_checkunsigned(L, 2);
-        bool persist = luaL_optbool(L, 3, true);
         if (!sObjectMgr.GetCreatureTemplate(entry))
         {
             luaL_error(L, "Couldn't find a creature with (ID: %d)!", entry);
             return 0;
         }
 
-        sObjectMgr.RemoveVendorItem(entry, item/*, persist*/); // MaNGOS does not support persist
+        sObjectMgr.RemoveVendorItem(entry, item);
         return 0;
     }
 
-    // VendorRemoveAllItems(entry, persist(bool))
     int VendorRemoveAllItems(lua_State* L)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
-        bool persist = luaL_optbool(L, 2, true);
 
         VendorItemData const* items = sObjectMgr.GetNpcVendorItemList(entry);
         if (!items || items->Empty())
@@ -779,7 +765,7 @@ namespace LuaGlobalFunctions
 
         VendorItemList const itemlist = items->m_items;
         for (VendorItemList::const_iterator itr = itemlist.begin(); itr != itemlist.end(); ++itr)
-            sObjectMgr.RemoveVendorItem(entry, (*itr)->item/*, persist*/); // MaNGOS does not support persist
+            sObjectMgr.RemoveVendorItem(entry, (*itr)->item);
         return 0;
     }
 

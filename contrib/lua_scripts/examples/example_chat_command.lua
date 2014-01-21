@@ -6,4 +6,4 @@ local function ChatSystem(event, player, msg, _, lang)
     end
 end
 
-RegisterServerEvent(18, ChatSystem)
+RegisterPlayerEvent(18, ChatSystem)

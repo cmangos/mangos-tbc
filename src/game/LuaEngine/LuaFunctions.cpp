@@ -574,7 +574,7 @@ ElunaRegister<Player> PlayerMethods[] =
     // {"RemoveRewardedQuest", &LuaPlayer::RemoveRewardedQuest}, // :RemoveRewardedQuest(entry) - Removes a rewarded quest
     {"AreaExploredOrEventHappens", &LuaPlayer::AreaExploredOrEventHappens},                                   // :AreaExploredOrEventHappens(questId) - Satisfies an area or event requrement for the questId
     {"GroupEventHappens", &LuaPlayer::GroupEventHappens},   // :GroupEventHappens(questId, worldObject) - Satisfies a group event for the questId with the world object
-    // {"KilledMonsterCredit", &LuaPlayer::KilledMonsterCredit}, // :KilledMonsterCredit(entry) - Satisfies a monsterkill for the player
+    {"KilledMonsterCredit", &LuaPlayer::KilledMonsterCredit}, // :KilledMonsterCredit(entry) - Satisfies a monsterkill for the player
     // {"KilledPlayerCredit", &LuaPlayer::KilledPlayerCredit},   // :KilledPlayerCredit() - Satisfies a player kill for the player
     // {"KillGOCredit", &LuaPlayer::KillGOCredit},          // :KillGOCredit(GOEntry[, GUID]) - Credits the player for destroying a GO, guid is optional
     {"TalkedToCreature", &LuaPlayer::TalkedToCreature},     // :TalkedToCreature(npcEntry, creature) - Satisfies creature talk objective for the player

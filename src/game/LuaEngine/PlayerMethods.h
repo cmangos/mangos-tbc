@@ -990,13 +990,13 @@ namespace LuaPlayer
         return 0;
     }*/
 
-    /*int KilledMonsterCredit(lua_State* L, Player* player)
+    int KilledMonsterCredit(lua_State* L, Player* player)
     {
         uint32 entry = luaL_checkunsigned(L, 1);
 
-        player->KilledMonsterCredit(entry, 0);
+        player->KilledMonsterCredit(entry, player->GetObjectGuid());
         return 0;
-    }*/
+    }
 
     int GroupEventHappens(lua_State* L, Player* player)
     {

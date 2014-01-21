@@ -156,7 +156,8 @@ class ElunaTemplate
         static int thunk(lua_State* L)
         {
             T* obj = check(L, 1); // get self
-            lua_remove(L, 1); // remove self
+            if (!lua_isnone(L, 1))
+                lua_remove(L, 1); // remove self
             ElunaRegister<T>* l = static_cast<ElunaRegister<T>*>(lua_touserdata(L, lua_upvalueindex(1)));
             if (!obj)
                 return 0;
@@ -462,8 +463,8 @@ class Eluna
         static void report(lua_State*);
         void Register(uint8 reg, uint32 id, uint32 evt, int func);
         void BeginCall(int fReference);
-        bool ExecuteCall(uint8 params, uint8 res);
-        void EndCall(uint8 res);
+        bool ExecuteCall(int params, int res);
+        void EndCall(int res);
         void LoadDirectory(char* directory, LoadedScripts* scr);
         // Pushes
         void Push(lua_State*); // nil

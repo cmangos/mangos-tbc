@@ -250,7 +250,7 @@ void Eluna::BeginCall(int fReference)
     lua_rawgeti(L, LUA_REGISTRYINDEX, (fReference));
 }
 
-bool Eluna::ExecuteCall(uint8 params, uint8 res)
+bool Eluna::ExecuteCall(int params, int res)
 {
     bool ret = true;
     int top = lua_gettop(L);
@@ -278,7 +278,7 @@ bool Eluna::ExecuteCall(uint8 params, uint8 res)
     return ret;
 }
 
-void Eluna::EndCall(uint8 res)
+void Eluna::EndCall(int res)
 {
     for (int i = res; i > 0; i--)
     {
@@ -612,8 +612,9 @@ void Eluna::EventBind::ExecuteCall()
             lua_pushvalue(sEluna.L, i);
         sEluna.ExecuteCall(params, LUA_MULTRET); // Do call and leave results to stack
     }
-    for (int i = 1; i <= params; ++i) // Remove original pushed params
-        lua_remove(sEluna.L, i);
+    for (int i = params; i > 0; --i) // Remove original pushed params
+        if (!lua_isnone(sEluna.L, i))
+            lua_remove(sEluna.L, i);
     // Results in stack, otherwise stack clean
 }
 

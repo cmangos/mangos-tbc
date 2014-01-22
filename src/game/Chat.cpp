@@ -3356,11 +3356,9 @@ void ChatHandler::LogCommand(char const* fullcmd)
 void ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const* message, Language language /*= LANG_UNIVERSAL*/, ChatTagFlags chatTag /*= CHAT_TAG_NONE*/,
                                   ObjectGuid const& senderGuid /*= ObjectGuid()*/, char const* senderName /*= NULL*/,
                                   ObjectGuid const& targetGuid /*= ObjectGuid()*/, char const* targetName /*= NULL*/,
-                                  char const* channelName /*= NULL*/, uint32 achievementId /*= 0*/)
+                                  char const* channelName /*= NULL*/)
 {
-    bool isGM = chatTag & CHAT_TAG_GM;
-
-    data.Initialize(isGM ? SMSG_GM_MESSAGECHAT : SMSG_MESSAGECHAT);
+    data.Initialize(SMSG_MESSAGECHAT);
     data << uint8(msgtype);
     data << uint32(language);
     data << ObjectGuid(senderGuid);
@@ -3397,13 +3395,6 @@ void ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const
             }
             break;
         default:
-            if (isGM)
-            {
-                MANGOS_ASSERT(senderName);
-                data << uint32(strlen(senderName) + 1);
-                data << senderName;
-            }
-
             if (msgtype == CHAT_MSG_CHANNEL)
             {
                 MANGOS_ASSERT(channelName);

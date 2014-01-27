@@ -65,7 +65,6 @@
 #include "AuctionHouseBot/AuctionHouseBot.h"
 #include "CharacterDatabaseCleaner.h"
 #include "CreatureLinkingMgr.h"
-#include "LuaEngine.h"
 #include "HookMgr.h"
 
 INSTANTIATE_SINGLETON_1(World);

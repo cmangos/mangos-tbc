@@ -22,21 +22,6 @@
 
 namespace LuaGameObject
 {
-    int GetRelativePoint(lua_State* L, GameObject* go)
-    {
-        if (!go || !go->IsInWorld())
-            return 0;
-
-        float dist = luaL_checknumber(L, 1);
-        int deg = luaL_checkinteger(L, 2);
-
-        float o = MapManager::NormalizeOrientation(go->GetOrientation() + (deg * M_PI / 180));
-        sEluna.Push(L, go->GetPositionX() + (dist * cosf(o)));
-        sEluna.Push(L, go->GetPositionY() + (dist * sinf(o)));
-        sEluna.Push(L, o);
-        return 3;
-    }
-
     int SummonCreature(lua_State* L, GameObject* go)
     {
         if (!go || !go->IsInWorld())

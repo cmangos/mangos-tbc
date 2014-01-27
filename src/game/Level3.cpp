@@ -375,21 +375,15 @@ bool ChatHandler::HandleReloadConfigCommand(char* /*args*/)
     return true;
 }
 
-extern void StartEluna(bool restart);
+extern bool StartEluna();
 bool ChatHandler::HandleReloadElunaCommand(char* /*args*/)
 {
     sLog.outString("Re-Loading Eluna LuaEngine...");
 
-    // Check config file for eluna is enabled or disabled
-    if (sWorld.getConfig(CONFIG_BOOL_ELUNA_ENABLED))
-    {
-        StartEluna(false);
+    if (StartEluna())
         SendGlobalSysMessage("Eluna LuaEngine reloaded.");
-    }
     else
-    {
         SendGlobalSysMessage("Eluna Lua Engine is disabled can't reload.");
-    }
     return true;
 }
 

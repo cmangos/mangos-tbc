@@ -84,7 +84,7 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "GetMapById", &LuaGlobalFunctions::GetMapById);                                         // GetMapById(mapId, instance) - Returns map object of id specified. UNDOCUMENTED
 
     // Other
-    lua_register(L, "ReloadEluna", &LuaGlobalFunctions::ReloadEluna);                                       // ReloadEluna() - Reload's Eluna engine
+    lua_register(L, "ReloadEluna", &LuaGlobalFunctions::ReloadEluna);                                       // ReloadEluna() - Reload's Eluna engine. Returns true if reload succesful.
     lua_register(L, "SendWorldMessage", &LuaGlobalFunctions::SendWorldMessage);                             // SendWorldMessage(msg) - Sends a broadcast message to everyone
     lua_register(L, "WorldDBQuery", &LuaGlobalFunctions::WorldDBQuery);                                     // WorldDBQuery(sql) - Executes given SQL query to world database instantly and returns a QueryResult object
     lua_register(L, "WorldDBExecute", &LuaGlobalFunctions::WorldDBExecute);                                 // WorldDBExecute(sql) - Executes given SQL query to world database (not instant)
@@ -729,7 +729,6 @@ ElunaRegister<GameObject> GameObjectMethods[] =
 {
     // Getters
     {"GetDisplayId", &LuaGameObject::GetDisplayId},         // :GetDisplayId()
-    {"GetRelativePoint", &LuaGameObject::GetRelativePoint}, // :GetRelativePoint(dist, radians) - Returns the X, Y and orientation of a point dist away from gob. Radian 0 point is the direction the unit is facing.
     {"GetGoState", &LuaGameObject::GetGoState},             // :GetGoState() - Returns state
     {"GetLootState", &LuaGameObject::GetLootState},         // :GetLootState() - Returns loot state
 

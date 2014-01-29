@@ -27,8 +27,6 @@ INSTANTIATE_SINGLETON_1(Eluna);
 #endif
 
 template<> WorldPacket const* ElunaTemplate<WorldPacket>::GetTPointer(WorldPacket const& obj) { return GetNewTPointer(obj); }
-// Mangos doesnt use autoptr, no need to copy object
-// template<> QueryResult const* ElunaTemplate<QueryResult>::GetTPointer(QueryResult const& obj) { return GetNewTPointer(obj); }
 
 extern void RegisterFunctions(lua_State* L);
 

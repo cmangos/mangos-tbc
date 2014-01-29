@@ -365,11 +365,11 @@ namespace LuaGlobalFunctions
         if (!query)
             return 0;
 
-        QueryResult* Result = WorldDatabase.Query(query);
-        if (!Result)
+        QueryResult* result = WorldDatabase.Query(query);
+        if (!result)
             return 0;
 
-        sEluna.Push(L, Result);
+        sEluna.Push(L, result);
         return 1;
     }
 
@@ -389,11 +389,11 @@ namespace LuaGlobalFunctions
         if (!query)
             return 0;
 
-        QueryResult* Result = CharacterDatabase.Query(query);
-        if (!Result)
+        QueryResult* result = CharacterDatabase.Query(query);
+        if (!result)
             return 0;
 
-        sEluna.Push(L, Result);
+        sEluna.Push(L, result);
         return 1;
     }
 
@@ -413,11 +413,11 @@ namespace LuaGlobalFunctions
         if (!query)
             return 0;
 
-        QueryResult* Result = LoginDatabase.Query(query);
-        if (!Result)
+        QueryResult* result = LoginDatabase.Query(query);
+        if (!result)
             return 0;
 
-        sEluna.Push(L, Result);
+        sEluna.Push(L, result);
         return 1;
     }
 

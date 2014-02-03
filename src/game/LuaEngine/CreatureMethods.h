@@ -407,11 +407,11 @@ namespace LuaCreature
         return 1;
     }
 
-    /*int IsTrigger(lua_State* L, Creature* creature)
+    int IsTrigger(lua_State* L, Creature* creature)
     {
-        sEluna.Push(L, creature->isTrigger());
+        sEluna.Push(L, creature->IsTrigger());
         return 1;
-    }*/
+    }
 
     int IsCivilian(lua_State* L, Creature* creature)
     {

@@ -683,7 +683,7 @@ ElunaRegister<Creature> CreatureMethods[] =
     // {"IsDungeonBoss", &LuaCreature::IsDungeonBoss},      // :IsDungeonBoss() - Returns true if the creature is a DungeonBoss, false if not
     {"IsRacialLeader", &LuaCreature::IsRacialLeader},       // :IsRacialLeader() - Returns true if the creature is a racial leader, false if not
     {"IsCivilian", &LuaCreature::IsCivilian},               // :IsCivilian() - Returns true if the creature is a civilian, false if not
-    // {"IsTrigger", &LuaCreature::IsTrigger},              // :IsTrigger() - Returns true if the creature is a trigger, false if not
+    {"IsTrigger", &LuaCreature::IsTrigger},                 // :IsTrigger() - Returns true if the creature is a trigger, false if not
     {"IsGuard", &LuaCreature::IsGuard},                     // :IsGuard() - Returns true if the creature is a guard, false if not
     {"IsElite", &LuaCreature::IsElite},                     // :IsElite() - Returns true if the creature is an elite, false if not
     {"IsInEvadeMode", &LuaCreature::IsInEvadeMode},         // :IsInEvadeMode() - Returns true if the creature is in evade mode, false if not

@@ -509,63 +509,101 @@ namespace LuaUnit
         return 0;
     }
 
-    /*int KnockbackFrom(lua_State* L, Unit* unit)
+    static void PrepareMove(Unit* unit)
     {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float speedXY = luaL_checknumber(L, 3);
-        float speedZ = luaL_checknumber(L, 4);
-        unit->KnockbackFrom(x, y, speedXY, speedZ);
-        return 0;
-    }*/
+        unit->GetMotionMaster()->MovementExpired(); // Chase
+        unit->StopMoving(); // Some
+        unit->GetMotionMaster()->Clear(); // all
+    }
 
-    /*int JumpTo(lua_State* L, Unit* unit)
+    int MoveIdle(lua_State* L, Unit* unit)
     {
-        WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
-        float speedZ = luaL_checknumber(L, 2);
-        if (!obj)
-            return 0;
-
-        unit->JumpTo(obj, speedZ);
-        return 0;
-    }*/
-
-    /*int Jump(lua_State* L, Unit* unit)
-    {
-        float speedXY = luaL_checknumber(L, 1);
-        float speedZ = luaL_checknumber(L, 2);
-        bool forward = luaL_optbool(L, 3, true);
-        unit->JumpTo(speedXY, speedZ, forward);
-        return 0;
-    }*/
-
-    int JumpToCoords(lua_State* L, Unit* unit)
-    {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float z = luaL_checknumber(L, 3);
-        float speedXY = luaL_checknumber(L, 4);
-        float speedZ = luaL_checknumber(L, 5);
-        // unit->GetMotionMaster()->MoveJump(x, y, z, speedXY, speedZ);
+        PrepareMove(unit);
+        unit->GetMotionMaster()->MoveIdle();
         return 0;
     }
 
-    /*int MoveCharge(lua_State* L, Unit* unit)
+    int MoveRandom(lua_State* L, Unit* unit)
     {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float z = luaL_checknumber(L, 3);
-        float speed = luaL_checknumber(L, 4);
-        unit->GetMotionMaster()->MoveCharge(x, y, z, speed);
+        float radius = luaL_checknumber(L, 1);
+        PrepareMove(unit);
+        float x, y, z;
+        unit->GetPosition(x, y, z);
+        unit->GetMotionMaster()->MoveRandomAroundPoint(x, y, z, radius);
         return 0;
-    }*/
+    }
+
+    int MoveHome(lua_State* L, Unit* unit)
+    {
+        PrepareMove(unit);
+        unit->GetMotionMaster()->MoveTargetedHome();
+        return 0;
+    }
+
+    int MoveFollow(lua_State* L, Unit* unit)
+    {
+        Unit* target = sEluna.CHECK_UNIT(L, 1);
+        float dist = luaL_optnumber(L, 2, 0.0f);
+        float angle = luaL_optnumber(L, 3, 0.0f);
+        if (!target)
+            return 0;
+        PrepareMove(unit);
+        unit->GetMotionMaster()->MoveFollow(target, dist, angle);
+        return 0;
+    }
 
     int MoveChase(lua_State* L, Unit* unit)
     {
         Unit* target = sEluna.CHECK_UNIT(L, 1);
         float dist = luaL_optnumber(L, 2, 0.0f);
         float angle = luaL_optnumber(L, 3, 0.0f);
+        if (!target)
+            return 0;
+        PrepareMove(unit);
         unit->GetMotionMaster()->MoveChase(target, dist, angle);
+        return 0;
+    }
+
+    int MoveConfused(lua_State* L, Unit* unit)
+    {
+        PrepareMove(unit);
+        unit->GetMotionMaster()->MoveConfused();
+        return 0;
+    }
+
+    int MoveFleeing(lua_State* L, Unit* unit)
+    {
+        Unit* target = sEluna.CHECK_UNIT(L, 1);
+        uint32 time = luaL_optunsigned(L, 2, 0);
+        if (!target)
+            return 0;
+        PrepareMove(unit);
+        unit->GetMotionMaster()->MoveFleeing(target, time);
+        return 0;
+    }
+
+    int MoveTo(lua_State* L, Unit* unit)
+    {
+        uint32 id = luaL_checkunsigned(L, 1);
+        float x = luaL_checknumber(L, 2);
+        float y = luaL_checknumber(L, 3);
+        float z = luaL_checknumber(L, 4);
+        bool genPath = luaL_optbool(L, 5, true);
+        PrepareMove(unit);
+        unit->GetMotionMaster()->MovePoint(id, x, y, z, genPath);
+        return 0;
+    }
+
+    int MoveJump(lua_State* L, Unit* unit)
+    {
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        float z = luaL_checknumber(L, 3);
+        float zSpeed = luaL_checknumber(L, 4);
+        float maxHeight = luaL_checknumber(L, 5);
+        uint32 id = luaL_optunsigned(L, 6, 0);
+        PrepareMove(unit);
+        unit->GetMotionMaster()->MoveJump(x, y, z, zSpeed, maxHeight, id);
         return 0;
     }
 
@@ -602,49 +640,6 @@ namespace LuaUnit
     {
         bool apply = luaL_optbool(L, 1, true);
         unit->SetControlled(apply, UNIT_STATE_FLEEING);
-        return 0;
-    }*/
-
-    int MoveTo(lua_State* L, Unit* unit)
-    {
-        float id = luaL_checknumber(L, 1);
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        bool generatePath = luaL_optbool(L, 5, true);
-        unit->GetMotionMaster()->MovePoint(id, x, y, z, generatePath);
-        return 0;
-    }
-
-    int MoveFollow(lua_State* L, Unit* unit)
-    {
-        Unit* target = sEluna.CHECK_UNIT(L, 1);
-        float dist = luaL_checknumber(L, 2);
-        float angle = luaL_checknumber(L, 3);
-        unit->GetMotionMaster()->MoveFollow(target, dist, angle);
-        return 0;
-    }
-
-    int MoveClear(lua_State* L, Unit* unit)
-    {
-        unit->GetMotionMaster()->Clear();
-        return 0;
-    }
-
-    int MoveRandom(lua_State* L, Unit* unit)
-    {
-        float radius = luaL_checknumber(L, 1);
-        float x, y, z;
-        unit->GetPosition(x, y, z);
-        unit->GetMotionMaster()->MoveRandomAroundPoint(x, y, z, radius);
-        return 0;
-    }
-
-    /*int MoveRotate(lua_State* L, Unit* unit)
-    {
-        uint32 time = luaL_checkunsigned(L, 1);
-        bool left = luaL_optbool(L, 2, true);
-        unit->GetMotionMaster()->MoveRotate(time, left ? ROTATE_DIRECTION_LEFT : ROTATE_DIRECTION_RIGHT);
         return 0;
     }*/
 
@@ -1584,12 +1579,6 @@ namespace LuaUnit
         unit->RemoveCharmAuras();
         return 0;
     }*/
-
-    int StopMoving(lua_State* L, Unit* unit)
-    {
-        unit->StopMoving();
-        return 0;
-    }
 
     int AddUnitState(lua_State* L, Unit* unit)
     {

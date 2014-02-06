@@ -594,7 +594,7 @@ namespace LuaUnit
         return 0;
     }
 
-    int MoveJump(lua_State* L, Unit* unit)
+    /*int MoveJump(lua_State* L, Unit* unit)
     {
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
@@ -605,7 +605,7 @@ namespace LuaUnit
         PrepareMove(unit);
         unit->GetMotionMaster()->MoveJump(x, y, z, zSpeed, maxHeight, id);
         return 0;
-    }
+    }*/
 
     int SetName(lua_State* L, Unit* unit)
     {

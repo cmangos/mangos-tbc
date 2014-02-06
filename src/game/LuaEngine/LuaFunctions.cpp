@@ -349,7 +349,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"MoveConfused", &LuaUnit::MoveConfused},               // :MoveConfused()
     {"MoveFleeing", &LuaUnit::MoveFleeing},                 // :MoveFleeing(enemy[, time])
     {"MoveTo", &LuaUnit::MoveTo},                           // :MoveTo(id, x, y, z[, genPath]) - Moves to point. id is sent to WP reach hook. genPath defaults to true
-    {"MoveJump", &LuaUnit::MoveJump},                       // :MoveJump(x, y, z, zSpeed, maxHeight, id)
+    // {"MoveJump", &LuaUnit::MoveJump},                    // :MoveJump(x, y, z, zSpeed, maxHeight, id)
     
     /* Vehicle */
     // {"AddVehiclePassenger", &LuaUnit::AddVehiclePassenger}, // :AddVehiclePassenger(unit, seatId) - Adds a passenger to the vehicle by specifying a unit and seatId

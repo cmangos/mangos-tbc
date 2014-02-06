@@ -1325,7 +1325,11 @@ namespace LuaUnit
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        sEluna.Push(L, sEluna.m_EventMgr.AddEvent(&unit->m_Events, functionRef, delay, repeats, unit));
+        functionRef = sEluna.m_EventMgr.AddEvent(&unit->m_Events, functionRef, delay, repeats, unit);
+        if (functionRef)
+            sEluna.Push(L, functionRef);
+        else
+            sEluna.Push(L);
         return 1;
     }
 

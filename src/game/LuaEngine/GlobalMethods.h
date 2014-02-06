@@ -499,7 +499,11 @@ namespace LuaGlobalFunctions
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        sEluna.Push(L, sEluna.m_EventMgr.AddEvent(&sEluna.m_EventMgr.GlobalEvents, functionRef, delay, repeats));
+        functionRef = sEluna.m_EventMgr.AddEvent(&sEluna.m_EventMgr.GlobalEvents, functionRef, delay, repeats);
+        if (functionRef)
+            sEluna.Push(L, functionRef);
+        else
+            sEluna.Push(L);
         return 1;
     }
 
@@ -685,9 +689,7 @@ namespace LuaGlobalFunctions
             luaL_error(L, "Invalid opcode type (%d)", opcode);
             return 0;
         }
-        WorldPacket* data = new WorldPacket((Opcodes)opcode, size);
-        sEluna.Push(L, data); // copies the packet
-        delete data; // Can delete original
+        sEluna.Push(L, new WorldPacket((Opcodes)opcode, size));
         return 1;
     }
 

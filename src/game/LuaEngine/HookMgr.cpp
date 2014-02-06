@@ -598,7 +598,7 @@ void HookMgr::UpdateAI(GameObject* pGameObject, uint32 update_diff, uint32 p_tim
     sEluna.BeginCall(bind);
     sEluna.Push(sEluna.L, GAMEOBJECT_EVENT_ON_AIUPDATE);
     sEluna.Push(sEluna.L, pGameObject);
-    sEluna.Push(sEluna.L, update_diff);
+    sEluna.Push(sEluna.L, p_time);
     sEluna.ExecuteCall(3, 0);
 }
 
@@ -611,7 +611,7 @@ bool HookMgr::OnPacketSend(WorldSession* session, WorldPacket& packet)
         player = session->GetPlayer();
     if (sEluna.ServerEventBindings.BeginCall(SERVER_EVENT_ON_PACKET_SEND))
     {
-        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, new WorldPacket(packet));
         sEluna.Push(sEluna.L, player);
         sEluna.ServerEventBindings.ExecuteCall();
         for (int i = 1; i <= lua_gettop(sEluna.L); ++i)
@@ -628,7 +628,7 @@ bool HookMgr::OnPacketSend(WorldSession* session, WorldPacket& packet)
     }
     if (sEluna.PacketEventBindings.BeginCall(packet.GetOpcode()))
     {
-        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, new WorldPacket(packet));
         sEluna.Push(sEluna.L, player);
         sEluna.PacketEventBindings.ExecuteCall();
         for (int i = 1; i <= lua_gettop(sEluna.L); ++i)
@@ -653,7 +653,7 @@ bool HookMgr::OnPacketReceive(WorldSession* session, WorldPacket& packet)
         player = session->GetPlayer();
     if (sEluna.ServerEventBindings.BeginCall(SERVER_EVENT_ON_PACKET_RECEIVE))
     {
-        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, new WorldPacket(packet));
         sEluna.Push(sEluna.L, player);
         sEluna.ServerEventBindings.ExecuteCall();
         for (int i = 1; i <= lua_gettop(sEluna.L); ++i)
@@ -670,7 +670,7 @@ bool HookMgr::OnPacketReceive(WorldSession* session, WorldPacket& packet)
     }
     if (sEluna.PacketEventBindings.BeginCall(packet.GetOpcode()))
     {
-        sEluna.Push(sEluna.L, &packet);
+        sEluna.Push(sEluna.L, new WorldPacket(packet));
         sEluna.Push(sEluna.L, player);
         sEluna.PacketEventBindings.ExecuteCall();
         for (int i = 1; i <= lua_gettop(sEluna.L); ++i)

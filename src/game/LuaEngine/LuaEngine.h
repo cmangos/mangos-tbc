@@ -52,11 +52,6 @@ class ElunaTemplate
             return 1;
         }
 
-        // If assertion fails, should check if obj really should have gc on
-        // If gc / memory management is true, may need specialized function for GetTPointer to copy object using GetNewTPointerin LuaEngine.cpp
-        static T const* GetNewTPointer(T const& obj) { MANGOS_ASSERT(manageMemory); return new T(obj); }
-        static T const* GetTPointer(T const& obj) { return &obj; }
-
         static int gcT(lua_State* L)
         {
             if (!manageMemory)
@@ -137,7 +132,7 @@ class ElunaTemplate
             T const** ptrHold = (T const**)lua_newuserdata(L, sizeof(T**));
             if (ptrHold)
             {
-                *ptrHold = GetTPointer(*obj);
+                *ptrHold = obj;
                 lua_pushvalue(L, -2);
                 lua_setmetatable(L, -2);
             }
@@ -180,10 +175,10 @@ struct EventMgr
 
     typedef std::set<LuaEvent*> EventSet;
     typedef std::map<EventProcessor*, EventSet> EventMap;
-    typedef UNORDERED_MAP<uint64, EventProcessor> ProcessorMap;
+    // typedef UNORDERED_MAP<uint64, EventProcessor> ProcessorMap;
 
     EventMap LuaEvents; // LuaEvents[processor] = {LuaEvent, LuaEvent...}
-    ProcessorMap Processors; // Processors[guid] = processor
+    // ProcessorMap Processors; // Processors[guid] = processor
     EventProcessor GlobalEvents;
 
     struct LuaEvent : public BasicEvent
@@ -195,35 +190,27 @@ struct EventMgr
         // Should never execute on dead events
         bool Execute(uint64 time, uint32 diff);
 
-        bool hasObject; // Dont call event if object no longer exists
-        Object* obj;    // Object to push
+        EventProcessor* events; // Pointer to events (holds the timed event)
         int funcRef;    // Lua function reference ID, also used as event ID
         uint32 delay;   // Delay between event calls
         uint32 calls;   // Amount of calls to make, 0 for infinite
-        EventProcessor* events; // Pointer to events (holds the timed event)
+        Object* obj;    // Object to push
     };
 
-    // Updates all processors stored in the manager
     // Should be run on world tick
     void Update(uint32 diff)
     {
         GlobalEvents.Update(diff);
-        if (Processors.empty())
-            return;
-        for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end(); ++it)
-            it->second.Update(diff);
     }
 
-    /*
     // Updates processor stored for guid || remove from Update()
     // Should be run on gameobject tick
-    static void Update(uint64 guid, uint32 diff)
+    /*void Update(uint64 guid, uint32 diff)
     {
         if (Processors.find(guid) == Processors.end())
             return;
         Processors[guid].Update(diff);
-    }
-    */
+    }*/
 
     // Aborts all lua events
     void KillAllEvents(EventProcessor* events)
@@ -249,9 +236,9 @@ struct EventMgr
                 KillAllEvents((it++)->first);
         LuaEvents.clear(); // remove pointers
         // This is handled automatically on delete
-        /*for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end();)
-            (it++)->second.KillAllEvents(true);*/
-        Processors.clear(); // remove guid saved processors
+        //for (ProcessorMap::iterator it = Processors.begin(); it != Processors.end();)
+        //    (it++)->second.KillAllEvents(true);
+        //Processors.clear(); // remove guid saved processors
         GlobalEvents.KillAllEvents(true);
     }
     
@@ -265,15 +252,15 @@ struct EventMgr
     }
 
     // Remove timed events from guid
-    void RemoveEvents(uint64 guid)
-    {
-        if (Processors.empty())
-            return;
-        if (Processors.find(guid) != Processors.end())
-            LuaEvents.erase(&Processors[guid]);
-        //Processors[guid].KillAllEvents(true); // remove events
-        Processors.erase(guid); // remove processor
-    }
+    //void RemoveEvents(uint64 guid)
+    //{
+    //    if (Processors.empty())
+    //        return;
+    //    if (Processors.find(guid) != Processors.end())
+    //        LuaEvents.erase(&Processors[guid]);
+    //    //Processors[guid].KillAllEvents(true); // remove events
+    //    Processors.erase(guid); // remove processor
+    //}
 
     // Adds a new event to the processor and returns the eventID or 0 (Never negative)
     int AddEvent(EventProcessor* events, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
@@ -285,12 +272,12 @@ struct EventMgr
     }
 
     // Creates a processor for the guid if needed and adds the event to it
-    int AddEvent(uint64 guid, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
-    {
-        if (!guid) // 0 should be unused
-            return 0;
-        return AddEvent(&Processors[guid], funcRef, delay, calls, obj);
-    }
+    //int AddEvent(uint64 guid, int funcRef, uint32 delay, uint32 calls, Object* obj = NULL)
+    //{
+    //    if (!guid) // 0 should be unused
+    //        return 0;
+    //    return AddEvent(&Processors[guid], funcRef, delay, calls, obj);
+    //}
 
     // Finds the event that has the ID from events
     LuaEvent* GetEvent(EventProcessor* events, int eventId)
@@ -325,14 +312,14 @@ struct EventMgr
     }
 
     // Remove event by ID from processor stored for guid
-    bool RemoveEvent(uint64 guid, int eventId)
+    /*bool RemoveEvent(uint64 guid, int eventId)
     {
         if (Processors.empty())
             return false;
         if (!guid || Processors.find(guid) == Processors.end())
             return false;
         return RemoveEvent(&Processors[guid], eventId);
-    }
+    }*/
 
     // Removes the eventId from all events
     void RemoveEvent(int eventId)

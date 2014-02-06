@@ -26,8 +26,6 @@ INSTANTIATE_SINGLETON_1(Eluna);
 #include <dirent.h>
 #endif
 
-template<> WorldPacket const* ElunaTemplate<WorldPacket>::GetTPointer(WorldPacket const& obj) { return GetNewTPointer(obj); }
-
 extern void RegisterFunctions(lua_State* L);
 
 // Start or restart eluna. Returns true if started
@@ -643,7 +641,6 @@ void Eluna::EntryBind::Insert(uint32 entryId, int eventId, int funcRef)
 EventMgr::LuaEvent::LuaEvent(EventProcessor* _events, int _funcRef, uint32 _delay, uint32 _calls, Object* _obj) :
     events(_events), funcRef(_funcRef), delay(_delay), calls(_calls), obj(_obj)
 {
-    hasObject = _obj;
     if (_events)
         sEluna.m_EventMgr.LuaEvents[_events].insert(this); // Able to access the event if we have the processor
 }
@@ -662,8 +659,6 @@ EventMgr::LuaEvent::~LuaEvent()
 
 bool EventMgr::LuaEvent::Execute(uint64 time, uint32 diff)
 {
-    if (hasObject && !obj) // interrupt event if object doesnt exist anymore and should exist.
-        return true;
     bool remove = (calls == 1);
     if (!remove)
         events->AddEvent(this, events->CalculateTime(delay)); // Reschedule before calling incase RemoveEvents used

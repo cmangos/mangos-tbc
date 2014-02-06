@@ -176,20 +176,24 @@ namespace LuaGameObject
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
-        sEluna.Push(L, sEluna.m_EventMgr.AddEvent(go->GetObjectGuid().GetRawValue(), functionRef, delay, repeats, go));
+        functionRef = sEluna.m_EventMgr.AddEvent(&go->m_Events, functionRef, delay, repeats, go);
+        if (functionRef)
+            sEluna.Push(L, functionRef);
+        else
+            sEluna.Push(L);
         return 1;
     }
 
     int RemoveEventById(lua_State* L, GameObject* go)
     {
         int eventId = luaL_checkinteger(L, 1);
-        sEluna.m_EventMgr.RemoveEvent(go->GetObjectGuid().GetRawValue(), eventId);
+        sEluna.m_EventMgr.RemoveEvent(&go->m_Events, eventId);
         return 0;
     }
 
     int RemoveEvents(lua_State* L, GameObject* go)
     {
-        sEluna.m_EventMgr.RemoveEvents(go->GetObjectGuid().GetRawValue());
+        sEluna.m_EventMgr.RemoveEvents(&go->m_Events);
         return 0;
     }
 

@@ -121,6 +121,15 @@ void GameObject::RemoveFromWorld()
     Object::RemoveFromWorld();
 }
 
+void GameObject::CleanupsBeforeDelete()
+{
+    if (m_uint32Values)
+    {
+        m_Events.KillAllEvents(false);
+    }
+    WorldObject::CleanupsBeforeDelete();
+}
+
 bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state)
 {
     MANGOS_ASSERT(map);
@@ -206,6 +215,7 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
         return;
     }
 
+    m_Events.Update(p_time);
     // used by eluna
     sHookMgr.UpdateAI(this, update_diff, p_time);
 

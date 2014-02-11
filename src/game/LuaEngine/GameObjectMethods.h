@@ -170,11 +170,11 @@ namespace LuaGameObject
 
     int RegisterEvent(lua_State* L, GameObject* go)
     {
-        luaL_checktype(L, 1, LUA_TFUNCTION);
+        luaL_checktype(L, 2, LUA_TFUNCTION);
         uint32 delay = sEluna.CHECKVAL<uint32>(L, 3);
         uint32 repeats = sEluna.CHECKVAL<uint32>(L, 4);
 
-        lua_settop(L, 1);
+        lua_settop(L, 2);
         int functionRef = lua_ref(L, true);
         functionRef = sEluna.m_EventMgr.AddEvent(&go->m_Events, functionRef, delay, repeats, go);
         if (functionRef)

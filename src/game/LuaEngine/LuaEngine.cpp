@@ -77,6 +77,9 @@ bool StartEluna()
     // Register functions here
     RegisterFunctions(sEluna.L);
 
+    // Randomize math.random()
+    luaL_dostring(sEluna.L, "math.randomseed( tonumber(tostring(os.time()):reverse():sub(1,6)) )");
+
     uint32 count = 0;
     char filename[200];
     for (std::set<std::string>::const_iterator itr = loadedScripts.begin(); itr !=  loadedScripts.end(); ++itr)

@@ -831,9 +831,6 @@ namespace LuaUnit
             case 5:
                 str = "Priest";
                 break;
-            case 6:
-                str = "Death Knight";
-                break;
             case 7:
                 str = "Shaman";
                 break;
@@ -936,9 +933,6 @@ namespace LuaUnit
             case POWER_ENERGY:
                 unit->SetMaxPower(POWER_ENERGY, amt);
                 break;
-            /*case POWER_RUNIC_POWER:
-                unit->SetMaxPower(POWER_RUNIC_POWER, amt);
-                break;*/
             default:
                 return luaL_argerror(L, 2, "valid Powers expected");
                 break;
@@ -1197,7 +1191,6 @@ namespace LuaUnit
     {
         int spellType = sEluna.CHECKVAL<int>(L, 2);
         bool delayed = sEluna.CHECKVAL<bool>(L, 3, true);
-        // bool instant = sEluna.CHECKVAL<bool>(L, 4, true);
         switch (spellType)
         {
             case 0:
@@ -1213,7 +1206,7 @@ namespace LuaUnit
                 spellType = CURRENT_AUTOREPEAT_SPELL;
                 break;
         }
-        unit->InterruptSpell((CurrentSpellTypes)spellType, delayed/*, instant*/);
+        unit->InterruptSpell((CurrentSpellTypes)spellType, delayed);
         return 0;
     }
 

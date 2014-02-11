@@ -618,7 +618,7 @@ bool HookMgr::OnPacketSend(WorldSession* session, WorldPacket& packet)
         {
             if (lua_isnoneornil(sEluna.L, i))
                 continue;
-            WorldPacket* data = sEluna.CHECK_PACKET(sEluna.L, 1);
+            WorldPacket* data = sEluna.CHECKOBJ<WorldPacket>(sEluna.L, 1, false);
             if (data)
                 packet = *data;
             if (!lua_toboolean(sEluna.L, 1))
@@ -635,7 +635,7 @@ bool HookMgr::OnPacketSend(WorldSession* session, WorldPacket& packet)
         {
             if (lua_isnoneornil(sEluna.L, i))
                 continue;
-            WorldPacket* data = sEluna.CHECK_PACKET(sEluna.L, 1);
+            WorldPacket* data = sEluna.CHECKOBJ<WorldPacket>(sEluna.L, 1, false);
             if (data)
                 packet = *data;
             if (!lua_toboolean(sEluna.L, 1))
@@ -660,7 +660,7 @@ bool HookMgr::OnPacketReceive(WorldSession* session, WorldPacket& packet)
         {
             if (lua_isnoneornil(sEluna.L, i))
                 continue;
-            WorldPacket* data = sEluna.CHECK_PACKET(sEluna.L, 1);
+            WorldPacket* data = sEluna.CHECKOBJ<WorldPacket>(sEluna.L, 1, false);
             if (data)
                 packet = *data;
             if (!lua_toboolean(sEluna.L, 1))
@@ -677,7 +677,7 @@ bool HookMgr::OnPacketReceive(WorldSession* session, WorldPacket& packet)
         {
             if (lua_isnoneornil(sEluna.L, i))
                 continue;
-            WorldPacket* data = sEluna.CHECK_PACKET(sEluna.L, 1);
+            WorldPacket* data = sEluna.CHECKOBJ<WorldPacket>(sEluna.L, 1, false);
             if (data)
                 packet = *data;
             if (!lua_toboolean(sEluna.L, 1))

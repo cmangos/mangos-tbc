@@ -127,8 +127,8 @@ class ElunaTemplate
                 return lua_gettop(L);
             }
             luaL_getmetatable(L, tname);
-            if (lua_isnil(L, -1))
-                luaL_error(L, "%s missing metatable", tname);
+            if (lua_isnoneornil(L, -1))
+                return luaL_error(L, "%s missing metatable", tname);
             T const** ptrHold = (T const**)lua_newuserdata(L, sizeof(T**));
             if (ptrHold)
             {
@@ -140,19 +140,25 @@ class ElunaTemplate
             return lua_gettop(L);
         }
 
-        static T* check(lua_State* L, int narg)
+        static T* check(lua_State* L, int narg, bool error = true)
         {
             T** ptrHold = static_cast<T**>(lua_touserdata(L, narg));
             if (!ptrHold)
+            {
+                if (error)
+                {
+                    std::string errmsg(ElunaTemplate<Unit>::tname);
+                    errmsg += " expected";
+                    luaL_argerror(L, narg, errmsg.c_str());
+                }
                 return NULL;
+            }
             return *ptrHold;
         }
 
         static int thunk(lua_State* L)
         {
             T* obj = check(L, 1); // get self
-            if (!lua_isnone(L, 1))
-                lua_remove(L, 1); // remove self
             ElunaRegister<T>* l = static_cast<ElunaRegister<T>*>(lua_touserdata(L, lua_upvalueindex(1)));
             if (!obj)
                 return 0;
@@ -346,6 +352,16 @@ class Eluna
         lua_State* L;
         EventMgr m_EventMgr;
 
+        Eluna()
+        {
+            L = NULL;
+        }
+
+        ~Eluna()
+        {
+            lua_close(L); // Closing
+        }
+
         struct EventBind
         {
             typedef std::vector<int> ElunaBindingMap;
@@ -452,127 +468,34 @@ class Eluna
         bool ExecuteCall(int params, int res);
         void EndCall(int res);
         void LoadDirectory(char* directory, LoadedScripts* scr);
+
         // Pushes
-        static void Push(lua_State*); // nil
-        static void Push(lua_State*, const uint64);
-        static void Push(lua_State*, const int64);
-        static void Push(lua_State*, const uint32);
-        static void Push(lua_State*, const int32);
-        static void Push(lua_State*, const bool);
-        static void Push(lua_State*, const float);
-        static void Push(lua_State*, const double);
-        static void Push(lua_State*, const char*);
-        static void Push(lua_State*, const std::string);
-        template<typename T> static void Push(lua_State* L, T const* ptr)
+        void Push(lua_State*); // nil
+        void Push(lua_State*, const uint64);
+        void Push(lua_State*, const int64);
+        void Push(lua_State*, const uint32);
+        void Push(lua_State*, const int32);
+        void Push(lua_State*, const bool);
+        void Push(lua_State*, const float);
+        void Push(lua_State*, const double);
+        void Push(lua_State*, const char*);
+        void Push(lua_State*, const std::string);
+        template<typename T> void Push(lua_State* L, T const* ptr)
         {
             ElunaTemplate<T>::push(L, ptr);
         }
-
-        static void Push(lua_State* L, Pet const* pet)
-        {
-            Push(L, pet->ToCreature());
-        }
-
-        static void Push(lua_State* L, TemporarySummon const* summon)
-        {
-            Push(L, summon->ToCreature());
-        }
-
-        static void Push(lua_State* L, Unit const* unit)
-        {
-            if (!unit)
-            {
-                Push(L);
-                return;
-            }
-            switch (unit->GetTypeId())
-            {
-                case TYPEID_UNIT:
-                    Push(L, unit->ToCreature());
-                    break;
-                case TYPEID_PLAYER:
-                    Push(L, unit->ToPlayer());
-                    break;
-                default:
-                    ElunaTemplate<Unit>::push(L, unit);
-            }
-        }
-
-        static void Push(lua_State* L, WorldObject const* obj)
-        {
-            if (!obj)
-            {
-                Push(L);
-                return;
-            }
-            switch (obj->GetTypeId())
-            {
-                case TYPEID_UNIT:
-                    Push(L, obj->ToCreature());
-                    break;
-                case TYPEID_PLAYER:
-                    Push(L, obj->ToPlayer());
-                    break;
-                case TYPEID_GAMEOBJECT:
-                    Push(L, obj->ToGameObject());
-                    break;
-                case TYPEID_CORPSE:
-                    Push(L, obj->ToCorpse());
-                    break;
-                default:
-                    ElunaTemplate<WorldObject>::push(L, obj);
-            }
-        }
-
-        static void Push(lua_State* L, Object const* obj)
-        {
-            if (!obj)
-            {
-                Push(L);
-                return;
-            }
-            switch (obj->GetTypeId())
-            {
-                case TYPEID_UNIT:
-                    Push(L, obj->ToCreature());
-                    break;
-                case TYPEID_PLAYER:
-                    Push(L, obj->ToPlayer());
-                    break;
-                case TYPEID_GAMEOBJECT:
-                    Push(L, obj->ToGameObject());
-                    break;
-                case TYPEID_CORPSE:
-                    Push(L, obj->ToCorpse());
-                    break;
-                default:
-                    ElunaTemplate<Object>::push(L, obj);
-            }
-        }
+        void Push(lua_State* L, Object const* obj);
+        void Push(lua_State* L, WorldObject const* obj);
+        void Push(lua_State* L, Unit const* unit);
+        void Push(lua_State* L, Pet const* pet);
+        void Push(lua_State* L, TemporarySummon const* summon);
 
         // Checks
-        WorldPacket* CHECK_PACKET(lua_State* L, int narg);
-        Object* CHECK_OBJECT(lua_State* L, int narg);
-        WorldObject* CHECK_WORLDOBJECT(lua_State* L, int narg);
-        Unit* CHECK_UNIT(lua_State* L, int narg);
-        Player* CHECK_PLAYER(lua_State* L, int narg);
-        Creature* CHECK_CREATURE(lua_State* L, int narg);
-        GameObject* CHECK_GAMEOBJECT(lua_State* L, int narg);
-        Corpse* CHECK_CORPSE(lua_State* L, int narg);
-        Quest* CHECK_QUEST(lua_State* L, int narg);
-        Spell* CHECK_SPELL(lua_State* L, int narg);
-        uint64 CHECK_ULONG(lua_State* L, int narg);
-        int64 CHECK_LONG(lua_State* L, int narg);
-        Item* CHECK_ITEM(lua_State* L, int narg);
-
-        // Creates new binding stores
-        Eluna()
+        template<typename T> T CHECKVAL(lua_State* L, int narg);
+        template<typename T> T CHECKVAL(lua_State* L, int narg, T def);
+        template<typename T> T* CHECKOBJ(lua_State* L, int narg, bool error = true)
         {
-            L = NULL;
-        }
-
-        ~Eluna()
-        {
+            return ElunaTemplate<T>::check(L, narg, error);
         }
 
         struct ObjectGUIDCheck
@@ -644,6 +567,12 @@ class Eluna
             WorldObjectInRangeCheck(WorldObjectInRangeCheck const&);
         };
 };
+template<> Unit* Eluna::CHECKOBJ<Unit>(lua_State* L, int narg, bool error);
+template<> Player* Eluna::CHECKOBJ<Player>(lua_State* L, int narg, bool error);
+template<> Creature* Eluna::CHECKOBJ<Creature>(lua_State* L, int narg, bool error);
+template<> GameObject* Eluna::CHECKOBJ<GameObject>(lua_State* L, int narg, bool error);
+template<> Corpse* Eluna::CHECKOBJ<Corpse>(lua_State* L, int narg, bool error);
+
 #define sEluna MaNGOS::Singleton<Eluna>::Instance()
 
 class LuaTaxiMgr

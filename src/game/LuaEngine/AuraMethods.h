@@ -72,21 +72,21 @@ namespace LuaAura
 
     int SetDuration(lua_State* L, Aura* aura)
     {
-        int duration = luaL_checkinteger(L, 1);
+        int duration = sEluna.CHECKVAL<int>(L, 2);
         aura->GetHolder()->SetAuraDuration(duration);
         return 0;
     }
 
     int SetMaxDuration(lua_State* L, Aura* aura)
     {
-        int duration = luaL_checkinteger(L, 1);
+        int duration = sEluna.CHECKVAL<int>(L, 2);
         aura->GetHolder()->SetAuraMaxDuration(duration);
         return 0;
     }
 
     int SetStackAmount(lua_State* L, Aura* aura)
     {
-        int amount = luaL_checkunsigned(L, 1);
+        int amount = sEluna.CHECKVAL<int>(L, 2);
         aura->GetHolder()->SetStackAmount(amount);
         return 0;
     }

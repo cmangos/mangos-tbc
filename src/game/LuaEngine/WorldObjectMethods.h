@@ -87,7 +87,7 @@ namespace LuaWorldObject
     }
     int GetNearestPlayer(lua_State* L, WorldObject* obj)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
 
         Unit* target = NULL;
         Eluna::WorldObjectInRangeCheck checker(true, obj, range, TYPEMASK_PLAYER);
@@ -99,8 +99,8 @@ namespace LuaWorldObject
     }
     int GetNearestGameObject(lua_State* L, WorldObject* obj)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
-        uint32 entry = luaL_optunsigned(L, 2, 0);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 3, 0);
 
         GameObject* target = NULL;
         Eluna::WorldObjectInRangeCheck checker(true, obj, range, TYPEMASK_GAMEOBJECT, entry);
@@ -112,8 +112,8 @@ namespace LuaWorldObject
     }
     int GetNearestCreature(lua_State* L, WorldObject* obj)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
-        uint32 entry = luaL_optunsigned(L, 2, 0);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 3, 0);
 
         Creature* target = NULL;
         Eluna::WorldObjectInRangeCheck checker(true, obj, range, TYPEMASK_UNIT, entry);
@@ -125,7 +125,7 @@ namespace LuaWorldObject
     }
     int GetPlayersInRange(lua_State* L, WorldObject* obj)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
 
         std::list<Player*> list;
         Eluna::WorldObjectInRangeCheck checker(false, obj, range, TYPEMASK_PLAYER);
@@ -148,8 +148,8 @@ namespace LuaWorldObject
     }
     int GetCreaturesInRange(lua_State* L, WorldObject* obj)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
-        uint32 entry = luaL_optunsigned(L, 2, 0);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 3, 0);
 
         std::list<Creature*> list;
         Eluna::WorldObjectInRangeCheck checker(false, obj, range, TYPEMASK_UNIT, entry);
@@ -172,8 +172,8 @@ namespace LuaWorldObject
     }
     int GetGameObjectsInRange(lua_State* L, WorldObject* obj)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
-        uint32 entry = luaL_optunsigned(L, 2, 0);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 3, 0);
 
         std::list<GameObject*> list;
         Eluna::WorldObjectInRangeCheck checker(false, obj, range, TYPEMASK_GAMEOBJECT, entry);
@@ -196,11 +196,11 @@ namespace LuaWorldObject
     }
     int GetNearObject(lua_State* L, WorldObject* obj)
     {
-        bool nearest = luaL_optbool(L, 1, true);
-        float range = luaL_optnumber(L, 2, SIZE_OF_GRIDS);
-        uint16 type = luaL_optunsigned(L, 3, 0); // TypeMask
-        uint32 entry = luaL_optunsigned(L, 4, 0);
-        uint32 hostile = luaL_optunsigned(L, 5, 0); // 0 none, 1 hostile, 2 friendly
+        bool nearest = sEluna.CHECKVAL<bool>(L, 2, true);
+        float range = sEluna.CHECKVAL<float>(L, 3, SIZE_OF_GRIDS);
+        uint16 type = sEluna.CHECKVAL<uint16>(L, 4, 0); // TypeMask
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 5, 0);
+        uint32 hostile = sEluna.CHECKVAL<uint32>(L, 6, 0); // 0 none, 1 hostile, 2 friendly
 
         float x, y, z;
         obj->GetPosition(x, y, z);
@@ -239,7 +239,7 @@ namespace LuaWorldObject
     }
     int GetWorldObject(lua_State* L, WorldObject* obj)
     {
-        ObjectGuid guid = ObjectGuid(sEluna.CHECK_ULONG(L, 1));
+        ObjectGuid guid = ObjectGuid(sEluna.CHECKVAL<uint64>(L, 2));
 
         switch (guid.GetHigh())
         {
@@ -257,14 +257,14 @@ namespace LuaWorldObject
 
     int GetDistance(lua_State* L, WorldObject* obj)
     {
-        WorldObject* target = sEluna.CHECK_WORLDOBJECT(L, 1);
+        WorldObject* target = sEluna.CHECKOBJ<WorldObject>(L, 2);
         if (target && target->IsInWorld())
             sEluna.Push(L, obj->GetDistance(target));
         else
         {
-            float X = luaL_checknumber(L, 1);
-            float Y = luaL_checknumber(L, 2);
-            float Z = luaL_checknumber(L, 3);
+            float X = sEluna.CHECKVAL<float>(L, 2);
+            float Y = sEluna.CHECKVAL<float>(L, 3);
+            float Z = sEluna.CHECKVAL<float>(L, 4);
             sEluna.Push(L, obj->GetDistance(X, Y, Z));
         }
         return 1;
@@ -272,8 +272,8 @@ namespace LuaWorldObject
 
     int GetRelativePoint(lua_State* L, WorldObject* obj)
     {
-        float dist = luaL_checknumber(L, 1);
-        float rad = luaL_checknumber(L, 2);
+        float dist = sEluna.CHECKVAL<float>(L, 2);
+        float rad = sEluna.CHECKVAL<float>(L, 3);
 
         float x, y, z;
         obj->GetClosePoint(x, y, z, 0.0f, dist, rad);
@@ -286,14 +286,14 @@ namespace LuaWorldObject
 
     int GetAngle(lua_State* L, WorldObject* obj)
     {
-        WorldObject* target = sEluna.CHECK_WORLDOBJECT(L, 1);
+        WorldObject* target = sEluna.CHECKOBJ<WorldObject>(L, 2);
 
         if (target && target->IsInWorld())
             sEluna.Push(L, obj->GetAngle(target));
         else
         {
-            float x = luaL_checknumber(L, 1);
-            float y = luaL_checknumber(L, 2);
+            float x = sEluna.CHECKVAL<float>(L, 2);
+            float y = sEluna.CHECKVAL<float>(L, 3);
             sEluna.Push(L, obj->GetAngle(x, y));
         }
         return 1;

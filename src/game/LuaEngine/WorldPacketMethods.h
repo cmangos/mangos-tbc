@@ -39,11 +39,10 @@ namespace LuaPacket
     // SetOpcode(opcode)
     int SetOpcode(lua_State* L, WorldPacket* packet)
     {
-        uint16 opcode = luaL_checkunsigned(L, 1);
+        uint32 opcode = sEluna.CHECKVAL<uint32>(L, 2);
         if (opcode >= NUM_MSG_TYPES)
-            luaL_error(L, "Invalid opcode type (%d)", opcode);
-        else
-            packet->SetOpcode((Opcodes)opcode);
+            return luaL_argerror(L, 2, "valid opcode expected");
+        packet->SetOpcode((Opcodes)opcode);
         return 0;
     }
 
@@ -140,7 +139,7 @@ namespace LuaPacket
     // WriteGUID(guid)
     int WriteGUID(lua_State* L, WorldPacket* packet)
     {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECKVAL<uint64>(L, 2);
         (*packet) << guid;
         return 0;
     }
@@ -148,7 +147,7 @@ namespace LuaPacket
     // WriteString(string)
     int WriteString(lua_State* L, WorldPacket* packet)
     {
-        std::string _val = std::string(luaL_checkstring(L, 1));
+        std::string _val = sEluna.CHECKVAL<std::string>(L, 2);
         (*packet) << _val;
         return 0;
     }
@@ -156,7 +155,7 @@ namespace LuaPacket
     // WriteBye(byte)
     int WriteByte(lua_State* L, WorldPacket* packet)
     {
-        int8 byte = luaL_checkinteger(L, 1);
+        int8 byte = sEluna.CHECKVAL<int8>(L, 2);
         (*packet) << byte;
         return 0;
     }
@@ -164,7 +163,7 @@ namespace LuaPacket
     // WriteUByte(byte)
     int WriteUByte(lua_State* L, WorldPacket* packet)
     {
-        uint8 byte = luaL_checkunsigned(L, 1);
+        uint8 byte = sEluna.CHECKVAL<uint8>(L, 2);
         (*packet) << byte;
         return 0;
     }
@@ -172,7 +171,7 @@ namespace LuaPacket
     // WriteUShort(short)
     int WriteUShort(lua_State* L, WorldPacket* packet)
     {
-        uint16 _ushort = luaL_checkunsigned(L, 1);
+        uint16 _ushort = sEluna.CHECKVAL<uint16>(L, 2);
         (*packet) << _ushort;
         return 0;
     }
@@ -180,7 +179,7 @@ namespace LuaPacket
     // WriteShort(short)
     int WriteShort(lua_State* L, WorldPacket* packet)
     {
-        int16 _short = luaL_checkinteger(L, 1);
+        int16 _short = sEluna.CHECKVAL<int16>(L, 2);
         (*packet) << _short;
         return 0;
     }
@@ -188,7 +187,7 @@ namespace LuaPacket
     // WriteLong(long)
     int WriteLong(lua_State* L, WorldPacket* packet)
     {
-        int32 _long = luaL_checkinteger(L, 1);
+        int32 _long = sEluna.CHECKVAL<int32>(L, 2);
         (*packet) << _long;
         return 0;
     }
@@ -196,7 +195,7 @@ namespace LuaPacket
     // WriteULong(long)
     int WriteULong(lua_State* L, WorldPacket* packet)
     {
-        uint32 _ulong = luaL_checkunsigned(L, 1);
+        uint32 _ulong = sEluna.CHECKVAL<uint32>(L, 2);
         (*packet) << _ulong;
         return 0;
     }
@@ -204,7 +203,7 @@ namespace LuaPacket
     // WriteFloat(float)
     int WriteFloat(lua_State* L, WorldPacket* packet)
     {
-        float _val = luaL_checknumber(L, 1);
+        float _val = sEluna.CHECKVAL<float>(L, 2);
         (*packet) << _val;
         return 0;
     }
@@ -212,7 +211,7 @@ namespace LuaPacket
     // WriteDouble(double)
     int WriteDouble(lua_State* L, WorldPacket* packet)
     {
-        double _val = luaL_checknumber(L, 1);
+        double _val = sEluna.CHECKVAL<double>(L, 2);
         (*packet) << _val;
         return 0;
     }

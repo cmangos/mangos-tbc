@@ -24,8 +24,8 @@ namespace LuaUnit
 {
     int Attack(lua_State* L, Unit* unit)
     {
-        Unit* who = sEluna.CHECK_UNIT(L, 1);
-        bool meleeAttack = luaL_optbool(L, 2, false);
+        Unit* who = sEluna.CHECKOBJ<Unit>(L, 2);
+        bool meleeAttack = sEluna.CHECKVAL<bool>(L, 3, false);
 
         if (!who)
             sEluna.Push(L, false);
@@ -42,7 +42,7 @@ namespace LuaUnit
 
     int SetOwnerGUID(lua_State* L, Unit* unit)
     {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECKVAL<uint64>(L, 2);
 
         unit->SetOwnerGuid((ObjectGuid)guid);
         return 0;
@@ -69,8 +69,8 @@ namespace LuaUnit
 
     int GetRelativePoint(lua_State* L, Unit* unit)
     {
-        float dist = luaL_checknumber(L, 1);
-        float rad = luaL_checknumber(L, 2);
+        float dist = sEluna.CHECKVAL<float>(L, 2);
+        float rad = sEluna.CHECKVAL<float>(L, 3);
 
         float o = MapManager::NormalizeOrientation(unit->GetOrientation() + rad);
         sEluna.Push(L, unit->GetPositionX() + (dist * cosf(o)));
@@ -81,7 +81,7 @@ namespace LuaUnit
 
     int Mount(lua_State* L, Unit* unit)
     {
-        uint32 displayId = luaL_checkunsigned(L, 1);
+        uint32 displayId = sEluna.CHECKVAL<uint32>(L, 2);
 
         unit->Mount(displayId);
         return 0;
@@ -106,9 +106,9 @@ namespace LuaUnit
 
     int IsWithinLoS(lua_State* L, Unit* unit)
     {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float z = luaL_checknumber(L, 3);
+        float x = sEluna.CHECKVAL<float>(L, 2);
+        float y = sEluna.CHECKVAL<float>(L, 3);
+        float z = sEluna.CHECKVAL<float>(L, 4);
 
         sEluna.Push(L, unit->IsWithinLOS(x, y, z));
         return 1;
@@ -128,10 +128,10 @@ namespace LuaUnit
 
     int IsWithinDistInMap(lua_State* L, Unit* unit)
     {
-        WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
+        WorldObject* obj = sEluna.CHECKOBJ<WorldObject>(L, 2);
         if (!obj)
             return 0;
-        float radius = luaL_checknumber(L, 2);
+        float radius = sEluna.CHECKVAL<float>(L, 3);
 
         sEluna.Push(L, unit->IsWithinDistInMap(obj, radius));
         return 1;
@@ -139,7 +139,7 @@ namespace LuaUnit
 
     int IsInAccessiblePlaceFor(lua_State* L, Unit* unit)
     {
-        Creature* creature = sEluna.CHECK_CREATURE(L, 1);
+        Creature* creature = sEluna.CHECKOBJ<Creature>(L, 2);
         if (!creature)
             return 0;
 
@@ -155,14 +155,14 @@ namespace LuaUnit
 
     int GetDistance(lua_State* L, Unit* unit)
     {
-        WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
+        WorldObject* obj = sEluna.CHECKOBJ<WorldObject>(L, 2);
         if (obj && obj->IsInWorld())
             sEluna.Push(L, unit->GetDistance(obj));
         else
         {
-            float X = luaL_checknumber(L, 1);
-            float Y = luaL_checknumber(L, 2);
-            float Z = luaL_checknumber(L, 3);
+            float X = sEluna.CHECKVAL<float>(L, 2);
+            float Y = sEluna.CHECKVAL<float>(L, 3);
+            float Z = sEluna.CHECKVAL<float>(L, 4);
             sEluna.Push(L, unit->GetDistance(X, Y, Z));
         }
         return 1;
@@ -218,7 +218,7 @@ namespace LuaUnit
 
     int GetStat(lua_State* L, Unit* unit)
     {
-        uint32 stat = luaL_checkunsigned(L, 1);
+        uint32 stat = sEluna.CHECKVAL<uint32>(L, 2);
 
         if (stat >= MAX_STATS)
             return 0;
@@ -229,7 +229,7 @@ namespace LuaUnit
 
     int GetBaseSpellPower(lua_State* L, Unit* unit)
     {
-        uint32 spellschool = luaL_checkunsigned(L, 1);
+        uint32 spellschool = sEluna.CHECKVAL<uint32>(L, 2);
 
         if (spellschool >= MAX_SPELL_SCHOOL)
             return 0;
@@ -240,7 +240,7 @@ namespace LuaUnit
 
     int SetPvP(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
 
         unit->SetPvP(apply);
         return 0;
@@ -248,7 +248,7 @@ namespace LuaUnit
 
     /*int SetFFA(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
 
         if (apply)
             unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
@@ -258,21 +258,21 @@ namespace LuaUnit
         return 0;
     }*/
 
-    int SetSanctuary(lua_State* L, Unit* unit)
+    /*int SetSanctuary(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
 
-        /*if (apply)
+        if (apply)
         {
             unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);
             unit->CombatStop();
             unit->CombatStopWithPets();
         }
         else
-            unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);*/
+            unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SANCTUARY);
 
         return 0;
-    }
+    }*/
 
     int IsAuctioneer(lua_State* L, Unit* unit)
     {
@@ -342,39 +342,39 @@ namespace LuaUnit
 
     int HealthBelowPct(lua_State* L, Unit* unit)
     {
-        sEluna.Push(L, unit->HealthBelowPct(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->HealthBelowPct(sEluna.CHECKVAL<int32>(L, 2)));
         return 1;
     }
 
     int HealthAbovePct(lua_State* L, Unit* unit)
     {
-        sEluna.Push(L, unit->HealthAbovePct(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->HealthAbovePct(sEluna.CHECKVAL<int32>(L, 2)));
         return 1;
     }
 
     int Emote(lua_State* L, Unit* unit)
     {
-        unit->HandleEmoteCommand(luaL_checkunsigned(L, 1));
+        unit->HandleEmoteCommand(sEluna.CHECKVAL<uint32>(L, 2));
         return 0;
     }
 
     int CountPctFromCurHealth(lua_State* L, Unit* unit)
     {
-        sEluna.Push(L, unit->CountPctFromCurHealth(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->CountPctFromCurHealth(sEluna.CHECKVAL<int32>(L, 2)));
         return 1;
     }
 
     int CountPctFromMaxHealth(lua_State* L, Unit* unit)
     {
-        sEluna.Push(L, unit->CountPctFromMaxHealth(luaL_checkint(L, 1)));
+        sEluna.Push(L, unit->CountPctFromMaxHealth(sEluna.CHECKVAL<int32>(L, 2)));
         return 1;
     }
 
     int SetSheath(lua_State* L, Unit* unit)
     {
-        uint32 sheathed = luaL_checkunsigned(L, 1);
+        uint32 sheathed = sEluna.CHECKVAL<uint32>(L, 2);
         if (sheathed >= MAX_SHEATH_STATE)
-            return 0;
+            return luaL_argerror(L, 2, "valid SheathState expected");
 
         unit->SetSheath((SheathState)sheathed);
         return 0;
@@ -400,10 +400,10 @@ namespace LuaUnit
 
     int SendChatMessageToPlayer(lua_State* L, Unit* unit)
     {
-        uint8 type = luaL_checkunsigned(L, 1);
-        uint32 lang = luaL_checkunsigned(L, 2);
-        const char* msg = luaL_checkstring(L, 3);
-        Player* target = sEluna.CHECK_PLAYER(L, 4);
+        uint8 type = sEluna.CHECKVAL<uint8>(L, 2);
+        uint32 lang = sEluna.CHECKVAL<uint32>(L, 3);
+        const char* msg = sEluna.CHECKVAL<const char*>(L, 4);
+        Player* target = sEluna.CHECKOBJ<Player>(L, 5);
         if (!target || type == CHAT_MSG_CHANNEL)
             return 0;
 
@@ -427,37 +427,34 @@ namespace LuaUnit
 
     int GetCurrentSpell(lua_State* L, Unit* unit)
     {
-        uint32 type = luaL_checkunsigned(L, 1);
+        uint32 type = sEluna.CHECKVAL<uint32>(L, 2);
         if (type >= CURRENT_MAX_SPELL)
-        {
-            luaL_error(L, "Invalid spell type (%d)", type);
-            return 0;
-        }
+            return luaL_argerror(L, 2, "valid CurrentSpellTypes expected");
         sEluna.Push(L, unit->GetCurrentSpell(type));
         return 1;
     }
 
     int SummonGameObject(lua_State* L, Unit* unit)
     {
-        uint32 entry = luaL_checkunsigned(L, 1);
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        float o = luaL_checknumber(L, 5);
-        uint32 respawnDelay = luaL_optunsigned(L, 6, 30);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 2);
+        float x = sEluna.CHECKVAL<float>(L, 3);
+        float y = sEluna.CHECKVAL<float>(L, 4);
+        float z = sEluna.CHECKVAL<float>(L, 5);
+        float o = sEluna.CHECKVAL<float>(L, 6);
+        uint32 respawnDelay = sEluna.CHECKVAL<uint32>(L, 7, 30);
         sEluna.Push(L, unit->SummonGameObject(entry, x, y, z, o, respawnDelay));
         return 1;
     }
 
     int SpawnCreature(lua_State* L, Unit* unit)
     {
-        uint32 entry = luaL_checkunsigned(L, 1);
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        float o = luaL_checknumber(L, 5);
-        uint32 spawnType = luaL_optunsigned(L, 6, 8);
-        uint32 despawnTimer = luaL_optunsigned(L, 7, 0);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 2);
+        float x = sEluna.CHECKVAL<float>(L, 3);
+        float y = sEluna.CHECKVAL<float>(L, 4);
+        float z = sEluna.CHECKVAL<float>(L, 5);
+        float o = sEluna.CHECKVAL<float>(L, 6);
+        uint32 spawnType = sEluna.CHECKVAL<uint32>(L, 7, 8);
+        uint32 despawnTimer = sEluna.CHECKVAL<uint32>(L, 8, 0);
 
         TempSummonType type;
         switch (spawnType)
@@ -484,8 +481,7 @@ namespace LuaUnit
                 type = TEMPSUMMON_MANUAL_DESPAWN;
                 break;
             default:
-                luaL_error(L, "Invalid spawn type (%u)", spawnType);
-                return 0;
+                return luaL_argerror(L, 7, "valid SpawnType expected");
         }
         sEluna.Push(L, unit->SummonCreature(entry, x, y, z, o, type, despawnTimer));
         return 1;
@@ -493,8 +489,8 @@ namespace LuaUnit
 
     /*int DealDamage(lua_State* L, Unit* unit)
     {
-        Unit* target = sEluna.CHECK_UNIT(L, 1);
-        uint32 amount = luaL_checkunsigned(L, 2);
+        Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
+        uint32 amount = sEluna.CHECKVAL<uint32>(L, 3);
 
         if (!target)
         unit->DealDamage(unit, amount);
@@ -524,14 +520,14 @@ namespace LuaUnit
 
     int MoveExpire(lua_State* L, Unit* unit)
     {
-        bool reset = luaL_optbool(L, 1, true);
+        bool reset = sEluna.CHECKVAL<bool>(L, 2, true);
         unit->GetMotionMaster()->MovementExpired(reset);
         return 0;
     }
 
     int MoveClear(lua_State* L, Unit* unit)
     {
-        bool reset = luaL_optbool(L, 1, true);
+        bool reset = luaL_optbool(L, 2, true);
         unit->GetMotionMaster()->Clear(reset);
         return 0;
     }
@@ -545,7 +541,7 @@ namespace LuaUnit
 
     int MoveRandom(lua_State* L, Unit* unit)
     {
-        float radius = luaL_checknumber(L, 1);
+        float radius = sEluna.CHECKVAL<float>(L, 2);
         // PrepareMove(unit);
         float x, y, z;
         unit->GetPosition(x, y, z);
@@ -562,9 +558,9 @@ namespace LuaUnit
 
     int MoveFollow(lua_State* L, Unit* unit)
     {
-        Unit* target = sEluna.CHECK_UNIT(L, 1);
-        float dist = luaL_optnumber(L, 2, 0.0f);
-        float angle = luaL_optnumber(L, 3, 0.0f);
+        Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
+        float dist = sEluna.CHECKVAL<float>(L, 3, 0.0f);
+        float angle = sEluna.CHECKVAL<float>(L, 4, 0.0f);
         if (!target)
             return 0;
         // PrepareMove(unit);
@@ -574,9 +570,9 @@ namespace LuaUnit
 
     int MoveChase(lua_State* L, Unit* unit)
     {
-        Unit* target = sEluna.CHECK_UNIT(L, 1);
-        float dist = luaL_optnumber(L, 2, 0.0f);
-        float angle = luaL_optnumber(L, 3, 0.0f);
+        Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
+        float dist = sEluna.CHECKVAL<float>(L, 3, 0.0f);
+        float angle = sEluna.CHECKVAL<float>(L, 4, 0.0f);
         if (!target)
             return 0;
         // PrepareMove(unit);
@@ -593,8 +589,8 @@ namespace LuaUnit
 
     int MoveFleeing(lua_State* L, Unit* unit)
     {
-        Unit* target = sEluna.CHECK_UNIT(L, 1);
-        uint32 time = luaL_optunsigned(L, 2, 0);
+        Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
+        uint32 time = sEluna.CHECKVAL<uint32>(L, 3, 0);
         if (!target)
             return 0;
         // PrepareMove(unit);
@@ -604,11 +600,11 @@ namespace LuaUnit
 
     int MoveTo(lua_State* L, Unit* unit)
     {
-        uint32 id = luaL_checkunsigned(L, 1);
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        bool genPath = luaL_optbool(L, 5, true);
+        uint32 id = sEluna.CHECKVAL<uint32>(L, 2);
+        float x = sEluna.CHECKVAL<float>(L, 3);
+        float y = sEluna.CHECKVAL<float>(L, 4);
+        float z = sEluna.CHECKVAL<float>(L, 5);
+        bool genPath = sEluna.CHECKVAL<bool>(L, 6, true);
         // PrepareMove(unit);
         unit->GetMotionMaster()->MovePoint(id, x, y, z, genPath);
         return 0;
@@ -616,12 +612,12 @@ namespace LuaUnit
 
     /*int MoveJump(lua_State* L, Unit* unit)
     {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float z = luaL_checknumber(L, 3);
-        float zSpeed = luaL_checknumber(L, 4);
-        float maxHeight = luaL_checknumber(L, 5);
-        uint32 id = luaL_optunsigned(L, 6, 0);
+        float x = sEluna.CHECKVAL<float>(L, 2);
+        float y = sEluna.CHECKVAL<float>(L, 3);
+        float z = sEluna.CHECKVAL<float>(L, 4);
+        float zSpeed = sEluna.CHECKVAL<float>(L, 5);
+        float maxHeight = sEluna.CHECKVAL<float>(L, 6);
+        uint32 id = sEluna.CHECKVAL<uint32>(L, 7, 0);
         // PrepareMove(unit);
         unit->GetMotionMaster()->MoveJump(x, y, z, zSpeed, maxHeight, id);
         return 0;
@@ -629,7 +625,7 @@ namespace LuaUnit
 
     int SetName(lua_State* L, Unit* unit)
     {
-        const char* name = luaL_checkstring(L, 1);
+        const char* name = sEluna.CHECKVAL<const char*>(L, 2);
         if (std::string(name).length() > 0)
             unit->SetName(name);
         return 0;
@@ -637,41 +633,40 @@ namespace LuaUnit
 
     /*int SetStunned(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
         unit->SetControlled(apply, UNIT_STATE_STUNNED);
         return 0;
     }*/
 
     /*int SetRooted(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
         unit->SetControlled(apply, UNIT_STATE_ROOT);
         return 0;
     }*/
 
     /*int SetConfused(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
         unit->SetControlled(apply, UNIT_STATE_CONFUSED);
         return 0;
     }*/
 
     /*int SetFeared(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
         unit->SetControlled(apply, UNIT_STATE_FLEEING);
         return 0;
     }*/
 
     int SetSpeed(lua_State* L, Unit* unit)
     {
-        uint32 type = luaL_checkunsigned(L, 1);
-        float rate = luaL_checknumber(L, 2);
-        bool forced = luaL_optbool(L, 3, false);
+        uint32 type = sEluna.CHECKVAL<uint32>(L, 2);
+        float rate = sEluna.CHECKVAL<float>(L, 3);
+        bool forced = sEluna.CHECKVAL<bool>(L, 4, false);
         if (type >= MAX_MOVE_TYPE)
-            luaL_error(L, "Invalid movement type (%d)", type);
-        else
-            unit->SetSpeedRate((UnitMoveType)type, rate, forced);
+            return luaL_argerror(L, 2, "valid UnitMoveType expected");
+        unit->SetSpeedRate((UnitMoveType)type, rate, forced);
         return 0;
     }
 
@@ -701,47 +696,7 @@ namespace LuaUnit
 
     int GetPower(lua_State* L, Unit* unit)
     {
-        int type = luaL_optint(L, 1, -1);
-        if (type == -1)
-        {
-
-            switch (unit->getClass())
-            {
-                case 1:
-                    type = POWER_RAGE;
-                    break;
-                case 4:
-                    type = POWER_ENERGY;
-                    break;
-                /*case 6:
-                    type = POWER_RUNIC_POWER;
-                    break;*/
-                case 2:
-                case 3:
-                case 5:
-                case 7:
-                case 8:
-                case 9:
-                case 11:
-                    type = POWER_MANA;
-                    break;
-                default:
-                    type = POWER_MANA;
-            }
-        }
-        else if (type >= POWER_ALL)
-        {
-            luaL_error(L, "Invalid power type (%d)", type);
-            return 0;
-        }
-
-        sEluna.Push(L, unit->GetPower((Powers) type));
-        return 1;
-    }
-
-    int GetMaxPower(lua_State* L, Unit* unit)
-    {
-        int type = luaL_optint(L, 1, -1);
+        int type = sEluna.CHECKVAL<int>(L, 2, -1);
         if (type == -1)
         {
 
@@ -770,10 +725,44 @@ namespace LuaUnit
             }
         }
         else if (type < 0 || type >= POWER_ALL)
+            return luaL_argerror(L, 2, "valid Powers expected");
+
+        sEluna.Push(L, unit->GetPower((Powers) type));
+        return 1;
+    }
+
+    int GetMaxPower(lua_State* L, Unit* unit)
+    {
+        int type = sEluna.CHECKVAL<int>(L, 2, -1);
+        if (type == -1)
         {
-            luaL_error(L, "Invalid index (%d)", type);
-            return 0;
+
+            switch (unit->getClass())
+            {
+                case 1:
+                    type = POWER_RAGE;
+                    break;
+                case 4:
+                    type = POWER_ENERGY;
+                    break;
+                /*case 6:
+                    type = POWER_RUNIC_POWER;
+                    break;*/
+                case 2:
+                case 3:
+                case 5:
+                case 7:
+                case 8:
+                case 9:
+                case 11:
+                    type = POWER_MANA;
+                    break;
+                default:
+                    type = POWER_MANA;
+            }
         }
+        else if (type < 0 || type >= POWER_ALL)
+            return luaL_argerror(L, 2, "valid Powers expected");
 
         sEluna.Push(L, unit->GetMaxPower((Powers) type));
         return 1;
@@ -864,7 +853,7 @@ namespace LuaUnit
                 str = "Druid";
                 break;
             default:
-                str = "NULL";
+                str = NULL;
                 break;
         }
 
@@ -880,44 +869,44 @@ namespace LuaUnit
 
     int SetFaction(lua_State* L, Unit* unit)
     {
-        uint32 factionId = luaL_checkunsigned(L, 1);
+        uint32 factionId = sEluna.CHECKVAL<uint32>(L, 2);
         unit->setFaction(factionId);
         return 0;
     }
 
     int SetLevel(lua_State* L, Unit* unit)
     {
-        uint32 newLevel = luaL_checkunsigned(L, 1);
+        uint32 newLevel = sEluna.CHECKVAL<uint32>(L, 2);
         unit->SetLevel(newLevel);
         return 0;
     }
 
     /*int SetPhaseMask(lua_State* L, Unit* unit)
     {
-        uint32 phaseMask = luaL_checkunsigned(L, 1);
-        bool Update = luaL_optbool(L, 2, true);
+        uint32 phaseMask = sEluna.CHECKVAL<uint32>(L, 2);
+        bool Update = sEluna.CHECKVAL<bool>(L, 3, true);
         unit->SetPhaseMask(phaseMask, Update);
         return 0;
     }*/
 
     int SetHealth(lua_State* L, Unit* unit)
     {
-        uint32 amt = luaL_checkunsigned(L, 1);
+        uint32 amt = sEluna.CHECKVAL<uint32>(L, 2);
         unit->SetHealth(amt);
         return 0;
     }
 
     int SetMaxHealth(lua_State* L, Unit* unit)
     {
-        uint32 amt = luaL_checkunsigned(L, 1);
+        uint32 amt = sEluna.CHECKVAL<uint32>(L, 2);
         unit->SetMaxHealth(amt);
         return 0;
     }
 
     int SetPower(lua_State* L, Unit* unit)
     {
-        int type = luaL_checkinteger(L, 1);
-        uint32 amt = luaL_checkunsigned(L, 2);
+        int type = sEluna.CHECKVAL<int>(L, 2);
+        uint32 amt = sEluna.CHECKVAL<uint32>(L, 3);
 
         switch (type)
         {
@@ -934,7 +923,7 @@ namespace LuaUnit
                 unit->SetPower(POWER_RUNIC_POWER, amt);
                 break;*/
             default:
-                luaL_error(L, "Invalid power type (%d)", type);
+                return luaL_argerror(L, 2, "valid Powers expected");
                 break;
         }
         return 0;
@@ -942,8 +931,8 @@ namespace LuaUnit
 
     int SetMaxPower(lua_State* L, Unit* unit)
     {
-        int type = luaL_checkinteger(L, 1);
-        int amt = luaL_checkunsigned(L, 2);
+        int type = sEluna.CHECKVAL<int>(L, 2);
+        uint32 amt = sEluna.CHECKVAL<uint32>(L, 3);
 
         switch (type)
         {
@@ -960,7 +949,7 @@ namespace LuaUnit
                 unit->SetMaxPower(POWER_RUNIC_POWER, amt);
                 break;*/
             default:
-                luaL_error(L, "Invalid power type (%d)", type);
+                return luaL_argerror(L, 2, "valid Powers expected");
                 break;
         }
         return 0;
@@ -968,28 +957,28 @@ namespace LuaUnit
 
     int SetDisplayId(lua_State* L, Unit* unit)
     {
-        uint32 model = luaL_checkunsigned(L, 1);
+        uint32 model = sEluna.CHECKVAL<uint32>(L, 2);
         unit->SetDisplayId(model);
         return 0;
     }
 
     int SetNativeDisplayId(lua_State* L, Unit* unit)
     {
-        uint32 model = luaL_checkunsigned(L, 1);
+        uint32 model = sEluna.CHECKVAL<uint32>(L, 2);
         unit->SetNativeDisplayId(model);
         return 0;
     }
 
     int SetFacing(lua_State* L, Unit* unit)
     {
-        float o = luaL_checknumber(L, 1);
+        float o = sEluna.CHECKVAL<float>(L, 2);
         unit->SetFacingTo(o);
         return 0;
     }
 
     int SetFacingToObject(lua_State* L, Unit* unit)
     {
-        WorldObject* obj = sEluna.CHECK_WORLDOBJECT(L, 1);
+        WorldObject* obj = sEluna.CHECKOBJ<WorldObject>(L, 2);
         if (obj)
             unit->SetFacingToObject(obj);
         return 0;
@@ -997,42 +986,42 @@ namespace LuaUnit
 
     int SetCreatorGUID(lua_State* L, Unit* unit)
     {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECKVAL<uint64>(L, 2);
         unit->SetOwnerGuid((ObjectGuid)guid);
         return 0;
     }
 
     int SetMinionGUID(lua_State* L, Unit* unit)
     {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECKVAL<uint64>(L, 2);
         unit->SetPetGuid((ObjectGuid)guid); // TC MinionGuid methods = same field as Mangos PetGuid
         return 0;
     }
 
     int SetCharmerGUID(lua_State* L, Unit* unit)
     {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECKVAL<uint64>(L, 2);
         unit->SetCharmerGuid((ObjectGuid)guid);
         return 0;
     }
 
     int SetPetGUID(lua_State* L, Unit* unit)
     {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECKVAL<uint64>(L, 2);
         unit->SetPetGuid((ObjectGuid)guid);
         return 0;
     }
 
     /*int SetCritterGUID(lua_State* L, Unit* unit)
     {
-        uint64 guid = sEluna.CHECK_ULONG(L, 1);
+        uint64 guid = sEluna.CHECKVAL<uint64>(L, 2);
         unit->SetCritterGuid((ObjectGuid)guid);
         return 0;
     }*/
 
     int SetWaterWalk(lua_State* L, Unit* unit)
     {
-        bool enable = luaL_optbool(L, 1, true);
+        bool enable = sEluna.CHECKVAL<bool>(L, 2, true);
 
         unit->SetWaterWalk(enable);
         return 0;
@@ -1040,7 +1029,7 @@ namespace LuaUnit
 	
     int SetStandState(lua_State* L, Unit* unit)
     {
-        uint8 state = sEluna.CHECK_ULONG(L, 1);
+        uint8 state = sEluna.CHECKVAL<uint8>(L, 2);
         unit->SetStandState(state);
         return 0;
     }
@@ -1119,9 +1108,9 @@ namespace LuaUnit
 
     int SendUnitWhisper(lua_State* L, Unit* unit)
     {
-        const char* msg = luaL_checkstring(L, 1);
-        Unit* receiver = sEluna.CHECK_UNIT(L, 2);
-        bool bossWhisper = luaL_optbool(L, 3, false);
+        const char* msg = sEluna.CHECKVAL<const char*>(L, 2);
+        Unit* receiver = sEluna.CHECKOBJ<Unit>(L, 3);
+        bool bossWhisper = sEluna.CHECKVAL<bool>(L, 4, false);
         if (receiver && std::string(msg).length() > 0)
             unit->MonsterWhisper(msg, receiver, bossWhisper);
         return 0;
@@ -1129,9 +1118,9 @@ namespace LuaUnit
 
     int SendUnitEmote(lua_State* L, Unit* unit)
     {
-        const char* msg = luaL_checkstring(L, 1);
-        Unit* receiver = sEluna.CHECK_UNIT(L, 2);
-        bool bossEmote = luaL_optbool(L, 3, false);
+        const char* msg = sEluna.CHECKVAL<const char*>(L, 2);
+        Unit* receiver = sEluna.CHECKOBJ<Unit>(L, 3);
+        bool bossEmote = sEluna.CHECKVAL<bool>(L, 4, false);
         if (std::string(msg).length() > 0)
             unit->MonsterTextEmote(msg, receiver ? receiver : 0, bossEmote);
         return 0;
@@ -1139,8 +1128,8 @@ namespace LuaUnit
 
     int SendUnitSay(lua_State* L, Unit* unit)
     {
-        const char* msg = luaL_checkstring(L, 1);
-        uint32 language = luaL_checknumber(L, 2);
+        const char* msg = sEluna.CHECKVAL<const char*>(L, 2);
+        uint32 language = sEluna.CHECKVAL<uint32>(L, 3);
         if (std::string(msg).length() > 0)
             unit->MonsterSay(msg, language, unit);
         return 0;
@@ -1148,8 +1137,8 @@ namespace LuaUnit
 
     int SendUnitYell(lua_State* L, Unit* unit)
     {
-        const char* msg = luaL_checkstring(L, 1);
-        uint32 language = luaL_checknumber(L, 2);
+        const char* msg = sEluna.CHECKVAL<const char*>(L, 2);
+        uint32 language = sEluna.CHECKVAL<uint32>(L, 3);
         if (std::string(msg).length() > 0)
             unit->MonsterYell(msg, language, unit);
         return 0;
@@ -1163,14 +1152,14 @@ namespace LuaUnit
 
     int CastSpell(lua_State* L, Unit* unit)
     {
-        Unit* target = sEluna.CHECK_UNIT(L, 1);
+        Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
         if (!target)
             return 0;
-        uint32 spell = luaL_checkunsigned(L, 2);
+        uint32 spell = sEluna.CHECKVAL<uint32>(L, 3);
         SpellEntry const* spellEntry = sSpellStore.LookupEntry(spell);
         if (!spellEntry)
             return 0;
-        bool triggered = luaL_optbool(L, 3, false);
+        bool triggered = sEluna.CHECKVAL<bool>(L, 4, false);
 
         unit->CastSpell(target, spellEntry, triggered);
         return 0;
@@ -1178,18 +1167,18 @@ namespace LuaUnit
 
     int CastSpellAoF(lua_State* L, Unit* unit)
     {
-        float _x = luaL_checknumber(L, 1);
-        float _y = luaL_checknumber(L, 2);
-        float _z = luaL_checknumber(L, 3);
-        uint32 spell = luaL_checkunsigned(L, 4);
-        bool triggered = luaL_optbool(L, 5, true);
+        float _x = sEluna.CHECKVAL<float>(L, 2);
+        float _y = sEluna.CHECKVAL<float>(L, 3);
+        float _z = sEluna.CHECKVAL<float>(L, 4);
+        uint32 spell = sEluna.CHECKVAL<uint32>(L, 5);
+        bool triggered = sEluna.CHECKVAL<bool>(L, 6, true);
         unit->CastSpell(_x, _y, _z, spell, triggered);
         return 0;
     }
 
     int GetAura(lua_State* L, Unit* unit)
     {
-        uint32 spellID = luaL_checkunsigned(L, 1);
+        uint32 spellID = sEluna.CHECKVAL<uint32>(L, 2);
         sEluna.Push(L, unit->GetAura(spellID, EFFECT_INDEX_0)); // Unsure if correct index, double check please?
         return 1;
     }
@@ -1208,16 +1197,16 @@ namespace LuaUnit
 
     int StopSpellCast(lua_State* L, Unit* unit)
     {
-        uint32 spellId = luaL_optunsigned(L, 1, 0);
+        uint32 spellId = sEluna.CHECKVAL<uint32>(L, 2, 0);
         unit->CastStop(spellId);
         return 0;
     }
 
     int InterruptSpell(lua_State* L, Unit* unit)
     {
-        int spellType = luaL_checkint(L, 1);
-        bool delayed = luaL_optbool(L, 2, true);
-        // bool instant = luaL_optbool(L, 3, true);
+        int spellType = sEluna.CHECKVAL<int>(L, 2);
+        bool delayed = sEluna.CHECKVAL<bool>(L, 3, true);
+        // bool instant = sEluna.CHECKVAL<bool>(L, 4, true);
         switch (spellType)
         {
             case 0:
@@ -1239,8 +1228,8 @@ namespace LuaUnit
 
     int AddAura(lua_State* L, Unit* unit)
     {
-        uint32 spellId = luaL_checkunsigned(L, 1);
-        Unit* target = sEluna.CHECK_UNIT(L, 2);
+        uint32 spellId = sEluna.CHECKVAL<uint32>(L, 2);
+        Unit* target = sEluna.CHECKOBJ<Unit>(L, 3);
         if (!target)
             return 0;
         SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
@@ -1271,7 +1260,7 @@ namespace LuaUnit
 
     int HasAura(lua_State* L, Unit* unit)
     {
-        uint32 spell = luaL_checkunsigned(L, 1);
+        uint32 spell = sEluna.CHECKVAL<uint32>(L, 2);
 
         sEluna.Push(L, unit->HasAura(spell));
         return 1;
@@ -1285,7 +1274,7 @@ namespace LuaUnit
 
     int RemoveAura(lua_State* L, Unit* unit)
     {
-        uint32 spellId = luaL_checkunsigned(L, 1);
+        uint32 spellId = sEluna.CHECKVAL<uint32>(L, 2);
         unit->RemoveAurasDueToSpell(spellId);
         return 0;
     }
@@ -1298,8 +1287,8 @@ namespace LuaUnit
 
     int PlayDirectSound(lua_State* L, Unit* unit)
     {
-        uint32 soundId = luaL_checkunsigned(L, 1);
-        Player* player = sEluna.CHECK_PLAYER(L, 2);
+        uint32 soundId = sEluna.CHECKVAL<uint32>(L, 2);
+        Player* player = sEluna.CHECKOBJ<Player>(L, 3);
         if (!sSoundEntriesStore.LookupEntry(soundId))
             return 0;
 
@@ -1312,8 +1301,8 @@ namespace LuaUnit
 
     int PlayDistanceSound(lua_State* L, Unit* unit)
     {
-        uint32 soundId = luaL_checkunsigned(L, 1);
-        Player* player = sEluna.CHECK_PLAYER(L, 2);
+        uint32 soundId = sEluna.CHECKVAL<uint32>(L, 2);
+        Player* player = sEluna.CHECKOBJ<Player>(L, 3);
         if (!sSoundEntriesStore.LookupEntry(soundId))
             return 0;
 
@@ -1326,19 +1315,19 @@ namespace LuaUnit
 
     /*int Kill(lua_State* L, Unit* unit)
     {
-        Unit* target = sEluna.CHECK_UNIT(L, 1);
-        bool durLoss = luaL_optbool(L, 2, true);
+        Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
+        bool durLoss = sEluna.CHECKVAL<bool>(L, 3, true);
         unit->Kill((target ? target : unit), durLoss);
         return 0;
     }*/
 
     int RegisterEvent(lua_State* L, Unit* unit)
     {
-        luaL_checktype(L, 1, LUA_TFUNCTION);
-        uint32 delay = luaL_checkunsigned(L, 2);
-        uint32 repeats = luaL_checkunsigned(L, 3);
+        luaL_checktype(L, 2, LUA_TFUNCTION);
+        uint32 delay = sEluna.CHECKVAL<uint32>(L, 3);
+        uint32 repeats = sEluna.CHECKVAL<uint32>(L, 4);
 
-        lua_settop(L, 1);
+        lua_settop(L, 2);
         int functionRef = lua_ref(L, true);
         functionRef = sEluna.m_EventMgr.AddEvent(&unit->m_Events, functionRef, delay, repeats, unit);
         if (functionRef)
@@ -1350,7 +1339,7 @@ namespace LuaUnit
 
     int RemoveEventById(lua_State* L, Unit* unit)
     {
-        int eventId = luaL_checkinteger(L, 1);
+        int eventId = sEluna.CHECKVAL<int>(L, 2);
         sEluna.m_EventMgr.RemoveEvent(&unit->m_Events, eventId);
         return 0;
     }
@@ -1378,8 +1367,8 @@ namespace LuaUnit
 
     /*int AddVehiclePassenger(lua_State* L, Unit* unit)
     {
-        Unit* passenger = sEluna.CHECK_UNIT(L, 1);
-        int8 seatId = luaL_checkunsigned(L, 2);
+        Unit* passenger = sEluna.CHECKOBJ<Unit>(L, 2);
+        int8 seatId = sEluna.CHECKVAL<int8>(L, 3);
         Vehicle* _vehicle = unit->GetVehicle();
         if (!_vehicle)
         return 0;
@@ -1391,7 +1380,7 @@ namespace LuaUnit
     /* Not coded in core
     int EjectPassenger(lua_State* L, Unit* unit)
     {
-        Unit* passenger = sEluna.CHECK_UNIT(L, 1);
+        Unit* passenger = sEluna.CHECKOBJ<Unit>(L, 2);
         Vehicle* _vehicle = unit->GetVehicle();
         if (!_vehicle)
             return 0;
@@ -1403,7 +1392,7 @@ namespace LuaUnit
 
     /*int RemovePassenger(lua_State* L, Unit* unit)
     {
-        Unit* passenger = sEluna.CHECK_UNIT(L, 1);
+        Unit* passenger = sEluna.CHECKOBJ<Unit>(L, 2);
         Vehicle* _vehicle = unit->GetVehicle();
         if (!_vehicle)
             return 0;
@@ -1424,7 +1413,7 @@ namespace LuaUnit
 
     /*int GetPassenger(lua_State* L, Unit* unit)
     {
-        int8 seatId = luaL_checkunsigned(L, 1);
+        int8 seatId = sEluna.CHECKVAL<int8>(L, 2);
         Unit* _unit = unit->GetVehicleBase();
         if (!_unit)
             return 0;
@@ -1435,7 +1424,7 @@ namespace LuaUnit
 
     /*int GetNextEmptySeat(lua_State* L, Unit* unit)
     {
-        int8 seatId = luaL_checkunsigned(L, 1);
+        int8 seatId = sEluna.CHECKVAL<int8>(L, 2);
         Unit* _unit = unit->GetVehicleBase();
         if (!_unit)
             return 0;
@@ -1465,7 +1454,7 @@ namespace LuaUnit
 
     /*int HasEmptySeat(lua_State* L, Unit* unit)
     {
-        int8 seatId = luaL_checkunsigned(L, 1);
+        int8 seatId = sEluna.CHECKVAL<int8>(L, 2);
         Unit* _unit = unit->GetVehicleBase();
         if (!_unit)
             return 0;
@@ -1476,7 +1465,7 @@ namespace LuaUnit
 
     int GetFriendlyUnitsInRange(lua_State* L, Unit* unit)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
 
         std::list<Unit*> list;
         MaNGOS::AnyFriendlyUnitInObjectRangeCheck checker(unit, range);
@@ -1502,7 +1491,7 @@ namespace LuaUnit
 
     int GetUnfriendlyUnitsInRange(lua_State* L, Unit* unit)
     {
-        float range = luaL_optnumber(L, 1, SIZE_OF_GRIDS);
+        float range = sEluna.CHECKVAL<float>(L, 2, SIZE_OF_GRIDS);
 
         std::list<Unit*> list;
         MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck checker(unit, range);
@@ -1534,14 +1523,14 @@ namespace LuaUnit
 
     /*int SetCanFly(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
         unit->SetCanFly(apply);
         return 0;
     }*/
 
     /*int SetVisible(lua_State* L, Unit* unit)
     {
-        bool x = luaL_optbool(L, 1, true);
+        bool x = sEluna.CHECKVAL<bool>(L, 2, true);
         unit->SetVisible(x);
         return 0;
     }*/
@@ -1602,7 +1591,7 @@ namespace LuaUnit
 
     int AddUnitState(lua_State* L, Unit* unit)
     {
-        uint32 state = luaL_checkunsigned(L, 1);
+        uint32 state = sEluna.CHECKVAL<uint32>(L, 2);
 
         unit->addUnitState(state);
         return 0;
@@ -1610,7 +1599,7 @@ namespace LuaUnit
 
     int ClearUnitState(lua_State* L, Unit* unit)
     {
-        uint32 state = luaL_checkunsigned(L, 1);
+        uint32 state = sEluna.CHECKVAL<uint32>(L, 2);
 
         unit->clearUnitState(state);
         return 0;
@@ -1618,7 +1607,7 @@ namespace LuaUnit
 
     int HasUnitState(lua_State* L, Unit* unit)
     {
-        uint32 state = luaL_checkunsigned(L, 1);
+        uint32 state = sEluna.CHECKVAL<uint32>(L, 2);
 
         sEluna.Push(L, unit->hasUnitState(state));
         return 1;
@@ -1626,10 +1615,10 @@ namespace LuaUnit
 
     int NearTeleport(lua_State* L, Unit* unit)
     {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float z = luaL_checknumber(L, 3);
-        float o = luaL_checknumber(L, 4);
+        float x = sEluna.CHECKVAL<float>(L, 2);
+        float y = sEluna.CHECKVAL<float>(L, 3);
+        float z = sEluna.CHECKVAL<float>(L, 4);
+        float o = sEluna.CHECKVAL<float>(L, 5);
 
         unit->NearTeleportTo(x, y, z, o);
         return 1;
@@ -1637,7 +1626,7 @@ namespace LuaUnit
 
     /*int DisableMelee(lua_State* L, Unit* unit)
     {
-        bool apply = luaL_optbool(L, 1, true);
+        bool apply = sEluna.CHECKVAL<bool>(L, 2, true);
 
         if (apply)
             unit->AddUnitState(UNIT_STATE_CANNOT_AUTOATTACK);
@@ -1648,12 +1637,12 @@ namespace LuaUnit
 
     /*int SummonGuardian(lua_State* L, Unit* unit)
     {
-        uint32 entry = luaL_checkunsigned(L, 1);
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        float o = luaL_checknumber(L, 5);
-        uint32 desp = luaL_optunsigned(L, 6, 0);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 2);
+        float x = sEluna.CHECKVAL<float>(L, 3);
+        float y = sEluna.CHECKVAL<float>(L, 4);
+        float z = sEluna.CHECKVAL<float>(L, 5);
+        float o = sEluna.CHECKVAL<float>(L, 6);
+        uint32 desp = sEluna.CHECKVAL<uint32>(L, 7, 0);
 
         SummonPropertiesEntry const* properties = sSummonPropertiesStore.LookupEntry(61);
         if (!properties)

@@ -27,13 +27,13 @@ namespace LuaGameObject
         if (!go || !go->IsInWorld())
             return 0;
 
-        uint32 entry = luaL_checkunsigned(L, 1);
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        float o = luaL_checknumber(L, 5);
-        uint32 spawnType = luaL_optunsigned(L, 6, 0);
-        uint32 despawnTimer = luaL_optunsigned(L, 7, 0);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 2);
+        float x = sEluna.CHECKVAL<float>(L, 3);
+        float y = sEluna.CHECKVAL<float>(L, 4);
+        float z = sEluna.CHECKVAL<float>(L, 5);
+        float o = sEluna.CHECKVAL<float>(L, 6);
+        uint32 spawnType = sEluna.CHECKVAL<uint32>(L, 7, 0);
+        uint32 despawnTimer = sEluna.CHECKVAL<uint32>(L, 8, 0);
 
         TempSummonType type;
         switch (spawnType)
@@ -74,12 +74,12 @@ namespace LuaGameObject
         if (!go || !go->IsInWorld())
             return 0;
 
-        uint32 entry = luaL_checkunsigned(L, 1);
-        float x = luaL_checknumber(L, 2);
-        float y = luaL_checknumber(L, 3);
-        float z = luaL_checknumber(L, 4);
-        float o = luaL_checknumber(L, 5);
-        uint32 respawnDelay = luaL_optunsigned(L, 6, 30);
+        uint32 entry = sEluna.CHECKVAL<uint32>(L, 2);
+        float x = sEluna.CHECKVAL<float>(L, 3);
+        float y = sEluna.CHECKVAL<float>(L, 4);
+        float z = sEluna.CHECKVAL<float>(L, 5);
+        float o = sEluna.CHECKVAL<float>(L, 6);
+        uint32 respawnDelay = sEluna.CHECKVAL<uint32>(L, 7, 30);
         sEluna.Push(L, go->SummonGameObject(entry, x, y, z, o, respawnDelay));
         return 1;
     }
@@ -95,7 +95,7 @@ namespace LuaGameObject
 
     int HasQuest(lua_State* L, GameObject* go)
     {
-        uint32 questId = luaL_checkunsigned(L, 1);
+        uint32 questId = sEluna.CHECKVAL<uint32>(L, 2);
 
         sEluna.Push(L, go->HasQuest(questId));
         return 1;
@@ -142,10 +142,10 @@ namespace LuaGameObject
         if (!go || !go->IsInWorld())
             return 0;
 
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float z = luaL_checknumber(L, 3);
-        float o = luaL_checknumber(L, 4);
+        float x = sEluna.CHECKVAL<float>(L, 2);
+        float y = sEluna.CHECKVAL<float>(L, 3);
+        float z = sEluna.CHECKVAL<float>(L, 4);
+        float o = sEluna.CHECKVAL<float>(L, 5);
         go->Relocate(x, y, z, o);
         return 0;
     }
@@ -161,7 +161,7 @@ namespace LuaGameObject
         if (!go || !go->IsInWorld())
             return 0;
 
-        bool del = luaL_optbool(L, 1, false);
+        bool del = sEluna.CHECKVAL<bool>(L, 2, false);
         if (del)
             go->DeleteFromDB();
         go->RemoveFromWorld();
@@ -171,8 +171,8 @@ namespace LuaGameObject
     int RegisterEvent(lua_State* L, GameObject* go)
     {
         luaL_checktype(L, 1, LUA_TFUNCTION);
-        uint32 delay = luaL_checkunsigned(L, 2);
-        uint32 repeats = luaL_checkunsigned(L, 3);
+        uint32 delay = sEluna.CHECKVAL<uint32>(L, 3);
+        uint32 repeats = sEluna.CHECKVAL<uint32>(L, 4);
 
         lua_settop(L, 1);
         int functionRef = lua_ref(L, true);
@@ -186,7 +186,7 @@ namespace LuaGameObject
 
     int RemoveEventById(lua_State* L, GameObject* go)
     {
-        int eventId = luaL_checkinteger(L, 1);
+        int eventId = sEluna.CHECKVAL<int>(L, 2);
         sEluna.m_EventMgr.RemoveEvent(&go->m_Events, eventId);
         return 0;
     }
@@ -202,7 +202,7 @@ namespace LuaGameObject
         if (!go || !go->IsInWorld())
             return 0;
 
-        uint32 delay = luaL_optunsigned(L, 1, 0);
+        uint32 delay = sEluna.CHECKVAL<uint32>(L, 2, 0);
 
         go->UseDoorOrButton(delay);
         return 0;
@@ -213,7 +213,7 @@ namespace LuaGameObject
         if (!go || !go->IsInWorld())
             return 0;
 
-        uint32 state = luaL_optunsigned(L, 1, 0);
+        uint32 state = sEluna.CHECKVAL<uint32>(L, 2, 0);
 
         if (state == 0)
             go->SetGoState(GO_STATE_ACTIVE);
@@ -239,7 +239,7 @@ namespace LuaGameObject
         if (!go || !go->IsInWorld())
             return 0;
 
-        uint32 state = luaL_optunsigned(L, 1, 0);
+        uint32 state = sEluna.CHECKVAL<uint32>(L, 2, 0);
 
         if (state == 0)
             go->SetLootState(GO_NOT_READY);
@@ -264,7 +264,7 @@ namespace LuaGameObject
 
     int Despawn(lua_State* L, GameObject* go)
     {
-        uint32 delay = luaL_optunsigned(L, 1, 1);
+        uint32 delay = sEluna.CHECKVAL<uint32>(L, 2, 1);
         if (!delay)
             delay = 1;
 
@@ -275,7 +275,7 @@ namespace LuaGameObject
 
     int Respawn(lua_State* L, GameObject* go)
     {
-        uint32 delay = luaL_optunsigned(L, 1, 1);
+        uint32 delay = sEluna.CHECKVAL<uint32>(L, 2, 1);
         if (!delay)
             delay = 1;
 

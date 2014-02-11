@@ -56,7 +56,7 @@ namespace LuaQuery
 
     int IsNull(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, true);
         else
@@ -66,7 +66,7 @@ namespace LuaQuery
 
     int GetBool(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, false);
         else
@@ -76,7 +76,7 @@ namespace LuaQuery
 
     int GetUInt8(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -86,7 +86,7 @@ namespace LuaQuery
 
     int GetUInt16(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -96,7 +96,7 @@ namespace LuaQuery
 
     int GetUInt32(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -106,7 +106,7 @@ namespace LuaQuery
 
     int GetUInt64(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -116,7 +116,7 @@ namespace LuaQuery
 
     int GetInt8(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -126,7 +126,7 @@ namespace LuaQuery
 
     int GetInt16(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -136,7 +136,7 @@ namespace LuaQuery
 
     int GetInt32(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -146,7 +146,7 @@ namespace LuaQuery
 
     int GetInt64(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0);
         else
@@ -156,7 +156,7 @@ namespace LuaQuery
 
     int GetFloat(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0.0f);
         else
@@ -166,7 +166,7 @@ namespace LuaQuery
 
     int GetDouble(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, 0.0);
         else
@@ -176,7 +176,7 @@ namespace LuaQuery
 
     int GetString(lua_State* L, QueryResult* result)
     {
-        uint32 col = luaL_checkunsigned(L, 1);
+        uint32 col = sEluna.CHECKVAL<uint32>(L, 2);
         if (!result || col >= result->GetFieldCount())
             sEluna.Push(L, "");
         else

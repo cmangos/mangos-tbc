@@ -78,7 +78,7 @@ namespace LuaQuest
 
     int HasFlag(lua_State* L, Quest* quest)
     {
-        uint32 flag = luaL_checkunsigned(L, 1);
+        uint32 flag = sEluna.CHECKVAL<uint32>(L, 2);
         sEluna.Push(L, quest->HasQuestFlag((QuestFlags)flag));
         return 1;
     }
@@ -97,7 +97,7 @@ namespace LuaQuest
 
     int SetFlag(lua_State* L, Quest* quest)
     {
-        uint32 flag = luaL_checkunsigned(L, 1);
+        uint32 flag = sEluna.CHECKVAL<uint32>(L, 2);
         quest->SetSpecialFlag((QuestSpecialFlags)flag);
         return 0;
     }

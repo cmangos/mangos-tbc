@@ -78,7 +78,7 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "bit_xor", &LuaGlobalFunctions::bit_xor);                                               // bit_xor(a, b) - Returns a ^ b UNDOCUMENTED
     lua_register(L, "bit_rshift", &LuaGlobalFunctions::bit_rshift);                                         // bit_rshift(a, b) - Returns a >> b UNDOCUMENTED
     lua_register(L, "bit_lshift", &LuaGlobalFunctions::bit_lshift);                                         // bit_lshift(a, b) - Returns a << b UNDOCUMENTED
-    lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or);                                                 // bit_or(a, b) - Returns a | b UNDOCUMENTED
+    lua_register(L, "bit_or", &LuaGlobalFunctions::bit_or); // bit_or(a, b) - Returns a | b UNDOCUMENTED
     lua_register(L, "bit_and", &LuaGlobalFunctions::bit_and);                                               // bit_and(a, b) - Returns a & b UNDOCUMENTED
     lua_register(L, "GetItemLink", &LuaGlobalFunctions::GetItemLink);                                       // GetItemLink(entry[, localeIndex]) - Returns the shift clickable link of the item. Item name translated if translate available for provided locale index UNDOCUMENTED
     lua_register(L, "GetMapById", &LuaGlobalFunctions::GetMapById);                                         // GetMapById(mapId, instance) - Returns map object of id specified. UNDOCUMENTED
@@ -100,8 +100,8 @@ void RegisterGlobals(lua_State* L)
     lua_register(L, "AddVendorItem", &LuaGlobalFunctions::AddVendorItem);                                   // AddVendorItem(entry, itemId, maxcount, incrtime, extendedcost) - Adds an item to vendor entry.
     lua_register(L, "VendorRemoveItem", &LuaGlobalFunctions::VendorRemoveItem);                             // VendorRemoveItem(entry, item) - Removes an item from vendor entry
     lua_register(L, "VendorRemoveAllItems", &LuaGlobalFunctions::VendorRemoveAllItems);                     // VendorRemoveAllItems(entry) - Removes all items from vendor entry
-    lua_register(L, "Kick", &LuaGlobalFunctions::Kick);                                                     // Kick(player) - Kicks given player
-    lua_register(L, "Ban", &LuaGlobalFunctions::Ban);                                                       // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned)) - Banmode: 0 account, 1 character, 2 IP
+    lua_register(L, "Kick", &LuaGlobalFunctions::Kick);     // Kick(player) - Kicks given player
+    lua_register(L, "Ban", &LuaGlobalFunctions::Ban);       // Ban(banMode(integer), nameOrIP(string), duration(string), reason(string), player(whoBanned)) - Banmode: 0 account, 1 character, 2 IP
     lua_register(L, "SaveAllPlayers", &LuaGlobalFunctions::SaveAllPlayers);                                 // SaveAllPlayers() - Saves all players
     lua_register(L, "SendMail", &LuaGlobalFunctions::SendMail);                                             // SendMail(subject, text, receiverLowGUID[, sender, stationary, delay, itemEntry, itemAmount, itemEntry2, itemAmount2...]) - Sends a mail to player with lowguid. use nil to use default values on optional arguments. Sender is an optional player object. UNDOCUMENTED
     lua_register(L, "AddTaxiPath", &LuaGlobalFunctions::AddTaxiPath);                                       // AddTaxiPath(pathTable, mountA, mountH[, price, pathId]) - Adds a new taxi path. Returns the path's ID. Will replace an existing path if pathId provided and already used. path table structure: T = {{map, x, y, z[, actionFlag, delay, arrivalEvId, departEvId]}, {...}, ...} UDOCUMENTED
@@ -158,29 +158,29 @@ ElunaRegister<Object> ObjectMethods[] =
 ElunaRegister<WorldObject> WorldObjectMethods[] =
 {
     // Getters
-    {"GetName", &LuaWorldObject::GetName},                                  // :GetName()
-    {"GetMap", &LuaWorldObject::GetMap},                                    // :GetMap() - Returns the WorldObject's current map object
-    // {"GetPhaseMask", &LuaWorldObject::GetPhaseMask},                     // :GetPhaseMask()
-    {"GetInstanceId", &LuaWorldObject::GetInstanceId},                      // :GetInstanceId()
-    {"GetAreaId", &LuaWorldObject::GetAreaId},                              // :GetAreaId()
-    {"GetZoneId", &LuaWorldObject::GetZoneId},                              // :GetZoneId()
-    {"GetMapId", &LuaWorldObject::GetMapId},                                // :GetMapId() - Returns the WorldObject's current map ID
-    {"GetX", &LuaWorldObject::GetX},                                        // :GetX()
-    {"GetY", &LuaWorldObject::GetY},                                        // :GetY()
-    {"GetZ", &LuaWorldObject::GetZ},                                        // :GetZ()
-    {"GetO", &LuaWorldObject::GetO},                                        // :GetO()
-    {"GetLocation", &LuaWorldObject::GetLocation},                          // :GetLocation() - returns X, Y, Z and O co - ords (in that order)
+    {"GetName", &LuaWorldObject::GetName},                  // :GetName()
+    {"GetMap", &LuaWorldObject::GetMap},                    // :GetMap() - Returns the WorldObject's current map object
+    // {"GetPhaseMask", &LuaWorldObject::GetPhaseMask},     // :GetPhaseMask()
+    {"GetInstanceId", &LuaWorldObject::GetInstanceId},      // :GetInstanceId()
+    {"GetAreaId", &LuaWorldObject::GetAreaId},              // :GetAreaId()
+    {"GetZoneId", &LuaWorldObject::GetZoneId},              // :GetZoneId()
+    {"GetMapId", &LuaWorldObject::GetMapId},                // :GetMapId() - Returns the WorldObject's current map ID
+    {"GetX", &LuaWorldObject::GetX},                        // :GetX()
+    {"GetY", &LuaWorldObject::GetY},                        // :GetY()
+    {"GetZ", &LuaWorldObject::GetZ},                        // :GetZ()
+    {"GetO", &LuaWorldObject::GetO},                        // :GetO()
+    {"GetLocation", &LuaWorldObject::GetLocation},          // :GetLocation() - returns X, Y, Z and O co - ords (in that order)
     {"GetPlayersInRange", &LuaWorldObject::GetPlayersInRange},              // :GetPlayersInRange([range]) - Returns a table with players in range of the WorldObject.
     {"GetCreaturesInRange", &LuaWorldObject::GetCreaturesInRange},          // :GetCreaturesInRange([range, entry]) - Returns a table with creatures of given entry in range of the WorldObject.
     {"GetGameObjectsInRange", &LuaWorldObject::GetGameObjectsInRange},      // :GetGameObjectsInRange([range, entry]) - Returns a table with gameobjects of given entry in range of the WorldObject.
-    {"GetNearestPlayer", &LuaWorldObject::GetNearestPlayer},                // :GetNearestPlayer([range]) - Returns nearest player in sight or given range.
+    {"GetNearestPlayer", &LuaWorldObject::GetNearestPlayer},// :GetNearestPlayer([range]) - Returns nearest player in sight or given range.
     {"GetNearestGameObject", &LuaWorldObject::GetNearestGameObject},        // :GetNearestGameObject([range, entry]) - Returns nearest gameobject with given entry in sight or given range entry can be 0 or nil for any.
     {"GetNearestCreature", &LuaWorldObject::GetNearestCreature},            // :GetNearestCreature([range, entry]) - Returns nearest creature with given entry in sight or given range entry can be 0 or nil for any.
-    {"GetNearObject", &LuaWorldObject::GetNearObject},                      // :GetNearObject([nearest, range, typemask, entry, hostile]) - Returns nearest WorldObject or table of objects in given range with given typemask (can contain several types) with given entry if given. Hostile can be 0 for any, 1 hostile, 2 friendly
-    {"GetWorldObject", &LuaWorldObject::GetWorldObject},                    // :GetWorldObject(guid) - Returns a world object (creature, player, gameobject) from the guid. The world object returned must be on the same map as the world object in the arguments.
-    {"GetDistance", &LuaWorldObject::GetDistance},                          // :GetDistance(WorldObject or x, y, z) - Returns the distance between 2 objects or location
-    {"GetRelativePoint", &LuaWorldObject::GetRelativePoint},                // :GetRelativePoint(dist, rad) - Returns the x, y and z of a point dist away from worldobject.
-    {"GetAngle", &LuaWorldObject::GetAngle},                                // :GetAngle(WorldObject or x, y) - Returns angle between world object and target or x and y coords.
+    {"GetNearObject", &LuaWorldObject::GetNearObject},      // :GetNearObject([nearest, range, typemask, entry, hostile]) - Returns nearest WorldObject or table of objects in given range with given typemask (can contain several types) with given entry if given. Hostile can be 0 for any, 1 hostile, 2 friendly
+    {"GetWorldObject", &LuaWorldObject::GetWorldObject},    // :GetWorldObject(guid) - Returns a world object (creature, player, gameobject) from the guid. The world object returned must be on the same map as the world object in the arguments.
+    {"GetDistance", &LuaWorldObject::GetDistance},          // :GetDistance(WorldObject or x, y, z) - Returns the distance between 2 objects or location
+    {"GetRelativePoint", &LuaWorldObject::GetRelativePoint},// :GetRelativePoint(dist, rad) - Returns the x, y and z of a point dist away from worldobject.
+    {"GetAngle", &LuaWorldObject::GetAngle},                // :GetAngle(WorldObject or x, y) - Returns angle between world object and target or x and y coords.
 
     {NULL, NULL},
 };
@@ -188,43 +188,43 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
 ElunaRegister<Unit> UnitMethods[] =
 {
     // Getters
-    {"GetLevel", &LuaUnit::GetLevel},                                       // :GetLevel()
-    {"GetHealth", &LuaUnit::GetHealth},                                     // :GetHealth()
-    {"GetDisplayId", &LuaUnit::GetDisplayId},                               // :GetDisplayId()
-    {"GetNativeDisplayId", &LuaUnit::GetNativeDisplayId},                   // :GetNativeDisplayId()
-    {"GetPower", &LuaUnit::GetPower},                                       // :GetPower(index) - returns power at index. Index can be omitted
-    {"GetMaxPower", &LuaUnit::GetMaxPower},                                 // :GetMaxPower(index) - returns power at index. Index can be omitted
-    {"GetPowerType", &LuaUnit::GetPowerType},                               // :GetPowerType() - Returns the power type
-    {"GetMaxHealth", &LuaUnit::GetMaxHealth},                               // :GetMaxHealth()
-    {"GetHealthPct", &LuaUnit::GetHealthPct},                               // :GetHealthPct()
-    {"GetPowerPct", &LuaUnit::GetPowerPct},                                 // :GetPowerPct(power_id)
-    {"GetGender", &LuaUnit::GetGender},                                     // :GetGender() - returns the gender where male = 0 female = 1
-    {"GetRace", &LuaUnit::GetRace},                                         // :GetRace()
-    {"GetClass", &LuaUnit::GetClass},                                       // :GetClass()
-    {"GetClassAsString", &LuaUnit::GetClassAsString},                       // :GetClassAsString()
-    {"GetAura", &LuaUnit::GetAura},                                         // :GetAura(spellID) - returns aura object
-    {"GetCombatTime", &LuaUnit::GetCombatTime},                             // :GetCombatTime() - Returns how long the unit has been in combat
-    {"GetFaction", &LuaUnit::GetFaction},                                   // :GetFaction() - Returns the unit's factionId
-    {"GetCurrentSpell", &LuaUnit::GetCurrentSpell},                         // :GetCurrentSpell(type) - Returns the currently casted spell of given type if any
-    {"GetCreatureType", &LuaUnit::GetCreatureType},                         // :GetCreatureType() - Returns the unit's type
-    {"GetMountId", &LuaUnit::GetMountId},                                   // :GetMountId()
-    {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},                               // :GetOwnerGUID() - Returns the GUID of the owner
-    {"GetOwner", &LuaUnit::GetOwner},                                       // :GetOwner() - Returns the owner
+    {"GetLevel", &LuaUnit::GetLevel},                       // :GetLevel()
+    {"GetHealth", &LuaUnit::GetHealth},                     // :GetHealth()
+    {"GetDisplayId", &LuaUnit::GetDisplayId},               // :GetDisplayId()
+    {"GetNativeDisplayId", &LuaUnit::GetNativeDisplayId},   // :GetNativeDisplayId()
+    {"GetPower", &LuaUnit::GetPower},                       // :GetPower(index) - returns power at index. Index can be omitted
+    {"GetMaxPower", &LuaUnit::GetMaxPower},                 // :GetMaxPower(index) - returns power at index. Index can be omitted
+    {"GetPowerType", &LuaUnit::GetPowerType},               // :GetPowerType() - Returns the power type
+    {"GetMaxHealth", &LuaUnit::GetMaxHealth},               // :GetMaxHealth()
+    {"GetHealthPct", &LuaUnit::GetHealthPct},               // :GetHealthPct()
+    {"GetPowerPct", &LuaUnit::GetPowerPct},                 // :GetPowerPct(power_id)
+    {"GetGender", &LuaUnit::GetGender},                     // :GetGender() - returns the gender where male = 0 female = 1
+    {"GetRace", &LuaUnit::GetRace},                         // :GetRace()
+    {"GetClass", &LuaUnit::GetClass},                       // :GetClass()
+    {"GetClassAsString", &LuaUnit::GetClassAsString},       // :GetClassAsString()
+    {"GetAura", &LuaUnit::GetAura},                         // :GetAura(spellID) - returns aura object
+    {"GetCombatTime", &LuaUnit::GetCombatTime},             // :GetCombatTime() - Returns how long the unit has been in combat
+    {"GetFaction", &LuaUnit::GetFaction},                   // :GetFaction() - Returns the unit's factionId
+    {"GetCurrentSpell", &LuaUnit::GetCurrentSpell},         // :GetCurrentSpell(type) - Returns the currently casted spell of given type if any
+    {"GetCreatureType", &LuaUnit::GetCreatureType},         // :GetCreatureType() - Returns the unit's type
+    {"GetMountId", &LuaUnit::GetMountId},                   // :GetMountId()
+    {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the GUID of the owner
+    {"GetOwner", &LuaUnit::GetOwner},                       // :GetOwner() - Returns the owner
     {"GetFriendlyUnitsInRange", &LuaUnit::GetFriendlyUnitsInRange},         // :GetFriendlyUnitsInRange([range]) - Returns a list of friendly units in range, can return nil
     {"GetUnfriendlyUnitsInRange", &LuaUnit::GetUnfriendlyUnitsInRange},     // :GetUnfriendlyUnitsInRange([range]) - Returns a list of unfriendly units in range, can return nil
-    {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},                               // :GetOwnerGUID() - Returns the UNIT_FIELD_SUMMONEDBY owner
-    {"GetCreatorGUID", &LuaUnit::GetCreatorGUID},                           // :GetCreatorGUID() - Returns the UNIT_FIELD_CREATEDBY creator
-    {"GetMinionGUID", &LuaUnit::GetMinionGUID},                             // :GetMinionGUID() - Returns the UNIT_FIELD_SUMMON unit's minion GUID
-    {"GetCharmerGUID", &LuaUnit::GetCharmerGUID},                           // :GetCharmerGUID() - Returns the UNIT_FIELD_CHARMEDBY charmer
-    {"GetCharmGUID", &LuaUnit::GetCharmGUID},                               // :GetCharmGUID() - Returns the unit's UNIT_FIELD_CHARM guid
-    {"GetPetGUID", &LuaUnit::GetPetGUID},                                   // :GetPetGUID() - Returns the unit's pet GUID
-    // {"GetCritterGUID", &LuaUnit::GetCritterGUID},                        // :GetCritterGUID() - Returns the critter's GUID
-    {"GetControllerGUID", &LuaUnit::GetControllerGUID},                     // :GetControllerGUID() - Returns the Charmer or Owner GUID
-    {"GetControllerGUIDS", &LuaUnit::GetControllerGUIDS},                   // :GetControllerGUIDS() - Returns the charmer, owner or unit's own GUID
-    {"GetStandState", &LuaUnit::GetStandState},                             // :GetStandState() - Returns the unit's stand state
-    {"GetVictim", &LuaUnit::GetVictim},                                     // :GetVictim() - Returns creature's current target
-    {"GetStat", &LuaUnit::GetStat},                                         // :GetStat(stat)
-    {"GetBaseSpellPower", &LuaUnit::GetBaseSpellPower},                     // :GetBaseSpellPower()
+    {"GetOwnerGUID", &LuaUnit::GetOwnerGUID},               // :GetOwnerGUID() - Returns the UNIT_FIELD_SUMMONEDBY owner
+    {"GetCreatorGUID", &LuaUnit::GetCreatorGUID},           // :GetCreatorGUID() - Returns the UNIT_FIELD_CREATEDBY creator
+    {"GetMinionGUID", &LuaUnit::GetMinionGUID},             // :GetMinionGUID() - Returns the UNIT_FIELD_SUMMON unit's minion GUID
+    {"GetCharmerGUID", &LuaUnit::GetCharmerGUID},           // :GetCharmerGUID() - Returns the UNIT_FIELD_CHARMEDBY charmer
+    {"GetCharmGUID", &LuaUnit::GetCharmGUID},               // :GetCharmGUID() - Returns the unit's UNIT_FIELD_CHARM guid
+    {"GetPetGUID", &LuaUnit::GetPetGUID},                   // :GetPetGUID() - Returns the unit's pet GUID
+    // {"GetCritterGUID", &LuaUnit::GetCritterGUID},        // :GetCritterGUID() - Returns the critter's GUID
+    {"GetControllerGUID", &LuaUnit::GetControllerGUID},     // :GetControllerGUID() - Returns the Charmer or Owner GUID
+    {"GetControllerGUIDS", &LuaUnit::GetControllerGUIDS},   // :GetControllerGUIDS() - Returns the charmer, owner or unit's own GUID
+    {"GetStandState", &LuaUnit::GetStandState},             // :GetStandState() - Returns the unit's stand state
+    {"GetVictim", &LuaUnit::GetVictim},                     // :GetVictim() - Returns creature's current target
+    {"GetStat", &LuaUnit::GetStat},                         // :GetStat(stat)
+    {"GetBaseSpellPower", &LuaUnit::GetBaseSpellPower},     // :GetBaseSpellPower()
 
     // Setters
     {"SetFaction", &LuaUnit::SetFaction},                   // :SetFaction(factionId) - Sets the unit's faction
@@ -721,7 +721,7 @@ ElunaRegister<Creature> CreatureMethods[] =
     // {"RemoveLootMode", &LuaCreature::RemoveLootMode},
     {"SaveToDB", &LuaCreature::SaveToDB},                   // :SaveToDB() - Saves to database
     {"SelectVictim", &LuaCreature::SelectVictim},           // :SelectVictim() - Selects a victim
-    {"MoveWaypoint", &LuaCreature::MoveWaypoint},            // :MoveWaypoint()
+    {"MoveWaypoint", &LuaCreature::MoveWaypoint},           // :MoveWaypoint()
 
     {NULL, NULL},
 };

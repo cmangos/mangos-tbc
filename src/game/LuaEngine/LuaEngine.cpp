@@ -343,14 +343,14 @@ void Eluna::Push(lua_State* L, Unit const* unit)
     }
     switch (unit->GetTypeId())
     {
-    case TYPEID_UNIT:
-        Push(L, unit->ToCreature());
-        break;
-    case TYPEID_PLAYER:
-        Push(L, unit->ToPlayer());
-        break;
-    default:
-        ElunaTemplate<Unit>::push(L, unit);
+        case TYPEID_UNIT:
+            Push(L, unit->ToCreature());
+            break;
+        case TYPEID_PLAYER:
+            Push(L, unit->ToPlayer());
+            break;
+        default:
+            ElunaTemplate<Unit>::push(L, unit);
     }
 }
 void Eluna::Push(lua_State* L, WorldObject const* obj)
@@ -362,20 +362,20 @@ void Eluna::Push(lua_State* L, WorldObject const* obj)
     }
     switch (obj->GetTypeId())
     {
-    case TYPEID_UNIT:
-        Push(L, obj->ToCreature());
-        break;
-    case TYPEID_PLAYER:
-        Push(L, obj->ToPlayer());
-        break;
-    case TYPEID_GAMEOBJECT:
-        Push(L, obj->ToGameObject());
-        break;
-    case TYPEID_CORPSE:
-        Push(L, obj->ToCorpse());
-        break;
-    default:
-        ElunaTemplate<WorldObject>::push(L, obj);
+        case TYPEID_UNIT:
+            Push(L, obj->ToCreature());
+            break;
+        case TYPEID_PLAYER:
+            Push(L, obj->ToPlayer());
+            break;
+        case TYPEID_GAMEOBJECT:
+            Push(L, obj->ToGameObject());
+            break;
+        case TYPEID_CORPSE:
+            Push(L, obj->ToCorpse());
+            break;
+        default:
+            ElunaTemplate<WorldObject>::push(L, obj);
     }
 }
 void Eluna::Push(lua_State* L, Object const* obj)
@@ -387,20 +387,20 @@ void Eluna::Push(lua_State* L, Object const* obj)
     }
     switch (obj->GetTypeId())
     {
-    case TYPEID_UNIT:
-        Push(L, obj->ToCreature());
-        break;
-    case TYPEID_PLAYER:
-        Push(L, obj->ToPlayer());
-        break;
-    case TYPEID_GAMEOBJECT:
-        Push(L, obj->ToGameObject());
-        break;
-    case TYPEID_CORPSE:
-        Push(L, obj->ToCorpse());
-        break;
-    default:
-        ElunaTemplate<Object>::push(L, obj);
+        case TYPEID_UNIT:
+            Push(L, obj->ToCreature());
+            break;
+        case TYPEID_PLAYER:
+            Push(L, obj->ToPlayer());
+            break;
+        case TYPEID_GAMEOBJECT:
+            Push(L, obj->ToGameObject());
+            break;
+        case TYPEID_CORPSE:
+            Push(L, obj->ToCorpse());
+            break;
+        default:
+            ElunaTemplate<Object>::push(L, obj);
     }
 }
 template<> bool Eluna::CHECKVAL<bool>(lua_State* L, int narg)
@@ -572,7 +572,7 @@ template<> Corpse* Eluna::CHECKOBJ<Corpse>(lua_State* L, int narg, bool error)
 void Eluna::Register(uint8 regtype, uint32 id, uint32 evt, int functionRef)
 {
     switch (regtype)
-        {
+    {
         case REGTYPE_PACKET:
             if (evt < NUM_MSG_TYPES)
             {

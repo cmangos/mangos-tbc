@@ -1540,7 +1540,7 @@ namespace LuaPlayer
     int SetGender(lua_State* L, Player* player)
     {
         uint32 _gender = sEluna.CHECKVAL<uint32>(L, 2);
-        
+
         Gender gender;
         switch (_gender)
         {

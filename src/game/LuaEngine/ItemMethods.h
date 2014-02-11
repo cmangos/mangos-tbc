@@ -287,7 +287,7 @@ namespace LuaItem
             sEluna.Push(L, false);
             return 1;
         }
-        
+
         EnchantmentSlot slot = (EnchantmentSlot)sEluna.CHECKVAL<uint32>(L, 3);
         if (slot >= MAX_INSPECTED_ENCHANTMENT_SLOT)
             return luaL_argerror(L, 2, "valid EnchantmentSlot expected");

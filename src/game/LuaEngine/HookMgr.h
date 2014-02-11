@@ -343,7 +343,7 @@ struct HookMgr
     void OnLootStateChanged(GameObject* pGameObject, uint32 state, Unit* pUnit); // TODO
     void OnGameObjectStateChanged(GameObject* pGameObject, uint32 state); // TODO
     void UpdateAI(GameObject* pGameObject, uint32 update_diff, uint32 p_time);
-    
+
     /* Packet */
     bool OnPacketSend(WorldSession* session, WorldPacket& packet);
     bool OnPacketReceive(WorldSession* session, WorldPacket& packet);

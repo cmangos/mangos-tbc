@@ -34,7 +34,7 @@ namespace LuaGlobalFunctions
             sEluna.Register(REGTYPE_PACKET, 0, ev, functionRef);
         return 0;
     }
-    
+
     int RegisterServerEvent(lua_State* L)
     {
         lua_settop(L, 2);
@@ -625,7 +625,7 @@ namespace LuaGlobalFunctions
         int maxcount = sEluna.CHECKVAL<int>(L, 3);
         uint32 incrtime = sEluna.CHECKVAL<uint32>(L, 4);
         uint32 extendedcost = sEluna.CHECKVAL<uint32>(L, 5);
-            return luaL_argerror(L, 1, "valid CreatureEntry expected");
+        return luaL_argerror(L, 1, "valid CreatureEntry expected");
 
         if (!sObjectMgr.IsVendorItemValid(false, "npc_vendor", entry, item, maxcount, incrtime, extendedcost, 0))
             return 0;

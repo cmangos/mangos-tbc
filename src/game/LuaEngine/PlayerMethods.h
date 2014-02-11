@@ -717,7 +717,7 @@ namespace LuaPlayer
     {
         // bool isRaid = sEluna.CHECKVAL<bool>(L, 2, true);
 
-		sEluna.Push(L, player->GetDifficulty(/*isRaid*/));
+        sEluna.Push(L, player->GetDifficulty(/*isRaid*/));
         return 1;
     }
 

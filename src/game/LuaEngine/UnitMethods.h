@@ -708,9 +708,6 @@ namespace LuaUnit
                 case 4:
                     type = POWER_ENERGY;
                     break;
-                /*case 6:
-                    type = POWER_RUNIC_POWER;
-                    break;*/
                 case 2:
                 case 3:
                 case 5:
@@ -745,9 +742,6 @@ namespace LuaUnit
                 case 4:
                     type = POWER_ENERGY;
                     break;
-                /*case 6:
-                    type = POWER_RUNIC_POWER;
-                    break;*/
                 case 2:
                 case 3:
                 case 5:
@@ -919,9 +913,6 @@ namespace LuaUnit
             case POWER_ENERGY:
                 unit->SetPower(POWER_ENERGY, amt);
                 break;
-            /*case POWER_RUNIC_POWER:
-                unit->SetPower(POWER_RUNIC_POWER, amt);
-                break;*/
             default:
                 return luaL_argerror(L, 2, "valid Powers expected");
                 break;

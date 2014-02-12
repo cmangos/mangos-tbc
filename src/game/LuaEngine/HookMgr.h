@@ -27,9 +27,7 @@
 #include "ace/Atomic_Op.h"
 
 // Linux requred includes for enums
-#include "Weather.h"
-#include "Player.h"
-#include "Group.h"
+#include "Includes.h"
 
 struct AreaTriggerEntry;
 struct SpellEntry;

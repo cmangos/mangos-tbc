@@ -1,4 +1,4 @@
-ALTER TABLE db_version CHANGE COLUMN required_s2056_12590_01_mangos_gameobject_template required_s2063_12562_01_mangos_playercreateinfo_action bit;
+ALTER TABLE db_version CHANGE COLUMN required_s2049_12540_01_mangos_command required_s2063_12562_01_mangos_playercreateinfo_action bit;
 
 
 ALTER TABLE playercreateinfo_action DROP INDEX playercreateinfo_race_class_index;

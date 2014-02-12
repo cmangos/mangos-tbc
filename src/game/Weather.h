@@ -56,7 +56,6 @@ struct WeatherSeasonChances
 struct WeatherZoneChances
 {
     WeatherSeasonChances data[WEATHER_SEASONS];
-    uint32 ScriptId;
 };
 
 /// Weather for one zone
@@ -73,7 +72,6 @@ class Weather
         void SetWeather(WeatherType type, float grade);
         /// For which zone is this weather?
         uint32 GetZone() { return m_zone; };
-        uint32 GetScriptId() const { return m_weatherChances->ScriptId; }
     private:
         WeatherState GetWeatherState() const;
         uint32 m_zone;

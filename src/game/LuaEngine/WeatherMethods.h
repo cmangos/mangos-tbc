@@ -22,11 +22,11 @@
 
 namespace LuaWeather
 {
-    int GetScriptId(lua_State* L, Weather* weather)
+    /*int GetScriptId(lua_State* L, Weather* weather)
     {
         sEluna.Push(L, weather->GetScriptId());
         return 1;
-    }
+    }*/
 
     int GetZoneId(lua_State* L, Weather* weather)
     {

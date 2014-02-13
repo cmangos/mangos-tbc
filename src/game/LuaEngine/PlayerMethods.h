@@ -2231,5 +2231,17 @@ namespace LuaPlayer
         sEluna.Push(L, player->CanFly());
         return 1;
     }
+
+    int IsMoving(lua_State* L, Player* player) // enable for unit when mangos support it
+    {
+        sEluna.Push(L, player->isMoving());
+        return 1;
+    }
+
+    int IsFlying(lua_State* L, Player* player) // enable for unit when mangos support it
+    {
+        sEluna.Push(L, player->IsFlying());
+        return 1;
+    }
 };
 #endif

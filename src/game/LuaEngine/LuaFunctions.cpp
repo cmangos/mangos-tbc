@@ -532,6 +532,8 @@ ElunaRegister<Player> PlayerMethods[] =
     {"HasSpellCooldown", &LuaPlayer::HasSpellCooldown},     // :HasSpellCooldown(spellId) - Returns true if the spell is on cooldown
     {"IsInWater", &LuaPlayer::IsInWater},                   // :IsInWater() - Returns true if the player is in water
     {"CanFly", &LuaPlayer::CanFly},                         // :CanFly() - Returns true if the player can fly
+    {"IsMoving", &LuaPlayer::IsMoving},                     // :IsMoving()
+    {"IsFlying", &LuaPlayer::IsFlying},                     // :IsFlying()
 
     // Gossip
     {"GossipMenuAddItem", &LuaPlayer::GossipMenuAddItem},   // :GossipMenuAddItem(icon, msg, sender, intid[, code, popup, money])

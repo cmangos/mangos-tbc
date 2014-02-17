@@ -159,10 +159,7 @@ namespace LuaCreature
     {
         Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
 
-        if (!target)
-            sEluna.Push(L, false);
-        else
-            sEluna.Push(L, creature->isTargetableForAttack(target));
+        sEluna.Push(L, creature->isTargetableForAttack(target));
         return 1;
     }
 
@@ -172,12 +169,7 @@ namespace LuaCreature
         Unit* enemy = sEluna.CHECKOBJ<Unit>(L, 3);
         bool checkfaction = sEluna.CHECKVAL<bool>(L, 4, true);
 
-        if (!u)
-            sEluna.Push(L, false);
-        if (!enemy)
-            sEluna.Push(L, false);
-        else
-            sEluna.Push(L, creature->CanAssistTo(u, enemy, checkfaction));
+        sEluna.Push(L, creature->CanAssistTo(u, enemy, checkfaction));
         return 1;
     }
 
@@ -227,8 +219,6 @@ namespace LuaCreature
     {
         Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
 
-        if (!target)
-            return 0;
         sEluna.Push(L, creature->GetAttackDistance(target));
         return 1;
     }
@@ -236,9 +226,6 @@ namespace LuaCreature
     int GetAttackDistance(lua_State* L, Creature* creature)
     {
         Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
-
-        if (!target)
-            return 0;
 
         sEluna.Push(L, creature->GetAttackDistance(target));
         return 1;
@@ -248,9 +235,6 @@ namespace LuaCreature
     {
         Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
         bool force = sEluna.CHECKVAL<bool>(L, 3, true);
-
-        if (!target)
-            return 0;
 
         sEluna.Push(L, creature->CanStartAttack(target, force));
         return 1;
@@ -304,10 +288,7 @@ namespace LuaCreature
     {
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
 
-        if (!player)
-            sEluna.Push(L, creature->isTappedBy(player));
-        else
-            sEluna.Push(L, false);
+        sEluna.Push(L, creature->isTappedBy(player));
         return 1;
     }
 
@@ -487,8 +468,6 @@ namespace LuaCreature
     int AttackStart(lua_State* L, Creature* creature)
     {
         Unit* target = sEluna.CHECKOBJ<Unit>(L, 2);
-        if (!target)
-            return 0;
 
         creature->AI()->AttackStart(target);
         return 0;

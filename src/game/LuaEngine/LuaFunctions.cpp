@@ -320,7 +320,7 @@ ElunaRegister<Unit> UnitMethods[] =
     {"CastSpellAoF", &LuaUnit::CastSpellAoF},               // :CastSpellAoF(x, y, z, spellID[, triggered]) - Casts the spell on coordinates, if triggered is false has mana cost and cast time
     {"PlayDirectSound", &LuaUnit::PlayDirectSound},         // :PlayDirectSound(soundId, player) - Unit plays soundID to player, or everyone around if no player
     {"PlayDistanceSound", &LuaUnit::PlayDistanceSound},     // :PlayDistanceSound(soundId, player) - Unit plays soundID to player, or everyone around if no player. The sound fades the further you are
-    // {"Kill", &LuaUnit::Kill},                            // :Kill(target, durabilityLoss) - Unit kills the target, if no target then kills the unit. Durabilityloss is true by default
+    // {"Kill", &LuaUnit::Kill},                            // :Kill(target, durabilityLoss) - Unit kills the target. Durabilityloss is true by default
     {"SummonGameObject", &LuaUnit::SummonGameObject},       // :SummonGameObject(entry, x, y, z, o[, respawnDelay]) - Spawns an object to location. Returns the object or nil
     {"SpawnCreature", &LuaUnit::SpawnCreature},             // :SpawnCreature(entry, x, y, z, o[, spawnType, despawnDelay]) - Spawns a creature to location that despawns after given time (0 for infinite). Returns the creature or nil
     {"StopSpellCast", &LuaUnit::StopSpellCast},             // :StopSpellCast(spellId(optional)) - Stops the unit from casting a spell. If a spellId is defined, it will stop that unit from casting that spell
@@ -617,7 +617,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"SendSpiritResurrect", &LuaPlayer::SendSpiritResurrect}, // :SendSpiritResurrect() - Sends resurrect window to player
     {"SendTaxiMenu", &LuaPlayer::SendTaxiMenu},             // :SendTaxiMenu(creature) - Sends flight window to player from creature
     {"RewardQuest", &LuaPlayer::RewardQuest},               // :RewardQuest(entry) - Gives quest rewards for the player
-    {"SendAuctionMenu", &LuaPlayer::SendAuctionMenu},       // :SendAuctionMenu([creature, faction]) - Sends auction window to player. Auction house is sent by creature if provided. AH entry is searched with faction or creature's faction if provided
+    {"SendAuctionMenu", &LuaPlayer::SendAuctionMenu},       // :SendAuctionMenu(unit) - Sends auction window to player. Auction house is sent by object.
     // {"SendMailMenu", &LuaPlayer::SendMailMenu},          // :SendMailMenu(object) - Sends mail window to player from gameobject
     {"StartTaxi", &LuaPlayer::StartTaxi},                   // :StartTaxi(pathId) - player starts the given flight path
     {"GossipSendPOI", &LuaPlayer::GossipSendPOI},           // :GossipSendPOI(X, Y, Icon, Flags, Data, Name) - Sends a point of interest to the player
@@ -916,7 +916,7 @@ ElunaRegister<Group> GroupMethods[] =
     {"SetMembersGroup", &LuaGroup::ChangeMembersGroup},     // :ChangeMembersGroup(player, subGroup) - Changes the member's subgroup
 
     // Boolean
-    {"IsLeader", &LuaGroup::IsLeader},                      // :IsLeader("name"/Player)
+    {"IsLeader", &LuaGroup::IsLeader},                      // :IsLeader(GUID)
     {"AddInvite", &LuaGroup::AddInvite},                    // :AddInvite(player) - Adds a an invite to player. Returns true if succesful
     {"RemoveMember", &LuaGroup::RemoveMember},              // :RemoveMember(player) - Removes player from group. Returns true on success
     {"Disband", &LuaGroup::Disband},                        // :Disband() - Disbands the group

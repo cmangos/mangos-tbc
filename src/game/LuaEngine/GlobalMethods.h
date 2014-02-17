@@ -661,8 +661,6 @@ namespace LuaGlobalFunctions
     int Kick(lua_State* L)
     {
         Player* player = sEluna.CHECKOBJ<Player>(L, 1);
-        if (!player)
-            return 0;
         player->GetSession()->KickPlayer();
         return 0;
     }
@@ -674,12 +672,6 @@ namespace LuaGlobalFunctions
         uint32 duration = sEluna.CHECKVAL<uint32>(L, 3);
         const char* reason = sEluna.CHECKVAL<const char*>(L, 4);
         Player* whoBanned = sEluna.CHECKOBJ<Player>(L, 5);
-        if (!nameOrIP_cstr)
-            return 0;
-        if (!reason)
-            return 0;
-        if (!whoBanned)
-            return 0;
         std::string nameOrIP(nameOrIP_cstr);
 
         switch (banMode)
@@ -736,7 +728,7 @@ namespace LuaGlobalFunctions
         const char* subject_cstr = sEluna.CHECKVAL<const char*>(L, ++i);
         const char* text_cstr = sEluna.CHECKVAL<const char*>(L, ++i);
         uint32 receiverGUIDLow = sEluna.CHECKVAL<uint32>(L, ++i);
-        Player* senderPlayer = sEluna.CHECKOBJ<Player>(L, ++i);
+        Player* senderPlayer = sEluna.CHECKOBJ<Player>(L, ++i, false);
         uint32 stationary = sEluna.CHECKVAL<uint32>(L, ++i, MAIL_STATIONERY_DEFAULT);
         uint32 delay = sEluna.CHECKVAL<uint32>(L, ++i, 0);
         int32 argAmount = lua_gettop(L);
@@ -952,8 +944,6 @@ namespace LuaGlobalFunctions
     int AddCorpse(lua_State* L)
     {
         Corpse* corpse = sEluna.CHECKOBJ<Corpse>(L, 1);
-        if (!corpse)
-            return 0;
 
         sObjectAccessor.AddCorpse(corpse);
         return 0;
@@ -1008,8 +998,6 @@ namespace LuaGlobalFunctions
     int SendFineWeatherToPlayer(lua_State* L)
     {
         Player* player = sEluna.CHECKOBJ<Player>(L, 1);
-        if (!player)
-            return 0;
 
         Weather::SendFineWeatherUpdateToPlayer(player);
         return 0;

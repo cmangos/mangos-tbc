@@ -46,8 +46,6 @@ namespace LuaWeather
     int SendWeatherUpdateToPlayer(lua_State* L, Weather* weather)
     {
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
-        if (!player)
-            return 0;
 
         weather->SendWeatherUpdateToPlayer(player);
         return 0;

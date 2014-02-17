@@ -62,8 +62,6 @@ namespace LuaGuild
     int SetLeader(lua_State* L, Guild* guild)
     {
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
-        if (!player)
-            return 0;
 
         guild->SetLeader(player->GetObjectGuid());
         return 0;
@@ -80,8 +78,7 @@ namespace LuaGuild
     {
         WorldPacket* data = sEluna.CHECKOBJ<WorldPacket>(L, 2);
 
-        if (data)
-            guild->BroadcastPacket(data);
+        guild->BroadcastPacket(data);
         return 0;
     }
 
@@ -91,8 +88,7 @@ namespace LuaGuild
         WorldPacket* data = sEluna.CHECKOBJ<WorldPacket>(L, 2);
         uint8 ranked = sEluna.CHECKVAL<uint8>(L, 3);
 
-        if (data)
-            guild->BroadcastPacketToRank(data, ranked);
+        guild->BroadcastPacketToRank(data, ranked);
         return 0;
     }
 
@@ -131,8 +127,7 @@ namespace LuaGuild
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
         uint8 rankId = sEluna.CHECKVAL<uint8>(L, 3, GUILD_RANK_NONE);
 
-        if (player)
-            guild->AddMember(player->GetObjectGuid(), rankId);
+        guild->AddMember(player->GetObjectGuid(), rankId);
         return 0;
     }
 
@@ -141,8 +136,7 @@ namespace LuaGuild
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
         bool isDisbanding = sEluna.CHECKVAL<bool>(L, 3, false);
 
-        if (player)
-            guild->DelMember(player->GetObjectGuid(), isDisbanding);
+        guild->DelMember(player->GetObjectGuid(), isDisbanding);
         return 0;
     }
 
@@ -151,8 +145,7 @@ namespace LuaGuild
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
         uint8 newRank = sEluna.CHECKVAL<uint8>(L, 3);
 
-        if (player)
-            guild->ChangeMemberRank(player->GetObjectGuid(), newRank);
+        guild->ChangeMemberRank(player->GetObjectGuid(), newRank);
         return 0;
     }
 
@@ -175,7 +168,7 @@ namespace LuaGuild
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
         uint32 money = sEluna.CHECKVAL<uint32>(L, 3);
 
-        if (!player || (guild->GetGuildBankMoney() - money) < 0)
+        if (guild->GetGuildBankMoney() < money)
             return 0;
 
         player->SetMoney(player->GetMoney() + money);
@@ -188,7 +181,7 @@ namespace LuaGuild
         Player* player = sEluna.CHECKOBJ<Player>(L, 2);
         uint32 money = sEluna.CHECKVAL<uint32>(L, 3);
 
-        if (!player || (player->GetMoney() - money) < 0)
+        if (player->GetMoney() < money)
             return 0;
 
         player->SetMoney(player->GetMoney() - money);

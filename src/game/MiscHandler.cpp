@@ -64,7 +64,7 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
     }
 
     // used by eluna
-    sHookMgr.OnRepop(GetPlayer());
+    sHookMgr->OnRepop(GetPlayer());
 
     // this is spirit release confirm?
     GetPlayer()->RemovePet(PET_SAVE_REAGENTS);
@@ -795,7 +795,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
         }
 
         // used by eluna
-        sHookMgr.OnResurrect(player);
+        sHookMgr->OnResurrect(player);
 
         // now we can resurrect player, and then check teleport requirements
         player->ResurrectPlayer(0.5f);

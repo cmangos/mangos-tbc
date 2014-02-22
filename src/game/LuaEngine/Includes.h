@@ -8,6 +8,9 @@
 #define INCLUDES_H
 
 #define MANGOS
+// #define TRINITY
 #define TBC
+// #define WOTLK
+// #define CATA
 
 #endif

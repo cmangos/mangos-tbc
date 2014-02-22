@@ -15,7 +15,9 @@
 #include <ace/Singleton.h>
 #include <ace/Atomic_Op.h>
 // enums
-#ifndef MANGOS
+#ifdef MANGOS
+#include "Player.h"
+#else
 #include "GameObjectAI.h"
 #endif
 #include "Group.h"

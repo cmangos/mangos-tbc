@@ -2224,6 +2224,14 @@ namespace LuaPlayer
         return 1;
     }
 
+    int SetFFA(lua_State* L, Player* player)
+    {
+        bool apply = sEluna->CHECKVAL<bool>(L, 2, true);
+
+        player->SetFFAPvP(apply);
+        return 0;
+    }
+
 #ifdef WOTLK
     int GetPhaseMaskForSpawn(lua_State* L, Player* player)
     {

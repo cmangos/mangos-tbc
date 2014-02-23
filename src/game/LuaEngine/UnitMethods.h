@@ -1631,13 +1631,13 @@ namespace LuaUnit
 
         if (apply)
 #ifdef TBC
-            unit->SetByteFlag(PLAYER_FLAGS, 1, PLAYER_FLAGS_FFA_PVP);
+            unit->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_FFA_PVP);
 #else
             unit->SetByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
 #endif
         else
 #ifdef TBC
-            unit->RemoveByteFlag(PLAYER_FLAGS, 1, PLAYER_FLAGS_FFA_PVP);
+            unit->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_FFA_PVP);
 #else
             unit->RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
 #endif

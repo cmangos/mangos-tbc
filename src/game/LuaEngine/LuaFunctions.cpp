@@ -248,8 +248,8 @@ ElunaRegister<Unit> UnitMethods[] =
     // {"SetConfused", &LuaUnit::SetConfused},              // :SetConfused([enable]) - Sets confused or removes confusion
     // {"SetFeared", &LuaUnit::SetFeared},                  // :SetFeared([enable]) - Fears or removes fear
     {"SetPvP", &LuaUnit::SetPvP},                           // :SetPvP([apply]) - Sets the units PvP on or off
-#ifndef TBC
     {"SetFFA", &LuaUnit::SetFFA},                           // :SetFFA([apply]) - Sets the units FFA tag on or off
+#ifndef TBC
     {"SetSanctuary", &LuaUnit::SetSanctuary},               // :SetSanctuary([apply]) - Enables or disables units sanctuary flag
 #endif
     // {"SetCanFly", &LuaUnit::SetCanFly},                  // :SetCanFly(apply)

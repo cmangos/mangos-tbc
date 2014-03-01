@@ -434,7 +434,7 @@ ElunaRegister<Player> PlayerMethods[] =
     {"GetOriginalGroup", &LuaPlayer::GetOriginalGroup},                         // :GetOriginalGroup() - Gets the original group object
     {"GetOriginalSubGroup", &LuaPlayer::GetOriginalSubGroup},                   // :GetOriginalSubGroup() - Returns the original subgroup ID
 #ifndef MANGOS
-    {"GetChampioningFaction", &LuaPlayer::GetChampioningFaction},               // :GetChampioningFaction() - Returns the player's championing faction
+    {"GetChampioningFaction", &LuaPlayer::GetChampioningFaction },               // :GetChampioningFaction() - Returns the player's championing faction
 #endif
     {"GetLatency", &LuaPlayer::GetLatency},                                     // :GetLatency() - Returns player's latency
     // {"GetRecruiterId", &LuaPlayer::GetRecruiterId},                          // :GetRecruiterId() - Returns player's recruiter's ID

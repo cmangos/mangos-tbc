@@ -830,8 +830,7 @@ void ObjectMgr::LoadCreatureClassLvlStats()
         {
             case CLASS_WARRIOR: classArrayIndex = 0; break;
             case CLASS_PALADIN: classArrayIndex = 1; break;
-            case CLASS_ROGUE:   classArrayIndex = 2; break;
-            case CLASS_MAGE:    classArrayIndex = 3; break;
+            case CLASS_MAGE:    classArrayIndex = 2; break;
 
             default:
                 sLog.outErrorDb("Found stats for creature class [%u], incorrect for this core. Skip!", Class);
@@ -841,10 +840,8 @@ void ObjectMgr::LoadCreatureClassLvlStats()
 
         CreatureClassLvlStats cCLSExp0;
         cCLSExp0.BaseHealth             = fields[2].GetUInt32();
-        //BaseHealth[EXPANSION_TBC]     = fields[3].GetUInt32();
         cCLSExp0.BaseMana               = fields[4].GetUInt32();
         cCLSExp0.BaseDamage             = fields[5].GetFloat();
-        //BaseDamage[EXPANSION_TBC]     = fields[6].GetFloat();
         cCLSExp0.BaseMeleeAttackPower   = fields[7].GetFloat();
         cCLSExp0.BaseRangedAttackPower  = fields[8].GetFloat();
         cCLSExp0.BaseArmor              = fields[9].GetUInt32();
@@ -879,8 +876,7 @@ CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(uint32 index, i
     {
         case CLASS_WARRIOR: classArrayIndex = 0; break;
         case CLASS_PALADIN: classArrayIndex = 1; break;
-        case CLASS_ROGUE:   classArrayIndex = 2; break;
-        case CLASS_MAGE:    classArrayIndex = 3; break;
+        case CLASS_MAGE:    classArrayIndex = 2; break;
         default:
             return NULL;
             break;

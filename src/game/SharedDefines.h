@@ -2678,5 +2678,5 @@ enum MaxLevel
 static const MaxLevel maxLevelForExpansion[MAX_EXPANSION + 1] = { MAX_LEVEL_CLASSIC, MAX_LEVEL_TBC };
 
 // Max creature level for TBC (included some bosses and elite)
-#define MAX_CREATURE_LEVEL_TBC 73
+#define MAX_CREATURE_LEVEL_TBC 75
 #endif

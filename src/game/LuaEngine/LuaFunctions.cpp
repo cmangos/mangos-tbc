@@ -1,7 +1,7 @@
 /*
 * Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
-* Please see the included DOCS/LICENSE.TXT for more information
+* Please see the included DOCS/LICENSE.md for more information
 */
 
 // Eluna
@@ -149,7 +149,7 @@ ElunaRegister<WorldObject> WorldObjectMethods[] =
     // Getters
     { "GetName", &LuaWorldObject::GetName },                              // :GetName()
     { "GetMap", &LuaWorldObject::GetMap },                                // :GetMap() - Returns the WorldObject's current map object
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "GetPhaseMask", &LuaWorldObject::GetPhaseMask },                    // :GetPhaseMask()
 #endif
     { "GetInstanceId", &LuaWorldObject::GetInstanceId },                  // :GetInstanceId()
@@ -214,7 +214,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { "GetCharmerGUID", &LuaUnit::GetCharmerGUID },                       // :GetCharmerGUID() - Returns the UNIT_FIELD_CHARMEDBY charmer
     { "GetCharmGUID", &LuaUnit::GetCharmGUID },                           // :GetCharmGUID() - Returns the unit's UNIT_FIELD_CHARM guid
     { "GetPetGUID", &LuaUnit::GetPetGUID },                               // :GetPetGUID() - Returns the unit's pet GUID
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "GetCritterGUID", &LuaUnit::GetCritterGUID },                       // :GetCritterGUID() - Returns the critter's GUID
 #endif
     { "GetControllerGUID", &LuaUnit::GetControllerGUID },                 // :GetControllerGUID() - Returns the Charmer or Owner GUID
@@ -223,7 +223,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { "GetVictim", &LuaUnit::GetVictim },                                 // :GetVictim() - Returns creature's current target
     { "GetStat", &LuaUnit::GetStat },                                     // :GetStat(stat)
     { "GetBaseSpellPower", &LuaUnit::GetBaseSpellPower },                 // :GetBaseSpellPower()
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "GetVehicleKit", &LuaUnit::GetVehicleKit },                         // :GetVehicleKit() - Gets unit's Vehicle kit if the unit is a vehicle
     // {"GetVehicle", &LuaUnit::GetVehicle},                            // :GetVehicle() - Gets the Vehicle kit of the vehicle the unit is on
 #endif
@@ -239,7 +239,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { "SetNativeDisplayId", &LuaUnit::SetNativeDisplayId },   // :SetNativeDisplayId(id)
     { "SetFacing", &LuaUnit::SetFacing },                     // :SetFacing(o) - Sets the Unit facing to arg
     { "SetFacingToObject", &LuaUnit::SetFacingToObject },     // :SetFacingToObject(worldObject) - Sets the Unit facing towards the WorldObject
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "SetPhaseMask", &LuaUnit::SetPhaseMask },               // :SetPhaseMask(Phase[, update]) - Sets the phase of the unit
 #endif
     { "SetSpeed", &LuaUnit::SetSpeed },                       // :SetSpeed(type, speed[, forced]) - Sets speed for the movement type (0 = walk, 1 = run ..)
@@ -248,7 +248,7 @@ ElunaRegister<Unit> UnitMethods[] =
     // {"SetConfused", &LuaUnit::SetConfused},              // :SetConfused([enable]) - Sets confused or removes confusion
     // {"SetFeared", &LuaUnit::SetFeared},                  // :SetFeared([enable]) - Fears or removes fear
     { "SetPvP", &LuaUnit::SetPvP },                           // :SetPvP([apply]) - Sets the units PvP on or off
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "SetFFA", &LuaUnit::SetFFA },                           // :SetFFA([apply]) - Sets the units FFA tag on or off
     { "SetSanctuary", &LuaUnit::SetSanctuary },               // :SetSanctuary([apply]) - Enables or disables units sanctuary flag
 #endif
@@ -261,7 +261,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { "SetMinionGUID", &LuaUnit::SetMinionGUID },             // :SetCreatorGUID(uint64 creatorGUID) - Sets the UNIT_FIELD_CREATEDBY creator's guid
     { "SetCharmerGUID", &LuaUnit::SetCharmerGUID },           // :SetCharmerGUID(uint64 ownerGUID) - Sets the UNIT_FIELD_CHARMEDBY charmer GUID
     { "SetPetGUID", &LuaUnit::SetPetGUID },                   // :SetPetGUID(uint64 guid) - Sets the pet's guid
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "SetCritterGUID", &LuaUnit::SetCritterGUID },           // :SetCritterGUID(uint64 guid) - Sets the critter's guid
 #endif
     { "SetWaterWalk", &LuaUnit::SetWaterWalk },               // :SetWaterWalk([enable]) - Sets WaterWalk on or off
@@ -310,7 +310,9 @@ ElunaRegister<Unit> UnitMethods[] =
     { "IsFullHealth", &LuaUnit::IsFullHealth },                       // :IsFullHealth() - Returns if the unit is full health
     { "HasAura", &LuaUnit::HasAura },                                 // :HasAura(spellId) - Returns true if the unit has the aura from the spell
     { "IsStandState", &LuaUnit::IsStandState },                       // :IsStandState() - Returns true if the unit is standing
+#ifndef CLASSIC
     { "IsOnVehicle", &LuaUnit::IsOnVehicle },                         // :IsOnVehicle() - Checks if the unit is on a vehicle
+#endif
 
     // Other
     { "RegisterEvent", &LuaUnit::RegisterEvent },                     // :RegisterEvent(function, delay, calls)
@@ -356,7 +358,7 @@ ElunaRegister<Unit> UnitMethods[] =
     { "MoveConfused", &LuaUnit::MoveConfused },                       // :MoveConfused()
     { "MoveFleeing", &LuaUnit::MoveFleeing },                         // :MoveFleeing(enemy[, time])
     { "MoveTo", &LuaUnit::MoveTo },                                   // :MoveTo(id, x, y, z[, genPath]) - Moves to point. id is sent to WP reach hook. genPath defaults to true
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "MoveJump", &LuaUnit::MoveJump },                               // :MoveJump(x, y, z, zSpeed, maxHeight, id)
 #endif
     { "MoveStop", &LuaUnit::MoveStop },                               // :MoveStop()
@@ -380,8 +382,10 @@ ElunaRegister<Player> PlayerMethods[] =
     { "GetAccountId", &LuaPlayer::GetAccountId },                                 // :GetAccountId()
     { "GetAccountName", &LuaPlayer::GetAccountName },                             // :GetAccountName()
 #ifndef CATA
+#ifndef CLASSIC
     { "GetArenaPoints", &LuaPlayer::GetArenaPoints },                             // :GetArenaPoints()
     { "GetHonorPoints", &LuaPlayer::GetHonorPoints },                             // :GetHonorPoints()
+#endif
 #endif
     { "GetLifetimeKills", &LuaPlayer::GetLifetimeKills },                         // :GetLifetimeKills() - Returns the player's lifetime (honorable) kills
     { "GetPlayerIP", &LuaPlayer::GetPlayerIP },                                   // :GetPlayerIP() - Returns the player's IP Address
@@ -405,7 +409,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "GetComboTarget", &LuaPlayer::GetComboTarget },                             // :GetComboTarget() - Returns the player's combo target
     { "GetGuildName", &LuaPlayer::GetGuildName },                                 // :GetGuildName() - Returns player's guild's name or nil
     { "GetFreeTalentPoints", &LuaPlayer::GetFreeTalentPoints },                   // :GetFreeTalentPoints() - Returns the amount of unused talent points
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "GetActiveSpec", &LuaPlayer::GetActiveSpec },                               // :GetActiveSpec() - Returns the active specID
     { "GetSpecsCount", &LuaPlayer::GetSpecsCount },                               // :GetSpecsCount() - Returns the player's spec count
 #endif
@@ -453,12 +457,16 @@ ElunaRegister<Player> PlayerMethods[] =
     { "AdvanceAllSkills", &LuaPlayer::AdvanceAllSkills },         // :AdvanceAllSkills(value) - Advances all current skills to your input(value)
     { "AddLifetimeKills", &LuaPlayer::AddLifetimeKills },         // :AddLifetimeKills(val) - Adds lifetime (honorable) kills to your current lifetime kills
     { "SetCoinage", &LuaPlayer::SetCoinage },                     // :SetCoinage(amount) - sets plr's coinage to this
+#ifndef CLASSIC
     { "SetKnownTitle", &LuaPlayer::SetKnownTitle },               // :SetKnownTitle(id)
     { "UnsetKnownTitle", &LuaPlayer::UnsetKnownTitle },           // :UnsetKnownTitle(id)
+#endif
     { "SetBindPoint", &LuaPlayer::SetBindPoint },                 // :SetBindPoint(x, y, z, map, areaid) - sets home for hearthstone
 #ifndef CATA
+#ifndef CLASSIC
     { "SetArenaPoints", &LuaPlayer::SetArenaPoints },             // :SetArenaPoints(amount)
     { "SetHonorPoints", &LuaPlayer::SetHonorPoints },             // :SetHonorPoints(amount)
+#endif
 #endif
     { "SetLifetimeKills", &LuaPlayer::SetLifetimeKills },         // :SetLifetimeKills(val) - Sets the overall lifetime (honorable) kills of the player
     { "SetGameMaster", &LuaPlayer::SetGameMaster },               // :SetGameMaster([on]) - Sets GM mode on or off
@@ -492,11 +500,15 @@ ElunaRegister<Player> PlayerMethods[] =
     { "IsGM", &LuaPlayer::IsGM },                                                         // :IsGM()
     { "IsAlliance", &LuaPlayer::IsAlliance },                                             // :IsAlliance()
     { "IsHorde", &LuaPlayer::IsHorde },                                                   // :IsHorde()
+#ifndef CLASSIC
     { "HasTitle", &LuaPlayer::HasTitle },                                                 // :HasTitle(id)
+#endif
     { "HasItem", &LuaPlayer::HasItem },                                                   // :HasItem(itemId[, count, check_bank]) - Returns true if the player has the item(itemId) and specified count, else it will return false
     { "Teleport", &LuaPlayer::Teleport },                                                 // :Teleport(Map, X, Y, Z, O) - Teleports player to specified co - ordinates. Returns true if success and false if not
     { "AddItem", &LuaPlayer::AddItem },                                                   // :AddItem(id, amount) - Adds amount of item to player. Returns true if success and false if not
+#ifndef CLASSIC
     { "IsInArenaTeam", &LuaPlayer::IsInArenaTeam },                                       // :IsInArenaTeam(type) - type : 0 = 2v2, 1 = 3v3, 2 = 5v5
+#endif
     { "CanEquipItem", &LuaPlayer::CanEquipItem },                                         // :CanEquipItem(entry/item, slot) - Returns true if the player can equip given item/item entry
     { "IsFalling", &LuaPlayer::IsFalling },                                               // :IsFalling() - Returns true if the unit is falling
     { "ToggleAFK", &LuaPlayer::ToggleAFK },                                               // :ToggleAFK() - Toggles AFK state for player
@@ -514,7 +526,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "HasAtLoginFlag", &LuaPlayer::HasAtLoginFlag },                                     // :HasAtLoginFlag(flag) - returns true if the player has the login flag
     // {"InRandomLfgDungeon", &LuaPlayer::InRandomLfgDungeon},                          // :InRandomLfgDungeon() - Returns true if the player is in a random LFG dungeon
     // {"HasPendingBind", &LuaPlayer::HasPendingBind},                                  // :HasPendingBind() - Returns true if the player has a pending instance bind
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "HasAchieved", &LuaPlayer::HasAchieved },                                           // :HasAchieved(achievementID) - Returns true if the player has achieved the achievement
 #endif
     { "CanUninviteFromGroup", &LuaPlayer::CanUninviteFromGroup },                         // :CanUninviteFromGroup() - Returns true if the player can uninvite from group
@@ -527,7 +539,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "HasQuestForGO", &LuaPlayer::HasQuestForGO },                                       // :HasQuestForGO(entry) - Returns true if the player has the quest for the gameobject
     { "CanShareQuest", &LuaPlayer::CanShareQuest },                                       // :CanShareQuest(entry) - Returns true if the quest entry is shareable by the player
     // {"HasReceivedQuestReward", &LuaPlayer::HasReceivedQuestReward},                  // :HasReceivedQuestReward(entry) - Returns true if the player has recieved the quest's reward
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "HasTalent", &LuaPlayer::HasTalent },                                               // :HasTalent(talentId, spec) - Returns true if the player has the talent in given spec
 #endif
     { "IsInSameGroupWith", &LuaPlayer::IsInSameGroupWith },                               // :IsInSameGroupWith(player) - Returns true if the players are in the same group
@@ -537,20 +549,26 @@ ElunaRegister<Player> PlayerMethods[] =
     { "IsHonorOrXPTarget", &LuaPlayer::IsHonorOrXPTarget },                               // :IsHonorOrXPTarget(victim) - Returns true if the victim gives honor or XP
     { "CanParry", &LuaPlayer::CanParry },                                                 // :CanParry() - Returns true if the player can parry
     { "CanBlock", &LuaPlayer::CanBlock },                                                 // :CanBlock() - Returns true if the player can block
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "CanTitanGrip", &LuaPlayer::CanTitanGrip },                                         // :CanTitanGrip() - Returns true if the player has titan grip
 #endif
     { "InBattleground", &LuaPlayer::InBattleground },                                     // :InBattleground() - Returns true if the player is in a battleground
+#ifndef CLASSIC
     { "InArena", &LuaPlayer::InArena },                                                   // :InArena() - Returns true if the player is in an arena
+#endif
     // {"IsOutdoorPvPActive", &LuaPlayer::IsOutdoorPvPActive},                          // :IsOutdoorPvPActive() - Returns true if the player is outdoor pvp active
     // {"IsARecruiter", &LuaPlayer::IsARecruiter},                                      // :IsARecruiter() - Returns true if the player is a recruiter
     { "CanUseItem", &LuaPlayer::CanUseItem },                                             // :CanUseItem(item/entry) - Returns true if the player can use the item or item entry
     { "HasSpell", &LuaPlayer::HasSpell },                                                 // :HasSpell(id)
     { "HasSpellCooldown", &LuaPlayer::HasSpellCooldown },                                 // :HasSpellCooldown(spellId) - Returns true if the spell is on cooldown
     { "IsInWater", &LuaPlayer::IsInWater },                                               // :IsInWater() - Returns true if the player is in water
+#ifndef CLASSIC
     { "CanFly", &LuaPlayer::CanFly },                                                     // :CanFly() - Returns true if the player can fly
+#endif
     { "IsMoving", &LuaPlayer::IsMoving },                                                 // :IsMoving()
+#ifndef CLASSIC
     { "IsFlying", &LuaPlayer::IsFlying },                                                 // :IsFlying()
+#endif
 
     // Gossip
     { "GossipMenuAddItem", &LuaPlayer::GossipMenuAddItem },                               // :GossipMenuAddItem(icon, msg, sender, intid[, code, popup, money])
@@ -594,7 +612,7 @@ ElunaRegister<Player> PlayerMethods[] =
     // {"KilledPlayerCredit", &LuaPlayer::KilledPlayerCredit},                          // :KilledPlayerCredit() - Satisfies a player kill for the player
     // {"KillGOCredit", &LuaPlayer::KillGOCredit},                                      // :KillGOCredit(GOEntry[, GUID]) - Credits the player for destroying a GO, guid is optional
     { "TalkedToCreature", &LuaPlayer::TalkedToCreature },                                 // :TalkedToCreature(npcEntry, creature) - Satisfies creature talk objective for the player
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "ResetPetTalents", &LuaPlayer::ResetPetTalents },                                   // :ResetPetTalents() - Resets player's pet's talents
 #endif
     { "AddComboPoints", &LuaPlayer::AddComboPoints },                                     // :AddComboPoints(target, count[, spell]) - Adds combo points to the target for the player
@@ -614,14 +632,16 @@ ElunaRegister<Player> PlayerMethods[] =
     { "DurabilityRepairAll", &LuaPlayer::DurabilityRepairAll },                           // :DurabilityRepairAll([has_cost, discount, guildBank]) - Repairs all durability
     { "DurabilityRepair", &LuaPlayer::DurabilityRepair },                                 // :DurabilityRepair(position[, has_cost, discount, guildBank]) - Repairs item durability of item in given position
 #ifndef CATA
+#ifndef CLASSIC
     { "ModifyHonorPoints", &LuaPlayer::ModifyHonorPoints },                               // :ModifyHonorPoints(amount) - Modifies the player's honor points
     { "ModifyArenaPoints", &LuaPlayer::ModifyArenaPoints },                               // :ModifyArenaPoints(amount) - Modifies the player's arena points
+#endif
 #endif
     { "LeaveBattleground", &LuaPlayer::LeaveBattleground },                               // :LeaveBattleground([teleToEntryPoint]) - The player leaves the battleground
     // {"BindToInstance", &LuaPlayer::BindToInstance},                                  // :BindToInstance() - Binds the player to the current instance
     { "UnbindInstance", &LuaPlayer::UnbindInstance },                                     // :UnbindInstance(map, difficulty) - Unbinds the player from an instance
     { "RemoveFromBattlegroundRaid", &LuaPlayer::RemoveFromBattlegroundRaid },             // :RemoveFromBattlegroundRaid() - Removes the player from a battleground or battlefield raid
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "ResetAchievements", &LuaPlayer::ResetAchievements },                               // :ResetAchievements() - Resets playeräs achievements
 #endif
     { "KickPlayer", &LuaPlayer::KickPlayer },                                             // :KickPlayer() - Kicks player from server
@@ -804,7 +824,9 @@ ElunaRegister<Item> ItemMethods[] =
     { "GetStatsCount", &LuaItem::GetStatsCount },                 // :GetStatsCount()
 #endif
     { "GetRandomProperty", &LuaItem::GetRandomProperty },         // :GetRandomProperty()
+#ifndef CLASSIC
     { "GetRandomSuffix", &LuaItem::GetRandomSuffix },             // :GetRandomSuffix()
+#endif
     { "GetItemSet", &LuaItem::GetItemSet },                       // :GetItemSet()
     { "GetBagSize", &LuaItem::GetBagSize },                       // :GetBagSize()
 
@@ -815,14 +837,16 @@ ElunaRegister<Item> ItemMethods[] =
 
     // Boolean
     { "IsSoulBound", &LuaItem::IsSoulBound },                     // :IsSoulBound() - Returns true if the item is soulbound
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     { "IsBoundAccountWide", &LuaItem::IsBoundAccountWide },       // :IsBoundAccountWide() - Returns true if the item is account bound
 #endif
     { "IsBoundByEnchant", &LuaItem::IsBoundByEnchant },           // :IsBoundByEnchant() - Returns true if the item is bound with an enchant
     { "IsNotBoundToPlayer", &LuaItem::IsNotBoundToPlayer },       // :IsNotBoundToPlayer(player) - Returns true if the item is not bound with player
     { "IsLocked", &LuaItem::IsLocked },                           // :IsLocked() - Returns true if the item is locked
     { "IsBag", &LuaItem::IsBag },                                 // :IsBag() - Returns true if the item is a bag
+#ifndef CLASSIC
     { "IsCurrencyToken", &LuaItem::IsCurrencyToken },             // :IsCurrencyToken() - Returns true if the item is a currency token
+#endif
     { "IsNotEmptyBag", &LuaItem::IsNotEmptyBag },                 // :IsNotEmptyBag() - Returns true if the item is not an empty bag
     { "IsBroken", &LuaItem::IsBroken },                           // :IsBroken() - Returns true if the item is broken
     { "CanBeTraded", &LuaItem::CanBeTraded },                     // :CanBeTraded() - Returns true if the item can be traded
@@ -910,7 +934,9 @@ ElunaRegister<Quest> QuestMethods[] =
 
     // Boolean
     { "HasFlag", &LuaQuest::HasFlag },                            // :HasFlag(flag) - Returns true or false if the quest has the specified flag
+#ifndef CLASSIC
     { "IsDaily", &LuaQuest::IsDaily },                            // :IsDaily() - Returns true or false if the quest is a daily
+#endif
     { "IsRepeatable", &LuaQuest::IsRepeatable },                  // :IsRepeatable() - Returns true or false if the quest is repeatable
 
     // Setters
@@ -970,7 +996,9 @@ ElunaRegister<Guild> GuildMethods[] =
     { "GetMemberCount", &LuaGuild::GetMemberCount },          // :GetMemberCount() - Returns the amount of players in the guild
 
     // Setters
+#ifndef CLASSIC
     { "SetBankTabText", &LuaGuild::SetBankTabText },          // :SetBankTabText(tabId, text)
+#endif
     { "SetMemberRank", &LuaGuild::ChangeMemberRank },         // :SetMemberRank(player, newRank) - Sets the player rank in the guild to the new rank
 #ifndef CATA
     { "SetLeader", &LuaGuild::SetLeader },                    // :SetLeader() - Sets the guild's leader
@@ -985,13 +1013,15 @@ ElunaRegister<Guild> GuildMethods[] =
     { "Disband", &LuaGuild::Disband },                        // :Disband() - Disbands the guild
     { "AddMember", &LuaGuild::AddMember },                    // :AddMember(player, rank) - adds the player to the guild. Rank is optional
     { "DeleteMember", &LuaGuild::DeleteMember },              // :DeleteMember(player, disbanding, kicked) - Deletes the player from the guild. Disbanding and kicked are optional bools
+#ifndef CLASSIC
     { "DepositBankMoney", &LuaGuild::DepositBankMoney },      // :DepositBankMoney(money) - Deposits money into the guild bank
     { "WithdrawBankMoney", &LuaGuild::WithdrawBankMoney },    // :WithdrawBankMoney(money) - Withdraws money from the guild bank
+#endif
 
     { NULL, NULL },
 };
 
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
 ElunaRegister<Vehicle> VehicleMethods[] =
 {
     // Getters
@@ -1081,11 +1111,15 @@ ElunaRegister<Map> MapMethods[] =
     { "GetHeight", &LuaMap::GetHeight },                      // :GetHeight(x, y[, phasemask]) - Returns ground Z coordinate. UNDOCUMENTED
 
     // Booleans
+#ifndef CLASSIC
     { "IsArena", &LuaMap::IsArena },                          // :IsArena() - Returns the true if the map is an arena, else false UNDOCUMENTED
+#endif
     { "IsBattleground", &LuaMap::IsBattleground },            // :IsBattleground() - Returns the true if the map is a battleground, else false UNDOCUMENTED
     { "IsDungeon", &LuaMap::IsDungeon },                      // :IsDungeon() - Returns the true if the map is a dungeon , else false UNDOCUMENTED
     { "IsEmpty", &LuaMap::IsEmpty },                          // :IsEmpty() - Returns the true if the map is empty, else false UNDOCUMENTED
+#ifndef CLASSIC
     { "IsHeroic", &LuaMap::IsHeroic },                        // :IsHeroic() - Returns the true if the map is a heroic dungeon, else false UNDOCUMENTED
+#endif
     { "IsRaid", &LuaMap::IsRaid },                            // :IsRaid() - Returns the true if the map is a raid map, else false UNDOCUMENTED
 
     { NULL, NULL },
@@ -1128,7 +1162,7 @@ ElunaRegister<AuctionHouseObject> AuctionMethods[] =
 
 template<typename T> const char* ElunaTemplate<T>::tname = NULL;
 template<typename T> bool ElunaTemplate<T>::manageMemory = false;
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
 // fix compile error about accessing vehicle destructor
 template<> int ElunaTemplate<Vehicle>::gcT(lua_State* L) { return 0; }
 #endif
@@ -1176,7 +1210,7 @@ void RegisterFunctions(lua_State* L)
     ElunaTemplate<Item>::SetMethods(L, ObjectMethods);
     ElunaTemplate<Item>::SetMethods(L, ItemMethods);
 
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     ElunaTemplate<Vehicle>::Register(L, "Vehicle");
     ElunaTemplate<Vehicle>::SetMethods(L, VehicleMethods);
 #endif

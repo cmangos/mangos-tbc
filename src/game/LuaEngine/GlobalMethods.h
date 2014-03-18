@@ -1,7 +1,7 @@
 /*
 * Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
-* Please see the included DOCS/LICENSE.TXT for more information
+* Please see the included DOCS/LICENSE.md for more information
 */
 
 #ifndef GLOBALMETHODS_H
@@ -227,7 +227,11 @@ namespace LuaGlobalFunctions
 
         std::ostringstream oss;
         oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec <<
-            "|Hitem:" << entry << ":0:0:0:0:0:0:0:0:0|h[" << name << "]|h|r";
+            "|Hitem:" << entry << ":0:" <<
+#ifndef CLASSIC
+            "0:0:0:0:" <<
+#endif
+            "0:0:0:0|h[" << name << "]|h|r";
 
         sEluna->Push(L, oss.str());
         return 1;
@@ -531,7 +535,7 @@ namespace LuaGlobalFunctions
         float o = sEluna->CHECKVAL<float>(L, 8);
         bool save = sEluna->CHECKVAL<bool>(L, 9, false);
         uint32 durorresptime = sEluna->CHECKVAL<uint32>(L, 10, 0);
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
         uint32 phase = sEluna->CHECKVAL<uint32>(L, 11, PHASEMASK_NORMAL);
         if (!phase)
             return 0;
@@ -550,7 +554,7 @@ namespace LuaGlobalFunctions
                 if (!cinfo)
                     return 0;
 
-#ifdef TBC
+#if (defined(TBC) || defined(CLASSIC))
                 CreatureCreatePos pos(map, x, y, z, o);
 #else
                 CreatureCreatePos pos(map, x, y, z, o, phase);
@@ -569,6 +573,8 @@ namespace LuaGlobalFunctions
 
 #ifdef TBC
                 pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()));
+#elif defined(CLASSIC)
+                pCreature->SaveToDB(map->GetId());
 #else
                 pCreature->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
 #endif
@@ -592,7 +598,7 @@ namespace LuaGlobalFunctions
                     return 0;
 
                 TemporarySummon* pCreature = new TemporarySummon(GUID_TYPE(uint64(0)));
-#ifdef TBC
+#if (defined(TBC) || defined(CLASSIC))
                 CreatureCreatePos pos(map, x, y, z, o);
 #else
                 CreatureCreatePos pos(map, x, y, z, o, phase);
@@ -636,7 +642,7 @@ namespace LuaGlobalFunctions
                     return 0;
 
                 GameObject* pGameObj = new GameObject;
-#ifdef TBC
+#if (defined(TBC) || defined(CLASSIC))
                 if (!pGameObj->Create(db_lowGUID, gInfo->id, map, x, y, z, o))
 #else
                 if (!pGameObj->Create(db_lowGUID, gInfo->id, map, phase, x, y, z, o))
@@ -652,6 +658,8 @@ namespace LuaGlobalFunctions
                 // fill the gameobject data and save to the db
 #ifdef TBC
                 pGameObj->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()));
+#elif defined(CLASSIC)
+                pGameObj->SaveToDB(map->GetId());
 #else
                 pGameObj->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), phase);
 #endif
@@ -675,7 +683,7 @@ namespace LuaGlobalFunctions
             {
                 GameObject* pGameObj = new GameObject;
 
-#ifdef TBC
+#if (defined(TBC) || defined(CLASSIC))
                 if (!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), entry, map, x, y, z, o))
 #else
                 if (!pGameObj->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), entry, map, phase, x, y, z, o))
@@ -807,7 +815,11 @@ namespace LuaGlobalFunctions
 #ifdef MANGOS
         if (!sObjectMgr->IsVendorItemValid(false, "npc_vendor", entry, item, maxcount, incrtime, extendedcost, 0))
             return 0;
+#ifndef CLASSIC
         sObjectMgr->AddVendorItem(entry, item, maxcount, incrtime, extendedcost);
+#else
+        sObjectMgr->AddVendorItem(entry, item, maxcount, incrtime);
+#endif
 #else
 #ifdef CATA
         if (!sObjectMgr->IsVendorItemValid(entry, item, maxcount, incrtime, extendedcost, 1))
@@ -1072,8 +1084,6 @@ namespace LuaGlobalFunctions
             // optional
             entry->actionFlag = sEluna->CHECKVAL<uint32>(L, start + 4);
             entry->delay = sEluna->CHECKVAL<uint32>(L, start + 5);
-            entry->arrivalEventID = sEluna->CHECKVAL<uint32>(L, start + 6);
-            entry->departureEventID = sEluna->CHECKVAL<uint32>(L, start + 7);
 
             nodes.push_back(*entry);
 

@@ -1,7 +1,7 @@
 /*
 * Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
-* Please see the included DOCS/LICENSE.TXT for more information
+* Please see the included DOCS/LICENSE.md for more information
 */
 
 #ifndef LUAHOOKS_H
@@ -29,14 +29,9 @@
 #define SpellEffIndex           SpellEffectIndex
 #define ItemTemplate            ItemPrototype
 #define GetTemplate             GetProto
-//#include "Common.h"
-//#include "Policies/Singleton.h"
-//#include "ObjectGuid.h"
-//#include "ace/Atomic_Op.h"
-//
-//enums
-//#include "DBCEnums.h"
-//#include "Includes.h"
+#ifdef CLASSIC
+#define Difficulty              int
+#endif
 #endif
 
 struct AreaTriggerEntry;

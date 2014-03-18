@@ -1,7 +1,7 @@
 /*
 * Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
-* Please see the included DOCS/LICENSE.TXT for more information
+* Please see the included DOCS/LICENSE.md for more information
 */
 
 #ifndef __ELUNA__H
@@ -19,7 +19,6 @@ extern "C"
 
 // Required
 #include "AccountMgr.h"
-#include "ArenaTeam.h"
 #include "AuctionHouseMgr.h"
 #include "Cell.h"
 #include "CellImpl.h"
@@ -58,8 +57,11 @@ extern "C"
 #include "SpellInfo.h"
 #include "WeatherMgr.h"
 #endif
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
 #include "Vehicle.h"
+#endif
+#ifndef CLASSIC
+#include "ArenaTeam.h"
 #endif
 
 typedef std::set<std::string> LoadedScripts;
@@ -95,7 +97,9 @@ typedef std::set<std::string> LoadedScripts;
 #define OVERRIDE                override
 #define DIALOG_STATUS_SCRIPTED_NO_STATUS    DIALOG_STATUS_UNDEFINED
 #define TempSummon              TemporarySummon
+#ifndef CLASSIC
 #define PLAYER_FIELD_LIFETIME_HONORABLE_KILLS   PLAYER_FIELD_LIFETIME_HONORBALE_KILLS
+#endif
 #define MAX_TALENT_SPECS        MAX_TALENT_SPEC_COUNT
 #define Vehicle                 VehicleInfo
 #define GUID_ENPART(guid)       ObjectGuid(guid).GetEntry()
@@ -111,6 +115,10 @@ enum SelectAggroTarget
 };
 #ifdef TBC
 #define SPELL_AURA_MOD_KILL_XP_PCT  SPELL_AURA_MOD_XP_PCT
+#endif
+#ifdef CLASSIC
+#undef Opcodes
+#define Opcodes                 OpcodesList
 #endif
 #else
 #define GUID_TYPE               uint64

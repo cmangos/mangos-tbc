@@ -1,7 +1,7 @@
 /*
 * Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
-* Please see the included DOCS/LICENSE.TXT for more information
+* Please see the included DOCS/LICENSE.md for more information
 */
 
 #ifndef UNITMETHODS_H
@@ -284,6 +284,7 @@ namespace LuaUnit
         return 1;
     }
 
+#ifndef CLASSIC
     int IsOnVehicle(lua_State* L, Unit* unit)
     {
 #ifdef MANGOS
@@ -293,6 +294,7 @@ namespace LuaUnit
 #endif
         return 1;
     }
+#endif
 
     int IsInCombat(lua_State* L, Unit* unit)
     {
@@ -581,7 +583,7 @@ namespace LuaUnit
             case 4:
                 type = POWER_ENERGY;
                 break;
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
             case 6:
                 type = POWER_RUNIC_POWER;
                 break;
@@ -620,7 +622,7 @@ namespace LuaUnit
             case 4:
                 type = POWER_ENERGY;
                 break;
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
             case 6:
                 type = POWER_RUNIC_POWER;
                 break;
@@ -829,7 +831,7 @@ namespace LuaUnit
         return 1;
     }
 
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     int GetVehicleKit(lua_State* L, Unit* unit)
     {
 #ifdef MANGOS
@@ -955,7 +957,7 @@ namespace LuaUnit
         case POWER_ENERGY:
             unit->SetPower(POWER_ENERGY, amt);
             break;
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
         case POWER_RUNIC_POWER:
             unit->SetMaxPower(POWER_RUNIC_POWER, amt);
             break;
@@ -983,7 +985,7 @@ namespace LuaUnit
         case POWER_ENERGY:
             unit->SetMaxPower(POWER_ENERGY, amt);
             break;
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
         case POWER_RUNIC_POWER:
             unit->SetMaxPower(POWER_RUNIC_POWER, amt);
             break;
@@ -1085,7 +1087,7 @@ namespace LuaUnit
         return 0;
     }
 
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     int SetFFA(lua_State* L, Unit* unit)
     {
         bool apply = sEluna->CHECKVAL<bool>(L, 2, true);
@@ -1358,7 +1360,7 @@ namespace LuaUnit
         return 0;
     }
 
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     int MoveJump(lua_State* L, Unit* unit)
     {
         float x = sEluna->CHECKVAL<float>(L, 2);

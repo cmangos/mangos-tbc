@@ -1,7 +1,7 @@
 /*
 * Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
-* Please see the included DOCS/LICENSE.TXT for more information
+* Please see the included DOCS/LICENSE.md for more information
 */
 
 #ifndef ITEMMETHODS_H
@@ -16,7 +16,7 @@ namespace LuaItem
         return 1;
     }
 
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     int IsBoundAccountWide(lua_State* L, Item* item)
     {
         sEluna->Push(L, item->IsBoundAccountWide());
@@ -50,11 +50,13 @@ namespace LuaItem
         return 1;
     }
 
+#ifndef CLASSIC
     int IsCurrencyToken(lua_State* L, Item* item)
     {
         sEluna->Push(L, item->IsCurrencyToken());
         return 1;
     }
+#endif
 
     int IsNotEmptyBag(lua_State* L, Item* item)
     {
@@ -70,7 +72,7 @@ namespace LuaItem
 
     int CanBeTraded(lua_State* L, Item* item)
     {
-#ifdef TBC
+#if (defined(TBC) || defined(CLASSIC))
         sEluna->Push(L, item->CanBeTraded());
 #else
         bool mail = sEluna->CHECKVAL<bool>(L, 2, false);
@@ -163,6 +165,7 @@ namespace LuaItem
         if (ItemLocale const* il = sObjectMgr->GetItemLocale(temp->ItemId))
             ObjectMgr::GetLocaleString(il->Name, loc_idx, name);
 
+#ifndef CLASSIC
         if (int32 itemRandPropId = item->GetItemRandomPropertyId())
         {
 #ifdef CATA
@@ -192,15 +195,18 @@ namespace LuaItem
                 /*}*/
             }
         }
+#endif
 
         std::ostringstream oss;
         oss << "|c" << std::hex << ItemQualityColors[temp->Quality] << std::dec <<
             "|Hitem:" << temp->ItemId << ":" <<
             item->GetEnchantmentId(PERM_ENCHANTMENT_SLOT) << ":" <<
+#ifndef CLASSIC
             item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT) << ":" <<
             item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_2) << ":" <<
             item->GetEnchantmentId(SOCK_ENCHANTMENT_SLOT_3) << ":" <<
             item->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT) << ":" <<
+#endif
             item->GetItemRandomPropertyId() << ":" << item->GetItemSuffixFactor() << ":" <<
             (uint32)item->GetOwner()->getLevel() << "|h[" << name << "]|h|r";
 
@@ -383,11 +389,13 @@ namespace LuaItem
         return 1;
     }
 
+#ifndef CLASSIC
     int GetRandomSuffix(lua_State* L, Item* item)
     {
         sEluna->Push(L, item->GetTemplate()->RandomSuffix);
         return 1;
     }
+#endif
 
     int GetItemSet(lua_State* L, Item* item)
     {

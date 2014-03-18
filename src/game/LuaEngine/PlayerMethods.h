@@ -1,7 +1,7 @@
 /*
 * Copyright (C) 2010 - 2014 Eluna Lua Engine <http://emudevs.com/>
 * This program is free software licensed under GPL version 3
-* Please see the included DOCS/LICENSE.TXT for more information
+* Please see the included DOCS/LICENSE.md for more information
 */
 
 #ifndef PLAYERMETHODS_H
@@ -10,7 +10,7 @@
 namespace LuaPlayer
 {
     /* BOOLEAN */
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     int CanTitanGrip(lua_State* L, Player* player)
     {
         sEluna->Push(L, player->CanTitanGrip());
@@ -80,6 +80,7 @@ namespace LuaPlayer
         return 1;
     }
 
+#ifndef CLASSIC
     int HasTitle(lua_State* L, Player* player)
     {
         uint32 id = sEluna->CHECKVAL<uint32>(L, 2);
@@ -90,6 +91,7 @@ namespace LuaPlayer
             sEluna->Push(L, false);
         return 1;
     }
+#endif
 
     int HasItem(lua_State* L, Player* player)
     {
@@ -153,11 +155,13 @@ namespace LuaPlayer
         return 1;
     }
 
+#ifndef CLASSIC
     int CanFly(lua_State* L, Player* player)
     {
         sEluna->Push(L, player->CanFly());
         return 1;
     }
+#endif
 
     int IsInWater(lua_State* L, Player* player)
     {
@@ -171,11 +175,13 @@ namespace LuaPlayer
         return 1;
     }
 
+#ifndef CLASSIC
     int IsFlying(lua_State* L, Player* player) // enable for unit when mangos support it
     {
         sEluna->Push(L, player->IsFlying());
         return 1;
     }
+#endif
 
     int IsInGroup(lua_State* L, Player* player)
     {
@@ -199,6 +205,7 @@ namespace LuaPlayer
         return 1;
     }
 
+#ifndef CLASSIC
     int IsInArenaTeam(lua_State* L, Player* player)
     {
         uint32 type = sEluna->CHECKVAL<uint32>(L, 2);
@@ -208,6 +215,7 @@ namespace LuaPlayer
             sEluna->Push(L, false);
         return 1;
     }
+#endif
 
     int IsHorde(lua_State* L, Player* player)
     {
@@ -324,11 +332,13 @@ namespace LuaPlayer
         return 1;
     }
 
+#ifndef CLASSIC
     int InArena(lua_State* L, Player* player)
     {
         sEluna->Push(L, player->InArena());
         return 1;
     }
+#endif
 
     int InBattleground(lua_State* L, Player* player)
     {
@@ -412,7 +422,7 @@ namespace LuaPlayer
     }*/
 
     /* GETTERS */
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     int GetSpecsCount(lua_State* L, Player* player)
     {
         sEluna->Push(L, player->GetSpecsCount());
@@ -435,6 +445,7 @@ namespace LuaPlayer
 #endif
 
 #ifndef CATA
+#ifndef CLASSIC
     int GetArenaPoints(lua_State* L, Player* player)
     {
         sEluna->Push(L, player->GetArenaPoints());
@@ -446,6 +457,7 @@ namespace LuaPlayer
         sEluna->Push(L, player->GetHonorPoints());
         return 1;
     }
+#endif
 
     int GetShieldBlockValue(lua_State* L, Player* player)
     {
@@ -646,6 +658,8 @@ namespace LuaPlayer
     {
 #ifdef TBC
         sEluna->Push(L, player->GetDifficulty());
+#elif defined(CLASSIC)
+        sEluna->Push(L, (Difficulty)0);
 #else
         bool isRaid = sEluna->CHECKVAL<bool>(L, 2, true);
         sEluna->Push(L, player->GetDifficulty(isRaid));
@@ -1031,7 +1045,7 @@ namespace LuaPlayer
         uint32 points = sEluna->CHECKVAL<uint32>(L, 2);
 
         player->SetFreeTalentPoints(points);
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
         player->SendTalentsInfoData(false);
 #endif
         return 0;
@@ -1146,6 +1160,7 @@ namespace LuaPlayer
     }
 
 #ifndef CATA
+#ifndef CLASSIC
     int SetArenaPoints(lua_State* L, Player* player)
     {
         uint32 arenaP = sEluna->CHECKVAL<uint32>(L, 2);
@@ -1159,6 +1174,7 @@ namespace LuaPlayer
         player->SetHonorPoints(honorP);
         return 0;
     }
+#endif
 #endif
 
     int SetLifetimeKills(lua_State* L, Player* player)
@@ -1192,6 +1208,7 @@ namespace LuaPlayer
         return 0;
     }
 
+#ifndef CLASSIC
     int SetKnownTitle(lua_State* L, Player* player)
     {
         uint32 id = sEluna->CHECKVAL<uint32>(L, 2);
@@ -1200,6 +1217,7 @@ namespace LuaPlayer
             player->SetTitle(t, false);
         return 0;
     }
+#endif
 
 #ifdef MANGOS
     int SetFFA(lua_State* L, Player* player)
@@ -1220,7 +1238,7 @@ namespace LuaPlayer
     }*/
 
     /* OTHER */
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
     int ResetPetTalents(lua_State* L, Player* player)
     {
 #ifdef MANGOS
@@ -1259,6 +1277,7 @@ namespace LuaPlayer
 #endif
 
 #ifndef CATA
+#ifndef CLASSIC
     int ModifyArenaPoints(lua_State* L, Player* player)
     {
         int32 amount = sEluna->CHECKVAL<int32>(L, 2);
@@ -1274,6 +1293,7 @@ namespace LuaPlayer
         player->ModifyHonorPoints(amount);
         return 0;
     }
+#endif
 #endif
 
     int SaveToDB(lua_State* L, Player* player)
@@ -1431,10 +1451,14 @@ namespace LuaPlayer
     int UnbindInstance(lua_State* L, Player* player)
     {
         uint32 map = sEluna->CHECKVAL<uint32>(L, 2);
+#ifndef CLASSIC
         uint32 difficulty = sEluna->CHECKVAL<uint32>(L, 3);
 
         if (difficulty < MAX_DIFFICULTY)
             player->UnbindInstance(map, (Difficulty)difficulty);
+#else
+        player->UnbindInstance(map);
+#endif
         return 0;
     }
 
@@ -1453,7 +1477,11 @@ namespace LuaPlayer
         float discountMod = sEluna->CHECKVAL<float>(L, 4);
         bool guildBank = sEluna->CHECKVAL<bool>(L, 5, false);
 
+#ifdef CLASSIC
+        sEluna->Push(L, player->DurabilityRepair(position, cost, discountMod));
+#else
         sEluna->Push(L, player->DurabilityRepair(position, cost, discountMod, guildBank));
+#endif
         return 1;
     }
 
@@ -1463,7 +1491,11 @@ namespace LuaPlayer
         float discountMod = sEluna->CHECKVAL<float>(L, 3);
         bool guildBank = sEluna->CHECKVAL<bool>(L, 4, false);
 
+#ifdef CLASSIC
+        sEluna->Push(L, player->DurabilityRepairAll(cost, discountMod));
+#else
         sEluna->Push(L, player->DurabilityRepairAll(cost, discountMod, guildBank));
+#endif
         return 1;
     }
 
@@ -1546,7 +1578,7 @@ namespace LuaPlayer
 #else
         player->resetTalents(no_cost);
 #endif
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
         player->SendTalentsInfoData(false);
 #endif
         return 0;
@@ -1685,7 +1717,7 @@ namespace LuaPlayer
         if (!player->isAlive())
             return 0;
 
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
         if (player->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_XP_USER_DISABLED))
             return 0;
 #endif
@@ -1699,6 +1731,7 @@ namespace LuaPlayer
         if (level >= sWorld->getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
             return 0;
 
+#ifndef CLASSIC
         if (!pureXP)
         {
             if (victim)
@@ -1718,6 +1751,7 @@ namespace LuaPlayer
             }
 #endif
         }
+#endif
 
         // XP resting bonus for kill
         uint32 rested_bonus_xp = victim ? player->GetXPRestBonus(xp) : 0;
@@ -1836,7 +1870,7 @@ namespace LuaPlayer
                 return 0;
             }
             player->ItemAddedQuestCheck(entry, 1);
-#ifndef TBC
+#if (!defined(TBC) && !defined(CLASSIC))
             player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_RECEIVE_EPIC_ITEM, entry, 1);
 #endif
         }
@@ -1887,6 +1921,7 @@ namespace LuaPlayer
         return 1;
     }
 
+#ifndef CLASSIC
     int UnsetKnownTitle(lua_State* L, Player* player)
     {
         uint32 id = sEluna->CHECKVAL<uint32>(L, 2);
@@ -1895,6 +1930,7 @@ namespace LuaPlayer
             player->SetTitle(t, true);
         return 0;
     }
+#endif
 
     int AdvanceSkillsToMax(lua_State* L, Player* player)
     {
@@ -1911,9 +1947,12 @@ namespace LuaPlayer
 
         static const uint32 skillsArray[] = { SKILL_BOWS, SKILL_CROSSBOWS, SKILL_DAGGERS, SKILL_DEFENSE, SKILL_UNARMED, SKILL_GUNS, SKILL_AXES, SKILL_MACES, SKILL_SWORDS, SKILL_POLEARMS,
             SKILL_STAVES, SKILL_2H_AXES, SKILL_2H_MACES, SKILL_2H_SWORDS, SKILL_WANDS, SKILL_SHIELD, SKILL_FISHING, SKILL_MINING, SKILL_ENCHANTING, SKILL_BLACKSMITHING,
-            SKILL_ALCHEMY, SKILL_HERBALISM, SKILL_ENGINEERING, SKILL_JEWELCRAFTING, SKILL_LEATHERWORKING, SKILL_LOCKPICKING, SKILL_SKINNING, SKILL_TAILORING,
-#ifndef TBC
-            SKILL_INSCRIPTION
+            SKILL_ALCHEMY, SKILL_HERBALISM, SKILL_ENGINEERING, SKILL_LEATHERWORKING, SKILL_LOCKPICKING, SKILL_SKINNING, SKILL_TAILORING,
+#ifndef CLASSIC
+            SKILL_JEWELCRAFTING,
+#endif
+#if (!defined(TBC) && !defined(CLASSIC))
+            SKILL_INSCRIPTION,
 #endif
         };
         static const uint32 skillsSize = sizeof(skillsArray) / sizeof(*skillsArray);
@@ -2122,7 +2161,11 @@ namespace LuaPlayer
         const char* _promptMsg = sEluna->CHECKVAL<const char*>(L, 7, "");
         uint32 _money = sEluna->CHECKVAL<uint32>(L, 8, 0);
 #ifdef MANGOS
+#ifndef CLASSIC
         player->PlayerTalkClass->GetGossipMenu().AddMenuItem(_icon, msg, _sender, _intid, _promptMsg, _money, _code);
+#else
+        player->PlayerTalkClass->GetGossipMenu().AddMenuItem(_icon, msg, _sender, _intid, _promptMsg, _code);
+#endif
 #else
         player->PlayerTalkClass->GetGossipMenu().AddMenuItem(-1, _icon, msg, _sender, _intid, _promptMsg, _money, _code);
 #endif

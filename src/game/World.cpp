@@ -1020,6 +1020,9 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading Creature Model for race...");   // must be after creature templates
     sObjectMgr.LoadCreatureModelRace();
 
+    sLog.outString("Loading Creature Stats...");
+    sObjectMgr.LoadCreatureClassLvlStats();
+
     sLog.outString("Loading SpellsScriptTarget...");
     sSpellMgr.LoadSpellScriptTarget();                      // must be after LoadCreatureTemplates and LoadGameobjectInfo
 

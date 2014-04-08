@@ -167,18 +167,18 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket& recv_data)
         data << uint8(0) << uint8(0) << uint8(0);           // name2, name3, name4, always empty
         data << subName;
         data << ci->IconName;                               // "Directions" for guard, string for Icons 2.3.0
-        data << uint32(ci->type_flags);                     // flags
-        data << uint32(ci->type);                           // CreatureType.dbc
-        data << uint32(ci->family);                         // CreatureFamily.dbc
-        data << uint32(ci->rank);                           // Creature Rank (elite, boss, etc)
+        data << uint32(ci->CreatureTypeFlags);              // flags
+        data << uint32(ci->CreatureType);                   // CreatureType.dbc
+        data << uint32(ci->Family);                         // CreatureFamily.dbc
+        data << uint32(ci->Rank);                           // Creature Rank (elite, boss, etc)
         data << uint32(0);                                  // unknown        wdbFeild11
         data << uint32(ci->PetSpellDataId);                 // Id from CreatureSpellData.dbc    wdbField12
 
         for (int i = 0; i < MAX_CREATURE_MODEL; ++i)
             data << uint32(ci->ModelId[i]);
 
-        data << float(ci->healthModifier);                  // health modifier
-        data << float(ci->powerModifier);                   // power modifier
+        data << float(ci->HealthMultiplier);                 // health multiplier
+        data << float(ci->ManaMultiplier);                   // mana multiplier
         data << uint8(ci->RacialLeader);
         SendPacket(&data);
         DEBUG_LOG("WORLD: Sent SMSG_CREATURE_QUERY_RESPONSE");

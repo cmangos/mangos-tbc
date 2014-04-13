@@ -7144,7 +7144,7 @@ void Spell::EffectBind(SpellEffectIndex eff_idx)
     player->SendDirectMessage(&data);
 }
 
-void Spell::EffectRedirectThreat(SpellEffectIndex eff_idx)
+void Spell::EffectRedirectThreat(SpellEffectIndex /*eff_idx*/)
 {
     if (!unitTarget)
         return;

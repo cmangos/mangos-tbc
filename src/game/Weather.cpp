@@ -27,6 +27,7 @@
 #include "Log.h"
 #include "ObjectMgr.h"
 #include "Util.h"
+#include "HookMgr.h"
 
 /// Create the Weather object
 Weather::Weather(uint32 zone, WeatherZoneChances const* weatherChances) : m_zone(zone), m_weatherChances(weatherChances)
@@ -261,7 +262,7 @@ bool Weather::UpdateWeather()
     }
 
     DETAIL_FILTER_LOG(LOG_FILTER_WEATHER, "Change the weather of zone %u to %s.", m_zone, wthstr);
-
+    sHookMgr->OnChange(this, state, m_grade);
     return true;
 }
 

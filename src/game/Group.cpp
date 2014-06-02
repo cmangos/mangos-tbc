@@ -32,7 +32,7 @@
 #include "MapPersistentStateMgr.h"
 #include "Util.h"
 #include "LootMgr.h"
-#include "HookMgr.h"
+#include "LuaEngine.h"
 
 #define LOOT_ROLL_TIMEOUT  (1*MINUTE*IN_MILLISECONDS)
 
@@ -59,6 +59,8 @@ Group::Group() : m_Id(0), m_groupType(GROUPTYPE_NORMAL),
 
 Group::~Group()
 {
+    Eluna::RemoveRef(this);
+
     if (m_bgGroup)
     {
         DEBUG_LOG("Group::~Group: battleground group being deleted.");
@@ -137,7 +139,7 @@ bool Group::Create(ObjectGuid guid, const char* name)
         CharacterDatabase.CommitTransaction();
 
     // used by eluna
-    sHookMgr->OnCreate(this, m_leaderGuid, m_groupType);
+    sEluna->OnCreate(this, m_leaderGuid, m_groupType);
 
     return true;
 }
@@ -227,7 +229,7 @@ bool Group::AddInvite(Player* player)
     player->SetGroupInvite(this);
 
     // used by eluna
-    sHookMgr->OnInviteMember(this, player->GetObjectGuid());
+    sEluna->OnInviteMember(this, player->GetObjectGuid());
 
     return true;
 }
@@ -302,7 +304,7 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
         UpdatePlayerOutOfRange(player);
 
         // used by eluna
-        sHookMgr->OnAddMember(this, player->GetObjectGuid());
+        sEluna->OnAddMember(this, player->GetObjectGuid());
 
         // quest related GO state dependent from raid membership
         if (isRaidGroup())
@@ -362,7 +364,7 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
         Disband(true);
 
     // used by eluna
-    sHookMgr->OnRemoveMember(this, guid, method);
+    sEluna->OnRemoveMember(this, guid, method); // Kicker and Reason not a part of Mangos, implement?
 
     return m_memberSlots.size();
 }
@@ -374,7 +376,7 @@ void Group::ChangeLeader(ObjectGuid guid)
         return;
 
     // used by eluna
-    sHookMgr->OnChangeLeader(this, guid, GetLeaderGuid());
+    sEluna->OnChangeLeader(this, guid, GetLeaderGuid());
 
     _setLeader(guid);
 
@@ -450,7 +452,7 @@ void Group::Disband(bool hideDestroy)
     }
 
     // used by eluna
-    sHookMgr->OnDisband(this);
+    sEluna->OnDisband(this);
 
     m_leaderGuid.Clear();
     m_leaderName = "";

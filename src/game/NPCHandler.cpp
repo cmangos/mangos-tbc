@@ -35,7 +35,7 @@
 #include "GuildMgr.h"
 #include "Chat.h"
 #include "Item.h"
-#include "HookMgr.h"
+#include "LuaEngine.h"
 
 enum StableResultCode
 {
@@ -392,7 +392,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recv_data)
         }
 
         // used by eluna
-        sHookMgr->HandleGossipSelectOption(GetPlayer(), item, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code);
+        sEluna->HandleGossipSelectOption(GetPlayer(), item, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code);
     }
     else if (guid.IsPlayer())
     {
@@ -403,7 +403,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recv_data)
         }
 
         // used by eluna
-        sHookMgr->HandleGossipSelectOption(GetPlayer(), menuId, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code);
+        sEluna->HandleGossipSelectOption(GetPlayer(), menuId, GetPlayer()->PlayerTalkClass->GossipOptionSender(gossipListId), GetPlayer()->PlayerTalkClass->GossipOptionAction(gossipListId), code);
     }
 }
 

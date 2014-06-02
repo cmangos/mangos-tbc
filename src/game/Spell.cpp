@@ -45,7 +45,7 @@
 #include "Util.h"
 #include "Chat.h"
 #include "SQLStorages.h"
-#include "HookMgr.h"
+#include "LuaEngine.h"
 
 extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 
@@ -348,6 +348,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid or
 
 Spell::~Spell()
 {
+    Eluna::RemoveRef(this);
 }
 
 template<typename T>
@@ -2907,7 +2908,7 @@ void Spell::cast(bool skipCheck)
 
     // used by eluna
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
-        sHookMgr->OnSpellCast(m_caster->ToPlayer(), this, skipCheck);
+        sEluna->OnSpellCast(m_caster->ToPlayer(), this, skipCheck);
 
     FillTargetMap();
 

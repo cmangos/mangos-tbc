@@ -65,11 +65,10 @@
 #include "AuctionHouseBot/AuctionHouseBot.h"
 #include "CharacterDatabaseCleaner.h"
 #include "CreatureLinkingMgr.h"
-#include "HookMgr.h"
+#include "LuaEngine.h"
 
 INSTANTIATE_SINGLETON_1(World);
 
-extern bool StartEluna();
 extern void LoadGameObjectModelList();
 
 volatile bool World::m_stopEvent = false;
@@ -149,6 +148,7 @@ void World::CleanupsBeforeStop()
     KickAll();                                       // save and kick all players
     UpdateSessions(1);                               // real players unload required UpdateSessions call
     sBattleGroundMgr.DeleteAllBattleGrounds();       // unload battleground templates before different singletons destroyed
+    Eluna::Uninitialize();
 }
 
 /// Find a player in a specified zone
@@ -1287,7 +1287,7 @@ void World::SetInitialWorldSettings()
 
     ///- Initialize Lua Engine
     sLog.outString("Initialize Eluna Lua Engine...");
-    StartEluna();
+    Eluna::Initialize();
 
     ///- Initialize game time and timers
     sLog.outString("DEBUG:: Initialize game time and timers");
@@ -1497,7 +1497,7 @@ void World::Update(uint32 diff)
     sOutdoorPvPMgr.Update(diff);
 
     ///- used by eluna
-    sHookMgr->OnWorldUpdate(diff);
+    sEluna->OnWorldUpdate(diff);
 
     ///- Delete all characters which have been deleted X days before
     if (m_timers[WUPDATE_DELETECHARS].Passed())

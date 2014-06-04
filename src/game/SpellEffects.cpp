@@ -3956,7 +3956,7 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)
                 ((Creature*)m_originalCaster)->AI()->JustSummoned(summon);
             if (m_originalCaster)
                 if (Unit* summoner = m_originalCaster->ToUnit())
-                    sHookMgr->OnSummoned(summon, summoner);
+                    sEluna->OnSummoned(summon, summoner);
         }
     }
 }

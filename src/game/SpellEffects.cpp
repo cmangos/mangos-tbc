@@ -3954,8 +3954,9 @@ void Spell::DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction)
             // Notify original caster if not done already
             if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
                 ((Creature*)m_originalCaster)->AI()->JustSummoned(summon);
-            if (Unit* summoner = m_originalCaster->ToUnit())
-                sEluna->OnSummoned(summon, summoner);
+            if (m_originalCaster)
+                if (Unit* summoner = m_originalCaster->ToUnit())
+                    sHookMgr->OnSummoned(summon, summoner);
         }
     }
 }

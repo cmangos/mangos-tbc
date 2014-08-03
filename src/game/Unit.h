@@ -1061,6 +1061,17 @@ enum ReactiveType
 // Regeneration defines
 #define REGEN_TIME_FULL     2000                            // For this time difference is computed regen value
 
+// Power type values defines
+enum PowerDefaults
+{
+    POWER_RAGE_DEFAULT              = 1000,
+    POWER_FOCUS_DEFAULT             = 100,
+    POWER_ENERGY_DEFAULT            = 100,
+    POWER_HAPPINESS_DEFAULT         = 1000000,
+    POWER_RUNE_DEFAULT              = 8,
+    POWER_RUNIC_POWER_DEFAULT       = 1000,
+};
+
 struct SpellProcEventEntry;                                 // used only privately
 
 class MANGOS_DLL_SPEC Unit : public WorldObject

@@ -1068,8 +1068,6 @@ enum PowerDefaults
     POWER_FOCUS_DEFAULT             = 100,
     POWER_ENERGY_DEFAULT            = 100,
     POWER_HAPPINESS_DEFAULT         = 1000000,
-    POWER_RUNE_DEFAULT              = 8,
-    POWER_RUNIC_POWER_DEFAULT       = 1000,
 };
 
 struct SpellProcEventEntry;                                 // used only privately

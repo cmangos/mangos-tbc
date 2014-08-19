@@ -26,6 +26,7 @@
 #include "WorldRunnable.h"
 #include "Timer.h"
 #include "MapManager.h"
+#include "LuaEngine.h"
 
 #include "Database/DatabaseEnv.h"
 
@@ -82,6 +83,10 @@ void WorldRunnable::run()
     sWorldSocketMgr->StopNetwork();
 
     sMapMgr.UnloadAll();                                    // unload all grids (including locked in memory)
+
+    // Eluna must be unloaded after Maps, since ~Map calls sEluna->OnDestroy,
+    //   and must be unloaded before the DB, since it can access the DB.
+    Eluna::Uninitialize();
 
     ///- End the database thread
     WorldDatabase.ThreadEnd();                              // free mySQL thread resources

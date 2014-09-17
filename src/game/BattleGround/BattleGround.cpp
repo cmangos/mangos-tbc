@@ -34,6 +34,7 @@
 #include "Formulas.h"
 #include "GridNotifiersImpl.h"
 #include "Chat.h"
+#include "LuaEngine.h"
 
 namespace MaNGOS
 {
@@ -239,6 +240,8 @@ BattleGround::BattleGround()
 
 BattleGround::~BattleGround()
 {
+    //sEluna->OnBGDestroy(this, GetTypeID(), GetInstanceID());
+
     // remove objects and creatures
     // (this is done automatically in mapmanager update, when the instance is reset after the reset time)
     sBattleGroundMgr.RemoveBattleGround(GetInstanceID(), GetTypeID());
@@ -620,6 +623,8 @@ void BattleGround::UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player*
 
 void BattleGround::EndBattleGround(Team winner)
 {
+    sEluna->OnBGEnd(this, GetTypeID(), GetInstanceID(), winner);
+
     this->RemoveFromBGFreeSlotQueue();
 
     ArenaTeam* winner_arena_team = NULL;
@@ -1088,6 +1093,8 @@ void BattleGround::StartBattleGround()
     // This must be done here, because we need to have already invited some players when first BG::Update() method is executed
     // and it doesn't matter if we call StartBattleGround() more times, because m_BattleGrounds is a map and instance id never changes
     sBattleGroundMgr.AddBattleGround(GetInstanceID(), GetTypeID(), this);
+
+    sEluna->OnBGStart(this, GetTypeID(), GetInstanceID());
 }
 
 void BattleGround::AddPlayer(Player* plr)

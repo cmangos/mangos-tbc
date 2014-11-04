@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2170_12757_01_mangos_spell_chain` bit(1) DEFAULT NULL
+  `required_s2171_12759_01_mangos_spell_chain` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -13217,18 +13217,6 @@ INSERT INTO `spell_chain` VALUES
 (14202,14201,12880,3,0),
 (14203,14202,12880,4,0),
 (14204,14203,12880,5,0),
-/* Flurry triggered, Warrior */
-(12319,0,12319,1,0),
-(12971,12319,12319,2,0),
-(12972,12971,12319,3,0),
-(12973,12972,12319,4,0),
-(12974,12973,12319,5,0),
-/* Flurry triggered, Shaman */
-(16256,0,16256,1,0),
-(16281,16256,16256,2,0),
-(16282,16281,16256,3,0),
-(16283,16282,16256,4,0),
-(16284,16283,16256,5,0),
 /* Frostbrand Attack */
 (8034,0,8034,1,0),
 (8037,8034,8034,2,0),

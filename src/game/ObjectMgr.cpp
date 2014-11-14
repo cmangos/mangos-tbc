@@ -615,22 +615,25 @@ void ObjectMgr::LoadCreatureTemplates()
             const_cast<CreatureInfo*>(cInfo)->Expansion = -1;
         }
 
-        // use below code for 0-checks for unit_class
-        if (!cInfo->UnitClass || (((1 << (cInfo->UnitClass - 1)) & CLASSMASK_ALL_CREATURES) == 0))
+        if (cInfo->Expansion >= 0 && sWorld.getConfig(CONFIG_BOOL_USE_NEW_STATS))
         {
-            sLog.outErrorDb("Creature (Entry: %u) does not have proper `UnitClass(%u)` in creature_template", cInfo->Entry, cInfo->UnitClass);
-            const_cast<CreatureInfo*>(cInfo)->Expansion = -1;
-        }
-
-        if (cInfo->Expansion >= 0)
-        {
-            for (uint32 level = cInfo->MinLevel; level <= cInfo->MaxLevel; ++level)
+            // use below code for 0-checks for unit_class
+            if (!cInfo->UnitClass || (((1 << (cInfo->UnitClass - 1)) & CLASSMASK_ALL_CREATURES) == 0))
             {
-                if (!GetCreatureClassLvlStats(level, cInfo->UnitClass, cInfo->Expansion))
+                sLog.outErrorDb("Creature (Entry: %u) does not have proper `UnitClass(%u)` in creature_template", cInfo->Entry, cInfo->UnitClass);
+                const_cast<CreatureInfo*>(cInfo)->Expansion = -1;
+            }
+            else
+            {
+                // check if data are available for all possible level of that creature
+                for (uint32 level = cInfo->MinLevel; level <= cInfo->MaxLevel; ++level)
                 {
-                    sLog.outErrorDb("Creature (Entry: %u), level(%u) has no data in `creature_template_classlevelstats`", cInfo->Entry, level);
-                    const_cast<CreatureInfo*>(cInfo)->Expansion = -1;
-                    break;
+                    if (!GetCreatureClassLvlStats(level, cInfo->UnitClass, cInfo->Expansion))
+                    {
+                        sLog.outErrorDb("Creature (Entry: %u), level(%u) has no data in `creature_template_classlevelstats`", cInfo->Entry, level);
+                        const_cast<CreatureInfo*>(cInfo)->Expansion = -1;
+                        break;
+                    }
                 }
             }
         }
@@ -841,6 +844,12 @@ void ObjectMgr::LoadCreatureClassLvlStats()
 {
     // initialize data array
     memset(&m_creatureClassLvlStats, 0, sizeof(m_creatureClassLvlStats));
+
+    if (!sWorld.getConfig(CONFIG_BOOL_USE_NEW_STATS))
+    {
+        sLog.outString("New Stat system is currently disabled!");
+        return;
+    }
 
     std::string queryStr = "SELECT Class, Level, BaseMana, BaseMeleeAttackPower, BaseRangedAttackPower, BaseArmor";
 

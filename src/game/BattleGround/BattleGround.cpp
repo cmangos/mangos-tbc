@@ -124,7 +124,7 @@ namespace MaNGOS
                 {
                     guid = i_source->GetObjectGuid();
                     pName = i_source->GetName();
-                } 
+                }
                 ChatHandler::BuildChatPacket(data, i_msgtype, str, LANG_UNIVERSAL, CHAT_TAG_NONE, ObjectGuid(), NULL, guid, pName);
             }
         private:

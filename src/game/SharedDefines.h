@@ -2696,4 +2696,10 @@ static const MaxLevel maxLevelForExpansion[MAX_EXPANSION + 1] = { MAX_LEVEL_CLAS
 // Max creature level (included some bosses and elite)
 #define DEFAULT_MAX_CREATURE_LEVEL 75
 
+enum TeleportLocation
+{
+    TELEPORT_LOCATION_HOMEBIND          = 0,
+    TELEPORT_LOCATION_BG_ENTRY_POINT    = 1,
+};
+
 #endif

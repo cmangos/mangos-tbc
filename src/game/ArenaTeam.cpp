@@ -349,8 +349,6 @@ void ArenaTeam::Disband(WorldSession* session)
 
 void ArenaTeam::Roster(WorldSession* session)
 {
-    Player* pl = NULL;
-
     WorldPacket data(SMSG_ARENA_TEAM_ROSTER, 100);
     data << uint32(GetId());                                // team id
     data << uint32(GetMembersSize());                       // members count
@@ -358,7 +356,7 @@ void ArenaTeam::Roster(WorldSession* session)
 
     for (MemberList::const_iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
     {
-        pl = sObjectMgr.GetPlayer(itr->guid);
+        Player* pl = sObjectMgr.GetPlayer(itr->guid);
 
         data << itr->guid;                                  // guid
         data << uint8((pl ? 1 : 0));                        // online flag

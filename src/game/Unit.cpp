@@ -9661,6 +9661,24 @@ void Unit::SetPvP(bool state)
     CallForAllControlledUnits(SetPvPHelper(state), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
 }
 
+void Unit::RestoreOriginalFaction()
+{
+    if (GetTypeId() == TYPEID_PLAYER)
+        ((Player*)this)->setFactionForRace(getRace());
+    else
+    {
+        Creature* creature = (Creature*)this;
+
+        if (creature->IsPet() || creature->IsTotem())
+        {
+            if (Unit* owner = GetOwner())
+                setFaction(owner->getFaction());
+        }
+        else
+            setFaction(creature->GetCreatureInfo()->FactionAlliance);
+    }
+}
+
 struct StopAttackFactionHelper
 {
     explicit StopAttackFactionHelper(uint32 _faction_id) : faction_id(_faction_id) {}

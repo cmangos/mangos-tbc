@@ -299,7 +299,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleAuraModExpertise,                          //240 SPELL_AURA_MOD_EXPERTISE
     &Aura::HandleForceMoveForward,                          //241 Forces the caster to move forward
     &Aura::HandleUnused,                                    //242 unused
-    &Aura::HandleUnused,                                    //243 used by two test spells
+    &Aura::HandleFactionOverride,                           //243 SPELL_AURA_FACTION_OVERRIDE
     &Aura::HandleComprehendLanguage,                        //244 SPELL_AURA_COMPREHEND_LANGUAGE
     &Aura::HandleUnused,                                    //245 unused
     &Aura::HandleUnused,                                    //246 unused
@@ -6788,6 +6788,21 @@ void Aura::HandleAuraSafeFall(bool Apply, bool Real)
     // only special case
     if (Apply && Real && GetId() == 32474 && GetTarget()->GetTypeId() == TYPEID_PLAYER)
         ((Player*)GetTarget())->ActivateTaxiPathTo(506, GetId());
+}
+
+void Aura::HandleFactionOverride(bool apply, bool Real)
+{
+    if (!Real)
+        return;
+
+    Unit* target = GetTarget();
+    if (!target || !sFactionTemplateStore.LookupEntry(GetMiscValue()))
+        return;
+
+    if (apply)
+        target->setFaction(GetMiscValue());
+    else
+        target->RestoreOriginalFaction();
 }
 
 bool Aura::IsLastAuraOnHolder()

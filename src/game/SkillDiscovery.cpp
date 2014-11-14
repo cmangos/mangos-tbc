@@ -57,8 +57,8 @@ void LoadSkillDiscoveryTable()
 
     if (!result)
     {
-        sLog.outString();
         sLog.outString(">> Loaded 0 skill discovery definitions. DB table `skill_discovery_template` is empty.");
+        sLog.outString();
         return;
     }
 
@@ -133,8 +133,6 @@ void LoadSkillDiscoveryTable()
 
     delete result;
 
-    sLog.outString();
-    sLog.outString(">> Loaded %u skill discovery definitions", count);
     if (!ssNonDiscoverableEntries.str().empty())
         sLog.outErrorDb("Some items can't be successfully discovered: have in chance field value < 0.000001 in `skill_discovery_template` DB table . List:\n%s", ssNonDiscoverableEntries.str().c_str());
 }

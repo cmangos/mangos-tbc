@@ -1289,8 +1289,6 @@ void Player::Update(uint32 update_diff, uint32 p_time)
         if (update_diff >= m_nextSave)
         {
             // m_nextSave reseted in SaveToDB call
-            // used by eluna
-            sEluna->OnSave(this);
             SaveToDB();
             DETAIL_LOG("Player '%s' (GUID: %u) saved", GetName(), GetGUIDLow());
         }
@@ -15822,6 +15820,10 @@ void Player::SaveToDB()
     outDebugStatsValues();
 
     CharacterDatabase.BeginTransaction();
+
+    // Hack to check that this is not on create save
+    if (!HasAtLoginFlag(AT_LOGIN_FIRST))
+        sEluna->OnSave(this);
 
     static SqlStatementID delChar ;
     static SqlStatementID insChar ;

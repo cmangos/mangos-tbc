@@ -5732,6 +5732,16 @@ void Unit::EnergizeBySpell(Unit* pVictim, uint32 SpellID, uint32 Damage, Powers 
     pVictim->ModifyPower(powertype, Damage);
 }
 
+/** Calculate spell coefficents and level penalties for spell/melee damage or heal
+ *
+ * this is the caster of the spell/ melee attacker
+ * @param spellProto SpellEntry of the used spell
+ * @param total current value onto which the Bonus and level penalty will be calculated
+ * @param benefit additional benefit from ie spellpower-auras
+ * @param ap_benefit additional melee attackpower benefit from auras
+ * @param damagetype what kind of damage
+ * @param donePart calculate for done or taken
+ */
 int32 Unit::SpellBonusWithCoeffs(SpellEntry const* spellProto, int32 total, int32 benefit, int32 ap_benefit,  DamageEffectType damagetype, bool donePart)
 {
     // Distribute Damage over multiple effects, reduce by AoE
@@ -5972,7 +5982,7 @@ uint32 Unit::SpellDamageBonusTaken(Unit* pCaster, SpellEntry const* spellProto, 
     int32 TakenAdvertisedBenefit = SpellBaseDamageBonusTaken(GetSpellSchoolMask(spellProto));
 
     // apply benefit affected by spell power implicit coeffs and spell level penalties
-    TakenTotal = SpellBonusWithCoeffs(spellProto, TakenTotal, TakenAdvertisedBenefit, 0, damagetype, false);
+    TakenTotal = pCaster->SpellBonusWithCoeffs(spellProto, TakenTotal, TakenAdvertisedBenefit, 0, damagetype, false);
 
     float tmpDamage = (int32(pdamage) + TakenTotal * int32(stack)) * TakenTotalMod;
 
@@ -6252,7 +6262,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
  * Calculates target part of healing spell bonuses,
  * will be called on each tick for periodic damage over time auras
  */
-uint32 Unit::SpellHealingBonusTaken(Unit* /*pCaster*/, SpellEntry const* spellProto, int32 healamount, DamageEffectType damagetype, uint32 stack)
+uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto, int32 healamount, DamageEffectType damagetype, uint32 stack)
 {
     float  TakenTotalMod = 1.0f;
 
@@ -6295,7 +6305,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit* /*pCaster*/, SpellEntry const* spellPr
     }
 
     // apply benefit affected by spell power implicit coeffs and spell level penalties
-    TakenTotal = SpellBonusWithCoeffs(spellProto, TakenTotal, TakenAdvertisedBenefit, 0, damagetype, false);
+    TakenTotal = pCaster->SpellBonusWithCoeffs(spellProto, TakenTotal, TakenAdvertisedBenefit, 0, damagetype, false);
 
     // Healing Way dummy affects healing taken from Healing Wave
     if (spellProto->SpellFamilyName == SPELLFAMILY_SHAMAN && (spellProto->SpellFamilyFlags & UI64LIT(0x0000000000000040)))
@@ -6687,7 +6697,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackTy
     if (!isWeaponDamageBasedSpell)
     {
         // apply benefit affected by spell power implicit coeffs and spell level penalties
-        TakenFlat = SpellBonusWithCoeffs(spellProto, 0, TakenFlat, 0, damagetype, false);
+        TakenFlat = pCaster->SpellBonusWithCoeffs(spellProto, 0, TakenFlat, 0, damagetype, false);
     }
 
     float tmpDamage = float(int32(pdamage) + TakenFlat * int32(stack)) * TakenPercent;

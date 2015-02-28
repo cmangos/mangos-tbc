@@ -304,6 +304,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     {
         LearnPetPassives();
         CastPetAuras(current);
+        CastOwnerTalentAuras();
     }
 
     Powers powerType = GetPowerType();
@@ -553,6 +554,7 @@ void Pet::SetDeathState(DeathState s)                       // overwrite virtual
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
         CastPetAuras(true);
     }
+    CastOwnerTalentAuras();
 }
 
 void Pet::Update(uint32 update_diff, uint32 diff)
@@ -2010,6 +2012,38 @@ void Pet::CastPetAuras(bool current)
         else
             CastPetAura(pa);
     }
+}
+
+void Pet::CastOwnerTalentAuras()
+{
+    if (!GetOwner() || GetOwner()->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* pOwner = static_cast<Player *>(GetOwner());
+
+    // Handle Ferocious Inspiration Talent
+    if (pOwner && pOwner->getClass() == CLASS_HUNTER)
+    {
+        // clear any existing Ferocious Inspiration auras
+        if (HasAura(34455))
+            RemoveAurasDueToSpell(34455);
+        if (HasAura(34459))
+            RemoveAurasDueToSpell(34459);
+        if (HasAura(34460))
+            RemoveAurasDueToSpell(34460);
+
+        if (isAlive())
+        {
+            if (pOwner->HasSpell(34455)) // Ferocious Inspiration Rank 1
+                CastSpell(this, 34457, true); // Ferocious Inspiration 1%
+
+            if (pOwner->HasSpell(34459)) // Ferocious Inspiration Rank 2
+                CastSpell(this, 34457, true); // Ferocious Inspiration 2%
+
+            if (pOwner->HasSpell(34460)) // Ferocious Inspiration Rank 3
+                CastSpell(this, 34457, true); // Ferocious Inspiration 3%
+        }
+    } // End Ferocious Inspiration Talent
 }
 
 void Pet::CastPetAura(PetAura const* aura)

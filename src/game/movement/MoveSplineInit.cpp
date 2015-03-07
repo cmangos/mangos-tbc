@@ -159,7 +159,7 @@ namespace Movement
     MoveSplineInit::MoveSplineInit(Unit& m) : unit(m)
     {
         // mix existing state into new
-        args.flags.runmode = unit.m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE);
+        args.flags.runmode = !unit.m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE);
         args.flags.flying = unit.m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING | MOVEFLAG_LEVITATING));
     }
 

@@ -1,4 +1,4 @@
-# C(ontinued)-MaNGOS -- README  ![Build status](https://api.travis-ci.org/ElunaLuaEngine/ElunaMangosTbc.png)
+# C(ontinued)-MaNGOS -- README  [![Build Status](https://travis-ci.org/ElunaLuaEngine/ElunaMangosTbc.svg?branch=master)](https://travis-ci.org/ElunaLuaEngine/ElunaMangosTbc)
 
 This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) file for Copyright information
 

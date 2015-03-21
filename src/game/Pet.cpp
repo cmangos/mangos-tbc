@@ -2025,12 +2025,9 @@ void Pet::CastOwnerTalentAuras()
     if (pOwner && pOwner->getClass() == CLASS_HUNTER)
     {
         // clear any existing Ferocious Inspiration auras
-        if (HasAura(34455))
-            RemoveAurasDueToSpell(34455);
-        if (HasAura(34459))
-            RemoveAurasDueToSpell(34459);
-        if (HasAura(34460))
-            RemoveAurasDueToSpell(34460);
+        RemoveAurasDueToSpell(34455);
+        RemoveAurasDueToSpell(34459);
+        RemoveAurasDueToSpell(34460);
 
         if (isAlive())
         {

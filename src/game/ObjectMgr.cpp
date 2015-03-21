@@ -58,7 +58,7 @@ bool normalizePlayerName(std::string& name)
     if (name.empty())
         return false;
 
-    wchar_t wstr_buf[MAX_INTERNAL_PLAYER_NAME+1];
+    wchar_t wstr_buf[MAX_INTERNAL_PLAYER_NAME + 1];
     size_t wstr_len = MAX_INTERNAL_PLAYER_NAME;
 
     if (!Utf8toWStr(name, &wstr_buf[0], wstr_len))
@@ -237,7 +237,7 @@ void ObjectMgr::LoadCreatureLocales()
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[1+2*(i-1)].GetCppString();
+            std::string str = fields[1 + 2 * (i - 1)].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -249,7 +249,7 @@ void ObjectMgr::LoadCreatureLocales()
                     data.Name[idx] = str;
                 }
             }
-            str = fields[1+2*(i-1)+1].GetCppString();
+            str = fields[1 + 2 * (i - 1) + 1].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -325,7 +325,7 @@ void ObjectMgr::LoadGossipMenuItemsLocales()
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[2+2*(i-1)].GetCppString();
+            std::string str = fields[2 + 2 * (i - 1)].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -337,7 +337,7 @@ void ObjectMgr::LoadGossipMenuItemsLocales()
                     data.OptionText[idx] = str;
                 }
             }
-            str = fields[2+2*(i-1)+1].GetCppString();
+            str = fields[2 + 2 * (i - 1) + 1].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -721,7 +721,7 @@ void ObjectMgr::ConvertCreatureAddonAuras(CreatureDataAddon* addon, char const* 
     }
 
     // replace by new structures array
-    const_cast<uint32*&>(addon->auras) = new uint32[val.size()+1];
+    const_cast<uint32*&>(addon->auras) = new uint32[val.size() + 1];
 
     uint32 i = 0;
     for (uint32 j = 0; j < val.size(); ++j)
@@ -1759,7 +1759,7 @@ void ObjectMgr::LoadItemLocales()
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[1+2*(i-1)].GetCppString();
+            std::string str = fields[1 + 2 * (i - 1)].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -1772,7 +1772,7 @@ void ObjectMgr::LoadItemLocales()
                 }
             }
 
-            str = fields[1+2*(i-1)+1].GetCppString();
+            str = fields[1 + 2 * (i - 1) + 1].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -2445,7 +2445,7 @@ void ObjectMgr::LoadPetLevelInfo()
             pInfoMapEntry =  new PetLevelInfo[sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)];
 
         // data for level 1 stored in [0] array element, ...
-        PetLevelInfo* pLevelInfo = &pInfoMapEntry[current_level-1];
+        PetLevelInfo* pLevelInfo = &pInfoMapEntry[current_level - 1];
 
         pLevelInfo->health = fields[2].GetUInt16();
         pLevelInfo->mana   = fields[3].GetUInt16();
@@ -2453,7 +2453,7 @@ void ObjectMgr::LoadPetLevelInfo()
 
         for (int i = 0; i < MAX_STATS; ++i)
         {
-            pLevelInfo->stats[i] = fields[i+4].GetUInt16();
+            pLevelInfo->stats[i] = fields[i + 4].GetUInt16();
         }
 
         bar.step();
@@ -2482,7 +2482,7 @@ void ObjectMgr::LoadPetLevelInfo()
             if (pInfo[level].health == 0)
             {
                 sLog.outErrorDb("Creature %u has no data for Level %i pet stats data, using data of Level %i.", itr->first, level + 1, level);
-                pInfo[level] = pInfo[level-1];
+                pInfo[level] = pInfo[level - 1];
             }
         }
     }
@@ -2500,7 +2500,7 @@ PetLevelInfo const* ObjectMgr::GetPetLevelInfo(uint32 creature_id, uint32 level)
     if (itr == petInfo.end())
         return NULL;
 
-    return &itr->second[level-1];                           // data for level 1 stored in [0] array element, ...
+    return &itr->second[level - 1];                         // data for level 1 stored in [0] array element, ...
 }
 
 void ObjectMgr::LoadPlayerInfo()
@@ -2839,7 +2839,7 @@ void ObjectMgr::LoadPlayerInfo()
             if (!pClassInfo->levelInfo)
                 pClassInfo->levelInfo = new PlayerClassLevelInfo[sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)];
 
-            PlayerClassLevelInfo* pClassLevelInfo = &pClassInfo->levelInfo[current_level-1];
+            PlayerClassLevelInfo* pClassLevelInfo = &pClassInfo->levelInfo[current_level - 1];
 
             pClassLevelInfo->basehealth = fields[2].GetUInt16();
             pClassLevelInfo->basemana   = fields[3].GetUInt16();
@@ -2878,7 +2878,7 @@ void ObjectMgr::LoadPlayerInfo()
             if (pClassInfo->levelInfo[level].basehealth == 0)
             {
                 sLog.outErrorDb("Class %i Level %i does not have health/mana data. Using stats data of level %i.", class_, level + 1, level);
-                pClassInfo->levelInfo[level] = pClassInfo->levelInfo[level-1];
+                pClassInfo->levelInfo[level] = pClassInfo->levelInfo[level - 1];
             }
         }
     }
@@ -2942,10 +2942,10 @@ void ObjectMgr::LoadPlayerInfo()
             if (!pInfo->levelInfo)
                 pInfo->levelInfo = new PlayerLevelInfo[sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)];
 
-            PlayerLevelInfo* pLevelInfo = &pInfo->levelInfo[current_level-1];
+            PlayerLevelInfo* pLevelInfo = &pInfo->levelInfo[current_level - 1];
 
             for (int i = 0; i < MAX_STATS; ++i)
-                pLevelInfo->stats[i] = fields[i+3].GetUInt8();
+                pLevelInfo->stats[i] = fields[i + 3].GetUInt8();
 
             bar.step();
             ++count;
@@ -2995,7 +2995,7 @@ void ObjectMgr::LoadPlayerInfo()
                 if (pInfo->levelInfo[level].stats[0] == 0)
                 {
                     sLog.outErrorDb("Race %i Class %i Level %i does not have stats data. Using stats data of level %i.", race, class_, level + 1, level);
-                    pInfo->levelInfo[level] = pInfo->levelInfo[level-1];
+                    pInfo->levelInfo[level] = pInfo->levelInfo[level - 1];
                 }
             }
         }
@@ -3062,7 +3062,7 @@ void ObjectMgr::LoadPlayerInfo()
         if (mPlayerXPperLevel[level] == 0)
         {
             sLog.outErrorDb("Level %i does not have XP for level data. Using data of level [%i] + 100.", level + 1, level);
-            mPlayerXPperLevel[level] = mPlayerXPperLevel[level-1] + 100;
+            mPlayerXPperLevel[level] = mPlayerXPperLevel[level - 1] + 100;
         }
     }
 }
@@ -3077,7 +3077,7 @@ void ObjectMgr::GetPlayerClassLevelInfo(uint32 class_, uint32 level, PlayerClass
     if (level > sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         level = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL);
 
-    *info = pInfo->levelInfo[level-1];
+    *info = pInfo->levelInfo[level - 1];
 }
 
 void ObjectMgr::GetPlayerLevelInfo(uint32 race, uint32 class_, uint32 level, PlayerLevelInfo* info) const
@@ -3090,7 +3090,7 @@ void ObjectMgr::GetPlayerLevelInfo(uint32 race, uint32 class_, uint32 level, Pla
         return;
 
     if (level <= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
-        *info = pInfo->levelInfo[level-1];
+        *info = pInfo->levelInfo[level - 1];
     else
         BuildPlayerLevelInfo(race, class_, level, info);
 }
@@ -3098,7 +3098,7 @@ void ObjectMgr::GetPlayerLevelInfo(uint32 race, uint32 class_, uint32 level, Pla
 void ObjectMgr::BuildPlayerLevelInfo(uint8 race, uint8 _class, uint8 level, PlayerLevelInfo* info) const
 {
     // base data (last known level)
-    *info = playerInfo[race][_class].levelInfo[sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL)-1];
+    *info = playerInfo[race][_class].levelInfo[sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) - 1];
 
     for (int lvl = sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) - 1; lvl < level; ++lvl)
     {
@@ -3850,10 +3850,10 @@ void ObjectMgr::LoadQuests()
             else if (choice_found)                          // client crash if have gap in item reward choices
             {
                 sLog.outErrorDb("Quest %u has `RewChoiceItemId%d` = 0 but `RewChoiceItemId%d` = %u, client can crash at like data.",
-                                qinfo->GetQuestId(), j + 1, j + 2, qinfo->RewChoiceItemId[j+1]);
+                                qinfo->GetQuestId(), j + 1, j + 2, qinfo->RewChoiceItemId[j + 1]);
                 // fill gap by clone later filled choice
-                qinfo->RewChoiceItemId[j] = qinfo->RewChoiceItemId[j+1];
-                qinfo->RewChoiceItemCount[j] = qinfo->RewChoiceItemCount[j+1];
+                qinfo->RewChoiceItemId[j] = qinfo->RewChoiceItemId[j + 1];
+                qinfo->RewChoiceItemCount[j] = qinfo->RewChoiceItemCount[j + 1];
             }
             else if (qinfo->RewChoiceItemCount[j] > 0)
             {
@@ -4106,7 +4106,7 @@ void ObjectMgr::LoadQuestLocales()
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[1+10*(i-1)].GetCppString();
+            std::string str = fields[1 + 10 * (i - 1)].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4118,7 +4118,7 @@ void ObjectMgr::LoadQuestLocales()
                     data.Title[idx] = str;
                 }
             }
-            str = fields[1+10*(i-1)+1].GetCppString();
+            str = fields[1 + 10 * (i - 1) + 1].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4130,7 +4130,7 @@ void ObjectMgr::LoadQuestLocales()
                     data.Details[idx] = str;
                 }
             }
-            str = fields[1+10*(i-1)+2].GetCppString();
+            str = fields[1 + 10 * (i - 1) + 2].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4142,7 +4142,7 @@ void ObjectMgr::LoadQuestLocales()
                     data.Objectives[idx] = str;
                 }
             }
-            str = fields[1+10*(i-1)+3].GetCppString();
+            str = fields[1 + 10 * (i - 1) + 3].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4154,7 +4154,7 @@ void ObjectMgr::LoadQuestLocales()
                     data.OfferRewardText[idx] = str;
                 }
             }
-            str = fields[1+10*(i-1)+4].GetCppString();
+            str = fields[1 + 10 * (i - 1) + 4].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4166,7 +4166,7 @@ void ObjectMgr::LoadQuestLocales()
                     data.RequestItemsText[idx] = str;
                 }
             }
-            str = fields[1+10*(i-1)+5].GetCppString();
+            str = fields[1 + 10 * (i - 1) + 5].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4180,7 +4180,7 @@ void ObjectMgr::LoadQuestLocales()
             }
             for (int k = 0; k < 4; ++k)
             {
-                str = fields[1+10*(i-1)+6+k].GetCppString();
+                str = fields[1 + 10 * (i - 1) + 6 + k].GetCppString();
                 if (!str.empty())
                 {
                     int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4727,7 +4727,7 @@ void ObjectMgr::LoadGossipTextLocales()
         {
             for (int j = 0; j < 8; ++j)
             {
-                std::string str0 = fields[1+8*2*(i-1)+2*j].GetCppString();
+                std::string str0 = fields[1 + 8 * 2 * (i - 1) + 2 * j].GetCppString();
                 if (!str0.empty())
                 {
                     int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -4739,7 +4739,7 @@ void ObjectMgr::LoadGossipTextLocales()
                         data.Text_0[j][idx] = str0;
                     }
                 }
-                std::string str1 = fields[1+8*2*(i-1)+2*j+1].GetCppString();
+                std::string str1 = fields[1 + 8 * 2 * (i - 1) + 2 * j + 1].GetCppString();
                 if (!str1.empty())
                 {
                     int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -5748,7 +5748,7 @@ void ObjectMgr::LoadGameObjectLocales()
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[i+(MAX_LOCALE-1)].GetCppString();
+            std::string str = fields[i + (MAX_LOCALE - 1)].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -6129,8 +6129,8 @@ void ObjectMgr::LoadPetNumber()
 
 std::string ObjectMgr::GeneratePetName(uint32 entry)
 {
-    std::vector<std::string> & list0 = PetHalfName0[entry];
-    std::vector<std::string> & list1 = PetHalfName1[entry];
+    std::vector<std::string>& list0 = PetHalfName0[entry];
+    std::vector<std::string>& list1 = PetHalfName1[entry];
 
     if (list0.empty() || list1.empty())
     {
@@ -6521,7 +6521,7 @@ struct SQLSpellLoader : public SQLStorageLoaderBase<SQLSpellLoader, SQLHashStora
             dst = D(src);
     }
 
-    void default_fill_to_str(uint32 field_pos, char const* /*src*/, char * & dst)
+    void default_fill_to_str(uint32 field_pos, char const* /*src*/, char*& dst)
     {
         if (field_pos == LOADED_SPELLDBC_FIELD_POS_SPELLNAME_0)
         {
@@ -6792,7 +6792,7 @@ static LanguageType GetRealmLanguageType(bool create)
     }
 }
 
-bool isValidString(const std::wstring &wstr, uint32 strictMask, bool numericOrSpace, bool create = false)
+bool isValidString(const std::wstring& wstr, uint32 strictMask, bool numericOrSpace, bool create = false)
 {
     if (strictMask == 0)                                    // any language, ignore realm
     {
@@ -7114,7 +7114,7 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[i+1].GetCppString();
+            std::string str = fields[i + 1].GetCppString();
             if (!str.empty())
             {
                 int idx = GetOrNewIndexForLocale(LocaleConstant(i));
@@ -7124,7 +7124,7 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
                     if ((int32)data.Content.size() <= idx + 1)
                         data.Content.resize(idx + 2);
 
-                    data.Content[idx+1] = str;
+                    data.Content[idx + 1] = str;
                 }
             }
         }
@@ -7183,8 +7183,8 @@ const char* ObjectMgr::GetMangosString(int32 entry, int locale_idx) const
     // Content[0] always exist if exist MangosStringLocale
     if (MangosStringLocale const* msl = GetMangosStringLocale(entry))
     {
-        if ((int32)msl->Content.size() > locale_idx + 1 && !msl->Content[locale_idx+1].empty())
-            return msl->Content[locale_idx+1].c_str();
+        if ((int32)msl->Content.size() > locale_idx + 1 && !msl->Content[locale_idx + 1].empty())
+            return msl->Content[locale_idx + 1].c_str();
         else
             return msl->Content[0].c_str();
     }
@@ -7247,7 +7247,7 @@ bool ObjectMgr::IsPlayerMeetToCondition(uint16 conditionId, Player const* pPlaye
     return false;
 }
 
-bool ObjectMgr::CheckDeclinedNames(const std::wstring &mainpart, DeclinedName const& names)
+bool ObjectMgr::CheckDeclinedNames(const std::wstring& mainpart, DeclinedName const& names)
 {
     for (int i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
     {

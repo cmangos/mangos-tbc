@@ -401,14 +401,14 @@ void LoadDBCStores(const std::string& dataPath)
             uint32 curtalent_maxrank = 0;
             for (uint32 k = 5; k > 0; --k)
             {
-                if (talentInfo->RankID[k-1])
+                if (talentInfo->RankID[k - 1])
                 {
                     curtalent_maxrank = k;
                     break;
                 }
             }
 
-            sTalentBitSize[(talentInfo->Row<<24) + (talentInfo->Col<<16)+talentInfo->TalentID] = curtalent_maxrank;
+            sTalentBitSize[(talentInfo->Row << 24) + (talentInfo->Col << 16) + talentInfo->TalentID] = curtalent_maxrank;
             sTalentTabSizeInInspect[talentInfo->TalentTab] += curtalent_maxrank;
         }
 
@@ -774,7 +774,7 @@ bool IsPointInAreaTriggerZone(AreaTriggerEntry const* atEntry, uint32 mapid, flo
     {
         // if we have radius check it
         float dist2 = (x - atEntry->x) * (x - atEntry->x) + (y - atEntry->y) * (y - atEntry->y) + (z - atEntry->z) * (z - atEntry->z);
-        if (dist2 > (atEntry->radius + delta)*(atEntry->radius + delta))
+        if (dist2 > (atEntry->radius + delta) * (atEntry->radius + delta))
             return false;
     }
     else

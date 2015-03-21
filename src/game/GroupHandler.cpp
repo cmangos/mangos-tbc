@@ -158,7 +158,7 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
     SendPartyResult(PARTY_OP_INVITE, membername, ERR_PARTY_RESULT_OK);
 }
 
-void WorldSession::HandleGroupAcceptOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleGroupAcceptOpcode(WorldPacket& /*recv_data*/)
 {
     Group* group = GetPlayer()->GetGroupInvite();
     if (!group)
@@ -202,7 +202,7 @@ void WorldSession::HandleGroupAcceptOpcode(WorldPacket & /*recv_data*/)
         return;
 }
 
-void WorldSession::HandleGroupDeclineOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleGroupDeclineOpcode(WorldPacket& /*recv_data*/)
 {
     Group*  group  = GetPlayer()->GetGroupInvite();
     if (!group)
@@ -323,7 +323,7 @@ void WorldSession::HandleGroupSetLeaderOpcode(WorldPacket& recv_data)
     group->ChangeLeader(guid);
 }
 
-void WorldSession::HandleGroupDisbandOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleGroupDisbandOpcode(WorldPacket& /*recv_data*/)
 {
     if (!GetPlayer()->GetGroup())
         return;
@@ -466,7 +466,7 @@ void WorldSession::HandleRaidTargetUpdateOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleGroupRaidConvertOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleGroupRaidConvertOpcode(WorldPacket& /*recv_data*/)
 {
     Group* group = GetPlayer()->GetGroup();
     if (!group)
@@ -608,7 +608,7 @@ void WorldSession::HandleRaidReadyCheckOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleRaidReadyCheckFinishedOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleRaidReadyCheckFinishedOpcode(WorldPacket& /*recv_data*/)
 {
     // Group* group = GetPlayer()->GetGroup();
     // if(!group)
@@ -879,7 +879,7 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode(WorldPacket& recv_data)
     SendPacket(&data);
 }
 
-void WorldSession::HandleRequestRaidInfoOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleRequestRaidInfoOpcode(WorldPacket& /*recv_data*/)
 {
     // every time the player checks the character screen
     _player->SendRaidInfo();

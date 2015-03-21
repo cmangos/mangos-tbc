@@ -650,7 +650,7 @@ namespace MaNGOS
                     i_data.push_back(pPlayer);
             }
         }
-        template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+        template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
     };
 
     struct SpellNotifierCreatureAndPlayer
@@ -710,7 +710,7 @@ namespace MaNGOS
             }
         }
 
-        template<class T> inline void Visit(GridRefManager<T>  &m)
+        template<class T> inline void Visit(GridRefManager<T>&  m)
         {
             MANGOS_ASSERT(i_data);
 

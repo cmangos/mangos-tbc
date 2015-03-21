@@ -728,7 +728,7 @@ struct ClassFamilyMask
 
     bool Empty() const { return Flags == 0; }
     bool operator!() const { return Empty(); }
-    operator void const*() const { return Empty() ? NULL : this; } // for allow normal use in if(mask)
+    operator void const* () const { return Empty() ? NULL : this; } // for allow normal use in if(mask)
 
     bool IsFitToFamilyMask(uint64 familyFlags) const
     {

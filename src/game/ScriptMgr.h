@@ -581,10 +581,10 @@ class ScriptMgr
 
         void (MANGOS_IMPORT* m_pOnInitScriptLibrary)();
         void (MANGOS_IMPORT* m_pOnFreeScriptLibrary)();
-        const char*(MANGOS_IMPORT* m_pGetScriptLibraryVersion)();
+        const char* (MANGOS_IMPORT* m_pGetScriptLibraryVersion)();
 
-        CreatureAI*(MANGOS_IMPORT* m_pGetCreatureAI)(Creature*);
-        InstanceData*(MANGOS_IMPORT* m_pCreateInstanceData)(Map*);
+        CreatureAI* (MANGOS_IMPORT* m_pGetCreatureAI)(Creature*);
+        InstanceData* (MANGOS_IMPORT* m_pCreateInstanceData)(Map*);
 
         bool (MANGOS_IMPORT* m_pOnGossipHello)(Player*, Creature*);
         bool (MANGOS_IMPORT* m_pOnGOGossipHello)(Player*, GameObject*);

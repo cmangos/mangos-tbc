@@ -68,7 +68,7 @@ void WorldSession::HandleAttackSwingOpcode(WorldPacket& recv_data)
     _player->Attack(pEnemy, true);
 }
 
-void WorldSession::HandleAttackStopOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleAttackStopOpcode(WorldPacket& /*recv_data*/)
 {
     GetPlayer()->AttackStop();
 }

@@ -907,7 +907,7 @@ class ObjectMgr
         static PetNameInvalidReason CheckPetName(const std::string& name);
         static bool IsValidCharterName(const std::string& name);
 
-        static bool CheckDeclinedNames(const std::wstring &mainpart, DeclinedName const& names);
+        static bool CheckDeclinedNames(const std::wstring& mainpart, DeclinedName const& names);
 
         int GetIndexForLocale(LocaleConstant loc);
         LocaleConstant GetLocaleForIndex(int i);

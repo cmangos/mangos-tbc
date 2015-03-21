@@ -31,7 +31,7 @@
 #include "DBCStores.h"
 
 template<class T>
-inline void MaNGOS::VisibleNotifier::Visit(GridRefManager<T> &m)
+inline void MaNGOS::VisibleNotifier::Visit(GridRefManager<T>& m)
 {
     for (typename GridRefManager<T>::iterator iter = m.begin(); iter != m.end(); ++iter)
     {

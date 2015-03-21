@@ -141,11 +141,11 @@ void SpellCastTargets::Update(Unit* caster)
     m_GOTarget   = m_GOTargetGUID ? caster->GetMap()->GetGameObject(m_GOTargetGUID) : NULL;
     m_unitTarget = m_unitTargetGUID ?
                    (m_unitTargetGUID == caster->GetObjectGuid() ? caster : ObjectAccessor::GetUnit(*caster, m_unitTargetGUID)) :
-                       NULL;
+                   NULL;
 
     m_itemTarget = NULL;
     if (caster->GetTypeId() == TYPEID_PLAYER)
-{
+    {
         Player* player = ((Player*)caster);
 
         if (m_targetMask & TARGET_FLAG_ITEM)
@@ -459,7 +459,7 @@ void Spell::FillTargetMap()
                         case TARGET_EFFECT_SELECT:
                             SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/]);
                             break;
-                            // dest point setup required
+                        // dest point setup required
                         case TARGET_AREAEFFECT_INSTANT:
                         case TARGET_AREAEFFECT_CUSTOM:
                         case TARGET_ALL_ENEMY_IN_AREA:
@@ -474,7 +474,7 @@ void Spell::FillTargetMap()
                                     m_targets.setDestination(castObject->GetPositionX(), castObject->GetPositionY(), castObject->GetPositionZ());
                             SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/]);
                             break;
-                            // target pre-selection required
+                        // target pre-selection required
                         case TARGET_INNKEEPER_COORDINATES:
                         case TARGET_TABLE_X_Y_Z_COORDINATES:
                         case TARGET_CASTER_COORDINATES:
@@ -559,7 +559,7 @@ void Spell::FillTargetMap()
                                     m_targets.setDestination(castObject->GetPositionX(), castObject->GetPositionY(), castObject->GetPositionZ());
                             SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/]);
                             break;
-                            // most A/B target pairs is self->negative and not expect adding caster to target list
+                        // most A/B target pairs is self->negative and not expect adding caster to target list
                         default:
                             SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/]);
                             break;
@@ -1490,7 +1490,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
             // Get a random point in circle. Use sqrt(rand) to correct distribution when converting polar to Cartesian coordinates.
             radius *= sqrtf(rand_norm_f());
-            // no 'break' expected since we use code in case TARGET_RANDOM_CIRCUMFERENCE_POINT!!!
+        // no 'break' expected since we use code in case TARGET_RANDOM_CIRCUMFERENCE_POINT!!!
         case TARGET_RANDOM_CIRCUMFERENCE_POINT:
         {
             // Get a random point AT the circumference
@@ -1963,7 +1963,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ALL_FRIENDLY_UNITS_IN_AREA:
             FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_FRIENDLY);
             break;
-            // TARGET_SINGLE_PARTY means that the spells can only be casted on a party member and not on the caster (some seals, fire shield from imp, etc..)
+        // TARGET_SINGLE_PARTY means that the spells can only be casted on a party member and not on the caster (some seals, fire shield from imp, etc..)
         case TARGET_SINGLE_PARTY:
         {
             Unit* target = m_targets.getUnitTarget();
@@ -2425,8 +2425,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     case TARGET_POINT_AT_WEST:  angle +=   M_PI_F / 2;    break;
                     case TARGET_POINT_AT_NE:    angle -=   M_PI_F / 4;    break;
                     case TARGET_POINT_AT_NW:    angle +=   M_PI_F / 4;    break;
-                    case TARGET_POINT_AT_SE:    angle -= 3*M_PI_F / 4;    break;
-                    case TARGET_POINT_AT_SW:    angle += 3*M_PI_F / 4;    break;
+                    case TARGET_POINT_AT_SE:    angle -= 3 * M_PI_F / 4;    break;
+                    case TARGET_POINT_AT_SW:    angle += 3 * M_PI_F / 4;    break;
                 }
 
                 float x, y;
@@ -2752,7 +2752,7 @@ void Spell::cancel()
         case SPELL_STATE_PREPARING:
             CancelGlobalCooldown();
 
-            //(no break)
+        //(no break)
         case SPELL_STATE_DELAYED:
         {
             SendInterrupted(0);
@@ -2886,7 +2886,7 @@ void Spell::cast(bool skipCheck)
                 case 27800: AddTriggeredSpell(27804); break;// Holy Nova, rank 5
                 case 27801: AddTriggeredSpell(27805); break;// Holy Nova, rank 6
                 case 25331: AddTriggeredSpell(25329); break;// Holy Nova, rank 7
-                default:break;
+                default: break;
             }
             break;
         }
@@ -3116,8 +3116,8 @@ void Spell::update(uint32 difftime)
 
     // check if the player or unit caster has moved before the spell finished (exclude casting on vehicles)
     if (((m_caster->GetTypeId() == TYPEID_PLAYER || m_caster->GetTypeId() == TYPEID_UNIT) && m_timer != 0) &&
-        (m_castPositionX != m_caster->GetPositionX() || m_castPositionY != m_caster->GetPositionY() || m_castPositionZ != m_caster->GetPositionZ()) &&
-        (m_spellInfo->Effect[EFFECT_INDEX_0] != SPELL_EFFECT_STUCK || !m_caster->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR)))
+            (m_castPositionX != m_caster->GetPositionX() || m_castPositionY != m_caster->GetPositionY() || m_castPositionZ != m_caster->GetPositionZ()) &&
+            (m_spellInfo->Effect[EFFECT_INDEX_0] != SPELL_EFFECT_STUCK || !m_caster->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR)))
     {
         // always cancel for channeled spells
         if (m_spellState == SPELL_STATE_CASTING)
@@ -3157,7 +3157,7 @@ void Spell::update(uint32 difftime)
                         cancel();
 
                     // check if player has turned if flag is set
-                    if (m_spellInfo->ChannelInterruptFlags& CHANNEL_FLAG_TURNING && m_castOrientation != m_caster->GetOrientation())
+                    if (m_spellInfo->ChannelInterruptFlags & CHANNEL_FLAG_TURNING && m_castOrientation != m_caster->GetOrientation())
                         cancel();
                 }
 
@@ -5030,7 +5030,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_BAD_TARGETS;
                 break;
             }
-            default:break;
+            default: break;
         }
     }
 
@@ -5348,9 +5348,9 @@ SpellCastResult Spell::CheckCasterAuras() const
         prevented_reason = SPELL_FAILED_CONFUSED;
     else if (unitflag & UNIT_FLAG_FLEEING && !m_spellInfo->HasAttribute(SPELL_ATTR_EX5_USABLE_WHILE_FEARED))
         prevented_reason = SPELL_FAILED_FLEEING;
-    else if (unitflag& UNIT_FLAG_SILENCED && m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
+    else if (unitflag & UNIT_FLAG_SILENCED && m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
         prevented_reason = SPELL_FAILED_SILENCED;
-    else if (unitflag& UNIT_FLAG_PACIFIED && m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_PACIFY)
+    else if (unitflag & UNIT_FLAG_PACIFIED && m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_PACIFY)
         prevented_reason = SPELL_FAILED_PACIFIED;
 
     // Attr must make flag drop spell totally immune from all effects
@@ -5461,12 +5461,12 @@ SpellCastResult Spell::CheckRange(bool strict)
     // special range cases
     switch (m_spellInfo->rangeIndex)
     {
-            // self cast doesn't need range checking -- also for Starshards fix
-            // spells that can be cast anywhere also need no check
+        // self cast doesn't need range checking -- also for Starshards fix
+        // spells that can be cast anywhere also need no check
         case SPELL_RANGE_IDX_SELF_ONLY:
         case SPELL_RANGE_IDX_ANYWHERE:
             return SPELL_CAST_OK;
-            // combat range spells are treated differently
+        // combat range spells are treated differently
         case SPELL_RANGE_IDX_COMBAT:
         {
             if (target)
@@ -5551,7 +5551,7 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     {
         switch (spellInfo->powerType)
         {
-                // health as power used
+            // health as power used
             case POWER_HEALTH:
                 powerCost += spellInfo->ManaCostPercentage * caster->GetCreateHealth() / 100;
                 break;
@@ -5984,7 +5984,7 @@ SpellCastResult Spell::CheckItems()
                 }
                 break;
             }
-            default:break;
+            default: break;
         }
     }
 
@@ -6184,7 +6184,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff)
         case SPELL_EFFECT_DUMMY:
             if (m_spellInfo->Id != 20577)                   // Cannibalize
                 break;
-            // fall through
+        // fall through
         case SPELL_EFFECT_RESURRECT_NEW:
             // player far away, maybe his corpse near?
             if (target != m_caster && !target->IsWithinLOSInMap(m_caster))
@@ -6393,13 +6393,13 @@ SpellCastResult Spell::CanOpenLock(SpellEffectIndex effIndex, uint32 lockId, Ski
     {
         switch (lockInfo->Type[j])
         {
-                // check key item (many fit cases can be)
+            // check key item (many fit cases can be)
             case LOCK_KEY_ITEM:
                 if (lockInfo->Index[j] && m_CastItem && m_CastItem->GetEntry() == lockInfo->Index[j])
                     return SPELL_CAST_OK;
                 reqKey = true;
                 break;
-                // check key skill (only single first fit case can be)
+            // check key skill (only single first fit case can be)
             case LOCK_KEY_SKILL:
             {
                 reqKey = true;

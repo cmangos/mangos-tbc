@@ -116,7 +116,7 @@ class CharacterHandler
             }
             session->HandleCharEnum(result);
         }
-        void HandlePlayerLoginCallback(QueryResult * /*dummy*/, SqlQueryHolder* holder)
+        void HandlePlayerLoginCallback(QueryResult* /*dummy*/, SqlQueryHolder* holder)
         {
             if (!holder) return;
             WorldSession* session = sWorld.FindSession(((LoginQueryHolder*)holder)->GetAccountId());
@@ -156,7 +156,7 @@ void WorldSession::HandleCharEnum(QueryResult* result)
     SendPacket(&data);
 }
 
-void WorldSession::HandleCharEnumOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleCharEnumOpcode(WorldPacket& /*recv_data*/)
 {
     /// get all the data necessary for loading all characters (along with their pets) on the account
     CharacterDatabase.AsyncPQuery(&chrHandler, &CharacterHandler::HandleCharEnumCallback, GetAccountId(),
@@ -731,7 +731,7 @@ void WorldSession::HandleSetFactionAtWarOpcode(WorldPacket& recv_data)
     GetPlayer()->GetReputationMgr().SetAtWar(repListID, flag);
 }
 
-void WorldSession::HandleMeetingStoneInfoOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleMeetingStoneInfoOpcode(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("WORLD: Received CMSG_MEETING_STONE_INFO");
 
@@ -760,13 +760,13 @@ void WorldSession::HandleTutorialFlagOpcode(WorldPacket& recv_data)
     // DEBUG_LOG("Received Tutorial Flag Set {%u}.", iFlag);
 }
 
-void WorldSession::HandleTutorialClearOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleTutorialClearOpcode(WorldPacket& /*recv_data*/)
 {
     for (int i = 0; i < 8; ++i)
         SetTutorialInt(i, 0xFFFFFFFF);
 }
 
-void WorldSession::HandleTutorialResetOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleTutorialResetOpcode(WorldPacket& /*recv_data*/)
 {
     for (int i = 0; i < 8; ++i)
         SetTutorialInt(i, 0x00000000);
@@ -790,13 +790,13 @@ void WorldSession::HandleSetFactionInactiveOpcode(WorldPacket& recv_data)
     _player->GetReputationMgr().SetInactive(replistid, inactive);
 }
 
-void WorldSession::HandleShowingHelmOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleShowingHelmOpcode(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("CMSG_SHOWING_HELM for %s", _player->GetName());
     _player->ToggleFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_HELM);
 }
 
-void WorldSession::HandleShowingCloakOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleShowingCloakOpcode(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("CMSG_SHOWING_CLOAK for %s", _player->GetName());
     _player->ToggleFlag(PLAYER_FLAGS, PLAYER_FLAGS_HIDE_CLOAK);

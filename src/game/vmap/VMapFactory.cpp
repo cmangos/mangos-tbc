@@ -28,7 +28,7 @@ namespace VMAP
     {
         while (str.length() > 0)
         {
-            char lc = str[str.length()-1];
+            char lc = str[str.length() - 1];
             if (lc == '\r' || lc == '\n' || lc == ' ' || lc == '"' || lc == '\'')
             {
                 str = str.substr(0, str.length() - 1);

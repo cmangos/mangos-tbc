@@ -498,7 +498,7 @@ class BattleGround
         void DoorOpen(ObjectGuid guid);
         void DoorClose(ObjectGuid guid);
 
-        virtual bool HandlePlayerUnderMap(Player * /*plr*/) { return false; }
+        virtual bool HandlePlayerUnderMap(Player* /*plr*/) { return false; }
 
         // since arenas can be AvA or Hvh, we have to get the "temporary" team of a player
         Team GetPlayerTeam(ObjectGuid guid);
@@ -534,7 +534,7 @@ class BattleGround
 
         BattleGroundScoreMap m_PlayerScores;                // Player scores
         // must be implemented in BG subclass
-        virtual void RemovePlayer(Player * /*player*/, ObjectGuid /*guid*/) {}
+        virtual void RemovePlayer(Player* /*player*/, ObjectGuid /*guid*/) {}
 
         /* Player lists, those need to be accessible by inherited classes */
         BattleGroundPlayerMap  m_Players;

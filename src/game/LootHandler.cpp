@@ -171,7 +171,7 @@ void WorldSession::HandleAutostoreLootItemOpcode(WorldPacket& recv_data)
         player->SendEquipError(msg, NULL, NULL, item->itemid);
 }
 
-void WorldSession::HandleLootMoneyOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleLootMoneyOpcode(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("WORLD: CMSG_LOOT_MONEY");
 
@@ -414,7 +414,7 @@ void WorldSession::DoLootRelease(ObjectGuid lguid)
 
             switch (pItem->loot.loot_type)
             {
-                    // temporary loot in stacking items, clear loot state, no auto loot move
+                // temporary loot in stacking items, clear loot state, no auto loot move
                 case LOOT_PROSPECTING:
                 {
                     uint32 count = pItem->GetCount();

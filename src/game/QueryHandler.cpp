@@ -137,7 +137,7 @@ void WorldSession::HandleNameQueryOpcode(WorldPacket& recv_data)
         SendNameQueryOpcodeFromDB(guid);
 }
 
-void WorldSession::HandleQueryTimeOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleQueryTimeOpcode(WorldPacket& /*recv_data*/)
 {
     SendQueryTimeResponse();
 }
@@ -251,7 +251,7 @@ void WorldSession::HandleGameObjectQueryOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleCorpseQueryOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleCorpseQueryOpcode(WorldPacket& /*recv_data*/)
 {
     DETAIL_LOG("WORLD: Received opcode MSG_CORPSE_QUERY");
 

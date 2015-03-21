@@ -50,7 +50,7 @@ namespace MaNGOS
         WorldObject& i_object;
 
         explicit VisibleChangesNotifier(WorldObject& object) : i_object(object) {}
-        template<class T> void Visit(GridRefManager<T> &) {}
+        template<class T> void Visit(GridRefManager<T>&) {}
         void Visit(CameraMapType&);
     };
 
@@ -61,7 +61,7 @@ namespace MaNGOS
         bool i_toSelf;
         MessageDeliverer(Player const& pl, WorldPacket* msg, bool to_self) : i_player(pl), i_message(msg), i_toSelf(to_self) {}
         void Visit(CameraMapType& m);
-        template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+        template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
     };
 
     struct MessageDelivererExcept
@@ -73,7 +73,7 @@ namespace MaNGOS
             : i_message(msg), i_skipped_receiver(skipped) {}
 
         void Visit(CameraMapType& m);
-        template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+        template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
     };
 
     struct ObjectMessageDeliverer
@@ -81,7 +81,7 @@ namespace MaNGOS
         WorldPacket* i_message;
         explicit ObjectMessageDeliverer(WorldPacket* msg) : i_message(msg) {}
         void Visit(CameraMapType& m);
-        template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+        template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
     };
 
     struct MessageDistDeliverer
@@ -95,7 +95,7 @@ namespace MaNGOS
         MessageDistDeliverer(Player const& pl, WorldPacket* msg, float dist, bool to_self, bool ownTeamOnly)
             : i_player(pl), i_message(msg), i_toSelf(to_self), i_ownTeamOnly(ownTeamOnly), i_dist(dist) {}
         void Visit(CameraMapType& m);
-        template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+        template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
     };
 
     struct ObjectMessageDistDeliverer
@@ -105,14 +105,14 @@ namespace MaNGOS
         float i_dist;
         ObjectMessageDistDeliverer(WorldObject const& obj, WorldPacket* msg, float dist) : i_object(obj), i_message(msg), i_dist(dist) {}
         void Visit(CameraMapType& m);
-        template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+        template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
     };
 
     struct ObjectUpdater
     {
         uint32 i_timeDiff;
         explicit ObjectUpdater(const uint32& diff) : i_timeDiff(diff) {}
-        template<class T> void Visit(GridRefManager<T> &m);
+        template<class T> void Visit(GridRefManager<T>& m);
         void Visit(PlayerMapType&) {}
         void Visit(CorpseMapType&) {}
         void Visit(CameraMapType&) {}
@@ -123,7 +123,7 @@ namespace MaNGOS
     {
         Player& i_player;
         PlayerRelocationNotifier(Player& pl) : i_player(pl) {}
-        template<class T> void Visit(GridRefManager<T> &) {}
+        template<class T> void Visit(GridRefManager<T>&) {}
         void Visit(CreatureMapType&);
     };
 
@@ -131,7 +131,7 @@ namespace MaNGOS
     {
         Creature& i_creature;
         CreatureRelocationNotifier(Creature& c) : i_creature(c) {}
-        template<class T> void Visit(GridRefManager<T> &) {}
+        template<class T> void Visit(GridRefManager<T>&) {}
 #ifdef WIN32
         template<> void Visit(PlayerMapType&);
 #endif
@@ -150,7 +150,7 @@ namespace MaNGOS
                 i_check = owner;
         }
 
-        template<class T> inline void Visit(GridRefManager<T>  &) {}
+        template<class T> inline void Visit(GridRefManager<T>&) {}
 #ifdef WIN32
         template<> inline void Visit<Player>(PlayerMapType&);
         template<> inline void Visit<Creature>(CreatureMapType&);
@@ -196,10 +196,10 @@ namespace MaNGOS
     template<class Check>
     struct WorldObjectSearcher
     {
-        WorldObject* &i_object;
+        WorldObject*& i_object;
         Check& i_check;
 
-        WorldObjectSearcher(WorldObject* & result, Check& check) : i_object(result), i_check(check) {}
+        WorldObjectSearcher(WorldObject*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(GameObjectMapType& m);
         void Visit(PlayerMapType& m);
@@ -207,16 +207,16 @@ namespace MaNGOS
         void Visit(CorpseMapType& m);
         void Visit(DynamicObjectMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Check>
     struct WorldObjectListSearcher
     {
-        std::list<WorldObject*> &i_objects;
+        std::list<WorldObject*>& i_objects;
         Check& i_check;
 
-        WorldObjectListSearcher(std::list<WorldObject*> &objects, Check& check) : i_objects(objects), i_check(check) {}
+        WorldObjectListSearcher(std::list<WorldObject*>& objects, Check& check) : i_objects(objects), i_check(check) {}
 
         void Visit(PlayerMapType& m);
         void Visit(CreatureMapType& m);
@@ -224,7 +224,7 @@ namespace MaNGOS
         void Visit(GameObjectMapType& m);
         void Visit(DynamicObjectMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Do>
@@ -263,7 +263,7 @@ namespace MaNGOS
                 i_do(itr->getSource());
         }
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // Gameobject searchers
@@ -271,41 +271,41 @@ namespace MaNGOS
     template<class Check>
     struct GameObjectSearcher
     {
-        GameObject* &i_object;
+        GameObject*& i_object;
         Check& i_check;
 
-        GameObjectSearcher(GameObject* & result, Check& check) : i_object(result), i_check(check) {}
+        GameObjectSearcher(GameObject*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(GameObjectMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // Last accepted by Check GO if any (Check can change requirements at each call)
     template<class Check>
     struct GameObjectLastSearcher
     {
-        GameObject* &i_object;
+        GameObject*& i_object;
         Check& i_check;
 
-        GameObjectLastSearcher(GameObject* & result, Check& check) : i_object(result), i_check(check) {}
+        GameObjectLastSearcher(GameObject*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(GameObjectMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Check>
     struct GameObjectListSearcher
     {
-        std::list<GameObject*> &i_objects;
+        std::list<GameObject*>& i_objects;
         Check& i_check;
 
-        GameObjectListSearcher(std::list<GameObject*> &objects, Check& check) : i_objects(objects), i_check(check) {}
+        GameObjectListSearcher(std::list<GameObject*>& objects, Check& check) : i_objects(objects), i_check(check) {}
 
         void Visit(GameObjectMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // Unit searchers
@@ -314,45 +314,45 @@ namespace MaNGOS
     template<class Check>
     struct UnitSearcher
     {
-        Unit* &i_object;
+        Unit*& i_object;
         Check& i_check;
 
-        UnitSearcher(Unit* & result, Check& check) : i_object(result), i_check(check) {}
+        UnitSearcher(Unit*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(CreatureMapType& m);
         void Visit(PlayerMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // Last accepted by Check Unit if any (Check can change requirements at each call)
     template<class Check>
     struct UnitLastSearcher
     {
-        Unit* &i_object;
+        Unit*& i_object;
         Check& i_check;
 
-        UnitLastSearcher(Unit* & result, Check& check) : i_object(result), i_check(check) {}
+        UnitLastSearcher(Unit*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(CreatureMapType& m);
         void Visit(PlayerMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // All accepted by Check units if any
     template<class Check>
     struct UnitListSearcher
     {
-        std::list<Unit*> &i_objects;
+        std::list<Unit*>& i_objects;
         Check& i_check;
 
-        UnitListSearcher(std::list<Unit*> &objects, Check& check) : i_objects(objects), i_check(check) {}
+        UnitListSearcher(std::list<Unit*>& objects, Check& check) : i_objects(objects), i_check(check) {}
 
         void Visit(PlayerMapType& m);
         void Visit(CreatureMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // Creature searchers
@@ -360,41 +360,41 @@ namespace MaNGOS
     template<class Check>
     struct CreatureSearcher
     {
-        Creature* &i_object;
+        Creature*& i_object;
         Check& i_check;
 
-        CreatureSearcher(Creature* & result, Check& check) : i_object(result), i_check(check) {}
+        CreatureSearcher(Creature*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(CreatureMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // Last accepted by Check Creature if any (Check can change requirements at each call)
     template<class Check>
     struct CreatureLastSearcher
     {
-        Creature* &i_object;
+        Creature*& i_object;
         Check& i_check;
 
-        CreatureLastSearcher(Creature* & result, Check& check) : i_object(result), i_check(check) {}
+        CreatureLastSearcher(Creature*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(CreatureMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Check>
     struct CreatureListSearcher
     {
-        std::list<Creature*> &i_objects;
+        std::list<Creature*>& i_objects;
         Check& i_check;
 
-        CreatureListSearcher(std::list<Creature*> &objects, Check& check) : i_objects(objects), i_check(check) {}
+        CreatureListSearcher(std::list<Creature*>& objects, Check& check) : i_objects(objects), i_check(check) {}
 
         void Visit(CreatureMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Do>
@@ -410,7 +410,7 @@ namespace MaNGOS
                 i_do(itr->getSource());
         }
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // Player searchers
@@ -418,28 +418,28 @@ namespace MaNGOS
     template<class Check>
     struct PlayerSearcher
     {
-        Player* &i_object;
+        Player*& i_object;
         Check& i_check;
 
-        PlayerSearcher(Player* & result, Check& check) : i_object(result), i_check(check) {}
+        PlayerSearcher(Player*& result, Check& check) : i_object(result), i_check(check) {}
 
         void Visit(PlayerMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Check>
     struct PlayerListSearcher
     {
-        std::list<Player*> &i_objects;
+        std::list<Player*>& i_objects;
         Check& i_check;
 
-        PlayerListSearcher(std::list<Player*> &objects, Check& check)
+        PlayerListSearcher(std::list<Player*>& objects, Check& check)
             : i_objects(objects), i_check(check) {}
 
         void Visit(PlayerMapType& m);
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Do>
@@ -455,7 +455,7 @@ namespace MaNGOS
                 i_do(itr->getSource());
         }
 
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     template<class Do>
@@ -477,7 +477,7 @@ namespace MaNGOS
                     i_do(camera->GetOwner());
             }
         }
-        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED> &) {}
+        template<class NOT_INTERESTED> void Visit(GridRefManager<NOT_INTERESTED>&) {}
     };
 
     // CHECKS && DO classes

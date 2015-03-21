@@ -422,16 +422,16 @@ enum UnitState
 
     // stay by different reasons
     UNIT_STAT_NOT_MOVE        = UNIT_STAT_ROOT | UNIT_STAT_STUNNED | UNIT_STAT_DIED |
-    UNIT_STAT_DISTRACTED,
+                                UNIT_STAT_DISTRACTED,
 
     // stay or scripted movement for effect( = in player case you can't move by client command)
     UNIT_STAT_NO_FREE_MOVE    = UNIT_STAT_ROOT | UNIT_STAT_STUNNED | UNIT_STAT_DIED |
-    UNIT_STAT_TAXI_FLIGHT |
-    UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
+                                UNIT_STAT_TAXI_FLIGHT |
+                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
 
     // not react at move in sight or other
     UNIT_STAT_CAN_NOT_REACT   = UNIT_STAT_STUNNED | UNIT_STAT_DIED |
-    UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
+                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
 
     // AI disabled by some reason
     UNIT_STAT_LOST_CONTROL    = UNIT_STAT_FLEEING | UNIT_STAT_CONTROLLED,
@@ -544,7 +544,7 @@ enum UnitFlags
     UNIT_FLAG_UNK_28                = 0x10000000,
     UNIT_FLAG_UNK_29                = 0x20000000,           // used in Feing Death spell
     UNIT_FLAG_SHEATHE               = 0x40000000
-    // UNIT_FLAG_UNK_31              = 0x80000000           // no affect in 2.4.3
+                                      // UNIT_FLAG_UNK_31              = 0x80000000           // no affect in 2.4.3
 };
 
 // Value masks for UNIT_FIELD_FLAGS_2

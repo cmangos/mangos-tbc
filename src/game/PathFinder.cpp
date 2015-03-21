@@ -306,7 +306,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
         uint32 prefixPolyLength = uint32(m_polyLength * 0.8f + 0.5f);
         memmove(m_pathPolyRefs, m_pathPolyRefs + pathStartIndex, prefixPolyLength * sizeof(dtPolyRef));
 
-        dtPolyRef suffixStartPoly = m_pathPolyRefs[prefixPolyLength-1];
+        dtPolyRef suffixStartPoly = m_pathPolyRefs[prefixPolyLength - 1];
 
         // we need any point on our suffix start poly to generate poly-path, so we need last poly in prefix data
         float suffixEndPoint[VERTEX_SIZE];
@@ -316,7 +316,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
             // we can hit offmesh connection as last poly - closestPointOnPoly() don't like that
             // try to recover by using prev polyref
             --prefixPolyLength;
-            suffixStartPoly = m_pathPolyRefs[prefixPolyLength-1];
+            suffixStartPoly = m_pathPolyRefs[prefixPolyLength - 1];
             dtResult = m_navMeshQuery->closestPointOnPoly(suffixStartPoly, endPoint, suffixEndPoint, NULL);
             if (dtStatusFailed(dtResult))
             {
@@ -395,7 +395,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
 
 void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
 {
-    float pathPoints[MAX_POINT_PATH_LENGTH*VERTEX_SIZE];
+    float pathPoints[MAX_POINT_PATH_LENGTH * VERTEX_SIZE];
     uint32 pointCount = 0;
     dtStatus dtResult = DT_FAILURE;
     if (m_useStraightPath)
@@ -436,10 +436,10 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
 
     m_pathPoints.resize(pointCount);
     for (uint32 i = 0; i < pointCount; ++i)
-        m_pathPoints[i] = Vector3(pathPoints[i*VERTEX_SIZE+2], pathPoints[i*VERTEX_SIZE], pathPoints[i*VERTEX_SIZE+1]);
+        m_pathPoints[i] = Vector3(pathPoints[i * VERTEX_SIZE + 2], pathPoints[i * VERTEX_SIZE], pathPoints[i * VERTEX_SIZE + 1]);
 
     // first point is always our current location - we need the next one
-    setActualEndPosition(m_pathPoints[pointCount-1]);
+    setActualEndPosition(m_pathPoints[pointCount - 1]);
 
     // force the given destination, if needed
     if (m_forceDestination &&
@@ -450,7 +450,7 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
                 0.3f * dist3DSqr(getStartPosition(), getEndPosition()))
         {
             setActualEndPosition(getEndPosition());
-            m_pathPoints[m_pathPoints.size()-1] = getEndPosition();
+            m_pathPoints[m_pathPoints.size() - 1] = getEndPosition();
         }
         else
         {
@@ -591,7 +591,7 @@ uint32 PathFinder::fixupCorridor(dtPolyRef* path, uint32 npath, uint32 maxPath,
 
     // Store visited
     for (uint32 i = 0; i < req; ++i)
-        path[i] = visited[(nvisited-1)-i];
+        path[i] = visited[(nvisited - 1) - i];
 
     return req + size;
 }
@@ -602,7 +602,7 @@ bool PathFinder::getSteerTarget(const float* startPos, const float* endPos,
 {
     // Find steer target.
     static const uint32 MAX_STEER_POINTS = 3;
-    float steerPath[MAX_STEER_POINTS*VERTEX_SIZE];
+    float steerPath[MAX_STEER_POINTS * VERTEX_SIZE];
     unsigned char steerPathFlags[MAX_STEER_POINTS];
     dtPolyRef steerPathPolys[MAX_STEER_POINTS];
     uint32 nsteerPath = 0;
@@ -617,7 +617,7 @@ bool PathFinder::getSteerTarget(const float* startPos, const float* endPos,
     {
         // Stop at Off-Mesh link or when point is further than slop away.
         if ((steerPathFlags[ns] & DT_STRAIGHTPATH_OFFMESH_CONNECTION) ||
-                !inRangeYZX(&steerPath[ns*VERTEX_SIZE], startPos, minTargetDist, 1000.0f))
+                !inRangeYZX(&steerPath[ns * VERTEX_SIZE], startPos, minTargetDist, 1000.0f))
             break;
         ++ns;
     }
@@ -625,7 +625,7 @@ bool PathFinder::getSteerTarget(const float* startPos, const float* endPos,
     if (ns >= nsteerPath)
         return false;
 
-    dtVcopy(steerPos, &steerPath[ns*VERTEX_SIZE]);
+    dtVcopy(steerPos, &steerPath[ns * VERTEX_SIZE]);
     steerPos[1] = startPos[1];  // keep Z value
     steerPosFlag = steerPathFlags[ns];
     steerPosRef = steerPathPolys[ns];
@@ -723,7 +723,7 @@ dtStatus PathFinder::findSmoothPath(const float* startPos, const float* endPos,
             }
 
             for (uint32 i = npos; i < npolys; ++i)
-                polys[i-npos] = polys[i];
+                polys[i - npos] = polys[i];
 
             npolys -= npos;
 

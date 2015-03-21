@@ -75,8 +75,8 @@ struct Script
     bool (*pEffectDummyItem)(Unit*, uint32, SpellEffectIndex, Item*);
     bool (*pEffectAuraDummy)(const Aura*, bool);
 
-    CreatureAI*(*GetAI)(Creature* _Creature);
-    InstanceData*(*GetInstanceData)(Map*);
+    CreatureAI* (*GetAI)(Creature* _Creature);
+    InstanceData* (*GetInstanceData)(Map*);
     // -----------------------------------------
 
     void registerSelf();

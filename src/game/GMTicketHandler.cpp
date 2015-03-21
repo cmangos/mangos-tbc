@@ -56,7 +56,7 @@ void WorldSession::SendGMTicketGetTicket(uint32 status, GMTicket* ticket /*= NUL
     SendPacket(&data);
 }
 
-void WorldSession::HandleGMTicketGetTicketOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleGMTicketGetTicketOpcode(WorldPacket& /*recv_data*/)
 {
     SendQueryTimeResponse();
 
@@ -78,7 +78,7 @@ void WorldSession::HandleGMTicketUpdateTextOpcode(WorldPacket& recv_data)
         sLog.outError("Ticket update: Player %s (GUID: %u) doesn't have active ticket", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow());
 }
 
-void WorldSession::HandleGMTicketDeleteTicketOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleGMTicketDeleteTicketOpcode(WorldPacket& /*recv_data*/)
 {
     sTicketMgr.Delete(GetPlayer()->GetObjectGuid());
 
@@ -129,7 +129,7 @@ void WorldSession::HandleGMTicketCreateOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleGMTicketSystemStatusOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleGMTicketSystemStatusOpcode(WorldPacket& /*recv_data*/)
 {
     WorldPacket data(SMSG_GMTICKET_SYSTEMSTATUS, 4);
     data << uint32(1);                                      // we can also disable ticket system by sending 0 value

@@ -392,7 +392,7 @@ struct GameObjectInfo
             case GAMEOBJECT_TYPE_AREADAMAGE: return areadamage.lockId;
             case GAMEOBJECT_TYPE_CAMERA:     return camera.lockId;
             case GAMEOBJECT_TYPE_FLAGSTAND:  return flagstand.lockId;
-            case GAMEOBJECT_TYPE_FISHINGHOLE:return fishinghole.lockId;
+            case GAMEOBJECT_TYPE_FISHINGHOLE: return fishinghole.lockId;
             case GAMEOBJECT_TYPE_FLAGDROP:   return flagdrop.lockId;
             default: return 0;
         }
@@ -709,7 +709,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         void SetCapturePointSlider(float value, bool isLocked);
         float GetCapturePointSliderValue() const { return m_captureSlider; }
 
-        GridReference<GameObject> &GetGridRef() { return m_gridRef; }
+        GridReference<GameObject>& GetGridRef() { return m_gridRef; }
 
         GameObjectModel* m_model;
 

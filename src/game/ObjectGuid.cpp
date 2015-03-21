@@ -33,7 +33,7 @@ char const* ObjectGuid::GetTypeName(HighGuid high)
         case HIGHGUID_TRANSPORT:    return "Transport";
         case HIGHGUID_UNIT:         return "Creature";
         case HIGHGUID_PET:          return "Pet";
-        case HIGHGUID_DYNAMICOBJECT:return "DynObject";
+        case HIGHGUID_DYNAMICOBJECT: return "DynObject";
         case HIGHGUID_CORPSE:       return "Corpse";
         case HIGHGUID_MO_TRANSPORT: return "MoTransport";
         case HIGHGUID_GROUP:        return "Group";

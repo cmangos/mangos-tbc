@@ -325,7 +325,7 @@ void WaypointManager::Load()
 
             for (int i = 0; i < MAX_WAYPOINT_TEXT; ++i)
             {
-                be.textid[i]    = fields[7+i].GetUInt32();
+                be.textid[i]    = fields[7 + i].GetUInt32();
 
                 if (be.textid[i])
                 {

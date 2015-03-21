@@ -40,7 +40,7 @@ class UpdateMask
 
         void UnsetBit(uint32 index)
         {
-            ((uint8*)mUpdateMask)[ index >> 3 ] &= (0xff ^(1 << (index & 0x7)));
+            ((uint8*)mUpdateMask)[ index >> 3 ] &= (0xff ^ (1 << (index & 0x7)));
         }
 
         bool GetBit(uint32 index) const

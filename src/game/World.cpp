@@ -853,7 +853,7 @@ void World::SetInitialWorldSettings()
             !MapManager::ExistMapAndVMap(1, -2917.58f, -257.98f) ||                 // Tauren
             (m_configUint32Values[CONFIG_UINT32_EXPANSION] >= EXPANSION_TBC &&
              (!MapManager::ExistMapAndVMap(530, 10349.6f, -6357.29f) ||             // BloodElf
-             !MapManager::ExistMapAndVMap(530, -3961.64f, -13931.2f))))             // Draenei
+              !MapManager::ExistMapAndVMap(530, -3961.64f, -13931.2f))))             // Draenei
     {
         sLog.outError("Correct *.map files not found in path '%smaps' or *.vmtree/*.vmtile files in '%svmaps'. Please place *.map and vmap files in appropriate directories or correct the DataDir value in the mangosd.conf file.", m_dataPath.c_str(), m_dataPath.c_str());
         Log::WaitBeforeContinueIfNeed();
@@ -1646,7 +1646,7 @@ void World::KickAllLess(AccountTypes sec)
 }
 
 /// Ban an account or ban an IP address, duration_secs if it is positive used, otherwise permban
-BanReturn World::BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, const std::string &author)
+BanReturn World::BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, const std::string& author)
 {
     LoginDatabase.escape_string(nameOrIP);
     LoginDatabase.escape_string(reason);

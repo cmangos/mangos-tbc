@@ -84,35 +84,35 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(V value, Stor
     {
         case FT_LOGIC:
             subclass->convert(x, value, *((bool*)(&p[offset])));
-            offset+=sizeof(bool);
+            offset += sizeof(bool);
             break;
         case FT_BYTE:
             subclass->convert(x, value, *((char*)(&p[offset])));
-            offset+=sizeof(char);
+            offset += sizeof(char);
             break;
         case FT_INT:
             subclass->convert(x, value, *((uint32*)(&p[offset])));
-            offset+=sizeof(uint32);
+            offset += sizeof(uint32);
             break;
         case FT_FLOAT:
             subclass->convert(x, value, *((float*)(&p[offset])));
-            offset+=sizeof(float);
+            offset += sizeof(float);
             break;
         case FT_STRING:
             subclass->convert_to_str(x, value, *((char**)(&p[offset])));
-            offset+=sizeof(char*);
+            offset += sizeof(char*);
             break;
         case FT_NA:
             subclass->default_fill(x, value, *((uint32*)(&p[offset])));
-            offset+=sizeof(uint32);
+            offset += sizeof(uint32);
             break;
         case FT_NA_BYTE:
             subclass->default_fill(x, value, *((char*)(&p[offset])));
-            offset+=sizeof(char);
+            offset += sizeof(char);
             break;
         case FT_NA_FLOAT:
             subclass->default_fill(x, value, *((float*)(&p[offset])));
-            offset+=sizeof(float);
+            offset += sizeof(float);
             break;
         case FT_IND:
         case FT_SORT:
@@ -132,7 +132,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(char const* v
     {
         case FT_LOGIC:
             subclass->convert_from_str(x, value, *((bool*)(&p[offset])));
-            offset+=sizeof(bool);
+            offset += sizeof(bool);
             break;
         case FT_BYTE:
             subclass->convert_from_str(x, value, *((char*)(&p[offset])));
@@ -265,7 +265,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
         {
             switch (store.GetDstFormat(x))
             {
-                    // For default fill continue and do not increase y
+                // For default fill continue and do not increase y
                 case FT_NA:         storeValue((uint32)0, store, record, x, offset);         ++x; continue;
                 case FT_NA_BYTE:    storeValue((char)0, store, record, x, offset);           ++x; continue;
                 case FT_NA_FLOAT:   storeValue((float)0.0f, store, record, x, offset);       ++x; continue;

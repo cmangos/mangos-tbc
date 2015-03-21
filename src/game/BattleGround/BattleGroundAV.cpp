@@ -790,7 +790,7 @@ void BattleGroundAV::Reset()
     {
         m_Mine_Owner[i] = BG_AV_TEAM_NEUTRAL;
         m_Mine_PrevOwner[i] = m_Mine_Owner[i];
-        m_ActiveEvents[BG_AV_MINE_BOSSES+ i] = BG_AV_TEAM_NEUTRAL;
+        m_ActiveEvents[BG_AV_MINE_BOSSES + i] = BG_AV_TEAM_NEUTRAL;
         m_ActiveEvents[BG_AV_MINE_EVENT + i] = BG_AV_TEAM_NEUTRAL;
         m_Mine_Timer[i] = BG_AV_MINE_TICK_TIMER;
     }

@@ -171,7 +171,7 @@ bool Group::LoadGroupFromDB(Field* fields)
     m_lootThreshold = ItemQualities(fields[4].GetUInt16());
 
     for (int i = 0; i < TARGET_ICON_COUNT; ++i)
-        m_targetIcons[i] = ObjectGuid(fields[5+i].GetUInt64());
+        m_targetIcons[i] = ObjectGuid(fields[5 + i].GetUInt64());
 
     return true;
 }
@@ -886,7 +886,7 @@ void Group::SetTargetIcon(uint8 id, ObjectGuid targetGuid)
     BroadcastPacket(&data, true);
 }
 
-static void GetDataForXPAtKill_helper(Player* player, Unit const* victim, uint32& sum_level, Player* & member_with_max_level, Player* & not_gray_member_with_max_level)
+static void GetDataForXPAtKill_helper(Player* player, Unit const* victim, uint32& sum_level, Player*& member_with_max_level, Player*& not_gray_member_with_max_level)
 {
     sum_level += player->getLevel();
     if (!member_with_max_level || member_with_max_level->getLevel() < player->getLevel())
@@ -898,7 +898,7 @@ static void GetDataForXPAtKill_helper(Player* player, Unit const* victim, uint32
         not_gray_member_with_max_level = player;
 }
 
-void Group::GetDataForXPAtKill(Unit const* victim, uint32& count, uint32& sum_level, Player* & member_with_max_level, Player* & not_gray_member_with_max_level, Player* additional)
+void Group::GetDataForXPAtKill(Unit const* victim, uint32& count, uint32& sum_level, Player*& member_with_max_level, Player*& not_gray_member_with_max_level, Player* additional)
 {
     for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
     {

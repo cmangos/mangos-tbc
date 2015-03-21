@@ -1899,7 +1899,7 @@ struct WorldObjectChangeAccumulator
         }
     }
 
-    template<class SKIP> void Visit(GridRefManager<SKIP> &) {}
+    template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
 };
 
 void WorldObject::BuildUpdateData(UpdateDataMapType& update_players)

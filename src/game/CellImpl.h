@@ -51,7 +51,7 @@ inline CellArea Cell::CalculateCellArea(float x, float y, float radius)
 
 template<class T, class CONTAINER>
 inline void
-Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER> &visitor, Map& m, const WorldObject& obj, float radius) const
+Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER>& visitor, Map& m, const WorldObject& obj, float radius) const
 {
     Cell::Visit(standing_cell, visitor, m, obj.GetPositionX(), obj.GetPositionY(), radius + obj.GetObjectBoundingRadius());
 }
@@ -59,7 +59,7 @@ Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER> &v
 
 template<class T, class CONTAINER>
 inline void
-Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER> &visitor, Map& m, float x, float y, float radius) const
+Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER>& visitor, Map& m, float x, float y, float radius) const
 {
     if (standing_cell.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || standing_cell.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
         return;
@@ -120,7 +120,7 @@ Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER> &v
 
 template<class T, class CONTAINER>
 inline void
-Cell::VisitCircle(TypeContainerVisitor<T, CONTAINER> &visitor, Map& m, const CellPair& begin_cell, const CellPair& end_cell) const
+Cell::VisitCircle(TypeContainerVisitor<T, CONTAINER>& visitor, Map& m, const CellPair& begin_cell, const CellPair& end_cell) const
 {
     // here is an algorithm for 'filling' circum-squared octagon
     uint32 x_shift = (uint32)ceilf((end_cell.x_coord - begin_cell.x_coord) * 0.3f - 0.5f);

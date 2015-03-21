@@ -225,7 +225,7 @@ bool CreatureLinkingMgr::IsLinkingEntryValid(uint32 slaveEntry, CreatureLinkingI
     }
 
     // Additional checks, depending on flags
-    if (pTmp->linkingFlag& FLAG_DESPAWN_ON_RESPAWN && slaveEntry == pTmp->masterId)
+    if (pTmp->linkingFlag & FLAG_DESPAWN_ON_RESPAWN && slaveEntry == pTmp->masterId)
     {
         sLog.outErrorDb("`creature_linking%s` has pointless FLAG_DESPAWN_ON_RESPAWN for self, (entry: %u, map: %u), skipped", byEntry ? "_template" : "", slaveEntry, pTmp->mapId);
         return false;

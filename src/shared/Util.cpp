@@ -433,7 +433,7 @@ std::wstring GetMainPartOfName(std::wstring wname, uint32 declension)
         { &ie_End[1], &i_End[1],    NULL,         NULL,        NULL,         NULL,         NULL,       NULL }
     };
 
-    for (wchar_t const* const* itr = &dropEnds[declension][0]; *itr; ++itr)
+    for (wchar_t const * const* itr = &dropEnds[declension][0]; *itr; ++itr)
     {
         size_t len = size_t((*itr)[-1]);                    // get length from string size field
 
@@ -503,8 +503,8 @@ void utf8printf(FILE* out, const char* str, ...)
 void vutf8printf(FILE* out, const char* str, va_list* ap)
 {
 #if PLATFORM == PLATFORM_WINDOWS
-    char temp_buf[32*1024];
-    wchar_t wtemp_buf[32*1024];
+    char temp_buf[32 * 1024];
+    wchar_t wtemp_buf[32 * 1024];
 
     size_t temp_len = vsnprintf(temp_buf, 32 * 1024, str, *ap);
 

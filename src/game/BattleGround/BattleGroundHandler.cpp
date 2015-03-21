@@ -208,7 +208,7 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
     sBattleGroundMgr.ScheduleQueueUpdate(0, ARENA_TYPE_NONE, bgQueueTypeId, bgTypeId, _player->GetBattleGroundBracketIdFromLevel(bgTypeId));
 }
 
-void WorldSession::HandleBattleGroundPlayerPositionsOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleBattleGroundPlayerPositionsOpcode(WorldPacket& /*recv_data*/)
 {
     // empty opcode
     DEBUG_LOG("WORLD: Received opcode MSG_BATTLEGROUND_PLAYER_POSITIONS");
@@ -289,7 +289,7 @@ void WorldSession::HandleBattleGroundPlayerPositionsOpcode(WorldPacket & /*recv_
     }
 }
 
-void WorldSession::HandlePVPLogDataOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandlePVPLogDataOpcode(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("WORLD: Received opcode MSG_PVP_LOG_DATA");
 
@@ -495,7 +495,7 @@ void WorldSession::HandleLeaveBattlefieldOpcode(WorldPacket& recv_data)
     _player->LeaveBattleground();
 }
 
-void WorldSession::HandleBattlefieldStatusOpcode(WorldPacket & /*recv_data*/)
+void WorldSession::HandleBattlefieldStatusOpcode(WorldPacket& /*recv_data*/)
 {
     // empty opcode
     DEBUG_LOG("WORLD: Battleground status");

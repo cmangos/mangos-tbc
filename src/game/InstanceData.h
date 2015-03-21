@@ -86,16 +86,16 @@ class MANGOS_DLL_SPEC InstanceData
         virtual void OnObjectCreate(GameObject*) {}
 
         // called on creature creation
-        virtual void OnCreatureCreate(Creature * /*creature*/) {}
+        virtual void OnCreatureCreate(Creature* /*creature*/) {}
 
         // called on creature enter combat
-        virtual void OnCreatureEnterCombat(Creature * /*creature*/) {}
+        virtual void OnCreatureEnterCombat(Creature* /*creature*/) {}
 
         // called on creature evade
-        virtual void OnCreatureEvade(Creature * /*creature*/) {}
+        virtual void OnCreatureEvade(Creature* /*creature*/) {}
 
         // called on creature death
-        virtual void OnCreatureDeath(Creature * /*creature*/) {}
+        virtual void OnCreatureDeath(Creature* /*creature*/) {}
 
         // called on creature despawn
         virtual void OnCreatureDespawn(Creature* /*creature*/) {}

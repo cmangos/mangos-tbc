@@ -111,7 +111,7 @@ uint32 ReputationMgr::GetDefaultStateFlags(FactionEntry const* factionEntry) con
 void ReputationMgr::SendForceReactions()
 {
     WorldPacket data;
-    data.Initialize(SMSG_SET_FORCED_REACTIONS, 4 + m_forcedReactions.size()*(4 + 4));
+    data.Initialize(SMSG_SET_FORCED_REACTIONS, 4 + m_forcedReactions.size() * (4 + 4));
     data << uint32(m_forcedReactions.size());
     for (ForcedReactions::const_iterator itr = m_forcedReactions.begin(); itr != m_forcedReactions.end(); ++itr)
     {
@@ -136,7 +136,7 @@ void ReputationMgr::SendState(FactionState const* faction)
 
     for (FactionStateList::iterator itr = m_factions.begin(); itr != m_factions.end(); ++itr)
     {
-        FactionState &subFaction = itr->second;
+        FactionState& subFaction = itr->second;
         if (subFaction.needSend)
         {
             subFaction.needSend = false;
@@ -261,7 +261,7 @@ bool ReputationMgr::SetOneFactionReputation(FactionEntry const* factionEntry, in
     FactionStateList::iterator itr = m_factions.find(factionEntry->reputationListID);
     if (itr != m_factions.end())
     {
-        FactionState &faction = itr->second;
+        FactionState& faction = itr->second;
         int32 BaseRep = GetBaseReputation(factionEntry);
 
         if (incremental)
@@ -458,7 +458,7 @@ void ReputationMgr::SaveToDB()
 
     for (FactionStateList::iterator itr = m_factions.begin(); itr != m_factions.end(); ++itr)
     {
-        FactionState &faction = itr->second;
+        FactionState& faction = itr->second;
         if (faction.needSave)
         {
             stmtDel.PExecute(m_player->GetGUIDLow(), faction.ID);

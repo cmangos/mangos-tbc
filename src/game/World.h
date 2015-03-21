@@ -354,7 +354,7 @@ enum RealmType
     REALM_TYPE_RP       = 6,
     REALM_TYPE_RPPVP    = 8,
     REALM_TYPE_FFA_PVP  = 16                                // custom, free for all pvp mode like arena PvP in all zones except rest activated places and sanctuaries
-    // replaced by REALM_PVP in realm list
+                          // replaced by REALM_PVP in realm list
 };
 
 /// This is values from first column of Cfg_Categories.dbc (1.12.1 have another numeration)
@@ -548,7 +548,7 @@ class World
 
         void KickAll();
         void KickAllLess(AccountTypes sec);
-        BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, const std::string &author);
+        BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, const std::string& author);
         bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
 
         // for max speed access

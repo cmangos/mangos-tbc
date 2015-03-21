@@ -13,9 +13,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    SOAP_FMAC3 void SOAP_FMAC4 soap_markelement(struct soap*, const void*, int);
-    SOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap*, const void*, const char*, int, int);
-    SOAP_FMAC3 void* SOAP_FMAC4 soap_getelement(struct soap*, int*);
+SOAP_FMAC3 void SOAP_FMAC4 soap_markelement(struct soap*, const void*, int);
+SOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap*, const void*, const char*, int, int);
+SOAP_FMAC3 void* SOAP_FMAC4 soap_getelement(struct soap*, int*);
 
 #ifdef __cplusplus
 }
@@ -210,8 +210,8 @@ SOAP_FMAC3 struct SOAP_ENV__Code** SOAP_FMAC4 soap_in_PointerToSOAP_ENV__Code(st
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerTostring(struct soap*, char** const*);
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerTostring(struct soap*, char** const*, const char*, const char*);
 SOAP_FMAC3 int SOAP_FMAC4 soap_out_PointerTostring(struct soap*, const char*, int, char** const*, const char*);
-SOAP_FMAC3 char** * SOAP_FMAC4 soap_get_PointerTostring(struct soap*, char***, const char*, const char*);
-SOAP_FMAC3 char** * SOAP_FMAC4 soap_in_PointerTostring(struct soap*, const char*, char***, const char*);
+SOAP_FMAC3 char*** SOAP_FMAC4 soap_get_PointerTostring(struct soap*, char***, const char*, const char*);
+SOAP_FMAC3 char*** SOAP_FMAC4 soap_in_PointerTostring(struct soap*, const char*, char***, const char*);
 
 #ifndef SOAP_TYPE__QName
 #define SOAP_TYPE__QName (5)
@@ -221,7 +221,7 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_serialize__QName(struct soap*, char* const*);
 SOAP_FMAC3 int SOAP_FMAC4 soap_put__QName(struct soap*, char* const*, const char*, const char*);
 SOAP_FMAC3 int SOAP_FMAC4 soap_out__QName(struct soap*, const char*, int, char* const*, const char*);
 SOAP_FMAC3 char** SOAP_FMAC4 soap_get__QName(struct soap*, char**, const char*, const char*);
-SOAP_FMAC3 char * * SOAP_FMAC4 soap_in__QName(struct soap*, const char*, char**, const char*);
+SOAP_FMAC3 char ** SOAP_FMAC4 soap_in__QName(struct soap*, const char*, char**, const char*);
 
 #ifndef SOAP_TYPE_string
 #define SOAP_TYPE_string (4)
@@ -231,7 +231,7 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_string(struct soap*, char* const*);
 SOAP_FMAC3 int SOAP_FMAC4 soap_put_string(struct soap*, char* const*, const char*, const char*);
 SOAP_FMAC3 int SOAP_FMAC4 soap_out_string(struct soap*, const char*, int, char* const*, const char*);
 SOAP_FMAC3 char** SOAP_FMAC4 soap_get_string(struct soap*, char**, const char*, const char*);
-SOAP_FMAC3 char * * SOAP_FMAC4 soap_in_string(struct soap*, const char*, char**, const char*);
+SOAP_FMAC3 char ** SOAP_FMAC4 soap_in_string(struct soap*, const char*, char**, const char*);
 
 #endif
 

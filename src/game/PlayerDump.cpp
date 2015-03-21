@@ -97,7 +97,7 @@ bool findnth(std::string& str, int n, std::string::size_type& s, std::string::si
         if (e == std::string::npos)
             return false;
     }
-    while (str[e-1] == '\\');
+    while (str[e - 1] == '\\');
 
     for (int i = 1; i < n; ++i)
     {
@@ -108,7 +108,7 @@ bool findnth(std::string& str, int n, std::string::size_type& s, std::string::si
             if (e == std::string::npos)
                 return false;
         }
-        while (str[e-1] == '\\');
+        while (str[e - 1] == '\\');
     }
     return true;
 }
@@ -163,7 +163,7 @@ bool changetoknth(std::string& str, int n, const char* with, bool insert = false
     return true;
 }
 
-uint32 registerNewGuid(uint32 oldGuid, std::map<uint32, uint32> &guidMap, uint32 hiGuid)
+uint32 registerNewGuid(uint32 oldGuid, std::map<uint32, uint32>& guidMap, uint32 hiGuid)
 {
     std::map<uint32, uint32>::const_iterator itr = guidMap.find(oldGuid);
     if (itr != guidMap.end())
@@ -174,7 +174,7 @@ uint32 registerNewGuid(uint32 oldGuid, std::map<uint32, uint32> &guidMap, uint32
     return newguid;
 }
 
-bool changeGuid(std::string& str, int n, std::map<uint32, uint32> &guidMap, uint32 hiGuid, bool nonzero = false)
+bool changeGuid(std::string& str, int n, std::map<uint32, uint32>& guidMap, uint32 hiGuid, bool nonzero = false)
 {
     char chritem[20];
     uint32 oldGuid = atoi(getnth(str, n).c_str());
@@ -187,7 +187,7 @@ bool changeGuid(std::string& str, int n, std::map<uint32, uint32> &guidMap, uint
     return changenth(str, n, chritem, false, nonzero);
 }
 
-bool changetokGuid(std::string& str, int n, std::map<uint32, uint32> &guidMap, uint32 hiGuid, bool nonzero = false)
+bool changetokGuid(std::string& str, int n, std::map<uint32, uint32>& guidMap, uint32 hiGuid, bool nonzero = false)
 {
     char chritem[20];
     uint32 oldGuid = atoi(gettoknth(str, n).c_str());
@@ -324,7 +324,7 @@ void PlayerDumpWriter::DumpTableContent(std::string& dump, uint32 guid, char con
                     StoreGUID(result, 3, items); break;     // item guid collection
                 case DTT_ITEM:
                     StoreGUID(result, 0, ITEM_FIELD_ITEM_TEXT_ID, texts); break;
-                    // item text id collection
+                // item text id collection
                 case DTT_PET:
                     StoreGUID(result, 0, pets);  break;     // pet petnumber collection (character_pet.id)
                 case DTT_MAIL:

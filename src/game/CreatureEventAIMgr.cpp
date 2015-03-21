@@ -190,7 +190,7 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
         case TARGET_T_HOSTILE_RANDOM_NOT_TOP:
             if (actionType == ACTION_T_QUEST_EVENT || actionType == ACTION_T_CAST_EVENT || actionType == ACTION_T_QUEST_EVENT_ALL || actionType == ACTION_T_KILLED_MONSTER)
                 sLog.outErrorEventAI("Event %u Action%u uses LIKELY bad Target type %u for event-type %u (must target player)", eventId, action, targetType, eventType);
-            // no break, check if valid at all
+        // no break, check if valid at all
         case TARGET_T_HOSTILE:
         case TARGET_T_HOSTILE_SECOND_AGGRO:
         case TARGET_T_HOSTILE_LAST_AGGRO:
@@ -510,7 +510,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
 
             for (uint32 j = 0; j < MAX_ACTIONS; ++j)
             {
-                uint16 action_type = fields[10+(j*4)].GetUInt16();
+                uint16 action_type = fields[10 + (j * 4)].GetUInt16();
                 if (action_type >= ACTION_T_END)
                 {
                     sLog.outErrorEventAI("Event %u Action %u has incorrect action type (%u), replace by ACTION_T_NONE.", i, j + 1, action_type);
@@ -521,9 +521,9 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                 CreatureEventAI_Action& action = temp.action[j];
 
                 action.type = EventAI_ActionType(action_type);
-                action.raw.param1 = fields[11+(j*4)].GetUInt32();
-                action.raw.param2 = fields[12+(j*4)].GetUInt32();
-                action.raw.param3 = fields[13+(j*4)].GetUInt32();
+                action.raw.param1 = fields[11 + (j * 4)].GetUInt32();
+                action.raw.param2 = fields[12 + (j * 4)].GetUInt32();
+                action.raw.param3 = fields[13 + (j * 4)].GetUInt32();
 
                 // Report any errors in actions
                 switch (action.type)
@@ -536,7 +536,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                             sLog.outErrorEventAI("Event %u Action %u has not set chance param1. Text will not be displayed", i, j + 1);
                         else if (action.chanced_text.chance >= 100)
                             sLog.outErrorEventAI("Event %u Action %u has set chance param1 >= 100. Text will always be displayed", i, j + 1);
-                        // no break here to check texts
+                    // no break here to check texts
                     case ACTION_T_TEXT:
                     {
                         bool not_set = false;

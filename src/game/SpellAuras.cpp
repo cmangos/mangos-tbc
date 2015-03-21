@@ -389,7 +389,7 @@ Aura::~Aura()
 
 AreaAura::AreaAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* currentBasePoints, SpellAuraHolder* holder, Unit* target,
                    Unit* caster, Item* castItem, uint32 originalRankSpellId)
-                   : Aura(spellproto, eff, currentBasePoints, holder, target, caster, castItem), m_originalRankSpellId(originalRankSpellId)
+    : Aura(spellproto, eff, currentBasePoints, holder, target, caster, castItem), m_originalRankSpellId(originalRankSpellId)
 {
     m_isAreaAura = true;
 
@@ -674,11 +674,11 @@ void AreaAura::Update(uint32 diff)
         // or caster is isolated or caster no longer has the aura
         // or caster is (no longer) friendly
         bool needFriendly = (m_areaAuraType == AREA_AURA_ENEMY ? false : true);
-        if (!caster || 
-            caster->hasUnitState(UNIT_STAT_ISOLATED)               ||
-            !caster->HasAura(originalRankSpellId, GetEffIndex())   ||
-            !caster->IsWithinDistInMap(target, m_radius)           ||
-            caster->IsFriendlyTo(target) != needFriendly
+        if (!caster ||
+                caster->hasUnitState(UNIT_STAT_ISOLATED)               ||
+                !caster->HasAura(originalRankSpellId, GetEffIndex())   ||
+                !caster->IsWithinDistInMap(target, m_radius)           ||
+                caster->IsFriendlyTo(target) != needFriendly
            )
         {
             target->RemoveSingleAuraFromSpellAuraHolder(GetId(), GetEffIndex(), GetCasterGuid());
@@ -957,7 +957,7 @@ void Aura::TriggerSpell()
             {
                 switch (auraId)
                 {
-                        // Firestone Passive (1-5 ranks)
+                    // Firestone Passive (1-5 ranks)
                     case 758:
                     case 17945:
                     case 17947:
@@ -2537,7 +2537,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
         {
             switch (GetId())
             {
-                    // Improved Aspect of the Viper
+                // Improved Aspect of the Viper
                 case 38390:
                 {
                     if (target->GetTypeId() == TYPEID_PLAYER)
@@ -2894,14 +2894,14 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
 
         switch (form)
         {
-                // Nordrassil Harness - bonus
+            // Nordrassil Harness - bonus
             case FORM_BEAR:
             case FORM_DIREBEAR:
             case FORM_CAT:
                 if (Aura* dummy = target->GetDummyAura(37315))
                     target->CastSpell(target, 37316, true, NULL, dummy);
                 break;
-                // Nordrassil Regalia - bonus
+            // Nordrassil Regalia - bonus
             case FORM_MOONKIN:
                 if (Aura* dummy = target->GetDummyAura(37324))
                     target->CastSpell(target, 37325, true, NULL, dummy);
@@ -2940,45 +2940,45 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                     uint32 orb_model = target->GetNativeDisplayId();
                     switch (orb_model)
                     {
-                            // Troll Female
+                        // Troll Female
                         case 1479: target->SetDisplayId(10134); break;
-                            // Troll Male
+                        // Troll Male
                         case 1478: target->SetDisplayId(10135); break;
-                            // Tauren Male
+                        // Tauren Male
                         case 59:   target->SetDisplayId(10136); break;
-                            // Human Male
+                        // Human Male
                         case 49:   target->SetDisplayId(10137); break;
-                            // Human Female
+                        // Human Female
                         case 50:   target->SetDisplayId(10138); break;
-                            // Orc Male
+                        // Orc Male
                         case 51:   target->SetDisplayId(10139); break;
-                            // Orc Female
+                        // Orc Female
                         case 52:   target->SetDisplayId(10140); break;
-                            // Dwarf Male
+                        // Dwarf Male
                         case 53:   target->SetDisplayId(10141); break;
-                            // Dwarf Female
+                        // Dwarf Female
                         case 54:   target->SetDisplayId(10142); break;
-                            // NightElf Male
+                        // NightElf Male
                         case 55:   target->SetDisplayId(10143); break;
-                            // NightElf Female
+                        // NightElf Female
                         case 56:   target->SetDisplayId(10144); break;
-                            // Undead Female
+                        // Undead Female
                         case 58:   target->SetDisplayId(10145); break;
-                            // Undead Male
+                        // Undead Male
                         case 57:   target->SetDisplayId(10146); break;
-                            // Tauren Female
+                        // Tauren Female
                         case 60:   target->SetDisplayId(10147); break;
-                            // Gnome Male
+                        // Gnome Male
                         case 1563: target->SetDisplayId(10148); break;
-                            // Gnome Female
+                        // Gnome Female
                         case 1564: target->SetDisplayId(10149); break;
-                            // BloodElf Female
+                        // BloodElf Female
                         case 15475: target->SetDisplayId(17830); break;
-                            // BloodElf Male
+                        // BloodElf Male
                         case 15476: target->SetDisplayId(17829); break;
-                            // Dranei Female
+                        // Dranei Female
                         case 16126: target->SetDisplayId(17828); break;
-                            // Dranei Male
+                        // Dranei Male
                         case 16125: target->SetDisplayId(17827); break;
                         default: break;
                     }
@@ -2987,10 +2987,10 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                 case 42365:                                 // Murloc costume
                     target->SetDisplayId(21723);
                     break;
-                    // case 44186:                          // Gossip NPC Appearance - All, Brewfest
-                    // break;
-                    // case 48305:                          // Gossip NPC Appearance - All, Spirit of Competition
-                    // break;
+                // case 44186:                          // Gossip NPC Appearance - All, Brewfest
+                // break;
+                // case 48305:                          // Gossip NPC Appearance - All, Spirit of Competition
+                // break;
                 case 50517:                                 // Dread Corsair
                 case 51926:                                 // Corsair Costume
                 {
@@ -3983,7 +3983,7 @@ void Aura::HandleAuraModSilence(bool apply, bool Real)
 
         switch (GetId())
         {
-                // Arcane Torrent (Energy)
+            // Arcane Torrent (Energy)
             case 25046:
             {
                 Unit* caster = GetCaster();
@@ -4026,12 +4026,12 @@ void Aura::HandleModThreat(bool apply, bool Real)
     int multiplier = 0;
     switch (GetId())
     {
-            // Arcane Shroud
+        // Arcane Shroud
         case 26400:
             level_diff = target->getLevel() - 60;
             multiplier = 2;
             break;
-            // The Eye of Diminution
+        // The Eye of Diminution
         case 28862:
             level_diff = target->getLevel() - 60;
             multiplier = 1;
@@ -4355,7 +4355,7 @@ void Aura::HandleAuraProcTriggerSpell(bool apply, bool Real)
 
     switch (GetId())
     {
-            // some spell have charges by functionality not have its in spell data
+        // some spell have charges by functionality not have its in spell data
         case 28200:                                         // Ascendance (Talisman of Ascendance trinket)
             if (apply)
                 GetHolder()->SetAuraCharges(6);
@@ -4979,12 +4979,12 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
     switch (GetId())
     {
         // Special case with temporary increase max/current health
-            // Cases where we need to manually calculate the amount for the spell (by percentage)
-            // recalculate to full amount at apply for proper remove
+        // Cases where we need to manually calculate the amount for the spell (by percentage)
+        // recalculate to full amount at apply for proper remove
         // Backport notive TBC: no cases yet
-            // no break here
+        // no break here
 
-            // Cases where m_amount already has the correct value (spells cast with CastCustomSpell or absolute values)
+        // Cases where m_amount already has the correct value (spells cast with CastCustomSpell or absolute values)
         case 12976:                                         // Warrior Last Stand triggered spell (Cast with percentage-value by CastCustomSpell)
         case 28726:                                         // Nightmare Seed
         case 34511:                                         // Valor (Bulwark of Kings, Bulwark of the Ancient Kings)
@@ -6409,7 +6409,7 @@ void Aura::PeriodicDummyTick()
         {
             switch (spell->Id)
             {
-                    // Forsaken Skills
+                // Forsaken Skills
                 case 7054:
                 {
                     // Possibly need cast one of them (but
@@ -6594,7 +6594,7 @@ void Aura::PeriodicDummyTick()
             }
 
             // Drink (item drink spells)
-            if (GetEffIndex() > EFFECT_INDEX_0 && spell->EffectApplyAuraName[GetEffIndex()-1] == SPELL_AURA_MOD_POWER_REGEN)
+            if (GetEffIndex() > EFFECT_INDEX_0 && spell->EffectApplyAuraName[GetEffIndex() - 1] == SPELL_AURA_MOD_POWER_REGEN)
             {
                 if (target->GetTypeId() != TYPEID_PLAYER)
                     return;
@@ -6823,7 +6823,7 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
     m_applyTime      = time(NULL);
     m_isPassive      = IsPassiveSpell(spellproto);
     m_isDeathPersist = IsDeathPersistentSpell(spellproto);
-    m_trackedAuraType= IsSingleTargetSpell(spellproto) ? TRACK_AURA_TYPE_SINGLE_TARGET : TRACK_AURA_TYPE_NOT_TRACKED;
+    m_trackedAuraType = IsSingleTargetSpell(spellproto) ? TRACK_AURA_TYPE_SINGLE_TARGET : TRACK_AURA_TYPE_NOT_TRACKED;
     m_procCharges    = spellproto->procCharges;
 
     m_isRemovedOnShapeLost = (GetCasterGuid() == m_target->GetObjectGuid() &&
@@ -6847,7 +6847,7 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
     // some custom stack values at aura holder create
     switch (m_spellProto->Id)
     {
-            // some auras applied with max stack
+        // some auras applied with max stack
         case 24575:                                         // Brittle Armor
         case 24659:                                         // Unstable Power
         case 24662:                                         // Restless Strength
@@ -7298,7 +7298,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
         {
             switch (GetId())
             {
-                    // The Beast Within and Bestial Wrath - immunity
+                // The Beast Within and Bestial Wrath - immunity
                 case 19574:
                 case 34471:
                 {

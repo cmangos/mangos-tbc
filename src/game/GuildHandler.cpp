@@ -792,7 +792,7 @@ void WorldSession::HandleGuildEventLogQueryOpcode(WorldPacket& /* recvPacket */)
 
 /******  GUILD BANK  *******/
 
-void WorldSession::HandleGuildBankMoneyWithdrawn(WorldPacket & /* recv_data */)
+void WorldSession::HandleGuildBankMoneyWithdrawn(WorldPacket& /* recv_data */)
 {
     DEBUG_LOG("WORLD: Received (MSG_GUILD_BANK_MONEY_WITHDRAWN)");
 

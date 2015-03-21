@@ -83,7 +83,7 @@ class Corpse : public WorldObject
         Player* lootRecipient;
         bool lootForBody;
 
-        GridReference<Corpse> &GetGridRef() { return m_gridRef; }
+        GridReference<Corpse>& GetGridRef() { return m_gridRef; }
 
         bool IsExpired(time_t t) const;
     private:

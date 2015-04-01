@@ -7261,6 +7261,8 @@ bool ObjectMgr::CheckDeclinedNames(const std::wstring& mainpart, DeclinedName co
     return true;
 }
 
+// Attention: make sure to keep this list in sync with ConditionSource to avoid array
+//            out of bounds access! It is accessed with ConditionSource as index!
 char const* conditionSourceToStr[] =
 {
     "loot system",
@@ -7271,6 +7273,7 @@ char const* conditionSourceToStr[] =
     "hardcoded",
     "vendor's item check",
     "spell_area check",
+    "npc_spellclick_spells check", // Unused. For 3.x and later.
     "DBScript engine"
 };
 

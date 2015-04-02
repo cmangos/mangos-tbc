@@ -5187,6 +5187,22 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 break;
             }
+            case SPELL_AURA_WATER_WALK:
+            {
+                if (!expectedTarget)
+                    return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
+
+                if (expectedTarget->GetTypeId() == TYPEID_PLAYER)
+                {
+                    Player const* player = static_cast<Player const*>(expectedTarget);
+                    
+                    // Player is not allowed to cast water walk on shapeshifted/mounted player 
+                    if (player->GetShapeshiftForm() != FORM_NONE || player->IsMounted())
+                        return SPELL_FAILED_BAD_TARGETS;
+                }
+
+                break;
+            }
             case SPELL_AURA_MIRROR_IMAGE:
             {
                 if (!expectedTarget)

@@ -4224,6 +4224,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 m_caster->GetTerrain()->IsOutdoors(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()))
             return SPELL_FAILED_ONLY_INDOORS;
     }
+
     // only check at first call, Stealth auras are already removed at second call
     // for now, ignore triggered spells
     if (strict && !m_IsTriggeredSpell)
@@ -4240,6 +4241,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     // caster state requirements
     if (m_spellInfo->CasterAuraState && !m_caster->HasAuraState(AuraState(m_spellInfo->CasterAuraState)))
         return SPELL_FAILED_CASTER_AURASTATE;
+
     if (m_spellInfo->CasterAuraStateNot && m_caster->HasAuraState(AuraState(m_spellInfo->CasterAuraStateNot)))
         return SPELL_FAILED_CASTER_AURASTATE;
 
@@ -4479,7 +4481,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_TARGET_AURASTATE;
 
         // Must be behind the target.
-        if (m_spellInfo->AttributesEx2 == SPELL_ATTR_EX2_UNK20 && m_spellInfo->HasAttribute(SPELL_ATTR_EX_FACING_TARGET ) && target->HasInArc(M_PI_F, m_caster))
+        if (m_spellInfo->AttributesEx2 == SPELL_ATTR_EX2_FACING_TARGETS_BACK && m_spellInfo->HasAttribute(SPELL_ATTR_EX_FACING_TARGET) && target->HasInArc(M_PI_F, m_caster))
         {
             // Exclusion for Pounce: Facing Limitation was removed in 2.0.1, but it still uses the same, old Ex-Flags
             if (!m_spellInfo->IsFitToFamily(SPELLFAMILY_DRUID, uint64(0x0000000000020000)))
@@ -4505,6 +4507,28 @@ SpellCastResult Spell::CheckCast(bool strict)
         // check if target is affected by Spirit of Redemption (Aura: 27827)
         if (target->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
             return SPELL_FAILED_BAD_TARGETS;
+
+        // Check if more powerful spell applied on target
+        Unit::SpellAuraHolderMap const& spair = target->GetSpellAuraHolderMap();
+
+        for (Unit::SpellAuraHolderMap::const_iterator iter = spair.begin(); iter != spair.end(); ++iter)
+        {
+            SpellAuraHolder* foundHolder = iter->second;
+
+            if (sSpellMgr.IsNoStackSpellDueToSpell(m_spellInfo, foundHolder->GetSpellProto()))
+            {
+                // Explicit check for same spells of different rank when casters are different
+                if (sSpellMgr.IsRankSpellDueToSpell(m_spellInfo, foundHolder->GetSpellProto()->Id) && m_caster != foundHolder->GetCaster())
+                    continue;
+
+                // Skip seals, don't check if we can apply them.
+                if (IsSealSpell(m_spellInfo))
+                    continue;
+
+                if (CompareIdenticalAura(m_spellInfo->Id, foundHolder->GetSpellProto()->Id) < 0)
+                    return SPELL_FAILED_AURA_BOUNCED;
+            }
+        }
     }
     // zone check
     uint32 zone, area;

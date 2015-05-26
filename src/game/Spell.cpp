@@ -5055,6 +5055,36 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_BAD_TARGETS;
                 break;
             }
+            case SPELL_EFFECT_DISPEL:
+            {
+                if (Unit* target = m_targets.getUnitTarget())
+                {
+                    if (target->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        // Create dispel mask by dispel type
+                        bool hasOtherEffects = false;
+                        uint32 dispelMask = 0;
+
+                        for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+                        {
+                            if (m_spellInfo->Effect[i] == SPELL_EFFECT_DISPEL)
+                            {
+                                // itr through all dispel types and add them to mask
+                                dispelMask |= GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[i]));
+                            }
+                            else
+                                hasOtherEffects = true;
+                        }
+
+                        // check if dispel makes sense
+                        std::list <std::pair<SpellAuraHolder*, uint32> > dispelList;
+                        target->GetDispellableAuraList(m_caster, dispelMask, dispelList);
+                        if (dispelList.empty() && !hasOtherEffects)
+                            return SPELL_FAILED_NOTHING_TO_DISPEL;
+                    }
+                }
+                break;
+            }
             default: break;
         }
     }

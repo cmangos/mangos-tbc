@@ -1975,6 +1975,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         virtual bool CanSwim() const = 0;
         virtual bool CanFly() const = 0;
 
+        typedef std::list <std::pair<SpellAuraHolder*, uint32> > dispelList;
+        void GetDispellableAuraList(Unit* caster, uint32 dispelMask, dispelList& dispelList);
+
     protected:
         explicit Unit();
 

@@ -9812,3 +9812,36 @@ void Unit::DisableSpline()
     m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD));
     movespline->_Interrupt();
 }
+
+void Unit::GetDispellableAuraList(Unit* caster, uint32 dispelMask, dispelList& dispelList)
+{
+    Unit::SpellAuraHolderMap const& auras = GetSpellAuraHolderMap();
+    for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+    {
+        SpellAuraHolder* holder = itr->second;
+        if ((1 << holder->GetSpellProto()->Dispel) & dispelMask)
+        {
+            if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
+            {
+                bool positive = true;
+                if (!holder->IsPositive())
+                    positive = false;
+                else
+                    positive = (holder->GetSpellProto()->AttributesEx & SPELL_ATTR_EX_NEGATIVE) == 0;
+
+                // do not remove positive auras if friendly target
+                //               negative auras if non-friendly target
+                if (positive == IsFriendlyTo(caster))
+                    continue;
+            }
+
+            // 2.4.3 Patch Notes: "Dispel effects will no longer attempt to remove effects that have 100% dispel resistance."
+            uint32 chance = holder->CalcDispelChance(this, !this->IsFriendlyTo(caster));
+            if (!chance)
+                continue;
+
+            dispelList.push_back(std::pair<SpellAuraHolder*, uint32>(holder, holder->GetStackAmount()));
+        }
+    }
+}
+

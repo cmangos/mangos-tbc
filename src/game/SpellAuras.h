@@ -193,6 +193,8 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         void SetAuraFlag(uint32 slot, bool add);
         void SetAuraLevel(uint32 slot, uint32 level);
 
+        int32 CalcDispelChance(Unit* auraTarget, bool offensive) const;
+
         ~SpellAuraHolder();
     private:
         void UpdateAuraApplication();                       // called at charges or stack changes

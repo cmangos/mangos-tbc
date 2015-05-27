@@ -502,6 +502,54 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
 
                     *data << dynflagsValue;
                 }
+                // Health should show up as pct value for non-friendly player case and general creature case
+                else if (index == UNIT_FIELD_HEALTH || index == UNIT_FIELD_MAXHEALTH)
+                {
+                    bool revealActualHealth = true;
+                    if (target != this)
+                    {
+                        if (GetTypeId() == TYPEID_PLAYER && !((Player*)this)->IsInSameRaidWith(target))
+                            revealActualHealth = false;
+                        else if (GetTypeId() == TYPEID_UNIT)
+                        {
+                            if (((Creature*)this)->IsPet())
+                            {
+                                if (const Creature* pet = ((Creature*)this))
+                                {
+                                    if (const Unit* owner = pet->GetCharmerOrOwner())
+                                    {
+                                        if (((Player*)owner) && ((Player*)owner)->IsInSameRaidWith(target))
+                                            revealActualHealth = false;
+                                    }
+                                }
+                            }
+                            else
+                                revealActualHealth = false;
+                        }
+                    }
+
+                    if (index == UNIT_FIELD_HEALTH)
+                    {
+                        if (!revealActualHealth)
+                        {
+                            float healthPct = 0.0f;
+                            switch (GetTypeId())
+                            {
+                            case TYPEID_PLAYER:
+                                healthPct = ceil(((Player*)this)->GetHealth() * 100.0f / ((Player*)this)->GetMaxHealth());
+                                break;
+                            case TYPEID_UNIT:
+                                healthPct = ceil(((Creature*)this)->GetHealth() * 100.0f / ((Creature*)this)->GetMaxHealth());
+                                break;
+                            }
+                            *data << uint32(healthPct);
+                        }
+                        else
+                            *data << m_uint32Values[index];
+                    }
+                    else if (index == UNIT_FIELD_MAXHEALTH)
+                        revealActualHealth ? *data << m_uint32Values[index] : *data << uint32(100);
+                }
                 else                                        // Unhandled index, just send
                 {
                     // send in current format (float as float, uint32 as uint32)

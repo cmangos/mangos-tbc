@@ -418,6 +418,7 @@ void Group::Disband(bool hideDestroy)
         }
 
         _homebindIfInstance(player);
+        SendObjectUpdateToMembers(player);
     }
     RollId.clear();
     m_memberSlots.clear();
@@ -968,6 +969,8 @@ void Group::SendUpdate()
             data << uint8(m_difficulty);                    // Heroic Mod Group
         }
         player->GetSession()->SendPacket(&data);
+
+        SendObjectUpdateToMembers(player);
     }
 }
 
@@ -1766,6 +1769,29 @@ void Group::RewardGroupAtKill(Unit* pVictim, Player* player_tap)
             // member (alive or dead) or his corpse at req. distance
             if (player_tap->IsAtGroupRewardDistance(pVictim))
                 RewardGroupAtKill_helper(player_tap, pVictim, count, PvP, group_rate, sum_level, is_dungeon, not_gray_member_with_max_level, member_with_max_level, xp);
+        }
+    }
+}
+
+void Group::SendObjectUpdateToMembers(Player* player)
+{
+    for (member_citerator citr = m_memberSlots.begin(); citr != m_memberSlots.end(); ++citr)
+    {
+        if (player = sObjectMgr.GetPlayer(citr->guid))
+        {
+            // call update for all party members
+            for (member_citerator citr2 = m_memberSlots.begin(); citr2 != m_memberSlots.end(); ++citr2)
+            {
+                if (citr->guid == citr2->guid)
+                    continue;
+
+                if (Player* member = sObjectMgr.GetPlayer(citr2->guid))
+                {
+                    player->SendCreateUpdateToPlayer(member);
+                    if (Pet* pet = player->GetPet())
+                        pet->SendCreateUpdateToPlayer(member);
+                }
+            }
         }
     }
 }

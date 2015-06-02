@@ -3125,7 +3125,7 @@ void Spell::update(uint32 difftime)
             (m_spellInfo->Effect[EFFECT_INDEX_0] != SPELL_EFFECT_STUCK || !m_caster->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR)))
     {
         // always cancel for channeled spells
-        if (m_spellState == SPELL_STATE_CASTING)
+        if (m_spellState == SPELL_STATE_CASTING && !m_spellInfo->HasAttribute(SPELL_ATTR_EX5_CAN_CHANNEL_WHEN_MOVING))
             cancel();
         // don't cancel for melee, autorepeat, triggered and instant spells
         else if (!IsNextMeleeSwingSpell() && !IsAutoRepeat() && !m_IsTriggeredSpell && (m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_MOVEMENT))
@@ -4486,6 +4486,10 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex);
                 float range = GetSpellMaxRange(srange);
+
+                // override range with default when it's not provided
+                if (!range)
+                    range = m_caster->GetMap()->IsDungeon() ? DEFAULT_VISIBILITY_INSTANCE : DEFAULT_VISIBILITY_DISTANCE;
 
                 Creature* targetExplicit = NULL;            // used for cases where a target is provided (by script for example)
                 Creature* creatureScriptTarget = NULL;

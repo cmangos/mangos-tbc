@@ -1698,36 +1698,40 @@ void Unit::DealMeleeDamage(CalcDamageInfo* damageInfo, bool durabilityLoss)
 
     if (damageInfo->TargetState == VICTIMSTATE_PARRY)
     {
-        // Get attack timers
-        float offtime  = float(pVictim->getAttackTimer(OFF_ATTACK));
-        float basetime = float(pVictim->getAttackTimer(BASE_ATTACK));
-        // Reduce attack time
-        if (pVictim->haveOffhandWeapon() && offtime < basetime)
+        if (pVictim->GetTypeId() != TYPEID_UNIT ||
+            !(((Creature*)pVictim)->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NO_PARRY_HASTEN))
         {
-            float percent20 = pVictim->GetAttackTime(OFF_ATTACK) * 0.20f;
-            float percent60 = 3.0f * percent20;
-            if (offtime > percent20 && offtime <= percent60)
+            // Get attack timers
+            float offtime = float(pVictim->getAttackTimer(OFF_ATTACK));
+            float basetime = float(pVictim->getAttackTimer(BASE_ATTACK));
+            // Reduce attack time
+            if (pVictim->haveOffhandWeapon() && offtime < basetime)
             {
-                pVictim->setAttackTimer(OFF_ATTACK, uint32(percent20));
+                float percent20 = pVictim->GetAttackTime(OFF_ATTACK) * 0.20f;
+                float percent60 = 3.0f * percent20;
+                if (offtime > percent20 && offtime <= percent60)
+                {
+                    pVictim->setAttackTimer(OFF_ATTACK, uint32(percent20));
+                }
+                else if (offtime > percent60)
+                {
+                    offtime -= 2.0f * percent20;
+                    pVictim->setAttackTimer(OFF_ATTACK, uint32(offtime));
+                }
             }
-            else if (offtime > percent60)
+            else
             {
-                offtime -= 2.0f * percent20;
-                pVictim->setAttackTimer(OFF_ATTACK, uint32(offtime));
-            }
-        }
-        else
-        {
-            float percent20 = pVictim->GetAttackTime(BASE_ATTACK) * 0.20f;
-            float percent60 = 3.0f * percent20;
-            if (basetime > percent20 && basetime <= percent60)
-            {
-                pVictim->setAttackTimer(BASE_ATTACK, uint32(percent20));
-            }
-            else if (basetime > percent60)
-            {
-                basetime -= 2.0f * percent20;
-                pVictim->setAttackTimer(BASE_ATTACK, uint32(basetime));
+                float percent20 = pVictim->GetAttackTime(BASE_ATTACK) * 0.20f;
+                float percent60 = 3.0f * percent20;
+                if (basetime > percent20 && basetime <= percent60)
+                {
+                    pVictim->setAttackTimer(BASE_ATTACK, uint32(percent20));
+                }
+                else if (basetime > percent60)
+                {
+                    basetime -= 2.0f * percent20;
+                    pVictim->setAttackTimer(BASE_ATTACK, uint32(basetime));
+                }
             }
         }
     }
@@ -2868,7 +2872,7 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, bool 
         return SPELL_MISS_EVADE;
 
     // Check for immune
-    if (pVictim->IsImmuneToSpell(spell, this == pVictim))
+    if (pVictim->IsImmuneToSpell(spell, this == pVictim) && !spell->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY))
         return SPELL_MISS_IMMUNE;
 
     // All positive spells can`t miss
@@ -2877,7 +2881,7 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, bool 
         return SPELL_MISS_NONE;
 
     // Check for immune (use charges)
-    if (pVictim->IsImmunedToDamage(GetSpellSchoolMask(spell)))
+    if (pVictim->IsImmunedToDamage(GetSpellSchoolMask(spell)) && !spell->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY))
         return SPELL_MISS_IMMUNE;
 
     // Try victim reflect spell
@@ -7119,6 +7123,11 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     if (m_Visibility == VISIBILITY_OFF)
         return false;
 
+    // grouped players should always see stealthed party members
+    if (GetTypeId() == TYPEID_PLAYER && u->GetTypeId() == TYPEID_PLAYER)
+        if (((Player*)this)->IsGroupVisibleFor(((Player*)u)) && u->IsFriendlyTo(this))
+            return true;
+
     // raw invisibility
     bool invisible = (m_invisibilityMask != 0 || u->m_invisibilityMask != 0);
 
@@ -7137,35 +7146,18 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // special cases for always overwrite invisibility/stealth
     if (invisible || m_Visibility == VISIBILITY_GROUP_STEALTH)
     {
-        // non-hostile case
-        if (!u->IsHostileTo(this))
-        {
-            // player see other player with stealth/invisibility only if he in same group or raid or same team (raid/team case dependent from conf setting)
-            if (GetTypeId() == TYPEID_PLAYER && u->GetTypeId() == TYPEID_PLAYER)
-            {
-                if (((Player*)this)->IsGroupVisibleFor(((Player*)u)))
-                    return true;
-
-                // else apply same rules as for hostile case (detecting check for stealth)
-            }
-        }
-        // hostile case
-        else
+        if (u->IsHostileTo(this))
         {
             // Hunter mark functionality
             AuraList const& auras = GetAurasByType(SPELL_AURA_MOD_STALKED);
             for (AuraList::const_iterator iter = auras.begin(); iter != auras.end(); ++iter)
                 if ((*iter)->GetCasterGuid() == u->GetObjectGuid())
                     return true;
-
-            // else apply detecting check for stealth
         }
 
         // none other cases for detect invisibility, so invisible
         if (invisible)
             return false;
-
-        // else apply stealth detecting check
     }
 
     // unit got in stealth in this moment and must ignore old detected state

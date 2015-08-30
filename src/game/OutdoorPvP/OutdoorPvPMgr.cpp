@@ -83,7 +83,7 @@ OutdoorPvP* OutdoorPvPMgr::GetScript(uint32 zoneId)
         case ZONE_ID_NAGRAND:
             return m_scripts[OPVP_ID_NA];
         default:
-            return NULL;
+            return nullptr;
     }
 }
 
@@ -115,7 +115,7 @@ OutdoorPvP* OutdoorPvPMgr::GetScriptOfAffectedZone(uint32 zoneId)
         case ZONE_ID_MANA_TOMBS:
             return m_scripts[OPVP_ID_TF];
         default:
-            return NULL;
+            return nullptr;
     }
 }
 

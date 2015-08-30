@@ -149,8 +149,8 @@ void TransportBase::UnBoardPassenger(WorldObject* passenger)
     if (itr == m_passengers.end())
         return;
 
-    // Set passengers transportInfo to NULL
-    passenger->SetTransportInfo(NULL);
+    // Set passengers transportInfo to nullptr
+    passenger->SetTransportInfo(nullptr);
 
     // Delete transportInfo
     delete itr->second;

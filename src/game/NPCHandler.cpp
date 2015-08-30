@@ -256,7 +256,7 @@ void WorldSession::HandleTrainerBuySpellOpcode(WorldPacket& recv_data)
         return;
 
     // Try find spell in npc_trainer
-    TrainerSpell const* trainer_spell = cSpells ? cSpells->Find(spellId) : NULL;
+    TrainerSpell const* trainer_spell = cSpells ? cSpells->Find(spellId) : nullptr;
 
     // Not found, try find in npc_trainer_template
     if (!trainer_spell && tSpells)
@@ -364,7 +364,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recv_data)
             return;
         }
 
-        if (!sScriptMgr.OnGossipSelect(_player, pCreature, sender, action, code.empty() ? NULL : code.c_str()))
+        if (!sScriptMgr.OnGossipSelect(_player, pCreature, sender, action, code.empty() ? nullptr : code.c_str()))
             _player->OnGossipSelect(pCreature, gossipListId, menuId);
     }
     else if (guid.IsGameObject())
@@ -377,7 +377,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recv_data)
             return;
         }
 
-        if (!sScriptMgr.OnGossipSelect(_player, pGo, sender, action, code.empty() ? NULL : code.c_str()))
+        if (!sScriptMgr.OnGossipSelect(_player, pGo, sender, action, code.empty() ? nullptr : code.c_str()))
             _player->OnGossipSelect(pGo, gossipListId, menuId);
     }
 }
@@ -411,7 +411,7 @@ void WorldSession::SendSpiritResurrect()
     _player->DurabilityLossAll(0.25f, true);
 
     // get corpse nearest graveyard
-    WorldSafeLocsEntry const* corpseGrave = NULL;
+    WorldSafeLocsEntry const* corpseGrave = nullptr;
     Corpse* corpse = _player->GetCorpse();
     if (corpse)
         corpseGrave = sObjectMgr.GetClosestGraveYard(
@@ -715,7 +715,7 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
     if (!newpet->LoadPetFromDB(_player, creature_id, petnumber))
     {
         delete newpet;
-        newpet = NULL;
+        newpet = nullptr;
         SendStableResult(STABLE_ERR_STABLE);
         return;
     }

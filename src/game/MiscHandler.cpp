@@ -998,6 +998,9 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recv_data)
     if (!_player->IsWithinDistInMap(plr, INSPECT_DISTANCE, false))
         return;
 
+    if (_player->IsHostileTo(plr))
+        return;
+
     uint32 talent_points = 0x3D;
     uint32 guid_size = plr->GetPackGUID().size();
     WorldPacket data(SMSG_INSPECT_TALENT, 4 + talent_points);
@@ -1087,6 +1090,9 @@ void WorldSession::HandleInspectHonorStatsOpcode(WorldPacket& recv_data)
     }
 
     if (!_player->IsWithinDistInMap(player, INSPECT_DISTANCE, false))
+        return;
+
+    if (_player->IsHostileTo(player))
         return;
 
     WorldPacket data(MSG_INSPECT_HONOR_STATS, 8 + 1 + 4 * 4);

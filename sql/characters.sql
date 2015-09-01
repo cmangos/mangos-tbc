@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s2204_12756_01_characters_pvpstats` bit(1) DEFAULT NULL
+  `required_s2323_12931_03_characters_guild_member` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
 
 --
@@ -967,8 +967,8 @@ CREATE TABLE `guild` (
   `BorderStyle` int(5) NOT NULL DEFAULT '0',
   `BorderColor` int(5) NOT NULL DEFAULT '0',
   `BackgroundColor` int(5) NOT NULL DEFAULT '0',
-  `info` text NOT NULL,
-  `motd` varchar(255) NOT NULL DEFAULT '',
+  `info` varchar(500) NOT NULL DEFAULT '',
+  `motd` varchar(128) NOT NULL DEFAULT '',
   `createdate` bigint(20) unsigned NOT NULL DEFAULT '0',
   `BankMoney` bigint(20) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`guildid`)
@@ -1069,7 +1069,7 @@ CREATE TABLE `guild_bank_tab` (
   `TabId` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `TabName` varchar(100) NOT NULL DEFAULT '',
   `TabIcon` varchar(100) NOT NULL DEFAULT '',
-  `TabText` text,
+  `TabText` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`guildid`,`TabId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1119,8 +1119,8 @@ CREATE TABLE `guild_member` (
   `guildid` int(6) unsigned NOT NULL DEFAULT '0',
   `guid` int(11) unsigned NOT NULL DEFAULT '0',
   `rank` tinyint(2) unsigned NOT NULL DEFAULT '0',
-  `pnote` varchar(255) NOT NULL DEFAULT '',
-  `offnote` varchar(255) NOT NULL DEFAULT '',
+  `pnote` varchar(31) NOT NULL DEFAULT '',
+  `offnote` varchar(31) NOT NULL DEFAULT '',
   `BankResetTimeMoney` int(11) unsigned NOT NULL DEFAULT '0',
   `BankRemMoney` int(11) unsigned NOT NULL DEFAULT '0',
   `BankResetTimeTab0` int(11) unsigned NOT NULL DEFAULT '0',

@@ -267,13 +267,13 @@ void BattleGroundEY::ProcessCaptureEvent(GameObject* /*go*/, uint32 towerId, Tea
     m_towerOwner[towerId] = team;
 }
 
-void BattleGroundEY::HandleAreaTrigger(Player* source, uint32 trigger)
+bool BattleGroundEY::HandleAreaTrigger(Player* source, uint32 trigger)
 {
     if (GetStatus() != STATUS_IN_PROGRESS)
-        return;
+        return false;
 
     if (!source->isAlive())                                 // hack code, must be removed later
-        return;
+        return false;
 
     switch (trigger)
     {
@@ -293,7 +293,10 @@ void BattleGroundEY::HandleAreaTrigger(Player* source, uint32 trigger)
             if (m_towerOwner[NODE_DRAENEI_RUINS] == source->GetTeam())
                 EventPlayerCapturedFlag(source, NODE_DRAENEI_RUINS);
             break;
+        default:
+            return false;
     }
+    return true;
 }
 
 void BattleGroundEY::Reset()

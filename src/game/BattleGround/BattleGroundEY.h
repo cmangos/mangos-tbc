@@ -273,6 +273,8 @@ class BattleGroundEY : public BattleGround
         virtual void EventPlayerClickedOnFlag(Player* source, GameObject* target_obj) override;
         virtual void EventPlayerDroppedFlag(Player* source) override;
 
+        virtual Team GetPrematureWinner() override;
+
     private:
         // process capture events
         void ProcessCaptureEvent(GameObject* go, uint32 towerId, Team team, uint32 newWorldState, uint32 message);

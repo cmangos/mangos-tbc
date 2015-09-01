@@ -33,6 +33,7 @@ struct ItemPrototype;
 struct AuctionEntry;
 struct AuctionHouseEntry;
 struct DeclinedName;
+struct TradeStatusInfo;
 
 class ObjectGuid;
 class Creature;
@@ -223,7 +224,7 @@ class MANGOS_DLL_SPEC WorldSession
 
         void SendBattlegGroundList(ObjectGuid guid, BattleGroundTypeId bgTypeId);
 
-        void SendTradeStatus(TradeStatus status);
+        void SendTradeStatus(const TradeStatusInfo& status);
         void SendUpdateTrade(bool trader_state = true);
         void SendCancelTrade();
 

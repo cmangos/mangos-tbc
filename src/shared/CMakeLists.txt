@@ -99,6 +99,7 @@ set(LIBRARY_SRCS
     Common.h
     LockedQueue.h
     revision_sql.h
+    SystemConfig.h
     Threading.cpp
     Threading.h
 )

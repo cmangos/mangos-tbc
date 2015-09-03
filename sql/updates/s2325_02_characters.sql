@@ -1,0 +1,2 @@
+ALTER TABLE character_db_version CHANGE COLUMN required_s1350_11716_09_characters_mail required_s2325_02_characters bit;
+

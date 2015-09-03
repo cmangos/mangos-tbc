@@ -419,12 +419,12 @@ bool find_sql_updates()
     pclose(cmd_pipe);
 
     // Add last milestone's file information
-    last_sql_rev[0] = 1350;
-    last_sql_nr[0] = 9;
-    sscanf("s1350_11716_09_characters_mail", "%s", last_sql_update[0]);
-    last_sql_rev[2] = 10008;
+    last_sql_rev[0] = 2325;
+    last_sql_nr[0] = 2;
+    sscanf("s2325_02_characters", "%s", last_sql_update[0]);
+    last_sql_rev[2] = 2325;
     last_sql_nr[2] = 1;
-    sscanf("10008_01_realmd_realmd_db_version", "%s", last_sql_update[2]);
+    sscanf("s2325_01_realmd", "%s", last_sql_update[2]);
 
     // remove updates from the last commit also found on origin
     snprintf(cmd, MAX_CMD, "git show %s:%s", origin_hash, sql_update_dir);

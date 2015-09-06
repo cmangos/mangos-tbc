@@ -166,7 +166,7 @@ class BattleGroundAB : public BattleGround
         void AddPlayer(Player* plr) override;
         virtual void StartingEventOpenDoors() override;
         void RemovePlayer(Player* plr, ObjectGuid guid) override;
-        void HandleAreaTrigger(Player* source, uint32 trigger) override;
+        bool HandleAreaTrigger(Player* source, uint32 trigger) override;
         virtual void Reset() override;
         void EndBattleGround(Team winner) override;
         virtual WorldSafeLocsEntry const* GetClosestGraveYard(Player* player) override;
@@ -178,6 +178,8 @@ class BattleGroundAB : public BattleGround
 
         /* Nodes occupying */
         virtual void EventPlayerClickedOnFlag(Player* source, GameObject* target_obj) override;
+
+        virtual Team GetPrematureWinner() override;
 
     private:
         /* Gameobject spawning/despawning */

@@ -20,3 +20,7 @@ elseif(CMAKE_C_COMPILER MATCHES "clang")
 else()
 add_definitions(-D_BUILD_DIRECTIVE='"${CMAKE_BUILD_TYPE}"')
 endif()
+
+message(STATUS "UNIX: Use c++11")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++11 -Wno-narrowing -Wno-deprecated-register")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -Wno-narrowing -Wno-deprecated-register")

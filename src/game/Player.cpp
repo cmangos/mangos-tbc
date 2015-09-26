@@ -13173,6 +13173,10 @@ bool Player::SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg) const
                     return true;
 
                 // each-from-all exclusive group ( < 0)
+				// given a group with 2+ quests, and one of those has a branch that is not restricted by the group, return true
+				if (qInfo->GetPrevQuestId() != 0 && qPrevInfo->GetNextQuestId() != qInfo->GetPrevQuestId())
+					return true;
+
                 // can be start if only all quests in prev quest exclusive group completed and rewarded
                 ExclusiveQuestGroupsMapBounds bounds = sObjectMgr.GetExclusiveQuestGroupsMapBounds(qPrevInfo->GetExclusiveGroup());
 
@@ -13207,6 +13211,10 @@ bool Player::SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg) const
                     return true;
 
                 // each-from-all exclusive group ( < 0)
+				// given a group with 2+ quests, and one of those has a branch that is not restricted by the group, return true
+				if (qInfo->GetPrevQuestId() != 0 && qPrevInfo->GetNextQuestId() != qInfo->GetPrevQuestId())
+					return true;
+
                 // can be start if only all quests in prev quest exclusive group active
                 ExclusiveQuestGroupsMapBounds bounds = sObjectMgr.GetExclusiveQuestGroupsMapBounds(qPrevInfo->GetExclusiveGroup());
 

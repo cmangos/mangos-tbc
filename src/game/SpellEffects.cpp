@@ -4666,6 +4666,46 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                     // 25 * stack
                     unitTarget->AddThreat(m_caster, 25.0f * sunder->GetStackAmount(), false, GetSpellSchoolMask(m_spellInfo), m_spellInfo);
                 }
+				if (!sunder || sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
+					if (Player* player = (Player *)m_caster)
+					{
+						// get highest rank of the Sunder Armor spell
+						const PlayerSpellMap& sp_list = player->GetSpellMap();
+						for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
+						{
+							// only highest rank is shown in spell book, so simply check if shown in spell book
+							if (!itr->second.active || itr->second.disabled || itr->second.state == PLAYERSPELL_REMOVED)
+								continue;
+
+							SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+							if (!spellInfo)
+								continue;
+
+							if (spellInfo->SpellVisual == 406 && spellInfo->SpellIconID == 565
+								&& spellInfo->Id != m_spellInfo->Id
+								&& spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR)
+							{
+								//cast aura of correct Sunder Armor rank
+								SpellAuraHolder* holder = CreateSpellAuraHolder(spellInfo, unitTarget, m_caster);
+
+								for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+								{
+									uint8 eff = spellInfo->Effect[i];
+									if (eff >= TOTAL_SPELL_EFFECTS)
+										continue;
+									if (IsAreaAuraEffect(eff) ||
+										eff == SPELL_EFFECT_APPLY_AURA ||
+										eff == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+									{
+										Aura* aur = CreateAura(spellInfo, SpellEffectIndex(i), NULL, holder, unitTarget);
+										holder->AddAura(aur, SpellEffectIndex(i));
+									}
+								}
+								unitTarget->AddSpellAuraHolder(holder);
+								break;
+							}
+						}
+					}
             }
             break;
         }

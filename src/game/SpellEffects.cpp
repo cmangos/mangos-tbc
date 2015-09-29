@@ -4666,6 +4666,30 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                     // 25 * stack
                     unitTarget->AddThreat(m_caster, 25.0f * sunder->GetStackAmount(), false, GetSpellSchoolMask(m_spellInfo), m_spellInfo);
                 }
+				if (!sunder || sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
+					if (Player* player = (Player *)m_caster)
+					{
+						// get highest rank of the Sunder Armor spell
+						const PlayerSpellMap& sp_list = player->GetSpellMap();
+						for (PlayerSpellMap::const_iterator itr = sp_list.begin(); itr != sp_list.end(); ++itr)
+						{
+							// only highest rank is shown in spell book, so simply check if shown in spell book
+							if (!itr->second.active || itr->second.disabled || itr->second.state == PLAYERSPELL_REMOVED)
+								continue;
+
+							SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+							if (!spellInfo)
+								continue;
+
+							if (spellInfo->IsFitToFamily(SPELLFAMILY_WARRIOR, UI64LIT(0x00004000))
+								&& spellInfo->Id != m_spellInfo->Id)
+							{
+								
+								m_caster->CastSpell(unitTarget,spellInfo,true);
+								break;
+							}
+						}
+					}
             }
             break;
         }

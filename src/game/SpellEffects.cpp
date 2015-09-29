@@ -4681,27 +4681,11 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 							if (!spellInfo)
 								continue;
 
-							if (spellInfo->SpellVisual == 406 && spellInfo->SpellIconID == 565
-								&& spellInfo->Id != m_spellInfo->Id
-								&& spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR)
+							if (spellInfo->IsFitToFamily(SPELLFAMILY_WARRIOR, UI64LIT(0x00004000))
+								&& spellInfo->Id != m_spellInfo->Id)
 							{
-								//cast aura of correct Sunder Armor rank
-								SpellAuraHolder* holder = CreateSpellAuraHolder(spellInfo, unitTarget, m_caster);
-
-								for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-								{
-									uint8 eff = spellInfo->Effect[i];
-									if (eff >= TOTAL_SPELL_EFFECTS)
-										continue;
-									if (IsAreaAuraEffect(eff) ||
-										eff == SPELL_EFFECT_APPLY_AURA ||
-										eff == SPELL_EFFECT_PERSISTENT_AREA_AURA)
-									{
-										Aura* aur = CreateAura(spellInfo, SpellEffectIndex(i), NULL, holder, unitTarget);
-										holder->AddAura(aur, SpellEffectIndex(i));
-									}
-								}
-								unitTarget->AddSpellAuraHolder(holder);
+								
+								m_caster->CastSpell(unitTarget,spellInfo,true);
 								break;
 							}
 						}

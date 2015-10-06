@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2326_01_mangos_mangos_string` bit(1) DEFAULT NULL
+  `required_s2328_01_mangos_scriptdev2_tables` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -1409,6 +1409,15 @@ CREATE TABLE `custom_texts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Custom Texts';
 
 --
+-- Dumping data for table `custom_texts`
+--
+
+LOCK TABLES `custom_texts` WRITE;
+/*!40000 ALTER TABLE `custom_texts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `custom_texts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `db_script_string`
 --
 
@@ -2114,6 +2123,14 @@ CREATE TABLE `gossip_texts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Gossip Texts';
 
 --
+-- Dumping data for table `gossip_texts`
+--
+
+LOCK TABLES `gossip_texts` WRITE;
+/*!40000 ALTER TABLE `gossip_texts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `gossip_texts` ENABLE KEYS */;
+UNLOCK TABLES;
+
 -- Table structure for table `instance_template`
 --
 
@@ -11670,6 +11687,15 @@ CREATE TABLE `script_texts` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Script Texts';
 
 --
+-- Dumping data for table `script_texts`
+--
+
+LOCK TABLES `script_texts` WRITE;
+/*!40000 ALTER TABLE `script_texts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `script_texts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `script_waypoint`
 --
 
@@ -11684,6 +11710,15 @@ CREATE TABLE script_waypoint (
   point_comment text,
   PRIMARY KEY (entry, pointid)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Script Creature waypoints';
+
+--
+-- Dumping data for table `script_waypoint`
+--
+
+LOCK TABLES `script_waypoint` WRITE;
+/*!40000 ALTER TABLE `script_waypoint` DISABLE KEYS */;
+/*!40000 ALTER TABLE `script_waypoint` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `scripted_areatrigger`

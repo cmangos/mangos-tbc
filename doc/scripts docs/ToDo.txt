@@ -1,0 +1,9 @@
+= ScriptDev2 TODO Points =
+
+== TBC content ==
+* Various quests which still require script (examples: 5821, 5943, 10985)
+* Hyjal Summit - Optimize game event.
+* Black Temple - Teron Gorefiend script improvement (requires core proper mind control support)
+
+== Classic content ==
+* Various quests which still require script (examples: 5721)

@@ -76,7 +76,7 @@ struct boss_broggokAI : public ScriptedAI
         pSummoned->setFaction(16);
         pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
         pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        pSummoned->CastSpell(pSummoned, SPELL_POISON, false, NULL, NULL, m_creature->GetObjectGuid());
+        pSummoned->CastSpell(pSummoned, SPELL_POISON, false, nullptr, nullptr, m_creature->GetObjectGuid());
     }
 
     void JustDied(Unit* /*pWho*/) override
@@ -92,7 +92,7 @@ struct boss_broggokAI : public ScriptedAI
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
 
-        m_creature->SetLootRecipient(NULL);
+        m_creature->SetLootRecipient(nullptr);
 
         Reset();
 

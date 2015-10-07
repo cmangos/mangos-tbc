@@ -413,7 +413,7 @@ struct npc_letollAI : public npc_escortAI
             }
         }
 
-        return NULL;
+        return nullptr;
     }
 
     void JustStartedEscort() override
@@ -606,7 +606,7 @@ struct npc_mana_bomb_exp_triggerAI : public ScriptedAI
 
     void Reset() override
     {
-        pManaBomb = NULL;
+        pManaBomb = nullptr;
         m_bIsActivated = false;
         m_uiEventTimer = 1000;
         m_uiEventCounter = 0;

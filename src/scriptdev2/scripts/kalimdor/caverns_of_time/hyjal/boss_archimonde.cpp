@@ -204,7 +204,7 @@ struct boss_archimondeAI : public ScriptedAI
         else if (pSummoned->GetEntry() == NPC_DOOMFIRE)
         {
             pSummoned->CastSpell(pSummoned, SPELL_DOOMFIRE_SPAWN, true);
-            pSummoned->CastSpell(pSummoned, SPELL_DOOMFIRE, true, NULL, NULL, m_creature->GetObjectGuid());
+            pSummoned->CastSpell(pSummoned, SPELL_DOOMFIRE, true, nullptr, nullptr, m_creature->GetObjectGuid());
         }
     }
 

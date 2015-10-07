@@ -399,7 +399,7 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             if (Creature* pSkyriss = GetSingleCreatureFromStorage(NPC_SKYRISS))
             {
                 pSkyriss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
-                pMellichar->DealDamage(pMellichar, pMellichar->GetHealth(), NULL, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, NULL, false);
+                pMellichar->DealDamage(pMellichar, pMellichar->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
             }
             DoUseDoorOrButton(GO_SEAL_SPHERE);
             break;

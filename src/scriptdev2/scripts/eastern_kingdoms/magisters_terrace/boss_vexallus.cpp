@@ -113,8 +113,8 @@ struct boss_vexallusAI : public ScriptedAI
         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             pSummoned->GetMotionMaster()->MoveFollow(pTarget, 0.0f, 0.0f);
 
-        pSummoned->CastSpell(pSummoned, SPELL_ENERGY_PASSIVE, true, NULL, NULL, m_creature->GetObjectGuid());
-        pSummoned->CastSpell(pSummoned, SPELL_ENERGY_BOLT, true, NULL, NULL, m_creature->GetObjectGuid());
+        pSummoned->CastSpell(pSummoned, SPELL_ENERGY_PASSIVE, true, nullptr, nullptr, m_creature->GetObjectGuid());
+        pSummoned->CastSpell(pSummoned, SPELL_ENERGY_BOLT, true, nullptr, nullptr, m_creature->GetObjectGuid());
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -209,7 +209,7 @@ struct mob_pure_energyAI : public ScriptedAI
                     return;
 
                 if (Player* pPlayer = pKiller->GetCharmerOrOwnerPlayerOrPlayerItself())
-                    pPlayer->CastSpell(pPlayer, SPELL_ENERGY_FEEDBACK, true, NULL, NULL, pVex->GetObjectGuid());
+                    pPlayer->CastSpell(pPlayer, SPELL_ENERGY_FEEDBACK, true, nullptr, nullptr, pVex->GetObjectGuid());
             }
         }
     }

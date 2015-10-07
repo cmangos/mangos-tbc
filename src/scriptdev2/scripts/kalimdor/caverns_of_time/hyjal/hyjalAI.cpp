@@ -215,7 +215,7 @@ void hyjalAI::EnterEvadeMode()
     if (m_creature->isAlive())
         m_creature->GetMotionMaster()->MoveTargetedHome();
 
-    m_creature->SetLootRecipient(NULL);
+    m_creature->SetLootRecipient(nullptr);
 }
 
 void hyjalAI::JustReachedHome()
@@ -238,7 +238,7 @@ void hyjalAI::Aggro(Unit* /*who*/)
 
 void hyjalAI::SpawnCreatureForWave(uint32 uiMobEntry)
 {
-    HyjalLocation const* pSpawn = NULL;
+    HyjalLocation const* pSpawn = nullptr;
 
     uint32 uiMaxCount = countof(aHyjalSpawnLoc);
     uint32 uiRandId = urand(1, uiMaxCount / 2);             // unsafe, if array becomes uneven.
@@ -272,7 +272,7 @@ void hyjalAI::JustSummoned(Creature* pSummoned)
     // Increment Enemy Count to be used in World States and instance script
     ++m_uiEnemyCount;
 
-    HyjalLocation const* pMove = NULL;
+    HyjalLocation const* pMove = nullptr;
 
     for (uint32 i = 0; i < countof(aHyjalWaveMoveTo); ++i)
     {
@@ -414,7 +414,7 @@ void hyjalAI::StartEvent()
 
 void hyjalAI::DoTalk(YellType pYellType)
 {
-    HyjalYells const* pYell = NULL;
+    HyjalYells const* pYell = nullptr;
 
     bool bGetNext = false;
 
@@ -519,7 +519,7 @@ void hyjalAI::UpdateAI(const uint32 uiDiff)
                 if (m_creature->IsNonMeleeSpellCasted(false))
                     m_creature->InterruptNonMeleeSpells(false);
 
-                Unit* pTarget = NULL;
+                Unit* pTarget = nullptr;
 
                 switch (m_aSpells[i].m_pType)
                 {

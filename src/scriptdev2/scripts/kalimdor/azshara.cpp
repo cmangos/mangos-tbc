@@ -132,7 +132,7 @@ struct npc_rizzle_sprysprocketAI : public npc_escortAI
     // this may be wrong
     void JustSummoned(Creature* /*pSummoned*/) override
     {
-        // pSummoned->CastSpell(pSummoned,SPELL_PERIODIC_GRENADE,false,NULL,NULL,m_creature->GetObjectGuid());
+        // pSummoned->CastSpell(pSummoned,SPELL_PERIODIC_GRENADE,false,nullptr,nullptr,m_creature->GetObjectGuid());
     }
 
     void UpdateEscortAI(const uint32 uiDiff) override
@@ -330,7 +330,7 @@ struct mobs_spitelashesAI : public ScriptedAI
 
     bool CanUseSpecialAbility(uint32 uiIndex)
     {
-        Unit* pTarget = NULL;
+        Unit* pTarget = nullptr;
 
         switch (m_aSpitelashAbility[uiIndex].m_uiTargetType)
         {

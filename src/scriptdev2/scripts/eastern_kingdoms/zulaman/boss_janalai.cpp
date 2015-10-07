@@ -450,7 +450,7 @@ struct npc_amanishi_hatcherAI : public ScriptedAI
 
         if (Creature* pJanalai = m_pInstance->GetSingleCreatureFromStorage(NPC_JANALAI))
         {
-            pTarget->CastSpell(pTarget, SPELL_SUMMON_DRAGONHAWK, true, NULL, NULL, pJanalai->GetObjectGuid());
+            pTarget->CastSpell(pTarget, SPELL_SUMMON_DRAGONHAWK, true, nullptr, nullptr, pJanalai->GetObjectGuid());
             ++m_uiEggsHatched;
         }
     }

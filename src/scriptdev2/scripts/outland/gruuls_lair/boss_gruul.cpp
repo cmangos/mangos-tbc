@@ -124,8 +124,8 @@ struct boss_gruulAI : public ScriptedAI
             {
                 switch (urand(0, 1))
                 {
-                    case 0: pTarget->CastSpell(pTarget, SPELL_MAGNETIC_PULL, true, NULL, NULL, m_creature->GetObjectGuid()); break;
-                    case 1: pTarget->CastSpell(pTarget, SPELL_KNOCK_BACK, true, NULL, NULL, m_creature->GetObjectGuid()); break;
+                    case 0: pTarget->CastSpell(pTarget, SPELL_MAGNETIC_PULL, true, nullptr, nullptr, m_creature->GetObjectGuid()); break;
+                    case 1: pTarget->CastSpell(pTarget, SPELL_KNOCK_BACK, true, nullptr, nullptr, m_creature->GetObjectGuid()); break;
                 }
             }
         }

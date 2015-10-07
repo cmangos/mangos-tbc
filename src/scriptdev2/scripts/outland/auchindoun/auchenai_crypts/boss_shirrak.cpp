@@ -95,7 +95,7 @@ struct boss_shirrakAI : public ScriptedAI
         if (m_uiFocusFireTimer < uiDiff)
         {
             ++m_uiFocusFireCount;
-            Unit* pTarget = NULL;
+            Unit* pTarget = nullptr;
 
             switch (m_uiFocusFireCount)
             {

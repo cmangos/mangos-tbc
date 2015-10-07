@@ -400,7 +400,7 @@ struct npc_chess_piece_genericAI : public ScriptedAI
     Unit* GetTargetByType(uint8 uiType, float fRange, float fArc = M_PI_F)
     {
         if (!m_pInstance)
-            return NULL;
+            return nullptr;
 
         uint32 uiTeam = m_creature->getFaction() == FACTION_ID_CHESS_ALLIANCE ? FACTION_ID_CHESS_HORDE : FACTION_ID_CHESS_ALLIANCE;
 
@@ -432,7 +432,7 @@ struct npc_chess_piece_genericAI : public ScriptedAI
         }
 
         if (vTargets.empty())
-            return NULL;
+            return nullptr;
 
         return vTargets[urand(0, vTargets.size() - 1)];
     }
@@ -441,7 +441,7 @@ struct npc_chess_piece_genericAI : public ScriptedAI
     Unit* GetMovementSquare()
     {
         if (!m_pInstance)
-            return NULL;
+            return nullptr;
 
         // define distance based on the spell radius
         // this will replace the targeting sysmte of spells SPELL_MOVE_1 and SPELL_MOVE_2
@@ -464,7 +464,7 @@ struct npc_chess_piece_genericAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(lSquaresList, m_creature, NPC_SQUARE_WHITE, fRadius);
 
         if (lSquaresList.empty())
-            return NULL;
+            return nullptr;
 
         // Get the list of enemies
         GuidList lTempList;
@@ -479,7 +479,7 @@ struct npc_chess_piece_genericAI : public ScriptedAI
         }
 
         if (lEnemies.empty())
-            return NULL;
+            return nullptr;
 
         // Sort the enemies by distance and the squares compared to the distance to the closest enemy
         lEnemies.sort(ObjectDistanceOrder(m_creature));

@@ -2697,7 +2697,10 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
     }
 
     // Fill cost data
-    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+	// Triggered spells dont eat power ;)
+	if (!m_IsTriggeredSpell){
+		m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+	}
 
     SpellCastResult result = CheckCast(true);
     if (result != SPELL_CAST_OK && !IsAutoRepeat())         // always cast autorepeat dummy for triggering

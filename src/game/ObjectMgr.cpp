@@ -3373,8 +3373,9 @@ void ObjectMgr::LoadGroups()
 
             uint32 leaderGuidLow = fields[0].GetUInt32();
             uint32 mapId = fields[1].GetUInt32();
-            Difficulty diff = (Difficulty)fields[4].GetUInt8();
+            uint8 tempDiff = fields[4].GetUInt8();
             uint32 groupId = fields[7].GetUInt32();
+            Difficulty diff = REGULAR_DIFFICULTY;
 
             if (!group || group->GetId() != groupId)
             {
@@ -3394,11 +3395,10 @@ void ObjectMgr::LoadGroups()
                 continue;
             }
 
-            if (diff >= MAX_DIFFICULTY)
-            {
-                sLog.outErrorDb("Wrong dungeon difficulty use in group_instance table: %d", diff);
-                diff = REGULAR_DIFFICULTY;
-            }
+            if (tempDiff >= MAX_DIFFICULTY)
+                sLog.outErrorDb("Wrong dungeon difficulty use in group_instance table: %u", uint32(tempDiff));
+            else
+                diff = Difficulty(tempDiff);
 
             DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, fields[2].GetUInt32(), diff, (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true);
             group->BindToInstance(state, fields[3].GetBool(), true);
@@ -4376,7 +4376,7 @@ void ObjectMgr::LoadItemTexts()
 
     delete result;
 
-    sLog.outString(">> Loaded " SIZEFMTD " item texts", count);
+    sLog.outString(">> Loaded %u item texts", count);
     sLog.outString();
 }
 

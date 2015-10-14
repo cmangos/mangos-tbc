@@ -1255,6 +1255,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                         triggered_spell_id = 32221;
                         break;
                     }
+                    default:
+                        break;
                 }
             }
 

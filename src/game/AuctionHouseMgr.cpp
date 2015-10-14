@@ -170,7 +170,7 @@ void AuctionHouseMgr::SendAuctionSalePendingMail(AuctionEntry* auction)
     Player* owner = sObjectMgr.GetPlayer(owner_guid);
 
     // owner exist (online or offline)
-    if (owner || owner_guid && sObjectMgr.GetPlayerAccountIdByGUID(owner_guid))
+    if (owner || (owner_guid && sObjectMgr.GetPlayerAccountIdByGUID(owner_guid)))
     {
         std::ostringstream msgAuctionSalePendingSubject;
         msgAuctionSalePendingSubject << auction->itemTemplate << ":" << auction->itemRandomPropertyId << ":" << AUCTION_SALE_PENDING;

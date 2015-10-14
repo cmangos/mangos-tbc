@@ -3993,7 +3993,7 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
         if (questStart)
         {
             // not in expected required quest state
-            if (!player || (!questStartCanActive || !player->IsActiveQuest(questStart)) && !player->GetQuestRewardStatus(questStart))
+            if (!player || ((!questStartCanActive || !player->IsActiveQuest(questStart)) && !player->GetQuestRewardStatus(questStart)))
                 return false;
         }
 

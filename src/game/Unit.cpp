@@ -3312,8 +3312,6 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
 
 void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed)
 {
-    MANGOS_ASSERT(spellType < CURRENT_MAX_SPELL);
-
     if (m_currentSpells[spellType] && (withDelayed || m_currentSpells[spellType]->getState() != SPELL_STATE_DELAYED))
     {
         // send autorepeat cancel message for autorepeat spells
@@ -3785,10 +3783,13 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder* holder)
                 ++itr;
             }
 
+            // TODO remove this switch after confirming that we dont need other cases
             switch (trackedType)
             {
                 case TRACK_AURA_TYPE_SINGLE_TARGET:         // Register spell holder single target
                     scTargets[aurSpellInfo] = GetObjectGuid();
+                    break;
+                default:
                     break;
             }
         }
@@ -5595,7 +5596,7 @@ Unit* Unit::_GetTotem(TotemSlot slot) const
 
 Totem* Unit::GetTotem(TotemSlot slot) const
 {
-    if (slot >= MAX_TOTEM_SLOT || !IsInWorld() || !m_TotemSlot[slot])
+    if (!IsInWorld() || !m_TotemSlot[slot])
         return nullptr;
 
     Creature* totem = GetMap()->GetCreature(m_TotemSlot[slot]);
@@ -7681,7 +7682,7 @@ bool Unit::IsSecondChoiceTarget(Unit* pTarget, bool checkThreatArea)
     return
         pTarget->IsImmunedToDamage(GetMeleeDamageSchoolMask()) ||
         pTarget->hasNegativeAuraWithInterruptFlag(AURA_INTERRUPT_FLAG_DAMAGE) ||
-        checkThreatArea && ((Creature*)this)->IsOutOfThreatArea(pTarget);
+        (checkThreatArea && ((Creature*)this)->IsOutOfThreatArea(pTarget));
 }
 
 //======================================================================

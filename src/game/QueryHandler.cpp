@@ -424,7 +424,7 @@ void WorldSession::HandlePageTextQueryOpcode(WorldPacket& recv_data)
 void WorldSession::SendQueryTimeResponse()
 {
     WorldPacket data(SMSG_QUERY_TIME_RESPONSE, 4 + 4);
-    data << uint32(time(NULL));
-    data << uint32(sWorld.GetNextDailyQuestsResetTime() - time(NULL));
+    data << uint32(time(nullptr));
+    data << uint32(sWorld.GetNextDailyQuestsResetTime() - time(nullptr));
     SendPacket(&data);
 }

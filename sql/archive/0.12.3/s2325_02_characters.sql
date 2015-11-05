@@ -1,2 +1,2 @@
-ALTER TABLE character_db_version CHANGE COLUMN required_s1350_11716_09_characters_mail required_s2325_02_characters bit;
+ALTER TABLE character_db_version CHANGE COLUMN required_s2323_12931_03_characters_guild_member required_s2325_02_characters bit;
 

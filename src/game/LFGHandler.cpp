@@ -294,7 +294,7 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
         if (group)
         {
             data << uint32(group->GetMembersCount() - 1);   // count of group members without group leader
-            for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
+            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
             {
                 Player* member = itr->getSource();
                 if (member && member->GetObjectGuid() != plr->GetObjectGuid())

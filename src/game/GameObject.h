@@ -22,7 +22,6 @@
 #include "Common.h"
 #include "SharedDefines.h"
 #include "Object.h"
-#include "LootMgr.h"
 #include "Database/DatabaseEnv.h"
 #include "Utilities/EventProcessor.h"
 
@@ -612,7 +611,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         time_t GetRespawnTime() const { return m_respawnTime; }
         time_t GetRespawnTimeEx() const
         {
-            time_t now = time(NULL);
+            time_t now = time(nullptr);
             if (m_respawnTime > now)
                 return m_respawnTime;
             else
@@ -621,7 +620,7 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
 
         void SetRespawnTime(time_t respawn)
         {
-            m_respawnTime = respawn > 0 ? time(NULL) + respawn : 0;
+            m_respawnTime = respawn > 0 ? time(nullptr) + respawn : 0;
             m_respawnDelayTime = respawn > 0 ? uint32(respawn) : 0;
         }
         void Respawn();
@@ -672,6 +671,8 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
 
         void AddUniqueUse(Player* player);
         void AddUse() { ++m_useTimes; }
+        bool IsInUse() const { return m_isInUse; }
+        void SetInUse(bool use);
 
         uint32 GetUseCount() const { return m_useTimes; }
         uint32 GetUniqueUseCount() const { return m_UniqueUsers.size(); }
@@ -679,9 +680,6 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         void SaveRespawnTime() override;
 
         // Loot System
-        Loot loot;
-        void StartGroupLoot(Group* group, uint32 timer) override;
-
         ObjectGuid GetLootRecipientGuid() const { return m_lootRecipientGuid; }
         uint32 GetLootGroupRecipientId() const { return m_lootGroupRecipientId; }
         Player* GetLootRecipient() const;                   // use group cases as prefered
@@ -744,11 +742,13 @@ class MANGOS_DLL_SPEC GameObject : public WorldObject
         GameObjectDisplayInfoEntry const* m_displayInfo;
 
         // Loot System
-        uint32 m_groupLootTimer;                            // (msecs)timer used for group loot
-        uint32 m_groupLootId;                               // used to find group which is looting
-        void StopGroupLoot() override;
         ObjectGuid m_lootRecipientGuid;                     // player who will have rights for looting if m_lootGroupRecipient==0 or group disbanded
         uint32 m_lootGroupRecipientId;                      // group who will have rights for looting if set and exist
+
+        // Used for chest type
+        bool m_isInUse;                                     // only one player at time are allowed to open chest
+        time_t m_reStockTimer;                              // timer to refill the chest
+        time_t m_despawnTimer;                              // timer to despawn the chest if something changed in it
 
     private:
         void SwitchDoorOrButton(bool activate, bool alternative = false);

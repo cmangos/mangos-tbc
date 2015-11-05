@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2326_01_mangos_mangos_string` bit(1) DEFAULT NULL
+  `required_s2328_01_mangos_scriptdev2_tables` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
 
 --
@@ -1385,6 +1385,39 @@ LOCK TABLES `creature_template_spells` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `custom_texts`
+--
+
+DROP TABLE IF EXISTS `custom_texts`;
+CREATE TABLE `custom_texts` (
+  `entry` mediumint(8) NOT NULL,
+  `content_default` text NOT NULL,
+  `content_loc1` text,
+  `content_loc2` text,
+  `content_loc3` text,
+  `content_loc4` text,
+  `content_loc5` text,
+  `content_loc6` text,
+  `content_loc7` text,
+  `content_loc8` text,
+  `sound` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `language` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `emote` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `comment` text,
+  PRIMARY KEY (`entry`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Custom Texts';
+
+--
+-- Dumping data for table `custom_texts`
+--
+
+LOCK TABLES `custom_texts` WRITE;
+/*!40000 ALTER TABLE `custom_texts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `custom_texts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `db_script_string`
 --
 
@@ -2070,6 +2103,34 @@ INSERT INTO `gossip_menu_option` VALUES
 UNLOCK TABLES;
 
 --
+-- Table structure for table `gossip_texts`
+--
+
+DROP TABLE IF EXISTS `gossip_texts`;
+CREATE TABLE `gossip_texts` (
+  `entry` mediumint(8) NOT NULL,
+  `content_default` text NOT NULL,
+  `content_loc1` text,
+  `content_loc2` text,
+  `content_loc3` text,
+  `content_loc4` text,
+  `content_loc5` text,
+  `content_loc6` text,
+  `content_loc7` text,
+  `content_loc8` text,
+  `comment` text,
+  PRIMARY KEY (`entry`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Gossip Texts';
+
+--
+-- Dumping data for table `gossip_texts`
+--
+
+LOCK TABLES `gossip_texts` WRITE;
+/*!40000 ALTER TABLE `gossip_texts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `gossip_texts` ENABLE KEYS */;
+UNLOCK TABLES;
+
 -- Table structure for table `instance_template`
 --
 
@@ -11599,6 +11660,64 @@ CREATE TABLE `reserved_name` (
 LOCK TABLES `reserved_name` WRITE;
 /*!40000 ALTER TABLE `reserved_name` DISABLE KEYS */;
 /*!40000 ALTER TABLE `reserved_name` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `script_texts`
+--
+
+DROP TABLE IF EXISTS `script_texts`;
+CREATE TABLE `script_texts` (
+  `entry` mediumint(8) NOT NULL,
+  `content_default` text NOT NULL,
+  `content_loc1` text,
+  `content_loc2` text,
+  `content_loc3` text,
+  `content_loc4` text,
+  `content_loc5` text,
+  `content_loc6` text,
+  `content_loc7` text,
+  `content_loc8` text,
+  `sound` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `language` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `emote` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `comment` text,
+  PRIMARY KEY  (`entry`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Script Texts';
+
+--
+-- Dumping data for table `script_texts`
+--
+
+LOCK TABLES `script_texts` WRITE;
+/*!40000 ALTER TABLE `script_texts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `script_texts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `script_waypoint`
+--
+
+DROP TABLE IF EXISTS script_waypoint;
+CREATE TABLE script_waypoint (
+  entry mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'creature_template entry',
+  pointid mediumint(8) unsigned NOT NULL DEFAULT '0',
+  location_x float NOT NULL DEFAULT '0',
+  location_y float NOT NULL DEFAULT '0',
+  location_z float NOT NULL DEFAULT '0',
+  waittime int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'waittime in millisecs',
+  point_comment text,
+  PRIMARY KEY (entry, pointid)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Script Creature waypoints';
+
+--
+-- Dumping data for table `script_waypoint`
+--
+
+LOCK TABLES `script_waypoint` WRITE;
+/*!40000 ALTER TABLE `script_waypoint` DISABLE KEYS */;
+/*!40000 ALTER TABLE `script_waypoint` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

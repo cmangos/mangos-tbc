@@ -43,6 +43,7 @@
 #include "movement/packet_builder.h"
 #include "CreatureLinkingMgr.h"
 #include "Chat.h"
+#include "LootMgr.h"
 #include "LuaEngine.h"
 #include "ElunaEventMgr.h"
 
@@ -51,11 +52,12 @@ Object::Object()
     m_objectTypeId      = TYPEID_OBJECT;
     m_objectType        = TYPEMASK_OBJECT;
 
-    m_uint32Values      = NULL;
+    m_uint32Values      = nullptr;
     m_valuesCount       = 0;
 
     m_inWorld           = false;
     m_objectUpdated     = false;
+    loot              = nullptr;
 }
 
 Object::~Object()
@@ -74,6 +76,8 @@ Object::~Object()
     }
 
     delete[] m_uint32Values;
+
+    delete loot;
 }
 
 void Object::_InitValues()
@@ -471,35 +475,66 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                 {
                     *data << (m_uint32Values[index] & ~UNIT_FLAG_NOT_SELECTABLE);
                 }
-                // Hide special-info for non empathy-casters,
                 // Hide lootable animation for unallowed players
-                else if (index == UNIT_DYNAMIC_FLAGS)
+                // Handle tapped flag
+                else if (index == UNIT_DYNAMIC_FLAGS && GetTypeId() == TYPEID_UNIT)
                 {
+                    Creature* creature = (Creature*)this;
                     uint32 dynflagsValue = m_uint32Values[index];
+                    bool setTapFlags = false;
 
-                    // Checking SPELL_AURA_EMPATHY and caster
-                    if (dynflagsValue & UNIT_DYNFLAG_SPECIALINFO && ((Unit*)this)->isAlive())
+                    if (creature->isAlive())
                     {
-                        bool bIsEmpathy = false;
-                        bool bIsCaster = false;
-                        Unit::AuraList const& mAuraEmpathy = ((Unit*)this)->GetAurasByType(SPELL_AURA_EMPATHY);
-                        for (Unit::AuraList::const_iterator itr = mAuraEmpathy.begin(); !bIsCaster && itr != mAuraEmpathy.end(); ++itr)
+                        // creature is alive so, not lootable
+                        dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
+
+                        if (creature->isInCombat())
                         {
-                            bIsEmpathy = true;              // Empathy by aura set
-                            if ((*itr)->GetCasterGuid() == target->GetObjectGuid())
-                                bIsCaster = true;           // target is the caster of an empathy aura
+                            // as creature is in combat we have to manage tap flags
+                            setTapFlags = true;
                         }
-                        if (bIsEmpathy && !bIsCaster)       // Empathy by aura, but target is not the caster
-                            dynflagsValue &= ~UNIT_DYNFLAG_SPECIALINFO;
+                        else
+                        {
+                            // creature is not in combat so its not tapped
+                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
+                            //sLog.outString(">> %s is not in combat so not tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
+                    }
+                    else
+                    {
+                        // check loot flag
+                        if (creature->loot && creature->loot->CanLoot(target))
+                        {
+                            // creature is dead and this player can loot it
+                            dynflagsValue = dynflagsValue | UNIT_DYNFLAG_LOOTABLE;
+                            //sLog.outString(">> %s is lootable for %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
+                        else
+                        {
+                            // creature is dead but this player cannot loot it
+                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
+                            //sLog.outString(">> %s is not lootable for %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
+
+                        // as creature is died we have to manage tap flags
+                        setTapFlags = true;
                     }
 
-                    // Checking lootable
-                    if (GetTypeId() == TYPEID_UNIT)
+                    // check tap flags
+                    if (setTapFlags)
                     {
-                        if (!target->isAllowedToLoot((Creature*)this))
-                            dynflagsValue &= ~UNIT_DYNFLAG_LOOTABLE;
+                        if (creature->IsTappedBy(target))
+                        {
+                            // creature is in combat or died and tapped by this player
+                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
+                            //sLog.outString(">> %s is tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
                         else
-                            dynflagsValue &= ~UNIT_DYNFLAG_TAPPED;
+                        {
+                            // creature is in combat or died but not tapped by this player
+                            dynflagsValue = dynflagsValue | UNIT_DYNFLAG_TAPPED;
+                            //sLog.outString(">> %s is not tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                        }
                     }
 
                     *data << dynflagsValue;
@@ -526,6 +561,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
 
                     if (IsActivateToQuest)
                     {
+                        GameObject const* gameObject = static_cast<GameObject const*>(this);
                         switch (((GameObject*)this)->GetGoType())
                         {
                             case GAMEOBJECT_TYPE_QUESTGIVER:
@@ -533,6 +569,12 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                                 *data << uint16(0);
                                 break;
                             case GAMEOBJECT_TYPE_CHEST:
+                                if (gameObject->getLootState() == GO_READY || gameObject->getLootState() == GO_ACTIVATED)
+                                    *data << uint16(GO_DYNFLAG_LO_ACTIVATE | GO_DYNFLAG_LO_SPARKLE);
+                                else
+                                    *data << uint16(0);
+                                *data << uint16(0);
+                                break;
                             case GAMEOBJECT_TYPE_GENERIC:
                             case GAMEOBJECT_TYPE_SPELL_FOCUS:
                             case GAMEOBJECT_TYPE_GOOBER:
@@ -594,7 +636,7 @@ bool Object::LoadValues(const char* data)
     int index;
     for (iter = tokens.begin(), index = 0; index < m_valuesCount; ++iter, ++index)
     {
-        m_uint32Values[index] = atol((*iter).c_str());
+        m_uint32Values[index] = std::stoul((*iter).c_str());
     }
 
     return true;
@@ -906,9 +948,19 @@ void Object::MarkForClientUpdate()
     }
 }
 
+void Object::ForceValuesUpdateAtIndex(uint32 index)
+{
+    m_changedValues[index] = true;
+    if (m_inWorld && !m_objectUpdated)
+    {
+        AddToClientUpdateList();
+        m_objectUpdated = true;
+    }
+}
+
 WorldObject::WorldObject() :
     elunaEvents(NULL),
-    m_transportInfo(NULL), m_currMap(NULL),
+    m_transportInfo(nullptr), m_currMap(nullptr),
     m_mapId(0), m_InstanceId(0),
     m_isActiveObject(false)
 {
@@ -1246,7 +1298,7 @@ bool WorldObject::isInBack(WorldObject const* target, float distance, float arc)
     return IsWithinDist(target, distance) && !HasInArc(2 * M_PI_F - arc, target);
 }
 
-void WorldObject::GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist /*=0.0f*/, float const* ori /*=NULL*/) const
+void WorldObject::GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist /*=0.0f*/, float const* ori /*=nullptr*/) const
 {
     if (distance == 0)
     {
@@ -1285,7 +1337,7 @@ void WorldObject::UpdateGroundPositionZ(float x, float y, float& z) const
         z = new_z + 0.05f;                                  // just to be sure that we are not a few pixel under the surface
 }
 
-void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap /*=NULL*/) const
+void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap /*=nullptr*/) const
 {
     if (!atMap)
         atMap = GetMap();
@@ -1401,7 +1453,7 @@ namespace MaNGOS
                 : i_object(obj), i_msgtype(msgtype), i_textData(textData), i_language(language), i_target(target) {}
             void operator()(WorldPacket& data, int32 loc_idx)
             {
-                char const* text = NULL;
+                char const* text = nullptr;
                 if ((int32)i_textData->Content.size() > loc_idx + 1 && !i_textData->Content[loc_idx + 1].empty())
                     text = i_textData->Content[loc_idx + 1].c_str();
                 else
@@ -1557,7 +1609,7 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
     if (!cinfo)
     {
         sLog.outErrorDb("WorldObject::SummonCreature: Creature (Entry: %u) not existed for summoner: %s. ", id, GetGuidStr().c_str());
-        return NULL;
+        return nullptr;
     }
 
     TemporarySummon* pCreature = new TemporarySummon(GetObjectGuid());
@@ -1574,7 +1626,7 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
     if (!pCreature->Create(GetMap()->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo, team))
     {
         delete pCreature;
-        return NULL;
+        return nullptr;
     }
 
     pCreature->SetRespawnCoord(pos);
@@ -1829,7 +1881,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
         UpdateGroundPositionZ(x, y, z);
 }
 
-void WorldObject::PlayDistanceSound(uint32 sound_id, Player const* target /*= NULL*/) const
+void WorldObject::PlayDistanceSound(uint32 sound_id, Player const* target /*= nullptr*/) const
 {
     WorldPacket data(SMSG_PLAY_OBJECT_SOUND, 4 + 8);
     data << uint32(sound_id);
@@ -1840,7 +1892,7 @@ void WorldObject::PlayDistanceSound(uint32 sound_id, Player const* target /*= NU
         SendMessageToSet(&data, true);
 }
 
-void WorldObject::PlayDirectSound(uint32 sound_id, Player const* target /*= NULL*/) const
+void WorldObject::PlayDirectSound(uint32 sound_id, Player const* target /*= nullptr*/) const
 {
     WorldPacket data(SMSG_PLAY_SOUND, 4);
     data << uint32(sound_id);
@@ -1850,7 +1902,7 @@ void WorldObject::PlayDirectSound(uint32 sound_id, Player const* target /*= NULL
         SendMessageToSet(&data, true);
 }
 
-void WorldObject::PlayMusic(uint32 sound_id, Player const* target /*= NULL*/) const
+void WorldObject::PlayMusic(uint32 sound_id, Player const* target /*= nullptr*/) const
 {
     WorldPacket data(SMSG_PLAY_MUSIC, 4);
     data << uint32(sound_id);

@@ -368,7 +368,14 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
     SetSheath(SHEATH_STATE_MELEE);
     SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_AURAS);
 
-    SelectLevel(GetCreatureInfo(), preserveHPAndPower ? GetHealthPercent() : 100.0f);
+    if (preserveHPAndPower)
+    {
+        uint32 healthPercent = GetHealthPercent();
+        SelectLevel();
+        SetHealthPercent(healthPercent);
+    }
+    else
+        SelectLevel();
 
     if (team == HORDE)
         setFaction(GetCreatureInfo()->FactionHorde);
@@ -526,7 +533,7 @@ void Creature::Update(uint32 update_diff, uint32 diff)
 
                 CreatureInfo const* cinfo = GetCreatureInfo();
 
-                SelectLevel(cinfo);
+                SelectLevel();
                 UpdateAllStats();  // to be sure stats is correct regarding level of the creature
                 SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);
                 if (m_isDeadByDefault)
@@ -1150,18 +1157,26 @@ void Creature::SaveToDB(uint32 mapid, uint8 spawnMask)
     WorldDatabase.CommitTransaction();
 }
 
-void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth /*= 100.0f*/)
+void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
 {
+    CreatureInfo const* cinfo = GetCreatureInfo();
+    if (!cinfo)
+        return;
+
     uint32 rank = IsPet() ? 0 : cinfo->Rank;                // TODO :: IsPet probably not needed here
 
-    // level
+                                                            // level
+    uint32 level = forcedLevel;
     uint32 const minlevel = cinfo->MinLevel;
     uint32 const maxlevel = cinfo->MaxLevel;
-    uint32 level = minlevel == maxlevel ? minlevel : urand(minlevel, maxlevel);
+
+    if (level == USE_DEFAULT_DATABASE_LEVEL)
+        level = minlevel == maxlevel ? minlevel : urand(minlevel, maxlevel);
+
     SetLevel(level);
 
     //////////////////////////////////////////////////////////////////////////
-    // Calculate level dependend stats
+    // Calculate level dependent stats
     //////////////////////////////////////////////////////////////////////////
 
     uint32 health;
@@ -1179,18 +1194,28 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth /*= 10
     }
     else
     {
-        // Use old style to calculate stat values
-        float rellevel = maxlevel == minlevel ? 0 : (float(level - minlevel)) / (maxlevel - minlevel);
+        if (forcedLevel == USE_DEFAULT_DATABASE_LEVEL || (forcedLevel >= minlevel && forcedLevel <= maxlevel))
+        {
+            // Use old style to calculate stat values
+            float rellevel = maxlevel == minlevel ? 0 : (float(level - minlevel)) / (maxlevel - minlevel);
 
-        // health
-        uint32 minhealth = std::min(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
-        uint32 maxhealth = std::max(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
-        health = uint32(minhealth + uint32(rellevel * (maxhealth - minhealth)));
+            // health
+            uint32 minhealth = std::min(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
+            uint32 maxhealth = std::max(cinfo->MaxLevelHealth, cinfo->MinLevelHealth);
+            health = uint32(minhealth + uint32(rellevel * (maxhealth - minhealth)));
 
-        // mana
-        uint32 minmana = std::min(cinfo->MaxLevelMana, cinfo->MinLevelMana);
-        uint32 maxmana = std::max(cinfo->MaxLevelMana, cinfo->MinLevelMana);
-        mana = minmana + uint32(rellevel * (maxmana - minmana));
+            // mana
+            uint32 minmana = std::min(cinfo->MaxLevelMana, cinfo->MinLevelMana);
+            uint32 maxmana = std::max(cinfo->MaxLevelMana, cinfo->MinLevelMana);
+            mana = minmana + uint32(rellevel * (maxmana - minmana));
+        }
+        else
+        {
+            sLog.outError("Creature::SelectLevel> Error trying to set level(%u) for creature %s without enough data to do it!", level, GetGuidStr().c_str());
+            // probably wrong
+            health = (cinfo->MaxLevelHealth / cinfo->MaxLevel) * level;
+            mana = (cinfo->MaxLevelMana / cinfo->MaxLevel) * level;
+        }
     }
 
     health *= _GetHealthMod(rank); // Apply custom config settting
@@ -1204,11 +1229,7 @@ void Creature::SelectLevel(const CreatureInfo* cinfo, float percentHealth /*= 10
     // health
     SetCreateHealth(health);
     SetMaxHealth(health);
-
-    if (percentHealth == 100.0f)
-        SetHealth(health);
-    else
-        SetHealthPercent(percentHealth);
+    SetHealth(health);
 
     SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, float(health));
 

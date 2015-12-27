@@ -32,6 +32,7 @@
 #include "Util.h"
 #include "DBCStores.h"
 #include "ObjectMgr.h"
+#include "LuaEngine.h"
 
 void WorldSession::HandleAutostoreLootItemOpcode(WorldPacket& recv_data)
 {
@@ -218,4 +219,3 @@ void WorldSession::HandleLootRoll(WorldPacket& recv_data)
 
     sLootMgr.PlayerVote(GetPlayer(), lootedTarget, itemSlot, RollVote(rollType));
 }
-

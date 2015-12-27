@@ -28,6 +28,7 @@
 #include "Log.h"
 #include "Util.h"
 #include "ProgressBar.h"
+#include "LuaEngine.h"
 
 /// Create the Weather object
 Weather::Weather(uint32 zone, WeatherZoneChances const* weatherChances) :
@@ -221,6 +222,8 @@ bool Weather::SendWeatherForPlayersInZone(Map const* _map)
 
     ///- Log the event
     LogWeatherState(state);
+
+    sEluna->OnChange(this, m_zone, state, m_grade);
     return true;
 }
 

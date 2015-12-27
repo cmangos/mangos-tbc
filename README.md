@@ -1,4 +1,4 @@
-# C(ontinued)-MaNGOS -- README [![Build Status](https://travis-ci.org/cmangos/mangos-tbc.svg?branch=master)](https://travis-ci.org/cmangos/mangos-tbc)
+# C(ontinued)-MaNGOS -- README  [![Build Status](https://travis-ci.org/ElunaLuaEngine/ElunaMangosTbc.svg?branch=master)](https://travis-ci.org/ElunaLuaEngine/ElunaMangosTbc)
 
 This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) file for Copyright information
 
@@ -83,6 +83,13 @@ To be able to accomplish these goals, we support and promote:
   * [Contributing Guidelines](CONTRIBUTING.md)
   * Documentation can be found in the doc/ subdirectory and on the github wiki
 
+# ![logo](https://dl.dropbox.com/u/98478761/eluna-DBCA-Designs.png)
+
+  You can find further information about Eluna at the following places:
+  * [Eluna Wiki](http://wiki.emudevs.com/doku.php?id=eluna)
+  * [Eluna Support Forum](http://emudevs.com)
+  * [Eluna Github](https://github.com/ElunaLuaEngine)
+
 ## License
 
   CMaNGOS is free software; you can redistribute it and/or modify
@@ -116,3 +123,7 @@ To be able to accomplish these goals, we support and promote:
   modify this file, you may extend this exception to your version of the
   file, but you are not obligated to do so.  If you do not wish to do
   so, delete this exception statement from your version.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/eluna-dev-mangos/elunacoretbc/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+

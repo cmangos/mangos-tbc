@@ -49,6 +49,7 @@
 #include "CellImpl.h"
 #include "movement/MoveSplineInit.h"
 #include "CreatureLinkingMgr.h"
+#include "LuaEngine.h"
 
 // apply implementation of the singletons
 #include "Policies/Singleton.h"
@@ -149,6 +150,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
 
     m_CreatureSpellCooldowns.clear();
     m_CreatureCategoryCooldowns.clear();
+    DisableReputationGain = false;
 
     SetWalk(true, true);
 }
@@ -165,6 +167,8 @@ Creature::~Creature()
 
 void Creature::AddToWorld()
 {
+    bool inWorld = IsInWorld();
+
     ///- Register the creature for guid lookup
     if (!IsInWorld() && GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
         GetMap()->GetObjectsStore().insert<Creature>(GetObjectGuid(), (Creature*)this);
@@ -175,10 +179,16 @@ void Creature::AddToWorld()
     std::set<uint32> const* mapList = sWorld.getConfigForceLoadMapIds();
     if ((mapList && mapList->find(GetMapId()) != mapList->end()) || (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_ACTIVE))
         SetActiveObjectState(true);
+
+    if (!inWorld)
+        sEluna->OnAddToWorld(this);
 }
 
 void Creature::RemoveFromWorld()
 {
+    if (IsInWorld())
+        sEluna->OnRemoveFromWorld(this);
+
     ///- Remove the creature from the accessor
     if (IsInWorld() && GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
         GetMap()->GetObjectsStore().erase<Creature>(GetObjectGuid(), (Creature*)nullptr);
@@ -1057,6 +1067,19 @@ void Creature::SetLootRecipient(Unit* unit)
         m_lootGroupRecipientId = group->GetId();
 
     ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);           // needed to be sure tapping status is updated
+}
+
+// return true if this creature is tapped by the player or by a member of his group.
+bool Creature::isTappedBy(Player const* player) const
+{
+    if (player == GetOriginalLootRecipient())
+        return true;
+
+    Group const* playerGroup = player->GetGroup();
+    if (!playerGroup || playerGroup != GetGroupLootRecipient()) // if we dont have a group we arent the recipient
+        return false;                                           // if creature doesnt have group bound it means it was solo killed by someone else
+
+    return true;
 }
 
 void Creature::SaveToDB()
@@ -2210,6 +2233,13 @@ bool Creature::HasCategoryCooldown(uint32 spell_id) const
 
     CreatureSpellCooldowns::const_iterator itr = m_CreatureCategoryCooldowns.find(spellInfo->Category);
     return (itr != m_CreatureCategoryCooldowns.end() && time_t(itr->second + (spellInfo->CategoryRecoveryTime / IN_MILLISECONDS)) > time(nullptr));
+}
+
+uint32 Creature::GetCreatureSpellCooldownDelay(uint32 spellId) const
+{
+    CreatureSpellCooldowns::const_iterator itr = m_CreatureSpellCooldowns.find(spellId);
+    time_t t = time(NULL);
+    return uint32(itr != m_CreatureSpellCooldowns.end() && itr->second > t ? itr->second - t : 0);
 }
 
 bool Creature::HasSpellCooldown(uint32 spell_id) const

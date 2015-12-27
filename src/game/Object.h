@@ -62,6 +62,7 @@ class WorldPacket;
 class UpdateData;
 class WorldSession;
 class Creature;
+class GameObject;
 class Player;
 class Unit;
 class Group;
@@ -70,6 +71,7 @@ class UpdateMask;
 class InstanceData;
 class TerrainInfo;
 class TransportInfo;
+class ElunaEventProcessor;
 struct MangosStringLocale;
 class Loot;
 
@@ -214,8 +216,27 @@ class MANGOS_DLL_SPEC Object
 
         ObjectGuid const& GetGuidValue(uint16 index) const { return *reinterpret_cast<ObjectGuid const*>(&GetUInt64Value(index)); }
 
+        Player* ToPlayer() { if (GetTypeId() == TYPEID_PLAYER) return reinterpret_cast<Player*>(this); else return NULL; }
+        Player const* ToPlayer() const { if (GetTypeId() == TYPEID_PLAYER) return reinterpret_cast<Player const*>(this); else return NULL; }
+
+        Creature* ToCreature() { if (GetTypeId() == TYPEID_UNIT) return reinterpret_cast<Creature*>(this); else return NULL; }
+        Creature const* ToCreature() const { if (GetTypeId() == TYPEID_UNIT) return reinterpret_cast<Creature const*>(this); else return NULL; }
+
+        Unit* ToUnit() { if (isType(TYPEMASK_UNIT)) return reinterpret_cast<Unit*>(this); else return NULL; }
+        Unit const* ToUnit() const { if (isType(TYPEMASK_UNIT)) return reinterpret_cast<Unit const*>(this); else return NULL; }
+
+        GameObject* ToGameObject() { if (GetTypeId() == TYPEID_GAMEOBJECT) return reinterpret_cast<GameObject*>(this); else return NULL; }
+        GameObject const* ToGameObject() const { if (GetTypeId() == TYPEID_GAMEOBJECT) return reinterpret_cast<GameObject const*>(this); else return NULL; }
+
+        Corpse* ToCorpse() { if (GetTypeId() == TYPEID_CORPSE) return reinterpret_cast<Corpse*>(this); else return NULL; }
+        Corpse const* ToCorpse() const { if (GetTypeId() == TYPEID_CORPSE) return reinterpret_cast<Corpse const*>(this); else return NULL; }
+
+        DynamicObject* ToDynObject() { if (GetTypeId() == TYPEID_DYNAMICOBJECT) return reinterpret_cast<DynamicObject*>(this); else return NULL; }
+        DynamicObject const* ToDynObject() const { if (GetTypeId() == TYPEID_DYNAMICOBJECT) return reinterpret_cast<DynamicObject const*>(this); else return NULL; }
+
         void SetInt32Value(uint16 index,        int32  value);
         void SetUInt32Value(uint16 index,       uint32  value);
+        void UpdateUInt32Value(uint16 index,    uint32  value);
         void SetUInt64Value(uint16 index, const uint64& value);
         void SetFloatValue(uint16 index,       float   value);
         void SetByteValue(uint16 index, uint8 offset, uint8 value);
@@ -436,9 +457,9 @@ class MANGOS_DLL_SPEC WorldObject : public Object
                 WorldObject* const m_obj;
         };
 
-        virtual ~WorldObject() {}
+        virtual ~WorldObject();
 
-        virtual void Update(uint32 /*update_diff*/, uint32 /*time_diff*/) {}
+        virtual void Update(uint32 update_diff, uint32 /*time_diff*/);
 
         void _Create(uint32 guidlow, HighGuid guidhigh);
 
@@ -591,7 +612,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void SetMap(Map* map);
         Map* GetMap() const { MANGOS_ASSERT(m_currMap); return m_currMap; }
         // used to check all object's GetMap() calls when object is not in world!
-        void ResetMap() { m_currMap = nullptr; }
+        void ResetMap();
 
         // obtain terrain data for map where this object belong...
         TerrainInfo const* GetTerrain() const;
@@ -601,6 +622,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void BuildUpdateData(UpdateDataMapType&) override;
 
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject = false);
+        GameObject* SummonGameObject(uint32 id, float x, float y, float z, float angle, uint32 despwtime);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
         void SetActiveObjectState(bool active);
@@ -610,6 +632,8 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         // ASSERT print helper
         bool PrintCoordinatesError(float x, float y, float z, char const* descr) const;
 
+
+        ElunaEventProcessor* elunaEvents;
     protected:
         explicit WorldObject();
 

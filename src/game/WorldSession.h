@@ -163,6 +163,7 @@ class MANGOS_DLL_SPEC WorldSession
         void SendPetNameInvalid(uint32 error, const std::string& name, DeclinedName* declinedName);
         void SendLfgResult(LfgType type, uint32 entry, LfgMode mode);
         void SendPartyResult(PartyOperation operation, const std::string& member, PartyResult res);
+        void SendGuildInvite(Player* player, bool alreadyInGuild = false);
         void SendAreaTriggerMessage(const char* Text, ...) ATTR_PRINTF(2, 3);
         void SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg = 0);
         void SendQueryTimeResponse();

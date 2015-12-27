@@ -24,6 +24,7 @@
 #include "ItemEnchantmentMgr.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "LuaEngine.h"
 
 void AddItemsSetItem(Player* player, Item* item)
 {
@@ -269,6 +270,13 @@ bool Item::Create(uint32 guidlow, uint32 itemid, Player const* owner)
     return true;
 }
 
+bool Item::IsNotEmptyBag() const
+{
+    if (Bag const* bag = ToBag())
+        return !bag->IsEmpty();
+    return false;
+}
+
 void Item::UpdateDuration(Player* owner, uint32 diff)
 {
     if (!GetUInt32Value(ITEM_FIELD_DURATION))
@@ -278,6 +286,8 @@ void Item::UpdateDuration(Player* owner, uint32 diff)
 
     if (GetUInt32Value(ITEM_FIELD_DURATION) <= diff)
     {
+        // used by eluna
+        sEluna->OnExpire(owner, GetProto());
         owner->DestroyItem(GetBagSlot(), GetSlot(), true);
         return;
     }

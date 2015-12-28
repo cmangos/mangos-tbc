@@ -31,4 +31,7 @@ add_subdirectory(shared)
 add_subdirectory(realmd)
 add_subdirectory(game)
 add_subdirectory(mangosd)
-add_subdirectory(scriptdev2)
+
+if (ENABLE_CPP_SCRIPTS)
+    add_subdirectory(scriptdev2)
+endif()

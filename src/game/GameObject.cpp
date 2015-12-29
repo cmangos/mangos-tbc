@@ -94,7 +94,7 @@ void GameObject::AddToWorld()
     UpdateCollisionState();
 
     if (!inWorld)
-        sEluna->OnAddToWorld(this);
+        ElunaDo(this)->OnAddToWorld(this);
 }
 
 void GameObject::RemoveFromWorld()
@@ -102,7 +102,7 @@ void GameObject::RemoveFromWorld()
     ///- Remove the gameobject from the accessor
     if (IsInWorld())
     {
-        sEluna->OnRemoveFromWorld(this);
+        ElunaDo(this)->OnRemoveFromWorld(this);
 
         // Notify the outdoor pvp script
         if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(GetZoneId()))
@@ -198,7 +198,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
             break;
     }
 
-    sEluna->OnSpawn(this);
+    ElunaDo(this)->OnSpawn(this);
 
     // Notify the battleground or outdoor pvp script
     if (map->IsBattleGroundOrArena())
@@ -224,7 +224,7 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
     }
 
     // used by eluna
-    sEluna->UpdateAI(this, update_diff);
+    ElunaDo(this)->UpdateAI(this, update_diff);
 
     switch (m_lootState)
     {
@@ -1767,14 +1767,14 @@ bool GameObject::IsFriendlyTo(Unit const* unit) const
 void GameObject::SetLootState(LootState state)
 {
     m_lootState = state;
-    sEluna->OnLootStateChanged(this, state);
+    ElunaDo(this)->OnLootStateChanged(this, state);
     UpdateCollisionState();
 }
 
 void GameObject::SetGoState(GOState state)
 {
     SetByteValue(GAMEOBJECT_STATE, 0, state);
-    sEluna->OnGameObjectStateChanged(this, state);
+    ElunaDo(this)->OnGameObjectStateChanged(this, state);
     UpdateCollisionState();
 }
 

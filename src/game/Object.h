@@ -611,6 +611,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
 
         void SetMap(Map* map);
         Map* GetMap() const { MANGOS_ASSERT(m_currMap); return m_currMap; }
+        Map* FindMap() const { return m_currMap; }
         // used to check all object's GetMap() calls when object is not in world!
         void ResetMap();
 
@@ -632,8 +633,6 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         // ASSERT print helper
         bool PrintCoordinatesError(float x, float y, float z, char const* descr) const;
 
-
-        ElunaEventProcessor* elunaEvents;
     protected:
         explicit WorldObject();
 

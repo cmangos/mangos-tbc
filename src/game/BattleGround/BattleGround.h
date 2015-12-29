@@ -373,6 +373,7 @@ class BattleGround
 
         /* Map pointers */
         void SetBgMap(BattleGroundMap* map) { m_Map = map; }
+        Map* FindMap() { return m_Map; }
         BattleGroundMap* GetBgMap()
         {
             MANGOS_ASSERT(m_Map);

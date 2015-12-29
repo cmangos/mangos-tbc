@@ -63,7 +63,7 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
     }
 
     // used by eluna
-    sEluna->OnRepop(GetPlayer());
+    ElunaDo(GetPlayer())->OnRepop(GetPlayer());
 
     // this is spirit release confirm?
     GetPlayer()->RemovePet(PET_SAVE_REAGENTS);

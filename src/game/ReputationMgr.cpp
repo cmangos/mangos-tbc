@@ -226,7 +226,7 @@ void ReputationMgr::Initialize()
 bool ReputationMgr::SetReputation(FactionEntry const* factionEntry, int32 standing, bool incremental)
 {
     // used by eluna
-    sEluna->OnReputationChange(m_player, factionEntry->ID, standing, incremental);
+    ElunaDo(m_player)->OnReputationChange(m_player, factionEntry->ID, standing, incremental);
 
     bool res = false;
     // if spillover definition exists in DB

@@ -823,7 +823,7 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_BOOL_ELUNA_ENABLED, "Eluna.Enabled", true);
     if (reload)
-        sEluna->OnConfigLoad(reload);
+        GlobalEluna(OnConfigLoad(reload));
 
     sLog.outString();
 }
@@ -884,6 +884,10 @@ void World::SetInitialWorldSettings()
     DetectDBCLang();
     sObjectMgr.SetDBCLocaleIndex(GetDefaultDbcLocale());    // Get once for all the locale index of DBC language (console/broadcasts)
 
+    ///- Initialize Lua Engine
+    sLog.outString("Initialize Eluna Lua Engine...");
+    Eluna::Initialize();
+
     sLog.outString("Loading SpellTemplate...");
     sObjectMgr.LoadSpellTemplate();
 
@@ -915,10 +919,6 @@ void World::SetInitialWorldSettings()
     ///- Init highest guids before any guid using table loading to prevent using not initialized guids in some code.
     sObjectMgr.SetHighestGuids();                           // must be after PackInstances() and PackGroupIds()
     sLog.outString();
-
-    ///- Initialize Lua Engine
-    sLog.outString("Initialize Eluna Lua Engine...");
-    Eluna::Initialize();
 
     sLog.outString("Loading Page Texts...");
     sObjectMgr.LoadPageTexts();
@@ -1317,10 +1317,7 @@ void World::SetInitialWorldSettings()
     sAuctionBot.Initialize();
     sLog.outString();
 
-    ///- Run eluna scripts.
-    // in multithread foreach: run scripts
-    sEluna->RunScripts();
-    sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
+    GlobalEluna(OnConfigLoad(false)); // Must be done after Eluna is initialized and scripts have run
     sLog.outString();
 
     sLog.outString("---------------------------------------");
@@ -1444,9 +1441,6 @@ void World::Update(uint32 diff)
     sBattleGroundMgr.Update(diff);
     sOutdoorPvPMgr.Update(diff);
 
-    ///- used by eluna
-    sEluna->OnWorldUpdate(diff);
-
     ///- Delete all characters which have been deleted X days before
     if (m_timers[WUPDATE_DELETECHARS].Passed())
     {
@@ -1485,7 +1479,7 @@ void World::Update(uint32 diff)
     ProcessCliCommands();
 
     ///- Used by Eluna
-    sEluna->OnWorldUpdate(diff);
+    GlobalEluna(OnWorldUpdate(diff));
 
     // cleanup unused GridMap objects as well as VMaps
     sTerrainMgr.Update(diff);
@@ -1784,7 +1778,7 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
         ShutdownMsg(true);
     }
     ///- Used by Eluna
-    sEluna->OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options));
+    GlobalEluna(OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options)));
 }
 
 /// Display a shutdown message to the user(s)
@@ -1828,7 +1822,7 @@ void World::ShutdownCancel()
     DEBUG_LOG("Server %s cancelled.", (m_ShutdownMask & SHUTDOWN_MASK_RESTART ? "restart" : "shutdown"));
 
     ///- Used by Eluna
-    sEluna->OnShutdownCancel();
+    GlobalEluna(OnShutdownCancel());
 }
 
 void World::UpdateSessions(uint32 /*diff*/)

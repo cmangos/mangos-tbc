@@ -648,7 +648,7 @@ void BattleGround::UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player*
 
 void BattleGround::EndBattleGround(Team winner)
 {
-    sEluna->OnBGEnd(this, GetTypeID(), GetInstanceID(), winner);
+    ElunaDo(this)->OnBGEnd(this, GetTypeID(), GetInstanceID(), winner);
 
     this->RemoveFromBGFreeSlotQueue();
 
@@ -1183,7 +1183,7 @@ void BattleGround::StartBattleGround()
     // and it doesn't matter if we call StartBattleGround() more times, because m_BattleGrounds is a map and instance id never changes
     sBattleGroundMgr.AddBattleGround(GetInstanceID(), GetTypeID(), this);
 
-    sEluna->OnBGStart(this, GetTypeID(), GetInstanceID());
+    ElunaDo(this)->OnBGStart(this, GetTypeID(), GetInstanceID());
 }
 
 void BattleGround::AddPlayer(Player* plr)

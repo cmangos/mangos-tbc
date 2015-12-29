@@ -2933,7 +2933,7 @@ void Spell::cast(bool skipCheck)
 
     // used by eluna
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
-        sEluna->OnSpellCast(m_caster->ToPlayer(), this, skipCheck);
+        ElunaDo(m_caster)->OnSpellCast(m_caster->ToPlayer(), this, skipCheck);
 
     FillTargetMap();
 

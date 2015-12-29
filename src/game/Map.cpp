@@ -42,7 +42,7 @@
 
 Map::~Map()
 {
-    sEluna->OnDestroy(this);
+    GlobalEluna(OnDestroy(this));
 
     UnloadAll(true);
 
@@ -53,7 +53,7 @@ Map::~Map()
         m_persistentState->SetUsedByMapState(nullptr);         // field pointer can be deleted after this
 
     if (Instanceable())
-        sEluna->FreeInstanceId(GetInstanceId());
+        GlobalEluna(FreeInstanceId(GetInstanceId()));
 
     delete i_data;
     i_data = nullptr;
@@ -67,6 +67,8 @@ Map::~Map()
 
     delete m_weatherSystem;
     m_weatherSystem = nullptr;
+    delete E;
+    E = nullptr;
 }
 
 void Map::LoadMapAndVMap(int gx, int gy)
@@ -110,7 +112,10 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
 
     m_weatherSystem = new WeatherSystem(this);
 
-    sEluna->OnCreate(this);
+    E = new Eluna(this);
+    E->RunScripts();
+
+    GlobalEluna(OnCreate(this));
 }
 
 void Map::InitVisibilityDistance()
@@ -316,8 +321,8 @@ bool Map::Add(Player* player)
     player->GetViewPoint().Event_AddedToWorld(&(*grid)(cell.CellX(), cell.CellY()));
     UpdateObjectVisibility(player, cell, p);
 
-    sEluna->OnMapChanged(player);
-    sEluna->OnPlayerEnter(this, player);
+    GlobalEluna(OnMapChanged(player));
+    E->OnPlayerEnter(this, player);
 
     if (i_data)
         i_data->OnPlayerEnter(player);
@@ -454,6 +459,8 @@ bool Map::loaded(const GridPair& p) const
 
 void Map::Update(const uint32& t_diff)
 {
+    GetEluna()->current_thread_id = std::this_thread::get_id();
+
     m_dyn_tree.update(t_diff);
 
     /// update worldsessions for existing players
@@ -581,17 +588,18 @@ void Map::Update(const uint32& t_diff)
     if (!m_scriptSchedule.empty())
         ScriptsProcess();
 
-    sEluna->OnUpdate(this, t_diff);
+    GetEluna()->OnUpdate(this, t_diff);
 
     if (i_data)
         i_data->Update(t_diff);
 
     m_weatherSystem->UpdateWeathers(t_diff);
+    GetEluna()->current_thread_id = Eluna::GetMainThreadId();
 }
 
 void Map::Remove(Player* player, bool remove)
 {
-    sEluna->OnPlayerLeave(this, player);
+    GetEluna()->OnPlayerLeave(this, player);
 
     if (i_data)
         i_data->OnPlayerLeave(player);
@@ -999,9 +1007,9 @@ void Map::AddObjectToRemoveList(WorldObject* obj)
     MANGOS_ASSERT(obj->GetMapId() == GetId() && obj->GetInstanceId() == GetInstanceId());
 
     if (Creature* creature = obj->ToCreature())
-        sEluna->OnRemove(creature);
+        ElunaDo(creature)->OnRemove(creature);
     else if (GameObject* gameobject = obj->ToGameObject())
-        sEluna->OnRemove(gameobject);
+        ElunaDo(gameobject)->OnRemove(gameobject);
 
     obj->CleanupsBeforeDelete();                            // remove or simplify at least cross referenced links
 
@@ -1186,7 +1194,7 @@ void Map::CreateInstanceData(bool load)
     if (i_data != nullptr)
         return;
 
-    i_data = sEluna->GetInstanceData(this);
+    i_data = GetEluna()->GetInstanceData(this);
 
     if (!i_data)
     {

@@ -2223,8 +2223,9 @@ uint32 ScriptMgr::GetEventIdScriptId(uint32 eventId) const
 CreatureAI* ScriptMgr::GetCreatureAI(Creature* pCreature)
 {
     // used by eluna
-    if (CreatureAI* luaAI = sEluna->GetAI(pCreature))
-        return luaAI;
+    if (pCreature && pCreature->FindMap())
+        if (CreatureAI* luaAI = pCreature->FindMap()->GetEluna()->GetAI(pCreature))
+            return luaAI;
 
     if (!m_pGetCreatureAI)
         return nullptr;
@@ -2242,7 +2243,7 @@ InstanceData* ScriptMgr::CreateInstanceData(Map* pMap)
 
 bool ScriptMgr::OnGossipHello(Player* pPlayer, Creature* pCreature)
 {
-    if (sEluna->OnGossipHello(pPlayer, pCreature))
+    if (ElunaIf(pPlayer, OnGossipHello(pPlayer, pCreature)))
         return true;
 
     return m_pOnGossipHello != nullptr && m_pOnGossipHello(pPlayer, pCreature);
@@ -2250,7 +2251,7 @@ bool ScriptMgr::OnGossipHello(Player* pPlayer, Creature* pCreature)
 
 bool ScriptMgr::OnGossipHello(Player* pPlayer, GameObject* pGameObject)
 {
-    if (sEluna->OnGossipHello(pPlayer, pGameObject))
+    if (ElunaIf(pPlayer, OnGossipHello(pPlayer, pGameObject)))
         return true;
 
     return m_pOnGOGossipHello != nullptr && m_pOnGOGossipHello(pPlayer, pGameObject);
@@ -2260,12 +2261,12 @@ bool ScriptMgr::OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 send
 {
     if (code)
     {
-        if (sEluna->OnGossipSelectCode(pPlayer, pCreature, sender, action, code))
+        if (ElunaIf(pPlayer, OnGossipSelectCode(pPlayer, pCreature, sender, action, code)))
             return true;
     }
     else
     {
-        if (sEluna->OnGossipSelect(pPlayer, pCreature, sender, action))
+        if (ElunaIf(pPlayer, OnGossipSelect(pPlayer, pCreature, sender, action)))
             return true;
     }
 
@@ -2279,12 +2280,12 @@ bool ScriptMgr::OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 
 {
     if (code)
     {
-        if (sEluna->OnGossipSelectCode(pPlayer, pGameObject, sender, action, code))
+        if (ElunaIf(pPlayer, OnGossipSelectCode(pPlayer, pGameObject, sender, action, code)))
             return true;
     }
     else
     {
-        if (sEluna->OnGossipSelect(pPlayer, pGameObject, sender, action))
+        if (ElunaIf(pPlayer, OnGossipSelect(pPlayer, pGameObject, sender, action)))
             return true;
     }
 
@@ -2296,7 +2297,7 @@ bool ScriptMgr::OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 
 
 bool ScriptMgr::OnQuestAccept(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
 {
-    if (sEluna->OnQuestAccept(pPlayer, pCreature, pQuest))
+    if (ElunaIf(pPlayer, OnQuestAccept(pPlayer, pCreature, pQuest)))
         return true;
 
     return m_pOnQuestAccept != nullptr && m_pOnQuestAccept(pPlayer, pCreature, pQuest);
@@ -2304,7 +2305,7 @@ bool ScriptMgr::OnQuestAccept(Player* pPlayer, Creature* pCreature, Quest const*
 
 bool ScriptMgr::OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
 {
-    if (sEluna->OnQuestAccept(pPlayer, pGameObject, pQuest))
+    if (ElunaIf(pPlayer, OnQuestAccept(pPlayer, pGameObject, pQuest)))
         return true;
 
     return m_pOnGOQuestAccept != nullptr && m_pOnGOQuestAccept(pPlayer, pGameObject, pQuest);
@@ -2312,7 +2313,7 @@ bool ScriptMgr::OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest co
 
 bool ScriptMgr::OnQuestAccept(Player* pPlayer, Item* pItem, Quest const* pQuest)
 {
-    if (sEluna->OnQuestAccept(pPlayer, pItem, pQuest))
+    if (ElunaIf(pPlayer, OnQuestAccept(pPlayer, pItem, pQuest)))
         return true;
 
     return m_pOnItemQuestAccept != nullptr && m_pOnItemQuestAccept(pPlayer, pItem, pQuest);
@@ -2331,8 +2332,9 @@ bool ScriptMgr::OnQuestRewarded(Player* pPlayer, GameObject* pGameObject, Quest 
 uint32 ScriptMgr::GetDialogStatus(Player* pPlayer, Creature* pCreature)
 {
     // used by eluna
-    if (uint32 dialogId = sEluna->GetDialogStatus(pPlayer, pCreature))
-        return dialogId;
+    if (pPlayer && pPlayer->FindMap())
+        if (uint32 dialogId = pPlayer->FindMap()->GetEluna()->GetDialogStatus(pPlayer, pCreature))
+            return dialogId;
 
     if (!m_pGetNPCDialogStatus)
         return DIALOG_STATUS_UNDEFINED;
@@ -2343,8 +2345,9 @@ uint32 ScriptMgr::GetDialogStatus(Player* pPlayer, Creature* pCreature)
 uint32 ScriptMgr::GetDialogStatus(Player* pPlayer, GameObject* pGameObject)
 {
     // used by eluna
-    if (uint32 dialogId = sEluna->GetDialogStatus(pPlayer, pGameObject))
-        return dialogId;
+    if (pPlayer && pPlayer->FindMap())
+        if (uint32 dialogId = pPlayer->FindMap()->GetEluna()->GetDialogStatus(pPlayer, pGameObject))
+            return dialogId;
 
     if (!m_pGetGODialogStatus)
         return DIALOG_STATUS_UNDEFINED;
@@ -2354,7 +2357,7 @@ uint32 ScriptMgr::GetDialogStatus(Player* pPlayer, GameObject* pGameObject)
 
 bool ScriptMgr::OnGameObjectUse(Player* pPlayer, GameObject* pGameObject)
 {
-    if (sEluna->OnGameObjectUse(pPlayer, pGameObject))
+    if (ElunaIf(pPlayer, OnGameObjectUse(pPlayer, pGameObject)))
         return true;
 
     return m_pOnGOUse != nullptr && m_pOnGOUse(pPlayer, pGameObject);
@@ -2362,7 +2365,7 @@ bool ScriptMgr::OnGameObjectUse(Player* pPlayer, GameObject* pGameObject)
 
 bool ScriptMgr::OnItemUse(Player* pPlayer, Item* pItem, SpellCastTargets const& targets)
 {
-    if (!sEluna->OnUse(pPlayer, pItem, targets))
+    if (!ElunaIf(pPlayer, OnUse(pPlayer, pItem, targets)))
         return true;
 
     return m_pOnItemUse != nullptr && m_pOnItemUse(pPlayer, pItem, targets);
@@ -2370,7 +2373,7 @@ bool ScriptMgr::OnItemUse(Player* pPlayer, Item* pItem, SpellCastTargets const& 
 
 bool ScriptMgr::OnAreaTrigger(Player* pPlayer, AreaTriggerEntry const* atEntry)
 {
-    if (sEluna->OnAreaTrigger(pPlayer, atEntry))
+    if (ElunaIf(pPlayer, OnAreaTrigger(pPlayer, atEntry)))
         return true;
 
     return m_pOnAreaTrigger != nullptr && m_pOnAreaTrigger(pPlayer, atEntry);
@@ -2383,7 +2386,7 @@ bool ScriptMgr::OnProcessEvent(uint32 eventId, Object* pSource, Object* pTarget,
 
 bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget, ObjectGuid originalCasterGuid)
 {
-    if (sEluna->OnDummyEffect(pCaster, spellId, effIndex, pTarget))
+    if (ElunaIf(pCaster, OnDummyEffect(pCaster, spellId, effIndex, pTarget)))
         return true;
 
     return m_pOnEffectDummyCreature != nullptr && m_pOnEffectDummyCreature(pCaster, spellId, effIndex, pTarget, originalCasterGuid);
@@ -2391,7 +2394,7 @@ bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex ef
 
 bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget, ObjectGuid originalCasterGuid)
 {
-    if (sEluna->OnDummyEffect(pCaster, spellId, effIndex, pTarget))
+    if (ElunaIf(pCaster, OnDummyEffect(pCaster, spellId, effIndex, pTarget)))
         return true;
 
     return m_pOnEffectDummyGO != nullptr && m_pOnEffectDummyGO(pCaster, spellId, effIndex, pTarget, originalCasterGuid);
@@ -2399,7 +2402,7 @@ bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex ef
 
 bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget, ObjectGuid originalCasterGuid)
 {
-    if (sEluna->OnDummyEffect(pCaster, spellId, effIndex, pTarget))
+    if (ElunaIf(pCaster, OnDummyEffect(pCaster, spellId, effIndex, pTarget)))
         return true;
 
     return m_pOnEffectDummyItem != nullptr && m_pOnEffectDummyItem(pCaster, spellId, effIndex, pTarget, originalCasterGuid);

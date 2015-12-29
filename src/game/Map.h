@@ -55,6 +55,7 @@ class BattleGround;
 class GridMap;
 class GameObjectModel;
 class WeatherSystem;
+class Eluna;
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
 #if defined( __GNUC__ )
@@ -399,6 +400,11 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
 
         // WeatherSystem
         WeatherSystem* m_weatherSystem;
+
+    protected:
+        Eluna* E;
+    public:
+        Eluna* GetEluna() const { return E; }
 };
 
 class MANGOS_DLL_SPEC WorldMap : public Map

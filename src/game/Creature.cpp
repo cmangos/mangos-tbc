@@ -181,13 +181,13 @@ void Creature::AddToWorld()
         SetActiveObjectState(true);
 
     if (!inWorld)
-        sEluna->OnAddToWorld(this);
+        ElunaDo(this)->OnAddToWorld(this);
 }
 
 void Creature::RemoveFromWorld()
 {
     if (IsInWorld())
-        sEluna->OnRemoveFromWorld(this);
+        ElunaDo(this)->OnRemoveFromWorld(this);
 
     ///- Remove the creature from the accessor
     if (IsInWorld() && GetObjectGuid().GetHigh() == HIGHGUID_UNIT)

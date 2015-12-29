@@ -40,7 +40,8 @@ extern int m_ServiceStatus;
 /// Heartbeat for the World
 void WorldRunnable::run()
 {
-    sEluna->OnStartup();
+    Eluna::ResetMainThreadId();
+    GlobalEluna(OnStartup());
 
     ///- Init new SQL thread for the world database
     WorldDatabase.ThreadStart();                            // let thread do safe mySQL requests (one connection call enough)
@@ -80,7 +81,7 @@ void WorldRunnable::run()
 #endif
     }
 
-    sEluna->OnShutdown();
+    GlobalEluna(OnShutdown());
 
     sWorld.CleanupsBeforeStop();
 

@@ -929,7 +929,7 @@ void WorldSession::HandleGuildBankDepositMoney(WorldPacket& recv_data)
     pGuild->LogBankEvent(GUILD_BANK_LOG_DEPOSIT_MONEY, uint8(0), GetPlayer()->GetGUIDLow(), money);
 
     // used by eluna
-    sEluna->OnMemberDepositMoney(pGuild, GetPlayer(), money);
+    GlobalEluna(OnMemberDepositMoney(pGuild, GetPlayer(), money));
 
     pGuild->DisplayGuildBankTabsInfo(this);
     pGuild->DisplayGuildBankContent(this, 0);

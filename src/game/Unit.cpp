@@ -298,7 +298,7 @@ void Unit::Update(uint32 update_diff, uint32 p_time)
     }else
     m_AurasCheck -= p_time;*/
 
-    elunaEvents->Update(update_diff);
+    ElunaDo(this)->GetEventMgr()->Update(p_time, this);
 
     // WARNING! Order of execution here is important, do not change.
     // Spells must be processed with event system BEFORE they go to _UpdateSpells.
@@ -777,7 +777,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         {
             // used by eluna
             if (Player* killed = pVictim->ToPlayer())
-                sEluna->OnPlayerKilledByCreature(killer, killed);
+                ElunaDo(this)->OnPlayerKilledByCreature(killer, killed);
         }
 
         // Call AI OwnerKilledUnit (for any current summoned minipet/guardian/protector)
@@ -836,7 +836,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
                 }
 
                 // used by eluna
-                sEluna->OnPVPKill(player_tap, playerVictim);
+                ElunaDo(this)->OnPVPKill(player_tap, playerVictim);
             }
         }
         else                                                // Killed creature
@@ -1055,7 +1055,7 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
             bg->HandleKillUnit(victim, responsiblePlayer);
 
         // used by eluna
-        sEluna->OnCreatureKill(responsiblePlayer, victim);
+        ElunaDo(this)->OnCreatureKill(responsiblePlayer, victim);
     }
     // Notify the outdoor pvp script
     if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(responsiblePlayer ? responsiblePlayer->GetCachedZoneId() : GetZoneId()))
@@ -6930,7 +6930,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
 
     // used by eluna
     if (GetTypeId() == TYPEID_PLAYER)
-        sEluna->OnPlayerEnterCombat(ToPlayer(), enemy);
+        ElunaDo(this)->OnPlayerEnterCombat(ToPlayer(), enemy);
 }
 
 void Unit::ClearInCombat()
@@ -6943,7 +6943,7 @@ void Unit::ClearInCombat()
 
     // used by eluna
     if (GetTypeId() == TYPEID_PLAYER)
-        sEluna->OnPlayerLeaveCombat(ToPlayer());
+        ElunaDo(this)->OnPlayerLeaveCombat(ToPlayer());
 
     // Player's state will be cleared in Player::UpdateContestedPvP
     if (GetTypeId() == TYPEID_UNIT)

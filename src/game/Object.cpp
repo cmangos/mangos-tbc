@@ -959,7 +959,6 @@ void Object::ForceValuesUpdateAtIndex(uint32 index)
 }
 
 WorldObject::WorldObject() :
-    elunaEvents(NULL),
     m_transportInfo(nullptr), m_currMap(nullptr),
     m_mapId(0), m_InstanceId(0),
     m_isActiveObject(false)
@@ -968,8 +967,6 @@ WorldObject::WorldObject() :
 
 WorldObject::~WorldObject()
 {
-    delete elunaEvents;
-    elunaEvents = NULL;
 }
 
 void WorldObject::CleanupsBeforeDelete()
@@ -979,7 +976,7 @@ void WorldObject::CleanupsBeforeDelete()
 
 void WorldObject::Update(uint32 update_diff, uint32 /*time_diff*/)
 {
-    elunaEvents->Update(update_diff);
+    ElunaDo(this)->GetEventMgr()->Update(update_diff, this);
 }
 
 void WorldObject::_Create(uint32 guidlow, HighGuid guidhigh)
@@ -1578,16 +1575,12 @@ void WorldObject::SetMap(Map* map)
     // lets save current map's Id/instanceId
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
-
-    delete elunaEvents;
-    // On multithread replace this with a pointer to map's Eluna pointer stored in a map
-    elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
 }
 
 void WorldObject::ResetMap()
 {
-    delete elunaEvents;
-    elunaEvents = NULL;
+    // Removes all timed events related to the object from map on map change
+    ElunaDo(this)->GetEventMgr()->Delete(GET_GUID());
 
     m_currMap = NULL;
 }
@@ -1639,7 +1632,7 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
     if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->AI())
         ((Creature*)this)->AI()->JustSummoned(pCreature);
     if (Unit* summoner = ToUnit())
-        sEluna->OnSummoned(pCreature, summoner);
+        ElunaDo(summoner)->OnSummoned(pCreature, summoner);
 
     // Creature Linking, Initial load is handled like respawn
     if (pCreature->IsLinkingEventTrigger())

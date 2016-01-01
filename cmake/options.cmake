@@ -33,6 +33,7 @@ message(STATUS
     TBB_USE_EXTERNAL        Use external TBB
     USE_STD_MALLOC          Use standard malloc instead of TBB
     ACE_USE_EXTERNAL        Use external ACE
+    ENABLE_CPP_SCRIPTS      Build C++ scripting library
   To set an option simply type -D<OPTION>=<VALUE> after 'cmake <srcs>'.
   Also, you can specify the generator with -G. see 'cmake --help' for more details
   For example: cmake .. -DDEBUG=1 -DCMAKE_INSTALL_PREFIX=/opt/mangos"

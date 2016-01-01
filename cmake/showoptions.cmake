@@ -35,6 +35,12 @@ else()
   message(STATUS "Build in debug-mode   : No  (default)")
 endif()
 
+if(ENABLE_CPP_SCRIPTS)
+  message(STATUS "Build C++ script lib  : Yes (default)")
+else()
+  message(STATUS "Build C++ script lib  : No")
+endif()
+
 # if(SQL)
 #   message(STATUS "Install SQL-files     : Yes")
 # else()

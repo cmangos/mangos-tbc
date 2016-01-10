@@ -85,7 +85,7 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     _player(nullptr), m_Socket(sock), _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
     m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
-    m_latency(0), m_clientTimeDelay(0), m_tutorialState(TUTORIALDATA_UNCHANGED)
+    m_latency(0), m_clientTimeDelay(0), m_tutorialState(TUTORIALDATA_UNCHANGED), m_bIsBot(false)
 {
     if (sock)
     {
@@ -308,7 +308,7 @@ bool WorldSession::Update(PacketFilter& updater)
 
     // check if we are safe to proceed with logout
     // logout procedure should happen only in World::UpdateSessions() method!!!
-    if (updater.ProcessLogout())
+    if (!m_bIsBot && updater.ProcessLogout())
     {
         ///- If necessary, log the player out
         time_t currTime = time(nullptr);
@@ -508,8 +508,10 @@ void WorldSession::LogoutPlayer(bool Save)
 /// Kick a player out of the World
 void WorldSession::KickPlayer()
 {
-    if (m_Socket)
-        m_Socket->CloseSocket();
+	if (m_Socket)
+		m_Socket->CloseSocket();
+    else
+        m_bIsBot = false;		// TODO: we should implement this in a nicer way.. but for now it seems to be okay
 }
 
 /// Cancel channeling handler

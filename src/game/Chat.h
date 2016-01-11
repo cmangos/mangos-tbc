@@ -252,8 +252,8 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleGMListIngameCommand(char* args);
         bool HandleGMVisibleCommand(char* args);
 		
-		bool HandleLUALoadScript(char* args);
-		bool HandleLUALoadMapScripts(char* args);
+	bool HandleLUALoadScript(char* args);
+	bool HandleLUALoadMapScripts(char* args);
 
         bool HandleGoCommand(char* args);
         bool HandleGoCreatureCommand(char* args);

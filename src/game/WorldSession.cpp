@@ -508,8 +508,8 @@ void WorldSession::LogoutPlayer(bool Save)
 /// Kick a player out of the World
 void WorldSession::KickPlayer()
 {
-	if (m_Socket)
-		m_Socket->CloseSocket();
+    if (m_Socket)
+        m_Socket->CloseSocket();
     else
         m_bIsBot = false;		// TODO: we should implement this in a nicer way.. but for now it seems to be okay
 }

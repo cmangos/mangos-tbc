@@ -43,6 +43,9 @@
     <Filter Include="LuaEngine\Methods">
       <UniqueIdentifier>{ee816624-bdb0-47a5-8efc-f127b827f609}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PlayerBot">
+      <UniqueIdentifier>{824ef00d-c090-41c4-9efe-951dbde9be25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\game\AccountMgr.cpp">
@@ -580,6 +583,12 @@
     <ClCompile Include="..\..\src\game\LuaEngine\InstanceHooks.cpp" />
     <ClCompile Include="..\..\src\game\LuaEngine\TableMgr.cpp">
       <Filter>LuaEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\PlayerBot\PlayerBotMgr.cpp">
+      <Filter>PlayerBot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\PlayerBot\PlayerBot.cpp">
+      <Filter>PlayerBot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1147,6 +1156,12 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\LuaEngine\TableMgr.h">
       <Filter>LuaEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\PlayerBot\PlayerBotMgr.h">
+      <Filter>PlayerBot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\PlayerBot\PlayerBot.h">
+      <Filter>PlayerBot</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

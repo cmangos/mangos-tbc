@@ -254,8 +254,8 @@ ChatCommand* ChatHandler::getCommandTable()
 
     static ChatCommand luaCommandTable[] =
     {
-        { "loadmapscripts", SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLUALoadMapScripts,          "", nullptr },
-        { "loadscript",     SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLUALoadScript,              "", nullptr },
+        { "loadmapscripts", SEC_ADMINISTRATOR,  true, &ChatHandler::HandleLUALoadMapScripts,          "", nullptr },
+        { "loadscript",     SEC_ADMINISTRATOR,  true, &ChatHandler::HandleLUALoadScript,              "", nullptr },
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 	
@@ -716,7 +716,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "learn",          SEC_MODERATOR,      false, nullptr,                                        "", learnCommandTable    },
         { "list",           SEC_ADMINISTRATOR,  true,  nullptr,                                        "", listCommandTable     },
         { "lookup",         SEC_MODERATOR,      true,  nullptr,                                        "", lookupCommandTable   },
-        { "lua",            SEC_PLAYER,         true,  nullptr,                                        "", luaCommandTable      },		
+        { "lua",            SEC_ADMINISTRATOR,  true,  nullptr,                                        "", luaCommandTable      },		
         { "modify",         SEC_MODERATOR,      false, nullptr,                                        "", modifyCommandTable   },
         { "npc",            SEC_MODERATOR,      false, nullptr,                                        "", npcCommandTable      },
         { "pool",           SEC_GAMEMASTER,     true,  nullptr,                                        "", poolCommandTable     },

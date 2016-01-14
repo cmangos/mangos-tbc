@@ -9,10 +9,6 @@ typedef std::unordered_map<uint8, PlayerBot> PlayerBotMap;
 class PlayerBotMgr
 {
     public:
-        PlayerBotMgr() { };
-        ~PlayerBotMgr() { };
-        void UpdateAI(const uint32 diff);
-
         uint32 CreateBot(uint32 accountId);
         bool DestroyBot(uint32 botId);
 

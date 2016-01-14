@@ -49,14 +49,6 @@ void PlayerBot::InitializeSession(uint32 accountId)
     m_session = session;
 }
 
-void PlayerBot::UpdateAI(const uint32 diff)
-{
-    if (!IsLoggedIn())
-        return;
-
-    // do stuff
-}
-
 bool PlayerBot::Login(ObjectGuid characterId)
 {
     if (IsLoggedIn())

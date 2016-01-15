@@ -35,9 +35,9 @@ void PlayerBotMgr::LogoutAllBots()
     }
 }
 
-PlayerBotMap* PlayerBotMgr::GetBots()
+PlayerBotMap& PlayerBotMgr::GetBots()
 {
-    return &m_playerBots;
+    return m_playerBots;
 }
 
 uint32 PlayerBotMgr::CreateBot(uint32 accountId)

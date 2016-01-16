@@ -381,10 +381,10 @@ bool ChatHandler::HandleDestroyBotSessionCommand(char* args)
 
 bool ChatHandler::HandleListBotCommand(char* args)
 {
-    PlayerBotMap* map = sPlayerBotMgr.GetBots();
+    PlayerBotMap map = sPlayerBotMgr.GetBots();
 
-    PSendSysMessage("%u bots active.", map->size());
-    for (auto itr = map->begin(); itr != map->end(); itr++)
+    PSendSysMessage("%u bots active.", map.size());
+    for (auto itr = map.begin(); itr != map.end(); itr++)
     {
         if (!itr->second.GetPlayer())
             continue;

@@ -340,6 +340,8 @@
     <ClCompile Include="..\..\src\game\AccountMgr.cpp" />
     <ClCompile Include="..\..\src\game\AddonHandler.cpp" />
     <ClCompile Include="..\..\src\game\AggressorAI.cpp" />
+    <ClCompile Include="..\..\src\game\AntiCheat.cpp" />
+    <ClCompile Include="..\..\src\game\AntiCheat_speed.cpp" />
     <ClCompile Include="..\..\src\game\ArenaTeam.cpp" />
     <ClCompile Include="..\..\src\game\ArenaTeamHandler.cpp" />
     <ClCompile Include="..\..\src\game\AuctionHouseBot\AuctionHouseBot.cpp" />
@@ -368,6 +370,7 @@
     <ClCompile Include="..\..\src\game\CombatHandler.cpp" />
     <ClCompile Include="..\..\src\game\ConfusedMovementGenerator.cpp" />
     <ClCompile Include="..\..\src\game\Corpse.cpp" />
+    <ClCompile Include="..\..\src\game\CPlayer.cpp" />
     <ClCompile Include="..\..\src\game\Creature.cpp" />
     <ClCompile Include="..\..\src\game\CreatureAI.cpp" />
     <ClCompile Include="..\..\src\game\CreatureAIRegistry.cpp" />
@@ -510,6 +513,8 @@
     <ClInclude Include="..\..\src\game\AccountMgr.h" />
     <ClInclude Include="..\..\src\game\AddonHandler.h" />
     <ClInclude Include="..\..\src\game\AggressorAI.h" />
+    <ClInclude Include="..\..\src\game\AntiCheat.h" />
+    <ClInclude Include="..\..\src\game\AntiCheat_speed.h" />
     <ClInclude Include="..\..\src\game\ArenaTeam.h" />
     <ClInclude Include="..\..\src\game\AuctionHouseBot\AuctionHouseBot.h" />
     <ClInclude Include="..\..\src\game\AuctionHouseMgr.h" />
@@ -533,6 +538,7 @@
     <ClInclude Include="..\..\src\game\Chat.h" />
     <ClInclude Include="..\..\src\game\ConfusedMovementGenerator.h" />
     <ClInclude Include="..\..\src\game\Corpse.h" />
+    <ClInclude Include="..\..\src\game\CPlayer.h" />
     <ClInclude Include="..\..\src\game\Creature.h" />
     <ClInclude Include="..\..\src\game\CreatureAI.h" />
     <ClInclude Include="..\..\src\game\CreatureAIImpl.h" />
@@ -617,6 +623,7 @@
     <ClInclude Include="..\..\src\game\ReputationMgr.h" />
     <ClInclude Include="..\..\src\game\ScriptMgr.h" />
     <ClInclude Include="..\..\src\game\SharedDefines.h" />
+    <ClInclude Include="..\..\src\game\Singleton.h" />
     <ClInclude Include="..\..\src\game\SkillDiscovery.h" />
     <ClInclude Include="..\..\src\game\SkillExtraItems.h" />
     <ClInclude Include="..\..\src\game\SocialMgr.h" />

@@ -37,6 +37,12 @@
     <Filter Include="BattleGround">
       <UniqueIdentifier>{0af4d063-6d01-4546-a429-59bd828ab270}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AntiCheat">
+      <UniqueIdentifier>{2f5e89b6-111b-477e-99be-c8e03fb6a093}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CPlayer">
+      <UniqueIdentifier>{1ea7bc22-e9ee-4004-ab53-cbc294c38c87}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\game\AccountMgr.cpp">
@@ -526,6 +532,15 @@
     <ClCompile Include="..\..\src\game\AddonHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_speed.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\CPlayer.cpp">
+      <Filter>CPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -1002,6 +1017,16 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\AddonHandler.h">
       <Filter>World/Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_speed.h">
+      <Filter>AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\Singleton.h" />
+    <ClInclude Include="..\..\src\game\CPlayer.h">
+      <Filter>CPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat.h">
+      <Filter>AntiCheat</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,10 +1,14 @@
 #include "CPlayer.h"
+#include "SpellAuras.h"
+#include "SpellMgr.h"
+#include "Spell.h"
 #include "AntiCheat.h"
 #include "AntiCheat_speed.h"
 #include "AntiCheat_teleport.h"
 #include "AntiCheat_fly.h"
 #include "AntiCheat_jump.h"
 #include "AntiCheat_gravity.h"
+#include "AntiCheat_waterwalking.h"
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
@@ -13,6 +17,7 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
     new AntiCheat_fly(this);
     new AntiCheat_jump(this);
     new AntiCheat_gravity(this);
+    new AntiCheat_waterwalking(this);
 
     m_GMFly = false;
 }
@@ -70,4 +75,35 @@ void CPlayer::CUpdate(uint32 update_diff, uint32 p_time)
     SendSteamMessages(MessageTypes(CHAT_BOX), BoxChat);
     SendSteamMessages(MessageTypes(CHAT_WIDE), WideChat);
     SendSteamMessages(MessageTypes(CHAT_BOX | CHAT_WIDE), BothChat);
+}
+
+bool CPlayer::AddAura(uint32 spellid)
+{
+    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellid);
+    if (!spellInfo)
+        return false;
+
+    if (!IsSpellAppliesAura(spellInfo, (1 << EFFECT_INDEX_0) | (1 << EFFECT_INDEX_1) | (1 << EFFECT_INDEX_2)) &&
+        !IsSpellHaveEffect(spellInfo, SPELL_EFFECT_PERSISTENT_AREA_AURA))
+    {
+        return false;
+    }
+
+    SpellAuraHolder* holder = CreateSpellAuraHolder(spellInfo, this, this);
+
+    for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        uint8 eff = spellInfo->Effect[i];
+        if (eff >= TOTAL_SPELL_EFFECTS)
+            continue;
+        if (IsAreaAuraEffect(eff) ||
+            eff == SPELL_EFFECT_APPLY_AURA ||
+            eff == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+        {
+            Aura* aur = CreateAura(spellInfo, SpellEffectIndex(i), nullptr, holder, this);
+            holder->AddAura(aur, SpellEffectIndex(i));
+        }
+    }
+
+    this->AddSpellAuraHolder(holder);
 }

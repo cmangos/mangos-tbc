@@ -15,10 +15,10 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
+    std::stringstream& ss = m_Player->ToCPlayer()->BoxChat;
+
     if (opcode == MSG_MOVE_JUMP || opcode == MSG_MOVE_HEARTBEAT)
     {
-        std::stringstream& ss = m_Player->ToCPlayer()->BoxChat;
-
         ss << "cosAngle: " << m_MoveInfo[0].GetJumpInfo().cosAngle << "\n";
         ss << "sinAngle: " << m_MoveInfo[0].GetJumpInfo().sinAngle << "\n";
         ss << "velocity: " << m_MoveInfo[0].GetJumpInfo().velocity << "\n";

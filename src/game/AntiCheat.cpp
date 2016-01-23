@@ -1,10 +1,16 @@
 #include "AntiCheat.h"
+#include "CPlayer.h"
 
 AntiCheat::AntiCheat(Player* player)
 {
     m_Player = player;
-    m_MoveInfo = MovementInfo();
+
+    for (uint8 i = 0; i < 2; ++i)
+        m_MoveInfo[i] = MovementInfo();
+
     m_Initialized = false;
+
+    player->ToCPlayer()->AddAntiCheatModule(this);
 }
 
 bool AntiCheat::Initialized()
@@ -23,9 +29,9 @@ bool AntiCheat::isFlying(MovementInfo& moveInfo)
     return moveInfo.HasMovementFlag(MOVEFLAG_FLYING) || moveInfo.HasMovementFlag(MOVEFLAG_FLYING2);
 }
 
-bool AntiCheat::isFlying(MovementInfo& moveInfo1, MovementInfo& moveInfo2)
+bool AntiCheat::isFlying()
 {
-    return isFlying(moveInfo1) || isFlying(moveInfo2);
+    return isFlying(m_MoveInfo[0]) || isFlying(m_MoveInfo[1]);
 }
 
 bool AntiCheat::isWalking(MovementInfo& moveInfo)
@@ -33,40 +39,49 @@ bool AntiCheat::isWalking(MovementInfo& moveInfo)
     return moveInfo.HasMovementFlag(MOVEFLAG_WALK_MODE);
 }
 
-bool AntiCheat::isWalking(MovementInfo& moveInfo1, MovementInfo& moveInfo2)
+bool AntiCheat::isWalking()
 {
-    return isWalking(moveInfo1) || isWalking(moveInfo2);
+    return isWalking(m_MoveInfo[0]) || isWalking(m_MoveInfo[1]);
 }
 
-float AntiCheat::GetDistance(MovementInfo& moveInfo1, MovementInfo& moveInfo2)
+bool AntiCheat::isFalling(MovementInfo& moveInfo)
 {
-    return GetDistance(moveInfo1, moveInfo2, isFlying(moveInfo1, moveInfo2));
+    return moveInfo.HasMovementFlag(MOVEFLAG_FALLING) || moveInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR) || moveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL);
 }
 
-float AntiCheat::GetDistance(MovementInfo& moveInfo1, MovementInfo& moveInfo2, bool threed)
+bool AntiCheat::isFalling()
 {
-    return threed ? GetDistance3D(moveInfo1, moveInfo2) : GetDistance2D(moveInfo1, moveInfo2);
+    return isFalling(m_MoveInfo[0]) || isFalling(m_MoveInfo[1]);
 }
 
-float AntiCheat::GetDistance2D(MovementInfo& moveInfo1, MovementInfo& moveInfo2)
+float AntiCheat::GetDistance()
+{
+    return GetDistance(isFlying());
+}
+
+float AntiCheat::GetDistance(bool threed)
+{
+    return threed ? GetDistance3D() : GetDistance2D();
+}
+
+float AntiCheat::GetDistance2D()
 {
     return
-        sqrt(pow(moveInfo1.GetPos()->x - moveInfo2.GetPos()->x, 2) +
-            pow(moveInfo1.GetPos()->y - moveInfo2.GetPos()->y, 2));
+        sqrt(pow(m_MoveInfo[0].GetPos()->x - m_MoveInfo[1].GetPos()->x, 2) +
+            pow(m_MoveInfo[0].GetPos()->y - m_MoveInfo[1].GetPos()->y, 2));
 }
 
-float AntiCheat::GetDistance3D(MovementInfo& moveInfo1, MovementInfo& moveInfo2)
+float AntiCheat::GetDistance3D()
 {
     return
-        sqrt(pow(moveInfo1.GetPos()->x - moveInfo2.GetPos()->x, 2) +
-            pow(moveInfo1.GetPos()->y - moveInfo2.GetPos()->y, 2) +
-            pow(moveInfo1.GetPos()->z - moveInfo2.GetPos()->z, 2));
+        sqrt(pow(m_MoveInfo[0].GetPos()->x - m_MoveInfo[1].GetPos()->x, 2) +
+            pow(m_MoveInfo[0].GetPos()->y - m_MoveInfo[1].GetPos()->y, 2) +
+            pow(m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z, 2));
 }
 
 float AntiCheat::GetSpeed(MovementInfo& moveInfo)
 {
     float speed = 0;
-
 
     bool back = moveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
 
@@ -82,13 +97,35 @@ float AntiCheat::GetSpeed(MovementInfo& moveInfo)
     return speed;
 }
 
-float AntiCheat::GetSpeed(MovementInfo& moveInfo1, MovementInfo& moveInfo2, bool high)
+float AntiCheat::GetSpeed(bool high)
 {
-    float speed1 = GetSpeed(moveInfo1);
-    float speed2 = GetSpeed(moveInfo2);
+    float speed[2];
+    for (uint8 i = 0; i < 2; ++i)
+        speed[i] = GetSpeed(m_MoveInfo[i]);
 
     if (high)
-        return speed1 > speed2 ? speed1 : speed2;
+        return speed[0] > speed[1] ? speed[0] : speed[1];
 
-    return speed1 < speed2 ? speed1 : speed2;
+    return speed[0] < speed[1] ? speed[0] : speed[1];
+}
+
+float AntiCheat::GetAllowedDistance(bool high)
+{
+    return GetDiffInSec() * GetSpeed(high);
+}
+
+uint32 AntiCheat::GetDiff()
+{
+    auto t1 = m_MoveInfo[0].GetTime();
+    auto t2 = m_MoveInfo[1].GetTime();
+
+    uint32 diff = t1 > t2 ? t1 - t2 : t2 - t1;
+
+    return diff;
+}
+
+float AntiCheat::GetDiffInSec()
+{
+    float diff = GetDiff();
+    return diff / 1000.f;
 }

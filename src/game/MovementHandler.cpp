@@ -29,6 +29,7 @@
 #include "WaypointMovementGenerator.h"
 #include "MapPersistentStateMgr.h"
 #include "ObjectMgr.h"
+#include "CPlayer.h"
 
 #define MOVEMENT_PACKET_TIME_DELAY 0
 
@@ -279,6 +280,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     if (plMover)
     {
         plMover->UpdateFallInformationIfNeed(movementInfo, opcode);
+        plMover->ToCPlayer()->HandleAntiCheat(movementInfo, opcode);
     }
 
     WorldPacket data(opcode, recv_data.size());

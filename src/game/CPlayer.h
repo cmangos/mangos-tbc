@@ -2,6 +2,8 @@
 
 #include "Player.h"
 
+#include <sstream>
+
 // Move those please.
 static const std::string MSG_COLOR_LIGHTRED = "|cffff6060";
 static const std::string MSG_COLOR_LIGHTBLUE = "|cff00ccff";
@@ -56,7 +58,8 @@ public:
 
     // AntiCheat
 public:
-    void HandleAntiCheat(MovementInfo& moveInfo);
+    bool HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode);
+    void AddAntiCheatModule(AntiCheat* antiCheat);
 private:
     AntiCheatStorage m_AntiCheatStorage;
 

@@ -541,6 +541,9 @@
     <ClCompile Include="..\..\src\game\AntiCheat.cpp">
       <Filter>AntiCheat</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_teleport.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -1026,6 +1029,9 @@
       <Filter>CPlayer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat.h">
+      <Filter>AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_teleport.h">
       <Filter>AntiCheat</Filter>
     </ClInclude>
   </ItemGroup>

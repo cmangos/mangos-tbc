@@ -4,26 +4,34 @@ class AntiCheat
 {
 public:
     AntiCheat(Player* player);
+    ~AntiCheat() {}
 
     virtual bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode) = 0;
+    virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };
 
 protected:
     bool Initialized();
 
     bool isFlying(MovementInfo& moveInfo);
-    bool isFlying(MovementInfo& moveInfo1, MovementInfo& moveInfo2);
-    bool AntiCheat::isWalking(MovementInfo& moveInfo);
-    bool isWalking(MovementInfo& moveInfo1, MovementInfo& moveInfo2);
-    float GetDistance(MovementInfo& moveInfo1, MovementInfo& moveInfo2);
-    float GetDistance(MovementInfo& moveInfo1, MovementInfo& moveInfo2, bool threed);
-    float GetDistance2D(MovementInfo& moveInfo1, MovementInfo& moveInfo2);
-    float GetDistance3D(MovementInfo& moveInfo1, MovementInfo& moveInfo2);
+    bool isFlying();
+    bool isWalking(MovementInfo& moveInfo);
+    bool isWalking();
+    bool isFalling(MovementInfo& moveInfo);
+    bool isFalling();
+    float GetDistance();
+    float GetDistance(bool threed);
+    float GetDistance2D();
+    float GetDistance3D();
 
     float GetSpeed(MovementInfo& moveInfo);
-    float GetSpeed(MovementInfo& moveInfo1, MovementInfo& moveInfo2, bool high = false);
+    float GetSpeed(bool high = true);
+    float GetAllowedDistance(bool high = true);
+
+    uint32 GetDiff();
+    float GetDiffInSec();
 
     Player* m_Player;
-    MovementInfo m_MoveInfo;
+    MovementInfo m_MoveInfo[2];
 
 private:
     bool m_Initialized;

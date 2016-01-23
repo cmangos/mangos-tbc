@@ -1,11 +1,34 @@
 #include "CPlayer.h"
+#include "AntiCheat.h"
+#include "AntiCheat_speed.h"
+#include "AntiCheat_teleport.h"
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
+    new AntiCheat_speed(this);
+    new AntiCheat_teleport(this);
 }
 
 CPlayer::~CPlayer()
 {
+    for (auto& i : m_AntiCheatStorage)
+        delete i;
+}
+
+bool CPlayer::HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode)
+{
+    bool cheat = false;
+
+    for (auto& i : m_AntiCheatStorage)
+        if (i->HandleMovement(moveInfo, opcode))
+            cheat = true;
+
+    return cheat;
+}
+
+void CPlayer::AddAntiCheatModule(AntiCheat* antiCheat)
+{
+    m_AntiCheatStorage.push_back(antiCheat);
 }
 
 void CPlayer::SendSteamMessages(MessageTypes type, std::stringstream &ss)

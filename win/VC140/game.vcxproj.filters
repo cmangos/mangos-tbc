@@ -544,6 +544,15 @@
     <ClCompile Include="..\..\src\game\AntiCheat_teleport.cpp">
       <Filter>AntiCheat</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_fly.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_jump.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_gravity.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -1032,6 +1041,15 @@
       <Filter>AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_teleport.h">
+      <Filter>AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_fly.h">
+      <Filter>AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_jump.h">
+      <Filter>AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_gravity.h">
       <Filter>AntiCheat</Filter>
     </ClInclude>
   </ItemGroup>

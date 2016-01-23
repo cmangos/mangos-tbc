@@ -58,6 +58,7 @@
 #include "AuctionHouseBot/AuctionHouseBot.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "CPlayer.h"
 
 static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
 {
@@ -5464,6 +5465,8 @@ bool ChatHandler::HandleGMFlyCommand(char* args)
         target = m_session->GetPlayer();
 
     target->SetCanFly(value);
+    target->ToCPlayer()->SetGMFly(value);
+
     PSendSysMessage(LANG_COMMAND_FLYMODE_STATUS, GetNameLink(target).c_str(), args);
     return true;
 }

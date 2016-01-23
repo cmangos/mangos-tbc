@@ -18,8 +18,7 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     bool startMove = false;
     bool stopMove = false;
 
-
-    switch (opcode)
+    switch (opcode) // Determine if they're going forwards or backwards
     {
     case MSG_MOVE_START_FORWARD:
     case MSG_MOVE_START_BACKWARD:
@@ -49,7 +48,7 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     MoveType moveType = NONE;
 
-    switch (opcode)
+    switch (opcode) // Determine which type of movement they're doing
     {
     case MSG_MOVE_START_FORWARD:
     case MSG_MOVE_START_BACKWARD:
@@ -78,25 +77,27 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         break;
     }
 
-    if (moveType == NONE)
+    if (moveType == NONE) // Shouldn't happen, but we don't want this in the container.
         return false;
 
     bool moving = false;
 
-    for (auto& i : m_MoveMap)
+    for (auto& i : m_MoveMap) // Check if we're moving in any direction (before this packet was recieved)
         if (i.second)
             moving = true;
 
-    if (startMove && !moving && GetDistance3D() > 0.f)
-        m_Player->ToCPlayer()->BoxChat << "TELE CHEAT!";
+    if (startMove && !moving && GetDistance3D() > 0.f) // We started moving, wasn't moving before & distance is more then 0, damn cheaters.
+        m_Player->ToCPlayer()->BoxChat << "TELE CHEAT!" << "\n";
 
-    if (startMove)
+    if (startMove) // Update data if we're moving or not.
         m_MoveMap[moveType] = true;
     else if (stopMove)
         m_MoveMap[moveType] = false;
 
-    if (stopMove)
+    if (stopMove) // Only update old movementinfo if we're stopping
         m_MoveInfo[1] = m_MoveInfo[0];
+
+
     return false;
 }
 

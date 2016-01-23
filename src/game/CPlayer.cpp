@@ -2,11 +2,19 @@
 #include "AntiCheat.h"
 #include "AntiCheat_speed.h"
 #include "AntiCheat_teleport.h"
+#include "AntiCheat_fly.h"
+#include "AntiCheat_jump.h"
+#include "AntiCheat_gravity.h"
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
     new AntiCheat_speed(this);
     new AntiCheat_teleport(this);
+    new AntiCheat_fly(this);
+    new AntiCheat_jump(this);
+    new AntiCheat_gravity(this);
+
+    m_GMFly = false;
 }
 
 CPlayer::~CPlayer()

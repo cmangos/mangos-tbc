@@ -18,6 +18,8 @@ protected:
     bool isWalking();
     bool isFalling(MovementInfo& moveInfo);
     bool isFalling();
+    bool isTransport(MovementInfo& moveInfo);
+    bool isTransport();
     float GetDistance();
     float GetDistance(bool threed);
     float GetDistance2D();

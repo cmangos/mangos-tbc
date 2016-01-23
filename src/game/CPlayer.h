@@ -60,8 +60,11 @@ public:
 public:
     bool HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode);
     void AddAntiCheatModule(AntiCheat* antiCheat);
+    void SetGMFly(bool value) { m_GMFly = value; }
+    bool GetGMFly() { return m_GMFly; }
 private:
     AntiCheatStorage m_AntiCheatStorage;
+    bool m_GMFly;
 
     // Chat messages
 public:

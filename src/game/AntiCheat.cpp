@@ -54,6 +54,16 @@ bool AntiCheat::isFalling()
     return isFalling(m_MoveInfo[0]) || isFalling(m_MoveInfo[1]);
 }
 
+bool AntiCheat::isTransport(MovementInfo& moveInfo)
+{
+    return moveInfo.HasMovementFlag(MOVEFLAG_ONTRANSPORT);
+}
+
+bool AntiCheat::isTransport()
+{
+    return isTransport(m_MoveInfo[0]) || isTransport(m_MoveInfo[1]);
+}
+
 float AntiCheat::GetDistance()
 {
     return GetDistance(isFlying());

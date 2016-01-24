@@ -556,6 +556,9 @@
     <ClCompile Include="..\..\src\game\AntiCheat_waterwalking.cpp">
       <Filter>AntiCheat</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_wallclimb.cpp">
+      <Filter>AntiCheat</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -1056,6 +1059,9 @@
       <Filter>AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_waterwalking.h">
+      <Filter>AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_wallclimb.h">
       <Filter>AntiCheat</Filter>
     </ClInclude>
   </ItemGroup>

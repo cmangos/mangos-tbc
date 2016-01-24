@@ -9,6 +9,7 @@
 #include "AntiCheat_jump.h"
 #include "AntiCheat_gravity.h"
 #include "AntiCheat_waterwalking.h"
+#include "AntiCheat_wallclimb.h"
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
@@ -18,6 +19,7 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
     new AntiCheat_jump(this);
     new AntiCheat_gravity(this);
     new AntiCheat_waterwalking(this);
+    new AntiCheat_wallclimb(this);
 
     m_GMFly = false;
 }

@@ -16,6 +16,9 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
+    if (isSwimming())
+        jumping = false;
+
     if (opcode == MSG_MOVE_JUMP && jumping)
     {
         const Position* pos = m_MoveInfo[1].GetPos();

@@ -87,7 +87,14 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
             moving = true;
 
     if (startMove && !moving && GetDistance3D() > 0.f) // We started moving, wasn't moving before & distance is more then 0, damn cheaters.
+    {
+        const Position* pos = m_MoveInfo[1].GetPos();
+
+        m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
         m_Player->ToCPlayer()->BoxChat << "TELE CHEAT!" << "\n";
+
+        return true;
+    }
 
     if (startMove) // Update data if we're moving or not.
         m_MoveMap[moveType] = true;

@@ -39,6 +39,12 @@ bool CPlayer::HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode)
     return cheat;
 }
 
+void CPlayer::HandleTeleport()
+{
+    for (auto& i : m_AntiCheatStorage)
+        i->HandleTeleport();
+}
+
 void CPlayer::AddAntiCheatModule(AntiCheat* antiCheat)
 {
     m_AntiCheatStorage.push_back(antiCheat);

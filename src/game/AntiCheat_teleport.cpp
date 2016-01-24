@@ -86,6 +86,9 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         if (i.second)
             moving = true;
 
+    if (m_MoveInfo[0].HasMovementFlag(MOVEFLAG_ONTRANSPORT) && m_MoveInfo[1].HasMovementFlag(MOVEFLAG_ONTRANSPORT))
+        moving = true; // Temporarily disable tele anticheat on transport
+
     if (startMove && !moving && GetDistance3D() > 0.f) // We started moving, wasn't moving before & distance is more then 0, damn cheaters.
     {
         const Position* pos = m_MoveInfo[1].GetPos();
@@ -108,10 +111,6 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     return false;
 }
 
-void AntiCheat_teleport::HandleUpdate(uint32 update_diff, uint32 p_time)
-{
-}
-
 bool AntiCheat_teleport::IsMoving(MovementInfo& moveInfo)
 {
     return moveInfo.HasMovementFlag(MOVEFLAG_FORWARD) ||
@@ -122,4 +121,9 @@ bool AntiCheat_teleport::IsMoving(MovementInfo& moveInfo)
         moveInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR) ||
         moveInfo.HasMovementFlag(MOVEFLAG_ASCENDING) ||
         moveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL);
+}
+
+void AntiCheat_teleport::HandleTeleport()
+{
+    m_Initialized = false;
 }

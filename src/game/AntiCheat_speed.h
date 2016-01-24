@@ -8,4 +8,5 @@ public:
     AntiCheat_speed(Player* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
+    void HandleTeleport();
 };

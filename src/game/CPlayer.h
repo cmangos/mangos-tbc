@@ -59,6 +59,7 @@ public:
     // AntiCheat
 public:
     bool HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode);
+    void HandleTeleport();
     void AddAntiCheatModule(AntiCheat* antiCheat);
     void SetGMFly(bool value) { m_GMFly = value; }
     bool GetGMFly() { return m_GMFly; }

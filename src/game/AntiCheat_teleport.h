@@ -36,8 +36,8 @@ public:
     AntiCheat_teleport(Player* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
-    void HandleUpdate(uint32 update_diff, uint32 p_time);
     bool IsMoving(MovementInfo& moveInfo);
+    void HandleTeleport();
 private:
     MoveMap m_MoveMap;
 };

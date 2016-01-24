@@ -20,7 +20,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     distance = floor(distance * 1000.0f) / 1000.0f; // Dirty float rounding (only want to calculate with the last 3 digits)
     float alloweddistance = GetAllowedDistance();
 
-    if ((opcode == MSG_MOVE_SET_FACING || opcode == MSG_MOVE_SET_PITCH) &&  GetDiffInSec() < 0.5f)
+    if (distance < GetSpeed(false))
         return false;
 
     if (distance > alloweddistance)

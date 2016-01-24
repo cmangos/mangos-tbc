@@ -20,8 +20,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     std::stringstream& ss = m_Player->ToCPlayer()->BoxChat;
 
-
-    if (jumping && m_MoveInfo[0].GetPos()->z - m_StartJumpZ > 2.f)
+    if (jumping && m_MoveInfo[0].GetPos()->z - m_StartJumpZ > 2.3f)
     {
         const Position* pos = m_MoveInfo[1].GetPos();
 
@@ -44,3 +43,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     return false;
 }
 
+void AntiCheat_gravity::HandleTeleport()
+{
+    m_Initialized = false;
+}

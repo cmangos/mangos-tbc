@@ -9,6 +9,7 @@ public:
     AntiCheat_gravity(Player* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
+    void HandleTeleport();
 private:
     float m_StartJumpZ;
     bool jumping;

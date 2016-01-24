@@ -25,6 +25,7 @@ protected:
     bool isSwimming();
     float GetDistance();
     float GetDistance(bool threed);
+    float GetDistanceZ();
     float GetDistance2D();
     float GetDistance3D();
     float GetTransportDist(bool threed);

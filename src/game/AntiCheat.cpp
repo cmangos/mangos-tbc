@@ -84,6 +84,11 @@ float AntiCheat::GetDistance(bool threed)
     return threed ? GetDistance3D() : GetDistance2D();
 }
 
+float AntiCheat::GetDistanceZ()
+{
+    return m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z;
+}
+
 float AntiCheat::GetDistance2D()
 {
     return

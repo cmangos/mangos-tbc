@@ -64,6 +64,16 @@ bool AntiCheat::isTransport()
     return isTransport(m_MoveInfo[0]) || isTransport(m_MoveInfo[1]);
 }
 
+bool AntiCheat::isSwimming(MovementInfo& moveInfo)
+{
+    return moveInfo.HasMovementFlag(MOVEFLAG_SWIMMING);
+}
+
+bool AntiCheat::isSwimming()
+{
+    return isSwimming(m_MoveInfo[0]) || isSwimming(m_MoveInfo[1]);
+}
+
 float AntiCheat::GetDistance()
 {
     return GetDistance(isFlying());
@@ -87,6 +97,26 @@ float AntiCheat::GetDistance3D()
         sqrt(pow(m_MoveInfo[0].GetPos()->x - m_MoveInfo[1].GetPos()->x, 2) +
             pow(m_MoveInfo[0].GetPos()->y - m_MoveInfo[1].GetPos()->y, 2) +
             pow(m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z, 2));
+}
+
+float AntiCheat::GetTransportDist(bool threed)
+{
+    return threed ? GetTransportDist3D() : GetTransportDist2D();
+}
+
+float AntiCheat::GetTransportDist2D()
+{
+    return
+        sqrt(pow(m_MoveInfo[0].GetTransportPos()->x - m_MoveInfo[1].GetTransportPos()->x, 2) +
+            pow(m_MoveInfo[0].GetTransportPos()->y - m_MoveInfo[1].GetTransportPos()->y, 2));
+}
+
+float AntiCheat::GetTransportDist3D()
+{
+    return
+        sqrt(pow(m_MoveInfo[0].GetTransportPos()->x - m_MoveInfo[1].GetTransportPos()->x, 2) +
+            pow(m_MoveInfo[0].GetTransportPos()->y - m_MoveInfo[1].GetTransportPos()->y, 2) +
+            pow(m_MoveInfo[0].GetTransportPos()->z - m_MoveInfo[1].GetTransportPos()->z, 2));
 }
 
 float AntiCheat::GetSpeed(MovementInfo& moveInfo)

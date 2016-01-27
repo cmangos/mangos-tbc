@@ -37,11 +37,14 @@
     <Filter Include="BattleGround">
       <UniqueIdentifier>{0af4d063-6d01-4546-a429-59bd828ab270}</UniqueIdentifier>
     </Filter>
-    <Filter Include="AntiCheat">
-      <UniqueIdentifier>{2f5e89b6-111b-477e-99be-c8e03fb6a093}</UniqueIdentifier>
+    <Filter Include="Custom">
+      <UniqueIdentifier>{bb7be3ed-4c84-4ba0-bd9d-65390ded1bce}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CPlayer">
+    <Filter Include="Custom\CPlayer">
       <UniqueIdentifier>{1ea7bc22-e9ee-4004-ab53-cbc294c38c87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Custom\AntiCheat">
+      <UniqueIdentifier>{2f5e89b6-111b-477e-99be-c8e03fb6a093}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -533,31 +536,34 @@
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat_speed.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\CPlayer.cpp">
-      <Filter>CPlayer</Filter>
+      <Filter>Custom\CPlayer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat_teleport.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat_fly.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat_jump.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat_gravity.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat_waterwalking.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\AntiCheat_wallclimb.cpp">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\Custom.cpp">
+      <Filter>Custom</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1037,32 +1043,35 @@
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_speed.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\Singleton.h" />
     <ClInclude Include="..\..\src\game\CPlayer.h">
-      <Filter>CPlayer</Filter>
+      <Filter>Custom\CPlayer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_teleport.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_fly.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_jump.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_gravity.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_waterwalking.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_wallclimb.h">
-      <Filter>AntiCheat</Filter>
+      <Filter>Custom\AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\Custom.h">
+      <Filter>Custom</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

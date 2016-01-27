@@ -2,7 +2,6 @@
 
 #include "AntiCheat.h"
 
-
 class AntiCheat_waterwalking : public AntiCheat
 {
 public:

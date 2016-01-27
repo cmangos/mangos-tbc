@@ -44,5 +44,4 @@ protected:
     bool m_Initialized;
 
 private:
-    
 };

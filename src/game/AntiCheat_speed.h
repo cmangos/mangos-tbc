@@ -9,4 +9,6 @@ public:
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleTeleport();
+private:
+    uint32 m_LastFallCheck;
 };

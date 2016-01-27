@@ -31,10 +31,10 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         startMove = true;
         break;
 
-    case MSG_MOVE_STOP:   
+    case MSG_MOVE_STOP:
     case MSG_MOVE_STOP_STRAFE:
     case MSG_MOVE_STOP_TURN:
-    case MSG_MOVE_STOP_SWIM:   
+    case MSG_MOVE_STOP_SWIM:
     case MSG_MOVE_STOP_ASCEND:
     case MSG_MOVE_FALL_LAND:
         stopMove = true;
@@ -106,7 +106,6 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     if (stopMove) // Only update old movementinfo if we're stopping
         m_MoveInfo[1] = m_MoveInfo[0];
-
 
     return false;
 }

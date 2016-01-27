@@ -79,7 +79,6 @@ public:
 public:
     void CUpdate(uint32 update_diff, uint32 p_time);
 
-
     // Misc
     bool AddAura(uint32 spellid);
 };

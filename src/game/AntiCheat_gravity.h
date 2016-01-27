@@ -2,7 +2,6 @@
 
 #include "AntiCheat.h"
 
-
 class AntiCheat_gravity : public AntiCheat
 {
 public:

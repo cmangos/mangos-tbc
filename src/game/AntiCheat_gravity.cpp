@@ -1,7 +1,7 @@
 #include "AntiCheat_gravity.h"
 #include "CPlayer.h"
 
-AntiCheat_gravity::AntiCheat_gravity(Player* player) : AntiCheat(player)
+AntiCheat_gravity::AntiCheat_gravity(CPlayer* player) : AntiCheat(player)
 {
     m_StartJumpZ = 0;
     jumping = false;
@@ -18,9 +18,9 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    std::stringstream& ss = m_Player->ToCPlayer()->BoxChat;
+    std::stringstream& ss = m_Player->BoxChat;
 
-    if (jumping && m_MoveInfo[0].GetPos()->z - m_StartJumpZ > 2.3f)
+    if (jumping && ((isSwimming() && m_MoveInfo[0].GetPos()->z - m_StartJumpZ > JUMPHEIGHT_WATER) || (!isSwimming() && m_MoveInfo[0].GetPos()->z - m_StartJumpZ > JUMPHEIGHT_LAND)))
     {
         const Position* pos = m_MoveInfo[1].GetPos();
 

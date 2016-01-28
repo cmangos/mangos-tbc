@@ -346,6 +346,7 @@
     <ClCompile Include="..\..\src\game\AntiCheat_jump.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_speed.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_teleport.cpp" />
+    <ClCompile Include="..\..\src\game\AntiCheat_test.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_wallclimb.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_waterwalking.cpp" />
     <ClCompile Include="..\..\src\game\ArenaTeam.cpp" />
@@ -526,6 +527,7 @@
     <ClInclude Include="..\..\src\game\AntiCheat_jump.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_speed.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_teleport.h" />
+    <ClInclude Include="..\..\src\game\AntiCheat_test.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_wallclimb.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_waterwalking.h" />
     <ClInclude Include="..\..\src\game\ArenaTeam.h" />

@@ -1,7 +1,7 @@
 #include "AntiCheat.h"
 #include "CPlayer.h"
 
-AntiCheat::AntiCheat(Player* player)
+AntiCheat::AntiCheat(CPlayer* player)
 {
     m_Player = player;
 
@@ -10,7 +10,7 @@ AntiCheat::AntiCheat(Player* player)
 
     m_Initialized = false;
 
-    player->ToCPlayer()->AddAntiCheatModule(this);
+    player->AddAntiCheatModule(this);
 }
 
 bool AntiCheat::Initialized()
@@ -74,6 +74,21 @@ bool AntiCheat::isSwimming()
     return isSwimming(m_MoveInfo[0]) || isSwimming(m_MoveInfo[1]);
 }
 
+float AntiCheat::GetDistOrTransportDist()
+{
+    return GetDistOrTransportDist(isFlying());
+}
+
+float AntiCheat::GetDistOrTransportDist(bool threed)
+{
+    return isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]) ? GetTransportDist(threed) : GetDistance(threed);
+}
+
+float AntiCheat::GetDistanceZ()
+{
+    return m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z;
+}
+
 float AntiCheat::GetDistance()
 {
     return GetDistance(isFlying());
@@ -82,11 +97,6 @@ float AntiCheat::GetDistance()
 float AntiCheat::GetDistance(bool threed)
 {
     return threed ? GetDistance3D() : GetDistance2D();
-}
-
-float AntiCheat::GetDistanceZ()
-{
-    return m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z;
 }
 
 float AntiCheat::GetDistance2D()
@@ -102,6 +112,11 @@ float AntiCheat::GetDistance3D()
         sqrt(pow(m_MoveInfo[0].GetPos()->x - m_MoveInfo[1].GetPos()->x, 2) +
             pow(m_MoveInfo[0].GetPos()->y - m_MoveInfo[1].GetPos()->y, 2) +
             pow(m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z, 2));
+}
+
+float AntiCheat::GetTransportDist()
+{
+    return GetTransportDist(isFlying());
 }
 
 float AntiCheat::GetTransportDist(bool threed)

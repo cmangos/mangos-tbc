@@ -1,9 +1,12 @@
 #pragma once
 
+#define JUMPHEIGHT_LAND 1.65f
+#define JUMPHEIGHT_WATER 2.15f
+
 class AntiCheat
 {
 public:
-    AntiCheat(Player* player);
+    AntiCheat(CPlayer* player);
     ~AntiCheat() {}
 
     virtual bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode) = 0;
@@ -23,11 +26,14 @@ protected:
     bool isTransport();
     bool isSwimming(MovementInfo& moveInfo);
     bool isSwimming();
+    float GetDistOrTransportDist();
+    float GetDistOrTransportDist(bool threed);
+    float GetDistanceZ();
     float GetDistance();
     float GetDistance(bool threed);
-    float GetDistanceZ();
     float GetDistance2D();
     float GetDistance3D();
+    float GetTransportDist();
     float GetTransportDist(bool threed);
     float GetTransportDist2D();
     float GetTransportDist3D();
@@ -39,7 +45,7 @@ protected:
     uint32 GetDiff();
     float GetDiffInSec();
 
-    Player* m_Player;
+    CPlayer* m_Player;
     MovementInfo m_MoveInfo[2];
     bool m_Initialized;
 

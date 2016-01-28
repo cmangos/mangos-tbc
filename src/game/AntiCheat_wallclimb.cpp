@@ -1,7 +1,7 @@
 #include "AntiCheat_wallclimb.h"
 #include "CPlayer.h"
 
-AntiCheat_wallclimb::AntiCheat_wallclimb(Player* player) : AntiCheat(player)
+AntiCheat_wallclimb::AntiCheat_wallclimb(CPlayer* player) : AntiCheat(player)
 {
     jumping = false;
 }
@@ -16,7 +16,7 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    std::stringstream& ss = m_Player->ToCPlayer()->BoxChat;
+    std::stringstream& ss = m_Player->BoxChat;
 
     if (opcode == MSG_MOVE_JUMP)
         jumping = true;
@@ -36,7 +36,8 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if (opcode == MSG_MOVE_FALL_LAND)
         jumping = false;
 
-    m_MoveInfo[1] = m_MoveInfo[0];
+    if (abs(GetDistanceZ() > JUMPHEIGHT_WATER)) // If distanceZ is too small we won't update the old movement info
+        m_MoveInfo[1] = m_MoveInfo[0];
 
     return false;
 }

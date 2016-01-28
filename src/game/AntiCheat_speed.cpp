@@ -3,9 +3,11 @@
 #include "World.h"
 #include "Map.h"
 
-AntiCheat_speed::AntiCheat_speed(Player* player) : AntiCheat(player)
+AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {
     m_LastFallCheck = 0;
+    fallingFromTransport = false;
+    fallingFromTransportSpeed = 0.f;
 }
 
 bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
@@ -18,15 +20,20 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    float distance = GetDistance();
+    if (isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]))
+    {
+        fallingFromTransport = true;
+        fallingFromTransportSpeed = GetDiffInSec() * GetDistance3D();
+    }
+
+    float distance = GetDistOrTransportDist();
     distance = floor(distance * 1000.0f) / 1000.0f; // Dirty float rounding (only want to calculate with the last 3 digits)
-    float alloweddistance = GetAllowedDistance();
+    float alloweddistance = fallingFromTransport ? fallingFromTransportSpeed : GetAllowedDistance();
 
     if (distance < GetSpeed(false))
         return false;
 
     bool sliding = false;
-
     if (isFalling() && sWorld.GetGameTime() - m_LastFallCheck > 100)
     {
         if (Map* pMap = m_Player->GetMap())
@@ -49,10 +56,13 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         const Position* pos = m_MoveInfo[1].GetPos();
 
         m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
-        m_Player->ToCPlayer()->BoxChat << "Distance: " << distance << " alloweddistance: " << alloweddistance << " toofast: " << (distance > alloweddistance ? "true" : "false") << "\n";
+        m_Player->BoxChat << "Distance: " << distance << " alloweddistance: " << alloweddistance << " toofast: " << (distance > alloweddistance ? "true" : "false") << "\n";
 
         return true;
     }
+
+    if (!isFalling())
+        fallingFromTransport = false;
 
     m_MoveInfo[1] = m_MoveInfo[0];
     return false;

@@ -5,10 +5,12 @@
 class AntiCheat_speed : public AntiCheat
 {
 public:
-    AntiCheat_speed(Player* player);
+    AntiCheat_speed(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleTeleport();
 private:
     uint32 m_LastFallCheck;
+    bool fallingFromTransport;
+    float fallingFromTransportSpeed;
 };

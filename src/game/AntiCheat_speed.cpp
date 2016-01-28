@@ -6,7 +6,6 @@
 AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {
     m_LastFallCheck = 0;
-    fallingFromTransport = false;
     fallingFromTransportSpeed = 0.f;
 }
 
@@ -20,15 +19,12 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    if (isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]))
-    {
-        fallingFromTransport = true;
+    if (isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1])) // If player is on transport we store his speed, it'll be 
         fallingFromTransportSpeed = GetDiffInSec() * GetDistance3D();
-    }
 
     float distance = GetDistOrTransportDist();
     distance = floor(distance * 1000.0f) / 1000.0f; // Dirty float rounding (only want to calculate with the last 3 digits)
-    float alloweddistance = fallingFromTransport ? fallingFromTransportSpeed : GetAllowedDistance();
+    float alloweddistance = fallingFromTransportSpeed > 0.f ? fallingFromTransportSpeed : GetAllowedDistance();
 
     if (distance < GetSpeed(false))
         return false;
@@ -62,7 +58,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     }
 
     if (!isFalling())
-        fallingFromTransport = false;
+        fallingFromTransportSpeed = 0.f;
 
     m_MoveInfo[1] = m_MoveInfo[0];
     return false;

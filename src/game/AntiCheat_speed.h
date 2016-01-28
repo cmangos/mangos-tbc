@@ -11,6 +11,5 @@ public:
     void HandleTeleport();
 private:
     uint32 m_LastFallCheck;
-    bool fallingFromTransport;
     float fallingFromTransportSpeed;
 };

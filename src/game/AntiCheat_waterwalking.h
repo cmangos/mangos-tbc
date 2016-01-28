@@ -5,7 +5,7 @@
 class AntiCheat_waterwalking : public AntiCheat
 {
 public:
-    AntiCheat_waterwalking(Player* player);
+    AntiCheat_waterwalking(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
 };

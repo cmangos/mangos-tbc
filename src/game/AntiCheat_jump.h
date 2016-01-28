@@ -5,7 +5,7 @@
 class AntiCheat_jump : public AntiCheat
 {
 public:
-    AntiCheat_jump(Player* player);
+    AntiCheat_jump(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
 

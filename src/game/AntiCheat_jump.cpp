@@ -1,7 +1,7 @@
 #include "AntiCheat_jump.h"
 #include "CPlayer.h"
 
-AntiCheat_jump::AntiCheat_jump(Player* player) : AntiCheat(player)
+AntiCheat_jump::AntiCheat_jump(CPlayer* player) : AntiCheat(player)
 {
     jumping = false;
 }
@@ -24,7 +24,7 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         const Position* pos = m_MoveInfo[1].GetPos();
 
         m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
-        m_Player->ToCPlayer()->BoxChat << "Jump hack" << "\n";
+        m_Player->BoxChat << "Jump hack" << "\n";
 
         return true;
     }

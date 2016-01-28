@@ -1,7 +1,7 @@
 #include "AntiCheat_fly.h"
 #include "CPlayer.h"
 
-AntiCheat_fly::AntiCheat_fly(Player* player) : AntiCheat(player)
+AntiCheat_fly::AntiCheat_fly(CPlayer* player) : AntiCheat(player)
 {
 }
 
@@ -24,5 +24,5 @@ bool AntiCheat_fly::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
 bool AntiCheat_fly::CanFly()
 {
-    return m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->ToCPlayer()->GetGMFly();
+    return m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly();
 }

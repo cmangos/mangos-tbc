@@ -5,7 +5,7 @@
 class AntiCheat_wallclimb : public AntiCheat
 {
 public:
-    AntiCheat_wallclimb(Player* player);
+    AntiCheat_wallclimb(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleTeleport();

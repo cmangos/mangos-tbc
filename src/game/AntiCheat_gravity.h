@@ -5,7 +5,7 @@
 class AntiCheat_gravity : public AntiCheat
 {
 public:
-    AntiCheat_gravity(Player* player);
+    AntiCheat_gravity(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleTeleport();

@@ -28,6 +28,7 @@
 #include "ScriptMgr.h"
 #include "movement/MoveSplineInit.h"
 #include "movement/MoveSpline.h"
+#include "CPlayer.h"
 
 #include <cassert>
 
@@ -381,6 +382,8 @@ void FlightPathMovementGenerator::Initialize(Player& player)
 
 void FlightPathMovementGenerator::Finalize(Player& player)
 {
+    player.ToCPlayer()->HandleFlightpathFinish();
+
     // remove flag to prevent send object build movement packets for flight state and crash (movement generator already not at top of stack)
     player.clearUnitState(UNIT_STAT_TAXI_FLIGHT);
 

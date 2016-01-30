@@ -19,7 +19,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    if (isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1])) // If player is on transport we store his speed, it'll be 
+    if (isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1])) // If player is on transport we store his speed, it'll be
         fallingFromTransportSpeed = GetDiffInSec() * GetDistance3D();
 
     float distance = GetDistOrTransportDist();
@@ -64,7 +64,14 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     return false;
 }
 
-void AntiCheat_speed::HandleTeleport()
+void AntiCheat_speed::HandleTeleport(float x, float y, float z)
 {
-    m_Initialized = false;
+    m_MoveInfo[1].ChangePosition(x, y, z, m_Player->GetOrientation());
+}
+
+void AntiCheat_speed::HandleFlightpathFinish()
+{
+    float x, y, z;
+    m_Player->GetPosition(x, y, z);
+    m_MoveInfo[1].ChangePosition(x, y, z, m_Player->GetOrientation());
 }

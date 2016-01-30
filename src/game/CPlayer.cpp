@@ -43,10 +43,22 @@ bool CPlayer::HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode)
     return cheat;
 }
 
-void CPlayer::HandleTeleport()
+void CPlayer::HandleTeleport(float x, float y, float z)
 {
     for (auto& i : m_AntiCheatStorage)
-        i->HandleTeleport();
+        i->HandleTeleport(x, y, z);
+}
+
+void CPlayer::HandleUpdate(uint32 update_diff, uint32 p_time)
+{
+    for (auto& i : m_AntiCheatStorage)
+        i->HandleUpdate(update_diff, p_time);
+}
+
+void CPlayer::HandleFlightpathFinish()
+{
+    for (auto& i : m_AntiCheatStorage)
+        i->HandleFlightpathFinish();
 }
 
 void CPlayer::AddAntiCheatModule(AntiCheat* antiCheat)
@@ -82,6 +94,8 @@ void CPlayer::SendSteamMessages(MessageTypes type, std::stringstream &ss)
 
 void CPlayer::CUpdate(uint32 update_diff, uint32 p_time)
 {
+    HandleUpdate(update_diff, p_time);
+
     SendSteamMessages(MessageTypes(CHAT_BOX), BoxChat);
     SendSteamMessages(MessageTypes(CHAT_WIDE), WideChat);
     SendSteamMessages(MessageTypes(CHAT_BOX | CHAT_WIDE), BothChat);
@@ -116,4 +130,6 @@ bool CPlayer::AddAura(uint32 spellid)
     }
 
     this->AddSpellAuraHolder(holder);
+
+    return true;
 }

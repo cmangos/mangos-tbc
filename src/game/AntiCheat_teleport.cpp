@@ -41,7 +41,14 @@ bool AntiCheat_teleport::IsMoving(MovementInfo& moveInfo)
         moveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL);
 }
 
-void AntiCheat_teleport::HandleTeleport()
+void AntiCheat_teleport::HandleTeleport(float x, float y, float z)
 {
-    m_Initialized = false;
+    m_MoveInfo[1].ChangePosition(x, y, z, m_Player->GetOrientation());
+}
+
+void AntiCheat_teleport::HandleFlightpathFinish()
+{
+    float x, y, z;
+    m_Player->GetPosition(x, y, z);
+    m_MoveInfo[1].ChangePosition(x, y, z, m_Player->GetOrientation());
 }

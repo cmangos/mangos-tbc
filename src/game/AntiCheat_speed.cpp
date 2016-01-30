@@ -23,10 +23,10 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         fallingFromTransportSpeed = GetDiffInSec() * GetDistance3D();
 
     float distance = GetDistOrTransportDist();
-    distance = floor(distance * 1000.0f) / 1000.0f; // Dirty float rounding (only want to calculate with the last 3 digits)
+    distance = floor(distance * 100.0f) / 100.0f; // Dirty float rounding
     float alloweddistance = fallingFromTransportSpeed > 0.f ? fallingFromTransportSpeed : GetAllowedDistance();
 
-    if (distance < GetSpeed(false))
+    if (GetDiff() < 50)
         return false;
 
     bool sliding = false;

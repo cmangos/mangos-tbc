@@ -1,5 +1,6 @@
 #include "AntiCheat_wallclimb.h"
 #include "CPlayer.h"
+#include "PathFinder.h"
 
 AntiCheat_wallclimb::AntiCheat_wallclimb(CPlayer* player) : AntiCheat(player)
 {
@@ -16,7 +17,8 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    std::stringstream& ss = m_Player->BoxChat;
+    if (GetDistanceZ() < WALKABLE_CLIMB && GetDistanceZ() > 0.f)
+        return false;
 
     if (opcode == MSG_MOVE_JUMP)
         jumping = true;
@@ -28,7 +30,7 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         const Position* pos = m_MoveInfo[1].GetPos();
 
         m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
-        ss << "Wallclimbing angle: " << angle << "\n";
+        m_Player->BoxChat << "Wallclimbing angle: " << angle << "\n";
 
         return true;
     }
@@ -36,8 +38,7 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if (opcode == MSG_MOVE_FALL_LAND)
         jumping = false;
 
-    if (abs(GetDistanceZ() > JUMPHEIGHT_WATER)) // If distanceZ is too small we won't update the old movement info
-        m_MoveInfo[1] = m_MoveInfo[0];
+    m_MoveInfo[1] = m_MoveInfo[0];
 
     return false;
 }

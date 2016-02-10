@@ -169,9 +169,9 @@ float AntiCheat::GetSpeed(bool high)
         speed[i] = GetSpeed(m_MoveInfo[i]);
 
     if (high)
-        return speed[0] > speed[1] ? speed[0] : speed[1];
+        return std::max(speed[0], speed[1]);
 
-    return speed[0] < speed[1] ? speed[0] : speed[1];
+    return std::min(speed[0], speed[1]);
 }
 
 float AntiCheat::GetAllowedDistance(bool high)
@@ -181,16 +181,13 @@ float AntiCheat::GetAllowedDistance(bool high)
 
 uint32 AntiCheat::GetDiff()
 {
-    auto t1 = m_MoveInfo[0].GetTime();
-    auto t2 = m_MoveInfo[1].GetTime();
+    uint32 t1 = m_MoveInfo[0].GetTime();
+    uint32 t2 = m_MoveInfo[1].GetTime();
 
-    uint32 diff = t1 > t2 ? t1 - t2 : t2 - t1;
-
-    return diff;
+    return std::max(t1, t2) - std::min(t1, t2);
 }
 
 float AntiCheat::GetDiffInSec()
 {
-    float diff = GetDiff();
-    return diff / 1000.f;
+    return float(GetDiff()) / 1000.f;
 }

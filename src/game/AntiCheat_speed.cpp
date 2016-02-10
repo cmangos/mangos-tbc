@@ -9,6 +9,18 @@ AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
     fallingFromTransportSpeed = 0.f;
 }
 
+float AntiCheat_speed::floor100(float& value)
+{
+    value = floor(value * 100) / 100;
+    return value;
+}
+
+float AntiCheat_speed::ceil100(float& value)
+{
+    value = ceil(value * 100) / 100;
+    return value;
+}
+
 bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 {
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
@@ -19,48 +31,48 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    if (isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1])) // If player is on transport we store his speed, it'll be
-        fallingFromTransportSpeed = GetDiffInSec() * GetDistance3D();
-
-    float distance = GetDistOrTransportDist();
-    distance = floor(distance * 100.0f) / 100.0f; // Dirty float rounding
-    float alloweddistance = fallingFromTransportSpeed > 0.f ? fallingFromTransportSpeed : GetAllowedDistance();
-
     if (GetDiff() < 50)
         return false;
 
-    bool sliding = false;
-    if (isFalling() && sWorld.GetGameTime() - m_LastFallCheck > 100)
+    float d2dps = GetDistance2D() / GetDiffInSec();
+    float d3dps = GetDistance3D() / GetDiffInSec();
+    float dzps = abs(GetDistanceZ()) / GetDiffInSec();
+    float speed = GetSpeed();
+    float allowed2dps = speed;
+    float allowed3dps = speed;
+    float angle = atan2(dzps, d2dps);
+
+
+    if (isFalling() && GetDistanceZ() < 0.f && angle > 0.f)
+        allowed2dps = dzps / tan(angle);
+
+    allowed3dps = allowed2dps / cos(angle);
+
+    floor100(d2dps);
+    floor100(d3dps);
+    ceil100(allowed2dps);
+    ceil100(allowed3dps);
+
+    if (d2dps > allowed2dps || d3dps > allowed3dps)
     {
-        if (Map* pMap = m_Player->GetMap())
+        if (m_Player->isGameMaster())
         {
-            auto pos = m_MoveInfo[0].GetPos();
-            auto groundZ = pMap->GetHeight(pos->x, pos->y, pos->z);
-
-            if (abs(groundZ - pos->z) < 1)
-                sliding = true;
+            m_Player->BoxChat << "d2d: " << d2dps << "\n";
+            m_Player->BoxChat << "allowed2d: " << allowed2dps << "\n";
+            m_Player->BoxChat << "cheat: " << (d2dps > allowed2dps ? "true" : "false") << "\n";
+            m_Player->BoxChat << "d3d: " << d3dps << "\n";
+            m_Player->BoxChat << "allowed3d: " << allowed3dps << "\n";
+            m_Player->BoxChat << "cheat: " << (d3dps > allowed3dps ? "true" : "false") << "\n";
         }
-
-        m_LastFallCheck = sWorld.GetGameTime();
+        else
+        {
+            const Position* pos = m_MoveInfo[1].GetPos();
+            m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
+        }
     }
-
-    if (sliding)
-        alloweddistance *= 3;
-
-    if (distance > alloweddistance)
-    {
-        const Position* pos = m_MoveInfo[1].GetPos();
-
-        m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
-        m_Player->BoxChat << "Distance: " << distance << " alloweddistance: " << alloweddistance << " toofast: " << (distance > alloweddistance ? "true" : "false") << "\n";
-
-        return true;
-    }
-
-    if (!isFalling())
-        fallingFromTransportSpeed = 0.f;
 
     m_MoveInfo[1] = m_MoveInfo[0];
+
     return false;
 }
 

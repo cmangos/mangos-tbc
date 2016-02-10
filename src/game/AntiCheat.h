@@ -39,6 +39,7 @@ protected:
     float GetTransportDist(bool threed);
     float GetTransportDist2D();
     float GetTransportDist3D();
+    float GetTransportDistZ();
 
     float GetSpeed(MovementInfo& moveInfo);
     float GetSpeed(bool high = true);

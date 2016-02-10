@@ -139,6 +139,11 @@ float AntiCheat::GetTransportDist3D()
             pow(m_MoveInfo[0].GetTransportPos()->z - m_MoveInfo[1].GetTransportPos()->z, 2));
 }
 
+float AntiCheat::GetTransportDistZ()
+{
+    return m_MoveInfo[0].GetTransportPos()->z - m_MoveInfo[1].GetTransportPos()->z;
+}
+
 float AntiCheat::GetSpeed(MovementInfo& moveInfo)
 {
     float speed = 0;

@@ -41,7 +41,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    if (GetDiff() < 50)
+    if (GetDiff() < 50 || GetDistance2D() < 0.1f)
         return false;
 
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
@@ -69,21 +69,13 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         const Position* pos = m_MoveInfo[1].GetPos();
         m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
 
-        /*m_Player->BoxChat << "-----------------------------------------" << "\n";
+        m_Player->BoxChat << "-----------------------------------------" << "\n";
         m_Player->BoxChat << "d2dps: " << d2dps << "\n";
         m_Player->BoxChat << "allowed2dps: " << allowed2dps << "\n";
         m_Player->BoxChat << "cheat: " << (d2dps > allowed2dps ? "true" : "false") << "\n";
         m_Player->BoxChat << "d3dps: " << d3dps << "\n";
         m_Player->BoxChat << "allowed3dps: " << allowed3dps << "\n";
         m_Player->BoxChat << "cheat: " << (d3dps > allowed3dps ? "true" : "false") << "\n";
-        m_Player->BoxChat << "-----------------------------------------" << "\n";
-        m_Player->BoxChat << "GetDistance2D: " << floor100(GetDistance2D()) << "\n";
-        m_Player->BoxChat << "GetDistance3D: " << floor100(GetDistance3D()) << "\n";
-        m_Player->BoxChat << "GetTransportDist2D: " << floor100(GetTransportDist2D()) << "\n";
-        m_Player->BoxChat << "GetTransportDist3D: " << floor100(GetTransportDist3D()) << "\n";
-        m_Player->BoxChat << "transportx: " << m_MoveInfo[0].GetTransportPos()->x << "\n";
-        m_Player->BoxChat << "transporty: " << m_MoveInfo[0].GetTransportPos()->y << "\n";
-        m_Player->BoxChat << "transportz: " << m_MoveInfo[0].GetTransportPos()->z << "\n";*/
     }
 
     m_MoveInfo[1] = m_MoveInfo[0];

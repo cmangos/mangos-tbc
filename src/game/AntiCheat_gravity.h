@@ -11,5 +11,5 @@ public:
     void HandleTeleport();
 private:
     float m_StartJumpZ;
-    bool jumping;
+    bool m_StartJumpWater;
 };

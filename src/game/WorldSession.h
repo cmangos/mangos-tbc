@@ -314,6 +314,13 @@ class MANGOS_DLL_SPEC WorldSession
         void SendPlaySpellVisual(ObjectGuid guid, uint32 spellArtKit);
         void SendItemPageInfo(ItemPrototype* itemProto);
 
+        // PlayerBot-System
+        void SetPlayerBot(bool value) { m_bPlayerBot = value; }
+        bool GetPlayerBot() { return m_bPlayerBot; }
+        bool IsActivePlayerBot() { return m_bPlayerBot && m_bPlayerBotActive; }
+        bool GetPlayerBotActive() { return m_bPlayerBotActive; }
+        void SetPlayerBotActive(bool value) { m_bPlayerBotActive = value; }
+
         // opcodes handlers
         void Handle_NULL(WorldPacket& recvPacket);          // not used
         void Handle_EarlyProccess(WorldPacket& recvPacket); // just mark packets processed in WorldSocket::OnRead
@@ -326,6 +333,8 @@ class MANGOS_DLL_SPEC WorldSession
         void HandlePlayerLoginOpcode(WorldPacket& recvPacket);
         void HandleCharEnum(QueryResult* result);
         void HandlePlayerLogin(LoginQueryHolder* holder);
+
+        void HandleBotPlayerLogin(ObjectGuid characterGuid);
 
         // played time
         void HandlePlayedTime(WorldPacket& recvPacket);
@@ -773,6 +782,10 @@ class MANGOS_DLL_SPEC WorldSession
         uint32 m_Tutorials[8];
         TutorialDataState m_tutorialState;
         ACE_Based::LockedQueue<WorldPacket*> _recvQueue;
+
+        // PlayerBot-System
+        bool m_bPlayerBot;
+        bool m_bPlayerBotActive;
 };
 #endif
 /// @}

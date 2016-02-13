@@ -194,6 +194,7 @@
     <ClCompile Include="..\..\dep\lualib\ltablib.c" />
     <ClCompile Include="..\..\dep\lualib\ltm.c" />
     <ClCompile Include="..\..\dep\lualib\lundump.c" />
+    <ClCompile Include="..\..\dep\lualib\lutf8lib.c" />
     <ClCompile Include="..\..\dep\lualib\lvm.c" />
     <ClCompile Include="..\..\dep\lualib\lzio.c" />
   </ItemGroup>

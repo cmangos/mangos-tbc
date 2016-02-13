@@ -114,6 +114,7 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
 
     E = new Eluna(this);
     E->RunScripts();
+    E->RunSQLMapScripts(id);
 
     GlobalEluna(OnCreate(this));
 }

@@ -19,6 +19,9 @@
     <Filter Include="Auth">
       <UniqueIdentifier>{e35fd108-bd39-46ae-83f9-09cf1ebf4ea8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{3ef9efa8-3d38-4068-b837-8754ce76db2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\shared\Database\Database.cpp">

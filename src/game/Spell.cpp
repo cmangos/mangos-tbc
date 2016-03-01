@@ -5328,6 +5328,21 @@ SpellCastResult Spell::CheckCast(bool strict)
         }
     }
 
+    switch (m_spellInfo->Id)
+    {
+    case 38915:
+    {
+        if (ObjectGuid target=m_caster->GetTargetGuid())
+        {
+            if (!(target.GetEntry() == 16943 || target.GetEntry() == 20928))  // Mental Interference can be cast only on these two targets
+            {
+                return SPELL_FAILED_BAD_TARGETS;
+            }
+        }
+        break;
+    }
+    }
+
     // all ok
     return SPELL_CAST_OK;
 }

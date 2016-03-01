@@ -3574,7 +3574,17 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                     if (prop_id == 121)
                         DoSummonTotem(eff_idx);
                     else
-                        DoSummonWild(eff_idx, summon_prop->FactionId);
+                    {
+                        switch (m_spellInfo->Id) // unable to distinguish based on prop_id, therefore spell by spell override
+                        {
+                        case 38544: // summon marmot, gives control of marmot pet
+                            DoSummonPossessed(eff_idx, summon_prop->FactionId); 
+                            break;
+                        default:
+                            DoSummonWild(eff_idx, summon_prop->FactionId);
+                            break;
+                        }
+                    }
                     break;
                 }
                 case UNITNAME_SUMMON_TITLE_PET:
@@ -5536,6 +5546,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     unitTarget->CastSpell(unitTarget, 38353, true, nullptr, nullptr, m_caster->GetObjectGuid());
+                    return;
+                }
+                case 38920:
+                {
+                    if (Player* player = dynamic_cast<Player*>(m_caster->GetCharmer()))
+                    {
+                        player->RewardPlayerAndGroupAtEvent(unitTarget->GetEntry(),unitTarget);
+                    }
                     return;
                 }
                 case 39338:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Horde

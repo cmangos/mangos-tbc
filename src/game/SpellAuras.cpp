@@ -3912,6 +3912,28 @@ void Aura::HandleInvisibility(bool apply, bool Real)
                     target->SetVisibility(VISIBILITY_ON);
             }
         }
+
+        switch (GetId())
+        {
+        case 38544:
+        {
+            if (target->GetTypeId() == TYPEID_PLAYER)
+            {
+                if (Player* player = (Player*)target)
+                {
+                    if (player->GetMover() != target)
+                    {
+                        if (Creature* pet = (Creature*)player->GetMover()) // this spell uses DoSummonPossesed so remove this on removal
+                        {
+                            player->Uncharm();
+                            pet->ForcedDespawn();
+                        }
+                    }
+                }
+            }
+            break;
+        }            
+        }
     }
 }
 

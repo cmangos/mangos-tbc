@@ -999,6 +999,144 @@ CreatureAI* GetAI_npc_magister_aledis(Creature* pCreature)
     return new npc_magister_aledisAI(pCreature);
 }
 
+enum
+{
+    NPC_LIVING_FLARE = 24916,
+    NPC_SPELL_CREDIT = 24959,
+    SPELL_LIVING_FLARE_MASTER = 44877,
+    SPELL_FEL_FLAREUP = 44944,
+    SPELL_TRANSFORM = 44943,
+    SPELL_QUEST_CREDIT = 44947,
+    SPELL_DETONATOR = 44948,
+    SPELL_LIVING_COSMETIC = 44880,
+    SPELL_UNSTABLE_COSMETIC = 46196,
+    EMOTE_LIVING_FLARE = -1001189,
+    EMOTE_UNSTABLE_FLARE = -1001190,
+};
+
+struct npc_living_sparkAI : public ScriptedPetAI
+{
+    npc_living_sparkAI(Creature* pCreature) : ScriptedPetAI(pCreature) { m_uiStacks = 0; m_creature->LoadCreatureAddon(true); Reset(); }
+
+    uint32 m_uiStacks;
+    uint32 m_uiCheckTimer;
+    bool m_uiFollow;
+    uint32 m_uiExplosionTimer;
+    ObjectGuid m_uiQuestCreditGuid;
+
+    void Reset() override
+    {
+        m_uiCheckTimer = 0;
+        m_uiFollow = true;
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
+    {
+        if (pSpell->Id == SPELL_FEL_FLAREUP) // handle morph here instead of spellEffects so we can do script text
+        {
+            m_uiStacks++;
+            if (m_uiStacks == 8)
+            {
+                m_creature->CastSpell(m_creature, SPELL_TRANSFORM, true);
+                DoScriptText(EMOTE_LIVING_FLARE, m_creature);
+                m_uiCheckTimer = 1000;
+            }
+        }
+        if (m_uiStacks < 8) // reapply cosmetic effect after spellhit, for some reason it gets removed
+        {
+            m_creature->CastSpell(m_creature, SPELL_LIVING_COSMETIC, true);
+        }
+        else
+        {
+            m_creature->CastSpell(m_creature, SPELL_UNSTABLE_COSMETIC, true);
+        }
+    }
+
+    void MovementInform(uint32 uiMovementType, uint32 uiData) override
+    {
+        if (uiData == 1)
+        {
+            m_uiExplosionTimer = 2000;
+            m_creature->CastSpell(m_creature, SPELL_QUEST_CREDIT, true); // is cast at pet owner
+            DoScriptText(EMOTE_UNSTABLE_FLARE, m_creature);
+            m_creature->CastSpell(m_creature, SPELL_DETONATOR, true);
+        }
+    }
+
+    void CheckPortalDist()
+    {
+        if (Creature* questCredit = GetClosestCreatureWithEntry(m_creature, NPC_SPELL_CREDIT, 100.0f))
+        {
+            m_uiCheckTimer = 0;
+            m_uiFollow = false;
+            m_creature->UpdateSpeed(MOVE_RUN, true, 1.0f);
+            m_creature->GetMotionMaster()->Clear();
+            m_creature->GetMotionMaster()->MovePoint(1, questCredit->GetPositionX(), questCredit->GetPositionY(), questCredit->GetPositionZ());
+            m_uiQuestCreditGuid = questCredit->GetObjectGuid();
+        }
+        else
+        {
+            m_uiCheckTimer = 1000;
+        }
+    }
+
+    void UpdatePetAI(const uint32 uiDiff) override
+    {
+        if (m_uiCheckTimer)
+        {
+            if (m_uiCheckTimer <= uiDiff)
+            {
+                CheckPortalDist();
+            }
+            else
+            {
+                m_uiCheckTimer -= uiDiff;
+            }
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiFollow)
+        {
+            Unit* pOwner = m_creature->GetCharmerOrOwner();
+
+            if (!pOwner)
+                return;
+
+            if (m_creature->GetCharmInfo()->HasCommandState(COMMAND_FOLLOW))
+            {
+                // not following, so start follow
+                if (!m_creature->hasUnitState(UNIT_STAT_FOLLOW))
+                    m_creature->GetMotionMaster()->MoveFollow(pOwner, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+
+                // update when not in combat
+                UpdatePetAI(uiDiff);
+            }
+        }
+        if (m_uiExplosionTimer)
+        {
+            if (m_uiExplosionTimer <= uiDiff)
+            {
+                m_uiExplosionTimer = 0;
+                if (Player* player = (Player*)m_creature->GetCharmerOrOwner())
+                {
+                    m_creature->ForcedDespawn();
+                    player->RemoveMiniPet();
+                }
+            }
+            else
+                m_uiExplosionTimer -= uiDiff;
+        }
+    }
+
+};
+
+CreatureAI* GetAI_npc_living_spark(Creature* pCreature)
+{
+    return new npc_living_sparkAI(pCreature);
+}
+
 void AddSC_hellfire_peninsula()
 {
     Script* pNewScript;
@@ -1048,5 +1186,10 @@ void AddSC_hellfire_peninsula()
     pNewScript = new Script;
     pNewScript->Name = "npc_magister_aledis";
     pNewScript->GetAI = &GetAI_npc_magister_aledis;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_living_spark";
+    pNewScript->GetAI = &GetAI_npc_living_spark;
     pNewScript->RegisterSelf();
 }

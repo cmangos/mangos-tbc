@@ -723,6 +723,7 @@ bool IsPositiveEffect(SpellEntry const* spellproto, SpellEffectIndex effIndex)
                         case 38638:                         // Nether Exhaustion (green)
                         case 38639:                         // Nether Exhaustion (blue)
                         case 44689:                         // Relay Race Accept Hidden Debuff - DND
+                        case 44877:                         // Living Flare Master
                             return false;
                         // some spells have unclear target modes for selection, so just make effect positive
                         case 27184:

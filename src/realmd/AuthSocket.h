@@ -74,8 +74,6 @@ class AuthSocket : public MaNGOS::Socket
         uint16 _build;
         AccountTypes _accountSecurityLevel;
 
-        //void InitPatch();
-
         virtual bool ProcessIncomingData() override;
 };
 #endif

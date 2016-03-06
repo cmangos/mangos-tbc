@@ -2,6 +2,10 @@
 #define _PLAYERBOT_H
 
 #include "Common.h"
+#include "ObjectGuid.h"
+
+class WorldSession;
+class Player;
 
 class PlayerBot
 {

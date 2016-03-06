@@ -1,5 +1,7 @@
 #include "PlayerBot.h"
 #include "World.h"
+#include "WorldSession.h"
+#include "Database/DatabaseEnv.h"
 
 PlayerBot::PlayerBot(uint32 accountId)
 {

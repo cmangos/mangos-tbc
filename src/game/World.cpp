@@ -66,6 +66,7 @@
 #include "CreatureLinkingMgr.h"
 #include "Weather.h"
 #include "LuaEngine.h"
+#include "PlayerBot/PlayerBotMgr.h"
 
 INSTANTIATE_SINGLETON_1(World);
 

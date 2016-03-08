@@ -38,6 +38,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/BattleGround
   ${CMAKE_CURRENT_SOURCE_DIR}/LuaEngine
   ${CMAKE_CURRENT_SOURCE_DIR}/OutdoorPvP
+  ${CMAKE_CURRENT_SOURCE_DIR}/PlayerBot
   ${CMAKE_SOURCE_DIR}/dep/include/g3dlite
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation/
@@ -81,6 +82,11 @@ set(SRC_GRP_BATTLEGROUND
 file(GLOB SRC_FILES_LUAENGINE LuaEngine/*.cpp LuaEngine/*.h)
 set(SRC_GRP_LUAENGINE
     ${SRC_FILES_LUAENGINE}
+)
+
+file(GLOB SRC_FILES_PLAYERBOT PlayerBot/*.cpp PlayerBot/*.h)
+set(SRC_GRP_PLAYERBOT
+	${SRC_FILES_PLAYERBOT}
 )
 
 set(SRC_GRP_CHAT_COMMANDS
@@ -415,6 +421,7 @@ set(LIBRARY_SRCS
     ${SRC_GRP_AHBOT}
     ${SRC_GRP_BATTLEGROUND}
     ${SRC_GRP_LUAENGINE}
+    ${SRC_GRP_PLAYERBOT}
     ${SRC_GRP_CHAT_COMMANDS}
     ${SRC_GRP_MOTION_GEN}
     ${SRC_GRP_MOVEMENT}
@@ -442,6 +449,11 @@ source_group("BattleGround"
 source_group("LuaEngine"
   FILES
     ${SRC_GRP_LUAENGINE}
+)
+
+source_group("PlayerBot"
+  FILES
+    ${SRC_GRP_PLAYERBOT}
 )
 
 source_group("Chat Commands"

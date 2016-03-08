@@ -251,6 +251,9 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleGMListFullCommand(char* args);
         bool HandleGMListIngameCommand(char* args);
         bool HandleGMVisibleCommand(char* args);
+		
+        bool HandleLUALoadScript(char* args);
+        bool HandleLUALoadMapScripts(char* args);
 
         bool HandleGoCommand(char* args);
         bool HandleGoCreatureCommand(char* args);
@@ -593,6 +596,12 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleMmap(char* args);
         bool HandleMmapTestArea(char* args);
         bool HandleMmapTestHeight(char* args);
+
+        bool HandleCreateBotSessionCommand(char* args);
+        bool HandleLoginBotCommand(char* args);
+        bool HandleLogoutBotCommand(char* args);
+        bool HandleDestroyBotSessionCommand(char* args);
+        bool HandleListBotCommand(char* args);
 
         //! Development Commands
         bool HandleSaveAllCommand(char* args);

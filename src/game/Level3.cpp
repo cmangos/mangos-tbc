@@ -58,6 +58,7 @@
 #include "AuctionHouseBot/AuctionHouseBot.h"
 #include "SQLStorages.h"
 #include "LootMgr.h"
+#include "LuaEngine.h"
 
 static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
 {
@@ -5446,6 +5447,26 @@ bool ChatHandler::HandleRespawnCommand(char* /*args*/)
     MaNGOS::RespawnDo u_do;
     MaNGOS::WorldObjectWorker<MaNGOS::RespawnDo> worker(u_do);
     Cell::VisitGridObjects(pl, worker, pl->GetMap()->GetVisibilityDistance());
+    return true;
+}
+
+bool ChatHandler::HandleLUALoadMapScripts(char* args) 
+{
+    //get mapid from args
+    uint32 mapid = (uint32)atoi(args);
+    //execute LoadSQLMapScripts(mapid)
+    GlobalEluna(RunSQLMapScripts(mapid));
+    PSendSysMessage("LoadSQLMapScripts `%s`" ,args);
+    return true;
+}
+
+bool ChatHandler::HandleLUALoadScript(char* args) 
+{
+    //parse uint32 from args 
+    uint32 scriptid = (uint32)atoi(args);
+    // execute LoadSQLScript(id)
+    GlobalEluna(RunSQLScript(scriptid));
+    PSendSysMessage("LoadSQLScript `%s`" ,args);
     return true;
 }
 

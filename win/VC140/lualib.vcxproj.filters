@@ -181,5 +181,8 @@
     <ClCompile Include="..\..\dep\lualib\lzio.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dep\lualib\lutf8lib.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -252,6 +252,13 @@ ChatCommand* ChatHandler::getCommandTable()
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
+    static ChatCommand luaCommandTable[] =
+    {
+        { "loadmapscripts", SEC_ADMINISTRATOR,  true, &ChatHandler::HandleLUALoadMapScripts,          "", nullptr },
+        { "loadscript",     SEC_ADMINISTRATOR,  true, &ChatHandler::HandleLUALoadScript,              "", nullptr },
+        { nullptr,          0,                  false, nullptr,                                        "", nullptr }
+    };
+	
     static ChatCommand goCommandTable[] =
     {
         { "creature",       SEC_MODERATOR,      false, &ChatHandler::HandleGoCreatureCommand,          "", nullptr },
@@ -691,6 +698,16 @@ ChatCommand* ChatHandler::getCommandTable()
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
+    static ChatCommand botCommandTable[] =
+    {
+        { "create",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleCreateBotSessionCommand,	   "", nullptr },
+        { "login",          SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleLoginBotCommand,            "", nullptr },
+        { "logout",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleLogoutBotCommand,           "", nullptr },
+        { "destroy",        SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleDestroyBotSessionCommand,   "", nullptr },
+        { "list",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleListBotCommand,             "", nullptr },
+        { nullptr,          0,                  false, nullptr,                                        "", nullptr }
+    };
+
     static ChatCommand commandTable[] =
     {
         { "account",        SEC_PLAYER,         true,  nullptr,                                        "", accountCommandTable  },
@@ -709,6 +726,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "learn",          SEC_MODERATOR,      false, nullptr,                                        "", learnCommandTable    },
         { "list",           SEC_ADMINISTRATOR,  true,  nullptr,                                        "", listCommandTable     },
         { "lookup",         SEC_MODERATOR,      true,  nullptr,                                        "", lookupCommandTable   },
+        { "lua",            SEC_ADMINISTRATOR,  true,  nullptr,                                        "", luaCommandTable      },		
         { "modify",         SEC_MODERATOR,      false, nullptr,                                        "", modifyCommandTable   },
         { "npc",            SEC_MODERATOR,      false, nullptr,                                        "", npcCommandTable      },
         { "pool",           SEC_GAMEMASTER,     true,  nullptr,                                        "", poolCommandTable     },
@@ -782,6 +800,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", nullptr },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", nullptr },
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
+        { "bot",            SEC_ADMINISTRATOR,  true,  nullptr,                                        "", botCommandTable },
 
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };

@@ -104,9 +104,6 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                     // not let attack friendly units.
                     if (GetPlayer()->IsFriendlyTo(TargetUnit))
                         return;
-                    // Not let attack through obstructions
-                    if (!pet->IsWithinLOSInMap(TargetUnit))
-                        return;
 
                     // This is true if pet has no target or has target but targets differs.
                     if (pet->getVictim() != TargetUnit)

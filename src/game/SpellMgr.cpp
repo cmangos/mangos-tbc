@@ -494,7 +494,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (IsSealSpell(spellInfo))
                 return SPELL_SEAL;
 
-            if (spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000010000100)))
+            if (spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000010000180)))
                 return SPELL_BLESSING;
 
             if (spellInfo->IsFitToFamilyMask(UI64LIT(0x00000820180400)) && spellInfo->HasAttribute(SPELL_ATTR_EX3_UNK9))

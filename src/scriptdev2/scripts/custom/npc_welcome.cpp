@@ -8,6 +8,7 @@ enum
     NPC_TEXT_LEVELUP_ALREADY_DONE   = 19997,
     NPC_TEXT_LEVELUP_OK             = 19998,
     NPC_TEXT_LEVELUP_RULES          = 19999,
+    NPC_TEXT_TELEPORT_GOSSIP        = 20000,
 };
 
 enum
@@ -26,7 +27,7 @@ bool GossipHello_npc_welcome(Player *player, Creature *_Creature)
         player->SEND_GOSSIP_MENU(NPC_TEXT_LEVELUP_ALREADY_DONE, _Creature->GetObjectGuid());
         return true;
     }
-    player->ADD_GOSSIP_ITEM(0, "I understand these rules and I will respect them.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+    player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "I understand these rules and I will respect them.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
     player->SEND_GOSSIP_MENU(NPC_TEXT_LEVELUP_RULES, _Creature->GetObjectGuid());
     return true;
 }
@@ -73,6 +74,30 @@ bool GossipSelect_npc_welcome(Player *player, Creature *_Creature, uint32 sender
     return true;
 }
 
+
+bool GossipHello_npc_teleport_dark_portal(Player* pPlayer, Creature* pCreature)
+{
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Teleport me to the Dark Portal", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+    pPlayer->SEND_GOSSIP_MENU(NPC_TEXT_TELEPORT_GOSSIP, pCreature->GetObjectGuid());
+    return true;
+}
+
+bool GossipSelect_npc_teleport_dark_portal(Player* pPlayer, Creature* pCreature, uint32 uiSender, uint32 uiAction)
+{
+    if (uiAction == GOSSIP_ACTION_INFO_DEF + 1)
+    {
+        pPlayer->CLOSE_GOSSIP_MENU();
+        if (pPlayer->TeleportTo(530, -247.29, 910.64, 84.38, 1.493))
+            if (!pPlayer->isAlive())
+            {
+                pPlayer->ResurrectPlayer(0.5f, false);
+                pPlayer->SpawnCorpseBones();
+            }
+    }
+    return true;
+}
+
+
 void AddSC_npc_welcome()
 {
     sPlayerStartMgr.load();
@@ -82,5 +107,11 @@ void AddSC_npc_welcome()
     newscript->Name = "npc_welcome";
     newscript->pGossipHello   = &GossipHello_npc_welcome;
     newscript->pGossipSelect  = &GossipSelect_npc_welcome;
+    newscript->RegisterSelf();
+
+    newscript = new Script;
+    newscript->Name = "npc_teleport_dark_portal";
+    newscript->pGossipHello =  &GossipHello_npc_teleport_dark_portal;
+    newscript->pGossipSelect = &GossipSelect_npc_teleport_dark_portal;
     newscript->RegisterSelf();
 }

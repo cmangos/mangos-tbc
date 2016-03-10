@@ -8,11 +8,9 @@
 #include "Policies/Singleton.h"
 #include "Database/DatabaseEnv.h"
 
-// Nostal'sac : 12 empl.
-#define BAG_ADD_ID 30000
-//#define BAG_ADD_ID2 55601
+#define BAG_ADD_ID 21876
 
-#define MOUNT_SPELL 33389
+#define MOUNT_SPELL 33392
 #define SPELL_SLEEP 9159
 #define SPELL_ELECVISUAL 28136
 

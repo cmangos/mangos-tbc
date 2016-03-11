@@ -87,7 +87,7 @@ bool GossipSelect_npc_teleport_dark_portal(Player* pPlayer, Creature* pCreature,
     if (uiAction == GOSSIP_ACTION_INFO_DEF + 1)
     {
         pPlayer->CLOSE_GOSSIP_MENU();
-        if (pPlayer->TeleportTo(530, -247.29, 910.64, 84.38, 1.493))
+        if (pPlayer->TeleportTo(530, -247.29f, 910.64f, 84.38f, 1.493f))
             if (!pPlayer->isAlive())
             {
                 pPlayer->ResurrectPlayer(0.5f, false);

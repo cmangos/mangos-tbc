@@ -589,6 +589,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
         bool HasSpellCooldown(uint32 spell_id) const;
         bool HasCategoryCooldown(uint32 spell_id) const;
         uint32 GetCreatureSpellCooldownDelay(uint32 spellId) const;
+        void LockSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs) override;
 
         bool HasSpell(uint32 spellID) const override;
 

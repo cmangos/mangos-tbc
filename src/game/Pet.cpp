@@ -2096,3 +2096,28 @@ void Pet::ApplyModeFlags(PetModeFlags mode, bool apply)
     data << uint32(m_petModeFlags);
     ((Player*)owner)->GetSession()->SendPacket(&data);
 }
+
+void Pet::LockSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
+{
+    WorldPacket data(SMSG_SPELL_COOLDOWN, (8 + 1 + m_spells.size() * 8));
+    data << ObjectGuid(GetObjectGuid());
+    data << uint8(0x0);                                 // flags (0x1, 0x2)
+
+    time_t curTime = time(nullptr);
+    for (PetSpellMap::const_iterator itr = m_spells.begin(); itr != m_spells.end(); ++itr)
+    {      
+        uint32 unSpellId = itr->first;
+        SpellEntry const* spellInfo = sSpellStore.LookupEntry(unSpellId);
+        MANGOS_ASSERT(spellInfo);
+
+        if ((idSchoolMask & GetSpellSchoolMask(spellInfo)) && GetCreatureSpellCooldownDelay(unSpellId) < unTimeMs)
+        {
+            data << uint32(unSpellId);
+            data << uint32(unTimeMs);
+            _AddCreatureSpellCooldown(unSpellId, curTime + unTimeMs / IN_MILLISECONDS);
+        }   
+    }
+
+    if (Player* plrOwner = GetOwner()->ToPlayer())
+        plrOwner->GetSession()->SendPacket(&data);
+}

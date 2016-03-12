@@ -2781,3 +2781,20 @@ bool Creature::IsTappedBy(Player* plr) const
     }
     return false;
 }
+
+void Creature::LockSpellSchool(SpellSchoolMask idSchoolMask, uint32 unTimeMs)
+{
+    time_t curTime = time(nullptr);
+    for (uint8 i = 0; i < CREATURE_MAX_SPELLS; ++i)
+    {
+        if (!m_spells[i])
+            continue;
+
+        uint32 unSpellId = m_spells[i];
+        SpellEntry const* spellInfo = sSpellStore.LookupEntry(unSpellId);
+        MANGOS_ASSERT(spellInfo);
+
+        if ((idSchoolMask & GetSpellSchoolMask(spellInfo)) && GetCreatureSpellCooldownDelay(unSpellId) < unTimeMs)
+            _AddCreatureSpellCooldown(unSpellId, curTime + unTimeMs / IN_MILLISECONDS);
+    }
+}

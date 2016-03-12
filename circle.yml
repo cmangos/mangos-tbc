@@ -1,0 +1,33 @@
+dependencies:
+  post:
+    # We need CMake 2.8.12 minimum
+    - sudo apt-get install software-properties-common
+    - sudo add-apt-repository --yes ppa:george-edison55/cmake-3.x
+    - sudo apt-get update
+    - sudo apt-get install cmake
+
+checkout:
+  post:
+    - git submodule sync
+    - git submodule update --init
+    - git clone https://github.com/NostalriusTBC/Database.git database
+    - git clone https://github.com/NostalriusTBC/Vagrant.git vagrant
+
+database:
+  override:
+    - echo "export CORE_DIRECTORY=\"`pwd`\"" >> vagrant/vagrant/config.sh
+    - echo "export DATABASE_DIRECTORY=\"`pwd`/database\"" >> vagrant/vagrant/config.sh
+    - echo "export VAGRANT_SCRIPTS_DIR=\"`pwd`/vagrant/vagrant\"" >> vagrant/vagrant/config.sh
+    - echo "export INSTALL_PREFIX=\"`pwd`/install\"" >> vagrant/vagrant/config.sh
+    - mkdir install
+    - echo ". ./vagrant/vagrant/config.sh" > setup_db.sh
+    - echo "./vagrant/vagrant/setup_world_db.sh | mysql -u ubuntu circle_test" >> setup_db.sh
+    - chmod +x setup_db.sh
+    - ./setup_db.sh
+
+test:
+  pre:
+    # Only test (for now): build process.
+    - mkdir build
+    - cd build && cmake -DCMAKE_INSTALL_PREFIX=../install ../
+    - cd build && make

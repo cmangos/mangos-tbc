@@ -2317,6 +2317,21 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 m_caster->CastCustomSpell(unitTarget, 10444, &totalDamage, nullptr, nullptr, true, m_CastItem);
                 return;
             }
+            // Flametongue Totem Proc, Ranks
+            if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000400000000))
+            {
+                if (!m_CastItem)
+                {
+                    sLog.outError("Spell::EffectDummy: spell %i requires cast Item", m_spellInfo->Id);
+                    return;
+                }
+
+                float weaponSpeed = (1.0f / IN_MILLISECONDS) * m_CastItem->GetProto()->Delay;
+                int32 totalDamage = int32(damage * 0.01 * weaponSpeed);
+
+                m_caster->CastCustomSpell(unitTarget, 16368, &totalDamage, nullptr, nullptr, true, m_CastItem);
+                return;
+            }
             if (m_spellInfo->Id == 39610)                   // Mana Tide Totem effect
             {
                 if (!unitTarget || unitTarget->GetPowerType() != POWER_MANA)

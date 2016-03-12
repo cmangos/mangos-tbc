@@ -1,4 +1,4 @@
-# C(ontinued)-MaNGOS -- README  [![Build Status](https://travis-ci.org/ElunaLuaEngine/ElunaMangosTbc.svg?branch=master)](https://travis-ci.org/ElunaLuaEngine/ElunaMangosTbc)
+# C(ontinued)-MaNGOS -- README  [![Build Status](https://circleci.com/gh/NostalriusTBC/Core.png)](https://circleci.com/gh/NostalriusTBC/Core)
 
 This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) file for Copyright information
 

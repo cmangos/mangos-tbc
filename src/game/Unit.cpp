@@ -2266,53 +2266,39 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     uint32 extraAttacks = m_extraAttacks;
 
     // melee attack spell casted at main hand attack only
-    if (attType == BASE_ATTACK && m_currentSpells[CURRENT_MELEE_SPELL])
-    {
+    if (attType == BASE_ATTACK && m_currentSpells[CURRENT_MELEE_SPELL] && !extra)
         m_currentSpells[CURRENT_MELEE_SPELL]->cast();
-
-        // not recent extra attack only at any non extra attack (melee spell case)
-        if (!extra && extraAttacks)
-        {
-            while (m_extraAttacks)
-            {
-                AttackerStateUpdate(pVictim, BASE_ATTACK, true);
-                if (m_extraAttacks > 0)
-                    --m_extraAttacks;
-            }
-        }
-        return;
-    }
-
-    // attack can be redirected to another target
-    pVictim = SelectMagnetTarget(pVictim);
-
-    CalcDamageInfo damageInfo;
-    CalculateMeleeDamage(pVictim, &damageInfo, attType);
-    // Send log damage message to client
-    DealDamageMods(pVictim, damageInfo.damage, &damageInfo.absorb);
-    SendAttackStateUpdate(&damageInfo);
-    ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
-    DealMeleeDamage(&damageInfo, true);
-
-    if (GetTypeId() == TYPEID_PLAYER)
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (Player) %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
-                         GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), damageInfo.damage, damageInfo.absorb, damageInfo.blocked_amount, damageInfo.resist);
     else
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (NPC)    %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
-                         GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), damageInfo.damage, damageInfo.absorb, damageInfo.blocked_amount, damageInfo.resist);
+    {
+        // attack can be redirected to another target
+        pVictim = SelectMagnetTarget(pVictim);
+
+        CalcDamageInfo damageInfo;
+        CalculateMeleeDamage(pVictim, &damageInfo, attType);
+        // Send log damage message to client
+        DealDamageMods(pVictim, damageInfo.damage, &damageInfo.absorb);
+        SendAttackStateUpdate(&damageInfo);
+        ProcDamageAndSpell(damageInfo.target, damageInfo.procAttacker, damageInfo.procVictim, damageInfo.procEx, damageInfo.damage, damageInfo.attackType);
+        DealMeleeDamage(&damageInfo, true);
+
+        if (GetTypeId() == TYPEID_PLAYER)
+            DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (Player) %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
+                GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), damageInfo.damage, damageInfo.absorb, damageInfo.blocked_amount, damageInfo.resist);
+        else
+            DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (NPC)    %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
+                GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), damageInfo.damage, damageInfo.absorb, damageInfo.blocked_amount, damageInfo.resist);
+    }
 
     // if damage pVictim call AI reaction
     pVictim->AttackedBy(this);
+}
 
-    // extra attack only at any non extra attack (normal case)
-    if (!extra && extraAttacks)
+void Unit::HandleProcExtraAttackFor(Unit* pVictim)
+{
+    while (m_extraAttacks)
     {
-        while (m_extraAttacks)
-        {
-            AttackerStateUpdate(pVictim, BASE_ATTACK, true);
-            if (m_extraAttacks > 0)
-                --m_extraAttacks;
-        }
+        AttackerStateUpdate(pVictim, BASE_ATTACK, true);
+        --m_extraAttacks;
     }
 }
 

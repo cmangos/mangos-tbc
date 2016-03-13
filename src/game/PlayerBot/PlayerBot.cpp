@@ -53,7 +53,7 @@ bool PlayerBot::Logout()
 
 }
 
-bool PlayerBot::IsLoggedIn()
+bool PlayerBot::IsLoggedIn() const
 {
     if (!m_session)
         return false;
@@ -61,7 +61,7 @@ bool PlayerBot::IsLoggedIn()
     return m_session->GetPlayer();
 }
 
-Player* PlayerBot::GetPlayer()
+Player* PlayerBot::GetPlayer() const
 {
     return IsLoggedIn() ? m_session->GetPlayer() : nullptr;
 }

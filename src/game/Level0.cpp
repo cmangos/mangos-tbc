@@ -368,22 +368,18 @@ bool ChatHandler::HandleDestroyBotSessionCommand(char* args)
     }
 
     if (sPlayerBotMgr.DestroyBot(botId))
-    {
         PSendSysMessage("Bot %u successfully destroyed.", botId);
-    }
     else
-    {
         PSendSysMessage("Failed destroying bot %u", botId);
-    }
 
     return true;
 }
 
 bool ChatHandler::HandleListBotCommand(char* args)
 {
-    PlayerBotMap map = sPlayerBotMgr.GetBots();
+    PlayerBotMap const& map = sPlayerBotMgr.GetBots();
 
-    PSendSysMessage("%u bots active.", map.size());
+    PSendSysMessage("%lu bots active.", map.size());
     for (auto itr = map.begin(); itr != map.end(); itr++)
     {
         if (!itr->second.GetPlayer())

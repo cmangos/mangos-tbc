@@ -32,6 +32,7 @@
 #include "ObjectMgr.h"
 #include "ObjectGuid.h"
 #include "SpellMgr.h"
+#include "TestEngine.h"
 
 bool ChatHandler::HandleDebugSendSpellFailCommand(char* args)
 {
@@ -1109,5 +1110,18 @@ bool ChatHandler::HandleDebugSpellModsCommand(char* args)
     data << int32(value);
     chr->GetSession()->SendPacket(&data);
 
+    return true;
+}
+
+bool ChatHandler::HandleRunTestsCommand(char* args)
+{
+    if (sTestEngine->IsRunning())
+    {
+        SendSysMessage("Tests are already running currently");
+        SetSentErrorMessage(true);
+        return false;
+    }
+    SendSysMessage("Starting tests");
+    sTestEngine->StartTests();
     return true;
 }

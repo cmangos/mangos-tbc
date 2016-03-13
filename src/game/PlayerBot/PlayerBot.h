@@ -21,9 +21,9 @@ class PlayerBot
         bool Login(ObjectGuid characterGuid);
         bool Logout();
 
-        bool IsLoggedIn();
+        bool IsLoggedIn() const;
 
-        Player* GetPlayer();
+        Player* GetPlayer() const;
 };
 
 #endif

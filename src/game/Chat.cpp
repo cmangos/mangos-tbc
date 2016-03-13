@@ -801,6 +801,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", nullptr },
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
         { "bot",            SEC_ADMINISTRATOR,  true,  nullptr,                                        "", botCommandTable },
+        { "runtests",       SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleRunTestsCommand,            "", nullptr },
 
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };

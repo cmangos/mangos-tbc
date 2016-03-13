@@ -66,6 +66,7 @@
 #include "CreatureLinkingMgr.h"
 #include "Weather.h"
 #include "LuaEngine.h"
+#include "TestEngine.h"
 #include "PlayerBot/PlayerBotMgr.h"
 
 INSTANTIATE_SINGLETON_1(World);
@@ -1481,6 +1482,7 @@ void World::Update(uint32 diff)
 
     ///- Used by Eluna
     GlobalEluna(OnWorldUpdate(diff));
+    sTestEngine->Update();
 
     // cleanup unused GridMap objects as well as VMaps
     sTerrainMgr.Update(diff);

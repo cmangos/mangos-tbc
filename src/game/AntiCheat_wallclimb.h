@@ -8,7 +8,7 @@ public:
     AntiCheat_wallclimb(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
-    void HandleTeleport();
+    void HandleTeleport(float x, float y, float z);
 private:
     bool jumping;
 };

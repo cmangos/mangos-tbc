@@ -170,7 +170,7 @@ bool IsNoStackAuraDueToAura(uint32 spellId_1, uint32 spellId_2);
 inline bool IsSealSpell(SpellEntry const* spellInfo)
 {
     // Collection of all the seal family flags. No other paladin spell has any of those.
-    return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, UI64LIT(0x000004000A000200)) &&
+    return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, uint64(0x000004000A000200)) &&
            // avoid counting target triggered effect as seal for avoid remove it or seal by it.
            spellInfo->EffectImplicitTargetA[0] == TARGET_SELF;
 }
@@ -178,7 +178,7 @@ inline bool IsSealSpell(SpellEntry const* spellInfo)
 inline bool IsElementalShield(SpellEntry const* spellInfo)
 {
     // family flags 10 (Lightning), 42 (Earth), 37 (Water), proc shield from T2 8 pieces bonus
-    return (spellInfo->SpellFamilyFlags & UI64LIT(0x42000000400)) || spellInfo->Id == 23552;
+    return (spellInfo->SpellFamilyFlags & uint64(0x42000000400)) || spellInfo->Id == 23552;
 }
 
 int32 CompareAuraRanks(uint32 spellId_1, uint32 spellId_2);

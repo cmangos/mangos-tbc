@@ -5693,11 +5693,18 @@ Unit* Unit::SelectMagnetTarget(Unit* victim, Spell* spell, SpellEffectIndex eff)
         {
             if (Unit* magnet = (*itr)->GetCaster())
             {
-                if (magnet->isAlive() && magnet->IsWithinLOSInMap(this) && spell->CheckTarget(magnet, eff))
+                if (magnet->isAlive() && spell->CheckTarget(magnet, eff))
                 {
-                    if (SpellAuraHolder* holder = (*itr)->GetHolder())
-                        if (holder->DropAuraCharge())
-                            victim->RemoveSpellAuraHolder(holder);
+                    // only drop charge if spell is not delayed
+                    if (!spell->m_spellInfo->speed)
+                        if (SpellAuraHolder* holder = (*itr)->GetHolder())
+                            if (holder->DropAuraCharge())
+                            {
+                                victim->RemoveSpellAuraHolder(holder);
+                                if (victim->IsMagnet())
+                                    static_cast<Totem*>(victim)->UnSummon();
+                            }
+                                
                     return magnet;
                 }
             }

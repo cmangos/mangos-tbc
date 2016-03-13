@@ -213,7 +213,7 @@ bool Totem::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
     if (!IsPositiveSpell(spellInfo))
     {
         // immune to all negative auras
-        if (IsAuraApplyEffect(spellInfo, index))
+        if (IsAuraApplyEffect(spellInfo, index) && !IsMagnet())
             return true;
     }
     else

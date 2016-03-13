@@ -4902,7 +4902,7 @@ void Spell::EffectHealMaxHealth(SpellEffectIndex /*eff_idx*/)
     m_healing += heal;
 }
 
-void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
 {
     if (!unitTarget)
         return;
@@ -4919,7 +4919,8 @@ void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
             // check if we can interrupt spell
             if ((curSpellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_INTERRUPT) && curSpellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
             {
-                unitTarget->LockSpellSchool(GetSpellSchoolMask(curSpellInfo), GetSpellDuration(m_spellInfo));
+                int32 lockDuration = unitTarget->CalculateAuraDuration(m_spellInfo, eff_idx, GetSpellDuration(m_spellInfo), m_caster);
+                unitTarget->LockSpellSchool(GetSpellSchoolMask(curSpellInfo), lockDuration);
                 unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
             }
         }

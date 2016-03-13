@@ -1981,6 +1981,9 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         virtual bool CanSwim() const = 0;
         virtual bool CanFly() const = 0;
 
+        bool isMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
+        bool isMovingOrTurning() const { return m_movementInfo.HasMovementFlag(movementOrTurningFlagsMask); }
+
     protected:
         explicit Unit();
 

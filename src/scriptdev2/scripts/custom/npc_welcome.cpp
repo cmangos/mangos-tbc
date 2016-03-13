@@ -46,8 +46,7 @@ bool GossipSelect_npc_welcome(Player *player, Creature *_Creature, uint32 sender
     sPlayerStartMgr.AddItems(player);
 
     player->CastSpell(player, MOUNT_SPELL, false);
-    for (int i = 0; i < 4; ++i)
-        player->StoreNewItemInBestSlots(BAG_ADD_ID, 1);
+    player->StoreNewItemInBestSlots(BAG_ADD_ID, 4);
 
     player->GiveLevel(NPC_WELCOME_GIVEN_LEVEL);
 

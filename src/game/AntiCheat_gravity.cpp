@@ -25,6 +25,8 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         m_StartJumpZ = m_MoveInfo[0].GetPos()->z;
         m_StartJumpWater = m_Player->GetTerrain()->IsUnderWater(m_MoveInfo[0].GetPos()->x, m_MoveInfo[0].GetPos()->y, m_MoveInfo[0].GetPos()->z - 0.5f);
     }
+    else if (!isFalling())
+        m_StartJumpZ = m_MoveInfo[0].GetPos()->z;
 
     float jumpdiff = m_MoveInfo[0].GetPos()->z - m_StartJumpZ;
 
@@ -43,7 +45,8 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     return false;
 }
 
-void AntiCheat_gravity::HandleTeleport()
+void AntiCheat_gravity::HandleTeleport(float x, float y, float z)
 {
-    m_Initialized = false;
+    m_MoveInfo[1].ChangePosition(x, y, z, m_Player->GetOrientation());
+    m_StartJumpZ = z;
 }

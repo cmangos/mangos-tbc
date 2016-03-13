@@ -5,9 +5,7 @@ bool PlayerBotMgr::LoginBot(uint32 botId, ObjectGuid characterId)
     auto itr = m_playerBots.find(botId);
 
     if (itr != m_playerBots.end())
-    {
         return itr->second.Login(characterId);
-    }
     else
         return false;
 }
@@ -30,9 +28,7 @@ void PlayerBotMgr::LogoutAllBots()
         return;
 
     for (auto itr = m_playerBots.begin(); itr != m_playerBots.end(); ++itr)
-    {
         LogoutBot(itr->first);
-    }
 }
 
 PlayerBotMap& PlayerBotMgr::GetBots()

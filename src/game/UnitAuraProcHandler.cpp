@@ -141,7 +141,7 @@ pAuraProcHandler AuraProcHandler[TOTAL_AURAS] =
     &Unit::HandleNULLProc,                                  //105 SPELL_AURA_FEATHER_FALL
     &Unit::HandleNULLProc,                                  //106 SPELL_AURA_HOVER
     &Unit::HandleNULLProc,                                  //107 SPELL_AURA_ADD_FLAT_MODIFIER
-    &Unit::HandleNULLProc,                                  //108 SPELL_AURA_ADD_PCT_MODIFIER
+    &Unit::HandleAddModifierProc,                           //108 SPELL_AURA_ADD_PCT_MODIFIER
     &Unit::HandleNULLProc,                                  //109 SPELL_AURA_ADD_TARGET_TRIGGER
     &Unit::HandleNULLProc,                                  //110 SPELL_AURA_MOD_POWER_REGEN_PERCENT
     &Unit::HandleNULLProc,                                  //111 SPELL_AURA_ADD_CASTER_HIT_TRIGGER
@@ -2500,4 +2500,11 @@ SpellAuraProcResult Unit::HandleInvisibilityAuraProc(Unit* pVictim, uint32 damag
 
     RemoveAurasDueToSpell(triggeredByAura->GetId());
     return SPELL_AURA_PROC_OK;
+}
+
+SpellAuraProcResult Unit::HandleAddModifierProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown)
+{
+    // Skip melee hits and spells with zero cost
+    return !(procSpell == nullptr ||
+        (procSpell->manaCost == 0 && procSpell->ManaCostPercentage == 0)) ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED;
 }

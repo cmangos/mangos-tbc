@@ -1985,6 +1985,8 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool isMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
         bool isMovingOrTurning() const { return m_movementInfo.HasMovementFlag(movementOrTurningFlagsMask); }
 
+        bool IsMagnet() const { return GetEntry() == 5925; } /// @todo: find a more generic solution (Grounding Totem)
+
     protected:
         explicit Unit();
 

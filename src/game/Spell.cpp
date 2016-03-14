@@ -46,6 +46,7 @@
 #include "Chat.h"
 #include "SQLStorages.h"
 #include "LuaEngine.h"
+#include "Totem.h"
 
 extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 
@@ -1159,6 +1160,10 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
             if (!m_spellInfo->HasAttribute(SPELL_ATTR_EX_NOT_BREAK_STEALTH))
                 unit->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
+            // remove Grounding Totem on spell hit
+            if (unit->GetTypeId() == TYPEID_UNIT && unit->IsMagnet())
+                static_cast<Totem*>(unit)->UnSummon();
+
             // can cause back attack (if detected), stealth removed at Spell::cast if spell break it
             if (!m_spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO) && !IsPositiveSpell(m_spellInfo->Id) &&
                     m_caster->isVisibleForOrDetect(unit, unit, false))
@@ -1663,15 +1668,14 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         }
         case TARGET_CHAIN_DAMAGE:
         {
-            if (EffectChainTarget <= 1)
+            if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
             {
-                if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
-                {
-                    m_targets.setUnitTarget(pUnitTarget);
-                    targetUnitMap.push_back(pUnitTarget);
-                }
+                m_targets.setUnitTarget(pUnitTarget);
+                targetUnitMap.push_back(pUnitTarget);
+                break;
             }
-            else
+
+            if (EffectChainTarget > 1)
             {
                 Unit* pUnitTarget = m_targets.getUnitTarget();
                 WorldObject* originalCaster = GetAffectiveCasterObject();
@@ -6211,6 +6215,10 @@ bool Spell::CheckTargetCreatureType(Unit* target) const
     // Dismiss Pet, Taming Lesson and Control Robot skipped
     if (m_spellInfo->Id == 2641 || m_spellInfo->Id == 23356 || m_spellInfo->Id == 30009)
         spellCreatureTargetMask =  0;
+
+    // if target is magnet (i.e Grounding Totem) the check is skipped
+    if (target->IsMagnet())
+        return true;
 
     if (spellCreatureTargetMask)
     {

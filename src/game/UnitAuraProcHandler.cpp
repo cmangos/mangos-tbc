@@ -2479,15 +2479,20 @@ SpellAuraProcResult Unit::HandleModResistanceAuraProc(Unit* /*pVictim*/, uint32 
 
 SpellAuraProcResult Unit::HandleRemoveByDamageChanceProc(Unit* pVictim, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell, uint32 procFlag, uint32 procEx, uint32 cooldown)
 {
-    // The chance to dispel an aura depends on the damage taken with respect to the casters level.
-    uint32 max_dmg = getLevel() > 8 ? 25 * getLevel() - 150 : 50;
-    float chance = float(damage) / max_dmg * 100.0f;
-    if (roll_chance_f(chance))
+    // dont dispel aura on damage caused by aura itself ... exclude periodic damage because Druids Entangling Roots can break itself
+    // TODO: Damage should be applied after aura is added to victim
+    if (!(triggeredByAura->GetId() == procSpell->Id && !(procFlag & PROC_FLAG_ON_TAKE_PERIODIC)))
     {
-        triggeredByAura->SetInUse(true);
-        RemoveAurasByCasterSpell(triggeredByAura->GetId(), triggeredByAura->GetCasterGuid());
-        triggeredByAura->SetInUse(false);
-        return SPELL_AURA_PROC_OK;
+        // The chance to dispel an aura depends on the damage taken with respect to the casters level.
+        uint32 max_dmg = getLevel() > 8 ? 25 * getLevel() - 150 : 50;
+        float chance = float(damage) / max_dmg * 100.0f;
+        if (roll_chance_f(chance))
+        {
+            triggeredByAura->SetInUse(true);
+            RemoveAurasByCasterSpell(triggeredByAura->GetId(), triggeredByAura->GetCasterGuid());
+            triggeredByAura->SetInUse(false);
+            return SPELL_AURA_PROC_OK;
+        }
     }
 
     return SPELL_AURA_PROC_FAILED;

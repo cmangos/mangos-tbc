@@ -4940,13 +4940,6 @@ SpellCastResult Spell::CheckCast(bool strict)
                 int32 ReqValue = (skillValue < 100 ? (TargetLevel - 10) * 10 : TargetLevel * 5);
                 if (ReqValue > skillValue)
                     return SPELL_FAILED_LOW_CASTLEVEL;
-
-                // chance for fail at orange skinning attempt
-                if ((m_selfContainer && (*m_selfContainer) == this) &&
-                        skillValue < sWorld.GetConfigMaxSkillValue() &&
-                        (ReqValue < 0 ? 0 : ReqValue) > irand(skillValue - 25, skillValue + 37))
-                    return SPELL_FAILED_TRY_AGAIN;
-
                 break;
             }
             case SPELL_EFFECT_OPEN_LOCK_ITEM:
@@ -4999,20 +4992,9 @@ SpellCastResult Spell::CheckCast(bool strict)
                 int32 skillValue = 0;
 
                 // check lock compatibility
-                SpellCastResult res = CanOpenLock(SpellEffectIndex(i), lockId, skillId, reqSkillValue, skillValue);
+                SpellCastResult res = CanOpenLock(SpellEffectIndex(i), lockId, skillId, reqSkillValue, skillValue, true);
                 if (res != SPELL_CAST_OK)
                     return res;
-
-                // chance for fail at orange mining/herb/LockPicking gathering attempt
-                // second check prevent fail at rechecks
-                if (skillId != SKILL_NONE && (!m_selfContainer || ((*m_selfContainer) != this)))
-                {
-                    bool canFailAtMax = skillId != SKILL_HERBALISM && skillId != SKILL_MINING;
-
-                    // chance for failure in orange gather / lockpick (gathering skill can't fail at maxskill)
-                    if ((canFailAtMax || skillValue < sWorld.GetConfigMaxSkillValue()) && reqSkillValue > irand(skillValue - 25, skillValue + 37))
-                        return SPELL_FAILED_TRY_AGAIN;
-                }
                 break;
             }
             case SPELL_EFFECT_SUMMON_DEAD_PET:
@@ -6488,7 +6470,7 @@ bool SpellEvent::IsDeletable() const
     return m_Spell->IsDeletable();
 }
 
-SpellCastResult Spell::CanOpenLock(SpellEffectIndex effIndex, uint32 lockId, SkillType& skillId, int32& reqSkillValue, int32& skillValue)
+SpellCastResult Spell::CanOpenLock(SpellEffectIndex effIndex, uint32 lockId, SkillType& skillId, int32& reqSkillValue, int32& skillValue, bool initialCheck)
 {
     if (!lockId)                                            // possible case for GO and maybe for items.
         return SPELL_CAST_OK;
@@ -6537,6 +6519,17 @@ SpellCastResult Spell::CanOpenLock(SpellEffectIndex effIndex, uint32 lockId, Ski
 
                     if (skillValue < reqSkillValue)
                         return SPELL_FAILED_LOW_CASTLEVEL;
+
+                    // chance for fail at orange mining/herb/LockPicking gathering attempt
+                    // second check prevent fail at rechecks
+                    if (!initialCheck && (!m_selfContainer || ((*m_selfContainer) != this)))
+                    {
+                        bool canFailAtMax = skillId != SKILL_HERBALISM && skillId != SKILL_MINING;
+
+                        // chance for failure in orange gather / lockpick (gathering skill can't fail at maxskill)
+                        if ((canFailAtMax || skillValue < sWorld.GetConfigMaxSkillValue()) && reqSkillValue > irand(skillValue - 25, skillValue + 37))
+                            return SPELL_FAILED_TRY_AGAIN;
+                    }
                 }
 
                 return SPELL_CAST_OK;

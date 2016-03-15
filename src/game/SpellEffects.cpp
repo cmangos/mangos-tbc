@@ -3459,7 +3459,7 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
     int32 reqSkillValue = 0;
     int32 skillValue;
 
-    SpellCastResult res = CanOpenLock(eff_idx, lockId, skillId, reqSkillValue, skillValue);
+    SpellCastResult res = CanOpenLock(eff_idx, lockId, skillId, reqSkillValue, skillValue, false);
     if (res != SPELL_CAST_OK)
     {
         SendCastResult(res);
@@ -6878,6 +6878,17 @@ void Spell::EffectSkinning(SpellEffectIndex /*eff_idx*/)
     int32 targetLevel = creature->getLevel();
 
     uint32 skill = creature->GetCreatureInfo()->GetRequiredLootSkill();
+    int32 skillValue = m_caster->ToPlayer()->GetSkillValue(skill);
+    int32 reqValue = (skillValue < 100 ? (targetLevel - 10) * 10 : targetLevel * 5);
+
+    // chance for fail at orange skinning attempt
+    if ((m_selfContainer && (*m_selfContainer) == this) &&
+        skillValue < sWorld.GetConfigMaxSkillValue() &&
+        (reqValue < 0 ? 0 : reqValue) > irand(skillValue - 25, skillValue + 37))
+    {
+        SendCastResult(SPELL_FAILED_TRY_AGAIN);
+        return;
+    }
 
     Loot*& loot = unitTarget->loot;
     if (!loot)
@@ -6894,12 +6905,12 @@ void Spell::EffectSkinning(SpellEffectIndex /*eff_idx*/)
     loot->ShowContentTo((Player*)m_caster);
     creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
 
-    int32 reqValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
+    reqValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
 
-    int32 skillValue = ((Player*)m_caster)->GetPureSkillValue(skill);
+    int32 pureSkillValue = ((Player*)m_caster)->GetPureSkillValue(skill);
 
     // Double chances for elites
-    ((Player*)m_caster)->UpdateGatherSkill(skill, skillValue, reqValue, creature->IsElite() ? 2 : 1);
+    ((Player*)m_caster)->UpdateGatherSkill(skill, pureSkillValue, reqValue, creature->IsElite() ? 2 : 1);
 }
 
 void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)

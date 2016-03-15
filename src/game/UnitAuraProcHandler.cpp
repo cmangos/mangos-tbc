@@ -1893,8 +1893,10 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             }
             // Blackout
             else if (auraSpellInfo->SpellIconID == 173)
+            {
                 if (!pVictim || !pVictim->isAlive() || pVictim == this || procSpell == nullptr)
                     return SPELL_AURA_PROC_FAILED;
+            }
             break;
         }
         case SPELLFAMILY_DRUID:

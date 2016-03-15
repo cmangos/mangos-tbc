@@ -684,6 +684,11 @@ void Spell::prepareDataForTriggerSystem()
                 if (m_spellInfo->IsFitToFamilyMask(UI64LIT(0x0001000000200000)))
                     m_canTrigger = true;
                 break;
+            case SPELLFAMILY_SHAMAN:
+                // Lightning Shield
+                if (m_spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000000000400)))
+                    m_canTrigger = true;
+                break;
             default:
                 break;
         }

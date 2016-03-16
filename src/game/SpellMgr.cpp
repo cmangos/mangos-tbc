@@ -3832,7 +3832,20 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // some generic arena related spells have by some strange reason MECHANIC_TURN
             if (spellproto->Mechanic == MECHANIC_TURN)
                 return DIMINISHING_NONE;
+            // Intimidation
+            else if (spellproto->Id == 24394)
+                return DIMINISHING_CONTROL_STUN;
             break;
+        case SPELLFAMILY_MAGE:
+        {
+            // Frost Nova / Freeze (Water Elemental)
+            if (spellproto->SpellIconID == 193)
+                return DIMINISHING_CONTROL_ROOT;
+            // Dragon's Breath
+            else if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000800000)))
+                return DIMINISHING_DRAGONS_BREATH;
+            break;
+        }
         case SPELLFAMILY_ROGUE:
         {
             // Kidney Shot
@@ -3841,23 +3854,19 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Blind
             else if (spellproto->IsFitToFamilyMask(UI64LIT(0x00001000000)))
                 return DIMINISHING_BLIND_CYCLONE;
-            break;
-        }
-        case SPELLFAMILY_HUNTER:
-        {
-            // Freezing Trap
-            if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000008)))
-                return DIMINISHING_FREEZE;
+            // Gouge
+            else if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000008)))
+                return DIMINISHING_DISORIENT;
             break;
         }
         case SPELLFAMILY_WARLOCK:
         {
-            // Fear
-            if (spellproto->IsFitToFamilyMask(UI64LIT(0x40840000000)))
-                return DIMINISHING_WARLOCK_FEAR;
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
+            // Seduction
+            else if (spellproto->IsFitToFamilyMask(UI64LIT(0x00010000000)))
+                return DIMINISHING_FEAR;
             break;
         }
         case SPELLFAMILY_DRUID:
@@ -3865,13 +3874,24 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Cyclone
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x02000000000)))
                 return DIMINISHING_BLIND_CYCLONE;
+            // Entangling Roots
+            // Nature's Grasp
+            else if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000200)))
+                return DIMINISHING_CONTROL_ROOT;
             break;
         }
         case SPELLFAMILY_WARRIOR:
         {
-            // Hamstring - limit duration to 10s in PvP
+            // Hamstring - Limit to 10s in PvP
             if (spellproto->IsFitToFamilyMask(UI64LIT(0x00000000002)))
                 return DIMINISHING_LIMITONLY;
+            break;
+        }
+        case SPELLFAMILY_PALADIN:
+        {
+            // Turn Evil
+            if (spellproto->Id == 10326)
+                return DIMINISHING_FEAR;
             break;
         }
         default:
@@ -3887,8 +3907,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return triggered ? DIMINISHING_TRIGGER_STUN : DIMINISHING_CONTROL_STUN;
     if (mechanic & (1 << (MECHANIC_SLEEP - 1)))
         return DIMINISHING_SLEEP;
-    if (mechanic & (1 << (MECHANIC_POLYMORPH - 1)))
-        return DIMINISHING_POLYMORPH;
+    if (mechanic & ((1 << (MECHANIC_SAPPED - 1)) | (1 << (MECHANIC_POLYMORPH - 1)) | (1 << (MECHANIC_SHACKLE - 1)) | (1 << (MECHANIC_KNOCKOUT - 1))))
+        return DIMINISHING_DISORIENT;
     if (mechanic & (1 << (MECHANIC_ROOT - 1)))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
     if (mechanic & (1 << (MECHANIC_FEAR - 1)))
@@ -3901,8 +3921,6 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_DISARM;
     if (mechanic & (1 << (MECHANIC_FREEZE - 1)))
         return DIMINISHING_FREEZE;
-    if (mechanic & ((1 << (MECHANIC_KNOCKOUT - 1)) | (1 << (MECHANIC_SAPPED - 1))))
-        return DIMINISHING_KNOCKOUT;
     if (mechanic & (1 << (MECHANIC_BANISH - 1)))
         return DIMINISHING_BANISH;
     if (mechanic & (1 << (MECHANIC_HORROR - 1)))
@@ -3922,11 +3940,9 @@ bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
         case DIMINISHING_CONTROL_ROOT:
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
-        case DIMINISHING_WARLOCK_FEAR:
         case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH:
         case DIMINISHING_FREEZE:
-        case DIMINISHING_KNOCKOUT:
+        case DIMINISHING_DISORIENT:
         case DIMINISHING_BLIND_CYCLONE:
         case DIMINISHING_BANISH:
         case DIMINISHING_LIMITONLY:
@@ -3951,14 +3967,12 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
         case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH:
+        case DIMINISHING_DISORIENT:
         case DIMINISHING_SILENCE:
         case DIMINISHING_DISARM:
         case DIMINISHING_DEATHCOIL:
         case DIMINISHING_FREEZE:
         case DIMINISHING_BANISH:
-        case DIMINISHING_WARLOCK_FEAR:
-        case DIMINISHING_KNOCKOUT:
             return DRTYPE_PLAYER;
         default:
             break;

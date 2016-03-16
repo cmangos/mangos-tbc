@@ -2333,19 +2333,18 @@ enum DiminishingGroup
     DIMINISHING_FEAR,                                       // Non-warlock fears
     DIMINISHING_CHARM,
     // Mage Specific
-    DIMINISHING_POLYMORPH,
+    DIMINISHING_DRAGONS_BREATH,
     // Rogue Specific
     DIMINISHING_KIDNEYSHOT,                                 // Kidney Shot is not diminished with Cheap Shot
     // Warlock Specific
     DIMINISHING_DEATHCOIL,                                  // Death Coil Diminish only with another Death Coil
-    DIMINISHING_WARLOCK_FEAR,                               // Also with Sedduction
     // Shared Class Specific
     DIMINISHING_BLIND_CYCLONE,                              // From 2.3.0
     DIMINISHING_DISARM,                                     // From 2.3.0
     DIMINISHING_SILENCE,                                    // From 2.3.0
     DIMINISHING_FREEZE,                                     // Hunter's Freezing Trap
-    DIMINISHING_KNOCKOUT,                                   // Also with Sap, all Knockout mechanics are here
     DIMINISHING_BANISH,
+    DIMINISHING_DISORIENT,
     // Other
     // Don't Diminish, but limit duration to 10s
     DIMINISHING_LIMITONLY

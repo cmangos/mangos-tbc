@@ -1896,8 +1896,6 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
             {
                 if (!pVictim || !pVictim->isAlive() || pVictim == this || procSpell == nullptr)
                     return SPELL_AURA_PROC_FAILED;
-
-                trigger_spell_id = 15269;
             }
             break;
         }

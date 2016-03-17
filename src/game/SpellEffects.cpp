@@ -4728,14 +4728,31 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 customBonusDamagePercentMod = true;
                 bonusDamagePercentMod = 0.0f;               // only applied if auras found
 
+                // get highest rank of the Sunder Armor spell
+                const PlayerSpellMap& sp_list = static_cast<Player*>(m_caster)->GetSpellMap();
+                for (auto itr = sp_list.begin(); itr != sp_list.end(); ++itr)
+                {
+                    // only highest rank is shown in spell book, so simply check if shown in spell book
+                    if (!itr->second.active || itr->second.disabled || itr->second.state == PLAYERSPELL_REMOVED)
+                        continue;
+
+                    SpellEntry const* spellInfo = sSpellStore.LookupEntry(itr->first);
+                    if (!spellInfo)
+                        continue;
+
+                    if (spellInfo->IsFitToFamily(SPELLFAMILY_WARRIOR, UI64LIT(0x0000000000004000)) && spellInfo->SpellIconID == 565)
+                    {
+                        m_caster->CastSpell(unitTarget, spellInfo, true);
+                        break;
+                    }
+                }
+
                 // Sunder Armor
                 Aura* sunder = unitTarget->GetAura(SPELL_AURA_MOD_RESISTANCE, SPELLFAMILY_WARRIOR, UI64LIT(0x0000000000004000), m_caster->GetObjectGuid());
 
                 // Devastate bonus and sunder armor refresh, additional threat
                 if (sunder)
                 {
-                    sunder->GetHolder()->RefreshHolder();
-
                     // 100% * stack
                     bonusDamagePercentMod += 1.0f * sunder->GetStackAmount();
 

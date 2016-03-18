@@ -706,7 +706,6 @@ bool GroupLootRoll::PlayerVote(Player* player, RollVote vote)
         }
         default:                                            // Roll removed case
             return false;
-            break;
     }
     return true;
 }

@@ -392,7 +392,7 @@ UpdateMask Player::updateVisualBits;
 
 Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_reputationMgr(this)
 {
-    m_transport = 0;
+    m_transport = nullptr;
 
     m_speakTime = 0;
     m_speakCount = 0;
@@ -3522,7 +3522,7 @@ bool Player::resetTalents(bool no_cost)
 
         if (GetMoney() < cost)
         {
-            SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, 0, 0, 0);
+            SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, nullptr, 0, 0);
             return false;
         }
     }
@@ -6574,7 +6574,7 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
     else                                                    // in friendly area
     {
         if (IsPvP() && !HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_IN_PVP) && pvpInfo.endTimer == 0)
-            pvpInfo.endTimer = time(0);                     // start toggle-off
+            pvpInfo.endTimer = time(nullptr);               // start toggle-off
     }
 
     if (zone->flags & AREA_FLAG_SANCTUARY)                  // in sanctuary

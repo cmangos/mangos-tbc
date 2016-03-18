@@ -420,7 +420,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
             {
                 // Shadow Word: Death - deals damage equal to damage done to caster
                 if (m_spellInfo->SpellFamilyFlags & 0x0000000200000000LL)
-                    m_caster->CastCustomSpell(m_caster, 32409, &damage, 0, 0, true);
+                    m_caster->CastCustomSpell(m_caster, 32409, &damage, nullptr, nullptr, true);
                 break;
             }
             case SPELLFAMILY_DRUID:
@@ -454,7 +454,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                     // consume from stack dozes not more that have combo-points
                     if (uint32 combo = ((Player*)m_caster)->GetComboPoints())
                     {
-                        Aura* poison = 0;
+                        Aura* poison = nullptr;
                         // Lookup for Deadly poison (only attacker applied)
                         Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
                         for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
@@ -1839,7 +1839,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     return;
 
                 int32 basePoints0 = damage + int32(m_caster->GetPower(POWER_RAGE) * m_spellInfo->DmgMultiplier[eff_idx]);
-                m_caster->CastCustomSpell(unitTarget, 20647, &basePoints0, nullptr, nullptr, true, 0);
+                m_caster->CastCustomSpell(unitTarget, 20647, &basePoints0, nullptr, nullptr, true, nullptr);
                 m_caster->SetPower(POWER_RAGE, 0);
                 return;
             }

@@ -157,7 +157,7 @@ class MANGOS_DLL_SPEC LinkedListHead
 
 
                 Iterator()
-                    : _Ptr(0)
+                    : _Ptr(nullptr)
                 {
                     // construct with null node pointer
                 }

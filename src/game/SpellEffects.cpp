@@ -638,10 +638,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    uint32 spell_id = 0;
-
+                    uint32 spell_id;
                     uint32 roll = urand(0, 99);
-
                     if (roll < 2)                           // 2% for 30 sec self root (off-like chance unknown)
                         spell_id = 16566;
                     else if (roll < 4)                      // 2% for 20 sec root, charge to target (off-like chance unknown)
@@ -701,7 +699,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
 
                     Unit* newTarget = unitTarget;
-                    uint32 spell_id = 0;
+                    uint32 spell_id;
                     uint32 roll = urand(0, 99);
                     if (roll < 25)                          // Fireball (25% chance)
                         spell_id = 15662;
@@ -743,7 +741,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    uint32 spell_id = 0;
+                    uint32 spell_id;
                     switch (urand(1, 3))
                     {
                         case 1: spell_id = 16595; break;
@@ -2128,9 +2126,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    int hurt = 0;
-                    int heal = 0;
-
+                    int hurt;
+                    int heal;
                     switch (m_spellInfo->Id)
                     {
                         case 20473: hurt = 25912; heal = 25914; break;
@@ -3393,7 +3390,7 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
 
     Player* player = (Player*)m_caster;
 
-    uint32 lockId = 0;
+    uint32 lockId;
     ObjectGuid guid;
 
     // Get lockId
@@ -3759,7 +3756,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         {
             if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
             {
-                bool positive = true;
+                bool positive;
                 if (!holder->IsPositive())
                     positive = false;
                 else
@@ -4981,7 +4978,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!itemTarget && m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    uint32 spell_id = 0;
+                    uint32 spell_id;
                     switch (urand(1, 5))
                     {
                         case 1:  spell_id = 8854; break;
@@ -5311,7 +5308,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 29395:                                 // Break Kaliri Egg
                 {
-                    uint32 creature_id = 0;
+                    uint32 creature_id;
                     uint32 rand = urand(0, 99);
 
                     if (rand < 10)
@@ -6473,7 +6470,7 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
 {
     uint32 go_id = m_spellInfo->EffectMiscValue[eff_idx];
 
-    uint8 slot = 0;
+    uint8 slot;
     switch (m_spellInfo->Effect[eff_idx])
     {
         case SPELL_EFFECT_SUMMON_OBJECT_SLOT1: slot = 0; break;
@@ -6647,7 +6644,7 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
         prevPos.z = groundZ;
 
     //check if in liquid
-    isPrevInLiquid = unitTarget->GetMap()->GetTerrain()->IsInWater(prevPos.x, prevPos.y, prevPos.z);
+    bool isPrevInLiquid = unitTarget->GetMap()->GetTerrain()->IsInWater(prevPos.x, prevPos.y, prevPos.z);
 
     const float step = 2.0f;                                    // step length before next check slope/edge/water
     const float maxSlope = 50.0f;                               // 50(degree) max seem best value for walkable slope
@@ -6804,7 +6801,7 @@ void Spell::EffectSelfResurrect(SpellEffectIndex eff_idx)
     if (!unitTarget->IsInWorld())
         return;
 
-    uint32 health = 0;
+    uint32 health;
     uint32 mana = 0;
 
     // flat case

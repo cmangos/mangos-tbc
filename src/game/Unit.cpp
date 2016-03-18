@@ -8931,7 +8931,8 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, 
                     continue;
             }
 
-            SpellAuraProcResult procResult = (*this.*AuraProcHandler[auraModifier->m_auraname])(pTarget, damage, triggeredByAura, procSpell, procFlag, procExtra, cooldown);
+            ProcEventInfo eventInfo = ProcEventInfo(pTarget, damage, triggeredByAura, procSpell, procFlag, procExtra, cooldown);
+            SpellAuraProcResult procResult = (*this.*AuraProcHandler[auraModifier->m_auraname])(eventInfo);
             switch (procResult)
             {
                 case SPELL_AURA_PROC_CANT_TRIGGER:
@@ -9845,3 +9846,10 @@ void Unit::DisableSpline()
     m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD));
     movespline->_Interrupt();
 }
+
+ProcEventInfo::ProcEventInfo(Unit* target, uint32 damage, Aura* triggeredByAura, SpellEntry const* procSpell,
+    uint32 procFlag, uint32 procExtra, uint32 cooldown) :
+    _target(target), _damage(damage), _triggeredByAura(triggeredByAura), _procSpell(procSpell),
+    _procFlag(procFlag), _procExtra(procExtra), _cooldown(cooldown)
+{ }
+

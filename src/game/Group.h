@@ -230,7 +230,6 @@ class MANGOS_DLL_SPEC Group
 
         void SetDifficulty(Difficulty difficulty);
         Difficulty GetDifficulty() const { return m_difficulty; }
-        uint16 InInstance();
         bool InCombatToInstance(uint32 instanceId);
         void ResetInstances(InstanceResetMethod method, Player* SendMsgTo);
 

@@ -141,7 +141,7 @@ void MapManager::LoadTransports()
     sLog.outString();
 }
 
-Transport::Transport() : GameObject()
+Transport::Transport() : GameObject(), m_pathTime(0), m_timer(0), m_nextNodeTime(0), m_period(0)
 {
     // 2.3.2 - 0x5A
     m_updateFlag = (UPDATEFLAG_TRANSPORT | UPDATEFLAG_LOWGUID | UPDATEFLAG_HIGHGUID | UPDATEFLAG_HAS_POSITION);

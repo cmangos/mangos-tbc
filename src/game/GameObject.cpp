@@ -44,6 +44,8 @@
 
 GameObject::GameObject() : WorldObject(),
     m_model(nullptr),
+    m_captureSlider(0),
+    m_captureState(),
     m_goInfo(nullptr),
     m_displayInfo(nullptr)
 {

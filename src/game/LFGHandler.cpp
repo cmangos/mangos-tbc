@@ -18,8 +18,6 @@
 
 #include "WorldSession.h"
 #include "Log.h"
-#include "Player.h"
-#include "WorldPacket.h"
 #include "ObjectMgr.h"
 #include "World.h"
 

@@ -47,6 +47,11 @@
 #include "Util.h"
 #include "TemporarySummon.h"
 #include "ScriptMgr.h"
+#include "SkillDiscovery.h"
+#include "Formulas.h"
+#include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
+#include "CellImpl.h"
 #include "G3D/Vector3.h"
 #include "LootMgr.h"
 
@@ -6602,7 +6607,6 @@ void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
     prevPos.z = unitTarget->GetPositionZ();
 
     float groundZ = prevPos.z;
-    bool isPrevInLiquid = false;
 
     // falling case
     if (!unitTarget->GetMap()->GetHeightInRange(prevPos.x, prevPos.y, groundZ, 3.0f) && unitTarget->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLING))

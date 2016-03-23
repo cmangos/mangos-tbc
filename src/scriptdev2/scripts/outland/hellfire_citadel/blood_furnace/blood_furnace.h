@@ -18,6 +18,7 @@ enum
     NPC_BROGGOK                     = 17380,
     NPC_KELIDAN_THE_BREAKER         = 17377,
     NPC_NASCENT_FEL_ORC             = 17398,                // Used in the Broggok event
+    NPC_FEL_ORC_NEOPHYTE            = 17429,
     NPC_MAGTHERIDON                 = 21174,
     NPC_SHADOWMOON_CHANNELER        = 17653,
 
@@ -75,8 +76,6 @@ class instance_blood_furnace : public ScriptedInstance
         void Load(const char* chrIn) override;
         const char* Save() const override { return m_strInstData.c_str(); }
 
-        void GetMovementDistanceForIndex(uint32 uiIndex, float& dx, float& dy);
-
         void GetKelidanAddList(GuidList& lList) { lList = m_lChannelersGuids; m_lChannelersGuids.clear(); }
 
     private:
@@ -88,7 +87,7 @@ class instance_blood_furnace : public ScriptedInstance
 
         BroggokEventInfo m_aBroggokEvent[MAX_ORC_WAVES];
 
-        uint32 m_uiBroggokEventTimer;                       // Timer for opening the event cages; only on heroic mode = 30 secs
+        uint32 m_uiBroggokEventTimer;                       // Timer for opening the event cages; 90s on normal, 30s on heroic difficulty
         uint32 m_uiBroggokEventPhase;
         uint32 m_uiRandYellTimer;                           // Random yell for Magtheridon
 

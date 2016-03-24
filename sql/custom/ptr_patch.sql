@@ -48,9 +48,9 @@ REPLACE INTO `creature` (`guid`, `id`, `map`, `spawnMask`, `modelid`, `equipment
 -- Texts
 REPLACE INTO npc_text (id, text0_0) VALUES
 -- NPC_TEXT_LEVELUP_ALREADY_DONE
-(19997, "Salutation $N,\nYou are now ready to explore the Outlands. Be brave !"),
+(19997, "Salutation $C. How was your journey?"),
 -- NPC_TEXT_LEVELUP_OK
-(19998, "Congratulation $N, you are now a level 60 $C."),
+(19998, "Congratulation $C, you are now ready to explore the Outlands. Be brave!"),
 -- NPC_TEXT_LEVELUP_RULES
 (19999, "Salutation $N.
 Welcome on NostalriusTBC Player Test Realm. This realm is available for testing purposes only. Rules:
@@ -68,10 +68,9 @@ I have the power to port you to remote regions ..."),
 
 
 -- Alliance starting point
-UPDATE playercreateinfo SET position_x = -4977.7, position_y = -887.1, position_z = 501.6, orientation = 5.4 WHERE race IN (1, 3, 4, 7, 11);
+UPDATE playercreateinfo SET map = 0, position_x = -4977.7, position_y = -887.1, position_z = 501.6, orientation = 5.4 WHERE race IN (1, 3, 4, 7, 11);
 -- Horde starting point
-UPDATE playercreateinfo SET position_x = 1433.7, position_y = -4395.73, position_z = 25.23, orientation = 1.62 WHERE race NOT IN (1, 3, 4, 7, 11);
-
+UPDATE playercreateinfo SET map = 0, position_x = 1433.7, position_y = -4395.73, position_z = 25.23, orientation = 1.62 WHERE race NOT IN (1, 3, 4, 7, 11);
 -- Starting Area.
 INSERT INTO `creature` SET `guid`=1246076,`id`=14304,`map`=1,`modelid`=0,`equipment_id`=133,`position_x`=1443.61,`position_y`=-4414.2,`position_z`=25.2352,`orientation`=4.11919,`spawntimesecs`=25,`spawndist`=5,`currentwaypoint`=0,`curhealth`=9298,`curmana`=0,`DeathState`=0,`MovementType`=0;
 INSERT INTO `creature` SET `guid`=1246079,`id`=14304,`map`=1,`modelid`=0,`equipment_id`=133,`position_x`=1444.91,`position_y`=-4429.49,`position_z`=25.2352,`orientation`=2.41881,`spawntimesecs`=25,`spawndist`=5,`currentwaypoint`=0,`curhealth`=9298,`curmana`=0,`DeathState`=0,`MovementType`=0;

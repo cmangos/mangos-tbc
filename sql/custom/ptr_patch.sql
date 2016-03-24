@@ -58,8 +58,13 @@ Welcome on NostalriusTBC Player Test Realm. This realm is available for testing 
 - Feel free to test anything and report bugs you find on the bugtracker
 - The characters created here will be wiped upon official server release
 More information on https://tbc.nostalrius.org/."),
+-- NPC_TEXT_TELEPORT_GOSSIP
 (20000, "Salutation $N.
-I have the power to port you to remote regions ...");
+I have the power to port you to remote regions ..."),
+-- NPC_TEXT_LEVELUP_SUB
+(20001, "Choose wisely ..."),
+-- NPC_TEXT_LEVELUP_MAX_PROF
+(20002, "Crafters who set out to master a profession discover skills every bit as valuable as swordplay or spellcraft. They can create weapons, tools and magic potions, bandage wounds, harvest precious materials, inscribe ancient runes of power, and more. Of course, truly canny professionals think bigger than outfitting themselves. When they’re not supplementing their own arsenal, they’ll be making a profit supplementing someone else’s.");
 
 
 -- Starting Area.
@@ -1010,3 +1015,6 @@ INSERT INTO `playercreateinfo_spell` SET `race`=8,`class`=5,`Spell`=19285,`Note`
 INSERT INTO `playercreateinfo_spell` SET `race`=8,`class`=5,`Spell`=19312,`Note`="";
 
 UPDATE creature_template SET FactionAlliance = 7, FactionHorde = 7 WHERE entry IN (7432, 9696);
+
+ALTER TABLE `playerstart_spell`
+ADD COLUMN `reqLevel`  tinyint(3) NOT NULL DEFAULT 1 AFTER `race`;

@@ -19,6 +19,7 @@ struct PlayerStartSpell
     uint32 spellId;
     uint32 playerClass;
     uint32 playerRace;
+    uint32 reqLevel;
 };
 
 struct PlayerStartEquip

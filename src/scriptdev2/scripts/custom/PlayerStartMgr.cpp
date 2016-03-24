@@ -20,7 +20,7 @@ void PlayerStartMgr::load()
 
     // 1 - Spells
     QueryResult* result = SD2Database.Query(
-                              "SELECT spell, class, race"
+                              "SELECT spell, class, race, reqLevel"
                               " FROM playerstart_spell ");
     if (result)
     {
@@ -36,6 +36,7 @@ void PlayerStartMgr::load()
             uint32 uiEntry          = uiSpellCount;//pTemp->spellId*1000+pFields[1].GetUInt32();
             pTemp->playerClass         = pFields[1].GetUInt32();
             pTemp->playerRace          = pFields[2].GetUInt32();
+            pTemp->reqLevel            = pFields[3].GetUInt32();
 
             spells[uiEntry] = pTemp;
             ++uiSpellCount;
@@ -129,6 +130,8 @@ void PlayerStartMgr::AddSpells(Player* player)
         if (player->getClass() != iter->second->playerClass)
             continue;
         else if (player->getRace() != iter->second->playerRace && iter->second->playerRace)
+            continue;
+        else if (player->getLevel() < iter->second->reqLevel)
             continue;
 
         if (!player->HasSpell(iter->second->spellId))

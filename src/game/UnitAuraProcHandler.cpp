@@ -2487,7 +2487,7 @@ SpellAuraProcResult Unit::HandleRemoveByDamageChanceProc(ProcEventInfo& procInfo
 {
     // dont dispel aura on damage caused by aura itself ... exclude periodic damage because Druids Entangling Roots can break itself
     // TODO: Damage should be applied after aura is added to victim
-    if (!(procInfo.GetTriggerAura()->GetId() == procInfo.GetSpellEntry()->Id && !(procInfo.GetProcFlag() & PROC_FLAG_ON_TAKE_PERIODIC)))
+    if (procInfo.GetSpellEntry() && !(procInfo.GetTriggerAura()->GetId() == procInfo.GetSpellEntry()->Id && !(procInfo.GetProcFlag() & PROC_FLAG_ON_TAKE_PERIODIC)))
     {
         // The chance to dispel an aura depends on the damage taken with respect to the casters level.
         uint32 max_dmg = getLevel() > 8 ? 25 * getLevel() - 150 : 50;

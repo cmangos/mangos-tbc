@@ -62,6 +62,37 @@ void LearnAllRecipes(Player* player, uint32 skillEntry)
     player->SetSkill(skillInfo->id, maxLevel, maxLevel);
 }
 
+void GivePlayerLevel(Player* player, uint32 level)
+{
+    // call GiveLevel before AddSpells
+    player->GiveLevel(level);
+    player->CastSpell(player, MOUNT_SPELL, false);
+
+    player->StoreNewItemInBestSlots(BAG_ADD_ID, 4);
+
+    sPlayerStartMgr.AddSpells(player);
+    sPlayerStartMgr.AddItems(player);
+
+    player->UpdateSkillsToMaxSkillsForLevel();
+
+    // Add fly paths
+    if (player->GetTeam() == ALLIANCE)
+        player->m_taxi.LoadTaxiMask("3456411898 2148078928 49991 0 0 0 0 0 ");
+    else
+        player->m_taxi.LoadTaxiMask("561714688 282102432 52408 0 0 0 0 0 ");
+
+    // Give AV reputation
+    if (player->GetTeam() == ALLIANCE)
+        player->GetReputationMgr().SetReputation(sFactionStore.LookupEntry(730), 21000);
+    else
+        player->GetReputationMgr().SetReputation(sFactionStore.LookupEntry(729), 21000);
+
+    // Set honor rank rank
+    //player->SetStoredHonor(45000);
+    //player->UpdateHonor();
+    player->ModifyMoney(9000000);
+}
+
 /*######
 ## npc_welcome
 ######*/
@@ -113,7 +144,6 @@ bool GossipSelect_npc_welcome(Player *player, Creature *_Creature, uint32 sender
         return true;
     }
 
-    uint32 level = 0;
     switch (action)
     {
         // professions
@@ -156,39 +186,19 @@ bool GossipSelect_npc_welcome(Player *player, Creature *_Creature, uint32 sender
         case GOSSIP_ACTION_INFO_DEF + 32: // Fishing
             LearnAllRecipes(player, SKILL_FISHING);
             break;
-        case GOSSIP_ACTION_INFO_DEF + 10: level = NPC_WELCOME_GIVEN_LEVEL_60; break;
-        case GOSSIP_ACTION_INFO_DEF + 11: level = NPC_WELCOME_GIVEN_LEVEL_65; break;
-        case GOSSIP_ACTION_INFO_DEF + 12: level = NPC_WELCOME_GIVEN_LEVEL_70; break;
-        default: level = NPC_WELCOME_GIVEN_LEVEL_60; break;
+        case GOSSIP_ACTION_INFO_DEF + 10:
+            GivePlayerLevel(player, NPC_WELCOME_GIVEN_LEVEL_60);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 11:
+            GivePlayerLevel(player, NPC_WELCOME_GIVEN_LEVEL_65);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 12:
+            GivePlayerLevel(player, NPC_WELCOME_GIVEN_LEVEL_70);
+            break;
+        default:
+            GivePlayerLevel(player, NPC_WELCOME_GIVEN_LEVEL_60);
+            break;
     }
-
-    // call GiveLevel before AddSpells
-    player->GiveLevel(level);
-    player->CastSpell(player, MOUNT_SPELL, false);
-
-    player->StoreNewItemInBestSlots(BAG_ADD_ID, 4);
-
-    sPlayerStartMgr.AddSpells(player);
-    sPlayerStartMgr.AddItems(player);
-
-    player->UpdateSkillsToMaxSkillsForLevel();
-
-    // Add fly paths
-    if (player->GetTeam() == ALLIANCE)
-        player->m_taxi.LoadTaxiMask("3456411898 2148078928 49991 0 0 0 0 0 ");
-    else
-        player->m_taxi.LoadTaxiMask("561714688 282102432 52408 0 0 0 0 0 ");
-
-    // Give AV reputation
-    if (player->GetTeam() == ALLIANCE)
-        player->GetReputationMgr().SetReputation(sFactionStore.LookupEntry(730), 21000);
-    else
-        player->GetReputationMgr().SetReputation(sFactionStore.LookupEntry(729), 21000);
-
-    // Set honor rank rank
-    //player->SetStoredHonor(45000);
-    //player->UpdateHonor();
-    player->ModifyMoney(9000000);
 
     player->SEND_GOSSIP_MENU(NPC_TEXT_LEVELUP_OK, _Creature->GetObjectGuid());
     return true;

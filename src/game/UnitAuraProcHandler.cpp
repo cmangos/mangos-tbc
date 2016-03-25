@@ -2487,18 +2487,18 @@ SpellAuraProcResult Unit::HandleRemoveByDamageChanceProc(ProcEventInfo& procInfo
 {
     // dont dispel aura on damage caused by aura itself ... exclude periodic damage because Druids Entangling Roots can break itself
     // TODO: Damage should be applied after aura is added to victim
-    if (procInfo.GetSpellEntry() && !(procInfo.GetTriggerAura()->GetId() == procInfo.GetSpellEntry()->Id && !(procInfo.GetProcFlag() & PROC_FLAG_ON_TAKE_PERIODIC)))
+    if (procInfo.GetSpellEntry() && procInfo.GetTriggerAura()->GetId() == procInfo.GetSpellEntry()->Id && !(procInfo.GetProcFlag() & PROC_FLAG_ON_TAKE_PERIODIC))
+        return SPELL_AURA_PROC_FAILED;
+    
+    // The chance to dispel an aura depends on the damage taken with respect to the casters level.
+    uint32 max_dmg = getLevel() > 8 ? 25 * getLevel() - 150 : 50;
+    float chance = float(procInfo.GetDamage()) / max_dmg * 100.0f;
+    if (roll_chance_f(chance))
     {
-        // The chance to dispel an aura depends on the damage taken with respect to the casters level.
-        uint32 max_dmg = getLevel() > 8 ? 25 * getLevel() - 150 : 50;
-        float chance = float(procInfo.GetDamage()) / max_dmg * 100.0f;
-        if (roll_chance_f(chance))
-        {
-            procInfo.GetTriggerAura()->SetInUse(true);
-            RemoveAurasByCasterSpell(procInfo.GetTriggerAura()->GetId(), procInfo.GetTriggerAura()->GetCasterGuid());
-            procInfo.GetTriggerAura()->SetInUse(false);
-            return SPELL_AURA_PROC_OK;
-        }
+        procInfo.GetTriggerAura()->SetInUse(true);
+        RemoveAurasByCasterSpell(procInfo.GetTriggerAura()->GetId(), procInfo.GetTriggerAura()->GetCasterGuid());
+        procInfo.GetTriggerAura()->SetInUse(false);
+        return SPELL_AURA_PROC_OK;
     }
 
     return SPELL_AURA_PROC_FAILED;

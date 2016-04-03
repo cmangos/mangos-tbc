@@ -62,9 +62,8 @@ add_library(mangosscript SHARED
 
 if(WIN32)
   target_link_libraries(mangosscript
-    mangosd # FIXME: could this be done for unix? because unix won't generate exe.libs
+    game # FIXME: could this be done for unix? because unix won't generate exe.libs
     ${ACE_LIBRARIES}
-    debug ${WIN_DEBUGLIBS}
   )
 endif()
 

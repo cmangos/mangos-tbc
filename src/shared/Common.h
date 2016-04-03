@@ -89,6 +89,7 @@
 #include "LockedQueue.h"
 #include "Threading.h"
 
+#include <ace/Basic_Types.h>
 #include <ace/OS_NS_arpa_inet.h>
 
 // Old ACE versions (pre-ACE-5.5.4) not have this type (add for allow use at Unix side external old ACE versions)

@@ -1,12 +1,19 @@
 #pragma once
 
-template<class T1>
-class Singleton
+template<class T>
+class CSingleton
 {
 public:
-    static T1& Instance()
+    static T& Instance()
     {
-        static T1 instance;
+        static T instance;
         return instance;
     }
 };
+
+template <class X>
+X& FSingleton()
+{
+    static X x;
+    return x;
+}

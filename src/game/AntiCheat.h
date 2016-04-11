@@ -1,8 +1,13 @@
 #pragma once
 
+#include "Opcodes.h"
+#include "Unit.h"
+
 #define JUMPHEIGHT_LAND 1.65f
 #define JUMPHEIGHT_WATER 2.15f
 #define WALKABLE_CLIMB 1.f // https://goo.gl/oxvse6
+
+class CPlayer;
 
 class AntiCheat
 {

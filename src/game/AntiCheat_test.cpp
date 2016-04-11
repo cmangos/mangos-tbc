@@ -20,4 +20,3 @@ bool AntiCheat_test::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     return false;
 }
-

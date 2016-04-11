@@ -14,4 +14,6 @@ public:
     float rceil100(float& value);
     float floor100(float value);
     float ceil100(float value);
+private:
+    bool m_LastCheat;
 };

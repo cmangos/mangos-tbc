@@ -71,7 +71,7 @@ bool AntiCheat::isSwimming(MovementInfo& moveInfo)
 
 bool AntiCheat::isSwimming()
 {
-    return isSwimming(m_MoveInfo[0]) || isSwimming(m_MoveInfo[1]);
+    return isSwimming(m_MoveInfo[0]) || isSwimming(m_MoveInfo[1]) || m_Player->IsInWater();
 }
 
 float AntiCheat::GetDistOrTransportDist()
@@ -184,7 +184,7 @@ uint32 AntiCheat::GetDiff()
     uint32 t1 = m_MoveInfo[0].GetTime();
     uint32 t2 = m_MoveInfo[1].GetTime();
 
-    return std::max(t1, t2) - std::min(t1, t2);
+    return std::max(uint32(1), std::max(t1, t2) - std::min(t1, t2));
 }
 
 float AntiCheat::GetDiffInSec()

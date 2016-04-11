@@ -568,6 +568,9 @@
     <ClCompile Include="..\..\src\game\AntiCheat_test.cpp">
       <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_tptoplane.cpp">
+      <Filter>Custom\AntiCheat</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -1077,6 +1080,9 @@
       <Filter>Custom</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_test.h">
+      <Filter>Custom\AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_tptoplane.h">
       <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
   </ItemGroup>

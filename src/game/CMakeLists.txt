@@ -73,6 +73,8 @@ set(SRC_GRP_BATTLEGROUND
     BattleGround/BattleGroundMgr.h
     BattleGround/BattleGroundNA.cpp
     BattleGround/BattleGroundNA.h
+    BattleGround/BattleGroundQueue.cpp
+    BattleGround/BattleGroundQueue.h
     BattleGround/BattleGroundRL.cpp
     BattleGround/BattleGroundRL.h
     BattleGround/BattleGroundWS.cpp

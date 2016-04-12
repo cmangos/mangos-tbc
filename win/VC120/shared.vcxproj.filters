@@ -84,6 +84,15 @@
     <ClCompile Include="..\..\src\shared\Database\SqlPreparedStatement.cpp">
       <Filter>Database</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\Listener.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\PacketBuffer.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\shared\Network\Socket.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\shared\Database\Database.h">
@@ -174,6 +183,18 @@
     <ClInclude Include="..\..\src\shared\Threading.h" />
     <ClInclude Include="..\..\src\shared\Database\SqlPreparedStatement.h">
       <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\Listener.hpp">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\NetworkThread.hpp">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\PacketBuffer.hpp">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\shared\Network\Socket.hpp">
+      <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

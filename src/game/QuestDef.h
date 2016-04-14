@@ -243,7 +243,7 @@ class Quest
 
         bool   IsRepeatable() const { return m_SpecialFlags & QUEST_SPECIAL_FLAG_REPEATABLE; }
         bool   IsAutoComplete() const { return QuestMethod ? false : true; }
-        bool   IsDaily() const { return m_QuestFlags & QUEST_FLAGS_DAILY; }
+        bool   IsDaily() const { return !!(m_QuestFlags & QUEST_FLAGS_DAILY); }
         bool   IsAllowedInRaid() const;
 
         // quest can be fully deactivated and will not be available for any player

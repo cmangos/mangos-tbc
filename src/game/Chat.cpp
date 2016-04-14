@@ -3360,7 +3360,7 @@ void ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const
                                   ObjectGuid const& targetGuid /*= ObjectGuid()*/, char const* targetName /*= nullptr*/,
                                   char const* channelName /*= nullptr*/)
 {
-    bool isGM = chatTag & CHAT_TAG_GM;
+    const bool isGM = !!(chatTag & CHAT_TAG_GM);
 
     data.Initialize(isGM ? SMSG_GM_MESSAGECHAT : SMSG_MESSAGECHAT);
     data << uint8(msgtype);

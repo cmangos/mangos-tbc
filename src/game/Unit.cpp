@@ -8886,7 +8886,18 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, 
                     {
                         if (!procSpell->IsFitToFamilyMask(spellProcEvent->spellFamilyMask[i]))
                             continue;
+                            
+                        // don't allow proc from cast end for non modifier spells
+                        // unless they have proc ex defined for that
+                        if (IsCastEndProcModifierAura(triggeredByHolder->GetSpellProto(), SpellEffectIndex(i), procSpell))
+                        {
+                            if (useCharges && procExtra != PROC_EX_CAST_END && spellProcEvent->procEx == PROC_EX_NONE)
+                                continue;
+                        }
+                        else if (spellProcEvent->procEx == PROC_EX_NONE && procExtra == PROC_EX_CAST_END)
+                            continue;
                     }
+
                     // don't check dbc FamilyFlags if schoolMask exists
                     else if (!triggeredByAura->CanProcFrom(procSpell, spellProcEvent->procEx, procExtra, damage != 0, !spellProcEvent->schoolMask))
                         continue;

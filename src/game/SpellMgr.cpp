@@ -1423,7 +1423,7 @@ bool IsCastEndProcModifierAura(SpellEntry const *spellInfo, SpellEffectIndex eff
                 case SPELLMOD_CASTING_TIME:
                 case SPELLMOD_COOLDOWN:
                 case SPELLMOD_COST:
-                case SPELLMOD_GLOBAL_COOLDOWN:
+                case SPELLMOD_CASTING_TIME_OLD:
                     return true;
                 default:
                     break;

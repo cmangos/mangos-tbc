@@ -2051,7 +2051,7 @@ bool ScriptAction::HandleScriptStep()
             }
             break;
         }
-        case SCRIPT_COMMAND_UPDATE_TEMPLATE:
+        case SCRIPT_COMMAND_UPDATE_TEMPLATE:                // 44
         {
             if (LogIfNotCreature(pSource))
                 return false;

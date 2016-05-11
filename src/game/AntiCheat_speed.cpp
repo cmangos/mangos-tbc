@@ -48,44 +48,21 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
 
-    float speed = GetSpeed();
+    float allowedYPS = GetSpeed();
 
-    float d2dps = (onTransport ? GetTransportDist2D() : GetDistance2D()) / GetDiffInSec();
-    float d3dps = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetDiffInSec();
-    float dzps = onTransport ? GetTransportDistZ() : GetDistanceZ() / GetDiffInSec();
-    float angle = MapManager::NormalizeOrientation(atan2(dzps, d2dps));
-    float allowed2dps = speed;
+    float d2YPS = (onTransport ? GetTransportDist2D() : GetDistance2D()) / GetDiffInSec();
+    float d3YPS = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetDiffInSec();
+    float traveledYPS = 0.f;
 
-    if (isFalling())
-        allowed2dps = dzps / tan(angle);
-
-    float allowed3dps = allowed2dps / cos(angle);
-
-    rfloor100(d2dps);
-    rceil100(allowed2dps);
-    rfloor100(d3dps);
-    rceil100(allowed3dps);
-
-    if (d2dps > allowed2dps && d3dps > allowed3dps)
+    if (isTransport(m_MoveInfo[0]) != isTransport(m_MoveInfo[1]))
     {
-        if (m_LastCheat)
-        {
-            const Position* p = m_MoveInfo[1].GetPos();
-            m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
-
-            m_Player->BoxChat << "-----------------------------------------" << "\n";
-            m_Player->BoxChat << "d2dps: " << d2dps << "\n";
-            m_Player->BoxChat << "allowed2dps: " << allowed2dps << "\n";
-            m_Player->BoxChat << "cheat: " << (d2dps > allowed2dps ? "true" : "false") << "\n";
-            m_Player->BoxChat << "d3dps: " << d3dps << "\n";
-            m_Player->BoxChat << "allowed3dps: " << allowed3dps << "\n";
-            m_Player->BoxChat << "cheat: " << (d3dps > allowed3dps ? "true" : "false") << "\n";
-        }
-
-        m_LastCheat = true;
+        m_MoveInfo[1] = m_MoveInfo[0];
+        return false;
     }
-    else
-        m_LastCheat = false;
+
+    if (isFlying())
+        traveledYPS = isFlying() ? d3YPS : d2YPS;
+
 
     m_MoveInfo[1] = m_MoveInfo[0];
 

@@ -16,14 +16,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <chrono>
-#include <system_error>
 #include "Threading.h"
 #include "Errors.h"
 
+#include <chrono>
+#include <system_error>
+
 using namespace MaNGOS;
 
-Thread::Thread() : m_task(NULL), m_iThreadId(), m_ThreadImp()
+Thread::Thread() : m_task(nullptr), m_iThreadId(), m_ThreadImp()
 {
 }
 
@@ -71,8 +72,8 @@ void Thread::destroy()
     if (m_iThreadId == std::thread::id() || !m_task)
         return;
 
-	// FIXME: We need to make sure that all threads can be trusted to
-	// halt execution on their own as this is not an interrupt
+    // FIXME: We need to make sure that all threads can be trusted to
+    // halt execution on their own as this is not an interrupt
     m_ThreadImp.join();
     m_iThreadId = std::thread::id();
 }
@@ -96,13 +97,13 @@ void Thread::setPriority(Priority priority)
 
     switch (priority)
     {
-        case Priority_Realtime: _ok = SetThreadPriority(handle, THREAD_PRIORITY_TIME_CRITICAL); break;
-        case Priority_Highest: _ok = SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);       break;
-        case Priority_High: _ok = SetThreadPriority(handle, THREAD_PRIORITY_ABOVE_NORMAL);  break;
-        case Priority_Normal: _ok = SetThreadPriority(handle, THREAD_PRIORITY_NORMAL);        break;
-        case Priority_Low: _ok = SetThreadPriority(handle, THREAD_PRIORITY_BELOW_NORMAL);  break;
-        case Priority_Lowest: _ok = SetThreadPriority(handle, THREAD_PRIORITY_LOWEST);        break;
-        case Priority_Idle: _ok = SetThreadPriority(handle, THREAD_PRIORITY_IDLE);          break;
+        case Priority_Realtime: _ok = !!SetThreadPriority(handle, THREAD_PRIORITY_TIME_CRITICAL); break;
+        case Priority_Highest: _ok = !!SetThreadPriority(handle, THREAD_PRIORITY_HIGHEST);       break;
+        case Priority_High: _ok = !!SetThreadPriority(handle, THREAD_PRIORITY_ABOVE_NORMAL);  break;
+        case Priority_Normal: _ok = !!SetThreadPriority(handle, THREAD_PRIORITY_NORMAL);        break;
+        case Priority_Low: _ok = !!SetThreadPriority(handle, THREAD_PRIORITY_BELOW_NORMAL);  break;
+        case Priority_Lowest: _ok = !!SetThreadPriority(handle, THREAD_PRIORITY_LOWEST);        break;
+        case Priority_Idle: _ok = !!SetThreadPriority(handle, THREAD_PRIORITY_IDLE);          break;
     }
 
         /* MaNGOS use priority for Windows case only

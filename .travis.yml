@@ -30,9 +30,17 @@ branches:
   only:
     - master
 
+os:
+  - linux
+
 compiler:
-  - gcc
   - clang
+  - gcc
+
+env:
+  matrix:
+    - BUILD_TYPE=Release
+    - BUILD_TYPE=Release PCH_FLAG="ON"
 
 addons:
   apt:
@@ -47,7 +55,10 @@ addons:
       - g++-4.8
       - make
       - cmake
-      - libboost-dev
+      - libboost1.55-dev
+      - libboost-system1.55-dev
+      - libboost-program-options1.55-dev
+      - libboost-thread1.55-dev
   
 # overwrite GCC version for GCC build only
 before_install:
@@ -57,13 +68,12 @@ script:
   - test -d _build || mkdir _build
   - test -d _install || mkdir _install
   - cd _build
-  - cmake -DCMAKE_INSTALL_PREFIX=../_install ..
+  - if [ $PCH_FLAG = "ON" ] ; then
+        cmake -DCMAKE_INSTALL_PREFIX=../_install .. -DPCH=1;
+    else
+        cmake -DCMAKE_INSTALL_PREFIX=../_install ..;
+    fi
   - make -j4
 
 # if this configuration file is not in one of the offical CMaNGOS repositories at http://github.com/cmangos/, PLEASE remove the notifications or point them to another IRC channel!
-notifications:
-  irc:
-    channels:
-      - "irc.rizon.net#cmangos"
-    on_success: never
-    on_failure: always
+

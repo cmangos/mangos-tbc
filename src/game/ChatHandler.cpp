@@ -24,7 +24,6 @@
 #include "Opcodes.h"
 #include "ObjectMgr.h"
 #include "Chat.h"
-#include "Database/DatabaseEnv.h"
 #include "ChannelMgr.h"
 #include "Group.h"
 #include "Guild.h"
@@ -193,11 +192,14 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             recv_data >> to;
             recv_data >> msg;
 
-            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
-                return;
-
             if (msg.empty())
                 break;
+
+            if (ChatHandler(this).ParseCommands(msg.c_str()))
+                break;
+
+            if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
+                return;
 
             if (!normalizePlayerName(to))
             {

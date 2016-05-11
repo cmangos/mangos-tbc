@@ -30,10 +30,11 @@
 #include "ObjectMgr.h"
 #include "Mail.h"
 #include "WorldPacket.h"
-#include "Util.h"
 #include "Formulas.h"
 #include "GridNotifiersImpl.h"
 #include "Chat.h"
+
+#include <cstdarg>
 
 namespace MaNGOS
 {
@@ -168,7 +169,7 @@ void BattleGround::BroadcastWorker(Do& _do)
             _do(plr);
 }
 
-BattleGround::BattleGround()
+BattleGround::BattleGround(): m_BuffChange(false), m_ArenaBuffSpawned(false), m_StartDelayTime(0), m_startMaxDist(0)
 {
     m_TypeID            = BattleGroundTypeId(0);
     m_Status            = STATUS_NONE;

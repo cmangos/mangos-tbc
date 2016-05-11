@@ -20,15 +20,13 @@
 #include "Player.h"
 #include "BattleGround.h"
 #include "BattleGroundWS.h"
-#include "Creature.h"
 #include "GameObject.h"
 #include "ObjectMgr.h"
 #include "BattleGroundMgr.h"
 #include "WorldPacket.h"
 #include "Language.h"
-#include "MapManager.h"
 
-BattleGroundWS::BattleGroundWS()
+BattleGroundWS::BattleGroundWS(): m_ReputationCapture(0), m_HonorWinKills(0), m_HonorEndKills(0)
 {
     m_StartMessageIds[BG_STARTING_EVENT_FIRST]  = 0;
     m_StartMessageIds[BG_STARTING_EVENT_SECOND] = LANG_BG_WS_START_ONE_MINUTE;

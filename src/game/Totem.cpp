@@ -17,7 +17,6 @@
  */
 
 #include "Totem.h"
-#include "WorldPacket.h"
 #include "Log.h"
 #include "Group.h"
 #include "Player.h"
@@ -91,8 +90,8 @@ void Totem::Update(uint32 update_diff, uint32 time)
 
 void Totem::Summon(Unit* owner)
 {
-    AIM_Initialize();
     owner->GetMap()->Add((Creature*)this);
+    AIM_Initialize();
 
     WorldPacket data(SMSG_GAMEOBJECT_SPAWN_ANIM_OBSOLETE, 8);
     data << GetObjectGuid();
@@ -190,7 +189,7 @@ bool Totem::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex 
     // Totem may affected by some specific spells
     // Mana Spring, Healing stream, Mana tide
     // Flags : 0x00000002000 | 0x00000004000 | 0x00004000000 -> 0x00004006000
-    if (spellInfo->SpellFamilyName == SPELLFAMILY_SHAMAN && spellInfo->IsFitToFamilyMask(UI64LIT(0x00004006000)))
+    if (spellInfo->SpellFamilyName == SPELLFAMILY_SHAMAN && spellInfo->IsFitToFamilyMask(uint64(0x00004006000)))
         return false;
 
     switch (spellInfo->Effect[index])

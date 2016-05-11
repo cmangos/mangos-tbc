@@ -25,7 +25,6 @@
 #include "Item.h"
 
 #include "Database/DatabaseEnv.h"
-#include "NPCHandler.h"
 #include "QuestDef.h"
 #include "Group.h"
 #include "Bag.h"
@@ -39,7 +38,6 @@
 #include "SharedDefines.h"
 #include "Chat.h"
 
-#include<string>
 #include<vector>
 
 struct Mail;
@@ -249,7 +247,7 @@ typedef std::list<PlayerCreateInfoAction> PlayerCreateInfoActions;
 struct PlayerInfo
 {
     // existence checked by displayId != 0             // existence checked by displayId != 0
-    PlayerInfo() : displayId_m(0), displayId_f(0), levelInfo(nullptr)
+    PlayerInfo() : mapId(0), areaId(0), positionX(0.f), positionY(0.f), positionZ(0.f), orientation(0.f), displayId_m(0), displayId_f(0), levelInfo(nullptr)
     {
     }
 
@@ -403,48 +401,48 @@ enum PlayerFlags
 
 // used for PLAYER__FIELD_KNOWN_TITLES field (uint64), (1<<bit_index) without (-1)
 // can't use enum for uint64 values
-#define PLAYER_TITLE_DISABLED              UI64LIT(0x0000000000000000)
-#define PLAYER_TITLE_NONE                  UI64LIT(0x0000000000000001)
-#define PLAYER_TITLE_PRIVATE               UI64LIT(0x0000000000000002) // 1
-#define PLAYER_TITLE_CORPORAL              UI64LIT(0x0000000000000004) // 2
-#define PLAYER_TITLE_SERGEANT_A            UI64LIT(0x0000000000000008) // 3
-#define PLAYER_TITLE_MASTER_SERGEANT       UI64LIT(0x0000000000000010) // 4
-#define PLAYER_TITLE_SERGEANT_MAJOR        UI64LIT(0x0000000000000020) // 5
-#define PLAYER_TITLE_KNIGHT                UI64LIT(0x0000000000000040) // 6
-#define PLAYER_TITLE_KNIGHT_LIEUTENANT     UI64LIT(0x0000000000000080) // 7
-#define PLAYER_TITLE_KNIGHT_CAPTAIN        UI64LIT(0x0000000000000100) // 8
-#define PLAYER_TITLE_KNIGHT_CHAMPION       UI64LIT(0x0000000000000200) // 9
-#define PLAYER_TITLE_LIEUTENANT_COMMANDER  UI64LIT(0x0000000000000400) // 10
-#define PLAYER_TITLE_COMMANDER             UI64LIT(0x0000000000000800) // 11
-#define PLAYER_TITLE_MARSHAL               UI64LIT(0x0000000000001000) // 12
-#define PLAYER_TITLE_FIELD_MARSHAL         UI64LIT(0x0000000000002000) // 13
-#define PLAYER_TITLE_GRAND_MARSHAL         UI64LIT(0x0000000000004000) // 14
-#define PLAYER_TITLE_SCOUT                 UI64LIT(0x0000000000008000) // 15
-#define PLAYER_TITLE_GRUNT                 UI64LIT(0x0000000000010000) // 16
-#define PLAYER_TITLE_SERGEANT_H            UI64LIT(0x0000000000020000) // 17
-#define PLAYER_TITLE_SENIOR_SERGEANT       UI64LIT(0x0000000000040000) // 18
-#define PLAYER_TITLE_FIRST_SERGEANT        UI64LIT(0x0000000000080000) // 19
-#define PLAYER_TITLE_STONE_GUARD           UI64LIT(0x0000000000100000) // 20
-#define PLAYER_TITLE_BLOOD_GUARD           UI64LIT(0x0000000000200000) // 21
-#define PLAYER_TITLE_LEGIONNAIRE           UI64LIT(0x0000000000400000) // 22
-#define PLAYER_TITLE_CENTURION             UI64LIT(0x0000000000800000) // 23
-#define PLAYER_TITLE_CHAMPION              UI64LIT(0x0000000001000000) // 24
-#define PLAYER_TITLE_LIEUTENANT_GENERAL    UI64LIT(0x0000000002000000) // 25
-#define PLAYER_TITLE_GENERAL               UI64LIT(0x0000000004000000) // 26
-#define PLAYER_TITLE_WARLORD               UI64LIT(0x0000000008000000) // 27
-#define PLAYER_TITLE_HIGH_WARLORD          UI64LIT(0x0000000010000000) // 28
-#define PLAYER_TITLE_GLADIATOR             UI64LIT(0x0000000020000000) // 29
-#define PLAYER_TITLE_DUELIST               UI64LIT(0x0000000040000000) // 30
-#define PLAYER_TITLE_RIVAL                 UI64LIT(0x0000000080000000) // 31
-#define PLAYER_TITLE_CHALLENGER            UI64LIT(0x0000000100000000) // 32
-#define PLAYER_TITLE_SCARAB_LORD           UI64LIT(0x0000000200000000) // 33
-#define PLAYER_TITLE_CONQUEROR             UI64LIT(0x0000000400000000) // 34
-#define PLAYER_TITLE_JUSTICAR              UI64LIT(0x0000000800000000) // 35
-#define PLAYER_TITLE_CHAMPION_OF_THE_NAARU UI64LIT(0x0000001000000000) // 36
-#define PLAYER_TITLE_MERCILESS_GLADIATOR   UI64LIT(0x0000002000000000) // 37
-#define PLAYER_TITLE_OF_THE_SHATTERED_SUN  UI64LIT(0x0000004000000000) // 38
-#define PLAYER_TITLE_HAND_OF_ADAL          UI64LIT(0x0000008000000000) // 39
-#define PLAYER_TITLE_VENGEFUL_GLADIATOR    UI64LIT(0x0000010000000000) // 40
+#define PLAYER_TITLE_DISABLED              uint64(0x0000000000000000)
+#define PLAYER_TITLE_NONE                  uint64(0x0000000000000001)
+#define PLAYER_TITLE_PRIVATE               uint64(0x0000000000000002) // 1
+#define PLAYER_TITLE_CORPORAL              uint64(0x0000000000000004) // 2
+#define PLAYER_TITLE_SERGEANT_A            uint64(0x0000000000000008) // 3
+#define PLAYER_TITLE_MASTER_SERGEANT       uint64(0x0000000000000010) // 4
+#define PLAYER_TITLE_SERGEANT_MAJOR        uint64(0x0000000000000020) // 5
+#define PLAYER_TITLE_KNIGHT                uint64(0x0000000000000040) // 6
+#define PLAYER_TITLE_KNIGHT_LIEUTENANT     uint64(0x0000000000000080) // 7
+#define PLAYER_TITLE_KNIGHT_CAPTAIN        uint64(0x0000000000000100) // 8
+#define PLAYER_TITLE_KNIGHT_CHAMPION       uint64(0x0000000000000200) // 9
+#define PLAYER_TITLE_LIEUTENANT_COMMANDER  uint64(0x0000000000000400) // 10
+#define PLAYER_TITLE_COMMANDER             uint64(0x0000000000000800) // 11
+#define PLAYER_TITLE_MARSHAL               uint64(0x0000000000001000) // 12
+#define PLAYER_TITLE_FIELD_MARSHAL         uint64(0x0000000000002000) // 13
+#define PLAYER_TITLE_GRAND_MARSHAL         uint64(0x0000000000004000) // 14
+#define PLAYER_TITLE_SCOUT                 uint64(0x0000000000008000) // 15
+#define PLAYER_TITLE_GRUNT                 uint64(0x0000000000010000) // 16
+#define PLAYER_TITLE_SERGEANT_H            uint64(0x0000000000020000) // 17
+#define PLAYER_TITLE_SENIOR_SERGEANT       uint64(0x0000000000040000) // 18
+#define PLAYER_TITLE_FIRST_SERGEANT        uint64(0x0000000000080000) // 19
+#define PLAYER_TITLE_STONE_GUARD           uint64(0x0000000000100000) // 20
+#define PLAYER_TITLE_BLOOD_GUARD           uint64(0x0000000000200000) // 21
+#define PLAYER_TITLE_LEGIONNAIRE           uint64(0x0000000000400000) // 22
+#define PLAYER_TITLE_CENTURION             uint64(0x0000000000800000) // 23
+#define PLAYER_TITLE_CHAMPION              uint64(0x0000000001000000) // 24
+#define PLAYER_TITLE_LIEUTENANT_GENERAL    uint64(0x0000000002000000) // 25
+#define PLAYER_TITLE_GENERAL               uint64(0x0000000004000000) // 26
+#define PLAYER_TITLE_WARLORD               uint64(0x0000000008000000) // 27
+#define PLAYER_TITLE_HIGH_WARLORD          uint64(0x0000000010000000) // 28
+#define PLAYER_TITLE_GLADIATOR             uint64(0x0000000020000000) // 29
+#define PLAYER_TITLE_DUELIST               uint64(0x0000000040000000) // 30
+#define PLAYER_TITLE_RIVAL                 uint64(0x0000000080000000) // 31
+#define PLAYER_TITLE_CHALLENGER            uint64(0x0000000100000000) // 32
+#define PLAYER_TITLE_SCARAB_LORD           uint64(0x0000000200000000) // 33
+#define PLAYER_TITLE_CONQUEROR             uint64(0x0000000400000000) // 34
+#define PLAYER_TITLE_JUSTICAR              uint64(0x0000000800000000) // 35
+#define PLAYER_TITLE_CHAMPION_OF_THE_NAARU uint64(0x0000001000000000) // 36
+#define PLAYER_TITLE_MERCILESS_GLADIATOR   uint64(0x0000002000000000) // 37
+#define PLAYER_TITLE_OF_THE_SHATTERED_SUN  uint64(0x0000004000000000) // 38
+#define PLAYER_TITLE_HAND_OF_ADAL          uint64(0x0000008000000000) // 39
+#define PLAYER_TITLE_VENGEFUL_GLADIATOR    uint64(0x0000010000000000) // 40
 
 #define MAX_TITLE_INDEX     64                              // 1 uint64 field
 
@@ -983,13 +981,13 @@ class MANGOS_DLL_SPEC Player : public Unit
         void ContinueTaxiFlight();
         bool isAcceptTickets() const { return GetSession()->GetSecurity() >= SEC_GAMEMASTER && (m_ExtraFlags & PLAYER_EXTRA_GM_ACCEPT_TICKETS); }
         void SetAcceptTicket(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_GM_ACCEPT_TICKETS; else m_ExtraFlags &= ~PLAYER_EXTRA_GM_ACCEPT_TICKETS; }
-        bool isAcceptWhispers() const { return m_ExtraFlags & PLAYER_EXTRA_ACCEPT_WHISPERS; }
+        bool isAcceptWhispers() const { return !!(m_ExtraFlags & PLAYER_EXTRA_ACCEPT_WHISPERS); }
         void SetAcceptWhispers(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_ACCEPT_WHISPERS; else m_ExtraFlags &= ~PLAYER_EXTRA_ACCEPT_WHISPERS; }
         bool isGameMaster() const { return m_ExtraFlags & PLAYER_EXTRA_GM_ON; }
         void SetGameMaster(bool on);
         bool isGMChat() const { return GetSession()->GetSecurity() >= SEC_MODERATOR && (m_ExtraFlags & PLAYER_EXTRA_GM_CHAT); }
         void SetGMChat(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_GM_CHAT; else m_ExtraFlags &= ~PLAYER_EXTRA_GM_CHAT; }
-        bool isTaxiCheater() const { return m_ExtraFlags & PLAYER_EXTRA_TAXICHEAT; }
+        bool isTaxiCheater() const { return !!(m_ExtraFlags & PLAYER_EXTRA_TAXICHEAT); }
         void SetTaxiCheater(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_TAXICHEAT; else m_ExtraFlags &= ~PLAYER_EXTRA_TAXICHEAT; }
         bool isGMVisible() const { return !(m_ExtraFlags & PLAYER_EXTRA_GM_INVISIBLE); }
         void SetGMVisible(bool on);
@@ -1140,7 +1138,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         {
             return StoreItem(dest, pItem, update);
         }
-        Item* BankItem(uint16 pos, Item* pItem, bool update);
         void RemoveItem(uint8 bag, uint8 slot, bool update);// see ApplyItemOnStoreSpell notes
         void MoveItemFromInventory(uint8 bag, uint8 slot, bool update);
         // in trade, auction, guild bank, mail....
@@ -1347,7 +1344,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SaveInventoryAndGoldToDB();                    // fast save function for item/money cheating preventing
         void SaveGoldToDB();
         static void SetUInt32ValueInArray(Tokens& data, uint16 index, uint32 value);
-        static void SetFloatValueInArray(Tokens& data, uint16 index, float value);
         static void SavePositionInDB(ObjectGuid guid, uint32 mapid, float x, float y, float z, float o, uint32 zone);
 
         static void DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRealmChars = true, bool deleteFinally = false);
@@ -1362,7 +1358,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendTalentWipeConfirm(ObjectGuid guid);
         void RewardRage(uint32 damage, uint32 weaponSpeedHitFactor, bool attacker);
         void SendPetSkillWipeConfirm();
-        void CalcRage(uint32 damage, bool attacker);
         void RegenerateAll();
         void Regenerate(Powers power);
         void RegenerateHealth();
@@ -1621,8 +1616,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint32 GetBaseDefenseSkillValue() const { return GetBaseSkillValue(SKILL_DEFENSE); }
         uint32 GetBaseWeaponSkillValue(WeaponAttackType attType) const;
-
-        uint32 GetSpellByProto(ItemPrototype* proto);
 
         float GetHealthBonusFromStamina();
         float GetManaBonusFromIntellect();
@@ -2005,7 +1998,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void UpdateSpeakTime();
         bool CanSpeak() const;
-        void ChangeSpeakTime(int utime);
 
         /*********************************************************/
         /***                 VARIOUS SYSTEMS                   ***/
@@ -2083,7 +2075,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint8 m_forced_speed_changes[MAX_MOVE_TYPE];
 
-        bool HasAtLoginFlag(AtLoginFlags f) const { return m_atLoginFlags & f; }
+        bool HasAtLoginFlag(AtLoginFlags f) const { return !!(m_atLoginFlags & f); }
         void SetAtLoginFlag(AtLoginFlags f) { m_atLoginFlags |= f; }
         void RemoveAtLoginFlag(AtLoginFlags f, bool in_db_also = false);
 
@@ -2203,7 +2195,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _LoadGroup(QueryResult* result);
         void _LoadSkills(QueryResult* result);
         void _LoadSpells(QueryResult* result);
-        void _LoadFriendList(QueryResult* result);
         bool _LoadHomeBind(QueryResult* result);
         void _LoadDeclinedNames(QueryResult* result);
         void _LoadArenaTeamInfo(QueryResult* result);

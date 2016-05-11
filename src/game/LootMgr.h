@@ -19,12 +19,10 @@
 #ifndef MANGOS_LOOTMGR_H
 #define MANGOS_LOOTMGR_H
 
-#include "ItemEnchantmentMgr.h"
 #include "ByteBuffer.h"
 #include "ObjectGuid.h"
 #include "SharedDefines.h"
 
-#include <map>
 #include <vector>
 #include "Bag.h"
 
@@ -112,7 +110,8 @@ class GroupLootRoll
 public:
     typedef std::unordered_map<ObjectGuid, PlayerRollVote> RollVoteMap;
 
-    GroupLootRoll() : m_rollVoteMap(ROLL_VOTE_MASK_ALL), m_isStarted(false), m_lootItem(nullptr), m_loot(nullptr) {}
+    GroupLootRoll() : m_rollVoteMap(ROLL_VOTE_MASK_ALL), m_isStarted(false), m_lootItem(nullptr), m_loot(nullptr), m_itemSlot(0), m_voteMask(), m_endTime(0)
+    {}
     ~GroupLootRoll();
 
     bool TryToStart(Loot& loot, uint32 itemSlot);
@@ -293,7 +292,8 @@ public:
     ObjectGuid const& GetMasterLootGuid() const { return m_masterOwnerGuid; }
 
 private:
-    Loot(){}
+    Loot(): m_lootTarget(nullptr), m_itemTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(), m_clientLootType(), m_lootMethod(), m_threshold(), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false), m_isChecked(false), m_isChest(false), m_isChanged(false)
+    {}
     void Clear();
     bool IsLootedFor(Player const* player) const;
     bool IsLootedForAll() const;
@@ -308,8 +308,6 @@ private:
     void SetGroupLootRight(Player* player);
     void GenerateMoneyLoot(uint32 minAmount, uint32 maxAmount);
     bool FillLoot(uint32 loot_id, LootStore const& store, Player* loot_owner, bool personal, bool noEmptyError = false);
-    void AddConditionnalItem(ObjectGuid playerGuid, uint32 itemSlot);
-    void RemoveConditionnalItem(ObjectGuid playerGuid, uint32 itemSlot);
     void ForceLootAnimationCLientUpdate();
     void SetPlayerIsLooting(Player* player);
     void SetPlayerIsNotLooting(Player* player);
@@ -382,8 +380,6 @@ public:
     bool IsAllowedToLoot(Player* player, Creature* creature);
     void PlayerVote(Player* player, ObjectGuid const& lootTargetGuid, uint32 itemSlot, RollVote vote);
     Loot* GetLoot(Player* player, ObjectGuid const& targetGuid = ObjectGuid());
-
-    void update(uint32 diff);
 };
 
 #define sLootMgr MaNGOS::Singleton<LootMgr>::Instance()

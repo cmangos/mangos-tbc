@@ -123,7 +123,7 @@ bool Guild::Create(Player* leader, std::string gname)
     m_Id = sObjectMgr.GenerateGuildId();
 
     // creating data
-    time_t now = time(0);
+    time_t now = time(nullptr);
     tm local = *(localtime(&now));                          // dereference and assign
     m_CreatedDay   = local.tm_mday;
     m_CreatedMonth = local.tm_mon + 1;
@@ -1612,7 +1612,7 @@ void Guild::LogBankEvent(uint8 EventType, uint8 TabId, uint32 PlayerGuidLow, uin
 
     // add new event to the end of event list
     uint32 currentTabId = TabId;
-    uint32 currentLogGuid = 0;
+    uint32 currentLogGuid;
     if (NewEvent.isMoneyEvent())
     {
         m_GuildBankEventLogNextGuid_Money = (m_GuildBankEventLogNextGuid_Money + 1) % sWorld.getConfig(CONFIG_UINT32_GUILD_BANK_EVENT_LOG_COUNT);

@@ -27,7 +27,6 @@
 #include "Camera.h"
 
 #include <set>
-#include <string>
 
 #define CONTACT_DISTANCE            0.5f
 #define INTERACTION_DISTANCE        5.0f
@@ -180,7 +179,7 @@ class MANGOS_DLL_SPEC Object
         void SetObjectScale(float newScale);
 
         uint8 GetTypeId() const { return m_objectTypeId; }
-        bool isType(TypeMask mask) const { return (mask & m_objectType); }
+        bool isType(TypeMask mask) const { return !!(mask & m_objectType); }
 
         virtual void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const;
         void SendCreateUpdateToPlayer(Player* player);
@@ -252,7 +251,6 @@ class MANGOS_DLL_SPEC Object
 
         void ApplyModUInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModInt32Value(uint16 index, int32 val, bool apply);
-        void ApplyModUInt64Value(uint16 index, int32 val, bool apply);
         void ApplyModPositiveFloatValue(uint16 index, float val, bool apply);
         void ApplyModSignedFloatValue(uint16 index, float val, bool apply);
 
@@ -382,6 +380,7 @@ class MANGOS_DLL_SPEC Object
 
         virtual bool HasQuest(uint32 /* quest_id */) const { return false; }
         virtual bool HasInvolvedQuest(uint32 /* quest_id */) const { return false; }
+        void SetItsNewObject(bool enable) { m_itsNewObject = enable; }
 
         Loot* loot;
 
@@ -419,6 +418,7 @@ class MANGOS_DLL_SPEC Object
 
     private:
         bool m_inWorld;
+        bool m_itsNewObject;
 
         PackedGuid m_PackGUID;
 
@@ -624,7 +624,7 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         void RemoveFromClientUpdateList() override;
         void BuildUpdateData(UpdateDataMapType&) override;
 
-        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject = false);
+        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject = false, bool setRun = false);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
         void SetActiveObjectState(bool active);

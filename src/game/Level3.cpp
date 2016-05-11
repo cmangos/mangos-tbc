@@ -18,7 +18,6 @@
 
 #include "Common.h"
 #include "Database/DatabaseEnv.h"
-#include "WorldPacket.h"
 #include "WorldSession.h"
 #include "World.h"
 #include "ObjectMgr.h"
@@ -26,7 +25,6 @@
 #include "PlayerDump.h"
 #include "SpellMgr.h"
 #include "Player.h"
-#include "Opcodes.h"
 #include "GameObject.h"
 #include "Chat.h"
 #include "Log.h"
@@ -2385,7 +2383,7 @@ bool ChatHandler::HandleListItemCommand(char* args)
             uint32 owner_acc = fields[4].GetUInt32();
             std::string owner_name = fields[5].GetCppString();
 
-            char const* item_pos = 0;
+            char const* item_pos;
             if (Player::IsEquipmentPos(item_bag, item_slot))
                 item_pos = "[equipped]";
             else if (Player::IsInventoryPos(item_bag, item_slot))
@@ -5642,7 +5640,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
 
             case CHASE_MOTION_TYPE:
             {
-                Unit* target = nullptr;
+                Unit* target;
                 if (unit->GetTypeId() == TYPEID_PLAYER)
                     target = static_cast<ChaseMovementGenerator<Player> const*>(*itr)->GetTarget();
                 else
@@ -5658,7 +5656,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
             }
             case FOLLOW_MOTION_TYPE:
             {
-                Unit* target = nullptr;
+                Unit* target;
                 if (unit->GetTypeId() == TYPEID_PLAYER)
                     target = static_cast<FollowMovementGenerator<Player> const*>(*itr)->GetTarget();
                 else
@@ -5735,7 +5733,7 @@ bool ChatHandler::HandleServerPLimitCommand(char* args)
 
     uint32 pLimit = sWorld.GetPlayerAmountLimit();
     AccountTypes allowedAccountType = sWorld.GetPlayerSecurityLimit();
-    char const* secName = "";
+    char const* secName;
     switch (allowedAccountType)
     {
         case SEC_PLAYER:        secName = "Player";        break;

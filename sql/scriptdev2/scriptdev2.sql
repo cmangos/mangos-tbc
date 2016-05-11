@@ -74,6 +74,8 @@ INSERT INTO scripted_areatrigger VALUES
 (4052,'at_temple_ahnqiraj');
 DELETE FROM scripted_areatrigger WHERE entry=3587;
 INSERT INTO scripted_areatrigger VALUES (3587,'at_ancient_leaf');
+DELETE FROM scripted_areatrigger WHERE entry=4479;
+INSERT INTO scripted_areatrigger VALUES (4479,'at_haramad_teleport');
 
 
 /* BATTLEGROUNDS */
@@ -285,7 +287,6 @@ UPDATE creature_template SET ScriptName='boss_high_interrogator_gerstahn' WHERE 
 UPDATE creature_template SET ScriptName='boss_coren_direbrew' WHERE entry=23872;
 UPDATE creature_template SET ScriptName='npc_grimstone' WHERE entry=10096;
 UPDATE creature_template SET ScriptName='npc_theldren_trigger' WHERE entry=16079;
-UPDATE creature_template SET ScriptName='npc_kharan_mighthammer' WHERE entry=9021;
 UPDATE creature_template SET ScriptName='npc_phalanx' WHERE entry=9502;
 UPDATE creature_template SET ScriptName='npc_mistress_nagmara' WHERE entry=9500;
 UPDATE creature_template SET ScriptName='npc_rocknot' WHERE entry=9503;
@@ -434,6 +435,8 @@ UPDATE gameobject_template SET ScriptName='go_defias_cannon' WHERE entry=16398;
 UPDATE creature_template SET ScriptName='npc_aged_dying_ancient_kodo' WHERE entry IN (4700, 4701, 4702, 11627);
 UPDATE creature_template SET ScriptName='npc_dalinda_malem' WHERE entry=5644;
 UPDATE creature_template SET ScriptName='npc_melizza_brimbuzzle' WHERE entry=12277;
+UPDATE creature_template SET ScriptName='npc_cork_gizelton' WHERE entry=11625;
+UPDATE creature_template SET ScriptName='npc_rigger_gizelton' WHERE entry=11626;
 
 /* DIRE MAUL */
 UPDATE instance_template SET ScriptName='instance_dire_maul' WHERE map=429;
@@ -1149,12 +1152,12 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000109,'Silverwing is ours!',0,0,1,0,'torek SAY_WIN'),
 (-1000110,'Go report that the outpost is taken. We will remain here.',0,0,1,0,'torek SAY_END'),
 
-(-1000111,'Our house is this way, through the thicket.',0,0,7,0,'magwin SAY_START'),
+(-1000111,'Our house is this way, through the thicket.',0,0,7,1,'magwin SAY_START'),
 (-1000112,'Help me!',0,0,7,0,'magwin SAY_AGGRO'),
-(-1000113,'My poor family. Everything has been destroyed.',0,0,7,0,'magwin SAY_PROGRESS'),
-(-1000114,'Father! Father! You\'re alive!',0,0,7,0,'magwin SAY_END1'),
-(-1000115,'You can thank $N for getting me back here safely, father.',0,0,7,0,'magwin SAY_END2'),
-(-1000116,'%s hugs her father.',0,2,7,0,'magwin EMOTE_HUG'),
+(-1000113,'My poor family. Everything has been destroyed.',0,0,7,5,'magwin SAY_PROGRESS'),
+(-1000114,'Father! Father! You\'re alive!',0,0,7,22,'magwin SAY_END1'),
+(-1000115,'You can thank $N for getting me back here safely, father.',0,0,7,1,'magwin SAY_END2'),
+(-1000116,'%s hugs her father.',0,2,7,5,'magwin EMOTE_HUG'),
 
 (-1000117,'Thank you for agreeing to help. Now, let\'s get out of here $N.',0,0,1,0,'wounded elf SAY_ELF_START'),
 (-1000118,'Over there! They\'re following us!',0,0,1,0,'wounded elf SAY_ELF_SUMMON1'),
@@ -1237,7 +1240,9 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000182,'Ughhh... I hurt. Can you help me?',0,0,7,0,'draenei_survivor SAY_HELP3'),
 (-1000183,'I don\'t know if I can make it, please help me...',0,0,7,0,'draenei_survivor SAY_HELP4'),
 
--- REUSE -1000184 to -1000186
+(-1000184,'Daughter!',0,0,7,5,'cowlen SAY_DAUGHTER'),
+
+-- REUSE -1000185 to -1000186
 
 (-1000187,'Thank you, dear $C, you just saved my life.',0,0,0,0,'npc_redemption_target SAY_HEAL'),
 
@@ -2171,7 +2176,35 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001170,'Time only has meaning to mortals, insect. Dimensius is infinite!',0,1,0,0,'dimensius SAY_AGGRO'),
 (-1001171,'I hunger! Feed me the power of this forge, my children!',0,1,0,0,'dimensius SAY_SUMMON'),
 
-(-1001172,'Spare my life! I will tell you about Arelion\'s secret.',0,0,0,0,'magister_aledis SAY_ALEDIS_DEFEAT');
+(-1001172,'Spare my life! I will tell you about Arelion\'s secret.',0,0,0,0,'magister_aledis SAY_ALEDIS_DEFEAT'),
+
+(-1001173,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001174,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001175,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001176,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001177,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001178,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001179,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001180,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001181,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001182,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001183,'REUSE ME',0,0,0,0,'REUSE_ME'),
+
+(-1001184,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001185,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001186,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001187,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001188,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001189,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1001190,'REUSE ME',0,0,0,0,'REUSE_ME'),
+
+(-1001191,'Hey, you call yourself a body guard? Get to work and protect us...',0,0,0,0,'SAY_CORK_AMBUSH1'),
+(-1001192,'Mister body guard, are you going to earn your money or what?',0,0,0,0,'SAY_CORK_AMBUSH2'),
+(-1001193,'You\'re fired! <Cough...Cork clears throat.> I mean, help!',0,0,0,0,'SAY_CORK_AMBUSH3'),
+(-1001194,'Blast those stupid centaurs! Sigh - well, it seems you kept your bargain. Up the road you shall find Smeed Scrabblescrew, he has your money.',0,0,0,1,'SAY_CORK_END'),
+(-1001195,'Eeck! Demons hungry for the kodos!',0,0,0,0,'SAY_RIGGER_AMBUSH1'),
+(-1001196,'What am I paying you for? The kodos are nearly dead!',0,0,0,0,'SAY_RIGGER_AMBUSH2'),
+(-1001197,'Wow! We did it... not sure why we thought we needed the likes of you. Nevertheless, speak with Smeed Srablescrew; he will give you your earnings!',0,0,0,0,'SAY_RIGGER_END');
 
 -- -1 033 000 SHADOWFANG KEEP
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -2599,7 +2632,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1329016,'Today you have unmade what took me years to create! For this you shall all die by my hand!',0,1,0,0,'dathrohan SAY_AGGRO'),
 (-1329017,'You fools think you can defeat me so easily? Face the true might of the Nathrezim!',0,1,0,0,'dathrohan SAY_TRANSFORM'),
-(-1329018,'Damn you mortals! All my plans of revenge, all my hate... all burned to ash...',0,0,0,0,'dathrohan SAY_DEATH');
+(-1329018,'Damn you mortals! All my plans of revenge, all my hate... all burned to ash...',0,0,0,0,'dathrohan SAY_DEATH'),
+(-1329019,'Don\'t worry about me!  Slay this dreadful beast and cleanse this world of his foul taint!',0,6,0,0,'ysida YSIDA_SAY_RUN_5_MIN'),
+(-1329020,'My death means nothing.... light... will... prevail!',0,6,0,0,'ysida YSIDA_SAY_RUN_FAIL');
+
 
 -- -1 349 000 MARAUDON
 
@@ -5414,37 +5450,44 @@ INSERT INTO script_waypoint VALUES
 
 DELETE FROM script_waypoint WHERE entry=17312;
 INSERT INTO script_waypoint VALUES
-(17312, 0, -4784.532227, -11051.060547, 3.484263, 0, ''),
-(17312, 1, -4805.509277, -11037.293945, 3.043942, 0, ''),
-(17312, 2, -4827.826172, -11034.398438, 1.741959, 0, ''),
-(17312, 3, -4852.630859, -11033.695313, 2.208656, 0, ''),
-(17312, 4, -4876.791992, -11034.517578, 3.175228, 0, ''),
-(17312, 5, -4895.486816, -11038.306641, 9.390890, 0, ''),
-(17312, 6, -4915.464844, -11048.402344, 12.369793, 0, ''),
-(17312, 7, -4937.288086, -11067.041992, 13.857983, 0, ''),
-(17312, 8, -4966.577637, -11067.507813, 15.754786, 0, ''),
-(17312, 9, -4993.799805, -11056.544922, 19.175295, 0, ''),
-(17312, 10, -5017.836426, -11052.569336, 22.476587, 0, ''),
-(17312, 11, -5039.706543, -11058.459961, 25.831593, 0, ''),
-(17312, 12, -5057.289063, -11045.474609, 26.972496, 0, ''),
-(17312, 13, -5078.828125, -11037.601563, 29.053417, 0, ''),
-(17312, 14, -5104.158691, -11039.195313, 29.440195, 0, ''),
-(17312, 15, -5120.780273, -11039.518555, 30.142139, 0, ''),
-(17312, 16, -5140.833008, -11039.810547, 28.788074, 0, ''),
-(17312, 17, -5161.201660, -11040.050781, 27.879545, 4000, ''),
-(17312, 18, -5171.842285, -11046.803711, 27.183821, 0, ''),
-(17312, 19, -5185.995117, -11056.359375, 20.234867, 0, ''),
-(17312, 20, -5198.485840, -11065.065430, 18.872593, 0, ''),
-(17312, 21, -5214.062500, -11074.653320, 19.215731, 0, ''),
-(17312, 22, -5220.157227, -11088.377930, 19.818476, 0, ''),
-(17312, 23, -5233.652832, -11098.846680, 18.349432, 0, ''),
-(17312, 24, -5250.163086, -11111.653320, 16.438959, 0, ''),
-(17312, 25, -5268.194336, -11125.639648, 12.668313, 0, ''),
-(17312, 26, -5286.270508, -11130.669922, 6.912246, 0, ''),
-(17312, 27, -5317.449707, -11137.392578, 4.963446, 0, ''),
-(17312, 28, -5334.854492, -11154.384766, 6.742664, 0, ''),
-(17312, 29, -5353.874512, -11171.595703, 6.903912, 20000, ''),
-(17312, 30, -5354.240000, -11171.940000, 6.890000, 0, '');
+(17312, 0, -4781.36, -11054.59, 2.475, 5000, 'SAY_START'),
+(17312, 1, -4786.90, -11050.34, 3.868, 0, ''),
+(17312, 2, -4830.30, -11043.16, 1.651, 0, ''),
+(17312, 3, -4833.82, -11038.03, 1.607, 0, ''),
+(17312, 4, -4856.62, -11034.52, 1.665, 0, ''),
+(17312, 5, -4876.67, -11030.61, 1.942, 0, ''),
+(17312, 6, -4881.06, -11035.62, 5.067, 0, ''),
+(17312, 7, -4904.61, -11042.72, 10.689, 0, ''),
+(17312, 8, -4913.10, -11050.98, 12.655, 0, ''),
+(17312, 9, -4924.45, -11059.15, 14.604, 0, ''),
+(17312, 10, -4939.89, -11066.83, 13.770, 0, ''),
+(17312, 11, -4951.94, -11067.57, 14.174, 0, ''),
+(17312, 12, -4971.94, -11064.94, 16.977, 0, ''),
+(17312, 13, -4995.02, -11068.19, 21.874, 0, ''),
+(17312, 14, -5017.98, -11055.18, 22.739, 0, ''),
+(17312, 15, -5036.87, -11039.66, 25.646, 0, ''),
+(17312, 16, -5064.00, -11026.98, 27.466, 0, ''),
+(17312, 17, -5086.48, -11029.29, 28.866, 0, ''),
+(17312, 18, -5108.68, -11034.53, 29.540, 0, ''),
+(17312, 19, -5133.68, -11038.84, 29.169, 0, ''),
+(17312, 20, -5163.79, -11042.22, 28.070, 4000, 'SAY_PROGRESS'),
+(17312, 21, -5161.12, -11052.87, 31.664, 0, ''),
+(17312, 22, -5160.37, -11066.50, 31.499, 0, ''),
+(17312, 23, -5165.48, -11071.66, 27.989, 0, ''),
+(17312, 24, -5177.59, -11076.63, 21.986, 0, ''),
+(17312, 25, -5193.23, -11084.35, 20.009, 0, ''),
+(17312, 26, -5207.54, -11090.39, 21.519, 0, ''),
+(17312, 27, -5252.69, -11098.85, 15.572, 0, ''),
+(17312, 28, -5268.33, -11105.29, 12.530, 0, ''),
+(17312, 29, -5282.29, -11113.06, 7.134, 0, ''),
+(17312, 30, -5302.01, -11127.28, 6.704, 0, ''),
+(17312, 31, -5317.62, -11139.31, 4.684, 0, ''),
+(17312, 32, -5319.09, -11140.54, 5.570, 0, ''),
+(17312, 33, -5344.95, -11163.43, 6.959, 2000, 'SAY_END1'),
+(17312, 34, -5344.95, -11163.43, 6.959, 1000, 'SAY_DAUGHTER'),
+(17312, 35, -5355.86, -11173.78, 6.853, 2000, 'EMOTE_HUG'),
+(17312, 36, -5355.86, -11173.78, 6.853, 5000, 'SAY_END2'),
+(17312, 37, -5355.86, -11173.78, 6.853, 0, '');
 
 DELETE FROM script_waypoint WHERE entry=17876;
 INSERT INTO script_waypoint VALUES

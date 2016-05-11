@@ -24,7 +24,6 @@
 #include "GridNotifiersImpl.h"
 #include "Opcodes.h"
 #include "Log.h"
-#include "UpdateMask.h"
 #include "World.h"
 #include "ObjectMgr.h"
 #include "SpellMgr.h"
@@ -34,7 +33,6 @@
 #include "DynamicObject.h"
 #include "Group.h"
 #include "UpdateData.h"
-#include "MapManager.h"
 #include "ObjectAccessor.h"
 #include "CellImpl.h"
 #include "Policies/Singleton.h"
@@ -665,22 +663,22 @@ void Spell::prepareDataForTriggerSystem()
         {
             case SPELLFAMILY_MAGE:
                 // Arcane Missiles / Blizzard triggers need do it
-                if (m_spellInfo->IsFitToFamilyMask(UI64LIT(0x0000000000200080)))
+                if (m_spellInfo->IsFitToFamilyMask(uint64(0x0000000000200080)))
                     m_canTrigger = true;
                 break;
             case SPELLFAMILY_WARLOCK:
                 // For Hellfire Effect / Rain of Fire / Seed of Corruption triggers need do it
-                if (m_spellInfo->IsFitToFamilyMask(UI64LIT(0x0000800000000060)))
+                if (m_spellInfo->IsFitToFamilyMask(uint64(0x0000800000000060)))
                     m_canTrigger = true;
                 break;
             case SPELLFAMILY_HUNTER:
                 // Hunter Explosive Trap Effect/Immolation Trap Effect/Frost Trap Aura/Snake Trap Effect
-                if (m_spellInfo->IsFitToFamilyMask(UI64LIT(0x0000200000000014)))
+                if (m_spellInfo->IsFitToFamilyMask(uint64(0x0000200000000014)))
                     m_canTrigger = true;
                 break;
             case SPELLFAMILY_PALADIN:
                 // For Holy Shock triggers need do it
-                if (m_spellInfo->IsFitToFamilyMask(UI64LIT(0x0001000000200000)))
+                if (m_spellInfo->IsFitToFamilyMask(uint64(0x0001000000200000)))
                     m_canTrigger = true;
                 break;
             default:
@@ -738,7 +736,7 @@ void Spell::prepareDataForTriggerSystem()
 
     // Hunter traps spells (for Entrapment trigger)
     // Gives your Immolation Trap, Frost Trap, Explosive Trap, and Snake Trap ....
-    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && m_spellInfo->SpellFamilyFlags & UI64LIT(0x000020000000001C))
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && m_spellInfo->SpellFamilyFlags & uint64(0x000020000000001C))
         m_procAttacker |= PROC_FLAG_ON_TRAP_ACTIVATION;
 }
 
@@ -790,7 +788,7 @@ void Spell::AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex)
     if (speed > 0.0f && affectiveObject && (pVictim != affectiveObject || (m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))))
     {
         // calculate spell incoming interval
-        float dist = 0.0f;                                  // distance to impact
+        float dist;                                         // distance to impact
         if (pVictim == affectiveObject)                     // Calculate dist to destination target also for self-cast spells
         {
             if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
@@ -810,7 +808,7 @@ void Spell::AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex)
             m_delayMoment = target.timeDelay;
     }
     else
-        target.timeDelay = UI64LIT(0);
+        target.timeDelay = uint64(0);
 
     // If target reflect spell back to caster
     if (target.missCondition == SPELL_MISS_REFLECT)
@@ -877,7 +875,7 @@ void Spell::AddGOTarget(GameObject* pVictim, SpellEffectIndex effIndex)
             m_delayMoment = target.timeDelay;
     }
     else
-        target.timeDelay = UI64LIT(0);
+        target.timeDelay = uint64(0);
 
     // Add target to list
     m_UniqueGOTargetInfo.push_back(target);
@@ -1055,13 +1053,13 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
         caster->DealSpellDamage(&damageInfo, true);
 
         // Judgement of Blood
-        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN && m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000000800000000) && m_spellInfo->SpellIconID == 153)
+        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN && m_spellInfo->SpellFamilyFlags & uint64(0x0000000800000000) && m_spellInfo->SpellIconID == 153)
         {
             int32 damagePoint  = damageInfo.damage * 33 / 100;
             m_caster->CastCustomSpell(m_caster, 32220, &damagePoint, nullptr, nullptr, true);
         }
         // Bloodthirst
-        else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & UI64LIT(0x40000000000))
+        else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & uint64(0x40000000000))
         {
             uint32 BTAura = 0;
             switch (m_spellInfo->Id)
@@ -1206,7 +1204,7 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
     }
 
     // Get Data Needed for Diminishing Returns, some effects may have multiple auras, so this must be done on spell hit, not aura add
-    m_diminishGroup = GetDiminishingReturnsGroupForSpell(m_spellInfo, m_triggeredByAuraSpell);
+    m_diminishGroup = GetDiminishingReturnsGroupForSpell(m_spellInfo, !!m_triggeredByAuraSpell);
     m_diminishLevel = unit->GetDiminishing(m_diminishGroup);
     // Increase Diminishing on unit, current informations for actually casts will use values above
     if ((GetDiminishingReturnsGroupType(m_diminishGroup) == DRTYPE_PLAYER && unit->GetTypeId() == TYPEID_PLAYER) ||
@@ -2742,6 +2740,10 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
         SendSpellStart();
 
         TriggerGlobalCooldown();
+
+        // Execute instant spells immediate
+        if (m_timer == 0 && !IsNextMeleeSwingSpell() && !IsAutoRepeat() && !IsChanneledSpell(m_spellInfo))
+            cast();
     }
     // execute triggered without cast time explicitly in call point
     else if (m_timer == 0)
@@ -2890,7 +2892,7 @@ void Spell::cast(bool skipCheck)
             if (m_spellInfo->CasterAuraStateNot == AURA_STATE_WEAKENED_SOUL || m_spellInfo->TargetAuraStateNot == AURA_STATE_WEAKENED_SOUL)
                 AddPrecastSpell(6788);                      // Weakened Soul
             // Prayer of Mending (jump animation), we need formal caster instead original for correct animation
-            else if (m_spellInfo->SpellFamilyFlags & UI64LIT(0x0000002000000000))
+            else if (m_spellInfo->SpellFamilyFlags & uint64(0x0000002000000000))
                 AddTriggeredSpell(41637);
 
             switch (m_spellInfo->Id)
@@ -3093,7 +3095,9 @@ void Spell::_handle_immediate_phase()
     for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
     {
         // persistent area auras target only the ground
-        if (m_spellInfo->Effect[j] == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+        if (m_spellInfo->Effect[j] == SPELL_EFFECT_PERSISTENT_AREA_AURA ||
+                //summon a gameobject at the spell's destination xyz
+                (m_spellInfo->Effect[j] == SPELL_EFFECT_TRANS_DOOR && m_spellInfo->EffectImplicitTargetA[j] == TARGET_AREAEFFECT_GO_AROUND_DEST))
             HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
     }
 }
@@ -4414,7 +4418,7 @@ SpellCastResult Spell::CheckCast(bool strict)
         if (m_spellInfo->AttributesEx2 == SPELL_ATTR_EX2_UNK20 && m_spellInfo->HasAttribute(SPELL_ATTR_EX_UNK9) && target->HasInArc(M_PI_F, m_caster))
         {
             // Exclusion for Pounce: Facing Limitation was removed in 2.0.1, but it still uses the same, old Ex-Flags
-            if (!m_spellInfo->IsFitToFamily(SPELLFAMILY_DRUID, UI64LIT(0x0000000000020000)))
+            if (!m_spellInfo->IsFitToFamily(SPELLFAMILY_DRUID, uint64(0x0000000000020000)))
             {
                 SendInterrupted(2);
                 return SPELL_FAILED_NOT_BEHIND;
@@ -4431,6 +4435,10 @@ SpellCastResult Spell::CheckCast(bool strict)
         // check if target is in combat
         if (non_caster_target && m_spellInfo->HasAttribute(SPELL_ATTR_EX_NOT_IN_COMBAT_TARGET) && target->isInCombat())
             return SPELL_FAILED_TARGET_AFFECTING_COMBAT;
+        
+        // check if target is affected by Spirit of Redemption (Aura: 27827)
+        if (target->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
+            return SPELL_FAILED_BAD_TARGETS;
     }
     // zone check
     uint32 zone, area;
@@ -4926,7 +4934,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
 
                 // get the lock entry
-                uint32 lockId = 0;
+                uint32 lockId;
                 if (GameObject* go = m_targets.getGOTarget())
                 {
                     // In BattleGround players can use only flags and banners
@@ -6171,7 +6179,7 @@ bool Spell::CheckTargetCreatureType(Unit* target) const
     uint32 spellCreatureTargetMask = m_spellInfo->TargetCreatureType;
 
     // Curse of Doom: not find another way to fix spell target check :/
-    if (m_spellInfo->IsFitToFamily(SPELLFAMILY_WARLOCK, UI64LIT(0x0000000200000000)))
+    if (m_spellInfo->IsFitToFamily(SPELLFAMILY_WARLOCK, uint64(0x0000000200000000)))
     {
         // not allow cast at player
         if (target->GetTypeId() == TYPEID_PLAYER)

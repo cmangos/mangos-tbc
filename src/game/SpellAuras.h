@@ -116,7 +116,7 @@ class MANGOS_DLL_SPEC SpellAuraHolder
         bool IsWeaponBuffCoexistableWith(SpellAuraHolder const* ref) const;
         bool IsNeedVisibleSlot(Unit const* caster) const;
         bool IsRemovedOnShapeLost() const { return m_isRemovedOnShapeLost; }
-        bool IsInUse() const { return m_in_use;}
+        bool IsInUse() const { return !!m_in_use;}
         bool IsDeleted() const { return m_deleted;}
         bool IsEmptyHolder() const;
 
@@ -353,9 +353,7 @@ class MANGOS_DLL_SPEC Aura
         void HandleModPercentStat(bool Apply, bool Real);
         void HandleModResistancePercent(bool Apply, bool Real);
         void HandleAuraModBaseResistancePCT(bool Apply, bool Real);
-        void HandleModShieldBlockPCT(bool Apply, bool Real);
         void HandleAuraTrackStealthed(bool Apply, bool Real);
-        void HandleModShieldBlock(bool Apply, bool Real);
         void HandleForceReaction(bool Apply, bool Real);
         void HandleAuraModRangedHaste(bool Apply, bool Real);
         void HandleRangedAmmoHaste(bool Apply, bool Real);
@@ -437,7 +435,7 @@ class MANGOS_DLL_SPEC Aura
         bool IsPersistent() const { return m_isPersistent; }
         bool IsAreaAura() const { return m_isAreaAura; }
         bool IsPeriodic() const { return m_isPeriodic; }
-        bool IsInUse() const { return m_in_use; }
+        bool IsInUse() const { return !!m_in_use; }
 
         void SetInUse(bool state)
         {

@@ -17,7 +17,6 @@
  */
 
 #include "Common.h"
-#include "Database/DatabaseEnv.h"
 #include "DBCStores.h"
 #include "WorldPacket.h"
 #include "Player.h"
@@ -102,7 +101,7 @@ bool ChatHandler::HandleDebugSendSellErrorCommand(char* args)
         return false;
 
     uint8 msg = atoi(args);
-    m_session->GetPlayer()->SendSellError(SellResult(msg), 0, ObjectGuid(), 0);
+    m_session->GetPlayer()->SendSellError(SellResult(msg), nullptr, ObjectGuid(), 0);
     return true;
 }
 
@@ -112,7 +111,7 @@ bool ChatHandler::HandleDebugSendBuyErrorCommand(char* args)
         return false;
 
     uint8 msg = atoi(args);
-    m_session->GetPlayer()->SendBuyError(BuyResult(msg), 0, 0, 0);
+    m_session->GetPlayer()->SendBuyError(BuyResult(msg), nullptr, 0, 0);
     return true;
 }
 

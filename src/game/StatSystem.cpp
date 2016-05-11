@@ -352,22 +352,18 @@ void Player::UpdateShieldBlockValue()
 void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, float& min_damage, float& max_damage)
 {
     UnitMods unitMod;
-    UnitMods attPower;
 
     switch (attType)
     {
         case BASE_ATTACK:
         default:
             unitMod = UNIT_MOD_DAMAGE_MAINHAND;
-            attPower = UNIT_MOD_ATTACK_POWER;
             break;
         case OFF_ATTACK:
             unitMod = UNIT_MOD_DAMAGE_OFFHAND;
-            attPower = UNIT_MOD_ATTACK_POWER;
             break;
         case RANGED_ATTACK:
             unitMod = UNIT_MOD_DAMAGE_RANGED;
-            attPower = UNIT_MOD_ATTACK_POWER_RANGED;
             break;
     }
 
@@ -863,7 +859,6 @@ void Pet::UpdateResistances(uint32 school)
 
 void Pet::UpdateArmor()
 {
-    float value = 0.0f;
     float bonus_armor = 0.0f;
     UnitMods unitMod = UNIT_MOD_ARMOR;
 
@@ -872,7 +867,7 @@ void Pet::UpdateArmor()
     if (owner && (getPetType() == HUNTER_PET || (getPetType() == SUMMON_PET && owner->getClass() == CLASS_WARLOCK)))
         bonus_armor = 0.35f * float(owner->GetArmor());
 
-    value  = GetModifierValue(unitMod, BASE_VALUE);
+    float value = GetModifierValue(unitMod, BASE_VALUE);
     value *= GetModifierValue(unitMod, BASE_PCT);
     value += GetStat(STAT_AGILITY) * 2.0f;
     value += GetModifierValue(unitMod, TOTAL_VALUE) + bonus_armor;
@@ -913,7 +908,7 @@ void Pet::UpdateAttackPowerAndDamage(bool ranged)
     if (ranged)
         return;
 
-    float val = 0.0f;
+    float val;
     float bonusAP = 0.0f;
     UnitMods unitMod = UNIT_MOD_ATTACK_POWER;
 

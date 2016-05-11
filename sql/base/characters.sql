@@ -22,7 +22,7 @@
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
   `required_s2327_01_characters_pvpstats` bit(1) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Last applied sql update to DB';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Last applied sql update to DB';
 
 --
 -- Dumping data for table `character_db_version`
@@ -839,7 +839,7 @@ DROP TABLE IF EXISTS `game_event_status`;
 CREATE TABLE `game_event_status` (
   `event` smallint(6) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`event`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Game event system';
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Game event system';
 
 --
 -- Dumping data for table `game_event_status`
@@ -906,7 +906,7 @@ CREATE TABLE `group_member` (
   `subgroup` smallint(6) unsigned NOT NULL,
   PRIMARY KEY (`groupId`,`memberGuid`),
   KEY `Idx_memberGuid` (`memberGuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Groups';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Groups';
 
 --
 -- Dumping data for table `group_member`
@@ -942,7 +942,7 @@ CREATE TABLE `groups` (
   `difficulty` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`groupId`),
   UNIQUE KEY `leaderGuid` (`leaderGuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Groups';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Groups';
 
 --
 -- Dumping data for table `groups`
@@ -1137,7 +1137,7 @@ CREATE TABLE `guild_member` (
   `BankRemSlotsTab5` int(11) unsigned NOT NULL DEFAULT '0',
   UNIQUE KEY `guid_key` (`guid`),
   KEY `guildid_rank_key` (`guildid`,`rank`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Guild System';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Guild System';
 
 --
 -- Dumping data for table `guild_member`
@@ -1273,7 +1273,7 @@ CREATE TABLE `item_text` (
   `id` int(11) unsigned NOT NULL DEFAULT '0',
   `text` longtext,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Item System';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Item System';
 
 --
 -- Dumping data for table `item_text`
@@ -1526,7 +1526,7 @@ CREATE TABLE `saved_variables` (
   `NextArenaPointDistributionTime` bigint(40) unsigned NOT NULL DEFAULT '0',
   `NextDailyQuestResetTime` bigint(40) unsigned NOT NULL DEFAULT '0',
   `cleaning_flags` int(11) unsigned NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Variable Saves';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Variable Saves';
 
 --
 -- Dumping data for table `saved_variables`

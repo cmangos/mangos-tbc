@@ -17,7 +17,6 @@
  */
 
 #include "PointMovementGenerator.h"
-#include "Errors.h"
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "TemporarySummon.h"
@@ -66,9 +65,6 @@ void PointMovementGenerator<T>::Reset(T& unit)
 template<class T>
 bool PointMovementGenerator<T>::Update(T& unit, const uint32& /*diff*/)
 {
-    if (!&unit)
-        return false;
-
     if (unit.hasUnitState(UNIT_STAT_CAN_NOT_MOVE))
     {
         unit.clearUnitState(UNIT_STAT_ROAMING_MOVE);

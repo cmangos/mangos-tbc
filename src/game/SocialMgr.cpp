@@ -28,7 +28,7 @@
 
 INSTANTIATE_SINGLETON_1(SocialMgr);
 
-PlayerSocial::PlayerSocial()
+PlayerSocial::PlayerSocial(): m_playerLowGuid(0)
 {
 }
 
@@ -166,7 +166,8 @@ bool PlayerSocial::HasIgnore(ObjectGuid ignore_guid)
 {
     PlayerSocialMap::const_iterator itr = m_playerSocialMap.find(ignore_guid.GetCounter());
     if (itr != m_playerSocialMap.end())
-        return itr->second.Flags & SOCIAL_FLAG_IGNORED;
+        return !!(itr->second.Flags & SOCIAL_FLAG_IGNORED);
+
     return false;
 }
 
@@ -303,10 +304,6 @@ PlayerSocial* SocialMgr::LoadFromDB(QueryResult* result, ObjectGuid guid)
     if (!result)
         return social;
 
-    uint32 friend_guid = 0;
-    uint32 flags = 0;
-    std::string note = "";
-
     // used to speed up check below. Using GetNumberOfSocialsWithFlag will cause unneeded iteration
     uint32 friendCounter = 0, ignoreCounter = 0;
 
@@ -314,9 +311,9 @@ PlayerSocial* SocialMgr::LoadFromDB(QueryResult* result, ObjectGuid guid)
     {
         Field* fields  = result->Fetch();
 
-        friend_guid = fields[0].GetUInt32();
-        flags = fields[1].GetUInt32();
-        note = fields[2].GetCppString();
+        uint32 friend_guid = fields[0].GetUInt32();
+        uint32 flags = fields[1].GetUInt32();
+        std::string note = fields[2].GetCppString();
 
         if ((flags & SOCIAL_FLAG_IGNORED) && ignoreCounter >= SOCIALMGR_IGNORE_LIMIT)
             continue;

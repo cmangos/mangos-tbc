@@ -27,18 +27,15 @@
 #include "GridDefines.h"
 #include "Cell.h"
 #include "Object.h"
-#include "Timer.h"
 #include "SharedDefines.h"
 #include "GridMap.h"
 #include "GameSystem/GridRefManager.h"
 #include "MapRefManager.h"
-#include "Utilities/TypeList.h"
 #include "ScriptMgr.h"
 #include "CreatureLinkingMgr.h"
 #include "vmap/DynamicTree.h"
 
 #include <bitset>
-#include <list>
 
 struct CreatureInfo;
 class Creature;
@@ -322,9 +319,6 @@ class MANGOS_DLL_SPEC Map : public GridRefManager<NGridType>
         void EnsureGridLoadedAtEnter(Cell const&, Player* player = nullptr);
 
         void buildNGridLinkage(NGridType* pNGridType) { pNGridType->link(this); }
-
-        template<class T> void AddType(T* obj);
-        template<class T> void RemoveType(T* obj, bool);
 
         NGridType* getNGrid(uint32 x, uint32 y) const
         {

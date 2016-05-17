@@ -2290,7 +2290,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                             SpellCastTargets targets;
                             targets.setItemTarget(item);
-                            spell->prepare(&targets);
+                            spell->SpellStart(&targets);
                         }
                     }
                 }

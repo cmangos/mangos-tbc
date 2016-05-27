@@ -37,18 +37,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 {
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
 
-	bool skipcheat = false;
-
-	if (!Initialized())
-		skipcheat = true;
-
-	if (isTransport(m_MoveInfo[0]) && !verifyTransportCoords(m_MoveInfo[0]))
-		skipcheat = true;
-
-	if (isFalling() && GetDistanceZ() < 0.f)
-		skipcheat = true;
-
-    if (skipcheat)
+    if (!Initialized())
     {
         m_MoveInfo[1] = m_MoveInfo[0];
         return false;
@@ -65,11 +54,15 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     float d3YPS = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetDiffInSec();
     float traveledYPS = 0.f;
 
-    traveledYPS = floor((isFlying() ? d3YPS : d2YPS) * 100.f) / 100.f;
+    if (isTransport(m_MoveInfo[0]) != isTransport(m_MoveInfo[1]))
+    {
+        m_MoveInfo[1] = m_MoveInfo[0];
+        return false;
+    }
 
-	bool cheating = allowedYPS < traveledYPS;
+    if (isFlying())
+        traveledYPS = isFlying() ? d3YPS : d2YPS;
 
-	m_Player->BothChat << "cheating: " << (cheating ? "true" : "false") << " TYPS: " << traveledYPS << " AYPS: " << allowedYPS << "\n";
 
     m_MoveInfo[1] = m_MoveInfo[0];
 

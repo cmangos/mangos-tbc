@@ -33,8 +33,6 @@ protected:
     bool isTransport();
     bool isSwimming(MovementInfo& moveInfo);
     bool isSwimming();
-	bool verifyTransportCoords(MovementInfo& moveInfo);
-	bool verifyTransportCoords();
     float GetDistOrTransportDist();
     float GetDistOrTransportDist(bool threed);
     float GetDistanceZ();

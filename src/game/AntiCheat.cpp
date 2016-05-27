@@ -74,16 +74,6 @@ bool AntiCheat::isSwimming()
     return isSwimming(m_MoveInfo[0]) || isSwimming(m_MoveInfo[1]) || m_Player->IsInWater();
 }
 
-bool AntiCheat::verifyTransportCoords(MovementInfo& moveInfo)
-{
-	return !(abs(m_MoveInfo[0].GetTransportPos()->x) > 100 || abs(m_MoveInfo[0].GetTransportPos()->y) > 100 || abs(m_MoveInfo[0].GetTransportPos()->z) > 100);
-}
-
-bool AntiCheat::verifyTransportCoords()
-{
-	return verifyTransportCoords(m_MoveInfo[0]) || verifyTransportCoords(m_MoveInfo[1]);
-}
-
 float AntiCheat::GetDistOrTransportDist()
 {
     return GetDistOrTransportDist(isFlying());

@@ -93,3 +93,4 @@ cmake_install.cmake
 
 dep/lib/win32_debug/*
 dep/lib/x64_Debug/*
+win/mangosdVC140.VC.db

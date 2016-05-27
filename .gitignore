@@ -90,3 +90,6 @@ cmake_install.cmake
 # recastnavigation directory needs exception
 !dep/recastnavigation/RecastDemo/Build/
 *.opendb
+
+dep/lib/win32_debug/*
+dep/lib/x64_Debug/*

@@ -45,9 +45,6 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 	if (isTransport(m_MoveInfo[0]) && !verifyTransportCoords(m_MoveInfo[0]))
 		skipcheat = true;
 
-	if (isFalling() && GetDistanceZ() < 0.f)
-		skipcheat = true;
-
     if (skipcheat)
     {
         m_MoveInfo[1] = m_MoveInfo[0];
@@ -59,17 +56,27 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
 
-    float allowedYPS = GetSpeed();
+    float allowedspeed = GetSpeed();
 
     float d2YPS = (onTransport ? GetTransportDist2D() : GetDistance2D()) / GetDiffInSec();
     float d3YPS = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetDiffInSec();
-    float traveledYPS = 0.f;
+    float travelspeed = floor((isFlying() || isSwimming() ? d3YPS : d2YPS) * 100.f) / 100.f;
 
-    traveledYPS = floor((isFlying() ? d3YPS : d2YPS) * 100.f) / 100.f;
+	bool cheating = false;
 
-	bool cheating = allowedYPS < traveledYPS;
+	if (travelspeed > allowedspeed)
+		cheating = true;
 
-	m_Player->BothChat << "cheating: " << (cheating ? "true" : "false") << " TYPS: " << traveledYPS << " AYPS: " << allowedYPS << "\n";
+	if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed)
+		cheating = true;
+
+	if (cheating)
+	{
+		m_MoveInfo[0] = m_MoveInfo[1];
+		const Position* p = m_MoveInfo[0].GetPos();
+
+		m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_TRANSPORT);
+	}	
 
     m_MoveInfo[1] = m_MoveInfo[0];
 

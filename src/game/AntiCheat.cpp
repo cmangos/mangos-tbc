@@ -13,6 +13,11 @@ AntiCheat::AntiCheat(CPlayer* player)
     player->AddAntiCheatModule(this);
 }
 
+void AntiCheat::HandleRelocate(float x, float y, float z, float o)
+{
+    m_MoveInfo[1].ChangePosition(x, y, z, o);
+}
+
 bool AntiCheat::Initialized()
 {
     if (!m_Initialized)
@@ -23,6 +28,24 @@ bool AntiCheat::Initialized()
 
     return true;
 }
+
+bool AntiCheat::IsMoving(MovementInfo& moveInfo)
+{
+    return moveInfo.HasMovementFlag(MOVEFLAG_FORWARD) ||
+        moveInfo.HasMovementFlag(MOVEFLAG_BACKWARD) ||
+        moveInfo.HasMovementFlag(MOVEFLAG_STRAFE_LEFT) ||
+        moveInfo.HasMovementFlag(MOVEFLAG_STRAFE_RIGHT) ||
+        moveInfo.HasMovementFlag(MOVEFLAG_FALLING) ||
+        moveInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR) ||
+        moveInfo.HasMovementFlag(MOVEFLAG_ASCENDING) ||
+        moveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL);
+}
+
+bool AntiCheat::IsMoving()
+{
+    return IsMoving(m_MoveInfo[0]) || IsMoving(m_MoveInfo[1]);
+}
+
 
 bool AntiCheat::isFlying(MovementInfo& moveInfo)
 {
@@ -199,5 +222,13 @@ uint32 AntiCheat::GetDiff()
 
 float AntiCheat::GetDiffInSec()
 {
-    return float(GetDiff()) / 1000.f;
+    return std::max(float(GetDiff()) / 1000.f, 1.f);
+}
+
+float AntiCheat::GetVirtualDiffInSec()
+{
+    if (IsMoving(m_MoveInfo[0]) && IsMoving(m_MoveInfo[1]))
+        return 1.f;
+
+    return GetDiffInSec();
 }

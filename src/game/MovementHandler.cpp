@@ -273,14 +273,14 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     if (opcode == MSG_MOVE_FALL_LAND && plMover && !plMover->IsTaxiFlying())
         plMover->HandleFall(movementInfo);
 
+    if (plMover)
+        plMover->ToCPlayer()->HandleAntiCheat(movementInfo, opcode);
+
     /* process position-change */
     HandleMoverRelocation(movementInfo);
 
     if (plMover)
-    {
         plMover->UpdateFallInformationIfNeed(movementInfo, opcode);
-        plMover->ToCPlayer()->HandleAntiCheat(movementInfo, opcode);
-    }
 
     WorldPacket data(opcode, recv_data.size());
     data << mover->GetPackGUID();             // write guid

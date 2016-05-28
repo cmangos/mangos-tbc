@@ -8,4 +8,5 @@ public:
     AntiCheat_test(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
+    void HandleRelocate(float x, float y, float z, float o);
 };

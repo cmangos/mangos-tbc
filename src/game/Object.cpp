@@ -40,6 +40,8 @@
 #include "Chat.h"
 #include "LootMgr.h"
 
+#include "CPlayer.h"
+
 Object::Object(): m_updateFlag(0)
 {
     m_objectTypeId      = TYPEID_OBJECT;
@@ -956,6 +958,9 @@ void WorldObject::Relocate(float x, float y, float z, float orientation)
 
     if (isType(TYPEMASK_UNIT))
         ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, orientation);
+
+    if (isType(TYPEMASK_PLAYER))
+        this->ToCPlayer()->HandleRelocate(x, y, z, orientation);
 }
 
 void WorldObject::Relocate(float x, float y, float z)
@@ -966,6 +971,9 @@ void WorldObject::Relocate(float x, float y, float z)
 
     if (isType(TYPEMASK_UNIT))
         ((Unit*)this)->m_movementInfo.ChangePosition(x, y, z, GetOrientation());
+
+    if (isType(TYPEMASK_PLAYER))
+        this->ToCPlayer()->HandleRelocate(x, y, z, GetOrientation());
 }
 
 void WorldObject::SetOrientation(float orientation)

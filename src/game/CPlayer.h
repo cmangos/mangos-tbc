@@ -59,9 +59,8 @@ public:
     // AntiCheat
 public:
     bool HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode);
-    void HandleTeleport(float x, float y, float z);
+    void HandleRelocate(float x, float y, float z, float o);
     void HandleUpdate(uint32 update_diff, uint32 p_time);
-    void HandleFlightpathFinish();
     void AddAntiCheatModule(AntiCheat* antiCheat);
     void SetGMFly(bool value) { m_GMFly = value; }
     bool GetGMFly() { return m_GMFly; }

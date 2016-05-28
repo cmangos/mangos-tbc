@@ -43,8 +43,8 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     return false;
 }
 
-void AntiCheat_wallclimb::HandleTeleport(float x, float y, float z)
+void AntiCheat_wallclimb::HandleRelocate(float x, float y, float z, float o)
 {
-    m_MoveInfo[1].ChangePosition(x, y, z, m_Player->GetOrientation());
+    AntiCheat::HandleRelocate(x, y, z, o);
     jumping = false;
 }

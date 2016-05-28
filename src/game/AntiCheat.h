@@ -17,12 +17,13 @@ public:
 
     virtual bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode) = 0;
     virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };
-    virtual void HandleTeleport(float x, float y, float z) { };
-    virtual void HandleFlightpathFinish() { };
+    virtual void HandleRelocate(float x, float y, float z, float o);
 
 protected:
     bool Initialized();
 
+    bool IsMoving(MovementInfo& moveInfo);
+    bool IsMoving();
     bool isFlying(MovementInfo& moveInfo);
     bool isFlying();
     bool isWalking(MovementInfo& moveInfo);
@@ -54,9 +55,10 @@ protected:
 
     uint32 GetDiff();
     float GetDiffInSec();
+    float GetVirtualDiffInSec();
 
     CPlayer* m_Player;
-    MovementInfo m_MoveInfo[2];
+    MovementInfo m_MoveInfo[3];
     bool m_Initialized;
 
 private:

@@ -16,14 +16,14 @@
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
     new AntiCheat_speed(this);
-    //new AntiCheat_teleport(this);
-    //new AntiCheat_fly(this);
-    //new AntiCheat_jump(this);
-    //new AntiCheat_gravity(this);
-    //new AntiCheat_waterwalking(this);
-    //new AntiCheat_wallclimb(this);
-    //new AntiCheat_tptoplane(this);
-    //new AntiCheat_test(this);
+    new AntiCheat_teleport(this);
+    new AntiCheat_fly(this);
+    new AntiCheat_jump(this);
+    new AntiCheat_gravity(this);
+    new AntiCheat_waterwalking(this);
+    new AntiCheat_wallclimb(this);
+    new AntiCheat_tptoplane(this);
+    // new AntiCheat_test(this);
 
     m_GMFly = false;
 }
@@ -45,22 +45,16 @@ bool CPlayer::HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode)
     return cheat;
 }
 
-void CPlayer::HandleTeleport(float x, float y, float z)
+void CPlayer::HandleRelocate(float x, float y, float z, float o)
 {
     for (auto& i : m_AntiCheatStorage)
-        i->HandleTeleport(x, y, z);
+        i->HandleRelocate(x, y, z, o);
 }
 
 void CPlayer::HandleUpdate(uint32 update_diff, uint32 p_time)
 {
     for (auto& i : m_AntiCheatStorage)
         i->HandleUpdate(update_diff, p_time);
-}
-
-void CPlayer::HandleFlightpathFinish()
-{
-    for (auto& i : m_AntiCheatStorage)
-        i->HandleFlightpathFinish();
 }
 
 void CPlayer::AddAntiCheatModule(AntiCheat* antiCheat)

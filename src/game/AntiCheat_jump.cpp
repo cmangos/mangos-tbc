@@ -13,6 +13,7 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if (!Initialized())
     {
         m_MoveInfo[1] = m_MoveInfo[0];
+        m_MoveInfo[2] = m_MoveInfo[0];
         return false;
     }
 
@@ -21,7 +22,7 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     if (opcode == MSG_MOVE_JUMP && jumping)
     {
-        const Position* pos = m_MoveInfo[1].GetPos();
+        const Position* pos = m_MoveInfo[2].GetPos();
 
         m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
         m_Player->BoxChat << "Jump hack" << "\n";
@@ -32,6 +33,7 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     {
         jumping = true;
         m_MoveInfo[1] = m_MoveInfo[0];
+        m_MoveInfo[2] = m_MoveInfo[0];
     }
     else if (opcode == MSG_MOVE_FALL_LAND)
         jumping = false;

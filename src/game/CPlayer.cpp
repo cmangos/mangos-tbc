@@ -23,7 +23,7 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
     new AntiCheat_waterwalking(this);
     new AntiCheat_wallclimb(this);
     new AntiCheat_tptoplane(this);
-    new AntiCheat_test(this);
+    //new AntiCheat_test(this);
 
     m_GMFly = false;
 }

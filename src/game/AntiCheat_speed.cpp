@@ -19,7 +19,18 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     {
         m_MoveInfo[1] = m_MoveInfo[0];
         m_MoveInfo[2] = m_MoveInfo[0];
+
+        knockback_angle = 0.f;
+        knockback_horizontalSpeed = 0.f;
+        knockback_verticalSpeed = 0.f;
         return false;
+    }
+
+    if (opcode == MSG_MOVE_FALL_LAND)
+    {
+        knockback_angle = 0.f;
+        knockback_horizontalSpeed = 0.f;
+        knockback_verticalSpeed = 0.f;
     }
 
 	if (GetDiff() < 50)
@@ -38,7 +49,10 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 	if (travelspeed > allowedspeed && !isFalling())
 		cheating = true;
 
-	if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed)
+
+	if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed &&
+        m_MoveInfo[0].GetJumpInfo().xyspeed != knockback_horizontalSpeed &&
+        m_MoveInfo[0].GetJumpInfo().velocity != knockback_verticalSpeed)
 		cheating = true;
 
     if (isTransport(m_MoveInfo[0]) && !verifyTransportCoords(m_MoveInfo[0]))
@@ -60,10 +74,9 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     return false;
 }
 
-void AntiCheat_speed::HandleFlightpathFinish()
+void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
 {
-    float x, y, z;
-    m_Player->GetPosition(x, y, z);
-    m_MoveInfo[1].ChangePosition(x, y, z, m_Player->GetOrientation());
+    knockback_angle = angle;
+    knockback_horizontalSpeed = horizontalSpeed;
+    knockback_verticalSpeed = verticalSpeed;
 }
-

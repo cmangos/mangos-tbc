@@ -23,7 +23,7 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
     new AntiCheat_waterwalking(this);
     new AntiCheat_wallclimb(this);
     new AntiCheat_tptoplane(this);
-    // new AntiCheat_test(this);
+    new AntiCheat_test(this);
 
     m_GMFly = false;
 }
@@ -43,6 +43,12 @@ bool CPlayer::HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode)
             cheat = true;
 
     return cheat;
+}
+
+void CPlayer::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
+{
+    for (auto& i : m_AntiCheatStorage)
+        i->HandleKnockBack(angle, horizontalSpeed, verticalSpeed);
 }
 
 void CPlayer::HandleRelocate(float x, float y, float z, float o)

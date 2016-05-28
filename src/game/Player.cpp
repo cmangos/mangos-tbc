@@ -20207,6 +20207,8 @@ void Player::KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSp
 {
     float angle = this == target ? GetOrientation() + M_PI_F : target->GetAngle(this);
     GetSession()->SendKnockBack(angle, horizontalSpeed, verticalSpeed);
+
+    ToCPlayer()->HandleKnockBack(angle, horizontalSpeed, verticalSpeed);
 }
 
 AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& miscRequirement)

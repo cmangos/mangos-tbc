@@ -15,10 +15,12 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     {
         m_MoveInfo[1] = m_MoveInfo[0];
         m_StartJumpZ = m_MoveInfo[0].GetPos()->z;
+        knockBack = false;
         return false;
     }
 
-    std::stringstream& ss = m_Player->BoxChat;
+    if (opcode == MSG_MOVE_FALL_LAND)
+        knockBack = false;
 
     if (opcode == MSG_MOVE_JUMP)
     {
@@ -30,13 +32,13 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     float jumpdiff = m_MoveInfo[0].GetPos()->z - m_StartJumpZ;
 
-    if (isFalling() && ((m_StartJumpWater && jumpdiff > JUMPHEIGHT_WATER) || (!m_StartJumpWater && jumpdiff > JUMPHEIGHT_LAND)))
+    if (isFalling() && !knockBack && ((m_StartJumpWater && jumpdiff > JUMPHEIGHT_WATER) || (!m_StartJumpWater && jumpdiff > JUMPHEIGHT_LAND)))
     {
         const Position* pos = m_MoveInfo[1].GetPos();
 
         m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_COMBAT);
-        ss << "Gravity hacking: " << jumpdiff << "\n";
-        ss << "m_StartJumpWater: " << m_StartJumpWater << "\n";
+        m_Player->BoxChat << "Gravity hacking: " << jumpdiff << "\n";
+        m_Player->BoxChat << "m_StartJumpWater: " << m_StartJumpWater << "\n";
 
         return true;
     }
@@ -49,4 +51,9 @@ void AntiCheat_gravity::HandleRelocate(float x, float y, float z, float o)
 {
     AntiCheat::HandleRelocate(x, y, z, o);
     m_StartJumpZ = z;
+}
+
+void AntiCheat_gravity::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
+{
+    knockBack = true;
 }

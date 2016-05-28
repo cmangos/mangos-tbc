@@ -12,10 +12,14 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if (!Initialized())
     {
         m_MoveInfo[1] = m_MoveInfo[0];
+        knockBack = false;
         return false;
     }
 
-    if (!IsMoving(m_MoveInfo[1]) && GetDistOrTransportDist() > 0.f)
+    if (opcode == MSG_MOVE_FALL_LAND)
+        knockBack = false;
+
+    if (!IsMoving(m_MoveInfo[1]) && GetDistOrTransportDist() > 0.f && !knockBack)
     {
         const Position* pos = m_MoveInfo[1].GetPos();
 
@@ -28,3 +32,9 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     return false;
 }
+
+void AntiCheat_teleport::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
+{
+    knockBack = true;
+}
+

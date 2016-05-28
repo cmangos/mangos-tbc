@@ -16,6 +16,10 @@ bool AntiCheat_test::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
+    m_Player->BoxChat << "cosAngle: " << m_MoveInfo[0].GetJumpInfo().cosAngle << "\n";
+    m_Player->BoxChat << "sinAngle: " << m_MoveInfo[0].GetJumpInfo().sinAngle << "\n";
+    m_Player->BoxChat << "velocity: " << m_MoveInfo[0].GetJumpInfo().velocity << "\n";
+    m_Player->BoxChat << "xyspeed: " << m_MoveInfo[0].GetJumpInfo().xyspeed << "\n";
     m_Player->BoxChat << "cposx: " << m_MoveInfo[0].GetPos()->x << "\n";
     m_Player->BoxChat << "cposy: " << m_MoveInfo[0].GetPos()->y << "\n";
     m_Player->BoxChat << "cposz: " << m_MoveInfo[0].GetPos()->z << "\n";

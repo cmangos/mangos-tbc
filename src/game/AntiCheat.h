@@ -18,6 +18,7 @@ public:
     virtual bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode) = 0;
     virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };
     virtual void HandleRelocate(float x, float y, float z, float o);
+    virtual void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed) { };
 
 protected:
     bool Initialized();

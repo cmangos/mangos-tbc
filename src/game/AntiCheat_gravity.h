@@ -9,7 +9,9 @@ public:
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleRelocate(float x, float y, float z, float o);
+    void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
 private:
+    bool knockBack;
     float m_StartJumpZ;
     bool m_StartJumpWater;
 };

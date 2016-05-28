@@ -34,7 +34,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     {
         const Position* pos = m_MoveInfo[1].GetPos();
 
-        m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT);
+        m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_COMBAT);
         ss << "Gravity hacking: " << jumpdiff << "\n";
         ss << "m_StartJumpWater: " << m_StartJumpWater << "\n";
 

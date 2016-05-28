@@ -31,7 +31,7 @@ bool AntiCheat_tptoplane::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         p = m_MoveInfo[1].GetPos();
         groundZ = terrain->GetHeightStatic(p->x, p->y, p->z);
 
-        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, groundZ, p->o, TELE_TO_NOT_LEAVE_TRANSPORT & TELE_TO_NOT_LEAVE_COMBAT);
+        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, groundZ, p->o, TELE_TO_NOT_LEAVE_COMBAT);
         m_Player->BoxChat << "TELEPORT TO PLANE CHEAT" << "\n";
     }
 

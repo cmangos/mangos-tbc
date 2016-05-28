@@ -23,12 +23,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     }
 
 	if (GetDiff() < 50)
-	{
-		m_LastCheat = false;
 		return false;
-	}
-
-	m_LastCheat = false;
 
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
 
@@ -53,11 +48,9 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     {
         const Position* p = m_MoveInfo[2].GetPos();
 
-        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT);
+        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         m_Player->BoxChat << "SPEEDCHEAT" << "\n";
-
-        m_LastCheat = true;
     }
     else
         m_MoveInfo[2] = m_MoveInfo[0];

@@ -1197,7 +1197,7 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo, int32 cons
 
     if (bp1)
         spell->m_currentBasePoints[EFFECT_INDEX_1] = *bp1;
-
+	
     if (bp2)
         spell->m_currentBasePoints[EFFECT_INDEX_2] = *bp2;
 
@@ -6213,7 +6213,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
     // Done total percent damage auras
     float  DoneTotalMod = 1.0f;
     int32  DoneTotal = 0;
-	int32  DoneAdvertisedBenefit = 0;
+    int32  DoneAdvertisedBenefit = 0;
 
     // Healing done percent
     AuraList const& mHealingDonePct = GetAurasByType(SPELL_AURA_MOD_HEALING_DONE_PERCENT);
@@ -6230,10 +6230,9 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
             continue;
         switch ((*i)->GetModifier()->m_miscvalue)
         {
-            case 4415: // Increased Rejuvenation Healing
-            case 4953: // Harold's Rejuvenating Broach
-            case 3736: // Hateful Totem of the Third Wind / Increased Lesser Healing Wave / LK Arena (4/5/6) Totem of the Third Wind / Savage Totem of the Third Wind
-				DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+            case 4415: // Idol of Rejuvenation itemid 22398
+            case 4953: // Harold's Rejuvenating Broach itemid 25643
+                DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
                 break;
             default:
                 break;

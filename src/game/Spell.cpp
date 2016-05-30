@@ -2697,7 +2697,7 @@ void Spell::prepare(SpellCastTargets const* targets, Aura* triggeredByAura)
     }
 
     // Fill cost data
-    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, m_IsTriggeredSpell, this, m_CastItem);
 
     SpellCastResult result = CheckCast(true);
     if (result != SPELL_CAST_OK && !IsAutoRepeat())         // always cast autorepeat dummy for triggering
@@ -5604,10 +5604,10 @@ SpellCastResult Spell::CheckRange(bool strict)
     return SPELL_CAST_OK;
 }
 
-uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spell const* spell, Item* castItem)
+uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, bool isTriggered, Spell const* spell, Item* castItem)
 {
-    // item cast not used power
-    if (castItem)
+    // item cast or triggered do not use power
+    if (castItem || isTriggered)
         return 0;
 
     // Spell drain all exist power on cast (Only paladin lay of Hands)

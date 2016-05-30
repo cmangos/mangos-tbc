@@ -6232,6 +6232,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
         {
             case 4415: // Idol of Rejuvenation itemid 22398
             case 4953: // Harold's Rejuvenating Broach itemid 25643
+            case 3736: // Totem of the Plains itemid 25645
                 DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
                 break;
             default:

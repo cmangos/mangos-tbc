@@ -6827,15 +6827,8 @@ void Unit::Mount(uint32 mount, uint32 spellId)
                 ((Player*)this)->UnsummonPetTemporaryIfAny();
             // Normal case (Unsummon only permanent pet)
             else if (Pet* pet = GetPet())
-            {
-                if (pet->IsPermanentPetFor((Player*)this) && !((Player*)this)->InArena() &&
-                        sWorld.getConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT))
-                {
-                    ((Player*)this)->UnsummonPetTemporaryIfAny();
-                }
-                else
-                    pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, true);
-            }
+                pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, true);
+
         }
     }
 }
@@ -6856,18 +6849,16 @@ void Unit::Unmount(bool from_aura)
         WorldPacket data(SMSG_DISMOUNT, 8);
         data << GetPackGUID();
         SendMessageToSet(&data, true);
+
+        if (Pet* pet = GetPet())
+            pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, false);
     }
 
     // only resummon old pet if the player is already added to a map
     // this prevents adding a pet to a not created map which would otherwise cause a crash
     // (it could probably happen when logging in after a previous crash)
     if (GetTypeId() == TYPEID_PLAYER)
-    {
-        if (Pet* pet = GetPet())
-            pet->ApplyModeFlags(PET_MODE_DISABLE_ACTIONS, false);
-        else
-            ((Player*)this)->ResummonPetTemporaryUnSummonedIfAny();
-    }
+        ((Player*)this)->ResummonPetTemporaryUnSummonedIfAny();
 }
 
 void Unit::SetInCombatWith(Unit* enemy)

@@ -6232,11 +6232,61 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
         {
             case 4415: // Idol of Rejuvenation itemid 22398
             case 4953: // Harold's Rejuvenating Broach itemid 25643
-            case 3736: // Totem of the Plains itemid 25645
+            case 3736: // Totem of the Plains itemid 25645 Totem of Sustaining itemid 23200 Totem of Life itemid 22396
                 DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
                 break;
             default:
                 break;
+        }
+    }
+
+    AuraList const& mDummy = owner->GetAurasByType(SPELL_AURA_DUMMY);
+
+    // Flash of Light
+    if (spellProto->SpellFamilyName == SPELLFAMILY_PALADIN && spellProto->SpellFamilyFlags & uint64(0x0000000040000000))
+    {
+        for (AuraList::const_iterator i = mDummy.begin(); i != mDummy.end(); ++i)
+        {
+            switch ((*i)->GetId())
+            {
+                case 28851: // Libram of Light itemid 23006
+                case 28853: // Libram of Divinity itemid 23201
+                case 32403: // Blessed Book of Nagrand itemid 25644
+                    DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    // Holy Light
+    if (spellProto->SpellFamilyName == SPELLFAMILY_PALADIN && spellProto->SpellFamilyFlags & uint64(0x0000000080000000))
+    {
+        for (AuraList::const_iterator i = mDummy.begin(); i != mDummy.end(); ++i)
+        {
+            if ((*i)->GetId() == 34231) // Libram of the Lightbringer itemid 28296
+                DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+        }
+    }
+
+    // Lifebloom
+    if (spellProto->SpellFamilyName == SPELLFAMILY_DRUID && spellProto->SpellFamilyFlags & uint64(0x0000001000000000))
+    {
+        for (AuraList::const_iterator i = mDummy.begin(); i != mDummy.end(); ++i)
+        {
+            if ((*i)->GetId() == 34246) // Idol of the Emerald Queen itemid 27886
+                DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+        }
+    }
+
+    // Healing Wave
+    if (spellProto->SpellFamilyName == SPELLFAMILY_SHAMAN && spellProto->SpellFamilyFlags & uint64(0x0000000000000040))
+    {
+        for (AuraList::const_iterator i = mDummy.begin(); i != mDummy.end(); ++i)
+        {
+            if ((*i)->GetId() == 34294) // Totem of Spontaneous Regrowth itemid 27544
+                DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
         }
     }
 
@@ -6295,8 +6345,18 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
             if ((*i)->GetSpellProto()->SpellVisual == 9180)
             {
                 if (((spellProto->SpellFamilyFlags & uint64(0x0000000040000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_1) ||  // Flash of Light
-                        ((spellProto->SpellFamilyFlags & uint64(0x0000000080000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_0))    // Holy Light
-                    TakenTotal += (*i)->GetModifier()->m_amount;
+                    ((spellProto->SpellFamilyFlags & uint64(0x0000000080000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_0))    // Holy Light
+                {
+                    TakenAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+
+                    // Check for caster having equipped Libram of Souls Redeemed itemid 28592
+                    AuraList const& casterAurasDummy = pCaster->GetAurasByType(SPELL_AURA_DUMMY);
+                    for (AuraList::const_iterator casterAura = casterAurasDummy.begin(); casterAura != casterAurasDummy.end(); ++casterAura)
+                    {
+                        if ((*casterAura)->GetId() == 38320) //Increased Blessing of Light Healing
+                            TakenAdvertisedBenefit += (*casterAura)->GetModifier()->m_amount;
+                    }
+                }
             }
         }
     }

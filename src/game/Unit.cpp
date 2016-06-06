@@ -6333,8 +6333,11 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
     // Done total percent damage auras
     int32  TakenTotal = 0;
 
-    // Taken fixed damage bonus auras
+    // Taken fixed healing bonus auras
     int32 TakenAdvertisedBenefit = SpellBaseHealingBonusTaken(GetSpellSchoolMask(spellProto));
+
+    // If the caster has Libram of Souls Redeemed itemid 28592 equipped then Flash of Light and Holy Light are granted a bonus
+    int32 LibramAdvertisedBenefit = 0;
 
     // Blessing of Light dummy affects healing taken from Holy Light and Flash of Light
     if (spellProto->SpellFamilyName == SPELLFAMILY_PALADIN && (spellProto->SpellFamilyFlags & uint64(0x00000000C0000000)))
@@ -6344,19 +6347,18 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
         {
             if ((*i)->GetSpellProto()->SpellVisual == 9180)
             {
-                if (((spellProto->SpellFamilyFlags & uint64(0x0000000040000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_1) ||  // Flash of Light
-                    ((spellProto->SpellFamilyFlags & uint64(0x0000000080000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_0))    // Holy Light
-                {
-                    TakenAdvertisedBenefit += (*i)->GetModifier()->m_amount;
 
-                    // Check for caster having equipped Libram of Souls Redeemed itemid 28592
-                    AuraList const& casterAurasDummy = pCaster->GetAurasByType(SPELL_AURA_DUMMY);
-                    for (AuraList::const_iterator casterAura = casterAurasDummy.begin(); casterAura != casterAurasDummy.end(); ++casterAura)
-                    {
-                        if ((*casterAura)->GetId() == 38320) //Increased Blessing of Light Healing
-                            TakenAdvertisedBenefit += (*casterAura)->GetModifier()->m_amount;
-                    }
-                }
+                // Check for caster having equipped Libram of Souls Redeemed itemid 28592
+                if (Aura* aura = pCaster->GetAura(38320, EFFECT_INDEX_0))
+                    LibramAdvertisedBenefit = aura->GetModifier()->m_amount;
+                else
+                    LibramAdvertisedBenefit = 0;
+
+                if ((spellProto->SpellFamilyFlags & 0x0000000040000000) && (*i)->GetEffIndex() == EFFECT_INDEX_1)      // Flash of Light
+                    TakenAdvertisedBenefit += (*i)->GetModifier()->m_amount + (LibramAdvertisedBenefit * 0.5f);
+                else if ((spellProto->SpellFamilyFlags & 0x0000000080000000) && (*i)->GetEffIndex() == EFFECT_INDEX_0) // Holy Light
+                    TakenAdvertisedBenefit += (*i)->GetModifier()->m_amount + LibramAdvertisedBenefit;
+
             }
         }
     }

@@ -219,7 +219,7 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
             pet->clearUnitState(UNIT_STAT_MOVING);
 
-            Spell* spell = new Spell(pet, spellInfo, false);
+            Spell* spell = CreateSpell(pet, spellInfo, false);
 
             SpellCastResult result = spell->CheckPetCast(unit_target);
 
@@ -743,7 +743,7 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
 
     pet->clearUnitState(UNIT_STAT_MOVING);
 
-    Spell* spell = new Spell(pet, spellInfo, false);
+    Spell* spell = CreateSpell(pet, spellInfo, false);
     spell->m_targets = targets;
 
     SpellCastResult result = spell->CheckPetCast(nullptr);

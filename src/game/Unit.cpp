@@ -1143,7 +1143,7 @@ void Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, bool triggered, 
         triggeredBy = triggeredByAura->GetSpellProto();
     }
 
-    Spell* spell = new Spell(this, spellInfo, triggered, originalCaster, triggeredBy);
+    Spell* spell = CreateSpell(this, spellInfo, triggered, originalCaster, triggeredBy);
 
     SpellCastTargets targets;
     targets.setUnitTarget(Victim);
@@ -1196,7 +1196,7 @@ void Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo, int32 cons
         triggeredBy = triggeredByAura->GetSpellProto();
     }
 
-    Spell* spell = new Spell(this, spellInfo, triggered, originalCaster, triggeredBy);
+    Spell* spell = CreateSpell(this, spellInfo, triggered, originalCaster, triggeredBy);
 
     if (bp0)
         spell->m_currentBasePoints[EFFECT_INDEX_0] = *bp0;
@@ -1260,7 +1260,7 @@ void Unit::CastSpell(float x, float y, float z, SpellEntry const* spellInfo, boo
         triggeredBy = triggeredByAura->GetSpellProto();
     }
 
-    Spell* spell = new Spell(this, spellInfo, triggered, originalCaster, triggeredBy);
+    Spell* spell = CreateSpell(this, spellInfo, triggered, originalCaster, triggeredBy);
 
     SpellCastTargets targets;
 
@@ -3228,7 +3228,7 @@ void Unit::_UpdateAutoRepeatSpell()
         }
 
         // we want to shoot
-        Spell* spell = new Spell(this, m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo, true);
+        Spell* spell = CreateSpell(this, m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo, true);
         spell->SpellStart(&(m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_targets));
 
         // all went good, reset attack

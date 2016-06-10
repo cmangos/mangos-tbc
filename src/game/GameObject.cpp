@@ -1655,7 +1655,7 @@ void GameObject::Use(Unit* user)
         return;
     }
 
-    Spell* spell = new Spell(spellCaster, spellInfo, triggered, GetObjectGuid());
+    Spell* spell = CreateSpell(spellCaster, spellInfo, triggered, GetObjectGuid());
 
     // spell target is user of GO
     SpellCastTargets targets;

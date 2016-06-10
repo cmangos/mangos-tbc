@@ -261,7 +261,7 @@ void PetAI::UpdateAI(const uint32 diff)
             else if (IsNonCombatSpell(spellInfo))
                 continue;
 
-            Spell* spell = new Spell(m_creature, spellInfo, false);
+            Spell* spell = CreateSpell(m_creature, spellInfo, false);
 
             if (inCombat && !m_creature->hasUnitState(UNIT_STAT_FOLLOW) && spell->CanAutoCast(m_creature->getVictim()))
             {

@@ -2290,7 +2290,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                             SpellCastTargets targets;
                             targets.setItemTarget(item);
-                            spell->prepare(&targets);
+                            spell->SpellStart(&targets);
                         }
                     }
                 }
@@ -5419,7 +5419,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    unitTarget->CastSpell(unitTarget, 30836, true, nullptr, nullptr, m_caster->GetObjectGuid());
+                    unitTarget->CastSpell(unitTarget, 30836, true, nullptr, nullptr, m_originalCasterGUID);
                     break;
                 }
                 case 30918:                                 // Improved Sprint
@@ -7296,16 +7296,11 @@ void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
     }
 
     Loot*& loot = itemTarget->loot;
-    if (!loot)
-        loot = new Loot(p_caster, itemTarget, LOOT_PROSPECTING);
-    else
-    {
-        if (loot->GetLootType() != LOOT_PROSPECTING)
-        {
-            delete loot;
-            loot = new Loot(p_caster, itemTarget, LOOT_PROSPECTING);
-        }
-    }
+
+    if (loot)
+        delete loot;
+
+    loot = new Loot(p_caster, itemTarget, LOOT_PROSPECTING);
 
     loot->ShowContentTo(p_caster);
 }

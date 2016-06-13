@@ -371,7 +371,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
 
     Spell* spell = new Spell(_player, spellInfo, false);
     spell->m_cast_count = cast_count;                       // set count of casts
-    spell->prepare(&targets);
+    spell->SpellStart(&targets);
 }
 
 void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)

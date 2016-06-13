@@ -183,7 +183,8 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
                     if (Creature* pBaron = GetSingleCreatureFromStorage(NPC_BARON))
                     {
                         DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_START, NPC_BARON);
-                        pBaron->SummonCreature(NPC_YSIDA, aStratholmeLocation[7].m_fX, aStratholmeLocation[7].m_fY, aStratholmeLocation[7].m_fZ, aStratholmeLocation[7].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0);
+                        if (Creature* pYsida = pBaron->SummonCreature(NPC_YSIDA, aStratholmeLocation[7].m_fX, aStratholmeLocation[7].m_fY, aStratholmeLocation[7].m_fZ, aStratholmeLocation[7].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0))
+                        	pYsida->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER | UNIT_NPC_FLAG_GOSSIP);
                     }
 
                     m_uiBaronRunTimer = 45 * MINUTE * IN_MILLISECONDS;
@@ -329,7 +330,7 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
                                 pPlayer->RemoveAurasDueToSpell(SPELL_BARON_ULTIMATUM);
 
                             if (pPlayer->GetQuestStatus(QUEST_DEAD_MAN_PLEA) == QUEST_STATUS_INCOMPLETE)
-                                pPlayer->AreaExploredOrEventHappens(QUEST_DEAD_MAN_PLEA);
+                                pPlayer->KilledMonsterCredit(NPC_YSIDA);
 
                             // Argent Dawn reputation reward
                             pPlayer->CastSpell(pPlayer, SPELL_YSIDA_FREED, true);
@@ -342,6 +343,7 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
                         DoScriptText(SAY_EPILOGUE, pYsida);
                         DoUseDoorOrButton(GO_YSIDA_CAGE);
                         pYsida->GetMotionMaster()->MovePoint(0, aStratholmeLocation[8].m_fX, aStratholmeLocation[8].m_fY, aStratholmeLocation[8].m_fZ);
+                        pYsida->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER | UNIT_NPC_FLAG_GOSSIP);
                     }
                 }
 

@@ -57,6 +57,12 @@ void CPlayer::HandleRelocate(float x, float y, float z, float o)
         i->HandleRelocate(x, y, z, o);
 }
 
+void CPlayer::HandleTeleport(uint32 map, float x, float y, float z, float o)
+{
+    for (auto& i : m_AntiCheatStorage)
+        i->HandleTeleport(map, x, y, z, o);
+}
+
 void CPlayer::HandleUpdate(uint32 update_diff, uint32 p_time)
 {
     for (auto& i : m_AntiCheatStorage)

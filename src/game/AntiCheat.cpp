@@ -18,6 +18,11 @@ void AntiCheat::HandleRelocate(float x, float y, float z, float o)
     m_MoveInfo[1].ChangePosition(x, y, z, o);
 }
 
+void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)
+{
+    m_MoveInfo[1].ChangePosition(x, y, z, o);
+}
+
 bool AntiCheat::Initialized()
 {
     if (!m_Initialized)
@@ -222,12 +227,12 @@ uint32 AntiCheat::GetDiff()
 
 float AntiCheat::GetDiffInSec()
 {
-    return std::max(float(GetDiff()) / 1000.f, 1.f);
+    return GetDiff() / 1000.f;
 }
 
 float AntiCheat::GetVirtualDiffInSec()
 {
-    if (IsMoving(m_MoveInfo[0]) && IsMoving(m_MoveInfo[1]))
+    if (IsMoving(m_MoveInfo[0]) && !IsMoving(m_MoveInfo[1]))
         return 1.f;
 
     return GetDiffInSec();

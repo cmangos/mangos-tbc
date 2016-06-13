@@ -1815,6 +1815,9 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         else                                                // !map->CanEnter(this)
             return false;
     }
+
+    ToCPlayer()->HandleTeleport(mapid, x, y, z, orientation);
+
     return true;
 }
 

@@ -9,10 +9,7 @@ public:
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
+    void HandleRelocate(float x, float y, float z, float o);
 private:
-    bool m_LastCheat;
-
-    float knockback_angle;
-    float knockback_horizontalSpeed;
-    float knockback_verticalSpeed;
+    bool knockback;
 };

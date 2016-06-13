@@ -3,7 +3,6 @@
 
 AntiCheat_jump::AntiCheat_jump(CPlayer* player) : AntiCheat(player)
 {
-    jumping = false;
 }
 
 bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
@@ -17,10 +16,7 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    if (isSwimming())
-        jumping = false;
-
-    if (opcode == MSG_MOVE_JUMP && jumping)
+    if (opcode == MSG_MOVE_JUMP && isFalling(m_MoveInfo[1]))
     {
         const Position* pos = m_MoveInfo[2].GetPos();
 
@@ -29,14 +25,11 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
         return true;
     }
-    else if (opcode == MSG_MOVE_JUMP)
+    else
     {
-        jumping = true;
         m_MoveInfo[1] = m_MoveInfo[0];
         m_MoveInfo[2] = m_MoveInfo[0];
     }
-    else if (opcode == MSG_MOVE_FALL_LAND)
-        jumping = false;
 
     return false;
 }

@@ -8,7 +8,4 @@ public:
     AntiCheat_jump(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
-
-private:
-    bool jumping;
 };

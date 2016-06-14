@@ -1,6 +1,5 @@
 #include "AntiCheat_wallclimb.h"
 #include "CPlayer.h"
-#include "PathFinder.h"
 
 AntiCheat_wallclimb::AntiCheat_wallclimb(CPlayer* player) : AntiCheat(player)
 {

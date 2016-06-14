@@ -27,7 +27,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if (opcode == MSG_MOVE_FALL_LAND || !isFalling(m_MoveInfo[0]))
         knockback = false;
 
-	if (GetDiff() < 50)
+    if (GetDiff() < 50 || GetDistance3D() < 0.5f)
 		return false;
 
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);

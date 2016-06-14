@@ -2003,6 +2003,32 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     case 43873:                             // Headless Horseman Laugh
                         target->PlayDistanceSound(11965);
                         return;
+                    case 44877:
+                    {
+                        if (target->GetEntry() == 24916)
+                        {
+                            if (SpellAuraHolder* temp = target->GetSpellAuraHolder(44944))
+                            {
+                                if (temp->GetStackAmount() < 8)
+                                {
+                                    target->CastSpell(target, 44944, true);     // max 8 stacks
+                                }
+                            }
+                            else
+                            {
+                                target->CastSpell(target, 44944, true);
+                            }
+                        }
+                        return;
+                    }
+                    case 44943:
+                    {
+                        target->SetDisplayId(22769);
+                        target->SetName("Unstable Living Flare");
+                        target->RemoveAurasDueToSpell(44880);
+                        target->CastSpell(target, 46196, true);
+                        return;
+                    }
                     case 46637:                             // Break Ice
                         target->CastSpell(target, 46638, true, nullptr, this);
                         return;
@@ -3885,6 +3911,28 @@ void Aura::HandleInvisibility(bool apply, bool Real)
                 if (!target->HasAuraType(SPELL_AURA_MOD_STEALTH))
                     target->SetVisibility(VISIBILITY_ON);
             }
+        }
+
+        switch (GetId())
+        {
+        case 38544:
+        {
+            if (target->GetTypeId() == TYPEID_PLAYER)
+            {
+                if (Player* player = (Player*)target)
+                {
+                    if (player->GetMover() != target)
+                    {
+                        if (Creature* pet = (Creature*)player->GetMover()) // this spell uses DoSummonPossesed so remove this on removal
+                        {
+                            player->Uncharm();
+                            pet->ForcedDespawn();
+                        }
+                    }
+                }
+            }
+            break;
+        }            
         }
     }
 }

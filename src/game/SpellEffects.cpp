@@ -54,6 +54,8 @@
 #include "CellImpl.h"
 #include "G3D/Vector3.h"
 #include "LootMgr.h"
+#include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
 
 pEffect SpellEffects[TOTAL_SPELL_EFFECTS] =
 {
@@ -1486,6 +1488,21 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     // cast spell Raptor Capture Credit
                     m_caster->CastSpell(m_caster, 42337, true, nullptr);
+                    return;
+                }
+                case 44948:
+                {
+                    m_caster->CastSpell(m_caster, 46225, true);
+                    std::list<GameObject*> objectList;
+                    MaNGOS::GameObjectEntryInPosRangeCheck check(*m_caster, 187084, m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), 30.0f);
+                    MaNGOS::GameObjectListSearcher<MaNGOS::GameObjectEntryInPosRangeCheck> searcher(objectList, check);
+                    Cell::VisitGridObjects(m_caster, searcher, 30.0f);
+                    for (auto* flame : objectList)
+                    {
+                        flame->SetLootState(GO_READY);
+                        flame->SetRespawnTime(60);           // despawn object in 60 seconds
+                        flame->Refresh();
+                    }
                     return;
                 }
                 case 44997:                                 // Converting Sentry
@@ -3557,7 +3574,17 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                     if (prop_id == 121)
                         DoSummonTotem(eff_idx);
                     else
-                        DoSummonWild(eff_idx, summon_prop->FactionId);
+                    {
+                        switch (m_spellInfo->Id) // unable to distinguish based on prop_id, therefore spell by spell override
+                        {
+                        case 38544: // summon marmot, gives control of marmot pet
+                            DoSummonPossessed(eff_idx, summon_prop->FactionId); 
+                            break;
+                        default:
+                            DoSummonWild(eff_idx, summon_prop->FactionId);
+                            break;
+                        }
+                    }
                     break;
                 }
                 case UNITNAME_SUMMON_TITLE_PET:
@@ -5519,6 +5546,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     unitTarget->CastSpell(unitTarget, 38353, true, nullptr, nullptr, m_caster->GetObjectGuid());
+                    return;
+                }
+                case 38920:
+                {
+                    if (Player* player = dynamic_cast<Player*>(m_caster->GetCharmer()))
+                    {
+                        player->RewardPlayerAndGroupAtEvent(unitTarget->GetEntry(),unitTarget);
+                    }
                     return;
                 }
                 case 39338:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Horde

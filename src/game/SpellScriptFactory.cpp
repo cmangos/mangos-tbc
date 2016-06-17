@@ -1,6 +1,6 @@
 #include "SpellScriptFactory.h"
 
-ScriptedSpellFactory* spellFactories[MAX_TBC_SPELL_ID];
+std::function<Spell*(Unit*, SpellEntry const*, bool, ObjectGuid, SpellEntry const*)> spellFactories[MAX_TBC_SPELL_ID];
 
 void AddSpellFactories()
 {
@@ -9,8 +9,5 @@ void AddSpellFactories()
 
 void DestroySpellFactories()
 {
-    for (int i = 0; i < MAX_TBC_SPELL_ID; i++)
-    {
-        delete spellFactories[i];
-    }
+    delete spellFactories;
 }

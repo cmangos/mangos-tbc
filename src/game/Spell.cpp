@@ -46,7 +46,6 @@
 #include "SpellScriptFactory.h"
 
 extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
-extern ScriptedSpellFactory* spellFactories[MAX_TBC_SPELL_ID];
 
 bool IsQuestTameSpell(uint32 spellId)
 {
@@ -5343,7 +5342,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     }
 
     // all ok
-    return CustomCheckCast(strict);
+    return SPELL_CAST_OK;
 }
 
 SpellCastResult Spell::CheckPetCast(Unit* target)
@@ -6923,7 +6922,7 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
 Spell* CreateSpell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy)
 {
     if (spellFactories[info->Id])
-        return (*spellFactories[info->Id])(caster, info, triggered, originalCasterGUID, triggeredBy);
+        return (spellFactories[info->Id])(caster, info, triggered, originalCasterGUID, triggeredBy);
     else
         return new Spell(caster, info, triggered, originalCasterGUID, triggeredBy);
 }

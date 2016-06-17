@@ -1,6 +1,30 @@
 #include "SpellScriptFactory.h"
 
-extern ScriptedSpellFactory* spellFactories[MAX_TBC_SPELL_ID];
+/*Spell 34063*/
+enum
+{
+    SPELL_SOUL_MIRROR = 34063
+};
+
+struct SoulMirror : public Spell
+{
+    SoulMirror(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
+        : Spell(caster, info, triggered, originalCasterGUID, triggeredBy) {}
+
+    void EffectDummy(SpellEffectIndex eff_idx) override
+    {
+        if (!unitTarget)
+            return;
+
+        m_caster->SummonCreature(19480, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), unitTarget->GetOrientation(), TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 30000);
+        unitTarget->DealDamage(unitTarget, unitTarget->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+    }
+};
+
+Spell* SoulMirrorFactory(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
+{
+    return new SoulMirror(caster, info, triggered, originalCasterGUID, triggeredBy);
+}
 
 enum
 {
@@ -16,8 +40,12 @@ struct MentalInterference : public Spell
 
     }
 
-    SpellCastResult CustomCheckCast(bool strict) override
+    SpellCastResult CheckCast(bool strict) override
     {
+        SpellCastResult result = Spell::CheckCast(strict);
+        if (result != SPELL_CAST_OK)
+            return result;
+
         if (ObjectGuid target = m_caster->GetTargetGuid())
         {
             if (!(target.GetEntry() == 16943 || target.GetEntry() == 20928))  // Mental Interference can be cast only on these two targets
@@ -28,13 +56,11 @@ struct MentalInterference : public Spell
     }
 };
 
-struct MentalInterferenceFactory : public ScriptedSpellFactory
+
+Spell* MentalInterferenceFactory(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
 {
-    virtual Spell* operator ()(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr) override
-    {
-        return new MentalInterference(caster, info, triggered, originalCasterGUID, triggeredBy);
-    }
-};
+    return new MentalInterference(caster, info, triggered, originalCasterGUID, triggeredBy);
+}
 
 enum
 {
@@ -59,17 +85,15 @@ struct DetonateTeleporter : public Spell
     }
 };
 
-struct DetonateTeleporterFactory : public ScriptedSpellFactory
+Spell* DetonateTeleporterFactory(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
 {
-    virtual Spell* operator ()(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr) override
-    {
-        return new DetonateTeleporter(caster, info, triggered, originalCasterGUID, triggeredBy);
-    }
-};
+    return new DetonateTeleporter(caster, info, triggered, originalCasterGUID, triggeredBy);
+}
 
 void AddSpellFactoriesTBC()
 {
-    spellFactories[SPELL_MENTAL_INTERFERENCE] = new MentalInterferenceFactory();
-    spellFactories[SPELL_DETONATE_TELEPORTER] = new DetonateTeleporterFactory();
+    spellFactories[SPELL_SOUL_MIRROR] = SoulMirrorFactory;
+    spellFactories[SPELL_MENTAL_INTERFERENCE] = MentalInterferenceFactory;
+    spellFactories[SPELL_DETONATE_TELEPORTER] = DetonateTeleporterFactory;
 }
 

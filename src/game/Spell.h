@@ -333,7 +333,7 @@ class Spell
         void TakeReagents();
         void TakeCastItem();
 
-        SpellCastResult CheckCast(bool strict);
+        virtual SpellCastResult CheckCast(bool strict);
         SpellCastResult CheckPetCast(Unit* target);
 
         // handlers
@@ -604,8 +604,6 @@ class Spell
         //*****************************************
         // Contains hooks for scripting
 
-        // Called in CheckCast, checks for additional target constraints
-        virtual SpellCastResult CustomCheckCast(bool strict) { return SPELL_CAST_OK; };
         // Called in SetTargetMap, removes invalid spell targets before randomized target removal is done
         virtual void CustomTargeting(UnitList& targetUnitMap) {};
 

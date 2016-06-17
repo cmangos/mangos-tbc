@@ -1,10 +1,6 @@
 #include "Spell.h"
 
-/*Dummy class for spell creation*/
-struct ScriptedSpellFactory
-{
-    virtual Spell* operator ()(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr) = 0;
-};
+extern std::function<Spell*(Unit*, SpellEntry const*, bool, ObjectGuid, SpellEntry const*)> spellFactories[MAX_TBC_SPELL_ID];
 
 void AddSpellFactoriesTBC();
 

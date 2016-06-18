@@ -27,6 +27,5 @@ bool AntiCheat_waterwalking::HandleMovement(MovementInfo& moveInfo, Opcodes opco
         m_Player->BoxChat << "WATERWALK CHEAT" << "\n";
     }
 
-    m_MoveInfo[1] = m_MoveInfo[0];
     return false;
 }

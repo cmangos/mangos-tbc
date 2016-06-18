@@ -344,6 +344,8 @@
     <ClCompile Include="..\..\src\game\AntiCheat_fly.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_gravity.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_jump.cpp" />
+    <ClCompile Include="..\..\src\game\AntiCheat_nofall.cpp" />
+    <ClCompile Include="..\..\src\game\AntiCheat_slowfall.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_speed.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_teleport.cpp" />
     <ClCompile Include="..\..\src\game\AntiCheat_test.cpp" />
@@ -526,6 +528,8 @@
     <ClInclude Include="..\..\src\game\AntiCheat_fly.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_gravity.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_jump.h" />
+    <ClInclude Include="..\..\src\game\AntiCheat_nofall.h" />
+    <ClInclude Include="..\..\src\game\AntiCheat_slowfall.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_speed.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_teleport.h" />
     <ClInclude Include="..\..\src\game\AntiCheat_test.h" />

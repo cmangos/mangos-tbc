@@ -74,7 +74,7 @@ bool AntiCheat::isWalking()
 
 bool AntiCheat::isFalling(MovementInfo& moveInfo)
 {
-    return moveInfo.HasMovementFlag(MOVEFLAG_FALLING) || moveInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR) || moveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL);
+    return moveInfo.HasMovementFlag(MOVEFLAG_FALLING) || moveInfo.HasMovementFlag(MOVEFLAG_FALLINGFAR);
 }
 
 bool AntiCheat::isFalling()

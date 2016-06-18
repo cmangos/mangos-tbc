@@ -15,7 +15,7 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    if ((GetDistanceZ() < WALKABLE_CLIMB && GetDistanceZ() > 0.f))
+    if ((GetDistanceZ() < WALKABLE_CLIMB && GetDistanceZ() > 0.f) && !isFalling(m_MoveInfo[0]))
         return false;
 
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;

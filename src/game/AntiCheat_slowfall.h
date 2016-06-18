@@ -2,10 +2,10 @@
 
 #include "AntiCheat.h"
 
-class AntiCheat_test : public AntiCheat
+class AntiCheat_slowfall : public AntiCheat
 {
 public:
-    AntiCheat_test(CPlayer* player);
+    AntiCheat_slowfall(CPlayer* player);
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleRelocate(float x, float y, float z, float o);

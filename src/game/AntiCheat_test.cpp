@@ -16,6 +16,8 @@ bool AntiCheat_test::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
+    float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
+
     m_Player->BoxChat << "cosAngle: " << m_MoveInfo[0].GetJumpInfo().cosAngle << "\n";
     m_Player->BoxChat << "sinAngle: " << m_MoveInfo[0].GetJumpInfo().sinAngle << "\n";
     m_Player->BoxChat << "velocity: " << m_MoveInfo[0].GetJumpInfo().velocity << "\n";
@@ -23,9 +25,12 @@ bool AntiCheat_test::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     m_Player->BoxChat << "cposx: " << m_MoveInfo[0].GetPos()->x << "\n";
     m_Player->BoxChat << "cposy: " << m_MoveInfo[0].GetPos()->y << "\n";
     m_Player->BoxChat << "cposz: " << m_MoveInfo[0].GetPos()->z << "\n";
-    m_Player->BoxChat << "oposx: " << m_MoveInfo[1].GetPos()->x << "\n";
-    m_Player->BoxChat << "oposy: " << m_MoveInfo[1].GetPos()->y << "\n";
-    m_Player->BoxChat << "oposz: " << m_MoveInfo[1].GetPos()->z << "\n";
+    m_Player->BoxChat << "angle: " << angle << "\n";
+    m_Player->BoxChat << "moving: " << (IsMoving(m_MoveInfo[0]) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "falling: " << (isFalling(m_MoveInfo[0]) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "flying: " << (isFlying(m_MoveInfo[0]) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "transport: " << (isTransport(m_MoveInfo[0]) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "slowfall: " << (m_MoveInfo[0].HasMovementFlag(MOVEFLAG_SAFE_FALL) ? "true" : "false") << "\n";
 
     m_MoveInfo[1] = m_MoveInfo[0];
 
@@ -34,5 +39,8 @@ bool AntiCheat_test::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
 void AntiCheat_test::HandleRelocate(float x, float y, float z, float o)
 {
-    m_MoveInfo[1].ChangePosition(x, y, z, o);
+}
+
+void AntiCheat_test::HandleTeleport(uint32 map, float x, float y, float z, float o)
+{
 }

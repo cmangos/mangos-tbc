@@ -571,6 +571,12 @@
     <ClCompile Include="..\..\src\game\AntiCheat_walljump.cpp">
       <Filter>Custom\AntiCheat</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_nofall.cpp">
+      <Filter>Custom\AntiCheat</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\AntiCheat_slowfall.cpp">
+      <Filter>Custom\AntiCheat</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -1083,6 +1089,12 @@
       <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AntiCheat_walljump.h">
+      <Filter>Custom\AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_nofall.h">
+      <Filter>Custom\AntiCheat</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AntiCheat_slowfall.h">
       <Filter>Custom\AntiCheat</Filter>
     </ClInclude>
   </ItemGroup>

@@ -32,7 +32,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     float jumpdiff = m_MoveInfo[0].GetPos()->z - m_StartJumpZ;
 
-    if (isFalling() && !knockBack && ((m_StartJumpWater && jumpdiff > JUMPHEIGHT_WATER) || (!m_StartJumpWater && jumpdiff > JUMPHEIGHT_LAND)))
+    if (isFalling(m_MoveInfo[0]) && !knockBack && ((m_StartJumpWater && jumpdiff > JUMPHEIGHT_WATER) || (!m_StartJumpWater && jumpdiff > JUMPHEIGHT_LAND)))
     {
         const Position* pos = m_MoveInfo[1].GetPos();
 
@@ -43,7 +43,6 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return true;
     }
 
-    m_MoveInfo[1] = m_MoveInfo[0];
     return false;
 }
 

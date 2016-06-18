@@ -11,5 +11,6 @@ public:
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
     void HandleRelocate(float x, float y, float z, float o);
 private:
+    float fallspeed;
     bool knockback;
 };

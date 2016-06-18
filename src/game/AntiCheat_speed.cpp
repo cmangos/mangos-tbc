@@ -19,6 +19,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         m_MoveInfo[1] = m_MoveInfo[0];
         m_MoveInfo[2] = m_MoveInfo[0];
 
+        fallspeed = 0.f;
         knockback = false;
 
         return false;
@@ -33,6 +34,14 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
 
     float allowedspeed = GetSpeed();
+
+    if (!isFalling(m_MoveInfo[1]) && isFalling(m_MoveInfo[0]))
+        fallspeed = allowedspeed;
+
+    if (isFalling(m_MoveInfo[0]))
+        allowedspeed = fallspeed;
+    else
+        fallspeed = 0.f;
 
     float d2speed = (onTransport ? GetTransportDist2D() : GetDistance2D()) / GetVirtualDiffInSec();
     float d3speed = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetVirtualDiffInSec();

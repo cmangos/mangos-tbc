@@ -910,6 +910,7 @@ enum SpellCastResult
     SPELL_FAILED_TARGET_LOCKED_TO_RAID_INSTANCE = 0xA7,
     SPELL_FAILED_UNKNOWN                        = 0xA8,
 
+    SPELL_NOT_FOUND                             = 0xFE,
     SPELL_CAST_OK                               = 0xFF      // custom value, don't must be send to client
 };
 

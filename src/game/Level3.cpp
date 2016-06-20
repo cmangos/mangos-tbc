@@ -4092,7 +4092,7 @@ bool ChatHandler::HandleLevelUpCommand(char* args)
 
             if (petTarget->getPetType() == HUNTER_PET)
             {
-                int32 newPetLevel = petTarget->getLevel() + addlevel;
+                uint32 newPetLevel = petTarget->getLevel() + addlevel;
 
                 if (newPetLevel <= player->getLevel())
                 {

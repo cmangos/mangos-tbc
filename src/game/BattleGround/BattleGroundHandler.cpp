@@ -80,13 +80,34 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
     uint32 bgTypeId_;
     uint32 instanceId;
     uint8 joinAsGroup;
-    bool isPremade = false;
-    Group* grp;
 
     recv_data >> guid;                                      // battlemaster guid
     recv_data >> bgTypeId_;                                 // battleground type id (DBC id)
     recv_data >> instanceId;                                // instance id, 0 if First Available selected
     recv_data >> joinAsGroup;                               // join as group
+
+    Creature *unit = GetPlayer()->GetMap()->GetCreature(guid);
+    if (!unit)
+        return;
+
+    if (!unit->isBattleMaster())                            // it's not battlemaster
+        return;
+
+    DEBUG_LOG( "WORLD: Recvd CMSG_BATTLEMASTER_JOIN Message from %s", guid.GetString().c_str());
+
+    JoinIntoBattleground( bgTypeId_, instanceId, joinAsGroup);
+}
+
+void WorldSession::JoinIntoBattleground( uint32 bgTypeId_, uint32 instanceId, uint8 joinAsGroup )
+{
+    Group * grp;
+    bool isPremade = false;
+
+    if (!sBattlemasterListStore.LookupEntry(bgTypeId_))
+    {
+        sLog.outError("Battleground: invalid bgtype (%u) received. possible cheater? player guid %u", bgTypeId_, _player->GetGUIDLow());
+        return;
+    }
 
     if (!sBattlemasterListStore.LookupEntry(bgTypeId_))
     {

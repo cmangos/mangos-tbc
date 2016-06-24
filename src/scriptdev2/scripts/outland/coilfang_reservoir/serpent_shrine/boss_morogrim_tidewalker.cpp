@@ -173,15 +173,15 @@ struct boss_morogrim_tidewalkerAI : public ScriptedAI
                 DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_A6, CAST_TRIGGERED);
                 DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_A7, CAST_TRIGGERED);
                 DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_A8, CAST_TRIGGERED);
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_A9, CAST_TRIGGERED);
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_A10, CAST_TRIGGERED);
+//                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_A9, CAST_TRIGGERED);
+//                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_A10, CAST_TRIGGERED);
 
                 // summon murlocs - south
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B6, CAST_TRIGGERED);
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B7, CAST_TRIGGERED);
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B8, CAST_TRIGGERED);
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B9, CAST_TRIGGERED);
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B10, CAST_TRIGGERED);
+//                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B6, CAST_TRIGGERED);
+//                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B7, CAST_TRIGGERED);
+//                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B8, CAST_TRIGGERED);
+//                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B9, CAST_TRIGGERED);
+//                DoCastSpellIfCan(m_creature, SPELL_SUMMON_MURLOC_B10, CAST_TRIGGERED);
 
                 m_uiEarthquakeTimer = 50000;
             }
@@ -226,8 +226,8 @@ struct boss_morogrim_tidewalkerAI : public ScriptedAI
                     DoScriptText(urand(0, 1) ? SAY_SUMMON_BUBL1 : SAY_SUMMON_BUBL2, m_creature);
 
                     DoCastSpellIfCan(m_creature, SPELL_SUMMON_GLOBULE_2, CAST_TRIGGERED);
-                    DoCastSpellIfCan(m_creature, SPELL_SUMMON_GLOBULE_3, CAST_TRIGGERED);
-                    DoCastSpellIfCan(m_creature, SPELL_SUMMON_GLOBULE_4, CAST_TRIGGERED);
+//                    DoCastSpellIfCan(m_creature, SPELL_SUMMON_GLOBULE_3, CAST_TRIGGERED);
+//                    DoCastSpellIfCan(m_creature, SPELL_SUMMON_GLOBULE_4, CAST_TRIGGERED);
 
                     m_uiWateryGlobulesTimer = 25000;
                 }

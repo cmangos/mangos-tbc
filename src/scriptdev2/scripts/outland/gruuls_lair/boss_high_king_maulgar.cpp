@@ -137,8 +137,8 @@ struct boss_high_king_maulgarAI : public ScriptedAI
         {
             case 1: DoScriptText(SAY_OGRE_DEATH1, m_creature); break;
             case 2: DoScriptText(SAY_OGRE_DEATH2, m_creature); break;
-            case 3: DoScriptText(SAY_OGRE_DEATH3, m_creature); break;
-            case 4: DoScriptText(SAY_OGRE_DEATH4, m_creature); break;
+//            case 3: DoScriptText(SAY_OGRE_DEATH3, m_creature); break;
+//            case 4: DoScriptText(SAY_OGRE_DEATH4, m_creature); break;
         }
     }
 

@@ -301,12 +301,15 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
                     if (Player* pPlayer = itr->getSource())
                         pPlayer->RemoveAurasDueToSpell(SPELL_GAME_IN_SESSION);
                 }
-
+				// otvorenie dvier aj pri neuspesnom evente chess
+				DoUseDoorOrButton(GO_GAMESMANS_HALL_EXIT_DOOR);
                 m_uiChessResetTimer = 35000;
             }
             else if (uiData == IN_PROGRESS || uiData == SPECIAL)
                 DoPrepareChessEvent();
             m_auiEncounter[uiType] = uiData;
+			// otvorenie dvier aj pri neuspesnom evente chess
+			DoUseDoorOrButton(GO_GAMESMANS_HALL_EXIT_DOOR);
             break;
         case TYPE_MALCHEZZAR:
             DoUseDoorOrButton(GO_NETHERSPACE_DOOR);

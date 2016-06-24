@@ -8,7 +8,7 @@
 enum
 {
     MAX_ENCOUNTER                   = 2,
-    MAX_COUNCIL                     = 5,
+    MAX_COUNCIL                     = 2,
 
     // Encounter Status
     TYPE_MAULGAR_EVENT              = 0,

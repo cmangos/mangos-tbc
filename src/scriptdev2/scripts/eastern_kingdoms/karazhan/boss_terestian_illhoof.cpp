@@ -202,11 +202,11 @@ struct boss_terestianAI : public ScriptedAI
         {
             if (m_uiSummonTimer <= uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_FIENDISH_PORTAL) == CAST_OK)
-                {
+//                if (DoCastSpellIfCan(m_creature, SPELL_FIENDISH_PORTAL) == CAST_OK)
+//                {
                     DoScriptText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
-                    m_uiSummonTimer = 0;
-                }
+                    m_uiSummonTimer = 30000;
+//                }
             }
             else
                 m_uiSummonTimer -= uiDiff;

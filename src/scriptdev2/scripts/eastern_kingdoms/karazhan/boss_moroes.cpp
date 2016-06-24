@@ -26,7 +26,7 @@ EndScriptData */
 
 enum
 {
-    MAX_ACTIVE_GUESTS   = 4,
+    MAX_ACTIVE_GUESTS   = 2,
     MAX_GUESTS          = 6,
 
     SAY_AGGRO           = -1532011,
@@ -47,8 +47,8 @@ enum
 static const float afLocations[MAX_ACTIVE_GUESTS][4] =
 {
     { -10987.086f, -1884.002f, 81.73f, 1.352331f},
-    { -10989.889f, -1882.592f, 81.73f, 0.932928f},
-    { -10979.159f, -1885.326f, 81.73f, 2.017563f},
+//    { -10989.889f, -1882.592f, 81.73f, 0.932928f},
+//    { -10979.159f, -1885.326f, 81.73f, 2.017563f},
     { -10976.789f, -1883.946f, 81.73f, 2.328581f}
 };
 

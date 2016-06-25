@@ -810,6 +810,10 @@ enum MangosStrings
     LANG_FAIL_ENTER_SPECTRAL_REALM      = 816,
     //                                    817 used in master branch
     LANG_TELEREQ_QUEST_BLACK_MORASS     = 818,
+	LANG_TELEREQ_QUEST_SSC			    = 819,
+	LANG_TELEREQ_QUEST_BLACK_TEMPLE     = 820,
+	LANG_TELEREQ_ITEM_THE_EYE		    = 821,
+	LANG_TELEREQ_QUEST_HYJAL		    = 822,
     // Room for in-game strings           819-999 not used
 
     // Level 4 (CLI only commands)
@@ -1019,8 +1023,21 @@ enum MangosStrings
 
     // Use for not-in-official-sources patches
     //                                    10000-10999
+	LANG_COMMAND_FREEZE                 = 10900,
+    LANG_COMMAND_FREEZE_ERROR           = 10901,
+    LANG_COMMAND_FREEZE_WRONG           = 10902,
+    LANG_COMMAND_UNFREEZE               = 10903,
+    LANG_COMMAND_NO_FROZEN_PLAYERS      = 10904,
+    LANG_COMMAND_LIST_FREEZE            = 10905,
+    LANG_COMMAND_FROZEN_PLAYERS         = 10906,
+ 
+     // Use for custom patches             11000-11999
+    LANG_CONSOLE_ANNOUNCE               = 11000,
+    LANG_ADMIN_ANNOUNCE                 = 11001,
+    LANG_EVENT_ANNOUNCE                 = 11002,
 
-    // Use for custom patches             11000-11999
+    LANG_MODERATOR_ANNOUNCE             = 11011,
+    LANG_DEVELOPER_ANNOUNCE             = 11012
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000999999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)

@@ -708,6 +708,9 @@ void World::LoadConfigSettings(bool reload)
     m_relocation_ai_notify_delay = sConfig.GetIntDefault("Visibility.AIRelocationNotifyDelay", 1000u);
     m_relocation_lower_limit_sq  = pow(sConfig.GetFloatDefault("Visibility.RelocationLowerLimit", 10), 2);
 
+	// fly  in azeroth
+	setConfigMinMax(CONFIG_UINT32_AZEROTH_GMLEVEL_FLY, "Azeroth.GMLevel.Fly", SEC_MODERATOR, SEC_PLAYER, SEC_ADMINISTRATOR);
+
     m_VisibleUnitGreyDistance = sConfig.GetFloatDefault("Visibility.Distance.Grey.Unit", 1);
     if (m_VisibleUnitGreyDistance >  MAX_VISIBILITY_DISTANCE)
     {
@@ -2135,4 +2138,77 @@ void World::InvalidatePlayerDataToAllClient(ObjectGuid guid)
     WorldPacket data(SMSG_INVALIDATE_PLAYER, 8);
     data << guid;
     SendGlobalMessage(&data);
+}
+
+void World::CustomizeDBCData(void)
+{
+	// Spell.DBC                                       0        1                 2              3                  4                  5
+	QueryResult* result = WorldDatabase.PQuery("SELECT SpellID, CastingTimeIndex, DurationIndex, EffectBasePoints0, EffectBasePoints1, EffectBasePoints2, Attributes, AttributesEx, AttributesEx2, AttributesEx3, AttributesEx4, AttributesEx5, AttributesEx6, Dispel FROM dbc_spell");
+	if (result)
+	{
+		do
+		{
+			Field* fields = result->Fetch();
+
+			uint32 spellid = fields[0].GetUInt32();
+			SpellEntry *spellEntry = sSpellStore.LookupEntryOnEdit(spellid);
+
+			// Uprava dat z dbc
+			if (!fields[1].IsNULL())
+				spellEntry->CastingTimeIndex = fields[1].GetUInt32();
+			if (!fields[2].IsNULL())
+				spellEntry->DurationIndex = fields[2].GetUInt32();
+			if (!fields[3].IsNULL())
+				spellEntry->EffectBasePoints[0] = fields[3].GetInt32();
+			if (!fields[4].IsNULL())
+				spellEntry->EffectBasePoints[1] = fields[4].GetInt32();
+			if (!fields[5].IsNULL())
+				spellEntry->EffectBasePoints[2] = fields[5].GetInt32();
+			if (!fields[6].IsNULL())
+				spellEntry->Attributes = fields[6].GetInt32();
+			if (!fields[7].IsNULL())
+				spellEntry->AttributesEx = fields[7].GetInt32();
+			if (!fields[8].IsNULL())
+				spellEntry->AttributesEx2 = fields[8].GetInt32();
+			if (!fields[9].IsNULL())
+				spellEntry->AttributesEx3 = fields[9].GetInt32();
+			if (!fields[10].IsNULL())
+				spellEntry->AttributesEx4 = fields[10].GetInt32();
+			if (!fields[11].IsNULL())
+				spellEntry->AttributesEx5 = fields[11].GetInt32();
+			if (!fields[12].IsNULL())
+				spellEntry->AttributesEx6 = fields[12].GetInt32();
+			if (!fields[13].IsNULL())
+				spellEntry->Dispel = fields[13].GetInt32();
+		} while (result->NextRow());
+
+		delete result;
+	}
+
+	// SummonProperty.DBC                              0   1               2        3     4     5
+	result = WorldDatabase.PQuery("SELECT id, group_property, faction, type, slot, flags FROM dbc_summonproperties");
+	if (result)
+	{
+		do
+		{
+			Field* fields = result->Fetch();
+
+			uint32 summonid = fields[0].GetUInt32();
+			SummonPropertiesEntry *summonProperty = sSummonPropertiesStore.LookupEntryOnEdit(summonid);
+
+			// Uprava dat
+			if (!fields[1].IsNULL())
+				summonProperty->Group = fields[1].GetUInt32();
+			if (!fields[2].IsNULL())
+				summonProperty->FactionId = fields[2].GetUInt32();
+			if (!fields[3].IsNULL())
+				summonProperty->Title = fields[3].GetUInt32(); //summonProperty->Type = fields[3].GetUInt32();
+			if (!fields[4].IsNULL())
+				summonProperty->Slot = fields[4].GetUInt32();
+			if (!fields[5].IsNULL())
+				summonProperty->Flags = fields[5].GetUInt32();
+		} while (result->NextRow());
+
+		delete result;
+	}
 }

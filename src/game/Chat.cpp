@@ -555,6 +555,8 @@ ChatCommand* ChatHandler::getCommandTable()
         { "spell_script_target",         SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellScriptTargetCommand,       "", nullptr },
         { "spell_target_position",       SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellTargetPositionCommand,     "", nullptr },
         { "spell_threats",               SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadSpellThreatsCommand,            "", nullptr },
+		{ "dbc",						 SEC_ADMINISTRATOR, false, &ChatHandler::HandleReloadDBCCommand,					 "", nullptr },
+		{ "creature_templatex",			 SEC_ADMINISTRATOR, false, &ChatHandler::HandleReloadCreatureTemplateCommand,		 "", nullptr },
 
         { nullptr,                       0,                 false, nullptr,                                                  "", nullptr }
     };
@@ -783,7 +785,27 @@ ChatCommand* ChatHandler::getCommandTable()
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", nullptr },
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
 
-        { nullptr,          0,                  false, nullptr,                                        "", nullptr }
+		// Vlastné príkazy
+		{ "flymount",       SEC_PLAYER,         false, &ChatHandler::HandleFlyMountCommand,            "", nullptr },
+		{ "mc",			    SEC_PLAYER,         false, &ChatHandler::HandleMCCommand,				   "", nullptr },
+		{ "stormwindcity",	SEC_PLAYER,         false, &ChatHandler::HandleStormwindCityCommand,	   "", nullptr },
+		{ "home",		    SEC_PLAYER,         false, &ChatHandler::HandleHomeCommand,				   "", nullptr },
+		{ "orgrimmar",		SEC_PLAYER,         false, &ChatHandler::HandleOrgrimmarCommand,		   "", nullptr },
+		{ "additemtoall",	SEC_ADMINISTRATOR,  false, &ChatHandler::HandleAddItemToAllCommand,	       "", nullptr },		
+		{ "playsoundtoall",	SEC_ADMINISTRATOR,  false, &ChatHandler::HandlePlaySoundToAllCommand,	   "", nullptr },
+		{ "setgh",			SEC_ADMINISTRATOR,  false, &ChatHandler::HandleSetGHCommand,		       "", nullptr },
+        { "wsg",            SEC_PLAYER,         false, &ChatHandler::HandleWSGCommand,                 "", nullptr },
+        { "ab",             SEC_PLAYER,         false, &ChatHandler::HandleABCommand,                  "", nullptr },
+        { "av",             SEC_PLAYER,         false, &ChatHandler::HandleAVCommand,                  "", nullptr },
+        { "eos",            SEC_PLAYER,         false, &ChatHandler::HandleEOSCommand,                 "", nullptr },
+        { "freeze",         SEC_GAMEMASTER,     false, &ChatHandler::HandleFreezeCommand,              "", nullptr },
+        { "unfreeze",       SEC_GAMEMASTER,     false, &ChatHandler::HandleUnFreezeCommand,            "", nullptr },
+        { "listfreeze",     SEC_GAMEMASTER,     false, &ChatHandler::HandleListFreezeCommand,          "", nullptr },
+        { "unsick",         SEC_GAMEMASTER,     false, &ChatHandler::HandleUnsicknessCommand,          "", nullptr },
+//        { "gocheater",      SEC_GAMEMASTER,     false, &ChatHandler::HandleGoCheaterCommand,           "", nullptr },
+        { "gh",             SEC_PLAYER,         false, &ChatHandler::HandleGuildHouseCommand,          "", nullptr },
+
+		{ nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
     if (load_command_table)

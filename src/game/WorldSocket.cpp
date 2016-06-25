@@ -292,7 +292,8 @@ bool WorldSocket::HandleAuthSession(WorldPacket &recvPacket)
                              "s, "                       //6
                              "expansion, "               //7
                              "mutetime, "                //8
-                             "locale "                   //9
+                             "locale, "                  //9
+							 "email "                   //10
                              "FROM account "
                              "WHERE username = '%s'",
                              safe_account.c_str());
@@ -363,11 +364,15 @@ bool WorldSocket::HandleAuthSession(WorldPacket &recvPacket)
     delete result;
 
     // Re-check account ban (same check as in realmd)
-    QueryResult* banresult =
-        LoginDatabase.PQuery("SELECT 1 FROM account_banned WHERE id = %u AND active = 1 AND (unbandate > UNIX_TIMESTAMP() OR unbandate = bandate)"
-                             "UNION "
-                             "SELECT 1 FROM ip_banned WHERE (unbandate = bandate OR unbandate > UNIX_TIMESTAMP()) AND ip = '%s'",
-                             id, GetRemoteAddress().c_str());
+	QueryResult* banresult =
+		LoginDatabase.PQuery("SELECT 1 FROM account_banned WHERE id = %u AND active = 1 AND (unbandate > UNIX_TIMESTAMP() OR unbandate = bandate)"
+								"UNION "
+                                "SELECT 1 FROM ip_banned WHERE (unbandate = bandate OR unbandate > UNIX_TIMESTAMP()) AND ip = '%s'"
+                                "UNION "
+                                "SELECT 1 FROM mail_banned WHERE mail = '%s'",
+                                id, GetRemoteAddress().c_str(), fields[10].GetString());
+
+    delete result;
 
     if (banresult) // if account banned
     {

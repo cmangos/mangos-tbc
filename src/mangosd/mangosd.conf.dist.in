@@ -42,7 +42,7 @@ ConfVersion=2015090801
 #	CharacterDatabaseConnections
 #		 Amount of connections to database which will be used for SELECT queries. Maximum 16 connections per database.
 #		 Please, note, for data consistency only one connection for each database is used for transactions and async SELECTs.
-#		 So formula to find out how many connections will be established: X = ¹_connections + 1
+#		 So formula to find out how many connections will be established: X = Ä…_connections + 1
 #		 Default: 1 connection for SELECT statements
 #
 #    MaxPingTime
@@ -1655,3 +1655,11 @@ SOAP.Port = 7878
 CharDelete.Method = 0
 CharDelete.MinLevel = 0
 CharDelete.KeepDays = 30
+
+###################################################################################################################
+#    Azeroth.GMLevel.Fly
+# Minimalny gmlevel, s ktorym je mozne lietat nad azerothom 
+#
+###################################################################################################################
+
+Azeroth.GMLevel.Fly = 0

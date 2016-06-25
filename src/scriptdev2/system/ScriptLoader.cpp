@@ -8,6 +8,13 @@
 extern void AddSC_battleground();
 
 // custom
+extern void AddSC_barber();
+extern void AddSC_MCBuffer();
+extern void AddSC_CasinoGames();
+extern void AddSC_MCGuard();
+extern void AddSC_BGTokenChanger();
+extern void AddSC_Teleporter();
+extern void AddSC_Npc_Beastmaster();
 
 // examples
 extern void AddSC_example_creature();
@@ -340,7 +347,14 @@ void AddScripts()
     // battlegrounds
     AddSC_battleground();
 
-    // custom
+	// custom
+	AddSC_barber();
+	AddSC_MCBuffer();
+	AddSC_CasinoGames();
+	AddSC_MCGuard();
+	AddSC_BGTokenChanger();
+	AddSC_Teleporter();
+	AddSC_Npc_Beastmaster();
 
     // examples
     AddSC_example_creature();

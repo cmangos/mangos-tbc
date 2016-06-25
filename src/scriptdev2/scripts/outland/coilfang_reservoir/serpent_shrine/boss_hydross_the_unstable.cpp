@@ -54,7 +54,7 @@ enum
     POINT_ID_ELEMENTAL_EXIT     = 2,
 
     SWITCH_RADIUS               = 18,
-    MAX_HYDROSS_ADDS            = 4,
+    MAX_HYDROSS_ADDS            = 2,
     MAX_HYDROSS_MARKS           = 6,
 };
 

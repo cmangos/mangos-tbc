@@ -3478,30 +3478,30 @@ uint32 Player::resetTalentsCost() const
 {
     // The first time reset costs 1 gold
     if (m_resetTalentsCost < 1 * GOLD)
-        return 1 * GOLD;
+        return 0 * GOLD;
     // then 5 gold
     else if (m_resetTalentsCost < 5 * GOLD)
-        return 5 * GOLD;
+        return 0 * GOLD;
     // After that it increases in increments of 5 gold
     else if (m_resetTalentsCost < 10 * GOLD)
-        return 10 * GOLD;
+        return 0 * GOLD;
     else
     {
         time_t months = (sWorld.GetGameTime() - m_resetTalentsTime) / MONTH;
         if (months > 0)
         {
             // This cost will be reduced by a rate of 5 gold per month
-            int32 new_cost = int32((m_resetTalentsCost) - 5 * GOLD * months);
+            int32 new_cost = int32((m_resetTalentsCost) - 0 * GOLD * months);
             // to a minimum of 10 gold.
-            return uint32(new_cost < 10 * GOLD ? 10 * GOLD : new_cost);
+            return uint32(new_cost < 0 * GOLD ? 0 * GOLD : new_cost);
         }
         else
         {
             // After that it increases in increments of 5 gold
-            int32 new_cost = m_resetTalentsCost + 5 * GOLD;
+            int32 new_cost = m_resetTalentsCost * 0 * GOLD;
             // until it hits a cap of 50 gold.
             if (new_cost > 50 * GOLD)
-                new_cost = 50 * GOLD;
+                new_cost = 0 * GOLD;
             return new_cost;
         }
     }
@@ -4231,7 +4231,15 @@ void Player::BuildPlayerRepop()
     if (!GetSession()->isLogingOut())
         SetRoot(false);
 
-    // BG - remove insignia related
+	// Ghost Flying Mount
+   #define GhostMount_DisplayID	32345 // Nether Drake 37015
+   #define Flying_Speed			4.10f // 310% Flying Speed. You can edit to 3.80f = 280% flying speed. Or 2.50f = 150%
+   #define Ground_Speed			2.0f  // 100% Ground Speed
+
+	// SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, GhostMount_DisplayID);
+	SetSpeedRate(MOVE_RUN, Ground_Speed, true);  // Ground mount Speed
+	SetCanFly(true);
+	SetSpeedRate(MOVE_FLIGHT, Flying_Speed, true); // Flying mount Speed    // BG - remove insignia related
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
 
     SendCorpseReclaimDelay();
@@ -4261,14 +4269,19 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
 
     SetDeathState(ALIVE);
 
-    if (getRace() == RACE_NIGHTELF)
+//    if (getRace() == RACE_NIGHTELF)
         RemoveAurasDueToSpell(20584);                       // speed bonuses
     RemoveAurasDueToSpell(8326);                            // SPELL_AURA_GHOST
 
     SetWaterWalk(false);
     SetRoot(false);
 
-    m_deathTimer = 0;
+	//dismount upon resurrection
+	SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, 0);
+	//disable flight
+	SetCanFly(false);
+
+	m_deathTimer = 0;
 
     // set health/powers (0- will be set in caller)
     if (restore_percent > 0.0f)
@@ -6715,8 +6728,27 @@ void Player::DuelComplete(DuelCompleteType type)
         duel->opponent->ClearComboPoints();
     else if (duel->opponent->GetComboTargetGuid() == GetPetGuid())
         duel->opponent->ClearComboPoints();
+	if (isDead())
+		ResurrectPlayer(1.0f);
+	else // Restore HP        
+		SetHealthPercent(100.0f);
+	// Restore Mana
+	if (GetPowerType() == POWER_MANA || getClass() == CLASS_DRUID)
+		SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
+	// Remove Cooldowns; TODO: NOT BLIZZLIKE
+	RemoveArenaSpellCooldowns();
 
-    // cleanups
+	if (duel->opponent->isDead())
+		duel->opponent->ResurrectPlayer(1.0f);
+	else // Restore HP, oponent
+		duel->opponent->SetHealthPercent(100.0f);
+	// Restore Mana, oponent
+	if (duel->opponent->GetPowerType() == POWER_MANA || duel->opponent->getClass() == CLASS_DRUID)
+		duel->opponent->SetPower(POWER_MANA, duel->opponent->GetMaxPower(POWER_MANA));
+	// Remove Cooldowns, oponent; TODO: NOT BLIZZLIKE
+	duel->opponent->RemoveArenaSpellCooldowns();
+
+	// cleanups
     SetGuidValue(PLAYER_DUEL_ARBITER, ObjectGuid());
     SetUInt32Value(PLAYER_DUEL_TEAM, 0);
     duel->opponent->SetGuidValue(PLAYER_DUEL_ARBITER, ObjectGuid());
@@ -18402,7 +18434,17 @@ void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaLockS
             {
                 GetSession()->SendAreaTriggerMessage("%s", GetSession()->GetMangosString(LANG_TELEREQ_QUEST_BLACK_MORASS));
                 break;
-            }
+			}
+			else if (mapEntry->MapID == 548)                     // Exception for SSC
+			{
+				GetSession()->SendAreaTriggerMessage("%s", GetSession()->GetMangosString(LANG_TELEREQ_QUEST_SSC));
+				break;
+			}
+			else if (mapEntry->MapID == 564)                     // Exception for Black Temple
+			{
+				GetSession()->SendAreaTriggerMessage("%s", GetSession()->GetMangosString(LANG_TELEREQ_QUEST_BLACK_TEMPLE));
+				break;
+			}
             else if (mapEntry->IsContinent())               // do not report anything for quest areatrigge
             {
                 DEBUG_LOG("SendTransferAbortedByLockStatus: LockAreaStatus %u, do not teleport, no message sent (mapId %u)", lockStatus, mapEntry->MapID);
@@ -18410,6 +18452,12 @@ void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaLockS
             }
         // No break here!
         case AREA_LOCKSTATUS_MISSING_ITEM:
+			if (mapEntry->MapID == 550)                     // Exception for Tempest Keep
+			{
+				GetSession()->SendAreaTriggerMessage("%s", GetSession()->GetMangosString(LANG_TELEREQ_ITEM_THE_EYE));
+				break;
+			}
+			else
             GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_DIFFICULTY, GetDifficulty());
             break;
         case AREA_LOCKSTATUS_MISSING_DIFFICULTY:
@@ -18421,11 +18469,16 @@ void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaLockS
         case AREA_LOCKSTATUS_INSUFFICIENT_EXPANSION:
             GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_INSUF_EXPAN_LVL, miscRequirement);
             break;
-        case AREA_LOCKSTATUS_NOT_ALLOWED:
-        case AREA_LOCKSTATUS_RAID_LOCKED:
-        case AREA_LOCKSTATUS_UNKNOWN_ERROR:
-            // ToDo: SendAreaTriggerMessage or Transfer Abort for these cases!
-            break;
+		case AREA_LOCKSTATUS_NOT_ALLOWED:
+			GetSession()->SendAreaTriggerMessage("Not allowed here!");
+			break;
+		case AREA_LOCKSTATUS_RAID_LOCKED:
+			GetSession()->SendAreaTriggerMessage("You must be in a raid group!");
+			break;
+		case AREA_LOCKSTATUS_UNKNOWN_ERROR:
+			// ToDo: SendAreaTriggerMessage or Transfer Abort for these cases!
+			GetSession()->SendAreaTriggerMessage("Unknown error!");
+			break;
         case AREA_LOCKSTATUS_OK:
             sLog.outError("SendTransferAbortedByLockStatus: LockAreaStatus AREA_LOCKSTATUS_OK received for %s (mapId %u)", GetGuidStr().c_str(), mapEntry->MapID);
             MANGOS_ASSERT(false);
@@ -20388,4 +20441,35 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
         RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_USE);
     }
     SendForcedObjectUpdate();
+}
+
+bool Player::TeleportToGuildHouse()
+{
+	// query na polohu GH
+	QueryResult *result = CharacterDatabase.PQuery("SELECT x, y, z, o, mapid FROM guildhouse_position WHERE guildid = %d", GetGuildId());
+
+	// je nejaky vysledok?
+	if (!result)
+		return false;
+
+	float x, y, z, o;
+	uint16 mapid;
+
+	// ziskanie jedneho riadku (a vlastne aj jedineho)
+	Field *fields = result->Fetch();
+
+	// ziskanie hodnot z db
+	x = fields[0].GetFloat();
+	y = fields[1].GetFloat();
+	z = fields[2].GetFloat();
+	o = fields[3].GetFloat();
+	mapid = fields[4].GetUInt16();
+
+	// teleport
+	TeleportTo(mapid, x, y, z, o);
+
+	// Uvolnenie pamate
+	delete result;
+
+	return true;
 }

@@ -29,7 +29,8 @@ class DBCStorage
         explicit DBCStorage(const char* f) : nCount(0), fieldCount(0), fmt(f), indexTable(nullptr), m_dataTable(nullptr) { }
         ~DBCStorage() { Clear(); }
 
-        T const* LookupEntry(uint32 id) const { return (id >= nCount) ? nullptr : indexTable[id]; }
+		T const* LookupEntry(uint32 id) const { return (id >= nCount) ? nullptr : indexTable[id]; }
+		T * LookupEntryOnEdit(uint32 id) const { return (id >= nCount) ? nullptr : indexTable[id]; }
         uint32  GetNumRows() const { return nCount; }
         char const* GetFormat() const { return fmt; }
         uint32 GetFieldCount() const { return fieldCount; }

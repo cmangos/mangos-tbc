@@ -366,8 +366,8 @@ struct boss_aranAI : public ScriptedAI
         {
             DoCastSpellIfCan(m_creature, SPELL_SUMMON_WATER_ELEM_1, CAST_TRIGGERED);
             DoCastSpellIfCan(m_creature, SPELL_SUMMON_WATER_ELEM_2, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_WATER_ELEM_3, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_WATER_ELEM_4, CAST_TRIGGERED);
+//            DoCastSpellIfCan(m_creature, SPELL_SUMMON_WATER_ELEM_3, CAST_TRIGGERED);
+//            DoCastSpellIfCan(m_creature, SPELL_SUMMON_WATER_ELEM_4, CAST_TRIGGERED);
 
             DoScriptText(SAY_ELEMENTALS, m_creature);
 

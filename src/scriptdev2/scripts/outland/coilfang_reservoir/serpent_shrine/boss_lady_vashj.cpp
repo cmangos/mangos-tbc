@@ -79,30 +79,30 @@ static const float afMiddlePos[3]   = {30.134f, -923.65f, 42.9f};
 
 static const float afSporebatPos[4] = {30.977156f, -925.297761f, 77.176567f, 5.223932f};
 
-static const float afElementPos[8][4] =
+static const float afElementPos[4][4] =
 {
-    {8.3f  , -835.3f , 21.9f, 5.0f},
+//    {8.3f  , -835.3f , 21.9f, 5.0f},
     {53.4f , -835.3f , 21.9f, 4.5f},
     {96.0f , -861.9f , 21.8f, 4.0f},
     {96.0f , -986.4f , 21.4f, 2.5f},
-    {54.4f , -1010.6f, 22.0f, 1.8f},
-    {9.8f  , -1012.0f, 21.7f, 1.4f},
-    { -35.0f, -987.6f , 21.5f, 0.8f},
-    { -58.9f, -901.6f , 21.5f, 6.0f}
+    {54.4f , -1010.6f, 22.0f, 1.8f}
+//    {9.8f  , -1012.0f, 21.7f, 1.4f},
+//    { -35.0f, -987.6f , 21.5f, 0.8f},
+//    { -58.9f, -901.6f , 21.5f, 6.0f}
 };
 
-const float afCoilfangElitePos[3][4] =
+const float afCoilfangElitePos[1][4] =
 {
-    {28.84f    , -923.28f    , 42.9f     , 6.0f     },
-    {31.183281f, -953.502625f, 41.523602f, 1.640957f},
+//    {28.84f    , -923.28f    , 42.9f     , 6.0f     },
+//    {31.183281f, -953.502625f, 41.523602f, 1.640957f},
     {58.895180f, -923.124268f, 41.545307f, 3.152848f}
 };
 
-const float afCoilfangStriderPos[3][4] =
+const float afCoilfangStriderPos[1][4] =
 {
-    {66.427f, -948.778f, 41.262245f, 2.584f},
-    {7.513f , -959.538f, 41.300422f, 1.0346f},
-    { -12.843f, -907.798f, 41.239620f, 6.087f}
+    {66.427f, -948.778f, 41.262245f, 2.584f}
+//    {7.513f , -959.538f, 41.300422f, 1.0346f},
+//    { -12.843f, -907.798f, 41.239620f, 6.087f}
 };
 
 struct boss_lady_vashjAI : public ScriptedAI
@@ -402,7 +402,7 @@ struct boss_lady_vashjAI : public ScriptedAI
 
             if (m_uiEnchantedElementalTimer < uiDiff)
             {
-                uint8 uiPos = urand(0, 7);
+                uint8 uiPos = urand(0, 3);
                 m_creature->SummonCreature(NPC_ENCHANTED_ELEMENTAL, afElementPos[uiPos][0], afElementPos[uiPos][1], afElementPos[uiPos][2], afElementPos[uiPos][3], TEMPSUMMON_DEAD_DESPAWN, 0);
 
                 m_uiEnchantedElementalTimer = urand(5000, 10000);
@@ -414,7 +414,7 @@ struct boss_lady_vashjAI : public ScriptedAI
             {
                 if (m_uiTaintedElementalTimer <= uiDiff)
                 {
-                    uint8 uiPos = urand(0, 7);
+                    uint8 uiPos = urand(0, 3);
 
                     m_creature->SummonCreature(NPC_TAINTED_ELEMENTAL, afElementPos[uiPos][0], afElementPos[uiPos][1], afElementPos[uiPos][2], afElementPos[uiPos][3], TEMPSUMMON_DEAD_DESPAWN, 0);
                     m_uiTaintedElementalTimer = 0;
@@ -425,20 +425,20 @@ struct boss_lady_vashjAI : public ScriptedAI
 
             if (m_uiCoilfangEliteTimer < uiDiff)
             {
-                uint8 uiPos = urand(0, 2);
+                uint8 uiPos = urand(0, 1);
 
                 m_creature->SummonCreature(NPC_COILFANG_ELITE, afCoilfangElitePos[uiPos][0], afCoilfangElitePos[uiPos][1], afCoilfangElitePos[uiPos][2], afCoilfangElitePos[uiPos][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                m_uiCoilfangEliteTimer = urand(45000, 50000);
+                m_uiCoilfangEliteTimer = urand(60000, 60000);
             }
             else
                 m_uiCoilfangEliteTimer -= uiDiff;
 
             if (m_uiCoilfangStriderTimer < uiDiff)
             {
-                uint8 uiPos = urand(0, 2);
+                uint8 uiPos = urand(0, 1);
 
                 m_creature->SummonCreature(NPC_COILFANG_STRIDER, afCoilfangStriderPos[uiPos][0], afCoilfangStriderPos[uiPos][1], afCoilfangStriderPos[uiPos][2], afCoilfangStriderPos[uiPos][3], TEMPSUMMON_DEAD_DESPAWN, 0);
-                m_uiCoilfangStriderTimer = urand(60000, 70000);
+                m_uiCoilfangStriderTimer = urand(70000, 70000);
             }
             else
                 m_uiCoilfangStriderTimer -= uiDiff;

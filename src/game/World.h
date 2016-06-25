@@ -178,6 +178,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_GUID_RESERVE_SIZE_CREATURE,
     CONFIG_UINT32_GUID_RESERVE_SIZE_GAMEOBJECT,
     CONFIG_UINT32_CREATURE_RESPAWN_AGGRO_DELAY,
+	CONFIG_UINT32_AZEROTH_GMLEVEL_FLY,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -580,7 +581,7 @@ class World
         * Access: public
         **/
         void InvalidatePlayerDataToAllClient(ObjectGuid guid);
-
+		void CustomizeDBCData(void);
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters

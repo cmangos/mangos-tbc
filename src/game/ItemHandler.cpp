@@ -913,7 +913,7 @@ void WorldSession::HandleAutoBankItemOpcode(WorldPacket& recvPacket)
     if (!pItem)
         return;
 
-    ItemPosCountVec dest;
+	ItemPosCountVec dest;
     InventoryResult msg = _player->CanBankItem(NULL_BAG, NULL_SLOT, dest, pItem, false);
     if (msg != EQUIP_ERR_OK)
     {

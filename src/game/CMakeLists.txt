@@ -77,6 +77,7 @@ set(SRC_GRP_CHAT_COMMANDS
     Level1.cpp
     Level2.cpp
     Level3.cpp
+	LevelVIP.cpp
 )
 
 set(SRC_GRP_MOTION_GEN

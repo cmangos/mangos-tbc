@@ -1076,7 +1076,7 @@ class SpellMgr
                 return nullptr;
         }
 
-        SpellCastResult GetSpellAllowedInLocationError(SpellEntry const* spellInfo, uint32 map_id, uint32 zone_id, uint32 area_id, Player const* player = nullptr);
+        SpellCastResult GetSpellAllowedInLocationError(SpellEntry const* spellInfo, uint32 map_id, uint32 zone_id, uint32 area_id, Player*  player = nullptr);
 
         SpellAreaMapBounds GetSpellAreaMapBounds(uint32 spell_id) const
         {

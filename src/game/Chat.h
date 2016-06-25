@@ -402,6 +402,7 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleReloadCommandCommand(char* args);
         bool HandleReloadConditionsCommand(char* args);
         bool HandleReloadCreaturesStatsCommand(char* args);
+		bool HandleReloadCreatureTemplateCommand(char* args);
         bool HandleReloadCreatureQuestRelationsCommand(char* args);
         bool HandleReloadCreatureQuestInvRelationsCommand(char* args);
         bool HandleReloadDbScriptStringCommand(char* args);
@@ -598,7 +599,29 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleMmapTestArea(char* args);
         bool HandleMmapTestHeight(char* args);
 
-        //! Development Commands
+		// Vlastne prikazy
+		bool HandleFlyMountCommand(char* args);
+		bool HandleMCCommand(char* args);
+		bool HandleOrgrimmarCommand(char* args);
+		bool HandleStormwindCityCommand(char* args);
+		bool HandleHomeCommand(char* args);
+		bool HandleAddItemToAllCommand(char* args);
+		bool HandlePlaySoundToAllCommand(char* args);
+		bool HandleSetGHCommand(char* args);
+		bool HandleReloadDBCCommand(char* args);
+		bool HandleWSGCommand(char *args);
+		bool HandleABCommand(char *args);
+		bool HandleAVCommand(char *args);
+		bool HandleEOSCommand(char *args);
+		bool HandleFreezeCommand(char *args);
+		bool HandleUnFreezeCommand(char *args);
+		bool HandleListFreezeCommand(char* args);
+		bool HandleUnsicknessCommand(char* args);
+//		bool HandleGoCheaterCommand(char* args);
+		bool HandleGuildHouseCommand(char* args);
+		bool HandleBanMailCommand(char* args);
+
+		//! Development Commands
         bool HandleSaveAllCommand(char* args);
 
         Player*   getSelectedPlayer();

@@ -152,7 +152,7 @@ void MapPersistentState::ClearRespawnTimes()
 
     UnloadIfEmpty();
 	}
-	+catch (...)
+	catch (...)
 		{
 		//sWorld.SendGMWorldText(SECURITY_MODERATOR, LANG_ANTICRASH_NOTIFY, "MapPersistentState::ClearRespawnTimes");
 		sLog.outError("### Casso: MapPersistentState::ClearRespawnTimes: Pokus o zamedzenie crashu aktivovany ###");

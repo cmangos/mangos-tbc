@@ -397,6 +397,9 @@ bool ChatHandler::HandleBanMailCommand(char* args)
 
 	std::string mail = args;
 
+	if(mail.length() == 0)
+           return false;
+
 	LoginDatabase.escape_string(mail);
 
 	LoginDatabase.PExecute("INSERT INTO `mail_banned` (`mail`) VALUES ('%s')", mail.c_str());

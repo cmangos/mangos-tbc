@@ -913,11 +913,6 @@ void WorldSession::HandleAutoBankItemOpcode(WorldPacket& recvPacket)
     if (!pItem)
         return;
 
-	// WPE dupe protection
-	if (pItem->IsBag())
-	if (!((Bag *)pItem)->IsEmpty())
-		sWorld.BanAccount(BAN_CHARACTER, GetPlayerName(), 0, "WPE Duplication Item", "Casso's WPE Protection");
-
 	ItemPosCountVec dest;
     InventoryResult msg = _player->CanBankItem(NULL_BAG, NULL_SLOT, dest, pItem, false);
     if (msg != EQUIP_ERR_OK)

@@ -373,8 +373,8 @@ bool AuthSocket::_HandleLogonChallenge()
         ///- Get the account details from the account table
         // No SQL injection (escaped user name)
 
-        result = LoginDatabase.PQuery("SELECT sha_pass_hash,id,locked,last_ip,gmlevel,v,s,email FROM account WHERE username = '%s'", _safelogin.c_str());
-        if (result)
+        result = LoginDatabase.PQuery("SELECT sha_pass_hash,id,locked,last_ip,gmlevel,v,s,email FROM account WHERE username = '%s'",_safelogin.c_str ());
+		if (result)
         {
             ///- If the IP is 'locked', check that the player comes indeed from the correct IP address
             bool locked = false;
@@ -401,7 +401,7 @@ bool AuthSocket::_HandleLogonChallenge()
             if (!locked)
             {
 				///- Test na mail ban
-                QueryResult *mailbanresult = LoginDatabase.PQuery("SELECT 1 FROM mail_banned WHERE mail = '%s'", (*result)[7].GetString());
+                 QueryResult *mailbanresult = LoginDatabase.PQuery("SELECT 1 FROM mail_banned WHERE mail = '%s'", (*result)[7].GetString());
 
                 ///- If the account is banned, reject the logon attempt
                 QueryResult* banresult = LoginDatabase.PQuery("SELECT bandate,unbandate FROM account_banned WHERE "

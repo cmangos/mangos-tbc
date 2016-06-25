@@ -33,6 +33,7 @@
 #include "Language.h"
 #include "ScriptMgr.h"
 #include "World.h"
+#include "Language.h"
 
 void WorldSession::HandleBattlemasterHelloOpcode(WorldPacket& recv_data)
 {
@@ -117,20 +118,11 @@ void WorldSession::JoinIntoBattleground( uint32 bgTypeId_, uint32 instanceId, ui
 
     BattleGroundTypeId bgTypeId = BattleGroundTypeId(bgTypeId_);
 
-    DEBUG_LOG("WORLD: Received opcode CMSG_BATTLEMASTER_JOIN from %s", guid.GetString().c_str());
-
     // can do this, since it's battleground, not arena
     BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BGQueueTypeId(bgTypeId, ARENA_TYPE_NONE);
 
     // ignore if player is already in BG
     if (_player->InBattleGround())
-        return;
-
-    Creature* unit = GetPlayer()->GetMap()->GetCreature(guid);
-    if (!unit)
-        return;
-
-    if (!unit->isBattleMaster())                            // it's not battlemaster
         return;
 
     // get bg instance or bg template if instance not found

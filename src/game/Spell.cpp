@@ -1659,13 +1659,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         }
         case TARGET_CHAIN_DAMAGE:
         {
-            if (EffectChainTarget <= 1)
+            if (Unit* magnetTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
             {
-                if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
-                {
-                    m_targets.setUnitTarget(pUnitTarget);
-                    targetUnitMap.push_back(pUnitTarget);
-                }
+                m_targets.setUnitTarget(magnetTarget);
+                targetUnitMap.push_back(magnetTarget);
             }
             else
             {

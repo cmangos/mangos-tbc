@@ -2118,9 +2118,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                         targetUnitMap.push_back(pUnitTarget);
                     }
                     else
-                    {
                         targetUnitMap.push_back(target);
-                    }
                 }
             }
             break;
@@ -2152,9 +2150,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 targetUnitMap.push_back(pUnitTarget);
             }
             else
-            {
                 targetUnitMap.push_back(m_targets.getUnitTarget());
-            }
             break;
         }
         case TARGET_AREAEFFECT_PARTY:

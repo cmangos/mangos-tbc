@@ -2144,13 +2144,18 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_SINGLE_ENEMY:
         {
-            if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(m_targets.getUnitTarget(), this, effIndex))
+            Unit* pTarget = m_targets.getUnitTarget();
+
+            if (!pTarget)
+                break;
+
+            if (Unit* magnet = m_caster->SelectMagnetTarget(pTarget, this, effIndex))
             {
-                m_targets.setUnitTarget(pUnitTarget);
-                targetUnitMap.push_back(pUnitTarget);
+                m_targets.setUnitTarget(magnet);
+                targetUnitMap.push_back(magnet);
             }
             else
-                targetUnitMap.push_back(m_targets.getUnitTarget());
+                targetUnitMap.push_back(pTarget);
             break;
         }
         case TARGET_AREAEFFECT_PARTY:

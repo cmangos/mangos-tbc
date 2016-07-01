@@ -4162,7 +4162,18 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
 
         spawnCreature->InitStatsForLevel(level);
 
-        spawnCreature->GetCharmInfo()->SetPetNumber(pet_number, false);
+        if (CharmInfo* charmInfo = spawnCreature->GetCharmInfo())
+        {
+            charmInfo->SetPetNumber(pet_number, false);
+
+            if (spawnCreature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE))
+                charmInfo->SetReactState(REACT_PASSIVE);
+            else if (cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_MELEE)
+                charmInfo->SetReactState(REACT_DEFENSIVE);
+            else
+                charmInfo->SetReactState(REACT_AGGRESSIVE);
+        }
+
         m_caster->AddGuardian(spawnCreature);
 
         map->Add((Creature*)spawnCreature);

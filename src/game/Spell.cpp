@@ -6361,6 +6361,9 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff)
 
     switch (m_spellInfo->Id)
     {
+        case 34877:                                         // Custodian of Time summon (quest 10277)
+        case 35381:                                         // Reflection of Ya-six summon (quest 10353)
+            return !target->HasAura(m_spellInfo->Id);
         case 37433:                                         // Spout (The Lurker Below), only players affected if its not in water
             if (target->GetTypeId() != TYPEID_PLAYER || target->IsInWater())
                 return false;

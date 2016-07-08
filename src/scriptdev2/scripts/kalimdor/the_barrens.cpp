@@ -27,6 +27,7 @@ npc_taskmaster_fizzule
 npc_twiggy_flathead
 at_twiggy_flathead
 npc_wizzlecrank_shredder
+quest_counterattack!
 EndContentData */
 
 #include "precompiled.h"
@@ -591,6 +592,111 @@ CreatureAI* GetAI_npc_wizzlecranks_shredder(Creature* pCreature)
     return new npc_wizzlecranks_shredderAI(pCreature);
 }
 
+/*#####
+## Quest Counterattack!
+QuestID 4,021
+#####*/
+enum
+{
+    NPC_KROMZAR = 9456,
+    NPC_KOLKAR_INVADER = 9524,
+    NPC_KOLKAR_STORMSEER = 9523,
+    NPC_HORDE_DEFENDER = 9457,
+    NPC_HORDE_AXE_THROWER = 9458,
+    NPC_REGTHAR_DEATHGATE = 3389,
+    QUEST_COUNTERATTACK = 4021,
+};
+
+struct npc_regthar_deathgateAI : public ScriptedAI {
+    npc_regthar_deathgateAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    uint8 m_uiMobCount;
+    ObjectGuid m_playerGuid;
+
+    void Reset() override
+    {
+        m_playerGuid.Clear();
+    }
+
+    void JustDied(Unit* /*pKiller*/) override
+    {
+        Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid);
+
+        if (pPlayer && pPlayer->GetQuestStatus(QUEST_COUNTERATTACK) == QUEST_STATUS_INCOMPLETE)
+        pPlayer->SendQuestFailed(QUEST_COUNTERATTACK);
+    }
+
+    void JustSummoned(Creature* pSummoned) override
+    {
+        pSummoned->AI()->AttackStart(m_creature);
+    }
+
+    void SummonedCreatureJustDied(Creature* /*pKilled*/) override
+    {
+        ++m_uiMobCount;
+        if (m_uiMobCount == 10)
+            m_creature->SummonCreature(NPC_KROMZAR, -298.0f, -1836.0f, 94.06f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000); ///Summon in the middle of the invisible box
+
+        if (m_uiMobCount % 4 == 0) //for every 4 units kiled, bring back up
+            m_creature->SummonCreature(NPC_HORDE_DEFENDER, -290.512054f, -1872.060547f, 92.658226f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 600000);
+        if (m_uiMobCount)
+            return;
+
+        Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid);
+
+        if (pPlayer && pPlayer->GetQuestStatus(QUEST_COUNTERATTACK) == QUEST_STATUS_INCOMPLETE)
+            pPlayer->GroupEventHappens(QUEST_COUNTERATTACK, m_creature);
+
+        m_playerGuid.Clear();
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+    }
+
+    void StartEvent(Player* pPlayer)
+    {
+        srand(time(NULL));
+        //creates a box where all the centaurs could spawn from
+        float xLO = -347.081238f;
+        float xHI = -260.881226f;
+        float yLO = -1874.357178f;
+        float yHI = -1805.872681f;
+        float zLO = 91.948669f;
+        float zHI = 94.825653f;
+        //------------------------------------------
+       ///Spawn centaurs.
+        for (int i = 0; i < 25; i++) 
+        {
+            int c = i % 2;
+            float ori = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (4)));
+            float xcoord = xLO + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (xHI - xLO))); //prints random number between LO and HI
+            float ycoord = yLO + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (yHI - yLO)));
+            float zcoord = zLO + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (zHI - zLO)));
+            m_creature->SummonCreature(9523 + c, xcoord, ycoord, zcoord, ori, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+        }
+		///Summons helpers, --Could be more effienct maybe.
+        m_creature->SummonCreature(NPC_HORDE_DEFENDER, -294.567017f, -1873.857300f, 92.453888f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+        m_creature->SummonCreature(NPC_HORDE_DEFENDER, -290.512054f, -1872.060547f, 92.658226f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+        m_creature->SummonCreature(NPC_HORDE_AXE_THROWER, -285.412659f, -1869.800903f, 92.756577f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+        m_creature->SummonCreature(NPC_HORDE_DEFENDER, -290.512054f, -1872.060547f, 92.658226f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+        m_creature->SummonCreature(NPC_HORDE_AXE_THROWER, -285.412659f, -1869.800903f, 92.756577f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+        m_creature->SummonCreature(NPC_HORDE_DEFENDER, -276.200745f, -1871.507813f, 92.69209f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+        m_creature->SummonCreature(NPC_HORDE_DEFENDER, -304.857025f, -1872.931641f, 92.455399f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 900000);
+    }
+
+};
+
+CreatureAI* GetAI_npc_regthar_deathgate(Creature* pCreature)
+{
+    return new npc_regthar_deathgateAI(pCreature);
+}
+
+bool QuestAccept_counterattack(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+{
+    if (pQuest->GetQuestId() == QUEST_COUNTERATTACK)
+        if (npc_regthar_deathgateAI* pDeathgateAI = dynamic_cast<npc_regthar_deathgateAI*>(pCreature->AI()))
+            pDeathgateAI->StartEvent(pPlayer);
+    return true;
+}
+
 void AddSC_the_barrens()
 {
     Script* pNewScript;
@@ -620,5 +726,11 @@ void AddSC_the_barrens()
     pNewScript->Name = "npc_wizzlecranks_shredder";
     pNewScript->GetAI = &GetAI_npc_wizzlecranks_shredder;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_wizzlecranks_shredder;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_regthar_deathgate";
+    pNewScript->GetAI = &GetAI_npc_regthar_deathgate;
+    pNewScript->pQuestAcceptNPC = &QuestAccept_counterattack;
     pNewScript->RegisterSelf();
 }

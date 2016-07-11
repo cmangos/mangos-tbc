@@ -226,7 +226,6 @@ UPDATE creature_template SET ScriptName='npc_magwin' WHERE entry=17312;
 /* BADLANDS */
 
 /* BARRENS */
-UPDATE creature_template SET ScriptName='npc_beaten_corpse' WHERE entry=10668;
 UPDATE creature_template SET ScriptName='npc_gilthares' WHERE entry=3465;
 UPDATE creature_template SET ScriptName='npc_taskmaster_fizzule' WHERE entry=7233;
 UPDATE creature_template SET ScriptName='npc_twiggy_flathead' WHERE entry=6248;
@@ -330,6 +329,7 @@ UPDATE creature_template SET ScriptName='npc_daranelle' WHERE entry=21469;
 UPDATE creature_template SET ScriptName='npc_bloodmaul_stout_trigger' WHERE entry=21241;
 UPDATE creature_template SET ScriptName='npc_simon_game_bunny' WHERE entry=22923;
 UPDATE creature_template SET ScriptName='npc_light_orb_collector' WHERE entry IN (21926,22333);
+UPDATE creature_template SET ScriptName='npc_bloodmaul_dire_wolf' WHERE entry=20058;
 
 /* BLASTED LANDS */
 UPDATE creature_template SET ScriptName='npc_fallen_hero_of_horde' WHERE entry=7572;
@@ -558,6 +558,7 @@ UPDATE creature_template SET ScriptName='npc_fel_guard_hound' WHERE entry=21847;
 UPDATE creature_template SET ScriptName='npc_anchorite_barada' WHERE entry=22431;
 UPDATE creature_template SET ScriptName='npc_colonel_jules' WHERE entry=22432;
 UPDATE creature_template SET ScriptName='npc_magister_aledis' WHERE entry=20159;
+UPDATE creature_template SET ScriptName='npc_living_flare' WHERE entry=24916;
 
 /* HILLSBRAD FOOTHILLS */
 
@@ -2112,24 +2113,24 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001085,'You disappoint me, Taelan. I had plans for you... grand plans. Alas, it was only a matter of time before your filthy bloodline would catch up with you.',0,0,0,1,'isillien SAY_ISILLIEN_4'),
 (-1001086,'It is as they say: Like father, like son. You are as weak of will as Tirion... perhaps more so. I can only hope my assassins finally succeeded in ending his pitiful life.',0,0,0,1,'isillien SAY_ISILLIEN_5'),
 (-1001087,'The Grand Crusader has charged me with destroying you and your newfound friends, Taelan, but know this: I do this for pleasure, not of obligation or duty.',0,0,0,1,'isillien SAY_ISILLIEN_6'),
-(-1001088,'%s calls for his guardsman.',0,2,0,0,'isillien EMOTE_ISILLIEN_ATTACK'),
-(-1001089,'The end is now, Fordring.',0,0,0,1,'isillien SAY_ISILLIEN_ATTACK'),
+(-1001088,'%s calls for his guardsman.',0,2,0,22,'isillien EMOTE_ISILLIEN_ATTACK'),
+(-1001089,'The end is now, Fordring.',0,0,0,25,'isillien SAY_ISILLIEN_ATTACK'),
 (-1001090,'Enough!',0,0,0,0,'isillien SAY_KILL_TAELAN_1'),
 (-1001091,'%s laughs.',0,2,0,11,'isillien EMOTE_ISILLIEN_LAUGH'),
 (-1001092,'Did you really believe that you could defeat me? Your friends are soon to join you, Taelan.',0,0,0,0,'isillien SAY_KILL_TAELAN_2'),
-(-1001093,'% turns his attention towards you.',0,2,0,0,'isillien EMOTE_ATTACK_PLAYER'),
+(-1001093,'%s turns his attention towards you.',0,2,0,0,'isillien EMOTE_ATTACK_PLAYER'),
 (-1001094,'What have you done, Isillien? You once fought with honor, for the good of our people... and now... you have murdered my boy...',0,0,0,0,'tirion fordring SAY_TIRION_1'),
 (-1001095,'Tragic. The elder Fordring lives on... You are too late, old man. Retreat back to your cave, hermit, unless you wish to join your son in the Twisting Nether.',0,0,0,0,'isillien SAY_TIRION_2'),
-(-1001096,'May your soul burn in anguish, Isillien! Light give me strength to battle this fiend.',0,0,0,0,'tirion fordring SAY_TIRION_3'),
-(-1001097,'Face me, coward. Face the faith and strength that you once embodied.',0,0,0,0,'tirion fordring SAY_TIRION_4'),
+(-1001096,'May your soul burn in anguish, Isillien! Light give me strength to battle this fiend.',0,0,0,15,'tirion fordring SAY_TIRION_3'),
+(-1001097,'Face me, coward. Face the faith and strength that you once embodied.',0,0,0,25,'tirion fordring SAY_TIRION_4'),
 (-1001098,'Then come, hermit!',0,0,0,0,'isillien SAY_TIRION_5'),
 (-1001099,'A thousand more like him exist. Ten thousand. Should one fall, another will rise to take the seat of power.',0,0,0,0,'tirion fordring SAY_EPILOG_1'),
 (-1001100,'%s falls to one knee.',0,2,0,16,'tirion fordring EMOTE_FALL_KNEE'),
-(-1001101,'Look what they did to my boy.',0,0,0,0,'tirion fordring SAY_EPILOG_2'),
+(-1001101,'Look what they did to my boy.',0,0,0,5,'tirion fordring SAY_EPILOG_2'),
 (-1001102,'%s holds the limp body of Taelan Fordring and softly sobs.',0,2,0,0,'tirion fordring EMOTE_HOLD_TAELAN'),
 (-1001103,'Too long have I sat idle, gripped in this haze... this malaise, lamenting what could have been... what should have been.',0,0,0,0,'tirion fordring SAY_EPILOG_3'),
 (-1001104,'Your death will not have been in vain, Taelan. A new Order is born on this day... an Order which will dedicate itself to extinguising the evil that plagues this world. An evil that cannot hide behind politics and pleasantries.',0,0,0,0,'tirion fordring SAY_EPILOG_4'),
-(-1001105,'This I promise... This I vow...',0,0,0,0,'tirion fordring SAY_EPILOG_5'),
+(-1001105,'This I promise... This I vow...',0,0,0,15,'tirion fordring SAY_EPILOG_5'),
 
 (-1001106,'Don\'t forget to get my bell out of the chest here. And remember, if do happen to wander off, just ring it and I\'ll find you again.',0,0,0,1,'shay leafrunner SAY_ESCORT_START'),
 (-1001107,'Are we taking the scenic route?',0,0,0,0,'shay leafrunner SAY_WANDER_1'),
@@ -2224,7 +2225,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001210,'Take cover and be ready for the fight of your life, $n!',0,0,0,5,'demolitionist_legoso SAY_ESCORT_10'),
 (-1001211,'Holy mother of O\'ros!',0,0,0,5,'demolitionist_legoso SAY_ESCORT_AGGRO'),
 (-1001212,'I... I can\'t believe it\'s over. You did it! You\'ve destroyed the blood elves and their leader!',0,0,0,1,'demolitionist_legoso SAY_ESCORT_COMPLETE_1'),
-(-1001213,'Get back to Blood Watch. I\'ll see you there...',0,0,0,1,'demolitionist_legoso SAY_ESCORT_COMPLETE_2');
+(-1001213,'Get back to Blood Watch. I\'ll see you there...',0,0,0,1,'demolitionist_legoso SAY_ESCORT_COMPLETE_2'),
+
+(-1001214,'%s becomes unstable with brimming energy.',0,2,0,0,'living_flare EMOTE_UNSTABLE'),
+(-1001215,'%s releases its energy, engulfing its surroundings in flames!',0,2,0,0,'living_flare EMOTE_BURST');
 
 -- -1 033 000 SHADOWFANG KEEP
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -2657,7 +2661,14 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1329020,'My death means nothing.... light... will... prevail!',0,6,0,0,'ysida YSIDA_SAY_RUN_FAIL'),
 
 (-1329021,'Rivendare! I come for you!',0,1,0,0,'aurius YELL_AURIUS_AGGRO'),
-(-1329022,'Argh!',0,0,0,0,'aurius SAY_AURIUS_DEATH');
+(-1329022,'Argh!',0,0,0,0,'aurius SAY_AURIUS_DEATH'),
+
+(-1329023,'Move back and hold the line! We cannot fail or all will be lost!',0,1,0,0,'YELL_BASTION_BARRICADE'),
+(-1329024,'Move to the stairs and defend!',0,1,0,0,'YELL_BASTION_STAIRS'),
+(-1329025,'The Scourge have broken into the Bastion! Redouble your efforts! We must not fail!',0,1,0,0,'YELL_BASTION_ENTRANCE'),
+(-1329026,'They have broken into the Hall of Lights! We must stop the intruders!',0,1,0,0,'YELL_BASTION_HALL_LIGHTS'),
+(-1329027,'The Scourge have broken through in all wings! May the light defeat these foul creatures! We shall fight to the last!',0,1,0,0,'YELL_BASTION_INNER_1'),
+(-1329028,'This will not be the end of the Scarlet Crusade! You will not break our line!',0,1,0,0,'YELL_BASTION_INNER_2');
 
 -- -1 349 000 MARAUDON
 

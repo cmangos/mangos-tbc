@@ -49,12 +49,17 @@ enum PetSaveMode
 // There might be a lot more
 enum PetModeFlags
 {
-    PET_MODE_UNKNOWN_0         = 0x0000001,
-    PET_MODE_UNKNOWN_2         = 0x0000100,
+    PET_MODE_STAY              = 0x0000000,
+    PET_MODE_FOLLOW            = 0x0000001,
+    PET_MODE_ATTACK            = 0x0000002,
+    PET_MODE_PASSIVE           = 0x0000000,
+    PET_MODE_DEFENSIVE         = 0x0000100,
+    PET_MODE_AGGRESSIVE        = 0x0000200,
+
     PET_MODE_DISABLE_ACTIONS   = 0x8000000,
 
     // autoset in client at summon
-    PET_MODE_DEFAULT           = PET_MODE_UNKNOWN_0 | PET_MODE_UNKNOWN_2,
+    PET_MODE_DEFAULT           = PET_MODE_FOLLOW | PET_MODE_DEFENSIVE,
 };
 
 enum HappinessState
@@ -142,7 +147,7 @@ extern const uint32 LevelStartLoyalty[6];
 #define ACTIVE_SPELLS_MAX           4
 
 #define PET_FOLLOW_DIST  1.0f
-#define PET_FOLLOW_ANGLE (M_PI_F/2.0f)
+#define PET_FOLLOW_ANGLE (M_PI_F / 4.00f) * 3.50f
 
 class Player;
 
@@ -159,7 +164,6 @@ class MANGOS_DLL_SPEC Pet : public Creature
         void setPetType(PetType type) { m_petType = type; }
         bool isControlled() const { return getPetType() == SUMMON_PET || getPetType() == HUNTER_PET; }
         bool isTemporarySummoned() const { return m_duration > 0; }
-        bool IsPermanentPetFor(Player* owner);              // pet have tab in character windows and set UNIT_FIELD_PETNUMBER
 
         bool Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, uint32 pet_number);
         bool CreateBaseAtCreature(Creature* creature);
@@ -204,7 +208,7 @@ class MANGOS_DLL_SPEC Pet : public Creature
         void GivePetXP(uint32 xp);
         void GivePetLevel(uint32 level);
         void SynchronizeLevelWithOwner();
-        bool InitStatsForLevel(uint32 level, Unit* owner = nullptr);
+        void InitStatsForLevel(uint32 level);
         bool HaveInDiet(ItemPrototype const* item) const;
         uint32 GetCurrentFoodBenefitLevel(uint32 itemlevel);
         void SetDuration(int32 dur) { m_duration = dur; }
@@ -226,7 +230,7 @@ class MANGOS_DLL_SPEC Pet : public Creature
         bool   HasTPForSpell(uint32 spellid);
         int32  GetTPForSpell(uint32 spellid);
 
-        void ApplyModeFlags(PetModeFlags mode, bool apply);
+        void SetModeFlags(PetModeFlags mode);
         PetModeFlags GetModeFlags() const { return m_petModeFlags; }
 
         bool HasSpell(uint32 spell) const override;
@@ -250,9 +254,64 @@ class MANGOS_DLL_SPEC Pet : public Creature
         bool removeSpell(uint32 spell_id, bool learn_prev, bool clear_ab = true);
         void CleanupActionBar();
 
+        bool m_retreating;
+
+        bool GetIsRetreating() { return m_retreating; }
+        void SetIsRetreating(bool retreating = false)
+        {
+            m_retreating = retreating;
+            ((Unit*)this)->InterruptNonMeleeSpells(false);
+        }
+
+        bool m_stayPosSet;
+        float m_stayPosX;
+        float m_stayPosY;
+        float m_stayPosZ;
+        float m_stayPosO;
+
+        bool IsStayPosSet() { return m_stayPosSet; }
+
+        float GetStayPosX() { return m_stayPosX; }
+        float GetStayPosY() { return m_stayPosY; }
+        float GetStayPosZ() { return m_stayPosZ; }
+        float GetStayPosO() { return m_stayPosO; }
+
+        void SetStayPosition()
+        {
+            m_stayPosX = GetPositionX();
+            m_stayPosY = GetPositionY();
+            m_stayPosZ = GetPositionZ();
+            m_stayPosO = GetOrientation();
+            m_stayPosSet = true;
+        }
+
+        void ClearStayPosition()
+        {
+            m_stayPosSet = false;
+            m_stayPosX = 0;
+            m_stayPosY = 0;
+            m_stayPosZ = 0;
+            m_stayPosO = 0;
+        }
+
         PetSpellMap     m_spells;
         TeachSpellMap   m_teachspells;
         AutoSpellList   m_autospells;
+
+        uint32          m_opener;
+        uint32          m_openerMinRange;
+        uint32          m_openerMaxRange;
+
+        uint32 GetSpellOpener()         { return m_opener; }
+        uint32 GetSpellOpenerMinRange() { return m_openerMinRange; }
+        uint32 GetSpellOpenerMaxRange() { return m_openerMaxRange; }
+
+        void SetSpellOpener(uint32 spellId = 0, uint32 minRange = 0, uint32 maxRange = 0)
+        {
+            m_opener = spellId;
+            m_openerMinRange = minRange;
+            m_openerMaxRange = maxRange;
+        }
 
         void InitPetCreateSpells();
         void CheckLearning(uint32 spellid);

@@ -182,14 +182,16 @@ void Creature::RemoveFromWorld()
     Unit::RemoveFromWorld();
 }
 
-void Creature::RemoveCorpse()
+void Creature::RemoveCorpse(bool inPlace)
 {
-    // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
-    if (uint16 poolid = sPoolMgr.IsPartOfAPool<Creature>(GetGUIDLow()))
-        sPoolMgr.UpdatePool<Creature>(*GetMap()->GetPersistentState(), poolid, GetGUIDLow());
-
-    if (!IsInWorld())                                       // can be despawned by update pool
-        return;
+    if (!inPlace)
+    {
+        // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
+        if (uint16 poolid = sPoolMgr.IsPartOfAPool<Creature>(GetGUIDLow()))
+            sPoolMgr.UpdatePool<Creature>(*GetMap()->GetPersistentState(), poolid, GetGUIDLow());
+        if (!IsInWorld())                            // can be despawned by update pool
+            return;
+    }
 
     if ((getDeathState() != CORPSE && !m_isDeadByDefault) || (getDeathState() != ALIVE && m_isDeadByDefault))
         return;
@@ -774,6 +776,9 @@ bool Creature::AIM_Initialize()
     i_motionMaster.Initialize();
     i_AI = FactorySelector::selectAI(this);
     delete oldAI;
+
+    // Handle Spawned Events, also calls Reset()
+    i_AI->JustRespawned();
     return true;
 }
 
@@ -1672,7 +1677,7 @@ void Creature::ForcedDespawn(uint32 timeMSToDespawn)
     if (isAlive())
         SetDeathState(JUST_DIED);
 
-    RemoveCorpse();
+    RemoveCorpse(true);                                     // force corpse removal in the same grid
 
     SetHealth(0);                                           // just for nice GM-mode view
 }
@@ -1995,8 +2000,9 @@ bool Creature::IsOutOfThreatArea(Unit* pVictim) const
 
 CreatureDataAddon const* Creature::GetCreatureAddon() const
 {
-    if (CreatureDataAddon const* addon = ObjectMgr::GetCreatureAddon(GetGUIDLow()))
-        return addon;
+    if (!(GetObjectGuid().GetHigh() == HIGHGUID_PET)) // pets have guidlow that is conflicting with normal guidlows hence GetGUIDLow() gives wrong info
+        if (CreatureDataAddon const* addon = ObjectMgr::GetCreatureAddon(GetGUIDLow()))
+            return addon;
 
     // dependent from difficulty mode entry
     if (GetEntry() != GetCreatureInfo()->Entry)

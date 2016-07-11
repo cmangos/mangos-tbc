@@ -178,7 +178,7 @@ void SpellCastTargets::read(ByteBuffer& data, Unit* caster)
     if (m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_UNK2))
         data >> m_unitTargetGUID.ReadAsPacked();
 
-    if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_UNK))
+    if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_UNK | TARGET_FLAG_GAMEOBJECT_ITEM))
         data >> m_GOTargetGUID.ReadAsPacked();
 
     if ((m_targetMask & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM)) && caster->GetTypeId() == TYPEID_PLAYER)
@@ -2697,6 +2697,9 @@ void Spell::SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura)
     m_spellState = SPELL_STATE_STARTING;
     m_targets = *targets;
 
+    if (m_CastItem)
+        m_CastItemGuid = m_CastItem->GetObjectGuid();
+
     m_castPositionX = m_caster->GetPositionX();
     m_castPositionY = m_caster->GetPositionY();
     m_castPositionZ = m_caster->GetPositionZ();
@@ -3147,6 +3150,12 @@ void Spell::update(uint32 difftime)
     UpdatePointers();
 
     if (m_targets.getUnitTargetGuid() && !m_targets.getUnitTarget())
+    {
+        cancel();
+        return;
+    }
+
+    if (m_CastItemGuid && !m_CastItem)
     {
         cancel();
         return;
@@ -3731,7 +3740,7 @@ void Spell::SendChannelUpdate(uint32 time)
     {
         // Reset farsight for some possessing auras of possessed summoned (as they might work with different aura types)
         if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_FARSIGHT) && m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->GetCharmGuid()
-                && !IsSpellHaveAura(m_spellInfo, SPELL_AURA_MOD_POSSESS) && !IsSpellHaveAura(m_spellInfo, SPELL_AURA_MOD_POSSESS_PET))
+            && !IsSpellHaveAura(m_spellInfo, SPELL_AURA_MOD_POSSESS) && !IsSpellHaveAura(m_spellInfo, SPELL_AURA_MOD_POSSESS_PET))
         {
             Player* player = (Player*)m_caster;
             // These Auras are applied to self, so get the possessed first
@@ -3756,8 +3765,10 @@ void Spell::SendChannelUpdate(uint32 time)
                     ((Creature*)possessed)->ForcedDespawn();
             }
         }
-
-
+ 
+        //pets should be temporarily removed when possesing a target
+        if (m_caster->GetTypeId() == TYPEID_PLAYER)
+            ((Player*)m_caster)->ResummonPetTemporaryUnSummonedIfAny();
 
         m_caster->RemoveAurasByCasterSpell(m_spellInfo->Id, m_caster->GetObjectGuid());
 
@@ -3998,6 +4009,7 @@ void Spell::TakeReagents()
                 }
 
                 m_CastItem = nullptr;
+                m_CastItemGuid.Clear();
             }
         }
 
@@ -5036,21 +5048,40 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_EFFECT_SUMMON_PET:
             {
-                if (m_caster->GetPetGuid())                 // let warlock do a replacement summon
-                {
-                    Pet* pet = ((Player*)m_caster)->GetPet();
+                if (m_caster->GetCharmGuid())
+                    return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
-                    if (m_caster->GetTypeId() == TYPEID_PLAYER && m_caster->getClass() == CLASS_WARLOCK)
+                uint32 plClass = m_caster->getClass();
+                if (plClass == CLASS_HUNTER)
+                {
+                    if (Creature* pet = m_caster->GetPet())
                     {
-                        if (strict)                         // Summoning Disorientation, trigger pet stun (cast by pet so it doesn't attack player)
-                            pet->CastSpell(pet, 32752, true, nullptr, nullptr, pet->GetObjectGuid());
+                        if (!pet->isAlive() || pet->isDead()) // this one will not play along; tried and retried countless times....
+                            return SPELL_FAILED_TARGETS_DEAD;
+                        else
+                            return SPELL_FAILED_ALREADY_HAVE_SUMMON;
+                    }
+                    else
+                    {
+                        Pet* dbPet = new Pet;
+                        if (!dbPet->LoadPetFromDB((Player*)m_caster, 0))
+                        {
+                            delete dbPet;
+                            return SPELL_FAILED_NO_PET;
+                        }
+                    }
+                }
+                else if (m_caster->GetPetGuid())
+                {
+                    if (plClass == CLASS_WARLOCK)                  // let warlock do a replacement summon
+                    {
+                        if (strict)     // Summoning Disorientation, trigger pet stun (cast by pet so it doesn't attack player)
+                            if (Pet* pet = ((Player*)m_caster)->GetPet())
+                                pet->CastSpell(pet, 32752, true, nullptr, nullptr, pet->GetObjectGuid());
                     }
                     else
                         return SPELL_FAILED_ALREADY_HAVE_SUMMON;
                 }
-
-                if (m_caster->GetCharmGuid())
-                    return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
                 break;
             }
@@ -5331,6 +5362,7 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
             target = m_targets.getUnitTarget();
 
         bool need = false;
+        bool script = false;
         for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if (m_spellInfo->EffectImplicitTargetA[i] == TARGET_CHAIN_DAMAGE ||
@@ -5345,9 +5377,16 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
                     return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
                 break;
             }
+            else if (m_spellInfo->EffectImplicitTargetA[i] == TARGET_SCRIPT_COORDINATES)
+            {
+                script = true;
+                continue;
+            }
         }
         if (need)
             m_targets.setUnitTarget(target);
+        else if (script == true)
+            return CheckCast(true);
 
         Unit* _target = m_targets.getUnitTarget();
 
@@ -6190,6 +6229,11 @@ void Spell::UpdatePointers()
     UpdateOriginalCasterPointer();
 
     m_targets.Update(m_caster);
+
+    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+        m_CastItem = ((Player *)m_caster)->GetItemByGuid(m_CastItemGuid);
+    else
+        m_CastItem = nullptr;
 }
 
 bool Spell::CheckTargetCreatureType(Unit* target) const
@@ -6690,6 +6734,7 @@ void Spell::ClearCastItem()
         m_targets.setItemTarget(nullptr);
 
     m_CastItem = nullptr;
+    m_CastItemGuid.Clear();
 }
 
 bool Spell::HasGlobalCooldown()

@@ -96,3 +96,5 @@ dep/lib/x64_Debug/*
 win/mangosdVC140.VC.db
 
 win/enc_temp_folder/*
+
+src/game/LuaEngine/

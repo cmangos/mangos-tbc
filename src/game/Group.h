@@ -134,6 +134,8 @@ class MANGOS_DLL_SPEC Group
         void   ChangeLeader(ObjectGuid guid);
         void   Disband(bool hideDestroy = false);
 
+        void   SendObjectUpdateToMembers(Player* player);
+
         // properties accessories
         uint32 GetId() const { return m_Id; }
         ObjectGuid GetObjectGuid() const { return ObjectGuid(HIGHGUID_GROUP, GetId()); }

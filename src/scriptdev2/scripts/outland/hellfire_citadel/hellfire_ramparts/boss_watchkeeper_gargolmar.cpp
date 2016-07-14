@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Watchkeeper_Gargolmar
-SD%Complete: 80
-SDComment: Missing adds to heal him. Surge should be used on pTarget furthest away, not random.
+SD%Complete: 90
+SDComment: Missing adds to heal him. Surge spell implementation needs some improvements (No charge animation)
 SDCategory: Hellfire Citadel, Hellfire Ramparts
 EndScriptData */
 
@@ -117,14 +117,12 @@ struct boss_watchkeeper_gargolmarAI : public ScriptedAI
 
         if (m_uiSurgeTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-            {
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_FARTHEST_AWAY, 0, SPELL_SURGE, SELECT_FLAG_PLAYER))
                 if (DoCastSpellIfCan(pTarget, SPELL_SURGE) == CAST_OK)
                 {
                     DoScriptText(SAY_SURGE, m_creature);
                     m_uiSurgeTimer = urand(12100, 21700);
                 }
-            }
         }
         else
             m_uiSurgeTimer -= uiDiff;

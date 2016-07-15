@@ -3639,14 +3639,37 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
     if (!pet_entry)
         return;
 
+    Pet* spawnCreature = new Pet();
+
+    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+    {
+        // Load pet from db; if any to load
+        if (m_caster->getClass() != CLASS_PRIEST
+            && spawnCreature->LoadPetFromDB((Player*)m_caster, pet_entry))
+        {
+            spawnCreature->SetHealth(spawnCreature->GetMaxHealth());
+            spawnCreature->SetPower(POWER_MANA, spawnCreature->GetMaxPower(POWER_MANA));
+
+            // set timer for unsummon
+            if (m_duration > 0)
+                spawnCreature->SetDuration(m_duration);
+
+            spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
+            return;
+        }
+
+        spawnCreature->setPetType(SUMMON_PET);
+    }
+    else
+        spawnCreature->setPetType(GUARDIAN_PET);
+
     CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(pet_entry);
     if (!cInfo)
     {
         sLog.outErrorDb("Spell::DoSummon: creature entry %u not found for spell %u.", pet_entry, m_spellInfo->Id);
+        delete spawnCreature;
         return;
     }
-
-    Pet* spawnCreature = new Pet();
 
     // Summon in dest location
     CreatureCreatePos pos(m_caster->GetMap(), m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, -m_caster->GetOrientation());
@@ -3682,8 +3705,8 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
         spawnCreature->SetDuration(m_duration);
 
     spawnCreature->SetOwnerGuid(m_caster->GetObjectGuid());
-    spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
-    spawnCreature->SetPowerType(POWER_MANA);
+    spawnCreature->SetUInt32Value(UNIT_FIELD_FLAGS, cInfo->UnitFlags);
+    spawnCreature->SetUInt32Value(UNIT_NPC_FLAGS, cInfo->NpcFlags);
     spawnCreature->setFaction(m_caster->getFaction());
     spawnCreature->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, 0);
     spawnCreature->SetCreatorGuid(m_caster->GetObjectGuid());
@@ -3699,24 +3722,38 @@ void Spell::DoSummon(SpellEffectIndex eff_idx)
 
     m_caster->SetPet(spawnCreature);
 
+    CharmInfo* charmInfo = spawnCreature->GetCharmInfo();
+    charmInfo->SetReactState(REACT_DEFENSIVE);
+
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
-        // this enables popup window (pet dismiss, cancel)
-        spawnCreature->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
+        charmInfo->SetPetNumber(pet_number, true);
 
-        spawnCreature->GetCharmInfo()->SetPetNumber(pet_number, true);
+        spawnCreature->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
 
         if (m_caster->IsPvP())
             spawnCreature->SetPvP(true);
 
         ((Player*)m_caster)->PetSpellInitialize();
+        spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
     }
     else
     {
-        if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
-            ((Creature*)m_originalCaster)->AI()->JustSummoned((Creature*)spawnCreature);
-        else if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
-            ((Creature*)m_caster)->AI()->JustSummoned((Creature*)spawnCreature);
+        charmInfo->SetPetNumber(pet_number, false);
+        // Notify Summoner
+        if (m_originalCaster && (m_originalCaster != m_caster)
+            && (m_originalCaster->GetTypeId() == TYPEID_UNIT) && ((Creature*)m_originalCaster)->AI())
+        {
+            ((Creature*)m_originalCaster)->AI()->JustSummoned(spawnCreature);
+            if (m_originalCaster->isInCombat() && !(spawnCreature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE)))
+                ((Creature*)spawnCreature)->AI()->AttackStart(m_originalCaster->getAttackerForHelper());
+        }
+        else if ((m_caster->GetTypeId() == TYPEID_UNIT) && ((Creature*)m_caster)->AI())
+        {
+            ((Creature*)m_caster)->AI()->JustSummoned(spawnCreature);
+            if (m_caster->isInCombat() && !(spawnCreature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE)))
+                ((Creature*)spawnCreature)->AI()->AttackStart(m_caster->getAttackerForHelper());
+        }
     }
 }
 
@@ -4185,16 +4222,14 @@ void Spell::DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction)
             && (m_originalCaster->GetTypeId() == TYPEID_UNIT) && ((Creature*)m_originalCaster)->AI())
         {
             ((Creature*)m_originalCaster)->AI()->JustSummoned(spawnCreature);
-
             if (m_originalCaster->isInCombat() && !(spawnCreature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE)))
-				((Creature*)spawnCreature)->AI()->AttackStart(m_originalCaster->getAttackerForHelper());
+                ((Creature*)spawnCreature)->AI()->AttackStart(m_originalCaster->getAttackerForHelper());
         }
         else if ((m_caster->GetTypeId() == TYPEID_UNIT) && ((Creature*)m_caster)->AI())
         {
             ((Creature*)m_caster)->AI()->JustSummoned(spawnCreature);
-
             if (m_caster->isInCombat() && !(spawnCreature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE)))
-				((Creature*)spawnCreature)->AI()->AttackStart(m_caster->getAttackerForHelper());
+                ((Creature*)spawnCreature)->AI()->AttackStart(m_caster->getAttackerForHelper());
         }
     }
 }

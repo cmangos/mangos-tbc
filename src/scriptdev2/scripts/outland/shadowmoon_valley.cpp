@@ -405,6 +405,8 @@ struct npc_dragonmaw_peonAI : public ScriptedAI
             else
                 m_uiPoisonTimer -= uiDiff;
         }
+
+        DoMeleeAttackIfReady();
     }
 };
 

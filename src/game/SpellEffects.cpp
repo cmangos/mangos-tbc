@@ -4765,8 +4765,8 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                     // 100% * stack
                     bonusDamagePercentMod += 1.0f * sunder->GetStackAmount();
 
-                    // 25 * stack
-                    unitTarget->AddThreat(m_caster, 25.0f * sunder->GetStackAmount(), false, GetSpellSchoolMask(m_spellInfo), m_spellInfo);
+                    // 14 * stack
+                    unitTarget->AddThreat(m_caster, 14.0f * sunder->GetStackAmount(), false, GetSpellSchoolMask(m_spellInfo), m_spellInfo);
                 }
             }
             break;

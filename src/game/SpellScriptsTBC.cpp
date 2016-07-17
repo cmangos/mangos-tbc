@@ -8,8 +8,7 @@ enum
 
 struct SoulMirror : public Spell
 {
-    SoulMirror(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
-        : Spell(caster, info, triggered, originalCasterGUID, triggeredBy) {}
+    using Spell::Spell;
 
     void EffectDummy(SpellEffectIndex eff_idx) override
     {
@@ -34,11 +33,7 @@ enum
 /*Spell 38915*/
 struct MentalInterference : public Spell
 {
-    MentalInterference(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
-        : Spell(caster, info, triggered, originalCasterGUID, triggeredBy)
-    {
-
-    }
+    using Spell::Spell;
 
     SpellCastResult CheckCast(bool strict) override
     {
@@ -70,11 +65,7 @@ enum
 /*Spell 38920*/
 struct DetonateTeleporter : public Spell
 {
-    DetonateTeleporter(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
-        : Spell(caster, info, triggered, originalCasterGUID, triggeredBy)
-    {
-
-    }
+    using Spell::Spell;
 
     void EffectScriptEffect(SpellEffectIndex eff_idx) override
     {

@@ -349,7 +349,7 @@ void Player::UpdateShieldBlockValue()
     SetUInt32Value(PLAYER_SHIELD_BLOCK, GetShieldBlockValue());
 }
 
-void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, float& min_damage, float& max_damage)
+void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, float& min_damage, float& max_damage, uint8 index)
 {
     UnitMods unitMod;
 
@@ -374,8 +374,8 @@ void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, fl
     float total_value = GetModifierValue(unitMod, TOTAL_VALUE);
     float total_pct   = GetModifierValue(unitMod, TOTAL_PCT);
 
-    float weapon_mindamage = GetWeaponDamageRange(attType, MINDAMAGE);
-    float weapon_maxdamage = GetWeaponDamageRange(attType, MAXDAMAGE);
+    float weapon_mindamage = GetWeaponDamageRange(attType, MINDAMAGE, index);
+    float weapon_maxdamage = GetWeaponDamageRange(attType, MAXDAMAGE, index);
 
     if (IsInFeralForm())                                    // check if player is druid and in cat or bear forms, non main hand attacks not allowed for this mode so not check attack type
     {
@@ -395,6 +395,12 @@ void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, fl
     {
         weapon_mindamage += GetAmmoDPS() * att_speed;
         weapon_maxdamage += GetAmmoDPS() * att_speed;
+    }
+
+    if (index != 0)
+    {
+        base_value = 0.0f;
+        total_value = 0.0f;
     }
 
     min_damage = ((base_value + weapon_mindamage) * base_pct + total_value) * total_pct;

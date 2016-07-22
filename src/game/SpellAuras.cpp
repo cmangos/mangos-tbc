@@ -7440,10 +7440,16 @@ void SpellAuraHolder::Update(uint32 diff)
 
                 if (manaPerSecond)
                 {
-                    if (powertype == POWER_HEALTH)
-                        caster->ModifyHealth(-manaPerSecond);
+                    bool insufficient = (powertype == POWER_HEALTH) ? (caster->GetHealth() < (manaPerSecond + 1)) : (caster->GetPower(powertype) < manaPerSecond);
+                    if (insufficient && IsChanneledSpell(m_spellProto))
+                        caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
                     else
-                        caster->ModifyPower(powertype, -manaPerSecond);
+                    {
+                        if (powertype == POWER_HEALTH)
+                            caster->ModifyHealth(-manaPerSecond);
+                        else
+                            caster->ModifyPower(powertype, -manaPerSecond);
+                    }
                 }
             }
         }

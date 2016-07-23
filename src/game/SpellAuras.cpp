@@ -5853,34 +5853,25 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
         if (target->GetTypeId() != TYPEID_PLAYER || !((Player*)target)->GetSession()->PlayerLoading())
         {
             float DoneActualBenefit = 0.0f;
-            switch (spellProto->SpellFamilyName)
+            if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
             {
-                case SPELLFAMILY_PRIEST:
-                    // Power Word: Shield
-                    if (spellProto->SpellFamilyFlags & uint64(0x0000000000000001))
-                    {
-                        //+30% from +healing bonus
-                        DoneActualBenefit = caster->SpellBaseHealingBonusDone(GetSpellSchoolMask(spellProto)) * 0.3f;
+                switch (spellProto->SpellFamilyName)
+                {
+                    case SPELLFAMILY_PRIEST:
+                        // Power Word: Shield
+                        if (spellProto->SpellFamilyFlags & uint64(0x0000000000000001))
+                        {
+                            DoneActualBenefit = caster->SpellBaseHealingBonusDone(GetSpellSchoolMask(spellProto)) * bonus->direct_damage;
+                            break;
+                        }
                         break;
-                    }
-                    break;
-                case SPELLFAMILY_MAGE:
-                    // Frost Ward, Fire Ward
-                    if (spellProto->IsFitToFamilyMask(uint64(0x0000000100080108)))
-                        //+10% from +spell bonus
-                        DoneActualBenefit = caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto)) * 0.1f;
-                    break;
-                case SPELLFAMILY_WARLOCK:
-                    // Shadow Ward
-                    if (spellProto->SpellFamilyFlags.Empty())
-                        //+10% from +spell bonus
-                        DoneActualBenefit = caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto)) * 0.1f;
-                    break;
-                default:
-                    break;
+                    default:
+                        DoneActualBenefit = caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto)) * bonus->direct_damage;
+                        break;
+                }
             }
 
-            DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellProto());
+            DoneActualBenefit *= caster->CalculateLevelPenalty(spellProto);
 
             m_modifier.m_amount += (int32)DoneActualBenefit;
         }

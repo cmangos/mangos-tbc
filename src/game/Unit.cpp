@@ -6367,7 +6367,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
             {
                 if (((spellProto->SpellFamilyFlags & uint64(0x0000000040000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_1) ||  // Flash of Light
                         ((spellProto->SpellFamilyFlags & uint64(0x0000000080000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_0))    // Holy Light
-                    TakenTotal += (*i)->GetModifier()->m_amount;
+                    TakenTotal += ((*i)->GetModifier()->m_amount * CalculateLevelPenalty(spellProto));  // BoL is penalized since 2.3.0
             }
         }
     }

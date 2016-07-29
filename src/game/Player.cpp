@@ -18312,6 +18312,11 @@ void Player::SendInitialPacketsBeforeAddToMap()
     // tutorial stuff
     GetSession()->SendTutorialsData();
 
+    data.Initialize(SMSG_INSTANCE_DIFFICULTY, 4 + 4);
+    data << uint32(GetMap()->GetDifficulty());
+    data << uint32(0);
+    GetSession()->SendPacket(&data);
+
     SendInitialSpells();
 
     data.Initialize(SMSG_SEND_UNLEARN_SPELLS, 4);

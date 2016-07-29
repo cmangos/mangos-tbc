@@ -7620,6 +7620,9 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid)
     size_t count_pos = data.wpos();
     data << uint16(0);                                      // count of uint64 blocks, placeholder
 
+    // Current arena season
+    FillInitialWorldState(data, count, 0xC77, sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID));
+
     switch (zoneid)
     {
         case 139:                                           // Eastern Plaguelands

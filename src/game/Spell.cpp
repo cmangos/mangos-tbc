@@ -2721,7 +2721,7 @@ void Spell::SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura)
     }
 
     // Fill cost data
-    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
+    m_powerCost = m_IsTriggeredSpell ? 0 : CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
 
     SpellCastResult result = PreCastCheck();
     if (result != SPELL_CAST_OK)

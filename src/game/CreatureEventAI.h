@@ -23,6 +23,10 @@
 #include "Creature.h"
 #include "CreatureAI.h"
 #include "Unit.h"
+#include "ObjectGuid.h"
+#include "WaypointManager.h"
+#include "WaypointMovementGenerator.h"
+#include "MotionMaster.h"
 
 class Player;
 class WorldObject;
@@ -121,6 +125,8 @@ enum EventAI_ActionType
     ACTION_T_SET_STAND_STATE            = 47,               // StandState, unused, unused
     ACTION_T_CHANGE_MOVEMENT            = 48,               // MovementType, WanderDistance, unused
     ACTION_T_DYNAMIC_MOVEMENT           = 49,               // EnableDynamicMovement (1 = on; 0 = off)
+    ACTION_T_SET_CONTROL_ATTACK         = 50,               // Allow Attack Start (0 = true, anything else passive react on aggro.)
+    ACTION_T_SET_CURRENT_WAYPOINT       = 51,               // Creature can set alternative waypoint.
 
     ACTION_T_END,
 };
@@ -423,6 +429,19 @@ struct CreatureEventAI_Action
             uint32 unused1;
             uint32 unused2;
         } dynamicMovement;
+        // ACTION_T_SET_CONTROL_ATTACK                      = 50
+        struct
+        {
+            uint32 state;                                   // Allow Attack Start (0 = true, anything else passive react on aggro.)
+            uint32 unused1;
+            uint32 unused2;
+        } setControlAttack;
+        struct
+        {
+           uint32 uiPointId;                               // Creature can set alternative waypoint.
+           uint32 unused1;
+           uint32 unused2;
+        } setCurrentWaypoint;
         // RAW
         struct
         {
@@ -652,6 +671,8 @@ class MANGOS_DLL_SPEC CreatureEventAI : public CreatureAI
         void SummonedCreatureJustDied(Creature* unit) override;
         void SummonedCreatureDespawn(Creature* unit) override;
         void ReceiveAIEvent(AIEventType eventType, Creature* pSender, Unit* pInvoker, uint32 miscValue) override;
+        
+        void SetCurrentWaypoint(uint32 uiPointId);
 
         static int Permissible(const Creature*);
 
@@ -680,6 +701,7 @@ class MANGOS_DLL_SPEC CreatureEventAI : public CreatureAI
         bool   m_MeleeEnabled;                              // If we allow melee auto attack
         bool   m_DynamicMovement;                           // Core will control creatures movement if this is enabled
         bool   m_HasOOCLoSEvent;                            // Cache if a OOC-LoS Event exists
+        bool   m_IsControlAttackEnabled;                    // Check if we allow attack start or not.
         uint32 m_InvinceabilityHpLevel;                     // Minimal health level allowed at damage apply
 
         uint32 m_throwAIEventMask;                          // Automatically throw AIEvents that are encoded into this mask

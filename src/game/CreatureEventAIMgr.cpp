@@ -835,6 +835,8 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                     case ACTION_T_RANGED_MOVEMENT:          // Distance, Angle
                     case ACTION_T_CALL_FOR_HELP:            // Distance
                     case ACTION_T_DYNAMIC_MOVEMENT:         // EnableDynamicMovement (1 = on; 0 = off)
+                    case ACTION_T_SET_CONTROL_ATTACK:       // Allow Attack Start (0 = true, anything else passive react on aggro.)
+                    case ACTION_T_SET_CURRENT_WAYPOINT:     // Creature can set alternative waypoint.
                         break;
 
                     case ACTION_T_RANDOM_SAY:

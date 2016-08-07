@@ -28,6 +28,9 @@
 #include "InstanceData.h"
 #include "Chat.h"
 #include "Language.h"
+#include "WaypointManager.h"
+#include "WaypointMovementGenerator.h"
+#include "MotionMaster.h"
 
 bool CreatureEventAIHolder::UpdateRepeatTimer(Creature* creature, uint32 repeatMin, uint32 repeatMax)
 {
@@ -85,6 +88,7 @@ CreatureEventAI::CreatureEventAI(Creature* c) : CreatureAI(c),
     m_MeleeEnabled(true),
     m_DynamicMovement(false),
     m_HasOOCLoSEvent(false),
+    m_IsControlAttackEnabled(false),
     m_InvinceabilityHpLevel(0),
     m_throwAIEventMask(0),
     m_throwAIEventStep(0),
@@ -1056,6 +1060,17 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             SetCombatMovement(!m_DynamicMovement, true);
             break;
         }
+        case ACTION_T_SET_CONTROL_ATTACK:
+        {
+            m_IsControlAttackEnabled = action.setControlAttack.state != 0;
+            break;
+        }
+        case ACTION_T_SET_CURRENT_WAYPOINT:        
+        {
+            m_creature->GetMotionMaster()->Clear();
+            SetCurrentWaypoint(action.setCurrentWaypoint.uiPointId);
+            break;
+        }
         default:
             sLog.outError("CreatureEventAi::ProcessAction(): action(%u) not implemented", static_cast<uint32>(action.type));
             break;
@@ -1248,6 +1263,9 @@ void CreatureEventAI::AttackStart(Unit* who)
     if (!who)
         return;
 
+    if (m_IsControlAttackEnabled)
+        return;
+    
     if (m_creature->Attack(who, m_MeleeEnabled))
     {
         m_creature->AddThreat(who);
@@ -1583,6 +1601,15 @@ void CreatureEventAI::HealedBy(Unit* healer, uint32& healedAmount)
     }
 }
 
+void CreatureEventAI::SetCurrentWaypoint(uint32 uiPointId)
+{
+    if (!m_creature->GetMotionMaster()->SetNextWaypoint(uiPointId))
+    {
+        sLog.outErrorEventAI("EventAI for %s current waypoint tried to set to id %u, but doesn't exist in this path", m_creature->GetGuidStr().c_str(), uiPointId);
+        return;
+    }
+}
+ 
 bool CreatureEventAI::SpawnedEventConditionsCheck(CreatureEventAI_Event const& event)
 {
     if (event.event_type != EVENT_T_SPAWNED)

@@ -1798,15 +1798,12 @@ bool SpellMgr::canStackSpellRanksInSpellBook(SpellEntry const* spellInfo) const
     return true;
 }
 
-bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) const
+bool SpellMgr::IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const
 {
-    SpellEntry const* spellInfo_1 = sSpellStore.LookupEntry(spellId_1);
-    SpellEntry const* spellInfo_2 = sSpellStore.LookupEntry(spellId_2);
-
     if (!spellInfo_1 || !spellInfo_2)
         return false;
 
-    if (spellId_1 == spellId_2)
+    if (spellInfo_1->Id == spellInfo_2->Id)
         return false;
 
     // Resurrection sickness
@@ -1938,7 +1935,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         return false;
 
                     // Dragonmaw Illusion (multi-family check)
-                    if (spellId_1 == 40216 && spellId_2 == 42016)
+                    if (spellInfo_1->Id == 40216 && spellInfo_2->Id == 42016)
                         return false;
 
                     break;
@@ -1969,7 +1966,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         return false;
 
                     // *Band of Eternal Champion and Seal of Command(multi-family check)
-                    if (spellId_1 == 35081 && spellInfo_2->SpellIconID == 561 && spellInfo_2->SpellVisual == 7992)
+                    if (spellInfo_1->Id == 35081 && spellInfo_2->SpellIconID == 561 && spellInfo_2->SpellVisual == 7992)
                         return false;
 
                     break;
@@ -2218,7 +2215,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             return true;
     }
 
-    if (IsRankSpellDueToSpell(spellInfo_1, spellId_2))
+    if (IsRankSpellDueToSpell(spellInfo_1, spellInfo_2->Id))
         return true;
 
     if (spellInfo_1->SpellFamilyName == 0 || spellInfo_2->SpellFamilyName == 0)

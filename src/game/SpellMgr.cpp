@@ -2090,8 +2090,8 @@ bool SpellMgr::IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntr
                     return false;
 
                 //  Tree of Life (Shapeshift) and 34123 Tree of Life (Passive)
-                if ((spellId_1 == 33891 && spellId_2 == 34123) ||
-                        (spellId_2 == 33891 && spellId_1 == 34123))
+                if ((spellInfo_1->Id == 33891 && spellInfo_2->Id == 34123) ||
+                        (spellInfo_2->Id == 33891 && spellInfo_1->Id == 34123))
                     return false;
 
                 // Wrath of Elune and Nature's Grace
@@ -2115,7 +2115,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntr
                 return false;
 
             // Dragonmaw Illusion (multi-family check)
-            if (spellId_1 == 42016 && spellId_2 == 40216)
+            if (spellInfo_1->Id == 42016 && spellInfo_2->Id == 40216)
                 return false;
 
             break;
@@ -2123,8 +2123,8 @@ bool SpellMgr::IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntr
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_ROGUE)
             {
                 // Master of Subtlety
-                if ((spellId_1 == 31665 && spellId_2 == 31666) ||
-                        (spellId_1 == 31666 && spellId_2 == 31665))
+                if ((spellInfo_1->Id == 31665 && spellInfo_2->Id == 31666) ||
+                        (spellInfo_2->Id == 31666 && spellInfo_1->Id == 31665))
                     return false;
             }
 
@@ -2178,7 +2178,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntr
                 return false;
 
             // *Seal of Command and Band of Eternal Champion (multi-family check)
-            if (spellInfo_1->SpellIconID == 561 && spellInfo_1->SpellVisual == 7992 && spellId_2 == 35081)
+            if (spellInfo_1->SpellIconID == 561 && spellInfo_1->SpellVisual == 7992 && spellInfo_2->Id == 35081)
                 return false;
             break;
         case SPELLFAMILY_SHAMAN:

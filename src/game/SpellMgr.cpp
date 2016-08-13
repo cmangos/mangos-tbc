@@ -759,7 +759,7 @@ bool IsPositiveEffect(SpellEntry const* spellproto, SpellEffectIndex effIndex)
                 case SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT:
                 case SPELL_AURA_MOD_DAMAGE_PERCENT_DONE:
                     if (spellproto->CalculateSimpleValue(effIndex) > 0)
-                        return true;                        // some expected positive spells have SPELL_ATTR_EX_NEGATIVE or unclear target modes
+                        return true;                        // some expected positive spells have SPELL_ATTR_NEGATIVE or unclear target modes
                     break;
                 case SPELL_AURA_ADD_TARGET_TRIGGER:
                     return true;
@@ -821,7 +821,7 @@ bool IsPositiveEffect(SpellEntry const* spellproto, SpellEffectIndex effIndex)
                             spellproto->SpellFamilyName == SPELLFAMILY_GENERIC)
                         return false;
                     // but not this if this first effect (don't found better check)
-                    if (spellproto->HasAttribute(SPELL_ATTR_UNK26) && effIndex == EFFECT_INDEX_0)
+                    if (spellproto->HasAttribute(SPELL_ATTR_NEGATIVE) && effIndex == EFFECT_INDEX_0)
                         return false;
                     break;
                 case SPELL_AURA_TRANSFORM:
@@ -906,7 +906,7 @@ bool IsPositiveEffect(SpellEntry const* spellproto, SpellEffectIndex effIndex)
         return false;
 
     // AttributesEx check
-    if (spellproto->HasAttribute(SPELL_ATTR_EX_NEGATIVE))
+    if (spellproto->HasAttribute(SPELL_ATTR_NEGATIVE))
         return false;
 
     // ok, positive
@@ -938,15 +938,6 @@ bool IsSingleTargetSpell(SpellEntry const* spellInfo)
     if (spellInfo->HasAttribute(SPELL_ATTR_EX5_SINGLE_TARGET_SPELL))
         return true;
 
-    // TODO - need found Judgements rule
-    switch (GetSpellSpecific(spellInfo->Id))
-    {
-        case SPELL_JUDGEMENT:
-            return true;
-        default:
-            break;
-    }
-
     // single target triggered spell.
     // Not real client side single target spell, but it' not triggered until prev. aura expired.
     // This is allow store it in single target spells list for caster for spell proc checking
@@ -964,12 +955,10 @@ bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellI
             spellInfo1->SpellIconID == spellInfo2->SpellIconID)
         return true;
 
-    // TODO - need found Judgements rule
     SpellSpecific spec1 = GetSpellSpecific(spellInfo1->Id);
     // spell with single target specific types
     switch (spec1)
     {
-        case SPELL_JUDGEMENT:
         case SPELL_MAGE_POLYMORPH:
             if (GetSpellSpecific(spellInfo2->Id) == spec1)
                 return true;
@@ -1809,15 +1798,12 @@ bool SpellMgr::canStackSpellRanksInSpellBook(SpellEntry const* spellInfo) const
     return true;
 }
 
-bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) const
+bool SpellMgr::IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const
 {
-    SpellEntry const* spellInfo_1 = sSpellStore.LookupEntry(spellId_1);
-    SpellEntry const* spellInfo_2 = sSpellStore.LookupEntry(spellId_2);
-
     if (!spellInfo_1 || !spellInfo_2)
         return false;
 
-    if (spellId_1 == spellId_2)
+    if (spellInfo_1->Id == spellInfo_2->Id)
         return false;
 
     // Resurrection sickness
@@ -1949,7 +1935,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         return false;
 
                     // Dragonmaw Illusion (multi-family check)
-                    if (spellId_1 == 40216 && spellId_2 == 42016)
+                    if (spellInfo_1->Id == 40216 && spellInfo_2->Id == 42016)
                         return false;
 
                     break;
@@ -1980,7 +1966,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                         return false;
 
                     // *Band of Eternal Champion and Seal of Command(multi-family check)
-                    if (spellId_1 == 35081 && spellInfo_2->SpellIconID == 561 && spellInfo_2->SpellVisual == 7992)
+                    if (spellInfo_1->Id == 35081 && spellInfo_2->SpellIconID == 561 && spellInfo_2->SpellVisual == 7992)
                         return false;
 
                     break;
@@ -2104,8 +2090,8 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                     return false;
 
                 //  Tree of Life (Shapeshift) and 34123 Tree of Life (Passive)
-                if ((spellId_1 == 33891 && spellId_2 == 34123) ||
-                        (spellId_2 == 33891 && spellId_1 == 34123))
+                if ((spellInfo_1->Id == 33891 && spellInfo_2->Id == 34123) ||
+                        (spellInfo_2->Id == 33891 && spellInfo_1->Id == 34123))
                     return false;
 
                 // Wrath of Elune and Nature's Grace
@@ -2129,7 +2115,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 return false;
 
             // Dragonmaw Illusion (multi-family check)
-            if (spellId_1 == 42016 && spellId_2 == 40216)
+            if (spellInfo_1->Id == 42016 && spellInfo_2->Id == 40216)
                 return false;
 
             break;
@@ -2137,8 +2123,8 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             if (spellInfo_2->SpellFamilyName == SPELLFAMILY_ROGUE)
             {
                 // Master of Subtlety
-                if ((spellId_1 == 31665 && spellId_2 == 31666) ||
-                        (spellId_1 == 31666 && spellId_2 == 31665))
+                if ((spellInfo_1->Id == 31665 && spellInfo_2->Id == 31666) ||
+                        (spellInfo_2->Id == 31666 && spellInfo_1->Id == 31665))
                     return false;
             }
 
@@ -2192,7 +2178,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
                 return false;
 
             // *Seal of Command and Band of Eternal Champion (multi-family check)
-            if (spellInfo_1->SpellIconID == 561 && spellInfo_1->SpellVisual == 7992 && spellId_2 == 35081)
+            if (spellInfo_1->SpellIconID == 561 && spellInfo_1->SpellVisual == 7992 && spellInfo_2->Id == 35081)
                 return false;
             break;
         case SPELLFAMILY_SHAMAN:
@@ -2229,7 +2215,7 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
             return true;
     }
 
-    if (IsRankSpellDueToSpell(spellInfo_1, spellId_2))
+    if (IsRankSpellDueToSpell(spellInfo_1, spellInfo_2->Id))
         return true;
 
     if (spellInfo_1->SpellFamilyName == 0 || spellInfo_2->SpellFamilyName == 0)
@@ -2255,6 +2241,17 @@ bool SpellMgr::IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) cons
         return false;
 
     return true;
+}
+
+bool SpellMgr::IsSpellCanAffectSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const
+{
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        ClassFamilyMask mask = sSpellMgr.GetSpellAffectMask(spellInfo_1->Id, SpellEffectIndex(i));
+        if (spellInfo_2->IsFitToFamilyMask(mask))
+            return true;
+    }
+    return false;
 }
 
 bool SpellMgr::IsProfessionOrRidingSpell(uint32 spellId)

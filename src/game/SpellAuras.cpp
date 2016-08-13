@@ -477,9 +477,9 @@ Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* curr
     return new Aura(spellproto, eff, currentBasePoints, holder, target, caster, castItem);
 }
 
-SpellAuraHolder* CreateSpellAuraHolder(SpellEntry const* spellproto, Unit* target, WorldObject* caster, Item* castItem)
+SpellAuraHolder* CreateSpellAuraHolder(SpellEntry const* spellproto, Unit* target, WorldObject* caster, Item* castItem /*= nullptr*/, SpellEntry const* triggeredBy /*= nullptr*/)
 {
-    return new SpellAuraHolder(spellproto, target, caster, castItem);
+    return new SpellAuraHolder(spellproto, target, caster, castItem, triggeredBy);
 }
 
 void Aura::SetModifier(AuraType t, int32 a, uint32 pt, int32 miscValue)
@@ -5853,34 +5853,25 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
         if (target->GetTypeId() != TYPEID_PLAYER || !((Player*)target)->GetSession()->PlayerLoading())
         {
             float DoneActualBenefit = 0.0f;
-            switch (spellProto->SpellFamilyName)
+            if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
             {
-                case SPELLFAMILY_PRIEST:
-                    // Power Word: Shield
-                    if (spellProto->SpellFamilyFlags & uint64(0x0000000000000001))
-                    {
-                        //+30% from +healing bonus
-                        DoneActualBenefit = caster->SpellBaseHealingBonusDone(GetSpellSchoolMask(spellProto)) * 0.3f;
+                switch (spellProto->SpellFamilyName)
+                {
+                    case SPELLFAMILY_PRIEST:
+                        // Power Word: Shield
+                        if (spellProto->SpellFamilyFlags & uint64(0x0000000000000001))
+                        {
+                            DoneActualBenefit = caster->SpellBaseHealingBonusDone(GetSpellSchoolMask(spellProto)) * bonus->direct_damage;
+                            break;
+                        }
                         break;
-                    }
-                    break;
-                case SPELLFAMILY_MAGE:
-                    // Frost Ward, Fire Ward
-                    if (spellProto->IsFitToFamilyMask(uint64(0x0000000100080108)))
-                        //+10% from +spell bonus
-                        DoneActualBenefit = caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto)) * 0.1f;
-                    break;
-                case SPELLFAMILY_WARLOCK:
-                    // Shadow Ward
-                    if (spellProto->SpellFamilyFlags.Empty())
-                        //+10% from +spell bonus
-                        DoneActualBenefit = caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto)) * 0.1f;
-                    break;
-                default:
-                    break;
+                    default:
+                        DoneActualBenefit = caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto)) * bonus->direct_damage;
+                        break;
+                }
             }
 
-            DoneActualBenefit *= caster->CalculateLevelPenalty(GetSpellProto());
+            DoneActualBenefit *= caster->CalculateLevelPenalty(spellProto);
 
             m_modifier.m_amount += (int32)DoneActualBenefit;
         }
@@ -6096,86 +6087,93 @@ void Aura::PeriodicTick()
                             spell->cancel();
 
             if (Player* modOwner = pCaster->GetSpellModOwner())
+            {
+                modOwner->ApplySpellMod(GetId(), SPELLMOD_ALL_EFFECTS, new_damage);
                 modOwner->ApplySpellMod(GetId(), SPELLMOD_MULTIPLE_VALUE, multiplier);
+            }
 
             uint32 heal = pCaster->SpellHealingBonusTaken(pCaster, spellProto, int32(new_damage * multiplier), DOT, GetStackAmount());
 
             int32 gain = pCaster->DealHeal(pCaster, heal, spellProto);
+            // Health Leech effects do not generate healing aggro
+            if (m_modifier.m_auraname == SPELL_AURA_PERIODIC_LEECH)
+                break;
             pCaster->getHostileRefManager().threatAssist(pCaster, gain * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
             break;
         }
         case SPELL_AURA_PERIODIC_HEAL:
         case SPELL_AURA_OBS_MOD_HEALTH:
         {
-            // don't heal target if not alive, mostly death persistent effects from items
-            if (!target->isAlive())
-                return;
-
             Unit* pCaster = GetCaster();
             if (!pCaster)
                 return;
 
-            // Don't heal target if it is already at max health
-            if (target->GetHealth() == target->GetMaxHealth())
-                return;
+            bool canApplyHealthPart = true;
+
+            // don't heal target if max health or if not alive, mostly death persistent effects from items
+            if (!target->isAlive() || (target->GetHealth() == target->GetMaxHealth()))
+                canApplyHealthPart = false;
 
             // heal for caster damage (must be alive)
             if (target != pCaster && spellProto->SpellVisual == 163 && !pCaster->isAlive())
-                return;
+                canApplyHealthPart = false;
 
-            // ignore non positive values (can be result apply spellmods to aura damage
-            uint32 amount = m_modifier.m_amount > 0 ? m_modifier.m_amount : 0;
-
-            uint32 pdamage;
-
-            if (m_modifier.m_auraname == SPELL_AURA_OBS_MOD_HEALTH)
-                pdamage = uint32(target->GetMaxHealth() * amount / 100);
-            else
-                pdamage = amount;
-
-            pdamage = target->SpellHealingBonusTaken(pCaster, spellProto, pdamage, DOT, GetStackAmount());
-
-            DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s heal of %s for %u health inflicted by %u",
-                              GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
-
-            int32 gain = target->ModifyHealth(pdamage);
-            SpellPeriodicAuraLogInfo pInfo(this, pdamage, 0, 0, 0.0f);
-            target->SendPeriodicAuraLog(&pInfo);
-
-            // Set trigger flag
-            uint32 procAttacker = PROC_FLAG_ON_DO_PERIODIC;
-            uint32 procVictim   = PROC_FLAG_ON_TAKE_PERIODIC;
-            uint32 procEx = PROC_EX_NORMAL_HIT | PROC_EX_PERIODIC_POSITIVE;
-            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, spellProto);
-
-            // add HoTs to amount healed in bgs
-            if (pCaster->GetTypeId() == TYPEID_PLAYER)
-                if (BattleGround* bg = ((Player*)pCaster)->GetBattleGround())
-                    bg->UpdatePlayerScore(((Player*)pCaster), SCORE_HEALING_DONE, gain);
-
-            target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
-
-            // heal for caster damage
-            if (target != pCaster && spellProto->SpellVisual == 163)
+            if (canApplyHealthPart)
             {
-                uint32 dmg = spellProto->manaPerSecond;
-                if (pCaster->GetHealth() <= dmg && pCaster->GetTypeId() == TYPEID_PLAYER)
-                {
-                    pCaster->RemoveAurasDueToSpell(GetId());
+                // ignore non positive values (can be result apply spellmods to aura damage
+                uint32 amount = m_modifier.m_amount > 0 ? m_modifier.m_amount : 0;
 
-                    // finish current generic/channeling spells, don't affect autorepeat
-                    pCaster->FinishSpell(CURRENT_GENERIC_SPELL);
-                    pCaster->FinishSpell(CURRENT_CHANNELED_SPELL);
-                }
+                uint32 pdamage;
+
+                if (m_modifier.m_auraname == SPELL_AURA_OBS_MOD_HEALTH)
+                    pdamage = uint32(target->GetMaxHealth() * amount / 100);
                 else
-                {
-                    uint32 damage = gain;
-                    uint32 absorb = 0;
-                    pCaster->DealDamageMods(pCaster, damage, &absorb);
-                    pCaster->SendSpellNonMeleeDamageLog(pCaster, GetId(), damage, GetSpellSchoolMask(spellProto), absorb, 0, false, 0, false);
+                    pdamage = amount;
 
-                    CleanDamage cleanDamage =  CleanDamage(0, BASE_ATTACK, MELEE_HIT_NORMAL);
-                    pCaster->DealDamage(pCaster, damage, &cleanDamage, NODAMAGE, GetSpellSchoolMask(spellProto), spellProto, true);
+                pdamage = target->SpellHealingBonusTaken(pCaster, spellProto, pdamage, DOT, GetStackAmount());
+
+                DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s heal of %s for %u health inflicted by %u",
+                    GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
+
+                int32 gain = target->ModifyHealth(pdamage);
+                SpellPeriodicAuraLogInfo pInfo(this, pdamage, 0, 0, 0.0f);
+                target->SendPeriodicAuraLog(&pInfo);
+
+                // Set trigger flag
+                uint32 procAttacker = PROC_FLAG_ON_DO_PERIODIC;
+                uint32 procVictim = PROC_FLAG_ON_TAKE_PERIODIC;
+                uint32 procEx = PROC_EX_NORMAL_HIT | PROC_EX_PERIODIC_POSITIVE;
+                pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, spellProto);
+
+                // add HoTs to amount healed in bgs
+                if (pCaster->GetTypeId() == TYPEID_PLAYER)
+                    if (BattleGround* bg = ((Player*)pCaster)->GetBattleGround())
+                        bg->UpdatePlayerScore(((Player*)pCaster), SCORE_HEALING_DONE, gain);
+
+                target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
+
+                // apply damage part to caster if needed (ex. health funnel)
+                if (target != pCaster && spellProto->SpellVisual == 163)
+                {
+                    uint32 damage = spellProto->manaPerSecond;
+                    uint32 absorb = 0;
+
+                    pCaster->DealDamageMods(pCaster, damage, &absorb);
+                    if (pCaster->GetHealth() > damage)
+                    {
+                        pCaster->SendSpellNonMeleeDamageLog(pCaster, GetId(), damage, GetSpellSchoolMask(spellProto), absorb, 0, false, 0, false);
+                        CleanDamage cleanDamage = CleanDamage(0, BASE_ATTACK, MELEE_HIT_NORMAL);
+                        pCaster->DealDamage(pCaster, damage, &cleanDamage, NODAMAGE, GetSpellSchoolMask(spellProto), spellProto, true);
+                    }
+                    else
+                    {
+                        // cannot apply damage part so we have to cancel responsible aura
+                        pCaster->RemoveAurasDueToSpell(GetId());
+
+                        // finish current generic/channeling spells, don't affect autorepeat
+                        pCaster->FinishSpell(CURRENT_GENERIC_SPELL);
+                        pCaster->FinishSpell(CURRENT_CHANNELED_SPELL);
+                    }
                 }
             }
             break;
@@ -6868,13 +6866,14 @@ bool Aura::HasMechanic(uint32 mechanic) const
            GetSpellProto()->EffectMechanic[m_effIndex] == mechanic;
 }
 
-SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, WorldObject* caster, Item* castItem) :
-    m_spellProto(spellproto),
+SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, WorldObject* caster, Item* castItem, SpellEntry const* triggeredBy) :
+    m_spellProto(spellproto), m_triggeredBy(triggeredBy),
     m_target(target), m_castItemGuid(castItem ? castItem->GetObjectGuid() : ObjectGuid()),
     m_auraSlot(MAX_AURAS), m_auraLevel(1),
     m_procCharges(0), m_stackAmount(1),
     m_timeCla(1000), m_removeMode(AURA_REMOVE_BY_DEFAULT), m_AuraDRGroup(DIMINISHING_NONE),
-    m_permanent(false), m_isRemovedOnShapeLost(true), m_deleted(false), m_in_use(0)
+    m_permanent(false), m_isRemovedOnShapeLost(true), m_deleted(false), m_in_use(0),
+    m_spellAuraHolderState(SPELLAURAHOLDER_STATE_CREATED)
 {
     MANGOS_ASSERT(target);
     MANGOS_ASSERT(spellproto && spellproto == sSpellStore.LookupEntry(spellproto->Id) && "`info` must be pointer to sSpellStore element");
@@ -7431,6 +7430,10 @@ SpellAuraHolder::~SpellAuraHolder()
 
 void SpellAuraHolder::Update(uint32 diff)
 {
+    for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+        if (Aura* aura = m_auras[i])
+            aura->UpdateAura(diff);
+
     if (m_duration > 0)
     {
         m_duration -= diff;
@@ -7443,48 +7446,49 @@ void SpellAuraHolder::Update(uint32 diff)
         {
             if (Unit* caster = GetCaster())
             {
-                Powers powertype = Powers(GetSpellProto()->powerType);
-                int32 manaPerSecond = GetSpellProto()->manaPerSecond + GetSpellProto()->manaPerSecondPerLevel * caster->getLevel();
-                m_timeCla = 1 * IN_MILLISECONDS;
-
-                if (manaPerSecond)
+                // This should not be used for health funnel (already processed in PeriodicTick()).
+                // TODO:: is the fallowing code can be removed?
+                if (GetSpellProto()->SpellVisual != 163)
                 {
-                    if (powertype == POWER_HEALTH)
-                        caster->ModifyHealth(-manaPerSecond);
-                    else
-                        caster->ModifyPower(powertype, -manaPerSecond);
+                    Powers powertype = Powers(GetSpellProto()->powerType);
+                    int32 manaPerSecond = GetSpellProto()->manaPerSecond + GetSpellProto()->manaPerSecondPerLevel * caster->getLevel();
+                    m_timeCla = 1 * IN_MILLISECONDS;
+
+                    if (manaPerSecond)
+                    {
+                        if (powertype == POWER_HEALTH)
+                            caster->ModifyHealth(-manaPerSecond);
+                        else
+                            caster->ModifyPower(powertype, -manaPerSecond);
+                    }
                 }
             }
-        }
-    }
 
-    for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (Aura* aura = m_auras[i])
-            aura->UpdateAura(diff);
-
-    // Channeled aura required check distance from caster
-    if (IsChanneledSpell(m_spellProto) && GetCasterGuid() != m_target->GetObjectGuid())
-    {
-        Unit* caster = GetCaster();
-        if (!caster)
-        {
-            m_target->RemoveAurasByCasterSpell(GetId(), GetCasterGuid());
-            return;
-        }
-
-        // need check distance for channeled target only
-        if (caster->GetChannelObjectGuid() == m_target->GetObjectGuid())
-        {
-            // Get spell range
-            float max_range = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellProto->rangeIndex));
-
-            if (Player* modOwner = caster->GetSpellModOwner())
-                modOwner->ApplySpellMod(GetId(), SPELLMOD_RANGE, max_range, nullptr);
-
-            if (!caster->IsWithinDistInMap(m_target, max_range))
+            // Channeled aura required check distance from caster
+            if (IsChanneledSpell(m_spellProto) && GetCasterGuid() != m_target->GetObjectGuid())
             {
-                caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
-                return;
+                Unit* caster = GetCaster();
+                if (!caster)
+                {
+                    m_target->RemoveAurasByCasterSpell(GetId(), GetCasterGuid());
+                    return;
+                }
+
+                // need check distance for channeled target only
+                if (caster->GetChannelObjectGuid() == m_target->GetObjectGuid())
+                {
+                    // Get spell range
+                    float max_range = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellProto->rangeIndex));
+
+                    if (Player* modOwner = caster->GetSpellModOwner())
+                        modOwner->ApplySpellMod(GetId(), SPELLMOD_RANGE, max_range, nullptr);
+
+                    if (!caster->IsWithinDistInMap(m_target, max_range))
+                    {
+                        caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
+                        return;
+                    }
+                }
             }
         }
     }

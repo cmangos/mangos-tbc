@@ -1009,12 +1009,15 @@ class SpellMgr
         }
 
         bool IsRankSpellDueToSpell(SpellEntry const* spellInfo_1, uint32 spellId_2) const;
-        bool IsNoStackSpellDueToSpell(uint32 spellId_1, uint32 spellId_2) const;
+        bool IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
         bool canStackSpellRanksInSpellBook(SpellEntry const* spellInfo) const;
         bool IsRankedSpellNonStackableInSpellBook(SpellEntry const* spellInfo) const
         {
             return !canStackSpellRanksInSpellBook(spellInfo) && GetSpellRank(spellInfo->Id) != 0;
         }
+
+        // return true if spell1 can affect spell2
+        bool IsSpellCanAffectSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
 
         SpellEntry const* SelectAuraRankForLevel(SpellEntry const* spellInfo, uint32 Level) const;
 

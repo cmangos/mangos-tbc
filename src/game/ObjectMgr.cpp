@@ -6507,7 +6507,7 @@ void ObjectMgr::LoadPointsOfInterest()
     sLog.outString();
 }
 
-static char* SERVER_SIDE_SPELL      = "MaNGOS server-side spell";
+static char SERVER_SIDE_SPELL[] = "CMaNGOS server-side spell";
 
 struct SQLSpellLoader : public SQLStorageLoaderBase<SQLSpellLoader, SQLHashStorage>
 {

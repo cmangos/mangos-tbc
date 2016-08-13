@@ -8,9 +8,12 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-# disable warnings for dependencies
-add_compile_options(-w)
+cmake_minimum_required (VERSION 2.8)
+project(mpq)
 
-add_library (libmpq STATIC common.cpp  explode.cpp  extract.cpp  huffman.cpp  mpq.cpp  parser.cpp  wave.cpp)
-# link libmpq with zlib
-target_link_libraries (libmpq z)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libmpq)
+
+file(GLOB mpqfiles libmpq/*.c libmpq/*.h *.h)
+
+add_library(mpq ${mpqfiles})

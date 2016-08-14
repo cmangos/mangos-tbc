@@ -17,13 +17,11 @@ typedef std::vector<Script*> SDScriptVec;
 int num_sc_scripts;
 SDScriptVec m_scripts;
 
-Config SD2Config;
-
 void FillSpellSummary();
 
 void LoadDatabase()
 {
-    std::string strSD2DBinfo = SD2Config.GetStringDefault("WorldDatabaseInfo");
+    std::string strSD2DBinfo = sConfig.GetStringDefault("WorldDatabaseInfo");
 
     if (strSD2DBinfo.empty())
     {
@@ -89,56 +87,49 @@ void FreeScriptLibrary()
 MANGOS_DLL_EXPORT
 void InitScriptLibrary()
 {
-    // ScriptDev2 startup
-    outstring_log("");
-    outstring_log(" MMM  MMM    MM");
-    outstring_log("M  MM M  M  M  M");
-    outstring_log("MM    M   M   M");
-    outstring_log(" MMM  M   M  M");
-    outstring_log("   MM M   M MMMM");
-    outstring_log("MM  M M  M ");
-    outstring_log(" MMM  MMM  http://www.scriptdev2.com");
-    outstring_log("");
+   // ScriptDev2 startup
+   outstring_log("");
+   outstring_log(" MMM  MMM    MM");
+   outstring_log("M  MM M  M  M  M");
+   outstring_log("MM    M   M   M");
+   outstring_log(" MMM  M   M  M");
+   outstring_log("   MM M   M MMMM");
+   outstring_log("MM  M M  M ");
+   outstring_log(" MMM  MMM  http://cmangos.net/forum-32.html");
+   outstring_log("");
 
-   // Get configuration file
-   bool configFailure = false;
-   if (!SD2Config.SetSource(_MANGOSD_CONFIG))
-       configFailure = true;
-   else
-       outstring_log("SD2: Using configuration file %s", _MANGOSD_CONFIG);
+   outstring_log("SD2: Using configuration file '%s'", sConfig.GetFilename().c_str());
+
+   if (!sConfig.IsSet("SD2ErrorLogFile"))
+      script_error_log("SD2: Unable to find key 'SD2ErrorLogFile' in configuration file. Default value: 'SD2Errors.log' will be used.");
 
    // Set SD2 Error Log File
-   std::string sd2LogFile = SD2Config.GetStringDefault("SD2ErrorLogFile", "SD2Errors.log");
+   std::string sd2LogFile = sConfig.GetStringDefault("SD2ErrorLogFile", "SD2Errors.log");
    setScriptLibraryErrorFile(sd2LogFile.c_str(), "SD2");
-
-   if (configFailure)
-       script_error_log("Unable to open configuration file. Database will be unaccessible. Configuration values will use default.");
 
    outstring_log("");
 
-   // Load database (must be called after SD2Config.SetSource).
-    LoadDatabase();
+   LoadDatabase();
 
-    outstring_log("SD2: Loading C++ scripts");
-    BarGoLink bar(1);
-    bar.step();
-    outstring_log("");
+   outstring_log("SD2: Loading C++ scripts");
+   BarGoLink bar(1);
+   bar.step();
+   outstring_log("");
 
-    // Resize script ids to needed ammount of assigned ScriptNames (from core)
-    m_scripts.resize(GetScriptIdsCount(), nullptr);
+   // Resize script ids to needed ammount of assigned ScriptNames (from core)
+   uint32 amountOfRegisteredScriptsInCore = GetScriptIdsCount();
+   m_scripts.resize(amountOfRegisteredScriptsInCore, nullptr);
 
-    FillSpellSummary();
+   FillSpellSummary();
 
-    AddScripts();
+   AddScripts();
 
-    // Check existance scripts for all registered by core script names
-    for (uint32 i = 1; i < GetScriptIdsCount(); ++i)
-    {
-        if (!m_scripts[i])
-            script_error_log("No script found for ScriptName '%s'.", GetScriptName(i));
-    }
+    // Check if there is an existing script for each registered script in core
+   for (uint32 i = 1; i < amountOfRegisteredScriptsInCore; ++i)
+       if (!m_scripts[i])
+           script_error_log("No script found for ScriptName '%s'.", GetScriptName(i));
 
-    outstring_log(">> Loaded %i C++ Scripts.", num_sc_scripts);
+   outstring_log(">> Loaded %i C++ Scripts.", num_sc_scripts);
 }
 
 //*********************************

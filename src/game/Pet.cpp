@@ -1230,7 +1230,6 @@ void Pet::InitStatsForLevel(uint32 petlevel)
 
             break;
         }
-
         case GUARDIAN_PET:
         {
             SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(cInfo->MinMeleeDmg));
@@ -1279,7 +1278,6 @@ void Pet::InitStatsForLevel(uint32 petlevel)
 
             break;
         }
-
         default:
             sLog.outError("Pet have incorrect type (%u) for level handling.", getPetType());
     }
@@ -1966,7 +1964,6 @@ bool Pet::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* ci
         return false;
 
     SetSheath(SHEATH_STATE_MELEE);
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SUPPORTABLE | UNIT_BYTE2_FLAG_AURAS);
 
     if (getPetType() == MINI_PET)                           // always non-attackable
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);

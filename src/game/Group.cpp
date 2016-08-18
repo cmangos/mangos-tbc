@@ -514,7 +514,7 @@ void Group::SendUpdate()
         data << uint8(m_groupType);                         // group type
         data << uint8(isBGGroup() ? 1 : 0);                 // 2.0.x, isBattleGroundGroup?
         data << uint8(citr->group);                         // groupid
-        data << uint8(citr->assistant ? 0x01 : 0);          // 0x2 main assist, 0x4 main tank
+        data << uint8(GetFlags(*citr));                     // group flags
         data << GetObjectGuid();                            // group guid
         data << uint32(GetMembersCount() - 1);
         for (member_citerator citr2 = m_memberSlots.begin(); citr2 != m_memberSlots.end(); ++citr2)
@@ -530,7 +530,7 @@ void Group::SendUpdate()
             // online-state
             data << uint8(sObjectMgr.GetPlayer(citr2->guid) ? 1 : 0);
             data << uint8(citr2->group);                    // groupid
-            data << uint8(citr2->assistant ? 0x01 : 0);     // 0x2 main assist, 0x4 main tank
+            data << uint8(GetFlags(*citr2));                // group flags
         }
 
         ObjectGuid masterLootGuid = (m_lootMethod == MASTER_LOOT) ? m_masterLooterGuid : ObjectGuid();

@@ -447,6 +447,11 @@ struct GtOCTRegenHPEntry
     float    ratio;
 };
 
+struct GtNPCManaCostScalerEntry
+{
+    float    ratio;
+};
+
 // struct GtOCTRegenMPEntry
 //{
 //    float    ratio;

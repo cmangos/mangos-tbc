@@ -268,7 +268,7 @@ enum SpellAttributes
     SPELL_ATTR_STOP_ATTACK_TARGET              = 0x00100000,// 20 Stop attack after use this spell (and not begin attack if use)
     SPELL_ATTR_IMPOSSIBLE_DODGE_PARRY_BLOCK    = 0x00200000,// 21 Cannot be dodged/parried/blocked
     SPELL_ATTR_SET_TRACKING_TARGET             = 0x00400000,// 22 SetTrackingTarget
-    SPELL_ATTR_UNK23                           = 0x00800000,// 23 castable while dead?
+    SPELL_ATTR_CASTABLE_WHILE_DEAD             = 0x00800000,// 23 castable while dead
     SPELL_ATTR_CASTABLE_WHILE_MOUNTED          = 0x01000000,// 24 castable while mounted
     SPELL_ATTR_DISABLED_WHILE_ACTIVE           = 0x02000000,// 25 Activate and start cooldown after aura fade or remove summoned creature or go
     SPELL_ATTR_NEGATIVE                        = 0x04000000,// 26 Almost all negative spell have it
@@ -323,7 +323,7 @@ enum SpellAttributesEx2
     SPELL_ATTR_EX2_UNK3                        = 0x00000008,// 3 auto targeting? (e.g. fishing skill enhancement items since 3.3.3)
     SPELL_ATTR_EX2_DISPLAY_IN_STANCE_BAR       = 0x00000010,// 4 client displays icon in stance bar when learned, even if not shapeshift
     SPELL_ATTR_EX2_AUTOREPEAT_FLAG             = 0x00000020,// 5
-    SPELL_ATTR_EX2_UNK6                        = 0x00000040,// 6 only usable on tabbed by yourself TODO: Implement from TC
+    SPELL_ATTR_EX2_CANT_TARGET_TAPPED          = 0x00000040,// 6 only usable on tabbed by yourself TODO: Implement from TC
     SPELL_ATTR_EX2_UNK7                        = 0x00000080,// 7
     SPELL_ATTR_EX2_UNK8                        = 0x00000100,// 8 not set in 2.4.2
     SPELL_ATTR_EX2_UNK9                        = 0x00000200,// 9

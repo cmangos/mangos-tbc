@@ -3645,100 +3645,29 @@ void Spell::WriteSpellGoTargets(WorldPacket* data)
 
 void Spell::SendLogExecute()
 {
-    Unit* target = m_targets.getUnitTarget() ? m_targets.getUnitTarget() : m_caster;
-
     WorldPacket data(SMSG_SPELLLOGEXECUTE, (8 + 4 + 4 + 4 + 4 + 8));
 
-    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-        data << m_caster->GetPackGUID();
-    else
-        data << target->GetPackGUID();
-
+    data << m_caster->GetPackGUID();
     data << uint32(m_spellInfo->Id);
-    uint32 count1 = 1;
-    data << uint32(count1);                                 // count1 (effect count?)
-    for (uint32 i = 0; i < count1; ++i)
+
+    uint8 effCount = 0;
+    for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
-        data << uint32(m_spellInfo->Effect[EFFECT_INDEX_0]);// spell effect
-        uint32 count2 = 1;
-        data << uint32(count2);                             // count2 (target count?)
-        for (uint32 j = 0; j < count2; ++j)
-        {
-            switch (m_spellInfo->Effect[EFFECT_INDEX_0])
-            {
-                case SPELL_EFFECT_POWER_DRAIN:
-                    if (Unit* unit = m_targets.getUnitTarget())
-                        data << unit->GetPackGUID();
-                    else
-                        data << uint8(0);
-                    data << uint32(0);
-                    data << uint32(0);
-                    data << float(0);
-                    break;
-                case SPELL_EFFECT_ADD_EXTRA_ATTACKS:
-                    if (Unit* unit = m_targets.getUnitTarget())
-                        data << unit->GetPackGUID();
-                    else
-                        data << uint8(0);
-                    data << uint32(0);                      // count?
-                    break;
-                case SPELL_EFFECT_INTERRUPT_CAST:
-                    if (Unit* unit = m_targets.getUnitTarget())
-                        data << unit->GetPackGUID();
-                    else
-                        data << uint8(0);
-                    data << uint32(0);                      // spellid
-                    break;
-                case SPELL_EFFECT_DURABILITY_DAMAGE:
-                    if (Unit* unit = m_targets.getUnitTarget())
-                        data << unit->GetPackGUID();
-                    else
-                        data << uint8(0);
-                    data << uint32(0);
-                    data << uint32(0);
-                    break;
-                case SPELL_EFFECT_OPEN_LOCK:
-                case SPELL_EFFECT_OPEN_LOCK_ITEM:
-                    if (Item* item = m_targets.getItemTarget())
-                        data << item->GetPackGUID();
-                    else
-                        data << uint8(0);
-                    break;
-                case SPELL_EFFECT_CREATE_ITEM:
-                    data << uint32(m_spellInfo->EffectItemType[EFFECT_INDEX_0]);
-                    break;
-                case SPELL_EFFECT_SUMMON:
-                case SPELL_EFFECT_TRANS_DOOR:
-                case SPELL_EFFECT_SUMMON_PET:
-                case SPELL_EFFECT_SUMMON_OBJECT_WILD:
-                case SPELL_EFFECT_CREATE_HOUSE:
-                case SPELL_EFFECT_DUEL:
-                case SPELL_EFFECT_SUMMON_OBJECT_SLOT1:
-                case SPELL_EFFECT_SUMMON_OBJECT_SLOT2:
-                case SPELL_EFFECT_SUMMON_OBJECT_SLOT3:
-                case SPELL_EFFECT_SUMMON_OBJECT_SLOT4:
-                    if (Unit* unit = m_targets.getUnitTarget())
-                        data << unit->GetPackGUID();
-                    else if (m_targets.getItemTargetGuid())
-                        data << m_targets.getItemTargetGuid().WriteAsPacked();
-                    else if (GameObject* go = m_targets.getGOTarget())
-                        data << go->GetPackGUID();
-                    else
-                        data << uint8(0);                   // guid
-                    break;
-                case SPELL_EFFECT_FEED_PET:
-                    data << uint32(m_targets.getItemTargetEntry());
-                    break;
-                case SPELL_EFFECT_DISMISS_PET:
-                    if (Unit* unit = m_targets.getUnitTarget())
-                        data << unit->GetPackGUID();
-                    else
-                        data << uint8(0);
-                    break;
-                default:
-                    return;
-            }
-        }
+        if (!m_executeLog[i].empty())
+            ++effCount;
+    }
+
+    data << uint32(effCount);
+    for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        if (m_executeLog[i].empty())
+            continue;
+
+        data << uint32(m_spellInfo->Effect[i]);             // spell effect
+        data << uint32(m_executeLog[i].size());             // target count
+
+        for (ByteBuffer executeLog : m_executeLog[i])
+            data.append(executeLog);
     }
 
     m_caster->SendMessageToSet(&data, true);
@@ -6910,3 +6839,53 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
             break;
     }
 }
+
+template <class P1>
+void Spell::LogEffectExecute(uint8 effIndex, P1 param1)
+{
+    ByteBuffer logEffect(sizeof(P1));
+    logEffect << param1;
+
+    m_executeLog[effIndex].push_back(logEffect);
+}
+
+template <class P1, class P2>
+void Spell::LogEffectExecute(uint8 effIndex, P1 param1, P2 param2)
+{
+    ByteBuffer logEffect(sizeof(P1) + sizeof(P2));
+
+    logEffect << param1;
+    logEffect << param2;
+
+    m_executeLog[effIndex].push_back(logEffect);
+}
+
+template <class P1, class P2, class P3>
+void Spell::LogEffectExecute(uint8 effIndex, P1 param1, P2 param2, P3 param3)
+{
+    ByteBuffer logEffect(sizeof(P1) + sizeof(P2) + sizeof(P3));
+    logEffect << param1;
+    logEffect << param2;
+    logEffect << param3;
+
+    m_executeLog[effIndex].push_back(logEffect);
+}
+
+template <class P1, class P2, class P3, class P4>
+void Spell::LogEffectExecute(uint8 effIndex, P1 param1, P2 param2, P3 param3, P4 param4)
+{
+    ByteBuffer logEffect(sizeof(P1) + sizeof(P2) + sizeof(P3) + sizeof(P4));
+
+    logEffect << param1;
+    logEffect << param2;
+    logEffect << param3;
+    logEffect << param4;
+
+    m_executeLog[effIndex].push_back(logEffect);
+}
+
+template void Spell::LogEffectExecute(uint8, uint32);
+template void Spell::LogEffectExecute(uint8, PackedGuid);
+template void Spell::LogEffectExecute(uint8, PackedGuid, uint32);
+template void Spell::LogEffectExecute(uint8, PackedGuid, int32, int32);
+template void Spell::LogEffectExecute(uint8, PackedGuid, uint32, uint32, float);

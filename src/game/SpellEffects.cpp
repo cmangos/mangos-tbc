@@ -2900,18 +2900,18 @@ void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
     if (m_spellInfo->EffectMiscValue[eff_idx] < 0 || m_spellInfo->EffectMiscValue[eff_idx] >= MAX_POWERS)
         return;
 
-    Powers drain_power = Powers(m_spellInfo->EffectMiscValue[eff_idx]);
+    Powers powerType = Powers(m_spellInfo->EffectMiscValue[eff_idx]);
 
     if (!unitTarget)
         return;
     if (!unitTarget->isAlive())
         return;
-    if (unitTarget->GetPowerType() != drain_power)
+    if (unitTarget->GetPowerType() != powerType)
         return;
     if (damage < 0)
         return;
 
-    uint32 curPower = unitTarget->GetPower(drain_power);
+    uint32 curPower = unitTarget->GetPower(powerType);
 
     // add spell damage bonus
     damage = m_caster->SpellDamageBonusDone(unitTarget, m_spellInfo, uint32(damage), SPELL_DIRECT_DAMAGE);
@@ -2919,7 +2919,7 @@ void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
 
     // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
     uint32 power = damage;
-    if (drain_power == POWER_MANA && unitTarget->GetTypeId() == TYPEID_PLAYER)
+    if (powerType == POWER_MANA && unitTarget->GetTypeId() == TYPEID_PLAYER)
         power -= ((Player*)unitTarget)->GetSpellCritDamageReduction(power);
 
     int32 new_damage;
@@ -2928,22 +2928,25 @@ void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
     else
         new_damage = power;
 
-    unitTarget->ModifyPower(drain_power, -new_damage);
+    int32 powerTaken = -(unitTarget->ModifyPower(powerType, -new_damage));
+    float gainMultiplier = 0.0f;
 
     // Don`t restore from self drain
-    if (drain_power == POWER_MANA && m_caster != unitTarget)
+    if (powerType == POWER_MANA && m_caster != unitTarget)
     {
-        float manaMultiplier = m_spellInfo->EffectMultipleValue[eff_idx];
-        if (manaMultiplier == 0)
-            manaMultiplier = 1;
+        gainMultiplier = m_spellInfo->EffectMultipleValue[eff_idx];
+        if (gainMultiplier == 0)
+            gainMultiplier = 1;
 
         if (Player* modOwner = m_caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_MULTIPLE_VALUE, manaMultiplier);
+            modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_MULTIPLE_VALUE, gainMultiplier);
 
-        int32 gain = int32(new_damage * manaMultiplier);
+        int32 gain = int32(new_damage * gainMultiplier);
 
         m_caster->EnergizeBySpell(m_caster, m_spellInfo->Id, gain, POWER_MANA);
     }
+
+    LogEffectExecute(eff_idx, unitTarget->GetPackGUID(), (uint32)powerType, (uint32)powerTaken, gainMultiplier);
 }
 
 void Spell::EffectSendEvent(SpellEffectIndex effectIndex)
@@ -2962,27 +2965,27 @@ void Spell::EffectPowerBurn(SpellEffectIndex eff_idx)
     if (m_spellInfo->EffectMiscValue[eff_idx] < 0 || m_spellInfo->EffectMiscValue[eff_idx] >= MAX_POWERS)
         return;
 
-    Powers powertype = Powers(m_spellInfo->EffectMiscValue[eff_idx]);
+    Powers powerType = Powers(m_spellInfo->EffectMiscValue[eff_idx]);
 
     if (!unitTarget)
         return;
     if (!unitTarget->isAlive())
         return;
-    if (unitTarget->GetPowerType() != powertype)
+    if (unitTarget->GetPowerType() != powerType)
         return;
     if (damage < 0)
         return;
 
-    int32 curPower = int32(unitTarget->GetPower(powertype));
+    int32 curPower = int32(unitTarget->GetPower(powerType));
 
     // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
     int32 power = damage;
-    if (powertype == POWER_MANA && unitTarget->GetTypeId() == TYPEID_PLAYER)
+    if (powerType == POWER_MANA && unitTarget->GetTypeId() == TYPEID_PLAYER)
         power -= ((Player*)unitTarget)->GetSpellCritDamageReduction(power);
 
     int32 new_damage = (curPower < power) ? curPower : power;
 
-    unitTarget->ModifyPower(powertype, -new_damage);
+    int32 powerTaken = -(unitTarget->ModifyPower(powerType, -new_damage));
     float multiplier = m_spellInfo->EffectMultipleValue[eff_idx];
 
     if (Player* modOwner = m_caster->GetSpellModOwner())
@@ -3240,6 +3243,7 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
 void Spell::EffectCreateItem(SpellEffectIndex eff_idx)
 {
     DoCreateItem(eff_idx, m_spellInfo->EffectItemType[eff_idx]);
+    LogEffectExecute(eff_idx, m_spellInfo->EffectItemType[eff_idx]);
 }
 
 void Spell::EffectPersistentAA(SpellEffectIndex eff_idx)
@@ -3539,6 +3543,8 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
             }
         }
     }
+
+    LogEffectExecute(eff_idx, gameObjTarget ? gameObjTarget->GetPackGUID() : itemTarget->GetPackGUID());
 }
 
 void Spell::EffectSummonChangeItem(SpellEffectIndex eff_idx)
@@ -3815,6 +3821,8 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             if (caster && caster->AI())
                 caster->AI()->JustSummoned(itr->creature);
         }
+
+        LogEffectExecute(eff_idx, itr->creature->GetPackGUID());
     }
 }
 
@@ -3924,6 +3932,8 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
         ((Player*)m_caster)->PetSpellInitialize();
         spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
     }
+
+    LogEffectExecute(eff_idx, spawnCreature->GetPackGUID());
     return true;
 }
 
@@ -4714,6 +4724,8 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         else if ((m_caster->GetTypeId() == TYPEID_UNIT) && ((Creature*)m_caster)->AI())
             ((Creature*)m_caster)->AI()->JustSummoned(NewSummon);
     }
+
+    LogEffectExecute(eff_idx, NewSummon->GetPackGUID());
 }
 
 void Spell::EffectLearnPetSpell(SpellEffectIndex eff_idx)
@@ -4981,7 +4993,7 @@ void Spell::EffectHealMaxHealth(SpellEffectIndex /*eff_idx*/)
     m_healing += heal;
 }
 
-void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectInterruptCast(SpellEffectIndex eff_idx)
 {
     if (!unitTarget)
         return;
@@ -5000,6 +5012,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
             {
                 unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), GetSpellDuration(m_spellInfo));
                 unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
+                LogEffectExecute(eff_idx, unitTarget->GetPackGUID(), curSpellInfo->Id);
             }
         }
     }
@@ -5064,7 +5077,10 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
         }
     }
 
-    pGameObj->SummonLinkedTrapIfAny();
+    LogEffectExecute(eff_idx, pGameObj->GetPackGUID());
+
+    if (GameObject* linkedGO = pGameObj->SummonLinkedTrapIfAny())
+        LogEffectExecute(eff_idx, linkedGO->GetPackGUID());
 
     if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
         ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
@@ -6134,6 +6150,8 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
 
     caster->SetGuidValue(PLAYER_DUEL_ARBITER, pGameObj->GetObjectGuid());
     target->SetGuidValue(PLAYER_DUEL_ARBITER, pGameObj->GetObjectGuid());
+
+    LogEffectExecute(eff_idx, pGameObj->GetPackGUID());
 }
 
 void Spell::EffectStuck(SpellEffectIndex /*eff_idx*/)
@@ -6399,6 +6417,8 @@ bool Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     }
 
     pTotem->Summon(m_caster);
+
+    LogEffectExecute(eff_idx, pTotem->GetPackGUID());
     return false;
 }
 
@@ -6526,6 +6546,9 @@ void Spell::EffectFeedPet(SpellEffectIndex eff_idx)
     if (benefit <= 0)
         return;
 
+    // Have to call this before we destroy item
+    LogEffectExecute(eff_idx, foodItem->GetEntry());
+
     uint32 count = 1;
     _player->DestroyItemCount(foodItem, count, true);
     // TODO: fix crash when a spell has two effects, both pointed at the same item target
@@ -6533,7 +6556,7 @@ void Spell::EffectFeedPet(SpellEffectIndex eff_idx)
     m_caster->CastCustomSpell(m_caster, m_spellInfo->EffectTriggerSpell[eff_idx], &benefit, nullptr, nullptr, true);
 }
 
-void Spell::EffectDismissPet(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectDismissPet(SpellEffectIndex eff_idx)
 {
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         return;
@@ -6544,6 +6567,8 @@ void Spell::EffectDismissPet(SpellEffectIndex /*eff_idx*/)
     if (!pet || !pet->isAlive())
         return;
 
+    // Have to call this before pet is gone
+    LogEffectExecute(eff_idx, pet->GetPackGUID());
     pet->Unsummon(PET_SAVE_AS_CURRENT, m_caster);
 }
 
@@ -6598,7 +6623,10 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
 
     m_caster->m_ObjectSlotGuid[slot] = pGameObj->GetObjectGuid();
 
-    pGameObj->SummonLinkedTrapIfAny();
+    LogEffectExecute(eff_idx, pGameObj->GetPackGUID());
+
+    if (GameObject* linkedGO = pGameObj->SummonLinkedTrapIfAny())
+        LogEffectExecute(eff_idx, linkedGO->GetPackGUID());
 
     if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
         ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
@@ -6606,7 +6634,7 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
         ((Creature*)m_originalCaster)->AI()->JustSummoned(pGameObj);
 }
 
-void Spell::EffectResurrect(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectResurrect(SpellEffectIndex eff_idx)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
@@ -6651,7 +6679,7 @@ void Spell::EffectResurrect(SpellEffectIndex /*eff_idx*/)
     SendResurrectRequest(pTarget);
 }
 
-void Spell::EffectAddExtraAttacks(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectAddExtraAttacks(SpellEffectIndex eff_idx)
 {
     if (!unitTarget || !unitTarget->isAlive())
         return;
@@ -6660,6 +6688,7 @@ void Spell::EffectAddExtraAttacks(SpellEffectIndex /*eff_idx*/)
         return;
 
     unitTarget->m_extraAttacks = damage;
+    LogEffectExecute(eff_idx, unitTarget->GetPackGUID(), (uint32)damage);
 }
 
 void Spell::EffectParry(SpellEffectIndex /*eff_idx*/)
@@ -7179,6 +7208,7 @@ void Spell::EffectDurabilityDamage(SpellEffectIndex eff_idx)
     if (slot < 0)
     {
         ((Player*)unitTarget)->DurabilityPointsLossAll(damage, (slot < -1));
+        LogEffectExecute(eff_idx, unitTarget->GetPackGUID(), -1, -1);
         return;
     }
 
@@ -7187,7 +7217,10 @@ void Spell::EffectDurabilityDamage(SpellEffectIndex eff_idx)
         return;
 
     if (Item* item = ((Player*)unitTarget)->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+    {
         ((Player*)unitTarget)->DurabilityPointsLoss(item, damage);
+        LogEffectExecute(eff_idx, unitTarget->GetPackGUID(), (int32)item->GetEntry(), slot);
+    }
 }
 
 void Spell::EffectDurabilityDamagePCT(SpellEffectIndex eff_idx)
@@ -7368,7 +7401,10 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
 
     cMap->Add(pGameObj);
 
-    pGameObj->SummonLinkedTrapIfAny();
+    LogEffectExecute(eff_idx, pGameObj->GetPackGUID());
+
+    if (GameObject* linkedGO = pGameObj->SummonLinkedTrapIfAny())
+        LogEffectExecute(eff_idx, linkedGO->GetPackGUID());
 
     if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
         ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);

@@ -909,18 +909,18 @@ bool GameObject::ActivateToQuest(Player* pTarget) const
     return false;
 }
 
-void GameObject::SummonLinkedTrapIfAny()
+GameObject* GameObject::SummonLinkedTrapIfAny()
 {
     uint32 linkedEntry = GetGOInfo()->GetLinkedGameObjectEntry();
     if (!linkedEntry)
-        return;
+        return nullptr;
 
     GameObject* linkedGO = new GameObject;
     if (!linkedGO->Create(GetMap()->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), linkedEntry, GetMap(),
                           GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), 0.0f, 0.0f, 0.0f, 0.0f, GO_ANIMPROGRESS_DEFAULT, GO_STATE_READY))
     {
         delete linkedGO;
-        return;
+        return nullptr;
     }
 
     linkedGO->SetRespawnTime(GetRespawnDelay());
@@ -933,6 +933,8 @@ void GameObject::SummonLinkedTrapIfAny()
     }
 
     GetMap()->Add(linkedGO);
+
+    return linkedGO;
 }
 
 void GameObject::TriggerLinkedGameObject(Unit* target)

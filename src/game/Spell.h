@@ -34,6 +34,7 @@ class Item;
 class GameObject;
 class Group;
 class Aura;
+class ByteBuffer;
 
 enum SpellCastFlags
 {
@@ -389,6 +390,19 @@ class Spell
         void SendSpellGo();
         void SendSpellCooldown();
         void SendLogExecute();
+        
+        template <class P1>
+        void LogEffectExecute(uint8 effIndex, P1 param1);
+        
+        template <class P1, class P2>
+        void LogEffectExecute(uint8 effIndex, P1 param1, P2 param2);
+        
+        template <class P1, class P2, class P3>
+        void LogEffectExecute(uint8 effIndex, P1 param1, P2 param2, P3 param3);
+        
+        template <class P1, class P2, class P3, class P4>
+        void LogEffectExecute(uint8 effIndex, P1 param1, P2 param2, P3 param3, P4 param4);
+        
         void SendInterrupted(uint8 result);
         void SendChannelUpdate(uint32 time);
         void SendChannelStart(uint32 duration);
@@ -617,6 +631,8 @@ class Spell
         float m_castPositionZ;
         float m_castOrientation;
         bool m_IsTriggeredSpell;
+
+        std::vector<ByteBuffer> m_executeLog[MAX_EFFECT_INDEX];
 
         // if need this can be replaced by Aura copy
         // we can't store original aura link to prevent access to deleted auras

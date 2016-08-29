@@ -7657,17 +7657,23 @@ void SpellAuraHolder::UpdateAuraDuration()
 
     if (m_target->GetTypeId() == TYPEID_PLAYER)
     {
-        WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
-        data << uint8(GetAuraSlot());
-        data << uint32(GetAuraDuration());
-        ((Player*)m_target)->SendDirectMessage(&data);
+        if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
+        {
+            WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
+            data << uint8(GetAuraSlot());
+            data << uint32(GetAuraDuration());
+            ((Player*)m_target)->SendDirectMessage(&data);
+        }
 
-        data.Initialize(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
+        WorldPacket data(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
         data << m_target->GetPackGUID();
         data << uint8(GetAuraSlot());
         data << uint32(GetId());
-        data << uint32(GetAuraMaxDuration());
-        data << uint32(GetAuraDuration());
+        if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
+        {
+            data << uint32(GetAuraMaxDuration());
+            data << uint32(GetAuraDuration());
+        }
         ((Player*)m_target)->SendDirectMessage(&data);
     }
 
@@ -7677,7 +7683,7 @@ void SpellAuraHolder::UpdateAuraDuration()
 
     Unit* caster = GetCaster();
 
-    if (caster && caster->GetTypeId() == TYPEID_PLAYER && caster != m_target)
+    if (caster && caster->GetTypeId() == TYPEID_PLAYER && caster != m_target && !GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
         SendAuraDurationForCaster((Player*)caster);
 }
 

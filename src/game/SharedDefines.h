@@ -323,14 +323,14 @@ enum SpellAttributesEx2
     SPELL_ATTR_EX2_UNK3                        = 0x00000008,// 3 auto targeting? (e.g. fishing skill enhancement items since 3.3.3)
     SPELL_ATTR_EX2_DISPLAY_IN_STANCE_BAR       = 0x00000010,// 4 client displays icon in stance bar when learned, even if not shapeshift
     SPELL_ATTR_EX2_AUTOREPEAT_FLAG             = 0x00000020,// 5
-    SPELL_ATTR_EX2_CANT_TARGET_TAPPED          = 0x00000040,// 6 only usable on tabbed by yourself TODO: Implement from TC
+    SPELL_ATTR_EX2_CANT_TARGET_TAPPED          = 0x00000040,// 6 only usable on tabbed by yourself
     SPELL_ATTR_EX2_UNK7                        = 0x00000080,// 7
     SPELL_ATTR_EX2_UNK8                        = 0x00000100,// 8 not set in 2.4.2
     SPELL_ATTR_EX2_UNK9                        = 0x00000200,// 9
     SPELL_ATTR_EX2_UNK10                       = 0x00000400,// 10
     SPELL_ATTR_EX2_HEALTH_FUNNEL               = 0x00000800,// 11
     SPELL_ATTR_EX2_UNK12                       = 0x00001000,// 12
-    SPELL_ATTR_EX2_UNK13                       = 0x00002000,// 13 TODO: Implement from TC
+    SPELL_ATTR_EX2_UNK13                       = 0x00002000,// 13
     SPELL_ATTR_EX2_UNK14                       = 0x00004000,// 14
     SPELL_ATTR_EX2_UNK15                       = 0x00008000,// 15 not set in 2.4.2
     SPELL_ATTR_EX2_TAME_BEAST                  = 0x00010000,// 16
@@ -347,7 +347,7 @@ enum SpellAttributesEx2
     SPELL_ATTR_EX2_UNK27                       = 0x08000000,// 27
     SPELL_ATTR_EX2_UNK28                       = 0x10000000,// 28 no breaks stealth if it fails??
     SPELL_ATTR_EX2_CANT_CRIT                   = 0x20000000,// 29 Spell can't crit
-    SPELL_ATTR_EX2_UNK30                       = 0x40000000,// 30 TODO: Implement from TC
+    SPELL_ATTR_EX2_UNK30                       = 0x40000000,// 30
     SPELL_ATTR_EX2_FOOD_BUFF                   = 0x80000000,// 31 Food or Drink Buff (like Well Fed)
 };
 
@@ -356,30 +356,30 @@ enum SpellAttributesEx3
     SPELL_ATTR_EX3_UNK0                        = 0x00000001,// 0
     SPELL_ATTR_EX3_UNK1                        = 0x00000002,// 1
     SPELL_ATTR_EX3_UNK2                        = 0x00000004,// 2
-    SPELL_ATTR_EX3_UNK3                        = 0x00000008,// 3 TODO: Investigate more
+    SPELL_ATTR_EX3_UNK3                        = 0x00000008,// 3
     SPELL_ATTR_EX3_IGNORE_RESURRECTION_TIMER   = 0x00000010,// 4 Druid Rebirth only this spell have this flag
     SPELL_ATTR_EX3_UNK5                        = 0x00000020,// 5
     SPELL_ATTR_EX3_UNK6                        = 0x00000040,// 6
     SPELL_ATTR_EX3_STACK_FOR_DIFF_CASTERS      = 0x00000080,// 7 create a separate (de)buff stack for each caster
     SPELL_ATTR_EX3_TARGET_ONLY_PLAYER          = 0x00000100,// 8 Can target only player
-    SPELL_ATTR_EX3_UNK9                        = 0x00000200,// 9 TODO: Implement from TC
+    SPELL_ATTR_EX3_UNK9                        = 0x00000200,// 9
     SPELL_ATTR_EX3_MAIN_HAND                   = 0x00000400,// 10 Main hand weapon required
     SPELL_ATTR_EX3_BATTLEGROUND                = 0x00000800,// 11 Can casted only on battleground
     SPELL_ATTR_EX3_CAST_ON_DEAD                = 0x00001000,// 12 target is a dead player (not every spell has this flag)
     SPELL_ATTR_EX3_DONT_DISPLAY_CHANNEL_BAR    = 0x00002000,// 13
     SPELL_ATTR_EX3_IS_HONORLESS_TARGET         = 0x00004000,// 14 "Honorless Target" only this spells have this flag
     SPELL_ATTR_EX3_UNK15                       = 0x00008000,// 15 Auto Shoot, Shoot, Throw,  - this is autoshot flag
-    SPELL_ATTR_EX3_UNK16                       = 0x00010000,// 16 no triggers effects that trigger on casting a spell?? TODO: Implement from TC
+    SPELL_ATTR_EX3_UNK16                       = 0x00010000,// 16 no triggers effects that trigger on casting a spell??
     SPELL_ATTR_EX3_NO_INITIAL_AGGRO            = 0x00020000,// 17 Causes no aggro if not missed
     SPELL_ATTR_EX3_CANT_MISS                   = 0x00040000,// 18 Spell should always hit its target 
-    SPELL_ATTR_EX3_UNK19                       = 0x00080000,// 19 TODO: Implement from TC
+    SPELL_ATTR_EX3_UNK19                       = 0x00080000,// 19
     SPELL_ATTR_EX3_DEATH_PERSISTENT            = 0x00100000,// 20 Death persistent spells
     SPELL_ATTR_EX3_UNK21                       = 0x00200000,// 21
     SPELL_ATTR_EX3_REQ_WAND                    = 0x00400000,// 22 Req wand
     SPELL_ATTR_EX3_UNK23                       = 0x00800000,// 23
     SPELL_ATTR_EX3_REQ_OFFHAND                 = 0x01000000,// 24 Req offhand weapon
     SPELL_ATTR_EX3_UNK25                       = 0x02000000,// 25 no cause spell pushback ?
-    SPELL_ATTR_EX3_UNK26                       = 0x04000000,// 26 TODO: Implement from TC
+    SPELL_ATTR_EX3_UNK26                       = 0x04000000,// 26
     SPELL_ATTR_EX3_DRAIN_SOUL                  = 0x08000000,// 27
     SPELL_ATTR_EX3_UNK28                       = 0x10000000,// 28 always cast ok ? (requires more research)
     SPELL_ATTR_EX3_UNK29                       = 0x20000000,// 29 can only target ground targets (non fly non jump)
@@ -390,7 +390,7 @@ enum SpellAttributesEx3
 enum SpellAttributesEx4
 {
     SPELL_ATTR_EX4_IGNORE_RESISTANCES          = 0x00000001,// 0
-    SPELL_ATTR_EX4_UNK1                        = 0x00000002,// 1 proc on finishing move? TODO: Implement from TC
+    SPELL_ATTR_EX4_UNK1                        = 0x00000002,// 1 proc on finishing move?
     SPELL_ATTR_EX4_UNK2                        = 0x00000004,// 2
     SPELL_ATTR_EX4_UNK3                        = 0x00000008,// 3
     SPELL_ATTR_EX4_UNK4                        = 0x00000010,// 4 This will no longer cause guards to attack on use??
@@ -407,7 +407,7 @@ enum SpellAttributesEx4
     SPELL_ATTR_EX4_UNK15                       = 0x00008000,// 15
     SPELL_ATTR_EX4_NOT_USABLE_IN_ARENA         = 0x00010000,// 16 not usable in arena
     SPELL_ATTR_EX4_USABLE_IN_ARENA             = 0x00020000,// 17 usable in arena
-    SPELL_ATTR_EX4_UNK18                       = 0x00040000,// 18 TODO: Investigate from TC
+    SPELL_ATTR_EX4_UNK18                       = 0x00040000,// 18
     SPELL_ATTR_EX4_UNK19                       = 0x00080000,// 19
     SPELL_ATTR_EX4_NOT_CHECK_SELFCAST_POWER    = 0x00100000,// 20 do not give "more powerful spell" error message
     SPELL_ATTR_EX4_UNK21                       = 0x00200000,// 21
@@ -464,17 +464,17 @@ enum SpellAttributesEx6
     SPELL_ATTR_EX6_DONT_DISPLAY_COOLDOWN       = 0x00000001,// 0 Only Move spell have this flag
     SPELL_ATTR_EX6_ONLY_IN_ARENA               = 0x00000002,// 1 only usable in arena, not used in 3.2.0a and early
     SPELL_ATTR_EX6_IGNORE_CASTER_AURAS         = 0x00000004,// 2
-    SPELL_ATTR_EX6_UNK3                        = 0x00000008,// 3 TODO: Implement from TC, Requires UNIT_FLAG rework
+    SPELL_ATTR_EX6_UNK3                        = 0x00000008,// 3
     SPELL_ATTR_EX6_UNK4                        = 0x00000010,// 4
     SPELL_ATTR_EX6_UNK5                        = 0x00000020,// 5
     SPELL_ATTR_EX6_USE_SPELL_CAST_EVENT        = 0x00000040,// 6 Auras with this attribute trigger SPELL_CAST combat log event instead of SPELL_AURA_START (clientside attribute)
     SPELL_ATTR_EX6_UNK7                        = 0x00000080,// 7
     SPELL_ATTR_EX6_IGNORE_CC_TARGETS           = 0x00000100,// 8 ignores target with cc effects
     SPELL_ATTR_EX6_UNK9                        = 0x00000200,// 9
-    SPELL_ATTR_EX6_UNK10                       = 0x00000400,// 10 TODO: Investigate from TC
+    SPELL_ATTR_EX6_UNK10                       = 0x00000400,// 10
     SPELL_ATTR_EX6_NOT_IN_RAID_INSTANCE        = 0x00000800,// 11 not usable in raid instance
     SPELL_ATTR_EX6_UNK12                       = 0x00001000,// 12 for auras SPELL_AURA_TRACK_CREATURES, SPELL_AURA_TRACK_RESOURCES and SPELL_AURA_TRACK_STEALTHED select non-stacking tracking spells
-    SPELL_ATTR_EX6_UNK13                       = 0x00002000,// 13 TODO: Implement from TC Bashir spell only
+    SPELL_ATTR_EX6_UNK13                       = 0x00002000,// 13
     SPELL_ATTR_EX6_UNK14                       = 0x00004000,// 14
     SPELL_ATTR_EX6_UNK15                       = 0x00008000,// 15 not set in 3.0.3
     SPELL_ATTR_EX6_UNK16                       = 0x00010000,// 16

@@ -347,6 +347,15 @@ void Unit::Update(uint32 update_diff, uint32 p_time)
     i_motionMaster.UpdateMotion(p_time);
 }
 
+void Unit::TriggerEvadeEvents()
+{
+    if (InstanceData* mapInstance = GetInstanceData())
+        mapInstance->OnCreatureEvade((Creature*)this);
+
+    if (m_isCreatureLinkingTrigger)
+        GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_EVADE, (Creature*)this);
+}
+
 bool Unit::UpdateMeleeAttackingState()
 {
     Unit* victim = getVictim();
@@ -7876,12 +7885,6 @@ bool Unit::SelectHostileTarget()
     // enter in evade mode in other case
     m_fixateTargetGuid.Clear();
     ((Creature*)this)->AI()->EnterEvadeMode();
-
-    if (InstanceData* mapInstance = GetInstanceData())
-        mapInstance->OnCreatureEvade((Creature*)this);
-
-    if (m_isCreatureLinkingTrigger)
-        GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_EVADE, (Creature*)this);
 
     return false;
 }

@@ -114,6 +114,8 @@ void AggressorAI::EnterEvadeMode()
     i_victimGuid.Clear();
     m_creature->CombatStop(true);
     m_creature->SetLootRecipient(nullptr);
+
+    m_creature->TriggerEvadeEvents();
 }
 
 void

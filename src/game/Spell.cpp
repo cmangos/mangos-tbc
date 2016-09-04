@@ -1981,6 +1981,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                                     case 31789: // Righteous defense needs player target
                                         if (targetOfUnitTarget->GetTypeId() == TYPEID_PLAYER)
                                             targetUnitMap.push_back(targetOfUnitTarget);
+                                        break;
                                     default:
                                         targetUnitMap.push_back(targetOfUnitTarget);
                                         break;

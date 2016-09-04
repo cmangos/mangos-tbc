@@ -2871,7 +2871,7 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell)
 
         rand = irand(0,10000);
 
-        if(targetResistance / (getLevel() * 5) * 0.75) // compute resistance percentage for binary spell
+        if (targetResistance / (getLevel() * 5) * 0.75) // compute resistance percentage for binary spell
             return SPELL_MISS_RESIST;
     }
 

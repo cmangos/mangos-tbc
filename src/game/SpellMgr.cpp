@@ -88,7 +88,7 @@ int32 CalculateSpellDuration(SpellEntry const* spellInfo, Unit const* caster)
         {
             modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_DURATION, duration);
 
-            if(spellInfo->HasAttribute(SPELL_ATTR_EX5_HASTE_AFFECT_DURATION))
+            if (spellInfo->HasAttribute(SPELL_ATTR_EX5_HASTE_AFFECT_DURATION))
                 duration = int32(duration * caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
 
             if (duration < 0)

@@ -132,6 +132,8 @@ void ScriptedAI::EnterEvadeMode()
 
     m_creature->SetLootRecipient(nullptr);
 
+    m_creature->TriggerEvadeEvents();
+
     Reset();
 }
 

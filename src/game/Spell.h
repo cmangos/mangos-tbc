@@ -27,6 +27,8 @@
 #include "Unit.h"
 #include "Player.h"
 
+#define MAX_TBC_SPELL_ID 55000
+
 class WorldSession;
 class WorldPacket;
 class DynamicObj;
@@ -214,107 +216,107 @@ class Spell
         friend void Unit::SetCurrentCastedSpell(Spell* pSpell);
     public:
 
-        void EffectEmpty(SpellEffectIndex eff_idx);
-        void EffectNULL(SpellEffectIndex eff_idx);
-        void EffectUnused(SpellEffectIndex eff_idx);
-        void EffectDistract(SpellEffectIndex eff_idx);
-        void EffectPull(SpellEffectIndex eff_idx);
-        void EffectSchoolDMG(SpellEffectIndex eff_idx);
-        void EffectEnvironmentalDMG(SpellEffectIndex eff_idx);
-        void EffectInstaKill(SpellEffectIndex eff_idx);
-        void EffectDummy(SpellEffectIndex eff_idx);
-        void EffectTeleportUnits(SpellEffectIndex eff_idx);
-        void EffectApplyAura(SpellEffectIndex eff_idx);
-        void EffectSendEvent(SpellEffectIndex eff_idx);
-        void EffectPowerBurn(SpellEffectIndex eff_idx);
-        void EffectPowerDrain(SpellEffectIndex eff_idx);
-        void EffectHeal(SpellEffectIndex eff_idx);
-        void EffectBind(SpellEffectIndex eff_idx);
-        void EffectHealthLeech(SpellEffectIndex eff_idx);
-        void EffectQuestComplete(SpellEffectIndex eff_idx);
-        void EffectCreateItem(SpellEffectIndex eff_idx);
-        void EffectPersistentAA(SpellEffectIndex eff_idx);
-        void EffectEnergize(SpellEffectIndex eff_idx);
-        void EffectOpenLock(SpellEffectIndex eff_idx);
-        void EffectSummonChangeItem(SpellEffectIndex eff_idx);
-        void EffectProficiency(SpellEffectIndex eff_idx);
-        void EffectApplyAreaAura(SpellEffectIndex eff_idx);
-        void EffectSummonType(SpellEffectIndex eff_idx);
-        void EffectLearnSpell(SpellEffectIndex eff_idx);
-        void EffectDispel(SpellEffectIndex eff_idx);
-        void EffectDualWield(SpellEffectIndex eff_idx);
-        void EffectPickPocket(SpellEffectIndex eff_idx);
-        void EffectAddFarsight(SpellEffectIndex eff_idx);
-        void EffectHealMechanical(SpellEffectIndex eff_idx);
-        void EffectTeleUnitsFaceCaster(SpellEffectIndex eff_idx);
-        void EffectLearnSkill(SpellEffectIndex eff_idx);
-        void EffectAddHonor(SpellEffectIndex eff_idx);
-        void EffectTradeSkill(SpellEffectIndex eff_idx);
-        void EffectEnchantItemPerm(SpellEffectIndex eff_idx);
-        void EffectEnchantItemTmp(SpellEffectIndex eff_idx);
-        void EffectTameCreature(SpellEffectIndex eff_idx);
-        void EffectSummonPet(SpellEffectIndex eff_idx);
-        void EffectLearnPetSpell(SpellEffectIndex eff_idx);
-        void EffectWeaponDmg(SpellEffectIndex eff_idx);
-        void EffectForceCast(SpellEffectIndex eff_idx);
-        void EffectTriggerSpell(SpellEffectIndex eff_idx);
-        void EffectTriggerMissileSpell(SpellEffectIndex eff_idx);
-        void EffectThreat(SpellEffectIndex eff_idx);
-        void EffectHealMaxHealth(SpellEffectIndex eff_idx);
-        void EffectInterruptCast(SpellEffectIndex eff_idx);
-        void EffectSummonObjectWild(SpellEffectIndex eff_idx);
-        void EffectScriptEffect(SpellEffectIndex eff_idx);
-        void EffectSanctuary(SpellEffectIndex eff_idx);
-        void EffectAddComboPoints(SpellEffectIndex eff_idx);
-        void EffectDuel(SpellEffectIndex eff_idx);
-        void EffectStuck(SpellEffectIndex eff_idx);
-        void EffectSummonPlayer(SpellEffectIndex eff_idx);
-        void EffectActivateObject(SpellEffectIndex eff_idx);
-        void EffectEnchantHeldItem(SpellEffectIndex eff_idx);
-        void EffectSummonObject(SpellEffectIndex eff_idx);
-        void EffectResurrect(SpellEffectIndex eff_idx);
-        void EffectParry(SpellEffectIndex eff_idx);
-        void EffectBlock(SpellEffectIndex eff_idx);
-        void EffectLeapForward(SpellEffectIndex eff_idx);
-        void EffectLeapBack(SpellEffectIndex eff_idx);
-        void EffectTransmitted(SpellEffectIndex eff_idx);
-        void EffectDisEnchant(SpellEffectIndex eff_idx);
-        void EffectInebriate(SpellEffectIndex eff_idx);
-        void EffectFeedPet(SpellEffectIndex eff_idx);
-        void EffectDismissPet(SpellEffectIndex eff_idx);
-        void EffectReputation(SpellEffectIndex eff_idx);
-        void EffectSelfResurrect(SpellEffectIndex eff_idx);
-        void EffectSkinning(SpellEffectIndex eff_idx);
-        void EffectCharge(SpellEffectIndex eff_idx);
-        void EffectCharge2(SpellEffectIndex eff_idx);
-        void EffectProspecting(SpellEffectIndex eff_idx);
-        void EffectRedirectThreat(SpellEffectIndex eff_idx);
-        void EffectSendTaxi(SpellEffectIndex eff_idx);
-        void EffectKnockBack(SpellEffectIndex eff_idx);
-        void EffectPlayerPull(SpellEffectIndex eff_idx);
-        void EffectDispelMechanic(SpellEffectIndex eff_idx);
-        void EffectSummonDeadPet(SpellEffectIndex eff_idx);
-        void EffectDestroyAllTotems(SpellEffectIndex eff_idx);
-        void EffectDurabilityDamage(SpellEffectIndex eff_idx);
-        void EffectSkill(SpellEffectIndex eff_idx);
-        void EffectTaunt(SpellEffectIndex eff_idx);
-        void EffectDurabilityDamagePCT(SpellEffectIndex eff_idx);
-        void EffectModifyThreatPercent(SpellEffectIndex eff_idx);
-        void EffectResurrectNew(SpellEffectIndex eff_idx);
-        void EffectAddExtraAttacks(SpellEffectIndex eff_idx);
-        void EffectSpiritHeal(SpellEffectIndex eff_idx);
-        void EffectSkinPlayerCorpse(SpellEffectIndex eff_idx);
-        void EffectStealBeneficialBuff(SpellEffectIndex eff_idx);
-        void EffectUnlearnSpecialization(SpellEffectIndex eff_idx);
-        void EffectHealPct(SpellEffectIndex eff_idx);
-        void EffectEnergisePct(SpellEffectIndex eff_idx);
-        void EffectTriggerSpellWithValue(SpellEffectIndex eff_idx);
-        void EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx);
-        void EffectKillCreditGroup(SpellEffectIndex eff_idx);
-        void EffectQuestFail(SpellEffectIndex eff_idx);
-        void EffectPlaySound(SpellEffectIndex eff_idx);
-        void EffectPlayMusic(SpellEffectIndex eff_idx);
-        void EffectKnockBackFromPosition(SpellEffectIndex eff_idx);
+        virtual void EffectEmpty(SpellEffectIndex eff_idx);
+        virtual void EffectNULL(SpellEffectIndex eff_idx);
+        virtual void EffectUnused(SpellEffectIndex eff_idx);
+        virtual void EffectDistract(SpellEffectIndex eff_idx);
+        virtual void EffectPull(SpellEffectIndex eff_idx);
+        virtual void EffectSchoolDMG(SpellEffectIndex eff_idx);
+        virtual void EffectEnvironmentalDMG(SpellEffectIndex eff_idx);
+        virtual void EffectInstaKill(SpellEffectIndex eff_idx);
+        virtual void EffectDummy(SpellEffectIndex eff_idx);
+        virtual void EffectTeleportUnits(SpellEffectIndex eff_idx);
+        virtual void EffectApplyAura(SpellEffectIndex eff_idx);
+        virtual void EffectSendEvent(SpellEffectIndex eff_idx);
+        virtual void EffectPowerBurn(SpellEffectIndex eff_idx);
+        virtual void EffectPowerDrain(SpellEffectIndex eff_idx);
+        virtual void EffectHeal(SpellEffectIndex eff_idx);
+        virtual void EffectBind(SpellEffectIndex eff_idx);
+        virtual void EffectHealthLeech(SpellEffectIndex eff_idx);
+        virtual void EffectQuestComplete(SpellEffectIndex eff_idx);
+        virtual void EffectCreateItem(SpellEffectIndex eff_idx);
+        virtual void EffectPersistentAA(SpellEffectIndex eff_idx);
+        virtual void EffectEnergize(SpellEffectIndex eff_idx);
+        virtual void EffectOpenLock(SpellEffectIndex eff_idx);
+        virtual void EffectSummonChangeItem(SpellEffectIndex eff_idx);
+        virtual void EffectProficiency(SpellEffectIndex eff_idx);
+        virtual void EffectApplyAreaAura(SpellEffectIndex eff_idx);
+        virtual void EffectSummonType(SpellEffectIndex eff_idx);
+        virtual void EffectLearnSpell(SpellEffectIndex eff_idx);
+        virtual void EffectDispel(SpellEffectIndex eff_idx);
+        virtual void EffectDualWield(SpellEffectIndex eff_idx);
+        virtual void EffectPickPocket(SpellEffectIndex eff_idx);
+        virtual void EffectAddFarsight(SpellEffectIndex eff_idx);
+        virtual void EffectHealMechanical(SpellEffectIndex eff_idx);
+        virtual void EffectTeleUnitsFaceCaster(SpellEffectIndex eff_idx);
+        virtual void EffectLearnSkill(SpellEffectIndex eff_idx);
+        virtual void EffectAddHonor(SpellEffectIndex eff_idx);
+        virtual void EffectTradeSkill(SpellEffectIndex eff_idx);
+        virtual void EffectEnchantItemPerm(SpellEffectIndex eff_idx);
+        virtual void EffectEnchantItemTmp(SpellEffectIndex eff_idx);
+        virtual void EffectTameCreature(SpellEffectIndex eff_idx);
+        virtual void EffectSummonPet(SpellEffectIndex eff_idx);
+        virtual void EffectLearnPetSpell(SpellEffectIndex eff_idx);
+        virtual void EffectWeaponDmg(SpellEffectIndex eff_idx);
+        virtual void EffectForceCast(SpellEffectIndex eff_idx);
+        virtual void EffectTriggerSpell(SpellEffectIndex eff_idx);
+        virtual void EffectTriggerMissileSpell(SpellEffectIndex eff_idx);
+        virtual void EffectThreat(SpellEffectIndex eff_idx);
+        virtual void EffectHealMaxHealth(SpellEffectIndex eff_idx);
+        virtual void EffectInterruptCast(SpellEffectIndex eff_idx);
+        virtual void EffectSummonObjectWild(SpellEffectIndex eff_idx);
+        virtual void EffectScriptEffect(SpellEffectIndex eff_idx);
+        virtual void EffectSanctuary(SpellEffectIndex eff_idx);
+        virtual void EffectAddComboPoints(SpellEffectIndex eff_idx);
+        virtual void EffectDuel(SpellEffectIndex eff_idx);
+        virtual void EffectStuck(SpellEffectIndex eff_idx);
+        virtual void EffectSummonPlayer(SpellEffectIndex eff_idx);
+        virtual void EffectActivateObject(SpellEffectIndex eff_idx);
+        virtual void EffectEnchantHeldItem(SpellEffectIndex eff_idx);
+        virtual void EffectSummonObject(SpellEffectIndex eff_idx);
+        virtual void EffectResurrect(SpellEffectIndex eff_idx);
+        virtual void EffectParry(SpellEffectIndex eff_idx);
+        virtual void EffectBlock(SpellEffectIndex eff_idx);
+        virtual void EffectLeapForward(SpellEffectIndex eff_idx);
+        virtual void EffectLeapBack(SpellEffectIndex eff_idx);
+        virtual void EffectTransmitted(SpellEffectIndex eff_idx);
+        virtual void EffectDisEnchant(SpellEffectIndex eff_idx);
+        virtual void EffectInebriate(SpellEffectIndex eff_idx);
+        virtual void EffectFeedPet(SpellEffectIndex eff_idx);
+        virtual void EffectDismissPet(SpellEffectIndex eff_idx);
+        virtual void EffectReputation(SpellEffectIndex eff_idx);
+        virtual void EffectSelfResurrect(SpellEffectIndex eff_idx);
+        virtual void EffectSkinning(SpellEffectIndex eff_idx);
+        virtual void EffectCharge(SpellEffectIndex eff_idx);
+        virtual void EffectCharge2(SpellEffectIndex eff_idx);
+        virtual void EffectProspecting(SpellEffectIndex eff_idx);
+        virtual void EffectRedirectThreat(SpellEffectIndex eff_idx);
+        virtual void EffectSendTaxi(SpellEffectIndex eff_idx);
+        virtual void EffectKnockBack(SpellEffectIndex eff_idx);
+        virtual void EffectPlayerPull(SpellEffectIndex eff_idx);
+        virtual void EffectDispelMechanic(SpellEffectIndex eff_idx);
+        virtual void EffectSummonDeadPet(SpellEffectIndex eff_idx);
+        virtual void EffectDestroyAllTotems(SpellEffectIndex eff_idx);
+        virtual void EffectDurabilityDamage(SpellEffectIndex eff_idx);
+        virtual void EffectSkill(SpellEffectIndex eff_idx);
+        virtual void EffectTaunt(SpellEffectIndex eff_idx);
+        virtual void EffectDurabilityDamagePCT(SpellEffectIndex eff_idx);
+        virtual void EffectModifyThreatPercent(SpellEffectIndex eff_idx);
+        virtual void EffectResurrectNew(SpellEffectIndex eff_idx);
+        virtual void EffectAddExtraAttacks(SpellEffectIndex eff_idx);
+        virtual void EffectSpiritHeal(SpellEffectIndex eff_idx);
+        virtual void EffectSkinPlayerCorpse(SpellEffectIndex eff_idx);
+        virtual void EffectStealBeneficialBuff(SpellEffectIndex eff_idx);
+        virtual void EffectUnlearnSpecialization(SpellEffectIndex eff_idx);
+        virtual void EffectHealPct(SpellEffectIndex eff_idx);
+        virtual void EffectEnergisePct(SpellEffectIndex eff_idx);
+        virtual void EffectTriggerSpellWithValue(SpellEffectIndex eff_idx);
+        virtual void EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx);
+        virtual void EffectKillCreditGroup(SpellEffectIndex eff_idx);
+        virtual void EffectQuestFail(SpellEffectIndex eff_idx);
+        virtual void EffectPlaySound(SpellEffectIndex eff_idx);
+        virtual void EffectPlayMusic(SpellEffectIndex eff_idx);
+        virtual void EffectKnockBackFromPosition(SpellEffectIndex eff_idx);
 
         Spell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
         ~Spell();
@@ -331,7 +333,7 @@ class Spell
         void TakeReagents();
         void TakeCastItem();
 
-        SpellCastResult CheckCast(bool strict);
+        virtual SpellCastResult CheckCast(bool strict);
         SpellCastResult CheckPetCast(Unit* target);
 
         // handlers
@@ -597,6 +599,14 @@ class Spell
         SpellInfoList m_TriggerSpells;                      // casted by caster to same targets settings in m_targets at success finish of current spell
         SpellInfoList m_preCastSpells;                      // casted by caster to each target at spell hit before spell effects apply
 
+        //*****************************************
+        // Spell scripting subsystem
+        //*****************************************
+        // Contains hooks for scripting
+
+        // Called in SetTargetMap, removes invalid spell targets before randomized target removal is done
+        virtual void CustomTargeting(UnitList& targetUnitMap) {};
+
         uint32 m_spellState;
         uint32 m_timer;
 
@@ -611,6 +621,8 @@ class Spell
         // and in same time need aura data and after aura deleting.
         SpellEntry const* m_triggeredByAuraSpell;
 };
+
+Spell* CreateSpell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
 
 enum ReplenishType
 {

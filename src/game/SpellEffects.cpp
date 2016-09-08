@@ -2341,7 +2341,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     {
                         if (item->IsFitToSpellRequirements(m_spellInfo))
                         {
-                            Spell* spell = new Spell(m_caster, spellInfo, true);
+                            Spell* spell = CreateSpell(m_caster, spellInfo, true);
 
                             // enchanting spell selected by calculated damage-per-sec in enchanting effect
                             // at calculation applied affect from Elemental Weapons talent

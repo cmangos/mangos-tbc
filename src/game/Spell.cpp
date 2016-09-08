@@ -43,6 +43,7 @@
 #include "Util.h"
 #include "Chat.h"
 #include "SQLStorages.h"
+#include "SpellScriptFactory.h"
 
 extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 
@@ -2618,6 +2619,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             targetUnitMap.remove(m_caster);
     }
 
+    CustomTargeting(targetUnitMap);
+
     if (unMaxTargets && targetUnitMap.size() > unMaxTargets)
     {
         // make sure one unit is always removed per iteration
@@ -4161,7 +4164,7 @@ void Spell::CastTriggerSpells()
 {
     for (SpellInfoList::const_iterator si = m_TriggerSpells.begin(); si != m_TriggerSpells.end(); ++si)
     {
-        Spell* spell = new Spell(m_caster, (*si), true, m_originalCasterGUID);
+        Spell* spell = CreateSpell(m_caster, (*si), true, m_originalCasterGUID);
         spell->SpellStart(&m_targets);                      // use original spell original targets
     }
 }
@@ -6938,4 +6941,12 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
         default:
             break;
     }
+}
+
+Spell* CreateSpell(Unit* caster, SpellEntry const* info, bool triggered, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy)
+{
+    if (spellFactories[info->Id])
+        return (spellFactories[info->Id])(caster, info, triggered, originalCasterGUID, triggeredBy);
+    else
+        return new Spell(caster, info, triggered, originalCasterGUID, triggeredBy);
 }

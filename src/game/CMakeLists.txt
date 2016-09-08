@@ -189,6 +189,9 @@ set(SRC_GRP_OBJECT
     ReputationMgr.h
     SocialMgr.cpp
     SocialMgr.h
+    SpellScriptFactory.cpp
+    SpellScriptFactory.h
+    SpellScriptsTBC.cpp
     SpellMgr.cpp
     SpellMgr.h
     StatSystem.cpp

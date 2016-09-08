@@ -73,6 +73,9 @@ INSTANTIATE_SINGLETON_1(World);
 
 extern void LoadGameObjectModelList();
 
+extern void AddSpellFactories();
+extern void DestroySpellFactories();
+
 volatile bool World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
 volatile uint32 World::m_worldLoopCounter = 0;
@@ -142,6 +145,7 @@ void World::CleanupsBeforeStop()
     KickAll();                                       // save and kick all players
     UpdateSessions(1);                               // real players unload required UpdateSessions call
     sBattleGroundMgr.DeleteAllBattleGrounds();       // unload battleground templates before different singletons destroyed
+    DestroySpellFactories();
 }
 
 /// Find a session by its id
@@ -1071,6 +1075,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading spell pet auras...");
     sSpellMgr.LoadSpellPetAuras();
+
+    sLog.outString("Loading spell scripts...");
+    AddSpellFactories();
 
     sLog.outString("Loading Player Create Info & Level Stats...");
     sObjectMgr.LoadPlayerInfo();

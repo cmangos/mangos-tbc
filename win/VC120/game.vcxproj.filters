@@ -37,6 +37,9 @@
     <Filter Include="BattleGround">
       <UniqueIdentifier>{0af4d063-6d01-4546-a429-59bd828ab270}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World/Handlers\Spells">
+      <UniqueIdentifier>{c3d0307d-ff36-49b0-928a-36c3e641b19b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\game\AccountMgr.cpp">
@@ -172,18 +175,6 @@
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\SkillHandler.cpp">
-      <Filter>World/Handlers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\Spell.cpp">
-      <Filter>World/Handlers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\SpellAuras.cpp">
-      <Filter>World/Handlers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\SpellEffects.cpp">
-      <Filter>World/Handlers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\game\SpellHandler.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\game\TaxiHandler.cpp">
@@ -523,6 +514,24 @@
     <ClCompile Include="..\..\src\game\BattleGround\BattleGroundWS.cpp">
       <Filter>BattleGround</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\Spell.cpp">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\SpellAuras.cpp">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\SpellEffects.cpp">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\SpellHandler.cpp">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\SpellScriptFactory.cpp">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\game\SpellScriptsTBC.cpp">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -610,15 +619,6 @@
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\SkillExtraItems.h">
-      <Filter>World/Handlers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\Spell.h">
-      <Filter>World/Handlers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\SpellAuraDefines.h">
-      <Filter>World/Handlers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\game\SpellAuras.h">
       <Filter>World/Handlers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\Transports.h">
@@ -996,6 +996,18 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\BattleGround\BattleGroundWS.h">
       <Filter>BattleGround</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\Spell.h">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\SpellAuraDefines.h">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\SpellAuras.h">
+      <Filter>World/Handlers\Spells</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\SpellScriptFactory.h">
+      <Filter>World/Handlers\Spells</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

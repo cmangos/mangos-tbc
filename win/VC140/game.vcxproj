@@ -346,6 +346,7 @@
     <ClCompile Include="..\..\src\game\AI\CreatureEventAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\CreatureEventAIMgr.cpp" />
     <ClCompile Include="..\..\src\game\AI\GuardAI.cpp" />
+    <ClCompile Include="..\..\src\game\AI\GuardianAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\NullCreatureAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\PetAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\ReactorAI.cpp" />

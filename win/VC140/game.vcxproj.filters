@@ -526,6 +526,9 @@
     <ClCompile Include="..\..\src\game\AI\TotemAI.cpp">
       <Filter>AI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\AI\GuardianAI.cpp">
+      <Filter>AI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -988,9 +991,6 @@
     <ClInclude Include="..\..\src\game\AI\GuardAI.h">
       <Filter>AI</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\game\AI\GuardianAI.h">
-      <Filter>AI</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\game\AI\NullCreatureAI.h">
       <Filter>AI</Filter>
     </ClInclude>
@@ -1004,6 +1004,9 @@
       <Filter>AI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\game\AI\TotemAI.h">
+      <Filter>AI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\AI\GuardianAI.h">
       <Filter>AI</Filter>
     </ClInclude>
   </ItemGroup>

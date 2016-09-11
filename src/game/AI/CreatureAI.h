@@ -268,6 +268,13 @@ class MANGOS_DLL_SPEC CreatureAI
          * @param pWho Unit* who is possible target
          */
         virtual void AttackStart(Unit* /*pWho*/) {}
+        
+        /**
+        * Called when creature stop attack expected
+        * Note: have to be called to reinitialize some states or movement
+        * Note: Not needed for creature, they use EnterEvadeMode
+        */
+        virtual void CombatStop() {}
 
         /**
          * Called at World update tick, by default every 100ms

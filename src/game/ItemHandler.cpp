@@ -261,7 +261,7 @@ void WorldSession::HandleDestroyItemOpcode(WorldPacket& recv_data)
     }
 
     // checked at client side and not have server side appropriate error output
-    if (pItem->GetProto()->Flags & ITEM_FLAG_INDESTRUCTIBLE)
+    if (pItem->GetProto()->Flags & ITEM_FLAG_NO_USER_DESTROY)
     {
         _player->SendEquipError(EQUIP_ERR_CANT_DROP_SOULBOUND, nullptr, nullptr);
         return;
@@ -1065,7 +1065,7 @@ void WorldSession::HandleWrapItemOpcode(WorldPacket& recv_data)
     }
 
     // cheating: non-wrapper wrapper (all empty wrappers is stackable)
-    if (!(gift->GetProto()->Flags & ITEM_FLAG_WRAPPER) || gift->GetMaxStackCount() == 1)
+    if (!(gift->GetProto()->Flags & ITEM_FLAG_IS_WRAPPER) || gift->GetMaxStackCount() == 1)
     {
         _player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, gift, nullptr);
         return;
@@ -1235,7 +1235,7 @@ void WorldSession::HandleSocketOpcode(WorldPacket& recv_data)
         ItemPrototype const* iGemProto = Gems[i]->GetProto();
 
         // unique item (for new and already placed bit removed enchantments
-        if (iGemProto->Flags & ITEM_FLAG_UNIQUE_EQUIPPED)
+        if (iGemProto->Flags & ITEM_FLAG_UNIQUE_EQUIPPABLE)
         {
             for (int j = 0; j < MAX_GEM_SOCKETS; ++j)
             {

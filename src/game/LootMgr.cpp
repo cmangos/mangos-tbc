@@ -339,7 +339,7 @@ LootItem::LootItem(LootStoreItem const& li, uint32 _lootSlot, uint32 threshold)
     itemProto         = ObjectMgr::GetItemPrototype(li.itemid);
     if (itemProto)
     {
-        freeForAll       = !!(itemProto->Flags & ITEM_FLAG_PARTY_LOOT);
+        freeForAll       = !!(itemProto->Flags & ITEM_FLAG_MULTI_DROP);
         displayID        = itemProto->DisplayInfoID;
         isUnderThreshold = itemProto->Quality < threshold;
     }
@@ -369,8 +369,8 @@ LootItem::LootItem(uint32 _itemId, uint32 _count, uint32 _randomSuffix, int32 _r
     itemProto = ObjectMgr::GetItemPrototype(_itemId);
     if (itemProto)
     {
-        freeForAll = !!(itemProto->Flags & ITEM_FLAG_PARTY_LOOT);
-        displayID  = itemProto->DisplayInfoID;
+        freeForAll = !!(itemProto->Flags & ITEM_FLAG_MULTI_DROP);
+        displayID = itemProto->DisplayInfoID;
     }
     else
     {
@@ -2587,7 +2587,7 @@ void LoadLootTemplates_Item()
     {
         if (ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i))
         {
-            if (!(proto->Flags & ITEM_FLAG_LOOTABLE))
+            if (!(proto->Flags & ITEM_FLAG_HAS_LOOT))
                 continue;
 
             if (ids_set.find(proto->ItemId) != ids_set.end() || proto->MaxMoneyLoot > 0)
@@ -2640,7 +2640,7 @@ void LoadLootTemplates_Prospecting()
         if (!proto)
             continue;
 
-        if (!(proto->Flags & ITEM_FLAG_PROSPECTABLE))
+        if (!(proto->Flags & ITEM_FLAG_IS_PROSPECTABLE))
             continue;
 
         if (ids_set.find(proto->ItemId) != ids_set.end())

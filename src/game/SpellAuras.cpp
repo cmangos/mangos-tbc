@@ -378,6 +378,9 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* currentBas
     if (modOwner && m_modifier.periodictime)
         modOwner->ApplySpellMod(spellproto->Id, SPELLMOD_ACTIVATION_TIME, m_modifier.periodictime);
 
+    if (caster && spellproto->HasAttribute(SPELL_ATTR_EX5_HASTE_AFFECT_DURATION))
+        m_modifier.periodictime = int32(m_modifier.periodictime * caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+
     // Start periodic on next tick or at aura apply
     if (!spellproto->HasAttribute(SPELL_ATTR_EX5_START_PERIODIC_AT_APPLY))
         m_periodicTimer = m_modifier.periodictime;
@@ -5888,7 +5891,7 @@ void Aura::PeriodicTick()
             if (target->GetTypeId() == TYPEID_PLAYER)
                 pdamage -= ((Player*)target)->GetDotDamageReduction(pdamage);
 
-            target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, !GetSpellProto()->HasAttribute(SPELL_ATTR_EX2_CANT_REFLECTED));
+            target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, IsReflectableSpell(spellProto), spellProto->HasAttribute(SPELL_ATTR_EX4_IGNORE_RESISTANCES));
 
             DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s attacked %s for %u dmg inflicted by %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
@@ -5954,7 +5957,7 @@ void Aura::PeriodicTick()
             if (target->GetTypeId() == TYPEID_PLAYER)
                 pdamage -= ((Player*)target)->GetDotDamageReduction(pdamage);
 
-            target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, !spellProto->HasAttribute(SPELL_ATTR_EX2_CANT_REFLECTED));
+            target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, IsReflectableSpell(spellProto), spellProto->HasAttribute(SPELL_ATTR_EX4_IGNORE_RESISTANCES));
 
             if (target->GetHealth() < pdamage)
                 pdamage = uint32(target->GetHealth());
@@ -6962,7 +6965,7 @@ void SpellAuraHolder::_RemoveSpellAuraHolder()
 
     // passive auras do not get put in slots - said who? ;)
     // Note: but totem can be not accessible for aura target in time remove (to far for find in grid)
-    // if(m_isPassive && !(caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->IsTotem()))
+    // if (m_isPassive && !(caster && caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->IsTotem()))
     //    return;
 
     uint8 slot = GetAuraSlot();
@@ -7532,17 +7535,23 @@ void SpellAuraHolder::UpdateAuraDuration()
 
     if (m_target->GetTypeId() == TYPEID_PLAYER)
     {
-        WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
-        data << uint8(GetAuraSlot());
-        data << uint32(GetAuraDuration());
-        ((Player*)m_target)->SendDirectMessage(&data);
+        if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
+        {
+            WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
+            data << uint8(GetAuraSlot());
+            data << uint32(GetAuraDuration());
+            ((Player*)m_target)->SendDirectMessage(&data);
+        }
 
-        data.Initialize(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
+        WorldPacket data(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
         data << m_target->GetPackGUID();
         data << uint8(GetAuraSlot());
         data << uint32(GetId());
-        data << uint32(GetAuraMaxDuration());
-        data << uint32(GetAuraDuration());
+        if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
+        {
+            data << uint32(GetAuraMaxDuration());
+            data << uint32(GetAuraDuration());
+        }
         ((Player*)m_target)->SendDirectMessage(&data);
     }
 
@@ -7552,7 +7561,7 @@ void SpellAuraHolder::UpdateAuraDuration()
 
     Unit* caster = GetCaster();
 
-    if (caster && caster->GetTypeId() == TYPEID_PLAYER && caster != m_target)
+    if (caster && caster->GetTypeId() == TYPEID_PLAYER && caster != m_target && !GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
         SendAuraDurationForCaster((Player*)caster);
 }
 

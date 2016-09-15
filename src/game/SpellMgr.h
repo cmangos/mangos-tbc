@@ -175,6 +175,11 @@ inline bool IsSealSpell(SpellEntry const* spellInfo)
            spellInfo->EffectImplicitTargetA[0] == TARGET_SELF;
 }
 
+inline bool IsAllowingDeadTarget(SpellEntry const* spellInfo)
+{
+    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
+}
+
 inline bool IsElementalShield(SpellEntry const* spellInfo)
 {
     // family flags 10 (Lightning), 42 (Earth), 37 (Water), proc shield from T2 8 pieces bonus
@@ -197,6 +202,19 @@ inline bool IsPassiveSpellStackableWithRanks(SpellEntry const* spellProto)
         return false;
 
     return !IsSpellHaveEffect(spellProto, SPELL_EFFECT_APPLY_AURA);
+}
+
+inline bool IsAutocastable(SpellEntry const* spellInfo)
+{
+    return !(spellInfo->HasAttribute(SPELL_ATTR_EX4_UNAUTOCASTABLE) || spellInfo->HasAttribute(SPELL_ATTR_PASSIVE));
+}
+
+inline bool IsAutocastable(uint32 spellId)
+{
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    if (!spellInfo)
+        return false;
+    return IsAutocastable(spellInfo);
 }
 
 inline bool IsSpellRemoveAllMovementAndControlLossEffects(SpellEntry const* spellProto)
@@ -233,6 +251,12 @@ bool IsExplicitNegativeTarget(uint32 targetA);
 
 bool IsSingleTargetSpell(SpellEntry const* spellInfo);
 bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2);
+
+// TODO: research binary spells
+inline bool IsBinarySpell(SpellEntry const* spellInfo)
+{
+    return false;
+}
 
 inline bool IsCasterSourceTarget(uint32 target)
 {
@@ -468,6 +492,12 @@ inline bool IsNeedCastSpellAtOutdoor(SpellEntry const* spellInfo)
     return (spellInfo->HasAttribute(SPELL_ATTR_OUTDOORS_ONLY) && spellInfo->HasAttribute(SPELL_ATTR_PASSIVE));
 }
 
+inline bool IsReflectableSpell(SpellEntry const* spellInfo)
+{
+    return spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MAGIC && !spellInfo->HasAttribute(SPELL_ATTR_UNK4)
+        && !spellInfo->HasAttribute(SPELL_ATTR_EX_UNK7) && !spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)
+        && !spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) && !IsPositiveSpell(spellInfo);
+}
 
 inline bool NeedsComboPoints(SpellEntry const* spellInfo)
 {

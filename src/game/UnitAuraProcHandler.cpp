@@ -1815,8 +1815,6 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 // Rain of Fire have 4 tick
                 else if (procSpell->SpellFamilyFlags & uint64(0x0000000000000020))
                     tick = 4;
-                else
-                    return SPELL_AURA_PROC_FAILED;
 
                 // Calculate chance = baseChance / tick
                 float chance = 0;

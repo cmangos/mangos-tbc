@@ -13176,6 +13176,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (20424, 0.2,    0,       0,     0,     'Paladin - Seal of Command Proc'),
 (25742, 0.1,    0,       0,     0,     'Paladin - Seal of Righteousness Proc'),
 (31803, 0,      0.034,   0,     0,     'Paladin - Seal of Vengeance Proc on Enemy'),
+(42463, 0.022,  0,       0,     0,     'Paladin - Seal of Vengeance Proc on Enemy (fully stacked)'),
 /* Priest */
 (44041, 0.143,  0,       0,     0,     'Priest - Chastise'),
 (2944,  0,      0.2,     0,     0,     'Priest - Devouring Plague'),
@@ -13183,6 +13184,7 @@ INSERT INTO `spell_bonus_data` VALUES
 (14914, 0.75,   0.05,    0,     0,     'Priest - Holy Fire'),
 (15237, 0.1606, 0,       0,     0,     'Priest - Holy Nova Damage'),
 (23455, 0.1606, 0,       0,     0,     'Priest - Holy Nova Heal'),
+(7001,  0,      0.33,    0,     0,     'Priest - Lightwell Renew'),
 (8129,  0,      0,       0,     0,     'Priest - Mana Burn'),
 (15407, 0,      0.19,    0,     0,     'Priest - Mind Flay'),
 (17,    0.3,    0,       0,     0,     'Priest - Power Word: Shield'),
@@ -13735,6 +13737,11 @@ INSERT INTO `spell_chain` VALUES
 (27870,724,724,2,0),
 (27871,27870,724,3,0),
 (28275,27871,724,4,0),
+/* Lightwell Renew */
+(7001,0,7001,1,0),
+(27873,7001,7001,2,0),
+(27874,27873,7001,3,0),
+(28276,27874,7001,4,0),
 /* Prayer of Healing */
 (596,0,596,1,0),
 (996,596,596,2,0),

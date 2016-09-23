@@ -2258,6 +2258,11 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
     if (position >= threatlist.size() || !threatlist.size())
         return nullptr;
 
+    if (threatlist.size() == 1)
+        if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
+            if (_canSelect(pTarget, pSpellInfo, selectFlags))
+                return pTarget;
+
     switch (target)
     {
         case ATTACKING_TARGET_RANDOM:
@@ -2267,7 +2272,7 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
             advance(itr, position);
             for (; itr != threatlist.end(); ++itr)
                 if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
-                    if (!selectFlags || MeetsSelectAttackingRequirement(pTarget, pSpellInfo, selectFlags))
+                    if (_canSelect(pTarget, pSpellInfo, selectFlags))
                         suitableUnits.push_back(pTarget);
 
             if (!suitableUnits.empty())
@@ -2280,7 +2285,7 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
             advance(itr, position);
             for (; itr != threatlist.end(); ++itr)
                 if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
-                    if (!selectFlags || MeetsSelectAttackingRequirement(pTarget, pSpellInfo, selectFlags))
+                    if (_canSelect(pTarget, pSpellInfo, selectFlags))
                         return pTarget;
 
             break;
@@ -2290,14 +2295,37 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
             advance(ritr, position);
             for (; ritr != threatlist.rend(); ++ritr)
                 if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
-                    if (!selectFlags || MeetsSelectAttackingRequirement(pTarget, pSpellInfo, selectFlags))
+                    if (_canSelect(pTarget, pSpellInfo, selectFlags))
                         return pTarget;
 
             break;
         }
+        case ATTACKING_TARGET_FARTHEST_AWAY:
+        {
+            float highestDistance = -1;
+            Unit* farthestAway = nullptr;
+            for (; itr != threatlist.end(); ++itr)
+                if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
+                {
+                    float dist = Creature::GetCombatDistance(pTarget, false);
+                    const bool isFartherAwayThanCurrent = dist > highestDistance;
+                    if (isFartherAwayThanCurrent && _canSelect(pTarget, pSpellInfo, selectFlags))
+                    {
+                        highestDistance = dist;
+                        farthestAway = pTarget;
+                    }
+                }
+
+            return farthestAway;
+        }
     }
 
     return nullptr;
+}
+
+bool Creature::_canSelect(Unit* pTarget, SpellEntry const* pSpellInfo /*= nullptr*/, uint32 selectFlags/*= 0*/) const
+{
+    return !selectFlags || MeetsSelectAttackingRequirement(pTarget, pSpellInfo, selectFlags);
 }
 
 void Creature::_AddCreatureSpellCooldown(uint32 spell_id, time_t end_time)

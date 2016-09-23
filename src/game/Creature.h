@@ -313,6 +313,7 @@ enum AttackingTarget
     ATTACKING_TARGET_RANDOM = 0,                            // Just selects a random target
     ATTACKING_TARGET_TOPAGGRO,                              // Selects targes from top aggro to bottom
     ATTACKING_TARGET_BOTTOMAGGRO,                           // Selects targets from bottom aggro to top
+    ATTACKING_TARGET_FARTHEST_AWAY,                         // Selects the farthest away target
 };
 
 enum SelectFlags
@@ -796,6 +797,7 @@ class MANGOS_DLL_SPEC Creature : public Unit
     private:
         GridReference<Creature> m_gridRef;
         CreatureInfo const* m_creatureInfo;                 // in heroic mode can different from sObjectMgr::GetCreatureTemplate(GetEntry())
+        bool _canSelect(Unit* pTarget, SpellEntry const* pSpellInfo /*= nullptr*/, uint32 selectFlags/*= 0*/) const;
 };
 
 class ForcedDespawnDelayEvent : public BasicEvent

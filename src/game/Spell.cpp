@@ -5138,9 +5138,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     else
                     {
                         Pet* dbPet = new Pet;
-                        if (dbPet->LoadPetFromDB((Player*)m_caster, 0))
-                            return SPELL_CAST_OK;           // still returns an error to the player, so this error must come from somewhere else...
-                        else
+                        if (!dbPet->TryLoadFromDB((Player*)m_caster, 0))
                         {
                             delete dbPet;
                             return SPELL_FAILED_NO_PET;

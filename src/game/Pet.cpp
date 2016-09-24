@@ -90,6 +90,81 @@ void Pet::RemoveFromWorld()
     Unit::RemoveFromWorld();
 }
 
+bool Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current)
+{
+    uint32 ownerid = owner->GetGUIDLow();
+
+    QueryResult* result;
+
+    if (petnumber)
+        // known petnumber entry                  0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+            "FROM character_pet WHERE owner = '%u' AND id = '%u'",
+            ownerid, petnumber);
+    else if (current)
+        // current pet (slot 0)                   0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+            "FROM character_pet WHERE owner = '%u' AND slot = '%u'",
+            ownerid, PET_SAVE_AS_CURRENT);
+    else if (petentry)
+        // known petentry entry (unique for summoned pet, but non unique for hunter pet (only from current or not stabled pets)
+        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+            "FROM character_pet WHERE owner = '%u' AND entry = '%u' AND (slot = '%u' OR slot > '%u') ",
+            ownerid, petentry, PET_SAVE_AS_CURRENT, PET_SAVE_LAST_STABLE_SLOT);
+    else
+        // any current or other non-stabled pet (for hunter "call pet")
+        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+            "FROM character_pet WHERE owner = '%u' AND (slot = '%u' OR slot > '%u') ",
+            ownerid, PET_SAVE_AS_CURRENT, PET_SAVE_LAST_STABLE_SLOT);
+
+    if (!result)
+        return false;
+
+    Field* fields = result->Fetch();
+
+    // update for case of current pet "slot = 0"
+    petentry = fields[1].GetUInt32();
+    if (!petentry)
+    {
+        delete result;
+        return false;
+    }
+
+    CreatureInfo const* creatureInfo = ObjectMgr::GetCreatureTemplate(petentry);
+    if (!creatureInfo)
+    {
+        sLog.outError("Pet entry %u does not exist but used at pet load (owner: %s).", petentry, owner->GetGuidStr().c_str());
+        delete result;
+        return false;
+    }
+
+    uint32 summon_spell_id = fields[21].GetUInt32();
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(summon_spell_id);
+
+    bool is_temporary_summoned = spellInfo && GetSpellDuration(spellInfo) > 0;
+
+    // check temporary summoned pets like mage water elemental
+    if (current && is_temporary_summoned)
+    {
+        delete result;
+        return false;
+    }
+
+    PetType pet_type = PetType(fields[22].GetUInt8());
+    if (pet_type == HUNTER_PET)
+    {
+        if (!creatureInfo->isTameable())
+        {
+            delete result;
+            return false;
+        }
+    }
+
+    return true; // If errors occur down the line, one must think about data consistency
+}
+
 bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current)
 {
     m_loading = true;

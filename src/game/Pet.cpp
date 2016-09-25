@@ -90,7 +90,7 @@ void Pet::RemoveFromWorld()
     Unit::RemoveFromWorld();
 }
 
-bool Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current)
+SpellCastResult Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current)
 {
     uint32 ownerid = owner->GetGUIDLow();
 
@@ -120,7 +120,7 @@ bool Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
             ownerid, PET_SAVE_AS_CURRENT, PET_SAVE_LAST_STABLE_SLOT);
 
     if (!result)
-        return false;
+        return SPELL_FAILED_NO_PET;
 
     Field* fields = result->Fetch();
 
@@ -129,7 +129,7 @@ bool Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     if (!petentry)
     {
         delete result;
-        return false;
+        return SPELL_FAILED_NO_PET;
     }
 
     CreatureInfo const* creatureInfo = ObjectMgr::GetCreatureTemplate(petentry);
@@ -137,7 +137,7 @@ bool Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     {
         sLog.outError("Pet entry %u does not exist but used at pet load (owner: %s).", petentry, owner->GetGuidStr().c_str());
         delete result;
-        return false;
+        return SPELL_FAILED_NO_PET;
     }
 
     uint32 summon_spell_id = fields[21].GetUInt32();
@@ -149,7 +149,7 @@ bool Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     if (current && is_temporary_summoned)
     {
         delete result;
-        return false;
+        return SPELL_FAILED_NO_PET;
     }
 
     PetType pet_type = PetType(fields[22].GetUInt8());
@@ -158,14 +158,22 @@ bool Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
         if (!creatureInfo->isTameable())
         {
             delete result;
-            return false;
+            return SPELL_FAILED_NO_PET;
         }
     }
 
-    return true; // If errors occur down the line, one must think about data consistency
+    uint32 pet_health = fields[13].GetUInt32();
+    if (!pet_health)
+    {
+        delete result;
+        return SPELL_FAILED_TARGETS_DEAD;
+    }
+
+    delete result;
+    return SPELL_CAST_OK; // If errors occur down the line, one must think about data consistency
 }
 
-bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current)
+bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current, bool ignoreDead)
 {
     m_loading = true;
 
@@ -233,6 +241,16 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     if (pet_type == HUNTER_PET)
     {
         if (!creatureInfo->isTameable())
+        {
+            delete result;
+            return false;
+        }
+    }
+
+    if (!ignoreDead)
+    {
+        uint32 pet_health = fields[13].GetUInt32();
+        if (!pet_health)
         {
             delete result;
             return false;

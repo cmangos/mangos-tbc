@@ -7103,10 +7103,20 @@ void Spell::EffectSummonDeadPet(SpellEffectIndex /*eff_idx*/)
 {
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         return;
+
+    bool wasDespawned = false;
     Player* _player = (Player*)m_caster;
     Pet* pet = _player->GetPet();
     if (!pet)
-        return;
+    {
+        pet = new Pet;
+        if (!pet->LoadPetFromDB(_player, 0, 0, false, true))
+        {
+            delete pet;
+            return;
+        }
+        wasDespawned = true;
+    }
     if (pet->isAlive())
         return;
 
@@ -7125,7 +7135,9 @@ void Spell::EffectSummonDeadPet(SpellEffectIndex /*eff_idx*/)
 
     pet->AIM_Initialize();
 
-    // _player->PetSpellInitialize(); -- action bar not removed at death and not required send at revive
+    if(wasDespawned)
+        _player->PetSpellInitialize(); //action bar not removed at death and not required send at revive
+
     pet->SavePetToDB(PET_SAVE_AS_CURRENT);
 }
 

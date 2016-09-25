@@ -141,7 +141,7 @@ SpellCastResult Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnum
     }
 
     uint32 summon_spell_id = fields[21].GetUInt32();
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(summon_spell_id);
+    SpellEntry const* spellInfo = sSpellStore.LookupEntry(summon_spell_id);
 
     bool is_temporary_summoned = spellInfo && GetSpellDuration(spellInfo) > 0;
 

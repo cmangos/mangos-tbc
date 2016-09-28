@@ -3503,11 +3503,35 @@ void ObjectMgr::LoadQuests()
             sLog.outErrorDb("Quest %u has `SpecialFlags` = %u, above max flags not allowed for database.", qinfo->GetQuestId(), qinfo->m_SpecialFlags);
         }
 
+        if (qinfo->HasQuestFlag(QUEST_FLAGS_DAILY) && qinfo->HasQuestFlag(QUEST_FLAGS_WEEKLY))
+        {
+            sLog.outErrorDb("Weekly Quest %u is marked as daily quest in `QuestFlags`, removed daily flag.", qinfo->GetQuestId());
+            qinfo->m_QuestFlags &= ~QUEST_FLAGS_DAILY;
+        }
+
         if (qinfo->HasQuestFlag(QUEST_FLAGS_DAILY))
         {
             if (!qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE))
             {
                 sLog.outErrorDb("Daily Quest %u not marked as repeatable in `SpecialFlags`, added.", qinfo->GetQuestId());
+                qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE);
+            }
+        }
+
+        if (qinfo->HasQuestFlag(QUEST_FLAGS_WEEKLY))
+        {
+            if (!qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE))
+            {
+                sLog.outErrorDb("Weekly Quest %u not marked as repeatable in `SpecialFlags`, added.", qinfo->GetQuestId());
+                qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE);
+            }
+        }
+
+        if (qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_MONTHLY))
+        {
+            if (!qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE))
+            {
+                sLog.outErrorDb("Monthly quest %u not marked as repeatable in `SpecialFlags`, added.", qinfo->GetQuestId());
                 qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE);
             }
         }

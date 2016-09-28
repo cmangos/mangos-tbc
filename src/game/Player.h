@@ -729,6 +729,8 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADSKILLS,
     PLAYER_LOGIN_QUERY_LOADMAILS,
     PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,
+    PLAYER_LOGIN_QUERY_LOADWEEKLYQUESTSTATUS,
+    PLAYER_LOGIN_QUERY_LOADMONTHLYQUESTSTATUS,
 
     MAX_PLAYER_LOGIN_QUERY
 };
@@ -1257,6 +1259,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool SatisfyQuestNextChain(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestPrevChain(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestDay(Quest const* qInfo, bool msg) const;
+        bool SatisfyQuestWeek(Quest const * qInfo) const;
+        bool SatisfyQuestMonth(Quest const * qInfo) const;
         bool CanGiveQuestSourceItemIfNeed(Quest const* pQuest, ItemPosCountVec* dest = nullptr) const;
         void GiveQuestSourceItemIfNeed(Quest const* pQuest);
         bool TakeQuestSourceItem(uint32 quest_id, bool msg);
@@ -1265,7 +1269,11 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetQuestStatus(uint32 quest_id, QuestStatus status);
 
         void SetDailyQuestStatus(uint32 quest_id);
+        void SetWeeklyQuestStatus(uint32 quest_id);
+        void SetMonthlyQuestStatus(uint32 quest_id);
         void ResetDailyQuestStatus();
+        void ResetWeeklyQuestStatus();
+        void ResetMonthlyQuestStatus();
 
         uint16 FindQuestSlot(uint32 quest_id) const;
         uint32 GetQuestSlotQuestId(uint16 slot) const { return GetUInt32Value(PLAYER_QUEST_LOG_1_1 + slot * MAX_QUEST_OFFSET + QUEST_ID_OFFSET); }
@@ -2186,6 +2194,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         // We allow only one timed quest active at the same time. Below can then be simple value instead of set.
         typedef std::set<uint32> QuestSet;
         QuestSet m_timedquests;
+        QuestSet m_weeklyquests;
+        QuestSet m_monthlyquests;
 
         ObjectGuid m_dividerGuid;
         uint32 m_ingametime;
@@ -2203,6 +2213,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _LoadMailedItems(QueryResult* result);
         void _LoadQuestStatus(QueryResult* result);
         void _LoadDailyQuestStatus(QueryResult* result);
+        void _LoadWeeklyQuestStatus(QueryResult* result);
+        void _LoadMonthlyQuestStatus(QueryResult* result);
         void _LoadGroup(QueryResult* result);
         void _LoadSkills(QueryResult* result);
         void _LoadSpells(QueryResult* result);
@@ -2222,6 +2234,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _SaveMail();
         void _SaveQuestStatus();
         void _SaveDailyQuestStatus();
+        void _SaveWeeklyQuestStatus();
+        void _SaveMonthlyQuestStatus();
         void _SaveSkills();
         void _SaveSpells();
         void _SaveBGData();
@@ -2305,6 +2319,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         TradeData* m_trade;
 
         bool   m_DailyQuestChanged;
+        bool   m_WeeklyQuestChanged;
+        bool   m_MonthlyQuestChanged;
 
         uint32 m_drunkTimer;
         uint16 m_drunk;

@@ -89,7 +89,7 @@ float  World::m_relocation_lower_limit_sq     = 10.f * 10.f;
 uint32 World::m_relocation_ai_notify_delay    = 1000u;
 
 /// World constructor
-World::World(): mail_timer(0), mail_timer_expires(0)
+World::World() : mail_timer(0), mail_timer_expires(0), m_NextDailyQuestReset(0), m_NextWeeklyQuestReset(0), m_NextMonthlyQuestReset(0)
 {
     m_playerLimit = 0;
     m_allowMovement = true;
@@ -99,7 +99,6 @@ World::World(): mail_timer(0), mail_timer_expires(0)
     m_startTime = m_gameTime;
     m_maxActiveSessionCount = 0;
     m_maxQueuedSessionCount = 0;
-    m_NextDailyQuestReset = 0;
 
     m_defaultDbcLocale = LOCALE_enUS;
     m_availableDbcLocaleMask = 0;
@@ -624,6 +623,8 @@ void World::LoadConfigSettings(bool reload)
     setConfigMinMax(CONFIG_INT32_QUEST_HIGH_LEVEL_HIDE_DIFF, "Quests.HighLevelHideDiff", 7, -1, MAX_LEVEL);
 
     setConfigMinMax(CONFIG_UINT32_QUEST_DAILY_RESET_HOUR, "Quests.Daily.ResetHour", 6, 0, 23);
+    setConfigMinMax(CONFIG_UINT32_QUEST_WEEKLY_RESET_WEEK_DAY, "Quests.Weekly.ResetWeekDay", 3, 0, 6);
+    setConfigMinMax(CONFIG_UINT32_QUEST_WEEKLY_RESET_HOUR, "Quests.Weekly.ResetHour", 6, 0, 23);
 
     setConfig(CONFIG_BOOL_QUEST_IGNORE_RAID, "Quests.IgnoreRaid", false);
 
@@ -1291,6 +1292,14 @@ void World::SetInitialWorldSettings()
     InitDailyQuestResetTime();
     sLog.outString();
 
+    sLog.outString("Calculate next weekly quest reset time...");
+    InitWeeklyQuestResetTime();
+    sLog.outString();
+
+    sLog.outString("Calculate next monthly quest reset time...");
+    SetMonthlyQuestResetTime();
+    sLog.outString();
+
     sLog.outString("Starting Game Event system...");
     uint32 nextGameEvent = sGameEventMgr.Initialize();
     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    // depend on next event
@@ -1384,6 +1393,14 @@ void World::Update(uint32 diff)
     /// Handle daily quests reset time
     if (m_gameTime > m_NextDailyQuestReset)
         ResetDailyQuests();
+
+    /// Handle weekly quests reset time
+    if (m_gameTime > m_NextWeeklyQuestReset)
+        ResetWeeklyQuests();
+
+    /// Handle monthly quests reset time
+    if (m_gameTime > m_NextMonthlyQuestReset)
+        ResetMonthlyQuests();
 
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())
@@ -1920,16 +1937,129 @@ void World::InitDailyQuestResetTime()
         delete result;
 }
 
+void World::InitWeeklyQuestResetTime()
+{
+    QueryResult* result = CharacterDatabase.Query("SELECT NextWeeklyQuestResetTime FROM saved_variables");
+    if (!result)
+        m_NextWeeklyQuestReset = time_t(time(nullptr));        // game time not yet init
+    else
+        m_NextWeeklyQuestReset = time_t((*result)[0].GetUInt64());
+
+    // generate time by config
+    time_t curTime = time(nullptr);
+    tm localTm = *localtime(&curTime);
+
+    int week_day_offset = localTm.tm_wday - int(getConfig(CONFIG_UINT32_QUEST_WEEKLY_RESET_WEEK_DAY));
+
+    // current week reset time
+    localTm.tm_hour = getConfig(CONFIG_UINT32_QUEST_WEEKLY_RESET_HOUR);
+    localTm.tm_min = 0;
+    localTm.tm_sec = 0;
+    time_t nextWeekResetTime = mktime(&localTm);
+    nextWeekResetTime -= week_day_offset * DAY;             // move time to proper day
+
+                                                            // next reset time before current moment
+    if (curTime >= nextWeekResetTime)
+        nextWeekResetTime += WEEK;
+
+    // normalize reset time
+    m_NextWeeklyQuestReset = m_NextWeeklyQuestReset < curTime ? nextWeekResetTime - WEEK : nextWeekResetTime;
+
+    if (!result)
+        CharacterDatabase.PExecute("INSERT INTO saved_variables (NextWeeklyQuestResetTime) VALUES ('" UI64FMTD "')", uint64(m_NextWeeklyQuestReset));
+    else
+        delete result;
+}
+
+void World::SetMonthlyQuestResetTime(bool initialize)
+{
+    time_t currentTime = time(nullptr);
+    bool insert = false;
+    if (initialize)
+    {
+        QueryResult* result = CharacterDatabase.Query("SELECT NextMonthlyQuestResetTime FROM saved_variables");
+
+        if (!result)
+        {
+            m_NextMonthlyQuestReset = time_t(time(nullptr));
+            insert = true;
+        }
+        else
+        {
+            m_NextMonthlyQuestReset = time_t((*result)[0].GetUInt64());
+            delete result;
+            return; // if value in DB, need to check if timer expired first in ResetMonthlyQuests()
+        }
+
+        delete result;
+    }
+
+    tm localTm = *localtime(&currentTime);
+
+    int month = localTm.tm_mon;
+    int year = localTm.tm_year;
+
+    ++month;
+
+    // month 11 is december, next is january (0)
+    if (month > 11)
+    {
+        month = 0;
+        year += 1;
+    }
+
+    // reset time for next month
+    localTm.tm_year = year;
+    localTm.tm_mon = month;
+    localTm.tm_mday = 1;                                    // don't know if we really need config option for day/hour
+    localTm.tm_hour = getConfig(CONFIG_UINT32_QUEST_DAILY_RESET_HOUR);
+    localTm.tm_min = 0;
+    localTm.tm_sec = 0;
+
+    time_t nextMonthResetTime = mktime(&localTm);
+
+    m_NextMonthlyQuestReset = (initialize && m_NextMonthlyQuestReset < nextMonthResetTime) ? m_NextMonthlyQuestReset : nextMonthResetTime;
+
+    if (insert)
+        CharacterDatabase.PExecute("INSERT INTO saved_variables (NextMonthlyQuestResetTime) VALUES ('" UI64FMTD "')", uint64(m_NextMonthlyQuestReset));
+    else
+        CharacterDatabase.PExecute("UPDATE saved_variables SET NextMonthlyQuestResetTime = '" UI64FMTD "'", uint64(m_NextMonthlyQuestReset));
+}
+
 void World::ResetDailyQuests()
 {
     DETAIL_LOG("Daily quests reset for all characters.");
-    CharacterDatabase.Execute("DELETE FROM character_queststatus_daily");
+    CharacterDatabase.Execute("TRUNCATE character_queststatus_daily");
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (itr->second->GetPlayer())
             itr->second->GetPlayer()->ResetDailyQuestStatus();
 
     m_NextDailyQuestReset = time_t(m_NextDailyQuestReset + DAY);
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextDailyQuestResetTime = '" UI64FMTD "'", uint64(m_NextDailyQuestReset));
+}
+
+void World::ResetWeeklyQuests()
+{
+    DETAIL_LOG("Weekly quests reset for all characters.");
+    CharacterDatabase.Execute("TRUNCATE character_queststatus_weekly");
+    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+        if (itr->second->GetPlayer())
+            itr->second->GetPlayer()->ResetWeeklyQuestStatus();
+
+    m_NextWeeklyQuestReset = time_t(m_NextWeeklyQuestReset + WEEK);
+    CharacterDatabase.PExecute("UPDATE saved_variables SET NextWeeklyQuestResetTime = '" UI64FMTD "'", uint64(m_NextWeeklyQuestReset));
+}
+
+void World::ResetMonthlyQuests()
+{
+    DETAIL_LOG("Monthly quests reset for all characters.");
+    CharacterDatabase.Execute("TRUNCATE character_queststatus_monthly");
+
+    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+        if (itr->second->GetPlayer())
+            itr->second->GetPlayer()->ResetMonthlyQuestStatus();
+
+    SetMonthlyQuestResetTime(false);
 }
 
 void World::SetPlayerLimit(int32 limit, bool needUpdate)

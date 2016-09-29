@@ -9238,7 +9238,7 @@ void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid
         RemoveFlag(UNIT_FIELD_FLAGS, state);
 
     if (movement)
-        GetMotionMaster()->MovementExpired(false);
+        GetMotionMaster()->MovementExpired();
     if (apply)
         CastStop(GetObjectGuid() == casterGuid ? spellID : 0);
 

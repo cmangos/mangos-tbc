@@ -73,7 +73,7 @@ struct mobs_risen_husk_spiritAI : public ScriptedAI
             m_pCreditPlayer->RewardPlayerAndGroupAtEvent(pSummoned->GetEntry(), pSummoned);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage) override
+    void DamageTaken(Unit* pDoneBy, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (uiDamage < m_creature->GetHealth())
             return;
@@ -640,7 +640,7 @@ struct npc_private_hendelAI : public ScriptedAI
         AttackStart(pAttacker);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& uiDamage) override
+    void DamageTaken(Unit* pDoneBy, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (uiDamage > m_creature->GetHealth() || m_creature->GetHealthPercent() < 20.0f)
         {

@@ -419,15 +419,12 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->SpellFamilyFlags & uint64(0x12040000))
                 return SPELL_MAGE_ARMOR;
 
-            if ((spellInfo->SpellFamilyFlags & uint64(0x1000000)) && spellInfo->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MOD_CONFUSE)
-                return SPELL_MAGE_POLYMORPH;
-
             break;
         }
         case SPELLFAMILY_WARRIOR:
         {
             if (spellInfo->SpellFamilyFlags & uint64(0x00008000010000))
-                return SPELL_POSITIVE_SHOUT;
+                return SPELL_SHOUT_BUFF;
 
             break;
         }
@@ -493,7 +490,8 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
         }
         case SPELLFAMILY_SHAMAN:
         {
-            if (IsElementalShield(spellInfo))
+            // Elemental shields: family flags 10 (Lightning), 42 (Earth), 37 (Water), proc shield from T2 8 pieces bonus
+            if ((spellInfo->SpellFamilyFlags & uint64(0x42000000400)) || spellInfo->Id == 23552)
                 return SPELL_ELEMENTAL_SHIELD;
 
             break;
@@ -567,12 +565,6 @@ bool IsSingleTargetSpell(SpellEntry const* spellInfo)
         return true;
 
     return false;
-}
-
-bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
-{
-    return ((spellInfo1->Id == spellInfo2->Id || spellInfo1->SpellFamilyFlags.Flags == spellInfo2->SpellFamilyFlags.Flags) && IsSingleTargetSpell(spellInfo1) && IsSingleTargetSpell(spellInfo2));
-
 }
 
 SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 form)

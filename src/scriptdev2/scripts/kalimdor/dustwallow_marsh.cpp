@@ -237,7 +237,7 @@ struct npc_morokkAI : public npc_escortAI
         AttackStart(pAttacker);
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage) override
+    void DamageTaken(Unit* /*pDealer*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
         if (HasEscortState(STATE_ESCORT_ESCORTING))
         {

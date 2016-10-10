@@ -327,19 +327,6 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
     }
 }
 
-bool IsPassiveSpell(uint32 spellId)
-{
-    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
-    if (!spellInfo)
-        return false;
-    return IsPassiveSpell(spellInfo);
-}
-
-bool IsPassiveSpell(SpellEntry const* spellInfo)
-{
-    return spellInfo->HasAttribute(SPELL_ATTR_PASSIVE);
-}
-
 SpellSpecific GetSpellSpecific(uint32 spellId)
 {
     SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
@@ -350,9 +337,15 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
     {
         case SPELLFAMILY_GENERIC:
         {
-            // Aspect of the Beast
-            if (spellInfo->Id == 13161)
-                return SPELL_ASPECT;
+            // Pre-Wrath wrong family spells:
+            switch (spellInfo->Id)
+            {
+                case 687:       // Demon Skin, Rank 1
+                case 696:       // Demon Skin, Rank 2
+                    return SPELL_WARLOCK_ARMOR;
+                case 13161:     // Aspect of the Beast
+                    return SPELL_ASPECT;
+            }
 
             // Food / Drinks (mostly)
             if (spellInfo->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED)
@@ -416,14 +409,14 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
         case SPELLFAMILY_MAGE:
         {
             // family flags 18(Molten), 25(Frost/Ice), 28(Mage)
-            if (spellInfo->SpellFamilyFlags & uint64(0x12040000))
+            if (spellInfo->IsFitToFamilyMask(uint64(0x12040000)))
                 return SPELL_MAGE_ARMOR;
 
             break;
         }
         case SPELLFAMILY_WARRIOR:
         {
-            if (spellInfo->SpellFamilyFlags & uint64(0x00008000010000))
+            if (spellInfo->IsFitToFamilyMask(uint64(0x00008000010000)))
                 return SPELL_SHOUT_BUFF;
 
             break;
@@ -434,12 +427,12 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->Dispel == DISPEL_CURSE)
                 return SPELL_CURSE;
 
-            // family flag 37 (only part spells have family name)
+            // family flag 37 (except Demon Skin, which is under general)
             if (spellInfo->IsFitToFamilyMask(uint64(0x0000002000000000)))
                 return SPELL_WARLOCK_ARMOR;
 
             // Drain Soul and Shadowburn
-            if (spellInfo->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_CHANNEL_DEATH_ITEM)
+            if (IsSpellHaveAura(spellInfo, SPELL_AURA_CHANNEL_DEATH_ITEM))
                 return SPELL_SOUL_CAPTURE;
 
             // Corruption and Seed of Corruption
@@ -463,7 +456,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->Dispel == DISPEL_POISON)
                 return SPELL_STING;
 
-            // only hunter aspects have this (one have generic family)
+            // only hunter aspects have this (except Aspect of the Beast, which is under general)
             if (spellInfo->IsFitToFamilyMask(uint64(0x0044000000380000)))
                 return SPELL_ASPECT;
 
@@ -480,18 +473,15 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->IsFitToFamilyMask(uint64(0x00000820180400)) && spellInfo->HasAttribute(SPELL_ATTR_EX3_UNK9))
                 return SPELL_JUDGEMENT;
 
-            for (int i = 0; i < 3; ++i)
-            {
-                // only paladin auras have this
-                if (spellInfo->Effect[i] == SPELL_EFFECT_APPLY_AREA_AURA_PARTY)
-                    return SPELL_AURA;
-            }
+            if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_APPLY_AREA_AURA_PARTY))
+                return SPELL_AURA;
+
             break;
         }
         case SPELLFAMILY_SHAMAN:
         {
             // Elemental shields: family flags 10 (Lightning), 42 (Earth), 37 (Water), proc shield from T2 8 pieces bonus
-            if ((spellInfo->SpellFamilyFlags & uint64(0x42000000400)) || spellInfo->Id == 23552)
+            if (spellInfo->IsFitToFamilyMask(uint64(0x42000000400)) || spellInfo->Id == 23552)
                 return SPELL_ELEMENTAL_SHIELD;
 
             break;
@@ -499,12 +489,6 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
 
         case SPELLFAMILY_POTION:
             return sSpellMgr.GetSpellElixirSpecific(spellInfo->Id);
-    }
-
-    // only warlock armor/skin have this (in additional to family cases)
-    if (spellInfo->SpellVisual == 130 && spellInfo->SpellIconID == 89)
-    {
-        return SPELL_WARLOCK_ARMOR;
     }
 
     // Tracking spells (exclude Well Fed, some other always allowed cases)
@@ -549,21 +533,6 @@ bool IsExplicitNegativeTarget(uint32 targetA)
         default:
             break;
     }
-    return false;
-}
-
-bool IsSingleTargetSpell(SpellEntry const* spellInfo)
-{
-    // all other single target spells have if it has AttributesEx5
-    if (spellInfo->HasAttribute(SPELL_ATTR_EX5_SINGLE_TARGET_SPELL))
-        return true;
-
-    // single target triggered spell.
-    // Not real client side single target spell, but it' not triggered until prev. aura expired.
-    // This is allow store it in single target spells list for caster for spell proc checking
-    if (spellInfo->Id == 38324)                             // Regeneration (triggered by 38299 (HoTs on Heals))
-        return true;
-
     return false;
 }
 

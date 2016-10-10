@@ -172,17 +172,17 @@ inline bool IsSpellLastAuraEffect(SpellEntry const* spellInfo, SpellEffectIndex 
     return true;
 }
 
+inline bool IsAllowingDeadTarget(SpellEntry const* spellInfo)
+{
+    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
+}
+
 inline bool IsSealSpell(SpellEntry const* spellInfo)
 {
     // Collection of all the seal family flags. No other paladin spell has any of those.
     return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, uint64(0x000004000A000200)) &&
            // avoid counting target triggered effect as seal for avoid remove it or seal by it.
            spellInfo->EffectImplicitTargetA[0] == TARGET_SELF;
-}
-
-inline bool IsAllowingDeadTarget(SpellEntry const* spellInfo)
-{
-    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
 }
 
 inline bool IsSpellMagePolymorph(uint32 spellid)
@@ -258,8 +258,16 @@ inline bool IsSpellAbleToCrit(const SpellEntry* entry)
     return false;
 }
 
-bool IsPassiveSpell(uint32 spellId);
-bool IsPassiveSpell(SpellEntry const* spellProto);
+inline bool IsPassiveSpell(SpellEntry const* spellInfo)
+{
+    return spellInfo->HasAttribute(SPELL_ATTR_PASSIVE);
+}
+
+inline bool IsPassiveSpell(uint32 spellId)
+{
+    const SpellEntry* entry = sSpellStore.LookupEntry(spellId);
+    return (entry && IsPassiveSpell(entry));
+}
 
 inline bool IsPassiveSpellStackableWithRanks(SpellEntry const* spellProto)
 {
@@ -308,12 +316,6 @@ inline bool IsNonCombatSpell(SpellEntry const* spellInfo)
 
 bool IsExplicitPositiveTarget(uint32 targetA);
 bool IsExplicitNegativeTarget(uint32 targetA);
-
-bool IsSingleTargetSpell(SpellEntry const* spellInfo);
-inline bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
-{
-    return (IsSingleTargetSpell(spellInfo1) && (spellInfo1->Id == spellInfo2->Id || (spellInfo1->SpellFamilyFlags.Flags == spellInfo2->SpellFamilyFlags.Flags && IsSingleTargetSpell(spellInfo2))));
-}
 
 // TODO: research binary spells
 inline bool IsBinarySpell(SpellEntry const* spellInfo)
@@ -496,6 +498,26 @@ inline bool IsOnlySelfTargeting(SpellEntry const* spellInfo)
         }
     }
     return true;
+}
+
+inline bool IsSingleTargetSpell(SpellEntry const* spellInfo)
+{
+    // all other single target spells have if it has AttributesEx5
+    if (spellInfo->HasAttribute(SPELL_ATTR_EX5_SINGLE_TARGET_SPELL))
+        return true;
+
+    // single target triggered spell.
+    // Not real client side single target spell, but it' not triggered until prev. aura expired.
+    // This is allow store it in single target spells list for caster for spell proc checking
+    if (spellInfo->Id == 38324)                             // Regeneration (triggered by 38299 (HoTs on Heals))
+        return true;
+
+    return false;
+}
+
+inline bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
+{
+    return (IsSingleTargetSpell(spellInfo1) && (spellInfo1->Id == spellInfo2->Id || (spellInfo1->SpellFamilyFlags.Flags == spellInfo2->SpellFamilyFlags.Flags && IsSingleTargetSpell(spellInfo2))));
 }
 
 inline bool IsScriptTarget(uint32 target)

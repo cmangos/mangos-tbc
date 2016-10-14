@@ -35,6 +35,8 @@ INSERT INTO spell_template(Id,ProcFlags,ProcChance,DurationIndex,Effect1,EffectI
 INSERT INTO spell_template (Id, Attributes, AttributesEx, AttributesEx2, AttributesEx3, procFlags, procChance, DurationIndex, RangeIndex, Effect1, EffectImplicitTargetA1, EffectImplicitTargetB1, EffectRadiusIndex1, EffectApplyAuraName1, EffectMiscValue1, EffectMiscValueB1, EffectTriggerSpell1, SpellIconID, SpellName, DmgMultiplier1) VALUES
 (38096, 384, 0, 9, 0, 0, 101, 21, 96, 6, 38, 0, 0, 4, 0, 0, 0, 1, '[DND]Destroy Sun Gate Portal Controller', 1);
 
+UPDATE spell_template SET EffectItemType2=268435456 WHERE Id IN(16106); -- all ranks except rank 3 have mask
+
 -- wotlk backport
 INSERT INTO spell_template(Id, Attributes, AttributesEx,AttributesEx2,AttributesEx3,ProcFlags,ProcChance,DurationIndex,Effect1,EffectImplicitTargetA1,EffectImplicitTargetB1,EffectRadiusIndex1,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValueB1,EffectTriggerSpell1,IsServerSide,SpellName) VALUES
 ('38854','384','0','0','0','0','101','3','28','18','0','0','0','22339','64','0','1','summon Redeemet Hatchling'),

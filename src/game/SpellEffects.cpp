@@ -3784,7 +3784,7 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
     {
         // Load pet from db; if any to load
         if (m_caster->getClass() != CLASS_PRIEST
-            && spawnCreature->LoadPetFromDB((Player*)m_caster, pet_entry))
+            && spawnCreature->LoadPetFromDB((Player*)m_caster, pet_entry, 0, false, true))
         {
             spawnCreature->SetHealth(spawnCreature->GetMaxHealth());
             spawnCreature->SetPower(POWER_MANA, spawnCreature->GetMaxPower(POWER_MANA));
@@ -3870,7 +3870,8 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
             spawnCreature->SetPvP(true);
 
         ((Player*)m_caster)->PetSpellInitialize();
-        spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
+        if(m_caster->getClass() != CLASS_PRIEST)
+            spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
     }
     return true;
 }
@@ -4543,7 +4544,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
 
     Pet* NewSummon = new Pet;
 
-    bool skip;
+    bool skip = false;
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
@@ -4577,7 +4578,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
                     OldSummon->Unsummon(PET_SAVE_NOT_IN_SLOT, m_caster);
 
                 // Load pet from db; if any to load
-                if (NewSummon->LoadPetFromDB((Player*)m_caster, petentry)) 
+                if (NewSummon->LoadPetFromDB((Player*)m_caster, petentry, 0, false, true))
                 {
                     NewSummon->SetHealth(NewSummon->GetMaxHealth());
                     NewSummon->SetPower(POWER_MANA, NewSummon->GetMaxPower(POWER_MANA));

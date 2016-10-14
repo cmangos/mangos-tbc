@@ -90,7 +90,7 @@ void Pet::RemoveFromWorld()
     Unit::RemoveFromWorld();
 }
 
-SpellCastResult Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current)
+SpellCastResult Pet::TryLoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool current)
 {
     uint32 ownerid = owner->GetGUIDLow();
 
@@ -162,8 +162,8 @@ SpellCastResult Pet::TryLoadFromDB(Player* owner, uint32 petentry, uint32 petnum
         }
     }
 
-    uint32 pet_health = fields[13].GetUInt32();
-    if (!pet_health)
+    uint32 savedhealth = fields[13].GetUInt32();
+    if (!savedhealth)
     {
         delete result;
         return SPELL_FAILED_TARGETS_DEAD;
@@ -247,10 +247,10 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
         }
     }
 
+    uint32 savedhealth = fields[13].GetUInt32();
     if (!ignoreDead)
-    {
-        uint32 pet_health = fields[13].GetUInt32();
-        if (!pet_health)
+    {        
+        if (!savedhealth)
         {
             delete result;
             return false;
@@ -324,7 +324,6 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry, uint32 petnumber, bool c
     m_charmInfo->SetReactState(ReactStates(fields[6].GetUInt8()));
     m_loyaltyPoints = fields[7].GetInt32();
 
-    uint32 savedhealth = fields[13].GetUInt32();
     uint32 savedpower = fields[14].GetUInt32();
 
     // set current pet as current

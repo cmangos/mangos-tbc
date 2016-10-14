@@ -2592,28 +2592,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     return;
                 }
             }
-            // Improved Weapon Totems
-            if (GetSpellProto()->SpellIconID == 57 && target->GetTypeId() == TYPEID_PLAYER)
-            {
-                if (apply)
-                {
-                    switch (m_effIndex)
-                    {
-                        case 0:
-                            // Windfury Totem
-                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, m_modifier.m_amount, GetId(), uint64(0x00200000000));
-                            break;
-                        case 1:
-                            // Flametongue Totem
-                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, m_modifier.m_amount, GetId(), uint64(0x00400000000));
-                            break;
-                        default: return;
-                    }
-                }
-
-                ((Player*)target)->AddSpellMod(m_spellmod, apply);
-                return;
-            }
             break;
         }
     }

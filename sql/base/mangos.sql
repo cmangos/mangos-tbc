@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2334_01_mangos_flametongue` bit(1) DEFAULT NULL
+  `required_s2336_01_mangos_mangle` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -15939,9 +15939,7 @@ INSERT INTO `spell_threat` VALUES
 (33619,       0,    0,    0),
 (33745,     285,    1,    0),
 (33778,       0,    0,    0),
-(33878,     129,    1,    0),
-(33986,     180,    1,    0),
-(33987,     232,    1,    0),
+(33878,       0,  1.3,    0),
 (44041,       0,  0.5,    0);
 /*!40000 ALTER TABLE `spell_threat` ENABLE KEYS */;
 UNLOCK TABLES;

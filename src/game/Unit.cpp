@@ -5987,9 +5987,12 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const* spellProto, int32 total, int3
         // Spellmod SpellDamage
         if (Player* modOwner = GetSpellModOwner())
         {
-            coeff *= 100.0f;
-            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_SPELL_BONUS_DAMAGE, coeff);
-            coeff /= 100.0f;
+            if (damagetype != DOT) // DOTs are not affected by these SPELLMODs, at least not in TBC/WOTLK
+            {
+                coeff *= 100.0f;
+                modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_SPELL_BONUS_DAMAGE, coeff);
+                coeff /= 100.0f;
+            }
         }
 
         total += int32(benefit * coeff * LvlPenalty);

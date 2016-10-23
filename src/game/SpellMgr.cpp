@@ -2114,7 +2114,13 @@ void SpellMgr::LoadSpellScriptTarget()
                     spellProto->EffectImplicitTargetA[i] == TARGET_AREAEFFECT_GO_AROUND_DEST ||
                     spellProto->EffectImplicitTargetB[i] == TARGET_AREAEFFECT_GO_AROUND_DEST ||
                     spellProto->EffectImplicitTargetA[i] == TARGET_NARROW_FRONTAL_CONE ||
-                    spellProto->EffectImplicitTargetB[i] == TARGET_NARROW_FRONTAL_CONE)
+                    spellProto->EffectImplicitTargetB[i] == TARGET_NARROW_FRONTAL_CONE ||
+                    spellProto->EffectImplicitTargetA[i] == TARGET_RANDOM_ENEMY_CHAIN_IN_AREA ||
+                    spellProto->EffectImplicitTargetA[i] == TARGET_RANDOM_FRIEND_CHAIN_IN_AREA ||
+                    spellProto->EffectImplicitTargetA[i] == TARGET_RANDOM_UNIT_CHAIN_IN_AREA || 
+                    spellProto->EffectImplicitTargetB[i] == TARGET_RANDOM_ENEMY_CHAIN_IN_AREA ||
+                    spellProto->EffectImplicitTargetB[i] == TARGET_RANDOM_FRIEND_CHAIN_IN_AREA ||
+                    spellProto->EffectImplicitTargetB[i] == TARGET_RANDOM_UNIT_CHAIN_IN_AREA)
             {
                 targetfound = true;
                 break;

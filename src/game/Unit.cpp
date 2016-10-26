@@ -1853,7 +1853,7 @@ void Unit::HandleEmote(uint32 emote_id)
     }
 }
 
-uint32 Unit::CalculateEffectiveMagicResistance(Unit* attacker, SpellSchoolMask schoolMask, bool binary) const
+uint32 Unit::CalculateEffectiveMagicResistance(Unit* attacker, SpellSchoolMask schoolMask) const
 {
     if (!(schoolMask & SPELL_SCHOOL_MASK_MAGIC))
         return 0;
@@ -1881,17 +1881,18 @@ uint32 Unit::CalculateEffectiveMagicResistance(Unit* attacker, SpellSchoolMask s
         }
         schools >>= 1;
     }
-    // Add bonus resistance to victim based on level difference for non-binary spells
-    if (!binary)
-        resistance += uint32(std::max(int32(GetLevelForTarget(attacker)- attacker->GetLevelForTarget(this)), 0)) * 5;
-
     return resistance;
 }
 
-float Unit::CalculateMagicResistanceMitigation(Unit* attacker, uint32 resistance) const
+float Unit::CalculateMagicResistanceMitigation(Unit* attacker, uint32 resistance, bool binary) const
 {
-    // Total resistance mitigation: final ratio of resistance effectiveness (capped at 0.75)
-    return std::min(float(float(resistance) / (attacker->GetLevelForTarget(this) * 5)) * 0.75f, 0.75f);
+    // Total resistance mitigation: final ratio of resistance effectiveness
+    float ratio = float(float(resistance) / (attacker->GetLevelForTarget(this) * 5)) * 0.75f;
+    // Add bonus resistance mitigation to victim based on level difference for non-binary spells
+    if (!binary)
+        ratio += std::max(int32(GetLevelForTarget(attacker) - attacker->GetLevelForTarget(this)), 0) * 0.02f;
+    // Magic resistance mitigation is capped at 0.75
+    return std::min(ratio, 0.75f);
 }
 
 uint32 Unit::CalcArmorReducedDamage(Unit* pVictim, const uint32 damage)
@@ -1929,7 +1930,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
     // Magic damage, check for resists
     if (!ignoreResists)
     {
-        float tmpvalue2 = CalculateEffectiveMagicResistance(pCaster, schoolMask, false);
+        float tmpvalue2 = CalculateEffectiveMagicResistance(pCaster, schoolMask);
 
         tmpvalue2 *= (float)(0.15f / getLevel());
         if (tmpvalue2 < 0.0f)
@@ -2913,7 +2914,7 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell)
     if (!spell->HasAttribute(SPELL_ATTR_EX4_IGNORE_RESISTANCES))
     {
         const bool binary = IsBinarySpell(spell);
-        const float mitigation = pVictim->CalculateMagicResistanceMitigation(this, pVictim->CalculateEffectiveMagicResistance(this, schoolMask, binary));
+        const float mitigation = pVictim->CalculateMagicResistanceMitigation(this, pVictim->CalculateEffectiveMagicResistance(this, schoolMask), binary);
         // Calculate full resist chance
         const uint32 chance = binary ? uint32(mitigation * 10000) : /* FIXME: nonbinary full resist chance */ 0;
         // Do a roll for full resist chance

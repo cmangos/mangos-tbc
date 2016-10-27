@@ -3744,13 +3744,10 @@ void Aura::HandleInvisibility(bool apply, bool Real)
 
         if (Real && target->GetTypeId() == TYPEID_PLAYER)
         {
-            if (Player* player = (Player*)target)
+            if (((Player*)target)->IsSelfMover()) // check if the player doesnt have a mover, when player is hidden during MC of creature
             {
-                if (player->GetMover() == nullptr) // check if the player doesnt have a mover, when player is hidden during MC of creature
-                {
-                    // apply glow vision
-                    target->SetByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
-                }
+                // apply glow vision
+                target->SetByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW);
             }
         }
 

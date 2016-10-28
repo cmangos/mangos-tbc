@@ -32,6 +32,7 @@
 
 #include <deque>
 #include <mutex>
+#include <memory>
 
 struct ItemPrototype;
 struct AuctionEntry;
@@ -204,7 +205,7 @@ class WorldSession
         void LogoutPlayer(bool Save);
         void KickPlayer();
 
-        void QueuePacket(WorldPacket* new_packet);
+        void QueuePacket(std::unique_ptr<WorldPacket> new_packet);
 
         bool Update(PacketFilter& updater);
 
@@ -745,11 +746,11 @@ class WorldSession
         bool VerifyMovementInfo(MovementInfo const& movementInfo) const;
         void HandleMoverRelocation(MovementInfo& movementInfo);
 
-        void ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket* packet);
+        void ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket& packet);
 
         // logging helper
-        void LogUnexpectedOpcode(WorldPacket* packet, const char* reason);
-        void LogUnprocessedTail(WorldPacket* packet);
+        void LogUnexpectedOpcode(WorldPacket const& packet, const char* reason);
+        void LogUnprocessedTail(WorldPacket const& packet);
 
         Player * _player;
         WorldSocket * const m_Socket;                       // socket pointer is owned by the network thread which created 
@@ -772,7 +773,7 @@ class WorldSession
         TutorialDataState m_tutorialState;
 
         std::mutex m_recvQueueLock;
-        std::deque<WorldPacket *> m_recvQueue;
+        std::deque<std::unique_ptr<WorldPacket>> m_recvQueue;
 };
 #endif
 /// @}

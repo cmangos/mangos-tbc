@@ -52,7 +52,7 @@ bool AreaTrigger_at_childrens_week_spot(Player* pPlayer, AreaTriggerEntry const*
         if (pAt->id == TriggerOrphanSpell[i][0] &&
                 pPlayer->GetMiniPet() && pPlayer->GetMiniPet()->GetEntry() == TriggerOrphanSpell[i][1])
         {
-            pPlayer->CastSpell(pPlayer, TriggerOrphanSpell[i][2], true);
+            pPlayer->CastSpell(pPlayer, TriggerOrphanSpell[i][2], TRIGGERED_OLD_TRIGGERED);
             return true;
         }
     }
@@ -97,13 +97,13 @@ bool AreaTrigger_at_legion_teleporter(Player* pPlayer, AreaTriggerEntry const* /
     {
         if (pPlayer->GetTeam() == ALLIANCE && pPlayer->GetQuestRewardStatus(QUEST_GAINING_ACCESS_A))
         {
-            pPlayer->CastSpell(pPlayer, SPELL_TELE_A_TO, false);
+            pPlayer->CastSpell(pPlayer, SPELL_TELE_A_TO, TRIGGERED_NONE);
             return true;
         }
 
         if (pPlayer->GetTeam() == HORDE && pPlayer->GetQuestRewardStatus(QUEST_GAINING_ACCESS_H))
         {
-            pPlayer->CastSpell(pPlayer, SPELL_TELE_H_TO, false);
+            pPlayer->CastSpell(pPlayer, SPELL_TELE_H_TO, TRIGGERED_NONE);
             return true;
         }
         return false;

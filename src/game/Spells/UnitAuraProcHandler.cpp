@@ -2338,7 +2338,7 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(Unit* /*pVictim*/, uint32 /*dama
         {
             caster->ApplySpellMod(spellProto->Id, SPELLMOD_RADIUS, radius, nullptr);
 
-            if (Player* target = ((Player*)this)->GetNextRandomRaidMember(radius))
+            if (Player* target = ((Player*)this)->GetNextRaidMemberWithLowestLifePercentage(radius, SPELL_AURA_PRAYER_OF_MENDING))
             {
                 // aura will applied from caster, but spell casted from current aura holder
                 SpellModifier* mod = new SpellModifier(SPELLMOD_CHARGES, SPELLMOD_FLAT, jumps - 5, spellProto->Id, spellProto->SpellFamilyFlags);
@@ -2347,9 +2347,9 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(Unit* /*pVictim*/, uint32 /*dama
                 triggeredByAura->SetInUse(true);
                 RemoveAurasByCasterSpell(spellProto->Id, caster->GetObjectGuid());
 
-                caster->AddSpellMod(mod, true);
+                ((Player*)this)->AddSpellMod(mod, true);
                 CastCustomSpell(target, spellProto->Id, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, triggeredByAura, caster->GetObjectGuid());
-                caster->AddSpellMod(mod, false);
+                ((Player*)this)->AddSpellMod(mod, false);
                 triggeredByAura->SetInUse(false);
             }
         }

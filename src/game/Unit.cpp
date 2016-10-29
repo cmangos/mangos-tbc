@@ -2908,6 +2908,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
 
     bool canDodge = true;
     bool canParry = true;
+    bool canBlock = spell->HasAttribute(SPELL_ATTR_EX3_BLOCKABLE_SPELL);
 
     // Same spells cannot be parry/dodge
     if (spell->HasAttribute(SPELL_ATTR_IMPOSSIBLE_DODGE_PARRY_BLOCK))
@@ -2927,6 +2928,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
             canDodge = false;
         // Can`t parry
         canParry = false;
+        canBlock = false;
     }
     // Check creatures flags_extra for disable parry
     if (pVictim->GetTypeId() == TYPEID_UNIT)
@@ -2944,7 +2946,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
         switch ((*i)->GetModifier()->m_miscvalue)
         {
             case MELEE_HIT_DODGE: canDodge = false; break;
-            case MELEE_HIT_BLOCK: break; // Block check in hit step
+            case MELEE_HIT_BLOCK: canBlock = false; break;
             case MELEE_HIT_PARRY: canParry = false; break;
             default:
                 DEBUG_LOG("Spell %u SPELL_AURA_IGNORE_COMBAT_RESULT have unhandled state %d", (*i)->GetId(), (*i)->GetModifier()->m_miscvalue);
@@ -2984,6 +2986,24 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
         tmp += parryChance;
         if (roll < tmp)
             return SPELL_MISS_PARRY;
+    }
+
+    if (canBlock)
+    {
+        int32 blockChance = int32(pVictim->GetUnitBlockChance() * 100.0f) - skillDiff * 4;
+
+        if (GetTypeId() == TYPEID_UNIT)
+        {
+            if (((Creature*)this)->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NO_BLOCK)
+                blockChance = 0;
+        }
+
+        if (blockChance < 0)
+            blockChance = 0;
+
+        tmp += blockChance;
+        if (roll < tmp)
+            return SPELL_MISS_BLOCK;
     }
 
     return SPELL_MISS_NONE;

@@ -79,7 +79,7 @@ struct PackedGuidReader
     ObjectGuid* m_guidPtr;
 };
 
-class ObjectGuid
+class MANGOS_DLL_SPEC ObjectGuid
 {
     public:                                                 // constructors
         ObjectGuid() : m_guid(0) {}

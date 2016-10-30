@@ -154,7 +154,7 @@ struct QuestMenuItem
 
 typedef std::vector<QuestMenuItem> QuestMenuItemList;
 
-class GossipMenu
+class MANGOS_DLL_SPEC GossipMenu
 {
     public:
         explicit GossipMenu(WorldSession* session);
@@ -242,7 +242,7 @@ class QuestMenu
         QuestMenuItemList m_qItems;
 };
 
-class PlayerMenu
+class MANGOS_DLL_SPEC PlayerMenu
 {
     private:
         GossipMenu mGossipMenu;

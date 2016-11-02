@@ -511,7 +511,7 @@ bool WorldSession::VerifyMovementInfo(MovementInfo const& movementInfo) const
     {
         // transports size limited
         // (also received at zeppelin/lift leave by some reason with t_* as absolute in continent coordinates, can be safely skipped)
-        if (abs(movementInfo.GetTransportPos()->x) > 60 || abs(movementInfo.GetTransportPos()->y) > 50 || abs(movementInfo.GetTransportPos()->z) > 100)
+        if (std::abs(movementInfo.GetTransportPos()->x) > 60 || std::abs(movementInfo.GetTransportPos()->y) > 50 || std::abs(movementInfo.GetTransportPos()->z) > 100)
             return false;
 
         if (!MaNGOS::IsValidMapCoord(movementInfo.GetPos()->x + movementInfo.GetTransportPos()->x, movementInfo.GetPos()->y + movementInfo.GetTransportPos()->y,

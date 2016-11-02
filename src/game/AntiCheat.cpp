@@ -104,7 +104,7 @@ bool AntiCheat::isSwimming()
 
 bool AntiCheat::verifyTransportCoords(MovementInfo& moveInfo)
 {
-	return !(abs(m_MoveInfo[0].GetTransportPos()->x) > 100 || abs(m_MoveInfo[0].GetTransportPos()->y) > 100 || abs(m_MoveInfo[0].GetTransportPos()->z) > 100);
+	return !(std::abs(m_MoveInfo[0].GetTransportPos()->x) > 100 || std::abs(m_MoveInfo[0].GetTransportPos()->y) > 100 || std::abs(m_MoveInfo[0].GetTransportPos()->z) > 100);
 }
 
 bool AntiCheat::verifyTransportCoords()

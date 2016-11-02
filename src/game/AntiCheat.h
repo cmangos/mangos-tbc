@@ -13,7 +13,7 @@ class AntiCheat
 {
 public:
     AntiCheat(CPlayer* player);
-    ~AntiCheat() {}
+    virtual ~AntiCheat() {}
 
     virtual bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode) = 0;
     virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };

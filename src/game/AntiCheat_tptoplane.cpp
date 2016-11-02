@@ -17,7 +17,7 @@ bool AntiCheat_tptoplane::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 
     const Position* p = m_MoveInfo[0].GetPos();
 
-    if (GetDiff() < 1000 || abs(p->z) > 0.1f)
+    if (GetDiff() < 1000 || std::abs(p->z) > 0.1f)
         return false;
 
     TerrainInfo const* terrain = m_Player->GetTerrain();

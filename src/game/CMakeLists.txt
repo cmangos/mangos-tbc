@@ -19,6 +19,7 @@
 set(LIBRARY_NAME game)
 
 add_definitions(-DDT_POLYREF64)
+add_definitions(-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0)
 
 # include external dependencies libs headers (warnings disabled)
 include_directories(SYSTEM
@@ -51,6 +52,10 @@ set(SRC_GRP_CUSTOM
     AntiCheat.h
     AntiCheat_jump.cpp
     AntiCheat_jump.h
+    AntiCheat_nofall.cpp
+    AntiCheat_nofall.h
+    AntiCheat_slowfall.cpp
+    AntiCheat_slowfall.h
     AntiCheat_speed.cpp
     AntiCheat_speed.h
     AntiCheat_teleport.cpp
@@ -61,6 +66,8 @@ set(SRC_GRP_CUSTOM
     AntiCheat_tptoplane.h
     AntiCheat_wallclimb.cpp
     AntiCheat_wallclimb.h
+    AntiCheat_walljump.cpp
+    AntiCheat_walljump.h
     AntiCheat_waterwalking.cpp
     AntiCheat_waterwalking.h
     CPlayer.cpp

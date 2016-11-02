@@ -405,6 +405,7 @@ class Aura
         void HandleArenaPreparation(bool apply, bool Real);
         void HandleAuraMirrorImage(bool apply, bool Real);
         void HandleFactionOverride(bool apply, bool Real);
+        void HandlePrayerOfMending(bool apply, bool Real);
 
         virtual ~Aura();
 

@@ -280,7 +280,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleUnused,                                    //222 unused
     &Aura::HandleNULL,                                      //223 Cold Stare
     &Aura::HandleUnused,                                    //224 unused
-    &Aura::HandleNoImmediateEffect,                         //225 SPELL_AURA_PRAYER_OF_MENDING
+    &Aura::HandlePrayerOfMending,                           //225 SPELL_AURA_PRAYER_OF_MENDING
     &Aura::HandleAuraPeriodicDummy,                         //226 SPELL_AURA_PERIODIC_DUMMY
     &Aura::HandlePeriodicTriggerSpellWithValue,             //227 SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE
     &Aura::HandleNoImmediateEffect,                         //228 SPELL_AURA_DETECT_STEALTH
@@ -4239,6 +4239,21 @@ void Aura::HandlePeriodicEnergize(bool apply, bool /*Real*/)
 void Aura::HandleAuraPowerBurn(bool apply, bool /*Real*/)
 {
     m_isPeriodic = apply;
+}
+
+void Aura::HandlePrayerOfMending(bool apply, bool /*Real*/)
+{
+    if (apply) // only on initial cast apply SP
+    {
+        if (const SpellEntry* entry = GetSpellProto())
+        {
+            if (GetHolder()->GetAuraCharges() == entry->procCharges)
+            {
+                DamageInfo damageInfo;
+                m_modifier.m_amount = GetCaster()->SpellHealingBonusDone(GetTarget(), GetSpellProto(), m_modifier.m_amount, HEAL, damageInfo);
+            }
+        }        
+    }
 }
 
 void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)

@@ -10491,10 +10491,10 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
     if (possessed->GetTypeId() == TYPEID_UNIT)
     {
         possessedCreature = static_cast<Creature *>(possessed);
-        possessedCreature->ClearTemporaryFaction();
-
-        if (player)
-            possessed->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);
+        if (possessedCreature->IsPet())
+            possessed->setFaction(possessedCreature->GetOwner()->getFaction());
+        else
+            possessedCreature->ClearTemporaryFaction();
 
         // now we have to clean threat list to be able to restore normal creature behavior
         FactionTemplateEntry const* factionEntry = possessed->getFactionTemplateEntry();
@@ -10535,7 +10535,8 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
             if (!possessedCreature->IsPet() || possessedCreature->GetOwner() != this)
             {
                 possessedCreature->SetCombatStartPosition(GetPositionX(), GetPositionY(), GetPositionZ()); // needed for creature not yet entered in combat or SelectHostileTarget() will fail
-                                                                                                           // TODO:: iam not sure we need that faction check
+
+                // TODO:: iam not sure we need that faction check
                 if (!factionEntry->IsFriendlyTo(*getFactionTemplateEntry()))
                     possessed->getThreatManager().addThreat(this, GetMaxHealth());                // generating threat by max life amount best way i found to make it realistic
             }
@@ -10594,6 +10595,7 @@ void Unit::ResetControlState(bool attackCharmer /*= true*/)
                     possessedCreature->GetMotionMaster()->Clear(false);
                     possessedCreature->GetMotionMaster()->MoveIdle();
                 }
+                player->PetSpellInitialize();
             }
         }
         else

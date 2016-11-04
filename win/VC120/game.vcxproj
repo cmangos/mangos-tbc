@@ -339,7 +339,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\game\AccountMgr.cpp" />
     <ClCompile Include="..\..\src\game\AddonHandler.cpp" />
-    <ClCompile Include="..\..\src\game\AggressorAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\AggressorAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\CreatureAI.cpp" />
     <ClCompile Include="..\..\src\game\AI\CreatureAIRegistry.cpp" />
@@ -510,7 +509,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h" />
     <ClInclude Include="..\..\src\game\AddonHandler.h" />
-    <ClInclude Include="..\..\src\game\AggressorAI.h" />
     <ClInclude Include="..\..\src\game\AI\AggressorAI.h" />
     <ClInclude Include="..\..\src\game\AI\CreatureAI.h" />
     <ClInclude Include="..\..\src\game\AI\CreatureAIImpl.h" />

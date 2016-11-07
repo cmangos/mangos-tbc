@@ -1658,6 +1658,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         float OCTRegenMPPerSpirit();
         float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
+        float GetResilienceCritDamageReductionPercent(CombatRating cr) const;
         uint32 GetMeleeCritDamageReduction(uint32 damage) const;
         uint32 GetRangedCritDamageReduction(uint32 damage) const;
         uint32 GetSpellCritDamageReduction(uint32 damage) const;

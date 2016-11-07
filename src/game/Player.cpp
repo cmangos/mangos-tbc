@@ -4992,6 +4992,20 @@ float Player::GetRatingBonusValue(CombatRating cr) const
     return float(GetUInt32Value(PLAYER_FIELD_COMBAT_RATING_1 + cr)) * GetRatingMultiplier(cr);
 }
 
+float Player::GetResilienceCritDamageReductionPercent(CombatRating cr) const
+{
+    switch (cr)
+    {
+        case CR_CRIT_TAKEN_RANGED:
+        case CR_CRIT_TAKEN_MELEE:
+        case CR_CRIT_TAKEN_SPELL:
+            break;
+        default:
+            return 0;
+    }
+    return std::min((GetRatingBonusValue(cr) * 2.0f), 25.0f);
+}
+
 uint32 Player::GetMeleeCritDamageReduction(uint32 damage) const
 {
     float melee  = GetRatingBonusValue(CR_CRIT_TAKEN_MELEE) * 2.0f;

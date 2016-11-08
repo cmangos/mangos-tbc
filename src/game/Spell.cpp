@@ -3531,7 +3531,7 @@ void Spell::SendSpellStart()
     data << m_targets;
 
     if (castFlags & CAST_FLAG_AMMO)                         // projectile info
-        WriteAmmoToPacket(&data);
+        WriteAmmoToPacket(data);
 
     m_caster->SendMessageToSet(data, true);
 }
@@ -3560,17 +3560,17 @@ void Spell::SendSpellGo()
     data << uint16(castFlags);                              // cast flags
     data << uint32(WorldTimer::getMSTime());                // timestamp
 
-    WriteSpellGoTargets(&data);
+    WriteSpellGoTargets(data);
 
     data << m_targets;
 
     if (castFlags & CAST_FLAG_AMMO)                         // projectile info
-        WriteAmmoToPacket(&data);
+        WriteAmmoToPacket(data);
 
     m_caster->SendMessageToSet(data, true);
 }
 
-void Spell::WriteAmmoToPacket(WorldPacket* data)
+void Spell::WriteAmmoToPacket(WorldPacket& data)
 {
     uint32 ammoInventoryType = 0;
     uint32 ammoDisplayID = 0;
@@ -3636,14 +3636,14 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
         }
     }
 
-    *data << uint32(ammoDisplayID);
-    *data << uint32(ammoInventoryType);
+    data << uint32(ammoDisplayID);
+    data << uint32(ammoInventoryType);
 }
 
-void Spell::WriteSpellGoTargets(WorldPacket* data)
+void Spell::WriteSpellGoTargets(WorldPacket& data)
 {
-    size_t count_pos = data->wpos();
-    *data << uint8(0);                                      // placeholder
+    size_t count_pos = data.wpos();
+    data << uint8(0);                                      // placeholder
 
     // This function also fill data for channeled spells:
     // m_needAliveTargetMask req for stop channeling if one target die
@@ -3661,7 +3661,7 @@ void Spell::WriteSpellGoTargets(WorldPacket* data)
         else if (ihit->missCondition == SPELL_MISS_NONE)    // Add only hits
         {
             ++hit;
-            *data << ihit->targetGUID;
+            data << ihit->targetGUID;
             m_needAliveTargetMask |= ihit->effectMask;
         }
         else
@@ -3673,19 +3673,19 @@ void Spell::WriteSpellGoTargets(WorldPacket* data)
     }
 
     for (GOTargetList::const_iterator ighit = m_UniqueGOTargetInfo.begin(); ighit != m_UniqueGOTargetInfo.end(); ++ighit)
-        *data << ighit->targetGUID;                         // Always hits
+        data << ighit->targetGUID;                         // Always hits
 
-    data->put<uint8>(count_pos, hit);
+    data.put<uint8>(count_pos, hit);
 
-    *data << (uint8)miss;
+    data << (uint8)miss;
     for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
     {
         if (ihit->missCondition != SPELL_MISS_NONE)         // Add only miss
         {
-            *data << ihit->targetGUID;
-            *data << uint8(ihit->missCondition);
+            data << ihit->targetGUID;
+            data << uint8(ihit->missCondition);
             if (ihit->missCondition == SPELL_MISS_REFLECT)
-                *data << uint8(ihit->reflectResult);
+                data << uint8(ihit->reflectResult);
         }
     }
     // Reset m_needAliveTargetMask for non channeled spell

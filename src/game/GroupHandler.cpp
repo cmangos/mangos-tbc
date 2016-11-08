@@ -585,7 +585,7 @@ void WorldSession::HandleRaidReadyCheckFinishedOpcode(WorldPacket& /*recv_data*/
     group->BroadcastPacket(data, true, -1);
 }
 
-void WorldSession::BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket* data)
+void WorldSession::BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data)
 {
     uint32 mask = player->GetGroupUpdateFlag();
 
@@ -600,110 +600,110 @@ void WorldSession::BuildPartyMemberStatsChangedPacket(Player* player, WorldPacke
         if (mask & (1 << i))
             byteCount += GroupUpdateLength[i];
 
-    data->Initialize(SMSG_PARTY_MEMBER_STATS, 8 + 4 + byteCount);
-    *data << player->GetPackGUID();
-    *data << uint32(mask);
+    data.Initialize(SMSG_PARTY_MEMBER_STATS, 8 + 4 + byteCount);
+    data << player->GetPackGUID();
+    data << uint32(mask);
 
     if (mask & GROUP_UPDATE_FLAG_STATUS)
-        *data << uint16(GetGroupMemberStatus(player));
+        data << uint16(GetGroupMemberStatus(player));
 
     if (mask & GROUP_UPDATE_FLAG_CUR_HP)
-        *data << (uint16) player->GetHealth();
+        data << (uint16) player->GetHealth();
 
     if (mask & GROUP_UPDATE_FLAG_MAX_HP)
-        *data << (uint16) player->GetMaxHealth();
+        data << (uint16) player->GetMaxHealth();
 
     Powers powerType = player->GetPowerType();
     if (mask & GROUP_UPDATE_FLAG_POWER_TYPE)
-        *data << uint8(powerType);
+        data << uint8(powerType);
 
     if (mask & GROUP_UPDATE_FLAG_CUR_POWER)
-        *data << uint16(player->GetPower(powerType));
+        data << uint16(player->GetPower(powerType));
 
     if (mask & GROUP_UPDATE_FLAG_MAX_POWER)
-        *data << uint16(player->GetMaxPower(powerType));
+        data << uint16(player->GetMaxPower(powerType));
 
     if (mask & GROUP_UPDATE_FLAG_LEVEL)
-        *data << uint16(player->getLevel());
+        data << uint16(player->getLevel());
 
     if (mask & GROUP_UPDATE_FLAG_ZONE)
-        *data << uint16(player->GetZoneId());
+        data << uint16(player->GetZoneId());
 
     if (mask & GROUP_UPDATE_FLAG_POSITION)
-        *data << uint16(player->GetPositionX()) << uint16(player->GetPositionY());
+        data << uint16(player->GetPositionX()) << uint16(player->GetPositionY());
 
     if (mask & GROUP_UPDATE_FLAG_AURAS)
     {
         const uint64& auramask = player->GetAuraUpdateMask();
-        *data << uint64(auramask);
+        data << uint64(auramask);
         for (uint32 i = 0; i < MAX_AURAS; ++i)
         {
             if (auramask & (uint64(1) << i))
             {
-                *data << uint16(player->GetUInt32Value(UNIT_FIELD_AURA + i));
-                *data << uint8(1);
+                data << uint16(player->GetUInt32Value(UNIT_FIELD_AURA + i));
+                data << uint8(1);
             }
         }
     }
 
     Pet* pet = player->GetPet();
     if (mask & GROUP_UPDATE_FLAG_PET_GUID)
-        *data << (pet ? pet->GetObjectGuid() : ObjectGuid());
+        data << (pet ? pet->GetObjectGuid() : ObjectGuid());
 
     if (mask & GROUP_UPDATE_FLAG_PET_NAME)
     {
         if (pet)
-            *data << pet->GetName();
+            data << pet->GetName();
         else
-            *data << uint8(0);
+            data << uint8(0);
     }
 
     if (mask & GROUP_UPDATE_FLAG_PET_MODEL_ID)
     {
         if (pet)
-            *data << uint16(pet->GetDisplayId());
+            data << uint16(pet->GetDisplayId());
         else
-            *data << uint16(0);
+            data << uint16(0);
     }
 
     if (mask & GROUP_UPDATE_FLAG_PET_CUR_HP)
     {
         if (pet)
-            *data << uint16(pet->GetHealth());
+            data << uint16(pet->GetHealth());
         else
-            *data << uint16(0);
+            data << uint16(0);
     }
 
     if (mask & GROUP_UPDATE_FLAG_PET_MAX_HP)
     {
         if (pet)
-            *data << uint16(pet->GetMaxHealth());
+            data << uint16(pet->GetMaxHealth());
         else
-            *data << uint16(0);
+            data << uint16(0);
     }
 
     if (mask & GROUP_UPDATE_FLAG_PET_POWER_TYPE)
     {
         if (pet)
-            *data << uint8(pet->GetPowerType());
+            data << uint8(pet->GetPowerType());
         else
-            *data << uint8(0);
+            data << uint8(0);
     }
 
     if (mask & GROUP_UPDATE_FLAG_PET_CUR_POWER)
     {
         if (pet)
-            *data << uint16(pet->GetPower(pet->GetPowerType()));
+            data << uint16(pet->GetPower(pet->GetPowerType()));
         else
-            *data << uint16(0);
+            data << uint16(0);
     }
 
     if (mask & GROUP_UPDATE_FLAG_PET_MAX_POWER)
     {
         if (pet)
-            *data << uint16(pet->GetMaxPower(pet->GetPowerType()));
+            data << uint16(pet->GetMaxPower(pet->GetPowerType()));
         else
-            *data << uint16(0);
+            data << uint16(0);
     }
 
     if (mask & GROUP_UPDATE_FLAG_PET_AURAS)
@@ -711,18 +711,18 @@ void WorldSession::BuildPartyMemberStatsChangedPacket(Player* player, WorldPacke
         if (pet)
         {
             const uint64& auramask = pet->GetAuraUpdateMask();
-            *data << uint64(auramask);
+            data << uint64(auramask);
             for (uint32 i = 0; i < MAX_AURAS; ++i)
             {
                 if (auramask & (uint64(1) << i))
                 {
-                    *data << uint16(pet->GetUInt32Value(UNIT_FIELD_AURA + i));
-                    *data << uint8(1);
+                    data << uint16(pet->GetUInt32Value(UNIT_FIELD_AURA + i));
+                    data << uint8(1);
                 }
             }
         }
         else
-            *data << uint64(0);
+            data << uint64(0);
     }
 }
 

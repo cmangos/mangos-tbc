@@ -375,8 +375,8 @@ class Spell
         bool DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);
         bool DoSummonPossessed(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);
 
-        void WriteSpellGoTargets(WorldPacket* data);
-        void WriteAmmoToPacket(WorldPacket* data);
+        void WriteSpellGoTargets(WorldPacket& data);
+        void WriteAmmoToPacket(WorldPacket& data);
 
         template<typename T> WorldObject* FindCorpseUsing();
 

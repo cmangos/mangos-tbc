@@ -116,7 +116,7 @@ class PacketFilter
         explicit PacketFilter(WorldSession* pSession) : m_pSession(pSession) {}
         virtual ~PacketFilter() {}
 
-        virtual bool Process(WorldPacket* /*packet*/) { return true; }
+        virtual bool Process(WorldPacket const& /*packet*/) const { return true; }
         virtual bool ProcessLogout() const { return true; }
 
     protected:
@@ -130,7 +130,7 @@ class MapSessionFilter : public PacketFilter
         explicit MapSessionFilter(WorldSession* pSession) : PacketFilter(pSession) {}
         ~MapSessionFilter() {}
 
-        virtual bool Process(WorldPacket* packet) override;
+        virtual bool Process(WorldPacket const& packet) const override;
         // in Map::Update() we do not process player logout!
         virtual bool ProcessLogout() const override { return false; }
 };
@@ -143,7 +143,7 @@ class WorldSessionFilter : public PacketFilter
         explicit WorldSessionFilter(WorldSession* pSession) : PacketFilter(pSession) {}
         ~WorldSessionFilter() {}
 
-        virtual bool Process(WorldPacket* packet) override;
+        virtual bool Process(WorldPacket const& packet) const override;
 };
 
 /// Player session in the World
@@ -295,7 +295,7 @@ class MANGOS_DLL_SPEC WorldSession
         bool LookingForGroup_auto_join;
         bool LookingForGroup_auto_add;
 
-        void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket* data);
+        void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data);
 
         // Account mute time
         time_t m_muteTime;

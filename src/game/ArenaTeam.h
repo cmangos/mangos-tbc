@@ -175,7 +175,7 @@ class ArenaTeam
 
         void SaveToDB();
 
-        void BroadcastPacket(WorldPacket* packet);
+        void BroadcastPacket(WorldPacket const& packet) const;
 
         void BroadcastEvent(ArenaTeamEvents event, ObjectGuid guid, char const* str1 = nullptr, char const* str2 = nullptr, char const* str3 = nullptr);
         void BroadcastEvent(ArenaTeamEvents event, char const* str1 = nullptr, char const* str2 = nullptr, char const* str3 = nullptr)

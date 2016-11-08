@@ -1955,7 +1955,7 @@ void Creature::SendAIReaction(AiReaction reactionType)
     data << GetObjectGuid();
     data << uint32(reactionType);
 
-    ((WorldObject*)this)->SendMessageToSet(&data, true);
+    ((WorldObject*)this)->SendMessageToSet(data, true);
 
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "WORLD: Sent SMSG_AI_REACTION, type %u.", reactionType);
 }
@@ -2625,7 +2625,7 @@ void Creature::ClearTemporaryFaction()
     m_temporaryFactionFlags = TEMPFACTION_NONE;
 }
 
-void Creature::SendAreaSpiritHealerQueryOpcode(Player* pl)
+void Creature::SendAreaSpiritHealerQueryOpcode(Player* pl) const
 {
     uint32 next_resurrect = 0;
     if (Spell* pcurSpell = GetCurrentSpell(CURRENT_CHANNELED_SPELL))
@@ -2633,7 +2633,7 @@ void Creature::SendAreaSpiritHealerQueryOpcode(Player* pl)
     WorldPacket data(SMSG_AREA_SPIRIT_HEALER_TIME, 8 + 4);
     data << ObjectGuid(GetObjectGuid());
     data << uint32(next_resurrect);
-    pl->SendDirectMessage(&data);
+    pl->SendDirectMessage(data);
 }
 
 void Creature::ApplyGameEventSpells(GameEventCreatureData const* eventData, bool activated)
@@ -2772,7 +2772,7 @@ void Creature::SetWalk(bool enable, bool asDefault)
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_WALK_MODE : SMSG_SPLINE_MOVE_SET_RUN_MODE, 9);
     data << GetPackGUID();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Creature::SetLevitate(bool enable)
@@ -2785,7 +2785,7 @@ void Creature::SetLevitate(bool enable)
     // TODO: there should be analogic opcode for 2.43
     // WorldPacket data(enable ? SMSG_SPLINE_MOVE_GRAVITY_DISABLE : SMSG_SPLINE_MOVE_GRAVITY_ENABLE, 9);
     // data << GetPackGUID();
-    // SendMessageToSet(&data, true);
+    // SendMessageToSet(data, true);
 }
 
 void Creature::SetSwim(bool enable)
@@ -2797,7 +2797,7 @@ void Creature::SetSwim(bool enable)
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_START_SWIM : SMSG_SPLINE_MOVE_STOP_SWIM);
     data << GetPackGUID();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Creature::SetCanFly(bool enable)
@@ -2809,7 +2809,7 @@ void Creature::SetCanFly(bool enable)
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_FLYING : SMSG_SPLINE_MOVE_UNSET_FLYING, 9);
     data << GetPackGUID();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Creature::SetFeatherFall(bool enable)
@@ -2821,7 +2821,7 @@ void Creature::SetFeatherFall(bool enable)
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_FEATHER_FALL : SMSG_SPLINE_MOVE_NORMAL_FALL);
     data << GetPackGUID();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Creature::SetHover(bool enable)
@@ -2833,7 +2833,7 @@ void Creature::SetHover(bool enable)
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_HOVER : SMSG_SPLINE_MOVE_UNSET_HOVER, 9);
     data << GetPackGUID();
-    SendMessageToSet(&data, false);
+    SendMessageToSet(data, false);
 }
 
 void Creature::SetRoot(bool enable)
@@ -2845,7 +2845,7 @@ void Creature::SetRoot(bool enable)
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_ROOT : SMSG_SPLINE_MOVE_UNROOT, 9);
     data << GetPackGUID();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void Creature::SetWaterWalk(bool enable)
@@ -2857,7 +2857,7 @@ void Creature::SetWaterWalk(bool enable)
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_WATER_WALK : SMSG_SPLINE_MOVE_LAND_WALK, 9);
     data << GetPackGUID();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 // Set loot status. Also handle remove corpse timer

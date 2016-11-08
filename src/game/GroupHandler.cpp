@@ -47,7 +47,7 @@ void WorldSession::SendPartyResult(PartyOperation operation, const std::string& 
     data << member;                                         // max len 48
     data << uint32(res);
 
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
@@ -153,7 +153,7 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
     // ok, we do it
     WorldPacket data(SMSG_GROUP_INVITE, 10);                // guess size
     data << GetPlayer()->GetName();
-    player->GetSession()->SendPacket(&data);
+    player->GetSession()->SendPacket(data);
 
     SendPartyResult(PARTY_OP_INVITE, membername, ERR_PARTY_RESULT_OK);
 }
@@ -220,7 +220,7 @@ void WorldSession::HandleGroupDeclineOpcode(WorldPacket& /*recv_data*/)
     // report
     WorldPacket data(SMSG_GROUP_DECLINE, 10);               // guess size
     data << GetPlayer()->GetName();
-    leader->GetSession()->SendPacket(&data);
+    leader->GetSession()->SendPacket(data);
 }
 
 void WorldSession::HandleGroupUninviteGuidOpcode(WorldPacket& recv_data)
@@ -362,7 +362,7 @@ void WorldSession::HandleMinimapPingOpcode(WorldPacket& recv_data)
     data << GetPlayer()->GetObjectGuid();
     data << float(x);
     data << float(y);
-    GetPlayer()->GetGroup()->BroadcastPacket(&data, true, -1, GetPlayer()->GetObjectGuid());
+    GetPlayer()->GetGroup()->BroadcastPacket(data, true, -1, GetPlayer()->GetObjectGuid());
 }
 
 void WorldSession::HandleRandomRollOpcode(WorldPacket& recv_data)
@@ -387,9 +387,9 @@ void WorldSession::HandleRandomRollOpcode(WorldPacket& recv_data)
     data << uint32(roll);
     data << GetPlayer()->GetObjectGuid();
     if (GetPlayer()->GetGroup())
-        GetPlayer()->GetGroup()->BroadcastPacket(&data, false);
+        GetPlayer()->GetGroup()->BroadcastPacket(data, false);
     else
-        SendPacket(&data);
+        SendPacket(data);
 }
 
 void WorldSession::HandleRaidTargetUpdateOpcode(WorldPacket& recv_data)
@@ -550,7 +550,7 @@ void WorldSession::HandleRaidReadyCheckOpcode(WorldPacket& recv_data)
         // everything is fine, do it
         WorldPacket data(MSG_RAID_READY_CHECK, 8);
         data << ObjectGuid(GetPlayer()->GetObjectGuid());
-        group->BroadcastPacket(&data, true, -1);
+        group->BroadcastPacket(data, true, -1);
 
         group->OfflineReadyCheck();
     }
@@ -567,7 +567,7 @@ void WorldSession::HandleRaidReadyCheckOpcode(WorldPacket& recv_data)
         WorldPacket data(MSG_RAID_READY_CHECK_CONFIRM, 9);
         data << GetPlayer()->GetObjectGuid();
         data << uint8(state);
-        group->BroadcastReadyCheck(&data);
+        group->BroadcastReadyCheck(data);
     }
 }
 
@@ -582,7 +582,7 @@ void WorldSession::HandleRaidReadyCheckFinishedOpcode(WorldPacket& /*recv_data*/
 
     // Broadcast finish:
     WorldPacket data(MSG_RAID_READY_CHECK_FINISHED, 0);
-    group->BroadcastPacket(&data, true, -1);
+    group->BroadcastPacket(data, true, -1);
 }
 
 void WorldSession::BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket* data)
@@ -740,7 +740,7 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode(WorldPacket& recv_data)
         data << guid.WriteAsPacked();
         data << uint32(GROUP_UPDATE_FLAG_STATUS);
         data << uint16(MEMBER_STATUS_OFFLINE);
-        SendPacket(&data);
+        SendPacket(data);
         return;
     }
 
@@ -836,7 +836,7 @@ void WorldSession::HandleRequestPartyMemberStatsOpcode(WorldPacket& recv_data)
         data << uint64(0);                                  // GROUP_UPDATE_FLAG_PET_AURAS
     }
 
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::HandleRequestRaidInfoOpcode(WorldPacket& /*recv_data*/)

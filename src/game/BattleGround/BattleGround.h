@@ -395,14 +395,14 @@ class BattleGround
         /* Packet Transfer */
         // method that should fill worldpacket with actual world states (not yet implemented for all battlegrounds!)
         virtual void FillInitialWorldStates(WorldPacket& /*data*/, uint32& /*count*/) {}
-        void SendPacketToTeam(Team team, WorldPacket* packet, Player* sender = nullptr, bool self = true);
-        void SendPacketToAll(WorldPacket* packet);
+        void SendPacketToTeam(Team team, WorldPacket const& packet, Player* sender = nullptr, bool self = true) const;
+        void SendPacketToAll(WorldPacket const& packet) const;
 
         template<class Do>
         void BroadcastWorker(Do& _do);
 
-        void PlaySoundToTeam(uint32 SoundID, Team team);
-        void PlaySoundToAll(uint32 SoundID);
+        void PlaySoundToTeam(uint32 SoundID, Team team) const;
+        void PlaySoundToAll(uint32 SoundID) const;
         void CastSpellOnTeam(uint32 SpellID, Team team);
         void RewardHonorToTeam(uint32 Honor, Team team);
         void RewardReputationToTeam(uint32 faction_id, uint32 Reputation, Team team);

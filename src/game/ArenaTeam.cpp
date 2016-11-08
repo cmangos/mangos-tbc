@@ -371,7 +371,7 @@ void ArenaTeam::Roster(WorldSession* session)
         data << uint32(itr->personal_rating);               // personal rating
     }
 
-    session->SendPacket(&data);
+    session->SendPacket(data);
     DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_ROSTER");
 }
 
@@ -386,7 +386,7 @@ void ArenaTeam::Query(WorldSession* session)
     data << uint32(m_EmblemColor);                          // emblem color
     data << uint32(m_BorderStyle);                          // border style
     data << uint32(m_BorderColor);                          // border color
-    session->SendPacket(&data);
+    session->SendPacket(data);
     DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_QUERY_RESPONSE");
 }
 
@@ -400,7 +400,7 @@ void ArenaTeam::Stats(WorldSession* session)
     data << uint32(m_stats.games_season);                   // played this season
     data << uint32(m_stats.wins_season);                    // wins this season
     data << uint32(m_stats.rank);                           // rank
-    session->SendPacket(&data);
+    session->SendPacket(data);
 }
 
 void ArenaTeam::NotifyStatsChanged()
@@ -430,7 +430,7 @@ void ArenaTeam::InspectStats(WorldSession* session, ObjectGuid guid)
     data << uint32(m_stats.wins_season);                    // season wins
     data << uint32(member->games_season);                   // played (count of all games, that the inspected member participated...)
     data << uint32(member->personal_rating);                // personal rating
-    session->SendPacket(&data);
+    session->SendPacket(data);
 }
 
 void ArenaTeam::SetEmblem(uint32 backgroundColor, uint32 emblemStyle, uint32 emblemColor, uint32 borderStyle, uint32 borderColor)
@@ -478,9 +478,9 @@ void ArenaTeam::SetStats(uint32 stat_type, uint32 value)
     }
 }
 
-void ArenaTeam::BroadcastPacket(WorldPacket* packet)
+void ArenaTeam::BroadcastPacket(WorldPacket const& packet) const
 {
-    for (MemberList::const_iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
+    for (MemberList::const_iterator itr = m_members.cbegin(); itr != m_members.cend(); ++itr)
     {
         Player* player = sObjectMgr.GetPlayer(itr->guid);
         if (player)
@@ -513,7 +513,7 @@ void ArenaTeam::BroadcastEvent(ArenaTeamEvents event, ObjectGuid guid, char cons
     if (guid)
         data << ObjectGuid(guid);
 
-    BroadcastPacket(&data);
+    BroadcastPacket(data);
 
     DEBUG_LOG("WORLD: Sent SMSG_ARENA_TEAM_EVENT");
 }

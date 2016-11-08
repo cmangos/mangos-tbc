@@ -283,9 +283,9 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
         plMover->UpdateFallInformationIfNeed(movementInfo, opcode);
 
     WorldPacket data(opcode, recv_data.size());
-    data << mover->GetPackGUID();             // write guid
+    data << mover->GetPackGUID();                           // write guid
     movementInfo.Write(data);                               // write data
-    mover->SendMessageToSetExcept(&data, _player);
+    mover->SendMessageToSetExcept(data, _player);
 }
 
 void WorldSession::HandleForceSpeedChangeAckOpcodes(WorldPacket& recv_data)
@@ -402,7 +402,7 @@ void WorldSession::HandleMountSpecialAnimOpcode(WorldPacket& /*recvdata*/)
     WorldPacket data(SMSG_MOUNTSPECIAL_ANIM, 8);
     data << GetPlayer()->GetObjectGuid();
 
-    GetPlayer()->SendMessageToSet(&data, false);
+    GetPlayer()->SendMessageToSet(data, false);
 }
 
 void WorldSession::HandleMoveKnockBackAck(WorldPacket& recv_data)
@@ -438,7 +438,7 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket& recv_data)
     data << movementInfo.GetJumpInfo().cosAngle;
     data << movementInfo.GetJumpInfo().xyspeed;
     data << movementInfo.GetJumpInfo().velocity;
-    mover->SendMessageToSetExcept(&data, _player);
+    mover->SendMessageToSetExcept(data, _player);
 }
 
 void WorldSession::SendKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
@@ -453,7 +453,7 @@ void WorldSession::SendKnockBack(float angle, float horizontalSpeed, float verti
     data << float(vsin);                                // y direction
     data << float(horizontalSpeed);                     // Horizontal speed
     data << float(-verticalSpeed);                      // Z Movement speed (vertical)
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::HandleMoveHoverAck(WorldPacket& recv_data)

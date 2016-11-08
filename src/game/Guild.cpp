@@ -594,7 +594,7 @@ void Guild::BroadcastToGuild(WorldSession* session, const std::string& msg, uint
         Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
         if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(player->GetObjectGuid()))
-            pl->GetSession()->SendPacket(&data);
+            pl->GetSession()->SendPacket(data);
     }
 }
 
@@ -615,13 +615,13 @@ void Guild::BroadcastToOfficers(WorldSession* session, const std::string& msg, u
         Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
         if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_OFFCHATLISTEN) && !pl->GetSocial()->HasIgnore(player->GetObjectGuid()))
-            pl->GetSession()->SendPacket(&data);
+            pl->GetSession()->SendPacket(data);
     }
 }
 
-void Guild::BroadcastPacket(WorldPacket* packet)
+void Guild::BroadcastPacket(WorldPacket const& packet) const
 {
-    for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
+    for (MemberList::const_iterator itr = members.cbegin(); itr != members.cend(); ++itr)
     {
         Player* player = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
         if (player)
@@ -629,9 +629,9 @@ void Guild::BroadcastPacket(WorldPacket* packet)
     }
 }
 
-void Guild::BroadcastPacketToRank(WorldPacket* packet, uint32 rankId)
+void Guild::BroadcastPacketToRank(WorldPacket const& packet, uint32 rankId) const
 {
-    for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
+    for (MemberList::const_iterator itr = members.cbegin(); itr != members.cend(); ++itr)
     {
         if (itr->second.RankId == rankId)
         {
@@ -802,9 +802,9 @@ void Guild::Roster(WorldSession* session /*= nullptr*/)
         }
     }
     if (session)
-        session->SendPacket(&data);
+        session->SendPacket(data);
     else
-        BroadcastPacket(&data);
+        BroadcastPacket(data);
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_ROSTER)");
 }
 
@@ -829,7 +829,7 @@ void Guild::Query(WorldSession* session)
     data << uint32(m_BorderColor);
     data << uint32(m_BackgroundColor);
 
-    session->SendPacket(&data);
+    session->SendPacket(data);
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_QUERY_RESPONSE)");
 }
 
@@ -889,7 +889,7 @@ void Guild::DisplayGuildEventLog(WorldSession* session)
         // Event timestamp
         data << uint32(time(nullptr) - itr->TimeStamp);
     }
-    session->SendPacket(&data);
+    session->SendPacket(data);
     DEBUG_LOG("WORLD: Sent (MSG_GUILD_EVENT_LOG_QUERY)");
 }
 
@@ -977,7 +977,7 @@ void Guild::DisplayGuildBankContent(WorldSession* session, uint8 TabId)
     for (int i = 0; i < GUILD_BANK_MAX_SLOTS; ++i)
         AppendDisplayGuildBankSlot(data, tab, i);
 
-    session->SendPacket(&data);
+    session->SendPacket(data);
 
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
@@ -991,7 +991,7 @@ void Guild::DisplayGuildBankMoneyUpdate(WorldSession* session)
     data << uint32(GetMemberSlotWithdrawRem(session->GetPlayer()->GetGUIDLow(), 0));
     data << uint8(0);                                       // Tell that there's no tab info in this packet
     data << uint8(0);                                       // not send items
-    BroadcastPacket(&data);
+    BroadcastPacket(data);
 
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
@@ -1037,7 +1037,7 @@ void Guild::DisplayGuildBankContentUpdate(uint8 TabId, int32 slot1, int32 slot2)
 
         data.put<uint32>(rempos, uint32(GetMemberSlotWithdrawRem(player->GetGUIDLow(), TabId)));
 
-        player->GetSession()->SendPacket(&data);
+        player->GetSession()->SendPacket(data);
     }
 
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
@@ -1072,7 +1072,7 @@ void Guild::DisplayGuildBankContentUpdate(uint8 TabId, GuildItemPosCountVec cons
 
         data.put<uint32>(rempos, uint32(GetMemberSlotWithdrawRem(player->GetGUIDLow(), TabId)));
 
-        player->GetSession()->SendPacket(&data);
+        player->GetSession()->SendPacket(data);
     }
 
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
@@ -1105,7 +1105,7 @@ void Guild::DisplayGuildBankTabsInfo(WorldSession* session)
         data << m_TabListMap[i]->Icon.c_str();
     }
     data << uint8(0);                                       // Do not send tab content
-    session->SendPacket(&data);
+    session->SendPacket(data);
 
     DEBUG_LOG("WORLD: Sent (SMSG_GUILD_BANK_LIST)");
 }
@@ -1239,7 +1239,7 @@ void Guild::SendMoneyInfo(WorldSession* session, uint32 LowGuid)
 {
     WorldPacket data(MSG_GUILD_BANK_MONEY_WITHDRAWN, 4);
     data << uint32(GetMemberMoneyWithdrawRem(LowGuid));
-    session->SendPacket(&data);
+    session->SendPacket(data);
     DEBUG_LOG("WORLD: Sent MSG_GUILD_BANK_MONEY_WITHDRAWN");
 }
 
@@ -1575,7 +1575,7 @@ void Guild::DisplayGuildBankLogs(WorldSession* session, uint8 TabId)
             data << uint32(itr->ItemOrMoney);
             data << uint32(time(nullptr) - itr->TimeStamp);
         }
-        session->SendPacket(&data);
+        session->SendPacket(data);
     }
     else
     {
@@ -1594,7 +1594,7 @@ void Guild::DisplayGuildBankLogs(WorldSession* session, uint8 TabId)
                 data << uint8(itr->DestTabId);              // moved tab
             data << uint32(time(nullptr) - itr->TimeStamp);
         }
-        session->SendPacket(&data);
+        session->SendPacket(data);
     }
     DEBUG_LOG("WORLD: Sent (MSG_GUILD_BANK_LOG_QUERY)");
 }
@@ -1939,9 +1939,9 @@ void Guild::SendGuildBankTabText(WorldSession* session, uint8 TabId)
     data << tab->Text;
 
     if (session)
-        session->SendPacket(&data);
+        session->SendPacket(data);
     else
-        BroadcastPacket(&data);
+        BroadcastPacket(data);
 }
 
 void Guild::SwapItems(Player* pl, uint8 BankTab, uint8 BankTabSlot, uint8 BankTabDst, uint8 BankTabSlotDst, uint32 SplitedAmount)
@@ -2391,7 +2391,7 @@ void Guild::BroadcastEvent(GuildEvents event, ObjectGuid guid, char const* str1 
     if (guid)
         data << ObjectGuid(guid);
 
-    BroadcastPacket(&data);
+    BroadcastPacket(data);
 
     DEBUG_LOG("WORLD: Sent SMSG_GUILD_EVENT");
 }

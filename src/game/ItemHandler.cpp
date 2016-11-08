@@ -413,14 +413,14 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
         data << int32(pProto->RequiredDisenchantSkill);
         data << float(pProto->ArmorDamageModifier);
         data << uint32(pProto->Duration);                   // added in 2.4.2.8209, duration (seconds)
-        SendPacket(&data);
+        SendPacket(data);
     }
     else
     {
         DEBUG_LOG("WORLD: CMSG_ITEM_QUERY_SINGLE - NO item INFO! (ENTRY: %u)", item);
         WorldPacket data(SMSG_ITEM_QUERY_SINGLE_RESPONSE, 4);
         data << uint32(item | 0x80000000);
-        SendPacket(&data);
+        SendPacket(data);
     }
 }
 
@@ -451,7 +451,7 @@ void WorldSession::HandleReadItemOpcode(WorldPacket& recv_data)
             _player->SendEquipError(msg, pItem, nullptr);
         }
         data << ObjectGuid(pItem->GetObjectGuid());
-        SendPacket(&data);
+        SendPacket(data);
     }
     else
         _player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
@@ -711,7 +711,7 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid)
         data << ObjectGuid(vendorguid);
         data << uint8(0);                                   // count==0, next will be error code
         data << uint8(0);                                   // "Vendor has no inventory"
-        SendPacket(&data);
+        SendPacket(data);
         return;
     }
 
@@ -772,12 +772,12 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid)
     if (count == 0)
     {
         data << uint8(0);                                   // "Vendor has no inventory"
-        SendPacket(&data);
+        SendPacket(data);
         return;
     }
 
     data.put<uint8>(count_pos, count);
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::HandleAutoStoreBagItemOpcode(WorldPacket& recv_data)
@@ -881,7 +881,7 @@ void WorldSession::HandleBuyBankSlotOpcode(WorldPacket& recvPacket)
     if (!slotEntry)
     {
         data << uint32(ERR_BANKSLOT_FAILED_TOO_MANY);
-        SendPacket(&data);
+        SendPacket(data);
         return;
     }
 
@@ -890,7 +890,7 @@ void WorldSession::HandleBuyBankSlotOpcode(WorldPacket& recvPacket)
     if (_player->GetMoney() < price)
     {
         data << uint32(ERR_BANKSLOT_INSUFFICIENT_FUNDS);
-        SendPacket(&data);
+        SendPacket(data);
         return;
     }
 
@@ -898,7 +898,7 @@ void WorldSession::HandleBuyBankSlotOpcode(WorldPacket& recvPacket)
     _player->ModifyMoney(-int32(price));
 
     data << uint32(ERR_BANKSLOT_OK);
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::HandleAutoBankItemOpcode(WorldPacket& recvPacket)
@@ -1000,7 +1000,7 @@ void WorldSession::SendEnchantmentLog(ObjectGuid targetGuid, ObjectGuid casterGu
     data << uint32(itemId);
     data << uint32(spellId);
     data << uint8(0);
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::SendItemEnchantTimeUpdate(ObjectGuid playerGuid, ObjectGuid itemGuid, uint32 slot, uint32 duration)
@@ -1011,7 +1011,7 @@ void WorldSession::SendItemEnchantTimeUpdate(ObjectGuid playerGuid, ObjectGuid i
     data << uint32(slot);
     data << uint32(duration);
     data << ObjectGuid(playerGuid);
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::HandleItemNameQueryOpcode(WorldPacket& recv_data)
@@ -1032,7 +1032,7 @@ void WorldSession::HandleItemNameQueryOpcode(WorldPacket& recv_data)
         data << uint32(pProto->ItemId);
         data << name;
         data << uint32(pProto->InventoryType);
-        SendPacket(&data);
+        SendPacket(data);
         return;
     }
     else

@@ -3451,7 +3451,7 @@ void Spell::SendCastResult(Player* caster, SpellEntry const* spellInfo, uint8 ca
         WorldPacket data(SMSG_CLEAR_EXTRA_AURA_INFO, (8 + 4));
         data << caster->GetPackGUID();
         data << uint32(spellInfo->Id);
-        caster->GetSession()->SendPacket(&data);
+        caster->GetSession()->SendPacket(data);
         return;
     }
 
@@ -3502,7 +3502,7 @@ void Spell::SendCastResult(Player* caster, SpellEntry const* spellInfo, uint8 ca
         default:
             break;
     }
-    caster->GetSession()->SendPacket(&data);
+    caster->GetSession()->SendPacket(data);
 }
 
 void Spell::SendSpellStart()
@@ -3533,7 +3533,7 @@ void Spell::SendSpellStart()
     if (castFlags & CAST_FLAG_AMMO)                         // projectile info
         WriteAmmoToPacket(&data);
 
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 }
 
 void Spell::SendSpellGo()
@@ -3567,7 +3567,7 @@ void Spell::SendSpellGo()
     if (castFlags & CAST_FLAG_AMMO)                         // projectile info
         WriteAmmoToPacket(&data);
 
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 }
 
 void Spell::WriteAmmoToPacket(WorldPacket* data)
@@ -3791,7 +3791,7 @@ void Spell::SendLogExecute()
         }
     }
 
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 }
 
 void Spell::SendInterrupted(uint8 result)
@@ -3800,12 +3800,12 @@ void Spell::SendInterrupted(uint8 result)
     data << m_caster->GetPackGUID();
     data << m_spellInfo->Id;
     data << result;
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 
     data.Initialize(SMSG_SPELL_FAILED_OTHER, (8 + 4));
     data << m_caster->GetPackGUID();
     data << m_spellInfo->Id;
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 }
 
 void Spell::SendChannelUpdate(uint32 time)
@@ -3830,7 +3830,7 @@ void Spell::SendChannelUpdate(uint32 time)
     WorldPacket data(MSG_CHANNEL_UPDATE, 8 + 4);
     data << m_caster->GetPackGUID();
     data << uint32(time);
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 }
 
 void Spell::SendChannelStart(uint32 duration)
@@ -3869,7 +3869,7 @@ void Spell::SendChannelStart(uint32 duration)
     data << m_caster->GetPackGUID();
     data << uint32(m_spellInfo->Id);
     data << uint32(duration);
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 
     m_timer = duration;
 
@@ -3894,7 +3894,7 @@ void Spell::SendResurrectRequest(Player* target)
     data << uint8(m_caster->isSpiritHealer());
     // override delay sent with SMSG_CORPSE_RECLAIM_DELAY, set instant resurrection for spells with this attribute
     data << uint8(!m_spellInfo->HasAttribute(SPELL_ATTR_EX3_IGNORE_RESURRECTION_TIMER));
-    target->GetSession()->SendPacket(&data);
+    target->GetSession()->SendPacket(data);
 }
 
 void Spell::TakeCastItem()
@@ -6242,7 +6242,7 @@ void Spell::Delayed()
     data << m_caster->GetPackGUID();
     data << uint32(delaytime);
 
-    m_caster->SendMessageToSet(&data, true);
+    m_caster->SendMessageToSet(data, true);
 }
 
 void Spell::DelayedChannel()

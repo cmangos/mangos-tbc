@@ -312,7 +312,7 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
     data.put<uint32>(4 + 4,  number);
     data.put<uint32>(4 + 4 + 4, number);
 
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 void WorldSession::HandleSetLfgOpcode(WorldPacket& recv_data)

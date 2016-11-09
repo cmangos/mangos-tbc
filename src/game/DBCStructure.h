@@ -447,6 +447,11 @@ struct GtOCTRegenHPEntry
     float    ratio;
 };
 
+struct GtNPCManaCostScalerEntry
+{
+    float    ratio;
+};
+
 // struct GtOCTRegenMPEntry
 //{
 //    float    ratio;
@@ -728,6 +733,7 @@ struct ClassFamilyMask
     bool Empty() const { return Flags == 0; }
     bool operator!() const { return Empty(); }
     operator void const* () const { return Empty() ? nullptr : this; } // for allow normal use in if(mask)
+    bool operator== (const ClassFamilyMask &another) const { return (Flags == another.Flags); }
 
     bool IsFitToFamilyMask(uint64 familyFlags) const { return !!(Flags & familyFlags); }
     bool IsFitToFamilyMask(ClassFamilyMask const& mask) const { return !!(Flags & mask.Flags); }

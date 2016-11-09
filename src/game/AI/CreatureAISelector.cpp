@@ -25,6 +25,7 @@
 #include "ScriptMgr.h"
 #include "Pet.h"
 #include "Log.h"
+#include "PossessedAI.h"
 
 INSTANTIATE_SINGLETON_1(CreatureAIRegistry);
 INSTANTIATE_SINGLETON_1(MovementGeneratorRegistry);
@@ -34,7 +35,7 @@ namespace FactorySelector
     CreatureAI* selectAI(Creature* creature)
     {
         // Allow scripting AI for normal creatures and not controlled pets (guardians and mini-pets)
-        if ((!creature->IsPet() || !((Pet*)creature)->isControlled()) && !creature->isCharmed())
+        if ((!creature->IsPet() || !static_cast<Pet*>(creature)->isControlled()) && !creature->isCharmed())
             if (CreatureAI* scriptedAI = sScriptMgr.GetCreatureAI(creature))
                 return scriptedAI;
 
@@ -44,24 +45,21 @@ namespace FactorySelector
 
         std::string ainame = creature->GetAIName();
 
-        // select by NPC flags _first_ - otherwise EventAI might be choosen for pets/totems
-        // excplicit check for isControlled() and owner type to allow guardian, mini-pets and pets controlled by NPCs to be scripted by EventAI
-        Unit* owner = nullptr;
-        if ((creature->IsPet() && ((Pet*)creature)->isControlled() &&
-                ((owner = creature->GetOwner()) && owner->GetTypeId() == TYPEID_PLAYER)) || creature->isCharmed())
-            ai_factory = ai_registry.GetRegistryItem("PetAI");
+        // select by NPC flags
+        if (creature->IsPet())
+        {
+            if (static_cast<Pet*>(creature)->isControlled())
+                ai_factory = ai_registry.GetRegistryItem("PetAI");
+            else                            // For guardians and creature pets in general
+                ai_factory = ai_registry.GetRegistryItem("GuardianAI");
+        }
         else if (creature->IsTotem())
             ai_factory = ai_registry.GetRegistryItem("TotemAI");
-
-        // select by script name
-        if (!ai_factory && !ainame.empty())
+        else if (!ainame.empty())           // select by script name
             ai_factory = ai_registry.GetRegistryItem(ainame.c_str());
-
-        if (!ai_factory && creature->IsGuard())
+        else if (creature->IsGuard())
             ai_factory = ai_registry.GetRegistryItem("GuardAI");
-
-        // select by permit check
-        if (!ai_factory)
+        else                                // select by permit check
         {
             int best_val = PERMIT_BASE_NO;
             typedef CreatureAIRegistry::RegistryMapType RMT;
@@ -85,6 +83,11 @@ namespace FactorySelector
 
         DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Creature %u used AI is %s.", creature->GetGUIDLow(), ainame.c_str());
         return (ai_factory == nullptr ? new NullCreatureAI(creature) : ai_factory->Create(creature));
+    }
+
+    CreatureAI* GetPossessAI(Creature* creature)
+    {
+        return new PossessedAI(creature);
     }
 
     MovementGenerator* selectMovementGenerator(Creature* creature)

@@ -35,7 +35,7 @@
 #include "AccountMgr.h"
 #include "AuctionHouseMgr.h"
 #include "ObjectMgr.h"
-#include "CreatureEventAIMgr.h"
+#include "AI/CreatureEventAIMgr.h"
 #include "GuildMgr.h"
 #include "SpellMgr.h"
 #include "Chat.h"
@@ -45,7 +45,7 @@
 #include "ItemEnchantmentMgr.h"
 #include "MapManager.h"
 #include "ScriptMgr.h"
-#include "CreatureAIRegistry.h"
+#include "AI/CreatureAIRegistry.h"
 #include "Policies/Singleton.h"
 #include "BattleGround/BattleGroundMgr.h"
 #include "OutdoorPvP/OutdoorPvP.h"
@@ -68,6 +68,7 @@
 #include <algorithm>
 #include <mutex>
 #include <cstdarg>
+#include <memory>
 
 INSTANTIATE_SINGLETON_1(World);
 
@@ -89,7 +90,7 @@ float  World::m_relocation_lower_limit_sq     = 10.f * 10.f;
 uint32 World::m_relocation_ai_notify_delay    = 1000u;
 
 /// World constructor
-World::World(): mail_timer(0), mail_timer_expires(0)
+World::World() : mail_timer(0), mail_timer_expires(0), m_NextDailyQuestReset(0), m_NextWeeklyQuestReset(0), m_NextMonthlyQuestReset(0)
 {
     m_playerLimit = 0;
     m_allowMovement = true;
@@ -99,7 +100,6 @@ World::World(): mail_timer(0), mail_timer_expires(0)
     m_startTime = m_gameTime;
     m_maxActiveSessionCount = 0;
     m_maxQueuedSessionCount = 0;
-    m_NextDailyQuestReset = 0;
 
     m_defaultDbcLocale = LOCALE_enUS;
     m_availableDbcLocaleMask = 0;
@@ -207,8 +207,6 @@ World::AddSession_(WorldSession* s)
             // prevent decrease sessions count if session queued
             if (RemoveQueuedSession(old->second))
                 decrease_session = false;
-            // not remove replaced session form queue if listed
-            delete old->second;
         }
     }
 
@@ -237,7 +235,7 @@ World::AddSession_(WorldSession* s)
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint32(0);                                    // BillingTimeRested
     packet << uint8(s->Expansion());                        // 0 - normal, 1 - TBC. Must be set in database manually for each account.
-    s->SendPacket(&packet);
+    s->SendPacket(packet);
 
     UpdateMaxSessionCounters();
 
@@ -281,7 +279,7 @@ void World::AddQueuedSession(WorldSession* sess)
     packet << uint32(0);                                    // BillingTimeRested
     packet << uint8(sess->Expansion());                     // 0 - normal, 1 - TBC, must be set in database manually for each account
     packet << uint32(GetQueuedSessionPos(sess));            // position in queue
-    sess->SendPacket(&packet);
+    sess->SendPacket(packet);
 }
 
 bool World::RemoveQueuedSession(WorldSession* sess)
@@ -626,6 +624,8 @@ void World::LoadConfigSettings(bool reload)
     setConfigMinMax(CONFIG_INT32_QUEST_HIGH_LEVEL_HIDE_DIFF, "Quests.HighLevelHideDiff", 7, -1, MAX_LEVEL);
 
     setConfigMinMax(CONFIG_UINT32_QUEST_DAILY_RESET_HOUR, "Quests.Daily.ResetHour", 6, 0, 23);
+    setConfigMinMax(CONFIG_UINT32_QUEST_WEEKLY_RESET_WEEK_DAY, "Quests.Weekly.ResetWeekDay", 3, 0, 6);
+    setConfigMinMax(CONFIG_UINT32_QUEST_WEEKLY_RESET_HOUR, "Quests.Weekly.ResetHour", 6, 0, 23);
 
     setConfig(CONFIG_BOOL_QUEST_IGNORE_RAID, "Quests.IgnoreRaid", false);
 
@@ -695,6 +695,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PLAYER_COMMANDS, "PlayerCommands", true);
 
     setConfig(CONFIG_UINT32_INSTANT_LOGOUT, "InstantLogout", SEC_MODERATOR);
+
+    setConfigMin(CONFIG_UINT32_GROUP_OFFLINE_LEADER_DELAY, "Group.OfflineLeaderDelay", 300, 0);
 
     setConfigMin(CONFIG_UINT32_GUILD_EVENT_LOG_COUNT, "Guild.EventLogRecordsCount", GUILD_EVENTLOG_MAX_RECORDS, GUILD_EVENTLOG_MAX_RECORDS);
     setConfigMin(CONFIG_UINT32_GUILD_BANK_EVENT_LOG_COUNT, "Guild.BankEventLogRecordsCount", GUILD_BANK_MAX_LOGS, GUILD_BANK_MAX_LOGS);
@@ -1255,6 +1257,9 @@ void World::SetInitialWorldSettings()
     // for AhBot
     m_timers[WUPDATE_AHBOT].SetInterval(20 * IN_MILLISECONDS); // every 20 sec
 
+    // Update groups with offline leader after delay in seconds
+    m_timers[WUPDATE_GROUPS].SetInterval(IN_MILLISECONDS);
+
     // to set mailtimer to return mails every day between 4 and 5 am
     // mailtimer is increased when updating auctions
     // one second is 1000 -(tested on win system)
@@ -1291,6 +1296,14 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Calculate next daily quest reset time...");
     InitDailyQuestResetTime();
+    sLog.outString();
+
+    sLog.outString("Calculate next weekly quest reset time...");
+    InitWeeklyQuestResetTime();
+    sLog.outString();
+
+    sLog.outString("Calculate next monthly quest reset time...");
+    SetMonthlyQuestResetTime();
     sLog.outString();
 
     sLog.outString("Starting Game Event system...");
@@ -1387,6 +1400,14 @@ void World::Update(uint32 diff)
     if (m_gameTime > m_NextDailyQuestReset)
         ResetDailyQuests();
 
+    /// Handle weekly quests reset time
+    if (m_gameTime > m_NextWeeklyQuestReset)
+        ResetWeeklyQuests();
+
+    /// Handle monthly quests reset time
+    if (m_gameTime > m_NextMonthlyQuestReset)
+        ResetMonthlyQuests();
+
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())
     {
@@ -1429,6 +1450,17 @@ void World::Update(uint32 diff)
     sMapMgr.Update(diff);
     sBattleGroundMgr.Update(diff);
     sOutdoorPvPMgr.Update(diff);
+
+    ///- Update groups with offline leaders
+    if (m_timers[WUPDATE_GROUPS].Passed())
+    {
+        m_timers[WUPDATE_GROUPS].Reset();
+        if (const uint32 delay = getConfig(CONFIG_UINT32_GROUP_OFFLINE_LEADER_DELAY))
+        {
+            for (ObjectMgr::GroupMap::const_iterator i = sObjectMgr.GetGroupMapBegin(); i != sObjectMgr.GetGroupMapEnd(); ++i)
+                i->second->UpdateOfflineLeader(m_gameTime, delay);
+        }
+    }
 
     ///- Delete all characters which have been deleted X days before
     if (m_timers[WUPDATE_DELETECHARS].Passed())
@@ -1476,7 +1508,7 @@ namespace MaNGOS
     class WorldWorldTextBuilder
     {
         public:
-            typedef std::vector<WorldPacket*> WorldPacketList;
+            typedef std::vector<std::unique_ptr<WorldPacket>> WorldPacketList;
             explicit WorldWorldTextBuilder(int32 textId, va_list* args = nullptr) : i_textId(textId), i_args(args) {}
             void operator()(WorldPacketList& data_list, int32 loc_idx)
             {
@@ -1505,9 +1537,9 @@ namespace MaNGOS
 
                 while (char* line = lineFromMessage(pos))
                 {
-                    WorldPacket* data = new WorldPacket();
+                    auto data = std::unique_ptr<WorldPacket>(new WorldPacket());
                     ChatHandler::BuildChatPacket(*data, CHAT_MSG_SYSTEM, line);
-                    data_list.push_back(data);
+                    data_list.push_back(std::move(data));
                 }
             }
 
@@ -1538,9 +1570,9 @@ void World::SendWorldText(int32 string_id, ...)
 }
 
 /// Sends a packet to all players with optional team and instance restrictions
-void World::SendGlobalMessage(WorldPacket* packet)
+void World::SendGlobalMessage(WorldPacket const& packet)
 {
-    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+    for (SessionMap::const_iterator itr = m_sessions.cbegin(); itr != m_sessions.cend(); ++itr)
     {
         if (WorldSession* session = itr->second)
         {
@@ -1559,9 +1591,9 @@ void World::SendServerMessage(ServerMessageType type, const char* text /*=""*/, 
     data << text;
 
     if (player)
-        player->GetSession()->SendPacket(&data);
+        player->GetSession()->SendPacket(data);
     else
-        SendGlobalMessage(&data);
+        SendGlobalMessage(data);
 }
 
 /// Sends a zone under attack message to all players not in an instance
@@ -1576,7 +1608,7 @@ void World::SendZoneUnderAttackMessage(uint32 zoneId, Team team)
         {
             Player* player = session->GetPlayer();
             if (player && player->IsInWorld() && player->GetTeam() == team && !player->GetMap()->Instanceable())
-                itr->second->SendPacket(&data);
+                itr->second->SendPacket(data);
         }
     }
 }
@@ -1598,7 +1630,7 @@ void World::SendDefenseMessage(uint32 zoneId, int32 textId)
                 data << uint32(zoneId);
                 data << uint32(messageLength);
                 data << message;
-                session->SendPacket(&data);
+                session->SendPacket(data);
             }
         }
     }
@@ -1812,27 +1844,28 @@ void World::UpdateSessions(uint32 /*diff*/)
     {
         std::lock_guard<std::mutex> guard(m_sessionAddQueueLock);
 
-        std::for_each(m_sessionAddQueue.begin(), m_sessionAddQueue.end(), [&](WorldSession *session) { AddSession_(session); });
+        for (auto const &session : m_sessionAddQueue)
+            AddSession_(session);
 
         m_sessionAddQueue.clear();
     }
 
     ///- Then send an update signal to remaining ones
-    for (SessionMap::iterator itr = m_sessions.begin(), next; itr != m_sessions.end(); itr = next)
+    for (SessionMap::iterator itr = m_sessions.begin(); itr != m_sessions.end(); )
     {
-        next = itr;
-        ++next;
         ///- and remove not active sessions from the list
         WorldSession* pSession = itr->second;
         WorldSessionFilter updater(pSession);
 
-        // the session itself is owned by the socket which created it.  that is where the destruction of the session will happen.
+        // if WorldSession::Update fails, it means that the session should be destroyed
         if (!pSession->Update(updater))
         {
             RemoveQueuedSession(pSession);
-            m_sessions.erase(itr);
-            pSession->Finalize();
+            itr = m_sessions.erase(itr);
+            delete pSession;
         }
+        else
+            ++itr;
     }
 }
 
@@ -1922,16 +1955,129 @@ void World::InitDailyQuestResetTime()
         delete result;
 }
 
+void World::InitWeeklyQuestResetTime()
+{
+    QueryResult* result = CharacterDatabase.Query("SELECT NextWeeklyQuestResetTime FROM saved_variables");
+    if (!result)
+        m_NextWeeklyQuestReset = time_t(time(nullptr));        // game time not yet init
+    else
+        m_NextWeeklyQuestReset = time_t((*result)[0].GetUInt64());
+
+    // generate time by config
+    time_t curTime = time(nullptr);
+    tm localTm = *localtime(&curTime);
+
+    int week_day_offset = localTm.tm_wday - int(getConfig(CONFIG_UINT32_QUEST_WEEKLY_RESET_WEEK_DAY));
+
+    // current week reset time
+    localTm.tm_hour = getConfig(CONFIG_UINT32_QUEST_WEEKLY_RESET_HOUR);
+    localTm.tm_min = 0;
+    localTm.tm_sec = 0;
+    time_t nextWeekResetTime = mktime(&localTm);
+    nextWeekResetTime -= week_day_offset * DAY;             // move time to proper day
+
+                                                            // next reset time before current moment
+    if (curTime >= nextWeekResetTime)
+        nextWeekResetTime += WEEK;
+
+    // normalize reset time
+    m_NextWeeklyQuestReset = m_NextWeeklyQuestReset < curTime ? nextWeekResetTime - WEEK : nextWeekResetTime;
+
+    if (!result)
+        CharacterDatabase.PExecute("INSERT INTO saved_variables (NextWeeklyQuestResetTime) VALUES ('" UI64FMTD "')", uint64(m_NextWeeklyQuestReset));
+    else
+        delete result;
+}
+
+void World::SetMonthlyQuestResetTime(bool initialize)
+{
+    time_t currentTime = time(nullptr);
+    bool insert = false;
+    if (initialize)
+    {
+        QueryResult* result = CharacterDatabase.Query("SELECT NextMonthlyQuestResetTime FROM saved_variables");
+
+        if (!result)
+        {
+            m_NextMonthlyQuestReset = time_t(time(nullptr));
+            insert = true;
+        }
+        else
+        {
+            m_NextMonthlyQuestReset = time_t((*result)[0].GetUInt64());
+            delete result;
+            return; // if value in DB, need to check if timer expired first in ResetMonthlyQuests()
+        }
+
+        delete result;
+    }
+
+    tm localTm = *localtime(&currentTime);
+
+    int month = localTm.tm_mon;
+    int year = localTm.tm_year;
+
+    ++month;
+
+    // month 11 is december, next is january (0)
+    if (month > 11)
+    {
+        month = 0;
+        year += 1;
+    }
+
+    // reset time for next month
+    localTm.tm_year = year;
+    localTm.tm_mon = month;
+    localTm.tm_mday = 1;                                    // don't know if we really need config option for day/hour
+    localTm.tm_hour = getConfig(CONFIG_UINT32_QUEST_DAILY_RESET_HOUR);
+    localTm.tm_min = 0;
+    localTm.tm_sec = 0;
+
+    time_t nextMonthResetTime = mktime(&localTm);
+
+    m_NextMonthlyQuestReset = (initialize && m_NextMonthlyQuestReset < nextMonthResetTime) ? m_NextMonthlyQuestReset : nextMonthResetTime;
+
+    if (insert)
+        CharacterDatabase.PExecute("INSERT INTO saved_variables (NextMonthlyQuestResetTime) VALUES ('" UI64FMTD "')", uint64(m_NextMonthlyQuestReset));
+    else
+        CharacterDatabase.PExecute("UPDATE saved_variables SET NextMonthlyQuestResetTime = '" UI64FMTD "'", uint64(m_NextMonthlyQuestReset));
+}
+
 void World::ResetDailyQuests()
 {
     DETAIL_LOG("Daily quests reset for all characters.");
-    CharacterDatabase.Execute("DELETE FROM character_queststatus_daily");
+    CharacterDatabase.Execute("TRUNCATE character_queststatus_daily");
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (itr->second->GetPlayer())
             itr->second->GetPlayer()->ResetDailyQuestStatus();
 
     m_NextDailyQuestReset = time_t(m_NextDailyQuestReset + DAY);
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextDailyQuestResetTime = '" UI64FMTD "'", uint64(m_NextDailyQuestReset));
+}
+
+void World::ResetWeeklyQuests()
+{
+    DETAIL_LOG("Weekly quests reset for all characters.");
+    CharacterDatabase.Execute("TRUNCATE character_queststatus_weekly");
+    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+        if (itr->second->GetPlayer())
+            itr->second->GetPlayer()->ResetWeeklyQuestStatus();
+
+    m_NextWeeklyQuestReset = time_t(m_NextWeeklyQuestReset + WEEK);
+    CharacterDatabase.PExecute("UPDATE saved_variables SET NextWeeklyQuestResetTime = '" UI64FMTD "'", uint64(m_NextWeeklyQuestReset));
+}
+
+void World::ResetMonthlyQuests()
+{
+    DETAIL_LOG("Monthly quests reset for all characters.");
+    CharacterDatabase.Execute("TRUNCATE character_queststatus_monthly");
+
+    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+        if (itr->second->GetPlayer())
+            itr->second->GetPlayer()->ResetMonthlyQuestStatus();
+
+    SetMonthlyQuestResetTime(false);
 }
 
 void World::SetPlayerLimit(int32 limit, bool needUpdate)
@@ -2137,5 +2283,5 @@ void World::InvalidatePlayerDataToAllClient(ObjectGuid guid)
 {
     WorldPacket data(SMSG_INVALIDATE_PLAYER, 8);
     data << guid;
-    SendGlobalMessage(&data);
+    SendGlobalMessage(data);
 }

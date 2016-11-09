@@ -29,11 +29,14 @@ instance_stratholme::instance_stratholme(Map* pMap) : ScriptedInstance(pMap),
     m_uiBarthilasRunTimer(0),
     m_uiMindlessSummonTimer(0),
     m_uiSlaugtherSquareTimer(0),
+    m_uiSlaughterDoorTimer(0),
+    m_uiBlackGuardsTimer(0),
     m_uiYellCounter(0),
     m_uiMindlessCount(0),
     m_uiPostboxesUsed(0),
     m_uiSilverHandKilled(0),
-    m_uiAuriusSummonTimer(0)
+    m_uiAuriusSummonTimer(0),
+    m_bIsSlaughterDoorOpen(false)
 {
     Initialize();
 }
@@ -41,6 +44,10 @@ instance_stratholme::instance_stratholme(Map* pMap) : ScriptedInstance(pMap),
 void instance_stratholme::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+
+    for (uint8 i = 0; i < 2; ++i)
+        for (uint8 j = 0; j < 3; ++j)
+            m_uiGateTrapTimers[i][j] = 0;
 }
 
 void instance_stratholme::OnPlayerEnter(Player* pPlayer)
@@ -53,6 +60,20 @@ void instance_stratholme::OnPlayerEnter(Player* pPlayer)
     {
         if (Creature* pYsida = pPlayer->SummonCreature(NPC_YSIDA, aStratholmeLocation[8].m_fX, aStratholmeLocation[8].m_fY, aStratholmeLocation[8].m_fZ, aStratholmeLocation[8].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0))
             pYsida->SetDeadByDefault(true);
+    }
+}
+
+// This function will prevent to lock players/monsters out/in
+// the Slaughterhouse when toggling the door:
+// this could happen when wiping before the end of the whole event
+// The door will be toggled only if the current state is
+// different of the one requested by bOpen (true = open, false  = closed)
+void instance_stratholme::DoOpenSlaughterhouseDoor(bool bOpen)
+{
+    if (bOpen != m_bIsSlaughterDoorOpen)
+    {
+        DoUseDoorOrButton(GO_ZIGGURAT_DOOR_4);
+        m_bIsSlaughterDoorOpen = bOpen;
     }
 }
 
@@ -152,11 +173,11 @@ void instance_stratholme::OnObjectCreate(GameObject* pGo)
             return;
 
         case GO_ZIGGURAT_DOOR_4:
-            if (m_auiEncounter[TYPE_RAMSTEIN] == DONE)
+            if (m_auiEncounter[TYPE_RAMSTEIN] == DONE || m_auiEncounter[TYPE_BLACK_GUARDS] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_ZIGGURAT_DOOR_5:
-            if (m_auiEncounter[TYPE_RAMSTEIN] == DONE)
+            if (m_auiEncounter[TYPE_BLACK_GUARDS] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
         case GO_PORT_GAUNTLET:
@@ -173,6 +194,10 @@ void instance_stratholme::OnObjectCreate(GameObject* pGo)
             break;
         case GO_PORT_ELDERS:
         case GO_YSIDA_CAGE:
+        case GO_PORT_TRAP_GATE_1:
+        case GO_PORT_TRAP_GATE_2:
+        case GO_PORT_TRAP_GATE_3:
+        case GO_PORT_TRAP_GATE_4:
             break;
 
         default:
@@ -253,9 +278,9 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
 
                 if (!uiCount)
                 {
-                    // Old Comment: a bit itchy, it should close GO_ZIGGURAT_DOOR_4 door after 10 secs, but it doesn't. skipping it for now.
-                    // However looks like that this door is no more closed
-                    DoUseDoorOrButton(GO_ZIGGURAT_DOOR_4);
+                    // Open the Slaughterhouse door and set a timer to close it after 10 sec to let some time to Ramstein to move out
+                    DoOpenSlaughterhouseDoor(true);
+                    m_uiSlaughterDoorTimer = 10000;
 
                     // No more handlng of Abomnations
                     m_uiSlaugtherSquareTimer = 0;
@@ -264,7 +289,7 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
                     {
                         DoScriptText(SAY_ANNOUNCE_RAMSTEIN, pBaron);
                         if (Creature* pRamstein = pBaron->SummonCreature(NPC_RAMSTEIN, aStratholmeLocation[2].m_fX, aStratholmeLocation[2].m_fY, aStratholmeLocation[2].m_fZ, aStratholmeLocation[2].m_fO, TEMPSUMMON_DEAD_DESPAWN, 0))
-                            pRamstein->GetMotionMaster()->MovePoint(0, aStratholmeLocation[3].m_fX, aStratholmeLocation[3].m_fY, aStratholmeLocation[3].m_fZ);
+                            pRamstein->GetMotionMaster()->MovePoint(0, aStratholmeLocation[5].m_fX, aStratholmeLocation[5].m_fY, aStratholmeLocation[5].m_fZ);
 
                         debug_log("SD2: Instance Stratholme - Slaugther event: Ramstein spawned.");
                     }
@@ -279,6 +304,8 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
             {
                 // Open side gate and start summoning skeletons
                 DoUseDoorOrButton(GO_PORT_SLAUGHTER_GATE);
+                // Close the Slaughterhouse door in case it was open again after a wipe on Ramstein
+                DoOpenSlaughterhouseDoor(false);
                 // use this timer as a bool just to start summoning
                 m_uiMindlessSummonTimer = 500;
                 m_uiMindlessCount = 0;
@@ -420,6 +447,7 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
             {
                 if (Creature* pBaron = GetSingleCreatureFromStorage(NPC_BARON))
                     DoScriptText(SAY_UNDEAD_DEFEAT, pBaron);
+                DoOpenSlaughterhouseDoor(true);
                 DoUseDoorOrButton(GO_ZIGGURAT_DOOR_5);
             }
             m_auiEncounter[uiType] = uiData;
@@ -644,9 +672,13 @@ void instance_stratholme::OnCreatureEvade(Creature* pCreature)
         case NPC_BARONESS_ANASTARI: SetData(TYPE_BARONESS, FAIL); break;
         case NPC_MALEKI_THE_PALLID: SetData(TYPE_PALLID, FAIL);   break;
         case NPC_NERUBENKAN:        SetData(TYPE_NERUB, FAIL);    break;
-        case NPC_RAMSTEIN:          SetData(TYPE_RAMSTEIN, FAIL); break;
         case NPC_BARON:             SetData(TYPE_BARON, FAIL);    break;
 
+        case NPC_RAMSTEIN:
+            SetData(TYPE_RAMSTEIN, FAIL);
+            // Open Slaughterhouse door again because Ramstein will move back in
+            DoOpenSlaughterhouseDoor(true);
+            break;
         case NPC_ABOM_BILE:
         case NPC_ABOM_VENOM:
             // Fail in Slaughterhouse Event before Ramstein
@@ -656,6 +688,8 @@ void instance_stratholme::OnCreatureEvade(Creature* pCreature)
         case NPC_BLACK_GUARD:
             // Fail in Slaughterhouse after Ramstein
             SetData(TYPE_BLACK_GUARDS, FAIL);
+            // Open Slaughterhouse door again because Black Guards will move back in
+            DoOpenSlaughterhouseDoor(true);
             break;
     }
 }
@@ -687,19 +721,7 @@ void instance_stratholme::OnCreatureDeath(Creature* pCreature)
         case NPC_MINDLESS_UNDEAD:
             m_luiUndeadGUIDs.remove(pCreature->GetObjectGuid());
             if (m_luiUndeadGUIDs.empty())
-            {
-                // Let the black Guards move out of the citadel
-                for (GuidList::const_iterator itr = m_luiGuardGUIDs.begin(); itr != m_luiGuardGUIDs.end(); ++itr)
-                {
-                    Creature* pGuard = instance->GetCreature(*itr);
-                    if (pGuard && pGuard->isAlive() && !pGuard->isInCombat())
-                    {
-                        float fX, fY, fZ;
-                        pGuard->GetRandomPoint(aStratholmeLocation[5].m_fX, aStratholmeLocation[5].m_fY, aStratholmeLocation[5].m_fZ, 10.0f, fX, fY, fZ);
-                        pGuard->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
-                    }
-                }
-            }
+                m_uiBlackGuardsTimer = 60000; // Wait 1 min before sending the Black Guards outside. In Classic, this allows players to resplenish health and mana
             break;
         case NPC_BLACK_GUARD:
             m_luiGuardGUIDs.remove(pCreature->GetObjectGuid());
@@ -716,8 +738,8 @@ void instance_stratholme::OnCreatureDeath(Creature* pCreature)
         case NPC_CRIMSON_BATTLE_MAGE:
             for (uint8 i = BARRICADE; i <= FIRST_BARRICADES; i++)
             {
-            	if (m_suiCrimsonDefendersLowGuids[i].empty())
-            		continue;
+                if (m_suiCrimsonDefendersLowGuids[i].empty())
+                    continue;
 
                 m_suiCrimsonDefendersLowGuids[i].remove(pCreature->GetObjectGuid());
                 // If all mobs from a defense group are dead then activate the related defense event
@@ -876,8 +898,8 @@ void instance_stratholme::DoMoveBackDefenders(uint8 uiStep, Creature* pCreature)
         Creature* pGuard = instance->GetCreature(*itr);
         if (pGuard && pGuard->isAlive() && !pGuard->isInCombat())
         {
-			pGuard->GetMotionMaster()->MoveIdle();
-        	pGuard->SetWalk(false);
+            pGuard->GetMotionMaster()->MoveIdle();
+            pGuard->SetWalk(false);
             pGuard->GetMotionMaster()->MovePoint(0, aScarletLastStand[uiTreshold + uiFoundGuards].m_fX, aScarletLastStand[uiTreshold + uiFoundGuards].m_fY, aScarletLastStand[uiTreshold + uiFoundGuards].m_fZ);
             uiFoundGuards++;
         }
@@ -922,8 +944,131 @@ void instance_stratholme::DoScarletBastionDefense(uint8 uiStep, Creature* pCreat
     return;
 }
 
+void instance_stratholme::DoGateTrap(uint8 uiGate)
+{
+    // Check if timer was not already set by another player/pet a few milliseconds before
+    if (m_uiGateTrapTimers[uiGate][0])
+        return;
+
+    debug_log("SD2: Instance Stratholme - Rat Trap activated %i.", uiGate);
+    // close the gates
+    DoUseDoorOrButton(aGates[2 * uiGate]);
+    DoUseDoorOrButton(aGates[2 * uiGate + 1]);
+
+    // set timer to reset the trap
+    m_uiGateTrapTimers[uiGate][0] = 30 * MINUTE * IN_MILLISECONDS;
+    // set timer to reopen gates
+    m_uiGateTrapTimers[uiGate][1] = 20 * IN_MILLISECONDS;
+    // set timer to spawn the plagued critters
+    m_uiGateTrapTimers[uiGate][2] = 2 * IN_MILLISECONDS;
+}
+
+void instance_stratholme::DoSpawnPlaguedCritters(uint8 uiGate, Player* pPlayer)
+{
+    if (!pPlayer)
+        return;
+
+    uint32 uiEntry = aPlaguedCritters[urand(0,2)];
+    for (uint8 i = 0; i < 30; ++i)
+    {
+        float fX, fY, fZ;
+        pPlayer->GetRandomPoint(aGateTrap[uiGate].m_fX, aGateTrap[uiGate].m_fY, aGateTrap[uiGate].m_fZ, 8.0f, fX, fY, fZ);
+        pPlayer->SummonCreature(uiEntry, fX, fY, fZ, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+    }
+}
+
 void instance_stratholme::Update(uint32 uiDiff)
 {
+    // Loop over the two Gate traps, each one has up to three timers (trap reset, gate opening delay, critters spawning delay)
+    for (uint8 i = 0; i < 2; i++)
+    {
+        // Check that the trap is not on cooldown, if so check if player/pet is in range
+        if (m_uiGateTrapTimers[i][0])
+        {
+            m_uiGateTrapTimers[i][0] -= uiDiff;
+            if (m_uiGateTrapTimers[i][0] <= uiDiff)
+            {
+                debug_log("SD2: Instance Stratholme - Rat Trap reseted %u.", i);
+                m_uiGateTrapTimers[i][0] = 0;
+            }
+        }
+        else
+        {
+            Map::PlayerList const& players = instance->GetPlayers();
+            for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+            {
+                if (Player* pPlayer = itr->getSource())
+                {
+                    if (!pPlayer->isGameMaster() && pPlayer->IsWithinDist2d(aGateTrap[i].m_fX, aGateTrap[i].m_fY, 5.5f))
+                        DoGateTrap(i);
+
+                    Pet* pet = pPlayer->GetPet();
+                    if (!pPlayer->isGameMaster() && pet && pet->IsWithinDist2d(aGateTrap[i].m_fX, aGateTrap[i].m_fY, 5.5f))
+                        DoGateTrap(i);
+                }
+            }
+        }
+        // Timer to reopen the gates
+        if (m_uiGateTrapTimers[i][1])
+        {
+            if (m_uiGateTrapTimers[i][1] <= uiDiff)
+            {
+                DoUseDoorOrButton(aGates[2 * i]);
+                DoUseDoorOrButton(aGates[2 * i + 1]);
+                m_uiGateTrapTimers[i][1] = 0;
+            }
+            else
+                m_uiGateTrapTimers[i][1] -= uiDiff;
+        }
+        // Delay timer to spawn the plagued critters once the gate are closing
+        if (m_uiGateTrapTimers[i][2])
+        {
+            if (m_uiGateTrapTimers[i][2] <= uiDiff)
+            {
+                if (Player* pPlayer = GetPlayerInMap())
+                    DoSpawnPlaguedCritters(i, pPlayer);
+                m_uiGateTrapTimers[i][2] = 0;
+            }
+            else
+                m_uiGateTrapTimers[i][2] -= uiDiff;
+        }
+    }
+
+    // Timer to send the Black Guard Sentries out of the Slaughterhouse before Baron Rivendare
+    if (m_uiBlackGuardsTimer)
+    {
+        if (m_uiBlackGuardsTimer <= uiDiff)
+        {
+            // Open the Slaughterhouse door and set a timer to close it after 10 sec to let some time to the 5 Black Guards to move out
+            DoOpenSlaughterhouseDoor(true);
+            m_uiSlaughterDoorTimer = 10000;
+
+            for (GuidList::const_iterator itr = m_luiGuardGUIDs.begin(); itr != m_luiGuardGUIDs.end(); ++itr)
+            {
+                Creature* pGuard = instance->GetCreature(*itr);
+                if (pGuard && pGuard->isAlive() && !pGuard->isInCombat())
+                {
+                    float fX, fY, fZ;
+                    pGuard->GetRandomPoint(aStratholmeLocation[5].m_fX, aStratholmeLocation[5].m_fY, aStratholmeLocation[5].m_fZ, 10.0f, fX, fY, fZ);
+                    pGuard->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
+                }
+            }
+            m_uiBlackGuardsTimer = 0;
+        }
+        else
+            m_uiBlackGuardsTimer -= uiDiff;
+    }
+    // Timer to close the gate of the Slaughterhouse before Baron Rivendare after Ramstein/Black Guards moved out
+    if (m_uiSlaughterDoorTimer)
+    {
+        if (m_uiSlaughterDoorTimer <= uiDiff)
+        {
+            DoOpenSlaughterhouseDoor(false);
+            m_uiSlaughterDoorTimer = 0;
+        }
+        else
+            m_uiSlaughterDoorTimer -= uiDiff;
+    }
     // Timer to teleport Barthilas
     if (m_uiBarthilasRunTimer)
     {
@@ -1035,6 +1180,7 @@ void instance_stratholme::Update(uint32 uiDiff)
                     {
                         float fX, fY, fZ;
                         pBaron->GetRandomPoint(aStratholmeLocation[5].m_fX, aStratholmeLocation[5].m_fY, aStratholmeLocation[5].m_fZ, 20.0f, fX, fY, fZ);
+                        pTemp->SetWalk(false);
                         pTemp->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
                         m_luiUndeadGUIDs.push_back(pTemp->GetObjectGuid());
                         ++m_uiMindlessCount;
@@ -1075,7 +1221,7 @@ void instance_stratholme::Update(uint32 uiDiff)
             }
 
             // TODO - how fast are they called?
-            m_uiSlaugtherSquareTimer = urand(15000, 30000);
+            m_uiSlaugtherSquareTimer = urand(30000, 45000);
         }
         else
             m_uiSlaugtherSquareTimer -= uiDiff;

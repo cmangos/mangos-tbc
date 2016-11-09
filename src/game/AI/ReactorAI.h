@@ -16,16 +16,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MANGOS_CREATUREAISELECTOR_H
-#define MANGOS_CREATUREAISELECTOR_H
+#ifndef MANGOS_REACTORAI_H
+#define MANGOS_REACTORAI_H
 
-class CreatureAI;
-class Creature;
-class MovementGenerator;
+#include "CreatureAI.h"
+#include "ObjectGuid.h"
 
-namespace FactorySelector
+class Unit;
+
+class ReactorAI : public CreatureAI
 {
-    CreatureAI* selectAI(Creature*);
-    MovementGenerator* selectMovementGenerator(Creature*);
-}
+    public:
+
+        explicit ReactorAI(Creature* c) : CreatureAI(c) {}
+
+        void MoveInLineOfSight(Unit*) override;
+        void AttackStart(Unit*) override;
+        void EnterEvadeMode() override;
+        bool IsVisible(Unit*) const override;
+        bool IsControllable() const override { return true; }
+
+        void UpdateAI(const uint32) override;
+        static int Permissible(const Creature*);
+
+    private:
+        ObjectGuid i_victimGuid;
+};
 #endif

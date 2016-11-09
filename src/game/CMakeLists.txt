@@ -34,6 +34,7 @@ include_directories(SYSTEM
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/vmap
+  ${CMAKE_CURRENT_SOURCE_DIR}/AI
   ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouseBot
   ${CMAKE_CURRENT_SOURCE_DIR}/BattleGround
   ${CMAKE_CURRENT_SOURCE_DIR}/OutdoorPvP
@@ -71,7 +72,36 @@ set(SRC_GRP_CUSTOM
     AntiCheat_waterwalking.cpp
     AntiCheat_waterwalking.h
     CPlayer.cpp
-	CPlayer.h
+    CPlayer.h
+)
+
+set(SRC_GRP_AI
+    AI/AggressorAI.cpp
+    AI/AggressorAI.h
+    AI/CreatureAI.cpp
+    AI/CreatureAI.h
+    AI/CreatureAIImpl.h
+    AI/CreatureAIRegistry.cpp
+    AI/CreatureAIRegistry.h
+    AI/CreatureAISelector.cpp
+    AI/CreatureAISelector.h
+    AI/CreatureEventAI.cpp
+    AI/CreatureEventAI.h
+    AI/CreatureEventAIMgr.cpp
+    AI/CreatureEventAIMgr.h
+    AI/GuardAI.cpp
+    AI/GuardAI.h
+    AI/GuardianAI.cpp
+    AI/GuardianAI.h
+    AI/NullCreatureAI.cpp
+    AI/NullCreatureAI.h
+    AI/PetAI.cpp
+    AI/PetAI.h
+    AI/PossessedAI.h
+    AI/ReactorAI.cpp
+    AI/ReactorAI.h
+    AI/TotemAI.cpp
+    AI/TotemAI.h
 )
 
 set(SRC_GRP_AHBOT
@@ -154,8 +184,6 @@ set(SRC_GRP_MOVEMENT
 )
 
 set(SRC_GRP_OBJECT
-    AggressorAI.cpp
-    AggressorAI.h
     ArenaTeam.cpp
     ArenaTeam.h
     AuctionHouseMgr.cpp
@@ -168,17 +196,6 @@ set(SRC_GRP_OBJECT
     Corpse.h
     Creature.cpp
     Creature.h
-    CreatureAI.cpp
-    CreatureAI.h
-    CreatureAIImpl.h
-    CreatureAIRegistry.cpp
-    CreatureAIRegistry.h
-    CreatureAISelector.cpp
-    CreatureAISelector.h
-    CreatureEventAI.cpp
-    CreatureEventAI.h
-    CreatureEventAIMgr.cpp
-    CreatureEventAIMgr.h
     DynamicObject.cpp
     DynamicObject.h
     Formulas.h
@@ -186,8 +203,6 @@ set(SRC_GRP_OBJECT
     GameObject.h
     GMTicketMgr.cpp
     GMTicketMgr.h
-    GuardAI.cpp
-    GuardAI.h
     Guild.cpp
     Guild.h
     Item.cpp
@@ -197,8 +212,6 @@ set(SRC_GRP_OBJECT
     ItemPrototype.h
     LootMgr.cpp
     LootMgr.h
-    NullCreatureAI.cpp
-    NullCreatureAI.h
     Object.cpp
     Object.h
     ObjectAccessor.cpp
@@ -211,12 +224,8 @@ set(SRC_GRP_OBJECT
     ObjectPosSelector.h
     Pet.cpp
     Pet.h
-    PetAI.cpp
-    PetAI.h
     Player.cpp
     Player.h
-    ReactorAI.cpp
-    ReactorAI.h
     ReputationMgr.cpp
     ReputationMgr.h
     SocialMgr.cpp
@@ -228,8 +237,6 @@ set(SRC_GRP_OBJECT
     TemporarySummon.h
     Totem.cpp
     Totem.h
-    TotemAI.cpp
-    TotemAI.h
     TransportSystem.cpp
     TransportSystem.h
     Unit.cpp
@@ -431,6 +438,7 @@ set(SRC_GRP_WORLD_HANDLERS
 
 set(LIBRARY_SRCS
     ${SRC_GRP_CUSTOM}
+    ${SRC_GRP_AI}
     ${SRC_GRP_AHBOT}
     ${SRC_GRP_BATTLEGROUND}
     ${SRC_GRP_CHAT_COMMANDS}
@@ -450,6 +458,11 @@ set(LIBRARY_SRCS
 source_group("Custom"
   FILES
     ${SRC_GRP_CUSTOM}
+)
+
+source_group("AI"
+  FILES
+    ${SRC_GRP_AI}
 )
 
 source_group("AhBot"
@@ -533,8 +546,6 @@ if(UNIX)
     )
   endif()
 endif()
-
-add_dependencies(${LIBRARY_NAME} revision.h)
 
 # Generate precompiled header
 if(PCH)

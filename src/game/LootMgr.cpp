@@ -339,7 +339,7 @@ LootItem::LootItem(LootStoreItem const& li, uint32 _lootSlot, uint32 threshold)
     itemProto         = ObjectMgr::GetItemPrototype(li.itemid);
     if (itemProto)
     {
-        freeForAll       = !!(itemProto->Flags & ITEM_FLAG_PARTY_LOOT);
+        freeForAll       = !!(itemProto->Flags & ITEM_FLAG_MULTI_DROP);
         displayID        = itemProto->DisplayInfoID;
         isUnderThreshold = itemProto->Quality < threshold;
     }
@@ -369,8 +369,8 @@ LootItem::LootItem(uint32 _itemId, uint32 _count, uint32 _randomSuffix, int32 _r
     itemProto = ObjectMgr::GetItemPrototype(_itemId);
     if (itemProto)
     {
-        freeForAll = !!(itemProto->Flags & ITEM_FLAG_PARTY_LOOT);
-        displayID  = itemProto->DisplayInfoID;
+        freeForAll = !!(itemProto->Flags & ITEM_FLAG_MULTI_DROP);
+        displayID = itemProto->DisplayInfoID;
     }
     else
     {
@@ -535,7 +535,7 @@ void GroupLootRoll::SendStartRoll()
             mask = RollVoteMask(mask & ~ROLL_VOTE_MASK_NEED);
         data.put<uint8>(voteMaskPos, uint8(mask));
 
-        plr->GetSession()->SendPacket(&data);
+        plr->GetSession()->SendPacket(data);
     }
 }
 
@@ -558,7 +558,7 @@ void GroupLootRoll::SendAllPassed()
         if (!plr || !plr->GetSession())
             continue;
 
-        plr->GetSession()->SendPacket(&data);
+        plr->GetSession()->SendPacket(data);
     }
 }
 
@@ -599,7 +599,7 @@ void GroupLootRoll::SendLootRollWon(ObjectGuid const& targetGuid, uint32 rollNum
         Player* plr = sObjectMgr.GetPlayer(itr->first);
         if (!plr || !plr->GetSession())
             continue;
-        plr->GetSession()->SendPacket(&data);
+        plr->GetSession()->SendPacket(data);
     }
 }
 
@@ -626,7 +626,7 @@ void GroupLootRoll::SendRoll(ObjectGuid const& targetGuid, uint32 rollNumber, ui
         if (!plr || !plr->GetSession())
             continue;
 
-        plr->GetSession()->SendPacket(&data);
+        plr->GetSession()->SendPacket(data);
     }
 }
 
@@ -989,7 +989,7 @@ void Loot::NotifyItemRemoved(Player* player, uint32 lootIndex)
     // notify a player that are looting this that the item was removed
     WorldPacket data(SMSG_LOOT_REMOVED, 1);
     data << uint8(lootIndex);
-    player->GetSession()->SendPacket(&data);
+    player->GetSession()->SendPacket(data);
 }
 
 void Loot::NotifyMoneyRemoved()
@@ -1004,7 +1004,7 @@ void Loot::NotifyMoneyRemoved()
         if (plr && plr->GetSession())
         {
             WorldPacket data(SMSG_LOOT_CLEAR_MONEY, 0);
-            plr->GetSession()->SendPacket(&data);
+            plr->GetSession()->SendPacket(data);
         }
         else
             m_playersLooting.erase(i);
@@ -1037,7 +1037,7 @@ void Loot::SendReleaseFor(Player* plr)
     WorldPacket data(SMSG_LOOT_RELEASE_RESPONSE, (8 + 1));
     data << m_guidTarget;
     data << uint8(1);
-    plr->GetSession()->SendPacket(&data);
+    plr->GetSession()->SendPacket(data);
     SetPlayerIsNotLooting(plr);
 }
 
@@ -1334,7 +1334,7 @@ void Loot::ShowContentTo(Player* plr)
     GetLootContentFor(plr, data);                           // fill the data with items contained in the loot (may be empty)
     SetPlayerIsLooting(plr);
 
-    plr->SendDirectMessage(&data);
+    plr->SendDirectMessage(data);
 }
 
 void Loot::GroupCheck()
@@ -1367,7 +1367,7 @@ void Loot::GroupCheck()
                 Player* looter = sObjectAccessor.FindPlayer(*itr);
                 if (!looter)
                     continue;
-                looter->GetSession()->SendPacket(&data);
+                looter->GetSession()->SendPacket(data);
             }
 
             for (uint8 itemSlot = 0; itemSlot < m_lootItems.size(); ++itemSlot)
@@ -1441,7 +1441,6 @@ void Loot::CheckIfRollIsNeeded(Player const* plr)
                 m_roll.erase(m_roll.find(itemSlot));                // Cannot start roll so we have to delete it (find will not fail as the item was just created)
 
             lootItem->checkRollNeed = false;                       // No more check is needed for this item
-            return;
         }
     }
 }
@@ -1865,7 +1864,7 @@ void Loot::SendAllowedLooter()
 
     for (GuidSet::const_iterator itr = m_ownerSet.begin(); itr != m_ownerSet.end(); ++itr)
         if (Player* plr = ObjectAccessor::FindPlayer(*itr))
-            plr->GetSession()->SendPacket(&data);
+            plr->GetSession()->SendPacket(data);
 }
 
 InventoryResult Loot::SendItem(Player* target, uint32 itemSlot)
@@ -2075,7 +2074,7 @@ void Loot::SendGold(Player* player)
             WorldPacket data(SMSG_LOOT_MONEY_NOTIFY, 4);
             data << uint32(money_per_player);
 
-            plr->GetSession()->SendPacket(&data);
+            plr->GetSession()->SendPacket(data);
         }
     }
     else
@@ -2588,7 +2587,7 @@ void LoadLootTemplates_Item()
     {
         if (ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i))
         {
-            if (!(proto->Flags & ITEM_FLAG_LOOTABLE))
+            if (!(proto->Flags & ITEM_FLAG_HAS_LOOT))
                 continue;
 
             if (ids_set.find(proto->ItemId) != ids_set.end() || proto->MaxMoneyLoot > 0)
@@ -2641,7 +2640,7 @@ void LoadLootTemplates_Prospecting()
         if (!proto)
             continue;
 
-        if (!(proto->Flags & ITEM_FLAG_PROSPECTABLE))
+        if (!(proto->Flags & ITEM_FLAG_IS_PROSPECTABLE))
             continue;
 
         if (ids_set.find(proto->ItemId) != ids_set.end())

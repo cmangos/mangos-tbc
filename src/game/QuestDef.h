@@ -143,6 +143,9 @@ enum QuestFlags
     QUEST_FLAGS_AUTO_REWARDED  = 0x00000400,                // These quests are automatically rewarded on quest complete and they will never appear in quest log client side.
     QUEST_FLAGS_TBC_RACES      = 0x00000800,                // Not used currently: Blood elf/Draenei starting zone quests
     QUEST_FLAGS_DAILY          = 0x00001000,                // Daily quest. Can be done once a day. Quests reset at regular intervals for all players.
+    QUEST_FLAGS_FLAGS_PVP      = 0x00002000,                // activates PvP on accept
+    QUEST_FLAGS_UNK4           = 0x00004000,                // ? Membership Card Renewal
+    QUEST_FLAGS_WEEKLY         = 0x00008000,                // Weekly quest. Can be done once a week. Quests reset at regular intervals for all players.
 };
 
 enum QuestSpecialFlags
@@ -150,7 +153,7 @@ enum QuestSpecialFlags
     // Mangos flags for set SpecialFlags in DB if required but used only at server
     QUEST_SPECIAL_FLAG_REPEATABLE           = 0x001,        // |1 in SpecialFlags from DB
     QUEST_SPECIAL_FLAG_EXPLORATION_OR_EVENT = 0x002,        // |2 in SpecialFlags from DB (if required area explore, spell SPELL_EFFECT_QUEST_COMPLETE casting, table `*_script` command SCRIPT_COMMAND_QUEST_EXPLORED use, set from script DLL)
-    // reserved for future versions           0x004,        // |4 in SpecialFlags.
+    QUEST_SPECIAL_FLAG_MONTHLY              = 0x004,        // |4 in SpecialFlags. Quest reset for player at beginning of month.
 
     // Mangos flags for internal use only
     QUEST_SPECIAL_FLAG_DELIVER              = 0x008,        // Internal flag computed only
@@ -159,7 +162,7 @@ enum QuestSpecialFlags
     QUEST_SPECIAL_FLAG_TIMED                = 0x040,        // Internal flag computed only
 };
 
-#define QUEST_SPECIAL_FLAG_DB_ALLOWED (QUEST_SPECIAL_FLAG_REPEATABLE | QUEST_SPECIAL_FLAG_EXPLORATION_OR_EVENT)
+#define QUEST_SPECIAL_FLAG_DB_ALLOWED (QUEST_SPECIAL_FLAG_REPEATABLE | QUEST_SPECIAL_FLAG_EXPLORATION_OR_EVENT | QUEST_SPECIAL_FLAG_MONTHLY)
 
 struct QuestLocale
 {
@@ -240,9 +243,12 @@ class Quest
         uint32 GetQuestStartScript() const { return QuestStartScript; }
         uint32 GetQuestCompleteScript() const { return QuestCompleteScript; }
 
-        bool   IsRepeatable() const { return m_SpecialFlags & QUEST_SPECIAL_FLAG_REPEATABLE; }
-        bool   IsAutoComplete() const { return QuestMethod ? false : true; }
+        bool   IsRepeatable() const { return !!(m_SpecialFlags & QUEST_SPECIAL_FLAG_REPEATABLE); }
+        bool   IsAutoComplete() const { return !QuestMethod; }
         bool   IsDaily() const { return !!(m_QuestFlags & QUEST_FLAGS_DAILY); }
+        bool   IsWeekly() const { return !!(m_QuestFlags & QUEST_FLAGS_WEEKLY); }
+        bool   IsMonthly() const { return !!(m_SpecialFlags & QUEST_SPECIAL_FLAG_MONTHLY); }
+        bool   IsDailyOrWeekly() const { return !!(m_QuestFlags & (QUEST_FLAGS_DAILY | QUEST_FLAGS_WEEKLY)); }
         bool   IsAllowedInRaid() const;
 
         // quest can be fully deactivated and will not be available for any player

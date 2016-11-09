@@ -484,7 +484,7 @@ void WorldSession::HandleQuestPushResult(WorldPacket& recvPacket)
         WorldPacket data(MSG_QUEST_PUSH_RESULT, (8 + 1));
         data << ObjectGuid(guid);
         data << uint8(msg);                             // valid values: 0-8
-        pPlayer->GetSession()->SendPacket(&data);
+        pPlayer->GetSession()->SendPacket(data);
         _player->ClearDividerGuid();
     }
 }
@@ -536,14 +536,10 @@ uint32 WorldSession::getDialogStatus(Player* pPlayer, Object* questgiver, uint32
 
         QuestStatus status = pPlayer->GetQuestStatus(quest_id);
 
-        if ((status == QUEST_STATUS_COMPLETE && !pPlayer->GetQuestRewardStatus(quest_id)) ||
-                (pQuest->IsAutoComplete() && pPlayer->CanTakeQuest(pQuest, false)))
-        {
-            if (pQuest->IsAutoComplete() && pQuest->IsRepeatable())
-                dialogStatusNew = DIALOG_STATUS_REWARD_REP;
-            else
-                dialogStatusNew = DIALOG_STATUS_REWARD;
-        }
+        if (status == QUEST_STATUS_COMPLETE && !pPlayer->GetQuestRewardStatus(quest_id))
+            dialogStatusNew = pQuest->IsRepeatable() ? DIALOG_STATUS_REWARD_REP : DIALOG_STATUS_REWARD;
+        else if (pQuest->IsAutoComplete() && pPlayer->CanTakeQuest(pQuest, false))
+            dialogStatusNew = pQuest->IsRepeatable() ? DIALOG_STATUS_AVAILABLE_REP : DIALOG_STATUS_AVAILABLE;
         else if (status == QUEST_STATUS_INCOMPLETE)
             dialogStatusNew = DIALOG_STATUS_INCOMPLETE;
 
@@ -576,7 +572,7 @@ uint32 WorldSession::getDialogStatus(Player* pPlayer, Object* questgiver, uint32
                     }
                     else if (lowLevelDiff < 0 || pPlayer->getLevel() <= pPlayer->GetQuestLevelForPlayer(pQuest) + uint32(lowLevelDiff))
                     {
-                        if (pQuest->HasQuestFlag(QUEST_FLAGS_DAILY))
+						if (pQuest->HasQuestFlag(QUEST_FLAGS_DAILY) || pQuest->HasQuestFlag(QUEST_FLAGS_WEEKLY))
                             dialogStatusNew = DIALOG_STATUS_AVAILABLE_REP;
                         else
                             dialogStatusNew = DIALOG_STATUS_AVAILABLE;
@@ -600,56 +596,7 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
 {
     DEBUG_LOG("WORLD: Received opcode CMSG_QUESTGIVER_STATUS_MULTIPLE_QUERY");
 
-    uint32 count = 0;
-
-    WorldPacket data(SMSG_QUESTGIVER_STATUS_MULTIPLE, 4);
-    data << uint32(count);                                  // placeholder
-
-    for (GuidSet::const_iterator itr = _player->m_clientGUIDs.begin(); itr != _player->m_clientGUIDs.end(); ++itr)
-    {
-        if (itr->IsAnyTypeCreature())
-        {
-            // need also pet quests case support
-            Creature* questgiver = GetPlayer()->GetMap()->GetAnyTypeCreature(*itr);
-
-            if (!questgiver || questgiver->IsHostileTo(_player))
-                continue;
-
-            if (!questgiver->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER))
-                continue;
-
-            uint8 dialogStatus = sScriptMgr.GetDialogStatus(_player, questgiver);
-
-            if (dialogStatus == DIALOG_STATUS_UNDEFINED)
-                dialogStatus = getDialogStatus(_player, questgiver, DIALOG_STATUS_NONE);
-
-            data << questgiver->GetObjectGuid();
-            data << uint8(dialogStatus);
-            ++count;
-        }
-        else if (itr->IsGameObject())
-        {
-            GameObject* questgiver = GetPlayer()->GetMap()->GetGameObject(*itr);
-
-            if (!questgiver)
-                continue;
-
-            if (questgiver->GetGoType() != GAMEOBJECT_TYPE_QUESTGIVER)
-                continue;
-
-            uint8 dialogStatus = sScriptMgr.GetDialogStatus(_player, questgiver);
-
-            if (dialogStatus == DIALOG_STATUS_UNDEFINED)
-                dialogStatus = getDialogStatus(_player, questgiver, DIALOG_STATUS_NONE);
-
-            data << questgiver->GetObjectGuid();
-            data << uint8(dialogStatus);
-            ++count;
-        }
-    }
-
-    data.put<uint32>(0, count);                             // write real count
-    SendPacket(&data);
+    _player->SendQuestGiverStatusMultiple();
 }
 
 bool WorldSession::CanInteractWithQuestGiver(ObjectGuid guid, char const* descr)

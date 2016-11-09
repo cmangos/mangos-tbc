@@ -23,7 +23,7 @@
 #include "ObjectMgr.h"
 #include "SpellMgr.h"
 #include "DBCStores.h"
-#include "CreatureAI.h"
+#include "AI/CreatureAI.h"
 #include "InstanceData.h"
 
 Totem::Totem() : Creature(CREATURE_SUBTYPE_TOTEM)
@@ -95,7 +95,7 @@ void Totem::Summon(Unit* owner)
 
     WorldPacket data(SMSG_GAMEOBJECT_SPAWN_ANIM_OBSOLETE, 8);
     data << GetObjectGuid();
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 
     if (owner->GetTypeId() == TYPEID_UNIT && ((Creature*)owner)->AI())
         ((Creature*)owner)->AI()->JustSummoned((Creature*)this);

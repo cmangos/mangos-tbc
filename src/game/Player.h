@@ -729,6 +729,8 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADSKILLS,
     PLAYER_LOGIN_QUERY_LOADMAILS,
     PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,
+    PLAYER_LOGIN_QUERY_LOADWEEKLYQUESTSTATUS,
+    PLAYER_LOGIN_QUERY_LOADMONTHLYQUESTSTATUS,
 
     MAX_PLAYER_LOGIN_QUERY
 };
@@ -950,7 +952,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void Update(uint32 update_diff, uint32 time) override;
 
-        static bool BuildEnumData(QueryResult* result,  WorldPacket* p_data);
+        static bool BuildEnumData(QueryResult* result,  WorldPacket& p_data);
 
         void SetInWater(bool apply);
 
@@ -1257,6 +1259,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool SatisfyQuestNextChain(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestPrevChain(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestDay(Quest const* qInfo, bool msg) const;
+        bool SatisfyQuestWeek(Quest const * qInfo) const;
+        bool SatisfyQuestMonth(Quest const * qInfo) const;
         bool CanGiveQuestSourceItemIfNeed(Quest const* pQuest, ItemPosCountVec* dest = nullptr) const;
         void GiveQuestSourceItemIfNeed(Quest const* pQuest);
         bool TakeQuestSourceItem(uint32 quest_id, bool msg);
@@ -1265,7 +1269,11 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SetQuestStatus(uint32 quest_id, QuestStatus status);
 
         void SetDailyQuestStatus(uint32 quest_id);
+        void SetWeeklyQuestStatus(uint32 quest_id);
+        void SetMonthlyQuestStatus(uint32 quest_id);
         void ResetDailyQuestStatus();
+        void ResetWeeklyQuestStatus();
+        void ResetMonthlyQuestStatus();
 
         uint16 FindQuestSlot(uint32 quest_id) const;
         uint32 GetQuestSlotQuestId(uint16 slot) const { return GetUInt32Value(PLAYER_QUEST_LOG_1_1 + slot * MAX_QUEST_OFFSET + QUEST_ID_OFFSET); }
@@ -1319,6 +1327,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendPushToPartyResponse(Player* pPlayer, uint32 msg);
         void SendQuestUpdateAddItem(Quest const* pQuest, uint32 item_idx, uint32 count);
         void SendQuestUpdateAddCreatureOrGo(Quest const* pQuest, ObjectGuid guid, uint32 creatureOrGO_idx, uint32 count);
+        void SendQuestGiverStatusMultiple();
 
         ObjectGuid GetDividerGuid() const { return m_dividerGuid; }
         void SetDividerGuid(ObjectGuid guid) { m_dividerGuid = guid; }
@@ -1703,10 +1712,10 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool SetPosition(float x, float y, float z, float orientation, bool teleport = false);
         void UpdateUnderwaterState(Map* m, float x, float y, float z);
 
-        void SendMessageToSet(WorldPacket* data, bool self) const override;// overwrite Object::SendMessageToSet
-        void SendMessageToSetInRange(WorldPacket* data, float fist, bool self) const override;
+        void SendMessageToSet(WorldPacket const& data, bool self) const override;// overwrite Object::SendMessageToSet
+        void SendMessageToSetInRange(WorldPacket const& data, float fist, bool self) const override;
         // overwrite Object::SendMessageToSetInRange
-        void SendMessageToSetInRange(WorldPacket* data, float dist, bool self, bool own_team_only) const;
+        void SendMessageToSetInRange(WorldPacket const& data, float dist, bool self, bool own_team_only) const;
 
         Corpse* GetCorpse() const;
         void SpawnCorpseBones();
@@ -1864,7 +1873,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void SendInitWorldStates(uint32 zone, uint32 area);
         void SendUpdateWorldState(uint32 Field, uint32 Value);
-        void SendDirectMessage(WorldPacket* data) const;
+        void SendDirectMessage(WorldPacket const& data) const;
 
         void SendAuraDurationsForTarget(Unit* target);
 
@@ -2027,6 +2036,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         bool IsFlying() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FLYING); }
         bool IsFreeFlying() const { return HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED) || HasAuraType(SPELL_AURA_FLY); }
 
+        bool IsClientControl(Unit* target) const;
         void SetClientControl(Unit* target, uint8 allowMove);
         void SetMover(Unit* target) { m_mover = target ? target : this; }
         Unit* GetMover() const { return m_mover; }
@@ -2096,7 +2106,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         void ResummonPetTemporaryUnSummonedIfAny();
         bool IsPetNeedBeTemporaryUnsummoned() const { return !IsInWorld() || !isAlive() || IsMounted() /*+in flight*/; }
 
-        void SendCinematicStart(uint32 CinematicSequenceId);
+        void SendCinematicStart(uint32 CinematicSequenceId) const;
 
         /*********************************************************/
         /***                 INSTANCE SYSTEM                   ***/
@@ -2184,6 +2194,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         // We allow only one timed quest active at the same time. Below can then be simple value instead of set.
         typedef std::set<uint32> QuestSet;
         QuestSet m_timedquests;
+        QuestSet m_weeklyquests;
+        QuestSet m_monthlyquests;
 
         ObjectGuid m_dividerGuid;
         uint32 m_ingametime;
@@ -2201,6 +2213,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _LoadMailedItems(QueryResult* result);
         void _LoadQuestStatus(QueryResult* result);
         void _LoadDailyQuestStatus(QueryResult* result);
+        void _LoadWeeklyQuestStatus(QueryResult* result);
+        void _LoadMonthlyQuestStatus(QueryResult* result);
         void _LoadGroup(QueryResult* result);
         void _LoadSkills(QueryResult* result);
         void _LoadSpells(QueryResult* result);
@@ -2220,6 +2234,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         void _SaveMail();
         void _SaveQuestStatus();
         void _SaveDailyQuestStatus();
+        void _SaveWeeklyQuestStatus();
+        void _SaveMonthlyQuestStatus();
         void _SaveSkills();
         void _SaveSpells();
         void _SaveBGData();
@@ -2303,6 +2319,8 @@ class MANGOS_DLL_SPEC Player : public Unit
         TradeData* m_trade;
 
         bool   m_DailyQuestChanged;
+        bool   m_WeeklyQuestChanged;
+        bool   m_MonthlyQuestChanged;
 
         uint32 m_drunkTimer;
         uint16 m_drunk;

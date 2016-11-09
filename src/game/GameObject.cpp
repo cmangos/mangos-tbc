@@ -291,7 +291,7 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                                 caster->FinishSpell(CURRENT_CHANNELED_SPELL);
 
                                 WorldPacket data(SMSG_FISH_NOT_HOOKED, 0);
-                                ((Player*)caster)->GetSession()->SendPacket(&data);
+                                ((Player*)caster)->GetSession()->SendPacket(data);
                             }
                             // can be deleted
                             m_lootState = GO_JUST_DEACTIVATED;
@@ -1265,7 +1265,7 @@ void GameObject::Use(Unit* user)
                 {
                     WorldPacket data(SMSG_GAMEOBJECT_PAGETEXT, 8);
                     data << ObjectGuid(GetObjectGuid());
-                    player->GetSession()->SendPacket(&data);
+                    player->GetSession()->SendPacket(data);
                 }
                 else if (info->goober.gossipID)             // ...or gossip, if page does not exist
                 {
@@ -1301,6 +1301,7 @@ void GameObject::Use(Unit* user)
 
             // cast this spell later if provided
             spellId = info->goober.spellId;
+            triggered = true;
 
             break;
         }
@@ -1407,7 +1408,7 @@ void GameObject::Use(Unit* user)
                         SetLootState(GO_JUST_DEACTIVATED);
 
                         WorldPacket data(SMSG_FISH_ESCAPED, 0);
-                        player->GetSession()->SendPacket(&data);
+                        player->GetSession()->SendPacket(data);
                     }
                     break;
                 }
@@ -1418,7 +1419,7 @@ void GameObject::Use(Unit* user)
                     SetLootState(GO_JUST_DEACTIVATED);
 
                     WorldPacket data(SMSG_FISH_NOT_HOOKED, 0);
-                    player->GetSession()->SendPacket(&data);
+                    player->GetSession()->SendPacket(data);
                     break;
                 }
             }
@@ -1543,7 +1544,7 @@ void GameObject::Use(Unit* user)
             Player* targetPlayer = ObjectAccessor::FindPlayer(player->GetSelectionGuid());
 
             // accept only use by player from same group for caster except caster itself
-            if (!targetPlayer || targetPlayer == player || !targetPlayer->IsInSameGroupWith(player))
+            if (!targetPlayer || targetPlayer == player || !targetPlayer->IsInSameRaidWith(player))
                 return;
 
             // required lvl checks!

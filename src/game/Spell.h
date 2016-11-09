@@ -355,16 +355,28 @@ class Spell
         uint32 getState() const { return m_spellState; }
         void setState(uint32 state) { m_spellState = state; }
 
-        void DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype);
-        void DoSummon(SpellEffectIndex eff_idx);
-        void DoSummonWild(SpellEffectIndex eff_idx, uint32 forceFaction = 0);
-        void DoSummonGuardian(SpellEffectIndex eff_idx, uint32 forceFaction = 0);
-        void DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc = 0);
-        void DoSummonCritter(SpellEffectIndex eff_idx, uint32 forceFaction = 0);
-        bool DoSummonPossessed(SpellEffectIndex eff_idx, uint32 forceFaction = 0);
+        struct CreaturePosition
+        {
+            CreaturePosition() :
+                x(0.0f), y(0.0f), z(0.0f),
+                creature(nullptr)
+            {}
 
-        void WriteSpellGoTargets(WorldPacket* data);
-        void WriteAmmoToPacket(WorldPacket* data);
+            float x, y, z;
+            Creature* creature;
+        };
+        typedef std::vector<CreaturePosition> CreatureSummonPositions;
+
+        void DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype);
+        bool DoSummonPet(SpellEffectIndex eff_idx);
+        bool DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc = 0);
+        bool DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);
+        bool DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);
+        bool DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);
+        bool DoSummonPossessed(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);
+
+        void WriteSpellGoTargets(WorldPacket& data);
+        void WriteAmmoToPacket(WorldPacket& data);
 
         template<typename T> WorldObject* FindCorpseUsing();
 
@@ -394,6 +406,7 @@ class Spell
         Item* m_CastItem;
         uint8 m_cast_count;
         SpellCastTargets m_targets;
+        bool m_ignoreHitResult;
 
         int32 GetCastTime() const { return m_casttime; }
         uint32 GetCastedTime() { return m_timer; }

@@ -57,6 +57,12 @@ enum TempSummonType
     TEMPSUMMON_TIMED_OOC_OR_CORPSE_DESPAWN = 9,             // despawns after a specified time (OOC) OR when the creature dies
 };
 
+enum TempSummonLinkedAura
+{
+    TEMPSUMMON_LINKED_AURA_OWNER_CHECK = 0x00000001,
+    TEMPSUMMON_LINKED_AURA_REMOVE_OWNER = 0x00000002
+};
+
 class WorldPacket;
 class UpdateData;
 class WorldSession;
@@ -576,12 +582,14 @@ class MANGOS_DLL_SPEC WorldObject : public Object
         bool isInBackInMap(WorldObject const* target, float distance, float arc = M_PI) const;
         bool isInFront(WorldObject const* target, float distance, float arc = M_PI) const;
         bool isInBack(WorldObject const* target, float distance, float arc = M_PI) const;
+        bool IsFacingTargetsBack(const WorldObject* target, float arc = M_PI_F) const;
+        bool IsFacingTargetsFront(const WorldObject* target, float arc = M_PI_F) const;
 
         virtual void CleanupsBeforeDelete();                // used in destructor or explicitly before mass creature delete to remove cross-references to already deleted units
 
-        virtual void SendMessageToSet(WorldPacket* data, bool self) const;
-        virtual void SendMessageToSetInRange(WorldPacket* data, float dist, bool self) const;
-        void SendMessageToSetExcept(WorldPacket* data, Player const* skipped_receiver) const;
+        virtual void SendMessageToSet(WorldPacket const& data, bool self) const;
+        virtual void SendMessageToSetInRange(WorldPacket const& data, float dist, bool self) const;
+        void SendMessageToSetExcept(WorldPacket const& data, Player const* skipped_receiver) const;
 
         void MonsterSay(const char* text, uint32 language, Unit const* target = nullptr) const;
         void MonsterYell(const char* text, uint32 language, Unit const* target = nullptr) const;

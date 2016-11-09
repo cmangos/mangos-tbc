@@ -234,6 +234,8 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 return false;
             }
             return true;
+        case TARGET_T_SUMMONER:
+            return true;
         default:
             sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type", eventId, action);
             return false;
@@ -880,6 +882,13 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                             continue;
                         }
                         break;
+                    case ACTION_T_SET_REACT_STATE:
+                        if (action.setReactState.reactState > REACT_AGGRESSIVE)
+                        {
+                            sLog.outErrorEventAI("Event %u Action %u uses invalid react state %u (must be smaller than %u)", i, j + 1, action.setReactState.reactState, REACT_AGGRESSIVE);
+                            continue;
+                        }
+                        break;
 
                     default:
                         sLog.outErrorEventAI("Event %u Action %u have currently not checked at load action type (%u). Need check code update?", i, j + 1, temp.action[j].type);
@@ -901,7 +910,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
         {
             if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
             {
-                bool ainame = strcmp(cInfo->AIName, "EventAI") == 0;
+                bool ainame = strcmp(cInfo->AIName, "EventAI") == 0 || strcmp(cInfo->AIName, "GuardianAI") == 0;
                 bool hasevent = m_CreatureEventAI_Event_Map.find(i) != m_CreatureEventAI_Event_Map.end();
                 if (ainame && !hasevent)
                     sLog.outErrorEventAI("EventAI not has script for creature entry (%u), but AIName = '%s'.", i, cInfo->AIName);

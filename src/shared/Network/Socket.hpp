@@ -77,6 +77,7 @@ namespace MaNGOS
 
         protected:
             const std::string m_address;
+            const std::string m_remoteEndpoint;
 
             virtual bool ProcessIncomingData() = 0;
 
@@ -88,13 +89,13 @@ namespace MaNGOS
 
         public:
             Socket(boost::asio::io_service &service, std::function<void (Socket *)> closeHandler);
-            ~Socket() { assert(Deletable()); }
+            virtual ~Socket() { assert(Deletable()); }
 
             virtual bool Open();
             void Close();
 
             bool IsClosed() const { return !m_socket.is_open(); }
-            virtual bool Deletable() const { return IsClosed() && m_writeState == WriteState::Idle && m_readState == ReadState::Idle; }
+            virtual bool Deletable() const { return IsClosed(); }
 
             bool Read(char *buffer, int length);
             void ReadSkip(int length) { m_inBuffer->Read(nullptr, length); }
@@ -103,6 +104,7 @@ namespace MaNGOS
 
             boost::asio::ip::tcp::socket &GetAsioSocket() { return m_socket; }
 
+            const std::string &GetRemoteEndpoint() const { return m_remoteEndpoint; }
             const std::string &GetRemoteAddress() const { return m_address; }
     };
 }

@@ -57,7 +57,7 @@ void WorldSession::SendAuctionHello(Unit* unit)
     WorldPacket data(MSG_AUCTION_HELLO, 12);
     data << unit->GetObjectGuid();
     data << uint32(ahEntry->houseId);
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 // call this method when player bids, creates, or deletes auction
@@ -86,7 +86,7 @@ void WorldSession::SendAuctionCommandResult(AuctionEntry* auc, AuctionAction Act
             break;
     }
 
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 // this function sends notification, if bidder is online
@@ -103,7 +103,7 @@ void WorldSession::SendAuctionBidderNotification(AuctionEntry* auction, bool won
     data << uint32(auction->itemTemplate);
     data << int32(auction->itemRandomPropertyId);
 
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 // this void causes on client to display: "Your auction sold"
@@ -124,7 +124,7 @@ void WorldSession::SendAuctionOwnerNotification(AuctionEntry* auction, bool sold
     data << uint32(auction->itemTemplate);                  // item entry
     data << uint32(auction->itemRandomPropertyId);
 
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 // shows ERR_AUCTION_REMOVED_S
@@ -135,7 +135,7 @@ void WorldSession::SendAuctionRemovedNotification(AuctionEntry* auction)
     data << uint32(auction->itemTemplate);
     data << uint32(auction->itemRandomPropertyId);
 
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 // this function sends mail to old bidder
@@ -507,7 +507,7 @@ void WorldSession::HandleAuctionListBidderItems(WorldPacket& recv_data)
     data.put<uint32>(0, count);                             // add count to placeholder
     data << uint32(totalcount);
     data << uint32(300);                                    // unk 2.3.0 delay for next isFull request?
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 // this void sends player info about his auctions
@@ -538,7 +538,7 @@ void WorldSession::HandleAuctionListOwnerItems(WorldPacket& recv_data)
     data.put<uint32>(0, count);
     data << uint32(totalcount);
     data << uint32(300);                                    // 2.3.0 delay for next isFull request?
-    SendPacket(&data);
+    SendPacket(data);
 }
 
 // this void is called when player clicks on search button
@@ -621,5 +621,5 @@ void WorldSession::HandleAuctionListItems(WorldPacket& recv_data)
     data.put<uint32>(0, count);
     data << uint32(totalcount);
     data << uint32(300);                                    // 2.3.0 delay for next isFull request?
-    SendPacket(&data);
+    SendPacket(data);
 }

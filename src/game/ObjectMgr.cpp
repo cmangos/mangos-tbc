@@ -1877,16 +1877,16 @@ void ObjectMgr::LoadItemPrototypes()
 
         if (proto->InventoryType != INVTYPE_NON_EQUIP)
         {
-            if (proto->Flags & ITEM_FLAG_LOOTABLE)
+            if (proto->Flags & ITEM_FLAG_HAS_LOOT)
             {
-                sLog.outErrorDb("Item container (Entry: %u) has not allowed for containers flag ITEM_FLAG_LOOTABLE (%u), flag removed.", i, ITEM_FLAG_LOOTABLE);
-                const_cast<ItemPrototype*>(proto)->Flags &= ~ITEM_FLAG_LOOTABLE;
+                sLog.outErrorDb("Item container (Entry: %u) has not allowed for containers flag ITEM_FLAG_LOOTABLE (%u), flag removed.", i, ITEM_FLAG_HAS_LOOT);
+                const_cast<ItemPrototype*>(proto)->Flags &= ~ITEM_FLAG_HAS_LOOT;
             }
 
-            if (proto->Flags & ITEM_FLAG_PROSPECTABLE)
+            if (proto->Flags & ITEM_FLAG_IS_PROSPECTABLE)
             {
-                sLog.outErrorDb("Item container (Entry: %u) has not allowed for containers flag ITEM_FLAG_PROSPECTABLE (%u), flag removed.", i, ITEM_FLAG_PROSPECTABLE);
-                const_cast<ItemPrototype*>(proto)->Flags &= ~ITEM_FLAG_PROSPECTABLE;
+                sLog.outErrorDb("Item container (Entry: %u) has not allowed for containers flag ITEM_FLAG_PROSPECTABLE (%u), flag removed.", i, ITEM_FLAG_IS_PROSPECTABLE);
+                const_cast<ItemPrototype*>(proto)->Flags &= ~ITEM_FLAG_IS_PROSPECTABLE;
             }
         }
         else if (proto->InventoryType != INVTYPE_BAG)
@@ -3503,11 +3503,35 @@ void ObjectMgr::LoadQuests()
             sLog.outErrorDb("Quest %u has `SpecialFlags` = %u, above max flags not allowed for database.", qinfo->GetQuestId(), qinfo->m_SpecialFlags);
         }
 
+        if (qinfo->HasQuestFlag(QUEST_FLAGS_DAILY) && qinfo->HasQuestFlag(QUEST_FLAGS_WEEKLY))
+        {
+            sLog.outErrorDb("Weekly Quest %u is marked as daily quest in `QuestFlags`, removed daily flag.", qinfo->GetQuestId());
+            qinfo->m_QuestFlags &= ~QUEST_FLAGS_DAILY;
+        }
+
         if (qinfo->HasQuestFlag(QUEST_FLAGS_DAILY))
         {
             if (!qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE))
             {
                 sLog.outErrorDb("Daily Quest %u not marked as repeatable in `SpecialFlags`, added.", qinfo->GetQuestId());
+                qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE);
+            }
+        }
+
+        if (qinfo->HasQuestFlag(QUEST_FLAGS_WEEKLY))
+        {
+            if (!qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE))
+            {
+                sLog.outErrorDb("Weekly Quest %u not marked as repeatable in `SpecialFlags`, added.", qinfo->GetQuestId());
+                qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE);
+            }
+        }
+
+        if (qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_MONTHLY))
+        {
+            if (!qinfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE))
+            {
+                sLog.outErrorDb("Monthly quest %u not marked as repeatable in `SpecialFlags`, added.", qinfo->GetQuestId());
                 qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_REPEATABLE);
             }
         }
@@ -7333,7 +7357,7 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
         {
             Unit::SpellAuraHolderMap const& auras = player->GetSpellAuraHolderMap();
             for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-                if ((itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_MOUNTED) || itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_UNK4)) && itr->second->GetSpellProto()->SpellVisual == 3580)
+                if ((itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_MOUNTED) || itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_ABILITY)) && itr->second->GetSpellProto()->SpellVisual == 3580)
                     return true;
             return false;
         }

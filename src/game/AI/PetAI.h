@@ -16,39 +16,41 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MANGOS_AGGRESSORAI_H
-#define MANGOS_AGGRESSORAI_H
+#ifndef MANGOS_PETAI_H
+#define MANGOS_PETAI_H
 
 #include "CreatureAI.h"
-#include "Timer.h"
 #include "ObjectGuid.h"
+#include "Timer.h"
 
 class Creature;
+class Spell;
 
-class AggressorAI : public CreatureAI
+class PetAI : public CreatureAI
 {
-        enum AggressorState
-        {
-            STATE_NORMAL = 1,
-            STATE_LOOK_AT_VICTIM = 2
-        };
-
     public:
 
-        explicit AggressorAI(Creature* c);
+        explicit PetAI(Creature* c);
 
         void MoveInLineOfSight(Unit*) override;
         void AttackStart(Unit*) override;
         void EnterEvadeMode() override;
+        void AttackedBy(Unit*) override;
         bool IsVisible(Unit*) const override;
+        bool IsControllable() const override { return true; }
 
         void UpdateAI(const uint32) override;
         static int Permissible(const Creature*);
 
     private:
-        ObjectGuid i_victimGuid;
-        AggressorState i_state;
-        TimeTracker i_tracker;
-};
+        bool _isVisible(Unit*) const;
 
+        void UpdateAllies();
+
+        TimeTracker i_tracker;
+        bool inCombat;
+
+        GuidSet m_AllySet;
+        uint32 m_updateAlliesTimer;
+};
 #endif

@@ -16,40 +16,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MANGOS_PETAI_H
-#define MANGOS_PETAI_H
+#ifndef MANGOS_CREATUREAISELECTOR_H
+#define MANGOS_CREATUREAISELECTOR_H
 
-#include "CreatureAI.h"
-#include "ObjectGuid.h"
-#include "Timer.h"
-
+class CreatureAI;
 class Creature;
-class Spell;
+class MovementGenerator;
 
-class PetAI : public CreatureAI
+namespace FactorySelector
 {
-    public:
-
-        explicit PetAI(Creature* c);
-
-        void MoveInLineOfSight(Unit*) override;
-        void AttackStart(Unit*) override;
-        void EnterEvadeMode() override;
-        void AttackedBy(Unit*) override;
-        bool IsVisible(Unit*) const override;
-
-        void UpdateAI(const uint32) override;
-        static int Permissible(const Creature*);
-
-    private:
-        bool _isVisible(Unit*) const;
-
-        void UpdateAllies();
-
-        TimeTracker i_tracker;
-        bool inCombat;
-
-        GuidSet m_AllySet;
-        uint32 m_updateAlliesTimer;
-};
+    CreatureAI* selectAI(Creature*);
+    CreatureAI* GetPossessAI(Creature*);
+    MovementGenerator* selectMovementGenerator(Creature*);
+}
 #endif

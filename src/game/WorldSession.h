@@ -32,6 +32,7 @@
 
 #include <deque>
 #include <mutex>
+#include <memory>
 
 struct ItemPrototype;
 struct AuctionEntry;
@@ -115,7 +116,7 @@ class PacketFilter
         explicit PacketFilter(WorldSession* pSession) : m_pSession(pSession) {}
         virtual ~PacketFilter() {}
 
-        virtual bool Process(WorldPacket* /*packet*/) { return true; }
+        virtual bool Process(WorldPacket const& /*packet*/) const { return true; }
         virtual bool ProcessLogout() const { return true; }
 
     protected:
@@ -129,7 +130,7 @@ class MapSessionFilter : public PacketFilter
         explicit MapSessionFilter(WorldSession* pSession) : PacketFilter(pSession) {}
         ~MapSessionFilter() {}
 
-        virtual bool Process(WorldPacket* packet) override;
+        virtual bool Process(WorldPacket const& packet) const override;
         // in Map::Update() we do not process player logout!
         virtual bool ProcessLogout() const override { return false; }
 };
@@ -142,7 +143,7 @@ class WorldSessionFilter : public PacketFilter
         explicit WorldSessionFilter(WorldSession* pSession) : PacketFilter(pSession) {}
         ~WorldSessionFilter() {}
 
-        virtual bool Process(WorldPacket* packet) override;
+        virtual bool Process(WorldPacket const& packet) const override;
 };
 
 /// Player session in the World
@@ -158,13 +159,9 @@ class MANGOS_DLL_SPEC WorldSession
         bool PlayerLogout() const { return m_playerLogout; }
         bool PlayerLogoutWithSave() const { return m_playerLogout && m_playerSave; }
 
-        // marks this session as finalized in the socket which owns it.  this lets
-        // the socket handling code know that the session can be safely deleted
-        void Finalize() { m_Socket->FinalizeSession(); }
-
         void SizeError(WorldPacket const& packet, uint32 size) const;
 
-        void SendPacket(WorldPacket const* packet);
+        void SendPacket(WorldPacket const& packet);
         void SendNotification(const char* format, ...) ATTR_PRINTF(2, 3);
         void SendNotification(int32 string_id, ...);
         void SendPetNameInvalid(uint32 error, const std::string& name, DeclinedName* declinedName);
@@ -204,7 +201,7 @@ class MANGOS_DLL_SPEC WorldSession
         void LogoutPlayer(bool Save);
         void KickPlayer();
 
-        void QueuePacket(WorldPacket* new_packet);
+        void QueuePacket(std::unique_ptr<WorldPacket> new_packet);
 
         bool Update(PacketFilter& updater);
 
@@ -298,7 +295,7 @@ class MANGOS_DLL_SPEC WorldSession
         bool LookingForGroup_auto_join;
         bool LookingForGroup_auto_add;
 
-        void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket* data);
+        void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data);
 
         // Account mute time
         time_t m_muteTime;
@@ -745,11 +742,11 @@ class MANGOS_DLL_SPEC WorldSession
         bool VerifyMovementInfo(MovementInfo const& movementInfo) const;
         void HandleMoverRelocation(MovementInfo& movementInfo);
 
-        void ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket* packet);
+        void ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket& packet);
 
         // logging helper
-        void LogUnexpectedOpcode(WorldPacket* packet, const char* reason);
-        void LogUnprocessedTail(WorldPacket* packet);
+        void LogUnexpectedOpcode(WorldPacket const& packet, const char* reason);
+        void LogUnprocessedTail(WorldPacket const& packet);
 
         Player * _player;
         WorldSocket * const m_Socket;                       // socket pointer is owned by the network thread which created 
@@ -772,7 +769,7 @@ class MANGOS_DLL_SPEC WorldSession
         TutorialDataState m_tutorialState;
 
         std::mutex m_recvQueueLock;
-        std::deque<WorldPacket *> m_recvQueue;
+        std::deque<std::unique_ptr<WorldPacket>> m_recvQueue;
 };
 #endif
 /// @}

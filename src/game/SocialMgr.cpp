@@ -150,7 +150,7 @@ void PlayerSocial::SendSocialList()
         }
     }
 
-    plr->GetSession()->SendPacket(&data);
+    plr->GetSession()->SendPacket(data);
     DEBUG_LOG("WORLD: Sent SMSG_CONTACT_LIST");
 }
 
@@ -220,11 +220,11 @@ void SocialMgr::GetFriendInfo(Player* player, uint32 friend_lowguid, FriendInfo&
     }
 }
 
-void SocialMgr::MakeFriendStatusPacket(FriendsResult result, uint32 guid, WorldPacket* data)
+void SocialMgr::MakeFriendStatusPacket(FriendsResult result, uint32 guid, WorldPacket& data)
 {
-    data->Initialize(SMSG_FRIEND_STATUS, 5);
-    *data << uint8(result);
-    *data << ObjectGuid(HIGHGUID_PLAYER, guid);
+    data.Initialize(SMSG_FRIEND_STATUS, 5);
+    data << uint8(result);
+    data << ObjectGuid(HIGHGUID_PLAYER, guid);
 }
 
 void SocialMgr::SendFriendStatus(Player* player, FriendsResult result, ObjectGuid friend_guid, bool broadcast)
@@ -234,7 +234,7 @@ void SocialMgr::SendFriendStatus(Player* player, FriendsResult result, ObjectGui
     FriendInfo fi;
 
     WorldPacket data;
-    MakeFriendStatusPacket(result, friend_lowguid, &data);
+    MakeFriendStatusPacket(result, friend_lowguid, data);
     GetFriendInfo(player, friend_lowguid, fi);
     switch (result)
     {
@@ -260,12 +260,12 @@ void SocialMgr::SendFriendStatus(Player* player, FriendsResult result, ObjectGui
     }
 
     if (broadcast)
-        BroadcastToFriendListers(player, &data);
+        BroadcastToFriendListers(player, data);
     else
-        player->GetSession()->SendPacket(&data);
+        player->GetSession()->SendPacket(data);
 }
 
-void SocialMgr::BroadcastToFriendListers(Player* player, WorldPacket* packet)
+void SocialMgr::BroadcastToFriendListers(Player* player, WorldPacket const& packet) const
 {
     if (!player)
         return;

@@ -1315,6 +1315,12 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
                         return SPELL_AURA_PROC_FAILED;
 
                     triggered_spell_id = 31803;
+
+                    // Since Patch 2.2.0 Seal of Vengeance does additional damage against fully stacked targets
+                    // Add 5-stack effect from Holy Vengeance
+                    const SpellAuraHolder* existing = target->GetSpellAuraHolder(31803, GetObjectGuid());
+                    if (existing && existing->GetStackAmount() >= 5)
+                        CastSpell(target, 42463, true, nullptr, triggeredByAura);
                     break;
                 }
                 // Paladin Tier 6 Trinket (Ashtongue Talisman of Zeal)
@@ -1800,8 +1806,6 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 // Rain of Fire have 4 tick
                 else if (procSpell->SpellFamilyFlags & uint64(0x0000000000000020))
                     tick = 4;
-                else
-                    return SPELL_AURA_PROC_FAILED;
 
                 // Calculate chance = baseChance / tick
                 float chance = 0;
@@ -2171,11 +2175,17 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
 
     // try detect target manually if not set
     if (target == nullptr)
-        target = !(procFlags & PROC_FLAG_SUCCESSFUL_POSITIVE_SPELL) && IsPositiveSpell(trigger_spell_id) ? this : pVictim;
+        target = !(procFlags & PROC_FLAG_SUCCESSFUL_POSITIVE_SPELL) && IsPositiveSpellTargetMode(triggerEntry, this, pVictim) ? this : pVictim;
 
     // default case
     if (!target || (target != this && !target->isAlive()))
         return SPELL_AURA_PROC_FAILED;
+    // Quick check for target modes for procs: do not cast offensive procs on friendly targets and in reverse
+    else if (!(procEx & PROC_EX_REFLECT))
+    {
+        if (IsPositiveSpellTargetMode(triggerEntry, this, target) != IsFriendlyTo(target))
+            return SPELL_AURA_PROC_FAILED;
+    }
 
     if (basepoints[EFFECT_INDEX_0] || basepoints[EFFECT_INDEX_1] || basepoints[EFFECT_INDEX_2])
         CastCustomSpell(target, trigger_spell_id,

@@ -114,8 +114,8 @@ void Object::SendForcedObjectUpdate()
     WorldPacket packet;                                     // here we allocate a std::vector with a size of 0x10000
     for (UpdateDataMapType::iterator iter = update_players.begin(); iter != update_players.end(); ++iter)
     {
-        iter->second.BuildPacket(&packet);
-        iter->first->GetSession()->SendPacket(&packet);
+        iter->second.BuildPacket(packet);
+        iter->first->GetSession()->SendPacket(packet);
         packet.clear();                                     // clean the string
     }
 }
@@ -190,8 +190,8 @@ void Object::SendCreateUpdateToPlayer(Player* player)
     WorldPacket packet;
 
     BuildCreateUpdateBlockForPlayer(&upd, player);
-    upd.BuildPacket(&packet);
-    player->GetSession()->SendPacket(&packet);
+    upd.BuildPacket(packet);
+    player->GetSession()->SendPacket(packet);
 }
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
@@ -221,7 +221,7 @@ void Object::DestroyForPlayer(Player* target) const
 
     WorldPacket data(SMSG_DESTROY_OBJECT, 8);
     data << GetObjectGuid();
-    target->GetSession()->SendPacket(&data);
+    target->GetSession()->SendPacket(data);
 }
 
 void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
@@ -1246,6 +1246,38 @@ bool WorldObject::HasInArc(const float arcangle, const WorldObject* obj) const
     return ((angle >= lborder) && (angle <= rborder));
 }
 
+bool WorldObject::IsFacingTargetsBack(const WorldObject* target, float arc /*= M_PI_F*/) const
+{
+    if (!target)
+        return false;
+
+    //if target is facing the current object then we know its not possible that the current object would be facing the targets back
+    if (target->HasInArc(arc, this))
+        return false;
+
+    //if current object is not facing the target then we know the current object is not facing the target at all
+    if (!this->HasInArc(arc, target))
+        return false;
+
+    return true;
+}
+
+bool WorldObject::IsFacingTargetsFront(const WorldObject* target, float arc /*= M_PI_F*/) const
+{
+    if (!target)
+        return false;
+
+    //if target is not facing the current object then we know its not possible that the current object would be facing the targets front
+    if (!target->HasInArc(arc, this))
+        return false;
+
+    //if current object is not facing the target then we know the current object is not facing the target at all
+    if (!this->HasInArc(arc, target))
+        return false;
+
+    return true;
+}
+
 bool WorldObject::isInFrontInMap(WorldObject const* target, float distance,  float arc) const
 {
     return IsWithinDistInMap(target, distance) && HasInArc(arc, target);
@@ -1382,7 +1414,7 @@ void WorldObject::MonsterSay(const char* text, uint32 /*language*/, Unit const* 
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_MONSTER_SAY, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target ? target->GetObjectGuid() : ObjectGuid(), target ? target->GetName() : "");
-    SendMessageToSetInRange(&data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY), true);
+    SendMessageToSetInRange(data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY), true);
 }
 
 void WorldObject::MonsterYell(const char* text, uint32 /*language*/, Unit const* target) const
@@ -1390,7 +1422,7 @@ void WorldObject::MonsterYell(const char* text, uint32 /*language*/, Unit const*
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_MONSTER_YELL, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target ? target->GetObjectGuid() : ObjectGuid(), target ? target->GetName() : "");
-    SendMessageToSetInRange(&data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL), true);
+    SendMessageToSetInRange(data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL), true);
 }
 
 void WorldObject::MonsterTextEmote(const char* text, Unit const* target, bool IsBossEmote) const
@@ -1398,7 +1430,7 @@ void WorldObject::MonsterTextEmote(const char* text, Unit const* target, bool Is
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, IsBossEmote ? CHAT_MSG_RAID_BOSS_EMOTE : CHAT_MSG_MONSTER_EMOTE, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target ? target->GetObjectGuid() : ObjectGuid(), target ? target->GetName() : "");
-    SendMessageToSetInRange(&data, sWorld.getConfig(IsBossEmote ? CONFIG_FLOAT_LISTEN_RANGE_YELL : CONFIG_FLOAT_LISTEN_RANGE_TEXTEMOTE), true);
+    SendMessageToSetInRange(data, sWorld.getConfig(IsBossEmote ? CONFIG_FLOAT_LISTEN_RANGE_YELL : CONFIG_FLOAT_LISTEN_RANGE_TEXTEMOTE), true);
 }
 
 void WorldObject::MonsterWhisper(const char* text, Unit const* target, bool IsBossWhisper) const
@@ -1409,7 +1441,7 @@ void WorldObject::MonsterWhisper(const char* text, Unit const* target, bool IsBo
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, IsBossWhisper ? CHAT_MSG_RAID_BOSS_WHISPER : CHAT_MSG_MONSTER_WHISPER, text, LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target->GetObjectGuid(), target->GetName());
-    ((Player*)target)->GetSession()->SendPacket(&data);
+    ((Player*)target)->GetSession()->SendPacket(data);
 }
 
 namespace MaNGOS
@@ -1500,21 +1532,21 @@ void WorldObject::MonsterText(MangosStringLocale const* textData, Unit const* ta
     }
 }
 
-void WorldObject::SendMessageToSet(WorldPacket* data, bool /*bToSelf*/) const
+void WorldObject::SendMessageToSet(WorldPacket const& data, bool /*bToSelf*/) const
 {
     // if object is in world, map for it already created!
     if (IsInWorld())
         GetMap()->MessageBroadcast(this, data);
 }
 
-void WorldObject::SendMessageToSetInRange(WorldPacket* data, float dist, bool /*bToSelf*/) const
+void WorldObject::SendMessageToSetInRange(WorldPacket const& data, float dist, bool /*bToSelf*/) const
 {
     // if object is in world, map for it already created!
     if (IsInWorld())
         GetMap()->MessageDistBroadcast(this, data, dist);
 }
 
-void WorldObject::SendMessageToSetExcept(WorldPacket* data, Player const* skipped_receiver) const
+void WorldObject::SendMessageToSetExcept(WorldPacket const& data, Player const* skipped_receiver) const
 {
     // if object is in world, map for it already created!
     if (IsInWorld())
@@ -1528,7 +1560,7 @@ void WorldObject::SendObjectDeSpawnAnim(ObjectGuid guid)
 {
     WorldPacket data(SMSG_GAMEOBJECT_DESPAWN_ANIM, 8);
     data << ObjectGuid(guid);
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void WorldObject::SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId /*= 0*/)
@@ -1536,7 +1568,7 @@ void WorldObject::SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId /*= 0*
     WorldPacket data(SMSG_GAMEOBJECT_CUSTOM_ANIM, 8 + 4);
     data << ObjectGuid(guid);
     data << uint32(animId);
-    SendMessageToSet(&data, true);
+    SendMessageToSet(data, true);
 }
 
 void WorldObject::SetMap(Map* map)
@@ -1814,9 +1846,9 @@ void WorldObject::PlayDistanceSound(uint32 sound_id, Player const* target /*= nu
     data << uint32(sound_id);
     data << GetObjectGuid();
     if (target)
-        target->SendDirectMessage(&data);
+        target->SendDirectMessage(data);
     else
-        SendMessageToSet(&data, true);
+        SendMessageToSet(data, true);
 }
 
 void WorldObject::PlayDirectSound(uint32 sound_id, Player const* target /*= nullptr*/) const
@@ -1824,9 +1856,9 @@ void WorldObject::PlayDirectSound(uint32 sound_id, Player const* target /*= null
     WorldPacket data(SMSG_PLAY_SOUND, 4);
     data << uint32(sound_id);
     if (target)
-        target->SendDirectMessage(&data);
+        target->SendDirectMessage(data);
     else
-        SendMessageToSet(&data, true);
+        SendMessageToSet(data, true);
 }
 
 void WorldObject::PlayMusic(uint32 sound_id, Player const* target /*= nullptr*/) const
@@ -1834,9 +1866,9 @@ void WorldObject::PlayMusic(uint32 sound_id, Player const* target /*= nullptr*/)
     WorldPacket data(SMSG_PLAY_MUSIC, 4);
     data << uint32(sound_id);
     if (target)
-        target->SendDirectMessage(&data);
+        target->SendDirectMessage(data);
     else
-        SendMessageToSet(&data, true);
+        SendMessageToSet(data, true);
 }
 
 void WorldObject::UpdateVisibilityAndView()

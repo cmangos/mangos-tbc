@@ -268,6 +268,13 @@ class MANGOS_DLL_SPEC CreatureAI
          * @param pWho Unit* who is possible target
          */
         virtual void AttackStart(Unit* /*pWho*/) {}
+        
+        /**
+        * Called when creature stop attack expected
+        * Note: have to be called to reinitialize some states or movement
+        * Note: Not needed for creature, they use EnterEvadeMode
+        */
+        virtual void CombatStop() {}
 
         /**
          * Called at World update tick, by default every 100ms
@@ -285,6 +292,9 @@ class MANGOS_DLL_SPEC CreatureAI
          * @param pWho Unit* who is checked if it is visisble for the creature
          */
         virtual bool IsVisible(Unit* /*pWho*/) const { return false; }
+
+        /// Check if this AI can be replaced in possess case
+        virtual bool IsControllable() const { return false; }
 
         // Called when victim entered water and creature can not enter water
         // TODO: rather unused

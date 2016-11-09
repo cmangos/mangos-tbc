@@ -99,6 +99,7 @@ extern DBCStorage <GtChanceToMeleeCritEntry>     sGtChanceToMeleeCritStore;
 extern DBCStorage <GtChanceToSpellCritBaseEntry> sGtChanceToSpellCritBaseStore;
 extern DBCStorage <GtChanceToSpellCritEntry>     sGtChanceToSpellCritStore;
 extern DBCStorage <GtOCTRegenHPEntry>            sGtOCTRegenHPStore;
+extern DBCStorage <GtNPCManaCostScalerEntry>     sGtNPCManaCostScalerStore;
 // extern DBCStorage <GtOCTRegenMPEntry>            sGtOCTRegenMPStore; -- not used currently
 extern DBCStorage <GtRegenHPPerSptEntry>         sGtRegenHPPerSptStore;
 extern DBCStorage <GtRegenMPPerSptEntry>         sGtRegenMPPerSptStore;

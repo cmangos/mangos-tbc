@@ -29,7 +29,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         knockback = false;
 
     if (GetDiff() < 50 || GetDistance3D() < 0.5f)
-		return false;
+        return false;
 
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
 

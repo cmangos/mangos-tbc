@@ -404,7 +404,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->IsFitToFamilyMask(uint64(0x0000000010000180)))
                 return SPELL_BLESSING;
 
-            if (spellInfo->IsFitToFamilyMask(uint64(0x00000820180400)) && spellInfo->HasAttribute(SPELL_ATTR_EX3_UNK9))
+            if (spellInfo->IsFitToFamilyMask(uint64(0x00000820180400)) && spellInfo->HasAttribute(SPELL_ATTR_EX3_TRIGGERED_CAN_TRIGGER_SPECIAL)) // TODO: Remove this WTF condition
                 return SPELL_JUDGEMENT;
 
             if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_APPLY_AREA_AURA_PARTY))

@@ -97,7 +97,7 @@ void CPlayer::SendSteamMessages(MessageTypes type, std::stringstream &ss)
             {
                 WorldPacket data(SMSG_NOTIFICATION, (strlen(msg) + 1));
                 data << msg;
-                GetSession()->SendPacket(&data);
+                GetSession()->SendPacket(data);
             }
         }
 

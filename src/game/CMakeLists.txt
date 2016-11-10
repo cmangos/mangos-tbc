@@ -509,6 +509,8 @@ if(UNIX)
   endif()
 endif()
 
+add_dependencies(${LIBRARY_NAME} revision.h)
+
 # Generate precompiled header
 if(PCH)
   cotire(${LIBRARY_NAME})

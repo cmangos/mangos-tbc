@@ -31,7 +31,7 @@
 #include "NPCHandler.h"
 #include "SQLStorages.h"
 
-void WorldSession::SendNameQueryOpcode(Player* p)
+void WorldSession::SendNameQueryOpcode(Player* p) const
 {
     if (!p)
         return;
@@ -55,7 +55,7 @@ void WorldSession::SendNameQueryOpcode(Player* p)
     SendPacket(data);
 }
 
-void WorldSession::SendNameQueryOpcodeFromDB(ObjectGuid guid)
+void WorldSession::SendNameQueryOpcodeFromDB(ObjectGuid guid) const
 {
     CharacterDatabase.AsyncPQuery(&WorldSession::SendNameQueryOpcodeFromDBCallBack, GetAccountId(),
                                   !sWorld.getConfig(CONFIG_BOOL_DECLINED_NAMES_USED) ?
@@ -418,7 +418,7 @@ void WorldSession::HandlePageTextQueryOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::SendQueryTimeResponse()
+void WorldSession::SendQueryTimeResponse() const
 {
     WorldPacket data(SMSG_QUERY_TIME_RESPONSE, 4 + 4);
     data << uint32(time(nullptr));

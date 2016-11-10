@@ -3446,7 +3446,7 @@ void Spell::finish(bool ok)
         m_caster->AttackStop();
 }
 
-void Spell::SendCastResult(SpellCastResult result)
+void Spell::SendCastResult(SpellCastResult result) const
 {
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         return;
@@ -3518,7 +3518,7 @@ void Spell::SendCastResult(Player* caster, SpellEntry const* spellInfo, uint8 ca
     caster->GetSession()->SendPacket(data);
 }
 
-void Spell::SendSpellStart()
+void Spell::SendSpellStart() const
 {
     if (!IsNeedSendToClient())
         return;
@@ -3583,7 +3583,7 @@ void Spell::SendSpellGo()
     m_caster->SendMessageToSet(data, true);
 }
 
-void Spell::WriteAmmoToPacket(WorldPacket& data)
+void Spell::WriteAmmoToPacket(WorldPacket& data) const
 {
     uint32 ammoInventoryType = 0;
     uint32 ammoDisplayID = 0;
@@ -3706,7 +3706,7 @@ void Spell::WriteSpellGoTargets(WorldPacket& data)
         m_needAliveTargetMask = 0;
 }
 
-void Spell::SendLogExecute()
+void Spell::SendLogExecute() const
 {
     Unit* target = m_targets.getUnitTarget() ? m_targets.getUnitTarget() : m_caster;
 
@@ -3807,7 +3807,7 @@ void Spell::SendLogExecute()
     m_caster->SendMessageToSet(data, true);
 }
 
-void Spell::SendInterrupted(uint8 result)
+void Spell::SendInterrupted(uint8 result) const
 {
     WorldPacket data(SMSG_SPELL_FAILURE, (8 + 4 + 1));
     data << m_caster->GetPackGUID();
@@ -3821,7 +3821,7 @@ void Spell::SendInterrupted(uint8 result)
     m_caster->SendMessageToSet(data, true);
 }
 
-void Spell::SendChannelUpdate(uint32 time)
+void Spell::SendChannelUpdate(uint32 time) const
 {
     if (time == 0)
     {
@@ -3892,7 +3892,7 @@ void Spell::SendChannelStart(uint32 duration)
     m_caster->SetUInt32Value(UNIT_CHANNEL_SPELL, m_spellInfo->Id);
 }
 
-void Spell::SendResurrectRequest(Player* target)
+void Spell::SendResurrectRequest(Player* target) const
 {
     // Both players and NPCs can resurrect using spells - have a look at creature 28487 for example
     // However, the packet structure differs slightly
@@ -3997,7 +3997,7 @@ void Spell::TakePower()
         m_caster->SetLastManaUse();
 }
 
-void Spell::TakeAmmo()
+void Spell::TakeAmmo() const
 {
     if (m_attackType == RANGED_ATTACK && m_caster->GetTypeId() == TYPEID_PLAYER)
     {
@@ -5706,7 +5706,7 @@ bool Spell::CanAutoCast(Unit* target)
     return false;                                           // target invalid
 }
 
-SpellCastResult Spell::CheckRange(bool strict)
+SpellCastResult Spell::CheckRange(bool strict) const
 {
     Unit* target = m_targets.getUnitTarget();
 
@@ -6384,7 +6384,7 @@ bool Spell::CheckTargetCreatureType(Unit* target) const
     return true;
 }
 
-CurrentSpellTypes Spell::GetCurrentContainer()
+CurrentSpellTypes Spell::GetCurrentContainer() const
 {
     if (IsNextMeleeSwingSpell())
         return (CURRENT_MELEE_SPELL);
@@ -6396,7 +6396,7 @@ CurrentSpellTypes Spell::GetCurrentContainer()
         return (CURRENT_GENERIC_SPELL);
 }
 
-bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff)
+bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
 {
     // Check targets for creature type mask and remove not appropriate (skip explicit self target case, maybe need other explicit targets)
     if (m_spellInfo->EffectImplicitTargetA[eff] != TARGET_SELF)
@@ -6732,7 +6732,7 @@ void Spell::FillAreaTargets(UnitList& targetUnitMap, float radius, SpellNotifyPu
     Cell::VisitAllObjects(notifier.GetCenterX(), notifier.GetCenterY(), m_caster->GetMap(), notifier, radius);
 }
 
-void Spell::FillRaidOrPartyTargets(UnitList& targetUnitMap, Unit* member, float radius, bool raid, bool withPets, bool withcaster)
+void Spell::FillRaidOrPartyTargets(UnitList& targetUnitMap, Unit* member, float radius, bool raid, bool withPets, bool withcaster) const
 {
     Player* pMember = member->GetCharmerOrOwnerPlayerOrPlayerItself();
     Group* pGroup = pMember ? pMember->GetGroup() : nullptr;
@@ -6860,8 +6860,6 @@ void Spell::SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpel
         target->CastSpell(target, spellId150, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, ObjectGuid(), parentSpell);
     else if (spellId75 > 0)
         target->CastSpell(target, spellId75, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, ObjectGuid(), parentSpell);
-
-    return;
 }
 
 void Spell::ClearCastItem()
@@ -6873,7 +6871,7 @@ void Spell::ClearCastItem()
     m_CastItemGuid.Clear();
 }
 
-bool Spell::HasGlobalCooldown()
+bool Spell::HasGlobalCooldown() const
 {
     // global cooldown have only player or controlled units
     if (m_caster->GetCharmInfo())

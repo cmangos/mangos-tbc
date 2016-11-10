@@ -544,7 +544,7 @@ void GameObject::Delete()
         AddObjectToRemoveList();
 }
 
-void GameObject::SaveToDB()
+void GameObject::SaveToDB() const
 {
     // this should only be used when the gameobject has already been loaded
     // preferably after adding to map, because mapid may not be valid otherwise
@@ -558,7 +558,7 @@ void GameObject::SaveToDB()
     SaveToDB(GetMapId(), data->spawnMask);
 }
 
-void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask)
+void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask) const
 {
     const GameObjectInfo* goI = GetGOInfo();
 
@@ -684,7 +684,7 @@ struct GameObjectRespawnDeleteWorker
 };
 
 
-void GameObject::DeleteFromDB()
+void GameObject::DeleteFromDB() const
 {
     if (!HasStaticDBSpawnData())
     {
@@ -909,7 +909,7 @@ bool GameObject::ActivateToQuest(Player* pTarget) const
     return false;
 }
 
-void GameObject::SummonLinkedTrapIfAny()
+void GameObject::SummonLinkedTrapIfAny() const
 {
     uint32 linkedEntry = GetGOInfo()->GetLinkedGameObjectEntry();
     if (!linkedEntry)
@@ -935,7 +935,7 @@ void GameObject::SummonLinkedTrapIfAny()
     GetMap()->Add(linkedGO);
 }
 
-void GameObject::TriggerLinkedGameObject(Unit* target)
+void GameObject::TriggerLinkedGameObject(Unit* target) const
 {
     uint32 trapEntry = GetGOInfo()->GetLinkedGameObjectEntry();
 
@@ -972,7 +972,7 @@ void GameObject::TriggerLinkedGameObject(Unit* target)
         trapGO->Use(target);
 }
 
-GameObject* GameObject::LookupFishingHoleAround(float range)
+GameObject* GameObject::LookupFishingHoleAround(float range) const
 {
     GameObject* ok = nullptr;
 
@@ -2167,7 +2167,7 @@ void GameObject::TickCapturePoint()
         StartEvents_Event(GetMap(), eventId, this, this, true, *capturingPlayers.begin());
 }
 
-float GameObject::GetInteractionDistance()
+float GameObject::GetInteractionDistance() const
 {
     switch (GetGoType())
     {

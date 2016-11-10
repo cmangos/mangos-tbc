@@ -764,8 +764,8 @@ struct DoSpellProcEvent
         }
     }
 
-    const char* TableName() { return "spell_proc_event"; }
-    bool IsValidCustomRank(SpellProcEventEntry const& spe, uint32 entry, uint32 first_id)
+    static const char* TableName() { return "spell_proc_event"; }
+    bool IsValidCustomRank(SpellProcEventEntry const& spe, uint32 entry, uint32 first_id) const
     {
         // let have independent data in table for spells with ppm rates (exist rank dependent ppm rate spells)
         if (!spe.ppmRate)
@@ -833,7 +833,7 @@ struct DoSpellProcEvent
             ++count;
     }
 
-    bool HasEntry(uint32 spellId) { return spe_map.find(spellId) != spe_map.end(); }
+    bool HasEntry(uint32 spellId) const { return spe_map.find(spellId) != spe_map.end(); }
     bool SetStateToEntry(uint32 spellId) { return (state = spe_map.find(spellId)) != spe_map.end(); }
     SpellProcEventMap& spe_map;
     SpellProcEventMap::const_iterator state;
@@ -1238,8 +1238,8 @@ struct DoSpellThreat
                 sLog.outErrorDb("Spell %u listed in `spell_threat` as custom rank has same data as Rank 1, so redundant", spell_id);
         }
     }
-    const char* TableName() { return "spell_threat"; }
-    bool IsValidCustomRank(SpellThreatEntry const& ste, uint32 entry, uint32 first_id)
+    const char* TableName() const { return "spell_threat"; }
+    bool IsValidCustomRank(SpellThreatEntry const& ste, uint32 entry, uint32 first_id) const
     {
         if (!ste.threat)
         {
@@ -2542,7 +2542,7 @@ void SpellMgr::LoadSpellAreas()
     sLog.outString();
 }
 
-SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spellInfo, uint32 map_id, uint32 zone_id, uint32 area_id, Player const* player)
+SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spellInfo, uint32 map_id, uint32 zone_id, uint32 area_id, Player const* player) const
 {
     // normal case
     if (spellInfo->AreaId > 0 && spellInfo->AreaId != zone_id && spellInfo->AreaId != area_id)
@@ -2704,7 +2704,7 @@ void SpellMgr::LoadSkillRaceClassInfoMap()
     sLog.outString();
 }
 
-void SpellMgr::CheckUsedSpells(char const* table)
+void SpellMgr::CheckUsedSpells(char const* table) const
 {
     uint32 countSpells = 0;
     uint32 countMasks = 0;

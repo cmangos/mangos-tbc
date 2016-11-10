@@ -35,7 +35,7 @@ class AuthCrypt
         void DecryptRecv(uint8*, size_t);
         void EncryptSend(uint8*, size_t);
 
-        bool IsInitialized() { return _initialized; }
+        bool IsInitialized() const { return _initialized; }
 
     private:
         std::vector<uint8> _key;

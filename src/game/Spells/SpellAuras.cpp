@@ -2391,6 +2391,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
                     return;
                 }
+                case 32096:                                 // Thrallmar's Favor
+                case 32098:                                 // Honor Hold's Favor
+                    if (target->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        if (apply) // cast/remove Buffbot Buff Effect
+                            target->CastSpell(target, 32172, true);
+                        else
+                            target->RemoveAurasDueToSpell(32172);
+                    }
+                    return;
                 case 32216:                                 // Victorious
                     if (target->getClass() == CLASS_WARRIOR)
                         target->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, apply);

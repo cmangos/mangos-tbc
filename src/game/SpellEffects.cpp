@@ -2858,7 +2858,7 @@ void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
     // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
     uint32 power = damage;
     if (powerType == POWER_MANA && unitTarget->GetTypeId() == TYPEID_PLAYER)
-        power -= ((Player*)unitTarget)->GetSpellCritDamageReduction(power);
+        power -= uint32(power * (((Player*)unitTarget)->GetResilienceManaDrainReductionPercent() / 100.0f));
 
     int32 new_damage;
     if (curPower < power)
@@ -2915,7 +2915,7 @@ void Spell::EffectPowerBurn(SpellEffectIndex eff_idx)
     // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
     int32 power = damage;
     if (powertype == POWER_MANA && unitTarget->GetTypeId() == TYPEID_PLAYER)
-        power -= ((Player*)unitTarget)->GetSpellCritDamageReduction(power);
+        power -= int32(power * (((Player*)unitTarget)->GetResilienceManaDrainReductionPercent() / 100.0f));
 
     int32 new_damage = (curPower < power) ? curPower : power;
 

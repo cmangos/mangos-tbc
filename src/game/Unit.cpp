@@ -6370,20 +6370,20 @@ uint32 Unit::SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 amoun
             {
                 modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
                 if (player)
-                    modPctTotal -= player->GetResilienceCritDamageReductionPercent(CR_CRIT_TAKEN_RANGED);
+                    modPctTotal -= player->GetResilienceRangedCritDamageReductionPercent();
             }
             else
             {
                 modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
                 if (player)
-                    modPctTotal -= player->GetResilienceCritDamageReductionPercent(CR_CRIT_TAKEN_MELEE);
+                    modPctTotal -= player->GetResilienceMeleeCritDamageReductionPercent();
             }
         }
         else
         {
             modPctTotal += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE, GetSpellSchoolMask(spellProto));
             if (player)
-                modPctTotal -= player->GetResilienceCritDamageReductionPercent(CR_CRIT_TAKEN_SPELL);
+                modPctTotal -= player->GetResilienceSpellCritDamageReductionPercent();
         }
         // We reduce/amplify damage done by crit, but we can't deal less damage than a normal hit would do
         const int32 modTotal = int32((int32(amount) + bonus) * float(modPctTotal / 100.0f));
@@ -6454,13 +6454,13 @@ uint32 Unit::MeleeCriticalDamageBonus(WeaponAttackType attackType, SpellSchoolMa
         {
             modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
             if (player)
-                modPctTotal -= player->GetResilienceCritDamageReductionPercent(CR_CRIT_TAKEN_RANGED);
+                modPctTotal -= player->GetResilienceRangedCritDamageReductionPercent();
         }
         else
         {
             modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
             if (player)
-                modPctTotal -= player->GetResilienceCritDamageReductionPercent(CR_CRIT_TAKEN_MELEE);
+                modPctTotal -= player->GetResilienceMeleeCritDamageReductionPercent();
         }
         // We reduce/amplify damage done by crit, but we can't deal less damage than a normal hit would do
         const int32 modTotal = int32((int32(amount) + bonus) * float(modPctTotal / 100.0f));

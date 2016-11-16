@@ -70,9 +70,6 @@ addons:
 # overwrite GCC version for GCC build only
 before_install:
   - if [ $CC = "gcc" ] ; then export CC=gcc-4.8 CXX=g++-4.8 ; fi
-# boost, openssl, cmake already installed on travis image.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install mysql++ ; fi
   
 install: |-
   if [ "$TRAVIS_OS_NAME" == "osx" ]
@@ -81,13 +78,17 @@ install: |-
     brew install mysql++
   fi
 
-script:
-  - test -d _build || mkdir _build
-  - test -d _install || mkdir _install
-  - cd _build
-  - cmake -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_EXTRACTOR=ON -DBUILD_VMAP_EXTRACTOR=ON -DBUILD_MMAP_EXTRACTOR=ON -DPCH=$PCH_FLAG ..
-  - make -j4
-  - make install
+script: |-
+  test -d _build || mkdir _build
+  test -d _install || mkdir _install
+  cd _build
+  if [ "$TRAVIS_OS_NAME" == "osx" ] then
+    cmake -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_EXTRACTOR=ON -DBUILD_VMAP_EXTRACTOR=ON -DBUILD_MMAP_EXTRACTOR=ON -DPCH=$PCH_FLAG -DOPENSSL_ROOT_DIR=/usr/local/Cellar/openssl/1.0.2j/ ..
+  else
+    cmake -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_EXTRACTOR=ON -DBUILD_VMAP_EXTRACTOR=ON -DBUILD_MMAP_EXTRACTOR=ON -DPCH=$PCH_FLAG ..
+  fi
+  make -j4
+  make install
 
 # if this configuration file is not in one of the offical CMaNGOS repositories at http://github.com/cmangos/, PLEASE remove the notifications or point them to another IRC channel!
 

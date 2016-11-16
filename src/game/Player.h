@@ -1177,7 +1177,7 @@ class MANGOS_DLL_SPEC Player : public Unit
             Item* mainItem = GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
             return mainItem && mainItem->GetProto()->InventoryType == INVTYPE_2HWEAPON;
         }
-        void SendNewItem(Item* item, uint32 count, bool received, bool created, bool broadcast = false);
+        void SendNewItem(Item* item, uint32 count, bool received, bool created, bool broadcast = false, bool showInChat = true);
         bool BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, uint8 bag, uint8 slot);
 
         float GetReputationPriceDiscount(Creature const* pCreature) const;
@@ -1658,10 +1658,11 @@ class MANGOS_DLL_SPEC Player : public Unit
         float OCTRegenMPPerSpirit();
         float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
-        uint32 GetMeleeCritDamageReduction(uint32 damage) const;
-        uint32 GetRangedCritDamageReduction(uint32 damage) const;
-        uint32 GetSpellCritDamageReduction(uint32 damage) const;
-        uint32 GetDotDamageReduction(uint32 damage) const;
+        float GetResilienceMeleeCritDamageReductionPercent() const { return std::min((GetRatingBonusValue(CR_CRIT_TAKEN_MELEE) * 2.0f), 25.0f); }
+        float GetResilienceRangedCritDamageReductionPercent() const { return std::min((GetRatingBonusValue(CR_CRIT_TAKEN_RANGED) * 2.0f), 25.0f); }
+        float GetResilienceSpellCritDamageReductionPercent() const { return std::min((GetRatingBonusValue(CR_CRIT_TAKEN_SPELL) * 2.0f), 25.0f); }
+        float GetResilienceManaDrainReductionPercent() const { return std::min(GetRatingBonusValue(CR_CRIT_TAKEN_SPELL), 100.0f); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
+        float GetResilienceDoTDamageReductionPercent() const { return std::min(GetRatingBonusValue(CR_CRIT_TAKEN_SPELL), 100.0f); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
 
         float GetExpertiseDodgeOrParryReduction(WeaponAttackType attType) const;
         void UpdateBlockPercentage();

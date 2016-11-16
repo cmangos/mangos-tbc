@@ -5857,7 +5857,7 @@ void Aura::PeriodicTick()
             // As of 2.2 resilience reduces damage from DoT ticks as much as the chance to not be critically hit
             // Reduce dot damage from resilience for players
             if (target->GetTypeId() == TYPEID_PLAYER)
-                pdamage -= ((Player*)target)->GetDotDamageReduction(pdamage);
+                pdamage -= uint32(pdamage * (((Player*)target)->GetResilienceDoTDamageReductionPercent() / 100.0f));
 
             target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, IsReflectableSpell(spellProto), spellProto->HasAttribute(SPELL_ATTR_EX4_IGNORE_RESISTANCES));
 
@@ -5923,7 +5923,7 @@ void Aura::PeriodicTick()
             // As of 2.2 resilience reduces damage from DoT ticks as much as the chance to not be critically hit
             // Reduce dot damage from resilience for players
             if (target->GetTypeId() == TYPEID_PLAYER)
-                pdamage -= ((Player*)target)->GetDotDamageReduction(pdamage);
+                pdamage -= uint32(pdamage * (((Player*)target)->GetResilienceDoTDamageReductionPercent() / 100.0f));
 
             target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, IsReflectableSpell(spellProto), spellProto->HasAttribute(SPELL_ATTR_EX4_IGNORE_RESISTANCES));
 
@@ -6088,7 +6088,7 @@ void Aura::PeriodicTick()
 
             // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
             if (power == POWER_MANA && target->GetTypeId() == TYPEID_PLAYER)
-                drain_amount -= ((Player*)target)->GetSpellCritDamageReduction(drain_amount);
+                drain_amount -= int32(drain_amount * (((Player*)target)->GetResilienceManaDrainReductionPercent() / 100.0f));
 
             target->ModifyPower(power, -drain_amount);
 
@@ -6232,7 +6232,7 @@ void Aura::PeriodicTick()
 
             // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
             if (powerType == POWER_MANA && target->GetTypeId() == TYPEID_PLAYER)
-                pdamage -= ((Player*)target)->GetSpellCritDamageReduction(pdamage);
+                pdamage -= int32(pdamage * (((Player*)target)->GetResilienceManaDrainReductionPercent() / 100.0f));
 
             uint32 gain = uint32(-target->ModifyPower(powerType, -pdamage));
 

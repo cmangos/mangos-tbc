@@ -1476,9 +1476,6 @@ void Unit::CalculateSpellDamage(SpellNonMeleeDamage* damageInfo, int32 damage, S
             {
                 damageInfo->HitInfo |= SPELL_HIT_TYPE_CRIT;
                 damage = SpellCriticalDamageBonus(spellInfo, damage, pVictim);
-                // Resilience - reduce crit damage
-                if (pVictim->GetTypeId() == TYPEID_PLAYER)
-                    damage -= ((Player*)pVictim)->GetMeleeCritDamageReduction(damage);
             }
         }
         break;
@@ -1495,9 +1492,6 @@ void Unit::CalculateSpellDamage(SpellNonMeleeDamage* damageInfo, int32 damage, S
             {
                 damageInfo->HitInfo |= SPELL_HIT_TYPE_CRIT;
                 damage = SpellCriticalDamageBonus(spellInfo, damage, pVictim);
-                // Resilience - reduce crit damage
-                if (pVictim->GetTypeId() == TYPEID_PLAYER)
-                    damage -= ((Player*)pVictim)->GetSpellCritDamageReduction(damage);
             }
         }
         break;
@@ -1663,36 +1657,11 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, Weapo
         {
             damageInfo->HitInfo     |= HITINFO_CRITICALHIT;
             damageInfo->TargetState  = VICTIMSTATE_NORMAL;
-
             damageInfo->procEx |= PROC_EX_CRITICAL_HIT;
-            // Crit bonus calc
-            damageInfo->damage += damageInfo->damage;
-
-            // Apply SPELL_AURA_MOD_CRIT_DAMAGE_BONUS modifier first
-            const int32 bonus = GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, SPELL_SCHOOL_MASK_NORMAL);
-            damageInfo->damage += int32((damageInfo->damage) * float(bonus / 100.0f));
-
-            int32 mod = 0;
-            // Apply SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE or SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE
-            if (damageInfo->attackType == RANGED_ATTACK)
-                mod += damageInfo->target->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
-            else
-                mod += damageInfo->target->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
-
-            uint32 crTypeMask = damageInfo->target->GetCreatureTypeMask();
-
-            // Increase crit damage from SPELL_AURA_MOD_CRIT_PERCENT_VERSUS
-            mod += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, crTypeMask);
-            if (mod != 0)
-                damageInfo->damage = int32((damageInfo->damage) * float((100.0f + mod) / 100.0f));
-
-            // Resilience - reduce crit damage
-            if (pVictim->GetTypeId() == TYPEID_PLAYER)
-            {
-                uint32 resilienceReduction = ((Player*)pVictim)->GetMeleeCritDamageReduction(damageInfo->damage);
-                damageInfo->damage      -= resilienceReduction;
-                damageInfo->cleanDamage += resilienceReduction;
-            }
+            uint32 clean = 0;
+            const uint32 damage = MeleeCriticalDamageBonus(damageInfo->attackType, damageInfo->damageSchoolMask, &clean, damageInfo->damage, damageInfo->target);
+            damageInfo->damage += (damage - damageInfo->damage);
+            damageInfo->cleanDamage += (clean - damage);
             break;
         }
         case MELEE_HIT_PARRY:
@@ -6360,53 +6329,70 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
     return false;
 }
 
-uint32 Unit::SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 damage, Unit* pVictim)
+uint32 Unit::SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 amount, Unit* pVictim)
 {
-    // Calculate critical bonus
-    int32 crit_bonus;
+    // Base critical bonus:
+    int32 bonus = (amount / 2);         // magical default bonus is 50% of the amount
     switch (spellProto->DmgClass)
     {
-        case SPELL_DAMAGE_CLASS_MELEE:                      // for melee based spells is 100%
+        case SPELL_DAMAGE_CLASS_MELEE:
         case SPELL_DAMAGE_CLASS_RANGED:
-            crit_bonus = damage;
-            break;
-        default:
-            crit_bonus = damage / 2;                        // for spells is 50%
+            bonus = int32(amount);      // physical default bonus is 100% of the amount
             break;
     }
 
-    // Apply SPELL_AURA_MOD_CRIT_DAMAGE_BONUS modifier first
-    const int32 pctBonus = GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, GetSpellSchoolMask(spellProto));
-    crit_bonus += int32((damage + crit_bonus) * float(pctBonus / 100.0f));
+    // Apply base critical bonus mods first:
+    int32 modPctBonus = 0;
+    // Apply SPELL_AURA_MOD_CRIT_DAMAGE_BONUS: gem mechanics
+    modPctBonus += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, GetSpellSchoolMask(spellProto));
+    // Apply SPELL_AURA_MOD_CRIT_PERCENT_VERSUS: creature type slaying talents
+    if (pVictim)
+        modPctBonus += GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, pVictim->GetCreatureTypeMask());
+    // Calculate base critical bonus:
+    if (modPctBonus)
+        bonus += int32((int32(amount) + bonus) * float(modPctBonus / 100.0f));
 
-    // adds additional damage to crit_bonus (from talents)
+    // Apply total crit bonus mods (usually from talents)
     if (Player* modOwner = GetSpellModOwner())
-        modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_CRIT_DAMAGE_BONUS, crit_bonus);
+        modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_CRIT_DAMAGE_BONUS, bonus);
+    // A crit cannot deal less damage than a normal hit
+    bonus = std::max(bonus, 0);
 
-    if (!pVictim)
-        return damage += crit_bonus;
-
-    int32 critPctDamageMod = 0;
-    if (spellProto->DmgClass >= SPELL_DAMAGE_CLASS_MELEE)
+    // At this stage we have total crit damage bonus calculated
+    // Finalize it by applying resilience and resilience-like auras
+    if (pVictim)
     {
-        if (GetWeaponAttackType(spellProto) == RANGED_ATTACK)
-            critPctDamageMod += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
+        const Player* player = (pVictim->GetTypeId() == TYPEID_PLAYER) ? (Player*)pVictim : nullptr;
+        float modPctTotal = 0;
+        if (spellProto->DmgClass >= SPELL_DAMAGE_CLASS_MELEE)
+        {
+            if (GetWeaponAttackType(spellProto) == RANGED_ATTACK)
+            {
+                modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
+                if (player)
+                    modPctTotal -= player->GetResilienceRangedCritDamageReductionPercent();
+            }
+            else
+            {
+                modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
+                if (player)
+                    modPctTotal -= player->GetResilienceMeleeCritDamageReductionPercent();
+            }
+        }
         else
-            critPctDamageMod += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
+        {
+            modPctTotal += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE, GetSpellSchoolMask(spellProto));
+            if (player)
+                modPctTotal -= player->GetResilienceSpellCritDamageReductionPercent();
+        }
+        // We reduce/amplify damage done by crit, but we can't deal less damage than a normal hit would do
+        const int32 modTotal = int32((int32(amount) + bonus) * float(modPctTotal / 100.0f));
+        const int32 total = (bonus + modTotal);
+        bonus = std::max(total, 0);
     }
-    else
-        critPctDamageMod += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE, GetSpellSchoolMask(spellProto));
 
-    uint32 creatureTypeMask = pVictim->GetCreatureTypeMask();
-    critPctDamageMod += GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, creatureTypeMask);
-
-    if (critPctDamageMod != 0)
-        crit_bonus = int32(crit_bonus * float((100.0f + critPctDamageMod) / 100.0f));
-
-    if (crit_bonus > 0)
-        damage += crit_bonus;
-
-    return damage;
+    // Final crit damage
+    return (amount + uint32(bonus));
 }
 
 uint32 Unit::SpellCriticalHealingBonus(SpellEntry const* spellProto, uint32 damage, Unit* pVictim)
@@ -6435,6 +6421,57 @@ uint32 Unit::SpellCriticalHealingBonus(SpellEntry const* spellProto, uint32 dama
         damage += crit_bonus;
 
     return damage;
+}
+
+uint32 Unit::MeleeCriticalDamageBonus(WeaponAttackType attackType, SpellSchoolMask schoolMask, uint32 *cleanDamage, uint32 amount, Unit *pVictim)
+{
+    // Crit bonus calc: default physical crit bonus is 100% of amount
+    int32 bonus = int32(amount);
+    int32 clean = 0;
+
+    // Apply base critical bonus mods first:
+    int32 modPctBonus = 0;
+    // Apply SPELL_AURA_MOD_CRIT_DAMAGE_BONUS: gem mechanics
+    modPctBonus += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_CRIT_DAMAGE_BONUS, schoolMask);
+    // Apply SPELL_AURA_MOD_CRIT_PERCENT_VERSUS: creature type slaying talents
+    if (pVictim)
+        modPctBonus += GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_CRIT_PERCENT_VERSUS, pVictim->GetCreatureTypeMask());
+    // Calculate base critical bonus:
+    if (modPctBonus)
+        bonus += int32((int32(amount) + bonus) * float(modPctBonus / 100.0f));
+
+    // A crit cannot deal less damage than a normal hit
+    bonus = std::max(bonus, 0);
+    clean = bonus;
+
+    // At this stage we have total crit damage bonus calculated
+    // Finalize it by applying resilience and resilience-like auras
+    if (pVictim)
+    {
+        const Player* player = (pVictim->GetTypeId() == TYPEID_PLAYER) ? (Player*)pVictim : nullptr;
+        float modPctTotal = 0;
+        if (attackType == RANGED_ATTACK)
+        {
+            modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
+            if (player)
+                modPctTotal -= player->GetResilienceRangedCritDamageReductionPercent();
+        }
+        else
+        {
+            modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
+            if (player)
+                modPctTotal -= player->GetResilienceMeleeCritDamageReductionPercent();
+        }
+        // We reduce/amplify damage done by crit, but we can't deal less damage than a normal hit would do
+        const int32 modTotal = int32((int32(amount) + bonus) * float(modPctTotal / 100.0f));
+        const int32 total = (bonus + modTotal);
+        clean = std::max(bonus, total);
+        bonus = std::max(total, 0);
+    }
+
+    // Final crit damage
+    *cleanDamage = (amount + uint32(clean));
+    return (amount + uint32(bonus));
 }
 
 /**

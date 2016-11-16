@@ -82,7 +82,7 @@ script: |-
   mkdir _build
   mkdir _install
   cd _build
-  if [ "$TRAVIS_OS_NAME" == "osx" ] then
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     cmake -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_EXTRACTOR=ON -DBUILD_VMAP_EXTRACTOR=ON -DBUILD_MMAP_EXTRACTOR=ON -DPCH=$PCH_FLAG -DOPENSSL_ROOT_DIR=/usr/local/Cellar/openssl/1.0.2j/ ..
   else
     cmake -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_EXTRACTOR=ON -DBUILD_VMAP_EXTRACTOR=ON -DBUILD_MMAP_EXTRACTOR=ON -DPCH=$PCH_FLAG ..

@@ -65,8 +65,9 @@ addons:
 # overwrite GCC version for GCC build only
 before_install:
   - if [ $CC = "gcc" ] ; then export CC=gcc-4.8 CXX=g++-4.8 ; fi
+# boost, openssl, cmake already installed on travis image.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install mysql++ openssl cmake boost; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install mysql++ ; fi
 
 script:
   - test -d _build || mkdir _build

@@ -132,7 +132,7 @@ bool extractDataFromGit(std::string filename, std::string path, bool url, RawDat
         else
             strcpy(data.rev_str, hash_str);
     }
-    else if (entriesFile = fopen((path + ".git/HEAD").c_str(), "r"))
+    else if ((entriesFile = fopen((path + ".git/HEAD").c_str(), "r")))
     {
         if (!fgets(buf, sizeof(buf), entriesFile))
         {
@@ -160,7 +160,7 @@ bool extractDataFromGit(std::string filename, std::string path, bool url, RawDat
             }
 
             strcpy(data.rev_str, hash);
-            
+
             fclose(refFile);
         }
         else

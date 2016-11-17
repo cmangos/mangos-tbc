@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <cstdio>
 
-Model::Model(std::string& filename) : filename(filename), vertices(0), indices(0)
+Model::Model(std::string& filename) : vertices(0), indices(0), filename(filename)
 {
 }
 

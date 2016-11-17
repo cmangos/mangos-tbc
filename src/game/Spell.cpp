@@ -3406,6 +3406,7 @@ void Spell::finish(bool ok)
                         m_caster->ModifyPower(Powers(m_spellInfo->powerType), int32(m_powerCost * 0.8));
                     break;
                 }
+                default: break;
             }
         }
     }

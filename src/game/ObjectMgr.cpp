@@ -3434,8 +3434,9 @@ void ObjectMgr::LoadQuests()
                           "IncompleteEmote, CompleteEmote, OfferRewardEmote1, OfferRewardEmote2, OfferRewardEmote3, OfferRewardEmote4,"
                           //   121                     122                     123                     124
                           "OfferRewardEmoteDelay1, OfferRewardEmoteDelay2, OfferRewardEmoteDelay3, OfferRewardEmoteDelay4,"
-                          //   125          126
-                          "StartScript, CompleteScript"
+                          //   125          126          127
+                          "StartScript, CompleteScript, RequiredCondition"
+
                           " FROM quest_template");
     if (!result)
     {
@@ -3593,6 +3594,13 @@ void ObjectMgr::LoadQuests()
             }
         }
         // else Skill quests can have 0 skill level, this is ok
+
+		if (qinfo->RequiredCondition)
+		{
+			const PlayerCondition* condition = sConditionStorage.LookupEntry<PlayerCondition>(qinfo->RequiredCondition);
+			if (!condition) // condition does not exist for some reason
+				sLog.outErrorDb("Quest %u has `RequiredCondition` = %u but does not exist.", qinfo->GetQuestId(), qinfo->RequiredCondition);
+		}
 
         if (qinfo->RepObjectiveFaction && !sFactionStore.LookupEntry(qinfo->RepObjectiveFaction))
         {
@@ -7289,6 +7297,7 @@ char const* conditionSourceToStr[] =
     "DBScript engine",               // CONDITION_FROM_DBSCRIPTS           
     "trainer's spell check",         // CONDITION_FROM_TRAINER             
     "areatrigger teleport check",    // CONDITION_FROM_AREATRIGGER_TELEPORT
+    "quest template"                 // CONDITION_FROM_QUEST
 };
 
 // Checks if player meets the condition

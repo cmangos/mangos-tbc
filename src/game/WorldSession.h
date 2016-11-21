@@ -749,7 +749,7 @@ class MANGOS_DLL_SPEC WorldSession
         void LogUnprocessedTail(WorldPacket const& packet) const;
 
         Player * _player;
-        WorldSocket * const m_Socket;                       // socket pointer is owned by the network thread which created 
+        std::shared_ptr<WorldSocket> m_Socket;              // socket pointer is owned by the network thread which created it
 
         AccountTypes _security;
         uint32 _accountId;

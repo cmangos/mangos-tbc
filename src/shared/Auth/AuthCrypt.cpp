@@ -24,10 +24,7 @@
 const static size_t CRYPTED_SEND_LEN = 4;
 const static size_t CRYPTED_RECV_LEN = 6;
 
-AuthCrypt::AuthCrypt()
-{
-    _initialized = false;
-}
+AuthCrypt::AuthCrypt() : _initialized(false) {}
 
 void AuthCrypt::DecryptRecv(uint8* data, size_t len)
 {
@@ -72,8 +69,4 @@ void AuthCrypt::Init(BigNumber* K)
 
     _send_i = _send_j = _recv_i = _recv_j = 0;
     _initialized = true;
-}
-
-AuthCrypt::~AuthCrypt()
-{
 }

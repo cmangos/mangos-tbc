@@ -129,6 +129,8 @@ Quest::Quest(Field* questRecord)
     QuestStartScript = questRecord[125].GetUInt32();
     QuestCompleteScript = questRecord[126].GetUInt32();
 
+    RequiredCondition = questRecord[141].GetUInt32();
+
     m_isActive = true;
 
     m_reqitemscount = 0;

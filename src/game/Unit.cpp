@@ -3301,13 +3301,10 @@ float Unit::GetUnitCriticalChance(WeaponAttackType attackType, const Unit* pVict
     crit += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
 
     // reduce crit chance from Rating for players
-    if (pVictim->GetTypeId() == TYPEID_PLAYER)
-    {
-        if (attackType == RANGED_ATTACK)
-            crit -= ((Player*)pVictim)->GetRatingBonusValue(CR_CRIT_TAKEN_RANGED);
-        else
-            crit -= ((Player*)pVictim)->GetRatingBonusValue(CR_CRIT_TAKEN_MELEE);
-    }
+    if (attackType != RANGED_ATTACK)
+        crit -= pVictim->GetMeleeCritChanceReduction();
+    else
+        crit -= pVictim->GetRangedCritChanceReduction();
 
     // Apply crit chance from defence skill
     crit += (int32(GetMaxSkillValueForLevel(pVictim)) - int32(pVictim->GetDefenseSkillValue(this))) * 0.04f;
@@ -6281,8 +6278,7 @@ bool Unit::IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolM
                     // Modify critical chance by victim SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE
                     crit_chance += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_SPELL_AND_WEAPON_CRIT_CHANCE);
                     // Modify by player victim resilience
-                    if (pVictim->GetTypeId() == TYPEID_PLAYER)
-                        crit_chance -= ((Player*)pVictim)->GetRatingBonusValue(CR_CRIT_TAKEN_SPELL);
+                    crit_chance -= pVictim->GetSpellCritChanceReduction();
                 }
 
                 // scripted (increase crit chance ... against ... target by x%)
@@ -6362,33 +6358,31 @@ uint32 Unit::SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 amoun
     // Finalize it by applying resilience and resilience-like auras
     if (pVictim)
     {
-        const Player* player = (pVictim->GetTypeId() == TYPEID_PLAYER) ? (Player*)pVictim : nullptr;
-        float modPctTotal = 0;
+        const uint32 total = (amount + uint32(bonus));
+        uint32 resilience = 0;
+        int32 modPctTotal = 0;
         if (spellProto->DmgClass >= SPELL_DAMAGE_CLASS_MELEE)
         {
             if (GetWeaponAttackType(spellProto) == RANGED_ATTACK)
             {
                 modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
-                if (player)
-                    modPctTotal -= player->GetResilienceRangedCritDamageReductionPercent();
+                resilience += GetRangedCritDamageReduction(total);
             }
             else
             {
                 modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
-                if (player)
-                    modPctTotal -= player->GetResilienceMeleeCritDamageReductionPercent();
+                resilience += GetMeleeCritDamageReduction(total);
             }
         }
         else
         {
             modPctTotal += pVictim->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_DAMAGE, GetSpellSchoolMask(spellProto));
-            if (player)
-                modPctTotal -= player->GetResilienceSpellCritDamageReductionPercent();
+            resilience += GetSpellCritDamageReduction(total);
         }
         // We reduce/amplify damage done by crit, but we can't deal less damage than a normal hit would do
-        const int32 modTotal = int32((int32(amount) + bonus) * float(modPctTotal / 100.0f));
-        const int32 total = (bonus + modTotal);
-        bonus = std::max(total, 0);
+        const int32 modTotal = int32(total * float(modPctTotal / 100.0f));
+        const int32 result = (bonus + modTotal - int32(resilience));
+        bonus = std::max(result, 0);
     }
 
     // Final crit damage
@@ -6448,25 +6442,25 @@ uint32 Unit::MeleeCriticalDamageBonus(WeaponAttackType attackType, SpellSchoolMa
     // Finalize it by applying resilience and resilience-like auras
     if (pVictim)
     {
-        const Player* player = (pVictim->GetTypeId() == TYPEID_PLAYER) ? (Player*)pVictim : nullptr;
-        float modPctTotal = 0;
+        const uint32 total = (amount + uint32(bonus));
+        uint32 resilience = 0;
+        int32 modPctTotal = 0;
         if (attackType == RANGED_ATTACK)
         {
             modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_RANGED_CRIT_DAMAGE);
-            if (player)
-                modPctTotal -= player->GetResilienceRangedCritDamageReductionPercent();
+            resilience += GetRangedCritDamageReduction(total);
         }
         else
         {
             modPctTotal += pVictim->GetTotalAuraModifier(SPELL_AURA_MOD_ATTACKER_MELEE_CRIT_DAMAGE);
-            if (player)
-                modPctTotal -= player->GetResilienceMeleeCritDamageReductionPercent();
+            resilience += GetMeleeCritDamageReduction(total);
         }
         // We reduce/amplify damage done by crit, but we can't deal less damage than a normal hit would do
-        const int32 modTotal = int32((int32(amount) + bonus) * float(modPctTotal / 100.0f));
-        const int32 total = (bonus + modTotal);
-        clean = std::max(bonus, total);
-        bonus = std::max(total, 0);
+        // TODO: Verify whole clean damage business with resilience...
+        const int32 modTotal = int32(total * float(modPctTotal / 100.0f));
+        const int32 result = (bonus + modTotal - int32(resilience));
+        clean = std::max(bonus, result);
+        bonus = std::max(result, 0);
     }
 
     // Final crit damage
@@ -9965,6 +9959,22 @@ void Unit::RestoreOriginalFaction()
         else
             setFaction(creature->GetCreatureInfo()->FactionAlliance);
     }
+}
+
+float Unit::GetCombatRatingReduction(CombatRating cr) const
+{
+    if (GetTypeId() == TYPEID_PLAYER)
+        return ((Player const*)this)->GetRatingBonusValue(cr);
+
+    return 0.0f;
+}
+
+uint32 Unit::GetCombatRatingDamageReduction(CombatRating cr, float rate, float cap, uint32 damage) const
+{
+    float percent = GetCombatRatingReduction(cr) * rate;
+    if (percent > cap)
+        percent = cap;
+    return uint32(percent * damage / 100.0f);
 }
 
 struct StopAttackFactionHelper

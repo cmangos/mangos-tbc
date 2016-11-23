@@ -1658,11 +1658,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         float OCTRegenMPPerSpirit();
         float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
-        float GetResilienceMeleeCritDamageReductionPercent() const { return std::min((GetRatingBonusValue(CR_CRIT_TAKEN_MELEE) * 2.0f), 25.0f); }
-        float GetResilienceRangedCritDamageReductionPercent() const { return std::min((GetRatingBonusValue(CR_CRIT_TAKEN_RANGED) * 2.0f), 25.0f); }
-        float GetResilienceSpellCritDamageReductionPercent() const { return std::min((GetRatingBonusValue(CR_CRIT_TAKEN_SPELL) * 2.0f), 25.0f); }
-        float GetResilienceManaDrainReductionPercent() const { return std::min(GetRatingBonusValue(CR_CRIT_TAKEN_SPELL), 100.0f); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
-        float GetResilienceDoTDamageReductionPercent() const { return std::min(GetRatingBonusValue(CR_CRIT_TAKEN_SPELL), 100.0f); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
 
         float GetExpertiseDodgeOrParryReduction(WeaponAttackType attType) const;
         void UpdateBlockPercentage();

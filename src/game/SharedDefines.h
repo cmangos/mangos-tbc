@@ -2559,6 +2559,7 @@ enum MailResponseResult
 
 // reasons for why pet tame may fail
 // in fact, these are also used elsewhere
+// for example when pet is dead on Call Pet usage (hunter)
 enum PetTameFailureReason
 {
     PETTAME_INVALIDCREATURE         = 1,

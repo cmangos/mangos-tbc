@@ -5094,11 +5094,17 @@ SpellCastResult Spell::CheckCast(bool strict)
             {
                 Creature* pet = m_caster->GetPet();
                 if (!pet)
-                    return SPELL_FAILED_NO_PET;
-
-                if (pet->isAlive())
-                    return SPELL_FAILED_ALREADY_HAVE_SUMMON;
-
+                {
+                    Pet dbPet;
+                    SpellCastResult result = dbPet.TryLoadPetFromDB((Player*)m_caster, 0);
+                    if (result != SPELL_FAILED_TARGETS_DEAD)
+                        return SPELL_FAILED_NO_PET;
+                }
+                else
+                {
+                    if (pet->isAlive())
+                        return SPELL_FAILED_ALREADY_HAVE_SUMMON;
+                }
                 break;
             }
             // This is generic summon effect now and don't make this check for summon types similar
@@ -5130,20 +5136,26 @@ SpellCastResult Spell::CheckCast(bool strict)
                 {
                     if (Creature* pet = m_caster->GetPet())
                     {
-                        if (!pet->isAlive() || pet->isDead()) // this one will not play along; tried and retried countless times....
-                            return SPELL_FAILED_TARGETS_DEAD;
+                        if (!pet->isAlive()) // this one will not play along; tried and retried countless times....
+                        {
+                            ((Player*)m_caster)->SendPetTameFailure(PETTAME_DEAD);
+                            return SPELL_FAILED_DONT_REPORT;
+                        }
                         else
                             return SPELL_FAILED_ALREADY_HAVE_SUMMON;
                     }
                     else
                     {
-                        Pet* dbPet = new Pet;
-                        if (dbPet->LoadPetFromDB((Player*)m_caster, 0))
-                            return SPELL_CAST_OK;           // still returns an error to the player, so this error must come from somewhere else...
-                        else
+                        Pet dbPet;
+                        SpellCastResult result = dbPet.TryLoadPetFromDB((Player*)m_caster, 0);
+                        if (result == SPELL_FAILED_TARGETS_DEAD)
                         {
-                            delete dbPet;
-                            return SPELL_FAILED_NO_PET;
+                            ((Player*)m_caster)->SendPetTameFailure(PETTAME_DEAD);
+                            return SPELL_FAILED_DONT_REPORT;
+                        }
+                        else if (result != SPELL_CAST_OK)
+                        {
+                            return result;
                         }
                     }
                 }
@@ -5410,6 +5422,29 @@ SpellCastResult Spell::CheckCast(bool strict)
         }
         else
             return SPELL_FAILED_NOT_TRADING;
+    }
+
+    switch (m_spellInfo->Id) // temporary until spell scripting is implemented
+    {
+        case 1515:
+        {
+            Player* player = (Player*)m_caster;
+            if (player->GetPetGuid() || player->GetCharmGuid())
+            {
+                ((Player*)m_caster)->SendPetTameFailure(PETTAME_ANOTHERSUMMONACTIVE);
+                return SPELL_FAILED_DONT_REPORT;
+            }
+            else
+            {
+                Pet pet;
+                if (pet.TryLoadPetFromDB((Player*)m_caster, 0) == SPELL_FAILED_TARGETS_DEAD)
+                {
+                    ((Player*)m_caster)->SendPetTameFailure(PETTAME_ANOTHERSUMMONACTIVE);
+                    return SPELL_FAILED_DONT_REPORT;
+                }
+            }
+            break;
+        }
     }
 
     // all ok

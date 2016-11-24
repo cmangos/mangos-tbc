@@ -665,7 +665,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     pCurrChar->ContinueTaxiFlight();
 
     // Load pet if any (if player not alive and in taxi flight or another then pet will remember as temporary unsummoned)
-    pCurrChar->LoadPet();
+    if (!(sWorld.getConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT) && pCurrChar->HasAuraType(SPELL_AURA_MOUNTED)) && !pCurrChar->HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED))
+        pCurrChar->LoadPet();
 
     // Set FFA PvP for non GM in non-rest mode
     if (sWorld.IsFFAPvPRealm() && !pCurrChar->isGameMaster() && !pCurrChar->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING))

@@ -33,6 +33,7 @@
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "Chat.h"
+#include "World.h"
 
 enum StableResultCode
 {
@@ -481,6 +482,7 @@ void WorldSession::SendStablePet(ObjectGuid guid)
     data << uint8(GetPlayer()->m_stableSlots);
 
     uint8 num = 0;                                          // counter for place holder
+    uint32 firstSlot = PET_SAVE_FIRST_STABLE_SLOT;
 
     // not let move dead pet in slot
     if (pet && pet->isAlive() && pet->getPetType() == HUNTER_PET)
@@ -493,10 +495,12 @@ void WorldSession::SendStablePet(ObjectGuid guid)
         data << uint8(0x01);                                // client slot 1 == current pet (0)
         ++num;
     }
+    else
+        firstSlot = 0;
 
     //                                                     0      1     2   3      4      5        6
     QueryResult* result = CharacterDatabase.PQuery("SELECT owner, slot, id, entry, level, loyalty, name FROM character_pet WHERE owner = '%u' AND slot >= '%u' AND slot <= '%u' ORDER BY slot",
-                          _player->GetGUIDLow(), PET_SAVE_FIRST_STABLE_SLOT, PET_SAVE_LAST_STABLE_SLOT);
+                          _player->GetGUIDLow(), firstSlot, PET_SAVE_LAST_STABLE_SLOT);
 
     if (result)
     {
@@ -575,8 +579,18 @@ void WorldSession::HandleStablePet(WorldPacket& recv_data)
 
     Pet* pet = _player->GetPet();
 
+    if (!pet) // if pet not by your side, load from DB for a moment
+    {
+        pet = new Pet;
+        if (!pet->LoadPetFromDB(_player, 0))
+        {
+            delete pet;
+            SendStableResult(STABLE_ERR_STABLE);
+            return;
+        }
+    }
     // can't place in stable dead pet
-    if (!pet || !pet->isAlive() || pet->getPetType() != HUNTER_PET)
+    else if (!pet->isAlive() || pet->getPetType() != HUNTER_PET)
     {
         SendStableResult(STABLE_ERR_STABLE);
         return;
@@ -608,6 +622,9 @@ void WorldSession::HandleStablePet(WorldPacket& recv_data)
 
     if (free_slot > 0 && free_slot <= GetPlayer()->m_stableSlots)
     {
+        if (pet->GetCharmInfo()->GetPetNumber() == _player->GetTemporaryUnsummonedPetNumber())
+            _player->SetTemporaryUnsummonedPetNumber(0);
+
         pet->Unsummon(PetSaveMode(free_slot), _player);
         SendStableResult(STABLE_SUCCESS_STABLE);
     }
@@ -630,14 +647,16 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
     }
 
     uint32 creature_id = 0;
+    uint32 slot = 0;
 
     {
-        QueryResult* result = CharacterDatabase.PQuery("SELECT entry FROM character_pet WHERE owner = '%u' AND id = '%u' AND slot >='%u' AND slot <= '%u'",
+        QueryResult* result = CharacterDatabase.PQuery("SELECT slot,entry FROM character_pet WHERE owner = '%u' AND id = '%u' AND slot >='%u' AND slot <= '%u'",
                               _player->GetGUIDLow(), petnumber, PET_SAVE_FIRST_STABLE_SLOT, PET_SAVE_LAST_STABLE_SLOT);
         if (result)
         {
             Field* fields = result->Fetch();
-            creature_id = fields[0].GetUInt32();
+            slot = fields[0].GetUInt32();
+            creature_id = fields[1].GetUInt32();
             delete result;
         }
     }
@@ -662,9 +681,25 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
         return;
     }
 
-    // delete dead pet
+    // delete temporary pet
     if (pet)
         pet->Unsummon(PET_SAVE_AS_DELETED, _player);
+    else 
+    {
+        pet = new Pet; // load dismissed pet temporarily
+        if (pet->LoadPetFromDB(_player, 0))
+            pet->Unsummon(PetSaveMode(slot), _player);
+        else
+        {
+            if (pet->TryLoadPetFromDB(_player, 0) == SPELL_FAILED_TARGETS_DEAD)
+            {
+                delete pet;
+                SendStableResult(STABLE_ERR_STABLE);
+                return;
+            }
+            delete pet;
+        }
+    }
 
     Pet* newpet = new Pet(HUNTER_PET);
     if (!newpet->LoadPetFromDB(_player, creature_id, petnumber))
@@ -676,6 +711,9 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
     }
 
     SendStableResult(STABLE_SUCCESS_UNSTABLE);
+
+    if ((sWorld.getConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT) && _player->HasAuraType(SPELL_AURA_MOUNTED)) || _player->HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED))
+        newpet->Unsummon(PET_SAVE_AS_CURRENT); // TODO: remove adding to world if mounted
 }
 
 void WorldSession::HandleBuyStableSlot(WorldPacket& recv_data)
@@ -728,7 +766,17 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
 
     Pet* pet = _player->GetPet();
 
-    if (!pet || pet->getPetType() != HUNTER_PET)
+    if (!pet) // if pet not by your side, load from DB for a moment
+    {
+        pet = new Pet;
+        if (!pet->LoadPetFromDB(_player, 0))
+        {
+            delete pet;
+            SendStableResult(STABLE_ERR_STABLE);
+            return;
+        }
+    }
+    else if (pet->getPetType() != HUNTER_PET || !pet->isAlive())
     {
         SendStableResult(STABLE_ERR_STABLE);
         return;
@@ -762,8 +810,8 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
         return;
     }
 
-    // move alive pet to slot or delete dead pet
-    pet->Unsummon(pet->isAlive() ? PetSaveMode(slot) : PET_SAVE_AS_DELETED, _player);
+    // move pet to slot
+    pet->Unsummon(PetSaveMode(slot), _player);
 
     // summon unstabled pet
     Pet* newpet = new Pet;
@@ -773,7 +821,11 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
         SendStableResult(STABLE_ERR_STABLE);
     }
     else
+    {
         SendStableResult(STABLE_SUCCESS_UNSTABLE);
+        if ((sWorld.getConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT) && _player->HasAuraType(SPELL_AURA_MOUNTED)) || _player->HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED))
+            newpet->Unsummon(PET_SAVE_AS_CURRENT); // TODO: remove adding to world if mounted
+    }
 }
 
 void WorldSession::HandleRepairItemOpcode(WorldPacket& recv_data)

@@ -153,7 +153,8 @@ class MANGOS_DLL_SPEC CreatureAI
          * @param pDoneTo Unit* to whom Damage of amount uiDamage will be dealt
          * @param uiDamage Amount of Damage that will be dealt, can be changed here
          */
-        virtual void DamageDeal(Unit* /*pDoneTo*/, uint32& /*uiDamage*/) {}
+        virtual void DamageDeal(Unit* pDoneTo, uint32& uiDamage, DamageEffectType damagetype, SpellEntry const* spellInfo) { DamageDeal(pDoneTo, uiDamage, damagetype); }
+        virtual void DamageDeal(Unit* /*pDoneTo*/, uint32& /*uiDamage*/, DamageEffectType damagetype) {}
 
         /**
          * Called at any Damage from any attacker (before damage apply)
@@ -162,7 +163,8 @@ class MANGOS_DLL_SPEC CreatureAI
          * @param pDealer Unit* who will deal Damage to the creature
          * @param uiDamage Amount of Damage that will be dealt, can be changed here
          */
-        virtual void DamageTaken(Unit* /*pDealer*/, uint32& /*uiDamage*/) {}
+        virtual void DamageTaken(Unit* pDealer, uint32& uiDamage, DamageEffectType damagetype, SpellEntry const* spellInfo) { DamageTaken(pDealer, uiDamage, damagetype); }
+        virtual void DamageTaken(Unit* /*pDealer*/, uint32& /*uiDamage*/, DamageEffectType damagetype) {}
 
         /**
          * Called when the creature is killed

@@ -1565,6 +1565,8 @@ DROP TABLE IF EXISTS `saved_variables`;
 CREATE TABLE `saved_variables` (
   `NextArenaPointDistributionTime` bigint(40) unsigned NOT NULL DEFAULT '0',
   `NextDailyQuestResetTime` bigint(40) unsigned NOT NULL DEFAULT '0',
+  `NextWeeklyQuestResetTime` bigint(40) unsigned NOT NULL DEFAULT '0',
+  `NextMonthlyQuestResetTime` bigint(40) unsigned NOT NULL DEFAULT '0',
   `cleaning_flags` int(11) unsigned NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Variable Saves';
 

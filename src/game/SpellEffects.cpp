@@ -2296,20 +2296,32 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                 }
                 return;
-            }
-            // Flametongue Weapon Proc, Ranks
-            if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000200000))
+            }            
+            if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000200000)) // Flametongue Weapon Proc, Ranks
             {
                 if (m_CastItem)
                 {
                     int32 bonusDamage = m_caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(m_spellInfo))
                         + unitTarget->SpellBaseDamageBonusTaken(GetSpellSchoolMask(m_spellInfo));
-                        // Does Amplify Magic/Dampen Magic influence flametongue? If not, the above addition must be removed.
-                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / IN_MILLISECONDS;     
+                    // Does Amplify Magic/Dampen Magic influence flametongue? If not, the above addition must be removed.
+                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / IN_MILLISECONDS;
                     bonusDamage = m_caster->SpellBonusWithCoeffs(m_spellInfo, bonusDamage, 0, 0, SPELL_DIRECT_DAMAGE, false); // apply spell coeff
                     int32 totalDamage = (damage * 0.01 * weaponSpeed) + bonusDamage;
 
                     m_caster->CastCustomSpell(unitTarget, 10444, &totalDamage, nullptr, nullptr, true, m_CastItem);
+                }
+                else
+                    sLog.outError("Spell::EffectDummy: spell %i requires cast Item", m_spellInfo->Id);
+
+                return;
+            }
+            if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000400000000)) // Flametongue Totem Proc, Ranks
+            {
+                if (m_CastItem) // Does not scale with gear
+                {
+                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / IN_MILLISECONDS;
+                    int32 totalDamage = (damage * 0.01 * weaponSpeed);
+                    m_caster->CastCustomSpell(unitTarget, 16368, &totalDamage, nullptr, nullptr, true, m_CastItem);
                 }
                 else
                     sLog.outError("Spell::EffectDummy: spell %i requires cast Item", m_spellInfo->Id);
@@ -3220,6 +3232,10 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
     int level_diff = 0;
     switch (m_spellInfo->Id)
     {
+        case 5530:
+            if (m_caster->getClass() == CLASS_ROGUE) // Warrior and rogue use same spell, on rogue not supposed to give resource, WTF blizzard
+                return;
+                break;
         case 9512:                                          // Restore Energy
             level_diff = m_caster->getLevel() - 40;
             level_multiplier = 2;
@@ -6431,6 +6447,24 @@ void Spell::EffectEnchantHeldItem(SpellEffectIndex eff_idx)
 
         // Apply the temporary enchantment
         item->SetEnchantment(slot, enchant_id, duration * IN_MILLISECONDS, 0);
+
+        // Improved Weapon Totems
+        if (m_spellInfo->IsFitToFamilyMask(0x0000000004000000)) // Flametongue totem
+        {
+            SpellAuraHolder* holder = m_caster->GetOwner()->GetSpellAuraHolder(29192);
+            if(!holder)
+                holder = m_caster->GetOwner()->GetSpellAuraHolder(29193);
+            if(holder && holder->m_auras[0] && holder->GetSpellProto())
+                item->SetEnchantmentModifier(new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, holder->m_auras[1]->GetModifier()->m_amount, holder->GetId(), uint64(0x00400000000)));
+        }
+        if (m_spellInfo->IsFitToFamilyMask(0x0000000200000000)) // Windfury totem
+        {
+            SpellAuraHolder* holder = m_caster->GetOwner()->GetSpellAuraHolder(29192);
+            if (!holder)
+                holder = m_caster->GetOwner()->GetSpellAuraHolder(29193);
+            if (holder && holder->m_auras[0] && holder->GetSpellProto())
+                item->SetEnchantmentModifier(new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, holder->m_auras[0]->GetModifier()->m_amount, holder->GetId(), uint64(0x00200000000)));
+        }
         item_owner->ApplyEnchantment(item, slot, true);
     }
 }

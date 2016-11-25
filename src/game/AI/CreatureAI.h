@@ -96,12 +96,8 @@ enum AIEventType
 class MANGOS_DLL_SPEC CreatureAI
 {
     public:
-        explicit CreatureAI(Creature* creature) :
-            m_creature(creature),
-            m_isCombatMovement(true),
-            m_attackDistance(0.0f),
-            m_attackAngle(0.0f)
-        {}
+        explicit CreatureAI(Creature* creature);
+        explicit CreatureAI(Unit* creature);
 
         virtual ~CreatureAI();
 
@@ -268,7 +264,7 @@ class MANGOS_DLL_SPEC CreatureAI
          * @param pWho Unit* who is possible target
          */
         virtual void AttackStart(Unit* /*pWho*/) {}
-        
+
         /**
         * Called when creature stop attack expected
         * Note: have to be called to reinitialize some states or movement
@@ -354,7 +350,8 @@ class MANGOS_DLL_SPEC CreatureAI
         ///== Fields =======================================
 
         /// Pointer to the Creature controlled by this AI
-        Creature* const m_creature;
+        Creature* m_creature;
+        Unit* m_unit;
 
         /// Combat movement currently enabled
         bool m_isCombatMovement;

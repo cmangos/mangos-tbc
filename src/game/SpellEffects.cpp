@@ -3760,6 +3760,11 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             if (caster && caster->AI())
                 caster->AI()->JustSummoned(itr->creature);
         }
+        else if (m_originalCaster && m_originalCaster->AI())
+        {
+            // original caster is provided by script so we have to notify it as its not done in Object::SummonCreature
+            m_originalCaster->AI()->JustSummoned(itr->creature);
+        }
     }
 }
 
@@ -3867,7 +3872,8 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
             spawnCreature->SetPvP(true);
 
         ((Player*)m_caster)->PetSpellInitialize();
-        spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
+        if (m_caster->getClass() != CLASS_PRIEST)
+            spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
     }
     return true;
 }
@@ -4546,8 +4552,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         {
             case CLASS_HUNTER:
             {
-                // Everything already taken care of, we are only here because we loaded pet from db successfully
-                delete NewSummon;
+                NewSummon->LoadPetFromDB((Player*)m_caster);
                 return;
             }
             case CLASS_WARLOCK:
@@ -4572,14 +4577,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
 
                 // Load pet from db; if any to load
                 if (NewSummon->LoadPetFromDB((Player*)m_caster, petentry)) 
-                {
-                    NewSummon->SetHealth(NewSummon->GetMaxHealth());
-                    NewSummon->SetPower(POWER_MANA, NewSummon->GetMaxPower(POWER_MANA));
-
-                    NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT);
-
                     return;
-                }
 
                 NewSummon->setPetType(SUMMON_PET);
             }
@@ -4653,11 +4651,10 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         NewSummon->SetUInt32Value(UNIT_FIELD_FLAGS, cInfo->UnitFlags);
 
         // Notify Summoner
-        if (m_originalCaster && (m_originalCaster != m_caster)
-            && (m_originalCaster->GetTypeId() == TYPEID_UNIT) && ((Creature*)m_originalCaster)->AI())
-            ((Creature*)m_originalCaster)->AI()->JustSummoned(NewSummon);
-        else if ((m_caster->GetTypeId() == TYPEID_UNIT) && ((Creature*)m_caster)->AI())
-            ((Creature*)m_caster)->AI()->JustSummoned(NewSummon);
+        if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))
+            m_originalCaster->AI()->JustSummoned(NewSummon);
+        else if (m_caster->AI())
+            m_caster->AI()->JustSummoned(NewSummon);
     }
 }
 
@@ -5042,10 +5039,11 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
 
     pGameObj->SummonLinkedTrapIfAny();
 
-    if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
-        ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
-    if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
-        ((Creature*)m_originalCaster)->AI()->JustSummoned(pGameObj);
+    // Notify Summoner
+    if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))
+        m_originalCaster->AI()->JustSummoned(pGameObj);
+    else if (m_caster->AI())
+        m_caster->AI()->JustSummoned(pGameObj);
 }
 
 void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
@@ -6576,10 +6574,11 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
 
     pGameObj->SummonLinkedTrapIfAny();
 
-    if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
-        ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
-    if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
-        ((Creature*)m_originalCaster)->AI()->JustSummoned(pGameObj);
+    // Notify Summoner
+    if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))
+        m_originalCaster->AI()->JustSummoned(pGameObj);
+    else if (m_caster->AI())
+        m_caster->AI()->JustSummoned(pGameObj);
 }
 
 void Spell::EffectResurrect(SpellEffectIndex /*eff_idx*/)
@@ -7096,7 +7095,13 @@ void Spell::EffectSummonDeadPet(SpellEffectIndex /*eff_idx*/)
     Player* _player = (Player*)m_caster;
     Pet* pet = _player->GetPet();
     if (!pet)
+    {
+        pet = new Pet();
+        if (!pet->LoadPetFromDB(_player, 0, 0, true, damage))
+            delete pet;
+        // if above successfully loaded the pet all is done
         return;
+    }
     if (pet->isAlive())
         return;
 
@@ -7346,10 +7351,11 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
 
     pGameObj->SummonLinkedTrapIfAny();
 
-    if (m_caster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_caster)->AI())
-        ((Creature*)m_caster)->AI()->JustSummoned(pGameObj);
-    if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
-        ((Creature*)m_originalCaster)->AI()->JustSummoned(pGameObj);
+    // Notify Summoner
+    if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))
+        m_originalCaster->AI()->JustSummoned(pGameObj);
+    else if (m_caster->AI())
+        m_caster->AI()->JustSummoned(pGameObj);
 }
 
 void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)

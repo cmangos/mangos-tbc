@@ -36,12 +36,9 @@ const char WorldTemplatesrcfmt[] = "is";
 const char WorldTemplatedstfmt[] = "ii";
 const char ConditionsSrcFmt[] = "iiii";
 const char ConditionsDstFmt[] = "iiii";
-const char SpellTemplatesrcfmt[] = "iiiiiiiiiiix";
-//                                  0         10        20        30        40        50        60        70        80        90        100       110       120       130       140       150       160        171
-const char SpellTemplatedstfmt[] = "ixxxxxxxxxxxxxxxxxxxxxxxxxxiixxxxixxxxxxFxxxxxxxxxxxxxxxxxxxxxxixxxxxxxxFFFFFFxxxxxxixxxxxixxixxxxxFFFxxxxxxixxixxixxFFFxxxppppppppppppppppppppppppppppppppxxxxxFFxxxFFFxxxx";
-//                                  Id                         proc  DurationIndex                 Effect0              tarA0    effectAura0          trigger0 SpellName[16]   Rank[16]
 const char CreatureTemplateSpellsFmt[] = "iiiii";
 const char SpellScriptTargetFmt[] = "iiii";
+const char SpellEntryfmt[] = "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiifffiiiissssssssssssssssssssssssssssssssiiiiiLiiifffiiiii";
 
 SQLStorage sCreatureStorage(CreatureInfosrcfmt, CreatureInfodstfmt, "Entry", "creature_template");
 SQLStorage sCreatureDataAddonStorage(CreatureDataAddonInfofmt, "guid", "creature_addon");
@@ -54,9 +51,11 @@ SQLStorage sPageTextStore(PageTextfmt, "entry", "page_text");
 SQLStorage sInstanceTemplate(InstanceTemplatesrcfmt, InstanceTemplatedstfmt, "map", "instance_template");
 SQLStorage sWorldTemplate(WorldTemplatesrcfmt, WorldTemplatedstfmt, "map", "world_template");
 SQLStorage sConditionStorage(ConditionsSrcFmt, ConditionsDstFmt, "condition_entry", "conditions");
+SQLStorage sSpellTemplate(SpellEntryfmt, "id", "spell_template");
 
 SQLHashStorage sGOStorage(GameObjectInfosrcfmt, GameObjectInfodstfmt, "entry", "gameobject_template");
-SQLHashStorage sSpellTemplate(SpellTemplatesrcfmt, SpellTemplatedstfmt, "id", "spell_template");
 SQLHashStorage sCreatureTemplateSpellsStorage(CreatureTemplateSpellsFmt, "entry", "creature_template_spells");
 
 SQLMultiStorage sSpellScriptTargetStorage(SpellScriptTargetFmt, "entry", "spell_script_target");
+
+MANGOS_DLL_SPEC SQLStorage const* GetSpellStore() { return &sSpellTemplate; }

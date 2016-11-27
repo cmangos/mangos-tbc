@@ -2,5 +2,5 @@
 #define __REVISION_SQL_H__
  #define REVISION_DB_REALMD "required_s2325_01_realmd"
  #define REVISION_DB_CHARACTERS "required_s2337_01_characters_weekly_quests"
- #define REVISION_DB_MANGOS "required_s2339_04_mangos_npc_trainer_template_conditon_id"
+ #define REVISION_DB_MANGOS "required_s2340_01_mangos_spell_template"
 #endif // __REVISION_SQL_H__

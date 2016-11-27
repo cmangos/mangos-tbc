@@ -81,7 +81,7 @@ bool GOUse_go_ethereum_prison(Player* pPlayer, GameObject* pGo)
                 }
 
                 if (uiSpell)
-                    pCreature->CastSpell(pPlayer, uiSpell, false);
+                    pCreature->CastSpell(pPlayer, uiSpell, TRIGGERED_NONE);
                 else
                     script_error_log("go_ethereum_prison summoned creature (entry %u) but faction (%u) are not expected by script.", pCreature->GetEntry(), pCreature->getFaction());
             }
@@ -124,7 +124,7 @@ enum
 bool GOUse_go_jump_a_tron(Player* pPlayer, GameObject* pGo)
 {
     if (Creature* pCreature = GetClosestCreatureWithEntry(pGo, NPC_JUMP_A_TRON, INTERACTION_DISTANCE))
-        pCreature->CastSpell(pPlayer, SPELL_JUMP_A_TRON, false);
+        pCreature->CastSpell(pPlayer, SPELL_JUMP_A_TRON, TRIGGERED_NONE);
 
     return false;
 }

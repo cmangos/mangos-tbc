@@ -144,8 +144,8 @@ struct guard_shattrath_aldorAI : public guardAI
             {
                 if (Player* pTarget = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 {
-                    pTarget->CastSpell(pTarget, SPELL_EXILE, true);
-                    pTarget->CastSpell(pTarget, SPELL_BANISH_TELEPORT, true);
+                    pTarget->CastSpell(pTarget, SPELL_EXILE, TRIGGERED_OLD_TRIGGERED);
+                    pTarget->CastSpell(pTarget, SPELL_BANISH_TELEPORT, TRIGGERED_OLD_TRIGGERED);
                 }
 
                 m_playerGuid.Clear();
@@ -211,8 +211,8 @@ struct guard_shattrath_scryerAI : public guardAI
             {
                 if (Player* pTarget = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 {
-                    pTarget->CastSpell(pTarget, SPELL_EXILE, true);
-                    pTarget->CastSpell(pTarget, SPELL_BANISH_TELEPORT, true);
+                    pTarget->CastSpell(pTarget, SPELL_EXILE, TRIGGERED_OLD_TRIGGERED);
+                    pTarget->CastSpell(pTarget, SPELL_BANISH_TELEPORT, TRIGGERED_OLD_TRIGGERED);
                 }
 
                 m_playerGuid.Clear();

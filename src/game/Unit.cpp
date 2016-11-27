@@ -3205,7 +3205,7 @@ uint32 Unit::GetDefenseSkillValue(Unit const* target) const
 
 float Unit::GetUnitDodgeChance() const
 {
-    if (hasUnitState(UNIT_STAT_STUNNED))
+    if (IsIncapacitated())
         return 0.0f;
     if (GetTypeId() == TYPEID_PLAYER)
         return GetFloatValue(PLAYER_DODGE_PERCENTAGE);
@@ -3224,7 +3224,7 @@ float Unit::GetUnitDodgeChance() const
 
 float Unit::GetUnitParryChance() const
 {
-    if (IsNonMeleeSpellCasted(false) || hasUnitState(UNIT_STAT_STUNNED))
+    if (IsNonMeleeSpellCasted(false) || IsIncapacitated())
         return 0.0f;
 
     float chance = 0.0f;
@@ -3256,7 +3256,7 @@ float Unit::GetUnitParryChance() const
 
 float Unit::GetUnitBlockChance() const
 {
-    if (IsNonMeleeSpellCasted(false) || hasUnitState(UNIT_STAT_STUNNED))
+    if (IsNonMeleeSpellCasted(false) || IsIncapacitated())
         return 0.0f;
 
     if (GetTypeId() == TYPEID_PLAYER)

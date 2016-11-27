@@ -26,10 +26,11 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO1               = -1533120,
-    SAY_AGGRO2               = -1533121,
-    SAY_AGGRO3               = -1533122,
-    SAY_AGGRO4               = -1533123,
+    SOUND_AGGRO1             = 8855,
+    SOUND_AGGRO2             = 8856,
+    SOUND_AGGRO3             = 8859,
+    SOUND_AGGRO4             = 8861,
+
     SAY_SLAY1                = -1533124,
     SAY_SLAY2                = -1533125,
     SAY_TRIUMPHANT1          = -1533126,
@@ -87,10 +88,11 @@ struct boss_razuviousAI : public ScriptedAI
     {
         switch (urand(0, 3))
         {
-            case 0: DoScriptText(SAY_AGGRO1, m_creature); break;
-            case 1: DoScriptText(SAY_AGGRO2, m_creature); break;
-            case 2: DoScriptText(SAY_AGGRO3, m_creature); break;
-            case 3: DoScriptText(SAY_AGGRO4, m_creature); break;
+        	// Yell texts on aggro were removed in patch 2.0 but the sounds remained
+            case 0: DoPlaySoundToSet(m_creature, SOUND_AGGRO1); break;
+            case 1: DoPlaySoundToSet(m_creature, SOUND_AGGRO2); break;
+            case 2: DoPlaySoundToSet(m_creature, SOUND_AGGRO3); break;
+            case 3: DoPlaySoundToSet(m_creature, SOUND_AGGRO4); break;
         }
 
         if (m_pInstance)

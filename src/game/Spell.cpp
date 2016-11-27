@@ -48,7 +48,7 @@ extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 
 bool IsQuestTameSpell(uint32 spellId)
 {
-    SpellEntry const* spellproto = sSpellStore.LookupEntry(spellId);
+    SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!spellproto)
         return false;
 
@@ -255,7 +255,7 @@ void SpellCastTargets::write(ByteBuffer& data) const
 Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy)
 {
     MANGOS_ASSERT(caster != nullptr && info != nullptr);
-    MANGOS_ASSERT(info == sSpellStore.LookupEntry(info->Id) && "`info` must be pointer to sSpellStore element");
+    MANGOS_ASSERT(info == sSpellTemplate.LookupEntry<SpellEntry>(info->Id) && "`info` must be pointer to sSpellTemplate element");
 
     m_spellInfo = info;
     m_triggeredBySpellInfo = triggeredBy;
@@ -4183,7 +4183,7 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOT
 
 void Spell::AddTriggeredSpell(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
     if (!spellInfo)
     {
@@ -4196,7 +4196,7 @@ void Spell::AddTriggeredSpell(uint32 spellId)
 
 void Spell::AddPrecastSpell(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
     if (!spellInfo)
     {
@@ -4940,7 +4940,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                SpellEntry const* learn_spellproto = sSpellStore.LookupEntry(m_spellInfo->EffectTriggerSpell[i]);
+                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(m_spellInfo->EffectTriggerSpell[i]);
 
                 if (!learn_spellproto)
                     return SPELL_FAILED_NOT_KNOWN;
@@ -4963,7 +4963,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                SpellEntry const* learn_spellproto = sSpellStore.LookupEntry(m_spellInfo->EffectTriggerSpell[i]);
+                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(m_spellInfo->EffectTriggerSpell[i]);
 
                 if (!learn_spellproto)
                     return SPELL_FAILED_NOT_KNOWN;
@@ -6830,7 +6830,7 @@ void Spell::SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpel
     if (skillval >= 225 && (spellId300 > 0 || spellId225 > 0))
     {
         uint32 spellid = skillval >= 300 ? spellId300 : spellId225;
-        SpellEntry const* pSpell = sSpellStore.LookupEntry(spellid);
+        SpellEntry const* pSpell = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
         if (!pSpell)
         {
             sLog.outError("SelectMountByAreaAndSkill: unknown spell id %i by caster: %s", spellid, target->GetGuidStr().c_str());
@@ -6850,7 +6850,7 @@ void Spell::SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpel
             {
                 if (iter->second.state != PLAYERSPELL_REMOVED)
                 {
-                    SpellEntry const* spellInfo = sSpellStore.LookupEntry(iter->first);
+                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(iter->first);
                     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
                     {
                         if (spellInfo->EffectApplyAuraName[i] == SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED)

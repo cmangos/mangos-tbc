@@ -827,7 +827,7 @@ struct SpellEntry
         // uint32    SpellVisual2;                          // 123 not used
         uint32    SpellIconID;                              // 124      m_spellIconID
         uint32    activeIconID;                             // 125      m_activeIconID
-        // uint32    spellPriority;                         // 126      m_spellPriority not used
+        uint32    spellPriority;                            // 126      m_spellPriority not used
         char*     SpellName[16];                            // 127-142  m_name_lang
         // uint32    SpellNameFlag;                         // 143      m_name_flag not used
         char*     Rank[16];                                 // 144-159  m_nameSubtext_lang
@@ -853,6 +853,7 @@ struct SpellEntry
         uint32    TotemCategory[MAX_SPELL_TOTEM_CATEGORIES];// 212-213  m_requiredTotemCategoryID
         uint32    AreaId;                                   // 214
         uint32    SchoolMask;                               // 215      m_schoolMask
+        uint32    IsServerSide;
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }

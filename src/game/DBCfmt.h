@@ -77,7 +77,6 @@ const char SkillRaceClassInfofmt[] = "diiiiixx";
 const char SoundEntriesfmt[] = "nxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char SpellCastTimefmt[] = "nixx";
 const char SpellDurationfmt[] = "niii";
-const char SpellEntryfmt[] = "nixiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifxiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiifffixiixssssssssssssssssxssssssssssssssssxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxiiiiiiiiiixfffxxxiiii";
 const char SpellFocusObjectfmt[] = "nxxxxxxxxxxxxxxxxx";
 const char SpellItemEnchantmentfmt[] = "niiiiiixxxiiissssssssssssssssxiiii";
 const char SpellItemEnchantmentConditionfmt[] = "nbbbbbxxxxxbbbbbbbbbbiiiiiXXXXX";

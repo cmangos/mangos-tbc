@@ -5365,6 +5365,7 @@ void ObjectMgr::LoadAreaTriggerTeleports()
         at.target_Y             = fields[10].GetFloat();
         at.target_Z             = fields[11].GetFloat();
         at.target_Orientation   = fields[12].GetFloat();
+        at.conditionId          = fields[13].GetUInt32();
 
         AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(Trigger_ID);
         if (!atEntry)
@@ -5431,6 +5432,13 @@ void ObjectMgr::LoadAreaTriggerTeleports()
                 sLog.outErrorDb("Table `areatrigger_teleport` has nonexistent required heroic quest %u for trigger %u, remove quest done requirement.", at.requiredQuestHeroic, Trigger_ID);
                 at.requiredQuestHeroic = 0;
             }
+        }
+
+        if (at.conditionId)
+        {
+            const PlayerCondition* condition = sConditionStorage.LookupEntry<PlayerCondition>(at.conditionId);
+            if (!condition) // condition does not exist for some reason
+                sLog.outErrorDb("Table `areatrigger_teleport` entry %u has `condition_id` = %u but does not exist.", Trigger_ID, at.conditionId);
         }
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(at.target_mapId);
@@ -7279,7 +7287,8 @@ char const* conditionSourceToStr[] =
     "spell_area check",              // CONDITION_FROM_SPELL_AREA 
     "npc_spellclick_spells check",   // Unused. For 3.x and later.                  
     "DBScript engine",               // CONDITION_FROM_DBSCRIPTS           
-    "trainer's spell check",         // CONDITION_FROM_TRAINER 
+    "trainer's spell check",         // CONDITION_FROM_TRAINER             
+    "areatrigger teleport check",    // CONDITION_FROM_AREATRIGGER_TELEPORT
 };
 
 // Checks if player meets the condition

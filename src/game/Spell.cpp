@@ -4377,7 +4377,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
             }
 
-            if (!m_IsTriggeredSpell && VMAP::VMapFactory::checkSpellForLoS(m_spellInfo->Id) && !m_caster->IsWithinLOSInMap(target))
+            if (!IsIgnoreLosSpell(m_spellInfo) && !m_IsTriggeredSpell && VMAP::VMapFactory::checkSpellForLoS(m_spellInfo->Id) && !m_caster->IsWithinLOSInMap(target))
                 return SPELL_FAILED_LINE_OF_SIGHT;
 
             if (m_caster->GetTypeId() == TYPEID_PLAYER)
@@ -6495,7 +6495,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
             break;
         default:                                            // normal case
             // Get GO cast coordinates if original caster -> GO
-            if (target != m_caster)
+            if (!IsIgnoreLosSpell(m_spellInfo) && target != m_caster)
                 if (WorldObject* caster = GetCastingObject())
                     if (!target->IsWithinLOSInMap(caster))
                         return false;

@@ -67,7 +67,7 @@ void WorldSession::HandleBattlemasterHelloOpcode(WorldPacket& recv_data)
     SendBattlegGroundList(guid, bgTypeId);
 }
 
-void WorldSession::SendBattlegGroundList(ObjectGuid guid, BattleGroundTypeId bgTypeId)
+void WorldSession::SendBattlegGroundList(ObjectGuid guid, BattleGroundTypeId bgTypeId) const
 {
     WorldPacket data;
     sBattleGroundMgr.BuildBattleGroundListPacket(data, guid, _player, bgTypeId);
@@ -786,7 +786,7 @@ void WorldSession::HandleReportPvPAFK(WorldPacket& recv_data)
     reportedPlayer->ReportedAfkBy(_player);
 }
 
-void WorldSession::SendBattleGroundOrArenaJoinError(uint8 err)
+void WorldSession::SendBattleGroundOrArenaJoinError(uint8 err) const
 {
     WorldPacket data;
     int32 msg;

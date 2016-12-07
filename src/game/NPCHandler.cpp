@@ -58,7 +58,7 @@ void WorldSession::HandleTabardVendorActivateOpcode(WorldPacket& recv_data)
     SendTabardVendorActivate(guid);
 }
 
-void WorldSession::SendTabardVendorActivate(ObjectGuid guid)
+void WorldSession::SendTabardVendorActivate(ObjectGuid guid) const
 {
     WorldPacket data(MSG_TABARDVENDOR_ACTIVATE, 8);
     data << ObjectGuid(guid);
@@ -79,7 +79,7 @@ void WorldSession::HandleBankerActivateOpcode(WorldPacket& recv_data)
     SendShowBank(guid);
 }
 
-void WorldSession::SendShowBank(ObjectGuid guid)
+void WorldSession::SendShowBank(ObjectGuid guid) const
 {
     WorldPacket data(SMSG_SHOW_BANK, 8);
     data << ObjectGuid(guid);
@@ -95,7 +95,7 @@ void WorldSession::HandleTrainerListOpcode(WorldPacket& recv_data)
     SendTrainerList(guid);
 }
 
-void WorldSession::SendTrainerList(ObjectGuid guid)
+void WorldSession::SendTrainerList(ObjectGuid guid) const
 {
     std::string str = GetMangosString(LANG_NPC_TAINER_HELLO);
     SendTrainerList(guid, str);
@@ -123,7 +123,7 @@ static void SendTrainerSpellHelper(WorldPacket& data, TrainerSpell const* tSpell
     data << uint32(0);
 }
 
-void WorldSession::SendTrainerList(ObjectGuid guid, const std::string& strTitle)
+void WorldSession::SendTrainerList(ObjectGuid guid, const std::string& strTitle) const
 {
     DEBUG_LOG("WORLD: SendTrainerList");
 
@@ -375,7 +375,7 @@ void WorldSession::HandleSpiritHealerActivateOpcode(WorldPacket& recv_data)
     SendSpiritResurrect();
 }
 
-void WorldSession::SendSpiritResurrect()
+void WorldSession::SendSpiritResurrect() const
 {
     _player->ResurrectPlayer(0.5f, true);
 
@@ -432,7 +432,7 @@ void WorldSession::HandleBinderActivateOpcode(WorldPacket& recv_data)
     SendBindPoint(unit);
 }
 
-void WorldSession::SendBindPoint(Creature* npc)
+void WorldSession::SendBindPoint(Creature* npc) const
 {
     // prevent set homebind to instances in any case
     if (GetPlayer()->GetMap()->Instanceable())
@@ -466,7 +466,7 @@ void WorldSession::HandleListStabledPetsOpcode(WorldPacket& recv_data)
     SendStablePet(npcGUID);
 }
 
-void WorldSession::SendStablePet(ObjectGuid guid)
+void WorldSession::SendStablePet(ObjectGuid guid) const
 {
     DEBUG_LOG("WORLD: Recv MSG_LIST_STABLED_PETS Send.");
 
@@ -525,14 +525,14 @@ void WorldSession::SendStablePet(ObjectGuid guid)
     SendPacket(data);
 }
 
-void WorldSession::SendStableResult(uint8 res)
+void WorldSession::SendStableResult(uint8 res) const
 {
     WorldPacket data(SMSG_STABLE_RESULT, 1);
     data << uint8(res);
     SendPacket(data);
 }
 
-bool WorldSession::CheckStableMaster(ObjectGuid guid)
+bool WorldSession::CheckStableMaster(ObjectGuid guid) const
 {
     // spell case or GM
     if (guid == GetPlayer()->GetObjectGuid())

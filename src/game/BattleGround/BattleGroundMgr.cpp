@@ -1693,7 +1693,7 @@ void BattleGroundMgr::InitAutomaticArenaPointDistribution()
     }
 }
 
-void BattleGroundMgr::DistributeArenaPoints()
+void BattleGroundMgr::DistributeArenaPoints() const
 {
     // used to distribute arena points based on last week's stats
     sWorld.SendWorldText(LANG_DIST_ARENA_POINTS_START);

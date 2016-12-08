@@ -8054,7 +8054,7 @@ bool Unit::IsSecondChoiceTarget(Unit* pTarget, bool checkThreatArea)
     MANGOS_ASSERT(pTarget);
 
     // little hack before handling threatarea in unit instead of creature as charmed players will act like creature
-    Creature* thisCreature = GetTypeId() == TYPEID_UNIT ? static_cast<Creature*>(this) : nullptr;
+    const Creature* thisCreature = GetTypeId() == TYPEID_UNIT ? static_cast<const Creature*>(this) : nullptr;
 
     return
         pTarget->IsTargetUnderControl(*this) ||

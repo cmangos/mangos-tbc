@@ -1656,7 +1656,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
 
-        float GetExpertiseDodgeOrParryReduction(WeaponAttackType attType) const;
         void UpdateBlockPercentage();
         void UpdateCritPercentage(WeaponAttackType attType);
         void UpdateAllCritPercentages();
@@ -1825,10 +1824,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendCorpseReclaimDelay(bool load = false) const;
 
         uint32 GetShieldBlockValue() const override;        // overwrite Unit version (virtual)
-        bool CanParry() const { return m_canParry; }
-        void SetCanParry(bool value);
-        bool CanBlock() const { return m_canBlock; }
-        void SetCanBlock(bool value);
         bool CanDualWield() const { return m_canDualWield; }
         void SetCanDualWield(bool value) { m_canDualWield = value; }
 
@@ -2339,8 +2334,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint32 m_WeaponProficiency;
         uint32 m_ArmorProficiency;
-        bool m_canParry;
-        bool m_canBlock;
         bool m_canDualWield;
         uint8 m_swingErrorMsg;
         float m_ammoDPS;

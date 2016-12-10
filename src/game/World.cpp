@@ -1022,10 +1022,6 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading Weather Data...");
     sWeatherMgr.LoadWeatherZoneChances();
 
-    // Load Conditions
-    sLog.outString("Loading Conditions...");
-    sObjectMgr.LoadConditions();
-
     sLog.outString("Loading Quests...");
     sObjectMgr.LoadQuests();                                // must be loaded after DBCs, creature_template, item_template, gameobject tables
 
@@ -1038,6 +1034,9 @@ void World::SetInitialWorldSettings()
     sGameEventMgr.LoadFromDB();
     sLog.outString(">>> Game Event Data loaded");
     sLog.outString();
+
+    sLog.outString("Loading Conditions...");                // Load Conditions
+    sObjectMgr.LoadConditions();
 
     sLog.outString("Creating map persistent states for non-instanceable maps...");     // must be after PackInstances(), LoadCreatures(), sPoolMgr.LoadFromDB(), sGameEventMgr.LoadFromDB();
     sMapPersistentStateMgr.InitWorldMaps();

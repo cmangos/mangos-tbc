@@ -1,4 +1,4 @@
-INSERT INTO spell_template(Id,procFlags,procChance,durationIndex,Effect1,EffectImplicitTargetA1,EffectRadiusIndex1,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValueB1,EffectTriggerSpell1,IsServerSide,SpellName) VALUES
+INSERT INTO spell_template(Id,ProcFlags,ProcChance,DurationIndex,Effect1,EffectImplicitTargetA1,EffectRadiusIndex1,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValueB1,EffectTriggerSpell1,IsServerSide,SpellName) VALUES
 ('11756','384','101','4','76','47','0','0','144064','0','0','1','Summon Gordunni chest (COBALT)'),
 ('19394','384','101','4','76','47','0','0','177681','0','0','1','Summon Gordunni chest (JUNK)'),
 ('21387','40','15','21','6','1','0','42','0','0','21388','1','Melt-Weapon trigger aura related used by Ragnaros'),
@@ -35,3 +35,8 @@ INSERT INTO spell_template(Id,procFlags,procChance,durationIndex,Effect1,EffectI
 ('45166','0','101','21','6','1','0','56','25127','0','0','1','Model - Shattered Sun Warrior - Draenei Female Tier 4'),
 ('45170','0','101','21','6','1','0','56','25131','0','0','1','Model - Shattered Sun Warrior - Draenei Male Tier 4'),
 ('45787','0','101','21','6','1','0','4','0','0','0','1','Talbuk Tag Sleep');
+
+-- wotlk backport
+INSERT INTO spell_template(Id, Attributes, AttributesEx,AttributesEx2,AttributesEx3,ProcFlags,ProcChance,DurationIndex,Effect1,EffectImplicitTargetA1,EffectImplicitTargetB1,EffectRadiusIndex1,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValueB1,EffectTriggerSpell1,IsServerSide,SpellName) VALUES
+('38854','384','0','0','0','0','101','3','28','18','0','0','0','22339','64','0','1','summon Redeemet Hatchling'),
+('38865','384','0','0','0','0','101','3','28','18','0','0','0','22337','64','0','1','summon Malevolent Hatchling');

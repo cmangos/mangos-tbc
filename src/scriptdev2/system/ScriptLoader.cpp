@@ -162,6 +162,7 @@ extern void AddSC_eastern_plaguelands();
 extern void AddSC_elwynn_forest();
 extern void AddSC_eversong_woods();
 extern void AddSC_ghostlands();
+extern void AddSC_hillsbrad_foothills();
 extern void AddSC_hinterlands();
 extern void AddSC_ironforge();
 extern void AddSC_isle_of_queldanas();
@@ -495,6 +496,7 @@ void AddScripts()
     AddSC_elwynn_forest();
     AddSC_eversong_woods();
     AddSC_ghostlands();
+    AddSC_hillsbrad_foothills();
     AddSC_hinterlands();
     AddSC_ironforge();
     AddSC_isle_of_queldanas();

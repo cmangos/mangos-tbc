@@ -217,6 +217,7 @@
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\elwynn_forest.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\eversong_woods.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\ghostlands.cpp" />
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\hillsbrad_foothills.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\hinterlands.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\ironforge.cpp" />
     <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\isle_of_queldanas.cpp" />

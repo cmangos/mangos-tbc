@@ -4936,51 +4936,36 @@ float Player::GetMeleeCritFromAgility() const
     return crit * 100.0f;
 }
 
-float Player::GetDodgeFromAgility()
+// Static multipliers for converting agi into dodge based on agi to crit conversion ratio
+static const float PLAYER_AGI_TO_CRIT_TO_DODGE[MAX_CLASSES] =
 {
-    // Table for base dodge values
-    const float dodge_base[MAX_CLASSES] =
-    {
-        0.0075f,   // Warrior
-        0.00652f,  // Paladin
-        -0.0545f,   // Hunter
-        -0.0059f,   // Rogue
-        0.03183f,  // Priest
-        0.0114f,   // DK
-        0.0167f,   // Shaman
-        0.034575f, // Mage
-        0.02011f,  // Warlock
-        0.0f,      // ??
-        -0.0187f    // Druid
-    };
-    // Crit/agility to dodge/agility coefficient multipliers
-    const float crit_to_dodge[MAX_CLASSES] =
-    {
-        1.1f,      // Warrior
-        1.0f,      // Paladin
-        1.6f,      // Hunter
-        2.0f,      // Rogue
-        1.0f,      // Priest
-        1.0f,      // DK?
-        1.0f,      // Shaman
-        1.0f,      // Mage
-        1.0f,      // Warlock
-        0.0f,      // ??
-        1.7f       // Druid
-    };
+    0.0f, // [0]  <Unused>
+    1.1f, // [1]  Warrior
+    1.0f, // [2]  Paladin
+    1.6f, // [3]  Hunter
+    2.0f, // [4]  Rogue
+    1.0f, // [5]  Priest
+    1.0f, // [6]  DK
+    1.0f, // [7]  Shaman
+    1.0f, // [8]  Mage
+    1.0f, // [9]  Warlock
+    0.0f, // [10] <Unused>
+    1.7f, // [11] Druid
+};
 
-    uint32 level = getLevel();
-    uint32 pclass = getClass();
-
-    if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
-
-    // Dodge per agility for most classes equal crit per agility (but for some classes need apply some multiplier)
-    GtChanceToMeleeCritEntry  const* dodgeRatio = sGtChanceToMeleeCritStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
-    if (dodgeRatio == nullptr || pclass > MAX_CLASSES)
+float Player::GetDodgeFromAgility(float amount)
+{
+    const uint32 pclass = getClass();
+    if (pclass >= MAX_CLASSES)
         return 0.0f;
+    const uint32 level = std::min(getLevel(), uint32(GT_MAX_LEVEL));
+    const uint32 index = ((pclass - 1) * GT_MAX_LEVEL) + (level -1);
 
-    float dodge = dodge_base[pclass - 1] + GetStat(STAT_AGILITY) * dodgeRatio->ratio * crit_to_dodge[pclass - 1];
-    return dodge * 100.0f;
+    // Dodge per agility is proportional to crit per agility, which is available from DBC files
+    const GtChanceToMeleeCritEntry* entry = sGtChanceToMeleeCritStore.LookupEntry(index);
+    if (!entry)
+        return 0.0f;
+    return (100.0f * amount * entry->ratio * PLAYER_AGI_TO_CRIT_TO_DODGE[pclass]);
 }
 
 float Player::GetSpellCritFromIntellect() const

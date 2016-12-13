@@ -8494,6 +8494,26 @@ void ObjectMgr::LoadVendorTemplates()
             }
         }
     }
+ 
+    QueryResult* test = WorldDatabase.Query("SELECT guid, vendor_id FROM game_event_creature_data where vendor_id != 0");
+ 
+    if (test)
+    {
+        do
+        {
+            Field* fields = test->Fetch();
+            uint32 guid = fields[0].GetUInt32();
+            uint32 entry = fields[1].GetUInt32();
+
+            if (m_mCacheVendorTemplateItemMap.find(entry) != m_mCacheVendorTemplateItemMap.end())
+                vendor_ids.erase(entry);
+            else
+                sLog.outErrorDb("game_event_creature_data with (Guid: %u) has Vendor_Id = %u for nonexistent vendor template", guid, entry);
+
+        } while (test->NextRow());
+    }
+
+    delete test;
 
     for (std::set<uint32>::const_iterator vItr = vendor_ids.begin(); vItr != vendor_ids.end(); ++vItr)
         sLog.outErrorDb("Table `npc_vendor_template` has vendor template %u not used by any vendors ", *vItr);

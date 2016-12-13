@@ -789,6 +789,8 @@ class MANGOS_DLL_SPEC Creature : public Unit
 
         CreatureAI* m_ai;
 
+        uint32 m_gameEventVendorId;                        // game event creature data vendor id override
+
     private:
         GridReference<Creature> m_gridRef;
         CreatureInfo const* m_creatureInfo;                 // in heroic mode can different from sObjectMgr::GetCreatureTemplate(GetEntry())

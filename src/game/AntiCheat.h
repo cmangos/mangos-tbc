@@ -36,8 +36,8 @@ protected:
     bool isTransport();
     bool isSwimming(MovementInfo& moveInfo);
     bool isSwimming();
-	bool verifyTransportCoords(MovementInfo& moveInfo);
-	bool verifyTransportCoords();
+    bool verifyTransportCoords(MovementInfo& moveInfo);
+    bool verifyTransportCoords();
     float GetDistOrTransportDist();
     float GetDistOrTransportDist(bool threed);
     float GetDistanceZ();
@@ -58,6 +58,8 @@ protected:
     uint32 GetDiff();
     float GetDiffInSec();
     float GetVirtualDiffInSec();
+
+    bool SetOldMoveInfo(bool value = false) { m_MoveInfo[1] = m_MoveInfo[0]; return value; }
 
     CPlayer* m_Player;
     MovementInfo m_MoveInfo[3];

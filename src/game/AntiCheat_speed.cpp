@@ -47,13 +47,13 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     float d3speed = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetVirtualDiffInSec();
     float travelspeed = floor((isFlying() || isSwimming() ? d3speed : d2speed) * 100.f) / 100.f;
 
-	bool cheating = false;
+    bool cheating = false;
 
-	if (travelspeed > allowedspeed && ((isFalling() && GetDistanceZ() > 0.f) || !isFalling()))
-		cheating = true;
+    if (travelspeed > allowedspeed && ((isFalling() && GetDistanceZ() > 0.f) || !isFalling()))
+        cheating = true;
 
-	if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed)
-		cheating = true;
+    if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed)
+        cheating = true;
 
     if (isTransport(m_MoveInfo[0]) && !verifyTransportCoords(m_MoveInfo[0]))
         cheating = false;

@@ -8,7 +8,6 @@
 #include "AntiCheat_fly.h"
 #include "AntiCheat_jump.h"
 #include "AntiCheat_nofall.h"
-#include "AntiCheat_slowfall.h"
 #include "AntiCheat_gravity.h"
 #include "AntiCheat_waterwalking.h"
 #include "AntiCheat_wallclimb.h"
@@ -22,8 +21,7 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
     new AntiCheat_teleport(this);
     new AntiCheat_fly(this);
     new AntiCheat_jump(this);
-    //new AntiCheat_nofall(this);
-    //new AntiCheat_slowfall(this);
+    new AntiCheat_nofall(this);
     new AntiCheat_gravity(this);
     new AntiCheat_waterwalking(this);
     new AntiCheat_wallclimb(this);

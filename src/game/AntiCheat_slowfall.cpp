@@ -4,7 +4,10 @@
 
 AntiCheat_slowfall::AntiCheat_slowfall(CPlayer* player) : AntiCheat(player)
 {
+	m_OldSpeed = 0.f;
 }
+
+// Okay, so what we're doing is checking that the player keeps accelerating until he reaches terminal velocity
 
 bool AntiCheat_slowfall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
 {
@@ -16,12 +19,14 @@ bool AntiCheat_slowfall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         return false;
     }
 
-    float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
+	if (GetDistance3D() <= 1.f)
+		return false;
 
-    float allowedangle = -90.f;
+	bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
 
-    m_Player->BoxChat << "angle: " << angle << "\n";
-    m_Player->BoxChat << "slowfall: " << (moveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL) ? "true" : "false") << "\n";
+	float m_Speed = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetVirtualDiffInSec();
+
+	float m_Speedz = GetDistanceZ() / GetVirtualDiffInSec();
 
     bool cheat = true;
 
@@ -34,14 +39,24 @@ bool AntiCheat_slowfall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if (!isFalling())
         cheat = false;
 
-    if (GetDistanceZ() > 0.f)
+    if (GetDistanceZ() >= 0.f)
         cheat = false;
 
+	if (m_Speed > m_OldSpeed)
+		cheat = false;
 
-    if (cheat && angle > -44.99f) // Just some value i got from printing angle when falling.
+	if (m_Speedz < -60.f)
+		cheat = false;
+
+    if (cheat)
     {
         m_Player->BoxChat << "SLOWFALL CHEAT" << "\n";
     }
+	
+	if (GetDistanceZ() <= 0.f)
+		m_OldSpeed = m_Speed;
+	else
+		m_OldSpeed = 0.f;
 
     m_MoveInfo[1] = m_MoveInfo[0];
 

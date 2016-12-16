@@ -276,7 +276,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 if (m_uiBlindingLightTimer < uiDiff)
                 {
                     // She casts this spell every 45 seconds. It is a kind of Moonfire spell, which she strikes down on the whole raid simultaneously. It hits everyone in the raid for 2280 to 2520 arcane damage.
-                    if (DoCastSpellIfCan(m_creature, SPELL_BLINDING_LIGHT) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature, SPELL_BLINDING_LIGHT) == CAST_OK && DoCastSpellIfCan(m_creature, SPELL_MARK_OF_SOLARIAN) == CAST_OK)
                         m_uiBlindingLightTimer = 20000;
                 }
                 else
@@ -303,8 +303,6 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 // Phase 1 Timer
                 if (m_uiSplitTimer < uiDiff)
                 {
-                    // ToDo: the timer of this ability is around 45-50 seconds. Please check if this is correct!
-                    DoCastSpellIfCan(m_creature, SPELL_MARK_OF_SOLARIAN, CAST_INTERRUPT_PREVIOUS);
                     m_Phase = PHASE_SPLIT;
 
                     // After these 50 seconds she portals to the middle of the room and disappears, leaving 3 light portals behind.
@@ -325,7 +323,6 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 break;
 
             case PHASE_SPLIT:
-
                 // Summon 4 Agents on each portal
                 if (m_uiSummonAgentsTimer)
                 {

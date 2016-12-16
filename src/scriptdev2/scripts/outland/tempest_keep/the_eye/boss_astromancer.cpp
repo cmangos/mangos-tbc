@@ -38,6 +38,7 @@ enum
 
     SPELL_ARCANE_MISSILES               = 33031,
     SPELL_WRATH_OF_THE_ASTROMANCER      = 42783,
+    SPELL_WOTA_AOE_DUMMY                = 42784,            // Dummy. Used for the split aoe damage on bomb.
     SPELL_BLINDING_LIGHT                = 33009,
     SPELL_PSYHIC_SCREAM                 = 34322,
     SPELL_SOLARIAN_TRANSFORM            = 39117,
@@ -109,7 +110,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
     {
         m_uiArcaneMissilesTimer        = 0;
         m_uiWrathOfTheAstromancerTimer = urand(15000, 25000);
-        m_uiBlindingLightTimer         = 35000;
+        m_uiBlindingLightTimer         = 20000;
         m_uiFearTimer                  = 20000;
         m_uiVoidBoltTimer              = 10000;
         m_uiSplitTimer                 = 50000;
@@ -276,7 +277,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 {
                     // She casts this spell every 45 seconds. It is a kind of Moonfire spell, which she strikes down on the whole raid simultaneously. It hits everyone in the raid for 2280 to 2520 arcane damage.
                     if (DoCastSpellIfCan(m_creature, SPELL_BLINDING_LIGHT) == CAST_OK)
-                        m_uiBlindingLightTimer = 45000;
+                        m_uiBlindingLightTimer = 20000;
                 }
                 else
                     m_uiBlindingLightTimer -= uiDiff;

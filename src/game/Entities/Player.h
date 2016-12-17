@@ -1628,6 +1628,9 @@ class Player : public Unit
         void SetDifficulty(Difficulty dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
         Difficulty GetDifficulty() const { return m_dungeonDifficulty; }
 
+        bool CanEnterNewInstance(uint32 instanceId);
+        void OnEnteringInstance(uint32 instanceId);
+
         bool UpdateSkill(uint32 skill_id, uint32 step);
         bool UpdateSkillPro(uint16 SkillId, int32 Chance, uint32 step);
 
@@ -2228,6 +2231,7 @@ class Player : public Unit
         void _LoadArenaTeamInfo(QueryResult* result);
         void _LoadBGData(QueryResult* result);
         void _LoadIntoDataField(const char* data, uint32 startOffset, uint32 count);
+        void _LoadCreatedInstanceTimers();
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
@@ -2411,6 +2415,8 @@ class Player : public Unit
                 m_DelayedOperations |= operation;
         }
 
+        void ClearCreatedInstanceTimers();
+
         Unit* m_mover;
         Camera m_camera;
 
@@ -2456,6 +2462,10 @@ class Player : public Unit
         uint32 m_timeSyncTimer;
         uint32 m_timeSyncClient;
         uint32 m_timeSyncServer;
+
+        std::unordered_map<uint32, time_t> m_enteredInstances;
+        std::set<uint32> m_enteredNotClearedInstances;
+        uint32 m_createdInstanceClearTimer;
 };
 
 void AddItemsSetItem(Player* player, Item* item);

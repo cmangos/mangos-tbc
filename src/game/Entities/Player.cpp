@@ -559,6 +559,8 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
 
     m_lastFallTime = 0;
     m_lastFallZ = 0;
+
+    m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
 }
 
 Player::~Player()
@@ -1355,6 +1357,14 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 
     UpdateEnchantTime(update_diff);
     UpdateHomebindTime(update_diff);
+
+    if (m_createdInstanceClearTimer < update_diff)
+    {
+        m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
+        ClearCreatedInstanceTimers();
+    }
+    else
+        m_createdInstanceClearTimer -= update_diff;
 
     // Group update
     SendUpdateToOutOfRangeGroupMembers();
@@ -14784,6 +14794,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     _LoadDeclinedNames(holder->GetResult(PLAYER_LOGIN_QUERY_LOADDECLINEDNAMES));
 
+    _LoadCreatedInstanceTimers();
+
     return true;
 }
 
@@ -20803,4 +20815,75 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
         RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_USE);
     }
     SendForcedObjectUpdate();
+}
+
+/*System for limiting instance entering to 5 per hour*/
+// check if player can enter new instance
+bool Player::CanEnterNewInstance(uint32 instanceId)
+{
+    if (isGameMaster())
+        return true;
+
+    return m_enteredInstances.find(instanceId) != m_enteredInstances.end() || m_enteredNotClearedInstances.find(instanceId) != m_enteredNotClearedInstances.end() || m_enteredInstances.size() < 5;
+}
+
+// when instance was entered
+void Player::OnEnteringInstance(uint32 instanceId)
+{
+    if (m_enteredInstances.find(instanceId) == m_enteredInstances.end() && m_enteredNotClearedInstances.find(instanceId) == m_enteredNotClearedInstances.end())
+    {
+        time_t now = time(nullptr);
+        tm changer = *localtime(&now);
+        changer.tm_hour++;
+        changer.tm_isdst = -1;
+        time_t future = mktime(&changer);
+        m_enteredInstances.insert({ instanceId, future });
+        CharacterDatabase.PExecute("INSERT INTO account_instances_entered VALUES('%u','" UI64FMTD "','%u')", m_session->GetAccountId(), (uint64)future, instanceId);
+    }
+}
+
+void Player::_LoadCreatedInstanceTimers()
+{
+    // Clear all timed out instances that are no longer in the 'instance' table
+    CharacterDatabase.PExecute("DELETE FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
+    
+    QueryResult* result = CharacterDatabase.PQuery("SELECT enterTime, instanceId FROM account_instances_entered WHERE accountId = '%u'", m_session->GetAccountId());
+    if (result)
+    {
+        time_t now = time(nullptr);
+        do
+        {
+            Field* fields = result->Fetch();
+            time_t time = fields[0].GetUInt64();
+            uint32 instanceId = fields[1].GetUInt32();
+            if (time < now)
+                m_enteredNotClearedInstances.insert(instanceId);
+            else
+            {
+                auto iter = m_enteredInstances.find(instanceId);
+                if (iter == m_enteredInstances.end())
+                    m_enteredInstances.insert({ instanceId,time });
+            }
+
+        } while (result->NextRow());
+    }
+}
+
+// Clears timers that expired and clears entries for which instance was destroyed
+void Player::ClearCreatedInstanceTimers()
+{
+    time_t now = time(nullptr);
+
+    CharacterDatabase.PExecute("DELETE FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
+
+    for (auto iter = m_enteredInstances.begin(); iter != m_enteredInstances.end();)
+    {
+        if ((*iter).second < now)
+        {
+            m_enteredNotClearedInstances.insert((*iter).first);
+            m_enteredInstances.erase(iter++);
+        }
+        else
+            ++iter;
+    }
 }

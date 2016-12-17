@@ -518,6 +518,8 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
     m_lastFallZ = 0;
 
     m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
+    
+    _cinematicMgr = new CinematicMgr(this);
 }
 
 Player::~Player()
@@ -569,6 +571,7 @@ Player::~Player()
     }
 #endif
     delete m_declinedname;
+    delete _cinematicMgr;
 }
 
 void Player::CleanupsBeforeDelete()
@@ -1141,6 +1144,14 @@ void Player::Update(uint32 update_diff, uint32 p_time)
     // Update player only attacks
     if (uint32 ranged_att = getAttackTimer(RANGED_ATTACK))
         setAttackTimer(RANGED_ATTACK, (update_diff >= ranged_att ? 0 : ranged_att - update_diff));
+
+    // Update cinematic location, if 500ms have passed and we're doing a cinematic now.
+    _cinematicMgr->m_cinematicDiff += p_time;
+    if (_cinematicMgr->m_activeCinematicCameraId != 0 && WorldTimer::getMSTimeDiff(_cinematicMgr->m_lastCinematicCheck, WorldTimer::getMSTime()) > CINEMATIC_UPDATEDIFF)
+    {
+        _cinematicMgr->m_lastCinematicCheck = WorldTimer::getMSTime();
+        _cinematicMgr->UpdateCinematicLocation(p_time);
+    }
 
     // Used to implement delayed far teleports
     SetCanDelayTeleport(true);
@@ -5927,6 +5938,8 @@ void Player::SendCinematicStart(uint32 CinematicSequenceId) const
     WorldPacket data(SMSG_TRIGGER_CINEMATIC, 4);
     data << uint32(CinematicSequenceId);
     SendDirectMessage(data);
+    if (CinematicSequencesEntry const* sequence = sCinematicSequencesStore.LookupEntry(CinematicSequenceId))
+        _cinematicMgr->SetActiveCinematicCamera(sequence->cinematicCamera);
 }
 
 void Player::CheckAreaExploreAndOutdoor()

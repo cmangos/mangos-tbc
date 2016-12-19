@@ -135,7 +135,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
     m_isDeadByDefault(false), m_temporaryFactionFlags(TEMPFACTION_NONE),
     m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL), m_originalEntry(0),
-    m_creatureInfo(nullptr), m_ai(nullptr)
+    m_creatureInfo(nullptr), m_ai(nullptr), m_gameEventVendorId(0)
 {
     m_regenTimer = 200;
     m_valuesCount = UNIT_END;
@@ -335,6 +335,10 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
         LoadEquipment(data->equipmentId);
     }
 
+    if (eventData && eventData->vendor_id)
+    {
+        m_gameEventVendorId = eventData->vendor_id;          // use game event vendor id to override current vendor template id for any active event
+    }
     SetName(normalInfo->Name);                              // at normal entry always
 
     SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);
@@ -2353,7 +2357,7 @@ VendorItemData const* Creature::GetVendorItems() const
 
 VendorItemData const* Creature::GetVendorTemplateItems() const
 {
-    uint32 vendorId = GetCreatureInfo()->VendorTemplateId;
+    uint32 vendorId = m_gameEventVendorId ? m_gameEventVendorId : GetCreatureInfo()->VendorTemplateId;
     return vendorId ? sObjectMgr.GetNpcVendorTemplateItemList(vendorId) : nullptr;
 }
 

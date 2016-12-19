@@ -3434,8 +3434,8 @@ void ObjectMgr::LoadQuests()
                           "IncompleteEmote, CompleteEmote, OfferRewardEmote1, OfferRewardEmote2, OfferRewardEmote3, OfferRewardEmote4,"
                           //   121                     122                     123                     124
                           "OfferRewardEmoteDelay1, OfferRewardEmoteDelay2, OfferRewardEmoteDelay3, OfferRewardEmoteDelay4,"
-                          //   125          126          127
-                          "StartScript, CompleteScript, RequiredCondition"
+                          //   125          126          127             128              129              130              131              132
+                          "StartScript, CompleteScript, RewMaxRepValue1, RewMaxRepValue2, RewMaxRepValue3, RewMaxRepValue4, RewMaxRepValue5, RequiredCondition"
 
                           " FROM quest_template");
     if (!result)
@@ -8494,6 +8494,26 @@ void ObjectMgr::LoadVendorTemplates()
             }
         }
     }
+ 
+    QueryResult* test = WorldDatabase.Query("SELECT guid, vendor_id FROM game_event_creature_data where vendor_id != 0");
+ 
+    if (test)
+    {
+        do
+        {
+            Field* fields = test->Fetch();
+            uint32 guid = fields[0].GetUInt32();
+            uint32 entry = fields[1].GetUInt32();
+
+            if (m_mCacheVendorTemplateItemMap.find(entry) != m_mCacheVendorTemplateItemMap.end())
+                vendor_ids.erase(entry);
+            else
+                sLog.outErrorDb("game_event_creature_data with (Guid: %u) has Vendor_Id = %u for nonexistent vendor template", guid, entry);
+
+        } while (test->NextRow());
+    }
+
+    delete test;
 
     for (std::set<uint32>::const_iterator vItr = vendor_ids.begin(); vItr != vendor_ids.end(); ++vItr)
         sLog.outErrorDb("Table `npc_vendor_template` has vendor template %u not used by any vendors ", *vItr);

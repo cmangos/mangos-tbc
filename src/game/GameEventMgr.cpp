@@ -355,9 +355,11 @@ void GameEventMgr::LoadFromDB()
     //                                   0              1                             2
     result = WorldDatabase.Query("SELECT creature.guid, game_event_creature_data.event, game_event_creature_data.modelid,"
                                  //   3                                      4
-                                 "game_event_creature_data.equipment_id, game_event_creature_data.entry_id, "
+                                 "game_event_creature_data.equipment_id, game_event_creature_data.vendor_id, "
                                  //   5                                     6
-                                 "game_event_creature_data.spell_start, game_event_creature_data.spell_end "
+                                 "game_event_creature_data.entry_id, game_event_creature_data.spell_start, "
+                                 //   7
+                                 "game_event_creature_data.spell_end "
                                  "FROM creature JOIN game_event_creature_data ON creature.guid=game_event_creature_data.guid");
 
     count = 0;
@@ -397,9 +399,10 @@ void GameEventMgr::LoadFromDB()
             GameEventCreatureData newData;
             newData.modelid = fields[2].GetUInt32();
             newData.equipment_id = fields[3].GetUInt32();
-            newData.entry_id = fields[4].GetUInt32();
-            newData.spell_id_start = fields[5].GetUInt32();
-            newData.spell_id_end = fields[6].GetUInt32();
+            newData.vendor_id = fields[4].GetUInt32();
+            newData.entry_id = fields[5].GetUInt32();
+            newData.spell_id_start = fields[6].GetUInt32();
+            newData.spell_id_end = fields[7].GetUInt32();
 
             if (newData.equipment_id && !sObjectMgr.GetEquipmentInfo(newData.equipment_id) && !sObjectMgr.GetEquipmentInfoRaw(newData.equipment_id))
             {
@@ -407,6 +410,19 @@ void GameEventMgr::LoadFromDB()
                 newData.equipment_id = 0;
             }
 
+            if (newData.vendor_id)
+            {
+                QueryResult* test = WorldDatabase.PQuery("SELECT 1 FROM npc_vendor_template where entry = '%u'", newData.vendor_id);
+
+                if (!test)
+                {
+                    sLog.outErrorDb("Table `game_event_creature_data` has a creature with (Guid: %u) and vendor_id %u which was not found in table `npc_vendor_template`, set to no vendor.", guid, newData.vendor_id);
+                    newData.vendor_id = 0;
+                }
+
+                delete test;
+            }
+ 
             if (newData.entry_id && !ObjectMgr::GetCreatureTemplate(newData.entry_id))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with event time entry %u not found in table `creature_template`, set to no 0.", guid, newData.entry_id);

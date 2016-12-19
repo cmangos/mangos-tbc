@@ -49,6 +49,7 @@ struct GameEventCreatureData
     uint32 entry_id;
     uint32 modelid;
     uint32 equipment_id;
+    uint32 vendor_id;
     uint32 spell_id_start;
     uint32 spell_id_end;
 };

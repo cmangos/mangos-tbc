@@ -1705,6 +1705,7 @@ CREATE TABLE `game_event_creature_data` (
   `entry_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `modelid` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `equipment_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `vendor_id`  mediumint(8) UNSIGNED NOT NULL DEFAULT '0',
   `spell_start` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `spell_end` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `event` smallint(5) unsigned NOT NULL DEFAULT '0',

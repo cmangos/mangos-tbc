@@ -38,13 +38,13 @@ enum
 
     SPELL_ARCANE_MISSILES               = 33031,
     SPELL_WRATH_OF_THE_ASTROMANCER      = 42783,
-    SPELL_WOTA_AOE_DUMMY                = 42784,            // Dummy. Used for the split aoe damage on bomb.
+    SPELL_WRATH_OF_THE_ASTROMANCER_DOT  = 42784,            // AoE damage on bomb application.
     SPELL_BLINDING_LIGHT                = 33009,
     SPELL_PSYHIC_SCREAM                 = 34322,
     SPELL_SOLARIAN_TRANSFORM            = 39117,
     SPELL_VOID_BOLT                     = 39329,
     SPELL_MARK_OF_SOLARIAN              = 33023,            // acts as an enrage spell
-    // SPELL_ROTATE_ASTROMANCER          = 33283,           // purpose unk
+    // SPELL_ROTATE_ASTROMANCER         = 33283,            // purpose unk
 
     // summoned creatures
     NPC_SOLARIUM_AGENT                  = 18925,
@@ -264,7 +264,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_WRATH_OF_THE_ASTROMANCER, SELECT_FLAG_PLAYER))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_WRATH_OF_THE_ASTROMANCER) == CAST_OK)
-                            m_uiWrathOfTheAstromancerTimer = urand(15000, 25000);
+                            m_uiWrathOfTheAstromancerTimer = urand(20000, 25000);
                     }
                     else
                         m_uiWrathOfTheAstromancerTimer = 10000;
@@ -368,8 +368,8 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                         m_creature->SetVisibility(VISIBILITY_ON);
                         m_uiArcaneMissilesTimer        = 0;
                         m_uiSummonPriestsTimer         = 0;
-                        m_uiBlindingLightTimer         = 35000;
-                        m_uiWrathOfTheAstromancerTimer = urand(15000, 25000);
+                        m_uiBlindingLightTimer         = 20000;
+                        m_uiWrathOfTheAstromancerTimer = urand(20000, 25000);
                     }
                     else
                         m_uiSummonPriestsTimer -= uiDiff;

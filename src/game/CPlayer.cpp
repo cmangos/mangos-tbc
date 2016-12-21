@@ -17,16 +17,16 @@
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
-    new AntiCheat_speed(this);
-    new AntiCheat_teleport(this);
-    new AntiCheat_fly(this);
-    new AntiCheat_jump(this);
-    new AntiCheat_nofall(this);
-    new AntiCheat_gravity(this);
-    new AntiCheat_waterwalking(this);
-    new AntiCheat_wallclimb(this);
-    new AntiCheat_walljump(this);
-    new AntiCheat_tptoplane(this);
+    //new AntiCheat_speed(this);
+    //new AntiCheat_teleport(this);
+    //new AntiCheat_fly(this);
+    //new AntiCheat_jump(this);
+    //new AntiCheat_nofall(this);
+    //new AntiCheat_gravity(this);
+    //new AntiCheat_waterwalking(this);
+    //new AntiCheat_wallclimb(this);
+    //new AntiCheat_walljump(this);
+    //new AntiCheat_tptoplane(this);
     //new AntiCheat_test(this);
 
     m_GMFly = false;

@@ -101,12 +101,12 @@ enum QuestStatus
 enum __QuestGiverStatus
 {
     DIALOG_STATUS_NONE                     = 0,
-    DIALOG_STATUS_UNAVAILABLE              = 1,
-    DIALOG_STATUS_CHAT                     = 2,
-    DIALOG_STATUS_INCOMPLETE               = 3,
-    DIALOG_STATUS_REWARD_REP               = 4,
-    DIALOG_STATUS_AVAILABLE_REP            = 5,
-    DIALOG_STATUS_AVAILABLE                = 6,
+    DIALOG_STATUS_UNAVAILABLE              = 1,             // Grey Exclamation Mark
+    DIALOG_STATUS_CHAT                     = 2,             // No marker
+    DIALOG_STATUS_INCOMPLETE               = 3,             // Grey Question Mark - quest taken
+    DIALOG_STATUS_REWARD_REP               = 4,             // Blue Question Mark - non-daily repeatable available
+    DIALOG_STATUS_AVAILABLE_REP            = 5,             // Blue Exclamation Mark - daily available
+    DIALOG_STATUS_AVAILABLE                = 6,             // Yellow Exclamation Mark - quest available
     DIALOG_STATUS_REWARD2                  = 7,             // no yellow dot on minimap
     DIALOG_STATUS_REWARD                   = 8,             // yellow dot on minimap
     DIALOG_STATUS_UNDEFINED                = 100            // Used as result for unassigned ScriptCall
@@ -203,6 +203,7 @@ class Quest
         uint32 GetRequiredRaces() const { return RequiredRaces; }
         uint32 GetRequiredSkill() const { return RequiredSkill; }
         uint32 GetRequiredSkillValue() const { return RequiredSkillValue; }
+        uint32 GetRequiredCondition() const { return RequiredCondition; }
         uint32 GetRepObjectiveFaction() const { return RepObjectiveFaction; }
         int32  GetRepObjectiveValue() const { return RepObjectiveValue; }
         uint32 GetRequiredMinRepFaction() const { return RequiredMinRepFaction; }
@@ -270,6 +271,7 @@ class Quest
         uint32 RewItemCount[QUEST_REWARDS_COUNT];
         uint32 RewRepFaction[QUEST_REPUTATIONS_COUNT];
         int32  RewRepValue[QUEST_REPUTATIONS_COUNT];
+        int32  RewMaxRepValue[QUEST_REPUTATIONS_COUNT];
         uint32 DetailsEmote[QUEST_EMOTE_COUNT];
         uint32 DetailsEmoteDelay[QUEST_EMOTE_COUNT];
         uint32 OfferRewardEmote[QUEST_EMOTE_COUNT];
@@ -306,6 +308,7 @@ class Quest
         uint32 RequiredRaces;
         uint32 RequiredSkill;
         uint32 RequiredSkillValue;
+        uint32 RequiredCondition;
         uint32 RepObjectiveFaction;
         int32  RepObjectiveValue;
         uint32 RequiredMinRepFaction;

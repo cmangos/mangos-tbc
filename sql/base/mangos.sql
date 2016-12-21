@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2338_01_mangos_item_extraflags` bit(1) DEFAULT NULL
+  `required_s2343_01_mangos_quest_template` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -97,6 +97,7 @@ CREATE TABLE `areatrigger_teleport` (
   `target_position_y` float NOT NULL DEFAULT '0',
   `target_position_z` float NOT NULL DEFAULT '0',
   `target_orientation` float NOT NULL DEFAULT '0',
+  `condition_id` INT(11) unsigned NOT NULL default '0',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Trigger System';
 
@@ -1655,8 +1656,8 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `game_event`;
 CREATE TABLE `game_event` (
   `entry` mediumint(8) unsigned NOT NULL COMMENT 'Entry of the game event',
-  `start_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT 'Absolute start date, the event will never start before',
-  `end_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT 'Absolute end date, the event will never start afler',
+  `start_time` DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00' COMMENT 'Absolute start date, the event will never start before',
+  `end_time` DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00' COMMENT 'Absolute end date, the event will never start afler',
   `occurence` bigint(20) unsigned NOT NULL DEFAULT '86400' COMMENT 'Delay in minutes between occurences of the event',
   `length` bigint(20) unsigned NOT NULL DEFAULT '43200' COMMENT 'Length in minutes of the event',
   `holiday` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'Client side holiday id',
@@ -1704,6 +1705,7 @@ CREATE TABLE `game_event_creature_data` (
   `entry_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `modelid` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `equipment_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `vendor_id`  mediumint(8) UNSIGNED NOT NULL DEFAULT '0',
   `spell_start` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `spell_end` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `event` smallint(5) unsigned NOT NULL DEFAULT '0',
@@ -3977,6 +3979,7 @@ CREATE TABLE `npc_trainer` (
   `reqskill` smallint(5) unsigned NOT NULL DEFAULT '0',
   `reqskillvalue` smallint(5) unsigned NOT NULL DEFAULT '0',
   `reqlevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `condition_id` INT(11) unsigned NOT NULL default '0',
   UNIQUE KEY `entry_spell` (`entry`,`spell`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
@@ -4001,6 +4004,7 @@ CREATE TABLE `npc_trainer_template` (
   `reqskill` smallint(5) unsigned NOT NULL DEFAULT '0',
   `reqskillvalue` smallint(5) unsigned NOT NULL DEFAULT '0',
   `reqlevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `condition_id` INT(11) unsigned NOT NULL default '0',
   UNIQUE KEY `entry_spell` (`entry`,`spell`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
@@ -11438,6 +11442,7 @@ CREATE TABLE `quest_template` (
   `RequiredRaces` smallint(5) unsigned NOT NULL DEFAULT '0',
   `RequiredSkill` smallint(5) unsigned NOT NULL DEFAULT '0',
   `RequiredSkillValue` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `RequiredCondition` INT(11) UNSIGNED NOT NULL DEFAULT '0',
   `RepObjectiveFaction` smallint(5) unsigned NOT NULL DEFAULT '0',
   `RepObjectiveValue` mediumint(9) NOT NULL DEFAULT '0',
   `RequiredMinRepFaction` smallint(5) unsigned NOT NULL DEFAULT '0',

@@ -37,6 +37,7 @@
 #include "DBCStores.h"
 #include "SharedDefines.h"
 #include "Chat.h"
+#include "SQLStorages.h"
 
 #include<vector>
 
@@ -1243,6 +1244,7 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void FailQuest(uint32 quest_id);
         bool SatisfyQuestSkill(Quest const* qInfo, bool msg) const;
+        bool SatisfyQuestCondition(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestLevel(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestLog(bool msg) const;
         bool SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg) const;
@@ -1649,14 +1651,13 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         void UpdateDefenseBonusesMod();
         float GetMeleeCritFromAgility() const;
-        float GetDodgeFromAgility();
+        float GetDodgeFromAgility(float amount);
         float GetSpellCritFromIntellect() const;
         float OCTRegenHPPerSpirit() const;
         float OCTRegenMPPerSpirit() const;
         float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
 
-        float GetExpertiseDodgeOrParryReduction(WeaponAttackType attType) const;
         void UpdateBlockPercentage();
         void UpdateCritPercentage(WeaponAttackType attType);
         void UpdateAllCritPercentages();
@@ -1791,7 +1792,7 @@ class MANGOS_DLL_SPEC Player : public Unit
         ReputationRank GetReputationRank(uint32 faction_id) const;
         void RewardReputation(Unit* pVictim, float rate);
         void RewardReputation(Quest const* pQuest);
-        int32 CalculateReputationGain(ReputationSource source, int32 rep, int32 faction, uint32 creatureOrQuestLevel = 0, bool noAuraBonus = false) const;
+        int32 CalculateReputationGain(ReputationSource source, int32 rep, int32 maxRep, int32 faction, uint32 creatureOrQuestLevel = 0, bool noAuraBonus = false);
 
         void UpdateSkillsForLevel();
         void UpdateSkillsToMaxSkillsForLevel();             // for .levelup
@@ -1825,10 +1826,6 @@ class MANGOS_DLL_SPEC Player : public Unit
         void SendCorpseReclaimDelay(bool load = false) const;
 
         uint32 GetShieldBlockValue() const override;        // overwrite Unit version (virtual)
-        bool CanParry() const { return m_canParry; }
-        void SetCanParry(bool value);
-        bool CanBlock() const { return m_canBlock; }
-        void SetCanBlock(bool value);
         bool CanDualWield() const { return m_canDualWield; }
         void SetCanDualWield(bool value) { m_canDualWield = value; }
 
@@ -2339,8 +2336,6 @@ class MANGOS_DLL_SPEC Player : public Unit
 
         uint32 m_WeaponProficiency;
         uint32 m_ArmorProficiency;
-        bool m_canParry;
-        bool m_canBlock;
         bool m_canDualWield;
         uint8 m_swingErrorMsg;
         float m_ammoDPS;
@@ -2462,7 +2457,7 @@ void RemoveItemsSetItem(Player* player, ItemPrototype const* proto);
 // "the bodies of template functions must be made available in a header file"
 template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell)
 {
-    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!spellInfo) return 0;
     int32 totalpct = 0;
     int32 totalflat = 0;

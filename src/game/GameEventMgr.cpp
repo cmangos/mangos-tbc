@@ -27,6 +27,7 @@
 #include "MapManager.h"
 #include "BattleGround/BattleGroundMgr.h"
 #include "MassMailMgr.h"
+#include "SQLStorages.h"
 #include "Policies/Singleton.h"
 
 INSTANTIATE_SINGLETON_1(GameEventMgr);
@@ -354,9 +355,11 @@ void GameEventMgr::LoadFromDB()
     //                                   0              1                             2
     result = WorldDatabase.Query("SELECT creature.guid, game_event_creature_data.event, game_event_creature_data.modelid,"
                                  //   3                                      4
-                                 "game_event_creature_data.equipment_id, game_event_creature_data.entry_id, "
+                                 "game_event_creature_data.equipment_id, game_event_creature_data.vendor_id, "
                                  //   5                                     6
-                                 "game_event_creature_data.spell_start, game_event_creature_data.spell_end "
+                                 "game_event_creature_data.entry_id, game_event_creature_data.spell_start, "
+                                 //   7
+                                 "game_event_creature_data.spell_end "
                                  "FROM creature JOIN game_event_creature_data ON creature.guid=game_event_creature_data.guid");
 
     count = 0;
@@ -396,9 +399,10 @@ void GameEventMgr::LoadFromDB()
             GameEventCreatureData newData;
             newData.modelid = fields[2].GetUInt32();
             newData.equipment_id = fields[3].GetUInt32();
-            newData.entry_id = fields[4].GetUInt32();
-            newData.spell_id_start = fields[5].GetUInt32();
-            newData.spell_id_end = fields[6].GetUInt32();
+            newData.vendor_id = fields[4].GetUInt32();
+            newData.entry_id = fields[5].GetUInt32();
+            newData.spell_id_start = fields[6].GetUInt32();
+            newData.spell_id_end = fields[7].GetUInt32();
 
             if (newData.equipment_id && !sObjectMgr.GetEquipmentInfo(newData.equipment_id) && !sObjectMgr.GetEquipmentInfoRaw(newData.equipment_id))
             {
@@ -406,19 +410,30 @@ void GameEventMgr::LoadFromDB()
                 newData.equipment_id = 0;
             }
 
+            if (newData.vendor_id)
+            {
+                if (QueryResult* testResult = WorldDatabase.PQuery("SELECT 1 FROM npc_vendor_template where entry = '%u'", newData.vendor_id))
+                    delete testResult;
+                else
+                {
+                    sLog.outErrorDb("Table `game_event_creature_data` has a creature with (Guid: %u) and vendor_id %u which was not found in table `npc_vendor_template`, set to no vendor.", guid, newData.vendor_id);
+                    newData.vendor_id = 0;
+                }
+            }
+ 
             if (newData.entry_id && !ObjectMgr::GetCreatureTemplate(newData.entry_id))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with event time entry %u not found in table `creature_template`, set to no 0.", guid, newData.entry_id);
                 newData.entry_id = 0;
             }
 
-            if (newData.spell_id_start && !sSpellStore.LookupEntry(newData.spell_id_start))
+            if (newData.spell_id_start && !sSpellTemplate.LookupEntry<SpellEntry>(newData.spell_id_start))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with nonexistent spell_start %u, set to no start spell.", guid, newData.spell_id_start);
                 newData.spell_id_start = 0;
             }
 
-            if (newData.spell_id_end && !sSpellStore.LookupEntry(newData.spell_id_end))
+            if (newData.spell_id_end && !sSpellTemplate.LookupEntry<SpellEntry>(newData.spell_id_end))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with nonexistent spell_end %u, set to no end spell.", guid, newData.spell_id_end);
                 newData.spell_id_end = 0;

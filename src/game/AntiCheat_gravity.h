@@ -10,8 +10,21 @@ public:
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
     void HandleRelocate(float x, float y, float z, float o);
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
+
+    float computeFallElevation(float t_passed, bool isSafeFall, float start_velocity);
+
 private:
-    bool knockBack;
     float m_StartJumpZ;
-    bool m_StartJumpWater;
+    float m_StartVelocity;
+    bool m_SlowFall;
+
+    double gravity;
+
+    /// Velocity bounds that makes fall speed limited
+    float terminalVelocity;
+    float terminalSavefallVelocity;
+
+    float terminal_length;
+    float terminal_savefall_length;
+    float terminalFallTime;
 };

@@ -1079,9 +1079,6 @@ bool ChatHandler::HandleLoadScriptsCommand(char* args)
         case SCRIPT_LOAD_ERR_WRONG_API:
             SendSysMessage(LANG_SCRIPTS_WRONG_API);
             break;
-        case SCRIPT_LOAD_ERR_OUTDATED:
-            SendSysMessage(LANG_SCRIPTS_OUTDATED);
-            break;
     }
 
     return true;

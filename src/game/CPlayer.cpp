@@ -115,7 +115,7 @@ void CPlayer::CUpdate(uint32 update_diff, uint32 p_time)
 
 bool CPlayer::AddAura(uint32 spellid)
 {
-    SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellid);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
     if (!spellInfo)
         return false;
 

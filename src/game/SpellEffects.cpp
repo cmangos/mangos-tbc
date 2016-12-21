@@ -1425,7 +1425,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     damage = 11500;
                     damage /= count;
                     
-                    SpellEntry const* spellInfo = sSpelStore.LookupEntry(42784);
+                    SpellEntry const* spellInfo = sSpellStore.LookupEntry(42784);
                 
                     for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
                     {

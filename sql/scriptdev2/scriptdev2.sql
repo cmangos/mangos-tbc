@@ -1007,6 +1007,8 @@ UPDATE creature_template SET ScriptName='npc_isla_starmane' WHERE entry=18760;
 UPDATE creature_template SET ScriptName="npc_skywing" WHERE entry=22424;
 UPDATE creature_template SET ScriptName="npc_cenarion_sparrowhawk" WHERE entry=22972;
 UPDATE creature_template SET ScriptName="npc_skyguard_prisoner" WHERE entry=23383;
+UPDATE creature_template SET ScriptName='npc_avatar_of_terokk' WHERE entry=22375;
+UPDATE creature_template SET ScriptName='npc_minion_of_terokk' WHERE entry=22376;
 
 /* THOUSAND NEEDLES */
 UPDATE creature_template SET ScriptName='npc_kanati' WHERE entry=10638;
@@ -2251,7 +2253,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001224,'Ughhh... I hurt. Can you help me?',0,0,7,0,'draenei_survivor SAY_HELP3'),
 (-1001225,'I don''t know if I can make it. Please help me...',0,0,7,0,'draenei_survivor SAY_HELP4'),
 (-1001226,'%s is drawn to the ghost magnet...',0,2,0,0,'Magrami Spectre on spawn 1'),
-(-1001227,'%s is angered!',0,2,0,0,'Magrami Spectre on spawn 2');
+(-1001227,'%s is angered!',0,2,0,0,'Magrami Spectre on spawn 2'),
+(-1001228,'The Avatar of Terokk has been defeated! Death to Terokk! Death to Skettis!',0,0,7,0,'Defender Grashna on Avatar of Terokk death');
 
 -- -1 033 000 SHADOWFANG KEEP
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES

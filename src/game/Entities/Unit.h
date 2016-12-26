@@ -425,6 +425,7 @@ enum UnitState
     UNIT_STAT_FOLLOW_MOVE     = 0x00010000,
     UNIT_STAT_FLEEING         = 0x00020000,                 // FleeMovementGenerator/TimedFleeingMovementGenerator active/onstack
     UNIT_STAT_FLEEING_MOVE    = 0x00040000,
+    UNIT_STAT_DONT_TURN       = 0x00080000,                 // Creature will not turn and acquire new target
     // More room for other MMGens
 
     // High-Level states (usually only with Creatures)
@@ -432,7 +433,7 @@ enum UnitState
     UNIT_STAT_RUNNING               = 0x02000000,           // SetRun for waypoints and such
     UNIT_STAT_WAYPOINT_PAUSED       = 0x04000000,           // Waypoint-Movement paused genericly (ie by script)
 
-    UNIT_STAT_IGNORE_PATHFINDING    = 0x10000000,           // do not use pathfinding in any MovementGenerator
+    UNIT_STAT_IGNORE_PATHFINDING    = 0x10000000,           // do not use pathfinding in any MovementGenerator    
 
     // masks (only for check)
 
@@ -2230,6 +2231,8 @@ class Unit : public WorldObject
 
         // Take charm of an unit
         bool TakeCharmOf(Unit* charmed);
+
+        void SetTurningOff(bool apply);
 
         // Reset control to player
         void ResetControlState(bool attackCharmer = true);

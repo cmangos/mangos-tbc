@@ -5832,8 +5832,9 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
             ((Creature*)this)->SetCombatStartPosition(GetPositionX(), GetPositionY(), GetPositionZ());
     }
 
-    // Set our target
-    SetTargetGuid(victim->GetObjectGuid());
+    // Do not set new target, creatures automatically turn to target clientside if target is set, leading to desync
+    if(!hasUnitState(UNIT_STAT_DONT_TURN))
+        SetTargetGuid(victim->GetObjectGuid());
 
     if (meleeAttack)
         addUnitState(UNIT_STAT_MELEE_ATTACKING);
@@ -8223,9 +8224,11 @@ bool Unit::SelectHostileTarget()
 
     if (target)
     {
-        if (CanReactInCombat())
+        if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED | UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING | UNIT_STAT_DONT_TURN))
         {
+            // needs a much better check, seems to cause quite a bit of trouble
             SetInFront(target);
+
             if (oldTarget != target)
                 AI()->AttackStart(target);
 
@@ -10713,7 +10716,18 @@ bool Unit::TakeCharmOf(Unit* charmed)
     return true;
 }
 
-void Unit::ResetControlState(bool attackCharmer /*= true*/)
+void Unit::SetTurningOff(bool apply)
+{
+    if (apply)
+    {
+        addUnitState(UNIT_STAT_DONT_TURN);
+        SetTargetGuid(ObjectGuid());
+    }
+    else
+        clearUnitState(UNIT_STAT_DONT_TURN);
+}
+
+void Unit::ResetControlState(bool attackCharmer /*= true*/, bool isTakeControlCharm /*= false*/)
 {
     Player* player = nullptr;
     if (GetTypeId() == TYPEID_PLAYER)

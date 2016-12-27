@@ -20845,7 +20845,7 @@ void Player::OnEnteringInstance(uint32 instanceId)
 void Player::_LoadCreatedInstanceTimers()
 {
     // Clear all timed out instances that are no longer in the 'instance' table
-    CharacterDatabase.PExecute("DELETE FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
+    CharacterDatabase.PExecute("DELETE a FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
     
     QueryResult* result = CharacterDatabase.PQuery("SELECT enterTime, instanceId FROM account_instances_entered WHERE accountId = '%u'", m_session->GetAccountId());
     if (result)
@@ -20874,7 +20874,7 @@ void Player::ClearCreatedInstanceTimers()
 {
     time_t now = time(nullptr);
 
-    CharacterDatabase.PExecute("DELETE FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
+    CharacterDatabase.PExecute("DELETE a FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
 
     for (auto iter = m_enteredInstances.begin(); iter != m_enteredInstances.end();)
     {

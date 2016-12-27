@@ -15982,8 +15982,7 @@ void Player::SaveToDB()
         _SaveStats();
 
     // save pet (hunter pet level and experience and all type pets health/mana except priest pet).
-    Pet* pet = GetPet();
-    if (pet && (getClass() != CLASS_PRIEST))
+    if (Pet* pet = GetPet())
         pet->SavePetToDB(PET_SAVE_AS_CURRENT);
 }
 

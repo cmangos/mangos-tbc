@@ -794,12 +794,12 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
     }
     else
     {
-        Unit* owner = pet->GetCharmerOrOwner();
+        Unit* owner = petCreature->GetCharmerOrOwner();
         if (owner && owner->GetTypeId() == TYPEID_PLAYER)
             Spell::SendCastResult((Player*)owner, spellInfo, 0, result, true);
 
-        if (!pet->HasSpellCooldown(spellid))
-            GetPlayer()->SendClearCooldown(spellid, pet);
+        if (!petCreature->HasSpellCooldown(spellid))
+            GetPlayer()->SendClearCooldown(spellid, petCreature);
 
         spell->finish(false);
         delete spell;

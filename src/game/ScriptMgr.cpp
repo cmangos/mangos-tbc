@@ -132,8 +132,8 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
     scripts.first = tablename;
     scripts.second.clear();                                 // need for reload support
 
-    //                                                 0   1      2        3         4          5            6              7           8        9         10        11        12 13 14 15
-    QueryResult* result = WorldDatabase.PQuery("SELECT id, delay, command, datalong, datalong2, buddy_entry, search_radius, data_flags, dataint, dataint2, dataint3, dataint4, x, y, z, o FROM %s", tablename);
+    //                                                 0   1      2        3         4          5          6            7              8           9        10        11        12       13 14 15 16
+    QueryResult* result = WorldDatabase.PQuery("SELECT id, delay, command, datalong, datalong2, datalong3, buddy_entry, search_radius, data_flags, dataint, dataint2, dataint3, dataint4, x, y, z, o FROM %s", tablename);
 
     uint32 count = 0;
 
@@ -160,17 +160,18 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
         tmp.command      = fields[2].GetUInt32();
         tmp.raw.data[0]  = fields[3].GetUInt32();
         tmp.raw.data[1]  = fields[4].GetUInt32();
-        tmp.buddyEntry   = fields[5].GetUInt32();
-        tmp.searchRadiusOrGuid = fields[6].GetUInt32();
-        tmp.data_flags   = fields[7].GetUInt8();
-        tmp.textId[0]    = fields[8].GetInt32();
-        tmp.textId[1]    = fields[9].GetInt32();
-        tmp.textId[2]    = fields[10].GetInt32();
-        tmp.textId[3]    = fields[11].GetInt32();
-        tmp.x            = fields[12].GetFloat();
-        tmp.y            = fields[13].GetFloat();
-        tmp.z            = fields[14].GetFloat();
-        tmp.o            = fields[15].GetFloat();
+        tmp.raw.data[2]  = fields[5].GetUInt32();
+        tmp.buddyEntry   = fields[6].GetUInt32();
+        tmp.searchRadiusOrGuid = fields[7].GetUInt32();
+        tmp.data_flags   = fields[8].GetUInt8();
+        tmp.textId[0]    = fields[9].GetInt32();
+        tmp.textId[1]    = fields[10].GetInt32();
+        tmp.textId[2]    = fields[11].GetInt32();
+        tmp.textId[3]    = fields[12].GetInt32();
+        tmp.x            = fields[13].GetFloat();
+        tmp.y            = fields[14].GetFloat();
+        tmp.z            = fields[15].GetFloat();
+        tmp.o            = fields[16].GetFloat();
 
         // generic command args check
         if (tmp.buddyEntry && !(tmp.data_flags & SCRIPT_FLAG_BUDDY_BY_GUID))
@@ -246,18 +247,21 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
         {
             case SCRIPT_COMMAND_TALK:                       // 0
             {
-                if (tmp.textId[0] == 0)
+                if (!tmp.talk.stringTemplateId) // template checked later after loading strings
                 {
-                    sLog.outErrorDb("Table `%s` has invalid talk text id (dataint = %i) in SCRIPT_COMMAND_TALK for script id %u", tablename, tmp.textId[0], tmp.id);
-                    continue;
-                }
-
-                for (int i = 0; i < MAX_TEXT_ID; ++i)
-                {
-                    if (tmp.textId[i] && (tmp.textId[i] < MIN_DB_SCRIPT_STRING_ID || tmp.textId[i] >= MAX_DB_SCRIPT_STRING_ID))
+                    if (tmp.textId[0] == 0)
                     {
-                        sLog.outErrorDb("Table `%s` has out of range text_id%u (dataint = %i expected %u-%u) in SCRIPT_COMMAND_TALK for script id %u", tablename, i + 1, tmp.textId[i], MIN_DB_SCRIPT_STRING_ID, MAX_DB_SCRIPT_STRING_ID, tmp.id);
+                        sLog.outErrorDb("Table `%s` has invalid talk text id (dataint = %i) in SCRIPT_COMMAND_TALK for script id %u", tablename, tmp.textId[0], tmp.id);
                         continue;
+                    }
+
+                    for (int i = 0; i < MAX_TEXT_ID; ++i)
+                    {
+                        if (tmp.textId[i] && (tmp.textId[i] < MIN_DB_SCRIPT_STRING_ID || tmp.textId[i] >= MAX_DB_SCRIPT_STRING_ID))
+                        {
+                            sLog.outErrorDb("Table `%s` has out of range text_id%u (dataint = %i expected %u-%u) in SCRIPT_COMMAND_TALK for script id %u", tablename, i + 1, tmp.textId[i], MIN_DB_SCRIPT_STRING_ID, MAX_DB_SCRIPT_STRING_ID, tmp.id);
+                            continue;
+                        }
                     }
                 }
 
@@ -886,6 +890,7 @@ void ScriptMgr::LoadCreatureDeathScripts()
 void ScriptMgr::LoadDbScriptStrings()
 {
     sObjectMgr.LoadMangosStrings(WorldDatabase, "db_script_string", MIN_DB_SCRIPT_STRING_ID, MAX_DB_SCRIPT_STRING_ID, true);
+    LoadDbScriptStringTemplates();
 
     std::set<int32> ids;
 
@@ -909,6 +914,28 @@ void ScriptMgr::LoadDbScriptStrings()
         sLog.outErrorDb("Table `db_script_string` has unused string id %u", *itr);
 }
 
+void ScriptMgr::LoadDbScriptStringTemplates()
+{
+    sLog.outString("Loading script string templates");
+
+    QueryResult* result = WorldDatabase.Query("SELECT id, string_id FROM dbscript_string_template");
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+
+            uint32 id = fields[0].GetUInt32();
+            int32 stringId = fields[1].GetInt32();
+            m_stringTemplates[id].push_back(stringId);
+        }
+        while (result->NextRow());
+
+        delete result;
+    }
+}
+
 void ScriptMgr::CheckScriptTexts(ScriptMapMapName const& scripts, std::set<int32>& ids)
 {
     for (ScriptMapMap::const_iterator itrMM = scripts.second.begin(); itrMM != scripts.second.end(); ++itrMM)
@@ -924,6 +951,16 @@ void ScriptMgr::CheckScriptTexts(ScriptMapMapName const& scripts, std::set<int32
 
                     if (ids.find(itrM->second.textId[i]) != ids.end())
                         ids.erase(itrM->second.textId[i]);
+                }
+
+                if (itrM->second.talk.stringTemplateId)
+                {
+                    std::vector<int32>& vector = m_stringTemplates[itrM->second.talk.stringTemplateId];
+                    for (int32& stringId : vector)
+                    {
+                        if(!sObjectMgr.GetMangosStringLocale(stringId))
+                            sLog.outErrorDb("Table `db_script_string` is missing string id %u, used in database script template table dbscript_string_template id %u.", stringId, itrM->second.talk.stringTemplateId);
+                    }
                 }
             }
         }
@@ -1189,18 +1226,28 @@ bool ScriptAction::HandleScriptStep()
             Unit* unitTarget = pTarget && pTarget->isType(TYPEMASK_UNIT) ? static_cast<Unit*>(pTarget) : nullptr;
             int32 textId = m_script->textId[0];
 
-            // May have text for random
-            if (m_script->textId[1])
+            if (m_script->talk.stringTemplateId)
             {
-                int i = 2;
-                for (; i < MAX_TEXT_ID; ++i)
+                std::vector<int32> stringTemplate;
+                sScriptMgr.GetScriptStringTemplate(m_script->talk.stringTemplateId, stringTemplate);
+                if (!stringTemplate.empty())
+                    textId = stringTemplate[urand(0, stringTemplate.size() - 1)];
+            }
+            else
+            {
+                // May have text for random
+                if (m_script->textId[1])
                 {
-                    if (!m_script->textId[i])
-                        break;
-                }
+                    int i = 2;
+                    for (; i < MAX_TEXT_ID; ++i)
+                    {
+                        if (!m_script->textId[i])
+                            break;
+                    }
 
-                // Use one random
-                textId = m_script->textId[urand(0, i - 1)];
+                    // Use one random
+                    textId = m_script->textId[urand(0, i - 1)];
+                }
             }
 
             if (!DoDisplayText(pSource, textId, unitTarget))

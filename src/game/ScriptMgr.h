@@ -155,7 +155,11 @@ struct ScriptInfo
 
     union
     {
-        // datalong unused                                  // SCRIPT_COMMAND_TALK (0)
+        struct                                              // SCRIPT_COMMAND_TALK (0)
+        {
+            uint32 stringTemplateId;                        // datalong
+            uint32 empty1;                                  // datalong2
+        } talk;
 
         struct                                              // SCRIPT_COMMAND_EMOTE (1)
         {
@@ -397,7 +401,7 @@ struct ScriptInfo
 
         struct
         {
-            uint32 data[2];
+            uint32 data[3];
         } raw;
     };
 
@@ -547,6 +551,7 @@ class ScriptMgr
         void LoadCreatureMovementScripts();
 
         void LoadDbScriptStrings();
+        void LoadDbScriptStringTemplates();
 
         void LoadScriptNames();
         void LoadAreaTriggerScripts();
@@ -558,6 +563,9 @@ class ScriptMgr
         const char* GetScriptName(uint32 id) const { return id < m_scriptNames.size() ? m_scriptNames[id].c_str() : ""; }
         uint32 GetScriptId(const char* name) const;
         uint32 GetScriptIdsCount() const { return m_scriptNames.size(); }
+
+        bool CheckScriptStringTemplateId(uint32 id) const { return m_stringTemplates.find(id) != m_stringTemplates.end(); }
+        void GetScriptStringTemplate(uint32 id, std::vector<int32>& stringTemplate) { stringTemplate = m_stringTemplates[id]; }
 
         ScriptLoadResult LoadScriptLibrary(const char* libName);
         void UnloadScriptLibrary();
@@ -596,7 +604,7 @@ class ScriptMgr
     private:
         void CollectPossibleEventIds(std::set<uint32>& eventIds);
         void LoadScripts(ScriptMapMapName& scripts, const char* tablename);
-        static void CheckScriptTexts(ScriptMapMapName const& scripts, std::set<int32>& ids);
+        void CheckScriptTexts(ScriptMapMapName const& scripts, std::set<int32>& ids);
 
         template<class T>
         void GetScriptHookPtr(T& ptr, const char* name)
@@ -607,10 +615,12 @@ class ScriptMgr
         typedef std::vector<std::string> ScriptNameMap;
         typedef std::unordered_map<uint32, uint32> AreaTriggerScriptMap;
         typedef std::unordered_map<uint32, uint32> EventIdScriptMap;
+        typedef std::unordered_map<uint32, std::vector<int32>> ScriptStringTemplateMap;
 
         AreaTriggerScriptMap    m_AreaTriggerScripts;
         EventIdScriptMap        m_EventIdScripts;
 
+        ScriptStringTemplateMap m_stringTemplates;
         ScriptNameMap           m_scriptNames;
         MANGOS_LIBRARY_HANDLE   m_hScriptLib;
 

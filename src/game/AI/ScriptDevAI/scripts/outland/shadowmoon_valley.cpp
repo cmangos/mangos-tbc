@@ -1097,6 +1097,8 @@ struct npc_lord_illidan_stormrageAI : public Scripted_NoMovementAI
                         ++uiFailedMemberCount;
                     }
                 }
+                else
+                    uiFailedMemberCount++;
             }
 
             if (pEventGroup->GetMembersCount() == uiFailedMemberCount)

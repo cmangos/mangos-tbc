@@ -418,6 +418,7 @@ class Spell
         
         // Trigger flag system
         bool m_ignoreHitResult;
+        bool m_ignoreCastTime;
         bool m_ignoreUnselectableTarget;
         bool m_ignoreUnattackableTarget;
         bool m_triggerAutorepeat;

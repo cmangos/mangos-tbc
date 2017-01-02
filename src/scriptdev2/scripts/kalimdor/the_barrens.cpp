@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: The_Barrens
 SD%Complete: 90
-SDComment: Quest support: 863, 898, 1719, 2458.
+SDComment: Quest support: 863, 898, 1719, 2458, 4021.
 SDCategory: Barrens
 EndScriptData */
 
@@ -718,6 +718,9 @@ void JustRespawned()
 
     void StartEvent(uint64 uiPlayerGUID)
     {
+	if(m_bEventStarted)
+	    return;
+
         m_uiPlayerGUID           = uiPlayerGUID;
         m_bEventStarted          = true;
         m_uiEventTimer           = 1200000;

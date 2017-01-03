@@ -4565,7 +4565,12 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
 
     // this enables pet details window (Shift+P)
     pet->InitPetCreateSpells();
-    pet->InitTamedPetPassives(m_caster);    
+
+    pet->LearnPetPassives();
+    pet->CastPetAuras(true);
+    pet->CastOwnerTalentAuras();
+    pet->InitTamedPetPassives(m_caster);
+    pet->UpdateAllStats();
 
     // caster have pet now
     plr->SetPet(pet);
@@ -4677,7 +4682,11 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         if (m_caster->IsPvP())
             NewSummon->SetPvP(true);
 
+        NewSummon->LearnPetPassives();
+        NewSummon->CastPetAuras(true);
+        NewSummon->CastOwnerTalentAuras();
         NewSummon->InitTamedPetPassives(m_caster);
+        NewSummon->UpdateAllStats();
 
         NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT);
         ((Player*)m_caster)->PetSpellInitialize();

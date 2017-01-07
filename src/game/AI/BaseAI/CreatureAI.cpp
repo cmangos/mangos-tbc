@@ -35,7 +35,7 @@ CreatureAI::CreatureAI(Creature* creature) :
     m_attackDistance(0.0f),
     m_attackAngle(0.0f)
 {
-    m_dismountOnAggro = !m_creature->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_DONT_DISMOUNT_ON_AGGRO;
+    m_dismountOnAggro = !(m_creature->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_DONT_DISMOUNT_ON_AGGRO);
 }
 
 CreatureAI::CreatureAI(Unit* unit) :

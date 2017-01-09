@@ -199,4 +199,4 @@ void AddSC_boss_void_reaver()
     pNewScript->Name = "boss_void_reaver";
     pNewScript->GetAI = &GetAI_boss_void_reaver;
     pNewScript->RegisterSelf();
-}
+};

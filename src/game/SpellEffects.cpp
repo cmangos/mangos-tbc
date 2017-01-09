@@ -1431,7 +1431,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     {
                         if (ihit->effectMask & (1 << eff_idx))
                         {
-                            if (Unit* pCastTarget = (*unitTarget)->GetMap()->GetUnit((*ihit).getUnitGuid()))
+                            if (Unit* pCastTarget = unitTarget->GetMap()->GetUnit((*ihit).getUnitGuid()))
                                 m_caster->DealDamage(pCastTarget, damage, nullptr, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, spellInfo, false);
                         }
                     }

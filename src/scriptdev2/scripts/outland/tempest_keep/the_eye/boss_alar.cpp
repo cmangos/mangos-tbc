@@ -175,10 +175,10 @@ struct boss_alarAI : public ScriptedAI
     bool SelectHostileTarget()
     {
         if (m_uiPhase != PHASE_ONE)
-            return;
+            return true;
             
         bool m_bHasMeleeTargets = false;
-        Unit* pOldTarget = m_creature->GetVictim();
+        Unit* pOldTarget = m_creature->getVictim();
         Unit* pTarget = nullptr;
         
         ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
@@ -188,7 +188,7 @@ struct boss_alarAI : public ScriptedAI
             if (m_bHasMeleeTargets)
                 break;
                 
-            if (Unit* pMelee = m_creature->GetMap()->GetUnit((*itr)->GetUnitGuid()))
+            if (Unit* pMelee = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
                 if (pMelee->GetTypeId() == TYPEID_PLAYER && pMelee->IsWithinDist(m_creature, ATTACK_DISTANCE))
                     m_bHasMeleeTargets = true;
         }
@@ -201,9 +201,9 @@ struct boss_alarAI : public ScriptedAI
         else
         {
             if (pOldTarget != pTarget)
-                StartAttack(pTarget);
+                AttackStart(pTarget);
         
-            if (pOldTarget && pOldTarget->IsAlive())
+            if (pOldTarget && pOldTarget->isAlive())
             {
                 m_creature->SetTargetGuid(pOldTarget->GetObjectGuid());
                 m_creature->SetInFront(pOldTarget);

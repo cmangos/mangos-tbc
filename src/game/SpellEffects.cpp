@@ -1418,21 +1418,21 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     uint32 count = 0;
                     for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ ihit)
                     {
-                        if (ihit->effectMask & (1 << effect_idx))
+                        if (ihit->effectMask & (1 << eff_idx))
                             ++count;
                     }
                     
                     damage = 11500;
                     damage /= count;
                     
-                    SpellEntry const* spellInfo = sSpellStore.LookupEntry(42784);
+                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(42784);
                 
                     for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
                     {
-                        if (ihit->effectMask & (1 << effect_idx))
+                        if (ihit->effectMask & (1 << eff_idx))
                         {
-                            if (Unit* pCastTarget = (*unitTarget)->GetMap()->GetUnit((*ihit)->GetUnitGuid()))
-                                m_caster->DealDamage(pCastTarget, damage, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, spellInfo, false);
+                            if (Unit* pCastTarget = (*unitTarget)->GetMap()->GetUnit((*ihit).getUnitGuid()))
+                                m_caster->DealDamage(pCastTarget, damage, nullptr, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, spellInfo, false);
                         }
                     }
                 }

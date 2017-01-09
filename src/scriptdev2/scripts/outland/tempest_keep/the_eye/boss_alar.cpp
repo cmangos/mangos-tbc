@@ -87,14 +87,6 @@ static const EventLocation aCenterLocation[] =
     {331.0, 0.01f, -2.39f},
 };
 
-static const EventLocation aEmberSpawnLocation[MAX_PLATFORMS] =
-{
-    {340.15f, 68.65f,  17.71f},
-    {388.09f, 41.54f,  20.18f},
-    {398.18f, -32.85f, 20.18f},
-    {340.29f, -70.19f, 17.72f}
-};
-
 struct boss_alarAI : public ScriptedAI
 {
     boss_alarAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -253,14 +245,14 @@ struct boss_alarAI : public ScriptedAI
     
     void DoPlatformMove()
     {
-        m_uiLastPlatformId == m_uiCurrentPlatformId;
+        m_uiLastPlatformId = m_uiCurrentPlatformId;
     
         if (urand(0,1) == 1)
             ++m_uiCurrentPlatformId; 
 
         // move to next platform and summon one ember only if moving on platforms (we avoid the summoning during the Flame Quills move)
         if (m_bCanSummonEmber)
-            m_creature->SummonCreature(NPC_EMBER_OF_ALAR, aEmberSpawnlocation[m_uiLastPlatormId].m_fX, aEmberSpawnlocation[m_uiLastPlatormId].m_fY, aEmberSpawnlocation[m_uiLastPlatormId].m_fZ, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+            m_creature->SummonCreature(NPC_EMBER_OF_ALAR, 0, 0, 0, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
         
         if (m_uiCurrentPlatformId != m_uiLastPlatformId)
             m_creature->GetMotionMaster()->MovePoint(POINT_ID_PLATFORM, aPlatformLocation[m_uiCurrentPlatformId].m_fX, aPlatformLocation[m_uiCurrentPlatformId].m_fY, aPlatformLocation[m_uiCurrentPlatformId].m_fZ);

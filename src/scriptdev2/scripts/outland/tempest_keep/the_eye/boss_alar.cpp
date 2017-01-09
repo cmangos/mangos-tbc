@@ -21,15 +21,6 @@ SDComment: TODO: Test
 SDCategory: Tempest Keep, The Eye
 EndScriptData */
 
-/* Pre-nerf Changes
-Movement: Has been changed to have a random chance to either DoFlameQuills() or to move to a random platform. There is even a small chance he will stay at the same platform for 30 seconds.
-Embers: Do not do % hp damage to Al'ar when killed.
-
-Patches
-2.1.0 - Al'ar movement was updated to the current state (platform 1, 2, 3, 4), and embers were given the %hp burn element.
-*/
-
-
 #include "precompiled.h"
 #include "the_eye.h"
 

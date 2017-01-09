@@ -8079,7 +8079,7 @@ void Unit::TauntApply(Unit* taunter)
         return;
 
     // Only attack taunter if this is a valid target
-    if (CanReactInCombat() && !IsSecondChoiceTarget(taunter, true, true))
+    if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED | UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING) && !IsSecondChoiceTarget(taunter, true))
     {
         if (GetTargetGuid() || !target)
             SetInFront(taunter);
@@ -8224,7 +8224,7 @@ bool Unit::SelectHostileTarget()
 
     if (target)
     {
-        if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED | UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING | UNIT_STAT_DONT_TURN))
+        if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED | UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_DONT_TURN | UNIT_STAT_SEEKING_ASSISTANCE))
         {
             // needs a much better check, seems to cause quite a bit of trouble
             SetInFront(target);

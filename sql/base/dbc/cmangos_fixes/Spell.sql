@@ -40,3 +40,11 @@ INSERT INTO spell_template(Id,ProcFlags,ProcChance,DurationIndex,Effect1,EffectI
 INSERT INTO spell_template(Id, Attributes, AttributesEx,AttributesEx2,AttributesEx3,ProcFlags,ProcChance,DurationIndex,Effect1,EffectImplicitTargetA1,EffectImplicitTargetB1,EffectRadiusIndex1,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValueB1,EffectTriggerSpell1,IsServerSide,SpellName) VALUES
 ('38854','384','0','0','0','0','101','3','28','18','0','0','0','22339','64','0','1','summon Redeemet Hatchling'),
 ('38865','384','0','0','0','0','101','3','28','18','0','0','0','22337','64','0','1','summon Malevolent Hatchling');
+
+-- trap used to tame bear is no longer present in TBC/WOTLK yet still present in trap data
+INSERT INTO spell_template (Id, Attributes, CastingTimeIndex, ProcChance, SpellLevel, RangeIndex, EquippedItemClass, Effect1, EffectDieSides1, EffectBaseDice1, EffectDicePerLevel1, EffectImplicitTargetA1, SpellIconID, SpellName, MaxTargetLevel, DmgMultiplier1, DmgMultiplier2, DmgMultiplier3, IsServerSide) VALUES
+('9439', '256', '1', '101', '1', '12', '-1', '3', '1', '1', '0', '38', '1', 'Bear Captured in Trap', '60', '1', '1', '1', '1');
+
+-- generic proc double attack used in a lot of TBC instances based on sniffs
+INSERT INTO spell_template (Id, Category, Attributes, CastingTimeIndex, ProcChance, BaseLevel, SpellLevel, RangeIndex, EquippedItemClass, Effect1, EffectDieSides1, EffectBaseDice1, EffectImplicitTargetA1, SpellIconID, SpellName, DmgClass, PreventionType, DmgMultiplier1, DmgMultiplier2, DmgMultiplier3, IsServerSide) VALUES
+('18941', '65', '262416', '1', '101', '14', '14', '1', '-1', '19', '1', '1', '1', '108', 'Double Attack', '2', '2', '1', '1', '1', '1');

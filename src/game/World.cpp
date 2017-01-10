@@ -1035,6 +1035,9 @@ void World::SetInitialWorldSettings()
     sLog.outString(">>> Game Event Data loaded");
     sLog.outString();
 
+    sLog.outString("Loading Dungeon Encounters...");
+    sObjectMgr.LoadDungeonEncounters();                     // Load DungeonEncounter.dbc from DB
+
     sLog.outString("Loading Conditions...");                // Load Conditions
     sObjectMgr.LoadConditions();
 
@@ -1117,6 +1120,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading Skill Fishing base level requirements...");
     sObjectMgr.LoadFishingBaseSkillLevel();
+
+    sLog.outString("Loading Instance encounters data...");  // must be after Creature loading
+    sObjectMgr.LoadInstanceEncounters();
 
     sLog.outString("Loading Npc Text Id...");
     sObjectMgr.LoadNpcGossips();                            // must be after load Creature and LoadGossipText

@@ -1256,6 +1256,8 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
                         return false; // Mangle (Cat) & Mangle (Bear)
                     if (entry->SpellFamilyFlags & uint64(0x80) && multirank)
                         return true; // Tranquility (should it stack? TODO: Find confirmation)
+                    if (entry->SpellFamilyFlags & uint64(0x01000000000))
+                        return true; // Lifebloom
                     break;
             }
             break;
@@ -1331,9 +1333,15 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
         case SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN:
         case SPELL_AURA_MOD_DECREASE_SPEED: // Bonus stacking handled by core
         case SPELL_AURA_MOD_INCREASE_SPEED: // Bonus stacking handled by core
-        case SPELL_AURA_PROC_TRIGGER_SPELL: // Also used in Paladin judgements
         case SPELL_AURA_MOD_HEALTH_REGEN_PERCENT:
         case SPELL_AURA_PREVENTS_FLEEING:
+            nonmui = true;
+            break;
+        case SPELL_AURA_PROC_TRIGGER_SPELL:
+            if (instance && entry->SpellIconID != entry2->SpellIconID)
+                // Exception: Judgement of Light and Judgement of Wisdom have exact same spell family flags
+                // Comparing icons is the fastest (but hacky) way to destinguish between two without poking spell chain
+                break;
             nonmui = true;
             break;
         case SPELL_AURA_MOD_FEAR: // Fear/confuse effects: do not stack with the same mechanic type
@@ -1405,8 +1413,8 @@ inline bool IsSimilarExistingAuraStronger(const SpellAuraHolder* holder, const S
             {
                 Aura* aura1 = holder->GetAuraByEffectIndex(SpellEffectIndex(e));
                 Aura* aura2 = existing->GetAuraByEffectIndex(SpellEffectIndex(e2));
-                int32 value = aura1 ? aura1->GetBasePoints() : 0;
-                int32 value2 = aura2 ? aura2->GetBasePoints() : 0;
+                int32 value = aura1 ? aura1->GetModifier()->m_amount : 0;
+                int32 value2 = aura2 ? aura2->GetModifier()->m_amount : 0;
                 if (value < 0 && value2 < 0)
                 {
                     value = abs(value);
@@ -1436,7 +1444,7 @@ inline bool IsSimilarExistingAuraStronger(const Unit* caster, const SpellEntry* 
             {
                 Aura* aura = existing->GetAuraByEffectIndex(SpellEffectIndex(e2));
                 int32 value = entry->CalculateSimpleValue(SpellEffectIndex(e));
-                int32 value2 = aura ? aura->GetBasePoints() : 0;
+                int32 value2 = aura ? aura->GetModifier()->m_amount : 0;
                 // FIXME: We need API to peacefully pre-calculate static base spell damage without destroying mods
                 // Until then this is a rather lame set of hacks
                 // Apply combo points base damage for spells like expose armor
@@ -1445,8 +1453,8 @@ inline bool IsSimilarExistingAuraStronger(const Unit* caster, const SpellEntry* 
                     const Player* player = (const Player*)caster;
                     const Unit* target = existing->GetTarget();
                     const float comboDamage = entry->EffectPointsPerComboPoint[e];
-                    if (comboDamage && player && target && (target->GetObjectGuid() == player->GetComboTargetGuid()))
-                        value += (int32)(comboDamage * player->GetComboPoints());
+                    if (player && target && (target->GetObjectGuid() == player->GetComboTargetGuid()))
+                        value += int32(comboDamage * player->GetComboPoints());
                 }
                 if (value < 0 && value2 < 0)
                 {

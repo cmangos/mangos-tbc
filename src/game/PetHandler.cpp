@@ -181,15 +181,20 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                                 }
                             }
                             else
-                                pet->Attack(targetUnit, true);
+                                petUnit->Attack(targetUnit, true);
                         }
                     }
                     break;
                 }
                 case COMMAND_ABANDON:                       // abandon (hunter pet) or dismiss (summoned pet)
                 {
-                    if (pet && pet->getPetType() == HUNTER_PET)
-                        pet->Unsummon(PET_SAVE_AS_DELETED, _player);
+                    if (pet)
+                    {
+                        if(pet->getPetType() == HUNTER_PET)
+                            pet->Unsummon(PET_SAVE_AS_DELETED, _player);
+                        else
+                            petUnit->SetDeathState(CORPSE);
+                    }                        
                     else
                     {
                         // dismissing a summoned pet is like killing them (this prevents returning a soulshard...)
@@ -794,12 +799,12 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
     }
     else
     {
-        Unit* owner = pet->GetCharmerOrOwner();
+        Unit* owner = petCreature->GetCharmerOrOwner();
         if (owner && owner->GetTypeId() == TYPEID_PLAYER)
             Spell::SendCastResult((Player*)owner, spellInfo, 0, result, true);
 
-        if (!pet->HasSpellCooldown(spellid))
-            GetPlayer()->SendClearCooldown(spellid, pet);
+        if (!petCreature->HasSpellCooldown(spellid))
+            GetPlayer()->SendClearCooldown(spellid, petCreature);
 
         spell->finish(false);
         delete spell;

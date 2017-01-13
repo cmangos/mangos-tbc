@@ -171,9 +171,10 @@ struct boss_aranAI : public ScriptedAI
         m_creature->RemoveGuardians();
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage) override
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType damagetype) override
     {
-        if (!m_bDrinkInturrupted && m_bIsDrinking && uiDamage > 0)
+        // Must only break drinking on direct damage
+        if (!m_bDrinkInturrupted && m_bIsDrinking && uiDamage > 0 && (damagetype == SPELL_DIRECT_DAMAGE || damagetype == DIRECT_DAMAGE))
         {
             if (!m_creature->HasAura(SPELL_DRINK))
                 return;
@@ -202,9 +203,6 @@ struct boss_aranAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
         // Start drinking when below 20% mana
         if (!m_bIsDrinking && m_creature->GetPowerType() == POWER_MANA && (m_creature->GetPower(POWER_MANA) * 100 / m_creature->GetMaxPower(POWER_MANA)) < 20)
         {
@@ -260,6 +258,9 @@ struct boss_aranAI : public ScriptedAI
             // no other spells during mana recovery
             return;
         }
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
 
         // Normal spell casts
         if (m_uiNormalCastTimer < uiDiff)

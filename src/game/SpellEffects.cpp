@@ -2157,7 +2157,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (unitTarget)
                         if (SpellEntry const* spell_proto = sSpellTemplate.LookupEntry<SpellEntry>(m_currentBasePoints[eff_idx]))
                         {
-                            if (!unitTarget->hasUnitState(UNIT_STAT_STUNNED) && m_caster->GetTypeId() == TYPEID_PLAYER)
+                            if (!unitTarget->IsStunned() && m_caster->GetTypeId() == TYPEID_PLAYER)
                             {
                                 // decreased damage (/2) for non-stunned target.
                                 SpellModifier* mod = new SpellModifier(SPELLMOD_DAMAGE, SPELLMOD_PCT, -50, m_spellInfo->Id, uint64(0x0000020000000000));
@@ -2296,20 +2296,32 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                 }
                 return;
-            }
-            // Flametongue Weapon Proc, Ranks
-            if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000200000))
+            }            
+            if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000200000)) // Flametongue Weapon Proc, Ranks
             {
                 if (m_CastItem)
                 {
                     int32 bonusDamage = m_caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(m_spellInfo))
                         + unitTarget->SpellBaseDamageBonusTaken(GetSpellSchoolMask(m_spellInfo));
-                        // Does Amplify Magic/Dampen Magic influence flametongue? If not, the above addition must be removed.
-                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / IN_MILLISECONDS;     
+                    // Does Amplify Magic/Dampen Magic influence flametongue? If not, the above addition must be removed.
+                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / IN_MILLISECONDS;
                     bonusDamage = m_caster->SpellBonusWithCoeffs(m_spellInfo, bonusDamage, 0, 0, SPELL_DIRECT_DAMAGE, false); // apply spell coeff
                     int32 totalDamage = (damage * 0.01 * weaponSpeed) + bonusDamage;
 
                     m_caster->CastCustomSpell(unitTarget, 10444, &totalDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                }
+                else
+                    sLog.outError("Spell::EffectDummy: spell %i requires cast Item", m_spellInfo->Id);
+
+                return;
+            }
+            if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000400000000)) // Flametongue Totem Proc, Ranks
+            {
+                if (m_CastItem) // Does not scale with gear
+                {
+                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / IN_MILLISECONDS;
+                    int32 totalDamage = (damage * 0.01 * weaponSpeed);
+                    m_caster->CastCustomSpell(unitTarget, 16368, &totalDamage, nullptr, nullptr, true, m_CastItem);
                 }
                 else
                     sLog.outError("Spell::EffectDummy: spell %i requires cast Item", m_spellInfo->Id);
@@ -3220,6 +3232,10 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
     int level_diff = 0;
     switch (m_spellInfo->Id)
     {
+        case 5530:
+            if (m_caster->getClass() == CLASS_ROGUE) // Warrior and rogue use same spell, on rogue not supposed to give resource, WTF blizzard
+                return;
+                break;
         case 9512:                                          // Restore Energy
             level_diff = m_caster->getLevel() - 40;
             level_multiplier = 2;
@@ -3589,7 +3605,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
     {
         // pet players do not need this
         // TODO :: Totem, Pet and Critter may not use this. This is probably wrongly used and need more research.
-        uint32 resultLevel = level + std::max(m_spellInfo->EffectMultipleValue[eff_idx], 1.0f);
+        uint32 resultLevel = level + std::max(m_spellInfo->EffectMultipleValue[eff_idx], .0f);
 
         // result level should be a possible level for creatures
         if (resultLevel > 0 && resultLevel <= DEFAULT_MAX_CREATURE_LEVEL)
@@ -3670,7 +3686,17 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                     if (prop_id == 121 || prop_id == 647)
                         summonResult = DoSummonTotem(eff_idx);
                     else
-                        summonResult = DoSummonWild(summonPositions, summon_prop, eff_idx, level);
+                    {
+                        switch (m_spellInfo->Id) // unable to distinguish based on prop_id, therefore spell by spell override
+                        {
+                            case 38544: // summon marmot, gives control of marmot pet
+                                summonResult = DoSummonPossessed(summonPositions, summon_prop, eff_idx, level);
+                                break;
+                            default:
+                                summonResult = DoSummonWild(summonPositions, summon_prop, eff_idx, level);
+                                break;
+                        }
+                    }
                     break;
                 }
                 case UNITNAME_SUMMON_TITLE_PET:
@@ -3768,7 +3794,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             if (caster && caster->AI())
                 caster->AI()->JustSummoned(itr->creature);
         }
-        else if (m_originalCaster && m_originalCaster->AI())
+        else if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->AI())
         {
             // original caster is provided by script so we have to notify it as its not done in Object::SummonCreature
             m_originalCaster->AI()->JustSummoned(itr->creature);
@@ -3917,8 +3943,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
     std::list <std::pair<SpellAuraHolder*, uint32> > dispel_list;
 
     // Create dispel mask by dispel type
-    uint32 dispel_type = m_spellInfo->EffectMiscValue[eff_idx];
-    uint32 dispelMask  = GetDispellMask(DispelType(dispel_type));
+    uint32 dispelMask  = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[eff_idx]));
     Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
     for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
     {
@@ -3975,6 +4000,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
             {
                 if (Player* modOwner = caster->GetSpellModOwner())
                     modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_RESIST_DISPEL_CHANCE, miss_chance, this);
+                miss_chance += caster->GetTotalAuraModifier(SPELL_AURA_MOD_DISPEL_RESIST);
             }
             // Try dispel
             if (roll_chance_i(miss_chance))
@@ -4198,7 +4224,7 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
             found = true;
         }
 
-        if (found)
+        if (found && !(m_spellInfo->DurationIndex && m_spellInfo->Category))
             return false;
     }
 
@@ -4540,6 +4566,12 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     // this enables pet details window (Shift+P)
     pet->InitPetCreateSpells();
 
+    pet->LearnPetPassives();
+    pet->CastPetAuras(true);
+    pet->CastOwnerTalentAuras();
+    pet->InitTamedPetPassives(m_caster);
+    pet->UpdateAllStats();
+
     // caster have pet now
     plr->SetPet(pet);
 
@@ -4649,6 +4681,12 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
 
         if (m_caster->IsPvP())
             NewSummon->SetPvP(true);
+
+        NewSummon->LearnPetPassives();
+        NewSummon->CastPetAuras(true);
+        NewSummon->CastOwnerTalentAuras();
+        NewSummon->InitTamedPetPassives(m_caster);
+        NewSummon->UpdateAllStats();
 
         NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT);
         ((Player*)m_caster)->PetSpellInitialize();
@@ -6439,6 +6477,24 @@ void Spell::EffectEnchantHeldItem(SpellEffectIndex eff_idx)
 
         // Apply the temporary enchantment
         item->SetEnchantment(slot, enchant_id, duration * IN_MILLISECONDS, 0);
+
+        // Improved Weapon Totems
+        if (m_spellInfo->IsFitToFamilyMask(0x0000000004000000)) // Flametongue totem
+        {
+            SpellAuraHolder* holder = m_caster->GetOwner()->GetSpellAuraHolder(29192);
+            if(!holder)
+                holder = m_caster->GetOwner()->GetSpellAuraHolder(29193);
+            if(holder && holder->m_auras[0] && holder->GetSpellProto())
+                item->SetEnchantmentModifier(new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, holder->m_auras[1]->GetModifier()->m_amount, holder->GetId(), uint64(0x00400000000)));
+        }
+        if (m_spellInfo->IsFitToFamilyMask(0x0000000200000000)) // Windfury totem
+        {
+            SpellAuraHolder* holder = m_caster->GetOwner()->GetSpellAuraHolder(29192);
+            if (!holder)
+                holder = m_caster->GetOwner()->GetSpellAuraHolder(29193);
+            if (holder && holder->m_auras[0] && holder->GetSpellProto())
+                item->SetEnchantmentModifier(new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, holder->m_auras[0]->GetModifier()->m_amount, holder->GetId(), uint64(0x00200000000)));
+        }
         item_owner->ApplyEnchantment(item, slot, true);
     }
 }
@@ -6659,159 +6715,15 @@ void Spell::EffectBlock(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
 {
-    float dist = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
-    const float IN_OR_UNDER_LIQUID_RANGE = 0.8f;                // range to make player under liquid or on liquid surface from liquid level
+    if (!unitTarget)
+        return;
 
-    G3D::Vector3 prevPos, nextPos;
+    float x, y, z;
+    m_targets.getDestination(x, y, z);   
+
     float orientation = unitTarget->GetOrientation();
 
-    prevPos.x = unitTarget->GetPositionX();
-    prevPos.y = unitTarget->GetPositionY();
-    prevPos.z = unitTarget->GetPositionZ();
-
-    float groundZ = prevPos.z;
-
-    // falling case
-    if (!unitTarget->GetMap()->GetHeightInRange(prevPos.x, prevPos.y, groundZ, 3.0f) && unitTarget->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLING))
-    {
-        nextPos.x = prevPos.x + dist * cos(orientation);
-        nextPos.y = prevPos.y + dist * sin(orientation);
-        nextPos.z = prevPos.z - 2.0f; // little hack to avoid the impression to go up when teleporting instead of continue to fall. This value may need some tweak
-
-        //
-        GridMapLiquidData liquidData;
-        if (unitTarget->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData))
-        {
-            if (fabs(nextPos.z - liquidData.level) < 10.0f)
-                nextPos.z = liquidData.level - IN_OR_UNDER_LIQUID_RANGE;
-        }
-        else
-        {
-            // fix z to ground if near of it
-            unitTarget->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, nextPos.z, 10.0f);
-        }
-
-        // check any obstacle and fix coords
-        unitTarget->GetMap()->GetHitPosition(prevPos.x, prevPos.y, prevPos.z + 0.5f, nextPos.x, nextPos.y, nextPos.z, -0.5f);
-
-        // teleport
-        unitTarget->NearTeleportTo(nextPos.x, nextPos.y, nextPos.z, orientation, unitTarget == m_caster);
-
-        //sLog.outString("Falling BLINK!");
-        return;
-    }
-
-    // fix origin position if player was jumping and near of the ground but not in ground
-    if (fabs(prevPos.z - groundZ) > 0.5f)
-        prevPos.z = groundZ;
-
-    //check if in liquid
-    bool isPrevInLiquid = unitTarget->GetMap()->GetTerrain()->IsInWater(prevPos.x, prevPos.y, prevPos.z);
-
-    const float step = 2.0f;                                    // step length before next check slope/edge/water
-    const float maxSlope = 50.0f;                               // 50(degree) max seem best value for walkable slope
-    const float MAX_SLOPE_IN_RADIAN = maxSlope / 180.0f * M_PI_F;
-    float nextZPointEstimation = 1.0f;
-    float destx = prevPos.x + dist * cos(orientation);
-    float desty = prevPos.y + dist * sin(orientation);
-    const uint32 numChecks = ceil(fabs(dist / step));
-    const float DELTA_X = (destx - prevPos.x) / numChecks;
-    const float DELTA_Y = (desty - prevPos.y) / numChecks;
-
-    for (uint32 i = 1; i < numChecks + 1; ++i)
-    {
-        // compute next point average position
-        nextPos.x = prevPos.x + DELTA_X;
-        nextPos.y = prevPos.y + DELTA_Y;
-        nextPos.z = prevPos.z + nextZPointEstimation;
-
-        bool isInLiquid = false;
-        bool isInLiquidTested = false;
-        bool isOnGround = false;
-        GridMapLiquidData liquidData;
-
-        // try fix height for next position
-        if (!unitTarget->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, nextPos.z))
-        {
-            // we cant so test if we are on water
-            if (!unitTarget->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData))
-            {
-                // not in water and cannot get correct height, maybe flying?
-                //sLog.outString("Can't get height of point %u, point value %s", i, nextPos.toString().c_str());
-                nextPos = prevPos;
-                break;
-            }
-            else
-            {
-                isInLiquid = true;
-                isInLiquidTested = true;
-            }
-        }
-        else
-            isOnGround = true;                                  // player is on ground
-
-        if (isInLiquid || (!isInLiquidTested && unitTarget->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData)))
-        {
-            if (!isPrevInLiquid && fabs(liquidData.level - prevPos.z) > 2.0f)
-            {
-                // on edge of water with difference a bit to high to continue
-                //sLog.outString("Ground vs liquid edge detected!");
-                nextPos = prevPos;
-                break;
-            }
-
-            if ((liquidData.level - IN_OR_UNDER_LIQUID_RANGE) > nextPos.z)
-                nextPos.z = prevPos.z;                                      // we are under water so next z equal prev z
-            else
-                nextPos.z = liquidData.level - IN_OR_UNDER_LIQUID_RANGE;    // we are on water surface, so next z equal liquid level
-
-            isInLiquid = true;
-
-            float ground = nextPos.z;
-            if (unitTarget->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, ground))
-            {
-                if (nextPos.z < ground)
-                {
-                    nextPos.z = ground;
-                    isOnGround = true;                          // player is on ground of the water
-                }
-            }
-        }
-
-        //unitTarget->SummonCreature(VISUAL_WAYPOINT, nextPos.x, nextPos.y, nextPos.z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
-        float hitZ = nextPos.z + 1.5f;
-        if (unitTarget->GetMap()->GetHitPosition(prevPos.x, prevPos.y, prevPos.z + 1.5f, nextPos.x, nextPos.y, hitZ, -1.0f))
-        {
-            //sLog.outString("Blink collision detected!");
-            nextPos = prevPos;
-            break;
-        }
-
-        if (isOnGround)
-        {
-            // project vector to get only positive value
-            float ac = fabs(prevPos.z - nextPos.z);
-
-            // compute slope (in radian)
-            float slope = atan(ac / step);
-
-            // check slope value
-            if (slope > MAX_SLOPE_IN_RADIAN)
-            {
-                //sLog.outString("bad slope detected! %4.2f max %4.2f, ac(%4.2f)", slope * 180 / M_PI_F, maxSlope, ac);
-                nextPos = prevPos;
-                break;
-            }
-            //sLog.outString("slope is ok! %4.2f max %4.2f, ac(%4.2f)", slope * 180 / M_PI_F, maxSlope, ac);
-        }
-
-        //sLog.outString("point %u is ok, coords %s", i, nextPos.toString().c_str());
-        nextZPointEstimation = (nextPos.z - prevPos.z) / 2.0f;
-        isPrevInLiquid = isInLiquid;
-        prevPos = nextPos;
-    }
-
-    unitTarget->NearTeleportTo(nextPos.x, nextPos.y, nextPos.z, orientation, unitTarget == m_caster);
+    unitTarget->NearTeleportTo(x, y, z, orientation, unitTarget == m_caster);
 }
 
 void Spell::EffectLeapBack(SpellEffectIndex eff_idx)

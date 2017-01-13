@@ -1080,9 +1080,6 @@ bool ChatHandler::HandleLoadScriptsCommand(char* args)
         case SCRIPT_LOAD_ERR_WRONG_API:
             SendSysMessage(LANG_SCRIPTS_WRONG_API);
             break;
-        case SCRIPT_LOAD_ERR_OUTDATED:
-            SendSysMessage(LANG_SCRIPTS_OUTDATED);
-            break;
     }
 
     return true;
@@ -3520,7 +3517,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
 
         damage -= absorb + resist;
 
-        player->DealDamageMods(target, damage, &absorb);
+        player->DealDamageMods(target, damage, &absorb, DIRECT_DAMAGE);
         player->DealDamage(target, damage, nullptr, DIRECT_DAMAGE, schoolmask, nullptr, false);
         player->SendAttackStateUpdate(HITINFO_NORMALSWING2, target, schoolmask, damage, absorb, resist, VICTIMSTATE_NORMAL, 0);
         return true;

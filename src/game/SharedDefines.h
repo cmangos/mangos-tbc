@@ -310,7 +310,7 @@ enum SpellAttributesEx
     SPELL_ATTR_EX_UNK24                        = 0x01000000,// 24 Req fishing pole??
     SPELL_ATTR_EX_UNK25                        = 0x02000000,// 25 not set in 2.4.2
     SPELL_ATTR_EX_UNK26                        = 0x04000000,// 26
-    SPELL_ATTR_EX_REFUND_POWER                 = 0x08000000,// 27 All these spells refund power on miss, dodge, parry (? Guesswork)
+    SPELL_ATTR_EX_REFUND_POWER                 = 0x08000000,// 27 All these spells refund power on parry or deflect
     SPELL_ATTR_EX_DONT_DISPLAY_IN_AURA_BAR     = 0x10000000,// 28
     SPELL_ATTR_EX_CHANNEL_DISPLAY_SPELL_NAME   = 0x20000000,// 29
     SPELL_ATTR_EX_ENABLE_AT_DODGE              = 0x40000000,// 30 overpower
@@ -321,7 +321,7 @@ enum SpellAttributesEx2
 {
     SPELL_ATTR_EX2_CAN_TARGET_DEAD             = 0x00000001,// 0 can target dead unit or corpse
     SPELL_ATTR_EX2_UNK1                        = 0x00000002,// 1
-    SPELL_ATTR_EX2_CANT_REFLECTED              = 0x00000004,// 2 ? used for detect can or not spell reflected // do not need LOS (e.g. 18220 since 3.3.3)
+    SPELL_ATTR_EX2_IGNORE_LOS                  = 0x00000004,// 2 do not need LOS (e.g. 18220 since 3.3.3)
     SPELL_ATTR_EX2_UNK3                        = 0x00000008,// 3 auto targeting? (e.g. fishing skill enhancement items since 3.3.3)
     SPELL_ATTR_EX2_DISPLAY_IN_STANCE_BAR       = 0x00000010,// 4
     SPELL_ATTR_EX2_AUTOREPEAT_FLAG             = 0x00000020,// 5
@@ -458,7 +458,7 @@ enum SpellAttributesEx5
     SPELL_ATTR_EX5_DONT_SHOW_AURA_IF_NOT_SELF_CAST = 0x10000000,// 28 Auras with this attribute are not visible on units that are not the caster
     SPELL_ATTR_EX5_UNK29                       = 0x20000000,// 29
     SPELL_ATTR_EX5_UNK30                       = 0x40000000,// 30
-    SPELL_ATTR_EX5_UNK31                       = 0x80000000,// 31 Forces all nearby enemies to focus attacks caster
+    SPELL_ATTR_EX5_USE_PHYSICAL_HIT_CHANCE     = 0x80000000,// 31 Introduced in patch 2.3: Taunt, Growl, etc spells use ability miss calculation (see implementation for details)
 };
 
 enum SpellAttributesEx6
@@ -910,6 +910,7 @@ enum SpellCastResult
     SPELL_FAILED_TARGET_LOCKED_TO_RAID_INSTANCE = 0xA7,
     SPELL_FAILED_UNKNOWN                        = 0xA8,
 
+    SPELL_NOT_FOUND                             = 0xFE,
     SPELL_CAST_OK                               = 0xFF      // custom value, don't must be send to client
 };
 
@@ -1098,6 +1099,7 @@ enum Targets
     TARGET_AREAEFFECT_GO_AROUND_DEST   = 52,                // gameobject around destination, select by spell_script_target
     TARGET_CURRENT_ENEMY_COORDINATES   = 53,                // set unit coordinates as dest, only 16 target B imlemented
     TARGET_LARGE_FRONTAL_CONE          = 54,
+    TARGET_DEST_CASTER_FRONT_LEAP      = 55,                // for a leap spell
     TARGET_ALL_RAID_AROUND_CASTER      = 56,
     TARGET_SINGLE_FRIEND_2             = 57,
     TARGET_58                          = 58,
@@ -1113,7 +1115,7 @@ enum Targets
     TARGET_RANDOM_NEARBY_LOC           = 72,                // used in teleport onto nearby locations
     TARGET_RANDOM_CIRCUMFERENCE_POINT  = 73,
     TARGET_74                          = 74,
-    TARGET_75                          = 75,
+    TARGET_RANDOM_CIRCUMFERENCE_AROUND_TARGET = 75,                // TODO: Possibly reimplement
     TARGET_DYNAMIC_OBJECT_COORDINATES  = 76,
     TARGET_SINGLE_ENEMY                = 77,
     TARGET_POINT_AT_NORTH              = 78,                // 78-85 possible _COORDINATES at radius with pi/4 step around target in unknown order, N?

@@ -43,6 +43,7 @@
 #include "GridNotifiers.h"
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
+#include "DBCStores.h"
 
 #include "ItemEnchantmentMgr.h"
 #include "LootMgr.h"
@@ -1821,6 +1822,15 @@ void ObjectMgr::LoadItemPrototypes()
             continue;
         }
 
+        for (uint32 k = 0; k < MAX_ITEM_PROTO_SPELLS; k++)
+            if (proto->Spells[k].SpellCategory && proto->Spells[k].SpellId)
+            {
+                if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(proto->Spells[k].SpellId))
+                    sItemSpellCategoryStore[proto->Spells[k].SpellCategory].insert(ItemCategorySpellPair(proto->Spells[k].SpellId, i));
+                else
+                    sLog.outErrorDb("Item (Entry: %u) not correct %u spell id, must exist in spell table.", i, proto->Spells[k].SpellId);
+            }
+
         if (dbcitem)
         {
             if (proto->InventoryType != dbcitem->InventoryType)
@@ -3595,13 +3605,6 @@ void ObjectMgr::LoadQuests()
         }
         // else Skill quests can have 0 skill level, this is ok
 
-		if (qinfo->RequiredCondition)
-		{
-			const PlayerCondition* condition = sConditionStorage.LookupEntry<PlayerCondition>(qinfo->RequiredCondition);
-			if (!condition) // condition does not exist for some reason
-				sLog.outErrorDb("Quest %u has `RequiredCondition` = %u but does not exist.", qinfo->GetQuestId(), qinfo->RequiredCondition);
-		}
-
         if (qinfo->RepObjectiveFaction && !sFactionStore.LookupEntry(qinfo->RepObjectiveFaction))
         {
             sLog.outErrorDb("Quest %u has `RepObjectiveFaction` = %u but faction template %u does not exist, quest can't be done.",
@@ -4623,6 +4626,18 @@ void ObjectMgr::LoadConditions()
             sLog.outErrorDb("ObjectMgr::LoadConditions: invalid condition_entry %u, skip", i);
             sConditionStorage.EraseEntry(i);
             continue;
+        }
+    }
+
+    for (QuestMap::iterator iter = mQuestTemplates.begin(); iter != mQuestTemplates.end(); ++iter) // needs to be checked after loading conditions
+    {
+        Quest* qinfo = iter->second;
+
+        if (qinfo->RequiredCondition)
+        {
+            const PlayerCondition* condition = sConditionStorage.LookupEntry<PlayerCondition>(qinfo->RequiredCondition);
+            if (!condition) // condition does not exist for some reason
+                sLog.outErrorDb("Quest %u has `RequiredCondition` = %u but does not exist.", qinfo->GetQuestId(), qinfo->RequiredCondition);
         }
     }
 

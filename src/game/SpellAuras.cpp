@@ -2592,28 +2592,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     return;
                 }
             }
-            // Improved Weapon Totems
-            if (GetSpellProto()->SpellIconID == 57 && target->GetTypeId() == TYPEID_PLAYER)
-            {
-                if (apply)
-                {
-                    switch (m_effIndex)
-                    {
-                        case 0:
-                            // Windfury Totem
-                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, m_modifier.m_amount, GetId(), uint64(0x00200000000));
-                            break;
-                        case 1:
-                            // Flametongue Totem
-                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_PCT, m_modifier.m_amount, GetId(), uint64(0x00400000000));
-                            break;
-                        default: return;
-                    }
-                }
-
-                ((Player*)target)->AddSpellMod(m_spellmod, apply);
-                return;
-            }
             break;
         }
     }
@@ -3180,6 +3158,11 @@ void Aura::HandleForceReaction(bool apply, bool Real)
     // stop fighting if at apply forced rank friendly or at remove real rank friendly
     if ((apply && faction_rank >= REP_FRIENDLY) || (!apply && player->GetReputationRank(faction_id) >= REP_FRIENDLY))
         player->StopAttackFaction(faction_id);
+
+    //TODO: hack alert! Need to remove that when its possible
+    if (!apply)
+        if (GetId() == 32756) // Shadowy disguise
+            player->RemoveAurasDueToSpell(player->getGender() == GENDER_MALE ? 38080 : 38081);
 }
 
 void Aura::HandleAuraModSkill(bool apply, bool /*Real*/)
@@ -4891,26 +4874,26 @@ void Aura::HandleAuraModIncreaseHealthPercent(bool apply, bool /*Real*/)
 /***          FIGHT           ***/
 /********************************/
 
-void Aura::HandleAuraModParryPercent(bool /*apply*/, bool /*Real*/)
+void Aura::HandleAuraModParryPercent(bool apply, bool /*Real*/)
 {
     Unit* target = GetTarget();
 
     if (target->GetTypeId() != TYPEID_PLAYER)
     {
-        target->m_modParryChance += m_modifier.m_amount;
+        target->m_modParryChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
         return;
     };
 
     ((Player*)target)->UpdateParryPercentage();
 }
 
-void Aura::HandleAuraModDodgePercent(bool /*apply*/, bool /*Real*/)
+void Aura::HandleAuraModDodgePercent(bool apply, bool /*Real*/)
 {
     Unit* target = GetTarget();
 
     if (target->GetTypeId() != TYPEID_PLAYER)
     {
-        target->m_modDodgeChance += m_modifier.m_amount;
+        target->m_modDodgeChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
         return;
     }
 
@@ -4918,13 +4901,13 @@ void Aura::HandleAuraModDodgePercent(bool /*apply*/, bool /*Real*/)
     // sLog.outError("BONUS DODGE CHANCE: + %f", float(m_modifier.m_amount));
 }
 
-void Aura::HandleAuraModBlockPercent(bool /*apply*/, bool /*Real*/)
+void Aura::HandleAuraModBlockPercent(bool apply, bool /*Real*/)
 {
     Unit* target = GetTarget();
 
     if (target->GetTypeId() != TYPEID_PLAYER)
     {
-        target->m_modBlockChance += m_modifier.m_amount;
+        target->m_modBlockChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
         return;
     }
 
@@ -4951,7 +4934,7 @@ void Aura::HandleAuraModCritPercent(bool apply, bool Real)
     if (target->GetTypeId() != TYPEID_PLAYER)
     {
         for (int i = 0; i < MAX_ATTACK; ++i)
-            target->m_modCritChance[i] += m_modifier.m_amount;
+            target->m_modCritChance[i] += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
         return;
     }
 
@@ -4990,8 +4973,8 @@ void Aura::HandleModHitChance(bool apply, bool /*Real*/)
     }
     else
     {
-        target->m_modMeleeHitChance += apply ? m_modifier.m_amount : (-m_modifier.m_amount);
-        target->m_modRangedHitChance += apply ? m_modifier.m_amount : (-m_modifier.m_amount);
+        target->m_modMeleeHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
+        target->m_modRangedHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
     }
 }
 
@@ -5003,7 +4986,7 @@ void Aura::HandleModSpellHitChance(bool apply, bool /*Real*/)
     }
     else
     {
-        GetTarget()->m_modSpellHitChance += apply ? m_modifier.m_amount : (-m_modifier.m_amount);
+        GetTarget()->m_modSpellHitChance += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
     }
 }
 
@@ -5018,14 +5001,14 @@ void Aura::HandleModSpellCritChance(bool apply, bool Real)
     if (target->GetTypeId() == TYPEID_UNIT)
     {
         for (uint8 school = SPELL_SCHOOL_NORMAL; school < MAX_SPELL_SCHOOL; ++school)
-            target->m_modSpellCritChance[school] += (apply ? m_modifier.m_amount : (-m_modifier.m_amount));
+            target->m_modSpellCritChance[school] += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
         return;
     }
 
     ((Player*)target)->UpdateAllSpellCritChances();
 }
 
-void Aura::HandleModSpellCritChanceShool(bool /*apply*/, bool Real)
+void Aura::HandleModSpellCritChanceShool(bool apply, bool Real)
 {
     // spells required only Real aura add/remove
     if (!Real)
@@ -5038,7 +5021,7 @@ void Aura::HandleModSpellCritChanceShool(bool /*apply*/, bool Real)
         if (m_modifier.m_miscvalue & (1 << school))
         {
             if (target->GetTypeId() == TYPEID_UNIT)
-                target->m_modSpellCritChance[school] += m_modifier.m_amount;
+                target->m_modSpellCritChance[school] += (apply ? m_modifier.m_amount : -m_modifier.m_amount);
             else
                 ((Player*)target)->UpdateSpellCritChance(school);
          }
@@ -5801,7 +5784,7 @@ void Aura::PeriodicTick()
             DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s attacked %s for %u dmg inflicted by %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
 
-            pCaster->DealDamageMods(target, pdamage, &absorb);
+            pCaster->DealDamageMods(target, pdamage, &absorb, DOT, spellProto);
 
             // Set trigger flag
             uint32 procAttacker = PROC_FLAG_ON_DO_PERIODIC; //  | PROC_FLAG_SUCCESSFUL_HARMFUL_SPELL_HIT;
@@ -5869,7 +5852,7 @@ void Aura::PeriodicTick()
             DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s health leech of %s for %u dmg inflicted by %u abs is %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId(), absorb);
 
-            pCaster->DealDamageMods(target, pdamage, &absorb);
+            pCaster->DealDamageMods(target, pdamage, &absorb, DOT, spellProto);
 
             pCaster->SendSpellNonMeleeDamageLog(target, GetId(), pdamage, GetSpellSchoolMask(spellProto), absorb, resist, false, 0);
 
@@ -5964,7 +5947,7 @@ void Aura::PeriodicTick()
                     uint32 damage = spellProto->manaPerSecond;
                     uint32 absorb = 0;
 
-                    pCaster->DealDamageMods(pCaster, damage, &absorb);
+                    pCaster->DealDamageMods(pCaster, damage, &absorb, NODAMAGE, spellProto);
                     if (pCaster->GetHealth() > damage)
                     {
                         pCaster->SendSpellNonMeleeDamageLog(pCaster, GetId(), damage, GetSpellSchoolMask(spellProto), absorb, 0, false, 0, false);
@@ -6180,7 +6163,7 @@ void Aura::PeriodicTick()
 
             damageInfo.target->CalculateAbsorbResistBlock(pCaster, &damageInfo, spellProto);
 
-            pCaster->DealDamageMods(damageInfo.target, damageInfo.damage, &damageInfo.absorb);
+            pCaster->DealDamageMods(damageInfo.target, damageInfo.damage, &damageInfo.absorb, SPELL_DIRECT_DAMAGE, spellProto);
 
             pCaster->SendSpellNonMeleeDamageLog(&damageInfo);
 

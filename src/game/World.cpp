@@ -142,6 +142,8 @@ void World::CleanupsBeforeStop()
     KickAll();                                       // save and kick all players
     UpdateSessions(1);                               // real players unload required UpdateSessions call
     sBattleGroundMgr.DeleteAllBattleGrounds();       // unload battleground templates before different singletons destroyed
+    sMapMgr.UnloadAll();                             // unload all grids (including locked in memory)
+    sScriptMgr.UnloadScriptLibrary();                // unload all scripts
 }
 
 /// Find a session by its id
@@ -1020,10 +1022,6 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading Weather Data...");
     sWeatherMgr.LoadWeatherZoneChances();
 
-    // Load Conditions
-    sLog.outString("Loading Conditions...");
-    sObjectMgr.LoadConditions();
-
     sLog.outString("Loading Quests...");
     sObjectMgr.LoadQuests();                                // must be loaded after DBCs, creature_template, item_template, gameobject tables
 
@@ -1036,6 +1034,9 @@ void World::SetInitialWorldSettings()
     sGameEventMgr.LoadFromDB();
     sLog.outString(">>> Game Event Data loaded");
     sLog.outString();
+
+    sLog.outString("Loading Conditions...");                // Load Conditions
+    sObjectMgr.LoadConditions();
 
     sLog.outString("Creating map persistent states for non-instanceable maps...");     // must be after PackInstances(), LoadCreatures(), sPoolMgr.LoadFromDB(), sGameEventMgr.LoadFromDB();
     sMapPersistentStateMgr.InitWorldMaps();
@@ -1226,9 +1227,6 @@ void World::SetInitialWorldSettings()
             break;
         case SCRIPT_LOAD_ERR_WRONG_API:
             sLog.outError("Scripting library has wrong list functions (outdated?).");
-            break;
-        case SCRIPT_LOAD_ERR_OUTDATED:
-            sLog.outError("Scripting library build for old mangosd revision. You need rebuild it.");
             break;
     }
     sLog.outString();

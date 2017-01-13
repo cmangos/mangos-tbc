@@ -319,7 +319,7 @@ class Spell
         Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
         ~Spell();
 
-        void SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura = nullptr);
+        SpellCastResult SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura = nullptr);
 
         void cancel();
 
@@ -465,6 +465,8 @@ class Spell
 
         void CleanupTargetList();
         void ClearCastItem();
+
+        void ProcSpellAuraTriggers();
 
         static void SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpell, uint32 spellId75, uint32 spellId150, uint32 spellId225, uint32 spellId300, uint32 spellIdSpecial);
 

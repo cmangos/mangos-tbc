@@ -763,10 +763,8 @@ bool Creature::AIM_Initialize()
         return false;
     }*/
 
-    CreatureAI* oldAI = m_ai;
     i_motionMaster.Initialize();
-    m_ai = FactorySelector::selectAI(this);
-    delete oldAI;
+    m_ai.reset(FactorySelector::selectAI(this));
 
     // Handle Spawned Events, also calls Reset()
     m_ai->JustRespawned();
@@ -1937,7 +1935,7 @@ bool Creature::IsOutOfThreatArea(Unit* pVictim) const
     if (!pVictim->isInAccessablePlaceFor(this))
         return true;
 
-    if (!pVictim->isVisibleForOrDetect(this, this, false))
+    if (!pVictim->isVisibleForOrDetect(this, this, true))
         return true;
 
     if (sMapStore.LookupEntry(GetMapId())->IsDungeon())

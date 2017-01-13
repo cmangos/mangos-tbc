@@ -155,7 +155,7 @@ SpellCastResult Pet::TryLoadFromDB(Unit* owner, uint32 petentry /*= 0*/, uint32 
     return SPELL_CAST_OK; // If errors occur down the line, one must think about data consistency
 }
 
-bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber /*= 0*/, bool current /*= false*/, uint32 healthPercentage /*= 0*/)
+bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber /*= 0*/, bool current /*= false*/, uint32 healthPercentage /*= 0*/, bool permanentOnly /*= false*/)
 {
     m_loading = true;
 
@@ -210,6 +210,12 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     uint32 summon_spell_id = fields[21].GetUInt32();
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(summon_spell_id);
 
+    if (permanentOnly && spellInfo && GetSpellDuration(spellInfo) > 0)
+    {
+        delete result;
+        return false;
+    }
+
     PetType pet_type = PetType(fields[22].GetUInt8());
     if (pet_type == HUNTER_PET)
     {
@@ -219,6 +225,8 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
             return false;
         }
     }
+
+    m_petType = pet_type;
 
     uint32 pet_number = fields[0].GetUInt32();
 
@@ -308,32 +316,6 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     uint32 savedpower = fields[14].GetUInt32();
     Powers powerType = GetPowerType();
 
-    // failsafe check
-    savedhealth = savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth;
-    savedpower = savedpower > GetMaxPower(powerType) ? GetMaxPower(powerType) : savedpower;
-
-    if (getPetType() == SUMMON_PET)
-    {
-        savedhealth = GetMaxHealth();
-        savedpower = GetMaxPower(powerType);
-    }
-    else if (!savedhealth)
-    {
-        if (getPetType() == HUNTER_PET && healthPercentage)
-        {
-            savedhealth = GetMaxHealth() * (float(healthPercentage) / 100);
-            savedpower = 0;
-        }
-        else
-        {
-            delete result;
-            return false;
-        }
-    }
-
-    SetHealth(savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth);
-    SetPower(powerType, savedpower > GetMaxPower(powerType) ? GetMaxPower(powerType) : savedpower);
-
     // load action bar, if data broken will fill later by default spells.
     m_charmInfo->LoadPetActionBar(fields[16].GetCppString());
 
@@ -368,6 +350,31 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     LearnPetPassives();
     CastPetAuras(current);
     CastOwnerTalentAuras();
+    InitTamedPetPassives(owner);
+    UpdateAllStats();
+
+    // failsafe check
+    savedhealth = savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth;
+    savedpower = savedpower > GetMaxPower(powerType) ? GetMaxPower(powerType) : savedpower;
+
+    if (getPetType() == SUMMON_PET)
+    {
+        savedhealth = GetMaxHealth();
+        savedpower = GetMaxPower(powerType);
+    }
+    else if (!savedhealth)
+    {
+        if (getPetType() == HUNTER_PET && healthPercentage)
+        {
+            savedhealth = GetMaxHealth() * (float(healthPercentage) / 100);
+            savedpower = 0;
+        }
+        else
+            return false;
+    }
+
+    SetHealth(savedhealth);
+    SetPower(powerType, savedpower);
 
     map->Add((Creature*)this);
     AIM_Initialize();
@@ -422,12 +429,16 @@ void Pet::SavePetToDB(PetSaveMode mode)
     if (!isControlled())
         return;
 
-    // not save not player pets
+    // dont save not player pets
     if (!GetOwnerGuid().IsPlayer())
         return;
 
     Player* pOwner = (Player*)GetOwner();
     if (!pOwner)
+        return;
+
+    // dont save shadowfiend
+    if (pOwner->getClass() == CLASS_PRIEST)
         return;
 
     // current/stable/not_in_slot
@@ -1419,32 +1430,25 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     // Apply custom health setting (from config)
     health *= _GetHealthMod(cInfo->Rank);
 
-    // Need to update stats before setting health and power or it will bug out in-game displaying it as the mob missing about 2/3
-    UpdateAllStats();
-
     // A pet cannot not have health
     if (health < 1)
         health = 1;
 
-    // Set health
+    // Set base Health and Mana
     SetCreateHealth(health);
-    SetMaxHealth(health);
-    SetHealth(health);
-    SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, health);
-
-    // Set mana
     SetCreateMana(mana);
-    SetMaxPower(POWER_MANA, mana);
-    SetPower(POWER_MANA, mana);
-    SetModifierValue(UNIT_MOD_MANA, BASE_VALUE, mana);
+    // Set base Armor
+    SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, armor);
+
+    // Need to update stats - calculates max health/mana etc
+    UpdateAllStats();
+
+    // Need to set Health to full
+    SetHealth(GetMaxHealth());
 
     // Remove rage bar from pets (By setting rage = 0, and ensuring it stays that way by setting max rage = 0 as well)
     SetMaxPower(POWER_RAGE, 0);
     SetPower(POWER_RAGE, 0);
-    SetModifierValue(UNIT_MOD_RAGE, BASE_VALUE, 0);
-
-    // Set armor
-    SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, armor);
 
     return;
 }
@@ -2269,4 +2273,43 @@ void Pet::SetModeFlags(PetModeFlags mode)
     data << GetObjectGuid();
     data << uint32(m_petModeFlags);
     ((Player*)owner)->GetSession()->SendPacket(data);
+}
+
+void Pet::InitTamedPetPassives(Unit* player)
+{
+    switch (player->getClass())
+    {
+        case CLASS_HUNTER:
+        {
+            // case 13481: Tame Beast
+            player->CastSpell(this, 8875, TRIGGERED_OLD_TRIGGERED);
+            break;
+        }
+        case CLASS_WARLOCK:
+        {
+            switch (GetUInt32Value(UNIT_CREATED_BY_SPELL))
+            {
+                case 688: // imp
+                    player->CastSpell(this, 18728, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 691: // felhunter
+                    player->CastSpell(this, 18730, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 697: // voidwalker
+                    player->CastSpell(this, 18727, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 712: // succubus
+                    player->CastSpell(this, 18729, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 30146: // felguard
+                    player->CastSpell(this, 30147, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        default:
+            break;
+    }
 }

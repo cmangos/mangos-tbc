@@ -1507,14 +1507,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void CalculateSpellDamage(SpellNonMeleeDamage* damageInfo, int32 damage, SpellEntry const* spellInfo, WeaponAttackType attackType = BASE_ATTACK);
         void DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss);
 
-        float GetMeleeCritChanceReduction() const { return GetCombatRatingReduction(CR_CRIT_TAKEN_MELEE); }
-        float GetRangedCritChanceReduction() const { return GetCombatRatingReduction(CR_CRIT_TAKEN_RANGED); }
-        float GetSpellCritChanceReduction() const { return GetCombatRatingReduction(CR_CRIT_TAKEN_SPELL); }
-
-        uint32 GetMeleeCritDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_MELEE, 2.0f, 25.0f, damage); }
-        uint32 GetRangedCritDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_RANGED, 2.0f, 25.0f, damage); }
-        uint32 GetSpellCritDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_SPELL, 2.0f, 25.0f, damage); }
-
         uint32 GetDoTDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_SPELL, 1.0f, 100.0f, damage); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
         uint32 GetManaDrainReduction(uint32 amount) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_SPELL, 1.0f, 100.0f, amount); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
 
@@ -1556,16 +1548,13 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool CanBlockAbility(const Unit* attacker, const SpellEntry* ability, bool miss = false) const;
         bool CanDeflectAbility(const Unit* attacker, const SpellEntry* ability) const;
 
-        float CalculateEffectiveDodgeChance(const Unit* attacker, WeaponAttackType attType, bool weapon = true) const;
-        float CalculateEffectiveParryChance(const Unit* attacker, WeaponAttackType attType, bool weapon = true) const;
-        float CalculateEffectiveBlockChance(const Unit* attacker, WeaponAttackType attType, bool weapon = true) const;
+        float CalculateEffectiveDodgeChance(const Unit* attacker, WeaponAttackType attType, const SpellEntry* ability = nullptr) const;
+        float CalculateEffectiveParryChance(const Unit* attacker, WeaponAttackType attType, const SpellEntry* ability = nullptr) const;
+        float CalculateEffectiveBlockChance(const Unit* attacker, WeaponAttackType attType, const SpellEntry* ability = nullptr) const;
         float CalculateEffectiveCrushChance(const Unit* victim, WeaponAttackType attType) const;
         float CalculateEffectiveGlanceChance(const Unit* victim, WeaponAttackType attType) const;
         float CalculateEffectiveDazeChance(const Unit* victim, WeaponAttackType attType) const;
 
-        float CalculateAbilityDodgeChance(const Unit* attacker, const SpellEntry* ability) const;
-        float CalculateAbilityParryChance(const Unit* attacker, const SpellEntry* ability) const;
-        float CalculateAbilityBlockChance(const Unit* attacker, const SpellEntry* ability) const;
         float CalculateAbilityDeflectChance(const Unit* attacker, const SpellEntry* ability) const;
 
         float GetDodgeChance() const;
@@ -1576,24 +1565,34 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         bool CanCrit(SpellSchoolMask schoolMask) const { return (GetCritChance(schoolMask) >= 0.01f); }
         bool CanCrit(const SpellEntry* entry, SpellSchoolMask schoolMask, WeaponAttackType attType) const;
 
-        float GetCritChance(WeaponAttackType attackType) const;
-        float GetCritChance(SpellSchoolMask schoolMask) const;
+        virtual float GetCritChance(WeaponAttackType attackType) const;
+        virtual float GetCritChance(SpellSchoolMask schoolMask) const;
+        virtual float GetCritChance(const SpellEntry* entry, SpellSchoolMask schoolMask) const;
 
-        float GetHitChance(WeaponAttackType attackType) const;
-        float GetHitChance(SpellSchoolMask schoolMask) const;
+        virtual float GetCritTakenChance(SpellSchoolMask dmgSchoolMask, SpellDmgClass dmgClass, bool heal = false) const;
 
-        float CalculateEffectiveCritChance(const Unit* victim, WeaponAttackType attType, bool weapon = true, bool ability = false) const;
-        float CalculateEffectiveMissChance(const Unit* victim, WeaponAttackType attType, bool weapon = true, bool ability = false) const;
+        virtual float GetCritMultiplier(SpellSchoolMask dmgSchoolMask, uint32 creatureTypeMask, const SpellEntry* spell = nullptr, bool heal = false) const;
+        virtual float GetCritTakenMultiplier(SpellSchoolMask dmgSchoolMask, SpellDmgClass dmgClass, float ignorePct = 0.0f, bool heal = false) const;
+        uint32 CalculateCritAmount(const Unit* victim, uint32 amount, const SpellEntry* entry, bool heal = false) const;
+        uint32 CalculateCritAmount(CalcDamageInfo* meleeInfo) const;
 
-        float CalculateAbilityCritChance(const Unit* victim, WeaponAttackType attType, const SpellEntry* ability) const;
-        float CalculateAbilityMissChance(const Unit* victim, WeaponAttackType attType, const SpellEntry* ability) const;
+        virtual float GetHitChance(WeaponAttackType attackType) const;
+        virtual float GetHitChance(SpellSchoolMask schoolMask) const;
+        virtual float GetHitChance(const SpellEntry* entry, SpellSchoolMask schoolMask) const;
+
+        virtual float GetMissChance(WeaponAttackType attackType) const;
+        virtual float GetMissChance(SpellSchoolMask schoolMask) const;
+        virtual float GetMissChance(const SpellEntry* entry, SpellSchoolMask schoolMask) const;
+
+        float CalculateEffectiveCritChance(const Unit* victim, WeaponAttackType attType, const SpellEntry *ability = nullptr) const;
+        float CalculateEffectiveMissChance(const Unit* victim, WeaponAttackType attType, const SpellEntry *ability = nullptr) const;
 
         float CalculateSpellCritChance(const Unit* victim, SpellSchoolMask schoolMask, const SpellEntry* spell) const;
         float CalculateSpellMissChance(const Unit* victim, SpellSchoolMask schoolMask, const SpellEntry* spell) const;
 
         float GetExpertisePercent(WeaponAttackType attType) const;
 
-        int32 GetResistancePenetration(SpellSchools school) const;
+        virtual int32 GetResistancePenetration(SpellSchools school) const;
 
         float CalculateEffectiveMagicResistancePercent(const Unit* attacker, SpellSchoolMask schoolMask, bool binary = false) const;
 
@@ -1993,7 +1992,7 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         void AddThreat(Unit* pVictim, float threat = 0.0f, bool crit = false, SpellSchoolMask schoolMask = SPELL_SCHOOL_MASK_NONE, SpellEntry const* threatSpell = nullptr);
         float ApplyTotalThreatModifier(float threat, SpellSchoolMask schoolMask = SPELL_SCHOOL_MASK_NORMAL);
         void DeleteThreatList();
-        bool IsSecondChoiceTarget(Unit* pTarget, bool checkThreatArea);
+        bool IsSecondChoiceTarget(Unit* pTarget, bool taunt, bool checkThreatArea);
         bool SelectHostileTarget();
         void TauntApply(Unit* pVictim);
         void TauntFadeOut(Unit* taunter);
@@ -2079,9 +2078,6 @@ class MANGOS_DLL_SPEC Unit : public WorldObject
         uint32 MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackType attType, SpellEntry const* spellProto = nullptr, DamageEffectType damagetype = DIRECT_DAMAGE, uint32 stack = 1);
 
         bool   IsSpellCrit(Unit* pVictim, SpellEntry const* spellProto, SpellSchoolMask schoolMask, WeaponAttackType attackType = BASE_ATTACK);
-        uint32 SpellCriticalDamageBonus(SpellEntry const* spellProto, uint32 amount, Unit* pVictim) const;
-        uint32 SpellCriticalHealingBonus(SpellEntry const* spellProto, uint32 damage, Unit* pVictim) const;
-        uint32 MeleeCriticalDamageBonus(WeaponAttackType attackType, SpellSchoolMask schoolMask, uint32* cleanDamage, uint32 amount, Unit* pVictim);
 
         bool IsTriggeredAtSpellProcEvent(Unit* pVictim, SpellAuraHolder* holder, SpellEntry const* procSpell, uint32 procFlag, uint32 procExtra, WeaponAttackType attType, bool isVictim, SpellProcEventEntry const*& spellProcEvent);
         // Aura proc handlers

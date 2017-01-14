@@ -551,7 +551,7 @@ class ScriptMgr
         void LoadCreatureMovementScripts();
 
         void LoadDbScriptStrings();
-        void LoadDbScriptStringTemplates();
+        void LoadDbScriptStringTemplates(std::set<int32>& ids);
 
         void LoadScriptNames();
         void LoadAreaTriggerScripts();

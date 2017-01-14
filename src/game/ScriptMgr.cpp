@@ -890,13 +890,14 @@ void ScriptMgr::LoadCreatureDeathScripts()
 void ScriptMgr::LoadDbScriptStrings()
 {
     sObjectMgr.LoadMangosStrings(WorldDatabase, "db_script_string", MIN_DB_SCRIPT_STRING_ID, MAX_DB_SCRIPT_STRING_ID, true);
-    LoadDbScriptStringTemplates();
 
     std::set<int32> ids;
 
     for (int32 i = MIN_DB_SCRIPT_STRING_ID; i < MAX_DB_SCRIPT_STRING_ID; ++i)
         if (sObjectMgr.GetMangosStringLocale(i))
             ids.insert(i);
+
+    LoadDbScriptStringTemplates(ids);
 
     CheckScriptTexts(sQuestEndScripts, ids);
     CheckScriptTexts(sQuestStartScripts, ids);
@@ -914,7 +915,7 @@ void ScriptMgr::LoadDbScriptStrings()
         sLog.outErrorDb("Table `db_script_string` has unused string id %u", *itr);
 }
 
-void ScriptMgr::LoadDbScriptStringTemplates()
+void ScriptMgr::LoadDbScriptStringTemplates(std::set<int32>& ids)
 {
     sLog.outString("Loading script string templates");
 
@@ -929,6 +930,9 @@ void ScriptMgr::LoadDbScriptStringTemplates()
             uint32 id = fields[0].GetUInt32();
             int32 stringId = fields[1].GetInt32();
             m_stringTemplates[id].push_back(stringId);
+
+            if (ids.find(stringId) != ids.end())
+                ids.erase(stringId);
         }
         while (result->NextRow());
 

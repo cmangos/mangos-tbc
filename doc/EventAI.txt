@@ -948,6 +948,7 @@ Target types are used by certain actions and may effect actions differently
 8    TARGET_T_HOSTILE_RANDOM_PLAYER          Random Player on The Threat List
 9    TARGET_T_HOSTILE_RANDOM_NOT_TOP_PLAYER  Any Random Player Except Top Threat
 10   TARGET_T_EVENT_SENDER              Creature who sent a received AIEvent - only triggered by EVENT_T_RECEIVE_AI_EVENT
+11   TARGET_T_SUMMONER                  Summoner of given Unit if it has one
 
 =========================================
 Cast Flags

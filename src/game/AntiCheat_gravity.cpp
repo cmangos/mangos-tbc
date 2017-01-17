@@ -5,16 +5,6 @@ AntiCheat_gravity::AntiCheat_gravity(CPlayer* player) : AntiCheat(player)
 {
     m_StartFallZ = 0;
     m_Falling = false;
-
-    gravity = 19.29110527038574;
-
-    /// Velocity bounds that makes fall speed limited
-    terminalVelocity = 60.148003f;
-    terminalSavefallVelocity = 7.f;
-
-    terminal_length = float(terminalVelocity* terminalVelocity) / (2.f* gravity);
-    terminal_savefall_length = (terminalSavefallVelocity* terminalSavefallVelocity) / (2.f* gravity);
-    terminalFallTime = float(terminalVelocity / gravity); // the time that needed to reach terminalVelocity
 }
 
 bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
@@ -54,7 +44,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if ((isFalling() || opcode == MSG_MOVE_JUMP) && m_Player->HasAuraType(SPELL_AURA_FEATHER_FALL))
         m_SlowFall = true;
 
-    float expectedfalldist = computeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
+    float expectedfalldist = ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
     float expectedz = m_StartFallZ - expectedfalldist;
 
     float diff = m_MoveInfo[0].GetPos()->z - expectedz;
@@ -74,10 +64,12 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
             m_Player->BoxChat << "expectedz: " << expectedz << std::endl;
             m_Player->BoxChat << "falltime: " << falltime << std::endl;
             m_Player->BoxChat << "velocity: " << m_StartVelocity << std::endl;
+            m_Player->BoxChat << "m_SlowFall: " << m_SlowFall << std::endl;
+            m_Player->BoxChat << "velocityZ: " << GetDistanceZ() / GetDiffInSec() << std::endl;
             m_Player->BoxChat << "diff: " << diff << std::endl;
         }
 
-        m_Player->BoxChat << "Gravitycheat" << std::endl;
+        m_Player->BoxChat << "GRAVITYCHEAT" << std::endl;
 
         const Position* p = m_MoveInfo[2].GetPos();
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
@@ -111,18 +103,19 @@ void AntiCheat_gravity::HandleKnockBack(float angle, float horizontalSpeed, floa
     m_StartVelocity = -verticalSpeed;
 }
 
-float AntiCheat_gravity::computeFallElevation(float t_passed, bool isSafeFall, float start_velocity)
+float AntiCheat_gravity::ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity)
 {
-    float termVel = isSafeFall ? terminalSavefallVelocity : terminalVelocity;
-    float result;
+    double gravity = 19.29110527038574;
+    /// Velocity bounds that makes fall speed limited
+    float terminalVelocity = isSafeFall ? 7.f : 60.148003f;
 
-    if (isSafeFall)
-        termVel = terminalSavefallVelocity;
-    else
-        termVel = terminalVelocity;
+    float terminal_length = float(terminalVelocity * terminalVelocity) / (2.f* gravity);
+    float terminalFallTime = float(terminalVelocity / gravity); // the time that needed to reach terminalVelocity
 
-    if (start_velocity > termVel)
-        start_velocity = termVel;
+    float result = 0.f;
+
+    if (start_velocity > terminalVelocity)
+        start_velocity = terminalVelocity;
 
     float terminal_time = terminalFallTime - start_velocity / gravity; // the time that needed to reach terminalVelocity
 

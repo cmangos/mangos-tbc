@@ -11,7 +11,7 @@ public:
     void HandleTeleport(uint32 map, float x, float y, float z, float o);
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
 
-    float computeFallElevation(float t_passed, bool isSafeFall, float start_velocity);
+    float ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity);
 
 private:
     float m_StartFallZ;
@@ -21,13 +21,5 @@ private:
     bool m_Jumping;
     bool m_SlowFall;
 
-    double gravity;
 
-    /// Velocity bounds that makes fall speed limited
-    float terminalVelocity;
-    float terminalSavefallVelocity;
-
-    float terminal_length;
-    float terminal_savefall_length;
-    float terminalFallTime;
 };

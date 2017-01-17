@@ -164,8 +164,8 @@ struct boss_alarAI : public ScriptedAI
         if (pSummoned->GetEntry() == NPC_EMBER_OF_ALAR)
         {
             // Check first if we have enough health to drain
-            if (m_creature->GetHealth() <= m_creature->GetMaxHealth()*.03f)
-                m_creature->DealDamage(m_creature, m_creature->GetMaxHealth()*.03f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+            if (m_creature->GetHealth() <= m_creature->GetMaxHealth()*.02f)
+                m_creature->DealDamage(m_creature, m_creature->GetMaxHealth()*.02f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
             else
                 m_creature->DealDamage(m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
         }

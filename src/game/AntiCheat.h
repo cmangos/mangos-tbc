@@ -15,7 +15,7 @@ public:
     AntiCheat(CPlayer* player);
     virtual ~AntiCheat() {}
 
-    virtual bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode) = 0;
+    virtual bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat) = 0;
     virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };
     virtual void HandleRelocate(float x, float y, float z, float o);
     virtual void HandleTeleport(uint32 map, float x, float y, float z, float o);
@@ -59,7 +59,7 @@ protected:
     float GetDiffInSec();
     float GetVirtualDiffInSec();
 
-    bool SetOldMoveInfo(bool value = false) { m_MoveInfo[1] = m_MoveInfo[0]; return value; }
+    bool SetOldMoveInfo(bool value) { m_MoveInfo[1] = m_MoveInfo[0]; return value; }
 
     CPlayer* m_Player;
     MovementInfo m_MoveInfo[3];

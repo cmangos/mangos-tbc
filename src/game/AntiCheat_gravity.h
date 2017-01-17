@@ -7,7 +7,7 @@ class AntiCheat_gravity : public AntiCheat
 public:
     AntiCheat_gravity(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
+    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat);
     void HandleTeleport(uint32 map, float x, float y, float z, float o);
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
 

@@ -8,9 +8,11 @@ AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
+bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
 {
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+
+    float speedrounding = 100.f;
 
     bool skipcheat = false;
 
@@ -43,20 +45,20 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     else
         fallspeed = 0.f;
 
-    float d2speed = (onTransport ? GetTransportDist2D() : GetDistance2D()) / GetVirtualDiffInSec();
-    float d3speed = (onTransport ? GetTransportDist3D() : GetDistance3D()) / GetVirtualDiffInSec();
-    float travelspeed = floor((isFlying() || isSwimming() ? d3speed : d2speed) * 100.f) / 100.f;
+    bool threed = isFlying() || isSwimming();
+
+    float travelspeed = floor(((onTransport ? GetTransportDist(threed) : GetDistance(threed)) / GetVirtualDiffInSec()) * speedrounding) / speedrounding;
 
     bool cheating = false;
 
-    if (travelspeed > allowedspeed && ((isFalling() && GetDistanceZ() > 0.f) || !isFalling()))
-        cheating = true;
-
-    if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed)
+    if (travelspeed > allowedspeed)
         cheating = true;
 
     if (isTransport(m_MoveInfo[0]) && !verifyTransportCoords(m_MoveInfo[0]))
         cheating = false;
+
+    if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed)
+        cheating = true;
 
     if (knockback)
         cheating = false;

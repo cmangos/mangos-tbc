@@ -6,7 +6,7 @@ AntiCheat_test::AntiCheat_test(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_test::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
+bool AntiCheat_test::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
 {
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
 

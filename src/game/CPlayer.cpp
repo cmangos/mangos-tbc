@@ -19,11 +19,11 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
     //new AntiCheat_speed(this);
     //new AntiCheat_teleport(this);
-    //new AntiCheat_fly(this);
-    //new AntiCheat_jump(this);
+    new AntiCheat_fly(this);
+    new AntiCheat_jump(this);
     //new AntiCheat_nofall(this);
-    //new AntiCheat_gravity(this);
-    //new AntiCheat_waterwalking(this);
+    new AntiCheat_gravity(this);
+    new AntiCheat_waterwalking(this);
     //new AntiCheat_wallclimb(this);
     //new AntiCheat_walljump(this);
     //new AntiCheat_tptoplane(this);
@@ -43,7 +43,7 @@ bool CPlayer::HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode)
     bool cheat = false;
 
     for (auto& i : m_AntiCheatStorage)
-        if (i->HandleMovement(moveInfo, opcode))
+        if (i->HandleMovement(moveInfo, opcode, cheat))
             cheat = true;
 
     return cheat;

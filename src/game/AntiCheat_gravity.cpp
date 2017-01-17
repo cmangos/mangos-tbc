@@ -7,7 +7,7 @@ AntiCheat_gravity::AntiCheat_gravity(CPlayer* player) : AntiCheat(player)
     m_Falling = false;
 }
 
-bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
+bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
 {
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
 
@@ -55,7 +55,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
     if (!m_Jumping)
         diff -= m_InitialDiff;
 
-    if (m_Falling && diff > 0.05f)
+    if (!cheat && m_Falling && diff > 0.05f)
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
@@ -69,10 +69,12 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
             m_Player->BoxChat << "diff: " << diff << std::endl;
         }
 
-        m_Player->BoxChat << "GRAVITYCHEAT" << std::endl;
+        m_Player->BoxChat << "Gravity hack" << std::endl;
 
         const Position* p = m_MoveInfo[2].GetPos();
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+
+        return SetOldMoveInfo(true);
     }
 
     if (stopfalling || opcode == MSG_MOVE_FALL_LAND || opcode == MSG_MOVE_START_SWIM)
@@ -83,9 +85,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
         m_InitialDiff = 0;
     }
 
-    SetOldMoveInfo();
-
-    return false;
+    return SetOldMoveInfo(false);
 }
 
 void AntiCheat_gravity::HandleTeleport(uint32 mapid, float x, float y, float z, float o)

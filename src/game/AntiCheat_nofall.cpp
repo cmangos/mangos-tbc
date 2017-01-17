@@ -6,7 +6,7 @@ AntiCheat_nofall::AntiCheat_nofall(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_nofall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
+bool AntiCheat_nofall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
 {
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
 

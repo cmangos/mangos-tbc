@@ -5,7 +5,7 @@ AntiCheat_fly::AntiCheat_fly(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_fly::HandleMovement(MovementInfo& moveInfo, Opcodes opcode)
+bool AntiCheat_fly::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
 {
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
 

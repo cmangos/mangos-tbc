@@ -7,6 +7,6 @@ class AntiCheat_fly : public AntiCheat
 public:
     AntiCheat_fly(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
+    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat);
     bool CanFly();
 };

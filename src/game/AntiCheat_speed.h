@@ -7,7 +7,7 @@ class AntiCheat_speed : public AntiCheat
 public:
     AntiCheat_speed(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
+    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat);
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
     void HandleRelocate(float x, float y, float z, float o);
 private:

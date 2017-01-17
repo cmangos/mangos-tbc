@@ -7,7 +7,7 @@ class AntiCheat_nofall : public AntiCheat
 public:
     AntiCheat_nofall(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode);
+    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat);
     void HandleRelocate(float x, float y, float z, float o);
     void HandleTeleport(uint32 map, float x, float y, float z, float o);
 private:

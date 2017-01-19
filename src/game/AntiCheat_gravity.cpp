@@ -72,9 +72,8 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
             m_Player->BoxChat << "m_SlowFall: " << m_SlowFall << std::endl;
             m_Player->BoxChat << "velocityZ: " << GetDistanceZ() / GetDiffInSec() << std::endl;
             m_Player->BoxChat << "diff: " << diff << std::endl;
+            m_Player->BoxChat << "Gravity hack" << std::endl;
         }
-
-        m_Player->BoxChat << "Gravity hack" << std::endl;
 
         const Position* p = m_MoveInfo[2].GetPos();
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);

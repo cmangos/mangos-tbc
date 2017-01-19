@@ -1617,17 +1617,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     Cell::VisitAllObjects(m_caster, searcher, max_range);
                     break;
                 }
+                case TARGET_RANDOM_UNIT_CHAIN_IN_AREA: // TODO: Rename TARGET_RANDOM_UNIT_CHAIN_IN_AREA to something better and find real difference with TARGET_RANDOM_FRIEND_CHAIN_IN_AREA.
                 case TARGET_RANDOM_FRIEND_CHAIN_IN_AREA:
                 {
                     MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(m_caster, max_range);
                     MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> searcher(tempTargetUnitMap, u_check);
-                    Cell::VisitAllObjects(m_caster, searcher, max_range);
-                    break;
-                }
-                case TARGET_RANDOM_UNIT_CHAIN_IN_AREA:
-                {
-                    MaNGOS::AnyUnitInObjectRangeCheck u_check(m_caster, max_range);
-                    MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(tempTargetUnitMap, u_check);
                     Cell::VisitAllObjects(m_caster, searcher, max_range);
                     break;
                 }
@@ -1813,37 +1807,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                             radius, PUSH_DEST_CENTER, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetB);
 
             if (!tempTargetUnitMap.empty())
-            {
-                for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
-                {
-                    if ((*iter)->GetTypeId() != TYPEID_UNIT)
-                        continue;
-
-                    for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
-                    {
-                        if (i_spellST->CanNotHitWithSpellEffect(effIndex))
-                            continue;
-
-                        // only creature entries supported for this target type
-                        if (i_spellST->type == SPELL_TARGET_TYPE_GAMEOBJECT)
-                            continue;
-
-                        if ((*iter)->GetEntry() == i_spellST->targetEntry)
-                        {
-                            if (i_spellST->type == SPELL_TARGET_TYPE_DEAD && ((Creature*)(*iter))->IsCorpse())
-                            {
-                                targetUnitMap.push_back((*iter));
-                            }
-                            else if (i_spellST->type == SPELL_TARGET_TYPE_CREATURE && (*iter)->isAlive())
-                            {
-                                targetUnitMap.push_back((*iter));
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
+                CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
             break;
         }
         case TARGET_AREAEFFECT_CUSTOM:
@@ -1862,37 +1826,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
 
             if (!tempTargetUnitMap.empty())
-            {
-                for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
-                {
-                    if ((*iter)->GetTypeId() != TYPEID_UNIT)
-                        continue;
-
-                    for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
-                    {
-                        if (i_spellST->CanNotHitWithSpellEffect(effIndex))
-                            continue;
-
-                        // only creature entries supported for this target type
-                        if (i_spellST->type == SPELL_TARGET_TYPE_GAMEOBJECT)
-                            continue;
-
-                        if ((*iter)->GetEntry() == i_spellST->targetEntry)
-                        {
-                            if (i_spellST->type == SPELL_TARGET_TYPE_DEAD && ((Creature*)(*iter))->IsCorpse())
-                            {
-                                targetUnitMap.push_back((*iter));
-                            }
-                            else if (i_spellST->type == SPELL_TARGET_TYPE_CREATURE && (*iter)->isAlive())
-                            {
-                                targetUnitMap.push_back((*iter));
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
+                CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
             else
             {
                 // remove not targetable units if spell has no script targets
@@ -2129,36 +2063,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                             radius, PUSH_IN_FRONT_15, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetB);
 
             if (!tempTargetUnitMap.empty())
-            {
-                for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
-                {
-                    if ((*iter)->GetTypeId() != TYPEID_UNIT)
-                        continue;
-
-                    for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
-                    {
-                        if (i_spellST->CanNotHitWithSpellEffect(effIndex))
-                            continue;
-
-                        // only creature entries supported for this target type
-                        if (i_spellST->type == SPELL_TARGET_TYPE_GAMEOBJECT)
-                            continue;
-
-                        if ((*iter)->GetEntry() == i_spellST->targetEntry)
-                        {
-                            if (i_spellST->type == SPELL_TARGET_TYPE_DEAD && ((Creature*)(*iter))->IsCorpse())
-                            {
-                                targetUnitMap.push_back((*iter));
-                            }
-                            else if (i_spellST->type == SPELL_TARGET_TYPE_CREATURE && (*iter)->isAlive())
-                            {
-                                targetUnitMap.push_back((*iter));
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
+                CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
             break;
         }
         case TARGET_DUELVSPLAYER:
@@ -2901,6 +2806,38 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         // Add resulting GOs as GOTargets
         for (std::list<GameObject*>::iterator iter = tempTargetGOList.begin(); iter != tempTargetGOList.end(); ++iter)
             AddGOTarget(*iter, effIndex);
+    }
+}
+
+void Spell::CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> &bounds, UnitList &tempTargetUnitMap, UnitList &targetUnitMap, SpellEffectIndex effIndex)
+{
+    for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
+    {
+        if ((*iter)->GetTypeId() != TYPEID_UNIT)
+            continue;
+
+        for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+        {
+            if (i_spellST->CanNotHitWithSpellEffect(effIndex))
+                continue;
+
+            // only creature entries supported for this target type
+            if (i_spellST->type == SPELL_TARGET_TYPE_GAMEOBJECT)
+                continue;
+
+            if ((*iter)->GetEntry() == i_spellST->targetEntry)
+            {
+                if (i_spellST->type == SPELL_TARGET_TYPE_DEAD && ((Creature*)(*iter))->IsCorpse())
+                {
+                    targetUnitMap.push_back((*iter));
+                }
+                else if (i_spellST->type == SPELL_TARGET_TYPE_CREATURE && (*iter)->isAlive())
+                {
+                    targetUnitMap.push_back((*iter));
+                }
+                break;
+            }
+        }
     }
 }
 
@@ -4700,19 +4637,21 @@ SpellCastResult Spell::CheckCast(bool strict)
         if (target->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
             return SPELL_FAILED_BAD_TARGETS;
 
-        // Check if more powerful spell applied on target
-        Unit::SpellAuraHolderMap const& spair = target->GetSpellAuraHolderMap();
-
-        for (Unit::SpellAuraHolderMap::const_iterator iter = spair.begin(); iter != spair.end(); ++iter)
+        // Check if more powerful spell applied on target (if spell only contains non-aoe auras)
+        if (IsAuraApplyEffects(m_spellInfo, EFFECT_MASK_ALL) && !IsAreaOfEffectSpell(m_spellInfo) && !HasAreaAuraEffect(m_spellInfo))
         {
-            const SpellAuraHolder* existing = iter->second;
-            const SpellEntry* entry = existing->GetSpellProto();
-            if (m_caster != existing->GetCaster() && sSpellMgr.IsNoStackSpellDueToSpell(m_spellInfo, entry))
+            Unit::SpellAuraHolderMap const& spair = target->GetSpellAuraHolderMap();
+            for (Unit::SpellAuraHolderMap::const_iterator iter = spair.begin(); iter != spair.end(); ++iter)
             {
-                // We cannot overwrite someone else's more powerful spell
-                if (IsSimilarExistingAuraStronger(m_caster, m_spellInfo->Id, existing) ||
-                    (sSpellMgr.IsRankSpellDueToSpell(m_spellInfo, entry->Id) && sSpellMgr.IsHighRankOfSpell(entry->Id, m_spellInfo->Id)))
-                    return SPELL_FAILED_AURA_BOUNCED;
+                const SpellAuraHolder* existing = iter->second;
+                const SpellEntry* entry = existing->GetSpellProto();
+                if (m_caster != existing->GetCaster() && sSpellMgr.IsNoStackSpellDueToSpell(m_spellInfo, entry))
+                {
+                    // We cannot overwrite someone else's more powerful spell
+                    if (IsSimilarExistingAuraStronger(m_caster, m_spellInfo->Id, existing) ||
+                        (sSpellMgr.IsRankSpellDueToSpell(m_spellInfo, entry->Id) && sSpellMgr.IsHighRankOfSpell(entry->Id, m_spellInfo->Id)))
+                        return SPELL_FAILED_AURA_BOUNCED;
+                }
             }
         }
     }
@@ -4971,7 +4910,16 @@ SpellCastResult Spell::CheckCast(bool strict)
         {
             case SPELL_EFFECT_DUMMY:
             {
-                if (m_spellInfo->SpellIconID == 1648)       // Execute
+                // By Spell ID
+                if (m_spellInfo->Id == 19938)               // Awaken Lazy Peon
+                {
+                    Unit* target = m_targets.getUnitTarget();
+                    // 17743 = Lazy Peon Sleep | 10556 = Lazy Peon
+                    if (!target || !target->HasAura(17743) || target->GetEntry() != 10556)
+                        return SPELL_FAILED_BAD_TARGETS;
+                }
+                // By SpellIconID
+                else if (m_spellInfo->SpellIconID == 1648)       // Execute
                 {
                     Unit* target = m_targets.getUnitTarget();
                     if (!target || target->GetHealth() > target->GetMaxHealth() * 0.2)

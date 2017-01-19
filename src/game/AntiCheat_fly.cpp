@@ -17,8 +17,10 @@ bool AntiCheat_fly::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool 
 
     if (isFlying(m_MoveInfo[0]) && !CanFly())
     {
+        if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
+            m_Player->BoxChat << "FLY CHEAT" << "\n";
+
         m_Player->SetCanFly(false);
-        m_Player->BoxChat << "FLY CHEAT" << "\n";
     }
 
     m_MoveInfo[1] = m_MoveInfo[0];

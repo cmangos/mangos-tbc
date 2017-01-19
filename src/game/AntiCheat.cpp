@@ -51,7 +51,6 @@ bool AntiCheat::IsMoving()
     return IsMoving(m_MoveInfo[0]) || IsMoving(m_MoveInfo[1]);
 }
 
-
 bool AntiCheat::isFlying(MovementInfo& moveInfo)
 {
     return moveInfo.HasMovementFlag(MOVEFLAG_FLYING) || moveInfo.HasMovementFlag(MOVEFLAG_FLYING2);
@@ -182,39 +181,26 @@ float AntiCheat::GetTransportDistZ()
     return m_MoveInfo[0].GetTransportPos()->z - m_MoveInfo[1].GetTransportPos()->z;
 }
 
-float AntiCheat::GetSpeed(MovementInfo& moveInfo)
+float AntiCheat::GetSpeed()
 {
-    float speed = 0;
+    // Positive speed modifiers are applied if they're active in current or previous, negative if they're active in previous and current.
+    bool back = m_MoveInfo[0].HasMovementFlag(MOVEFLAG_BACKWARD) && m_MoveInfo[1].HasMovementFlag(MOVEFLAG_BACKWARD);
 
-    bool back = moveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
+    float speed = m_Player->GetSpeed(back ? MOVE_RUN_BACK : MOVE_RUN);
 
-    if (moveInfo.HasMovementFlag(MOVEFLAG_WALK_MODE))
-        speed = m_Player->GetSpeed(MOVE_WALK);
-    else if (moveInfo.HasMovementFlag(MOVEFLAG_SWIMMING))
-        speed = m_Player->GetSpeed(back ? MOVE_SWIM_BACK : MOVE_SWIM);
-    else if (moveInfo.HasMovementFlag(MOVEFLAG_FLYING))
+    if (isFlying(m_MoveInfo[0]) || isFlying(m_MoveInfo[1]))
         speed = m_Player->GetSpeed(back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
-    else
-        speed = m_Player->GetSpeed(back ? MOVE_RUN_BACK : MOVE_RUN);
+    else if (isWalking(m_MoveInfo[0]) && isWalking(m_MoveInfo[1]))
+        speed = m_Player->GetSpeed(MOVE_WALK);
+    else if (isSwimming(m_MoveInfo[0]) && isSwimming(m_MoveInfo[1]))
+        speed = m_Player->GetSpeed(back ? MOVE_SWIM_BACK : MOVE_SWIM);
 
     return speed;
 }
 
-float AntiCheat::GetSpeed(bool high)
+float AntiCheat::GetAllowedDistance()
 {
-    float speed[2];
-    for (uint8 i = 0; i < 2; ++i)
-        speed[i] = GetSpeed(m_MoveInfo[i]);
-
-    if (high)
-        return std::max(speed[0], speed[1]);
-
-    return std::min(speed[0], speed[1]);
-}
-
-float AntiCheat::GetAllowedDistance(bool high)
-{
-    return GetDiffInSec() * GetSpeed(high);
+    return GetDiffInSec() * GetSpeed();
 }
 
 uint32 AntiCheat::GetDiff()

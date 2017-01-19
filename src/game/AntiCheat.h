@@ -51,9 +51,8 @@ protected:
     float GetTransportDist3D();
     float GetTransportDistZ();
 
-    float GetSpeed(MovementInfo& moveInfo);
-    float GetSpeed(bool high = true);
-    float GetAllowedDistance(bool high = true);
+    float GetSpeed();
+    float GetAllowedDistance();
 
     uint32 GetDiff();
     float GetDiffInSec();

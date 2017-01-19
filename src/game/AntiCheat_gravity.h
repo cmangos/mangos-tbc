@@ -20,6 +20,4 @@ private:
     bool m_Falling;
     bool m_Jumping;
     bool m_SlowFall;
-
-
 };

@@ -41,8 +41,13 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
             m_Jumping = true;
     }
 
-    if ((isFalling() || opcode == MSG_MOVE_JUMP) && m_Player->HasAuraType(SPELL_AURA_FEATHER_FALL))
+    bool oldslowfall = m_SlowFall;
+
+    if ((m_Falling || isFalling() || opcode == MSG_MOVE_JUMP) && m_Player->HasAuraType(SPELL_AURA_FEATHER_FALL))
         m_SlowFall = true;
+
+    if (!oldslowfall && m_SlowFall)
+        m_InitialDiff = 0;
 
     float expectedfalldist = ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
     float expectedz = m_StartFallZ - expectedfalldist;
@@ -55,7 +60,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
     if (!m_Jumping)
         diff -= m_InitialDiff;
 
-    if (!cheat && m_Falling && diff > 0.05f)
+    if (!cheat && m_Falling && diff > 0.05f) // Make acceptable diff configureable
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {

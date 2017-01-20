@@ -10,10 +10,7 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode,
     m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
 
     if (!Initialized())
-    {
-        m_MoveInfo[1] = m_MoveInfo[0];
-        return false;
-    }
+        return SetOldMoveInfo(false);
 
     if ((GetDistanceZ() < WALKABLE_CLIMB && GetDistanceZ() > 0.f) && !isFalling(m_MoveInfo[0]))
         return false;
@@ -34,3 +31,8 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode,
     return SetOldMoveInfo(false);
 }
 
+void AntiCheat_wallclimb::HandleRelocate(float x, float y, float z, float o)
+{
+    if (m_Player->IsTaxiFlying())
+        AntiCheat::HandleRelocate(x, y, z, o);
+}

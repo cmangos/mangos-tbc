@@ -17,10 +17,11 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool
 
     if (!cheat && opcode == MSG_MOVE_JUMP && isFalling(m_MoveInfo[1]))
     {
-        const Position* pos = m_MoveInfo[2].GetPos();
+        const Position* p = m_MoveInfo[2].GetPos();
+        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
-        m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_COMBAT);
-        m_Player->BoxChat << "Jump hack" << "\n";
+        if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
+            m_Player->BoxChat << "Jump hack" << "\n";
 
         return SetOldMoveInfo(true);
     }

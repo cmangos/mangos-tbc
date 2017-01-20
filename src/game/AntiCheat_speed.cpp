@@ -74,7 +74,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
     if (isTransport(m_MoveInfo[0]) && !verifyTransportCoords(m_MoveInfo[0]))
         cheating = false;
 
-    if (cheating)
+    if (!cheat && cheating)
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
@@ -90,13 +90,12 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
 
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
+        return SetOldMoveInfo(true);
     }
     else
         m_MoveInfo[2] = m_MoveInfo[0];
 
-    m_MoveInfo[1] = m_MoveInfo[0];
-
-    return false;
+    return SetOldMoveInfo(false);
 }
 
 void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)

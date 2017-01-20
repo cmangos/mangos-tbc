@@ -18,7 +18,7 @@
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
     new AntiCheat_speed(this);
-    //new AntiCheat_teleport(this);
+    new AntiCheat_teleport(this);
     new AntiCheat_fly(this);
     new AntiCheat_jump(this);
     //new AntiCheat_nofall(this);

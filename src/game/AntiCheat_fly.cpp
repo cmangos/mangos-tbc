@@ -11,20 +11,24 @@ bool AntiCheat_fly::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool 
 
     if (!Initialized())
     {
-        m_MoveInfo[1] = m_MoveInfo[0];
-        return false;
+        m_LastFlyTime = m_MoveInfo[0].GetTime();
+        return SetOldMoveInfo(false);
     }
 
-    if (isFlying(m_MoveInfo[0]) && !CanFly())
+    if (isFlying(m_MoveInfo[0]) && CanFly())
+        m_LastFlyTime = m_MoveInfo[0].GetTime();
+
+    if (isFlying(m_MoveInfo[0]) && !CanFly() && m_LastFlyTime + 250 < m_MoveInfo[0].GetTime())
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "FLY CHEAT" << "\n";
 
         m_Player->SetCanFly(false);
+
+        return SetOldMoveInfo(true);
     }
 
-    m_MoveInfo[1] = m_MoveInfo[0];
-    return false;
+    return SetOldMoveInfo(false);
 }
 
 bool AntiCheat_fly::CanFly()

@@ -53,8 +53,6 @@ set(SRC_GRP_CUSTOM
     AntiCheat.h
     AntiCheat_jump.cpp
     AntiCheat_jump.h
-    AntiCheat_nofall.cpp
-    AntiCheat_nofall.h
     AntiCheat_speed.cpp
     AntiCheat_speed.h
     AntiCheat_teleport.cpp

@@ -9,4 +9,7 @@ public:
 
     bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat);
     bool CanFly();
+
+private:
+    uint32 m_LastFlyTime;
 };

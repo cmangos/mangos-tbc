@@ -61,6 +61,7 @@ protected:
 
     bool SetOldMoveInfo(bool value) { m_MoveInfo[1] = m_MoveInfo[0]; return value; }
 
+protected:
     CPlayer* m_Player;
     MovementInfo m_MoveInfo[3];
     bool m_Initialized;

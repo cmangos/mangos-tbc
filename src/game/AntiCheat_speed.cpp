@@ -27,20 +27,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
         return false;
     }
 
-    {
-        bool hasflightmodaura = false;
-
-        bool back = m_MoveInfo[0].HasMovementFlag(MOVEFLAG_BACKWARD) && m_MoveInfo[1].HasMovementFlag(MOVEFLAG_BACKWARD);
-
-        for (uint8 i = SPELL_AURA_MOD_FLIGHT_SPEED; i <= SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED_NOT_STACKING; ++i)
-            if (m_Player->HasAuraType(AuraType(i)))
-                hasflightmodaura = true;
-
-        if (hasflightmodaura && isFlying())
-            m_FlySpeed = m_Player->GetSpeed(back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
-        else if (!isFlying())
-            m_FlySpeed = 0.f;
-    }
+    UpdateFlySpeed();
 
     if (opcode == MSG_MOVE_FALL_LAND || !isFalling(m_MoveInfo[0]))
         m_Knockback = false;
@@ -50,9 +37,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
 
     bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
 
-    float allowedspeed = GetSpeed();
-    allowedspeed = m_Knockback ? std::max(allowedspeed, m_KnockbackSpeed) : allowedspeed;
-    allowedspeed = isFlying() ? std::max(allowedspeed, m_FlySpeed) : allowedspeed;
+    float allowedspeed = GetAllowedSpeed();
 
     bool threed = isFlying() || isSwimming();
 
@@ -108,4 +93,31 @@ void AntiCheat_speed::HandleRelocate(float x, float y, float z, float o)
 {
     if (m_Player->IsTaxiFlying())
         AntiCheat::HandleRelocate(x, y, z, o);
+}
+
+void AntiCheat_speed::UpdateFlySpeed()
+{
+    bool hasFlightAuras = false;
+
+    bool back = m_MoveInfo[0].HasMovementFlag(MOVEFLAG_BACKWARD) && m_MoveInfo[1].HasMovementFlag(MOVEFLAG_BACKWARD);
+
+    for (uint8 i = SPELL_AURA_MOD_FLIGHT_SPEED; i <= SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED_NOT_STACKING; ++i)
+        if (m_Player->HasAuraType(AuraType(i)))
+            hasFlightAuras = true;
+
+    hasFlightAuras = hasFlightAuras || m_Player->HasAuraType(SPELL_AURA_FLY);
+
+    if (hasFlightAuras && isFlying())
+        m_FlySpeed = m_Player->GetSpeed(back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
+    else if (!isFlying())
+        m_FlySpeed = 0.f;
+}
+
+float AntiCheat_speed::GetAllowedSpeed()
+{
+    float allowedspeed = GetSpeed();
+    allowedspeed = m_Knockback ? std::max(allowedspeed, GetKnockBackSpeed()) : allowedspeed;
+    allowedspeed = isFlying() ? std::max(allowedspeed, GetFlySpeed()) : allowedspeed;
+
+    return allowedspeed;
 }

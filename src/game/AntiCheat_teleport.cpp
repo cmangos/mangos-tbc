@@ -11,23 +11,29 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
 
     if (!Initialized())
     {
-        m_MoveInfo[1] = m_MoveInfo[0];
         knockBack = false;
-        return false;
+        teleporting = false;
+        return SetOldMoveInfo(false);
     }
 
     if (opcode == MSG_MOVE_FALL_LAND)
-        knockBack = false;
-
-    if (!cheat && !IsMoving(m_MoveInfo[1]) && GetDistOrTransportDist() > 0.f && !knockBack)
     {
-        const Position* p = m_MoveInfo[1].GetPos();
-        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+        knockBack = false;
+        teleporting = false;
+    }
 
-        if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
-            m_Player->BoxChat << "TELE CHEAT" << "\n";
+    if (!cheat && !knockBack && !teleporting)
+    {
+        if (!IsMoving(m_MoveInfo[1]) && GetDistOrTransportDist(true) > 0.f && !isFalling())
+        {
+            const Position* p = m_MoveInfo[1].GetPos();
+            m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
-        return SetOldMoveInfo(true);
+            if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
+                m_Player->BoxChat << "TELE CHEAT" << "\n";
+
+            return SetOldMoveInfo(true);
+        }
     }
 
     return SetOldMoveInfo(false);
@@ -36,5 +42,10 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
 void AntiCheat_teleport::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
 {
     knockBack = true;
+}
+
+void AntiCheat_teleport::HandleTeleport(uint32 map, float x, float y, float z, float o)
+{
+    teleporting = true;
 }
 

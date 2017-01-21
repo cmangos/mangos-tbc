@@ -11,5 +11,5 @@ public:
     bool CanFly();
 
 private:
-    uint32 m_LastFlyTime;
+    uint32 m_LastCanFlyTime;
 };

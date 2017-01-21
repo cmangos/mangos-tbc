@@ -18,7 +18,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
         m_SlowFall = false;
         m_StartFallZ = 0.f;
         m_StartVelocity = 0.f;
-        m_InitialDiff = 0.f;
+        m_InitialDiff = -1.f;
         m_MoveInfo[2] = m_MoveInfo[0];
         return SetOldMoveInfo(false);
     }
@@ -47,17 +47,17 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
         m_SlowFall = true;
 
     if (!oldslowfall && m_SlowFall)
-        m_InitialDiff = 0;
+        m_InitialDiff = -1.f;
 
     float expectedfalldist = ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
     float expectedz = m_StartFallZ - expectedfalldist;
 
     float diff = m_MoveInfo[0].GetPos()->z - expectedz;
 
-    if (m_InitialDiff == 0 && diff > 0.f)
+    if (m_InitialDiff <= 0.f && diff > 0.f)
         m_InitialDiff = diff;
 
-    if (!m_Jumping)
+    if (!m_Jumping & m_InitialDiff >= 0.f)
         diff -= m_InitialDiff;
 
     if (!cheat && m_Falling && diff > 0.05f) // Make acceptable diff configureable
@@ -86,7 +86,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
         m_Falling = false;
         m_Jumping = false;
         m_SlowFall = false;
-        m_InitialDiff = 0;
+        m_InitialDiff = -1.f;
     }
 
     return SetOldMoveInfo(false);
@@ -105,7 +105,7 @@ void AntiCheat_gravity::HandleKnockBack(float angle, float horizontalSpeed, floa
     m_Falling = true;
     m_StartFallZ = m_MoveInfo[0].GetPos()->z;
     m_StartVelocity = -verticalSpeed;
-    m_InitialDiff = 0.f;
+    m_InitialDiff = -1.f;
 }
 
 float AntiCheat_gravity::ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity)

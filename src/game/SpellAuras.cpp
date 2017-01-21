@@ -5724,21 +5724,6 @@ void Aura::PeriodicTick()
                         }
                         break;
                     }
-                    case 46771: 
-                    {                               // Flame Sear (SWP, eredar twins)
-                        if (target->GetTypeId() == TYPEID_PLAYER)
-                        {
-                            if (!target->HasAura(45343) &&
-                                !target->HasAura(47300)) {          // No Dark Flame applied. There are two auras
-                                if (m_periodicTick % 4 == 1) {      // Only doze the aura every 2 ticks (should maybe be one second cooldown)
-                                    target->CastSpell(target, 45348,
-                                                      TRIGGERED_OLD_TRIGGERED, nullptr,
-                                                      this); // apply a doze of Flame Touched
-                                }
-                            }
-                        }
-                        break;
-                     }
                     default:
                         break;
                 }

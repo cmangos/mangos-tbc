@@ -75,8 +75,8 @@ enum
     SPELL_FLAME_SEAR                        = 46771,        // A few random targets debuff
     SPELL_CONFLAGRATION_UNK                 = 45333,        // Unknown
 
-    DARK_FLAME_AURA_ALYTHESS                = 45343,        // Aura buff that make flame touched spell proc - for Alythess
-    DARK_FLAME_AURA_SCAROLASH               = 47300,        // Aura buff that make dark touched spell proc  - for Scarolash
+    DARK_FLAME_AURA_ALYTHESS                = 47300,        // Aura buff that make flame touched spell proc - for Alythess
+    DARK_FLAME_AURA_SCAROLASH               = 45343,        // Aura buff that make dark touched spell proc  - for Scarolash
 };
 
 static const DialogueEntry aIntroDialogue[] =
@@ -188,6 +188,7 @@ struct boss_alythessAI : public ScriptedAI
                     m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
                     DoScriptText(SAY_SACROLASH_EMPOWER, pSacrolash);
                     pSacrolash->InterruptNonMeleeSpells(true);
+                    pSacrolash->CastSpell(pSacrolash, DARK_FLAME_AURA_ALYTHESS, TRIGGERED_NONE);
                     pSacrolash->CastSpell(pSacrolash, SPELL_EMPOWER, TRIGGERED_NONE);
                 }
             }
@@ -343,6 +344,7 @@ struct boss_sacrolashAI : public ScriptedAI
                     m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
                     DoScriptText(SAY_ALYTHESS_EMPOWER, pAlythess);
                     pAlythess->InterruptNonMeleeSpells(true);
+                    pAlythess->CastSpell(pAlythess, DARK_FLAME_AURA_SCAROLASH, TRIGGERED_NONE);
                     pAlythess->CastSpell(pAlythess, SPELL_EMPOWER, TRIGGERED_NONE);
                 }
             }

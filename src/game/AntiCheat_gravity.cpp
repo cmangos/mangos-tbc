@@ -105,6 +105,7 @@ void AntiCheat_gravity::HandleKnockBack(float angle, float horizontalSpeed, floa
     m_Falling = true;
     m_StartFallZ = m_MoveInfo[0].GetPos()->z;
     m_StartVelocity = -verticalSpeed;
+    m_InitialDiff = 0.f;
 }
 
 float AntiCheat_gravity::ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity)

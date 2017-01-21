@@ -1,6 +1,6 @@
 #include "AntiCheat_walljump.h"
 #include "CPlayer.h"
-#include "PathFinder.h"
+#include <algorithm>
 
 AntiCheat_walljump::AntiCheat_walljump(CPlayer* player) : AntiCheat(player)
 {
@@ -42,10 +42,7 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
         }
     }
     else if (!isFalling(m_MoveInfo[0]) && GetDistanceZ() < 0.f)
-        --AboveAngleCount;
-
-    if (AboveAngleCount <= 0)
-        AboveAngleCount = 0;
+        AboveAngleCount = std::max(AboveAngleCount, int8(0));
 
     if (opcode == MSG_MOVE_JUMP)
         return SetOldMoveInfo(cheat);

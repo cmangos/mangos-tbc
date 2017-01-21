@@ -30,8 +30,3 @@ bool AntiCheat_fly::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool 
 
     return SetOldMoveInfo(false);
 }
-
-bool AntiCheat_fly::CanFly()
-{
-    return m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly();
-}

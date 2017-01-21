@@ -24,6 +24,7 @@ public:
 protected:
     bool Initialized();
 
+    bool CanFly();
     bool IsMoving(MovementInfo& moveInfo);
     bool IsMoving();
     bool isFlying(MovementInfo& moveInfo);

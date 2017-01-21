@@ -34,6 +34,11 @@ bool AntiCheat::Initialized()
     return true;
 }
 
+bool AntiCheat::CanFly()
+{
+    return m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly();
+}
+
 bool AntiCheat::IsMoving(MovementInfo& moveInfo)
 {
     return moveInfo.HasMovementFlag(MOVEFLAG_FORWARD) ||

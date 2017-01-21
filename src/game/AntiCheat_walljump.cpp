@@ -22,7 +22,7 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
     {
         if (angle > 50.f)
         {
-            if (!cheat && AboveAngleCount)
+            if (!cheat && !isFlying() && !isSwimming() && AboveAngleCount)
             {
                 const Position* pos = m_MoveInfo[2].GetPos();
                 m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_COMBAT);

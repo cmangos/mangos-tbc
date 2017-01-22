@@ -4637,6 +4637,9 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
             }
         }
+
+        if (m_spellInfo->MaxTargetLevel && target->getLevel() > m_spellInfo->MaxTargetLevel)
+            return SPELL_FAILED_HIGHLEVEL;
     }
     // zone check
     uint32 zone, area;

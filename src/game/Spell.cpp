@@ -3544,6 +3544,14 @@ void Spell::finish(bool ok)
     // Stop Attack for some spells
     if (m_spellInfo->HasAttribute(SPELL_ATTR_STOP_ATTACK_TARGET))
         m_caster->AttackStop();
+
+    // update encounter state if needed
+    if (m_caster->IsInWorld()) // some teleport spells put caster in between maps, need to check
+    {
+        Map* map = m_caster->GetMap();
+        if (map->IsDungeon())
+            ((DungeonMap*)map)->GetPersistanceState()->UpdateEncounterState(ENCOUNTER_CREDIT_CAST_SPELL, m_spellInfo->Id);
+    }
 }
 
 void Spell::SendCastResult(SpellCastResult result) const

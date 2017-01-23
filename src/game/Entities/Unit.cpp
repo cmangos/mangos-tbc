@@ -8079,7 +8079,7 @@ void Unit::TauntApply(Unit* taunter)
         return;
 
     // Only attack taunter if this is a valid target
-    if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED | UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING) && !IsSecondChoiceTarget(taunter, true))
+    if (!hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_DIED | UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING) && !IsSecondChoiceTarget(taunter, true, true))
     {
         if (GetTargetGuid() || !target)
             SetInFront(taunter);
@@ -10727,7 +10727,7 @@ void Unit::SetTurningOff(bool apply)
         clearUnitState(UNIT_STAT_DONT_TURN);
 }
 
-void Unit::ResetControlState(bool attackCharmer /*= true*/, bool isTakeControlCharm /*= false*/)
+void Unit::ResetControlState(bool attackCharmer /*= true*/)
 {
     Player* player = nullptr;
     if (GetTypeId() == TYPEID_PLAYER)

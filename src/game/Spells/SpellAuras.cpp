@@ -2398,7 +2398,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     if (target->GetTypeId() == TYPEID_PLAYER)
                     {
                         if (apply) // cast/remove Buffbot Buff Effect
-                            target->CastSpell(target, 32172, true);
+                            target->CastSpell(target, 32172, TRIGGERED_OLD_TRIGGERED);
                         else
                             target->RemoveAurasDueToSpell(32172);
                     }
@@ -4274,8 +4274,7 @@ void Aura::HandlePrayerOfMending(bool apply, bool /*Real*/)
         {
             if (GetHolder()->GetAuraCharges() == entry->procCharges)
             {
-                DamageInfo damageInfo;
-                m_modifier.m_amount = GetCaster()->SpellHealingBonusDone(GetTarget(), GetSpellProto(), m_modifier.m_amount, HEAL, damageInfo);
+                m_modifier.m_amount = GetCaster()->SpellHealingBonusDone(GetTarget(), GetSpellProto(), m_modifier.m_amount, HEAL);
             }
         }        
     }

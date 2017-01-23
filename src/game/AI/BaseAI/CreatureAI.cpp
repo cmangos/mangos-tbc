@@ -206,6 +206,7 @@ void CreatureAI::HandleMovementOnAttackStart(Unit* victim) const
             m_unit->StopMoving();
         }
     }
+}
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////
 //                                      Event system

@@ -196,7 +196,7 @@ static inline SpellPartialResistDistribution InitSpellPartialResistDistribution(
                 const uint32 upcoming = ahead.at(column);
                 const int64 diff = (int64(upcoming) - base);
                 // Use bigger types signed math to avoid potential erratic behavior on some compilers...
-                values[column] = uint32(std::max(0.0, (base + std::round(diff * (intermediate / double(100.0))))));
+                values[column] = uint32(std::max(0.0, (base + ::round(diff * (intermediate / double(100.0))))));
             }
         }
     }
@@ -1242,6 +1242,8 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
                 if (save->GetResetTime() < resettime)
                     save->SetResetTime(resettime);
             }
+
+            ((DungeonMap*)m)->GetPersistanceState()->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, victim->GetEntry());
         }
     }
 
@@ -9290,7 +9292,7 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, 
         if (GetTypeId() == TYPEID_PLAYER)
         {
             // On melee based hit/miss/resist need update skill (for victim and attacker)
-            if (procExtra & (PROC_EX_NORMAL_HIT | PROC_EX_MISS | PROC_EX_RESIST))
+            if (procExtra & (PROC_EX_NORMAL_HIT | PROC_EX_CRITICAL_HIT | PROC_EX_MISS | PROC_EX_DODGE | PROC_EX_PARRY | PROC_EX_BLOCK))
             {
                 if (pTarget->GetTypeId() != TYPEID_PLAYER && pTarget->GetCreatureType() != CREATURE_TYPE_CRITTER)
                     ((Player*)this)->UpdateCombatSkills(pTarget, attType, isVictim);

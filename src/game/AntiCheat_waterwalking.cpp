@@ -17,9 +17,7 @@ bool AntiCheat_waterwalking::HandleMovement(MovementInfo& moveInfo, Opcodes opco
 
     if (!cheat && !m_Player->HasAuraType(SPELL_AURA_WATER_WALK) && !m_Player->HasAuraType(SPELL_AURA_GHOST) && m_MoveInfo[0].HasMovementFlag(MOVEFLAG_WATERWALKING))
     {
-        // Idk how to make emohacker stop waterwalking without adding and removing the aura.
-        m_Player->AddAura(546);
-        m_Player->RemoveAurasDueToSpell(546);
+        m_Player->SetWaterWalk(false);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "WATERWALK CHEAT" << "\n";

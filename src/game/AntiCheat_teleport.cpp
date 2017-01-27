@@ -5,9 +5,9 @@ AntiCheat_teleport::AntiCheat_teleport(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_teleport::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
     {
@@ -16,17 +16,11 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
         return SetOldMoveInfo(false);
     }
 
-    if (opcode == MSG_MOVE_FALL_LAND)
-    {
-        knockBack = false;
-        teleporting = false;
-    }
-
     if (!cheat && !knockBack && !teleporting)
     {
-        if (!IsMoving(m_MoveInfo[1]) && GetDistOrTransportDist(true) > 0.f && !isFalling())
+        if (!IsMoving(oldMoveInfo) && GetDistOrTransportDist(true) > 0.1f && !isFalling())
         {
-            const Position* p = m_MoveInfo[1].GetPos();
+            const Position* p = oldMoveInfo.GetPos();
             m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
             if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
@@ -34,6 +28,12 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
 
             return SetOldMoveInfo(true);
         }
+    }
+
+    if (opcode == MSG_MOVE_FALL_LAND)
+    {
+        knockBack = false;
+        teleporting = false;
     }
 
     return SetOldMoveInfo(false);

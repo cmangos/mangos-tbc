@@ -5,19 +5,19 @@ AntiCheat_jump::AntiCheat_jump(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_jump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
     {
-        m_MoveInfo[2] = m_MoveInfo[0];
+        storedMoveInfo = newMoveInfo;
         return SetOldMoveInfo(false);
     }
 
-    if (!cheat && opcode == MSG_MOVE_JUMP && isFalling(m_MoveInfo[1]))
+    if (!cheat && opcode == MSG_MOVE_JUMP && isFalling(oldMoveInfo))
     {
-        const Position* p = m_MoveInfo[2].GetPos();
+        const Position* p = storedMoveInfo.GetPos();
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
@@ -27,7 +27,7 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool
     }
 
     if (opcode == MSG_MOVE_JUMP)
-        m_MoveInfo[2] = m_MoveInfo[0];
+        storedMoveInfo = newMoveInfo;
 
     return SetOldMoveInfo(false);
 }

@@ -8,14 +8,14 @@ AntiCheat_waterwalking::AntiCheat_waterwalking(CPlayer* player) : AntiCheat(play
 {
 }
 
-bool AntiCheat_waterwalking::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_waterwalking::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
         return SetOldMoveInfo(false);
 
-    if (!cheat && !m_Player->HasAuraType(SPELL_AURA_WATER_WALK) && !m_Player->HasAuraType(SPELL_AURA_GHOST) && m_MoveInfo[0].HasMovementFlag(MOVEFLAG_WATERWALKING))
+    if (!cheat && !m_Player->HasAuraType(SPELL_AURA_WATER_WALK) && !m_Player->HasAuraType(SPELL_AURA_GHOST) && newMoveInfo.HasMovementFlag(MOVEFLAG_WATERWALKING))
     {
         m_Player->SetWaterWalk(false);
 

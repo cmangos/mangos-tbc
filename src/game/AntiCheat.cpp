@@ -5,22 +5,29 @@ AntiCheat::AntiCheat(CPlayer* player)
 {
     m_Player = player;
 
-    for (uint8 i = 0; i < 2; ++i)
-        m_MoveInfo[i] = MovementInfo();
+    oldMoveInfo = MovementInfo();
+    storedMoveInfo = MovementInfo();
 
     m_Initialized = false;
 
     player->AddAntiCheatModule(this);
 }
 
+bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+{
+    newMoveInfo = MoveInfo;
+
+    return false;
+}
+
 void AntiCheat::HandleRelocate(float x, float y, float z, float o)
 {
-    m_MoveInfo[1].ChangePosition(x, y, z, o);
+    oldMoveInfo.ChangePosition(x, y, z, o);
 }
 
 void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)
 {
-    m_MoveInfo[1].ChangePosition(x, y, z, o);
+    oldMoveInfo.ChangePosition(x, y, z, o);
 }
 
 bool AntiCheat::Initialized()
@@ -53,7 +60,7 @@ bool AntiCheat::IsMoving(MovementInfo& moveInfo)
 
 bool AntiCheat::IsMoving()
 {
-    return IsMoving(m_MoveInfo[0]) || IsMoving(m_MoveInfo[1]);
+    return IsMoving(newMoveInfo) || IsMoving(oldMoveInfo);
 }
 
 bool AntiCheat::isFlying(MovementInfo& moveInfo)
@@ -63,7 +70,7 @@ bool AntiCheat::isFlying(MovementInfo& moveInfo)
 
 bool AntiCheat::isFlying()
 {
-    return isFlying(m_MoveInfo[0]) || isFlying(m_MoveInfo[1]);
+    return isFlying(newMoveInfo) || isFlying(oldMoveInfo);
 }
 
 bool AntiCheat::isWalking(MovementInfo& moveInfo)
@@ -73,7 +80,7 @@ bool AntiCheat::isWalking(MovementInfo& moveInfo)
 
 bool AntiCheat::isWalking()
 {
-    return isWalking(m_MoveInfo[0]) || isWalking(m_MoveInfo[1]);
+    return isWalking(newMoveInfo) || isWalking(oldMoveInfo);
 }
 
 bool AntiCheat::isFalling(MovementInfo& moveInfo)
@@ -83,7 +90,7 @@ bool AntiCheat::isFalling(MovementInfo& moveInfo)
 
 bool AntiCheat::isFalling()
 {
-    return isFalling(m_MoveInfo[0]) || isFalling(m_MoveInfo[1]);
+    return isFalling(newMoveInfo) || isFalling(oldMoveInfo);
 }
 
 bool AntiCheat::isTransport(MovementInfo& moveInfo)
@@ -93,7 +100,7 @@ bool AntiCheat::isTransport(MovementInfo& moveInfo)
 
 bool AntiCheat::isTransport()
 {
-    return isTransport(m_MoveInfo[0]) || isTransport(m_MoveInfo[1]);
+    return isTransport(newMoveInfo) || isTransport(oldMoveInfo);
 }
 
 bool AntiCheat::isSwimming(MovementInfo& moveInfo)
@@ -103,17 +110,17 @@ bool AntiCheat::isSwimming(MovementInfo& moveInfo)
 
 bool AntiCheat::isSwimming()
 {
-    return isSwimming(m_MoveInfo[0]) || isSwimming(m_MoveInfo[1]) || m_Player->IsInWater();
+    return isSwimming(newMoveInfo) || isSwimming(oldMoveInfo) || m_Player->IsInWater();
 }
 
 bool AntiCheat::verifyTransportCoords(MovementInfo& moveInfo)
 {
-    return !(std::abs(m_MoveInfo[0].GetTransportPos()->x) > 100 || std::abs(m_MoveInfo[0].GetTransportPos()->y) > 100 || std::abs(m_MoveInfo[0].GetTransportPos()->z) > 100);
+    return !(std::abs(newMoveInfo.GetTransportPos()->x) > 100 || std::abs(newMoveInfo.GetTransportPos()->y) > 100 || std::abs(newMoveInfo.GetTransportPos()->z) > 100);
 }
 
 bool AntiCheat::verifyTransportCoords()
 {
-    return verifyTransportCoords(m_MoveInfo[0]) || verifyTransportCoords(m_MoveInfo[1]);
+    return verifyTransportCoords(newMoveInfo) || verifyTransportCoords(oldMoveInfo);
 }
 
 float AntiCheat::GetDistOrTransportDist()
@@ -123,12 +130,12 @@ float AntiCheat::GetDistOrTransportDist()
 
 float AntiCheat::GetDistOrTransportDist(bool threed)
 {
-    return isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]) ? GetTransportDist(threed) : GetDistance(threed);
+    return isTransport(newMoveInfo) && isTransport(oldMoveInfo) ? GetTransportDist(threed) : GetDistance(threed);
 }
 
 float AntiCheat::GetDistanceZ()
 {
-    return m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z;
+    return newMoveInfo.GetPos()->z - oldMoveInfo.GetPos()->z;
 }
 
 float AntiCheat::GetDistance()
@@ -144,16 +151,16 @@ float AntiCheat::GetDistance(bool threed)
 float AntiCheat::GetDistance2D()
 {
     return
-        sqrt(pow(m_MoveInfo[0].GetPos()->x - m_MoveInfo[1].GetPos()->x, 2) +
-            pow(m_MoveInfo[0].GetPos()->y - m_MoveInfo[1].GetPos()->y, 2));
+        sqrt(pow(newMoveInfo.GetPos()->x - oldMoveInfo.GetPos()->x, 2) +
+            pow(newMoveInfo.GetPos()->y - oldMoveInfo.GetPos()->y, 2));
 }
 
 float AntiCheat::GetDistance3D()
 {
     return
-        sqrt(pow(m_MoveInfo[0].GetPos()->x - m_MoveInfo[1].GetPos()->x, 2) +
-            pow(m_MoveInfo[0].GetPos()->y - m_MoveInfo[1].GetPos()->y, 2) +
-            pow(m_MoveInfo[0].GetPos()->z - m_MoveInfo[1].GetPos()->z, 2));
+        sqrt(pow(newMoveInfo.GetPos()->x - oldMoveInfo.GetPos()->x, 2) +
+            pow(newMoveInfo.GetPos()->y - oldMoveInfo.GetPos()->y, 2) +
+            pow(newMoveInfo.GetPos()->z - oldMoveInfo.GetPos()->z, 2));
 }
 
 float AntiCheat::GetTransportDist()
@@ -169,35 +176,35 @@ float AntiCheat::GetTransportDist(bool threed)
 float AntiCheat::GetTransportDist2D()
 {
     return
-        sqrt(pow(m_MoveInfo[0].GetTransportPos()->x - m_MoveInfo[1].GetTransportPos()->x, 2) +
-            pow(m_MoveInfo[0].GetTransportPos()->y - m_MoveInfo[1].GetTransportPos()->y, 2));
+        sqrt(pow(newMoveInfo.GetTransportPos()->x - oldMoveInfo.GetTransportPos()->x, 2) +
+            pow(newMoveInfo.GetTransportPos()->y - oldMoveInfo.GetTransportPos()->y, 2));
 }
 
 float AntiCheat::GetTransportDist3D()
 {
     return
-        sqrt(pow(m_MoveInfo[0].GetTransportPos()->x - m_MoveInfo[1].GetTransportPos()->x, 2) +
-            pow(m_MoveInfo[0].GetTransportPos()->y - m_MoveInfo[1].GetTransportPos()->y, 2) +
-            pow(m_MoveInfo[0].GetTransportPos()->z - m_MoveInfo[1].GetTransportPos()->z, 2));
+        sqrt(pow(newMoveInfo.GetTransportPos()->x - oldMoveInfo.GetTransportPos()->x, 2) +
+            pow(newMoveInfo.GetTransportPos()->y - oldMoveInfo.GetTransportPos()->y, 2) +
+            pow(newMoveInfo.GetTransportPos()->z - oldMoveInfo.GetTransportPos()->z, 2));
 }
 
 float AntiCheat::GetTransportDistZ()
 {
-    return m_MoveInfo[0].GetTransportPos()->z - m_MoveInfo[1].GetTransportPos()->z;
+    return newMoveInfo.GetTransportPos()->z - oldMoveInfo.GetTransportPos()->z;
 }
 
 float AntiCheat::GetSpeed()
 {
     // Positive speed modifiers are applied if they're active in current or previous, negative if they're active in previous and current.
-    bool back = m_MoveInfo[0].HasMovementFlag(MOVEFLAG_BACKWARD) && m_MoveInfo[1].HasMovementFlag(MOVEFLAG_BACKWARD);
+    bool back = newMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD) && oldMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
 
     float speed = m_Player->GetSpeed(back ? MOVE_RUN_BACK : MOVE_RUN);
 
-    if (isFlying(m_MoveInfo[0]) || isFlying(m_MoveInfo[1]))
+    if (isFlying(newMoveInfo) || isFlying(oldMoveInfo))
         speed = m_Player->GetSpeed(back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
-    else if (isWalking(m_MoveInfo[0]) && isWalking(m_MoveInfo[1]))
+    else if (isWalking(newMoveInfo) && isWalking(oldMoveInfo))
         speed = m_Player->GetSpeed(MOVE_WALK);
-    else if (isSwimming(m_MoveInfo[0]) && isSwimming(m_MoveInfo[1]))
+    else if (isSwimming(newMoveInfo) && isSwimming(oldMoveInfo))
         speed = m_Player->GetSpeed(back ? MOVE_SWIM_BACK : MOVE_SWIM);
 
     return speed;
@@ -210,8 +217,8 @@ float AntiCheat::GetAllowedDistance()
 
 uint32 AntiCheat::GetDiff()
 {
-    uint32 t1 = m_MoveInfo[0].GetTime();
-    uint32 t2 = m_MoveInfo[1].GetTime();
+    uint32 t1 = newMoveInfo.GetTime();
+    uint32 t2 = oldMoveInfo.GetTime();
 
     return std::max(uint32(1), std::max(t1, t2) - std::min(t1, t2));
 }
@@ -223,7 +230,7 @@ float AntiCheat::GetDiffInSec()
 
 float AntiCheat::GetVirtualDiffInSec()
 {
-    if (IsMoving(m_MoveInfo[0]) && !IsMoving(m_MoveInfo[1]))
+    if (IsMoving(newMoveInfo) && !IsMoving(oldMoveInfo))
         return 1.f;
 
     return GetDiffInSec();

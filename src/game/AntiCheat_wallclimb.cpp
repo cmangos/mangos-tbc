@@ -5,21 +5,21 @@ AntiCheat_wallclimb::AntiCheat_wallclimb(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_wallclimb::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
         return SetOldMoveInfo(false);
 
-    if ((GetDistanceZ() < WALKABLE_CLIMB && GetDistanceZ() > 0.f) && !isFalling(m_MoveInfo[0]))
+    if ((GetDistanceZ() < WALKABLE_CLIMB && GetDistanceZ() > 0.f) && !isFalling(newMoveInfo))
         return false;
 
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
 
-    if (!cheat && !isFlying() && !isSwimming() && angle > 50.f && !isFalling(m_MoveInfo[1]))
+    if (!cheat && !isFlying() && !isSwimming() && angle > 50.f && !isFalling(oldMoveInfo))
     {
-        const Position* p = m_MoveInfo[1].GetPos();
+        const Position* p = oldMoveInfo.GetPos();
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)

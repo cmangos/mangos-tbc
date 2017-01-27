@@ -5,14 +5,14 @@ AntiCheat_tptoplane::AntiCheat_tptoplane(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_tptoplane::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_tptoplane::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
         return SetOldMoveInfo(false);
 
-    const Position* p = m_MoveInfo[0].GetPos();
+    const Position* p = newMoveInfo.GetPos();
 
     if (GetDiff() < 1000 || std::abs(p->z) > 0.1f)
         return false;
@@ -25,7 +25,7 @@ bool AntiCheat_tptoplane::HandleMovement(MovementInfo& moveInfo, Opcodes opcode,
 
     if (!cheat && playerZ - groundZ < -1.f && playerZ < groundZ)
     {
-        p = m_MoveInfo[1].GetPos();
+        p = oldMoveInfo.GetPos();
         groundZ = terrain->GetHeightStatic(p->x, p->y, p->z);
 
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, groundZ, p->o, TELE_TO_NOT_LEAVE_COMBAT);

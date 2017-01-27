@@ -7,9 +7,9 @@ AntiCheat_gravity::AntiCheat_gravity(CPlayer* player) : AntiCheat(player)
     m_Falling = false;
 }
 
-bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
     {
@@ -19,23 +19,23 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
         m_StartFallZ = 0.f;
         m_StartVelocity = 0.f;
         m_InitialDiff = -1.f;
-        m_MoveInfo[2] = m_MoveInfo[0];
+        storedMoveInfo = newMoveInfo;
         return SetOldMoveInfo(false);
     }
 
-    bool startfalling = !isFalling(m_MoveInfo[1]) && isFalling(m_MoveInfo[0]);
-    bool stopfalling = !isFalling(m_MoveInfo[0]) && isFalling(m_MoveInfo[1]);
+    bool startfalling = !isFalling(oldMoveInfo) && isFalling(newMoveInfo);
+    bool stopfalling = !isFalling(newMoveInfo) && isFalling(oldMoveInfo);
 
     if (!m_Falling)
-        m_StartFallZ = m_MoveInfo[0].GetPos()->z;
+        m_StartFallZ = newMoveInfo.GetPos()->z;
 
-    uint32 falltime = m_Falling ? m_MoveInfo[0].GetFallTime() : 0;
+    uint32 falltime = m_Falling ? newMoveInfo.GetFallTime() : 0;
 
     if (!m_Falling && (startfalling || opcode == MSG_MOVE_JUMP))
     {
         m_Falling = true;
-        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? m_MoveInfo[0].GetJumpInfo().velocity : 0.f);
-        m_MoveInfo[2] = opcode == MSG_MOVE_JUMP ? m_MoveInfo[0] : m_MoveInfo[1];
+        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newMoveInfo.GetJumpInfo().velocity : 0.f);
+        storedMoveInfo = opcode == MSG_MOVE_JUMP ? newMoveInfo : oldMoveInfo;
 
         if (opcode == MSG_MOVE_JUMP)
             m_Jumping = true;
@@ -52,12 +52,12 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
     float expectedfalldist = ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
     float expectedz = m_StartFallZ - expectedfalldist;
 
-    float diff = m_MoveInfo[0].GetPos()->z - expectedz;
+    float diff = newMoveInfo.GetPos()->z - expectedz;
 
     if (m_InitialDiff <= 0.f && diff > 0.f)
         m_InitialDiff = diff;
 
-    if (!m_Jumping & m_InitialDiff >= 0.f)
+    if (!m_Jumping && m_InitialDiff >= 0.f)
         diff -= m_InitialDiff;
 
     if (!cheat && m_Falling && diff > 0.05f) // Make acceptable diff configureable
@@ -65,7 +65,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
             m_Player->BoxChat << "m_StartFallZ: " << m_StartFallZ << std::endl;
-            m_Player->BoxChat << "currentz: " << m_MoveInfo[0].GetPos()->z << std::endl;
+            m_Player->BoxChat << "currentz: " << newMoveInfo.GetPos()->z << std::endl;
             m_Player->BoxChat << "expectedz: " << expectedz << std::endl;
             m_Player->BoxChat << "falltime: " << falltime << std::endl;
             m_Player->BoxChat << "velocity: " << m_StartVelocity << std::endl;
@@ -75,7 +75,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, b
             m_Player->BoxChat << "Gravity hack" << std::endl;
         }
 
-        const Position* p = m_MoveInfo[2].GetPos();
+        const Position* p = storedMoveInfo.GetPos();
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         return SetOldMoveInfo(true);
@@ -103,7 +103,7 @@ void AntiCheat_gravity::HandleTeleport(uint32 mapid, float x, float y, float z, 
 void AntiCheat_gravity::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
 {
     m_Falling = true;
-    m_StartFallZ = m_MoveInfo[0].GetPos()->z;
+    m_StartFallZ = newMoveInfo.GetPos()->z;
     m_StartVelocity = -verticalSpeed;
     m_InitialDiff = -1.f;
 }

@@ -7,5 +7,5 @@ class AntiCheat_tptoplane : public AntiCheat
 public:
     AntiCheat_tptoplane(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat) override;
+    bool HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat) override;
 };

@@ -5,20 +5,20 @@ AntiCheat_fly::AntiCheat_fly(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_fly::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_fly::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
     {
-        m_LastCanFlyTime = m_MoveInfo[0].GetTime();
+        m_LastCanFlyTime = newMoveInfo.GetTime();
         return SetOldMoveInfo(false);
     }
 
     if (CanFly())
-        m_LastCanFlyTime = m_MoveInfo[0].GetTime();
+        m_LastCanFlyTime = newMoveInfo.GetTime();
 
-    if (isFlying(m_MoveInfo[0]) && !CanFly() && m_LastCanFlyTime + 500 < m_MoveInfo[0].GetTime())
+    if (isFlying(newMoveInfo) && !CanFly() && m_LastCanFlyTime + 500 < newMoveInfo.GetTime())
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "FLY CHEAT" << "\n";

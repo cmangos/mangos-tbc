@@ -8,9 +8,9 @@ AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     float speedrounding = 100.f;
 
@@ -18,8 +18,8 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
 
     if (!Initialized())
     {
-        m_MoveInfo[1] = m_MoveInfo[0];
-        m_MoveInfo[2] = m_MoveInfo[0];
+        oldMoveInfo = newMoveInfo;
+        storedMoveInfo = newMoveInfo;
 
         m_Knockback = false;
         m_FlySpeed = 0.f;
@@ -29,13 +29,13 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
 
     UpdateFlySpeed();
 
-    if (opcode == MSG_MOVE_FALL_LAND || !isFalling(m_MoveInfo[0]))
+    if (opcode == MSG_MOVE_FALL_LAND || !isFalling(newMoveInfo))
         m_Knockback = false;
 
     if (GetDiff() < 50 || GetDistance3D() < 0.5f)
         return false;
 
-    bool onTransport = isTransport(m_MoveInfo[0]) && isTransport(m_MoveInfo[1]);
+    bool onTransport = isTransport(newMoveInfo) && isTransport(oldMoveInfo);
 
     float allowedspeed = GetAllowedSpeed();
 
@@ -47,7 +47,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
 
     if (isFalling())
     {
-        if (m_MoveInfo[0].GetJumpInfo().xyspeed > allowedspeed)
+        if (newMoveInfo.GetJumpInfo().xyspeed > allowedspeed)
             cheating = true;
     }
     else
@@ -56,7 +56,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
             cheating = true;
     }
 
-    if (isTransport(m_MoveInfo[0]) && !verifyTransportCoords(m_MoveInfo[0]))
+    if (isTransport(newMoveInfo) && !verifyTransportCoords(newMoveInfo))
         cheating = false;
 
     if (!cheat && cheating)
@@ -64,21 +64,21 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, boo
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
             m_Player->BoxChat << "----------------------------" << "\n";
-            m_Player->BoxChat << "xyspeed: " << m_MoveInfo[0].GetJumpInfo().xyspeed << "\n";
-            m_Player->BoxChat << "velocity: " << m_MoveInfo[0].GetJumpInfo().velocity << "\n";
+            m_Player->BoxChat << "xyspeed: " << newMoveInfo.GetJumpInfo().xyspeed << "\n";
+            m_Player->BoxChat << "velocity: " << newMoveInfo.GetJumpInfo().velocity << "\n";
             m_Player->BoxChat << "allowedspeed: " << allowedspeed << "\n";
             m_Player->BoxChat << "travelspeed: " << travelspeed << "\n";
             m_Player->BoxChat << "SPEEDCHEAT" << "\n";
         }
 
-        const Position* p = m_MoveInfo[2].GetPos();
+        const Position* p = storedMoveInfo.GetPos();
 
         m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         return SetOldMoveInfo(true);
     }
     else
-        m_MoveInfo[2] = m_MoveInfo[0];
+        storedMoveInfo = newMoveInfo;
 
     return SetOldMoveInfo(false);
 }
@@ -99,7 +99,7 @@ void AntiCheat_speed::UpdateFlySpeed()
 {
     bool hasFlightAuras = false;
 
-    bool back = m_MoveInfo[0].HasMovementFlag(MOVEFLAG_BACKWARD) && m_MoveInfo[1].HasMovementFlag(MOVEFLAG_BACKWARD);
+    bool back = newMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD) && oldMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
 
     for (uint8 i = SPELL_AURA_MOD_FLIGHT_SPEED; i <= SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED_NOT_STACKING; ++i)
         if (m_Player->HasAuraType(AuraType(i)))

@@ -6,9 +6,9 @@ AntiCheat_walljump::AntiCheat_walljump(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_walljump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
-    m_MoveInfo[0] = moveInfo; // moveInfo shouldn't be used anymore then assigning it in the beginning.
+    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
     {
@@ -24,7 +24,7 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
         {
             if (!cheat && !isFlying() && !isSwimming() && AboveAngleCount)
             {
-                const Position* pos = m_MoveInfo[2].GetPos();
+                const Position* pos = storedMoveInfo.GetPos();
                 m_Player->TeleportTo(m_Player->GetMapId(), pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_COMBAT);
 
                 if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
@@ -38,10 +38,10 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, 
         else
         {
             --AboveAngleCount;
-            m_MoveInfo[2] = m_MoveInfo[0];
+            storedMoveInfo = newMoveInfo;
         }
     }
-    else if (!isFalling(m_MoveInfo[0]) && GetDistanceZ() < 0.f)
+    else if (!isFalling(newMoveInfo) && GetDistanceZ() < 0.f)
         AboveAngleCount = std::max(AboveAngleCount, int8(0));
 
     if (opcode == MSG_MOVE_JUMP)

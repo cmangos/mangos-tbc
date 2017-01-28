@@ -41,17 +41,16 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
             storedMoveInfo = newMoveInfo;
         }
     }
-    else if (!isFalling(newMoveInfo) && GetDistanceZ() < 0.f)
-        AboveAngleCount = std::max(AboveAngleCount, int8(0));
+
+    AboveAngleCount = std::max(AboveAngleCount, int8(0));
 
     if (opcode == MSG_MOVE_JUMP)
+    {
+        if (!AboveAngleCount)
+            storedMoveInfo = newMoveInfo;
+
         return SetOldMoveInfo(cheat);
+    }
 
     return cheat;
-}
-
-void AntiCheat_walljump::HandleRelocate(float x, float y, float z, float o)
-{
-    if (m_Player->IsTaxiFlying())
-        AntiCheat::HandleRelocate(x, y, z, o);
 }

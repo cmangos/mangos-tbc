@@ -33,12 +33,14 @@ void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)
 
 bool AntiCheat::Initialized()
 {
-    if (!m_Initialized)
+    if (!m_Initialized || m_Player->GetMapId() != oldMapID)
     {
         m_Initialized = true;
+        oldMapID = m_Player->GetMapId();
         return false;
     }
 
+    oldMapID = m_Player->GetMapId();
     return true;
 }
 

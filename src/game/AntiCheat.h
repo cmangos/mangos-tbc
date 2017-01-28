@@ -66,6 +66,7 @@ protected:
     MovementInfo newMoveInfo;
     MovementInfo oldMoveInfo;
     MovementInfo storedMoveInfo;
+    uint32 oldMapID;
     bool m_Initialized;
 
 private:

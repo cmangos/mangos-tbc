@@ -32,10 +32,10 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
     if (opcode == MSG_MOVE_FALL_LAND || !isFalling(newMoveInfo))
         m_Knockback = false;
 
-    if (GetDiff() < 50)
+    if (GetDiff() < 250)
         return false;
 
-    if (GetDistance3D() < 0.5f)
+    if (GetDistance3D() < 2.5f)
         return false;
 
     if (!isSwimming(oldMoveInfo) && isSwimming(newMoveInfo))

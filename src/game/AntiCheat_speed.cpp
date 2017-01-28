@@ -95,12 +95,6 @@ void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float 
     m_KnockbackSpeed = horizontalSpeed;
 }
 
-void AntiCheat_speed::HandleRelocate(float x, float y, float z, float o)
-{
-    if (m_Player->IsTaxiFlying())
-        AntiCheat::HandleRelocate(x, y, z, o);
-}
-
 void AntiCheat_speed::UpdateFlySpeed()
 {
     bool hasFlightAuras = false;

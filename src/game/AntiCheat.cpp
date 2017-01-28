@@ -22,7 +22,8 @@ bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool chea
 
 void AntiCheat::HandleRelocate(float x, float y, float z, float o)
 {
-    oldMoveInfo.ChangePosition(x, y, z, o);
+    if (m_Player->IsTaxiFlying())
+        oldMoveInfo.ChangePosition(x, y, z, o);
 }
 
 void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)

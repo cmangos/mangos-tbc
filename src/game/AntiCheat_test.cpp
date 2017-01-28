@@ -36,11 +36,3 @@ bool AntiCheat_test::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool
 
     return false;
 }
-
-void AntiCheat_test::HandleRelocate(float x, float y, float z, float o)
-{
-}
-
-void AntiCheat_test::HandleTeleport(uint32 map, float x, float y, float z, float o)
-{
-}

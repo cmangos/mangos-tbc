@@ -39,9 +39,3 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
 
     return SetOldMoveInfo(false);
 }
-
-void AntiCheat_wallclimb::HandleRelocate(float x, float y, float z, float o)
-{
-    if (m_Player->IsTaxiFlying())
-        AntiCheat::HandleRelocate(x, y, z, o);
-}

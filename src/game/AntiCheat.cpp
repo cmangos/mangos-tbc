@@ -195,19 +195,27 @@ float AntiCheat::GetTransportDistZ()
 
 float AntiCheat::GetSpeed()
 {
-    // Positive speed modifiers are applied if they're active in current or previous, negative if they're active in previous and current.
-    bool back = newMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD) && oldMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
+    bool oldBack = oldMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
+    float oldspeed = m_Player->GetSpeed(oldBack ? MOVE_RUN_BACK : MOVE_RUN);
 
-    float speed = m_Player->GetSpeed(back ? MOVE_RUN_BACK : MOVE_RUN);
+    if (isFlying(oldMoveInfo))
+        oldspeed = m_Player->GetSpeed(oldBack ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
+    else if (isSwimming(oldMoveInfo))
+        oldspeed = m_Player->GetSpeed(oldBack ? MOVE_SWIM_BACK : MOVE_SWIM);
+    else if (isWalking(oldMoveInfo))
+        oldspeed = m_Player->GetSpeed(MOVE_WALK);
 
-    if (isFlying(newMoveInfo) || isFlying(oldMoveInfo))
-        speed = m_Player->GetSpeed(back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
-    else if (isWalking(newMoveInfo) && isWalking(oldMoveInfo))
-        speed = m_Player->GetSpeed(MOVE_WALK);
-    else if (isSwimming(newMoveInfo) && isSwimming(oldMoveInfo))
-        speed = m_Player->GetSpeed(back ? MOVE_SWIM_BACK : MOVE_SWIM);
+    bool newBack = newMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
+    float newspeed = m_Player->GetSpeed(newBack ? MOVE_RUN_BACK : MOVE_RUN);
 
-    return speed;
+    if (isFlying(newMoveInfo))
+        newspeed = m_Player->GetSpeed(newBack ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
+    else if (isSwimming(newMoveInfo))
+        newspeed = m_Player->GetSpeed(newBack ? MOVE_SWIM_BACK : MOVE_SWIM);
+    else if (isWalking(newMoveInfo))
+        newspeed = m_Player->GetSpeed(MOVE_WALK);
+
+    return std::max(oldspeed, newspeed);
 }
 
 float AntiCheat::GetAllowedDistance()

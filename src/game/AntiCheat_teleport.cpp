@@ -46,6 +46,7 @@ void AntiCheat_teleport::HandleKnockBack(float angle, float horizontalSpeed, flo
 
 void AntiCheat_teleport::HandleTeleport(uint32 map, float x, float y, float z, float o)
 {
+    AntiCheat::HandleTeleport(map, x, y, z, o);
     teleporting = true;
 }
 

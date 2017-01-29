@@ -23,6 +23,8 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, b
         return SetOldMoveInfo(false);
     }
 
+    float alloweddiff = 0.05f;
+
     bool startfalling = !isFalling(oldMoveInfo) && isFalling(newMoveInfo);
     bool stopfalling = !isFalling(newMoveInfo) && isFalling(oldMoveInfo);
 
@@ -54,13 +56,13 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, b
 
     float diff = newMoveInfo.GetPos()->z - expectedz;
 
-    if (m_InitialDiff <= 0.f && diff > 0.f)
+    if (m_InitialDiff <= 0.f && diff > alloweddiff)
         m_InitialDiff = diff;
 
     if (!m_Jumping && m_InitialDiff >= 0.f)
         diff -= m_InitialDiff;
 
-    if (!cheat && m_Falling && diff > 0.05f) // Make acceptable diff configureable
+    if (!cheat && m_Falling && diff > alloweddiff) // Make acceptable diff configureable
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
@@ -96,6 +98,7 @@ void AntiCheat_gravity::HandleTeleport(uint32 mapid, float x, float y, float z, 
 {
     AntiCheat::HandleTeleport(mapid, x, y, z, o);
     m_Falling = true;
+    m_Jumping = false;
     m_StartFallZ = z;
     m_StartVelocity = 0.f;
 }
@@ -103,6 +106,7 @@ void AntiCheat_gravity::HandleTeleport(uint32 mapid, float x, float y, float z, 
 void AntiCheat_gravity::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
 {
     m_Falling = true;
+    m_Jumping = false;
     m_StartFallZ = newMoveInfo.GetPos()->z;
     m_StartVelocity = -verticalSpeed;
     m_InitialDiff = -1.f;

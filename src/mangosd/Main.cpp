@@ -150,9 +150,20 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    if (!sConfig.SetSource(configFile))
+    std::string configFile2 = "";
+
+#ifdef CMAKE_INSTALL_PREFIX
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+    configFile2 = TOSTRING(CMAKE_INSTALL_PREFIX) "/etc/mangosd.conf";
+#undef STRINGIFY
+#undef TOSTRING
+#endif
+
+    if (!sConfig.SetSource(configFile) && !sConfig.SetSource(configFile2))
     {
         sLog.outError("Could not find configuration file %s.", configFile.c_str());
+        sLog.outError("Could not find configuration file %s.", configFile2.c_str());
         Log::WaitBeforeContinueIfNeed();
         return 1;
     }

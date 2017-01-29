@@ -21,7 +21,7 @@ cache: ccache
 
 # reduce clone time by only getting the latest commit and not the whole history (default for travis is 100)
 git:
-  depth: 1
+  depth: 10
 
 # make use of the new container based infrastructure at travis to improve performance (we don't need sudo)
 sudo: false

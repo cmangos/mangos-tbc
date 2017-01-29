@@ -14,8 +14,6 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
 
     float speedrounding = 100.f;
 
-    bool skipcheat = false;
-
     if (!Initialized())
     {
         oldMoveInfo = newMoveInfo;

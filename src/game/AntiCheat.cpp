@@ -29,6 +29,7 @@ void AntiCheat::HandleRelocate(float x, float y, float z, float o)
 void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)
 {
     oldMoveInfo.ChangePosition(x, y, z, o);
+    oldMapID = map;
 }
 
 bool AntiCheat::Initialized()
@@ -118,7 +119,7 @@ bool AntiCheat::isSwimming()
 
 bool AntiCheat::verifyTransportCoords(MovementInfo& moveInfo)
 {
-    return !(std::abs(newMoveInfo.GetTransportPos()->x) > 100 || std::abs(newMoveInfo.GetTransportPos()->y) > 100 || std::abs(newMoveInfo.GetTransportPos()->z) > 100);
+    return !(std::abs(moveInfo.GetTransportPos()->x) > 100 || std::abs(moveInfo.GetTransportPos()->y) > 100 || std::abs(moveInfo.GetTransportPos()->z) > 100);
 }
 
 bool AntiCheat::verifyTransportCoords()

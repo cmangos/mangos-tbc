@@ -20,13 +20,16 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
     if (GetDistanceZ() <= 0.f)
         return SetOldMoveInfo(false);
 
-    if (GetDistanceZ() < WALKABLE_CLIMB)
+    if (GetDistanceZ() < JUMPHEIGHT_WATER)
         return false;
 
     if (isFalling())
         return false;
 
     if (isFlying() || isSwimming())
+        return false;
+
+    if (opcode == MSG_MOVE_FALL_LAND)
         return false;
 
     if (!cheat && angle > 50.f)

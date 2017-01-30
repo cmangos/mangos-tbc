@@ -52,5 +52,8 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
         return SetOldMoveInfo(cheat);
     }
 
+    if (storedMoveInfo.GetPos()->z > newMoveInfo.GetPos()->z)
+        AboveAngleCount = 0;
+
     return cheat;
 }

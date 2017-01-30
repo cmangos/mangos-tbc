@@ -18,7 +18,7 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
 
     if (!cheat && !knockBack && !teleporting)
     {
-        if (!IsMoving(oldMoveInfo) && GetDistOrTransportDist(true) > 0.1f && !isFalling())
+        if (!IsMoving(oldMoveInfo) && GetDistOrTransportDist(true) > 0.1f && (!isFalling() || opcode == MSG_MOVE_JUMP))
         {
             const Position* p = oldMoveInfo.GetPos();
             m_Player->TeleportTo(oldMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);

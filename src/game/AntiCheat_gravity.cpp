@@ -39,8 +39,9 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, b
         storedMoveInfo = opcode == MSG_MOVE_JUMP ? newMoveInfo : oldMoveInfo;
         storedMapID = opcode == MSG_MOVE_JUMP ? newMapID : oldMapID;
 
-        if (opcode == MSG_MOVE_JUMP)
-            m_Jumping = true;
+        // Revisit this again, we wanna keep this enabled.
+        //if (opcode == MSG_MOVE_JUMP)
+        //    m_Jumping = true;
     }
 
     bool oldslowfall = m_SlowFall;

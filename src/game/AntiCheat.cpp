@@ -16,6 +16,7 @@ AntiCheat::AntiCheat(CPlayer* player)
 bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
 {
     newMoveInfo = MoveInfo;
+    newMapID = m_Player->GetMapId();
 
     return false;
 }
@@ -37,12 +38,26 @@ bool AntiCheat::Initialized()
     if (!m_Initialized || m_Player->GetMapId() != oldMapID)
     {
         m_Initialized = true;
-        oldMapID = m_Player->GetMapId();
+        SetOldMoveInfo(false);
+        SetStoredMoveInfo(false);
         return false;
     }
 
-    oldMapID = m_Player->GetMapId();
     return true;
+}
+
+bool AntiCheat::SetOldMoveInfo(bool value)
+{
+    oldMoveInfo = newMoveInfo;
+    oldMapID = m_Player->GetMapId();
+    return value;
+}
+
+bool AntiCheat::SetStoredMoveInfo(bool value)
+{
+    storedMoveInfo = newMoveInfo;
+    storedMapID = m_Player->GetMapId();
+    return value;
 }
 
 bool AntiCheat::CanFly()

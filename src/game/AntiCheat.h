@@ -23,6 +23,8 @@ public:
 
 protected:
     bool Initialized();
+    bool SetOldMoveInfo(bool value);
+    bool SetStoredMoveInfo(bool value);
 
     bool CanFly();
     bool IsMoving(MovementInfo& moveInfo);
@@ -59,14 +61,16 @@ protected:
     float GetDiffInSec();
     float GetVirtualDiffInSec();
 
-    bool SetOldMoveInfo(bool value) { oldMoveInfo = newMoveInfo; return value; }
+    
 
 protected:
     CPlayer* m_Player;
     MovementInfo newMoveInfo;
     MovementInfo oldMoveInfo;
     MovementInfo storedMoveInfo;
+    uint32 newMapID;
     uint32 oldMapID;
+    uint32 storedMapID;
     bool m_Initialized;
 
 private:

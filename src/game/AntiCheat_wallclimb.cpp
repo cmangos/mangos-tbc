@@ -12,10 +12,10 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
 
     if (angle <= 50.f)
-        storedMoveInfo = newMoveInfo;
+        SetStoredMoveInfo(false);
 
     if (!Initialized())
-        return SetOldMoveInfo(false);
+        return false;
 
     if (GetDistanceZ() <= 0.f)
         return SetOldMoveInfo(false);
@@ -35,7 +35,7 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
     if (!cheat && angle > 50.f)
     {
         const Position* p = storedMoveInfo.GetPos();
-        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+        m_Player->TeleportTo(storedMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "Wallclimbing angle: " << angle << "\n";

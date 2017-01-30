@@ -11,10 +11,7 @@ bool AntiCheat_test::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
-    {
-        oldMoveInfo = newMoveInfo;
         return false;
-    }
 
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
 
@@ -32,7 +29,5 @@ bool AntiCheat_test::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool
     m_Player->BoxChat << "transport: " << (isTransport(newMoveInfo) ? "true" : "false") << "\n";
     m_Player->BoxChat << "slowfall: " << (newMoveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL) ? "true" : "false") << "\n";
 
-    oldMoveInfo = newMoveInfo;
-
-    return false;
+    return SetOldMoveInfo(false);
 }

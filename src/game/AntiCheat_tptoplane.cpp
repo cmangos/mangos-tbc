@@ -28,7 +28,7 @@ bool AntiCheat_tptoplane::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
         p = oldMoveInfo.GetPos();
         groundZ = terrain->GetHeightStatic(p->x, p->y, p->z);
 
-        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, groundZ, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+        m_Player->TeleportTo(oldMapID, p->x, p->y, groundZ, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "TELEPORT TO PLANE CHEAT" << "\n";

@@ -11,10 +11,7 @@ bool AntiCheat_nofall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bo
     AntiCheat::HandleMovement(moveInfo, opcode, cheat);
 
     if (!Initialized())
-    {
-        oldMoveInfo = newMoveInfo;
         return false;
-    }
 
     if (newMoveInfo.HasMovementFlag(MOVEFLAG_LEVITATING))
     {

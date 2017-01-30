@@ -19,8 +19,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, b
         m_StartFallZ = 0.f;
         m_StartVelocity = 0.f;
         m_InitialDiff = -1.f;
-        storedMoveInfo = newMoveInfo;
-        return SetOldMoveInfo(false);
+        return false;
     }
 
     float alloweddiff = 0.05f;
@@ -38,6 +37,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, b
         m_Falling = true;
         m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newMoveInfo.GetJumpInfo().velocity : 0.f);
         storedMoveInfo = opcode == MSG_MOVE_JUMP ? newMoveInfo : oldMoveInfo;
+        storedMapID = opcode == MSG_MOVE_JUMP ? newMapID : oldMapID;
 
         if (opcode == MSG_MOVE_JUMP)
             m_Jumping = true;
@@ -78,7 +78,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, b
         }
 
         const Position* p = storedMoveInfo.GetPos();
-        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+        m_Player->TeleportTo(storedMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         return SetOldMoveInfo(true);
     }

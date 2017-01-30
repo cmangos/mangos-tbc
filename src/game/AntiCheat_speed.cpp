@@ -16,12 +16,8 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
 
     if (!Initialized())
     {
-        oldMoveInfo = newMoveInfo;
-        storedMoveInfo = newMoveInfo;
-
         m_Knockback = false;
         m_FlySpeed = 0.f;
-
         return false;
     }
 
@@ -77,12 +73,12 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
 
         const Position* p = storedMoveInfo.GetPos();
 
-        m_Player->TeleportTo(m_Player->GetMapId(), p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+        m_Player->TeleportTo(storedMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
 
         return SetOldMoveInfo(true);
     }
     else
-        storedMoveInfo = newMoveInfo;
+        SetStoredMoveInfo(false);
 
     return SetOldMoveInfo(false);
 }

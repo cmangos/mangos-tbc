@@ -1,0 +1,1134 @@
+diff --git a/sql/base/realmd.sql b/sql/base/realmd.sql
+index 0115a3f..0764531 100644
+--- a/sql/base/realmd.sql
++++ b/sql/base/realmd.sql
+@@ -1,212 +1,228 @@
+--- MySQL dump 10.13
+---
+--- Host: localhost    Database: realmd
+--- ------------------------------------------------------
+--- Server version	5.5.32
+-
+-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+-/*!40101 SET NAMES utf8 */;
+-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+-/*!40103 SET TIME_ZONE='+00:00' */;
+-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+-
+---
+--- Table structure for table `realmd_db_version`
+---
+-
+-DROP TABLE IF EXISTS `realmd_db_version`;
+-CREATE TABLE `realmd_db_version` (
+-  `required_z2678_01_realmd` bit(1) DEFAULT NULL
+-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Last applied sql update to DB';
+-
+---
+--- Dumping data for table `realmd_db_version`
+---
+-
+-LOCK TABLES `realmd_db_version` WRITE;
+-/*!40000 ALTER TABLE `realmd_db_version` DISABLE KEYS */;
+-INSERT INTO `realmd_db_version` VALUES
+-(NULL);
+-/*!40000 ALTER TABLE `realmd_db_version` ENABLE KEYS */;
+-UNLOCK TABLES;
+-
+---
+--- Table structure for table `account`
+---
+-
+-DROP TABLE IF EXISTS `account`;
+-CREATE TABLE `account` (
+-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Identifier',
+-  `username` varchar(32) NOT NULL DEFAULT '',
+-  `sha_pass_hash` varchar(40) NOT NULL DEFAULT '',
+-  `gmlevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  `sessionkey` longtext,
+-  `v` longtext,
+-  `s` longtext,
+-  `email` text,
+-  `joindate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-  `last_ip` varchar(30) NOT NULL DEFAULT '0.0.0.0',
+-  `failed_logins` int(11) unsigned NOT NULL DEFAULT '0',
+-  `locked` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  `last_login` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+-  `active_realm_id` int(11) unsigned NOT NULL DEFAULT '0',
+-  `expansion` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  `mutetime` bigint(40) unsigned NOT NULL DEFAULT '0',
+-  `locale` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `idx_username` (`username`),
+-  KEY `idx_gmlevel` (`gmlevel`)
+-) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Account System';
+-
+---
+--- Dumping data for table `account`
+---
+-
+-LOCK TABLES `account` WRITE;
+-/*!40000 ALTER TABLE `account` DISABLE KEYS */;
+-INSERT INTO `account` VALUES
+-(1,'ADMINISTRATOR','a34b29541b87b7e4823683ce6c7bf6ae68beaaac',3,'','0','0','','2006-04-25 10:18:56','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0),
+-(2,'GAMEMASTER','7841e21831d7c6bc0b57fbe7151eb82bd65ea1f9',2,'','0','0','','2006-04-25 10:18:56','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0),
+-(3,'MODERATOR','a7f5fbff0b4eec2d6b6e78e38e8312e64d700008',1,'','0','0','','2006-04-25 10:19:35','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0),
+-(4,'PLAYER','3ce8a96d17c5ae88a30681024e86279f1a38c041',0,'','0','0','','2006-04-25 10:19:35','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0);
+-/*!40000 ALTER TABLE `account` ENABLE KEYS */;
+-UNLOCK TABLES;
+-
+---
+--- Table structure for table `account_banned`
+---
+-
+-DROP TABLE IF EXISTS `account_banned`;
+-CREATE TABLE `account_banned` (
+-  `id` int(11) NOT NULL DEFAULT '0' COMMENT 'Account id',
+-  `bandate` bigint(40) NOT NULL DEFAULT '0',
+-  `unbandate` bigint(40) NOT NULL DEFAULT '0',
+-  `bannedby` varchar(50) NOT NULL,
+-  `banreason` varchar(255) NOT NULL,
+-  `active` tinyint(4) NOT NULL DEFAULT '1',
+-  PRIMARY KEY (`id`,`bandate`)
+-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Ban List';
+-
+---
+--- Dumping data for table `account_banned`
+---
+-
+-LOCK TABLES `account_banned` WRITE;
+-/*!40000 ALTER TABLE `account_banned` DISABLE KEYS */;
+-/*!40000 ALTER TABLE `account_banned` ENABLE KEYS */;
+-UNLOCK TABLES;
+-
+---
+--- Table structure for table `ip_banned`
+---
+-
+-DROP TABLE IF EXISTS `ip_banned`;
+-CREATE TABLE `ip_banned` (
+-  `ip` varchar(32) NOT NULL DEFAULT '0.0.0.0',
+-  `bandate` bigint(40) NOT NULL,
+-  `unbandate` bigint(40) NOT NULL,
+-  `bannedby` varchar(50) NOT NULL DEFAULT '[Console]',
+-  `banreason` varchar(255) NOT NULL DEFAULT 'no reason',
+-  PRIMARY KEY (`ip`,`bandate`)
+-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Banned IPs';
+-
+---
+--- Dumping data for table `ip_banned`
+---
+-
+-LOCK TABLES `ip_banned` WRITE;
+-/*!40000 ALTER TABLE `ip_banned` DISABLE KEYS */;
+-/*!40000 ALTER TABLE `ip_banned` ENABLE KEYS */;
+-UNLOCK TABLES;
+-
+---
+--- Table structure for table `realmcharacters`
+---
+-
+-DROP TABLE IF EXISTS `realmcharacters`;
+-CREATE TABLE `realmcharacters` (
+-  `realmid` int(11) unsigned NOT NULL DEFAULT '0',
+-  `acctid` bigint(20) unsigned NOT NULL,
+-  `numchars` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`realmid`,`acctid`),
+-  KEY `acctid` (`acctid`)
+-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Realm Character Tracker';
+-
+---
+--- Dumping data for table `realmcharacters`
+---
+-
+-LOCK TABLES `realmcharacters` WRITE;
+-/*!40000 ALTER TABLE `realmcharacters` DISABLE KEYS */;
+-/*!40000 ALTER TABLE `realmcharacters` ENABLE KEYS */;
+-UNLOCK TABLES;
+-
+---
+--- Table structure for table `realmlist`
+---
+-
+-DROP TABLE IF EXISTS `realmlist`;
+-CREATE TABLE `realmlist` (
+-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+-  `name` varchar(32) NOT NULL DEFAULT '',
+-  `address` varchar(32) NOT NULL DEFAULT '127.0.0.1',
+-  `port` int(11) NOT NULL DEFAULT '8085',
+-  `icon` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  `realmflags` tinyint(3) unsigned NOT NULL DEFAULT '2' COMMENT 'Supported masks: 0x1 (invalid, not show in realm list), 0x2 (offline, set by mangosd), 0x4 (show version and build), 0x20 (new players), 0x40 (recommended)',
+-  `timezone` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  `allowedSecurityLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
+-  `population` float unsigned NOT NULL DEFAULT '0',
+-  `realmbuilds` varchar(64) NOT NULL DEFAULT '',
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `idx_name` (`name`)
+-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Realm System';
+-
+---
+--- Dumping data for table `realmlist`
+---
+-
+-LOCK TABLES `realmlist` WRITE;
+-/*!40000 ALTER TABLE `realmlist` DISABLE KEYS */;
+-INSERT INTO `realmlist` VALUES
+-(1,'MaNGOS','127.0.0.1',8085,1,0,1,0,0,'');
+-/*!40000 ALTER TABLE `realmlist` ENABLE KEYS */;
+-UNLOCK TABLES;
+-
+---
+--- Table structure for table `uptime`
+---
+-
+-DROP TABLE IF EXISTS `uptime`;
+-CREATE TABLE `uptime` (
+-  `realmid` int(11) unsigned NOT NULL,
+-  `starttime` bigint(20) unsigned NOT NULL DEFAULT '0',
+-  `startstring` varchar(64) NOT NULL DEFAULT '',
+-  `uptime` bigint(20) unsigned NOT NULL DEFAULT '0',
+-  `maxplayers` smallint(5) unsigned NOT NULL DEFAULT '0',
+-  PRIMARY KEY (`realmid`,`starttime`)
+-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Uptime system';
+-
+---
+--- Dumping data for table `uptime`
+---
+-
+-LOCK TABLES `uptime` WRITE;
+-/*!40000 ALTER TABLE `uptime` DISABLE KEYS */;
+-/*!40000 ALTER TABLE `uptime` ENABLE KEYS */;
+-UNLOCK TABLES;
+-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+-
+-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+-
+--- Dump completed on 2013-09-10  0:00:00
++-- MySQL dump 10.13
++--
++-- Host: localhost    Database: realmd
++-- ------------------------------------------------------
++-- Server version	5.6.21
++
++/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
++/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
++/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
++/*!40101 SET NAMES utf8 */;
++/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
++/*!40103 SET TIME_ZONE='+00:00' */;
++/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
++/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
++/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
++/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
++
++--
++-- Table structure for table `account`
++--
++
++DROP TABLE IF EXISTS `account`;
++/*!40101 SET @saved_cs_client     = @@character_set_client */;
++/*!40101 SET character_set_client = utf8 */;
++CREATE TABLE `account` (
++  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Identifier',
++  `username` varchar(32) NOT NULL DEFAULT '',
++  `sha_pass_hash` varchar(40) NOT NULL DEFAULT '',
++  `gmlevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  `sessionkey` longtext,
++  `v` longtext,
++  `s` longtext,
++  `email` text,
++  `joindate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
++  `last_ip` varchar(30) NOT NULL DEFAULT '0.0.0.0',
++  `failed_logins` int(11) unsigned NOT NULL DEFAULT '0',
++  `locked` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  `last_login` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
++  `active_realm_id` int(11) unsigned NOT NULL DEFAULT '0',
++  `expansion` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  `mutetime` bigint(40) unsigned NOT NULL DEFAULT '0',
++  `locale` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  `security` varchar(16) DEFAULT NULL,
++  PRIMARY KEY (`id`),
++  UNIQUE KEY `idx_username` (`username`),
++  KEY `idx_gmlevel` (`gmlevel`)
++) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Account System';
++/*!40101 SET character_set_client = @saved_cs_client */;
++
++--
++-- Dumping data for table `account`
++--
++
++LOCK TABLES `account` WRITE;
++/*!40000 ALTER TABLE `account` DISABLE KEYS */;
++INSERT INTO `account` VALUES (1,'ADMINISTRATOR','a34b29541b87b7e4823683ce6c7bf6ae68beaaac',3,'','0','0','','2006-04-25 10:18:56','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0,NULL),(2,'GAMEMASTER','7841e21831d7c6bc0b57fbe7151eb82bd65ea1f9',2,'','0','0','','2006-04-25 10:18:56','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0,NULL),(3,'MODERATOR','a7f5fbff0b4eec2d6b6e78e38e8312e64d700008',1,'','0','0','','2006-04-25 10:19:35','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0,NULL),(4,'PLAYER','3ce8a96d17c5ae88a30681024e86279f1a38c041',0,'','0','0','','2006-04-25 10:19:35','127.0.0.1',0,0,'0000-00-00 00:00:00',0,0,0,0,NULL);
++/*!40000 ALTER TABLE `account` ENABLE KEYS */;
++UNLOCK TABLES;
++
++--
++-- Table structure for table `account_banned`
++--
++
++DROP TABLE IF EXISTS `account_banned`;
++/*!40101 SET @saved_cs_client     = @@character_set_client */;
++/*!40101 SET character_set_client = utf8 */;
++CREATE TABLE `account_banned` (
++  `id` int(11) NOT NULL DEFAULT '0' COMMENT 'Account id',
++  `bandate` bigint(40) NOT NULL DEFAULT '0',
++  `unbandate` bigint(40) NOT NULL DEFAULT '0',
++  `bannedby` varchar(50) NOT NULL,
++  `banreason` varchar(255) NOT NULL,
++  `active` tinyint(4) NOT NULL DEFAULT '1',
++  PRIMARY KEY (`id`,`bandate`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Ban List';
++/*!40101 SET character_set_client = @saved_cs_client */;
++
++--
++-- Dumping data for table `account_banned`
++--
++
++LOCK TABLES `account_banned` WRITE;
++/*!40000 ALTER TABLE `account_banned` DISABLE KEYS */;
++/*!40000 ALTER TABLE `account_banned` ENABLE KEYS */;
++UNLOCK TABLES;
++
++--
++-- Table structure for table `ip_banned`
++--
++
++DROP TABLE IF EXISTS `ip_banned`;
++/*!40101 SET @saved_cs_client     = @@character_set_client */;
++/*!40101 SET character_set_client = utf8 */;
++CREATE TABLE `ip_banned` (
++  `ip` varchar(32) NOT NULL DEFAULT '0.0.0.0',
++  `bandate` bigint(40) NOT NULL,
++  `unbandate` bigint(40) NOT NULL,
++  `bannedby` varchar(50) NOT NULL DEFAULT '[Console]',
++  `banreason` varchar(255) NOT NULL DEFAULT 'no reason',
++  PRIMARY KEY (`ip`,`bandate`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Banned IPs';
++/*!40101 SET character_set_client = @saved_cs_client */;
++
++--
++-- Dumping data for table `ip_banned`
++--
++
++LOCK TABLES `ip_banned` WRITE;
++/*!40000 ALTER TABLE `ip_banned` DISABLE KEYS */;
++/*!40000 ALTER TABLE `ip_banned` ENABLE KEYS */;
++UNLOCK TABLES;
++
++--
++-- Table structure for table `realmcharacters`
++--
++
++DROP TABLE IF EXISTS `realmcharacters`;
++/*!40101 SET @saved_cs_client     = @@character_set_client */;
++/*!40101 SET character_set_client = utf8 */;
++CREATE TABLE `realmcharacters` (
++  `realmid` int(11) unsigned NOT NULL DEFAULT '0',
++  `acctid` bigint(20) unsigned NOT NULL,
++  `numchars` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  PRIMARY KEY (`realmid`,`acctid`),
++  KEY `acctid` (`acctid`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Realm Character Tracker';
++/*!40101 SET character_set_client = @saved_cs_client */;
++
++--
++-- Dumping data for table `realmcharacters`
++--
++
++LOCK TABLES `realmcharacters` WRITE;
++/*!40000 ALTER TABLE `realmcharacters` DISABLE KEYS */;
++/*!40000 ALTER TABLE `realmcharacters` ENABLE KEYS */;
++UNLOCK TABLES;
++
++--
++-- Table structure for table `realmd_db_version`
++--
++
++DROP TABLE IF EXISTS `realmd_db_version`;
++/*!40101 SET @saved_cs_client     = @@character_set_client */;
++/*!40101 SET character_set_client = utf8 */;
++CREATE TABLE `realmd_db_version` (
++  `required_z2685_01_realmd` bit(1) DEFAULT NULL
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Last applied sql update to DB';
++/*!40101 SET character_set_client = @saved_cs_client */;
++
++--
++-- Dumping data for table `realmd_db_version`
++--
++
++LOCK TABLES `realmd_db_version` WRITE;
++/*!40000 ALTER TABLE `realmd_db_version` DISABLE KEYS */;
++INSERT INTO `realmd_db_version` VALUES (NULL);
++/*!40000 ALTER TABLE `realmd_db_version` ENABLE KEYS */;
++UNLOCK TABLES;
++
++--
++-- Table structure for table `realmlist`
++--
++
++DROP TABLE IF EXISTS `realmlist`;
++/*!40101 SET @saved_cs_client     = @@character_set_client */;
++/*!40101 SET character_set_client = utf8 */;
++CREATE TABLE `realmlist` (
++  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
++  `name` varchar(32) NOT NULL DEFAULT '',
++  `address` varchar(32) NOT NULL DEFAULT '127.0.0.1',
++  `port` int(11) NOT NULL DEFAULT '8085',
++  `icon` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  `realmflags` tinyint(3) unsigned NOT NULL DEFAULT '2' COMMENT 'Supported masks: 0x1 (invalid, not show in realm list), 0x2 (offline, set by mangosd), 0x4 (show version and build), 0x20 (new players), 0x40 (recommended)',
++  `timezone` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  `allowedSecurityLevel` tinyint(3) unsigned NOT NULL DEFAULT '0',
++  `population` float unsigned NOT NULL DEFAULT '0',
++  `realmbuilds` varchar(64) NOT NULL DEFAULT '',
++  PRIMARY KEY (`id`),
++  UNIQUE KEY `idx_name` (`name`)
++) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Realm System';
++/*!40101 SET character_set_client = @saved_cs_client */;
++
++--
++-- Dumping data for table `realmlist`
++--
++
++LOCK TABLES `realmlist` WRITE;
++/*!40000 ALTER TABLE `realmlist` DISABLE KEYS */;
++INSERT INTO `realmlist` VALUES (1,'MaNGOS','127.0.0.1',8085,1,0,1,0,0,'');
++/*!40000 ALTER TABLE `realmlist` ENABLE KEYS */;
++UNLOCK TABLES;
++
++--
++-- Table structure for table `uptime`
++--
++
++DROP TABLE IF EXISTS `uptime`;
++/*!40101 SET @saved_cs_client     = @@character_set_client */;
++/*!40101 SET character_set_client = utf8 */;
++CREATE TABLE `uptime` (
++  `realmid` int(11) unsigned NOT NULL,
++  `starttime` bigint(20) unsigned NOT NULL DEFAULT '0',
++  `startstring` varchar(64) NOT NULL DEFAULT '',
++  `uptime` bigint(20) unsigned NOT NULL DEFAULT '0',
++  `maxplayers` smallint(5) unsigned NOT NULL DEFAULT '0',
++  PRIMARY KEY (`realmid`,`starttime`)
++) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Uptime system';
++/*!40101 SET character_set_client = @saved_cs_client */;
++
++--
++-- Dumping data for table `uptime`
++--
++
++LOCK TABLES `uptime` WRITE;
++/*!40000 ALTER TABLE `uptime` DISABLE KEYS */;
++/*!40000 ALTER TABLE `uptime` ENABLE KEYS */;
++UNLOCK TABLES;
++/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
++
++/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
++/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
++/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
++/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
++/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
++/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
++/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
++
++-- Dump completed on 2016-09-07  6:59:39
+diff --git a/sql/updates/realmd/z2685_01_realmd_account.sql b/sql/updates/realmd/z2685_01_realmd_account.sql
+new file mode 100644
+index 0000000..772969a
+--- /dev/null
++++ b/sql/updates/realmd/z2685_01_realmd_account.sql
+@@ -0,0 +1,3 @@
++ALTER TABLE realmd_db_version CHANGE COLUMN required_z2678_01_realmd required_z2685_01_realmd BIT(1) NULL DEFAULT NULL;
++
++ALTER TABLE account ADD COLUMN security VARCHAR(16) NULL DEFAULT NULL AFTER locale;
+\ No newline at end of file
+diff --git a/src/realmd/AuthSocket.cpp b/src/realmd/AuthSocket.cpp
+index 184bbe1..a9509de 100644
+--- a/src/realmd/AuthSocket.cpp
++++ b/src/realmd/AuthSocket.cpp
+@@ -21,15 +21,18 @@
+ */
+ 
+ #include "Common.h"
++#include "Auth/Hmac.h"
++#include "Auth/base32.h"
+ #include "Database/DatabaseEnv.h"
+ #include "Config/Config.h"
+ #include "Log.h"
+ #include "RealmList.h"
+ #include "AuthSocket.h"
+ #include "AuthCodes.h"
++#include "Util.h"
+ 
+ #include <openssl/md5.h>
+-//#include "Util.h" -- for commented utf8ToUpperOnlyLatin
++#include <ctime>
+ 
+ extern DatabaseType LoginDatabase;
+ 
+@@ -46,6 +49,14 @@ enum AccountFlags
+     ACCOUNT_FLAG_PROPASS    = 0x00800000,
+ };
+ 
++enum LockFlag : uint32 {
++    NONE           = 0x00,
++    IP_LOCK        = 0x01,
++    FIXED_PIN      = 0x02,
++    TOTP           = 0x04,
++    ALWAYS_ENFORCE = 0x08
++};
++
+ // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some paltform
+ #if defined( __GNUC__ )
+ #pragma pack(1)
+@@ -136,6 +147,11 @@ typedef struct AUTH_RECONNECT_PROOF_C
+     uint8   number_of_keys;
+ } sAuthReconnectProof_C;
+ 
++struct PINData {
++    uint8 salt[16];
++    uint8 hash[20];
++};
++
+ typedef struct XFER_INIT
+ {
+     uint8 cmd;                                              // XFER_INITIATE
+@@ -161,7 +177,8 @@ typedef struct AuthHandler
+ 
+ /// Constructor - set the N and g values for SRP6
+ AuthSocket::AuthSocket(boost::asio::io_service &service, std::function<void (Socket *)> closeHandler)
+-    : Socket(service, closeHandler), _authed(false), _build(0), _accountSecurityLevel(SEC_PLAYER)
++    : Socket(service, closeHandler), _authed(false), promptPin(false), _build(0), gridSeed(0),
++      _accountSecurityLevel(SEC_PLAYER)
+ {
+     N.SetHexStr("894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7");
+     g.SetDword(7);
+@@ -373,19 +390,26 @@ bool AuthSocket::_HandleLogonChallenge()
+         ///- Get the account details from the account table
+         // No SQL injection (escaped user name)
+ 
+-        result = LoginDatabase.PQuery("SELECT sha_pass_hash,id,locked,last_ip,gmlevel,v,s FROM account WHERE username = '%s'", _safelogin.c_str());
++        result = LoginDatabase.PQuery("SELECT sha_pass_hash,id,locked,last_ip,gmlevel,v,s,security FROM account WHERE username = '%s'", _safelogin.c_str());
+         if (result)
+         {
+             ///- If the IP is 'locked', check that the player comes indeed from the correct IP address
+             bool locked = false;
+-            if ((*result)[2].GetUInt8() == 1)               // if ip is locked
++            lockFlags = (LockFlag)(*result)[2].GetUInt32();
++            securityInfo = (*result)[7].GetCppString();
++
++            if ((lockFlags & IP_LOCK) == IP_LOCK)               // if ip is locked
+             {
+                 DEBUG_LOG("[AuthChallenge] Account '%s' is locked to IP - '%s'", _login.c_str(), (*result)[3].GetString());
+                 DEBUG_LOG("[AuthChallenge] Player address is '%s'", m_address.c_str());
+                 if (strcmp((*result)[3].GetString(), m_address.c_str()))
+                 {
+                     DEBUG_LOG("[AuthChallenge] Account IP differs");
+-                    pkt << (uint8) WOW_FAIL_SUSPENDED;
++
++                    // account is IP locked and the player does not have 2FA enabled
++                    if (((lockFlags & TOTP) != TOTP && (lockFlags & FIXED_PIN) != FIXED_PIN))
++                        pkt << (uint8) WOW_FAIL_SUSPENDED;
++
+                     locked = true;
+                 }
+                 else
+@@ -398,7 +422,7 @@ bool AuthSocket::_HandleLogonChallenge()
+                 DEBUG_LOG("[AuthChallenge] Account '%s' is not locked to ip", _login.c_str());
+             }
+ 
+-            if (!locked)
++            if (!locked || (locked && ((lockFlags & FIXED_PIN) == FIXED_PIN || (lockFlags & TOTP) == TOTP)))
+             {
+                 ///- If the account is banned, reject the logon attempt
+                 QueryResult* banresult = LoginDatabase.PQuery("SELECT bandate,unbandate FROM account_banned WHERE "
+@@ -458,27 +482,30 @@ bool AuthSocket::_HandleLogonChallenge()
+                     pkt.append(N.AsByteArray(32), 32);
+                     pkt.append(s.AsByteArray(), s.GetNumBytes());// 32 bytes
+                     pkt.append(unk3.AsByteArray(16), 16);
+-                    uint8 securityFlags = 0;
+-                    pkt << uint8(securityFlags);            // security flags (0x0...0x04)
+ 
+-                    if (securityFlags & 0x01)               // PIN input
++                    // figure out whether we need to display the PIN grid
++                    promptPin = locked; // always prompt if the account is IP locked & 2FA is enabled
++
++                    if (!locked && ((lockFlags & ALWAYS_ENFORCE) == ALWAYS_ENFORCE))
+                     {
+-                        pkt << uint32(0);
+-                        pkt << uint64(0) << uint64(0);      // 16 bytes hash?
++                        promptPin = true; // prompt if the lock hasn't been triggered but ALWAYS_ENFORCE is set
+                     }
+ 
+-                    if (securityFlags & 0x02)               // Matrix input
++                    if (promptPin)
+                     {
+-                        pkt << uint8(0);
+-                        pkt << uint8(0);
+-                        pkt << uint8(0);
+-                        pkt << uint8(0);
+-                        pkt << uint64(0);
+-                    }
++                        BASIC_LOG("[AuthChallenge] account %s is using PIN authentication", _login.c_str());
++
++                        uint32 gridSeedPkt = gridSeed = static_cast<uint32>(rand32());
++                        EndianConvert(gridSeedPkt);
++                        serverSecuritySalt.SetRand(16 * 8); // 16 bytes random
+ 
+-                    if (securityFlags & 0x04)               // Security token input
++                        pkt << uint8(1); // securityFlags, only '1' is available in classic (PIN input)
++                        pkt << gridSeedPkt;
++                        pkt.append(serverSecuritySalt.AsByteArray(16), 16);
++                    }
++                    else
+                     {
+-                        pkt << uint8(1);
++                        pkt << uint8(0);
+                     }
+ 
+                     uint8 secLevel = (*result)[4].GetUInt8();
+@@ -508,9 +535,18 @@ bool AuthSocket::_HandleLogonProof()
+     DEBUG_LOG("Entering _HandleLogonProof");
+     ///- Read the packet
+     sAuthLogonProof_C lp;
++
+     if (!Read((char*)&lp, sizeof(sAuthLogonProof_C)))
+         return false;
+ 
++    PINData pinData;
++
++    if (lp.securityFlags)
++    {
++        if (!Read((char*)&pinData, sizeof(pinData)))
++            return false;
++    }
++
+     /// <ul><li> If the client has no valid version
+     if (!FindBuildInfo(_build))
+     {
+@@ -600,8 +636,41 @@ bool AuthSocket::_HandleLogonProof()
+     BigNumber M;
+     M.SetBinary(sha.GetDigest(), 20);
+ 
++    ///- Check PIN data is correct
++    bool pinResult = true;
++
++    if (promptPin && !lp.securityFlags)
++        pinResult = false; // expected PIN data but did not receive it
++
++    if (promptPin && lp.securityFlags)
++    {
++        if ((lockFlags & FIXED_PIN) == FIXED_PIN)
++            pinResult = VerifyPinData(std::stoi(securityInfo), pinData);
++        else if ((lockFlags & TOTP) == TOTP)
++        {
++            for (int i = -2; i != 2; ++i)
++            {
++                auto pin = generateTotpPin(securityInfo, i);
++
++                if (pin == uint32(-1))
++                {
++                    pinResult = false;
++                    break;
++                }
++                
++                if ((pinResult = VerifyPinData(pin, pinData)))
++                    break;
++            }
++        }
++        else
++        {
++            DEBUG_LOG("Unknown lock flags set for %s", _safelogin.c_str());
++            pinResult = false;
++        }
++    }
++
+     ///- Check if SRP6 results match (password is correct), else send an error
+-    if (!memcmp(M.AsByteArray(), lp.M1, 20))
++    if (!memcmp(M.AsByteArray(), lp.M1, 20) && pinResult)
+     {
+         BASIC_LOG("User '%s' successfully authenticated", _login.c_str());
+ 
+@@ -987,4 +1056,108 @@ bool AuthSocket::_HandleXferAccept()
+     ReadSkip(1);
+ 
+     return true;
+-}
+\ No newline at end of file
++}
++
++/// Very PIN entry data
++bool AuthSocket::VerifyPinData(uint32 pin, const PINData& clientData)
++{
++    // remap the grid to match the client's layout
++    std::vector<uint8> grid { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
++    std::vector<uint8> remappedGrid(grid.size());
++
++    uint8* remappedIndex = remappedGrid.data();
++    uint32 seed = gridSeed;
++
++    for (size_t i = grid.size(); i > 0; --i)
++    {
++        auto remainder = seed % i;
++        seed /= i;
++        *remappedIndex = grid[remainder];
++
++        size_t copySize = i;
++        copySize -= remainder;
++        --copySize;
++
++        uint8* srcPtr = grid.data() + remainder + 1;
++        uint8* dstPtr = grid.data() + remainder;
++
++        std::copy(srcPtr, srcPtr + copySize, dstPtr);
++        ++remappedIndex;
++    }
++
++    // convert the PIN to bytes (for ex. '1234' to {1, 2, 3, 4})
++    std::vector<uint8> pinBytes;
++	    
++    while (pin != 0)
++    {
++        pinBytes.push_back(pin % 10);
++        pin /= 10;
++    }
++
++    std::reverse(pinBytes.begin(), pinBytes.end());
++
++    // validate PIN length
++    if (pinBytes.size() < 4 || pinBytes.size() > 10)
++        return false; // PIN outside of expected range
++
++    // remap the PIN to calculate the expected client input sequence
++    for (size_t i = 0; i < pinBytes.size(); ++i)
++    {
++        auto index = std::find(remappedGrid.begin(), remappedGrid.end(), pinBytes[i]);
++        pinBytes[i] = std::distance(remappedGrid.begin(), index);
++    }
++
++    // convert PIN bytes to their ASCII values
++    for (size_t i = 0; i < pinBytes.size(); ++i)
++        pinBytes[i] += 0x30;
++
++    // validate the PIN, x = H(client_salt | H(server_salt | ascii(pin_bytes)))
++    Sha1Hash sha;
++    sha.UpdateData(serverSecuritySalt.AsByteArray(), serverSecuritySalt.GetNumBytes());
++    sha.UpdateData(pinBytes.data(), pinBytes.size());
++    sha.Finalize();
++
++    BigNumber hash;
++    hash.SetBinary(sha.GetDigest(), sha.GetLength());
++
++    sha.Initialize();
++    sha.UpdateData(clientData.salt, sizeof(clientData.salt));
++    sha.UpdateData(hash.AsByteArray(), hash.GetNumBytes());
++    sha.Finalize();
++    hash.SetBinary(sha.GetDigest(), sha.GetLength());
++
++    return !memcmp(hash.AsByteArray(), clientData.hash, 20);
++}
++
++uint32 AuthSocket::generateTotpPin(const std::string& secret, int interval)
++{
++    std::vector<uint8> decoded_key((secret.size() + 7) / 8 * 5);
++    int key_size = base32_decode((const uint8_t*)secret.data(), decoded_key.data(), decoded_key.size());
++
++    if (key_size == -1)
++    {
++        DEBUG_LOG("Unable to base32 decode TOTP key for user %s", _safelogin.c_str());
++        return -1;
++    }
++
++    // not guaranteed by the standard to be the UNIX epoch but it is on all supported platforms
++    auto time = std::time(NULL);
++    uint64 now = static_cast<uint64>(time);
++    uint64 step = static_cast<uint64>((floor(now / 30))) + interval;
++    EndianConvertReverse(step);
++    
++    HmacHash hmac(decoded_key.data(), key_size);
++    hmac.UpdateData((uint8*)&step, sizeof(step));
++    hmac.Finalize();
++
++    auto hmac_result = hmac.GetDigest();
++
++    unsigned int offset = hmac_result[19] & 0xF;
++    std::uint32_t pin = (hmac_result[offset] & 0x7f) << 24 | (hmac_result[offset + 1] & 0xff) << 16
++        | (hmac_result[offset + 2] & 0xff) << 8 | (hmac_result[offset + 3] & 0xff);
++    EndianConvert(pin);
++
++    pin &= 0x7FFFFFFF;
++    pin %= 1000000;
++    return pin;
++}
+diff --git a/src/realmd/AuthSocket.h b/src/realmd/AuthSocket.h
+index f00123e..0c43e27 100644
+--- a/src/realmd/AuthSocket.h
++++ b/src/realmd/AuthSocket.h
+@@ -34,6 +34,9 @@
+ 
+ #include <functional>
+ 
++struct PINData;
++enum LockFlag : uint32;
++
+ class AuthSocket : public MaNGOS::Socket
+ {
+     public:
+@@ -43,6 +46,8 @@ class AuthSocket : public MaNGOS::Socket
+ 
+         void SendProof(Sha1Hash sha);
+         void LoadRealmlist(ByteBuffer& pkt, uint32 acctid);
++        bool VerifyPinData(uint32 pin, const PINData& clientData);
++        uint32 generateTotpPin(const std::string& secret, int interval);
+ 
+         bool _HandleLogonChallenge();
+         bool _HandleLogonProof();
+@@ -63,10 +68,15 @@ class AuthSocket : public MaNGOS::Socket
+         BigNumber K;
+         BigNumber _reconnectProof;
+ 
+-        bool _authed;
++        bool _authed, promptPin;
+ 
+         std::string _login;
+         std::string _safelogin;
++        std::string securityInfo;
++
++        BigNumber serverSecuritySalt;
++        LockFlag lockFlags;
++        uint32 gridSeed;
+ 
+         // Since GetLocaleByName() is _NOT_ bijective, we have to store the locale as a string. Otherwise we can't differ
+         // between enUS and enGB, which is important for the patch system
+diff --git a/src/shared/Auth/Hmac.cpp b/src/shared/Auth/Hmac.cpp
+index e851ba7..ee945b7 100644
+--- a/src/shared/Auth/Hmac.cpp
++++ b/src/shared/Auth/Hmac.cpp
+@@ -19,17 +19,14 @@
+ #include "Auth/Hmac.h"
+ #include "BigNumber.h"
+ 
+-HmacHash::HmacHash()
++HmacHash::HmacHash(const uint8* data, int length)
+ {
+-    uint8 temp[SEED_KEY_SIZE] = { 0x38, 0xA7, 0x83, 0x15, 0xF8, 0x92, 0x25, 0x30, 0x71, 0x98, 0x67, 0xB1, 0x8C, 0x4, 0xE2, 0xAA };
+-    memcpy(&m_key, &temp, SEED_KEY_SIZE);
+     HMAC_CTX_init(&m_ctx);
+-    HMAC_Init_ex(&m_ctx, &m_key, SEED_KEY_SIZE, EVP_sha1(), NULL);
++    HMAC_Init_ex(&m_ctx, data, length, EVP_sha1(), NULL);
+ }
+ 
+ HmacHash::~HmacHash()
+ {
+-    memset(&m_key, 0x00, SEED_KEY_SIZE);
+     HMAC_CTX_cleanup(&m_ctx);
+ }
+ 
+@@ -43,11 +40,6 @@ void HmacHash::UpdateData(const uint8* data, int length)
+     HMAC_Update(&m_ctx, data, length);
+ }
+ 
+-void HmacHash::Initialize()
+-{
+-    HMAC_Init_ex(&m_ctx, &m_key, SEED_KEY_SIZE, EVP_sha1(), NULL);
+-}
+-
+ void HmacHash::Finalize()
+ {
+     uint32 length = 0;
+diff --git a/src/shared/Auth/Hmac.h b/src/shared/Auth/Hmac.h
+index 2e2f16a..22f4a83 100644
+--- a/src/shared/Auth/Hmac.h
++++ b/src/shared/Auth/Hmac.h
+@@ -25,12 +25,10 @@
+ 
+ class BigNumber;
+ 
+-#define SEED_KEY_SIZE 16
+-
+ class HmacHash
+ {
+     public:
+-        HmacHash();
++        HmacHash(const uint8* data, int length);
+         ~HmacHash();
+         void UpdateBigNumber(BigNumber* bn);
+         void UpdateData(const uint8* data, int length);
+@@ -40,7 +38,6 @@ class HmacHash
+         int GetLength() { return SHA_DIGEST_LENGTH; };
+     private:
+         HMAC_CTX m_ctx;
+-        uint8 m_key[SEED_KEY_SIZE];
+         uint8 m_digest[SHA_DIGEST_LENGTH];
+ };
+ #endif
+diff --git a/src/shared/Auth/base32.cpp b/src/shared/Auth/base32.cpp
+new file mode 100644
+index 0000000..70da281
+--- /dev/null
++++ b/src/shared/Auth/base32.cpp
+@@ -0,0 +1,95 @@
++// Base32 implementation
++//
++// Copyright 2010 Google Inc.
++// Author: Markus Gutschke
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//      http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++#include <string.h>
++
++#include "base32.h"
++
++int base32_decode(const uint8_t *encoded, uint8_t *result, int bufSize) {
++  int buffer = 0;
++  int bitsLeft = 0;
++  int count = 0;
++  for (const uint8_t *ptr = encoded; count < bufSize && *ptr; ++ptr) {
++    uint8_t ch = *ptr;
++    if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n' || ch == '-') {
++      continue;
++    }
++    buffer <<= 5;
++
++    // Deal with commonly mistyped characters
++    if (ch == '0') {
++      ch = 'O';
++    } else if (ch == '1') {
++      ch = 'L';
++    } else if (ch == '8') {
++      ch = 'B';
++    }
++
++    // Look up one base32 digit
++    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
++      ch = (ch & 0x1F) - 1;
++    } else if (ch >= '2' && ch <= '7') {
++      ch -= '2' - 26;
++    } else {
++      return -1;
++    }
++
++    buffer |= ch;
++    bitsLeft += 5;
++    if (bitsLeft >= 8) {
++      result[count++] = buffer >> (bitsLeft - 8);
++      bitsLeft -= 8;
++    }
++  }
++  if (count < bufSize) {
++    result[count] = '\000';
++  }
++  return count;
++}
++
++int base32_encode(const uint8_t *data, int length, uint8_t *result,
++                  int bufSize) {
++  if (length < 0 || length > (1 << 28)) {
++    return -1;
++  }
++  int count = 0;
++  if (length > 0) {
++    int buffer = data[0];
++    int next = 1;
++    int bitsLeft = 8;
++    while (count < bufSize && (bitsLeft > 0 || next < length)) {
++      if (bitsLeft < 5) {
++        if (next < length) {
++          buffer <<= 8;
++          buffer |= data[next++] & 0xFF;
++          bitsLeft += 8;
++        } else {
++          int pad = 5 - bitsLeft;
++          buffer <<= pad;
++          bitsLeft += pad;
++        }
++      }
++      int index = 0x1F & (buffer >> (bitsLeft - 5));
++      bitsLeft -= 5;
++      result[count++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"[index];
++    }
++  }
++  if (count < bufSize) {
++    result[count] = '\000';
++  }
++  return count;
++}
+diff --git a/src/shared/Auth/base32.h b/src/shared/Auth/base32.h
+new file mode 100644
+index 0000000..5a63678
+--- /dev/null
++++ b/src/shared/Auth/base32.h
+@@ -0,0 +1,39 @@
++// Base32 implementation
++//
++// Copyright 2010 Google Inc.
++// Author: Markus Gutschke
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//      http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++//
++// Encode and decode from base32 encoding using the following alphabet:
++//   ABCDEFGHIJKLMNOPQRSTUVWXYZ234567
++// This alphabet is documented in RFC 4648/3548
++//
++// We allow white-space and hyphens, but all other characters are considered
++// invalid.
++//
++// All functions return the number of output bytes or -1 on error. If the
++// output buffer is too small, the result will silently be truncated.
++
++#ifndef _BASE32_H_
++#define _BASE32_H_
++
++#include <stdint.h>
++
++int base32_decode(const uint8_t *encoded, uint8_t *result, int bufSize);
++
++int base32_encode(const uint8_t *data, int length, uint8_t *result,
++                  int bufSize);
++
++
++#endif /* _BASE32_H_ */
+diff --git a/src/shared/CMakeLists.txt b/src/shared/CMakeLists.txt
+index 27d6a90..05f4406 100644
+--- a/src/shared/CMakeLists.txt
++++ b/src/shared/CMakeLists.txt
+@@ -28,6 +28,8 @@ set(SRC_GRP_AUTH
+     Auth/md5.h
+     Auth/Sha1.cpp
+     Auth/Sha1.h
++    Auth/base32.h
++    Auth/base32.cpp
+ )
+ 
+ set(SRC_GRP_CONFIG
+diff --git a/src/shared/revision_sql.h b/src/shared/revision_sql.h
+index 4c50f3e..9203f2d 100644
+--- a/src/shared/revision_sql.h
++++ b/src/shared/revision_sql.h
+@@ -1,6 +1,6 @@
+ #ifndef __REVISION_SQL_H__
+ #define __REVISION_SQL_H__
+- #define REVISION_DB_REALMD "required_z2678_01_realmd"
++ #define REVISION_DB_REALMD "required_z2685_01_realmd"
+  #define REVISION_DB_CHARACTERS "required_z2682_01_characters_pvpstats"
+  #define REVISION_DB_MANGOS "required_z2684_01_mangos_creature_template"
+ #endif // __REVISION_SQL_H__
+diff --git a/win/VC120/shared.vcxproj b/win/VC120/shared.vcxproj
+index 9180edf..c38a07a 100644
+--- a/win/VC120/shared.vcxproj
++++ b/win/VC120/shared.vcxproj
+@@ -405,6 +405,7 @@
+   </ItemGroup>
+   <ItemGroup>
+     <ClCompile Include="..\..\src\shared\Auth\AuthCrypt.cpp" />
++    <ClCompile Include="..\..\src\shared\Auth\base32.cpp" />
+     <ClCompile Include="..\..\src\shared\Auth\BigNumber.cpp" />
+     <ClCompile Include="..\..\src\shared\Auth\Hmac.cpp" />
+     <ClCompile Include="..\..\src\shared\Auth\md5.c" />
+@@ -432,6 +433,7 @@
+   <ItemGroup>
+     <ClInclude Include="..\..\dep\include\mersennetwister\MersenneTwister.h" />
+     <ClInclude Include="..\..\src\shared\Auth\AuthCrypt.h" />
++    <ClInclude Include="..\..\src\shared\Auth\base32.h" />
+     <ClInclude Include="..\..\src\shared\Auth\BigNumber.h" />
+     <ClInclude Include="..\..\src\shared\Auth\Hmac.h" />
+     <ClInclude Include="..\..\src\shared\Auth\md5.h" />
+diff --git a/win/VC120/shared.vcxproj.filters b/win/VC120/shared.vcxproj.filters
+index 40c3c2e..cf6ba9e 100644
+--- a/win/VC120/shared.vcxproj.filters
++++ b/win/VC120/shared.vcxproj.filters
+@@ -96,6 +96,9 @@
+     <ClCompile Include="..\..\src\shared\Network\Socket.cpp">
+       <Filter>Network</Filter>
+     </ClCompile>
++    <ClCompile Include="..\..\src\shared\Auth\base32.cpp">
++      <Filter>Auth</Filter>
++    </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <ClInclude Include="..\..\src\shared\Database\Database.h">
+@@ -199,6 +202,9 @@
+       <Filter>Network</Filter>
+     </ClInclude>
+     <ClInclude Include="..\..\src\shared\TSS.h" />
++    <ClInclude Include="..\..\src\shared\Auth\base32.h">
++      <Filter>Auth</Filter>
++    </ClInclude>
+   </ItemGroup>
+   <ItemGroup>
+     <CustomBuild Include="..\..\src\shared\revision.h" />
+diff --git a/win/VC140/shared.vcxproj b/win/VC140/shared.vcxproj
+index f7ee9e2..a99169b 100644
+--- a/win/VC140/shared.vcxproj
++++ b/win/VC140/shared.vcxproj
+@@ -405,6 +405,7 @@
+   </ItemGroup>
+   <ItemGroup>
+     <ClCompile Include="..\..\src\shared\Auth\AuthCrypt.cpp" />
++    <ClCompile Include="..\..\src\shared\Auth\base32.cpp" />
+     <ClCompile Include="..\..\src\shared\Auth\BigNumber.cpp" />
+     <ClCompile Include="..\..\src\shared\Auth\Hmac.cpp" />
+     <ClCompile Include="..\..\src\shared\Auth\md5.c" />
+@@ -433,6 +434,7 @@
+   <ItemGroup>
+     <ClInclude Include="..\..\dep\include\mersennetwister\MersenneTwister.h" />
+     <ClInclude Include="..\..\src\shared\Auth\AuthCrypt.h" />
++    <ClInclude Include="..\..\src\shared\Auth\base32.h" />
+     <ClInclude Include="..\..\src\shared\Auth\BigNumber.h" />
+     <ClInclude Include="..\..\src\shared\Auth\Hmac.h" />
+     <ClInclude Include="..\..\src\shared\Auth\md5.h" />
+diff --git a/win/VC140/shared.vcxproj.filters b/win/VC140/shared.vcxproj.filters
+index 3fd79d4..485e9b2 100644
+--- a/win/VC140/shared.vcxproj.filters
++++ b/win/VC140/shared.vcxproj.filters
+@@ -93,6 +93,9 @@
+     <ClCompile Include="..\..\src\shared\Network\Listener.cpp">
+       <Filter>Network</Filter>
+     </ClCompile>
++    <ClCompile Include="..\..\src\shared\Auth\base32.cpp">
++      <Filter>Auth</Filter>
++    </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <ClInclude Include="..\..\src\shared\Database\Database.h">
+@@ -196,6 +199,9 @@
+       <Filter>Network</Filter>
+     </ClInclude>
+     <ClInclude Include="..\..\src\shared\TSS.h" />
++    <ClInclude Include="..\..\src\shared\Auth\base32.h">
++      <Filter>Auth</Filter>
++    </ClInclude>
+   </ItemGroup>
+   <ItemGroup>
+     <CustomBuild Include="..\..\src\shared\revision.h" />

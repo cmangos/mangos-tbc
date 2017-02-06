@@ -232,6 +232,7 @@ struct boss_alarAI : public ScriptedAI
         m_uiRangeCheckTimer = 0;
         m_bCanSummonEmber = false;
         m_uiPlatformMoveTimer = 0;
+        m_uiFlameQuillsTimer = 60000;
     }
     
     void DoPlatformMove()
@@ -265,7 +266,7 @@ struct boss_alarAI : public ScriptedAI
                     if (DoCastSpellIfCan(m_creature, SPELL_FLAME_QUILLS) == CAST_OK)
                     {
                         // Set the platform id so the boss will move to the last or the first platform
-                        m_uiCurrentPlatformId = urand(0, 1) ? 2 : 3;
+                        m_uiCurrentPlatformId = urand(0, 1) ? 3 : 0;
                         m_uiPlatformMoveTimer = 10000;
                     }
                 }
@@ -345,9 +346,9 @@ struct boss_alarAI : public ScriptedAI
         // Platform phase
         if (m_uiPhase == PHASE_ONE)
         {
-            if (m_uiPlatformMoveTimer)
+            if (m_uiPlatformMoveTimer <= uiDiff)
             {
-                if (m_uiPlatformMoveTimer <= uiDiff)
+                if (m_uiFlameQuillsTimer <= uiDiff)
                 {
                     switch(urand(0,1))
                     {
@@ -356,7 +357,12 @@ struct boss_alarAI : public ScriptedAI
                     }
                 }
                 else
-                    m_uiPlatformMoveTimer -= uiDiff;
+                {
+                    m_uiFlameQuillsTimer -= uiDiff;
+                    DoPlatformMove();
+                }
+            else
+                m_PlatformMoveTimer -= uiDiff;
             }
         }
         // Combat phase

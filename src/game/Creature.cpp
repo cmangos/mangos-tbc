@@ -1642,7 +1642,7 @@ bool Creature::IsImmuneToSpell(SpellEntry const* spellInfo, bool castOnSelf)
     {
         if (GetCreatureInfo()->MechanicImmuneMask & (1 << (spellInfo->Mechanic - 1)))
             return true;
-        
+
         if (GetCreatureInfo()->SchoolImmuneMask & spellInfo->SchoolMask)
             return true;
     }
@@ -2082,9 +2082,6 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
             return false;
 
         if ((selectFlags & SELECT_FLAG_POWER_ENERGY) && pTarget->GetPowerType() != POWER_ENERGY)
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_POWER_RUNIC) && pTarget->GetPowerType() != POWER_RUNIC_POWER)
             return false;
 
         if ((selectFlags & SELECT_FLAG_IN_MELEE_RANGE) && !CanReachWithMeleeAttack(pTarget))

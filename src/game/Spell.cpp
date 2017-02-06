@@ -1485,32 +1485,6 @@ class ChainHealingFullHealth: std::unary_function<const Unit*, bool>
         }
 };
 
-// Helper for targets nearest to the spell target
-// The spell target is always first unless there is a target at _completely_ the same position (unbelievable case)
-struct TargetDistanceOrderNear : public std::binary_function<const Unit, const Unit, bool>
-{
-    const Unit* MainTarget;
-    TargetDistanceOrderNear(const Unit* Target) : MainTarget(Target) {};
-    // functor for operator ">"
-    bool operator()(const Unit* _Left, const Unit* _Right) const
-    {
-        return MainTarget->GetDistanceOrder(_Left, _Right);
-    }
-};
-
-// Helper for targets furthest away to the spell target
-// The spell target is always first unless there is a target at _completely_ the same position (unbelievable case)
-struct TargetDistanceOrderFarAway : public std::binary_function<const Unit, const Unit, bool>
-{
-    const Unit* MainTarget;
-    TargetDistanceOrderFarAway(const Unit* Target) : MainTarget(Target) {};
-    // functor for operator "<"
-    bool operator()(const Unit* _Left, const Unit* _Right) const
-    {
-        return !MainTarget->GetDistanceOrder(_Left, _Right);
-    }
-};
-
 void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList& targetUnitMap)
 {
     float radius;
@@ -4642,7 +4616,7 @@ SpellCastResult Spell::CheckCast(bool strict)
         // check if target is in combat
         if (non_caster_target && m_spellInfo->HasAttribute(SPELL_ATTR_EX_NOT_IN_COMBAT_TARGET) && target->isInCombat())
             return SPELL_FAILED_TARGET_AFFECTING_COMBAT;
-        
+
         // check if target is affected by Spirit of Redemption (Aura: 27827)
         if (target->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
             return SPELL_FAILED_BAD_TARGETS;
@@ -4799,7 +4773,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                                         || (i_spellST->type == SPELL_TARGET_TYPE_CREATURE && pTarget->isAlive()))
                                     {
                                         // always use spellMaxRange, in case GetLastRange returned different in a previous pass
-                                        if(worldObject && (worldObject->GetTypeId() == TYPEID_GAMEOBJECT || worldObject->GetTypeId() == TYPEID_DYNAMICOBJECT) 
+                                        if(worldObject && (worldObject->GetTypeId() == TYPEID_GAMEOBJECT || worldObject->GetTypeId() == TYPEID_DYNAMICOBJECT)
                                             && pTarget->IsWithinDistInMap(worldObject, GetSpellMaxRange(srange)))
                                             targetExplicit = (Creature*)pTarget;
                                         else if (pTarget->IsWithinDistInMap(m_caster, GetSpellMaxRange(srange)))
@@ -5500,8 +5474,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (expectedTarget->GetTypeId() == TYPEID_PLAYER)
                 {
                     Player const* player = static_cast<Player const*>(expectedTarget);
-                    
-                    // Player is not allowed to cast water walk on shapeshifted/mounted player 
+
+                    // Player is not allowed to cast water walk on shapeshifted/mounted player
                     if (player->IsInDisallowedMountForm() || player->IsMounted())
                         return SPELL_FAILED_BAD_TARGETS;
                 }

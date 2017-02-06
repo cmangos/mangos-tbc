@@ -174,44 +174,44 @@ struct boss_alarAI : public ScriptedAI
     // Custom Threat Management for Phase 1 platforms ONLY.
     bool SelectHostileTarget()
     {
-        if (m_uiPhase != PHASE_ONE)
-            return true;
-            
-        bool m_bHasMeleeTargets = false;
-        Unit* pOldTarget = m_creature->getVictim();
-        Unit* pTarget = nullptr;
-        
-        ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
-        
-        for (ThreatList::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
+        if (m_uiPhase == PHASE_ONE)
         {
-            if (m_bHasMeleeTargets)
-                break;
-                
-            if (Unit* pMelee = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
-                if (pMelee->GetTypeId() == TYPEID_PLAYER && pMelee->IsWithinDist(m_creature, ATTACK_DISTANCE))
-                    m_bHasMeleeTargets = true;
-        }
-        
-        if (!m_creature->getThreatManager().isThreatListEmpty())
-            pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), (SELECT_FLAG_IN_MELEE_RANGE | SELECT_FLAG_PLAYER));
-        
-        if (!pTarget && !m_bHasMeleeTargets)
-            pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), (SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER));
-        else
-        {
-            if (pOldTarget != pTarget)
-                AttackStart(pTarget);
-        
-            if (pOldTarget && pOldTarget->isAlive())
-            {
-                m_creature->SetTargetGuid(pOldTarget->GetObjectGuid());
-                m_creature->SetInFront(pOldTarget);
-            }
-            
-            return true;
-        }
+            bool m_bHasMeleeTargets = false;
+            Unit* pOldTarget = m_creature->getVictim();
+            Unit* pTarget = nullptr;
 
+            ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
+
+            for (ThreatList::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
+            {
+                if (m_bHasMeleeTargets)
+                    break;
+
+                if (Unit* pMelee = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
+                    if (pMelee->GetTypeId() == TYPEID_PLAYER && pMelee->IsWithinDist(m_creature, ATTACK_DISTANCE))
+                        m_bHasMeleeTargets = true;
+            }
+
+            if (!m_creature->getThreatManager().isThreatListEmpty())
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), (SELECT_FLAG_IN_MELEE_RANGE | SELECT_FLAG_PLAYER));
+
+            if (!pTarget && !m_bHasMeleeTargets)
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), (SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER));
+            else
+            {
+                if (pOldTarget != pTarget)
+                    AttackStart(pTarget);
+
+                if (pOldTarget && pOldTarget->isAlive())
+                {
+                    m_creature->SetTargetGuid(pOldTarget->GetObjectGuid());
+                    m_creature->SetInFront(pOldTarget);
+                }
+
+                return true;
+            }
+        }
+        
         // Will call EnterEvadeMode if fit
         return m_creature->SelectHostileTarget();
     }
@@ -308,7 +308,7 @@ struct boss_alarAI : public ScriptedAI
         if (m_uiPhase != PHASE_ONE)
             return;
 
-        if (uiDamage <= m_creature->GetMaxHealth())
+        if (uiDamage <= m_creature->GetHealth())
             return;
 
         m_creature->InterruptNonMeleeSpells(true);
@@ -339,7 +339,7 @@ struct boss_alarAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         // Platform phase

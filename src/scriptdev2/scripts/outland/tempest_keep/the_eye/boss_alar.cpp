@@ -40,7 +40,7 @@ enum
     SPELL_BOMB_REBIRTH      = 35369,        // used after the dive bomb - to transform back to phoenis
     SPELL_CHARGE            = 35412,        // charge a random target
     // SPELL_SUMMON_ADDS    = 18814,        // summons 3*19551 - Not sure if the spell is the right id
-    SPELL_BERSERK           = 45076,        // this spell is used only during phase II
+    SPELL_BERSERK           = 26662,        // this spell is used only during phase II, increases Attack Speed by 150% & Damage by 500%
 
     NPC_EMBER_OF_ALAR       = 19551,        // scripted in Acid
     NPC_FLAME_PATCH         = 20602,
@@ -361,6 +361,7 @@ struct boss_alarAI : public ScriptedAI
                     m_uiFlameQuillsTimer -= uiDiff;
                     DoPlatformMove();
                 }
+            }
             else
                 m_PlatformMoveTimer -= uiDiff;
             }

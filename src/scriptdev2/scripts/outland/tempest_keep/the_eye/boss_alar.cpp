@@ -363,8 +363,7 @@ struct boss_alarAI : public ScriptedAI
                 }
             }
             else
-                m_PlatformMoveTimer -= uiDiff;
-            }
+                m_uiPlatformMoveTimer -= uiDiff;
         }
         // Combat phase
         else if (m_uiPhase == PHASE_TWO)

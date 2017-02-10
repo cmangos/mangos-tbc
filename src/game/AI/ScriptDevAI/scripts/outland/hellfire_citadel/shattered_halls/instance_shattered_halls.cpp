@@ -27,7 +27,8 @@ EndScriptData */
 instance_shattered_halls::instance_shattered_halls(Map* pMap) : ScriptedInstance(pMap),
     m_uiExecutionTimer(55 * MINUTE * IN_MILLISECONDS),
     m_uiTeam(0),
-    m_uiExecutionStage(0)
+    m_uiExecutionStage(0),
+    m_uiPrisonersLeft(3)
 {
     Initialize();
 }
@@ -261,7 +262,7 @@ bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* pPlayer,
         case INSTANCE_CONDITION_ID_HARD_MODE:               // One soldier alive
         case INSTANCE_CONDITION_ID_HARD_MODE_2:             // Two soldier alive
         case INSTANCE_CONDITION_ID_HARD_MODE_3:             // Three soldier alive
-            return uiInstanceConditionId == uint32(INSTANCE_CONDITION_ID_HARD_MODE_3 - m_uiExecutionStage);
+            return uiInstanceConditionId == uint32(m_uiPrisonersLeft);
     }
 
     script_error_log("instance_shattered_halls::CheckConditionCriteriaMeet called with unsupported Id %u. Called with param plr %s, src %s, condition source type %u",
@@ -328,6 +329,7 @@ void instance_shattered_halls::Update(uint32 uiDiff)
                 m_uiExecutionTimer = 0;
                 break;
         }
+        --m_uiPrisonersLeft;
         ++m_uiExecutionStage;
     }
     else

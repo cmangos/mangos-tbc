@@ -112,6 +112,7 @@ class instance_shattered_halls : public ScriptedInstance
         uint32 m_uiExecutionTimer;
         uint32 m_uiTeam;
         uint8 m_uiExecutionStage;
+        uint8 m_uiPrisonersLeft;
 
         std::vector<ObjectGuid> m_vGauntletPermanentGuids;
         std::vector<ObjectGuid> m_vGauntletTemporaryGuids;

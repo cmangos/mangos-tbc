@@ -606,7 +606,15 @@ void CliRunnable::run()
     // print this here the first time
     // later it will be printed after command queue updates
     printf("mangos>");
-
+    
+#ifdef linux
+    //Set stdin IO to nonblocking - prevent Server from hanging in shutdown process till enter is pressed
+    int fd = fileno(stdin);  
+    int flags = fcntl(fd, F_GETFL, 0); 
+    flags |= O_NONBLOCK; 
+    fcntl(fd, F_SETFL, flags);
+#endif
+    
     ///- As long as the World is running (no World::m_stopEvent), get the command line and handle it
     while (!World::IsStopped())
     {

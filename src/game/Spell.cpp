@@ -5434,8 +5434,13 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_NO_MOUNTS_ALLOWED;
 
                 // Ignore map check if spell have AreaId. AreaId already checked and this prevent special mount spells
-                if (m_caster->GetTypeId() == TYPEID_PLAYER && !sMapStore.LookupEntry(m_caster->GetMapId())->IsMountAllowed() && !m_IsTriggeredSpell && !m_spellInfo->AreaId)
+                if (m_caster->GetTypeId() == TYPEID_PLAYER &&
+                    !m_IsTriggeredSpell &&
+                    !m_spellInfo->AreaId &&
+                    (m_caster->GetMap() && !m_caster->GetMap()->IsMountAllowed()))
+                {
                     return SPELL_FAILED_NO_MOUNTS_ALLOWED;
+                }
 
                 if (m_caster->GetAreaId() == 35)
                     return SPELL_FAILED_NO_MOUNTS_ALLOWED;

@@ -288,20 +288,13 @@ bool WorldSession::Update(PacketFilter& updater)
         }
     }
 
-    // check if we are safe to proceed with logout
-    // logout procedure should happen only in World::UpdateSessions() method!!!
-    if (updater.ProcessLogout())
-    {
-        ///- If necessary, log the player out
-        const time_t currTime = time(nullptr);
+    // process logout if needed
+	if (m_Socket->IsClosed() || (ShouldLogOut() && !m_playerLoading))
+		LogoutPlayer(true);
 
-        if (m_Socket->IsClosed() || (ShouldLogOut(currTime) && !m_playerLoading))
-            LogoutPlayer(true);
-
-        // finalize the session if disconnected.
-        if (m_Socket->IsClosed())
-            return false;
-    }
+	// finalize the session if disconnected.
+	if (m_Socket->IsClosed())
+		return false;
 
     return true;
 }

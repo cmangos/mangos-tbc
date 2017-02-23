@@ -219,6 +219,7 @@ struct ScriptInfo
         {
             uint32 creatureEntry;                           // datalong
             uint32 despawnDelay;                            // datalong2
+            uint32 pathId;                                  // datalong3
         } summonCreature;
 
         // datalong unused                                  // SCRIPT_COMMAND_OPEN_DOOR (11)
@@ -274,7 +275,7 @@ struct ScriptInfo
         struct                                              // SCRIPT_COMMAND_MOVEMENT (20)
         {
             uint32 movementType;                            // datalong
-            uint32 wanderDistance;                          // datalong2
+            uint32 wanderORpathId;                          // datalong2
         } movement;
 
         struct                                              // SCRIPT_COMMAND_SET_ACTIVEOBJECT (21)
@@ -668,6 +669,6 @@ MANGOS_DLL_SPEC uint32 GetScriptId(const char* name);
 MANGOS_DLL_SPEC char const* GetScriptName(uint32 id);
 MANGOS_DLL_SPEC uint32 GetScriptIdsCount();
 MANGOS_DLL_SPEC void SetExternalWaypointTable(char const* tableName);
-MANGOS_DLL_SPEC bool AddWaypointFromExternal(uint32 entry, int32 pathId, uint32 pointId, float x, float y, float z, float o, uint32 waittime);
+MANGOS_DLL_SPEC bool AddWaypointFromExternal(uint32 entry, uint32 pathId, uint32 pointId, float x, float y, float z, float o, uint32 waittime);
 
 #endif

@@ -412,6 +412,7 @@ class Spell
         // Trigger flag system
         bool m_ignoreHitResult;
         bool m_ignoreUnselectableTarget;
+        bool m_ignoreUnattackableTarget;
 
         int32 GetCastTime() const { return m_casttime; }
         uint32 GetCastedTime() const { return m_timer; }

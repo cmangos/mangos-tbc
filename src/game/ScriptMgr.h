@@ -65,8 +65,8 @@ enum ScriptCommand                                          // resSource, resTar
     SCRIPT_COMMAND_REMOVE_AURA              = 14,           // resSource = Unit, datalong = spell_id
     SCRIPT_COMMAND_CAST_SPELL               = 15,           // resSource = Unit, cast spell at resTarget = Unit
                                                             // datalong=spellid
+                                                            // datalong2=castFlags, enum TriggeredCastFlags
                                                             // dataint1-4 optional for random selected spell
-                                                            // data_flags &  SCRIPT_FLAG_COMMAND_ADDITIONAL = cast triggered
     SCRIPT_COMMAND_PLAY_SOUND               = 16,           // resSource = WorldObject, target=any/player, datalong (sound_id), datalong2 (bitmask: 0/1=target-player, 0/2=with distance dependent, 0/4=map wide, 0/8=zone wide; so 1|2 = 3 is target with distance dependent)
     SCRIPT_COMMAND_CREATE_ITEM              = 17,           // source or target must be player, datalong = item entry, datalong2 = amount
     SCRIPT_COMMAND_DESPAWN_SELF             = 18,           // resSource = Creature, datalong = despawn delay
@@ -245,7 +245,7 @@ struct ScriptInfo
         struct                                              // SCRIPT_COMMAND_CAST_SPELL (15)
         {
             uint32 spellId;                                 // datalong
-            uint32 empty;                                   // datalong2
+            uint32 castFlags;                               // datalong2
         } castSpell;
 
         struct                                              // SCRIPT_COMMAND_PLAY_SOUND (16)

@@ -1806,17 +1806,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
             if (!tempTargetUnitMap.empty())
                 CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
-            else
-            {
-                // remove not targetable units if spell has no script targets
-                for (UnitList::iterator itr = targetUnitMap.begin(); itr != targetUnitMap.end();)
-                {
-                    if (!(*itr)->isTargetableForAttack(m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD)))
-                        targetUnitMap.erase(itr++);
-                    else
-                        ++itr;
-                }
-            }
             break;
         }
         case TARGET_AREAEFFECT_GO_AROUND_SOURCE:
@@ -6535,6 +6524,13 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
                 m_spellInfo->EffectImplicitTargetA[eff] != TARGET_NARROW_FRONTAL_CONE &&
                 m_spellInfo->EffectImplicitTargetB[eff] != TARGET_NARROW_FRONTAL_CONE)
                 return false;
+
+            if (target->IsTaxiFlying())
+                return false;
+
+            // Experimental: Test out TC theory that this flag should be Immune to Player
+            if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_OOC_NOT_ATTACKABLE) && m_caster->GetTypeId() == TYPEID_PLAYER)
+                return false;
         }
 
         // Check player targets and remove if in GM mode or GM invisibility (for not self casting case)
@@ -6597,6 +6593,9 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
 
     if (target->GetTypeId() != TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER)
         && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_SCRIPT && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_SELF)
+        return false;
+
+    if (target->isAlive() == m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD))
         return false;
 
     if (!IsAllowingDeadTarget(m_spellInfo) && !target->isAlive() && !(target == m_caster && m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD)) && m_caster->GetTypeId() == TYPEID_PLAYER)

@@ -6595,7 +6595,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
         && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_SCRIPT && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_SELF)
         return false;
 
-    if (target->isAlive() == m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD))
+    if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD) && target->isAlive())
         return false;
 
     if (!IsAllowingDeadTarget(m_spellInfo) && !target->isAlive() && !(target == m_caster && m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD)) && m_caster->GetTypeId() == TYPEID_PLAYER)

@@ -2320,6 +2320,9 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
         case 5497:                                          // Improved Mana Gems (Serpent-Coil Braid)
             triggered_spell_id = 37445;                     // Mana Surge
             break;
+        case 5510:                                          // Flexibility - T4 Holy Priest bonus
+            RemoveAurasDueToSpell(37565);
+            return SPELL_AURA_PROC_OK;
     }
 
     // not processed

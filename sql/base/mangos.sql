@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: mangos
 -- ------------------------------------------------------
--- Server version	5.5.32
+-- Server version   5.5.32
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2345_01_mangos_instance_encounters` bit(1) DEFAULT NULL
+  `required_s2346_01_mangos_instance_template` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -2137,6 +2137,7 @@ LOCK TABLES `gossip_texts` WRITE;
 /*!40000 ALTER TABLE `gossip_texts` ENABLE KEYS */;
 UNLOCK TABLES;
 
+--
 -- Table structure for table `instance_encounters`
 --
 
@@ -2589,38 +2590,89 @@ INSERT INTO `instance_encounters` VALUES
 UNLOCK TABLES;
 
 --
+-- Table structure for table `instance_template`
+--
+
+DROP TABLE IF EXISTS `instance_template`;
+CREATE TABLE `instance_template` (
+  `map` smallint(5) unsigned NOT NULL,
+  `parent` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `levelMin` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `levelMax` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `maxPlayers` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `reset_delay` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'Reset time in days',
+  `ScriptName` varchar(128) NOT NULL DEFAULT '',
+  `mountAllowed` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`map`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
 -- Dumping data for table `instance_template`
 --
 
 LOCK TABLES `instance_template` WRITE;
 /*!40000 ALTER TABLE `instance_template` DISABLE KEYS */;
-INSERT INTO `instance_template` VALUES
-(33,0,22,30,10,0,''),
-(34,0,24,32,10,0,''),
-(36,0,15,20,10,0,''),
-(43,0,15,21,10,0,''),
-(47,0,29,38,10,0,''),
-(48,0,24,32,10,0,''),
-(70,0,35,47,10,0,''),
-(90,0,29,38,10,0,''),
-(109,0,45,55,10,0,''),
-(129,0,37,46,10,0,''),
-(189,0,34,45,10,0,''),
-(209,0,44,54,10,0,''),
-(229,0,58,0,10,0,''),
-(230,0,52,0,5,0,''),
-(249,0,60,0,40,0,''),
-(289,0,57,0,5,0,''),
-(309,0,60,0,20,0,''),
-(329,0,58,60,5,0,''),
-(349,0,46,55,10,0,''),
-(389,0,13,18,10,0,''),
-(409,0,60,0,40,0,''),
-(429,0,55,60,5,0,''),
-(469,0,60,0,40,0,''),
-(509,0,60,0,20,0,''),
-(531,0,60,0,40,0,''),
-(533,0,60,0,40,0,'');
+INSERT INTO `instance_template`
+  (`map`, `parent`, `levelMin`, `levelMax`, `maxPlayers`, `reset_delay`, `ScriptName`, `mountAllowed`)
+VALUES
+  (30,0,10,0,50,0,'',0),
+  (33,0,14,30,10,0,'',0),
+  (34,0,15,32,10,0,'',0),
+  (36,0,10,20,10,0,'',1),
+  (43,0,10,21,10,0,'',0),
+  (47,0,17,38,10,0,'',0),
+  (48,0,19,32,10,0,'',0),
+  (70,0,30,47,10,0,'',0),
+  (90,0,15,38,10,0,'',0),
+  (109,0,35,55,10,0,'',0),
+  (129,0,25,46,10,0,'',0),
+  (189,0,20,45,10,0,'',0),
+  (209,0,35,54,10,0,'',1),
+  (229,0,45,0,10,0,'',0),
+  (230,0,40,0,5,0,'',0),
+  (249,0,50,0,40,0,'',0),
+  (269,0,66,0,5,0,'',1),
+  (289,0,45,0,5,0,'',0),
+  (309,0,50,0,20,0,'',1),
+  (329,0,45,60,5,0,'',0),
+  (349,0,30,55,10,0,'',0),
+  (389,0,8,18,10,0,'',0),
+  (409,230,50,0,40,0,'',0),
+  (429,0,45,60,5,0,'',0),
+  (469,229,60,0,40,0,'',0),
+  (489,0,10,0,50,0,'',0),
+  (509,0,50,0,20,0,'',1),
+  (529,0,10,0,50,0,'',0),
+  (531,0,50,0,40,0,'',0),
+  (532,0,68,0,10,0,'',0),
+  (533,0,51,0,40,0,'',0),
+  (534,0,70,0,25,0,'',1),
+  (540,0,55,0,5,0,'',0),
+  (542,0,55,0,5,0,'',0),
+  (543,0,55,0,5,0,'',0),
+  (544,0,65,0,25,0,'',0),
+  (545,0,55,0,5,0,'',0),
+  (546,0,55,0,5,0,'',0),
+  (547,0,55,0,5,0,'',0),
+  (548,0,68,0,25,0,'',0),
+  (550,0,68,0,25,0,'',0),
+  (552,0,68,0,5,0,'',0),
+  (553,0,68,0,5,0,'',0),
+  (554,0,68,0,5,0,'',0),
+  (555,0,65,0,5,0,'',0),
+  (556,0,55,0,5,0,'',0),
+  (557,0,55,0,5,0,'',0),
+  (558,0,55,0,5,0,'',0),
+  (559,0,10,0,50,0,'',0),
+  (560,0,66,0,5,0,'',1),
+  (562,0,10,0,50,0,'',0),
+  (564,0,70,0,25,0,'',1),
+  (565,0,65,0,25,0,'',0),
+  (566,0,10,0,50,0,'',0),
+  (568,0,68,70,10,0,'',1),
+  (572,0,10,0,50,0,'',1),
+  (580,0,70,0,25,0,'',1),
+  (585,0,65,0,5,0,'',0);
 /*!40000 ALTER TABLE `instance_template` ENABLE KEYS */;
 UNLOCK TABLES;
 

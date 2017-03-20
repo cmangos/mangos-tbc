@@ -67,15 +67,15 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     // get the destination map entry, not the current one, this will fix homebind and reset greeting
     MapEntry const* mEntry = sMapStore.LookupEntry(loc.mapid);
 
-    Map* map = nullptr;
+    Map* pMap = nullptr;
 
     // prevent crash at attempt landing to not existed battleground instance
     if (mEntry->IsBattleGroundOrArena())
     {
         if (GetPlayer()->GetBattleGroundId())
-            map = sMapMgr.FindMap(loc.mapid, GetPlayer()->GetBattleGroundId());
+            pMap = sMapMgr.FindMap(loc.mapid, GetPlayer()->GetBattleGroundId());
 
-        if (!map)
+        if (!pMap)
         {
             DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s was teleported far to nonexisten battleground instance "
                        " (map:%u, x:%f, y:%f, z:%f) Trying to port him to his previous place..",
@@ -103,16 +103,16 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     GetPlayer()->SetSemaphoreTeleportFar(false);
 
     // relocate the player to the teleport destination
-    if (!map)
-        map = sMapMgr.CreateMap(loc.mapid, GetPlayer());
+    if (!pMap)
+        pMap = sMapMgr.CreateMap(loc.mapid, GetPlayer());
 
-    GetPlayer()->SetMap(map);
+    GetPlayer()->SetMap(pMap);
     GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
 
     GetPlayer()->SendInitialPacketsBeforeAddToMap();
     // the CanEnter checks are done in TeleporTo but conditions may change
     // while the player is in transit, for example the map may get full
-    if (!GetPlayer()->GetMap()->Add(GetPlayer()))
+    if (!pMap->Add(GetPlayer()))
     {
         // if player wasn't added to map, reset his map pointer!
         GetPlayer()->ResetMap();
@@ -179,7 +179,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
     }
 
     // mount allow check
-    if (!mEntry->IsMountAllowed())
+    if (!pMap->IsMountAllowed())
         _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
 
     // honorless target
@@ -277,8 +277,14 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     if (opcode == MSG_MOVE_FALL_LAND && plMover && !plMover->IsTaxiFlying())
         plMover->HandleFall(movementInfo);
 
+<<<<<<< HEAD
     if (plMover)
         plMover->ToCPlayer()->HandleAntiCheat(movementInfo, opcode);
+=======
+    // Remove auras that should be removed at landing on ground or water
+    if (opcode == MSG_MOVE_FALL_LAND || opcode == MSG_MOVE_START_SWIM)
+        mover->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_LANDING); // Parachutes
+>>>>>>> mangos/master
 
     /* process position-change */
     HandleMoverRelocation(movementInfo);

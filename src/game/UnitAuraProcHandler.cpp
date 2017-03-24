@@ -454,6 +454,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
     Unit* target = pVictim;
     int32  basepoints[MAX_EFFECT_INDEX] = {0, 0, 0};
 
+    sLog.outErrorDb("HandleDummyAuraProc : %u", dummySpell->Id);
+
     switch (dummySpell->SpellFamilyName)
     {
         case SPELLFAMILY_GENERIC:
@@ -1613,6 +1615,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
     Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
                      ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGuid()) : nullptr;
 
+
     // Try handle unknown trigger spells
     // Custom requirements (not listed in procEx) Warning! damage dealing after this
     // Custom triggered spells
@@ -1716,11 +1719,61 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                         return SPELL_AURA_PROC_FAILED;
                     break;
                     // case 45205: break;                   // Copy Offhand Weapon
-                    // case 45343: break;                   // Dark Flame Aura
+
+
+                case 47300: // Dark Flame Aura              procs from alythess
+
+                    if(!procSpell)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    if (this->HasAura(45345))                   // SPELL_DARK_FLAME on player
+                        return SPELL_AURA_PROC_FAILED;
+
+                    if (procSpell->Id == 46771                  // flame sear
+                            || procSpell->Id == 45342           // or conflag
+                            || procSpell->Id == 45235)          // or blaze
+                    {
+                        cooldown = 1;
+                        target = this;
+                        if (this->HasAura(45347))
+                        {
+                            this->RemoveAurasDueToSpell(45347);
+                            trigger_spell_id = 45345;
+                        }
+                        else
+                            trigger_spell_id = 45348;
+                    }
+
+                    break;
+
+                case 45343:                          // Dark Flame Aura proc from scarolash
+
+                    if(!procSpell)
+                        return SPELL_AURA_PROC_FAILED;
+
+                    if (this->HasAura(45345))       // SPELL_DARK_FLAME on player
+                        return SPELL_AURA_PROC_FAILED;
+
+                    if (procSpell->Id == 45256      // confunding blow
+                        || procSpell->Id == 45248    // shadow blades
+                        || procSpell->Id == 45329)   // shadow nova
+                    {
+                        cooldown = 1;
+                        target = this;
+                        if (this->HasAura(45348))
+                        {
+                            this->RemoveAurasDueToSpell(45348);
+                            trigger_spell_id = 45345;
+                        }
+                        else
+                            trigger_spell_id = 45347;
+                    }
+
+                    break;
+
                     // case 45903: break:                   // Offensive State
                     // case 46146: break:                   // [PH] Ahune  Spanky Hands
                     // case 46146: break;                   // [PH] Ahune  Spanky Hands
-                    // case 47300: break;                   // Dark Flame Aura
                     // case 50051: break;                   // Ethereal Pet Aura
                     break;
             }
@@ -2213,6 +2266,9 @@ SpellAuraProcResult Unit::HandleProcTriggerDamageAuraProc(Unit* pVictim, uint32 
     DealDamageMods(damageInfo.target, damageInfo.damage, &damageInfo.absorb, SPELL_DIRECT_DAMAGE, spellInfo);
     SendSpellNonMeleeDamageLog(&damageInfo);
     DealSpellDamage(&damageInfo, true);
+
+    sLog.outErrorDb("Unit::HandleProcTriggerDamageAuraProc: %u",spellInfo->Id);
+
     return SPELL_AURA_PROC_OK;
 }
 

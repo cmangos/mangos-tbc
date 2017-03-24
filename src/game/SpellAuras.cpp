@@ -666,7 +666,10 @@ void AreaAura::Update(uint32 diff)
                     holder->SetInUse(false);
                 }
                 else
+                {
                     (*tIter)->AddSpellAuraHolder(holder);
+                    holder->SetState(SPELLAURAHOLDER_STATE_READY);
+                }
 
             }
         }

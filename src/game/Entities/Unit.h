@@ -1803,6 +1803,7 @@ class Unit : public WorldObject
         void RemoveGuardian(Pet* pet);
         void RemoveGuardians();
         Pet* FindGuardianWithEntry(uint32 entry);
+        uint32 CountGuardiansWithEntry(uint32 entry);
 
         CharmInfo* GetCharmInfo() { return m_charmInfo; }
         virtual CharmInfo* InitCharmInfo(Unit* charm);

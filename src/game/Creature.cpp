@@ -132,7 +132,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_lootStatus(CREATURE_LOOT_STATUS_NONE),
     m_corpseDecayTimer(0), m_respawnTime(0), m_respawnDelay(25), m_corpseDelay(60), m_aggroDelay(0), m_respawnradius(5.0f),
     m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE), m_equipmentId(0),
-    m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
+    m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false), m_AllowCallAssistance(true),
     m_isDeadByDefault(false), m_temporaryFactionFlags(TEMPFACTION_NONE),
     m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL), m_originalEntry(0),
     m_creatureInfo(nullptr), m_ai(nullptr), m_gameEventVendorId(0)
@@ -728,6 +728,9 @@ void Creature::RegenerateHealth()
 void Creature::DoFleeToGetAssistance()
 {
     if (!getVictim())
+        return;
+
+    if (HasAuraType(SPELL_AURA_PREVENTS_FLEEING))
         return;
 
     float radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_FLEE_ASSISTANCE_RADIUS);
@@ -1831,7 +1834,7 @@ void Creature::SendAIReaction(AiReaction reactionType)
 void Creature::CallAssistance()
 {
     // FIXME: should player pets call for assistance?
-    if (!m_AlreadyCallAssistance && getVictim() && !isCharmed())
+    if (!m_AlreadyCallAssistance && AllowCallAssistance() && getVictim() && !isCharmed())
     {
         SetNoCallAssistance(true);
 

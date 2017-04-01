@@ -2378,14 +2378,11 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(Unit* /*pVictim*/, uint32 /*dama
                 // aura will applied from caster, but spell casted from current aura holder
                 SpellModifier* mod = new SpellModifier(SPELLMOD_CHARGES, SPELLMOD_FLAT, jumps - 5, spellProto->Id, spellProto->SpellFamilyFlags);
 
-                // remove before apply next (locked against deleted)
-                triggeredByAura->SetInUse(true);
                 RemoveAurasByCasterSpell(spellProto->Id, caster->GetObjectGuid());
 
                 ((Player*)this)->AddSpellMod(mod, true);
                 CastCustomSpell(target, spellProto->Id, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, triggeredByAura, caster->GetObjectGuid());
                 ((Player*)this)->AddSpellMod(mod, false);
-                triggeredByAura->SetInUse(false);
             }
         }
     }
@@ -2527,9 +2524,7 @@ SpellAuraProcResult Unit::HandleRemoveByDamageChanceProc(Unit* pVictim, uint32 d
     float chance = float(damage) / max_dmg * 100.0f;
     if (roll_chance_f(chance))
     {
-        triggeredByAura->SetInUse(true);
         RemoveAurasByCasterSpell(triggeredByAura->GetId(), triggeredByAura->GetCasterGuid());
-        triggeredByAura->SetInUse(false);
         return SPELL_AURA_PROC_OK;
     }
 

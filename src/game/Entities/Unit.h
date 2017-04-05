@@ -2169,6 +2169,7 @@ class Unit : public WorldObject
         ///----------End of crowd control methods----------
 
         void SetFeignDeath(bool apply, ObjectGuid casterGuid = ObjectGuid());
+        void InterruptSpellsCastedOnMe(bool killDelayed = false);
 
         void AddComboPointHolder(uint32 lowguid) { m_ComboPointHolders.insert(lowguid); }
         void RemoveComboPointHolder(uint32 lowguid) { m_ComboPointHolders.erase(lowguid); }

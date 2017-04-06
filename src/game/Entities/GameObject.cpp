@@ -2007,8 +2007,7 @@ struct SpawnGameObjectInMapsWorker
             }
             else
             {
-                if (pGameobject->isSpawnedByDefault())
-                    map->Add(pGameobject);
+                map->Add(pGameobject);
             }
         }
     }

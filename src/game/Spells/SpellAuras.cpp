@@ -1377,6 +1377,13 @@ void Aura::TriggerSpell()
                             triggerTarget->CastSpell(triggerTarget, spell_id, TRIGGERED_OLD_TRIGGERED, nullptr, this, casterGUID);
                         return;
                     }
+                    case 35268:                             // Inferno (normal and heroic)
+                    case 39346:
+                    {
+                        int32 damage = auraSpellInfo->EffectBasePoints[0];
+                        triggerTarget->CastCustomSpell(triggerTarget, 35283, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, this, casterGUID);
+                        return;
+                    }
 //                    // Gravity Lapse
 //                    case 34480: break;
 //                    // Tornado
@@ -1389,8 +1396,6 @@ void Aura::TriggerSpell()
 //                    case 35016: break;
 //                    // Interrupt Shutdown
 //                    case 35176: break;
-//                    // Inferno
-//                    case 35268: break;
 //                    // Salaadin's Tesla
                     case 35515:
                         return;
@@ -1507,8 +1512,6 @@ void Aura::TriggerSpell()
 //                    case 39259: break;
 //                    // Hellfire - The Exorcism, Jules releases darkness, aura
 //                    case 39306: break;
-//                    // Inferno
-//                    case 39346: break;
 //                    // Enchanted Weapons
 //                    case 39489: break;
 //                    // Shadow Bolt Whirl

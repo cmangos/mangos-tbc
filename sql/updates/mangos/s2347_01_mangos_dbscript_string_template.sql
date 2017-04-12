@@ -1,4 +1,4 @@
-ALTER TABLE db_version CHANGE COLUMN required_s2346_01_mangos_instance_template required_s2347_01_mangos_dbscript_string_template bit;
+ALTER TABLE db_version CHANGE COLUMN required_s2347_01_mangos_creatures required_s2347_01_mangos_dbscript_string_template bit;
 
 -- New table to make it easier to add random text
 DROP TABLE IF EXISTS `dbscript_string_template`;

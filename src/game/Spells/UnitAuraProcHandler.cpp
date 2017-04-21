@@ -1522,9 +1522,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
             // Earth Shield
             if (dummySpell->SpellFamilyFlags & uint64(0x0000040000000000))
             {
-                if (GetTypeId() != TYPEID_PLAYER)
-                    return SPELL_AURA_PROC_FAILED;
-
                 // heal
                 basepoints[0] = triggerAmount;
                 target = this;

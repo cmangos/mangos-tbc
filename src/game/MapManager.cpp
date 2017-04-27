@@ -52,6 +52,9 @@ void
 MapManager::Initialize()
 {
     InitStateMachine();
+	int num_threads(sWorld.getConfig(CONFIG_UINT32_MAPUPDATE_NUMTHREADS));
+	if (num_threads > 0)
+		m_updater.activate(num_threads);
     InitMaxInstanceId();
 }
 
@@ -172,8 +175,15 @@ void MapManager::Update(uint32 diff)
     if (!i_timer.Passed())
         return;
 
-    for (MapMapType::iterator iter = i_maps.begin(); iter != i_maps.end(); ++iter)
-        iter->second->Update((uint32)i_timer.GetCurrent());
+	for (MapMapType::iterator iter = i_maps.begin(); iter != i_maps.end(); ++iter)
+	{
+		if(m_updater.activated())
+			m_updater.schedule_update(*iter->second, uint32(i_timer.GetCurrent()));
+		else
+			iter->second->Update((uint32)i_timer.GetCurrent());
+	}
+	if (m_updater.activated())
+		m_updater.wait();
 
     for (TransportSet::iterator iter = m_Transports.begin(); iter != m_Transports.end(); ++iter)
     {
@@ -235,6 +245,8 @@ void MapManager::UnloadAll()
         i_maps.erase(i_maps.begin());
     }
 
+	if (m_updater.activated())
+		m_updater.deactivate();
     TerrainManager::Instance().UnloadAll();
 }
 

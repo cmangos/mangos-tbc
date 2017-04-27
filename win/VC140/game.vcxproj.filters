@@ -529,6 +529,9 @@
     <ClCompile Include="..\..\src\game\AI\GuardianAI.cpp">
       <Filter>AI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\MapUpdater.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -1008,6 +1011,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\AI\GuardianAI.h">
       <Filter>AI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\MapUpdater.h">
+      <Filter>World/Handlers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

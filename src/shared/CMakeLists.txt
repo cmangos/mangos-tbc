@@ -109,6 +109,7 @@ set(LIBRARY_SRCS
     revision_sql.h
     Threading.cpp
     Threading.h
+    ProducerConsumerQueue.h
 )
 
 

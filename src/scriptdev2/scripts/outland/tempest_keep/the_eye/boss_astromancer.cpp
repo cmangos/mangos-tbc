@@ -38,12 +38,13 @@ enum
 
     SPELL_ARCANE_MISSILES               = 33031,
     SPELL_WRATH_OF_THE_ASTROMANCER      = 42783,
+    SPELL_WRATH_OF_THE_ASTROMANCER_DOT  = 42784,            // AoE damage on bomb application.
     SPELL_BLINDING_LIGHT                = 33009,
     SPELL_PSYHIC_SCREAM                 = 34322,
     SPELL_SOLARIAN_TRANSFORM            = 39117,
     SPELL_VOID_BOLT                     = 39329,
     SPELL_MARK_OF_SOLARIAN              = 33023,            // acts as an enrage spell
-    // SPELL_ROTATE_ASTROMANCER          = 33283,           // purpose unk
+    // SPELL_ROTATE_ASTROMANCER         = 33283,            // purpose unk
 
     // summoned creatures
     NPC_SOLARIUM_AGENT                  = 18925,
@@ -109,7 +110,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
     {
         m_uiArcaneMissilesTimer        = 0;
         m_uiWrathOfTheAstromancerTimer = urand(15000, 25000);
-        m_uiBlindingLightTimer         = 35000;
+        m_uiBlindingLightTimer         = 20000;
         m_uiFearTimer                  = 20000;
         m_uiVoidBoltTimer              = 10000;
         m_uiSplitTimer                 = 50000;
@@ -263,7 +264,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                     if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_WRATH_OF_THE_ASTROMANCER, SELECT_FLAG_PLAYER))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_WRATH_OF_THE_ASTROMANCER) == CAST_OK)
-                            m_uiWrathOfTheAstromancerTimer = urand(15000, 25000);
+                            m_uiWrathOfTheAstromancerTimer = urand(20000, 25000);
                     }
                     else
                         m_uiWrathOfTheAstromancerTimer = 10000;
@@ -275,8 +276,8 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 if (m_uiBlindingLightTimer < uiDiff)
                 {
                     // She casts this spell every 45 seconds. It is a kind of Moonfire spell, which she strikes down on the whole raid simultaneously. It hits everyone in the raid for 2280 to 2520 arcane damage.
-                    if (DoCastSpellIfCan(m_creature, SPELL_BLINDING_LIGHT) == CAST_OK)
-                        m_uiBlindingLightTimer = 45000;
+                    if (DoCastSpellIfCan(m_creature, SPELL_BLINDING_LIGHT) == CAST_OK && DoCastSpellIfCan(m_creature, SPELL_MARK_OF_SOLARIAN) == CAST_OK)
+                        m_uiBlindingLightTimer = 20000;
                 }
                 else
                     m_uiBlindingLightTimer -= uiDiff;
@@ -302,8 +303,6 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 // Phase 1 Timer
                 if (m_uiSplitTimer < uiDiff)
                 {
-                    // ToDo: the timer of this ability is around 45-50 seconds. Please check if this is correct!
-                    DoCastSpellIfCan(m_creature, SPELL_MARK_OF_SOLARIAN, CAST_INTERRUPT_PREVIOUS);
                     m_Phase = PHASE_SPLIT;
 
                     // After these 50 seconds she portals to the middle of the room and disappears, leaving 3 light portals behind.
@@ -324,7 +323,6 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 break;
 
             case PHASE_SPLIT:
-
                 // Summon 4 Agents on each portal
                 if (m_uiSummonAgentsTimer)
                 {
@@ -370,8 +368,8 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                         m_creature->SetVisibility(VISIBILITY_ON);
                         m_uiArcaneMissilesTimer        = 0;
                         m_uiSummonPriestsTimer         = 0;
-                        m_uiBlindingLightTimer         = 35000;
-                        m_uiWrathOfTheAstromancerTimer = urand(15000, 25000);
+                        m_uiBlindingLightTimer         = 20000;
+                        m_uiWrathOfTheAstromancerTimer = urand(20000, 25000);
                     }
                     else
                         m_uiSummonPriestsTimer -= uiDiff;

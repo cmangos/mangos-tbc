@@ -1431,6 +1431,32 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     ((Creature*)unitTarget)->ForcedDespawn(3000);
                     return;
                 }
+                case 42784:                                 // Wrath of the Astromancer AoE Debuff (2.4.3)
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                        return;
+                
+                    uint32 count = 0;
+                    for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ ihit)
+                    {
+                        if (ihit->effectMask & (1 << effect_idx))
+                            ++count;
+                    }
+                    
+                    damage = 11500;
+                    damage /= count;
+                    
+                    SpellEntry const* spellInfo = sSpellStore.LookupEntry(42784);
+                
+                    for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
+                    {
+                        if (ihit->effectMask & (1 << effect_idx))
+                        {
+                            if (Unit* pCastTarget = (*unitTarget)->GetMap()->GetUnit((*ihit)->GetUnitGuid()))
+                                m_caster->DealDamage(pCastTarget, damage, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, spellInfo, false);
+                        }
+                    }
+                }
                 case 43096:                                 // Summon All Players
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)

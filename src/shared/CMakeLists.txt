@@ -107,6 +107,7 @@ set(LIBRARY_SRCS
     Common.cpp
     Common.h
     revision_sql.h
+    SystemConfig.h
     Threading.cpp
     Threading.h
 )

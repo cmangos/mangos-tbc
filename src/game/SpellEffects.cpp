@@ -7475,10 +7475,32 @@ void Spell::EffectBind(SpellEffectIndex eff_idx)
 
     Player* player = (Player*)unitTarget;
 
-    uint32 area_id;
+    uint32 area_id = m_spellInfo->EffectMiscValue[eff_idx];
     WorldLocation loc;
-    player->GetPosition(loc);
-    area_id = player->GetAreaId();
+    if (m_spellInfo->EffectImplicitTargetA[eff_idx] == TARGET_TABLE_X_Y_Z_COORDINATES ||
+            m_spellInfo->EffectImplicitTargetB[eff_idx] == TARGET_TABLE_X_Y_Z_COORDINATES)
+    {
+        SpellTargetPosition const* st = sSpellMgr.GetSpellTargetPosition(m_spellInfo->Id);
+        if (!st)
+        {
+            sLog.outError("Spell::EffectBind - unknown Teleport coordinates for spell ID %u", m_spellInfo->Id);
+            return;
+        }
+
+        loc.mapid       = st->target_mapId;
+        loc.coord_x     = st->target_X;
+        loc.coord_y     = st->target_Y;
+        loc.coord_z     = st->target_Z;
+        loc.orientation = st->target_Orientation;
+        if (!area_id)
+            area_id = sTerrainMgr.GetAreaId(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+    }
+    else
+    {
+        player->GetPosition(loc);
+        if (!area_id)
+            area_id = player->GetAreaId();
+    }
 
     player->SetHomebindToLocation(loc, area_id);
 
@@ -7491,11 +7513,7 @@ void Spell::EffectBind(SpellEffectIndex eff_idx)
     data << uint32(area_id);
     player->SendDirectMessage(data);
 
-    DEBUG_LOG("New Home Position X is %f", loc.coord_x);
-    DEBUG_LOG("New Home Position Y is %f", loc.coord_y);
-    DEBUG_LOG("New Home Position Z is %f", loc.coord_z);
-    DEBUG_LOG("New Home MapId is %u", loc.mapid);
-    DEBUG_LOG("New Home AreaId is %u", area_id);
+    DEBUG_LOG("New Home Position for %s: XYZ: %f %f %f on Map %u", player->GetGuidStr().c_str(), loc.coord_x, loc.coord_y, loc.coord_z, loc.mapid);
 
     // zone update
     data.Initialize(SMSG_PLAYERBOUND, 8 + 4);

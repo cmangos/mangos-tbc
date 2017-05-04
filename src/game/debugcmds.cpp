@@ -30,7 +30,7 @@
 #include <fstream>
 #include "ObjectMgr.h"
 #include "ObjectGuid.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 
 bool ChatHandler::HandleDebugSendSpellFailCommand(char* args)
 {

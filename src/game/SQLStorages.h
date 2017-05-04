@@ -40,6 +40,6 @@ extern SQLHashStorage sCreatureTemplateSpellsStorage;
 
 extern SQLMultiStorage sSpellScriptTargetStorage;
 
-MANGOS_DLL_SPEC SQLStorage                 const* GetSpellStore();
+SQLStorage                 const* GetSpellStore();
 
 #endif

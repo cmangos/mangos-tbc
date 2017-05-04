@@ -34,7 +34,7 @@
 #include "MapPersistentStateMgr.h"
 #include "Mail.h"
 #include "Util.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #ifdef _DEBUG_VMAPS
 #include "VMapFactory.h"
 #endif

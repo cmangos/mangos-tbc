@@ -37,7 +37,7 @@
 #include "SocialMgr.h"
 #include "Util.h"
 #include "Language.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 
 // config option SkipCinematics supported values
 enum CinematicsSkipMode

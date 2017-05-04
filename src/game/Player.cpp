@@ -21,7 +21,7 @@
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
 #include "Opcodes.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
@@ -12600,14 +12600,14 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
         switch (questGiver->GetTypeId())
         {
             case TYPEID_UNIT:
-                sScriptMgr.OnQuestAccept(this, (Creature*)questGiver, pQuest);
+                sScriptDevAIMgr.OnQuestAccept(this, (Creature*)questGiver, pQuest);
                 break;
             case TYPEID_ITEM:
             case TYPEID_CONTAINER:
-                sScriptMgr.OnQuestAccept(this, (Item*)questGiver, pQuest);
+                sScriptDevAIMgr.OnQuestAccept(this, (Item*)questGiver, pQuest);
                 break;
             case TYPEID_GAMEOBJECT:
-                sScriptMgr.OnQuestAccept(this, (GameObject*)questGiver, pQuest);
+                sScriptDevAIMgr.OnQuestAccept(this, (GameObject*)questGiver, pQuest);
                 break;
         }
 
@@ -12805,10 +12805,10 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     switch (questGiver->GetTypeId())
     {
         case TYPEID_UNIT:
-            handled = sScriptMgr.OnQuestRewarded(this, (Creature*)questGiver, pQuest);
+            handled = sScriptDevAIMgr.OnQuestRewarded(this, (Creature*)questGiver, pQuest);
             break;
         case TYPEID_GAMEOBJECT:
-            handled = sScriptMgr.OnQuestRewarded(this, (GameObject*)questGiver, pQuest);
+            handled = sScriptDevAIMgr.OnQuestRewarded(this, (GameObject*)questGiver, pQuest);
             break;
     }
 
@@ -14048,7 +14048,7 @@ void Player::SendQuestGiverStatusMultiple() const
             if (!questgiver->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER))
                 continue;
 
-            uint8 dialogStatus = sScriptMgr.GetDialogStatus(this, questgiver);
+            uint8 dialogStatus = sScriptDevAIMgr.GetDialogStatus(this, questgiver);
 
             if (dialogStatus == DIALOG_STATUS_UNDEFINED)
                 dialogStatus = GetSession()->getDialogStatus(this, questgiver, DIALOG_STATUS_NONE);
@@ -14067,7 +14067,7 @@ void Player::SendQuestGiverStatusMultiple() const
             if (questgiver->GetGoType() != GAMEOBJECT_TYPE_QUESTGIVER)
                 continue;
 
-            uint8 dialogStatus = sScriptMgr.GetDialogStatus(this, questgiver);
+            uint8 dialogStatus = sScriptDevAIMgr.GetDialogStatus(this, questgiver);
 
             if (dialogStatus == DIALOG_STATUS_UNDEFINED)
                 dialogStatus = GetSession()->getDialogStatus(this, questgiver, DIALOG_STATUS_NONE);

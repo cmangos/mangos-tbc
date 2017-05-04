@@ -24,7 +24,7 @@
 #include "World.h"
 #include "ObjectMgr.h"
 #include "ObjectGuid.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Player.h"
 #include "Creature.h"
 #include "Spell.h"

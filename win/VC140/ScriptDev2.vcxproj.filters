@@ -1171,6 +1171,9 @@
       <Filter>system</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\scriptdev2\ScriptMgr.cpp" />
+    <ClCompile Include="..\..\src\scriptdev2\scripts\eastern_kingdoms\hillsbrad_foothills.cpp">
+      <Filter>scripts\eastern_kingdoms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\scriptdev2\base\escort_ai.h">

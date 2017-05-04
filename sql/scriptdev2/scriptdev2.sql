@@ -568,6 +568,26 @@ UPDATE creature_template SET ScriptName='npc_magister_aledis' WHERE entry=20159;
 UPDATE creature_template SET ScriptName='npc_living_flare' WHERE entry=24916;
 
 /* HILLSBRAD FOOTHILLS */
+UPDATE creature_template SET ScriptName='npc_bathrah_the_windwatcher' WHERE entry=6176;
+INSERT INTO script_texts VALUES
+('-1800003', 'Bath\'rah the Windwatcher begins a spell of summoning...', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '2', '0', '0', ''),
+('-1800002', 'Follow, $N. I will soon begin the summoning...', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '0', '0', '0', '0', '');
+INSERT INTO script_waypoint VALUES
+('6176', '0', '253.05', '-1459.09', '52.09', '2000', 'SAY_PROGRESS_1 and pause before running to summon location'),
+('6176', '1', '256.87', '-1440.35', '50.09', '0', ''),
+('6176', '2', '273.74', '-1433.18', '50.29', '0', ''),
+('6176', '3', '297.77', '-1436.7', '46.96', '0', ''),
+('6176', '4', '329.59', '-1442.08', '40.31', '0', ''),
+('6176', '5', '332.73', '-1455.6', '42.24', '2000', 'pause before walking to summon location'),
+('6176', '6', '323.83', '-1468.92', '42.24', '2000', 'pause before truning twards clyclonians spawn location'),
+('6176', '7', '323.83', '-1468.92', '42.24', '12000', 'SAY_PROGRESS_2 and Summon Cyclonian, give 10 seconds for summon per spells cast time requirements and 2 seconds extra.'),
+('6176', '8', '332.73', '-1455.6', '42.24', '0', 'runs back to spawn location'),
+('6176', '9', '329.59', '-1442.08', '40.31', '0', ''),
+('6176', '10', '297.77', '-1436.7', '46.96', '0', ''),
+('6176', '11', '273.74', '-1433.18', '50.29', '0', ''),
+('6176', '12', '256.87', '-1440.35', '50.09', '0', ''),
+('6176', '13', '253.05', '-1459.09', '52.09', '0', ''),
+('6176', '14', '250.84', '-1470.58', '55.4491', '0', '');
 
 /* HINTERLANDS */
 UPDATE creature_template SET ScriptName='npc_00x09hl' WHERE entry=7806;

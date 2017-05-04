@@ -1998,14 +1998,8 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 }
             }
             */
-            // Healing Discount
-            if (auraSpellInfo->Id == 37705)
-            {
-                trigger_spell_id = 37706;
-                target = this;
-            }
             // Judgement of Light and Judgement of Wisdom
-            else if (auraSpellInfo->SpellFamilyFlags & uint64(0x0000000000080000))
+            if (auraSpellInfo->SpellFamilyFlags & uint64(0x0000000000080000))
             {
                 switch (auraSpellInfo->Id)
                 {

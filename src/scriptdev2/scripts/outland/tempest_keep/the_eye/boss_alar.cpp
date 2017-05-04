@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: boss_alar
-SD%Complete: 90
-SDComment: Boss movement should be improved.
+SD%Complete: 99
+SDComment: TODO: Test
 SDCategory: Tempest Keep, The Eye
 EndScriptData */
 
@@ -40,7 +40,7 @@ enum
     SPELL_BOMB_REBIRTH      = 35369,        // used after the dive bomb - to transform back to phoenis
     SPELL_CHARGE            = 35412,        // charge a random target
     // SPELL_SUMMON_ADDS    = 18814,        // summons 3*19551 - Not sure if the spell is the right id
-    SPELL_BERSERK           = 27680,        // this spell is used only during phase II
+    SPELL_BERSERK           = 26662,        // this spell is used only during phase II, increases Attack Speed by 150% & Damage by 500%
 
     NPC_EMBER_OF_ALAR       = 19551,        // scripted in Acid
     NPC_FLAME_PATCH         = 20602,
@@ -90,6 +90,7 @@ struct boss_alarAI : public ScriptedAI
 
     uint8 m_uiPhase;
     uint8 m_uiCurrentPlatformId;
+    uint8 m_uiLastPlatformId;
     uint32 m_uiRangeCheckTimer;
     uint32 m_uiBerserkTimer;
 
@@ -105,21 +106,21 @@ struct boss_alarAI : public ScriptedAI
 
     void Reset() override
     {
-        // Start phase one and move to the closest platform
+        // Start phase one and move to Platform 1
         m_uiPhase = PHASE_ONE;
         SetCombatMovement(false);
 
         m_uiRangeCheckTimer     = 0;
         m_uiCurrentPlatformId   = 0;
-        m_uiPlatformMoveTimer   = 35000;
-        m_uiFlameQuillsTimer    = 170000;                   // at the 5th platform
+        m_uiPlatformMoveTimer   = 30000;
+        m_uiFlameQuillsTimer    = 180000;                   // after the 5th platform
 
         m_uiBerserkTimer        = 10 * MINUTE * IN_MILLISECONDS; // only after phase 2 starts
-        m_uiFlamePatchTimer     = 20000;
+        m_uiFlamePatchTimer     = urand(12000, 17000);
         m_uiDiveBombTimer       = 30000;
         m_uiMeltArmorTimer      = 10000;
-        m_uiChargeTimer         = 20000;
-        m_uiRebirthTimer        = 0;
+        m_uiChargeTimer         = urand(25000, 30000);
+        m_uiRebirthTimer        = 15000; // Should be used 15s after phase switch
 
         m_bCanSummonEmber       = true;
     }
@@ -145,7 +146,7 @@ struct boss_alarAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ALAR, DONE);
     }
-
+    
     void JustSummoned(Creature* pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_FLAME_PATCH)
@@ -156,16 +157,63 @@ struct boss_alarAI : public ScriptedAI
                 pSummoned->AI()->AttackStart(pTarget);
         }
     }
-
+    
     void SummonedCreatureJustDied(Creature* pSummoned) override
     {
-        // drain 3% of boss health when the ember dies
+        // drain 2% of boss health when the ember dies
         if (pSummoned->GetEntry() == NPC_EMBER_OF_ALAR)
         {
             // Check first if we have enough health to drain
-            if (m_creature->GetMaxHealth()*.03f > m_creature->GetHealth())
-                m_creature->DealDamage(m_creature, m_creature->GetMaxHealth()*.03f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+            if (m_creature->GetHealth() <= m_creature->GetMaxHealth()*.02f)
+                m_creature->DealDamage(m_creature, m_creature->GetMaxHealth()*.02f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+            else
+                m_creature->DealDamage(m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
         }
+    }
+    
+    // Custom Threat Management for Phase 1 platforms ONLY.
+    bool SelectHostileTarget()
+    {
+        if (m_uiPhase == PHASE_ONE)
+        {
+            bool m_bHasMeleeTargets = false;
+            Unit* pOldTarget = m_creature->getVictim();
+            Unit* pTarget = nullptr;
+
+            ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
+
+            for (ThreatList::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
+            {
+                if (m_bHasMeleeTargets)
+                    break;
+
+                if (Unit* pMelee = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
+                    if (pMelee->GetTypeId() == TYPEID_PLAYER && pMelee->IsWithinDist(m_creature, ATTACK_DISTANCE))
+                        m_bHasMeleeTargets = true;
+            }
+
+            if (!m_creature->getThreatManager().isThreatListEmpty())
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), (SELECT_FLAG_IN_MELEE_RANGE | SELECT_FLAG_PLAYER));
+
+            if (!pTarget && !m_bHasMeleeTargets)
+                pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), (SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER));
+            else
+            {
+                if (pOldTarget != pTarget)
+                    AttackStart(pTarget);
+
+                if (pOldTarget && pOldTarget->isAlive())
+                {
+                    m_creature->SetTargetGuid(pOldTarget->GetObjectGuid());
+                    m_creature->SetInFront(pOldTarget);
+                }
+
+                return true;
+            }
+        }
+        
+        // Will call EnterEvadeMode if fit
+        return m_creature->SelectHostileTarget();
     }
 
     void EnterEvadeMode() override
@@ -175,6 +223,34 @@ struct boss_alarAI : public ScriptedAI
             return;
 
         ScriptedAI::EnterEvadeMode();
+    }
+    
+    void DoFlameQuills()
+    {
+        // Move to Flame Quills position; stop range check, platform moving and ember summoning
+        m_creature->GetMotionMaster()->MovePoint(POINT_ID_QUILLS, aCenterLocation[0].m_fX, aCenterLocation[0].m_fY, aCenterLocation[0].m_fZ);
+        m_uiRangeCheckTimer = 0;
+        m_bCanSummonEmber = false;
+        m_uiPlatformMoveTimer = 0;
+        m_uiFlameQuillsTimer = 60000;
+    }
+    
+    void DoPlatformMove()
+    {
+        m_uiLastPlatformId = m_uiCurrentPlatformId;
+    
+        if (urand(0,1) == 1)
+            ++m_uiCurrentPlatformId; 
+
+        // move to next platform and summon one ember only if moving on platforms (we avoid the summoning during the Flame Quills move)
+        if (m_bCanSummonEmber)
+            m_creature->SummonCreature(NPC_EMBER_OF_ALAR, 0, 0, 0, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
+        
+        if (m_uiCurrentPlatformId != m_uiLastPlatformId)
+            m_creature->GetMotionMaster()->MovePoint(POINT_ID_PLATFORM, aPlatformLocation[m_uiCurrentPlatformId].m_fX, aPlatformLocation[m_uiCurrentPlatformId].m_fY, aPlatformLocation[m_uiCurrentPlatformId].m_fZ);
+
+        m_uiRangeCheckTimer = 0;
+        m_uiPlatformMoveTimer = 30000;
     }
 
     void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
@@ -190,7 +266,7 @@ struct boss_alarAI : public ScriptedAI
                     if (DoCastSpellIfCan(m_creature, SPELL_FLAME_QUILLS) == CAST_OK)
                     {
                         // Set the platform id so the boss will move to the last or the first platform
-                        m_uiCurrentPlatformId = urand(0, 1) ? 2 : 3;
+                        m_uiCurrentPlatformId = urand(0, 1) ? 3 : 0;
                         m_uiPlatformMoveTimer = 10000;
                     }
                 }
@@ -203,7 +279,7 @@ struct boss_alarAI : public ScriptedAI
             case POINT_ID_PLATFORM:
                 // When we reach the platform we start the range check and we can summon the embers
                 m_bCanSummonEmber = true;
-                m_uiRangeCheckTimer = 2000;
+                m_uiRangeCheckTimer = 1500;
                 break;
             case POINT_ID_RESSURRECT:
                 // remove the invisibility aura
@@ -216,8 +292,6 @@ struct boss_alarAI : public ScriptedAI
                 // cast rebirth and remove fake death
                 if (DoCastSpellIfCan(m_creature, SPELL_REBIRTH) == CAST_OK)
                 {
-                    DoResetThreat();
-
                     // start following target
                     SetCombatMovement(true);
                     if (m_creature->getVictim())
@@ -235,7 +309,7 @@ struct boss_alarAI : public ScriptedAI
         if (m_uiPhase != PHASE_ONE)
             return;
 
-        if (uiDamage < m_creature->GetHealth())
+        if (uiDamage <= m_creature->GetHealth())
             return;
 
         m_creature->InterruptNonMeleeSpells(true);
@@ -266,51 +340,35 @@ struct boss_alarAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!SelectHostileTarget() || !m_creature->getVictim())
             return;
 
         // Platform phase
         if (m_uiPhase == PHASE_ONE)
         {
-            if (m_uiFlameQuillsTimer < uiDiff)
+            if (m_uiPlatformMoveTimer <= uiDiff)
             {
-                // Move to Flame Quills position; stop range check, platform moving and ember summoning
-                m_creature->GetMotionMaster()->MovePoint(POINT_ID_QUILLS, aCenterLocation[0].m_fX, aCenterLocation[0].m_fY, aCenterLocation[0].m_fZ);
-                m_uiRangeCheckTimer = 0;
-                m_bCanSummonEmber = false;
-                m_uiPlatformMoveTimer = 0;
-                m_uiFlameQuillsTimer = 180000;
-            }
-            else
-                m_uiFlameQuillsTimer -= uiDiff;
-
-            if (m_uiPlatformMoveTimer)
-            {
-                if (m_uiPlatformMoveTimer <= uiDiff)
+                if (m_uiFlameQuillsTimer <= uiDiff)
                 {
-                    // go to next platform
-                    ++m_uiCurrentPlatformId;
-
-                    if (m_uiCurrentPlatformId == MAX_PLATFORMS)
-                        m_uiCurrentPlatformId = 0;
-
-                    // move to next platform and summon one ember only if moving on platforms (we avoid the summoning during the Flame Quills move)
-                    if (m_bCanSummonEmber)
-                        m_creature->SummonCreature(NPC_EMBER_OF_ALAR, 0, 0, 0, 0, TEMPSUMMON_DEAD_DESPAWN, 0);
-
-                    m_creature->GetMotionMaster()->MovePoint(POINT_ID_PLATFORM, aPlatformLocation[m_uiCurrentPlatformId].m_fX, aPlatformLocation[m_uiCurrentPlatformId].m_fY, aPlatformLocation[m_uiCurrentPlatformId].m_fZ);
-
-                    m_uiRangeCheckTimer = 0;
-                    m_uiPlatformMoveTimer = 35000;
+                    switch(urand(0,1))
+                    {
+                        case 0: DoFlameQuills(); break;
+                        case 1: DoPlatformMove(); break;
+                    }
                 }
                 else
-                    m_uiPlatformMoveTimer -= uiDiff;
+                {
+                    m_uiFlameQuillsTimer -= uiDiff;
+                    DoPlatformMove();
+                }
             }
+            else
+                m_uiPlatformMoveTimer -= uiDiff;
         }
         // Combat phase
         else if (m_uiPhase == PHASE_TWO)
         {
-            if (m_uiBerserkTimer < uiDiff)
+            if (m_uiBerserkTimer <= uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
                     m_uiBerserkTimer = 10 * MINUTE * IN_MILLISECONDS;
@@ -318,18 +376,18 @@ struct boss_alarAI : public ScriptedAI
             else
                 m_uiBerserkTimer -= uiDiff;
 
-            if (m_uiFlamePatchTimer < uiDiff)
+            if (m_uiFlamePatchTimer <= uiDiff)
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
                     m_creature->SummonCreature(NPC_FLAME_PATCH, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSUMMON_TIMED_DESPAWN, 30000);
-                    m_uiFlamePatchTimer = 30000;
+                    m_uiFlamePatchTimer = urand(12000, 17000);
                 }
             }
             else
                 m_uiFlamePatchTimer -= uiDiff;
 
-            if (m_uiMeltArmorTimer < uiDiff)
+            if (m_uiMeltArmorTimer <= uiDiff)
             {
                 if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MELT_ARMOR) == CAST_OK)
                     m_uiMeltArmorTimer = 60000;
@@ -337,12 +395,12 @@ struct boss_alarAI : public ScriptedAI
             else
                 m_uiMeltArmorTimer -= uiDiff;
 
-            if (m_uiChargeTimer < uiDiff)
+            if (m_uiChargeTimer <= uiDiff)
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
                 {
                     if (DoCastSpellIfCan(pTarget, SPELL_CHARGE) == CAST_OK)
-                        m_uiChargeTimer = 20000;
+                        m_uiChargeTimer = urand(25000, 30000);
                 }
             }
             else
@@ -401,7 +459,7 @@ struct boss_alarAI : public ScriptedAI
                         }
 
                         m_uiPhase = PHASE_TWO;
-                        m_uiRangeCheckTimer = 2000;
+                        m_uiRangeCheckTimer = 1500;
                         m_uiDiveBombTimer = 30000;
                         m_uiRebirthTimer = 0;
                     }
@@ -418,7 +476,7 @@ struct boss_alarAI : public ScriptedAI
             {
                 if (!m_creature->IsWithinDistInMap(m_creature->getVictim(), ATTACK_DISTANCE))
                     DoCastSpellIfCan(m_creature, SPELL_FLAME_BUFFET);
-                m_uiRangeCheckTimer = 2000;
+                m_uiRangeCheckTimer = 1500;
             }
             else
                 m_uiRangeCheckTimer -= uiDiff;

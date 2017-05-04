@@ -1039,6 +1039,13 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 25778:                                 // Void Reaver Threat Reduction
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                        return;
+                    
+                    m_caster->getThreatManager().modifyThreatPercent(unitTarget, -50);
+                }
                 case 25860:                                 // Reindeer Transformation
                 {
                     if (!m_caster->HasAuraType(SPELL_AURA_MOUNTED))
@@ -1430,6 +1437,32 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     // despawn the bomb after exploding
                     ((Creature*)unitTarget)->ForcedDespawn(3000);
                     return;
+                }
+                case 42784:                                 // Wrath of the Astromancer AoE Debuff (2.4.3)
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                        return;
+                
+                    uint32 count = 0;
+                    for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ ihit)
+                    {
+                        if (ihit->effectMask & (1 << eff_idx))
+                            ++count;
+                    }
+                    
+                    damage = 11500;
+                    damage /= count;
+                    
+                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(42784);
+                
+                    for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
+                    {
+                        if (ihit->effectMask & (1 << eff_idx))
+                        {
+                            if (Unit* pCastTarget = unitTarget->GetMap()->GetPlayer(ihit->targetGUID))
+                                m_caster->DealDamage(pCastTarget, damage, nullptr, SPELL_DIRECT_DAMAGE, SPELL_SCHOOL_MASK_ARCANE, spellInfo, false);
+                        }
+                    }
                 }
                 case 43096:                                 // Summon All Players
                 {

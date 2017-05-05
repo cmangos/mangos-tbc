@@ -6433,6 +6433,11 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 32756, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 50499:                                 // Listening to Music (Parent)
+                {
+                    unitTarget->CastSpell(unitTarget, 50493, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
             }
             break;
         }

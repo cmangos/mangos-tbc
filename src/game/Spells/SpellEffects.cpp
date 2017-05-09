@@ -4520,7 +4520,7 @@ void Spell::EffectAddFarsight(SpellEffectIndex eff_idx)
     ((Player*)m_caster)->GetCamera().SetView(dynObj);
 }
 
-bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 /*level*/)
+bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level)
 {
     uint32 creature_entry = m_spellInfo->EffectMiscValue[effIdx];
     CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(creature_entry);
@@ -4542,6 +4542,23 @@ bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry co
             // UNIT_FIELD_CREATEDBY are not set for these kind of spells.
             // Does exceptions exist? If so, what are they?
             // summon->SetCreatorGuid(m_caster->GetObjectGuid());
+
+
+            switch(m_spellInfo->Id)
+            {
+                case 1122: // Warlock Infernal - requires custom code - generalized in WOTLK
+                {
+                    summon->SelectLevel(level); // needs to have casters level
+                    // Enslave demon effect, without mana cost and cooldown
+                    summon->CastSpell(summon, 22707, TRIGGERED_OLD_TRIGGERED);  // short root spell on infernal from sniffs
+                    m_caster->CastSpell(summon, 20882, TRIGGERED_OLD_TRIGGERED);
+                    summon->CastSpell(summon, 22703, TRIGGERED_OLD_TRIGGERED);  // Inferno effect
+                    break;
+                }
+                case 37390:
+                    summon->SetOwnerGuid(m_caster->GetObjectGuid());
+                    break;
+            }
         }
         else
             return false;

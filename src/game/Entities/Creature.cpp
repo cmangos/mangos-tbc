@@ -1935,9 +1935,6 @@ bool Creature::CanInitiateAttack() const
     if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE))
         return false;
 
-    if (isPassiveToHostile())
-        return false;
-
     if (m_aggroDelay != 0)
         return false;
 
@@ -1963,7 +1960,7 @@ bool Creature::IsOutOfThreatArea(Unit* pVictim) const
     if (!pVictim->IsInMap(this))
         return true;
 
-    if (!pVictim->isTargetableForAttack())
+    if (!CanAttack(pVictim))
         return true;
 
     if (!pVictim->isInAccessablePlaceFor(this))

@@ -213,7 +213,8 @@ void CreatureAI::CheckForHelp(Unit* who, Creature* me, float distance)
     if (me->GetMap()->Instanceable())
         distance = distance / 2.5f;
 
-    if (me->CanInitiateAttack() && me->CanAttackOnSight(victim) && victim->isInAccessablePlaceFor(me))
+    if (me->CanInitiateAttack() && m_creature->CanAttack(victim) &&
+        me->IsHostileTo(victim) && victim->isInAccessablePlaceFor(me))
     {
         if (me->IsWithinDistInMap(who, distance) && me->IsWithinLOSInMap(who))
         {

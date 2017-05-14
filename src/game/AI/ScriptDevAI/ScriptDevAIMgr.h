@@ -6,9 +6,9 @@
 #define SC_SCRIPTMGR_H
 
 #include "Common.h"
-#include "DBCStructure.h"
-#include "SQLStorages.h"
-#include "SpellMgr.h"
+#include "Server/DBCStructure.h"
+#include "Server/SQLStorages.h"
+#include "Spells/SpellMgr.h"
 
 class Player;
 class Creature;

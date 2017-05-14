@@ -103,10 +103,11 @@ set(LIBRARY_SRCS
     ${SRC_GRP_DATABASE_DBC}
     ${SRC_GRP_LOG}
     ${SRC_GRP_UTIL}
-	${SRC_GRP_NETWORK}
+    ${SRC_GRP_NETWORK}
     Common.cpp
     Common.h
     revision_sql.h
+    revision.h
     Threading.cpp
     Threading.h
 )
@@ -184,4 +185,15 @@ if(POSTGRESQL)
   target_link_libraries(${LIBRARY_NAME} ${PostgreSQL_LIBRARIES})
 endif()
 
-add_dependencies(${LIBRARY_NAME} revision.h)
+add_custom_command(TARGET ${LIBRARY_NAME} PRE_BUILD
+      COMMAND RevisionGenerator ${CMAKE_SOURCE_DIR}
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/shared
+      DEPENDS RevisionGenerator)
+
+# Mark the revision header as being generated.
+set_source_files_properties(${CMAKE_SOURCE_DIR}/src/shared/revision.h
+  PROPERTIES GENERATED TRUE
+             HEADER_FILE_ONLY TRUE)
+if(MSVC)
+  set_target_properties(${LIBRARY_NAME} PROPERTIES PROJECT_LABEL "Shared")
+endif()

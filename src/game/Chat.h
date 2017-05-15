@@ -71,7 +71,7 @@ enum PlayerChatTag
 };
 typedef uint32 ChatTagFlags;
 
-class MANGOS_DLL_SPEC ChatHandler
+class ChatHandler
 {
     public:
         explicit ChatHandler(WorldSession* session);
@@ -223,6 +223,7 @@ class MANGOS_DLL_SPEC ChatHandler
 
         bool HandleDebugPlayCinematicCommand(char* args);
         bool HandleDebugPlaySoundCommand(char* args);
+        bool HandleDebugPlayMusicCommand(char* args);
 
         bool HandleDebugSendBuyErrorCommand(char* args);
         bool HandleDebugSendChannelNotifyCommand(char* args);

@@ -25,7 +25,7 @@
 #include "MapManager.h"
 #include "ObjectGuid.h"
 #include "ScriptMgr.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "World.h"
 #include "Group.h"
 #include "ArenaTeam.h"
@@ -44,6 +44,8 @@
 #include "GridNotifiersImpl.h"
 #include "CellImpl.h"
 #include "DBCStores.h"
+#include "OutdoorPvP/OutdoorPvPMgr.h"
+#include "OutdoorPvP/OutdoorPvP.h"
 
 #include "ItemEnchantmentMgr.h"
 #include "LootMgr.h"
@@ -419,7 +421,7 @@ struct SQLCreatureLoader : public SQLStorageLoaderBase<SQLCreatureLoader, SQLSto
     template<class D>
     void convert_from_str(uint32 /*field_pos*/, char const* src, D& dst)
     {
-        dst = D(sScriptMgr.GetScriptId(src));
+        dst = D(sScriptDevAIMgr.GetScriptId(src));
     }
 };
 
@@ -1250,11 +1252,11 @@ void ObjectMgr::LoadCreatures()
     uint32 count = 0;
     //                                                0                       1   2    3
     QueryResult* result = WorldDatabase.Query("SELECT creature.guid, creature.id, map, modelid,"
-                          //   4             5           6           7           8            9              10         11
-                          "equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint,"
-                          //   12         13       14          15            16         17
+                          //   4             5           6           7           8            9              10               11         12
+                          "equipment_id, position_x, position_y, position_z, orientation, spawntimesecsmin, spawntimesecsmax, spawndist, currentwaypoint,"
+                          //   13         14       15          16            17         18
                           "curhealth, curmana, DeathState, MovementType, spawnMask, event,"
-                          //   18                        19
+                          //   19                        20
                           "pool_creature.pool_entry, pool_creature_template.pool_entry "
                           "FROM creature "
                           "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
@@ -1304,23 +1306,31 @@ void ObjectMgr::LoadCreatures()
         data.posY               = fields[ 6].GetFloat();
         data.posZ               = fields[ 7].GetFloat();
         data.orientation        = fields[ 8].GetFloat();
-        data.spawntimesecs      = fields[ 9].GetUInt32();
-        data.spawndist          = fields[10].GetFloat();
-        data.currentwaypoint    = fields[11].GetUInt32();
-        data.curhealth          = fields[12].GetUInt32();
-        data.curmana            = fields[13].GetUInt32();
-        data.is_dead            = fields[14].GetBool();
-        data.movementType       = fields[15].GetUInt8();
-        data.spawnMask          = fields[16].GetUInt8();
-        int16 gameEvent         = fields[17].GetInt16();
-        int16 GuidPoolId        = fields[18].GetInt16();
-        int16 EntryPoolId       = fields[19].GetInt16();
+        data.spawntimesecsmin   = fields[ 9].GetUInt32();
+        data.spawntimesecsmax   = fields[10].GetUInt32();
+        data.spawndist          = fields[11].GetFloat();
+        data.currentwaypoint    = fields[12].GetUInt32();
+        data.curhealth          = fields[13].GetUInt32();
+        data.curmana            = fields[14].GetUInt32();
+        data.is_dead            = fields[15].GetBool();
+        data.movementType       = fields[16].GetUInt8();
+        data.spawnMask          = fields[17].GetUInt8();
+        int16 gameEvent         = fields[18].GetInt16();
+        int16 GuidPoolId        = fields[19].GetInt16();
+        int16 EntryPoolId       = fields[20].GetInt16();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
         if (!mapEntry)
         {
             sLog.outErrorDb("Table `creature` have creature (GUID: %u) that spawned at nonexistent map (Id: %u), skipped.", guid, data.mapid);
             continue;
+        }
+
+        if (data.spawntimesecsmax < data.spawntimesecsmin)
+        {
+            sLog.outErrorDb("Table `creature` have creature (GUID: %u Entry: %u) with `spawntimesecsmax` (%u) value lower than `spawntimesecsmin` (%u), it will be adjusted to %u.",
+                guid, data.id, uint32(data.spawntimesecsmax), uint32(data.spawntimesecsmin), uint32(data.spawntimesecsmin));
+            data.spawntimesecsmax = data.spawntimesecsmin;
         }
 
         if (mapEntry->IsDungeon())
@@ -1459,9 +1469,9 @@ void ObjectMgr::LoadGameObjects()
 
     //                                                0                           1   2    3           4           5           6
     QueryResult* result = WorldDatabase.Query("SELECT gameobject.guid, gameobject.id, map, position_x, position_y, position_z, orientation,"
-                          //   7          8          9          10         11             12            13     14         15
-                          "rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, spawnMask, event,"
-                          //   16                          17
+                          //   7          8          9          10         11             12               13            14     15         16
+                          "rotation0, rotation1, rotation2, rotation3, spawntimesecsmin, spawntimesecsmax, animprogress, state, spawnMask, event,"
+                          //   17                          18
                           "pool_gameobject.pool_entry, pool_gameobject_template.pool_entry "
                           "FROM gameobject "
                           "LEFT OUTER JOIN game_event_gameobject ON gameobject.guid = game_event_gameobject.guid "
@@ -1502,23 +1512,24 @@ void ObjectMgr::LoadGameObjects()
 
         GameObjectData& data = mGameObjectDataMap[guid];
 
-        data.id             = entry;
-        data.mapid          = fields[ 2].GetUInt32();
-        data.posX           = fields[ 3].GetFloat();
-        data.posY           = fields[ 4].GetFloat();
-        data.posZ           = fields[ 5].GetFloat();
-        data.orientation    = fields[ 6].GetFloat();
-        data.rotation0      = fields[ 7].GetFloat();
-        data.rotation1      = fields[ 8].GetFloat();
-        data.rotation2      = fields[ 9].GetFloat();
-        data.rotation3      = fields[10].GetFloat();
-        data.spawntimesecs  = fields[11].GetInt32();
-        data.animprogress   = fields[12].GetUInt32();
-        uint32 go_state     = fields[13].GetUInt32();
-        data.spawnMask      = fields[14].GetUInt8();
-        int16 gameEvent     = fields[15].GetInt16();
-        int16 GuidPoolId    = fields[16].GetInt16();
-        int16 EntryPoolId   = fields[17].GetInt16();
+        data.id               = entry;
+        data.mapid            = fields[ 2].GetUInt32();
+        data.posX             = fields[ 3].GetFloat();
+        data.posY             = fields[ 4].GetFloat();
+        data.posZ             = fields[ 5].GetFloat();
+        data.orientation      = fields[ 6].GetFloat();
+        data.rotation0        = fields[ 7].GetFloat();
+        data.rotation1        = fields[ 8].GetFloat();
+        data.rotation2        = fields[ 9].GetFloat();
+        data.rotation3        = fields[10].GetFloat();
+        data.spawntimesecsmin = fields[11].GetInt32();
+        data.spawntimesecsmax = fields[12].GetInt32();
+        data.animprogress     = fields[13].GetUInt32();
+        uint32 go_state       = fields[14].GetUInt32();
+        data.spawnMask        = fields[15].GetUInt8();
+        int16 gameEvent       = fields[16].GetInt16();
+        int16 GuidPoolId      = fields[17].GetInt16();
+        int16 EntryPoolId     = fields[18].GetInt16();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
         if (!mapEntry)
@@ -1538,9 +1549,16 @@ void ObjectMgr::LoadGameObjects()
                 sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) that have wrong spawn mask %u for non-dungeon map (Id: %u), skip", guid, data.id, data.spawnMask, data.mapid);
         }
 
-        if (data.spawntimesecs == 0 && gInfo->IsDespawnAtAction())
+        if (data.spawntimesecsmin == 0 && gInfo->IsDespawnAtAction())
         {
             sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) with `spawntimesecs` (0) value, but gameobejct marked as despawnable at action.", guid, data.id);
+        }
+
+        if (data.spawntimesecsmax < data.spawntimesecsmin)
+        {
+            sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) with `spawntimesecsmax` (%u) value lower than `spawntimesecsmin` (%u), it will be adjusted to %u.",
+                guid, data.id, uint32(data.spawntimesecsmax), uint32(data.spawntimesecsmin), uint32(data.spawntimesecsmin));
+            data.spawntimesecsmax = data.spawntimesecsmin;
         }
 
         if (go_state >= MAX_GO_STATE)
@@ -1799,7 +1817,7 @@ struct SQLItemLoader : public SQLStorageLoaderBase<SQLItemLoader, SQLStorage>
     template<class D>
     void convert_from_str(uint32 /*field_pos*/, char const* src, D& dst)
     {
-        dst = D(sScriptMgr.GetScriptId(src));
+        dst = D(sScriptDevAIMgr.GetScriptId(src));
     }
 };
 
@@ -4565,7 +4583,7 @@ struct SQLInstanceLoader : public SQLStorageLoaderBase<SQLInstanceLoader, SQLSto
     template<class D>
     void convert_from_str(uint32 /*field_pos*/, char const* src, D& dst)
     {
-        dst = D(sScriptMgr.GetScriptId(src));
+        dst = D(sScriptDevAIMgr.GetScriptId(src));
     }
 };
 
@@ -4645,7 +4663,7 @@ struct SQLWorldLoader : public SQLStorageLoaderBase<SQLWorldLoader, SQLStorage>
     template<class D>
     void convert_from_str(uint32 /*field_pos*/, char const* src, D& dst)
     {
-        dst = D(sScriptMgr.GetScriptId(src));
+        dst = D(sScriptDevAIMgr.GetScriptId(src));
     }
 };
 
@@ -5880,7 +5898,7 @@ struct SQLGameObjectLoader : public SQLStorageLoaderBase<SQLGameObjectLoader, SQ
     template<class D>
     void convert_from_str(uint32 /*field_pos*/, char const* src, D& dst)
     {
-        dst = D(sScriptMgr.GetScriptId(src));
+        dst = D(sScriptDevAIMgr.GetScriptId(src));
     }
 };
 
@@ -7682,6 +7700,13 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
 
             return !!creature;
         }
+        case CONDITION_PVP_SCRIPT:
+        {
+            if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(m_value1))
+                return outdoorPvP->IsConditionFulfilled(player, m_value2, source, conditionSourceType);
+
+            return false;
+        }
         default:
             return false;
     }
@@ -7712,6 +7737,7 @@ bool PlayerCondition::CheckParamRequirements(Player const* pPlayer, Map const* m
             break;
         case CONDITION_INSTANCE_SCRIPT:
         case CONDITION_COMPLETED_ENCOUNTER:
+        case CONDITION_PVP_SCRIPT:
             if (!pPlayer && !source && !map)
             {
                 sLog.outErrorDb("CONDITION %u type %u used with bad parameters, called from %s, used with plr: %s, map %i, src %s",
@@ -8120,6 +8146,8 @@ bool PlayerCondition::IsValid(uint16 entry, ConditionType condition, uint32 valu
                 return false;
             }
         }
+        case CONDITION_PVP_SCRIPT:
+            break;
         case CONDITION_NONE:
             break;
         default:

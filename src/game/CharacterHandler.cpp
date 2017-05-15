@@ -37,6 +37,7 @@
 #include "SocialMgr.h"
 #include "Util.h"
 #include "Language.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "SpellMgr.h"
 #include "CPlayer.h"
 

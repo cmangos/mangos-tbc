@@ -20,7 +20,7 @@
 #include "ThreatManager.h"
 #include "Unit.h"
 #include "DBCStructure.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Map.h"
 
 HostileRefManager::HostileRefManager(Unit* pOwner) : iOwner(pOwner)

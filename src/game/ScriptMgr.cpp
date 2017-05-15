@@ -31,6 +31,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "WaypointMovementGenerator.h"
 #include "Mail.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 
 ScriptMapMapName sQuestEndScripts;
 ScriptMapMapName sQuestStartScripts;
@@ -44,37 +45,7 @@ ScriptMapMapName sCreatureMovementScripts;
 
 INSTANTIATE_SINGLETON_1(ScriptMgr);
 
-ScriptMgr::ScriptMgr() :
-    m_hScriptLib(nullptr),
-
-    m_pOnInitScriptLibrary(nullptr),
-    m_pOnFreeScriptLibrary(nullptr),
-
-    m_pGetCreatureAI(nullptr),
-    m_pCreateInstanceData(nullptr),
-
-    m_pOnGossipHello(nullptr),
-    m_pOnGOGossipHello(nullptr),
-    m_pOnGossipSelect(nullptr),
-    m_pOnGOGossipSelect(nullptr),
-    m_pOnGossipSelectWithCode(nullptr),
-    m_pOnGOGossipSelectWithCode(nullptr),
-    m_pOnQuestAccept(nullptr),
-    m_pOnGOQuestAccept(nullptr),
-    m_pOnItemQuestAccept(nullptr),
-    m_pOnQuestRewarded(nullptr),
-    m_pOnGOQuestRewarded(nullptr),
-    m_pGetNPCDialogStatus(nullptr),
-    m_pGetGODialogStatus(nullptr),
-    m_pOnGOUse(nullptr),
-    m_pOnItemUse(nullptr),
-    m_pOnAreaTrigger(nullptr),
-    m_pOnProcessEvent(nullptr),
-    m_pOnEffectDummyCreature(nullptr),
-    m_pOnEffectDummyGO(nullptr),
-    m_pOnEffectDummyItem(nullptr),
-    m_pOnEffectScriptEffectCreature(nullptr),
-    m_pOnAuraDummy(nullptr)
+ScriptMgr::ScriptMgr()
 {
     m_scheduledScripts = 0;
 }
@@ -132,8 +103,8 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
     scripts.first = tablename;
     scripts.second.clear();                                 // need for reload support
 
-    //                                                 0   1      2        3         4          5            6              7           8        9         10        11        12 13 14 15
-    QueryResult* result = WorldDatabase.PQuery("SELECT id, delay, command, datalong, datalong2, buddy_entry, search_radius, data_flags, dataint, dataint2, dataint3, dataint4, x, y, z, o FROM %s", tablename);
+    //                                                 0   1      2        3         4          5          6            7              8           9        10        11        12       13 14 15 16
+    QueryResult* result = WorldDatabase.PQuery("SELECT id, delay, command, datalong, datalong2, datalong3, buddy_entry, search_radius, data_flags, dataint, dataint2, dataint3, dataint4, x, y, z, o FROM %s", tablename);
 
     uint32 count = 0;
 
@@ -155,22 +126,23 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
         Field* fields = result->Fetch();
 
         ScriptInfo tmp;
-        tmp.id           = fields[0].GetUInt32();
-        tmp.delay        = fields[1].GetUInt32();
-        tmp.command      = fields[2].GetUInt32();
-        tmp.raw.data[0]  = fields[3].GetUInt32();
-        tmp.raw.data[1]  = fields[4].GetUInt32();
-        tmp.buddyEntry   = fields[5].GetUInt32();
-        tmp.searchRadiusOrGuid = fields[6].GetUInt32();
-        tmp.data_flags   = fields[7].GetUInt8();
-        tmp.textId[0]    = fields[8].GetInt32();
-        tmp.textId[1]    = fields[9].GetInt32();
-        tmp.textId[2]    = fields[10].GetInt32();
-        tmp.textId[3]    = fields[11].GetInt32();
-        tmp.x            = fields[12].GetFloat();
-        tmp.y            = fields[13].GetFloat();
-        tmp.z            = fields[14].GetFloat();
-        tmp.o            = fields[15].GetFloat();
+        tmp.id                 = fields[0].GetUInt32();
+        tmp.delay              = fields[1].GetUInt32();
+        tmp.command            = fields[2].GetUInt32();
+        tmp.raw.data[0]        = fields[3].GetUInt32();
+        tmp.raw.data[1]        = fields[4].GetUInt32();
+        tmp.raw.data[2]        = fields[5].GetUInt32();
+        tmp.buddyEntry         = fields[6].GetUInt32();
+        tmp.searchRadiusOrGuid = fields[7].GetUInt32();
+        tmp.data_flags         = fields[8].GetUInt8();
+        tmp.textId[0]          = fields[9].GetInt32();
+        tmp.textId[1]          = fields[10].GetInt32();
+        tmp.textId[2]          = fields[11].GetInt32();
+        tmp.textId[3]          = fields[12].GetInt32();
+        tmp.x                  = fields[13].GetFloat();
+        tmp.y                  = fields[14].GetFloat();
+        tmp.z                  = fields[15].GetFloat();
+        tmp.o                  = fields[16].GetFloat();
 
         // generic command args check
         if (tmp.buddyEntry && !(tmp.data_flags & SCRIPT_FLAG_BUDDY_BY_GUID))
@@ -246,18 +218,21 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
         {
             case SCRIPT_COMMAND_TALK:                       // 0
             {
-                if (tmp.textId[0] == 0)
+                if (!tmp.talk.stringTemplateId)             // template checked later after loading strings
                 {
-                    sLog.outErrorDb("Table `%s` has invalid talk text id (dataint = %i) in SCRIPT_COMMAND_TALK for script id %u", tablename, tmp.textId[0], tmp.id);
-                    continue;
-                }
-
-                for (int i = 0; i < MAX_TEXT_ID; ++i)
-                {
-                    if (tmp.textId[i] && (tmp.textId[i] < MIN_DB_SCRIPT_STRING_ID || tmp.textId[i] >= MAX_DB_SCRIPT_STRING_ID))
+                    if (tmp.textId[0] == 0)
                     {
-                        sLog.outErrorDb("Table `%s` has out of range text_id%u (dataint = %i expected %u-%u) in SCRIPT_COMMAND_TALK for script id %u", tablename, i + 1, tmp.textId[i], MIN_DB_SCRIPT_STRING_ID, MAX_DB_SCRIPT_STRING_ID, tmp.id);
+                        sLog.outErrorDb("Table `%s` has invalid talk text id (dataint = %i) in SCRIPT_COMMAND_TALK for script id %u", tablename, tmp.textId[0], tmp.id);
                         continue;
+                    }
+
+                    for (int i = 0; i < MAX_TEXT_ID; ++i)
+                    {
+                        if (tmp.textId[i] && (tmp.textId[i] < MIN_DB_SCRIPT_STRING_ID || tmp.textId[i] >= MAX_DB_SCRIPT_STRING_ID))
+                        {
+                            sLog.outErrorDb("Table `%s` has out of range text_id%u (dataint = %i expected %u-%u) in SCRIPT_COMMAND_TALK for script id %u", tablename, i + 1, tmp.textId[i], MIN_DB_SCRIPT_STRING_ID, MAX_DB_SCRIPT_STRING_ID, tmp.id);
+                            continue;
+                        }
                     }
                 }
 
@@ -893,6 +868,8 @@ void ScriptMgr::LoadDbScriptStrings()
         if (sObjectMgr.GetMangosStringLocale(i))
             ids.insert(i);
 
+    LoadDbScriptStringTemplates(ids);
+
     CheckScriptTexts(sQuestEndScripts, ids);
     CheckScriptTexts(sQuestStartScripts, ids);
     CheckScriptTexts(sSpellScripts, ids);
@@ -907,6 +884,31 @@ void ScriptMgr::LoadDbScriptStrings()
 
     for (std::set<int32>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr)
         sLog.outErrorDb("Table `db_script_string` has unused string id %u", *itr);
+}
+
+void ScriptMgr::LoadDbScriptStringTemplates(std::set<int32>& ids)
+{
+    sLog.outString("Loading script string templates");
+
+    QueryResult* result = WorldDatabase.Query("SELECT id, string_id FROM dbscript_string_template");
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+
+            uint32 id = fields[0].GetUInt32();
+            int32 stringId = fields[1].GetInt32();
+            m_stringTemplates[id].push_back(stringId);
+
+            if (ids.find(stringId) != ids.end())
+                ids.erase(stringId);
+        }
+        while (result->NextRow());
+
+        delete result;
+    }
 }
 
 void ScriptMgr::CheckScriptTexts(ScriptMapMapName const& scripts, std::set<int32>& ids)
@@ -924,6 +926,16 @@ void ScriptMgr::CheckScriptTexts(ScriptMapMapName const& scripts, std::set<int32
 
                     if (ids.find(itrM->second.textId[i]) != ids.end())
                         ids.erase(itrM->second.textId[i]);
+                }
+
+                if (itrM->second.talk.stringTemplateId)
+                {
+                    std::vector<int32>& vector = m_stringTemplates[itrM->second.talk.stringTemplateId];
+                    for (int32& stringId : vector)
+                    {
+                        if(!sObjectMgr.GetMangosStringLocale(stringId))
+                            sLog.outErrorDb("Table `db_script_string` is missing string id %u, used in database script template table dbscript_string_template id %u.", stringId, itrM->second.talk.stringTemplateId);
+                    }
                 }
             }
         }
@@ -1189,18 +1201,28 @@ bool ScriptAction::HandleScriptStep()
             Unit* unitTarget = pTarget && pTarget->isType(TYPEMASK_UNIT) ? static_cast<Unit*>(pTarget) : nullptr;
             int32 textId = m_script->textId[0];
 
-            // May have text for random
-            if (m_script->textId[1])
+            if (m_script->talk.stringTemplateId)
             {
-                int i = 2;
-                for (; i < MAX_TEXT_ID; ++i)
+                std::vector<int32> stringTemplate;
+                sScriptMgr.GetScriptStringTemplate(m_script->talk.stringTemplateId, stringTemplate);
+                if (!stringTemplate.empty())
+                    textId = stringTemplate[urand(0, stringTemplate.size() - 1)];
+            }
+            else
+            {
+                // May have text for random
+                if (m_script->textId[1])
                 {
-                    if (!m_script->textId[i])
-                        break;
-                }
+                    int i = 2;
+                    for (; i < MAX_TEXT_ID; ++i)
+                    {
+                        if (!m_script->textId[i])
+                            break;
+                    }
 
-                // Use one random
-                textId = m_script->textId[urand(0, i - 1)];
+                    // Use one random
+                    textId = m_script->textId[urand(0, i - 1)];
+                }
             }
 
             if (!DoDisplayText(pSource, textId, unitTarget))
@@ -1429,7 +1451,7 @@ bool ScriptAction::HandleScriptStep()
             float z = m_script->z;
             float o = m_script->o;
 
-            Creature* pCreature = pSource->SummonCreature(m_script->summonCreature.creatureEntry, x, y, z, o, m_script->summonCreature.despawnDelay ? TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN : TEMPSUMMON_DEAD_DESPAWN, m_script->summonCreature.despawnDelay, (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL) ? true : false, m_script->textId[0] == 1);
+            Creature* pCreature = pSource->SummonCreature(m_script->summonCreature.creatureEntry, x, y, z, o, m_script->summonCreature.despawnDelay ? TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN : TEMPSUMMON_DEAD_DESPAWN, m_script->summonCreature.despawnDelay, (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL) ? true : false, m_script->textId[0] == 1, m_script->summonCreature.pathId);
             if (!pCreature)
             {
                 sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed for creature (entry: %u).", m_table, m_script->id, m_script->command, m_script->summonCreature.creatureEntry);
@@ -1526,8 +1548,7 @@ bool ScriptAction::HandleScriptStep()
             if (LogIfNotUnit(pSource))
                 break;
 
-            uint32 castFlags = (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL ? TRIGGERED_OLD_TRIGGERED : TRIGGERED_NONE); // TODO: Figure out nice support for other flags using some column
-            ((Unit*)pSource)->CastSpell(((Unit*)pTarget), spell, castFlags);
+            ((Unit*)pSource)->CastSpell(((Unit*)pTarget), spell, m_script->castSpell.castFlags);
 
             break;
         }
@@ -1607,17 +1628,17 @@ bool ScriptAction::HandleScriptStep()
                     break;
                 case RANDOM_MOTION_TYPE:
                     if (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL)
-                        ((Creature*)pSource)->GetMotionMaster()->MoveRandomAroundPoint(pSource->GetPositionX(), pSource->GetPositionY(), pSource->GetPositionZ(), float(m_script->movement.wanderDistance));
+                        ((Creature*)pSource)->GetMotionMaster()->MoveRandomAroundPoint(pSource->GetPositionX(), pSource->GetPositionY(), pSource->GetPositionZ(), float(m_script->movement.wanderORpathId));
                     else
                     {
                         float respX, respY, respZ, respO, wander_distance;
                         ((Creature*)pSource)->GetRespawnCoord(respX, respY, respZ, &respO, &wander_distance);
-                        wander_distance = m_script->movement.wanderDistance ? m_script->movement.wanderDistance : wander_distance;
+                        wander_distance = m_script->movement.wanderORpathId ? m_script->movement.wanderORpathId : wander_distance;
                         ((Creature*)pSource)->GetMotionMaster()->MoveRandomAroundPoint(respX, respY, respZ, wander_distance);
                     }
                     break;
                 case WAYPOINT_MOTION_TYPE:
-                    ((Creature*)pSource)->GetMotionMaster()->MoveWaypoint();
+                    ((Creature*)pSource)->GetMotionMaster()->MoveWaypoint(m_script->movement.wanderORpathId);
                     break;
             }
 
@@ -2070,402 +2091,6 @@ bool ScriptAction::HandleScriptStep()
 //              Scripting Library Hooks
 // /////////////////////////////////////////////////////////
 
-void ScriptMgr::LoadAreaTriggerScripts()
-{
-    m_AreaTriggerScripts.clear();                           // need for reload case
-    QueryResult* result = WorldDatabase.Query("SELECT entry, ScriptName FROM scripted_areatrigger");
-
-    uint32 count = 0;
-
-    if (!result)
-    {
-        BarGoLink bar(1);
-        bar.step();
-        sLog.outString(">> Loaded %u scripted areatrigger", count);
-        sLog.outString();
-        return;
-    }
-
-    BarGoLink bar(result->GetRowCount());
-
-    do
-    {
-        ++count;
-        bar.step();
-
-        Field* fields = result->Fetch();
-
-        uint32 triggerId       = fields[0].GetUInt32();
-        const char* scriptName = fields[1].GetString();
-
-        if (!sAreaTriggerStore.LookupEntry(triggerId))
-        {
-            sLog.outErrorDb("Table `scripted_areatrigger` has area trigger (ID: %u) not listed in `AreaTrigger.dbc`.", triggerId);
-            continue;
-        }
-
-        m_AreaTriggerScripts[triggerId] = GetScriptId(scriptName);
-    }
-    while (result->NextRow());
-
-    delete result;
-
-    sLog.outString(">> Loaded %u areatrigger scripts", count);
-    sLog.outString();
-
-}
-
-void ScriptMgr::LoadEventIdScripts()
-{
-    m_EventIdScripts.clear();                           // need for reload case
-    QueryResult* result = WorldDatabase.Query("SELECT id, ScriptName FROM scripted_event_id");
-
-    uint32 count = 0;
-
-    if (!result)
-    {
-        BarGoLink bar(1);
-        bar.step();
-        sLog.outString(">> Loaded %u scripted event id", count);
-        sLog.outString();
-        return;
-    }
-
-    BarGoLink bar(result->GetRowCount());
-
-    std::set<uint32> eventIds;                              // Store possible event ids
-    CollectPossibleEventIds(eventIds);
-
-    do
-    {
-        ++count;
-        bar.step();
-
-        Field* fields = result->Fetch();
-
-        uint32 eventId          = fields[0].GetUInt32();
-        const char* scriptName  = fields[1].GetString();
-
-        std::set<uint32>::const_iterator itr = eventIds.find(eventId);
-        if (itr == eventIds.end())
-            sLog.outErrorDb("Table `scripted_event_id` has id %u not referring to any gameobject_template type 10 data2 field, type 3 data6 field, type 13 data 2 field, type 29 or any spell effect %u or path taxi node data",
-                            eventId, SPELL_EFFECT_SEND_EVENT);
-
-        m_EventIdScripts[eventId] = GetScriptId(scriptName);
-    }
-    while (result->NextRow());
-
-    delete result;
-
-    sLog.outString(">> Loaded %u scripted event id", count);
-    sLog.outString();
-}
-
-void ScriptMgr::LoadScriptNames()
-{
-    m_scriptNames.push_back("");
-    QueryResult* result = WorldDatabase.Query(
-                              "SELECT DISTINCT(ScriptName) FROM creature_template WHERE ScriptName <> '' "
-                              "UNION "
-                              "SELECT DISTINCT(ScriptName) FROM gameobject_template WHERE ScriptName <> '' "
-                              "UNION "
-                              "SELECT DISTINCT(ScriptName) FROM item_template WHERE ScriptName <> '' "
-                              "UNION "
-                              "SELECT DISTINCT(ScriptName) FROM scripted_areatrigger WHERE ScriptName <> '' "
-                              "UNION "
-                              "SELECT DISTINCT(ScriptName) FROM scripted_event_id WHERE ScriptName <> '' "
-                              "UNION "
-                              "SELECT DISTINCT(ScriptName) FROM instance_template WHERE ScriptName <> '' "
-                              "UNION "
-                              "SELECT DISTINCT(ScriptName) FROM world_template WHERE ScriptName <> ''");
-
-    if (!result)
-    {
-        BarGoLink bar(1);
-        bar.step();
-        sLog.outErrorDb(">> Loaded empty set of Script Names!");
-        sLog.outString();
-        return;
-    }
-
-    BarGoLink bar(result->GetRowCount());
-    uint32 count = 0;
-
-    do
-    {
-        bar.step();
-        m_scriptNames.push_back((*result)[0].GetString());
-        ++count;
-    }
-    while (result->NextRow());
-    delete result;
-
-    std::sort(m_scriptNames.begin(), m_scriptNames.end());
-
-    sLog.outString(">> Loaded %d Script Names", count);
-    sLog.outString();
-}
-
-uint32 ScriptMgr::GetScriptId(const char* name) const
-{
-    // use binary search to find the script name in the sorted vector
-    // assume "" is the first element
-    if (!name)
-        return 0;
-
-    ScriptNameMap::const_iterator itr =
-        std::lower_bound(m_scriptNames.begin(), m_scriptNames.end(), name);
-
-    if (itr == m_scriptNames.end() || *itr != name)
-        return 0;
-
-    return uint32(itr - m_scriptNames.begin());
-}
-
-uint32 ScriptMgr::GetAreaTriggerScriptId(uint32 triggerId) const
-{
-    AreaTriggerScriptMap::const_iterator itr = m_AreaTriggerScripts.find(triggerId);
-    if (itr != m_AreaTriggerScripts.end())
-        return itr->second;
-
-    return 0;
-}
-
-uint32 ScriptMgr::GetEventIdScriptId(uint32 eventId) const
-{
-    EventIdScriptMap::const_iterator itr = m_EventIdScripts.find(eventId);
-    if (itr != m_EventIdScripts.end())
-        return itr->second;
-
-    return 0;
-}
-
-CreatureAI* ScriptMgr::GetCreatureAI(Creature* pCreature)
-{
-    if (!m_pGetCreatureAI)
-        return nullptr;
-
-    return m_pGetCreatureAI(pCreature);
-}
-
-InstanceData* ScriptMgr::CreateInstanceData(Map* pMap)
-{
-    if (!m_pCreateInstanceData)
-        return nullptr;
-
-    return m_pCreateInstanceData(pMap);
-}
-
-bool ScriptMgr::OnGossipHello(Player* pPlayer, Creature* pCreature)
-{
-    return m_pOnGossipHello != nullptr && m_pOnGossipHello(pPlayer, pCreature);
-}
-
-bool ScriptMgr::OnGossipHello(Player* pPlayer, GameObject* pGameObject)
-{
-    return m_pOnGOGossipHello != nullptr && m_pOnGOGossipHello(pPlayer, pGameObject);
-}
-
-bool ScriptMgr::OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32 sender, uint32 action, const char* code)
-{
-    if (code)
-        return m_pOnGossipSelectWithCode != nullptr && m_pOnGossipSelectWithCode(pPlayer, pCreature, sender, action, code);
-    else
-        return m_pOnGossipSelect != nullptr && m_pOnGossipSelect(pPlayer, pCreature, sender, action);
-}
-
-bool ScriptMgr::OnGossipSelect(Player* pPlayer, GameObject* pGameObject, uint32 sender, uint32 action, const char* code)
-{
-    if (code)
-        return m_pOnGOGossipSelectWithCode != nullptr && m_pOnGOGossipSelectWithCode(pPlayer, pGameObject, sender, action, code);
-    else
-        return m_pOnGOGossipSelect != nullptr && m_pOnGOGossipSelect(pPlayer, pGameObject, sender, action);
-}
-
-bool ScriptMgr::OnQuestAccept(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
-{
-    return m_pOnQuestAccept != nullptr && m_pOnQuestAccept(pPlayer, pCreature, pQuest);
-}
-
-bool ScriptMgr::OnQuestAccept(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
-{
-    return m_pOnGOQuestAccept != nullptr && m_pOnGOQuestAccept(pPlayer, pGameObject, pQuest);
-}
-
-bool ScriptMgr::OnQuestAccept(Player* pPlayer, Item* pItem, Quest const* pQuest)
-{
-    return m_pOnItemQuestAccept != nullptr && m_pOnItemQuestAccept(pPlayer, pItem, pQuest);
-}
-
-bool ScriptMgr::OnQuestRewarded(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
-{
-    return m_pOnQuestRewarded != nullptr && m_pOnQuestRewarded(pPlayer, pCreature, pQuest);
-}
-
-bool ScriptMgr::OnQuestRewarded(Player* pPlayer, GameObject* pGameObject, Quest const* pQuest)
-{
-    return m_pOnGOQuestRewarded != nullptr && m_pOnGOQuestRewarded(pPlayer, pGameObject, pQuest);
-}
-
-uint32 ScriptMgr::GetDialogStatus(const Player* pPlayer, const Creature* pCreature) const
-{
-    if (!m_pGetNPCDialogStatus)
-        return DIALOG_STATUS_UNDEFINED;
-
-    return m_pGetNPCDialogStatus(pPlayer, pCreature);
-}
-
-uint32 ScriptMgr::GetDialogStatus(const Player* pPlayer, const GameObject* pGameObject) const
-{
-    if (!m_pGetGODialogStatus)
-        return DIALOG_STATUS_UNDEFINED;
-
-    return m_pGetGODialogStatus(pPlayer, pGameObject);
-}
-
-bool ScriptMgr::OnGameObjectUse(Player* pPlayer, GameObject* pGameObject)
-{
-    return m_pOnGOUse != nullptr && m_pOnGOUse(pPlayer, pGameObject);
-}
-
-bool ScriptMgr::OnItemUse(Player* pPlayer, Item* pItem, SpellCastTargets const& targets)
-{
-    return m_pOnItemUse != nullptr && m_pOnItemUse(pPlayer, pItem, targets);
-}
-
-bool ScriptMgr::OnAreaTrigger(Player* pPlayer, AreaTriggerEntry const* atEntry)
-{
-    return m_pOnAreaTrigger != nullptr && m_pOnAreaTrigger(pPlayer, atEntry);
-}
-
-bool ScriptMgr::OnProcessEvent(uint32 eventId, Object* pSource, Object* pTarget, bool isStart)
-{
-    return m_pOnProcessEvent != nullptr && m_pOnProcessEvent(eventId, pSource, pTarget, isStart);
-}
-
-bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget, ObjectGuid originalCasterGuid)
-{
-    return m_pOnEffectDummyCreature != nullptr && m_pOnEffectDummyCreature(pCaster, spellId, effIndex, pTarget, originalCasterGuid);
-}
-
-bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, GameObject* pTarget, ObjectGuid originalCasterGuid)
-{
-    return m_pOnEffectDummyGO != nullptr && m_pOnEffectDummyGO(pCaster, spellId, effIndex, pTarget, originalCasterGuid);
-}
-
-bool ScriptMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Item* pTarget, ObjectGuid originalCasterGuid)
-{
-    return m_pOnEffectDummyItem != nullptr && m_pOnEffectDummyItem(pCaster, spellId, effIndex, pTarget, originalCasterGuid);
-}
-
-bool ScriptMgr::OnEffectScriptEffect(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget, ObjectGuid originalCasterGuid)
-{
-    return m_pOnEffectScriptEffectCreature != nullptr && m_pOnEffectScriptEffectCreature(pCaster, spellId, effIndex, pTarget, originalCasterGuid);
-}
-
-bool ScriptMgr::OnAuraDummy(Aura const* pAura, bool apply)
-{
-    return m_pOnAuraDummy != nullptr && m_pOnAuraDummy(pAura, apply);
-}
-
-ScriptLoadResult ScriptMgr::LoadScriptLibrary(const char* libName)
-{
-    UnloadScriptLibrary();
-
-    std::string name = libName;
-    name = MANGOS_SCRIPT_PREFIX + name + MANGOS_SCRIPT_SUFFIX;
-
-    m_hScriptLib = MANGOS_LOAD_LIBRARY(name.c_str());
-
-    if (!m_hScriptLib)
-        return SCRIPT_LOAD_ERR_NOT_FOUND;
-
-#   define GET_SCRIPT_HOOK_PTR(P,N)             \
-        GetScriptHookPtr((P), (N));             \
-        if (!(P))                               \
-        {                                       \
-            /* prevent call before init */      \
-            m_pOnFreeScriptLibrary = nullptr;      \
-            UnloadScriptLibrary();              \
-            return SCRIPT_LOAD_ERR_WRONG_API;   \
-        }
-
-    GET_SCRIPT_HOOK_PTR(m_pOnInitScriptLibrary,        "InitScriptLibrary");
-    GET_SCRIPT_HOOK_PTR(m_pOnFreeScriptLibrary,        "FreeScriptLibrary");
-
-    GET_SCRIPT_HOOK_PTR(m_pGetCreatureAI,              "GetCreatureAI");
-    GET_SCRIPT_HOOK_PTR(m_pCreateInstanceData,         "CreateInstanceData");
-
-    GET_SCRIPT_HOOK_PTR(m_pOnGossipHello,              "GossipHello");
-    GET_SCRIPT_HOOK_PTR(m_pOnGOGossipHello,            "GOGossipHello");
-    GET_SCRIPT_HOOK_PTR(m_pOnGossipSelect,             "GossipSelect");
-    GET_SCRIPT_HOOK_PTR(m_pOnGOGossipSelect,           "GOGossipSelect");
-    GET_SCRIPT_HOOK_PTR(m_pOnGossipSelectWithCode,     "GossipSelectWithCode");
-    GET_SCRIPT_HOOK_PTR(m_pOnGOGossipSelectWithCode,   "GOGossipSelectWithCode");
-    GET_SCRIPT_HOOK_PTR(m_pOnQuestAccept,              "QuestAccept");
-    GET_SCRIPT_HOOK_PTR(m_pOnGOQuestAccept,            "GOQuestAccept");
-    GET_SCRIPT_HOOK_PTR(m_pOnItemQuestAccept,          "ItemQuestAccept");
-    GET_SCRIPT_HOOK_PTR(m_pOnQuestRewarded,            "QuestRewarded");
-    GET_SCRIPT_HOOK_PTR(m_pOnGOQuestRewarded,          "GOQuestRewarded");
-    GET_SCRIPT_HOOK_PTR(m_pGetNPCDialogStatus,         "GetNPCDialogStatus");
-    GET_SCRIPT_HOOK_PTR(m_pGetGODialogStatus,          "GetGODialogStatus");
-    GET_SCRIPT_HOOK_PTR(m_pOnGOUse,                    "GOUse");
-    GET_SCRIPT_HOOK_PTR(m_pOnItemUse,                  "ItemUse");
-    GET_SCRIPT_HOOK_PTR(m_pOnAreaTrigger,              "AreaTrigger");
-    GET_SCRIPT_HOOK_PTR(m_pOnProcessEvent,             "ProcessEvent");
-    GET_SCRIPT_HOOK_PTR(m_pOnEffectDummyCreature,      "EffectDummyCreature");
-    GET_SCRIPT_HOOK_PTR(m_pOnEffectDummyGO,            "EffectDummyGameObject");
-    GET_SCRIPT_HOOK_PTR(m_pOnEffectDummyItem,          "EffectDummyItem");
-    GET_SCRIPT_HOOK_PTR(m_pOnEffectScriptEffectCreature, "EffectScriptEffectCreature");
-    GET_SCRIPT_HOOK_PTR(m_pOnAuraDummy,                "AuraDummy");
-
-#   undef GET_SCRIPT_HOOK_PTR
-
-    m_pOnInitScriptLibrary();
-    return SCRIPT_LOAD_OK;
-}
-
-void ScriptMgr::UnloadScriptLibrary()
-{
-    if (!m_hScriptLib)
-        return;
-
-    if (m_pOnFreeScriptLibrary)
-        m_pOnFreeScriptLibrary();
-
-    MANGOS_CLOSE_LIBRARY(m_hScriptLib);
-    m_hScriptLib = nullptr;
-
-    m_pOnInitScriptLibrary      = nullptr;
-    m_pOnFreeScriptLibrary      = nullptr;
-
-    m_pGetCreatureAI            = nullptr;
-    m_pCreateInstanceData       = nullptr;
-
-    m_pOnGossipHello            = nullptr;
-    m_pOnGOGossipHello          = nullptr;
-    m_pOnGossipSelect           = nullptr;
-    m_pOnGOGossipSelect         = nullptr;
-    m_pOnGossipSelectWithCode   = nullptr;
-    m_pOnGOGossipSelectWithCode = nullptr;
-    m_pOnQuestAccept            = nullptr;
-    m_pOnGOQuestAccept          = nullptr;
-    m_pOnItemQuestAccept        = nullptr;
-    m_pOnQuestRewarded          = nullptr;
-    m_pOnGOQuestRewarded        = nullptr;
-    m_pGetNPCDialogStatus       = nullptr;
-    m_pGetGODialogStatus        = nullptr;
-    m_pOnGOUse                  = nullptr;
-    m_pOnItemUse                = nullptr;
-    m_pOnAreaTrigger            = nullptr;
-    m_pOnProcessEvent           = nullptr;
-    m_pOnEffectDummyCreature    = nullptr;
-    m_pOnEffectDummyGO          = nullptr;
-    m_pOnEffectDummyItem        = nullptr;
-    m_pOnEffectScriptEffectCreature = nullptr;
-    m_pOnAuraDummy              = nullptr;
-}
-
 void ScriptMgr::CollectPossibleEventIds(std::set<uint32>& eventIds)
 {
     // Load all possible script entries from gameobjects
@@ -2536,7 +2161,7 @@ bool StartEvents_Event(Map* map, uint32 id, Object* source, Object* target, bool
     MANGOS_ASSERT(source);
 
     // Handle SD2 script
-    if (sScriptMgr.OnProcessEvent(id, source, target, isStart))
+    if (sScriptDevAIMgr.OnProcessEvent(id, source, target, isStart))
         return true;
 
     // Handle PvP Calls
@@ -2572,40 +2197,4 @@ bool StartEvents_Event(Map* map, uint32 id, Object* source, Object* target, bool
         execParam = Map::SCRIPT_EXEC_PARAM_UNIQUE_BY_TARGET;
 
     return map->ScriptsStart(sEventScripts, id, source, target, execParam);
-}
-
-// Wrappers
-uint32 GetAreaTriggerScriptId(uint32 triggerId)
-{
-    return sScriptMgr.GetAreaTriggerScriptId(triggerId);
-}
-
-uint32 GetEventIdScriptId(uint32 eventId)
-{
-    return sScriptMgr.GetEventIdScriptId(eventId);
-}
-
-uint32 GetScriptId(const char* name)
-{
-    return sScriptMgr.GetScriptId(name);
-}
-
-char const* GetScriptName(uint32 id)
-{
-    return sScriptMgr.GetScriptName(id);
-}
-
-uint32 GetScriptIdsCount()
-{
-    return sScriptMgr.GetScriptIdsCount();
-}
-
-void SetExternalWaypointTable(char const* tableName)
-{
-    sWaypointMgr.SetExternalWPTable(tableName);
-}
-
-bool AddWaypointFromExternal(uint32 entry, int32 pathId, uint32 pointId, float x, float y, float z, float o, uint32 waittime)
-{
-    return sWaypointMgr.AddExternalNode(entry, pathId, pointId, x, y, z, o, waittime);
 }

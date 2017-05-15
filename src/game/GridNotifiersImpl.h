@@ -22,7 +22,7 @@
 #include "GridNotifiers.h"
 #include "WorldPacket.h"
 #include "Player.h"
-#include "AI/CreatureAI.h"
+#include "AI/BaseAI/CreatureAI.h"
 #include "SpellAuras.h"
 #include "DBCStores.h"
 #include "DBCEnums.h"
@@ -185,7 +185,8 @@ inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
         holder = CreateSpellAuraHolder(spellInfo, target, i_dynobject.GetCaster());
         PersistentAreaAura* Aur = new PersistentAreaAura(spellInfo, eff_index, nullptr, holder, target, i_dynobject.GetCaster());
         holder->AddAura(Aur, eff_index);
-        target->AddSpellAuraHolder(holder);
+        if (!target->AddSpellAuraHolder(holder))
+            delete holder;
     }
 
     i_dynobject.AddAffected(target);

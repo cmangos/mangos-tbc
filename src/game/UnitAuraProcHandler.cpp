@@ -19,7 +19,7 @@
 #include "Common.h"
 #include "Log.h"
 #include "ObjectMgr.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Player.h"
 #include "Unit.h"
 #include "Spell.h"

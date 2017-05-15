@@ -30,7 +30,7 @@
 #include "WorldSession.h"
 #include "UpdateData.h"
 #include "Chat.h"
-#include "ScriptMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include <zlib/zlib.h>
 #include "ObjectAccessor.h"
 #include "Object.h"
@@ -338,6 +338,13 @@ void WorldSession::HandleLogoutCancelOpcode(WorldPacket& /*recv_data*/)
 
 void WorldSession::HandleTogglePvP(WorldPacket& recv_data)
 {
+    uint32 zoneId = GetPlayer()->GetZoneId();
+    if (AreaTableEntry const* zone = GetAreaEntryByAreaID(zoneId))
+    {
+        if (zone->flags & AREA_FLAG_SANCTUARY)
+            return;
+    }
+
     // this opcode can be used in two ways: Either set explicit new status or toggle old status
     if (recv_data.size() == 1)
     {
@@ -713,7 +720,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
         return;
     }
 
-    if (sScriptMgr.OnAreaTrigger(player, atEntry))
+    if (sScriptDevAIMgr.OnAreaTrigger(player, atEntry))
         return;
 
     uint32 quest_id = sObjectMgr.GetQuestForAreaTrigger(Trigger_ID);

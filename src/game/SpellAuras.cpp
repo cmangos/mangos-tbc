@@ -24,7 +24,7 @@
 #include "Log.h"
 #include "World.h"
 #include "ObjectMgr.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Player.h"
 #include "Unit.h"
 #include "Spell.h"
@@ -37,7 +37,7 @@
 #include "Creature.h"
 #include "BattleGround/BattleGround.h"
 #include "OutdoorPvP/OutdoorPvP.h"
-#include "AI/CreatureAI.h"
+#include "AI/BaseAI/CreatureAI.h"
 #include "ScriptMgr.h"
 #include "Util.h"
 #include "GridNotifiers.h"
@@ -666,8 +666,10 @@ void AreaAura::Update(uint32 diff)
                     holder->SetInUse(false);
                 }
                 else
-                    (*tIter)->AddSpellAuraHolder(holder);
-
+                    if ((*tIter)->AddSpellAuraHolder(holder))
+                        holder->SetState(SPELLAURAHOLDER_STATE_READY);
+                    else
+                        delete holder;
             }
         }
         Aura::Update(diff);
@@ -1865,7 +1867,7 @@ void Aura::TriggerSpell()
     {
         if (Unit* caster = GetCaster())
         {
-            if (triggerTarget->GetTypeId() != TYPEID_UNIT || !sScriptMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)triggerTarget, ObjectGuid()))
+            if (triggerTarget->GetTypeId() != TYPEID_UNIT || !sScriptDevAIMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)triggerTarget, ObjectGuid()))
                 sLog.outError("Aura::TriggerSpell: Spell %u have 0 in EffectTriggered[%d], not handled custom case?", GetId(), GetEffIndex());
         }
     }
@@ -1936,6 +1938,15 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         if (Unit* caster = GetCaster())
                             caster->CastSpell(caster, 13138, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                         return;
+                    case 21094:                             // Separation Anxiety (Majordomo Executus)
+                    case 23487:                             // Separation Anxiety (Garr)
+                    {
+                        // expected to tick with 5 sec period (tick part see in Aura::PeriodicTick)
+                        m_isPeriodic = true;
+                        m_modifier.periodictime = 5 * IN_MILLISECONDS;
+                        m_periodicTimer = m_modifier.periodictime;
+                        return;
+                    }
                     case 28832:                             // Mark of Korth'azz
                     case 28833:                             // Mark of Blaumeux
                     case 28834:                             // Mark of Rivendare
@@ -2621,7 +2632,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
     // script has to "handle with care", only use where data are not ok to use in the above code.
     if (target->GetTypeId() == TYPEID_UNIT)
-        sScriptMgr.OnAuraDummy(this, apply);
+        sScriptDevAIMgr.OnAuraDummy(this, apply);
 }
 
 void Aura::HandleAuraMounted(bool apply, bool Real)
@@ -4055,6 +4066,18 @@ void Aura::HandleAuraModEffectImmunity(bool apply, bool /*Real*/)
     }
 
     target->ApplySpellImmune(GetId(), IMMUNITY_EFFECT, m_modifier.m_miscvalue, apply);
+
+    switch (GetSpellProto()->Id)
+    {
+        case 32430:                     // Battle Standard (Alliance - ZM OPVP)
+        case 32431:                     // Battle Standard (Horde - ZM OPVP)
+        {
+            // Handle OPVP script condition change on aura apply; Specific for Zangarmarsh outdoor pvp
+            if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(3521))
+                outdoorPvP->HandleConditionStateChange(uint32(GetSpellProto()->Id == 32431), apply);
+            return;
+        }
+    }
 }
 
 void Aura::HandleAuraModStateImmunity(bool apply, bool Real)
@@ -4466,7 +4489,7 @@ void Aura::HandleAuraModResistanceExclusive(bool apply, bool /*Real*/)
 
             if (m_modifier.m_amount >= highestValue && !apply)
                 applyDiff -= highestValue;
-            
+
             if (GetTarget()->GetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_EXCLUSIVE) >= m_modifier.m_amount && apply ||
                 highestValue >= m_modifier.m_amount && !apply)
                 applyDiff = 0;
@@ -6281,6 +6304,15 @@ void Aura::PeriodicDummyTick()
                     return;
 //              // Panda
 //              case 19230: break;
+                case 21094:                                 // Separation Anxiety (Majordomo Executus)
+                case 23487:                                 // Separation Anxiety (Garr)
+                    if (Unit* caster = GetCaster())
+                    {
+                        float m_radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spell->EffectRadiusIndex[m_effIndex]));
+                        if (caster->isAlive() && !caster->IsWithinDistInMap(target, m_radius))
+                            target->CastSpell(target, (spell->Id == 21094 ? 21095 : 23492), TRIGGERED_OLD_TRIGGERED, nullptr);      // Spell 21095: Separation Anxiety for Majordomo Executus' adds, 23492: Separation Anxiety for Garr's adds
+                    }
+                    return;
                 case 30019:                                 // Control Piece
                 {
                     if (target->GetTypeId() != TYPEID_PLAYER)
@@ -6508,7 +6540,7 @@ void Aura::PeriodicDummyTick()
     if (Unit* caster = GetCaster())
     {
         if (target && target->GetTypeId() == TYPEID_UNIT)
-            sScriptMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)target, ObjectGuid());
+            sScriptDevAIMgr.OnEffectDummy(caster, GetId(), GetEffIndex(), (Creature*)target, ObjectGuid());
     }
 }
 

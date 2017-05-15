@@ -44,6 +44,10 @@ include_directories(
   ${CMAKE_BINARY_DIR}/src/shared
 )
 
+# Find all the input files
+FILE(GLOB_RECURSE SRC_GRP_AI RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+
 set(SRC_GRP_CUSTOM
     AntiCheat.cpp
     AntiCheat_fly.cpp

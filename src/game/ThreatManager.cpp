@@ -19,7 +19,7 @@
 #include "ThreatManager.h"
 #include "Unit.h"
 #include "Creature.h"
-#include "AI/CreatureAI.h"
+#include "AI/BaseAI/CreatureAI.h"
 #include "Map.h"
 #include "Player.h"
 #include "ObjectAccessor.h"
@@ -224,6 +224,8 @@ void ThreatContainer::clearReferences()
 // Return the HostileReference of nullptr, if not found
 HostileReference* ThreatContainer::getReferenceByTarget(Unit* pVictim)
 {
+    if (!pVictim)
+        return nullptr;
     HostileReference* result = nullptr;
     ObjectGuid guid = pVictim->GetObjectGuid();
     for (ThreatList::const_iterator i = iThreatList.begin(); i != iThreatList.end(); ++i)

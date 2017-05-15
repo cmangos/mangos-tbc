@@ -21,7 +21,7 @@
 #include "Log.h"
 #include "WorldPacket.h"
 #include "ObjectMgr.h"
-#include "SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Formulas.h"
 #include "SpellAuras.h"
 #include "Unit.h"
@@ -1710,8 +1710,21 @@ void Pet::_LoadAuras(uint32 timediff)
                 holder->AddAura(aura, SpellEffectIndex(i));
             }
 
-            if (!holder->IsEmptyHolder())
-                AddSpellAuraHolder(holder);
+            const bool empty = holder->IsEmptyHolder();
+            if (!empty)
+            {
+                // reset stolen single target auras
+                if (casterGuid != GetObjectGuid() && holder->GetTrackedAuraType() == TRACK_AURA_TYPE_SINGLE_TARGET)
+                    holder->SetTrackedAuraType(TRACK_AURA_TYPE_NOT_TRACKED);
+
+                holder->SetState(SPELLAURAHOLDER_STATE_DB_LOAD); // Safeguard mechanism against some actions
+            }
+
+            if (!empty && AddSpellAuraHolder(holder))
+            {
+                holder->SetState(SPELLAURAHOLDER_STATE_READY);
+                DETAIL_LOG("Added pet auras from spellid %u", spellproto->Id);
+            }
             else
                 delete holder;
         }

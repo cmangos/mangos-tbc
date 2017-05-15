@@ -45,6 +45,22 @@ INSERT INTO spell_template(Id, Attributes, AttributesEx,AttributesEx2,Attributes
 INSERT INTO spell_template (Id, Attributes, CastingTimeIndex, ProcChance, SpellLevel, RangeIndex, EquippedItemClass, Effect1, EffectDieSides1, EffectBaseDice1, EffectDicePerLevel1, EffectImplicitTargetA1, SpellIconID, SpellName, MaxTargetLevel, DmgMultiplier1, DmgMultiplier2, DmgMultiplier3, IsServerSide) VALUES
 ('9439', '256', '1', '101', '1', '12', '-1', '3', '1', '1', '0', '38', '1', 'Bear Captured in Trap', '60', '1', '1', '1', '1');
 
+-- Feed Captured Animal for q.9440 'Little Morsels' - prevent LOS from cage gameobjects
+UPDATE spell_template SET AttributesEx2=AttributesEx2|4 WHERE id IN (29916, 29917);
+
 -- generic proc double attack used in a lot of TBC instances based on sniffs
 INSERT INTO spell_template (Id, Category, Attributes, CastingTimeIndex, ProcChance, BaseLevel, SpellLevel, RangeIndex, EquippedItemClass, Effect1, EffectDieSides1, EffectBaseDice1, EffectImplicitTargetA1, SpellIconID, SpellName, DmgClass, PreventionType, DmgMultiplier1, DmgMultiplier2, DmgMultiplier3, IsServerSide) VALUES
 ('18941', '65', '262416', '1', '101', '14', '14', '1', '-1', '19', '1', '1', '1', '108', 'Double Attack', '2', '2', '1', '1', '1', '1');
+
+-- Spells used in Ragnaros encounter
+INSERT INTO `spell_template` (`Id`,`Attributes`,`CastingTimeIndex`,`ProcChance`,`DurationIndex`,`RangeIndex`,`EquippedItemClass`,`Effect1`,`EffectImplicitTargetA1`,`EffectRadiusIndex1`,`EffectMiscValue1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`) VALUES 
+('21108','256','1','101','0','13','-1','3','0','16','0','876','Summon Sons of Flame','1'),
+('21110','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame B','1'),
+('21111','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame C','1'),
+('21112','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame D','1'),
+('21113','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame E','1'),
+('21114','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame F','1'),
+('21115','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame G','1'),
+('21116','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame H','1'),
+('21117','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame A','1'),
+('21908','256','1','101','0','1','-1','3','1','0','0','1','Lava Burst Randomizer','1');

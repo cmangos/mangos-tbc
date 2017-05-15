@@ -24,6 +24,7 @@
 #include "SharedDefines.h"
 #include "DBCEnums.h"
 #include "Cell.h"
+#include "Util.h"
 
 #include <list>
 #include <memory>
@@ -203,7 +204,8 @@ struct CreatureData
     float posY;
     float posZ;
     float orientation;
-    uint32 spawntimesecs;
+    uint32 spawntimesecsmin;
+    uint32 spawntimesecsmax;
     float spawndist;
     uint32 currentwaypoint;
     uint32 curhealth;
@@ -214,6 +216,7 @@ struct CreatureData
 
     // helper function
     ObjectGuid GetObjectGuid(uint32 lowguid) const { return ObjectGuid(CreatureInfo::GetHighGuid(), id, lowguid); }
+    uint32 GetRandomRespawnTime() const { return urand(spawntimesecsmin, spawntimesecsmax); }
 };
 
 enum SplineFlags
@@ -492,7 +495,7 @@ enum TemporaryFactionFlags                                  // Used at real fact
     TEMPFACTION_ALL,
 };
 
-class MANGOS_DLL_SPEC Creature : public Unit
+class Creature : public Unit
 {
     public:
 

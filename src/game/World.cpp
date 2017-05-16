@@ -471,6 +471,8 @@ void World::LoadConfigSettings(bool reload)
     setConfigMin(CONFIG_UINT32_INTERVAL_GRIDCLEAN, "GridCleanUpDelay", 5 * MINUTE * IN_MILLISECONDS, MIN_GRID_DELAY);
     if (reload)
         sMapMgr.SetGridCleanUpDelay(getConfig(CONFIG_UINT32_INTERVAL_GRIDCLEAN));
+	if(!reload)
+		setConfigMin(CONFIG_UINT32_MAPUPDATE_NUMTHREADS, "MapUpdateThreads", 1, 1);
 
     setConfigMin(CONFIG_UINT32_INTERVAL_MAPUPDATE, "MapUpdateInterval", 100, MIN_MAP_UPDATE_DELAY);
     if (reload)

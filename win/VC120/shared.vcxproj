@@ -437,6 +437,7 @@
     <ClInclude Include="..\..\src\shared\Threading.h" />
     <ClInclude Include="..\..\src\shared\Timer.h" />
     <ClInclude Include="..\..\src\shared\Util.h" />
+    <ClInclude Include="..\..\src\shared\ProducerConsumerQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="ACE_vc11.vcxproj">

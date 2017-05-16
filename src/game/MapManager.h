@@ -24,6 +24,7 @@
 #include "Policies/Singleton.h"
 #include "Map.h"
 #include "GridStates.h"
+#include "MapUpdater.h"
 
 class Transport;
 class BattleGround;
@@ -178,6 +179,7 @@ class MapManager : public MaNGOS::Singleton<MapManager, MaNGOS::ClassLevelLockab
         IntervalTimer i_timer;
 
         uint32 i_MaxInstanceId;
+		MapUpdater m_updater;
 };
 
 template<typename Do>

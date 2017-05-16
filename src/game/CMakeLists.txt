@@ -312,6 +312,8 @@ set(SRC_GRP_WORLD_HANDLERS
     GridStates.h
     Group.cpp
     Group.h
+    MapUpdater.cpp
+    MapUpdater.h
     GroupHandler.cpp
     GuildHandler.cpp
     GuildMgr.cpp

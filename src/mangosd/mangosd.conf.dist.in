@@ -177,6 +177,10 @@ SD2ErrorLogFile = "SD2Errors.log"
 #        More distance let have better performence, less distance let have more sensitive reaction at target move.
 #        Default: 1.5
 #
+#    MapUpdateThreads
+#        Number of map update threads to run
+#        Default: 2
+#
 #    mmap.enabled
 #        Enable/Disable pathfinding using mmaps
 #        Default: 1 (enable)

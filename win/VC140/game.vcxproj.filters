@@ -1699,6 +1699,9 @@
     <ClCompile Include="..\..\src\game\AI\ScriptDevAI\scripts\battlegrounds\battlegrounds.cpp">
       <Filter>AI\ScriptDevAI\scripts\battlegrounds</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\MapUpdater.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -2349,6 +2352,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\AI\ScriptDevAI\scripts\outland\tempest_keep\the_mechanar\mechanar.h">
       <Filter>AI\ScriptDevAI\scripts\outland\tempest_keep\the_mechanar</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\MapUpdater.h">
+      <Filter>World/Handlers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

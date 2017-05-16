@@ -9618,7 +9618,7 @@ void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid
 
     Player* controller = GetCharmerOrOwnerPlayerOrPlayerItself();
     const bool control = controller ? controller->IsClientControl(this) : false;
-    const bool movement = (state != UNIT_FLAG_STUNNED);
+    const bool movement = (state != UNIT_FLAG_STUNNED) || !apply;
     const bool stun = !!(state & UNIT_FLAG_STUNNED);
     const bool fleeing = !!(state & UNIT_FLAG_FLEEING);
 

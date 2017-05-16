@@ -674,7 +674,9 @@ class Creature : public Unit
         void CallAssistance();
         void SetNoCallAssistance(bool val) { m_AlreadyCallAssistance = val; }
         void SetNoSearchAssistance(bool val) { m_AlreadySearchedAssistance = val; }
+        void SetAllowCallAssistance(bool val) { m_AllowCallAssistance = val; }
         bool HasSearchedAssistance() const { return m_AlreadySearchedAssistance; }
+        bool AllowCallAssistance() const { return m_AllowCallAssistance; }
         bool CanAssistTo(const Unit* u, const Unit* enemy, bool checkfaction = true) const;
         bool CanInitiateAttack() const;
 
@@ -781,6 +783,7 @@ class Creature : public Unit
         // below fields has potential for optimization
         bool m_AlreadyCallAssistance;
         bool m_AlreadySearchedAssistance;
+        bool m_AllowCallAssistance;
         bool m_isDeadByDefault;
         uint32 m_temporaryFactionFlags;                     // used for real faction changes (not auras etc)
 

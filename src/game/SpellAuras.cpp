@@ -2024,6 +2024,14 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     case 43873:                             // Headless Horseman Laugh
                         target->PlayDistanceSound(11965);
                         return;
+                    case 45787:
+                        if (Creature* talbuk = (Creature*)target)
+                        {
+                            talbuk->CastSpell(talbuk, 42386, TRIGGERED_OLD_TRIGGERED);
+                            talbuk->CombatStop();
+                            talbuk->ForcedDespawn(10000);
+                        }
+                        return;
                     case 46637:                             // Break Ice
                         target->CastSpell(target, 46638, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                         return;

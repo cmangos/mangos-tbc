@@ -826,7 +826,7 @@ namespace MaNGOS
             }
         }
 
-#ifdef WIN32
+#ifdef _MSC_VER
         template<> inline void Visit(CorpseMapType&) {}
         template<> inline void Visit(GameObjectMapType&) {}
         template<> inline void Visit(DynamicObjectMapType&) {}
@@ -834,7 +834,7 @@ namespace MaNGOS
 #endif
     };
 
-#ifndef WIN32
+#ifndef _MSC_VER
     template<> inline void SpellNotifierCreatureAndPlayer::Visit(CorpseMapType&) {}
     template<> inline void SpellNotifierCreatureAndPlayer::Visit(GameObjectMapType&) {}
     template<> inline void SpellNotifierCreatureAndPlayer::Visit(DynamicObjectMapType&) {}

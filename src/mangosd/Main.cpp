@@ -39,7 +39,7 @@
 #include <iostream>
 #include <string>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include "ServiceWin32.h"
 char serviceName[] = "mangosd";
 char serviceLongName[] = "MaNGOS world service";
@@ -68,7 +68,7 @@ void usage(const char* prog)
                    "    -v, --version            print version and exist\n\r"
                    "    -c config_file           use config_file as configuration file\n\r"
                    "    -a, --ahbot config_file  use config_file as ahbot configuration file\n\r"
-#ifdef WIN32
+#ifdef _WIN32
                    "    Running as service functions:\n\r"
                    "    -s run                   run as service\n\r"
                    "    -s install               install service\n\r"
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
         ("config,c", boost::program_options::value<std::string>(&configFile)->default_value(_MANGOSD_CONFIG), "configuration file")
         ("help,h", "prints usage")
         ("version,v", "print version and exit")
-#ifdef WIN32
+#ifdef _WIN32
         ("s", boost::program_options::value<std::string>(&serviceParameter), "<run, install, uninstall> service");
 #else
         ("s", boost::program_options::value<std::string>(&serviceParameter), "<run, stop> service");
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     if (vm.count("ahbot"))
         sAuctionBotConfig.SetConfigFileName(auctionBotConfig);
 
-#ifdef WIN32                                                // windows service command need execute before config read
+#ifdef _WIN32                                                // windows service command need execute before config read
     if (vm.count("s"))
     {
         switch (::tolower(serviceParameter[0]))
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-#ifndef WIN32                                               // posix daemon commands need apply after config read
+#ifndef _WIN32                                               // posix daemon commands need apply after config read
     if (vm.count("s"))
     {
         switch (::tolower(serviceParameter[0]))

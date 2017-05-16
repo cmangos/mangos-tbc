@@ -3476,8 +3476,8 @@ void Spell::finish(bool ok)
                 case SPELL_MISS_DEFLECT:
                     m_caster->ModifyPower(Powers(m_spellInfo->powerType), int32(m_powerCost * 0.8));
                     break;
-            }
                 default: break;
+            }
         }
     }
 

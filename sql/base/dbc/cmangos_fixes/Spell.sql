@@ -64,3 +64,26 @@ INSERT INTO `spell_template` (`Id`,`Attributes`,`CastingTimeIndex`,`ProcChance`,
 ('21116','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame H','1'),
 ('21117','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame A','1'),
 ('21908','256','1','101','0','1','-1','3','1','0','0','1','Lava Burst Randomizer','1');
+
+-- ServerSide 'Fire Shield'
+INSERT INTO spell_template (Id,Dispel,Attributes,CastingTimeIndex,ProcChance,BaseLevel,SpellLevel,DurationIndex,RangeIndex,EquippedItemClass,EquippedItemSubClassMask,Effect1,EffectDieSides1,EffectBaseDice1,EffectImplicitTargetA1,EffectApplyAuraName1,EffectAmplitude1,EffectTriggerSpell1,DmgMultiplier1,DmgMultiplier2,DmgMultiplier3,SchoolMask,IsServerSide,SpellName) VALUES
+('13377','1','2512','1','101','40','40','21','1','-1','-1','6','1','1','21','23','3000','13376','1','1','1','2','1','Fire Shield');
+-- ServerSide 'Hate to 90%'
+INSERT INTO spell_template (Id,Attributes,CastingTimeIndex,ProcFlags,ProcChance,DurationIndex,RangeIndex,EquippedItemClass,Effect1,EffectDieSides1,EffectImplicitTargetA1,EffectApplyAuraName1,EffectTriggerSpell1,DmgMultiplier1,DmgMultiplier2,DmgMultiplier3,SchoolMask,IsServerSide,SpellName) VALUES
+('19195','464','1','20','100','21','1','-1','6','1','1','42','9204','1','1','1','1','1','Hate to 90%');
+-- ServerSide 'Firesworn Eruption Trigger'
+INSERT INTO spell_template (Id,Attributes, AttributesEx,CastingTimeIndex,ProcChance,BaseLevel,SpellLevel,DurationIndex,RangeIndex,EquippedItemClass,Effect1,Effect2,EffectDieSides1,EffectImplicitTargetA1,EffectImplicitTargetA2,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValue2,DmgClass,PreventionType,DmgMultiplier1,DmgMultiplier2,SchoolMask,IsServerSide,SpellName) VALUES
+('20482','128','268468224','1','101','62','62','21','13','-1','6','108','1','38','38','77','18','18','1','1','1','1','1','1','Firesworn Eruption Trigger');
+-- ServerSide 'Immunity'
+INSERT INTO spell_template (Id,Attributes, AttributesEx, AttributesEx2, CastingTimeIndex,ProcChance,BaseLevel,SpellLevel,DurationIndex,RangeIndex,StackAmount,EquippedItemClass,Effect1,Effect2,EffectDieSides1,EffectBaseDice1,EffectImplicitTargetA1,EffectImplicitTargetA2,EffectImplicitTargetB1,EffectImplicitTargetB2,EffectRadiusIndex1,EffectRadiusIndex2,EffectApplyAuraName1,EffectApplyAuraName2,EffectMiscValue1,EffectMiscValue2,DmgClass,PreventionType,DmgMultiplier1,DmgMultiplier2,SchoolMask,IsServerSide,SpellName) VALUES
+('21087','256','268468360','4','1','101','62','62','30','1','10','-1','6','6','1','5','22','22','7','7','12','12','77','38','17','5','1','1','1','1','1','1','Immunity');
+-- ServerSide 'Spawn Vekniss Hatchlings'
+INSERT INTO spell_template (Id,Attributes,CastingTimeIndex,ProcChance,DurationIndex,RangeIndex,EquippedItemClass,Effect1,EffectDieSides1,EffectBaseDice1,EffectImplicitTargetA1,EffectRadiusIndex1,EffectMiscValue1,DmgMultiplier1,SchoolMask,IsServerSide,SpellName) VALUES
+('26630','256','1','101','25','1','-1','41','1','3','17','15','15962','1','1','1','Spawn Vekniss Hatchlings');
+-- ServerSide 'Spawn Vekniss Hatchlings'
+INSERT INTO spell_template (Id,Attributes,CastingTimeIndex,ProcChance,DurationIndex,RangeIndex,EquippedItemClass,Effect1,EffectDieSides1,EffectBaseDice1,EffectImplicitTargetA1,EffectRadiusIndex1,EffectMiscValue1,DmgMultiplier1,SchoolMask,IsServerSide,SpellName) VALUES
+('26631','256','1','101','25','1','-1','41','1','3','17','15','15962','1','1','1','Spawn Vekniss Hatchlings');
+-- ServerSide 'Spawn Vekniss Hatchlings'
+INSERT INTO spell_template (Id,Attributes,CastingTimeIndex,ProcChance,DurationIndex,RangeIndex,EquippedItemClass,Effect1,EffectDieSides1,EffectBaseDice1,EffectImplicitTargetA1,EffectRadiusIndex1,EffectMiscValue1,DmgMultiplier1,SchoolMask,IsServerSide,SpellName) VALUES
+('26632','256','1','101','25','1','-1','41','1','3','17','15','15962','1','1','1','Spawn Vekniss Hatchlings');
+

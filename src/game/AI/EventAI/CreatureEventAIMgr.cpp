@@ -18,15 +18,15 @@
 
 #include "Common.h"
 #include "Database/DatabaseEnv.h"
-#include "SQLStorages.h"
+#include "Server/SQLStorages.h"
 #include "CreatureEventAI.h"
 #include "CreatureEventAIMgr.h"
-#include "ObjectMgr.h"
+#include "Globals/ObjectMgr.h"
 #include "ProgressBar.h"
 #include "Policies/Singleton.h"
-#include "GridDefines.h"
+#include "Maps/GridDefines.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
-#include "World.h"
+#include "World/World.h"
 
 INSTANTIATE_SINGLETON_1(CreatureEventAIMgr);
 

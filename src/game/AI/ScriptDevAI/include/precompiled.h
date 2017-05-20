@@ -6,15 +6,15 @@
 #define SC_PRECOMPILED_H
 
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
-#include "Object.h"
-#include "Unit.h"
-#include "Creature.h"
+#include "Entities/Object.h"
+#include "Entities/Unit.h"
+#include "Entities/Creature.h"
 #include "AI/BaseAI/CreatureAI.h"
-#include "GameObject.h"
+#include "Entities/GameObject.h"
 #include "sc_creature.h"
 #include "sc_gossip.h"
 #include "sc_grid_searchers.h"
 #include "sc_instance.h"
-#include "SpellAuras.h"
+#include "Spells/SpellAuras.h"
 
 #endif

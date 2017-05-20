@@ -27,6 +27,7 @@ include_directories(SYSTEM
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation
   ${CMAKE_SOURCE_DIR}/dep/include
+  ${CMAKE_SOURCE_DIR}/dep
   ${MYSQL_INCLUDE_DIR}
 )
 
@@ -34,7 +35,6 @@ include_directories(SYSTEM
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/vmap
-  ${CMAKE_CURRENT_SOURCE_DIR}/AI
   ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouseBot
   ${CMAKE_CURRENT_SOURCE_DIR}/BattleGround
   ${CMAKE_CURRENT_SOURCE_DIR}/OutdoorPvP
@@ -45,8 +45,18 @@ include_directories(
 )
 
 # Find all the input files
-FILE(GLOB_RECURSE SRC_GRP_AI RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+FILE(GLOB_RECURSE LIBRARY_SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.h" "*.cpp")
+
+if(NOT BUILD_SCRIPTDEV)
+  # exclude script folder for faster build time (used for dev mode)
+  set (EXCLUDE_DIR "AI/ScriptDevAI/scripts/")
+  foreach (TMP_PATH ${LIBRARY_SRCS})
+      string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+      if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+          list(REMOVE_ITEM LIBRARY_SRCS ${TMP_PATH})
+      endif ()
+  endforeach()
+endif ()
 
 set(SRC_GRP_CUSTOM
     AntiCheat.cpp
@@ -502,6 +512,13 @@ if(PCH)
   include_directories(${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
+# Create visual studio groups using folder structure
+foreach(source ${LIBRARY_SRCS})
+    get_filename_component(source_path "${source}" PATH)
+    string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+    source_group("${source_path_msvc}" FILES "${source}")
+endforeach()
+
 add_library(${LIBRARY_NAME} STATIC
   ${LIBRARY_SRCS}
 )
@@ -510,6 +527,8 @@ target_link_libraries(${LIBRARY_NAME}
   shared
   detour
 )
+
+add_dependencies(${LIBRARY_NAME} RevisionGenerator)
 
 if(UNIX)
   # Both systems don't have libdl and don't need them
@@ -520,9 +539,27 @@ if(UNIX)
   endif()
 endif()
 
-add_dependencies(${LIBRARY_NAME} revision.h)
+# Define BUILD_SCRIPTDEV if need
+if (BUILD_SCRIPTDEV)
+  add_definitions(-DBUILD_SCRIPTDEV)
+endif()
 
 # Generate precompiled header
 if(PCH)
-  cotire(${LIBRARY_NAME})
+  if (MSVC)
+    set(PCHBaseName "pchdef")
+    set(PrecompiledBinary "$(IntDir)/${PCHBaseName}.pch")
+    set(PrecompiledHeader "${PCHBaseName}.h")
+    set(PrecompiledSource "${PCHBaseName}.cpp")
+    #set_property(TARGET ${LIBRARY_NAME} PROPERTY COMPILE_FLAGS " /Yu\"${PrecompiledHeader}\" /FI\"${PrecompiledHeader}\" /Fp\"${PrecompiledBinary}\"")
+    #set_property(SOURCE ${PrecompiledSource} PROPERTY COMPILE_FLAGS "/Yc\"${PrecompiledHeader}\" /Fp\"${PrecompiledBinary}\"")
+    set_target_properties(${LIBRARY_NAME} PROPERTIES COMPILE_FLAGS " /Yu\"${PrecompiledHeader}\" /FI\"${PrecompiledHeader}\" /Fp\"${PrecompiledBinary}\" /bigobj")
+    set_source_files_properties(${PrecompiledSource} PROPERTIES COMPILE_FLAGS "/Yc\"${PrecompiledHeader}\" /Fp\"${PrecompiledBinary}\"")
+    set_target_properties(${LIBRARY_NAME} PROPERTIES PROJECT_LABEL "Game")
+    
+  elseif(NOT MINGW)
+    # TODO: Resolve issues with order of includes before enabling Cotire for MinGW builds
+    cotire(${LIBRARY_NAME})
+  endif()
+  include_directories(${CMAKE_CURRENT_BINARY_DIR})
 endif()

@@ -17,14 +17,14 @@
  */
 
 #include "CreatureAI.h"
-#include "Creature.h"
-#include "DBCStores.h"
-#include "Spell.h"
+#include "Entities/Creature.h"
+#include "Server/DBCStores.h"
+#include "Spells/Spell.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
-#include "GridNotifiers.h"
-#include "GridNotifiersImpl.h"
-#include "CellImpl.h"
-#include "SpellMgr.h"
+#include "Grids/GridNotifiers.h"
+#include "Grids/GridNotifiersImpl.h"
+#include "Grids/CellImpl.h"
+#include "Spells/SpellMgr.h"
 
 static_assert(MAXIMAL_AI_EVENT_EVENTAI <= 32, "Maximal 32 AI_EVENTs supported with EventAI");
 

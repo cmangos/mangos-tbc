@@ -22,7 +22,7 @@
 
 #include "PetAI.h"
 #include "AI/EventAI/CreatureEventAI.h"
-#include "ObjectGuid.h"
+#include "Entities/ObjectGuid.h"
 #include "Timer.h"
 
 class Creature;

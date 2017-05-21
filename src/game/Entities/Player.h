@@ -38,6 +38,7 @@
 #include "Globals/SharedDefines.h"
 #include "Chat/Chat.h"
 #include "Server/SQLStorages.h"
+#include "Loot/LootMgr.h"
 
 #include<vector>
 
@@ -2175,6 +2176,8 @@ class Player : public Unit
 #endif
         virtual CreatureAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
         virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
+
+        void SendLootError(ObjectGuid guid, LootError error) const;
 
         // cooldown system
         virtual void AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration = 0, bool updateClient = 0) override;

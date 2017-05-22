@@ -2755,10 +2755,6 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
     // special cases
     switch (triggered_spell_id)
     {
-        // just skip
-        case 23770:                                         // Sayge's Dark Fortune of *
-            // not exist, common cooldown can be implemented in scripts if need.
-            return;
         // Brittle Armor - (need add max stack of 24575 Brittle Armor)
         case 29284:
             m_caster->CastSpell(unitTarget, 24575, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID);

@@ -1578,7 +1578,7 @@ void CreatureEventAI::ReceiveEmote(Player* pPlayer, uint32 text_emote)
 
 #define HEALTH_STEPS            3
 
-void CreatureEventAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType damagetype)
+void CreatureEventAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damagetype*/)
 {
     if (m_InvinceabilityHpLevel > 0 && m_creature->GetHealth() < m_InvinceabilityHpLevel + damage)
     {

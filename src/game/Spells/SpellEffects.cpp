@@ -4173,7 +4173,7 @@ void Spell::EffectAddFarsight(SpellEffectIndex eff_idx)
     ((Player*)m_caster)->GetCamera().SetView(dynObj);
 }
 
-bool Spell::DoSummonWild(CreatureSummonPositions& list, SpellEffectIndex effIdx, uint32 /*level*/)
+bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* /*prop*/, SpellEffectIndex effIdx, uint32 /*level*/)
 {
     uint32 creature_entry = m_spellInfo->EffectMiscValue[effIdx];
     CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(creature_entry);
@@ -6435,7 +6435,7 @@ bool Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     return false;
 }
 
-bool Spell::DoSummonPossessed(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx)
+bool Spell::DoSummonPossessed(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 /*level*/)
 {
     MANGOS_ASSERT(!list.empty() && prop);
 

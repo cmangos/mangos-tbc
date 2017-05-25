@@ -23,7 +23,9 @@
 #include <string.h>
 #include <iostream>
 
+#ifdef _WIN32
 #pragma warning(disable:4996)
+#endif
 
 struct RawData
 {
@@ -133,7 +135,7 @@ bool extractDataFromGit(std::string filename, std::string path, bool url, RawDat
         else
             strcpy(data.rev_str, hash_str);
     }
-    else if (entriesFile = fopen((path + ".git/HEAD").c_str(), "r"))
+    else if ((entriesFile = fopen((path + ".git/HEAD").c_str(), "r")))
     {
         if (!fgets(buf, sizeof(buf), entriesFile))
         {

@@ -210,10 +210,10 @@ class SpellAuraHolder
         SpellEntry const* m_spellProto;
 
         Unit* m_target;
+        SpellEntry const* m_triggeredBy;                    // Spell responsible for this holder
         ObjectGuid m_casterGuid;
         ObjectGuid m_castItemGuid;                          // it is NOT safe to keep a pointer to the item because it may get deleted
         time_t m_applyTime;
-        SpellEntry const* m_triggeredBy;                    // Spell responsible for this holder
         SpellAuraHolderState m_spellAuraHolderState;        // State used to be sure init part is finished (ex there is still some aura to add or effect to process)
 
         uint8 m_auraSlot;                                   // Aura slot on unit (for show in client)

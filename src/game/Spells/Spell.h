@@ -369,7 +369,7 @@ class Spell
         };
         typedef std::vector<CreaturePosition> CreatureSummonPositions;
 
-        void DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype);
+        void DoCreateItem(uint32 itemtype);
         bool DoSummonPet(SpellEffectIndex eff_idx);
         bool DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc = 0);
         bool DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);

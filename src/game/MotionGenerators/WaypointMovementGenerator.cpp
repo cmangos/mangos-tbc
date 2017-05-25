@@ -484,7 +484,7 @@ void FlightPathMovementGenerator::DoEventIfAny(Player& player, TaxiPathNodeEntry
     }
 }
 
-bool FlightPathMovementGenerator::GetResetPosition(Player&, float& x, float& y, float& z, float& o) const
+bool FlightPathMovementGenerator::GetResetPosition(Player&, float& x, float& y, float& z, float& /*o*/) const
 {
     const TaxiPathNodeEntry& node = (*i_path)[i_currentNode];
     x = node.x;

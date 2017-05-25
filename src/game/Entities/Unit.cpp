@@ -2328,7 +2328,7 @@ void Unit::CalculateAbsorbResistBlock(Unit* pCaster, SpellNonMeleeDamage* damage
     damageInfo->damage -= damageInfo->absorb + damageInfo->resist;
 }
 
-void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool extra)
+void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType)
 {
     if (hasUnitState(UNIT_STAT_CAN_NOT_REACT) || HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED))
         return;
@@ -2341,8 +2341,6 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
 
     if (attType == RANGED_ATTACK)
         return;                                             // ignore ranged case
-
-    uint32 extraAttacks = m_extraAttacks;
 
     // melee attack spell casted at main hand attack only
     if (attType == BASE_ATTACK && m_currentSpells[CURRENT_MELEE_SPELL])
@@ -2396,7 +2394,7 @@ void Unit::DoExtraAttacks(Unit* pVictim)
 {
     while (m_extraAttacks)
     {
-        AttackerStateUpdate(pVictim, BASE_ATTACK, true);
+        AttackerStateUpdate(pVictim, BASE_ATTACK);
         if (m_extraAttacks > 0)
             --m_extraAttacks;
     }
@@ -8352,7 +8350,7 @@ int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProt
     return value;
 }
 
-int32 Unit::CalculateAuraDuration(SpellEntry const* spellProto, uint32 effectMask, int32 duration, Unit const* caster)
+int32 Unit::CalculateAuraDuration(SpellEntry const* spellProto, uint32 effectMask, int32 duration)
 {
     if (duration <= 0)
         return duration;
@@ -10433,7 +10431,7 @@ void Unit::DisableSpline()
 }
 
 // This will create a new creature and set the current unit as the controller of that new creature
-Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry const* summonProp, uint32 effIdx, float x, float y, float z, float ang)
+Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, uint32 effIdx, float x, float y, float z, float ang)
 {
     int32 const& creatureEntry = spellEntry->EffectMiscValue[effIdx];
     CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(creatureEntry);
@@ -10685,7 +10683,7 @@ bool Unit::TakeCharmOf(Unit* charmed)
     return true;
 }
 
-void Unit::ResetControlState(bool attackCharmer /*= true*/)
+void Unit::ResetControlState()
 {
     Player* player = nullptr;
     if (GetTypeId() == TYPEID_PLAYER)

@@ -970,7 +970,7 @@ bool ScriptAction::GetScriptCommandObject(const ObjectGuid guid, bool includeIte
             resultObject = m_map->GetGameObject(guid);
             break;
         case HIGHGUID_CORPSE:
-            resultObject = HashMapHolder<Corpse>::Find(guid);
+            resultObject = sHashMapHolder(Corpse).Find(guid);
             break;
         case HIGHGUID_ITEM:
             // case HIGHGUID_CONTAINER: ==HIGHGUID_ITEM

@@ -158,7 +158,7 @@ bool ChatHandler::HandleGMListIngameCommand(char* /*args*/)
     std::list< std::pair<std::string, bool> > names;
 
     {
-        HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+        HashMapHolder<Player>::ReadGuard g(sHashMapHolder(Player).GetLock());
         HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
         for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
         {

@@ -1229,7 +1229,7 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
     SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, float(health));
 
     // all power types
-    for (int i = POWER_MANA; i <= POWER_HAPPINESS; ++i)
+    for (int i = int(POWER_MANA); i <= int(POWER_HAPPINESS); ++i)
     {
         uint32 maxValue;
 

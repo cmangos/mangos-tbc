@@ -7088,6 +7088,14 @@ void SpellAuraHolder::_RemoveSpellAuraHolder()
     m_stackAmount = 1;
     UpdateAuraApplication();
 
+    if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+    {
+        WorldPacket data(SMSG_CLEAR_EXTRA_AURA_INFO, (8 + 4));
+        data << m_target->GetPackGUID();
+        data << uint32(GetSpellProto()->Id);
+        ((Player*) caster)->GetSession()->SendPacket(data);
+    }
+
     if (m_removeMode != AURA_REMOVE_BY_DELETE)
     {
         // update for out of range group members

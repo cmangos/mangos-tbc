@@ -90,11 +90,7 @@ bool WorldSessionFilter::Process(WorldPacket const& packet) const
 /// WorldSession constructor
 WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale) :
     LookingForGroup_auto_join(false), LookingForGroup_auto_add(false), m_muteTime(mute_time),
-    // ------ Playerbot mod ------ //
     _player(nullptr), m_Socket(sock ? sock->shared<WorldSocket>() : nullptr), _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
-    // Unmodded code below
-    // _player(nullptr), m_Socket(sock->shared<WorldSocket>()), _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
-    // ---- End Playerbot mod ---- //
     m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
     m_latency(0), m_clientTimeDelay(0), m_tutorialState(TUTORIALDATA_UNCHANGED)
@@ -109,9 +105,7 @@ WorldSession::~WorldSession()
 
     // marks this session as finalized in the socket which references (BUT DOES NOT OWN) it.
     // this lets the socket handling code know that the socket can be safely deleted
-    // ------ Playerbot mod ------ //
     if (m_Socket)
-    // ---- End Playerbot mod ---- //
         m_Socket->FinalizeSession();
 }
 
@@ -352,19 +346,11 @@ bool WorldSession::Update(PacketFilter& updater)
         ///- If necessary, log the player out
         const time_t currTime = time(nullptr);
 
-        // ------ Playerbot mod ------ //
         if (!m_Socket || m_Socket->IsClosed() || (ShouldLogOut(currTime) && !m_playerLoading))
-        // Unmodded core code below
-        // if (m_Socket->IsClosed() || (ShouldLogOut(currTime) && !m_playerLoading))
-        // ---- End Playerbot mod ---- //
             LogoutPlayer(true);
 
         // finalize the session if disconnected.
-        // ------ Playerbot mod ------ //
         if (!m_Socket || m_Socket->IsClosed())
-        // Unmodded core code below
-        // if (m_Socket->IsClosed())
-        // ---- End Playerbot mod ---- //
             return false;
     }
 
@@ -514,10 +500,7 @@ void WorldSession::LogoutPlayer(bool Save)
 
         // remove player from the group if he is:
         // a) in group; b) not in raid group; c) logging out normally (not being kicked or disconnected)
-        // ------ Playerbot mod ------ //
         if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && m_Socket && !m_Socket->IsClosed())
-        // Unmodded core code below
-        // if (_player->GetGroup() && !_player->GetGroup()->isRaidGroup() && !m_Socket->IsClosed())
             _player->RemoveFromGroup();
 
         ///- Send update to group
@@ -573,10 +556,7 @@ void WorldSession::LogoutPlayer(bool Save)
 /// Kick a player out of the World
 void WorldSession::KickPlayer()
 {
-    // ------ Playerbot mod ------ //
     if (m_Socket && !m_Socket->IsClosed())
-    // Unmodded core code below
-    // if (!m_Socket->IsClosed())
         m_Socket->Close();
 }
 

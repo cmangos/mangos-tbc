@@ -40,7 +40,7 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 
 // ------ Playerbot mod ------ //
-#include "PlayerBot/PlayerbotMgr.h"
+#include "PlayerBot/Base/PlayerbotMgr.h"
 
 // config option SkipCinematics supported values
 enum CinematicsSkipMode

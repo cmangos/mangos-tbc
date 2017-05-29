@@ -12036,15 +12036,12 @@ void Player::OnGossipSelect(WorldObject* pSource, uint32 gossipListId, uint32 me
             return;
         }
     }
-    // ------ Playerbot mod ------ //
-    // GossipMenuItemData pMenuData = gossipmenu.GetItemData(gossipListId);
+
+    GossipMenuItemData pMenuData = gossipmenu.GetItemData(gossipListId);
     switch (gossipOptionId)
     {
         case GOSSIP_OPTION_GOSSIP:
         {
-            // ------ Playerbot mod ------ //
-            GossipMenuItemData pMenuData = gossipmenu.GetItemData(gossipListId);
-
             if (pMenuData.m_gAction_poi)
                 PlayerTalkClass->SendPointOfInterest(pMenuData.m_gAction_poi);
 
@@ -12182,9 +12179,6 @@ void Player::OnGossipSelect(WorldObject* pSource, uint32 gossipListId, uint32 me
             break;
         }
     }
-
-    // ------ Playerbot mod ------ //
-    GossipMenuItemData pMenuData = gossipmenu.GetItemData(gossipListId);
 
     if (pMenuData.m_gAction_script)
     {

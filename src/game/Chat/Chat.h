@@ -589,8 +589,9 @@ class ChatHandler
         bool HandleRepairitemsCommand(char* args);
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);
-        bool HandlePlayerbotCommand(char* args);
         bool HandleQuitCommand(char* args);
+        // ------ Playerbot mod ------ //
+        bool HandlePlayerbotCommand(char* args);
 
         bool HandleMmapPathCommand(char* args);
         bool HandleMmapLocCommand(char* args);
@@ -714,7 +715,7 @@ class CliHandler : public ChatHandler
         AccountTypes m_loginAccessLevel;
         Print m_print;
 
-    public:        
+    public:
         CliHandler(uint32 accountId, AccountTypes accessLevel, Print zprint)
             : m_accountId(accountId), m_loginAccessLevel(accessLevel), m_print(zprint) {}
 

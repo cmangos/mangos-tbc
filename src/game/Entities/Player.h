@@ -54,9 +54,10 @@ class DungeonPersistentState;
 class Spell;
 class Item;
 
-// Playerbot mod
-#include "playerbot/PlayerbotMgr.h"
-#include "playerbot/PlayerbotAI.h"
+// ------ Playerbot mod ------ //
+#include "PlayerBot/PlayerbotMgr.h"
+#include "PlayerBot/PlayerbotAI.h"
+// ---- End Playerbot mod ---- //
 
 struct AreaTrigger;
 
@@ -1343,7 +1344,7 @@ class Player : public Unit
         void AddTimedQuest(uint32 quest_id) { m_timedquests.insert(quest_id); }
         void RemoveTimedQuest(uint32 quest_id) { m_timedquests.erase(quest_id); }
 
-        // Playerbot mod
+        // ------ Playerbot mod ------ //
         void chompAndTrim(std::string& str);
         bool getNextQuestId(const std::string& pString, unsigned int& pStartPos, unsigned int& pId);
         void skill(std::list<uint32>& m_spellsToLearn);
@@ -1352,6 +1353,7 @@ class Player : public Unit
         PlayerMails::reverse_iterator GetMailREnd() { return m_mail.rend();}
         void UpdateMail();
         uint32 GetSpec();
+        // ---- End Playerbot mod ---- //
 
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
@@ -2176,7 +2178,7 @@ class Player : public Unit
         bool HasTitle(CharTitlesEntry const* title) const { return HasTitle(title->bit_index); }
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
-        // Playerbot mod:
+        // ------ Playerbot mod ------ //
         // A Player can either have a playerbotMgr (to manage its bots), or have playerbotAI (if it is a bot), or
         // neither. Code that enables bots must create the playerbotMgr and set it using SetPlayerbotMgr.
         void SetPlayerbotAI(PlayerbotAI* ai) { assert(!m_playerbotAI && !m_playerbotMgr); m_playerbotAI=ai; }
@@ -2185,6 +2187,7 @@ class Player : public Unit
         PlayerbotMgr* GetPlayerbotMgr() { return m_playerbotMgr; }
         void SetBotDeathTimer() { m_deathTimer = 0; }
         bool IsInDuel() const { return duel && duel->startTime != 0; }
+        // ---- End Playerbot mod ---- //
         virtual CreatureAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
         virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
 
@@ -2433,9 +2436,10 @@ class Player : public Unit
         GridReference<Player> m_gridRef;
         MapReference m_mapRef;
 
-         // Playerbot mod:
+        // ------ Playerbot mod ------ //
         PlayerbotAI* m_playerbotAI;
         PlayerbotMgr* m_playerbotMgr;
+        // ---- End Playerbot mod ---- //
 
         // Homebind coordinates
         uint32 m_homebindMapId;

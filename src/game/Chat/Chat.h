@@ -590,8 +590,9 @@ class ChatHandler
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);
         bool HandleQuitCommand(char* args);
-        // ------ Playerbot mod ------ //
+#ifdef BUILD_PLAYERBOT
         bool HandlePlayerbotCommand(char* args);
+#endif
 
         bool HandleMmapPathCommand(char* args);
         bool HandleMmapLocCommand(char* args);

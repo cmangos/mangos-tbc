@@ -1392,7 +1392,8 @@ void Aura::TriggerSpell()
 //                    // Inferno
 //                    case 35268: break;
 //                    // Salaadin's Tesla
-//                    case 35515: break;
+                    case 35515:
+                        return;
 //                    // Ethereal Channel (Red)
 //                    case 35518: break;
 //                    // Nether Vapor
@@ -4208,6 +4209,11 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                 if (m_removeMode != AURA_REMOVE_BY_DISPEL)
                     // Cast Wrath of the Plaguebringer if not dispelled
                     target->CastSpell(target, 29214, TRIGGERED_OLD_TRIGGERED, 0, this);
+                return;
+            case 35515:                                     // Salaadin's Tesla
+                if ((m_removeMode != AURA_REMOVE_BY_STACK) && (!target->HasAura(35515)))
+                    if (Creature* creature = (Creature*)target)
+                        creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, creature, creature);
                 return;
             case 42783:                                     // Wrath of the Astrom...
                 if (m_removeMode == AURA_REMOVE_BY_EXPIRE && GetEffIndex() + 1 < MAX_EFFECT_INDEX)

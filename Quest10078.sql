@@ -1,0 +1,1 @@
+update quest_template set ReqItemId3=0 where entry=10078;

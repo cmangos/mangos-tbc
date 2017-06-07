@@ -4490,8 +4490,8 @@ void Aura::HandleAuraModResistanceExclusive(bool apply, bool /*Real*/)
             if (m_modifier.m_amount >= highestValue && !apply)
                 applyDiff -= highestValue;
 
-            if (GetTarget()->GetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_EXCLUSIVE) >= m_modifier.m_amount && apply ||
-                highestValue >= m_modifier.m_amount && !apply)
+            if ((GetTarget()->GetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_EXCLUSIVE) >= m_modifier.m_amount && apply )||
+                (highestValue >= m_modifier.m_amount && !apply))
                 applyDiff = 0;
 
             GetTarget()->HandleStatModifier(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_EXCLUSIVE, float(applyDiff), apply);

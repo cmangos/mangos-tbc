@@ -325,6 +325,8 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
 
     m_reflectable = IsReflectableSpell(m_spellInfo);
 
+    m_affectedTargetCount = GetAffectedTargets(m_spellInfo);
+
     CleanupTargetList();
 }
 
@@ -617,6 +619,25 @@ void Spell::FillTargetMap()
             }
             else
                 ++itr;
+        }
+
+        if (m_affectedTargetCount && tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
+        {
+            // remove random units from the map
+            while (tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
+            {
+                uint32 poz = urand(0, tmpUnitLists[effToIndex[i]].size() - 1);
+                for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end(); ++itr, --poz)
+                {
+                    if (!*itr) continue;
+
+                    if (!poz)
+                    {
+                        itr = tmpUnitLists[effToIndex[i]].erase(itr);
+                        break;
+                    }
+                }
+            }
         }
 
         for (UnitList::const_iterator iunit = tmpUnitLists[effToIndex[i]].begin(); iunit != tmpUnitLists[effToIndex[i]].end(); ++iunit)
@@ -1491,9 +1512,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 {
     float radius;
     uint32 EffectChainTarget = m_spellInfo->EffectChainTarget[effIndex];
-    uint32 unMaxTargets = m_spellInfo->MaxAffectedTargets;  // Get spell max affected targets
+    uint32 unMaxTargets = m_affectedTargetCount;  // Get spell max affected targets
 
-    GetSpellRangeAndRadius(effIndex, radius, EffectChainTarget, unMaxTargets);
+    GetSpellRangeAndRadius(effIndex, radius, EffectChainTarget);
 
     std::list<GameObject*> tempTargetGOList;
 
@@ -2702,41 +2723,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             targetUnitMap.remove(m_caster);
     }
 
-    if (unMaxTargets && targetUnitMap.size() > unMaxTargets)
-    {
-        // make sure one unit is always removed per iteration
-        uint32 removed_utarget = 0;
-        for (UnitList::iterator itr = targetUnitMap.begin(), next; itr != targetUnitMap.end(); itr = next)
-        {
-            next = itr;
-            ++next;
-            if (!*itr) continue;
-            if ((*itr) == m_targets.getUnitTarget())
-            {
-                targetUnitMap.erase(itr);
-                removed_utarget = 1;
-                //        break;
-            }
-        }
-        // remove random units from the map
-        while (targetUnitMap.size() > unMaxTargets - removed_utarget)
-        {
-            uint32 poz = urand(0, targetUnitMap.size() - 1);
-            for (UnitList::iterator itr = targetUnitMap.begin(); itr != targetUnitMap.end(); ++itr, --poz)
-            {
-                if (!*itr) continue;
-
-                if (!poz)
-                {
-                    targetUnitMap.erase(itr);
-                    break;
-                }
-            }
-        }
-        // the player's target will always be added to the map
-        if (removed_utarget && m_targets.getUnitTarget())
-            targetUnitMap.push_back(m_targets.getUnitTarget());
-    }
     if (!tempTargetGOList.empty())                          // GO CASE
     {
         if (unMaxTargets && tempTargetGOList.size() > unMaxTargets)
@@ -6609,6 +6595,10 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
 
     switch (m_spellInfo->Id)
     {
+        case 25676:                                         // Drain Mana
+            if (target->GetPowerType() != POWER_MANA)
+                return false;
+            break;
         case 37433:                                         // Spout (The Lurker Below), only players affected if its not in water
             if (target->GetTypeId() != TYPEID_PLAYER || target->IsInWater())
                 return false;
@@ -7122,7 +7112,7 @@ void Spell::CancelGlobalCooldown()
         ((Player*)m_caster)->GetGlobalCooldownMgr().CancelGlobalCooldown(m_spellInfo);
 }
 
-void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uint32& EffectChainTarget, uint32& unMaxTargets) const
+void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uint32& EffectChainTarget)
 {
     if (m_spellInfo->EffectRadiusIndex[effIndex])
         radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
@@ -7136,86 +7126,6 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
             modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_RADIUS, radius, this);
             modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_JUMP_TARGETS, EffectChainTarget, this);
         }
-    }
-
-    // custom target amount cases
-    switch (m_spellInfo->SpellFamilyName)
-    {
-        case SPELLFAMILY_GENERIC:
-        {
-            switch (m_spellInfo->Id)
-            {
-                case 802:                                   // Mutate Bug (AQ40, Emperor Vek'nilash)
-                case 804:                                   // Explode Bug (AQ40, Emperor Vek'lor)
-                case 23138:                                 // Gate of Shazzrah (MC, Shazzrah)
-                case 28560:                                 // Summon Blizzard (Naxx, Sapphiron)
-                case 30541:                                 // Blaze (Magtheridon)
-                case 30572:                                 // Quake (Magtheridon)
-                case 30769:                                 // Pick Red Riding Hood (Karazhan, Big Bad Wolf)
-                case 30835:                                 // Infernal Relay (Karazhan, Prince Malchezaar)
-                case 31347:                                 // Doom (Hyjal Summit, Azgalor)
-                case 32312:                                 // Move 1 (Karazhan, Chess Event)
-                case 33711:                                 // Murmur's Touch (Shadow Labyrinth, Murmur)
-                case 37388:                                 // Move 2 (Karazhan, Chess Event)
-                case 38794:                                 // Murmur's Touch (h) (Shadow Labyrinth, Murmur)
-                case 39338:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Horde
-                case 39342:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Alliance
-                case 40834:                                 // Agonizing Flames (BT, Illidan Stormrage)
-                case 41537:                                 // Summon Enslaved Soul (BT, Reliquary of Souls)
-                case 44869:                                 // Spectral Blast (SWP, Kalecgos)
-                case 45391:                                 // Summon Demonic Vapor (SWP, Felmyst)
-                case 45785:                                 // Sinister Reflection Clone (SWP, Kil'jaeden)
-                case 45892:                                 // Sinister Reflection (SWP, Kil'jaeden)
-                case 45976:                                 // Open Portal (SWP, M'uru)
-                case 46372:                                 // Ice Spear Target Picker (Slave Pens, Ahune)
-                    unMaxTargets = 1;
-                    break;
-                case 10258:                                 // Awaken Vault Warder (Uldaman)
-                case 28542:                                 // Life Drain (Naxx, Sapphiron)
-                    unMaxTargets = 2;
-                    break;
-                case 30004:                                 // Flame Wreath (Karazhan, Shade of Aran)
-                case 31298:                                 // Sleep (Hyjal Summit, Anetheron)
-                case 39341:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Horde
-                case 39344:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Alliance
-                case 39992:                                 // Needle Spine Targeting (BT, Warlord Najentus)
-                case 40869:                                 // Fatal Attraction (BT, Mother Shahraz)
-                case 41303:                                 // Soul Drain (BT, Reliquary of Souls)
-                case 41376:                                 // Spite (BT, Reliquary of Souls)
-                    unMaxTargets = 3;
-                    break;
-                case 37676:                                 // Insidious Whisper (SSC, Leotheras the Blind)
-                case 38028:                                 // Watery Grave (SSC, Morogrim Tidewalker)
-                case 46650:                                 // Open Brutallus Back Door (SWP, Felmyst)
-                    unMaxTargets = 4;
-                    break;
-                case 30843:                                 // Enfeeble (Karazhan, Prince Malchezaar)
-                case 40243:                                 // Crushing Shadows (BT, Teron Gorefiend)
-                case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)
-                case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
-                    unMaxTargets = 5;
-                    break;
-                case 28796:                                 // Poison Bolt Volley (Naxx, Faerlina)
-                case 29213:                                 // Curse of the Plaguebringer (Naxx, Noth the Plaguebringer)
-                    unMaxTargets = 10;
-                    break;
-                case 25991:                                 // Poison Bolt Volley (AQ40, Pincess Huhuran)
-                    unMaxTargets = 15;
-                    break;
-                case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)
-                    unMaxTargets = urand(3, 5);
-                    break;
-            }
-            break;
-        }
-        case SPELLFAMILY_MAGE:
-        {
-            if (m_spellInfo->Id == 38194)                   // Blink
-                unMaxTargets = 1;
-            break;
-        }
-        default:
-            break;
     }
 
     // custom radius cases

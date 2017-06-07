@@ -1028,6 +1028,82 @@ inline bool IsSpellRequiresRangedAP(SpellEntry const* spellInfo)
     return (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MELEE);
 }
 
+inline uint32 GetAffectedTargets(SpellEntry const* spellInfo)
+{
+    // custom target amount cases
+    switch (spellInfo->SpellFamilyName)
+    {
+        case SPELLFAMILY_GENERIC:
+        {
+            switch (spellInfo->Id)
+            {
+                case 802:                                   // Mutate Bug (AQ40, Emperor Vek'nilash)
+                case 804:                                   // Explode Bug (AQ40, Emperor Vek'lor)
+                case 23138:                                 // Gate of Shazzrah (MC, Shazzrah)
+                case 28560:                                 // Summon Blizzard (Naxx, Sapphiron)
+                case 30541:                                 // Blaze (Magtheridon)
+                case 30572:                                 // Quake (Magtheridon)
+                case 30769:                                 // Pick Red Riding Hood (Karazhan, Big Bad Wolf)
+                case 30835:                                 // Infernal Relay (Karazhan, Prince Malchezaar)
+                case 31347:                                 // Doom (Hyjal Summit, Azgalor)
+                case 32312:                                 // Move 1 (Karazhan, Chess Event)
+                case 33711:                                 // Murmur's Touch (Shadow Labyrinth, Murmur)
+                case 37388:                                 // Move 2 (Karazhan, Chess Event)
+                case 38794:                                 // Murmur's Touch (h) (Shadow Labyrinth, Murmur)
+                case 39338:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Horde
+                case 39342:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Alliance
+                case 40834:                                 // Agonizing Flames (BT, Illidan Stormrage)
+                case 41537:                                 // Summon Enslaved Soul (BT, Reliquary of Souls)
+                case 44869:                                 // Spectral Blast (SWP, Kalecgos)
+                case 45391:                                 // Summon Demonic Vapor (SWP, Felmyst)
+                case 45785:                                 // Sinister Reflection Clone (SWP, Kil'jaeden)
+                case 45892:                                 // Sinister Reflection (SWP, Kil'jaeden)
+                case 45976:                                 // Open Portal (SWP, M'uru)
+                case 46372:                                 // Ice Spear Target Picker (Slave Pens, Ahune)
+                    return 1;
+                case 10258:                                 // Awaken Vault Warder (Uldaman)
+                case 28542:                                 // Life Drain (Naxx, Sapphiron)
+                    return 2;
+                case 30004:                                 // Flame Wreath (Karazhan, Shade of Aran)
+                case 31298:                                 // Sleep (Hyjal Summit, Anetheron)
+                case 39341:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Horde
+                case 39344:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Alliance
+                case 39992:                                 // Needle Spine Targeting (BT, Warlord Najentus)
+                case 40869:                                 // Fatal Attraction (BT, Mother Shahraz)
+                case 41303:                                 // Soul Drain (BT, Reliquary of Souls)
+                case 41376:                                 // Spite (BT, Reliquary of Souls)
+                    return 3;
+                case 37676:                                 // Insidious Whisper (SSC, Leotheras the Blind)
+                case 38028:                                 // Watery Grave (SSC, Morogrim Tidewalker)
+                case 46650:                                 // Open Brutallus Back Door (SWP, Felmyst)
+                    return 4;
+                case 30843:                                 // Enfeeble (Karazhan, Prince Malchezaar)
+                case 40243:                                 // Crushing Shadows (BT, Teron Gorefiend)
+                case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)
+                case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
+                    return 5;
+                case 28796:                                 // Poison Bolt Volley (Naxx, Faerlina)
+                case 29213:                                 // Curse of the Plaguebringer (Naxx, Noth the Plaguebringer)
+                    return 10;
+                case 25991:                                 // Poison Bolt Volley (AQ40, Pincess Huhuran)
+                    return 15;
+                case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)
+                    return urand(3, 5);
+            }
+            break;
+        }
+        case SPELLFAMILY_MAGE:
+        {
+            if (spellInfo->Id == 38194)                   // Blink
+                return 1;
+        }
+        default:
+            break;
+    }
+
+    return spellInfo->MaxAffectedTargets;
+}
+
 SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 form);
 
 inline bool IsChanneledSpell(SpellEntry const* spellInfo)

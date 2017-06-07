@@ -181,10 +181,6 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
         return;
     }
 
-    uint32 rc_account = receive
-                        ? receive->GetSession()->GetAccountId()
-                        : sObjectMgr.GetPlayerAccountIdByGUID(rc);
-
     Item* items[MAX_MAIL_ITEMS];
 
     for (uint8 i = 0; i < items_count; ++i)

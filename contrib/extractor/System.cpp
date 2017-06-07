@@ -982,7 +982,7 @@ void LoadLocaleMPQFiles(int const locale)
 {
     char filename[512];
 
-    sprintf(filename, "%s/Data/%s/locale-%s.MPQ", input_path, langs[locale], langs[locale]);
+    sprintf(filename, "%s/Data/%s/locale-%s.MPQ", input_path, langs[locale].c_str(), langs[locale].c_str());
     new MPQArchive(filename);
 
     for (int i = 1; i < 5; ++i)
@@ -991,7 +991,7 @@ void LoadLocaleMPQFiles(int const locale)
         if (i > 1)
             sprintf(ext, "-%i", i);
 
-        sprintf(filename, "%s/Data/%s/patch-%s%s.MPQ", input_path, langs[locale], langs[locale], ext);
+        sprintf(filename, "%s/Data/%s/patch-%s%s.MPQ", input_path, langs[locale].c_str(), langs[locale].c_str(), ext);
         if (FileExists(filename))
             new MPQArchive(filename);
     }
@@ -1027,10 +1027,10 @@ int main(int argc, char* arg[])
     for (int i = 0; i < LANG_COUNT; i++)
     {
         char tmp1[512];
-        sprintf(tmp1, "%s/Data/%s/locale-%s.MPQ", input_path, langs[i], langs[i]);
+        sprintf(tmp1, "%s/Data/%s/locale-%s.MPQ", input_path, langs[i].c_str(), langs[i].c_str());
         if (FileExists(tmp1))
         {
-            printf("Detected locale: %s\n", langs[i]);
+            printf("Detected locale: %s\n", langs[i].c_str());
 
             //Open MPQs
             LoadLocaleMPQFiles(i);
@@ -1063,7 +1063,7 @@ int main(int argc, char* arg[])
 
     if (CONF_extract & EXTRACT_MAP)
     {
-        printf("Using locale: %s\n", langs[FirstLocale]);
+        printf("Using locale: %s\n", langs[FirstLocale].c_str());
 
         // Open MPQs
         LoadLocaleMPQFiles(FirstLocale);

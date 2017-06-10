@@ -3967,7 +3967,7 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
 
     if (CharmInfo* charmInfo = spawnCreature->GetCharmInfo())
     {
-        charmInfo->SetReactState(REACT_DEFENSIVE);
+        charmInfo->GetAI()->SetReactState(REACT_DEFENSIVE);
         charmInfo->SetPetNumber(pet_number, spawnCreature->isControlled());
     }
 
@@ -4379,11 +4379,11 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
             charmInfo->SetPetNumber(pet_number, false);
 
             if (cInfo->UnitFlags & UNIT_FLAG_IMMUNE_TO_NPC)
-                charmInfo->SetReactState(REACT_PASSIVE);
+                charmInfo->GetAI()->SetReactState(REACT_PASSIVE);
             else if (cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_MELEE)
-                charmInfo->SetReactState(REACT_DEFENSIVE);
+                charmInfo->GetAI()->SetReactState(REACT_DEFENSIVE);
             else
-                charmInfo->SetReactState(REACT_AGGRESSIVE);
+                charmInfo->GetAI()->SetReactState(REACT_AGGRESSIVE);
         }
 
         m_caster->AddGuardian(spawnCreature);
@@ -4669,7 +4669,7 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
 
     pet->GetCharmInfo()->SetPetNumber(sObjectMgr.GeneratePetNumber(), true);
 
-    pet->GetCharmInfo()->SetReactState(REACT_DEFENSIVE);
+    pet->GetCharmInfo()->GetAI()->SetReactState(REACT_DEFENSIVE);
 
     uint32 level = creatureTarget->getLevel();
     pet->InitStatsForLevel(level);
@@ -4785,7 +4785,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     // Level of pet summoned
     uint32 level = std::max(m_caster->getLevel() + m_spellInfo->EffectMultipleValue[eff_idx], 1.0f);
 
-    NewSummon->GetCharmInfo()->SetReactState(REACT_DEFENSIVE);
+    NewSummon->GetCharmInfo()->GetAI()->SetReactState(REACT_DEFENSIVE);
     NewSummon->SetOwnerGuid(m_caster->GetObjectGuid());
     NewSummon->setFaction(m_caster->getFaction());
     NewSummon->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, uint32(time(nullptr)));

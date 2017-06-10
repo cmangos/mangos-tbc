@@ -33,7 +33,8 @@ CreatureAI::CreatureAI(Creature* creature) :
     m_unit(creature),
     m_isCombatMovement(true),
     m_attackDistance(0.0f),
-    m_attackAngle(0.0f)
+    m_attackAngle(0.0f),
+    m_reactState(REACT_AGGRESSIVE)
 {
 }
 
@@ -42,7 +43,8 @@ CreatureAI::CreatureAI(Unit* unit) :
     m_unit(unit),
     m_isCombatMovement(true),
     m_attackDistance(0.0f),
-    m_attackAngle(0.0f)
+    m_attackAngle(0.0f),
+    m_reactState(REACT_AGGRESSIVE)
 {
 }
 

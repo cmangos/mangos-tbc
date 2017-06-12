@@ -317,7 +317,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 // Gore
                 if (m_spellInfo->SpellIconID == 2269)
                 {
-                    damage += rand() % 2 ? damage : 0;
+                    damage += urand() % 2 ? damage : 0;
                 }
 
                 switch (m_spellInfo->Id)                    // better way to check unknown
@@ -2216,7 +2216,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     for (uint32 i = 0; i < std::min(size_t(3), attackers.size()); ++i)
                     {
                         Unit::AttackerSet::iterator aItr = attackers.begin();
-                        std::advance(aItr, rand() % attackers.size());
+                        std::advance(aItr, urand() % attackers.size());
                         AddUnitTarget((*aItr), EFFECT_INDEX_1);
                         attackers.erase(aItr);
                     }

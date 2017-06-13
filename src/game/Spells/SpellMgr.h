@@ -1122,9 +1122,15 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo)
                 case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)
                 case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
                     return 5;
+                case 25676:                                 // Drain Mana (correct number has to be researched)
+                case 25754:
+                    return 6;
                 case 28796:                                 // Poison Bolt Volley (Naxx, Faerlina)
                 case 29213:                                 // Curse of the Plaguebringer (Naxx, Noth the Plaguebringer)
                     return 10;
+                case 26457:                                 // Drain Mana (correct number has to be researched)
+                case 26559:
+                    return 12;
                 case 25991:                                 // Poison Bolt Volley (AQ40, Pincess Huhuran)
                     return 15;
                 case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)

@@ -3429,6 +3429,26 @@ void Aura::HandleModPossess(bool apply, bool Real)
     }
     else
         caster->Uncharm(target);
+
+    if (const SpellEntry* spellInfo = GetSpellProto())
+    {
+        switch (spellInfo->Id)
+        {
+            // Need to teleport to spawn position on possess end
+            case 37868: // Arcano-Scorp Control
+            case 37893:
+            case 37895:
+                if (!apply)
+                {
+                    float x, y, z, o;
+                    Creature* creatureTarget = (Creature*)target;
+                    creatureTarget->GetRespawnCoord(x, y, z, &o);
+                    creatureTarget->NearTeleportTo(x, y, z, o);
+                    caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
+                }
+                break;
+        }
+    }
 }
 
 void Aura::HandleModPossessPet(bool apply, bool Real)

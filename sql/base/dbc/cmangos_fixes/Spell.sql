@@ -129,6 +129,13 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 INSERT INTO spell_template(id,Attributes, AttributesEx,DurationIndex,Effect1,EffectImplicitTargetA1,EffectApplyAuraName1,EffectAmplitude1,EffectTriggerSpell1,SpellIconID,SpellName,DmgMultiplier1) VALUES
 (34038,134217984,268435456,21,6,1,23,1000,34039,1,'Tunnel Bore Red Passive',1);
 
+-- missing Force Faction auras for Quests around kirin var
+INSERT INTO spell_template(Id,Attributes,AttributesEx,CastingTimeIndex,DurationIndex,rangeIndex,Effect1,EffectDieSides1,EffectBaseDice1,EffectBasePoints1,EffectImplicitTargetA1,EffectApplyAuraName1,EffectMiscValue1,SpellIconID,SpellName,DmgMultiplier1) VALUES
+(36216,256,268435456,1,21,13,6,1,1,2,1,139,1006,1,'Kirin Tor Spirits',1),
+(36217,256,268435456,1,21,13,6,1,1,2,1,139,1007,1,'Kirin Tor Spirits',1),
+(36218,256,268435456,1,21,13,6,1,1,2,1,139,1008,1,'Kirin Tor Spirits',1),
+(36219,256,268435456,1,21,13,6,1,1,2,1,139,1009,1,'Kirin Tor Spirits',1);
+
 -- missing dummy
 INSERT INTO spell_template(Id,Attributes,rangeIndex,Effect1,EffectImplicitTargetA1,EffectRadiusIndex1,SpellIconID,SpellName,DmgMultiplier1) VALUES
 (30023,384,1,3,1,16,1,'Periodic Trigger Dummy',1);

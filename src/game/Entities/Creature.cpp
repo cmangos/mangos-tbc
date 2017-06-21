@@ -135,7 +135,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
     m_isDeadByDefault(false), m_temporaryFactionFlags(TEMPFACTION_NONE),
     m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL), m_originalEntry(0),
-    m_creatureInfo(nullptr), m_ai(nullptr), m_gameEventVendorId(0)
+    m_ai(nullptr), m_gameEventVendorId(0), m_creatureInfo(nullptr)
 {
     m_regenTimer = 200;
     m_valuesCount = UNIT_END;
@@ -543,8 +543,6 @@ void Creature::Update(uint32 update_diff, uint32 diff)
                     GameEventCreatureData const* eventData = sGameEventMgr.GetCreatureUpdateDataForActiveEvent(GetGUIDLow());
                     UpdateEntry(m_originalEntry, TEAM_NONE, nullptr, eventData);
                 }
-
-                CreatureInfo const* cinfo = GetCreatureInfo();
 
                 SelectLevel();
                 UpdateAllStats();  // to be sure stats is correct regarding level of the creature
@@ -1233,7 +1231,7 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
     SetModifierValue(UNIT_MOD_HEALTH, BASE_VALUE, float(health));
 
     // all power types
-    for (int i = POWER_MANA; i <= POWER_HAPPINESS; ++i)
+    for (int i = int(POWER_MANA); i <= int(POWER_HAPPINESS); ++i)
     {
         uint32 maxValue;
 

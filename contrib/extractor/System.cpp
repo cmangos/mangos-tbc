@@ -89,7 +89,7 @@ const char* CONF_mpq_list[] =
     "patch-5.MPQ",
 };
 
-static char* const langs[] = {"enGB", "enUS", "deDE", "esES", "frFR", "koKR", "zhCN", "zhTW", "enCN", "enTW", "esMX", "ruRU" };
+static std::string const langs[] = {"enGB", "enUS", "deDE", "esES", "frFR", "koKR", "zhCN", "zhTW", "enCN", "enTW", "esMX", "ruRU" };
 #define LANG_COUNT 12
 
 void CreateDir(const std::string& Path)
@@ -190,7 +190,7 @@ uint32 ReadMapDBC()
         map_ids[x].id = dbc.getRecord(x).getUInt(0);
         strcpy(map_ids[x].name, dbc.getRecord(x).getString(1));
     }
-    printf("Done! (%u maps loaded)\n", map_count);
+    printf("Done! (%u maps loaded)\n", uint32(map_count));
     return map_count;
 }
 
@@ -215,7 +215,7 @@ void ReadAreaTableDBC()
 
     maxAreaId = dbc.getMaxId();
 
-    printf("Done! (%u areas loaded)\n", area_count);
+    printf("Done! (%u areas loaded)\n", uint32(area_count));
 }
 
 void ReadLiquidTypeTableDBC()
@@ -236,7 +236,7 @@ void ReadLiquidTypeTableDBC()
     for (uint32 x = 0; x < LiqType_count; ++x)
         LiqType[dbc.getRecord(x).getUInt(0)] = dbc.getRecord(x).getUInt(3);
 
-    printf("Done! (%u LiqTypes loaded)\n", LiqType_count);
+    printf("Done! (%u LiqTypes loaded)\n", uint32(LiqType_count));
 }
 
 //
@@ -982,7 +982,7 @@ void LoadLocaleMPQFiles(int const locale)
 {
     char filename[512];
 
-    sprintf(filename, "%s/Data/%s/locale-%s.MPQ", input_path, langs[locale], langs[locale]);
+    sprintf(filename, "%s/Data/%s/locale-%s.MPQ", input_path, langs[locale].c_str(), langs[locale].c_str());
     new MPQArchive(filename);
 
     for (int i = 1; i < 5; ++i)
@@ -991,7 +991,7 @@ void LoadLocaleMPQFiles(int const locale)
         if (i > 1)
             sprintf(ext, "-%i", i);
 
-        sprintf(filename, "%s/Data/%s/patch-%s%s.MPQ", input_path, langs[locale], langs[locale], ext);
+        sprintf(filename, "%s/Data/%s/patch-%s%s.MPQ", input_path, langs[locale].c_str(), langs[locale].c_str(), ext);
         if (FileExists(filename))
             new MPQArchive(filename);
     }
@@ -1027,10 +1027,10 @@ int main(int argc, char* arg[])
     for (int i = 0; i < LANG_COUNT; i++)
     {
         char tmp1[512];
-        sprintf(tmp1, "%s/Data/%s/locale-%s.MPQ", input_path, langs[i], langs[i]);
+        sprintf(tmp1, "%s/Data/%s/locale-%s.MPQ", input_path, langs[i].c_str(), langs[i].c_str());
         if (FileExists(tmp1))
         {
-            printf("Detected locale: %s\n", langs[i]);
+            printf("Detected locale: %s\n", langs[i].c_str());
 
             //Open MPQs
             LoadLocaleMPQFiles(i);
@@ -1063,7 +1063,7 @@ int main(int argc, char* arg[])
 
     if (CONF_extract & EXTRACT_MAP)
     {
-        printf("Using locale: %s\n", langs[FirstLocale]);
+        printf("Using locale: %s\n", langs[FirstLocale].c_str());
 
         // Open MPQs
         LoadLocaleMPQFiles(FirstLocale);

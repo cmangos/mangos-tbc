@@ -4496,8 +4496,8 @@ void Aura::HandleAuraModResistanceExclusive(bool apply, bool /*Real*/)
             if (m_modifier.m_amount >= highestValue && !apply)
                 applyDiff -= highestValue;
 
-            if (GetTarget()->GetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_EXCLUSIVE) >= m_modifier.m_amount && apply ||
-                highestValue >= m_modifier.m_amount && !apply)
+            if ((GetTarget()->GetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_EXCLUSIVE) >= m_modifier.m_amount && apply )||
+                (highestValue >= m_modifier.m_amount && !apply))
                 applyDiff = 0;
 
             GetTarget()->HandleStatModifier(UnitMods(UNIT_MOD_RESISTANCE_START + x), BASE_EXCLUSIVE, float(applyDiff), apply);
@@ -6699,8 +6699,8 @@ bool Aura::HasMechanic(uint32 mechanic) const
 }
 
 SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, WorldObject* caster, Item* castItem, SpellEntry const* triggeredBy) :
-    m_spellProto(spellproto), m_triggeredBy(triggeredBy),
-    m_target(target), m_castItemGuid(castItem ? castItem->GetObjectGuid() : ObjectGuid()),
+    m_spellProto(spellproto), m_target(target),
+    m_triggeredBy(triggeredBy), m_castItemGuid(castItem ? castItem->GetObjectGuid() : ObjectGuid()),
     m_auraSlot(MAX_AURAS), m_auraLevel(1),
     m_procCharges(0), m_stackAmount(1),
     m_timeCla(1000), m_removeMode(AURA_REMOVE_BY_DEFAULT), m_AuraDRGroup(DIMINISHING_NONE),

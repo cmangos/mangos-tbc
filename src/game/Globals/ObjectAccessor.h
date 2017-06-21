@@ -47,37 +47,45 @@ class HashMapHolder
         typedef std::lock_guard<std::mutex> ReadGuard;
         typedef std::lock_guard<std::mutex> WriteGuard;
 
-        static void Insert(T* o)
+        static HashMapHolder<T>& Instance()
+        {
+             static HashMapHolder<T> instance_;
+             return instance_;
+        }
+
+        void Insert(T* o)
         {
             WriteGuard guard(i_lock);
             m_objectMap[o->GetObjectGuid()] = o;
         }
 
-        static void Remove(T* o)
+        void Remove(T* o)
         {
             WriteGuard guard(i_lock);
             m_objectMap.erase(o->GetObjectGuid());
         }
 
-        static T* Find(ObjectGuid guid)
+        T* Find(ObjectGuid guid)
         {
             ReadGuard guard(i_lock);
             typename MapType::iterator itr = m_objectMap.find(guid);
             return (itr != m_objectMap.end()) ? itr->second : nullptr;
         }
 
-        static MapType& GetContainer() { return m_objectMap; }
+        MapType& GetContainer() { return m_objectMap; }
 
-        static LockType& GetLock() { return i_lock; }
+        LockType& GetLock() { return i_lock; }
 
     private:
 
         // Non instanceable only static
         HashMapHolder() {}
 
-        static LockType i_lock;
-        static MapType  m_objectMap;
+        LockType i_lock;
+        MapType  m_objectMap;
 };
+
+#define sHashMapHolder(type) HashMapHolder<type>::Instance()
 
 class ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, MaNGOS::ClassLevelLockable<ObjectAccessor, std::mutex> >
 {
@@ -102,7 +110,7 @@ class ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, MaNGOS::ClassLev
 
         HashMapHolder<Player>::MapType& GetPlayers()
         {
-            return HashMapHolder<Player>::GetContainer();
+            return sHashMapHolder(Player).GetContainer();
         }
 
         void SaveAllPlayers() const;
@@ -117,10 +125,10 @@ class ObjectAccessor : public MaNGOS::Singleton<ObjectAccessor, MaNGOS::ClassLev
         void RemoveOldCorpses();
 
         // For call from Player/Corpse AddToWorld/RemoveFromWorld only
-        void AddObject(Corpse* object) { HashMapHolder<Corpse>::Insert(object); }
-        void AddObject(Player* object) { HashMapHolder<Player>::Insert(object); }
-        void RemoveObject(Corpse* object) { HashMapHolder<Corpse>::Remove(object); }
-        void RemoveObject(Player* object) { HashMapHolder<Player>::Remove(object); }
+        void AddObject(Corpse* object) { sHashMapHolder(Corpse).Insert(object); }
+        void AddObject(Player* object) { sHashMapHolder(Player).Insert(object); }
+        void RemoveObject(Corpse* object) { sHashMapHolder(Corpse).Remove(object); }
+        void RemoveObject(Player* object) { sHashMapHolder(Player).Remove(object); }
 
     private:
 

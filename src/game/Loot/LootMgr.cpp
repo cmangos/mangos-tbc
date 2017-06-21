@@ -844,7 +844,7 @@ void Loot::AddItem(uint32 itemid, uint32 count, uint32 randomSuffix, int32 rando
 }
 
 // Calls processor of corresponding LootTemplate (which handles everything including references)
-bool Loot::FillLoot(uint32 loot_id, LootStore const& store, Player* lootOwner, bool personal, bool noEmptyError)
+bool Loot::FillLoot(uint32 loot_id, LootStore const& store, Player* lootOwner, bool noEmptyError)
 {
     // Must be provided
     if (!lootOwner)
@@ -1693,7 +1693,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
                 uint32 zone, subzone;
                 gameObject->GetZoneAndAreaId(zone, subzone);
                 // if subzone loot exist use it
-                if (!FillLoot(subzone, LootTemplates_Fishing, player, true, (subzone != zone)) && subzone != zone)
+                if (!FillLoot(subzone, LootTemplates_Fishing, player, (subzone != zone)) && subzone != zone)
                     // else use zone loot (if zone diff. from subzone, must exist in like case)
                     FillLoot(zone, LootTemplates_Fishing, player, true);
 
@@ -1806,7 +1806,7 @@ Loot::Loot(Player* player, Item* item, LootType type) :
             item->SetLootState(ITEM_LOOT_TEMPORARY);
             break;
         default:
-            FillLoot(item->GetEntry(), LootTemplates_Item, player, true, item->GetProto()->MaxMoneyLoot == 0);
+            FillLoot(item->GetEntry(), LootTemplates_Item, player, item->GetProto()->MaxMoneyLoot == 0);
             GenerateMoneyLoot(item->GetProto()->MinMoneyLoot, item->GetProto()->MaxMoneyLoot);
             item->SetLootState(ITEM_LOOT_CHANGED);
             break;
@@ -1834,11 +1834,11 @@ Loot::Loot(Player* player, uint32 id, LootType type) :
     switch (type)
     {
         case LOOT_MAIL:
-            FillLoot(id, LootTemplates_Mail, player, true, true);
+            FillLoot(id, LootTemplates_Mail, player, true);
             m_clientLootType = CLIENT_LOOT_PICKPOCKETING;
             break;
         case LOOT_SKINNING:
-            FillLoot(id, LootTemplates_Skinning, player, true, true);
+            FillLoot(id, LootTemplates_Skinning, player, true);
             m_clientLootType = CLIENT_LOOT_PICKPOCKETING;
             break;
         default:

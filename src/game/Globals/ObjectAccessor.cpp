@@ -62,7 +62,7 @@ ObjectAccessor::GetUnit(WorldObject const& u, ObjectGuid guid)
 
 Corpse* ObjectAccessor::GetCorpseInMap(ObjectGuid guid, uint32 mapid)
 {
-    Corpse* ret = HashMapHolder<Corpse>::Find(guid);
+    Corpse* ret = sHashMapHolder(Corpse).Find(guid);
     if (!ret)
         return nullptr;
     if (ret->GetMapId() != mapid)
@@ -76,7 +76,7 @@ Player* ObjectAccessor::FindPlayer(ObjectGuid guid, bool inWorld /*= true*/)
     if (!guid)
         return nullptr;
 
-    Player* plr = HashMapHolder<Player>::Find(guid);
+    Player* plr = sHashMapHolder(Player).Find(guid);
     if (!plr || (!plr->IsInWorld() && inWorld))
         return nullptr;
 
@@ -85,7 +85,7 @@ Player* ObjectAccessor::FindPlayer(ObjectGuid guid, bool inWorld /*= true*/)
 
 Player* ObjectAccessor::FindPlayerByName(const char* name)
 {
-    HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+    HashMapHolder<Player>::ReadGuard g(sHashMapHolder(Player).GetLock());
     HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
     for (HashMapHolder<Player>::MapType::iterator iter = m.begin(); iter != m.end(); ++iter)
         if (iter->second->IsInWorld() && (::strcmp(name, iter->second->GetName()) == 0))
@@ -97,7 +97,7 @@ Player* ObjectAccessor::FindPlayerByName(const char* name)
 void
 ObjectAccessor::SaveAllPlayers() const
 {
-    HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
+    HashMapHolder<Player>::ReadGuard g(sHashMapHolder(Player).GetLock());
     HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
     for (HashMapHolder<Player>::MapType::iterator itr = m.begin(); itr != m.end(); ++itr)
         itr->second->SaveToDB();
@@ -265,13 +265,3 @@ void ObjectAccessor::RemoveOldCorpses()
         ConvertCorpseForPlayer(itr->first);
     }
 }
-
-/// Define the static member of HashMapHolder
-
-template <class T> typename HashMapHolder<T>::MapType HashMapHolder<T>::m_objectMap;
-template <class T> std::mutex HashMapHolder<T>::i_lock;
-
-/// Global definitions for the hashmap storage
-
-template class HashMapHolder<Player>;
-template class HashMapHolder<Corpse>;

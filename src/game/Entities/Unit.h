@@ -1124,7 +1124,6 @@ struct CharmInfo
         ReactStates         m_reactState;
         uint32              m_petnumber;
         GlobalCooldownMgr   m_GlobalCooldownMgr;
-        uint32              m_opener;
         uint32              m_openerMinRange;
         uint32              m_openerMaxRange;
         uint8               m_unitFieldBytes2_1;
@@ -1134,6 +1133,7 @@ struct CharmInfo
         float               m_stayPosY;
         float               m_stayPosZ;
         float               m_stayPosO;
+        uint32              m_opener;
 };
 
 // used in CallForAllControlledUnits/CheckAllControlledUnits
@@ -1502,7 +1502,7 @@ class Unit : public WorldObject
         void HandleEmote(uint32 emote_id);                  // auto-select command/state
         void HandleEmoteCommand(uint32 emote_id);
         void HandleEmoteState(uint32 emote_id);
-        void AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType = BASE_ATTACK, bool extra = false);
+        void AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType = BASE_ATTACK);
 
         void CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* damageInfo, WeaponAttackType attackType = BASE_ATTACK);
         void DealMeleeDamage(CalcDamageInfo* damageInfo, bool durabilityLoss);
@@ -2147,7 +2147,7 @@ class Unit : public WorldObject
 
         int32 CalculateSpellDamage(Unit const* target, SpellEntry const* spellProto, SpellEffectIndex effect_index, int32 const* basePoints = nullptr);
 
-        int32 CalculateAuraDuration(SpellEntry const* spellProto, uint32 effectMask, int32 duration, Unit const* caster);
+        int32 CalculateAuraDuration(SpellEntry const* spellProto, uint32 effectMask, int32 duration);
 
         float CalculateLevelPenalty(SpellEntry const* spellProto) const;
 
@@ -2225,13 +2225,13 @@ class Unit : public WorldObject
         bool TakePossessOf(Unit* possessed);
 
         // Take possession of a new spawned unit
-        Unit* TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry const* summonProp, uint32 effIdx, float x, float y, float z, float ang);
+        Unit* TakePossessOf(SpellEntry const* spellEntry, uint32 effIdx, float x, float y, float z, float ang);
 
         // Take charm of an unit
         bool TakeCharmOf(Unit* charmed);
 
         // Reset control to player
-        void ResetControlState(bool attackCharmer = true);
+        void ResetControlState();
 
         float GetAttackDistance(Unit const* pl) const;
 

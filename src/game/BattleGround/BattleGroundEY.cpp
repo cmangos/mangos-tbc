@@ -277,19 +277,19 @@ bool BattleGroundEY::HandleAreaTrigger(Player* source, uint32 trigger)
     {
         case AREATRIGGER_BLOOD_ELF_TOWER_POINT:
             if (m_towerOwner[NODE_BLOOD_ELF_TOWER] == source->GetTeam())
-                EventPlayerCapturedFlag(source, NODE_BLOOD_ELF_TOWER);
+                EventPlayerCapturedFlagEY(source, NODE_BLOOD_ELF_TOWER);
             break;
         case AREATRIGGER_FEL_REAVER_RUINS_POINT:
             if (m_towerOwner[NODE_FEL_REAVER_RUINS] == source->GetTeam())
-                EventPlayerCapturedFlag(source, NODE_FEL_REAVER_RUINS);
+                EventPlayerCapturedFlagEY(source, NODE_FEL_REAVER_RUINS);
             break;
         case AREATRIGGER_MAGE_TOWER_POINT:
             if (m_towerOwner[NODE_MAGE_TOWER] == source->GetTeam())
-                EventPlayerCapturedFlag(source, NODE_MAGE_TOWER);
+                EventPlayerCapturedFlagEY(source, NODE_MAGE_TOWER);
             break;
         case AREATRIGGER_DRAENEI_RUINS_POINT:
             if (m_towerOwner[NODE_DRAENEI_RUINS] == source->GetTeam())
-                EventPlayerCapturedFlag(source, NODE_DRAENEI_RUINS);
+                EventPlayerCapturedFlagEY(source, NODE_DRAENEI_RUINS);
             break;
         default:
             return false;
@@ -439,7 +439,7 @@ void BattleGroundEY::EventPlayerClickedOnFlag(Player* source, GameObject* target
         PSendMessageToAll(LANG_BG_EY_HAS_TAKEN_FLAG, CHAT_MSG_BG_SYSTEM_HORDE, nullptr, source->GetName());
 }
 
-void BattleGroundEY::EventPlayerCapturedFlag(Player* source, EYNodes node)
+void BattleGroundEY::EventPlayerCapturedFlagEY(Player* source, EYNodes node)
 {
     if (GetStatus() != STATUS_IN_PROGRESS || GetFlagCarrierGuid() != source->GetObjectGuid())
         return;

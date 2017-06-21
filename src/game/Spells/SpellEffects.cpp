@@ -1347,7 +1347,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             return;
                     }
 
-                    DoCreateItem(eff_idx, newitemid);
+                    DoCreateItem(newitemid);
                     return;
                 }
                 case 40834:                                 // Agonizing Flames
@@ -3082,7 +3082,7 @@ void Spell::EffectHealthLeech(SpellEffectIndex eff_idx)
     }
 }
 
-void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
+void Spell::DoCreateItem(uint32 itemtype)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
@@ -3192,7 +3192,7 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
 
 void Spell::EffectCreateItem(SpellEffectIndex eff_idx)
 {
-    DoCreateItem(eff_idx, m_spellInfo->EffectItemType[eff_idx]);
+    DoCreateItem(m_spellInfo->EffectItemType[eff_idx]);
 }
 
 void Spell::EffectPersistentAA(SpellEffectIndex eff_idx)
@@ -4174,7 +4174,7 @@ void Spell::EffectAddFarsight(SpellEffectIndex eff_idx)
     ((Player*)m_caster)->GetCamera().SetView(dynObj);
 }
 
-bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 /*level*/)
+bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* /*prop*/, SpellEffectIndex effIdx, uint32 /*level*/)
 {
     uint32 creature_entry = m_spellInfo->EffectMiscValue[effIdx];
     CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(creature_entry);
@@ -4807,7 +4807,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 Aura* sunder = unitTarget->GetAura(SPELL_AURA_MOD_RESISTANCE, SPELLFAMILY_WARRIOR, uint64(0x0000000000004000), m_caster->GetObjectGuid());
 
                 // apply sunder armor first
-                if (!sunder || sunder && sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
+                if (!sunder || (sunder && sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount))
                 {
                     // get highest rank of the sunder armor spell
                     const PlayerSpellMap& sp_list = ((Player*)m_caster)->GetSpellMap();
@@ -5490,7 +5490,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     }
 
                     if (item)
-                        DoCreateItem(eff_idx, item);
+                        DoCreateItem(item);
 
                     break;
                 }
@@ -5939,7 +5939,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         default:
                             return;
                     }
-                    DoCreateItem(eff_idx, itemtype);
+                    DoCreateItem(itemtype);
                     return;
                 }
             }
@@ -6445,13 +6445,13 @@ bool Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     return false;
 }
 
-bool Spell::DoSummonPossessed(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level)
+bool Spell::DoSummonPossessed(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 /*level*/)
 {
     MANGOS_ASSERT(!list.empty() && prop);
 
     int32 const& creatureEntry = m_spellInfo->EffectMiscValue[effIdx];
 
-    Unit* newUnit = m_caster->TakePossessOf(m_spellInfo, prop, effIdx, list[0].x, list[0].y, list[0].z, m_caster->GetOrientation());
+    Unit* newUnit = m_caster->TakePossessOf(m_spellInfo, effIdx, list[0].x, list[0].y, list[0].z, m_caster->GetOrientation());
     if (!newUnit)
     {
         sLog.outError("Spell::DoSummonPossessed: creature entry %d for spell %u could not be summoned.", creatureEntry, m_spellInfo->Id);
@@ -6736,7 +6736,7 @@ void Spell::EffectBlock(SpellEffectIndex /*eff_idx*/)
         unitTarget->SetCanBlock(true);
 }
 
-void Spell::EffectLeapForward(SpellEffectIndex eff_idx)
+void Spell::EffectLeapForward(SpellEffectIndex /*eff_idx*/)
 {
     if (!unitTarget)
         return;
@@ -7478,7 +7478,7 @@ void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
     m_caster->PlayMusic(soundId, (Player*)unitTarget);
 }
 
-void Spell::EffectBind(SpellEffectIndex eff_idx)
+void Spell::EffectBind(SpellEffectIndex /*eff_idx*/)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;

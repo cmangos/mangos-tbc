@@ -248,10 +248,8 @@ inline PackedGuid ObjectGuid::WriteAsPacked() const { return PackedGuid(*this); 
 
 namespace std {
     template<>
-    class hash<ObjectGuid>
+    struct hash<ObjectGuid>
     {
-    public:
-
         size_t operator()(ObjectGuid const& key) const
         {
             return hash<uint64>()(key.GetRawValue());

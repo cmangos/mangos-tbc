@@ -8693,7 +8693,7 @@ void ObjectMgr::LoadActiveEntities(Map* _map)
     if (!_map)
     {
         uint32 continents[] = {0, 1, 530};
-        for (int i = 0; i < countof(continents); ++i)
+        for (uint32 i = 0; i < countof(continents); ++i)
         {
             _map = sMapMgr.FindMap(continents[i]);
             if (!_map)

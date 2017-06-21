@@ -402,7 +402,7 @@ namespace MaNGOS
     {
         Do& i_do;
 
-        CreatureWorker(WorldObject const* searcher, Do& _do) : i_do(_do) {}
+        CreatureWorker(WorldObject const* /*searcher*/, Do& _do) : i_do(_do) {}
 
         void Visit(CreatureMapType& m)
         {

@@ -400,7 +400,7 @@ void OutdoorPvPZM::SetBeaconArtKit(const WorldObject* objRef, ObjectGuid creatur
 }
 
 // Check condition for ZM flag NPCs
-bool OutdoorPvPZM::IsConditionFulfilled(Player const* source, uint32 conditionId, WorldObject const* conditionSource, uint32 conditionSourceType)
+bool OutdoorPvPZM::IsConditionFulfilled(Player const* /*source*/, uint32 conditionId, WorldObject const* /*conditionSource*/, uint32 /*conditionSourceType*/)
 {
     switch (conditionId)
     {

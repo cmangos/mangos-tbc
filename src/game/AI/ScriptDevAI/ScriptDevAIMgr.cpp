@@ -426,14 +426,20 @@ void ScriptDevAIMgr::AddScript(uint32 id, Script* script)
     ++num_sc_scripts;
 }
 
+#ifdef BUILD_SCRIPTDEV
 Script* ScriptDevAIMgr::GetScript(uint32 id) const
 {
-#ifdef BUILD_SCRIPTDEV
     if (!id || id < m_scripts.size())
         return m_scripts[id];
-#endif
+
     return nullptr;
 }
+#else
+Script* ScriptDevAIMgr::GetScript(uint32 /*id*/) const
+{
+    return nullptr;
+}
+#endif
 
 void ScriptDevAIMgr::Initialize()
 {

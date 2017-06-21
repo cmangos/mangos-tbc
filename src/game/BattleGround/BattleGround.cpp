@@ -138,8 +138,8 @@ namespace MaNGOS
     class BattleGround2YellBuilder
     {
         public:
-            BattleGround2YellBuilder(uint32 language, int32 textId, Creature const* source, int32 arg1, int32 arg2)
-                : i_language(language), i_textId(textId), i_source(source), i_arg1(arg1), i_arg2(arg2) {}
+            BattleGround2YellBuilder(int32 textId, Creature const* source, int32 arg1, int32 arg2)
+                : i_textId(textId), i_source(source), i_arg1(arg1), i_arg2(arg2) {}
             void operator()(WorldPacket& data, int32 loc_idx)
             {
                 char const* text = sObjectMgr.GetMangosString(i_textId, loc_idx);
@@ -153,7 +153,6 @@ namespace MaNGOS
             }
         private:
 
-            uint32 i_language;
             int32 i_textId;
             Creature const* i_source;
             int32 i_arg1;
@@ -1610,12 +1609,12 @@ void BattleGround::SendMessage2ToAll(int32 entry, ChatMsg type, Player const* so
     BroadcastWorker(bg_do);
 }
 
-void BattleGround::SendYell2ToAll(int32 entry, uint32 language, ObjectGuid guid, int32 arg1, int32 arg2)
+void BattleGround::SendYell2ToAll(int32 entry, ObjectGuid guid, int32 arg1, int32 arg2)
 {
     Creature* source = GetBgMap()->GetCreature(guid);
     if (!source)
         return;
-    MaNGOS::BattleGround2YellBuilder bg_builder(language, entry, source, arg1, arg2);
+    MaNGOS::BattleGround2YellBuilder bg_builder(entry, source, arg1, arg2);
     MaNGOS::LocalizedPacketDo<MaNGOS::BattleGround2YellBuilder> bg_do(bg_builder);
     BroadcastWorker(bg_do);
 }

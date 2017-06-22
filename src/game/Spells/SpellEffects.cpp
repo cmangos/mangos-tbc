@@ -4807,7 +4807,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 Aura* sunder = unitTarget->GetAura(SPELL_AURA_MOD_RESISTANCE, SPELLFAMILY_WARRIOR, uint64(0x0000000000004000), m_caster->GetObjectGuid());
 
                 // apply sunder armor first
-                if (!sunder || sunder && sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
+                if (!sunder || sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
                 {
                     // get highest rank of the sunder armor spell
                     const PlayerSpellMap& sp_list = ((Player*)m_caster)->GetSpellMap();

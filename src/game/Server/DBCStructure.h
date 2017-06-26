@@ -352,6 +352,7 @@ struct FactionEntry
 
         return -1;
     }
+    bool HasReputation() const { return reputationListID >= 0; }
 };
 
 /*

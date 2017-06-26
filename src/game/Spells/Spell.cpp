@@ -322,6 +322,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     m_ignoreHitResult = !!(triggeredFlags & TRIGGERED_IGNORE_HIT_CALCULATION);
     m_ignoreUnselectableTarget = m_IsTriggeredSpell || (triggeredFlags & TRIGGERED_IGNORE_UNSELECTABLE_FLAG) != 0;
     m_ignoreUnattackableTarget = !!(triggeredFlags & TRIGGERED_IGNORE_UNATTACKABLE_FLAG);
+    m_triggerAutorepeat = !!(triggeredFlags & TRIGGERED_AUTOREPEAT);
 
     m_reflectable = IsReflectableSpell(m_spellInfo);
 
@@ -2876,7 +2877,8 @@ void Spell::Prepare()
     if (!m_IsTriggeredSpell)
     {
         // add to cast type slot
-        m_caster->SetCurrentCastedSpell(this);
+        if (!m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING) && !m_triggerAutorepeat)
+            m_caster->SetCurrentCastedSpell(this);
 
         // will show cast bar
         SendSpellStart();
@@ -2884,7 +2886,7 @@ void Spell::Prepare()
         TriggerGlobalCooldown();
 
         // Execute instant spells immediate
-        if (m_timer == 0 && !IsNextMeleeSwingSpell() && !IsAutoRepeat() && !IsChanneledSpell(m_spellInfo))
+        if (m_timer == 0 && !IsNextMeleeSwingSpell() && (!IsAutoRepeat() || m_triggerAutorepeat) && !IsChanneledSpell(m_spellInfo))
             cast();
     }
     // execute triggered without cast time explicitly in call point

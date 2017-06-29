@@ -42,14 +42,13 @@ include_directories(
 )
 
 add_executable(${EXECUTABLE_NAME}
-  ${EXECUTABLE_SRCS}
+  ${EXECUTABLE_SRCS} $<TARGET_OBJECTS:framework>
 )
 
 add_dependencies(${EXECUTABLE_NAME} RevisionGenerator)
 
 target_link_libraries(${EXECUTABLE_NAME}
   shared
-  framework
 )
 
 if(WIN32)

@@ -27,6 +27,6 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/dep/include/gsoap
 )
 
-add_library(${LIBRARY_NAME} STATIC
+add_library(${LIBRARY_NAME} OBJECT
   ${LIBRARY_SRCS}
 )

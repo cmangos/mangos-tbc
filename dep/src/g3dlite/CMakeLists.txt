@@ -125,7 +125,7 @@ include_directories(
   ${ZLIB_INCLUDE_DIRS}
 )
 
-add_library(${LIBRARY_NAME} STATIC
+add_library(${LIBRARY_NAME} OBJECT
   ${LIBRARY_SRCS}
 )
 

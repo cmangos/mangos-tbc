@@ -301,12 +301,7 @@ void CreatureAI::CheckForHelp(Unit* who, Creature* me, float distance)
     if (me->GetMap()->Instanceable())
         distance = distance / 2.5f;
 
-<<<<<<< HEAD
-    if (me->CanInitiateAttack() && m_creature->CanAttack(victim) &&
-=======
-    if (me->CanInitiateAttack() && me->CanAttackOnSight(victim) && !me->IsPassiveTowards(me) &&
->>>>>>> aed906e4eb... Refactor naming of CreatureAI from hungarian notation to camel case
-        me->IsHostileTo(victim) && victim->isInAccessablePlaceFor(me))
+    if (me->CanInitiateAttack() && me->CanAttackOnSight(victim) && victim->isInAccessablePlaceFor(me))
     {
         if (me->IsWithinDistInMap(who, distance) && me->IsWithinLOSInMap(who))
         {

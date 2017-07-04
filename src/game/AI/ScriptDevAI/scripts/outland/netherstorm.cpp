@@ -1154,29 +1154,33 @@ enum
     SAY_DRIJYA_7            = -1000975,
     SAY_DRIJYA_COMPLETE     = -1000976,
 
-    SPELL_SUMMON_SMOKE      = 42456,                        // summon temp GO 185318
-    SPELL_SUMMON_FIRE       = 42467,                        // summon temp GO 185319
-    SPELL_EXPLOSION_VISUAL  = 42458,
+    SPELL_EXPLOSION_VISUAL  = 30934,                        // Original spell 42458 (Doesn't exist in TBC)
 
     NPC_EXPLODE_TRIGGER     = 20296,
     NPC_TERROR_IMP          = 20399,
     NPC_LEGION_TROOPER      = 20402,
     NPC_LEGION_DESTROYER    = 20403,
 
-    // GO_SMOKE             = 185318,
-    // GO_FIRE              = 185317,                       // not sure if this one is used
-    // GO_BIG_FIRE          = 185319,
+    GO_ROCKET_SMOKE         = 183988,
+    GO_ROCKET_FIRE          = 183987,
 
     QUEST_ID_WARP_GATE      = 10310,
 
-    MAX_TROOPERS            = 9,
+    MAX_TROOPERS            = 3,
     MAX_IMPS                = 6,
 };
 
 struct npc_drijyaAI : public npc_escortAI
 {
-    npc_drijyaAI(Creature* pCreature) : npc_escortAI(pCreature) { Reset(); }
+    npc_drijyaAI(Creature* pCreature) : npc_escortAI(pCreature)
+    {
+        m_instance = (ScriptedInstance*) m_creature->GetInstanceData();
+        m_instance->GetGameObjectGuidVectorFromStorage(GO_ROCKET_SMOKE, m_uiSmokeGuids);
+        m_instance->GetGameObjectGuidVectorFromStorage(GO_ROCKET_FIRE, m_uiFireGuids);
+        Reset();
+    }
 
+    bool m_uiSayCount;
     uint8 m_uiSpawnCount;
     uint32 m_uiSpawnImpTimer;
     uint32 m_uiSpawnTrooperTimer;
@@ -1184,6 +1188,11 @@ struct npc_drijyaAI : public npc_escortAI
     uint32 m_uiDestroyingTimer;
 
     ObjectGuid m_explodeTriggerGuid;
+
+    ScriptedInstance* m_instance;
+
+    GuidVector m_uiSmokeGuids;
+    GuidVector m_uiFireGuids;
 
     void Reset() override
     {
@@ -1194,22 +1203,25 @@ struct npc_drijyaAI : public npc_escortAI
             m_uiSpawnTrooperTimer   = 0;
             m_uiSpawnDestroyerTimer = 0;
             m_uiDestroyingTimer     = 0;
+            m_uiSayCount            = false;
         }
     }
 
+    void MoveInLineOfSight(Unit* pWho) override {}
+
     void AttackedBy(Unit* pWho) override
     {
-        if (pWho->GetEntry() == NPC_TERROR_IMP || pWho->GetEntry() == NPC_LEGION_TROOPER || pWho->GetEntry() == NPC_LEGION_DESTROYER)
+        if (!m_uiSayCount)
         {
-            if (urand(0, 1))
-                DoScriptText(SAY_DRIJYA_3, m_creature);
+            DoScriptText(SAY_DRIJYA_3, m_creature);
+            m_uiSayCount = true;
         }
     }
 
     void DoSpawnCreature(uint32 uiEntry)
     {
         if (Creature* pTrigger = m_creature->GetMap()->GetCreature(m_explodeTriggerGuid))
-            m_creature->SummonCreature(uiEntry, pTrigger->GetPositionX(), pTrigger->GetPositionY(), pTrigger->GetPositionZ(), pTrigger->GetOrientation(), TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 10000);
+            m_creature->SummonCreature(uiEntry, pTrigger->GetPositionX(), pTrigger->GetPositionY(), pTrigger->GetPositionZ(), pTrigger->GetOrientation(), TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -1221,6 +1233,32 @@ struct npc_drijyaAI : public npc_escortAI
             case NPC_LEGION_DESTROYER:
                 pSummoned->AI()->AttackStart(m_creature);
                 break;
+        }
+    }
+
+    void RespawnGo(ObjectGuid &guid)
+    {
+        if (GameObject* go = m_creature->GetMap()->GetGameObject(guid))
+        {
+            go->SetLootState(GO_READY);
+            go->SetRespawnTime(300);
+            go->Refresh();
+        }
+    }
+
+    void RespawnGo(bool smoke, uint32 posStart, uint32 posEnd)
+    {
+        if (smoke)
+        {
+            auto iter = std::next(m_uiSmokeGuids.begin(), posStart);
+            for (uint32 i = posEnd - posStart + 1; iter != m_uiSmokeGuids.end() && i > 0; ++iter, i--)
+                RespawnGo((*iter));
+        }
+        else
+        {
+            auto iter = std::next(m_uiFireGuids.begin(), posStart);
+            for (uint32 i = posEnd - posStart + 1; iter != m_uiFireGuids.end() && i > 0; ++iter, i--)
+                RespawnGo((*iter));
         }
     }
 
@@ -1240,59 +1278,58 @@ struct npc_drijyaAI : public npc_escortAI
                 break;
             case 7:
                 SetEscortPaused(true);
+                m_uiSayCount = false;
                 m_uiDestroyingTimer = 60000;
                 m_uiSpawnImpTimer = 15000;
                 m_uiSpawnCount = 0;
-                m_creature->HandleEmoteCommand(EMOTE_STATE_WORK);
-                if (Creature* pTrigger = GetClosestCreatureWithEntry(m_creature, NPC_EXPLODE_TRIGGER, 30.0f))
+                m_creature->HandleEmote(EMOTE_STATE_WORK);
+                if (Creature* pTrigger = GetClosestCreatureWithEntry(m_creature, NPC_EXPLODE_TRIGGER, 40.0f))
                     m_explodeTriggerGuid = pTrigger->GetObjectGuid();
                 break;
             case 8:
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SMOKE) == CAST_OK)
-                {
-                    if (Player* pPlayer = GetPlayerForEscort())
-                        m_creature->SetFacingToObject(pPlayer);
-
-                    DoScriptText(SAY_DRIJYA_4, m_creature);
-                }
+                if (Player* pPlayer = GetPlayerForEscort())
+                    m_creature->SetFacingToObject(pPlayer);
+                // first pillar smoke
+                RespawnGo(true, 0, 0);
+                DoScriptText(SAY_DRIJYA_4, m_creature);
+                m_creature->HandleEmote(EMOTE_ONESHOT_NONE);
                 break;
             case 12:
                 SetEscortPaused(true);
+                m_uiSayCount = false;
                 m_uiDestroyingTimer = 60000;
                 m_uiSpawnTrooperTimer = 15000;
                 m_uiSpawnCount = 0;
-                m_creature->HandleEmoteCommand(EMOTE_STATE_WORK);
+                m_creature->HandleEmote(EMOTE_STATE_WORK);
                 break;
             case 13:
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SMOKE) == CAST_OK)
-                {
-                    if (Player* pPlayer = GetPlayerForEscort())
-                        m_creature->SetFacingToObject(pPlayer);
-
-                    DoScriptText(SAY_DRIJYA_5, m_creature);
-                }
+                if (Player* pPlayer = GetPlayerForEscort())
+                    m_creature->SetFacingToObject(pPlayer);
+                // second pillar smoke
+                RespawnGo(true, 1, 1);
+                DoScriptText(SAY_DRIJYA_5, m_creature);
+                m_creature->HandleEmote(EMOTE_ONESHOT_NONE);
                 break;
             case 17:
                 SetEscortPaused(true);
+                m_uiSayCount = false;
                 m_uiDestroyingTimer = 60000;
                 m_uiSpawnDestroyerTimer = 15000;
-                m_creature->HandleEmoteCommand(EMOTE_STATE_WORK);
+                m_creature->HandleEmote(EMOTE_STATE_WORK);
                 break;
             case 18:
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SMOKE) == CAST_OK)
-                {
-                    if (Creature* pTrigger = m_creature->GetMap()->GetCreature(m_explodeTriggerGuid))
-                        m_creature->SetFacingToObject(pTrigger);
-
-                    DoScriptText(SAY_DRIJYA_6, m_creature);
-                }
+                m_creature->HandleEmote(EMOTE_ONESHOT_NONE);
+                // manifold smoke
+                RespawnGo(true, 2, 4);
+                DoScriptText(SAY_DRIJYA_6, m_creature);
+                m_creature->HandleEmote(EMOTE_ONESHOT_ROAR);
                 break;
             case 19:
+                // warp gate explosion, smoke and fire
                 if (Creature* pTrigger = m_creature->GetMap()->GetCreature(m_explodeTriggerGuid))
-                {
-                    pTrigger->CastSpell(pTrigger, SPELL_SUMMON_FIRE, TRIGGERED_OLD_TRIGGERED);
-                    pTrigger->CastSpell(pTrigger, SPELL_EXPLOSION_VISUAL, TRIGGERED_OLD_TRIGGERED);
-                }
+                    pTrigger->CastSpell(pTrigger, SPELL_EXPLOSION_VISUAL, TRIGGERED_NONE);
+                RespawnGo(false, 0, 4);
+                RespawnGo(true, 5, 10);
                 break;
             case 20:
                 DoScriptText(SAY_DRIJYA_7, m_creature);
@@ -1306,6 +1343,7 @@ struct npc_drijyaAI : public npc_escortAI
                     DoScriptText(SAY_DRIJYA_COMPLETE, m_creature, pPlayer);
                     pPlayer->GroupEventHappens(QUEST_ID_WARP_GATE, m_creature);
                 }
+                m_creature->ClearTemporaryFaction();
                 break;
         }
     }
@@ -1314,7 +1352,7 @@ struct npc_drijyaAI : public npc_escortAI
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
-            m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_PASSIVE, TEMPFACTION_RESTORE_RESPAWN);
+            m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_PASSIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_OOC_NOT_ATTACK | TEMPFACTION_TOGGLE_PASSIVE);
             Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue), true);
         }
     }
@@ -1347,7 +1385,7 @@ struct npc_drijyaAI : public npc_escortAI
                 if (m_uiSpawnCount == MAX_TROOPERS)
                     m_uiSpawnTrooperTimer = 0;
                 else
-                    m_uiSpawnTrooperTimer = 3500;
+                    m_uiSpawnTrooperTimer = 6000;
             }
             else
                 m_uiSpawnTrooperTimer -= uiDiff;
@@ -1369,7 +1407,6 @@ struct npc_drijyaAI : public npc_escortAI
             if (m_uiDestroyingTimer <= uiDiff)
             {
                 SetEscortPaused(false);
-                m_creature->HandleEmoteCommand(EMOTE_STATE_NONE);
                 m_uiDestroyingTimer = 0;
             }
             else
@@ -1378,8 +1415,6 @@ struct npc_drijyaAI : public npc_escortAI
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
-
-        DoMeleeAttackIfReady();
     }
 };
 
@@ -1545,6 +1580,231 @@ CreatureAI* GetAI_npc_dimensius(Creature* pCreature)
     return new npc_dimensiusAI(pCreature);
 }
 
+enum
+{
+    NPC_ENERGY_BALL                 = 20769,
+    NPC_SALHADAAR                   = 20454,
+
+    SPELL_FLOAT                     = 37613, // actual name C_C_O
+    // SPELL_SALAADIN_STASIS           = 35514, purpose unknown
+    SPELL_SALAADIN_TESLA            = 35515,
+    SPELL_PROTECTORATE_DISRUPTOR    = 35683,
+    SPELL_SALAADIN_OVERSPARK        = 35684,
+    SPELL_GRAVITY_FLUX              = 36533,
+    SPELL_STASIS                    = 36527,
+    SPELL_MIRROR_IMAGE_1            = 36847,
+    SPELL_MIRROR_IMAGE_2            = 36848,
+
+    FACTION_SALHADAAR_HOSTILE       = 14,
+
+    SAY_THREAT                      = -1000138,
+};
+
+struct npc_salhadaarAI : public ScriptedAI
+{
+    npc_salhadaarAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    uint32 m_uiAttackTimer;
+    bool m_uiFoundBalls;
+    uint32 m_uiGravityFlux;
+    bool m_uiUsedMirrorImage;
+    uint32 m_uiStasisTimer;
+    std::vector<ObjectGuid> m_uiSummoned;
+
+    void Reset() override
+    {
+        m_uiAttackTimer = 0;
+        m_uiGravityFlux = 15000;
+        m_uiUsedMirrorImage = true;
+        m_uiStasisTimer = 10000;
+        m_creature->RemoveAurasDueToSpell(SPELL_SALAADIN_OVERSPARK);
+        m_creature->CastSpell(m_creature, SPELL_FLOAT, TRIGGERED_NONE);
+        for (const auto& summonedCreature : m_uiSummoned)    // despawn all summoned creatures
+            if (Creature* summon = m_creature->GetMap()->GetCreature(summonedCreature))
+                summon->ForcedDespawn(0);
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A && (!m_creature->isInCombat()) && (!m_creature->isDead()))
+        {
+            m_creature->RemoveAurasDueToSpell(SPELL_FLOAT);
+            DoScriptText(SAY_THREAT, m_creature);
+            m_uiAttackTimer = 5000;
+        }
+    }
+
+    void JustDied(Unit* killer) override
+    {
+        for (const auto& summonedCreature : m_uiSummoned)    // despawn all summoned creatures
+            if (Creature* summon = m_creature->GetMap()->GetCreature(summonedCreature))
+                summon->ForcedDespawn(0);
+    }
+
+    void JustReachedHome() override
+    {
+        m_creature->ForcedDespawn(); // despawn at return home
+    }
+
+    void JustRespawned() override
+    {
+        m_uiFoundBalls = false;
+    }
+
+    void JustSummoned(Creature* pSummoned) override
+    {
+        m_uiSummoned.push_back(pSummoned->GetObjectGuid());
+        pSummoned->CastSpell(pSummoned, SPELL_SALAADIN_OVERSPARK, TRIGGERED_OLD_TRIGGERED);
+        pSummoned->AI()->AttackStart(m_creature->getVictim());
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiFoundBalls == false)
+        {
+            std::list<Creature*> creatureList;
+            GetCreatureListWithEntryInGrid(creatureList, m_creature, NPC_ENERGY_BALL, 50.0f);
+            for (std::list<Creature*>::const_iterator itr = creatureList.begin(); itr != creatureList.end(); ++itr)
+            {
+                m_uiFoundBalls = true;
+                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, (*itr));
+            }
+            m_creature->SetSheath(SHEATH_STATE_UNARMED);
+        }
+        if (m_uiAttackTimer)
+        {
+            if (m_uiAttackTimer <= uiDiff) // on attack start cast spell that handles everything
+            {
+                m_uiAttackTimer = 0;
+                std::list<Player*> playerList;
+                GetPlayerListWithEntryInWorld(playerList, m_creature, 100.0f);
+                if (!playerList.empty())
+                {
+                    AttackStart(playerList.front());
+                    m_creature->CastSpell(m_creature, SPELL_SALAADIN_OVERSPARK, TRIGGERED_OLD_TRIGGERED);
+                    m_creature->SetFactionTemporary(FACTION_SALHADAAR_HOSTILE, TEMPFACTION_RESTORE_COMBAT_STOP | TEMPFACTION_TOGGLE_NOT_SELECTABLE);
+                    return;
+                }
+                else
+                {
+                    Reset();
+                    m_creature->ForcedDespawn();
+                    return;
+                }
+            }
+            else
+                m_uiAttackTimer -= uiDiff;
+        }
+        if (m_creature->isInCombat())
+        {
+            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+                return;
+
+            if (m_uiUsedMirrorImage == false && m_creature->GetHealthPercent() < 25) // at 25% hp cast mirror image, its two spells
+            {
+                m_creature->CastSpell(m_creature, SPELL_MIRROR_IMAGE_1, TRIGGERED_OLD_TRIGGERED);
+                m_creature->CastSpell(m_creature, SPELL_MIRROR_IMAGE_2, TRIGGERED_OLD_TRIGGERED);
+                m_uiUsedMirrorImage = true;
+            }
+            else
+            {
+                if (m_uiGravityFlux <= uiDiff)
+                {
+                    m_uiGravityFlux = 15000;
+                    m_creature->CastSpell(m_creature, SPELL_GRAVITY_FLUX, TRIGGERED_NONE); // cast gravity flux every 15 seconds
+                    return;
+                }
+                else
+                    m_uiGravityFlux -= uiDiff;
+
+                if (m_uiStasisTimer <= uiDiff)
+                {
+                    if (Unit *target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_STASIS))
+                    {
+                        if (m_creature->CastSpell(target, SPELL_STASIS, TRIGGERED_NONE) == SPELL_CAST_OK) // cast stasis on random target every 22 seconds
+                            m_uiStasisTimer = 22000;
+                    }
+                }
+                else
+                    m_uiStasisTimer -= uiDiff;
+            }
+
+            DoMeleeAttackIfReady();
+        }
+    }
+};
+
+CreatureAI* GetAI_npc_salhadaar(Creature* pCreature)
+{
+    return new npc_salhadaarAI(pCreature);
+}
+
+struct npc_energy_ballAI : public ScriptedAI
+{
+    npc_energy_ballAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    uint32 m_uiCastTimer;
+    uint32 m_uiInterruptTimer;
+
+    void Reset() override
+    {
+        m_uiCastTimer = 0;
+        m_uiInterruptTimer = 0;
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
+            m_creature->CastSpell(nullptr, SPELL_SALAADIN_TESLA, TRIGGERED_NONE);
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
+    {
+        if (pSpell->Id == SPELL_PROTECTORATE_DISRUPTOR) // recast beam after one minute if player doesnt engage mob
+        {
+            m_uiInterruptTimer = 5000;
+            m_uiCastTimer = 65000;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiCastTimer)
+        {
+            if (m_uiCastTimer <= uiDiff)
+            {
+                m_uiCastTimer = 0;
+                std::list<Creature*> creatureList;
+                GetCreatureListWithEntryInGrid(creatureList, m_creature, NPC_SALHADAAR, 100.0f);
+                for (std::list<Creature*>::const_iterator itr = creatureList.begin(); itr != creatureList.end(); ++itr)
+                {
+                    if (!(*itr)->isInCombat())
+                    {
+                        m_creature->CastSpell(m_creature, SPELL_SALAADIN_TESLA, TRIGGERED_NONE);
+                    }
+                }
+            }
+            else
+                m_uiCastTimer -= uiDiff;
+        }
+        if (m_uiInterruptTimer)
+        {
+            if (m_uiInterruptTimer <= uiDiff)
+            {
+                m_uiInterruptTimer = 0;
+                m_creature->InterruptSpell(CURRENT_CHANNELED_SPELL, false);
+            }
+            else
+                m_uiInterruptTimer -= uiDiff;
+        }
+    }
+};
+
+CreatureAI* GetAI_npc_energy_ball(Creature* pCreature)
+{
+    return new npc_energy_ballAI(pCreature);
+}
+
 void AddSC_netherstorm()
 {
     Script* pNewScript;
@@ -1606,5 +1866,15 @@ void AddSC_netherstorm()
     pNewScript = new Script;
     pNewScript->Name = "npc_dimensius";
     pNewScript->GetAI = &GetAI_npc_dimensius;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_salhadaar";
+    pNewScript->GetAI = &GetAI_npc_salhadaar;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_energy_ball";
+    pNewScript->GetAI = &GetAI_npc_energy_ball;
     pNewScript->RegisterSelf();
 }

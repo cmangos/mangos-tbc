@@ -33,13 +33,11 @@ bool FileLoader::loadFile(char* filename, bool log)
     data_size = mf.getSize();
 
     data = new uint8 [data_size];
-    if (data)
-    {
-        mf.read(data, data_size);
-        mf.close();
-        if (prepareLoadedData())
-            return true;
-    }
+    mf.read(data, data_size);
+    mf.close();
+    if (prepareLoadedData())
+        return true;
+
     printf("Error loading %s", filename);
     mf.close();
     free();
@@ -50,7 +48,7 @@ bool FileLoader::prepareLoadedData()
 {
     // Check version
     version = (file_MVER*) data;
-    if (version->fcc != 'MVER')
+    if (version->fcc != fcc_MVER)
         return false;
     if (version->ver != FILE_FORMAT_VERSION)
         return false;

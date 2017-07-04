@@ -220,6 +220,8 @@ void Creature::RemoveCorpse(bool inPlace)
     if (respawnDelay)
         m_respawnTime = time(nullptr) + respawnDelay;
 
+    InterruptMoving();
+
     float x, y, z, o;
     GetRespawnCoord(x, y, z, &o);
     GetMap()->CreatureRelocation(this, x, y, z, o);
@@ -2205,7 +2207,7 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
 
             for (; ritr != threatlist.rend(); ++ritr)
             {
-                if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
+                if (Unit* pTarget = GetMap()->GetUnit((*ritr)->getUnitGuid()))
                 {
                     if ((!selectFlags && !pSpellInfo) || MeetsSelectAttackingRequirement(pTarget, pSpellInfo, selectFlags))
                         return pTarget;

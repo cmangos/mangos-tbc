@@ -31,10 +31,12 @@ INSERT INTO scripted_areatrigger VALUES
 (3549,'at_childrens_week_spot'), -- The Mor'shan Rampart
 (3550,'at_childrens_week_spot'), -- Ratchet Docks
 (3552,'at_childrens_week_spot'); -- Westfall Lighthouse
-DELETE FROM scripted_areatrigger WHERE entry IN (2026,2046);
+DELETE FROM scripted_areatrigger WHERE entry IN (2026,2046,2066,2067);
 INSERT INTO scripted_areatrigger VALUES
 (2026,'at_blackrock_spire'),
-(2046,'at_blackrock_spire');
+(2046,'at_blackrock_spire'),
+(2066,'at_blackrock_spire'),
+(2067,'at_blackrock_spire');
 DELETE FROM scripted_areatrigger WHERE entry IN (3958,3960);
 INSERT INTO scripted_areatrigger VALUES
 (3958,'at_zulgurub'),
@@ -335,6 +337,7 @@ UPDATE creature_template SET ScriptName='npc_bloodmaul_dire_wolf' WHERE entry=20
 UPDATE creature_template SET ScriptName='npc_vimgol_visual_bunny' WHERE entry=23040;
 UPDATE creature_template SET ScriptName='npc_vimgol_middle_bunny' WHERE entry=23081;
 UPDATE creature_template SET ScriptName='npc_vimgol' WHERE entry=22911;
+UPDATE creature_template SET ScriptName='npc_spirit_prisoner_of_bladespire' WHERE entry IN(22460);
 
 /* BLASTED LANDS */
 UPDATE creature_template SET ScriptName='npc_fallen_hero_of_horde' WHERE entry=7572;
@@ -731,6 +734,8 @@ UPDATE creature_template SET ScriptName='npc_protectorate_demolitionist' WHERE e
 UPDATE creature_template SET ScriptName='npc_captured_vanguard' WHERE entry=20763;
 UPDATE creature_template SET ScriptName='npc_drijya' WHERE entry=20281;
 UPDATE creature_template SET ScriptName='npc_dimensius' WHERE entry=19554;
+UPDATE creature_template SET ScriptName='npc_salhadaar' WHERE entry=20454;
+UPDATE creature_template SET ScriptName='npc_energy_ball' WHERE entry=20769; 
 
 /* ONYXIA'S LAIR */
 UPDATE instance_template SET ScriptName='instance_onyxias_lair' WHERE map=249;
@@ -1198,7 +1203,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000136,'Yes, my lord.',0,0,0,0,'dawnforge COMMANDER_DAWNFORGE_4 SAY_ARCANIST_ARDONIS_2'),
 (-1000137,'See to it, Ardonis!',0,0,0,0,'dawnforge COMMANDER_DAWNFORGE_5'),
 
-(-1000138,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1000138,'Prepare to enter oblivion, meddlers. You have unleashed a god!',0,1,0,15,'Salhadaar SAY'),
 (-1000139,'Avruu\'s magic is broken! I\'m free once again!',0,0,0,0,'aeranas SAY_FREE'),
 
 (-1000140,'Let\'s go.',0,0,1,0,'lilatha SAY_START'),
@@ -1246,12 +1251,12 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1000175,'Thank you, mortal.',0,0,11,0,' SAY_JUST_EATEN'),
 
-(-1000176,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1000177,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1000178,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1000179,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1000180,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1000181,'REUSE ME',0,0,0,0,'REUSE_ME'),
+(-1000176,'What is this? Where am I? How... How did I... Cursed ethereals! I was on an escort mission out of Shattrath when we were ambushed! I must return to the city at once! Your name will be recorded as a friend of the Lower City, $n.',0,0,0,0,'SAY_LC'),
+(-1000177,'Blessed Light! Free of my confines at last... Thank you, hero. A\'dal will be told of your heroics.',0,0,0,0,'SAY_SHAT'),
+(-1000178,'At last I am released! Thank you, gentle $r. I must return to the expedition at once! They will know of your deeds. This I vow.',0,0,0,0,'SAY_CE'),
+(-1000179,'I will tell the tale of your heroics to Haramad myself! All Consortium will know your name, $n. Thank you, my friend.',0,0,0,0,'SAY_CON'),
+(-1000180,'The Keepers of Time thank you for your assistance. The Timeless One shall be pleased with this outcome...',0,0,0,0,'SAY_KT'),
+(-1000181,'$R save me! Thank you! My people thank you too!',0,0,0,0,'SAY_SPOR'),
 (-1000182,'REUSE ME',0,0,0,0,'REUSE_ME'),
 (-1000183,'REUSE ME',0,0,0,0,'REUSE_ME'),
 
@@ -7155,8 +7160,8 @@ INSERT INTO script_waypoint VALUES
 (20281, 4, 3087.792, 2754.602, 115.441, 0, ''),
 (20281, 5, 3080.718, 2730.793, 115.930, 9000, 'SAY_DRIJYA_2'),
 (20281, 6, 3060.235, 2731.306, 115.122, 0, ''),
-(20281, 7, 3050.863, 2727.388, 114.054, 0, ''),
-(20281, 8, 3050.863, 2727.388, 114.054, 8000, 'SAY_DRIJYA_4'),
+(20281, 7, 3050.9  , 2727.823, 114.1269, 0, ''),
+(20281, 8, 3050.9  , 2727.823, 114.1269, 8000, 'SAY_DRIJYA_4'),
 (20281, 9, 3055.008, 2724.972, 113.687, 0, ''),
 (20281, 10, 3053.777, 2718.427, 113.684, 0, ''),
 (20281, 11, 3028.622, 2693.375, 114.670, 0, ''),

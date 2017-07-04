@@ -1379,7 +1379,7 @@ bool ChatHandler::HandleModifyRepCommand(char* args)
         return false;
     }
 
-    if (factionEntry->reputationListID < 0)
+    if (!factionEntry->HasReputation())
     {
         PSendSysMessage(LANG_COMMAND_FACTION_NOREP_ERROR, factionEntry->name[GetSessionDbcLocale()], factionId);
         SetSentErrorMessage(true);
@@ -1533,7 +1533,8 @@ bool ChatHandler::HandleNpcAIInfoCommand(char* /*args*/)
 
     std::string strScript = pTarget->GetScriptName();
     std::string strAI = pTarget->GetAIName();
-    char const* cstrAIClass = pTarget->AI() ? typeid(*pTarget->AI()).name() : " - ";
+    CreatureAI* ai = pTarget->AI();
+    char const* cstrAIClass = ai ? typeid(*ai).name() : " - ";
 
     PSendSysMessage(LANG_NPC_AI_NAMES,
                     strAI.empty() ? " - " : strAI.c_str(),

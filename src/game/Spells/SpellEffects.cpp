@@ -317,7 +317,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 // Gore
                 if (m_spellInfo->SpellIconID == 2269)
                 {
-                    damage += rand() % 2 ? damage : 0;
+                    damage += urand() % 2 ? damage : 0;
                 }
 
                 switch (m_spellInfo->Id)                    // better way to check unknown
@@ -599,9 +599,20 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (m_CastItem && unitTarget)
                     {
                         // 8345 - Control the machine | 8346 = Malfunction the machine (root) | 8347 = Taunt/enrage the machine
-                        const uint32 spell_list[3] = {8345, 8346, 8347};
+                        const uint32 spell_list[3] = { 8345, 8346, 8347 };
                         m_caster->CastSpell(unitTarget, spell_list[urand(0, 2)], TRIGGERED_OLD_TRIGGERED, m_CastItem);
                     }
+
+                    return;
+                }
+                case 8606: //Summon Cyclonian
+                {
+                    if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+                        return;
+
+                    float x, y, z;
+                    m_targets.getDestination(x, y, z); // database loaded coordinates due to target type
+                    Creature* pCreature = m_caster->SummonCreature(6239, x, y, z, 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 30 * IN_MILLISECONDS);
 
                     return;
                 }
@@ -644,8 +655,9 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     if (unitTarget && m_CastItem)
                     {
+                        uint32 roll = urand(0, 99);
                         // These rates are hella random; someone feel free to correct them
-                        if (uint32 roll = urand(0, 99) < 3)                   // Whole party will grow
+                        if (roll < 3)                                         // Whole party will grow
                             m_caster->CastSpell(m_caster, 13004, TRIGGERED_OLD_TRIGGERED);
                         else if (roll < 6)                                    // Whole party will shrink
                             m_caster->CastSpell(m_caster, 13010, TRIGGERED_OLD_TRIGGERED);
@@ -869,7 +881,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 19869:                                 // Dragon Orb
                 {
-                    if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER && unitTarget->HasAura(23958))
+                    if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER && !unitTarget->HasAura(23958))
                         unitTarget->CastSpell(unitTarget, 19832, TRIGGERED_OLD_TRIGGERED);
 
                     return;
@@ -2216,7 +2228,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     for (uint32 i = 0; i < std::min(size_t(3), attackers.size()); ++i)
                     {
                         Unit::AttackerSet::iterator aItr = attackers.begin();
-                        std::advance(aItr, rand() % attackers.size());
+                        std::advance(aItr, urand() % attackers.size());
                         AddUnitTarget((*aItr), EFFECT_INDEX_1);
                         attackers.erase(aItr);
                     }
@@ -4186,7 +4198,7 @@ bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry co
     TempSummonType summonType = (m_duration == 0) ? TEMPSUMMON_DEAD_DESPAWN : TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN;
 
     for (CreatureSummonPositions::iterator itr = list.begin(); itr != list.end(); ++itr)
-        if (Creature* summon = m_caster->SummonCreature(creature_entry, itr->x, itr->y, itr->z, m_caster->GetOrientation(), summonType, m_duration))
+        if (Creature* summon = m_caster->SummonCreature(creature_entry, itr->x, itr->y, itr->z, m_caster->GetOrientation(), summonType, m_duration, false, IsSpellSetRun(m_spellInfo)))
         {
             itr->creature = summon;
 
@@ -4806,7 +4818,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 Aura* sunder = unitTarget->GetAura(SPELL_AURA_MOD_RESISTANCE, SPELLFAMILY_WARRIOR, uint64(0x0000000000004000), m_caster->GetObjectGuid());
 
                 // apply sunder armor first
-                if (!sunder || sunder && sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
+                if (!sunder || sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
                 {
                     // get highest rank of the sunder armor spell
                     const PlayerSpellMap& sp_list = ((Player*)m_caster)->GetSpellMap();
@@ -5645,6 +5657,15 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     unitTarget->CastSpell(unitTarget, urand(0, 1) ? 37429 : 37430, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 37751:                                 // Submerged
+                case 37752:                                 // Stand
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->SetStandState(m_spellInfo->Id == 37751 ? UNIT_STAND_STATE_CUSTOM : UNIT_STAND_STATE_STAND);
                     return;
                 }
                 case 37775:                                 // Karazhan - Chess NPC Action - Poison Cloud

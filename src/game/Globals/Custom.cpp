@@ -1,5 +1,5 @@
 #include "Custom.h"
-#include "ObjectMgr.h"
+#include "Globals/ObjectMgr.h"
 
 Custom::Custom()
 {

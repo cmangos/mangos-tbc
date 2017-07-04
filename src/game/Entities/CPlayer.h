@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Player.h"
+#include "Entities/Player.h"
 
 #include <sstream>
 

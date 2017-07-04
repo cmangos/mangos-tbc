@@ -29,7 +29,7 @@
 #include "Maps/MapPersistentStateMgr.h"
 #include "Globals/ObjectMgr.h"
 
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 #define MOVEMENT_PACKET_TIME_DELAY 0
 

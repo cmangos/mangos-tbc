@@ -1,5 +1,5 @@
 #include "AntiCheat_tptoplane.h"
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 AntiCheat_tptoplane::AntiCheat_tptoplane(CPlayer* player) : AntiCheat(player)
 {

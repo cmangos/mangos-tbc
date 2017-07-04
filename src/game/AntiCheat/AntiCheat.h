@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Opcodes.h"
-#include "Unit.h"
+#include "Server/Opcodes.h"
+#include "Entities/Unit.h"
 
 #define JUMPHEIGHT_LAND 1.65f
 #define JUMPHEIGHT_WATER 2.15f

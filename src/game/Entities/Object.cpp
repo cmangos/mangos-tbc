@@ -40,7 +40,7 @@
 #include "Chat/Chat.h"
 #include "Loot/LootMgr.h"
 
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 Object::Object(): m_updateFlag(0)
 {

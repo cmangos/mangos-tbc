@@ -1,8 +1,8 @@
 #include "AntiCheat_speed.h"
-#include "CPlayer.h"
-#include "World.h"
-#include "Map.h"
-#include "MapManager.h"
+#include "Entities/CPlayer.h"
+#include "World/World.h"
+#include "Maps/Map.h"
+#include "Maps/MapManager.h"
 
 AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {

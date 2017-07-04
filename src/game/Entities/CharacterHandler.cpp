@@ -38,8 +38,8 @@
 #include "Util.h"
 #include "Tools/Language.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
-#include "SpellMgr.h"
-#include "CPlayer.h"
+#include "Spells/SpellMgr.h"
+#include "Entities/CPlayer.h"
 
 // config option SkipCinematics supported values
 enum CinematicsSkipMode

@@ -1,5 +1,5 @@
 #include "AntiCheat_gravity.h"
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 AntiCheat_gravity::AntiCheat_gravity(CPlayer* player) : AntiCheat(player)
 {

@@ -1,6 +1,6 @@
 #include "AntiCheat_test.h"
-#include "CPlayer.h"
-#include "Transports.h"
+#include "Entities/CPlayer.h"
+#include "Entities/Transports.h"
 
 AntiCheat_test::AntiCheat_test(CPlayer* player) : AntiCheat(player)
 {

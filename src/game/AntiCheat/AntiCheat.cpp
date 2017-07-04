@@ -1,5 +1,5 @@
 #include "AntiCheat.h"
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 AntiCheat::AntiCheat(CPlayer* player)
 {

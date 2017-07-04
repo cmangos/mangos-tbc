@@ -1,5 +1,5 @@
 #include "AntiCheat_wallclimb.h"
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 AntiCheat_wallclimb::AntiCheat_wallclimb(CPlayer* player) : AntiCheat(player)
 {

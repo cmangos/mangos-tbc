@@ -1,8 +1,8 @@
 #include "AntiCheat_waterwalking.h"
-#include "CPlayer.h"
-#include "Spell.h"
-#include "SpellAuras.h"
-#include "SpellMgr.h"
+#include "Entities/CPlayer.h"
+#include "Spells/Spell.h"
+#include "Spells/SpellAuras.h"
+#include "Spells/SpellMgr.h"
 
 AntiCheat_waterwalking::AntiCheat_waterwalking(CPlayer* player) : AntiCheat(player)
 {

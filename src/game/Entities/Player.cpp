@@ -62,7 +62,7 @@
 #include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 #include <cmath>
 

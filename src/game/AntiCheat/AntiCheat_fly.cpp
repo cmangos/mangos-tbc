@@ -1,5 +1,5 @@
 #include "AntiCheat_fly.h"
-#include "CPlayer.h"
+#include "Entities/CPlayer.h"
 
 AntiCheat_fly::AntiCheat_fly(CPlayer* player) : AntiCheat(player)
 {

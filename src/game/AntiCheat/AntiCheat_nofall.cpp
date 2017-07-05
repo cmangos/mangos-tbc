@@ -13,7 +13,7 @@ bool AntiCheat_nofall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bo
     if (!Initialized())
         return false;
 
-    if (newMoveInfo.HasMovementFlag(MOVEFLAG_LEVITATING))
+    if (newMoveInfo.HasMovementFlag(MOVEFLAG_LEVITATING) && !CanFly())
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "NOFALL CHEAT" << "\n";

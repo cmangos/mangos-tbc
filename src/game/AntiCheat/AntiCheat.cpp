@@ -18,6 +18,9 @@ bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool chea
     newMoveInfo = MoveInfo;
     newMapID = m_Player->GetMapId();
 
+    if (m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly()) // Real canfly
+        m_LastCanFlyTime = MoveInfo.GetTime();
+
     return false;
 }
 
@@ -38,6 +41,7 @@ bool AntiCheat::Initialized()
     if (!m_Initialized || m_Player->GetMapId() != oldMapID)
     {
         m_Initialized = true;
+        m_LastCanFlyTime = newMoveInfo.GetTime();
         SetOldMoveInfo(false);
         SetStoredMoveInfo(false);
         return false;
@@ -62,7 +66,7 @@ bool AntiCheat::SetStoredMoveInfo(bool value)
 
 bool AntiCheat::CanFly()
 {
-    return m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly();
+    return m_LastCanFlyTime + 500 > newMoveInfo.GetTime();
 }
 
 bool AntiCheat::IsMoving(MovementInfo& moveInfo)

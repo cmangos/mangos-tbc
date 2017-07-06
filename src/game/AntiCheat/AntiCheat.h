@@ -74,4 +74,5 @@ protected:
     bool m_Initialized;
 
 private:
+    uint32 m_LastCanFlyTime;
 };

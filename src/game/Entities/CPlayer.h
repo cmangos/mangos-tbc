@@ -40,6 +40,7 @@ enum MessageTypes
 };
 
 class AntiCheat;
+struct Position;
 
 class CPlayer : public Player
 {
@@ -84,4 +85,5 @@ public:
 
     // Misc
     bool AddAura(uint32 spellid);
+	bool TeleportToPos(uint32 mapid, const Position* pos, uint32 options = 0, AreaTrigger const* at = nullptr);
 };

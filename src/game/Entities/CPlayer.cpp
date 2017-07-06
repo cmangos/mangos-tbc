@@ -1,4 +1,5 @@
 #include "CPlayer.h"
+#include "Entities/Object.h"
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
 #include "Spells/Spell.h"
@@ -144,4 +145,9 @@ bool CPlayer::AddAura(uint32 spellid)
     this->AddSpellAuraHolder(holder);
 
     return true;
+}
+
+bool CPlayer::TeleportToPos(uint32 mapid, const Position* pos, uint32 options, AreaTrigger const* at)
+{
+	return TeleportTo(mapid, pos->x, pos->y, pos->z, pos->o, options, at);
 }

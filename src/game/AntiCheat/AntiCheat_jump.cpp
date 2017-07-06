@@ -14,8 +14,7 @@ bool AntiCheat_jump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool
 
     if (!cheat && opcode == MSG_MOVE_JUMP && isFalling(oldMoveInfo))
     {
-        const Position* p = storedMoveInfo.GetPos();
-        m_Player->TeleportTo(storedMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+		m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "Jump hack" << "\n";

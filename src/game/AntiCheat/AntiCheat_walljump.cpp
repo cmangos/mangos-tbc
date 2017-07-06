@@ -24,8 +24,7 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
         {
             if (!cheat && !isFlying() && !isSwimming() && AboveAngleCount)
             {
-                const Position* pos = storedMoveInfo.GetPos();
-                m_Player->TeleportTo(storedMapID, pos->x, pos->y, pos->z, pos->o, TELE_TO_NOT_LEAVE_COMBAT);
+				m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
                 if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
                     m_Player->BoxChat << "Jumpclimbing angle: " << angle << "\n";

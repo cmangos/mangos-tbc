@@ -78,8 +78,7 @@ bool AntiCheat_gravity::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, b
             m_Player->BoxChat << "Gravity hack" << std::endl;
         }
 
-        const Position* p = storedMoveInfo.GetPos();
-        m_Player->TeleportTo(storedMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+		m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
         return SetOldMoveInfo(true);
     }

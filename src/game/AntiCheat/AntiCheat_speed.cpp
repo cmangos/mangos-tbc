@@ -50,11 +50,8 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
         if (newMoveInfo.GetJumpInfo().xyspeed > allowedspeed)
             cheating = true;
     }
-    else
-    {
-        if (travelspeed > allowedspeed)
-            cheating = true;
-    }
+    else if(travelspeed > allowedspeed)
+		cheating = true;
 
     if (isTransport(newMoveInfo) && !verifyTransportCoords(newMoveInfo))
         cheating = false;
@@ -71,9 +68,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
             m_Player->BoxChat << "SPEEDCHEAT" << "\n";
         }
 
-        const Position* p = storedMoveInfo.GetPos();
-
-        m_Player->TeleportTo(storedMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+		m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
         return SetOldMoveInfo(true);
     }

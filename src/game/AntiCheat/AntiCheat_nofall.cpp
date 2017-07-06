@@ -18,9 +18,7 @@ bool AntiCheat_nofall::HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bo
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "NOFALL CHEAT" << "\n";
 
-        const Position* p = oldMoveInfo.GetPos();
-
-        m_Player->TeleportTo(oldMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+		m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
         return true;
     }

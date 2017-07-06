@@ -20,8 +20,7 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
     {
         if (!IsMoving(oldMoveInfo) && GetDistOrTransportDist(true) > 0.1f && (!isFalling() || opcode == MSG_MOVE_JUMP))
         {
-            const Position* p = oldMoveInfo.GetPos();
-            m_Player->TeleportTo(oldMapID, p->x, p->y, p->z, p->o, TELE_TO_NOT_LEAVE_COMBAT);
+			m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
             if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
                 m_Player->BoxChat << "TELE CHEAT" << "\n";

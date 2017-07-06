@@ -13,7 +13,7 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
     {
         knockBack = false;
         teleporting = false;
-        return false;
+        return SetOldMoveInfo(false);
     }
 
     if (!cheat && !knockBack && !teleporting)

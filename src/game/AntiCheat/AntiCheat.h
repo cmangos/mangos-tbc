@@ -61,8 +61,6 @@ protected:
     float GetDiffInSec();
     float GetVirtualDiffInSec();
 
-    
-
 protected:
     CPlayer* m_Player;
     MovementInfo newMoveInfo;

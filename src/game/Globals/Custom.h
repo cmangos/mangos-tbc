@@ -3,13 +3,13 @@
 #include "Common.h"
 #include "Singleton.h"
 
+enum MessageTypes;
+
 class Custom : public CSingleton<Custom>
 {
 public:
     Custom();
     ~Custom();
-
-    uint32 GetAutoItemPrice(uint32 itemid);
 };
 
 #define sCustom Custom::Instance()

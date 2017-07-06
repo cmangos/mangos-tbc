@@ -81,7 +81,7 @@ void CPlayer::AddAntiCheatModule(AntiCheat* antiCheat)
     m_AntiCheatStorage.push_back(antiCheat);
 }
 
-void CPlayer::SendSteamMessages(MessageTypes type, std::stringstream &ss)
+void CPlayer::SendStreamMessages(MessageTypes type, std::stringstream &ss)
 {
     if (!ss.str().empty())
     {
@@ -111,9 +111,9 @@ void CPlayer::CUpdate(uint32 update_diff, uint32 p_time)
 {
     HandleUpdate(update_diff, p_time);
 
-    SendSteamMessages(MessageTypes(CHAT_BOX), BoxChat);
-    SendSteamMessages(MessageTypes(CHAT_WIDE), WideChat);
-    SendSteamMessages(MessageTypes(CHAT_BOX | CHAT_WIDE), BothChat);
+    SendStreamMessages(MessageTypes(CHAT_BOX), BoxChat);
+    SendStreamMessages(MessageTypes(CHAT_WIDE), WideChat);
+    SendStreamMessages(MessageTypes(CHAT_BOX | CHAT_WIDE), BothChat);
 }
 
 bool CPlayer::AddAura(uint32 spellid)

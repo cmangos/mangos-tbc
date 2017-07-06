@@ -67,13 +67,14 @@ public:
     void AddAntiCheatModule(AntiCheat* antiCheat);
     void SetGMFly(bool value) { m_GMFly = value; }
     bool GetGMFly() { return m_GMFly; }
+
 private:
     AntiCheatStorage m_AntiCheatStorage;
     bool m_GMFly;
 
     // Chat messages
 public:
-    void SendSteamMessages(MessageTypes type, std::stringstream &ss);
+    void SendStreamMessages(MessageTypes type, std::stringstream &ss);
 
     std::stringstream BoxChat;
     std::stringstream WideChat;

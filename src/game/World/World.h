@@ -684,6 +684,9 @@ class World
 
         // List of Maps that should be force-loaded on startup
         std::set<uint32> m_configForceLoadMapIds;
+
+    public:
+        const SessionMap GetSessions() { return m_sessions; }
 };
 
 extern uint32 realmID;

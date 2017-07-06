@@ -38,6 +38,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "Entities/Pet.h"
 #include "Social/SocialMgr.h"
+#include "Entities/CPlayer.h"
 
 void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
 {
@@ -1423,6 +1424,8 @@ void WorldSession::HandleMoveSetCanFlyAckOpcode(WorldPacket& recv_data)
     recv_data >> Unused<uint32>();                          // unk2
 
     _player->m_movementInfo.SetMovementFlags(movementInfo.GetMovementFlags());
+
+    _player->ToCPlayer()->HandleAntiCheat(movementInfo, CMSG_MOVE_SET_CAN_FLY_ACK);
 }
 
 void WorldSession::HandleRequestPetInfoOpcode(WorldPacket& /*recv_data */)

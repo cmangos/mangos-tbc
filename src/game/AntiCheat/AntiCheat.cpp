@@ -9,6 +9,7 @@ AntiCheat::AntiCheat(CPlayer* player)
     storedMoveInfo = MovementInfo();
 
     m_Initialized = false;
+    m_CanFly = false;
 
     player->AddAntiCheatModule(this);
 }
@@ -18,8 +19,10 @@ bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool chea
     newMoveInfo = MoveInfo;
     newMapID = m_Player->GetMapId();
 
-    if (m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly()) // Real canfly
-        m_LastCanFlyTime = MoveInfo.GetTime();
+    if (m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly())
+        m_CanFly = true;
+    else if (opcode == CMSG_MOVE_SET_CAN_FLY_ACK) // Trust that client will send ack when he's told not to fly anymore
+        m_CanFly = false;
 
     return false;
 }
@@ -41,7 +44,6 @@ bool AntiCheat::Initialized()
     if (!m_Initialized || m_Player->GetMapId() != oldMapID)
     {
         m_Initialized = true;
-        m_LastCanFlyTime = newMoveInfo.GetTime();
         SetOldMoveInfo(false);
         SetStoredMoveInfo(false);
         return false;
@@ -66,7 +68,7 @@ bool AntiCheat::SetStoredMoveInfo(bool value)
 
 bool AntiCheat::CanFly()
 {
-    return m_LastCanFlyTime + 500 > newMoveInfo.GetTime();
+    return m_CanFly;
 }
 
 bool AntiCheat::IsMoving(MovementInfo& moveInfo)

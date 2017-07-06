@@ -7,6 +7,7 @@
 
 AntiCheat_time::AntiCheat_time(CPlayer* player) : AntiCheat(player)
 {
+    m_RelativeServerTime = 0;
 }
 
 bool AntiCheat_time::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
@@ -15,44 +16,36 @@ bool AntiCheat_time::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool
 
     if (!Initialized())
     {
-        m_LastGameTime = sWorld.GetGameTime();
+        m_RelativeServerTime += MoveInfo.GetTime();
         return SetOldMoveInfo(false);
     }
 
-    if (GetDiff() < 500)
+    if (GetDiff() < 50)
         return false;
 
-    m_ServerDiffs.push_back(GetServerDiff());
-    m_ClientDiffs.push_back(GetDiff());
+    if (GetDistance() < 0.1f)
+        return false;
 
-    // Only store last 20 
-    while (m_ServerDiffs.size() > 20)
+    uint32 diff = std::abs(int64(MoveInfo.GetTime()) - m_RelativeServerTime);
+
+    if (diff > 1000 + m_Player->GetSession()->GetLatency())
     {
-        m_ServerDiffs.pop_front();
-        m_ClientDiffs.pop_front();
-    }
+        m_Player->TeleportToPos(oldMapID, oldMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
-    bool supercheat = GetDiff() > GetServerDiff() * 2; // Faster detection if they cheat bigtime
-
-    if (m_ServerDiffs.size() > 10 || supercheat)
-    {
-        uint32 TotalServerDiff = std::accumulate(m_ServerDiffs.begin(), m_ServerDiffs.end(), 0) + m_Player->GetSession()->GetLatency() + 50; // 50 is how long we spend between updates
-        uint32 TotalClientDiff = std::accumulate(m_ClientDiffs.begin(), m_ClientDiffs.end(), 0);
-
-        if (TotalClientDiff > TotalServerDiff || supercheat)
+        if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
-            if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
-                m_Player->BoxChat << "TIME CHEAT" << "\n";
-
-            // Punish player in some way here
+            m_Player->BoxChat << "ClientTime: " << MoveInfo.GetTime() << "\n";
+            m_Player->BoxChat << "ServerTime: " << m_RelativeServerTime << "\n";
+            m_Player->BoxChat << "ClientTime - ServerTime: " << int64(MoveInfo.GetTime()) - m_RelativeServerTime << "\n";
         }
+
+        m_RelativeServerTime = MoveInfo.GetTime() - 900 + m_Player->GetSession()->GetLatency();
     }
 
-    m_LastGameTime = sWorld.GetGameTime();
     return SetOldMoveInfo(false);
 }
 
-uint32 AntiCheat_time::GetServerDiff()
+void AntiCheat_time::HandleUpdate(uint32 update_diff, uint32 p_time)
 {
-    return std::abs(sWorld.GetGameTime() - m_LastGameTime);
+    m_RelativeServerTime += update_diff;
 }

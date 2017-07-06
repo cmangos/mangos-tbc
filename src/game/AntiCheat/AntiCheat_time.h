@@ -8,11 +8,8 @@ public:
     AntiCheat_time(CPlayer* player);
 
     bool HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat) override;
-    uint32 GetServerDiff();
+    void HandleUpdate(uint32 update_diff, uint32 p_time) override;
 
 private:
-    time_t m_LastGameTime;
-
-    std::deque<uint32> m_ServerDiffs;
-    std::deque<uint32> m_ClientDiffs;
+    int64 m_RelativeServerTime;
 };

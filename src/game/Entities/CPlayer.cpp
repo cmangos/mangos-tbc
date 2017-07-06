@@ -15,6 +15,7 @@
 #include "AntiCheat/AntiCheat_tptoplane.h"
 #include "AntiCheat/AntiCheat_nofall.h"
 #include "AntiCheat/AntiCheat_test.h"
+#include "AntiCheat/AntiCheat_time.h"
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
@@ -28,6 +29,7 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
     new AntiCheat_walljump(this);
     new AntiCheat_tptoplane(this);
     new AntiCheat_nofall(this);
+    new AntiCheat_time(this);
     //new AntiCheat_test(this);
 
     m_GMFly = false;

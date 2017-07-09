@@ -39,6 +39,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/pet_ai.h"
+#include "Entities/TemporarySummon.h"
 
 /*#####
 # mob_mature_netherwing_drake
@@ -1217,65 +1218,55 @@ enum
 
 struct npc_totem_of_spiritsAI : public ScriptedPetAI
 {
-    npc_totem_of_spiritsAI(Creature* pCreature) : ScriptedPetAI(pCreature) { Reset(); }
+    npc_totem_of_spiritsAI(Creature* pCreature) : ScriptedPetAI(pCreature)
+    {
+        Reset();
+        m_uiElementalSieveTimer = 2500; // needs to be cast non-stop without interference from evade and some such
+    }
+
+    uint32 m_uiElementalSieveTimer;
 
     void Reset() override {}
 
-    void UpdateAI(const uint32 /*uiDiff*/) override {}
     void AttackedBy(Unit* /*pAttacker*/) override {}
 
-    void MoveInLineOfSight(Unit* pWho) override
+    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiData) override
     {
-        if (pWho->GetTypeId() != TYPEID_UNIT)
-            return;
-
-        // Use the LoS function to check for the souls in range due to the fact that pets do not support SummonedMovementInform()
-        uint32 uiEntry = pWho->GetEntry();
-        if (uiEntry == NPC_EARTHEN_SOUL || uiEntry == NPC_FIERY_SOUL || uiEntry == NPC_WATERY_SOUL || uiEntry == NPC_AIRY_SOUL)
+        switch (pSummoned->GetEntry())
         {
-            // Only when it's close to the totem
-            if (!pWho->IsWithinDistInMap(m_creature, 1.5f))
-                return;
-
-            switch (uiEntry)
-            {
-                case NPC_EARTHEN_SOUL:
-                    pWho->CastSpell(m_creature, SPELL_EARTH_CAPTURED, TRIGGERED_OLD_TRIGGERED);
-                    break;
-                case NPC_FIERY_SOUL:
-                    pWho->CastSpell(m_creature, SPELL_FIERY_CAPTURED, TRIGGERED_OLD_TRIGGERED);
-                    break;
-                case NPC_WATERY_SOUL:
-                    pWho->CastSpell(m_creature, SPELL_WATER_CAPTURED, TRIGGERED_OLD_TRIGGERED);
-                    break;
-                case NPC_AIRY_SOUL:
-                    pWho->CastSpell(m_creature, SPELL_AIR_CAPTURED, TRIGGERED_OLD_TRIGGERED);
-                    break;
-            }
-
-            // Despawn the spirit soul after it's captured
-            ((Creature*)pWho)->ForcedDespawn();
+            case NPC_EARTHEN_SOUL:
+                pSummoned->CastSpell(m_creature, SPELL_EARTH_CAPTURED, TRIGGERED_OLD_TRIGGERED);
+                break;
+            case NPC_FIERY_SOUL:
+                pSummoned->CastSpell(m_creature, SPELL_FIERY_CAPTURED, TRIGGERED_OLD_TRIGGERED);
+                break;
+            case NPC_WATERY_SOUL:
+                pSummoned->CastSpell(m_creature, SPELL_WATER_CAPTURED, TRIGGERED_OLD_TRIGGERED);
+                break;
+            case NPC_AIRY_SOUL:
+                pSummoned->CastSpell(m_creature, SPELL_AIR_CAPTURED, TRIGGERED_OLD_TRIGGERED);
+                break;
         }
-    }
 
-    void OwnerKilledUnit(Unit* pVictim) override
-    {
-        if (pVictim->GetTypeId() != TYPEID_UNIT)
-            return;
-
-        uint32 uiEntry = pVictim->GetEntry();
-
-        // make elementals cast the sieve is only way to make it work properly, due to the spell target modes 22/7
-        if (uiEntry == NPC_EARTH_SPIRIT || uiEntry == NPC_FIERY_SPIRIT || uiEntry == NPC_WATER_SPIRIT || uiEntry == NPC_AIR_SPIRIT)
-            pVictim->CastSpell(pVictim, SPELL_ELEMENTAL_SIEVE, TRIGGERED_OLD_TRIGGERED);
+        // Despawn the spirit soul after it's captured
+        ((Creature*)pSummoned)->ForcedDespawn(1000);
     }
 
     void JustSummoned(Creature* pSummoned) override
     {
         // After summoning the spirit soul, make it move towards the totem
-        float fX, fY, fZ;
-        m_creature->GetContactPoint(pSummoned, fX, fY, fZ);
-        pSummoned->GetMotionMaster()->MovePoint(1, fX, fY, fZ);
+        pSummoned->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 4);
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiElementalSieveTimer <= uiDiff)
+        {
+            m_creature->CastSpell(m_creature, SPELL_ELEMENTAL_SIEVE, TRIGGERED_OLD_TRIGGERED);
+            m_uiElementalSieveTimer = 2500;
+        }
+        else
+            m_uiElementalSieveTimer -= uiDiff;
     }
 };
 
@@ -1314,42 +1305,6 @@ bool EffectDummyCreature_npc_totem_of_spirits(Unit* /*pCaster*/, uint32 uiSpellI
     }
 
     return false;
-}
-
-bool EffectAuraDummy_npc_totem_of_spirits(const Aura* pAura, bool bApply)
-{
-    if (pAura->GetId() != SPELL_ELEMENTAL_SIEVE)
-        return true;
-
-    if (pAura->GetEffIndex() != EFFECT_INDEX_0)
-        return true;
-
-    if (bApply)                                             // possible it should be some visual effects, using "enraged soul" npc and "Cosmetic: ... soul" spell
-        return true;
-
-    Creature* pCreature = (Creature*)pAura->GetTarget();
-    Unit* pCaster = pAura->GetCaster();
-
-    // aura only affect the spirit totem, since this is the one that need to be in range.
-    // It is possible though, that player is the one who should actually have the aura
-    // and check for presense of spirit totem, but then we can't script the dummy.
-    if (!pCreature || !pCreature->IsPet() || !pCaster)
-        return true;
-
-    // Summon the soul of the spirit and cast the visual
-    uint32 uiSoulEntry = 0;
-    switch (pCaster->GetEntry())
-    {
-        case NPC_EARTH_SPIRIT: uiSoulEntry = NPC_EARTHEN_SOUL; break;
-        case NPC_FIERY_SPIRIT: uiSoulEntry = NPC_FIERY_SOUL;   break;
-        case NPC_WATER_SPIRIT: uiSoulEntry = NPC_WATERY_SOUL;  break;
-        case NPC_AIR_SPIRIT:   uiSoulEntry = NPC_AIRY_SOUL;    break;
-    }
-
-    pCreature->CastSpell(pCreature, SPELL_CALL_TO_THE_SPIRITS, TRIGGERED_OLD_TRIGGERED);
-    pCreature->SummonCreature(uiSoulEntry, pCaster->GetPositionX(), pCaster->GetPositionY(), pCaster->GetPositionZ(), 0, TEMPSUMMON_TIMED_OOC_OR_CORPSE_DESPAWN, 10000);
-
-    return true;
 }
 
 bool ProcessEventId_event_spell_soul_captured_credit(uint32 uiEventId, Object* pSource, Object* /*pTarget*/, bool bIsStart)
@@ -1517,6 +1472,9 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                     m_gromtorGuid = pGromtor->GetObjectGuid();
                     pGromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2);
                 }
+                if (TemporarySummon* oronok = dynamic_cast<TemporarySummon*>(m_creature))
+                    if (Unit* summoner = oronok->GetMap()->GetUnit(oronok->GetSummonerGuid()))
+                        DoScriptText(SAY_ORONOK_TOGETHER, m_creature, summoner);
                 break;
             case NPC_EARTHMENDER_TORLOK:
                 if (Creature* pTorlok = GetClosestCreatureWithEntry(m_creature, NPC_EARTHMENDER_TORLOK, 25.0f))
@@ -1562,21 +1520,6 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
 
             default:
                 return nullptr;
-        }
-    }
-
-    void Aggro(Unit* pWho) override
-    {
-        if (!m_bHasAttackStart && pWho->GetEntry() == NPC_EARTH_SPIRIT)
-        {
-            // Cyrukh starts to attack
-            if (Creature* pCyrukh = m_creature->GetMap()->GetCreature(m_cyrukhGuid))
-            {
-                pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
-                pCyrukh->AI()->AttackStart(m_creature);
-                AttackStart(pCyrukh);
-                m_bHasAttackStart = true;
-            }
         }
     }
 
@@ -1635,9 +1578,14 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 DoScriptText(SAY_ORONOK_READY, m_creature);
                 break;
             case POINT_ID_ELEMENTS:
-                // Attack the closest earth element
-                if (Creature* pElement = GetClosestCreatureWithEntry(m_creature, NPC_EARTH_SPIRIT, 50.0f))
-                    AttackStart(pElement);
+                // Cyrukh starts to attack
+                if (Creature* pCyrukh = m_creature->GetMap()->GetCreature(m_cyrukhGuid))
+                {
+                    pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+                    pCyrukh->AI()->AttackStart(m_creature);
+                    AttackStart(pCyrukh);
+                    m_bHasAttackStart = true;
+                }
                 break;
             case POINT_ID_EPILOGUE:
                 StartNextDialogueText(NPC_EARTHMENDER_TORLOK);
@@ -1928,7 +1876,6 @@ void AddSC_shadowmoon_valley()
     pNewScript->Name = "npc_totem_of_spirits";
     pNewScript->GetAI = &GetAI_npc_totem_of_spirits;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_npc_totem_of_spirits;
-    pNewScript->pEffectAuraDummy = &EffectAuraDummy_npc_totem_of_spirits;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

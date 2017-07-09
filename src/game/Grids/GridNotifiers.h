@@ -592,11 +592,11 @@ namespace MaNGOS
     class NearestGameObjectEntryInObjectRangeCheck
     {
         public:
-            NearestGameObjectEntryInObjectRangeCheck(WorldObject const& obj, uint32 entry, float range) : i_obj(obj), i_entry(entry), i_range(range) {}
+            NearestGameObjectEntryInObjectRangeCheck(WorldObject const& obj, uint32 entry, float range, bool is3D = true) : i_obj(obj), i_entry(entry), i_range(range), i_is3D(is3D){}
             WorldObject const& GetFocusObject() const { return i_obj; }
             bool operator()(GameObject* go)
             {
-                if (go->GetEntry() == i_entry && i_obj.IsWithinDistInMap(go, i_range))
+                if (go->GetEntry() == i_entry && i_obj.IsWithinDistInMap(go, i_range, i_is3D))
                 {
                     i_range = i_obj.GetDistance(go);        // use found GO range as new range limit for next check
                     return true;
@@ -608,6 +608,7 @@ namespace MaNGOS
             WorldObject const& i_obj;
             uint32 i_entry;
             float  i_range;
+            bool   i_is3D;
 
             // prevent clone this object
             NearestGameObjectEntryInObjectRangeCheck(NearestGameObjectEntryInObjectRangeCheck const&);
@@ -1013,12 +1014,13 @@ namespace MaNGOS
     class NearestCreatureEntryWithLiveStateInObjectRangeCheck
     {
         public:
-            NearestCreatureEntryWithLiveStateInObjectRangeCheck(WorldObject const& obj, uint32 entry, bool onlyAlive, bool onlyDead, float range, bool excludeSelf = false)
-                : i_obj(obj), i_entry(entry), i_range(range), i_onlyAlive(onlyAlive), i_onlyDead(onlyDead), i_excludeSelf(excludeSelf), i_foundOutOfRange(false) {}
+            NearestCreatureEntryWithLiveStateInObjectRangeCheck(WorldObject const& obj, uint32 entry, bool onlyAlive, bool onlyDead, float range, bool excludeSelf = false, bool is3D = true)
+    : i_obj(obj), i_entry(entry), i_onlyAlive(onlyAlive), i_onlyDead(onlyDead), i_excludeSelf(excludeSelf), i_range(range), i_is3D(is3D), i_foundOutOfRange(false) {}
             WorldObject const& GetFocusObject() const { return i_obj; }
             bool operator()(Creature* u)
             {
-                if (u->GetEntry() == i_entry && ((i_onlyAlive && u->isAlive()) || (i_onlyDead && u->IsCorpse()) || (!i_onlyAlive && !i_onlyDead)) && (!i_excludeSelf || (&i_obj != u)))
+                if (u->GetEntry() == i_entry && ((i_onlyAlive && u->isAlive()) || (i_onlyDead && u->IsCorpse()) || (!i_onlyAlive && !i_onlyDead))
+                        && (!i_excludeSelf || &i_obj != u) && i_obj.IsWithinDistInMap(u, i_range, i_is3D))
                 {
                     if (i_obj.IsWithinDistInMap(u, i_range))
                     {
@@ -1040,6 +1042,8 @@ namespace MaNGOS
             bool   i_onlyDead;
             bool   i_excludeSelf;
             bool   i_foundOutOfRange;
+            float  i_range;
+            bool   i_is3D;
 
             // prevent clone this object
             NearestCreatureEntryWithLiveStateInObjectRangeCheck(NearestCreatureEntryWithLiveStateInObjectRangeCheck const&);

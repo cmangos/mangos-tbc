@@ -559,6 +559,8 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
 
     m_lastFallTime = 0;
     m_lastFallZ = 0;
+
+    m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
 }
 
 Player::~Player()
@@ -910,7 +912,13 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
     uint32 absorb = 0;
     uint32 resist = 0;
     if (type == DAMAGE_LAVA)
+    {
+        // TODO: Find out if we should sent packet
+        if (IsImmuneToDamage(SPELL_SCHOOL_MASK_FIRE))
+            return 0;
+
         CalculateDamageAbsorbAndResist(this, SPELL_SCHOOL_MASK_FIRE, DIRECT_DAMAGE, damage, &absorb, &resist);
+    }
     else if (type == DAMAGE_SLIME)
         CalculateDamageAbsorbAndResist(this, SPELL_SCHOOL_MASK_NATURE, DIRECT_DAMAGE, damage, &absorb, &resist);
 
@@ -1355,6 +1363,14 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 
     UpdateEnchantTime(update_diff);
     UpdateHomebindTime(update_diff);
+
+    if (m_createdInstanceClearTimer < update_diff)
+    {
+        m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
+        ClearCreatedInstanceTimers();
+    }
+    else
+        m_createdInstanceClearTimer -= update_diff;
 
     // Group update
     SendUpdateToOutOfRangeGroupMembers();
@@ -5269,6 +5285,9 @@ bool Player::UpdateGatherSkill(uint32 SkillId, uint32 SkillValue, uint32 RedLeve
     DEBUG_LOG("UpdateGatherSkill(SkillId %d SkillLevel %d RedLevel %d)", SkillId, SkillValue, RedLevel);
 
     uint32 gathering_skill_gain = sWorld.getConfig(CONFIG_UINT32_SKILL_GAIN_GATHERING);
+
+    if (RedLevel == 1) // stuff that starts at 1 should stop at 105 not 101
+        RedLevel = 5;
 
     // For skinning and Mining chance decrease with level. 1-74 - no decrease, 75-149 - 2 times, 225-299 - 8 times
     switch (SkillId)
@@ -14784,6 +14803,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     _LoadDeclinedNames(holder->GetResult(PLAYER_LOGIN_QUERY_LOADDECLINEDNAMES));
 
+    _LoadCreatedInstanceTimers();
+
     return true;
 }
 
@@ -16874,6 +16895,17 @@ void Player::RemovePet(PetSaveMode mode)
 {
     if (Pet* pet = GetPet())
         pet->Unsummon(mode, this);
+    else if (m_temporaryUnsummonedPetNumber && mode == PET_SAVE_REAGENTS)
+    {
+        // TODO: Only edit pet in DB and reward reagent if necessary
+        Pet* NewPet = new Pet;
+        if (!NewPet->LoadPetFromDB(this, 0, m_temporaryUnsummonedPetNumber, true,0,false,true))
+            delete NewPet;
+
+        m_temporaryUnsummonedPetNumber = 0;
+        if(NewPet)
+            NewPet->Unsummon(mode, this);
+    }
 }
 
 void Player::RemoveMiniPet()
@@ -17469,13 +17501,16 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     // fill destinations path tail
     uint32 sourcepath = 0;
     uint32 totalcost = 0;
+    uint32 firstcost = 0;
 
     uint32 prevnode = sourcenode;
+    uint32 lastnode = 0;
 
     for (uint32 i = 1; i < nodes.size(); ++i)
     {
         uint32 path, cost;
-        uint32 lastnode = nodes[i];
+
+        lastnode = nodes[i];
         sObjectMgr.GetTaxiPath(prevnode, lastnode, path, cost);
 
         if (!path)
@@ -17485,6 +17520,8 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
         }
 
         totalcost += cost;
+        if (i == 1)
+            firstcost = cost;
 
         if (prevnode == sourcenode)
             sourcepath = path;
@@ -17493,6 +17530,8 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
 
         prevnode = lastnode;
     }
+
+    m_taxi.SetLastNode(lastnode);
 
     // get mount model (in case non taximaster (npc==nullptr) allow more wide lookup)
     uint32 mount_display_id = sObjectMgr.GetTaxiMountDisplayId(sourcenode, GetTeam(), npc == nullptr);
@@ -17520,7 +17559,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     }
 
     // Checks and preparations done, DO FLIGHT
-    ModifyMoney(-(int32)totalcost);
+    ModifyMoney(-(int32)firstcost);
 
     // prevent stealth flight
     RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
@@ -17546,6 +17585,7 @@ bool Player::ActivateTaxiPathTo(uint32 taxi_path_id, uint32 spellid /*= 0*/)
     return ActivateTaxiPathTo(nodes, nullptr, spellid);
 }
 
+// TODO: Check for bugs
 void Player::ContinueTaxiFlight() const
 {
     uint32 sourceNode = m_taxi.GetTaxiSource();
@@ -17563,14 +17603,14 @@ void Player::ContinueTaxiFlight() const
     TaxiPathNodeList const& nodeList = sTaxiPathNodesByPath[path];
 
     float distNext =
-        (nodeList[0].x - GetPositionX()) * (nodeList[0].x - GetPositionX()) +
-        (nodeList[0].y - GetPositionY()) * (nodeList[0].y - GetPositionY()) +
-        (nodeList[0].z - GetPositionZ()) * (nodeList[0].z - GetPositionZ());
+        (nodeList[0]->x - GetPositionX()) * (nodeList[0]->x - GetPositionX()) +
+        (nodeList[0]->y - GetPositionY()) * (nodeList[0]->y - GetPositionY()) +
+        (nodeList[0]->z - GetPositionZ()) * (nodeList[0]->z - GetPositionZ());
 
     for (uint32 i = 1; i < nodeList.size(); ++i)
     {
-        TaxiPathNodeEntry const& node = nodeList[i];
-        TaxiPathNodeEntry const& prevNode = nodeList[i - 1];
+        TaxiPathNodeEntry const& node = *nodeList[i];
+        TaxiPathNodeEntry const& prevNode = *nodeList[i - 1];
 
         // skip nodes at another map
         if (node.mapid != GetMapId())
@@ -18565,6 +18605,13 @@ void Player::SendComboPoints() const
         data << uint8(0);
         GetSession()->SendPacket(data);
     }*/
+}
+
+bool Player::AttackStop(bool targetSwitch, bool includingCast, bool includingCombo)
+{
+    if (includingCombo)
+        ClearComboPoints();
+    return Unit::AttackStop(targetSwitch, includingCast, includingCombo);
 }
 
 void Player::AddComboPoints(Unit* target, int8 count)
@@ -19768,30 +19815,43 @@ void Player::SendCorpseReclaimDelay(bool load) const
     GetSession()->SendPacket(data);
 }
 
-Player* Player::GetNextRandomRaidMember(float radius)
+Player* Player::GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType noAuraType)
 {
     Group* pGroup = GetGroup();
     if (!pGroup)
         return nullptr;
 
-    std::vector<Player*> nearMembers;
-    nearMembers.reserve(pGroup->GetMembersCount());
+    Player* lowestPercentagePlayer = nullptr;
+    uint32 lowestPercentage = 100;
 
     for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
     {
-        Player* Target = itr->getSource();
+        Player* target = itr->getSource();
 
-        // IsHostileTo check duel and controlled by enemy
-        if (Target && Target != this && IsWithinDistInMap(Target, radius) &&
-                !Target->HasInvisibilityAura() && !IsHostileTo(Target))
-            nearMembers.push_back(Target);
+        if (target && target != this)
+        {
+            // First not picked
+            if (!lowestPercentagePlayer)
+            {
+                lowestPercentagePlayer = target;
+                lowestPercentage = target->GetHealthPercent();
+                continue;
+            }
+
+            // IsHostileTo check duel and controlled by enemy
+            if (IsWithinDistInMap(target, radius) &&
+                !target->HasInvisibilityAura() && !IsHostileTo(target) && !target->HasAuraType(noAuraType))
+            {
+                if (target->GetHealthPercent() < lowestPercentage)
+                {
+                    lowestPercentagePlayer = target;
+                    lowestPercentage = target->GetHealthPercent();
+                }
+            }
+        }
     }
 
-    if (nearMembers.empty())
-        return nullptr;
-
-    uint32 randTarget = urand(0, nearMembers.size() - 1);
-    return nearMembers[randTarget];
+    return lowestPercentagePlayer;
 }
 
 PartyResult Player::CanUninviteFromGroup() const
@@ -20784,4 +20844,75 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
         RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_USE);
     }
     SendForcedObjectUpdate();
+}
+
+/*System for limiting instance entering to 5 per hour*/
+// check if player can enter new instance
+bool Player::CanEnterNewInstance(uint32 instanceId)
+{
+    if (isGameMaster())
+        return true;
+
+    return m_enteredInstances.find(instanceId) != m_enteredInstances.end() || m_enteredNotClearedInstances.find(instanceId) != m_enteredNotClearedInstances.end() || m_enteredInstances.size() < 5;
+}
+
+// when instance was entered
+void Player::OnEnteringInstance(uint32 instanceId)
+{
+    if (m_enteredInstances.find(instanceId) == m_enteredInstances.end() && m_enteredNotClearedInstances.find(instanceId) == m_enteredNotClearedInstances.end())
+    {
+        time_t now = time(nullptr);
+        tm changer = *localtime(&now);
+        changer.tm_hour++;
+        changer.tm_isdst = -1;
+        time_t future = mktime(&changer);
+        m_enteredInstances.insert({ instanceId, future });
+        CharacterDatabase.PExecute("INSERT INTO account_instances_entered VALUES('%u','" UI64FMTD "','%u')", m_session->GetAccountId(), (uint64)future, instanceId);
+    }
+}
+
+void Player::_LoadCreatedInstanceTimers()
+{
+    // Clear all timed out instances that are no longer in the 'instance' table
+    CharacterDatabase.PExecute("DELETE a FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
+    
+    QueryResult* result = CharacterDatabase.PQuery("SELECT enterTime, instanceId FROM account_instances_entered WHERE accountId = '%u'", m_session->GetAccountId());
+    if (result)
+    {
+        time_t now = time(nullptr);
+        do
+        {
+            Field* fields = result->Fetch();
+            time_t time = fields[0].GetUInt64();
+            uint32 instanceId = fields[1].GetUInt32();
+            if (time < now)
+                m_enteredNotClearedInstances.insert(instanceId);
+            else
+            {
+                auto iter = m_enteredInstances.find(instanceId);
+                if (iter == m_enteredInstances.end())
+                    m_enteredInstances.insert({ instanceId,time });
+            }
+
+        } while (result->NextRow());
+    }
+}
+
+// Clears timers that expired and clears entries for which instance was destroyed
+void Player::ClearCreatedInstanceTimers()
+{
+    time_t now = time(nullptr);
+
+    CharacterDatabase.PExecute("DELETE a FROM account_instances_entered a WHERE accountId = '%u' AND enterTime < UNIX_TIMESTAMP(now()) AND NOT EXISTS( SELECT id FROM instance b WHERE a.instanceId=b.id)", m_session->GetAccountId());
+
+    for (auto iter = m_enteredInstances.begin(); iter != m_enteredInstances.end();)
+    {
+        if ((*iter).second < now)
+        {
+            m_enteredNotClearedInstances.insert((*iter).first);
+            m_enteredInstances.erase(iter++);
+        }
+        else
+            ++iter;
+    }
 }

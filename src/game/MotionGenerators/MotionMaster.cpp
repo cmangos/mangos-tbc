@@ -240,7 +240,7 @@ void MotionMaster::MoveRandomAroundPoint(float x, float y, float z, float radius
     }
 }
 
-void MotionMaster::MoveTargetedHome()
+void MotionMaster::MoveTargetedHome(bool runHome)
 {
     if (m_owner->hasUnitState(UNIT_STAT_LOST_CONTROL))
         return;
@@ -255,7 +255,7 @@ void MotionMaster::MoveTargetedHome()
         else
         {
             DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s targeted home", m_owner->GetGuidStr().c_str());
-            Mutate(new HomeMovementGenerator<Creature>());
+            Mutate(new HomeMovementGenerator<Creature>(runHome));
         }
     }
     else if (m_owner->GetTypeId() == TYPEID_UNIT && ((Creature*)m_owner)->GetCharmerOrOwnerGuid())
@@ -403,7 +403,8 @@ void MotionMaster::MoveTaxiFlight(uint32 path, uint32 pathnode)
         if (path < sTaxiPathNodesByPath.size())
         {
             DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s taxi to (Path %u node %u)", m_owner->GetGuidStr().c_str(), path, pathnode);
-            FlightPathMovementGenerator* mgen = new FlightPathMovementGenerator(sTaxiPathNodesByPath[path], pathnode);
+            FlightPathMovementGenerator* mgen = new FlightPathMovementGenerator(pathnode);
+            mgen->LoadPath(*(Player*)m_owner);
             Mutate(mgen);
         }
         else

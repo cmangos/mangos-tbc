@@ -633,12 +633,12 @@ MapPersistentState* MapPersistentStateManager::AddPersistentState(MapEntry const
         if (!resetTime)
         {
             // initialize reset time
-            // for normal instances if no creatures are killed the instance will reset in two hours
+            // for normal instances if no creatures are killed the instance will reset in 30 minutes
             if (mapEntry->map_type == MAP_RAID || difficulty > DUNGEON_DIFFICULTY_NORMAL)
                 resetTime = m_Scheduler.GetResetTimeFor(mapEntry->MapID);
             else
             {
-                resetTime = time(nullptr) + 2 * HOUR;
+                resetTime = time(nullptr) + NORMAL_INSTANCE_RESET_TIME;
                 // normally this will be removed soon after in DungeonMap::Add, prevent error
                 m_Scheduler.ScheduleReset(true, resetTime, DungeonResetEvent(RESET_EVENT_NORMAL_DUNGEON, mapEntry->MapID, instanceId));
             }
@@ -919,8 +919,10 @@ void MapPersistentStateManager::_ResetOrWarnAll(uint32 mapid, bool warn, uint32 
         // remove all binds for online player
         std::list<DungeonPersistentState *> unbindList;
 
+        bool isRaid = mapEntry->IsRaid();
+
         for (PersistentStateMap::iterator itr = m_instanceSaveByInstanceId.begin(); itr != m_instanceSaveByInstanceId.end(); ++itr)
-            if (itr->second->GetMapId() == mapid)
+            if (itr->second->GetMapId() == mapid && (isRaid || itr->second->GetDifficulty() > DUNGEON_DIFFICULTY_NORMAL))
                 unbindList.push_back((DungeonPersistentState *)itr->second);
 
         for (std::list<DungeonPersistentState *>::iterator itr = unbindList.begin(); itr != unbindList.end(); itr++)
@@ -932,9 +934,18 @@ void MapPersistentStateManager::_ResetOrWarnAll(uint32 mapid, bool warn, uint32 
 
         // delete them from the DB, even if not loaded
         CharacterDatabase.BeginTransaction();
-        CharacterDatabase.PExecute("DELETE FROM character_instance USING character_instance LEFT JOIN instance ON character_instance.instance = id WHERE map = '%u'", mapid);
-        CharacterDatabase.PExecute("DELETE FROM group_instance USING group_instance LEFT JOIN instance ON group_instance.instance = id WHERE map = '%u'", mapid);
-        CharacterDatabase.PExecute("DELETE FROM instance WHERE map = '%u'", mapid);
+        if (isRaid)
+        {
+            CharacterDatabase.PExecute("DELETE FROM character_instance USING character_instance LEFT JOIN instance ON character_instance.instance = id WHERE map = '%u'", mapid);
+            CharacterDatabase.PExecute("DELETE FROM group_instance USING group_instance LEFT JOIN instance ON group_instance.instance = id WHERE map = '%u'", mapid);
+            CharacterDatabase.PExecute("DELETE FROM instance WHERE map = '%u'", mapid);
+        }
+        else // only reset heroics
+        {
+            CharacterDatabase.PExecute("DELETE FROM character_instance USING character_instance LEFT JOIN instance ON character_instance.instance = id WHERE map = '%u' AND difficulty = 1", mapid);
+            CharacterDatabase.PExecute("DELETE FROM group_instance USING group_instance LEFT JOIN instance ON group_instance.instance = id WHERE map = '%u' AND difficulty = 1", mapid);
+            CharacterDatabase.PExecute("DELETE FROM instance WHERE map = '%u' AND difficulty = 1", mapid);
+        }
         CharacterDatabase.CommitTransaction();
 
         // calculate the next reset time

@@ -809,19 +809,26 @@ class PlayerTaxi
         void ClearTaxiDestinations() { m_TaxiDestinations.clear(); }
         void AddTaxiDestination(uint32 dest) { m_TaxiDestinations.push_back(dest); }
         uint32 GetTaxiSource() const { return m_TaxiDestinations.empty() ? 0 : m_TaxiDestinations.front(); }
-        uint32 GetTaxiDestination() const { return m_TaxiDestinations.size() < 2 ? 0 : m_TaxiDestinations[1]; }
+        uint32 GetNextTaxiDestination() const { return m_TaxiDestinations.size() < 2 ? 0 : m_TaxiDestinations[1]; }
+        uint32 GetFinalTaxiDestination() const { return m_TaxiDestinations.empty() ? 0 : m_TaxiDestinations.back(); }
         uint32 GetCurrentTaxiPath() const;
         uint32 NextTaxiDestination()
         {
             m_TaxiDestinations.pop_front();
-            return GetTaxiDestination();
+            return GetNextTaxiDestination();
         }
         bool empty() const { return m_TaxiDestinations.empty(); }
 
         friend std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi);
+
+        std::deque<uint32> const& GetPath() const { return m_TaxiDestinations; }
+
+        uint32 GetLastNode() { return m_lastNode; }
+        void SetLastNode(uint32 lastNode) { m_lastNode = lastNode; }
     private:
         TaxiMask m_taximask;
         std::deque<uint32> m_TaxiDestinations;
+        uint32 m_lastNode;
 };
 
 std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi);
@@ -1408,6 +1415,8 @@ class Player : public Unit
         void ClearComboPoints();
         void SendComboPoints() const;
 
+        bool AttackStop(bool targetSwitch = false, bool includingCast = false, bool includingCombo = false) override;
+
         void SendMailResult(uint32 mailId, MailResponseType mailAction, MailResponseResult mailError, uint32 equipError = 0, uint32 item_guid = 0, uint32 item_count = 0) const;
         void SendNewMail() const;
         void UpdateNextMailTimeAndUnreads();
@@ -1620,6 +1629,9 @@ class Player : public Unit
 
         void SetDifficulty(Difficulty dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
         Difficulty GetDifficulty() const { return m_dungeonDifficulty; }
+
+        bool CanEnterNewInstance(uint32 instanceId);
+        void OnEnteringInstance(uint32 instanceId);
 
         bool UpdateSkill(uint32 skill_id, uint32 step);
         bool UpdateSkillPro(uint16 SkillId, int32 Chance, uint32 step);
@@ -2143,7 +2155,7 @@ class Player : public Unit
         void SetGroupUpdateFlag(uint32 flag) { m_groupUpdateMask |= flag; }
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
         void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
-        Player* GetNextRandomRaidMember(float radius);
+        Player* GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType noAuraType);
         PartyResult CanUninviteFromGroup() const;
         void UpdateGroupLeaderFlag(const bool remove = false);
         // BattleGround Group System
@@ -2221,6 +2233,7 @@ class Player : public Unit
         void _LoadArenaTeamInfo(QueryResult* result);
         void _LoadBGData(QueryResult* result);
         void _LoadIntoDataField(const char* data, uint32 startOffset, uint32 count);
+        void _LoadCreatedInstanceTimers();
 
         /*********************************************************/
         /***                   SAVE SYSTEM                     ***/
@@ -2404,6 +2417,8 @@ class Player : public Unit
                 m_DelayedOperations |= operation;
         }
 
+        void ClearCreatedInstanceTimers();
+
         Unit* m_mover;
         Camera m_camera;
 
@@ -2449,6 +2464,10 @@ class Player : public Unit
         uint32 m_timeSyncTimer;
         uint32 m_timeSyncClient;
         uint32 m_timeSyncServer;
+
+        std::unordered_map<uint32, time_t> m_enteredInstances;
+        std::set<uint32> m_enteredNotClearedInstances;
+        uint32 m_createdInstanceClearTimer;
 };
 
 void AddItemsSetItem(Player* player, Item* item);

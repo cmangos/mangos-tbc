@@ -372,7 +372,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex effect_idx)
                 // Arcane Blast
                 if (m_spellInfo->SpellFamilyFlags & uint64(0x20000000))
                 {
-                    m_caster->CastSpell(m_caster, 36032, TRIGGERED_OLD_TRIGGERED);
+                    m_caster->CastSpell(m_caster, 36032, TRIGGERED_INSTANT_CAST);
                 }
                 break;
             }
@@ -953,7 +953,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     pGameObj->SetRespawnTime(creatureTarget->GetRespawnTime() - time(nullptr));
                     pGameObj->SetOwnerGuid(m_caster->GetObjectGuid());
-                    pGameObj->SetUInt32Value(GAMEOBJECT_LEVEL, m_caster->getLevel());
                     pGameObj->SetSpellId(m_spellInfo->Id);
 
                     creatureTarget->ForcedDespawn();
@@ -2201,12 +2200,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     // 31989 -> dummy effect (step 1) + dummy effect (step 2) -> 31709 (taunt like spell for each target)
                     Unit* friendTarget = !unitTarget || unitTarget->IsFriendlyTo(m_caster) ? unitTarget : unitTarget->getVictim();
-                    if (friendTarget)
-                    {
-                        Player* player = friendTarget->GetCharmerOrOwnerPlayerOrPlayerItself();
-                        if (!player || !player->IsInSameRaidWith((Player*)m_caster))
-                            friendTarget = nullptr;
-                    }
 
                     // non-standard cast requirement check
                     if (!friendTarget || friendTarget->getAttackers().empty())
@@ -2225,7 +2218,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     Unit::AttackerSet attackers = friendTarget->getAttackers();
 
                     // selected from list 3
-                    for (uint32 i = 0; i < std::min(size_t(3), attackers.size()); ++i)
+                    size_t size = std::min(size_t(3), attackers.size());
+                    for (uint32 i = 0; i < size; ++i)
                     {
                         Unit::AttackerSet::iterator aItr = attackers.begin();
                         std::advance(aItr, urand() % attackers.size());
@@ -3483,7 +3477,15 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
 
     // mark item as unlocked
     if (itemTarget)
+    {
         itemTarget->SetFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_UNLOCKED);
+
+        // only send loot if owner is player, else client sends release anyway
+        if (itemTarget->GetOwnerGuid() == m_caster->GetObjectGuid())
+            SendLoot(guid, LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
+    }
+    else
+        SendLoot(guid, LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
 
     // not allow use skill grow at item base open
     if (!m_CastItem && skillId != SKILL_NONE)
@@ -3505,8 +3507,6 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
             }
         }
     }
-
-    SendLoot(guid, LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
 }
 
 void Spell::EffectSummonChangeItem(SpellEffectIndex eff_idx)
@@ -5635,7 +5635,9 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    unitTarget->CastSpell(unitTarget, unitTarget->GetMap()->IsRegularDifficulty() ? 23971 : 30928, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+                    float x, y, z;
+                    unitTarget->GetPosition(x, y, z);
+                    unitTarget->CastSpell(x, y, z, unitTarget->GetMap()->IsRegularDifficulty() ? 23971 : 30928, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
                     return;
                 }
                 case 35865:                                 // Summon Nether Vapor
@@ -6089,7 +6091,7 @@ void Spell::EffectSanctuary(SpellEffectIndex /*eff_idx*/)
         return;
     // unitTarget->CombatStop();
 
-    unitTarget->CombatStop();
+    unitTarget->CombatStop(false, false);
     unitTarget->getHostileRefManager().deleteReferences();  // stop all fighting
 
     // Vanish allows to remove all threat and cast regular stealth so other spells can be used

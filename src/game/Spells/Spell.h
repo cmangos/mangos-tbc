@@ -41,14 +41,21 @@ enum SpellCastFlags
 {
     CAST_FLAG_NONE              = 0x00000000,
     CAST_FLAG_HIDDEN_COMBATLOG  = 0x00000001,               // hide in combat log?
-    CAST_FLAG_UNKNOWN2          = 0x00000002,
+    CAST_FLAG_UNKNOWN2          = 0x00000002,               // Sent on SMSG_SPELL_START
     CAST_FLAG_UNKNOWN3          = 0x00000004,
     CAST_FLAG_UNKNOWN4          = 0x00000008,
-    CAST_FLAG_UNKNOWN5          = 0x00000010,
+    CAST_FLAG_PERSISTENT_AA     = 0x00000010,               // Spell has Persistent AA effect
     CAST_FLAG_AMMO              = 0x00000020,               // Projectiles visual
-    CAST_FLAG_UNKNOWN7          = 0x00000040,               // !0x41 mask used to call CGTradeSkillInfo::DoRecast
+    CAST_FLAG_UNKNOWN7          = 0x00000040,               // Item related?
     CAST_FLAG_UNKNOWN8          = 0x00000080,
-    CAST_FLAG_UNKNOWN9          = 0x00000100,
+    CAST_FLAG_UNKNOWN9          = 0x00000100,               // Sent on SMSG_SPELL_GO
+    CAST_FLAG_UNKNOWN10         = 0x00000200,
+    CAST_FLAG_UNKNOWN11         = 0x00000400,
+    CAST_FLAG_UNKNOWN12         = 0x00000800,
+    CAST_FLAG_UNKNOWN13         = 0x00001000,
+    CAST_FLAG_UNKNOWN14         = 0x00002000,
+    CAST_FLAG_UNKNOWN15         = 0x00004000,
+    CAST_FLAG_UNKNOWN16         = 0x00008000,               // Something with Portal effects
 };
 
 enum SpellNotifyPushType
@@ -411,6 +418,7 @@ class Spell
         
         // Trigger flag system
         bool m_ignoreHitResult;
+        bool m_ignoreCastTime;
         bool m_ignoreUnselectableTarget;
         bool m_ignoreUnattackableTarget;
         bool m_triggerAutorepeat;
@@ -551,7 +559,7 @@ class Spell
         //*****************************************
         void FillTargetMap();
         void SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList& targetUnitMap);
-        void CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> &bounds, UnitList &tempTargetUnitMap, UnitList &targetUnitMap, SpellEffectIndex effIndex);
+        static void CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> &bounds, UnitList &tempTargetUnitMap, UnitList &targetUnitMap, SpellEffectIndex effIndex);
 
         void FillAreaTargets(UnitList& targetUnitMap, float radius, SpellNotifyPushType pushType, SpellTargets spellTargets, WorldObject* originalCaster = nullptr);
         void FillRaidOrPartyTargets(UnitList& targetUnitMap, Unit* member, float radius, bool raid, bool withPets, bool withcaster) const;

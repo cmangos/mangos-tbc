@@ -35,6 +35,7 @@ CreatureAI::CreatureAI(Creature* creature) :
     m_attackDistance(0.0f),
     m_attackAngle(0.0f)
 {
+    m_dismountOnAggro = !(m_creature->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_DONT_DISMOUNT_ON_AGGRO);
 }
 
 CreatureAI::CreatureAI(Unit* unit) :
@@ -140,7 +141,7 @@ CanCastResult CreatureAI::DoCastSpellIfCan(Unit* pTarget, uint32 uiSpell, uint32
                 pCaster->InterruptNonMeleeSpells(false);
 
             // Creature should always stop before it will cast a non-instant spell
-            if (GetSpellCastTime(pSpell))
+            if (GetSpellCastTime(pSpell) || (IsChanneledSpell(pSpell) && pSpell->ChannelInterruptFlags & CHANNEL_FLAG_MOVEMENT))
                 pCaster->StopMoving();
 
             // Creature should interrupt any current melee spell
@@ -189,14 +190,21 @@ void CreatureAI::SetCombatMovement(bool enable, bool stopOrStartMovement /*=fals
 
 void CreatureAI::HandleMovementOnAttackStart(Unit* victim) const
 {
-    MotionMaster* creatureMotion = m_unit->GetMotionMaster();
-    if (m_isCombatMovement)
-        creatureMotion->MoveChase(victim, m_attackDistance, m_attackAngle);
-    // TODO - adapt this to only stop OOC-MMGens when MotionMaster rewrite is finished
-    else if (creatureMotion->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE || creatureMotion->GetCurrentMovementGeneratorType() == RANDOM_MOTION_TYPE)
+    if (!m_unit->hasUnitState(UNIT_STAT_CAN_NOT_REACT))
     {
-        creatureMotion->MoveIdle();
-        m_unit->StopMoving();
+        if (m_dismountOnAggro)
+            m_unit->Unmount(); // all ais should unmount here
+
+        MotionMaster* creatureMotion = m_unit->GetMotionMaster();
+
+        if (!m_unit->hasUnitState(UNIT_STAT_NO_COMBAT_MOVEMENT))
+            creatureMotion->MoveChase(victim, m_attackDistance, m_attackAngle);
+        // TODO - adapt this to only stop OOC-MMGens when MotionMaster rewrite is finished
+        else if (creatureMotion->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE || creatureMotion->GetCurrentMovementGeneratorType() == RANDOM_MOTION_TYPE)
+        {
+            creatureMotion->MoveIdle();
+            m_unit->StopMoving();
+        }
     }
 }
 

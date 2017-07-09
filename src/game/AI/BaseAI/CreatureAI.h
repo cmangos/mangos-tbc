@@ -366,6 +366,7 @@ class CreatureAI
         /// How should an enemy be chased
         float m_attackDistance;
         float m_attackAngle;
+        bool m_dismountOnAggro;
 };
 
 struct SelectableAI : public FactoryHolder<CreatureAI>, public Permissible<Creature>

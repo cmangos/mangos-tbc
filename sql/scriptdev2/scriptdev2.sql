@@ -12,43 +12,8 @@ UPDATE world_template SET ScriptName='';
 /*  */
 
 /* AREATRIGGER */
-DELETE FROM scripted_areatrigger WHERE entry=4591;
-INSERT INTO scripted_areatrigger VALUES (4591,'at_coilfang_waterfall');
-DELETE FROM scripted_areatrigger WHERE entry=4560;
-INSERT INTO scripted_areatrigger VALUES (4560,'at_legion_teleporter');
-DELETE FROM scripted_areatrigger WHERE entry=3066;
-INSERT INTO scripted_areatrigger VALUES (3066,'at_ravenholdt');
-DELETE FROM scripted_areatrigger WHERE entry IN (4112,4113,4156);
 INSERT INTO scripted_areatrigger VALUES
-(4112,'at_naxxramas'),
-(4113,'at_naxxramas'),
-(4156,'at_naxxramas');
-DELETE FROM scripted_areatrigger WHERE entry IN (3546,3547,3548,3549,3550,3552);
-INSERT INTO scripted_areatrigger VALUES
-(3546,'at_childrens_week_spot'), -- Darnassian bank
-(3547,'at_childrens_week_spot'), -- Undercity - thone room
-(3548,'at_childrens_week_spot'), -- Stonewrought Dam
-(3549,'at_childrens_week_spot'), -- The Mor'shan Rampart
-(3550,'at_childrens_week_spot'), -- Ratchet Docks
-(3552,'at_childrens_week_spot'); -- Westfall Lighthouse
-DELETE FROM scripted_areatrigger WHERE entry IN (2026,2046,2066,2067);
-INSERT INTO scripted_areatrigger VALUES
-(2026,'at_blackrock_spire'),
-(2046,'at_blackrock_spire'),
-(2066,'at_blackrock_spire'),
-(2067,'at_blackrock_spire');
-DELETE FROM scripted_areatrigger WHERE entry IN (3958,3960);
-INSERT INTO scripted_areatrigger VALUES
-(3958,'at_zulgurub'),
-(3960,'at_zulgurub');
-DELETE FROM scripted_areatrigger WHERE entry=3626;
-INSERT INTO scripted_areatrigger VALUES (3626,'at_vaelastrasz');
-DELETE FROM scripted_areatrigger WHERE entry=4937;
-INSERT INTO scripted_areatrigger VALUES (4937,'at_sunwell_plateau');
-DELETE FROM scripted_areatrigger WHERE entry=4524;
-INSERT INTO scripted_areatrigger VALUES (4524,'at_shattered_halls');
-DELETE FROM scripted_areatrigger WHERE entry BETWEEN 1726 AND 1740;
-INSERT INTO scripted_areatrigger VALUES
+(171, 'at_huldar_miran'),
 (1726,'at_scent_larkorwi'),
 (1727,'at_scent_larkorwi'),
 (1728,'at_scent_larkorwi'),
@@ -63,22 +28,35 @@ INSERT INTO scripted_areatrigger VALUES
 (1737,'at_scent_larkorwi'),
 (1738,'at_scent_larkorwi'),
 (1739,'at_scent_larkorwi'),
-(1740,'at_scent_larkorwi');
-DELETE FROM scripted_areatrigger WHERE entry in (4288,4485);
-INSERT INTO scripted_areatrigger VALUES
-(4288,'at_dark_portal'),
-(4485,'at_dark_portal');
-DELETE FROM scripted_areatrigger WHERE entry=1966;
-INSERT INTO scripted_areatrigger VALUES (1966,'at_murkdeep');
-DELETE FROM scripted_areatrigger WHERE entry IN (4047,4052);
-INSERT INTO scripted_areatrigger VALUES
+(1740,'at_scent_larkorwi'),
+(1966,'at_murkdeep'),
+(2026,'at_blackrock_spire'),
+(2046,'at_blackrock_spire'),
+(2066,'at_blackrock_spire'),
+(2067,'at_blackrock_spire'),
+(3066,'at_ravenholdt'),
+(3546,'at_childrens_week_spot'), -- Darnassian bank
+(3547,'at_childrens_week_spot'), -- Undercity - thone room
+(3548,'at_childrens_week_spot'), -- Stonewrought Dam
+(3549,'at_childrens_week_spot'), -- The Mor'shan Rampart
+(3550,'at_childrens_week_spot'), -- Ratchet Docks
+(3552,'at_childrens_week_spot'), -- Westfall Lighthouse
+(3587,'at_ancient_leaf'),
+(3626,'at_vaelastrasz'),
+(3958,'at_zulgurub'),
+(3960,'at_zulgurub'),
 (4047,'at_temple_ahnqiraj'),
-(4052,'at_temple_ahnqiraj');
-DELETE FROM scripted_areatrigger WHERE entry=3587;
-INSERT INTO scripted_areatrigger VALUES (3587,'at_ancient_leaf');
-DELETE FROM scripted_areatrigger WHERE entry=4479;
-INSERT INTO scripted_areatrigger VALUES (4479,'at_haramad_teleport');
-
+(4052,'at_temple_ahnqiraj'),
+(4112,'at_naxxramas'),
+(4113,'at_naxxramas'),
+(4156,'at_naxxramas'),
+(4288,'at_dark_portal'),
+(4479,'at_haramad_teleport'),
+(4485,'at_dark_portal'),
+(4524,'at_shattered_halls'),
+(4560,'at_legion_teleporter'),
+(4591,'at_coilfang_waterfall'),
+(4937,'at_sunwell_plateau');
 
 /* BATTLEGROUNDS */
 UPDATE creature_template SET ScriptName='npc_spirit_guide' WHERE entry IN (13116, 13117);
@@ -202,7 +180,6 @@ UPDATE instance_template SET ScriptName='instance_sethekk_halls' WHERE map=556;
 UPDATE creature_template SET ScriptName='boss_talon_king_ikiss' WHERE entry=18473;
 UPDATE creature_template SET ScriptName='boss_darkweaver_syth' WHERE entry=18472;
 UPDATE creature_template SET ScriptName='boss_anzu' WHERE entry=23035;
-DELETE FROM scripted_event_id WHERE id=14797;
 INSERT INTO scripted_event_id VALUES
 (14797,'event_spell_summon_raven_god');
 
@@ -232,8 +209,8 @@ UPDATE creature_template SET ScriptName='npc_magwin' WHERE entry=17312;
 UPDATE creature_template SET ScriptName='npc_gilthares' WHERE entry=3465;
 UPDATE creature_template SET ScriptName='npc_taskmaster_fizzule' WHERE entry=7233;
 UPDATE creature_template SET ScriptName='npc_twiggy_flathead' WHERE entry=6248;
-DELETE FROM scripted_areatrigger WHERE entry=522;
-INSERT INTO scripted_areatrigger VALUES (522,'at_twiggy_flathead');
+INSERT INTO scripted_areatrigger VALUES 
+(522,'at_twiggy_flathead');
 UPDATE creature_template SET ScriptName='npc_wizzlecranks_shredder' WHERE entry=3439;
 UPDATE creature_template SET ScriptName='npc_gallywix' WHERE entry=7288;
 
@@ -276,10 +253,9 @@ UPDATE gameobject_template SET ScriptName='go_fire_of_akumai' WHERE entry IN (21
 UPDATE gameobject_template SET ScriptName='go_fathom_stone' WHERE entry=177964;
 
 /* BLACKROCK DEPTHS */
-DELETE FROM scripted_areatrigger WHERE entry=1526;
-INSERT INTO scripted_areatrigger VALUES (1526,'at_ring_of_law');
-DELETE FROM scripted_areatrigger WHERE entry=1786;
-INSERT INTO scripted_areatrigger VALUES (1786,'at_shadowforge_bridge');
+INSERT INTO scripted_areatrigger VALUES 
+(1526,'at_ring_of_law'),
+(1786,'at_shadowforge_bridge');
 UPDATE instance_template SET ScriptName='instance_blackrock_depths' WHERE map =230;
 UPDATE creature_template SET ScriptName='boss_emperor_dagran_thaurissan' WHERE entry=9019;
 UPDATE creature_template SET ScriptName='boss_moira_bronzebeard' WHERE entry=8929;
@@ -309,7 +285,7 @@ UPDATE instance_template SET ScriptName='instance_blackrock_spire' WHERE map=229
 UPDATE creature_template SET ScriptName='boss_overlord_wyrmthalak' WHERE entry=9568;
 UPDATE creature_template SET ScriptName='boss_gyth' WHERE entry=10339;
 UPDATE creature_template SET ScriptName='boss_pyroguard_emberseer' WHERE entry=9816;
-DELETE FROM scripted_event_id WHERE id=4884;
+UPDATE creature_template SET ScriptName='npc_rookery_hatcher' WHERE entry=10683;
 INSERT INTO scripted_event_id VALUES
 (4884,'event_spell_altar_emberseer');
 UPDATE gameobject_template SET ScriptName='go_father_flame' WHERE entry=175245;
@@ -367,7 +343,6 @@ UPDATE instance_template SET ScriptName='instance_old_hillsbrad' WHERE map=560;
 UPDATE creature_template SET ScriptName='npc_erozion' WHERE entry=18723;
 UPDATE creature_template SET ScriptName='npc_taretha' WHERE entry=18887;
 UPDATE creature_template SET ScriptName='npc_thrall_old_hillsbrad' WHERE entry=17876;
-DELETE FROM scripted_event_id WHERE id=11111;
 INSERT INTO scripted_event_id VALUES
 (11111,'event_go_barrel_old_hillsbrad');
 
@@ -450,7 +425,6 @@ UPDATE creature_template SET ScriptName='npc_magrami_spectre' WHERE entry=11560;
 
 /* DIRE MAUL */
 UPDATE instance_template SET ScriptName='instance_dire_maul' WHERE map=429;
-DELETE FROM scripted_event_id WHERE id IN (8420,8428);
 INSERT INTO scripted_event_id VALUES
 (8420,'event_spells_warlock_dreadsteed'),
 (8428,'event_spells_warlock_dreadsteed');
@@ -470,7 +444,6 @@ UPDATE creature_template SET ScriptName='npc_restless_apparition' WHERE entry=23
 UPDATE creature_template SET ScriptName='npc_private_hendel' WHERE entry=4966;
 UPDATE creature_template SET ScriptName='npc_stinky_ignatz' WHERE entry=4880;
 UPDATE creature_template SET ScriptName='boss_tethyr' WHERE entry=23899;
-DELETE FROM scripted_areatrigger WHERE entry=4752;
 INSERT INTO scripted_areatrigger VALUES
 (4752,'at_nats_landing');
 
@@ -487,7 +460,6 @@ UPDATE creature_template SET ScriptName='npc_apprentice_mirveda' WHERE entry=154
 UPDATE creature_template SET ScriptName='npc_infused_crystal' WHERE entry=16364;
 
 /* FELWOOD */
-DELETE FROM scripted_event_id WHERE id=8328;
 INSERT INTO scripted_event_id VALUES
 (8328, 'npc_kroshius');
 UPDATE creature_template SET ScriptName='npc_kitten' WHERE entry=9937;
@@ -626,7 +598,6 @@ UPDATE creature_template SET ScriptName='npc_human_charger' WHERE entry=21664;
 UPDATE creature_template SET ScriptName='npc_orc_wolf' WHERE entry=21748;
 UPDATE creature_template SET ScriptName='npc_human_cleric' WHERE entry=21682;
 UPDATE creature_template SET ScriptName='npc_orc_necrolyte' WHERE entry=21747;
-DELETE FROM scripted_event_id WHERE id IN (10591,10951);
 INSERT INTO scripted_event_id VALUES
 (10591,'event_spell_summon_nightbane'),
 (10951,'event_spell_medivh_journal');
@@ -655,7 +626,6 @@ UPDATE creature_template SET ScriptName='mob_arcane_sphere' WHERE entry=24708;
 UPDATE creature_template SET ScriptName='mob_felkael_phoenix' WHERE entry=24674;
 UPDATE creature_template SET ScriptName='mob_felkael_phoenix_egg' WHERE entry=24675;
 UPDATE creature_template SET ScriptName='npc_kalecgos' WHERE entry=24844;
-DELETE FROM scripted_event_id WHERE id=16547;
 INSERT INTO scripted_event_id VALUES
 (16547,'event_go_scrying_orb');
 
@@ -722,8 +692,8 @@ UPDATE gameobject_template SET ScriptName='go_anub_door' WHERE entry=181126;
 UPDATE creature_template SET ScriptName='boss_kelthuzad' WHERE entry=15990;
 
 /* NETHERSTORM */
-DELETE FROM scripted_areatrigger WHERE entry=4497;
-INSERT INTO scripted_areatrigger VALUES (4497,'at_commander_dawnforge');
+INSERT INTO scripted_areatrigger VALUES 
+(4497,'at_commander_dawnforge');
 UPDATE gameobject_template SET ScriptName='go_manaforge_control_console' WHERE entry IN (183770,183956,184311,184312);
 UPDATE creature_template SET ScriptName='npc_manaforge_control_console' WHERE entry IN (20209,20417,20418,20440);
 UPDATE creature_template SET ScriptName='npc_commander_dawnforge' WHERE entry=19831;
@@ -750,7 +720,6 @@ UPDATE creature_template SET ScriptName='npc_thrall_warchief' WHERE entry=4949;
 /* RAZORFEN DOWNS */
 UPDATE instance_template SET ScriptName='instance_razorfen_downs' WHERE map=129;
 UPDATE creature_template SET ScriptName='npc_belnistrasz' WHERE entry=8516;
-DELETE FROM scripted_event_id WHERE id=3130;
 INSERT INTO scripted_event_id VALUES (3130, 'event_go_tutenkash_gong');
 
 /* RAZORFEN KRAUL */
@@ -790,7 +759,6 @@ UPDATE instance_template SET ScriptName='instance_scholomance' WHERE map=289;
 UPDATE creature_template SET ScriptName='boss_darkmaster_gandling' WHERE entry=1853;
 UPDATE creature_template SET ScriptName='boss_jandice_barov' WHERE entry=10503;
 UPDATE creature_template SET ScriptName='npc_spectral_tutor' WHERE entry=10498;
-DELETE FROM scripted_event_id WHERE id IN (5618, 5619, 5620, 5621, 5622, 5623);
 INSERT INTO scripted_event_id VALUES
 (5618,'event_spell_gandling_shadow_portal'),
 (5619,'event_spell_gandling_shadow_portal'),
@@ -818,7 +786,6 @@ UPDATE creature_template SET ScriptName='mob_enslaved_netherwing_drake' WHERE en
 UPDATE creature_template SET ScriptName='npc_wilda' WHERE entry=21027;
 UPDATE creature_template SET ScriptName='mob_torloth' WHERE entry=22076;
 UPDATE creature_template SET ScriptName='npc_totem_of_spirits' WHERE entry=21071;
-DELETE FROM scripted_event_id WHERE id IN (13513,13514,13515,13516);
 INSERT INTO scripted_event_id VALUES
 (13513,'event_spell_soul_captured_credit'),
 (13514,'event_spell_soul_captured_credit'),
@@ -878,10 +845,9 @@ UPDATE gameobject_template SET ScriptName='go_stratholme_postbox' WHERE entry IN
 
 /* SUNKEN TEMPLE */
 UPDATE instance_template SET ScriptName='instance_sunken_temple' WHERE map=109;
-DELETE FROM scripted_areatrigger WHERE entry=4016;
-INSERT INTO scripted_areatrigger VALUES (4016,'at_shade_of_eranikus');
+INSERT INTO scripted_areatrigger VALUES 
+(4016,'at_shade_of_eranikus');
 UPDATE creature_template SET ScriptName='npc_malfurion_stormrage' WHERE entry=15362;
-DELETE FROM scripted_event_id WHERE id IN (3094,3095,3097,3098,3099,3100);
 INSERT INTO scripted_event_id VALUES
 (3094,'event_antalarion_statue_activation'),
 (3095,'event_antalarion_statue_activation'),
@@ -891,7 +857,6 @@ INSERT INTO scripted_event_id VALUES
 (3100,'event_antalarion_statue_activation');
 UPDATE creature_template SET ScriptName='npc_shade_of_hakkar' WHERE entry=8440;
 UPDATE gameobject_template SET ScriptName='go_eternal_flame' WHERE entry IN (148418,148419,148420,148421);
-DELETE FROM scripted_event_id WHERE id=8502;
 INSERT INTO scripted_event_id VALUES
 (8502,'event_avatar_of_hakkar');
 
@@ -901,8 +866,8 @@ UPDATE creature_template SET ScriptName='boss_brutallus' WHERE entry=24882;
 UPDATE creature_template SET ScriptName='boss_kalecgos' WHERE entry=24850;
 UPDATE creature_template SET ScriptName='boss_kalecgos_humanoid' WHERE entry=24891;
 UPDATE creature_template SET ScriptName='boss_sathrovarr' WHERE entry=24892;
-DELETE FROM scripted_areatrigger WHERE entry=4853;
-INSERT INTO scripted_areatrigger VALUES (4853,'at_madrigosa');
+INSERT INTO scripted_areatrigger VALUES 
+(4853,'at_madrigosa');
 UPDATE creature_template SET ScriptName='boss_alythess' WHERE entry=25166;
 UPDATE creature_template SET ScriptName='boss_sacrolash' WHERE entry=25165;
 UPDATE creature_template SET ScriptName='npc_shadow_image' WHERE entry=25214;
@@ -994,7 +959,6 @@ UPDATE creature_template SET ScriptName='boss_eye_of_cthun' WHERE entry=15589;
 UPDATE creature_template SET ScriptName='mob_sartura_royal_guard' WHERE entry=15984;
 UPDATE creature_template SET ScriptName='mob_giant_claw_tentacle' WHERE entry=15728;
 UPDATE creature_template SET ScriptName='mob_anubisath_sentinel' WHERE entry=15264;
-DELETE FROM scripted_areatrigger WHERE entry IN (4033,4034);
 INSERT INTO scripted_areatrigger VALUES
 (4033,'at_stomach_cthun'),
 (4034,'at_stomach_cthun');
@@ -1029,7 +993,6 @@ UPDATE gameobject_template SET ScriptName='go_mausoleum_door' WHERE entry=176594
 UPDATE creature_template SET ScriptName='npc_calvin_montague' WHERE entry=6784;
 
 /* ULDAMAN */
-DELETE FROM scripted_event_id WHERE id IN (2228,2268);
 INSERT INTO scripted_event_id VALUES
 (2228,'event_spell_altar_boss_aggro'),
 (2268,'event_spell_altar_boss_aggro');
@@ -1068,8 +1031,8 @@ UPDATE creature_template SET ScriptName='npc_ranshalla' WHERE entry=10300;
 UPDATE gameobject_template SET ScriptName='go_elune_fire' WHERE entry IN (177417, 177404);
 
 /* ZANGARMARSH */
-DELETE FROM scripted_event_id WHERE id=11225;
-INSERT INTO scripted_event_id VALUES (11225,'event_taxi_stormcrow');
+INSERT INTO scripted_event_id VALUES 
+(11225,'event_taxi_stormcrow');
 UPDATE creature_template SET ScriptName='npc_cooshcoosh' WHERE entry=18586;
 UPDATE creature_template SET ScriptName='npc_kayra_longmane' WHERE entry=17969;
 UPDATE creature_template SET ScriptName='npc_fhwoor' WHERE entry=17877;
@@ -1094,12 +1057,11 @@ UPDATE creature_template SET ScriptName='npc_forest_frog' WHERE entry=24396;
 
 /* ZUL'FARRAK */
 UPDATE instance_template SET ScriptName='instance_zulfarrak' WHERE map=209;
-DELETE FROM scripted_event_id WHERE id IN (2488,2609);
 INSERT INTO scripted_event_id VALUES
 (2488,'event_go_zulfarrak_gong'),
 (2609,'event_spell_unlocking');
-DELETE FROM scripted_areatrigger WHERE entry=1447;
-INSERT INTO scripted_areatrigger VALUES (1447,'at_zulfarrak');
+INSERT INTO scripted_areatrigger VALUES 
+(1447,'at_zulfarrak');
 UPDATE creature_template SET ScriptName='boss_zumrah' WHERE entry=7271;
 
 /* ZUL'GURUB */
@@ -3144,7 +3106,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1533071,'Enough prattling. Let them come! We shall grind their bones to dust.',8842,6,0,0,'mograine SAY_MORG_TAUNT1'),
 (-1533072,'Conserve your anger! Harness your rage! You will all have outlets for your frustration soon enough.',8843,6,0,0,'mograine SAY_MORG_TAUNT2'),
 (-1533073,'Life is meaningless. It is in death that we are truly tested.',8844,6,0,0,'mograine SAY_MORG_TAUNT3'),
-(-1533074,'I...am...released! Perhaps it\'s not too late to â€” noo! I need...more time...',8838,1,0,0,'mograine SAY_MORG_DEATH'),
+(-1533074,'I...am...released! Perhaps it\'s not too late to — noo! I need...more time...',8838,1,0,0,'mograine SAY_MORG_DEATH'),
 
 (-1533075,'Glory to the master!',8845,1,0,0,'noth SAY_AGGRO1'),
 (-1533076,'Your life is forfeit!',8846,1,0,0,'noth SAY_AGGRO2'),
@@ -7662,3 +7624,4 @@ INSERT INTO script_waypoint VALUES
 (17982, 39, -1952.080, -10560.300, 177.657, 1000, 'escort paused, SAY_LEGOSO_AGGRO');
 
 -- EOF
+

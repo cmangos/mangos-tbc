@@ -19,7 +19,7 @@ bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool chea
     newMoveInfo = MoveInfo;
     newMapID = m_Player->GetMapId();
 
-    if (m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->GetGMFly())
+    if (m_Player->HasAuraType(SPELL_AURA_FLY) || m_Player->HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED) || m_Player->GetGMFly())
         m_CanFly = true;
     else if (opcode == CMSG_MOVE_SET_CAN_FLY_ACK) // Trust that client will send ack when he's told not to fly anymore
         m_CanFly = false;

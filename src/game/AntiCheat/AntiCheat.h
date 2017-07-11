@@ -54,7 +54,7 @@ protected:
     float GetTransportDist3D();
     float GetTransportDistZ();
 
-    float GetSpeed();
+    float GetServerSpeed(bool includeold = true);
     float GetAllowedDistance();
 
     uint32 GetDiff();
@@ -73,4 +73,7 @@ protected:
 
 private:
     bool m_CanFly;
+
+    float AllowedSpeed[MAX_MOVE_TYPE];
+    float OldServerSpeed;
 };

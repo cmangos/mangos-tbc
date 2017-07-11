@@ -363,6 +363,8 @@ void WorldSession::HandleForceSpeedChangeAckOpcodes(WorldPacket& recv_data)
             _player->GetSession()->KickPlayer();
         }
     }
+
+    _player->ToCPlayer()->HandleAntiCheat(movementInfo, opcode);
 }
 
 void WorldSession::HandleSetActiveMoverOpcode(WorldPacket& recv_data)

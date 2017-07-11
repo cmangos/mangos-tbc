@@ -24,6 +24,40 @@ bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool chea
     else if (opcode == CMSG_MOVE_SET_CAN_FLY_ACK) // Trust that client will send ack when he's told not to fly anymore
         m_CanFly = false;
 
+
+    switch (opcode)
+    {
+    case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_WALK] = m_Player->GetSpeed(MOVE_WALK);
+        break;
+    case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_RUN] = m_Player->GetSpeed(MOVE_RUN);
+        break;
+    case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_RUN_BACK] = m_Player->GetSpeed(MOVE_RUN_BACK);
+        break;
+    case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_SWIM] = m_Player->GetSpeed(MOVE_SWIM);
+        break;
+    case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_SWIM_BACK] = m_Player->GetSpeed(MOVE_SWIM_BACK);
+        break;
+    case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
+        AllowedSpeed[MOVE_TURN_RATE] = m_Player->GetSpeed(MOVE_TURN_RATE);
+        break;
+    case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_FLIGHT] = m_Player->GetSpeed(MOVE_FLIGHT);
+        break;
+    case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_FLIGHT_BACK] = m_Player->GetSpeed(MOVE_FLIGHT_BACK);
+        break;
+    default: break;
+    }
+
+    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
+        if (m_Player->GetSpeed(UnitMoveType(i)) > AllowedSpeed[UnitMoveType(i)])
+            AllowedSpeed[UnitMoveType(i)] = m_Player->GetSpeed(UnitMoveType(i));
+
     return false;
 }
 
@@ -46,6 +80,10 @@ bool AntiCheat::Initialized()
         m_Initialized = true;
         SetOldMoveInfo(false);
         SetStoredMoveInfo(false);
+
+        for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
+            AllowedSpeed[i] = m_Player->GetSpeed(UnitMoveType(i));
+
         return false;
     }
 
@@ -56,6 +94,9 @@ bool AntiCheat::SetOldMoveInfo(bool value)
 {
     oldMoveInfo = newMoveInfo;
     oldMapID = m_Player->GetMapId();
+
+    OldServerSpeed = GetServerSpeed(false);
+
     return value;
 }
 
@@ -218,34 +259,25 @@ float AntiCheat::GetTransportDistZ()
     return newMoveInfo.GetTransportPos()->z - oldMoveInfo.GetTransportPos()->z;
 }
 
-float AntiCheat::GetSpeed()
+float AntiCheat::GetServerSpeed(bool includeold)
 {
-    bool oldBack = oldMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
-    float oldspeed = m_Player->GetSpeed(oldBack ? MOVE_RUN_BACK : MOVE_RUN);
-
-    if (isFlying(oldMoveInfo))
-        oldspeed = m_Player->GetSpeed(oldBack ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
-    else if (isSwimming(oldMoveInfo))
-        oldspeed = m_Player->GetSpeed(oldBack ? MOVE_SWIM_BACK : MOVE_SWIM);
-    else if (isWalking(oldMoveInfo))
-        oldspeed = m_Player->GetSpeed(MOVE_WALK);
-
-    bool newBack = newMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
-    float newspeed = m_Player->GetSpeed(newBack ? MOVE_RUN_BACK : MOVE_RUN);
+    bool back = newMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
+    float speed = AllowedSpeed[back ? MOVE_RUN_BACK : MOVE_RUN];
 
     if (isFlying(newMoveInfo))
-        newspeed = m_Player->GetSpeed(newBack ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
+        speed = AllowedSpeed[back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT];
     else if (isSwimming(newMoveInfo))
-        newspeed = m_Player->GetSpeed(newBack ? MOVE_SWIM_BACK : MOVE_SWIM);
+        speed = AllowedSpeed[back ? MOVE_SWIM_BACK : MOVE_SWIM];
     else if (isWalking(newMoveInfo))
-        newspeed = m_Player->GetSpeed(MOVE_WALK);
+        speed = AllowedSpeed[MOVE_WALK];
 
-    return std::max(oldspeed, newspeed);
+    return includeold ? std::max(OldServerSpeed, speed) : speed;
 }
+
 
 float AntiCheat::GetAllowedDistance()
 {
-    return GetDiffInSec() * GetSpeed();
+    return GetDiffInSec() * GetServerSpeed();
 }
 
 uint32 AntiCheat::GetDiff()

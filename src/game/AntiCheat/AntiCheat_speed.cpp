@@ -84,7 +84,7 @@ void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float 
 float AntiCheat_speed::GetAllowedSpeed()
 {
     float allowedspeed = GetServerSpeed();
-    allowedspeed = m_Knockback ? std::max(allowedspeed, GetKnockBackSpeed()) : allowedspeed;
+    allowedspeed = IsKnockedback() ? std::max(allowedspeed, GetKnockBackSpeed()) : allowedspeed;
 
     return allowedspeed;
 }

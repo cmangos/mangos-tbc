@@ -1149,7 +1149,7 @@ void Player::Update(uint32 update_diff, uint32 p_time)
     if (!IsInWorld())
         return;
 
-    ((CPlayer*)this)->CUpdate(update_diff, p_time);
+    ToCPlayer()->CUpdate(update_diff, p_time);
 
     // Undelivered mail
     if (m_nextMailDelivereTime && m_nextMailDelivereTime <= time(nullptr))
@@ -1849,8 +1849,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         else                                                // !map->CanEnter(this)
             return false;
     }
-
-    ToCPlayer()->HandleTeleport(mapid, x, y, z, orientation);
 
     return true;
 }

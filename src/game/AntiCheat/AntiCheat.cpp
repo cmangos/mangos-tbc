@@ -10,6 +10,7 @@ AntiCheat::AntiCheat(CPlayer* player)
 
     m_Initialized = false;
     m_CanFly = false;
+    m_CanWaterwalk = false;
 
     player->AddAntiCheatModule(this);
 }
@@ -23,6 +24,11 @@ bool AntiCheat::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool chea
         m_CanFly = true;
     else if (opcode == CMSG_MOVE_SET_CAN_FLY_ACK) // Trust that client will send ack when he's told not to fly anymore
         m_CanFly = false;
+
+    if (m_Player->HasAuraType(SPELL_AURA_WATER_WALK) || m_Player->HasAuraType(SPELL_AURA_GHOST))
+        m_CanWaterwalk = true;
+    else if (opcode == CMSG_MOVE_WATER_WALK_ACK)
+        m_CanWaterwalk = false;
 
 
     switch (opcode)
@@ -105,11 +111,6 @@ bool AntiCheat::SetStoredMoveInfo(bool value)
     storedMoveInfo = newMoveInfo;
     storedMapID = m_Player->GetMapId();
     return value;
-}
-
-bool AntiCheat::CanFly()
-{
-    return m_CanFly;
 }
 
 bool AntiCheat::IsMoving(MovementInfo& moveInfo)

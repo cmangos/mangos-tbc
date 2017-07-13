@@ -489,6 +489,8 @@ void WorldSession::HandleMoveWaterWalkAck(WorldPacket& recv_data)
     recv_data.read_skip<uint32>();                          // unk
     recv_data >> movementInfo;
     recv_data >> Unused<uint32>();                          // unk2
+
+    GetPlayer()->ToCPlayer()->HandleAntiCheat(movementInfo, CMSG_MOVE_WATER_WALK_ACK);
 }
 
 void WorldSession::HandleSummonResponseOpcode(WorldPacket& recv_data)

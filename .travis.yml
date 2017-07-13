@@ -17,7 +17,10 @@
 #
 
 language: cpp
-cache: ccache
+cache:
+    ccache: true
+    directories:
+        - $HOME/Library/Caches/Homebrew
 
 # reduce clone time by only getting the latest commit and not the whole history (default for travis is 100)
 git:

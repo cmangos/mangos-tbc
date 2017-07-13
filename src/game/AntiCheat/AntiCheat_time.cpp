@@ -7,7 +7,7 @@
 
 AntiCheat_time::AntiCheat_time(CPlayer* player) : AntiCheat(player)
 {
-    m_RelativeServerTime = 0;
+    ClientServerTimeOffset = 0;
 }
 
 bool AntiCheat_time::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
@@ -16,36 +16,34 @@ bool AntiCheat_time::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool
 
     if (!Initialized())
     {
-        m_RelativeServerTime += MoveInfo.GetTime();
+        ClientServerTimeOffset = MoveInfo.GetTime() - WorldTimer::getMSTime();
         return SetOldMoveInfo(false);
     }
 
-    if (GetDiff() < 50)
+    if (GetDiff() < 500)
         return false;
 
-    if (GetDistance() < 0.1f)
-        return false;
-
-    uint32 diff = std::abs(int64(MoveInfo.GetTime()) - m_RelativeServerTime);
-
-    if (diff > 1000 + m_Player->GetSession()->GetLatency())
+    if (GetTimeDiff() > 1000 + m_Player->GetSession()->GetLatency())
     {
         m_Player->TeleportToPos(oldMapID, oldMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
-        if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
+        if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER && false)
         {
+            m_Player->BoxChat << "TIMECHEAT" << "\n";
             m_Player->BoxChat << "ClientTime: " << MoveInfo.GetTime() << "\n";
-            m_Player->BoxChat << "ServerTime: " << m_RelativeServerTime << "\n";
-            m_Player->BoxChat << "ClientTime - ServerTime: " << int64(MoveInfo.GetTime()) - m_RelativeServerTime << "\n";
+            m_Player->BoxChat << "ServerTime: " << WorldTimer::getMSTime() << "\n";
+            m_Player->BoxChat << "Offfset: " << ClientServerTimeOffset << "\n";
+            m_Player->BoxChat << "Diff: " << GetTimeDiff() << "\n";
         }
 
-        m_RelativeServerTime = MoveInfo.GetTime() - 900 + m_Player->GetSession()->GetLatency();
+        // Reset time offset when cheat is detected
+        ClientServerTimeOffset = MoveInfo.GetTime() - WorldTimer::getMSTime();
     }
 
     return SetOldMoveInfo(false);
 }
 
-void AntiCheat_time::HandleUpdate(uint32 update_diff, uint32 p_time)
+uint32 AntiCheat_time::GetTimeDiff()
 {
-    m_RelativeServerTime += update_diff;
+    return std::abs(WorldTimer::getMSTime() + ClientServerTimeOffset - newMoveInfo.GetTime());
 }

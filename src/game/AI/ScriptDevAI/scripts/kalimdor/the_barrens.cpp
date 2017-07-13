@@ -647,6 +647,12 @@ void AddSC_the_barrens()
     Script* pNewScript;
 
     pNewScript = new Script;
+    pNewScript->Name = "npc_beaten_corpse";
+    pNewScript->pGossipHello = &GossipHello_npc_beaten_corpse;
+    pNewScript->pGossipSelect = &GossipSelect_npc_beaten_corpse;
+    pNewScript->RegisterSelf();
+    
+    pNewScript = new Script;
     pNewScript->Name = "npc_gilthares";
     pNewScript->GetAI = &GetAI_npc_gilthares;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_gilthares;

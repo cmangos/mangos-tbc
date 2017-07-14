@@ -26,7 +26,8 @@ protected:
     bool SetOldMoveInfo(bool value);
     bool SetStoredMoveInfo(bool value);
 
-    bool CanFly();
+    bool CanFly() { return m_CanFly; }
+    bool CanWaterwalk() { return m_CanWaterwalk; }
     bool IsMoving(MovementInfo& moveInfo);
     bool IsMoving();
     bool isFlying(MovementInfo& moveInfo);
@@ -54,7 +55,7 @@ protected:
     float GetTransportDist3D();
     float GetTransportDistZ();
 
-    float GetSpeed();
+    float GetServerSpeed(bool includeold = true);
     float GetAllowedDistance();
 
     uint32 GetDiff();
@@ -73,4 +74,8 @@ protected:
 
 private:
     bool m_CanFly;
+    bool m_CanWaterwalk;
+
+    float AllowedSpeed[MAX_MOVE_TYPE];
+    float OldServerSpeed;
 };

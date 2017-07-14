@@ -17,11 +17,8 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
     if (!Initialized())
     {
         m_Knockback = false;
-        m_FlySpeed = 0.f;
         return false;
     }
-
-    UpdateFlySpeed();
 
     if (opcode == MSG_MOVE_FALL_LAND || !isFalling(newMoveInfo))
         m_Knockback = false;
@@ -84,29 +81,10 @@ void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float 
     m_KnockbackSpeed = horizontalSpeed;
 }
 
-void AntiCheat_speed::UpdateFlySpeed()
-{
-    bool hasFlightAuras = false;
-
-    bool back = newMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD) && oldMoveInfo.HasMovementFlag(MOVEFLAG_BACKWARD);
-
-    for (uint8 i = SPELL_AURA_MOD_FLIGHT_SPEED; i <= SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED_NOT_STACKING; ++i)
-        if (m_Player->HasAuraType(AuraType(i)))
-            hasFlightAuras = true;
-
-    hasFlightAuras = hasFlightAuras || m_Player->HasAuraType(SPELL_AURA_FLY);
-
-    if (hasFlightAuras && isFlying())
-        m_FlySpeed = m_Player->GetSpeed(back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
-    else if (!isFlying())
-        m_FlySpeed = 0.f;
-}
-
 float AntiCheat_speed::GetAllowedSpeed()
 {
-    float allowedspeed = GetSpeed();
-    allowedspeed = m_Knockback ? std::max(allowedspeed, GetKnockBackSpeed()) : allowedspeed;
-    allowedspeed = isFlying() ? std::max(allowedspeed, GetFlySpeed()) : allowedspeed;
+    float allowedspeed = GetServerSpeed();
+    allowedspeed = IsKnockedback() ? std::max(allowedspeed, GetKnockBackSpeed()) : allowedspeed;
 
     return allowedspeed;
 }

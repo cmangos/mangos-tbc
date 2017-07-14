@@ -227,6 +227,7 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
     WorldLocation const& dest = plMover->GetTeleportDest();
 
     plMover->SetPosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation, true);
+    plMover->ToCPlayer()->HandleTeleport(plMover->GetMapId(), dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation);
 
     uint32 newzone, newarea;
     plMover->GetZoneAndAreaId(newzone, newarea);
@@ -363,6 +364,8 @@ void WorldSession::HandleForceSpeedChangeAckOpcodes(WorldPacket& recv_data)
             _player->GetSession()->KickPlayer();
         }
     }
+
+    _player->ToCPlayer()->HandleAntiCheat(movementInfo, opcode);
 }
 
 void WorldSession::HandleSetActiveMoverOpcode(WorldPacket& recv_data)
@@ -475,6 +478,8 @@ void WorldSession::HandleMoveHoverAck(WorldPacket& recv_data)
     recv_data >> Unused<uint32>();                          // unk
     recv_data >> movementInfo;
     recv_data >> Unused<uint32>();                          // unk2
+
+    GetPlayer()->ToCPlayer()->HandleAntiCheat(movementInfo, CMSG_MOVE_HOVER_ACK);
 }
 
 void WorldSession::HandleMoveWaterWalkAck(WorldPacket& recv_data)
@@ -487,6 +492,8 @@ void WorldSession::HandleMoveWaterWalkAck(WorldPacket& recv_data)
     recv_data.read_skip<uint32>();                          // unk
     recv_data >> movementInfo;
     recv_data >> Unused<uint32>();                          // unk2
+
+    GetPlayer()->ToCPlayer()->HandleAntiCheat(movementInfo, CMSG_MOVE_WATER_WALK_ACK);
 }
 
 void WorldSession::HandleSummonResponseOpcode(WorldPacket& recv_data)

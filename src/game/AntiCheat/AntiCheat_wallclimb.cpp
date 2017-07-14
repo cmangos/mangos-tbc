@@ -9,6 +9,9 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
+    if (isTransport())
+        return SetOldMoveInfo(false);
+
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
 
     if (angle <= 50.f)

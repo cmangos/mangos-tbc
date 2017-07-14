@@ -9,13 +9,11 @@ public:
 
     bool HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat) override;
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed) override;
-    void UpdateFlySpeed();
     float GetAllowedSpeed();
-    float GetFlySpeed() { return m_FlySpeed; }
+    float IsKnockedback() { return m_Knockback; }
     float GetKnockBackSpeed() { return m_KnockbackSpeed; }
 
 private:
     bool m_Knockback;
     float m_KnockbackSpeed;
-    float m_FlySpeed;
 };

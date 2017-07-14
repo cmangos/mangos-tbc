@@ -3592,6 +3592,9 @@ void Spell::SendSpellStart() const
     if (IsRangedSpell())
         castFlags |= CAST_FLAG_AMMO;
 
+    if (m_CastItem)
+        castFlags |= CAST_FLAG_UNKNOWN7;
+
     WorldPacket data(SMSG_SPELL_START, (8 + 8 + 4 + 4 + 2));
     if (m_CastItem)
         data << m_CastItem->GetPackGUID();
@@ -3623,6 +3626,12 @@ void Spell::SendSpellGo()
     uint32 castFlags = CAST_FLAG_UNKNOWN9;
     if (IsRangedSpell())
         castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual
+
+    if (HasPersistentAuraEffect(m_spellInfo))
+        castFlags |= CAST_FLAG_PERSISTENT_AA;
+
+    if(m_CastItem)
+        castFlags |= CAST_FLAG_UNKNOWN7;
 
     WorldPacket data(SMSG_SPELL_GO, 50);                    // guess size
 

@@ -46,6 +46,7 @@
 #include "Movement/MoveSplineInit.h"
 #include "Movement/MoveSpline.h"
 #include "Entities/CreatureLinkingMgr.h"
+#include "Tools/Formulas.h"
 
 #include <math.h>
 #include <array>
@@ -3818,14 +3819,14 @@ void Unit::_UpdateAutoRepeatSpell()
         if (getStandState() != UNIT_STAND_STATE_STAND)
             SetStandState(UNIT_STAND_STATE_STAND);
 
-        Unit* currSpellTarget = m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_targets.getUnitTarget();
+        Unit* currSpellTarget = GetMap()->GetUnit(m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_targets.getUnitTargetGuid());
         Unit* currTarget = nullptr;
 
         // Check i there is new target
         ObjectGuid const& currTargetGuid = GetTargetGuid();
         if (!currTargetGuid.IsEmpty() && currTargetGuid.IsUnit())
         {
-            if (currTargetGuid != currSpellTarget->GetObjectGuid())
+            if (!currSpellTarget || currTargetGuid != currSpellTarget->GetObjectGuid())
                 currTarget = GetMap()->GetUnit(currTargetGuid);
             else
                 currTarget = currSpellTarget;
@@ -8741,6 +8742,14 @@ float Unit::GetWeaponDamageRange(WeaponAttackType attType , WeaponDamageRange ty
         return 0.0f;
 
     return m_weaponDamage[attType][type];
+}
+
+bool Unit::IsTrivialForTarget(Unit const* unit) const
+{
+    if (!unit || GetTypeId() == TYPEID_PLAYER)
+        return false;
+
+    return MaNGOS::XP::IsTrivialLevelDifference(unit->GetLevelForTarget(this), GetLevelForTarget(unit));
 }
 
 void Unit::SetLevel(uint32 lvl)

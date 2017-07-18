@@ -38,10 +38,30 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouseBot
   ${CMAKE_CURRENT_SOURCE_DIR}/BattleGround
   ${CMAKE_CURRENT_SOURCE_DIR}/OutdoorPvP
+  ${CMAKE_CURRENT_SOURCE_DIR}/playerbot
   ${CMAKE_SOURCE_DIR}/src/shared
   ${CMAKE_SOURCE_DIR}/src/framework
   ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/src/shared
+)
+
+set(LIBRARY_SRCS
+    ${SRC_GRP_PLAYERBOT}
+    ${SRC_GRP_AI}
+    ${SRC_GRP_AHBOT}
+    ${SRC_GRP_BATTLEGROUND}
+    ${SRC_GRP_CHAT_COMMANDS}
+    ${SRC_GRP_MOTION_GEN}
+    ${SRC_GRP_MOVEMENT}
+    ${SRC_GRP_OBJECT}
+    ${SRC_GRP_OUTDOOR_PVP}
+    ${SRC_GRP_REFERENCES}
+    ${SRC_GRP_SERVER}
+    ${SRC_GRP_TOOL}
+    ${SRC_GRP_VMAPS}
+    ${SRC_GRP_WORLD_HANDLERS}
+    pchdef.cpp
+    pchdef.h
 )
 
 # Find all the input files
@@ -109,3 +129,5 @@ if(PCH)
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR})
 endif()
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/playerbot.conf.dist.in DESTINATION ${CONF_DIR} RENAME playerbot.conf.dist)

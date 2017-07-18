@@ -2161,7 +2161,7 @@ enum SkillCategory
 
 enum TotemCategory
 {
-    TC_SKINNING_SKIFE              = 1,
+    TC_SKINNING_KNIFE              = 1,
     TC_EARTH_TOTEM                 = 2,
     TC_AIR_TOTEM                   = 3,
     TC_FIRE_TOTEM                  = 4,

@@ -20,6 +20,7 @@
 #define _PLAYERBOTAI_H
 
 #include "Common.h"
+#include "../../Entities/Creature.h"
 #include "../../Entities/ObjectGuid.h"
 #include "../../Entities/Unit.h"
 #include "../../GameEvents/GameEventMgr.h"

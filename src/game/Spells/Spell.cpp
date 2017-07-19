@@ -894,7 +894,7 @@ void Spell::AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex)
     WorldObject* affectiveObject = GetAffectiveCasterObject();
 
     // Spell have speed (possible inherited from triggering spell) - need calculate incoming time
-    float speed = m_spellInfo->speed == 0.0f && m_triggeredBySpellInfo ? m_triggeredBySpellInfo->speed : m_spellInfo->speed;
+    float speed = GetSpellSpeed();
     if (speed > 0.0f && affectiveObject && (pVictim != affectiveObject || (m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))))
     {
         // calculate spell incoming interval
@@ -979,7 +979,7 @@ void Spell::AddGOTarget(GameObject* pVictim, SpellEffectIndex effIndex)
     WorldObject* affectiveObject = GetAffectiveCasterObject();
 
     // Spell can have speed - need calculate incoming time
-    float speed = m_spellInfo->speed == 0.0f && m_triggeredBySpellInfo ? m_triggeredBySpellInfo->speed : m_spellInfo->speed;
+    float speed = GetSpellSpeed();
     if (speed > 0.0f && affectiveObject && pVictim != affectiveObject)
     {
         // calculate spell incoming interval
@@ -1068,7 +1068,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
         procVictim   = PROC_FLAG_NONE;
     }
 
-    float speed = m_spellInfo->speed == 0.0f && m_triggeredBySpellInfo ? m_triggeredBySpellInfo->speed : m_spellInfo->speed;
+    float speed = GetSpellSpeed();
     if (speed > 0.0f)
     {
         // mark effects that were already handled in Spell::HandleDelayedSpellLaunch on spell launch as processed
@@ -1241,7 +1241,7 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
     Unit* realCaster = GetAffectiveCaster();
 
     // Recheck immune (only for delayed spells)
-    const float speed = m_spellInfo->speed == 0.0f && m_triggeredBySpellInfo ? m_triggeredBySpellInfo->speed : m_spellInfo->speed;
+    const float speed = GetSpellSpeed();
     const bool traveling = (speed > 0.0f);
     if (traveling && (
                 unit->IsImmuneToDamage(GetSpellSchoolMask(m_spellInfo)) ||
@@ -3264,8 +3264,7 @@ void Spell::cast(bool skipCheck)
     InitializeDamageMultipliers();
 
     // Okay, everything is prepared. Now we need to distinguish between immediate and evented delayed spells
-    float speed = m_spellInfo->speed == 0.0f && m_triggeredBySpellInfo ? m_triggeredBySpellInfo->speed : m_spellInfo->speed;
-    if (speed > 0.0f)
+    if (GetSpellSpeed() > 0.0f)
     {
         // Remove used for cast item if need (it can be already nullptr after TakeReagents call
         // in case delayed spell remove item at cast delay start

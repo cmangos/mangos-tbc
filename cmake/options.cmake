@@ -1,5 +1,6 @@
 option(DEBUG                "Include additional debug-code in core" OFF)
 option(WARNINGS             "Show all warnings during compile"      OFF)
+option(USE_LOCKLESS_MALLOC  "Use lockless memory allocator"         OFF)
 option(POSTGRESQL           "Use PostgreSQL"                        OFF)
 option(PCH                  "Use precompiled headers"               ON)
 option(BUILD_GAME_SERVER    "Build game server"                     ON)
@@ -22,7 +23,7 @@ message(STATUS
     PCH                     Use precompiled headers
     DEBUG                   Include additional debug-code in core
     WARNINGS                Show all warnings during compile
-    DEBUG                   Include additional debug-code in core
+    USE_LOCKLESS_MALLOC     Use lockless memory allocator instead of platform default
     POSTGRESQL              Use PostgreSQL instead of mysql
     BUILD_GAME_SERVER       Build game server (core server)
     BUILD_LOGIN_SERVER      Build login server (auth server)

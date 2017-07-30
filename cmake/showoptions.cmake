@@ -60,6 +60,12 @@ else()
   message(STATUS "Build extractors      : No  (default)")
 endif()
 
+if(USE_LOCKLESS_MALLOC)
+  message(STATUS "Use lockless malloc   : Yes")
+else()
+  message(STATUS "Use lockless malloc   : No  (default)")
+endif()
+
 # if(SQL)
 #   message(STATUS "Install SQL-files     : Yes")
 # else()

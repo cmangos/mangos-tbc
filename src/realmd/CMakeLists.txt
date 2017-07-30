@@ -47,6 +47,10 @@ add_executable(${EXECUTABLE_NAME}
 
 add_dependencies(${EXECUTABLE_NAME} RevisionGenerator)
 
+if(USE_LOCKLESS_MALLOC)
+  target_link_libraries(${EXECUTABLE_NAME} lockless)
+endif()
+
 target_link_libraries(${EXECUTABLE_NAME}
   shared
   framework

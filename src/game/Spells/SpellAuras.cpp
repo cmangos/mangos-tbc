@@ -7687,18 +7687,22 @@ void SpellAuraHolder::UpdateAuraDuration()
 
     if (m_target->GetTypeId() == TYPEID_PLAYER)
     {
-        WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
-        data << uint8(GetAuraSlot());
-        data << uint32(GetAuraDuration());
-        ((Player*)m_target)->SendDirectMessage(data);
+        if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
+        {
+            WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
+            data << uint8(GetAuraSlot());
+            data << uint32(GetAuraDuration());
+            ((Player*)m_target)->SendDirectMessage(data);
 
-        data.Initialize(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
-        data << m_target->GetPackGUID();
-        data << uint8(GetAuraSlot());
-        data << uint32(GetId());
-        data << uint32(GetAuraMaxDuration());
-        data << uint32(GetAuraDuration());
-        ((Player*)m_target)->SendDirectMessage(data);
+            data = WorldPacket(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
+            data << m_target->GetPackGUID();
+            data << uint8(GetAuraSlot());
+            data << uint32(GetId());
+            data << uint32(GetAuraMaxDuration());
+            data << uint32(GetAuraDuration());
+
+            ((Player*)m_target)->SendDirectMessage(data);
+        }
     }
 
     // not send in case player loading (will not work anyway until player not added to map), sent in visibility change code

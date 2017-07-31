@@ -3,26 +3,7 @@
 -- Host: localhost    Database: characters
 -- ------------------------------------------------------
 
---
--- Table structure for table `playerbotai_db_version`
---
-
--- When updating, don't forget to update revision_sql.h
-
-DROP TABLE IF EXISTS `playerbot_db_version`;
-CREATE TABLE `playerbot_db_version` (
-  `version` varchar(120) default NULL,
-  `characters_playerbot_saved_data_001` bit(1) default NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=FIXED COMMENT='Used DB version notes';
-
---
--- Dumping data for table `playerbotai_db_version`
---
-
-LOCK TABLES `playerbot_db_version` WRITE;
-INSERT INTO `playerbot_db_version` VALUES
-('PlayerbotAI default database.',NULL);
-UNLOCK TABLES;
+ALTER TABLE character_db_version CHANGE COLUMN required_s2345_01_characters_instance required_s2346_01_characters_playerbot_saved_data bit;
 
 -- ----------------------------
 -- Table structure for `playerbot_saved_data`

@@ -2528,34 +2528,34 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
 
         /* uncomment this and your bots will tell you all their outgoing packet opcode names
-        case SMSG_MONSTER_MOVE:
-        case SMSG_UPDATE_WORLD_STATE:
-        case SMSG_COMPRESSED_UPDATE_OBJECT:
-        case MSG_MOVE_SET_FACING:
-        case MSG_MOVE_STOP:
-        case MSG_MOVE_HEARTBEAT:
-        case MSG_MOVE_STOP_STRAFE:
-        case MSG_MOVE_START_STRAFE_LEFT:
-        case SMSG_UPDATE_OBJECT:
-        case MSG_MOVE_START_FORWARD:
-        case MSG_MOVE_START_STRAFE_RIGHT:
-        case SMSG_DESTROY_OBJECT:
-        case MSG_MOVE_START_BACKWARD:
-        case SMSG_AURA_UPDATE_ALL:
-        case MSG_MOVE_FALL_LAND:
-        case MSG_MOVE_JUMP:
-        return;
+           case SMSG_MONSTER_MOVE:
+           case SMSG_UPDATE_WORLD_STATE:
+           case SMSG_COMPRESSED_UPDATE_OBJECT:
+           case MSG_MOVE_SET_FACING:
+           case MSG_MOVE_STOP:
+           case MSG_MOVE_HEARTBEAT:
+           case MSG_MOVE_STOP_STRAFE:
+           case MSG_MOVE_START_STRAFE_LEFT:
+           case SMSG_UPDATE_OBJECT:
+           case MSG_MOVE_START_FORWARD:
+           case MSG_MOVE_START_STRAFE_RIGHT:
+           case SMSG_DESTROY_OBJECT:
+           case MSG_MOVE_START_BACKWARD:
+           case SMSG_AURA_UPDATE_ALL:
+           case MSG_MOVE_FALL_LAND:
+           case MSG_MOVE_JUMP:
+            return;*/
 
         default:
         {
-        const char* oc = LookupOpcodeName(packet.GetOpcode());
+            /*const char* oc = LookupOpcodeName(packet.GetOpcode());
 
-        std::ostringstream out;
-        out << "botout: " << oc;
-        sLog.outError(out.str().c_str());
+            std::ostringstream out;
+            out << "botout: " << oc;
+            sLog.outError(out.str().c_str());
 
-        //TellMaster(oc);
-        }*/
+            TellMaster(oc);*/
+        }
     }
 }
 

@@ -398,7 +398,7 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             // Kill Mellichar and start combat
             if (Creature* pSkyriss = GetSingleCreatureFromStorage(NPC_SKYRISS))
             {
-                pSkyriss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+                pSkyriss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
                 pMellichar->DealDamage(pMellichar, pMellichar->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
             }
             DoUseDoorOrButton(GO_SEAL_SPHERE);

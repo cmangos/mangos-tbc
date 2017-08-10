@@ -10848,7 +10848,7 @@ bool Unit::TakePossessOf(Unit* possessed)
         player->UnsummonPetTemporaryIfAny();
 
         charmInfo->InitPossessCreateSpells();
-        charmInfo->GetAI()->SetReactState(REACT_PASSIVE);
+        possessed->AI()->SetReactState(REACT_PASSIVE);
         charmInfo->SetCommandState(COMMAND_STAY);
         player->PossessSpellInitialize();
     }
@@ -10893,7 +10893,7 @@ bool Unit::TakeCharmOf(Unit* charmed)
                                                                                                            //charmedPlayer->SetWalk(IsWalking(), true);
 
         charmInfo->InitCharmCreateSpells();
-        charmInfo->GetAI()->SetReactState(REACT_DEFENSIVE);
+        charmed->AI()->SetReactState(REACT_DEFENSIVE);
         charmInfo->SetCommandState(COMMAND_FOLLOW);
         charmInfo->SetIsRetreating(true);
 
@@ -10909,7 +10909,7 @@ bool Unit::TakeCharmOf(Unit* charmed)
         charmedCreature->SetWalk(IsWalking(), true);
 
         charmInfo->InitCharmCreateSpells();
-        charmInfo->GetAI()->SetReactState(REACT_DEFENSIVE);
+        charmed->AI()->SetReactState(REACT_DEFENSIVE);
         charmInfo->SetCommandState(COMMAND_FOLLOW);
         charmInfo->SetIsRetreating(true);
 

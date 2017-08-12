@@ -2055,6 +2055,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(m_caster, 30270, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 35754:                                 // Charge
+                {
+                    unitTarget->CastSpell(unitTarget, 35769, TRIGGERED_NONE); // Cast Felfire upon itself on hit
+                    return;
+                }
                 case 37144:                                 // Move (Chess event player knight move)
                 case 37146:                                 // Move (Chess event player pawn move)
                 case 37148:                                 // Move (Chess event player queen move)

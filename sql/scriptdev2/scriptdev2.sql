@@ -1336,12 +1336,12 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000272,'%s hands one glowing goggles over to Doctor Draxlegauge.',0,2,0,0,'phizzlethorpe EMOTE_PROGRESS_8'),
 (-1000273,'Doctor Draxlegauge will give you further instructions, $N. Many thanks for your help!',0,0,0,1,'phizzlethorpe SAY_PROGRESS_9'),
 
-(-1000274,'Time to teach you a lesson in manners, little $Gboy:girl;!',0,0,0,0,'larry SAY_START'),
-(-1000275,'Now I\'m gonna give you to the count of \'3\' to get out of here before I sick the dogs on you.',0,0,0,0,'larry SAY_COUNT'),
+(-1000274,'Time to teach you a lesson in manners, little $Gboy:girl;!',0,0,0,5,'larry SAY_START'),
+(-1000275,'Now I\'m gonna give you to the count of \'3\' to get out of here before I sick the dogs on you.',0,0,0,1,'larry SAY_COUNT'),
 (-1000276,'1...',0,0,0,0,'larry SAY_COUNT_1'),
 (-1000277,'2...',0,0,0,0,'larry SAY_COUNT_2'),
 (-1000278,'Time to meet your maker!',0,0,0,0,'larry SAY_ATTACK_5'),
-(-1000279,'Alright, we give up! Don\'t hurt us!',0,0,0,0,'larry SAY_GIVEUP'),
+(-1000279,'Alright, we give up! Don\'t hurt us!',0,0,0,20,'larry SAY_GIVEUP'),
 
 (-1000280,'A shadowy, sinister presence has invaded the Emerald Dream. Its power is poised to spill over into our world, $N. We must oppose it! That\'s why I cannot accompany you in person.',0,0,0,1,'clintar SAY_START'),
 (-1000281,'The Emerald Dream will never be yours!',0,0,0,0,'clintar SAY_AGGRO_1'),
@@ -2174,7 +2174,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001182,'REUSE ME',0,0,0,0,'REUSE_ME'),
 (-1001183,'REUSE ME',0,0,0,0,'REUSE_ME'),
 
-(-1001184,'REUSE ME',0,0,0,0,'REUSE_ME'),
+
+(-1001184,'%s cracks his knuckles.',0,2,0,23,'larry EMOTE_KNUCKLES'),
 (-1001185,'REUSE ME',0,0,0,0,'REUSE_ME'),
 (-1001186,'REUSE ME',0,0,0,0,'REUSE_ME'),
 (-1001187,'REUSE ME',0,0,0,0,'REUSE_ME'),

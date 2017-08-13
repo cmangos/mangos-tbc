@@ -5206,10 +5206,6 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     if (spellId == 0)
         return false;
 
-    // check spell cooldown
-    if (m_bot->HasSpellCooldown(spellId))
-        return false;
-
     // see Creature.cpp 1738 for reference
     // don't allow bot to cast damage spells on friends
     const SpellEntry* const pSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
@@ -5218,6 +5214,10 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
         TellMaster("missing spell entry in CastSpell for spellid %u.", spellId);
         return false;
     }
+
+    // check spell cooldown
+    if (!m_bot->IsSpellReady(*pSpellInfo))
+        return false;
 
     // for AI debug purpose: uncomment the following line and bot will tell Master of every spell they attempt to cast
     // TellMaster("I'm trying to cast %s (spellID %u)", pSpellInfo->SpellName[0], spellId);
@@ -5347,15 +5347,15 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
     if (!pet)
         return false;
 
-    if (pet->HasSpellCooldown(spellId))
-        return false;
-
     const SpellEntry* const pSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!pSpellInfo)
     {
         TellMaster("Missing spell entry in CastPetSpell()");
         return false;
     }
+
+    if (!pet->IsSpellReady(*pSpellInfo))
+        return false;
 
     // set target
     Unit* pTarget;
@@ -6790,7 +6790,7 @@ void PlayerbotAI::UseItem(Item *item, uint32 targetFlag, ObjectGuid targetGUID)
         MovementClear();
     }
 
-    if (m_bot->HasSpellCooldown(spellId))
+    if (!m_bot->IsSpellReady(*spellInfo))
         return;
     // spell not on cooldown: mark it as next spell to cast whenever possible for bot
     m_CurrentlyCastingSpellId = spellId;

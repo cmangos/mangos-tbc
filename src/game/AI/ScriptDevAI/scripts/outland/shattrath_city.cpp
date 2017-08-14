@@ -130,24 +130,26 @@ struct npc_dirty_larryAI : public ScriptedAI
         switch (uiStep)
         {
             case 1:
-                pCreepjack->SetFacingToObject(pPlayer);
                 pCreepjack->SetStandState(UNIT_STAND_STATE_STAND);
-                pMalone->SetFacingToObject(pPlayer);
                 pMalone->SetStandState(UNIT_STAND_STATE_STAND);
                 DoScriptText(SAY_START, m_creature, pPlayer);
-                return 1000;
+                return 2000;
             case 2:
+                pMalone->SetFacingToObject(pPlayer);
+                pCreepjack->SetFacingToObject(pPlayer);
                 DoScriptText(EMOTE_KNUCKLES, pCreepjack, pPlayer);
                 DoScriptText(EMOTE_KNUCKLES, pMalone, pPlayer);
-                return 1000;
-            case 3: DoScriptText(SAY_COUNT, m_creature, pPlayer);       return 5000;
-            case 4: DoScriptText(SAY_COUNT_1, m_creature, pPlayer);     return 1000;
-            case 5: DoScriptText(SAY_COUNT_2, m_creature, pPlayer);     return 1000;
-            case 6: DoScriptText(SAY_ATTACK, m_creature, pPlayer);      return 2000;
+                return 2000;
+            case 3: DoScriptText(SAY_COUNT, m_creature, pPlayer);   return 5000;
+            case 4: DoScriptText(SAY_COUNT_1, m_creature, pPlayer); return 2000;
+            case 5: DoScriptText(SAY_COUNT_2, m_creature, pPlayer); return 2000;
+            case 6: DoScriptText(SAY_ATTACK, m_creature, pPlayer);  return 2000;
             case 7:
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 pMalone->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 pCreepjack->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+
+                SetReactState(REACT_AGGRESSIVE);
 
                 if (pPlayer->isAlive())
                 {
@@ -162,7 +164,14 @@ struct npc_dirty_larryAI : public ScriptedAI
                 }
 
                 bActiveAttack = true;
-                return 2000;
+                return 500;
+            case 8:
+                DoScriptText(SAY_GIVEUP, m_creature, pPlayer);
+                return 4000;
+            case 9:
+                m_creature->GetMotionMaster()->MoveTargetedHome();
+                EnterEvadeMode();
+                return 0;
             default:
                 return 0;
         }
@@ -189,11 +198,14 @@ struct npc_dirty_larryAI : public ScriptedAI
         {
             uiDamage = 0;
 
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            SetReactState(REACT_PASSIVE);
+            m_creature->DeleteThreatList();
+            m_creature->CombatStop();
+
             if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
-            {
-                DoScriptText(SAY_GIVEUP, m_creature, pPlayer);
                 pPlayer->GroupEventHappens(QUEST_WHAT_BOOK, m_creature);
-            }
+
             if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
             {
                 if (!pCreepjack->IsInEvadeMode() && pCreepjack->isAlive())
@@ -209,7 +221,7 @@ struct npc_dirty_larryAI : public ScriptedAI
                 pMalone->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
             }
 
-            EnterEvadeMode();
+            bActiveAttack = false;
         }
     }
 

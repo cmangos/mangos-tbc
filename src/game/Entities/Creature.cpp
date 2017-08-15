@@ -378,7 +378,7 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
 
     // creatures always have melee weapon ready if any
     SetSheath(SHEATH_STATE_MELEE);
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_AURAS);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
 
     if (preserveHPAndPower)
     {
@@ -2012,8 +2012,8 @@ bool Creature::LoadCreatureAddon(bool reload)
     // 3 ShapeshiftForm     Must be determined/set by shapeshift spell/aura
     SetByteValue(UNIT_FIELD_BYTES_2, 0, cainfo->sheath_state);
 
-    if (cainfo->flags != 0)
-        SetByteValue(UNIT_FIELD_BYTES_2, 1, cainfo->flags);
+    //if (cainfo->flags != 0)
+    //    SetByteValue(UNIT_FIELD_BYTES_2, 1, cainfo->flags);
 
     // SetByteValue(UNIT_FIELD_BYTES_2, 2, 0);
     // SetByteValue(UNIT_FIELD_BYTES_2, 3, 0);

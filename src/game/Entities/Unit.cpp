@@ -10688,7 +10688,7 @@ bool Unit::TakeCharmOf(Unit* charmed)
             charmedPlayer->setFaction(getFaction());
 
         charmInfo->SetCharmState("PetAI");
-        charmed->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SUPPORTABLE | UNIT_BYTE2_FLAG_AURAS); // important have to be after charminfo initialization
+        charmed->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28); // important have to be after charminfo initialization
                                                                                                            //charmedPlayer->SetWalk(IsWalking(), true);
 
         charmInfo->InitCharmCreateSpells();

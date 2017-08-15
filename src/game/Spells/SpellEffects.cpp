@@ -4330,7 +4330,12 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
         spawnCreature->InitStatsForLevel(level);
 
         if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+        {
             spawnCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+        }
+        else
+            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
 
         if (m_caster->IsPvP())
             spawnCreature->SetPvP(true);
@@ -4348,8 +4353,6 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
         }
 
         m_caster->AddGuardian(spawnCreature);
-
-        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SUPPORTABLE | UNIT_BYTE2_FLAG_UNK5);
     }
 
     return true;
@@ -4746,13 +4749,16 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     DEBUG_LOG("New Pet has guid %u", NewSummon->GetGUIDLow());
 
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    {
         NewSummon->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+    }
+    else
+        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
     {
         NewSummon->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
-
-        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SUPPORTABLE | UNIT_BYTE2_FLAG_AURAS);
 
         NewSummon->GetCharmInfo()->SetPetNumber(pet_number, true);
 
@@ -7083,9 +7089,12 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     casterPlayer->_SetMiniPet(critter);
 
     if (casterPlayer->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    {
         critter->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-
-    critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_SUPPORTABLE | UNIT_BYTE2_FLAG_UNK5);
+        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+    }
+    else
+        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
 
     return true;
 }

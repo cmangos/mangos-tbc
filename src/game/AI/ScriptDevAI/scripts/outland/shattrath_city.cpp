@@ -109,19 +109,24 @@ struct npc_dirty_larryAI : public ScriptedAI
     uint32 NextStep(uint32 uiStep)
     {
         Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid);
-        Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid);
-        Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid);
 
         if (!pPlayer)
         {
-            if (!pCreepjack->IsInEvadeMode() && pCreepjack->isAlive())
-                pCreepjack->AI()->EnterEvadeMode();
+            if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
+            {
+                if (!pCreepjack->IsInEvadeMode() && pCreepjack->isAlive())
+                    pCreepjack->AI()->EnterEvadeMode();
 
-            if (!pMalone->IsInEvadeMode() && pMalone->isAlive())
-                pMalone->AI()->EnterEvadeMode();
+                pCreepjack->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            }
 
-            pCreepjack->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-            pMalone->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
+            {
+                if (!pMalone->IsInEvadeMode() && pMalone->isAlive())
+                    pMalone->AI()->EnterEvadeMode();
+
+                pMalone->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            }
 
             EnterEvadeMode();
             return 0;
@@ -130,15 +135,25 @@ struct npc_dirty_larryAI : public ScriptedAI
         switch (uiStep)
         {
             case 1:
-                pCreepjack->SetStandState(UNIT_STAND_STATE_STAND);
-                pMalone->SetStandState(UNIT_STAND_STATE_STAND);
+                if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid)) 
+                    pCreepjack->SetStandState(UNIT_STAND_STATE_STAND);
+                
+                if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid)) 
+                    pMalone->SetStandState(UNIT_STAND_STATE_STAND);
+                
                 DoScriptText(SAY_START, m_creature, pPlayer);
                 return 2000;
             case 2:
-                pMalone->SetFacingToObject(pPlayer);
-                pCreepjack->SetFacingToObject(pPlayer);
-                DoScriptText(EMOTE_KNUCKLES, pCreepjack, pPlayer);
-                DoScriptText(EMOTE_KNUCKLES, pMalone, pPlayer);
+                if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
+                {
+                    pMalone->SetFacingToObject(pPlayer);
+                    DoScriptText(EMOTE_KNUCKLES, pMalone, pPlayer);
+                }
+                if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
+                {
+                    pCreepjack->SetFacingToObject(pPlayer);
+                    DoScriptText(EMOTE_KNUCKLES, pCreepjack, pPlayer);
+                }
                 return 2000;
             case 3: DoScriptText(SAY_COUNT, m_creature, pPlayer);   return 5000;
             case 4: DoScriptText(SAY_COUNT_1, m_creature, pPlayer); return 2000;
@@ -146,9 +161,6 @@ struct npc_dirty_larryAI : public ScriptedAI
             case 6: DoScriptText(SAY_ATTACK, m_creature, pPlayer);  return 2000;
             case 7:
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                pMalone->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                pCreepjack->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-
                 SetReactState(REACT_AGGRESSIVE);
 
                 if (pPlayer->isAlive())
@@ -156,11 +168,19 @@ struct npc_dirty_larryAI : public ScriptedAI
                     if (!m_creature->isInCombat())
                         AttackStart(pPlayer);
 
-                    if (!pMalone->isInCombat())
-                        pMalone->AI()->AttackStart(pPlayer);
+                    if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
+                    {
+                        pMalone->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                        if (!pMalone->isInCombat())
+                            pMalone->AI()->AttackStart(pPlayer);
+                    }
 
-                    if (!pCreepjack->isInCombat())
-                        pCreepjack->AI()->AttackStart(pPlayer);
+                    if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
+                    {
+                        pCreepjack->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                        if (!pCreepjack->isInCombat())
+                            pCreepjack->AI()->AttackStart(pPlayer);
+                    }
                 }
 
                 bActiveAttack = true;

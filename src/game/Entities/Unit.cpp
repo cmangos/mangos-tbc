@@ -5575,7 +5575,7 @@ bool Unit::IsHostileTo(Unit const* unit) const
             return false;
 
         // Sanctuary
-        if (pTarget->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY) && pTester->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY))
+        if (pTarget->IsPvPSanctuary() && pTester->IsPvPSanctuary())
             return false;
 
         // PvP FFA state
@@ -5689,7 +5689,7 @@ bool Unit::IsFriendlyTo(Unit const* unit) const
             return true;
 
         // Sanctuary
-        if (pTarget->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY) && pTester->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY))
+        if (pTarget->IsPvPSanctuary() && pTester->IsPvPSanctuary())
             return true;
 
         // PvP FFA state
@@ -10254,6 +10254,26 @@ void Unit::SetPvP(bool state)
         ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_STATUS);
 
     CallForAllControlledUnits(SetPvPHelper(state), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
+}
+
+bool Unit::IsPvPSanctuary() const
+{
+    // Pre-WotLK sanctuary check (query player in charge)
+    if (const Player* thisPlayer = GetBeneficiaryPlayer())
+        return thisPlayer->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY);
+    return false;
+}
+
+void Unit::SetPvPSanctuary(bool state)
+{
+    // Pre-WotLK sanctuary set (for player only)
+    if (GetTypeId() == TYPEID_PLAYER)
+    {
+        if (state)
+            SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY);
+        else
+            RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY);
+    }
 }
 
 void Unit::RestoreOriginalFaction()

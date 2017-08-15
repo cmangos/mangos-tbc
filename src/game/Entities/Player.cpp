@@ -6673,7 +6673,7 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
 
     if (zone->flags & AREA_FLAG_SANCTUARY)                  // in sanctuary
     {
-        SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY);
+        SetPvPSanctuary(true);
 
         // Sanctuary zones removes pvp flags
         if (IsPvP() || pvpInfo.endTimer != 0)
@@ -6684,7 +6684,7 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
     }
     else
     {
-        RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY);
+        SetPvPSanctuary(false);
     }
 
     if (zone->flags & AREA_FLAG_CAPITAL)                    // in capital city

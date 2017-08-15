@@ -313,6 +313,7 @@ extern void AddSC_boss_harbinger_skyriss();
 extern void AddSC_boss_soccothrates();
 extern void AddSC_instance_arcatraz();
 extern void AddSC_boss_high_botanist_freywinn();            // TK, botanica
+extern void AddSC_boss_thorngrin();
 extern void AddSC_boss_laj();
 extern void AddSC_boss_warp_splinter();
 extern void AddSC_boss_alar();                              // TK, the_eye
@@ -647,6 +648,7 @@ void AddScripts()
     AddSC_boss_soccothrates();
     AddSC_instance_arcatraz();
     AddSC_boss_high_botanist_freywinn();                    // TK, botanica
+    AddSC_boss_thorngrin();
     AddSC_boss_laj();
     AddSC_boss_warp_splinter();
     AddSC_boss_alar();                                      // TK, the_eye

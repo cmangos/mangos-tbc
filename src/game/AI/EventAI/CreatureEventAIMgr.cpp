@@ -27,6 +27,7 @@
 #include "Maps/GridDefines.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "World/World.h"
+#include "DBScripts/ScriptMgr.h"
 
 INSTANTIATE_SINGLETON_1(CreatureEventAIMgr);
 
@@ -73,11 +74,17 @@ void CreatureEventAIMgr::CheckUnusedAITexts()
                                 idx_set.erase(action.text.TextId[k]);
                         break;
                     }
+                    case ACTION_T_TEXT_NEW:
+                        if (action.textNew.textId)
+                            idx_set.erase(action.textNew.textId);
+                        break;
                     default: break;
                 }
             }
         }
     }
+
+    sScriptMgr.CheckRandomStringTemplates(idx_set);
 
     for (std::set<int32>::const_iterator itr = idx_set.begin(); itr != idx_set.end(); ++itr)
         sLog.outErrorEventAI("Entry %i in table `creature_ai_texts` but not used in EventAI scripts.", *itr);
@@ -235,6 +242,7 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
             }
             return true;
         case TARGET_T_SUMMONER:
+        case TARGET_T_EVENT_SPECIFIC:
             return true;
         default:
             sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type", eventId, action);
@@ -875,7 +883,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                             sLog.outErrorEventAI("Event %u Action %u uses unexpected radius 0 (set to %f of CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS)", i, j + 1, sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS));
                             action.throwEvent.radius = uint32(sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS));
                         }
-
+                        IsValidTargetType(temp.event_type, action.type, action.throwEvent.target, i, j + 1);
                         break;
                     case ACTION_T_SET_THROW_MASK:
                         if (action.setThrowMask.eventTypeMask & ~((1 << MAXIMAL_AI_EVENT_EVENTAI) - 1))
@@ -912,6 +920,62 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         {
                             sLog.outErrorEventAI("Event %u Action %u uses invalid current spell type %u (must be smaller or equal to %u)", i, j + 1, action.interruptSpell.currentSpellType, CURRENT_MAX_SPELL - 1);
                             continue;
+                        }
+                        break;
+                    case ACTION_T_START_RELAY_SCRIPT:
+                        if (action.relayScript.relayId > 0)
+                        {
+                            if (sRelayScripts.second.find(action.relayScript.relayId) == sRelayScripts.second.end())
+                            {
+                                sLog.outErrorEventAI("Event %u Action %u references invalid dbscript_on_relay id %u", i, j + 1, action.relayScript.relayId);
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            if (!sScriptMgr.CheckScriptRelayTemplateId(uint32(-action.relayScript.relayId)))
+                            {
+                                sLog.outErrorEventAI("Event %u Action %u references non-existing entry for relay Id template (%i) in dbscript_random_templates table.", i, j + 1, action.relayScript.relayId);
+                                break;
+                            }
+                        }
+                        break;
+                    case ACTION_T_TEXT_NEW:
+                        if (action.textNew.textId)
+                        {
+                            if (!sObjectMgr.GetMangosStringLocale(action.textNew.textId))
+                            {
+                                sLog.outErrorEventAI("Event %u Action %u references non-existing entry (%i) in texts table.", i, j + 1, action.textNew.textId);
+                                action.textNew.textId = 0;
+                            }
+                            else
+                                usedTextIds.insert(action.textNew.textId);
+                        }
+                        else
+                        {
+                            if (!sScriptMgr.CheckScriptStringTemplateId(action.textNew.templateId))
+                            {
+                                sLog.outErrorEventAI("Event %u Action %u references non-existing entry for text template (%i) in dbscript_random_templates table.", i, j + 1, action.textNew.textId);
+                                break;
+                            }
+                            else
+                            {
+                                ScriptMgr::ScriptTemplateVector templateData;
+                                sScriptMgr.GetScriptStringTemplate(action.textNew.templateId, templateData);
+                                for(auto& data : templateData)
+                                    if(data.first)
+                                        usedTextIds.insert(data.first);
+                            }
+                        }
+                        break;
+                    case ACTION_T_ATTACK_START:
+                        IsValidTargetType(temp.event_type, action.type, action.attackStart.target, i, j + 1);
+                        break;
+                    case ACTION_T_DESPAWN_GUARDIANS:
+                        if (action.despawnGuardians.entryId && !sCreatureStorage.LookupEntry<CreatureInfo>(action.despawnGuardians.entryId))
+                        {
+                            sLog.outErrorEventAI("Event %u Action %u uses nonexistent Creature entry %u.", i, j + 1, action.despawnGuardians.entryId);
+                            action.despawnGuardians.entryId = 0;
                         }
                         break;
                     default:

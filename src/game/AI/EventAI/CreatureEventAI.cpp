@@ -685,6 +685,8 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 {
                     if (m_DynamicMovement)
                     {
+                        SetCombatMovement(false, true);
+
                         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
                         if (spellInfo && !(spellInfo->rangeIndex == SPELL_RANGE_IDX_COMBAT || spellInfo->rangeIndex == SPELL_RANGE_IDX_SELF_ONLY) && target != m_creature)
@@ -1045,7 +1047,14 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         }
         case ACTION_T_THROW_AI_EVENT:
         {
-            SendAIEventAround(AIEventType(action.throwEvent.eventType), pActionInvoker, 0, action.throwEvent.radius);
+            Unit* target = GetTargetByType(action.throwEvent.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+            SendAIEventAround(AIEventType(action.throwEvent.eventType), target, 0, action.throwEvent.radius);
             break;
         }
         case ACTION_T_SET_THROW_MASK:
@@ -1100,6 +1109,79 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         case ACTION_T_INTERRUPT_SPELL:
         {
             m_creature->InterruptSpell((CurrentSpellTypes)action.interruptSpell.currentSpellType);
+            break;
+        }
+        case ACTION_T_START_RELAY_SCRIPT:
+        {
+            Unit* target = GetTargetByType(action.relayScript.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+
+            if (action.relayScript.relayId < 0)
+            {
+                uint32 relayId = sScriptMgr.GetRandomRelayDbscriptFromTemplate(uint32(-action.relayScript.relayId));
+                if (relayId == 0)
+                    break;
+                m_creature->GetMap()->ScriptsStart(sRelayScripts, relayId, target, nullptr);
+            }
+            else
+                m_creature->GetMap()->ScriptsStart(sRelayScripts, action.relayScript.relayId, target, nullptr);
+            break;
+        }
+        case ACTION_T_TEXT_NEW:
+        {
+            Unit* target = GetTargetByType(action.textNew.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+
+            int32 textId = 0;
+
+            if (action.textNew.templateId)
+            {
+                textId = sScriptMgr.GetRandomScriptStringFromTemplate(action.textNew.templateId);
+                if (textId == 0)
+                    break;
+            }
+            else
+                textId = action.textNew.textId;
+
+            if (!DoDisplayText(m_creature, textId, target))
+                sLog.outErrorEventAI("Error attempting to display text %i, used by script %u", textId, EventId);
+            break;
+        }
+        case ACTION_T_ATTACK_START:
+        {
+            Unit* target = GetTargetByType(action.attackStart.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+            AttackStart(target);
+            break;
+        }
+        case ACTION_T_DESPAWN_GUARDIANS:
+        {
+            if (action.despawnGuardians.entryId)
+            {
+                if (Pet* guardian = m_creature->FindGuardianWithEntry(action.despawnGuardians.entryId))
+                {
+                    guardian->Unsummon(PET_SAVE_AS_DELETED, m_creature); // can remove pet guid from m_guardianPets
+                    m_creature->RemoveGuardian(guardian);
+                }
+                // not throwing error otherwise because guardian might as well be dead
+            }
+            else
+                m_creature->RemoveGuardians();
             break;
         }
         default:
@@ -1182,6 +1264,12 @@ void CreatureEventAI::JustReachedHome()
 
 void CreatureEventAI::EnterEvadeMode()
 {
+    if (m_DynamicMovement)
+    {
+        m_DynamicMovement = false;
+        SetCombatMovement(!m_DynamicMovement);
+    }
+
     m_creature->RemoveAllAurasOnEvade();
     m_creature->DeleteThreatList();
     m_creature->CombatStop(true);
@@ -1434,8 +1522,12 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
         {
             if (m_creature->IsWithinLOSInMap(victim))
             {
-                if (m_LastSpellMaxRange && m_creature->IsInRange(victim, 0, (m_LastSpellMaxRange / 1.5f)))
-                    SetCombatMovement(false, true);
+                if (m_LastSpellMaxRange && m_creature->IsInRange(victim, 0, (m_LastSpellMaxRange / 1.5f)) &&
+                    m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+                {
+                    if(IsCombatMovement())
+                        SetCombatMovement(false, true);
+                }
                 else
                     SetCombatMovement(true, true);
             }

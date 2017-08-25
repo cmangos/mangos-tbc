@@ -2941,7 +2941,7 @@ void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
 
     unitTarget->ModifyPower(powerType, -new_damage);
 
-    float gainMultiplier = 0.0f;
+    float gainMultiplier = 1.0f;
 
     // Do not gain power from self drain or when power types don't match
     if (m_caster->GetPowerType() == powerType && m_caster != unitTarget)
@@ -2951,6 +2951,8 @@ void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
         if (Player* modOwner = m_caster->GetSpellModOwner())
             modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_MULTIPLE_VALUE, gainMultiplier);
     }
+
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_POWER_DRAIN), unitTarget->GetPackGUID(), new_damage, uint32(powerType), gainMultiplier);
 
     if (int32 gain = int32(new_damage * gainMultiplier))
         m_caster->EnergizeBySpell(m_caster, m_spellInfo->Id, gain, powerType);
@@ -3000,6 +3002,9 @@ void Spell::EffectPowerBurn(SpellEffectIndex eff_idx)
 
     new_damage = int32(new_damage * multiplier);
     m_damage += new_damage;
+
+    // should use here effect POWER_DRAIN because POWER_BURN is not implemented on client
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_POWER_DRAIN), unitTarget->GetPackGUID(), new_damage, uint32(powertype), multiplier);
 }
 
 void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
@@ -3139,10 +3144,10 @@ void Spell::EffectHealthLeech(SpellEffectIndex eff_idx)
     }
 }
 
-void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
+bool Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
-        return;
+        return false;
 
     Player* player = (Player*)unitTarget;
 
@@ -3151,7 +3156,7 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
     if (!pProto)
     {
         player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
-        return;
+        return false;
     }
 
     // bg reward have some special in code work
@@ -3211,7 +3216,7 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
         {
             // if not created by another reason from full inventory or unique items amount limitation
             player->SendEquipError(msg, nullptr, nullptr, newitemid);
-            return;
+            return false;
         }
     }
 
@@ -3224,7 +3229,7 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
         if (!pItem)
         {
             player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
-            return;
+            return false;
         }
 
         // set the "Crafted by ..." property of the item
@@ -3245,11 +3250,14 @@ void Spell::DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype)
         if (BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(BattleGroundTypeId(bgType)))
             bg->SendRewardMarkByMail(player, newitemid, no_space);
     }
+
+    return true;
 }
 
 void Spell::EffectCreateItem(SpellEffectIndex eff_idx)
 {
-    DoCreateItem(eff_idx, m_spellInfo->EffectItemType[eff_idx]);
+    if (DoCreateItem(eff_idx, m_spellInfo->EffectItemType[eff_idx]))
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_CREATE_ITEM), m_spellInfo->EffectItemType[eff_idx]);
 }
 
 void Spell::EffectPersistentAA(SpellEffectIndex eff_idx)
@@ -3471,7 +3479,6 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
     Player* player = (Player*)m_caster;
 
     uint32 lockId;
-    ObjectGuid guid;
 
     // Get lockId
     if (gameObjTarget)
@@ -3503,12 +3510,10 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
             }
         }
         lockId = goInfo->GetLockId();
-        guid = gameObjTarget->GetObjectGuid();
     }
     else if (itemTarget)
     {
         lockId = itemTarget->GetProto()->LockID;
-        guid = itemTarget->GetObjectGuid();
     }
     else
     {
@@ -3555,10 +3560,16 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
 
         // only send loot if owner is player, else client sends release anyway
         if (itemTarget->GetOwnerGuid() == m_caster->GetObjectGuid())
-            SendLoot(guid, LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
+        {
+            SendLoot(itemTarget->GetObjectGuid(), LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
+            m_spellLog.AddLog(uint32(SPELL_EFFECT_OPEN_LOCK), itemTarget->GetPackGUID());
+        }
     }
     else
-        SendLoot(guid, LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
+    {
+        SendLoot(gameObjTarget->GetObjectGuid(), LOOT_SKINNING, LockType(m_spellInfo->EffectMiscValue[eff_idx]));
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_OPEN_LOCK), gameObjTarget->GetPackGUID());
+    }
 }
 
 void Spell::EffectSummonChangeItem(SpellEffectIndex eff_idx)
@@ -3866,6 +3877,8 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             // original caster is provided by script so we have to notify it as its not done in Object::SummonCreature
             m_originalCaster->AI()->JustSummoned(itr->creature);
         }
+
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), itr->creature->GetPackGUID());
     }
 }
 
@@ -3897,6 +3910,7 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
                 spawnCreature->SetDuration(m_duration);
 
             spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
+            m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), spawnCreature->GetPackGUID());
             return true;
         }
 
@@ -3976,6 +3990,8 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
         if (m_caster->getClass() != CLASS_PRIEST)
             spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
     }
+
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), spawnCreature->GetPackGUID());
     return true;
 }
 
@@ -4674,7 +4690,8 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         {
             case CLASS_HUNTER:
             {
-                NewSummon->LoadPetFromDB((Player*)m_caster);
+                if (NewSummon->LoadPetFromDB((Player*)m_caster))
+                    m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_PET), NewSummon->GetPackGUID());
                 return;
             }
             case CLASS_WARLOCK:
@@ -4698,8 +4715,11 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
                     OldSummon->Unsummon(PET_SAVE_NOT_IN_SLOT, m_caster);
 
                 // Load pet from db; if any to load
-                if (NewSummon->LoadPetFromDB((Player*)m_caster, petentry)) 
+                if (NewSummon->LoadPetFromDB((Player*)m_caster, petentry))
+                {
+                    m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_PET), NewSummon->GetPackGUID());
                     return;
+                }
 
                 NewSummon->setPetType(SUMMON_PET);
             }
@@ -4788,6 +4808,8 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         else if (m_caster->AI())
             m_caster->AI()->JustSummoned(NewSummon);
     }
+
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_PET), NewSummon->GetPackGUID());
 }
 
 void Spell::EffectLearnPetSpell(SpellEffectIndex eff_idx)
@@ -5093,6 +5115,7 @@ void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
     if (!unitTarget->isAlive())
         return;
 
+    uint32 interruptedSpellId = 0;
     // TODO: not all spells that used this effect apply cooldown at school spells
     // also exist case: apply cooldown to interrupted cast only and to all spells
     for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
@@ -5105,9 +5128,13 @@ void Spell::EffectInterruptCast(SpellEffectIndex /*eff_idx*/)
             {
                 unitTarget->ProhibitSpellSchool(GetSpellSchoolMask(curSpellInfo), GetSpellDuration(m_spellInfo));
                 unitTarget->InterruptSpell(CurrentSpellTypes(i), false);
+                interruptedSpellId = curSpellInfo->Id;
             }
         }
     }
+
+    if (interruptedSpellId)
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_INTERRUPT_CAST), unitTarget->GetPackGUID(), interruptedSpellId);
 }
 
 void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
@@ -5176,6 +5203,8 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
         m_originalCaster->AI()->JustSummoned(pGameObj);
     else if (m_caster->AI())
         m_caster->AI()->JustSummoned(pGameObj);
+
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_OBJECT_WILD), pGameObj->GetPackGUID());
 }
 
 void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
@@ -6288,6 +6317,8 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
 
     caster->SetGuidValue(PLAYER_DUEL_ARBITER, pGameObj->GetObjectGuid());
     target->SetGuidValue(PLAYER_DUEL_ARBITER, pGameObj->GetObjectGuid());
+
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_DUEL), target->GetPackGUID());
 }
 
 void Spell::EffectStuck(SpellEffectIndex /*eff_idx*/)
@@ -6704,6 +6735,7 @@ void Spell::EffectFeedPet(SpellEffectIndex eff_idx)
     _player->DestroyItemCount(foodItem, count, true);
     // TODO: fix crash when a spell has two effects, both pointed at the same item target
 
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_FEED_PET), foodItem->GetEntry());
     m_caster->CastCustomSpell(m_caster, m_spellInfo->EffectTriggerSpell[eff_idx], &benefit, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
 }
 
@@ -6717,6 +6749,10 @@ void Spell::EffectDismissPet(SpellEffectIndex /*eff_idx*/)
     // not let dismiss dead pet
     if (!pet || !pet->isAlive())
         return;
+
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_DISMISS_PET), pet->GetPackGUID());
+    // send log now before remove it from map to avoid "unknown" name
+    m_spellLog.SendToSet();
 
     pet->Unsummon(PET_SAVE_NOT_IN_SLOT, m_caster);
 }
@@ -6779,6 +6815,8 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
         m_originalCaster->AI()->JustSummoned(pGameObj);
     else if (m_caster->AI())
         m_caster->AI()->JustSummoned(pGameObj);
+
+    m_spellLog.AddLog(m_spellInfo->Effect[eff_idx], pGameObj->GetPackGUID());
 }
 
 void Spell::EffectResurrect(SpellEffectIndex /*eff_idx*/)
@@ -6835,6 +6873,7 @@ void Spell::EffectAddExtraAttacks(SpellEffectIndex /*eff_idx*/)
         return;
 
     unitTarget->m_extraAttacks = damage;
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_ADD_EXTRA_ATTACKS), unitTarget->GetPackGUID(), damage);
 }
 
 void Spell::EffectParry(SpellEffectIndex /*eff_idx*/)
@@ -7419,6 +7458,8 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
         m_originalCaster->AI()->JustSummoned(pGameObj);
     else if (m_caster->AI())
         m_caster->AI()->JustSummoned(pGameObj);
+
+    m_spellLog.AddLog(uint32(SPELL_EFFECT_TRANS_DOOR), pGameObj->GetPackGUID());
 }
 
 void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)

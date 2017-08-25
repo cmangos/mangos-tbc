@@ -17,7 +17,6 @@ INSERT INTO spell_template(Id,ProcFlags,ProcChance,DurationIndex,Effect1,EffectI
 ('37264','0','101','21','28','18','7','0','21729','64','0','1','Power Converters: Summon Electromental (from cata)'),
 ('37278','0','101','21','28','18','1','0','21737','64','0','1','Power Converters: Summon Mini-Electromental (from cata)'),
 ('37365','0','101','21','28','18','1','0','21757','64','0','1','Power Converters: Summon Big Flavor Electromental (from cata)'),
-('37492','0','0','0','61','0','0','0','13852','0','0','1','BOX O TRICKS EVENT TRIGGER'),
 ('42456','0','0','9','76','47','0','0','185318','0','0','1','Summon smoke object'),
 ('42467','0','0','8','76','47','0','0','185319','0','0','1','Summon fire object'),
 ('44920','0','101','21','6','1','0','56','24941','0','0','1','Model - Shattered Sun Marksman - BE Male Tier 4'),
@@ -194,6 +193,10 @@ INSERT INTO spell_template (Id, SchoolMask, Dispel, Mechanic, Attributes, Castin
 (31321,1,0,0,256,1,0,101,0,0,21,1,0,-1,0,28,1,1,18,8,0,17839,0,1,'Summon Black Morass Rift Lord',0,0,0,1,0,0,64),
 (37177,1,0,0,256,1,0,101,0,0,21,1,0,-1,0,28,1,1,18,8,0,21697,0,1,'Summon Black Morass Infinite Chrono-Lord',0,0,0,1,0,0,64),
 (37178,1,0,0,256,1,0,101,0,0,21,1,0,-1,0,28,1,1,18,8,0,21698,0,1,'Summon Black Morass Infinite Timereaver',0,0,0,1,0,0,64);
+
+-- To Legion Hold crate diguise missing spell
+INSERT INTO spell_template(Id, Attributes,AttributesEx4,InterruptFlags,DurationIndex,Effect1,Effect2,EffectImplicitTargetA1,EffectApplyAuraName1,EffectMiscValue2,SpellIconID,SpellName,DmgMultiplier1,DmgMultiplier2) VALUES
+(37492,335544704,4,27,3,6,61,1,12,13852,1,'Crate Disguise Subspell',1,1);
 
 
 -- Fumping summoning spells

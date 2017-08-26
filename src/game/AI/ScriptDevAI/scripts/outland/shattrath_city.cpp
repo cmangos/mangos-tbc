@@ -213,11 +213,11 @@ struct npc_dirty_larryAI : public ScriptedAI
         if (uiDamage < m_creature->GetHealth())
             return;
 
+        uiDamage = 0;
+
         // damage will kill, this is pretty much the same as 1%HP left
         if (bEvent)
         {
-            uiDamage = 0;
-
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
             SetReactState(REACT_PASSIVE);
             m_creature->DeleteThreatList();

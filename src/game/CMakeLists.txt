@@ -27,7 +27,7 @@ include_directories(SYSTEM
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour
   ${CMAKE_SOURCE_DIR}/dep/recastnavigation
   ${CMAKE_SOURCE_DIR}/dep/include
-  ${CMAKE_SOURCE_DIR}/dep
+  ${ZLIB_INCLUDE_DIRS}
   ${MYSQL_INCLUDE_DIR}
 )
 
@@ -38,6 +38,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouseBot
   ${CMAKE_CURRENT_SOURCE_DIR}/BattleGround
   ${CMAKE_CURRENT_SOURCE_DIR}/OutdoorPvP
+  ${CMAKE_CURRENT_SOURCE_DIR}/playerbot
   ${CMAKE_SOURCE_DIR}/src/shared
   ${CMAKE_SOURCE_DIR}/src/framework
   ${CMAKE_BINARY_DIR}
@@ -50,6 +51,17 @@ FILE(GLOB_RECURSE LIBRARY_SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.h" "*.c
 if(NOT BUILD_SCRIPTDEV)
   # exclude script folder for faster build time (used for dev mode)
   set (EXCLUDE_DIR "AI/ScriptDevAI/scripts/")
+  foreach (TMP_PATH ${LIBRARY_SRCS})
+      string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+      if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+          list(REMOVE_ITEM LIBRARY_SRCS ${TMP_PATH})
+      endif ()
+  endforeach()
+endif()
+
+if(NOT BUILD_PLAYERBOT)
+  # exclude Playerbot folder
+  set (EXCLUDE_DIR "PlayerBot/")
   foreach (TMP_PATH ${LIBRARY_SRCS})
       string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
       if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
@@ -90,6 +102,11 @@ if (BUILD_SCRIPTDEV)
   add_definitions(-DBUILD_SCRIPTDEV)
 endif()
 
+# Define BUILD_PLAYERBOT if need
+if (BUILD_PLAYERBOT)
+  add_definitions(-DBUILD_PLAYERBOT)
+endif()
+
 # Generate precompiled header
 if(PCH)
   if (MSVC)
@@ -109,3 +126,5 @@ if(PCH)
   endif()
   include_directories(${CMAKE_CURRENT_BINARY_DIR})
 endif()
+
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlayerBot/playerbot.conf.dist.in DESTINATION ${CONF_DIR} RENAME playerbot.conf.dist)

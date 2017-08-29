@@ -413,6 +413,7 @@ class ChatHandler
         bool HandleReloadDBScriptsOnQuestEndCommand(char* args);
         bool HandleReloadDBScriptsOnQuestStartCommand(char* args);
         bool HandleReloadDBScriptsOnSpellCommand(char* args);
+        bool HandleReloadDBScriptsOnRelayCommand(char* args);
 
         bool HandleReloadEventAITextsCommand(char* args);
         bool HandleReloadEventAISummonsCommand(char* args);
@@ -590,6 +591,9 @@ class ChatHandler
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);
         bool HandleQuitCommand(char* args);
+#ifdef BUILD_PLAYERBOT
+        bool HandlePlayerbotCommand(char* args);
+#endif
 
         bool HandleMmapPathCommand(char* args);
         bool HandleMmapLocCommand(char* args);
@@ -598,6 +602,12 @@ class ChatHandler
         bool HandleMmap(char* args);
         bool HandleMmapTestArea(char* args);
         bool HandleMmapTestHeight(char* args);
+
+        bool HandleLinkAddCommand(char * args);
+        bool HandleLinkRemoveCommand(char * args);
+        bool HandleLinkEditCommand(char * args);
+        bool HandleLinkToggleCommand(char * args);
+        bool HandleLinkCheckCommand(char * args);
 
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
@@ -713,7 +723,7 @@ class CliHandler : public ChatHandler
         AccountTypes m_loginAccessLevel;
         Print m_print;
 
-    public:        
+    public:
         CliHandler(uint32 accountId, AccountTypes accessLevel, Print zprint)
             : m_accountId(accountId), m_loginAccessLevel(accessLevel), m_print(zprint) {}
 

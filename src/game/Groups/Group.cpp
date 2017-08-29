@@ -29,6 +29,9 @@
 #include "BattleGround/BattleGround.h"
 #include "Maps/MapManager.h"
 #include "Maps/MapPersistentStateMgr.h"
+#ifdef BUILD_PLAYERBOT
+    #include "PlayerBot/Base/PlayerbotMgr.h"
+#endif
 
 GroupMemberStatus GetGroupMemberStatus(const Player *member = nullptr)
 {
@@ -42,7 +45,7 @@ GroupMemberStatus GetGroupMemberStatus(const Player *member = nullptr)
             flags |= MEMBER_STATUS_DEAD;
         if (member->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
             flags |= MEMBER_STATUS_GHOST;
-        if (member->IsFFAPvP())
+        if (member->IsPvPFreeForAll())
             flags |= MEMBER_STATUS_PVP_FFA;
         if (member->isAFK())
             flags |= MEMBER_STATUS_AFK;
@@ -322,6 +325,13 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
 uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 {
+#ifdef BUILD_PLAYERBOT
+    // if master leaves group, all bots leave group
+    Player* const player = sObjectMgr.GetPlayer(guid);
+    if (player && player->GetPlayerbotMgr())
+        player->GetPlayerbotMgr()->RemoveAllBotsFromGroup();
+#endif
+
     // remove member and change leader (if need) only if strong more 2 members _before_ member remove
     if (GetMembersCount() > GetMembersMinCount())
     {
@@ -1370,7 +1380,7 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
  */
 void Group::RewardGroupAtKill(Unit* pVictim, Player* player_tap)
 {
-    bool PvP = pVictim->isCharmedOwnedByPlayerOrPlayer();
+    bool PvP = pVictim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
 
     // prepare data for near group iteration (PvP and !PvP cases)
     uint32 count = 0;

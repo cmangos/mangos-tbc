@@ -238,7 +238,7 @@ struct boss_mandokirAI : public ScriptedAI
 
         if (uiPointId == POINT_DOWNSTAIRS)
         {
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
             m_creature->SetInCombatWithZone();
         }
     }
@@ -270,7 +270,7 @@ struct boss_mandokirAI : public ScriptedAI
             {
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                 {
-                    if (Player* pPlayer = pTarget->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    if (Player* pPlayer = pTarget->GetBeneficiaryPlayer())
                         m_creature->CastSpell(pPlayer, SPELL_WATCH, TRIGGERED_NONE);
                 }
             }

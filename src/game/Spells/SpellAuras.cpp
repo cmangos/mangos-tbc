@@ -46,6 +46,8 @@
 #include "Tools/Language.h"
 #include "Maps/MapManager.h"
 #include "Loot/LootMgr.h"
+#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
+
 #include "Entities/CPlayer.h"
 
 #define NULL_AURA_SLOT 0xFF
@@ -281,7 +283,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleUnused,                                    //222 unused
     &Aura::HandleNULL,                                      //223 Cold Stare
     &Aura::HandleUnused,                                    //224 unused
-    &Aura::HandleNoImmediateEffect,                         //225 SPELL_AURA_PRAYER_OF_MENDING
+    &Aura::HandlePrayerOfMending,                           //225 SPELL_AURA_PRAYER_OF_MENDING
     &Aura::HandleAuraPeriodicDummy,                         //226 SPELL_AURA_PERIODIC_DUMMY
     &Aura::HandlePeriodicTriggerSpellWithValue,             //227 SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE
     &Aura::HandleNoImmediateEffect,                         //228 SPELL_AURA_DETECT_STEALTH
@@ -518,7 +520,7 @@ void AreaAura::Update(uint32 diff)
 
         if (!caster->hasUnitState(UNIT_STAT_ISOLATED))
         {
-            Unit* owner = caster->GetCharmerOrOwner();
+            Unit* owner = caster->GetMaster();
             if (!owner)
                 owner = caster;
             Spell::UnitList targets;
@@ -667,10 +669,12 @@ void AreaAura::Update(uint32 diff)
                     holder->SetInUse(false);
                 }
                 else
+                {
                     if ((*tIter)->AddSpellAuraHolder(holder))
                         holder->SetState(SPELLAURAHOLDER_STATE_READY);
                     else
                         delete holder;
+                }
             }
         }
         Aura::Update(diff);
@@ -699,14 +703,14 @@ void AreaAura::Update(uint32 diff)
         else if (m_areaAuraType == AREA_AURA_PARTY)         // check if in same sub group
         {
             // not check group if target == owner or target == pet
-            if (caster->GetCharmerOrOwnerGuid() != target->GetObjectGuid() && caster->GetObjectGuid() != target->GetCharmerOrOwnerGuid())
+            if (caster->GetMasterGuid() != target->GetObjectGuid() && caster->GetObjectGuid() != target->GetMasterGuid())
             {
-                Player* check = caster->GetCharmerOrOwnerPlayerOrPlayerItself();
+                Player* check = caster->GetBeneficiaryPlayer();
 
                 Group* pGroup = check ? check->GetGroup() : nullptr;
                 if (pGroup)
                 {
-                    Player* checkTarget = target->GetCharmerOrOwnerPlayerOrPlayerItself();
+                    Player* checkTarget = target->GetBeneficiaryPlayer();
                     if (!checkTarget || !pGroup->SameSubGroup(check, checkTarget))
                         target->RemoveSingleAuraFromSpellAuraHolder(GetId(), GetEffIndex(), GetCasterGuid());
                 }
@@ -716,7 +720,7 @@ void AreaAura::Update(uint32 diff)
         }
         else if (m_areaAuraType == AREA_AURA_PET || m_areaAuraType == AREA_AURA_OWNER)
         {
-            if (target->GetObjectGuid() != caster->GetCharmerOrOwnerGuid())
+            if (target->GetObjectGuid() != caster->GetMasterGuid())
                 target->RemoveSingleAuraFromSpellAuraHolder(GetId(), GetEffIndex(), GetCasterGuid());
         }
     }
@@ -1425,16 +1429,8 @@ void Aura::TriggerSpell()
 //                    case 36556: break;
 //                    // Cursed Scarab Despawn Periodic
 //                    case 36561: break;
-                    case 36573:                             // Vision Guide
-                    {
-                        if (GetAuraTicks() == 10 && target->GetTypeId() == TYPEID_PLAYER)
-                        {
-                            ((Player*)target)->AreaExploredOrEventHappens(10525);
-                            target->RemoveAurasDueToSpell(36573);
-                        }
-
-                        return;
-                    }
+//                    // Vision Guide
+//                    case 36573: break;
 //                    // Cannon Charging (platform)
 //                    case 36785: break;
 //                    // Cannon Charging (self)
@@ -1841,6 +1837,24 @@ void Aura::TriggerSpell()
                     caster->CastSpell(triggerTarget, trigger_spell_id, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                 return;
             }
+            case 39088:                                     // Positive Charge
+            case 39091:                                     // Negative Charge
+            {
+                uint32 buffAuraId = auraId == 39088 ? 39089 : 39092;
+                uint32 curCount = 0;
+                std::list<Player*> playerList;
+                GetPlayerListWithEntryInWorld(playerList, target, 10.0f); // official range
+                for (Player* player : playerList)
+                    if (target != player && player->HasAura(auraId))
+                        curCount++;
+
+                target->RemoveAurasDueToSpell(buffAuraId);
+                if (curCount)
+                    for (uint32 i = 0; i < curCount; i++)
+                        target->CastSpell(target, buffAuraId, TRIGGERED_OLD_TRIGGERED);
+
+                break;
+            }
             case 43149:                                     // Claw Rage
             {
                 // Need to provide explicit target for trigger spell target combination
@@ -2243,6 +2257,12 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 target->CastSpell(target, 36731, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                 return;
             }
+            case 39088:                                     // Positive Charge
+                target->RemoveAurasDueToSpell(39089);
+                return;
+            case 39091:                                     // Negative Charge
+                target->RemoveAurasDueToSpell(39092);
+                return;
             case 41099:                                     // Battle Stance
             {
                 // Battle Aura
@@ -2279,7 +2299,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         return;
 
                     // Captured Totem Test Credit
-                    if (Player* pPlayer = pCaster->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    if (Player* pPlayer = pCaster->GetBeneficiaryPlayer())
                         pPlayer->CastSpell(pPlayer, 42455, TRIGGERED_OLD_TRIGGERED);
                 }
 
@@ -2392,6 +2412,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
                     return;
                 }
+                case 32096:                                 // Thrallmar's Favor
+                case 32098:                                 // Honor Hold's Favor
+                    if (target->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        if (apply) // cast/remove Buffbot Buff Effect
+                            target->CastSpell(target, 32172, TRIGGERED_NONE);
+                        else
+                            target->RemoveAurasDueToSpell(32172);
+                    }
+                    return;
                 case 32216:                                 // Victorious
                     if (target->getClass() == CLASS_WARRIOR)
                         target->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, apply);
@@ -4240,6 +4270,9 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                     if (Creature* creature = (Creature*)target)
                         creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, creature, creature);
                 return;
+            case 37670:                                     // Nether Charge Timer
+                target->CastSpell(nullptr, GetSpellProto()->EffectTriggerSpell[m_effIndex], TRIGGERED_OLD_TRIGGERED);
+                break;
             case 42783:                                     // Wrath of the Astrom...
                 if (m_removeMode == AURA_REMOVE_BY_EXPIRE && GetEffIndex() + 1 < MAX_EFFECT_INDEX)
                     target->CastSpell(target, GetSpellProto()->CalculateSimpleValue(SpellEffectIndex(GetEffIndex() + 1)), TRIGGERED_OLD_TRIGGERED);
@@ -4264,6 +4297,14 @@ void Aura::HandlePeriodicEnergize(bool apply, bool /*Real*/)
 void Aura::HandleAuraPowerBurn(bool apply, bool /*Real*/)
 {
     m_isPeriodic = apply;
+}
+
+void Aura::HandlePrayerOfMending(bool apply, bool /*Real*/)
+{
+    if (apply) // only on initial cast apply SP
+        if (const SpellEntry* entry = GetSpellProto())
+            if (GetHolder()->GetAuraCharges() == entry->procCharges)
+                m_modifier.m_amount = GetCaster()->SpellHealingBonusDone(GetTarget(), GetSpellProto(), m_modifier.m_amount, HEAL);
 }
 
 void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
@@ -4432,9 +4473,16 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
     // remove time effects
     else
     {
-        // Parasitic Shadowfiend - handle summoning of two Shadowfiends on DoT expire
-        if (spellProto->Id == 41917)
-            target->CastSpell(target, 41915, TRIGGERED_OLD_TRIGGERED);
+        switch (spellProto->Id)
+        {
+            case 35201: // Paralytic Poison
+                if (m_removeMode == AURA_REMOVE_BY_DEFAULT)
+                    target->CastSpell(target, 35202, TRIGGERED_OLD_TRIGGERED); // Paralysis
+                break;
+            case 41917: // Parasitic Shadowfiend - handle summoning of two Shadowfiends on DoT expire
+                target->CastSpell(target, 41915, TRIGGERED_OLD_TRIGGERED);
+                break;
+        }         
     }
 }
 
@@ -5820,16 +5868,6 @@ void Aura::PeriodicTick()
                 pdamage = target->MeleeDamageBonusTaken(pCaster, pdamage, attackType, spellProto, DOT, GetStackAmount());
             }
 
-            // Calculate armor mitigation if it is a physical spell
-            // But not for bleed mechanic spells
-            if (GetSpellSchoolMask(spellProto) & SPELL_SCHOOL_MASK_NORMAL &&
-                    GetEffectMechanic(spellProto, m_effIndex) != MECHANIC_BLEED)
-            {
-                uint32 pdamageReductedArmor = pCaster->CalcArmorReducedDamage(target, pdamage);
-                cleanDamage.damage += pdamage - pdamageReductedArmor;
-                pdamage = pdamageReductedArmor;
-            }
-
             // Curse of Agony damage-per-tick calculation
             if (spellProto->SpellFamilyName == SPELLFAMILY_WARLOCK && (spellProto->SpellFamilyFlags & uint64(0x0000000000000400)) && spellProto->SpellIconID == 544)
             {
@@ -5896,14 +5934,6 @@ void Aura::PeriodicTick()
             CleanDamage cleanDamage =  CleanDamage(0, BASE_ATTACK, MELEE_HIT_NORMAL);
 
             uint32 pdamage = m_modifier.m_amount > 0 ? m_modifier.m_amount : 0;
-
-            // Calculate armor mitigation if it is a physical spell
-            if (GetSpellSchoolMask(spellProto) & SPELL_SCHOOL_MASK_NORMAL)
-            {
-                uint32 pdamageReductedArmor = pCaster->CalcArmorReducedDamage(target, pdamage);
-                cleanDamage.damage += pdamage - pdamageReductedArmor;
-                pdamage = pdamageReductedArmor;
-            }
 
             pdamage = target->SpellDamageBonusTaken(pCaster, spellProto, pdamage, DOT, GetStackAmount());
 
@@ -6281,7 +6311,7 @@ void Aura::PeriodicTick()
             // Anger Management
             // amount = 1+ 16 = 17 = 3,4*5 = 10,2*5/3
             // so 17 is rounded amount for 5 sec tick grow ~ 1 range grow in 3 sec
-            if (powerType == POWER_RAGE)
+            if (powerType == POWER_RAGE && target->isInCombat())
                 target->ModifyPower(powerType, m_modifier.m_amount * 3 / 5);
             break;
         }

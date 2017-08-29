@@ -1034,6 +1034,17 @@ inline bool IsPositiveSpell(uint32 spellId, const WorldObject* caster = nullptr,
     return IsPositiveSpell(sSpellTemplate.LookupEntry<SpellEntry>(spellId), caster, target);
 }
 
+inline bool IsSpellDoNotReportFailure(SpellEntry const* spellInfo)
+{
+    switch (spellInfo->Id)
+    {
+        case 32172:     // Thrallmars/Honor holds favor trigger spell
+            return true;
+        default:
+            return false;
+    }
+}
+
 inline bool IsDispelSpell(SpellEntry const* spellInfo)
 {
     return IsSpellHaveEffect(spellInfo, SPELL_EFFECT_DISPEL);
@@ -1402,7 +1413,7 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
         // DoT
         case SPELL_AURA_PERIODIC_LEECH:
         case SPELL_AURA_PERIODIC_MANA_LEECH:
-            if (pTarget && pTarget->IsCharmerOrOwnerPlayerOrPlayerItself())
+            if (pTarget && pTarget->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
                 return false;
             break;
         case SPELL_AURA_PERIODIC_DAMAGE:

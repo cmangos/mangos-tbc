@@ -178,6 +178,7 @@ bool CreatureEventAI::IsTimerBasedEvent(EventAI_Type type) const
         case EVENT_T_TARGET_MISSING_AURA:
         case EVENT_T_RANGE:
         case EVENT_T_ENERGY:
+        case EVENT_T_SELECT_ATTACKING_TARGET:
             return true;
         default:
             return false;
@@ -264,7 +265,7 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
             break;
         case EVENT_T_DEATH:
             if (event.death.conditionId)
-                if (Player* player = pActionInvoker->GetCharmerOrOwnerPlayerOrPlayerItself())
+                if (Player* player = pActionInvoker->GetBeneficiaryPlayer())
                     if (!sObjectMgr.IsPlayerMeetToCondition(event.death.conditionId, player, player->GetMap(), m_creature, CONDITION_FROM_EVENTAI))
                         return false;
             break;
@@ -474,6 +475,20 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
             pHolder.UpdateRepeatTimer(m_creature, event.percent_range.repeatMin, event.percent_range.repeatMax);
             break;
         }
+        case EVENT_T_SELECT_ATTACKING_TARGET:
+        {
+            SelectAttackingTargetParams parameters;
+            parameters.range.minRange = event.selectTarget.minRange;
+            parameters.range.maxRange = event.selectTarget.maxRange;
+            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_RANGE_RANGE, parameters))
+                m_eventTarget = target;
+            else
+                return false;
+            LOG_PROCESS_EVENT;
+            // Repeat Timers
+            pHolder.UpdateRepeatTimer(m_creature, event.percent_range.repeatMin, event.percent_range.repeatMax);
+            break;
+        }
         default:
             sLog.outErrorEventAI("Creature %u using Event %u has invalid Event Type(%u), missing from ProcessEvent() Switch.", m_creature->GetEntry(), pHolder.Event.event_id, pHolder.Event.event_type);
             break;
@@ -670,6 +685,8 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 {
                     if (m_DynamicMovement)
                     {
+                        SetCombatMovement(false, true);
+
                         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
                         if (spellInfo && !(spellInfo->rangeIndex == SPELL_RANGE_IDX_COMBAT || spellInfo->rangeIndex == SPELL_RANGE_IDX_SELF_ONLY) && target != m_creature)
@@ -922,7 +939,7 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 // if not available, use pActionInvoker
                 if (Unit* pTarget = GetTargetByType(action.killed_monster.target, pActionInvoker, pAIEventSender, reportTargetError, 0, SELECT_FLAG_PLAYER))
                 {
-                    if (Player* pPlayer2 = pTarget->GetCharmerOrOwnerPlayerOrPlayerItself())
+                    if (Player* pPlayer2 = pTarget->GetBeneficiaryPlayer())
                         pPlayer2->RewardPlayerAndGroupAtEvent(action.killed_monster.creatureId, m_creature);
                 }
                 else if (reportTargetError)
@@ -1030,7 +1047,14 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         }
         case ACTION_T_THROW_AI_EVENT:
         {
-            SendAIEventAround(AIEventType(action.throwEvent.eventType), pActionInvoker, 0, action.throwEvent.radius);
+            Unit* target = GetTargetByType(action.throwEvent.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+            SendAIEventAround(AIEventType(action.throwEvent.eventType), target, 0, action.throwEvent.radius);
             break;
         }
         case ACTION_T_SET_THROW_MASK:
@@ -1085,6 +1109,79 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         case ACTION_T_INTERRUPT_SPELL:
         {
             m_creature->InterruptSpell((CurrentSpellTypes)action.interruptSpell.currentSpellType);
+            break;
+        }
+        case ACTION_T_START_RELAY_SCRIPT:
+        {
+            Unit* target = GetTargetByType(action.relayScript.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+
+            if (action.relayScript.relayId < 0)
+            {
+                uint32 relayId = sScriptMgr.GetRandomRelayDbscriptFromTemplate(uint32(-action.relayScript.relayId));
+                if (relayId == 0)
+                    break;
+                m_creature->GetMap()->ScriptsStart(sRelayScripts, relayId, target, nullptr);
+            }
+            else
+                m_creature->GetMap()->ScriptsStart(sRelayScripts, action.relayScript.relayId, target, nullptr);
+            break;
+        }
+        case ACTION_T_TEXT_NEW:
+        {
+            Unit* target = GetTargetByType(action.textNew.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+
+            int32 textId = 0;
+
+            if (action.textNew.templateId)
+            {
+                textId = sScriptMgr.GetRandomScriptStringFromTemplate(action.textNew.templateId);
+                if (textId == 0)
+                    break;
+            }
+            else
+                textId = action.textNew.textId;
+
+            if (!DoDisplayText(m_creature, textId, target))
+                sLog.outErrorEventAI("Error attempting to display text %i, used by script %u", textId, EventId);
+            break;
+        }
+        case ACTION_T_ATTACK_START:
+        {
+            Unit* target = GetTargetByType(action.attackStart.target, pActionInvoker, pAIEventSender, reportTargetError);
+            if (!target)
+            {
+                if (reportTargetError)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", EventId, m_creature->GetEntry());
+                return;
+            }
+            AttackStart(target);
+            break;
+        }
+        case ACTION_T_DESPAWN_GUARDIANS:
+        {
+            if (action.despawnGuardians.entryId)
+            {
+                if (Pet* guardian = m_creature->FindGuardianWithEntry(action.despawnGuardians.entryId))
+                {
+                    guardian->Unsummon(PET_SAVE_AS_DELETED, m_creature); // can remove pet guid from m_guardianPets
+                    m_creature->RemoveGuardian(guardian);
+                }
+                // not throwing error otherwise because guardian might as well be dead
+            }
+            else
+                m_creature->RemoveGuardians();
             break;
         }
         default:
@@ -1167,6 +1264,12 @@ void CreatureEventAI::JustReachedHome()
 
 void CreatureEventAI::EnterEvadeMode()
 {
+    if (m_DynamicMovement)
+    {
+        m_DynamicMovement = false;
+        SetCombatMovement(!m_DynamicMovement);
+    }
+
     m_creature->RemoveAllAurasOnEvade();
     m_creature->DeleteThreatList();
     m_creature->CombatStop(true);
@@ -1192,7 +1295,7 @@ void CreatureEventAI::JustDied(Unit* killer)
     if (m_creature->IsGuard())
     {
         // Send Zone Under Attack message to the LocalDefense and WorldDefense Channels
-        if (Player* pKiller = killer->GetCharmerOrOwnerPlayerOrPlayerItself())
+        if (Player* pKiller = killer->GetBeneficiaryPlayer())
             m_creature->SendZoneUnderAttackMessage(pKiller);
     }
 
@@ -1276,6 +1379,11 @@ void CreatureEventAI::EnterCombat(Unit* enemy)
             // Reset all in combat timers
             case EVENT_T_TIMER_IN_COMBAT:
                 if (i->UpdateRepeatTimer(m_creature, event.timer.initialMin, event.timer.initialMax))
+                    i->Enabled = true;
+                break;
+            // Reset some special combat timers using repeatMin/Max
+            case EVENT_T_SELECT_ATTACKING_TARGET:
+                if (i->UpdateRepeatTimer(m_creature, event.timer.repeatMin, event.timer.repeatMax))
                     i->Enabled = true;
                 break;
             default:
@@ -1414,8 +1522,12 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
         {
             if (m_creature->IsWithinLOSInMap(victim))
             {
-                if (m_LastSpellMaxRange && m_creature->IsInRange(victim, 0, (m_LastSpellMaxRange / 1.5f)))
-                    SetCombatMovement(false, true);
+                if (m_LastSpellMaxRange && m_creature->IsInRange(victim, 0, (m_LastSpellMaxRange / 1.5f)) &&
+                    m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
+                {
+                    if(IsCombatMovement())
+                        SetCombatMovement(false, true);
+                }
                 else
                     SetCombatMovement(true, true);
             }
@@ -1503,7 +1615,7 @@ inline Unit* CreatureEventAI::GetTargetByType(uint32 Target, Unit* pActionInvoke
                 isError = true;
             return pActionInvoker;
         case TARGET_T_ACTION_INVOKER_OWNER:
-            resTarget = pActionInvoker ? pActionInvoker->GetCharmerOrOwnerOrSelf() : nullptr;
+            resTarget = pActionInvoker ? pActionInvoker->GetBeneficiary() : nullptr;
             if (!resTarget)
                 isError = true;
             return resTarget;
@@ -1521,6 +1633,10 @@ inline Unit* CreatureEventAI::GetTargetByType(uint32 Target, Unit* pActionInvoke
                 return nullptr;
             }
         }
+        case TARGET_T_EVENT_SPECIFIC:
+            if (!m_eventTarget)
+                isError = true;
+            return m_eventTarget;
         default:
             isError = true;
             return nullptr;

@@ -164,7 +164,7 @@ struct mob_netherweb_victimAI : public ScriptedAI
 
     void JustDied(Unit* pKiller) override
     {
-        if (Player* pPlayer = pKiller->GetCharmerOrOwnerPlayerOrPlayerItself())
+        if (Player* pPlayer = pKiller->GetBeneficiaryPlayer())
         {
             if (pPlayer->GetQuestStatus(QUEST_TAKEN_IN_NIGHT) == QUEST_STATUS_INCOMPLETE)
             {
@@ -796,12 +796,12 @@ struct npc_isla_starmaneAI : public npc_escortAI
         m_uiWrathTimer = 2000;
 
         if (!HasEscortState(STATE_ESCORT_ESCORTING))
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
     }
 
     void JustStartedEscort() override
     {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PASSIVE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
         DoScriptText(SAY_ISLA_START, m_creature);
         if (GameObject* pCage = GetClosestGameObjectWithEntry(m_creature, GO_CAGE, 2 * INTERACTION_DISTANCE))
             pCage->Use(m_creature);

@@ -1,0 +1,2 @@
+ALTER TABLE character_db_version CHANGE COLUMN required_s2346_01_characters_playerbot_saved_data required_s2352_01_characters_fix_revision bit;
+

@@ -321,6 +321,16 @@ ChatCommand* ChatHandler::getCommandTable()
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
+    static ChatCommand linkCommandTable[] =
+    {
+        { "add",            SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLinkAddCommand,             "", nullptr },
+        { "remove",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLinkRemoveCommand,          "", nullptr },
+        { "edit",           SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLinkEditCommand,            "", nullptr },
+        { "toggle",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLinkToggleCommand,          "", nullptr },
+        { "check",          SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLinkCheckCommand,           "", nullptr },
+        { nullptr,          0,                  false, nullptr,                                        "", nullptr }
+    };
+
     static ChatCommand listCommandTable[] =
     {
         { "auras",          SEC_ADMINISTRATOR,  false, &ChatHandler::HandleListAurasCommand,           "", nullptr },
@@ -503,6 +513,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "dbscripts_on_quest_end",      SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadDBScriptsOnQuestEndCommand,     "", nullptr },
         { "dbscripts_on_quest_start",    SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadDBScriptsOnQuestStartCommand,   "", nullptr },
         { "dbscripts_on_spell",          SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadDBScriptsOnSpellCommand,        "", nullptr },
+        { "dbscripts_on_relay",          SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadDBScriptsOnRelayCommand,        "", nullptr },
         { "disenchant_loot_template",    SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadLootTemplatesDisenchantCommand, "", nullptr },
         { "fishing_loot_template",       SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadLootTemplatesFishingCommand,    "", nullptr },
         { "game_graveyard_zone",         SEC_ADMINISTRATOR, true,  &ChatHandler::HandleReloadGameGraveyardZoneCommand,       "", nullptr },
@@ -709,6 +720,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "guild",          SEC_GAMEMASTER,     true,  nullptr,                                        "", guildCommandTable    },
         { "instance",       SEC_ADMINISTRATOR,  true,  nullptr,                                        "", instanceCommandTable },
         { "learn",          SEC_MODERATOR,      false, nullptr,                                        "", learnCommandTable    },
+        { "link",           SEC_ADMINISTRATOR,  false, nullptr,                                        "", linkCommandTable     },
         { "list",           SEC_ADMINISTRATOR,  true,  nullptr,                                        "", listCommandTable     },
         { "lookup",         SEC_MODERATOR,      true,  nullptr,                                        "", lookupCommandTable   },
         { "modify",         SEC_MODERATOR,      false, nullptr,                                        "", modifyCommandTable   },
@@ -784,7 +796,9 @@ ChatCommand* ChatHandler::getCommandTable()
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", nullptr },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", nullptr },
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
-
+#ifdef BUILD_PLAYERBOT
+        { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
+#endif
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 

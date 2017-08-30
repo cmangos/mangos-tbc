@@ -333,17 +333,17 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
         // Try to interrupt spell if target is casting one
         if (pTarget->IsNonMeleeSpellCasted(true))
         {
-            if (PUMMEL > 0 && !m_bot->HasSpellCooldown(PUMMEL) && m_ai->CastSpell(PUMMEL, *pTarget))
+            if (PUMMEL > 0 && m_bot->IsSpellReady(PUMMEL) && m_ai->CastSpell(PUMMEL, *pTarget))
                 return RETURN_CONTINUE;
         }
 
-        if (DEATH_WISH > 0 && !m_bot->HasAura(DEATH_WISH, EFFECT_INDEX_0) && !m_bot->HasSpellCooldown(DEATH_WISH) && m_ai->CastSpell(DEATH_WISH, *m_bot))
+        if (DEATH_WISH > 0 && !m_bot->HasAura(DEATH_WISH, EFFECT_INDEX_0) && m_bot->IsSpellReady(DEATH_WISH) && m_ai->CastSpell(DEATH_WISH, *m_bot))
             return RETURN_CONTINUE;
         if (EXECUTE > 0 && pTarget->GetHealthPercent() < 20 && m_ai->CastSpell(EXECUTE, *pTarget))
             return RETURN_CONTINUE;
-        if (BLOODTHIRST > 0 && !m_bot->HasSpellCooldown(BLOODTHIRST) && m_ai->CastSpell(BLOODTHIRST, *pTarget))
+        if (BLOODTHIRST > 0 && m_bot->IsSpellReady(BLOODTHIRST) && m_ai->CastSpell(BLOODTHIRST, *pTarget))
             return RETURN_CONTINUE;
-        if (WHIRLWIND > 0 && !m_bot->HasSpellCooldown(WHIRLWIND) && m_ai->CastSpell(WHIRLWIND, *pTarget))
+        if (WHIRLWIND > 0 && m_bot->IsSpellReady(WHIRLWIND) && m_ai->CastSpell(WHIRLWIND, *pTarget))
             return RETURN_CONTINUE;
         if (SLAM > 0 && m_ai->CastSpell(SLAM, *pTarget))
             return RETURN_CONTINUE;
@@ -360,22 +360,22 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
         }
 
         // If bot's target is also attacking the bot, use retaliation for extra attacks
-        if (RETALIATION > 0 && pVictim == m_bot && m_ai->GetAttackerCount() >= 2 && !m_bot->HasSpellCooldown(RETALIATION) && !m_bot->HasAura(RETALIATION, EFFECT_INDEX_0) && m_ai->CastSpell(RETALIATION, *m_bot))
+        if (RETALIATION > 0 && pVictim == m_bot && m_ai->GetAttackerCount() >= 2 && m_bot->IsSpellReady(RETALIATION) && !m_bot->HasAura(RETALIATION, EFFECT_INDEX_0) && m_ai->CastSpell(RETALIATION, *m_bot))
             return RETURN_CONTINUE;
 
         if (EXECUTE > 0 && pTarget->GetHealthPercent() < 20 && m_ai->CastSpell(EXECUTE, *pTarget))
             return RETURN_CONTINUE;
         if (REND > 0 && !pTarget->HasAura(REND, EFFECT_INDEX_0) && m_ai->CastSpell(REND, *pTarget))
             return RETURN_CONTINUE;
-        if (MORTAL_STRIKE > 0 && !m_bot->HasSpellCooldown(MORTAL_STRIKE) && m_ai->CastSpell(MORTAL_STRIKE, *pTarget))
+        if (MORTAL_STRIKE > 0 && m_bot->IsSpellReady(MORTAL_STRIKE) && m_ai->CastSpell(MORTAL_STRIKE, *pTarget))
             return RETURN_CONTINUE;
-        if (OVERPOWER > 0 && !m_bot->HasSpellCooldown(OVERPOWER))
+        if (OVERPOWER > 0 && m_bot->IsSpellReady(OVERPOWER))
         {
             uint8 base = pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK, SPELL_SCHOOL_MASK_NORMAL);
             uint8 off = pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK, SPELL_SCHOOL_MASK_NORMAL);
             if (base == MELEE_HIT_DODGE || off == MELEE_HIT_DODGE)
             {
-                if ( !m_bot->HasSpellCooldown(OVERPOWER) && m_ai->CastSpell(OVERPOWER, *pTarget))
+                if ( m_bot->IsSpellReady(OVERPOWER) && m_ai->CastSpell(OVERPOWER, *pTarget))
                     return RETURN_CONTINUE;
             }
         }
@@ -392,7 +392,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
         if (!newTarget)
         {
             // Cast taunt on bot current target if the mob is targeting someone else
-            if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && !m_bot->HasSpellCooldown(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
+            if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK && TAUNT > 0 && m_bot->IsSpellReady(TAUNT) && m_ai->CastSpell(TAUNT, *pTarget))
                 return RETURN_CONTINUE;
         }
 
@@ -408,7 +408,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
             }
 
             // Cast Shield Wall only if Last Stand is on cooldown and not active
-            if (SHIELD_WALL > 0 && (m_bot->HasSpellCooldown(LAST_STAND) || LAST_STAND == 0) && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasAura(SHIELD_WALL, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_WALL, *m_bot))
+            if (SHIELD_WALL > 0 && (!m_bot->IsSpellReady(LAST_STAND) || LAST_STAND == 0) && !m_bot->HasAura(LAST_STAND, EFFECT_INDEX_0) && !m_bot->HasAura(SHIELD_WALL, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_WALL, *m_bot))
             {
                 m_ai->TellMaster("I'm using SHIELD WALL");
                 return RETURN_CONTINUE;
@@ -426,7 +426,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 return RETURN_CONTINUE;
         }
 
-        if (REVENGE > 0 && !m_bot->HasSpellCooldown(REVENGE))
+        if (REVENGE > 0 && m_bot->IsSpellReady(REVENGE))
         {
             uint8 base = pTarget->RollMeleeOutcomeAgainst(m_bot, BASE_ATTACK, SPELL_SCHOOL_MASK_NORMAL);
             uint8 off = pTarget->RollMeleeOutcomeAgainst(m_bot, OFF_ATTACK, SPELL_SCHOOL_MASK_NORMAL);
@@ -456,11 +456,11 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit *pTarget)
         // check that target is dangerous (elite) before casting shield block: preserve bot cooldowns
         if (SHIELD_BLOCK > 0 && m_ai->IsElite(pTarget) && !m_bot->HasAura(SHIELD_BLOCK, EFFECT_INDEX_0) && m_ai->CastSpell(SHIELD_BLOCK, *m_bot))
             return RETURN_CONTINUE;
-        if (CONCUSSION_BLOW > 0 && !m_bot->HasSpellCooldown(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
+        if (CONCUSSION_BLOW > 0 && m_bot->IsSpellReady(CONCUSSION_BLOW) && m_ai->CastSpell(CONCUSSION_BLOW, *pTarget))
             return RETURN_CONTINUE;
-        if (SHOCKWAVE > 0 && !m_bot->HasSpellCooldown(SHOCKWAVE) && m_ai->CastSpell(SHOCKWAVE, *pTarget))
+        if (SHOCKWAVE > 0 && m_bot->IsSpellReady(SHOCKWAVE) && m_ai->CastSpell(SHOCKWAVE, *pTarget))
             return RETURN_CONTINUE;
-        if (SHIELD_SLAM > 0 && !m_bot->HasSpellCooldown(SHIELD_SLAM) && m_ai->CastSpell(SHIELD_SLAM, *pTarget))
+        if (SHIELD_SLAM > 0 && m_bot->IsSpellReady(SHIELD_SLAM) && m_ai->CastSpell(SHIELD_SLAM, *pTarget))
             return RETURN_CONTINUE;
         if (HEROIC_STRIKE > 0 && m_ai->CastSpell(HEROIC_STRIKE, *pTarget))
             return RETURN_CONTINUE;

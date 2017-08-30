@@ -92,6 +92,9 @@ class BattleGroundQueue
         void PlayerInvitedToBGUpdateAverageWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
         uint32 GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleGroundBracketId bracket_id);
 
+        bool CheckMixedMatch(BattleGround* bg_template, BattleGroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers);
+        bool MixPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id);
+
     private:
         // mutex that should not allow changing private data, nor allowing to update Queue during private data change.
         std::recursive_mutex m_Lock;

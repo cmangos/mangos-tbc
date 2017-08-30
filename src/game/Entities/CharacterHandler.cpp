@@ -767,6 +767,14 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (!pCurrChar->IsStandState() && !pCurrChar->hasUnitState(UNIT_STAT_STUNNED))
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
 
+    if (!pCurrChar->NativeTeam())
+    {
+        pCurrChar->SetByteValue(UNIT_FIELD_BYTES_0, 0, pCurrChar->getFRace());
+        pCurrChar->setFaction(pCurrChar->getFFaction());
+        pCurrChar->FakeDisplayID();
+    }
+    pCurrChar->FixLanguageSkills();
+
     m_playerLoading = false;
     delete holder;
 }

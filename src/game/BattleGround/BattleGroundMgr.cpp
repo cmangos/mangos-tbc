@@ -2138,26 +2138,22 @@ bool BattleGroundQueue::CheckMixedMatch(BattleGround* bg_template, BattleGroundB
     if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg_template->isBattleGround())
         return false;
 
-    // Empty selection pool, we do not want old data.
+    // Empty selection pools.
     m_SelectionPools[TEAM_INDEX_ALLIANCE].Init();
     m_SelectionPools[TEAM_INDEX_HORDE].Init();
 
     uint32 addedally = 0;
     uint32 addedhorde = 0;
 
-    for (auto& itr : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
+    for (auto& ginfo : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
     {
-        GroupQueueInfo* ginfo = itr;
         if (!ginfo->IsInvitedToBGInstanceGUID)
         {
-            bool makeally = addedally < addedhorde;
-
-            if (addedally == addedhorde)
-                makeally = urand(0, 1);
+            bool makeally = addedally == addedhorde ? makeally = ginfo->GroupTeam == ALLIANCE : addedally < addedhorde;
 
             ginfo->GroupTeam = makeally ? ALLIANCE : HORDE;
 
-            if (m_SelectionPools[makeally ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(itr, maxPlayers))
+            if (m_SelectionPools[makeally ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, maxPlayers))
                 makeally ? addedally += ginfo->Players.size() : addedhorde += ginfo->Players.size();
             else
                 break;
@@ -2168,9 +2164,8 @@ bool BattleGroundQueue::CheckMixedMatch(BattleGround* bg_template, BattleGroundB
         }
     }
 
-    if (sBattleGroundMgr.isTesting() ||
-        (m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() >= minPlayers &&
-         m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() >= minPlayers))
+    // If we're in BG testing one player is enough
+    if (sBattleGroundMgr.isTesting() && m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() + m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() > 0)
         return true;
 
     return false;
@@ -2187,15 +2182,11 @@ bool BattleGroundQueue::MixPlayersToBG(BattleGround* bg, BattleGroundBracketId b
     uint32 addedally = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(ALLIANCE);
     uint32 addedhorde = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(HORDE);
 
-    for (auto& itr : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
+    for (auto& ginfo : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
     {
-        GroupQueueInfo* ginfo = itr;
         if (!ginfo->IsInvitedToBGInstanceGUID)
         {
-            bool makeally = addedally < addedhorde;
-
-            if (addedally == addedhorde)
-                makeally = urand(0, 1);
+            bool makeally = addedally == addedhorde ? makeally = ginfo->GroupTeam == ALLIANCE : addedally < addedhorde;
 
             makeally ? ++addedally : ++addedhorde;
 

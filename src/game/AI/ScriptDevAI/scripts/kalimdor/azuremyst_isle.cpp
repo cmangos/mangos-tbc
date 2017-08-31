@@ -23,11 +23,14 @@ EndScriptData */
 
 /* ContentData
 npc_draenei_survivor
+npc_engineer_spark_overgrind
+npc_injured_draenei
 npc_magwin
 EndContentData */
 
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include <cmath>
 
 /*######
 ## npc_draenei_survivor
@@ -177,6 +180,144 @@ CreatureAI* GetAI_npc_draenei_survivor(Creature* pCreature)
 }
 
 /*######
+## npc_engineer_spark_overgrind
+######*/
+
+enum
+{
+    SAY_TEXT                = -1000184,
+    EMOTE_SHELL             = -1000185,
+    SAY_ATTACK              = -1000186,
+
+    AREA_COVE               = 3579,
+    AREA_ISLE               = 3639,
+    QUEST_GNOMERCY          = 9537,
+    FACTION_HOSTILE         = 14,
+    SPELL_DYNAMITE          = 7978
+};
+
+#define GOSSIP_FIGHT        "Traitor! You will be brought to justice!"
+
+struct npc_engineer_spark_overgrindAI : public ScriptedAI
+{
+    npc_engineer_spark_overgrindAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_uiNpcFlags = pCreature->GetUInt32Value(UNIT_NPC_FLAGS);
+        Reset();
+
+        if (pCreature->GetAreaId() == AREA_COVE || pCreature->GetAreaId() == AREA_ISLE)
+            m_bIsTreeEvent = true;
+    }
+
+    uint32 m_uiNpcFlags;
+
+    uint32 m_uiDynamiteTimer;
+    uint32 m_uiEmoteTimer;
+
+    bool m_bIsTreeEvent;
+
+    void Reset() override
+    {
+        m_creature->SetUInt32Value(UNIT_NPC_FLAGS, m_uiNpcFlags);
+
+        m_uiDynamiteTimer = 8000;
+        m_uiEmoteTimer = urand(120000, 150000);
+
+        m_bIsTreeEvent = false;
+    }
+
+    void Aggro(Unit* who) override
+    {
+        DoScriptText(SAY_ATTACK, m_creature, who);
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (!m_creature->isInCombat() && !m_bIsTreeEvent)
+        {
+            if (m_uiEmoteTimer < diff)
+            {
+                DoScriptText(SAY_TEXT, m_creature);
+                DoScriptText(EMOTE_SHELL, m_creature);
+                m_uiEmoteTimer = urand(120000, 150000);
+            }
+            else m_uiEmoteTimer -= diff;
+        }
+        else if (m_bIsTreeEvent)
+        {
+            // nothing here yet
+            return;
+        }
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        if (m_uiDynamiteTimer < diff)
+        {
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_DYNAMITE);
+            m_uiDynamiteTimer = 8000;
+        }
+        else m_uiDynamiteTimer -= diff;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+CreatureAI* GetAI_npc_engineer_spark_overgrind(Creature* pCreature)
+{
+    return new npc_engineer_spark_overgrindAI(pCreature);
+}
+
+bool GossipHello_npc_engineer_spark_overgrind(Player* pPlayer, Creature* pCreature)
+{
+    if (pPlayer->GetQuestStatus(QUEST_GNOMERCY) == QUEST_STATUS_INCOMPLETE)
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_FIGHT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
+
+    pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetObjectGuid());
+    return true;
+}
+
+bool GossipSelect_npc_engineer_spark_overgrind(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+{
+    if (uiAction == GOSSIP_ACTION_INFO_DEF)
+    {
+        pPlayer->CLOSE_GOSSIP_MENU();
+        pCreature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_COMBAT_STOP | TEMPFACTION_RESTORE_RESPAWN);
+        pCreature->AI()->AttackStart(pPlayer);
+    }
+    return true;
+}
+
+/*######
+## npc_injured_draenei
+######*/
+
+struct npc_injured_draeneiAI : public ScriptedAI
+{
+    npc_injured_draeneiAI(Creature* pCreature) : ScriptedAI(pCreature) {Reset();}
+
+    void Reset() override
+    {
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
+        m_creature->SetHealth(int(m_creature->GetMaxHealth()*.15));
+        switch (urand(0, 1))
+        {
+            case 0: m_creature->SetStandState(UNIT_STAND_STATE_SIT); break;
+            case 1: m_creature->SetStandState(UNIT_STAND_STATE_SLEEP); break;
+        }
+    }
+
+    void MoveInLineOfSight(Unit* /*pWho*/) override {}          // ignore everyone around them (won't aggro anything)
+
+    void UpdateAI(const uint32 /*uiDiff*/) override {}
+};
+
+CreatureAI* GetAI_npc_injured_draenei(Creature* pCreature)
+{
+    return new npc_injured_draeneiAI(pCreature);
+}
+
+/*######
 ## npc_magwin
 ######*/
 
@@ -287,6 +428,18 @@ void AddSC_azuremyst_isle()
     pNewScript = new Script;
     pNewScript->Name = "npc_draenei_survivor";
     pNewScript->GetAI = &GetAI_npc_draenei_survivor;
+    pNewScript->RegisterSelf();
+    
+    pNewScript = new Script;
+    pNewScript->Name = "npc_engineer_spark_overgrind";
+    pNewScript->GetAI = &GetAI_npc_engineer_spark_overgrind;
+    pNewScript->pGossipHello =  &GossipHello_npc_engineer_spark_overgrind;
+    pNewScript->pGossipSelect = &GossipSelect_npc_engineer_spark_overgrind;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_injured_draenei";
+    pNewScript->GetAI = &GetAI_npc_injured_draenei;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

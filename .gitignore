@@ -17,6 +17,7 @@
 *.so.dbg
 *.bin
 *.gz
+*.kdev4
 
 #
 # Top-level generic files

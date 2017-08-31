@@ -13,6 +13,17 @@ else()
   message(FATAL_ERROR "Error, CMaNGOS requires a compiler that supports C++11!")
 endif()
 
+#USING Goldlinker flag for gcc
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  if(EXISTS "/usr/bin/ld.gold")
+    set( USE_GOLD true )
+    message(STATUS "GCC: Found 'GOLD LINKER' and using it")
+    message(STATUS "GCC: Setting Gold-Linker flag")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-ld=gold")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=gold")
+  endif()
+endif()
+
 if(PLATFORM EQUAL X86)
   # Required on 32-bit systems to enable SSE2 (standard on x64)
   set(SSE_FLAGS "-msse2 -mfpmath=sse")

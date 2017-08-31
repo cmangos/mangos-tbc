@@ -57,15 +57,12 @@ else()
 endif()
 
 add_executable(${EXECUTABLE_NAME}
-  ${EXECUTABLE_SRCS}
+  ${EXECUTABLE_SRCS} $<TARGET_OBJECTS:g3dlite> $<TARGET_OBJECTS:gsoap> $<TARGET_OBJECTS:framework>
 )
 
 target_link_libraries(${EXECUTABLE_NAME}
   game
   shared
-  framework
-  g3dlite
-  gsoap
   ${ZLIB_LIBRARIES}
 )
 

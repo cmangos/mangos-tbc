@@ -19,8 +19,11 @@
 DisableWarnings()
 add_subdirectory(recastnavigation)
 add_subdirectory(src)
-if (BUILD_EXTRACTORS)
+if(BUILD_EXTRACTORS)
   add_subdirectory(libmpq)
+endif()
+if(USE_LOCKLESS_MALLOC)
+  add_subdirectory(lockless-allocator)
 endif()
 
 if(MSVC)

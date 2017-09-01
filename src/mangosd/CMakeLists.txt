@@ -60,6 +60,10 @@ add_executable(${EXECUTABLE_NAME}
   ${EXECUTABLE_SRCS}
 )
 
+if(USE_LOCKLESS_MALLOC)
+  target_link_libraries(${EXECUTABLE_NAME} lockless)
+endif()
+
 target_link_libraries(${EXECUTABLE_NAME}
   game
   shared

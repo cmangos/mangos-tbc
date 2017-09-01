@@ -4776,6 +4776,24 @@ void PlayerbotAI::Announce(AnnounceFlags msg)
                 default: break;
             }
             break;
+	    case RACE_BLOODELF:
+	        switch (msg)
+	        {
+	        case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9583) : PlaySound(9584); break;
+	        case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9549) : PlaySound(9550); break;
+	        case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9565) : PlaySound(9566); break;
+	        default: break;
+	        }
+	        break;
+	    case RACE_DRAENEI:
+	        switch (msg)
+	        {
+	        case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9498) : PlaySound(9499); break;
+	        case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9465) : PlaySound(9466); break;
+	        case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9481) : PlaySound(9482); break;
+	        default: break;
+	        }
+	        break;
         default:
             break;
     }
@@ -4805,6 +4823,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
 
     // default updates occur every two seconds
     SetIgnoreUpdateTime(2);
+
     if (m_FollowAutoGo == FOLLOWAUTOGO_INIT)
     {
         if (m_combatOrder & ORDERS_TANK)
@@ -8363,16 +8382,15 @@ void PlayerbotAI::_HandleCommandAttack(std::string &text, Player &fromPlayer)
     ObjectGuid attackOnGuid = fromPlayer.GetSelectionGuid();
     if (attackOnGuid)
     {
-        if (Unit * thingToAttack = ObjectAccessor::GetUnit(*m_bot, attackOnGuid))
+        if (Unit* thingToAttack = ObjectAccessor::GetUnit(*m_bot, attackOnGuid))
         {
-            if (!m_bot->IsFriendlyTo(thingToAttack) && !m_bot->IsWithinLOSInMap(thingToAttack))
+            if (!m_bot->IsFriendlyTo(thingToAttack))
             {
-                DoTeleport(*m_followTarget);
+                if (!m_bot->IsWithinLOSInMap(thingToAttack))
+                    DoTeleport(*m_followTarget);
                 if (m_bot->IsWithinLOSInMap(thingToAttack))
-                    GetCombatTarget(thingToAttack);
+                    Attack(thingToAttack);
             }
-            else if (!m_bot->IsFriendlyTo(thingToAttack) && m_bot->IsWithinLOSInMap(thingToAttack))
-                GetCombatTarget(thingToAttack);
         }
     }
     else

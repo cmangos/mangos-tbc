@@ -2728,7 +2728,7 @@ void Player::SendInitialSpells() const
     uint32 cdCount = 0;
     const size_t cdCountPos = data.wpos();
     data << uint16(0);
-    auto currTime = Clock::now();
+    auto currTime = GetMap()->GetCurrentClockTime();
 
     for (auto& cdItr : m_cooldownMap)
     {
@@ -3488,7 +3488,7 @@ void Player::_LoadSpellCooldowns(QueryResult* result)
 
     if (result)
     {
-        auto curTime = Clock::now();
+        auto curTime = GetMap()->GetCurrentClockTime();
 
         do
         {
@@ -3518,8 +3518,8 @@ void Player::_LoadSpellCooldowns(QueryResult* result)
                 }
             }
 
-            TimePoint spellExpireTime = Clock::from_time_t(spell_time);
-            TimePoint catExpireTime = Clock::from_time_t(cat_time);
+            TimePoint spellExpireTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::from_time_t(spell_time));
+            TimePoint catExpireTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::from_time_t(cat_time));
             std::chrono::milliseconds spellRecTime = std::chrono::milliseconds::zero();
             std::chrono::milliseconds catRecTime = std::chrono::milliseconds::zero();
             if (spellExpireTime > curTime)
@@ -3531,7 +3531,7 @@ void Player::_LoadSpellCooldowns(QueryResult* result)
             if (spellRecTime == std::chrono::milliseconds::zero() && catRecTime == std::chrono::milliseconds::zero())
                 continue;
 
-            m_cooldownMap.AddCooldown(spell_id, uint32(spellRecTime.count()), category, uint32(catRecTime.count()), item_id);
+            m_cooldownMap.AddCooldown(curTime, spell_id, uint32(spellRecTime.count()), category, uint32(catRecTime.count()), item_id);
 #ifdef _DEBUG
             uint32 spellCDDuration = std::chrono::duration_cast<std::chrono::seconds>(spellRecTime).count();
             uint32 catCDDuration = std::chrono::duration_cast<std::chrono::seconds>(catRecTime).count();
@@ -3556,7 +3556,7 @@ void Player::_SaveSpellCooldowns()
     stmt.PExecute(GetGUIDLow());
 
     static SqlStatementID insertSpellCooldown;
-    TimePoint currTime = Clock::now();
+    TimePoint currTime = GetMap()->GetCurrentClockTime();
 
     for (auto& cdItr : m_cooldownMap)
     {
@@ -17095,7 +17095,7 @@ void Player::PetSpellInitialize() const
     uint32 cdCount = 0;
     const size_t cdCountPos = data.wpos();
     data << uint16(0);
-    auto currTime = Clock::now();
+    auto currTime = GetMap()->GetCurrentClockTime();
 
     for (auto& cdItr : m_cooldownMap)
     {
@@ -20846,7 +20846,7 @@ void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* item
 
     if (permanent)
     {
-        m_cooldownMap.AddCooldown(spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId, true);
+        m_cooldownMap.AddCooldown(GetMap()->GetCurrentClockTime(), spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId, true);
         return;
     }
 
@@ -20867,7 +20867,7 @@ void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* item
     if (recTime || categoryRecTime)
     {
         // ready to add the cooldown
-        m_cooldownMap.AddCooldown(spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId);
+        m_cooldownMap.AddCooldown(GetMap()->GetCurrentClockTime(), spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId);
 
         // after some aura fade or potion activation we have to send cooldown event to start cd client side
         if (haveToSendEvent)
@@ -20935,7 +20935,7 @@ void Player::RemoveAllCooldowns(bool sendOnly /*= false*/)
 
 void Player::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
 {
-    TimePoint lockoutExpireTime = std::chrono::milliseconds(duration) + Clock::now();
+    TimePoint lockoutExpireTime = std::chrono::milliseconds(duration) + GetMap()->GetCurrentClockTime();
     ByteBuffer cdData;
     uint32 spellCount = 0;
 

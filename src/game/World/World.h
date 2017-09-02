@@ -26,6 +26,7 @@
 #include "Common.h"
 #include "Timer.h"
 #include "Globals/SharedDefines.h"
+#include "Entities/Object.h"
 
 #include <set>
 #include <list>
@@ -590,6 +591,8 @@ class World
         **/
         void InvalidatePlayerDataToAllClient(ObjectGuid guid) const;
 
+        static TimePoint GetCurrentClockTime() { return m_currentTime; }
+
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters
@@ -691,6 +694,8 @@ class World
 
         // Vector of quests that were chosen for given group
         std::vector<uint32> m_eventGroupChosen;
+
+        static TimePoint m_currentTime;
 };
 
 extern uint32 realmID;

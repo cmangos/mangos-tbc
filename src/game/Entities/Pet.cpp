@@ -1506,7 +1506,7 @@ void Pet::_LoadSpellCooldowns()
 
     if (result)
     {
-        auto curTime = Clock::now();
+        auto curTime = GetMap()->GetCurrentClockTime();
         do
         {
             Field* fields = result->Fetch();
@@ -1521,7 +1521,7 @@ void Pet::_LoadSpellCooldowns()
                 continue;
             }
 
-            TimePoint spellExpireTime = Clock::from_time_t(spell_time);
+            TimePoint spellExpireTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::from_time_t(spell_time));
             std::chrono::milliseconds spellRecTime = std::chrono::milliseconds::zero();
             if (spellExpireTime > curTime)
                 spellRecTime = std::chrono::duration_cast<std::chrono::milliseconds>(spellExpireTime - curTime);
@@ -1534,7 +1534,7 @@ void Pet::_LoadSpellCooldowns()
             cdData << uint32(uint32(spellRecTime.count()));
             ++cdCount;
 
-            m_cooldownMap.AddCooldown(spell_id, uint32(spellRecTime.count()));
+            m_cooldownMap.AddCooldown(GetMap()->GetCurrentClockTime(), spell_id, uint32(spellRecTime.count()));
 #ifdef _DEBUG
             uint32 spellCDDuration = std::chrono::duration_cast<std::chrono::seconds>(spellRecTime).count();
             sLog.outDebug("Adding spell cooldown to %s, SpellID(%u), recDuration(%us).", GetGuidStr().c_str(), spell_id, spellCDDuration);
@@ -1562,7 +1562,7 @@ void Pet::_SaveSpellCooldowns()
     SqlStatement stmt = CharacterDatabase.CreateStatement(delSpellCD, "DELETE FROM pet_spell_cooldown WHERE guid = ?");
     stmt.PExecute(m_charmInfo->GetPetNumber());
 
-    TimePoint currTime = Clock::now();
+    TimePoint currTime = GetMap()->GetCurrentClockTime();
 
     for (auto& cdItr : m_cooldownMap)
     {

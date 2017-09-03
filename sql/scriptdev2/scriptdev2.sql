@@ -131,7 +131,7 @@ UPDATE creature_template SET ScriptName='spell_dummy_npc' WHERE entry IN (
 -- kalimdor
 9299,12296,12298,
 -- outland
-16880,16518,16847,17157,17326,17654,18879,21729,22105,24918,24922,25084,25085);
+16880,16518,16847,17157,17326,17654,18879,21729,24918,24922,25084,25085);
 
 UPDATE gameobject_template SET ScriptName='spell_dummy_go' WHERE entry IN (181616);
 
@@ -446,6 +446,7 @@ UPDATE creature_template SET ScriptName='npc_stinky_ignatz' WHERE entry=4880;
 UPDATE creature_template SET ScriptName='boss_tethyr' WHERE entry=23899;
 INSERT INTO scripted_areatrigger VALUES
 (4752,'at_nats_landing');
+UPDATE creature_template SET ScriptName = 'npc_mottled_drywallow_crocolisk' WHERE entry = 4344;
 
 /* EASTERN PLAGUELANDS */
 UPDATE creature_template SET ScriptName='npc_eris_havenfire' WHERE entry=14494;
@@ -913,6 +914,7 @@ UPDATE creature_template SET ScriptName='boss_high_botanist_freywinn' WHERE entr
 UPDATE creature_template SET ScriptName='boss_laj' WHERE entry=17980;
 UPDATE creature_template SET ScriptName='boss_warp_splinter' WHERE entry=17977;
 UPDATE creature_template SET ScriptName='mob_warp_splinter_treant' WHERE entry=19949;
+UPDATE creature_template SET ScriptName='boss_thorngrin' WHERE entry IN(17978);
 
 /* THE ARCATRAZ */
 UPDATE instance_template SET ScriptName='instance_arcatraz' WHERE map=552;
@@ -1463,9 +1465,9 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000381,'I sense the tortured spirits, $n. They are this way, come quickly!',0,0,0,1,'wilda SAY_WIL_START'),
 (-1000382,'Watch out!',0,0,0,0,'wilda SAY_WIL_AGGRO1'),
 (-1000383,'Naga attackers! Defend yourself!',0,0,0,0,'wilda SAY_WIL_AGGRO2'),
-(-1000384,'Grant me protection $n, i must break trough their foul magic!',0,0,0,0,'wilda SAY_WIL_PROGRESS1'),
+(-1000384,'Grant me protection, $n. I must break through their foul magic!',0,0,0,0,'wilda SAY_WIL_PROGRESS1'),
 (-1000385,'The naga of Coilskar are exceptionally cruel to their prisoners. It is a miracle that I survived inside that watery prison for as long as I did. Earthmother be praised.',0,0,0,0,'wilda SAY_WIL_PROGRESS2'),
-(-1000386,'Now we must find the exit.',0,0,0,0,'wilda SAY_WIL_FIND_EXIT'),
+(-1000386,'Now we must find the exit.',0,0,0,1,'wilda SAY_WIL_FIND_EXIT'),
 (-1000387,'Lady Vashj must answer for these atrocities. She must be brought to justice!',0,0,0,0,'wilda SAY_WIL_PROGRESS4'),
 (-1000388,'The tumultuous nature of the great waterways of Azeroth and Draenor are a direct result of tormented water spirits.',0,0,0,0,'wilda SAY_WIL_PROGRESS5'),
 (-1000389,'It shouldn\'t be much further, $n. The exit is just up ahead.',0,0,0,1,'wilda SAY_WIL_JUST_AHEAD'),
@@ -3614,7 +3616,15 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1553009,'What am I doing? Why do I...',11232,1,0,0,'warp SAY_SLAY_2'),
 (-1553010,'Children, come to me!',11233,1,0,0,'warp SAY_SUMMON_1'),
 (-1553011,'Maybe this is not--No, we fight! Come to my aid.',11234,1,0,0,'warp SAY_SUMMON_2'),
-(-1553012,'So... confused. Do not... belong here!',11235,1,0,0,'warp SAY_DEATH');
+(-1553012,'So... confused. Do not... belong here!',11235,1,0,0,'warp SAY_DEATH'),
+(-1553013, 'You won\'t... get far.',11212,1,0,0,'Thorngrin YELL on Death'),
+(-1553014, 'I hate to say I told you so...',11207,1,0,0, 'Thorngrind YELL on Player Kill'),
+(-1553015, 'Your life will be mine!',11208,1,0,0,'Thorngrin YELL on Sacrifice'),
+(-1553016, 'You seek a prize, eh? How about death?',11206,1,0,0,'Thorngrin YELL on 20% HP'),
+(-1553017, 'I revel in your pain!',11209,1,0,0,'Thorngrin YELL on 50% HP'),
+(-1553018, 'I\'ll incinerate you!',11210,1,0,0,'Thorngrin YELL on Hellfire 1'),
+(-1553019, 'Scream while you burn! ',11211,1,0,0,'Thorngrin YELL on Hellfire 2'),
+(-1553020, 'What aggravation is this? You will die!',11205,1,0,0,'Thorngrin YELL on Aggro');
 
 -- -1 554 000 THE MECHANAR
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -5904,21 +5914,21 @@ INSERT INTO script_waypoint VALUES
 
 DELETE FROM script_waypoint WHERE entry=21027;
 INSERT INTO script_waypoint VALUES
-(21027, 0, -2714.697266, 1326.879395, 34.306953, 0, ''),
-(21027, 1, -2666.364990, 1348.222656, 34.445557, 0, ''),
-(21027, 2, -2693.789307, 1336.964966, 34.445557, 0, ''),
-(21027, 3, -2715.495361, 1328.054443, 34.106014, 0, ''),
-(21027, 4, -2742.530762, 1314.138550, 33.606144, 0, ''),
-(21027, 5, -2745.077148, 1311.108765, 33.630898, 0, ''),
-(21027, 6, -2749.855225, 1302.737915, 33.475632, 0, ''),
-(21027, 7, -2753.639648, 1294.059448, 33.314930, 0, ''),
-(21027, 8, -2756.796387, 1285.122192, 33.391262, 0, 'spawn assassin'),
-(21027, 9, -2750.042969, 1273.661987, 33.188259, 0, ''),
-(21027, 10, -2740.378418, 1258.846680, 33.212521, 0, ''),
-(21027, 11, -2733.629395, 1248.259766, 33.640598, 0, ''),
-(21027, 12, -2727.212646, 1238.606445, 33.520847, 0, ''),
-(21027, 13, -2726.377197, 1237.264526, 33.461823, 4000, 'SAY_WIL_PROGRESS1'),
-(21027, 14, -2726.377197, 1237.264526, 33.461823, 4000, 'SAY_WIL_FIND_EXIT'),
+(21027, 0, -2638.89, 1358.96, 35.9607, 0, ''),
+(21027, 1, -2652.62, 1354.46, 34.8615, 0, ''),
+(21027, 2, -2670.70, 1348.18, 34.4460, 0, ''),
+(21027, 3, -2690.82, 1339.95, 34.4460, 0, ''),
+(21027, 4, -2709.98, 1330.77, 34.4460, 0, ''),
+(21027, 5, -2727.74, 1322.39, 33.3863, 0, ''),
+(21027, 6, -2742.53, 1314.21, 33.6043, 0, ''),
+(21027, 7, -2750.69, 1308.32, 33.5114, 0, ''),
+(21027, 8, -2758.50, 1290.76, 33.2167, 0, 'spawn assassin'),
+(21027, 9, -2755.04, 1280.85, 33.4304, 0, ''),
+(21027, 10, -2747.99, 1268.58, 33.1957, 0, ''),
+(21027, 11, -2741.46, 1257.92, 33.0820, 0, ''),
+(21027, 12, -2732.63, 1245.35, 33.6119, 0, ''),
+(21027, 13, -2724.68, 1235.12, 33.3635, 15000, 'SAY_WIL_PROGRESS1'),
+(21027, 14, -2724.68, 1235.12, 33.3635, 6000, 'SAY_WIL_FIND_EXIT'),
 (21027, 15, -2746.383301, 1266.390625, 33.191952, 0, 'spawn assassin'),
 (21027, 16, -2746.383301, 1266.390625, 33.191952, 0, ''),
 (21027, 17, -2758.927734, 1285.134155, 33.341728, 0, ''),

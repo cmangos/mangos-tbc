@@ -449,7 +449,7 @@ class Spell
         void SendSpellGo();
         void SendSpellCooldown();
         void SendInterrupted(uint8 result) const;
-        void SendChannelUpdate(uint32 time) const;
+        void SendChannelUpdate(uint32 time, bool properEnding = false) const;
         void SendChannelStart(uint32 duration);
         void SendResurrectRequest(Player* target) const;
 
@@ -534,10 +534,6 @@ class Spell
         typedef std::list<Unit*> UnitList;
 
     protected:
-        bool HasGlobalCooldown() const;
-        void TriggerGlobalCooldown();
-        void CancelGlobalCooldown();
-
         void SendLoot(ObjectGuid guid, LootType loottype, LockType lockType);
         bool IgnoreItemRequirements() const;                // some item use spells have unexpected reagent data
         void UpdateOriginalCasterPointer();

@@ -135,7 +135,7 @@ struct npc_air_force_botsAI : public ScriptedAI
 
     Creature* SummonGuard()
     {
-        Creature* pSummoned = m_creature->SummonCreature(m_pSpawnAssoc->m_uiSpawnedCreatureEntry, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 300000);
+        Creature* pSummoned = m_creature->SummonCreature(m_pSpawnAssoc->m_uiSpawnedCreatureEntry, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 300000);
 
         if (pSummoned)
             m_spawnedGuid = pSummoned->GetObjectGuid();
@@ -799,7 +799,7 @@ void npc_doctorAI::UpdateAI(const uint32 uiDiff)
                             return;
                     }
 
-                    if (Creature* Patient = m_creature->SummonCreature(patientEntry, (*itr)->x, (*itr)->y, (*itr)->z, (*itr)->o, TEMPSUMMON_DEAD_DESPAWN, 0))
+                    if (Creature* Patient = m_creature->SummonCreature(patientEntry, (*itr)->x, (*itr)->y, (*itr)->z, (*itr)->o, TEMPSPAWN_DEAD_DESPAWN, 0))
                     {
                         totalSpawned++;
 
@@ -1265,10 +1265,12 @@ enum
     // visual and idle spells
     SPELL_TUNNEL_BORE_PASSIVE           = 29147,                // added by c_t_a
     SPELL_TUNNEL_BORE                   = 29148,
-    SPELL_TUNNEL_BORE2                  = 34039,
+    SPELL_TUNNEL_BORE_RED               = 34039,
     SPELL_TUNNEL_BORE_BONE_PASSIVE      = 37989,                // added by c_t_a
     SPELL_TUNNEL_BORE_RED_PASSIVE       = 34038,
+    SPELL_DAMAGING_TUNNEL_BORE_BONE_PASSIVE = 38885,
     SPELL_BONE_BORE                     = 37990,
+    SPELL_BONE_BORE_2                   = 38886,
     SPELL_SANDWORM_SUBMERGE_VISUAL      = 33928,
     SPELL_SUBMERGED                     = 37751,
     SPELL_STAND                         = 37752,
@@ -1297,9 +1299,10 @@ enum
     PHASE_CHASE                         = 2,
 };
 
+// TODO: Add random repositioning logic
 struct npc_burster_wormAI : public ScriptedAI
 {
-    npc_burster_wormAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiBorePassive(SetBorePassive()) { Reset(); }
+    npc_burster_wormAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiBorePassive(SetBorePassive()), m_boreDamageSpell(SetBoreDamageSpell()){ }
 
     uint8 m_uiPhase;
 
@@ -1308,6 +1311,7 @@ struct npc_burster_wormAI : public ScriptedAI
     uint32 m_uiBoreTimer;
     uint32 m_uiEnrageTimer;
     uint32 m_uiBorePassive;
+    uint32 m_boreDamageSpell;
 
     inline uint32 SetBorePassive()
     {
@@ -1315,13 +1319,30 @@ struct npc_burster_wormAI : public ScriptedAI
         {
             case NPC_MARAUDING_BURSTER:
                 return SPELL_TUNNEL_BORE_RED_PASSIVE;
-            case NPC_BONE_CRAWLER:
             case NPC_HAISHULUD:
+                return SPELL_DAMAGING_TUNNEL_BORE_BONE_PASSIVE;
+            case NPC_BONE_CRAWLER:
             case NPC_BONE_SIFTER:
             case NPC_MATURE_BONE_SIFTER:
                 return SPELL_TUNNEL_BORE_BONE_PASSIVE;
             default:
                 return SPELL_TUNNEL_BORE_PASSIVE;
+        }
+    }
+
+    inline uint32 SetBoreDamageSpell()
+    {
+        switch (m_uiBorePassive)
+        {
+            case SPELL_TUNNEL_BORE_RED_PASSIVE:
+                return SPELL_TUNNEL_BORE_RED;
+            case SPELL_DAMAGING_TUNNEL_BORE_BONE_PASSIVE:
+                return SPELL_BONE_BORE_2;
+            case SPELL_TUNNEL_BORE_BONE_PASSIVE:
+                return SPELL_BONE_BORE;
+            case SPELL_TUNNEL_BORE_PASSIVE:
+            default: // this should never happen
+                return SPELL_TUNNEL_BORE;
         }
     }
 
@@ -1335,25 +1356,29 @@ struct npc_burster_wormAI : public ScriptedAI
 
         SetCombatMovement(false);
 
-        m_creature->CastSpell(m_creature, SPELL_SUBMERGED, TRIGGERED_NONE);
-        m_creature->RemoveAurasDueToSpell(SPELL_TUNNEL_BORE_BONE_PASSIVE);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        Submerge();
 
         // only spawned creatures have the submerge visual - TODO: Reconfirm which should actually use it
         //if (!m_creature->IsTemporarySummon() && !)
         //    DoCastSpellIfCan(m_creature, SPELL_SANDWORM_SUBMERGE_VISUAL, CAST_AURA_NOT_PRESENT);
     }
 
+    void Submerge()
+    {
+        m_creature->CastSpell(m_creature, SPELL_SUBMERGED, TRIGGERED_NONE);
+        m_creature->CastSpell(m_creature, m_uiBorePassive, TRIGGERED_NONE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    }
+
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
-        if ((pSpell->Id == SPELL_TUNNEL_BORE || pSpell->Id == SPELL_BONE_BORE || pSpell->Id == SPELL_TUNNEL_BORE2) && pTarget->GetTypeId() == TYPEID_PLAYER)
-        {
-            // remove auras straight on spell hit
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-            m_creature->RemoveAurasDueToSpell(SPELL_SANDWORM_SUBMERGE_VISUAL);
-
+        if (pSpell->Id == m_boreDamageSpell && pTarget->GetTypeId() == TYPEID_PLAYER)
             AttackStart(pTarget);
-        }
+    }
+
+    void JustRespawned() override
+    {
+        Reset();
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -1413,12 +1438,7 @@ struct npc_burster_wormAI : public ScriptedAI
                 if (m_uiChaseTimer <= uiDiff)
                 {
                     // sone creatures have bone bore spell
-                    if (IsBoneWorm())
-                        DoCastSpellIfCan(m_creature, SPELL_TUNNEL_BORE_BONE_PASSIVE, CAST_TRIGGERED);
-                    else
-                        DoCastSpellIfCan(m_creature, SPELL_TUNNEL_BORE_PASSIVE, CAST_TRIGGERED);
-
-                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    Submerge();
                     m_uiPhase = PHASE_CHASE;
                     SetCombatMovement(true);
                     m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());

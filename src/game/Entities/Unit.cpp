@@ -32,7 +32,7 @@
 #include "Spells/SpellAuras.h"
 #include "Globals/ObjectAccessor.h"
 #include "AI/CreatureAISelector.h"
-#include "Entities/TemporarySummon.h"
+#include "Entities/TemporarySpawn.h"
 #include "Entities/Pet.h"
 #include "Util.h"
 #include "Entities/Totem.h"
@@ -292,25 +292,6 @@ void MovementInfo::Write(ByteBuffer& data) const
 }
 
 ////////////////////////////////////////////////////////////
-// Methods of class GlobalCooldownMgr
-
-bool GlobalCooldownMgr::HasGlobalCooldown(SpellEntry const* spellInfo) const
-{
-    GlobalCooldownList::const_iterator itr = m_GlobalCooldowns.find(spellInfo->StartRecoveryCategory);
-    return itr != m_GlobalCooldowns.end() && itr->second.duration && WorldTimer::getMSTimeDiff(itr->second.cast_time, WorldTimer::getMSTime()) < itr->second.duration;
-}
-
-void GlobalCooldownMgr::AddGlobalCooldown(SpellEntry const* spellInfo, uint32 gcd)
-{
-    m_GlobalCooldowns[spellInfo->StartRecoveryCategory] = GlobalCooldown(gcd, WorldTimer::getMSTime());
-}
-
-void GlobalCooldownMgr::CancelGlobalCooldown(SpellEntry const* spellInfo)
-{
-    m_GlobalCooldowns[spellInfo->StartRecoveryCategory].duration = 0;
-}
-
-////////////////////////////////////////////////////////////
 // Methods of class Unit
 
 Unit::Unit() :
@@ -318,7 +299,8 @@ Unit::Unit() :
     m_charmInfo(nullptr),
     i_motionMaster(this),
     m_regenTimer(0),
-    m_combatData(new CombatData(this))
+    m_combatData(new CombatData(this)),
+    m_spellUpdateHappening(false)
 {
     m_objectType |= TYPEMASK_UNIT;
     m_objectTypeId = TYPEID_UNIT;
@@ -425,6 +407,8 @@ Unit::~Unit()
         }
     }
 
+    CleanupDeletedAuras();
+
     delete m_combatData;
     delete m_charmInfo;
     delete movespline;
@@ -451,8 +435,11 @@ void Unit::Update(uint32 update_diff, uint32 p_time)
     // WARNING! Order of execution here is important, do not change.
     // Spells must be processed with event system BEFORE they go to _UpdateSpells.
     // Or else we may have some SPELL_STATE_FINISHED spells stalled in pointers, that is bad.
+    UpdateCooldowns(Clock::now());
+    m_spellUpdateHappening = true;
     m_Events.Update(update_diff);
     _UpdateSpells(update_diff);
+    m_spellUpdateHappening = false;
 
     CleanupDeletedAuras();
 
@@ -1193,9 +1180,8 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
     Unit* pOwner = victim->GetMaster();
     if (victim->IsTemporarySummon())
     {
-        TemporarySummon* pSummon = (TemporarySummon*)victim;
-        if (pSummon->GetSummonerGuid().IsCreature())
-            if (Creature* pSummoner = victim->GetMap()->GetCreature(pSummon->GetSummonerGuid()))
+        if (victim->GetSpawnerGuid().IsCreature())
+            if (Creature* pSummoner = victim->GetMap()->GetCreature(victim->GetSpawnerGuid()))
                 if (pSummoner->AI())
                     pSummoner->AI()->SummonedCreatureJustDied(victim);
     }
@@ -2019,7 +2005,6 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
                         reflectDamage = currentAbsorb / 2;
                     reflectSpell = 33619;
                     reflectTriggeredBy = *i;
-                    reflectTriggeredBy->SetInUse(true);     // lock aura from final deletion until processing
                     break;
                 }
                 if (spellProto->Id == 39228)                // Argussian Compass
@@ -2039,7 +2024,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
                 {
                     if (!preventDeathSpell &&
                             GetTypeId() == TYPEID_PLAYER && // Only players
-                            !((Player*)this)->HasSpellCooldown(31231) &&
+                            IsSpellReady(31231) &&
                             // Only if no cooldown
                             roll_chance_i((*i)->GetModifier()->m_amount))
                         // Only if roll
@@ -2078,7 +2063,6 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
                                     reflectDamage = (*k)->GetModifier()->m_amount * RemainingDamage / 100;
                                 reflectSpell = 33619;
                                 reflectTriggeredBy = *i;
-                                reflectTriggeredBy->SetInUse(true);// lock aura from final deletion until processing
                             } break;
                             default: break;
                         }
@@ -2126,7 +2110,6 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
     if (canReflect && reflectSpell)
     {
         CastCustomSpell(pCaster, reflectSpell, &reflectDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, reflectTriggeredBy);
-        reflectTriggeredBy->SetInUse(false);                // free lock from deletion
     }
 
     // absorb by mana cost
@@ -2254,8 +2237,9 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
                 // Cheat Death
                 if (preventDeathSpell->SpellIconID == 2109)
                 {
-                    CastSpell(this, 31231, TRIGGERED_OLD_TRIGGERED);
-                    ((Player*)this)->AddSpellCooldown(31231, 0, time(nullptr) + 60);
+                    SpellEntry const* cheatDeath = sSpellTemplate.LookupEntry<SpellEntry>(31231);
+                    CastSpell(this, cheatDeath, TRIGGERED_OLD_TRIGGERED);
+                    AddCooldown(*cheatDeath, nullptr, false, 60 * IN_MILLISECONDS); // TODO this may be removed by fixing cooldown value in spell template
                     // with health > 10% lost health until health==10%, in other case no losses
                     uint32 health10 = GetMaxHealth() / 10;
                     RemainingDamage = GetHealth() > health10 ? GetHealth() - health10 : 0;
@@ -4374,6 +4358,8 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder* holder)
 
     // add aura, register in lists and arrays
     holder->_AddSpellAuraHolder();
+    if(m_spellUpdateHappening)
+        holder->SetCreationDelayFlag();
     m_spellAuraHolders.insert(SpellAuraHolderMap::value_type(holder->GetId(), holder));
 
     for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
@@ -4499,13 +4485,6 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
                 // holder cannot remove higher rank if it isn't from the same caster
                 if (IsSimilarExistingAuraStronger(holder, existing) || (sSpellMgr.IsRankSpellDueToSpell(spellProto, existingSpellId) && sSpellMgr.IsHighRankOfSpell(existingSpellId, spellId)))
                     return false;
-            }
-
-            // Its a parent aura (create this aura in ApplyModifier)
-            if (existing->IsInUse())
-            {
-                sLog.outError("SpellAuraHolder (Spell %u) is in process but attempt removed at SpellAuraHolder (Spell %u) adding, need add stack rule for Unit::RemoveNoStackAurasDueToAuraHolder", i->second->GetId(), holder->GetId());
-                continue;
             }
 
             if (personal && stackable)
@@ -4912,13 +4891,8 @@ void Unit::RemoveSpellAuraHolder(SpellAuraHolder* holder, AuraRemoveMode mode)
 
     // If holder in use (removed from code that plan access to it data after return)
     // store it in holder list with delayed deletion
-    if (holder->IsInUse())
-    {
-        holder->SetDeleted();
-        m_deletedHolders.push_back(holder);
-    }
-    else
-        delete holder;
+    holder->SetDeleted();
+    m_deletedHolders.push_back(holder);
 
     if (mode != AURA_REMOVE_BY_EXPIRE && IsChanneledSpell(AurSpellInfo) && !IsAreaOfEffectSpell(AurSpellInfo) &&
             caster && caster->GetObjectGuid() != GetObjectGuid())
@@ -4979,10 +4953,7 @@ void Unit::RemoveAura(Aura* Aur, AuraRemoveMode mode)
 
     // If aura in use (removed from code that plan access to it data after return)
     // store it in aura list with delayed deletion
-    if (Aur->IsInUse())
-        m_deletedAuras.push_back(Aur);
-    else
-        delete Aur;
+    m_deletedAuras.push_back(Aur);
 }
 
 void Unit::RemoveAllAuras(AuraRemoveMode mode /*= AURA_REMOVE_BY_DEFAULT*/)
@@ -5224,13 +5195,13 @@ void Unit::AddGameObject(GameObject* gameObj)
     m_gameObj.push_back(gameObj);
     gameObj->SetOwnerGuid(GetObjectGuid());
 
-    if (GetTypeId() == TYPEID_PLAYER && gameObj->GetSpellId())
+    if (gameObj->GetSpellId())
     {
         SpellEntry const* createBySpell = sSpellTemplate.LookupEntry<SpellEntry>(gameObj->GetSpellId());
         // Need disable spell use for owner
         if (createBySpell && createBySpell->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
             // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existing cases)
-            ((Player*)this)->AddSpellAndCategoryCooldowns(createBySpell, 0, nullptr, true);
+            AddCooldown(*createBySpell);
     }
 }
 
@@ -5269,7 +5240,7 @@ void Unit::RemoveGameObject(GameObject* gameObj, bool del)
             // Need activate spell use for owner
             if (createBySpell && createBySpell->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
                 // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existing cases)
-                ((Player*)this)->SendCooldownEvent(createBySpell);
+                AddCooldown(*createBySpell);
         }
     }
 
@@ -6096,6 +6067,13 @@ Player* Unit::GetBeneficiaryPlayer()
     if (beneficiary)
         return (beneficiary->GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(beneficiary) : nullptr);
     return (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
+}
+
+Unit* Unit::GetSpawner() const
+{
+    if (ObjectGuid guid = GetSpawnerGuid())
+        return ObjectAccessor::GetUnit(*this, guid);
+    return nullptr;
 }
 
 Unit* Unit::GetSummoner() const
@@ -8985,7 +8963,6 @@ void Unit::RemoveFromWorld()
         RemoveGuardians();
         RemoveAllGameObjects();
         RemoveAllDynObjects();
-        CleanupDeletedAuras();
         GetViewPoint().Event_RemovedFromWorld();
     }
 
@@ -9448,7 +9425,6 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, 
         if (!IsTriggeredAtSpellProcEvent(pTarget, itr->second, procSpell, procFlag, procExtra, attType, isVictim, spellProcEvent, dontTriggerSpecial))
             continue;
 
-        itr->second->SetInUse(true);                        // prevent holder deletion
         procTriggered.push_back(ProcTriggeredData(spellProcEvent, itr->second));
     }
 
@@ -9521,8 +9497,6 @@ void Unit::ProcDamageAndSpellFor(bool isVictim, Unit* pTarget, uint32 procFlag, 
             if (triggeredByHolder->DropAuraCharge())
                 removedSpells.push_back(triggeredByHolder->GetId());
         }
-
-        triggeredByHolder->SetInUse(false);
     }
 
     if (!removedSpells.empty())
@@ -10558,7 +10532,7 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
         return nullptr;
     }
 
-    TemporarySummon* pCreature = new TemporarySummon(GetObjectGuid());
+    TemporarySpawn* pCreature = new TemporarySpawn(GetObjectGuid());
 
     CreatureCreatePos pos(GetMap(), x, y, z, ang);
 
@@ -10580,13 +10554,13 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
     pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_POSSESSED);          // set flag for client that mean this unit is controlled by a player
     pCreature->addUnitState(UNIT_STAT_CONTROLLED);                      // also set internal unit state flag
     pCreature->SelectLevel(getLevel());                                 // set level to same level than summoner TODO:: not sure its always the case...
-    pCreature->SetLinkedToOwnerAura(TEMPSUMMON_LINKED_AURA_OWNER_CHECK | TEMPSUMMON_LINKED_AURA_REMOVE_OWNER); // set what to do if linked aura is removed or the creature is dead.
+    pCreature->SetLinkedToOwnerAura(TEMPSPAWN_LINKED_AURA_OWNER_CHECK | TEMPSPAWN_LINKED_AURA_REMOVE_OWNER); // set what to do if linked aura is removed or the creature is dead.
     pCreature->SetWalk(IsWalking(), true);                              // sync the walking state with the summoner
 
                                                                         // important before adding to the map!
     SetCharmGuid(pCreature->GetObjectGuid());                           // save guid of charmed creature
 
-    pCreature->SetSummonProperties(TEMPSUMMON_CORPSE_TIMED_DESPAWN, 5000); // set 5s corpse decay
+    pCreature->SetSummonProperties(TEMPSPAWN_CORPSE_TIMED_DESPAWN, 5000); // set 5s corpse decay
     GetMap()->Add(static_cast<Creature*>(pCreature));                   // create the creature in the client
     pCreature->AIM_Initialize();                                        // even if this will be replaced it need to be initialized to take care of spawn spells
 

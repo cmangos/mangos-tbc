@@ -1308,17 +1308,36 @@ bool ChatHandler::HandleUnLearnCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleCooldownCommand(char* args)
+bool ChatHandler::HandleCooldownListCommand(char* args)
 {
-    Player* target = getSelectedPlayer();
+    Unit* target = getSelectedUnit();
     if (!target)
     {
-        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
         SetSentErrorMessage(true);
         return false;
     }
 
-    std::string tNameLink = GetNameLink(target);
+
+    target->PrintCooldownList(*this);
+    return true;
+}
+
+bool ChatHandler::HandleCooldownClearCommand(char* args)
+{
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    std::string tNameLink = "Unknown";
+    if (target->GetTypeId() == TYPEID_PLAYER)
+        tNameLink = GetNameLink(static_cast<Player*>(target));
+    else
+        tNameLink = target->GetName();
 
     if (!*args)
     {
@@ -1337,16 +1356,51 @@ bool ChatHandler::HandleCooldownCommand(char* args)
         if (!spell_id)
             return false;
 
-        if (!sSpellTemplate.LookupEntry<SpellEntry>(spell_id))
+        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+        if (!spellEntry)
         {
             PSendSysMessage(LANG_UNKNOWN_SPELL, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
             SetSentErrorMessage(true);
             return false;
         }
 
-        target->RemoveSpellCooldown(spell_id, true);
+        target->RemoveSpellCooldown(*spellEntry);
         PSendSysMessage(LANG_REMOVE_COOLDOWN, spell_id, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
     }
+    return true;
+}
+
+bool ChatHandler::HandleCooldownClearClientSideCommand(char*)
+{
+    Player* target = getSelectedPlayer();
+    if (!target)
+    {
+        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    std::string tNameLink = GetNameLink(target);
+
+    target->RemoveAllCooldowns(true);
+    PSendSysMessage(LANG_REMOVEALL_COOLDOWN, tNameLink.c_str());
+    return true;
+}
+
+bool ChatHandler::HandleCooldownClearArenaCommand(char*)
+{
+    Player* target = getSelectedPlayer();
+    if (!target)
+    {
+        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    std::string tNameLink = GetNameLink(target);
+
+    target->RemoveArenaSpellCooldowns();
+    PSendSysMessage(LANG_REMOVEALL_COOLDOWN, tNameLink.c_str());
     return true;
 }
 
@@ -6756,7 +6810,7 @@ bool ChatHandler::HandleMmapTestHeight(char* args)
     float gx, gy, gz;
     unit->GetPosition(gx, gy, gz);
 
-    Creature* summoned = unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz + 0.5f, 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
+    Creature* summoned = unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz + 0.5f, 0, TEMPSPAWN_TIMED_DESPAWN, 20000);
     summoned->CastSpell(summoned, 8599, TRIGGERED_NONE);
     uint32 tries = 1;
     uint32 successes = 0;
@@ -6766,7 +6820,7 @@ bool ChatHandler::HandleMmapTestHeight(char* args)
         unit->GetPosition(gx, gy, gz);
         if (unit->GetMap()->GetReachableRandomPosition(unit, gx, gy, gz, radius))
         {
-            unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
+            unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz, 0, TEMPSPAWN_TIMED_DESPAWN, 15000);
             ++successes;
             if (successes >= 100)
                 break;

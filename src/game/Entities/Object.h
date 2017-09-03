@@ -24,6 +24,7 @@
 #include "Entities/UpdateFields.h"
 #include "Entities/UpdateData.h"
 #include "Entities/ObjectGuid.h"
+#include "Globals/SharedDefines.h"
 #include "Camera.h"
 
 #include <set>
@@ -43,24 +44,24 @@
 
 #define MAX_STEALTH_DETECT_RANGE    45.0f
 
-enum TempSummonType
+enum TempSpawnType
 {
-    TEMPSUMMON_MANUAL_DESPAWN              = 0,             // despawns when UnSummon() is called
-    TEMPSUMMON_DEAD_DESPAWN                = 1,             // despawns when the creature disappears
-    TEMPSUMMON_CORPSE_DESPAWN              = 2,             // despawns instantly after death
-    TEMPSUMMON_CORPSE_TIMED_DESPAWN        = 3,             // despawns after a specified time after death (or when the creature disappears)
-    TEMPSUMMON_TIMED_DESPAWN               = 4,             // despawns after a specified time
-    TEMPSUMMON_TIMED_OOC_DESPAWN           = 5,             // despawns after a specified time after the creature is out of combat
-    TEMPSUMMON_TIMED_OR_DEAD_DESPAWN       = 6,             // despawns after a specified time OR when the creature disappears
-    TEMPSUMMON_TIMED_OR_CORPSE_DESPAWN     = 7,             // despawns after a specified time OR when the creature dies
-    TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN   = 8,             // despawns after a specified time (OOC) OR when the creature disappears
-    TEMPSUMMON_TIMED_OOC_OR_CORPSE_DESPAWN = 9,             // despawns after a specified time (OOC) OR when the creature dies
+    TEMPSPAWN_MANUAL_DESPAWN              = 0,             // despawns when UnSummon() is called
+    TEMPSPAWN_DEAD_DESPAWN                = 1,             // despawns when the creature disappears
+    TEMPSPAWN_CORPSE_DESPAWN              = 2,             // despawns instantly after death
+    TEMPSPAWN_CORPSE_TIMED_DESPAWN        = 3,             // despawns after a specified time after death (or when the creature disappears)
+    TEMPSPAWN_TIMED_DESPAWN               = 4,             // despawns after a specified time
+    TEMPSPAWN_TIMED_OOC_DESPAWN           = 5,             // despawns after a specified time after the creature is out of combat
+    TEMPSPAWN_TIMED_OR_DEAD_DESPAWN       = 6,             // despawns after a specified time OR when the creature disappears
+    TEMPSPAWN_TIMED_OR_CORPSE_DESPAWN     = 7,             // despawns after a specified time OR when the creature dies
+    TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN   = 8,             // despawns after a specified time (OOC) OR when the creature disappears
+    TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN = 9,             // despawns after a specified time (OOC) OR when the creature dies
 };
 
-enum TempSummonLinkedAura
+enum TempSpawnLinkedAura
 {
-    TEMPSUMMON_LINKED_AURA_OWNER_CHECK = 0x00000001,
-    TEMPSUMMON_LINKED_AURA_REMOVE_OWNER = 0x00000002
+    TEMPSPAWN_LINKED_AURA_OWNER_CHECK = 0x00000001,
+    TEMPSPAWN_LINKED_AURA_REMOVE_OWNER = 0x00000002
 };
 
 class WorldPacket;
@@ -77,8 +78,179 @@ class TerrainInfo;
 class TransportInfo;
 struct MangosStringLocale;
 class Loot;
+struct ItemPrototype;
+class ChatHandler;
+struct SpellEntry;
 
 typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
+
+// cooldown system
+typedef std::chrono::system_clock Clock;
+typedef Clock::time_point TimePoint;
+
+class CooldownData
+{
+    friend class CooldownContainer;
+public:
+    CooldownData(uint32 spellId, uint32 duration, uint32 spellCategory, uint32 categoryDuration, uint32 itemId = 0, bool isPermanent = false) :
+        m_spellId(spellId),
+        m_expireTime(duration ? std::chrono::milliseconds(duration) + Clock::now() : TimePoint()),
+        m_category(spellCategory),
+        m_catExpireTime(spellCategory && categoryDuration ? std::chrono::milliseconds(categoryDuration) + Clock::now() : TimePoint()),
+        m_typePermanent(isPermanent),
+        m_itemId(itemId) {}
+
+    // return false if permanent
+    bool GetSpellCDExpireTime(TimePoint& expireTime) const
+    {
+        if (m_typePermanent)
+            return false;
+
+        expireTime = m_expireTime;
+        return true;
+    }
+
+    // return false if permanent
+    bool GetCatCDExpireTime(TimePoint& expireTime) const
+    {
+        if (m_typePermanent)
+            return false;
+
+        expireTime = m_catExpireTime;
+        return true;
+    }
+
+    bool IsSpellCDExpired(TimePoint const& now) const
+    {
+        if (m_typePermanent)
+            return false;
+
+        if (now > m_expireTime)
+            return true;
+
+        return false;
+    }
+
+    bool IsCatCDExpired(TimePoint const& now) const
+    {
+        if (m_typePermanent)
+            return false;
+
+        if (!m_category)
+            return true;
+
+        if (now > m_catExpireTime)
+            return true;
+
+        return false;
+    }
+
+    bool IsPermanent() const { return m_typePermanent; }
+    uint32 GetItemId() const { return m_itemId; }
+    uint32 GetSpellId() const { return m_spellId; }
+    uint32 GetCategory() const { return m_category; }
+
+private:
+    uint32            m_spellId;
+    uint32            m_category;
+    TimePoint         m_expireTime;
+    TimePoint         m_catExpireTime;
+    bool              m_typePermanent;
+    uint32            m_itemId;
+};
+
+typedef std::unique_ptr<CooldownData> CooldownDataUPTR;
+typedef std::map<uint32, TimePoint> GCDMap;
+typedef std::map<SpellSchools, TimePoint> LockoutMap;
+
+class CooldownContainer
+{
+public:
+    typedef std::map<uint32, CooldownDataUPTR> spellIdMap;
+    typedef spellIdMap::const_iterator ConstIterator;
+    typedef spellIdMap::iterator Iterator;
+    typedef std::map<uint32, ConstIterator> categoryMap;
+
+    void Update(TimePoint const& now)
+    {
+        auto spellCDItr = m_spellIdMap.begin();
+        while (spellCDItr != m_spellIdMap.end())
+        {
+            auto& cd = spellCDItr->second;
+            if (cd->IsSpellCDExpired(now) && cd->IsCatCDExpired(now)) // will not remove permanent CD
+                spellCDItr = erase(spellCDItr);
+            else
+            {
+                if (cd->m_category && cd->IsCatCDExpired(now))
+                    m_categoryMap.erase(cd->m_category);
+                ++spellCDItr;
+            }
+        }
+    }
+
+    bool AddCooldown(uint32 spellId, uint32 duration, uint32 spellCategory = 0, uint32 categoryDuration = 0, uint32 itemId = 0, bool onHold = false)
+    {
+        auto resultItr = m_spellIdMap.emplace(spellId, std::unique_ptr<CooldownData>(new CooldownData(spellId, duration, spellCategory, categoryDuration, itemId, onHold)));
+        if (resultItr.second && spellCategory && categoryDuration)
+            m_categoryMap.emplace(spellCategory, resultItr.first);
+
+        return resultItr.second;
+    }
+
+    void RemoveBySpellId(uint32 spellId)
+    {
+        auto spellCDItr = m_spellIdMap.find(spellId);
+        if (spellCDItr != m_spellIdMap.end())
+        {
+            auto& cdData = spellCDItr->second;
+            if (cdData->m_category)
+            {
+                auto catCDItr = m_categoryMap.find(cdData->m_category);
+                if (catCDItr != m_categoryMap.end())
+                    m_categoryMap.erase(catCDItr);
+            }
+            m_spellIdMap.erase(spellCDItr);
+        }
+    }
+
+    void RemoveByCategory(uint32 category)
+    {
+        auto spellCDItr = m_categoryMap.find(category);
+        if (spellCDItr != m_categoryMap.end())
+            m_categoryMap.erase(spellCDItr);
+    }
+
+    Iterator erase(ConstIterator spellCDItr)
+    {
+        auto& cdData = spellCDItr->second;
+        if (cdData->m_category)
+        {
+            auto catCDItr = m_categoryMap.find(cdData->m_category);
+            if (catCDItr != m_categoryMap.end())
+                m_categoryMap.erase(catCDItr);
+        }
+        return m_spellIdMap.erase(spellCDItr);
+    }
+
+    ConstIterator FindBySpellId(uint32 id) const { return m_spellIdMap.find(id); }
+
+    ConstIterator FindByCategory(uint32 category) const
+    {
+        auto itr = m_categoryMap.find(category);
+        return itr != m_categoryMap.end() ? itr->second : end();
+    }
+
+    void clear() { m_spellIdMap.clear(); m_categoryMap.clear(); }
+
+    ConstIterator begin() const { return m_spellIdMap.begin(); }
+    ConstIterator end() const { return m_spellIdMap.end(); }
+    bool IsEmpty() const { return m_spellIdMap.empty(); }
+    size_t size() const { return m_spellIdMap.size(); }
+
+private:
+    spellIdMap m_spellIdMap;
+    categoryMap m_categoryMap;
+};
 
 struct Position
 {
@@ -635,7 +807,7 @@ class WorldObject : public Object
         void RemoveFromClientUpdateList() override;
         void BuildUpdateData(UpdateDataMapType&) override;
 
-        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSummonType spwtype, uint32 despwtime, bool asActiveObject = false, bool setRun = false, uint32 pathId = 0);
+        Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject = false, bool setRun = false, uint32 pathId = 0);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
         void SetActiveObjectState(bool active);
@@ -645,6 +817,20 @@ class WorldObject : public Object
         // ASSERT print helper
         bool PrintCoordinatesError(float x, float y, float z, char const* descr) const;
 
+        // cooldown system
+        virtual void AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration = 0);
+        virtual bool HaveGCD(SpellEntry const* spellEntry) const;
+        void ResetGCD(SpellEntry const* spellEntry = nullptr);
+        virtual void AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr, bool permanent = false, uint32 forcedDuration = 0);
+        virtual void RemoveSpellCooldown(SpellEntry const& spellEntry, bool updateClient = true);
+        void RemoveSpellCooldown(uint32 spellId, bool updateClient = true);
+        virtual void RemoveSpellCategoryCooldown(uint32 category, bool updateClient = true);
+        virtual void RemoveAllCooldowns(bool sendOnly = false) { m_GCDCatMap.clear(); m_cooldownMap.clear(); m_lockoutMap.clear(); }
+        bool IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr) const;
+        bool IsSpellReady(uint32 spellId, ItemPrototype const* itemProto = nullptr) const;
+        virtual void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration);
+        void PrintCooldownList(ChatHandler& chat) const;
+
     protected:
         explicit WorldObject();
 
@@ -653,6 +839,15 @@ class WorldObject : public Object
         // mapId/instanceId should be set in SetMap() function!
         void SetLocationMapId(uint32 _mapId) { m_mapId = _mapId; }
         void SetLocationInstanceId(uint32 _instanceId) { m_InstanceId = _instanceId; }
+
+        // cooldown system
+        void UpdateCooldowns(TimePoint const& now);
+        bool CheckLockout(SpellSchoolMask schoolMask) const;
+        bool GetExpireTime(SpellEntry const& spellEntry, TimePoint& expireTime, bool& isPermanent);
+
+        GCDMap            m_GCDCatMap;
+        LockoutMap        m_lockoutMap;
+        CooldownContainer m_cooldownMap;
 
         std::string m_name;
 

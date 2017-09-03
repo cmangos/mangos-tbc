@@ -28,7 +28,7 @@
 #include "Maps/InstanceData.h"
 #include "Chat/Chat.h"
 #include "Tools/Language.h"
-#include "Entities/TemporarySummon.h"
+#include "Entities/TemporarySpawn.h"
 
 bool CreatureEventAIHolder::UpdateRepeatTimer(Creature* creature, uint32 repeatMin, uint32 repeatMax)
 {
@@ -404,9 +404,6 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
             break;
         case EVENT_T_AURA:
         {
-            if (!m_creature->isInCombat())
-                return false;
-
             SpellAuraHolder* holder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
             if (!holder || holder->GetStackAmount() < event.buffed.amount)
                 return false;
@@ -432,9 +429,6 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& pHolder, Unit* pAction
         }
         case EVENT_T_MISSING_AURA:
         {
-            if (!m_creature->isInCombat())
-                return false;
-
             SpellAuraHolder* holder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
             if (holder && holder->GetStackAmount() >= event.buffed.amount)
                 return false;
@@ -734,17 +728,17 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
 
             break;
         }
-        case ACTION_T_SUMMON:
+        case ACTION_T_SPAWN:
         {
             Unit* target = GetTargetByType(action.summon.target, pActionInvoker, pAIEventSender, reportTargetError);
             if (!target && reportTargetError)
-                sLog.outErrorEventAI("Event %u - nullptr target for ACTION_T_SUMMON(%u), target-type %u", EventId, action.type, action.summon.target);
+                sLog.outErrorEventAI("Event %u - nullptr target for ACTION_T_SPAWN (%u), target-type %u", EventId, action.type, action.summon.target);
 
             Creature* pCreature;
             if (action.summon.duration)
-                pCreature = m_creature->SummonCreature(action.summon.creatureId, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, action.summon.duration);
+                pCreature = m_creature->SummonCreature(action.summon.creatureId, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, action.summon.duration);
             else
-                pCreature = m_creature->SummonCreature(action.summon.creatureId, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 0);
+                pCreature = m_creature->SummonCreature(action.summon.creatureId, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 0);
 
             if (!pCreature)
                 sLog.outErrorEventAI("failed to spawn creature %u. Spawn event %d is on creature %d", action.summon.creatureId, EventId, m_creature->GetEntry());
@@ -767,14 +761,22 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             break;
         }
         case ACTION_T_QUEST_EVENT:
+        {
             if (Unit* target = GetTargetByType(action.quest_event.target, pActionInvoker, pAIEventSender, reportTargetError))
             {
                 if (target->GetTypeId() == TYPEID_PLAYER)
-                    ((Player*)target)->AreaExploredOrEventHappens(action.quest_event.questId);
+                {
+                    Player* playerTarget = static_cast<Player*>(target);
+                    if (action.quest_event.rewardGroup)
+                        playerTarget->GroupEventHappens(action.quest_event.questId, m_creature);
+                    else
+                        playerTarget->AreaExploredOrEventHappens(action.quest_event.questId);
+                }
             }
             else if (reportTargetError)
                 sLog.outErrorEventAI("Event %u - nullptr target for ACTION_T_QUEST_EVENT(%u), target-type %u", EventId, action.type, action.quest_event.target);
             break;
+        }
         case ACTION_T_CAST_EVENT:
             if (Unit* target = GetTargetByType(action.cast_event.target, pActionInvoker, pAIEventSender, reportTargetError, 0, SELECT_FLAG_PLAYER))
             {
@@ -919,9 +921,9 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
 
             Creature* pCreature;
             if (i->second.SpawnTimeSecs)
-                pCreature = m_creature->SummonCreature(action.summon_id.creatureId, i->second.position_x, i->second.position_y, i->second.position_z, i->second.orientation, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, i->second.SpawnTimeSecs);
+                pCreature = m_creature->SummonCreature(action.summon_id.creatureId, i->second.position_x, i->second.position_y, i->second.position_z, i->second.orientation, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, i->second.SpawnTimeSecs);
             else
-                pCreature = m_creature->SummonCreature(action.summon_id.creatureId, i->second.position_x, i->second.position_y, i->second.position_z, i->second.orientation, TEMPSUMMON_TIMED_OOC_DESPAWN, 0);
+                pCreature = m_creature->SummonCreature(action.summon_id.creatureId, i->second.position_x, i->second.position_y, i->second.position_z, i->second.orientation, TEMPSPAWN_TIMED_OOC_DESPAWN, 0);
 
             if (!pCreature)
                 sLog.outErrorEventAI("failed to spawn creature %u. EventId %d.Creature %d", action.summon_id.creatureId, EventId, m_creature->GetEntry());
@@ -1623,20 +1625,38 @@ inline Unit* CreatureEventAI::GetTargetByType(uint32 Target, Unit* pActionInvoke
             if (!pAIEventSender)
                 isError = true;
             return pAIEventSender;
-        case TARGET_T_SUMMONER:
+        case TARGET_T_SPAWNER:
         {
-            if (TemporarySummon* summon = dynamic_cast<TemporarySummon*>(m_creature))
-                return summon->GetSummoner();
-            else
-            {
-                isError = true;
-                return nullptr;
-            }
+            if (Unit* spawner = m_creature->GetSpawner())
+                return spawner;
+
+            isError = true;
+            return nullptr;
         }
         case TARGET_T_EVENT_SPECIFIC:
             if (!m_eventTarget)
                 isError = true;
             return m_eventTarget;
+        case TARGET_T_PLAYER_INVOKER:
+        {
+            if (!m_creature->HasLootRecipient())
+            {
+                isError = true;
+                return nullptr;
+            }
+
+            return m_creature->GetOriginalLootRecipient();
+        }
+        case TARGET_T_PLAYER_TAPPED:
+        {
+            if (!m_creature->HasLootRecipient())
+            {
+                isError = true;
+                return nullptr;
+            }
+
+            return m_creature->GetLootRecipient();
+        }
         default:
             isError = true;
             return nullptr;

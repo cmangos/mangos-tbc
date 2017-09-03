@@ -367,17 +367,17 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 }
                 break;
             }
-            case SCRIPT_COMMAND_TEMP_SUMMON_CREATURE:       // 10
+            case SCRIPT_COMMAND_TEMP_SPAWN_CREATURE:        // 10
             {
                 if (!MaNGOS::IsValidMapCoord(tmp.x, tmp.y, tmp.z, tmp.o))
                 {
-                    sLog.outErrorDb("Table `%s` has invalid coordinates (X: %f Y: %f) in SCRIPT_COMMAND_TEMP_SUMMON_CREATURE for script id %u", tablename, tmp.x, tmp.y, tmp.id);
+                    sLog.outErrorDb("Table `%s` has invalid coordinates (X: %f Y: %f) in SCRIPT_COMMAND_TEMP_SPAWN_CREATURE for script id %u", tablename, tmp.x, tmp.y, tmp.id);
                     continue;
                 }
 
                 if (!ObjectMgr::GetCreatureTemplate(tmp.summonCreature.creatureEntry))
                 {
-                    sLog.outErrorDb("Table `%s` has invalid creature (Entry: %u) in SCRIPT_COMMAND_TEMP_SUMMON_CREATURE for script id %u", tablename, tmp.summonCreature.creatureEntry, tmp.id);
+                    sLog.outErrorDb("Table `%s` has invalid creature (Entry: %u) in SCRIPT_COMMAND_TEMP_SPAWN_CREATURE for script id %u", tablename, tmp.summonCreature.creatureEntry, tmp.id);
                     continue;
                 }
                 break;
@@ -709,10 +709,24 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             }
             case SCRIPT_COMMAND_START_RELAY_SCRIPT:         // 45
             {
-                if (sRelayScripts.second.find(tmp.relayScript.relayId) == sRelayScripts.second.end())
+                if (strcmp(scripts.first, "dbscripts_on_relay") != 0) // Relay scripts are done first and checked after load
                 {
-                    sLog.outErrorDb("Table `%s` uses nonexistent relay ID %u in SCRIPT_COMMAND_START_RELAY_SCRIPT for script id %u.", tablename, tmp.relayScript.relayId, tmp.id);
-                    continue;
+                    if (tmp.relayScript.relayId)
+                    {
+                        if (sRelayScripts.second.find(tmp.relayScript.relayId) == sRelayScripts.second.end())
+                        {
+                            sLog.outErrorDb("Table `dbscripts_on_relay` uses nonexistent relay ID %u in SCRIPT_COMMAND_START_RELAY_SCRIPT for script id %u.", tmp.relayScript.relayId, tmp.id);
+                            continue;
+                        }
+                    }
+                }
+                if (tmp.relayScript.templateId)
+                {
+                    if (!sScriptMgr.CheckScriptRelayTemplateId(tmp.relayScript.templateId))
+                    {
+                        sLog.outErrorDb("Table `dbscripts_on_relay` uses nonexistent dbscript_random_template ID %u in SCRIPT_COMMAND_START_RELAY_SCRIPT for script id %u.", tmp.relayScript.relayId, tmp.id);
+                        continue;
+                    }
                 }
                 break;
             }
@@ -887,6 +901,9 @@ void ScriptMgr::LoadRelayScripts()
             }
         }
     }
+
+    // String templates are checked on string loading
+    CheckRandomRelayTemplates();
 }
 
 void ScriptMgr::LoadDbScriptStrings()
@@ -941,9 +958,6 @@ void ScriptMgr::LoadDbScriptRandomTemplates()
 
         delete result;
     }
-
-    // String templates are checked on string loading
-    CheckRandomRelayTemplates();
 }
 
 void ScriptMgr::CheckRandomStringTemplates(std::set<int32>& ids)
@@ -1488,7 +1502,7 @@ bool ScriptAction::HandleScriptStep()
             pGo->Refresh();
             break;
         }
-        case SCRIPT_COMMAND_TEMP_SUMMON_CREATURE:           // 10
+        case SCRIPT_COMMAND_TEMP_SPAWN_CREATURE:            // 10
         {
             if (!pSource)
             {
@@ -1501,7 +1515,7 @@ bool ScriptAction::HandleScriptStep()
             float z = m_script->z;
             float o = m_script->o;
 
-            Creature* pCreature = pSource->SummonCreature(m_script->summonCreature.creatureEntry, x, y, z, o, m_script->summonCreature.despawnDelay ? TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN : TEMPSUMMON_DEAD_DESPAWN, m_script->summonCreature.despawnDelay, (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL) ? true : false, m_script->textId[0] == 1, m_script->summonCreature.pathId);
+            Creature* pCreature = pSource->SummonCreature(m_script->summonCreature.creatureEntry, x, y, z, o, m_script->summonCreature.despawnDelay ? TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN : TEMPSPAWN_DEAD_DESPAWN, m_script->summonCreature.despawnDelay, (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL) ? true : false, m_script->textId[0] == 1, m_script->summonCreature.pathId);
             if (!pCreature)
             {
                 sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed for creature (entry: %u).", m_table, m_script->id, m_script->command, m_script->summonCreature.creatureEntry);

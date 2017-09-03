@@ -579,7 +579,6 @@ class World
         char const* GetDBVersion() const { return m_DBVersion.c_str(); }
         char const* GetCreatureEventAIVersion() const { return m_CreatureEventAIVersion.c_str(); }
 
-
         /**
         * \brief: force all client to request player data
         * \param: ObjectGuid guid : guid of the specified player
@@ -599,6 +598,10 @@ class World
         void InitDailyQuestResetTime();
         void InitWeeklyQuestResetTime();
         void SetMonthlyQuestResetTime(bool initialize = true);
+
+        void GenerateEventGroupEvents(bool daily, bool weekly, bool deleteColumns);
+        void LoadEventGroupChosen();
+
         void ResetDailyQuests();
         void ResetWeeklyQuests();
         void ResetMonthlyQuests();
@@ -685,6 +688,9 @@ class World
 
         // List of Maps that should be force-loaded on startup
         std::set<uint32> m_configForceLoadMapIds;
+
+        // Vector of quests that were chosen for given group
+        std::vector<uint32> m_eventGroupChosen;
 
     public:
         const SessionMap GetSessions() { return m_sessions; }

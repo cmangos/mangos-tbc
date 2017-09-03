@@ -6024,7 +6024,8 @@ void Aura::PeriodicTick()
                     if (BattleGround* bg = ((Player*)pCaster)->GetBattleGround())
                         bg->UpdatePlayerScore(((Player*)pCaster), SCORE_HEALING_DONE, gain);
 
-                target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
+                if (pCaster->isInCombat())
+                    target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
 
                 // apply damage part to caster if needed (ex. health funnel)
                 if (target != pCaster && spellProto->SpellVisual == 163)

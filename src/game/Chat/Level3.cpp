@@ -1341,12 +1341,7 @@ bool ChatHandler::HandleCooldownClearCommand(char* args)
 
     if (!*args)
     {
-        target->RemoveAllSpellCooldown();
-
-        WorldPacket data(SMSG_COOLDOWN_CHEAT, 8);
-        data << target->GetObjectGuid();
-        m_session->SendPacket(data);
-
+        target->RemoveAllCooldowns();
         PSendSysMessage(LANG_REMOVEALL_COOLDOWN, tNameLink.c_str());
     }
     else

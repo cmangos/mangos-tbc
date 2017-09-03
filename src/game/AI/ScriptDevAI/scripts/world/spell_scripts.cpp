@@ -140,12 +140,6 @@ enum
     NPC_DARKSPINE_MYRMIDON              = 25060,
     NPC_DARKSPINE_SIREN                 = 25073,
 
-    // quest "The Big Bone Worm" 10930
-    SPELL_FUMPING                       = 39246,
-    SPELL_SUMMON_HAISHULUD              = 39248,
-    NPC_SAND_GNOME                      = 22483,
-    NPC_MATURE_BONE_SIFTER              = 22482,
-
     // quest 9849, item 24501
     SPELL_THROW_GORDAWG_BOULDER         = 32001,
     NPC_MINION_OF_GUROK                 = 18181,
@@ -395,40 +389,6 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
 
             pCreatureTarget->CastSpell(pCreatureTarget, SPELL_ENRAGE, TRIGGERED_OLD_TRIGGERED);
 
-            return true;
-        }
-        case SPELL_FUMPING:
-        {
-            if (uiEffIndex == EFFECT_INDEX_2)
-            {
-                switch (urand(0, 2))
-                {
-                    case 0:
-                    {
-                        pCaster->CastSpell(pCreatureTarget, SPELL_SUMMON_HAISHULUD, TRIGGERED_OLD_TRIGGERED);
-                        break;
-                    }
-                    case 1:
-                    {
-                        for (int i = 0; i < 2; ++i)
-                        {
-                            if (Creature* pSandGnome = pCaster->SummonCreature(NPC_SAND_GNOME, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 30000))
-                                pSandGnome->AI()->AttackStart(pCaster);
-                        }
-                        break;
-                    }
-                    case 2:
-                    {
-                        for (int i = 0; i < 2; ++i)
-                        {
-                            if (Creature* pMatureBoneSifter = pCaster->SummonCreature(NPC_MATURE_BONE_SIFTER, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 30000))
-                                pMatureBoneSifter->AI()->AttackStart(pCaster);
-                        }
-                        break;
-                    }
-                }
-                pCreatureTarget->ForcedDespawn();
-            }
             return true;
         }
         case SPELL_THROW_GORDAWG_BOULDER:

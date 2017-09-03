@@ -2169,7 +2169,7 @@ class Player : public Unit
         virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
 
         // cooldown system
-        void AddGCD(SpellEntry const& spellEntry, bool updateClient);
+        virtual void AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration = 0, bool updateClient = 0) override;
         virtual void AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr, bool permanent = false, uint32 forcedDuration = 0) override;
         virtual void RemoveSpellCooldown(SpellEntry const& spellEntry, bool updateClient = true) override;
         virtual void RemoveSpellCategoryCooldown(uint32 category, bool updateClient = true) override;

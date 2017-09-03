@@ -280,7 +280,7 @@ Player* PlayerbotClassAI::GetHealTarget(JOB_TYPE type)
     {
         while (true)
         {
-            if ((uCount + i) >= UINT32(targets.size()) || !(targets.at(uCount).type & JOB_MASTER)) break;
+            if ((uCount + i) >= uint32(targets.size()) || !(targets.at(uCount).type & JOB_MASTER)) break;
             uCount++;
         }
 

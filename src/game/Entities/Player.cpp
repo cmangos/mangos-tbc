@@ -20732,7 +20732,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
     Map* map = sMapMgr.FindMap(at->target_mapId, state ? state->GetInstanceId() : 0);
 
     // check if this account try to abuse reseting instance 
-    if (mapEntry->IsDungeon() && ((map && map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL) || (GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL)))
+    if (mapEntry->IsNonRaidDungeon() && ((map && map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL) || (GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL)))
     {
         if (!CanEnterNewInstance(state ? state->GetInstanceId() : 0))
             return AREA_LOCKSTATUS_TOO_MANY_INSTANCE;

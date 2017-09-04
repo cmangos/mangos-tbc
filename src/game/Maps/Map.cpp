@@ -63,6 +63,11 @@ Map::~Map()
     m_weatherSystem = nullptr;
 }
 
+TimePoint Map::GetCurrentClockTime()
+{
+    return World::GetCurrentClockTime();
+}
+
 void Map::LoadMapAndVMap(int gx, int gy)
 {
     if (m_bLoadedGrids[gx][gy])
@@ -1406,6 +1411,9 @@ bool DungeonMap::Add(Player* player)
     m_unloadTimer = 0;
     m_resetAfterUnload = false;
     m_unloadWhenEmpty = false;
+
+    if (i_mapEntry->IsNonRaidDungeon() && GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL)
+        player->AddNewInstanceId(GetInstanceId());
 
     // this will acquire the same mutex so it cannot be in the previous block
     Map::Add(player);

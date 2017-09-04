@@ -1998,13 +1998,13 @@ void WorldObject::SetActiveObjectState(bool active)
     m_isActiveObject = active;
 }
 
-void WorldObject::AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration /*= 0*/)
+void WorldObject::AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration /*= 0*/, bool /*updateClient = false*/)
 {
     uint32 gcdRecTime = forcedDuration ? forcedDuration : spellEntry.StartRecoveryTime;
     if (!gcdRecTime)
         return;
 
-    m_GCDCatMap.emplace(spellEntry.StartRecoveryCategory, std::chrono::milliseconds(gcdRecTime) + Clock::now());
+    m_GCDCatMap.emplace(spellEntry.StartRecoveryCategory, std::chrono::milliseconds(gcdRecTime) + GetMap()->GetCurrentClockTime());
 }
 
 bool WorldObject::HaveGCD(SpellEntry const* spellEntry) const
@@ -2023,7 +2023,7 @@ bool WorldObject::HaveGCD(SpellEntry const* spellEntry) const
 void WorldObject::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/, bool permanent /*= false*/, uint32 forcedDuration /*= 0*/)
 {
     uint32 recTimeDuration = forcedDuration ? forcedDuration : spellEntry.RecoveryTime;
-    m_cooldownMap.AddCooldown(spellEntry.Id, recTimeDuration, spellEntry.Category, spellEntry.CategoryRecoveryTime);
+    m_cooldownMap.AddCooldown(GetMap()->GetCurrentClockTime(), spellEntry.Id, recTimeDuration, spellEntry.Category, spellEntry.CategoryRecoveryTime);
 }
 
 void WorldObject::UpdateCooldowns(TimePoint const& now)
@@ -2108,7 +2108,7 @@ bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const
         }
     }
 
-    if (spellEntry.RecoveryTime && m_cooldownMap.FindBySpellId(spellEntry.Id) != m_cooldownMap.end())
+    if (m_cooldownMap.FindBySpellId(spellEntry.Id) != m_cooldownMap.end())
         return false;
 
     if (spellCategory && m_cooldownMap.FindByCategory(spellCategory) != m_cooldownMap.end())
@@ -2134,7 +2134,7 @@ void WorldObject::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
     for (uint32 i = 0; i < MAX_SPELL_SCHOOL; ++i)
     {
         if (schoolMask & (1 << i))
-            m_lockoutMap.emplace(SpellSchools(i), std::chrono::milliseconds(duration) + Clock::now());
+            m_lockoutMap.emplace(SpellSchools(i), std::chrono::milliseconds(duration) + GetMap()->GetCurrentClockTime());
     }
 }
 
@@ -2181,7 +2181,7 @@ void ConvertMillisecondToStr(std::chrono::milliseconds& duration, std::stringstr
 void WorldObject::PrintCooldownList(ChatHandler& chat) const
 {
     // print gcd
-    auto now = Clock::now();
+    auto now = GetMap()->GetCurrentClockTime();
     uint32 cdCount = 0;
     uint32 permCDCount = 0;
 
@@ -2192,7 +2192,7 @@ void WorldObject::PrintCooldownList(ChatHandler& chat) const
         std::stringstream durationStr;
         if (cdData > now)
         {
-            auto cdDuration = std::chrono::duration_cast<std::chrono::milliseconds>(cdData - now);
+            auto cdDuration = cdData - now;
             ConvertMillisecondToStr(cdDuration, durationStr);
             ++cdCount;
         }

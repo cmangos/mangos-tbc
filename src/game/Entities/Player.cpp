@@ -574,6 +574,8 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
 
     m_lastFallTime = 0;
     m_lastFallZ = 0;
+
+    m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
 }
 
 Player::~Player()
@@ -1193,14 +1195,14 @@ void Player::Update(uint32 update_diff, uint32 p_time)
         m_nextMailDelivereTime = 0;
     }
 
+    // Update player only attacks
+    if (uint32 ranged_att = getAttackTimer(RANGED_ATTACK))
+        setAttackTimer(RANGED_ATTACK, (update_diff >= ranged_att ? 0 : ranged_att - update_diff));
+
     // Used to implement delayed far teleports
     SetCanDelayTeleport(true);
     Unit::Update(update_diff, p_time);
     SetCanDelayTeleport(false);
-
-    // Update player only attacks
-    if (uint32 ranged_att = getAttackTimer(RANGED_ATTACK))
-        setAttackTimer(RANGED_ATTACK, (update_diff >= ranged_att ? 0 : ranged_att - update_diff));
 
     time_t now = time(nullptr);
 
@@ -1390,6 +1392,14 @@ void Player::Update(uint32 update_diff, uint32 p_time)
 
     UpdateEnchantTime(update_diff);
     UpdateHomebindTime(update_diff);
+
+    if (m_createdInstanceClearTimer < update_diff)
+    {
+        m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
+        UpdateNewInstanceIdTimers(std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::now()));
+    }
+    else
+        m_createdInstanceClearTimer -= update_diff;
 
     // Group update
     SendUpdateToOutOfRangeGroupMembers();
@@ -2732,7 +2742,7 @@ void Player::SendInitialSpells() const
     uint32 cdCount = 0;
     const size_t cdCountPos = data.wpos();
     data << uint16(0);
-    auto currTime = Clock::now();
+    auto currTime = GetMap()->GetCurrentClockTime();
 
     for (auto& cdItr : m_cooldownMap)
     {
@@ -2752,7 +2762,10 @@ void Player::SendInitialSpells() const
             continue;
 
         if (cdData->IsPermanent())
-            catCDDuration |= 0x8000000;
+        {
+            spellCDDuration = uint32(1);                              // cooldown
+            catCDDuration |= 0x80000000;
+        }
 
         data << uint16(cdData->GetSpellId());
         data << uint16(cdData->GetItemId());                // cast item id
@@ -3489,7 +3502,7 @@ void Player::_LoadSpellCooldowns(QueryResult* result)
 
     if (result)
     {
-        auto curTime = Clock::now();
+        auto curTime = GetMap()->GetCurrentClockTime();
 
         do
         {
@@ -3519,8 +3532,8 @@ void Player::_LoadSpellCooldowns(QueryResult* result)
                 }
             }
 
-            TimePoint spellExpireTime = Clock::from_time_t(spell_time);
-            TimePoint catExpireTime = Clock::from_time_t(cat_time);
+            TimePoint spellExpireTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::from_time_t(spell_time));
+            TimePoint catExpireTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::from_time_t(cat_time));
             std::chrono::milliseconds spellRecTime = std::chrono::milliseconds::zero();
             std::chrono::milliseconds catRecTime = std::chrono::milliseconds::zero();
             if (spellExpireTime > curTime)
@@ -3532,7 +3545,7 @@ void Player::_LoadSpellCooldowns(QueryResult* result)
             if (spellRecTime == std::chrono::milliseconds::zero() && catRecTime == std::chrono::milliseconds::zero())
                 continue;
 
-            m_cooldownMap.AddCooldown(spell_id, uint32(spellRecTime.count()), category, uint32(catRecTime.count()), item_id);
+            m_cooldownMap.AddCooldown(curTime, spell_id, uint32(spellRecTime.count()), category, uint32(catRecTime.count()), item_id);
 #ifdef _DEBUG
             uint32 spellCDDuration = std::chrono::duration_cast<std::chrono::seconds>(spellRecTime).count();
             uint32 catCDDuration = std::chrono::duration_cast<std::chrono::seconds>(catRecTime).count();
@@ -3557,7 +3570,7 @@ void Player::_SaveSpellCooldowns()
     stmt.PExecute(GetGUIDLow());
 
     static SqlStatementID insertSpellCooldown;
-    TimePoint currTime = Clock::now();
+    TimePoint currTime = GetMap()->GetCurrentClockTime();
 
     for (auto& cdItr : m_cooldownMap)
     {
@@ -10092,7 +10105,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
                 else
                 {
                     m_weaponChangeTimer = spellProto->StartRecoveryTime;
-                    AddGCD(*spellProto, true);
+                    AddGCD(*spellProto, 0, true);
                 }
             }
         }
@@ -14890,6 +14903,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     _LoadDeclinedNames(holder->GetResult(PLAYER_LOGIN_QUERY_LOADDECLINEDNAMES));
 
+    _LoadCreatedInstanceTimers();
+
     return true;
 }
 
@@ -16116,6 +16131,7 @@ void Player::SaveToDB()
     _SaveActions();
     _SaveAuras();
     _SaveSkills();
+    _SaveNewInstanceIdTimer();
     m_reputationMgr.SaveToDB();
     GetSession()->SaveTutorialsData();                      // changed only while character in game
 
@@ -17096,7 +17112,7 @@ void Player::PetSpellInitialize() const
     uint32 cdCount = 0;
     const size_t cdCountPos = data.wpos();
     data << uint16(0);
-    auto currTime = Clock::now();
+    auto currTime = GetMap()->GetCurrentClockTime();
 
     for (auto& cdItr : m_cooldownMap)
     {
@@ -18738,6 +18754,9 @@ void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaLockS
         }
         case AREA_LOCKSTATUS_INSUFFICIENT_EXPANSION:
             GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_INSUF_EXPAN_LVL, miscRequirement);
+            break;
+        case AREA_LOCKSTATUS_TOO_MANY_INSTANCE:
+            GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_TOO_MANY_INSTANCES);
             break;
         case AREA_LOCKSTATUS_NOT_ALLOWED:
         case AREA_LOCKSTATUS_RAID_LOCKED:
@@ -20718,6 +20737,13 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
     DungeonPersistentState* state = GetBoundInstanceSaveForSelfOrGroup(at->target_mapId);
     Map* map = sMapMgr.FindMap(at->target_mapId, state ? state->GetInstanceId() : 0);
 
+    // check if this account try to abuse reseting instance 
+    if (mapEntry->IsNonRaidDungeon() && ((map && map->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL) || (GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL)))
+    {
+        if (!CanEnterNewInstance(state ? state->GetInstanceId() : 0))
+            return AREA_LOCKSTATUS_TOO_MANY_INSTANCE;
+    }
+
     // Map's state check
     if (map && map->IsDungeon())
     {
@@ -20777,7 +20803,7 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
     SendForcedObjectUpdate();
 }
 
-void Player::AddGCD(SpellEntry const& spellEntry, bool updateClient)
+void Player::AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration /*= 0*/, bool updateClient /*= false*/)
 {
     int32 gcdDuration = spellEntry.StartRecoveryTime;
     if (!gcdDuration)
@@ -20811,8 +20837,8 @@ void Player::AddGCD(SpellEntry const& spellEntry, bool updateClient)
 void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/, bool permanent /*= false*/, uint32 forcedDuration /*= 0*/)
 {
     uint32 spellCategory = spellEntry.Category;
-    uint32 recTime = spellEntry.RecoveryTime;
-    uint32 categoryRecTime = spellEntry.CategoryRecoveryTime;
+    int32 recTime = spellEntry.RecoveryTime; // int because of spellmod calculations
+    int32 categoryRecTime = spellEntry.CategoryRecoveryTime; // int because of spellmod calculations
     uint32 itemId = 0;
 
     if (itemProto)
@@ -20821,9 +20847,12 @@ void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* item
         {
             if (itemProto->Spells[idx].SpellId == spellEntry.Id)
             {
-                spellCategory = itemProto->Spells[idx].SpellCategory;
-                recTime = itemProto->Spells[idx].SpellCooldown;
-                categoryRecTime = itemProto->Spells[idx].SpellCategoryCooldown;
+                if (itemProto->Spells[idx].SpellCategory)
+                    spellCategory = itemProto->Spells[idx].SpellCategory;
+                if (itemProto->Spells[idx].SpellCooldown != -1)
+                    recTime = itemProto->Spells[idx].SpellCooldown;
+                if (itemProto->Spells[idx].SpellCategoryCooldown != -1)
+                    categoryRecTime = itemProto->Spells[idx].SpellCategoryCooldown;
                 itemId = itemProto->ItemId;
                 break;
             }
@@ -20846,7 +20875,7 @@ void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* item
 
     if (permanent)
     {
-        m_cooldownMap.AddCooldown(spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId, true);
+        m_cooldownMap.AddCooldown(GetMap()->GetCurrentClockTime(), spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId, true);
         return;
     }
 
@@ -20867,7 +20896,7 @@ void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* item
     if (recTime || categoryRecTime)
     {
         // ready to add the cooldown
-        m_cooldownMap.AddCooldown(spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId);
+        m_cooldownMap.AddCooldown(GetMap()->GetCurrentClockTime(), spellEntry.Id, recTime, spellCategory, categoryRecTime, itemId);
 
         // after some aura fade or potion activation we have to send cooldown event to start cd client side
         if (haveToSendEvent)
@@ -20935,7 +20964,7 @@ void Player::RemoveAllCooldowns(bool sendOnly /*= false*/)
 
 void Player::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
 {
-    TimePoint lockoutExpireTime = std::chrono::milliseconds(duration) + Clock::now();
+    TimePoint lockoutExpireTime = std::chrono::milliseconds(duration) + GetMap()->GetCurrentClockTime();
     ByteBuffer cdData;
     uint32 spellCount = 0;
 
@@ -20997,5 +21026,78 @@ void Player::RemoveSpellLockout(SpellSchoolMask spellSchoolMask, std::set<uint32
         }
 
         SendClearCooldown(spellEntry->Id, this);
+    }
+}
+
+/* System for limiting instance entering to 5 per hour */
+// check if player can enter new instance
+bool Player::CanEnterNewInstance(uint32 instanceId)
+{
+    if (isGameMaster())
+        return true;
+
+    if (m_enteredInstances.find(instanceId) != m_enteredInstances.end())
+        return true;
+
+    return m_enteredInstances.size() < PLAYER_NEW_INSTANCE_LIMIT_PER_HOUR;
+}
+
+// when instance was entered
+void Player::AddNewInstanceId(uint32 instanceId)
+{
+    if (m_enteredInstances.find(instanceId) == m_enteredInstances.end())
+        m_enteredInstances.emplace(instanceId, std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::now() + std::chrono::hours(1)));
+}
+
+void Player::_LoadCreatedInstanceTimers()
+{
+    //                                                     0          1
+    QueryResult* result = CharacterDatabase.PQuery("SELECT ExpireTime, InstanceId FROM account_instances_entered WHERE AccountId = '%u'", m_session->GetAccountId());
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            TimePoint expireTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::from_time_t(fields[0].GetUInt64()));
+            uint32 instanceId = fields[1].GetUInt32();
+
+            if (expireTime > Clock::now())
+                m_enteredInstances.emplace(instanceId, expireTime);
+
+        } while (result->NextRow());
+
+        delete result;
+    }
+}
+
+void Player::_SaveNewInstanceIdTimer()
+{
+    CharacterDatabase.PExecute("DELETE FROM account_instances_entered WHERE AccountId = '%u'", m_session->GetAccountId());
+
+    if (m_enteredInstances.empty())
+        return;
+
+    static SqlStatementID insertInsertTimer;
+    for (auto enterInstItr : m_enteredInstances)
+    {
+        SqlStatement stmt = CharacterDatabase.CreateStatement(insertInsertTimer,
+            "INSERT INTO account_instances_entered (AccountId, ExpireTime, InstanceId) VALUES( ?, ?, ?)");
+
+        stmt.addUInt32(m_session->GetAccountId());
+        stmt.addUInt64(Clock::to_time_t(enterInstItr.second));
+        stmt.addUInt32(enterInstItr.first);
+        stmt.Execute();
+    }
+}
+
+// Clears timers that expired
+void Player::UpdateNewInstanceIdTimers(TimePoint const& now)
+{
+    for (auto iter = m_enteredInstances.begin(); iter != m_enteredInstances.end();)
+    {
+        if ((*iter).second < now)
+            iter = m_enteredInstances.erase(iter);
+        else
+            ++iter;
     }
 }

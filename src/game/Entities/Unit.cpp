@@ -783,16 +783,6 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         duel_hasEnded = true;
     }
 
-    // Get in CombatState
-    if (pVictim != this && damagetype != DOT && (!spellProto || (!IsPositiveSpellTargetMode(spellProto, this, pVictim) && !spellProto->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO))))
-    {
-        SetInCombatWith(pVictim);
-        pVictim->SetInCombatWith(this);
-
-        if (Player* attackedPlayer = pVictim->GetBeneficiaryPlayer())
-            SetContestedPvP(attackedPlayer);
-    }
-
     if (GetTypeId() == TYPEID_PLAYER && this != pVictim)
     {
         Player* killer = ((Player*)this);
@@ -1821,6 +1811,12 @@ void Unit::DealMeleeDamage(CalcDamageInfo* damageInfo, bool durabilityLoss)
         // on weapon hit casts
         if (GetTypeId() == TYPEID_PLAYER && pVictim->isAlive())
             ((Player*)this)->CastItemCombatSpell(pVictim, damageInfo->attackType);
+
+        SetInCombatWith(pVictim);
+        pVictim->SetInCombatWith(this);
+
+        if (Player* attackedPlayer = pVictim->GetBeneficiaryPlayer())
+            SetContestedPvP(attackedPlayer);
 
         // If not immune
         if (damageInfo->TargetState != VICTIMSTATE_IS_IMMUNE)
@@ -6069,6 +6065,30 @@ Player* Unit::GetBeneficiaryPlayer()
     return (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
 }
 
+Player const* Unit::GetControllingPlayer() const
+{
+    // TBC+ clientside logic counterpart
+    if (ObjectGuid const& masterGuid = GetMasterGuid())
+    {
+        if (Unit const* master = ObjectAccessor::GetUnit(*this, masterGuid))
+        {
+            if (master->GetTypeId() == TYPEID_PLAYER)
+                return static_cast<Player const*>(master);
+            if (ObjectGuid const& masterMasterGuid = master->GetMasterGuid())
+            {
+                if (Unit const* masterMaster = ObjectAccessor::GetUnit(*this, masterMasterGuid))
+                {
+                    if (masterMaster->GetTypeId() == TYPEID_PLAYER)
+                        return static_cast<Player const*>(masterMaster);
+                }
+            }
+        }
+    }
+    else if (GetTypeId() == TYPEID_PLAYER)
+        return static_cast<Player const*>(this);
+    return nullptr;
+}
+
 Unit* Unit::GetSpawner() const
 {
     if (ObjectGuid guid = GetSpawnerGuid())
@@ -10235,7 +10255,7 @@ void Unit::SetPvP(bool state)
 bool Unit::IsPvPFreeForAll() const
 {
     // Pre-WotLK free for all check (query player in charge)
-    if (const Player* thisPlayer = GetBeneficiaryPlayer())
+    if (const Player* thisPlayer = GetControllingPlayer())
         return thisPlayer->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_FFA_PVP);
     return false;
 }
@@ -10259,7 +10279,7 @@ void Unit::SetPvPFreeForAll(bool state)
 bool Unit::IsPvPSanctuary() const
 {
     // Pre-WotLK sanctuary check (query player in charge)
-    if (const Player* thisPlayer = GetBeneficiaryPlayer())
+    if (const Player* thisPlayer = GetControllingPlayer())
         return thisPlayer->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY);
     return false;
 }

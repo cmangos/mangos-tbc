@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Zul'Gurub
 EndScriptData */
 
-#include "AI/ScriptDevAI/PreCompiledHeader.h"
+#include "AI/ScriptDevAI/include/precompiled.h"
 
  /* ContentData
 EndContentData */

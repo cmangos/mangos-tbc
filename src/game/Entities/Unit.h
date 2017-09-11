@@ -1438,6 +1438,8 @@ class Unit : public WorldObject
         void SetPvP(bool state);
         bool IsPvPFreeForAll() const;
         void SetPvPFreeForAll(bool state);
+        bool IsPvPContested() const;
+        void SetPvPContested(bool state);
         bool IsPvPSanctuary() const;
         void SetPvPSanctuary(bool state);
         uint32 GetCreatureType() const;

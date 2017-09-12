@@ -518,7 +518,7 @@ void PlayerbotWarlockAI::CheckDemon()
     uint32 spec = m_bot->GetSpec();
     uint8 shardCount = m_bot->GetItemCount(SOUL_SHARD, false, nullptr);
     Pet *pet = m_bot->GetPet();
-    uint32 demonOfChoice;
+    uint32 demonOfChoice = 0;
 
     // If pet other than imp is active: return
     if (pet && pet->GetEntry() != DEMON_IMP)

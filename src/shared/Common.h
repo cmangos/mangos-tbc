@@ -43,9 +43,13 @@
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
+#include <chrono>
 
 #include "Errors.h"
 #include "Threading.h"
+
+// included to use sleep_for()
+#include <thread>
 
 #if COMPILER == COMPILER_MICROSOFT
 

@@ -66,7 +66,7 @@ bool EffectDummyGameObj_spell_dummy_go(Unit* pCaster, uint32 uiSpellId, SpellEff
 
                 if (urand(0, 2))
                 {
-                    if (Creature* pMurloc = pCaster->SummonCreature(NPC_ANGRY_MURLOC, pCaster->GetPositionX(), pCaster->GetPositionY() + 20.0f, pCaster->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 10000))
+                    if (Creature* pMurloc = pCaster->SummonCreature(NPC_ANGRY_MURLOC, pCaster->GetPositionX(), pCaster->GetPositionY() + 20.0f, pCaster->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000))
                         pMurloc->AI()->AttackStart(pCaster);
                 }
                 else
@@ -139,12 +139,6 @@ enum
     NPC_FREED_GREENGILL_SLAVE           = 25085,
     NPC_DARKSPINE_MYRMIDON              = 25060,
     NPC_DARKSPINE_SIREN                 = 25073,
-
-    // quest "The Big Bone Worm" 10930
-    SPELL_FUMPING                       = 39246,
-    SPELL_SUMMON_HAISHULUD              = 39248,
-    NPC_SAND_GNOME                      = 22483,
-    NPC_MATURE_BONE_SIFTER              = 22482,
 
     // quest 9849, item 24501
     SPELL_THROW_GORDAWG_BOULDER         = 32001,
@@ -397,40 +391,6 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
 
             return true;
         }
-        case SPELL_FUMPING:
-        {
-            if (uiEffIndex == EFFECT_INDEX_2)
-            {
-                switch (urand(0, 2))
-                {
-                    case 0:
-                    {
-                        pCaster->CastSpell(pCreatureTarget, SPELL_SUMMON_HAISHULUD, TRIGGERED_OLD_TRIGGERED);
-                        break;
-                    }
-                    case 1:
-                    {
-                        for (int i = 0; i < 2; ++i)
-                        {
-                            if (Creature* pSandGnome = pCaster->SummonCreature(NPC_SAND_GNOME, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 30000))
-                                pSandGnome->AI()->AttackStart(pCaster);
-                        }
-                        break;
-                    }
-                    case 2:
-                    {
-                        for (int i = 0; i < 2; ++i)
-                        {
-                            if (Creature* pMatureBoneSifter = pCaster->SummonCreature(NPC_MATURE_BONE_SIFTER, pCreatureTarget->GetPositionX(), pCreatureTarget->GetPositionY(), pCreatureTarget->GetPositionZ(), 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 30000))
-                                pMatureBoneSifter->AI()->AttackStart(pCaster);
-                        }
-                        break;
-                    }
-                }
-                pCreatureTarget->ForcedDespawn();
-            }
-            return true;
-        }
         case SPELL_THROW_GORDAWG_BOULDER:
         {
             if (uiEffIndex == EFFECT_INDEX_0)
@@ -438,7 +398,7 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
                 for (int i = 0; i < 3; ++i)
                 {
                     if (irand(i, 2))                        // 2-3 summons
-                        pCreatureTarget->SummonCreature(NPC_MINION_OF_GUROK, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_CORPSE_DESPAWN, 5000);
+                        pCreatureTarget->SummonCreature(NPC_MINION_OF_GUROK, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_CORPSE_DESPAWN, 5000);
                 }
 
                 if (pCreatureTarget->getVictim())

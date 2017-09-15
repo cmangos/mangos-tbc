@@ -4776,8 +4776,26 @@ void PlayerbotAI::Announce(AnnounceFlags msg)
                 default: break;
             }
             break;
-        default:
-            break;
+    case RACE_BLOODELF:
+        switch (msg)
+        {
+        case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9583) : PlaySound(9584); break;
+        case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9549) : PlaySound(9550); break;
+        case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9565) : PlaySound(9566); break;
+        default: break;
+        }
+        break;
+    case RACE_DRAENEI:
+        switch (msg)
+        {
+        case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9498) : PlaySound(9499); break;
+        case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9465) : PlaySound(9466); break;
+        case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9481) : PlaySound(9482); break;
+        default: break;
+        }
+        break;
+    default:
+        break;
     }
 }
 
@@ -5206,10 +5224,6 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     if (spellId == 0)
         return false;
 
-    // check spell cooldown
-    if (m_bot->HasSpellCooldown(spellId))
-        return false;
-
     // see Creature.cpp 1738 for reference
     // don't allow bot to cast damage spells on friends
     const SpellEntry* const pSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
@@ -5218,6 +5232,10 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
         TellMaster("missing spell entry in CastSpell for spellid %u.", spellId);
         return false;
     }
+
+    // check spell cooldown
+    if (!m_bot->IsSpellReady(*pSpellInfo))
+        return false;
 
     // for AI debug purpose: uncomment the following line and bot will tell Master of every spell they attempt to cast
     // TellMaster("I'm trying to cast %s (spellID %u)", pSpellInfo->SpellName[0], spellId);
@@ -5347,15 +5365,15 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
     if (!pet)
         return false;
 
-    if (pet->HasSpellCooldown(spellId))
-        return false;
-
     const SpellEntry* const pSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!pSpellInfo)
     {
         TellMaster("Missing spell entry in CastPetSpell()");
         return false;
     }
+
+    if (!pet->IsSpellReady(*pSpellInfo))
+        return false;
 
     // set target
     Unit* pTarget;
@@ -6790,7 +6808,7 @@ void PlayerbotAI::UseItem(Item *item, uint32 targetFlag, ObjectGuid targetGUID)
         MovementClear();
     }
 
-    if (m_bot->HasSpellCooldown(spellId))
+    if (!m_bot->IsSpellReady(*spellInfo))
         return;
     // spell not on cooldown: mark it as next spell to cast whenever possible for bot
     m_CurrentlyCastingSpellId = spellId;
@@ -8340,7 +8358,6 @@ void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
         return;
     }
     SetMovementOrder(MOVEMENT_FOLLOW, GetMaster());
-
 }
 
 void PlayerbotAI::_HandleCommandStay(std::string &text, Player &fromPlayer)
@@ -8363,16 +8380,15 @@ void PlayerbotAI::_HandleCommandAttack(std::string &text, Player &fromPlayer)
     ObjectGuid attackOnGuid = fromPlayer.GetSelectionGuid();
     if (attackOnGuid)
     {
-        if (Unit * thingToAttack = ObjectAccessor::GetUnit(*m_bot, attackOnGuid))
+        if (Unit* thingToAttack = ObjectAccessor::GetUnit(*m_bot, attackOnGuid))
         {
-            if (!m_bot->IsFriendlyTo(thingToAttack) && !m_bot->IsWithinLOSInMap(thingToAttack))
+            if (!m_bot->IsFriendlyTo(thingToAttack))
             {
-                DoTeleport(*m_followTarget);
+                if (!m_bot->IsWithinLOSInMap(thingToAttack))
+                    DoTeleport(*m_followTarget);
                 if (m_bot->IsWithinLOSInMap(thingToAttack))
-                    GetCombatTarget(thingToAttack);
+                    Attack(thingToAttack);
             }
-            else if (!m_bot->IsFriendlyTo(thingToAttack) && m_bot->IsWithinLOSInMap(thingToAttack))
-                GetCombatTarget(thingToAttack);
         }
     }
     else

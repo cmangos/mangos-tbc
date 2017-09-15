@@ -437,6 +437,20 @@ bool ChatHandler::HandleReloadGossipMenuCommand(char* /*args*/)
     return true;
 }
 
+bool ChatHandler::HandleReloadQuestgiverGreetingCommand(char* /*args*/)
+{
+    sObjectMgr.LoadQuestgiverGreeting();
+    SendGlobalSysMessage("DB table `questgiver_greeting` reloaded.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadQuestgiverGreetingLocalesCommand(char* /*args*/)
+{
+    sObjectMgr.LoadQuestgiverGreetingLocales();
+    SendGlobalSysMessage("DB table `locales_questgiver_greeting` reloaded.");
+    return true;
+}
+
 bool ChatHandler::HandleReloadGOQuestRelationsCommand(char* /*args*/)
 {
     sLog.outString("Loading Quests Relations... (`gameobject_questrelation`)");
@@ -1306,7 +1320,64 @@ bool ChatHandler::HandleUnLearnCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleCooldownCommand(char* args)
+bool ChatHandler::HandleCooldownListCommand(char* args)
+{
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+
+    target->PrintCooldownList(*this);
+    return true;
+}
+
+bool ChatHandler::HandleCooldownClearCommand(char* args)
+{
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    std::string tNameLink = "Unknown";
+    if (target->GetTypeId() == TYPEID_PLAYER)
+        tNameLink = GetNameLink(static_cast<Player*>(target));
+    else
+        tNameLink = target->GetName();
+
+    if (!*args)
+    {
+        target->RemoveAllCooldowns();
+        PSendSysMessage(LANG_REMOVEALL_COOLDOWN, tNameLink.c_str());
+    }
+    else
+    {
+        // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
+        uint32 spell_id = ExtractSpellIdFromLink(&args);
+        if (!spell_id)
+            return false;
+
+        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+        if (!spellEntry)
+        {
+            PSendSysMessage(LANG_UNKNOWN_SPELL, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
+            SetSentErrorMessage(true);
+            return false;
+        }
+
+        target->RemoveSpellCooldown(*spellEntry);
+        PSendSysMessage(LANG_REMOVE_COOLDOWN, spell_id, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
+    }
+    return true;
+}
+
+bool ChatHandler::HandleCooldownClearClientSideCommand(char*)
 {
     Player* target = getSelectedPlayer();
     if (!target)
@@ -1318,28 +1389,25 @@ bool ChatHandler::HandleCooldownCommand(char* args)
 
     std::string tNameLink = GetNameLink(target);
 
-    if (!*args)
-    {
-        target->RemoveAllSpellCooldown();
-        PSendSysMessage(LANG_REMOVEALL_COOLDOWN, tNameLink.c_str());
-    }
-    else
-    {
-        // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
-        uint32 spell_id = ExtractSpellIdFromLink(&args);
-        if (!spell_id)
-            return false;
+    target->RemoveAllCooldowns(true);
+    PSendSysMessage(LANG_REMOVEALL_COOLDOWN, tNameLink.c_str());
+    return true;
+}
 
-        if (!sSpellTemplate.LookupEntry<SpellEntry>(spell_id))
-        {
-            PSendSysMessage(LANG_UNKNOWN_SPELL, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
-            SetSentErrorMessage(true);
-            return false;
-        }
-
-        target->RemoveSpellCooldown(spell_id, true);
-        PSendSysMessage(LANG_REMOVE_COOLDOWN, spell_id, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
+bool ChatHandler::HandleCooldownClearArenaCommand(char*)
+{
+    Player* target = getSelectedPlayer();
+    if (!target)
+    {
+        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        SetSentErrorMessage(true);
+        return false;
     }
+
+    std::string tNameLink = GetNameLink(target);
+
+    target->RemoveArenaSpellCooldowns();
+    PSendSysMessage(LANG_REMOVEALL_COOLDOWN, tNameLink.c_str());
     return true;
 }
 
@@ -3828,6 +3896,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
         curRespawnDelay = 0;
     std::string curRespawnDelayStr = secsToTimeString(curRespawnDelay, true);
     std::string defRespawnDelayStr = secsToTimeString(target->GetRespawnDelay(), true);
+    std::string curCorpseDecayStr = secsToTimeString(time_t(target->GetCorpseDecayTimer() / IN_MILLISECONDS), true);
 
     // Send information dependend on difficulty mode
     CreatureInfo const* baseInfo = ObjectMgr::GetCreatureTemplate(Entry);
@@ -3842,6 +3911,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
     PSendSysMessage(LANG_NPCINFO_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS), target->GetUInt32Value(UNIT_DYNAMIC_FLAGS), target->getFaction());
     PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());
+    PSendSysMessage("Corpse decay remaining time: %s", curCorpseDecayStr.c_str());
     PSendSysMessage(LANG_NPCINFO_LOOT,  cInfo->LootId, cInfo->PickpocketLootId, cInfo->SkinningLootId);
     PSendSysMessage(LANG_NPCINFO_DUNGEON_ID, target->GetInstanceId());
     PSendSysMessage(LANG_NPCINFO_POSITION, float(target->GetPositionX()), float(target->GetPositionY()), float(target->GetPositionZ()));
@@ -6747,7 +6817,7 @@ bool ChatHandler::HandleMmapTestHeight(char* args)
     float gx, gy, gz;
     unit->GetPosition(gx, gy, gz);
 
-    Creature* summoned = unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz + 0.5f, 0, TEMPSUMMON_TIMED_DESPAWN, 20000);
+    Creature* summoned = unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz + 0.5f, 0, TEMPSPAWN_TIMED_DESPAWN, 20000);
     summoned->CastSpell(summoned, 8599, TRIGGERED_NONE);
     uint32 tries = 1;
     uint32 successes = 0;
@@ -6757,7 +6827,7 @@ bool ChatHandler::HandleMmapTestHeight(char* args)
         unit->GetPosition(gx, gy, gz);
         if (unit->GetMap()->GetReachableRandomPosition(unit, gx, gy, gz, radius))
         {
-            unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
+            unit->SummonCreature(VISUAL_WAYPOINT, gx, gy, gz, 0, TEMPSPAWN_TIMED_DESPAWN, 15000);
             ++successes;
             if (successes >= 100)
                 break;

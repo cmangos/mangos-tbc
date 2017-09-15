@@ -217,7 +217,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
     Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
     if (newTarget && !m_ai->IsNeutralized(newTarget)) // TODO: && party has a tank
     {
-        if (SOULSHATTER > 0 && shardCount > 0 && !m_bot->HasSpellCooldown(SOULSHATTER))
+        if (SOULSHATTER > 0 && shardCount > 0 && m_bot->IsSpellReady(SOULSHATTER))
             if (CastSpell(SOULSHATTER, m_bot))
                 return RETURN_CONTINUE;
 
@@ -266,7 +266,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
     uint8 HPThreshold = (m_ai->IsElite(pTarget) ? 10 : 25);
     if (!m_ai->IsElite(pTarget, true) && pTarget->GetHealthPercent() < HPThreshold && (shardCount < MAX_SHARD_COUNT && freeSpace > 0))
     {
-        if (SHADOWBURN && m_ai->In_Reach(pTarget, SHADOWBURN) && !pTarget->HasAura(SHADOWBURN) && !m_bot->HasSpellCooldown(SHADOWBURN) && CastSpell(SHADOWBURN, pTarget))
+        if (SHADOWBURN && m_ai->In_Reach(pTarget, SHADOWBURN) && !pTarget->HasAura(SHADOWBURN) && m_bot->IsSpellReady(SHADOWBURN) && CastSpell(SHADOWBURN, pTarget))
             return RETURN_CONTINUE;
 
         // Do not cast Drain Soul if Shadowburn is active on target
@@ -308,7 +308,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 break;
 
             case WARLOCK_SPEC_DEMONOLOGY:
-                if (pet && DEMONIC_EMPOWERMENT && !m_bot->HasSpellCooldown(DEMONIC_EMPOWERMENT) && CastSpell(DEMONIC_EMPOWERMENT))
+                if (pet && DEMONIC_EMPOWERMENT && m_bot->IsSpellReady(DEMONIC_EMPOWERMENT) && CastSpell(DEMONIC_EMPOWERMENT))
                     return RETURN_CONTINUE;
                 if (CORRUPTION && m_ai->In_Reach(pTarget,CORRUPTION) && !pTarget->HasAura(CORRUPTION) && CastSpell(CORRUPTION, pTarget))
                     return RETURN_CONTINUE;
@@ -327,7 +327,7 @@ CombatManeuverReturns PlayerbotWarlockAI::DoNextCombatManeuverPVE(Unit *pTarget)
                     return RETURN_CONTINUE;
                 if (FIRE && m_ai->In_Reach(pTarget,FIRE) && !pTarget->HasAura(FIRE) && CastSpell(FIRE, pTarget))
                     return RETURN_CONTINUE;
-                if (CONFLAGRATE && m_ai->In_Reach(pTarget,CONFLAGRATE) && pTarget->HasAura(FIRE) && !m_bot->HasSpellCooldown(CONFLAGRATE) && CastSpell(CONFLAGRATE, pTarget))
+                if (CONFLAGRATE && m_ai->In_Reach(pTarget,CONFLAGRATE) && pTarget->HasAura(FIRE) && m_bot->IsSpellReady(CONFLAGRATE) && CastSpell(CONFLAGRATE, pTarget))
                     return RETURN_CONTINUE;
                 if (INCINERATE && m_ai->In_Reach(pTarget,INCINERATE) && pTarget->HasAura(FIRE) && CastSpell(INCINERATE, pTarget))
                     return RETURN_CONTINUE;
@@ -410,7 +410,7 @@ bool PlayerbotWarlockAI::CheckCurse(Unit* pTarget)
     {
         if (CURSE_OF_EXHAUSTION && m_ai->In_Reach(pTarget,CURSE_OF_EXHAUSTION) && !pTarget->HasAura(CURSE_OF_EXHAUSTION))
         {
-            if (AMPLIFY_CURSE && !m_bot->HasSpellCooldown(AMPLIFY_CURSE))
+            if (AMPLIFY_CURSE && m_bot->IsSpellReady(AMPLIFY_CURSE))
                 CastSpell(AMPLIFY_CURSE, m_bot);
 
             if (CastSpell(CURSE_OF_EXHAUSTION, pTarget))
@@ -477,7 +477,7 @@ bool PlayerbotWarlockAI::CheckCurse(Unit* pTarget)
     if (CurseToCast && m_ai->In_Reach(pTarget,CurseToCast) && !pTarget->HasAura(CurseToCast))
     {
         if (CurseToCast == CURSE_OF_AGONY)
-            if (AMPLIFY_CURSE && !m_bot->HasSpellCooldown(AMPLIFY_CURSE))
+            if (AMPLIFY_CURSE && m_bot->IsSpellReady(AMPLIFY_CURSE))
                 CastSpell(AMPLIFY_CURSE, m_bot);
 
         if (CastSpell(CurseToCast, pTarget))
@@ -489,7 +489,7 @@ bool PlayerbotWarlockAI::CheckCurse(Unit* pTarget)
     // else: go for Curse of Agony
     else if (CURSE_OF_AGONY && m_ai->In_Reach(pTarget,CURSE_OF_AGONY) && !pTarget->HasAura(CURSE_OF_AGONY))
     {
-        if (AMPLIFY_CURSE && !m_bot->HasSpellCooldown(AMPLIFY_CURSE))
+        if (AMPLIFY_CURSE && m_bot->IsSpellReady(AMPLIFY_CURSE))
             CastSpell(AMPLIFY_CURSE, m_bot);
 
         if (CastSpell(CURSE_OF_AGONY, pTarget))
@@ -501,7 +501,7 @@ bool PlayerbotWarlockAI::CheckCurse(Unit* pTarget)
     // else: go for Curse of Weakness
     else if (CURSE_OF_WEAKNESS && !pTarget->HasAura(CURSE_OF_WEAKNESS) && !pTarget->HasAura(CURSE_OF_AGONY))
     {
-        if (AMPLIFY_CURSE && !m_bot->HasSpellCooldown(AMPLIFY_CURSE))
+        if (AMPLIFY_CURSE && m_bot->IsSpellReady(AMPLIFY_CURSE))
             CastSpell(AMPLIFY_CURSE, m_bot);
 
         if (CastSpell(CURSE_OF_WEAKNESS, pTarget))
@@ -524,12 +524,12 @@ void PlayerbotWarlockAI::CheckDemon()
     if (pet && pet->GetEntry() != DEMON_IMP)
         return;
 
-    //Assign demon of choice
+    // Assign demon of choice based on spec
     if (spec == WARLOCK_SPEC_AFFLICTION)
         demonOfChoice = DEMON_FELHUNTER;
     else if (spec == WARLOCK_SPEC_DEMONOLOGY)
         demonOfChoice = (DEMON_FELGUARD > 0 ? DEMON_FELGUARD : DEMON_SUCCUBUS);
-    else if (spec == WARLOCK_SPEC_DESTRUCTION)
+    else    // Destruction spec or no spec found
         demonOfChoice = DEMON_IMP;
 
     // Summon demon
@@ -667,14 +667,14 @@ void PlayerbotWarlockAI::DoNonCombatActions()
         Item* soulStone = m_ai->FindConsumable(SOULSTONE_DISPLAYID);
         if (!soulStone)
         {
-            if (shardCount > 0 && !m_bot->HasSpellCooldown(CREATE_SOULSTONE) && m_ai->CastSpell(CREATE_SOULSTONE))
+            if (shardCount > 0 && m_bot->IsSpellReady(CREATE_SOULSTONE) && m_ai->CastSpell(CREATE_SOULSTONE))
                 return;
         }
         else
         {
             uint32 soulStoneSpell = soulStone->GetProto()->Spells[0].SpellId;
             Player* master = GetMaster();
-            if (!master->HasAura(soulStoneSpell) && !m_bot->HasSpellCooldown(soulStoneSpell))
+            if (!master->HasAura(soulStoneSpell) && m_bot->IsSpellReady(soulStoneSpell))
             {
                 // TODO: first choice: healer. Second choice: anyone else with revive spell. Third choice: self or master.
                 m_ai->UseItem(soulStone, master);

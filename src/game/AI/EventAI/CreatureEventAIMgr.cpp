@@ -241,8 +241,10 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 return false;
             }
             return true;
-        case TARGET_T_SUMMONER:
+        case TARGET_T_SPAWNER:
         case TARGET_T_EVENT_SPECIFIC:
+        case TARGET_T_PLAYER_INVOKER:
+        case TARGET_T_PLAYER_TAPPED:
             return true;
         default:
             sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type", eventId, action);
@@ -528,6 +530,25 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                     }
                     break;
                 }
+                case EVENT_T_FACING_TARGET:
+                {
+                    // Position is invalid (0:in back, 1:in front)
+                    if (temp.facingTarget.backOrFront && temp.facingTarget.backOrFront != 1)
+                    {
+                        sLog.outErrorEventAI("Event %u has unfitting value (%u) for param1 in event EVENT_T_FACING_TARGET (must be 0 or 1), skipping.", i, temp.facingTarget.backOrFront);
+                        continue;
+                    }
+                    // Event has repeatable flag but no timer
+                    if (temp.event_flags & EFLAG_REPEATABLE && !temp.facingTarget.repeatMin && !temp.facingTarget.repeatMax)
+                    {
+                        sLog.outErrorEventAI("Creature %u has param3 and param4=0 (RepeatMin/RepeatMax) but cannot be repeatable without timers. Removing EFLAG_REPEATABLE for event %u.", temp.creature_id, i);
+                        temp.event_flags &= ~EFLAG_REPEATABLE;
+                    }
+                    // Event has repeatable flag but timer is invalid
+                    if (temp.event_flags & EFLAG_REPEATABLE && temp.facingTarget.repeatMax < temp.facingTarget.repeatMin)
+                        sLog.outErrorEventAI("Creature %u is using repeatable event(%u) with param4 < param3 (RepeatMax < RepeatMin). Event will never repeat.", temp.creature_id, i);
+                    break;
+                }
                 default:
                     sLog.outErrorEventAI("Creature %u using not checked at load event (%u) in event %u. Need check code update?", temp.creature_id, temp.event_id, i);
                     break;
@@ -691,7 +712,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         }
                         break;
                     }
-                    case ACTION_T_SUMMON:
+                    case ACTION_T_SPAWN :
                         if (!sCreatureStorage.LookupEntry<CreatureInfo>(action.summon.creatureId))
                             sLog.outErrorEventAI("Event %u Action %u uses nonexistent creature entry %u.", i, j + 1, action.summon.creatureId);
 

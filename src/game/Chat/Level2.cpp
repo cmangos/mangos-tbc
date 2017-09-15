@@ -23,7 +23,7 @@
 #include "Entities/ObjectGuid.h"
 #include "Entities/Item.h"
 #include "Entities/Player.h"
-#include "Entities/TemporarySummon.h"
+#include "Entities/TemporarySpawn.h"
 #include "Entities/Totem.h"
 #include "Entities/Pet.h"
 #include "AI/BaseAI/CreatureAI.h"
@@ -1658,7 +1658,7 @@ bool ChatHandler::HandleNpcDeleteCommand(char* args)
             ((Totem*)unit)->UnSummon();
             break;
         case CREATURE_SUBTYPE_TEMPORARY_SUMMON:
-            ((TemporarySummon*)unit)->UnSummon();
+            ((TemporarySpawn*)unit)->UnSummon();
             break;
         default:
             return false;
@@ -2580,7 +2580,7 @@ bool ChatHandler::HandleDelTicketCommand(char* args)
 /// Helper function
 inline Creature* Helper_CreateWaypointFor(Creature* wpOwner, WaypointPathOrigin wpOrigin, int32 pathId, uint32 wpId, WaypointNode const* wpNode, CreatureInfo const* waypointInfo)
 {
-    TemporarySummonWaypoint* wpCreature = new TemporarySummonWaypoint(wpOwner->GetObjectGuid(), wpId, pathId, (uint32)wpOrigin);
+    TemporarySpawnWaypoint* wpCreature = new TemporarySpawnWaypoint(wpOwner->GetObjectGuid(), wpId, pathId, (uint32)wpOrigin);
 
     CreatureCreatePos pos(wpOwner->GetMap(), wpNode->x, wpNode->y, wpNode->z, wpNode->orientation);
 
@@ -2595,7 +2595,7 @@ inline Creature* Helper_CreateWaypointFor(Creature* wpOwner, WaypointPathOrigin 
 
     wpCreature->SetActiveObjectState(true);
 
-    wpCreature->Summon(TEMPSUMMON_TIMED_DESPAWN, 5 * MINUTE * IN_MILLISECONDS); // Also initializes the AI and MMGen
+    wpCreature->Summon(TEMPSPAWN_TIMED_DESPAWN, 5 * MINUTE * IN_MILLISECONDS); // Also initializes the AI and MMGen
     return wpCreature;
 }
 inline void UnsummonVisualWaypoints(Player const* player, ObjectGuid ownerGuid)
@@ -2610,11 +2610,11 @@ inline void UnsummonVisualWaypoints(Player const* player, ObjectGuid ownerGuid)
         if ((*itr)->GetSubtype() != CREATURE_SUBTYPE_TEMPORARY_SUMMON)
             continue;
 
-        TemporarySummonWaypoint* wpTarget = dynamic_cast<TemporarySummonWaypoint*>(*itr);
+        TemporarySpawnWaypoint* wpTarget = dynamic_cast<TemporarySpawnWaypoint*>(*itr);
         if (!wpTarget)
             continue;
 
-        if (wpTarget->GetSummonerGuid() == ownerGuid)
+        if (wpTarget->GetSpawnerGuid() == ownerGuid)
             wpTarget->UnSummon();
     }
 }
@@ -2656,7 +2656,7 @@ bool ChatHandler::HandleWpAddCommand(char* args)
         // Check if the user did specify a visual waypoint
         if (targetCreature->GetEntry() == VISUAL_WAYPOINT && targetCreature->GetSubtype() == CREATURE_SUBTYPE_TEMPORARY_SUMMON)
         {
-            TemporarySummonWaypoint* wpTarget = dynamic_cast<TemporarySummonWaypoint*>(targetCreature);
+            TemporarySpawnWaypoint* wpTarget = dynamic_cast<TemporarySpawnWaypoint*>(targetCreature);
             if (!wpTarget)
             {
                 PSendSysMessage(LANG_WAYPOINT_VP_SELECT);
@@ -2665,10 +2665,10 @@ bool ChatHandler::HandleWpAddCommand(char* args)
             }
 
             // Who moves along this waypoint?
-            wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSummonerGuid());
+            wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSpawnerGuid());
             if (!wpOwner)
             {
-                PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSummonerGuid().GetString().c_str());
+                PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSpawnerGuid().GetString().c_str());
                 SetSentErrorMessage(true);
                 return false;
             }
@@ -2855,7 +2855,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
             SetSentErrorMessage(true);
             return false;
         }
-        TemporarySummonWaypoint* wpTarget = dynamic_cast<TemporarySummonWaypoint*>(targetCreature);
+        TemporarySpawnWaypoint* wpTarget = dynamic_cast<TemporarySpawnWaypoint*>(targetCreature);
         if (!wpTarget)
         {
             PSendSysMessage(LANG_WAYPOINT_VP_SELECT);
@@ -2864,10 +2864,10 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
         }
 
         // Who moves along this waypoint?
-        wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSummonerGuid());
+        wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSpawnerGuid());
         if (!wpOwner)
         {
-            PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSummonerGuid().GetString().c_str());
+            PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSpawnerGuid().GetString().c_str());
             SetSentErrorMessage(true);
             return false;
         }
@@ -2953,7 +2953,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
     {
         sWaypointMgr.DeleteNode(wpOwner->GetEntry(), wpOwner->GetGUIDLow(), wpId, wpPathId, wpSource);
 
-        if (TemporarySummonWaypoint* wpCreature = dynamic_cast<TemporarySummonWaypoint*>(targetCreature))
+        if (TemporarySpawnWaypoint* wpCreature = dynamic_cast<TemporarySpawnWaypoint*>(targetCreature))
             wpCreature->UnSummon();
 
         if (wpPath->empty())
@@ -3092,8 +3092,8 @@ bool ChatHandler::HandleWpShowCommand(char* args)
         }
     }
 
-    Creature* wpOwner;                                         ///< Npc that is moving
-    TemporarySummonWaypoint* wpTarget = nullptr;               // Define here for wp-info command
+    Creature* wpOwner = nullptr;                               ///< Npc that is moving
+    TemporarySpawnWaypoint* wpTarget = nullptr;               // Define here for wp-info command
 
     // Show info for the selected waypoint (Step one: get moving npc)
     if (subCmd == "info")
@@ -3105,7 +3105,7 @@ bool ChatHandler::HandleWpShowCommand(char* args)
             SetSentErrorMessage(true);
             return false;
         }
-        wpTarget = dynamic_cast<TemporarySummonWaypoint*>(targetCreature);
+        wpTarget = dynamic_cast<TemporarySpawnWaypoint*>(targetCreature);
         if (!wpTarget)
         {
             PSendSysMessage(LANG_WAYPOINT_VP_SELECT);
@@ -3114,10 +3114,10 @@ bool ChatHandler::HandleWpShowCommand(char* args)
         }
 
         // Who moves along this waypoint?
-        wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSummonerGuid());
+        wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSpawnerGuid());
         if (!wpOwner)
         {
-            PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSummonerGuid().GetString().c_str());
+            PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSpawnerGuid().GetString().c_str());
             SetSentErrorMessage(true);
             return false;
         }
@@ -3252,7 +3252,7 @@ bool ChatHandler::HandleWpExportCommand(char* args)
         // Check if the user did specify a visual waypoint
         if (targetCreature->GetEntry() == VISUAL_WAYPOINT && targetCreature->GetSubtype() == CREATURE_SUBTYPE_TEMPORARY_SUMMON)
         {
-            TemporarySummonWaypoint* wpTarget = dynamic_cast<TemporarySummonWaypoint*>(targetCreature);
+            TemporarySpawnWaypoint* wpTarget = dynamic_cast<TemporarySpawnWaypoint*>(targetCreature);
             if (!wpTarget)
             {
                 PSendSysMessage(LANG_WAYPOINT_VP_SELECT);
@@ -3261,10 +3261,10 @@ bool ChatHandler::HandleWpExportCommand(char* args)
             }
 
             // Who moves along this waypoint?
-            wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSummonerGuid());
+            wpOwner = targetCreature->GetMap()->GetAnyTypeCreature(wpTarget->GetSpawnerGuid());
             if (!wpOwner)
             {
-                PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSummonerGuid().GetString().c_str());
+                PSendSysMessage(LANG_WAYPOINT_NOTFOUND_NPC, wpTarget->GetSpawnerGuid().GetString().c_str());
                 SetSentErrorMessage(true);
                 return false;
             }
@@ -4820,7 +4820,7 @@ bool ChatHandler::HandleMmapPathCommand(char* args)
         PSendSysMessage("Enable GM mode to see the path points.");
 
     for (uint32 i = 0; i < pointPath.size(); ++i)
-        player->SummonCreature(VISUAL_WAYPOINT, pointPath[i].x, pointPath[i].y, pointPath[i].z, 0, TEMPSUMMON_TIMED_DESPAWN, 9000);
+        player->SummonCreature(VISUAL_WAYPOINT, pointPath[i].x, pointPath[i].y, pointPath[i].z, 0, TEMPSPAWN_TIMED_DESPAWN, 9000);
 
     if (followPath)
     {

@@ -21,7 +21,7 @@ project(CMaNGOS_TBC)
 set(CMANGOS_BINARY_SERVER_NAME "mangosd")
 set(CMANGOS_BINARY_REALMD_NAME "realmd")
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.0)
 
 # Function to remove duplicate entries in provided string
 function(RemoveDuplicateSubstring stringIn stringOut)
@@ -149,21 +149,20 @@ if(WIN32)
   endif()
 
   # Define install rules for provided libs
-  install(
-    FILES
-      ${DEV_PROVIDED_LIBS_FOLDER}/libeay32.dll
-      ${DEV_PROVIDED_LIBS_FOLDER}/libmySQL.dll
+  set(BIN_LIBS ${DEV_PROVIDED_LIBS_FOLDER}/libmySQL.dll)
+  if(PLATFORM MATCHES X86)
+    if(MSVC)
+      # Only MSVC. TODO:: check why x64 is not provided
+      set(BIN_LIBS ${BIN_LIBS} ${DEV_PROVIDED_LIBS_FOLDER}/dbghelp.dll)
+    endif()
+    set(BIN_LIBS ${BIN_LIBS} ${DEV_PROVIDED_LIBS_FOLDER}/libcrypto-1_1.dll)
+  else()
+    set(BIN_LIBS ${BIN_LIBS} ${DEV_PROVIDED_LIBS_FOLDER}/libcrypto-1_1-x64.dll)
+  endif()
+  install(FILES
+      ${BIN_LIBS}
     DESTINATION ${LIBS_DIR}
   )
-
-  # TODO:: check why x64 is not provided
-  if(PLATFORM MATCHES X86)
-    install(
-      FILES
-        ${DEV_PROVIDED_LIBS_FOLDER}/dbghelp.dll
-      DESTINATION ${LIBS_DIR}
-    )
-  endif()
 endif()
 
 # For Unix systems set the rpath so that libraries are found
@@ -220,53 +219,54 @@ if(WIN32)
   set(MYSQL_LIBRARY "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libmySQL.lib")
   set(MYSQL_DEBUG_LIBRARY "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libmySQL.lib")
   set(OPENSSL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/dep/lib/include")
-  set(OPENSSL_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libeay32.lib")
-  set(OPENSSL_DEBUG_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libeay32.lib")
-  set(ZLIB_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/dep/zlib")
-  set(ZLIB_LIBRARIES "z")
-  set(BZIP2_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/dep/src/bzip2")
-  set(BZIP2_LIBRARIES "bzip2")
+  set(OPENSSL_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libcrypto.dll.lib")
+  set(OPENSSL_DEBUG_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libcrypto.dll.lib")
 endif()
 
 # *nix-specific packages
 if(UNIX)
   if(POSTGRESQL)
     find_package(PostgreSQL REQUIRED)
-
-    if(POSTGRESQL_FOUND)
-      include_directories(${POSTGRESQL_INCLUDE_DIRS})
-    endif(POSTGRESQL_FOUND)
-
   else()
     find_package(MySQL REQUIRED)
   endif()
 
-  # If OpenSSL path isn't specified on mac we set the one that homebrew uses
-  # since that's what most people will be using.
-  if (APPLE)
-    if (NOT OPENSSL_ROOT_DIR)
+  if(APPLE)
+    find_package(OpenSSL)
+    if(NOT OpenSSL_FOUND AND NOT OPENSSL_FOUND)
+      # If OpenSSL path isn't specified on mac we set the one that homebrew uses and try again
       set(OPENSSL_ROOT_DIR /usr/local/opt/openssl/)
-    endif()
-    if (NOT OPENSSL_INCLUDE_DIR)
       set(OPENSSL_INCLUDE_DIR /usr/local/opt/openssl/include)
+      find_package(OpenSSL)
+    endif()
+  else()
+    find_package(OpenSSL)
+  endif()
+
+  if(NOT OpenSSL_FOUND AND NOT OPENSSL_FOUND)
+    message(FATAL_ERROR "OpenSSL not found!")
+  else()
+    if(OpenSSL_VERSION AND NOT OPENSSL_VERSION)
+      set(OPENSSL_VERSION ${OpenSSL_VERSION})
+    endif()
+    if(OPENSSL_VERSION VERSION_LESS 1.0.1)
+      message(WARNING "You are using an outdated version of OpenSSL library. It may be incompatible or vulnerable.")
     endif()
   endif()
-  # Some Linux distributions provide an OpenSSL-1.0 package alongside 1.1+
-  if (UNIX)
-    if (NOT OPENSSL_ROOT_DIR)
-      set(OPENSSL_ROOT_DIR /usr/lib/openssl-1.0)
-    endif()
-    if (NOT OPENSSL_INCLUDE_DIR)
-      set(OPENSSL_INCLUDE_DIR /usr/include/openssl-1.0)
-    endif()
-  endif()
-  find_package(OpenSSL 1.0 REQUIRED)
-  if(NOT OPENSSL_VERSION VERSION_LESS "1.1")
-    message(FATAL_ERROR "You have unsupported version of OpenSSL library. Use version below 1.1")
-  endif()
+
   find_package(ZLIB REQUIRED)
+  if(ZLIB_FOUND)
+    # add to global includes and linking lists for all sub-projects at once
+    include_directories(${ZLIB_INCLUDE_DIRS})
+    link_libraries(${ZLIB_LIBRARIES})
+  endif()
   if(BUILD_EXTRACTORS)
     find_package(BZip2 REQUIRED)
+    if(BZip2_FOUND OR BZIP2_FOUND)
+      # add to global includes and linking lists for all sub-projects at once
+      include_directories(${BZIP2_INCLUDE_DIRS})
+      link_libraries(${BZIP2_LIBRARIES})
+    endif()
   endif()
 endif()
 

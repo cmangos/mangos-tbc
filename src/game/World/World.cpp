@@ -89,6 +89,8 @@ float World::m_VisibleObjectGreyDistance      = 0;
 float  World::m_relocation_lower_limit_sq     = 10.f * 10.f;
 uint32 World::m_relocation_ai_notify_delay    = 1000u;
 
+TimePoint World::m_currentTime = TimePoint();
+
 /// World constructor
 World::World() : mail_timer(0), mail_timer_expires(0), m_NextDailyQuestReset(0), m_NextWeeklyQuestReset(0), m_NextMonthlyQuestReset(0)
 {
@@ -1132,9 +1134,27 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading Npc Text Id...");
     sObjectMgr.LoadNpcGossips();                            // must be after load Creature and LoadGossipText
 
-    sLog.outString("Loading Gossip scripts...");
+    sLog.outString("Loading Scripts random templates...");  // must be before String calls
+    sScriptMgr.LoadDbScriptRandomTemplates();
+                                                            ///- Load and initialize DBScripts Engine
+    sLog.outString("Loading DB-Scripts Engine...");
+    sScriptMgr.LoadRelayScripts();                          // must be first in dbscripts loading
     sScriptMgr.LoadGossipScripts();                         // must be before gossip menu options
+    sScriptMgr.LoadQuestStartScripts();                     // must be after load Creature/Gameobject(Template/Data) and QuestTemplate
+    sScriptMgr.LoadQuestEndScripts();                       // must be after load Creature/Gameobject(Template/Data) and QuestTemplate
+    sScriptMgr.LoadSpellScripts();                          // must be after load Creature/Gameobject(Template/Data)
+    sScriptMgr.LoadGameObjectScripts();                     // must be after load Creature/Gameobject(Template/Data)
+    sScriptMgr.LoadGameObjectTemplateScripts();             // must be after load Creature/Gameobject(Template/Data)
+    sScriptMgr.LoadEventScripts();                          // must be after load Creature/Gameobject(Template/Data)
+    sScriptMgr.LoadCreatureDeathScripts();                  // must be after load Creature/Gameobject(Template/Data)
+    sScriptMgr.LoadCreatureMovementScripts();               // before loading from creature_movement
+    sLog.outString(">>> Scripts loaded");
+    sLog.outString();
 
+    sLog.outString("Loading Scripts text locales...");      // must be after Load*Scripts calls
+    sScriptMgr.LoadDbScriptStrings();
+
+    sLog.outString("Loading Gossip Menus...");
     sObjectMgr.LoadGossipMenus();
 
     sLog.outString("Loading Vendors...");
@@ -1145,11 +1165,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadTrainerTemplates();                      // must be after load CreatureTemplate
     sObjectMgr.LoadTrainers();                              // must be after load CreatureTemplate, TrainerTemplate
 
-    sLog.outString("Loading Waypoint scripts...");          // before loading from creature_movement
-    sScriptMgr.LoadCreatureMovementScripts();
-
-    sLog.outString("Loading Relay scripts...");
-    sScriptMgr.LoadRelayScripts();
+    sLog.outString("Loading Waypoint scripts...");          
 
     sLog.outString("Loading Waypoints...");
     sWaypointMgr.Load();
@@ -1169,6 +1185,9 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading GameTeleports...");
     sObjectMgr.LoadGameTele();
 
+    sLog.outString("Loading Questgiver Greetings...");
+    sObjectMgr.LoadQuestgiverGreeting();
+
     ///- Loading localization data
     sLog.outString("Loading Localization strings...");
     sObjectMgr.LoadCreatureLocales();                       // must be after CreatureInfo loading
@@ -1179,6 +1198,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadPageTextLocales();                       // must be after PageText loading
     sObjectMgr.LoadGossipMenuItemsLocales();                // must be after gossip menu items loading
     sObjectMgr.LoadPointOfInterestLocales();                // must be after POI loading
+    sObjectMgr.LoadQuestgiverGreetingLocales();
     sLog.outString(">>> Localization strings loaded");
     sLog.outString();
 
@@ -1203,24 +1223,6 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading GM tickets...");
     sTicketMgr.LoadGMTickets();
-
-    ///- Load and initialize DBScripts Engine
-    sLog.outString("Loading DB-Scripts Engine...");
-    sScriptMgr.LoadQuestStartScripts();                     // must be after load Creature/Gameobject(Template/Data) and QuestTemplate
-    sScriptMgr.LoadQuestEndScripts();                       // must be after load Creature/Gameobject(Template/Data) and QuestTemplate
-    sScriptMgr.LoadSpellScripts();                          // must be after load Creature/Gameobject(Template/Data)
-    sScriptMgr.LoadGameObjectScripts();                     // must be after load Creature/Gameobject(Template/Data)
-    sScriptMgr.LoadGameObjectTemplateScripts();             // must be after load Creature/Gameobject(Template/Data)
-    sScriptMgr.LoadEventScripts();                          // must be after load Creature/Gameobject(Template/Data)
-    sScriptMgr.LoadCreatureDeathScripts();                  // must be after load Creature/Gameobject(Template/Data)
-    sLog.outString(">>> Scripts loaded");
-    sLog.outString();
-
-    sLog.outString("Loading Scripts random templates...");      // must be before String calls
-    sScriptMgr.LoadDbScriptRandomTemplates();
-
-    sLog.outString("Loading Scripts text locales...");      // must be after Load*Scripts calls
-    sScriptMgr.LoadDbScriptStrings();
 
     ///- Load and initialize EventAI Scripts
     sLog.outString("Loading CreatureEventAI Texts...");
@@ -1311,6 +1313,10 @@ void World::SetInitialWorldSettings()
     SetMonthlyQuestResetTime();
     sLog.outString();
 
+    sLog.outString("Loading Quest Group chosen quests...");
+    LoadEventGroupChosen();
+    sLog.outString();
+
     sLog.outString("Starting Game Event system...");
     uint32 nextGameEvent = sGameEventMgr.Initialize();
     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    // depend on next event
@@ -1389,6 +1395,8 @@ void World::DetectDBCLang()
 /// Update the World !
 void World::Update(uint32 diff)
 {
+    m_currentTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::now());
+
     ///- Update the different timers
     for (int i = 0; i < WUPDATE_COUNT; ++i)
     {
@@ -2052,6 +2060,60 @@ void World::SetMonthlyQuestResetTime(bool initialize)
         CharacterDatabase.PExecute("UPDATE saved_variables SET NextMonthlyQuestResetTime = '" UI64FMTD "'", uint64(m_NextMonthlyQuestReset));
 }
 
+void World::GenerateEventGroupEvents(bool daily, bool weekly, bool deleteColumns)
+{
+    auto& eventGroups = sGameEventMgr.GetEventGroups();
+    auto& events = sGameEventMgr.GetEventMap();
+    for (auto itr = m_eventGroupChosen.begin(); itr != m_eventGroupChosen.end();)
+    {
+        if (!daily && events[*itr].length == 1440) // dailies
+            ++itr;
+        else if (!weekly && events[*itr].length == 10080) // weeklies
+            ++itr;
+        else
+        {
+            sGameEventMgr.StopEvent(*itr);
+            itr = m_eventGroupChosen.erase(itr);
+        }
+    }
+
+    for (auto& data : eventGroups) // For each quest group pick a set
+    {
+        if (!daily && events[data.second[0]].length == 1440) // dailies
+            continue;
+        if (!weekly && events[data.second[0]].length == 10080) // weeklies
+            continue;
+        if (deleteColumns)
+            CharacterDatabase.PExecute("DELETE FROM event_group_chosen WHERE eventGroup = '%u'", data.first);
+
+        uint32 random = urand(0, data.second.size() - 1);
+        uint32 chosenId = data.second[random];
+        CharacterDatabase.PExecute("INSERT INTO event_group_chosen(eventGroup,entry) VALUES('%u','%u')",
+            data.first, chosenId);
+        m_eventGroupChosen.push_back(chosenId);
+        // start events
+        sGameEventMgr.StartEvent(chosenId);
+    }
+}
+
+void World::LoadEventGroupChosen()
+{
+    QueryResult* result = CharacterDatabase.Query("SELECT entry FROM event_group_chosen");
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            m_eventGroupChosen.push_back(fields[0].GetUInt32());
+            sGameEventMgr.StartEvent(fields[0].GetUInt32(), false, true);
+        } while (result->NextRow());
+
+        delete result;
+    }
+    else // if table not set yet, generate quests
+        GenerateEventGroupEvents(true, true, false);
+}
+
 void World::ResetDailyQuests()
 {
     DETAIL_LOG("Daily quests reset for all characters.");
@@ -2062,6 +2124,8 @@ void World::ResetDailyQuests()
 
     m_NextDailyQuestReset = time_t(m_NextDailyQuestReset + DAY);
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextDailyQuestResetTime = '" UI64FMTD "'", uint64(m_NextDailyQuestReset));
+
+    GenerateEventGroupEvents(true, false, true); // generate dailies and save to DB
 }
 
 void World::ResetWeeklyQuests()
@@ -2074,6 +2138,8 @@ void World::ResetWeeklyQuests()
 
     m_NextWeeklyQuestReset = time_t(m_NextWeeklyQuestReset + WEEK);
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextWeeklyQuestResetTime = '" UI64FMTD "'", uint64(m_NextWeeklyQuestReset));
+
+    GenerateEventGroupEvents(false, true, true); // generate weeklies and save to DB
 }
 
 void World::ResetMonthlyQuests()

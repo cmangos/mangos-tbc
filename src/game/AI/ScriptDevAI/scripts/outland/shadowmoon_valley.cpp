@@ -39,7 +39,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/pet_ai.h"
-#include "Entities/TemporarySummon.h"
+#include "Entities/TemporarySpawn.h"
 
 /*#####
 # mob_mature_netherwing_drake
@@ -459,6 +459,7 @@ enum
     SPELL_FROST_SHOCK           = 12548,
     SPELL_HEALING_WAVE          = 12491,
     SPELL_WATER_BUBBLE          = 35929,
+    SPELL_BREAK_WATER_PRISON    = 35933,
 
     QUEST_ESCAPE_COILSCAR       = 10451,
     NPC_COILSKAR_ASSASSIN       = 21044,
@@ -509,39 +510,41 @@ struct npc_wildaAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 8:
-            case 26:
-            case 30:
-            case 32:
-            case 39:
-            case 43:
-            case 51:
-                DoSpawnAssassin();
-                break;
-            case 13:
-                if (Player* pPlayer = GetPlayerForEscort())
-                    DoScriptText(SAY_WIL_FREE_SPIRITS, m_creature, pPlayer);
-                DoFreeSpirits();
-                break;
-            case 14:
-                DoScriptText(SAY_WIL_FIND_EXIT, m_creature);
-                break;
-            case 15:
-                DoSpawnAssassin(2);
-                break;
-            case 40:
-                if (Player* pPlayer = GetPlayerForEscort())
-                    DoScriptText(SAY_WIL_JUST_AHEAD, m_creature, pPlayer);
-                break;
-            case 52:
-                if (Player* pPlayer = GetPlayerForEscort())
-                {
-                    DoDespawnSpirits();
-                    m_creature->SetFacingToObject(pPlayer);
-                    DoScriptText(SAY_WIL_END, m_creature, pPlayer);
-                    pPlayer->GroupEventHappens(QUEST_ESCAPE_COILSCAR, m_creature);
-                }
-                break;
+        case 8:
+        case 26:
+        case 30:
+        case 32:
+        case 39:
+        case 43:
+        case 51:
+            DoSpawnAssassin();
+            break;
+        case 13:
+            if (Player* pPlayer = GetPlayerForEscort())
+                DoScriptText(SAY_WIL_FREE_SPIRITS, m_creature, pPlayer);
+            DoCastSpellIfCan(m_creature, SPELL_BREAK_WATER_PRISON);
+            break;
+        case 14:
+            if (Player* pPlayer = GetPlayerForEscort())
+                DoScriptText(SAY_WIL_FIND_EXIT, m_creature, pPlayer);
+            DoFreeSpirits();
+            break;
+        case 15:
+            DoSpawnAssassin(2);
+            break;
+        case 40:
+            if (Player* pPlayer = GetPlayerForEscort())
+                DoScriptText(SAY_WIL_JUST_AHEAD, m_creature, pPlayer);
+            break;
+        case 52:
+            if (Player* pPlayer = GetPlayerForEscort())
+            {
+                DoDespawnSpirits();
+                m_creature->SetFacingToObject(pPlayer);
+                DoScriptText(SAY_WIL_END, m_creature, pPlayer);
+                pPlayer->GroupEventHappens(QUEST_ESCAPE_COILSCAR, m_creature);
+            }
+            break;
         }
     }
 
@@ -562,7 +565,7 @@ struct npc_wildaAI : public npc_escortAI
         for (uint8 i = 0; i < uiCount; ++i)
         {
             m_creature->GetRandomPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 10.0f, fX, fY, fZ);
-            m_creature->SummonCreature(NPC_COILSKAR_ASSASSIN, fX, fY, fZ, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 10000);
+            m_creature->SummonCreature(NPC_COILSKAR_ASSASSIN, fX, fY, fZ, 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 10000);
         }
 
         // random chance to yell
@@ -572,13 +575,13 @@ struct npc_wildaAI : public npc_escortAI
         // random text when assassin is summoned
         switch (urand(0, 6))
         {
-            case 0: DoScriptText(SAY_WIL_PROGRESS_1, m_creature); break;
-            case 1: DoScriptText(SAY_WIL_PROGRESS_2, m_creature); break;
-            case 2: DoScriptText(SAY_WIL_PROGRESS_3, m_creature); break;
-            case 3: DoScriptText(SAY_WIL_PROGRESS_4, m_creature); break;
-            case 4: DoScriptText(SAY_WIL_PROGRESS_5, m_creature); break;
-            case 5: DoScriptText(SAY_WIL_AGGRO_1, m_creature); break;
-            case 6: DoScriptText(SAY_WIL_AGGRO_2, m_creature); break;
+        case 0: DoScriptText(SAY_WIL_PROGRESS_1, m_creature); break;
+        case 1: DoScriptText(SAY_WIL_PROGRESS_2, m_creature); break;
+        case 2: DoScriptText(SAY_WIL_PROGRESS_3, m_creature); break;
+        case 3: DoScriptText(SAY_WIL_PROGRESS_4, m_creature); break;
+        case 4: DoScriptText(SAY_WIL_PROGRESS_5, m_creature); break;
+        case 5: DoScriptText(SAY_WIL_AGGRO_1, m_creature); break;
+        case 6: DoScriptText(SAY_WIL_AGGRO_2, m_creature); break;
         }
     }
 
@@ -592,11 +595,14 @@ struct npc_wildaAI : public npc_escortAI
             return;
 
         // all spirits follow
-        for (std::list<Creature*>::const_iterator itr = lSpiritsInRange.begin(); itr != lSpiritsInRange.end(); ++itr)
+        for (Creature* spirit : lSpiritsInRange)
         {
-            (*itr)->RemoveAurasDueToSpell(SPELL_WATER_BUBBLE);
-            (*itr)->GetMotionMaster()->MoveFollow(m_creature, m_creature->GetDistance(*itr) * 0.25f, M_PI_F / 2 + m_creature->GetAngle(*itr));
-            (*itr)->SetLevitate(false);
+            spirit->RemoveAurasDueToSpell(SPELL_WATER_BUBBLE);
+            spirit->StopMoving();
+            spirit->GetMotionMaster()->Clear(false, true);
+            spirit->GetMotionMaster()->MoveFollow(m_creature, m_creature->GetDistance(spirit) * 0.25f, M_PI_F / 2 + m_creature->GetAngle(spirit));
+            spirit->SetFactionTemporary(FACTION_ESCORT_N_FRIEND_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);
+            spirit->SetLevitate(false);
         }
     }
 
@@ -610,7 +616,10 @@ struct npc_wildaAI : public npc_escortAI
 
         // all spirits follow
         for (std::list<Creature*>::const_iterator itr = lSpiritsInRange.begin(); itr != lSpiritsInRange.end(); ++itr)
+        {
             (*itr)->ForcedDespawn(6000);
+            (*itr)->SetLevitate(true);
+        }
     }
 
     void UpdateEscortAI(const uint32 uiDiff) override
@@ -659,7 +668,7 @@ bool QuestAccept_npc_wilda(Player* pPlayer, Creature* pCreature, const Quest* pQ
     if (pQuest->GetQuestId() == QUEST_ESCAPE_COILSCAR)
     {
         DoScriptText(SAY_WIL_START, pCreature, pPlayer);
-        pCreature->SetFactionTemporary(FACTION_ESCORT_A_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);
+        pCreature->SetFactionTemporary(FACTION_ESCORT_N_FRIEND_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);
         pCreature->SetLevitate(false);
 
         if (npc_wildaAI* pEscortAI = dynamic_cast<npc_wildaAI*>(pCreature->AI()))
@@ -990,7 +999,7 @@ struct npc_lord_illidan_stormrageAI : public Scripted_NoMovementAI
             fLocZ = SpawnLocation[uiLocIndex + i].fLocZ;
             fOrient = SpawnLocation[uiLocIndex + i].fOrient;
 
-            if (Creature* pSpawn = m_creature->SummonCreature(WavesInfo[m_uiWaveCount].uiCreatureId, fLocX, fLocY, fLocZ, fOrient, TEMPSUMMON_CORPSE_TIMED_DESPAWN, 15000))
+            if (Creature* pSpawn = m_creature->SummonCreature(WavesInfo[m_uiWaveCount].uiCreatureId, fLocX, fLocY, fLocZ, fOrient, TEMPSPAWN_CORPSE_TIMED_DESPAWN, 15000))
             {
 
                 if (m_uiWaveCount)                          // only in first wave
@@ -1088,6 +1097,8 @@ struct npc_lord_illidan_stormrageAI : public Scripted_NoMovementAI
                         ++uiFailedMemberCount;
                     }
                 }
+                else
+                    uiFailedMemberCount++;
             }
 
             if (pEventGroup->GetMembersCount() == uiFailedMemberCount)
@@ -1472,9 +1483,8 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                     m_gromtorGuid = pGromtor->GetObjectGuid();
                     pGromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2);
                 }
-                if (TemporarySummon* oronok = dynamic_cast<TemporarySummon*>(m_creature))
-                    if (Unit* summoner = oronok->GetMap()->GetUnit(oronok->GetSummonerGuid()))
-                        DoScriptText(SAY_ORONOK_TOGETHER, m_creature, summoner);
+                if (Unit* summoner = m_creature->GetMap()->GetUnit(m_creature->GetSpawnerGuid()))
+                    DoScriptText(SAY_ORONOK_TOGETHER, m_creature, summoner);
                 break;
             case NPC_EARTHMENDER_TORLOK:
                 if (Creature* pTorlok = GetClosestCreatureWithEntry(m_creature, NPC_EARTHMENDER_TORLOK, 25.0f))
@@ -1485,10 +1495,10 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 break;
             case NPC_REDEEMED_SPIRIT_OF_EARTH:
                 m_creature->SetFacingTo(4.9f);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_FIRE, aDamnationLocations[0].m_fX, aDamnationLocations[0].m_fY, aDamnationLocations[0].m_fZ, aDamnationLocations[0].m_fO, TEMPSUMMON_TIMED_DESPAWN, 32000);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_EARTH, aDamnationLocations[1].m_fX, aDamnationLocations[1].m_fY, aDamnationLocations[1].m_fZ, aDamnationLocations[1].m_fO, TEMPSUMMON_TIMED_DESPAWN, 32000);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_WATER, aDamnationLocations[2].m_fX, aDamnationLocations[2].m_fY, aDamnationLocations[2].m_fZ, aDamnationLocations[2].m_fO, TEMPSUMMON_TIMED_DESPAWN, 32000);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_AIR, aDamnationLocations[3].m_fX, aDamnationLocations[3].m_fY, aDamnationLocations[3].m_fZ, aDamnationLocations[3].m_fO, TEMPSUMMON_TIMED_DESPAWN, 32000);
+                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_FIRE, aDamnationLocations[0].m_fX, aDamnationLocations[0].m_fY, aDamnationLocations[0].m_fZ, aDamnationLocations[0].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_EARTH, aDamnationLocations[1].m_fX, aDamnationLocations[1].m_fY, aDamnationLocations[1].m_fZ, aDamnationLocations[1].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_WATER, aDamnationLocations[2].m_fX, aDamnationLocations[2].m_fY, aDamnationLocations[2].m_fZ, aDamnationLocations[2].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_AIR, aDamnationLocations[3].m_fX, aDamnationLocations[3].m_fY, aDamnationLocations[3].m_fZ, aDamnationLocations[3].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
                 break;
             case SAY_ORONOK_EPILOGUE_7:
                 if (Creature* pTorlok = m_creature->GetMap()->GetCreature(m_torlokGuid))
@@ -1823,7 +1833,7 @@ struct npc_veneratus_spawn_nodeAI : public Scripted_NoMovementAI
         if (pWho->GetEntry() == NPC_SPIRIT_HUNTER && m_creature->IsWithinDistInMap(pWho, 40.0f) && m_creature->IsWithinLOSInMap(pWho))
         {
             DoScriptText(SAY_VENERATUS_SPAWN, pWho);
-            DoSpawnCreature(NPC_VENERATUS, 0, 0, 0, 0, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
+            DoSpawnCreature(NPC_VENERATUS, 0, 0, 0, 0, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
             m_creature->ForcedDespawn();
         }
     }

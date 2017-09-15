@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Terokkar_Forest
 SD%Complete: 80
-SDComment: Quest support: 9889, 10009, 10051, 10052, 10446/10447, 10852, 10873, 10879, 10887, 10896, 10898, 10922, 10988, 11085, 11093, 11096.
+SDComment: Quest support: 9889, 10009, 10051, 10052, 10873, 10879, 10887, 10896, 10898, 10922, 10988, 11085, 11093, 11096.
 SDCategory: Terokkar Forest
 EndScriptData */
 
@@ -27,10 +27,6 @@ mob_netherweb_victim
 npc_akuno
 npc_hungry_nether_ray
 npc_letoll
-npc_mana_bomb_exp_trigger
-go_mana_bomb
-go_veil_skith_cage
-npc_captive_child
 npc_isla_starmane
 npc_skywing
 npc_cenarion_sparrowhawk
@@ -170,11 +166,11 @@ struct mob_netherweb_victimAI : public ScriptedAI
             {
                 if (!urand(0, 3))
                 {
-                    m_creature->SummonCreature(NPC_FREED_WARRIOR, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 60000);
+                    m_creature->SummonCreature(NPC_FREED_WARRIOR, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
                     pPlayer->KilledMonsterCredit(NPC_FREED_WARRIOR, m_creature->GetObjectGuid());
                 }
                 else
-                    m_creature->SummonCreature(netherwebVictims[urand(0, 5)], 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 60000);
+                    m_creature->SummonCreature(netherwebVictims[urand(0, 5)], 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
             }
         }
     }
@@ -223,15 +219,15 @@ struct npc_akunoAI : public npc_escortAI
         {
             case 5:
                 DoScriptText(SAY_AKU_AMBUSH_A, m_creature);
-                m_creature->SummonCreature(NPC_CABAL_SKIRMISHER, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 25000);
+                m_creature->SummonCreature(NPC_CABAL_SKIRMISHER, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
                 break;
             case 14:
                 DoScriptText(SAY_AKU_AMBUSH_B, m_creature);
 
-                if (Creature* pTemp = m_creature->SummonCreature(NPC_CABAL_SKIRMISHER, m_afAmbushB1[0], m_afAmbushB1[1], m_afAmbushB1[2], 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 25000))
+                if (Creature* pTemp = m_creature->SummonCreature(NPC_CABAL_SKIRMISHER, m_afAmbushB1[0], m_afAmbushB1[1], m_afAmbushB1[2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000))
                     DoScriptText(SAY_AKU_AMBUSH_B_REPLY, pTemp);
 
-                m_creature->SummonCreature(NPC_CABAL_SKIRMISHER, m_afAmbushB2[0], m_afAmbushB2[1], m_afAmbushB2[2], 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 25000);
+                m_creature->SummonCreature(NPC_CABAL_SKIRMISHER, m_afAmbushB2[0], m_afAmbushB2[1], m_afAmbushB2[2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
                 break;
             case 15:
                 SetRun();
@@ -526,7 +522,7 @@ struct npc_letollAI : public npc_escortAI
                             break;
                         case 12:
                             DoScriptText(SAY_LE_IN_YOUR_FACE, m_creature);
-                            m_creature->SummonCreature(NPC_BONE_SIFTER, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSUMMON_TIMED_OOC_DESPAWN, 30000);
+                            m_creature->SummonCreature(NPC_BONE_SIFTER, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 30000);
                             break;
                         case 13:
                             DoScriptText(EMOTE_LE_PICK_UP, m_creature);
@@ -573,181 +569,6 @@ bool QuestAccept_npc_letoll(Player* pPlayer, Creature* pCreature, const Quest* p
     }
 
     return true;
-}
-
-/*######
-## npc_mana_bomb_exp_trigger
-######*/
-
-enum
-{
-    SAY_COUNT_1                 = -1000472,
-    SAY_COUNT_2                 = -1000473,
-    SAY_COUNT_3                 = -1000474,
-    SAY_COUNT_4                 = -1000475,
-    SAY_COUNT_5                 = -1000476,
-
-    SPELL_MANA_BOMB_LIGHTNING   = 37843,
-    SPELL_MANA_BOMB_EXPL        = 35513,
-
-    NPC_MANA_BOMB_EXPL_TRIGGER  = 20767,
-    NPC_MANA_BOMB_KILL_TRIGGER  = 21039
-};
-
-struct npc_mana_bomb_exp_triggerAI : public ScriptedAI
-{
-    npc_mana_bomb_exp_triggerAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
-
-    GameObject* pManaBomb;
-
-    bool m_bIsActivated;
-    uint32 m_uiEventTimer;
-    uint32 m_uiEventCounter;
-
-    void Reset() override
-    {
-        pManaBomb = nullptr;
-        m_bIsActivated = false;
-        m_uiEventTimer = 1000;
-        m_uiEventCounter = 0;
-    }
-
-    void DoTrigger(Player* pPlayer, GameObject* pGo)
-    {
-        if (m_bIsActivated)
-            return;
-
-        m_bIsActivated = true;
-
-        pPlayer->KilledMonsterCredit(NPC_MANA_BOMB_KILL_TRIGGER);
-
-        pManaBomb = pGo;
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        if (!m_bIsActivated)
-            return;
-
-        if (m_uiEventTimer < uiDiff)
-        {
-            m_uiEventTimer = 1000;
-
-            if (m_uiEventCounter < 10)
-                m_creature->CastSpell(m_creature, SPELL_MANA_BOMB_LIGHTNING, TRIGGERED_NONE);
-
-            switch (m_uiEventCounter)
-            {
-                case 5:
-                    if (pManaBomb)
-                        pManaBomb->SetGoState(GO_STATE_ACTIVE);
-
-                    DoScriptText(SAY_COUNT_1, m_creature);
-                    break;
-                case 6:
-                    DoScriptText(SAY_COUNT_2, m_creature);
-                    break;
-                case 7:
-                    DoScriptText(SAY_COUNT_3, m_creature);
-                    break;
-                case 8:
-                    DoScriptText(SAY_COUNT_4, m_creature);
-                    break;
-                case 9:
-                    DoScriptText(SAY_COUNT_5, m_creature);
-                    break;
-                case 10:
-                    m_creature->CastSpell(m_creature, SPELL_MANA_BOMB_EXPL, TRIGGERED_NONE);
-                    break;
-                case 30:
-                    if (pManaBomb)
-                        pManaBomb->SetGoState(GO_STATE_READY);
-
-                    Reset();
-                    break;
-            }
-
-            ++m_uiEventCounter;
-        }
-        else
-            m_uiEventTimer -= uiDiff;
-    }
-};
-
-CreatureAI* GetAI_npc_mana_bomb_exp_trigger(Creature* pCreature)
-{
-    return new npc_mana_bomb_exp_triggerAI(pCreature);
-}
-
-/*######
-## go_mana_bomb
-######*/
-
-bool GOUse_go_mana_bomb(Player* pPlayer, GameObject* pGo)
-{
-    if (Creature* pCreature = GetClosestCreatureWithEntry(pGo, NPC_MANA_BOMB_EXPL_TRIGGER, INTERACTION_DISTANCE))
-    {
-        if (npc_mana_bomb_exp_triggerAI* pBombAI = dynamic_cast<npc_mana_bomb_exp_triggerAI*>(pCreature->AI()))
-            pBombAI->DoTrigger(pPlayer, pGo);
-    }
-
-    return true;
-}
-
-/*######
-## go_veil_skith_cage & npc_captive_child
-#####*/
-
-enum
-{
-    QUEST_MISSING_FRIENDS     = 10852,
-    NPC_CAPTIVE_CHILD         = 22314,
-    SAY_THANKS_1              = -1000590,
-    SAY_THANKS_2              = -1000591,
-    SAY_THANKS_3              = -1000592,
-    SAY_THANKS_4              = -1000593
-};
-
-bool GOUse_go_veil_skith_cage(Player* pPlayer, GameObject* pGo)
-{
-    if (pPlayer->GetQuestStatus(QUEST_MISSING_FRIENDS) == QUEST_STATUS_INCOMPLETE)
-    {
-        std::list<Creature*> lChildrenList;
-        GetCreatureListWithEntryInGrid(lChildrenList, pGo, NPC_CAPTIVE_CHILD, INTERACTION_DISTANCE);
-        for (std::list<Creature*>::const_iterator itr = lChildrenList.begin(); itr != lChildrenList.end(); ++itr)
-        {
-            pPlayer->KilledMonsterCredit(NPC_CAPTIVE_CHILD, (*itr)->GetObjectGuid());
-            switch (urand(0, 3))
-            {
-                case 0: DoScriptText(SAY_THANKS_1, *itr); break;
-                case 1: DoScriptText(SAY_THANKS_2, *itr); break;
-                case 2: DoScriptText(SAY_THANKS_3, *itr); break;
-                case 3: DoScriptText(SAY_THANKS_4, *itr); break;
-            }
-
-            (*itr)->GetMotionMaster()->Clear();
-            (*itr)->GetMotionMaster()->MovePoint(0, -2648.049f, 5274.573f, 1.691529f);
-        }
-    }
-    return false;
-};
-
-struct npc_captive_child : public ScriptedAI
-{
-    npc_captive_child(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
-
-    void Reset() override {}
-
-    void MovementInform(uint32 uiMotionType, uint32 /*uiPointId*/) override
-    {
-        if (uiMotionType == POINT_MOTION_TYPE)
-            m_creature->ForcedDespawn();                    // we only have one waypoint
-    }
-};
-
-CreatureAI* GetAI_npc_captive_child(Creature* pCreature)
-{
-    return new npc_captive_child(pCreature);
 }
 
 /*#####
@@ -960,7 +781,7 @@ struct npc_skywingAI : public npc_escortAI
                 break;
             case 80:
                 DoScriptText(SAY_SKYWING_SUMMON, m_creature);
-                m_creature->SummonCreature(NPC_LUANGA_THE_IMPRISONER, aLuangaSpawnCoords[0], aLuangaSpawnCoords[1], aLuangaSpawnCoords[2], 0, TEMPSUMMON_TIMED_OOC_DESPAWN, 30000);
+                m_creature->SummonCreature(NPC_LUANGA_THE_IMPRISONER, aLuangaSpawnCoords[0], aLuangaSpawnCoords[1], aLuangaSpawnCoords[2], 0, TEMPSPAWN_TIMED_OOC_DESPAWN, 30000);
                 break;
             case 81:
                 // Start transformation
@@ -1199,8 +1020,8 @@ struct npc_skyguard_prisonerAI : public npc_escortAI
                 DoScriptText(SAY_ESCORT_START, m_creature);
                 break;
             case 13:
-                m_creature->SummonCreature(NPC_WING_GUARD, -4179.043f, 3081.007f, 328.28f, 4.51f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
-                m_creature->SummonCreature(NPC_WING_GUARD, -4181.610f, 3081.289f, 328.32f, 4.52f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
+                m_creature->SummonCreature(NPC_WING_GUARD, -4179.043f, 3081.007f, 328.28f, 4.51f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
+                m_creature->SummonCreature(NPC_WING_GUARD, -4181.610f, 3081.289f, 328.32f, 4.52f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 break;
             case 14:
                 DoScriptText(SAY_AMBUSH_END, m_creature);
@@ -1368,26 +1189,6 @@ void AddSC_terokkar_forest()
     pNewScript->Name = "npc_letoll";
     pNewScript->GetAI = &GetAI_npc_letoll;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_letoll;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_mana_bomb_exp_trigger";
-    pNewScript->GetAI = &GetAI_npc_mana_bomb_exp_trigger;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "go_mana_bomb";
-    pNewScript->pGOUse = &GOUse_go_mana_bomb;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "go_veil_skith_cage";
-    pNewScript->pGOUse = &GOUse_go_veil_skith_cage;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_captive_child";
-    pNewScript->GetAI = &GetAI_npc_captive_child;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

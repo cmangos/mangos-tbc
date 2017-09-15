@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2356_01_mangos_dbscript_string_rename` bit(1) DEFAULT NULL
+  `required_s2361_01_mangos_questgiver_greeting` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -720,6 +720,7 @@ CREATE TABLE `conditions` (
   `type` tinyint(3) NOT NULL DEFAULT '0' COMMENT 'Type of the condition',
   `value1` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'data field one for the condition',
   `value2` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'data field two for the condition',
+  `comments` VARCHAR(500) DEFAULT '',
   PRIMARY KEY (`condition_entry`),
   UNIQUE KEY `unique_conditions` (`type`,`value1`,`value2`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Condition System';
@@ -1044,6 +1045,7 @@ CREATE TABLE `creature_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -1511,6 +1513,20 @@ DROP TABLE IF EXISTS dbscripts_on_creature_death;
 CREATE TABLE dbscripts_on_creature_death LIKE dbscripts_on_creature_movement;
 
 --
+-- Table structure for table `dbscript_random_templates`
+--
+
+DROP TABLE IF EXISTS `dbscript_random_templates`;
+CREATE TABLE `dbscript_random_templates` (
+  `id` int(11) unsigned NOT NULL COMMENT 'Id of template',
+  `type` int(11) unsigned NOT NULL COMMENT 'Type of template',
+  `target_id` int(11) NOT NULL DEFAULT '0' COMMENT 'Id of chanced element',
+  `chance` int(11) NOT NULL DEFAULT '0' COMMENT 'Chance for element to occur in %',
+  `comments` VARCHAR(500) DEFAULT '',
+  PRIMARY KEY (`id`,`type`,`target_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='DBScript system';
+
+--
 -- Table structure for table `dbscript_string_template`
 --
 
@@ -1543,6 +1559,7 @@ CREATE TABLE `disenchant_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -1660,6 +1677,7 @@ CREATE TABLE `fishing_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -1685,6 +1703,7 @@ CREATE TABLE `game_event` (
   `length` bigint(20) unsigned NOT NULL DEFAULT '43200' COMMENT 'Length in minutes of the event',
   `holiday` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'Client side holiday id',
   `linkedTo` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'This event starts only if defined LinkedTo event is started',
+  `EventGroup` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'Used for events that are randomized daily/weekly',
   `description` varchar(255) DEFAULT NULL COMMENT 'Description of the event displayed in console',
   PRIMARY KEY (`entry`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -1974,6 +1993,7 @@ CREATE TABLE `gameobject_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -2735,6 +2755,7 @@ CREATE TABLE `item_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -3444,6 +3465,25 @@ LOCK TABLES `locales_quest` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `locales_questgiver_greeting`
+--
+
+DROP TABLE IF EXISTS `locales_questgiver_greeting`;
+CREATE TABLE `locales_questgiver_greeting` (
+   `Entry` INT(11) UNSIGNED NOT NULL COMMENT 'Entry of Questgiver',
+   `Type` INT(11) UNSIGNED NOT NULL COMMENT 'Type of entry',
+   `Text_loc1` LONGTEXT COMMENT 'Text of the greeting locale 1',
+   `Text_loc2` LONGTEXT COMMENT 'Text of the greeting locale 2',
+   `Text_loc3` LONGTEXT COMMENT 'Text of the greeting locale 3',
+   `Text_loc4` LONGTEXT COMMENT 'Text of the greeting locale 4',
+   `Text_loc5` LONGTEXT COMMENT 'Text of the greeting locale 5',
+   `Text_loc6` LONGTEXT COMMENT 'Text of the greeting locale 6',
+   `Text_loc7` LONGTEXT COMMENT 'Text of the greeting locale 7',
+   `Text_loc8` LONGTEXT COMMENT 'Text of the greeting locale 8',
+   PRIMARY KEY(`Entry`,`Type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='Quest and Gossip system';
+
+--
 -- Table structure for table `mail_level_reward`
 --
 
@@ -3478,6 +3518,7 @@ CREATE TABLE `mail_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -4948,6 +4989,7 @@ CREATE TABLE `pickpocketing_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -11929,6 +11971,7 @@ CREATE TABLE `prospecting_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -12088,6 +12131,20 @@ LOCK TABLES `quest_template` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `questgiver_greeting`
+--
+
+DROP TABLE IF EXISTS `questgiver_greeting`;
+CREATE TABLE `questgiver_greeting` (
+   `Entry` INT(11) UNSIGNED NOT NULL COMMENT 'Entry of Questgiver',
+   `Type` INT(11) UNSIGNED NOT NULL COMMENT 'Type of entry',
+   `Text` LONGTEXT COMMENT 'Text of the greeting',
+   `EmoteId` INT(11) UNSIGNED NOT NULL COMMENT 'Emote ID of greeting',
+   `EmoteDelay` INT(11) UNSIGNED NOT NULL COMMENT 'Emote delay of the greeting',
+   PRIMARY KEY(`Entry`,`Type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='Quest and Gossip system';
+
+--
 -- Table structure for table `reference_loot_template`
 --
 
@@ -12100,6 +12157,7 @@ CREATE TABLE `reference_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 
@@ -12358,6 +12416,7 @@ CREATE TABLE `skinning_loot_template` (
   `mincountOrRef` mediumint(9) NOT NULL DEFAULT '1',
   `maxcount` tinyint(3) unsigned NOT NULL DEFAULT '1',
   `condition_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comments` VARCHAR(300) DEFAULT '',
   PRIMARY KEY (`entry`,`item`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Loot System';
 

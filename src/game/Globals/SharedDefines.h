@@ -2392,7 +2392,7 @@ enum ShapeshiftForm
 
 enum ShapeshiftFormFlags
 {
-    SHAPESHIFT_FORM_FLAG_UNK1               = 0x00000001,
+    SHAPESHIFT_FORM_FLAG_ALLOW_ACTIVITY     = 0x00000001,   // Form allows various player activities, which normally cause "You can't X while shapeshifted." errors (npc/go interaction, item use, etc)
     SHAPESHIFT_FORM_FLAG_UNK2               = 0x00000002,
     SHAPESHIFT_FORM_FLAG_UNK3               = 0x00000004,
     SHAPESHIFT_FORM_FLAG_UNK4               = 0x00000008,
@@ -2678,6 +2678,7 @@ enum AreaLockStatus
     AREA_LOCKSTATUS_INSTANCE_IS_FULL            = 10,
     AREA_LOCKSTATUS_NOT_ALLOWED                 = 11,
     AREA_LOCKSTATUS_HAS_BIND                    = 12,
+    AREA_LOCKSTATUS_TOO_MANY_INSTANCE           = 13,
 };
 
 enum TrackedAuraType

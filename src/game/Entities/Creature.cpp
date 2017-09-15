@@ -143,9 +143,6 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     for (int i = 0; i < CREATURE_MAX_SPELLS; ++i)
         m_spells[i] = 0;
 
-    m_CreatureSpellCooldowns.clear();
-    m_CreatureCategoryCooldowns.clear();
-
     SetWalk(true, true);
 }
 
@@ -802,23 +799,31 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
     if (InstanceData* iData = GetMap()->GetInstanceData())
         iData->OnCreatureCreate(this);
 
-    switch (GetCreatureInfo()->Rank)
+    if (sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
     {
-        case CREATURE_ELITE_RARE:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RARE);
-            break;
-        case CREATURE_ELITE_ELITE:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_ELITE);
-            break;
-        case CREATURE_ELITE_RAREELITE:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RAREELITE);
-            break;
-        case CREATURE_ELITE_WORLDBOSS:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_WORLDBOSS);
-            break;
-        default:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
-            break;
+        // encounter boss forced decay timer to 1h
+        m_corpseDelay = 3600;                               // TODO: maybe add that to config file
+    }
+    else
+    {
+        switch (GetCreatureInfo()->Rank)
+        {
+            case CREATURE_ELITE_RARE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RARE);
+                break;
+            case CREATURE_ELITE_ELITE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_ELITE);
+                break;
+            case CREATURE_ELITE_RAREELITE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RAREELITE);
+                break;
+            case CREATURE_ELITE_WORLDBOSS:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_WORLDBOSS);
+                break;
+            default:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
+                break;
+        }
     }
 
     // Add to CreatureLinkingHolder if needed
@@ -982,6 +987,12 @@ void Creature::PrepareBodyLootState()
 
     if (killer)
         loot = new Loot(killer, this, LOOT_CORPSE);
+
+    if (m_lootStatus == CREATURE_LOOT_STATUS_LOOTED && !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
+    {
+        // there is no loot so we can degrade corpse decay timer
+        ReduceCorpseDecayTimer();
+    }
 }
 
 /**
@@ -2261,46 +2272,6 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
     return nullptr;
 }
 
-void Creature::_AddCreatureSpellCooldown(uint32 spell_id, time_t end_time)
-{
-    m_CreatureSpellCooldowns[spell_id] = end_time;
-}
-
-void Creature::_AddCreatureCategoryCooldown(uint32 category, time_t apply_time)
-{
-    m_CreatureCategoryCooldowns[category] = apply_time;
-}
-
-void Creature::AddCreatureSpellCooldown(uint32 spellid)
-{
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
-    if (!spellInfo)
-        return;
-
-    uint32 cooldown = GetSpellRecoveryTime(spellInfo);
-    if (cooldown)
-        _AddCreatureSpellCooldown(spellid, time(nullptr) + cooldown / IN_MILLISECONDS);
-
-    if (spellInfo->Category)
-        _AddCreatureCategoryCooldown(spellInfo->Category, time(nullptr));
-}
-
-bool Creature::HasCategoryCooldown(uint32 spell_id) const
-{
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
-    if (!spellInfo)
-        return false;
-
-    CreatureSpellCooldowns::const_iterator itr = m_CreatureCategoryCooldowns.find(spellInfo->Category);
-    return (itr != m_CreatureCategoryCooldowns.end() && time_t(itr->second + (spellInfo->CategoryRecoveryTime / IN_MILLISECONDS)) > time(nullptr));
-}
-
-bool Creature::HasSpellCooldown(uint32 spell_id) const
-{
-    CreatureSpellCooldowns::const_iterator itr = m_CreatureSpellCooldowns.find(spell_id);
-    return (itr != m_CreatureSpellCooldowns.end() && itr->second > time(nullptr)) || HasCategoryCooldown(spell_id);
-}
-
 bool Creature::IsInEvadeMode() const
 {
     return !i_motionMaster.empty() && i_motionMaster.GetCurrentMovementGeneratorType() == HOME_MOTION_TYPE;
@@ -2768,6 +2739,33 @@ bool Creature::CanCrit(const SpellEntry *entry, SpellSchoolMask schoolMask, Weap
     return Unit::CanCrit(entry, schoolMask, attType);
 }
 
+void Creature::InspectingLoot()
+{
+    // until multiple corpse for creature is not supported
+    // this will not have effect after re spawn delay (corpse will be removed anyway)
+
+    // check if player have enough time to inspect loot
+    if (m_corpseDecayTimer < MINIMUM_LOOTING_TIME)
+        m_corpseDecayTimer = MINIMUM_LOOTING_TIME;
+}
+
+// reduce decay timer for corpse if need (for a corpse without loot)
+void Creature::ReduceCorpseDecayTimer()
+{
+    if (!IsInWorld())
+        return;
+
+    bool isDungeonEncounter = false;
+    if (GetMap()->IsDungeon())
+    {
+        if (sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
+            isDungeonEncounter = true;
+    }
+
+    if (!isDungeonEncounter)
+        m_corpseDecayTimer = 2 * MINUTE * IN_MILLISECONDS;  // 2 minutes for a creature
+}
+
 // Set loot status. Also handle remove corpse timer
 void Creature::SetLootStatus(CreatureLootStatus status)
 {
@@ -2782,24 +2780,8 @@ void Creature::SetLootStatus(CreatureLootStatus status)
                 SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
             else
             {
-                uint32 corpseLootedDelay;
-                if (sWorld.getConfig(CONFIG_FLOAT_RATE_CORPSE_DECAY_LOOTED) > 0.0f)
-                    corpseLootedDelay = (uint32)((m_corpseDelay * IN_MILLISECONDS) * sWorld.getConfig(CONFIG_FLOAT_RATE_CORPSE_DECAY_LOOTED));
-                else
-                    corpseLootedDelay = (m_respawnDelay * IN_MILLISECONDS) / 3;
-
-                // if m_respawnDelay is larger than default corpse delay always use corpseLootedDelay
-                if (m_respawnDelay > m_corpseDelay)
-                {
-                    m_corpseDecayTimer = corpseLootedDelay;
-                }
-                else
-                {
-                    // if m_respawnDelay is relatively short and corpseDecayTimer is larger than corpseLootedDelay
-                    if (m_corpseDecayTimer > corpseLootedDelay)
-                        m_corpseDecayTimer = corpseLootedDelay;
-                }
-
+                // there is no loot so we can degrade corpse decay
+                ReduceCorpseDecayTimer();
                 RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
             }
             break;

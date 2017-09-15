@@ -799,23 +799,31 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
     if (InstanceData* iData = GetMap()->GetInstanceData())
         iData->OnCreatureCreate(this);
 
-    switch (GetCreatureInfo()->Rank)
+    if (sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
     {
-        case CREATURE_ELITE_RARE:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RARE);
-            break;
-        case CREATURE_ELITE_ELITE:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_ELITE);
-            break;
-        case CREATURE_ELITE_RAREELITE:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RAREELITE);
-            break;
-        case CREATURE_ELITE_WORLDBOSS:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_WORLDBOSS);
-            break;
-        default:
-            m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
-            break;
+        // encounter boss forced decay timer to 1h
+        m_corpseDelay = 3600;                               // TODO: maybe add that to config file
+    }
+    else
+    {
+        switch (GetCreatureInfo()->Rank)
+        {
+            case CREATURE_ELITE_RARE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RARE);
+                break;
+            case CREATURE_ELITE_ELITE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_ELITE);
+                break;
+            case CREATURE_ELITE_RAREELITE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RAREELITE);
+                break;
+            case CREATURE_ELITE_WORLDBOSS:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_WORLDBOSS);
+                break;
+            default:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
+                break;
+        }
     }
 
     // Add to CreatureLinkingHolder if needed
@@ -979,6 +987,12 @@ void Creature::PrepareBodyLootState()
 
     if (killer)
         loot = new Loot(killer, this, LOOT_CORPSE);
+
+    if (m_lootStatus == CREATURE_LOOT_STATUS_LOOTED && !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
+    {
+        // there is no loot so we can degrade corpse decay timer
+        ReduceCorpseDecayTimer();
+    }
 }
 
 /**
@@ -2725,6 +2739,33 @@ bool Creature::CanCrit(const SpellEntry *entry, SpellSchoolMask schoolMask, Weap
     return Unit::CanCrit(entry, schoolMask, attType);
 }
 
+void Creature::InspectingLoot()
+{
+    // until multiple corpse for creature is not supported
+    // this will not have effect after re spawn delay (corpse will be removed anyway)
+
+    // check if player have enough time to inspect loot
+    if (m_corpseDecayTimer < MINIMUM_LOOTING_TIME)
+        m_corpseDecayTimer = MINIMUM_LOOTING_TIME;
+}
+
+// reduce decay timer for corpse if need (for a corpse without loot)
+void Creature::ReduceCorpseDecayTimer()
+{
+    if (!IsInWorld())
+        return;
+
+    bool isDungeonEncounter = false;
+    if (GetMap()->IsDungeon())
+    {
+        if (sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
+            isDungeonEncounter = true;
+    }
+
+    if (!isDungeonEncounter)
+        m_corpseDecayTimer = 2 * MINUTE * IN_MILLISECONDS;  // 2 minutes for a creature
+}
+
 // Set loot status. Also handle remove corpse timer
 void Creature::SetLootStatus(CreatureLootStatus status)
 {
@@ -2739,24 +2780,8 @@ void Creature::SetLootStatus(CreatureLootStatus status)
                 SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
             else
             {
-                uint32 corpseLootedDelay;
-                if (sWorld.getConfig(CONFIG_FLOAT_RATE_CORPSE_DECAY_LOOTED) > 0.0f)
-                    corpseLootedDelay = (uint32)((m_corpseDelay * IN_MILLISECONDS) * sWorld.getConfig(CONFIG_FLOAT_RATE_CORPSE_DECAY_LOOTED));
-                else
-                    corpseLootedDelay = (m_respawnDelay * IN_MILLISECONDS) / 3;
-
-                // if m_respawnDelay is larger than default corpse delay always use corpseLootedDelay
-                if (m_respawnDelay > m_corpseDelay)
-                {
-                    m_corpseDecayTimer = corpseLootedDelay;
-                }
-                else
-                {
-                    // if m_respawnDelay is relatively short and corpseDecayTimer is larger than corpseLootedDelay
-                    if (m_corpseDecayTimer > corpseLootedDelay)
-                        m_corpseDecayTimer = corpseLootedDelay;
-                }
-
+                // there is no loot so we can degrade corpse decay
+                ReduceCorpseDecayTimer();
                 RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
             }
             break;

@@ -98,8 +98,7 @@ public:
         m_category(spellCategory),
         m_catExpireTime(spellCategory && categoryDuration ? std::chrono::milliseconds(categoryDuration) + clockNow : TimePoint()),
         m_typePermanent(isPermanent),
-        m_itemId(itemId),
-        m_expireLegacy(time(nullptr) + duration / IN_MILLISECONDS)
+        m_itemId(itemId)
     {}
 
     // return false if permanent
@@ -159,7 +158,6 @@ private:
     TimePoint         m_catExpireTime;
     bool              m_typePermanent;
     uint32            m_itemId;
-    time_t            m_expireLegacy;
 };
 
 typedef std::unique_ptr<CooldownData> CooldownDataUPTR;
@@ -833,6 +831,8 @@ class WorldObject : public Object
         bool IsSpellReady(uint32 spellId, ItemPrototype const* itemProto = nullptr) const;
         virtual void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration);
         void PrintCooldownList(ChatHandler& chat) const;
+
+        virtual void InspectingLoot() {}
 
     protected:
         explicit WorldObject();

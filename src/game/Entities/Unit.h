@@ -1438,6 +1438,8 @@ class Unit : public WorldObject
         void SetPvP(bool state);
         bool IsPvPFreeForAll() const;
         void SetPvPFreeForAll(bool state);
+        bool IsPvPContested() const;
+        void SetPvPContested(bool state);
         bool IsPvPSanctuary() const;
         void SetPvPSanctuary(bool state);
         uint32 GetCreatureType() const;
@@ -1903,6 +1905,7 @@ class Unit : public WorldObject
         ShapeshiftForm GetShapeshiftForm() const { return ShapeshiftForm(GetByteValue(UNIT_FIELD_BYTES_2, 3)); }
         void  SetShapeshiftForm(ShapeshiftForm form) { SetByteValue(UNIT_FIELD_BYTES_2, 3, form); }
 
+        bool IsShapeShifted() const;
         bool IsInFeralForm() const
         {
             ShapeshiftForm form = GetShapeshiftForm();

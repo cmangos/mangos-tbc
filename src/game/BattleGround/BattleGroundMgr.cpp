@@ -164,7 +164,7 @@ GroupQueueInfo* BattleGroundQueue::AddGroup(Player* leader, Group* grp, BattleGr
     if (!isRated && !isPremade)
         index += PVP_TEAM_COUNT;                            // BG_QUEUE_PREMADE_* -> BG_QUEUE_NORMAL_*
 
-    if (ginfo->GroupTeam == HORDE && !sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
+    if (ginfo->GroupTeam == HORDE)
         ++index;                                            // BG_QUEUE_*_ALLIANCE -> BG_QUEUE_*_HORDE
 
     DEBUG_LOG("Adding Group to BattleGroundQueue bgTypeId : %u, bracket_id : %u, index : %u", BgTypeId, bracketId, index);
@@ -315,9 +315,6 @@ void BattleGroundQueue::RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount)
     // we count from MAX_BATTLEGROUND_QUEUES - 1 to 0
     // variable index removes useless searching in other team's queue
     uint32 index = BattleGround::GetTeamIndexByTeamId(group->GroupTeam);
-
-    if (sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
-        index = TEAM_INDEX_ALLIANCE;
 
     for (int8 bracket_id_tmp = MAX_BATTLEGROUND_BRACKETS - 1; bracket_id_tmp >= 0 && bracket_id == -1; --bracket_id_tmp)
     {
@@ -2135,31 +2132,61 @@ void BattleGroundMgr::LoadBattleEventIndexes()
 
 bool BattleGroundQueue::CheckMixedMatch(BattleGround* bg_template, BattleGroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers)
 {
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg_template->isBattleGround())
+    return CFBGGroupInserter(bg_template, bracket_id, maxPlayers, maxPlayers, minPlayers);
+}
+
+bool BattleGroundQueue::MixPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id)
+{
+    return CFBGGroupInserter(bg, bracket_id, bg->GetFreeSlotsForTeam(ALLIANCE), bg->GetFreeSlotsForTeam(HORDE), 0);
+}
+
+bool BattleGroundQueue::CFBGGroupInserter(BattleGround* bg, BattleGroundBracketId bracket_id, uint32 AllyFree, uint32 HordeFree, uint32 MinPlayers)
+{
+    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg->isBattleGround())
         return false;
 
-    // Empty selection pools.
-    m_SelectionPools[TEAM_INDEX_ALLIANCE].Init();
-    m_SelectionPools[TEAM_INDEX_HORDE].Init();
+    if (MinPlayers)
+    {
+        // Empty selection pools.
+        m_SelectionPools[TEAM_INDEX_ALLIANCE].Init();
+        m_SelectionPools[TEAM_INDEX_HORDE].Init();
+    }
 
-    uint32 addedally = 0;
-    uint32 addedhorde = 0;
+    uint32 AddedAlly = bg->GetMaxPlayersPerTeam() - AllyFree;
+    uint32 AddedHorde = bg->GetMaxPlayersPerTeam() - HordeFree;
 
-    for (auto& ginfo : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
+    // If players on different factions queue at the same second it'll be random who gets added first
+    bool AllyFirst = urand(0, 1);
+    auto Groups = std::list<GroupQueueInfo*>();
+
+    for (auto& ginfo : m_QueuedGroups[bracket_id][AllyFirst ? BG_QUEUE_NORMAL_ALLIANCE : BG_QUEUE_NORMAL_HORDE])
+        Groups.push_back(ginfo);
+    for (auto& ginfo : m_QueuedGroups[bracket_id][AllyFirst ? BG_QUEUE_NORMAL_HORDE : BG_QUEUE_NORMAL_ALLIANCE])
+        Groups.push_back(ginfo);
+
+    std::stable_sort(Groups.begin(), Groups.end(), [](const GroupQueueInfo* left, const GroupQueueInfo* right)
+    {
+        return left->JoinTime < right->JoinTime;
+    });
+
+
+    for (auto& ginfo : Groups)
     {
         if (!ginfo->IsInvitedToBGInstanceGUID)
         {
-            bool makeally = addedally == addedhorde ? makeally = ginfo->GroupTeam == ALLIANCE : addedally < addedhorde;
+            bool AddAsAlly = AddedAlly == AddedHorde ? ginfo->GroupTeam == ALLIANCE : AddedAlly < AddedHorde; // Prefer native team
 
-            ginfo->GroupTeam = makeally ? ALLIANCE : HORDE;
+            ginfo->GroupTeam = AddAsAlly ? ALLIANCE : HORDE;
 
-            if (m_SelectionPools[makeally ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, maxPlayers))
-                makeally ? addedally += ginfo->Players.size() : addedhorde += ginfo->Players.size();
+            if (m_SelectionPools[AddAsAlly ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, AddAsAlly ? AllyFree : HordeFree))
+                AddAsAlly ? AddedAlly += ginfo->Players.size() : AddedHorde += ginfo->Players.size();
             else
                 break;
 
-            if (m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() >= minPlayers &&
-                m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() >= minPlayers)
+            // Return when we're ready to start a BG, if we're in startup process
+            if (m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() >= MinPlayers &&
+                m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() >= MinPlayers &&
+                MinPlayers >= 0)
                 return true;
         }
     }
@@ -2168,36 +2195,9 @@ bool BattleGroundQueue::CheckMixedMatch(BattleGround* bg_template, BattleGroundB
     if (sBattleGroundMgr.isTesting() && m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() + m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() > 0)
         return true;
 
+    // MinPlayers is 0 when filling existing BG
+    if (!MinPlayers)
+        return true;
+
     return false;
-}
-
-bool BattleGroundQueue::MixPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id)
-{
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg->isBattleGround())
-        return false;
-
-    int32 allyFree = bg->GetFreeSlotsForTeam(ALLIANCE);
-    int32 hordeFree = bg->GetFreeSlotsForTeam(HORDE);
-
-    uint32 addedally = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(ALLIANCE);
-    uint32 addedhorde = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(HORDE);
-
-    for (auto& ginfo : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
-    {
-        if (!ginfo->IsInvitedToBGInstanceGUID)
-        {
-            bool makeally = addedally == addedhorde ? makeally = ginfo->GroupTeam == ALLIANCE : addedally < addedhorde;
-
-            makeally ? ++addedally : ++addedhorde;
-
-            ginfo->GroupTeam = makeally ? ALLIANCE : HORDE;
-
-            if (m_SelectionPools[makeally ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, makeally ? allyFree : hordeFree))
-                makeally ? addedally += ginfo->Players.size() : addedhorde += ginfo->Players.size();
-            else
-                break;
-        }
-    }
-
-    return true;
 }

@@ -439,6 +439,20 @@ bool ChatHandler::HandleReloadGossipMenuCommand(char* /*args*/)
     return true;
 }
 
+bool ChatHandler::HandleReloadQuestgiverGreetingCommand(char* /*args*/)
+{
+    sObjectMgr.LoadQuestgiverGreeting();
+    SendGlobalSysMessage("DB table `questgiver_greeting` reloaded.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadQuestgiverGreetingLocalesCommand(char* /*args*/)
+{
+    sObjectMgr.LoadQuestgiverGreetingLocales();
+    SendGlobalSysMessage("DB table `locales_questgiver_greeting` reloaded.");
+    return true;
+}
+
 bool ChatHandler::HandleReloadGOQuestRelationsCommand(char* /*args*/)
 {
     sLog.outString("Loading Quests Relations... (`gameobject_questrelation`)");
@@ -3884,6 +3898,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
         curRespawnDelay = 0;
     std::string curRespawnDelayStr = secsToTimeString(curRespawnDelay, true);
     std::string defRespawnDelayStr = secsToTimeString(target->GetRespawnDelay(), true);
+    std::string curCorpseDecayStr = secsToTimeString(time_t(target->GetCorpseDecayTimer() / IN_MILLISECONDS), true);
 
     // Send information dependend on difficulty mode
     CreatureInfo const* baseInfo = ObjectMgr::GetCreatureTemplate(Entry);
@@ -3898,6 +3913,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
     PSendSysMessage(LANG_NPCINFO_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS), target->GetUInt32Value(UNIT_DYNAMIC_FLAGS), target->getFaction());
     PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());
+    PSendSysMessage("Corpse decay remaining time: %s", curCorpseDecayStr.c_str());
     PSendSysMessage(LANG_NPCINFO_LOOT,  cInfo->LootId, cInfo->PickpocketLootId, cInfo->SkinningLootId);
     PSendSysMessage(LANG_NPCINFO_DUNGEON_ID, target->GetInstanceId());
     PSendSysMessage(LANG_NPCINFO_POSITION, float(target->GetPositionX()), float(target->GetPositionY()), float(target->GetPositionZ()));

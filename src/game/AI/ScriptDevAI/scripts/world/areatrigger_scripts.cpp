@@ -30,7 +30,8 @@ at_scent_larkorwi               1726,1727,1728,1729,1730,1731,1732,1733,1734,173
 at_murkdeep                     1966
 at_ancient_leaf                 3587
 at_haramad_teleport             4479
-at_huldar_miran
+at_huldar_miran                 171
+at_area_52                      4422, 4466, 4471, 4472
 EndContentData */
 
 #include "AI/ScriptDevAI/include/precompiled.h"
@@ -333,6 +334,24 @@ bool AreaTrigger_at_huldar_miran(Player* pPlayer, AreaTriggerEntry const* /*pAt*
     return true;
 }
 
+/*######
+## at_area_52
+######*/
+
+enum
+{
+    SPELL_A52_NEURALYZER = 34400
+};
+
+bool AreaTrigger_at_area_52(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
+{
+    // ToDo: research if there should be other actions happening here
+    if (!pPlayer->HasAura(SPELL_A52_NEURALYZER))
+        pPlayer->CastSpell(pPlayer, SPELL_A52_NEURALYZER, TRIGGERED_NONE);
+
+    return false;
+}
+
 void AddSC_areatrigger_scripts()
 {
     Script* pNewScript = new Script;
@@ -378,5 +397,10 @@ void AddSC_areatrigger_scripts()
     pNewScript = new Script;
     pNewScript->Name = "at_huldar_miran";
     pNewScript->pAreaTrigger = &AreaTrigger_at_huldar_miran;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_area_52";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_area_52;
     pNewScript->RegisterSelf();
 }

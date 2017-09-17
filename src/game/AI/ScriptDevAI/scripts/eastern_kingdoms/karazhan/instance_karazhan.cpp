@@ -669,9 +669,6 @@ void instance_karazhan::Update(uint32 uiDiff)
             if (Creature* pNightbane = GetSingleCreatureFromStorage(NPC_NIGHTBANE))
                 pNightbane->Respawn();
 
-            if (GameObject* pUrn = GetSingleGameObjectFromStorage(GO_BLACKENED_URN))
-                pUrn->ResetDoorOrButton();
-
             m_uiNightbaneResetTimer = 0;
         }
         else

@@ -1384,6 +1384,8 @@ struct npc_burster_wormAI : public ScriptedAI
     void Aggro(Unit* /*pWho*/) override
     {
         // remove the bore bone aura again, for summoned creatures
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->RemoveAurasDueToSpell(SPELL_SANDWORM_SUBMERGE_VISUAL);
         m_creature->RemoveAurasDueToSpell(m_uiBorePassive);
 
         if (DoCastSpellIfCan(m_creature, SPELL_STAND) == CAST_OK)
@@ -1396,7 +1398,7 @@ struct npc_burster_wormAI : public ScriptedAI
         m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
-        m_creature->SetLootRecipient(NULL);
+        m_creature->SetLootRecipient(nullptr);
 
         Reset();
 

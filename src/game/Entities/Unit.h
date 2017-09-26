@@ -540,7 +540,7 @@ enum UnitFlags
     UNIT_FLAG_PET_IN_COMBAT         = 0x00000800,           // in combat?, 2.0.8
     UNIT_FLAG_PVP                   = 0x00001000,
     UNIT_FLAG_SILENCED              = 0x00002000,           // silenced, 2.1.1
-    UNIT_FLAG_UNK_14                = 0x00004000,           // 2.0.8
+    UNIT_FLAG_PERSUADED             = 0x00004000,           // persuaded, 2.0.8
     UNIT_FLAG_UNK_15                = 0x00008000,           // related to jerky movement in water?
     UNIT_FLAG_UNK_16                = 0x00010000,           // removes attackable icon
     UNIT_FLAG_PACIFIED              = 0x00020000,
@@ -565,7 +565,7 @@ enum UnitFlags2
 {
     UNIT_FLAG2_FEIGN_DEATH          = 0x00000001,
     UNIT_FLAG2_UNK1                 = 0x00000002,           // Hides body and body armor. Weapons and shoulder and head armor still visible
-    UNIT_FLAG2_UNK2                 = 0x00000004,
+    UNIT_FLAG2_IGNORE_REPUTATION    = 0x00000004,
     UNIT_FLAG2_COMPREHEND_LANG      = 0x00000008,
     UNIT_FLAG2_CLONED               = 0x00000010,           // Used in SPELL_AURA_MIRROR_IMAGE
     UNIT_FLAG2_UNK5                 = 0x00000020,
@@ -1370,7 +1370,7 @@ class Unit : public WorldObject
         bool CanFreeMove() const { return !hasUnitState(UNIT_STAT_NO_FREE_MOVE) && !GetOwnerGuid(); }
 
         virtual uint32 GetLevelForTarget(Unit const* /*target*/) const { return getLevel(); }
-        bool IsTrivialForTarget(Unit const* unit) const;
+        bool IsTrivialForTarget(Unit const* pov) const;
 
         void SetLevel(uint32 lvl);
 
@@ -1432,6 +1432,27 @@ class Unit : public WorldObject
 
             return false;
         }
+
+        ReputationRank GetReactionTo(Unit const* unit) const override;
+        ReputationRank GetReactionTo(Corpse const* corpse) const override;
+
+        bool IsEnemy(Unit const* unit) const override;
+        bool IsFriend(Unit const* unit) const override;
+
+        bool CanAssist(Unit const* unit, bool ignoreFlags = false) const;
+        bool CanAssist(Corpse const* corpse) const;
+
+        bool CanAttack(Unit const* unit) const;
+        bool CanAttackNow(Unit const* unit) const;
+
+        bool CanCooperate(Unit const* unit) const;
+
+        bool CanInteract(GameObject const* object) const;
+        bool CanInteract(Unit const* unit) const;
+        bool CanInteractNow(Unit const* unit) const;
+
+        bool IsCivilianForTarget(Unit const* pov) const;
+
         bool IsPvP() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP); }
         void SetPvP(bool state);
         bool IsPvPFreeForAll() const;
@@ -1757,6 +1778,8 @@ class Unit : public WorldObject
         void SetCharmGuid(ObjectGuid charm) { SetGuidValue(UNIT_FIELD_CHARM, charm); }
         ObjectGuid const& GetTargetGuid() const { return GetGuidValue(UNIT_FIELD_TARGET); }
         void SetTargetGuid(ObjectGuid targetGuid) { SetGuidValue(UNIT_FIELD_TARGET, targetGuid); }
+        ObjectGuid const& GetPersuadedGuid() const { return GetGuidValue(UNIT_FIELD_PERSUADED); }
+        void SetPersuadedGuid(ObjectGuid persuaded) { SetGuidValue(UNIT_FIELD_PERSUADED, persuaded); }
         ObjectGuid const& GetChannelObjectGuid() const { return GetGuidValue(UNIT_FIELD_CHANNEL_OBJECT); }
         void SetChannelObjectGuid(ObjectGuid targetGuid) { SetGuidValue(UNIT_FIELD_CHANNEL_OBJECT, targetGuid); }
         virtual ObjectGuid const GetSpawnerGuid() const { return ObjectGuid(); }

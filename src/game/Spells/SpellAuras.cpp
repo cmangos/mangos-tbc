@@ -2598,26 +2598,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
         }
         case SPELLFAMILY_ROGUE:
             break;
-        case SPELLFAMILY_HUNTER:
-        {
-            switch (GetId())
-            {
-                // Improved Aspect of the Viper
-                case 38390:
-                {
-                    if (target->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        if (apply)
-                            // + effect value for Aspect of the Viper
-                            m_spellmod = new SpellModifier(SPELLMOD_EFFECT1, SPELLMOD_FLAT, m_modifier.m_amount, GetId(), uint64(0x4000000000000));
-
-                        ((Player*)target)->AddSpellMod(m_spellmod, apply);
-                    }
-                    return;
-                }
-            }
-            break;
-        }
         case SPELLFAMILY_SHAMAN:
         {
             switch (GetId())
@@ -4318,18 +4298,6 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
             if (spell->Id == 31666 && !apply)
             {
                 target->RemoveAurasDueToSpell(31665);
-                break;
-            }
-            break;
-        }
-        case SPELLFAMILY_HUNTER:
-        {
-            // Aspect of the Viper
-            if (spell->SpellFamilyFlags & uint64(0x0004000000000000))
-            {
-                // Update regen on remove
-                if (!apply && target->GetTypeId() == TYPEID_PLAYER)
-                    ((Player*)target)->UpdateManaRegen();
                 break;
             }
             break;
@@ -6576,25 +6544,21 @@ void Aura::PeriodicDummyTick()
             // Aspect of the Viper
             switch (spell->Id)
             {
-                case 34074:
+                case 34074: // Dummy implementation for mana restoration
                 {
                     if (target->GetTypeId() != TYPEID_PLAYER)
                         return;
                     // Should be manauser
                     if (target->GetPowerType() != POWER_MANA)
                         return;
-                    Unit* caster = GetCaster();
-                    if (!caster)
-                        return;
                     // Regen amount is max (100% from spell) on 21% or less mana and min on 92.5% or greater mana (20% from spell)
                     int mana = target->GetPower(POWER_MANA);
                     int max_mana = target->GetMaxPower(POWER_MANA);
-                    int32 base_regen = caster->CalculateSpellDamage(target, GetSpellProto(), m_effIndex, &m_currentBasePoints);
-                    float regen_pct = 1.20f - 1.1f * mana / max_mana;
-                    if (regen_pct > 1.0f) regen_pct = 1.0f;
-                    else if (regen_pct < 0.2f) regen_pct = 0.2f;
-                    m_modifier.m_amount = int32(base_regen * regen_pct);
-                    ((Player*)target)->UpdateManaRegen();
+                    int32 intelectPercent = 10 + int32((100.f - target->GetPowerPercent()) / 100 * 45.f);
+                    if (target->HasAura(38390)) // Improved Aspect of the Viper
+                        intelectPercent += 5;
+                    int32 restorationValue = (target->GetStat(STAT_INTELLECT) * intelectPercent + target->getLevel() * 35) / 100;
+                    target->CastCustomSpell(target, 34075, &restorationValue, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED); // TODO: Send SMSG_SPELL_START
                     return;
                 }
 //              // Knockdown Fel Cannon: break; The Aggro Burst

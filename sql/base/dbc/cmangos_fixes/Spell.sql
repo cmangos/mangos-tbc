@@ -217,4 +217,8 @@ INSERT INTO spell_template (Id, SchoolMask, Category, Attributes, AttributesEx, 
 INSERT INTO spell_template(Id,Attributes,AttributesEx,DurationIndex,Effect1,Effect2,EffectDieSides1,EffectDieSides2,EffectBaseDice1,EffectBaseDice2,EffectBasePoints1,EffectBasePoints2,EffectImplicitTargetA1,EffectImplicitTargetA2,EffectApplyAuraName1,EffectApplyAuraName2,EffectMiscValue1,EffectMiscValue2,SpellIconID,SpellName,SpellFamilyName,DmgMultiplier1,DmgMultiplier2,DmgMultiplier3) VALUES
 (18461,262544,268599296,36,6,6,1,1,1,1,-1,-1,1,1,77,77,7,11,252,'Vanish Purge',7,1,1,1);
 
+-- missing hunter serverside
+INSERT INTO spell_template(Id,SchoolMask,Attributes,AttributesEx2,rangeIndex,Effect1,EffectDieSides1,EffectBaseDice1,EffectImplicitTargetA1,SpellIconID,SpellName,DmgMultiplier1,DmgMultiplier2) VALUES
+(34075,8,537133312,536870912,6,30,1,1,1,2227,'Aspect of the Viper',1,1);
+
 

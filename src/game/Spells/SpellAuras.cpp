@@ -3342,7 +3342,7 @@ void Aura::HandleModPossess(bool apply, bool Real)
             //pets should be removed when possesing a target if somehow check was bypassed
             ((Player*)caster)->UnsummonPetIfAny();
         }
-         
+
         caster->TakePossessOf(target);
     }
     else
@@ -4225,6 +4225,11 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                     target->CastSpell(target, 32612, TRIGGERED_OLD_TRIGGERED, nullptr, this);
 
                 return;
+            case 23620:                                     // Burning Adrenaline
+                // On aura removal, the target deals AoE damage to friendlies and kills himself/herself (prevent durability loss)
+                target->CastSpell(target, 23478, TRIGGERED_OLD_TRIGGERED, 0, this);
+                target->CastSpell(target, 23644, TRIGGERED_OLD_TRIGGERED, 0, this);
+                return;
             case 29213:                                     // Curse of the Plaguebringer
                 if (m_removeMode != AURA_REMOVE_BY_DISPEL)
                     // Cast Wrath of the Plaguebringer if not dispelled
@@ -4447,7 +4452,7 @@ void Aura::HandlePeriodicDamage(bool apply, bool Real)
             case 41917: // Parasitic Shadowfiend - handle summoning of two Shadowfiends on DoT expire
                 target->CastSpell(target, 41915, TRIGGERED_OLD_TRIGGERED);
                 break;
-        }         
+        }
     }
 }
 
@@ -5697,7 +5702,7 @@ void Aura::HandleSpiritOfRedemption(bool apply, bool Real)
         // interrupt casting when entering Spirit of Redemption
         if (target->IsNonMeleeSpellCasted(false))
             target->InterruptNonMeleeSpells(false);
- 
+
         // set health and mana to maximum
         target->SetHealth(target->GetMaxHealth());
         target->SetPower(POWER_MANA, target->GetMaxPower(POWER_MANA));

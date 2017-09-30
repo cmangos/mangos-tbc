@@ -1165,6 +1165,9 @@ inline bool IsIgnoreLosSpell(SpellEntry const* spellInfo)
     switch (spellInfo->Id)
     {
         case 36795:                                 // Cannon Channel
+        case 31628:                                 // Green Beam
+        case 31630:                                 // Green Beam
+        case 31631:                                 // Green Beam
             return true;
         default:
             break;

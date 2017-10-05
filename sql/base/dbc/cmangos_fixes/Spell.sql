@@ -166,7 +166,7 @@ INSERT INTO spell_template(Id, Attributes, DurationIndex,rangeIndex,Effect1,Effe
 
 -- Stonescythe Whelp serverside
 INSERT INTO spell_template(Id,Attributes,AttributesEx,baseLevel,spellLevel,DurationIndex,rangeIndex,Effect2,Effect3,EffectImplicitTargetA2,EffectImplicitTargetA3,EffectApplyAuraName2,EffectApplyAuraName3,SpellIconID,spellPriority,SpellName,StartRecoveryCategory,DmgClass,PreventionType,DmgMultiplier1,DmgMultiplier2,DmgMultiplier3) VALUES
-(33897,67109248,268435456,20,20,21,5,6,6,1,1,60,26,2153,50,'Desperate Defense',133,1,1,1,1,1); -- tooltip Rooted. Not attacking.
+(33897,67109248,268435456,20,20,32,5,6,6,1,1,60,26,2153,50,'Desperate Defense',133,1,1,1,1,1); -- tooltip Rooted. Not attacking.
 
 -- Missing Blackwing defenders summon spells (Razorgore encounter)
 INSERT INTO spell_template (Id, Category, Attributes, AttributesEx, AttributesEx3, AttributesEx4, CastingTimeIndex, RecoveryTime, CategoryRecoveryTime, ProcChance, DurationIndex, rangeIndex, Effect1, EffectDieSides1, EffectBaseDice1, EffectImplicitTargetA1, EffectRadiusIndex1, EffectMiscValue1, SpellIconID, SpellName, DmgMultiplier1, DmgMultiplier2) VALUES 

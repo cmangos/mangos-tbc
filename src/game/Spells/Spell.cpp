@@ -389,6 +389,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     m_ignoreUnselectableTarget = m_IsTriggeredSpell || (triggeredFlags & TRIGGERED_IGNORE_UNSELECTABLE_FLAG) != 0;
     m_ignoreUnattackableTarget = !!(triggeredFlags & TRIGGERED_IGNORE_UNATTACKABLE_FLAG);
     m_triggerAutorepeat = !!(triggeredFlags & TRIGGERED_AUTOREPEAT);
+    m_petCast = !!(triggeredFlags & TRIGGERED_PET_CAST);
 
     m_reflectable = IsReflectableSpell(m_spellInfo);
 
@@ -3641,7 +3642,18 @@ void Spell::finish(bool ok)
 void Spell::SendCastResult(SpellCastResult result) const
 {
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        return;
+    {
+        if (m_petCast)
+        {
+            Player const* master = m_caster->GetControllingPlayer();
+            if (!master)
+                return;
+
+            SendCastResult(master, m_spellInfo, m_cast_count, result, true);
+        }
+        else
+            return;
+    }
 
     if (((Player*)m_caster)->GetSession()->PlayerLoading()) // don't send cast results at loading time
         return;
@@ -3649,7 +3661,7 @@ void Spell::SendCastResult(SpellCastResult result) const
     SendCastResult((Player*)m_caster, m_spellInfo, m_cast_count, result);
 }
 
-void Spell::SendCastResult(Player* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult /*=false*/)
+void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult /*=false*/)
 {
     if (result == SPELL_CAST_OK)
     {
@@ -5666,7 +5678,7 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
         {
             if (IsPositiveSpell(m_spellInfo->Id, m_caster, _target))
             {
-                if (m_caster->IsHostileTo(_target))
+                if (!m_caster->CanAssist(_target))
                     return SPELL_FAILED_BAD_TARGETS;
             }
             else
@@ -5677,7 +5689,7 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
                     // TARGET_DUELVSPLAYER is positive AND negative
                     duelvsplayertar |= (m_spellInfo->EffectImplicitTargetA[j] == TARGET_DUELVSPLAYER);
                 }
-                if (m_caster->IsFriendlyTo(target) && !duelvsplayertar)
+                if (!m_caster->CanAttack(target) && !duelvsplayertar)
                 {
                     return SPELL_FAILED_BAD_TARGETS;
                 }

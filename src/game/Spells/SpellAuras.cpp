@@ -7276,7 +7276,11 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                 case 34477:
                 {
                     if (!apply)
+                    {
+                        if (Unit* target = m_target->getHostileRefManager().GetThreatRedirectionTarget())
+                            target->RemoveAurasDueToSpell(35079);
                         m_target->getHostileRefManager().ResetThreatRedirection();
+                    }
                     return;
                 }
                 default:

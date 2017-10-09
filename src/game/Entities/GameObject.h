@@ -23,6 +23,7 @@
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
 #include "Util.h"
+#include "AI/BaseAI/GameObjectAI.h"
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
 #if defined( __GNUC__ )
@@ -735,6 +736,9 @@ class GameObject : public WorldObject
 
         GridReference<GameObject>& GetGridRef() { return m_gridRef; }
 
+        uint32 GetScriptId() const;
+        void AIM_Initialize();
+
         GameObjectModel* m_model;
 
     protected:
@@ -769,6 +773,8 @@ class GameObject : public WorldObject
         bool m_isInUse;                                     // only one player at time are allowed to open chest
         time_t m_reStockTimer;                              // timer to refill the chest
         time_t m_despawnTimer;                              // timer to despawn the chest if something changed in it
+
+        std::unique_ptr<GameObjectAI> m_AI;
 
     private:
         void SwitchDoorOrButton(bool activate, bool alternative = false);

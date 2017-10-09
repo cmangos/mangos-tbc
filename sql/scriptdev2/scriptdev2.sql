@@ -77,6 +77,7 @@ UPDATE gameobject_template SET ScriptName='go_ethereum_stasis' WHERE entry BETWE
 UPDATE gameobject_template SET ScriptName='go_jump_a_tron' WHERE entry=183146;
 UPDATE gameobject_template SET ScriptName='go_andorhal_tower' WHERE entry IN (176094,176095,176096,176097);
 UPDATE gameobject_template SET ScriptName='go_bells' WHERE entry IN(182064,175885,176573);
+UPDATE gameobject_template SET ScriptName='go_darkmoon_faire_music' WHERE entry=180335;
 
 /* GUARD */
 UPDATE creature_template SET ScriptName='guard_azuremyst' WHERE entry=18038;

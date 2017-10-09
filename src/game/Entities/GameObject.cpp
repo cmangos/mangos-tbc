@@ -86,7 +86,7 @@ void GameObject::AddToWorld()
     if (m_model)
         GetMap()->InsertGameObjectModel(*m_model);
 
-    Object::AddToWorld();
+    WorldObject::AddToWorld();
 
     // After Object::AddToWorld so that for initial state the GO is added to the world (and hence handled correctly)
     UpdateCollisionState();
@@ -698,6 +698,8 @@ bool GameObject::LoadFromDB(uint32 guid, Map* map)
         }
     }
 
+    AIM_Initialize();
+
     return true;
 }
 
@@ -969,6 +971,7 @@ void GameObject::SummonLinkedTrapIfAny() const
     }
 
     GetMap()->Add(linkedGO);
+    linkedGO->AIM_Initialize();
 }
 
 void GameObject::TriggerLinkedGameObject(Unit* target) const

@@ -1929,6 +1929,7 @@ enum HolidayIds
     HOLIDAY_DARKMOON_FAIRE_ELWYNN    = 374,
     HOLIDAY_DARKMOON_FAIRE_THUNDER   = 375,
     HOLIDAY_DARKMOON_FAIRE_SHATTRATH = 376,
+    HOLIDAY_PIRATES_DAY              = 398,
 };
 
 // values based at QuestSort.dbc

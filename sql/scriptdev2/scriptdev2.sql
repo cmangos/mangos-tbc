@@ -2162,26 +2162,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1001172,'Spare my life! I will tell you about Arelion\'s secret.',0,0,0,0,'magister_aledis SAY_ALEDIS_DEFEAT'),
 
-(-1001173,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001174,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001175,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001176,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001177,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001178,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001179,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001180,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001181,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001182,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001183,'REUSE ME',0,0,0,0,'REUSE_ME'),
-
-
-(-1001184,'%s cracks his knuckles.',0,2,0,23,'larry EMOTE_KNUCKLES'),
-(-1001185,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001186,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001187,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001188,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001189,'REUSE ME',0,0,0,0,'REUSE_ME'),
-(-1001190,'REUSE ME',0,0,0,0,'REUSE_ME'),
+-- warning ids in range -1001173 to -1001190 are used in WOTLK
 
 (-1001191,'Hey, you call yourself a body guard? Get to work and protect us...',0,0,0,0,'SAY_CORK_AMBUSH1'),
 (-1001192,'Mister body guard, are you going to earn your money or what?',0,0,0,0,'SAY_CORK_AMBUSH2'),
@@ -2223,7 +2204,11 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001225,'I don''t know if I can make it. Please help me...',0,0,7,0,'draenei_survivor SAY_HELP4'),
 (-1001226,'%s is drawn to the ghost magnet...',0,2,0,0,'Magrami Spectre on spawn 1'),
 (-1001227,'%s is angered!',0,2,0,0,'Magrami Spectre on spawn 2'),
-(-1001228,'The Avatar of Terokk has been defeated! Death to Terokk! Death to Skettis!',0,0,7,0,'Defender Grashna on Avatar of Terokk death');
+(-1001228,'The Avatar of Terokk has been defeated! Death to Terokk! Death to Skettis!',0,0,7,0,'Defender Grashna on Avatar of Terokk death'),
+
+-- warning ids in range -1001229 to -1001241 are used in WOTLK
+
+(-1001242,'%s cracks his knuckles.',0,2,0,23,'larry EMOTE_KNUCKLES');
 
 -- -1 033 000 SHADOWFANG KEEP
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES

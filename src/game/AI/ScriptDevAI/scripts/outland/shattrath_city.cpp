@@ -34,7 +34,7 @@ EndContentData */
 enum
 {
     SAY_START               = -1000274,
-    EMOTE_KNUCKLES          = -1001184,
+    EMOTE_KNUCKLES          = -1001242,
     SAY_COUNT               = -1000275,
     SAY_COUNT_1             = -1000276,
     SAY_COUNT_2             = -1000277,

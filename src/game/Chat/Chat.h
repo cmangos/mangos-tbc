@@ -435,6 +435,7 @@ class ChatHandler
         bool HandleReloadLocalesPageTextCommand(char* args);
         bool HandleReloadLocalesPointsOfInterestCommand(char* args);
         bool HandleReloadLocalesQuestCommand(char* args);
+        bool HandleReloadLocalesAreaTriggerCommand(char *);
         bool HandleReloadQuestgiverGreetingLocalesCommand(char* args);
         bool HandleReloadLootTemplatesCreatureCommand(char* args);
         bool HandleReloadLootTemplatesDisenchantCommand(char* args);

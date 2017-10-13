@@ -1489,6 +1489,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 42489:                                 // Cast Ooze Zap When Energized
+                {
+                    if (!unitTarget || !m_caster->HasAura(42490) || (unitTarget->GetEntry() != 4393 && unitTarget->GetEntry() != 4394))
+                        return;
+
+                    m_caster->CastSpell(unitTarget, 42483, TRIGGERED_NONE);
+
+                    return;
+                }
                 case 42628:                                 // Fire Bomb (throw)
                 {
                     if (!unitTarget)
@@ -5907,6 +5916,19 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->RemoveAurasDueToSpell(42294);
                     unitTarget->CastSpell(unitTarget, 42285, TRIGGERED_OLD_TRIGGERED);
                     unitTarget->CastSpell(unitTarget, 42291, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 42492:                                 // Cast Energized
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    if (Player* pPlayer = unitTarget->GetBeneficiaryPlayer())
+                        if (pPlayer->GetQuestStatus(11174) != QUEST_STATUS_INCOMPLETE)
+                            return;
+
+                    m_caster->CastSpell(unitTarget, 42490, TRIGGERED_NONE);
+
                     return;
                 }
                 case 42578:                                 // Cannon Blast

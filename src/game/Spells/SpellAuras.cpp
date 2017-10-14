@@ -7212,6 +7212,21 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
 
     switch (GetSpellProto()->SpellFamilyName)
     {
+        case SPELLFAMILY_GENERIC:
+        {
+            switch (GetId())
+            {
+                // Desperate Defense
+                case 33896:
+                {
+                    spellId1 = 33897;
+                    break;
+                }
+                default:
+                    return;
+            }
+            break;
+        }
         case SPELLFAMILY_MAGE:
         {
             switch (GetId())

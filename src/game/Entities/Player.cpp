@@ -62,6 +62,7 @@
 #include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
+#include "World/WorldStateDefines.h"
 #include "World/WorldState.h"
 
 #ifdef BUILD_PLAYERBOT
@@ -6574,8 +6575,6 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
         sOutdoorPvPMgr.HandlePlayerEnterZone(this, newZone);
         sWorldState.HandlePlayerEnterZone(this, newZone);
 
-        SendInitWorldStates(newZone, newArea);              // only if really enters to new zone, not just area change, works strange...
-
         if (sWorld.getConfig(CONFIG_BOOL_WEATHER))
         {
             Weather* wth = GetMap()->GetWeatherSystem()->FindOrCreateWeather(newZone);
@@ -6583,8 +6582,6 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
         }
     }
 
-<<<<<<< HEAD
-=======
     if (m_areaUpdateId != newArea)
     {
         SendInitWorldStates(newZone, newArea);              // only if really enters to new zone, not just area change, works strange...
@@ -6593,7 +6590,6 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
         sWorldState.HandlePlayerEnterArea(this, newArea);
     }
 
->>>>>>> 619ac174b2... Implement initial 3 per-area world states
     m_zoneUpdateId    = newZone;
     m_zoneUpdateTimer = ZONE_UPDATE_INTERVAL;
 

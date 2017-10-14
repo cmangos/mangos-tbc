@@ -262,6 +262,8 @@ struct CreatureModelInfo
     uint32 modelid;
     float bounding_radius;
     float combat_reach;
+    float SpeedWalk;
+    float SpeedRun;
     uint8 gender;
     uint32 modelid_other_gender;                            // The oposite gender for this modelid (male/female)
     uint32 modelid_alternative;                             // An alternative model. Generally same gender(2)
@@ -847,6 +849,9 @@ class Creature : public Unit
         std::unique_ptr<CreatureAI> m_ai;
 
         uint32 m_gameEventVendorId;                        // game event creature data vendor id override
+
+        void SetBaseWalkSpeed(float speed) override;
+        void SetBaseRunSpeed(float speed) override;
 
     private:
         GridReference<Creature> m_gridRef;

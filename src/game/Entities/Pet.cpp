@@ -1688,7 +1688,7 @@ void Pet::_LoadAuras(uint32 timediff)
             }
 
             // do not load single target auras (unless they were cast by the player)
-            if (casterGuid != GetObjectGuid() && IsSingleTargetSpell(spellproto))
+            if (casterGuid != GetObjectGuid() && sSpellMgr.IsSingleTargetSpell(spellproto))
                 continue;
 
             if (remaintime != -1)

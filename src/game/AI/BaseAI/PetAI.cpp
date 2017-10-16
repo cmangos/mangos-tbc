@@ -167,7 +167,7 @@ void PetAI::UpdateAI(const uint32 diff)
             uint32 spellId = charminfo->GetSpellOpener();
             SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
-            Spell* spell = new Spell(m_unit, spellInfo, false);
+            Spell* spell = new Spell(m_unit, spellInfo, TRIGGERED_NONE);
 
             SpellCastResult result = spell->CheckPetCast(victim);
 

@@ -1328,7 +1328,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         case 39088: // second target the other
                             m_scriptValue = 1;
                             unitTarget->CastSpell(unitTarget, 39091, TRIGGERED_OLD_TRIGGERED);
-                            break;                           
+                            break;
                         case 39091:
                             m_scriptValue = 1;
                             unitTarget->CastSpell(unitTarget, 39088, TRIGGERED_OLD_TRIGGERED);
@@ -1364,7 +1364,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         case 0: spellId = 39241; break; // Summon Mature Bone Sifter
                         case 1: spellId = 39240; break; // Summon Sand Gnome
                     }
-                    
+
                     m_caster->CastSpell(m_caster, spellId, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
@@ -2367,7 +2367,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                 }
                 return;
-            }            
+            }
             if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000200000)) // Flametongue Weapon Proc, Ranks
             {
                 if (m_CastItem)
@@ -2738,7 +2738,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)   // TODO - Use target
     // post effects for TARGET_TABLE_X_Y_Z_COORDINATES
     switch (m_spellInfo->Id)
     {
-        case 23441:                                 // Ultrasafe Transporter: Gadgetzan 
+        case 23441:                                 // Ultrasafe Transporter: Gadgetzan
         {
             // Wrong destination already rolled for, only handle minor malfunction on sucess
             m_caster->CastSpell(m_caster, 23450, TRIGGERED_OLD_TRIGGERED); // Transporter Arrival
@@ -3387,9 +3387,9 @@ void Spell::SendLoot(ObjectGuid guid, LootType loottype, LockType lockType)
                         break;
 
                     case GAMEOBJECT_TYPE_TRAP:
-                        if (lockType == LOCKTYPE_DISARM_TRAP)
+                        if (lockType == LOCKTYPE_DISARM_TRAP || lockType == LOCKTYPE_NONE)
                         {
-                            gameObjTarget->SetLootState(GO_JUST_DEACTIVATED);
+                            gameObjTarget->SetLootState(GO_ACTIVATED);
                             return;
                         }
                         sLog.outError("Spell::SendLoot unhandled locktype %u for GameObject trap (entry %u) for spell %u.", lockType, gameObjTarget->GetEntry(), m_spellInfo->Id);
@@ -6368,7 +6368,7 @@ void Spell::EffectStuck(SpellEffectIndex /*eff_idx*/)
     }
     else
     {
-        // If the player is alive, but their hearthstone is either not in their inventory (e.g. in the bank) or 
+        // If the player is alive, but their hearthstone is either not in their inventory (e.g. in the bank) or
         // their hearthstone is on cooldown, then the game will try to "nudge" the player in a seemingly random direction.
         // @todo This check could possibly more accurately find a safe position to port to, has the potential for porting underground.
         float x, y, z;

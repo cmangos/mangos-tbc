@@ -1052,6 +1052,15 @@ float WorldObject::GetDistance(float x, float y, float z) const
     return (dist > 0 ? dist : 0);
 }
 
+float WorldObject::GetDistanceNoBoundingRadius(float x, float y, float z) const
+{
+    float dx = GetPositionX() - x;
+    float dy = GetPositionY() - y;
+    float dz = GetPositionZ() - z;
+    float dist = sqrt((dx * dx) + (dy * dy) + (dz * dz));
+    return (dist > 0 ? dist : 0);
+}
+
 float WorldObject::GetCombatDistance(const WorldObject * obj, bool forMeleeRange) const
 {
     float radius = GetCombinedCombatReach(obj, forMeleeRange);

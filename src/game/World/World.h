@@ -501,6 +501,7 @@ class World
 
         void SetInitialWorldSettings();
         void LoadConfigSettings(bool reload = false);
+        void LoadSpamRecords(bool reload = false);
 
         void SendWorldText(int32 string_id, ...);
         void SendGlobalMessage(WorldPacket const& packet) const;
@@ -579,6 +580,8 @@ class World
         void LoadDBVersion();
         char const* GetDBVersion() const { return m_DBVersion.c_str(); }
         char const* GetCreatureEventAIVersion() const { return m_CreatureEventAIVersion.c_str(); }
+
+        std::vector<std::string> GetSpamRecords() { return m_spamRecords; }
 
         /**
         * \brief: force all client to request player data
@@ -694,6 +697,8 @@ class World
 
         // Vector of quests that were chosen for given group
         std::vector<uint32> m_eventGroupChosen;
+
+        std::vector<std::string> m_spamRecords;
 
         static TimePoint m_currentTime;
 };

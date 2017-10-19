@@ -530,6 +530,12 @@ void ThreatManager::setCurrentVictim(HostileReference* pHostileReference)
     iCurrentVictim = pHostileReference;
 }
 
+void ThreatManager::setCurrentVictimByTarget(Unit * target)
+{
+    if (HostileReference* ref = iThreatContainer.getReferenceByTarget(target))
+        setCurrentVictim(ref);
+}
+
 //============================================================
 // The hated unit is gone, dead or deleted
 // return true, if the event is consumed

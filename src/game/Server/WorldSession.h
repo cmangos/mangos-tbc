@@ -743,6 +743,10 @@ class WorldSession
 
         void HandleGetMirrorimageData(WorldPacket& recv_data);
     private:
+        // Additional private opcode handlers
+        void HandleComplainMail(WorldPacket& recv_data);
+        void HandleComplainChat(WorldPacket& recv_data);
+
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);
         bool VerifyMovementInfo(MovementInfo const& movementInfo, ObjectGuid const& guid) const;

@@ -5868,13 +5868,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->RemoveAurasAtMechanicImmunity(IMMUNE_TO_ROOT_AND_SNARE_MASK, 30918, true);
                     break;
                 }
-                case 36208:                                 // Steal Weapon
-                {
-                    if (!unitTarget)
-                        return;
-
-                    unitTarget->CastSpell(m_caster, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_NONE);
-                }
                 case 37142:                                 // Karazhan - Chess NPC Action: Melee Attack: Conjured Water Elemental
                 case 37143:                                 // Karazhan - Chess NPC Action: Melee Attack: Charger
                 case 37147:                                 // Karazhan - Chess NPC Action: Melee Attack: Human Cleric
@@ -5933,6 +5926,22 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         m_caster->GetNearPoint(m_caster, x, y, z, 0.0f, INTERACTION_DISTANCE, M_PI_F * .5f * i + M_PI_F * .25f);
                         m_caster->SummonCreature(21002, x, y, z, 0, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 30000);
                     }
+                    return;
+                }
+                case 36208:                                 // Steal Weapon
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(m_caster, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_NONE);
+                    return;
+                }
+                case 36251:                                 // Hammer Slam
+                {
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->CastSpell(m_caster, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_NONE);
                     return;
                 }
                 case 37431:                                 // Spout

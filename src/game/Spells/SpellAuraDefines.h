@@ -395,7 +395,7 @@ enum AuraType
     SPELL_AURA_258 = 258,
     SPELL_AURA_259 = 259,
     SPELL_AURA_260 = 260,
-    SPELL_AURA_261 = 261,
+    SPELL_AURA_PHASE = 261, // TODO: Implement for GameObjects, not needed for creatures in TBC
     TOTAL_AURAS = 262
 };
 

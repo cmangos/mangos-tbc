@@ -2082,6 +2082,20 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         target->RemoveAurasDueToSpell(32346);
                         return;
                     }
+                    case 36550:                                 // Floating Drowned
+                    {
+                        // Possibly need some of the below to fix Vengeful Harbinger flying
+
+                        //if (Unit* caster = GetCaster())
+                        //{
+                        //    caster->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                        //    caster->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+                        //    caster->SetHover(true);
+                        //    caster->SetLevitate(true);
+                        //    caster->SetCanFly(true);
+                        //}
+                        return;
+                    }
                     case 36587:                             // Vision Guide
                     {
                         target->CastSpell(target, 36573, TRIGGERED_OLD_TRIGGERED, nullptr, this);

@@ -1054,6 +1054,8 @@ UPDATE creature_template SET ScriptName="npc_cenarion_sparrowhawk" WHERE entry=2
 UPDATE creature_template SET ScriptName="npc_skyguard_prisoner" WHERE entry=23383;
 UPDATE creature_template SET ScriptName='npc_avatar_of_terokk' WHERE entry=22375;
 UPDATE creature_template SET ScriptName='npc_minion_of_terokk' WHERE entry=22376;
+UPDATE creature_template SET ScriptName='npc_draenei_tomb_guardian' WHERE entry=22285;
+UPDATE creature_template SET ScriptName='npc_vengeful_harbinger' WHERE entry=21638;
 
 /* THOUSAND NEEDLES */
 UPDATE creature_template SET ScriptName='npc_kanati' WHERE entry=10638;

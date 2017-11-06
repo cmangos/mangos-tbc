@@ -3641,6 +3641,7 @@ void Spell::finish(bool ok)
 
 void Spell::SendCastResult(SpellCastResult result) const
 {
+    Player const* recipient;
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
     {
         if (m_petCast)
@@ -3649,16 +3650,18 @@ void Spell::SendCastResult(SpellCastResult result) const
             if (!master)
                 return;
 
-            SendCastResult(master, m_spellInfo, m_cast_count, result, true);
+            recipient = master;
         }
         else
             return;
     }
+    else
+        recipient = static_cast<Player*>(m_caster);
 
-    if (((Player*)m_caster)->GetSession()->PlayerLoading()) // don't send cast results at loading time
+    if (recipient->GetSession()->PlayerLoading()) // don't send cast results at loading time
         return;
 
-    SendCastResult((Player*)m_caster, m_spellInfo, m_cast_count, result);
+    SendCastResult(recipient, m_spellInfo, m_cast_count, result, m_petCast);
 }
 
 void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult /*=false*/)

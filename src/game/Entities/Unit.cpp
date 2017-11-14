@@ -6646,7 +6646,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
             case 4920:
             case 4919:
             {
-                if (pVictim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+                if (pVictim->HasAuraState(AURA_STATE_HEALTHLESS_20_PERCENT))
                     DoneTotalMod *= (100.0f + (*i)->GetModifier()->m_amount) / 100.0f;
                 break;
             }

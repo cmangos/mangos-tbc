@@ -2313,6 +2313,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     // Tree of Life area effect
                     int32 health_mod = int32(m_caster->GetStat(STAT_SPIRIT) / 4);
+                    if (Aura* aura = m_caster->GetAura(39926, EFFECT_INDEX_0)) // Improved party auras
+                        health_mod += aura->GetAmount();
                     m_caster->CastCustomSpell(m_caster, 34123, &health_mod, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr);
                     return;
                 }

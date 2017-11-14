@@ -4552,19 +4552,6 @@ void Unit::RemoveAuraHolderDueToSpellByDispel(uint32 spellId, uint32 stackAmount
             return;
         }
     }
-    // Lifebloom
-    else if (spellEntry->SpellFamilyName == SPELLFAMILY_DRUID && (spellEntry->SpellFamilyFlags & uint64(0x0000001000000000)))
-    {
-        if (Aura* dotAura = GetAura(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, uint64(0x0000001000000000), casterGuid))
-        {
-            if (dotAura->GetStackAmount() <= stackAmount)
-            {
-                // Lifebloom dummy store single stack amount always
-                int32 amount = dotAura->GetModifier()->m_amount;
-                CastCustomSpell(this, 33778, &amount, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, dotAura, casterGuid);
-            }
-        }
-    }
 
     RemoveAuraHolderFromStack(spellId, stackAmount, casterGuid, AURA_REMOVE_BY_DISPEL);
 }

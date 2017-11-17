@@ -820,6 +820,7 @@ UPDATE creature_template SET ScriptName='npc_spawned_oronok_tornheart' WHERE ent
 UPDATE creature_template SET ScriptName='npc_domesticated_felboar' WHERE entry=21195;
 UPDATE creature_template SET ScriptName='npc_shadowmoon_tuber_node' WHERE entry=21347;
 UPDATE creature_template SET ScriptName='npc_veneratus_spawn_node' WHERE entry=21334;
+UPDATE creature_template SET ScriptName='npc_disobedient_dragonmaw_peon' WHERE entry=23311;
 
 /* SHATTRATH */
 UPDATE creature_template SET ScriptName='npc_dirty_larry' WHERE entry=19720;
@@ -1700,10 +1701,15 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1000589,'Kroshius live? Kroshius crush!',0,1,0,0,'SAY_KROSHIUS_REVIVE'),
 
-(-1000590,'REUSE_ME',0,0,0,0,'REUSE_ME'),
-(-1000591,'REUSE_ME',0,0,0,0,'REUSE_ME'),
-(-1000592,'REUSE_ME',0,0,0,0,'REUSE_ME'),
-(-1000593,'REUSE_ME',0,0,0,0,'REUSE_ME'),
+(-1000590,'Me no work no more!',0,0,0,0,'SAY_DISOB_PEON_1'),
+(-1000591,'OOF! Booterang hurted me! Me tink work better den booterang!',0,0,0,0,'SAY_DISOB_PEON_2'),
+(-1000592,'HEY! No more booterang! Me sorry! Me work!',0,0,0,0,'SAY_DISOB_PEON_3'),
+(-1000593,'ARGH! BOOTERANG!',0,0,0,0,'SAY_DISOB_PEON_4'),
+(-1000594,'OWWWW! Ok, ok, me go back to work!',0,0,0,0,'SAY_DISOB_PEON_5'),
+(-1000595,'WHY IT PUT DA BOOTERANG ON DA SKIN?? WHY??',0,0,0,0,'SAY_DISOB_PEON_6'),
+(-1000596,'AYAYA! One day me have dat booterang...',0,0,0,0,'SAY_DISOB_PEON_7'),
+
+-- REUSE 597-602
 
 (-1000603,'Do not test me, scurvy dog! I\'m trained in the way of the Blood Knights!',0,0,0,0,'silvermoon harry SAY_AGGRO'),
 (-1000604,'I\'ll pay! I\'ll pay! Eeeek! Please don\'t hurt me!',0,0,0,0,'silvermoon harry SAY_BEATEN'),

@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Shadowmoon_Valley
 SD%Complete: 100
-SDComment: Quest support: 10451, 10458, 10480, 10481, 10514, 10540, 10588, 10781, 10804, 10854, 11020.
+SDComment: Quest support: 10451, 10458, 10480, 10481, 10514, 10540, 10588, 10781, 10804, 10854, 11020, 11055.
 SDCategory: Shadowmoon Valley
 EndScriptData */
 
@@ -34,6 +34,7 @@ go_crystal_prison
 npc_spawned_oronok_tornheart
 npc_domesticated_felboar
 npc_veneratus_spawn_node
+npc_disobedient_dragonmaw_peon
 EndContentData */
 
 #include "AI/ScriptDevAI/include/precompiled.h"
@@ -1812,7 +1813,6 @@ bool EffectDummyCreature_npc_shadowmoon_tuber_node(Unit* pCaster, uint32 uiSpell
 /*######
 ## npc_veneratus_spawn_node
 ######*/
-
 enum
 {
     SAY_VENERATUS_SPAWN         = -1000579,
@@ -1845,6 +1845,71 @@ CreatureAI* GetAI_npc_veneratus_spawn_node(Creature* pCreature)
 {
     return new npc_veneratus_spawn_nodeAI(pCreature);
 }
+
+/*######
+## npc_disobedient_dragonmaw_peon
+######*/
+
+enum
+{
+    SAY_DISOB_PEON_1 = -1000590,
+    SAY_DISOB_PEON_2 = -1000591,
+    SAY_DISOB_PEON_3 = -1000592,
+    SAY_DISOB_PEON_4 = -1000593,
+    SAY_DISOB_PEON_5 = -1000594,
+    SAY_DISOB_PEON_6 = -1000595,
+    SAY_DISOB_PEON_7 = -1000596,
+
+    // for testing only; the peons will need to run to specific locations since the crystals are
+    // not gameobjects, this gameobject commonly found near the crystals
+    GO_CRYSTAL = 185182,
+
+    SPELL_BOOTERANG = 40742,
+};
+
+struct npc_disobedient_dragonmaw_peonAI : public ScriptedAI
+{
+    npc_disobedient_dragonmaw_peonAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    // various timers
+
+    // is the peon working at the moment
+    bool m_bIsAtCystal;
+
+
+    void Reset() override
+    {
+        // reset timers
+        m_bIsAtCystal = false;
+    }
+
+    void GoDisobedient()
+    {
+        // peon continues being disobedient
+        // return to the location where it spawned
+    }
+
+    void GoWork()
+    {
+        // go to the nearest crystal
+        // list of all crystal locations on netherwing ledge needed
+        // pick the nearest one, run there and start working
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        // process timers
+    }
+};
+
+CreatureAI* GetAI_npc_disobedient_dragonmaw_peon(Creature* pCreature)
+{
+    return new npc_disobedient_dragonmaw_peonAI(pCreature);
+}
+
 
 void AddSC_shadowmoon_valley()
 {
@@ -1919,4 +1984,11 @@ void AddSC_shadowmoon_valley()
     pNewScript->Name = "npc_veneratus_spawn_node";
     pNewScript->GetAI = &GetAI_npc_veneratus_spawn_node;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_disobedient_dragonmaw_peon";
+    pNewScript->GetAI = &GetAI_npc_disobedient_dragonmaw_peon;
+    // register other stuff here
+    pNewScript->RegisterSelf();
+
 }

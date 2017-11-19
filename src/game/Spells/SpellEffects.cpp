@@ -5274,7 +5274,8 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
 
                         if (spellInfo->IsFitToFamily(SPELLFAMILY_WARRIOR, uint64(0x0000000000004000)) && spellInfo->SpellIconID == 565)
                         {
-                            m_caster->CastSpell(unitTarget, spellInfo, TRIGGERED_OLD_TRIGGERED);
+                            // child sunder cant miss
+                            m_caster->CastSpell(unitTarget, spellInfo, TRIGGERED_OLD_TRIGGERED | TRIGGERED_IGNORE_HIT_CALCULATION);
                             break;
                         }
                     }

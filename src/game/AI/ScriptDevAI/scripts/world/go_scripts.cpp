@@ -635,6 +635,25 @@ GameObjectAI* GetAIgo_pirate_day_music(GameObject* go)
     return new go_pirate_day_music(go);
 }
 
+enum
+{
+    ITEM_GOBLIN_TRANSPONDER = 9173,
+};
+
+bool TrapTargetSearch(Unit* unit)
+{
+    if (unit->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player* player = static_cast<Player*>(unit);
+        if (player->HasItemCount(ITEM_GOBLIN_TRANSPONDER, 1))
+            return true;
+    }
+
+    return false;
+}
+
+std::function<bool(Unit*)> function = &TrapTargetSearch;
+
 void AddSC_go_scripts()
 {
     Script* pNewScript;
@@ -682,5 +701,10 @@ void AddSC_go_scripts()
     pNewScript = new Script;
     pNewScript->Name = "go_pirate_day_music";
     pNewScript->GetGameObjectAI = &GetAIgo_pirate_day_music;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_transpolyporter_bb";
+    pNewScript->pTrapSearching = &function;
     pNewScript->RegisterSelf();
 }

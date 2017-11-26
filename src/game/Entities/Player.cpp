@@ -20777,7 +20777,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
     if (!mapEntry)
         return AREA_LOCKSTATUS_UNKNOWN_ERROR;
 
-    bool isRegularTargetMap = !mapEntry->IsDungeon() || GetDifficulty() == REGULAR_DIFFICULTY;
+    bool isRegularTargetMap = !mapEntry->IsNonRaidDungeon() || GetDifficulty() == REGULAR_DIFFICULTY;
 
     // Heroic allowed only on TBC instances
     if (!isRegularTargetMap && mapEntry->IsDungeon() && mapEntry->Expansion() != 1)

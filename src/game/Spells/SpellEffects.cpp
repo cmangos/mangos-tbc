@@ -4281,7 +4281,10 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
     spawnCreature->AI()->SetReactState(REACT_DEFENSIVE);
     spawnCreature->InitPetCreateSpells();
 
-    m_caster->SetPet(spawnCreature);
+    if (spawnCreature->getPetType() == GUARDIAN_PET)
+        m_caster->AddGuardian(spawnCreature);
+    else
+        m_caster->SetPet(spawnCreature);
 
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
@@ -5110,7 +5113,10 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     NewSummon->AIM_Initialize();
     NewSummon->AI()->SetReactState(REACT_DEFENSIVE);
 
-    m_caster->SetPet(NewSummon);
+    if (NewSummon->getPetType() == GUARDIAN_PET)
+        m_caster->AddGuardian(NewSummon);
+    else
+        m_caster->SetPet(NewSummon);
     DEBUG_LOG("New Pet has guid %u", NewSummon->GetGUIDLow());
 
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))

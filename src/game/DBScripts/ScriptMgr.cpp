@@ -177,7 +177,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 sLog.outErrorDb("Table `%s` has invalid data_flags %u in command %u for script id %u, skipping.", tablename, tmp.data_flags, tmp.command, tmp.id);
                 continue;
             }
-            if (tmp.data_flags & SCRIPT_FLAG_BUDDY_AS_TARGET && ! tmp.buddyEntry)
+            if ((tmp.data_flags & SCRIPT_FLAG_BUDDY_AS_TARGET) != 0 && (tmp.data_flags & SCRIPT_FLAG_BUDDY_BY_POOL) == 0 && !tmp.buddyEntry)
             {
                 sLog.outErrorDb("Table `%s` has buddy required in data_flags %u in command %u for script id %u, but no buddy defined, skipping.", tablename, tmp.data_flags, tmp.command, tmp.id);
                 continue;
@@ -209,6 +209,27 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                     if (data->id != tmp.buddyEntry)
                     {
                         sLog.outErrorDb("Table `%s` has go-buddy defined by guid (SCRIPT_FLAG_BUDDY_BY_GUID %u set) but spawned go with guid %u has entry %u, expected buddy_entry is %u, skipping.", tablename, SCRIPT_FLAG_BUDDY_BY_GUID,  tmp.searchRadiusOrGuid, data->id, tmp.buddyEntry);
+                        continue;
+                    }
+                }
+            }
+            else if (tmp.data_flags & SCRIPT_FLAG_BUDDY_BY_POOL)
+            {
+                if (tmp.IsCreatureBuddy())
+                {
+                    auto pool = sPoolMgr.GetPoolCreatures(tmp.searchRadiusOrGuid);
+                    if (pool.isEmpty())
+                    {
+                        sLog.outErrorDb("Table `%s` has go-buddy defined by pool (SCRIPT_FLAG_BUDDY_BY_POOL %u set) but pool %u is empty, skipping.", tablename, tmp.data_flags, tmp.searchRadiusOrGuid);
+                        continue;
+                    }
+                }
+                else
+                {
+                    auto pool = sPoolMgr.GetPoolGameObjects(tmp.searchRadiusOrGuid);
+                    if (pool.isEmpty())
+                    {
+                        sLog.outErrorDb("Table `%s` has go-buddy defined by pool (SCRIPT_FLAG_BUDDY_BY_POOL %u set) but pool %u is empty, skipping.", tablename, tmp.data_flags, tmp.searchRadiusOrGuid);
                         continue;
                     }
                 }
@@ -628,7 +649,12 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             {
                 if (tmp.terminateScript.npcEntry && !ObjectMgr::GetCreatureTemplate(tmp.terminateScript.npcEntry))
                 {
-                    sLog.outErrorDb("Table `%s` has datalong = %u in SCRIPT_COMMAND_TERMINATE_SCRIPT for script id %u, but this npc entry does not exist.", tablename, tmp.sendTaxiPath.taxiPathId, tmp.id);
+                    sLog.outErrorDb("Table `%s` has npc entry = '%u' in SCRIPT_COMMAND_TERMINATE_SCRIPT for script id %u, but this npc entry does not exist.", tablename, tmp.terminateScript.npcEntry, tmp.id);
+                    continue;
+                }
+                else if (tmp.terminateScript.poolId && tmp.terminateScript.poolId > sPoolMgr.GetMaxPoolId())
+                {
+                    sLog.outErrorDb("Table `%s` has pool id = '%u' in SCRIPT_COMMAND_TERMINATE_SCRIPT for script id %u, but this pool id does not exist.", tablename, tmp.terminateScript.poolId, tmp.id);
                     continue;
                 }
                 break;
@@ -1058,12 +1084,12 @@ bool ScriptAction::GetScriptCommandObject(const ObjectGuid guid, bool includeIte
 }
 
 /// Select source and target for a script command
-/// Returns false iff an error happened
+/// Returns false if an error happened
 bool ScriptAction::GetScriptProcessTargets(WorldObject* pOrigSource, WorldObject* pOrigTarget, WorldObject*& pFinalSource, WorldObject*& pFinalTarget) const
 {
     WorldObject* pBuddy = nullptr;
 
-    if (m_script->buddyEntry)
+    if (m_script->buddyEntry || (m_script->data_flags & SCRIPT_FLAG_BUDDY_BY_POOL) != 0)
     {
         if (m_script->data_flags & SCRIPT_FLAG_BUDDY_BY_GUID)
         {
@@ -1087,6 +1113,49 @@ bool ScriptAction::GetScriptProcessTargets(WorldObject* pOrigSource, WorldObject
             if (!pBuddy)
             {
                 sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u has buddy %u by guid %u not loaded in map %u (data-flags %u), skipping.", m_table, m_script->id, m_script->command, m_script->buddyEntry, m_script->searchRadiusOrGuid, m_map->GetId(), m_script->data_flags);
+                return false;
+            }
+        }
+        else if (m_script->data_flags & SCRIPT_FLAG_BUDDY_BY_POOL)
+        {
+            if (m_script->IsCreatureBuddy())
+            {
+                PoolGroup<Creature> const& pool = sPoolMgr.GetPoolCreatures(m_script->searchRadiusOrGuid);
+                auto equalChancedObjectList = pool.GetEqualChanced();
+                for (auto objItr : equalChancedObjectList)
+                {
+                    CreatureData const* cData = sObjectMgr.GetCreatureData(objItr.guid);
+                    if (Creature* buddy = m_map->GetCreature(cData->GetObjectGuid(objItr.guid)))
+                    {
+                        if (buddy->isAlive())
+                        {
+                            pBuddy = buddy;
+                            break;
+                        }
+                    }
+                }
+
+                if (!pBuddy)
+                {
+                    auto explicitlyChancedObjectList = pool.GetExplicitlyChanced();
+                    for (auto objItr : explicitlyChancedObjectList)
+                    {
+                        CreatureData const* cData = sObjectMgr.GetCreatureData(objItr.guid);
+                        if (Creature* buddy = m_map->GetCreature(cData->GetObjectGuid(objItr.guid)))
+                        {
+                            if (buddy->isAlive())
+                            {
+                                pBuddy = buddy;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!pBuddy)
+            {
+                sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u has buddy %u by pool id %u and no creature found in map %u (data-flags %u), skipping.", m_table, m_script->id, m_script->command, m_script->buddyEntry, m_script->searchRadiusOrGuid, m_map->GetId(), m_script->data_flags);
                 return false;
             }
         }
@@ -1872,25 +1941,68 @@ bool ScriptAction::HandleScriptStep()
         case SCRIPT_COMMAND_TERMINATE_SCRIPT:               // 31
         {
             bool result = false;
-            if (m_script->terminateScript.npcEntry)
+            if (m_script->terminateScript.npcEntry || m_script->terminateScript.poolId)
             {
-                WorldObject* pSearcher = pSource ? pSource : pTarget;
-                if (pSearcher->GetTypeId() == TYPEID_PLAYER && pTarget && pTarget->GetTypeId() != TYPEID_PLAYER)
-                    pSearcher = pTarget;
-
                 Creature* pCreatureBuddy = nullptr;
-                MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck u_check(*pSearcher, m_script->terminateScript.npcEntry, true, false, m_script->terminateScript.searchDist, true);
-                MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(pCreatureBuddy, u_check);
-                Cell::VisitGridObjects(pSearcher, searcher, m_script->terminateScript.searchDist);
+                if (m_script->terminateScript.npcEntry)
+                {
+                    WorldObject* pSearcher = pSource ? pSource : pTarget;
+                    if (pSearcher->GetTypeId() == TYPEID_PLAYER && pTarget && pTarget->GetTypeId() != TYPEID_PLAYER)
+                        pSearcher = pTarget;
+                    MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck u_check(*pSearcher, m_script->terminateScript.npcEntry, true, false, m_script->terminateScript.searchDist, true);
+                    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureEntryWithLiveStateInObjectRangeCheck> searcher(pCreatureBuddy, u_check);
+                    Cell::VisitGridObjects(pSearcher, searcher, m_script->terminateScript.searchDist);
+                }
+                else
+                {
+                    // poolId is provided
+                    PoolGroup<Creature> const& pool = sPoolMgr.GetPoolCreatures(m_script->terminateScript.poolId);
+                    auto equalChancedObjectList = pool.GetEqualChanced();
+                    for (auto objItr : equalChancedObjectList)
+                    {
+                        CreatureData const* cData = sObjectMgr.GetCreatureData(objItr.guid);
+                        if (Creature* buddy = m_map->GetCreature(cData->GetObjectGuid(objItr.guid)))
+                        {
+                            if (buddy->isAlive())
+                            {
+                                pCreatureBuddy = buddy;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!pCreatureBuddy)
+                    {
+                        auto explicitlyChancedObjectList = pool.GetExplicitlyChanced();
+                        for (auto objItr : explicitlyChancedObjectList)
+                        {
+                            CreatureData const* cData = sObjectMgr.GetCreatureData(objItr.guid);
+                            if (Creature* buddy = m_map->GetCreature(cData->GetObjectGuid(objItr.guid)))
+                            {
+                                if (buddy->isAlive())
+                                {
+                                    pCreatureBuddy = buddy;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if (!(m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL) && !pCreatureBuddy)
                 {
-                    DEBUG_LOG("DB-SCRIPTS: Process table `%s` id %u, terminate further steps of this script! (as searched other npc %u was not found alive)", m_table, m_script->id, m_script->terminateScript.npcEntry);
+                    if (m_script->terminateScript.npcEntry)
+                        DEBUG_LOG("DB-SCRIPTS: Process table `%s` id %u, terminate further steps of this script! (as searched npc entry(%u) was not found alive)", m_table, m_script->id, m_script->terminateScript.npcEntry);
+                    else
+                        DEBUG_LOG("DB-SCRIPTS: Process table `%s` id %u, terminate further steps of this script! (as no npc in pool id(%u) was found alive)", m_table, m_script->id, m_script->terminateScript.poolId);
                     result = true;
                 }
                 else if (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL && pCreatureBuddy)
                 {
-                    DEBUG_LOG("DB-SCRIPTS: Process table `%s` id %u, terminate further steps of this script! (as searched other npc %u was found alive)", m_table, m_script->id, m_script->terminateScript.npcEntry);
+                    if (m_script->terminateScript.npcEntry)
+                        DEBUG_LOG("DB-SCRIPTS: Process table `%s` id %u, terminate further steps of this script! (as searched npc entry(%u) was found alive)", m_table, m_script->id, m_script->terminateScript.npcEntry);
+                    else
+                        DEBUG_LOG("DB-SCRIPTS: Process table `%s` id %u, terminate further steps of this script! (as searched npc in pool id(%u) was found alive)", m_table, m_script->id, m_script->terminateScript.poolId);
                     result = true;
                 }
             }

@@ -504,7 +504,7 @@ inline bool IsCasterSourceTarget(uint32 target)
         case TARGET_TOTEM_AIR:
         case TARGET_TOTEM_FIRE:
         case TARGET_AREAEFFECT_GO_AROUND_DEST:
-        case TARGET_SELF2:
+        case TARGET_DEST_DESTINATION:
         case TARGET_NONCOMBAT_PET:
             return true;
         default:
@@ -660,7 +660,7 @@ inline bool IsOnlySelfTargeting(SpellEntry const* spellInfo)
         switch (spellInfo->EffectImplicitTargetA[i])
         {
             case TARGET_SELF:
-            case TARGET_SELF2:
+            case TARGET_DEST_DESTINATION:
                 break;
             default:
                 return false;
@@ -668,7 +668,7 @@ inline bool IsOnlySelfTargeting(SpellEntry const* spellInfo)
         switch (spellInfo->EffectImplicitTargetB[i])
         {
             case TARGET_SELF:
-            case TARGET_SELF2:
+            case TARGET_DEST_DESTINATION:
             case TARGET_NONE:
                 break;
             default:
@@ -777,7 +777,7 @@ inline bool IsFriendlyTarget(uint32 target)
         case TARGET_SINGLE_FRIEND_2:
         case TARGET_FRIENDLY_FRONTAL_CONE:
         case TARGET_AREAEFFECT_PARTY_AND_CLASS:
-        case TARGET_SELF2:
+        case TARGET_DEST_DESTINATION:
         case TARGET_NONCOMBAT_PET:
             return true;
         default:

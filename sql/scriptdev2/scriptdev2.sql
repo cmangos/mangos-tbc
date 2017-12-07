@@ -1638,13 +1638,13 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000480,'You will not escape us so easily!',0,0,0,0,'akuno SAY_AKU_AMBUSH_B_REPLY'),
 (-1000481,'I can find my way from here. My friend Mekeda will reward you for your kind actions.',0,0,0,0,'akuno SAY_AKU_COMPLETE'),
 
-(-1000482,'Look out!',0,0,0,0,'maghar captive SAY_MAG_START'),
+(-1000482,'Look out!',0,0,0,25,'maghar captive SAY_MAG_START'),
 (-1000483,'Don\'t let them escape! Kill the strong one first!',0,0,0,0,'maghar captive SAY_MAG_NO_ESCAPE'),
-(-1000484,'More of them coming! Watch out!',0,0,0,0,'maghar captive SAY_MAG_MORE'),
+(-1000484,'More of them coming! Watch out!',0,0,0,5,'maghar captive SAY_MAG_MORE'),
 (-1000485,'Where do you think you\'re going? Kill them all!',0,0,0,0,'maghar captive SAY_MAG_MORE_REPLY'),
 (-1000486,'Ride the lightning, filth!',0,0,0,0,'maghar captive SAY_MAG_LIGHTNING'),
 (-1000487,'FROST SHOCK!!!',0,0,0,0,'maghar captive SAY_MAG_SHOCK'),
-(-1000488,'It is best that we split up now, in case they send more after us. Hopefully one of us will make it back to Garrosh. Farewell stranger.',0,0,0,0,'maghar captive SAY_MAG_COMPLETE'),
+(-1000488,'It is best that we split up now, in case they send more after us. Hopefully one of us will make it back to Garrosh. Farewell stranger.',0,0,0,1,'maghar captive SAY_MAG_COMPLETE'),
 
 (-1000489,'Show our guest around Shattrath, will you? Keep an eye out for pickpockets in the lower city.',0,0,0,0,'SAY_KHAD_START'),
 (-1000490,'A newcomer to Shattrath! Make sure to drop by later. We can always use a hand with the injured.',0,0,0,0,'SAY_KHAD_INJURED'),
@@ -2127,10 +2127,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000999,'Ha ha, squishy naga!',0,0,0,0,'fhwoor SAY_AMBUSH_CLEARED'),
 (-1001000,'Fhwoor do good!',0,0,0,0,'fhwoor SAY_ESCORT_COMPLETE'),
 
-(-1001001,'We must leave before more are alerted.',0,0,0,0,'kurenai captive SAY_KUR_START'),
-(-1001002,'It\'s an ambush! Defend yourself!',0,0,0,0,'kurenai captive SAY_KUR_AMBUSH_1'),
-(-1001003,'We are surrounded!',0,0,0,0,'kurenai captive SAY_KUR_AMBUSH_2'),
-(-1001004,'Up ahead is the road to Telaar. We will split up when we reach the fork as they will surely send more Murkblood after us. Hopefully one of us makes it back to Telaar alive.',0,0,0,1,'kurenai captive SAY_KUR_COMPLETE_1'),
+(-1001001,'We must leave before more are alerted.',0,0,0,1,'kurenai captive SAY_KUR_START'),
+(-1001002,'It\'s an ambush! Defend yourself!',0,0,0,5,'kurenai captive SAY_KUR_AMBUSH_1'),
+(-1001003,'We are surrounded!',0,0,0,5,'kurenai captive SAY_KUR_AMBUSH_2'),
+(-1001004,'Up ahead is the road to Telaar. We will split up when we reach the fork as they will surely send more Murkblood after us. Hopefully one of us makes it back to Telaar alive.',0,0,0,25,'kurenai captive SAY_KUR_COMPLETE'),
 (-1001005,'Farewell, stranger. Your heroics will be remembered by my people. Now, hurry to Telaar!',0,0,0,1,'kurenai captive SAY_KUR_COMPLETE_2'),
 
 (-1001006,'Thanks for your help. Let\'s get out of here!',0,0,0,1,'skyguard prisoner SAY_ESCORT_START'),

@@ -61,6 +61,14 @@ struct Modifier
      * the Aura is removed
      */
     uint32 periodictime;
+    /**
+    * Tells how much amount increased during recent stacks change
+    */
+    int32 m_recentAmount;
+    /**
+    * Set at the beginning so that stack increases dont need to calculate spell values
+    */
+    int32 m_baseAmount;
 };
 
 class Unit;
@@ -100,8 +108,8 @@ class SpellAuraHolder
         DiminishingGroup getDiminishGroup() const { return m_AuraDRGroup; }
 
         uint32 GetStackAmount() const { return m_stackAmount; }
-        void SetStackAmount(uint32 stackAmount);
-        bool ModStackAmount(int32 num); // return true if last charge dropped
+        void SetStackAmount(uint32 stackAmount, Unit* newCaster);
+        bool ModStackAmount(int32 num, Unit* newCaster); // return true if last charge dropped
 
         Aura* GetAuraByEffectIndex(SpellEffectIndex index) const { return m_auras[index]; }
         SpellEntry const* GetTriggeredBy() const { return m_triggeredBy; }
@@ -195,6 +203,7 @@ class SpellAuraHolder
         void SetCreationDelayFlag();
     private:
         void UpdateAuraApplication();                       // called at charges or stack changes
+        void ClearExtraAuraInfo(Unit* caster);
 
         SpellEntry const* m_spellProto;
 

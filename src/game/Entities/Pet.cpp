@@ -96,7 +96,7 @@ SpellCastResult Pet::TryLoadFromDB(Unit* owner, uint32 petentry /*= 0*/, uint32 
 
     if (petnumber)
         // known petnumber entry
-        request << "FROM character_pet WHERE owner = '" << ownerid << "' AND id = '" << petnumber <<"'";
+        request << "FROM character_pet WHERE owner = '" << ownerid << "' AND id = '" << petnumber << "'";
     else if (current)
         // current pet (slot 0)
         request << "FROM character_pet WHERE owner = '" << ownerid << "' AND slot = '" << uint32(PET_SAVE_AS_CURRENT) << "'";
@@ -1221,7 +1221,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
         case HUNTER_PET:
         {
             CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cInfo->Family);
-    
+
             if (cFamily && cFamily->minScale > 0.0f)
             {
                 float scale;
@@ -1248,7 +1248,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
             // Info found in pet_levelstats
             if (PetLevelInfo const* pInfo = sObjectMgr.GetPetLevelInfo(1, petlevel))
             {
-                for (int i = STAT_STRENGTH; i < MAX_STATS;++i)
+                for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
                     SetCreateStat(Stats(i), float(pInfo->stats[i]));
 
                 health = pInfo->health;
@@ -1266,7 +1266,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
             {
                 sLog.outErrorDb("HUNTER PET levelstats missing in DB! 'Weakifying' pet");
 
-                for (int i = STAT_STRENGTH; i < MAX_STATS;++i)
+                for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
                     SetCreateStat(Stats(i), 1.0f);
 
                 health = 1;
@@ -1320,7 +1320,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
             // Info found in pet_levelstats
             if (PetLevelInfo const* pInfo = sObjectMgr.GetPetLevelInfo(cInfo->Entry, petlevel))
             {
-                for (int i = STAT_STRENGTH; i < MAX_STATS;++i)
+                for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
                     SetCreateStat(Stats(i), float(pInfo->stats[i]));
 
                 health = pInfo->health;
@@ -1330,7 +1330,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 // Info found in ClassLevelStats
                 if (CreatureClassLvlStats const* cCLS = sObjectMgr.GetCreatureClassLvlStats(petlevel, cInfo->UnitClass, cInfo->Expansion))
                 {
-                    minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime/1000)) * cInfo->DamageMultiplier;
+                    minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
 
                     // Apply custom damage setting (from config)
                     minDmg *= _GetDamageMod(cInfo->Rank);
@@ -1345,7 +1345,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                     float dMinLevel = cInfo->MinMeleeDmg / cInfo->MinLevel;
                     float dMaxLevel = cInfo->MaxMeleeDmg / cInfo->MaxLevel;
                     float mDmg = (dMaxLevel - ((dMaxLevel - dMinLevel) / 2)) * petlevel;
-                    
+
                     // Set damage
                     SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(mDmg - mDmg / 4));
                     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float((mDmg - mDmg / 4) * 1.5));
@@ -1355,13 +1355,13 @@ void Pet::InitStatsForLevel(uint32 petlevel)
             {
                 sLog.outErrorDb("SUMMON_PET levelstats missing in DB! 'Weakifying' pet and giving it mana to make it obvious");
 
-                for (int i = STAT_STRENGTH; i < MAX_STATS;++i)
+                for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
                     SetCreateStat(Stats(i), 1.0f);
 
                 health = 1;
                 mana = 1;
                 armor = 1;
-                
+
                 // Set damage
                 SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, 1);
                 SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, 1);
@@ -1378,7 +1378,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 armor = cCLS->BaseArmor;
 
                 // Melee
-                minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime/1000)) * cInfo->DamageMultiplier;
+                minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
 
                 // Get custom setting
                 minDmg *= _GetDamageMod(cInfo->Rank);
@@ -1388,7 +1388,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(minDmg * 1.5));
 
                 // Ranged
-                minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseRangedAttackPower / 14) * (cInfo->RangedBaseAttackTime/1000)) * cInfo->DamageMultiplier;
+                minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseRangedAttackPower / 14) * (cInfo->RangedBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
 
                 // Get custom setting
                 minDmg *= _GetDamageMod(cInfo->Rank);
@@ -1546,7 +1546,8 @@ void Pet::_LoadSpellCooldowns()
             uint32 spellCDDuration = std::chrono::duration_cast<std::chrono::seconds>(spellRecTime).count();
             sLog.outDebug("Adding spell cooldown to %s, SpellID(%u), recDuration(%us).", GetGuidStr().c_str(), spell_id, spellCDDuration);
 #endif
-        } while (result->NextRow());
+        }
+        while (result->NextRow());
 
         delete result;
 

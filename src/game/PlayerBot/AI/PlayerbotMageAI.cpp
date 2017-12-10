@@ -142,7 +142,7 @@ CombatManeuverReturns PlayerbotMageAI::DoFirstCombatManeuverPVP(Unit* /*pTarget*
     return RETURN_NO_ACTION_OK;
 }
 
-CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuver(Unit *pTarget)
+CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuver(Unit* pTarget)
 {
     // Face enemy, make sure bot is attacking
     m_ai->FaceTarget(pTarget);
@@ -165,7 +165,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuver(Unit *pTarget)
     return RETURN_NO_ACTION_ERROR;
 }
 
-CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
+CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit* pTarget)
 {
     if (!m_ai)  return RETURN_NO_ACTION_ERROR;
     if (!m_bot) return RETURN_NO_ACTION_ERROR;
@@ -178,13 +178,13 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
     if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_RANGED && !meleeReach)
         m_ai->SetCombatStyle(PlayerbotAI::COMBAT_RANGED);
     // switch to melee if in melee range AND can't shoot OR have no ranged (wand) equipped
-    else if(m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE
-            && meleeReach
-            && (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
+    else if (m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE
+             && meleeReach
+             && (SHOOT == 0 || !m_bot->GetWeaponForAttack(RANGED_ATTACK, true, true)))
         m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 
     //Used to determine if this bot is highest on threat
-    Unit *newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE) (PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
+    Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE)(PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
 
     // Remove curse on group members
     if (Player* pCursedTarget = GetDispelTarget(DISPEL_CURSE))
@@ -201,7 +201,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
             if (m_ai->IsElite(newTarget))
             {
                 // If the attacker is a beast or humanoid, let's the bot give it a form more suited to the low intellect of something fool enough to attack a mage
-                Creature * pCreature = (Creature*) newTarget;
+                Creature* pCreature = (Creature*) newTarget;
                 if (pCreature && (pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID || pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_BEAST))
                 {
                     if (POLYMORPH > 0 && CastSpell(POLYMORPH, newTarget))
@@ -233,9 +233,9 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
         return RETURN_CONTINUE;
     if (m_ai->GetManaPercent() <= 20)
     {
-       Item* gem = FindManaGem();
-       if (gem)
-           m_ai->UseItem(gem);
+        Item* gem = FindManaGem();
+        if (gem)
+            m_ai->UseItem(gem);
     }
 
     // If bot has frost/fire resist order use Frost/Fire Ward when available
@@ -259,7 +259,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
     switch (spec)
     {
         case MAGE_SPEC_FROST:
-            if (ICY_VEINS > 0 && m_ai->In_Reach(m_bot,ICY_VEINS) && !m_bot->HasAura(ICY_VEINS, EFFECT_INDEX_0) && CastSpell(ICY_VEINS, m_bot))
+            if (ICY_VEINS > 0 && m_ai->In_Reach(m_bot, ICY_VEINS) && !m_bot->HasAura(ICY_VEINS, EFFECT_INDEX_0) && CastSpell(ICY_VEINS, m_bot))
                 return RETURN_CONTINUE;
             if (COLD_SNAP && m_bot->IsSpellReady(COLD_SNAP) && CheckFrostCooldowns() > 2 && m_ai->SelfBuff(COLD_SNAP))  // Clear frost spell cooldowns if bot has more than 2 active
                 return RETURN_CONTINUE;
@@ -270,17 +270,17 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
                 if (m_ai->CastSpell(CONE_OF_COLD))
                     return RETURN_CONTINUE;
             }
-            if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT) && !pTarget->HasAura(FROSTBOLT, EFFECT_INDEX_0) && CastSpell(FROSTBOLT, pTarget))
+            if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget, FROSTBOLT) && !pTarget->HasAura(FROSTBOLT, EFFECT_INDEX_0) && CastSpell(FROSTBOLT, pTarget))
                 return RETURN_CONTINUE;
             if (FROST_NOVA > 0 && m_bot->IsSpellReady(FROST_NOVA) && meleeReach && !pTarget->HasAura(FROST_NOVA, EFFECT_INDEX_0) && CastSpell(FROST_NOVA, pTarget))
                 return RETURN_CONTINUE;
-            if (ICE_LANCE > 0 && m_ai->In_Reach(pTarget,ICE_LANCE) && CastSpell(ICE_LANCE, pTarget))
+            if (ICE_LANCE > 0 && m_ai->In_Reach(pTarget, ICE_LANCE) && CastSpell(ICE_LANCE, pTarget))
                 return RETURN_CONTINUE;
             if (SUMMON_WATER_ELEMENTAL > 0 && CastSpell(SUMMON_WATER_ELEMENTAL))
                 return RETURN_CONTINUE;
 
             // Default frost spec action
-            if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT))
+            if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget, FROSTBOLT))
                 return CastSpell(FROSTBOLT, pTarget);
             /*
             if (BLIZZARD > 0 && m_ai->In_Reach(pTarget,BLIZZARD) && m_ai->GetAttackerCount() >= 5 && CastSpell(BLIZZARD, pTarget))
@@ -325,7 +325,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
                     return RETURN_CONTINUE;
             }
             // Default fire spec action
-            if (FIREBALL > 0 && m_ai->In_Reach(pTarget,FIREBALL))
+            if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL))
                 return CastSpell(FIREBALL, pTarget);
             /*
             if (FLAMESTRIKE > 0 && m_ai->In_Reach(pTarget,FLAMESTRIKE) && CastSpell(FLAMESTRIKE, pTarget))
@@ -352,12 +352,12 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
             // Default arcane spec actions (yes, two fire spells)
             if (FIRE_BLAST > 0 && m_bot->IsSpellReady(FIRE_BLAST) && CastSpell(FIRE_BLAST, pTarget))
                 return RETURN_CONTINUE;
-            if (SLOW > 0 && m_ai->In_Reach(pTarget,SLOW) && !pTarget->HasAura(SLOW, EFFECT_INDEX_0) && CastSpell(SLOW, pTarget))
+            if (SLOW > 0 && m_ai->In_Reach(pTarget, SLOW) && !pTarget->HasAura(SLOW, EFFECT_INDEX_0) && CastSpell(SLOW, pTarget))
                 return RETURN_CONTINUE;
-            if (ARCANE_BLAST > 0 && m_ai->In_Reach(pTarget,ARCANE_BLAST) && CastSpell(ARCANE_BLAST, pTarget))
+            if (ARCANE_BLAST > 0 && m_ai->In_Reach(pTarget, ARCANE_BLAST) && CastSpell(ARCANE_BLAST, pTarget))
                 return RETURN_CONTINUE;
 
-            if (FIREBALL > 0 && m_ai->In_Reach(pTarget,FIREBALL))
+            if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL))
                 return CastSpell(FIREBALL, pTarget);
             // If no fireball, arcane missiles
             if (ARCANE_MISSILES > 0 && CastSpell(ARCANE_MISSILES, pTarget))
@@ -369,9 +369,9 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
     }
 
     // No spec due to low level OR no spell found yet
-    if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget,FROSTBOLT) && !pTarget->HasAura(FROSTBOLT, EFFECT_INDEX_0) && CastSpell(FROSTBOLT, pTarget))
+    if (FROSTBOLT > 0 && m_ai->In_Reach(pTarget, FROSTBOLT) && !pTarget->HasAura(FROSTBOLT, EFFECT_INDEX_0) && CastSpell(FROSTBOLT, pTarget))
         return RETURN_CONTINUE;
-    if (FIREBALL > 0 && m_ai->In_Reach(pTarget,FIREBALL) && CastSpell(FIREBALL, pTarget)) // Very low levels
+    if (FIREBALL > 0 && m_ai->In_Reach(pTarget, FIREBALL) && CastSpell(FIREBALL, pTarget)) // Very low levels
         return RETURN_CONTINUE;
 
     // Default: shoot with wand
@@ -382,7 +382,7 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit *pTarget)
 
 CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVP(Unit* pTarget)
 {
-    if (FIREBALL && m_ai->In_Reach(pTarget,FIREBALL) && m_ai->CastSpell(FIREBALL))
+    if (FIREBALL && m_ai->In_Reach(pTarget, FIREBALL) && m_ai->CastSpell(FIREBALL))
         return RETURN_CONTINUE;
 
     return DoNextCombatManeuverPVE(pTarget); // TODO: bad idea perhaps, but better than the alternative
@@ -501,7 +501,7 @@ void PlayerbotMageAI::DoNonCombatActions()
 } // end DoNonCombatActions
 
 // TODO: this and priest's BuffHelper are identical and thus could probably go in PlayerbotClassAI.cpp somewhere
-bool PlayerbotMageAI::BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target)
+bool PlayerbotMageAI::BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit* target)
 {
     if (!ai)          return false;
     if (spellId == 0) return false;

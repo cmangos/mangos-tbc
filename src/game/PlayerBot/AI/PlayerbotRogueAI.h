@@ -83,78 +83,78 @@ enum RogueSpells
 
 class PlayerbotRogueAI : PlayerbotClassAI
 {
-public:
-    PlayerbotRogueAI(Player * const master, Player * const bot, PlayerbotAI * const ai);
-    virtual ~PlayerbotRogueAI();
+    public:
+        PlayerbotRogueAI(Player* const master, Player* const bot, PlayerbotAI* const ai);
+        virtual ~PlayerbotRogueAI();
 
-    // all combat actions go here
-    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
-    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+        // all combat actions go here
+        CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+        CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
 
-    // all non combat actions go here, ex buffs, heals, rezzes
-    void DoNonCombatActions();
+        // all non combat actions go here, ex buffs, heals, rezzes
+        void DoNonCombatActions();
 
-private:
-    CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
-    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
-    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
-    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
-    Item* FindPoison() const;
+    private:
+        CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+        CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+        CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+        CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+        Item* FindPoison() const;
 
-    // COMBAT
-    uint32 ADRENALINE_RUSH,
-           SINISTER_STRIKE,
-           BACKSTAB,
-           GOUGE,
-           EVASION,
-           SPRINT,
-           KICK,
-           FEINT,
-           SHIV;
+        // COMBAT
+        uint32 ADRENALINE_RUSH,
+               SINISTER_STRIKE,
+               BACKSTAB,
+               GOUGE,
+               EVASION,
+               SPRINT,
+               KICK,
+               FEINT,
+               SHIV;
 
-    // SUBTLETY
-    uint32 SHADOWSTEP,
-           STEALTH,
-           VANISH,
-           HEMORRHAGE,
-           BLIND,
-           PICK_POCKET,
-           CLOAK_OF_SHADOWS,
-           CRIPPLING_POISON,
-           DEADLY_POISON,
-           MIND_NUMBING_POISON,
-           GHOSTLY_STRIKE,
-           DISTRACT,
-           PREPARATION,
-           PREMEDITATION;
+        // SUBTLETY
+        uint32 SHADOWSTEP,
+               STEALTH,
+               VANISH,
+               HEMORRHAGE,
+               BLIND,
+               PICK_POCKET,
+               CLOAK_OF_SHADOWS,
+               CRIPPLING_POISON,
+               DEADLY_POISON,
+               MIND_NUMBING_POISON,
+               GHOSTLY_STRIKE,
+               DISTRACT,
+               PREPARATION,
+               PREMEDITATION;
 
-    // ASSASSINATION
-    uint32 COLD_BLOOD,
-           EVISCERATE,
-           SLICE_DICE,
-           GARROTE,
-           EXPOSE_ARMOR,
-           AMBUSH,
-           RUPTURE,
-           CHEAP_SHOT,
-           KIDNEY_SHOT,
-           MUTILATE,
-           ENVENOM,
-           DEADLY_THROW;
+        // ASSASSINATION
+        uint32 COLD_BLOOD,
+               EVISCERATE,
+               SLICE_DICE,
+               GARROTE,
+               EXPOSE_ARMOR,
+               AMBUSH,
+               RUPTURE,
+               CHEAP_SHOT,
+               KIDNEY_SHOT,
+               MUTILATE,
+               ENVENOM,
+               DEADLY_THROW;
 
-    // racial
-    uint32 ARCANE_TORRENT,
-           GIFT_OF_THE_NAARU,
-           STONEFORM,
-           ESCAPE_ARTIST,
-           PERCEPTION,
-           SHADOWMELD,
-           BLOOD_FURY,
-           WAR_STOMP,
-           BERSERKING,
-           WILL_OF_THE_FORSAKEN;
+        // racial
+        uint32 ARCANE_TORRENT,
+               GIFT_OF_THE_NAARU,
+               STONEFORM,
+               ESCAPE_ARTIST,
+               PERCEPTION,
+               SHADOWMELD,
+               BLOOD_FURY,
+               WAR_STOMP,
+               BERSERKING,
+               WILL_OF_THE_FORSAKEN;
 
-    uint32 SpellSequence, LastSpellCombat, LastSpellSubtlety, LastSpellAssassination, Aura;
+        uint32 SpellSequence, LastSpellCombat, LastSpellSubtlety, LastSpellAssassination, Aura;
 };
 
 #endif

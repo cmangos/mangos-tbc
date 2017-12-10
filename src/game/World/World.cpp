@@ -1134,7 +1134,7 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading Scripts random templates...");  // must be before String calls
     sScriptMgr.LoadDbScriptRandomTemplates();
-                                                            ///- Load and initialize DBScripts Engine
+    ///- Load and initialize DBScripts Engine
     sLog.outString("Loading DB-Scripts Engine...");
     sScriptMgr.LoadRelayScripts();                          // must be first in dbscripts loading
     sScriptMgr.LoadGossipScripts();                         // must be before gossip menu options
@@ -1164,7 +1164,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadTrainerTemplates();                      // must be after load CreatureTemplate
     sObjectMgr.LoadTrainers();                              // must be after load CreatureTemplate, TrainerTemplate
 
-    sLog.outString("Loading Waypoint scripts...");          
+    sLog.outString("Loading Waypoint scripts...");
 
     sLog.outString("Loading Waypoints...");
     sWaypointMgr.Load();
@@ -1863,14 +1863,14 @@ void World::UpdateSessions(uint32 /*diff*/)
     {
         std::lock_guard<std::mutex> guard(m_sessionAddQueueLock);
 
-        for (auto const &session : m_sessionAddQueue)
+        for (auto const& session : m_sessionAddQueue)
             AddSession_(session);
 
         m_sessionAddQueue.clear();
     }
 
     ///- Then send an update signal to remaining ones
-    for (SessionMap::iterator itr = m_sessions.begin(); itr != m_sessions.end(); )
+    for (SessionMap::iterator itr = m_sessions.begin(); itr != m_sessions.end();)
     {
         ///- and remove not active sessions from the list
         WorldSession* pSession = itr->second;
@@ -1995,7 +1995,7 @@ void World::InitWeeklyQuestResetTime()
     time_t nextWeekResetTime = mktime(&localTm);
     nextWeekResetTime -= week_day_offset * DAY;             // move time to proper day
 
-                                                            // next reset time before current moment
+    // next reset time before current moment
     if (curTime >= nextWeekResetTime)
         nextWeekResetTime += WEEK;
 
@@ -2092,7 +2092,7 @@ void World::GenerateEventGroupEvents(bool daily, bool weekly, bool deleteColumns
         uint32 random = urand(0, data.second.size() - 1);
         uint32 chosenId = data.second[random];
         CharacterDatabase.PExecute("INSERT INTO event_group_chosen(eventGroup,entry) VALUES('%u','%u')",
-            data.first, chosenId);
+                                   data.first, chosenId);
         m_eventGroupChosen.push_back(chosenId);
         // start events
         sGameEventMgr.StartEvent(chosenId);
@@ -2109,7 +2109,8 @@ void World::LoadEventGroupChosen()
             Field* fields = result->Fetch();
             m_eventGroupChosen.push_back(fields[0].GetUInt32());
             sGameEventMgr.StartEvent(fields[0].GetUInt32(), false, true);
-        } while (result->NextRow());
+        }
+        while (result->NextRow());
 
         delete result;
     }

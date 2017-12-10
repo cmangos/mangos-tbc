@@ -526,15 +526,15 @@ static const float PLAYER_BASE_DODGE[MAX_CLASSES] =
     0.0000f, // [0]  <Unused>
     0.7500f, // [1]  Warrior
     0.6520f, // [2]  Paladin
-   -5.4500f, // [3]  Hunter
-   -0.5900f, // [4]  Rogue
+    -5.4500f, // [3]  Hunter
+    -0.5900f, // [4]  Rogue
     3.1830f, // [5]  Priest
     1.1400f, // [6]  DK
     1.6700f, // [7]  Shaman
     3.4575f, // [8]  Mage
     2.0110f, // [9]  Warlock
     0.0000f, // [10] <Unused>
-   -1.8700f, // [11] Druid
+    -1.8700f, // [11] Druid
 };
 
 void Player::UpdateDodgePercentage()

@@ -325,7 +325,7 @@ enum TriggerCastFlags : uint32
     TRIGGERED_INSTANT_CAST                      = 0x00000008,   // Will ignore any cast time set in spell entry
     TRIGGERED_AUTOREPEAT                        = 0x00000010,   // Will signal spell system that this is internal autorepeat call
     TRIGGERED_IGNORE_UNATTACKABLE_FLAG          = 0x00000020,   // Ignores UNIT_FLAG_NOT_ATTACKABLE in CheckTarget
-    TRIGGERED_DO_NOT_PROC						= 0x00000040,   // Spells from scripts should not proc - DBScripts for example
+    TRIGGERED_DO_NOT_PROC                       = 0x00000040,   // Spells from scripts should not proc - DBScripts for example
     TRIGGERED_PET_CAST                          = 0x00000080,   // Spell that should report error through pet opcode
     TRIGGERED_FULL_MASK                         = 0xFFFFFFFF
 };
@@ -910,13 +910,13 @@ uint32 createProcExtendMask(SpellNonMeleeDamage* damageInfo, SpellMissInfo missC
 
 struct CombatData
 {
-public:
-    CombatData(Unit* owner) : threatManager(ThreatManager(owner)), hostileRefManager(HostileRefManager(owner)) {};
+    public:
+        CombatData(Unit* owner) : threatManager(ThreatManager(owner)), hostileRefManager(HostileRefManager(owner)) {};
 
-    // Manage all Units threatening us
-    ThreatManager threatManager;
-    // Manage all Units that are threatened by us
-    HostileRefManager hostileRefManager;
+        // Manage all Units threatening us
+        ThreatManager threatManager;
+        // Manage all Units that are threatened by us
+        HostileRefManager hostileRefManager;
 };
 
 enum SpellAuraProcResult
@@ -1019,7 +1019,7 @@ struct CharmInfo
         explicit CharmInfo(Unit* unit);
         ~CharmInfo();
 
-        void SetCharmState(std::string const & ainame = "PetAI", bool withNewThreatList = true);
+        void SetCharmState(std::string const& ainame = "PetAI", bool withNewThreatList = true);
         void ResetCharmState();
         uint32 GetPetNumber() const { return m_petnumber; }
         void SetPetNumber(uint32 petnumber, bool statwindow);
@@ -1570,8 +1570,8 @@ class Unit : public WorldObject
         virtual float GetMissChance(SpellSchoolMask schoolMask) const;
         virtual float GetMissChance(const SpellEntry* entry, SpellSchoolMask schoolMask) const;
 
-        float CalculateEffectiveCritChance(const Unit* victim, WeaponAttackType attType, const SpellEntry *ability = nullptr) const;
-        float CalculateEffectiveMissChance(const Unit* victim, WeaponAttackType attType, const SpellEntry *ability = nullptr) const;
+        float CalculateEffectiveCritChance(const Unit* victim, WeaponAttackType attType, const SpellEntry* ability = nullptr) const;
+        float CalculateEffectiveMissChance(const Unit* victim, WeaponAttackType attType, const SpellEntry* ability = nullptr) const;
 
         float CalculateSpellCritChance(const Unit* victim, SpellSchoolMask schoolMask, const SpellEntry* spell) const;
         float CalculateSpellMissChance(const Unit* victim, SpellSchoolMask schoolMask, const SpellEntry* spell) const;
@@ -1965,8 +1965,8 @@ class Unit : public WorldObject
         virtual void UpdateAttackPowerAndDamage(bool ranged = false) = 0;
         virtual void UpdateDamagePhysical(WeaponAttackType attType) = 0;
         float GetTotalAttackPowerValue(WeaponAttackType attType) const;
-        float GetWeaponDamageRange(WeaponAttackType attType , WeaponDamageRange type) const;
-        void SetBaseWeaponDamage(WeaponAttackType attType , WeaponDamageRange damageRange, float value) { m_weaponDamage[attType][damageRange] = value; }
+        float GetWeaponDamageRange(WeaponAttackType attType, WeaponDamageRange type) const;
+        void SetBaseWeaponDamage(WeaponAttackType attType, WeaponDamageRange damageRange, float value) { m_weaponDamage[attType][damageRange] = value; }
 
         // Visibility system
         UnitVisibility GetVisibility() const { return m_Visibility; }

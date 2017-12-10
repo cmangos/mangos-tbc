@@ -43,8 +43,8 @@
 #include <cstdarg>
 
 #ifdef BUILD_PLAYERBOT
-    #include "PlayerBot/Base/PlayerbotMgr.h"
-    #include "PlayerBot/Base/PlayerbotAI.h"
+#include "PlayerBot/Base/PlayerbotMgr.h"
+#include "PlayerBot/Base/PlayerbotAI.h"
 #endif
 
 // select opcodes appropriate for processing in Map::Update context for current session state
@@ -133,7 +133,7 @@ void WorldSession::SendPacket(WorldPacket const& packet) const
         else if (GetPlayer()->GetPlayerbotMgr())
             GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(packet);
     }
-    
+
     if (!m_Socket)
         return;
 #endif
@@ -318,7 +318,8 @@ bool WorldSession::Update(PacketFilter& updater)
     // The PlayerbotAI class adds to the packet queue to simulate a real player
     // since Playerbots are known to the World obj only by its master's WorldSession object
     // we need to process all master's bot's packets.
-    if (GetPlayer() && GetPlayer()->GetPlayerbotMgr()) {
+    if (GetPlayer() && GetPlayer()->GetPlayerbotMgr())
+    {
         for (PlayerBotMap::const_iterator itr = GetPlayer()->GetPlayerbotMgr()->GetPlayerBotsBegin();
                 itr != GetPlayer()->GetPlayerbotMgr()->GetPlayerBotsEnd(); ++itr)
         {
@@ -328,7 +329,7 @@ bool WorldSession::Update(PacketFilter& updater)
                 botPlayer->GetPlayerbotAI()->HandleTeleportAck();
             else if (botPlayer->IsInWorld())
             {
-                while(!pBotWorldSession->m_recvQueue.empty())
+                while (!pBotWorldSession->m_recvQueue.empty())
                 {
                     auto const botpacket = std::move(pBotWorldSession->m_recvQueue.front());
                     pBotWorldSession->m_recvQueue.pop_front();
@@ -378,7 +379,7 @@ void WorldSession::LogoutPlayer(bool Save)
             _player->GetPlayerbotMgr()->LogoutAllBots();
 #endif
 
-        sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), GetRemoteAddress().c_str(), _player->GetName() , _player->GetGUIDLow());
+        sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), GetRemoteAddress().c_str(), _player->GetName(), _player->GetGUIDLow());
 
         if (Loot* loot = sLootMgr.GetLoot(_player))
             loot->Release(_player);
@@ -800,7 +801,7 @@ void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg) co
     SendPacket(data);
 }
 
-void WorldSession::ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket &packet)
+void WorldSession::ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket& packet)
 {
     // need prevent do internal far teleports in handlers because some handlers do lot steps
     // or call code that can do far teleports in some conditions unexpectedly for generic way work code

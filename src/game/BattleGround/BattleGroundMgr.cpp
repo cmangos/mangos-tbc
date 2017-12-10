@@ -68,7 +68,7 @@ BattleGroundQueue::~BattleGroundQueue()
         for (uint8 j = 0; j < BG_QUEUE_GROUP_TYPES_COUNT; ++j)
         {
             for (GroupsQueueType::iterator itr = m_QueuedGroups[i][j].begin(); itr != m_QueuedGroups[i][j].end(); ++itr)
-                delete(*itr);
+                delete (*itr);
             m_QueuedGroups[i][j].clear();
         }
     }
@@ -1258,7 +1258,7 @@ void BattleGroundMgr::BuildPvpLogDataPacket(WorldPacket& data, BattleGround* bg)
         data << uint32(at1 ? uint32(at1->GetRating() + bg->m_ArenaTeamRatingChanges[1]) : 0);
         data << uint32(at2 ? uint32(at2->GetRating()) : 0);
         data << uint32(at2 ? uint32(at2->GetRating() + bg->m_ArenaTeamRatingChanges[0]) : 0);
-        
+
         data << (at1 ? at1->GetName() : "Unknown");
         data << (at2 ? at2->GetName() : "Unknown");
     }
@@ -1697,7 +1697,7 @@ void BattleGroundMgr::InitAutomaticArenaPointDistribution()
             delete result;
         }
 
-        //uint32 dayofweek = sWorld.getConfig(CONFIG_UINT32_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS);               
+        //uint32 dayofweek = sWorld.getConfig(CONFIG_UINT32_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS);
     }
 }
 
@@ -1778,7 +1778,7 @@ void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket& data, ObjectGuid 
             data << uint32(*itr);
             ++count;
         }
-        data.put<uint32>(count_pos , count);
+        data.put<uint32>(count_pos, count);
     }
 }
 

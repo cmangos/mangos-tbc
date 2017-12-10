@@ -415,7 +415,7 @@ enum RealmZone
 /// Storage class for commands issued for delayed execution
 struct CliCommandHolder
 {
-    typedef std::function<void(const char *)> Print;
+    typedef std::function<void(const char*)> Print;
     typedef std::function<void(bool)> CommandFinished;
 
     uint32 m_cliAccountId;                                  // 0 for console and real account id for RA/soap
@@ -672,7 +672,7 @@ class World
 
         // CLI command holder to be thread safe
         std::mutex m_cliCommandQueueLock;
-        std::deque<const CliCommandHolder *> m_cliCommandQueue;
+        std::deque<const CliCommandHolder*> m_cliCommandQueue;
 
         // next daily quests reset time
         time_t m_NextDailyQuestReset;
@@ -686,7 +686,7 @@ class World
         void AddSession_(WorldSession* s);
 
         std::mutex m_sessionAddQueueLock;
-        std::deque<WorldSession *> m_sessionAddQueue;
+        std::deque<WorldSession*> m_sessionAddQueue;
 
         // used versions
         std::string m_DBVersion;

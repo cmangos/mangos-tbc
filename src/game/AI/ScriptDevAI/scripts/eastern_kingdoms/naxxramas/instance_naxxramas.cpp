@@ -111,7 +111,7 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
 {
     switch (pGo->GetEntry())
     {
-            // Arachnid Quarter
+        // Arachnid Quarter
         case GO_ARAC_ANUB_DOOR:
             break;
         case GO_ARAC_ANUB_GATE:
@@ -131,7 +131,7 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
 
-            // Plague Quarter
+        // Plague Quarter
         case GO_PLAG_NOTH_ENTRY_DOOR:
             break;
         case GO_PLAG_NOTH_EXIT_DOOR:
@@ -149,7 +149,7 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
         case GO_PLAG_LOAT_DOOR:
             break;
 
-            // Military Quarter
+        // Military Quarter
         case GO_MILI_GOTH_ENTRY_GATE:
             break;
         case GO_MILI_GOTH_EXIT_GATE:
@@ -165,7 +165,7 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
         case GO_CHEST_HORSEMEN_NORM:
             break;
 
-            // Construct Quarter
+        // Construct Quarter
         case GO_CONS_PATH_EXIT_DOOR:
             if (m_auiEncounter[TYPE_PATCHWERK] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
@@ -187,7 +187,7 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
                 pGo->SetGoState(GO_STATE_READY);
             break;
 
-            // Frostwyrm Lair
+        // Frostwyrm Lair
         case GO_KELTHUZAD_WATERFALL_DOOR:
             if (m_auiEncounter[TYPE_SAPPHIRON] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
@@ -199,7 +199,7 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
         case GO_KELTHUZAD_WINDOW_4:
             break;
 
-            // Eyes
+        // Eyes
         case GO_ARAC_EYE_RAMP:
         case GO_ARAC_EYE_BOSS:
             if (m_auiEncounter[TYPE_MAEXXNA] == DONE)
@@ -221,7 +221,7 @@ void instance_naxxramas::OnObjectCreate(GameObject* pGo)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
 
-            // Portals
+        // Portals
         case GO_ARAC_PORTAL:
             if (m_auiEncounter[TYPE_MAEXXNA] == DONE)
                 pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
@@ -546,7 +546,7 @@ void instance_naxxramas::Update(uint32 uiDiff)
         if (m_uiScreamsTimer <= uiDiff)
         {
             if (Player* pPlayer = GetPlayerInMap())
-                pPlayer->GetMap()->PlayDirectSoundToMap(SOUND_SCREAM1 + urand(0,3));
+                pPlayer->GetMap()->PlayDirectSoundToMap(SOUND_SCREAM1 + urand(0, 3));
             m_uiScreamsTimer = (2 * MINUTE + urand(0, 30)) * IN_MILLISECONDS;
         }
         else

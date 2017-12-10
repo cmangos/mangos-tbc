@@ -66,7 +66,7 @@ enum ChatNotify
     CHAT_NOT_IN_LFG_NOTICE            = 0x21,               //+ "[%s] You must be queued in looking for group before joining this channel."; -- The user must be in the looking for group system to join LFG chat channels.
     CHAT_VOICE_ON_NOTICE              = 0x22,               //+ "[%s] Channel voice enabled by %s.";
     CHAT_VOICE_OFF_NOTICE             = 0x23                //+ "[%s] Channel voice disabled by %s.";
-    // 0x24 enable voice?
+                                        // 0x24 enable voice?
 };
 
 class Channel
@@ -82,11 +82,11 @@ class Channel
             CHANNEL_FLAG_CITY       = 0x20,
             CHANNEL_FLAG_LFG        = 0x40,
             CHANNEL_FLAG_VOICE      = 0x80
-            // General                  0x18 = 0x10 | 0x08
-            // Trade                    0x3C = 0x20 | 0x10 | 0x08 | 0x04
-            // LocalDefence             0x18 = 0x10 | 0x08
-            // GuildRecruitment         0x38 = 0x20 | 0x10 | 0x08
-            // LookingForGroup          0x50 = 0x40 | 0x10
+                                      // General                  0x18 = 0x10 | 0x08
+                                      // Trade                    0x3C = 0x20 | 0x10 | 0x08 | 0x04
+                                      // LocalDefence             0x18 = 0x10 | 0x08
+                                      // GuildRecruitment         0x38 = 0x20 | 0x10 | 0x08
+                                      // LookingForGroup          0x50 = 0x40 | 0x10
         };
 
         enum ChannelDBCFlags

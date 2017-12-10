@@ -710,7 +710,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
                 else
                     m_uiTrapTimer -= uiDiff;
 
-                // no break;
+            // no break;
             case PHASE_DUAL_NORMAL:
 
                 // Phase 3 and 5 spells
@@ -742,7 +742,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
                 else
                     m_uiTransformTimer -= uiDiff;
 
-                // no break;
+            // no break;
             case PHASE_AKAMA:
 
                 if (m_uiShearTimer < uiDiff)

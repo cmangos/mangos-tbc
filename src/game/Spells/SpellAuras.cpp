@@ -4245,6 +4245,10 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
             }
         }
     }
+
+    // PvP trinket
+    if (GetId() == 42292)
+        target->RemoveRankAurasDueToSpell(20184); // Judgement of justice - remove any rank
 }
 
 void Aura::HandleModMechanicImmunityMask(bool apply, bool /*Real*/)

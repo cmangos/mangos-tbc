@@ -332,3 +332,9 @@ INSERT INTO spell_template (id, attributes, attributesEx, attributesEx2, Casting
 INSERT INTO spell_template(Id,Attributes,rangeIndex,Effect1,Effect2,EffectImplicitTargetA1,EffectImplicitTargetA2,EffectImplicitTargetB1,EffectImplicitTargetB2,EffectRadiusIndex1,EffectRadiusIndex2,SpellIconID,SpellName,DmgMultiplier1,DmgMultiplier2) VALUES
 (39399,256,7,3,3,18,18,8,8,15,15,1,'Is Square OCCUPIED (DND)',1,1);
 
+-- Allow caster to cast this self-target spell even if he is immune to the spell damage school
+UPDATE spell_template SET Attributes = Attributes | 0x20000000 WHERE id IN (22972, 22975, 22976, 22977, 22978, 22979, 22980, 22981, 22982, 22983, 22984, 22985, 22986);
+
+-- Fixed radius for the various spells used in summoning NPCs in Nefarian encounter
+-- Value in DBC made the adds spawn anywhere instead of near their spawner NPC
+UPDATE spell_template SET EffectRadiusIndex1=7 WHERE id IN (22654, 22655, 22656, 22657, 22658, 22680);

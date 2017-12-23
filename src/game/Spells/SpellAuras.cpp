@@ -2549,6 +2549,11 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     if (target->getClass() == CLASS_WARRIOR)
                         target->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, apply);
                     return;
+                case 32567:                             // Green Banish State
+                {
+                    target->SetHover(apply);
+                    return;
+                }
                 case 35356:                                 // Spawn Feign Death
                 case 35357:                                 // Spawn Feign Death
                 {

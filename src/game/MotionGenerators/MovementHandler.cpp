@@ -425,6 +425,9 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket& recv_data)
 
     HandleMoverRelocation(movementInfo);
 
+    if (plMover->IsFreeFlying())
+        plMover->SetCanFly(true);
+
     WorldPacket data(MSG_MOVE_KNOCK_BACK, recv_data.size() + 15);
     data << mover->GetObjectGuid();
     data << movementInfo;

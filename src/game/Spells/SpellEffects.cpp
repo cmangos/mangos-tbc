@@ -1638,14 +1638,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastCustomSpell(unitTarget, 37675, &basepoints0, nullptr, nullptr, (TRIGGERED_OLD_TRIGGERED | TRIGGERED_IGNORE_HIT_CALCULATION));
                     return;
                 }
-                case 37906:                                 // Book of Fel Names
-                {
-                    if (!unitTarget)
-                        return;
-
-                    unitTarget->RemoveAurasDueToSpell(37905); // Remove Metamorphosis
-                    return;
-                }
                 case 38002:                                 // Fel Reaver Controller
                 case 38120:
                 case 38122:
@@ -2431,6 +2423,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(unitTarget, spellid, TRIGGERED_OLD_TRIGGERED, nullptr);
                     return;
                 }
+                case 36448:                                 // Focused Bursts
                 case 36475:                                 // Focused Bursts
                 {
                     if (!unitTarget || eff_idx != EFFECT_INDEX_0)

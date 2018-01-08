@@ -1437,9 +1437,6 @@ void Player::SetDeathState(DeathState s)
         // FIXME: is pet dismissed at dying or releasing spirit? if second, add SetDeathState(DEAD) to HandleRepopRequestOpcode and define pet unsummon here with (s == DEAD)
         RemovePet(PET_SAVE_REAGENTS);
 
-        // remove uncontrolled pets
-        RemoveMiniPet();
-
         // save value before aura remove in Unit::SetDeathState
         ressSpellId = GetUInt32Value(PLAYER_SELF_RES_SPELL);
 
@@ -1646,7 +1643,7 @@ ChatTagFlags Player::GetChatTag() const
 bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options /*=0*/, AreaTrigger const* at /*=nullptr*/)
 {
     // do not let charmed players/creatures teleport
-    if (isCharmed())
+    if (HasCharmer())
         return false;
 
     if (!MapManager::IsValidMapCoord(mapid, x, y, z, orientation))
@@ -1972,7 +1969,6 @@ void Player::RemoveFromWorld()
     {
         ///- Release charmed creatures, unsummon totems and remove pets/guardians
         UnsummonAllTotems();
-        RemoveMiniPet();
     }
 
     for (int i = PLAYER_SLOT_START; i < PLAYER_SLOT_END; ++i)
@@ -17036,20 +17032,6 @@ void Player::RemovePet(PetSaveMode mode)
     }
 }
 
-void Player::RemoveMiniPet()
-{
-    if (Pet* pet = GetMiniPet())
-        pet->Unsummon(PET_SAVE_AS_DELETED);
-}
-
-Pet* Player::GetMiniPet() const
-{
-    if (m_miniPetGuid.IsEmpty())
-        return nullptr;
-
-    return GetMap()->GetPet(m_miniPetGuid);
-}
-
 void Player::Say(const std::string& text, const uint32 language) const
 {
     WorldPacket data;
@@ -19726,7 +19708,7 @@ bool Player::IsClientControl(Unit const* target) const
 
     // If unit is possessed, it must be charmed by the player
     if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_POSSESSED))
-        return (target->GetCharmerGuid() == GetObjectGuid());
+        return target->HasCharmer(GetObjectGuid());
 
     // Players only have control over self by default
     return (target == this);

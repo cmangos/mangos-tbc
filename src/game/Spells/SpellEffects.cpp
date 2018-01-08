@@ -7408,12 +7408,6 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
 {
     MANGOS_ASSERT(!list.empty() && prop);
 
-    Player* casterPlayer = nullptr;
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-        return false;
-
-    casterPlayer = static_cast<Player*>(m_caster);
-
     // ATM only first position is supported for summoning
     uint32 pet_entry = m_spellInfo->EffectMiscValue[effIdx];
     CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(pet_entry);
@@ -7426,18 +7420,18 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     Pet* old_critter = m_caster->GetMiniPet();
 
     // for same pet just despawn (player unsummon command)
-    if (old_critter && old_critter->GetEntry() == pet_entry)
+    if (m_caster->GetTypeId() == TYPEID_PLAYER && old_critter && old_critter->GetEntry() == pet_entry)
     {
-        casterPlayer->RemoveMiniPet();
+        m_caster->RemoveMiniPet();
         return false;
     }
 
     // despawn old pet before summon new
     if (old_critter)
-        casterPlayer->RemoveMiniPet();
+        m_caster->RemoveMiniPet();
 
     // for (CreatureSummonPositions::iterator itr = list.begin(); itr != list.end(); ++itr)
-    CreatureCreatePos pos(casterPlayer->GetMap(), list[0].x, list[0].y, list[0].z, m_caster->GetOrientation());
+    CreatureCreatePos pos(m_caster->GetMap(), list[0].x, list[0].y, list[0].z, m_caster->GetOrientation());
 
     // summon new pet
     Pet* critter = new Pet(MINI_PET);
@@ -7468,9 +7462,9 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     if (m_duration > 0)                                     // set timer for unsummon
         critter->SetDuration(m_duration);
 
-    casterPlayer->_SetMiniPet(critter);
+    m_caster->SetMiniPet(critter);
 
-    if (casterPlayer->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         critter->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
         critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
@@ -7755,7 +7749,7 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
     {
         case GAMEOBJECT_TYPE_FISHINGNODE:
         {
-            m_caster->SetChannelObjectGuid(pGameObj->GetObjectGuid());
+            m_caster->SetChannelObject(pGameObj);
             m_caster->AddGameObject(pGameObj);              // will removed at spell cancel
 
             // end time of range when possible catch fish (FISHING_BOBBER_READY_TIME..GetDuration(m_spellInfo))

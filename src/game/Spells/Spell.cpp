@@ -1990,7 +1990,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 {
                     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX5_ALLOW_TARGET_OF_TARGET_AS_TARGET))
                     {
-                        if (Unit* targetOfUnitTarget = m_caster->GetMap()->GetUnit(unitTarget->GetTargetGuid()))
+                        if (Unit* targetOfUnitTarget = unitTarget->GetTarget(m_caster))
                         {
                             if (targetOfUnitTarget->IsFriendlyTo(m_caster))
                             {
@@ -2181,7 +2181,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_SINGLE_ENEMY:
         {
-            if (Unit* target = m_caster->GetMap()->GetUnit(m_caster->GetChannelObjectGuid()))
+            if (Unit* target = m_caster->GetChannelObject())
             {
                 if (Unit* pUnitTarget = m_caster->SelectMagnetTarget(target, this, effIndex))
                 {
@@ -3953,10 +3953,9 @@ void Spell::SendChannelUpdate(uint32 time, uint32 lastTick) const
         else
             m_caster->RemoveAurasByCasterSpell(m_spellInfo->Id, m_caster->GetObjectGuid());
 
-        ObjectGuid target_guid = m_caster->GetChannelObjectGuid();
-        if (target_guid != m_caster->GetObjectGuid() && target_guid.IsUnit())
+        if (!m_caster->HasChannelObject(m_caster->GetObjectGuid()))
         {
-            if (Unit* target = ObjectAccessor::GetUnit(*m_caster, target_guid))
+            if (Unit* target = m_caster->GetChannelObject())
             {
                 if (lastTick)
                 {
@@ -3975,7 +3974,7 @@ void Spell::SendChannelUpdate(uint32 time, uint32 lastTick) const
         if (m_caster->GetUInt32Value(UNIT_CHANNEL_SPELL) != m_spellInfo->Id)
             return;
 
-        m_caster->SetChannelObjectGuid(ObjectGuid());
+        m_caster->SetChannelObject(nullptr);
         m_caster->SetUInt32Value(UNIT_CHANNEL_SPELL, 0);
     }
 
@@ -4026,7 +4025,7 @@ void Spell::SendChannelStart(uint32 duration)
     m_timer = duration;
 
     if (target)
-        m_caster->SetChannelObjectGuid(target->GetObjectGuid());
+        m_caster->SetChannelObject(target);
 
     m_caster->SetUInt32Value(UNIT_CHANNEL_SPELL, m_spellInfo->Id);
 }
@@ -5066,7 +5065,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 Creature* target = (Creature*)m_targets.getUnitTarget();
 
-                if (target->IsPet() || target->isCharmed())
+                if (target->IsPet() || target->HasCharmer())
                 {
                     plrCaster->SendPetTameFailure(PETTAME_CREATUREALREADYOWNED);
                     return SPELL_FAILED_DONT_REPORT;
@@ -5084,7 +5083,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_DONT_REPORT;
                 }
 
-                if (plrCaster->GetPetGuid() || plrCaster->GetCharmGuid())
+                if (plrCaster->GetPetGuid() || plrCaster->HasCharm())
                 {
                     plrCaster->SendPetTameFailure(PETTAME_ANOTHERSUMMONACTIVE);
                     return SPELL_FAILED_DONT_REPORT;
@@ -5314,7 +5313,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                         if (m_caster->GetPetGuid())
                             return SPELL_FAILED_ALREADY_HAVE_SUMMON;
 
-                        if (m_caster->GetCharmGuid())
+                        if (m_caster->HasCharm())
                             return SPELL_FAILED_ALREADY_HAVE_CHARM;
                     }
                 }
@@ -5323,7 +5322,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_EFFECT_SUMMON_PET:
             {
-                if (m_caster->GetCharmGuid())
+                if (m_caster->HasCharm())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
                 uint32 plClass = m_caster->getClass();
@@ -5461,16 +5460,16 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (expectedTarget == m_caster)
                     return SPELL_FAILED_BAD_TARGETS;
 
-                if (m_caster->GetCharmGuid())
+                if (m_caster->HasCharm())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
-                if (m_caster->GetCharmerGuid())
+                if (m_caster->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
                 if (!expectedTarget)
                     return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
 
-                if (expectedTarget->GetCharmerGuid())
+                if (expectedTarget->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
                 if (int32(expectedTarget->getLevel()) > CalculateDamage(SpellEffectIndex(i), expectedTarget))
@@ -5483,16 +5482,16 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (expectedTarget == m_caster)
                     return SPELL_FAILED_BAD_TARGETS;
 
-                if (m_caster->GetCharmGuid())
+                if (m_caster->HasCharm())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
-                if (m_caster->GetCharmerGuid())
+                if (m_caster->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
                 if (!expectedTarget)
                     return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
 
-                if (expectedTarget->GetCharmerGuid())
+                if (expectedTarget->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
                 if (int32(expectedTarget->getLevel()) > CalculateDamage(SpellEffectIndex(i), expectedTarget))
@@ -5505,17 +5504,17 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (m_caster->GetTypeId() != TYPEID_PLAYER)
                     return SPELL_FAILED_UNKNOWN;
 
-                if (m_caster->GetCharmGuid())
+                if (m_caster->HasCharm())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
-                if (m_caster->GetCharmerGuid())
+                if (m_caster->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
                 Pet* pet = m_caster->GetPet();
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                if (pet->GetCharmerGuid())
+                if (pet->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
                 break;
@@ -5634,7 +5633,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (m_caster->GetTypeId() == TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX2_TAME_BEAST))
     {
         Player* player = (Player*)m_caster;
-        if (player->GetPetGuid() || player->GetCharmGuid())
+        if (player->GetPetGuid() || player->HasCharm())
         {
             player->SendPetTameFailure(PETTAME_ANOTHERSUMMONACTIVE);
             return SPELL_FAILED_DONT_REPORT;
@@ -5664,7 +5663,7 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
     if (m_caster->isInCombat() && IsNonCombatSpell(m_spellInfo))
         return SPELL_FAILED_AFFECTING_COMBAT;
 
-    if (m_caster->GetTypeId() == TYPEID_UNIT && (((Creature*)m_caster)->IsPet() || m_caster->isCharmed()))
+    if (m_caster->GetTypeId() == TYPEID_UNIT && (((Creature*)m_caster)->IsPet() || m_caster->HasCharmer()))
     {
         // dead owner (pets still alive when owners ressed?)
         if (m_caster->GetMaster() && !m_caster->GetMaster()->isAlive())

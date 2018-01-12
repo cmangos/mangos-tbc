@@ -6081,7 +6081,7 @@ Unit* Unit::GetCharm(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = ObjectAccessor::GetUnit((pov ? *pov : *this), guid))
             return unit;
         // Bugcheck
-        sLog.outError("Unit::GetCharm: Object guid field management continuity violation, charmed unit with guid %s does not exist.", guid.GetString().c_str());
+        sLog.outDebug("Unit::GetCharm: Object guid field management continuity violation, charmed unit with guid %s does not exist.", guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetCharm(nullptr);
     }
     return nullptr;
@@ -6094,7 +6094,7 @@ Unit* Unit::GetCharmer(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = ObjectAccessor::GetUnit((pov ? *pov : *this), guid))
             return unit;
         // Bugcheck
-        sLog.outError("Unit::GetCharmer: Object guid field management continuity violation, charmer unit with guid %s does not exist.", guid.GetString().c_str());
+        sLog.outDebug("Unit::GetCharmer: Object guid field management continuity violation, charmer unit with guid %s does not exist.", guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetCharmer(nullptr);
     }
     return nullptr;
@@ -6107,7 +6107,7 @@ Unit* Unit::GetCreator(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = ObjectAccessor::GetUnit((pov ? *pov : *this), guid))
             return unit;
         // Bugcheck
-        sLog.outError("Unit::GetCreator: Object guid field management continuity violation, creator unit with guid %s does not exist.", guid.GetString().c_str());
+        sLog.outDebug("Unit::GetCreator: Object guid field management continuity violation, creator unit with guid %s does not exist.", guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetCreator(nullptr);
     }
     return nullptr;
@@ -6120,7 +6120,7 @@ Unit* Unit::GetTarget(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = ObjectAccessor::GetUnit((pov ? *pov : *this), guid))
             return unit;
         // Bugcheck
-        sLog.outError("Unit::GetTarget: Object guid field management continuity violation, target unit with guid %s does not exist.", guid.GetString().c_str());
+        sLog.outDebug("Unit::GetTarget: Object guid field management continuity violation, target unit with guid %s does not exist.", guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetTarget(nullptr);
     }
     return nullptr;
@@ -6133,7 +6133,7 @@ Unit* Unit::GetChannelObject(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = ObjectAccessor::GetUnit((pov ? *pov : *this), guid))
             return unit;
         // Bugcheck
-        sLog.outError("Unit::GetChannelObject: Object guid field management continuity violation, channel unit with guid %s does not exist.", guid.GetString().c_str());
+        sLog.outDebug("Unit::GetChannelObject: Object guid field management continuity violation, channel unit with guid %s does not exist.", guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetChannelObject(nullptr);
     }
     return nullptr;
@@ -6165,7 +6165,7 @@ Unit* Unit::GetSpawner(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = ObjectAccessor::GetUnit((pov ? *pov : *this), guid))
             return unit;
         // Bugcheck
-        sLog.outError("Unit::GetSpawner: Object guid field management continuity violation, spawner unit with guid %s does not exist.", guid.GetString().c_str());
+        sLog.outDebug("Unit::GetSpawner: Object guid field management continuity violation, spawner unit with guid %s does not exist.", guid.GetString().c_str());
     }
     return nullptr;
 }

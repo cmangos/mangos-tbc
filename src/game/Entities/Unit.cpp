@@ -6079,6 +6079,8 @@ Unit* Unit::GetCharm(WorldObject const* pov /*= nullptr*/) const
     if (ObjectGuid const& guid = GetCharmGuid())
     {
         WorldObject const* accessor = (pov ? pov : this);
+        if (!accessor->IsInWorld())
+            return nullptr;
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6094,6 +6096,8 @@ Unit* Unit::GetCharmer(WorldObject const* pov /*= nullptr*/) const
     if (ObjectGuid const& guid = GetCharmerGuid())
     {
         WorldObject const* accessor = (pov ? pov : this);
+        if (!accessor->IsInWorld())
+            return nullptr;
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6109,6 +6113,8 @@ Unit* Unit::GetCreator(WorldObject const* pov /*= nullptr*/) const
     if (ObjectGuid const& guid = GetCreatorGuid())
     {
         WorldObject const* accessor = (pov ? pov : this);
+        if (!accessor->IsInWorld())
+            return nullptr;
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6124,6 +6130,8 @@ Unit* Unit::GetTarget(WorldObject const* pov /*= nullptr*/) const
     if (ObjectGuid const& guid = GetTargetGuid())
     {
         WorldObject const* accessor = (pov ? pov : this);
+        if (!accessor->IsInWorld())
+            return nullptr;
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6139,6 +6147,8 @@ Unit* Unit::GetChannelObject(WorldObject const* pov /*= nullptr*/) const
     if (ObjectGuid const& guid = GetChannelObjectGuid())
     {
         WorldObject const* accessor = (pov ? pov : this);
+        if (!accessor->IsInWorld())
+            return nullptr;
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6173,6 +6183,8 @@ Unit* Unit::GetSpawner(WorldObject const* pov /*= nullptr*/) const
     if (ObjectGuid const& guid = GetSpawnerGuid())
     {
         WorldObject const* accessor = (pov ? pov : this);
+        if (!accessor->IsInWorld())
+            return nullptr;
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck

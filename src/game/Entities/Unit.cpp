@@ -6080,7 +6080,19 @@ Unit* Unit::GetCharm(WorldObject const* pov /*= nullptr*/) const
     {
         WorldObject const* accessor = (pov ? pov : this);
         if (!accessor->IsInWorld())
+        {
+            // If this is a pet and not placed on any map yet (loading), we have to look for a player within world globally in all maps
+            if (guid.IsPlayer() && accessor->GetTypeId() == TYPEID_UNIT)
+            {
+                if (static_cast<Creature const*>(accessor)->IsPet() && static_cast<Pet const*>(accessor)->isLoading())
+                    return ObjectAccessor::FindPlayer(guid);
+            }
+            // Bugcheck
+            sLog.outDebug("Unit::GetCharm: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+                          GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
             return nullptr;
+        }
+        // We need a unit in the same map only
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6097,7 +6109,19 @@ Unit* Unit::GetCharmer(WorldObject const* pov /*= nullptr*/) const
     {
         WorldObject const* accessor = (pov ? pov : this);
         if (!accessor->IsInWorld())
+        {
+            // If this is a pet and not placed on any map yet (loading), we have to look for a player within world globally in all maps
+            if (guid.IsPlayer() && accessor->GetTypeId() == TYPEID_UNIT)
+            {
+                if (static_cast<Creature const*>(accessor)->IsPet() && static_cast<Pet const*>(accessor)->isLoading())
+                    return ObjectAccessor::FindPlayer(guid);
+            }
+            // Bugcheck
+            sLog.outDebug("Unit::GetCharmer: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+                          GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
             return nullptr;
+        }
+        // We need a unit in the same map only
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6114,7 +6138,19 @@ Unit* Unit::GetCreator(WorldObject const* pov /*= nullptr*/) const
     {
         WorldObject const* accessor = (pov ? pov : this);
         if (!accessor->IsInWorld())
+        {
+            // If this is a pet and not placed on any map yet (loading), we have to look for a player within world globally in all maps
+            if (guid.IsPlayer() && accessor->GetTypeId() == TYPEID_UNIT)
+            {
+                if (static_cast<Creature const*>(accessor)->IsPet() && static_cast<Pet const*>(accessor)->isLoading())
+                    return ObjectAccessor::FindPlayer(guid);
+            }
+            // Bugcheck
+            sLog.outDebug("Unit::GetCreator: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+                          GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
             return nullptr;
+        }
+        // We need a unit in the same map only
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6131,7 +6167,19 @@ Unit* Unit::GetTarget(WorldObject const* pov /*= nullptr*/) const
     {
         WorldObject const* accessor = (pov ? pov : this);
         if (!accessor->IsInWorld())
+        {
+            // If this is a pet and not placed on any map yet (loading), we have to look for a player within world globally in all maps
+            if (guid.IsPlayer() && accessor->GetTypeId() == TYPEID_UNIT)
+            {
+                if (static_cast<Creature const*>(accessor)->IsPet() && static_cast<Pet const*>(accessor)->isLoading())
+                    return ObjectAccessor::FindPlayer(guid);
+            }
+            // Bugcheck
+            sLog.outDebug("Unit::GetTarget: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+                          GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
             return nullptr;
+        }
+        // We need a unit in the same map only
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6148,7 +6196,19 @@ Unit* Unit::GetChannelObject(WorldObject const* pov /*= nullptr*/) const
     {
         WorldObject const* accessor = (pov ? pov : this);
         if (!accessor->IsInWorld())
+        {
+            // If this is a pet and not placed on any map yet (loading), we have to look for a player within world globally in all maps
+            if (guid.IsPlayer() && accessor->GetTypeId() == TYPEID_UNIT)
+            {
+                if (static_cast<Creature const*>(accessor)->IsPet() && static_cast<Pet const*>(accessor)->isLoading())
+                    return ObjectAccessor::FindPlayer(guid);
+            }
+            // Bugcheck
+            sLog.outDebug("Unit::GetChannelObject: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+                          GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
             return nullptr;
+        }
+        // We need a unit in the same map only
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
@@ -6184,7 +6244,19 @@ Unit* Unit::GetSpawner(WorldObject const* pov /*= nullptr*/) const
     {
         WorldObject const* accessor = (pov ? pov : this);
         if (!accessor->IsInWorld())
+        {
+            // If this is a pet and not placed on any map yet (loading), we have to look for a player within world globally in all maps
+            if (guid.IsPlayer() && accessor->GetTypeId() == TYPEID_UNIT)
+            {
+                if (static_cast<Creature const*>(accessor)->IsPet() && static_cast<Pet const*>(accessor)->isLoading())
+                    return ObjectAccessor::FindPlayer(guid);
+            }
+            // Bugcheck
+            sLog.outDebug("Unit::GetSpawner: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+                          GetObjectGuid().GetString().c_str(), guid.GetString().c_str());
             return nullptr;
+        }
+        // We need a unit in the same map only
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck

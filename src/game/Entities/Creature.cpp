@@ -139,7 +139,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_isDeadByDefault(false), m_temporaryFactionFlags(TEMPFACTION_NONE),
     m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL), m_originalEntry(0),
     m_gameEventVendorId(0), m_ai(nullptr), m_isInvisible(false),
-    m_ignoreMMAP(false), m_creatureInfo(nullptr), m_ignoreRangedTargets(false), m_countSpawns(false)
+    m_ignoreMMAP(false), m_creatureInfo(nullptr), m_forceAttackingCapability(false), m_ignoreRangedTargets(false), m_countSpawns(false)
 {
     m_regenTimer = 200;
     m_valuesCount = UNIT_END;
@@ -375,6 +375,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
 
     SetCanParry(!(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_PARRY));
     SetCanBlock(!(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_BLOCK));
+    SetForceAttackingCapability((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_FORCE_ATTACKING_CAPABILITY));
 
     return true;
 }
@@ -2001,7 +2002,7 @@ bool Creature::CanInitiateAttack() const
     if (hasUnitState(UNIT_STAT_STUNNED | UNIT_STAT_FEIGN_DEATH))
         return false;
 
-    if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE))
+    if (!m_forceAttackingCapability && HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_SELECTABLE))
         return false;
 
     if (m_aggroDelay != 0)

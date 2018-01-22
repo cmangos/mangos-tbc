@@ -2935,3 +2935,10 @@ void Creature::SetBaseRunSpeed(float speed)
     }
 }
 
+void Creature::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
+{
+    if (GetCreatureInfo()->MechanicImmuneMask & (1 << (MECHANIC_SILENCE - 1)))
+        return;
+
+    WorldObject::LockOutSpells(schoolMask, duration);
+}

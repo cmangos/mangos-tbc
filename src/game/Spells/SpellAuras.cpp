@@ -3401,7 +3401,7 @@ void Aura::HandleModPossess(bool apply, bool Real)
         if (caster->GetTypeId() == TYPEID_PLAYER)
         {
             //remove any existing charm just in case
-            caster->Uncharm();
+            caster->BreakCharmOutgoing();
 
             //pets should be removed when possesing a target if somehow check was bypassed
             ((Player*)caster)->UnsummonPetIfAny();
@@ -3436,7 +3436,7 @@ void Aura::HandleModPossessPet(bool apply, bool Real)
         if (caster->GetTypeId() == TYPEID_PLAYER)
         {
             //remove any existing charm just in case
-            caster->Uncharm();
+            caster->BreakCharmOutgoing();
         }
 
         caster->TakePossessOf(target);
@@ -3467,7 +3467,7 @@ void Aura::HandleModCharm(bool apply, bool Real)
         if (playerCaster)
         {
             //remove any existing charm just in case
-            playerCaster->Uncharm();
+            playerCaster->BreakCharmOutgoing();
         }
         caster->TakeCharmOf(target);
     }

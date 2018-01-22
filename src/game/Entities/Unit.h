@@ -1791,8 +1791,6 @@ class Unit : public WorldObject
         // Controlling client: server PoV on which client (player) controls movement of the unit at the moment, obtain "mover" (server-side)
         Player const* GetControllingClientPlayer() const;
 
-        virtual void Uncharm();
-
         Pet* GetPet() const;
         void SetPet(Unit* pet) { SetPetGuid(pet ? pet->GetObjectGuid() : ObjectGuid()); }
 
@@ -2221,6 +2219,12 @@ class Unit : public WorldObject
 
         // Take charm of an unit
         bool TakeCharmOf(Unit* charmed);
+
+        // Break own charm spells on a specific charmed unit (or a charm field by default)
+        void BreakCharmOutgoing(Unit* charmed = nullptr);
+
+        // Break charm spells from current charmer
+        void BreakCharmIncoming();
 
         // Reset control to player
         void ResetControlState(bool attackCharmer = true);

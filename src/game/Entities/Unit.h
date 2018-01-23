@@ -2218,12 +2218,15 @@ class Unit : public WorldObject
         Unit* TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry const* summonProp, uint32 effIdx, float x, float y, float z, float ang);
 
         // Take charm of an unit
-        bool TakeCharmOf(Unit* charmed);
+        bool TakeCharmOf(Unit* charmed, bool advertised = true);
 
-        // Break own charm spells on a specific charmed unit (or a charm field by default)
-        void BreakCharmOutgoing(Unit* charmed = nullptr);
+        // Break own charm effects on a specific charmed unit
+        void BreakCharmOutgoing(Unit* charmed);
 
-        // Break charm spells from current charmer
+        // Break own charm effects on all charmed units or advertised charm field only
+        void BreakCharmOutgoing(bool advertisedOnly = false);
+
+        // Break charm effects from current charmer
         void BreakCharmIncoming();
 
         // Uncharm (physically revert the charm effect) the unit and reset player control if required
@@ -2342,6 +2345,7 @@ class Unit : public WorldObject
 
         Unit* _GetTotem(TotemSlot slot) const;              // for templated function without include need
         Pet* _GetPet(ObjectGuid guid) const;                // for templated function without include need
+        Unit* _GetUnit(ObjectGuid guid) const;              // for templated function without include need
 
         // Wrapper called by DealDamage when a creature is killed
         void JustKilledCreature(Creature* victim, Player* responsiblePlayer);
@@ -2367,6 +2371,8 @@ class Unit : public WorldObject
         ObjectGuid m_critterGuid;                           // pre-WotLK critter compatibility field
 
         GuidSet m_guardianPets;
+
+        GuidSet m_charmedUnitsPrivate;                      // stores non-advertised active charmed unit guids (e.g. aoe charms)
 
         ObjectGuid m_TotemSlot[MAX_TOTEM_SLOT];
 
@@ -2420,8 +2426,14 @@ void Unit::CallForAllControlledUnits(Func const& func, uint32 controlledMask)
     }
 
     if (controlledMask & CONTROLLED_CHARM)
+    {
         if (Unit* charm = GetCharm())
             func(charm);
+
+        for (GuidSet::const_iterator itr = m_charmedUnitsPrivate.begin(); itr != m_charmedUnitsPrivate.end();)
+            if (Unit* charmed = _GetUnit(*(itr++)))
+                func(charmed);
+    }
 }
 
 
@@ -2455,9 +2467,16 @@ bool Unit::CheckAllControlledUnits(Func const& func, uint32 controlledMask) cons
     }
 
     if (controlledMask & CONTROLLED_CHARM)
+    {
         if (Unit const* charm = GetCharm())
             if (func(charm))
                 return true;
+
+        for (GuidSet::const_iterator itr = m_charmedUnitsPrivate.begin(); itr != m_charmedUnitsPrivate.end();)
+            if (Unit const* charmed = _GetUnit(*(itr++)))
+                if (func(charmed))
+                    return true;
+    }
 
     return false;
 }

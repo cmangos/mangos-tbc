@@ -6266,6 +6266,13 @@ Unit* Unit::GetSpawner(WorldObject const* pov /*= nullptr*/) const
     return nullptr;
 }
 
+Unit* Unit::_GetUnit(ObjectGuid guid) const
+{
+    if (Map* map = GetMap())
+        return map->GetUnit(guid);
+    return nullptr;
+}
+
 Pet* Unit::GetPet() const
 {
     if (ObjectGuid pet_guid = GetPetGuid())
@@ -10806,6 +10813,10 @@ void Unit::DisableSpline()
 // This will create a new creature and set the current unit as the controller of that new creature
 Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry const* summonProp, uint32 effIdx, float x, float y, float z, float ang)
 {
+    // Possess is a unique advertised charm, another advertised charm already exists: we should get rid of it first
+    if (HasCharm())
+        return nullptr;
+
     int32 const& creatureEntry = spellEntry->EffectMiscValue[effIdx];
     CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(creatureEntry);
     if (!cinfo)
@@ -10855,6 +10866,8 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
     // Give the control to the player
     if (player)
     {
+        player->UnsummonPetTemporaryIfAny();
+
         player->GetCamera().SetView(pCreature);                         // modify camera view to the creature view
         // Force client control (required to function propely)
         player->UpdateClientControl(pCreature, true, true);             // transfer client control to the creature after altering flags
@@ -10862,9 +10875,6 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
         player->SendForcedObjectUpdate();                               // we have to update client data here to avoid problem with the "release spirit" windows reappear.
 
         pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED); // this seem to be needed for controlled creature (else cannot attack neutral creature)
-
-        // player pet is unsumoned while possessing
-        player->UnsummonPetTemporaryIfAny();
     }
 
     // init CharmInfo class that will hold charm data
@@ -10895,9 +10905,14 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
 
 bool Unit::TakePossessOf(Unit* possessed)
 {
-    Player* player = nullptr;
-    if (GetTypeId() == TYPEID_PLAYER)
-        player = static_cast<Player*>(this);
+    // Possess is a unique advertised charm, another advertised charm already exists: we should get rid of it first
+    if (HasCharm())
+        return false;
+
+    Player* player = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
+
+    if (player)
+        player->UnsummonPetTemporaryIfAny();
 
     // Update possessed's client control status before altering flags
     if (const Player* controllingClientPlayer = possessed->GetControllingClientPlayer())
@@ -10974,17 +10989,12 @@ bool Unit::TakePossessOf(Unit* possessed)
     return true;
 }
 
-bool Unit::TakeCharmOf(Unit* charmed)
+bool Unit::TakeCharmOf(Unit* charmed, bool advertised /*= true*/)
 {
+    Player* charmerPlayer = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
 
-    Player* charmerPlayer = nullptr;
-    if (GetTypeId() == TYPEID_PLAYER)
-    {
-        charmerPlayer = static_cast<Player*>(this);
-
-        // player pet is unsmumoned while possessing
+    if (charmerPlayer && advertised)
         charmerPlayer->UnsummonPetTemporaryIfAny();
-    }
 
     // Update charmed's client control status before altering flags
     if (const Player* controllingClientPlayer = charmed->GetControllingClientPlayer())
@@ -10995,7 +11005,15 @@ bool Unit::TakeCharmOf(Unit* charmed)
     charmed->ClearInCombat();
 
     charmed->SetCharmerGuid(GetObjectGuid());
-    SetCharm(charmed);
+    if (advertised)
+    {
+        // If an advertised charm already exists: offload and overwrite
+        if (const ObjectGuid &charmGuid = GetCharmGuid())
+            m_charmedUnitsPrivate.insert(charmGuid);
+        SetCharmGuid(charmed->GetObjectGuid());
+    }
+    else
+        m_charmedUnitsPrivate.insert(charmed->GetObjectGuid());
 
     CharmInfo* charmInfo = charmed->InitCharmInfo(charmed);
 
@@ -11036,6 +11054,10 @@ bool Unit::TakeCharmOf(Unit* charmed)
             // without this charmed unit will not be able to attack neutral target
             charmed->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
 
+            // Skip all remaining actions if this is a private charm (no ui or bars whatsoever)
+            if (!advertised)
+                return true;
+
             if (getClass() == CLASS_WARLOCK)
             {
                 CreatureInfo const* cinfo = charmedCreature->GetCreatureInfo();
@@ -11061,17 +11083,14 @@ bool Unit::TakeCharmOf(Unit* charmed)
         }
     }
 
-    if (charmerPlayer)
+    if (charmerPlayer && advertised)
         charmerPlayer->CharmSpellInitialize();
 
     return true;
 }
 
-void Unit::BreakCharmOutgoing(Unit* charmed /*=nullptr*/)
+void Unit::BreakCharmOutgoing(Unit* charmed)
 {
-    // If no pointer was provided, probe own charm field
-    charmed = (charmed ? charmed : GetCharm());
-
     // Cache our own guid
     const ObjectGuid &guid = GetObjectGuid();
 
@@ -11097,6 +11116,32 @@ void Unit::BreakCharmOutgoing(Unit* charmed /*=nullptr*/)
     }
 }
 
+void Unit::BreakCharmOutgoing(bool advertisedOnly /*= false*/)
+{
+    // Always break charm on the unit advertised in own charm field
+    BreakCharmOutgoing(GetCharm());
+
+    // If set, do not break non-advertised charms (such as aoe charms)
+    if (advertisedOnly)
+        return;
+
+    // Proceed breaking the rest of charms
+    if (Map* map = GetMap())
+    {
+        while (!m_charmedUnitsPrivate.empty())
+        {
+            const ObjectGuid &guid = (*m_charmedUnitsPrivate.begin());
+
+            if (Unit* unit = map->GetUnit(guid))
+                // Erase is performed further down the line
+                BreakCharmOutgoing(unit);
+            else
+                // Erase it from the container if somehow does not exist / is inaccesible anymore
+                m_charmedUnitsPrivate.erase(guid);
+        }
+    }
+}
+
 void Unit::BreakCharmIncoming()
 {
     if (Unit* charmer = GetCharmer())
@@ -11111,8 +11156,14 @@ void Unit::Uncharm(Unit* charmed)
     if (!charmed || !charmed->HasCharmer(GetObjectGuid()))
         return;
 
+    // Cache the guid of the charmed unit
+    const ObjectGuid charmedGuid = charmed->GetObjectGuid();
+
     // Detect if the charm is the possessing charm
     const bool possess = charmed->hasUnitState(UNIT_STAT_POSSESSED);
+
+    // Detect if this charm is advertised in own charm field (public) or a private one
+    const bool advertised = HasCharm(charmedGuid);
 
     if (possess)
     {
@@ -11120,9 +11171,10 @@ void Unit::Uncharm(Unit* charmed)
         charmed->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_POSSESSED);
     }
     charmed->SetCharmerGuid(ObjectGuid());
-    // Detect if this charm is advertised in own charm field and then clear it
-    if (GetCharmGuid() == charmed->GetObjectGuid())
+    if (advertised)
         SetCharmGuid(ObjectGuid());
+    else
+        m_charmedUnitsPrivate.erase(charmedGuid);
 
     // may be not correct we have to remove only some generator taking account of the current situation
     charmed->StopMoving(true);
@@ -11229,14 +11281,17 @@ void Unit::Uncharm(Unit* charmed)
             player->SetMover(player);
         }
 
-        // player pet can be re summoned here
-        player->ResummonPetTemporaryUnSummonedIfAny();
+        // Player pet can be re-summoned here
+        if (advertised)
+        {
+            player->ResummonPetTemporaryUnSummonedIfAny();
 
-        // remove pet bar only if no pet
-        if (!player->GetPet())
-            player->RemovePetActionBar();
-        else
-            player->PetSpellInitialize();   // reset spell on pet bar
+            // remove pet bar only if no pet
+            if (!player->GetPet())
+                player->RemovePetActionBar();
+            else
+                player->PetSpellInitialize();   // reset spell on pet bar
+        }
     }
 
     // be sure all those change will be made for clients

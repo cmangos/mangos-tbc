@@ -525,10 +525,11 @@ struct npc_doctorAI : public ScriptedAI
 
 struct npc_injured_patientAI : public ScriptedAI
 {
-    npc_injured_patientAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+    npc_injured_patientAI(Creature* pCreature) : ScriptedAI(pCreature), isSaved(false) {Reset();}
 
     ObjectGuid m_doctorGuid;
     Location* m_pCoord;
+    bool isSaved;
 
     void Reset() override
     {
@@ -587,6 +588,7 @@ struct npc_injured_patientAI : public ScriptedAI
             }
 
             m_creature->SetWalk(false);
+            isSaved = true;
 
             switch (m_creature->GetEntry())
             {
@@ -608,7 +610,8 @@ struct npc_injured_patientAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (m_creature->hasUnitState(UNIT_FLAG_NOT_SELECTABLE))
+        // Don't reduce health if already healed
+        if (m_creature->hasUnitState(UNIT_FLAG_NOT_SELECTABLE) || isSaved)
             return;
 
         // lower HP on every world tick makes it a useful counter, not officlone though

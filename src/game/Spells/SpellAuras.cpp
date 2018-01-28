@@ -6276,7 +6276,7 @@ void Aura::PeriodicTick()
             if (target != pCaster && spellProto->SpellVisual == 163 && !pCaster->isAlive())
                 return;
 
-            if (target->IsImmuneToSpell(spellProto, pCaster == target))
+            if (target->IsImmuneToSchool(spellProto))
                 return;
 
             // ignore non positive values (can be result apply spellmods to aura damage

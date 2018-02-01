@@ -475,6 +475,7 @@ class Spell
         SpellCastTargets m_targets;
 
         // Trigger flag system
+        bool m_IsTriggeredSpell;
         bool m_ignoreHitResult;
         bool m_ignoreCastTime;
         bool m_ignoreUnselectableTarget;
@@ -705,7 +706,7 @@ class Spell
         float m_castPositionY;
         float m_castPositionZ;
         float m_castOrientation;
-        bool m_IsTriggeredSpell;
+
         uint32 m_affectedTargetCount;
 
         // if need this can be replaced by Aura copy

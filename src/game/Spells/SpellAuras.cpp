@@ -367,6 +367,14 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* currentBas
                 }
             }
         }
+
+        // scripting location for custom aura damage
+        switch (spellproto->Id)
+        {
+            case 34501: // Expose Weakness
+                damage = (caster->GetStat(STAT_AGILITY) * damage) / 100;
+                break;
+        }
     }
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura: construct Spellid : %u, Aura : %u Target : %d Damage : %d", spellproto->Id, spellproto->EffectApplyAuraName[eff], spellproto->EffectImplicitTargetA[eff], damage);

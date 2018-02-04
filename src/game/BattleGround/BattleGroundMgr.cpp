@@ -2147,7 +2147,6 @@ bool BattleGroundQueue::CFBGGroupInserter(BattleGround* bg, BattleGroundBracketI
 
     if (MinPlayers)
     {
-        // Empty selection pools.
         m_SelectionPools[TEAM_INDEX_ALLIANCE].Init();
         m_SelectionPools[TEAM_INDEX_HORDE].Init();
     }

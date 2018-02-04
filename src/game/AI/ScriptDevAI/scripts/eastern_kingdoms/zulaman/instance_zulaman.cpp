@@ -25,7 +25,7 @@ EndScriptData */
 #include "zulaman.h"
 
 instance_zulaman::instance_zulaman(Map* pMap) : ScriptedInstance(pMap),
-    m_uiEventTimer(MINUTE* IN_MILLISECONDS),
+    m_uiEventTimer(MINUTE * IN_MILLISECONDS),
     m_uiGongCount(0),
     m_uiBearEventPhase(0),
     m_bIsBearPhaseInProgress(false)
@@ -75,7 +75,7 @@ void instance_zulaman::OnCreatureCreate(Creature* pCreature)
         case NPC_EAGLE_SPIRIT:
         case NPC_LYNX_SPIRIT:
         case NPC_DRAGONHAWK_SPIRIT:
-            // Insert Malacrass companions here for better handling
+        // Insert Malacrass companions here for better handling
         case NPC_ALYSON:
         case NPC_THURG:
         case NPC_SLITHER:
@@ -84,7 +84,7 @@ void instance_zulaman::OnCreatureCreate(Creature* pCreature)
         case NPC_FENSTALKER:
         case NPC_DARKHEART:
         case NPC_KORAGG:
-            m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
 
         case NPC_TANZAR:      m_aEventNpcInfo[INDEX_NALORAKK].npGuid = pCreature->GetObjectGuid(); break;
@@ -191,7 +191,7 @@ void instance_zulaman::OnObjectCreate(GameObject* pGo)
         default:
             return;
     }
-    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+    m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
 void instance_zulaman::SetData(uint32 uiType, uint32 uiData)

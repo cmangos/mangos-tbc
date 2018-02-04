@@ -55,6 +55,9 @@ enum
     SPELL_TARGET_GAMMA              = 36858,
     SPELL_SIMPLE_TELEPORT           = 12980,
     SPELL_MIND_REND                 = 36859,
+    SPELL_QUIET_SUICIDE             = 3617,
+
+    QUEST_TRIAL_OF_THE_NAARU_TENACITY = 10886,
 };
 
 static const DialogueEntry aArcatrazDialogue[] =
@@ -132,7 +135,7 @@ void instance_arcatraz::OnObjectCreate(GameObject* pGo)
         default:
             return;
     }
-    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+    m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
 void instance_arcatraz::OnCreatureCreate(Creature* pCreature)
@@ -142,7 +145,7 @@ void instance_arcatraz::OnCreatureCreate(Creature* pCreature)
         case NPC_SKYRISS:
         case NPC_MILLHOUSE:
             m_lSkyrissEventMobsGuidList.push_back(pCreature->GetObjectGuid());
-            // no break here because we want them in both lists
+        // no break here because we want them in both lists
         case NPC_PRISON_APHPA_POD:
         case NPC_PRISON_BETA_POD:
         case NPC_PRISON_DELTA_POD:
@@ -151,7 +154,10 @@ void instance_arcatraz::OnCreatureCreate(Creature* pCreature)
         case NPC_MELLICHAR:
         case NPC_DALLIAH:
         case NPC_SOCCOTHRATES:
-            m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            break;
+        case NPC_WRATH_SCRYER_FELFIRE:
+            m_npcEntryGuidCollection[pCreature->GetEntry()].push_back(pCreature->GetObjectGuid());
             break;
         case NPC_BLAZING_TRICKSTER:
         case NPC_PHASE_HUNTER:
@@ -234,7 +240,20 @@ void instance_arcatraz::SetData(uint32 uiType, uint32 uiData)
             if (uiData == DONE)
             {
                 if (Creature* pMillhouse = GetSingleCreatureFromStorage(NPC_MILLHOUSE))
+                {
                     DoScriptText(SAY_MILLHOUSE_COMPLETE, pMillhouse);
+                    if (!instance->IsRegularDifficulty())
+                    {
+                        Map::PlayerList const& PlayerList = instance->GetPlayers();
+
+                        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+                        {
+                            Player* pPlayer = itr->getSource();
+                            if (pPlayer && pPlayer->GetQuestStatus(QUEST_TRIAL_OF_THE_NAARU_TENACITY) == QUEST_STATUS_INCOMPLETE)
+                                pPlayer->AreaExploredOrEventHappens(QUEST_TRIAL_OF_THE_NAARU_TENACITY);
+                        }
+                    }
+                }
             }
             m_auiEncounter[3] = uiData;
             break;
@@ -399,7 +418,8 @@ void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
             if (Creature* pSkyriss = GetSingleCreatureFromStorage(NPC_SKYRISS))
             {
                 pSkyriss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                pMellichar->DealDamage(pMellichar, pMellichar->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+                pSkyriss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                pMellichar->CastSpell(pMellichar, SPELL_QUIET_SUICIDE, TRIGGERED_NONE);
             }
             DoUseDoorOrButton(GO_SEAL_SPHERE);
             break;

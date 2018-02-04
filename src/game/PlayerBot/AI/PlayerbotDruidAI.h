@@ -93,131 +93,132 @@ enum DruidSpells
 
 class PlayerbotDruidAI : PlayerbotClassAI
 {
-public:
-    PlayerbotDruidAI(Player * const master, Player * const bot, PlayerbotAI * const ai);
-    virtual ~PlayerbotDruidAI();
+    public:
+        PlayerbotDruidAI(Player* const master, Player* const bot, PlayerbotAI* const ai);
+        virtual ~PlayerbotDruidAI();
 
-    // all combat actions go here
-    CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
-    CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
-    bool Pull();
-    uint32 Neutralize(uint8 creatureType);
+        // all combat actions go here
+        CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
+        CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+        bool Pull();
+        uint32 Neutralize(uint8 creatureType);
 
-    // all non combat actions go here, ex buffs, heals, rezzes
-    void DoNonCombatActions();
+        // all non combat actions go here, ex buffs, heals, rezzes
+        void DoNonCombatActions();
 
-    // Utility Functions
-    bool CanPull();
-    bool CastHoTOnTank();
+        // Utility Functions
+        bool CanPull();
+        bool CastHoTOnTank();
 
-private:
-    CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
-    CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
-    CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
-    CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
+    private:
+        CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);
+        CombatManeuverReturns DoNextCombatManeuverPVE(Unit* pTarget);
+        CombatManeuverReturns DoFirstCombatManeuverPVP(Unit* pTarget);
+        CombatManeuverReturns DoNextCombatManeuverPVP(Unit* pTarget);
 
-    CombatManeuverReturns CastSpell(uint32 nextAction, Unit *pTarget = nullptr) { return CastSpellNoRanged(nextAction, pTarget); }
+        CombatManeuverReturns CastSpell(uint32 nextAction, Unit* pTarget = nullptr) { return CastSpellNoRanged(nextAction, pTarget); }
 
-    // Combat Maneuver helper functions
-    CombatManeuverReturns _DoNextPVECombatManeuverBear(Unit* pTarget);
-    CombatManeuverReturns _DoNextPVECombatManeuverCat(Unit* pTarget);
-    CombatManeuverReturns _DoNextPVECombatManeuverSpellDPS(Unit* pTarget);
-    CombatManeuverReturns _DoNextPVECombatManeuverHeal();
+        // Combat Maneuver helper functions
+        CombatManeuverReturns _DoNextPVECombatManeuverBear(Unit* pTarget);
+        CombatManeuverReturns _DoNextPVECombatManeuverCat(Unit* pTarget);
+        CombatManeuverReturns _DoNextPVECombatManeuverSpellDPS(Unit* pTarget);
+        CombatManeuverReturns _DoNextPVECombatManeuverHeal();
 
-    // Heals the target based off its hps
-    CombatManeuverReturns HealPlayer (Player* target);
+        // Heals the target based off its hps
+        CombatManeuverReturns HealPlayer(Player* target);
 
-    static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit *target);
-    // Callback method to reset shapeshift forms blocking buffs and heals
-    static void GoBuffForm(Player *self);
+        static bool BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit* target);
+        // Callback method to reset shapeshift forms blocking buffs and heals
+        static void GoBuffForm(Player* self);
 
-    //Assumes form based on spec
-    uint8 CheckForms();
-    enum CheckForms_ReturnValues {
-        RETURN_FAIL = 0,
-        RETURN_FAIL_WAITINGONSELFBUFF,
-        RETURN_OK_NOCHANGE,
-        RETURN_OK_SHIFTING,
-        RETURN_OK_CANNOTSHIFT
-    };
+        //Assumes form based on spec
+        uint8 CheckForms();
+        enum CheckForms_ReturnValues
+        {
+            RETURN_FAIL = 0,
+            RETURN_FAIL_WAITINGONSELFBUFF,
+            RETURN_OK_NOCHANGE,
+            RETURN_OK_SHIFTING,
+            RETURN_OK_CANNOTSHIFT
+        };
 
-    // druid cat/bear/dire bear/moonkin/tree of life forms
-    uint32 CAT_FORM,
-           BEAR_FORM,
-           DIRE_BEAR_FORM,
-           MOONKIN_FORM,
-           TREE_OF_LIFE,
-           TRAVEL_FORM;
+        // druid cat/bear/dire bear/moonkin/tree of life forms
+        uint32 CAT_FORM,
+               BEAR_FORM,
+               DIRE_BEAR_FORM,
+               MOONKIN_FORM,
+               TREE_OF_LIFE,
+               TRAVEL_FORM;
 
-    // druid cat attacks
-    uint32 CLAW,
-           COWER,
-           TIGERS_FURY,
-           RAKE,
-           RIP,
-           SHRED,
-           FEROCIOUS_BITE,
-           MAIM,
-           MANGLE,
-           MANGLE_CAT;
+        // druid cat attacks
+        uint32 CLAW,
+               COWER,
+               TIGERS_FURY,
+               RAKE,
+               RIP,
+               SHRED,
+               FEROCIOUS_BITE,
+               MAIM,
+               MANGLE,
+               MANGLE_CAT;
 
-    // druid bear/dire bear attacks & buffs
-    uint32 BASH,
-           MAUL,
-           SWIPE,
-           DEMORALIZING_ROAR,
-           CHALLENGING_ROAR,
-           GROWL,
-           ENRAGE,
-           FAERIE_FIRE_FERAL,
-           MANGLE_BEAR,
-           LACERATE;
+        // druid bear/dire bear attacks & buffs
+        uint32 BASH,
+               MAUL,
+               SWIPE,
+               DEMORALIZING_ROAR,
+               CHALLENGING_ROAR,
+               GROWL,
+               ENRAGE,
+               FAERIE_FIRE_FERAL,
+               MANGLE_BEAR,
+               LACERATE;
 
-    // druid caster DPS attacks & debuffs
-    uint32 MOONFIRE,
-           ROOTS,
-           WRATH,
-           OMEN_OF_CLARITY,
-           STARFIRE,
-           INSECT_SWARM,
-           FAERIE_FIRE,
-           FORCE_OF_NATURE,
-           HURRICANE,
-           HIBERNATE;
+        // druid caster DPS attacks & debuffs
+        uint32 MOONFIRE,
+               ROOTS,
+               WRATH,
+               OMEN_OF_CLARITY,
+               STARFIRE,
+               INSECT_SWARM,
+               FAERIE_FIRE,
+               FORCE_OF_NATURE,
+               HURRICANE,
+               HIBERNATE;
 
-    // druid buffs
-    uint32 MARK_OF_THE_WILD,
-           GIFT_OF_THE_WILD,
-           THORNS,
-           INNERVATE,
-           NATURES_SWIFTNESS,
-           BARKSKIN;
+        // druid buffs
+        uint32 MARK_OF_THE_WILD,
+               GIFT_OF_THE_WILD,
+               THORNS,
+               INNERVATE,
+               NATURES_SWIFTNESS,
+               BARKSKIN;
 
-    // druid heals
-    uint32 LIFEBLOOM,
-           REJUVENATION,
-           REGROWTH,
-           HEALING_TOUCH,
-           SWIFTMEND,
-           TRANQUILITY,
-           REBIRTH,
-           REMOVE_CURSE,
-           CURE_POISON,
-           ABOLISH_POISON;
+        // druid heals
+        uint32 LIFEBLOOM,
+               REJUVENATION,
+               REGROWTH,
+               HEALING_TOUCH,
+               SWIFTMEND,
+               TRANQUILITY,
+               REBIRTH,
+               REMOVE_CURSE,
+               CURE_POISON,
+               ABOLISH_POISON;
 
-    // racial
-    uint32 ARCANE_TORRENT,
-           GIFT_OF_THE_NAARU,
-           STONEFORM,
-           ESCAPE_ARTIST,
-           PERCEPTION,
-           SHADOWMELD,
-           BLOOD_FURY,
-           WAR_STOMP,
-           BERSERKING,
-           WILL_OF_THE_FORSAKEN;
+        // racial
+        uint32 ARCANE_TORRENT,
+               GIFT_OF_THE_NAARU,
+               STONEFORM,
+               ESCAPE_ARTIST,
+               PERCEPTION,
+               SHADOWMELD,
+               BLOOD_FURY,
+               WAR_STOMP,
+               BERSERKING,
+               WILL_OF_THE_FORSAKEN;
 
-    uint32 SpellSequence, DruidSpellCombat;
+        uint32 SpellSequence, DruidSpellCombat;
 };
 
 #endif

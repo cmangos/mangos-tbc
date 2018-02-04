@@ -22,7 +22,7 @@
 #include "BaseAI/NullCreatureAI.h"
 #include "Policies/Singleton.h"
 #include "MotionGenerators/MovementGenerator.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h" 
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Entities/Pet.h"
 #include "Log.h"
 #include "BaseAI/PetAI.h"
@@ -35,7 +35,7 @@ namespace FactorySelector
     CreatureAI* selectAI(Creature* creature)
     {
         // Allow scripting AI for normal creatures and not controlled pets (guardians and mini-pets)
-        if ((!creature->IsPet() || !static_cast<Pet*>(creature)->isControlled()) && !creature->isCharmed())
+        if ((!creature->IsPet() || !static_cast<Pet*>(creature)->isControlled()) && !creature->HasCharmer())
             if (CreatureAI* scriptedAI = sScriptDevAIMgr.GetCreatureAI(creature))
                 return scriptedAI;
 

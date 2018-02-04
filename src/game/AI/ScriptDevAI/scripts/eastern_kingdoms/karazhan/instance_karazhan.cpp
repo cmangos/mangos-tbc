@@ -103,7 +103,7 @@ void instance_karazhan::OnCreatureCreate(Creature* pCreature)
         case NPC_IMAGE_OF_ARCANAGOS:
         case NPC_ECHO_MEDIVH:
         case NPC_CHESS_VICTORY_CONTROLLER:
-            m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         case NPC_NIGHTBANE_HELPER:
             if (pCreature->GetPositionZ() < 100.0f)
@@ -180,7 +180,7 @@ void instance_karazhan::OnObjectCreate(GameObject* pGo)
         case GO_BLACKENED_URN:
             break;
 
-            // Opera event backgrounds
+        // Opera event backgrounds
         case GO_OZ_BACKDROP:
         case GO_HOOD_BACKDROP:
         case GO_HOOD_HOUSE:
@@ -198,7 +198,7 @@ void instance_karazhan::OnObjectCreate(GameObject* pGo)
         default:
             return;
     }
-    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+    m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
 void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
@@ -321,7 +321,7 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
             if (uiData == FAIL)
                 m_uiNightbaneResetTimer = 30000;
             break;
-            // Store the event type for the Opera
+        // Store the event type for the Opera
         case TYPE_OPERA_PERFORMANCE:
             m_uiOperaEvent = uiData;
             break;
@@ -437,7 +437,7 @@ void instance_karazhan::OnCreatureDeath(Creature* pCreature)
                     m_bBasementBossReady = false;
 
                     if (Creature* pBoss = pCreature->SummonCreature(aBasementEnum[uiIndex].uiEntry, aBasementEnum[uiIndex].fX, aBasementEnum[uiIndex].fY, aBasementEnum[uiIndex].fZ,
-                            aBasementEnum[uiIndex].fO, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 2 * HOUR * IN_MILLISECONDS, true))
+                                          aBasementEnum[uiIndex].fO, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 2 * HOUR * IN_MILLISECONDS, true))
                         DoScriptText(aBasementEnum[uiIndex].iEmote, pBoss);
                 }
             }
@@ -668,9 +668,6 @@ void instance_karazhan::Update(uint32 uiDiff)
         {
             if (Creature* pNightbane = GetSingleCreatureFromStorage(NPC_NIGHTBANE))
                 pNightbane->Respawn();
-
-            if (GameObject* pUrn = GetSingleGameObjectFromStorage(GO_BLACKENED_URN))
-                pUrn->ResetDoorOrButton();
 
             m_uiNightbaneResetTimer = 0;
         }

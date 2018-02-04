@@ -392,7 +392,7 @@ void GameEventMgr::LoadFromDB()
 
             if (event_id == 0)
             {
-                sLog.outErrorDb("`game_event_creature_data` game event id (%i) is reserved and can't be used." , event_id);
+                sLog.outErrorDb("`game_event_creature_data` game event id (%i) is reserved and can't be used.", event_id);
                 continue;
             }
 
@@ -428,7 +428,7 @@ void GameEventMgr::LoadFromDB()
                     newData.vendor_id = 0;
                 }
             }
- 
+
             if (newData.entry_id && !ObjectMgr::GetCreatureTemplate(newData.entry_id))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with event time entry %u not found in table `creature_template`, set to no 0.", guid, newData.entry_id);
@@ -698,6 +698,8 @@ void GameEventMgr::UnApplyEvent(uint16 event_id)
     // Remove quests that are events only to non event npc
     UpdateEventQuests(event_id, false);
     SendEventMails(event_nid);
+
+    OnEventHappened(event_id, false, false);
 }
 
 void GameEventMgr::ApplyNewEvent(uint16 event_id, bool resume)
@@ -706,7 +708,7 @@ void GameEventMgr::ApplyNewEvent(uint16 event_id, bool resume)
     sLog.outString("GameEvent %u \"%s\" started.", event_id, mGameEvent[event_id].description.c_str());
     if (event_id == 987) // daily restart event
     {
-        sWorld.ShutdownServ(mGameEvent[event_id].length*60, SHUTDOWN_MASK_RESTART, 0);
+        sWorld.ShutdownServ(mGameEvent[event_id].length * 60, SHUTDOWN_MASK_RESTART, 0);
         return;
     }
     CharacterDatabase.PExecute("INSERT INTO game_event_status (event) VALUES (%u)", event_id);
@@ -727,6 +729,8 @@ void GameEventMgr::ApplyNewEvent(uint16 event_id, bool resume)
     // Not send mails at game event startup, if game event just resume after server shutdown (has been active at server before shutdown)
     if (!resume)
         SendEventMails(event_id);
+
+    OnEventHappened(event_id, true, resume);
 }
 
 void GameEventMgr::GameEventSpawn(int16 event_id)
@@ -1041,4 +1045,13 @@ bool GameEventMgr::IsActiveHoliday(HolidayIds id)
 bool IsHolidayActive(HolidayIds id)
 {
     return sGameEventMgr.IsActiveHoliday(id);
+}
+
+void GameEventMgr::OnEventHappened(uint16 event_id, bool activate, bool resume)
+{
+    sMapMgr.DoForAllMaps([event_id, activate, resume](Map * map) -> void
+    {
+        if (map->GetInstanceData())
+            map->OnEventHappened(event_id, activate, resume);
+    });
 }

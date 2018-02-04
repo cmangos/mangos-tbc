@@ -48,8 +48,8 @@ enum
     SAY_TINHEAD_SLAY            = -1532037,
     EMOTE_RUST                  = -1532038,
 
-    SAY_CRONE_AGGRO             = -1532039,
-    SAY_CRONE_AGGRO2            = -1532040,
+    SAY_CRONE_INTRO             = -1532039,
+    SAY_CRONE_INTRO2            = -1532040,
     SAY_CRONE_DEATH             = -1532041,
     SAY_CRONE_SLAY              = -1532042,
 
@@ -75,6 +75,7 @@ enum
 
     // Crone
     SPELL_CHAIN_LIGHTNING       = 32337,
+    SPELL_FIERY_BROOM_PROC      = 32339,            // passive spell causing periodic damage
 
     // Cyclone
     SPELL_CYCLONE               = 32334,
@@ -90,6 +91,7 @@ struct boss_dorotheeAI : public ScriptedAI
     boss_dorotheeAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
@@ -129,15 +131,6 @@ struct boss_dorotheeAI : public ScriptedAI
         DoScriptText(SAY_DOROTHEE_DEATH, m_creature);
     }
 
-    void MoveInLineOfSight(Unit* pWho) override
-    {
-        // Allow a short delay before attacking
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
-            return;
-
-        ScriptedAI::MoveInLineOfSight(pWho);
-    }
-
     void JustSummoned(Creature* pSummoned) override
     {
         if (m_creature->getVictim())
@@ -171,6 +164,7 @@ struct boss_dorotheeAI : public ScriptedAI
             if (m_uiAggroTimer <= uiDiff)
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                SetReactState(REACT_AGGRESSIVE);
                 m_creature->SetInCombatWithZone();
                 m_uiAggroTimer = 0;
             }
@@ -223,6 +217,7 @@ struct boss_strawmanAI : public ScriptedAI
     boss_strawmanAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
@@ -237,22 +232,6 @@ struct boss_strawmanAI : public ScriptedAI
         m_uiAggroTimer     = 27000;
         m_uiBrainBashTimer = 5000;
         m_uiBrainWipeTimer = 7000;
-    }
-
-    void MoveInLineOfSight(Unit* pWho) override
-    {
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
-            return;
-
-        ScriptedAI::MoveInLineOfSight(pWho);
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
-            return;
-
-        ScriptedAI::AttackStart(pWho);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -286,6 +265,7 @@ struct boss_strawmanAI : public ScriptedAI
             if (m_uiAggroTimer <= uiDiff)
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                SetReactState(REACT_AGGRESSIVE);
                 m_creature->SetInCombatWithZone();
                 m_uiAggroTimer = 0;
             }
@@ -324,6 +304,7 @@ struct boss_tinheadAI : public ScriptedAI
     boss_tinheadAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
@@ -353,22 +334,6 @@ struct boss_tinheadAI : public ScriptedAI
         m_creature->ForcedDespawn();
     }
 
-    void MoveInLineOfSight(Unit* pWho) override
-    {
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
-            return;
-
-        ScriptedAI::MoveInLineOfSight(pWho);
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
-            return;
-
-        ScriptedAI::AttackStart(pWho);
-    }
-
     void JustDied(Unit* /*pKiller*/) override
     {
         DoScriptText(SAY_TINHEAD_DEATH, m_creature);
@@ -386,6 +351,7 @@ struct boss_tinheadAI : public ScriptedAI
             if (m_uiAggroTimer <= uiDiff)
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                SetReactState(REACT_AGGRESSIVE);
                 m_creature->SetInCombatWithZone();
                 m_uiAggroTimer = 0;
             }
@@ -424,6 +390,7 @@ struct boss_roarAI : public ScriptedAI
     boss_roarAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
@@ -440,22 +407,6 @@ struct boss_roarAI : public ScriptedAI
         m_uiMangleTimer = 5000;
         m_uiShredTimer  = 10000;
         m_uiScreamTimer = 15000;
-    }
-
-    void MoveInLineOfSight(Unit* pWho) override
-    {
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
-            return;
-
-        ScriptedAI::MoveInLineOfSight(pWho);
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
-            return;
-
-        ScriptedAI::AttackStart(pWho);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -488,6 +439,7 @@ struct boss_roarAI : public ScriptedAI
             if (m_uiAggroTimer <= uiDiff)
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                SetReactState(REACT_AGGRESSIVE);
                 m_creature->SetInCombatWithZone();
                 m_uiAggroTimer = 0;
             }
@@ -533,16 +485,22 @@ struct boss_croneAI : public ScriptedAI
     boss_croneAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_creature->CastSpell(m_creature, SPELL_FIERY_BROOM_PROC, TRIGGERED_OLD_TRIGGERED);
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
 
+    uint32 m_uiIntroTimer;
     uint32 m_uiChainLightningTimer;
+    uint32 m_uiAggroTimer;
 
     void Reset() override
     {
+        m_uiIntroTimer = 6000;
         m_uiChainLightningTimer = 10000;
+        m_uiAggroTimer = 9000;
     }
 
     void JustReachedHome() override
@@ -555,8 +513,6 @@ struct boss_croneAI : public ScriptedAI
 
     void Aggro(Unit* /*pWho*/) override
     {
-        DoScriptText(urand(0, 1) ? SAY_CRONE_AGGRO : SAY_CRONE_AGGRO2, m_creature);
-
         // spawn the cyclone on aggro
         m_creature->SummonCreature(NPC_CYCLONE, afCycloneSpawnLoc[0], afCycloneSpawnLoc[1], afCycloneSpawnLoc[2], afCycloneSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0);
     }
@@ -578,6 +534,30 @@ struct boss_croneAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
+        if (m_uiIntroTimer)
+        {
+            if (m_uiIntroTimer <= uiDiff)
+            {
+                DoScriptText(urand(0, 1) ? SAY_CRONE_INTRO : SAY_CRONE_INTRO2, m_creature); // TODO: should be said at player who started event
+                m_uiIntroTimer = 0;
+            }
+            else
+                m_uiIntroTimer -= uiDiff;
+        }
+
+        if (m_uiAggroTimer)
+        {
+            if (m_uiAggroTimer <= uiDiff)
+            {
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                SetReactState(REACT_AGGRESSIVE);
+                m_creature->SetInCombatWithZone();
+                m_uiAggroTimer = 0;
+            }
+            else
+                m_uiAggroTimer -= uiDiff;
+        }
+
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
@@ -909,7 +889,7 @@ struct boss_julianneAI : public ScriptedAI
         m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->ClearAllReactives();
-        m_creature->SetTargetGuid(ObjectGuid());
+        m_creature->SetTarget(nullptr);
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
@@ -1158,7 +1138,7 @@ struct boss_romuloAI : public ScriptedAI
         m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->ClearAllReactives();
-        m_creature->SetTargetGuid(ObjectGuid());
+        m_creature->SetTarget(nullptr);
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);

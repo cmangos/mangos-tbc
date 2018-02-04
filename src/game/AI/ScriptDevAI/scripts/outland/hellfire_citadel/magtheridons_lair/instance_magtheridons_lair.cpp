@@ -53,7 +53,7 @@ void instance_magtheridons_lair::OnCreatureCreate(Creature* pCreature)
     switch (pCreature->GetEntry())
     {
         case NPC_MAGTHERIDON:
-            m_mNpcEntryGuidStore[NPC_MAGTHERIDON] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[NPC_MAGTHERIDON] = pCreature->GetObjectGuid();
             break;
         case NPC_CHANNELER:
             m_lChannelerGuidList.push_back(pCreature->GetObjectGuid());
@@ -66,7 +66,7 @@ void instance_magtheridons_lair::OnObjectCreate(GameObject* pGo)
     switch (pGo->GetEntry())
     {
         case GO_DOODAD_HF_MAG_DOOR01:                       // event door
-            m_mGoEntryGuidStore[GO_DOODAD_HF_MAG_DOOR01] = pGo->GetObjectGuid();
+            m_goEntryGuidStore[GO_DOODAD_HF_MAG_DOOR01] = pGo->GetObjectGuid();
             break;
         case GO_DOODAD_HF_RAID_FX01:                        // hall
         case GO_MAGTHERIDON_COLUMN_003:                     // six columns
@@ -117,22 +117,19 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                     m_uiCageBreakTimer = 0;
                     m_uiCageBreakStage = 0;
 
-                    // no break;
+                // no break;
                 case DONE:
                     // Reset door on Fail or Done
                     if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_DOODAD_HF_MAG_DOOR01))
                         pDoor->ResetDoorOrButton();
+
+                    SetData(TYPE_CHANNELER_EVENT, DONE);
                     break;
                 case IN_PROGRESS:
                     // Set boss in combat
                     if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
-                    {
                         if (pMagtheridon->isAlive())
-                        {
-                            pMagtheridon->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                            pMagtheridon->SetInCombatWithZone();
-                        }
-                    }
+                            pMagtheridon->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pMagtheridon, pMagtheridon);
                     // Enable cubes
                     for (GuidList::const_iterator itr = m_lCubeGuidList.begin(); itr != m_lCubeGuidList.end(); ++itr)
                         DoToggleGameObjectFlags(*itr, GO_FLAG_NO_INTERACT, false);
@@ -174,6 +171,7 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                 {
                     if (pMagtheridon->isAlive())
                     {
+                        pMagtheridon->SetInCombatWithZone();
                         DoScriptText(EMOTE_EVENT_BEGIN, pMagtheridon);
                         m_uiCageBreakTimer = MINUTE * IN_MILLISECONDS;
                     }

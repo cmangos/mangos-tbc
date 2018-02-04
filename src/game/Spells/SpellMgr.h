@@ -158,6 +158,7 @@ inline bool IsEffectHandledOnDelayedSpellLaunch(SpellEntry const* spellInfo, Spe
         case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
         case SPELL_EFFECT_WEAPON_DAMAGE:
         case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
+        case SPELL_EFFECT_CHARGE:
             return true;
         default:
             return false;
@@ -348,6 +349,23 @@ inline bool IsSpellSetRun(SpellEntry const* spellInfo)
     }
 }
 
+inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
+{
+    if (IsSpellHaveAura(spellInfo, SPELL_AURA_FLY))
+        return false;
+
+    switch (spellInfo->Id)
+    {
+        case 32007:         // Mo'arg Engineer Transform Visual
+        case 39311:         // Scrapped Fel Reaver transform aura that is never removed even on evade
+        case 39918:         // visual auras in Soulgrinder script
+        case 39920:
+            return false;
+        default:
+            return true;
+    }
+}
+
 bool IsExplicitPositiveTarget(uint32 targetA);
 bool IsExplicitNegativeTarget(uint32 targetA);
 
@@ -412,8 +430,8 @@ inline bool IsBinarySpell(SpellEntry const* spellInfo)
             {
                 // If effect is extra mechanic on the same target as damage effect
                 if ((mechmask & (1 << e)) &&
-                    spellInfo->EffectImplicitTargetA[i] == spellInfo->EffectImplicitTargetA[e] &&
-                    spellInfo->EffectImplicitTargetB[i] == spellInfo->EffectImplicitTargetB[e])
+                        spellInfo->EffectImplicitTargetA[i] == spellInfo->EffectImplicitTargetA[e] &&
+                        spellInfo->EffectImplicitTargetB[i] == spellInfo->EffectImplicitTargetB[e])
                 {
                     return (e > i); // Post-2.3: checks the order of application
                 }
@@ -615,26 +633,6 @@ inline bool IsOnlySelfTargeting(SpellEntry const* spellInfo)
     return true;
 }
 
-inline bool IsSingleTargetSpell(SpellEntry const* spellInfo)
-{
-    // all other single target spells have if it has AttributesEx5
-    if (spellInfo->HasAttribute(SPELL_ATTR_EX5_SINGLE_TARGET_SPELL))
-        return true;
-
-    // single target triggered spell.
-    // Not real client side single target spell, but it' not triggered until prev. aura expired.
-    // This is allow store it in single target spells list for caster for spell proc checking
-    if (spellInfo->Id == 38324)                             // Regeneration (triggered by 38299 (HoTs on Heals))
-        return true;
-
-    return false;
-}
-
-inline bool IsSingleTargetSpells(SpellEntry const* spellInfo1, SpellEntry const* spellInfo2)
-{
-    return (IsSingleTargetSpell(spellInfo1) && (spellInfo1->Id == spellInfo2->Id || (spellInfo1->SpellFamilyFlags == spellInfo2->SpellFamilyFlags && IsSingleTargetSpell(spellInfo2))));
-}
-
 inline bool IsScriptTarget(uint32 target)
 {
     switch (target)
@@ -690,7 +688,7 @@ inline bool IsNeutralTarget(uint32 target)
         case TARGET_70:
         case TARGET_RANDOM_NEARBY_LOC:
         case TARGET_RANDOM_CIRCUMFERENCE_POINT:
-        case TARGET_74:
+        case TARGET_RANDOM_DEST_LOC:
         case TARGET_RANDOM_CIRCUMFERENCE_AROUND_TARGET:
         case TARGET_DYNAMIC_OBJECT_COORDINATES:
         case TARGET_POINT_AT_NORTH:
@@ -794,7 +792,7 @@ inline bool IsNeutralEffectTargetPositive(uint32 etarget, const WorldObject* cas
         case TARGET_29:
         case TARGET_58:
         case TARGET_70:
-        case TARGET_74:
+        case TARGET_RANDOM_DEST_LOC:
         case TARGET_RANDOM_CIRCUMFERENCE_AROUND_TARGET:
             break;
         default:
@@ -807,24 +805,10 @@ inline bool IsNeutralEffectTargetPositive(uint32 etarget, const WorldObject* cas
         return true; // Early self-cast detection
 
     if (!caster)
-        return true; // TODO: Nice to have additional in-depth research for default value for nullcaster
+        return true;
 
-    const Unit* utarget = (const Unit*)target;
-    switch (caster->GetTypeId())
-    {
-        case TYPEID_UNIT:
-        case TYPEID_PLAYER:
-            return ((const Unit*)caster)->IsFriendlyTo(utarget);
-        case TYPEID_GAMEOBJECT:
-            return ((const GameObject*)caster)->IsFriendlyTo(utarget);
-        case TYPEID_DYNAMICOBJECT:
-            return ((const DynamicObject*)caster)->IsFriendlyTo(utarget);
-        case TYPEID_CORPSE:
-            return ((const Corpse*)caster)->IsFriendlyTo(utarget);
-        default:
-            break;
-    }
-    return true;
+    // TODO: Fix it later
+    return caster->IsFriend(static_cast<const Unit*>(target));
 }
 
 inline bool IsPositiveEffectTargetMode(const SpellEntry* entry, SpellEffectIndex effIndex, const WorldObject* caster = nullptr, const WorldObject* target = nullptr, bool recursive = false)
@@ -880,6 +864,22 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
 {
     if (!spellproto)
         return false;
+
+    switch (spellproto->Id) // Spells whose effects are always positive
+    {
+        case 24742: // Magic Wings
+        case 42867:
+        case 34786: // Temporal Analysis - factions and unitflags of target/caster verified, should not incur combat
+        case 39384: // Fury Of Medivh visual - Burning Flames - Fury of medivh is friendly to all, and it hits all chess pieces, basically friendly fire damage
+            return true;
+        case 34190: // Arcane Orb - should be negative
+            /*34172 is cast onto friendly target, and fails bcs its delayed and we remove negative delayed on friendlies due to Duel code, if we change target pos code
+            bcs 34190 will be evaled as neg, 34172 will be evaled as neg, and hence be removed cos its negative delayed on a friendly*/
+            return false;
+        case 42399: // Neutral spell with TARGET_DUELVSPLAYER, caster faction 14, target faction 14, evaluates as negative spell
+            // because of POS/NEG decision, should in fact be NEUTRAL decision TODO: Increase check fidelity
+            return true;
+    }
 
     switch (spellproto->Effect[effIndex])
     {
@@ -1022,6 +1022,19 @@ inline bool IsPositiveSpell(const SpellEntry* entry, const WorldObject* caster =
     return true;
 }
 
+// this is propably the correct check for most positivity/negativity decisions
+inline bool IsPositiveEffectMask(const SpellEntry* entry, uint8 effectMask, const WorldObject* caster = nullptr, const WorldObject* target = nullptr)
+{
+    if (!entry)
+        return false;
+    // spells with at least one negative effect are considered negative
+    // some self-applied spells have negative effects but in self casting case negative check ignored.
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
+        if (entry->Effect[i] && (effectMask & (1 << i)) && !IsPositiveEffect(entry, SpellEffectIndex(i), caster, target))
+            return false;
+    return true;
+}
+
 inline bool IsPositiveSpell(uint32 spellId, const WorldObject* caster = nullptr, const WorldObject* target = nullptr)
 {
     if (!spellId)
@@ -1072,6 +1085,9 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo)
                 case 802:                                   // Mutate Bug (AQ40, Emperor Vek'nilash)
                 case 804:                                   // Explode Bug (AQ40, Emperor Vek'lor)
                 case 23138:                                 // Gate of Shazzrah (MC, Shazzrah)
+                case 23173:                                 // Brood Affliction (BWL, Chromaggus)
+                case 24150:                                 // Stinger Charge Primer (AQ20, Hive'Zara Stinger)
+                case 26080:                                 // Stinger Charge Primer (AQ40, Vekniss Stinger)
                 case 28560:                                 // Summon Blizzard (Naxx, Sapphiron)
                 case 30541:                                 // Blaze (Magtheridon)
                 case 30572:                                 // Quake (Magtheridon)
@@ -1114,9 +1130,15 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo)
                 case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)
                 case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
                     return 5;
+                case 25676:                                 // Drain Mana (correct number has to be researched)
+                case 25754:
+                    return 6;
                 case 28796:                                 // Poison Bolt Volley (Naxx, Faerlina)
                 case 29213:                                 // Curse of the Plaguebringer (Naxx, Noth the Plaguebringer)
                     return 10;
+                case 26457:                                 // Drain Mana (correct number has to be researched)
+                case 26559:
+                    return 12;
                 case 25991:                                 // Poison Bolt Volley (AQ40, Pincess Huhuran)
                     return 15;
                 case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)
@@ -1160,8 +1182,8 @@ inline bool IsNeedCastSpellAtOutdoor(SpellEntry const* spellInfo)
 inline bool IsReflectableSpell(SpellEntry const* spellInfo)
 {
     return spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MAGIC && !spellInfo->HasAttribute(SPELL_ATTR_ABILITY)
-        && !spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_BE_REFLECTED) && !spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)
-        && !spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) && !IsPositiveSpell(spellInfo);
+           && !spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_BE_REFLECTED) && !spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)
+           && !spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) && !IsPositiveSpell(spellInfo);
 }
 
 // Mostly required by spells that target a creature inside GO
@@ -1170,6 +1192,9 @@ inline bool IsIgnoreLosSpell(SpellEntry const* spellInfo)
     switch (spellInfo->Id)
     {
         case 36795:                                 // Cannon Channel
+        case 31628:                                 // Green Beam
+        case 31630:                                 // Green Beam
+        case 31631:                                 // Green Beam
             return true;
         default:
             break;
@@ -1791,12 +1816,13 @@ typedef std::map<uint32, SpellThreatEntry> SpellThreatMap;
 // Spell script target related declarations (accessed using SpellMgr functions)
 enum SpellTargetType
 {
-    SPELL_TARGET_TYPE_GAMEOBJECT = 0,
-    SPELL_TARGET_TYPE_CREATURE   = 1,
-    SPELL_TARGET_TYPE_DEAD       = 2
+    SPELL_TARGET_TYPE_GAMEOBJECT    = 0,
+    SPELL_TARGET_TYPE_CREATURE      = 1,
+    SPELL_TARGET_TYPE_DEAD          = 2,
+    SPELL_TARGET_TYPE_CREATURE_GUID = 3,
 };
 
-#define MAX_SPELL_TARGET_TYPE 3
+#define MAX_SPELL_TARGET_TYPE 4
 
 // pre-defined targeting for spells
 struct SpellTargetEntry
@@ -2206,6 +2232,35 @@ class SpellMgr
 
         bool IsRankSpellDueToSpell(SpellEntry const* spellInfo_1, uint32 spellId_2) const;
         bool IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
+        bool IsSingleTargetSpell(SpellEntry const* entry)
+        {
+            if (entry->HasAttribute(SPELL_ATTR_EX5_SINGLE_TARGET_SPELL))
+                return true;
+
+            // single target triggered spell.
+            // Not real client side single target spell, but it' not triggered until prev. aura expired.
+            // This is allow store it in single target spells list for caster for spell proc checking
+            if (entry->Id == 38324)                             // Regeneration (triggered by 38299 (HoTs on Heals))
+                return true;
+
+            return false;
+        }
+
+        bool IsSingleTargetSpells(SpellEntry const* entry1, SpellEntry const* entry2)
+        {
+            if (!IsSingleTargetSpell(entry1) || !IsSingleTargetSpell(entry2))
+                return false;
+
+            // Early instance of same spell check
+            if (entry1 == entry2)
+                return true;
+
+            // One spell is a rank of another spell (same spell chain)
+            if (GetFirstSpellInChain(entry1->Id) == GetFirstSpellInChain(entry2->Id))
+                return true;
+
+            return false;
+        }
         bool canStackSpellRanksInSpellBook(SpellEntry const* spellInfo) const;
         bool IsRankedSpellNonStackableInSpellBook(SpellEntry const* spellInfo) const
         {

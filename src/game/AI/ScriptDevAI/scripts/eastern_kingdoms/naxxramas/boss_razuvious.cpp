@@ -59,7 +59,7 @@ struct boss_razuviousAI : public ScriptedAI
     void Reset() override
     {
         m_uiUnbalancingStrikeTimer = 30000;                 // 30 seconds
-        m_uiDisruptingShoutTimer   = 25000;                 // 25 seconds               
+        m_uiDisruptingShoutTimer   = 25000;                 // 25 seconds
     }
 
     void KilledUnit(Unit* /*Victim*/) override
@@ -88,7 +88,7 @@ struct boss_razuviousAI : public ScriptedAI
     {
         switch (urand(0, 3))
         {
-        	// Yell texts on aggro were removed in patch 2.0 but the sounds remained
+            // Yell texts on aggro were removed in patch 2.0 but the sounds remained
             case 0: DoPlaySoundToSet(m_creature, SOUND_AGGRO1); break;
             case 1: DoPlaySoundToSet(m_creature, SOUND_AGGRO2); break;
             case 2: DoPlaySoundToSet(m_creature, SOUND_AGGRO3); break;

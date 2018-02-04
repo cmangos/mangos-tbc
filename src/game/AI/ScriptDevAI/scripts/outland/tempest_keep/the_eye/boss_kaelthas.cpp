@@ -381,7 +381,7 @@ struct boss_kaelthasAI : public ScriptedAI
     {
         switch (m_uiPhase)
         {
-                // ***** Advisors phase ********
+            // ***** Advisors phase ********
             case PHASE_1_ADVISOR:
             {
                 if (!m_uiPhaseTimer)
@@ -662,7 +662,7 @@ struct boss_kaelthasAI : public ScriptedAI
             case PHASE_5_WAITING:
                 // Nothing here; wait for boss to arive at point
                 break;
-                // ***** Phase 6 - explode the bridge ********
+            // ***** Phase 6 - explode the bridge ********
             case PHASE_6_FLYING:
                 if (m_uiExplodeTimer)
                 {
@@ -1152,7 +1152,7 @@ struct mob_phoenix_tkAI : public ScriptedAI
         m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->ClearAllReactives();
-        m_creature->SetTargetGuid(ObjectGuid());
+        m_creature->SetTarget(nullptr);
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);

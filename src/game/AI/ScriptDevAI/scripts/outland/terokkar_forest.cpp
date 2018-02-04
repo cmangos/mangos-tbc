@@ -767,7 +767,7 @@ struct npc_skywingAI : public npc_escortAI
         switch (uiPointId)
         {
             case 6:
-                DoScriptText(SAY_SKYWING_TREE_DOWN , m_creature);
+                DoScriptText(SAY_SKYWING_TREE_DOWN, m_creature);
                 break;
             case 36:
                 DoScriptText(SAY_SKYWING_TREE_UP, m_creature);
@@ -1113,7 +1113,7 @@ struct npc_avatar_of_terokkAI : public ScriptedAI
         if (m_uiAbilityTimer <= uiDiff)
         {
             m_uiAbilityTimer = 12000;
-            DoCast(m_creature->getVictim(), SPELL_FEATHER_BURST);
+            m_creature->CastSpell(m_creature->getVictim(), SPELL_FEATHER_BURST, TRIGGERED_NONE);
             return;
         }
         else
@@ -1146,7 +1146,7 @@ struct npc_minion_of_terokkAI : public ScriptedAI
         if (m_uiAbilityTimer <= uiDiff)
         {
             m_uiAbilityTimer = 15000;
-            DoCast(m_creature->getVictim(), SPELL_TERRIFYING_SCREECH);
+            m_creature->CastSpell(m_creature->getVictim(), SPELL_TERRIFYING_SCREECH, TRIGGERED_NONE);
             return;
         }
         else

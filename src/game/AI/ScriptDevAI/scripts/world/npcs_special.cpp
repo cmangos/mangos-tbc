@@ -163,7 +163,7 @@ struct npc_air_force_botsAI : public ScriptedAI
         if (!m_pSpawnAssoc)
             return;
 
-        if (pWho->isTargetableForAttack() && m_creature->IsHostileTo(pWho))
+        if (m_creature->CanAttackOnSight(pWho))
         {
             Player* pPlayerTarget = pWho->GetTypeId() == TYPEID_PLAYER ? (Player*)pWho : nullptr;
 
@@ -525,10 +525,11 @@ struct npc_doctorAI : public ScriptedAI
 
 struct npc_injured_patientAI : public ScriptedAI
 {
-    npc_injured_patientAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+    npc_injured_patientAI(Creature* pCreature) : ScriptedAI(pCreature), isSaved(false) {Reset();}
 
     ObjectGuid m_doctorGuid;
     Location* m_pCoord;
+    bool isSaved;
 
     void Reset() override
     {
@@ -587,6 +588,7 @@ struct npc_injured_patientAI : public ScriptedAI
             }
 
             m_creature->SetWalk(false);
+            isSaved = true;
 
             switch (m_creature->GetEntry())
             {
@@ -608,7 +610,8 @@ struct npc_injured_patientAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (m_creature->hasUnitState(UNIT_FLAG_NOT_SELECTABLE))
+        // Don't reduce health if already healed
+        if (m_creature->hasUnitState(UNIT_FLAG_NOT_SELECTABLE) || isSaved)
             return;
 
         // lower HP on every world tick makes it a useful counter, not officlone though
@@ -744,7 +747,7 @@ void npc_doctorAI::UpdateAI(const uint32 uiDiff)
         if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
         {
             if ((pPlayer->GetTeam() == ALLIANCE && (pPlayer->GetQuestStatus(QUEST_TRIAGE_A) == QUEST_STATUS_NONE || pPlayer->GetQuestStatus(QUEST_TRIAGE_A) == QUEST_STATUS_FAILED)) ||
-                (pPlayer->GetTeam() == HORDE && (pPlayer->GetQuestStatus(QUEST_TRIAGE_H) == QUEST_STATUS_NONE || pPlayer->GetQuestStatus(QUEST_TRIAGE_H) == QUEST_STATUS_FAILED)))
+                    (pPlayer->GetTeam() == HORDE && (pPlayer->GetQuestStatus(QUEST_TRIAGE_H) == QUEST_STATUS_NONE || pPlayer->GetQuestStatus(QUEST_TRIAGE_H) == QUEST_STATUS_FAILED)))
             {
                 Reset();
                 return;
@@ -821,7 +824,7 @@ void npc_doctorAI::UpdateAI(const uint32 uiDiff)
             if (totalSpawned == 0)
                 m_uiSummonPatientTimer = urand(2000, 3000); //lets check after 2 to 3 seconds since non where spawned
             else if (totalSpawned == 1)
-                m_uiSummonPatientTimer = urand(8000, 9000); //player has someone to heal still 
+                m_uiSummonPatientTimer = urand(8000, 9000); //player has someone to heal still
             else
                 m_uiSummonPatientTimer = 10000;
 
@@ -1302,7 +1305,7 @@ enum
 // TODO: Add random repositioning logic
 struct npc_burster_wormAI : public ScriptedAI
 {
-    npc_burster_wormAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiBorePassive(SetBorePassive()), m_boreDamageSpell(SetBoreDamageSpell()){ }
+    npc_burster_wormAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiBorePassive(SetBorePassive()), m_boreDamageSpell(SetBoreDamageSpell()) { }
 
     uint8 m_uiPhase;
 
@@ -1409,7 +1412,7 @@ struct npc_burster_wormAI : public ScriptedAI
     bool IsBoneWorm()
     {
         if (m_creature->GetEntry() == NPC_BONE_CRAWLER || m_creature->GetEntry() == NPC_HAISHULUD || m_creature->GetEntry() == NPC_BONE_SIFTER
-            || m_creature->GetEntry() == NPC_MATURE_BONE_SIFTER)
+                || m_creature->GetEntry() == NPC_MATURE_BONE_SIFTER)
             return true;
 
         return false;

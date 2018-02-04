@@ -81,7 +81,7 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
     : i_mapEntry(sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode),
       i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
       m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_persistentState(nullptr),
-      m_activeNonPlayersIter(m_activeNonPlayers.end()),
+      m_activeNonPlayersIter(m_activeNonPlayers.end()), m_onEventNotifiedIter(m_onEventNotifiedObjects.end()),
       i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id)),
       i_data(nullptr), i_script_id(0)
 {
@@ -418,7 +418,7 @@ void Map::MessageDistBroadcast(Player const* player, WorldPacket const& msg, flo
         return;
 
     MaNGOS::MessageDistDeliverer post_man(*player, msg, dist, to_self, own_team_only);
-    TypeContainerVisitor<MaNGOS::MessageDistDeliverer , WorldTypeMapContainer > message(post_man);
+    TypeContainerVisitor<MaNGOS::MessageDistDeliverer, WorldTypeMapContainer > message(post_man);
     cell.Visit(p, message, *this, *player, dist);
 }
 
@@ -441,6 +441,73 @@ void Map::MessageDistBroadcast(WorldObject const* obj, WorldPacket const& msg, f
     MaNGOS::ObjectMessageDistDeliverer post_man(*obj, msg, dist);
     TypeContainerVisitor<MaNGOS::ObjectMessageDistDeliverer, WorldTypeMapContainer > message(post_man);
     cell.Visit(p, message, *this, *obj, dist);
+}
+
+void Map::MessageMapBroadcast(WorldObject const* obj, WorldPacket const& msg)
+{
+    Map::PlayerList const& pList = GetPlayers();
+    for (PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+        itr->getSource()->SendDirectMessage(msg);
+}
+
+void Map::MessageMapBroadcastZone(WorldObject const* obj, WorldPacket const& msg, uint32 zoneId)
+{
+    Map::PlayerList const& pList = GetPlayers();
+    for (PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+        if (itr->getSource()->GetZoneId() == zoneId)
+            itr->getSource()->SendDirectMessage(msg);
+}
+
+void Map::MessageMapBroadcastArea(WorldObject const* obj, WorldPacket const& msg, uint32 areaId)
+{
+    Map::PlayerList const& pList = GetPlayers();
+    for (PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+        if (itr->getSource()->GetAreaId() == areaId)
+            itr->getSource()->SendDirectMessage(msg);
+}
+
+void Map::ExecuteDistWorker(WorldObject const* obj, float dist, std::function<void(Player*)> const& worker)
+{
+    CellPair p = MaNGOS::ComputeCellPair(obj->GetPositionX(), obj->GetPositionY());
+
+    if (p.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || p.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
+    {
+        sLog.outError("Map::ExecuteDistWorker: Object (GUID: %u TypeId: %u) have invalid coordinates X:%f Y:%f grid cell [%u:%u]", obj->GetGUIDLow(), obj->GetTypeId(), obj->GetPositionX(), obj->GetPositionY(), p.x_coord, p.y_coord);
+        return;
+    }
+
+    Cell cell(p);
+    cell.SetNoCreate();
+
+    if (!loaded(GridPair(cell.data.Part.grid_x, cell.data.Part.grid_y)))
+        return;
+
+    MaNGOS::CameraDistLambdaWorker searcher(obj, dist, worker);
+    TypeContainerVisitor<MaNGOS::CameraDistLambdaWorker, WorldTypeMapContainer > message(searcher);
+    cell.Visit(p, message, *this, *obj, dist);
+}
+
+void Map::ExecuteMapWorker(std::function<void(Player*)> const& worker)
+{
+    Map::PlayerList const& pList = GetPlayers();
+    for (PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+        worker(itr->getSource());
+}
+
+void Map::ExecuteMapWorkerZone(uint32 zoneId, std::function<void(Player*)> const& worker)
+{
+    Map::PlayerList const& pList = GetPlayers();
+    for (PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+        if (itr->getSource()->GetZoneId() == zoneId)
+            worker(itr->getSource());
+}
+
+void Map::ExecuteMapWorkerArea(uint32 areaId, std::function<void(Player*)> const& worker)
+{
+    Map::PlayerList const& pList = GetPlayers();
+    for (PlayerList::const_iterator itr = pList.begin(); itr != pList.end(); ++itr)
+        if (itr->getSource()->GetAreaId() == areaId)
+            worker(itr->getSource());
 }
 
 bool Map::loaded(const GridPair& p) const
@@ -718,8 +785,6 @@ Map::PlayerRelocation(Player* player, float x, float y, float z, float orientati
 
 void Map::CreatureRelocation(Creature* creature, float x, float y, float z, float ang)
 {
-    MANGOS_ASSERT(CheckGridIntegrity(creature, false));
-
     Cell new_cell(MaNGOS::ComputeCellPair(x, y));
 
     // do move or do move to respawn or remove creature if previous all fail
@@ -736,8 +801,6 @@ void Map::CreatureRelocation(Creature* creature, float x, float y, float z, floa
         // ... or unload (if respawn grid also not loaded)
         DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u ) can't be move to unloaded respawn grid.", creature->GetGUIDLow(), creature->GetEntry());
     }
-
-    MANGOS_ASSERT(CheckGridIntegrity(creature, true));
 }
 
 bool Map::CreatureCellRelocation(Creature* c, const Cell& new_cell)
@@ -853,25 +916,6 @@ uint32 Map::GetMaxPlayers() const
 uint32 Map::GetMaxResetDelay() const
 {
     return DungeonResetScheduler::GetMaxResetTimeFor(ObjectMgr::GetInstanceTemplate(GetId()));
-}
-
-bool Map::CheckGridIntegrity(Creature* c, bool moved) const
-{
-    Cell const& cur_cell = c->GetCurrentCell();
-
-    CellPair xy_val = MaNGOS::ComputeCellPair(c->GetPositionX(), c->GetPositionY());
-    Cell xy_cell(xy_val);
-    if (xy_cell != cur_cell)
-    {
-        sLog.outError("Creature (GUIDLow: %u) X: %f Y: %f (%s) in grid[%u,%u]cell[%u,%u] instead grid[%u,%u]cell[%u,%u]",
-                      c->GetGUIDLow(),
-                      c->GetPositionX(), c->GetPositionY(), (moved ? "final" : "original"),
-                      cur_cell.GridX(), cur_cell.GridY(), cur_cell.CellX(), cur_cell.CellY(),
-                      xy_cell.GridX(),  xy_cell.GridY(),  xy_cell.CellX(),  xy_cell.CellY());
-        return true;                                        // not crash at error, just output error in debug mode
-    }
-
-    return true;
 }
 
 const char* Map::GetMapName() const
@@ -1166,6 +1210,24 @@ void Map::RemoveFromActive(WorldObject* obj)
             }
         }
     }
+}
+
+void Map::AddToOnEventNotified(WorldObject* obj)
+{
+    m_onEventNotifiedObjects.insert(obj);
+}
+
+void Map::RemoveFromOnEventNotified(WorldObject* obj)
+{
+    if (m_onEventNotifiedIter != m_onEventNotifiedObjects.end())
+    {
+        auto itr = m_onEventNotifiedObjects.find(obj);
+        if (itr == m_onEventNotifiedIter)
+            ++m_onEventNotifiedIter;
+        m_onEventNotifiedObjects.erase(obj);
+    }
+    else
+        m_onEventNotifiedObjects.erase(obj);
 }
 
 void Map::CreateInstanceData(bool load)
@@ -1918,7 +1980,7 @@ class StaticMonsterChatBuilder
             sObjectMgr.GetCreatureLocaleStrings(i_cInfo->Entry, loc_idx, &nameForLocale);
 
             ChatHandler::BuildChatPacket(data, i_msgtype, text, i_language, CHAT_TAG_NONE, i_senderGuid, nameForLocale, i_target ? i_target->GetObjectGuid() : ObjectGuid(),
-                i_target ? i_target->GetNameForLocaleIdx(loc_idx) : "");
+                                         i_target ? i_target->GetNameForLocaleIdx(loc_idx) : "");
         }
 
     private:
@@ -1939,7 +2001,7 @@ class StaticMonsterChatBuilder
  * @param language language of the text
  * @param target, can be nullptr
  */
-void Map::MonsterYellToMap(ObjectGuid guid, int32 textId, Language language, Unit const* target) const
+void Map::MonsterYellToMap(ObjectGuid guid, int32 textId, ChatMsg chatMsg, Language language, Unit const* target) const
 {
     if (guid.IsAnyTypeCreature())
     {
@@ -1950,7 +2012,7 @@ void Map::MonsterYellToMap(ObjectGuid guid, int32 textId, Language language, Uni
             return;
         }
 
-        MonsterYellToMap(cInfo, textId, language, target, guid.GetCounter());
+        MonsterYellToMap(cInfo, textId, chatMsg, language, target, guid.GetCounter());
     }
     else
     {
@@ -1970,9 +2032,9 @@ void Map::MonsterYellToMap(ObjectGuid guid, int32 textId, Language language, Uni
  * @param senderLowGuid provide way proper show yell for near spawned creature with known lowguid,
  *        0 accepted by client else if this not important
  */
-void Map::MonsterYellToMap(CreatureInfo const* cinfo, int32 textId, Language language, Unit const* target, uint32 senderLowGuid /*= 0*/) const
+void Map::MonsterYellToMap(CreatureInfo const* cinfo, int32 textId, ChatMsg chatMsg, Language language, Unit const* target, uint32 senderLowGuid /*= 0*/) const
 {
-    StaticMonsterChatBuilder say_build(cinfo, CHAT_MSG_MONSTER_YELL, textId, language, target, senderLowGuid);
+    StaticMonsterChatBuilder say_build(cinfo, chatMsg, textId, language, target, senderLowGuid);
     MaNGOS::LocalizedPacketDo<StaticMonsterChatBuilder> say_do(say_build);
 
     Map::PlayerList const& pList = GetPlayers();
@@ -2294,4 +2356,29 @@ bool Map::IsMountAllowed() const
         return data->mountAllowed;
 
     return true;
+}
+
+void Map::OnEventHappened(uint16 event_id, bool activate, bool resume)
+{
+    if (i_data)
+        i_data->OnEventHappened(event_id, activate, resume);
+
+    for (m_onEventNotifiedIter = m_onEventNotifiedObjects.begin(); m_onEventNotifiedIter != m_onEventNotifiedObjects.end(); ++m_onEventNotifiedIter)
+        if ((*m_onEventNotifiedIter)->IsInWorld())
+            (*m_onEventNotifiedIter)->OnEventHappened(event_id, activate, resume);
+}
+
+uint32 Map::SpawnedCountForEntry(uint32 entry)
+{
+    return m_spawnedCount[entry].size();
+}
+
+void Map::AddToSpawnCount(const ObjectGuid& guid)
+{
+    m_spawnedCount[guid.GetEntry()].insert(guid);
+}
+
+void Map::RemoveFromSpawnCount(const ObjectGuid& guid)
+{
+    m_spawnedCount[guid.GetEntry()].erase(guid);
 }

@@ -99,7 +99,7 @@ void instance_dark_portal::OnCreatureCreate(Creature* pCreature)
         case NPC_MEDIVH:
         case NPC_SAAT:
         case NPC_DARK_PORTAL_DUMMY:
-            m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
     }
 }
@@ -277,12 +277,16 @@ void instance_dark_portal::OnCreatureEnterCombat(Creature* pCreature)
             break;
         case NPC_AEONUS:
             SetData(TYPE_AEONUS, IN_PROGRESS);
-            // no break
+        // no break
         case NPC_ASSASSIN:
+        case NPC_ASSASSIN_2:
         case NPC_WHELP:
         case NPC_CHRONOMANCER:
+        case NPC_CHRONOMANCER_2:
         case NPC_EXECUTIONER:
+        case NPC_EXECUTIONER_2:
         case NPC_VANQUISHER:
+        case NPC_VANQUISHER_2:
             pCreature->InterruptNonMeleeSpells(false);
             break;
     }
@@ -302,13 +306,17 @@ void instance_dark_portal::OnCreatureEvade(Creature* pCreature)
             break;
         case NPC_AEONUS:
             SetData(TYPE_AEONUS, FAIL);
-            // no break;
-            // Allow these guys to go and finish off Medivh
+        // no break;
+        // Allow these guys to go and finish off Medivh
         case NPC_ASSASSIN:
+        case NPC_ASSASSIN_2:
         case NPC_WHELP:
         case NPC_CHRONOMANCER:
+        case NPC_CHRONOMANCER_2:
         case NPC_EXECUTIONER:
+        case NPC_EXECUTIONER_2:
         case NPC_VANQUISHER:
+        case NPC_VANQUISHER_2:
             if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
             {
                 float fX, fY, fZ;

@@ -139,7 +139,7 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
 
     if (owner.movespline->Finalized())
     {
-        if (i_angle == 0.f && !owner.HasInArc(0.01f, i_target.getTarget()))
+        if (i_angle == 0.f && !owner.HasInArc(i_target.getTarget(), 0.01f))
             owner.SetInFront(i_target.getTarget());
 
         if (!i_targetReached)
@@ -167,6 +167,13 @@ bool TargetedMovementGeneratorMedium<T, D>::RequiresNewPosition(T& owner, float 
         return !i_target->IsWithinDist2d(x, y, this->GetDynamicTargetDistance(owner, true));
 }
 
+template<class T, typename D>
+void TargetedMovementGeneratorMedium<T, D>::SetOffsetAndAngle(float offset, float angle)
+{
+    i_offset = offset;
+    i_angle = angle;
+}
+
 //-----------------------------------------------//
 template<class T>
 void ChaseMovementGenerator<T>::_clearUnitStateMove(T& u) { u.clearUnitState(UNIT_STAT_CHASE_MOVE); }
@@ -176,7 +183,7 @@ void ChaseMovementGenerator<T>::_addUnitStateMove(T& u) { u.addUnitState(UNIT_ST
 template<class T>
 bool ChaseMovementGenerator<T>::_lostTarget(T& u) const
 {
-    return u.getVictim() != this->GetTarget();
+    return u.getVictim() != this->GetCurrentTarget();
 }
 
 template<class T>
@@ -220,6 +227,13 @@ void ChaseMovementGenerator<T>::Reset(T& owner)
     Initialize(owner);
 }
 
+template<class T>
+void ChaseMovementGenerator<T>::SetMovementParameters(float offset, float angle, bool moveFurther)
+{
+    TargetedMovementGeneratorMedium<T, ChaseMovementGenerator>::SetOffsetAndAngle(offset, angle);
+    m_moveFurther = moveFurther;
+}
+
 // Chase-Movement: These factors depend on combat-reach distance
 #define CHASE_DEFAULT_RANGE_FACTOR                        0.5f
 #define CHASE_RECHASE_RANGE_FACTOR                        0.75f
@@ -231,17 +245,17 @@ float ChaseMovementGenerator<T>::GetDynamicTargetDistance(T& owner, bool forRang
     if (m_moveFurther)
     {
         if (!forRangeCheck)
-            return this->i_offset + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombatReach(&owner);
+            return this->i_offset + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner);
 
-        return CHASE_RECHASE_RANGE_FACTOR * this->i_target->GetCombatReach(&owner) - this->i_target->GetObjectBoundingRadius();
+        return CHASE_RECHASE_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner) - this->i_target->GetObjectBoundingRadius();
     }
     else
     {
         if (!forRangeCheck) // move slightly closer than setting to prevent jittery movement
-            return this->i_offset * CHASE_MOVE_CLOSER_FACTOR + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombatReach(&owner);
+            return this->i_offset * CHASE_MOVE_CLOSER_FACTOR + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner);
 
         // check against actual max range setting
-        return this->i_offset + CHASE_RECHASE_RANGE_FACTOR * this->i_target->GetCombatReach(&owner) - this->i_target->GetObjectBoundingRadius(); 
+        return this->i_offset + CHASE_RECHASE_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner) - this->i_target->GetObjectBoundingRadius();
     }
 }
 
@@ -368,6 +382,8 @@ template void ChaseMovementGenerator<Player>::Reset(Player&);
 template void ChaseMovementGenerator<Creature>::Reset(Creature&);
 template float ChaseMovementGenerator<Creature>::GetDynamicTargetDistance(Creature&, bool) const;
 template float ChaseMovementGenerator<Player>::GetDynamicTargetDistance(Player&, bool) const;
+template void ChaseMovementGenerator<Creature>::SetMovementParameters(float, float, bool);
+template void ChaseMovementGenerator<Player>::SetMovementParameters(float, float, bool);
 
 template void FollowMovementGenerator<Player>::_clearUnitStateMove(Player& u);
 template void FollowMovementGenerator<Creature>::_addUnitStateMove(Creature& u);

@@ -162,6 +162,8 @@ class WorldSession
         void SizeError(WorldPacket const& packet, uint32 size) const;
 
         void SendPacket(WorldPacket const& packet) const;
+        void SendExpectedSpamRecords();
+        void SendMotd();
         void SendNotification(const char* format, ...) const ATTR_PRINTF(2, 3);
         void SendNotification(int32 string_id, ...) const;
         void SendPetNameInvalid(uint32 error, const std::string& name, DeclinedName* declinedName) const;
@@ -300,7 +302,7 @@ class WorldSession
         bool LookingForGroup_auto_join;
         bool LookingForGroup_auto_add;
 
-    static void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data);
+        static void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data);
 
         // Account mute time
         time_t m_muteTime;
@@ -741,6 +743,10 @@ class WorldSession
 
         void HandleGetMirrorimageData(WorldPacket& recv_data);
     private:
+        // Additional private opcode handlers
+        void HandleComplainMail(WorldPacket& recv_data);
+        void HandleComplainChat(WorldPacket& recv_data);
+
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);
         bool VerifyMovementInfo(MovementInfo const& movementInfo, ObjectGuid const& guid) const;
@@ -753,7 +759,7 @@ class WorldSession
         void LogUnexpectedOpcode(WorldPacket const& packet, const char* reason) const;
         void LogUnprocessedTail(WorldPacket const& packet) const;
 
-        Player * _player;
+        Player* _player;
         std::shared_ptr<WorldSocket> m_Socket;              // socket pointer is owned by the network thread which created it
 
         AccountTypes _security;

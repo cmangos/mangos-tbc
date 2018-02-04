@@ -194,7 +194,8 @@ extern void AddSC_instance_old_hillsbrad();                 // COT, old_hillsbra
 extern void AddSC_old_hillsbrad();
 extern void AddSC_dire_maul();                              // dire_maul
 extern void AddSC_instance_dire_maul();
-extern void AddSC_boss_noxxion();                           // maraudon
+extern void AddSC_instance_maraudon();                      // maraudon
+extern void AddSC_boss_noxxion();
 extern void AddSC_boss_onyxia();                            // onyxias_lair
 extern void AddSC_instance_onyxias_lair();
 extern void AddSC_instance_razorfen_downs();                // razorfen_downs
@@ -286,6 +287,7 @@ extern void AddSC_boss_morogrim_tidewalker();
 extern void AddSC_boss_the_lurker_below();
 extern void AddSC_instance_serpentshrine_cavern();
 extern void AddSC_boss_ahune();                             // CR, slave_pens
+extern void AddSC_instance_slave_pens();
 extern void AddSC_boss_hydromancer_thespia();               // CR, steam_vault
 extern void AddSC_boss_mekgineer_steamrigger();
 extern void AddSC_boss_warlord_kalithresh();
@@ -530,7 +532,8 @@ void AddScripts()
     AddSC_old_hillsbrad();
     AddSC_dire_maul();                                      // dire_maul
     AddSC_instance_dire_maul();
-    AddSC_boss_noxxion();                                   // maraudon
+    AddSC_instance_maraudon();                              // maraudon
+    AddSC_boss_noxxion();
     AddSC_boss_onyxia();                                    // onyxias_lair
     AddSC_instance_onyxias_lair();
     AddSC_instance_razorfen_downs();                        // razorfen_downs
@@ -622,6 +625,7 @@ void AddScripts()
     AddSC_boss_the_lurker_below();
     AddSC_instance_serpentshrine_cavern();
     AddSC_boss_ahune();                                     // CR, slave_pens
+    AddSC_instance_slave_pens();
     AddSC_boss_hydromancer_thespia();                       // CR, steam_vault
     AddSC_boss_mekgineer_steamrigger();
     AddSC_boss_warlord_kalithresh();

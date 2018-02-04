@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2361_01_mangos_questgiver_greeting` bit(1) DEFAULT NULL
+  `required_s2369_01_mangos_spell_affect` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -98,6 +98,7 @@ CREATE TABLE `areatrigger_teleport` (
   `target_position_z` float NOT NULL DEFAULT '0',
   `target_orientation` float NOT NULL DEFAULT '0',
   `condition_id` INT(11) unsigned NOT NULL default '0',
+  `status_failed_text` text,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Trigger System';
 
@@ -1067,6 +1068,8 @@ CREATE TABLE `creature_model_info` (
   `modelid` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `bounding_radius` float NOT NULL DEFAULT '0',
   `combat_reach` float NOT NULL DEFAULT '0',
+  `SpeedWalk` FLOAT NOT NULL DEFAULT '1' COMMENT 'Default walking speed for any creature with model',
+  `SpeedRun` FLOAT NOT NULL DEFAULT '1.14286' COMMENT 'Default running speed for any creature with model',
   `gender` tinyint(3) unsigned NOT NULL DEFAULT '2',
   `modelid_other_gender` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `modelid_alternative` mediumint(8) unsigned NOT NULL DEFAULT '0',
@@ -1080,27 +1083,27 @@ CREATE TABLE `creature_model_info` (
 LOCK TABLES `creature_model_info` WRITE;
 /*!40000 ALTER TABLE `creature_model_info` DISABLE KEYS */;
 INSERT INTO `creature_model_info` VALUES
-(49,0.306,1.5,0,50,0),
-(50,0.208,1.5,1,49,0),
-(51,0.372,1.5,0,52,0),
-(52,0.236,1.5,1,51,0),
-(53,0.347,1.5,0,54,0),
-(54,0.347,1.5,1,53,0),
-(55,0.389,1.5,0,56,0),
-(56,0.306,1.5,1,55,0),
-(57,0.383,1.5,0,58,0),
-(58,0.383,1.5,1,57,0),
-(59,0.9747,1.5,0,60,0),
-(60,0.8725,1.5,1,59,0),
-(1478,0.306,1.5,0,1479,0),
-(1479,0.306,1.5,1,1478,0),
-(1563,0.3519,1.5,0,1564,0),
-(1564,0.3519,1.5,1,1563,0),
-(10045,1,1.5,2,0,0),
-(15475,0.383,1.5,1,15476,0),
-(15476,0.383,1.5,0,15475,0),
-(16125,1,1.5,0,16126,0),
-(16126,1,1.5,1,16125,0);
+(49,0.306,1.5,1,1.14286,0,50,0),
+(50,0.208,1.5,1,1.14286,1,49,0),
+(51,0.372,1.5,1,1.14286,0,52,0),
+(52,0.236,1.5,1,1.14286,1,51,0),
+(53,0.347,1.5,1,1.14286,0,54,0),
+(54,0.347,1.5,1,1.14286,1,53,0),
+(55,0.389,1.5,1,1.14286,0,56,0),
+(56,0.306,1.5,1,1.14286,1,55,0),
+(57,0.383,1.5,1,1.14286,0,58,0),
+(58,0.383,1.5,1,1.14286,1,57,0),
+(59,0.9747,1.5,1,1.14286,0,60,0),
+(60,0.8725,1.5,1,1.14286,1,59,0),
+(1478,0.306,1.5,1,1.14286,0,1479,0),
+(1479,0.306,1.5,1,1.14286,1,1478,0),
+(1563,0.3519,1.5,1,1.14286,0,1564,0),
+(1564,0.3519,1.5,1,1.14286,1,1563,0),
+(10045,1,1.5,1,1.14286,2,0,0),
+(15475,0.383,1.5,1,1.14286,1,15476,0),
+(15476,0.383,1.5,1,1.14286,0,15475,0),
+(16125,1,1.5,1,1.14286,0,16126,0),
+(16126,1,1.5,1,1.14286,1,16125,0);
 /*!40000 ALTER TABLE `creature_model_info` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1139,16 +1142,7 @@ CREATE TABLE `creature_movement` (
   `position_z` float NOT NULL DEFAULT '0',
   `waittime` int(10) unsigned NOT NULL DEFAULT '0',
   `script_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `textid1` int(11) NOT NULL DEFAULT '0',
-  `textid2` int(11) NOT NULL DEFAULT '0',
-  `textid3` int(11) NOT NULL DEFAULT '0',
-  `textid4` int(11) NOT NULL DEFAULT '0',
-  `textid5` int(11) NOT NULL DEFAULT '0',
-  `emote` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `spell` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `orientation` float NOT NULL DEFAULT '0',
-  `model1` mediumint(9) NOT NULL DEFAULT '0',
-  `model2` mediumint(9) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`,`point`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Creature System';
 
@@ -1175,16 +1169,7 @@ CREATE TABLE `creature_movement_template` (
   `position_z` float NOT NULL DEFAULT '0',
   `waittime` int(10) unsigned NOT NULL DEFAULT '0',
   `script_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `textid1` int(11) NOT NULL DEFAULT '0',
-  `textid2` int(11) NOT NULL DEFAULT '0',
-  `textid3` int(11) NOT NULL DEFAULT '0',
-  `textid4` int(11) NOT NULL DEFAULT '0',
-  `textid5` int(11) NOT NULL DEFAULT '0',
-  `emote` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `spell` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `orientation` float NOT NULL DEFAULT '0',
-  `model1` mediumint(9) NOT NULL DEFAULT '0',
-  `model2` mediumint(9) NOT NULL DEFAULT '0',
   PRIMARY KEY (`entry`,`pathId`,`point`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Creature waypoint system';
 
@@ -1275,8 +1260,13 @@ CREATE TABLE `creature_template` (
   `DynamicFlags` int(10) unsigned NOT NULL DEFAULT '0',
   `ExtraFlags` int(10) unsigned NOT NULL DEFAULT '0',
   `CreatureTypeFlags` int(10) unsigned NOT NULL DEFAULT '0',
-  `SpeedWalk` float NOT NULL DEFAULT '1',
-  `SpeedRun` float NOT NULL DEFAULT '1.14286',
+  `SpeedWalk` float NOT NULL DEFAULT '0',
+  `SpeedRun` float NOT NULL DEFAULT '0',
+  `Detection` INT(10) UNSIGNED NOT NULL DEFAULT '20' COMMENT 'Detection range for proximity',
+  `CallForHelp` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Range in which creature calls for help?',
+  `Pursuit` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT 'When exceeded during pursuit creature evades?',
+  `Leash` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Leash range from combat start position',
+  `Timeout` INT(10) UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Time for refreshing leashing before evade?',
   `UnitClass` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Rank` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `Expansion` tinyint(3) NOT NULL DEFAULT '-1',
@@ -1337,7 +1327,7 @@ CREATE TABLE `creature_template` (
 LOCK TABLES `creature_template` WRITE;
 /*!40000 ALTER TABLE `creature_template` DISABLE KEYS */;
 INSERT INTO `creature_template` VALUES
-(1,'Waypoint (Only GM can see it)','Visual',NULL,1,1,0,10045,0,0,0,35,35,1,8,8,1,1,0,0,4096,0,130,5242886,0.91,1.14286,0,0,-1,1,1,1,1,1,1,8,8,0,0,7,7,1.76,2.42,0,3,100,2000,2200,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'','');
+(1,'Waypoint (Only GM can see it)','Visual',NULL,1,1,0,10045,0,0,0,35,35,1,8,8,1,1,0,0,4096,0,130,5242886,0.91,1.14286,20,0,0,0,0,0,0,-1,1,1,1,1,1,1,8,8,0,0,7,7,1.76,2.42,0,3,100,2000,2200,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'','');
 /*!40000 ALTER TABLE `creature_template` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -3955,7 +3945,7 @@ INSERT INTO `mangos_string` VALUES
 (465,'Teleport location deleted.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (466,'No taxinodes found!',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (467,'Target unit has %d auras:',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(468,'id: %d eff: %d type: %d duration: %d maxduration: %d name: %s%s%s caster: %s',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(468,'id: %d eff: %d type: %d duration: %d maxduration: %d name: %s%s%s caster: %s stacks: %d',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (469,'Target unit has %d auras of type %d:',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (470,'id: %d eff: %d name: %s%s%s caster: %s',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (471,'Quest %u not found.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
@@ -12430,6 +12420,16 @@ LOCK TABLES `skinning_loot_template` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `spam_records`
+--
+
+CREATE TABLE IF NOT EXISTS `spam_records` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `record` VARCHAR(512) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='REGEX Spam records';
+
+--
 -- Table structure for table `spell_affect`
 --
 
@@ -12784,7 +12784,7 @@ INSERT INTO `spell_affect` VALUES
 (16839,1,0x0000000000000300),
 (16840,1,0x0000000000000300),
 (16850,1,0x0000000000000001),
-(16870,0,0x001007F100E3FEFF),
+(16870,0,0x001007F100E3BEFF),
 (16886,0,0x0000000001000265),
 (16896,0,0x0000000000000007),
 (16896,1,0x0000000000000007),

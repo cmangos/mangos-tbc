@@ -97,7 +97,7 @@ void instance_temple_of_ahnqiraj::OnCreatureCreate(Creature* pCreature)
         case NPC_MASTERS_EYE:
         case NPC_OURO_SPAWNER:
         case NPC_CTHUN:
-            m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
     }
 }
@@ -123,7 +123,7 @@ void instance_temple_of_ahnqiraj::OnObjectCreate(GameObject* pGo)
             return;
     }
 
-    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+    m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
 void instance_temple_of_ahnqiraj::SetData(uint32 uiType, uint32 uiData)
@@ -172,7 +172,7 @@ void instance_temple_of_ahnqiraj::SetData(uint32 uiType, uint32 uiData)
                     // Respawn the Ouro spawner on fail
                     if (Creature* pSpawner = GetSingleCreatureFromStorage(NPC_OURO_SPAWNER))
                         pSpawner->Respawn();
-                    // no break;
+                // no break;
                 case DONE:
                     // Despawn the sandworm base on Done or Fail
                     if (GameObject* pBase = GetSingleGameObjectFromStorage(GO_SANDWORM_BASE))

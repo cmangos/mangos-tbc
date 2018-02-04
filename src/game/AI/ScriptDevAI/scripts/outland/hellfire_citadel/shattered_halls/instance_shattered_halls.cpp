@@ -25,7 +25,7 @@ EndScriptData */
 #include "shattered_halls.h"
 
 instance_shattered_halls::instance_shattered_halls(Map* pMap) : ScriptedInstance(pMap),
-    m_uiExecutionTimer(55 * MINUTE* IN_MILLISECONDS),
+    m_uiExecutionTimer(55 * MINUTE * IN_MILLISECONDS),
     m_uiTeam(0),
     m_uiExecutionStage(0)
 {
@@ -68,7 +68,7 @@ void instance_shattered_halls::OnObjectCreate(GameObject* pGo)
             return;
     }
 
-    m_mGoEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+    m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
 void instance_shattered_halls::OnCreatureCreate(Creature* pCreature)
@@ -84,7 +84,7 @@ void instance_shattered_halls::OnCreatureCreate(Creature* pCreature)
         case NPC_SOLDIER_HORDE_2:
         case NPC_SOLDIER_HORDE_3:
         case NPC_OFFICER_HORDE:
-            m_mNpcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
     }
 }

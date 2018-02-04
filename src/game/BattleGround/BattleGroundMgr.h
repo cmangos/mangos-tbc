@@ -203,8 +203,8 @@ class BattleGroundMgr
         void BuildGroupJoinedBattlegroundPacket(WorldPacket& data, BattleGroundTypeId bgTypeId) const;
         void BuildUpdateWorldStatePacket(WorldPacket& data, uint32 field, uint32 value) const;
         void BuildPvpLogDataPacket(WorldPacket& data, BattleGround* bg) const;
-        void BuildBattleGroundStatusPacket(WorldPacket &data, BattleGround* bg, uint8 QueueSlot, uint8 StatusID, uint32 Time1, uint32 Time2, ArenaType arenatype, Team arenaTeam) const;
-        void BuildPlaySoundPacket(WorldPacket &data, uint32 soundid) const;
+        void BuildBattleGroundStatusPacket(WorldPacket& data, BattleGround* bg, uint8 QueueSlot, uint8 StatusID, uint32 Time1, uint32 Time2, ArenaType arenatype, Team arenaTeam) const;
+        void BuildPlaySoundPacket(WorldPacket& data, uint32 soundid) const;
 
         /* Battlegrounds */
         BattleGround* GetBattleGroundThroughClientInstance(uint32 instanceId, BattleGroundTypeId bgTypeId);

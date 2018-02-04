@@ -1136,7 +1136,7 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading Scripts random templates...");  // must be before String calls
     sScriptMgr.LoadDbScriptRandomTemplates();
-                                                            ///- Load and initialize DBScripts Engine
+    ///- Load and initialize DBScripts Engine
     sLog.outString("Loading DB-Scripts Engine...");
     sScriptMgr.LoadRelayScripts();                          // must be first in dbscripts loading
     sScriptMgr.LoadGossipScripts();                         // must be before gossip menu options
@@ -1148,6 +1148,7 @@ void World::SetInitialWorldSettings()
     sScriptMgr.LoadEventScripts();                          // must be after load Creature/Gameobject(Template/Data)
     sScriptMgr.LoadCreatureDeathScripts();                  // must be after load Creature/Gameobject(Template/Data)
     sScriptMgr.LoadCreatureMovementScripts();               // before loading from creature_movement
+    sObjectMgr.LoadAreatriggerLocales();
     sLog.outString(">>> Scripts loaded");
     sLog.outString();
 
@@ -1165,7 +1166,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadTrainerTemplates();                      // must be after load CreatureTemplate
     sObjectMgr.LoadTrainers();                              // must be after load CreatureTemplate, TrainerTemplate
 
-    sLog.outString("Loading Waypoint scripts...");          
+    sLog.outString("Loading Waypoint scripts...");
 
     sLog.outString("Loading Waypoints...");
     sWaypointMgr.Load();
@@ -1313,13 +1314,17 @@ void World::SetInitialWorldSettings()
     SetMonthlyQuestResetTime();
     sLog.outString();
 
-    sLog.outString("Loading Quest Group chosen quests...");
-    LoadEventGroupChosen();
+    sLog.outString("Loading Spam records...");
+    LoadSpamRecords();
     sLog.outString();
 
     sLog.outString("Starting Game Event system...");
     uint32 nextGameEvent = sGameEventMgr.Initialize();
     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    // depend on next event
+    sLog.outString();
+
+    sLog.outString("Loading Quest Group chosen quests...");
+    LoadEventGroupChosen();
     sLog.outString();
 
     sLog.outString("Loading grids for active creatures or transports...");
@@ -1860,14 +1865,14 @@ void World::UpdateSessions(uint32 /*diff*/)
     {
         std::lock_guard<std::mutex> guard(m_sessionAddQueueLock);
 
-        for (auto const &session : m_sessionAddQueue)
+        for (auto const& session : m_sessionAddQueue)
             AddSession_(session);
 
         m_sessionAddQueue.clear();
     }
 
     ///- Then send an update signal to remaining ones
-    for (SessionMap::iterator itr = m_sessions.begin(); itr != m_sessions.end(); )
+    for (SessionMap::iterator itr = m_sessions.begin(); itr != m_sessions.end();)
     {
         ///- and remove not active sessions from the list
         WorldSession* pSession = itr->second;
@@ -1992,7 +1997,7 @@ void World::InitWeeklyQuestResetTime()
     time_t nextWeekResetTime = mktime(&localTm);
     nextWeekResetTime -= week_day_offset * DAY;             // move time to proper day
 
-                                                            // next reset time before current moment
+    // next reset time before current moment
     if (curTime >= nextWeekResetTime)
         nextWeekResetTime += WEEK;
 
@@ -2089,7 +2094,7 @@ void World::GenerateEventGroupEvents(bool daily, bool weekly, bool deleteColumns
         uint32 random = urand(0, data.second.size() - 1);
         uint32 chosenId = data.second[random];
         CharacterDatabase.PExecute("INSERT INTO event_group_chosen(eventGroup,entry) VALUES('%u','%u')",
-            data.first, chosenId);
+                                   data.first, chosenId);
         m_eventGroupChosen.push_back(chosenId);
         // start events
         sGameEventMgr.StartEvent(chosenId);
@@ -2106,12 +2111,34 @@ void World::LoadEventGroupChosen()
             Field* fields = result->Fetch();
             m_eventGroupChosen.push_back(fields[0].GetUInt32());
             sGameEventMgr.StartEvent(fields[0].GetUInt32(), false, true);
-        } while (result->NextRow());
+        }
+        while (result->NextRow());
 
         delete result;
     }
     else // if table not set yet, generate quests
         GenerateEventGroupEvents(true, true, false);
+}
+
+void World::LoadSpamRecords(bool reload)
+{
+    QueryResult* result = WorldDatabase.Query("SELECT record FROM spam_records");
+
+    if (result)
+    {
+        if (reload)
+            m_spamRecords.clear();
+
+        while (result->NextRow())
+        {
+            Field* fields = result->Fetch();
+            std::string record = fields[0].GetCppString();
+
+            m_spamRecords.push_back(record);
+        }
+
+        delete result;
+    }
 }
 
 void World::ResetDailyQuests()

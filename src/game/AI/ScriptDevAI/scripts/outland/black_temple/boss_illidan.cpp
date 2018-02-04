@@ -525,7 +525,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
             case NPC_MAIEV_SHADOWSONG:
                 // Resume combat and attack Maiev
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                m_creature->SetTargetGuid(m_creature->getVictim()->GetObjectGuid());
+                m_creature->SetTarget(m_creature->getVictim());
                 SetCombatMovement(false);
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
@@ -574,7 +574,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
                 break;
             case NPC_MAIEV_SHADOWSONG:
                 pSummoned->SetFacingToObject(m_creature);
-                m_creature->SetTargetGuid(pSummoned->GetObjectGuid());
+                m_creature->SetTarget(pSummoned);
                 break;
         }
     }
@@ -710,7 +710,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
                 else
                     m_uiTrapTimer -= uiDiff;
 
-                // no break;
+            // no break;
             case PHASE_DUAL_NORMAL:
 
                 // Phase 3 and 5 spells
@@ -742,7 +742,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
                 else
                     m_uiTransformTimer -= uiDiff;
 
-                // no break;
+            // no break;
             case PHASE_AKAMA:
 
                 if (m_uiShearTimer < uiDiff)

@@ -60,7 +60,7 @@ void instance_mount_hyjal::OnPlayerEnter(Player* /*pPlayer*/)
 void instance_mount_hyjal::OnCreatureCreate(Creature* pCreature)
 {
     if (pCreature->GetEntry() == NPC_ARCHIMONDE)
-        m_mNpcEntryGuidStore[NPC_ARCHIMONDE] = pCreature->GetObjectGuid();
+        m_npcEntryGuidStore[NPC_ARCHIMONDE] = pCreature->GetObjectGuid();
 }
 
 void instance_mount_hyjal::OnObjectCreate(GameObject* pGo)
@@ -102,7 +102,7 @@ void instance_mount_hyjal::OnCreatureDeath(Creature* pCreature)
         case NPC_AZGALOR:     SetData(TYPE_AZGALOR, DONE);     break;
         case NPC_ARCHIMONDE:  SetData(TYPE_ARCHIMONDE, DONE);  break;
 
-            // Trash Mobs summoned in waves
+        // Trash Mobs summoned in waves
         case NPC_NECRO:
         case NPC_ABOMI:
         case NPC_GHOUL:

@@ -510,41 +510,41 @@ struct npc_wildaAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-        case 8:
-        case 26:
-        case 30:
-        case 32:
-        case 39:
-        case 43:
-        case 51:
-            DoSpawnAssassin();
-            break;
-        case 13:
-            if (Player* pPlayer = GetPlayerForEscort())
-                DoScriptText(SAY_WIL_FREE_SPIRITS, m_creature, pPlayer);
-            DoCastSpellIfCan(m_creature, SPELL_BREAK_WATER_PRISON);
-            break;
-        case 14:
-            if (Player* pPlayer = GetPlayerForEscort())
-                DoScriptText(SAY_WIL_FIND_EXIT, m_creature, pPlayer);
-            DoFreeSpirits();
-            break;
-        case 15:
-            DoSpawnAssassin(2);
-            break;
-        case 40:
-            if (Player* pPlayer = GetPlayerForEscort())
-                DoScriptText(SAY_WIL_JUST_AHEAD, m_creature, pPlayer);
-            break;
-        case 52:
-            if (Player* pPlayer = GetPlayerForEscort())
-            {
-                DoDespawnSpirits();
-                m_creature->SetFacingToObject(pPlayer);
-                DoScriptText(SAY_WIL_END, m_creature, pPlayer);
-                pPlayer->GroupEventHappens(QUEST_ESCAPE_COILSCAR, m_creature);
-            }
-            break;
+            case 8:
+            case 26:
+            case 30:
+            case 32:
+            case 39:
+            case 43:
+            case 51:
+                DoSpawnAssassin();
+                break;
+            case 13:
+                if (Player* pPlayer = GetPlayerForEscort())
+                    DoScriptText(SAY_WIL_FREE_SPIRITS, m_creature, pPlayer);
+                DoCastSpellIfCan(m_creature, SPELL_BREAK_WATER_PRISON);
+                break;
+            case 14:
+                if (Player* pPlayer = GetPlayerForEscort())
+                    DoScriptText(SAY_WIL_FIND_EXIT, m_creature, pPlayer);
+                DoFreeSpirits();
+                break;
+            case 15:
+                DoSpawnAssassin(2);
+                break;
+            case 40:
+                if (Player* pPlayer = GetPlayerForEscort())
+                    DoScriptText(SAY_WIL_JUST_AHEAD, m_creature, pPlayer);
+                break;
+            case 52:
+                if (Player* pPlayer = GetPlayerForEscort())
+                {
+                    DoDespawnSpirits();
+                    m_creature->SetFacingToObject(pPlayer);
+                    DoScriptText(SAY_WIL_END, m_creature, pPlayer);
+                    pPlayer->GroupEventHappens(QUEST_ESCAPE_COILSCAR, m_creature);
+                }
+                break;
         }
     }
 
@@ -575,13 +575,13 @@ struct npc_wildaAI : public npc_escortAI
         // random text when assassin is summoned
         switch (urand(0, 6))
         {
-        case 0: DoScriptText(SAY_WIL_PROGRESS_1, m_creature); break;
-        case 1: DoScriptText(SAY_WIL_PROGRESS_2, m_creature); break;
-        case 2: DoScriptText(SAY_WIL_PROGRESS_3, m_creature); break;
-        case 3: DoScriptText(SAY_WIL_PROGRESS_4, m_creature); break;
-        case 4: DoScriptText(SAY_WIL_PROGRESS_5, m_creature); break;
-        case 5: DoScriptText(SAY_WIL_AGGRO_1, m_creature); break;
-        case 6: DoScriptText(SAY_WIL_AGGRO_2, m_creature); break;
+            case 0: DoScriptText(SAY_WIL_PROGRESS_1, m_creature); break;
+            case 1: DoScriptText(SAY_WIL_PROGRESS_2, m_creature); break;
+            case 2: DoScriptText(SAY_WIL_PROGRESS_3, m_creature); break;
+            case 3: DoScriptText(SAY_WIL_PROGRESS_4, m_creature); break;
+            case 4: DoScriptText(SAY_WIL_PROGRESS_5, m_creature); break;
+            case 5: DoScriptText(SAY_WIL_AGGRO_1, m_creature); break;
+            case 6: DoScriptText(SAY_WIL_AGGRO_2, m_creature); break;
         }
     }
 
@@ -1591,7 +1591,7 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 // Cyrukh starts to attack
                 if (Creature* pCyrukh = m_creature->GetMap()->GetCreature(m_cyrukhGuid))
                 {
-                    pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                    pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                     pCyrukh->AI()->AttackStart(m_creature);
                     AttackStart(pCyrukh);
                     m_bHasAttackStart = true;
@@ -1833,7 +1833,7 @@ struct npc_veneratus_spawn_nodeAI : public Scripted_NoMovementAI
         if (pWho->GetEntry() == NPC_SPIRIT_HUNTER && m_creature->IsWithinDistInMap(pWho, 40.0f) && m_creature->IsWithinLOSInMap(pWho))
         {
             DoScriptText(SAY_VENERATUS_SPAWN, pWho);
-            DoSpawnCreature(NPC_VENERATUS, 0, 0, 0, 0, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
+            m_creature->SummonCreature(NPC_VENERATUS, 0, 0, 0, 0, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
             m_creature->ForcedDespawn();
         }
     }

@@ -124,7 +124,7 @@ struct boss_ouroAI : public Scripted_NoMovementAI
         {
             case NPC_OURO_TRIGGER:
                 m_ouroTriggerGuid = pSummoned->GetObjectGuid();
-                // no break;
+            // no break;
             case NPC_DIRT_MOUND:
                 pSummoned->GetMotionMaster()->MoveRandomAroundPoint(pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ(), 40.0f);
                 break;
@@ -204,7 +204,7 @@ struct boss_ouroAI : public Scripted_NoMovementAI
                 // Summon 1 mound every 10 secs when enraged
                 if (m_uiSummonMoundTimer < uiDiff)
                 {
-                    DoSpawnCreature(NPC_DIRT_MOUND, 0, 0, 0, 0, TEMPSPAWN_CORPSE_DESPAWN, 0);
+                    m_creature->SummonCreature(NPC_DIRT_MOUND, 0, 0, 0, 0, TEMPSPAWN_CORPSE_DESPAWN, 0);
                     m_uiSummonMoundTimer = 10000;
                 }
                 else

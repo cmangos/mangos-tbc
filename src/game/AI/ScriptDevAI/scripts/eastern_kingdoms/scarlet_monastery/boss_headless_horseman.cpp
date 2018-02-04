@@ -47,7 +47,7 @@ enum
     SPELL_BODY_HEAD_VISUAL      = 42413,            // head visual
     SPELL_JACK_LANTERNED        = 44185,            // on killed player
     SPELL_HORSEMAN_CLEAVE       = 42587,
-    SPELL_CONFLAGRATION         = 42380,            // triggers 42381
+    SPELL_CONFLAGRATION         = 45342,            // triggers 42381
     SPELL_SUMMON_PUMPKIN        = 52236,            // triggers 42394
     SPELL_HORSEMAN_SUMMON       = 42394,            // triggered spell - used to do the text
     SPELL_CONFLAGRATION_SOUND   = 48149,
@@ -205,6 +205,8 @@ struct boss_headless_horsemanAI : public ScriptedAI
         {
             m_bHorsemanLanded = true;
             m_creature->SetLevitate(false);
+            if (Unit* spawner = m_creature->GetSpawner())
+                AttackStart(spawner);
         }
     }
 
@@ -293,7 +295,7 @@ struct boss_headless_horsemanAI : public ScriptedAI
                 else
                     m_uiPumpkinTimer -= uiDiff;
 
-                // no break;
+            // no break;
             case PHASE_CONFLAGRATION:
 
                 // conflagration not happening during pumpkin phase
@@ -314,7 +316,7 @@ struct boss_headless_horsemanAI : public ScriptedAI
                         m_uiConflagrationTimer -= uiDiff;
                 }
 
-                // no break;
+            // no break;
             case PHASE_HORSEMAN:
 
                 // cleave - all phases
@@ -345,19 +347,6 @@ struct boss_headless_horsemanAI : public ScriptedAI
 CreatureAI* GetAI_boss_headless_horseman(Creature* pCreature)
 {
     return new boss_headless_horsemanAI(pCreature);
-}
-
-bool EffectScriptEffectCreature_boss_headless_horseman(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, Creature* pCreatureTarget, ObjectGuid /*originalCasterGuid*/)
-{
-    if (uiSpellId == SPELL_REQUEST_BODY && uiEffIndex == EFFECT_INDEX_0)
-    {
-        if (pCreatureTarget->GetEntry() == NPC_HEADLESS_HORSEMAN)
-            pCreatureTarget->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pCaster, pCreatureTarget);
-
-        return true;
-    }
-
-    return false;
 }
 
 struct boss_head_of_horsemanAI : public ScriptedAI
@@ -451,19 +440,6 @@ CreatureAI* GetAI_boss_head_of_horseman(Creature* pCreature)
     return new boss_head_of_horsemanAI(pCreature);
 }
 
-bool EffectScriptEffectCreature_boss_head_of_horseman(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, Creature* pCreatureTarget, ObjectGuid /*originalCasterGuid*/)
-{
-    if (uiSpellId == SPELL_SEND_HEAD && uiEffIndex == EFFECT_INDEX_0)
-    {
-        if (pCreatureTarget->GetEntry() == NPC_HEAD_OF_HORSEMAN)
-            pCreatureTarget->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pCaster, pCreatureTarget);
-
-        return true;
-    }
-
-    return false;
-}
-
 void AddSC_boss_headless_horseman()
 {
     Script* pNewScript;
@@ -471,12 +447,10 @@ void AddSC_boss_headless_horseman()
     pNewScript = new Script;
     pNewScript->Name = "boss_headless_horseman";
     pNewScript->GetAI = GetAI_boss_headless_horseman;
-    pNewScript->pEffectScriptEffectNPC = &EffectScriptEffectCreature_boss_headless_horseman;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "boss_head_of_horseman";
     pNewScript->GetAI = GetAI_boss_head_of_horseman;
-    pNewScript->pEffectScriptEffectNPC = &EffectScriptEffectCreature_boss_head_of_horseman;
     pNewScript->RegisterSelf();
 }

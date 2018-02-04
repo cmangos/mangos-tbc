@@ -64,37 +64,37 @@
 // returns a float in range of..
 float rand_float(float low, float high)
 {
-    return (rand() / (static_cast<float> (RAND_MAX) + 1.0)) * (high - low) + low;
+    return (rand() / (static_cast<float>(RAND_MAX) + 1.0)) * (high - low) + low;
 }
 
-enum NPCFlags VENDOR_MASK = (enum NPCFlags) (UNIT_NPC_FLAG_VENDOR
-     | UNIT_NPC_FLAG_VENDOR_AMMO
-     | UNIT_NPC_FLAG_VENDOR_FOOD
-     | UNIT_NPC_FLAG_VENDOR_POISON
-     | UNIT_NPC_FLAG_VENDOR_REAGENT);
+enum NPCFlags VENDOR_MASK = (enum NPCFlags)(UNIT_NPC_FLAG_VENDOR
+                            | UNIT_NPC_FLAG_VENDOR_AMMO
+                            | UNIT_NPC_FLAG_VENDOR_FOOD
+                            | UNIT_NPC_FLAG_VENDOR_POISON
+                            | UNIT_NPC_FLAG_VENDOR_REAGENT);
 
 // ChatHandler already implements some useful commands the master can call on bots
 // These commands are protected inside the ChatHandler class so this class provides access to the commands
 // we'd like to call on our bots
 class PlayerbotChatHandler : protected ChatHandler
 {
-public:
-    explicit PlayerbotChatHandler(Player* pMasterPlayer) : ChatHandler(pMasterPlayer) {}
-    bool revive(Player& botPlayer) { return HandleReviveCommand((char *) botPlayer.GetName()); }
-    bool teleport(Player& botPlayer) { return HandleNamegoCommand((char *) botPlayer.GetName()); }
-    void sysmessage(const char *str) { SendSysMessage(str); }
-    bool dropQuest(char *str) { return HandleQuestRemoveCommand(str); }
+    public:
+        explicit PlayerbotChatHandler(Player* pMasterPlayer) : ChatHandler(pMasterPlayer) {}
+        bool revive(Player& botPlayer) { return HandleReviveCommand((char*) botPlayer.GetName()); }
+        bool teleport(Player& botPlayer) { return HandleNamegoCommand((char*) botPlayer.GetName()); }
+        void sysmessage(const char* str) { SendSysMessage(str); }
+        bool dropQuest(char* str) { return HandleQuestRemoveCommand(str); }
 };
 
 PlayerbotAI::PlayerbotAI(PlayerbotMgr* const mgr, Player* const bot) :
-m_mgr(mgr), m_bot(bot), m_classAI(0), m_ignoreAIUpdatesUntilTime(CurrentTime()),
-m_combatOrder(ORDERS_NONE), m_ScenarioType(SCENARIO_PVE),
-m_TimeDoneEating(0), m_TimeDoneDrinking(0),
-m_CurrentlyCastingSpellId(0), m_CraftSpellId(0), m_spellIdCommand(0),
-m_targetGuidCommand(ObjectGuid()),
-m_taxiMaster(ObjectGuid()),
-m_AutoEquipToggle(false),
-m_bDebugCommandChat(false)
+    m_mgr(mgr), m_bot(bot), m_classAI(0), m_ignoreAIUpdatesUntilTime(CurrentTime()),
+    m_combatOrder(ORDERS_NONE), m_ScenarioType(SCENARIO_PVE),
+    m_TimeDoneEating(0), m_TimeDoneDrinking(0),
+    m_CurrentlyCastingSpellId(0), m_CraftSpellId(0), m_spellIdCommand(0),
+    m_targetGuidCommand(ObjectGuid()),
+    m_taxiMaster(ObjectGuid()),
+    m_AutoEquipToggle(false),
+    m_bDebugCommandChat(false)
 {
     // set bot state
     m_botState = BOTSTATE_NORMAL;
@@ -153,7 +153,7 @@ Player* PlayerbotAI::GetMaster() const
 bool PlayerbotAI::CanReachWithSpellAttack(Unit* target)
 {
     bool inrange = false;
-    float dist = m_bot->GetCombatDistance(target,false);
+    float dist = m_bot->GetCombatDistance(target, false);
 
     for (SpellRanges::iterator itr = m_spellRangeMap.begin(); itr != m_spellRangeMap.end(); ++itr)
     {
@@ -194,7 +194,7 @@ bool PlayerbotAI::In_Reach(Unit* Target, uint32 spellId)
         return false;
 
     float range = 0;
-    float dist = m_bot->GetCombatDistance(Target,false);
+    float dist = m_bot->GetCombatDistance(Target, false);
     SpellRanges::iterator it;
     it = m_spellRangeMap.find(spellId);
     (it != m_spellRangeMap.end()) ? range = it->second : range = 0;
@@ -360,10 +360,13 @@ uint32 PlayerbotAI::initSpell(uint32 spellId)
     if (next == 0)
     {
         const SpellEntry* const pSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
-        DEBUG_LOG ("[PlayerbotAI]: initSpell - Playerbot spell init: %s is %u", pSpellInfo->SpellName[0], spellId);
+        if (!pSpellInfo)
+            return spellId;
+
+        DEBUG_LOG("[PlayerbotAI]: initSpell - Playerbot spell init: %s is %u", pSpellInfo->SpellName[0], spellId);
 
         // Add spell to spellrange map
-        Spell *spell = new Spell(m_bot, pSpellInfo, false);
+        Spell* spell = new Spell(m_bot, pSpellInfo, false);
         SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(pSpellInfo->rangeIndex);
         float range = GetSpellMaxRange(srange);
         if (Player* modOwner = m_bot->GetSpellModOwner())
@@ -379,7 +382,7 @@ uint32 PlayerbotAI::initSpell(uint32 spellId)
 // One of the options to initialize a spell is to use spell icon id
 uint32 PlayerbotAI::initPetSpell(uint32 spellIconId)
 {
-    Pet * pet = m_bot->GetPet();
+    Pet* pet = m_bot->GetPet();
 
     if (!pet)
         return 0;
@@ -449,7 +452,7 @@ void PlayerbotAI::SendNotEquipList(Player& /*player*/)
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -479,9 +482,10 @@ void PlayerbotAI::SendNotEquipList(Player& /*player*/)
     ChatHandler ch(GetMaster());
 
     const std::string descr[] = { "head", "neck", "shoulders", "body", "chest",
-        "waist", "legs", "feet", "wrists", "hands", "finger1", "finger2",
-        "trinket1", "trinket2", "back", "mainhand", "offhand", "ranged",
-        "tabard" };
+                                  "waist", "legs", "feet", "wrists", "hands", "finger1", "finger2",
+                                  "trinket1", "trinket2", "back", "mainhand", "offhand", "ranged",
+                                  "tabard"
+                                };
 
     // now send client all items that can be equipped by slot
     for (uint8 equipSlot = 0; equipSlot < 19; ++equipSlot)
@@ -577,7 +581,7 @@ void PlayerbotAI::AutoUpgradeEquipment() // test for autoequip
         Item* const pItem2 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, (uint8)equipSlot);
         if (!pItem2) // no item to compare to see if has stats useful for this bots class/style so check for stats and equip if possible
         {
-            ItemPrototype const *pProto2 = pItem->GetProto();
+            ItemPrototype const* pProto2 = pItem->GetProto();
             if (ItemStatsCount(pProto2) > 0)
             {
                 if (!ItemStatComparison(pProto2, pProto2))
@@ -594,7 +598,7 @@ void PlayerbotAI::AutoUpgradeEquipment() // test for autoequip
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -611,7 +615,7 @@ void PlayerbotAI::AutoUpgradeEquipment() // test for autoequip
                 Item* const pItem2 = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, equipSlot); // do we have anything equipped of this type?
                 if (!pItem2)
                 {
-                    ItemPrototype const *pProto2 = pItem->GetProto();
+                    ItemPrototype const* pProto2 = pItem->GetProto();
                     if (ItemStatsCount(pProto2) > 0)
                     {
                         if (!ItemStatComparison(pProto2, pProto2))
@@ -628,39 +632,39 @@ void PlayerbotAI::AutoUpgradeEquipment() // test for autoequip
     }
 }
 
-uint32 PlayerbotAI::ItemStatsCount(ItemPrototype const * proto)
+uint32 PlayerbotAI::ItemStatsCount(ItemPrototype const* proto)
 {
-   uint32 count = 0;
+    uint32 count = 0;
 
-   for(int i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
-       if (proto && (proto->ItemStat[i].ItemStatType || proto->ItemStat[i].ItemStatValue))
-           count++;
+    for (int i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
+        if (proto && (proto->ItemStat[i].ItemStatType || proto->ItemStat[i].ItemStatValue))
+            count++;
 
-   return count;
+    return count;
 }
 
-float PlayerbotAI::getItemDPS(ItemPrototype const * proto) const
+float PlayerbotAI::getItemDPS(ItemPrototype const* proto) const
 {
-        if (proto->Delay == 0)
-            return 0;
-        float temp = 0;
-        for (int i = 0; i < MAX_ITEM_PROTO_DAMAGES; ++i)
-            temp += proto->Damage[i].DamageMin + proto->Damage[i].DamageMax;
-        return temp * 500 / proto->Delay;
+    if (proto->Delay == 0)
+        return 0;
+    float temp = 0;
+    for (int i = 0; i < MAX_ITEM_PROTO_DAMAGES; ++i)
+        temp += proto->Damage[i].DamageMin + proto->Damage[i].DamageMax;
+    return temp * 500 / proto->Delay;
 }
 
-void PlayerbotAI::AutoEquipComparison(Item *pItem, Item *pItem2)
+void PlayerbotAI::AutoEquipComparison(Item* pItem, Item* pItem2)
 {
     const static uint32 item_armor_skills[MAX_ITEM_SUBCLASS_ARMOR] =
     {
         0, SKILL_CLOTH, SKILL_LEATHER, SKILL_MAIL, SKILL_PLATE_MAIL, 0, SKILL_SHIELD, 0, 0, 0
     };
-    ItemPrototype const *pProto = pItem2->GetProto(); // equipped item if any
-    ItemPrototype const *pProto2 = pItem->GetProto(); // new item to compare
+    ItemPrototype const* pProto = pItem2->GetProto(); // equipped item if any
+    ItemPrototype const* pProto2 = pItem->GetProto(); // new item to compare
     // DEBUG_LOG("Item Class (%s)",(pProto->Class == ITEM_CLASS_WEAPON ? "Weapon" : "Not Weapon"));
     switch (pProto->Class)
     {
-    case ITEM_CLASS_WEAPON:
+        case ITEM_CLASS_WEAPON:
         {
             // DEBUG_LOG("Current Item DPS (%f) Equippable Item DPS (%f)",getItemDPS(pProto),getItemDPS(pProto2));
             // m_bot->GetSkillValue(pProto->RequiredSkill) < m_bot->GetSkillValue(pProto2->RequiredSkill)
@@ -671,11 +675,11 @@ void PlayerbotAI::AutoEquipComparison(Item *pItem, Item *pItem2)
             }
             break;
         }
-    case ITEM_CLASS_ARMOR:
+        case ITEM_CLASS_ARMOR:
         {
             // now in case they are same itemlevel, but one is better than the other..
             if (pProto->ItemLevel == pProto2->ItemLevel && pProto->Quality < pProto2->Quality && pProto->Armor <= pProto2->Armor &&
-                m_bot->HasSkill(item_armor_skills[pProto2->SubClass]) && !m_bot->HasSkill(item_armor_skills[pProto2->SubClass + 1])) // itemlevel + armour + armour class
+                    m_bot->HasSkill(item_armor_skills[pProto2->SubClass]) && !m_bot->HasSkill(item_armor_skills[pProto2->SubClass + 1])) // itemlevel + armour + armour class
             {
                 // First check to see if this item has stats, and if the bot REALLY wants to lose its old item
                 if (ItemStatsCount(pProto2) > 0)
@@ -687,7 +691,7 @@ void PlayerbotAI::AutoEquipComparison(Item *pItem, Item *pItem2)
                 break;
             }
             if (pProto->ItemLevel <= pProto2->ItemLevel && pProto->Quality < pProto2->Quality && pProto->Armor > pProto2->Armor &&
-                m_bot->HasSkill(item_armor_skills[pProto2->SubClass]) && !m_bot->HasSkill(item_armor_skills[pProto2->SubClass + 1])) // itemlevel + armour + armour class
+                    m_bot->HasSkill(item_armor_skills[pProto2->SubClass]) && !m_bot->HasSkill(item_armor_skills[pProto2->SubClass + 1])) // itemlevel + armour + armour class
             {
                 // First check to see if this item has stats, and if the bot REALLY wants to lose its old item
                 if (ItemStatsCount(pProto2) > 0)
@@ -699,7 +703,7 @@ void PlayerbotAI::AutoEquipComparison(Item *pItem, Item *pItem2)
                 break;
             }
             if (pProto->ItemLevel <= pProto2->ItemLevel && pProto->Armor <= pProto2->Armor && m_bot->HasSkill(item_armor_skills[pProto2->SubClass]) &&
-                !m_bot->HasSkill(item_armor_skills[pProto2->SubClass + 1])) // itemlevel + armour + armour class
+                    !m_bot->HasSkill(item_armor_skills[pProto2->SubClass + 1])) // itemlevel + armour + armour class
             {
                 // First check to see if this item has stats, and if the bot REALLY wants to lose its old item
                 if (ItemStatsCount(pProto2) > 0)
@@ -714,7 +718,7 @@ void PlayerbotAI::AutoEquipComparison(Item *pItem, Item *pItem2)
     }
 }
 
-bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemPrototype *pProto2)
+bool PlayerbotAI::ItemStatComparison(const ItemPrototype* pProto, const ItemPrototype* pProto2)
 {
     uint8 isclass = 0; // 1= caster 2 = hybrid 3 = melee
     uint8 ishybrid = 0;
@@ -758,13 +762,13 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
         }
         // caster stats
         if (itemmod == ITEM_MOD_MANA || itemmod == ITEM_MOD_INTELLECT || itemmod == ITEM_MOD_SPIRIT || itemmod == ITEM_MOD_HIT_SPELL_RATING ||
-            itemmod == ITEM_MOD_CRIT_SPELL_RATING || itemmod == ITEM_MOD_HASTE_SPELL_RATING ||
-            itemmod2 == ITEM_MOD_MANA || itemmod2 == ITEM_MOD_INTELLECT || itemmod2 == ITEM_MOD_SPIRIT || itemmod2 == ITEM_MOD_HIT_SPELL_RATING ||
-            itemmod2 == ITEM_MOD_CRIT_SPELL_RATING || itemmod2 == ITEM_MOD_HASTE_SPELL_RATING)
+                itemmod == ITEM_MOD_CRIT_SPELL_RATING || itemmod == ITEM_MOD_HASTE_SPELL_RATING ||
+                itemmod2 == ITEM_MOD_MANA || itemmod2 == ITEM_MOD_INTELLECT || itemmod2 == ITEM_MOD_SPIRIT || itemmod2 == ITEM_MOD_HIT_SPELL_RATING ||
+                itemmod2 == ITEM_MOD_CRIT_SPELL_RATING || itemmod2 == ITEM_MOD_HASTE_SPELL_RATING)
         {
             switch (isclass) // 1 caster, 2 hybrid, 3 melee
             {
-            case 1:
+                case 1:
                 {
                     uint32 itemmodval = pProto->ItemStat[i].ItemStatValue; // equipped item stats if any
                     uint32 itemmodval2 = pProto2->ItemStat[i].ItemStatValue;  // newitem stats
@@ -798,7 +802,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            case 2:
+                case 2:
                 {
                     uint32 itemmodval = pProto->ItemStat[i].ItemStatValue; // equipped item stats if any
                     uint32 itemmodval2 = pProto2->ItemStat[i].ItemStatValue;  // newitem stats
@@ -848,7 +852,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }  // pure melee need nothing from this list.
-            case 3:
+                case 3:
                 {
                     if (itemmod > 0)
                     {
@@ -862,29 +866,29 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            default:
-                break;
+                default:
+                    break;
             }
         }
         // melee only stats (warrior/rogue) or stats that only apply to melee style combat
         if (itemmod == ITEM_MOD_HEALTH || itemmod == ITEM_MOD_AGILITY || itemmod == ITEM_MOD_STRENGTH ||
-            itemmod == ITEM_MOD_DEFENSE_SKILL_RATING || itemmod == ITEM_MOD_DODGE_RATING || itemmod == ITEM_MOD_PARRY_RATING ||
-            itemmod == ITEM_MOD_BLOCK_RATING || itemmod == ITEM_MOD_HIT_MELEE_RATING || itemmod == ITEM_MOD_CRIT_MELEE_RATING ||
-            itemmod == ITEM_MOD_HIT_TAKEN_MELEE_RATING || itemmod == ITEM_MOD_HIT_TAKEN_RANGED_RATING ||itemmod == ITEM_MOD_HIT_TAKEN_SPELL_RATING ||
-            itemmod == ITEM_MOD_CRIT_TAKEN_MELEE_RATING || itemmod == ITEM_MOD_CRIT_TAKEN_RANGED_RATING ||
-            itemmod == ITEM_MOD_CRIT_TAKEN_SPELL_RATING || itemmod == ITEM_MOD_HASTE_MELEE_RATING ||
-            itemmod == ITEM_MOD_HIT_TAKEN_RATING || itemmod == ITEM_MOD_CRIT_TAKEN_RATING ||
-            itemmod2 == ITEM_MOD_HEALTH || itemmod2 == ITEM_MOD_AGILITY || itemmod2 == ITEM_MOD_STRENGTH ||
-            itemmod2 == ITEM_MOD_DEFENSE_SKILL_RATING || itemmod2 == ITEM_MOD_DODGE_RATING || itemmod2 == ITEM_MOD_PARRY_RATING ||
-            itemmod2 == ITEM_MOD_BLOCK_RATING || itemmod2 == ITEM_MOD_HIT_MELEE_RATING || itemmod2 == ITEM_MOD_CRIT_MELEE_RATING ||
-            itemmod2 == ITEM_MOD_HIT_TAKEN_MELEE_RATING || itemmod2 == ITEM_MOD_HIT_TAKEN_RANGED_RATING ||itemmod2 == ITEM_MOD_HIT_TAKEN_SPELL_RATING ||
-            itemmod2 == ITEM_MOD_CRIT_TAKEN_MELEE_RATING || itemmod2 == ITEM_MOD_CRIT_TAKEN_RANGED_RATING ||
-            itemmod2 == ITEM_MOD_CRIT_TAKEN_SPELL_RATING || itemmod2 == ITEM_MOD_HASTE_MELEE_RATING ||
-            itemmod2 == ITEM_MOD_HIT_TAKEN_RATING || itemmod2 == ITEM_MOD_CRIT_TAKEN_RATING)
+                itemmod == ITEM_MOD_DEFENSE_SKILL_RATING || itemmod == ITEM_MOD_DODGE_RATING || itemmod == ITEM_MOD_PARRY_RATING ||
+                itemmod == ITEM_MOD_BLOCK_RATING || itemmod == ITEM_MOD_HIT_MELEE_RATING || itemmod == ITEM_MOD_CRIT_MELEE_RATING ||
+                itemmod == ITEM_MOD_HIT_TAKEN_MELEE_RATING || itemmod == ITEM_MOD_HIT_TAKEN_RANGED_RATING || itemmod == ITEM_MOD_HIT_TAKEN_SPELL_RATING ||
+                itemmod == ITEM_MOD_CRIT_TAKEN_MELEE_RATING || itemmod == ITEM_MOD_CRIT_TAKEN_RANGED_RATING ||
+                itemmod == ITEM_MOD_CRIT_TAKEN_SPELL_RATING || itemmod == ITEM_MOD_HASTE_MELEE_RATING ||
+                itemmod == ITEM_MOD_HIT_TAKEN_RATING || itemmod == ITEM_MOD_CRIT_TAKEN_RATING ||
+                itemmod2 == ITEM_MOD_HEALTH || itemmod2 == ITEM_MOD_AGILITY || itemmod2 == ITEM_MOD_STRENGTH ||
+                itemmod2 == ITEM_MOD_DEFENSE_SKILL_RATING || itemmod2 == ITEM_MOD_DODGE_RATING || itemmod2 == ITEM_MOD_PARRY_RATING ||
+                itemmod2 == ITEM_MOD_BLOCK_RATING || itemmod2 == ITEM_MOD_HIT_MELEE_RATING || itemmod2 == ITEM_MOD_CRIT_MELEE_RATING ||
+                itemmod2 == ITEM_MOD_HIT_TAKEN_MELEE_RATING || itemmod2 == ITEM_MOD_HIT_TAKEN_RANGED_RATING || itemmod2 == ITEM_MOD_HIT_TAKEN_SPELL_RATING ||
+                itemmod2 == ITEM_MOD_CRIT_TAKEN_MELEE_RATING || itemmod2 == ITEM_MOD_CRIT_TAKEN_RANGED_RATING ||
+                itemmod2 == ITEM_MOD_CRIT_TAKEN_SPELL_RATING || itemmod2 == ITEM_MOD_HASTE_MELEE_RATING ||
+                itemmod2 == ITEM_MOD_HIT_TAKEN_RATING || itemmod2 == ITEM_MOD_CRIT_TAKEN_RATING)
         {
             switch (isclass) // 1 caster, 2 hybrid, 3 melee
             {
-            case 1:
+                case 1:
                 {
                     if (itemmod > 0)
                     {
@@ -898,7 +902,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            case 2:
+                case 2:
                 {
                     uint32 itemmodval = pProto->ItemStat[i].ItemStatValue; // equipped item stats if any
                     uint32 itemmodval2 = pProto2->ItemStat[i].ItemStatValue;  // newitem stats
@@ -932,7 +936,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            case 3:
+                case 3:
                 {
                     uint32 itemmodval = pProto->ItemStat[i].ItemStatValue; // equipped item stats if any
                     uint32 itemmodval2 = pProto2->ItemStat[i].ItemStatValue;  // newitem stats
@@ -966,19 +970,19 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            default:
-                break;
+                default:
+                    break;
             }
         }
         // stats which aren't strictly caster or melee (hybrid perhaps or style dependant)
         if (itemmod == ITEM_MOD_HIT_RATING || itemmod == ITEM_MOD_CRIT_RATING || itemmod == ITEM_MOD_RESILIENCE_RATING ||
-            itemmod == ITEM_MOD_HASTE_RATING || itemmod == ITEM_MOD_EXPERTISE_RATING || itemmod == ITEM_MOD_STAMINA ||
-            itemmod2 == ITEM_MOD_HIT_RATING || itemmod2 == ITEM_MOD_CRIT_RATING || itemmod2 == ITEM_MOD_RESILIENCE_RATING ||
-            itemmod2 == ITEM_MOD_HASTE_RATING || itemmod2 == ITEM_MOD_EXPERTISE_RATING || itemmod2 == ITEM_MOD_STAMINA)
+                itemmod == ITEM_MOD_HASTE_RATING || itemmod == ITEM_MOD_EXPERTISE_RATING || itemmod == ITEM_MOD_STAMINA ||
+                itemmod2 == ITEM_MOD_HIT_RATING || itemmod2 == ITEM_MOD_CRIT_RATING || itemmod2 == ITEM_MOD_RESILIENCE_RATING ||
+                itemmod2 == ITEM_MOD_HASTE_RATING || itemmod2 == ITEM_MOD_EXPERTISE_RATING || itemmod2 == ITEM_MOD_STAMINA)
         {
             switch (isclass) // 1 caster, 2 hybrid, 3 melee
             {
-            case 1:
+                case 1:
                 {
                     uint32 itemmodval = pProto->ItemStat[i].ItemStatValue; // equipped item stats if any
                     uint32 itemmodval2 = pProto2->ItemStat[i].ItemStatValue;  // newitem stats
@@ -1012,7 +1016,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            case 2:
+                case 2:
                 {
                     uint32 itemmodval = pProto->ItemStat[i].ItemStatValue; // equipped item stats if any
                     uint32 itemmodval2 = pProto2->ItemStat[i].ItemStatValue;  // newitem stats
@@ -1046,7 +1050,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            case 3:
+                case 3:
                 {
                     uint32 itemmodval = pProto->ItemStat[i].ItemStatValue; // equipped item stats if any
                     uint32 itemmodval2 = pProto2->ItemStat[i].ItemStatValue;  // newitem stats
@@ -1080,17 +1084,17 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            default:
-                break;
+                default:
+                    break;
             }
         }
         // stats relating to ranged only
         if (itemmod == ITEM_MOD_HIT_RANGED_RATING || itemmod == ITEM_MOD_CRIT_RANGED_RATING || itemmod == ITEM_MOD_HASTE_RANGED_RATING ||
-            itemmod2 == ITEM_MOD_HIT_RANGED_RATING || itemmod2 == ITEM_MOD_CRIT_RANGED_RATING || itemmod2 == ITEM_MOD_HASTE_RANGED_RATING)
+                itemmod2 == ITEM_MOD_HIT_RANGED_RATING || itemmod2 == ITEM_MOD_CRIT_RANGED_RATING || itemmod2 == ITEM_MOD_HASTE_RANGED_RATING)
         {
             switch (isclass) // 1 caster, 2 hybrid, 3 melee
             {
-            case 1:
+                case 1:
                 {
                     if (itemmod > 0)
                     {
@@ -1104,7 +1108,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            case 2:
+                case 2:
                 {
                     if (ishybrid != 2) //not a hunter
                     {
@@ -1154,7 +1158,7 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            case 3:
+                case 3:
                 {
                     if (itemmod > 0)
                     {
@@ -1168,8 +1172,8 @@ bool PlayerbotAI::ItemStatComparison(const ItemPrototype *pProto, const ItemProt
                     }
                     break;
                 }
-            default:
-                break;
+                default:
+                    break;
             }
         }
     }
@@ -1186,7 +1190,7 @@ void PlayerbotAI::SendQuestNeedList()
     for (BotNeedItem::iterator itr = m_needItemList.begin(); itr != m_needItemList.end(); ++itr)
     {
         ItemPrototype const* pItemProto = sObjectMgr.GetItemPrototype(itr->first);
-        if(pItemProto)
+        if (pItemProto)
         {
             std::string itemName = pItemProto->Name1;
             ItemLocalization(itemName, pItemProto->ItemId);
@@ -1240,7 +1244,7 @@ bool PlayerbotAI::IsItemUseful(uint32 itemid)
         0, SKILL_CLOTH, SKILL_LEATHER, SKILL_MAIL, SKILL_PLATE_MAIL, 0, SKILL_SHIELD, 0, 0, 0
     };
 
-    ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
+    ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemid);
     if (!pProto || pProto->Quality < ITEM_QUALITY_NORMAL)
         return false;
 
@@ -1254,79 +1258,79 @@ bool PlayerbotAI::IsItemUseful(uint32 itemid)
 
     switch (pProto->Class)
     {
-    case ITEM_CLASS_WEAPON:
-        if (pProto->SubClass >= MAX_ITEM_SUBCLASS_WEAPON)
-            return false;
-        else
-            return m_bot->HasSkill(item_weapon_skills[pProto->SubClass]);
-        break;
-    case ITEM_CLASS_ARMOR:
-        if (pProto->SubClass >= MAX_ITEM_SUBCLASS_ARMOR)
-            return false;
-        else
-            return (m_bot->HasSkill(item_armor_skills[pProto->SubClass]) && !m_bot->HasSkill(item_armor_skills[pProto->SubClass + 1]));
-        break;
-    case ITEM_CLASS_QUEST:
-        if (!HasCollectFlag(COLLECT_FLAG_QUEST))
+        case ITEM_CLASS_WEAPON:
+            if (pProto->SubClass >= MAX_ITEM_SUBCLASS_WEAPON)
+                return false;
+            else
+                return m_bot->HasSkill(item_weapon_skills[pProto->SubClass]);
             break;
-    case ITEM_CLASS_KEY:
-        return true;
-    case ITEM_CLASS_GEM:
-        if (m_bot->HasSkill(SKILL_BLACKSMITHING) ||
-            m_bot->HasSkill(SKILL_ENGINEERING) ||
-            m_bot->HasSkill(SKILL_JEWELCRAFTING))
+        case ITEM_CLASS_ARMOR:
+            if (pProto->SubClass >= MAX_ITEM_SUBCLASS_ARMOR)
+                return false;
+            else
+                return (m_bot->HasSkill(item_armor_skills[pProto->SubClass]) && !m_bot->HasSkill(item_armor_skills[pProto->SubClass + 1]));
+            break;
+        case ITEM_CLASS_QUEST:
+            if (!HasCollectFlag(COLLECT_FLAG_QUEST))
+                break;
+        case ITEM_CLASS_KEY:
             return true;
-        break;
-    case ITEM_CLASS_TRADE_GOODS:
-        if (!HasCollectFlag(COLLECT_FLAG_PROFESSION))
-            break;
-
-        switch (pProto->SubClass)
-        {
-        case ITEM_SUBCLASS_PARTS:
-        case ITEM_SUBCLASS_EXPLOSIVES:
-        case ITEM_SUBCLASS_DEVICES:
-            if (m_bot->HasSkill(SKILL_ENGINEERING))
-                return true;
-            break;
-        case ITEM_SUBCLASS_JEWELCRAFTING:
-            if (m_bot->HasSkill(SKILL_JEWELCRAFTING))
-                return true;
-            break;
-        case ITEM_SUBCLASS_CLOTH:
-            if (m_bot->HasSkill(SKILL_TAILORING))
-                return true;
-            break;
-        case ITEM_SUBCLASS_LEATHER:
-            if (m_bot->HasSkill(SKILL_LEATHERWORKING))
-                return true;
-            break;
-        case ITEM_SUBCLASS_METAL_STONE:
+        case ITEM_CLASS_GEM:
             if (m_bot->HasSkill(SKILL_BLACKSMITHING) ||
-                m_bot->HasSkill(SKILL_ENGINEERING) ||
-                m_bot->HasSkill(SKILL_MINING))
+                    m_bot->HasSkill(SKILL_ENGINEERING) ||
+                    m_bot->HasSkill(SKILL_JEWELCRAFTING))
                 return true;
             break;
-        case ITEM_SUBCLASS_MEAT:
-            if (m_bot->HasSkill(SKILL_COOKING))
-                return true;
+        case ITEM_CLASS_TRADE_GOODS:
+            if (!HasCollectFlag(COLLECT_FLAG_PROFESSION))
+                break;
+
+            switch (pProto->SubClass)
+            {
+                case ITEM_SUBCLASS_PARTS:
+                case ITEM_SUBCLASS_EXPLOSIVES:
+                case ITEM_SUBCLASS_DEVICES:
+                    if (m_bot->HasSkill(SKILL_ENGINEERING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_JEWELCRAFTING:
+                    if (m_bot->HasSkill(SKILL_JEWELCRAFTING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_CLOTH:
+                    if (m_bot->HasSkill(SKILL_TAILORING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_LEATHER:
+                    if (m_bot->HasSkill(SKILL_LEATHERWORKING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_METAL_STONE:
+                    if (m_bot->HasSkill(SKILL_BLACKSMITHING) ||
+                            m_bot->HasSkill(SKILL_ENGINEERING) ||
+                            m_bot->HasSkill(SKILL_MINING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_MEAT:
+                    if (m_bot->HasSkill(SKILL_COOKING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_HERB:
+                    if (m_bot->HasSkill(SKILL_HERBALISM) ||
+                            m_bot->HasSkill(SKILL_ALCHEMY))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_ELEMENTAL:
+                    return true;    // pretty much every profession uses these a bit
+                case ITEM_SUBCLASS_ENCHANTING:
+                    if (m_bot->HasSkill(SKILL_ENCHANTING))
+                        return true;
+                    break;
+                default:
+                    break;
+            }
             break;
-        case ITEM_SUBCLASS_HERB:
-            if (m_bot->HasSkill(SKILL_HERBALISM) ||
-                m_bot->HasSkill(SKILL_ALCHEMY))
-                return true;
-            break;
-        case ITEM_SUBCLASS_ELEMENTAL:
-            return true;    // pretty much every profession uses these a bit
-        case ITEM_SUBCLASS_ENCHANTING:
-            if (m_bot->HasSkill(SKILL_ENCHANTING))
-                return true;
-            break;
-        default:
-            break;
-        }
-        break;
-    case ITEM_CLASS_RECIPE:
+        case ITEM_CLASS_RECIPE:
         {
             if (!HasCollectFlag(COLLECT_FLAG_PROFESSION))
                 break;
@@ -1337,52 +1341,52 @@ bool PlayerbotAI::IsItemUseful(uint32 itemid)
 
             switch (pProto->SubClass)
             {
-            case ITEM_SUBCLASS_LEATHERWORKING_PATTERN:
-                if (m_bot->HasSkill(SKILL_LEATHERWORKING))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_TAILORING_PATTERN:
-                if (m_bot->HasSkill(SKILL_TAILORING))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_ENGINEERING_SCHEMATIC:
-                if (m_bot->HasSkill(SKILL_ENGINEERING))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_BLACKSMITHING:
-                if (m_bot->HasSkill(SKILL_BLACKSMITHING))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_COOKING_RECIPE:
-                if (m_bot->HasSkill(SKILL_COOKING))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_ALCHEMY_RECIPE:
-                if (m_bot->HasSkill(SKILL_ALCHEMY))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_FIRST_AID_MANUAL:
-                if (m_bot->HasSkill(SKILL_FIRST_AID))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_ENCHANTING_FORMULA:
-                if (m_bot->HasSkill(SKILL_ENCHANTING))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_FISHING_MANUAL:
-                if (m_bot->HasSkill(SKILL_FISHING))
-                    return true;
-                break;
-            case ITEM_SUBCLASS_JEWELCRAFTING_RECIPE:
-                if (m_bot->HasSkill(SKILL_JEWELCRAFTING))
-                    return true;
-                break;
-            default:
-                break;
+                case ITEM_SUBCLASS_LEATHERWORKING_PATTERN:
+                    if (m_bot->HasSkill(SKILL_LEATHERWORKING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_TAILORING_PATTERN:
+                    if (m_bot->HasSkill(SKILL_TAILORING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_ENGINEERING_SCHEMATIC:
+                    if (m_bot->HasSkill(SKILL_ENGINEERING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_BLACKSMITHING:
+                    if (m_bot->HasSkill(SKILL_BLACKSMITHING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_COOKING_RECIPE:
+                    if (m_bot->HasSkill(SKILL_COOKING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_ALCHEMY_RECIPE:
+                    if (m_bot->HasSkill(SKILL_ALCHEMY))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_FIRST_AID_MANUAL:
+                    if (m_bot->HasSkill(SKILL_FIRST_AID))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_ENCHANTING_FORMULA:
+                    if (m_bot->HasSkill(SKILL_ENCHANTING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_FISHING_MANUAL:
+                    if (m_bot->HasSkill(SKILL_FISHING))
+                        return true;
+                    break;
+                case ITEM_SUBCLASS_JEWELCRAFTING_RECIPE:
+                    if (m_bot->HasSkill(SKILL_JEWELCRAFTING))
+                        return true;
+                    break;
+                default:
+                    break;
             }
         }
-    default:
-        break;
+        default:
+            break;
     }
     return false;
 }
@@ -1394,22 +1398,22 @@ void PlayerbotAI::ReloadAI()
         case CLASS_PRIEST:
             if (m_classAI) delete m_classAI;
             m_combatStyle = COMBAT_RANGED;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotPriestAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotPriestAI(GetMaster(), m_bot, this);
             break;
         case CLASS_MAGE:
             if (m_classAI) delete m_classAI;
             m_combatStyle = COMBAT_RANGED;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotMageAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotMageAI(GetMaster(), m_bot, this);
             break;
         case CLASS_WARLOCK:
             if (m_classAI) delete m_classAI;
             m_combatStyle = COMBAT_RANGED;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotWarlockAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotWarlockAI(GetMaster(), m_bot, this);
             break;
         case CLASS_WARRIOR:
             if (m_classAI) delete m_classAI;
             m_combatStyle = COMBAT_MELEE;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotWarriorAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotWarriorAI(GetMaster(), m_bot, this);
             break;
         case CLASS_SHAMAN:
             if (m_classAI) delete m_classAI;
@@ -1418,17 +1422,17 @@ void PlayerbotAI::ReloadAI()
                 m_combatStyle = COMBAT_MELEE;
             }
             else
-                m_combatStyle = COMBAT_RANGED;            m_classAI = (PlayerbotClassAI *) new PlayerbotShamanAI(GetMaster(), m_bot, this);
+                m_combatStyle = COMBAT_RANGED;            m_classAI = (PlayerbotClassAI*) new PlayerbotShamanAI(GetMaster(), m_bot, this);
             break;
         case CLASS_PALADIN:
             if (m_classAI) delete m_classAI;
             m_combatStyle = COMBAT_MELEE;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotPaladinAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotPaladinAI(GetMaster(), m_bot, this);
             break;
         case CLASS_ROGUE:
             if (m_classAI) delete m_classAI;
             m_combatStyle = COMBAT_MELEE;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotRogueAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotRogueAI(GetMaster(), m_bot, this);
             break;
         case CLASS_DRUID:
             if (m_classAI) delete m_classAI;
@@ -1438,12 +1442,12 @@ void PlayerbotAI::ReloadAI()
             }
             else
                 m_combatStyle = COMBAT_RANGED;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotDruidAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotDruidAI(GetMaster(), m_bot, this);
             break;
         case CLASS_HUNTER:
             if (m_classAI) delete m_classAI;
             m_combatStyle = COMBAT_RANGED;
-            m_classAI = (PlayerbotClassAI *) new PlayerbotHunterAI(GetMaster(), m_bot, this);
+            m_classAI = (PlayerbotClassAI*) new PlayerbotHunterAI(GetMaster(), m_bot, this);
             break;
     }
 
@@ -1472,7 +1476,7 @@ void PlayerbotAI::SendOrders(Player& /*player*/)
     {
         out << " and ";
         if (m_combatOrder & ORDERS_PROTECT)
-                out << "I PROTECT " << (m_targetProtect ? m_targetProtect->GetName() : "unknown");
+            out << "I PROTECT " << (m_targetProtect ? m_targetProtect->GetName() : "unknown");
         if (m_combatOrder & ORDERS_RESIST)
         {
             if (m_combatOrder & ORDERS_RESIST_FIRE)
@@ -1526,12 +1530,12 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 {
     switch (packet.GetOpcode())
     {
-    case SMSG_DUEL_WINNER:
+        case SMSG_DUEL_WINNER:
         {
             m_bot->HandleEmoteCommand(EMOTE_ONESHOT_APPLAUD);
             return;
         }
-    case SMSG_DUEL_COMPLETE:
+        case SMSG_DUEL_COMPLETE:
         {
             SetIgnoreUpdateTime(4);
             m_ScenarioType = SCENARIO_PVE;
@@ -1539,12 +1543,12 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             m_bot->GetMotionMaster()->Clear(true);
             return;
         }
-    case SMSG_DUEL_OUTOFBOUNDS:
+        case SMSG_DUEL_OUTOFBOUNDS:
         {
             m_bot->HandleEmoteCommand(EMOTE_ONESHOT_CHICKEN);
             return;
         }
-    case SMSG_DUEL_REQUESTED:
+        case SMSG_DUEL_REQUESTED:
         {
             SetIgnoreUpdateTime(0);
             WorldPacket p(packet);
@@ -1574,15 +1578,15 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
-    case SMSG_PET_TAME_FAILURE:
+        case SMSG_PET_TAME_FAILURE:
         {
             // DEBUG_LOG("SMSG_PET_TAME_FAILURE");
             WorldPacket p(packet);
             uint8 reason;
             p >> reason;
 
-           switch(reason)
-           {
+            switch (reason)
+            {
                 case PETTAME_INVALIDCREATURE:           // = 1,
                     DEBUG_LOG("Invalid Creature");
                     break;
@@ -1619,11 +1623,11 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                 case PETTAME_UNKNOWNERROR:              // = 13
                     DEBUG_LOG("Unknown error");
                     break;
-           }
-           return;
-       }
+            }
+            return;
+        }
 
-    case SMSG_BUY_FAILED:
+        case SMSG_BUY_FAILED:
         {
             WorldPacket p(packet); // 8+4+4+1
             ObjectGuid vendorguid;
@@ -1634,37 +1638,37 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             p >> msg; // error msg
             p.resize(13);
 
-            switch(msg)
+            switch (msg)
             {
-            case BUY_ERR_CANT_FIND_ITEM:
-                break;
-            case BUY_ERR_ITEM_ALREADY_SOLD:
-                break;
-            case BUY_ERR_NOT_ENOUGHT_MONEY:
+                case BUY_ERR_CANT_FIND_ITEM:
+                    break;
+                case BUY_ERR_ITEM_ALREADY_SOLD:
+                    break;
+                case BUY_ERR_NOT_ENOUGHT_MONEY:
                 {
                     Announce(CANT_AFFORD);
                     break;
                 }
-            case BUY_ERR_SELLER_DONT_LIKE_YOU:
-                break;
-            case BUY_ERR_DISTANCE_TOO_FAR:
-                break;
-            case BUY_ERR_ITEM_SOLD_OUT:
-                break;
-            case BUY_ERR_CANT_CARRY_MORE:
+                case BUY_ERR_SELLER_DONT_LIKE_YOU:
+                    break;
+                case BUY_ERR_DISTANCE_TOO_FAR:
+                    break;
+                case BUY_ERR_ITEM_SOLD_OUT:
+                    break;
+                case BUY_ERR_CANT_CARRY_MORE:
                 {
                     Announce(INVENTORY_FULL);
                     break;
                 }
-            case BUY_ERR_RANK_REQUIRE:
-                break;
-            case BUY_ERR_REPUTATION_REQUIRE:
-                break;
+                case BUY_ERR_RANK_REQUIRE:
+                    break;
+                case BUY_ERR_REPUTATION_REQUIRE:
+                    break;
             }
             return;
         }
 
-    case SMSG_AUCTION_COMMAND_RESULT:
+        case SMSG_AUCTION_COMMAND_RESULT:
         {
             uint32 auctionId, Action, ErrorCode;
             std::string action[3] = {"Creating", "Cancelling", "Bidding"};
@@ -1678,7 +1682,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
             switch (ErrorCode)
             {
-            case AUCTION_OK:
+                case AUCTION_OK:
                 {
                     out << "|cff1eff00|h" << action[Action] << " was successful|h|r";
                     break;
@@ -1693,17 +1697,17 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                     out << "|cffff0000|hWhile" << action[Action] << ", an internal error occured|h|r";
                     break;
                 }
-            case AUCTION_ERR_NOT_ENOUGH_MONEY:
+                case AUCTION_ERR_NOT_ENOUGH_MONEY:
                 {
                     out << "|cffff0000|hWhile " << action[Action] << ", I didn't have enough money|h|r";
                     break;
                 }
-            case AUCTION_ERR_ITEM_NOT_FOUND:
+                case AUCTION_ERR_ITEM_NOT_FOUND:
                 {
                     out << "|cffff0000|hItem was not found!|h|r";
                     break;
                 }
-            case AUCTION_ERR_BID_OWN:
+                case AUCTION_ERR_BID_OWN:
                 {
                     out << "|cffff0000|hI cannot bid on my own auctions!|h|r";
                     break;
@@ -1715,7 +1719,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
-    case SMSG_INVENTORY_CHANGE_FAILURE:
+        case SMSG_INVENTORY_CHANGE_FAILURE:
         {
             WorldPacket p(packet);
             uint8 err;
@@ -1725,19 +1729,19 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             {
                 switch (err)
                 {
-                case EQUIP_ERR_CANT_CARRY_MORE_OF_THIS:
-                    TellMaster("I can't carry anymore of those.");
-                    return;
-                case EQUIP_ERR_MISSING_REAGENT:
-                    TellMaster("I'm missing some reagents for that.");
-                    return;
-                case EQUIP_ERR_ITEM_LOCKED:
-                    TellMaster("That item is locked.");
-                    return;
-                case EQUIP_ERR_ALREADY_LOOTED:
-                    TellMaster("That is already looted.");
-                    return;
-                case EQUIP_ERR_INVENTORY_FULL:
+                    case EQUIP_ERR_CANT_CARRY_MORE_OF_THIS:
+                        TellMaster("I can't carry anymore of those.");
+                        return;
+                    case EQUIP_ERR_MISSING_REAGENT:
+                        TellMaster("I'm missing some reagents for that.");
+                        return;
+                    case EQUIP_ERR_ITEM_LOCKED:
+                        TellMaster("That item is locked.");
+                        return;
+                    case EQUIP_ERR_ALREADY_LOOTED:
+                        TellMaster("That is already looted.");
+                        return;
+                    case EQUIP_ERR_INVENTORY_FULL:
                     {
                         if (m_lootCurrent.IsGameObject())
                             if (GameObject* go = m_bot->GetMap()->GetGameObject(m_lootCurrent))
@@ -1750,139 +1754,139 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                         m_inventory_full = true;
                         return;
                     }
-                case EQUIP_ERR_NOT_IN_COMBAT:
-                    TellMaster("I can't use that in combat.");
-                    return;
-                case EQUIP_ERR_LOOT_CANT_LOOT_THAT_NOW:
-                    TellMaster("I can't get that now.");
-                    return;
-                case EQUIP_ERR_ITEM_UNIQUE_EQUIPABLE:
-                    TellMaster("I can only have one of those equipped.");
-                    return;
-                case EQUIP_ERR_BANK_FULL:
-                    TellMaster("My bank is full.");
-                    return;
-                case EQUIP_ERR_ITEM_NOT_FOUND:
-                    TellMaster("I can't find the item.");
-                    return;
-                case EQUIP_ERR_TOO_FAR_AWAY_FROM_BANK:
-                    TellMaster("I'm too far from the bank.");
-                    return;
-                case EQUIP_ERR_NONE:
-                    TellMaster("I can't use it on that");
-                    return;
-                default:
-                    TellMaster("I can't use that.");
-                    DEBUG_LOG ("[PlayerbotAI]: HandleBotOutgoingPacket - SMSG_INVENTORY_CHANGE_FAILURE: %u", err);
-                    return;
+                    case EQUIP_ERR_NOT_IN_COMBAT:
+                        TellMaster("I can't use that in combat.");
+                        return;
+                    case EQUIP_ERR_LOOT_CANT_LOOT_THAT_NOW:
+                        TellMaster("I can't get that now.");
+                        return;
+                    case EQUIP_ERR_ITEM_UNIQUE_EQUIPABLE:
+                        TellMaster("I can only have one of those equipped.");
+                        return;
+                    case EQUIP_ERR_BANK_FULL:
+                        TellMaster("My bank is full.");
+                        return;
+                    case EQUIP_ERR_ITEM_NOT_FOUND:
+                        TellMaster("I can't find the item.");
+                        return;
+                    case EQUIP_ERR_TOO_FAR_AWAY_FROM_BANK:
+                        TellMaster("I'm too far from the bank.");
+                        return;
+                    case EQUIP_ERR_NONE:
+                        TellMaster("I can't use it on that");
+                        return;
+                    default:
+                        TellMaster("I can't use that.");
+                        DEBUG_LOG("[PlayerbotAI]: HandleBotOutgoingPacket - SMSG_INVENTORY_CHANGE_FAILURE: %u", err);
+                        return;
                 }
             }
         }
 
-/*    case SMSG_CAST_FAILED:
-        {
-            WorldPacket p(packet);
-            uint8 castCount;
-            uint32 spellId;
-            uint8 result;
-            std::ostringstream out;
-
-            p >> spellId >> result >> castCount;
-
-            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
-            if (!spellInfo)
-                return;
-
-            if (result != SPELL_CAST_OK)
-            {
-                switch (result)
+        /*    case SMSG_CAST_FAILED:
                 {
-                case SPELL_FAILED_INTERRUPTED:  // 40
-                {
-                    DEBUG_LOG("spell %s interrupted (%u)",spellInfo->SpellName[0],result);
-                    return;
-                }
-                case SPELL_FAILED_UNIT_NOT_INFRONT:  // 134
-                    if (m_targetCombat)
-                        m_bot->SetInFront(m_targetCombat);
-                case SPELL_FAILED_BAD_TARGETS:  // 12
-                    {
-                        // DEBUG_LOG("[%s]bad target / not in front(%u) for spellId (%u) & m_CurrentlyCastingSpellId (%u)",m_bot->GetName(),result,spellId,m_CurrentlyCastingSpellId);
-                        Spell* const pSpell = GetCurrentSpell();
-                        if (pSpell)
-                            pSpell->cancel();
-                        break;
-                    }
-                    case SPELL_FAILED_TOTEM_CATEGORY:
-                    {
-                        for (uint8 i = 0; i < MAX_SPELL_TOTEM_CATEGORIES; i++)
-                            if (!HasTool(spellInfo->TotemCategory[i]))
-                                break;
+                    WorldPacket p(packet);
+                    uint8 castCount;
+                    uint32 spellId;
+                    uint8 result;
+                    std::ostringstream out;
 
-                        m_lootCurrent = ObjectGuid();
-                        break;
-                    }
-                case SPELL_FAILED_REQUIRES_SPELL_FOCUS: // 102
-                    {
-                        switch(spellInfo->RequiresSpellFocus) // SpellFocusObject.dbc id
-                        {
-                            case 1 : // need an anvil
-                                out << "|cffff0000I require an anvil.";
-                                break;
-                            case 2 : // need a loom
-                                out << "|cffff0000I require a loom.";
-                                break;
-                            case 3 : // need forge
-                                out << "|cffff0000I require a forge.";
-                                break;
-                            case 4 : // need cooking fire
-                                out << "|cffff0000I require a cooking fire.";
-                                break;
-                            default:
-                                out << "|cffff0000I Require Spell Focus on " << spellInfo->RequiresSpellFocus;
-                        }
-                        break;
-                    }
-                case SPELL_FAILED_CANT_BE_DISENCHANTED:  // 14
-                    {
-                        out << "|cffff0000Item cannot be disenchanted.";
-                        break;
-                    }
-                    case SPELL_FAILED_CANT_BE_PROSPECTED:  // 17
-                    {
-                        out << "|cffff0000There are no gems in this.";
-                        break;
-                    }
-                case SPELL_FAILED_EQUIPPED_ITEM_CLASS:  // 29
-                    {
-                        out << "|cffff0000That item is not a valid target.";
-                        break;
-                    }
-                    case SPELL_FAILED_NEED_MORE_ITEMS:  // 55
-                    {
-                        ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(m_itemTarget);
-                        if (!pProto)
-                            return;
+                    p >> spellId >> result >> castCount;
 
-                        out << "|cffff0000Requires 5 " << pProto->Name1 << ".";
-                        m_itemTarget = 0;
-                        break;
-                    }
-                    case SPELL_FAILED_REAGENTS:
-                    {
-                        out << "|cffff0000I don't have the reagents";
-                        break;
-                    }
-                    default:
-                        DEBUG_LOG ("[%s] SMSG_CAST_FAIL: %s err (%u)",m_bot->GetName(), spellInfo->SpellName[0], result);
+                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                    if (!spellInfo)
                         return;
-                }
-            }
-            TellMaster(out.str().c_str());
-            return;
-        }*/
 
-    case SMSG_SPELL_FAILURE:
+                    if (result != SPELL_CAST_OK)
+                    {
+                        switch (result)
+                        {
+                        case SPELL_FAILED_INTERRUPTED:  // 40
+                        {
+                            DEBUG_LOG("spell %s interrupted (%u)",spellInfo->SpellName[0],result);
+                            return;
+                        }
+                        case SPELL_FAILED_UNIT_NOT_INFRONT:  // 134
+                            if (m_targetCombat)
+                                m_bot->SetInFront(m_targetCombat);
+                        case SPELL_FAILED_BAD_TARGETS:  // 12
+                            {
+                                // DEBUG_LOG("[%s]bad target / not in front(%u) for spellId (%u) & m_CurrentlyCastingSpellId (%u)",m_bot->GetName(),result,spellId,m_CurrentlyCastingSpellId);
+                                Spell* const pSpell = GetCurrentSpell();
+                                if (pSpell)
+                                    pSpell->cancel();
+                                break;
+                            }
+                            case SPELL_FAILED_TOTEM_CATEGORY:
+                            {
+                                for (uint8 i = 0; i < MAX_SPELL_TOTEM_CATEGORIES; i++)
+                                    if (!HasTool(spellInfo->TotemCategory[i]))
+                                        break;
+
+                                m_lootCurrent = ObjectGuid();
+                                break;
+                            }
+                        case SPELL_FAILED_REQUIRES_SPELL_FOCUS: // 102
+                            {
+                                switch(spellInfo->RequiresSpellFocus) // SpellFocusObject.dbc id
+                                {
+                                    case 1 : // need an anvil
+                                        out << "|cffff0000I require an anvil.";
+                                        break;
+                                    case 2 : // need a loom
+                                        out << "|cffff0000I require a loom.";
+                                        break;
+                                    case 3 : // need forge
+                                        out << "|cffff0000I require a forge.";
+                                        break;
+                                    case 4 : // need cooking fire
+                                        out << "|cffff0000I require a cooking fire.";
+                                        break;
+                                    default:
+                                        out << "|cffff0000I Require Spell Focus on " << spellInfo->RequiresSpellFocus;
+                                }
+                                break;
+                            }
+                        case SPELL_FAILED_CANT_BE_DISENCHANTED:  // 14
+                            {
+                                out << "|cffff0000Item cannot be disenchanted.";
+                                break;
+                            }
+                            case SPELL_FAILED_CANT_BE_PROSPECTED:  // 17
+                            {
+                                out << "|cffff0000There are no gems in this.";
+                                break;
+                            }
+                        case SPELL_FAILED_EQUIPPED_ITEM_CLASS:  // 29
+                            {
+                                out << "|cffff0000That item is not a valid target.";
+                                break;
+                            }
+                            case SPELL_FAILED_NEED_MORE_ITEMS:  // 55
+                            {
+                                ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(m_itemTarget);
+                                if (!pProto)
+                                    return;
+
+                                out << "|cffff0000Requires 5 " << pProto->Name1 << ".";
+                                m_itemTarget = 0;
+                                break;
+                            }
+                            case SPELL_FAILED_REAGENTS:
+                            {
+                                out << "|cffff0000I don't have the reagents";
+                                break;
+                            }
+                            default:
+                                DEBUG_LOG ("[%s] SMSG_CAST_FAIL: %s err (%u)",m_bot->GetName(), spellInfo->SpellName[0], result);
+                                return;
+                        }
+                    }
+                    TellMaster(out.str().c_str());
+                    return;
+                }*/
+
+        case SMSG_SPELL_FAILURE:
         {
             WorldPacket p(packet);
             uint8 castCount;
@@ -1904,7 +1908,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
         // if a change in speed was detected for the master
         // make sure we have the same mount status
-    case SMSG_FORCE_RUN_SPEED_CHANGE:
+        case SMSG_FORCE_RUN_SPEED_CHANGE:
         {
             WorldPacket p(packet);
             ObjectGuid guid;
@@ -1963,7 +1967,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
 
         // handle flying acknowledgement
-    case SMSG_MOVE_SET_CAN_FLY:
+        case SMSG_MOVE_SET_CAN_FLY:
         {
             WorldPacket p(packet);
             ObjectGuid guid;
@@ -1977,7 +1981,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
 
         // handle dismount flying acknowledgement
-    case SMSG_MOVE_UNSET_CAN_FLY:
+        case SMSG_MOVE_UNSET_CAN_FLY:
         {
             WorldPacket p(packet);
             ObjectGuid guid;
@@ -1991,7 +1995,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
 
         // Handle chat messages here
-    case SMSG_MESSAGECHAT:
+        case SMSG_MESSAGECHAT:
         {
             WorldPacket p(packet);
             uint8 msgtype;
@@ -2023,7 +2027,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                     p >> text;              // string message
                     p >> chattag;           // 1 AFK/DND/WHISPER_INFORM
 
-                    Player *sender = sObjectMgr.GetPlayer(senderGuid);
+                    Player* sender = sObjectMgr.GetPlayer(senderGuid);
                     if (!sender)            // couldn't find player that sent message
                         return;
 
@@ -2042,7 +2046,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
         // If the leader role was given to the bot automatically give it to the master
         // if the master is in the group, otherwise leave group
-    case SMSG_GROUP_SET_LEADER:
+        case SMSG_GROUP_SET_LEADER:
         {
             WorldPacket p(packet);
             std::string name;
@@ -2065,7 +2069,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
 
         // If the master leaves the group, then the bot leaves too
-    case SMSG_PARTY_COMMAND_RESULT:
+        case SMSG_PARTY_COMMAND_RESULT:
         {
             WorldPacket p(packet);
             uint32 operation;
@@ -2082,7 +2086,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
 
         // Handle Group invites (auto accept if master is in group, otherwise decline & send message
-    case SMSG_GROUP_INVITE:
+        case SMSG_GROUP_INVITE:
         {
             if (m_bot->GetGroupInvite())
             {
@@ -2111,7 +2115,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
         case SMSG_GUILD_INVITE:
         {
-            Guild *guild = sGuildMgr.GetGuildById(m_bot->GetGuildIdInvited());
+            Guild* guild = sGuildMgr.GetGuildById(m_bot->GetGuildIdInvited());
             if (!guild || m_bot->GetGuildId())
                 return;
 
@@ -2119,7 +2123,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             if (!sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GUILD) && m_bot->GetTeam() != sObjectMgr.GetPlayerTeamByGUID(guild->GetLeaderGuid()))
                 return;
 
-            if (!guild->AddMember(m_bot->GetObjectGuid(),guild->GetLowestRank()))
+            if (!guild->AddMember(m_bot->GetObjectGuid(), guild->GetLowestRank()))
                 return;
             // Put record into guild log
             guild->LogGuildEvent(GUILD_EVENT_LOG_JOIN_GUILD, m_bot->GetObjectGuid());
@@ -2129,7 +2133,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
         // Handle when another player opens the trade window with the bot
         // also sends list of tradable items bot can trade if bot is allowed to obey commands from
-    case SMSG_TRADE_STATUS:
+        case SMSG_TRADE_STATUS:
         {
             if (m_bot->GetTrader() == nullptr)
                 break;
@@ -2182,7 +2186,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                 // list out items in other removable backpacks
                 for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
                 {
-                    const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+                    const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
                     if (pBag)
                     {
                         // Very cool, but unnecessary
@@ -2253,7 +2257,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
-    case SMSG_SPELL_START:
+        case SMSG_SPELL_START:
         {
 
             WorldPacket p(packet);
@@ -2290,7 +2294,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
-    case SMSG_SPELL_GO:
+        case SMSG_SPELL_GO:
         {
             WorldPacket p(packet);
 
@@ -2310,7 +2314,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
 
         // if someone tries to resurrect, then accept
-    case SMSG_RESURRECT_REQUEST:
+        case SMSG_RESURRECT_REQUEST:
         {
             if (!m_bot->isAlive())
             {
@@ -2330,7 +2334,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
-    case SMSG_LOOT_RESPONSE:
+        case SMSG_LOOT_RESPONSE:
         {
             WorldPacket p(packet); // (8+1+4+1+1+4+4+4+4+4+1)
             ObjectGuid guid;
@@ -2351,7 +2355,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
             for (uint8 i = 0; i < items; ++i)
             {
-            uint32 itemid;
+                uint32 itemid;
                 uint32 itemcount;
                 uint8 lootslot_type;
                 uint8 itemindex;
@@ -2370,7 +2374,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                 // skinning or collect loot flag = just auto loot everything for getting object
                 // corpse = run checks
                 if (loot_type == LOOT_SKINNING || HasCollectFlag(COLLECT_FLAG_LOOT) ||
-                    (loot_type == LOOT_CORPSE && (IsInQuestItemList(itemid) || IsItemUseful(itemid))))
+                        (loot_type == LOOT_CORPSE && (IsInQuestItemList(itemid) || IsItemUseful(itemid))))
                 {
                     WorldPacket* const packet = new WorldPacket(CMSG_AUTOSTORE_LOOT_ITEM, 1);
                     *packet << itemindex;
@@ -2386,7 +2390,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
-    case SMSG_LOOT_RELEASE_RESPONSE:
+        case SMSG_LOOT_RELEASE_RESPONSE:
         {
             WorldPacket p(packet);
             ObjectGuid guid;
@@ -2396,14 +2400,14 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             if (guid == m_lootCurrent)
             {
 
-                Creature *c = m_bot->GetMap()->GetCreature(m_lootCurrent);
+                Creature* c = m_bot->GetMap()->GetCreature(m_lootCurrent);
 
                 if (c && c->GetCreatureInfo()->SkinningLootId && c->GetLootStatus() != CREATURE_LOOT_STATUS_LOOTED)
                 {
                     uint32 reqSkill = c->GetCreatureInfo()->GetRequiredLootSkill();
                     // check if it is a leather skin and if it is to be collected (could be ore or herb)
                     if (m_bot->HasSkill(reqSkill) && ((reqSkill != SKILL_SKINNING) ||
-                        (HasCollectFlag(COLLECT_FLAG_SKIN) && reqSkill == SKILL_SKINNING)))
+                                                      (HasCollectFlag(COLLECT_FLAG_SKIN) && reqSkill == SKILL_SKINNING)))
                     {
                         // calculate skill requirement
                         uint32 skillValue = m_bot->GetPureSkillValue(reqSkill);
@@ -2437,7 +2441,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
-    case SMSG_LOOT_ROLL_WON:
+        case SMSG_LOOT_ROLL_WON:
         {
             WorldPacket p(packet);   // (8+4+4+4+4+8+1+1)
             ObjectGuid guid;
@@ -2457,27 +2461,27 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
             SetState(BOTSTATE_DELAYED);
 
-/*            ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
-            if(pProto)
-            {
-                std::ostringstream out;
-                out << "|cff009900" << "I won: |r";
-                MakeItemLink(pProto,out);
-                if (FindItem(itemid,true))
-                    out << "and have the item";
-                TellMaster(out.str().c_str());
-            }*/
+            /*            ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
+                        if(pProto)
+                        {
+                            std::ostringstream out;
+                            out << "|cff009900" << "I won: |r";
+                            MakeItemLink(pProto,out);
+                            if (FindItem(itemid,true))
+                                out << "and have the item";
+                            TellMaster(out.str().c_str());
+                        }*/
             return;
         }
 
-    case SMSG_PARTYKILLLOG:
+        case SMSG_PARTYKILLLOG:
         {
             // reset AI delay so bots immediately respond to next combat target & or looting/skinning
             SetIgnoreUpdateTime(0);
             return;
         }
 
-    case SMSG_ITEM_PUSH_RESULT:
+        case SMSG_ITEM_PUSH_RESULT:
         {
             WorldPacket p(packet);  // (8+4+4+4+1+4+4+4+4+4+4)
             ObjectGuid guid;
@@ -2500,17 +2504,17 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             p >> count;             // 4 count of items
             p >> totalcount;        // 4 count of items in inventory
 
-            ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
-            if(pProto)
+            ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemid);
+            if (pProto)
             {
                 std::ostringstream out;
                 if (received == 1)
                 {
-                    if( created == 1)
+                    if (created == 1)
                         out << "|cff009900" << "I created: |r";
                     else
                         out << "|cff009900" << "I received: |r";
-                    MakeItemLink(pProto,out);
+                    MakeItemLink(pProto, out);
                     TellMaster(out.str().c_str());
                     SetState(BOTSTATE_DELAYED);
                 }
@@ -2560,7 +2564,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
 uint8 PlayerbotAI::GetHealthPercent(const Unit& target) const
 {
-    return (static_cast<float> (target.GetHealth()) / target.GetMaxHealth()) * 100;
+    return (static_cast<float>(target.GetHealth()) / target.GetMaxHealth()) * 100;
 }
 
 uint8 PlayerbotAI::GetHealthPercent() const
@@ -2570,7 +2574,7 @@ uint8 PlayerbotAI::GetHealthPercent() const
 
 uint8 PlayerbotAI::GetManaPercent(const Unit& target) const
 {
-    return (static_cast<float> (target.GetPower(POWER_MANA)) / target.GetMaxPower(POWER_MANA)) * 100;
+    return (static_cast<float>(target.GetPower(POWER_MANA)) / target.GetMaxPower(POWER_MANA)) * 100;
 }
 
 uint8 PlayerbotAI::GetManaPercent() const
@@ -2583,7 +2587,7 @@ uint8 PlayerbotAI::GetBaseManaPercent(const Unit& target) const
     if (target.GetPower(POWER_MANA) >= target.GetCreateMana())
         return (100);
     else
-        return (static_cast<float> (target.GetPower(POWER_MANA)) / target.GetCreateMana()) * 100;
+        return (static_cast<float>(target.GetPower(POWER_MANA)) / target.GetCreateMana()) * 100;
 }
 
 uint8 PlayerbotAI::GetBaseManaPercent() const
@@ -2593,7 +2597,7 @@ uint8 PlayerbotAI::GetBaseManaPercent() const
 
 uint8 PlayerbotAI::GetRageAmount(const Unit& target) const
 {
-    return (static_cast<float> (target.GetPower(POWER_RAGE)));
+    return (static_cast<float>(target.GetPower(POWER_RAGE)));
 }
 
 uint8 PlayerbotAI::GetRageAmount() const
@@ -2603,7 +2607,7 @@ uint8 PlayerbotAI::GetRageAmount() const
 
 uint8 PlayerbotAI::GetEnergyAmount(const Unit& target) const
 {
-    return (static_cast<float> (target.GetPower(POWER_ENERGY)));
+    return (static_cast<float>(target.GetPower(POWER_ENERGY)));
 }
 
 uint8 PlayerbotAI::GetEnergyAmount() const
@@ -2662,7 +2666,7 @@ Item* PlayerbotAI::FindMount(uint32 matchingRidingSkill) const
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -2707,7 +2711,7 @@ Item* PlayerbotAI::FindFood() const
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -2760,7 +2764,7 @@ Item* PlayerbotAI::FindDrink() const
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -2805,7 +2809,7 @@ Item* PlayerbotAI::FindBandage() const
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -2845,7 +2849,7 @@ Item* PlayerbotAI::FindConsumable(uint32 displayId) const
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -2891,8 +2895,8 @@ Item* PlayerbotAI::FindStoneFor(Item* weapon) const
     Item* stone;
     ItemPrototype const* pProto = weapon->GetProto();
     if (pProto && (pProto->SubClass == ITEM_SUBCLASS_WEAPON_SWORD || pProto->SubClass == ITEM_SUBCLASS_WEAPON_SWORD2
-        || pProto->SubClass == ITEM_SUBCLASS_WEAPON_AXE || pProto->SubClass == ITEM_SUBCLASS_WEAPON_AXE2
-        || pProto->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
+                   || pProto->SubClass == ITEM_SUBCLASS_WEAPON_AXE || pProto->SubClass == ITEM_SUBCLASS_WEAPON_AXE2
+                   || pProto->SubClass == ITEM_SUBCLASS_WEAPON_DAGGER))
     {
         for (uint8 i = 0; i < countof(uPriorizedSharpStoneIds); ++i)
         {
@@ -2965,13 +2969,13 @@ bool PlayerbotAI::FindAmmo() const
         Item* pItem = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, i);
         if (pItem)
         {
-           const ItemPrototype* const pItemProto = pItem->GetProto();
+            const ItemPrototype* const pItemProto = pItem->GetProto();
 
-           if (pItemProto->Class == ITEM_CLASS_PROJECTILE && m_bot->CheckAmmoCompatibility(pItemProto))
-           {
+            if (pItemProto->Class == ITEM_CLASS_PROJECTILE && m_bot->CheckAmmoCompatibility(pItemProto))
+            {
                 m_bot->SetAmmo(pItem->GetEntry());
                 return true;
-           }
+            }
         }
     }
     for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
@@ -3043,7 +3047,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
     // check for attackers on protected unit, and make it a forcedTarget if any
     if (!forcedTarget && (m_combatOrder & ORDERS_PROTECT) && m_targetProtect)
     {
-        Unit* newTarget = FindAttacker((ATTACKERINFOTYPE) (AIT_VICTIMNOTSELF | AIT_HIGHESTTHREAT), m_targetProtect);
+        Unit* newTarget = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF | AIT_HIGHESTTHREAT), m_targetProtect);
         if (newTarget && newTarget != m_targetCombat)
         {
             forcedTarget = newTarget;
@@ -3076,7 +3080,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
     // do we have to assist someone?
     if (!m_targetCombat && (m_combatOrder & ORDERS_ASSIST) && m_targetAssist)
     {
-        m_targetCombat = FindAttacker((ATTACKERINFOTYPE) (AIT_VICTIMNOTSELF | AIT_LOWESTTHREAT), m_targetAssist);
+        m_targetCombat = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF | AIT_LOWESTTHREAT), m_targetAssist);
         if (m_mgr->m_confDebugWhisper && m_targetCombat)
             TellMaster("Attacking %s to assist %s", m_targetCombat->GetName(), m_targetAssist->GetName());
         m_targetType = (m_combatOrder & ORDERS_TANK ? TARGET_THREATEN : TARGET_NORMAL);
@@ -3100,7 +3104,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
     // if thing to attack is in a duel, then ignore and don't call updateAI for 6 seconds
     // this method never gets called when the bot is in a duel and this code
     // prevents bot from helping
-    if (m_targetCombat->GetTypeId() == TYPEID_PLAYER && dynamic_cast<Player*> (m_targetCombat)->duel)
+    if (m_targetCombat->GetTypeId() == TYPEID_PLAYER && dynamic_cast<Player*>(m_targetCombat)->duel)
     {
         SetIgnoreUpdateTime(6);
         return;
@@ -3206,9 +3210,9 @@ void PlayerbotAI::DoCombatMovement()
     bool meleeReach = m_bot->CanReachWithMeleeAttack(m_targetCombat);
 
     if (m_combatStyle == COMBAT_MELEE
-        && !m_bot->hasUnitState(UNIT_STAT_CHASE)
-        && ((m_movementOrder == MOVEMENT_STAY && meleeReach) || m_movementOrder != MOVEMENT_STAY)
-        && GetClassAI()->GetWaitUntil() == 0 ) // Not waiting
+            && !m_bot->hasUnitState(UNIT_STAT_CHASE)
+            && ((m_movementOrder == MOVEMENT_STAY && meleeReach) || m_movementOrder != MOVEMENT_STAY)
+            && GetClassAI()->GetWaitUntil() == 0)  // Not waiting
     {
         // melee combat - chase target if in range or if we are not forced to stay
         m_bot->GetMotionMaster()->Clear(false);
@@ -3216,7 +3220,7 @@ void PlayerbotAI::DoCombatMovement()
     }
     else if (m_combatStyle == COMBAT_RANGED
              && m_movementOrder != MOVEMENT_STAY
-             && GetClassAI()->GetWaitUntil() == 0 ) // Not waiting
+             && GetClassAI()->GetWaitUntil() == 0)  // Not waiting
     {
         // ranged combat - just move within spell range if bot does not have heal orders
         if (!CanReachWithSpellAttack(m_targetCombat) && !IsHealer())
@@ -3372,7 +3376,7 @@ bool PlayerbotAI::GroupHoTOnTank()
     return bReturn;
 }
 
-bool PlayerbotAI::CanPull(Player &fromPlayer)
+bool PlayerbotAI::CanPull(Player& fromPlayer)
 {
     if (!m_bot) return false;
     if (!GetClassAI()) return false;
@@ -3397,8 +3401,8 @@ bool PlayerbotAI::CanPull(Player &fromPlayer)
 
     switch (m_bot->getClass())
     {
-       case CLASS_PALADIN:
-            if ( ((PlayerbotPaladinAI*)GetClassAI())->CanPull() == false)
+        case CLASS_PALADIN:
+            if (((PlayerbotPaladinAI*)GetClassAI())->CanPull() == false)
             {
                 SendWhisper("I cannot pull, I do not have the proper spell or it's not ready yet.", fromPlayer);
                 return false;
@@ -3406,7 +3410,7 @@ bool PlayerbotAI::CanPull(Player &fromPlayer)
             break;
 
         case CLASS_DRUID:
-            if ( ((PlayerbotDruidAI*)GetClassAI())->CanPull() == false)
+            if (((PlayerbotDruidAI*)GetClassAI())->CanPull() == false)
             {
                 SendWhisper("I cannot pull, I do not have the proper spell or it's not ready yet.", fromPlayer);
                 return false;
@@ -3414,7 +3418,7 @@ bool PlayerbotAI::CanPull(Player &fromPlayer)
             break;
 
         case CLASS_WARRIOR:
-            if ( ((PlayerbotWarriorAI*)GetClassAI())->CanPull() == false)
+            if (((PlayerbotWarriorAI*)GetClassAI())->CanPull() == false)
             {
                 SendWhisper("I cannot pull, I do not have the proper weapon and/or ammo.", fromPlayer);
                 return false;
@@ -3465,7 +3469,7 @@ bool PlayerbotAI::GroupTankHoldsAggro()
 
     if (m_bot->GetGroup())
     {
-        Unit* newTarget = FindAttacker((ATTACKERINFOTYPE) (AIT_VICTIMNOTSELF), GetGroupTank());
+        Unit* newTarget = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF), GetGroupTank());
         if (newTarget)
         {
             return false;
@@ -3489,7 +3493,7 @@ bool PlayerbotAI::CastNeutralize()
     Unit* pTarget = ObjectAccessor::GetUnit(*m_bot, m_targetGuidCommand);
     if (!pTarget) return false;
 
-    Creature * pCreature = (Creature*) pTarget;
+    Creature* pCreature = (Creature*) pTarget;
     if (!pCreature) return false;
 
     // Define the target's creature type, so the bot AI will now if
@@ -3534,7 +3538,7 @@ void PlayerbotAI::SetQuestNeedCreatures()
         if (questid == 0)
             continue;
 
-        QuestStatusData &qData = m_bot->getQuestStatusMap()[questid];
+        QuestStatusData& qData = m_bot->getQuestStatusMap()[questid];
         // only check quest if it is incomplete
         if (qData.m_status != QUEST_STATUS_INCOMPLETE)
             continue;
@@ -3566,7 +3570,7 @@ void PlayerbotAI::SetQuestNeedItems()
         if (questid == 0)
             continue;
 
-        QuestStatusData &qData = m_bot->getQuestStatusMap()[questid];
+        QuestStatusData& qData = m_bot->getQuestStatusMap()[questid];
         // only check quest if it is incomplete
         if (qData.m_status != QUEST_STATUS_INCOMPLETE)
             continue;
@@ -3588,31 +3592,32 @@ void PlayerbotAI::SetQuestNeedItems()
                 continue;
 
             // TODO: find faster way to handle this look up instead of using SQL lookup for each item
-            QueryResult *result;
+            QueryResult* result;
             result = WorldDatabase.PQuery("SELECT gt.entry FROM gameobject_template gt "
-              "LEFT JOIN gameobject_loot_template glt ON gt.data1 = glt.entry WHERE glt.item = '%u'",qInfo->ReqItemId[i]);
+                                          "LEFT JOIN gameobject_loot_template glt ON gt.data1 = glt.entry WHERE glt.item = '%u'", qInfo->ReqItemId[i]);
 
             if (result)
             {
                 do
                 {
-                    Field *fields = result->Fetch();
+                    Field* fields = result->Fetch();
                     uint32 entry = fields[0].GetUInt32();
 
-                    GameObjectInfo const * gInfo = ObjectMgr::GetGameObjectInfo(entry);
+                    GameObjectInfo const* gInfo = ObjectMgr::GetGameObjectInfo(entry);
                     if (!gInfo)
                         continue;
 
                     // add this GO to our collection list if is chest/ore/herb
                     if (gInfo->type == GAMEOBJECT_TYPE_CHEST)
                     {
-                        m_botQuestLoot.push_back(std::pair<uint32,uint32>(gInfo->GetLootId(), qInfo->ReqItemId[i]));
+                        m_botQuestLoot.push_back(std::pair<uint32, uint32>(gInfo->GetLootId(), qInfo->ReqItemId[i]));
                         m_botQuestLoot.unique();
                         m_collectObjects.push_back(entry);
                         m_collectObjects.sort();
                         m_collectObjects.unique();
                     }
-                } while (result->NextRow());
+                }
+                while (result->NextRow());
 
                 delete result;
             }
@@ -3640,7 +3645,7 @@ uint32 PlayerbotAI::GetFreeBagSpace() const
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
         {
             ItemPrototype const* pBagProto = pBag->GetProto();
@@ -3655,7 +3660,7 @@ void PlayerbotAI::DoFlight()
 {
     // DEBUG_LOG("[PlayerbotAI]: DoFlight - %s : %s", m_bot->GetName(), m_taxiMaster.GetString().c_str());
 
-    Creature *npc = m_bot->GetNPCIfCanInteractWith(m_taxiMaster, UNIT_NPC_FLAG_FLIGHTMASTER);
+    Creature* npc = m_bot->GetNPCIfCanInteractWith(m_taxiMaster, UNIT_NPC_FLAG_FLIGHTMASTER);
     if (!npc)
     {
         DEBUG_LOG("[PlayerbotAI]: DoFlight - %s not found or you can't interact with it.", m_taxiMaster.GetString().c_str());
@@ -3685,7 +3690,7 @@ void PlayerbotAI::DoLoot()
         m_lootTargets.pop_front();
     }
 
-    WorldObject *wo = m_bot->GetMap()->GetWorldObject(m_lootCurrent);
+    WorldObject* wo = m_bot->GetMap()->GetWorldObject(m_lootCurrent);
 
     // clear invalid object or object that is too far from master
     if (!wo || GetMaster()->GetDistance(wo) > float(m_mgr->m_confCollectDistanceMax))
@@ -3694,8 +3699,8 @@ void PlayerbotAI::DoLoot()
         return;
     }
 
-    Creature *c = m_bot->GetMap()->GetCreature(m_lootCurrent);
-    GameObject *go = m_bot->GetMap()->GetGameObject(m_lootCurrent);
+    Creature* c = m_bot->GetMap()->GetCreature(m_lootCurrent);
+    GameObject* go = m_bot->GetMap()->GetGameObject(m_lootCurrent);
 
     // clear creature or object that is not spawned or if not creature or object
     if ((c && c->IsDespawned()) || (go && !go->isSpawned()) || (!c && !go))
@@ -3713,8 +3718,8 @@ void PlayerbotAI::DoLoot()
 
         // not a lootable creature, clear it
         if (!c->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE) &&
-            (!c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) ||
-            (c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) && !m_bot->HasSkill(skillId))))
+                (!c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) ||
+                 (c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) && !m_bot->HasSkill(skillId))))
         {
             m_lootCurrent = ObjectGuid();
             // clear movement target, take next target on next update
@@ -3726,7 +3731,7 @@ void PlayerbotAI::DoLoot()
 
     if (m_bot->GetDistance(wo) > CONTACT_DISTANCE + wo->GetObjectBoundingRadius())
     {
-        m_bot->GetMotionMaster()->MovePoint(wo->GetMapId(), wo->GetPositionX(), wo->GetPositionY(),wo->GetPositionZ());
+        m_bot->GetMotionMaster()->MovePoint(wo->GetMapId(), wo->GetPositionX(), wo->GetPositionY(), wo->GetPositionZ());
         // give time to move to point before trying again
         SetIgnoreUpdateTime(1);
     }
@@ -3753,16 +3758,16 @@ void PlayerbotAI::DoLoot()
             else if (c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
                 // not all creature skins are leather, some are ore or herb
                 if (m_bot->HasSkill(skillId) && ((skillId != SKILL_SKINNING) ||
-                    (HasCollectFlag(COLLECT_FLAG_SKIN) && skillId == SKILL_SKINNING)))
+                                                 (HasCollectFlag(COLLECT_FLAG_SKIN) && skillId == SKILL_SKINNING)))
                 {
                     // calculate skinning skill requirement
                     uint32 targetLevel = c->getLevel();
                     reqSkillValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
                 }
 
-                // creatures cannot be unlocked or forced open
-                keyFailed = true;
-                forceFailed = true;
+            // creatures cannot be unlocked or forced open
+            keyFailed = true;
+            forceFailed = true;
         }
 
         if (go) // object
@@ -3780,7 +3785,7 @@ void PlayerbotAI::DoLoot()
 
             // check skill or lock on object
             uint32 lockId = go->GetGOInfo()->GetLockId();
-            LockEntry const *lockInfo = sLockStore.LookupEntry(lockId);
+            LockEntry const* lockInfo = sLockStore.LookupEntry(lockId);
             if (lockInfo)
                 for (int i = 0; i < 8; ++i)
                 {
@@ -3865,47 +3870,47 @@ void PlayerbotAI::DoLoot()
             if (SkillValue < reqSkillValue)
             {
                 TellMaster("My skill is not high enough. It requires %u, but mine is %u.",
-                    reqSkillValue, SkillValue);
+                           reqSkillValue, SkillValue);
                 skillFailed = true;
             }
             switch (skillId)
             {
-            case SKILL_MINING:
-                if (HasTool(TC_MINING_PICK) && CastSpell(MINING))
-                    return;
-                else
+                case SKILL_MINING:
+                    if (HasTool(TC_MINING_PICK) && CastSpell(MINING))
+                        return;
+                    else
+                        skillFailed = true;
+                    break;
+                case SKILL_HERBALISM:
+                    if (CastSpell(HERB_GATHERING))
+                        return;
+                    else
+                        skillFailed = true;
+                    break;
+                case SKILL_SKINNING:
+                    if (c && HasCollectFlag(COLLECT_FLAG_SKIN) &&
+                            HasTool(TC_SKINNING_KNIFE) && CastSpell(SKINNING, *c))
+                        return;
+                    else
+                        skillFailed = true;
+                    break;
+                case SKILL_LOCKPICKING:
+                    if (CastSpell(PICK_LOCK_1))
+                        return;
+                    else
+                        skillFailed = true;
+                    break;
+                case SKILL_NONE:
+                    if (CastSpell(3365)) //Spell 3365 = Opening?
+                        return;
+                    else
+                        skillFailed = true;
+                    break;
+                default:
+                    TellMaster("I'm not sure how to get that.");
                     skillFailed = true;
-                break;
-            case SKILL_HERBALISM:
-                if (CastSpell(HERB_GATHERING))
-                    return;
-                else
-                    skillFailed = true;
-                break;
-            case SKILL_SKINNING:
-                if (c && HasCollectFlag(COLLECT_FLAG_SKIN) &&
-                    HasTool(TC_SKINNING_KNIFE) && CastSpell(SKINNING, *c))
-                    return;
-                else
-                    skillFailed = true;
-                break;
-            case SKILL_LOCKPICKING:
-                if (CastSpell(PICK_LOCK_1))
-                    return;
-                else
-                    skillFailed = true;
-                break;
-            case SKILL_NONE:
-                if (CastSpell(3365)) //Spell 3365 = Opening?
-                    return;
-                else
-                    skillFailed = true;
-                break;
-            default:
-                TellMaster("I'm not sure how to get that.");
-                skillFailed = true;
-                DEBUG_LOG ("[PlayerbotAI]:DoLoot Skill %u is not implemented", skillId);
-                break;
+                    DEBUG_LOG("[PlayerbotAI]:DoLoot Skill %u is not implemented", skillId);
+                    break;
             }
         }
         else
@@ -3918,12 +3923,12 @@ void PlayerbotAI::DoLoot()
         {
             // if pickable, check if a forcible item is available for the bot
             if (skillId == SKILL_LOCKPICKING && (m_bot->HasSkill(SKILL_BLACKSMITHING) ||
-                m_bot->HasSkill(SKILL_ENGINEERING)))
+                                                 m_bot->HasSkill(SKILL_ENGINEERING)))
             {
                 // check for skeleton keys appropriate for lock value
                 if (m_bot->HasSkill(SKILL_BLACKSMITHING))
                 {
-                    Item *kItem = FindKeyForLockValue(reqSkillValue);
+                    Item* kItem = FindKeyForLockValue(reqSkillValue);
                     if (kItem)
                     {
                         TellMaster("I have a skeleton key that can open it!");
@@ -3940,7 +3945,7 @@ void PlayerbotAI::DoLoot()
                 // check for a charge that can blast it open
                 if (m_bot->HasSkill(SKILL_ENGINEERING))
                 {
-                    Item *bItem = FindBombForLockValue(reqSkillValue);
+                    Item* bItem = FindBombForLockValue(reqSkillValue);
                     if (bItem)
                     {
                         TellMaster("I can blast it open!");
@@ -3965,8 +3970,8 @@ void PlayerbotAI::DoLoot()
         // if all attempts failed in some way then clear because it won't get SMSG_LOOT_RESPONSE
         if (keyFailed && skillFailed && forceFailed)
         {
-            DEBUG_LOG ("[PlayerbotAI]: DoLoot attempts failed on [%s]",
-                go ? go->GetGOInfo()->name : c->GetCreatureInfo()->Name);
+            DEBUG_LOG("[PlayerbotAI]: DoLoot attempts failed on [%s]",
+                      go ? go->GetGOInfo()->name : c->GetCreatureInfo()->Name);
             m_lootCurrent = ObjectGuid();
 
             // remove this GO from our list using the same settings that it was added with earlier
@@ -3979,7 +3984,7 @@ void PlayerbotAI::DoLoot()
     }
 }
 
-void PlayerbotAI::AcceptQuest(Quest const *qInfo, Player *pGiver)
+void PlayerbotAI::AcceptQuest(Quest const* qInfo, Player* pGiver)
 {
     if (!qInfo || !pGiver)
         return;
@@ -4022,24 +4027,24 @@ void PlayerbotAI::AcceptQuest(Quest const *qInfo, Player *pGiver)
                 break;
             }
 
-            // build needed creatures if quest contains any
-            for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
-                if (qInfo->ReqCreatureOrGOCount[i] > 0)
-                {
-                    SetQuestNeedCreatures();
-                    break;
-                }
+        // build needed creatures if quest contains any
+        for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
+            if (qInfo->ReqCreatureOrGOCount[i] > 0)
+            {
+                SetQuestNeedCreatures();
+                break;
+            }
 
-                // Runsttren: did not add typeid switch from WorldSession::HandleQuestgiverAcceptQuestOpcode!
-                // I think it's not needed, cause typeid should be TYPEID_PLAYER - and this one is not handled
-                // there and there is no default case also.
+        // Runsttren: did not add typeid switch from WorldSession::HandleQuestgiverAcceptQuestOpcode!
+        // I think it's not needed, cause typeid should be TYPEID_PLAYER - and this one is not handled
+        // there and there is no default case also.
 
-                if (qInfo->GetSrcSpell() > 0)
-                    m_bot->CastSpell(m_bot, qInfo->GetSrcSpell(), TRIGGERED_OLD_TRIGGERED);
+        if (qInfo->GetSrcSpell() > 0)
+            m_bot->CastSpell(m_bot, qInfo->GetSrcSpell(), TRIGGERED_OLD_TRIGGERED);
     }
 }
 
-void PlayerbotAI::TurnInQuests(WorldObject *questgiver)
+void PlayerbotAI::TurnInQuests(WorldObject* questgiver)
 {
     ObjectGuid giverGUID = questgiver->GetObjectGuid();
 
@@ -4086,7 +4091,7 @@ void PlayerbotAI::TurnInQuests(WorldObject *questgiver)
                     else if (pQuest->GetRewChoiceItemsCount() == 1)
                     {
                         int rewardIdx = 0;
-                        ItemPrototype const *pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[rewardIdx]);
+                        ItemPrototype const* pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[rewardIdx]);
                         std::string itemName = pRewardItem->Name1;
                         ItemLocalization(itemName, pRewardItem->ItemId);
                         if (m_bot->CanRewardQuest(pQuest, rewardIdx, false))
@@ -4103,10 +4108,10 @@ void PlayerbotAI::TurnInQuests(WorldObject *questgiver)
                         }
                         else
                             out << "|cffff0000Unable to turn quest in:|r "
-                            << "|cff808080|Hquest:" << questID << ':'
-                            << pQuest->GetQuestLevel() << "|h[" << questTitle << "]|h|r"
-                            << " reward: |cffffffff|Hitem:"
-                            << pRewardItem->ItemId << ":0:0:0:0:0:0:0" << "|h[" << itemName << "]|h|r";
+                                << "|cff808080|Hquest:" << questID << ':'
+                                << pQuest->GetQuestLevel() << "|h[" << questTitle << "]|h|r"
+                                << " reward: |cffffffff|Hitem:"
+                                << pRewardItem->ItemId << ":0:0:0:0:0:0:0" << "|h[" << itemName << "]|h|r";
                     }
 
                     // else multiple rewards - let master pick
@@ -4116,7 +4121,7 @@ void PlayerbotAI::TurnInQuests(WorldObject *questgiver)
                             << "|h[" << questTitle << "]|h|r? ";
                         for (uint8 i = 0; i < pQuest->GetRewChoiceItemsCount(); ++i)
                         {
-                            ItemPrototype const * const pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[i]);
+                            ItemPrototype const* const pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[i]);
                             std::string itemName = pRewardItem->Name1;
                             ItemLocalization(itemName, pRewardItem->ItemId);
                             out << "|cffffffff|Hitem:" << pRewardItem->ItemId << ":0:0:0:0:0:0:0" << "|h[" << itemName << "]|h|r";
@@ -4127,11 +4132,11 @@ void PlayerbotAI::TurnInQuests(WorldObject *questgiver)
 
             else if (status == QUEST_STATUS_INCOMPLETE)
                 out << "|cffff0000Quest incomplete:|r "
-                << " |cff808080|Hquest:" << questID << ':' << pQuest->GetQuestLevel() << "|h[" << questTitle << "]|h|r";
+                    << " |cff808080|Hquest:" << questID << ':' << pQuest->GetQuestLevel() << "|h[" << questTitle << "]|h|r";
 
             else if (status == QUEST_STATUS_AVAILABLE)
                 out << "|cff00ff00Quest available:|r "
-                << " |cff808080|Hquest:" << questID << ':' << pQuest->GetQuestLevel() << "|h[" << questTitle << "]|h|r";
+                    << " |cff808080|Hquest:" << questID << ':' << pQuest->GetQuestLevel() << "|h[" << questTitle << "]|h|r";
 
             if (!out.str().empty())
                 TellMaster(out.str());
@@ -4142,7 +4147,7 @@ void PlayerbotAI::TurnInQuests(WorldObject *questgiver)
 
 bool PlayerbotAI::IsInCombat()
 {
-    Pet *pet;
+    Pet* pet;
     bool inCombat = false;
     inCombat |= m_bot->isInCombat();
     pet = m_bot->GetPet();
@@ -4151,7 +4156,7 @@ bool PlayerbotAI::IsInCombat()
     inCombat |= GetMaster()->isInCombat();
     if (m_bot->GetGroup())
     {
-        GroupReference *ref = m_bot->GetGroup()->GetFirstMember();
+        GroupReference* ref = m_bot->GetGroup()->GetFirstMember();
         while (ref)
         {
             inCombat |= ref->getSource()->isInCombat();
@@ -4172,7 +4177,8 @@ bool PlayerbotAI::IsRegenerating()
         SpellEntry const* spell = aura->second->GetSpellProto();
         if (!spell)
             continue;
-        if (spell->Category == 59 || spell->Category == 11){
+        if (spell->Category == 59 || spell->Category == 11)
+        {
             return true;
         }
     }
@@ -4181,12 +4187,12 @@ bool PlayerbotAI::IsRegenerating()
     return false;
 }
 
-void PlayerbotAI::UpdateAttackersForTarget(Unit *victim)
+void PlayerbotAI::UpdateAttackersForTarget(Unit* victim)
 {
-    HostileReference *ref = victim->getHostileRefManager().getFirst();
+    HostileReference* ref = victim->getHostileRefManager().getFirst();
     while (ref)
     {
-        ThreatManager *target = ref->getSource();
+        ThreatManager* target = ref->getSource();
         ObjectGuid guid = target->getOwner()->GetObjectGuid();
         m_attackerInfo[guid].attacker = target->getOwner();
         m_attackerInfo[guid].victim = target->getOwner()->getVictim();
@@ -4204,7 +4210,7 @@ void PlayerbotAI::UpdateAttackerInfo()
 
     // check own attackers
     UpdateAttackersForTarget(m_bot);
-    Pet *pet = m_bot->GetPet();
+    Pet* pet = m_bot->GetPet();
     if (pet)
         UpdateAttackersForTarget(pet);
 
@@ -4217,7 +4223,7 @@ void PlayerbotAI::UpdateAttackerInfo()
     // check all group members now
     if (m_bot->GetGroup())
     {
-        GroupReference *gref = m_bot->GetGroup()->GetFirstMember();
+        GroupReference* gref = m_bot->GetGroup()->GetFirstMember();
         while (gref)
         {
             if (gref->getSource() == m_bot || gref->getSource() == GetMaster())
@@ -4240,7 +4246,7 @@ void PlayerbotAI::UpdateAttackerInfo()
     {
         if (!itr->second.attacker)
             continue;
-        Unit *a = itr->second.attacker;
+        Unit* a = itr->second.attacker;
         float t = 0.00;
         std::list<HostileReference*>::const_iterator i = a->getThreatManager().getThreatList().begin();
         for (; i != a->getThreatManager().getThreatList().end(); ++i)
@@ -4298,9 +4304,9 @@ uint32 PlayerbotAI::EstRepair(uint16 pos)
     uint32 LostDurability = maxDurability - curDurability;
     if (LostDurability > 0)
     {
-        ItemPrototype const *ditemProto = item->GetProto();
+        ItemPrototype const* ditemProto = item->GetProto();
 
-        DurabilityCostsEntry const *dcost = sDurabilityCostsStore.LookupEntry(ditemProto->ItemLevel);
+        DurabilityCostsEntry const* dcost = sDurabilityCostsStore.LookupEntry(ditemProto->ItemLevel);
         if (!dcost)
         {
             sLog.outError("RepairDurability: Wrong item lvl %u", ditemProto->ItemLevel);
@@ -4308,7 +4314,7 @@ uint32 PlayerbotAI::EstRepair(uint16 pos)
         }
 
         uint32 dQualitymodEntryId = (ditemProto->Quality + 1) * 2;
-        DurabilityQualityEntry const *dQualitymodEntry = sDurabilityQualityStore.LookupEntry(dQualitymodEntryId);
+        DurabilityQualityEntry const* dQualitymodEntry = sDurabilityQualityStore.LookupEntry(dQualitymodEntryId);
         if (!dQualitymodEntry)
         {
             sLog.outError("RepairDurability: Wrong dQualityModEntry %u", dQualitymodEntryId);
@@ -4337,7 +4343,7 @@ Unit* PlayerbotAI::FindAttacker(ATTACKERINFOTYPE ait, Unit* victim)
         return (m_attackerInfo.begin())->second.attacker;
 
     float t = ((ait & AIT_HIGHESTTHREAT) ? 0.00 : 9999.00);
-    Unit *a = 0;
+    Unit* a = 0;
     AttackerInfoList::iterator itr = m_attackerInfo.begin();
     for (; itr != m_attackerInfo.end(); ++itr)
     {
@@ -4435,7 +4441,7 @@ void PlayerbotAI::CombatOrderRestore()
     if (combatOrders & ORDERS_SECONDARY) SetCombatOrder(combatOrders, gSectarget);
 }
 
-void PlayerbotAI::SetCombatOrderByStr(std::string str, Unit *target)
+void PlayerbotAI::SetCombatOrderByStr(std::string str, Unit* target)
 {
     CombatOrderType co;
     if (str == "tank")              co = ORDERS_TANK;
@@ -4474,46 +4480,46 @@ void PlayerbotAI::SetCombatOrder(CombatOrderType co, Unit* target)
         m_targetProtect = 0;
     }
 
-    switch(co)
+    switch (co)
     {
         case ORDERS_ASSIST: // 2(10)
+        {
+            if (!target)
             {
-                if (!target)
-                {
-                    TellMaster("The assist command requires a target.");
-                    return;
-                }
-                else m_targetAssist = target;
-                break;
+                TellMaster("The assist command requires a target.");
+                return;
             }
+            else m_targetAssist = target;
+            break;
+        }
         case ORDERS_PROTECT: // 10(10000)
+        {
+            if (!target)
             {
-                if (!target)
-                {
-                    TellMaster("The protect command requires a target.");
-                    return;
-                }
-                else m_targetProtect = target;
-                break;
+                TellMaster("The protect command requires a target.");
+                return;
             }
+            else m_targetProtect = target;
+            break;
+        }
         case ORDERS_PASSIVE: // 20(100000)
-            {
-                m_combatOrder = ORDERS_PASSIVE;
-                m_targetAssist = 0;
-                m_targetProtect = 0;
-                return;
-            }
+        {
+            m_combatOrder = ORDERS_PASSIVE;
+            m_targetAssist = 0;
+            m_targetProtect = 0;
+            return;
+        }
         case ORDERS_RESET: // FFFF(11111111)
-            {
-                m_combatOrder = ORDERS_NONE;
-                m_targetAssist = 0;
-                m_targetProtect = 0;
-                m_DelayAttackInit = CurrentTime();
-                m_DelayAttack = 0;
-                CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET combat_order = 0, primary_target = 0, secondary_target = 0, pname = '',sname = '', combat_delay = 0 WHERE guid = '%u'", m_bot->GetGUIDLow());
-                TellMaster("Orders are cleaned!");
-                return;
-            }
+        {
+            m_combatOrder = ORDERS_NONE;
+            m_targetAssist = 0;
+            m_targetProtect = 0;
+            m_DelayAttackInit = CurrentTime();
+            m_DelayAttack = 0;
+            CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET combat_order = 0, primary_target = 0, secondary_target = 0, pname = '',sname = '', combat_delay = 0 WHERE guid = '%u'", m_bot->GetGUIDLow());
+            TellMaster("Orders are cleaned!");
+            return;
+        }
         default:
             break;
     }
@@ -4521,7 +4527,7 @@ void PlayerbotAI::SetCombatOrder(CombatOrderType co, Unit* target)
     // Do your magic
     if ((co & ORDERS_PRIMARY))
     {
-        m_combatOrder = (CombatOrderType) (((uint32) m_combatOrder & (uint32) ORDERS_SECONDARY) | (uint32) co);
+        m_combatOrder = (CombatOrderType)(((uint32) m_combatOrder & (uint32) ORDERS_SECONDARY) | (uint32) co);
         if (target)
             CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET combat_order = '%u', primary_target = '%u', pname = '%s' WHERE guid = '%u'", (m_combatOrder & ~ORDERS_TEMP), gTempTarget, gname.c_str(), m_bot->GetGUIDLow());
     }
@@ -4535,27 +4541,27 @@ void PlayerbotAI::SetCombatOrder(CombatOrderType co, Unit* target)
 
 void PlayerbotAI::ClearCombatOrder(CombatOrderType co)
 {
-     m_combatOrder = (CombatOrderType) ((uint32) m_combatOrder & (uint32) ~co);
+    m_combatOrder = (CombatOrderType)((uint32) m_combatOrder & (uint32) ~co);
 
-     switch (co)
-     {
-     case ORDERS_NONE:
-     case ORDERS_TANK:
-     case ORDERS_ASSIST:
-     case ORDERS_HEAL:
-     case ORDERS_PASSIVE:
-     case ORDERS_PRIMARY:
-     case ORDERS_RESET:
-     case ORDERS_SECONDARY:
-         SetCombatOrder(ORDERS_RESET);
-         return;
+    switch (co)
+    {
+        case ORDERS_NONE:
+        case ORDERS_TANK:
+        case ORDERS_ASSIST:
+        case ORDERS_HEAL:
+        case ORDERS_PASSIVE:
+        case ORDERS_PRIMARY:
+        case ORDERS_RESET:
+        case ORDERS_SECONDARY:
+            SetCombatOrder(ORDERS_RESET);
+            return;
 
-     default:
-         return;
-     }
- }
+        default:
+            return;
+    }
+}
 
-void PlayerbotAI::SetMovementOrder(MovementOrderType mo, Unit *followTarget)
+void PlayerbotAI::SetMovementOrder(MovementOrderType mo, Unit* followTarget)
 {
     m_movementOrder = mo;
     m_followTarget = followTarget;
@@ -4776,26 +4782,26 @@ void PlayerbotAI::Announce(AnnounceFlags msg)
                 default: break;
             }
             break;
-    case RACE_BLOODELF:
-        switch (msg)
-        {
-        case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9583) : PlaySound(9584); break;
-        case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9549) : PlaySound(9550); break;
-        case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9565) : PlaySound(9566); break;
-        default: break;
-        }
-        break;
-    case RACE_DRAENEI:
-        switch (msg)
-        {
-        case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9498) : PlaySound(9499); break;
-        case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9465) : PlaySound(9466); break;
-        case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9481) : PlaySound(9482); break;
-        default: break;
-        }
-        break;
-    default:
-        break;
+        case RACE_BLOODELF:
+            switch (msg)
+            {
+                case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9583) : PlaySound(9584); break;
+                case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9549) : PlaySound(9550); break;
+                case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9565) : PlaySound(9566); break;
+                default: break;
+            }
+            break;
+        case RACE_DRAENEI:
+            switch (msg)
+            {
+                case CANT_AFFORD: m_bot->getGender() == GENDER_MALE ? PlaySound(9498) : PlaySound(9499); break;
+                case INVENTORY_FULL: m_bot->getGender() == GENDER_MALE ? PlaySound(9465) : PlaySound(9466); break;
+                case CANT_USE_TOO_FAR: m_bot->getGender() == GENDER_MALE ? PlaySound(9481) : PlaySound(9482); break;
+                default: break;
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -4840,7 +4846,8 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
         if (m_botState == BOTSTATE_DEAD)
         {
             // become ghost
-            if (m_bot->GetCorpse()) {
+            if (m_bot->GetCorpse())
+            {
                 // DEBUG_LOG ("[PlayerbotAI]: UpdateAI - %s already has a corpse...", m_bot->GetName());
                 SetState(BOTSTATE_DEADRELEASED);
                 return;
@@ -4849,7 +4856,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
             m_bot->BuildPlayerRepop();
             // relocate ghost
             WorldLocation loc;
-            Corpse *corpse = m_bot->GetCorpse();
+            Corpse* corpse = m_bot->GetCorpse();
             corpse->GetPosition(loc);
             m_bot->TeleportTo(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z, m_bot->GetOrientation());
             // set state to released
@@ -4861,7 +4868,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
         if (m_botState == BOTSTATE_DEADRELEASED)
         {
             // get bot's corpse
-            Corpse *corpse = m_bot->GetCorpse();
+            Corpse* corpse = m_bot->GetCorpse();
             if (!corpse)
                 // DEBUG_LOG ("[PlayerbotAI]: UpdateAI - %s has no corpse!", m_bot->GetName());
                 return;
@@ -4872,7 +4879,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
             time_t resurrect_time = corpse->GetGhostTime() + m_bot->GetCorpseReclaimDelay(corpse->GetType() == CORPSE_RESURRECTABLE_PVP);
             if (resurrect_time > CurrentTime())
             {
-                SetIgnoreUpdateTime( resurrect_time );
+                SetIgnoreUpdateTime(resurrect_time);
                 // DEBUG_LOG ("[PlayerbotAI]: UpdateAI - %s has to wait for %d seconds to revive...", m_bot->GetName(), m_ignoreAIUpdatesUntilTime-CurrentTime() );
                 return;
             }
@@ -4944,12 +4951,12 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
         if (!spellInfo)
             return;
 
-        Spell *spell = new Spell(m_bot, spellInfo, false);
+        Spell* spell = new Spell(m_bot, spellInfo, false);
         if (!spell)
             return;
 
         if (m_bot->GetPetGuid() || spell->CheckCast(true) != SPELL_CAST_OK || !pTarget ||
-            pTarget->isDead() || !m_bot->IsInMap(pTarget) || !(((Creature *) pTarget)->GetCreatureInfo()->CreatureTypeFlags & CREATURE_TYPEFLAGS_TAMEABLE))
+                pTarget->isDead() || !m_bot->IsInMap(pTarget) || !(((Creature*) pTarget)->GetCreatureInfo()->CreatureTypeFlags & CREATURE_TYPEFLAGS_TAMEABLE))
         {
             MovementReset();
             m_bot->SetSelectionGuid(ObjectGuid());
@@ -4996,7 +5003,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
         if (!spellInfo)
             return;
 
-        Spell *spell = new Spell(m_bot, spellInfo, false);
+        Spell* spell = new Spell(m_bot, spellInfo, false);
         if (!spell)
             return;
 
@@ -5116,7 +5123,7 @@ void PlayerbotAI::TellMaster(const std::string& text) const
     SendWhisper(text, *GetMaster());
 }
 
-void PlayerbotAI::TellMaster(const char *fmt, ...) const
+void PlayerbotAI::TellMaster(const char* fmt, ...) const
 {
     char temp_buf[2048];
     va_list ap;
@@ -5167,7 +5174,7 @@ bool PlayerbotAI::In_Range(Unit* Target, uint32 spellId)
     return true;
 }
 
-bool PlayerbotAI::CheckBotCast(const SpellEntry *sInfo )
+bool PlayerbotAI::CheckBotCast(const SpellEntry* sInfo)
 {
     if (!sInfo)
         return false;
@@ -5188,7 +5195,7 @@ bool PlayerbotAI::CheckBotCast(const SpellEntry *sInfo )
         }
 
         SpellCastResult res = tmp_spell->CheckCast(false);
-        switch(res)
+        switch (res)
         {
             case SPELL_CAST_OK:
                 return true;
@@ -5196,7 +5203,7 @@ bool PlayerbotAI::CheckBotCast(const SpellEntry *sInfo )
             case SPELL_FAILED_TRY_AGAIN:
                 return true;
             default:
-                DEBUG_LOG("CheckBotCast SpellCastResult res(%u)",res);
+                DEBUG_LOG("CheckBotCast SpellCastResult res(%u)", res);
         }
     }
     return false;
@@ -5267,12 +5274,12 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     float CastTime = 0.0f;
 
     // stop movement to prevent cancel spell casting
-    SpellCastTimesEntry const * castTimeEntry = sSpellCastTimesStore.LookupEntry(pSpellInfo->CastingTimeIndex);
+    SpellCastTimesEntry const* castTimeEntry = sSpellCastTimesStore.LookupEntry(pSpellInfo->CastingTimeIndex);
     // stop movement to prevent cancel spell casting
     if (castTimeEntry && castTimeEntry->CastTime)
     {
         CastTime = (castTimeEntry->CastTime / 1000);
-        DEBUG_LOG ("[PlayerbotAI]: CastSpell - Bot movement reset for casting %s (%u)", pSpellInfo->SpellName[0], spellId);
+        DEBUG_LOG("[PlayerbotAI]: CastSpell - Bot movement reset for casting %s (%u)", pSpellInfo->SpellName[0], spellId);
         // m_bot->clearUnitState(UNIT_STAT_MOVING);
         m_bot->StopMoving();
     }
@@ -5285,14 +5292,14 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     m_CurrentlyCastingSpellId = spellId;
 
     if (pSpellInfo->Effect[0] == SPELL_EFFECT_OPEN_LOCK ||
-        pSpellInfo->Effect[0] == SPELL_EFFECT_SKINNING)
+            pSpellInfo->Effect[0] == SPELL_EFFECT_SKINNING)
     {
         if (m_lootCurrent)
         {
             if (!CheckBotCast(pSpellInfo))
                 return false;
 
-            std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_CAST_SPELL, 4+1+4+8));
+            std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_CAST_SPELL, 4 + 1 + 4 + 8));
             *packet << spellId;
             *packet << uint8(0);                            // spells cast count;
             *packet << target_type;
@@ -5305,7 +5312,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
                 *packetgouse << m_lootCurrent;
                 m_bot->GetSession()->QueuePacket(std::move(packetgouse));  // queue the packet to get around race condition
 
-                GameObject *obj = m_bot->GetMap()->GetGameObject(m_lootCurrent);
+                GameObject* obj = m_bot->GetMap()->GetGameObject(m_lootCurrent);
                 if (!obj)
                     return false;
 
@@ -5409,12 +5416,12 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
 }
 
 // Perform sanity checks and cast spell
-bool PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCast)(Player *))
+bool PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCast)(Player*))
 {
     if (spellId == 0)
         return false;
 
-    SpellEntry const * spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
     if (!spellProto)
         return false;
@@ -5443,7 +5450,7 @@ bool PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCast)(Player *
                 sameOrBetterAuraFound = true;
                 break;
             }
-            willBenefitFromSpell = willBenefitFromSpell || !sameOrBetterAuraFound;
+        willBenefitFromSpell = willBenefitFromSpell || !sameOrBetterAuraFound;
     }
 
     if (!willBenefitFromSpell)
@@ -5508,7 +5515,7 @@ uint8 PlayerbotAI::_findItemSlot(Item* target)
 
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)  // 20 to 23 = 4
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);   // 255, 20 to 23
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);    // 255, 20 to 23
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -5558,11 +5565,11 @@ Item* PlayerbotAI::FindItem(uint32 ItemId, bool Equipped_too /* default = false 
 
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)  // 20 to 23 = 4
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);   // 255, 20 to 23
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);    // 255, 20 to 23
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
-                DEBUG_LOG ("[PlayerbotAI]: FindItem - [%s's]bag[%u] slot = %u", m_bot->GetName(), bag, slot);  // 1 to bagsize = ?
+                DEBUG_LOG("[PlayerbotAI]: FindItem - [%s's]bag[%u] slot = %u", m_bot->GetName(), bag, slot);   // 1 to bagsize = ?
                 Item* const pItem = m_bot->GetItemByPos(bag, slot); // 20 to 23, 1 to bagsize
                 if (pItem)
                 {
@@ -5600,7 +5607,7 @@ Item* PlayerbotAI::FindItemInBank(uint32 ItemId)
 
     for (uint8 bag = BANK_SLOT_BAG_START; bag < BANK_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
             for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
             {
@@ -5654,89 +5661,89 @@ bool PlayerbotAI::HasTool(uint32 TC)
 
     switch (TC)
     {
-    case TC_MINING_PICK:                //  = 165
+        case TC_MINING_PICK:                //  = 165
 
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a MINING PICK!";
-        break;
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a MINING PICK!";
+            break;
 
-    case TC_ARCLIGHT_SPANNER:          //  = 14
+        case TC_ARCLIGHT_SPANNER:          //  = 14
 
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have an ARCLIGHT SPANNER!";
-        break;
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have an ARCLIGHT SPANNER!";
+            break;
 
-    case TC_BLACKSMITH_HAMMER:         //  = 162
+        case TC_BLACKSMITH_HAMMER:         //  = 162
 
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a BLACKSMITH's HAMMER!";
-        break;
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a BLACKSMITH's HAMMER!";
+            break;
 
-    case TC_SKINNING_KNIFE:            //  = 166
+        case TC_SKINNING_KNIFE:            //  = 166
 
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a SKINNING KNIFE!";
-        break;
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a SKINNING KNIFE!";
+            break;
 
-    case TC_COPPER_ROD:                //  = 6,
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a RUNED COPPER ROD!";
-        break;
+        case TC_COPPER_ROD:                //  = 6,
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a RUNED COPPER ROD!";
+            break;
 
-    case TC_SILVER_ROD:                //  = 7,
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a RUNED SILVER ROD!";
-        break;
+        case TC_SILVER_ROD:                //  = 7,
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a RUNED SILVER ROD!";
+            break;
 
-    case TC_GOLDEN_ROD:                //  = 8,
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a RUNED GOLDEN ROD!";
-        break;
+        case TC_GOLDEN_ROD:                //  = 8,
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a RUNED GOLDEN ROD!";
+            break;
 
-    case TC_TRUESILVER_ROD:            //  = 9,
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a RUNED TRUESILVER ROD!";
-        break;
+        case TC_TRUESILVER_ROD:            //  = 9,
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a RUNED TRUESILVER ROD!";
+            break;
 
-    case TC_ARCANITE_ROD:              //  = 10,
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a RUNED ARCANITE ROD!";
-        break;
+        case TC_ARCANITE_ROD:              //  = 10,
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a RUNED ARCANITE ROD!";
+            break;
 
-    case TC_FEL_IRON_ROD:              //  = 41,
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a RUNED FEL IRON ROD!";
-        break;
+        case TC_FEL_IRON_ROD:              //  = 41,
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a RUNED FEL IRON ROD!";
+            break;
 
-    case TC_ADAMANTITE_ROD:            //  = 62,
-        if (m_bot->HasItemTotemCategory(TC))
-            return true;
-        else
-            out << "|cffff0000I do not have a RUNED ADAMANTITE ROD!";
-        break;
+        case TC_ADAMANTITE_ROD:            //  = 62,
+            if (m_bot->HasItemTotemCategory(TC))
+                return true;
+            else
+                out << "|cffff0000I do not have a RUNED ADAMANTITE ROD!";
+            break;
 
         case TC_ETERNIUM_ROD:              //  = 63,
-             if (m_bot->HasItemTotemCategory(TC))
+            if (m_bot->HasItemTotemCategory(TC))
                 return true;
             else
                 out << "|cffff0000I do not have a RUNED ETERNIUM ROD!";
@@ -5750,12 +5757,12 @@ bool PlayerbotAI::HasTool(uint32 TC)
 
 bool PlayerbotAI::PickPocket(Unit* pTarget)
 {
-    if(!pTarget)
+    if (!pTarget)
         return false;
 
     ObjectGuid markGuid = pTarget->GetObjectGuid();
-    Creature *c = m_bot->GetMap()->GetCreature(markGuid);
-    if(c)
+    Creature* c = m_bot->GetMap()->GetCreature(markGuid);
+    if (c)
     {
         Loot*& loot = c->loot;
         if (!loot)
@@ -5785,10 +5792,10 @@ bool PlayerbotAI::PickPocket(Unit* pTarget)
                 copper -= (silver * 100);
 
                 out << "|r|cff009900" << m_bot->GetName() << " loots: " << "|h|cffffffff[|r|cff00ff00" << gold
-                << "|r|cfffffc00g|r|cff00ff00" << silver
-                << "|r|cffcdcdcds|r|cff00ff00" << copper
-                << "|r|cff993300c"
-                << "|h|cffffffff]";
+                    << "|r|cfffffc00g|r|cff00ff00" << silver
+                    << "|r|cffcdcdcds|r|cff00ff00" << copper
+                    << "|r|cff993300c"
+                    << "|h|cffffffff]";
 
                 TellMaster(out.str().c_str());
             }
@@ -5798,7 +5805,7 @@ bool PlayerbotAI::PickPocket(Unit* pTarget)
         }
 
         if (!loot->AutoStore(m_bot, false, NULL_BAG, NULL_SLOT))
-        sLog.outDebug("PLAYERBOT Debug: Failed to get loot from pickpocketed NPC");
+            sLog.outDebug("PLAYERBOT Debug: Failed to get loot from pickpocketed NPC");
 
         // release the loot whatever happened
         loot->Release(m_bot);
@@ -5876,22 +5883,22 @@ uint32 PlayerbotAI::GetSpellCharges(uint32 spellId)
     return charges;
 }
 
-void PlayerbotAI::ItemCountInInv(uint32 itemid, uint32 &count)
+void PlayerbotAI::ItemCountInInv(uint32 itemid, uint32& count)
 {
-    for(int i = EQUIPMENT_SLOT_START; i < INVENTORY_SLOT_ITEM_END; ++i)
+    for (int i = EQUIPMENT_SLOT_START; i < INVENTORY_SLOT_ITEM_END; ++i)
     {
-        Item *pItem = m_bot->GetItemByPos( INVENTORY_SLOT_BAG_0, i );
+        Item* pItem = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, i);
         if (pItem && pItem->GetEntry() == itemid && !pItem->IsInTrade())
             count += pItem->GetCount();
     }
 
-    for(int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+    for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
     {
-        if (Bag* pBag = (Bag*)m_bot->GetItemByPos( INVENTORY_SLOT_BAG_0, i ))
+        if (Bag* pBag = (Bag*)m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
         {
-            for(uint32 j = 0; j < pBag->GetBagSize(); ++j)
+            for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
             {
-                Item* pItem = m_bot->GetItemByPos( i, j );
+                Item* pItem = m_bot->GetItemByPos(i, j);
                 if (pItem && pItem->GetEntry() == itemid && !pItem->IsInTrade())
                     count += pItem->GetCount();
             }
@@ -5964,14 +5971,14 @@ void PlayerbotAI::extractQuestIds(const std::string& text, std::list<uint32>& qu
 }
 
 // Build an hlink for Weapon skills in Aqua
-void PlayerbotAI::MakeWeaponSkillLink(const SpellEntry *sInfo, std::ostringstream &out, uint32 skillid)
+void PlayerbotAI::MakeWeaponSkillLink(const SpellEntry* sInfo, std::ostringstream& out, uint32 skillid)
 {
     int loc = GetMaster()->GetSession()->GetSessionDbcLocale();
     out << "|cff00ffff|Hspell:" << sInfo->Id << "|h[" << sInfo->SpellName[loc] << " : " << m_bot->GetSkillValue(skillid) << " /" << m_bot->GetMaxSkillValue(skillid) << "]|h|r";
 }
 
 // Build an hlink for spells in White
-void PlayerbotAI::MakeSpellLink(const SpellEntry *sInfo, std::ostringstream &out)
+void PlayerbotAI::MakeSpellLink(const SpellEntry* sInfo, std::ostringstream& out)
 {
     int    loc = GetMaster()->GetSession()->GetSessionDbcLocale();
     out << "|cffffffff|Hspell:" << sInfo->Id << "|h[" << sInfo->SpellName[loc] << "]|h|r";
@@ -5979,7 +5986,7 @@ void PlayerbotAI::MakeSpellLink(const SpellEntry *sInfo, std::ostringstream &out
 
 // Builds a hlink for an item, but since its
 // only a ItemPrototype, we cant fill in everything
-void PlayerbotAI::MakeItemLink(const ItemPrototype *item, std::ostringstream &out)
+void PlayerbotAI::MakeItemLink(const ItemPrototype* item, std::ostringstream& out)
 {
     // Color
     out << "|c";
@@ -6011,9 +6018,9 @@ void PlayerbotAI::MakeItemLink(const ItemPrototype *item, std::ostringstream &ou
 
 // Builds a hlink for an item, includes everything
 // |color|Hitem:item_id:perm_ench_id:gem1:gem2:gem3:0:0:0:0:reporter_level|h[name]|h|r
-void PlayerbotAI::MakeItemLink(const Item *item, std::ostringstream &out, bool IncludeQuantity /*= true*/)
+void PlayerbotAI::MakeItemLink(const Item* item, std::ostringstream& out, bool IncludeQuantity /*= true*/)
 {
-    const ItemPrototype *proto = item->GetProto();
+    const ItemPrototype* proto = item->GetProto();
     // Color
     out << "|c";
     switch (proto->Quality)
@@ -6047,9 +6054,9 @@ void PlayerbotAI::MakeItemLink(const Item *item, std::ostringstream &out, bool I
 
         switch (slot - SOCK_ENCHANTMENT_SLOT)
         {
-        case 1: g1 = entry->GemID; break;
-        case 2: g2 = entry->GemID; break;
-        case 3: g3 = entry->GemID; break;
+            case 1: g1 = entry->GemID; break;
+            case 2: g2 = entry->GemID; break;
+            case 3: g3 = entry->GemID; break;
         }
     }
     out << g1 << ":" << g2 << ":" << g3 << ":";
@@ -6072,9 +6079,9 @@ void PlayerbotAI::MakeItemLink(const Item *item, std::ostringstream &out, bool I
 }
 
 // Builds a string for an item   |color[name]|r
-void PlayerbotAI::MakeItemText(const Item *item, std::ostringstream &out, bool IncludeQuantity /*= true*/)
+void PlayerbotAI::MakeItemText(const Item* item, std::ostringstream& out, bool IncludeQuantity /*= true*/)
 {
-    const ItemPrototype *proto = item->GetProto();
+    const ItemPrototype* proto = item->GetProto();
     // Color
     out << "|c";
     switch (proto->Quality)
@@ -6119,7 +6126,7 @@ void PlayerbotAI::extractAuctionIds(const std::string& text, std::list<uint32>& 
     }
 }
 
-void PlayerbotAI::extractSpellId(const std::string& text, uint32 &spellId) const
+void PlayerbotAI::extractSpellId(const std::string& text, uint32& spellId) const
 {
 
     //   Link format
@@ -6216,7 +6223,7 @@ void PlayerbotAI::extractGOinfo(const std::string& text, BotObjectList& m_lootTa
     }
 }
 
-void PlayerbotAI::extractTalentIds(const std::string &text, std::list<talentPair> &talentIds) const
+void PlayerbotAI::extractTalentIds(const std::string& text, std::list<talentPair>& talentIds) const
 {
     // Link format:
     // |color|Htalent:talent_id:rank|h[name]|h|r
@@ -6341,7 +6348,7 @@ void PlayerbotAI::findItemsInInv(std::list<uint32>& itemIdSearchList, std::list<
     // for all for items in other bags
     for (uint8 bag = INVENTORY_SLOT_BAG_START; itemIdSearchList.size() > 0 && bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (!pBag)
             continue;
 
@@ -6378,11 +6385,11 @@ void PlayerbotAI::findNearbyGO()
     for (BotEntryList::iterator itr = m_collectObjects.begin(); itr != m_collectObjects.end(); ++itr)
     {
         uint32 entry = *(itr);
-        GameObjectInfo const * gInfo = ObjectMgr::GetGameObjectInfo(entry);
+        GameObjectInfo const* gInfo = ObjectMgr::GetGameObjectInfo(entry);
 
         uint32 lootid = gInfo->GetLootId();
 
-        if(gInfo->GetLootId() > 0)
+        if (gInfo->GetLootId() > 0)
             for (BotLootList::iterator it = m_botQuestLoot.begin(); it != m_botQuestLoot.end(); ++it)
                 if (it->first == lootid)
                     if (!IsInQuestItemList(it->second))
@@ -6406,7 +6413,7 @@ void PlayerbotAI::findNearbyGO()
         {
             GameObject* go = (*iter);
 
-            TerrainInfo const *map = go->GetTerrain();
+            TerrainInfo const* map = go->GetTerrain();
 
             float ground_z = map->GetHeightStatic(go->GetPositionX(), go->GetPositionY(), go->GetPositionZ());
             // DEBUG_LOG("ground_z (%f) > INVALID_HEIGHT (%f)",ground_z,INVALID_HEIGHT);
@@ -6448,7 +6455,7 @@ void PlayerbotAI::findNearbyCreature()
             if ((*itr == UNIT_NPC_FLAG_TRAINER) && !currCreature->CanTrainAndResetTalentsOf(m_bot))
                 break;
 
-            WorldObject *wo = m_bot->GetMap()->GetWorldObject(currCreature->GetObjectGuid());
+            WorldObject* wo = m_bot->GetMap()->GetWorldObject(currCreature->GetObjectGuid());
 
             if (m_bot->GetDistance(wo) > CONTACT_DISTANCE + wo->GetObjectBoundingRadius())
             {
@@ -6519,7 +6526,7 @@ void PlayerbotAI::findNearbyCreature()
                                             ListAuctions();
                                             break;
                                         }
-                                       // withdraw items
+                                        // withdraw items
                                         case BANK_WITHDRAW:
                                         {
                                             // TellMaster("Withdraw items");
@@ -6529,7 +6536,7 @@ void PlayerbotAI::findNearbyCreature()
                                             break;
                                         }
                                         // deposit items
-                                    case BANK_DEPOSIT:
+                                        case BANK_DEPOSIT:
                                         {
                                             // TellMaster("Deposit items");
                                             if (!Deposit(ait->second))
@@ -6538,14 +6545,14 @@ void PlayerbotAI::findNearbyCreature()
                                             break;
                                         }
                                         // bank balance
-                                    case BANK_BALANCE:
+                                        case BANK_BALANCE:
                                         {
                                             // TellMaster("Bank Balance");
                                             BankBalance();
                                             break;
                                         }
                                         // reset talents
-                                    case RESET_TALENTS:
+                                        case RESET_TALENTS:
                                         {
                                             // TellMaster("Reset all talents");
                                             if (Talent(currCreature))
@@ -6553,7 +6560,7 @@ void PlayerbotAI::findNearbyCreature()
                                             break;
                                         }
                                         // take new quests
-                                    case TAKE_QUEST:
+                                        case TAKE_QUEST:
                                         {
                                             // TellMaster("Accepting quest");
                                             if (!AddQuest(ait->second, wo))
@@ -6561,48 +6568,48 @@ void PlayerbotAI::findNearbyCreature()
                                             break;
                                         }
                                         // list npc quests
-                                    case LIST_QUEST:
+                                        case LIST_QUEST:
                                         {
                                             // TellMaster("Show available npc quests");
                                             ListQuests(wo);
                                             break;
                                         }
                                         // end quests
-                                    case END_QUEST:
+                                        case END_QUEST:
                                         {
                                             // TellMaster("Turn in available quests");
                                             TurnInQuests(wo);
                                             break;
                                         }
                                         // sell items
-                                    case SELL_ITEMS:
+                                        case SELL_ITEMS:
                                         {
                                             // TellMaster("Selling items");
                                             Sell(ait->second);
                                             break;
                                         }
                                         // buy items
-                                    case BUY_ITEMS:
+                                        case BUY_ITEMS:
                                         {
                                             // TellMaster("Buying items");
                                             Buy(currCreature, ait->second);
                                             break;
                                         }
                                         // repair items
-                                    case REPAIR_ITEMS:
+                                        case REPAIR_ITEMS:
                                         {
                                             TellMaster("Repairing items");
                                             Repair(ait->second, currCreature);
                                             break;
                                         }
-                                    default:
-                                        break;
+                                        default:
+                                            break;
                                     }
                                 }
-                                break;
+                            break;
                         }
                         default:
-                            DEBUG_LOG("Unknown - GOSSIP_OPTION (%u)",it->second.option_id);
+                            DEBUG_LOG("Unknown - GOSSIP_OPTION (%u)", it->second.option_id);
                             break;
                     }
                     AutoUpgradeEquipment();
@@ -6630,7 +6637,7 @@ bool PlayerbotAI::IsElite(Unit* pTarget, bool isWorldBoss) const
     if (!pTarget)
         return false;
 
-    if (Creature * pCreature = (Creature*) pTarget)
+    if (Creature* pCreature = (Creature*) pTarget)
     {
         if (isWorldBoss)
             return pCreature->IsWorldBoss();
@@ -6679,7 +6686,7 @@ void PlayerbotAI::FaceTarget(Unit* pTarget)
         return;
 
     // Only update orientation if not already facing target
-    if (!m_bot->HasInArc(M_PI_F, pTarget))
+    if (!m_bot->HasInArc(pTarget))
         m_bot->SetFacingTo(m_bot->GetAngle(pTarget));
 
     return;
@@ -6699,7 +6706,7 @@ bool PlayerbotAI::CanStore()
     // list out items in other removable backpacks
     for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
     {
-        const Bag* const pBag = (Bag *) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
+        const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
         if (pBag)
         {
             ItemPrototype const* pBagProto = pBag->GetProto();
@@ -6711,13 +6718,13 @@ bool PlayerbotAI::CanStore()
 }
 
 // use item on self
-void PlayerbotAI::UseItem(Item *item)
+void PlayerbotAI::UseItem(Item* item)
 {
     UseItem(item, TARGET_FLAG_SELF, ObjectGuid());
 }
 
 // use item on equipped item
-void PlayerbotAI::UseItem(Item *item, uint8 targetInventorySlot)
+void PlayerbotAI::UseItem(Item* item, uint8 targetInventorySlot)
 {
     if (targetInventorySlot >= EQUIPMENT_SLOT_END)
         return;
@@ -6730,7 +6737,7 @@ void PlayerbotAI::UseItem(Item *item, uint8 targetInventorySlot)
 }
 
 // use item on unit
-void PlayerbotAI::UseItem(Item *item, Unit *target)
+void PlayerbotAI::UseItem(Item* item, Unit* target)
 {
     if (!target)
         return;
@@ -6739,7 +6746,7 @@ void PlayerbotAI::UseItem(Item *item, Unit *target)
 }
 
 // generic item use method
-void PlayerbotAI::UseItem(Item *item, uint32 targetFlag, ObjectGuid targetGUID)
+void PlayerbotAI::UseItem(Item* item, uint32 targetFlag, ObjectGuid targetGUID)
 {
     if (!item)
         return;
@@ -6788,14 +6795,14 @@ void PlayerbotAI::UseItem(Item *item, uint32 targetFlag, ObjectGuid targetGUID)
         return;
     }
 
-    SpellEntry const * spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!spellInfo)
     {
         TellMaster("Can't find spell entry for spell %u on item %u", spellId, item->GetEntry());
         return;
     }
 
-    SpellCastTimesEntry const * castingTimeEntry = sSpellCastTimesStore.LookupEntry(spellInfo->CastingTimeIndex);
+    SpellCastTimesEntry const* castingTimeEntry = sSpellCastTimesStore.LookupEntry(spellInfo->CastingTimeIndex);
     if (!castingTimeEntry)
     {
         TellMaster("Can't find casting time entry for spell %u with index %u", spellId, spellInfo->CastingTimeIndex);
@@ -6804,7 +6811,7 @@ void PlayerbotAI::UseItem(Item *item, uint32 targetFlag, ObjectGuid targetGUID)
     // stop movement to prevent cancel spell casting
     else if (castingTimeEntry && castingTimeEntry->CastTime)
     {
-        DEBUG_LOG ("[PlayerbotAI]: UseItem - Bot movement reset for casting %s (%u)", spellInfo->SpellName[0], spellId);
+        DEBUG_LOG("[PlayerbotAI]: UseItem - Bot movement reset for casting %s (%u)", spellInfo->SpellName[0], spellId);
         MovementClear();
     }
 
@@ -6894,7 +6901,7 @@ void PlayerbotAI::EquipItem(Item* src_Item)
     if (dest == src)                                        // prevent equip in same slot, only at cheat
         return;
 
-    Item *dest_Item = m_bot->GetItemByPos(dest);
+    Item* dest_Item = m_bot->GetItemByPos(dest);
     if (!dest_Item)                                          // empty slot, simple case
     {
         m_bot->RemoveItem(src_bagIndex, src_slot, true);
@@ -6977,13 +6984,13 @@ bool PlayerbotAI::TradeItem(const Item& item, int8 slot)
             }
         }
 
-        if (tradeSlot == -1) return false;
+    if (tradeSlot == -1) return false;
 
-        std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_SET_TRADE_ITEM, 3));
-        *packet << (uint8) tradeSlot << (uint8) item.GetBagSlot()
+    std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_SET_TRADE_ITEM, 3));
+    *packet << (uint8) tradeSlot << (uint8) item.GetBagSlot()
             << (uint8) item.GetSlot();
-        m_bot->GetSession()->QueuePacket(std::move(packet));
-        return true;
+    m_bot->GetSession()->QueuePacket(std::move(packet));
+    return true;
 }
 
 // submits packet to trade copper (trade window must be open)
@@ -7023,7 +7030,7 @@ void PlayerbotAI::HandleTeleportAck()
     m_bot->GetMotionMaster()->Clear(true);
     if (m_bot->IsBeingTeleportedNear())
     {
-        WorldPacket p = WorldPacket(MSG_MOVE_TELEPORT_ACK, 8+4+4);
+        WorldPacket p = WorldPacket(MSG_MOVE_TELEPORT_ACK, 8 + 4 + 4);
         p << m_bot->GetObjectGuid();
         p << (uint32) 0; // supposed to be flags? not used currently
         p << (uint32) CurrentTime(); // time - not currently used
@@ -7039,7 +7046,7 @@ void PlayerbotAI::ItemLocalization(std::string& itemName, const uint32 itemID) c
     uint32 loc = GetMaster()->GetSession()->GetSessionDbLocaleIndex();
     std::wstring wnamepart;
 
-    ItemLocale const *pItemInfo = sObjectMgr.GetItemLocale(itemID);
+    ItemLocale const* pItemInfo = sObjectMgr.GetItemLocale(itemID);
     if (pItemInfo)
         if (pItemInfo->Name.size() > loc && !pItemInfo->Name[loc].empty())
         {
@@ -7054,7 +7061,7 @@ void PlayerbotAI::QuestLocalization(std::string& questTitle, const uint32 questI
     uint32 loc = GetMaster()->GetSession()->GetSessionDbLocaleIndex();
     std::wstring wnamepart;
 
-    QuestLocale const *pQuestInfo = sObjectMgr.GetQuestLocale(questID);
+    QuestLocale const* pQuestInfo = sObjectMgr.GetQuestLocale(questID);
     if (pQuestInfo)
         if (pQuestInfo->Title.size() > loc && !pQuestInfo->Title[loc].empty())
         {
@@ -7069,7 +7076,7 @@ void PlayerbotAI::CreatureLocalization(std::string& creatureName, const uint32 e
     uint32 loc = GetMaster()->GetSession()->GetSessionDbLocaleIndex();
     std::wstring wnamepart;
 
-    CreatureLocale const *pCreatureInfo = sObjectMgr.GetCreatureLocale(entry);
+    CreatureLocale const* pCreatureInfo = sObjectMgr.GetCreatureLocale(entry);
     if (pCreatureInfo)
         if (pCreatureInfo->Name.size() > loc && !pCreatureInfo->Name[loc].empty())
         {
@@ -7084,7 +7091,7 @@ void PlayerbotAI::GameObjectLocalization(std::string& gameobjectName, const uint
     uint32 loc = GetMaster()->GetSession()->GetSessionDbLocaleIndex();
     std::wstring wnamepart;
 
-    GameObjectLocale const *pGameObjectInfo = sObjectMgr.GetGameObjectLocale(entry);
+    GameObjectLocale const* pGameObjectInfo = sObjectMgr.GetGameObjectLocale(entry);
     if (pGameObjectInfo)
         if (pGameObjectInfo->Name.size() > loc && !pGameObjectInfo->Name[loc].empty())
         {
@@ -7095,7 +7102,7 @@ void PlayerbotAI::GameObjectLocalization(std::string& gameobjectName, const uint
 }
 
 // Helper function for automatically selling poor quality items to the vendor
-void PlayerbotAI::_doSellItem(Item* const item, std::ostringstream &report, std::ostringstream &canSell, uint32 &TotalCost, uint32 &TotalSold)
+void PlayerbotAI::_doSellItem(Item* const item, std::ostringstream& report, std::ostringstream& canSell, uint32& TotalCost, uint32& TotalSold)
 {
     if (!item)
         return;
@@ -7106,7 +7113,7 @@ void PlayerbotAI::_doSellItem(Item* const item, std::ostringstream &report, std:
     if (item->CanBeTraded() && item->GetProto()->Quality == ITEM_QUALITY_POOR) // trash sells automatically.
         autosell = 1;
 
-    ItemPrototype const *pProto = item->GetProto();
+    ItemPrototype const* pProto = item->GetProto();
 
     if (SellWhite == 1) // set this with the command 'sell all'
     {
@@ -7136,7 +7143,7 @@ void PlayerbotAI::_doSellItem(Item* const item, std::ostringstream &report, std:
         // handle spell charge if any
         for (auto i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
         {
-            auto const &spell = pProto->Spells[i];
+            auto const& spell = pProto->Spells[i];
 
             // if spell charges for this item are negative, it means that the item should be destroyed once the charges are consumed.
             // it also means that the value of this item is relative to how many charges are remaining.
@@ -7234,7 +7241,7 @@ void PlayerbotAI::BankBalance()
     for (uint8 bag = BANK_SLOT_BAG_START; bag < BANK_SLOT_BAG_END; ++bag)
     {
         std::ostringstream goods;
-        const Bag* const pBag = static_cast<Bag *>(m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag));
+        const Bag* const pBag = static_cast<Bag*>(m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag));
         if (pBag)
         {
             goods << "\nMy ";
@@ -7316,14 +7323,14 @@ void PlayerbotAI::Repair(const uint32 itemid, Creature* rCreature)
 
 bool PlayerbotAI::RemoveAuction(const uint32 auctionid)
 {
-    QueryResult *result = CharacterDatabase.PQuery(
-        "SELECT houseid,itemguid,item_template,itemowner,buyoutprice,time,buyguid,lastbid,startbid,deposit FROM auction WHERE id = '%u'", auctionid);
+    QueryResult* result = CharacterDatabase.PQuery(
+                              "SELECT houseid,itemguid,item_template,itemowner,buyoutprice,time,buyguid,lastbid,startbid,deposit FROM auction WHERE id = '%u'", auctionid);
 
-    AuctionEntry *auction;
+    AuctionEntry* auction;
 
     if (result)
     {
-        Field *fields = result->Fetch();
+        Field* fields = result->Fetch();
 
         auction = new AuctionEntry;
         auction->Id = auctionid;
@@ -7359,8 +7366,8 @@ bool PlayerbotAI::RemoveAuction(const uint32 auctionid)
 
         // item will deleted or added to received mail list
         MailDraft(msgAuctionCanceledOwner.str(), "")    // TODO: fix body
-            .AddItem(pItem)
-            .SendMailTo(MailReceiver(ObjectGuid(HIGHGUID_PLAYER, auction->owner)), auction, MAIL_CHECK_MASK_COPIED);
+        .AddItem(pItem)
+        .SendMailTo(MailReceiver(ObjectGuid(HIGHGUID_PLAYER, auction->owner)), auction, MAIL_CHECK_MASK_COPIED);
 
         if (sAuctionMgr.RemoveAItem(auction->itemGuidLow))
             m_bot->GetSession()->SendAuctionCommandResult(auction, AUCTION_REMOVED, AUCTION_OK);
@@ -7388,7 +7395,7 @@ std::string PlayerbotAI::AuctionResult(std::string subject, std::string body)
     if (body.size() > 0)
     {
         pos = body.find_first_not_of(" ");
-        subject.append(body,pos,body.size()-pos);
+        subject.append(body, pos, body.size() - pos);
         subject.append(":");
     }
 
@@ -7396,20 +7403,20 @@ std::string PlayerbotAI::AuctionResult(std::string subject, std::string body)
     pos = 0;
     uint32 a_info[15];
     int i = 0;
-    while(true)
+    while (true)
     {
-        int endpos = subject.find(':',pos);
+        int endpos = subject.find(':', pos);
         if (endpos == -1)
             break;
 
-        std::string idc = subject.substr(pos,endpos - pos);
+        std::string idc = subject.substr(pos, endpos - pos);
         a_info[i] = atol(idc.c_str());
         // DEBUG_LOG("a_info[%d] = (%u)",i,a_info[i]);
         pos = endpos + 1;
         ++i;
     }
 
-    if(i == 0)
+    if (i == 0)
     {
         out << "This mail is empty";
         return out.str();
@@ -7420,20 +7427,20 @@ std::string PlayerbotAI::AuctionResult(std::string subject, std::string body)
     else
         winner =  "Buyout";
 
-    ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(a_info[0]);
+    ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(a_info[0]);
     if (!pProto)
         return out.str();
 
-    switch(a_info[2])
+    switch (a_info[2])
     {
-    case AUCTION_OUTBIDDED:           //= 0,
-        out << "Subject: Outbid on: " << pProto->Name1;
-        break;
-    case AUCTION_WON:                 //= 1,
-        out << "Subject: Auction won: " << pProto->Name1 << "\n";
-        out << "Item Purchased: " << pProto->Name1 << "\n";
-        break;
-    case AUCTION_SUCCESSFUL:          //= 2,
+        case AUCTION_OUTBIDDED:           //= 0,
+            out << "Subject: Outbid on: " << pProto->Name1;
+            break;
+        case AUCTION_WON:                 //= 1,
+            out << "Subject: Auction won: " << pProto->Name1 << "\n";
+            out << "Item Purchased: " << pProto->Name1 << "\n";
+            break;
+        case AUCTION_SUCCESSFUL:          //= 2,
         {
             out << "Subject: Auction successful: " << pProto->Name1 << "\n";
             out << "Item Sold: " << pProto->Name1 << "\n";
@@ -7441,18 +7448,18 @@ std::string PlayerbotAI::AuctionResult(std::string subject, std::string body)
             out << "\n( |cff1eff00Deposit:|cffccffff " << Cash(a_info[6]) << " |cffff0000- Tax:|cffccffff " << Cash(a_info[7]) << " ) |cff1eff00+|cffccffff";
             break;
         }
-    case AUCTION_EXPIRED:             //= 3,
-        out << "Subject: Auction expired: " << pProto->Name1;
-        break;
-    case AUCTION_CANCELLED_TO_BIDDER: //= 4,
-        out << "Subject: Auction cancelled to bidder: " << pProto->Name1;
-        break;
-    case AUCTION_CANCELED:            //= 5,
-        out << "Subject: Auction cancelled: " << pProto->Name1;
-        break;
-    case AUCTION_SALE_PENDING:        //= 6
-        out << "Subject: Auction sale pending: " << pProto->Name1;
-        break;
+        case AUCTION_EXPIRED:             //= 3,
+            out << "Subject: Auction expired: " << pProto->Name1;
+            break;
+        case AUCTION_CANCELLED_TO_BIDDER: //= 4,
+            out << "Subject: Auction cancelled to bidder: " << pProto->Name1;
+            break;
+        case AUCTION_CANCELED:            //= 5,
+            out << "Subject: Auction cancelled: " << pProto->Name1;
+            break;
+        case AUCTION_SALE_PENDING:        //= 6
+            out << "Subject: Auction sale pending: " << pProto->Name1;
+            break;
     }
     return out.str();
 }
@@ -7476,7 +7483,7 @@ std::string PlayerbotAI::Cash(uint32 copper)
     return change.str();
 }
 
-void PlayerbotAI::ListQuests(WorldObject * questgiver)
+void PlayerbotAI::ListQuests(WorldObject* questgiver)
 {
     if (!questgiver)
         return;
@@ -7511,7 +7518,7 @@ void PlayerbotAI::ListQuests(WorldObject * questgiver)
         TellMaster(out.str());
 }
 
-bool PlayerbotAI::AddQuest(const uint32 entry, WorldObject * questgiver)
+bool PlayerbotAI::AddQuest(const uint32 entry, WorldObject* questgiver)
 {
     std::ostringstream out;
 
@@ -7560,13 +7567,13 @@ bool PlayerbotAI::AddQuest(const uint32 entry, WorldObject * questgiver)
                 break;
             }
 
-            // build needed creatures if quest contains any
-            for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
-                if (qInfo->ReqCreatureOrGOCount[i] > 0)
-                {
-                    SetQuestNeedCreatures();
-                    break;
-                }
+        // build needed creatures if quest contains any
+        for (int i = 0; i < QUEST_OBJECTIVES_COUNT; i++)
+            if (qInfo->ReqCreatureOrGOCount[i] > 0)
+            {
+                SetQuestNeedCreatures();
+                break;
+            }
 
         if (qInfo->GetSrcSpell() > 0)
             m_bot->CastSpell(m_bot, qInfo->GetSrcSpell(), TRIGGERED_OLD_TRIGGERED);
@@ -7581,14 +7588,14 @@ void PlayerbotAI::ListAuctions()
 {
     std::ostringstream report;
 
-    QueryResult *result = CharacterDatabase.PQuery(
-        "SELECT id,itemguid,item_template,time,buyguid,lastbid FROM auction WHERE itemowner = '%u'", m_bot->GetObjectGuid().GetCounter());
+    QueryResult* result = CharacterDatabase.PQuery(
+                              "SELECT id,itemguid,item_template,time,buyguid,lastbid FROM auction WHERE itemowner = '%u'", m_bot->GetObjectGuid().GetCounter());
     if (result)
     {
         report << "My active auctions are: \n";
         do
         {
-            Field *fields = result->Fetch();
+            Field* fields = result->Fetch();
 
             uint32 Id = fields[0].GetUInt32();
             uint32 itemGuidLow = fields[1].GetUInt32();
@@ -7629,7 +7636,8 @@ void PlayerbotAI::ListAuctions()
                 if (aItem)
                     report << " ends: " << aTm->tm_hour << "|cff0070dd|hH|h|r " << aTm->tm_min << "|cff0070dd|hmin|h|r";
             }
-        } while (result->NextRow());
+        }
+        while (result->NextRow());
 
         delete result;
         TellMaster(report.str().c_str());
@@ -7678,16 +7686,16 @@ void PlayerbotAI::Buy(Creature* vendor, const uint32 itemid)
     uint8 customitems = vItems ? vItems->GetItemCount() : 0;
     uint8 numitems = customitems + (tItems ? tItems->GetItemCount() : 0);
 
-    for(uint8 vendorslot = 0; vendorslot < numitems; ++vendorslot )
+    for (uint8 vendorslot = 0; vendorslot < numitems; ++vendorslot)
     {
         VendorItem const* crItem = vendorslot < customitems ? vItems->GetItem(vendorslot) : tItems->GetItem(vendorslot - customitems);
 
         if (crItem)
         {
-        if (itemid != crItem->item)
+            if (itemid != crItem->item)
                 continue;
 
-            ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
+            ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemid);
             if (pProto)
             {
                 // class wrong item skip only for bindable case
@@ -7721,7 +7729,7 @@ void PlayerbotAI::Sell(const uint32 itemid)
         // handle spell charge if any
         for (auto i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
         {
-            auto const &spell = pProto->Spells[i];
+            auto const& spell = pProto->Spells[i];
 
             // if spell charges for this item are negative, it means that the item should be destroyed once the charges are consumed.
             // it also means that the value of this item is relative to how many charges are remaining.
@@ -7784,7 +7792,7 @@ void PlayerbotAI::SellGarbage(Player& /*player*/, bool /*bListNonTrash*/, bool b
             }
         }
 
-        const Bag* const pBag = static_cast<Bag *>(m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag));
+        const Bag* const pBag = static_cast<Bag*>(m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag));
         if (pBag)
         {
             // Very nice, but who cares what bag it's in?
@@ -7858,7 +7866,7 @@ void PlayerbotAI::GetTaxi(ObjectGuid guid, BotTaxiNode& nodes)
 {
     // DEBUG_LOG("[PlayerbotAI]: GetTaxi - %s node[0] %d node[1] %d", m_bot->GetName(), nodes[0], nodes[1]);
 
-    Creature *unit = m_bot->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_FLIGHTMASTER);
+    Creature* unit = m_bot->GetNPCIfCanInteractWith(guid, UNIT_NPC_FLAG_FLIGHTMASTER);
     if (!unit)
     {
         DEBUG_LOG("[PlayerbotAI]: GetTaxi - %s not found or you can't interact with it.", guid.GetString().c_str());
@@ -7896,18 +7904,18 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
 
     if (m_bDebugCommandChat)
     {
-        DEBUG_LOG("chat(%s)",text.c_str());
+        DEBUG_LOG("chat(%s)", text.c_str());
         TellMaster(text);
     }
 
     // ignore any messages from Addons
     if (text.empty()                                   ||
-        text.find("X-Perl")      != std::wstring::npos ||
-        text.find("HealBot")     != std::wstring::npos ||
-        text.find("HealComm")    != std::wstring::npos ||   // "HealComm    99990094"
-        text.find("LOOT_OPENED") != std::wstring::npos ||
-        text.find("CTRA")        != std::wstring::npos ||
-        text.find("GathX")       == 0)                      // Gatherer
+            text.find("X-Perl")      != std::wstring::npos ||
+            text.find("HealBot")     != std::wstring::npos ||
+            text.find("HealComm")    != std::wstring::npos ||   // "HealComm    99990094"
+            text.find("LOOT_OPENED") != std::wstring::npos ||
+            text.find("CTRA")        != std::wstring::npos ||
+            text.find("GathX")       == 0)                      // Gatherer
         return;
 
     // if message is not from a player in the masters account auto reply and ignore
@@ -8069,11 +8077,12 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
         // if this looks like an item link, reward item it completed quest and talking to NPC
         std::list<uint32> itemIds;
         extractItemIds(text, itemIds);
-        if (!itemIds.empty()) {
+        if (!itemIds.empty())
+        {
             uint32 itemId = itemIds.front();
             bool wasRewarded = false;
             ObjectGuid questRewarderGUID = m_bot->GetSelectionGuid();
-            Object* const pNpc = (WorldObject *) m_bot->GetObjectByTypeMask(questRewarderGUID, TYPEMASK_CREATURE_OR_GAMEOBJECT);
+            Object* const pNpc = (WorldObject*) m_bot->GetObjectByTypeMask(questRewarderGUID, TYPEMASK_CREATURE_OR_GAMEOBJECT);
             if (!pNpc)
                 return;
 
@@ -8088,12 +8097,12 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
 
                 // if quest is complete, turn it in
                 if (status == QUEST_STATUS_COMPLETE &&
-                    !m_bot->GetQuestRewardStatus(questID) &&
-                    pQuest->GetRewChoiceItemsCount() > 1 &&
-                    m_bot->CanRewardQuest(pQuest, false))
+                        !m_bot->GetQuestRewardStatus(questID) &&
+                        pQuest->GetRewChoiceItemsCount() > 1 &&
+                        m_bot->CanRewardQuest(pQuest, false))
                     for (uint8 rewardIdx = 0; !wasRewarded && rewardIdx < pQuest->GetRewChoiceItemsCount(); ++rewardIdx)
                     {
-                        ItemPrototype const * const pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[rewardIdx]);
+                        ItemPrototype const* const pRewardItem = sObjectMgr.GetItemPrototype(pQuest->RewChoiceItemId[rewardIdx]);
                         if (itemId == pRewardItem->ItemId)
                         {
                             m_bot->RewardQuest(pQuest, rewardIdx, pNpc, false);
@@ -8130,15 +8139,15 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
 * returns true if the string has been found
 * returns false if the string has not been found
 */
-bool PlayerbotAI::ExtractCommand(const std::string sLookingFor, std::string &text, bool bUseShort)
+bool PlayerbotAI::ExtractCommand(const std::string sLookingFor, std::string& text, bool bUseShort)
 {
     // ("help" + " ") < "help X"  AND  text's start (as big as sLookingFor) == sLookingFor
     // Recommend AGAINST adapting this for non-space situations (thinking MangosZero)
     // - unknown would risk being (short for "use") 'u' + "nknown"
     if (sLookingFor.size() + 1 < text.size() && text.at(sLookingFor.size()) == ' '
-        && 0 == text.substr(0, sLookingFor.size()).compare(sLookingFor))
+            && 0 == text.substr(0, sLookingFor.size()).compare(sLookingFor))
     {
-        text = text.substr(sLookingFor.size()+1);
+        text = text.substr(sLookingFor.size() + 1);
         return true;
     }
 
@@ -8155,7 +8164,7 @@ bool PlayerbotAI::ExtractCommand(const std::string sLookingFor, std::string &tex
             text = text.substr(2);
             return true;
         }
-        else if(text.size() == 1 && sLookingFor.at(0) == text.at(0))
+        else if (text.size() == 1 && sLookingFor.at(0) == text.at(0))
         {
             text = "";
             return true;
@@ -8165,7 +8174,7 @@ bool PlayerbotAI::ExtractCommand(const std::string sLookingFor, std::string &tex
     return false;
 }
 
-void PlayerbotAI::_HandleCommandReset(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandReset(std::string& text, Player& fromPlayer)
 {
     if (text != "")
     {
@@ -8182,7 +8191,7 @@ void PlayerbotAI::_HandleCommandReset(std::string &text, Player &fromPlayer)
     m_targetCombat = 0;
 }
 
-void PlayerbotAI::_HandleCommandOrders(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandOrders(std::string& text, Player& fromPlayer)
 {
     if (ExtractCommand("delay", text))
     {
@@ -8203,9 +8212,9 @@ void PlayerbotAI::_HandleCommandOrders(std::string &text, Player &fromPlayer)
         CombatOrderRestore();
     else if (ExtractCommand("combat", text, true))
     {
-        Unit *target = nullptr;
+        Unit* target = nullptr;
 
-        QueryResult *resultlvl = CharacterDatabase.PQuery("SELECT guid FROM playerbot_saved_data WHERE guid = '%u'", m_bot->GetObjectGuid().GetCounter());
+        QueryResult* resultlvl = CharacterDatabase.PQuery("SELECT guid FROM playerbot_saved_data WHERE guid = '%u'", m_bot->GetObjectGuid().GetCounter());
         if (!resultlvl)
             CharacterDatabase.DirectPExecute("INSERT INTO playerbot_saved_data (guid,combat_order,primary_target,secondary_target,pname,sname,combat_delay) VALUES ('%u',0,0,0,'','',0)", m_bot->GetObjectGuid().GetCounter());
         else
@@ -8254,7 +8263,7 @@ void PlayerbotAI::_HandleCommandOrders(std::string &text, Player &fromPlayer)
     SendOrders(*GetMaster());
 }
 
-void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandFollow(std::string& text, Player& fromPlayer)
 {
     if (ExtractCommand("auto", text)) // switch to automatic follow distance
     {
@@ -8273,13 +8282,13 @@ void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
         {
             m_FollowAutoGo = FOLLOWAUTOGO_INIT;
             msg << "Automatic Follow Distance is now |h|cff1eff00ON|h|r";
-            SendWhisper(msg.str(),fromPlayer);
+            SendWhisper(msg.str(), fromPlayer);
         }
         else
         {
             m_FollowAutoGo = FOLLOWAUTOGO_OFF;
             msg << "Automatic Follow Distance is now |h|cffff0000OFF|h|r";
-            SendWhisper(msg.str(),fromPlayer);
+            SendWhisper(msg.str(), fromPlayer);
         }
         CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET auto_follow = '%u' WHERE guid = '%u'", m_FollowAutoGo, m_bot->GetGUIDLow());
     }
@@ -8296,7 +8305,7 @@ void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
         gTempDist = 1;
         gTempDist2 = 2;
         msg << "Bit crowded isn't it?";
-        SendWhisper(msg.str(),fromPlayer);
+        SendWhisper(msg.str(), fromPlayer);
     }
     else if (ExtractCommand("far", text)) // switch to increment follow distance
     {
@@ -8308,7 +8317,7 @@ void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
         DistOverRide = (DistOverRide + 1); // this increments follow distance
         std::ostringstream msg;
         msg << "Increasing My follow distance";
-        SendWhisper(msg.str(),fromPlayer);
+        SendWhisper(msg.str(), fromPlayer);
     }
     else if (ExtractCommand("near", text)) // switch to increment follow distance
     {
@@ -8331,7 +8340,7 @@ void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
         }
         if (DistOverRide != 0)
             msg << "Decreasing My follow distance";
-        SendWhisper(msg.str(),fromPlayer);
+        SendWhisper(msg.str(), fromPlayer);
     }
     else if (ExtractCommand("info", text))
     {
@@ -8339,14 +8348,14 @@ void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
 
         msg << "Automatic Follow Distance is ";
 
-        switch(DistOverRide)
+        switch (DistOverRide)
         {
-            case 0: msg << "|h|cffff0000" << m_bot->GetDistance(GetMaster()) << "|h|r";break; //red
-            case 1: msg << "|h|cffff8000" << m_bot->GetDistance(GetMaster()) << "|h|r";break; //yellow
-            case 2: msg << "|h|cffe6cc80" << m_bot->GetDistance(GetMaster()) << "|h|r";break; //orange
-            case 3: msg << "|h|cff1eff00" << m_bot->GetDistance(GetMaster()) << "|h|r";break; //green
+            case 0: msg << "|h|cffff0000" << m_bot->GetDistance(GetMaster()) << "|h|r"; break; //red
+            case 1: msg << "|h|cffff8000" << m_bot->GetDistance(GetMaster()) << "|h|r"; break; //yellow
+            case 2: msg << "|h|cffe6cc80" << m_bot->GetDistance(GetMaster()) << "|h|r"; break; //orange
+            case 3: msg << "|h|cff1eff00" << m_bot->GetDistance(GetMaster()) << "|h|r"; break; //green
             case 4:
-            default: msg << "|h|cff0070dd" << m_bot->GetDistance(GetMaster()) << "|h|r";break; //blue
+            default: msg << "|h|cff0070dd" << m_bot->GetDistance(GetMaster()) << "|h|r"; break; //blue
         }
 
         m_FollowAutoGo ?  SendWhisper(msg.str(), fromPlayer) : SendWhisper("Automatic Follow Distance is |h|cffff0000OFF|h|r", fromPlayer);
@@ -8360,7 +8369,7 @@ void PlayerbotAI::_HandleCommandFollow(std::string &text, Player &fromPlayer)
     SetMovementOrder(MOVEMENT_FOLLOW, GetMaster());
 }
 
-void PlayerbotAI::_HandleCommandStay(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandStay(std::string& text, Player& fromPlayer)
 {
     if (text != "")
     {
@@ -8370,7 +8379,7 @@ void PlayerbotAI::_HandleCommandStay(std::string &text, Player &fromPlayer)
     SetMovementOrder(MOVEMENT_STAY);
 }
 
-void PlayerbotAI::_HandleCommandAttack(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandAttack(std::string& text, Player& fromPlayer)
 {
     if (text != "")
     {
@@ -8398,7 +8407,7 @@ void PlayerbotAI::_HandleCommandAttack(std::string &text, Player &fromPlayer)
     }
 }
 
-void PlayerbotAI::_HandleCommandPull(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandPull(std::string& text, Player& fromPlayer)
 {
     bool bReadyCheck = false;
 
@@ -8509,7 +8518,7 @@ void PlayerbotAI::_HandleCommandPull(std::string &text, Player &fromPlayer)
     //(5) when target is in melee range of tank, wait 2 seconds (healers continue to do group heal checks, all do self-heal checks), then return to normal functioning
 }
 
-void PlayerbotAI::_HandleCommandNeutralize(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandNeutralize(std::string& text, Player& fromPlayer)
 {
     if (!m_bot) return;
 
@@ -8565,7 +8574,7 @@ void PlayerbotAI::_HandleCommandNeutralize(std::string &text, Player &fromPlayer
     }
 }
 
-void PlayerbotAI::_HandleCommandCast(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandCast(std::string& text, Player& fromPlayer)
 {
     if (text == "")
     {
@@ -8605,7 +8614,7 @@ void PlayerbotAI::_HandleCommandCast(std::string &text, Player &fromPlayer)
 
 // _HandleCommandSell: Handle selling items
 // sell [Item Link][Item Link] .. -- Sells bot(s) items from inventory
-void PlayerbotAI::_HandleCommandSell(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandSell(std::string& text, Player& fromPlayer)
 {
     FollowAutoReset();
     if (ExtractCommand("all", text)) // switch to auto sell low level white items
@@ -8618,7 +8627,7 @@ void PlayerbotAI::_HandleCommandSell(std::string &text, Player &fromPlayer)
         }
         SellWhite = !SellWhite;
         msg << "I will " << (SellWhite ? "" : "no longer ") << "sell my low level normal items.";
-        SendWhisper(msg.str(),fromPlayer);
+        SendWhisper(msg.str(), fromPlayer);
         return;
     }
     if (text == "")
@@ -8630,13 +8639,13 @@ void PlayerbotAI::_HandleCommandSell(std::string &text, Player &fromPlayer)
     std::list<uint32> itemIds;
     extractItemIds(text, itemIds);
     for (std::list<uint32>::iterator it = itemIds.begin(); it != itemIds.end(); ++it)
-        m_tasks.push_back(std::pair<enum TaskFlags,uint32>(SELL_ITEMS, *it));
+        m_tasks.push_back(std::pair<enum TaskFlags, uint32>(SELL_ITEMS, *it));
     m_findNPC.push_back(VENDOR_MASK);
 }
 
 // _HandleCommandBuy: Handle buying items
 // buy [Item Link][Item Link] .. -- Buys items from vendor
-void PlayerbotAI::_HandleCommandBuy(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandBuy(std::string& text, Player& fromPlayer)
 {
     if (text == "")
     {
@@ -8645,24 +8654,24 @@ void PlayerbotAI::_HandleCommandBuy(std::string &text, Player &fromPlayer)
     }
 
     FollowAutoReset();
-/*    ObjectGuid vendorguid = fromPlayer.GetSelectionGuid();
-    if (!vendorguid)
-    {
-        SendWhisper("No vendor is selected.", fromPlayer);
-        m_bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
-        return;
-    }*/
+    /*    ObjectGuid vendorguid = fromPlayer.GetSelectionGuid();
+        if (!vendorguid)
+        {
+            SendWhisper("No vendor is selected.", fromPlayer);
+            m_bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
+            return;
+        }*/
 
     std::list<uint32> itemIds;
     extractItemIds(text, itemIds);
     for (std::list<uint32>::iterator it = itemIds.begin(); it != itemIds.end(); ++it)
-        m_tasks.push_back(std::pair<enum TaskFlags,uint32>(BUY_ITEMS, *it));
+        m_tasks.push_back(std::pair<enum TaskFlags, uint32>(BUY_ITEMS, *it));
     m_findNPC.push_back(VENDOR_MASK);
 }
 
 // _HandleCommandDrop: Handle dropping items
 // drop [Item Link][Item Link] .. -- Drops item(s) from bot's inventory
-void PlayerbotAI::_HandleCommandDrop(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandDrop(std::string& text, Player& fromPlayer)
 {
     if (text == "")
     {
@@ -8690,7 +8699,7 @@ void PlayerbotAI::_HandleCommandDrop(std::string &text, Player &fromPlayer)
 // _HandleCommandRepair: Handle repair items
 // repair  all                      -- repair all bot(s) items
 // repair [Item Link][Item Link] .. -- repair select bot(s) items
-void PlayerbotAI::_HandleCommandRepair(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandRepair(std::string& text, Player& fromPlayer)
 {
     FollowAutoReset();
     if (ExtractCommand("all", text))
@@ -8700,7 +8709,7 @@ void PlayerbotAI::_HandleCommandRepair(std::string &text, Player &fromPlayer)
             SendWhisper("Invalid subcommand for 'repair all'", fromPlayer);
             return;
         }
-        m_tasks.push_back(std::pair<enum TaskFlags,uint32>(REPAIR_ITEMS, 0));
+        m_tasks.push_back(std::pair<enum TaskFlags, uint32>(REPAIR_ITEMS, 0));
         m_findNPC.push_back(UNIT_NPC_FLAG_REPAIR);
         return;
     }
@@ -8710,7 +8719,7 @@ void PlayerbotAI::_HandleCommandRepair(std::string &text, Player &fromPlayer)
 
     for (std::list<uint32>::iterator it = itemIds.begin(); it != itemIds.end(); it++)
     {
-        m_tasks.push_back(std::pair<enum TaskFlags,uint32>(REPAIR_ITEMS, *it));
+        m_tasks.push_back(std::pair<enum TaskFlags, uint32>(REPAIR_ITEMS, *it));
         m_findNPC.push_back(UNIT_NPC_FLAG_REPAIR);
     }
 }
@@ -8719,7 +8728,7 @@ void PlayerbotAI::_HandleCommandRepair(std::string &text, Player &fromPlayer)
 // auction                                        -- Lists bot(s) active auctions.
 // auction add [Item Link][Item Link] ..          -- Create bot(s) active auction.
 // auction remove [Auction Link][Auction Link] .. -- Cancel bot(s) active auction. ([Auction Link] from auction)
-void PlayerbotAI::_HandleCommandAuction(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandAuction(std::string& text, Player& fromPlayer)
 {
     FollowAutoReset();
     if (text == "")
@@ -8727,20 +8736,20 @@ void PlayerbotAI::_HandleCommandAuction(std::string &text, Player &fromPlayer)
         m_tasks.push_back(std::pair<enum TaskFlags, uint32>(LIST_AUCTION, 0));
         m_findNPC.push_back(UNIT_NPC_FLAG_AUCTIONEER); // list all bot auctions
     }
-    else if (ExtractCommand("add",text))
+    else if (ExtractCommand("add", text))
     {
         std::list<uint32> itemIds;
         extractItemIds(text, itemIds);
         for (std::list<uint32>::iterator it = itemIds.begin(); it != itemIds.end(); ++it)
-            m_tasks.push_back(std::pair<enum TaskFlags,uint32>(ADD_AUCTION, *it));
+            m_tasks.push_back(std::pair<enum TaskFlags, uint32>(ADD_AUCTION, *it));
         m_findNPC.push_back(UNIT_NPC_FLAG_AUCTIONEER);
     }
-    else if (ExtractCommand("remove",text))
+    else if (ExtractCommand("remove", text))
     {
         std::list<uint32> auctionIds;
         extractAuctionIds(text, auctionIds);
         for (std::list<uint32>::iterator it = auctionIds.begin(); it != auctionIds.end(); ++it)
-            m_tasks.push_back(std::pair<enum TaskFlags,uint32>(REMOVE_AUCTION, *it));
+            m_tasks.push_back(std::pair<enum TaskFlags, uint32>(REMOVE_AUCTION, *it));
         m_findNPC.push_back(UNIT_NPC_FLAG_AUCTIONEER);
     }
     else
@@ -8749,7 +8758,7 @@ void PlayerbotAI::_HandleCommandAuction(std::string &text, Player &fromPlayer)
     }
 }
 
-void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandMail(std::string& text, Player& fromPlayer)
 {
     ChatHandler ch(&fromPlayer);
 
@@ -8758,15 +8767,15 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
         ch.SendSysMessage("Syntax: mail <inbox [Mailbox] | getcash [mailid].. | getitem [mailid].. | delete [mailid]..>");
         return;
     }
-    else if (ExtractCommand("inbox",text))
+    else if (ExtractCommand("inbox", text))
     {
         uint32 mail_count = 0;
         extractGOinfo(text, m_lootTargets);
 
         if (m_lootTargets.empty())
         {
-           ch.SendSysMessage("Syntax: mail <inbox [Mailbox]>");
-           return;
+            ch.SendSysMessage("Syntax: mail <inbox [Mailbox]>");
+            return;
         }
 
         ObjectGuid m_mailboxGuid = m_lootTargets.front();
@@ -8781,16 +8790,16 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
 
         TellMaster("Inbox:\n");
 
-        for(PlayerMails::reverse_iterator itr = m_bot->GetMailRBegin(); itr != m_bot->GetMailREnd(); ++itr)
+        for (PlayerMails::reverse_iterator itr = m_bot->GetMailRBegin(); itr != m_bot->GetMailREnd(); ++itr)
         {
             std::ostringstream msg;
             ++mail_count;
             std::string body = "";
 
-            QueryResult *result = CharacterDatabase.PQuery("SELECT text FROM item_text WHERE id = '%u'", (*itr)->itemTextId);
+            QueryResult* result = CharacterDatabase.PQuery("SELECT text FROM item_text WHERE id = '%u'", (*itr)->itemTextId);
             if (result)
             {
-                Field *fields = result->Fetch();
+                Field* fields = result->Fetch();
 
                 body  = fields[0].GetString();
             }
@@ -8798,9 +8807,9 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
 
             msg  << "|cffffcccc|Hmail:" << (*itr)->messageID << "|h[" << (*itr)->messageID << "]|h|r ";
 
-            switch((*itr)->messageType)
+            switch ((*itr)->messageType)
             {
-            case MAIL_NORMAL:
+                case MAIL_NORMAL:
                 {
                     msg << "|cffffffff"; // white
                     if ((*itr)->subject != "")
@@ -8810,21 +8819,21 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
                         msg << body << "\n";
                     break;
                 }
-            case MAIL_CREATURE:
-                msg << "|cffccffccMAIL_CREATURE\n"; // green
-                break;
-            case MAIL_GAMEOBJECT:
-                msg << "|cffccffccMAIL_GAMEOBJECT\n"; // green
-                break;
-            case MAIL_AUCTION:
+                case MAIL_CREATURE:
+                    msg << "|cffccffccMAIL_CREATURE\n"; // green
+                    break;
+                case MAIL_GAMEOBJECT:
+                    msg << "|cffccffccMAIL_GAMEOBJECT\n"; // green
+                    break;
+                case MAIL_AUCTION:
                 {
                     msg << "|cffccffff"; // blue
                     msg << AuctionResult((*itr)->subject, body) << "\n";
                     break;
                 }
-            case MAIL_ITEM:
-                msg << "|cffccffccMAIL_ITEM\n"; // green
-                break;
+                case MAIL_ITEM:
+                    msg << "|cffccffccMAIL_ITEM\n"; // green
+                    break;
             }
 
             std::string subject = (*itr)->subject;
@@ -8834,13 +8843,13 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
             uint32 element[10];
             while (true)
             {
-                int endpos = subject.find(':',pos);
+                int endpos = subject.find(':', pos);
                 if (endpos == -1)
                     break;
 
-                std::string idc = subject.substr(pos,endpos - pos);
+                std::string idc = subject.substr(pos, endpos - pos);
                 element[i] = atol(idc.c_str());
-                DEBUG_LOG("element[%d] = (%u)",i,element[i]);
+                DEBUG_LOG("element[%d] = (%u)", i, element[i]);
                 pos = endpos + 1;
                 ++i;
             }
@@ -8861,9 +8870,9 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
             if (item_count > 0)
             {
                 msg << "Items: ";
-                for(uint8 i = 0; i < item_count; ++i)
+                for (uint8 i = 0; i < item_count; ++i)
                 {
-                    Item *item = m_bot->GetMItem((*itr)->items[i].item_guid);
+                    Item* item = m_bot->GetMItem((*itr)->items[i].item_guid);
                     if (item)
                         MakeItemLink(item, msg, true);
                 }
@@ -8875,19 +8884,19 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
         if (mail_count == 0)
             ch.SendSysMessage("|cff009900My inbox is empty.");
     }
-    else if (ExtractCommand("getcash",text))
+    else if (ExtractCommand("getcash", text))
     {
         std::ostringstream msg;
         std::list<uint32> mailIds;
-        extractMailIds(text,mailIds);
+        extractMailIds(text, mailIds);
         mailIds.unique();
         mailIds.sort();
         uint32 total = 0;
 
         if (mailIds.empty())
         {
-           ch.SendSysMessage("Syntax: mail <getcash [mailId]..>");
-           return;
+            ch.SendSysMessage("Syntax: mail <getcash [mailId]..>");
+            return;
         }
 
         for (std::list<uint32>::iterator it = mailIds.begin(); it != mailIds.end(); ++it)
@@ -8913,10 +8922,10 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
             ch.SendSysMessage(msg.str().c_str());
         }
     }
-    else if (ExtractCommand("getitem",text))
+    else if (ExtractCommand("getitem", text))
     {
         std::list<uint32> mailIds;
-        extractMailIds(text,mailIds);
+        extractMailIds(text, mailIds);
         mailIds.unique();
         mailIds.sort();
 
@@ -8936,7 +8945,7 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
             }
 
             // prevent cheating with skip client money check
-            if(m_bot->GetMoney() < m->COD)
+            if (m_bot->GetMoney() < m->COD)
             {
                 m_bot->SendMailResult(*it, MAIL_ITEM_TAKEN, MAIL_ERR_NOT_ENOUGH_MONEY);
                 return;
@@ -8948,10 +8957,10 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
                 std::ostringstream msg;
 
                 msg << "|cff009900" << "I received item: |r";
-                for(MailItemInfoVec::const_iterator itr = m->items.begin(); itr != m->items.end();)
+                for (MailItemInfoVec::const_iterator itr = m->items.begin(); itr != m->items.end();)
                 {
                     has_items = true;
-                    Item *item = m_bot->GetMItem(itr->item_guid);
+                    Item* item = m_bot->GetMItem(itr->item_guid);
                     if (!item)
                     {
                         ch.SendSysMessage("item not found");
@@ -8960,7 +8969,7 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
 
                     ItemPosCountVec dest;
 
-                    InventoryResult res = m_bot->CanStoreItem( NULL_BAG, NULL_SLOT, dest, item, false );
+                    InventoryResult res = m_bot->CanStoreItem(NULL_BAG, NULL_SLOT, dest, item, false);
                     if (res == EQUIP_ERR_OK)
                     {
                         m->removedItems.push_back(itr->item_guid);
@@ -8968,14 +8977,14 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
                         if (m->COD > 0)  // if there is COD, take COD money from player and send them to sender by mail
                         {
                             ObjectGuid sender_guid = ObjectGuid(HIGHGUID_PLAYER, m->sender);
-                            Player *sender = sObjectMgr.GetPlayer(sender_guid);
+                            Player* sender = sObjectMgr.GetPlayer(sender_guid);
 
                             uint32 sender_accId = 0;
 
-                            if( GetMaster()->GetSession()->GetSecurity() > SEC_PLAYER && sWorld.getConfig(CONFIG_BOOL_GM_LOG_TRADE) )
+                            if (GetMaster()->GetSession()->GetSecurity() > SEC_PLAYER && sWorld.getConfig(CONFIG_BOOL_GM_LOG_TRADE))
                             {
                                 std::string sender_name;
-                                if(sender)
+                                if (sender)
                                 {
                                     sender_accId = sender->GetSession()->GetAccountId();
                                     sender_name = sender->GetName();
@@ -8985,24 +8994,24 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
                                     // can be calculated early
                                     sender_accId = sObjectMgr.GetPlayerAccountIdByGUID(sender_guid);
 
-                                    if(!sObjectMgr.GetPlayerNameByGUID(sender_guid, sender_name))
+                                    if (!sObjectMgr.GetPlayerNameByGUID(sender_guid, sender_name))
                                         sender_name = sObjectMgr.GetMangosStringForDBCLocale(LANG_UNKNOWN);
                                 }
                                 sLog.outCommand(GetMaster()->GetSession()->GetAccountId(), "GM %s (Account: %u) receive mail item: %s (Entry: %u Count: %u) and send COD money: %u to player: %s (Account: %u)",
-                                    GetMaster()->GetSession()->GetPlayerName(), GetMaster()->GetSession()->GetAccountId(), item->GetProto()->Name1, item->GetEntry(), item->GetCount(), m->COD, sender_name.c_str(), sender_accId);
+                                                GetMaster()->GetSession()->GetPlayerName(), GetMaster()->GetSession()->GetAccountId(), item->GetProto()->Name1, item->GetEntry(), item->GetCount(), m->COD, sender_name.c_str(), sender_accId);
                             }
                             else if (!sender)
                                 sender_accId = sObjectMgr.GetPlayerAccountIdByGUID(sender_guid);
 
                             // check player existence
-                            if(sender || sender_accId)
+                            if (sender || sender_accId)
                             {
                                 MailDraft(m->subject, "")
                                 .SetMoney(m->COD)
                                 .SendMailTo(MailReceiver(sender, sender_guid), m_bot, MAIL_CHECK_MASK_COD_PAYMENT);
                             }
 
-                            m_bot->ModifyMoney( -int32(m->COD) );
+                            m_bot->ModifyMoney(-int32(m->COD));
                         }
                         m->COD = 0;
                         m->state = MAIL_STATE_CHANGED;
@@ -9015,7 +9024,7 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
                         m_bot->SendMailResult(*it, MAIL_ITEM_TAKEN, MAIL_OK, 0, itr->item_guid, count);
                         if (m->RemoveItem(itr->item_guid))
                         {
-                            MakeItemLink(item,msg,true);
+                            MakeItemLink(item, msg, true);
                             has_items = false;
                         }
                     }
@@ -9034,11 +9043,11 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
             }
         }
     }
-    else if (ExtractCommand("delete",text))
+    else if (ExtractCommand("delete", text))
     {
         std::ostringstream msg;
         std::list<uint32> mailIds;
-        extractMailIds(text,mailIds);
+        extractMailIds(text, mailIds);
         mailIds.unique();
         mailIds.sort();
 
@@ -9053,7 +9062,7 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
         {
             m_bot->m_mailsUpdated = true;
 
-            Mail *m = m_bot->GetMail(*it);
+            Mail* m = m_bot->GetMail(*it);
 
             if (m)
             {
@@ -9084,7 +9093,7 @@ void PlayerbotAI::_HandleCommandMail(std::string &text, Player &fromPlayer)
 // bank                                        -- Lists bot(s) bank balance.
 // bank deposit [Item Link][Item Link] ..      -- Deposit item(s) in bank.
 // bank withdraw [Item Link][Item Link] ..     -- Withdraw item(s) from bank. ([Item Link] from bank)
-void PlayerbotAI::_HandleCommandBank(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandBank(std::string& text, Player& fromPlayer)
 {
     FollowAutoReset();
     if (text == "")
@@ -9097,7 +9106,7 @@ void PlayerbotAI::_HandleCommandBank(std::string &text, Player &fromPlayer)
         std::list<uint32> itemIds;
         extractItemIds(text, itemIds);
         for (std::list<uint32>::iterator it = itemIds.begin(); it != itemIds.end(); ++it)
-            m_tasks.push_back(std::pair<enum TaskFlags,uint32>(BANK_DEPOSIT, *it));
+            m_tasks.push_back(std::pair<enum TaskFlags, uint32>(BANK_DEPOSIT, *it));
         m_findNPC.push_back(UNIT_NPC_FLAG_BANKER);
     }
     else if (ExtractCommand("withdraw", text))
@@ -9105,7 +9114,7 @@ void PlayerbotAI::_HandleCommandBank(std::string &text, Player &fromPlayer)
         std::list<uint32> itemIds;
         extractItemIds(text, itemIds);
         for (std::list<uint32>::iterator it = itemIds.begin(); it != itemIds.end(); ++it)
-            m_tasks.push_back(std::pair<enum TaskFlags,uint32>(BANK_WITHDRAW, *it));
+            m_tasks.push_back(std::pair<enum TaskFlags, uint32>(BANK_WITHDRAW, *it));
         m_findNPC.push_back(UNIT_NPC_FLAG_BANKER);
     }
     else
@@ -9119,7 +9128,7 @@ void PlayerbotAI::_HandleCommandBank(std::string &text, Player &fromPlayer)
 // talent learn                     -- Lists available bot talents [TALENT LINK], as long as the bot has unspent points.
 // talent learn [TALENT LINK] ..    -- Learn selected talent [TALENT LINK] from 'talent learn' output (shift click icon/link)
 // talent reset                     -- Resets all talents (Must visit a suitable class trainer to reset talents)
-void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandTalent(std::string& text, Player& fromPlayer)
 {
     std::ostringstream out;
     uint32 CurTalentPoints = m_bot->GetFreeTalentPoints();
@@ -9179,16 +9188,16 @@ void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
 
                 for (uint32 ts = 0; ts < sTalentStore.GetNumRows(); ++ts)
                 {
-                    TalentEntry const *talentInfo = sTalentStore.LookupEntry(ts);
+                    TalentEntry const* talentInfo = sTalentStore.LookupEntry(ts);
                     if (!talentInfo)
                         continue;
 
-                    TalentTabEntry const *talentTabInfo = sTalentTabStore.LookupEntry( talentInfo->TalentTab );
+                    TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
                     if (!talentTabInfo)
                         continue;
 
                     // if talent not right for bot class, continue
-                    if ( (classMask & talentTabInfo->ClassMask) == 0 )
+                    if ((classMask & talentTabInfo->ClassMask) == 0)
                         continue;
 
                     // if talent not on same tab, continue
@@ -9196,7 +9205,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
                         continue;
                     // find current max talent rank
                     int curtalent_maxrank = 0;
-                    for (int k = MAX_TALENT_RANK-1; k > -1; --k)
+                    for (int k = MAX_TALENT_RANK - 1; k > -1; --k)
                     {
                         if (talentInfo->RankID[k] && m_bot->HasSpell(talentInfo->RankID[k]))
                         {
@@ -9208,7 +9217,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
                     // Check if it requires another previous talent
                     if (talentInfo->DependsOn > 0)
                     {
-                        if (TalentEntry const *depTalentInfo = sTalentStore.LookupEntry(talentInfo->DependsOn))
+                        if (TalentEntry const* depTalentInfo = sTalentStore.LookupEntry(talentInfo->DependsOn))
                         {
                             bool hasEnoughRank = false;
                             for (int dor = talentInfo->DependsOnRank; dor < MAX_TALENT_RANK; ++dor)
@@ -9224,7 +9233,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
                     }
 
                     // Check if it requires spell
-                    if ( talentInfo->DependsOnSpell && !m_bot->HasSpell(talentInfo->DependsOnSpell) )
+                    if (talentInfo->DependsOnSpell && !m_bot->HasSpell(talentInfo->DependsOnSpell))
                         continue;
 
                     // Find out how many points we have in this field
@@ -9237,7 +9246,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
                         for (unsigned int i = 0; i < numRows; ++i)          // Loop through all talents.
                         {
                             // Someday, someone needs to revamp
-                            const TalentEntry *tmpTalent = sTalentStore.LookupEntry(i);
+                            const TalentEntry* tmpTalent = sTalentStore.LookupEntry(i);
                             if (tmpTalent)                                  // the way talents are tracked
                             {
                                 if (tmpTalent->TalentTab == tTab)
@@ -9260,7 +9269,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
                         continue;
 
                     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(talentInfo->RankID[curtalent_maxrank]);
-                    if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo,m_bot,false))
+                    if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, m_bot, false))
                         continue;
 
                     out << "|cff4e96f7|Htalent:" << talentInfo->RankID[curtalent_maxrank] << ":" << curtalent_maxrank << "|h[" << spellInfo->SpellName[GetMaster()->GetSession()->GetSessionDbcLocale()] << "]|h|r";
@@ -9288,7 +9297,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string &text, Player &fromPlayer)
     }
 }
 
-void PlayerbotAI::_HandleCommandProcess(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandProcess(std::string& text, Player& fromPlayer)
 {
     uint32 spellId;
 
@@ -9324,7 +9333,7 @@ void PlayerbotAI::_HandleCommandProcess(std::string &text, Player &fromPlayer)
     extractItemIds(text, itemIds);
     findItemsInInv(itemIds, itemList);
 
-    if(itemList.empty())
+    if (itemList.empty())
     {
         SendWhisper("|cffff0000I can't process that!", fromPlayer);
         return;
@@ -9335,26 +9344,26 @@ void PlayerbotAI::_HandleCommandProcess(std::string &text, Player &fromPlayer)
 
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!spellInfo)
-       return;
+        return;
 
     if (reagent)
     {
         SpellCastTargets targets;
         m_itemTarget = reagent->GetProto()->ItemId;
         targets.setItemTarget(reagent);
-        Spell *spell = new Spell(m_bot, spellInfo, false);
+        Spell* spell = new Spell(m_bot, spellInfo, false);
         spell->SpellStart(&targets);
     }
 }
 
-void PlayerbotAI::_HandleCommandUse(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandUse(std::string& text, Player& fromPlayer)
 {
     std::list<uint32> itemIds;
     std::list<Item*> itemList;
     extractItemIds(text, itemIds);
     findItemsInInv(itemIds, itemList);
 
-    if(itemList.empty())
+    if (itemList.empty())
     {
         SendWhisper("|cffff0000I can't use that!", fromPlayer);
         return;
@@ -9386,7 +9395,7 @@ void PlayerbotAI::_HandleCommandUse(std::string &text, Player &fromPlayer)
             ObjectGuid gotarget = m_lootTargets.front();
             m_lootTargets.pop_front();
 
-            GameObject *go = m_bot->GetMap()->GetGameObject(gotarget);
+            GameObject* go = m_bot->GetMap()->GetGameObject(gotarget);
             if (go)
             {
                 // DEBUG_LOG("tool (%s) on target gameobject (%s)",tool->GetProto()->Name1,go->GetGOInfo()->name);
@@ -9408,7 +9417,7 @@ void PlayerbotAI::_HandleCommandUse(std::string &text, Player &fromPlayer)
     return;
 }
 
-void PlayerbotAI::_HandleCommandEquip(std::string &text, Player& fromPlayer)
+void PlayerbotAI::_HandleCommandEquip(std::string& text, Player& fromPlayer)
 {
     if (ExtractCommand("auto", text))
     {
@@ -9468,14 +9477,14 @@ void PlayerbotAI::_HandleCommandEquip(std::string &text, Player& fromPlayer)
     SendNotEquipList(*m_bot);
 }
 
-void PlayerbotAI::_HandleCommandFind(std::string &text, Player& /*fromPlayer*/)
+void PlayerbotAI::_HandleCommandFind(std::string& text, Player& /*fromPlayer*/)
 {
     extractGOinfo(text, m_lootTargets);
 
     m_lootCurrent = m_lootTargets.front();
     m_lootTargets.pop_front();
 
-    GameObject *go = m_bot->GetMap()->GetGameObject(m_lootCurrent);
+    GameObject* go = m_bot->GetMap()->GetGameObject(m_lootCurrent);
     if (!go)
     {
         m_lootTargets.clear();
@@ -9489,7 +9498,7 @@ void PlayerbotAI::_HandleCommandFind(std::string &text, Player& /*fromPlayer*/)
     m_lootCurrent = ObjectGuid();
 }
 
-void PlayerbotAI::_HandleCommandGet(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandGet(std::string& text, Player& fromPlayer)
 {
     if (text != "")
     {
@@ -9502,7 +9511,7 @@ void PlayerbotAI::_HandleCommandGet(std::string &text, Player &fromPlayer)
     ObjectGuid getOnGuid = fromPlayer.GetSelectionGuid();
     if (getOnGuid)
     {
-        Creature *c = m_bot->GetMap()->GetCreature(getOnGuid);
+        Creature* c = m_bot->GetMap()->GetCreature(getOnGuid);
         if (!c)
             return;
 
@@ -9511,7 +9520,7 @@ void PlayerbotAI::_HandleCommandGet(std::string &text, Player &fromPlayer)
             skillId = c->GetCreatureInfo()->GetRequiredLootSkill();
 
         if (c->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE) ||
-            (c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) && m_bot->HasSkill(skillId)))
+                (c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) && m_bot->HasSkill(skillId)))
         {
             m_lootTargets.push_back(getOnGuid);
             SetState(BOTSTATE_LOOTING);
@@ -9526,7 +9535,7 @@ void PlayerbotAI::_HandleCommandGet(std::string &text, Player &fromPlayer)
     }
 }
 
-void PlayerbotAI::_HandleCommandCollect(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandCollect(std::string& text, Player& fromPlayer)
 {
     while (text.size() > 0)
     {
@@ -9613,7 +9622,7 @@ void PlayerbotAI::_HandleCommandCollect(std::string &text, Player &fromPlayer)
             for (BotEntryList::iterator itr = m_collectObjects.begin(); itr != m_collectObjects.end(); ++itr)
             {
                 uint32 objectentry = *(itr);
-                GameObjectInfo const * gInfo = ObjectMgr::GetGameObjectInfo(objectentry);
+                GameObjectInfo const* gInfo = ObjectMgr::GetGameObjectInfo(objectentry);
                 strobjects += ", ";
                 strobjects += gInfo->name;
             }
@@ -9630,7 +9639,7 @@ void PlayerbotAI::_HandleCommandCollect(std::string &text, Player &fromPlayer)
         SendWhisper("I'm collecting nothing.", fromPlayer);
 }
 
-void PlayerbotAI::_HandleCommandEnchant(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandEnchant(std::string& text, Player& fromPlayer)
 {
     // DEBUG_LOG("Enchant (%s)",text.c_str());
 
@@ -9655,7 +9664,7 @@ void PlayerbotAI::_HandleCommandEnchant(std::string &text, Player &fromPlayer)
         findItemsInEquip(itemIds, itemList);
         findItemsInInv(itemIds, itemList);
 
-        if(itemList.empty())
+        if (itemList.empty())
         {
             SendWhisper("|cffff0000I can't enchant that!", fromPlayer);
             return;
@@ -9668,7 +9677,7 @@ void PlayerbotAI::_HandleCommandEnchant(std::string &text, Player &fromPlayer)
         {
             SpellCastTargets targets;
             targets.setItemTarget(iTarget);
-            Spell *spell = new Spell(m_bot, spellInfo, false);
+            Spell* spell = new Spell(m_bot, spellInfo, false);
             spell->SpellStart(&targets);
             SetState(BOTSTATE_DELAYED);
             SetIgnoreUpdateTime(1);
@@ -9687,13 +9696,13 @@ void PlayerbotAI::_HandleCommandEnchant(std::string &text, Player &fromPlayer)
         ChatHandler ch(&fromPlayer);
         for (std::list<uint32>::iterator it = m_spellsToLearn.begin(); it != m_spellsToLearn.end(); ++it)
         {
-            SkillLineEntry const *SkillLine = sSkillLineStore.LookupEntry(*it);
+            SkillLineEntry const* SkillLine = sSkillLineStore.LookupEntry(*it);
 
             if (SkillLine->categoryId == SKILL_CATEGORY_PROFESSION && *it == SKILL_ENCHANTING)
             {
                 for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
                 {
-                    SkillLineAbilityEntry const *SkillAbility = sSkillLineAbilityStore.LookupEntry(j);
+                    SkillLineAbilityEntry const* SkillAbility = sSkillLineAbilityStore.LookupEntry(j);
                     if (!SkillAbility)
                         continue;
 
@@ -9729,9 +9738,9 @@ void PlayerbotAI::_HandleCommandEnchant(std::string &text, Player &fromPlayer)
     }
 }
 
-void PlayerbotAI::_HandleCommandCraft(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandCraft(std::string& text, Player& fromPlayer)
 {
-    DEBUG_LOG("Craft (%s)",text.c_str());
+    DEBUG_LOG("Craft (%s)", text.c_str());
 
     std::ostringstream msg;
     uint32 charges;
@@ -9856,9 +9865,9 @@ void PlayerbotAI::_HandleCommandCraft(std::string &text, Player &fromPlayer)
             return;
 
         SpellCastTargets targets;
-        Spell *spell = new Spell(m_bot, spellInfo, false);
+        Spell* spell = new Spell(m_bot, spellInfo, false);
 
-        if (text.find("all",0) != std::string::npos)
+        if (text.find("all", 0) != std::string::npos)
         {
             SpellCastResult result = spell->CheckCast(true);
 
@@ -9885,13 +9894,13 @@ void PlayerbotAI::_HandleCommandCraft(std::string &text, Player &fromPlayer)
     ChatHandler ch(&fromPlayer);
     for (std::list<uint32>::iterator it = m_spellsToLearn.begin(); it != m_spellsToLearn.end(); ++it)
     {
-        SkillLineEntry const *SkillLine = sSkillLineStore.LookupEntry(*it);
+        SkillLineEntry const* SkillLine = sSkillLineStore.LookupEntry(*it);
 
         if (SkillLine->categoryId == category && *it == skill)
         {
             for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
             {
-                SkillLineAbilityEntry const *SkillAbility = sSkillLineAbilityStore.LookupEntry(j);
+                SkillLineAbilityEntry const* SkillAbility = sSkillLineAbilityStore.LookupEntry(j);
                 if (!SkillAbility)
                     continue;
 
@@ -9926,7 +9935,7 @@ void PlayerbotAI::_HandleCommandCraft(std::string &text, Player &fromPlayer)
     m_spellsToLearn.clear();
 }
 
-void PlayerbotAI::_HandleCommandQuest(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandQuest(std::string& text, Player& fromPlayer)
 {
     std::ostringstream msg;
 
@@ -9946,7 +9955,7 @@ void PlayerbotAI::_HandleCommandQuest(std::string &text, Player &fromPlayer)
         int8 linkStart = text.find("|");
         if (text.find("|") != std::string::npos)
         {
-            if (!ch.dropQuest((char *) text.substr(linkStart).c_str()))
+            if (!ch.dropQuest((char*) text.substr(linkStart).c_str()))
             {
                 ch.sysmessage("ERROR: could not drop quest");
             }
@@ -10021,7 +10030,7 @@ void PlayerbotAI::_HandleCommandQuest(std::string &text, Player &fromPlayer)
     }
 }
 
-void PlayerbotAI::_HandleCommandPet(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandPet(std::string& text, Player& fromPlayer)
 {
     if (ExtractCommand("tame", text))
     {
@@ -10044,7 +10053,7 @@ void PlayerbotAI::_HandleCommandPet(std::string &text, Player &fromPlayer)
         return;
     }
 
-    Pet * pet = m_bot->GetPet();
+    Pet* pet = m_bot->GetPet();
     if (!pet)
     {
         SendWhisper("I have no pet.", fromPlayer);
@@ -10062,11 +10071,11 @@ void PlayerbotAI::_HandleCommandPet(std::string &text, Player &fromPlayer)
     else if (ExtractCommand("react", text))
     {
         if (ExtractCommand("aggressive", text, true))
-            pet->GetCharmInfo()->SetReactState(REACT_AGGRESSIVE);
+            pet->AI()->SetReactState(REACT_AGGRESSIVE);
         else if (ExtractCommand("defensive", text, true))
-            pet->GetCharmInfo()->SetReactState(REACT_DEFENSIVE);
+            pet->AI()->SetReactState(REACT_DEFENSIVE);
         else if (ExtractCommand("passive", text, true))
-            pet->GetCharmInfo()->SetReactState(REACT_PASSIVE);
+            pet->AI()->SetReactState(REACT_PASSIVE);
         else
             _HandleCommandHelp("pet react", fromPlayer);
     }
@@ -10079,16 +10088,16 @@ void PlayerbotAI::_HandleCommandPet(std::string &text, Player &fromPlayer)
         }
 
         std::string state;
-        switch (pet->GetCharmInfo()->GetReactState())
+        switch (pet->GetCharmInfo()->GetAI()->GetReactState())
         {
-        case REACT_AGGRESSIVE:
-            SendWhisper("My pet is aggressive.", fromPlayer);
-            break;
-        case REACT_DEFENSIVE:
-            SendWhisper("My pet is defensive.", fromPlayer);
-            break;
-        case REACT_PASSIVE:
-            SendWhisper("My pet is passive.", fromPlayer);
+            case REACT_AGGRESSIVE:
+                SendWhisper("My pet is aggressive.", fromPlayer);
+                break;
+            case REACT_DEFENSIVE:
+                SendWhisper("My pet is defensive.", fromPlayer);
+                break;
+            case REACT_PASSIVE:
+                SendWhisper("My pet is passive.", fromPlayer);
         }
     }
     else if (ExtractCommand("cast", text))
@@ -10181,19 +10190,19 @@ void PlayerbotAI::_HandleCommandPet(std::string &text, Player &fromPlayer)
             std::string color;
             switch (itr->second.active)
             {
-            case ACT_ENABLED:
-                color = "cff35d22d"; // Some flavor of green
-                break;
-            default:
-                color = "cffffffff";
+                case ACT_ENABLED:
+                    color = "cff35d22d"; // Some flavor of green
+                    break;
+                default:
+                    color = "cffffffff";
             }
 
             if (IsPositiveSpell(spellId))
                 posOut << " |" << color << "|Hspell:" << spellId << "|h["
-                << pSpellInfo->SpellName[loc] << "]|h|r";
+                       << pSpellInfo->SpellName[loc] << "]|h|r";
             else
                 negOut << " |" << color << "|Hspell:" << spellId << "|h["
-                << pSpellInfo->SpellName[loc] << "]|h|r";
+                       << pSpellInfo->SpellName[loc] << "]|h|r";
         }
 
         ChatHandler ch(&fromPlayer);
@@ -10204,7 +10213,7 @@ void PlayerbotAI::_HandleCommandPet(std::string &text, Player &fromPlayer)
     }
 }
 
-void PlayerbotAI::_HandleCommandSpells(std::string& /*text*/, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandSpells(std::string& /*text*/, Player& fromPlayer)
 {
     int loc = GetMaster()->GetSession()->GetSessionDbcLocale();
 
@@ -10217,7 +10226,8 @@ void PlayerbotAI::_HandleCommandSpells(std::string& /*text*/, Player &fromPlayer
     std::string spellName;
 
     uint32 ignoredSpells[] = {1843, 5019, 2479, 6603, 3365, 8386, 21651, 21652, 6233, 6246, 6247,
-        61437, 22810, 22027, 45927, 7266, 7267, 6477, 6478, 7355, 68398};
+                              61437, 22810, 22027, 45927, 7266, 7267, 6477, 6478, 7355, 68398
+                             };
     uint32 ignoredSpellsCount = sizeof(ignoredSpells) / sizeof(uint32);
 
     for (PlayerSpellMap::iterator itr = m_bot->GetSpellMap().begin(); itr != m_bot->GetSpellMap().end(); ++itr)
@@ -10238,7 +10248,8 @@ void PlayerbotAI::_HandleCommandSpells(std::string& /*text*/, Player &fromPlayer
         bool isProfessionOrRidingSpell = false;
         for (SkillLineAbilityMap::const_iterator skillIter = bounds.first; skillIter != bounds.second; ++skillIter)
         {
-            if (IsProfessionOrRidingSkill(skillIter->second->skillId) && skillIter->first == spellId) {
+            if (IsProfessionOrRidingSkill(skillIter->second->skillId) && skillIter->first == spellId)
+            {
                 isProfessionOrRidingSpell = true;
                 break;
             }
@@ -10249,7 +10260,8 @@ void PlayerbotAI::_HandleCommandSpells(std::string& /*text*/, Player &fromPlayer
         bool isIgnoredSpell = false;
         for (uint8 i = 0; i < ignoredSpellsCount; ++i)
         {
-            if (spellId == ignoredSpells[i]) {
+            if (spellId == ignoredSpells[i])
+            {
                 isIgnoredSpell = true;
                 break;
             }
@@ -10257,7 +10269,8 @@ void PlayerbotAI::_HandleCommandSpells(std::string& /*text*/, Player &fromPlayer
         if (isIgnoredSpell)
             continue;
 
-        if (IsPositiveSpell(spellId)) {
+        if (IsPositiveSpell(spellId))
+        {
             if (posSpells.find(spellName) == posSpells.end())
                 posSpells[spellName] = spellId;
             else if (posSpells[spellName] < spellId)
@@ -10289,11 +10302,11 @@ void PlayerbotAI::_HandleCommandSpells(std::string& /*text*/, Player &fromPlayer
     ch.SendSysMessage(negOut.str().c_str());
 }
 
-void PlayerbotAI::_HandleCommandSurvey(std::string& /*text*/, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandSurvey(std::string& /*text*/, Player& fromPlayer)
 {
     uint32 count = 0;
     std::ostringstream detectout;
-    QueryResult *result;
+    QueryResult* result;
     GameEventMgr::ActiveEvents const& activeEventsList = sGameEventMgr.GetActiveEventList();
     std::ostringstream eventFilter;
     eventFilter << " AND (event IS NULL ";
@@ -10316,19 +10329,19 @@ void PlayerbotAI::_HandleCommandSurvey(std::string& /*text*/, Player &fromPlayer
         eventFilter << ")";
 
     result = WorldDatabase.PQuery("SELECT gameobject.guid, id, position_x, position_y, position_z, map, "
-        "(POW(position_x - %f, 2) + POW(position_y - %f, 2) + POW(position_z - %f, 2)) AS order_ FROM gameobject "
-        "LEFT OUTER JOIN game_event_gameobject on gameobject.guid=game_event_gameobject.guid WHERE map = '%i' %s ORDER BY order_ ASC LIMIT 10",
-        m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), m_bot->GetMapId(), eventFilter.str().c_str());
+                                  "(POW(position_x - %f, 2) + POW(position_y - %f, 2) + POW(position_z - %f, 2)) AS order_ FROM gameobject "
+                                  "LEFT OUTER JOIN game_event_gameobject on gameobject.guid=game_event_gameobject.guid WHERE map = '%i' %s ORDER BY order_ ASC LIMIT 10",
+                                  m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), m_bot->GetMapId(), eventFilter.str().c_str());
 
     if (result)
     {
         do
         {
-            Field *fields = result->Fetch();
+            Field* fields = result->Fetch();
             uint32 guid = fields[0].GetUInt32();
             uint32 entry = fields[1].GetUInt32();
 
-            GameObject *go = m_bot->GetMap()->GetGameObject(ObjectGuid(HIGHGUID_GAMEOBJECT, entry, guid));
+            GameObject* go = m_bot->GetMap()->GetGameObject(ObjectGuid(HIGHGUID_GAMEOBJECT, entry, guid));
             if (!go)
                 continue;
 
@@ -10337,7 +10350,8 @@ void PlayerbotAI::_HandleCommandSurvey(std::string& /*text*/, Player &fromPlayer
 
             detectout << "|cFFFFFF00|Hfound:" << guid << ":" << entry  << ":" <<  "|h[" << go->GetGOInfo()->name << "]|h|r";
             ++count;
-        } while (result->NextRow());
+        }
+        while (result->NextRow());
 
         delete result;
     }
@@ -10350,7 +10364,7 @@ void PlayerbotAI::_HandleCommandSurvey(std::string& /*text*/, Player &fromPlayer
 // skill learn all                 -- Learn all skills and spells available from selected trainer.
 // skill learn [HLINK][HLINK] ..   -- Learn selected skill and spells, from selected trainer ([HLINK] from skill learn).
 // skill unlearn [HLINK][HLINK] .. -- Unlearn selected primary profession skill(s) and all associated spells ([HLINK] from skill)
-void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandSkill(std::string& text, Player& fromPlayer)
 {
     uint32 rank[8] = {0, 75, 150, 225, 300, 375, 450, 525};
 
@@ -10372,7 +10386,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
             return;
         }
 
-        Creature *creature =  m_bot->GetMap()->GetCreature(fromPlayer.GetSelectionGuid());
+        Creature* creature =  m_bot->GetMap()->GetCreature(fromPlayer.GetSelectionGuid());
         if (!creature)
             return;
 
@@ -10430,7 +10444,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
 
                     ++totalSpellLearnt;
                     totalCost += cost;
-                    const SpellEntry *const pSpellInfo =  sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                    const SpellEntry* const pSpellInfo =  sSpellTemplate.LookupEntry<SpellEntry>(spellId);
                     if (!pSpellInfo)
                         continue;
 
@@ -10473,7 +10487,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
 
                     // Not found, try find in npc_trainer_template
                     if (!trainer_spell && tSpells)
-                    trainer_spell = tSpells->Find(spellId);
+                        trainer_spell = tSpells->Find(spellId);
 
                     // apply reputation discount
                     uint32 cost = uint32(floor(trainer_spell->spellCost * fDiscountMod));
@@ -10483,7 +10497,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
 
                     ++totalSpellLearnt;
                     totalCost += cost;
-                    const SpellEntry *const pSpellInfo =  sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                    const SpellEntry* const pSpellInfo =  sSpellTemplate.LookupEntry<SpellEntry>(spellId);
                     if (!pSpellInfo)
                         continue;
 
@@ -10539,12 +10553,12 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
 
                 reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
 
-                TrainerSpellState state =  m_bot->GetTrainerSpellState(tSpell,reqLevel);
+                TrainerSpellState state =  m_bot->GetTrainerSpellState(tSpell, reqLevel);
                 if (state != TRAINER_SPELL_GREEN)
                     continue;
 
                 uint32 spellId = tSpell->spell;
-                const SpellEntry *const pSpellInfo =  sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                const SpellEntry* const pSpellInfo =  sSpellTemplate.LookupEntry<SpellEntry>(spellId);
                 if (!pSpellInfo)
                     continue;
                 uint32 cost = uint32(floor(tSpell->spellCost *  fDiscountMod));
@@ -10613,7 +10627,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
             if (IsPrimaryProfessionSkill(*it))
                 for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
                 {
-                    SkillLineAbilityEntry const *skillLine = sSkillLineAbilityStore.LookupEntry(j);
+                    SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
                     if (!skillLine)
                         continue;
 
@@ -10641,13 +10655,13 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
         msg << "\nMy Weapon skills: ";
         for (std::list<uint32>::iterator it = m_spellsToLearn.begin(); it != m_spellsToLearn.end(); ++it)
         {
-            SkillLineEntry const *SkillLine = sSkillLineStore.LookupEntry(*it);
+            SkillLineEntry const* SkillLine = sSkillLineStore.LookupEntry(*it);
             // has weapon skill
             if (SkillLine->categoryId == SKILL_CATEGORY_WEAPON)
             {
                 for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
                 {
-                    SkillLineAbilityEntry const *skillLine = sSkillLineAbilityStore.LookupEntry(j);
+                    SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
                     if (!skillLine)
                         continue;
 
@@ -10656,7 +10670,7 @@ void PlayerbotAI::_HandleCommandSkill(std::string &text, Player &fromPlayer)
                         continue;
 
                     if (skillLine->skillId == *it && spellInfo->Effect[0] == SPELL_EFFECT_WEAPON)
-                        MakeWeaponSkillLink(spellInfo,msg,*it);
+                        MakeWeaponSkillLink(spellInfo, msg, *it);
                 }
             }
         }
@@ -10699,7 +10713,7 @@ bool PlayerbotAI::_HandleCommandSkillLearnHelper(TrainerSpell const* tSpell, uin
     return true;
 }
 
-void PlayerbotAI::_HandleCommandStats(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandStats(std::string& text, Player& fromPlayer)
 {
     if (text != "")
     {
@@ -10724,7 +10738,7 @@ void PlayerbotAI::_HandleCommandStats(std::string &text, Player &fromPlayer)
     ch.SendSysMessage(out.str().c_str());
 }
 
-void PlayerbotAI::_HandleCommandGM(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandGM(std::string& text, Player& fromPlayer)
 {
     // Check should happen OUTSIDE this function, but this is account security we're talking about, so let's be doubly sure
     if (fromPlayer.GetSession()->GetSecurity() <= SEC_PLAYER)
@@ -10739,19 +10753,19 @@ void PlayerbotAI::_HandleCommandGM(std::string &text, Player &fromPlayer)
     {
         if (ExtractCommand("combat", text))
         {
-            for( AttackerInfoList::iterator i=m_attackerInfo.begin(); i!=m_attackerInfo.end(); ++i )
-                DEBUG_LOG( "[Attacker]:{ %s, victim:%s, threat:%.2f, highest-threat:%.2f, count:%d }",
-                i->second.attacker->GetName(),
-                i->second.victim->GetName(),
-                i->second.threat,
-                i->second.threat2,
-                i->second.count);
-            DEBUG_LOG( "[Attacker]:{ };" );
+            for (AttackerInfoList::iterator i = m_attackerInfo.begin(); i != m_attackerInfo.end(); ++i)
+                DEBUG_LOG("[Attacker]:{ %s, victim:%s, threat:%.2f, highest-threat:%.2f, count:%d }",
+                          i->second.attacker->GetName(),
+                          i->second.victim->GetName(),
+                          i->second.threat,
+                          i->second.threat2,
+                          i->second.count);
+            DEBUG_LOG("[Attacker]:{ };");
         }
         else if (ExtractCommand("loot", text))
         {
             for (std::list<ObjectGuid>::iterator it = m_lootTargets.begin(); it != m_lootTargets.end(); ++it)
-                DEBUG_LOG("[Looter]:{ %s loots [%s] }",m_bot->GetName(), (*it).GetString().c_str());
+                DEBUG_LOG("[Looter]:{ %s loots [%s] }", m_bot->GetName(), (*it).GetString().c_str());
             DEBUG_LOG("[Looter]:{ }");
         }
         else
@@ -10769,7 +10783,7 @@ void PlayerbotAI::_HandleCommandGM(std::string &text, Player &fromPlayer)
         SendWhisper("'gm' does not have that subcommand.", fromPlayer);
 }
 
-void PlayerbotAI::_HandleCommandHelp(std::string &text, Player &fromPlayer)
+void PlayerbotAI::_HandleCommandHelp(std::string& text, Player& fromPlayer)
 {
     ChatHandler ch(&fromPlayer);
 
@@ -10896,7 +10910,7 @@ void PlayerbotAI::_HandleCommandHelp(std::string &text, Player &fromPlayer)
     if (bMainHelp || ExtractCommand("process", text))
     {
         ch.SendSysMessage(_HandleCommandHelpHelper("process < disenchant | d >", "Disenchants a green coloured [ITEM] or better", HL_ITEM).c_str());
-        ch.SendSysMessage(_HandleCommandHelpHelper("process < prospect | p >", "Searches 5 metal ore [ITEM] for precious gems",HL_ITEM).c_str());
+        ch.SendSysMessage(_HandleCommandHelpHelper("process < prospect | p >", "Searches 5 metal ore [ITEM] for precious gems", HL_ITEM).c_str());
 
         if (!bMainHelp)
         {
@@ -11024,8 +11038,8 @@ void PlayerbotAI::_HandleCommandHelp(std::string &text, Player &fromPlayer)
 
             // Catches all valid subcommands, also placeholders for potential future sub-subcommands
             if (ExtractCommand("add", text, true)) {}
-            else if(ExtractCommand("drop", text, true)) {}
-            else if(ExtractCommand("end", text, true)) {}
+            else if (ExtractCommand("drop", text, true)) {}
+            else if (ExtractCommand("end", text, true)) {}
             else if (ExtractCommand("list", text, true)) {}
             else if (ExtractCommand("report", text, true)) {}
 
@@ -11086,10 +11100,10 @@ void PlayerbotAI::_HandleCommandHelp(std::string &text, Player &fromPlayer)
 
             // Catches all valid subcommands, also placeholders for potential future sub-subcommands
             if (ExtractCommand("spells", text)) {}
-            else if(ExtractCommand("tame", text)) {}
-            else if(ExtractCommand("abandon", text)) {}
-            else if(ExtractCommand("cast", text)) {}
-            else if(ExtractCommand("toggle", text)) {}
+            else if (ExtractCommand("tame", text)) {}
+            else if (ExtractCommand("abandon", text)) {}
+            else if (ExtractCommand("cast", text)) {}
+            else if (ExtractCommand("toggle", text)) {}
             else if (ExtractCommand("state", text)) {}
             else if (ExtractCommand("react", text))
             {
@@ -11163,7 +11177,7 @@ void PlayerbotAI::_HandleCommandHelp(std::string &text, Player &fromPlayer)
 
             // Catches all valid subcommands, also placeholders for potential future sub-subcommands
             if (ExtractCommand("add", text, true)) {}
-            else if(ExtractCommand("remove", text, true)) {}
+            else if (ExtractCommand("remove", text, true)) {}
 
             if (text != "") ch.SendSysMessage(sInvalidSubcommand.c_str());
             return;
@@ -11270,14 +11284,14 @@ void PlayerbotAI::_HandleCommandHelp(std::string &text, Player &fromPlayer)
 
         if (!bMainHelp)
         {
-            ch.SendSysMessage(_HandleCommandHelpHelper("mail getcash", "Gets money from all selected [Mailid]..", HL_MAIL,true).c_str());
-            ch.SendSysMessage(_HandleCommandHelpHelper("mail getitem", "Gets items from all selected [Mailid]..", HL_MAIL,true).c_str());
-            ch.SendSysMessage(_HandleCommandHelpHelper("mail delete", "Delete all selected [Mailid]..", HL_MAIL,true).c_str());
+            ch.SendSysMessage(_HandleCommandHelpHelper("mail getcash", "Gets money from all selected [Mailid]..", HL_MAIL, true).c_str());
+            ch.SendSysMessage(_HandleCommandHelpHelper("mail getitem", "Gets items from all selected [Mailid]..", HL_MAIL, true).c_str());
+            ch.SendSysMessage(_HandleCommandHelpHelper("mail delete", "Delete all selected [Mailid]..", HL_MAIL, true).c_str());
 
             // Catches all valid subcommands, also placeholders for potential future sub-subcommands
             if (ExtractCommand("inbox", text, true)) {}
-            else if(ExtractCommand("getcash", text, true)) {}
-            else if(ExtractCommand("getitem", text, true)) {}
+            else if (ExtractCommand("getcash", text, true)) {}
+            else if (ExtractCommand("getitem", text, true)) {}
             else if (ExtractCommand("delete", text, true)) {}
 
             if (text != "") ch.SendSysMessage(sInvalidSubcommand.c_str());
@@ -11288,7 +11302,7 @@ void PlayerbotAI::_HandleCommandHelp(std::string &text, Player &fromPlayer)
     if (bMainHelp)
         ch.SendSysMessage(_HandleCommandHelpHelper("help", "Gives you this listing of main commands... But then, you know that already don't you.").c_str());
 
-    if(text != "")
+    if (text != "")
         ch.SendSysMessage("Either that is not a valid command, or someone forgot to add it to my help journal. I mean seriously, they can't expect me to remember *all* this stuff, can they?");
 }
 

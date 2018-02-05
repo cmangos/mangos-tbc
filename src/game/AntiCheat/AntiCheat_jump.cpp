@@ -19,11 +19,11 @@ bool AntiCheat_jump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opc
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "Jump hack" << "\n";
 
-        return SetoldmoveInfo(true);
+        return SetOldMoveInfo(true);
     }
 
     if (opcode == MSG_MOVE_JUMP)
-        SetstoredmoveInfo(false);
+        SetStoredMoveInfo(false);
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }

@@ -29,5 +29,5 @@ bool AntiCheat_test::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opc
     m_Player->BoxChat << "transport: " << (isTransport(newmoveInfo) ? "true" : "false") << "\n";
     m_Player->BoxChat << "slowfall: " << (newmoveInfo->HasMovementFlag(MOVEFLAG_SAFE_FALL) ? "true" : "false") << "\n";
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }

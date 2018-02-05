@@ -37,7 +37,7 @@ bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
         else
         {
             --AboveAngleCount;
-            SetstoredmoveInfo(false);
+            SetStoredMoveInfo(false);
         }
     }
 
@@ -46,9 +46,9 @@ bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
     if (opcode == MSG_MOVE_JUMP)
     {
         if (!AboveAngleCount)
-            SetstoredmoveInfo(false);
+            SetStoredMoveInfo(false);
 
-        return SetoldmoveInfo(cheat);
+        return SetOldMoveInfo(cheat);
     }
 
     if (storedmoveInfo->GetPos()->z > newmoveInfo->GetPos()->z)

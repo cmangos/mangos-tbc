@@ -80,7 +80,7 @@ bool AntiCheat_gravity::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes 
 
 		m_Player->TeleportToPos(storedMapID, storedmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
-        return SetoldmoveInfo(true);
+        return SetOldMoveInfo(true);
     }
 
     if (stopfalling || opcode == MSG_MOVE_FALL_LAND || opcode == MSG_MOVE_START_SWIM)
@@ -91,7 +91,7 @@ bool AntiCheat_gravity::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes 
         m_InitialDiff = -1.f;
     }
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }
 
 void AntiCheat_gravity::HandleTeleport(uint32 mapid, float x, float y, float z, float o)

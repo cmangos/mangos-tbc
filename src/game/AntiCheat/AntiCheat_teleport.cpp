@@ -13,7 +13,7 @@ bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
     {
         knockBack = false;
         teleporting = false;
-        return SetoldmoveInfo(false);
+        return SetOldMoveInfo(false);
     }
 
     if (!cheat && !knockBack && !teleporting)
@@ -25,7 +25,7 @@ bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
             if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
                 m_Player->BoxChat << "TELE CHEAT" << "\n";
 
-            return SetoldmoveInfo(true);
+            return SetOldMoveInfo(true);
         }
     }
 
@@ -35,7 +35,7 @@ bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
         teleporting = false;
     }
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }
 
 void AntiCheat_teleport::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)

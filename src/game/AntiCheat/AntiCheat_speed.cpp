@@ -17,6 +17,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
     if (!Initialized())
     {
         m_Knockback = false;
+        m_KnockbackSpeed = 0.f;
         return false;
     }
 
@@ -39,6 +40,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
     bool threed = isFlying() || isSwimming();
 
     float travelspeed = floor(((onTransport ? GetTransportDist(threed) : GetDistance(threed)) / GetVirtualDiffInSec()) * speedrounding) / speedrounding;
+    m_Player->BoxChat << "travelspeed: " << travelspeed << "\n";
 
     bool cheating = false;
 
@@ -47,7 +49,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
         if (newmoveInfo->GetJumpInfo().xyspeed > allowedspeed)
             cheating = true;
     }
-    else if(travelspeed > allowedspeed)
+    else if (travelspeed > allowedspeed)
 		cheating = true;
 
     if (isTransport(newmoveInfo) && !verifyTransportCoords(newmoveInfo))
@@ -67,12 +69,12 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
 
 		m_Player->TeleportToPos(storedMapID, storedmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
-        return SetoldmoveInfo(true);
+        return SetOldMoveInfo(true);
     }
     else
-        SetstoredmoveInfo(false);
+        SetStoredMoveInfo(false);
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }
 
 void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)

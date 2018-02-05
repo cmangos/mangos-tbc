@@ -5,6 +5,7 @@ AntiCheat::AntiCheat(CPlayer* player)
 {
     m_Player = player;
 
+    newmoveInfo = MovementInfoPtr(new MovementInfo());
     oldmoveInfo = MovementInfoPtr(new MovementInfo());
     storedmoveInfo = MovementInfoPtr(new MovementInfo());
 
@@ -84,8 +85,8 @@ bool AntiCheat::Initialized()
     if (!m_Initialized || m_Player->GetMapId() != oldMapID)
     {
         m_Initialized = true;
-        SetoldmoveInfo(false);
-        SetstoredmoveInfo(false);
+        SetOldMoveInfo(false);
+        SetStoredMoveInfo(false);
 
         for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
             AllowedSpeed[i] = m_Player->GetSpeed(UnitMoveType(i));
@@ -96,7 +97,7 @@ bool AntiCheat::Initialized()
     return true;
 }
 
-bool AntiCheat::SetoldmoveInfo(bool value)
+bool AntiCheat::SetOldMoveInfo(bool value)
 {
     oldmoveInfo = newmoveInfo;
     oldMapID = m_Player->GetMapId();
@@ -106,7 +107,7 @@ bool AntiCheat::SetoldmoveInfo(bool value)
     return value;
 }
 
-bool AntiCheat::SetstoredmoveInfo(bool value)
+bool AntiCheat::SetStoredMoveInfo(bool value)
 {
     storedmoveInfo = newmoveInfo;
     storedMapID = m_Player->GetMapId();

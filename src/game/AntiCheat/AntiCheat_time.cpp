@@ -17,7 +17,7 @@ bool AntiCheat_time::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opc
     if (!Initialized())
     {
         ClientServerTimeOffset = MoveInfo->GetTime() - WorldTimer::getMSTime();
-        return SetoldmoveInfo(false);
+        return SetOldMoveInfo(false);
     }
 
     if (GetDiff() < 500)
@@ -40,7 +40,7 @@ bool AntiCheat_time::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opc
         ClientServerTimeOffset = MoveInfo->GetTime() - WorldTimer::getMSTime();
     }
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }
 
 uint32 AntiCheat_time::GetTimeDiff()

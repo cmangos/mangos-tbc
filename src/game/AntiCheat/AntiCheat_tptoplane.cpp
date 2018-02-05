@@ -10,7 +10,7 @@ bool AntiCheat_tptoplane::HandleMovement(const MovementInfoPtr& MoveInfo, Opcode
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
-        return SetoldmoveInfo(false);
+        return SetOldMoveInfo(false);
 
     const Position* p = newmoveInfo->GetPos();
 
@@ -33,8 +33,8 @@ bool AntiCheat_tptoplane::HandleMovement(const MovementInfoPtr& MoveInfo, Opcode
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "TELEPORT TO PLANE CHEAT" << "\n";
 
-        return SetoldmoveInfo(true);
+        return SetOldMoveInfo(true);
     }
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }

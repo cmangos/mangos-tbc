@@ -23,5 +23,5 @@ bool AntiCheat_nofall::HandleMovement(const MovementInfoPtr& moveInfo, Opcodes o
         return true;
     }
 
-    return SetoldmoveInfo(false);
+    return SetOldMoveInfo(false);
 }

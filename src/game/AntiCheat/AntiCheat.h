@@ -23,8 +23,8 @@ public:
 
 protected:
     bool Initialized();
-    bool SetoldmoveInfo(bool value);
-    bool SetstoredmoveInfo(bool value);
+    bool SetOldMoveInfo(bool value);
+    bool SetStoredMoveInfo(bool value);
 
     bool CanFly() { return m_CanFly; }
     bool CanWaterwalk() { return m_CanWaterwalk; }

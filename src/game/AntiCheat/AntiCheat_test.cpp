@@ -6,7 +6,7 @@ AntiCheat_test::AntiCheat_test(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_test::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_test::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
@@ -15,19 +15,19 @@ bool AntiCheat_test::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool
 
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
 
-    m_Player->BoxChat << "cosAngle: " << newMoveInfo.GetJumpInfo().cosAngle << "\n";
-    m_Player->BoxChat << "sinAngle: " << newMoveInfo.GetJumpInfo().sinAngle << "\n";
-    m_Player->BoxChat << "velocity: " << newMoveInfo.GetJumpInfo().velocity << "\n";
-    m_Player->BoxChat << "xyspeed: " << newMoveInfo.GetJumpInfo().xyspeed << "\n";
-    m_Player->BoxChat << "cposx: " << newMoveInfo.GetPos()->x << "\n";
-    m_Player->BoxChat << "cposy: " << newMoveInfo.GetPos()->y << "\n";
-    m_Player->BoxChat << "cposz: " << newMoveInfo.GetPos()->z << "\n";
+    m_Player->BoxChat << "cosAngle: " << newmoveInfo->GetJumpInfo().cosAngle << "\n";
+    m_Player->BoxChat << "sinAngle: " << newmoveInfo->GetJumpInfo().sinAngle << "\n";
+    m_Player->BoxChat << "velocity: " << newmoveInfo->GetJumpInfo().velocity << "\n";
+    m_Player->BoxChat << "xyspeed: " << newmoveInfo->GetJumpInfo().xyspeed << "\n";
+    m_Player->BoxChat << "cposx: " << newmoveInfo->GetPos()->x << "\n";
+    m_Player->BoxChat << "cposy: " << newmoveInfo->GetPos()->y << "\n";
+    m_Player->BoxChat << "cposz: " << newmoveInfo->GetPos()->z << "\n";
     m_Player->BoxChat << "angle: " << angle << "\n";
-    m_Player->BoxChat << "moving: " << (IsMoving(newMoveInfo) ? "true" : "false") << "\n";
-    m_Player->BoxChat << "falling: " << (isFalling(newMoveInfo) ? "true" : "false") << "\n";
-    m_Player->BoxChat << "flying: " << (isFlying(newMoveInfo) ? "true" : "false") << "\n";
-    m_Player->BoxChat << "transport: " << (isTransport(newMoveInfo) ? "true" : "false") << "\n";
-    m_Player->BoxChat << "slowfall: " << (newMoveInfo.HasMovementFlag(MOVEFLAG_SAFE_FALL) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "moving: " << (IsMoving(newmoveInfo) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "falling: " << (isFalling(newmoveInfo) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "flying: " << (isFlying(newmoveInfo) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "transport: " << (isTransport(newmoveInfo) ? "true" : "false") << "\n";
+    m_Player->BoxChat << "slowfall: " << (newmoveInfo->HasMovementFlag(MOVEFLAG_SAFE_FALL) ? "true" : "false") << "\n";
 
-    return SetOldMoveInfo(false);
+    return SetoldmoveInfo(false);
 }

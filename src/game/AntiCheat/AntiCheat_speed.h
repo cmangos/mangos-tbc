@@ -7,7 +7,7 @@ class AntiCheat_speed : public AntiCheat
 public:
     AntiCheat_speed(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat) override;
+    bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat) override;
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed) override;
     float GetAllowedSpeed();
     float IsKnockedback() { return m_Knockback; }

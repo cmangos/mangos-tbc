@@ -15,7 +15,7 @@ public:
     AntiCheat(CPlayer* player);
     virtual ~AntiCheat() {}
 
-    virtual bool HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat);
+    virtual bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat);
     virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };
     virtual void HandleRelocate(float x, float y, float z, float o);
     virtual void HandleTeleport(uint32 map, float x, float y, float z, float o);
@@ -23,24 +23,24 @@ public:
 
 protected:
     bool Initialized();
-    bool SetOldMoveInfo(bool value);
-    bool SetStoredMoveInfo(bool value);
+    bool SetoldmoveInfo(bool value);
+    bool SetstoredmoveInfo(bool value);
 
     bool CanFly() { return m_CanFly; }
     bool CanWaterwalk() { return m_CanWaterwalk; }
-    bool IsMoving(MovementInfo& moveInfo);
+    bool IsMoving(const MovementInfoPtr& moveInfo);
     bool IsMoving();
-    bool isFlying(MovementInfo& moveInfo);
+    bool isFlying(const MovementInfoPtr& moveInfo);
     bool isFlying();
-    bool isWalking(MovementInfo& moveInfo);
+    bool isWalking(const MovementInfoPtr& moveInfo);
     bool isWalking();
-    bool isFalling(MovementInfo& moveInfo);
+    bool isFalling(const MovementInfoPtr& moveInfo);
     bool isFalling();
-    bool isTransport(MovementInfo& moveInfo);
+    bool isTransport(const MovementInfoPtr& moveInfo);
     bool isTransport();
-    bool isSwimming(MovementInfo& moveInfo);
+    bool isSwimming(const MovementInfoPtr& moveInfo);
     bool isSwimming();
-    bool verifyTransportCoords(MovementInfo& moveInfo);
+    bool verifyTransportCoords(const MovementInfoPtr& moveInfo);
     bool verifyTransportCoords();
     float GetDistOrTransportDist();
     float GetDistOrTransportDist(bool threed);
@@ -64,9 +64,9 @@ protected:
 
 protected:
     CPlayer* m_Player;
-    MovementInfo newMoveInfo;
-    MovementInfo oldMoveInfo;
-    MovementInfo storedMoveInfo;
+    MovementInfoPtr newmoveInfo;
+    MovementInfoPtr oldmoveInfo;
+    MovementInfoPtr storedmoveInfo;
     uint32 newMapID;
     uint32 oldMapID;
     uint32 storedMapID;

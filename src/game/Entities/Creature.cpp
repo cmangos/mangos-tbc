@@ -369,7 +369,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
             !(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_WALK_IN_WATER) &&  // check if creature is forced to walk (crabs, giant,...)
             data &&                                         // check if there is data to get creature spawn pos
             GetMap()->GetTerrain()->IsSwimmable(data->posX, data->posY, data->posZ, minfo->bounding_radius))  // check if creature is in water and have enough space to swim
-        m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);  // add swimming movement
+        m_movementInfo->AddMovementFlag(MOVEFLAG_SWIMMING);  // add swimming movement
 
     // checked at loading
     m_defaultMovementType = MovementGeneratorType(cinfo->MovementType);
@@ -418,7 +418,7 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
         unitFlags |= UNIT_FLAG_IN_COMBAT;
 
     // TODO: Get rid of this by fixing DB data, seems to be static
-    if (m_movementInfo.HasMovementFlag(MOVEFLAG_SWIMMING))
+    if (m_movementInfo->HasMovementFlag(MOVEFLAG_SWIMMING))
         unitFlags |= UNIT_FLAG_SWIMMING;
 
     SetUInt32Value(UNIT_FIELD_FLAGS, unitFlags);
@@ -2704,13 +2704,13 @@ void Creature::SetWalk(bool enable, bool asDefault)
     }
 
     // Nothing changed?
-    if (enable == m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE))
+    if (enable == m_movementInfo->HasMovementFlag(MOVEFLAG_WALK_MODE))
         return;
 
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_WALK_MODE);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_WALK_MODE);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_WALK_MODE);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_WALK_MODE);
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_WALK_MODE : SMSG_SPLINE_MOVE_SET_RUN_MODE, 9);
     data << GetPackGUID();
@@ -2720,9 +2720,9 @@ void Creature::SetWalk(bool enable, bool asDefault)
 void Creature::SetLevitate(bool enable)
 {
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_LEVITATING);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_LEVITATING);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_LEVITATING);
 
     // TODO: there should be analogic opcode for 2.43
     // WorldPacket data(enable ? SMSG_SPLINE_MOVE_GRAVITY_DISABLE : SMSG_SPLINE_MOVE_GRAVITY_ENABLE, 9);
@@ -2733,9 +2733,9 @@ void Creature::SetLevitate(bool enable)
 void Creature::SetSwim(bool enable)
 {
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_SWIMMING);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_SWIMMING);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_SWIMMING);
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_START_SWIM : SMSG_SPLINE_MOVE_STOP_SWIM);
     data << GetPackGUID();
@@ -2745,9 +2745,9 @@ void Creature::SetSwim(bool enable)
 void Creature::SetCanFly(bool enable)
 {
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_CAN_FLY);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_CAN_FLY);
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_FLYING : SMSG_SPLINE_MOVE_UNSET_FLYING, 9);
     data << GetPackGUID();
@@ -2757,9 +2757,9 @@ void Creature::SetCanFly(bool enable)
 void Creature::SetFeatherFall(bool enable)
 {
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_SAFE_FALL);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_SAFE_FALL);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_SAFE_FALL);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_SAFE_FALL);
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_FEATHER_FALL : SMSG_SPLINE_MOVE_NORMAL_FALL);
     data << GetPackGUID();
@@ -2769,9 +2769,9 @@ void Creature::SetFeatherFall(bool enable)
 void Creature::SetHover(bool enable)
 {
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_HOVER);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_HOVER);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_HOVER);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_HOVER);
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_HOVER : SMSG_SPLINE_MOVE_UNSET_HOVER, 9);
     data << GetPackGUID();
@@ -2781,9 +2781,9 @@ void Creature::SetHover(bool enable)
 void Creature::SetRoot(bool enable)
 {
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_ROOT);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_ROOT);
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_ROOT : SMSG_SPLINE_MOVE_UNROOT, 9);
     data << GetPackGUID();
@@ -2793,9 +2793,9 @@ void Creature::SetRoot(bool enable)
 void Creature::SetWaterWalk(bool enable)
 {
     if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_WATERWALKING);
+        m_movementInfo->AddMovementFlag(MOVEFLAG_WATERWALKING);
     else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_WATERWALKING);
+        m_movementInfo->RemoveMovementFlag(MOVEFLAG_WATERWALKING);
 
     WorldPacket data(enable ? SMSG_SPLINE_MOVE_WATER_WALK : SMSG_SPLINE_MOVE_LAND_WALK, 9);
     data << GetPackGUID();

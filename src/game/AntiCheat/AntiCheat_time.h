@@ -7,7 +7,7 @@ class AntiCheat_time : public AntiCheat
 public:
     AntiCheat_time(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat) override;
+    bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat) override;
     uint32 GetTimeDiff();
 
 private:

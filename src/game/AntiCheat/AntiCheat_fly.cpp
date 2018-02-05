@@ -5,7 +5,7 @@ AntiCheat_fly::AntiCheat_fly(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_fly::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_fly::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 

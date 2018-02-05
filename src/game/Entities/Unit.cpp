@@ -303,6 +303,8 @@ Unit::Unit() :
     m_combatData(new CombatData(this)),
     m_spellUpdateHappening(false)
 {
+    m_movementInfo = MovementInfoPtr(new MovementInfo());
+
     m_objectType |= TYPEMASK_UNIT;
     m_objectTypeId = TYPEID_UNIT;
     // 2.3.2 - 0x70
@@ -600,7 +602,7 @@ bool Unit::haveOffhandWeapon() const
 
 void Unit::SendHeartBeat()
 {
-    m_movementInfo.UpdateTime(WorldTimer::getMSTime());
+    m_movementInfo->UpdateTime(WorldTimer::getMSTime());
     WorldPacket data(MSG_MOVE_HEARTBEAT, 64);
     data << GetPackGUID();
     data << m_movementInfo;
@@ -9868,7 +9870,7 @@ void Unit::SetImmobilizedState(bool apply, bool stun)
         else
         {
             // Clear unit movement flags
-            m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
+            m_movementInfo->SetMovementFlags(MOVEFLAG_NONE);
             SetRoot(true);
         }
     }
@@ -9876,7 +9878,7 @@ void Unit::SetImmobilizedState(bool apply, bool stun)
     {
         clearUnitState(state);
         // Prevent giving ability to move if more immobilizers are active
-        if (!hasUnitState(immobilized) && (player || m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT)))
+        if (!hasUnitState(immobilized) && (player || m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT)))
             SetRoot(false);
     }
 }
@@ -10004,7 +10006,7 @@ void Unit::SetFeignDeath(bool apply, ObjectGuid casterGuid /*= ObjectGuid()*/)
         if (GetTypeId() != TYPEID_PLAYER)
             StopMoving();
         else
-            ((Player*)this)->m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
+            ((Player*)this)->m_movementInfo->SetMovementFlags(MOVEFLAG_NONE);
 
         // blizz like 2.0.x
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNK_29);
@@ -10821,7 +10823,7 @@ void Unit::UpdateSplineMovement(uint32 t_diff)
 
 void Unit::DisableSpline()
 {
-    m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD));
+    m_movementInfo->RemoveMovementFlag(MovementFlags(MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD));
     movespline->_Interrupt();
 }
 

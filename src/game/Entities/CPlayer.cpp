@@ -41,7 +41,7 @@ CPlayer::~CPlayer()
         delete i;
 }
 
-bool CPlayer::HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode)
+bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
 {
     bool cheat = false;
 

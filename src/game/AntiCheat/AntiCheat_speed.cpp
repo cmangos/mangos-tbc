@@ -8,7 +8,7 @@ AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
@@ -20,7 +20,7 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
         return false;
     }
 
-    if (opcode == MSG_MOVE_FALL_LAND || !isFalling(newMoveInfo))
+    if (opcode == MSG_MOVE_FALL_LAND || !isFalling(newmoveInfo))
         m_Knockback = false;
 
     if (GetDiff() < 250)
@@ -29,10 +29,10 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
     if (GetDistance3D() < 2.5f)
         return false;
 
-    if (!isSwimming(oldMoveInfo) && isSwimming(newMoveInfo))
+    if (!isSwimming(oldmoveInfo) && isSwimming(newmoveInfo))
         return false;
 
-    bool onTransport = isTransport(newMoveInfo) && isTransport(oldMoveInfo);
+    bool onTransport = isTransport(newmoveInfo) && isTransport(oldmoveInfo);
 
     float allowedspeed = GetAllowedSpeed();
 
@@ -44,13 +44,13 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
 
     if (isFalling())
     {
-        if (newMoveInfo.GetJumpInfo().xyspeed > allowedspeed)
+        if (newmoveInfo->GetJumpInfo().xyspeed > allowedspeed)
             cheating = true;
     }
     else if(travelspeed > allowedspeed)
 		cheating = true;
 
-    if (isTransport(newMoveInfo) && !verifyTransportCoords(newMoveInfo))
+    if (isTransport(newmoveInfo) && !verifyTransportCoords(newmoveInfo))
         cheating = false;
 
     if (!cheat && cheating)
@@ -58,21 +58,21 @@ bool AntiCheat_speed::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, boo
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
             m_Player->BoxChat << "----------------------------" << "\n";
-            m_Player->BoxChat << "xyspeed: " << newMoveInfo.GetJumpInfo().xyspeed << "\n";
-            m_Player->BoxChat << "velocity: " << newMoveInfo.GetJumpInfo().velocity << "\n";
+            m_Player->BoxChat << "xyspeed: " << newmoveInfo->GetJumpInfo().xyspeed << "\n";
+            m_Player->BoxChat << "velocity: " << newmoveInfo->GetJumpInfo().velocity << "\n";
             m_Player->BoxChat << "allowedspeed: " << allowedspeed << "\n";
             m_Player->BoxChat << "travelspeed: " << travelspeed << "\n";
             m_Player->BoxChat << "SPEEDCHEAT" << "\n";
         }
 
-		m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
+		m_Player->TeleportToPos(storedMapID, storedmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
-        return SetOldMoveInfo(true);
+        return SetoldmoveInfo(true);
     }
     else
-        SetStoredMoveInfo(false);
+        SetstoredmoveInfo(false);
 
-    return SetOldMoveInfo(false);
+    return SetoldmoveInfo(false);
 }
 
 void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)

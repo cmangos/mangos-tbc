@@ -59,7 +59,7 @@ public:
 
     // AntiCheat
 public:
-    bool HandleAntiCheat(MovementInfo& moveInfo, Opcodes opcode);
+    bool HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode);
     void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
     void HandleRelocate(float x, float y, float z, float o);
     void HandleTeleport(uint32 map, float x, float y, float z, float o);

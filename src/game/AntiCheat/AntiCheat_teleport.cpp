@@ -5,7 +5,7 @@ AntiCheat_teleport::AntiCheat_teleport(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_teleport::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
@@ -13,19 +13,19 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
     {
         knockBack = false;
         teleporting = false;
-        return SetOldMoveInfo(false);
+        return SetoldmoveInfo(false);
     }
 
     if (!cheat && !knockBack && !teleporting)
     {
-        if (!IsMoving(oldMoveInfo) && GetDistOrTransportDist(true) > 0.1f && (!isFalling() || opcode == MSG_MOVE_JUMP))
+        if (!IsMoving(oldmoveInfo) && GetDistOrTransportDist(true) > 0.1f && (!isFalling() || opcode == MSG_MOVE_JUMP))
         {
-			m_Player->TeleportToPos(oldMapID, oldMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
+			m_Player->TeleportToPos(oldMapID, oldmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
             if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
                 m_Player->BoxChat << "TELE CHEAT" << "\n";
 
-            return SetOldMoveInfo(true);
+            return SetoldmoveInfo(true);
         }
     }
 
@@ -35,7 +35,7 @@ bool AntiCheat_teleport::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
         teleporting = false;
     }
 
-    return SetOldMoveInfo(false);
+    return SetoldmoveInfo(false);
 }
 
 void AntiCheat_teleport::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)

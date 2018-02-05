@@ -7,6 +7,6 @@ class AntiCheat_wallclimb : public AntiCheat
 public:
     AntiCheat_wallclimb(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat) override;
+    bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat) override;
 private:
 };

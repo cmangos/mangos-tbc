@@ -8,22 +8,22 @@ AntiCheat_waterwalking::AntiCheat_waterwalking(CPlayer* player) : AntiCheat(play
 {
 }
 
-bool AntiCheat_waterwalking::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_waterwalking::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
-        return SetOldMoveInfo(false);
+        return SetoldmoveInfo(false);
 
-    if (!cheat && !CanWaterwalk() && MoveInfo.HasMovementFlag(MOVEFLAG_WATERWALKING))
+    if (!cheat && !CanWaterwalk() && MoveInfo->HasMovementFlag(MOVEFLAG_WATERWALKING))
     {
         m_Player->SetWaterWalk(false);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "WATERWALK CHEAT" << "\n";
 
-        return SetOldMoveInfo(true);
+        return SetoldmoveInfo(true);
     }
 
-    return SetOldMoveInfo(false);
+    return SetoldmoveInfo(false);
 }

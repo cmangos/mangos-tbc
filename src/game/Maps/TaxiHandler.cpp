@@ -194,7 +194,7 @@ void WorldSession::HandleMoveSplineDoneOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("WORLD: Received opcode CMSG_MOVE_SPLINE_DONE");
 
-    MovementInfo movementInfo;                              // used only for proper packet read
+    MovementInfoPtr movementInfo = MovementInfoPtr(new MovementInfo()); // used only for proper packet read
 
     recv_data >> movementInfo;
     recv_data >> Unused<uint32>();                          // unk

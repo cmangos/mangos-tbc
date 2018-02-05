@@ -2045,23 +2045,23 @@ class Player : public Unit
         /*********************************************************/
         /***                 VARIOUS SYSTEMS                   ***/
         /*********************************************************/
-        bool HasMovementFlag(MovementFlags f) const;        // for script access to m_movementInfo.HasMovementFlag
-        void UpdateFallInformationIfNeed(MovementInfo const& minfo, uint16 opcode);
+        bool HasMovementFlag(MovementFlags f) const;        // for script access to m_movementInfo->HasMovementFlag
+        void UpdateFallInformationIfNeed(const MovementInfoPtr& minfo, uint16 opcode);
         void SetFallInformation(uint32 time, float z)
         {
             m_lastFallTime = time;
             m_lastFallZ = z;
         }
-        void HandleFall(MovementInfo const& movementInfo);
+        void HandleFall(const MovementInfoPtr& movementInfo);
 
         void BuildTeleportAckMsg(WorldPacket& data, float x, float y, float z, float ang) const;
 
-        bool isMovingOrTurning() const { return m_movementInfo.HasMovementFlag(movementOrTurningFlagsMask); }
+        bool isMovingOrTurning() const { return m_movementInfo->HasMovementFlag(movementOrTurningFlagsMask); }
 
         bool CanSwim() const { return true; }
-        bool CanFly() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_CAN_FLY); }
+        bool CanFly() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_CAN_FLY); }
         bool CanWalk() const { return true; }
-        bool IsFlying() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FLYING); }
+        bool IsFlying() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_FLYING); }
         bool IsFreeFlying() const { return HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED) || HasAuraType(SPELL_AURA_FLY); }
 
         bool IsClientControl(Unit const* target) const;
@@ -2077,11 +2077,11 @@ class Player : public Unit
         Transport* GetTransport() const { return m_transport; }
         void SetTransport(Transport* t) { m_transport = t; }
 
-        float GetTransOffsetX() const { return m_movementInfo.GetTransportPos()->x; }
-        float GetTransOffsetY() const { return m_movementInfo.GetTransportPos()->y; }
-        float GetTransOffsetZ() const { return m_movementInfo.GetTransportPos()->z; }
-        float GetTransOffsetO() const { return m_movementInfo.GetTransportPos()->o; }
-        uint32 GetTransTime() const { return m_movementInfo.GetTransportTime(); }
+        float GetTransOffsetX() const { return m_movementInfo->GetTransportPos()->x; }
+        float GetTransOffsetY() const { return m_movementInfo->GetTransportPos()->y; }
+        float GetTransOffsetZ() const { return m_movementInfo->GetTransportPos()->z; }
+        float GetTransOffsetO() const { return m_movementInfo->GetTransportPos()->o; }
+        uint32 GetTransTime() const { return m_movementInfo->GetTransportTime(); }
 
         uint32 GetSaveTimer() const { return m_nextSave; }
         void   SetSaveTimer(uint32 timer) { m_nextSave = timer; }

@@ -5,14 +5,14 @@ AntiCheat_tptoplane::AntiCheat_tptoplane(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_tptoplane::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_tptoplane::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
-        return SetOldMoveInfo(false);
+        return SetoldmoveInfo(false);
 
-    const Position* p = newMoveInfo.GetPos();
+    const Position* p = newmoveInfo->GetPos();
 
     if (GetDiff() < 1000 || std::abs(p->z) > 0.1f)
         return false;
@@ -25,16 +25,16 @@ bool AntiCheat_tptoplane::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
 
     if (!cheat && playerZ - groundZ < -1.f && playerZ < groundZ)
     {
-        p = oldMoveInfo.GetPos();
+        p = oldmoveInfo->GetPos();
         groundZ = terrain->GetHeightStatic(p->x, p->y, p->z);
 
-		m_Player->TeleportToPos(oldMapID, oldMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
+		m_Player->TeleportToPos(oldMapID, oldmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "TELEPORT TO PLANE CHEAT" << "\n";
 
-        return SetOldMoveInfo(true);
+        return SetoldmoveInfo(true);
     }
 
-    return SetOldMoveInfo(false);
+    return SetoldmoveInfo(false);
 }

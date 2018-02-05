@@ -652,6 +652,8 @@ MovementFlags const movementOrTurningFlagsMask = MovementFlags(
             movementFlagsMask | MOVEFLAG_TURN_LEFT | MOVEFLAG_TURN_RIGHT
         );
 
+typedef std::shared_ptr<MovementInfo> MovementInfoPtr;
+
 class MovementInfo
 {
     public:
@@ -725,6 +727,18 @@ class MovementInfo
         float    u_unk1;
 };
 
+inline ByteBuffer& operator<< (ByteBuffer& buf, MovementInfoPtr mi)
+{
+    mi->Write(buf);
+    return buf;
+}
+
+inline ByteBuffer& operator>> (ByteBuffer& buf, MovementInfoPtr mi)
+{
+    mi->Read(buf);
+    return buf;
+}
+
 inline ByteBuffer& operator<< (ByteBuffer& buf, MovementInfo const& mi)
 {
     mi.Write(buf);
@@ -733,7 +747,7 @@ inline ByteBuffer& operator<< (ByteBuffer& buf, MovementInfo const& mi)
 
 inline ByteBuffer& operator>> (ByteBuffer& buf, MovementInfo& mi)
 {
-    mi.Read(buf);
+    mi.Write(buf);
     return buf;
 }
 
@@ -1719,10 +1733,10 @@ class Unit : public WorldObject
         // if used additional args in ... part then floats must explicitly casted to double
         void SendHeartBeat();
 
-        bool IsMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
-        bool IsLevitating() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_LEVITATING); }
-        bool IsWalking() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE); }
-        bool IsRooted() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT); }
+        bool IsMoving() const { return m_movementInfo->HasMovementFlag(movementFlagsMask); }
+        bool IsLevitating() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_LEVITATING); }
+        bool IsWalking() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_WALK_MODE); }
+        bool IsRooted() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT); }
 
         virtual void SetLevitate(bool /*enabled*/) {}
         virtual void SetSwim(bool /*enabled*/) {}
@@ -2196,7 +2210,7 @@ class Unit : public WorldObject
         void RemovePetAura(PetAura const* petSpell);
 
         // Movement info
-        MovementInfo m_movementInfo;
+        MovementInfoPtr m_movementInfo;
         Movement::MoveSpline* movespline;
 
         void ScheduleAINotify(uint32 delay);

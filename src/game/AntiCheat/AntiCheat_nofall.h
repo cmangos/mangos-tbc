@@ -7,5 +7,5 @@ class AntiCheat_nofall : public AntiCheat
 public:
     AntiCheat_nofall(CPlayer* player);
 
-    bool HandleMovement(MovementInfo& moveInfo, Opcodes opcode, bool cheat);
+    bool HandleMovement(const MovementInfoPtr& moveInfo, Opcodes opcode, bool cheat);
 };

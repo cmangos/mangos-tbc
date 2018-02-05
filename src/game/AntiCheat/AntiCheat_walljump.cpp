@@ -6,7 +6,7 @@ AntiCheat_walljump::AntiCheat_walljump(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
@@ -24,7 +24,7 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
         {
             if (!cheat && !isFlying() && !isSwimming() && AboveAngleCount)
             {
-				m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
+				m_Player->TeleportToPos(storedMapID, storedmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
                 if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
                     m_Player->BoxChat << "Jumpclimbing angle: " << angle << "\n";
@@ -37,7 +37,7 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
         else
         {
             --AboveAngleCount;
-            SetStoredMoveInfo(false);
+            SetstoredmoveInfo(false);
         }
     }
 
@@ -46,12 +46,12 @@ bool AntiCheat_walljump::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, 
     if (opcode == MSG_MOVE_JUMP)
     {
         if (!AboveAngleCount)
-            SetStoredMoveInfo(false);
+            SetstoredmoveInfo(false);
 
-        return SetOldMoveInfo(cheat);
+        return SetoldmoveInfo(cheat);
     }
 
-    if (storedMoveInfo.GetPos()->z > newMoveInfo.GetPos()->z)
+    if (storedmoveInfo->GetPos()->z > newmoveInfo->GetPos()->z)
         AboveAngleCount = 0;
 
     return cheat;

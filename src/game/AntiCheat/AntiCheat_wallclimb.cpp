@@ -5,23 +5,23 @@ AntiCheat_wallclimb::AntiCheat_wallclimb(CPlayer* player) : AntiCheat(player)
 {
 }
 
-bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_wallclimb::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (isTransport())
-        return SetOldMoveInfo(false);
+        return SetoldmoveInfo(false);
 
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
 
     if (angle <= 50.f)
-        SetStoredMoveInfo(false);
+        SetstoredmoveInfo(false);
 
     if (!Initialized())
         return false;
 
     if (GetDistanceZ() <= 0.f)
-        return SetOldMoveInfo(false);
+        return SetoldmoveInfo(false);
 
     if (GetDistanceZ() < JUMPHEIGHT_WATER)
         return false;
@@ -37,13 +37,13 @@ bool AntiCheat_wallclimb::HandleMovement(MovementInfo& MoveInfo, Opcodes opcode,
 
     if (!cheat && angle > 50.f)
     {
-		m_Player->TeleportToPos(storedMapID, storedMoveInfo.GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
+		m_Player->TeleportToPos(storedMapID, storedmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
             m_Player->BoxChat << "Wallclimbing angle: " << angle << "\n";
 
-        return SetOldMoveInfo(true);
+        return SetoldmoveInfo(true);
     }
 
-    return SetOldMoveInfo(false);
+    return SetoldmoveInfo(false);
 }

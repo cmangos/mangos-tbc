@@ -75,7 +75,7 @@ namespace Movement
 
         // corrent first vertex
         args.path[0] = real_position;
-        uint32 moveFlags = unit.m_movementInfo.GetMovementFlags();
+        uint32 moveFlags = unit.m_movementInfo->GetMovementFlags();
         if (args.flags.runmode)
             moveFlags &= ~MOVEFLAG_WALK_MODE;
         else
@@ -89,7 +89,7 @@ namespace Movement
         if (!args.Validate(&unit))
             return 0;
 
-        unit.m_movementInfo.SetMovementFlags((MovementFlags)moveFlags);
+        unit.m_movementInfo->SetMovementFlags((MovementFlags)moveFlags);
         move_spline.Initialize(args);
 
         WorldPacket data(SMSG_MONSTER_MOVE, 64);
@@ -138,7 +138,7 @@ namespace Movement
         args.path[0] = real_position;
 
         args.flags = MoveSplineFlag::Done;
-        unit.m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_FORWARD | MOVEFLAG_SPLINE_ENABLED));
+        unit.m_movementInfo->RemoveMovementFlag(MovementFlags(MOVEFLAG_FORWARD | MOVEFLAG_SPLINE_ENABLED));
         move_spline.Initialize(args);
 
         WorldPacket data(SMSG_MONSTER_MOVE, 64);
@@ -159,8 +159,8 @@ namespace Movement
     MoveSplineInit::MoveSplineInit(Unit& m) : unit(m)
     {
         // mix existing state into new
-        args.flags.runmode = !unit.m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE);
-        args.flags.flying = unit.m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING | MOVEFLAG_LEVITATING));
+        args.flags.runmode = !unit.m_movementInfo->HasMovementFlag(MOVEFLAG_WALK_MODE);
+        args.flags.flying = unit.m_movementInfo->HasMovementFlag((MovementFlags)(MOVEFLAG_CAN_FLY | MOVEFLAG_FLYING | MOVEFLAG_LEVITATING));
     }
 
     void MoveSplineInit::SetFacing(const Unit* target)

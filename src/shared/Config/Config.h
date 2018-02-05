@@ -31,7 +31,7 @@ class Config
 {
     private:
         std::string m_filename;
-        std::unordered_map<std::string, std::string> m_entries; // keys are converted to lower case.  values cannot be.
+        std::map<std::string, std::string> m_entries; // keys are converted to lower case.  values cannot be.
 
     public:
         bool SetSource(const std::string& file);

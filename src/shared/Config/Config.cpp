@@ -42,7 +42,7 @@ bool Config::Reload()
     if (in.fail())
         return false;
 
-    std::unordered_map<std::string, std::string> newEntries;
+    std::map<std::string, std::string> newEntries;
     std::lock_guard<std::mutex> guard(m_configLock);
 
     do

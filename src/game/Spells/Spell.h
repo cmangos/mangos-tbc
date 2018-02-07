@@ -402,7 +402,7 @@ class Spell
         void _handle_finish_phase();
 
         SpellCastResult CheckItems();
-        SpellCastResult CheckRange(bool strict) const;
+        SpellCastResult CheckRange(bool strict);
         SpellCastResult CheckPower();
         SpellCastResult CheckCasterAuras() const;
 
@@ -562,6 +562,7 @@ class Spell
         int32 m_duration;
         bool m_reflectable;                                  // can reflect this spell?
         bool m_autoRepeat;
+        float m_maxRange;                                   // For channeled spell check
 
         uint8 m_delayAtDamageCount;
         int32 GetNextDelayAtDamageMsTime() { return m_delayAtDamageCount < 5 ? 1000 - (m_delayAtDamageCount++) * 200 : 200; }

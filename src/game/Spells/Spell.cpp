@@ -3669,13 +3669,7 @@ void Spell::SendCastResult(SpellCastResult result) const
 void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult /*=false*/)
 {
     if (result == SPELL_CAST_OK)
-    {
-        WorldPacket data(SMSG_CLEAR_EXTRA_AURA_INFO, (8 + 4));
-        data << caster->GetPackGUID();
-        data << uint32(spellInfo->Id);
-        caster->GetSession()->SendPacket(data);
         return;
-    }
 
     WorldPacket data(isPetCastResult ? SMSG_PET_CAST_FAILED : SMSG_CAST_RESULT, (4 + 1 + 2));                              // single cast or multi 2.3 (0/1)
     data << uint32(spellInfo->Id);

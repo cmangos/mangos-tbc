@@ -146,6 +146,25 @@ INSERT INTO world_template VALUES
 (1, 'world_map_kalimdor'),
 (530, 'world_map_outland');
 
+-- gromgol UC
+INSERT INTO scripted_event_id VALUES
+(15314,'event_transports'),
+(15315,'event_transports'),
+(15312,'event_transports'),
+(15313,'event_transports');
+-- OG UC
+INSERT INTO scripted_event_id VALUES
+(15318,'event_transports'),
+(15319,'event_transports'),
+(15320,'event_transports'),
+(15321,'event_transports');
+-- gromgol OG
+INSERT INTO scripted_event_id VALUES
+(15322,'event_transports'),
+(15323,'event_transports'),
+(15324,'event_transports'),
+(15325,'event_transports');
+
 /*  */
 /* ZONE */
 /* */
@@ -577,6 +596,8 @@ UPDATE creature_template SET ScriptName='npc_anchorite_barada' WHERE entry=22431
 UPDATE creature_template SET ScriptName='npc_colonel_jules' WHERE entry=22432;
 UPDATE creature_template SET ScriptName='npc_magister_aledis' WHERE entry=20159;
 UPDATE creature_template SET ScriptName='npc_living_flare' WHERE entry=24916;
+UPDATE creature_template SET ScriptName='npc_danath_trollbane' WHERE `Entry`='16819';
+UPDATE creature_template SET ScriptName='npc_nazgrel' WHERE `Entry`='3230';
 
 /* HILLSBRAD FOOTHILLS */
 
@@ -838,6 +859,7 @@ UPDATE creature_template SET ScriptName='npc_veneratus_spawn_node' WHERE entry=2
 UPDATE creature_template SET ScriptName='npc_dirty_larry' WHERE entry=19720;
 UPDATE creature_template SET ScriptName='npc_khadgars_servant' WHERE entry=19685;
 UPDATE creature_template SET ScriptName='npc_salsalabim' WHERE entry=18584;
+UPDATE creature_template SET ScriptName='npc_adal' WHERE entry IN(18481);
 
 /* SILITHUS */
 UPDATE creature_template SET ScriptName='npc_anachronos_the_ancient' WHERE entry=15381;
@@ -1714,10 +1736,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1000589,'Kroshius live? Kroshius crush!',0,1,0,0,'SAY_KROSHIUS_REVIVE'),
 
-(-1000590,'REUSE_ME',0,0,0,0,'REUSE_ME'),
-(-1000591,'REUSE_ME',0,0,0,0,'REUSE_ME'),
-(-1000592,'REUSE_ME',0,0,0,0,'REUSE_ME'),
-(-1000593,'REUSE_ME',0,0,0,0,'REUSE_ME'),
+(-1000590,'The feast of curruption is no more! Magtheridon has fallen to the battle prowess of $N and $Ghis:her; allies! Witness the might of the Alliance! A pit lord commander is destroyed!', '0', '6', '0', '15', 'Yell Magtheridon Death1 A'),
+(-1000591,'Hear me brothers and sisters-in-arms! The time of our enemies is at an end! We must strike at the fel orcs that remain! Exterminate them like the vermin that they are! Carry with you the favor of the Sons of Lothar!', '0', '6', '0', '22', 'Yell Magtheridon Death2 A'),
+(-1000592,'For the first time - in as long as I can remember - there is silence.', '0', '6', '0', '15', 'Yell Magtheridon Death1 H'),
+(-1000593,'This defeat is not only a blow to Illidan, $n. The Legion too reels... A pit lord commander has been defeated. The siege of Hellfire Citadel now holds no purpose for the Burning Legion. All of their efforts will undoubtedly be turned upon the Black Temple. Redemption comes for Illidan... and soon.', '0', '6', '0', '22', 'Yell Magtheridon Death2 H'),
 
 (-1000603,'Do not test me, scurvy dog! I\'m trained in the way of the Blood Knights!',0,0,0,0,'silvermoon harry SAY_AGGRO'),
 (-1000604,'I\'ll pay! I\'ll pay! Eeeek! Please don\'t hurt me!',0,0,0,0,'silvermoon harry SAY_BEATEN'),

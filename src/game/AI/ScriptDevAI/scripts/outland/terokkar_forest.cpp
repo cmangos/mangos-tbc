@@ -1423,7 +1423,15 @@ struct npc_vengeful_harbinger : public ScriptedAI
         uiDamage = 0;
 
         m_creature->CombatStop();
+        m_creature->InterruptNonMeleeSpells(true);
         m_creature->DeleteThreatList();
+        m_creature->SetHealth(1);
+        m_creature->StopMoving();
+        m_creature->ClearComboPointHolders();
+        m_creature->RemoveAllAurasOnDeath();
+        m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
+        m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
+        m_creature->ClearAllReactives();
         m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_VENGEFUL_HARBINGER_FAKE_DEATH, m_creature, m_creature);

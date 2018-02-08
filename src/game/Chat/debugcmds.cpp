@@ -1155,4 +1155,6 @@ bool ChatHandler::HandleDebugWaypoint(char* args)
         return false;
 
     target->GetMotionMaster()->MoveWaypoint(pathId, 2);
+
+    return true;
 }

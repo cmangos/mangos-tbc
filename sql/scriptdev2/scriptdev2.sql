@@ -709,6 +709,7 @@ UPDATE gameobject_template SET ScriptName='go_molten_core_rune' WHERE entry IN (
 UPDATE creature_template SET ScriptName='npc_clintar_dw_spirit' WHERE entry=22916;
 UPDATE creature_template SET ScriptName='npc_keeper_remulos' WHERE entry=11832;
 UPDATE creature_template SET ScriptName='boss_eranikus' WHERE entry=15491;
+UPDATE gameobject_template SET ScriptName='go_omen_cluster' WHERE entry=180859;
 
 /* MULGORE */
 UPDATE creature_template SET ScriptName='npc_kyle_the_frenzied' WHERE entry=23616;

@@ -829,6 +829,53 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 18350:                                 // Dummy Trigger
+                {
+                    if (m_triggeredByAuraSpell && unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        switch (m_triggeredByAuraSpell->Id)
+                        {
+                            case 28821: // Lightning Shield
+                            {
+                                // Need remove self if Lightning Shield not active
+                                Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
+                                for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                                {
+                                    SpellEntry const* spell = itr->second->GetSpellProto();
+                                    if (spell->SpellFamilyName == SPELLFAMILY_SHAMAN
+                                        && spell->SpellFamilyFlags & uint64(0x0000000000000400))
+                                        return;
+                                }
+
+                                unitTarget->RemoveAurasDueToSpell(28820);
+                                break;
+                            }
+                            case 37705: // Healing Discount
+                            {
+                                Player* playerTarget = (Player*) unitTarget;
+                                uint32 spellId = 0;
+                                switch (playerTarget->getClass())
+                                {
+                                    case CLASS_PALADIN:
+                                        spellId = 37723;
+                                        break;
+                                    case CLASS_PRIEST:
+                                        spellId = 37706;
+                                        break;
+                                    case CLASS_SHAMAN:
+                                        spellId = 37722;
+                                        break;
+                                    case CLASS_DRUID:
+                                        spellId = 37721;
+                                        break;
+                                }
+                                playerTarget->CastSpell(playerTarget, spellId, TRIGGERED_OLD_TRIGGERED);
+                                break;
+                            }
+                        }
+                    }
+                    return;
+                }
                 case 19395:                                 // Gordunni Trap
                 {
                     if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
@@ -1516,6 +1563,24 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             unitTarget->CastSpell(unitTarget, urand(0, 1) ? 39088 : 39091, TRIGGERED_OLD_TRIGGERED);
                             break;
                     }
+                    return;
+                }
+                case 37867:                                 // Arcano-Scorp Control
+                case 37892:
+                case 37894:
+                {
+                    if (!unitTarget)
+                        return;
+
+                    uint32 spellId;
+                    switch (m_spellInfo->Id)
+                    {
+                        case 37867: spellId = 37868; break;
+                        case 37892: spellId = 37893; break;
+                        case 37894: spellId = 37895; break;
+                    }
+
+                    unitTarget->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
                 case 39189:                                 // Sha'tari Torch
@@ -2708,10 +2773,6 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
     // special cases
     switch (triggered_spell_id)
     {
-        // just skip
-        case 23770:                                         // Sayge's Dark Fortune of *
-            // not exist, common cooldown can be implemented in scripts if need.
-            return;
         // Brittle Armor - (need add max stack of 24575 Brittle Armor)
         case 29284:
             m_caster->CastSpell(unitTarget, 24575, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID);
@@ -3221,6 +3282,40 @@ void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
 
             addhealth += tickheal * tickcount;
         }
+        else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_POTION)
+        {
+            if (m_caster->HasAura(17619)) // Alchemists stone
+                addhealth *= 1.4f; // increase healing by 40%
+        }
+        else 
+        {
+            switch (m_spellInfo->Id)
+            {
+                // Crusader Enchant: Holy Strength amount decrease by 4% each level after 60
+                case 20007:
+                {
+                    if (GetCaster()->GetTypeId() == TYPEID_PLAYER && GetCaster()->getLevel() > 60)
+                        addhealth = int32(addhealth * (1 - (((float(GetCaster()->getLevel()) - 60) * 4) / 100)));
+                    break;
+                }
+                // Vessel of the Naaru (Vial of the Sunwell trinket)
+                case  45064:
+                {
+                    // Amount of heal - depends from stacked Holy Energy
+                    int damageAmount = 0;
+                    Unit::AuraList const& mDummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
+                    for (Unit::AuraList::const_iterator i = mDummyAuras.begin(); i != mDummyAuras.end(); ++i)
+                        if ((*i)->GetId() == 45062)
+                            damageAmount += (*i)->GetModifier()->m_amount;
+                    if (damageAmount)
+                        m_caster->RemoveAurasDueToSpell(45062);
+                
+                    addhealth += damageAmount;
+                    break;
+                
+                }
+            }
+        }
 
         addhealth = caster->SpellHealingBonusDone(unitTarget, m_spellInfo, addhealth, HEAL);
         addhealth = unitTarget->SpellHealingBonusTaken(caster, m_spellInfo, addhealth, HEAL);
@@ -3471,6 +3566,12 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
             break;
         default:
             break;
+    }
+
+    if (m_spellInfo->SpellFamilyName == SPELLFAMILY_POTION)
+    {
+        if (m_caster->HasAura(17619)) // Alchemists stone
+            damage *= 1.4f; // increase healing by 40%
     }
 
     if (level_diff > 0)
@@ -4433,7 +4534,7 @@ void Spell::EffectAddFarsight(SpellEffectIndex eff_idx)
     ((Player*)m_caster)->GetCamera().SetView(dynObj);
 }
 
-bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 /*level*/)
+bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level)
 {
     uint32 creature_entry = m_spellInfo->EffectMiscValue[effIdx];
     CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(creature_entry);
@@ -4455,6 +4556,23 @@ bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry co
             // UNIT_FIELD_CREATEDBY are not set for these kind of spells.
             // Does exceptions exist? If so, what are they?
             // summon->SetCreatorGuid(m_caster->GetObjectGuid());
+
+
+            switch(m_spellInfo->Id)
+            {
+                case 1122: // Warlock Infernal - requires custom code - generalized in WOTLK
+                {
+                    summon->SelectLevel(level); // needs to have casters level
+                    // Enslave demon effect, without mana cost and cooldown
+                    summon->CastSpell(summon, 22707, TRIGGERED_OLD_TRIGGERED);  // short root spell on infernal from sniffs
+                    m_caster->CastSpell(summon, 20882, TRIGGERED_OLD_TRIGGERED);
+                    summon->CastSpell(summon, 22703, TRIGGERED_OLD_TRIGGERED);  // Inferno effect
+                    break;
+                }
+                case 37390:
+                    summon->SetOwnerGuid(m_caster->GetObjectGuid());
+                    break;
+            }
         }
         else
             return false;
@@ -6329,6 +6447,11 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 32756, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 50499:                                 // Listening to Music (Parent)
+                {
+                    unitTarget->CastSpell(unitTarget, 50493, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
             }
             break;
         }
@@ -6527,8 +6650,8 @@ void Spell::EffectSanctuary(SpellEffectIndex /*eff_idx*/)
 {
     if (!unitTarget)
         return;
-    // unitTarget->CombatStop();
 
+    unitTarget->InterruptSpellsCastedOnMe(true);
     unitTarget->CombatStop(false, false);
     unitTarget->getHostileRefManager().deleteReferences();  // stop all fighting
 

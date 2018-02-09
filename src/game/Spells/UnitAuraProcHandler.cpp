@@ -1522,9 +1522,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(Unit* pVictim, uint32 damage, Aura
             // Earth Shield
             if (dummySpell->SpellFamilyFlags & uint64(0x0000040000000000))
             {
-                if (GetTypeId() != TYPEID_PLAYER)
-                    return SPELL_AURA_PROC_FAILED;
-
                 // heal
                 basepoints[0] = triggerAmount;
                 target = this;
@@ -1758,6 +1755,20 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                     // case 47300: break;                   // Dark Flame Aura
                     // case 50051: break;                   // Ethereal Pet Aura
                     break;
+                case 38164: //Unyielding Knights
+                    //this can only proc in hellfire peninsula 
+                    //with a maximum of 2 guardians
+                    //against fel orc faction only
+                    if (GetZoneId() != 3483 || pVictim->getFactionTemplateEntry()->faction != 943 || CountGuardiansWithEntry(20117) == 2)
+                        return SPELL_AURA_PROC_FAILED;
+                    break;
+                case 48473:                                 // Capture Soul - Doom Lord Kazzak
+                    if (pVictim->GetTypeId() != TYPEID_PLAYER) // only player death procs
+                        return SPELL_AURA_PROC_FAILED;
+                    if (Player* lootRecipient = ((Creature*)this)->GetLootRecipient()) // only same team as the one that tagged procs
+                        if (lootRecipient->GetTeam() != ((Player*)pVictim)->GetTeam()) // prevents horde/alliance griefing
+                            return SPELL_AURA_PROC_FAILED;
+                    break;
             }
             break;
         case SPELLFAMILY_MAGE:
@@ -1987,14 +1998,8 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 }
             }
             */
-            // Healing Discount
-            if (auraSpellInfo->Id == 37705)
-            {
-                trigger_spell_id = 37706;
-                target = this;
-            }
             // Judgement of Light and Judgement of Wisdom
-            else if (auraSpellInfo->SpellFamilyFlags & uint64(0x0000000000080000))
+            if (auraSpellInfo->SpellFamilyFlags & uint64(0x0000000000080000))
             {
                 switch (auraSpellInfo->Id)
                 {
@@ -2320,6 +2325,9 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(Unit* pVictim, uint3
         case 5497:                                          // Improved Mana Gems (Serpent-Coil Braid)
             triggered_spell_id = 37445;                     // Mana Surge
             break;
+        case 5510:                                          // Flexibility - T4 Holy Priest bonus
+            RemoveAurasDueToSpell(37565);
+            return SPELL_AURA_PROC_OK;
     }
 
     // not processed

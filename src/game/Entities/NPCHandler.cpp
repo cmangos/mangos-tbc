@@ -487,7 +487,7 @@ void WorldSession::SendStablePet(ObjectGuid guid) const
     data << uint8(GetPlayer()->m_stableSlots);
 
     uint8 num = 0;                                          // counter for place holder
-    PetSaveMode firstSlot = PET_SAVE_FIRST_STABLE_SLOT;     // have to be changed to PET_SAVE_AS_CURRENT if pet is not currently summoned
+    PetSaveMode firstSlot = PET_SAVE_FIRST_STABLE_SLOT;     // have to be changed to PET_SAVE_AS_CURRENT if pet is currently temp unsummoned
 
     // not let move dead pet in slot
     if (pet && pet->isAlive() && pet->getPetType() == HUNTER_PET)
@@ -501,7 +501,34 @@ void WorldSession::SendStablePet(ObjectGuid guid) const
         ++num;
     }
     else
-        firstSlot = PET_SAVE_AS_CURRENT;                    // have to send also unsummoned pet
+    {
+        if(_player->GetTemporaryUnsummonedPetNumber()) // temporary unsummon - mount
+            firstSlot = PET_SAVE_AS_CURRENT;
+        else
+        {
+            QueryResult* result = CharacterDatabase.PQuery("SELECT owner, id, entry, level, name, loyalty FROM character_pet WHERE owner = '%u' AND slot = '%u' ORDER BY slot",
+                _player->GetGUIDLow(), uint32(PET_SAVE_NOT_IN_SLOT));
+
+            if (result) // dismissed pet
+            {
+                do
+                {
+                    Field* fields = result->Fetch();
+
+                    data << uint32(fields[1].GetUInt32());          // petnumber
+                    data << uint32(fields[2].GetUInt32());          // creature entry
+                    data << uint32(fields[3].GetUInt32());          // level
+                    data << fields[4].GetString();                  // name
+                    data << uint32(fields[5].GetUInt32());          // loyalty
+                    data << uint8(0x01);       // slot
+
+                    ++num;
+                } while (result->NextRow());
+
+                delete result;
+            }
+        }
+    }
 
     //                                                     0      1     2   3      4      5        6
     QueryResult* result = CharacterDatabase.PQuery("SELECT owner, slot, id, entry, level, loyalty, name FROM character_pet WHERE owner = '%u' AND slot >= '%u' AND slot <= '%u' ORDER BY slot",
@@ -608,7 +635,7 @@ void WorldSession::HandleStablePet(WorldPacket& recv_data)
     }
     else
     {
-        SpellCastResult loadResult = Pet::TryLoadFromDB(_player, 0, 0, true, HUNTER_PET);
+        SpellCastResult loadResult = Pet::TryLoadFromDB(_player, 0, 0, _player->GetTemporaryUnsummonedPetNumber() ? true : false, HUNTER_PET);
         if (loadResult != SPELL_CAST_OK)
         {
             if (loadResult == SPELL_FAILED_TARGETS_DEAD)
@@ -656,7 +683,7 @@ void WorldSession::HandleStablePet(WorldPacket& recv_data)
             CharacterDatabase.BeginTransaction();
             static SqlStatementID ChangePetSlot_ID;
             SqlStatement ChangePetSlot = CharacterDatabase.CreateStatement(ChangePetSlot_ID, "UPDATE character_pet SET slot = ? WHERE owner = ? AND slot = ? ");
-            ChangePetSlot.PExecute(free_slot, _player->GetObjectGuid().GetCounter(), uint32(PET_SAVE_AS_CURRENT));
+            ChangePetSlot.PExecute(free_slot, _player->GetObjectGuid().GetCounter(), uint32(_player->GetTemporaryUnsummonedPetNumber() ? PET_SAVE_AS_CURRENT : PET_SAVE_NOT_IN_SLOT));
             CharacterDatabase.CommitTransaction();
         }
         SendStableResult(STABLE_SUCCESS_STABLE);
@@ -742,7 +769,7 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
     else
     {
         // try to find if pet is actually temporary unsummoned
-        SpellCastResult loadResult = Pet::TryLoadFromDB(_player, 0, 0, true, HUNTER_PET);
+        SpellCastResult loadResult = Pet::TryLoadFromDB(_player, 0, 0, _player->GetTemporaryUnsummonedPetNumber() ? true : false, HUNTER_PET);
         if (loadResult != SPELL_CAST_OK)
         {
             if (loadResult == SPELL_FAILED_TARGETS_DEAD)
@@ -766,7 +793,7 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
             CharacterDatabase.BeginTransaction();
             static SqlStatementID ChangePetSlot_ID;
             SqlStatement ChangePetSlot = CharacterDatabase.CreateStatement(ChangePetSlot_ID, "UPDATE character_pet SET slot = ? WHERE owner = ? AND slot = ? ");
-            ChangePetSlot.PExecute(slot, _player->GetObjectGuid().GetCounter(), uint32(PET_SAVE_AS_CURRENT));
+            ChangePetSlot.PExecute(slot, _player->GetObjectGuid().GetCounter(), uint32(_player->GetTemporaryUnsummonedPetNumber() ? PET_SAVE_AS_CURRENT : PET_SAVE_NOT_IN_SLOT));
             CharacterDatabase.CommitTransaction();
             _player->SetTemporaryUnsummonedPetNumber(0);
         }
@@ -862,7 +889,7 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
     }
     else
     {
-        SpellCastResult loadResult = Pet::TryLoadFromDB(_player, 0, 0, true, HUNTER_PET);
+        SpellCastResult loadResult = Pet::TryLoadFromDB(_player, 0, 0, _player->GetTemporaryUnsummonedPetNumber() ? true : false, HUNTER_PET);
         if (loadResult != SPELL_CAST_OK)
         {
             if (loadResult == SPELL_FAILED_TARGETS_DEAD)
@@ -913,7 +940,7 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
         CharacterDatabase.BeginTransaction();
         static SqlStatementID ChangePetSlot_ID;
         SqlStatement ChangePetSlot = CharacterDatabase.CreateStatement(ChangePetSlot_ID, "UPDATE character_pet SET slot = ? WHERE owner = ? AND slot = ? ");
-        ChangePetSlot.PExecute(slot, _player->GetObjectGuid().GetCounter(), uint32(PET_SAVE_AS_CURRENT));
+        ChangePetSlot.PExecute(slot, _player->GetObjectGuid().GetCounter(), uint32(_player->GetTemporaryUnsummonedPetNumber() ? PET_SAVE_AS_CURRENT : PET_SAVE_NOT_IN_SLOT));
         CharacterDatabase.CommitTransaction();
     }
 

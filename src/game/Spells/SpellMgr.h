@@ -139,6 +139,19 @@ inline bool IsAuraApplyEffects(SpellEntry const* entry, SpellEffectIndexMask mas
     return !empty;
 }
 
+inline bool IsDestinationOnlyEffect(SpellEntry const* spellInfo, SpellEffectIndex effIdx)
+{
+    switch (spellInfo->Effect[effIdx])
+    {
+        case SPELL_EFFECT_PERSISTENT_AREA_AURA:
+        case SPELL_EFFECT_TRANS_DOOR:
+        case SPELL_EFFECT_SUMMON:
+            return true;
+        default:
+            return false;
+    }
+}
+
 inline bool IsSpellAppliesAura(SpellEntry const* spellInfo, uint32 effectMask = ((1 << EFFECT_INDEX_0) | (1 << EFFECT_INDEX_1) | (1 << EFFECT_INDEX_2)))
 {
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
@@ -1053,6 +1066,61 @@ inline bool IsSpellDoNotReportFailure(SpellEntry const* spellInfo)
     }
 }
 
+inline void GetChainJumpRange(SpellEntry const* spellInfo, SpellEffectIndex effIdx, float& minSearchRangeCaster, float& maxSearchRangeTarget, float& jumpRadius)
+{
+    const SpellRangeEntry* range = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
+    if (spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE)
+        maxSearchRangeTarget = range->maxRange;
+    else
+        // FIXME: This very like horrible hack and wrong for most spells
+        maxSearchRangeTarget = spellInfo->EffectChainTarget[effIdx] * CHAIN_SPELL_JUMP_RADIUS;
+
+    if (range->ID == 114)   // Hunter Search range
+        minSearchRangeCaster = 5;
+
+    switch (spellInfo->Id)
+    {
+        case 2643:  // Multi-shot
+        case 14288:
+        case 14289:
+        case 14290:
+        case 25294:
+        case 27021:
+            maxSearchRangeTarget = 8.f;
+            break;
+        case 32445: // Holy Wrath - Maiden of Virtue
+            maxSearchRangeTarget = 100.f;
+            jumpRadius = 7.f;
+            break;
+        case 40827: // Beams - Mother Shahraz
+        case 40859:
+        case 40860:
+        case 40861:
+            minSearchRangeCaster = 0.f;
+            maxSearchRangeTarget = 150.f;
+            jumpRadius = 100.f;
+            break;
+        default:   // default jump radius
+            break;
+    }
+}
+
+inline bool IsChainAOESpell(SpellEntry const* spellInfo)
+{
+    switch (spellInfo->Id)
+    {
+        case 2643:  // Multi-shot
+        case 14288:
+        case 14289:
+        case 14290:
+        case 25294:
+        case 27021:
+            return true;
+        default:
+            return false;
+    }
+}
+
 inline bool IsDispelSpell(SpellEntry const* spellInfo)
 {
     return IsSpellHaveEffect(spellInfo, SPELL_EFFECT_DISPEL);
@@ -1200,7 +1268,17 @@ inline bool IsIgnoreLosSpell(SpellEntry const* spellInfo)
             break;
     }
 
-    return spellInfo->rangeIndex == 13 || spellInfo->HasAttribute(SPELL_ATTR_EX2_IGNORE_LOS);
+    return spellInfo->HasAttribute(SPELL_ATTR_EX2_IGNORE_LOS);
+}
+
+inline bool IsIgnoreLosSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex effIdx)
+{
+    return spellInfo->EffectRadiusIndex[effIdx] == 13 || IsIgnoreLosSpell(spellInfo);
+}
+
+inline bool IsIgnoreLosSpellCast(SpellEntry const* spellInfo)
+{
+    return spellInfo->rangeIndex == 13 || IsIgnoreLosSpell(spellInfo);
 }
 
 inline bool NeedsComboPoints(SpellEntry const* spellInfo)

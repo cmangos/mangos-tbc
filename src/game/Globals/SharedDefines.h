@@ -440,7 +440,7 @@ enum SpellAttributesEx5
     SPELL_ATTR_EX5_START_PERIODIC_AT_APPLY     = 0x00000200,// 9  begin periodic tick at aura apply
     SPELL_ATTR_EX5_HIDE_DURATION               = 0x00000400,// 10
     SPELL_ATTR_EX5_ALLOW_TARGET_OF_TARGET_AS_TARGET = 0x00000800,// 11
-    SPELL_ATTR_EX5_UNK12                       = 0x00001000,// 12
+    SPELL_ATTR_EX5_CLEAVE_FRONT_TARGET         = 0x00001000,// 12
     SPELL_ATTR_EX5_HASTE_AFFECT_DURATION       = 0x00002000,// 13 haste affects duration
     SPELL_ATTR_EX5_UNK14                       = 0x00004000,// 14
     SPELL_ATTR_EX5_UNK15                       = 0x00008000,// 15
@@ -2193,6 +2193,7 @@ enum UnitDynFlags
     UNIT_DYNFLAG_ROOTED                     = 0x0008,
     UNIT_DYNFLAG_SPECIALINFO                = 0x0010,
     UNIT_DYNFLAG_DEAD                       = 0x0020,
+    UNIT_DYNFLAG_REFER_A_FRIEND             = 0x0040,
 };
 
 enum CorpseDynFlags

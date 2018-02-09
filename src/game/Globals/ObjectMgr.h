@@ -186,8 +186,7 @@ typedef std::pair<QuestRelationsMap::const_iterator, QuestRelationsMap::const_it
 
 struct PetLevelInfo
 {
-    PetLevelInfo() : health(0), mana(0), armor(0)
-    { for (int i = 0; i < MAX_STATS; ++i) stats[i] = 0; }
+    PetLevelInfo() : health(0), mana(0), armor(0) { for (int i = 0; i < MAX_STATS; ++i) stats[i] = 0; }
 
     uint16 stats[MAX_STATS];
     uint16 health;
@@ -377,6 +376,7 @@ enum ConditionType
     CONDITION_CREATURE_IN_RANGE     = 37,                   // value1: creature entry; value2: range; returns only alive creatures
     CONDITION_PVP_SCRIPT            = 38,                   // value1: zoneId; value2: conditionId (usually hardcoded in the script);
     CONDITION_SPAWN_COUNT           = 39,                   // value1: creatureId; value2: count;
+    CONDITION_WORLD_SCRIPT          = 40,
 };
 
 enum ConditionSource                                        // From where was the condition called?
@@ -778,7 +778,7 @@ class ObjectMgr
         uint32 GeneratePetNumber() { return m_PetNumbers.Generate(); }
 
         uint32 CreateItemText(std::string text);
-        void AddItemText(uint32 itemTextId, std::string text) { mItemTexts[itemTextId] = text; }
+        void AddItemText(uint32 itemTextId, const std::string& text) { mItemTexts[itemTextId] = text; }
         std::string GetItemText(uint32 id)
         {
             ItemTextMap::const_iterator itr = mItemTexts.find(id);

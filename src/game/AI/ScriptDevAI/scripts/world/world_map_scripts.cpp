@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "world_map_scripts.h"
+#include "World/WorldState.h"
 
 /* *********************************************************
  *                  EASTERN KINGDOMS
@@ -277,6 +278,52 @@ InstanceData* GetInstanceData_world_map_outland(Map* pMap)
     return new world_map_outland(pMap);
 }
 
+enum
+{
+    EVENT_UC_FROM_GROMGOL_ARRIVAL = 15312,
+    EVENT_GROMGOL_FROM_UC_ARRIVAL = 15314,
+    EVENT_OG_FROM_UC_ARRIVAL = 15318,
+    EVENT_UC_FROM_OG_ARRIVAL = 15320,
+    EVENT_OG_FROM_GROMGOL_ARRIVAL = 15322,
+    EVENT_GROMGOL_FROM_OG_ARRIVAL = 15324,
+
+    SOUND_ZEPPELIN_HORN = 11804,
+};
+
+bool ProcessEventTransports(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIsStart)
+{
+    sWorldState.HandleConditionStateChange(pSource->GetEntry(), uiEventId);
+
+    WorldObject* transport = (WorldObject*)pSource;
+    uint32 entry = 0;
+    switch (uiEventId)
+    {
+        case EVENT_UC_FROM_GROMGOL_ARRIVAL: // UC arrival from gromgol
+            entry = NPC_HINDENBURG;
+            break;
+        case EVENT_GROMGOL_FROM_UC_ARRIVAL: // gromgol arrival from UC
+            entry = NPC_SQUIBBY_OVERSPECK;
+            break;
+        case EVENT_OG_FROM_UC_ARRIVAL:      // OG arrival from UC
+            entry = NPC_FREZZA;
+            break;
+        case EVENT_UC_FROM_OG_ARRIVAL:      // UC arrival from OG
+            entry = NPC_ZAPETTA;
+            break;
+        case EVENT_OG_FROM_GROMGOL_ARRIVAL: // OG arrival from gromgol
+            entry = NPC_SNURK_BUCKSQUICK;
+            break;
+        case EVENT_GROMGOL_FROM_OG_ARRIVAL: // gromgol arrival from OG
+            entry = NPC_NEZRAZ;
+            break;
+    }
+    if (entry)
+        if (Creature* zeppelinMaster = ((ScriptedInstance*)transport->GetMap()->GetInstanceData())->GetSingleCreatureFromStorage(entry))
+            zeppelinMaster->PlayDistanceSound(SOUND_ZEPPELIN_HORN);
+
+    return true;
+}
+
 void AddSC_world_map_scripts()
 {
     Script* pNewScript;
@@ -294,5 +341,10 @@ void AddSC_world_map_scripts()
     pNewScript = new Script;
     pNewScript->Name = "world_map_outland";
     pNewScript->GetInstanceData = &GetInstanceData_world_map_outland;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "event_transports";
+    pNewScript->pProcessEventId = &ProcessEventTransports;
     pNewScript->RegisterSelf();
 }

@@ -564,14 +564,14 @@ void AreaAura::Update(uint32 diff)
                 }
                 case AREA_AURA_FRIEND:
                 {
-                    MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(caster, m_radius);
+                    MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(caster, nullptr, m_radius);
                     MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> searcher(targets, u_check);
                     Cell::VisitAllObjects(caster, searcher, m_radius);
                     break;
                 }
                 case AREA_AURA_ENEMY:
                 {
-                    MaNGOS::AnyAoETargetUnitInObjectRangeCheck u_check(caster, m_radius); // No GetCharmer in searcher
+                    MaNGOS::AnyAoETargetUnitInObjectRangeCheck u_check(caster, nullptr, m_radius); // No GetCharmer in searcher
                     MaNGOS::UnitListSearcher<MaNGOS::AnyAoETargetUnitInObjectRangeCheck> searcher(targets, u_check);
                     Cell::VisitAllObjects(caster, searcher, m_radius);
                     break;
@@ -1379,6 +1379,13 @@ void Aura::TriggerSpell()
                             triggerTarget->CastSpell(triggerTarget, spell_id, TRIGGERED_OLD_TRIGGERED, nullptr, this, casterGUID);
                         return;
                     }
+                    case 35268:                             // Inferno (normal and heroic)
+                    case 39346:
+                    {
+                        int32 damage = auraSpellInfo->EffectBasePoints[0];
+                        triggerTarget->CastCustomSpell(triggerTarget, 35283, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, this, casterGUID);
+                        return;
+                    }
 //                    // Gravity Lapse
 //                    case 34480: break;
 //                    // Tornado
@@ -1391,8 +1398,6 @@ void Aura::TriggerSpell()
 //                    case 35016: break;
 //                    // Interrupt Shutdown
 //                    case 35176: break;
-//                    // Inferno
-//                    case 35268: break;
 //                    // Salaadin's Tesla
                     case 35515:
                         return;
@@ -1509,8 +1514,6 @@ void Aura::TriggerSpell()
 //                    case 39259: break;
 //                    // Hellfire - The Exorcism, Jules releases darkness, aura
 //                    case 39306: break;
-//                    // Inferno
-//                    case 39346: break;
 //                    // Enchanted Weapons
 //                    case 39489: break;
 //                    // Shadow Bolt Whirl
@@ -1589,7 +1592,14 @@ void Aura::TriggerSpell()
 //                    // Earthquake
 //                    case 46240: break;
                     case 46736:                             // Personalized Weather
-                        trigger_spell_id = 46737;
+                        switch (urand(0, 1))
+                        {
+                            case 0:
+                                return;
+                            case 1:
+                                trigger_spell_id = 46737;
+                                break;
+                        }
                         break;
 //                    // Stay Submerged
 //                    case 46981: break;
@@ -2390,6 +2400,23 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 target->CastSpell(target, 47030, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                 return;
+            }
+            case 46736:                                     // Personalized Weather
+            case 46738:
+            case 46739:
+            case 46740:
+            {
+                uint32 spellId = 0;
+                switch (urand(0,5))
+                {
+                    case 0: spellId = 46736; break;
+                    case 1: spellId = 46738; break;
+                    case 2: spellId = 46739; break;
+                    case 3: spellId = 46740; break;
+                    case 4: return;
+                }
+                target->CastSpell(target, spellId, TRIGGERED_OLD_TRIGGERED);
+                break;
             }
         }
     }
@@ -3404,6 +3431,26 @@ void Aura::HandleModPossess(bool apply, bool Real)
     }
     else
         caster->Uncharm(target);
+
+    if (const SpellEntry* spellInfo = GetSpellProto())
+    {
+        switch (spellInfo->Id)
+        {
+            // Need to teleport to spawn position on possess end
+            case 37868: // Arcano-Scorp Control
+            case 37893:
+            case 37895:
+                if (!apply)
+                {
+                    float x, y, z, o;
+                    Creature* creatureTarget = (Creature*)target;
+                    creatureTarget->GetRespawnCoord(x, y, z, &o);
+                    creatureTarget->NearTeleportTo(x, y, z, o);
+                    caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
+                }
+                break;
+        }
+    }
 }
 
 void Aura::HandleModPossessPet(bool apply, bool Real)
@@ -3513,7 +3560,12 @@ void Aura::HandleFeignDeath(bool apply, bool Real)
     if (!Real)
         return;
 
-    GetTarget()->SetFeignDeath(apply, GetCasterGuid());
+    Unit* target = GetTarget();
+
+    if (apply)
+        target->InterruptSpellsCastedOnMe();
+
+    target->SetFeignDeath(apply, GetCasterGuid());
 }
 
 void Aura::HandleAuraModDisarm(bool apply, bool Real)
@@ -6629,7 +6681,7 @@ void Aura::PeriodicDummyTick()
 //              // Drink Coffee
 //              case 49472: break;
 //              // Listening to Music
-//              case 50493: break;
+//              case 50493: break; // TODO: Implement
 //              // Love Rocket Barrage
 //              case 50530: break;
 // Exist more after, need add later
@@ -7075,6 +7127,14 @@ void SpellAuraHolder::_RemoveSpellAuraHolder()
     m_stackAmount = 1;
     UpdateAuraApplication();
 
+    if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+    {
+        WorldPacket data(SMSG_CLEAR_EXTRA_AURA_INFO, (8 + 4));
+        data << m_target->GetPackGUID();
+        data << uint32(GetSpellProto()->Id);
+        ((Player*) caster)->GetSession()->SendPacket(data);
+    }
+
     if (m_removeMode != AURA_REMOVE_BY_DELETE)
     {
         // update for out of range group members
@@ -7471,33 +7531,6 @@ void SpellAuraHolder::Update(uint32 diff)
                     }
                 }
             }
-
-            // Channeled aura required check distance from caster
-            if (IsChanneledSpell(m_spellProto) && GetCasterGuid() != m_target->GetObjectGuid())
-            {
-                Unit* caster = GetCaster();
-                if (!caster)
-                {
-                    m_target->RemoveAurasByCasterSpell(GetId(), GetCasterGuid());
-                    return;
-                }
-
-                // need check distance for channeled target only
-                if (caster->HasChannelObject(m_target->GetObjectGuid()))
-                {
-                    // Get spell range
-                    float max_range = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellProto->rangeIndex));
-
-                    if (Player* modOwner = caster->GetSpellModOwner())
-                        modOwner->ApplySpellMod(GetId(), SPELLMOD_RANGE, max_range, nullptr);
-
-                    if (!caster->IsWithinDistInMap(m_target, max_range))
-                    {
-                        caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
-                        return;
-                    }
-                }
-            }
         }
     }
 }
@@ -7646,18 +7679,22 @@ void SpellAuraHolder::UpdateAuraDuration()
 
     if (m_target->GetTypeId() == TYPEID_PLAYER)
     {
-        WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
-        data << uint8(GetAuraSlot());
-        data << uint32(GetAuraDuration());
-        ((Player*)m_target)->SendDirectMessage(data);
+        if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
+        {
+            WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
+            data << uint8(GetAuraSlot());
+            data << uint32(GetAuraDuration());
+            ((Player*)m_target)->SendDirectMessage(data);
 
-        data.Initialize(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
-        data << m_target->GetPackGUID();
-        data << uint8(GetAuraSlot());
-        data << uint32(GetId());
-        data << uint32(GetAuraMaxDuration());
-        data << uint32(GetAuraDuration());
-        ((Player*)m_target)->SendDirectMessage(data);
+            data = WorldPacket(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
+            data << m_target->GetPackGUID();
+            data << uint8(GetAuraSlot());
+            data << uint32(GetId());
+            data << uint32(GetAuraMaxDuration());
+            data << uint32(GetAuraDuration());
+
+            ((Player*)m_target)->SendDirectMessage(data);
+        }
     }
 
     // not send in case player loading (will not work anyway until player not added to map), sent in visibility change code

@@ -142,6 +142,7 @@ void DynamicObject::Update(uint32 /*update_diff*/, uint32 p_time)
 
     if (deleteThis)
     {
+        OnPersistentAreaAuraEnd();
         caster->RemoveDynObjectWithGUID(GetObjectGuid());
         Delete();
     }
@@ -164,7 +165,7 @@ void DynamicObject::Delay(int32 delaytime)
             SpellAuraHolder* holder = target->GetSpellAuraHolder(m_spellId, GetCasterGuid());
             if (!holder)
             {
-                ++iter;
+                m_affected.erase(iter++);
                 continue;
             }
 
@@ -178,9 +179,9 @@ void DynamicObject::Delay(int32 delaytime)
                 }
             }
 
-            if (foundAura)
+            if (!foundAura)
             {
-                ++iter;
+                m_affected.erase(iter++);
                 continue;
             }
 
@@ -219,5 +220,16 @@ bool DynamicObject::IsFriendlyTo(Unit const* unit) const
         return owner->IsFriendlyTo(unit);
     else
         return true;
+}
+
+void DynamicObject::OnPersistentAreaAuraEnd()
+{
+    switch (m_spellId)
+    {
+        case 30632: // Magtheridon - Debris
+            if (Unit* owner = GetCaster())
+                owner->CastSpell(nullptr, 30631, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid());
+            break;
+    }
 }
 

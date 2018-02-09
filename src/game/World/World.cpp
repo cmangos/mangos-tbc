@@ -64,6 +64,7 @@
 #include "Tools/CharacterDatabaseCleaner.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Weather/Weather.h"
+#include "World/WorldState.h"
 
 #include <algorithm>
 #include <mutex>
@@ -1471,6 +1472,7 @@ void World::Update(uint32 diff)
     sMapMgr.Update(diff);
     sBattleGroundMgr.Update(diff);
     sOutdoorPvPMgr.Update(diff);
+    sWorldState.Update(diff);
 
     ///- Update groups with offline leaders
     if (m_timers[WUPDATE_GROUPS].Passed())
@@ -1584,6 +1586,29 @@ void World::SendWorldText(int32 string_id, ...)
             Player* player = session->GetPlayer();
             if (player && player->IsInWorld())
                 wt_do(player);
+        }
+    }
+
+    va_end(ap);
+}
+
+/// Sends a system message to all given security level and above
+void World::SendWorldTextToAboveSecurity(uint32 securityLevel, int32 string_id, ...)
+{
+    va_list ap;
+    va_start(ap, string_id);
+
+    MaNGOS::WorldWorldTextBuilder wt_builder(string_id, &ap);
+    MaNGOS::LocalizedPacketListDo<MaNGOS::WorldWorldTextBuilder> wt_do(wt_builder);
+    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+    {
+        if (WorldSession* session = itr->second)
+        {
+            Player* player = session->GetPlayer();
+            if (player && player->IsInWorld())
+                if (WorldSession* session = player->GetSession())
+                    if (uint32(session->GetSecurity()) >= securityLevel)
+                        wt_do(player);
         }
     }
 

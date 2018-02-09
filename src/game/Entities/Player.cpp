@@ -62,6 +62,7 @@
 #include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
+#include "World/WorldState.h"
 #include "Entities/CPlayer.h"
 
 #ifdef BUILD_PLAYERBOT
@@ -558,6 +559,9 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
     for (int i = 0; i < MAX_COMBAT_RATING; ++i)
         m_baseRatingValue[i] = 0;
 
+    for (int i = 0; i < MAX_ATTACK; ++i)
+        m_enchantmentFlatMod[i] = 0;
+
     // Honor System
     m_lastHonorUpdateTime = time(nullptr);
 
@@ -637,6 +641,7 @@ void Player::CleanupsBeforeDelete()
 
     // notify zone scripts for player logout
     sOutdoorPvPMgr.HandlePlayerLeaveZone(this, m_zoneUpdateId);
+    sWorldState.HandlePlayerLeaveZone(this, m_zoneUpdateId);
 
     Unit::CleanupsBeforeDelete();
 }
@@ -6634,7 +6639,9 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea)
     {
         // handle outdoor pvp zones
         sOutdoorPvPMgr.HandlePlayerLeaveZone(this, m_zoneUpdateId);
+        sWorldState.HandlePlayerLeaveZone(this, m_zoneUpdateId);
         sOutdoorPvPMgr.HandlePlayerEnterZone(this, newZone);
+        sWorldState.HandlePlayerEnterZone(this, newZone);
 
         SendInitWorldStates(newZone, newArea);              // only if really enters to new zone, not just area change, works strange...
 
@@ -7414,6 +7421,10 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
                 sLog.outError("Player::CastItemCombatSpell Enchant %i, cast unknown spell %i", pEnchant->ID, proc_spell_id);
                 continue;
             }
+
+            // not allow proc extra attack spell at extra attack
+            if (m_extraAttacks && IsSpellHaveEffect(spellInfo, SPELL_EFFECT_ADD_EXTRA_ATTACKS))
+                continue;
 
             // Use first rank to access spell item enchant procs
             float ppmRate = sSpellMgr.GetItemEnchantProcChance(spellInfo->Id);
@@ -11430,12 +11441,29 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     // processed in Player::CastItemCombatSpell
                     break;
                 case ITEM_ENCHANTMENT_TYPE_DAMAGE:
+                    // processed in Player::_ApplyWeaponDependentAuraMods
+                    //if (item->GetSlot() == EQUIPMENT_SLOT_MAINHAND)
+                    //    HandleStatModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_VALUE, float(enchant_amount), apply);
+                    //else if (item->GetSlot() == EQUIPMENT_SLOT_OFFHAND)
+                    //    HandleStatModifier(UNIT_MOD_DAMAGE_OFFHAND, TOTAL_VALUE, float(enchant_amount), apply);
+                    //else if (item->GetSlot() == EQUIPMENT_SLOT_RANGED)
+                    //    HandleStatModifier(UNIT_MOD_DAMAGE_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
+                    //UpdateDamagePhysical
                     if (item->GetSlot() == EQUIPMENT_SLOT_MAINHAND)
-                        HandleStatModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_VALUE, float(enchant_amount), apply);
+                    {
+                        SetEnchantmentModifier(enchant_amount, BASE_ATTACK, apply);
+                        UpdateDamagePhysical(BASE_ATTACK);
+                    }
                     else if (item->GetSlot() == EQUIPMENT_SLOT_OFFHAND)
-                        HandleStatModifier(UNIT_MOD_DAMAGE_OFFHAND, TOTAL_VALUE, float(enchant_amount), apply);
+                    {
+                        SetEnchantmentModifier(enchant_amount, OFF_ATTACK, apply);
+                        UpdateDamagePhysical(OFF_ATTACK);
+                    }
                     else if (item->GetSlot() == EQUIPMENT_SLOT_RANGED)
-                        HandleStatModifier(UNIT_MOD_DAMAGE_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
+                    {
+                        SetEnchantmentModifier(enchant_amount, RANGED_ATTACK, apply);
+                        UpdateDamagePhysical(RANGED_ATTACK);
+                    }
                     break;
                 case ITEM_ENCHANTMENT_TYPE_EQUIP_SPELL:
                 {
@@ -15807,7 +15835,7 @@ DungeonPersistentState* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)
     {
         // use the player's difficulty setting (it may not be the same as the group's)
         if (Group* group = GetGroup())
-            if (InstanceGroupBind const* groupBind = group->GetBoundInstance(mapid, this))
+            if (InstanceGroupBind const* groupBind = group->GetBoundInstance(mapid))
                 state = groupBind->state;
     }
 
@@ -19633,7 +19661,7 @@ void Player::RewardPlayerAndGroupAtCast(WorldObject* pRewardSource, uint32 spell
 
 bool Player::IsAtGroupRewardDistance(WorldObject const* pRewardSource) const
 {
-    if (pRewardSource->IsWithinDistInMap(this, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE)))
+    if (IsInWorld() && pRewardSource->GetMap() == GetMap() && pRewardSource->IsWithinDistInMap(this, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE)))
         return true;
 
     if (isAlive())
@@ -19643,7 +19671,7 @@ bool Player::IsAtGroupRewardDistance(WorldObject const* pRewardSource) const
     if (!corpse)
         return false;
 
-    return pRewardSource->IsWithinDistInMap(corpse, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE));
+    return corpse->IsInWorld() && pRewardSource->GetMap() == corpse->GetMap() && pRewardSource->IsWithinDistInMap(corpse, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE));
 }
 
 uint32 Player::GetBaseWeaponSkillValue(WeaponAttackType attType) const
@@ -19911,7 +19939,7 @@ Player* Player::GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType
                 continue;
             }
 
-            // IsHostileTo check duel and controlled by enemy
+            // CanAssist check duel and controlled by enemy
             if (IsWithinDistInMap(target, radius) &&
                     !target->HasInvisibilityAura() && CanAssist(target) && !target->HasAuraType(noAuraType))
             {
@@ -20926,6 +20954,15 @@ void Player::DoInteraction(ObjectGuid const& interactObjGuid)
         RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_USE);
     }
     SendForcedObjectUpdate();
+}
+
+void Player::SendLootError(ObjectGuid guid, LootError error) const
+{
+    WorldPacket data(SMSG_LOOT_RESPONSE, 10);
+    data << uint64(guid);
+    data << uint8(0);
+    data << uint8(error);
+    SendDirectMessage(data);
 }
 
 void Player::AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration /*= 0*/, bool updateClient /*= false*/)

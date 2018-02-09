@@ -46,6 +46,7 @@
 #include "Server/DBCStores.h"
 #include "OutdoorPvP/OutdoorPvPMgr.h"
 #include "OutdoorPvP/OutdoorPvP.h"
+#include "World/WorldState.h"
 
 #include "Entities/ItemEnchantmentMgr.h"
 #include "Loot/LootMgr.h"
@@ -2986,13 +2987,13 @@ void ObjectMgr::LoadPlayerInfo()
     }
 
     // Fill gaps and check integrity
-    for (int race = 0; race < MAX_RACES; ++race)
+    for (int race = 1; race < MAX_RACES; ++race)
     {
         // skip nonexistent races
         if (!((1 << (race - 1)) & RACEMASK_ALL_PLAYABLE) || !sChrRacesStore.LookupEntry(race))
             continue;
 
-        for (int class_ = 0; class_ < MAX_CLASSES; ++class_)
+        for (int class_ = 1; class_ < MAX_CLASSES; ++class_)
         {
             // skip nonexistent classes
             if (!((1 << (class_ - 1)) & CLASSMASK_ALL_PLAYABLE) || !sChrClassesStore.LookupEntry(class_))
@@ -7949,6 +7950,8 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
         }
         case CONDITION_SPAWN_COUNT:
             return source->GetMap()->SpawnedCountForEntry(m_value1) >= m_value2;
+        case CONDITION_WORLD_SCRIPT:
+            return sWorldState.IsConditionFulfilled(m_value1, m_value2);
         default:
             return false;
     }
@@ -8399,6 +8402,7 @@ bool PlayerCondition::IsValid(uint16 entry, ConditionType condition, uint32 valu
             }
             break;
         }
+        case CONDITION_WORLD_SCRIPT:
         case CONDITION_NONE:
             break;
         default:

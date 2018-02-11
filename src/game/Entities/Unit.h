@@ -1884,6 +1884,7 @@ class Unit : public WorldObject
         void RemoveArenaAuras(bool onleave = false);
         void RemoveAllAurasOnDeath();
         void RemoveAllAurasOnEvade();
+        void RemoveAllGroupBuffsFromCaster(ObjectGuid casterGUID);
 
         // remove specific aura on cast
         void RemoveAurasOnCast(SpellEntry const* castedSpellEntry);

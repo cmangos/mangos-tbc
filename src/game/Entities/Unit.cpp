@@ -2302,6 +2302,7 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
 
     RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_MELEE_ATTACK);
 
+    bool magnet = false;
     // attack can be redirected to another target
     if (Unit* magnetTarget = SelectMagnetTarget(pVictim))
         pVictim = magnetTarget;
@@ -6652,7 +6653,10 @@ Unit* Unit::SelectMagnetTarget(Unit* victim, Spell* spell, SpellEffectIndex eff)
             if (Unit* magnet = (*itr)->GetCaster())
             {
                 if (magnet->isAlive() && magnet->IsWithinLOSInMap(this) && CanAttack(magnet))
+                {
+                    (*itr)->UseMagnet();
                     return magnet;
+                }
             }
         }
     }
@@ -6670,7 +6674,11 @@ Unit* Unit::SelectMagnetTarget(Unit* victim, Spell* spell, SpellEffectIndex eff)
                 if (magnet->isAlive() && magnet->IsWithinLOSInMap(this) && CanAttack(magnet))
                 {
                     if (roll_chance_i((*i)->GetModifier()->m_amount))
+                    {
+                        if ((*i)->GetHolder()->DropAuraCharge())
+                            RemoveSpellAuraHolder((*i)->GetHolder());
                         return magnet;
+                    }
                 }
             }
         }

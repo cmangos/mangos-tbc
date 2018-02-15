@@ -6217,7 +6217,7 @@ void Aura::PeriodicTick()
 
             pCaster->DealDamage(target, pdamage, &cleanDamage, DOT, GetSpellSchoolMask(spellProto), spellProto, true);
 
-            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, PROC_EX_NORMAL_HIT, pdamage, BASE_ATTACK, spellProto);
+            pCaster->ProcDamageAndSpell(ProcSystemArguments(target, procAttacker, procVictim, PROC_EX_NORMAL_HIT, pdamage, BASE_ATTACK, spellProto));
             break;
         }
         case SPELL_AURA_PERIODIC_LEECH:
@@ -6277,7 +6277,7 @@ void Aura::PeriodicTick()
                 procVictim |= PROC_FLAG_TAKEN_ANY_DAMAGE;
 
             int32 new_damage = pCaster->DealDamage(target, pdamage, &cleanDamage, DOT, GetSpellSchoolMask(spellProto), spellProto, false);
-            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, PROC_EX_NORMAL_HIT, pdamage, BASE_ATTACK, spellProto);
+            pCaster->ProcDamageAndSpell(ProcSystemArguments(target, procAttacker, procVictim, PROC_EX_NORMAL_HIT, pdamage, BASE_ATTACK, spellProto));
 
             if (!target->isAlive() && pCaster->IsNonMeleeSpellCasted(false))
                 for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
@@ -6352,7 +6352,9 @@ void Aura::PeriodicTick()
             if (pCaster->isInCombat())
                 target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
 
-            pCaster->ProcDamageAndSpell(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, spellProto);
+            ProcSystemArguments healProcData(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, spellProto);
+            healProcData.healthGain = gain;
+            pCaster->ProcDamageAndSpell(healProcData);
 
             // apply damage part to caster if needed (ex. health funnel)
             if (target != pCaster && spellProto->SpellVisual == 163)
@@ -6588,7 +6590,7 @@ void Aura::PeriodicTick()
 
             pCaster->DealSpellDamage(&spellDamageInfo, true);
 
-            pCaster->ProcDamageAndSpell(spellDamageInfo.target, procAttacker, procVictim, procEx, spellDamageInfo.damage, BASE_ATTACK, spellProto);
+            pCaster->ProcDamageAndSpell(ProcSystemArguments(spellDamageInfo.target, procAttacker, procVictim, procEx, spellDamageInfo.damage, BASE_ATTACK, spellProto));
             break;
         }
         case SPELL_AURA_MOD_REGEN:

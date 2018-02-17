@@ -211,6 +211,13 @@ float AntiCheat::GetDistance()
     return GetDistance(isFlying());
 }
 
+float AntiCheat::GetSpeedDistance()
+{
+    return isTransport(newmoveInfo) && isTransport(oldmoveInfo) ?
+        GetTransportDist(isFlying() || isSwimming()) :
+        GetDistance(isFlying() || isSwimming());
+}
+
 float AntiCheat::GetDistance(bool threed)
 {
     return threed ? GetDistance3D() : GetDistance2D();
@@ -284,8 +291,8 @@ float AntiCheat::GetAllowedDistance()
 
 uint32 AntiCheat::GetDiff()
 {
-    uint32 t1 = newmoveInfo->GetTime();
-    uint32 t2 = oldmoveInfo->GetTime();
+    uint32 t1 = newmoveInfo->GetACTime();
+    uint32 t2 = oldmoveInfo->GetACTime();
 
     return std::max(uint32(1), std::max(t1, t2) - std::min(t1, t2));
 }

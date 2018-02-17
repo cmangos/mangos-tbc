@@ -39,8 +39,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
 
     bool threed = isFlying() || isSwimming();
 
-    float travelspeed = floor(((onTransport ? GetTransportDist(threed) : GetDistance(threed)) / GetVirtualDiffInSec()) * speedrounding) / speedrounding;
-    m_Player->BoxChat << "travelspeed: " << travelspeed << "\n";
+    float travelspeed = floor((GetSpeedDistance() / GetVirtualDiffInSec()) * speedrounding) / speedrounding;
 
     bool cheating = false;
 

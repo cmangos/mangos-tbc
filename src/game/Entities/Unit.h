@@ -657,7 +657,7 @@ typedef std::shared_ptr<MovementInfo> MovementInfoPtr;
 class MovementInfo
 {
     public:
-        MovementInfo() : moveFlags(MOVEFLAG_NONE), moveFlags2(0), time(0),
+        MovementInfo() : moveFlags(MOVEFLAG_NONE), moveFlags2(0), time(0), acTime(0),
             t_time(0), s_pitch(0.0f), fallTime(0), u_unk1(0.0f) {}
 
         // Read/Write methods
@@ -699,6 +699,7 @@ class MovementInfo
         void ChangePosition(float x, float y, float z, float o) { pos.x = x; pos.y = y; pos.z = z; pos.o = o; }
         void UpdateTime(uint32 _time) { time = _time; }
         uint32 GetTime() const { return time; }
+        uint32 GetACTime() const { return acTime; }
 
         struct JumpInfo
         {
@@ -712,6 +713,7 @@ class MovementInfo
         uint32   moveFlags;                                 // see enum MovementFlags
         uint8    moveFlags2;
         uint32   time;
+        uint32   acTime;
         Position pos;
         // transport
         ObjectGuid t_guid;

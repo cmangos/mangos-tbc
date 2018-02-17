@@ -46,6 +46,7 @@ protected:
     float GetDistOrTransportDist(bool threed);
     float GetDistanceZ();
     float GetDistance();
+    float GetSpeedDistance();
     float GetDistance(bool threed);
     float GetDistance2D();
     float GetDistance3D();

@@ -4,6 +4,8 @@
 #include "Maps/Map.h"
 #include "Maps/MapManager.h"
 
+#include <iomanip>
+
 AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {
 }
@@ -11,8 +13,6 @@ AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
 {
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
-
-    float speedrounding = 100.f;
 
     if (!Initialized())
     {
@@ -35,11 +35,11 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
 
     bool onTransport = isTransport(newmoveInfo) && isTransport(oldmoveInfo);
 
-    float allowedspeed = GetAllowedSpeed();
+    float allowedspeed = RoundFloat(GetAllowedSpeed(), 100, true);
 
     bool threed = isFlying() || isSwimming();
 
-    float travelspeed = floor((GetSpeedDistance() / GetVirtualDiffInSec()) * speedrounding) / speedrounding;
+    float travelspeed = RoundFloat(GetSpeedDistance() / GetVirtualDiffInSec(), 100, false);
 
     bool cheating = false;
 
@@ -52,7 +52,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
 		cheating = true;
 
     if (isTransport(newmoveInfo) && !verifyTransportCoords(newmoveInfo))
-        cheating = false;
+        cheating = false; // When we're just walking onto a transport every coordinate is a mess
 
     if (!cheat && cheating)
     {
@@ -61,8 +61,9 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
             m_Player->BoxChat << "----------------------------" << "\n";
             m_Player->BoxChat << "xyspeed: " << newmoveInfo->GetJumpInfo().xyspeed << "\n";
             m_Player->BoxChat << "velocity: " << newmoveInfo->GetJumpInfo().velocity << "\n";
-            m_Player->BoxChat << "allowedspeed: " << allowedspeed << "\n";
-            m_Player->BoxChat << "travelspeed: " << travelspeed << "\n";
+            m_Player->BoxChat << std::setprecision(10) << "allowedspeed: " << allowedspeed << "\n";
+            m_Player->BoxChat << std::setprecision(10) << "travelspeed: " << travelspeed << "\n";
+            m_Player->BoxChat << std::setprecision(10) << "diff: " << travelspeed - allowedspeed << "\n";
             m_Player->BoxChat << "SPEEDCHEAT" << "\n";
         }
 

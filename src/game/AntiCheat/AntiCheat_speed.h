@@ -13,6 +13,14 @@ public:
     float IsKnockedback() { return m_Knockback; }
     float GetKnockBackSpeed() { return m_KnockbackSpeed; }
 
+    float RoundFloat(float value, float rounding, bool up)
+    {
+        if (up)
+            return ceil(value * rounding) / rounding;
+
+        return floor(value * rounding) / rounding;
+    }
+
 private:
     bool m_Knockback;
     float m_KnockbackSpeed;

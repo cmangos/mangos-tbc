@@ -63,7 +63,7 @@ bool AntiCheat_gravity::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes 
     if (!m_Jumping && m_InitialDiff >= 0.f)
         diff -= m_InitialDiff;
 
-    if (!cheat && m_Falling && diff > alloweddiff) // Make acceptable diff configureable
+    if (!cheat && m_Falling && diff > alloweddiff && !CanFly()) // Make acceptable diff configureable
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {

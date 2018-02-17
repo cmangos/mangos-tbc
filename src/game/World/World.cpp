@@ -895,6 +895,10 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading spell_template...");
     sObjectMgr.LoadSpellTemplate();
 
+    // Load before DBCs
+    sLog.outString("Loading faction_store...");
+    sObjectMgr.LoadFactions();
+
     ///- Load the DBC files
     sLog.outString("Initialize DBC data stores...");
     LoadDBCStores(m_dataPath);

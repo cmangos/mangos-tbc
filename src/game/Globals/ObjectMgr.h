@@ -484,6 +484,9 @@ class IdGenerator
         T m_nextGuid;
 };
 
+typedef std::list<uint32> SimpleFactionsList;
+SimpleFactionsList const* GetFactionTeamList(uint32 faction);
+
 class ObjectMgr
 {
         friend class PlayerDumpReader;
@@ -749,6 +752,8 @@ class ObjectMgr
         void LoadVendors() { LoadVendors("npc_vendor", false); }
         void LoadTrainerTemplates();
         void LoadTrainers() { LoadTrainers("npc_trainer", false); }
+
+        void LoadFactions();
 
         /// @param _map Map* of the map for which to load active entities. If nullptr active entities on continents are loaded
         void LoadActiveEntities(Map* _map);

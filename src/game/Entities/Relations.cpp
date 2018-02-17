@@ -146,7 +146,7 @@ static ReputationRank GetFactionReaction(FactionTemplateEntry const* thisTemplat
 
                     if (!unit->HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_IGNORE_REPUTATION))
                     {
-                        const FactionEntry* thisFactionEntry = sFactionStore.LookupEntry(thisTemplate->faction);
+                        const FactionEntry* thisFactionEntry = sFactionStore.LookupEntry<FactionEntry>(thisTemplate->faction);
                         if (thisFactionEntry && thisFactionEntry->HasReputation())
                         {
                             const ReputationMgr& reputationMgr = unitPlayer->GetReputationMgr();
@@ -218,7 +218,7 @@ ReputationRank Unit::GetReactionTo(Unit const* unit) const
                 if (const ReputationRank* rank = thisPlayer->GetReputationMgr().GetForcedRankIfAny(unitFactionTemplate))
                     return (*rank);
 
-                const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry(unitFactionTemplate->faction);
+                const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry<FactionEntry>(unitFactionTemplate->faction);
 
                 // If the faction has reputation ranks available, "at war" and contested PVP flags decide outcome
                 if (!this->HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_IGNORE_REPUTATION) && unitFactionEntry && unitFactionEntry->HasReputation())
@@ -239,7 +239,7 @@ ReputationRank Unit::GetReactionTo(Unit const* unit) const
     {
         if (const FactionTemplateEntry* unitFactionTemplate = unit->getFactionTemplateEntry())
         {
-            const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry(unitFactionTemplate->faction);
+            const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry<FactionEntry>(unitFactionTemplate->faction);
             if (unitFactionEntry && unitFactionEntry->HasReputation())
                 reaction = ReputationRank(int32(reaction) + 1);
         }

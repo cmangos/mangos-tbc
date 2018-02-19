@@ -2163,11 +2163,7 @@ bool BattleGroundQueue::CFBGGroupInserter(BattleGround* bg, BattleGroundBracketI
     for (auto& ginfo : m_QueuedGroups[bracket_id][AllyFirst ? BG_QUEUE_NORMAL_HORDE : BG_QUEUE_NORMAL_ALLIANCE])
         Groups.push_back(ginfo);
 
-    std::stable_sort(Groups.begin(), Groups.end(), [](const GroupQueueInfo* left, const GroupQueueInfo* right)
-    {
-        return left->JoinTime < right->JoinTime;
-    });
-
+    Groups.sort(GroupQueueInfoComparator());
 
     for (auto& ginfo : Groups)
     {
@@ -2184,8 +2180,7 @@ bool BattleGroundQueue::CFBGGroupInserter(BattleGround* bg, BattleGroundBracketI
 
             // Return when we're ready to start a BG, if we're in startup process
             if (m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() >= MinPlayers &&
-                m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() >= MinPlayers &&
-                MinPlayers >= 0)
+                m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() >= MinPlayers)
                 return true;
         }
     }

@@ -63,6 +63,12 @@ struct GroupQueueInfo                                       // stores informatio
     uint32  OpponentsTeamRating;                            // for rated arena matches
 };
 
+struct GroupQueueInfoComparator {
+    bool operator()(const GroupQueueInfo* first, const GroupQueueInfo* second) const {
+        return first->JoinTime < second->JoinTime;
+    }
+};
+
 enum BattleGroundQueueGroupTypes
 {
     BG_QUEUE_PREMADE_ALLIANCE   = 0,

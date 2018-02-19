@@ -1,4 +1,4 @@
-#include "ItemCostMgr.h"
+#include "Globals/ItemCostMgr.h"
 
 ItemCost::ItemCost(uint32 itemid)
 {

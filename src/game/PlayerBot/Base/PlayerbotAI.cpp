@@ -1975,7 +1975,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             p >> guid.ReadAsPacked();
             if (guid != m_bot->GetObjectGuid())
                 return;
-            m_bot->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+            m_bot->m_movementInfo->AddMovementFlag(MOVEFLAG_FLYING);
             //m_bot->SetSpeed(MOVE_RUN, GetMaster()->GetSpeed(MOVE_FLIGHT) +0.1f, true);
             return;
         }
@@ -1989,7 +1989,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             p >> guid.ReadAsPacked();
             if (guid != m_bot->GetObjectGuid())
                 return;
-            m_bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_FLYING);
+            m_bot->m_movementInfo->RemoveMovementFlag(MOVEFLAG_FLYING);
             //m_bot->SetSpeed(MOVE_RUN,GetMaster()->GetSpeedRate(MOVE_RUN),true);
             return;
         }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Entities/Unit.h" 
 #include "Server/Opcodes.h"
 
 #define JUMPHEIGHT_LAND 1.65f

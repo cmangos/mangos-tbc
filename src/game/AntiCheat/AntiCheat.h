@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Server/Opcodes.h"
-#include "Entities/Unit.h"
 
 #define JUMPHEIGHT_LAND 1.65f
 #define JUMPHEIGHT_WATER 2.15f
@@ -19,7 +18,7 @@ public:
     virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };
     virtual void HandleRelocate(float x, float y, float z, float o);
     virtual void HandleTeleport(uint32 map, float x, float y, float z, float o);
-    virtual void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed) { };
+    virtual void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
 
 protected:
     bool Initialized();
@@ -36,6 +35,7 @@ protected:
     bool isWalking();
     bool isFalling(const MovementInfoPtr& moveInfo);
     bool isFalling();
+    bool isFallingMoveInfo();
     bool isTransport(const MovementInfoPtr& moveInfo);
     bool isTransport();
     bool isSwimming(const MovementInfoPtr& moveInfo);
@@ -56,12 +56,22 @@ protected:
     float GetTransportDist3D();
     float GetTransportDistZ();
 
+    float GetAllowedSpeed();
     float GetServerSpeed(bool includeold = true);
     float GetAllowedDistance();
+    float GetExpectedZ();
 
     uint32 GetDiff();
     float GetDiffInSec();
     float GetVirtualDiffInSec();
+
+    float ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity);
+
+    void UpdateGravityInfo(Opcodes opcode);
+    void UpdateSpeedInfo(Opcodes opcode);
+
+    float IsKnockedback() { return m_Knockback; }
+    float GetKnockBackSpeed() { return m_KnockbackSpeed; }
 
 protected:
     CPlayer* m_Player;
@@ -79,4 +89,14 @@ private:
 
     float AllowedSpeed[MAX_MOVE_TYPE];
     float OldServerSpeed;
+
+    float m_StartFallZ;
+    float m_StartVelocity;
+    float m_InitialDiff;
+    bool m_Falling;
+    bool m_Jumping;
+    bool m_SlowFall;
+
+    bool m_Knockback;
+    float m_KnockbackSpeed;
 };

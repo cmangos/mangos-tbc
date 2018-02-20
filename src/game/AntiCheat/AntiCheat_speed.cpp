@@ -15,14 +15,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
     AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
 
     if (!Initialized())
-    {
-        m_Knockback = false;
-        m_KnockbackSpeed = 0.f;
         return false;
-    }
-
-    if (opcode == MSG_MOVE_FALL_LAND || !isFalling(newmoveInfo))
-        m_Knockback = false;
 
     if (GetDiff() < 250)
         return false;
@@ -52,7 +45,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
 		cheating = true;
 
     if (isTransport(newmoveInfo) && !verifyTransportCoords(newmoveInfo))
-        cheating = false; // When we're just walking onto a transport every coordinate is a mess
+        cheating = false; // When we're just walking onto a transport every coordinate is a mess.
 
     if (!cheat && cheating)
     {
@@ -75,18 +68,4 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
         SetStoredMoveInfo(false);
 
     return SetOldMoveInfo(false);
-}
-
-void AntiCheat_speed::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
-{
-    m_Knockback = true;
-    m_KnockbackSpeed = horizontalSpeed;
-}
-
-float AntiCheat_speed::GetAllowedSpeed()
-{
-    float allowedspeed = GetServerSpeed();
-    allowedspeed = IsKnockedback() ? std::max(allowedspeed, GetKnockBackSpeed()) : allowedspeed;
-
-    return allowedspeed;
 }

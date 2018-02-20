@@ -13,6 +13,12 @@ AntiCheat::AntiCheat(CPlayer* player)
     m_CanFly = false;
     m_CanWaterwalk = false;
 
+    m_StartFallZ = 0;
+    m_Falling = false;
+
+    m_Knockback = false;
+    m_KnockbackSpeed = 0.f;
+
     player->AddAntiCheatModule(this);
 }
 
@@ -31,39 +37,11 @@ bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, 
     else if (opcode == CMSG_MOVE_WATER_WALK_ACK)
         m_CanWaterwalk = false;
 
+    if (opcode == MSG_MOVE_FALL_LAND || !isFalling(newmoveInfo))
+        m_Knockback = false;
 
-    switch (opcode)
-    {
-    case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_WALK] = m_Player->GetSpeed(MOVE_WALK);
-        break;
-    case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_RUN] = m_Player->GetSpeed(MOVE_RUN);
-        break;
-    case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_RUN_BACK] = m_Player->GetSpeed(MOVE_RUN_BACK);
-        break;
-    case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_SWIM] = m_Player->GetSpeed(MOVE_SWIM);
-        break;
-    case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_SWIM_BACK] = m_Player->GetSpeed(MOVE_SWIM_BACK);
-        break;
-    case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
-        AllowedSpeed[MOVE_TURN_RATE] = m_Player->GetSpeed(MOVE_TURN_RATE);
-        break;
-    case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_FLIGHT] = m_Player->GetSpeed(MOVE_FLIGHT);
-        break;
-    case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_FLIGHT_BACK] = m_Player->GetSpeed(MOVE_FLIGHT_BACK);
-        break;
-    default: break;
-    }
-
-    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
-        if (m_Player->GetSpeed(UnitMoveType(i)) > AllowedSpeed[UnitMoveType(i)])
-            AllowedSpeed[UnitMoveType(i)] = m_Player->GetSpeed(UnitMoveType(i));
+    UpdateGravityInfo(opcode);
+    UpdateSpeedInfo(opcode);
 
     return false;
 }
@@ -78,6 +56,23 @@ void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)
 {
     oldmoveInfo->ChangePosition(x, y, z, o);
     oldMapID = map;
+
+    m_Falling = true;
+    m_Jumping = false;
+    m_StartFallZ = z;
+    m_StartVelocity = 0.f;
+}
+
+void AntiCheat::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
+{
+    m_Falling = true;
+    m_Jumping = false;
+    m_StartFallZ = newmoveInfo->GetPos()->z;
+    m_StartVelocity = -verticalSpeed;
+    m_InitialDiff = -1.f;
+
+    m_Knockback = true;
+    m_KnockbackSpeed = horizontalSpeed;
 }
 
 bool AntiCheat::Initialized()
@@ -90,6 +85,13 @@ bool AntiCheat::Initialized()
 
         for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
             AllowedSpeed[i] = m_Player->GetSpeed(UnitMoveType(i));
+
+        m_Falling = false;
+        m_Jumping = false;
+        m_SlowFall = false;
+        m_StartFallZ = 0.f;
+        m_StartVelocity = 0.f;
+        m_InitialDiff = -1.f;
 
         return false;
     }
@@ -157,6 +159,11 @@ bool AntiCheat::isFalling(const MovementInfoPtr& moveInfo)
 }
 
 bool AntiCheat::isFalling()
+{
+    return m_Falling;
+}
+
+bool AntiCheat::isFallingMoveInfo()
 {
     return isFalling(newmoveInfo) || isFalling(oldmoveInfo);
 }
@@ -283,6 +290,21 @@ float AntiCheat::GetServerSpeed(bool includeold)
     return includeold ? std::max(OldServerSpeed, speed) : speed;
 }
 
+float AntiCheat::GetAllowedSpeed()
+{
+    float allowedspeed = GetServerSpeed();
+    allowedspeed = IsKnockedback() ? std::max(allowedspeed, GetKnockBackSpeed()) : allowedspeed;
+
+    return allowedspeed;
+}
+
+float AntiCheat::GetExpectedZ()
+{
+    if (!m_Falling)
+        return newmoveInfo->GetPos()->z;
+
+    return m_StartFallZ - ComputeFallElevation(newmoveInfo->GetFallTime() / 1000.f, m_SlowFall, m_StartVelocity);
+}
 
 float AntiCheat::GetAllowedDistance()
 {
@@ -308,4 +330,119 @@ float AntiCheat::GetVirtualDiffInSec()
         return 1.f;
 
     return GetDiffInSec();
+}
+
+float AntiCheat::ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity)
+{
+    double gravity = 19.29110527038574;
+    /// Velocity bounds that makes fall speed limited
+    float terminalVelocity = isSafeFall ? 7.f : 60.148003f;
+
+    float terminal_length = float(terminalVelocity * terminalVelocity) / (2.f* gravity);
+    float terminalFallTime = float(terminalVelocity / gravity); // the time that needed to reach terminalVelocity
+
+    float result = 0.f;
+
+    if (start_velocity > terminalVelocity)
+        start_velocity = terminalVelocity;
+
+    float terminal_time = terminalFallTime - start_velocity / gravity; // the time that needed to reach terminalVelocity
+
+    if (t_passed > terminal_time)
+    {
+        result = terminalVelocity * (t_passed - terminal_time) +
+            start_velocity * terminal_time + gravity * terminal_time * terminal_time * 0.5f;
+    }
+    else
+        result = t_passed * (start_velocity + t_passed * gravity * 0.5f);
+
+    return result;
+}
+
+void AntiCheat::UpdateGravityInfo(Opcodes opcode)
+{
+    float alloweddiff = 0.05f;
+
+    bool startfalling = !isFalling(oldmoveInfo) && isFalling(newmoveInfo);
+    bool stopfalling = !isFalling(newmoveInfo) && isFalling(oldmoveInfo);
+
+    if (!m_Falling)
+        m_StartFallZ = newmoveInfo->GetPos()->z;
+
+    uint32 falltime = m_Falling ? newmoveInfo->GetFallTime() : 0;
+
+    if (!m_Falling && (startfalling || opcode == MSG_MOVE_JUMP))
+    {
+        m_Falling = true;
+        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newmoveInfo->GetJumpInfo().velocity : 0.f);
+        storedmoveInfo = opcode == MSG_MOVE_JUMP ? newmoveInfo : oldmoveInfo;
+        storedMapID = opcode == MSG_MOVE_JUMP ? newMapID : oldMapID;
+
+        // Revisit this again, we wanna keep this enabled.
+        //if (opcode == MSG_MOVE_JUMP)
+        //    m_Jumping = true;
+    }
+
+    bool oldslowfall = m_SlowFall;
+
+    if ((m_Falling || isFalling() || opcode == MSG_MOVE_JUMP) && m_Player->HasAuraType(SPELL_AURA_FEATHER_FALL))
+        m_SlowFall = true;
+
+    if (!oldslowfall && m_SlowFall)
+        m_InitialDiff = -1.f;
+
+    float expectedfalldist = ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
+    float expectedz = m_StartFallZ - expectedfalldist;
+
+    float diff = newmoveInfo->GetPos()->z - expectedz;
+
+    if (m_InitialDiff <= 0.f && diff > alloweddiff)
+        m_InitialDiff = diff;
+
+    if (!m_Jumping && m_InitialDiff >= 0.f)
+        diff -= m_InitialDiff;
+
+    if (stopfalling || opcode == MSG_MOVE_FALL_LAND || opcode == MSG_MOVE_START_SWIM)
+    {
+        m_Falling = false;
+        m_Jumping = false;
+        m_SlowFall = false;
+        m_InitialDiff = -1.f;
+    }
+}
+
+void AntiCheat::UpdateSpeedInfo(Opcodes opcode)
+{
+    switch (opcode)
+    {
+    case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_WALK] = m_Player->GetSpeed(MOVE_WALK);
+        break;
+    case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_RUN] = m_Player->GetSpeed(MOVE_RUN);
+        break;
+    case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_RUN_BACK] = m_Player->GetSpeed(MOVE_RUN_BACK);
+        break;
+    case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_SWIM] = m_Player->GetSpeed(MOVE_SWIM);
+        break;
+    case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_SWIM_BACK] = m_Player->GetSpeed(MOVE_SWIM_BACK);
+        break;
+    case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
+        AllowedSpeed[MOVE_TURN_RATE] = m_Player->GetSpeed(MOVE_TURN_RATE);
+        break;
+    case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_FLIGHT] = m_Player->GetSpeed(MOVE_FLIGHT);
+        break;
+    case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
+        AllowedSpeed[MOVE_FLIGHT_BACK] = m_Player->GetSpeed(MOVE_FLIGHT_BACK);
+        break;
+    default: break;
+    }
+
+    for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
+        if (m_Player->GetSpeed(UnitMoveType(i)) > AllowedSpeed[UnitMoveType(i)])
+            AllowedSpeed[UnitMoveType(i)] = m_Player->GetSpeed(UnitMoveType(i));
 }

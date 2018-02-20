@@ -8,10 +8,6 @@ public:
     AntiCheat_speed(CPlayer* player);
 
     bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat) override;
-    void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed) override;
-    float GetAllowedSpeed();
-    float IsKnockedback() { return m_Knockback; }
-    float GetKnockBackSpeed() { return m_KnockbackSpeed; }
 
     float RoundFloat(float value, float rounding, bool up)
     {
@@ -20,8 +16,4 @@ public:
 
         return floor(value * rounding) / rounding;
     }
-
-private:
-    bool m_Knockback;
-    float m_KnockbackSpeed;
 };

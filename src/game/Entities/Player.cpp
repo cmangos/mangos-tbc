@@ -18408,8 +18408,6 @@ void Player::SetBattleGroundEntryPoint(Player* leader /*= nullptr*/)
 
 void Player::LeaveBattleground(bool teleportToEntryPoint)
 {
-    CFLeaveBattleGround();
-
     if (BattleGround* bg = GetBattleGround())
     {
         bg->RemovePlayerAtLeave(GetObjectGuid(), teleportToEntryPoint, true);

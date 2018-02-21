@@ -1,6 +1,10 @@
 # C(ontinued)-MaNGOS -- README
 [![Build Status](https://travis-ci.org/Lillecarl/mangos-tbc.svg?branch=b16)](https://travis-ci.org/Lillecarl/mangos-tbc)
 
+## Additional features
+* Serverside anticheat
+* Crossfaction Battlegrounds
+
 If you're interested in anything specific to this CMaNGOS fork, then I'm on [#lillecarl @ irc.rizon.net](http://qchat.rizon.net/?channels=lillecarl&uio=d4) :)
 
 This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) file for Copyright information

@@ -6814,6 +6814,9 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
     if (!owner)
         owner = this;
 
+    // Done fixed damage bonus auras
+    int32 DoneAdvertisedBenefit = SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto));
+
     AuraList const& mOverrideClassScript = owner->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
     for (AuraList::const_iterator i = mOverrideClassScript.begin(); i != mOverrideClassScript.end(); ++i)
     {
@@ -6862,6 +6865,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
                     DoneTotalMod *= ((*i)->GetModifier()->m_amount + 100.0f) / 100.0f;
                 break;
             }
+            // Subject to downranking, i.e. normal per spell spelldamage
             case 4418: // Increased Shock Damage
             case 4554: // Increased Lightning Damage
             case 4555: // Improved Moonfire
@@ -6870,7 +6874,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
             case 5148: // Idol of the Shooting Star
             case 6008: // Increased Lightning Damage / Totem of Hex
             {
-                DoneTotal += (*i)->GetModifier()->m_amount;
+                DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
                 break;
             }
         }
@@ -6892,9 +6896,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
         default:
             break;
     }
-
-    // Done fixed damage bonus auras
-    int32 DoneAdvertisedBenefit = SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto));
 
     // Pets just add their bonus damage to their spell damage
     // note that their spell damage is just gain of their own auras

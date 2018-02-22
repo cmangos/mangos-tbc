@@ -5914,6 +5914,9 @@ bool Unit::IsNeutralToAll() const
 
 void Unit::AttackedBy(Unit* attacker)
 {
+    if (!isAlive())
+        return;
+
     // trigger AI reaction
     if (AI())
         AI()->AttackedBy(attacker);

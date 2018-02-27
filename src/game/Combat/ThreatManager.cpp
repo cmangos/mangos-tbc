@@ -59,7 +59,8 @@ float ThreatCalcHelper::CalcThreat(Unit* pHatedUnit, Unit* /*pHatingUnit*/, floa
 HostileReference::HostileReference(Unit* pUnit, ThreatManager* pThreatManager, float pThreat)
 {
     iThreat = pThreat;
-    iTempThreatModifyer = 0.0f;
+    iTempThreatModifier = 0.f;
+    iFadeoutThreadReduction = 0.f;
     link(pUnit, pThreatManager);
     iUnitGuid = pUnit->GetObjectGuid();
     iOnline = true;
@@ -521,7 +522,7 @@ void ThreatManager::tauntApply(Unit* pTaunter)
         if (getCurrentVictim() && (ref->getThreat() < getCurrentVictim()->getThreat()))
         {
             // Ok, temp threat is unused
-            if (ref->getTempThreatModifyer() == 0.0f)
+            if (ref->getTempThreatModifier() == 0.0f)
             {
                 ref->setTempThreat(getCurrentVictim()->getThreat());
             }
@@ -602,4 +603,16 @@ void ThreatManager::processThreatEvent(ThreatRefStatusChangeEvent* threatRefStat
                 iThreatOfflineContainer.remove(hostileReference);
             break;
     }
+}
+
+void HostileReference::setFadeoutThreatReduction(float value)
+{
+    iFadeoutThreadReduction = value;
+    addThreat(iFadeoutThreadReduction);
+}
+
+void HostileReference::resetFadeoutThreatReduction()
+{
+    addThreat(-iFadeoutThreadReduction);
+    iFadeoutThreadReduction = 0.f;
 }

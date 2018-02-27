@@ -7095,7 +7095,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
  */
 uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto, int32 healamount, DamageEffectType damagetype, uint32 stack)
 {
-    float  TakenTotalMod = 1.0f;
+    float TakenTotalMod = 1.0f;
 
     // Healing taken percent
     float minval = float(GetMaxNegativeAuraModifier(SPELL_AURA_MOD_HEALING_PCT));
@@ -7130,7 +7130,17 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
             {
                 if (((spellProto->SpellFamilyFlags & uint64(0x0000000040000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_1) ||  // Flash of Light
                         ((spellProto->SpellFamilyFlags & uint64(0x0000000080000000)) && (*i)->GetEffIndex() == EFFECT_INDEX_0))    // Holy Light
-                    TakenTotal += ((*i)->GetModifier()->m_amount * CalculateLevelPenalty(spellProto));  // BoL is penalized since 2.3.0
+                {
+                    TakenAdvertisedBenefit += ((*i)->GetModifier()->m_amount);  // BoL is penalized since 2.3.0
+                    // Note: This forces the caster to keep libram equipped, but works regardless if the BOL is his or not
+                    if (Aura* aura = pCaster->GetAura(38320, EFFECT_INDEX_0)) // improved Blessing of light
+                    {
+                        if ((*i)->GetEffIndex() == EFFECT_INDEX_0)
+                            TakenAdvertisedBenefit += aura->GetModifier()->m_amount; // holy light gets full amount
+                        else
+                            TakenAdvertisedBenefit += (aura->GetModifier()->m_amount / 2); // flash of light gets half
+                    }
+                }
             }
         }
     }

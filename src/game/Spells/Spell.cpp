@@ -1962,16 +1962,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                         continue;
                     }
 
-                    // Mother Shahraz beams can target totems. Workadound for a while...
-                    if (!(m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_UNK31) && ((Creature const*)(*activeUnit))->IsTotem())
-                    {
-                        unsteadyTargetMap.erase(activeUnit++);
-                        continue;
-                    }
-
                     // Remove tergets not in front caster(M_PI_F)
                     if (((m_spellInfo->AttributesEx5 & SPELL_ATTR_EX5_CLEAVE_FRONT_TARGET || GetSpellSchoolMask(m_spellInfo) == SPELL_SCHOOL_MASK_NORMAL))
-                        && !originalCaster->HasInArc(static_cast<WorldObject*>(*activeUnit)))
+                        && !originalCaster->HasInArc(*activeUnit))
                     {
                         unsteadyTargetMap.erase(activeUnit++);
                         continue;
@@ -1982,6 +1975,22 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     {
                         unsteadyTargetMap.erase(activeUnit++);
                         continue;
+                    }
+
+                    // TODO: Mother Shahraz beams can target totems.
+                    switch ((*activeUnit)->GetTypeId())
+                    {
+                        case TYPEID_UNIT:
+                        {
+                            Creature* target = static_cast<Creature*>(*activeUnit);
+                            if (target->IsCritter())
+                            {
+                                unsteadyTargetMap.erase(activeUnit++);
+                                continue;
+                            }
+                            break;
+                        }
+                        default: break;
                     }
 
                     ++activeUnit;

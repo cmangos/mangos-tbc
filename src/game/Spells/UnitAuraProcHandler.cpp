@@ -1561,6 +1561,11 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         break;
                     case 1:
                     {
+                        // Self damage only procced from the Seal of Blood dmg proc
+                        if (!procSpell)
+                            return SPELL_AURA_PROC_FAILED;
+                        if (!(procSpell->SpellFamilyFlags & uint64(0x0000040000000000)))
+                            return SPELL_AURA_PROC_FAILED;
                         // damage
                         basepoints[0] = triggerAmount * damage / 100;
                         target = this;

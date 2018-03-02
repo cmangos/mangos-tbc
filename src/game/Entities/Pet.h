@@ -293,6 +293,9 @@ class Pet : public Creature
 
         DeclinedName const* GetDeclinedNames() const { return m_declinedname; }
 
+        void SetRequiredXpForNextLoyaltyLevel();
+        void UpdateRequireXpForNextLoyaltyLevel(uint32 xp);
+
         bool    m_removed;                                  // prevent overwrite pet state in DB at next Pet::Update if pet already removed(saved)
 
         // return charminfo ai only when this pet is possessed. (eye of the beast case for ex.)
@@ -310,7 +313,7 @@ class Pet : public Creature
         int32   m_bonusdamage;
         uint64  m_auraUpdateMask;
         bool    m_loading;
-
+        uint32  m_xpRequiredForNextLoyaltyLevel;
         DeclinedName* m_declinedname;
 
     private:

@@ -52,7 +52,8 @@ Pet::Pet(PetType type) :
     m_TrainingPoints(0), m_resetTalentsCost(0), m_resetTalentsTime(0),
     m_removed(false), m_happinessTimer(7500), m_loyaltyTimer(12000), m_petType(type), m_duration(0),
     m_loyaltyPoints(0), m_bonusdamage(0), m_auraUpdateMask(0), m_loading(false),
-    m_declinedname(nullptr), m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr)
+    m_xpRequiredForNextLoyaltyLevel(0), m_declinedname(nullptr),
+    m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr)
 {
     m_name = "Pet";
     m_regenTimer = 4000;
@@ -293,6 +294,8 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
         SetMaxPower(POWER_HAPPINESS, GetCreatePowers(POWER_HAPPINESS));
         SetPower(POWER_HAPPINESS, fields[15].GetUInt32());
         SetPowerType(POWER_FOCUS);
+        m_xpRequiredForNextLoyaltyLevel = fields[23].GetUInt32();
+        m_loyaltyPoints = fields[7].GetInt32();
     }
     else if (getPetType() != SUMMON_PET)
         sLog.outError("Pet have incorrect type (%u) for pet loading.", getPetType());
@@ -312,7 +315,6 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, fields[5].GetUInt32());
 
     ReactStates reactState = ReactStates(fields[6].GetUInt8());
-    m_loyaltyPoints = fields[7].GetInt32();
 
     uint32 savedhealth = fields[13].GetUInt32();
     uint32 savedpower = fields[14].GetUInt32();
@@ -569,6 +571,12 @@ void Pet::SavePetToDB(PetSaveMode mode)
         savePet.addUInt32(GetUInt32Value(UNIT_CREATED_BY_SPELL));
         savePet.addUInt32(uint32(getPetType()));
 
+        // loyalty values should only be saved for hunter pets
+        if (getPetType() == HUNTER_PET)
+            savePet.addUInt32(m_xpRequiredForNextLoyaltyLevel);
+        else
+            savePet.addUInt32(0);
+
         savePet.Execute();
         CharacterDatabase.CommitTransaction();
     }
@@ -778,6 +786,30 @@ void Pet::LooseHappiness()
     ModifyPower(POWER_HAPPINESS, -addvalue);
 }
 
+void Pet::SetRequiredXpForNextLoyaltyLevel()
+{
+    uint32 loyaltylevel = GetLoyaltyLevel();
+    if (loyaltylevel >= BEST_FRIEND)
+    {
+        m_xpRequiredForNextLoyaltyLevel = 0;
+        return;
+    }
+    Unit* owner = GetOwner();
+    if (owner)
+    {
+        uint32 ownerLevel = owner->getLevel();
+        m_xpRequiredForNextLoyaltyLevel = ownerLevel < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) ? sObjectMgr.GetXPForLevel(ownerLevel) * 5 / 100 : sObjectMgr.GetXPForLevel(ownerLevel - 1) * 5 / 100;
+    }
+}
+
+void Pet::UpdateRequireXpForNextLoyaltyLevel(uint32 xp)
+{
+    if (xp > m_xpRequiredForNextLoyaltyLevel)
+        m_xpRequiredForNextLoyaltyLevel = 0;
+    else
+        m_xpRequiredForNextLoyaltyLevel -= xp;
+}
+
 void Pet::ModifyLoyalty(int32 addvalue)
 {
     uint32 loyaltylevel = GetLoyaltyLevel();
@@ -842,7 +874,7 @@ void Pet::ModifyLoyalty(int32 addvalue)
         }
     }
     // level up
-    else if (m_loyaltyPoints > int32(GetMaxLoyaltyPoints(loyaltylevel)))
+    else if (m_loyaltyPoints > int32(GetMaxLoyaltyPoints(loyaltylevel)) && m_xpRequiredForNextLoyaltyLevel <= 0)
     {
         ++loyaltylevel;
         SetLoyaltyLevel(LoyaltyLevel(loyaltylevel));

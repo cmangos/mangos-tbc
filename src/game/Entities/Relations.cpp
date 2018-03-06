@@ -1040,8 +1040,6 @@ bool Unit::CanAttackSpell(Unit* target, SpellEntry const* spellInfo, bool isAOE)
                     return false;
                 }
             }
-            else
-                return IsEnemy(target); // non player controlled can only hit hostiles with AOE
         }
 
         return true;
@@ -1073,5 +1071,5 @@ bool Unit::CanAssistSpell(Unit* target, SpellEntry const* spellInfo) const
 /////////////////////////////////////////////////
 bool Unit::CanAttackOnSight(Unit* target)
 {
-    return CanAttack(target) && !target->hasUnitState(UNIT_STAT_FEIGN_DEATH) && IsEnemy(target);
+    return CanAttack(target) && !target->IsFeigningDeathSuccessfully() && IsEnemy(target);
 }

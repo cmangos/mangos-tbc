@@ -999,7 +999,11 @@ void BattleGround::RewardQuestComplete(Player* plr)
 
 void BattleGround::BlockMovement(Player* plr)
 {
-    plr->UpdateClientControl(plr, false);                          // movement disabled NOTE: the effect will be automatically removed by client when the player is teleported from the battleground, so no need to send with uint8(1) in RemovePlayerAtLeave()
+    // TODO: This originally is meant to be applied/removed by the dummy aura casted on battleground end
+    // NOTE: control will be automatically reset by client when the player changes the map, so not needed to restore in RemovePlayerAtLeave()
+    plr->UpdateClientControl(plr, false);
+    // Set the flag to indicate that server does not want player to have client control
+    plr->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CLIENT_CONTROL_LOST);
 }
 
 void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool SendPacket)
@@ -1028,6 +1032,9 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
     if (plr)
     {
         plr->CFLeaveBattleGround();
+
+        // Remove flag set in BattleGround::BlockMovement()
+        plr->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CLIENT_CONTROL_LOST);
 
         // should remove spirit of redemption
         if (plr->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))

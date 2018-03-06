@@ -1698,6 +1698,7 @@ class Player : public Unit
         void SendAttackSwingNotInRange() const;
         void SendAttackSwingBadFacingAttack() const;
         void SendAutoRepeatCancel() const;
+        void SendFeignDeathResisted() const;
         void SendExplorationExperience(uint32 Area, uint32 Experience) const;
 
         void SendDungeonDifficulty(bool IsInGroup) const;
@@ -2067,7 +2068,6 @@ class Player : public Unit
         bool IsFlying() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_FLYING); }
         bool IsFreeFlying() const { return HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED) || HasAuraType(SPELL_AURA_FLY); }
 
-        bool IsClientControl(Unit const* target) const;
         void UpdateClientControl(Unit const* target, bool enabled, bool forced = false) const;
 
         void SetMover(Unit* target) { m_mover = target ? target : this; }

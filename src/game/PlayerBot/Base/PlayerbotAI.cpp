@@ -4530,12 +4530,16 @@ void PlayerbotAI::SetCombatOrder(CombatOrderType co, Unit* target)
         m_combatOrder = (CombatOrderType)(((uint32) m_combatOrder & (uint32) ORDERS_SECONDARY) | (uint32) co);
         if (target)
             CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET combat_order = '%u', primary_target = '%u', pname = '%s' WHERE guid = '%u'", (m_combatOrder & ~ORDERS_TEMP), gTempTarget, gname.c_str(), m_bot->GetGUIDLow());
+        else
+            CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET combat_order = '%u' WHERE guid = '%u'", (m_combatOrder & ~ORDERS_TEMP), m_bot->GetGUIDLow());
     }
     else
     {
         m_combatOrder = (CombatOrderType)((uint32)m_combatOrder | (uint32)co);
         if (target)
             CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET combat_order = '%u', secondary_target = '%u', sname = '%s' WHERE guid = '%u'", (m_combatOrder & ~ORDERS_TEMP), gTempTarget, gname.c_str(), m_bot->GetGUIDLow());
+        else
+            CharacterDatabase.DirectPExecute("UPDATE playerbot_saved_data SET combat_order = '%u' WHERE guid = '%u'", (m_combatOrder & ~ORDERS_TEMP), m_bot->GetGUIDLow());
     }
 }
 
@@ -8214,6 +8218,12 @@ void PlayerbotAI::_HandleCommandOrders(std::string& text, Player& fromPlayer)
     {
         Unit* target = nullptr;
 
+        if (text == "")
+        {
+            SendWhisper("|cffff0000Syntax error:|cffffffff orders combat <botName> <reset | tank | heal | passive><assist | protect [targetPlayer]>", fromPlayer);
+            return;
+        }
+
         QueryResult* resultlvl = CharacterDatabase.PQuery("SELECT guid FROM playerbot_saved_data WHERE guid = '%u'", m_bot->GetObjectGuid().GetCounter());
         if (!resultlvl)
             CharacterDatabase.DirectPExecute("INSERT INTO playerbot_saved_data (guid,combat_order,primary_target,secondary_target,pname,sname,combat_delay) VALUES ('%u',0,0,0,'','',0)", m_bot->GetObjectGuid().GetCounter());
@@ -8222,12 +8232,6 @@ void PlayerbotAI::_HandleCommandOrders(std::string& text, Player& fromPlayer)
 
         size_t protect = text.find("protect");
         size_t assist = text.find("assist");
-
-        if (text == "")
-        {
-            SendWhisper("|cffff0000Syntax error:|cffffffff orders combat <botName> <reset | tank | heal | passive><assist | protect [targetPlayer]>", fromPlayer);
-            return;
-        }
 
         if (ExtractCommand("protect", text) || ExtractCommand("assist", text))
         {

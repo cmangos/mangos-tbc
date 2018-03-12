@@ -3391,9 +3391,9 @@ bool PlayerbotAI::CanPull(Player& fromPlayer)
         return false;
     }
 
-    if (IsGroupInCombat()) // TODO: add raid support
+    if (!IsGroupReady()) // TODO: add raid support
     {
-        SendWhisper("Unable to pull - the group is already in combat", fromPlayer);
+        SendWhisper("Unable to pull - the group or one of its member is somehow busy.", fromPlayer);
         return false;
     }
 

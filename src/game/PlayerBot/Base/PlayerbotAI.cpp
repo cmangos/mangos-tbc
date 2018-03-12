@@ -3234,15 +3234,16 @@ void PlayerbotAI::DoCombatMovement()
 }
 
 /*
- * IsGroupInCombat()
+ * IsGroupReady()
  *
- * return true if any member of the group is in combat or (error handling only) occupied in some way
+ * return false if any member of the group is in combat or (error handling only) occupied in some way
+ * return true otherwise
  */
-bool PlayerbotAI::IsGroupInCombat()
+bool PlayerbotAI::IsGroupReady()
 {
-    if (!m_bot) return false;
-    if (!m_bot->isAlive() || m_bot->IsInDuel()) return true; // Let's just say you're otherwise occupied
-    if (m_bot->isInCombat()) return true;
+    if (!m_bot) return true;
+    if (!m_bot->isAlive() || m_bot->IsInDuel()) return false; // Let's just say you're otherwise occupied
+    if (m_bot->isInCombat()) return false;
 
     if (m_bot->GetGroup())
     {
@@ -3250,12 +3251,15 @@ bool PlayerbotAI::IsGroupInCombat()
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
             Player* groupMember = sObjectMgr.GetPlayer(itr->guid);
-            if (!groupMember || !groupMember->isAlive() || groupMember->IsInDuel() || groupMember->isInCombat()) // all occupied in some way
-                return true;
+            if (groupMember && groupMember->isAlive())
+            {
+                if (groupMember->IsInDuel() || groupMember->isInCombat())            // all occupied in some way
+                    return false;
+            }
         }
     }
 
-    return false;
+    return true;
 }
 
 Player* PlayerbotAI::GetGroupTank()

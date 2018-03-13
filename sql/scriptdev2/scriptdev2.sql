@@ -2269,7 +2269,11 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001246,'Look out, $N! Enemies ahead!',0,0,0,0,'kayra SAY_AMBUSH2'),
 (-1001247,'We\'re almost to the refuge! Let\'s go.',0,0,0,0,'kayra SAY_PROGRESS2'),
 (-1001248,'I can see my fellow druids from here.  Thank you, $n.  I''m sure Ysiel will reward you for your actions!',0,0,0,0,'kayra SAY_END'),
-(-1001249,'You won''t escape us, druid!',0,0,0,0,'Umbrafen Slavebinder SAY_AMBUSH2');
+(-1001249,'You won''t escape us, druid!',0,0,0,0,'Umbrafen Slavebinder SAY_AMBUSH2'),
+
+-- warning ids pending export
+
+(-1001277,'That could have gone better. $n, come here, please. I have something I need you to take care of for me.','0','4','0','0','Ambassador Sunsorrow - During Lament of the Highborne script');
 
 -- -1 033 000 SHADOWFANG KEEP
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES

@@ -1604,6 +1604,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     m_caster->CastSpell(m_caster, spell_id, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 36327:                                 // Shoot Arcane Explosion Arrow
+                {
+                    m_caster->SummonCreature(21290, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), unitTarget->GetOrientation(), TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 5000);
+                    return;
+                }
                 case 37573:                                 // Temporal Phase Modulator
                 {
                     if (!unitTarget)

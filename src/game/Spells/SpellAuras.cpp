@@ -2715,7 +2715,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         return;
 
                     // final heal
-                    if (target->IsInWorld() && GetStackAmount() > 0)
+                    if (target->IsInWorld())
                     {
                         // Lifebloom dummy store single stack amount always
                         int32 amount = m_modifier.m_amount;

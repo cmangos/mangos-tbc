@@ -4393,7 +4393,19 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
 
     Unit* target = GetTarget();
 
-    if (!apply)
+    if (apply)
+    {
+        switch (GetId())
+        {
+            case 29946:
+                if (target->HasAura(29947))
+                    target->RemoveAurasDueToSpellByCancel(29947);
+                return;
+            default:
+                break;
+        }
+    }
+    else
     {
         switch (GetId())
         {
@@ -4412,6 +4424,11 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                 if (m_removeMode != AURA_REMOVE_BY_DISPEL)
                     // Cast Wrath of the Plaguebringer if not dispelled
                     target->CastSpell(target, 29214, TRIGGERED_OLD_TRIGGERED, 0, this);
+                return;
+            case 29946:
+                if (GetAuraDuration() >= 1 * IN_MILLISECONDS)
+                    // Cast "crossed flames debuff"
+                    target->CastSpell(target, 29947, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                 return;
             case 35515:                                     // Salaadin's Tesla
                 if ((m_removeMode != AURA_REMOVE_BY_STACK) && (!target->HasAura(35515)))
@@ -6039,6 +6056,11 @@ void Aura::PeriodicTick()
                             target->RemoveAurasDueToSpell(GetId());
                             return;
                         }
+                        break;
+                    }
+                    case 29964: // Dragons Breath
+                    {
+                        target->CastSpell(nullptr, 29965, TRIGGERED_OLD_TRIGGERED);
                         break;
                     }
                     default:

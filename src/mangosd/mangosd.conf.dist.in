@@ -1707,3 +1707,15 @@ CharDelete.KeepDays = 30
 AutoBroadcast.On = 0
 AutoBroadcast.Center = 0
 AutoBroadcast.Timer = 60000
+
+###############################################################################
+# CUSTOM CONFIG
+#
+#    WorldChatChannelMoney
+#        Command Default: .sj
+#        Broadcast consumption price
+#        Default: 0(Copper)
+#
+###############################################################################
+
+WorldChatChannelMoney = 0

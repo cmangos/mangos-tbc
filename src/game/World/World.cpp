@@ -793,6 +793,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_AUTOBROADCAST_ENABLED, "AutoBroadcast.On", 0);
     setConfig(CONFIG_UINT32_AUTOBROADCAST_CENTER, "AutoBroadcast.Center", 0);
     setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "AutoBroadcast.Timer", 60000);
+    setConfigMinMax(CONFIG_UINT32_WORLD_CHAT_CHANNEL_MONEY, "WorldChatChannelMoney", 0, 0, MAX_MONEY_AMOUNT);
 
     ///- Read the "Data" directory from the config file
     std::string dataPath = sConfig.GetStringDefault("DataDir", "./");

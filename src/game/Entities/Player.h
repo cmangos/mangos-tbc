@@ -1455,6 +1455,9 @@ class Player : public Unit
         PlayerMails::iterator GetMailBegin() { return m_mail.begin();}
         PlayerMails::iterator GetMailEnd() { return m_mail.end();}
 
+        uint32 Getjifen() const;
+        void Modifyjifen(int32 value);
+
         /*********************************************************/
         /*** MAILED ITEMS SYSTEM ***/
         /*********************************************************/

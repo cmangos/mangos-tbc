@@ -6759,6 +6759,31 @@ bool ChatHandler::HandleModifyGenderCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleModifyAddJfCommand(char* args)
+{
+    if (!*args)
+        return false;
+
+    Player* target = getSelectedPlayer();
+    if (!target)
+    {
+        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        return true;
+    }
+
+    uint32 guid = target->GetSession()->GetAccountId();
+    uint32 useramount = target->Getjifen();
+    int32 amount = atoi(args);
+    int32 Accountjf = useramount + amount;
+    if (Accountjf < 0)
+        Accountjf = 0;
+
+    LoginDatabase.PExecute("UPDATE `account` SET `jf` = '%u' WHERE `id` = '%u'", Accountjf, guid);
+    LoginDatabase.CommitTransaction();
+    PSendSysMessage(LANG_COMMAND_MODIFY_JF, target->GetName(), useramount, amount, Accountjf);
+    return true;
+}
+
 bool ChatHandler::HandleMmap(char* args)
 {
     bool on;

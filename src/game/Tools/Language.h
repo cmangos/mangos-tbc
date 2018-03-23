@@ -1024,6 +1024,7 @@ enum MangosStrings
     LANG_AUTO_BROADCAST                 = 11000, //autobroadcast
     LANG_WORLD_CHAT_CHANNEL             = 11001, //.sj chat
     LANG_WORLD_PLAYER_COPYITEM          = 11002, //copy item
+    LANG_COMMAND_MODIFY_JF              = 11003, //jf
 
     // NOT RESERVED IDS                   12000-1999999999
     // `db_script_string` table index     2000000000-2000999999 (MIN_DB_SCRIPT_STRING_ID-MAX_DB_SCRIPT_STRING_ID)

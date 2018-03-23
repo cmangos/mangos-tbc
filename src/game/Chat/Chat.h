@@ -340,6 +340,7 @@ class ChatHandler
         bool HandleModifyRepCommand(char* args);
         bool HandleModifyArenaCommand(char* args);
         bool HandleModifyGenderCommand(char* args);
+        bool HandleModifyAddJfCommand(char* args);
 
         //-----------------------Npc Commands-----------------------
         bool HandleNpcAddCommand(char* args);

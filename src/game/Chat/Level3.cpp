@@ -244,6 +244,7 @@ bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
     HandleReloadMangosStringCommand((char*)"");
     HandleReloadGameTeleCommand((char*)"");
     HandleReloadBattleEventCommand((char*)"");
+    HandleReloadAutobroadcastCommand((char*)"");
     return true;
 }
 
@@ -396,6 +397,14 @@ bool ChatHandler::HandleReloadLocalesAreaTriggerCommand(char* /*args*/)
     sLog.outString("Re-Loading AreaTrigger teleport locales definitions...");
     sObjectMgr.LoadAreatriggerLocales();
     SendGlobalSysMessage("DB table `locales_areatrigger_teleport` reloaded.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadAutobroadcastCommand(char* /*args*/)
+{
+    sLog.outString("Re-Loading Autobroadcast...");
+    sWorld.LoadAutobroadcasts();
+    SendGlobalSysMessage("DB table `autobroadcast` reloaded.");
     return true;
 }
 

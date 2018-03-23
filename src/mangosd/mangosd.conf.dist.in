@@ -1683,3 +1683,27 @@ SOAP.Port = 7878
 CharDelete.Method = 0
 CharDelete.MinLevel = 0
 CharDelete.KeepDays = 30
+
+###############################################################################
+# AUTO BROADCAST
+#
+#    AutoBroadcast.On
+#        Enable auto broadcast
+#        Default: 0 - off
+#                 1 - on
+#
+#    AutoBroadcast.Center
+#        Display method
+#        Default: 0 - announce
+#                 1 - notify
+#                 2 - both
+#
+#    AutoBroadcast.Timer
+#        Timer for auto broadcast (in milliseconds)
+#        Default: 600000
+#
+###############################################################################
+
+AutoBroadcast.On = 0
+AutoBroadcast.Center = 0
+AutoBroadcast.Timer = 60000

@@ -76,7 +76,8 @@ enum WorldTimers
     WUPDATE_DELETECHARS = 4,
     WUPDATE_AHBOT       = 5,
     WUPDATE_GROUPS      = 6,
-    WUPDATE_COUNT       = 7
+    WUPDATE_AUTOBROADCAST = 7,
+    WUPDATE_COUNT       = 8
 };
 
 /// Configuration elements
@@ -185,6 +186,9 @@ enum eConfigUInt32Values
     CONFIG_UINT32_GUID_RESERVE_SIZE_GAMEOBJECT,
     CONFIG_UINT32_CREATURE_RESPAWN_AGGRO_DELAY,
     CONFIG_UINT32_MAX_WHOLIST_RETURNS,
+    CONFIG_UINT32_AUTOBROADCAST_TIMER,
+    CONFIG_UINT32_AUTOBROADCAST_ENABLED,
+    CONFIG_UINT32_AUTOBROADCAST_CENTER,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -598,6 +602,9 @@ class World
         static TimePoint GetCurrentClockTime() { return m_currentTime; }
         static uint32 GetCurrentDiff() { return m_currentDiff; }
 
+        void SendAutoBroadcast();
+        void LoadAutobroadcasts();
+
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters
@@ -704,6 +711,8 @@ class World
 
         static TimePoint m_currentTime;
         static uint32 m_currentDiff;
+
+        std::list<std::string> m_Autobroadcasts;
 };
 
 extern uint32 realmID;

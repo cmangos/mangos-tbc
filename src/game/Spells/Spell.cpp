@@ -6024,6 +6024,9 @@ SpellCastResult Spell::CheckCasterAuras() const
 
 bool Spell::CanAutoCast(Unit* target)
 {
+    if (!target)
+        return false;
+
     ObjectGuid targetguid = target->GetObjectGuid();
 
     for (int j = 0; j < MAX_EFFECT_INDEX; ++j)

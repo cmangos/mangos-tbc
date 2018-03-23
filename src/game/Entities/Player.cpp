@@ -530,6 +530,24 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
     rest_type = REST_TYPE_NO;
     //////////////////// Rest System/////////////////////
 
+    //movement anticheat
+    m_anti_lastmovetime = 0;   //last movement time
+    m_anti_last_hspeed = 7.0f;       //horizontal speed, default RUN speed
+    m_anti_NextLenCheck = 0;
+    m_anti_MovedLen = 0.0f;
+    m_anti_BeginFallZ = INVALID_HEIGHT;
+    m_anti_lastalarmtime = 0;    //last time when alarm generated
+    m_anti_alarmcount = 0;       //alarm counter
+    m_anti_TeleTime = 0;
+    m_CanFly = false;
+    m_anti_justjumped = 0;       //jump already began
+    m_anti_jumpbase = 0;         //AntiGravitaion
+    m_anti_old_map = 0;
+    m_anti_old_x = 0.0f;
+    m_anti_old_y = 0.0f;
+    m_anti_old_z = 0.0f;
+    m_anti_old_o = 0.0f;
+
     m_mailsUpdated = false;
     unReadMails = 0;
     m_nextMailDelivereTime = 0;
@@ -4280,9 +4298,16 @@ void Player::SetCanFly(bool enable)
 {
     WorldPacket data;
     if (enable)
+    {
+        SetAntiCheatCanFly(true);
         data.Initialize(SMSG_MOVE_SET_CAN_FLY, 12);
+    }   
     else
+    {
         data.Initialize(SMSG_MOVE_UNSET_CAN_FLY, 12);
+        SetAntiCheatCanFly(false);
+    }
+        
 
     data << GetPackGUID();
     data << uint32(0);                                      // unk
@@ -20356,7 +20381,8 @@ void Player::HandleFall(MovementInfo const& movementInfo)
 {
     // calculate total z distance of the fall
     Position const* position = movementInfo.GetPos();
-    float z_diff = m_lastFallZ - position->z;
+    float z_diff = (m_lastFallZ >= m_anti_BeginFallZ ? m_lastFallZ : m_anti_BeginFallZ) - position->z;
+    m_anti_BeginFallZ = INVALID_HEIGHT;
     DEBUG_LOG("zDiff = %f", z_diff);
 
     // Players with low fall distance, Feather Fall or physical immunity (charges used) are ignored

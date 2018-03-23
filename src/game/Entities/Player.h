@@ -2034,7 +2034,10 @@ class Player : public Unit
         bool isMovingOrTurning() const { return m_movementInfo.HasMovementFlag(movementOrTurningFlagsMask); }
 
         bool CanSwim() const { return true; }
-        bool CanFly() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_CAN_FLY); }
+        uint32 Anti__GetLastTeleTime() const { return m_anti_TeleTime; }
+        void Anti__SetLastTeleTime(uint32 TeleTime) { m_anti_TeleTime = TeleTime; }
+        bool CanFly() const { return m_CanFly; }
+        void SetAntiCheatCanFly(bool CanFly) { m_CanFly = CanFly; }
         bool CanWalk() const { return true; }
         bool IsFlying() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FLYING); }
         bool IsFreeFlying() const { return HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED) || HasAuraType(SPELL_AURA_FLY); }
@@ -2393,6 +2396,25 @@ class Player : public Unit
         float m_rest_bonus;
         RestType rest_type;
         //////////////////// Rest System/////////////////////
+
+        //movement anticheat
+        uint32 m_anti_lastmovetime;     //last movement time
+        float  m_anti_last_hspeed;      //horizontal speed, default RUN speed
+        float  m_anti_MovedLen;         //Length of traveled way
+        uint32 m_anti_NextLenCheck;
+        float  m_anti_BeginFallZ;       //alternative falling begin
+        uint32 m_anti_lastalarmtime;    //last time when alarm generated
+        uint32 m_anti_alarmcount;       //alarm counter
+        uint32 m_anti_TeleTime;
+        bool m_CanFly;
+        uint32 m_anti_justjumped;       //Jump already began, anti air jump check
+        float  m_anti_jumpbase;         //AntiGravitation
+        bool   blink_test;
+        uint32  m_anti_old_map;
+        float  m_anti_old_x;
+        float  m_anti_old_y;
+        float  m_anti_old_z;
+        float  m_anti_old_o;
 
         // Transports
         Transport* m_transport;

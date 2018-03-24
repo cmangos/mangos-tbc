@@ -872,6 +872,8 @@ UPDATE creature_template SET ScriptName='npc_spawned_oronok_tornheart' WHERE ent
 UPDATE creature_template SET ScriptName='npc_domesticated_felboar' WHERE entry=21195;
 UPDATE creature_template SET ScriptName='npc_shadowmoon_tuber_node' WHERE entry=21347;
 UPDATE creature_template SET ScriptName='npc_veneratus_spawn_node' WHERE entry=21334;
+UPDATE creature_template SET ScriptName='mob_shadowmoon_soulstealer' WHERE entry=22061;
+UPDATE creature_template SET ScriptName='npc_shadowlord_deathwail' WHERE entry=22006;
 
 /* SHATTRATH */
 UPDATE creature_template SET ScriptName='npc_dirty_larry' WHERE entry=19720;
@@ -2323,6 +2325,16 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001275,'Okay, okay! Enough fighting. No one else needs to get hurt.', '0', '0', '0', '0','dashel stonefist SAY_STONEFIST_2'),
 (-1001276,'It''s okay, boys. Back off. You''ve done enough. I''ll meet up with you later.', '0', '0', '0', '0','dashel stonefist SAY_STONEFIST_3'),
 (-1001277,'That could have gone better. $n, come here, please. I have something I need you to take care of for me.','0','4','0','0','Ambassador Sunsorrow - During Lament of the Highborne script');
+
+-- -1 010 000 Classic texts
+
+-- -1 015 000 TBC texts
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1015002, 'You will never get the Heart of Fury!  Its power belongs to Illidan!', '0', '1', '0', '0', 'Shadowlord Deathwail - yell on descent'),
+(-1015003, '%s retrieves the Heart of Fury.', '0', '2', '0', '0', 'Shadowlord Deathwail - grabs heart'),
+(-1015004, 'Master... I\'ve failed you...', '0', '1', '0', '0', 'Shadowlord Deathwail - death');
+
+-- -1 020 000 WOTLK texts
 
 -- -1 033 000 SHADOWFANG KEEP
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES

@@ -6239,7 +6239,13 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
         percent *= repRate;
     }
 
-    int32 result = int32(sWorld.getConfig(CONFIG_FLOAT_RATE_REPUTATION_GAIN) * rep * percent / 100.0f);
+    float raceGain = 0.0f;
+    if (getRace() == 1 || getRace() == 3 || getRace() == 4 || getRace() == 7 || getRace() == 11)
+        raceGain = sWorld.getConfig(CONFIG_FLOAT_ALLIANCE_RATE_REPUTATION_GAIN);
+    else
+        raceGain = sWorld.getConfig(CONFIG_FLOAT_HORDE_RATE_REPUTATION_GAIN);
+
+    int32 result = int32((sWorld.getConfig(CONFIG_FLOAT_RATE_REPUTATION_GAIN) + raceGain) * rep * percent / 100.0f);
 
     if (result && maxRep && faction)
     {
@@ -12966,7 +12972,16 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     QuestStatusData& q_status = mQuestStatus[quest_id];
 
     // Used for client inform but rewarded only in case not max level
-    uint32 xp = uint32(pQuest->XPValue(this) * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
+    float racexp = 0.0f;
+    if (getLevel() < DEFAULT_MAX_LEVEL)
+    {
+        if (getRace() == 1 || getRace() == 3 || getRace() == 4 || getRace() == 7 || getRace() == 11)
+            racexp = sWorld.getConfig(CONFIG_FLOAT_ALLIANCE_RATE_XP_QUEST);
+        else
+            racexp = sWorld.getConfig(CONFIG_FLOAT_HORDE_RATE_XP_QUEST);
+    }
+
+    uint32 xp = uint32(pQuest->XPValue(this) * (sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST) + racexp));
 
     if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         GiveXP(xp, nullptr);

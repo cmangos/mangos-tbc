@@ -1816,6 +1816,36 @@ AutoBroadcast.Timer = 60000
 #        Broadcast consumption price
 #        Default: 0(Copper)
 #
+#    Horde.Rate.XP.Kill
+#        Horde XP rates
+#        Default: 0
+#
+#    Horde.Rate.XP.Quest
+#        Horde Quest rates
+#        Default: 0
+#
+#    Horde.Rate.Reputation.Gain
+#        Horde Reputation rates
+#        Default: 0
+#
+#    Alliance.Rate.XP.Kill
+#        Alliance XP rates
+#        Default: 0
+#
+#    Alliance.Rate.XP.Quest
+#        Alliance Quest rates
+#        Default: 0
+#
+#    Alliance.Rate.Reputation.Gain
+#        Alliance Reputation rates
+#        Default: 0
+#
 ###############################################################################
 
 WorldChatChannelMoney = 0
+Horde.Rate.XP.Kill = 0
+Horde.Rate.XP.Quest = 0
+Horde.Rate.Reputation.Gain = 0
+Alliance.Rate.XP.Kill = 0
+Alliance.Rate.XP.Quest = 0
+Alliance.Rate.Reputation.Gain = 0

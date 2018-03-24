@@ -815,6 +815,12 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_AUTOBROADCAST_CENTER, "AutoBroadcast.Center", 0);
     setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "AutoBroadcast.Timer", 60000);
     setConfigMinMax(CONFIG_UINT32_WORLD_CHAT_CHANNEL_MONEY, "WorldChatChannelMoney", 0, 0, MAX_MONEY_AMOUNT);
+    setConfigPos(CONFIG_FLOAT_HORDE_RATE_XP_KILL, "Horde.Rate.XP.Kill", 0.0f);
+    setConfigPos(CONFIG_FLOAT_HORDE_RATE_XP_QUEST, "Horde.Rate.XP.Quest", 0.0f);
+    setConfigPos(CONFIG_FLOAT_HORDE_RATE_REPUTATION_GAIN, "Horde.Rate.Reputation.Gain", 0.0f);
+    setConfigPos(CONFIG_FLOAT_ALLIANCE_RATE_XP_KILL, "Alliance.Rate.XP.Kill", 0.0f);
+    setConfigPos(CONFIG_FLOAT_ALLIANCE_RATE_XP_QUEST, "Alliance.Rate.XP.Quest", 0.0f);
+    setConfigPos(CONFIG_FLOAT_ALLIANCE_RATE_REPUTATION_GAIN, "Alliance.Rate.Reputation.Gain", 0.0f);
 
     ///- Read the "Data" directory from the config file
     std::string dataPath = sConfig.GetStringDefault("DataDir", "./");

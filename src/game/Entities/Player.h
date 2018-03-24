@@ -1457,6 +1457,8 @@ class Player : public Unit
 
         uint32 Getjifen() const;
         void Modifyjifen(int32 value);
+        bool IsFlyInstantArrive() const;
+        void SetFlyInstantArriveDate(uint32 value);
 
         /*********************************************************/
         /*** MAILED ITEMS SYSTEM ***/

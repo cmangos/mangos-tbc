@@ -4171,6 +4171,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             }
 
             CharacterDatabase.PExecute("DELETE FROM characters WHERE guid = '%u'", lowguid);
+            CharacterDatabase.PExecute("DELETE FROM characters_limited WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_declinedname WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_action WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_aura WHERE guid = '%u'", lowguid);
@@ -17758,8 +17759,19 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     // prevent stealth flight
     RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
-    GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
-    GetSession()->SendDoFlight(mount_display_id, sourcepath);
+    //Fly Instant Arrive
+    if (IsFlyInstantArrive() && npc)
+    {
+        TaxiNodesEntry const* lastnode = sTaxiNodesStore.LookupEntry(nodes[nodes.size() - 1]);
+        m_taxi.ClearTaxiDestinations();
+        TeleportTo(lastnode->map_id, lastnode->x, lastnode->y, lastnode->z, GetOrientation());
+        return false;
+    }
+    else
+    {
+        GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
+        GetSession()->SendDoFlight(mount_display_id, sourcepath);
+    }
 
     return true;
 }
@@ -21293,4 +21305,52 @@ void Player::Modifyjifen(int32 value)
         LoginDatabase.PExecute("UPDATE `account` SET `jf` = '0' WHERE `id` = '%u'", GetSession()->GetAccountId());
     else
         LoginDatabase.PExecute("UPDATE `account` SET `jf` = '%u' WHERE `id` = '%u'", Newjifen, GetSession()->GetAccountId());
+}
+
+bool Player::IsFlyInstantArrive() const
+{
+    QueryResult* result = CharacterDatabase.PQuery("SELECT guid, fly_last_date FROM characters_limited WHERE guid = '%u' AND fly_last_date >= NOW()", GetGUIDLow());
+    if (result)
+    {
+        return true;
+    }
+    return false;
+}
+
+void Player::SetFlyInstantArriveDate(uint32 value)
+{
+    if (value <= 0)
+        return;
+
+    time_t now = time(nullptr);
+    time_t last_date = time_t(0);
+    char sTimeDate[128] = { 0 };
+    QueryResult* result = CharacterDatabase.PQuery("SELECT guid, UNIX_TIMESTAMP(fly_last_date) FROM characters_limited WHERE guid = '%u'", GetGUIDLow());
+    if (result)
+    {
+        Field* fields = result->Fetch();
+        last_date = time_t(fields[1].GetUInt64());
+        if (last_date > now)
+            last_date += value;
+        else
+            last_date = now + value;
+
+        strftime(sTimeDate, 64, "%Y-%m-%d %H:%M:%S", localtime(&last_date));
+        CharacterDatabase.PExecute("UPDATE characters_limited SET fly_last_date = '%s' WHERE guid = '%u'", sTimeDate, GetGUIDLow());
+        delete result;
+    }
+    else
+    {
+        last_date = now + value;
+        strftime(sTimeDate, 64, "%Y-%m-%d %H:%M:%S", localtime(&last_date));
+        QueryResult* resultguld = CharacterDatabase.PQuery("SELECT guid FROM characters_limited WHERE guid = '%u'", GetGUIDLow());
+        if (resultguld)
+        {
+            CharacterDatabase.PExecute("UPDATE characters_limited SET fly_last_date = '%s' WHERE guid = '%u'", sTimeDate, GetGUIDLow());
+            delete resultguld;
+        }   
+        else
+            CharacterDatabase.PExecute("INSERT INTO characters_limited (guid, fly_last_date) VALUES ('%u', '%s')", GetGUIDLow(), sTimeDate);
+
+    }
 }

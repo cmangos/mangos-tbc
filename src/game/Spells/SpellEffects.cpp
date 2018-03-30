@@ -2368,7 +2368,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (!item)
                         return;
 
-                    // all poison enchantments is temporary					
+                    // all poison enchantments is temporary
                     if (uint32 enchant_id = item->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
                     {
                         SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
@@ -3321,7 +3321,7 @@ void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
             if (m_caster->HasAura(17619)) // Alchemists stone
                 addhealth *= 1.4f; // increase healing by 40%
         }
-        else 
+        else
         {
             switch (m_spellInfo->Id)
             {
@@ -3343,10 +3343,10 @@ void Spell::EffectHeal(SpellEffectIndex /*eff_idx*/)
                             damageAmount += (*i)->GetModifier()->m_amount;
                     if (damageAmount)
                         m_caster->RemoveAurasDueToSpell(45062);
-                
+
                     addhealth += damageAmount;
                     break;
-                
+
                 }
             }
         }
@@ -5814,6 +5814,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     return;
                 }
                 case 24742:                                 // Magic Wings
+                case 42867:                                 // Magic Wings (Terrokar Forest)
                 {
                     if(!unitTarget)
                         return;

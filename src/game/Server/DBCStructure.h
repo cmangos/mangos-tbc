@@ -53,8 +53,7 @@ struct AreaTableEntry
     char*   area_name[16];                                  // 11-26    m_AreaName_lang
     // 27 string flags
     uint32  team;                                           // 28       m_factionGroupMask
-    uint32  LiquidTypeOverride;                             // 29       m_liquidTypeID override for water type
-    // 30-32    uknown/unused
+    uint32  LiquidTypeOverride[4];                          // 29-32    m_liquidTypeID[4]
     // 33       m_minElevation
     // 34       m_ambient_multiplier
 };

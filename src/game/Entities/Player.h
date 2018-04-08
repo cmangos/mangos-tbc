@@ -2125,6 +2125,7 @@ class Player : public Unit
         DeclinedName const* GetDeclinedNames() const { return m_declinedname; }
         bool HasTitle(uint32 bitIndex) const;
         bool HasTitle(CharTitlesEntry const* title) const { return HasTitle(title->bit_index); }
+        void SetTitle(uint32 titleId, bool lost = false);
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
 #ifdef BUILD_PLAYERBOT

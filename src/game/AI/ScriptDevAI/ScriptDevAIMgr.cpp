@@ -281,6 +281,16 @@ bool ScriptDevAIMgr::OnGameObjectUse(Player* pPlayer, GameObject* pGo)
     return pTempScript->pGOUse(pPlayer, pGo);
 }
 
+std::function<bool(Unit*)>* ScriptDevAIMgr::OnTrapSearch(GameObject* go)
+{
+    Script* pTempScript = GetScript(go->GetGOInfo()->ScriptId);
+
+    if (!pTempScript)
+        return nullptr;
+
+    return pTempScript->pTrapSearching;
+}
+
 bool ScriptDevAIMgr::OnQuestRewarded(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
 {
     Script* pTempScript = GetScript(pCreature->GetScriptId());
@@ -354,6 +364,16 @@ bool ScriptDevAIMgr::OnItemUse(Player* pPlayer, Item* pItem, SpellCastTargets co
         return false;
 
     return pTempScript->pItemUse(pPlayer, pItem, targets);
+}
+
+bool ScriptDevAIMgr::OnItemLoot(Player* pPlayer, Item* pItem, bool apply)
+{
+    Script* pTempScript = GetScript(pItem->GetProto()->ScriptId);
+
+    if (!pTempScript || !pTempScript->pItemLoot)
+        return false;
+
+    return pTempScript->pItemLoot(pPlayer, pItem, apply);
 }
 
 bool ScriptDevAIMgr::OnEffectDummy(Unit* pCaster, uint32 spellId, SpellEffectIndex effIndex, Creature* pTarget, ObjectGuid originalCasterGuid)

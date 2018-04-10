@@ -1046,47 +1046,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
                 pVictim->RemoveAurasDueToSpell(aura);
         }
 
-        if (damagetype != NODAMAGE && damage && pVictim->GetTypeId() == TYPEID_PLAYER)
-        {
-            if (damagetype != DOT)
-            {
-                for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
-                {
-                    // skip channeled spell (processed differently below)
-                    if (i == CURRENT_CHANNELED_SPELL)
-                        continue;
-
-                    if (Spell* spell = pVictim->GetCurrentSpell(CurrentSpellTypes(i)))
-                    {
-                        if (spell->getState() == SPELL_STATE_CASTING)
-                        {
-                            if (spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG)
-                                pVictim->InterruptSpell(CurrentSpellTypes(i));
-                            else
-                                spell->Delayed();
-                        }
-                    }
-                }
-            }
-
-            if (Spell* spell = pVictim->m_currentSpells[CURRENT_CHANNELED_SPELL])
-            {
-                if (spell->CanBeInterrupted())
-                {
-                    uint32 channelInterruptFlags = spell->m_spellInfo->ChannelInterruptFlags;
-                    if (channelInterruptFlags & CHANNEL_FLAG_DELAY)
-                    {
-                        if (pVictim != this)                // don't shorten the duration of channeling if you damage yourself
-                            spell->DelayedChannel();
-                    }
-                    else if ((channelInterruptFlags & (CHANNEL_FLAG_DAMAGE | CHANNEL_FLAG_DAMAGE2)))
-                    {
-                        DETAIL_LOG("Spell %u canceled at damage!", spell->m_spellInfo->Id);
-                        pVictim->InterruptSpell(CURRENT_CHANNELED_SPELL);
-                    }
-                }
-            }
-        }
+        InterruptOrDelaySpell(pVictim, damagetype);
 
         // last damage from duel opponent
         if (duel_hasEnded)
@@ -1109,6 +1069,49 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageEnd returned %d damage", damage);
 
     return damage;
+}
+
+void Unit::InterruptOrDelaySpell(Unit* pVictim, DamageEffectType damagetype)
+{
+    if (damagetype == NODAMAGE || damagetype == DOT)
+        return;
+
+    for (uint32 i = CURRENT_FIRST_NON_MELEE_SPELL; i < CURRENT_MAX_SPELL; ++i)
+    {
+        if (Spell* spell = pVictim->GetCurrentSpell(CurrentSpellTypes(i)))
+        {
+            if (spell->getState() == SPELL_STATE_CASTING)
+            {
+                if (spell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_ABORT_ON_DMG)
+                    pVictim->InterruptSpell(CurrentSpellTypes(i));
+                else
+                    spell->Delayed();
+            }
+
+            if (CurrentSpellTypes(i) == CURRENT_CHANNELED_SPELL)
+            {
+                if (Spell* spell = pVictim->GetCurrentSpell(CURRENT_CHANNELED_SPELL)) // fetch again because spell couldve been interrupted before
+                {
+                    if (spell->CanBeInterrupted())
+                    {
+                        uint32 channelInterruptFlags = spell->m_spellInfo->ChannelInterruptFlags;
+                        if (channelInterruptFlags & CHANNEL_FLAG_DELAY)
+                        {
+                            if (pVictim != this)                // don't shorten the duration of channeling if you damage yourself
+                                spell->DelayedChannel();
+                        }
+                        else if ((channelInterruptFlags & (CHANNEL_FLAG_DAMAGE | CHANNEL_FLAG_DAMAGE2)))
+                        {
+                            DETAIL_LOG("Spell %u canceled at damage!", spell->m_spellInfo->Id);
+                            pVictim->InterruptSpell(CURRENT_CHANNELED_SPELL);
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 struct PetOwnerKilledUnitHelper
@@ -3823,7 +3826,12 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
         case CURRENT_GENERIC_SPELL:
         {
             // generic spells always break channeled not delayed spells
-            InterruptSpell(CURRENT_CHANNELED_SPELL, false);
+            // Unless they have this attribute
+            if (Spell* spell = m_currentSpells[CURRENT_CHANNELED_SPELL])
+            {
+                if(!pSpell->m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING))
+                    InterruptSpell(CURRENT_CHANNELED_SPELL, false);
+            }            
 
             // autorepeat breaking
             if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
@@ -3838,13 +3846,18 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
         case CURRENT_CHANNELED_SPELL:
         {
             // channel spells always break generic non-delayed and any channeled spells
-            InterruptSpell(CURRENT_GENERIC_SPELL, false);
             InterruptSpell(CURRENT_CHANNELED_SPELL);
 
-            // it also does break autorepeat if not Auto Shot
-            if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL] &&
+            // Channeled spell can only be one
+            // Spells with this attribute can be cast in parallel with generic spells
+            if (!pSpell->m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING))
+            {
+                InterruptSpell(CURRENT_GENERIC_SPELL, false);
+                // it also does break autorepeat if not Auto Shot
+                if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL] &&
                     m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Category == 351)
-                InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+                    InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
+            }
         } break;
 
         case CURRENT_AUTOREPEAT_SPELL:
@@ -3854,7 +3867,11 @@ void Unit::SetCurrentCastedSpell(Spell* pSpell)
             {
                 // generic autorepeats break generic non-delayed and channeled non-delayed spells
                 InterruptSpell(CURRENT_GENERIC_SPELL, false);
-                InterruptSpell(CURRENT_CHANNELED_SPELL, false);
+                if (Spell* spell = m_currentSpells[CURRENT_CHANNELED_SPELL])
+                {
+                    if (!pSpell->m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING))
+                        InterruptSpell(CURRENT_CHANNELED_SPELL, false);
+                }
             }
             // special action: set first cast flag
             m_AutoRepeatFirstCast = true;
@@ -4550,19 +4567,6 @@ void Unit::RemoveAuraHolderDueToSpellByDispel(uint32 spellId, uint32 stackAmount
             // backfire damage and silence
             dispeller->CastCustomSpell(dispeller, 31117, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, casterGuid);
             return;
-        }
-    }
-    // Lifebloom
-    else if (spellEntry->SpellFamilyName == SPELLFAMILY_DRUID && (spellEntry->SpellFamilyFlags & uint64(0x0000001000000000)))
-    {
-        if (Aura* dotAura = GetAura(SPELL_AURA_DUMMY, SPELLFAMILY_DRUID, uint64(0x0000001000000000), casterGuid))
-        {
-            if (dotAura->GetStackAmount() <= stackAmount)
-            {
-                // Lifebloom dummy store single stack amount always
-                int32 amount = dotAura->GetModifier()->m_amount;
-                CastCustomSpell(this, 33778, &amount, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, dotAura, casterGuid);
-            }
         }
     }
 
@@ -5751,6 +5755,21 @@ bool Unit::IsNeutralToAll() const
     return my_faction->IsNeutralToAll();
 }
 
+void Unit::AttackedBy(Unit* attacker)
+{
+    // trigger AI reaction
+    if (AI())
+        AI()->AttackedBy(attacker);
+
+    // do not pet reaction for self inflicted damage (like environmental)
+    if (attacker == this)
+        return;
+
+    // trigger pet AI reaction
+    if (Pet* pet = GetPet())
+        pet->AttackedBy(attacker);
+}
+
 bool Unit::Attack(Unit* victim, bool meleeAttack)
 {
     if (!victim || victim == this)
@@ -5788,11 +5807,7 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
             // switch to melee attack from ranged/magic
             if (meleeAttack)
             {
-                if (!hasUnitState(UNIT_STAT_MELEE_ATTACKING))
-                {
-                    addUnitState(UNIT_STAT_MELEE_ATTACKING);
-                    SendMeleeAttackStart(victim);
-                }
+                MeleeAttackStart(m_attacking);
                 return true;
             }
             return false;
@@ -5802,14 +5817,15 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
         AttackStop(true);
     }
 
-    // Set our target
-    SetTargetGuid(victim->GetObjectGuid());
+    // Do not set new target, creatures automatically turn to target clientside if target is set, leading to desync
+    if (AI() && AI()->CanExecuteCombatAction())
+        SetTargetGuid(victim->GetObjectGuid());
 
-    if (meleeAttack)
-        addUnitState(UNIT_STAT_MELEE_ATTACKING);
+    // If attacker was already added, it means we have m_attacking cleared due to some other
+    if (!victim->_addAttacker(this))
+        return false;
 
     m_attacking = victim;
-    m_attacking->_addAttacker(this);
 
     if (GetTypeId() == TYPEID_UNIT)
     {
@@ -5822,24 +5838,9 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
         resetAttackTimer(OFF_ATTACK);
 
     if (meleeAttack)
-        SendMeleeAttackStart(victim);
+        MeleeAttackStart(m_attacking);
 
     return true;
-}
-
-void Unit::AttackedBy(Unit* attacker)
-{
-    // trigger AI reaction
-    if (AI())
-        AI()->AttackedBy(attacker);
-
-    // do not pet reaction for self inflicted damage (like environmental)
-    if (attacker == this)
-        return;
-
-    // trigger pet AI reaction
-    if (Pet* pet = GetPet())
-        pet->AttackedBy(attacker);
 }
 
 bool Unit::AttackStop(bool targetSwitch /*= false*/, bool includingCast /*= false*/, bool includingCombo /*= false*/)
@@ -5852,14 +5853,10 @@ bool Unit::AttackStop(bool targetSwitch /*= false*/, bool includingCast /*= fals
     if (targetSwitch && GetTypeId() != TYPEID_PLAYER)
         SetTargetGuid(ObjectGuid());
 
-    clearUnitState(UNIT_STAT_MELEE_ATTACKING);
-
-    InterruptSpell(CURRENT_MELEE_SPELL);
+    MeleeAttackStop(m_attacking);
 
     if (m_attacking)
     {
-        SendMeleeAttackStop(m_attacking);
-
         m_attacking->_removeAttacker(this);
         m_attacking = nullptr;
         return true;
@@ -5893,6 +5890,27 @@ void Unit::CombatStop(bool includingCast, bool includingCombo)
         AI()->CombatStop();
 
     ClearInCombat();
+}
+
+void Unit::MeleeAttackStart(Unit* victim)
+{
+    if (!hasUnitState(UNIT_STAT_MELEE_ATTACKING))
+    {
+        addUnitState(UNIT_STAT_MELEE_ATTACKING);
+        if (victim)
+            SendMeleeAttackStart(victim);
+    }
+}
+
+void Unit::MeleeAttackStop(Unit* victim)
+{
+    if (hasUnitState(UNIT_STAT_MELEE_ATTACKING))
+    {
+        clearUnitState(UNIT_STAT_MELEE_ATTACKING);
+        InterruptSpell(CURRENT_MELEE_SPELL);
+        if (victim)
+            SendMeleeAttackStop(victim);
+    }
 }
 
 struct CombatStopWithPetsHelper
@@ -6646,7 +6664,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
             case 4920:
             case 4919:
             {
-                if (pVictim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+                if (pVictim->HasAuraState(AURA_STATE_HEALTHLESS_20_PERCENT))
                     DoneTotalMod *= (100.0f + (*i)->GetModifier()->m_amount) / 100.0f;
                 break;
             }
@@ -6740,6 +6758,10 @@ uint32 Unit::SpellDamageBonusDone(Unit* pVictim, SpellEntry const* spellProto, u
 uint32 Unit::SpellDamageBonusTaken(Unit* pCaster, SpellEntry const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint32 stack)
 {
     if (!spellProto || !pCaster || damagetype == DIRECT_DAMAGE)
+        return pdamage;
+
+    // Some spells don't benefit from taken mods
+    if (spellProto->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
         return pdamage;
 
     uint32 schoolMask = spellProto->SchoolMask;
@@ -7107,6 +7129,10 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
     if (!pVictim || pdamage == 0 || (spellProto && spellProto->HasAttribute(SPELL_ATTR_EX6_NO_DMG_PERCENT_MODS)))
         return pdamage;
 
+    // Some spells don't benefit from done mods
+    if (spellProto && spellProto->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
+        return pdamage;
+
     // differentiate for weapon damage based spells
     bool isWeaponDamageBasedSpell = !(spellProto && (damagetype == DOT || IsSpellHaveEffect(spellProto, SPELL_EFFECT_SCHOOL_DAMAGE)));
     Item*  pWeapon          = GetTypeId() == TYPEID_PLAYER ? ((Player*)this)->GetWeaponForAttack(attType, true, false) : nullptr;
@@ -7263,10 +7289,11 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
  */
 uint32 Unit::MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackType attType, SpellEntry const* spellProto, DamageEffectType damagetype, uint32 stack)
 {
-    if (!pCaster)
+    if (!pCaster || pdamage == 0)
         return pdamage;
 
-    if (pdamage == 0)
+    // Some spells don't benefit from taken mods
+    if (spellProto && spellProto->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
         return pdamage;
 
     // differentiate for weapon damage based spells
@@ -8380,16 +8407,6 @@ void Unit::TauntApply(Unit* taunter)
     if (target && target == taunter)
         return;
 
-    // Only attack taunter if this is a valid target
-    if (CanReactInCombat() && !IsSecondChoiceTarget(taunter, true, true))
-    {
-        if (GetTargetGuid() || !target)
-            SetInFront(taunter);
-
-        if (AI())
-            AI()->AttackStart(taunter);
-    }
-
     getThreatManager().tauntApply(taunter);
 }
 
@@ -8410,33 +8427,7 @@ void Unit::TauntFadeOut(Unit* taunter)
     if (!target || target != taunter)
         return;
 
-    if (getThreatManager().isThreatListEmpty())
-    {
-        m_fixateTargetGuid.Clear();
-
-        if (AI())
-            AI()->EnterEvadeMode();
-
-        if (InstanceData* mapInstance = GetInstanceData())
-            mapInstance->OnCreatureEvade((Creature*)this);
-
-        if (m_isCreatureLinkingTrigger)
-            GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_EVADE, (Creature*)this);
-
-        return;
-    }
-
     getThreatManager().tauntFadeOut(taunter);
-    target = getThreatManager().getHostileTarget();
-
-    if (target && target != taunter)
-    {
-        if (GetTargetGuid())
-            SetInFront(target);
-
-        if (AI())
-            AI()->AttackStart(target);
-    }
 }
 
 //======================================================================
@@ -8485,6 +8476,18 @@ bool Unit::SelectHostileTarget()
     if (!AI())
         return false;
 
+    if (!AI()->CanExecuteCombatAction())
+    {
+        if (hasUnitState(UNIT_STAT_CHANNELING) && !hasUnitState(UNIT_STAT_DONT_TURN))
+            if (Unit* target = GetMap()->GetUnit(GetTargetGuid()))
+                SetInFront(target);
+
+        if (AI()->GetCombatScriptStatus() && getThreatManager().isThreatListEmpty())
+            return false;
+
+        return true;
+    }
+
     Unit* target = nullptr;
     Unit* oldTarget = getVictim();
 
@@ -8496,10 +8499,11 @@ bool Unit::SelectHostileTarget()
         else
         {
             Unit* pFixateTarget = GetMap()->GetUnit(m_fixateTargetGuid);
-            if (pFixateTarget && pFixateTarget->isAlive() && !IsSecondChoiceTarget(pFixateTarget, false, true))
+            if (pFixateTarget && pFixateTarget->isAlive() && !IsSecondChoiceTarget(pFixateTarget, false, true) && (!IsIgnoringRangedTargets() || CanReachWithMeleeAttack(target)))
                 target = pFixateTarget;
         }
     }
+
     // then checking if we have some taunt on us
     if (!target)
     {
@@ -8511,8 +8515,8 @@ bool Unit::SelectHostileTarget()
         for (AuraList::const_reverse_iterator aura = tauntAuras.rbegin(); aura != tauntAuras.rend(); ++aura)
         {
             if ((caster = (*aura)->GetCaster()) && caster->IsInMap(this) &&
-                    CanAttack(caster) && caster->isInAccessablePlaceFor((Creature*)this) &&
-                    !IsSecondChoiceTarget(caster, true, true))
+                CanAttack(caster) && caster->isInAccessablePlaceFor((Creature*)this) &&
+                !IsSecondChoiceTarget(caster, true, true) && (!IsIgnoringRangedTargets() || CanReachWithMeleeAttack(caster)))
             {
                 target = caster;
                 break;
@@ -8524,42 +8528,56 @@ bool Unit::SelectHostileTarget()
     if (!target && !getThreatManager().isThreatListEmpty())
         target = getThreatManager().getHostileTarget();
 
+    if (!target && oldTarget)
+    {
+        if (IsIgnoringRangedTargets())
+        {
+            if (CanReachWithMeleeAttack(oldTarget))
+                target = oldTarget;
+            else
+            {
+                m_attacking = nullptr;
+                SetTargetGuid(ObjectGuid());
+                oldTarget->_removeAttacker(this);
+            }
+        }
+    }
+
     if (target)
     {
-        if (CanReactInCombat() && !hasUnitState(UNIT_STAT_DONT_TURN | UNIT_STAT_SEEKING_ASSISTANCE))
+        SetInFront(target);
+        if (oldTarget != target)
+            AI()->AttackStart(target);
+
+        // check if currently selected target is reachable
+        // NOTE: path alrteady generated from AttackStart()
+        if (!GetMotionMaster()->GetCurrent()->IsReachable())
         {
-            SetInFront(target);
-            if (oldTarget != target)
-                AI()->AttackStart(target);
+            // remove all taunts
+            RemoveSpellsCausingAura(SPELL_AURA_MOD_TAUNT);
 
-            // check if currently selected target is reachable
-            // NOTE: path alrteady generated from AttackStart()
-            if (!GetMotionMaster()->GetCurrent()->IsReachable())
+            if (getThreatManager().getThreatList().size() < 2)
             {
-                // remove all taunts
-                RemoveSpellsCausingAura(SPELL_AURA_MOD_TAUNT);
-
-                if (getThreatManager().getThreatList().size() < 2)
-                {
-                    // only one target in list, we have to evade after timer
-                    // TODO: make timer - inside Creature class
-                    AI()->EnterEvadeMode();
-                }
-                else
-                {
-                    // remove unreachable target from our threat list
-                    // next iteration we will select next possible target
-                    getHostileRefManager().deleteReference(target);
-                    getThreatManager().modifyThreatPercent(target, -101);
-                    // remove target from current attacker, do not exit combat settings
-                    AttackStop(true);
-                }
-
-                return false;
+                // only one target in list, we have to evade after timer
+                // TODO: make timer - inside Creature class
+                AI()->EnterEvadeMode();
             }
+            else
+            {
+                // remove unreachable target from our threat list
+                // next iteration we will select next possible target
+                getHostileRefManager().deleteReference(target);
+                getThreatManager().modifyThreatPercent(target, -101);
+                // remove target from current attacker, do not exit combat settings
+                AttackStop(true);
+            }
+
+            return false;
         }
         return true;
     }
+    else if (IsIgnoringRangedTargets() && !getThreatManager().isThreatListEmpty())
+        return true; // return true but no target
 
     // no target but something prevent go to evade mode
     if (!isInCombat() || HasAuraType(SPELL_AURA_MOD_TAUNT))
@@ -8581,12 +8599,6 @@ bool Unit::SelectHostileTarget()
     // enter in evade mode in other case
     m_fixateTargetGuid.Clear();
     AI()->EnterEvadeMode();
-
-    if (InstanceData* mapInstance = GetInstanceData())
-        mapInstance->OnCreatureEvade((Creature*)this);
-
-    if (m_isCreatureLinkingTrigger)
-        GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_EVADE, (Creature*)this);
 
     return false;
 }
@@ -11186,6 +11198,14 @@ bool Unit::TakeCharmOf(Unit* charmed, bool advertised /*= true*/)
         charmerPlayer->CharmSpellInitialize();
 
     return true;
+}
+
+void Unit::SetTurningOff(bool apply)
+{
+    if (apply)
+        addUnitState(UNIT_STAT_DONT_TURN);
+    else
+        clearUnitState(UNIT_STAT_DONT_TURN);
 }
 
 void Unit::BreakCharmOutgoing(Unit* charmed)

@@ -81,6 +81,7 @@ UPDATE gameobject_template SET ScriptName='go_darkmoon_faire_music' WHERE entry=
 UPDATE gameobject_template SET ScriptName='go_pirate_day_music' WHERE entry=190363;
 UPDATE gameobject_template SET ScriptName='go_midsummer_music' WHERE entry=188174;
 UPDATE gameobject_template SET ScriptName='go_brewfest_music' WHERE entry=186221;
+UPDATE gameobject_template SET ScriptName='go_elemental_rift' WHERE entry IN (179664, 179665, 179666, 179667);
 
 /* GUARD */
 UPDATE creature_template SET ScriptName='guard_azuremyst' WHERE entry=18038;
@@ -127,6 +128,7 @@ UPDATE creature_template SET ScriptName='npc_prof_leather' WHERE entry IN (7866,
 -- UPDATE creature_template SET ScriptName='npc_innkeeper' WHERE npcflag=npcflag|65536;
 UPDATE creature_template SET ScriptName='npc_redemption_target' WHERE entry IN (6172,6177,17542,17768);
 UPDATE creature_template SET ScriptName='npc_burster_worm' WHERE entry IN (16844,16857,16968,21380,21849,22038,22466,22482,23285);
+UPDATE creature_template SET ScriptName='npc_the_cleaner' WHERE entry=14503;
 
 /* SPELL */
 UPDATE creature_template SET ScriptName='spell_dummy_npc' WHERE entry IN (
@@ -373,6 +375,7 @@ UPDATE creature_template SET ScriptName='npc_demolitionist_legoso' WHERE entry=1
 /* BURNING STEPPES */
 UPDATE creature_template SET ScriptName='npc_ragged_john' WHERE entry=9563;
 UPDATE creature_template SET ScriptName='npc_grark_lorkrub' WHERE entry=9520;
+UPDATE creature_template SET ScriptName='npc_klinfran' WHERE entry IN (14529,14534);
 
 /*  */
 /* CAVERNS OF TIME */
@@ -763,6 +766,7 @@ UPDATE creature_template SET ScriptName='npc_drijya' WHERE entry=20281;
 UPDATE creature_template SET ScriptName='npc_dimensius' WHERE entry=19554;
 UPDATE creature_template SET ScriptName='npc_salhadaar' WHERE entry=20454;
 UPDATE creature_template SET ScriptName='npc_energy_ball' WHERE entry=20769;
+UPDATE creature_template SET ScriptName='npc_scrap_reaver' WHERE entry IN(19849);
 UPDATE creature_template SET ScriptName='npc_scrapped_fel_reaver' WHERE entry IN(20243);
 
 /* ONYXIA'S LAIR */
@@ -866,6 +870,7 @@ UPDATE creature_template SET ScriptName='npc_adal' WHERE entry IN(18481);
 /* SILITHUS */
 UPDATE creature_template SET ScriptName='npc_anachronos_the_ancient' WHERE entry=15381;
 UPDATE gameobject_template SET ScriptName='go_crystalline_tear' WHERE entry=180633;
+UPDATE creature_template SET ScriptName='npc_solenor' WHERE entry IN (14530,14536);
 
 /* SILVERMOON */
 
@@ -888,6 +893,7 @@ UPDATE creature_template SET ScriptName='npc_reginald_windsor' WHERE entry =1258
 
 /* STRANGLETHORN VALE */
 UPDATE creature_template SET ScriptName='mob_yenniku' WHERE entry=2530;
+UPDATE gameobject_template SET ScriptName='go_transpolyporter_bb' WHERE entry IN(142172);
 
 /* STRATHOLME */
 UPDATE instance_template SET ScriptName='instance_stratholme' WHERE map=329;
@@ -1063,6 +1069,9 @@ UPDATE instance_template SET ScriptName='instance_uldaman' WHERE map=70;
 /* UN'GORO CRATER */
 UPDATE creature_template SET ScriptName='npc_ame01' WHERE entry=9623;
 UPDATE creature_template SET ScriptName='npc_ringo' WHERE entry=9999;
+UPDATE creature_template SET ScriptName='npc_simone_seductress' WHERE entry=14533;
+UPDATE creature_template SET ScriptName='npc_simone_the_inconspicuous' WHERE entry=14527;
+UPDATE creature_template SET ScriptName='npc_precious_the_devourer' WHERE entry=14538;
 
 /* UNDERCITY */
 UPDATE creature_template SET ScriptName='npc_lady_sylvanas_windrunner' WHERE entry=10181;
@@ -1089,6 +1098,7 @@ UPDATE creature_template SET ScriptName='npc_mikhail' WHERE entry=4963;
 /* WINTERSPRING */
 UPDATE creature_template SET ScriptName='npc_ranshalla' WHERE entry=10300;
 UPDATE gameobject_template SET ScriptName='go_elune_fire' WHERE entry IN (177417, 177404);
+UPDATE creature_template SET ScriptName='npc_artorius' WHERE entry IN (14531,14535);
 
 /* ZANGARMARSH */
 INSERT INTO scripted_event_id VALUES
@@ -2270,6 +2280,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001247,'We\'re almost to the refuge! Let\'s go.',0,0,0,0,'kayra SAY_PROGRESS2'),
 (-1001248,'I can see my fellow druids from here.  Thank you, $n.  I''m sure Ysiel will reward you for your actions!',0,0,0,0,'kayra SAY_END'),
 (-1001249,'You won''t escape us, druid!',0,0,0,0,'Umbrafen Slavebinder SAY_AMBUSH2'),
+(-1001250,'%s is silenced by the venemous sting.',0,2,0,0,'npc_simone EMOTE_SILENCE'),
+(-1001251,'%s is stricken by a virulent poison.',0,2,0,0,'npc_artorius EMOTE_POISON'),
+(-1001252,'%s is immobilized.',0,2,0,0,'npc_solenor EMOTE_IMMOBILIZED'),
+(-1001253,'You dare interfere with this being''s testing? The battle must be fought alone! You shall all pay for this interference!',0,0,0,0,'the_cleaner SAY_CLEANER_AGGRO'),
 
 -- warning ids pending export
 

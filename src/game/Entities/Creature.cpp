@@ -135,7 +135,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_AlreadyCallAssistance(false), m_AlreadySearchedAssistance(false),
     m_isDeadByDefault(false), m_temporaryFactionFlags(TEMPFACTION_NONE),
     m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL), m_originalEntry(0),
-    m_creatureInfo(nullptr), m_ai(nullptr), m_gameEventVendorId(0)
+    m_creatureInfo(nullptr), m_ai(nullptr), m_gameEventVendorId(0), m_ignoreRangedTargets(false)
 {
     m_regenTimer = 200;
     m_valuesCount = UNIT_END;
@@ -2193,6 +2193,13 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
         if ((selectFlags & SELECT_FLAG_RANGE_RANGE))
         {
             float dist = GetCombatDistance(pTarget, false);
+            if (dist > params.range.maxRange || dist < params.range.minRange)
+                return false;
+        }
+
+        if ((selectFlags & SELECT_FLAG_RANGE_AOE_RANGE))
+        {
+            float dist = pTarget->GetDistance(GetPositionX(), GetPositionY(), GetPositionZ());
             if (dist > params.range.maxRange || dist < params.range.minRange)
                 return false;
         }

@@ -1218,7 +1218,6 @@ void Aura::TriggerSpell()
                             {
                                 // "Evade"
                                 target->RemoveAurasDueToSpell(auraId);
-                                target->DeleteThreatList();
                                 target->CombatStop(true);
                                 // Recast chain (Stalagg Chain or Feugen Chain
                                 target->CastSpell(pCaster, auraId == 28097 ? 28096 : 28111, TRIGGERED_NONE);

@@ -1496,7 +1496,6 @@ struct npc_shadowlord_deathwailAI : public ScriptedAI
         for (Creature* soulstealer : m_lSoulstealers)
             if (soulstealer)
             {
-                soulstealer->DeleteThreatList();
                 soulstealer->CombatStop();
                 soulstealer->SetActiveObjectState(false);
             }
@@ -1854,10 +1853,7 @@ struct mob_shadowmoon_soulstealerAI : public ScriptedAI
             exitCombat = true;
 
         if (exitCombat)
-        {
-            m_creature->DeleteThreatList();
             m_creature->CombatStop();
-        }
     }
 
     void JustDied(Unit* /*killer*/) override 

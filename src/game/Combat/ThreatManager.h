@@ -203,7 +203,7 @@ class ThreatManager
 
         HostileReference* getCurrentVictim() const { return iCurrentVictim; }
 
-        Unit*  getOwner() const { return iOwner; }
+        Unit* getOwner() const { return iOwner; }
 
         Unit* getHostileTarget();
 
@@ -217,6 +217,9 @@ class ThreatManager
 
         // Don't must be used for explicit modify threat values in iterator return pointers
         ThreatList const& getThreatList() const { return iThreatContainer.getThreatList(); }
+
+        // When a target is unreachable, we need to set someone as low priority
+        void SetTargetNotAccessible(Unit* target);
     private:
         HostileReference* iCurrentVictim;
         Unit* iOwner;

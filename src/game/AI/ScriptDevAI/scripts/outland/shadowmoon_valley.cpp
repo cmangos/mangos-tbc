@@ -866,6 +866,7 @@ struct mob_torlothAI : public ScriptedAI
             case 5:
                 if (Player* pTarget = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 {
+                    // TODO: review this
                     m_creature->AddThreat(pTarget);
                     m_creature->SetFacingToObject(pTarget);
                     m_creature->HandleEmote(EMOTE_ONESHOT_POINT);
@@ -1811,6 +1812,7 @@ struct mob_shadowmoon_soulstealerAI : public ScriptedAI
 
     void JustRespawned() override
     {
+        m_creature->GetCombatManager().SetLeashingDisable(false);
         m_creature->SetActiveObjectState(false);
         m_creature->AI()->SetReactState(REACT_DEFENSIVE);
 
@@ -1819,6 +1821,7 @@ struct mob_shadowmoon_soulstealerAI : public ScriptedAI
 
     void EnterEvadeMode() override
     {
+        m_creature->GetCombatManager().SetLeashingDisable(false);
         m_creature->AI()->SetReactState(REACT_DEFENSIVE);
         Reset();
     }
@@ -1841,6 +1844,7 @@ struct mob_shadowmoon_soulstealerAI : public ScriptedAI
                 }
                 if (!exitCombat && DeathwailAI->SoulstealerEnteredCombat(m_creature, who))
                 {
+                    m_creature->GetCombatManager().SetLeashingDisable(true);
                     m_creature->AI()->SetReactState(REACT_PASSIVE);
                 }
                 else

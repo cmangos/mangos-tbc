@@ -37,7 +37,7 @@ HostileRefManager::~HostileRefManager()
 // The pVictim is hated than by them as well
 // use for buffs and healing threat functionality
 
-void HostileRefManager::threatAssist(Unit* victim, float threat, SpellEntry const* threatSpell, bool singleTarget, std::set<SpellModifierPair>* consumedMods)
+void HostileRefManager::threatAssist(Unit* victim, float threat, SpellEntry const* threatSpell, bool singleTarget)
 {
     HostileReference* ref = getFirst();
     if (!ref)
@@ -55,7 +55,7 @@ void HostileRefManager::threatAssist(Unit* victim, float threat, SpellEntry cons
     uint32 size = singleTarget ? 1 : validRefs.size();            // if singleTarget do not devide threat
     float threatPerTarget = threat / size;
     for (HostileReference* ref : validRefs)
-        ref->getSource()->addThreat(victim, threatPerTarget, false, (threatSpell ? GetSpellSchoolMask(threatSpell) : SPELL_SCHOOL_MASK_NORMAL), threatSpell, consumedMods);
+        ref->getSource()->addThreat(victim, threatPerTarget, false, (threatSpell ? GetSpellSchoolMask(threatSpell) : SPELL_SCHOOL_MASK_NORMAL), threatSpell);
 }
 
 //=================================================

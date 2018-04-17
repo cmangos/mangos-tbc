@@ -3572,6 +3572,27 @@ void Aura::HandleModCharm(bool apply, bool Real)
     }
     else
         caster->Uncharm(target);
+
+    if (apply)
+    {
+        switch (GetId())
+        {
+            case 32830: // Possess - invisible
+                caster->CastSpell(caster, 32832, TRIGGERED_OLD_TRIGGERED);
+                break;
+        }
+    }
+    else
+    {
+        switch (GetId())
+        {
+            case 32830: // Possess
+                target->CastSpell(target, 13360, TRIGGERED_OLD_TRIGGERED);
+                if (caster->GetTypeId() == TYPEID_UNIT)
+                    static_cast<Creature*>(caster)->ForcedDespawn();
+                break;
+        }
+    }
 }
 
 
@@ -7522,12 +7543,12 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
         {
             switch (GetId())
             {
-                // Desperate Defense
-                case 33896:
-                {
+                case 32830: // Possess
+                    spellId1 = 32831;
+                    break;
+                case 33896: // Desperate Defense
                     spellId1 = 33897;
                     break;
-                }
                 default:
                     return;
             }

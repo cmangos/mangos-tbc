@@ -5009,7 +5009,7 @@ void Unit::RemoveSpellAuraHolder(SpellAuraHolder* holder, AuraRemoveMode mode)
     SpellEntry const* AurSpellInfo = holder->GetSpellProto();
     Totem* statue = nullptr;
     Unit* caster = holder->GetCaster();
-    if (IsChanneledSpell(AurSpellInfo) && caster)
+    if (caster && IsChanneledSpell(AurSpellInfo))
         if (caster->GetTypeId() == TYPEID_UNIT && ((Creature*)caster)->IsTotem() && ((Totem*)caster)->GetTotemType() == TOTEM_STATUE)
             statue = ((Totem*)caster);
 

@@ -3,7 +3,7 @@
 #####################################
 
 [MangosdConf]
-ConfVersion=2016101401
+ConfVersion=2018050401
 
 ###################################################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -576,6 +576,11 @@ LogColors = ""
 #        Enable or disable instant logout for security level (0..4) or high (NOT in combat/while dueling/while falling)
 #        Default: 1 (Mods/GMs/Admins)
 #
+#    LongFlightPathsPersistence
+#        Controls whether logging out in multi-destination taxi flight will resume entire flight or the nearest destination only.
+#        Default: 0 (false)
+#                 1 (true)
+#
 #    AllFlightPaths
 #        Players will start with all flight paths (Note: ALL flight paths, not only player's team)
 #        Default: 0 (true)
@@ -794,6 +799,7 @@ MaxArenaPoints = 5000
 StartArenaPoints = 0
 InstantLogout = 1
 DisableWaterBreath = 4
+LongFlightPathsPersistence = 0
 AllFlightPaths = 0
 AlwaysMaxSkillForLevel = 0
 ActivateWeather = 1

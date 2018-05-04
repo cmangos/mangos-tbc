@@ -277,7 +277,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleAuraModRangedHaste,                        //218 SPELL_AURA_HASTE_RANGED
     &Aura::HandleModManaRegen,                              //219 SPELL_AURA_MOD_MANA_REGEN_FROM_STAT
     &Aura::HandleUnused,                                    //220 SPELL_AURA_MOD_RATING_FROM_STAT
-    &Aura::HandleNULL,                                      //221 ignored
+    &Aura::HandleAuraDetaunt,                               //221 SPELL_AURA_DETAUNT
     &Aura::HandleUnused,                                    //222 unused
     &Aura::HandleNULL,                                      //223 Cold Stare
     &Aura::HandleUnused,                                    //224 unused
@@ -4141,18 +4141,7 @@ void Aura::HandleModTaunt(bool apply, bool Real)
     if (!target->isAlive() || !target->CanHaveThreatList())
         return;
 
-    Unit* caster = GetCaster();
-
-    if (!caster || !caster->isAlive())
-        return;
-
-    if (apply)
-        target->TauntApply(caster);
-    else
-    {
-        // When taunt aura fades out, mob will switch to previous target if current has less than 1.1 * secondthreat
-        target->TauntFadeOut(caster);
-    }
+    target->TauntUpdate();
 }
 
 /*********************************************************/
@@ -7032,6 +7021,20 @@ void Aura::HandleAuraMirrorImage(bool apply, bool Real)
 
         pCreature->SetDisplayId(pCreature->GetNativeDisplayId());
     }
+}
+
+void Aura::HandleAuraDetaunt(bool Apply, bool Real)
+{
+    // only at real add/remove aura
+    if (!Real)
+        return;
+
+    Unit* caster = GetCaster();
+
+    if (!caster || !caster->isAlive() || !caster->CanHaveThreatList())
+        return;
+
+    caster->TauntUpdate();
 }
 
 void Aura::HandleAuraSafeFall(bool Apply, bool Real)

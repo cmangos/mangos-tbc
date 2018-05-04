@@ -397,6 +397,7 @@ class Aura
         void HandleAuraMirrorImage(bool apply, bool Real);
         void HandleFactionOverride(bool apply, bool Real);
         void HandlePrayerOfMending(bool apply, bool Real);
+        void HandleAuraDetaunt(bool Apply, bool Real);
 
         virtual ~Aura();
 

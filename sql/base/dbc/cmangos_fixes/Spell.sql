@@ -741,3 +741,14 @@ DELETE FROM `spell_template` WHERE `Id` = 33903;
 INSERT INTO `spell_template` (`Id`, `Attributes`, `AttributesEx`, `AttributesEx3`, `CastingTimeIndex`, `procChance`, `DurationIndex`, `rangeIndex`, `StackAmount`, `EquippedItemClass`, `Effect1`, `Effect2`, `EffectDieSides1`, `EffectDieSides2`, `EffectBaseDice1`, `EffectBaseDice2`, `EffectBasePoints2`, `EffectImplicitTargetA1`, `EffectImplicitTargetA2`, `EffectRadiusIndex1`, `EffectApplyAuraName2`, `EffectMiscValue1`, `EffectMiscValueB1`, `SpellIconID`, `SpellName`, `DmgMultiplier1`, `DmgMultiplier2`, `IsServerSide`) VALUES
 (33903, 384, 268435456, 1048576, 1, 101, 4, 1, 3, -1, 28, 6, 1, 1, 1, 1, -31, 48, 1, 29, 61, 19419, 64, 2154, 'Summon Crystalhide Rageling', 1, 1, 1);
 
+-- works differently in vanilla, hence rockbiter weapon icon, in wotlk its back in DBC
+-- missing spells from enchantment DBC
+INSERT INTO spell_template(Id,SchoolMask,Attributes,AttributesEx2,AttributesEx3,CastingTimeIndex,procFlags,procChance,maxLevel,baseLevel,spellLevel,DurationIndex,rangeIndex,Effect1,EffectDieSides1,EffectBaseDice1,EffectRealPointsPerLevel1,EffectBasePoints1,EffectImplicitTargetA1,EffectApplyAuraName1,SpellIconID,SpellName,SpellFamilyName,SpellFamilyFlags,DmgMultiplier1,DmgMultiplier2,DmgMultiplier3) VALUES
+(10400,8,262272,16777216,67108864,1,20,100, 16,10,10 ,21,1,6,1,1, 19,325, 1,4,688,'Flametongue Weapon (Passive)',11,2097152,1,1,1),
+(15567,8,262272,16777216,67108864,1,20,100, 24,18,18 ,21,1,6,1,1, 29,478, 1,4,688,'Flametongue Weapon (Passive)',11,2097152,1,1,1),
+(15568,8,262272,16777216,67108864,1,20,100, 34,26,26 ,21,1,6,1,1, 42,715, 1,4,688,'Flametongue Weapon (Passive)',11,2097152,1,1,1),
+(15569,8,262272,16777216,67108864,1,20,100, 44,36,36 ,21,1,6,1,1, 73,1143, 1,4,688,'Flametongue Weapon (Passive)',11,2097152,1,1,1),
+(16311,8,262272,16777216,67108864,1,20,100, 54,46,46 ,21,1,6,1,1, 62,1875, 1,4,688,'Flametongue Weapon (Passive)',11,2097152,1,1,1),
+(16312,8,262272,16777216,67108864,1,20,100, 64,56,56 ,21,1,6,1,1, 78,2497, 1,4,688,'Flametongue Weapon (Passive)',11,2097152,1,1,1),
+(16313,8,262272,16777216,67108864,1,20,100, 68,64,64 ,21,1,6,1,1, 98,3106, 1,4,688,'Flametongue Weapon (Passive)',11,2097152,1,1,1);
+

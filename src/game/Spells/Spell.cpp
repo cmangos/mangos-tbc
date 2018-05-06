@@ -5907,6 +5907,13 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!(target.GetEntry() == 16943 || target.GetEntry() == 20928))  // Mental Interference can be cast only on these two targets
                     return SPELL_FAILED_BAD_TARGETS;
             break;
+        case 40472: // Booterang -  Must have aura Defiant And Enraged
+        {
+            Unit* target = m_targets.getUnitTarget();
+            if (!target || !target->HasAura(40735))
+                return SPELL_FAILED_BAD_TARGETS;
+            break;
+        }
     }
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX2_TAME_BEAST))

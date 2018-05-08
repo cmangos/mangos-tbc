@@ -2091,7 +2091,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         target->RemoveAurasDueToSpell(32346);
                         return;
                     }
-                    case 36550:                                 // Floating Drowned
+                    case 36550:                             // Floating Drowned
                     {
                         // Possibly need some of the below to fix Vengeful Harbinger flying
 
@@ -2572,8 +2572,14 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     if (target->getClass() == CLASS_WARRIOR)
                         target->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, apply);
                     return;
-                case 32567:                             // Green Banish State
+                case 32567:                                 // Green Banish State
                 {
+                    target->SetHover(apply);
+                    return;
+                }
+                case 35519:                                 // White Beam
+                {
+                    target->SetLevitate(apply);
                     target->SetHover(apply);
                     return;
                 }

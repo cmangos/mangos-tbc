@@ -209,5 +209,10 @@ Unit* HostileRefManager::GetThreatRedirectionTarget() const
     return m_redirectionTargetGuid ? iOwner->GetMap()->GetUnit(m_redirectionTargetGuid) : nullptr;
 }
 
+HostileReference* HostileRefManager::getFirst()
+{
+    return static_cast<HostileReference*>(RefManager<Unit, ThreatManager>::getFirst());
+}
+
 
 //=================================================

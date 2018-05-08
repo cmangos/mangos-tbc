@@ -2045,7 +2045,7 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
     int loop = 0;
     while (allSpellList[loop] != 0)
     {
-        uint32 spell = allSpellList[loop];
+        uint32 spell = allSpellList[loop++];
 
         if (m_session->GetPlayer()->HasSpell(spell))
             continue;

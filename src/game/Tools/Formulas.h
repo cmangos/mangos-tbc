@@ -147,7 +147,13 @@ namespace MaNGOS
                 xp_gain *= BaseGain(pl->getLevel(), u->getLevel(), GetContentLevelsForMapAndZone(pl->GetMapId(), pl->GetZoneId()));
                 xp_gain *= creatureUnit->GetCreatureInfo()->ExperienceMultiplier;
 
-                return (uint32)(xp_gain * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_KILL));
+                float raceKillxp = 0.0f;
+                if (pl->getRace() == 1 || pl->getRace() == 3 || pl->getRace() == 4 || pl->getRace() == 7 || pl->getRace() == 11)
+                    raceKillxp = sWorld.getConfig(CONFIG_FLOAT_ALLIANCE_RATE_XP_KILL);
+                else
+                    raceKillxp = sWorld.getConfig(CONFIG_FLOAT_HORDE_RATE_XP_KILL);
+
+                return (uint32)(xp_gain * (sWorld.getConfig(CONFIG_FLOAT_RATE_XP_KILL) + raceKillxp));
             }
             else
                 return 0;

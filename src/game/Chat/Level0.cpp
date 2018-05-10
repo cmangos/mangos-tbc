@@ -283,3 +283,105 @@ bool ChatHandler::HandleServerMotdCommand(char* /*args*/)
     PSendSysMessage(LANG_MOTD_CURRENT, sWorld.GetMotd());
     return true;
 }
+
+/// .sj world chat
+bool ChatHandler::HandleWorldChatChannelCommand(char* args)
+{
+    uint32 ChatMoney = sWorld.getConfig(CONFIG_UINT32_WORLD_CHAT_CHANNEL_MONEY);
+    if (!*args || m_session->GetPlayer()->GetMoney() < ChatMoney)
+        return false;
+
+    std::string str = "[WorldChat][|cffff0000";
+    str += m_session->GetPlayerName();
+    str += "|r]:";
+    str += args;
+
+    char* sRaceIcon = "";
+    switch (m_session->GetPlayer()->getRace())
+    {
+        case RACE_HUMAN:
+        {
+            if ((m_session->GetPlayer()->getGender()) == 0)
+                sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Human:24|t";
+            else
+                sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Human:24|t";
+            break;
+         }
+         case RACE_ORC:
+         {
+             if ((m_session->GetPlayer()->getGender()) == 0)
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Orc:24|t";
+             else
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Orc:24|t";
+             break;
+         }
+         case RACE_DWARF:
+         {
+             if ((m_session->GetPlayer()->getGender()) == 0)
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Dwarf:24|t";
+             else
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Dwarf:24|t";
+             break;
+         }
+         case RACE_NIGHTELF:
+         {
+             if ((m_session->GetPlayer()->getGender()) == 0)
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-NightElf:24|t";
+             else
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-NightElf:24|t";
+             break;
+         }
+         case RACE_UNDEAD:
+         {
+             if ((m_session->GetPlayer()->getGender()) == 0)
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Scourge:24|t";
+             else
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Scourge:24|t";
+             break;
+         }
+         case RACE_TAUREN:
+         {
+             if ((m_session->GetPlayer()->getGender()) == 0)
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Tauren:24|t";
+             else
+                 sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Tauren:24|t";
+             break;
+          }
+          case RACE_GNOME:
+          {
+              if ((m_session->GetPlayer()->getGender()) == 0)
+                  sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Gnome:24|t";
+              else
+                  sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Gnome:24|t";
+              break;
+          }
+          case RACE_TROLL:
+          {
+              if ((m_session->GetPlayer()->getGender()) == 0)
+                  sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Troll:24|t";
+              else
+                  sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Troll:24|t";
+              break;
+          }
+          case RACE_BLOODELF:
+          {
+              if ((m_session->GetPlayer()->getGender()) == 0)
+                  sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-BloodElf:24|t";
+              else
+                  sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-BloodElf:24|t";
+              break;
+           }
+           case RACE_DRAENEI:
+           {
+               if ((m_session->GetPlayer()->getGender()) == 0)
+                   sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Male-Draenei:24|t";
+               else
+                   sRaceIcon = "|TInterface\\CHARACTERFRAME\\TemporaryPortrait-Female-Draenei:24|t";
+               break;
+           }
+    }
+
+    sWorld.SendWorldText(LANG_WORLD_CHAT_CHANNEL, sRaceIcon, m_session->GetPlayerName(), args);
+    m_session->GetPlayer()->ModifyMoney(int32(-ChatMoney));
+    return true;
+}

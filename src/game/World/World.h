@@ -76,7 +76,8 @@ enum WorldTimers
     WUPDATE_DELETECHARS = 4,
     WUPDATE_AHBOT       = 5,
     WUPDATE_GROUPS      = 6,
-    WUPDATE_COUNT       = 7
+    WUPDATE_AUTOBROADCAST = 7,
+    WUPDATE_COUNT       = 8
 };
 
 /// Configuration elements
@@ -185,6 +186,10 @@ enum eConfigUInt32Values
     CONFIG_UINT32_GUID_RESERVE_SIZE_GAMEOBJECT,
     CONFIG_UINT32_CREATURE_RESPAWN_AGGRO_DELAY,
     CONFIG_UINT32_MAX_WHOLIST_RETURNS,
+    CONFIG_UINT32_AUTOBROADCAST_TIMER,
+    CONFIG_UINT32_AUTOBROADCAST_ENABLED,
+    CONFIG_UINT32_AUTOBROADCAST_CENTER,
+    CONFIG_UINT32_WORLD_CHAT_CHANNEL_MONEY,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -272,6 +277,12 @@ enum eConfigFloatValues
     CONFIG_FLOAT_THREAT_RADIUS,
     CONFIG_FLOAT_GHOST_RUN_SPEED_WORLD,
     CONFIG_FLOAT_GHOST_RUN_SPEED_BG,
+    CONFIG_FLOAT_HORDE_RATE_XP_KILL,
+    CONFIG_FLOAT_HORDE_RATE_XP_QUEST,
+    CONFIG_FLOAT_HORDE_RATE_REPUTATION_GAIN,
+    CONFIG_FLOAT_ALLIANCE_RATE_XP_KILL,
+    CONFIG_FLOAT_ALLIANCE_RATE_XP_QUEST,
+    CONFIG_FLOAT_ALLIANCE_RATE_REPUTATION_GAIN,
     CONFIG_FLOAT_VALUE_COUNT
 };
 
@@ -432,6 +443,8 @@ struct CliCommandHolder
     }
 };
 
+typedef std::unordered_map<uint32, WorldSession*> SessionMap;
+
 /// The World
 class World
 {
@@ -448,6 +461,7 @@ class World
         bool RemoveSession(uint32 id);
         /// Get the number of current active sessions
         void UpdateMaxSessionCounters();
+        const SessionMap& GetAllSessions() const { return m_sessions; }
         uint32 GetActiveAndQueuedSessionCount() const { return m_sessions.size(); }
         uint32 GetActiveSessionCount() const { return m_sessions.size() - m_QueuedSessions.size(); }
         uint32 GetQueuedSessionCount() const { return m_QueuedSessions.size(); }
@@ -568,6 +582,27 @@ class World
         static float GetRelocationLowerLimitSq()            { return m_relocation_lower_limit_sq; }
         static uint32 GetRelocationAINotifyDelay()          { return m_relocation_ai_notify_delay; }
 
+        //movement anticheat enable flag
+        inline bool GetMvAnticheatEnable()                  { return m_MvAnticheatEnable; }
+        inline bool GetMvAnticheatKick()                    { return m_MvAnticheatKick; }
+        inline bool GetMvAnticheatAnnounce()                { return m_MvAnticheatAnnounce; }
+        inline uint32 GetMvAnticheatAlarmCount()            { return m_MvAnticheatAlarmCount; }
+        inline uint32 GetMvAnticheatAlarmPeriod()           { return m_MvAnticheatAlarmPeriod; }
+        inline unsigned char GetMvAnticheatBan()            { return m_MvAntiCheatBan; }
+        inline uint32 GetMvAnticheatBanTime()               { return m_MvAnticheatBanTime; }
+        inline unsigned char GetMvAnticheatGmLevel()        { return m_MvAnticheatGmLevel; }
+        inline bool GetMvAnticheatKill()                    { return m_MvAnticheatKill; }
+        inline float GetMvAnticheatMaxXYT()                 { return m_MvAnticheatMaxXYT; }
+        inline uint16 GetMvAnticheatIgnoreAfterTeleport()   { return m_MvAnticheatIgnoreAfterTeleport; }
+
+        inline bool GetMvAnticheatSpeedCheck()              { return m_MvAnticheatSpeedCheck; }
+        inline bool GetMvAnticheatWaterCheck()              { return m_MvAnticheatWaterCheck; }
+        inline bool GetMvAnticheatFlyCheck()                { return m_MvAnticheatFlyCheck; }
+        inline bool GetMvAnticheatMountainCheck()           { return m_MvAnticheatMountainCheck; }
+        inline bool GetMvAnticheatJumpCheck()               { return m_MvAnticheatJumpCheck; }
+        inline bool GetMvAnticheatTeleportCheck()           { return m_MvAnticheatTeleportCheck; }
+        inline bool GetMvAnticheatTeleport2PlaneCheck()     { return m_MvAnticheatTeleport2PlaneCheck; }
+
         void ProcessCliCommands();
         void QueueCliCommand(const CliCommandHolder* commandHolder) { std::lock_guard<std::mutex> guard(m_cliCommandQueueLock); m_cliCommandQueue.push_back(commandHolder); }
 
@@ -598,6 +633,9 @@ class World
 
         static TimePoint GetCurrentClockTime() { return m_currentTime; }
         static uint32 GetCurrentDiff() { return m_currentDiff; }
+
+        void SendAutoBroadcast();
+        void LoadAutobroadcasts();
 
     protected:
         void _UpdateGameTime();
@@ -673,6 +711,26 @@ class World
         static float  m_relocation_lower_limit_sq;
         static uint32 m_relocation_ai_notify_delay;
 
+        //movement anticheat enable flag
+        bool m_MvAnticheatEnable;
+        bool m_MvAnticheatKick;
+        bool m_MvAnticheatAnnounce;
+        uint32 m_MvAnticheatAlarmCount;
+        uint32 m_MvAnticheatAlarmPeriod;
+        unsigned char m_MvAntiCheatBan;
+        uint32 m_MvAnticheatBanTime;
+        unsigned char m_MvAnticheatGmLevel;
+        bool m_MvAnticheatKill;
+        float m_MvAnticheatMaxXYT;
+        uint16 m_MvAnticheatIgnoreAfterTeleport;
+        bool m_MvAnticheatSpeedCheck;
+        bool m_MvAnticheatWaterCheck;
+        bool m_MvAnticheatFlyCheck;
+        bool m_MvAnticheatMountainCheck;
+        bool m_MvAnticheatJumpCheck;
+        bool m_MvAnticheatTeleportCheck;
+        bool m_MvAnticheatTeleport2PlaneCheck;
+
         // CLI command holder to be thread safe
         std::mutex m_cliCommandQueueLock;
         std::deque<const CliCommandHolder*> m_cliCommandQueue;
@@ -705,6 +763,8 @@ class World
 
         static TimePoint m_currentTime;
         static uint32 m_currentDiff;
+
+        std::list<std::string> m_Autobroadcasts;
 };
 
 extern uint32 realmID;

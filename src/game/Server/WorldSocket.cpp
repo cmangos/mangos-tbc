@@ -244,6 +244,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     std::string account;
     Sha1Hash sha1;
     BigNumber v, s, g, N, K;
+    uint32 jf;
     WorldPacket packet, SendAddonPacked;
 
     // Read the content of the packet
@@ -286,7 +287,8 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
                              "s, "                       //6
                              "expansion, "               //7
                              "mutetime, "                //8
-                             "locale "                   //9
+                             "locale, "                  //9
+                             "jf "                       //10
                              "FROM account "
                              "WHERE username = '%s'",
                              safe_account.c_str());
@@ -354,6 +356,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     else
         locale = LocaleConstant(tempLoc);
 
+    jf = fields[10].GetUInt32();
     delete result;
 
     // Re-check account ban (same check as in realmd)

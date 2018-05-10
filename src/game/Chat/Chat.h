@@ -340,6 +340,7 @@ class ChatHandler
         bool HandleModifyRepCommand(char* args);
         bool HandleModifyArenaCommand(char* args);
         bool HandleModifyGenderCommand(char* args);
+        bool HandleModifyAddJfCommand(char* args);
 
         //-----------------------Npc Commands-----------------------
         bool HandleNpcAddCommand(char* args);
@@ -401,6 +402,7 @@ class ChatHandler
 
         bool HandleReloadAreaTriggerTavernCommand(char* args);
         bool HandleReloadAreaTriggerTeleportCommand(char* args);
+        bool HandleReloadAutobroadcastCommand(char* args);
         bool HandleReloadBattleEventCommand(char* args);
         bool HandleReloadCommandCommand(char* args);
         bool HandleReloadConditionsCommand(char* args);
@@ -600,6 +602,7 @@ class ChatHandler
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);
         bool HandleQuitCommand(char* args);
+        bool HandleWorldChatChannelCommand(char* args);
 #ifdef BUILD_PLAYERBOT
         bool HandlePlayerbotCommand(char* args);
 #endif

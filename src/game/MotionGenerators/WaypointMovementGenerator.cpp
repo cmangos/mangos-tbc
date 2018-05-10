@@ -394,6 +394,7 @@ void FlightPathMovementGenerator::Finalize(Player& player)
     // remove flag to prevent send object build movement packets for flight state and crash (movement generator already not at top of stack)
     player.clearUnitState(UNIT_STAT_TAXI_FLIGHT);
 
+    player.Anti__SetLastTeleTime(time(nullptr));
     player.Unmount();
     player.RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CLIENT_CONTROL_LOST | UNIT_FLAG_TAXI_FLIGHT);
     player.UpdateClientControl(&player, true);

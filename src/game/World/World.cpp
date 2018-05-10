@@ -65,6 +65,7 @@
 #include "Entities/CreatureLinkingMgr.h"
 #include "Weather/Weather.h"
 #include "World/WorldState.h"
+#include "Tools/Language.h"
 
 #include <algorithm>
 #include <mutex>
@@ -791,6 +792,39 @@ void World::LoadConfigSettings(bool reload)
     if (configNoReload(reload, CONFIG_UINT32_GUID_RESERVE_SIZE_GAMEOBJECT, "GuidReserveSize.GameObject", 100))
         setConfig(CONFIG_UINT32_GUID_RESERVE_SIZE_GAMEOBJECT, "GuidReserveSize.GameObject", 100);
 
+    ///- Load movement anticheat
+    m_MvAnticheatEnable = sConfig.GetBoolDefault("Anticheat.Movement.Enable", false);
+    m_MvAnticheatKick = sConfig.GetBoolDefault("Anticheat.Movement.Kick", false);
+    m_MvAnticheatAnnounce = sConfig.GetBoolDefault("Anticheat.Movement.Announce", false);
+    m_MvAnticheatAlarmCount = (uint32)sConfig.GetIntDefault("Anticheat.Movement.AlarmCount", 5);
+    m_MvAnticheatAlarmPeriod = (uint32)sConfig.GetIntDefault("Anticheat.Movement.AlarmTime", 5000);
+    m_MvAntiCheatBan = (unsigned char)sConfig.GetIntDefault("Anticheat.Movement.BanType", 0);
+    m_MvAnticheatBanTime = (uint32)sConfig.GetIntDefault("Anticheat.Movement.BanTime", 60);
+    m_MvAnticheatGmLevel = (unsigned char)sConfig.GetIntDefault("Anticheat.Movement.GmLevel", 0);
+    m_MvAnticheatKill = sConfig.GetBoolDefault("Anticheat.Movement.Kill", false);
+    m_MvAnticheatMaxXYT = sConfig.GetFloatDefault("Anticheat.Movement.MaxXYT", 0.04f);
+    m_MvAnticheatIgnoreAfterTeleport = (uint16)sConfig.GetIntDefault("Anticheat.Movement.IgnoreSecAfterTeleport", 10);
+
+    m_MvAnticheatSpeedCheck = sConfig.GetBoolDefault("Anticheat.Movement.DetectSpeedHack", 1);
+    m_MvAnticheatWaterCheck = sConfig.GetBoolDefault("Anticheat.Movement.DetectWaterWalk", 1);
+    m_MvAnticheatFlyCheck = sConfig.GetBoolDefault("Anticheat.Movement.DetectFlyHack", 1);
+    m_MvAnticheatMountainCheck = sConfig.GetBoolDefault("Anticheat.Movement.DetectMountainHack", 1);
+    m_MvAnticheatJumpCheck = sConfig.GetBoolDefault("Anticheat.Movement.DetectAirJumpHack", 1);
+    m_MvAnticheatTeleportCheck = sConfig.GetBoolDefault("Anticheat.Movement.DetectTeleportHack", 1);
+    m_MvAnticheatTeleport2PlaneCheck = sConfig.GetBoolDefault("Anticheat.Movement.DetectTeleport2PlaneHack", 0);
+
+    ///- Load Autobroadcasts
+    setConfig(CONFIG_UINT32_AUTOBROADCAST_ENABLED, "AutoBroadcast.On", 0);
+    setConfig(CONFIG_UINT32_AUTOBROADCAST_CENTER, "AutoBroadcast.Center", 0);
+    setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "AutoBroadcast.Timer", 60000);
+    setConfigMinMax(CONFIG_UINT32_WORLD_CHAT_CHANNEL_MONEY, "WorldChatChannelMoney", 0, 0, MAX_MONEY_AMOUNT);
+    setConfigPos(CONFIG_FLOAT_HORDE_RATE_XP_KILL, "Horde.Rate.XP.Kill", 0.0f);
+    setConfigPos(CONFIG_FLOAT_HORDE_RATE_XP_QUEST, "Horde.Rate.XP.Quest", 0.0f);
+    setConfigPos(CONFIG_FLOAT_HORDE_RATE_REPUTATION_GAIN, "Horde.Rate.Reputation.Gain", 0.0f);
+    setConfigPos(CONFIG_FLOAT_ALLIANCE_RATE_XP_KILL, "Alliance.Rate.XP.Kill", 0.0f);
+    setConfigPos(CONFIG_FLOAT_ALLIANCE_RATE_XP_QUEST, "Alliance.Rate.XP.Quest", 0.0f);
+    setConfigPos(CONFIG_FLOAT_ALLIANCE_RATE_REPUTATION_GAIN, "Alliance.Rate.Reputation.Gain", 0.0f);
+
     ///- Read the "Data" directory from the config file
     std::string dataPath = sConfig.GetStringDefault("DataDir", "./");
 
@@ -1243,6 +1277,9 @@ void World::SetInitialWorldSettings()
     sScriptDevAIMgr.Initialize();
     sLog.outString();
 
+    sLog.outString("Loading Autobroadcasts...");
+    LoadAutobroadcasts();
+
     ///- Initialize game time and timers
     sLog.outString("Initialize game time and timers");
     m_gameTime = time(nullptr);
@@ -1270,6 +1307,9 @@ void World::SetInitialWorldSettings()
 
     // Update groups with offline leader after delay in seconds
     m_timers[WUPDATE_GROUPS].SetInterval(IN_MILLISECONDS);
+
+    // Autobroadcasts
+    m_timers[WUPDATE_AUTOBROADCAST].SetInterval(getConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER));
 
     // to set mailtimer to return mails every day between 4 and 5 am
     // mailtimer is increased when updating auctions
@@ -1493,6 +1533,15 @@ void World::Update(uint32 diff)
     {
         m_timers[WUPDATE_DELETECHARS].Reset();
         Player::DeleteOldCharacters();
+    }
+
+    if (getConfig(CONFIG_UINT32_AUTOBROADCAST_ENABLED))
+    {
+        if (m_timers[WUPDATE_AUTOBROADCAST].Passed())
+        {
+            m_timers[WUPDATE_AUTOBROADCAST].Reset();
+            SendAutoBroadcast();
+        }
     }
 
     // execute callbacks from sql queries that were queued recently
@@ -2413,4 +2462,71 @@ void World::InvalidatePlayerDataToAllClient(ObjectGuid guid) const
     WorldPacket data(SMSG_INVALIDATE_PLAYER, 8);
     data << guid;
     SendGlobalMessage(data);
+}
+
+void World::LoadAutobroadcasts()
+{
+    m_Autobroadcasts.clear();
+
+    uint32 count = 0;
+    QueryResult* result = WorldDatabase.Query("SELECT text FROM autobroadcast");
+
+    if (result)
+    {
+        BarGoLink bar(result->GetRowCount());
+
+        do
+        {
+            Field* fields = result->Fetch();
+            bar.step();
+
+            std::string message = fields[0].GetCppString();
+            m_Autobroadcasts.push_back(message);
+            ++count;
+        } 
+
+        while (result->NextRow());
+
+        delete result;
+        sLog.outString(">> Loaded %u autobroadcasts definitions", count);
+    }
+    else
+        sLog.outString(">> Loaded 0 autobroadcasts definitions");
+
+    sLog.outString();
+}
+
+void World::SendAutoBroadcast()
+{
+    if (m_Autobroadcasts.empty())
+        return;
+
+    std::string msg;
+
+    std::list<std::string>::const_iterator itr = m_Autobroadcasts.begin();
+    std::advance(itr, rand() % m_Autobroadcasts.size());
+    msg = *itr;
+
+    uint32 abcenter = sConfig.GetIntDefault("AutoBroadcast.Center", 0);
+
+    if (abcenter == 0)
+        sWorld.SendWorldText(LANG_AUTO_BROADCAST, msg.c_str());
+
+    else if (abcenter == 1)
+    {
+        WorldPacket data(SMSG_NOTIFICATION, (msg.size() + 1));
+        data << msg;
+        sWorld.SendGlobalMessage(data);
+    }
+
+    else if (abcenter == 2)
+    {
+        sWorld.SendWorldText(LANG_AUTO_BROADCAST, msg.c_str());
+
+        WorldPacket data(SMSG_NOTIFICATION, (msg.size() + 1));
+        data << msg;
+        sWorld.SendGlobalMessage(data);
+    }
+
+    //sLog.outString("AutoBroadcast: '%s'", msg.c_str());
 }

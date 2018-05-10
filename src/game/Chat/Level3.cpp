@@ -244,6 +244,7 @@ bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
     HandleReloadMangosStringCommand((char*)"");
     HandleReloadGameTeleCommand((char*)"");
     HandleReloadBattleEventCommand((char*)"");
+    HandleReloadAutobroadcastCommand((char*)"");
     return true;
 }
 
@@ -396,6 +397,14 @@ bool ChatHandler::HandleReloadLocalesAreaTriggerCommand(char* /*args*/)
     sLog.outString("Re-Loading AreaTrigger teleport locales definitions...");
     sObjectMgr.LoadAreatriggerLocales();
     SendGlobalSysMessage("DB table `locales_areatrigger_teleport` reloaded.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadAutobroadcastCommand(char* /*args*/)
+{
+    sLog.outString("Re-Loading Autobroadcast...");
+    sWorld.LoadAutobroadcasts();
+    SendGlobalSysMessage("DB table `autobroadcast` reloaded.");
     return true;
 }
 
@@ -6747,6 +6756,31 @@ bool ChatHandler::HandleModifyGenderCommand(char* args)
     if (needReportToTarget(player))
         ChatHandler(player).PSendSysMessage(LANG_YOUR_GENDER_CHANGED, gender_full, GetNameLink().c_str());
 
+    return true;
+}
+
+bool ChatHandler::HandleModifyAddJfCommand(char* args)
+{
+    if (!*args)
+        return false;
+
+    Player* target = getSelectedPlayer();
+    if (!target)
+    {
+        SendSysMessage(LANG_PLAYER_NOT_FOUND);
+        return true;
+    }
+
+    uint32 guid = target->GetSession()->GetAccountId();
+    uint32 useramount = target->Getjifen();
+    int32 amount = atoi(args);
+    int32 Accountjf = useramount + amount;
+    if (Accountjf < 0)
+        Accountjf = 0;
+
+    LoginDatabase.PExecute("UPDATE `account` SET `jf` = '%u' WHERE `id` = '%u'", Accountjf, guid);
+    LoginDatabase.CommitTransaction();
+    PSendSysMessage(LANG_COMMAND_MODIFY_JF, target->GetName(), useramount, amount, Accountjf);
     return true;
 }
 

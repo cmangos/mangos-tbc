@@ -535,6 +535,24 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
     rest_type = REST_TYPE_NO;
     //////////////////// Rest System/////////////////////
 
+    //movement anticheat
+    m_anti_lastmovetime = 0;   //last movement time
+    m_anti_last_hspeed = 7.0f;       //horizontal speed, default RUN speed
+    m_anti_NextLenCheck = 0;
+    m_anti_MovedLen = 0.0f;
+    m_anti_BeginFallZ = INVALID_HEIGHT;
+    m_anti_lastalarmtime = 0;    //last time when alarm generated
+    m_anti_alarmcount = 0;       //alarm counter
+    m_anti_TeleTime = 0;
+    m_CanFly = false;
+    m_anti_justjumped = 0;       //jump already began
+    m_anti_jumpbase = 0;         //AntiGravitaion
+    m_anti_old_map = 0;
+    m_anti_old_x = 0.0f;
+    m_anti_old_y = 0.0f;
+    m_anti_old_z = 0.0f;
+    m_anti_old_o = 0.0f;
+
     m_mailsUpdated = false;
     unReadMails = 0;
     m_nextMailDelivereTime = 0;
@@ -4158,6 +4176,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             }
 
             CharacterDatabase.PExecute("DELETE FROM characters WHERE guid = '%u'", lowguid);
+            CharacterDatabase.PExecute("DELETE FROM characters_limited WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_declinedname WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_action WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM character_aura WHERE guid = '%u'", lowguid);
@@ -4285,9 +4304,16 @@ void Player::SetCanFly(bool enable)
 {
     WorldPacket data;
     if (enable)
+    {
+        SetAntiCheatCanFly(true);
         data.Initialize(SMSG_MOVE_SET_CAN_FLY, 12);
+    }   
     else
+    {
         data.Initialize(SMSG_MOVE_UNSET_CAN_FLY, 12);
+        SetAntiCheatCanFly(false);
+    }
+        
 
     data << GetPackGUID();
     data << uint32(0);                                      // unk
@@ -6218,7 +6244,13 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
         percent *= repRate;
     }
 
-    int32 result = int32(sWorld.getConfig(CONFIG_FLOAT_RATE_REPUTATION_GAIN) * rep * percent / 100.0f);
+    float raceGain = 0.0f;
+    if (getRace() == 1 || getRace() == 3 || getRace() == 4 || getRace() == 7 || getRace() == 11)
+        raceGain = sWorld.getConfig(CONFIG_FLOAT_ALLIANCE_RATE_REPUTATION_GAIN);
+    else
+        raceGain = sWorld.getConfig(CONFIG_FLOAT_HORDE_RATE_REPUTATION_GAIN);
+
+    int32 result = int32((sWorld.getConfig(CONFIG_FLOAT_RATE_REPUTATION_GAIN) + raceGain) * rep * percent / 100.0f);
 
     if (result && maxRep && faction)
     {
@@ -12945,7 +12977,16 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     QuestStatusData& q_status = mQuestStatus[quest_id];
 
     // Used for client inform but rewarded only in case not max level
-    uint32 xp = uint32(pQuest->XPValue(this) * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
+    float racexp = 0.0f;
+    if (getLevel() < DEFAULT_MAX_LEVEL)
+    {
+        if (getRace() == 1 || getRace() == 3 || getRace() == 4 || getRace() == 7 || getRace() == 11)
+            racexp = sWorld.getConfig(CONFIG_FLOAT_ALLIANCE_RATE_XP_QUEST);
+        else
+            racexp = sWorld.getConfig(CONFIG_FLOAT_HORDE_RATE_XP_QUEST);
+    }
+
+    uint32 xp = uint32(pQuest->XPValue(this) * (sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST) + racexp));
 
     if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         GiveXP(xp, nullptr);
@@ -16418,6 +16459,8 @@ void Player::_SaveInventory()
     {
         sLog.outError("Player::_SaveInventory - one or more errors occurred save aborted!");
         ChatHandler(this).SendSysMessage(LANG_ITEM_SAVE_FAILED);
+        sWorld.SendWorldText(LANG_WORLD_PLAYER_COPYITEM, GetName());
+        sWorld.BanAccount(BAN_CHARACTER, GetName(), 315360000, "Copy Item", "");
         return;
     }
 
@@ -17739,8 +17782,19 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     // prevent stealth flight
     RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
-    GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
-    GetSession()->SendDoFlight(mount_display_id, sourcepath);
+    //Fly Instant Arrive
+    if (IsFlyInstantArrive() && npc)
+    {
+        TaxiNodesEntry const* lastnode = sTaxiNodesStore.LookupEntry(nodes[nodes.size() - 1]);
+        m_taxi.ClearTaxiDestinations();
+        TeleportTo(lastnode->map_id, lastnode->x, lastnode->y, lastnode->z, GetOrientation());
+        return false;
+    }
+    else
+    {
+        GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
+        GetSession()->SendDoFlight(mount_display_id, sourcepath);
+    }
 
     return true;
 }
@@ -20366,7 +20420,8 @@ void Player::HandleFall(MovementInfo const& movementInfo)
 {
     // calculate total z distance of the fall
     Position const* position = movementInfo.GetPos();
-    float z_diff = m_lastFallZ - position->z;
+    float z_diff = (m_lastFallZ >= m_anti_BeginFallZ ? m_lastFallZ : m_anti_BeginFallZ) - position->z;
+    m_anti_BeginFallZ = INVALID_HEIGHT;
     DEBUG_LOG("zDiff = %f", z_diff);
 
     // Players with low fall distance, Feather Fall or physical immunity (charges used) are ignored
@@ -21252,5 +21307,77 @@ void Player::UpdateNewInstanceIdTimers(TimePoint const& now)
             iter = m_enteredInstances.erase(iter);
         else
             ++iter;
+    }
+}
+
+uint32 Player::Getjifen() const
+{
+    QueryResult* result;
+    result = LoginDatabase.PQuery("SELECT `jf` FROM `account` WHERE `id` = '%u'", GetSession()->GetAccountId());
+    if (result)
+    {
+        uint32 a = result->Fetch()[0].GetUInt32();;
+        delete result;
+        return a;
+     }
+    delete result;
+    return 0;
+}
+
+void Player::Modifyjifen(int32 value)
+{
+    int32 Accountjf = Getjifen();
+    int32 Newjifen = Accountjf + value;
+    if (Newjifen < 0)
+        LoginDatabase.PExecute("UPDATE `account` SET `jf` = '0' WHERE `id` = '%u'", GetSession()->GetAccountId());
+    else
+        LoginDatabase.PExecute("UPDATE `account` SET `jf` = '%u' WHERE `id` = '%u'", Newjifen, GetSession()->GetAccountId());
+}
+
+bool Player::IsFlyInstantArrive() const
+{
+    QueryResult* result = CharacterDatabase.PQuery("SELECT guid, fly_last_date FROM characters_limited WHERE guid = '%u' AND fly_last_date >= NOW()", GetGUIDLow());
+    if (result)
+    {
+        return true;
+    }
+    return false;
+}
+
+void Player::SetFlyInstantArriveDate(uint32 value)
+{
+    if (value <= 0)
+        return;
+
+    time_t now = time(nullptr);
+    time_t last_date = time_t(0);
+    char sTimeDate[128] = { 0 };
+    QueryResult* result = CharacterDatabase.PQuery("SELECT guid, UNIX_TIMESTAMP(fly_last_date) FROM characters_limited WHERE guid = '%u'", GetGUIDLow());
+    if (result)
+    {
+        Field* fields = result->Fetch();
+        last_date = time_t(fields[1].GetUInt64());
+        if (last_date > now)
+            last_date += value;
+        else
+            last_date = now + value;
+
+        strftime(sTimeDate, 64, "%Y-%m-%d %H:%M:%S", localtime(&last_date));
+        CharacterDatabase.PExecute("UPDATE characters_limited SET fly_last_date = '%s' WHERE guid = '%u'", sTimeDate, GetGUIDLow());
+        delete result;
+    }
+    else
+    {
+        last_date = now + value;
+        strftime(sTimeDate, 64, "%Y-%m-%d %H:%M:%S", localtime(&last_date));
+        QueryResult* resultguld = CharacterDatabase.PQuery("SELECT guid FROM characters_limited WHERE guid = '%u'", GetGUIDLow());
+        if (resultguld)
+        {
+            CharacterDatabase.PExecute("UPDATE characters_limited SET fly_last_date = '%s' WHERE guid = '%u'", sTimeDate, GetGUIDLow());
+            delete resultguld;
+        }   
+        else
+            CharacterDatabase.PExecute("INSERT INTO characters_limited (guid, fly_last_date) VALUES ('%u', '%s')", GetGUIDLow(), sTimeDate);
+
     }
 }

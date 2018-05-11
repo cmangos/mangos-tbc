@@ -2139,7 +2139,8 @@ class Player : public Unit
         void SetBotDeathTimer() { m_deathTimer = 0; }
         bool IsInDuel() const { return duel && duel->startTime != 0; }
 #endif
-        virtual CreatureAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
+
+        virtual UnitAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
         virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
 
         void SendLootError(ObjectGuid guid, LootError error) const;

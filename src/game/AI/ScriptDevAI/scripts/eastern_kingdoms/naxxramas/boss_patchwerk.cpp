@@ -192,7 +192,7 @@ struct boss_patchwerkAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_patchwerk(Creature* pCreature)
+UnitAI* GetAI_boss_patchwerk(Creature* pCreature)
 {
     return new boss_patchwerkAI(pCreature);
 }

@@ -313,7 +313,7 @@ struct boss_nothAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_noth(Creature* pCreature)
+UnitAI* GetAI_boss_noth(Creature* pCreature)
 {
     return new boss_nothAI(pCreature);
 }

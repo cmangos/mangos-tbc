@@ -385,7 +385,7 @@ struct boss_nightbaneAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_boss_nightbane(Creature* pCreature)
+UnitAI* GetAI_boss_nightbane(Creature* pCreature)
 {
     return new boss_nightbaneAI(pCreature);
 }

@@ -175,7 +175,7 @@ struct boss_lady_blaumeuxAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_lady_blaumeux(Creature* pCreature)
+UnitAI* GetAI_boss_lady_blaumeux(Creature* pCreature)
 {
     return new boss_lady_blaumeuxAI(pCreature);
 }
@@ -277,7 +277,7 @@ struct boss_alexandros_mograineAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_alexandros_mograine(Creature* pCreature)
+UnitAI* GetAI_boss_alexandros_mograine(Creature* pCreature)
 {
     return new boss_alexandros_mograineAI(pCreature);
 }
@@ -374,7 +374,7 @@ struct boss_thane_korthazzAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_thane_korthazz(Creature* pCreature)
+UnitAI* GetAI_boss_thane_korthazz(Creature* pCreature)
 {
     return new boss_thane_korthazzAI(pCreature);
 }
@@ -471,7 +471,7 @@ struct boss_sir_zeliekAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_sir_zeliek(Creature* pCreature)
+UnitAI* GetAI_boss_sir_zeliek(Creature* pCreature)
 {
     return new boss_sir_zeliekAI(pCreature);
 }

@@ -65,7 +65,7 @@ void ScriptedAI::UpdateAI(const uint32 /*diff*/)
  */
 void ScriptedAI::EnterEvadeMode()
 {
-    CreatureAI::EnterEvadeMode();
+    UnitAI::EnterEvadeMode();
 
     Reset();
 }

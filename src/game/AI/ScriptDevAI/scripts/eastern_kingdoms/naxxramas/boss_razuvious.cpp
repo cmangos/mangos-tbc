@@ -141,7 +141,7 @@ struct boss_razuviousAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_razuvious(Creature* pCreature)
+UnitAI* GetAI_boss_razuvious(Creature* pCreature)
 {
     return new boss_razuviousAI(pCreature);
 }

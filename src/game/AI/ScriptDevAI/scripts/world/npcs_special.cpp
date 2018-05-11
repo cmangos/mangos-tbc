@@ -238,7 +238,7 @@ struct npc_air_force_botsAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_air_force_bots(Creature* pCreature)
+UnitAI* GetAI_npc_air_force_bots(Creature* pCreature)
 {
     return new npc_air_force_botsAI(pCreature);
 }
@@ -322,7 +322,7 @@ struct npc_chicken_cluckAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_chicken_cluck(Creature* pCreature)
+UnitAI* GetAI_npc_chicken_cluck(Creature* pCreature)
 {
     return new npc_chicken_cluckAI(pCreature);
 }
@@ -388,7 +388,7 @@ struct npc_dancing_flamesAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_dancing_flames(Creature* pCreature)
+UnitAI* GetAI_npc_dancing_flames(Creature* pCreature)
 {
     return new npc_dancing_flamesAI(pCreature);
 }
@@ -639,7 +639,7 @@ struct npc_injured_patientAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_injured_patient(Creature* pCreature)
+UnitAI* GetAI_npc_injured_patient(Creature* pCreature)
 {
     return new npc_injured_patientAI(pCreature);
 }
@@ -846,7 +846,7 @@ bool QuestAccept_npc_doctor(Player* pPlayer, Creature* pCreature, const Quest* p
     return true;
 }
 
-CreatureAI* GetAI_npc_doctor(Creature* pCreature)
+UnitAI* GetAI_npc_doctor(Creature* pCreature)
 {
     return new npc_doctorAI(pCreature);
 }
@@ -1057,7 +1057,7 @@ struct npc_garments_of_questsAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_garments_of_quests(Creature* pCreature)
+UnitAI* GetAI_npc_garments_of_quests(Creature* pCreature)
 {
     return new npc_garments_of_questsAI(pCreature);
 }
@@ -1090,7 +1090,7 @@ struct npc_guardianAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_guardian(Creature* pCreature)
+UnitAI* GetAI_npc_guardian(Creature* pCreature)
 {
     return new npc_guardianAI(pCreature);
 }
@@ -1239,7 +1239,7 @@ struct npc_redemption_targetAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_redemption_target(Creature* pCreature)
+UnitAI* GetAI_npc_redemption_target(Creature* pCreature)
 {
     return new npc_redemption_targetAI(pCreature);
 }
@@ -1523,7 +1523,7 @@ struct npc_burster_wormAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_burster_worm(Creature* pCreature)
+UnitAI* GetAI_npc_burster_worm(Creature* pCreature)
 {
     return new npc_burster_wormAI(pCreature);
 }
@@ -1578,7 +1578,7 @@ struct npc_the_cleanerAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_the_cleaner(Creature* pCreature)
+UnitAI* GetAI_npc_the_cleaner(Creature* pCreature)
 {
     return new npc_the_cleanerAI(pCreature);
 }
@@ -1710,12 +1710,12 @@ struct npc_shaman_earth_elementalAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_shaman_fire_elemental(Creature* pCreature)
+UnitAI* GetAI_npc_shaman_fire_elemental(Creature* pCreature)
 {
     return new npc_shaman_fire_elementalAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_shaman_earth_elemental(Creature* pCreature)
+UnitAI* GetAI_npc_shaman_earth_elemental(Creature* pCreature)
 {
     return new npc_shaman_earth_elementalAI(pCreature);
 }
@@ -1763,7 +1763,7 @@ struct npc_snakesAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_snakes(Creature* pCreature)
+UnitAI* GetAI_npc_snakes(Creature* pCreature)
 {
     return new npc_snakesAI(pCreature);
 }

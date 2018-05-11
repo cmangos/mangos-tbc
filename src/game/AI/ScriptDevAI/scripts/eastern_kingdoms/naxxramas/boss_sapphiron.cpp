@@ -300,7 +300,7 @@ struct boss_sapphironAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_sapphiron(Creature* pCreature)
+UnitAI* GetAI_boss_sapphiron(Creature* pCreature)
 {
     return new boss_sapphironAI(pCreature);
 }

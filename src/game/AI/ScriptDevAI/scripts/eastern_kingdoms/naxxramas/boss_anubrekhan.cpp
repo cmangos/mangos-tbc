@@ -128,7 +128,7 @@ struct boss_anubrekhanAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_DOUBLE_ATTACK, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (!m_bHasDoneIntro && eventType == AI_EVENT_START_EVENT)
         {
@@ -214,7 +214,7 @@ struct boss_anubrekhanAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_anubrekhan(Creature* pCreature)
+UnitAI* GetAI_boss_anubrekhan(Creature* pCreature)
 {
     return new boss_anubrekhanAI(pCreature);
 }

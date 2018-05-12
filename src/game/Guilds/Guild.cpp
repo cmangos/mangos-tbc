@@ -1650,36 +1650,37 @@ bool Guild::AddGBankItemToDB(uint32 GuildId, uint32 BankTab, uint32 BankTabSlot,
 
 void Guild::AppendDisplayGuildBankSlot(WorldPacket& data, GuildBankTab const* tab, int slot) const
 {
-    Item* pItem = tab->Slots[slot];
-    uint32 entry = pItem ? pItem->GetEntry() : 0;
+    Item* item = tab->Slots[slot];
+    uint32 entry = item ? item->GetEntry() : 0;
 
     data << uint8(slot);
-    data << uint32(entry);
+    data << uint32(entry);                                                                  // +0 - Item entry
+
     if (entry)
     {
-        data << uint32(pItem->GetItemRandomPropertyId());   // random item property id + 8
+        data << uint32(item->GetItemRandomPropertyId());                                    // +8 Random Property Id
+        if (item->GetItemRandomPropertyId())
+            data << uint32(item->GetItemSuffixFactor());                                    // +4 Suffix factor
 
-        if (pItem->GetItemRandomPropertyId())
-            data << uint32(pItem->GetItemSuffixFactor());   // SuffixFactor + 4
+        data << uint8(item->GetCount());                                                    // +12 ITEM_FIELD_STACK_COUNT
+        data << uint32(item->GetEnchantmentId(PERM_ENCHANTMENT_SLOT));                      // +16 Permanent enchantment
+        data << uint8(abs(item->GetSpellCharges()));                                        // +20 Charges
 
-        data << uint8(pItem->GetCount());                   // +12 ITEM_FIELD_STACK_COUNT
-        data << uint32(0);                                  // +16 Unknown value
-        data << uint8(abs(pItem->GetSpellCharges()));       // Charges
+        size_t socketCountPos = data.wpos();
+        uint8 socketCount = 0;
 
-        uint8 enchCount = 0;
-        size_t enchCountPos = data.wpos();
-
-        data << uint8(enchCount);                           // number of enchantments
-        for (uint32 i = PERM_ENCHANTMENT_SLOT; i < MAX_ENCHANTMENT_SLOT; ++i)
+        data << uint8(socketCount);
+        for (uint8 socketSlot = SOCK_ENCHANTMENT_SLOT; socketSlot < SOCK_ENCHANTMENT_SLOT + MAX_GEM_SOCKETS; ++socketSlot)
         {
-            if (uint32 enchId = pItem->GetEnchantmentId(EnchantmentSlot(i)))
+            if (uint32 enchantId = item->GetEnchantmentId(EnchantmentSlot(socketSlot)))
             {
-                data << uint8(i);
-                data << uint32(enchId);
-                ++enchCount;
+                data << uint8(socketSlot);
+                data << uint32(enchantId);
+                ++socketCount;
             }
         }
-        data.put<uint8>(enchCountPos, enchCount);
+
+        data.put<uint8>(socketCountPos, socketCount);
     }
 }
 

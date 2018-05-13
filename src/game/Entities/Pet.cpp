@@ -359,6 +359,10 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     _LoadSpells();
     // TODO: confirm line above work in all situation
 
+    // remove arena auras if in arena
+    if (map->IsBattleArena())
+        RemoveArenaAuras();
+
     // failsafe check
     savedhealth = savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth;
     savedpower = savedpower > GetMaxPower(powerType) ? GetMaxPower(powerType) : savedpower;

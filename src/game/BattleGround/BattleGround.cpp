@@ -720,6 +720,7 @@ void BattleGround::EndBattleGround(Team winner)
                 DEBUG_LOG("--- Winner rating: %u, Loser rating: %u, Winner change: %i, Loser change: %i ---", winner_rating, loser_rating, winner_change, loser_change);
                 SetArenaTeamRatingChangeForTeam(winner, winner_change);
                 SetArenaTeamRatingChangeForTeam(GetOtherTeam(winner), loser_change);
+                sLog.outArena("Arena match Type: %u for Team1Id: %u - Team2Id: %u ended. WinnerTeamId: %u. Winner rating: %u, Loser rating: %u. RatingChange: %i.", m_ArenaType, m_ArenaTeamIds[TEAM_INDEX_ALLIANCE], m_ArenaTeamIds[TEAM_INDEX_HORDE], winner_arena_team->GetId(), winner_rating, loser_rating, winner_change);
             }
             else
             {
@@ -784,6 +785,13 @@ void BattleGround::EndBattleGround(Team winner)
                 winner_arena_team->MemberWon(plr, loser_rating);
             else
                 loser_arena_team->MemberLost(plr, winner_rating);
+        }
+
+        if (isArena() && isRated())
+        {
+            BattleGroundScoreMap::iterator score = m_PlayerScores.find(itr->first);
+            BattleGroundScore *pScore = score->second;
+            sLog.outArena("Statistics for %s (GUID: " UI64FMTD ", Team: %u, IP: %s): %u damage, %u healing, %u killing blows", plr->GetName(), plr->GetGUIDLow(), plr->GetArenaTeamId(m_ArenaType == 5 ? 2 : m_ArenaType == 3), plr->GetSession()->GetRemoteAddress().c_str(), pScore->GetDamageDone(), pScore->GetHealingDone(), pScore->GetKillingBlows());
         }
 
         // store battleground score statistics for each player
@@ -1181,6 +1189,9 @@ void BattleGround::StartBattleGround()
 
     // add BG to free slot queue
     AddToBGFreeSlotQueue();
+
+    if (m_IsRated)
+        sLog.outArena("Arena match type: %u for Team1Id: %u - Team2Id: %u started.", m_ArenaType, m_ArenaTeamIds[TEAM_INDEX_ALLIANCE], m_ArenaTeamIds[TEAM_INDEX_HORDE]);
 
     // add bg to update list
     // This must be done here, because we need to have already invited some players when first BG::Update() method is executed

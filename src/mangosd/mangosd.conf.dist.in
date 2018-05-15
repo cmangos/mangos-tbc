@@ -3,7 +3,7 @@
 #####################################
 
 [MangosdConf]
-ConfVersion=2018050401
+ConfVersion=2018051501
 
 ###################################################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -368,6 +368,10 @@ MaxWhoListReturns = 49
 #                     in form Logname_#ID_YYYY-MM-DD_HH-MM-SS.Ext
 #                     or form Logname_#ID.Ext
 #
+#    ArenaLogFile
+#        Log file of arena fights and arena team creations
+#        Default: "" - Empty name for disable
+#
 #    RaLogFile
 #        Log file of RA commands
 #        Default: "Ra.log"
@@ -415,6 +419,7 @@ CharLogDump = 0
 GmLogFile = ""
 GmLogTimestamp = 0
 GmLogPerAccount = 0
+ArenaLogFile = ""
 RaLogFile = ""
 LogColors = ""
 

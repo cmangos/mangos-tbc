@@ -65,7 +65,7 @@ enum LogType
 const int LogType_count = int(LogError) + 1;
 
 Log::Log() :
-    raLogfile(nullptr), logfile(nullptr), gmLogfile(nullptr), charLogfile(nullptr), customLogFile(nullptr),
+    raLogfile(nullptr), logfile(nullptr), gmLogfile(nullptr), charLogfile(nullptr), customLogFile(nullptr), arenaLogFile(nullptr),
     dberLogfile(nullptr), eventAiErLogfile(nullptr), scriptErrLogFile(nullptr), worldLogfile(nullptr), m_colored(false), m_includeTime(false), m_gmlog_per_account(false), m_scriptLibName(nullptr)
 {
     Initialize();
@@ -266,6 +266,7 @@ void Log::Initialize()
     raLogfile = openLogFile("RaLogFile", nullptr, "a");
     worldLogfile = openLogFile("WorldLogFile", "WorldLogTimestamp", "a");
     customLogFile = openLogFile("CustomLogFile", nullptr, "a");
+    arenaLogFile = openLogFile("ArenaLogFile", nullptr, "a");
 
     // Main log file settings
     m_includeTime  = sConfig.GetBoolDefault("LogTime", false);
@@ -960,6 +961,26 @@ void Log::outCustomLog(const char* str, ...)
         fprintf(customLogFile, "\n");
         va_end(ap);
         fflush(customLogFile);
+    }
+
+    fflush(stdout);
+}
+
+void Log::outArena(const char* str, ...)
+{
+    if (!str)
+        return;
+
+    std::lock_guard<std::mutex> guard(m_worldLogMtx);
+    if (arenaLogFile)
+    {
+        va_list ap;
+        outTimestamp(arenaLogFile);
+        va_start(ap, str);
+        vfprintf(arenaLogFile, str, ap);
+        fprintf(arenaLogFile, "\n");
+        va_end(ap);
+        fflush(arenaLogFile);
     }
 
     fflush(stdout);

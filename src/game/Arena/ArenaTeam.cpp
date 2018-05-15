@@ -97,6 +97,7 @@ bool ArenaTeam::Create(ObjectGuid captainGuid, ArenaType type, std::string arena
     CharacterDatabase.CommitTransaction();
 
     AddMember(m_CaptainGuid);
+    sLog.outArena("New ArenaTeam created [Id: %u] [Type: %u] [Captain GUID: %u]", GetId(), GetType(), GetCaptainGuid());
     return true;
 }
 
@@ -184,6 +185,8 @@ bool ArenaTeam::AddMember(ObjectGuid playerGuid)
         // hide promote/remove buttons
         if (m_CaptainGuid != playerGuid)
             pl->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_MEMBER, 1);
+
+        sLog.outArena("Player: %s [GUID: %u] joined arena team type: %u [Id: %u].", pl->GetName(), pl->GetGUIDLow(), GetType(), GetId());
     }
     return true;
 }
@@ -297,9 +300,22 @@ void ArenaTeam::SetCaptain(ObjectGuid guid)
     // update database
     CharacterDatabase.PExecute("UPDATE arena_team SET captainguid = '%u' WHERE arenateamid = '%u'", guid.GetCounter(), m_TeamId);
 
-    // enable remove/promote buttons
     if (Player* newcaptain = sObjectMgr.GetPlayer(guid))
+    {
+        // enable remove/promote buttons
         newcaptain->SetArenaTeamInfoField(GetSlot(), ARENA_TEAM_MEMBER, 0);
+
+        std::string oldCaptainName = "Unknown";
+        uint32 oldCaptainGUID = 0;
+
+        if (oldcaptain)
+        {
+            oldCaptainName = oldcaptain->GetName();
+            oldCaptainGUID = oldcaptain->GetGUIDLow();
+        }
+
+        sLog.outArena("Player: %s [GUID: %u] promoted player: %s [GUID: %u] to leader of arena team [Id: %u] [Type: %u].", oldCaptainName.c_str(), oldCaptainGUID, newcaptain->GetName(), newcaptain->GetGUIDLow(), GetId(), GetType());
+    }
 }
 
 void ArenaTeam::DelMember(ObjectGuid guid)
@@ -319,6 +335,8 @@ void ArenaTeam::DelMember(ObjectGuid guid)
         // delete all info regarding this team
         for (int i = 0; i < ARENA_TEAM_END; ++i)
             player->SetArenaTeamInfoField(GetSlot(), ArenaTeamInfoType(i), 0);
+
+        sLog.outArena("Player: %s [GUID: %u] left arena team type: %u [Id: %u].", player->GetName(), player->GetGUIDLow(), GetType(), GetId());
     }
 
     CharacterDatabase.PExecute("DELETE FROM arena_team_member WHERE arenateamid = '%u' AND guid = '%u'", GetId(), guid.GetCounter());
@@ -338,6 +356,10 @@ void ArenaTeam::Disband(WorldSession* session)
         // Removing from members is done in DelMember.
         DelMember(m_members.front().guid);
     }
+
+    if (session)
+        if (Player* player = session->GetPlayer())
+            sLog.outArena("Player: %s [GUID: %u] disbanded arena team type: %u [Id: %u].", player->GetName(), player->GetGUIDLow(), GetType(), GetId());
 
     CharacterDatabase.BeginTransaction();
     CharacterDatabase.PExecute("DELETE FROM arena_team WHERE arenateamid = '%u'", m_TeamId);

@@ -35,23 +35,24 @@
 
 GroupMemberStatus GetGroupMemberStatus(const Player* member = nullptr)
 {
-    uint8 flags = MEMBER_STATUS_OFFLINE;
-    if (member && member->GetSession() && !member->GetSession()->PlayerLogout())
-    {
-        flags |= MEMBER_STATUS_ONLINE;
-        if (member->IsPvP())
-            flags |= MEMBER_STATUS_PVP;
-        if (member->isDead())
-            flags |= MEMBER_STATUS_DEAD;
-        if (member->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
-            flags |= MEMBER_STATUS_GHOST;
-        if (member->IsPvPFreeForAll())
-            flags |= MEMBER_STATUS_PVP_FFA;
-        if (member->isAFK())
-            flags |= MEMBER_STATUS_AFK;
-        if (member->isDND())
-            flags |= MEMBER_STATUS_DND;
-    }
+    if (!member || !member->GetSession() || (!member->IsInWorld() && !member->IsBeingTeleportedFar()))
+        return MEMBER_STATUS_OFFLINE;
+
+    uint8 flags = MEMBER_STATUS_ONLINE;
+    if (member->IsPvP())
+        flags |= MEMBER_STATUS_PVP;
+    if (member->isDead())
+        flags |= MEMBER_STATUS_DEAD;
+    if (member->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
+        flags |= MEMBER_STATUS_GHOST;
+    if (member->IsPvPFreeForAll())
+        flags |= MEMBER_STATUS_PVP_FFA;
+    if (!member->IsInWorld())
+        flags |= MEMBER_STATUS_ZONE_OUT;
+    if (member->isAFK())
+        flags |= MEMBER_STATUS_AFK;
+    if (member->isDND())
+        flags |= MEMBER_STATUS_DND;
     return GroupMemberStatus(flags);
 }
 
@@ -627,12 +628,14 @@ void Group::UpdateOfflineLeader(time_t time, uint32 delay)
         return;
 
     // Check leader presence
-    // TODO: Add a list of loading players or online/offline counter?
-    // FIXME: If player is loading a new map longer than delay, the leadership is going to be transfered
-    if (sObjectMgr.GetPlayer(m_leaderGuid))
+    if (const Player* leader = sObjectMgr.GetPlayer(m_leaderGuid))
     {
-        m_leaderLastOnline = time;
-        return;
+        // Consider loading a new map as being online as well until session finally times out
+        if (leader->IsInWorld() || (leader->GetSession() && leader->IsBeingTeleportedFar()))
+        {
+            m_leaderLastOnline = time;
+            return;
+        }
     }
 
     // Check for delay

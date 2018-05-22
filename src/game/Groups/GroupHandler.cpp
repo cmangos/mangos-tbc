@@ -75,7 +75,7 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
     }
 
     // can't group with
-    if (!sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP) && initiator->GetTeam() != recipient->GetTeam())
+    if (!GetPlayer()->isGameMaster() && !sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP) && initiator->GetTeam() != recipient->GetTeam())
     {
         SendPartyResult(PARTY_OP_INVITE, membername, ERR_PLAYER_WRONG_FACTION);
         return;
@@ -258,6 +258,13 @@ void WorldSession::HandleGroupUninviteGuidOpcode(WorldPacket& recv_data)
     if (!grp)
         return;
 
+    // raid assistant cannot kick leader
+    if (grp->IsLeader(guid))
+    {
+        SendPartyResult(PARTY_OP_LEAVE, "", ERR_NOT_LEADER);
+        return;
+    }
+
     if (grp->IsMember(guid))
     {
         Player::RemoveFromGroup(grp, guid);
@@ -299,6 +306,13 @@ void WorldSession::HandleGroupUninviteOpcode(WorldPacket& recv_data)
     Group* grp = GetPlayer()->GetGroup();
     if (!grp)
         return;
+
+    // raid assistant cannot kick leader
+    if (grp->GetLeaderName() == membername)
+    {
+        SendPartyResult(PARTY_OP_LEAVE, "", ERR_NOT_LEADER);
+        return;
+    }
 
     if (ObjectGuid guid = grp->GetMemberGuid(membername))
     {

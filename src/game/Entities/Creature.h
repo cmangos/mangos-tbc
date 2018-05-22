@@ -349,7 +349,8 @@ enum SelectFlags
     SELECT_FLAG_NOT_IN_MELEE_RANGE  = 0x080,
     SELECT_FLAG_HAS_AURA            = 0x100,
     SELECT_FLAG_NOT_AURA            = 0x200,
-    SELECT_FLAG_RANGE_RANGE         = 0x400,
+    SELECT_FLAG_RANGE_RANGE         = 0x400,                // For direct targeted abilities like charge or frostbolt
+    SELECT_FLAG_RANGE_AOE_RANGE     = 0x800,                // For AOE targeted abilities like frost nova
 };
 
 enum RegenStatsFlags
@@ -803,6 +804,9 @@ class Creature : public Unit
 
         void OnEventHappened(uint16 eventId, bool activate, bool resume) override { return AI()->OnEventHappened(eventId, activate, resume); }
 
+        void SetIgnoreRangedTargets(bool state) { m_ignoreRangedTargets = state; }
+        bool IsIgnoringRangedTargets() override { return m_ignoreRangedTargets; }
+
         uint32 GetDetectionRange() const override { return m_creatureInfo->Detection; }
     protected:
         bool MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* pSpellInfo, uint32 selectFlags, SelectAttackingTargetParams params) const;
@@ -851,6 +855,9 @@ class Creature : public Unit
 
         void SetBaseWalkSpeed(float speed) override;
         void SetBaseRunSpeed(float speed) override;
+
+        // Script logic
+        bool m_ignoreRangedTargets;                         // Ignores ranged targets when picking someone to attack
 
     private:
         GridReference<Creature> m_gridRef;

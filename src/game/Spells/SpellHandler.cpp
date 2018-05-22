@@ -33,11 +33,11 @@
 void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
 {
     uint8 bagIndex, slot;
-    uint8 spell_count;                                      // number of spells at item, not used
+    uint8 spell_index;                                      // item spell index which should be used
     uint8 cast_count;                                       // next cast if exists (single or not)
     ObjectGuid itemGuid;
 
-    recvPacket >> bagIndex >> slot >> spell_count >> cast_count >> itemGuid;
+    recvPacket >> bagIndex >> slot >> spell_index >> cast_count >> itemGuid;
 
     // TODO: add targets.read() check
     Player* pUser = _player;
@@ -64,7 +64,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    DETAIL_LOG("WORLD: CMSG_USE_ITEM packet, bagIndex: %u, slot: %u, spell_count: %u , Item: %u, data length = %u", bagIndex, slot, spell_count, pItem->GetEntry(), (uint32)recvPacket.size());
+    DETAIL_LOG("WORLD: CMSG_USE_ITEM packet, bagIndex: %u, slot: %u, spell_count: %u , Item: %u, data length = %u", bagIndex, slot, spell_index, pItem->GetEntry(), (uint32)recvPacket.size());
 
     ItemPrototype const* proto = pItem->GetProto();
     if (!proto)
@@ -166,7 +166,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
     if (!sScriptDevAIMgr.OnItemUse(pUser, pItem, targets))
     {
         // no script or script not process request by self
-        pUser->CastItemUseSpell(pItem, targets, cast_count);
+        pUser->CastItemUseSpell(pItem, targets, cast_count, spell_index);
     }
 }
 

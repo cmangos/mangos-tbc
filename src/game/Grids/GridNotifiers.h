@@ -642,7 +642,7 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return i_obj; }
             bool operator()(GameObject* go)
             {
-                if (i_entries.find(go->GetEntry()) != i_entries.end() && i_obj.IsWithinDistInMap(go, i_range, i_is3D))
+                if (go->isSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && i_obj.IsWithinDistInMap(go, i_range, i_is3D))
                     return true;
 
                 return false;
@@ -657,6 +657,30 @@ namespace MaNGOS
 
             // prevent clone this object
             AllGameObjectEntriesListInObjectRangeCheck(AllGameObjectEntriesListInObjectRangeCheck const&);
+    };
+
+    // x y z version of above
+    class AllGameObjectEntriesListInPosRangeCheck
+    {
+    public:
+        AllGameObjectEntriesListInPosRangeCheck(float x, float y, float z, std::set<uint32>& entries, float range, bool is3D = true) : i_x(x), i_y(y), i_z(z), i_entries(entries), i_range(range), i_is3D(is3D) {}
+        bool operator()(GameObject* go)
+        {
+            if (go->isSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && go->IsWithinDist3d(i_x, i_y, i_z, i_range))
+                return true;
+
+            return false;
+        }
+
+        std::vector<uint32> i_ranges;
+    private:
+        float i_x, i_y, i_z;
+        std::set<uint32>& i_entries;
+        float  i_range;
+        bool   i_is3D;
+
+        // prevent clone this object
+        AllGameObjectEntriesListInPosRangeCheck(AllGameObjectEntriesListInObjectRangeCheck const&);
     };
 
     // Success at gameobject in range of xyz, range update for next check (this can be use with GameobjectLastSearcher to find nearest GO)
@@ -827,7 +851,8 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return *i_obj; }
             bool operator()(Unit* u)
             {
-                if (u->isAlive() && i_obj->CanAttackSpell(u) && i_obj->IsWithinDistInMap(u, i_range))
+                if (u->isAlive() && (i_controlledByPlayer ? !i_obj->IsFriendlyTo(u) && i_obj->CanAttackSpell(u) : i_obj->IsHostileTo(u))
+                    && i_obj->IsWithinDistInMap(u, i_range))
                     return true;
                 else
                     return false;
@@ -870,6 +895,24 @@ namespace MaNGOS
             }
         private:
             WorldObject const* i_obj;
+            float i_range;
+    };
+
+    class AnyUnitFulfillingConditionInRangeCheck
+    {
+        public:
+            AnyUnitFulfillingConditionInRangeCheck(WorldObject const* obj, std::function<bool(Unit*)>& functor, float radius) : i_obj(obj), i_functor(functor), i_range(radius) {}
+            WorldObject const& GetFocusObject() const { return *i_obj; }
+            bool operator()(Unit* u)
+            {
+                if (i_functor(u) && i_obj->IsWithinDistInMap(u, i_range))
+                    return true;
+
+                return false;
+            }
+        private:
+            WorldObject const* i_obj;
+            std::function<bool(Unit*)>& i_functor;
             float i_range;
     };
 

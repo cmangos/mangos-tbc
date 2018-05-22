@@ -38,7 +38,8 @@ CreatureAI::CreatureAI(Creature* creature) :
     m_reactState(REACT_AGGRESSIVE),
     m_meleeEnabled(true),
     m_visibilityDistance(VISIBLE_RANGE),
-    m_moveFurther(true)
+    m_moveFurther(true),
+    m_combatScriptHappening(false)
 {
     m_dismountOnAggro = !(m_creature->GetCreatureInfo()->CreatureTypeFlags & CREATURE_TYPEFLAGS_MOUNTED_COMBAT);
 
@@ -57,7 +58,8 @@ CreatureAI::CreatureAI(Unit* unit) :
     m_reactState(REACT_AGGRESSIVE),
     m_meleeEnabled(true),
     m_visibilityDistance(VISIBLE_RANGE),
-    m_moveFurther(true)
+    m_moveFurther(true),
+    m_combatScriptHappening(false)
 {
 }
 
@@ -214,7 +216,7 @@ CanCastResult CreatureAI::DoCastSpellIfCan(Unit* target, uint32 spellId, uint32 
             caster->InterruptSpell(CURRENT_MELEE_SPELL);
 
             // Creature should stop wielding weapon while casting
-            caster->SetSheath(SHEATH_STATE_UNARMED);
+            // caster->SetSheath(SHEATH_STATE_UNARMED);
 
             uint32 flags = (castFlags & CAST_TRIGGERED ? TRIGGERED_OLD_TRIGGERED : TRIGGERED_NONE) | (castFlags & CAST_IGNORE_UNSELECTABLE_TARGET ? TRIGGERED_IGNORE_UNSELECTABLE_FLAG : TRIGGERED_NONE);
 
@@ -252,7 +254,7 @@ void CreatureAI::AttackStart(Unit* who)
 
 bool CreatureAI::DoMeleeAttackIfReady() const
 {
-    return m_unit->UpdateMeleeAttackingState();
+    return m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && m_unit->UpdateMeleeAttackingState();
 }
 
 void CreatureAI::SetCombatMovement(bool enable, bool stopOrStartMovement /*=false*/)
@@ -293,6 +295,46 @@ void CreatureAI::HandleMovementOnAttackStart(Unit* victim) const
             creatureMotion->MoveIdle();
             m_unit->StopMoving();
         }
+    }
+}
+
+void CreatureAI::OnChannelStateChange(SpellEntry const * spellInfo, bool state, WorldObject* target)
+{
+    // TODO: Determine if CHANNEL_FLAG_MOVEMENT is worth implementing
+    if (!spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNEL_TRACK_TARGET))
+    {
+        if (spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING))
+            return;
+    }
+
+    if (state)
+    {
+        if (spellInfo->ChannelInterruptFlags & CHANNEL_FLAG_TURNING && !spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNEL_TRACK_TARGET)) // 30166 changes target to none
+        {
+            m_unit->SetTurningOff(true);
+            m_unit->SetFacingTo(m_creature->GetOrientation());
+            m_unit->SetTarget(nullptr);
+        }
+        else if (target && m_creature != target)
+        {
+            m_unit->SetTarget(target);
+            m_unit->SetOrientation(m_unit->GetAngle(target));
+        }
+        else
+        {
+            m_unit->SetFacingTo(m_creature->GetOrientation());
+            m_unit->SetTarget(nullptr);
+        }
+    }
+    else
+    {
+        if (spellInfo->ChannelInterruptFlags & CHANNEL_FLAG_TURNING)
+            m_unit->SetTurningOff(false);
+
+        if (m_unit->getVictim())
+            m_unit->SetTarget(m_unit->getVictim());
+        else
+            m_unit->SetTarget(nullptr);
     }
 }
 
@@ -470,4 +512,27 @@ Unit* CreatureAI::DoSelectLowestHpFriendly(float range, float minMissing, bool p
     }
 
     return pUnit;
+}
+
+bool CreatureAI::CanExecuteCombatAction()
+{
+    return m_unit->CanReactInCombat() && !m_unit->hasUnitState(UNIT_STAT_DONT_TURN | UNIT_STAT_SEEKING_ASSISTANCE | UNIT_STAT_CHANNELING) && !m_combatScriptHappening;
+}
+
+void CreatureAI::SetMeleeEnabled(bool state)
+{
+    if (state == m_meleeEnabled)
+        return;
+
+    m_meleeEnabled = state;
+    if (m_creature->isInCombat())
+    {
+        if (m_meleeEnabled)
+        {
+            if (m_creature->getVictim())
+                m_creature->MeleeAttackStart(m_creature->getVictim());
+        }
+        else
+            m_creature->MeleeAttackStop(m_creature->getVictim());
+    }
 }

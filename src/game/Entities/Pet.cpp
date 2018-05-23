@@ -348,6 +348,10 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     // load spells/cooldowns/auras
     _LoadAuras(timediff);
 
+    // remove arena auras if in arena
+    if (map->IsBattleArena())
+        RemoveArenaAuras();
+
     // init AB
     LearnPetPassives();
     CastPetAuras(current);

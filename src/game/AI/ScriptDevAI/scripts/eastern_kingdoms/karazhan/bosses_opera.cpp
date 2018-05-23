@@ -618,8 +618,13 @@ enum
     SPELL_TERRIFYING_HOWL           = 30752,
     SPELL_WIDE_SWIPE                = 30761,
 
-    GOSSIP_ITEM_GRANDMA             = -3532005,
-    TEXT_ID_GRANDMA                 = 8990,
+    GOSSIP_ITEM_GRANDMA_1           = -3532019,
+    GOSSIP_ITEM_GRANDMA_2           = -3532020,
+    GOSSIP_ITEM_GRANDMA_3           = -3532021,
+    
+    TEXT_ID_GRANDMA_1               = 9009,
+    TEXT_ID_GRANDMA_2               = 9010,
+    TEXT_ID_GRANDMA_3               = 9011,
 
     /**** The Wolf's Entry ****/
     NPC_BIG_BAD_WOLF                = 17521
@@ -627,22 +632,32 @@ enum
 
 bool GossipHello_npc_grandmother(Player* pPlayer, Creature* pCreature)
 {
-    pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_GRANDMA, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
-    pPlayer->SEND_GOSSIP_MENU(TEXT_ID_GRANDMA, pCreature->GetObjectGuid());
+    pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_GRANDMA_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+    pPlayer->SEND_GOSSIP_MENU(TEXT_ID_GRANDMA_1, pCreature->GetObjectGuid());
 
     return true;
 }
 
 bool GossipSelect_npc_grandmother(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
-    if (uiAction == GOSSIP_ACTION_INFO_DEF)
+    switch (uiAction)
     {
-        if (Creature* pBigBadWolf = pCreature->SummonCreature(NPC_BIG_BAD_WOLF, 0, 0, 0, 0, TEMPSPAWN_DEAD_DESPAWN, 0))
-            pBigBadWolf->AI()->AttackStart(pPlayer);
-
-        pCreature->ForcedDespawn();
+        case GOSSIP_ACTION_INFO_DEF + 1:
+            pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_GRANDMA_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+            pPlayer->SEND_GOSSIP_MENU(TEXT_ID_GRANDMA_2, pCreature->GetObjectGuid());
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 2:
+            pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_GRANDMA_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
+            pPlayer->SEND_GOSSIP_MENU(TEXT_ID_GRANDMA_3, pCreature->GetObjectGuid());
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 3:
+            pPlayer->CLOSE_GOSSIP_MENU();
+            if (Creature* pBigBadWolf = pCreature->SummonCreature(NPC_BIG_BAD_WOLF, 0, 0, 0, 0, TEMPSPAWN_DEAD_DESPAWN, 0))
+                pBigBadWolf->AI()->AttackStart(pPlayer);
+            pCreature->ForcedDespawn();
+            break;
     }
-
+	
     return true;
 }
 

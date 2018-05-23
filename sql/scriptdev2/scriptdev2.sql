@@ -801,6 +801,8 @@ UPDATE creature_template SET ScriptName='npc_adyen_the_lightwarden' WHERE entry 
 UPDATE creature_template SET ScriptName='npc_kaylaan_the_lost' WHERE entry IN(20794);
 INSERT INTO scripted_areatrigger VALUES
 (4523, 'at_socrethar_seat');
+UPDATE creature_template SET ScriptName='npc_commander_hobb' WHERE entry IN(23434);
+UPDATE creature_template SET ScriptName='npc_commander_arcus' WHERE entry IN(23452);
 
 /* ONYXIA'S LAIR */
 UPDATE instance_template SET ScriptName='instance_onyxias_lair' WHERE map=249;
@@ -2364,7 +2366,13 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001289,'OWWWW! Ok, ok, me go back to work!',0,0,0,34,'Dosobedient Dragonmaw Peon SAY_BOOTERANG3'),
 (-1001290,'WHY IT PUT DA BOOTERANG ON DA SKIN?? WHY??',0,0,0,34,'Dosobedient Dragonmaw Peon SAY_BOOTERANG4'),
 (-1001291,'AYAYA! One day me have dat booterang...',0,0,0,34,'Dosobedient Dragonmaw Peone SAY_BOOTERANG5'),
-(-1001292,'OOF! Booterang hurted me! Me tink work better den booterang!',0,0,0,34,'Dosobedient Dragonmaw Peon SAY_BOOTERANG6');
+(-1001292,'OOF! Booterang hurted me! Me tink work better den booterang!',0,0,0,34,'Dosobedient Dragonmaw Peon SAY_BOOTERANG6'),
+(-1001293,'The Dragonmaw must be stopped...',0,1,0,22,'Commander Arcus SAY_EVENT_ACCEPT'),
+(-1001294,'Stand tall, soldiers. Show them no quarter!',0,0,0,5,'Commander Arcus SAY_EVENT_START'),
+(-1001295,'Victory to the Aldor! The Dragonmaw have been defeated!',0,1,0,0,'Commander Arcus SAY_EVENT_END'),
+(-1001296,'Defenders, show these mongrels the fury of a Scryer!',0,1,0,22,'Commander Hobb SAY_EVENT_ACCEPT'),
+(-1001297,'Stand tall, soldiers. Show them no quarter!',0,0,0,1,'Commander Hobb SAY_EVENT_START'),
+(-1001298,'Victory to the Scryers! The Dragonmaw have been defeated!',0,1,0,0,'Commander Hobb SAY_EVENT_END');
 
 -- -1 010 000 Classic texts
 

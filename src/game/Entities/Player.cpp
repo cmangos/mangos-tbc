@@ -2331,7 +2331,7 @@ void Player::SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 RestXP) const
     GetSession()->SendPacket(data);
 }
 
-void Player::GiveXP(uint32 xp, Unit* victim)
+void Player::GiveXP(uint32 xp, Creature* victim)
 {
     if (xp < 1)
         return;
@@ -2344,6 +2344,9 @@ void Player::GiveXP(uint32 xp, Unit* victim)
     // XP to money conversion processed in Player::RewardQuest
     if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         return;
+
+    if (victim)
+        xp *= victim->GetCreatureInfo()->ExperienceMultiplier;
 
     // handle SPELL_AURA_MOD_XP_PCT auras
     Unit::AuraList const& ModXPPctAuras = GetAurasByType(SPELL_AURA_MOD_XP_PCT);
@@ -6175,20 +6178,20 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
 }
 
 // Calculates how many reputation points player gains in victim's enemy factions
-void Player::RewardReputation(Unit* pVictim, float rate)
+void Player::RewardReputation(Creature* victim, float rate)
 {
-    if (!pVictim || pVictim->GetTypeId() == TYPEID_PLAYER)
+    if (victim->IsNoReputation())
         return;
 
     // used current difficulty creature entry instead normal version (GetEntry())
-    ReputationOnKillEntry const* Rep = sObjectMgr.GetReputationOnKillEntry(((Creature*)pVictim)->GetCreatureInfo()->Entry);
+    ReputationOnKillEntry const* Rep = sObjectMgr.GetReputationOnKillEntry(victim->GetCreatureInfo()->Entry);
 
     if (!Rep)
         return;
 
     if (Rep->repfaction1 && (!Rep->team_dependent || GetTeam() == ALLIANCE))
     {
-        int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue1, 0, Rep->repfaction1, pVictim->getLevel());
+        int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue1, 0, Rep->repfaction1, victim->getLevel());
         donerep1 = int32(donerep1 * rate);
         FactionEntry const* factionEntry1 = sFactionStore.LookupEntry<FactionEntry>(Rep->repfaction1);
         uint32 current_reputation_rank1 = GetReputationMgr().GetRank(factionEntry1);
@@ -6206,7 +6209,7 @@ void Player::RewardReputation(Unit* pVictim, float rate)
 
     if (Rep->repfaction2 && (!Rep->team_dependent || GetTeam() == HORDE))
     {
-        int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue2, 0, Rep->repfaction2, pVictim->getLevel());
+        int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue2, 0, Rep->repfaction2, victim->getLevel());
         donerep2 = int32(donerep2 * rate);
         FactionEntry const* factionEntry2 = sFactionStore.LookupEntry<FactionEntry>(Rep->repfaction2);
         uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
@@ -19697,25 +19700,26 @@ bool Player::isHonorOrXPTarget(Unit* pVictim) const
 
 void Player::RewardSinglePlayerAtKill(Unit* pVictim)
 {
-    bool PvP = pVictim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-    uint32 xp = PvP ? 0 : MaNGOS::XP::Gain(this, pVictim);
-
     // honor can be in PvP and !PvP (racial leader) cases
     RewardHonor(pVictim, 1);
 
     // xp and reputation only in !PvP case
-    if (!PvP)
+    if (!pVictim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
-        RewardReputation(pVictim, 1);
-        GiveXP(xp, pVictim);
-
-        if (Pet* pet = GetPet())
-            pet->GivePetXP(xp);
-
-        // normal creature (not pet/etc) can be only in !PvP case
         if (pVictim->GetTypeId() == TYPEID_UNIT)
-            if (CreatureInfo const* normalInfo = ObjectMgr::GetCreatureTemplate(pVictim->GetEntry()))
-                KilledMonster(normalInfo, pVictim->GetObjectGuid());
+        {
+            Creature* creatureVictim = static_cast<Creature*>(pVictim);
+            RewardReputation(creatureVictim, 1);
+            uint32 xp = MaNGOS::XP::Gain(this, creatureVictim);
+            GiveXP(xp, creatureVictim);
+
+            if (Pet* pet = GetPet())
+                pet->GivePetXP(xp);
+
+            // normal creature (not pet/etc) can be only in !PvP case        
+            if (CreatureInfo const* normalInfo = creatureVictim->GetCreatureInfo())
+                KilledMonster(normalInfo, creatureVictim->GetObjectGuid());
+        }
     }
 }
 

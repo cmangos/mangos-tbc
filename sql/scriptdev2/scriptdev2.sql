@@ -899,6 +899,7 @@ UPDATE creature_template SET ScriptName='mob_shadowmoon_soulstealer' WHERE entry
 UPDATE creature_template SET ScriptName='npc_shadowlord_deathwail' WHERE entry=22006;
 UPDATE creature_template SET ScriptName='npc_disobedient_dragonmaw_peon' WHERE entry IN(23311);
 UPDATE creature_template SET ScriptName='npc_murag_muckjaw' WHERE entry=23340;
+UPDATE creature_template SET ScriptName='npc_trope' WHERE entry=23342;
 
 /* SHATTRATH */
 UPDATE creature_template SET ScriptName='npc_dirty_larry' WHERE entry=19720;
@@ -2375,7 +2376,9 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001297,'Stand tall, soldiers. Show them no quarter!',0,0,0,1,'Commander Hobb SAY_EVENT_START'),
 (-1001298,'Victory to the Scryers! The Dragonmaw have been defeated!',0,1,0,0,'Commander Hobb SAY_EVENT_END'),
 (-1001299,'I may be old but I can still take on a young whippersnapper like you, $n. Try not to fall behind...',0,0,0,0,'Murg "Oldie" Muckjaw SAY_MUCKJAW_START'),
-(-1001300,'Well, you won... I guess.',0,0,0,0,'Murg "Oldie" Muckjaw SAY_MUCKJAW_END');
+(-1001300,'Well, you won... I guess.',0,0,0,0,'Murg "Oldie" Muckjaw SAY_MUCKJAW_END'),
+(-1001301,'Trope will show you how to fly like a Dragonmaw... You will show Trope how to die like a scrub.',0,0,0,1,'Trope the Filth-Belcher SAY_TROPE_START'),
+(-1001302,'You did well. Certainly a surprise to Trope... Report back to Ja''y.',0,0,0,0,'Trope the Filth-Belcher SAY_TROPE_END');
 
 -- -1 010 000 Classic texts
 

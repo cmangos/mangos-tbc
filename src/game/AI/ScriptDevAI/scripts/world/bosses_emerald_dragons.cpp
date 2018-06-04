@@ -147,6 +147,7 @@ enum
     SPELL_VOLATILE_INFECTION    = 24928,
     SPELL_CORRUPTION_OF_EARTH   = 24910,
     SPELL_PUTRID_MUSHROOM       = 24904,                    // Summons a Putrid Mushroom (GO 180517 with trap spell 24871) on killing a player
+    SPELL_DESPAWN_MUSHROOMS     = 24958,                    // Removes all Putrid Mushrooms in case of raid wipe
 };
 
 struct boss_emerissAI : public boss_emerald_dragonAI
@@ -160,6 +161,7 @@ struct boss_emerissAI : public boss_emerald_dragonAI
         boss_emerald_dragonAI::Reset();
 
         m_uiVolatileInfectionTimer = 12000;
+        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_MUSHROOMS, CAST_TRIGGERED);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -238,7 +240,7 @@ struct boss_lethonAI : public boss_emerald_dragonAI
     void Aggro(Unit* /*pWho*/) override
     {
         DoScriptText(SAY_LETHON_AGGRO, m_creature);
-        // Shadow bolt wirl is a periodic aura which triggers a set of shadowbolts every 2 secs; may need some core tunning
+        // Shadow bolt wirl is a periodic aura which triggers a set of shadowbolts every 2 secs
         DoCastSpellIfCan(m_creature, SPELL_SHADOW_BOLT_WIRL, CAST_TRIGGERED);
     }
 
@@ -328,6 +330,7 @@ enum
     SPELL_SUMMON_SHADE_2    = 24842,
     SPELL_SUMMON_SHADE_3    = 24843,
     SPELL_SELF_STUN         = 24883,                        // Stuns the main boss until the shades are dead or timer expires
+    SPELL_DESPAWN_SHADES    = 24886,
 
     NPC_SHADE_OF_TAERAR     = 15302,
 };
@@ -353,6 +356,9 @@ struct boss_taerarAI : public boss_emerald_dragonAI
         // Remove Unselectable if needed
         if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+
+        // Despawn all remaining summoned NPCs in case of raid wipe
+        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_SHADES, CAST_TRIGGERED);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -455,7 +461,7 @@ enum
     SAY_SUMMON_DRUIDS       = -1000361,
 
     SPELL_LIGHTNING_WAVE    = 24819,
-    SPELL_SUMMON_DRUIDS     = 24795,    // Summon NPC 15260 (Demented Druid Spirit) that uses spells 6726, 16247 & 24957
+    SPELL_SUMMON_DRUIDS     = 24796,    // Summon NPC 15260 (Demented Druid Spirit) that uses spells 6726, 16247 & 24957
 };
 
 // Ysondre script
@@ -477,23 +483,16 @@ struct boss_ysondreAI : public boss_emerald_dragonAI
         DoScriptText(SAY_YSONDRE_AGGRO, m_creature);
     }
 
-    // Summon Druids, one druid per player engaged in combat
+    // Summon Druids, one druid per player engaged in combat (actual summon handled in child spell 24795)
     bool DoSpecialDragonAbility()
     {
-        DoScriptText(SAY_SUMMON_DRUIDS, m_creature);
-
-        ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
-
-        for (ThreatList::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
+        if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_DRUIDS, CAST_TRIGGERED) == CAST_OK)
         {
-            if (Unit* target = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
-            {
-                if (target->GetTypeId() == TYPEID_PLAYER)
-                    DoCastSpellIfCan(m_creature, SPELL_SUMMON_DRUIDS, CAST_TRIGGERED);
-            }
+            DoScriptText(SAY_SUMMON_DRUIDS, m_creature);
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     bool UpdateDragonAI(const uint32 uiDiff)

@@ -1724,6 +1724,10 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                 // case 36207: break:                   // Steal Weapon
                 // case 36576: break:                   // Shaleskin (Shaleskin Flayer, Shaleskin Ripper) 30023 trigger
                 // case 37030: break;                   // Chaotic Temperament
+                case 38164:                                 // Unyielding Knights - this can only proc in hellfire peninsula with a maximum of 2 guardians against fel orc faction only
+                    if (GetZoneId() != 3483 || pVictim->getFaction() != 943 || CountGuardiansWithEntry(20117) == 2)
+                        return SPELL_AURA_PROC_FAILED;
+                    break;
                 // case 38363: break;                   // Gushing Wound
                 // case 39215: break;                   // Gushing Wound
                 // case 40250: break;                   // Improved Duration
@@ -1753,20 +1757,53 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                         return SPELL_AURA_PROC_FAILED;
                     break;
                     // case 45205: break;                   // Copy Offhand Weapon
-                    // case 45343: break;                   // Dark Flame Aura
                     // case 45903: break:                   // Offensive State
                     // case 46146: break:                   // [PH] Ahune  Spanky Hands
                     // case 46146: break;                   // [PH] Ahune  Spanky Hands
-                    // case 47300: break;                   // Dark Flame Aura
-                    // case 50051: break;                   // Ethereal Pet Aura
-                    break;
-                case 38164: //Unyielding Knights
-                    //this can only proc in hellfire peninsula 
-                    //with a maximum of 2 guardians
-                    //against fel orc faction only
-                    if (GetZoneId() != 3483 || pVictim->getFactionTemplateEntry()->faction != 943 || CountGuardiansWithEntry(20117) == 2)
+                case 45343:                          // Dark Flame Aura proc from scarolash
+                {
+                    if (!procSpell)
                         return SPELL_AURA_PROC_FAILED;
+                    if (HasAura(45345))       // SPELL_DARK_FLAME on player
+                        return SPELL_AURA_PROC_FAILED;
+                    if (procSpell->Id == 45256      // confunding blow
+                        || procSpell->Id == 45248    // shadow blades
+                        || procSpell->Id == 45329)   // shadow nova
+                    {
+                        cooldown = 1;
+                        target = this;
+                        if (this->HasAura(45348))
+                        {
+                            this->RemoveAurasDueToSpell(45348);
+                            trigger_spell_id = 45345;
+                        }
+                        else
+                            trigger_spell_id = 45347;
+                    }
                     break;
+                }
+                case 47300: // Dark Flame Aura              procs from alythess
+                {
+                    if (!procSpell)
+                        return SPELL_AURA_PROC_FAILED;
+                    if (this->HasAura(45345))                   // SPELL_DARK_FLAME on player
+                        return SPELL_AURA_PROC_FAILED;
+                    if (procSpell->Id == 46771                  // flame sear
+                        || procSpell->Id == 45342           // or conflag
+                        || procSpell->Id == 45235)          // or blaze
+                    {
+                        cooldown = 1;
+                        target = this;
+                        if (this->HasAura(45347))
+                        {
+                            this->RemoveAurasDueToSpell(45347);
+                            trigger_spell_id = 45345;
+                        }
+                        else
+                            trigger_spell_id = 45348;
+                    }
+                    break;
+                }
                 case 48473:                                 // Capture Soul - Doom Lord Kazzak
                     if (pVictim->GetTypeId() != TYPEID_PLAYER) // only player death procs
                         return SPELL_AURA_PROC_FAILED;
@@ -1774,6 +1811,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(Unit* pVictim, uint32 d
                         if (lootRecipient->GetTeam() != ((Player*)pVictim)->GetTeam()) // prevents horde/alliance griefing
                             return SPELL_AURA_PROC_FAILED;
                     break;
+                    // case 50051: break;                   // Ethereal Pet Aura
             }
             break;
         case SPELLFAMILY_MAGE:

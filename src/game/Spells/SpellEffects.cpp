@@ -1216,6 +1216,13 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 24796:                                 // Summon Demented Druid Spirit
+                {
+                    if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
+                        m_caster->CastSpell(unitTarget, 24795, TRIGGERED_OLD_TRIGGERED);
+
+                    return;
+                }
                 case 26080:                                 // Stinger Charge Primer
                 {
                     if (unitTarget->HasAura(26078))
@@ -1246,6 +1253,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                     if (unitTarget && m_caster->AI())
                         m_caster->AI()->AttackStart(unitTarget);
+
+                    return;
+                }
+                case 24886:                                 // Despawn Taerar Shades
+                {
+                    if (unitTarget && unitTarget->GetEntry() == 15302)
+                    {
+                        ((Creature*)unitTarget)->ForcedDespawn();
+                        ((Creature*)unitTarget)->RemoveFromWorld();
+                    }
 
                     return;
                 }

@@ -898,8 +898,12 @@ UPDATE creature_template SET ScriptName='npc_veneratus_spawn_node' WHERE entry=2
 UPDATE creature_template SET ScriptName='mob_shadowmoon_soulstealer' WHERE entry=22061;
 UPDATE creature_template SET ScriptName='npc_shadowlord_deathwail' WHERE entry=22006;
 UPDATE creature_template SET ScriptName='npc_disobedient_dragonmaw_peon' WHERE entry IN(23311);
-UPDATE creature_template SET ScriptName='npc_murag_muckjaw' WHERE entry=23340;
-UPDATE creature_template SET ScriptName='npc_trope' WHERE entry=23342;
+UPDATE creature_template SET ScriptName='npc_dragonmaw_racer_muckjaw' WHERE entry=23340;
+UPDATE creature_template SET ScriptName='npc_dragonmaw_racer_trope' WHERE entry=23342;
+UPDATE creature_template SET ScriptName='npc_dragonmaw_racer_corlok' WHERE entry=23344;
+UPDATE creature_template SET ScriptName='npc_dragonmaw_racer_ichman' WHERE entry=23345;
+UPDATE creature_template SET ScriptName='npc_dragonmaw_racer_mulverick' WHERE entry=23346;
+UPDATE creature_template SET ScriptName='npc_dragonmaw_racer_skyshatter' WHERE entry=23348;
 
 /* SHATTRATH */
 UPDATE creature_template SET ScriptName='npc_dirty_larry' WHERE entry=19720;
@@ -2378,7 +2382,16 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001299,'I may be old but I can still take on a young whippersnapper like you, $n. Try not to fall behind...',0,0,0,0,'Murg "Oldie" Muckjaw SAY_MUCKJAW_START'),
 (-1001300,'Well, you won... I guess.',0,0,0,0,'Murg "Oldie" Muckjaw SAY_MUCKJAW_END'),
 (-1001301,'Trope will show you how to fly like a Dragonmaw... You will show Trope how to die like a scrub.',0,0,0,1,'Trope the Filth-Belcher SAY_TROPE_START'),
-(-1001302,'You did well. Certainly a surprise to Trope... Report back to Ja''y.',0,0,0,0,'Trope the Filth-Belcher SAY_TROPE_END');
+(-1001302,'You did well. Certainly a surprise to Trope... Report back to Ja''y.',0,0,0,0,'Trope the Filth-Belcher SAY_TROPE_END'),
+(-1001303,'Let''s get this over with...',0,0,0,1,'Corlok the Vet SAY_START_CORLOK'),
+(-1001304,'You put up a hell of a fight, newbie. Hell of a fight...',0,0,0,1,'Corlok the Vet SAY_END_CORLOK'),
+(-1001305,'I''m taking this back to the old school. I''ll be the Alliance and you be Frostwolf Village. BOMBS AWAY!',0,0,0,1,'Wing Commander Ichman SAY_START_ICHMAN'),
+(-1001306,'Thank you for that... It was humbling to be served in such a manner.',0,0,0,1,'Wing Commander Ichman SAY_END_ICHMAN'),
+(-1001307,'You''re in for a rough ride, $n. I hope you''ve already made funeral arrangements.',0,0,0,1,'Wing Commander Mulverick SAY_START_MULVERICK'),
+(-1001308,'You''re the best I''ve ever seen. I can''t believe I''m saying this but you might have a chance against Skyshatter. And hey, if that doesn''t go so well you can be my wing man...',0,0,0,1,'Wing Commander Mulverick SAY_END_MULVERICK'),
+(-1001309,'Prepare a funeral pyre! $n has challenged Skyshatter!',0,1,0,1,'Captain Skyshatter - SAY_START_SKYSHATTER'),
+(-1001310,'I weep for you, $n. You really have no idea what you''ve gotten yourself into... - say before start big flight?',0,0,0,1,'Captain Skyshatter - SAY_MID_SKYSHATTER'),
+(-1001311,'I... I am undone... The new top orc is $n!',0,1,0,1,'Captain Skyshatter - SAY_END_SKYSHATTER');
 
 -- -1 010 000 Classic texts
 
@@ -7674,7 +7687,7 @@ INSERT INTO script_waypoint VALUES
 (23342,0,56,-5100.548,640.0574,86.37918,0,0,0,''),
 (23342,0,57,-5082.932,631.0391,86.1046,0,0,0,''),
 (23342,0,58,-5081.618,640.9318,86.58853,0,0,0,''),
-(23342,0,59,-5081.618,640.9318,86.58853,1.5708,0,0,''),
+(23342,0,59,-5081.618,640.9318,86.58853,1.570796,0,0,''),
 (23344,0,0,-5084.937,633.847,86.23929,0,0,0,''),
 (23344,0,1,-5098.979,634.7803,86.10049,0,0,0,''),
 (23344,0,2,-5101.355,648.9661,86.75992,0,0,0,''),
@@ -7875,7 +7888,7 @@ INSERT INTO script_waypoint VALUES
 (23345,0,107,-5097.221,643.8181,86.61429,0,0,0,''),
 (23345,0,108,-5082.632,631.6423,86.1046,0,0,0,''),
 (23345,0,109,-5065.899,639.8352,86.49668,0,0,0,''),
-(23345,0,110,-5066.307,640.2136,86.49668,1.55334,0,0,''),
+(23345,0,110,-5066.307,640.2136,86.49668,1.553343,0,0,''),
 (23346,0,0,-5078.127,632.7935,86.1046,0,0,0,''),
 (23346,0,1,-5096.167,634.1729,86.26175,0,0,0,''),
 (23346,0,2,-5099.563,647.3327,86.73929,0,0,0,''),
@@ -8047,7 +8060,7 @@ INSERT INTO script_waypoint VALUES
 (23346,0,168,-5091.961,630.3558,86.1317,0,0,0,''),
 (23346,0,169,-5078.229,633.2795,86.1046,0,0,0,''),
 (23346,0,170,-5062.336,632.8517,86.17667,0,0,0,''),
-(23346,0,171,-5060.474,640.3013,86.64524,1.50098,0,0,''),
+(23346,0,171,-5060.474,640.3013,86.64524,1.500983,0,0,''),
 (23348,0,0,-5097.342,638.2053,86.37064,0,0,0,''),
 (23348,0,1,-5099.037,662.449,87.04227,0,0,0,''),
 (23348,0,2,-5079.384,664.2811,89.15067,0,0,0,'fly on'),

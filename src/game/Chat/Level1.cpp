@@ -2184,3 +2184,27 @@ bool ChatHandler::HandleSetViewCommand(char* /*args*/)
 
     return true;
 }
+
+bool ChatHandler::HandleGodCommand(char* args)
+{
+	Player *pPlayer = getSelectedPlayer();
+	if (!pPlayer)
+		pPlayer = m_session->GetPlayer();
+
+	if (*args)
+	{
+		bool value;
+		if (!ExtractOnOff(&args, value))
+		{
+			SendSysMessage(LANG_USE_BOL);
+			SetSentErrorMessage(true);
+			return false;
+		}
+		pPlayer->SetGodMode(value);
+	}
+	if (pPlayer->IsGod())
+		SendSysMessage("Mode GOD : [ON]");
+	else
+		SendSysMessage("Mode GOD : [OFF]");
+	return true;
+}

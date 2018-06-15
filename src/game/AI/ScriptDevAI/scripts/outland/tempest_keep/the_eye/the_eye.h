@@ -15,20 +15,27 @@ enum
     TYPE_VOIDREAVER             = 2,
     TYPE_KAELTHAS               = 3,
 
-    // NPC_ASTROMANCER           = 18805,
+    NPC_ASTROMANCER             = 18805,
     NPC_KAELTHAS                = 19622,
-
     NPC_CAPERNIAN               = 20062,
     NPC_SANGUINAR               = 20060,
     NPC_TELONICUS               = 20063,
     NPC_THALADRED               = 20064,
 
+	Creature_Longbow = 21268,
+	Creature_Blades = 21271,
+	Creature_Bulwark = 21273,
+	Creature_Devastation = 21269,
+	Creature_Slicer = 21272,
+	Creature_Infuser = 21270,
+	Creature_Staff = 21274,
+
     GO_ARCANE_DOOR_HORIZ_3      = 184325,               // combat doors for Kael
     GO_ARCANE_DOOR_HORIZ_4      = 184324,
-    // GO_RAID_DOOR_4            = 184329,               // encounter doors - no longer used since 2.4.0
-    // GO_RAID_DOOR_3            = 184327,
-    // GO_ARCANE_DOOR_VERT_3     = 184326,
-    // GO_ARCANE_DOOR_VERT_4     = 184328,
+    GO_RAID_DOOR_4            = 184329,               // encounter doors - no longer used since 2.4.0
+    GO_RAID_DOOR_3            = 184327,
+    GO_ARCANE_DOOR_VERT_3     = 184326,
+    GO_ARCANE_DOOR_VERT_4     = 184328,
     GO_KAEL_STATUE_LEFT         = 184597,               // cosmetic objects for Kael encounter
     GO_KAEL_STATUE_RIGHT        = 184596,
     GO_BRIDGE_WINDOW            = 184069,

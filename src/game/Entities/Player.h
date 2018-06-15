@@ -522,6 +522,20 @@ enum AtLoginFlags
     AT_LOGIN_RESET_TAXINODES      = 0x40,
 };
 
+enum PlayerCheatOptions
+{
+	PLAYER_CHEAT_GOD = 0x001,
+	PLAYER_CHEAT_NO_COOLDOWN = 0x002,
+	PLAYER_CHEAT_NO_CAST_TIME = 0x004,
+	PLAYER_CHEAT_NO_POWER = 0x008,
+	PLAYER_CHEAT_NO_MOD_SPEED = 0x010,
+	PLAYER_CHEAT_ALWAYS_CRIT = 0x020,
+	PLAYER_CHEAT_NO_CHECK_CAST = 0x040,
+	PLAYER_CHEAT_ALWAYS_PROC = 0x080,
+	PLAYER_VIDEO_MODE = 0x100,
+	PLAYER_CHEAT_UNRANDOMIZE = 0x200,
+};
+
 typedef std::map<uint32, QuestStatusData> QuestStatusMap;
 
 enum QuestSlotOffsets
@@ -986,6 +1000,21 @@ class Player : public Unit
         bool isGMVisible() const { return !(m_ExtraFlags & PLAYER_EXTRA_GM_INVISIBLE); }
         void SetGMVisible(bool on);
         void SetPvPDeath(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_PVP_DEATH; else m_ExtraFlags &= ~PLAYER_EXTRA_PVP_DEATH; }
+
+		uint32 _playerOptions;
+		bool HasOption(uint32 o) const { return (_playerOptions & o); }
+		void EnableOption(uint32 o) { _playerOptions |= o; }
+		void RemoveOption(uint32 o) { _playerOptions &= (~o); }
+		void SetOption(PlayerCheatOptions o, bool on)
+		{
+			if (on)
+				EnableOption(o);
+			else
+				RemoveOption(o);
+		}
+
+		void SetGodMode(bool on) { SetOption(PLAYER_CHEAT_GOD, on); }
+		bool IsGod() const { return HasOption(PLAYER_CHEAT_GOD); }
 
         // 0 = own auction, -1 = enemy auction, 1 = goblin auction
         int GetAuctionAccessMode() const { return m_ExtraFlags & PLAYER_EXTRA_AUCTION_ENEMY ? -1 : (m_ExtraFlags & PLAYER_EXTRA_AUCTION_NEUTRAL ? 1 : 0); }

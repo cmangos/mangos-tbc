@@ -26,6 +26,8 @@ EndScriptData */
 
 enum
 {
+
+	// ***** P2 Weapons *******
     // ***** Event yells ********
     // kael'thas Speech
     SAY_INTRO                           = -1550016,
@@ -68,7 +70,7 @@ enum
 
     // ***** Kaelthas spells ********
     // Phase 2 spells
-    SPELL_KAEL_PHASE_2                  = 36709,            // not sure if this is used in the right way
+    SPELL_KAEL_PHASE_2                  = 36709,          
     SPELL_SUMMON_WEAPONS                = 36976,
     SPELL_SUMMON_WEAPONA                = 36958,
     SPELL_SUMMON_WEAPONB                = 36959,
@@ -152,6 +154,7 @@ enum
     MAX_WEAPONS                         = 7,
     MAX_MIND_CONTROL                    = 3,
 };
+GuidList m_lSummonedWepGUIDs;
 
 static const uint32 m_auiSpellSummonWeapon[MAX_WEAPONS] =
 {
@@ -202,6 +205,8 @@ struct boss_kaelthasAI : public ScriptedAI
     uint8 m_uiPhase;
     uint8 m_uiPhaseSubphase;
 
+
+
     void Reset() override
     {
         // Phases
@@ -227,8 +232,34 @@ struct boss_kaelthasAI : public ScriptedAI
         m_uiGravityIndex            = 0;
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-
         SetCombatMovement(true);
+
+		// Despawn Weapons
+		for (GuidList::const_iterator itr = m_lSummonedWepGUIDs.begin(); itr != m_lSummonedWepGUIDs.end(); ++itr)
+		{
+			if (Creature* pWep = m_creature->GetMap()->GetCreature(*itr))
+				pWep->ForcedDespawn();
+		}
+		m_lSummonedWepGUIDs.clear();
+
+		// Respawn Advisors
+
+		if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(NPC_THALADRED))
+		{
+			pAdvisor->Respawn();
+		}
+		if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(NPC_CAPERNIAN))
+		{
+			pAdvisor->Respawn();
+		}
+		if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(NPC_SANGUINAR))
+		{
+			pAdvisor->Respawn();
+		}
+		if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(NPC_TELONICUS))
+		{
+			pAdvisor->Respawn();
+		}
     }
 
     void GetAIInformation(ChatHandler& reader) override
@@ -289,14 +320,19 @@ struct boss_kaelthasAI : public ScriptedAI
             m_pInstance->SetData(TYPE_KAELTHAS, FAIL);
     }
 
-    void JustSummoned(Creature* pSummoned) override
-    {
-        if (pSummoned->GetEntry() == NPC_FLAME_STRIKE_TRIGGER)
-            pSummoned->CastSpell(pSummoned, SPELL_FLAME_STRIKE_DUMMY, TRIGGERED_NONE, nullptr, nullptr, m_creature->GetObjectGuid());
-        else if (pSummoned->GetEntry() == NPC_NETHER_VAPOR)
-            pSummoned->CastSpell(pSummoned, SPELL_NETHER_VAPOR, TRIGGERED_NONE, nullptr, nullptr, m_creature->GetObjectGuid());
-        // Start combat for Weapons of Phoenix
-        else
+	void JustSummoned(Creature* pSummoned) override
+	{
+		if (pSummoned->GetEntry() == NPC_FLAME_STRIKE_TRIGGER)
+			pSummoned->CastSpell(pSummoned, SPELL_FLAME_STRIKE_DUMMY, TRIGGERED_NONE, nullptr, nullptr, m_creature->GetObjectGuid());
+		else if (pSummoned->GetEntry() == NPC_NETHER_VAPOR)
+			pSummoned->CastSpell(pSummoned, SPELL_NETHER_VAPOR, TRIGGERED_NONE, nullptr, nullptr, m_creature->GetObjectGuid());
+		else if (pSummoned->GetEntry() == Creature_Staff || pSummoned->GetEntry() == Creature_Devastation || pSummoned->GetEntry() == Creature_Infuser || pSummoned->GetEntry() == Creature_Blades || pSummoned->GetEntry() == Creature_Slicer || pSummoned->GetEntry() == Creature_Bulwark || pSummoned->GetEntry() == Creature_Longbow)
+		{
+		pSummoned->SetInCombatWithZone();
+		m_lSummonedWepGUIDs.push_back(pSummoned->GetObjectGuid());
+		}
+		// Start combat for Weapons of Phoenix
+		else
             pSummoned->SetInCombatWithZone();
     }
 
@@ -379,6 +415,8 @@ struct boss_kaelthasAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
+		if (m_creature->getThreatManager().isThreatListEmpty())
+			Reset();
         switch (m_uiPhase)
         {
             // ***** Advisors phase ********
@@ -392,23 +430,23 @@ struct boss_kaelthasAI : public ScriptedAI
                     if (!m_pInstance)
                         return;
 
-                    switch (m_uiPhaseSubphase)
-                    {
-                        case 0:
-                            DoScriptText(SAY_INTRO_THALADRED, m_creature);
-                            m_uiPhaseTimer = 7000;
-                            break;
+					switch (m_uiPhaseSubphase)
+					{
+					case 0:
+						DoScriptText(SAY_INTRO_THALADRED, m_creature);
+						m_uiPhaseTimer = 7000;
+						break;
 
-                        case 1:
-                            if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(NPC_THALADRED))
-                            {
-                                pAdvisor->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-                                pAdvisor->SetInCombatWithZone();
-                            }
-                            m_uiPhaseTimer = 0;
-                            break;
+					case 1:
+						if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(NPC_THALADRED))
+						{
+							pAdvisor->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+							pAdvisor->SetInCombatWithZone();
+						}
+						m_uiPhaseTimer = 0;
+						break;
 
-                        case 2:
+					case 2:
                             DoScriptText(SAY_INTRO_SANGUINAR, m_creature);
                             m_uiPhaseTimer = 12500;
                             break;
@@ -448,6 +486,8 @@ struct boss_kaelthasAI : public ScriptedAI
                                 pAdvisor->SetInCombatWithZone();
                             }
                             m_uiPhaseTimer = 0;
+							if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_WEAPONS) == CAST_OK)
+								DoScriptText(SAY_PHASE2_WEAPON, m_creature);
                             break;
                     }
 
@@ -701,6 +741,7 @@ struct boss_kaelthasAI : public ScriptedAI
     }
 };
 
+
 bool EffectDummyCreature_kael_phase_2(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, Creature* pCreatureTarget, ObjectGuid /*originalCasterGuid*/)
 {
     // always check spellid and effectindex
@@ -743,6 +784,7 @@ struct advisor_base_ai : public ScriptedAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
     }
 
+
     void JustReachedHome() override
     {
         // Reset Kael if needed
@@ -757,6 +799,9 @@ struct advisor_base_ai : public ScriptedAI
 
     void DamageTaken(Unit* /*pDoneby*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
+		if (uiDamage == m_creature->GetHealth())
+			uiDamage = 0;
+			return;
         // Allow fake death only in the first phase
         if (!m_bCanFakeDeath)
             return;
@@ -765,6 +810,7 @@ struct advisor_base_ai : public ScriptedAI
             return;
 
         // Make sure it won't die by accident
+
         if (m_bFakeDeath)
         {
             uiDamage = 0;
@@ -839,6 +885,7 @@ struct boss_thaladred_the_darkenerAI : public advisor_base_ai
 
     void JustDied(Unit* /*pKiller*/) override
     {
+
         DoScriptText(SAY_THALADRED_DEATH, m_creature);
     }
 
@@ -1156,7 +1203,6 @@ struct mob_phoenix_tkAI : public ScriptedAI
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-
         // Spawn egg and make invisible
         DoCastSpellIfCan(m_creature, SPELL_EMBER_BLAST, CAST_TRIGGERED);
         m_creature->SummonCreature(NPC_PHOENIX_EGG, 0, 0, 0, 0, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 15000);

@@ -348,14 +348,13 @@ class Object
             m_inWorld = false;
         }
 
-		ObjectGuid const& GetObjectGuid() const { return GetGuidValue(OBJECT_FIELD_GUID); }
-		const uint64& GetGUID() const { return GetUInt64Value(OBJECT_FIELD_GUID); } // Conserve par Nostalrius
-		uint32 GetGUIDLow() const { return GetObjectGuid().GetCounter(); }
-		PackedGuid const& GetPackGUID() const { return m_PackGUID; }
-		std::string GetGuidStr() const { return GetObjectGuid().GetString(); }
+        ObjectGuid const& GetObjectGuid() const { return GetGuidValue(OBJECT_FIELD_GUID); }
+        uint32 GetGUIDLow() const { return GetObjectGuid().GetCounter(); }
+        PackedGuid const& GetPackGUID() const { return m_PackGUID; }
+        std::string GetGuidStr() const { return GetObjectGuid().GetString(); }
 
-		uint32 GetEntry() const { return GetUInt32Value(OBJECT_FIELD_ENTRY); }
-		void SetEntry(uint32 entry) { SetUInt32Value(OBJECT_FIELD_ENTRY, entry); }
+        uint32 GetEntry() const { return GetUInt32Value(OBJECT_FIELD_ENTRY); }
+        void SetEntry(uint32 entry) { SetUInt32Value(OBJECT_FIELD_ENTRY, entry); }
 
         float GetObjectScale() const
         {
@@ -421,23 +420,22 @@ class Object
             return *(((uint16*)&m_uint32Values[ index ]) + offset);
         }
 
-		ObjectGuid const& GetGuidValue(uint16 index) const { return *reinterpret_cast<ObjectGuid const*>(&GetUInt64Value(index)); }
+        ObjectGuid const& GetGuidValue(uint16 index) const { return *reinterpret_cast<ObjectGuid const*>(&GetUInt64Value(index)); }
 
-		void SetInt32Value(uint16 index, int32  value);
-		void SetUInt32Value(uint16 index, uint32  value);
-		void SetUInt64Value(uint16 index, const uint64 &value);
-		void SetFloatValue(uint16 index, float   value);
-		void SetByteValue(uint16 index, uint8 offset, uint8 value);
-		void SetUInt16Value(uint16 index, uint8 offset, uint16 value);
-		void SetInt16Value(uint16 index, uint8 offset, int16 value) { SetUInt16Value(index, offset, (uint16)value); }
-		void SetGuidValue(uint16 index, ObjectGuid const& value) { SetUInt64Value(index, value.GetRawValue()); }
-		void SetStatFloatValue(uint16 index, float value);
-		void SetStatInt32Value(uint16 index, int32 value);
+        void SetInt32Value(uint16 index,        int32  value);
+        void SetUInt32Value(uint16 index,       uint32  value);
+        void SetUInt64Value(uint16 index, const uint64& value);
+        void SetFloatValue(uint16 index,       float   value);
+        void SetByteValue(uint16 index, uint8 offset, uint8 value);
+        void SetUInt16Value(uint16 index, uint8 offset, uint16 value);
+        void SetInt16Value(uint16 index, uint8 offset, int16 value) { SetUInt16Value(index, offset, (uint16)value); }
+        void SetGuidValue(uint16 index, ObjectGuid const& value) { SetUInt64Value(index, value.GetRawValue()); }
+        void SetStatFloatValue(uint16 index, float value);
+        void SetStatInt32Value(uint16 index, int32 value);
         void ForceValuesUpdateAtIndex(uint32 index);
 
         void ApplyModUInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModInt32Value(uint16 index, int32 val, bool apply);
-		void ApplyModUInt64Value(uint16 index, int32 val, bool apply);
         void ApplyModPositiveFloatValue(uint16 index, float val, bool apply);
         void ApplyModSignedFloatValue(uint16 index, float val, bool apply);
 
@@ -565,43 +563,17 @@ class Object
 
         uint16 GetValuesCount() const { return m_valuesCount; }
 
-
-
-
         virtual bool HasQuest(uint32 /* quest_id */) const { return false; }
         virtual bool HasInvolvedQuest(uint32 /* quest_id */) const { return false; }
         void SetItsNewObject(bool enable) { m_itsNewObject = enable; }
 
         Loot* loot;
 
-		// Convertions
-		inline bool IsWorldObject() const { return isType(TYPEMASK_WORLDOBJECT); }
-		WorldObject* ToWorldObject() { if (IsWorldObject()) return reinterpret_cast<WorldObject*>(this); else return nullptr; }
-		WorldObject const* ToWorldObject() const { if (IsWorldObject()) return reinterpret_cast<WorldObject const*>(this); else return nullptr; }
-
-		inline bool IsPlayer() const { return GetTypeId() == TYPEID_PLAYER; }
-		Player* ToPlayer() { if (IsPlayer()) return reinterpret_cast<Player*>(this); else return nullptr; }
-		Player const* ToPlayer() const { if (IsPlayer()) return reinterpret_cast<Player const*>(this); else return nullptr; }
-
-		inline bool IsCreature() const { return GetTypeId() == TYPEID_UNIT; }
-		Creature* ToCreature() { if (IsCreature()) return reinterpret_cast<Creature*>(this); else return nullptr; }
-		Creature const* ToCreature() const { if (IsCreature()) return reinterpret_cast<Creature const*>(this); else return nullptr; }
-
-		inline bool IsUnit() const { return isType(TYPEMASK_UNIT); }
-		Unit* ToUnit() { if (IsUnit()) return reinterpret_cast<Unit*>(this); else return nullptr; }
-		Unit const* ToUnit() const { if (IsUnit()) return reinterpret_cast<Unit const*>(this); else return nullptr; }
-
-		inline bool IsGameObject() const { return GetTypeId() == TYPEID_GAMEOBJECT; }
-		GameObject* ToGameObject() { if (IsGameObject()) return reinterpret_cast<GameObject*>(this); else return nullptr; }
-		GameObject const* ToGameObject() const { if (IsGameObject()) return reinterpret_cast<GameObject const*>(this); else return nullptr; }
-
-		inline bool IsCorpse() const { return GetTypeId() == TYPEID_CORPSE; }
-		Corpse* ToCorpse() { if (IsCorpse()) return reinterpret_cast<Corpse*>(this); else return nullptr; }
-		Corpse const* ToCorpse() const { if (IsCorpse()) return reinterpret_cast<Corpse const*>(this); else return nullptr; }
-
-		bool IsPet()      const;
-		Pet const* ToPet() const;
-		Pet* ToPet();
+        inline bool IsPlayer() const { return GetTypeId() == TYPEID_PLAYER; }
+        inline bool IsCreature() const { return GetTypeId() == TYPEID_UNIT; }
+        inline bool IsUnit() const { return isType(TYPEMASK_UNIT); }
+        inline bool IsGameObject() const { return GetTypeId() == TYPEID_GAMEOBJECT; }
+        inline bool IsCorpse() const { return GetTypeId() == TYPEID_CORPSE; }
 
     protected:
         Object();

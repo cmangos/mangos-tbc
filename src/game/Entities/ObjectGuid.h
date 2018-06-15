@@ -19,11 +19,6 @@
 #ifndef MANGOS_OBJECT_GUID_H
 #define MANGOS_OBJECT_GUID_H
 
-
-#include <functional>
-#include <queue>
-#include <unordered_set>
-
 #include "Common.h"
 #include "ByteBuffer.h"
 

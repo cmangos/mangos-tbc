@@ -171,6 +171,48 @@ ObjectMgr::~ObjectMgr()
         itr->second.Clear();
 }
 
+char* const ObjectMgr::GetPatchName()
+ {
+	switch (sWorld.GetWowPatch())
+		 {
+	case 0:
+		return "Patch 1.2: Mysteries of Maraudon";
+	case 1:
+		return "Patch 1.3: Ruins of the Dire Maul";
+	case 2:
+		return "Patch 1.4: The Call to War";
+	case 3:
+		return "Patch 1.5: Battlegrounds";
+	case 4:
+		return "Patch 1.6: Assault on Blackwing Lair";
+	case 5:
+		return "Patch 1.7: Rise of the Blood God";
+	case 6:
+		return "Patch 1.8: Dragons of Nightmare";
+	case 7:
+		return "Patch 1.9: The Gates of Ahn'Qiraj";
+	case 8:
+		return "Patch 1.10: Storms of Azeroth";
+	case 9:
+		return "Patch 1.11: Shadow of the Necropolis";
+	case 10:
+		return "Patch 1.12: Drums of War";
+	case 11:
+		return "Patch 2.0: Before the Storm ";
+	case 12:
+		return "Patch 2.1: The Black Temple";
+	case 13:
+		return "Patch 2.2 Voice Chat!";
+	case 14:
+		return "Patch 2.3: The Gods of Zul'Aman";
+	case 15:
+		return "Patch 2.4: Fury of the Sunwell";
+	}
+		return "Invalid Patch!";
+	}
+
+
+
 Group* ObjectMgr::GetGroupById(uint32 id) const
 {
     GroupMap::const_iterator itr = mGroupMap.find(id);
@@ -429,7 +471,7 @@ struct SQLCreatureLoader : public SQLStorageLoaderBase<SQLCreatureLoader, SQLSto
 void ObjectMgr::LoadCreatureTemplates()
 {
     SQLCreatureLoader loader;
-    loader.Load(sCreatureStorage);
+    loader.LoadProgressive(sCreatureStorage, sWorld.GetWowPatch());
 
     std::set<uint32> heroicEntries;                         // already loaded heroic value in creatures
     std::set<uint32> hasHeroicEntries;                      // already loaded creatures with heroic entry values
@@ -768,7 +810,7 @@ void ObjectMgr::ConvertCreatureAddonAuras(CreatureDataAddon* addon, char const* 
 
 void ObjectMgr::LoadCreatureAddons(SQLStorage& creatureaddons, char const* entryName, char const* comment)
 {
-    creatureaddons.Load();
+	creatureaddons.LoadProgressive(sWorld.GetWowPatch());
 
     // check data correctness and convert 'auras'
     for (uint32 i = 1; i < creatureaddons.GetMaxEntry(); ++i)
@@ -913,7 +955,7 @@ CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(uint32 level, u
 
 void ObjectMgr::LoadEquipmentTemplates()
 {
-    sEquipmentStorage.Load(true);
+	sEquipmentStorage.LoadProgressive(sWorld.GetWowPatch(), true);
 
     for (uint32 i = 0; i < sEquipmentStorage.GetMaxEntry(); ++i)
     {
@@ -955,7 +997,7 @@ void ObjectMgr::LoadEquipmentTemplates()
     sLog.outString(">> Loaded %u equipment template", sEquipmentStorage.GetRecordCount());
     sLog.outString();
 
-    sEquipmentStorageRaw.Load(false);
+    sEquipmentStorageRaw.LoadProgressive(sWorld.GetWowPatch(), false);
     for (uint32 i = 1; i < sEquipmentStorageRaw.GetMaxEntry(); ++i)
         if (sEquipmentStorageRaw.LookupEntry<EquipmentInfoRaw>(i))
             if (sEquipmentStorage.LookupEntry<EquipmentInfo>(i))
@@ -1257,8 +1299,8 @@ void ObjectMgr::LoadCreatures()
                           "equipment_id, position_x, position_y, position_z, orientation, spawntimesecsmin, spawntimesecsmax, spawndist, currentwaypoint,"
                           //   13         14       15          16            17         18
                           "curhealth, curmana, DeathState, MovementType, spawnMask, event,"
-                          //   19                        20
-                          "pool_creature.pool_entry, pool_creature_template.pool_entry "
+                          //   19                        20								, 21		,22
+                          "pool_creature.pool_entry, pool_creature_template.pool_entry,patch_min,patch_max "
                           "FROM creature "
                           "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
                           "LEFT OUTER JOIN pool_creature ON creature.guid = pool_creature.guid "
@@ -1289,11 +1331,30 @@ void ObjectMgr::LoadCreatures()
 
         uint32 guid         = fields[ 0].GetUInt32();
         uint32 entry        = fields[ 1].GetUInt32();
+		uint8 patch_min = fields[21].GetUInt8();
+
+		uint8 patch_max = fields[22].GetUInt8();
+		bool existsInPatch = true;
+		
+			if ((patch_min > patch_max) || (patch_max > 15))
+			 {
+			sLog.outErrorDb("Table `creature` GUID %u (entry %u) has invalid values min_patch=%u, max_patch=%u.", guid, entry, patch_min, patch_max);
+			patch_min = 0;
+			patch_max = 15;
+			}
+		
+			if (!((sWorld.GetWowPatch() >= patch_min) && (sWorld.GetWowPatch() <= patch_max)))
+			 existsInPatch = false;
+
 
         CreatureInfo const* cInfo = GetCreatureTemplate(entry);
         if (!cInfo)
         {
-            sLog.outErrorDb("Table `creature` has creature (GUID: %u) with non existing creature entry %u, skipped.", guid, entry);
+			if (existsInPatch) // don't print error when it is not loaded for the current patch
+				{
+				sLog.outErrorDb("Table `creature` has creature (GUID: %u) with non existing creature entry %u, skipped.", guid, entry);
+				sLog.outErrorDb("DELETE FROM creature WHERE guid=%u;", guid);
+				}
             continue;
         }
 
@@ -1350,6 +1411,9 @@ void ObjectMgr::LoadCreatures()
             sLog.outErrorDb("Table `creature` have creature (GUID: %u) that listed as heroic template (entry: %u) in `creature_template`, skipped.", guid, data.id);
             continue;
         }
+
+	//	if (!existsInPatch)
+	//		 data.spawnFlags |= SPAWN_FLAG_DISABLED;
 
         if (data.modelid_override > 0 && !sCreatureDisplayInfoStore.LookupEntry(data.modelid_override))
         {
@@ -1414,12 +1478,12 @@ void ObjectMgr::LoadCreatures()
             }
         }
 
-        if (gameEvent == 0 && GuidPoolId == 0 && EntryPoolId == 0) // if not this is to be managed by GameEvent System or Pool system
+		if (existsInPatch && gameEvent == 0 && GuidPoolId == 0 && EntryPoolId == 0) // if not this is to be managed by GameEvent System or Pool system
         {
             AddCreatureToGrid(guid, &data);
 
             if (cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_ACTIVE)
-                m_activeCreatures.insert(ActiveCreatureGuidsOnMap::value_type(data.mapid, guid));
+            m_activeCreatures.insert(ActiveCreatureGuidsOnMap::value_type(data.mapid, guid));
         }
 
         ++count;
@@ -1844,7 +1908,7 @@ struct SQLItemLoader : public SQLStorageLoaderBase<SQLItemLoader, SQLStorage>
 void ObjectMgr::LoadItemPrototypes()
 {
     SQLItemLoader loader;
-    loader.Load(sItemStorage);
+	loader.LoadProgressive(sItemStorage, sWorld.GetWowPatch());
 
     // check data correctness
     for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
@@ -3451,7 +3515,7 @@ void ObjectMgr::LoadQuests()
     m_ExclusiveQuestGroups.clear();
 
     //                                                0      1       2           3         4           5     6                7              8              9
-    QueryResult* result = WorldDatabase.Query("SELECT entry, Method, ZoneOrSort, MinLevel, QuestLevel, Type, RequiredClasses, RequiredRaces, RequiredSkill, RequiredSkillValue,"
+    QueryResult* result = WorldDatabase.PQuery("SELECT entry, Method, ZoneOrSort, MinLevel, QuestLevel, Type, RequiredClasses, RequiredRaces, RequiredSkill, RequiredSkillValue,"
                           //   10                   11                 12                     13                   14                     15                   16                17
                           "RepObjectiveFaction, RepObjectiveValue, RequiredMinRepFaction, RequiredMinRepValue, RequiredMaxRepFaction, RequiredMaxRepValue, SuggestedPlayers, LimitTime,"
                           //   18          19            20           21           22           23              24                25         26            27
@@ -3485,7 +3549,7 @@ void ObjectMgr::LoadQuests()
                           //   125          126          127             128              129              130              131              132
                           "StartScript, CompleteScript, RewMaxRepValue1, RewMaxRepValue2, RewMaxRepValue3, RewMaxRepValue4, RewMaxRepValue5, RequiredCondition"
 
-                          " FROM quest_template");
+						" FROM quest_template t1 WHERE patch=(SELECT max(patch) FROM quest_template t2 WHERE t1.entry=t2.entry && patch <= %u)", sWorld.GetWowPatch());
     if (!result)
     {
         BarGoLink bar(1);
@@ -5055,7 +5119,7 @@ void ObjectMgr::LoadAreatriggerLocales()
     for (uint32 i = 0; i < QUESTGIVER_TYPE_MAX; i++)        // need for reload case
         m_areaTriggerLocaleMap.clear();
 
-    QueryResult* result = WorldDatabase.Query("SELECT Entry, Text_loc1, Text_loc2, Text_loc3, Text_loc4, Text_loc5, Text_loc6, Text_loc7, Text_loc8 FROM locales_areatrigger_teleport");
+	QueryResult *result = WorldDatabase.PQuery("SELECT id, required_level, required_item, required_item2, required_quest_done, required_failed_text, target_map, target_position_x, target_position_y, target_position_z, target_orientation FROM areatrigger_teleport t1 WHERE patch=(SELECT max(patch) FROM areatrigger_teleport t2 WHERE t1.id=t2.id && patch <= %u)", sWorld.GetWowPatch());
     int count = 0;
 
     if (!result)
@@ -5759,7 +5823,7 @@ void ObjectMgr::LoadAreaTriggerTeleports()
     uint32 count = 0;
 
     //                                                0   1               2              3               4           5            6                    7                           8           9                  10                 11                 12                  13            14
-    QueryResult* result = WorldDatabase.Query("SELECT id, required_level, required_item, required_item2, heroic_key, heroic_key2, required_quest_done, required_quest_done_heroic, target_map, target_position_x, target_position_y, target_position_z, target_orientation, condition_id, status_failed_text FROM areatrigger_teleport");
+	QueryResult *result = WorldDatabase.PQuery("SELECT id, required_level, required_item, required_item2, required_quest_done, required_failed_text, target_map, target_position_x, target_position_y, target_position_z, target_orientation FROM areatrigger_teleport t1 WHERE patch=(SELECT max(patch) FROM areatrigger_teleport t2 WHERE t1.id=t2.id && patch <= %u)", sWorld.GetWowPatch());
     if (!result)
     {
         BarGoLink bar(1);
@@ -7049,7 +7113,7 @@ void ObjectMgr::LoadQuestRelationsHelper(QuestRelationsMap& map, char const* tab
 
     uint32 count = 0;
 
-    QueryResult* result = WorldDatabase.PQuery("SELECT id,quest FROM %s", table);
+	QueryResult *result = WorldDatabase.PQuery("SELECT id,quest FROM %s t1 WHERE patch=(SELECT max(patch) FROM %s t2 WHERE t1.id=t2.id && t1.quest=t2.quest && patch <= %u)", table, table, sWorld.GetWowPatch());
 
     if (!result)
     {
@@ -8024,6 +8088,21 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
                 case 3:                                     // Creature source is dead
                     return !source || source->GetTypeId() != TYPEID_UNIT || !((Unit*)source)->isAlive();
             }
+
+		case CONDITION_WOW_PATCH:
+			{
+				switch (m_value2)
+					{
+				case 0:
+					return sWorld.GetWowPatch() == m_value1;
+				case 1:
+					return sWorld.GetWowPatch() >= m_value1;
+				case 2:
+					return sWorld.GetWowPatch() <= m_value1;
+					}
+				return false;
+				}
+
         case CONDITION_CREATURE_IN_RANGE:
         {
             Creature* creature = nullptr;
@@ -8496,6 +8575,20 @@ bool PlayerCondition::IsValid(uint16 entry, ConditionType condition, uint32 valu
             break;
         }
         case CONDITION_WORLD_SCRIPT:
+		case CONDITION_WOW_PATCH:
+		{
+			if (value1 > 15)
+			{
+				sLog.outErrorDb("Patch condition (entry %u, type %u) has an invalid value in value1 (must be 0..15), skipping.", entry, condition, value1);
+				return false;
+			}
+			if (value2 > 2)
+			{
+				sLog.outErrorDb("Patch condition (entry %u, type %u) has invalid argument %u (must be 0..2), skipped.", entry, condition, value2);
+				return false;
+			}
+			break;
+		}
         case CONDITION_NONE:
             break;
         default:
@@ -8530,6 +8623,7 @@ bool PlayerCondition::CanBeUsedWithoutPlayer(uint16 entry)
         case CONDITION_COMPLETED_ENCOUNTER:
         case CONDITION_SOURCE_AURA:
         case CONDITION_LAST_WAYPOINT:
+		case CONDITION_WOW_PATCH:
             return true;
         default:
             return false;
@@ -8937,7 +9031,8 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
 
     std::set<uint32> skip_vendors;
 
-    QueryResult* result = WorldDatabase.PQuery("SELECT entry, item, maxcount, incrtime, ExtendedCost, condition_id FROM %s", tableName);
+	QueryResult * result = WorldDatabase.PQuery("SELECT entry, item, maxcount, incrtime, ExtendedCost, condition_id FROM %s WHERE (item NOT IN (SELECT entry FROM forbidden_items WHERE (AfterOrBefore = 0 && patch <= %u) || (AfterOrBefore = 1 && patch >= %u)))", tableName, sWorld.GetWowPatch(), sWorld.GetWowPatch());
+
     if (!result)
     {
         BarGoLink bar(1);

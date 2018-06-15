@@ -807,6 +807,11 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
     if (health <= damage)
     {
+		// Can't kill gods
+		if (Player* pPlayer = pVictim->ToPlayer())
+		if (pPlayer->IsGod())
+		return 0;
+
         DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage %s Killed %s", GetGuidStr().c_str(), pVictim->GetGuidStr().c_str());
 
         /*

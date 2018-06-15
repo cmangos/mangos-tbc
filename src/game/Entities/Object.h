@@ -570,10 +570,19 @@ class Object
         Loot* loot;
 
         inline bool IsPlayer() const { return GetTypeId() == TYPEID_PLAYER; }
+		Player* ToPlayer() { if (IsPlayer()) return reinterpret_cast<Player*>(this); else return nullptr; }
         inline bool IsCreature() const { return GetTypeId() == TYPEID_UNIT; }
+		Creature* ToCreature() { if (IsCreature()) return reinterpret_cast<Creature*>(this); else return nullptr; }
         inline bool IsUnit() const { return isType(TYPEMASK_UNIT); }
+		Unit* ToUnit() { if (IsUnit()) return reinterpret_cast<Unit*>(this); else return nullptr; }
         inline bool IsGameObject() const { return GetTypeId() == TYPEID_GAMEOBJECT; }
+		GameObject* ToGameObject() { if (IsGameObject()) return reinterpret_cast<GameObject*>(this); else return nullptr; }
         inline bool IsCorpse() const { return GetTypeId() == TYPEID_CORPSE; }
+		Corpse* ToCorpse() { if (IsCorpse()) return reinterpret_cast<Corpse*>(this); else return nullptr; }
+
+		bool IsPet()      const;
+		Pet const* ToPet() const;
+		Pet* ToPet();
 
     protected:
         Object();

@@ -799,9 +799,6 @@ struct advisor_base_ai : public ScriptedAI
 
 	void DamageTaken(Unit* /*pDoneby*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
 	{
-		if (uiDamage == m_creature->GetHealth())
-			uiDamage = 0;
-		return;
 		// Allow fake death only in the first phase
 		if (!m_bCanFakeDeath)
 			return;

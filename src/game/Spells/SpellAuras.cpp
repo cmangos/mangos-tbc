@@ -7225,6 +7225,9 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
         case 24659:                                         // Unstable Power
         case 24662:                                         // Restless Strength
         case 26464:                                         // Mercurial Shield
+        case 32065:                                         // Fungal Decay
+        case 35244:                                         // Choking Vines
+        case 36659:                                         // Tail Sting
             m_stackAmount = m_spellProto->StackAmount;
             break;
     }

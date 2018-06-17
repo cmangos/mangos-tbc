@@ -3045,7 +3045,10 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
         case 41967:
         {
             if (Unit* pet = unitTarget->GetPet())
+            {
                 pet->CastSpell(pet, 28305, TRIGGERED_OLD_TRIGGERED);
+                pet->AI()->AttackStart(m_caster->GetTarget());
+            }
             return;
         }
         case 44949:
@@ -4456,6 +4459,8 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
         return false;
     }
 
+    spawnCreature->SetLoading(true);
+
     // Level of pet summoned
     uint32 level = std::max(m_caster->getLevel() + m_spellInfo->EffectMultipleValue[eff_idx], 1.0f);
 
@@ -4512,6 +4517,7 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
         if (m_caster->getClass() != CLASS_PRIEST)
             spawnCreature->SavePetToDB(PET_SAVE_AS_CURRENT);
     }
+    spawnCreature->SetLoading(false);
 
     m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), spawnCreature->GetPackGUID());
     return true;
@@ -4860,6 +4866,8 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
             return false;
         }
 
+        spawnCreature->SetLoading(true);
+
         itr->creature = spawnCreature;
 
         spawnCreature->SetRespawnCoord(pos);
@@ -4899,6 +4907,7 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
         if (CharmInfo* charmInfo = spawnCreature->GetCharmInfo())
             charmInfo->SetPetNumber(pet_number, false);
 
+        spawnCreature->SetLoading(false);
         m_caster->AddGuardian(spawnCreature);
     }
 
@@ -5159,6 +5168,7 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
         return;
     }
 
+    pet->SetLoading(true);
     pet->SetOwnerGuid(plr->GetObjectGuid());
     pet->setFaction(plr->getFaction());
     pet->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
@@ -5221,6 +5231,7 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     plr->SetPet(pet);
 
     plr->PetSpellInitialize();
+    pet->SetLoading(false);
 
     pet->SavePetToDB(PET_SAVE_AS_CURRENT);
 }
@@ -8012,6 +8023,8 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
         return false;
     }
 
+    critter->SetLoading(true);
+
     // itr!
     list[0].creature = critter;
 
@@ -8043,6 +8056,7 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     // NOTE: All companions should have these (creatureinfo needs to be tuned accordingly before we can remove these two lines):
     critter->SetImmuneToNPC(true);
     critter->SetImmuneToPlayer(true);
+    critter->SetLoading(false);
 
     // NOTE: Do not set PvP flags (confirmed) for companions.
 

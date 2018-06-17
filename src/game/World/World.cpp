@@ -104,10 +104,11 @@ World::World() : mail_timer(0), mail_timer_expires(0), m_NextDailyQuestReset(0),
     m_startTime = m_gameTime;
     m_maxActiveSessionCount = 0;
     m_maxQueuedSessionCount = 0;
+	m_wowPatch = WOW_PATCH_102;
 
     m_defaultDbcLocale = LOCALE_enUS;
     m_availableDbcLocaleMask = 0;
-
+	m_wowPatch = sConfig.GetIntDefault("WowPatch", WOW_PATCH_102);
     for (int i = 0; i < CONFIG_UINT32_VALUE_COUNT; ++i)
         m_configUint32Values[i] = 0;
 
@@ -376,7 +377,7 @@ void World::LoadConfigSettings(bool reload)
 
     ///- Read the player limit and the Message of the day from the config file
     SetPlayerLimit(sConfig.GetIntDefault("PlayerLimit", DEFAULT_PLAYER_LIMIT), true);
-    SetMotd(sConfig.GetStringDefault("Motd", "Welcome to the Massive Network Game Object Server."));
+	SetMotd(sConfig.GetStringDefault("Motd", "Welcome to the Massive Network Game Object Server.") + std::string("\n") + std::string(ObjectMgr::GetPatchName()) + std::string(" is now live!"));
 
     ///- Read all rates from the config file
     setConfigPos(CONFIG_FLOAT_RATE_HEALTH,                               "Rate.Health",                               1.0f);
@@ -1354,6 +1355,12 @@ void World::SetInitialWorldSettings()
     sLog.outString("      CMANGOS: World initialized       ");
     sLog.outString("---------------------------------------");
     sLog.outString();
+
+	sLog.outString();
+	sLog.outString("==========================================================");
+	sLog.outString("Current content is set to %s.", ObjectMgr::GetPatchName());
+	sLog.outString("==========================================================");
+	sLog.outString();
 
     uint32 uStartInterval = WorldTimer::getMSTimeDiff(uStartTime, WorldTimer::getMSTime());
     sLog.outString("SERVER STARTUP TIME: %i minutes %i seconds", uStartInterval / 60000, (uStartInterval % 60000) / 1000);

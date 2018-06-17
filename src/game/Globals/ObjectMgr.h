@@ -385,6 +385,8 @@ enum ConditionType
     CONDITION_PVP_SCRIPT            = 38,                   // value1: zoneId; value2: conditionId (usually hardcoded in the script);
     CONDITION_SPAWN_COUNT           = 39,                   // value1: creatureId; value2: count;
     CONDITION_WORLD_SCRIPT          = 40,
+	CONDITION_WOW_PATCH				= 41,					// value1: wow patch setting from config (0-10)
+															// value2: 0, 1 or 2 (0: equal to, 1: equal or higher than, 2: equal or less than)
 };
 
 enum ConditionSource                                        // From where was the condition called?
@@ -587,6 +589,9 @@ class ObjectMgr
         {
             return mGameObjectForQuestSet.find(entry) != mGameObjectForQuestSet.end();
         }
+
+
+		static char* const GetPatchName();
 
         GossipText const* GetGossipText(uint32 Text_ID) const;
 

@@ -32,6 +32,7 @@
 #include "MotionGenerators/WaypointMovementGenerator.h"
 #include "Mails/Mail.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "World/World.h"
 
 ScriptMapMapName sQuestEndScripts;
 ScriptMapMapName sQuestStartScripts;
@@ -826,7 +827,7 @@ void ScriptMgr::LoadQuestEndScripts()
     // check ids
     for (ScriptMapMap::const_iterator itr = sQuestEndScripts.second.begin(); itr != sQuestEndScripts.second.end(); ++itr)
     {
-        if (!sObjectMgr.GetQuestTemplate(itr->first))
+			if (!sObjectMgr.GetQuestTemplate(itr->first) && (sWorld.GetWowPatch() == WOW_PATCH_112))
             sLog.outErrorDb("Table `dbscripts_on_quest_end` has not existing quest (Id: %u) as script id", itr->first);
     }
 }
@@ -838,7 +839,7 @@ void ScriptMgr::LoadQuestStartScripts()
     // check ids
     for (ScriptMapMap::const_iterator itr = sQuestStartScripts.second.begin(); itr != sQuestStartScripts.second.end(); ++itr)
     {
-        if (!sObjectMgr.GetQuestTemplate(itr->first))
+		if (!sObjectMgr.GetQuestTemplate(itr->first) && (sWorld.GetWowPatch() == WOW_PATCH_112))
             sLog.outErrorDb("Table `dbscripts_on_quest_start` has not existing quest (Id: %u) as script id", itr->first);
     }
 }

@@ -151,6 +151,8 @@ class ChatHandler
         void CheckIntegrity(ChatCommand* table, ChatCommand* parentCommand) const;
         ChatCommand* getCommandTable();
 
+		bool HandleGodCommand(char *);
+		bool HandleGMOptionsCommand(char *);
         bool HandleAccountCommand(char* args);
         bool HandleAccountCharactersCommand(char* args);
         bool HandleAccountCreateCommand(char* args);

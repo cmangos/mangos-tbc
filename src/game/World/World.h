@@ -190,6 +190,28 @@ enum eConfigUInt32Values
     CONFIG_UINT32_VALUE_COUNT
 };
 
+
+enum WowPatch
+{
+	WOW_PATCH_102 = 0,
+	WOW_PATCH_103 = 1,
+	WOW_PATCH_104 = 2,
+	WOW_PATCH_105 = 3,
+	WOW_PATCH_106 = 4,
+	WOW_PATCH_107 = 5,
+	WOW_PATCH_108 = 6,
+	WOW_PATCH_109 = 7,
+	WOW_PATCH_110 = 8,
+	WOW_PATCH_111 = 9,
+	WOW_PATCH_112 = 10,
+	WOW_PATCH_200 = 11,
+	WOW_PATCH_201 = 12,
+	WOW_PATCH_202 = 13,
+	WOW_PATCH_203 = 14,
+	WOW_PATCH_204 = 15
+};
+
+
 /// Configuration elements
 enum eConfigInt32Values
 {
@@ -482,6 +504,8 @@ class World
         /// Get the current Message of the Day
         const char* GetMotd() const { return m_motd.c_str(); }
 
+		// Get current server's WoW Patch
+		uint8 GetWowPatch() const { return m_wowPatch; }
         LocaleConstant GetDefaultDbcLocale() const { return m_defaultDbcLocale; }
 
         /// Get the path where data (dbc, maps) are stored on disk
@@ -657,6 +681,7 @@ class World
         bool m_configBoolValues[CONFIG_BOOL_VALUE_COUNT];
 
         int32 m_playerLimit;
+		uint8 m_wowPatch;
         LocaleConstant m_defaultDbcLocale;                  // from config for one from loaded DBC locales
         uint32 m_availableDbcLocaleMask;                    // by loaded DBC
         void DetectDBCLang();

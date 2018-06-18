@@ -36,12 +36,19 @@ INSERT INTO spell_template(Id,SpellName,Attributes,DurationIndex,SpellIconID,Eff
 (16369,'Bugs',0x00000190,5,1,28,2,4,1,18,10461,64),
 (16371,'Rats',0x00000190,5,1,28,2,4,1,18,10441,64);
 
+ALTER TABLE spell_template ADD COLUMN `AttributesServerside` int(11) unsigned NOT NULL DEFAULT '0';
+
+UPDATE spell_template SET AttributesServerside= AttributesServerside|1 WHERE id IN(770,778,9749,9806,9907,9991,13424,13752,16857,17390,17391,17392,26993,27011); -- all spells with Cannot stealth or turn invisible in tooltip
+
 UPDATE spell_template SET EffectItemType2=268435456 WHERE Id IN(16106); -- all ranks except rank 3 have mask
 
 -- wotlk backport
 INSERT INTO spell_template(Id, Attributes, AttributesEx,AttributesEx2,AttributesEx3,ProcFlags,ProcChance,DurationIndex,Effect1,EffectImplicitTargetA1,EffectImplicitTargetB1,EffectRadiusIndex1,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValueB1,EffectTriggerSpell1,IsServerSide,SpellName) VALUES
 ('38854','384','0','0','0','0','101','3','28','18','0','0','0','22339','64','0','1','summon Redeemet Hatchling'),
 ('38865','384','0','0','0','0','101','3','28','18','0','0','0','22337','64','0','1','summon Malevolent Hatchling');
+
+-- Zangarmarsh insects stealth prevention
+UPDATE spell_template SET AttributesServerside= AttributesServerside|1 WHERE id IN(35329,35331,35325,35328);
 
 -- trap used to tame bear is no longer present in TBC/WOTLK yet still present in trap data
 INSERT INTO spell_template (Id, Attributes, CastingTimeIndex, ProcChance, SpellLevel, RangeIndex, EquippedItemClass, Effect1, EffectDieSides1, EffectBaseDice1, EffectDicePerLevel1, EffectImplicitTargetA1, SpellIconID, SpellName, MaxTargetLevel, DmgMultiplier1, DmgMultiplier2, DmgMultiplier3, IsServerSide) VALUES

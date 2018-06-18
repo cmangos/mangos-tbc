@@ -870,7 +870,10 @@ struct SpellEntry
         uint32    TotemCategory[MAX_SPELL_TOTEM_CATEGORIES];// 212-213  m_requiredTotemCategoryID
         uint32    AreaId;                                   // 214
         uint32    SchoolMask;                               // 215      m_schoolMask
-        uint32    IsServerSide;
+
+        // custom
+        uint32    IsServerSide;                             // 216
+        uint32    AttributesServerside;                     // 217
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }
@@ -902,6 +905,9 @@ struct SpellEntry
         bool HasAttribute(SpellAttributesEx4 attribute) const { return !!(AttributesEx4 & attribute); }
         bool HasAttribute(SpellAttributesEx5 attribute) const { return !!(AttributesEx5 & attribute); }
         bool HasAttribute(SpellAttributesEx6 attribute) const { return !!(AttributesEx6 & attribute); }
+
+        // custom
+        bool HasAttribute(SpellAttributesServerside attribute) const { return !!(AttributesServerside & attribute); }
 
     private:
         // prevent creating custom entries (copy data from original in fact)

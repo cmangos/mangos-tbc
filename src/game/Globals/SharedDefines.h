@@ -498,6 +498,12 @@ enum SpellAttributesEx6
     SPELL_ATTR_EX6_UNK31                       = 0x80000000,// 31 not set in 3.0.3
 };
 
+enum SpellAttributesServerside
+{
+    SPELL_ATTR_SS_PREVENT_INVIS                = 0x00000001,
+    SPELL_ATTR_SS_SEND_COOLDOWN                = 0x00000002,
+};
+
 enum SheathTypes
 {
     SHEATHETYPE_NONE                   = 0,

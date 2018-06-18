@@ -230,7 +230,7 @@ struct boss_nightbaneAI : public npc_escortAI
         {
             if (Creature* pTrigger = m_creature->GetMap()->GetCreature(*itr))
             {
-                if (!pChosenTrigger || m_creature->GetDistanceOrder(pTrigger, pChosenTrigger, false))
+                if (!pChosenTrigger || m_creature->GetDistanceOrder(pTrigger, pChosenTrigger, false, DIST_CALC_NONE))
                     pChosenTrigger = pTrigger;
             }
         }

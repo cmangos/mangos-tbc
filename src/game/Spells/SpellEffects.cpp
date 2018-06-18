@@ -7666,21 +7666,31 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
 {
-    float x, y, z;
+    WorldLocation loc;
+
     if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
     {
-        m_targets.getDestination(x, y, z);
+        m_targets.getDestination(loc.coord_x, loc.coord_y, loc.coord_z);
 
         if (unitTarget->GetTypeId() != TYPEID_PLAYER)
             ((Creature*)unitTarget)->StopMoving();
     }
     else if (unitTarget && unitTarget != m_caster)
-        unitTarget->GetContactPoint(m_caster, x, y, z, 3.666666f);
+    {
+        float angle = unitTarget->GetAngle(m_caster) - unitTarget->GetOrientation();
+
+        unitTarget->GetFirstCollisionPosition(loc, unitTarget->GetCombatReach(), unitTarget->GetAngle(m_caster));
+    }
     else
         return;
 
+    float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
+
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    m_caster->MonsterMoveWithSpeed(x, y, z, 24.f, true, true);
+    if (unitTarget && m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (loc.coord_z < m_caster->GetPositionZ()) && (fabs(loc.coord_z - m_caster->GetPositionZ()) > 3.0f))
+        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, (loc.coord_z + unitTarget->GetObjectScale()), speed, false, false);
+    else if (unitTarget)
+        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, (loc.coord_z + unitTarget->GetObjectScale()), speed, true, true);
 
     // not all charge effects used in negative spells
     if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id, m_caster, unitTarget))
@@ -7785,7 +7795,7 @@ void Spell::EffectPlayerPull(SpellEffectIndex eff_idx)
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    float dist = unitTarget->GetDistance2d(m_caster);
+    float dist = unitTarget->GetDistance(m_caster, false);
     if (damage && dist > damage)
         dist = float(damage);
 

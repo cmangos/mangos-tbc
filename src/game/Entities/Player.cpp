@@ -1110,9 +1110,9 @@ void Player::SetDrunkValue(uint16 newDrunkenValue, uint32 itemId)
 
     // special drunk invisibility detection
     if (newDrunkenState >= DRUNKEN_DRUNK)
-        m_detectInvisibilityMask |= (1 << 6);
+        SetInvisibilityDetectMask(6, true);
     else
-        m_detectInvisibilityMask &= ~(1 << 6);
+        SetInvisibilityDetectMask(6, false);
 
     if (newDrunkenState == oldDrunkenState)
         return;
@@ -17503,7 +17503,7 @@ void Player::HandleStealthedUnitsDetection()
             continue;
 
         bool hasAtClient = HaveAtClient((*i));
-        bool hasDetected = (*i)->isVisibleForOrDetect(this, viewPoint, true);
+        bool hasDetected = (*i)->IsVisibleForOrDetect(this, viewPoint, true);
 
         if (hasDetected)
         {

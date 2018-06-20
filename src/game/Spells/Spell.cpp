@@ -6987,7 +6987,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
         // fall through
         case SPELL_EFFECT_RESURRECT_NEW:
             // player far away, maybe his corpse near?
-            if (target != m_caster && !target->IsWithinLOSInMap(m_caster, true))
+            if (target != m_caster && !IsIgnoreLosSpellEffect(m_spellInfo, eff) && !target->IsWithinLOSInMap(m_caster, true))
             {
                 if (!m_targets.getCorpseTargetGuid())
                     return false;
@@ -6999,7 +6999,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff) const
                 if (target->GetObjectGuid() != corpse->GetOwnerGuid())
                     return false;
 
-                if (!corpse->IsWithinLOSInMap(m_caster, true))
+                if (!IsIgnoreLosSpellEffect(m_spellInfo, eff) && !corpse->IsWithinLOSInMap(m_caster, true))
                     return false;
             }
 

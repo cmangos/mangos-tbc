@@ -3707,7 +3707,7 @@ void PlayerbotAI::DoLoot()
     GameObject* go = m_bot->GetMap()->GetGameObject(m_lootCurrent);
 
     // clear creature or object that is not spawned or if not creature or object
-    if ((c && c->IsDespawned()) || (go && !go->isSpawned()) || (!c && !go))
+    if ((c && c->IsDespawned()) || (go && !go->IsSpawned()) || (!c && !go))
     {
         m_lootCurrent = ObjectGuid();
         return;
@@ -6422,7 +6422,7 @@ void PlayerbotAI::findNearbyGO()
 
             float ground_z = map->GetHeightStatic(go->GetPositionX(), go->GetPositionY(), go->GetPositionZ());
             // DEBUG_LOG("ground_z (%f) > INVALID_HEIGHT (%f)",ground_z,INVALID_HEIGHT);
-            if ((ground_z > INVALID_HEIGHT) && go->isSpawned())
+            if ((ground_z > INVALID_HEIGHT) && go->IsSpawned())
                 m_lootTargets.push_back(go->GetObjectGuid());
         }
     }
@@ -10353,7 +10353,7 @@ void PlayerbotAI::_HandleCommandSurvey(std::string& /*text*/, Player& fromPlayer
             if (!go)
                 continue;
 
-            if (!go->isSpawned())
+            if (!go->IsSpawned())
                 continue;
 
             detectout << "|cFFFFFF00|Hfound:" << guid << ":" << entry  << ":" <<  "|h[" << go->GetGOInfo()->name << "]|h|r";

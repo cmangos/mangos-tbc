@@ -1829,9 +1829,9 @@ struct npc_nether_rayAI : public ScriptedAI, public TimerAI
     {
         switch (id)
         {
-            case RAY_ACTION_DRAIN_MANA: return 10000;
+            case RAY_ACTION_DRAIN_MANA: return urand(10000, 15000);
             case RAY_ACTION_TAIL_STING: return 23000;
-            case RAY_ACTION_NETHER_SHOCK: return 0;
+            case RAY_ACTION_NETHER_SHOCK: return 5000;
             default: return 0;
         }
     }

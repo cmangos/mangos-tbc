@@ -1399,7 +1399,7 @@ bool ChatHandler::HandleCooldownClearArenaCommand(char*)
 
 bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
 {
-    static std::vector<uint32> allSpellList
+    static uint32 allSpellList[] =
     {
         3365,
         6233,
@@ -2024,7 +2024,7 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
 
 bool ChatHandler::HandleLearnAllGMCommand(char* /*args*/)
 {
-    static std::vector<uint32> gmSpellList
+    static uint32 gmSpellList[] =
     {
         24347,                                            // Become A Fish, No Breath Bar
         35132,                                            // Visual Boom

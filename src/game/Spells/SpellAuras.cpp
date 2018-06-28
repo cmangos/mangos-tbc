@@ -6295,8 +6295,6 @@ void Aura::PeriodicTick()
             if (!pCaster)
                 return;
 
-            bool canApplyHealthPart = true;
-
             // don't heal target if max health or if not alive, mostly death persistent effects from items
             if (!target->isAlive() || (target->GetHealth() == target->GetMaxHealth()))
                 return;

@@ -10248,18 +10248,20 @@ Unit* Unit::SelectRandomUnfriendlyTarget(Unit* except /*= nullptr*/, float radiu
         bool remove = false;
         if (!IsWithinLOSInMap(*tIter))
             remove = true;
-
-        // 2.4.2 - sweeping strikes no longer hits critters
-        switch ((*tIter)->GetTypeId())
+        else
         {
-            case TYPEID_UNIT:
+            // 2.4.2 - sweeping strikes no longer hits critters
+            switch ((*tIter)->GetTypeId())
             {
-                Creature* target = static_cast<Creature*>(*tIter);
-                if (target->IsCritter())
-                    remove = true;
-                break;
+                case TYPEID_UNIT:
+                {
+                    Creature* target = static_cast<Creature*>(*tIter);
+                    if (target->IsCritter())
+                        remove = true;
+                    break;
+                }
+                default: break;
             }
-            default: break;
         }
 
         if (remove)

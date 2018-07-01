@@ -321,7 +321,7 @@ struct boss_nightbaneAI : public npc_escortAI
                 {
                     if (m_uiRainBonesTimer <= uiDiff)
                     {
-                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                         {
                             if (m_creature->CastSpell(pTarget, SPELL_RAIN_OF_BONES, TRIGGERED_NONE) == SPELL_CAST_OK)
                             {
@@ -336,7 +336,7 @@ struct boss_nightbaneAI : public npc_escortAI
 
                 if (m_uiSmokingBlastTimer < uiDiff)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_SMOKING_BLAST) == CAST_OK)
                             m_uiSmokingBlastTimer = urand(1000, 3000);
@@ -347,7 +347,7 @@ struct boss_nightbaneAI : public npc_escortAI
 
                 if (m_uiDistractingAshTimer < uiDiff)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_DISTRACTING_ASH) == CAST_OK)
                             m_uiDistractingAshTimer = urand(7000, 13000);

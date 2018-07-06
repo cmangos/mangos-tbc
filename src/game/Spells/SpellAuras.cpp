@@ -3591,6 +3591,14 @@ void Aura::HandleModCharm(bool apply, bool Real)
                 if (caster->GetTypeId() == TYPEID_UNIT)
                     static_cast<Creature*>(caster)->ForcedDespawn();
                 break;
+            case 34630: // Scrap Reaver X6000
+                if (target->GetTypeId() == TYPEID_UNIT && target->AI())
+                    target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, (Creature*)target);
+                break;
+            case 33684:
+                if (caster->GetTypeId() == TYPEID_UNIT)
+                    static_cast<Creature*>(caster)->ForcedDespawn();
+                break;
         }
     }
 }
@@ -7551,6 +7559,12 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     break;
                 case 33896: // Desperate Defense
                     spellId1 = 33897;
+                    break;
+                case 36797: // Mind Control - Kaelthas
+                    spellId1 = 36798;
+                    break;
+                case 38511: // Persuasion - Vashj
+                    spellId1 = 38514;
                     break;
                 default:
                     return;

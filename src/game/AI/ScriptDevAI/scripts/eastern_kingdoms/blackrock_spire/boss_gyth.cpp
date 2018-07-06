@@ -68,6 +68,13 @@ struct boss_gythAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_REND_MOUNTS);
     }
 
+void JustDied(Unit* /*pKiller*/) override
+	{
+		if (!m_pInstance->IsEncounterInProgress()) {
+			//If player somehow manages to skip Rend Blackhand phase of Gyth fight, then activate the door via Gyth death instead.
+			m_pInstance->DoUseDoorOrButton(GO_GYTH_ENTRY_DOOR);
+		}
+	}
     void JustSummoned(Creature* pSummoned) override
     {
         DoScriptText(EMOTE_KNOCKED_OFF, pSummoned);

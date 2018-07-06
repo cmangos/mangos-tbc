@@ -409,7 +409,7 @@ Unit::Unit() :
     m_baseSpeedRun = 1.f;
 
     m_evadeTimer = 0;
-    m_evadeMode = false;
+    m_evadeMode = EVADE_NONE;
 }
 
 Unit::~Unit()
@@ -567,7 +567,7 @@ void Unit::EvadeTimerExpired()
     if (getThreatManager().getThreatList().size() == 1)
     {
         if (GetMap()->IsDungeon())
-            SetEvade(true);
+            SetEvade(EVADE_COMBAT);
         else
             AI()->EnterEvadeMode();
         return;
@@ -584,7 +584,7 @@ void Unit::StopEvade()
         m_evadeTimer = 0;
         return;
     }
-    SetEvade(false);
+    SetEvade(EVADE_NONE);
 }
 
 bool Unit::UpdateMeleeAttackingState()
@@ -8511,7 +8511,7 @@ void Unit::SetDeathState(DeathState s)
         i_motionMaster.MoveIdle();
 
         m_evadeTimer = 0;
-        m_evadeMode = false;
+        m_evadeMode = EVADE_NONE;
 
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
@@ -10630,16 +10630,20 @@ void Unit::SetPvP(bool state)
 
 struct SetEvadeHelper
 {
-    explicit SetEvadeHelper(bool _state) : state(_state) {}
+    explicit SetEvadeHelper(EvadeState _state) : state(_state) {}
     void operator()(Unit* unit) const { unit->SetEvade(state); }
-    bool state;
+    EvadeState state;
 };
 
-void Unit::SetEvade(bool state)
+void Unit::SetEvade(EvadeState state)
 {
     if (m_evadeMode == state)
         return;
 
+    if (state == EVADE_NONE && m_evadeMode == EVADE_HOME)
+        AI()->SetAIOrder(ORDER_NONE);
+    else if (state == EVADE_HOME)
+        AI()->SetAIOrder(ORDER_EVADE);
     m_evadeMode = state;
     // Do not propagate during charm
     if (!HasCharmer())

@@ -42,6 +42,17 @@ UPDATE spell_template SET AttributesServerside= AttributesServerside|1 WHERE id 
 
 UPDATE spell_template SET EffectItemType2=268435456 WHERE Id IN(16106); -- all ranks except rank 3 have mask
 
+INSERT INTO spell_template(Id, SpellName, SpellIconID, Attributes, AttributesEx, DurationIndex, Effect1, EffectImplicitTargetA1, EffectApplyAuraName1, EffectMiscValue1, Effect2, EffectImplicitTargetA2, EffectApplyAuraName2, EffectMiscValue2, IsServerSide) VALUES
+(20612,'Stoneform',93,0x00000180,0x00018000,31,6,1,77,15,6,1,41,3,1); -- missing stoneform spell
+
+-- Serverside spell added
+-- Player from time to time will summon ghost of Darrowshire Poltergeist
+INSERT INTO spell_template (Id, Attributes, AttributesEx, DurationIndex, Effect1, EffectImplicitTargetA1, EffectImplicitTargetB1, EffectRadiusIndex1, EffectMiscValue1, EffectMiscValueB1, SpellName) VALUES
+(17694, 0x00000100, 0x10000000, 4, 28, 47, 0, 9, 11296, 61, 'Summon Darrowshire Poltergeist (DND)');
+
+-- Mutilate (Rank 1)
+UPDATE spell_template SET AttributesEx4=0x00000001 WHERE id = 27576;
+
 -- wotlk backport
 INSERT INTO spell_template(Id, Attributes, AttributesEx,AttributesEx2,AttributesEx3,ProcFlags,ProcChance,DurationIndex,Effect1,EffectImplicitTargetA1,EffectImplicitTargetB1,EffectRadiusIndex1,EffectApplyAuraName1,EffectMiscValue1,EffectMiscValueB1,EffectTriggerSpell1,IsServerSide,SpellName) VALUES
 ('38854','384','0','0','0','0','101','3','28','18','0','0','0','22339','64','0','1','summon Redeemet Hatchling'),

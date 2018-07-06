@@ -7543,6 +7543,9 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
         {
             switch (GetId())
             {
+                case 20594: // Stoneform (dwarven racial)
+                    spellId1 = 20612;
+                    break;
                 case 32830: // Possess
                     spellId1 = 32831;
                     break;

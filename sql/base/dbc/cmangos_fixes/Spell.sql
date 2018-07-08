@@ -50,6 +50,14 @@ INSERT INTO spell_template(Id, SpellName, SpellIconID, Attributes, AttributesEx,
 INSERT INTO spell_template (Id, Attributes, AttributesEx, DurationIndex, Effect1, EffectImplicitTargetA1, EffectImplicitTargetB1, EffectRadiusIndex1, EffectMiscValue1, EffectMiscValueB1, SpellName) VALUES
 (17694, 0x00000100, 0x10000000, 4, 28, 47, 0, 9, 11296, 61, 'Summon Darrowshire Poltergeist (DND)');
 
+-- The Exorcism of Colonel Jules
+INSERT INTO spell_template (Id, SchoolMask, Attributes, CastingTimeIndex, procChance, DurationIndex, rangeIndex, EquippedItemClass, Effect1, EffectImplicitTargetA1, EffectMiscValue1, SpellIconID, DmgMultiplier1, EffectMiscValueB1, SpellName) VALUES
+(39305, 1, 256, 1, 101, 64, 1, -1, 28, 18, 22507, 1, 1, 64, 'Summon Flying Skull');
+INSERT INTO spell_template (Id, SchoolMask, Attributes, AttributesEx, AttributesEx2, AttributesEx3, CastingTimeIndex, procChance, DurationIndex, rangeIndex, EquippedItemClass, Effect1, EffectImplicitTargetA1, EffectApplyAuraName1, SpellIconID, DmgMultiplier1, SpellName) VALUES
+(39304, 1, 8388864, 268435456, 1, 1048576, 1, 101, 21, 1, -1, 6, 1, 4, 1, 1, 'Flying Skull PATH (DND)');
+INSERT INTO spell_template (Id, SchoolMask, Attributes, CastingTimeIndex, procChance, DurationIndex, rangeIndex, EquippedItemClass, Effect1, EffectImplicitTargetA1, EffectRadiusIndex1, EffectMiscValue1, SpellIconID, DmgMultiplier1, EffectMiscValueB1, SpellName) VALUES
+(39302, 1, 256, 1, 101, 9, 7, -1, 28, 18, 8, 22506, 1, 1, 64, 'Quest - The Exorcism, Summon Foul Purge');
+
 -- Mutilate (Rank 1)
 UPDATE spell_template SET AttributesEx4=0x00000001 WHERE id = 27576;
 

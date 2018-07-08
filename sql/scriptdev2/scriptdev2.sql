@@ -2387,7 +2387,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1015020,'The %s cowers at the sight of his angered $g king : queen;.',0,2,0,0,'Generic Blades Edge Ogre /angry emote response'),
 (-1015021,'Shh... quiet, it da new $g king : queen;.',0,0,0,0,'Bloodmaul/Bladespire Supplicant LoS text'),
 (-1015022,'$G King : Queen; $n.',0,0,0,0,'Bloodmaul/Bladespire Supplicant LoS text'),
-(-1015023,'All hail, $n, the new King of the ogres!!!',0,6,0,22,'Mog''dorg the Wizened on quest end Into the Soulgrinder'),s
+(-1015023,'All hail, $n, the new King of the ogres!!!',0,6,0,22,'Mog''dorg the Wizened on quest end Into the Soulgrinder'),
 (-1015024,'Aw, me not think it work out between us.',0,0,0,1,'Generic Blades Edge Ogre /kiss emote response'),
 (-1015025,'What me do wrong, my $g king : queen;?',0,0,0,16,'Generic Blades Edge Ogre /point emote response'),
 (-1015026,'$G Him : Her; so tiny!  How $g him : her; rule?',0,0,0,0,'Bloodmaul/Bladespire Supplicant LoS text'),

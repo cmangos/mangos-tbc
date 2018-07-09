@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Shadowmoon_Valley
 SD%Complete: 100
-SDComment: Quest support: 10451, 10458, 10480, 10481, 10514, 10540, 10588, 10781, 10804, 10854, 11020.
+SDComment: Quest support: 10451, 10458, 10480, 10481, 10514, 10540, 10588, 10707, 10781, 10804, 10854, 11020.
 SDCategory: Shadowmoon Valley
 EndScriptData */
 
@@ -177,7 +177,7 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_mature_netherwing_drake(Creature* pCreature)
+UnitAI* GetAI_mob_mature_netherwing_drake(Creature* pCreature)
 {
     return new mob_mature_netherwing_drakeAI(pCreature);
 }
@@ -193,8 +193,11 @@ enum
     SPELL_HIT_FORCE_OF_NELTHARAKU   = 38762,
     SPELL_FORCE_OF_NELTHARAKU       = 38775,
 
+    EMOTE_ON_HIT_FORCE              = -1015001,
+
     QUEST_FORCE_OF_NELT             = 10854,
     NPC_DRAGONMAW_SUBJUGATOR        = 21718,
+
     NPC_ESCAPE_DUMMY                = 21348
 };
 
@@ -217,8 +220,11 @@ struct mob_enslaved_netherwing_drakeAI : public ScriptedAI
         {
             if (Player* pPlayer = pCaster->GetBeneficiaryPlayer())
             {
+				m_creature->SetCanFly(true);
                 m_uiFlyTimer = 2500;
                 m_playerGuid = pPlayer->GetObjectGuid();
+
+                DoScriptText(EMOTE_ON_HIT_FORCE, m_creature);
 
                 m_creature->SetFactionTemporary(FACTION_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN);
 
@@ -279,7 +285,7 @@ struct mob_enslaved_netherwing_drakeAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_enslaved_netherwing_drake(Creature* pCreature)
+UnitAI* GetAI_mob_enslaved_netherwing_drake(Creature* pCreature)
 {
     return new mob_enslaved_netherwing_drakeAI(pCreature);
 }
@@ -421,7 +427,7 @@ struct npc_dragonmaw_peonAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_dragonmaw_peon(Creature* pCreature)
+UnitAI* GetAI_npc_dragonmaw_peon(Creature* pCreature)
 {
     return new npc_dragonmaw_peonAI(pCreature);
 }
@@ -543,7 +549,7 @@ struct npc_wildaAI : public npc_escortAI
                     DoDespawnSpirits();
                     m_creature->SetFacingToObject(pPlayer);
                     DoScriptText(SAY_WIL_END, m_creature, pPlayer);
-                    pPlayer->GroupEventHappens(QUEST_ESCAPE_COILSCAR, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ESCAPE_COILSCAR, m_creature);
                 }
                 break;
         }
@@ -659,7 +665,7 @@ struct npc_wildaAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_wilda(Creature* pCreature)
+UnitAI* GetAI_npc_wilda(Creature* pCreature)
 {
     return new npc_wildaAI(pCreature);
 }
@@ -886,7 +892,7 @@ struct mob_torlothAI : public ScriptedAI
     {
         if (Player* pPlayer = pKiller->GetBeneficiaryPlayer())
         {
-            pPlayer->GroupEventHappens(QUEST_BATTLE_OF_THE_CRIMSON_WATCH, m_creature);
+            pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_BATTLE_OF_THE_CRIMSON_WATCH, m_creature);
 
             if (Creature* pLordIllidan = m_creature->GetMap()->GetCreature(m_lordIllidanGuid))
             {
@@ -939,7 +945,7 @@ struct mob_torlothAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_torloth(Creature* pCreature)
+UnitAI* GetAI_mob_torloth(Creature* pCreature)
 {
     return new mob_torlothAI(pCreature);
 }
@@ -1163,7 +1169,7 @@ struct npc_lord_illidan_stormrageAI : public Scripted_NoMovementAI
     }
 };
 
-CreatureAI* GetAI_npc_lord_illidan_stormrage(Creature * (pCreature))
+UnitAI* GetAI_npc_lord_illidan_stormrage(Creature * (pCreature))
 {
     return new npc_lord_illidan_stormrageAI(pCreature);
 }
@@ -1282,7 +1288,7 @@ struct npc_totem_of_spiritsAI : public ScriptedPetAI
     }
 };
 
-CreatureAI* GetAI_npc_totem_of_spirits(Creature* pCreature)
+UnitAI* GetAI_npc_totem_of_spirits(Creature* pCreature)
 {
     return new npc_totem_of_spiritsAI(pCreature);
 }
@@ -1346,6 +1352,545 @@ bool ProcessEventId_event_spell_soul_captured_credit(uint32 uiEventId, Object* p
     }
 
     return false;
+}
+
+/*#####
+#npc_shadowlord_deathwail
+#####*/
+
+struct WaveCoords 
+{
+    float xCoord, yCoord, zCoord;
+};
+
+const static WaveCoords WaveSpawnCoords[3][3] = 
+{
+    {
+        /////////////GROUP 1//////////// 0
+        {-3220.212f, 257.0669f, 139.0887f},
+        {-3214.421f, 253.1379f, 139.1302f},
+        {-3218.280f, 248.6299f, 139.1302f},
+    },
+    {
+        /////////////GROUP 2//////////// 1
+        {-3256.545f, 260.2362f, 137.1539f},
+        {-3253.961f, 257.7454f, 137.1894f},
+        {-3258.832f, 256.8369f, 137.1468f},
+    },
+    {
+        /////////////GROUP 3//////////// 2
+        {-3219.986f, 259.6718f, 139.0960f},
+        {-3214.978f, 256.4007f, 139.1302f},
+        {-3217.333f, 252.0130f, 139.1302f},
+    }
+};
+
+const static WaveCoords* WaveGroupOneSpawnCoords	= WaveSpawnCoords[0];
+const static WaveCoords* WaveGroupTwoSpawnCoords	= WaveSpawnCoords[1];
+const static WaveCoords* WaveGroupThreeSpawnCoords	= WaveSpawnCoords[2];
+
+const static WaveCoords DeathwailDescentCoords[] = 
+{
+    {-3245.675f, 298.3688f, 171.9848f},
+    {-3251.500f, 301.2324f, 167.3459f},
+    {-3258.824f, 302.1381f, 162.9848f},
+    {-3267.146f, 297.6195f, 157.9292f},
+    {-3266.891f, 283.9230f, 155.4848f},
+    {-3261.760f, 278.8767f, 150.5682f},
+    {-3255.110f, 278.1188f, 147.8738f},
+    {-3248.274f, 278.3419f, 143.6453f},
+    {-3245.108f, 287.5689f, 142.7843f},
+    {-3248.166f, 289.8274f, 139.0618f},
+};
+
+enum
+{
+    SAY_BEGIN_DESCENT			= -1015002,
+    SAY_HEART_RETRIEVED			= -1015003,
+    SAY_DEAD					= -1015004,
+
+    NPC_SHADOWLORD_DEATHWAIL	= 22006,
+    NPC_HOF_VISUAL_TRIGGER		= 22058,
+    NPC_SHADOWMOON_SOULSTEALER	= 22061,
+    NPC_DEATHWAIL_VISUAL_TRIG	= 22096,
+    NPC_SHADOWMOON_RETAINER		= 22102,
+    NPC_FELFIRE_SUMMONER		= 22121,
+
+    GOBJECT_HEART_OF_FURY		= 185125,
+
+    SPELL_SHADOW_BOLT			= 12471,
+    SPELL_SHADOW_BOLT_VOLLEY	= 15245,
+    SPELL_FEAR					= 27641,
+    SPELL_FEL_FIREBALL			= 38312,
+    SPELL_SUMMON_FEL_FIRE		= 38375,
+
+    FEAR_CD					= 20000,
+    FEL_FIREBALL_CD			= 6000,
+    SHADOW_BOLT_CD			= 4000,
+    SHADOW_BOLT_VOLLEY_CD	= 10000,
+    PLAYER_CHECK_CD			= 2000,
+    RETAINER_WAVE_CD		= 100000,
+
+    MAX_PLAYER_DISTANCE		= 100,
+
+    RETAINER_DESPAWN_TIME	= 180000,
+    DEATHWAIL_DESPAWN_TIME	= 300000
+};
+
+struct npc_shadowlord_deathwailAI : public ScriptedAI
+{
+    npc_shadowlord_deathwailAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    const static uint8 WaveCoordOffset = 11;
+
+    ObjectGuid m_playerGuid;
+
+    std::list<Creature*> m_lSoulstealers;
+
+    Creature* m_cHOFVisualTrigger;
+    Creature* m_cDeathwailTrigger;
+
+    uint32 m_uiFelFireballTimer;
+    uint32 m_uiFearTimer;
+    uint32 m_uiShadowBoltTimer;
+    uint32 m_uiShadowBoltVolleyTimer;
+    uint32 m_uiPlayerCheckTimer;
+    uint32 m_uiPeriodicWaveTimer;
+    uint32 m_uiDeathwailDespawnTimer;
+
+    bool m_bEventInProgress = false;
+    bool m_bDeathwailGrounded;
+
+    void Reset() override
+    {
+        if (m_bEventInProgress && !m_bDeathwailGrounded)
+            return;
+
+        m_playerGuid = ObjectGuid();
+        m_lSoulstealers.clear();
+        m_cHOFVisualTrigger = nullptr;
+        m_cDeathwailTrigger = nullptr;
+        
+        m_uiFelFireballTimer		= FEL_FIREBALL_CD;
+        m_uiFearTimer				= 8000 + urand(0, 5000);
+        m_uiShadowBoltTimer			= SHADOW_BOLT_CD;
+        m_uiShadowBoltVolleyTimer	= SHADOW_BOLT_VOLLEY_CD;
+        m_uiPlayerCheckTimer		= PLAYER_CHECK_CD;
+        m_uiPeriodicWaveTimer		= RETAINER_WAVE_CD;
+        m_uiDeathwailDespawnTimer	= DEATHWAIL_DESPAWN_TIME;
+    }
+
+    void JustRespawned() override
+    {
+        m_bDeathwailGrounded = false;
+        m_bEventInProgress = false;
+        SetReactState(REACT_PASSIVE);
+        m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        m_creature->SetLevitate(true);
+        Reset();
+    }
+
+    void DoReleaseSoulstealersAndReset()
+    {
+        for (Creature* soulstealer : m_lSoulstealers)
+            if (soulstealer)
+            {
+                soulstealer->CombatStop();
+                soulstealer->SetActiveObjectState(false);
+            }
+        
+        m_bEventInProgress = false;
+
+        m_creature->SetActiveObjectState(false);
+        Reset();
+    }
+
+    void DoSummonWave(bool both = false)
+    {
+        if (both)
+        {
+            // Wave starting indoors
+            Creature* pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupOneSpawnCoords[0].xCoord, WaveGroupOneSpawnCoords[0].yCoord, WaveGroupOneSpawnCoords[0].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 1);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupOneSpawnCoords[1].xCoord, WaveGroupOneSpawnCoords[1].yCoord, WaveGroupOneSpawnCoords[1].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 2);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupOneSpawnCoords[2].xCoord, WaveGroupOneSpawnCoords[2].yCoord, WaveGroupOneSpawnCoords[2].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 3);
+        
+            // Wave starting outdoors
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupTwoSpawnCoords[0].xCoord, WaveGroupTwoSpawnCoords[0].yCoord, WaveGroupTwoSpawnCoords[0].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 4);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupTwoSpawnCoords[1].xCoord, WaveGroupTwoSpawnCoords[1].yCoord, WaveGroupTwoSpawnCoords[1].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 5);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupTwoSpawnCoords[2].xCoord, WaveGroupTwoSpawnCoords[2].yCoord, WaveGroupTwoSpawnCoords[2].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 6);
+        }
+        else
+        {
+            Creature* pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupThreeSpawnCoords[0].xCoord, WaveGroupThreeSpawnCoords[0].yCoord, WaveGroupThreeSpawnCoords[0].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 1);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupThreeSpawnCoords[1].xCoord, WaveGroupThreeSpawnCoords[1].yCoord, WaveGroupThreeSpawnCoords[1].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 2);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupThreeSpawnCoords[2].xCoord, WaveGroupThreeSpawnCoords[2].yCoord, WaveGroupThreeSpawnCoords[2].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 3);
+        }
+    }
+
+    void DoBeginDescent()
+    {
+        m_bDeathwailGrounded = true;
+        m_creature->GetMotionMaster()->MovePoint(0, DeathwailDescentCoords[0].xCoord, DeathwailDescentCoords[0].yCoord, DeathwailDescentCoords[0].zCoord);
+        DoScriptText(SAY_BEGIN_DESCENT, m_creature);
+    }
+
+    void MovementInform(uint32 motionType, uint32 pointId) override
+    {
+        if (motionType != POINT_MOTION_TYPE)
+            return;
+
+        switch (pointId)
+        {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+                m_creature->GetMotionMaster()->MovePoint(pointId + 1, DeathwailDescentCoords[pointId + 1].xCoord, DeathwailDescentCoords[pointId + 1].yCoord, DeathwailDescentCoords[pointId + 1].zCoord);
+                break;
+            case 9:
+                DoScriptText(SAY_HEART_RETRIEVED, m_creature);
+                SetReactState(REACT_AGGRESSIVE);
+                m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                m_creature->SetLevitate(false);
+
+                if (GameObject* goHoF = GetClosestGameObjectWithEntry(m_creature, GOBJECT_HEART_OF_FURY, 30.0f))
+                {
+                    goHoF->SetRespawnTime(5 * MINUTE);
+                    goHoF->Refresh();
+                }
+                if (m_cHOFVisualTrigger || (m_cHOFVisualTrigger = GetClosestCreatureWithEntry(m_creature, NPC_HOF_VISUAL_TRIGGER, 175.0f)))
+                    m_cHOFVisualTrigger->ForcedDespawn();
+
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+                break;
+        }
+    }
+
+    // true = event started normally
+    // false = something's wrong, ignore
+    bool SoulstealerEnteredCombat(Creature* unit, Unit* attacker)
+    {
+        if (!m_bEventInProgress)
+        {
+            // Begin event
+            m_bEventInProgress = true;
+            m_creature->SetActiveObjectState(true);
+
+            m_cHOFVisualTrigger = GetClosestCreatureWithEntry(m_creature, NPC_HOF_VISUAL_TRIGGER, 175.0f);
+            m_cDeathwailTrigger = GetClosestCreatureWithEntry(m_creature, NPC_DEATHWAIL_VISUAL_TRIG, 175.0f);
+
+            std::list<Creature*> lOtherChannelers;
+            GetCreatureListWithEntryInGrid(lOtherChannelers, m_creature, NPC_SHADOWMOON_SOULSTEALER, 175.0f);
+
+            for (std::list<Creature*>::iterator itr = lOtherChannelers.begin(); itr != lOtherChannelers.end(); ++itr)
+                if ((*itr)->isAlive())
+                {
+                    (*itr)->SetInCombatWith(attacker);
+                    attacker->SetInCombatWith((*itr));
+                    (*itr)->SetActiveObjectState(true);
+                    (*itr)->AddThreat(attacker);
+
+                    // agro on party members
+                    if (Player* player = m_creature->GetMap()->GetPlayer(attacker->GetObjectGuid()))
+                        if (Group* group = player->GetGroup())
+                            for (GroupReference* ref = group->GetFirstMember(); ref != nullptr; ref = ref->next())
+                            {
+                                Player* member = ref->getSource();
+                                if (member && member->isAlive() && m_cHOFVisualTrigger && m_cHOFVisualTrigger->IsWithinDistInMap(member, MAX_PLAYER_DISTANCE))
+                                {
+                                    (*itr)->SetInCombatWith(member);
+                                    member->SetInCombatWith((*itr));
+                                    (*itr)->AddThreat(member);
+                                }
+                            }
+
+                    m_lSoulstealers.push_back((*itr));
+                }
+
+            m_playerGuid = attacker->GetObjectGuid();
+            DoSummonWave();
+        }
+        else if (m_bDeathwailGrounded)
+            return false; // possbile edge case
+
+        return true;
+    }
+
+    void SoulstealerDied(Creature* unit)
+    {
+        m_lSoulstealers.remove(unit);
+
+        if (m_bEventInProgress && !m_bDeathwailGrounded && m_lSoulstealers.size() == 0)
+            DoBeginDescent();
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        DoScriptText(SAY_DEAD, m_creature);
+        m_bEventInProgress = false;
+        m_creature->SetActiveObjectState(false);
+    }
+
+    void SpellHitTarget(Unit* pTarget, SpellEntry const* pSpellEntry) override
+    {
+        if (pSpellEntry->Id == SPELL_FEL_FIREBALL && pTarget->GetEntry() == NPC_DEATHWAIL_VISUAL_TRIG)
+            if (Creature* summoner = GetClosestCreatureWithEntry(m_creature, NPC_FELFIRE_SUMMONER, 175.0f))
+            {
+                summoner->CastSpell(pTarget, SPELL_SUMMON_FEL_FIRE, TRIGGERED_NONE);
+                summoner->ForcedDespawn();
+            }
+    }
+
+    /* Reset if:
+     * Players run away (100 dist)
+     * All players die
+     * All players dead/dropped agro */
+    bool IsPlayerOrGroupInRangeAndActiveInEvent()
+    {
+        for (Creature* soulstealer : m_lSoulstealers)
+        {
+            ThreatList const& threatList = soulstealer->getThreatManager().getThreatList();
+
+            if (threatList.size() == 0)
+                return false;
+        }
+
+        if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid)) // can find player
+            if (Group* group = player->GetGroup()) // player in group
+            {
+                for (GroupReference* ref = group->GetFirstMember(); ref != nullptr; ref = ref->next())
+                {
+                    Player* member = ref->getSource(); // any member gettable, alive & in range
+                    if (member && member->isAlive() && m_cHOFVisualTrigger && m_cHOFVisualTrigger->IsWithinDistInMap(member, MAX_PLAYER_DISTANCE))
+                        return true;
+                }
+            }
+            else // player alone
+            {
+                if (player->isAlive() && m_cHOFVisualTrigger && m_cHOFVisualTrigger->IsWithinDistInMap(player, MAX_PLAYER_DISTANCE))
+                    return true;
+            }
+
+        return false;
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (!m_bEventInProgress)
+            return;
+
+        if (m_bDeathwailGrounded)
+        {
+            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            {
+                if (m_uiDeathwailDespawnTimer < uiDiff)
+                {
+                    m_creature->ForcedDespawn();
+                    m_creature->SetRespawnTime(60);
+                }
+                else
+                    m_uiDeathwailDespawnTimer -= uiDiff;
+
+                return;
+            }
+
+            if (m_uiShadowBoltTimer < uiDiff)
+            {
+
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT) == CAST_OK)
+                    m_uiShadowBoltTimer = SHADOW_BOLT_CD + urand(0, SHADOW_BOLT_CD);
+            }
+            else
+                m_uiShadowBoltTimer -= uiDiff;
+
+            if (m_uiShadowBoltVolleyTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT_VOLLEY) == CAST_OK)
+                    m_uiShadowBoltVolleyTimer = SHADOW_BOLT_VOLLEY_CD + urand(0, SHADOW_BOLT_VOLLEY_CD);
+            }
+            else
+                m_uiShadowBoltVolleyTimer -= uiDiff;
+
+            if (m_uiFearTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FEAR) == CAST_OK)
+                    m_uiFearTimer = FEAR_CD + urand(0, FEAR_CD);
+            }
+            else
+                m_uiFearTimer -= uiDiff;
+
+            DoMeleeAttackIfReady();
+        }
+        else
+        {
+            // Check if event should reset
+            if (m_playerGuid)
+            {
+                if (m_uiPlayerCheckTimer < uiDiff)
+                {
+                    if (!IsPlayerOrGroupInRangeAndActiveInEvent())
+                    {
+                        DoReleaseSoulstealersAndReset();
+                        return;
+                    }
+
+                    m_uiPlayerCheckTimer = PLAYER_CHECK_CD;
+                }
+                else
+                    m_uiPlayerCheckTimer -= uiDiff;
+            }
+            else
+            {
+                DoReleaseSoulstealersAndReset();
+                return;
+            }
+
+            if (m_uiFelFireballTimer < uiDiff)
+            {
+                if (m_cDeathwailTrigger)
+                {
+                    if (m_creature->CastSpell(m_cDeathwailTrigger, SPELL_FEL_FIREBALL, TRIGGERED_NONE) == SPELL_CAST_OK)
+                    {
+                        // TODO: creature summoning should be handled by spell, not here?
+                        m_creature->SummonCreature(NPC_FELFIRE_SUMMONER, 
+                                                    m_cDeathwailTrigger->GetPositionX(),
+                                                    m_cDeathwailTrigger->GetPositionY(),
+                                                    m_cDeathwailTrigger->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 6000, true);
+                    }
+                }
+
+                m_uiFelFireballTimer = FEL_FIREBALL_CD;
+            }
+            else
+                m_uiFelFireballTimer -= uiDiff;
+
+            if (m_uiPeriodicWaveTimer < uiDiff)
+            {
+                DoSummonWave();
+                m_uiPeriodicWaveTimer = RETAINER_WAVE_CD;
+            }
+            else
+                m_uiPeriodicWaveTimer -= uiDiff;
+        }
+    }
+};
+
+UnitAI* GetAI_npc_shadowlord_deathwail(Creature* pCreature)
+{
+    return new npc_shadowlord_deathwailAI(pCreature);
+}
+
+/*#####
+#mob_shadowmoon_soulstealer
+#####*/
+
+struct mob_shadowmoon_soulstealerAI : public ScriptedAI
+{
+    mob_shadowmoon_soulstealerAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    Creature* m_cDeathwail;
+
+    bool m_bSixtyTriggered;
+    bool m_bTwentyTriggered;
+
+    void Reset() override
+    {
+        m_cDeathwail = nullptr;
+        m_bSixtyTriggered = false;
+        m_bTwentyTriggered = false;
+    }
+
+    void JustRespawned() override
+    {
+        m_creature->SetActiveObjectState(false);
+        m_creature->AI()->SetReactState(REACT_DEFENSIVE);
+
+        Reset();
+    }
+
+    void EnterEvadeMode() override
+    {
+        m_creature->AI()->SetReactState(REACT_DEFENSIVE);
+        Reset();
+    }
+
+    void Aggro(Unit* who) override
+    {
+        m_cDeathwail = GetClosestCreatureWithEntry(m_creature, NPC_SHADOWLORD_DEATHWAIL, 175.0f);
+        bool exitCombat = false;
+
+        if (m_cDeathwail)
+        {
+            if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+            {
+                if (!who->GetObjectGuid().IsPlayer()) // not attacked by player
+                    if (Unit* attackerOwner = m_creature->GetMap()->GetPlayer(who->GetOwnerGuid()))
+                        who = attackerOwner;
+                    else // not attacked by player, nor NPC owned by player... just ignore
+                        exitCombat = true;
+
+                if (!exitCombat && DeathwailAI->SoulstealerEnteredCombat(m_creature, who))
+                {
+                    m_creature->AI()->SetReactState(REACT_PASSIVE);
+                }
+                else
+                    exitCombat = true;
+            }
+            else
+                exitCombat = true;
+        }
+        else
+            exitCombat = true;
+
+        if (exitCombat)
+            m_creature->CombatStop();
+    }
+
+    void JustDied(Unit* /*killer*/) override 
+    {
+        if (m_cDeathwail)
+            if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+                DeathwailAI->SoulstealerDied(m_creature);
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (!m_bSixtyTriggered)
+        {
+            if (m_creature->GetHealthPercent() <= 60.0f)
+                if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+                {
+                    DeathwailAI->DoSummonWave(true);
+                    m_bSixtyTriggered = true;
+                }
+        }
+        else if (!m_bTwentyTriggered)
+        {
+            if (m_creature->GetHealthPercent() <= 20.0f)
+                if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+                {
+                    DeathwailAI->DoSummonWave(true);
+                    m_bTwentyTriggered = true;
+                }
+        }
+    }
+};
+
+UnitAI* GetAI_mob_shadowmoon_soulstealer(Creature* pCreature)
+{
+    return new mob_shadowmoon_soulstealerAI(pCreature);
 }
 
 /*#####
@@ -1810,7 +2355,7 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
     }
 };
 
-CreatureAI* GetAI_npc_spawned_oronok_tornheart(Creature* pCreature)
+UnitAI* GetAI_npc_spawned_oronok_tornheart(Creature* pCreature)
 {
     return new npc_spawned_oronok_tornheartAI(pCreature);
 }
@@ -1887,7 +2432,7 @@ struct npc_domesticated_felboarAI : public ScriptedAI
         }
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
         if (eventType == AI_EVENT_START_EVENT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -1941,7 +2486,7 @@ struct npc_domesticated_felboarAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_domesticated_felboar(Creature* pCreature)
+UnitAI* GetAI_npc_domesticated_felboar(Creature* pCreature)
 {
     return new npc_domesticated_felboarAI(pCreature);
 }
@@ -2002,9 +2547,180 @@ struct npc_veneratus_spawn_nodeAI : public Scripted_NoMovementAI
     void UpdateAI(const uint32 uiDiff) override { }
 };
 
-CreatureAI* GetAI_npc_veneratus_spawn_node(Creature* pCreature)
+UnitAI* GetAI_npc_veneratus_spawn_node(Creature* pCreature)
 {
     return new npc_veneratus_spawn_nodeAI(pCreature);
+}
+
+/*######
+## npc_disobedient_dragonmaw_peon
+######*/
+
+enum
+{
+    SAY_IDLE1   = -1001285,
+    SAY_IDLE2   = -1001286,
+    SAY_BOOTERANG1 = -1001287,
+    SAY_BOOTERANG2 = -1001288,
+    SAY_BOOTERANG3 = -1001289,
+    SAY_BOOTERANG4 = -1001290,
+    SAY_BOOTERANG5 = -1001291,
+    SAY_BOOTERANG6 = -1001292,
+
+    SPELL_BOOTERANG                 = 40742,
+    SPELL_LAZY_AND_GOOD_FOR_NOTHING = 40732,
+    SPELL_DEFIANT_AND_ENRAGED       = 40735,
+    SPELL_PEON_CLEAR_ALL            = 40762,
+    
+    NPC_PEON                = 22252,
+    NPC_PEON_WORK_NODE      = 23308,
+    NPC_DISOBEDIENT_PEON    = 23311,
+
+    FACTION_DISOBEDIENT     = 14,
+    FACTION_WHACKED         = 62,
+
+    EMOTE_WORKING           = 233,
+
+    POINT_ARRIVED           = 1,
+};
+
+struct npc_disobedient_dragonmaw_peonAI : public ScriptedAI
+{
+    npc_disobedient_dragonmaw_peonAI(Creature* creature) : ScriptedAI(creature)
+    {
+        Reset();
+    }
+
+    uint32 m_angryTimer;
+    uint32 m_booterangTimer;
+    ObjectGuid m_lastPlayerGuid;
+
+    void Reset() override
+    {
+        if (m_lastPlayerGuid.IsEmpty())
+        {
+            if (m_creature->HasAura(SPELL_LAZY_AND_GOOD_FOR_NOTHING))
+                m_angryTimer = 0;
+            else
+                m_angryTimer = urand(6000, 10000);
+            m_booterangTimer = 0;
+        }
+    }
+
+    void MovementInform(uint32 movementType, uint32 data) override
+    {
+        if (movementType == POINT_MOTION_TYPE)
+        {
+            if (data == POINT_ARRIVED)
+            {
+                Creature* node = GetClosestCreatureWithEntry(m_creature, NPC_PEON_WORK_NODE, 10.f);
+                if (node)
+                {
+                    float angle = m_creature->GetAngle(node);
+                    m_creature->SetOrientation(angle);
+                    m_creature->SetFacingTo(angle);
+                }
+                if (Player* player = m_creature->GetMap()->GetPlayer(m_lastPlayerGuid))
+                    player->RewardPlayerAndGroupAtEventCredit(NPC_DISOBEDIENT_PEON, m_creature);
+
+                m_lastPlayerGuid = ObjectGuid();
+                m_creature->UpdateEntry(NPC_PEON);
+                m_creature->HandleEmote(EMOTE_WORKING);
+                m_creature->ForcedDespawn(90000);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+            }
+        }
+    }
+
+    void SpellHit(Unit* caster, const SpellEntry* spell) override
+    {
+        if (spell->Id == SPELL_BOOTERANG)
+            HandleBooterang(caster);
+    }
+
+    void HandleAngry()
+    {
+        DoCastSpellIfCan(nullptr, SPELL_DEFIANT_AND_ENRAGED);
+        uint32 textId = 0;
+        switch (urand(0, 4))
+        {
+            case 0: textId = SAY_IDLE1; break;
+            case 1: textId = SAY_IDLE2; break;
+            default: break;
+        }
+        if (textId)
+            DoScriptText(textId, m_creature);
+    }
+
+    void HandleBooterang(Unit* caster)
+    {
+        if (caster->GetTypeId() != TYPEID_PLAYER && m_lastPlayerGuid.IsEmpty())
+            return;
+
+        Player* player = static_cast<Player*>(caster);
+        m_lastPlayerGuid = player->GetObjectGuid();
+
+        uint32 textId = 0;
+        switch (urand(0, 5))
+        {
+            case 0: textId = SAY_BOOTERANG1; break;
+            case 1: textId = SAY_BOOTERANG2; break;
+            case 2: textId = SAY_BOOTERANG3; break;
+            case 3: textId = SAY_BOOTERANG4; break;
+            case 4: textId = SAY_BOOTERANG5; break;
+            case 5: textId = SAY_BOOTERANG6; break;
+        }
+        float angle = m_creature->GetAngle(player);
+        m_creature->SetOrientation(angle);
+        m_creature->SetFacingTo(angle);
+        DoScriptText(textId, m_creature, player);
+
+        DoCastSpellIfCan(nullptr, SPELL_PEON_CLEAR_ALL); // clears combat and removes aura
+        m_creature->setFaction(FACTION_WHACKED);
+
+        m_booterangTimer = 3000;
+        m_angryTimer = 0;
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (!m_creature->isInCombat())
+        {
+            if (m_angryTimer)
+            {
+                if (m_angryTimer <= diff)
+                {
+                    HandleAngry();
+                    m_angryTimer = urand(6000, 10000);
+                }
+                else m_angryTimer -= diff;
+            }
+
+            if (m_booterangTimer)
+            {
+                if (m_booterangTimer <= diff)
+                {
+                    float x, y, z;
+                    Creature* node = GetClosestCreatureWithEntry(m_creature, NPC_PEON_WORK_NODE, 60.f);
+                    if (node)
+                        node->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), 5.f, node->GetAngle(m_creature));
+                    else // failsafe
+                        m_creature->GetPosition(x, y, z);
+                    m_creature->GetMotionMaster()->MovePoint(POINT_ARRIVED, x, y, z);
+                    m_booterangTimer = 0;
+                }
+                else m_booterangTimer -= diff;
+            }
+        }
+
+        ScriptedAI::UpdateAI(diff);
+    }
+};
+
+UnitAI* GetAI_npc_disobedient_dragonmaw_peon(Creature* pCreature)
+{
+    return new npc_disobedient_dragonmaw_peonAI(pCreature);
 }
 
 void AddSC_shadowmoon_valley()
@@ -2048,6 +2764,16 @@ void AddSC_shadowmoon_valley()
     pNewScript->GetAI = &GetAI_npc_totem_of_spirits;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_npc_totem_of_spirits;
     pNewScript->RegisterSelf();
+    
+    pNewScript = new Script;
+    pNewScript->Name = "npc_shadowlord_deathwail";
+    pNewScript->GetAI = &GetAI_npc_shadowlord_deathwail;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "mob_shadowmoon_soulstealer";
+    pNewScript->GetAI = &GetAI_mob_shadowmoon_soulstealer;
+    pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "event_spell_soul_captured_credit";
@@ -2079,5 +2805,10 @@ void AddSC_shadowmoon_valley()
     pNewScript = new Script;
     pNewScript->Name = "npc_veneratus_spawn_node";
     pNewScript->GetAI = &GetAI_npc_veneratus_spawn_node;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_disobedient_dragonmaw_peon";
+    pNewScript->GetAI = &GetAI_npc_disobedient_dragonmaw_peon;
     pNewScript->RegisterSelf();
 }

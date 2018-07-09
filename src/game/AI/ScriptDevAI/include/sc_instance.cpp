@@ -148,11 +148,11 @@ Player* ScriptedInstance::GetPlayerInMap(bool bOnlyAlive /*=false*/, bool bCanBe
 }
 
 /// Returns a pointer to a loaded GameObject that was stored in m_goEntryGuidStore. Can return nullptr
-GameObject* ScriptedInstance::GetSingleGameObjectFromStorage(uint32 entry)
+GameObject* ScriptedInstance::GetSingleGameObjectFromStorage(uint32 entry) const
 {
-    EntryGuidMap::iterator find = m_goEntryGuidStore.find(entry);
-    if (find != m_goEntryGuidStore.end())
-        return instance->GetGameObject(find->second);
+    auto iter = m_goEntryGuidStore.find(entry);
+    if (iter != m_goEntryGuidStore.end())
+        return instance->GetGameObject(iter->second);
 
     // Output log, possible reason is not added GO to map, or not yet loaded;
     script_error_log("Script requested gameobject with entry %u, but no gameobject of this entry was created yet, or it was not stored by script for map %u.", entry, instance->GetId());
@@ -161,11 +161,11 @@ GameObject* ScriptedInstance::GetSingleGameObjectFromStorage(uint32 entry)
 }
 
 /// Returns a pointer to a loaded Creature that was stored in m_goEntryGuidStore. Can return nullptr
-Creature* ScriptedInstance::GetSingleCreatureFromStorage(uint32 entry, bool skipDebugLog /*=false*/)
+Creature* ScriptedInstance::GetSingleCreatureFromStorage(uint32 entry, bool skipDebugLog /*=false*/) const
 {
-    EntryGuidMap::iterator find = m_npcEntryGuidStore.find(entry);
-    if (find != m_npcEntryGuidStore.end())
-        return instance->GetCreature(find->second);
+    auto iter = m_npcEntryGuidStore.find(entry);
+    if (iter != m_npcEntryGuidStore.end())
+        return instance->GetCreature(iter->second);
 
     // Output log, possible reason is not added GO to map, or not yet loaded;
     if (!skipDebugLog)
@@ -174,14 +174,14 @@ Creature* ScriptedInstance::GetSingleCreatureFromStorage(uint32 entry, bool skip
     return nullptr;
 }
 
-void ScriptedInstance::GetCreatureGuidVectorFromStorage(uint32 entry, GuidVector& entryGuidVector, bool skipDebugLog)
+void ScriptedInstance::GetCreatureGuidVectorFromStorage(uint32 entry, GuidVector& entryGuidVector, bool skipDebugLog) const
 {
     auto iter = m_npcEntryGuidCollection.find(entry);
     if (iter != m_npcEntryGuidCollection.end())
         entryGuidVector = (*iter).second;
 }
 
-void ScriptedInstance::GetGameObjectGuidVectorFromStorage(uint32 entry, GuidVector& entryGuidVector, bool skipDebugLog)
+void ScriptedInstance::GetGameObjectGuidVectorFromStorage(uint32 entry, GuidVector& entryGuidVector, bool skipDebugLog) const
 {
     auto iter = m_goEntryGuidCollection.find(entry);
     if (iter != m_goEntryGuidCollection.end())

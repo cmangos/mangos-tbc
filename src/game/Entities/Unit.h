@@ -2398,6 +2398,8 @@ class Unit : public WorldObject
         void _UpdateAutoRepeatSpell();
         bool m_AutoRepeatFirstCast;
 
+        EvadeState GetEvade() const;
+
         uint32 m_attackTimer[MAX_ATTACK];
 
         float m_createStats[MAX_STATS];

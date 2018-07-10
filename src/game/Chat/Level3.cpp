@@ -2038,15 +2038,11 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
         228,
         5487,
         43,
-        202,
-        0
+        202
     };
 
-    int loop = 0;
-    while (allSpellList[loop] != 0)
+    for (uint32 spell : allSpellList)
     {
-        uint32 spell = allSpellList[loop++];
-
         if (m_session->GetPlayer()->HasSpell(spell))
             continue;
 
@@ -2081,15 +2077,11 @@ bool ChatHandler::HandleLearnAllGMCommand(char* /*args*/)
         26644,                                            // More Kill
 
         28550,                                            // Invisible 24
-        23452,                                            // Invisible + Target
-        0
+        23452                                             // Invisible + Target
     };
 
-    uint16 gmSpellIter = 0;
-    while (gmSpellList[gmSpellIter] != 0)
+    for (uint32 spell : gmSpellList)
     {
-        uint32 spell = gmSpellList[gmSpellIter];
-
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, m_session->GetPlayer()))
         {

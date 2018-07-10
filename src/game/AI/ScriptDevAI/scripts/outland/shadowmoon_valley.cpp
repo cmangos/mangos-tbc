@@ -220,7 +220,7 @@ struct mob_enslaved_netherwing_drakeAI : public ScriptedAI
         {
             if (Player* pPlayer = pCaster->GetBeneficiaryPlayer())
             {
-				m_creature->SetCanFly(true);
+		m_creature->SetCanFly(true);
                 m_uiFlyTimer = 2500;
                 m_playerGuid = pPlayer->GetObjectGuid();
 

@@ -1286,7 +1286,7 @@ inline bool IsIgnoreLosSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex
         default: break;
     }
 
-    return spellInfo->EffectRadiusIndex[effIdx] == 13 || IsIgnoreLosSpell(spellInfo);
+    return spellInfo->EffectRadiusIndex[effIdx] == 28 || IsIgnoreLosSpell(spellInfo);
 }
 
 inline bool IsIgnoreLosSpellCast(SpellEntry const* spellInfo)

@@ -1921,6 +1921,13 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
         }
     }
 
+    ResetAllArenaData();
+
+    sWorld.SendWorldTextToAboveSecurity(SEC_GAMEMASTER, LANG_DIST_ARENA_REWARDS_END);
+}
+
+void BattleGroundMgr::ResetAllArenaData()
+{
     for (ObjectMgr::ArenaTeamMap::iterator titr = sObjectMgr.GetArenaTeamMapBegin(); titr != sObjectMgr.GetArenaTeamMapEnd(); ++titr)
     {
         if (ArenaTeam* at = titr->second)
@@ -1930,8 +1937,6 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
             at->NotifyStatsChanged();                      // notify the players of the changes
         }
     }
-
-    sWorld.SendWorldTextToAboveSecurity(SEC_GAMEMASTER, LANG_DIST_ARENA_REWARDS_END);
 }
 
 void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket& data, ObjectGuid guid, Player* plr, BattleGroundTypeId bgTypeId) const

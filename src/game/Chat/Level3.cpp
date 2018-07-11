@@ -6754,6 +6754,13 @@ bool ChatHandler::HandleArenaSeasonRewardsCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleArenaDataReset(char* args)
+{
+    PSendSysMessage("Resetting all arena data.");
+    sBattleGroundMgr.ResetAllArenaData();
+    return true;
+}
+
 bool ChatHandler::HandleModifyGenderCommand(char* args)
 {
     if (!*args)

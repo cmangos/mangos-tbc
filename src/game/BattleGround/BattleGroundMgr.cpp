@@ -1865,15 +1865,10 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
         player->SaveTitles();
     });
 
-    // Remove Gladiator from every offline player
+    // Remove Gladiator, Duelist and Rival from every offline player
     CharacterDatabase.PExecute("UPDATE characters a SET knownTitles="
-        "CONCAT(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) &~0x20000000, ' ', SUBSTR(knownTitles, LOCATE(' ', knownTitles)))"
-        "WHERE(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) & 0x20000000) != 0");
-
-    // Remove Duelist and Rival from every offline player
-    CharacterDatabase.PExecute("UPDATE characters a SET knownTitles="
-        "CONCAT(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) &~0xC0000000, ' ', SUBSTR(knownTitles, LOCATE(' ', knownTitles)))"
-        "WHERE(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) & 0xC0000000) != 0");
+        "CONCAT(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) &~0xE0000000, ' ', SUBSTR(knownTitles, LOCATE(' ', knownTitles)))"
+        "WHERE(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) & 0xE0000000) != 0");
 
     // Remove Challenger from every offline player
     CharacterDatabase.PExecute("UPDATE characters a SET knownTitles ="

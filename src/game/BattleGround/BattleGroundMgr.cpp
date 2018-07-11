@@ -1850,16 +1850,19 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
         case 2: mountId = 34092; titles[0] = 62; break;
         case 3: mountId = 37676; titles[0] = 71; break;
     }
+    CharTitlesEntry const* titleEntries[5]; // optimization
+    for (uint32 i = 0; i < 5; ++i)
+        titleEntries[i] = sCharTitlesStore.LookupEntry(titles[i]);
 
     // Remove titles from online players
     // Only Rank 1 titles are permanent
     sObjectAccessor.ExecuteOnAllPlayers([&](Player* player)
     {
-        player->SetTitle(titles[1], true);
-        player->SetTitle(titles[2], true);
-        player->SetTitle(titles[3], true);
-        player->SetTitle(titles[4], true);
-        player->SaveToDB();
+        player->SetTitle(titleEntries[1], true);
+        player->SetTitle(titleEntries[2], true);
+        player->SetTitle(titleEntries[3], true);
+        player->SetTitle(titleEntries[4], true);
+        player->SaveTitles();
     });
 
     // Remove Gladiator from every offline player
@@ -1892,8 +1895,8 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
         }
         if (player)
         {
-            player->SetTitle(titles[data.second]);
-            player->SaveToDB();
+            player->SetTitle(titleEntries[data.second]);
+            player->SaveTitles();
         }
         else
         {

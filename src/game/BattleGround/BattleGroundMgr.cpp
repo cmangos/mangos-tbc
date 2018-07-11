@@ -1793,12 +1793,15 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
             {
                 switch (at->GetType())
                 {
-                    case 2:
+                    case ARENA_TYPE_2v2:
                         sortedTeams[0].push_back(at);
-                    case 3:
+                        break;
+                    case ARENA_TYPE_3v3:
                         sortedTeams[1].push_back(at);
-                    case 5:
+                        break;
+                    case ARENA_TYPE_5v5:
                         sortedTeams[2].push_back(at);
+                        break;
                 }
             }
         }

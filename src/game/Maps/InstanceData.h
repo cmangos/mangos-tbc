@@ -50,6 +50,8 @@ enum InstanceConditionIDs                                   // Suggested values 
     INSTANCE_CONDITION_ID_SCALDING_WATER    = 37284,
 
     INSTANCE_CONDITION_ID_SOCRETHAR_GOSSIP  = 8215,
+
+    INSTANCE_CONDITION_ID_SAAT_BEACON               = 20201,
 };
 
 class InstanceData

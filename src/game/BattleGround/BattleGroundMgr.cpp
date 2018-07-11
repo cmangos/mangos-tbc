@@ -1700,9 +1700,9 @@ void BattleGroundMgr::InitAutomaticArenaPointDistribution()
 void BattleGroundMgr::DistributeArenaPoints() const
 {
     // used to distribute arena points based on last week's stats
-    sWorld.SendWorldText(LANG_DIST_ARENA_POINTS_START);
+    sWorld.SendWorldTextToAboveSecurity(SEC_GAMEMASTER, LANG_DIST_ARENA_POINTS_START);
 
-    sWorld.SendWorldText(LANG_DIST_ARENA_POINTS_ONLINE_START);
+    sWorld.SendWorldTextToAboveSecurity(SEC_GAMEMASTER, LANG_DIST_ARENA_POINTS_ONLINE_START);
 
     // temporary structure for storing maximum points to add values for all players
     std::map<uint32, uint32> PlayerPoints;
@@ -1781,6 +1781,8 @@ void SetTitleValues(uint32& first, uint32& second, uint32 titleId)
 
 void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
 {
+    sWorld.SendWorldTextToAboveSecurity(SEC_GAMEMASTER, LANG_DIST_ARENA_REWARDS_START, seasonId);
+
     std::vector<ArenaTeam*> sortedTeams[3];
     for (ObjectMgr::ArenaTeamMap::iterator titr = sObjectMgr.GetArenaTeamMapBegin(); titr != sObjectMgr.GetArenaTeamMapEnd(); ++titr)
         if (ArenaTeam* at = titr->second)
@@ -1928,6 +1930,8 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
             at->NotifyStatsChanged();                      // notify the players of the changes
         }
     }
+
+    sWorld.SendWorldTextToAboveSecurity(SEC_GAMEMASTER, LANG_DIST_ARENA_REWARDS_END);
 }
 
 void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket& data, ObjectGuid guid, Player* plr, BattleGroundTypeId bgTypeId) const

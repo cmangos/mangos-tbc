@@ -15624,7 +15624,7 @@ void Player::_LoadSpells(QueryResult* result)
             bool disabled = fields[2].GetBool();
             TalentSpellPos const* talentPos = GetTalentSpellPos(spell_id);
             if (!talentPos)
-                spells.push_back({ spell_id, active, disabled });
+                spells.push_back(std::tuple<uint32, bool, bool>{ spell_id, active, disabled });
             else
                 addSpell(spell_id, active, false, false, disabled);
         }

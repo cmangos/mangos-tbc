@@ -386,6 +386,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     m_triggerAutorepeat = !!(triggeredFlags & TRIGGERED_AUTOREPEAT);
     m_doNotProc = triggeredFlags & TRIGGERED_DO_NOT_PROC;
     m_petCast = !!(triggeredFlags & TRIGGERED_PET_CAST);
+    m_notifyAI = !!(triggeredFlags & TRIGGERED_NORMAL_COMBAT_CAST);
 
     m_reflectable = IsReflectableSpell(m_spellInfo);
 
@@ -3132,7 +3133,13 @@ void Spell::Prepare()
     ReSetTimer();
 
     if (!m_IsTriggeredSpell)
+    {
         m_caster->RemoveAurasOnCast(m_spellInfo);
+
+        // Orientation changes inside
+        if (m_notifyAI && m_caster->AI())
+            m_caster->AI()->OnSpellCastStateChange(m_spellInfo, true, m_targets.getUnitTarget());
+    }
 
     // add non-triggered (with cast time and without)
     if (!m_IsTriggeredSpell)
@@ -3225,6 +3232,9 @@ void Spell::cancel()
 void Spell::cast(bool skipCheck)
 {
     SetExecutedCurrently(true);
+
+    if (m_notifyAI && m_caster->AI())
+        m_caster->AI()->OnSpellCastStateChange(m_spellInfo, false);
 
     if (!m_caster->CheckAndIncreaseCastCounter())
     {

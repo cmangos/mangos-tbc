@@ -4548,8 +4548,6 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
                 bool positive;
                 if (!holder->IsPositive())
                     positive = false;
-                else
-                    positive = (holder->GetSpellProto()->AttributesEx & SPELL_ATTR_NEGATIVE) == 0;
 
                 // do not remove positive auras if friendly target
                 //               negative auras if non-friendly target

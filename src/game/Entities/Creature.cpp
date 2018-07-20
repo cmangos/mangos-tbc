@@ -388,7 +388,7 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
 
     // creatures always have melee weapon ready if any
     SetSheath(SHEATH_STATE_MELEE);
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     if (preserveHPAndPower)
     {

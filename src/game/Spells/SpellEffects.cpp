@@ -4480,10 +4480,10 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         spawnCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
+        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     if (m_caster->IsImmuneToNPC())
         spawnCreature->SetImmuneToNPC(true);
@@ -4876,10 +4876,10 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
         if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         {
             spawnCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
         }
         else
-            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
+            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
         if (m_caster->IsImmuneToNPC())
             spawnCreature->SetImmuneToNPC(true);
@@ -5160,10 +5160,10 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     if (plr->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         pet->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        pet->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+        pet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        pet->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
+        pet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     if (plr->IsImmuneToNPC())
         pet->SetImmuneToNPC(true);
@@ -5315,10 +5315,10 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         NewSummon->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
+        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     if (m_caster->IsImmuneToNPC())
         NewSummon->SetImmuneToNPC(true);
@@ -8014,10 +8014,10 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         critter->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x10);
+        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     // NOTE: All companions should have these (creatureinfo needs to be tuned accordingly before we can remove these two lines):
     critter->SetImmuneToNPC(true);

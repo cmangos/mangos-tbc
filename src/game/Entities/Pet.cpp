@@ -280,8 +280,8 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
     SetName(fields[11].GetString());
 
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
     SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     if (getPetType() == HUNTER_PET)
     {
@@ -1227,7 +1227,7 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
     // SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED | UNIT_CAN_BE_ABANDONED); (need to test and check these for vanilla and TBC)
 
     SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED | UNIT_FLAG_RENAME);
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     SetUInt32Value(UNIT_MOD_CAST_SPEED, creature->GetUInt32Value(UNIT_MOD_CAST_SPEED));
     SetLoyaltyLevel(REBELLIOUS);

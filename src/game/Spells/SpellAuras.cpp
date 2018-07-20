@@ -7214,7 +7214,7 @@ void SpellAuraHolder::_AddSpellAuraHolder()
     {
         if (IsPositive() && !GetSpellProto()->HasAttribute(SPELL_ATTR_NEGATIVE)) // empty positive slot
         {
-            for (uint8 i = 0; i < MAX_POSITIVE_AURAS; i++)
+            for (uint8 i = 0; i < m_target->GetByteValue(UNIT_FIELD_BYTES_2, 1); i++)
             {
                 if (m_target->GetUInt32Value((uint16)(UNIT_FIELD_AURA + i)) == 0)
                 {
@@ -7225,7 +7225,7 @@ void SpellAuraHolder::_AddSpellAuraHolder()
         }
         else                                                // empty negative slot
         {
-            for (uint8 i = MAX_POSITIVE_AURAS; i < MAX_AURAS; i++)
+            for (uint8 i = m_target->GetByteValue(UNIT_FIELD_BYTES_2, 1); i < MAX_AURAS; i++)
             {
                 if (m_target->GetUInt32Value((uint16)(UNIT_FIELD_AURA + i)) == 0)
                 {

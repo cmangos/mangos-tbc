@@ -205,6 +205,8 @@ enum SheathState
 // byte flags value (UNIT_FIELD_BYTES_2,1)
 enum UnitBytes2_Flags
 {
+    UNIT_BYTE2_CREATURE_DEBUFF_LIMIT            = 16,
+    UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT   = 40,
 };
 
 // byte flags value (UNIT_FIELD_BYTES_2,2)

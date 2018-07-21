@@ -3056,6 +3056,8 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
             if (m_caster->GetTypeId() == TYPEID_PLAYER)
                 m_caster->RemoveSpellCooldown(triggered_spell_id);
             break;
+        case 47531: // Dismiss pet - suppress error
+            return;
     }
 
     // normal case

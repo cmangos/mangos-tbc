@@ -7040,7 +7040,7 @@ void Aura::PeriodicDummyTick()
                     if (target->HasAura(38390)) // Improved Aspect of the Viper
                         intelectPercent += 5;
                     int32 restorationValue = (target->GetStat(STAT_INTELLECT) * intelectPercent + target->getLevel() * 35) / 100;
-                    target->CastCustomSpell(target, 34075, &restorationValue, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED); // TODO: Send SMSG_SPELL_START
+                    target->CastCustomSpell(nullptr, 34075, &restorationValue, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED); // TODO: Send SMSG_SPELL_START
                     return;
                 }
 //              // Knockdown Fel Cannon: break; The Aggro Burst

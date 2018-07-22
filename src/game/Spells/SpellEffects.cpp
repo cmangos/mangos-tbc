@@ -450,6 +450,13 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                     // scaled AP bonus
                     if (m_caster->GetTypeId() == TYPEID_PLAYER)
                         damage += int32(m_caster->GetTotalAttackPowerValue(BASE_ATTACK) * 0.03f * ((Player*)m_caster)->GetComboPoints());
+                    break;
+                }
+                // L5 Arcane Charge - Promenade Sentinal 23394
+                if (m_spellInfo->Id == 41360)
+                {
+                    damage = unitTarget->GetMaxHealth();
+                    break;
                 }
                 break;
             }

@@ -2934,3 +2934,15 @@ void Creature::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
 
     WorldObject::LockOutSpells(schoolMask, duration);
 }
+
+void Creature::UnsummonCleanup()
+{
+    CombatStop();
+    RemoveAllAurasOnDeath();
+    BreakCharmOutgoing();
+    BreakCharmIncoming();
+    RemoveGuardians();
+    RemoveMiniPet();
+    UnsummonAllTotems();
+    InterruptNonMeleeSpells(false);
+}

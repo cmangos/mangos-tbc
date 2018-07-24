@@ -401,7 +401,16 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
         SetHealthPercent(healthPercent);
     }
     else
+    {
         SelectLevel();
+        if (data)
+        {
+            uint32 curhealth = data->curhealth ? data->curhealth : GetMaxHealth();
+            uint32 curmana = data->curmana ? data->curmana : GetMaxPower(POWER_MANA);
+            SetHealth(m_deathState == ALIVE ? curhealth : 0);
+            SetPower(POWER_MANA, curmana);
+        }
+    }
 
     if (team == HORDE)
         setFaction(GetCreatureInfo()->FactionHorde);
@@ -558,8 +567,9 @@ void Creature::Update(uint32 update_diff, uint32 diff)
                 RemoveAllAuras();
 
                 // need to preserve gameevent state
+                CreatureData const* data = sObjectMgr.GetCreatureData(GetGUIDLow());
                 GameEventCreatureData const* eventData = sGameEventMgr.GetCreatureUpdateDataForActiveEvent(GetGUIDLow());
-                UpdateEntry(m_originalEntry, TEAM_NONE, sObjectMgr.GetCreatureData(GetGUIDLow()), eventData);
+                UpdateEntry(m_originalEntry, TEAM_NONE, data, eventData, false);
 
                 CreatureInfo const* cinfo = GetCreatureInfo();
 
@@ -1492,14 +1502,6 @@ bool Creature::LoadFromDB(uint32 guidlow, Map* map)
         GetMap()->GetPersistentState()->SaveCreatureRespawnTime(GetGUIDLow(), 0);
     }
 
-    uint32 curhealth = data->curhealth;
-    if (curhealth)
-    {
-        curhealth = uint32(curhealth * _GetHealthMod(GetCreatureInfo()->Rank));
-        if (curhealth < 1)
-            curhealth = 1;
-    }
-
     if (sCreatureLinkingMgr.IsSpawnedByLinkedMob(this))
     {
         m_isSpawningLinked = true;
@@ -1516,12 +1518,6 @@ bool Creature::LoadFromDB(uint32 guidlow, Map* map)
             }
         }
     }
-
-    SetHealth(m_deathState == ALIVE ? curhealth : 0);
-    SetPower(POWER_MANA, data->curmana);
-
-    // checked at creature_template loading
-
 
     map->Add(this);
 
@@ -1641,7 +1637,7 @@ void Creature::SetDeathState(DeathState s)
 {
     if ((s == JUST_DIED && !m_isDeadByDefault) || (s == JUST_ALIVED && m_isDeadByDefault))
     {
-        if (CreatureData const* data = sObjectMgr.GetCreatureData(GetObjectGuid().GetCounter()))
+        if (CreatureData const* data = sObjectMgr.GetCreatureData(GetGUIDLow()))
             m_respawnDelay = data->GetRandomRespawnTime();
 
         m_corpseDecayTimer = m_corpseDelay * IN_MILLISECONDS; // the max/default time for corpse decay (before creature is looted/AllLootRemovedFromCorpse() is called)
@@ -1677,7 +1673,6 @@ void Creature::SetDeathState(DeathState s)
 
         Unit::SetDeathState(ALIVE);
 
-        SetHealth(GetMaxHealth());
         SetLootRecipient(nullptr);
         if (GetTemporaryFactionFlags() & TEMPFACTION_RESTORE_RESPAWN)
             ClearTemporaryFaction();

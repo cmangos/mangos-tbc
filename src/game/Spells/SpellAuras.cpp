@@ -2974,7 +2974,6 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
         return;
     }
 
-    uint32 modelid = 0;
     Unit* target = GetTarget();
 
     // remove SPELL_AURA_EMPATHY
@@ -2986,19 +2985,19 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
         // since no field in creature_templates describes wether an alliance or
         // horde modelid should be used at shapeshifting
         if (target->GetTypeId() != TYPEID_PLAYER)
-            modelid = ssEntry->modelID_A;
+            m_modifier.m_amount = ssEntry->modelID_A;
         else
         {
             // players are a bit different since the dbc has seldomly an horde modelid
             if (Player::TeamForRace(target->getRace()) == HORDE)
             {
                 // get model for race ( in 2.2.4 no horde models in dbc field, only 0 in it
-                modelid = sObjectMgr.GetModelForRace(ssEntry->modelID_A, target->getRaceMask());
+                m_modifier.m_amount = sObjectMgr.GetModelForRace(ssEntry->modelID_A, target->getRaceMask());
             }
 
             // nothing found in above, so use default
-            if (!modelid)
-                modelid = ssEntry->modelID_A;
+            if (!m_modifier.m_amount)
+                m_modifier.m_amount = ssEntry->modelID_A;
         }
     }
 
@@ -3039,17 +3038,13 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
                 iter = slowingAuras.begin();
             }
 
-            // and polymorphic affects
-            if (target->IsPolymorphed())
-                target->RemoveAurasDueToSpell(target->getTransForm());
-
+            target->RemoveAurasDueToSpell(16591); // Patch 2.0.1 - Shapeshifting removes Noggenfogger elixir
             //no break here
         }
         case FORM_GHOSTWOLF:
         {
             // remove water walk aura. TODO:: there is probably better way to do this
             target->RemoveSpellsCausingAura(SPELL_AURA_WATER_WALK);
-
             break;
         }
         default:
@@ -3063,8 +3058,8 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
         // remove other shapeshift before applying a new one
         target->RemoveSpellsCausingAura(SPELL_AURA_MOD_SHAPESHIFT, GetHolder());
 
-        if (modelid > 0)
-            target->SetDisplayId(modelid);
+        if (m_modifier.m_amount > 0)
+            target->SetDisplayId(m_modifier.m_amount);
 
         // now only powertype must be set
         switch (form)
@@ -3184,8 +3179,7 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
     }
     else
     {
-        if (modelid > 0)
-            target->SetDisplayId(target->GetNativeDisplayId());
+        target->RestoreDisplayId();
 
         if (target->getClass() == CLASS_DRUID)
             target->SetPowerType(POWER_MANA);
@@ -3241,51 +3235,51 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                     switch (orb_model)
                     {
                         // Troll Female
-                        case 1479: target->SetDisplayId(10134); break;
+                        case 1479: m_modifier.m_amount = 10134; break;
                         // Troll Male
-                        case 1478: target->SetDisplayId(10135); break;
+                        case 1478: m_modifier.m_amount = 10135; break;
                         // Tauren Male
-                        case 59:   target->SetDisplayId(10136); break;
+                        case 59:   m_modifier.m_amount = 10136; break;
                         // Human Male
-                        case 49:   target->SetDisplayId(10137); break;
+                        case 49:   m_modifier.m_amount = 10137; break;
                         // Human Female
-                        case 50:   target->SetDisplayId(10138); break;
+                        case 50:   m_modifier.m_amount = 10138; break;
                         // Orc Male
-                        case 51:   target->SetDisplayId(10139); break;
+                        case 51:   m_modifier.m_amount = 10139; break;
                         // Orc Female
-                        case 52:   target->SetDisplayId(10140); break;
+                        case 52:   m_modifier.m_amount = 10140; break;
                         // Dwarf Male
-                        case 53:   target->SetDisplayId(10141); break;
+                        case 53:   m_modifier.m_amount = 10141; break;
                         // Dwarf Female
-                        case 54:   target->SetDisplayId(10142); break;
+                        case 54:   m_modifier.m_amount = 10142; break;
                         // NightElf Male
-                        case 55:   target->SetDisplayId(10143); break;
+                        case 55:   m_modifier.m_amount = 10143; break;
                         // NightElf Female
-                        case 56:   target->SetDisplayId(10144); break;
+                        case 56:   m_modifier.m_amount = 10144; break;
                         // Undead Female
-                        case 58:   target->SetDisplayId(10145); break;
+                        case 58:   m_modifier.m_amount = 10145; break;
                         // Undead Male
-                        case 57:   target->SetDisplayId(10146); break;
+                        case 57:   m_modifier.m_amount = 10146; break;
                         // Tauren Female
-                        case 60:   target->SetDisplayId(10147); break;
+                        case 60:   m_modifier.m_amount = 10147; break;
                         // Gnome Male
-                        case 1563: target->SetDisplayId(10148); break;
+                        case 1563: m_modifier.m_amount = 10148; break;
                         // Gnome Female
-                        case 1564: target->SetDisplayId(10149); break;
+                        case 1564: m_modifier.m_amount = 10149; break;
                         // BloodElf Female
-                        case 15475: target->SetDisplayId(17830); break;
+                        case 15475: m_modifier.m_amount = 17830; break;
                         // BloodElf Male
-                        case 15476: target->SetDisplayId(17829); break;
+                        case 15476: m_modifier.m_amount = 17829; break;
                         // Dranei Female
-                        case 16126: target->SetDisplayId(17828); break;
+                        case 16126: m_modifier.m_amount = 17828; break;
                         // Dranei Male
-                        case 16125: target->SetDisplayId(17827); break;
+                        case 16125: m_modifier.m_amount = 17827; break;
                         default: break;
                     }
                     break;
                 }
                 case 42365:                                 // Murloc costume
-                    target->SetDisplayId(21723);
+                    m_modifier.m_amount = 21723;
                     break;
                 // case 44186:                          // Gossip NPC Appearance - All, Brewfest
                 // break;
@@ -3300,40 +3294,39 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                     switch (race)
                     {
                         case RACE_HUMAN:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25037 : 25048);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25037 : 25048;
                             break;
                         case RACE_ORC:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25039 : 25050);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25039 : 25050;
                             break;
                         case RACE_DWARF:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25034 : 25045);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25034 : 25045;
                             break;
                         case RACE_NIGHTELF:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25038 : 25049);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25038 : 25049;
                             break;
                         case RACE_UNDEAD:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25042 : 25053);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25042 : 25053;
                             break;
                         case RACE_TAUREN:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25040 : 25051);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25040 : 25051;
                             break;
                         case RACE_GNOME:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25035 : 25046);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25035 : 25046;
                             break;
                         case RACE_TROLL:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25041 : 25052);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25041 : 25052;
                             break;
                         case RACE_GOBLIN:                   // not really player race (3.x), but model exist
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25036 : 25047);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25036 : 25047;
                             break;
                         case RACE_BLOODELF:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25032 : 25043);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25032 : 25043;
                             break;
                         case RACE_DRAENEI:
-                            target->SetDisplayId(target->getGender() == GENDER_MALE ? 25033 : 25044);
+                            m_modifier.m_amount = target->getGender() == GENDER_MALE ? 25033 : 25044;
                             break;
                     }
-
                     break;
                 }
                 // case 50531:                              // Gossip NPC Appearance - All, Pirate Day
@@ -3345,33 +3338,27 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                     break;
             }
         }
-        else                                                // m_modifier.m_miscvalue != 0
+        else                                                // m_modifier.m_amount != 0
         {
-            uint32 model_id;
-
-            CreatureInfo const* ci = ObjectMgr::GetCreatureTemplate(m_modifier.m_miscvalue);
-            if (!ci)
+            CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(m_modifier.m_miscvalue);
+            if (!cInfo)
             {
-                model_id = 16358;                           // pig pink ^_^
-                sLog.outError("Auras: unknown creature id = %d (only need its modelid) Form Spell Aura Transform in Spell ID = %d", m_modifier.m_miscvalue, GetId());
+                m_modifier.m_amount = 16358;                           // pig pink ^_^
+                sLog.outError("Auras: unknown creature id = %d (only need its modelid) Form Spell Aura Transform in Spell ID = %d", m_modifier.m_amount, GetId());
             }
             else
-                model_id = Creature::ChooseDisplayId(ci);   // Will use the default model here
-
-            target->SetDisplayId(model_id);
+                m_modifier.m_amount = Creature::ChooseDisplayId(cInfo);   // Will use the default model here
 
             // creature case, need to update equipment if additional provided
-            if (ci && target->GetTypeId() == TYPEID_UNIT)
-                ((Creature*)target)->LoadEquipment(ci->EquipmentTemplateId, false);
-
-            // Dragonmaw Illusion (set mount model also)
-            if (GetId() == 42016 && target->GetMountID() && !target->GetAurasByType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED).empty())
-                target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, 16314);
+            if (cInfo && target->GetTypeId() == TYPEID_UNIT)
+                ((Creature*)target)->LoadEquipment(cInfo->EquipmentTemplateId, false);
         }
 
-        // update active transform spell only not set or not overwriting negative by positive case
-        if (!target->getTransForm() || !IsPositiveSpell(GetId(), GetCaster(), target) || IsPositiveSpell(target->getTransForm(), GetCaster(), target))
-            target->setTransForm(GetId());
+        target->SetDisplayId(m_modifier.m_amount);
+
+        // Dragonmaw Illusion (set mount model also)
+        if (GetId() == 42016 && target->GetMountID() && !target->GetAurasByType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED).empty())
+            target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, 16314);
 
         // polymorph case
         if (Real && target->GetTypeId() == TYPEID_PLAYER && target->IsPolymorphed())
@@ -3389,8 +3376,7 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
     else                                                    // !apply
     {
         // ApplyModifier(true) will reapply it if need
-        target->setTransForm(0);
-        target->SetDisplayId(target->GetNativeDisplayId());
+        target->RestoreDisplayId();
 
         // apply default equipment for creature case
         if (target->GetTypeId() == TYPEID_UNIT)
@@ -4725,7 +4711,14 @@ void Aura::HandlePeriodicHeal(bool apply, bool /*Real*/)
         if (!caster)
             return;
 
-        m_modifier.m_amount = caster->SpellHealingBonusDone(target, GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount());
+        switch (GetSpellProto()->Id)
+        {
+            case 12939: m_modifier.m_amount = target->GetMaxHealth() / 3; break; // Polymorph Heal Effect
+            default: m_modifier.m_amount = caster->SpellHealingBonusDone(target, GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount()); break;
+        }
+
+        if (GetId() == 37121) // Crystalcore Mechanic - Recharge
+            caster->SetTurningOff(apply);
     }
 }
 

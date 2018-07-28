@@ -2390,12 +2390,8 @@ class Unit : public WorldObject
 
         bool IsSpellProccingHappening() const { return m_spellProcsHappening; }
         void AddDelayedHolderDueToProc(SpellAuraHolder* holder) { m_delayedSpellAuraHolders.push_back(holder); }
-<<<<<<< HEAD
-=======
 
         void ResetAutoRepeatSpells() { m_AutoRepeatFirstCast = true; }
-
->>>>>>> e55d8eb289... Substantially improve resetting of Auto Shot on various spells
     protected:
         explicit Unit();
 

@@ -3424,10 +3424,13 @@ void Spell::cast(bool skipCheck)
         for (auto& ihit : m_UniqueTargetInfo)
             HandleDelayedSpellLaunch(&ihit);
 
-        // Okay, maps created, now prepare flags
-        m_immediateHandled = false;
-        m_spellState = SPELL_STATE_TRAVELING;
-        SetDelayStart(0);
+        // For channels, delay starts at channel end
+        if (m_spellState != SPELL_STATE_CHANNELING)
+        {
+            // Okay, maps created, now prepare flags
+            m_spellState = SPELL_STATE_TRAVELING;
+            SetDelayStart(0);
+        }
     }
     else
     {
@@ -3443,18 +3446,8 @@ void Spell::handle_immediate()
 {
     m_spellState = SPELL_STATE_LANDING;
 
-    // start channeling if applicable (after _handle_immediate_phase for get persistent effect dynamic object for channel target
-    if (IsChanneledSpell(m_spellInfo) && m_duration)
-    {
-        m_spellState = SPELL_STATE_CHANNELING;
-        SendChannelStart(m_duration);
-
-        // Proc spell aura triggers on start of channeled spell
-        ProcSpellAuraTriggers();
-    }
-
-    for (auto& ihit : m_UniqueTargetInfo)
-        DoAllEffectOnTarget(&ihit);
+    for (TargetList::iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
+        DoAllEffectOnTarget(&(*ihit));
 
     for (auto& ihit : m_UniqueGOTargetInfo)
         DoAllEffectOnTarget(&ihit);
@@ -3556,6 +3549,20 @@ void Spell::_handle_immediate_phase()
         //summon a gameobject at the spell's destination xyz
         if (m_spellInfo->Effect[j] == SPELL_EFFECT_TRANS_DOOR && m_spellInfo->EffectImplicitTargetA[j] == TARGET_ENUM_GAMEOBJECTS_SCRIPT_AOE_AT_DEST_LOC)
             HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
+    }
+
+    // start channeling if applicable (after _handle_immediate_phase for get persistent effect dynamic object for channel target
+    if (IsChanneledSpell(m_spellInfo) && m_duration)
+    {
+        m_spellState = SPELL_STATE_CHANNELING;
+        SendChannelStart(m_duration);
+
+        // Proc spell aura triggers on start of channeled spell
+        ProcSpellAuraTriggers();
+
+        if (m_finalSpell)
+            if (Player* modOwner = m_caster->GetSpellModOwner())
+                modOwner->RemoveSpellMods(m_usedAuraCharges);
     }
 }
 
@@ -3744,7 +3751,14 @@ void Spell::update(uint32 difftime)
                     }
                 }
 
-                finish();
+                if (GetSpellSpeed() > 0.0f)
+                {
+                    // Okay, maps created, now prepare flags
+                    m_spellState = SPELL_STATE_TRAVELING;
+                    SetDelayStart(0);
+                }
+                else
+                    finish();
             }
         } break;
         default:

@@ -2064,7 +2064,7 @@ class Unit : public WorldObject
         float m_modAttackSpeedPct[3];
 
         // Event handler
-        EventProcessor m_Events;
+        EventProcessor m_events;
 
         // stat system
         bool HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, float amount, bool apply);
@@ -2337,9 +2337,9 @@ class Unit : public WorldObject
         MovementInfo m_movementInfo;
         Movement::MoveSpline* movespline;
 
-        void ScheduleAINotify(uint32 delay);
-        bool IsAINotifyScheduled() const { return m_AINotifyScheduled;}
-        void _SetAINotifyScheduled(bool on) { m_AINotifyScheduled = on;}       // only for call from RelocationNotifyEvent code
+        void ScheduleAINotify(uint32 delay, bool forced = false);
+        bool IsAINotifyScheduled() const { return bool(m_AINotifyEvent);}
+        void FinalizeAINotifyEvent() { m_AINotifyEvent = nullptr; }
         void OnRelocated();
 
         bool IsLinkingEventTrigger() { return m_isCreatureLinkingTrigger; }
@@ -2515,7 +2515,7 @@ class Unit : public WorldObject
 
         UnitVisibility m_Visibility;
         Position m_last_notified_position;
-        bool m_AINotifyScheduled;
+        BasicEvent* m_AINotifyEvent;
         ShortTimeTracker m_movesplineTimer;
 
         Diminishing m_Diminishing;

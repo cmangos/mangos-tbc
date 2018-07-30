@@ -333,7 +333,7 @@ Unit::Unit() :
     m_AuraFlags = 0;
 
     m_Visibility = VISIBILITY_ON;
-    m_AINotifyScheduled = false;
+    m_AINotifyEvent = nullptr;
 
     m_detectInvisibilityMask = 0;
     m_invisibilityMask = 0;
@@ -455,7 +455,7 @@ void Unit::Update(const uint32 diff)
     m_spellUpdateHappening = true;
 
     UpdateCooldowns(GetMap()->GetCurrentClockTime());
-    m_Events.Update(diff);
+    m_events.Update(diff);
     _UpdateSpells(diff);
     m_spellUpdateHappening = false;
 
@@ -8531,6 +8531,7 @@ void Unit::SetDeathState(DeathState s)
     else if (s == JUST_ALIVED)
     {
         RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);  // clear skinnable for creature and player (at battleground)
+        ScheduleAINotify(GetTypeId() == TYPEID_UNIT ? sWorld.getConfig(CONFIG_UINT32_CREATURE_RESPAWN_AGGRO_DELAY) : 0, true);
     }
 
     if (s != ALIVE && s != JUST_ALIVED)
@@ -9520,7 +9521,7 @@ void Unit::CleanupsBeforeDelete()
     if (m_uint32Values)                                     // only for fully created object
     {
         InterruptNonMeleeSpells(true);
-        m_Events.KillAllEvents(false);                      // non-delatable (currently casted spells) will not deleted now but it will deleted at call in Map::RemoveAllObjectsInRemoveList
+        m_events.KillAllEvents(false);                      // non-delatable (currently casted spells) will not deleted now but it will deleted at call in Map::RemoveAllObjectsInRemoveList
         CombatStop();
         ClearComboPointHolders();
         RemoveAllAuras(AURA_REMOVE_BY_DELETE);
@@ -10920,10 +10921,7 @@ bool Unit::IsAllowedDamageInArea(Unit* pVictim) const
 class UnitVisitObjectsInRangeNotifyEvent : public BasicEvent
 {
     public:
-        UnitVisitObjectsInRangeNotifyEvent(Unit& owner) : BasicEvent(), m_owner(owner)
-        {
-            m_owner._SetAINotifyScheduled(true);
-        }
+        UnitVisitObjectsInRangeNotifyEvent(Unit& owner) : BasicEvent(), m_owner(owner) {}
 
         bool Execute(uint64 /*e_time*/, uint32 /*p_time*/) override
         {
@@ -10941,23 +10939,32 @@ class UnitVisitObjectsInRangeNotifyEvent : public BasicEvent
                 MaNGOS::CreatureVisitObjectsNotifier notify(creature);
                 Cell::VisitAllObjects(&m_owner, notify, radius);
             }
-            m_owner._SetAINotifyScheduled(false);
+            m_owner.FinalizeAINotifyEvent();
             return true;
         }
 
         void Abort(uint64) override
         {
-            m_owner._SetAINotifyScheduled(false);
+            m_owner.FinalizeAINotifyEvent();
         }
 
     private:
         Unit & m_owner;
 };
 
-void Unit::ScheduleAINotify(uint32 delay)
+void Unit::ScheduleAINotify(uint32 delay, bool forced)
 {
     if (!IsAINotifyScheduled())
-        m_Events.AddEvent(new UnitVisitObjectsInRangeNotifyEvent(*this), m_Events.CalculateTime(delay));
+    {
+        m_AINotifyEvent = new UnitVisitObjectsInRangeNotifyEvent(*this);
+        m_events.AddEvent(m_AINotifyEvent, m_events.CalculateTime(delay));
+    }
+    else if (forced)
+    {
+        m_events.KillEvent(m_AINotifyEvent);
+        m_AINotifyEvent = new UnitVisitObjectsInRangeNotifyEvent(*this);
+        m_events.AddEvent(m_AINotifyEvent, m_events.CalculateTime(delay));
+    }
 }
 
 void Unit::OnRelocated()
@@ -11435,7 +11442,7 @@ void Unit::Uncharm(Unit* charmed)
             charmedCreature->ClearTemporaryFaction();
 
             charmed->AttackStop(true, true);
-            charmed->m_Events.KillAllEvents(true);
+            charmed->m_events.KillAllEvents(true);
 
             charmInfo->ResetCharmState();
             charmed->DeleteCharmInfo();
@@ -11456,7 +11463,7 @@ void Unit::Uncharm(Unit* charmed)
             for (auto attacker : friendlyTargets)
             {
                 attacker->AttackStop(true, true);
-                attacker->m_Events.KillAllEvents(true);
+                attacker->m_events.KillAllEvents(true);
                 attacker->getThreatManager().modifyThreatPercent(charmed, -101);     // only remove the possessed creature from threat list because it can be filled by other players
                 attacker->AddThreat(this);
             }
@@ -11604,8 +11611,8 @@ void Unit::InterruptSpellsCastedOnMe(bool killDelayed)
         if (!killDelayed)
             continue;
         // 2/ Interrupt spells that are not referenced but that still have an event (like delayed spell)
-        for (auto i_Events = target->m_Events.GetEvents().begin(); i_Events != target->m_Events.GetEvents().end(); ++i_Events)
-            if (SpellEvent* event = dynamic_cast<SpellEvent*>(i_Events->second))
+        for (auto i_events = target->m_events.GetEvents().begin(); i_events != target->m_events.GetEvents().end(); ++i_events)
+            if (SpellEvent* event = dynamic_cast<SpellEvent*>(i_events->second))
                 if (event && event->GetSpell()->m_targets.getUnitTargetGuid() == GetObjectGuid())
                     if (event->GetSpell()->getState() != SPELL_STATE_FINISHED)
                         event->GetSpell()->cancel();

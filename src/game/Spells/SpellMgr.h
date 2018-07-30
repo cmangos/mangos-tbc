@@ -1055,17 +1055,6 @@ inline bool IsPositiveSpell(uint32 spellId, const WorldObject* caster = nullptr,
     return IsPositiveSpell(sSpellTemplate.LookupEntry<SpellEntry>(spellId), caster, target);
 }
 
-inline bool IsSpellDoNotReportFailure(SpellEntry const* spellInfo)
-{
-    switch (spellInfo->Id)
-    {
-        case 32172:     // Thrallmars/Honor holds favor trigger spell
-            return true;
-        default:
-            return false;
-    }
-}
-
 inline void GetChainJumpRange(SpellEntry const* spellInfo, SpellEffectIndex effIdx, float& minSearchRangeCaster, float& maxSearchRangeTarget, float& jumpRadius)
 {
     const SpellRangeEntry* range = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);

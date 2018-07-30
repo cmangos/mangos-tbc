@@ -4962,7 +4962,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                              m_caster->GetBeneficiaryPlayer());
     if (locRes != SPELL_CAST_OK)
     {
-        if (!IsSpellDoNotReportFailure(m_spellInfo))
+        if (!m_IsTriggeredSpell)
             return locRes;
         return SPELL_FAILED_DONT_REPORT;
     }

@@ -31,18 +31,23 @@ enum
     EMOTE_GROUND_CRACK              = -1564012,
 
     // Spells
+    SPELL_MOLTEN_PUNCH              = 40126,
+    // Phase 1
     SPELL_HATEFUL_STRIKE            = 41926,
-    SPELL_CHARGE                    = 41581,
     SPELL_MOLTEN_FLAME              = 40980,
+    SPELL_BERSERK                   = 45078,
+    // Phase 2
+    SPELL_CHARGE                    = 41581,
     SPELL_VOLCANIC_ERUPTION_BOSS    = 40276,
     SPELL_VOLCANIC_ERUPTION_VOLCANO = 40117,
-    SPELL_MOLTEN_PUNCH              = 40126,
-    SPELL_BERSERK                   = 45078,
     SPELL_SLOW_SELF                 = 41922,
+    SPELL_RANDOM_TARGET             = 41951, // Serverside in tbc/wotlk - sometime later changed to Fixate and visible in client
 
     NPC_VOLCANO                     = 23085,
     NPC_STALKER                     = 23095,
 };
+
+// TODO: Threat reset between phases
 
 /* Non existed spells that were used in 3.2
  * Stalker:  40257 41930
@@ -277,7 +282,7 @@ struct boss_supremusAI : public ScriptedAI
 
             if (m_uiMoltenPunchTimer < uiDiff)
             {
-                if (m_creature->GetCombatDistance(m_creature->getVictim(), false) < RANGE_MOLTEN_PUNCH)
+                if (m_creature->GetDistance(m_creature->getVictim(), true, DIST_CALC_COMBAT_REACH) < RANGE_MOLTEN_PUNCH)
                 {
                     DoCastSpellIfCan(m_creature->getVictim(), SPELL_CHARGE);
                     DoScriptText(EMOTE_PUNCH_GROUND, m_creature);
@@ -299,17 +304,17 @@ struct boss_supremusAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_supremus(Creature* pCreature)
+UnitAI* GetAI_boss_supremus(Creature* pCreature)
 {
     return new boss_supremusAI(pCreature);
 }
 
-CreatureAI* GetAI_molten_flame(Creature* pCreature)
+UnitAI* GetAI_molten_flame(Creature* pCreature)
 {
     return new molten_flameAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_volcano(Creature* pCreature)
+UnitAI* GetAI_npc_volcano(Creature* pCreature)
 {
     return new npc_volcanoAI(pCreature);
 }

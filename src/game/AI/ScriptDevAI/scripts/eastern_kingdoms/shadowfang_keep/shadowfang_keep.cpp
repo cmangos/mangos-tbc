@@ -134,7 +134,7 @@ struct npc_shadowfang_prisonerAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_shadowfang_prisoner(Creature* pCreature)
+UnitAI* GetAI_npc_shadowfang_prisoner(Creature* pCreature)
 {
     return new npc_shadowfang_prisonerAI(pCreature);
 }
@@ -165,11 +165,6 @@ bool GossipSelect_npc_shadowfang_prisoner(Player* pPlayer, Creature* pCreature, 
 /*######
 ## mob_arugal_voidwalker
 ######*/
-
-struct Waypoint
-{
-    float fX, fY, fZ;
-};
 
 // Cordinates for voidwalker spawns
 static const Waypoint VWWaypoints[] =
@@ -370,7 +365,7 @@ struct mob_arugal_voidwalkerAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_arugal_voidwalker(Creature* pCreature)
+UnitAI* GetAI_mob_arugal_voidwalker(Creature* pCreature)
 {
     return new mob_arugal_voidwalkerAI(pCreature);
 }
@@ -662,7 +657,7 @@ struct boss_arugalAI : public ScriptedAI
 
     inline float GetVictimDistance()
     {
-        return (m_creature->getVictim() ? m_creature->GetDistance2d(m_creature->getVictim()) : 999.9f);
+        return (m_creature->getVictim() ? m_creature->GetDistance(m_creature->getVictim(), false) : 999.9f);
     }
 
     void StopAttacking()
@@ -691,7 +686,7 @@ struct boss_arugalAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_arugal(Creature* pCreature)
+UnitAI* GetAI_boss_arugal(Creature* pCreature)
 {
     return new boss_arugalAI(pCreature);
 }
@@ -812,7 +807,7 @@ struct npc_arugalAI : public ScriptedAI
     void AttackStart(Unit* /*who*/) override { }
 };
 
-CreatureAI* GetAI_npc_arugal(Creature* pCreature)
+UnitAI* GetAI_npc_arugal(Creature* pCreature)
 {
     return new npc_arugalAI(pCreature);
 }
@@ -873,7 +868,7 @@ struct npc_deathstalker_vincentAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_deathstalker_vincent(Creature* pCreature)
+UnitAI* GetAI_npc_deathstalker_vincent(Creature* pCreature)
 {
     return new npc_deathstalker_vincentAI(pCreature);
 }

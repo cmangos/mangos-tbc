@@ -71,13 +71,13 @@ struct npc_kayaAI : public npc_escortAI
                 DoScriptText(SAY_END, m_creature);
 
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_PROTECT_KAYA, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_PROTECT_KAYA, m_creature);
                 break;
         }
     }
 };
 
-CreatureAI* GetAI_npc_kaya(Creature* pCreature)
+UnitAI* GetAI_npc_kaya(Creature* pCreature)
 {
     return new npc_kayaAI(pCreature);
 }

@@ -1311,7 +1311,7 @@ struct boss_maievAI : public ScriptedAI, private DialogueHelper
         m_bHasYelledTrap      = false;
 
         // Not sure if this is correct, but she seems to ignore all the shadow damage inflicted
-        m_creature->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_SHADOW, true);
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_SHADOW, true);
     }
 
     void KilledUnit(Unit* pVictim) override
@@ -1325,7 +1325,6 @@ struct boss_maievAI : public ScriptedAI, private DialogueHelper
     void EnterEvadeMode() override
     {
         m_creature->RemoveAllAurasOnEvade();
-        m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
 
@@ -1648,37 +1647,37 @@ struct npc_blade_of_azzinothAI : public ScriptedAI
     void UpdateAI(const uint32 /*uiDiff*/) override { }
 };
 
-CreatureAI* GetAI_boss_illidan_stormrage(Creature* pCreature)
+UnitAI* GetAI_boss_illidan_stormrage(Creature* pCreature)
 {
     return new boss_illidan_stormrageAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_akama_illidan(Creature* pCreature)
+UnitAI* GetAI_npc_akama_illidan(Creature* pCreature)
 {
     return new npc_akama_illidanAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_maiev(Creature* pCreature)
+UnitAI* GetAI_boss_maiev(Creature* pCreature)
 {
     return new boss_maievAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_flame_of_azzinoth(Creature* pCreature)
+UnitAI* GetAI_mob_flame_of_azzinoth(Creature* pCreature)
 {
     return new npc_flame_of_azzinothAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_cage_trap_trigger(Creature* pCreature)
+UnitAI* GetAI_npc_cage_trap_trigger(Creature* pCreature)
 {
     return new npc_cage_trap_triggerAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_shadow_demon(Creature* pCreature)
+UnitAI* GetAI_npc_shadow_demon(Creature* pCreature)
 {
     return new npc_shadow_demonAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_blade_of_azzinoth(Creature* pCreature)
+UnitAI* GetAI_npc_blade_of_azzinoth(Creature* pCreature)
 {
     return new npc_blade_of_azzinothAI(pCreature);
 }

@@ -61,6 +61,9 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
         m_uiHolyfireTimer      = urand(8000, 25000);
         m_uiHolywrathTimer     = urand(15000, 25000);
         m_uiHolygroundTimer    = 3000;
+
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, true);
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -144,7 +147,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_maiden_of_virtue(Creature* pCreature)
+UnitAI* GetAI_boss_maiden_of_virtue(Creature* pCreature)
 {
     return new boss_maiden_of_virtueAI(pCreature);
 }

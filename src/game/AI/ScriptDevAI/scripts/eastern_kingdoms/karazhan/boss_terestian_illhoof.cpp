@@ -34,6 +34,7 @@ enum
     SAY_SACRIFICE2              = -1532070,
     SAY_SUMMON1                 = -1532071,
     SAY_SUMMON2                 = -1532072,
+    SAY_KILREK_DEATH            = -1532136,
 
     // spells
     SPELL_SUMMON_DEMONCHAINS    = 30120,                    // Summons demonic chains that maintain the ritual of sacrifice.
@@ -139,6 +140,7 @@ struct boss_terestianAI : public ScriptedAI
         switch (pSummoned->GetEntry())
         {
             case NPC_KILREK:
+                DoScriptText(SAY_KILREK_DEATH, pSummoned, pSummoned);
                 pSummoned->CastSpell(m_creature, SPELL_BROKEN_PACT, TRIGGERED_OLD_TRIGGERED);
                 m_uiSummonKilrekTimer = 30000;
                 break;
@@ -240,7 +242,7 @@ struct npc_fiendish_portalAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned) override
     {
-        pSummoned->ApplySpellImmune(0, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, true);
+        pSummoned->ApplySpellImmune(nullptr, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FIRE, true);
         pSummoned->SetInCombatWithZone();
     }
 
@@ -267,17 +269,17 @@ struct mob_demon_chainAI : public Scripted_NoMovementAI
     void UpdateAI(const uint32 /*uiDiff*/) override { }
 };
 
-CreatureAI* GetAI_boss_terestian_illhoof(Creature* pCreature)
+UnitAI* GetAI_boss_terestian_illhoof(Creature* pCreature)
 {
     return new boss_terestianAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_fiendish_portal(Creature* pCreature)
+UnitAI* GetAI_npc_fiendish_portal(Creature* pCreature)
 {
     return new npc_fiendish_portalAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_demon_chain(Creature* pCreature)
+UnitAI* GetAI_mob_demon_chain(Creature* pCreature)
 {
     return new mob_demon_chainAI(pCreature);
 }

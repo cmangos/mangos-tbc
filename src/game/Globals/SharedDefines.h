@@ -498,6 +498,12 @@ enum SpellAttributesEx6
     SPELL_ATTR_EX6_UNK31                       = 0x80000000,// 31 not set in 3.0.3
 };
 
+enum SpellAttributesServerside
+{
+    SPELL_ATTR_SS_PREVENT_INVIS                = 0x00000001,
+    SPELL_ATTR_SS_SEND_COOLDOWN                = 0x00000002,
+};
+
 enum SheathTypes
 {
     SHEATHETYPE_NONE                   = 0,
@@ -1113,10 +1119,10 @@ enum Targets
     TARGET_RIGHT_FROM_VICTIM           = 66,
     TARGET_LEFT_FROM_VICTIM            = 67,
     TARGET_70                          = 70,
-    TARGET_RANDOM_NEARBY_LOC           = 72,                // used in teleport onto nearby locations
-    TARGET_RANDOM_CIRCUMFERENCE_POINT  = 73,
-    TARGET_RANDOM_DEST_LOC             = 74,
-    TARGET_RANDOM_CIRCUMFERENCE_AROUND_TARGET = 75,                // TODO: Possibly reimplement
+    TARGET_RANDOM_DEST_CASTER          = 72,                // used in teleport onto nearby locations
+    TARGET_RANDOM_DEST_CASTER_CIRCUMFERENCE = 73,
+    TARGET_RANDOM_DEST_TARGET          = 74,
+    TARGET_RANDOM_DEST_TARGET_CIRCUMFERENCE = 75,                // TODO: Possibly reimplement
     TARGET_DYNAMIC_OBJECT_COORDINATES  = 76,
     TARGET_SINGLE_ENEMY                = 77,
     TARGET_POINT_AT_NORTH              = 78,                // 78-85 possible _COORDINATES at radius with pi/4 step around target in unknown order, N?
@@ -1128,7 +1134,7 @@ enum Targets
     TARGET_POINT_AT_SE                 = 84,                // from spell desc: "(SE)"
     TARGET_POINT_AT_SW                 = 85,                // from spell desc: "(SW)"
     TARGET_RANDOM_NEARBY_DEST          = 86,                // "Test Nearby Dest Random" - random around selected destination
-    TARGET_SELF2                       = 87,
+    TARGET_DEST_DESTINATION            = 87,
     TARGET_88                          = 88,                // Smoke Flare(s)
     TARGET_NONCOMBAT_PET               = 90,
 };
@@ -1190,7 +1196,8 @@ enum DamageEffectType
     HEAL                    = 3,
     NODAMAGE                = 4,                            //< used also in case when damage applied to health but not applied to spell channelInterruptFlags/etc
     SELF_DAMAGE_ROGUE_FALL  = 5,                            //< used to avoid rogue losing stealth on falling damage
-    SELF_DAMAGE             = 6
+    SELF_DAMAGE             = 6,
+    INSTAKILL               = 7,                            //< used to instakill - no message
 };
 
 enum GameobjectTypes
@@ -2264,8 +2271,8 @@ enum ChatMsg
     CHAT_MSG_BG_SYSTEM_HORDE        = 0x26,
     CHAT_MSG_RAID_LEADER            = 0x27,
     CHAT_MSG_RAID_WARNING           = 0x28,
-    CHAT_MSG_RAID_BOSS_WHISPER      = 0x29,
-    CHAT_MSG_RAID_BOSS_EMOTE        = 0x2A,
+    CHAT_MSG_RAID_BOSS_EMOTE        = 0x29,
+    CHAT_MSG_RAID_BOSS_WHISPER      = 0x2A,
     CHAT_MSG_FILTERED               = 0x2B,
     CHAT_MSG_BATTLEGROUND           = 0x2C,
     CHAT_MSG_BATTLEGROUND_LEADER    = 0x2D,
@@ -2336,19 +2343,16 @@ enum DiminishingGroup
     DIMINISHING_TRIGGER_ROOT,                               // Immobilizing effects from triggered spells like Frostbite
     DIMINISHING_FEAR,                                       // Non-warlock fears
     DIMINISHING_CHARM,
-    // Mage Specific
-    DIMINISHING_POLYMORPH,
     // Rogue Specific
     DIMINISHING_KIDNEYSHOT,                                 // Kidney Shot is not diminished with Cheap Shot
     // Warlock Specific
     DIMINISHING_DEATHCOIL,                                  // Death Coil Diminish only with another Death Coil
-    DIMINISHING_WARLOCK_FEAR,                               // Also with Sedduction
     // Shared Class Specific
+    DIMINISHING_POLYMORPH_KNOCKOUT,                         // Includes polymorph, sap and all knockout mechanics
     DIMINISHING_BLIND_CYCLONE,                              // From 2.3.0
     DIMINISHING_DISARM,                                     // From 2.3.0
     DIMINISHING_SILENCE,                                    // From 2.3.0
     DIMINISHING_FREEZE,                                     // Hunter's Freezing Trap
-    DIMINISHING_KNOCKOUT,                                   // Also with Sap, all Knockout mechanics are here
     DIMINISHING_BANISH,
     // Other
     // Don't Diminish, but limit duration to 10s

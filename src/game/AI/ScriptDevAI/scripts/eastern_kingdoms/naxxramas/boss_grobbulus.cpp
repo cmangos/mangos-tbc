@@ -199,7 +199,7 @@ struct boss_grobbulusAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_grobbulus(Creature* pCreature)
+UnitAI* GetAI_boss_grobbulus(Creature* pCreature)
 {
     return new boss_grobbulusAI(pCreature);
 }

@@ -130,7 +130,6 @@ struct boss_nalorakkAI : public ScriptedAI
     void EnterEvadeMode() override
     {
         m_creature->RemoveAllAurasOnEvade();
-        m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
 
@@ -293,7 +292,7 @@ struct boss_nalorakkAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_nalorakk(Creature* pCreature)
+UnitAI* GetAI_boss_nalorakk(Creature* pCreature)
 {
     return new boss_nalorakkAI(pCreature);
 }

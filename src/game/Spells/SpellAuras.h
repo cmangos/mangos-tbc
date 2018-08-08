@@ -61,6 +61,14 @@ struct Modifier
      * the Aura is removed
      */
     uint32 periodictime;
+    /**
+    * Tells how much amount increased during recent stacks change
+    */
+    int32 m_recentAmount;
+    /**
+    * Set at the beginning so that stack increases dont need to calculate spell values
+    */
+    int32 m_baseAmount;
 };
 
 class Unit;
@@ -100,8 +108,8 @@ class SpellAuraHolder
         DiminishingGroup getDiminishGroup() const { return m_AuraDRGroup; }
 
         uint32 GetStackAmount() const { return m_stackAmount; }
-        void SetStackAmount(uint32 stackAmount);
-        bool ModStackAmount(int32 num); // return true if last charge dropped
+        void SetStackAmount(uint32 stackAmount, Unit* newCaster);
+        bool ModStackAmount(int32 num, Unit* newCaster); // return true if last charge dropped
 
         Aura* GetAuraByEffectIndex(SpellEffectIndex index) const { return m_auras[index]; }
         SpellEntry const* GetTriggeredBy() const { return m_triggeredBy; }
@@ -159,15 +167,8 @@ class SpellAuraHolder
 
             UpdateAuraApplication();
         }
-        bool DropAuraCharge()                               // return true if last charge dropped
-        {
-            if (m_procCharges == 0)
-                return false;
 
-            --m_procCharges;
-            UpdateAuraApplication();
-            return m_procCharges == 0;
-        }
+        bool DropAuraCharge();                               // return true if last charge dropped
 
         time_t GetAuraApplyTime() const { return m_applyTime; }
 
@@ -195,6 +196,7 @@ class SpellAuraHolder
         void SetCreationDelayFlag();
     private:
         void UpdateAuraApplication();                       // called at charges or stack changes
+        void ClearExtraAuraInfo(Unit* caster);
 
         SpellEntry const* m_spellProto;
 
@@ -395,6 +397,7 @@ class Aura
         void HandleAuraMirrorImage(bool apply, bool Real);
         void HandleFactionOverride(bool apply, bool Real);
         void HandlePrayerOfMending(bool apply, bool Real);
+        void HandleAuraDetaunt(bool Apply, bool Real);
 
         virtual ~Aura();
 
@@ -426,6 +429,8 @@ class Aura
             return maxDuration > 0 && m_modifier.periodictime > 0 ? maxDuration / m_modifier.periodictime : 0;
         }
         uint32 GetStackAmount() const { return GetHolder()->GetStackAmount(); }
+
+        bool DropAuraCharge();                               // return true if last charge dropped
 
         void SetLoadedState(int32 damage, uint32 periodicTime)
         {
@@ -465,6 +470,11 @@ class Aura
         bool IsLastAuraOnHolder();
 
         bool HasMechanic(uint32 mechanic) const;
+
+        SpellModifier* GetSpellModifier() { return m_spellmod; }
+
+        void UseMagnet() { m_magnetUsed = true; }
+        bool IsMagnetUsed() { return m_magnetUsed; }
     protected:
         Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* currentBasePoints, SpellAuraHolder* holder, Unit* target, Unit* caster = nullptr, Item* castItem = nullptr);
 
@@ -494,6 +504,7 @@ class Aura
         bool m_isPeriodic: 1;
         bool m_isAreaAura: 1;
         bool m_isPersistent: 1;
+        bool m_magnetUsed: 1;
 
         SpellAuraHolder* const m_spellAuraHolder;
     private:

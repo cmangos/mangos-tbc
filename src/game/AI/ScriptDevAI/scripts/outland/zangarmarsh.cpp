@@ -75,7 +75,7 @@ struct npc_cooshcooshAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_cooshcoosh(Creature* pCreature)
+UnitAI* GetAI_npc_cooshcoosh(Creature* pCreature)
 {
     return new npc_cooshcooshAI(pCreature);
 }
@@ -143,7 +143,7 @@ struct npc_kayra_longmaneAI : public npc_escortAI
                 break;
             case 26:
                 DoScriptText(SAY_END, m_creature, pPlayer);
-                pPlayer->GroupEventHappens(QUEST_ESCAPE_FROM, m_creature);
+                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ESCAPE_FROM, m_creature);
                 m_creature->ForcedDespawn(10000);
                 break;
         }
@@ -165,7 +165,7 @@ bool QuestAccept_npc_kayra_longmane(Player* pPlayer, Creature* pCreature, const 
     return true;
 }
 
-CreatureAI* GetAI_npc_kayra_longmane(Creature* pCreature)
+UnitAI* GetAI_npc_kayra_longmane(Creature* pCreature)
 {
     return new npc_kayra_longmaneAI(pCreature);
 }
@@ -232,7 +232,7 @@ struct npc_fhwoorAI : public npc_escortAI
         m_bIsAmbush = false;
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -299,7 +299,7 @@ struct npc_fhwoorAI : public npc_escortAI
             case 93:
                 DoScriptText(SAY_ESCORT_COMPLETE, m_creature);
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_ID_FHWOOR_SMASH, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_FHWOOR_SMASH, m_creature);
                 break;
         }
     }
@@ -329,7 +329,7 @@ struct npc_fhwoorAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_fhwoor(Creature* pCreature)
+UnitAI* GetAI_npc_fhwoor(Creature* pCreature)
 {
     return new npc_fhwoorAI(pCreature);
 }

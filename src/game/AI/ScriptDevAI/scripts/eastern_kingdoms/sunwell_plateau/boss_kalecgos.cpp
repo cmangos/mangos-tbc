@@ -127,7 +127,6 @@ struct boss_kalecgosAI : public ScriptedAI
         if (m_bIsUncorrupted)
         {
             m_creature->RemoveAllAurasOnEvade();
-            m_creature->DeleteThreatList();
             m_creature->CombatStop(true);
             m_creature->LoadCreatureAddon(true);
 
@@ -207,7 +206,7 @@ struct boss_kalecgosAI : public ScriptedAI
         }
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
         if (eventType == AI_EVENT_CUSTOM_A && m_pInstance)
             m_pInstance->AddToSpectralRealm(pInvoker->GetObjectGuid());
@@ -426,7 +425,7 @@ struct boss_sathrovarrAI : public ScriptedAI
             pSummoned->AI()->AttackStart(m_creature);
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
         if (eventType == AI_EVENT_CUSTOM_A && m_pInstance)
             m_pInstance->AddToSpectralRealm(pInvoker->GetObjectGuid());
@@ -578,17 +577,17 @@ struct boss_kalecgos_humanoidAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_kalecgos(Creature* pCreature)
+UnitAI* GetAI_boss_kalecgos(Creature* pCreature)
 {
     return new boss_kalecgosAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_sathrovarr(Creature* pCreature)
+UnitAI* GetAI_boss_sathrovarr(Creature* pCreature)
 {
     return new boss_sathrovarrAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_kalecgos_humanoid(Creature* pCreature)
+UnitAI* GetAI_boss_kalecgos_humanoid(Creature* pCreature)
 {
     return new boss_kalecgos_humanoidAI(pCreature);
 }

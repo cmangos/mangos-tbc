@@ -228,6 +228,8 @@ struct boss_kaelthasAI : public ScriptedAI
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
 
+        m_attackDistance = 25.0f;
+
         SetCombatMovement(true);
     }
 
@@ -251,17 +253,6 @@ struct boss_kaelthasAI : public ScriptedAI
 
             if (m_pInstance)
                 m_pInstance->SetData(TYPE_KAELTHAS, IN_PROGRESS);
-        }
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 25.0f);
         }
     }
 
@@ -346,7 +337,7 @@ struct boss_kaelthasAI : public ScriptedAI
                 m_creature->SetLevitate(false);
                 m_creature->InterruptNonMeleeSpells(false);
                 m_creature->GetMotionMaster()->Clear();
-                DoStartMovement(m_creature->getVictim(), 25.0f);
+                DoStartMovement(m_creature->getVictim());
                 m_uiShockBarrierTimer = 10000;
                 m_uiPhase = PHASE_7_GRAVITY;
             }
@@ -798,10 +789,7 @@ struct advisor_base_ai : public ScriptedAI
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
             m_creature->GetMotionMaster()->Clear();
-            if (m_creature->GetEntry() == NPC_CAPERNIAN)
-                DoStartMovement(m_creature->getVictim(), 20.0f);
-            else
-                DoStartMovement(m_creature->getVictim());
+            DoStartMovement(m_creature->getVictim());
             m_bCanFakeDeath = false;
             m_bFakeDeath = false;
         }
@@ -834,7 +822,7 @@ struct boss_thaladred_the_darkenerAI : public advisor_base_ai
     void Aggro(Unit* pWho) override
     {
         DoScriptText(SAY_THALADRED_AGGRO, m_creature);
-        m_creature->TauntApply(pWho);
+        m_creature->FixateTarget(pWho);
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -856,7 +844,7 @@ struct boss_thaladred_the_darkenerAI : public advisor_base_ai
             if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 DoResetThreat();
-                m_creature->TauntApply(pTarget);
+                m_creature->FixateTarget(pTarget);
                 DoScriptText(EMOTE_THALADRED_GAZE, m_creature, pTarget);
             }
             m_uiGazeTimer = 10000;
@@ -958,19 +946,9 @@ struct boss_grand_astromancer_capernianAI : public advisor_base_ai
         m_uiConflagrationTimer   = 20000;
         m_uiArcaneExplosionTimer = 5000;
 
+        m_attackDistance = 20.0f;
+
         advisor_base_ai::Reset();
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-
-            m_creature->GetMotionMaster()->MoveChase(pWho, 20.0f);
-        }
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -1229,37 +1207,37 @@ struct mob_phoenix_egg_tkAI : public Scripted_NoMovementAI
     void UpdateAI(const uint32 /*uiDiff*/) override { }
 };
 
-CreatureAI* GetAI_boss_kaelthas(Creature* pCreature)
+UnitAI* GetAI_boss_kaelthas(Creature* pCreature)
 {
     return new boss_kaelthasAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_thaladred_the_darkener(Creature* pCreature)
+UnitAI* GetAI_boss_thaladred_the_darkener(Creature* pCreature)
 {
     return new boss_thaladred_the_darkenerAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_lord_sanguinar(Creature* pCreature)
+UnitAI* GetAI_boss_lord_sanguinar(Creature* pCreature)
 {
     return new boss_lord_sanguinarAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_grand_astromancer_capernian(Creature* pCreature)
+UnitAI* GetAI_boss_grand_astromancer_capernian(Creature* pCreature)
 {
     return new boss_grand_astromancer_capernianAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_master_engineer_telonicus(Creature* pCreature)
+UnitAI* GetAI_boss_master_engineer_telonicus(Creature* pCreature)
 {
     return new boss_master_engineer_telonicusAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_phoenix_tk(Creature* pCreature)
+UnitAI* GetAI_mob_phoenix_tk(Creature* pCreature)
 {
     return new mob_phoenix_tkAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_phoenix_egg_tk(Creature* pCreature)
+UnitAI* GetAI_mob_phoenix_egg_tk(Creature* pCreature)
 {
     return new mob_phoenix_egg_tkAI(pCreature);
 }

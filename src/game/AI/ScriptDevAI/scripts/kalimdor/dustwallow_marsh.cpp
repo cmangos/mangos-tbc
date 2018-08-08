@@ -70,7 +70,7 @@ struct mobs_risen_husk_spiritAI : public ScriptedAI
     void JustSummoned(Creature* pSummoned) override
     {
         if (m_pCreditPlayer)
-            m_pCreditPlayer->RewardPlayerAndGroupAtEvent(pSummoned->GetEntry(), pSummoned);
+            m_pCreditPlayer->RewardPlayerAndGroupAtEventCredit(pSummoned->GetEntry(), pSummoned);
     }
 
     void DamageTaken(Unit* pDoneBy, uint32& uiDamage, DamageEffectType /*damagetype*/) override
@@ -117,7 +117,7 @@ struct mobs_risen_husk_spiritAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mobs_risen_husk_spirit(Creature* pCreature)
+UnitAI* GetAI_mobs_risen_husk_spirit(Creature* pCreature)
 {
     return new mobs_risen_husk_spiritAI(pCreature);
 }
@@ -175,7 +175,7 @@ struct npc_restless_apparitionAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_restless_apparition(Creature* pCreature)
+UnitAI* GetAI_npc_restless_apparition(Creature* pCreature)
 {
     return new npc_restless_apparitionAI(pCreature);
 }
@@ -249,6 +249,7 @@ struct npc_morokkAI : public npc_escortAI
                     {
                         m_bIsSuccess = false;
                         DoScriptText(SAY_MOR_CHALLENGE, m_creature, pPlayer);
+                        m_creature->SetImmuneToPlayer(false);
                         SetReactState(REACT_AGGRESSIVE);
                         m_creature->setFaction(FACTION_MOR_HOSTILE);
                         AttackStart(pPlayer);
@@ -267,12 +268,12 @@ struct npc_morokkAI : public npc_escortAI
             {
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
-                    pPlayer->GroupEventHappens(QUEST_CHALLENGE_MOROKK, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_CHALLENGE_MOROKK, m_creature);
                     m_creature->setFaction(FACTION_MOR_RUNNING);
                     m_bIsSuccess = true;
                     m_creature->RemoveAllAurasOnEvade();
-                    m_creature->DeleteThreatList();
                     m_creature->CombatStop(true);
+                    m_creature->SetImmuneToPlayer(true);
                     SetEscortPaused(false);
                     SetReactState(REACT_PASSIVE);
                     DoScriptText(SAY_MOR_SCARED, m_creature);
@@ -285,7 +286,7 @@ struct npc_morokkAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_morokk(Creature* pCreature)
+UnitAI* GetAI_npc_morokk(Creature* pCreature)
 {
     return new npc_morokkAI(pCreature);
 }
@@ -555,7 +556,7 @@ struct npc_ogronAI : public npc_escortAI
                             {
                                 case 12:
                                     if (Player* pPlayer = GetPlayerForEscort())
-                                        pPlayer->GroupEventHappens(QUEST_QUESTIONING, m_creature);
+                                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_QUESTIONING, m_creature);
 
                                     DoScriptText(SAY_OGR_SURVIVE, m_creature);
                                     break;
@@ -602,7 +603,7 @@ bool QuestAccept_npc_ogron(Player* pPlayer, Creature* pCreature, const Quest* pQ
     return true;
 }
 
-CreatureAI* GetAI_npc_ogron(Creature* pCreature)
+UnitAI* GetAI_npc_ogron(Creature* pCreature)
 {
     return new npc_ogronAI(pCreature);
 }
@@ -681,7 +682,7 @@ struct npc_private_hendelAI : public ScriptedAI
         if (pSpell->Id == SPELL_TELEPORT)
         {
             if (Player* pPlayer = m_creature->GetMap()->GetPlayer(guidPlayer))
-                pPlayer->GroupEventHappens(QUEST_MISSING_DIPLO_PT16, m_creature);
+                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_MISSING_DIPLO_PT16, m_creature);
         }
     }
 
@@ -709,7 +710,6 @@ struct npc_private_hendelAI : public ScriptedAI
                 if ((*itr)->isAlive())
                 {
                     (*itr)->RemoveAllAurasOnEvade();
-                    (*itr)->DeleteThreatList();
                     (*itr)->CombatStop(true);
                     (*itr)->SetWalk(false);
                     (*itr)->GetMotionMaster()->MovePoint(0, fSentryFleePoint[0], fSentryFleePoint[1], fSentryFleePoint[2]);
@@ -766,7 +766,7 @@ bool QuestAccept_npc_private_hendel(Player* pPlayer, Creature* pCreature, const 
     return true;
 }
 
-CreatureAI* GetAI_npc_private_hendel(Creature* pCreature)
+UnitAI* GetAI_npc_private_hendel(Creature* pCreature)
 {
     return new npc_private_hendelAI(pCreature);
 }
@@ -816,7 +816,7 @@ struct npc_stinky_ignatzAI : public npc_escortAI
         }
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -861,7 +861,7 @@ struct npc_stinky_ignatzAI : public npc_escortAI
             case 39:
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
-                    pPlayer->GroupEventHappens(pPlayer->GetTeam() == ALLIANCE ? QUEST_ID_STINKYS_ESCAPE_ALLIANCE : QUEST_ID_STINKYS_ESCAPE_HORDE, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(pPlayer->GetTeam() == ALLIANCE ? QUEST_ID_STINKYS_ESCAPE_ALLIANCE : QUEST_ID_STINKYS_ESCAPE_HORDE, m_creature);
                     DoScriptText(SAY_STINKY_END, m_creature, pPlayer);
                 }
                 break;
@@ -880,7 +880,7 @@ struct npc_stinky_ignatzAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_stinky_ignatz(Creature* pCreature)
+UnitAI* GetAI_npc_stinky_ignatz(Creature* pCreature)
 {
     return new npc_stinky_ignatzAI(pCreature);
 }
@@ -989,7 +989,7 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
     {
         // quest complete and cleanup
         if (Player* pSummoner = m_creature->GetMap()->GetPlayer(m_summonerGuid))
-            pSummoner->GroupEventHappens(QUEST_ID_TETHYR, m_creature);
+            pSummoner->RewardPlayerAndGroupAtEventExplored(QUEST_ID_TETHYR, m_creature);
 
         // ToDo: trigger some fireworks!
         DoEncounterCleanup();
@@ -1159,7 +1159,7 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
     }
 };
 
-CreatureAI* GetAI_boss_tethyr(Creature* pCreature)
+UnitAI* GetAI_boss_tethyr(Creature* pCreature)
 {
     return new boss_tethyrAI(pCreature);
 }
@@ -1204,7 +1204,41 @@ struct npc_mottled_drywallow_crocoliskAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_mottled_drywallow_crocolisk(Creature* pCreature)
+/*######
+## at_sentry_point
+######*/
+
+enum SentryPoint
+{
+    QUEST_MISSING_DIPLO_PT14    = 1265,
+    SPELL_TELEPORT_VISUAL_2     = 799,  // TODO Find the correct spell
+    NPC_SENTRY_POINT_GUARD      = 5085
+};
+
+bool AreaTrigger_at_sentry_point(Player* pPlayer, const AreaTriggerEntry* /*pAt*/)
+{
+    QuestStatus quest_status = pPlayer->GetQuestStatus(QUEST_MISSING_DIPLO_PT14);
+    if (pPlayer->isDead() || quest_status == QUEST_STATUS_NONE || quest_status == QUEST_STATUS_COMPLETE)
+        return false;
+
+    if (!GetClosestCreatureWithEntry(pPlayer, NPC_TERVOSH, 100.0f))
+    {
+        if (Creature* pTervosh = pPlayer->SummonCreature(NPC_TERVOSH, -3476.51f, -4105.94f, 17.1f, 5.3816f, TEMPSPAWN_TIMED_DESPAWN, 60000))
+        {
+            pTervosh->CastSpell(pTervosh, SPELL_TELEPORT_VISUAL_2, TRIGGERED_OLD_TRIGGERED);
+
+            if (Creature* pGuard = GetClosestCreatureWithEntry(pTervosh, NPC_SENTRY_POINT_GUARD, 15.0f))
+            {
+                pGuard->SetFacingToObject(pTervosh);
+                pGuard->HandleEmote(EMOTE_ONESHOT_SALUTE);
+            }
+        }
+    }
+
+    return true;
+};
+
+UnitAI* GetAI_npc_mottled_drywallow_crocolisk(Creature* pCreature)
 {
     return new npc_mottled_drywallow_crocoliskAI(pCreature);
 }
@@ -1250,6 +1284,11 @@ void AddSC_dustwallow_marsh()
     pNewScript = new Script;
     pNewScript->Name = "at_nats_landing";
     pNewScript->pAreaTrigger = &AreaTrigger_at_nats_landing;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_sentry_point";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_sentry_point;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

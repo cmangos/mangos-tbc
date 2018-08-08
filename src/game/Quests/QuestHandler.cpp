@@ -368,12 +368,12 @@ void WorldSession::HandleQuestConfirmAccept(WorldPacket& recv_data)
 
         if (pQuest->IsAllowedInRaid())
         {
-            if (!_player->IsInSameRaidWith(pOriginalPlayer))
+            if (!_player->IsInGroup(pOriginalPlayer))
                 return;
         }
         else
         {
-            if (!_player->IsInSameGroupWith(pOriginalPlayer))
+            if (!_player->IsInParty(pOriginalPlayer))
                 return;
         }
 
@@ -616,6 +616,7 @@ void WorldSession::HandleQuestgiverStatusMultipleQuery(WorldPacket& /*recvPacket
 {
     DEBUG_LOG("WORLD: Received opcode CMSG_QUESTGIVER_STATUS_MULTIPLE_QUERY");
 
+    // TODO: Add parsing
     _player->SendQuestGiverStatusMultiple();
 }
 

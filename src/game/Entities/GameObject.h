@@ -120,7 +120,7 @@ struct GameObjectInfo
         {
             uint32 lockId;                                  //0 -> Lock.dbc
             uint32 level;                                   //1
-            uint32 radius;                                  //2 radius for trap activation
+            uint32 diameter;                                //2 radius for trap activation
             uint32 spellId;                                 //3
             uint32 charges;                                 //4 need respawn (if > 0)
             uint32 cooldown;                                //5 time in secs
@@ -425,7 +425,6 @@ struct GameObjectInfo
         {
             case GAMEOBJECT_TYPE_DOOR:       return !!door.noDamageImmune;
             case GAMEOBJECT_TYPE_BUTTON:     return !!button.noDamageImmune;
-            case GAMEOBJECT_TYPE_QUESTGIVER: return !!questgiver.noDamageImmune;
             case GAMEOBJECT_TYPE_GOOBER:     return !!goober.noDamageImmune;
             case GAMEOBJECT_TYPE_FLAGSTAND:  return !!flagstand.noDamageImmune;
             case GAMEOBJECT_TYPE_FLAGDROP:   return !!flagdrop.noDamageImmune;
@@ -647,13 +646,13 @@ class GameObject : public WorldObject
             m_respawnDelayTime = respawn > 0 ? uint32(respawn) : 0;
         }
         void Respawn();
-        bool isSpawned() const
+        bool IsSpawned() const
         {
             return m_respawnDelayTime == 0 ||
                    (m_respawnTime > 0 && !m_spawnedByDefault) ||
                    (m_respawnTime == 0 && m_spawnedByDefault);
         }
-        bool isSpawnedByDefault() const { return m_spawnedByDefault; }
+        bool IsSpawnedByDefault() const { return m_spawnedByDefault; }
         uint32 GetRespawnDelay() const { return m_respawnDelayTime; }
         void Refresh();
         void Delete();
@@ -677,7 +676,7 @@ class GameObject : public WorldObject
 
         void Use(Unit* user);
 
-        LootState getLootState() const { return m_lootState; }
+        LootState GetLootState() const { return m_lootState; }
         void SetLootState(LootState s);
 
         void AddToSkillupList(Player* player);

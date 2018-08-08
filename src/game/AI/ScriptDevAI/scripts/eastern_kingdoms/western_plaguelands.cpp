@@ -98,7 +98,7 @@ struct npc_the_scourge_cauldronAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_the_scourge_cauldron(Creature* pCreature)
+UnitAI* GetAI_npc_the_scourge_cauldron(Creature* pCreature)
 {
     return new npc_the_scourge_cauldronAI(pCreature);
 }
@@ -137,7 +137,7 @@ struct npc_anchorite_truuenAI: public npc_escortAI
 
     void Reset() override { }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -185,7 +185,7 @@ struct npc_anchorite_truuenAI: public npc_escortAI
                 m_creature->SummonCreature(NPC_GHOST_OF_UTHER, 972.96f, -1824.82f, 82.54f, 0.27f, TEMPSPAWN_TIMED_DESPAWN, 45000);
                 // complete the quest - the event continues with the dialogue
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_ID_TOMB_LIGHTBRINGER, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_TOMB_LIGHTBRINGER, m_creature);
                 break;
             case 39:
                 if (Creature* pUther = m_creature->GetMap()->GetCreature(m_utherGhostGuid))
@@ -213,7 +213,7 @@ struct npc_anchorite_truuenAI: public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_anchorite_truuen(Creature* pCreature)
+UnitAI* GetAI_npc_anchorite_truuen(Creature* pCreature)
 {
     return new npc_anchorite_truuenAI(pCreature);
 }
@@ -400,7 +400,6 @@ struct npc_taelan_fordringAI: public npc_escortAI, private DialogueHelper
         if (m_bTaelanDead)
         {
             m_creature->RemoveAllAurasOnEvade();
-            m_creature->DeleteThreatList();
             m_creature->CombatStop(true);
             m_creature->SetLootRecipient(nullptr);
 
@@ -437,7 +436,7 @@ struct npc_taelan_fordringAI: public npc_escortAI, private DialogueHelper
         }
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -655,7 +654,7 @@ struct npc_taelan_fordringAI: public npc_escortAI, private DialogueHelper
                 {
                     if (Player* pPlayer = GetPlayerForEscort())
                     {
-                        pPlayer->GroupEventHappens(QUEST_ID_IN_DREAMS, m_creature);
+                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_IN_DREAMS, m_creature);
                         pTirion->SetFacingToObject(pPlayer);
                     }
 
@@ -742,7 +741,7 @@ struct npc_taelan_fordringAI: public npc_escortAI, private DialogueHelper
     }
 };
 
-CreatureAI* GetAI_npc_taelan_fordring(Creature* pCreature)
+UnitAI* GetAI_npc_taelan_fordring(Creature* pCreature)
 {
     return new npc_taelan_fordringAI(pCreature);
 }
@@ -827,7 +826,6 @@ struct npc_isillienAI: public npc_escortAI
         if (m_bTaelanDead)
         {
             m_creature->RemoveAllAurasOnEvade();
-            m_creature->DeleteThreatList();
             m_creature->CombatStop(true);
             m_creature->SetLootRecipient(nullptr);
 
@@ -839,7 +837,7 @@ struct npc_isillienAI: public npc_escortAI
             npc_escortAI::EnterEvadeMode();
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
         if (pSender->GetEntry() != NPC_TAELAN_FORDRING)
             return;
@@ -944,7 +942,7 @@ struct npc_isillienAI: public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_isillien(Creature* pCreature)
+UnitAI* GetAI_npc_isillien(Creature* pCreature)
 {
     return new npc_isillienAI(pCreature);
 }
@@ -983,7 +981,6 @@ struct npc_tirion_fordringAI: public npc_escortAI
     void EnterEvadeMode() override
     {
         m_creature->RemoveAllAurasOnEvade();
-        m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         m_creature->SetLootRecipient(nullptr);
 
@@ -998,7 +995,7 @@ struct npc_tirion_fordringAI: public npc_escortAI
         Reset();
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
         if (pSender->GetEntry() != NPC_TAELAN_FORDRING)
             return;
@@ -1072,7 +1069,7 @@ struct npc_tirion_fordringAI: public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_tirion_fordring(Creature* pCreature)
+UnitAI* GetAI_npc_tirion_fordring(Creature* pCreature)
 {
     return new npc_tirion_fordringAI(pCreature);
 }

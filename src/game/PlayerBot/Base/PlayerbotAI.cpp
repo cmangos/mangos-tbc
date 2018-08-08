@@ -153,7 +153,7 @@ Player* PlayerbotAI::GetMaster() const
 bool PlayerbotAI::CanReachWithSpellAttack(Unit* target)
 {
     bool inrange = false;
-    float dist = m_bot->GetCombatDistance(target, false);
+    float dist = m_bot->GetDistance(target, true, DIST_CALC_COMBAT_REACH_WITH_MELEE);
 
     for (SpellRanges::iterator itr = m_spellRangeMap.begin(); itr != m_spellRangeMap.end(); ++itr)
     {
@@ -194,7 +194,7 @@ bool PlayerbotAI::In_Reach(Unit* Target, uint32 spellId)
         return false;
 
     float range = 0;
-    float dist = m_bot->GetCombatDistance(Target, false);
+    float dist = m_bot->GetDistance(Target, true, DIST_CALC_COMBAT_REACH_WITH_MELEE);
     SpellRanges::iterator it;
     it = m_spellRangeMap.find(spellId);
     (it != m_spellRangeMap.end()) ? range = it->second : range = 0;
@@ -3707,7 +3707,7 @@ void PlayerbotAI::DoLoot()
     GameObject* go = m_bot->GetMap()->GetGameObject(m_lootCurrent);
 
     // clear creature or object that is not spawned or if not creature or object
-    if ((c && c->IsDespawned()) || (go && !go->isSpawned()) || (!c && !go))
+    if ((c && c->IsDespawned()) || (go && !go->IsSpawned()) || (!c && !go))
     {
         m_lootCurrent = ObjectGuid();
         return;
@@ -6422,7 +6422,7 @@ void PlayerbotAI::findNearbyGO()
 
             float ground_z = map->GetHeightStatic(go->GetPositionX(), go->GetPositionY(), go->GetPositionZ());
             // DEBUG_LOG("ground_z (%f) > INVALID_HEIGHT (%f)",ground_z,INVALID_HEIGHT);
-            if ((ground_z > INVALID_HEIGHT) && go->isSpawned())
+            if ((ground_z > INVALID_HEIGHT) && go->IsSpawned())
                 m_lootTargets.push_back(go->GetObjectGuid());
         }
     }
@@ -6695,6 +6695,27 @@ void PlayerbotAI::FaceTarget(Unit* pTarget)
         m_bot->SetFacingTo(m_bot->GetAngle(pTarget));
 
     return;
+}
+
+/**
+ * IsImmuneToSchool()
+ * Playerbot wrapper to know if a target is immune or not to a specific damage school. This is used by the AI to prevent using an ability the target is immuned to
+ * return bool Returns true if bot's target is a creature with immunity to specified damage school
+ *
+ * params:target Unit* the target to check if it is immune
+ * params:schoolMask the school mask to be checked against the creature template or current spell immunity
+ * return false if the target is not immune, also return false by default
+ *
+ */
+bool PlayerbotAI::IsImmuneToSchool(Unit* target, SpellSchoolMask schoolMask)
+{
+    if (!target)
+        return false;
+
+    if (Creature* creature = (Creature*) target)
+            return creature->IsImmuneToDamage(schoolMask);
+
+    return false;
 }
 
 bool PlayerbotAI::CanStore()
@@ -10353,7 +10374,7 @@ void PlayerbotAI::_HandleCommandSurvey(std::string& /*text*/, Player& fromPlayer
             if (!go)
                 continue;
 
-            if (!go->isSpawned())
+            if (!go->IsSpawned())
                 continue;
 
             detectout << "|cFFFFFF00|Hfound:" << guid << ":" << entry  << ":" <<  "|h[" << go->GetGOInfo()->name << "]|h|r";

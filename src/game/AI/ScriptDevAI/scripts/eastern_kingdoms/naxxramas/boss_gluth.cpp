@@ -241,7 +241,7 @@ struct boss_gluthAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_gluth(Creature* pCreature)
+UnitAI* GetAI_boss_gluth(Creature* pCreature)
 {
     return new boss_gluthAI(pCreature);
 }

@@ -221,11 +221,10 @@ struct npc_dirty_larryAI : public ScriptedAI
         {
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
             SetReactState(REACT_PASSIVE);
-            m_creature->DeleteThreatList();
             m_creature->CombatStop();
 
             if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
-                pPlayer->GroupEventHappens(QUEST_WHAT_BOOK, m_creature);
+                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_WHAT_BOOK, m_creature);
 
             if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
             {
@@ -288,7 +287,7 @@ bool GossipSelect_npc_dirty_larry(Player* pPlayer, Creature* pCreature, uint32 /
     return true;
 }
 
-CreatureAI* GetAI_npc_dirty_larry(Creature* pCreature)
+UnitAI* GetAI_npc_dirty_larry(Creature* pCreature)
 {
     return new npc_dirty_larryAI(pCreature);
 }
@@ -579,7 +578,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_khadgars_servant(Creature* pCreature)
+UnitAI* GetAI_npc_khadgars_servant(Creature* pCreature)
 {
     return new npc_khadgars_servantAI(pCreature);
 }
@@ -613,7 +612,7 @@ struct npc_salsalabimAI : public ScriptedAI
         {
             if (m_creature->GetHealthPercent() < 20.0f)
             {
-                ((Player*)pDoneBy)->GroupEventHappens(QUEST_10004, m_creature);
+                ((Player*)pDoneBy)->RewardPlayerAndGroupAtEventExplored(QUEST_10004, m_creature);
                 uiDamage = 0;
                 EnterEvadeMode();
             }
@@ -637,7 +636,7 @@ struct npc_salsalabimAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_salsalabim(Creature* pCreature)
+UnitAI* GetAI_npc_salsalabim(Creature* pCreature)
 {
     return new npc_salsalabimAI(pCreature);
 }
@@ -662,18 +661,27 @@ bool GossipHello_npc_salsalabim(Player* pPlayer, Creature* pCreature)
 
 enum
 {
-    QUEST_KAELTHAS_AND_THE_VERDANT_SPHERE = 11007,
+    QUEST_KAELTHAS_AND_THE_VERDANT_SPHERE   = 11007,
+    QUEST_TRIAL_OF_THE_NAARU_MAGTHERIDON    = 10888,
+    QUEST_CUDGEL_OF_KARDESH                 = 10901,
+    TITLE_CHAMPION_OF_THE_NAARU             = 53,
 
     SCRIPT_RELAY_ID = 10061,
 };
 
-bool QuestRewarded_npc_adal(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
+bool QuestRewarded_npc_adal(Player* player, Creature* creature, Quest const* quest)
 {
-    if (pQuest->GetQuestId() == QUEST_KAELTHAS_AND_THE_VERDANT_SPHERE)
+    switch (quest->GetQuestId())
     {
-        sWorldState.HandleExternalEvent(CUSTOM_EVENT_ADALS_SONG_OF_BATTLE);
-        pPlayer->GetMap()->ScriptsStart(sRelayScripts, SCRIPT_RELAY_ID, pCreature, pPlayer, Map::SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE); // only once active per adal
-        return true; // handled
+        case QUEST_TRIAL_OF_THE_NAARU_MAGTHERIDON:
+            if (player->GetQuestStatus(QUEST_CUDGEL_OF_KARDESH) == QUEST_STATUS_COMPLETE)
+                player->SetTitle(TITLE_CHAMPION_OF_THE_NAARU);
+            break;
+        case QUEST_KAELTHAS_AND_THE_VERDANT_SPHERE:
+            sWorldState.HandleExternalEvent(CUSTOM_EVENT_ADALS_SONG_OF_BATTLE);
+            player->GetMap()->ScriptsStart(sRelayScripts, SCRIPT_RELAY_ID, creature, player, Map::SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE); // only once active per adal
+            return true; // handled
+            break;
     }
 
     return false; // unhandled

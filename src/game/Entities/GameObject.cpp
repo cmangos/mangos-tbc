@@ -170,7 +170,10 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
     SetUInt32Value(GAMEOBJECT_FLAGS, goinfo->flags);
 
     if (goinfo->type == GAMEOBJECT_TYPE_TRANSPORT)
+    {
         SetFlag(GAMEOBJECT_FLAGS, (GO_FLAG_TRANSPORT | GO_FLAG_NODESPAWN));
+        m_updateFlag |= UPDATEFLAG_TRANSPORT;
+    }
 
     SetEntry(goinfo->id);
     SetDisplayId(goinfo->displayId);
@@ -330,71 +333,74 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                 }
             }
 
-            if (isSpawned())
+            if (IsSpawned())
             {
                 // traps can have time and can not have
                 GameObjectInfo const* goInfo = GetGOInfo();
                 if (goInfo->type == GAMEOBJECT_TYPE_TRAP)   // traps
                 {
-                    if (m_cooldownTime >= time(nullptr))
-                        return;
-
-                    // FIXME: this is activation radius (in different casting radius that must be selected from spell data)
-                    // TODO: move activated state code (cast itself) to GO_ACTIVATED, in this place only check activating and set state
-                    float radius = float(goInfo->trap.radius);
-                    if (!radius)
+                    if (m_cooldownTime < time(nullptr))
                     {
-                        if (goInfo->trap.cooldown != 3)     // cast in other case (at some triggering/linked go/etc explicit call)
-                            return;
-                        else
+                        // FIXME: this is activation radius (in different casting radius that must be selected from spell data)
+                        // TODO: move activated state code (cast itself) to GO_ACTIVATED, in this place only check activating and set state
+                        float radius = float(goInfo->trap.diameter) / 2.0f;
+                        bool valid = true;
+                        if (!radius)
                         {
-                            if (m_respawnTime > 0)
-                                break;
-
-                            // battlegrounds gameobjects has data2 == 0 && data5 == 3
-                            radius = float(goInfo->trap.cooldown);
-                        }
-                    }
-
-                    // Should trap trigger?
-                    Unit* target = nullptr;                     // pointer to appropriate target if found any
-
-                    if (std::function<bool(Unit*)>* functor = sScriptDevAIMgr.OnTrapSearch(this))
-                    {
-                        MaNGOS::AnyUnitFulfillingConditionInRangeCheck u_check(this, *functor, radius);
-                        MaNGOS::UnitSearcher<MaNGOS::AnyUnitFulfillingConditionInRangeCheck> checker(target, u_check);
-                        Cell::VisitAllObjects(this, checker, radius);
-                    }
-                    else
-                    {
-                        switch (goInfo->trapCustom.triggerOn)
-                        {
-                            case 1: // friendly
+                            if (goInfo->trap.cooldown != 3)     // cast in other case (at some triggering/linked go/etc explicit call)
+                                valid = false;
+                            else
                             {
-                                MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(this, nullptr, radius);
-                                MaNGOS::UnitSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> checker(target, u_check);
-                                Cell::VisitAllObjects(this, checker, radius);
-                                break;
-                            }
-                            case 2: // all
-                            {
-                                MaNGOS::AnyUnitInObjectRangeCheck u_check(this, radius);
-                                MaNGOS::UnitSearcher<MaNGOS::AnyUnitInObjectRangeCheck> checker(target, u_check);
-                                Cell::VisitAllObjects(this, checker, radius);
-                                break;
-                            }
-                            default: // unfriendly
-                            {
-                                MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(this, radius);
-                                MaNGOS::UnitSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> checker(target, u_check);
-                                Cell::VisitAllObjects(this, checker, radius);
-                                break;
+                                if (m_respawnTime > 0)
+                                    valid = false;
+                                else // battlegrounds gameobjects has data2 == 0 && data5 == 3                                
+                                    radius = float(goInfo->trap.cooldown);
                             }
                         }
+
+                        if (valid)
+                        {
+                            // Should trap trigger?
+                            Unit* target = nullptr;                     // pointer to appropriate target if found any
+
+                            if (std::function<bool(Unit*)>* functor = sScriptDevAIMgr.OnTrapSearch(this))
+                            {
+                                MaNGOS::AnyUnitFulfillingConditionInRangeCheck u_check(this, *functor, radius);
+                                MaNGOS::UnitSearcher<MaNGOS::AnyUnitFulfillingConditionInRangeCheck> checker(target, u_check);
+                                Cell::VisitAllObjects(this, checker, radius);
+                            }
+                            else
+                            {
+                                switch (goInfo->trapCustom.triggerOn)
+                                {
+                                    case 1: // friendly
+                                    {
+                                        MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(this, nullptr, radius);
+                                        MaNGOS::UnitSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> checker(target, u_check);
+                                        Cell::VisitAllObjects(this, checker, radius);
+                                        break;
+                                    }
+                                    case 2: // all
+                                    {
+                                        MaNGOS::AnyUnitInObjectRangeCheck u_check(this, radius);
+                                        MaNGOS::UnitSearcher<MaNGOS::AnyUnitInObjectRangeCheck> checker(target, u_check);
+                                        Cell::VisitAllObjects(this, checker, radius);
+                                        break;
+                                    }
+                                    default: // unfriendly
+                                    {
+                                        MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(this, radius);
+                                        MaNGOS::UnitSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> checker(target, u_check);
+                                        Cell::VisitAllObjects(this, checker, radius);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (target && (!goInfo->trapCustom.triggerOn || !target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))) // do not trigger on hostile traps if not selectable
+                                Use(target);
+                        }
                     }
-                    
-                    if (target && (!goInfo->trapCustom.triggerOn || !target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))) // do not trigger on hostile traps if not selectable
-                        Use(target);
                 }
 
                 if (uint32 max_charges = goInfo->GetCharges())
@@ -513,7 +519,7 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
             }
 
             // Remove wild summoned after use
-            if (!HasStaticDBSpawnData() && (!GetSpellId() || GetGOInfo()->GetDespawnPossibility()))
+            if (!HasStaticDBSpawnData() && (!GetSpellId() || GetGOInfo()->GetDespawnPossibility() || GetGOInfo()->IsDespawnAtAction()))
             {
                 if (Unit* owner = GetOwner())
                     owner->RemoveGameObject(this, false);
@@ -587,7 +593,7 @@ void GameObject::Refresh()
     if (m_respawnTime > 0 && m_spawnedByDefault)
         return;
 
-    if (isSpawned())
+    if (IsSpawned())
         GetMap()->Add(this);
 }
 
@@ -844,7 +850,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
     if (!u->isGameMaster())
     {
         // despawned and then not visible for non-GM in GM-mode
-        if (!isSpawned())
+        if (!IsSpawned())
             return false;
 
         // special invisibility cases
@@ -860,7 +866,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
                     Player* ownerPlayer = (Player*)owner;
                     if ((GetMap()->IsBattleGroundOrArena() && ownerPlayer->GetBGTeam() != u->GetBGTeam()) ||
                             (ownerPlayer->IsInDuelWith(u)) ||
-                            (!ownerPlayer->IsInSameRaidWith(u)))
+                            (!ownerPlayer->IsInGroup(u)))
                         trapNotVisible = true;
                 }
                 else
@@ -1034,9 +1040,6 @@ void GameObject::TriggerLinkedGameObject(Unit* target) const
     // so it appears that using range from spell is obsolete.
     float range = 0.5f;
 
-    if (trapSpell)                                          // checked at load already
-        range = GetSpellMaxRange(sSpellRangeStore.LookupEntry(trapSpell->rangeIndex));
-
     // search nearest linked GO
     GameObject* trapGO = nullptr;
 
@@ -1066,7 +1069,7 @@ GameObject* GameObject::LookupFishingHoleAround(float range) const
 
 bool GameObject::IsCollisionEnabled() const
 {
-    if (!isSpawned())
+    if (!IsSpawned())
         return false;
 
     // TODO: Possible that this function must consider multiple checks
@@ -1218,7 +1221,7 @@ void GameObject::Use(Unit* user)
             Unit* caster = owner ? owner : user;
 
             GameObjectInfo const* goInfo = GetGOInfo();
-            float radius = float(goInfo->trap.radius);
+            float radius = float(goInfo->trap.diameter) / 2.0f;
             bool IsBattleGroundTrap = !radius && goInfo->trap.cooldown == 3 && m_respawnTime == 0;
 
             // FIXME: when GO casting will be implemented trap must cast spell to target
@@ -1419,7 +1422,7 @@ void GameObject::Use(Unit* user)
             if (player->GetObjectGuid() != GetOwnerGuid())
                 return;
 
-            switch (getLootState())
+            switch (GetLootState())
             {
                 case GO_READY:                              // ready for loot
                 {
@@ -1532,7 +1535,7 @@ void GameObject::Use(Unit* user)
                     return;
 
                 // accept only use by player from same group as owner, excluding owner itself (unique use already added in spell effect)
-                if (player == (Player*)owner || (info->summoningRitual.castersGrouped && !player->IsInSameRaidWith(((Player*)owner))))
+                if (player == (Player*)owner || (info->summoningRitual.castersGrouped && !player->IsInGroup(owner)))
                     return;
 
                 // expect owner to already be channeling, so if not...
@@ -1581,11 +1584,12 @@ void GameObject::Use(Unit* user)
                 if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
                     return;
 
-                if (user->GetTypeId() != TYPEID_PLAYER || !((Player*)user)->IsInSameRaidWith((Player*)caster))
+                if (user->GetTypeId() != TYPEID_PLAYER || !user->IsInGroup(caster))
                     return;
             }
 
-            spellId = info->spellcaster.spellId;
+            if (spellCaster->CastSpell(user, info->spellcaster.spellId, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid()) != SPELL_CAST_OK)
+                return;
 
             AddUse();
 
@@ -1594,7 +1598,7 @@ void GameObject::Use(Unit* user)
             // spellcaster GOs like city portals should never be locked
             if (info->spellcaster.charges && !GetUseCount())
                 SetUInt32Value(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
-            break;
+            return;
         }
         case GAMEOBJECT_TYPE_MEETINGSTONE:                  // 23
         {
@@ -1608,7 +1612,7 @@ void GameObject::Use(Unit* user)
             Player* targetPlayer = ObjectAccessor::FindPlayer(player->GetSelectionGuid());
 
             // accept only use by player from same group for caster except caster itself
-            if (!targetPlayer || targetPlayer == player || !targetPlayer->IsInSameRaidWith(player))
+            if (!targetPlayer || targetPlayer == player || !targetPlayer->IsInGroup(player))
                 return;
 
             // required lvl checks!
@@ -1794,7 +1798,7 @@ bool GameObject::IsHostileTo(Unit const* unit) const
                 return *force <= REP_HOSTILE;
 
             // apply reputation state
-            FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry(tester_faction->faction);
+            FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry<FactionEntry>(tester_faction->faction);
             if (raw_tester_faction && raw_tester_faction->reputationListID >= 0)
                 return ((Player const*)unit)->GetReputationMgr().GetRank(raw_tester_faction) <= REP_HOSTILE;
         }
@@ -1837,7 +1841,7 @@ bool GameObject::IsFriendlyTo(Unit const* unit) const
                 return *force >= REP_FRIENDLY;
 
             // apply reputation state
-            if (FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry(tester_faction->faction))
+            if (FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry<FactionEntry>(tester_faction->faction))
                 if (raw_tester_faction->reputationListID >= 0)
                     return ((Player const*)unit)->GetReputationMgr().GetRank(raw_tester_faction) >= REP_FRIENDLY;
         }

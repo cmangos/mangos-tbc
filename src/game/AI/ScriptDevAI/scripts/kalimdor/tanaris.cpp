@@ -127,7 +127,7 @@ struct mob_aquementasAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_aquementas(Creature* pCreature)
+UnitAI* GetAI_mob_aquementas(Creature* pCreature)
 {
     return new mob_aquementasAI(pCreature);
 }
@@ -216,7 +216,7 @@ struct npc_custodian_of_timeAI : public npc_escortAI
     void Reset() override { }
 };
 
-CreatureAI* GetAI_npc_custodian_of_time(Creature* pCreature)
+UnitAI* GetAI_npc_custodian_of_time(Creature* pCreature)
 {
     return new npc_custodian_of_timeAI(pCreature);
 }
@@ -277,7 +277,7 @@ struct npc_oox17tnAI : public npc_escortAI
             case 34:
                 DoScriptText(SAY_OOX_END, m_creature);
                 // Award quest credit
-                pPlayer->GroupEventHappens(QUEST_RESCUE_OOX_17TN, m_creature);
+                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_RESCUE_OOX_17TN, m_creature);
                 break;
         }
     }
@@ -316,7 +316,7 @@ struct npc_oox17tnAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_oox17tn(Creature* pCreature)
+UnitAI* GetAI_npc_oox17tn(Creature* pCreature)
 {
     return new npc_oox17tnAI(pCreature);
 }
@@ -445,7 +445,7 @@ struct npc_toogaAI : public FollowerAI
                 if (Player* pPlayer = GetLeaderForFollower())
                 {
                     if (pPlayer->GetQuestStatus(QUEST_TOOGA) == QUEST_STATUS_INCOMPLETE)
-                        pPlayer->GroupEventHappens(QUEST_TOOGA, m_creature);
+                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_TOOGA, m_creature);
                 }
 
                 pTorta = pWho;
@@ -535,7 +535,7 @@ struct npc_toogaAI : public FollowerAI
     }
 };
 
-CreatureAI* GetAI_npc_tooga(Creature* pCreature)
+UnitAI* GetAI_npc_tooga(Creature* pCreature)
 {
     return new npc_toogaAI(pCreature);
 }

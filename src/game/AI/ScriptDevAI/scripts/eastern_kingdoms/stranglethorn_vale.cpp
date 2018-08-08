@@ -65,7 +65,6 @@ struct mob_yennikuAI : public ScriptedAI
         if (m_uiResetTimer)
         {
             m_creature->RemoveAllAurasOnEvade();
-            m_creature->DeleteThreatList();
             m_creature->CombatStop(true);
             m_creature->LoadCreatureAddon(true);
 
@@ -99,7 +98,7 @@ struct mob_yennikuAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_yenniku(Creature* _Creature)
+UnitAI* GetAI_mob_yenniku(Creature* _Creature)
 {
     return new mob_yennikuAI(_Creature);
 }

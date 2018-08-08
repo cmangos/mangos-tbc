@@ -104,7 +104,7 @@ struct npc_galen_goodwardAI : public npc_escortAI
                     m_creature->SetFacingToObject(pPlayer);
                     DoScriptText(SAY_QUEST_COMPLETE, m_creature, pPlayer);
                     DoScriptText(EMOTE_WHISPER, m_creature, pPlayer);
-                    pPlayer->GroupEventHappens(QUEST_GALENS_ESCAPE, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_GALENS_ESCAPE, m_creature);
                 }
                 SetRun(true);
                 break;
@@ -145,7 +145,7 @@ bool QuestAccept_npc_galen_goodward(Player* pPlayer, Creature* pCreature, const 
     return true;
 }
 
-CreatureAI* GetAI_npc_galen_goodward(Creature* pCreature)
+UnitAI* GetAI_npc_galen_goodward(Creature* pCreature)
 {
     return new npc_galen_goodwardAI(pCreature);
 }

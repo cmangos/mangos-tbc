@@ -118,7 +118,7 @@ struct npc_aged_dying_ancient_kodoAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_aged_dying_ancient_kodo(Creature* pCreature)
+UnitAI* GetAI_npc_aged_dying_ancient_kodo(Creature* pCreature)
 {
     return new npc_aged_dying_ancient_kodoAI(pCreature);
 }
@@ -193,12 +193,12 @@ struct npc_dalinda_malemAI : public npc_escortAI
         if (uiPointId == 18)
         {
             if (Player* pPlayer = GetPlayerForEscort())
-                pPlayer->GroupEventHappens(QUEST_RETURN_TO_VAHLARRIEL, m_creature);
+                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_RETURN_TO_VAHLARRIEL, m_creature);
         }
     }
 };
 
-CreatureAI* GetAI_npc_dalinda_malem(Creature* pCreature)
+UnitAI* GetAI_npc_dalinda_malem(Creature* pCreature)
 {
     return new npc_dalinda_malemAI(pCreature);
 }
@@ -348,7 +348,7 @@ struct npc_melizza_brimbuzzleAI : public npc_escortAI, private DialogueHelper
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
                     DoScriptText(SAY_MELIZZA_FINISH, m_creature, pPlayer);
-                    pPlayer->GroupEventHappens(QUEST_GET_ME_OUT_OF_HERE, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_GET_ME_OUT_OF_HERE, m_creature);
                 }
 
                 m_creature->ClearTemporaryFaction();
@@ -376,7 +376,7 @@ struct npc_melizza_brimbuzzleAI : public npc_escortAI, private DialogueHelper
     }
 };
 
-CreatureAI* GetAI_npc_melizza_brimbuzzle(Creature* pCreature)
+UnitAI* GetAI_npc_melizza_brimbuzzle(Creature* pCreature)
 {
     return new npc_melizza_brimbuzzleAI(pCreature);
 }
@@ -468,7 +468,7 @@ struct npc_cork_gizeltonAI : public ScriptedAI
         uiQuestStatus = 0;
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
             m_playerGuid = pInvoker->GetObjectGuid();
@@ -538,7 +538,7 @@ struct npc_cork_gizeltonAI : public ScriptedAI
                     DoScriptText(SAY_CORK_END, m_creature);
                     // Award quest credit
                     if (pPlayer)
-                        pPlayer->GroupEventHappens(QUEST_BODYGUARD_TO_HIRE, m_creature);
+                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_BODYGUARD_TO_HIRE, m_creature);
                     // Remove player to avoid adds being spawned again next turn
                     m_playerGuid.Clear();
                     uiQuestStatus = 0;
@@ -575,7 +575,7 @@ struct npc_cork_gizeltonAI : public ScriptedAI
                         DoScriptText(SAY_RIGGER_END, pRigger);
                     // Award quest credit
                     if (pPlayer)
-                        pPlayer->GroupEventHappens(QUEST_GIZELTON_CARAVAN, m_creature);
+                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_GIZELTON_CARAVAN, m_creature);
                     // Remove player to avoid adds being spawned again next turn
                     m_playerGuid.Clear();
                     uiQuestStatus = 0;
@@ -622,7 +622,7 @@ struct npc_cork_gizeltonAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_cork_gizelton(Creature* pCreature)
+UnitAI* GetAI_npc_cork_gizelton(Creature* pCreature)
 {
     return new npc_cork_gizeltonAI(pCreature);
 }
@@ -654,7 +654,7 @@ struct npc_rigger_gizeltonAI : public ScriptedAI
     void Reset() override {}
 };
 
-CreatureAI* GetAI_npc_rigger_gizelton(Creature* pCreature)
+UnitAI* GetAI_npc_rigger_gizelton(Creature* pCreature)
 {
     return new npc_rigger_gizeltonAI(pCreature);
 }
@@ -754,7 +754,7 @@ struct npc_magrami_spectre : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_magrami_spectre(Creature* pCreature)
+UnitAI* GetAI_npc_magrami_spectre(Creature* pCreature)
 {
     return new npc_magrami_spectre(pCreature);
 }

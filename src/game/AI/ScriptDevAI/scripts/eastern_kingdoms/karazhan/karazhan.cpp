@@ -15,488 +15,828 @@
  */
 
 /* ScriptData
-SDName: Karazhan
-SD%Complete: 100
-SDComment: Quest support: 9645. Support for Barnes (Opera controller) and Berthold (Doorman).
+SDName: Instance_Karazhan
+SD%Complete: 70
+SDComment: Instance Script for Karazhan to help in various encounters.
 SDCategory: Karazhan
 EndScriptData */
 
-/* ContentData
-npc_barnes
-npc_berthold
-npc_image_of_medivh
-npc_image_arcanagos
-event_spell_medivh_journal
-EndContentData */
-
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "karazhan.h"
-#include "AI/ScriptDevAI/base/escort_ai.h"
 
-/*######
-# npc_barnesAI
-######*/
+/*
+0  - Attumen + Midnight (optional)
+1  - Moroes
+2  - Maiden of Virtue (optional)
+3  - Opera Event
+4  - Curator
+5  - Terestian Illhoof (optional)
+6  - Shade of Aran (optional)
+7  - Netherspite (optional)
+8  - Chess Event
+9  - Prince Malchezzar
+10 - Nightbane
+*/
 
-enum
+instance_karazhan::instance_karazhan(Map* pMap) : ScriptedInstance(pMap),
+    m_uiOperaEvent(0),
+    m_uiOzDeathCount(0),
+    m_uiTeam(0),
+    m_uiChessResetTimer(0),
+    m_uiChessEndingTimer(0),
+    m_uiAllianceStalkerCount(0),
+    m_uiHordeStalkerCount(0),
+    m_bFriendlyGame(false),
+    m_bBasementBossReady(false)
 {
-    SAY_BARNES_EVENT_START  = -1532115,
-
-    SAY_BARNES_OZ_1         = -1532103,
-    SAY_BARNES_OZ_2         = -1532104,
-    SAY_BARNES_OZ_3         = -1532105,
-    SAY_BARNES_OZ_4         = -1532106,
-
-    SAY_BARNES_HOOD_1       = -1532107,
-    SAY_BARNES_HOOD_2       = -1532108,
-    SAY_BARNES_HOOD_3       = -1532109,
-    SAY_BARNES_HOOD_4       = -1532110,
-
-    SAY_BARNES_RAJ_1        = -1532111,
-    SAY_BARNES_RAJ_2        = -1532112,
-    SAY_BARNES_RAJ_3        = -1532113,
-    SAY_BARNES_RAJ_4        = -1532114,
-
-    // ToDo: it's not very clear which is the gossip sequence for event FAIL case
-    GOSSIP_ITEM_OPERA_1     = -3532001,
-    GOSSIP_ITEM_OPERA_2     = -3532002,
-    GOSSIP_ITEM_JUL_WIPE    = -3532003,
-    GOSSIP_ITEM_WOLF_WIPE   = -3532004,
-
-    TEXT_ID_OPERA_1         = 8970,
-    TEXT_ID_OPERA_2         = 8971,
-    TEXT_ID_OPERA_WOLF_WIPE = 8975,
-    TEXT_ID_OPERA_OZ_WIPE   = 8781,             // guesswork, not confirmed
-    // TEXT_ID_OPERA_JUL_WIPE  = ????,           // Item not found in DB: "The romantic plays are really tough, but you'll do better this time. You have TALENT. Ready?"
-
-    // SPELL_SPOTLIGHT       = 25824,            // in creature_template_addon
-    SPELL_TUXEDO            = 32616,
-
-    NPC_SPOTLIGHT           = 19525,
-};
-
-static const DialogueEntry aIntroDialogue[] =
-{
-    {SAY_BARNES_OZ_1,   NPC_BARNES,  6000},
-    {SAY_BARNES_OZ_2,   NPC_BARNES,  18000},
-    {SAY_BARNES_OZ_3,   NPC_BARNES,  9000},
-    {SAY_BARNES_OZ_4,   NPC_BARNES,  15000},
-    {OPERA_EVENT_WIZARD_OZ, 0,       0},
-    {SAY_BARNES_HOOD_1, NPC_BARNES,  6000},
-    {SAY_BARNES_HOOD_2, NPC_BARNES,  10000},
-    {SAY_BARNES_HOOD_3, NPC_BARNES,  14000},
-    {SAY_BARNES_HOOD_4, NPC_BARNES,  15000},
-    {OPERA_EVENT_RED_RIDING_HOOD, 0, 0},
-    {SAY_BARNES_RAJ_1,  NPC_BARNES,  5000},
-    {SAY_BARNES_RAJ_2,  NPC_BARNES,  7000},
-    {SAY_BARNES_RAJ_3,  NPC_BARNES,  14000},
-    {SAY_BARNES_RAJ_4,  NPC_BARNES,  14000},
-    {OPERA_EVENT_ROMULO_AND_JUL, 0,  0},
-    {0, 0, 0},
-};
-
-struct npc_barnesAI : public npc_escortAI, private DialogueHelper
-{
-    npc_barnesAI(Creature* pCreature) : npc_escortAI(pCreature),
-        DialogueHelper(aIntroDialogue)
-    {
-        m_pInstance  = (instance_karazhan*)pCreature->GetInstanceData();
-        InitializeDialogueHelper(m_pInstance);
-        Reset();
-    }
-
-    instance_karazhan* m_pInstance;
-
-    ObjectGuid m_spotlightGuid;
-
-    void Reset() override
-    {
-        m_spotlightGuid.Clear();
-    }
-
-    void JustSummoned(Creature* pSummoned) override
-    {
-        if (pSummoned->GetEntry() == NPC_SPOTLIGHT)
-            m_spotlightGuid = pSummoned->GetObjectGuid();
-    }
-
-    void WaypointReached(uint32 uiPointId) override
-    {
-        if (!m_pInstance)
-            return;
-
-        switch (uiPointId)
-        {
-            case 0:
-                DoCastSpellIfCan(m_creature, SPELL_TUXEDO);
-                m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
-                break;
-            case 4:
-                switch (m_pInstance->GetData(TYPE_OPERA_PERFORMANCE))
-                {
-                    case OPERA_EVENT_WIZARD_OZ:
-                        StartNextDialogueText(SAY_BARNES_OZ_1);
-                        break;
-                    case OPERA_EVENT_RED_RIDING_HOOD:
-                        StartNextDialogueText(SAY_BARNES_HOOD_1);
-                        break;
-                    case OPERA_EVENT_ROMULO_AND_JUL:
-                        StartNextDialogueText(SAY_BARNES_RAJ_1);
-                        break;
-                }
-                SetEscortPaused(true);
-                m_creature->SummonCreature(NPC_SPOTLIGHT, 0, 0, 0, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
-                break;
-            case 8:
-                m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
-                break;
-            case 9:
-                m_pInstance->DoPrepareOperaStage(m_creature);
-                break;
-        }
-    }
-
-    void JustDidDialogueStep(int32 iEntry) override
-    {
-        switch (iEntry)
-        {
-            case OPERA_EVENT_WIZARD_OZ:
-            case OPERA_EVENT_RED_RIDING_HOOD:
-            case OPERA_EVENT_ROMULO_AND_JUL:
-                // Despawn spotlight and resume escort
-                if (Creature* pSpotlight = m_creature->GetMap()->GetCreature(m_spotlightGuid))
-                    pSpotlight->ForcedDespawn();
-                SetEscortPaused(false);
-                break;
-        }
-    }
-
-    void UpdateEscortAI(const uint32 uiDiff) { DialogueUpdate(uiDiff); }
-};
-
-CreatureAI* GetAI_npc_barnesAI(Creature* pCreature)
-{
-    return new npc_barnesAI(pCreature);
+    Initialize();
 }
 
-bool GossipHello_npc_barnes(Player* pPlayer, Creature* pCreature)
+void instance_karazhan::Initialize()
 {
-    if (ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData())
+    memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+}
+
+bool instance_karazhan::IsEncounterInProgress() const
+{
+    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
     {
-        // Check if opera event is not yet in progress
-        if (pInstance->GetData(TYPE_OPERA) == IN_PROGRESS || pInstance->GetData(TYPE_OPERA) == DONE)
+        if (m_auiEncounter[i] == IN_PROGRESS)
             return true;
-
-        // Check for death of Moroes
-        if (pInstance->GetData(TYPE_MOROES) == DONE)
-        {
-            pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_OPERA_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
-
-            // for GMs we add the possibility to change the event
-            if (pPlayer->isGameMaster())
-            {
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_OZ",   GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_HOOD", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
-                pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_RAJ",  GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 5);
-            }
-
-            pPlayer->SEND_GOSSIP_MENU(TEXT_ID_OPERA_1, pCreature->GetObjectGuid());
-
-            return true;
-        }
     }
 
-    return true;
+    return false;
 }
 
-bool GossipSelect_npc_barnes(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+void instance_karazhan::OnPlayerEnter(Player* pPlayer)
 {
-    switch (uiAction)
-    {
-        case GOSSIP_ACTION_INFO_DEF+1:
-            pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_OPERA_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
-            pPlayer->SEND_GOSSIP_MENU(TEXT_ID_OPERA_2, pCreature->GetObjectGuid());
-            break;
-        case GOSSIP_ACTION_INFO_DEF+2:
-            pPlayer->CLOSE_GOSSIP_MENU();
-            DoScriptText(SAY_BARNES_EVENT_START, pCreature);
-            // start the stage escort
-            if (npc_barnesAI* pBarnesAI = dynamic_cast<npc_barnesAI*>(pCreature->AI()))
-                pBarnesAI->Start(false, nullptr, nullptr, true);
-            break;
-        // GM gossip options
-        case GOSSIP_ACTION_INFO_DEF+3:
-            pPlayer->CLOSE_GOSSIP_MENU();
-            if (ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData())
-            {
-                pInstance->SetData(TYPE_OPERA_PERFORMANCE, OPERA_EVENT_WIZARD_OZ);
-                outstring_log("SD2: %s manually set Opera event to EVENT_OZ", pPlayer->GetGuidStr().c_str());
-            }
-            break;
-        case GOSSIP_ACTION_INFO_DEF+4:
-            pPlayer->CLOSE_GOSSIP_MENU();
-            if (ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData())
-            {
-                pInstance->SetData(TYPE_OPERA_PERFORMANCE, OPERA_EVENT_RED_RIDING_HOOD);
-                outstring_log("SD2: %s manually set Opera event to EVENT_HOOD", pPlayer->GetGuidStr().c_str());
-            }
-            break;
-        case GOSSIP_ACTION_INFO_DEF+5:
-            pPlayer->CLOSE_GOSSIP_MENU();
-            if (ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData())
-            {
-                pInstance->SetData(TYPE_OPERA_PERFORMANCE, OPERA_EVENT_ROMULO_AND_JUL);
-                outstring_log("SD2: %s manually set Opera event to EVENT_RAJ", pPlayer->GetGuidStr().c_str());
-            }
-            break;
-    }
+    if (!m_uiTeam)                                          // very first player to enter
+        m_uiTeam = pPlayer->GetTeam();
 
-    return true;
+    // If the opera event is already set, return
+    if (GetData(TYPE_OPERA_PERFORMANCE) != 0)
+        return;
+
+    // Set the Opera Performance type on the first player enter
+    SetData(TYPE_OPERA_PERFORMANCE, urand(OPERA_EVENT_WIZARD_OZ, OPERA_EVENT_ROMULO_AND_JUL));
 }
 
-/*######
-# npc_image_of_medivh
-######*/
-
-enum
+void instance_karazhan::OnCreatureCreate(Creature* pCreature)
 {
-    // yells
-    SAY_MEDIVH_1            = -1532116,
-    SAY_ARCANAGOS_2         = -1532117,
-    SAY_MEDIVH_3            = -1532118,
-    SAY_ARCANAGOS_4         = -1532119,
-    SAY_MEDIVH_5            = -1532120,
-    SAY_ARCANAGOS_6         = -1532121,
-    EMOTE_CAST_SPELL        = -1532122,
-    SAY_ARCANAGOS_7         = -1532123,
-    SAY_MEDIVH_8            = -1532124,
-
-    // spells
-    // Arcanagos
-    // SPELL_NOTIFY_FLEE     = 30985,            // not used - allow Medivh to return inside after the dragon has escaped
-    // SPELL_PREPARE_FIREBALL= 30970,            // not used - allow Medivh to cast fireball
-    SPELL_REFLECTION        = 30969,
-    // SPELL_SHOOT_FIREBALL  = 30968,            // not used
-    SPELL_FIREBALL_REFLECT  = 30971,
-
-    // Medivh
-    // SPELL_FROST_BREATH    = 30974,            // not used
-    SPELL_CONFLAG_BLAST     = 30977,            // cast on Arcanagos
-    SPELL_EVOCATION         = 30972,            // prepare the Conflagration Blast
-    SPELL_FIREBALL          = 30967,
-    // SPELL_FLY_TO_DEATH    = 30936,            // not used - inform the dragon to move to death Location
-    SPELL_MANA_SHIELD       = 30973,
-
-    // NPC_ARCANAGOS_CREDIT  = 17665,            // purpose unk
-
-    QUEST_MASTERS_TERRACE   = 9645,
-
-    POINT_ID_INTRO          = 1,
-    POINT_ID_DESPAWN        = 2,
-};
-
-/* Notes for future development of the event:
- * this whole event includes a lot of guesswork
- * the dummy spells usage is unk; for the moment they are not used
- * also all coords are guesswork
- */
-static const float afMedivhSpawnLoc[4] = { -11153.18f, -1889.65f, 91.47f, 2.07f};
-static const float afMedivhExitLoc[3] = { -11121.81f, -1881.24f, 91.47f};
-
-static const float afArcanagosSpawnLoc[4] = { -11242.66f, -1778.55f, 125.35f, 0.0f};
-static const float afArcanagosMoveLoc[3] = { -11170.28f, -1865.09f, 125.35f};
-static const float afArcanagosFleeLoc[3] = { -11003.70f, -1760.18f, 180.25f};
-
-static const DialogueEntry aMedivhDialogue[] =
-{
-    {NPC_IMAGE_OF_MEDIVH,   0,                      10000},
-    {SAY_MEDIVH_1,          NPC_IMAGE_OF_MEDIVH,    6000},
-    {SAY_ARCANAGOS_2,       NPC_IMAGE_OF_ARCANAGOS, 10000},
-    {SAY_MEDIVH_3,          NPC_IMAGE_OF_MEDIVH,    6000},
-    {SAY_ARCANAGOS_4,       NPC_IMAGE_OF_ARCANAGOS, 8000},
-    {SAY_MEDIVH_5,          NPC_IMAGE_OF_MEDIVH,    7000},
-    {SAY_ARCANAGOS_6,       NPC_IMAGE_OF_ARCANAGOS, 0},
-    {SPELL_MANA_SHIELD,     0,                      4000},
-    {EMOTE_CAST_SPELL,      NPC_IMAGE_OF_MEDIVH,    5000},
-    {SPELL_CONFLAG_BLAST,   0,                      1000},
-    {SAY_ARCANAGOS_7,       NPC_IMAGE_OF_ARCANAGOS, 10000},
-    {SAY_MEDIVH_8,          NPC_IMAGE_OF_MEDIVH,    0},
-    {0, 0, 0},
-};
-
-struct npc_image_of_medivhAI : public ScriptedAI, private DialogueHelper
-{
-    npc_image_of_medivhAI(Creature* pCreature) : ScriptedAI(pCreature),
-        DialogueHelper(aMedivhDialogue)
+    switch (pCreature->GetEntry())
     {
-        m_pInstance  = (instance_karazhan*)pCreature->GetInstanceData();
-        InitializeDialogueHelper(m_pInstance);
-        Reset();
+        case NPC_ATTUMEN:
+        case NPC_MIDNIGHT:
+        case NPC_MOROES:
+        case NPC_BARNES:
+        case NPC_NIGHTBANE:
+        case NPC_NETHERSPITE:
+        case NPC_JULIANNE:
+        case NPC_ROMULO:
+        case NPC_LADY_KEIRA_BERRYBUCK:
+        case NPC_LADY_CATRIONA_VON_INDI:
+        case NPC_LORD_CRISPIN_FERENCE:
+        case NPC_BARON_RAFE_DREUGER:
+        case NPC_BARONESS_DOROTHEA_MILLSTIPE:
+        case NPC_LORD_ROBIN_DARIS:
+        case NPC_IMAGE_OF_MEDIVH:
+        case NPC_IMAGE_OF_ARCANAGOS:
+        case NPC_ECHO_MEDIVH:
+        case NPC_CHESS_VICTORY_CONTROLLER:
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            break;
+        case NPC_VICTORY_DUMMY_TOOL:
+            m_vVictoryDummyTools.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_SQUARE_WHITE:
+        case NPC_SQUARE_BLACK:
+            m_vChessSquares.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_NIGHTBANE_HELPER:
+            if (pCreature->GetPositionZ() < 100.0f)
+                m_lNightbaneGroundTriggers.push_back(pCreature->GetObjectGuid());
+            else
+                m_lNightbaneAirTriggers.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_INVISIBLE_STALKER:
+            if (pCreature->GetPositionY() < -1870.0f)
+                m_lChessHordeStalkerList.push_back(pCreature->GetObjectGuid());
+            else
+                m_lChessAllianceStalkerList.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_CHESS_STATUS_BAR:
+            if (pCreature->GetPositionY() < -1870.0f)
+                m_HordeStatusGuid = pCreature->GetObjectGuid();
+            else
+                m_AllianceStatusGuid = pCreature->GetObjectGuid();
+            break;
+        case NPC_HUMAN_CHARGER:
+        case NPC_HUMAN_CLERIC:
+        case NPC_HUMAN_CONJURER:
+        case NPC_HUMAN_FOOTMAN:
+        case NPC_CONJURED_WATER_ELEMENTAL:
+        case NPC_KING_LLANE:
+            m_lChessPiecesAlliance.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_ORC_GRUNT:
+        case NPC_ORC_NECROLYTE:
+        case NPC_ORC_WARLOCK:
+        case NPC_ORC_WOLF:
+        case NPC_SUMMONED_DAEMON:
+        case NPC_WARCHIEF_BLACKHAND:
+            m_lChessPiecesHorde.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_INFERNAL_RELAY:
+            m_vInfernalRelays.push_back(pCreature->GetObjectGuid());
+            break;
     }
+}
 
-    instance_karazhan* m_pInstance;
-
-    ObjectGuid m_eventStarterGuid;
-
-    void Reset() override { }
-
-    void AttackStart(Unit* /*pWho*/) override { }
-    void MoveInLineOfSight(Unit* /*pWho*/) override { }
-
-    void JustSummoned(Creature* pSummoned) override
+void instance_karazhan::OnObjectCreate(GameObject* pGo)
+{
+    switch (pGo->GetEntry())
     {
-        if (pSummoned->GetEntry() == NPC_IMAGE_OF_ARCANAGOS)
-        {
-            pSummoned->SetLevitate(true);
-            pSummoned->SetWalk(false);
-            pSummoned->GetMotionMaster()->MovePoint(POINT_ID_INTRO, afArcanagosMoveLoc[0], afArcanagosMoveLoc[1], afArcanagosMoveLoc[2]);
-            pSummoned->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
-        }
-    }
+        case GO_STAGE_DOOR_LEFT:
+        case GO_STAGE_DOOR_RIGHT:
+            if (m_auiEncounter[3] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            break;
+        case GO_GAMESMANS_HALL_EXIT_DOOR:
+            if (m_auiEncounter[8] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            break;
+        case GO_SIDE_ENTRANCE_DOOR:
+            if (m_auiEncounter[3] == DONE)
+                pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+            break;
+        case GO_STAGE_CURTAIN:
+        case GO_PRIVATE_LIBRARY_DOOR:
+        case GO_MASSIVE_DOOR:
+        case GO_GAMESMANS_HALL_DOOR:
+        case GO_NETHERSPACE_DOOR:
+        case GO_DUST_COVERED_CHEST:
+        case GO_MASTERS_TERRACE_DOOR_1:
+        case GO_MASTERS_TERRACE_DOOR_2:
+        case GO_BLACKENED_URN:
+            break;
 
-    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiPointId) override
-    {
-        if (uiMotionType != POINT_MOTION_TYPE || pSummoned->GetEntry() != NPC_IMAGE_OF_ARCANAGOS)
+        // Opera event backgrounds
+        case GO_OZ_BACKDROP:
+        case GO_HOOD_BACKDROP:
+        case GO_HOOD_HOUSE:
+        case GO_RAJ_BACKDROP:
+        case GO_RAJ_MOON:
+        case GO_RAJ_BALCONY:
+            break;
+        case GO_OZ_HAY:
+            m_lOperaHayGuidList.push_back(pGo->GetObjectGuid());
             return;
-
-        switch (uiPointId)
-        {
-            case POINT_ID_INTRO:
-                StartNextDialogueText(NPC_IMAGE_OF_MEDIVH);
-                break;
-            case POINT_ID_DESPAWN:
-                pSummoned->ForcedDespawn();
-                m_creature->ForcedDespawn(10000);
-                m_creature->GetMotionMaster()->MovePoint(0, afMedivhExitLoc[0], afMedivhExitLoc[1], afMedivhExitLoc[2]);
-                // complete quest
-                if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_eventStarterGuid))
-                    pPlayer->GroupEventHappens(QUEST_MASTERS_TERRACE, m_creature);
-                break;
-        }
-    }
-
-    void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
-    {
-        if (pSpell->Id == SPELL_FIREBALL_REFLECT && pCaster->GetEntry() == NPC_IMAGE_OF_ARCANAGOS)
-        {
-            StartNextDialogueText(SPELL_MANA_SHIELD);
-            DoCastSpellIfCan(m_creature, SPELL_MANA_SHIELD);
-        }
-    }
-
-    void JustDidDialogueStep(int32 iEntry) override
-    {
-        if (!m_pInstance)
+        case GO_HOOD_TREE:
+            m_lOperaTreeGuidList.push_back(pGo->GetObjectGuid());
             return;
+        default:
+            return;
+    }
+    m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
+}
 
-        switch (iEntry)
-        {
-            case SAY_ARCANAGOS_6:
-                if (Creature* pDragon = m_pInstance->GetSingleCreatureFromStorage(NPC_IMAGE_OF_ARCANAGOS))
-                    DoCastSpellIfCan(pDragon, SPELL_FIREBALL);
-                break;
-            case EMOTE_CAST_SPELL:
-                DoCastSpellIfCan(m_creature, SPELL_EVOCATION);
-                break;
-            case SPELL_CONFLAG_BLAST:
-                m_creature->RemoveAurasDueToSpell(SPELL_EVOCATION);
-                if (Creature* pDragon = m_pInstance->GetSingleCreatureFromStorage(NPC_IMAGE_OF_ARCANAGOS))
+void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
+{
+    switch (uiType)
+    {
+        case TYPE_ATTUMEN:
+            m_auiEncounter[uiType] = uiData;
+            if (uiData == FAIL)
+            {
+                // Respawn Midnight on Fail
+                if (Creature* pMidnight = GetSingleCreatureFromStorage(NPC_MIDNIGHT))
                 {
-                    DoCastSpellIfCan(pDragon, SPELL_CONFLAG_BLAST, CAST_TRIGGERED);
-                    pDragon->GetMotionMaster()->MovePoint(POINT_ID_DESPAWN, afArcanagosFleeLoc[0], afArcanagosFleeLoc[1], afArcanagosFleeLoc[2]);
+                    if (!pMidnight->isAlive())
+                        pMidnight->Respawn();
                 }
+            }
+            break;
+        case TYPE_MOROES:
+        case TYPE_MAIDEN:
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_OPERA:
+            // Don't store the same data twice
+            if (uiData == m_auiEncounter[uiType])
                 break;
-        }
+            m_auiEncounter[uiType] = uiData;
+            if (uiData == IN_PROGRESS)
+                m_uiOzDeathCount = 0;
+            if (uiData == DONE)
+            {
+                DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
+                DoUseDoorOrButton(GO_STAGE_DOOR_RIGHT);
+                DoToggleGameObjectFlags(GO_SIDE_ENTRANCE_DOOR, GO_FLAG_LOCKED, false);
+            }
+            // use curtain only for event start or fail
+            else
+                DoUseDoorOrButton(GO_STAGE_CURTAIN);
+            break;
+        case TYPE_CURATOR:
+        case TYPE_TERESTIAN:
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_ARAN:
+            if (uiData == FAIL || uiData == DONE)
+                DoToggleGameObjectFlags(GO_PRIVATE_LIBRARY_DOOR, GO_FLAG_LOCKED, false);
+            if (uiData == IN_PROGRESS)
+                DoToggleGameObjectFlags(GO_PRIVATE_LIBRARY_DOOR, GO_FLAG_LOCKED, true);
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_NETHERSPITE:
+            m_auiEncounter[uiType] = uiData;
+            DoUseDoorOrButton(GO_MASSIVE_DOOR);
+            break;
+        case TYPE_CHESS:
+            if (uiData == DONE)
+                DoFinishChessEvent();
+            else if (uiData == FAIL)
+                DoFailChessEvent();
+            else if (uiData == IN_PROGRESS || uiData == SPECIAL)
+                DoPrepareChessEvent();
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_MALCHEZZAR:
+            DoUseDoorOrButton(GO_NETHERSPACE_DOOR);
+            m_auiEncounter[uiType] = uiData;
+            break;
+        case TYPE_NIGHTBANE:
+            m_auiEncounter[uiType] = uiData;
+            DoUseDoorOrButton(GO_MASTERS_TERRACE_DOOR_1);
+            DoUseDoorOrButton(GO_MASTERS_TERRACE_DOOR_2);
+            break;
+        // Store the event type for the Opera
+        case TYPE_OPERA_PERFORMANCE:
+            m_uiOperaEvent = uiData;
+            break;
     }
 
-    void SetEventStarter(ObjectGuid m_starterGuid) { m_eventStarterGuid = m_starterGuid; }
-
-    void UpdateAI(const uint32 uiDiff) { DialogueUpdate(uiDiff); }
-};
-
-CreatureAI* GetAI_npc_image_of_medivhAI(Creature* pCreature)
-{
-    return new npc_image_of_medivhAI(pCreature);
-}
-
-/*######
-# npc_image_arcanagos
-######*/
-
-struct npc_image_arcanagosAI : public ScriptedAI
-{
-    npc_image_arcanagosAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
-
-    void Reset() override { }
-
-    void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
+    // Also save the opera performance, once it's set
+    if (uiData == DONE || uiType == TYPE_OPERA_PERFORMANCE)
     {
-        if (pSpell->Id == SPELL_FIREBALL && pCaster->GetEntry() == NPC_IMAGE_OF_MEDIVH)
-        {
-            // !!!Workaround Alert!!! - the spell should be cast on Medivh without changing the unit flags!
-            pCaster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        OUT_SAVE_INST_DATA;
 
-            DoCastSpellIfCan(pCaster, SPELL_FIREBALL_REFLECT, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_REFLECTION, CAST_TRIGGERED);
+        std::ostringstream saveStream;
+        saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
+                   << m_auiEncounter[3] << " " << m_auiEncounter[4] << " " << m_auiEncounter[5] << " "
+                   << m_auiEncounter[6] << " " << m_auiEncounter[7] << " " << m_auiEncounter[8] << " "
+                   << m_auiEncounter[9] << " " << m_auiEncounter[10] << " " << m_uiOperaEvent;
 
-            pCaster->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-        }
+        m_strInstData = saveStream.str();
+
+        SaveToDB();
+        OUT_SAVE_INST_DATA_COMPLETE;
     }
-
-    void AttackStart(Unit* /*pWho*/) override { }
-    void MoveInLineOfSight(Unit* /*pWho*/) override { }
-    void UpdateAI(const uint32 /*uiDiff*/) override { }
-};
-
-CreatureAI* GetAI_npc_image_arcanagosAI(Creature* pCreature)
-{
-    return new npc_image_arcanagosAI(pCreature);
 }
 
-/*######
-# event_spell_medivh_journal
-######*/
-
-bool ProcessEventId_event_spell_medivh_journal(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
+uint32 instance_karazhan::GetData(uint32 uiType) const
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (uiType < MAX_ENCOUNTER)
+        return m_auiEncounter[uiType];
+
+    if (uiType == TYPE_OPERA_PERFORMANCE)
+        return m_uiOperaEvent;
+
+    return 0;
+}
+
+void instance_karazhan::SetData64(uint32 uiData, uint64 uiGuid)
+{
+    // Note: this is handled in Acid. The purpose is check which npc from the basement set is alive
+    // The function is triggered by eventAI on generic timer
+    if (uiData == DATA_BASEMENT_EVENT)
     {
-        // Summon Medivh and Arcanagos
-        if (Creature* pMedivh = ((Player*)pSource)->SummonCreature(NPC_IMAGE_OF_MEDIVH, afMedivhSpawnLoc[0], afMedivhSpawnLoc[1], afMedivhSpawnLoc[2], afMedivhSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0))
-        {
-            pMedivh->SummonCreature(NPC_IMAGE_OF_ARCANAGOS, afArcanagosSpawnLoc[0], afArcanagosSpawnLoc[1], afArcanagosSpawnLoc[2], afArcanagosSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0);
+        m_sBasementMobsSet.insert(ObjectGuid(uiGuid));
 
-            // store the player who started the event
-            if (npc_image_of_medivhAI* pMedivhAI = dynamic_cast<npc_image_of_medivhAI*>(pMedivh->AI()))
-                pMedivhAI->SetEventStarter(pSource->GetObjectGuid());
+        // only allow the event to progress when all mobs are spawned
+        if (m_sBasementMobsSet.size() >= MIN_BASEMENT_MOBS)
+            m_bBasementBossReady = true;
+    }
+}
+
+void instance_karazhan::Load(const char* chrIn)
+{
+    if (!chrIn)
+    {
+        OUT_LOAD_INST_DATA_FAIL;
+        return;
+    }
+
+    OUT_LOAD_INST_DATA(chrIn);
+
+    std::istringstream loadStream(chrIn);
+
+    loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
+               >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
+               >> m_auiEncounter[8] >> m_auiEncounter[9] >> m_auiEncounter[10] >> m_uiOperaEvent;
+
+    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    {
+        if (m_auiEncounter[i] == IN_PROGRESS)               // Do not load an encounter as "In Progress" - reset it instead.
+            m_auiEncounter[i] = NOT_STARTED;
+    }
+
+    if (m_auiEncounter[8] == DONE) // if chess event is done, enable friendly games
+    {
+        m_bFriendlyGame = true;
+    }
+
+    OUT_LOAD_INST_DATA_COMPLETE;
+}
+
+void instance_karazhan::OnCreatureDeath(Creature* pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_DOROTHEE:
+        case NPC_ROAR:
+        case NPC_TINHEAD:
+        case NPC_STRAWMAN:
+            ++m_uiOzDeathCount;
+            // Summon Chrone when all 4 Oz mobs are killed
+            if (m_uiOzDeathCount == MAX_OZ_OPERA_MOBS)
+            {
+                if (Creature* pCrone = pCreature->SummonCreature(NPC_CRONE, afChroneSpawnLoc[0], afChroneSpawnLoc[1], afChroneSpawnLoc[2], afChroneSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0))
+                {
+                    if (pCreature->getVictim())
+                        pCrone->AI()->AttackStart(pCreature->getVictim());
+                }
+            }
+            break;
+        case NPC_SHADOWBAT:
+        case NPC_GREATER_SHADOWBAT:
+        case NPC_VAMPIRIC_SHADOWBAT:
+        case NPC_PHASE_HOUND:
+        case NPC_DREADBEAST:
+        case NPC_SHADOWBEAST:
+        case NPC_COLDMIST_STALKER:
+        case NPC_COLDMIST_WIDOW:
+            // avoid exploiting the event
+            if (!m_bBasementBossReady)
+                break;
+
+            if (m_sBasementMobsSet.find(pCreature->GetObjectGuid()) != m_sBasementMobsSet.end())
+            {
+                m_sBasementMobsSet.erase(pCreature->GetObjectGuid());
+
+                // spawn boss when empty
+                if (m_sBasementMobsSet.empty())
+                {
+                    uint8 uiIndex = urand(0, 2);
+                    m_bBasementBossReady = false;
+
+                    if (Creature* pBoss = pCreature->SummonCreature(aBasementEnum[uiIndex].uiEntry, aBasementEnum[uiIndex].fX, aBasementEnum[uiIndex].fY, aBasementEnum[uiIndex].fZ,
+                                          aBasementEnum[uiIndex].fO, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 2 * HOUR * IN_MILLISECONDS, true))
+                    {
+                        if (aBasementEnum[uiIndex].emote2)
+                            DoScriptText(urand(0, 1) ? aBasementEnum[uiIndex].emote1 : aBasementEnum[uiIndex].emote2, pBoss);
+                        else
+                            DoScriptText(aBasementEnum[uiIndex].emote1, pBoss);
+                    }
+                }
+            }
+            break;
+    }
+}
+
+void instance_karazhan::DoPrepareChessEvent()
+{
+    // Allow all the chess pieces to init start position
+    for (GuidList::const_iterator itr = m_lChessPiecesAlliance.begin(); itr != m_lChessPiecesAlliance.end(); ++itr)
+    {
+        if (Creature* pChessPiece = instance->GetCreature(*itr))
+        {
+            Creature* pSquare = GetClosestCreatureWithEntry(pChessPiece, NPC_SQUARE_BLACK, 2.0f);
+            if (!pSquare)
+                pSquare = GetClosestCreatureWithEntry(pChessPiece, NPC_SQUARE_WHITE, 2.0f);
+            if (!pSquare)
+            {
+                script_error_log("Instance Karazhan: ERROR Failed to properly load the Chess square for %s.", pChessPiece->GetGuidStr().c_str());
+                return;
+            }
+
+            // send event which will prepare the current square
+            pChessPiece->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, pSquare, pChessPiece);
         }
     }
 
-    return true;
+    for (GuidList::const_iterator itr = m_lChessPiecesHorde.begin(); itr != m_lChessPiecesHorde.end(); ++itr)
+    {
+        if (Creature* pChessPiece = instance->GetCreature(*itr))
+        {
+            Creature* pSquare = GetClosestCreatureWithEntry(pChessPiece, NPC_SQUARE_BLACK, 2.0f);
+            if (!pSquare)
+                pSquare = GetClosestCreatureWithEntry(pChessPiece, NPC_SQUARE_WHITE, 2.0f);
+            if (!pSquare)
+            {
+                script_error_log("Instance Karazhan: ERROR Failed to properly load the Chess square for %s.", pChessPiece->GetGuidStr().c_str());
+                return;
+            }
+
+            // send event which will prepare the current square
+            pChessPiece->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, pSquare, pChessPiece);
+        }
+    }
+
+    // add silence debuff
+    Map::PlayerList const& players = instance->GetPlayers();
+    for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+    {
+        if (Player* pPlayer = itr->getSource())
+            pPlayer->CastSpell(pPlayer, SPELL_GAME_IN_SESSION, TRIGGERED_OLD_TRIGGERED);
+    }
+
+    m_uiAllianceStalkerCount = 0;
+    m_uiHordeStalkerCount = 0;
+    m_vHordeStalkers.clear();
+    m_vAllianceStalkers.clear();
+
+    // sort stalkers depending on side
+    std::list<Creature*> lStalkers;
+    for (GuidList::const_iterator itr = m_lChessHordeStalkerList.begin(); itr != m_lChessHordeStalkerList.end(); ++itr)
+    {
+        if (Creature* pTemp = instance->GetCreature(*itr))
+            lStalkers.push_back(pTemp);
+    }
+
+    if (lStalkers.empty())
+    {
+        script_error_log("Instance Karazhan: ERROR Failed to properly load the horde side stalkers for the Chess Event.");
+        return;
+    }
+
+    // get the proper statusBar npc
+    Creature* pStatusBar = instance->GetCreature(m_HordeStatusGuid);
+    if (!pStatusBar)
+        return;
+
+    lStalkers.sort(ObjectDistanceOrder(pStatusBar));
+    for (std::list<Creature*>::const_iterator itr = lStalkers.begin(); itr != lStalkers.end(); ++itr)
+        m_vHordeStalkers.push_back((*itr)->GetObjectGuid());
+
+    lStalkers.clear();
+    for (GuidList::const_iterator itr = m_lChessAllianceStalkerList.begin(); itr != m_lChessAllianceStalkerList.end(); ++itr)
+    {
+        if (Creature* pTemp = instance->GetCreature(*itr))
+            lStalkers.push_back(pTemp);
+    }
+
+    if (lStalkers.empty())
+    {
+        script_error_log("Instance Karazhan: ERROR Failed to properly load the alliance side stalkers for the Chess Event.");
+        return;
+    }
+
+    // get the proper statusBar npc
+    pStatusBar = instance->GetCreature(m_AllianceStatusGuid);
+    if (!pStatusBar)
+        return;
+
+    lStalkers.sort(ObjectDistanceOrder(pStatusBar));
+    for (std::list<Creature*>::const_iterator itr = lStalkers.begin(); itr != lStalkers.end(); ++itr)
+        m_vAllianceStalkers.push_back((*itr)->GetObjectGuid());
 }
 
-void AddSC_karazhan()
+void instance_karazhan::DoMoveChessPieceToSides(uint32 uiSpellId, uint32 uiFaction, bool bGameEnd /*= false*/)
+{
+    // assign proper faction variables
+    GuidVector& vStalkers = uiFaction == FACTION_ID_CHESS_ALLIANCE ? m_vAllianceStalkers : m_vHordeStalkers;
+    uint32 uiCount = uiFaction == FACTION_ID_CHESS_ALLIANCE ? m_uiAllianceStalkerCount : m_uiHordeStalkerCount;
+
+    // get the proper statusBar npc
+    Creature* pStatusBar = instance->GetCreature(uiFaction == FACTION_ID_CHESS_ALLIANCE ? m_AllianceStatusGuid : m_HordeStatusGuid);
+    if (!pStatusBar)
+        return;
+
+    if (vStalkers.size() < uiCount + 1)
+        return;
+
+    // handle stalker transformation
+    if (Creature* pStalker = instance->GetCreature(vStalkers[uiCount]))
+    {
+        // need to provide specific target, in order to ensure the logic of the event
+        pStatusBar->CastSpell(pStalker, uiSpellId, TRIGGERED_OLD_TRIGGERED);
+        uiFaction == FACTION_ID_CHESS_ALLIANCE ? ++m_uiAllianceStalkerCount : ++m_uiHordeStalkerCount;
+    }
+
+    // handle emote on end game
+    if (bGameEnd)
+    {
+        // inverse factions
+        vStalkers.clear();
+        vStalkers = uiFaction == FACTION_ID_CHESS_ALLIANCE ? m_vHordeStalkers : m_vAllianceStalkers;
+
+        for (GuidVector::const_iterator itr = vStalkers.begin(); itr != vStalkers.end(); ++itr)
+        {
+            if (Creature* pStalker = instance->GetCreature(*itr))
+                pStalker->HandleEmote(EMOTE_STATE_APPLAUD);
+        }
+    }
+}
+
+void instance_karazhan::DoFailChessEvent()
+{
+    // clean the board for reset
+    if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_ECHO_MEDIVH))
+    {
+        pMedivh->CastSpell(pMedivh, SPELL_GAME_OVER, TRIGGERED_OLD_TRIGGERED);
+        pMedivh->CastSpell(pMedivh, SPELL_CLEAR_BOARD, TRIGGERED_OLD_TRIGGERED);
+    }
+
+    // remove silence debuff
+    Map::PlayerList const& players = instance->GetPlayers();
+    for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+    {
+        if (Player* pPlayer = itr->getSource())
+            pPlayer->RemoveAurasDueToSpell(SPELL_GAME_IN_SESSION);
+    }
+
+    // chess figures stop attacking
+    for (ObjectGuid guid : m_lChessPiecesAlliance)
+    {
+        if (Creature* pTemp = instance->GetCreature(guid))
+        {
+            pTemp->RemoveAurasDueToSpell(32226); // remove attack timer
+            if (Unit* player = pTemp->GetCharmer())
+            {
+                player->RemoveAurasDueToSpell(30019); // remove charm effect on game end/fail
+            }
+        }
+    }
+    for (ObjectGuid guid : m_lChessPiecesHorde)
+    {
+        if (Creature* pTemp = instance->GetCreature(guid))
+        {
+            pTemp->RemoveAurasDueToSpell(32226);
+            if (Unit* player = pTemp->GetCharmer())
+            {
+                player->RemoveAurasDueToSpell(30019);
+            }
+        }
+    }
+
+    for (ObjectGuid guid : m_vChessSquares)
+    {
+        if (Creature* square = instance->GetCreature(guid))
+        {
+            square->RemoveAurasDueToSpell(32745); // remove occupied square spells
+            square->RemoveAurasDueToSpell(39400);
+        }
+    }
+
+    m_uiChessResetTimer = 35000;
+}
+
+void instance_karazhan::DoFinishChessEvent()
+{
+    // doors and loot are not handled for friendly games
+    if (GetData(TYPE_CHESS) != SPECIAL)
+    {
+        DoUseDoorOrButton(GO_GAMESMANS_HALL_EXIT_DOOR);
+        DoRespawnGameObject(GO_DUST_COVERED_CHEST, DAY);
+        DoToggleGameObjectFlags(GO_DUST_COVERED_CHEST, GO_FLAG_NO_INTERACT, false);
+    }
+
+    // cast game end spells
+    if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_ECHO_MEDIVH))
+    {
+        pMedivh->CastSpell(pMedivh, SPELL_FORCE_KILL_BUNNY, TRIGGERED_OLD_TRIGGERED);
+        pMedivh->CastSpell(pMedivh, SPELL_GAME_OVER, TRIGGERED_OLD_TRIGGERED);
+        pMedivh->CastSpell(pMedivh, SPELL_CLEAR_BOARD, TRIGGERED_OLD_TRIGGERED);
+    }    
+
+    // remove silence debuff
+    Map::PlayerList const& players = instance->GetPlayers();
+    for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+    {
+        if (Player* pPlayer = itr->getSource())
+            pPlayer->RemoveAurasDueToSpell(SPELL_GAME_IN_SESSION);
+    }
+
+    // chess figures stop attacking
+    for (ObjectGuid guid : m_lChessPiecesAlliance)
+    {
+        if (Creature* pTemp = instance->GetCreature(guid))
+        {
+            pTemp->RemoveAurasDueToSpell(32226); // remove attack timer
+            if (Unit* player = pTemp->GetCharmer())
+            {
+                player->RemoveAurasDueToSpell(30019); // remove charm effect on game end/fail
+            }
+        }
+    }
+    for (ObjectGuid guid : m_lChessPiecesHorde)
+    {
+        if (Creature* pTemp = instance->GetCreature(guid))
+        {
+            pTemp->RemoveAurasDueToSpell(32226);
+            if (Unit* player = pTemp->GetCharmer())
+            {
+                player->RemoveAurasDueToSpell(30019);
+            }
+        }
+    }
+
+    for (ObjectGuid guid : m_vChessSquares)
+    {
+        if (Creature* square = instance->GetCreature(guid))
+        {
+            square->RemoveAurasDueToSpell(32745); // remove occupied square spells
+            square->RemoveAurasDueToSpell(39400);
+        }
+    }
+
+    m_bFriendlyGame = false;
+    m_uiChessResetTimer = 35000;
+    m_uiChessEndingTimer = 30000;
+}
+
+void instance_karazhan::DoPrepareOperaStage(Creature* pOrganizer)
+{
+    if (!pOrganizer)
+        return;
+
+    debug_log("SD2: Barnes Opera Event - Introduction complete - preparing encounter %d", GetData(TYPE_OPERA_PERFORMANCE));
+
+    // summon the bosses and respawn the stage background
+    switch (GetData(TYPE_OPERA_PERFORMANCE))
+    {
+        case OPERA_EVENT_WIZARD_OZ:
+            for (uint8 i = 0; i < MAX_OZ_OPERA_MOBS; ++i)
+                pOrganizer->SummonCreature(aOperaLocOz[i].uiEntry, aOperaLocOz[i].fX, aOperaLocOz[i].fY, aOperaLocOz[i].fZ, aOperaLocOz[i].fO, TEMPSPAWN_DEAD_DESPAWN, 0);
+            DoRespawnGameObject(GO_OZ_BACKDROP, 12 * HOUR);
+            for (GuidList::const_iterator itr = m_lOperaHayGuidList.begin(); itr != m_lOperaHayGuidList.end(); ++itr)
+                DoRespawnGameObject(*itr, 12 * HOUR);
+            break;
+        case OPERA_EVENT_RED_RIDING_HOOD:
+            pOrganizer->SummonCreature(aOperaLocWolf.uiEntry, aOperaLocWolf.fX, aOperaLocWolf.fY, aOperaLocWolf.fZ, aOperaLocWolf.fO, TEMPSPAWN_DEAD_DESPAWN, 0);
+            DoRespawnGameObject(GO_HOOD_BACKDROP, 12 * HOUR);
+            DoRespawnGameObject(GO_HOOD_HOUSE,    12 * HOUR);
+            for (GuidList::const_iterator itr = m_lOperaTreeGuidList.begin(); itr != m_lOperaTreeGuidList.end(); ++itr)
+                DoRespawnGameObject(*itr, 12 * HOUR);
+            break;
+        case OPERA_EVENT_ROMULO_AND_JUL:
+            pOrganizer->SummonCreature(aOperaLocJul.uiEntry, aOperaLocJul.fX, aOperaLocJul.fY, aOperaLocJul.fZ, aOperaLocJul.fO, TEMPSPAWN_DEAD_DESPAWN, 0);
+            DoRespawnGameObject(GO_RAJ_BACKDROP, 12 * HOUR);
+            DoRespawnGameObject(GO_RAJ_MOON,     12 * HOUR);
+            DoRespawnGameObject(GO_RAJ_BALCONY,  12 * HOUR);
+            break;
+    }
+
+    SetData(TYPE_OPERA, IN_PROGRESS);
+}
+
+void instance_karazhan::Update(uint32 uiDiff)
+{
+    if (m_uiChessResetTimer)
+    {
+        // respawn all chess pieces and side stalkers on the original position
+        if (m_uiChessResetTimer <= uiDiff)
+        {
+            for (GuidList::const_iterator itr = m_lChessPiecesAlliance.begin(); itr != m_lChessPiecesAlliance.end(); ++itr)
+            {
+                if (Creature* pTemp = instance->GetCreature(*itr))
+                    pTemp->Respawn();
+            }
+            for (GuidList::const_iterator itr = m_lChessPiecesHorde.begin(); itr != m_lChessPiecesHorde.end(); ++itr)
+            {
+                if (Creature* pTemp = instance->GetCreature(*itr))
+                    pTemp->Respawn();
+            }
+
+            for (GuidList::const_iterator itr = m_lChessAllianceStalkerList.begin(); itr != m_lChessAllianceStalkerList.end(); ++itr)
+            {
+                if (Creature* pTemp = instance->GetCreature(*itr))
+                {
+                    pTemp->Respawn();
+                    pTemp->HandleEmote(EMOTE_STATE_NONE);
+                }
+            }
+            for (GuidList::const_iterator itr = m_lChessHordeStalkerList.begin(); itr != m_lChessHordeStalkerList.end(); ++itr)
+            {
+                if (Creature* pTemp = instance->GetCreature(*itr))
+                {
+                    pTemp->Respawn();
+                    pTemp->HandleEmote(EMOTE_STATE_NONE);
+                }
+            }
+
+            if (GetData(TYPE_CHESS) == FAIL)
+                SetData(TYPE_CHESS, NOT_STARTED);
+            else if (GetData(TYPE_CHESS) == DONE)
+                m_bFriendlyGame = true;
+
+            m_uiChessResetTimer = 0;
+        }
+        else
+            m_uiChessResetTimer -= uiDiff;
+    }
+
+    if (m_uiChessEndingTimer)
+    {
+        if (m_uiChessEndingTimer <= uiDiff)
+        {
+            m_uiChessEndingTimer = 0;
+        }
+        else
+        {
+            if (m_uiChessEndingTimer == 30000) // pick first 4 spots for visual
+            {
+                m_uiVictoryControllerTimer = 1000;
+                bool tools[8];
+
+                for (uint32 i = 0; i < 8; ++i)
+                {
+                    m_uiVictoryToolTimers[i] = 0;
+                    tools[i] = false;
+                    m_uiVictoryTimersPhase[i] = false;
+                }
+
+                if (Creature* pController = GetSingleCreatureFromStorage(NPC_CHESS_VICTORY_CONTROLLER))
+                    pController->CastSpell(pController, SPELL_VICTORY_VISUAL, TRIGGERED_OLD_TRIGGERED);
+
+                uint8 previous = 0;
+                for (uint32 i = 0; i < 4; ++i)
+                {
+                    int k;
+                    previous = (previous + urand(0, 7)) % 8;
+                    for (k = previous; tools[k % 8] == true && k < 16; ++k);
+                    previous = k % 8;
+                    tools[previous] = true;
+                    m_uiVictoryToolTimers[previous] = urand(4, 6) * 500;
+                }
+
+                for (uint32 i = 0; i < 8; i++)
+                {
+                    if (tools[i])
+                    {
+                        if (Creature* tool = instance->GetCreature(m_vVictoryDummyTools[i]))
+                            tool->CastSpell(tool, SPELL_BOARD_VISUAL, TRIGGERED_OLD_TRIGGERED);
+                    }
+                    else
+                        m_uiVictoryToolTimers[i] = urand(4, 6) * 500;
+                }
+            }
+            else
+            {
+                if (m_uiVictoryControllerTimer <= uiDiff) // randomized visual all over the chess board
+                {
+                    m_uiVictoryControllerTimer = 1000;
+                    if (Creature* pController = GetSingleCreatureFromStorage(NPC_CHESS_VICTORY_CONTROLLER))
+                        pController->CastSpell(pController, SPELL_VICTORY_VISUAL, TRIGGERED_NONE);
+                }
+                else
+                    m_uiVictoryControllerTimer -= uiDiff;
+
+                for (uint32 i = 0; i < 8; i++)
+                {
+                    if (m_uiVictoryToolTimers[i] <= uiDiff)
+                    {                   
+                        if (m_uiVictoryTimersPhase[i] == false)
+                        {
+                            if (Creature* tool = instance->GetCreature(m_vVictoryDummyTools[i]))
+                            {
+                                if (Creature* square = instance->GetCreature(m_vChessSquares[urand(0, m_vChessSquares.size()-1)]))
+                                    tool->NearTeleportTo(square->GetPositionX(), square->GetPositionY(), square->GetPositionZ(), square->GetOrientation());
+                            }
+
+                            m_uiVictoryToolTimers[i] = 500;
+                            m_uiVictoryTimersPhase[i] = true;
+                        }
+                        else
+                        {
+                            m_uiVictoryToolTimers[i] = urand(4, 6) * 500;
+                            m_uiVictoryTimersPhase[i] = false;
+
+                            if (Creature* tool = instance->GetCreature(m_vVictoryDummyTools[i]))
+                                tool->CastSpell(tool, SPELL_BOARD_VISUAL, TRIGGERED_OLD_TRIGGERED);
+                        }
+                    }
+                    else
+                        m_uiVictoryToolTimers[i] -= uiDiff;
+                }
+            }
+            m_uiChessEndingTimer -= uiDiff;
+        }
+    }
+}
+
+InstanceData* GetInstanceData_instance_karazhan(Map* pMap)
+{
+    return new instance_karazhan(pMap);
+}
+
+void AddSC_instance_karazhan()
 {
     Script* pNewScript;
 
     pNewScript = new Script;
-    pNewScript->Name = "npc_barnes";
-    pNewScript->GetAI = &GetAI_npc_barnesAI;
-    pNewScript->pGossipHello = &GossipHello_npc_barnes;
-    pNewScript->pGossipSelect = &GossipSelect_npc_barnes;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_image_of_medivh";
-    pNewScript->GetAI = &GetAI_npc_image_of_medivhAI;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_image_arcanagos";
-    pNewScript->GetAI = &GetAI_npc_image_arcanagosAI;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "event_spell_medivh_journal";
-    pNewScript->pProcessEventId = &ProcessEventId_event_spell_medivh_journal;
+    pNewScript->Name = "instance_karazhan";
+    pNewScript->GetInstanceData = &GetInstanceData_instance_karazhan;
     pNewScript->RegisterSelf();
 }

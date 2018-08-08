@@ -107,7 +107,7 @@ struct npc_kittenAI : public FollowerAI
     }
 };
 
-CreatureAI* GetAI_npc_kitten(Creature* pCreature)
+UnitAI* GetAI_npc_kitten(Creature* pCreature)
 {
     return new npc_kittenAI(pCreature);
 }
@@ -260,7 +260,7 @@ struct npc_niby_the_almightyAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_niby_the_almighty(Creature* pCreature)
+UnitAI* GetAI_npc_niby_the_almighty(Creature* pCreature)
 {
     return new npc_niby_the_almightyAI(pCreature);
 }
@@ -381,7 +381,7 @@ struct npc_kroshiusAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_kroshius(Creature* pCreature)
+UnitAI* GetAI_npc_kroshius(Creature* pCreature)
 {
     return new npc_kroshiusAI(pCreature);
 }
@@ -473,7 +473,7 @@ struct npc_captured_arkonarinAI : public npc_escortAI
         }
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -545,7 +545,7 @@ struct npc_captured_arkonarinAI : public npc_escortAI
                 break;
             case 109:
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_ID_RESCUE_JAEDENAR, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_RESCUE_JAEDENAR, m_creature);
                 SetRun();
                 break;
         }
@@ -579,7 +579,7 @@ struct npc_captured_arkonarinAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_captured_arkonarin(Creature* pCreature)
+UnitAI* GetAI_npc_captured_arkonarin(Creature* pCreature)
 {
     return new npc_captured_arkonarinAI(pCreature);
 }
@@ -690,7 +690,7 @@ struct npc_areiAI : public npc_escortAI, private DialogueHelper
         }
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -738,7 +738,7 @@ struct npc_areiAI : public npc_escortAI, private DialogueHelper
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
                     DoScriptText(SAY_AREI_ESCORT_COMPLETE, m_creature, pPlayer);
-                    pPlayer->GroupEventHappens(QUEST_ID_ANCIENT_SPIRIT, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_ANCIENT_SPIRIT, m_creature);
                     m_creature->ForcedDespawn(10000);
                 }
                 break;
@@ -764,7 +764,7 @@ struct npc_areiAI : public npc_escortAI, private DialogueHelper
     }
 };
 
-CreatureAI* GetAI_npc_arei(Creature* pCreature)
+UnitAI* GetAI_npc_arei(Creature* pCreature)
 {
     return new npc_areiAI(pCreature);
 }

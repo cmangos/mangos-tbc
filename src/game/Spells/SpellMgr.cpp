@@ -103,8 +103,29 @@ uint32 GetSpellCastTime(SpellEntry const* spellInfo, Spell const* spell)
 {
     if (spell)
     {
+        // Workaround for custom cast time
+        switch (spellInfo->Id)
+        {
+            case 3366:  // Opening - seems to have a settable timer per usage
+                if (spell->m_CastItem)
+                {
+                    switch (spell->m_CastItem->GetEntry())
+                    {
+                        case 31088: // Tainted Core - instant opening
+                            return 0;
+                        default:
+                            break;
+                    }
+                }
+                break;
+            case 46546: // Ritual of Summoning
+                return 0;
+            default:
+                break;
+        }
+
         // some triggered spells have data only usable for client
-        if (spell->IsTriggeredSpellWithRedundentCastTime())
+        if (spell->IsTriggeredSpellWithRedundantCastTime())
             return 0;
 
         // spell targeted to non-trading trade slot item instant at trade success apply
@@ -308,20 +329,20 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
     switch (spellInfo->DmgClass)
     {
         case SPELL_DAMAGE_CLASS_MELEE:
-        {
             if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQ_OFFHAND))
                 return OFF_ATTACK;
             return BASE_ATTACK;
-        }
         case SPELL_DAMAGE_CLASS_RANGED:
             return RANGED_ATTACK;
         default:
-        {
             // Wands
             if (spellInfo->HasAttribute(SPELL_ATTR_EX2_AUTOREPEAT_FLAG))
                 return RANGED_ATTACK;
-            return BASE_ATTACK;
-        }
+            else if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQ_OFFHAND))
+                return OFF_ATTACK;
+            else
+                return BASE_ATTACK;
+            break;
     }
 }
 
@@ -2097,6 +2118,16 @@ void SpellMgr::LoadSpellScriptTarget()
                 }
                 break;
             }
+            case SPELL_TARGET_TYPE_CREATURE_GUID:
+            {
+                if (!sObjectMgr.GetCreatureData(itr->targetEntry))
+                {
+                    sLog.outErrorDb("Table `spell_script_target`: creature entry %u does not exist.", itr->targetEntry);
+                    sSpellScriptTargetStorage.EraseEntry(itr->spellId);
+                    continue;
+                }
+                break;
+            }
             default:
                 if (!itr->targetEntry)
                 {
@@ -2951,9 +2982,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         }
         case SPELLFAMILY_WARLOCK:
         {
-            // Fear
-            if (spellproto->IsFitToFamilyMask(uint64(0x40840000000)))
-                return DIMINISHING_WARLOCK_FEAR;
+            // Seduction
+            if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)))
+                return DIMINISHING_FEAR;
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(uint64(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
@@ -2986,8 +3017,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return triggered ? DIMINISHING_TRIGGER_STUN : DIMINISHING_CONTROL_STUN;
     if (mechanic & (1 << (MECHANIC_SLEEP - 1)))
         return DIMINISHING_SLEEP;
-    if (mechanic & (1 << (MECHANIC_POLYMORPH - 1)))
-        return DIMINISHING_POLYMORPH;
+    if (mechanic & ((1 << (MECHANIC_KNOCKOUT - 1)) | (1 << (MECHANIC_SAPPED - 1)) | (1 << (MECHANIC_POLYMORPH - 1))))
+        return DIMINISHING_POLYMORPH_KNOCKOUT;
     if (mechanic & (1 << (MECHANIC_ROOT - 1)))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
     if (mechanic & (1 << (MECHANIC_FEAR - 1)))
@@ -3000,8 +3031,6 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         return DIMINISHING_DISARM;
     if (mechanic & (1 << (MECHANIC_FREEZE - 1)))
         return DIMINISHING_FREEZE;
-    if (mechanic & ((1 << (MECHANIC_KNOCKOUT - 1)) | (1 << (MECHANIC_SAPPED - 1))))
-        return DIMINISHING_KNOCKOUT;
     if (mechanic & (1 << (MECHANIC_BANISH - 1)))
         return DIMINISHING_BANISH;
     if (mechanic & (1 << (MECHANIC_HORROR - 1)))
@@ -3021,11 +3050,9 @@ bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
         case DIMINISHING_CONTROL_ROOT:
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
-        case DIMINISHING_WARLOCK_FEAR:
         case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH:
+        case DIMINISHING_POLYMORPH_KNOCKOUT:
         case DIMINISHING_FREEZE:
-        case DIMINISHING_KNOCKOUT:
         case DIMINISHING_BLIND_CYCLONE:
         case DIMINISHING_BANISH:
         case DIMINISHING_LIMITONLY:
@@ -3049,14 +3076,12 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
         case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH:
+        case DIMINISHING_POLYMORPH_KNOCKOUT:
         case DIMINISHING_SILENCE:
         case DIMINISHING_DISARM:
         case DIMINISHING_DEATHCOIL:
         case DIMINISHING_FREEZE:
         case DIMINISHING_BANISH:
-        case DIMINISHING_WARLOCK_FEAR:
-        case DIMINISHING_KNOCKOUT:
             return DRTYPE_PLAYER;
         default:
             break;
@@ -3203,6 +3228,7 @@ void SpellMgr::LoadSpellAffects()
         }
 
         if (spellInfo->Effect[effectId] != SPELL_EFFECT_APPLY_AURA || (
+                    spellInfo->EffectApplyAuraName[effectId] != SPELL_AURA_DUMMY &&
                     spellInfo->EffectApplyAuraName[effectId] != SPELL_AURA_ADD_FLAT_MODIFIER &&
                     spellInfo->EffectApplyAuraName[effectId] != SPELL_AURA_ADD_PCT_MODIFIER  &&
                     spellInfo->EffectApplyAuraName[effectId] != SPELL_AURA_ADD_TARGET_TRIGGER &&

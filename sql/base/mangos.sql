@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2369_01_mangos_spell_affect` bit(1) DEFAULT NULL
+  `required_s2375_01_mangos_trainer_greeting` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -476,6 +476,7 @@ INSERT INTO `command` VALUES
 ('debug setvalue',3,'Syntax: .debug setvalue #field [int|hex|bit|float] #value\r\n\r\nSet the field #field of the selected target to value #value. If no target is selected, set the content of your field.\r\n\r\nUse type arg for set input format: int (decimal number), hex (hex value), bit (bitstring), float. By default expect integer input format.'),
 ('debug spellcoefs',3,'Syntax: .debug spellcoefs #spellid\r\n\r\nShow default calculated and DB stored coefficients for direct/dot heal/damage.'),
 ('debug spellmods',3,'Syntax: .debug spellmods (flat|pct) #spellMaskBitIndex #spellModOp #value\r\n\r\nSet at client side spellmod affect for spell that have bit set with index #spellMaskBitIndex in spell family mask for values dependent from spellmod #spellModOp to #value.'),
+('debug taxi',3,'Syntax: .debug taxi\r\n\r\nToggle debug mode for taxi flights. In debug mode GM receive additional on-screen information during taxi flights.'),
 ('delticket',2,'Syntax: .delticket all\r\n        .delticket #num\r\n        .delticket $character_name\r\n\rall to dalete all tickets at server, $character_name to delete ticket of this character, #num to delete ticket #num.'),
 ('demorph',2,'Syntax: .demorph\r\n\r\nDemorph the selected player.'),
 ('die',3,'Syntax: .die\r\n\r\nKill the selected player. If no player is selected, it will kill you.'),
@@ -1140,9 +1141,10 @@ CREATE TABLE `creature_movement` (
   `position_x` float NOT NULL DEFAULT '0',
   `position_y` float NOT NULL DEFAULT '0',
   `position_z` float NOT NULL DEFAULT '0',
+  `orientation` float NOT NULL DEFAULT '0',
   `waittime` int(10) unsigned NOT NULL DEFAULT '0',
   `script_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `orientation` float NOT NULL DEFAULT '0',
+  `comment` text,
   PRIMARY KEY (`id`,`point`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Creature System';
 
@@ -1167,9 +1169,10 @@ CREATE TABLE `creature_movement_template` (
   `position_x` float NOT NULL DEFAULT '0',
   `position_y` float NOT NULL DEFAULT '0',
   `position_z` float NOT NULL DEFAULT '0',
+  `orientation` float NOT NULL DEFAULT '0',
   `waittime` int(10) unsigned NOT NULL DEFAULT '0',
   `script_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `orientation` float NOT NULL DEFAULT '0',
+  `comment` text,
   PRIMARY KEY (`entry`,`pathId`,`point`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Creature waypoint system';
 
@@ -1368,6 +1371,10 @@ CREATE TABLE `creature_template_spells` (
   `spell2` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `spell3` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `spell4` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `spell5` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `spell6` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `spell7` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `spell8` mediumint(8) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`entry`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Creature System (Spells used by creature)';
 
@@ -1715,7 +1722,7 @@ DROP TABLE IF EXISTS `game_event_creature`;
 CREATE TABLE `game_event_creature` (
   `guid` int(10) unsigned NOT NULL,
   `event` smallint(6) NOT NULL DEFAULT '0' COMMENT 'Negatives value to remove during event and ignore pool grouping, positive value for spawn during event and if guid is part of pool then al pool memebers must be listed as part of event spawn.',
-  PRIMARY KEY (`guid`)
+  PRIMARY KEY (`guid`,`event`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -1761,7 +1768,7 @@ DROP TABLE IF EXISTS `game_event_gameobject`;
 CREATE TABLE `game_event_gameobject` (
   `guid` int(10) unsigned NOT NULL,
   `event` smallint(6) NOT NULL DEFAULT '0' COMMENT 'Negatives value to remove during event and ignore pool grouping, positive value for spawn during event and if guid is part of pool then al pool memebers must be listed as part of event spawn.',
-  PRIMARY KEY (`guid`)
+  PRIMARY KEY (`guid`,`event`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
@@ -3474,6 +3481,24 @@ CREATE TABLE `locales_questgiver_greeting` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='Quest and Gossip system';
 
 --
+-- Table structure for table `locales_trainer_greeting`
+--
+
+DROP TABLE IF EXISTS `locales_trainer_greeting`;
+CREATE TABLE `locales_trainer_greeting` (
+   `Entry` INT(11) UNSIGNED NOT NULL COMMENT 'Entry of Trainer',
+   `Text_loc1` LONGTEXT COMMENT 'Text of the greeting locale 1',
+   `Text_loc2` LONGTEXT COMMENT 'Text of the greeting locale 2',
+   `Text_loc3` LONGTEXT COMMENT 'Text of the greeting locale 3',
+   `Text_loc4` LONGTEXT COMMENT 'Text of the greeting locale 4',
+   `Text_loc5` LONGTEXT COMMENT 'Text of the greeting locale 5',
+   `Text_loc6` LONGTEXT COMMENT 'Text of the greeting locale 6',
+   `Text_loc7` LONGTEXT COMMENT 'Text of the greeting locale 7',
+   `Text_loc8` LONGTEXT COMMENT 'Text of the greeting locale 8',
+   PRIMARY KEY(`Entry`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='Trainer system';
+
+--
 -- Table structure for table `mail_level_reward`
 --
 
@@ -4009,8 +4034,8 @@ INSERT INTO `mangos_string` VALUES
 (529,'   Waypoint',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (530,'   Animal random',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (531,'   Confused',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(532,'   Targeted to player %s (lowguid %u)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(533,'   Targeted to creature %s (lowguid %u)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(532,'   Targeted to player %s (lowguid %u) distance %f angle %f',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(533,'   Targeted to creature %s (lowguid %u) distance %f angle %f',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (534,'   Targeted to <NULL>',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (535,'   Home movement to (X:%f Y:%f Z:%f)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (536,'   Home movement used for player?!?',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
@@ -4338,6 +4363,10 @@ INSERT INTO `mangos_string` VALUES
 (1191,'Items ratio for %s is set to %u.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1194,'Current State Information: GOState %u, LootState %u. Collision %s',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1195,'Current State Information: GOState %u, LootState %u. Collision %s, (door %s by default)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(1196,'Debug output for taxi flights is now %s.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(1197,'[Taxi]: Progress at node: [%u][%u], next: [%u][%u].',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(1198,'[Taxi]: Progress at final node: [%u][%u].',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(1199,'[Taxi]: Changing route to [%u].',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1200,'You try to view cinemitic %u but it doesn\'t exist.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1202,'Spell %u %s = %f (*1.88 = %f) DB = %f AP = %f',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1203,'direct heal',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
@@ -4390,7 +4419,9 @@ INSERT INTO `mangos_string` VALUES
 (1633,'|cffffff00The Alliance has taken control of Halaa!|r',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1634,'|cffffff00Halaa is defenseless!|r',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (1635,'|cffffff00The Horde has collected 200 silithyst!|r',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(1636,'|cffffff00The Alliance has collected 200 silithyst!|r',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+(1636,'|cffffff00The Alliance has collected 200 silithyst!|r',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(1702,'Player |cffff0000%s|r [GUID: %u] has |cffff0000%f|r threat and taunt state %u',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(1703,'Showing threat for %s [Entry %u]',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `mangos_string` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -12077,6 +12108,11 @@ CREATE TABLE `quest_template` (
   `RewRepValue3` mediumint(9) NOT NULL DEFAULT '0',
   `RewRepValue4` mediumint(9) NOT NULL DEFAULT '0',
   `RewRepValue5` mediumint(9) NOT NULL DEFAULT '0',
+  `RewMaxRepValue1` mediumint(9) NOT NULL DEFAULT '42999',
+  `RewMaxRepValue2` mediumint(9) NOT NULL DEFAULT '42999',
+  `RewMaxRepValue3` mediumint(9) NOT NULL DEFAULT '42999',
+  `RewMaxRepValue4` mediumint(9) NOT NULL DEFAULT '42999',
+  `RewMaxRepValue5` mediumint(9) NOT NULL DEFAULT '42999',
   `RewHonorableKills` int(10) unsigned NOT NULL DEFAULT '0',
   `RewOrReqMoney` int(11) NOT NULL DEFAULT '0',
   `RewMoneyMaxLevel` int(10) unsigned NOT NULL DEFAULT '0',
@@ -12271,14 +12307,17 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS script_waypoint;
 CREATE TABLE script_waypoint (
-  entry mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'creature_template entry',
-  pointid mediumint(8) unsigned NOT NULL DEFAULT '0',
-  location_x float NOT NULL DEFAULT '0',
-  location_y float NOT NULL DEFAULT '0',
-  location_z float NOT NULL DEFAULT '0',
-  waittime int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'waittime in millisecs',
-  point_comment text,
-  PRIMARY KEY (entry, pointid)
+  `entry` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'creature_template entry',
+  `pathId` INT(11) UNSIGNED NOT NULL DEFAULT '0',
+  `pointid` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `position_x` float NOT NULL DEFAULT '0',
+  `position_y` float NOT NULL DEFAULT '0',
+  `position_z` float NOT NULL DEFAULT '0',
+  `orientation` float NOT NULL DEFAULT '0',
+  `waittime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'waittime in millisecs',
+  `script_id` mediumint(8) unsigned NOT NULL DEFAULT '0',
+  `comment` text,
+  PRIMARY KEY (entry, pathId, pointid)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Script Creature waypoints';
 
 --
@@ -16562,6 +16601,39 @@ INSERT INTO `spell_threat` VALUES
 (44041,       0,  0.5,    0);
 /*!40000 ALTER TABLE `spell_threat` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `taxi_shortcuts`
+--
+
+DROP TABLE IF EXISTS `taxi_shortcuts`;
+CREATE TABLE `taxi_shortcuts` (
+  `pathid` int unsigned NOT NULL COMMENT 'Flight path entry id',
+  `takeoff` int unsigned NOT NULL COMMENT 'Amount of waypoints to skip in the beginning of the flight',
+  `landing` int unsigned NOT NULL COMMENT 'Amount of waypoints to skip at the end of the flight',
+  `comments` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`pathid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Taxi System';
+
+--
+-- Dumping data for table `taxi_shortcuts`
+--
+
+LOCK TABLES `taxi_shortcuts` WRITE;
+/*!40000 ALTER TABLE `taxi_shortcuts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `taxi_shortcuts` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `trainer_greeeting`
+--
+
+DROP TABLE IF EXISTS `trainer_greeting`;
+CREATE TABLE `trainer_greeting` (
+   `Entry` INT(11) UNSIGNED NOT NULL COMMENT 'Entry of Trainer',
+   `Text` LONGTEXT COMMENT 'Text of the greeting',
+   PRIMARY KEY(`Entry`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='Trainer system';
 
 --
 -- Table structure for table `transports`

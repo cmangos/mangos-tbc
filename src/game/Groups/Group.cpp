@@ -29,29 +29,31 @@
 #include "BattleGround/BattleGround.h"
 #include "Maps/MapManager.h"
 #include "Maps/MapPersistentStateMgr.h"
+#include "Spells/SpellAuras.h"
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
 #endif
 
 GroupMemberStatus GetGroupMemberStatus(const Player* member = nullptr)
 {
-    uint8 flags = MEMBER_STATUS_OFFLINE;
-    if (member && member->GetSession() && !member->GetSession()->PlayerLogout())
-    {
-        flags |= MEMBER_STATUS_ONLINE;
-        if (member->IsPvP())
-            flags |= MEMBER_STATUS_PVP;
-        if (member->isDead())
-            flags |= MEMBER_STATUS_DEAD;
-        if (member->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
-            flags |= MEMBER_STATUS_GHOST;
-        if (member->IsPvPFreeForAll())
-            flags |= MEMBER_STATUS_PVP_FFA;
-        if (member->isAFK())
-            flags |= MEMBER_STATUS_AFK;
-        if (member->isDND())
-            flags |= MEMBER_STATUS_DND;
-    }
+    if (!member || !member->GetSession() || (!member->IsInWorld() && !member->IsBeingTeleportedFar()))
+        return MEMBER_STATUS_OFFLINE;
+
+    uint8 flags = MEMBER_STATUS_ONLINE;
+    if (member->IsPvP())
+        flags |= MEMBER_STATUS_PVP;
+    if (member->isDead())
+        flags |= MEMBER_STATUS_DEAD;
+    if (member->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
+        flags |= MEMBER_STATUS_GHOST;
+    if (member->IsPvPFreeForAll())
+        flags |= MEMBER_STATUS_PVP_FFA;
+    if (!member->IsInWorld())
+        flags |= MEMBER_STATUS_ZONE_OUT;
+    if (member->isAFK())
+        flags |= MEMBER_STATUS_AFK;
+    if (member->isDND())
+        flags |= MEMBER_STATUS_DND;
     return GroupMemberStatus(flags);
 }
 
@@ -325,19 +327,32 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
 uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 {
+    Player* player = sObjectMgr.GetPlayer(guid);
 #ifdef BUILD_PLAYERBOT
     // if master leaves group, all bots leave group
-    Player* const player = sObjectMgr.GetPlayer(guid);
     if (player && player->GetPlayerbotMgr())
         player->GetPlayerbotMgr()->RemoveAllBotsFromGroup();
 #endif
+
+    for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
+    {
+        if (Player* groupMember = itr->getSource())
+        {
+            if (groupMember->GetObjectGuid() == guid)
+                continue;
+
+            groupMember->RemoveAllGroupBuffsFromCaster(guid);
+            if (player)
+                player->RemoveAllGroupBuffsFromCaster(groupMember->GetObjectGuid());
+        }
+    }
 
     // remove member and change leader (if need) only if strong more 2 members _before_ member remove
     if (GetMembersCount() > GetMembersMinCount())
     {
         bool leaderChanged = _removeMember(guid);
 
-        if (Player* player = sObjectMgr.GetPlayer(guid))
+        if (player)
         {
             // quest related GO state dependent from raid membership
             if (isRaidGroup())
@@ -627,12 +642,14 @@ void Group::UpdateOfflineLeader(time_t time, uint32 delay)
         return;
 
     // Check leader presence
-    // TODO: Add a list of loading players or online/offline counter?
-    // FIXME: If player is loading a new map longer than delay, the leadership is going to be transfered
-    if (sObjectMgr.GetPlayer(m_leaderGuid))
+    if (const Player* leader = sObjectMgr.GetPlayer(m_leaderGuid))
     {
-        m_leaderLastOnline = time;
-        return;
+        // Consider loading a new map as being online as well until session finally times out
+        if (leader->IsInWorld() || (leader->GetSession() && leader->IsBeingTeleportedFar()))
+        {
+            m_leaderLastOnline = time;
+            return;
+        }
     }
 
     // Check for delay

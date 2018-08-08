@@ -28,6 +28,7 @@
 #include "Quests/QuestDef.h"
 #include "Groups/Group.h"
 #include "Entities/Bag.h"
+#include "Entities/Taxi.h"
 #include "Server/WorldSession.h"
 #include "Entities/Pet.h"
 #include "Maps/MapReference.h"
@@ -54,6 +55,7 @@ class PlayerSocial;
 class DungeonPersistentState;
 class Spell;
 class Item;
+struct FactionTemplateEntry;
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
@@ -414,51 +416,6 @@ enum PlayerFlags
     PLAYER_FLAGS_COMMENTATOR            = 0x00080000,       // first appeared in TBC
 };
 
-// used for PLAYER__FIELD_KNOWN_TITLES field (uint64), (1<<bit_index) without (-1)
-// can't use enum for uint64 values
-#define PLAYER_TITLE_DISABLED              uint64(0x0000000000000000)
-#define PLAYER_TITLE_NONE                  uint64(0x0000000000000001)
-#define PLAYER_TITLE_PRIVATE               uint64(0x0000000000000002) // 1
-#define PLAYER_TITLE_CORPORAL              uint64(0x0000000000000004) // 2
-#define PLAYER_TITLE_SERGEANT_A            uint64(0x0000000000000008) // 3
-#define PLAYER_TITLE_MASTER_SERGEANT       uint64(0x0000000000000010) // 4
-#define PLAYER_TITLE_SERGEANT_MAJOR        uint64(0x0000000000000020) // 5
-#define PLAYER_TITLE_KNIGHT                uint64(0x0000000000000040) // 6
-#define PLAYER_TITLE_KNIGHT_LIEUTENANT     uint64(0x0000000000000080) // 7
-#define PLAYER_TITLE_KNIGHT_CAPTAIN        uint64(0x0000000000000100) // 8
-#define PLAYER_TITLE_KNIGHT_CHAMPION       uint64(0x0000000000000200) // 9
-#define PLAYER_TITLE_LIEUTENANT_COMMANDER  uint64(0x0000000000000400) // 10
-#define PLAYER_TITLE_COMMANDER             uint64(0x0000000000000800) // 11
-#define PLAYER_TITLE_MARSHAL               uint64(0x0000000000001000) // 12
-#define PLAYER_TITLE_FIELD_MARSHAL         uint64(0x0000000000002000) // 13
-#define PLAYER_TITLE_GRAND_MARSHAL         uint64(0x0000000000004000) // 14
-#define PLAYER_TITLE_SCOUT                 uint64(0x0000000000008000) // 15
-#define PLAYER_TITLE_GRUNT                 uint64(0x0000000000010000) // 16
-#define PLAYER_TITLE_SERGEANT_H            uint64(0x0000000000020000) // 17
-#define PLAYER_TITLE_SENIOR_SERGEANT       uint64(0x0000000000040000) // 18
-#define PLAYER_TITLE_FIRST_SERGEANT        uint64(0x0000000000080000) // 19
-#define PLAYER_TITLE_STONE_GUARD           uint64(0x0000000000100000) // 20
-#define PLAYER_TITLE_BLOOD_GUARD           uint64(0x0000000000200000) // 21
-#define PLAYER_TITLE_LEGIONNAIRE           uint64(0x0000000000400000) // 22
-#define PLAYER_TITLE_CENTURION             uint64(0x0000000000800000) // 23
-#define PLAYER_TITLE_CHAMPION              uint64(0x0000000001000000) // 24
-#define PLAYER_TITLE_LIEUTENANT_GENERAL    uint64(0x0000000002000000) // 25
-#define PLAYER_TITLE_GENERAL               uint64(0x0000000004000000) // 26
-#define PLAYER_TITLE_WARLORD               uint64(0x0000000008000000) // 27
-#define PLAYER_TITLE_HIGH_WARLORD          uint64(0x0000000010000000) // 28
-#define PLAYER_TITLE_GLADIATOR             uint64(0x0000000020000000) // 29
-#define PLAYER_TITLE_DUELIST               uint64(0x0000000040000000) // 30
-#define PLAYER_TITLE_RIVAL                 uint64(0x0000000080000000) // 31
-#define PLAYER_TITLE_CHALLENGER            uint64(0x0000000100000000) // 32
-#define PLAYER_TITLE_SCARAB_LORD           uint64(0x0000000200000000) // 33
-#define PLAYER_TITLE_CONQUEROR             uint64(0x0000000400000000) // 34
-#define PLAYER_TITLE_JUSTICAR              uint64(0x0000000800000000) // 35
-#define PLAYER_TITLE_CHAMPION_OF_THE_NAARU uint64(0x0000001000000000) // 36
-#define PLAYER_TITLE_MERCILESS_GLADIATOR   uint64(0x0000002000000000) // 37
-#define PLAYER_TITLE_OF_THE_SHATTERED_SUN  uint64(0x0000004000000000) // 38
-#define PLAYER_TITLE_HAND_OF_ADAL          uint64(0x0000008000000000) // 39
-#define PLAYER_TITLE_VENGEFUL_GLADIATOR    uint64(0x0000010000000000) // 40
-
 #define MAX_TITLE_INDEX     64                              // 1 uint64 field
 
 // used in (PLAYER_FIELD_BYTES, 0) byte values
@@ -816,33 +773,10 @@ class PlayerTaxi
         }
         void AppendTaximaskTo(ByteBuffer& data, bool all);
 
-        // Destinations
-        bool LoadTaxiDestinationsFromString(const std::string& values, Team team);
-        std::string SaveTaxiDestinationsToString();
+        friend std::ostringstream& operator<<(std::ostringstream& ss, PlayerTaxi const& taxi);
 
-        void ClearTaxiDestinations() { m_TaxiDestinations.clear(); }
-        void AddTaxiDestination(uint32 dest) { m_TaxiDestinations.push_back(dest); }
-        uint32 GetTaxiSource() const { return m_TaxiDestinations.empty() ? 0 : m_TaxiDestinations.front(); }
-        uint32 GetNextTaxiDestination() const { return m_TaxiDestinations.size() < 2 ? 0 : m_TaxiDestinations[1]; }
-        uint32 GetFinalTaxiDestination() const { return m_TaxiDestinations.empty() ? 0 : m_TaxiDestinations.back(); }
-        uint32 GetCurrentTaxiPath() const;
-        uint32 NextTaxiDestination()
-        {
-            m_TaxiDestinations.pop_front();
-            return GetNextTaxiDestination();
-        }
-        bool empty() const { return m_TaxiDestinations.empty(); }
-
-        friend std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi);
-
-        std::deque<uint32> const& GetPath() const { return m_TaxiDestinations; }
-
-        uint32 GetLastNode() { return m_lastNode; }
-        void SetLastNode(uint32 lastNode) { m_lastNode = lastNode; }
     private:
         TaxiMask m_taximask;
-        std::deque<uint32> m_TaxiDestinations;
-        uint32 m_lastNode;
 };
 
 std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi);
@@ -994,12 +928,6 @@ class Player : public Unit
         PlayerSocial* GetSocial() { return m_social; }
         const PlayerSocial* GetSocial() const { return m_social; }
 
-        PlayerTaxi m_taxi;
-        void InitTaxiNodesForLevel() { m_taxi.InitTaxiNodesForLevel(getRace(), getLevel()); }
-        bool ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc = nullptr, uint32 spellid = 0);
-        bool ActivateTaxiPathTo(uint32 taxi_path_id, uint32 spellid = 0);
-        // mount_id can be used in scripting calls
-        void ContinueTaxiFlight() const;
         bool isAcceptTickets() const { return GetSession()->GetSecurity() >= SEC_GAMEMASTER && (m_ExtraFlags & PLAYER_EXTRA_GM_ACCEPT_TICKETS); }
         void SetAcceptTicket(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_GM_ACCEPT_TICKETS; else m_ExtraFlags &= ~PLAYER_EXTRA_GM_ACCEPT_TICKETS; }
         bool isAcceptWhispers() const { return !!(m_ExtraFlags & PLAYER_EXTRA_ACCEPT_WHISPERS); }
@@ -1076,6 +1004,39 @@ class Player : public Unit
         void Yell(const std::string& text, const uint32 language) const;
         void TextEmote(const std::string& text) const;
         void Whisper(const std::string& text, const uint32 language, ObjectGuid receiver);
+
+        /*********************************************************/
+        /***                    TAXI SYSTEM                    ***/
+        /*********************************************************/
+
+        // Legacy taxi system
+        PlayerTaxi m_taxi;
+
+        void InitTaxiNodesForLevel() { m_taxi.InitTaxiNodesForLevel(getRace(), getLevel()); }
+
+        bool ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc = nullptr, uint32 spellid = 0);
+        bool ActivateTaxiPathTo(uint32 path_id, uint32 spellid = 0);
+
+        // New taxi system
+        void TaxiFlightResume();
+        bool TaxiFlightInterrupt(bool cancel = true);
+
+        bool IsTaxiDebug() const { return m_taxiTracker.m_debug; }
+        void ToggleTaxiDebug() { m_taxiTracker.m_debug = !m_taxiTracker.m_debug; }
+
+        Taxi::Map const& GetTaxiPathSpline() const;
+        size_t GetTaxiSplinePathOffset() const;
+
+        void OnTaxiFlightStart(const TaxiPathEntry* path);
+        void OnTaxiFlightEnd(const TaxiPathEntry* path);
+        void OnTaxiFlightEject(bool clear = true);
+        bool OnTaxiFlightUpdate(const size_t waypointIndex, const bool movement);
+        void OnTaxiFlightSplineStart(const TaxiPathNodeEntry* node);
+        void OnTaxiFlightSplineEnd();
+        bool OnTaxiFlightSplineUpdate();
+        void OnTaxiFlightRouteStart(uint32 pathID, bool initial);
+        void OnTaxiFlightRouteEnd(uint32 pathID, bool final);
+        void OnTaxiFlightRouteProgress(const TaxiPathNodeEntry* node, const TaxiPathNodeEntry* next = nullptr);
 
         /*********************************************************/
         /***                    STORAGE SYSTEM                 ***/
@@ -1196,7 +1157,8 @@ class Player : public Unit
         void SendNewItem(Item* item, uint32 count, bool received, bool created, bool broadcast = false, bool showInChat = true);
         bool BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, uint8 bag, uint8 slot);
 
-        float GetReputationPriceDiscount(Creature const* pCreature) const;
+        float GetReputationPriceDiscount(Creature const* creature) const;
+        float GetReputationPriceDiscount(FactionTemplateEntry const* factionTemplate) const;
 
         Player* GetTrader() const { return m_trade ? m_trade->GetTrader() : nullptr; }
         TradeData* GetTradeData() const { return m_trade; }
@@ -1263,6 +1225,7 @@ class Player : public Unit
 
         void FailQuest(uint32 quest_id);
         void FailQuest(Quest const* quest);
+        void FailQuestForGroup(uint32 questId);
         void FailQuestsOnDeath();
         bool SatisfyQuestSkill(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestCondition(Quest const* qInfo, bool msg) const;
@@ -1323,7 +1286,6 @@ class Player : public Unit
         }
         uint32 GetReqKillOrCastCurrentCount(uint32 quest_id, int32 entry);
         void AreaExploredOrEventHappens(uint32 questId);
-        void GroupEventHappens(uint32 questId, WorldObject const* pEventObject);
         void ItemAddedQuestCheck(uint32 entry, uint32 count);
         void ItemRemovedQuestCheck(uint32 entry, uint32 count);
         void KilledMonster(CreatureInfo const* cInfo, ObjectGuid guid);
@@ -1527,7 +1489,7 @@ class Player : public Unit
 
         void AddSpellMod(SpellModifier* mod, bool apply);
         bool IsAffectedBySpellmod(SpellEntry const* spellInfo, SpellModifier* mod, Spell const* spell = nullptr);
-        template <class T> T ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell = nullptr);
+        template <class T> void ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell = nullptr);
         SpellModifier* GetSpellMod(SpellModOp op, uint32 spellId) const;
         void RemoveSpellMods(Spell const* spell);
         void ResetSpellModsDueToCanceledSpell(Spell const* spell);
@@ -1545,7 +1507,8 @@ class Player : public Unit
         void clearResurrectRequestData() { setResurrectRequestData(ObjectGuid(), 0, 0.0f, 0.0f, 0.0f, 0, 0); }
         bool isRessurectRequestedBy(ObjectGuid guid) const { return m_resurrectGuid == guid; }
         bool isRessurectRequested() const { return !m_resurrectGuid.IsEmpty(); }
-        void ResurectUsingRequestData();
+        void ResurrectUsingRequestDataInit(); // Initializes motion and schedules rest / executes it
+        void ResurrectUsingRequestDataFinish(); // Finalizes resurrection
 
         uint32 getCinematic() const { return m_cinematic; }
         void setCinematic(uint32 cine) { m_cinematic = cine; }
@@ -1579,9 +1542,6 @@ class Player : public Unit
         void DuelComplete(DuelCompleteType type);
         void SendDuelCountdown(uint32 counter) const;
 
-        bool IsGroupVisibleFor(Player* p) const;
-        bool IsInSameGroupWith(Player const* p) const;
-        bool IsInSameRaidWith(Player const* p) const { return p == this || (GetGroup() != nullptr && GetGroup() == p->GetGroup()); }
         void UninviteFromGroup();
         static void RemoveFromGroup(Group* group, ObjectGuid guid);
         void RemoveFromGroup() { RemoveFromGroup(GetGroup(), GetObjectGuid()); }
@@ -1775,6 +1735,7 @@ class Player : public Unit
         void SetSemaphoreTeleportNear(bool semphsetting) { mSemaphoreTeleport_Near = semphsetting; }
         void SetSemaphoreTeleportFar(bool semphsetting) { mSemaphoreTeleport_Far = semphsetting; }
         void ProcessDelayedOperations();
+        void SetDelayedZoneUpdate(bool state, uint32 newZone) { m_needsZoneUpdate = state; m_newZone = newZone; }
 
         void CheckAreaExploreAndOutdoor();
 
@@ -1787,8 +1748,9 @@ class Player : public Unit
 
         bool IsAtGroupRewardDistance(WorldObject const* pRewardSource) const;
         void RewardSinglePlayerAtKill(Unit* pVictim);
-        void RewardPlayerAndGroupAtEvent(uint32 creature_id, WorldObject* pRewardSource);
+        void RewardPlayerAndGroupAtEventCredit(uint32 creature_id, WorldObject* pRewardSource);
         void RewardPlayerAndGroupAtCast(WorldObject* pRewardSource, uint32 spellid = 0);
+        void RewardPlayerAndGroupAtEventExplored(uint32 questId, WorldObject const* pRewardSource);
         bool isHonorOrXPTarget(Unit* pVictim) const;
 
         ReputationMgr&       GetReputationMgr()       { return m_reputationMgr; }
@@ -1861,7 +1823,7 @@ class Player : public Unit
         void ApplyItemEquipSpell(Item* item, bool apply, bool form_change = false);
         void ApplyEquipSpell(SpellEntry const* spellInfo, Item* item, bool apply, bool form_change = false);
         void UpdateEquipSpellsAtFormChange();
-        void CastItemCombatSpell(Unit* Target, WeaponAttackType attType);
+        void CastItemCombatSpell(Unit* Target, WeaponAttackType attType, bool spellProc = false);
         void CastItemUseSpell(Item* item, SpellCastTargets const& targets, uint8 cast_count, uint8 spell_index);
 
         void ApplyItemOnStoreSpell(Item* item, bool apply);
@@ -2196,6 +2158,7 @@ class Player : public Unit
         DeclinedName const* GetDeclinedNames() const { return m_declinedname; }
         bool HasTitle(uint32 bitIndex) const;
         bool HasTitle(CharTitlesEntry const* title) const { return HasTitle(title->bit_index); }
+        void SetTitle(uint32 titleId, bool lost = false);
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
 #ifdef BUILD_PLAYERBOT
@@ -2208,7 +2171,8 @@ class Player : public Unit
         void SetBotDeathTimer() { m_deathTimer = 0; }
         bool IsInDuel() const { return duel && duel->startTime != 0; }
 #endif
-        virtual CreatureAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
+
+        virtual UnitAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
         virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
 
         void SendLootError(ObjectGuid guid, LootError error) const;
@@ -2478,6 +2442,8 @@ class Player : public Unit
                 m_DelayedOperations |= operation;
         }
 
+        Taxi::Tracker m_taxiTracker;
+
         Unit* m_mover;
         Camera m_camera;
 
@@ -2517,6 +2483,9 @@ class Player : public Unit
         bool m_bHasDelayedTeleport;
         bool m_bHasBeenAliveAtDelayedTeleport;
 
+        bool m_needsZoneUpdate;
+        uint32 m_newZone;
+
         uint32 m_DetectInvTimer;
 
         // Temporary removed pet cache
@@ -2537,12 +2506,12 @@ void AddItemsSetItem(Player* player, Item* item);
 void RemoveItemsSetItem(Player* player, ItemPrototype const* proto);
 
 // "the bodies of template functions must be made available in a header file"
-template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell)
+template <class T> void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell)
 {
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
-    if (!spellInfo) return 0;
-    int32 totalpct = 0;
-    int32 addedFlat = 0;
+    if (!spellInfo) return;
+    int32 totalpct = 100;
+    int32 totalflat = 0;
     for (SpellModList::iterator itr = m_spellMods[op].begin(); itr != m_spellMods[op].end(); ++itr)
     {
         SpellModifier* mod = *itr;
@@ -2550,7 +2519,7 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& bas
         if (!IsAffectedBySpellmod(spellInfo, mod, spell))
             continue;
         if (mod->type == SPELLMOD_FLAT)
-            addedFlat += mod->value;
+            totalflat += mod->value;
         else if (mod->type == SPELLMOD_PCT)
         {
             // skip percent mods for null basevalue (most important for spell mods with charges )
@@ -2585,9 +2554,8 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& bas
         }
     }
 
-    T diff = basevalue * totalpct / 100 + addedFlat * (100 + totalpct) / 100;
-    basevalue = T(basevalue + diff);
-    return T(diff);
+    if (totalflat != 0 || totalpct != 100)
+        basevalue = T((basevalue + totalflat) * std::max(0, totalpct) / 100);
 }
 
 #endif

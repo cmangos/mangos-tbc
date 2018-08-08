@@ -183,13 +183,13 @@ void ChaseMovementGenerator<T>::_addUnitStateMove(T& u) { u.addUnitState(UNIT_ST
 template<class T>
 bool ChaseMovementGenerator<T>::_lostTarget(T& u) const
 {
-    return u.getVictim() != this->GetCurrentTarget();
+    return m_combat && u.getVictim() != this->GetCurrentTarget();
 }
 
 template<class T>
 void ChaseMovementGenerator<T>::_reachTarget(T& owner)
 {
-    if (owner.CanReachWithMeleeAttack(this->i_target.getTarget()))
+    if (m_combat && owner.CanReachWithMeleeAttack(this->i_target.getTarget()))
         owner.Attack(this->i_target.getTarget(), true);
 }
 
@@ -203,7 +203,7 @@ void ChaseMovementGenerator<Player>::Initialize(Player& owner)
 template<>
 void ChaseMovementGenerator<Creature>::Initialize(Creature& owner)
 {
-    owner.SetWalk(false, false);                            // Chase movement is running
+    owner.SetWalk(m_walk, false);                            // Chase movement is running
     owner.addUnitState(UNIT_STAT_CHASE);                    // _MOVE set in _SetTargetLocation after required checks
     _setTargetLocation(owner, true);
 }

@@ -36,6 +36,7 @@ enum
     SAY_KILL_2          = -1532015,
     SAY_KILL_3          = -1532016,
     SAY_DEATH           = -1532017,
+    SAY_FRENZY          = -1000002,
 
     SPELL_VANISH        = 29448,
     SPELL_GARROTE       = 37066,
@@ -89,6 +90,9 @@ struct boss_moroesAI : public ScriptedAI
         m_uiWaitTimer       = 0;
 
         m_bEnrage           = false;
+
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, true);
 
         DoSpawnGuests();
     }
@@ -226,7 +230,10 @@ struct boss_moroesAI : public ScriptedAI
         if (!m_bEnrage && m_creature->GetHealthPercent() < 30.0f)
         {
             if (DoCastSpellIfCan(m_creature, SPELL_FRENZY) == CAST_OK)
+            {
+                DoScriptText(SAY_FRENZY, m_creature);
                 m_bEnrage = true;
+            }
         }
 
         // No other spells are cast after enrage
@@ -269,7 +276,7 @@ struct boss_moroesAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_moroes(Creature* pCreature)
+UnitAI* GetAI_boss_moroes(Creature* pCreature)
 {
     return new boss_moroesAI(pCreature);
 }

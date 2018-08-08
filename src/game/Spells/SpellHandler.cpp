@@ -284,7 +284,7 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
         return;
 
     // Additional check preventing exploits (ie loot despawned chests)
-    if (!obj->isSpawned())
+    if (!obj->IsSpawned())
     {
         sLog.outError("HandleGameObjectUseOpcode: CMSG_GAMEOBJ_USE for despawned GameObject (Entry %u), didn't expect this to happen.", obj->GetEntry());
         return;
@@ -322,7 +322,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    DEBUG_LOG("WORLD: got cast spell packet, spellId - %u, cast_count: %u data length = " SIZEFMTD,
+    DEBUG_LOG("WORLD: CMSG_CAST_SPELL, spellId - %u, cast_count: %u data length = " SIZEFMTD,
               spellId, cast_count, recvPacket.size());
 
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);

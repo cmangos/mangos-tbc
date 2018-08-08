@@ -370,10 +370,7 @@ void WorldSession::HandleZoneUpdateOpcode(WorldPacket& recv_data)
 
     DETAIL_LOG("WORLD: Received opcode CMSG_ZONEUPDATE: newzone is %u", newZone);
 
-    // use server side data
-    uint32 newzone, newarea;
-    GetPlayer()->GetZoneAndAreaId(newzone, newarea);
-    GetPlayer()->UpdateZone(newzone, newarea);
+    GetPlayer()->SetDelayedZoneUpdate(true, newZone);
 }
 
 void WorldSession::HandleSetTargetOpcode(WorldPacket& recv_data)
@@ -678,7 +675,7 @@ void WorldSession::HandleResurrectResponseOpcode(WorldPacket& recv_data)
     if (!GetPlayer()->isRessurectRequestedBy(guid))
         return;
 
-    GetPlayer()->ResurectUsingRequestData();                // will call spawncorpsebones
+    GetPlayer()->ResurrectUsingRequestDataInit();                // will call spawncorpsebones
 }
 
 void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
@@ -1452,6 +1449,11 @@ void WorldSession::HandleSetTaxiBenchmarkOpcode(WorldPacket& recv_data)
 {
     uint8 mode;
     recv_data >> mode;
+
+    if (mode)
+        _player->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_TAXI_BENCHMARK);
+    else
+        _player->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_TAXI_BENCHMARK);
 
     DEBUG_LOG("Client used \"/timetest %d\" command", mode);
 }

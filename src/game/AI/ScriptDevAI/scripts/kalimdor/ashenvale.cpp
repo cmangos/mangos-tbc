@@ -140,7 +140,7 @@ struct npc_muglashAI : public npc_escortAI
                 DoScriptText(SAY_MUG_GRATITUDE, m_creature);
 
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_VORSHA, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_VORSHA, m_creature);
                 break;
             case 26:
                 DoScriptText(SAY_MUG_PATROL, m_creature);
@@ -219,7 +219,7 @@ bool QuestAccept_npc_muglash(Player* pPlayer, Creature* pCreature, const Quest* 
     return true;
 }
 
-CreatureAI* GetAI_npc_muglash(Creature* pCreature)
+UnitAI* GetAI_npc_muglash(Creature* pCreature)
 {
     return new npc_muglashAI(pCreature);
 }
@@ -274,7 +274,7 @@ struct npc_ruul_snowhoofAI : public npc_escortAI
                 break;
             case 21:
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_FREEDOM_TO_RUUL, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_FREEDOM_TO_RUUL, m_creature);
                 break;
         }
     }
@@ -298,7 +298,7 @@ bool QuestAccept_npc_ruul_snowhoof(Player* pPlayer, Creature* pCreature, const Q
     return true;
 }
 
-CreatureAI* GetAI_npc_ruul_snowhoofAI(Creature* pCreature)
+UnitAI* GetAI_npc_ruul_snowhoofAI(Creature* pCreature)
 {
     return new npc_ruul_snowhoofAI(pCreature);
 }
@@ -362,7 +362,7 @@ struct npc_torekAI : public npc_escortAI
                 break;
             case 20:
                 DoScriptText(SAY_WIN, m_creature, pPlayer);
-                pPlayer->GroupEventHappens(QUEST_TOREK_ASSULT, m_creature);
+                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_TOREK_ASSULT, m_creature);
                 break;
             case 21:
                 DoScriptText(SAY_END, m_creature, pPlayer);
@@ -414,7 +414,7 @@ bool QuestAccept_npc_torek(Player* pPlayer, Creature* pCreature, const Quest* pQ
     return true;
 }
 
-CreatureAI* GetAI_npc_torek(Creature* pCreature)
+UnitAI* GetAI_npc_torek(Creature* pCreature)
 {
     return new npc_torekAI(pCreature);
 }
@@ -511,7 +511,7 @@ struct npc_feero_ironhandAI : public npc_escortAI
             case 30:
                 // Complete the quest
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_SUPPLIES_TO_AUBERDINE, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_SUPPLIES_TO_AUBERDINE, m_creature);
                 break;
         }
     }
@@ -577,7 +577,7 @@ struct npc_feero_ironhandAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_feero_ironhand(Creature* pCreature)
+UnitAI* GetAI_npc_feero_ironhand(Creature* pCreature)
 {
     return new npc_feero_ironhandAI(pCreature);
 }

@@ -56,6 +56,9 @@
 
 INSTANTIATE_SINGLETON_1(ObjectMgr);
 
+typedef std::map<uint32, SimpleFactionsList> FactionTeamMap;
+static FactionTeamMap sFactionTeamMap;
+
 bool normalizePlayerName(std::string& name)
 {
     if (name.empty())
@@ -1366,12 +1369,6 @@ void ObjectMgr::LoadCreatures()
             }
         }
 
-        if (cInfo->RegenerateStats & REGEN_FLAG_HEALTH && data.curhealth < cInfo->MinLevelHealth)
-        {
-            sLog.outErrorDb("Table `creature` have creature (GUID: %u Entry: %u) with `creature_template`.`RegenerateStats` & REGEN_FLAG_HEALTH and low current health (%u), `creature_template`.`MinLevelHealth`=%u.", guid, data.id, data.curhealth, cInfo->MinLevelHealth);
-            data.curhealth = cInfo->MinLevelHealth;
-        }
-
         if (cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_INSTANCE_BIND)
         {
             if (!mapEntry || !mapEntry->IsDungeon())
@@ -1384,12 +1381,6 @@ void ObjectMgr::LoadCreatures()
             if (!mapEntry || !mapEntry->IsDungeon())
                 sLog.outErrorDb("Table `creature` have creature (GUID: %u Entry: %u) with `creature_template`.`ExtraFlags` including CREATURE_FLAG_EXTRA_AGGRO_ZONE (%u) but creature are not in instance.",
                                 guid, data.id, CREATURE_EXTRA_FLAG_AGGRO_ZONE);
-        }
-
-        if (cInfo->RegenerateStats & REGEN_FLAG_POWER && data.curmana < cInfo->MinLevelMana)
-        {
-            sLog.outErrorDb("Table `creature` have creature (GUID: %u Entry: %u) with `creature_template`.`RegenerateStats` & REGEN_FLAG_POWER and low current mana (%u), `creature_template`.`MinLevelMana`=%u.", guid, data.id, data.curmana, cInfo->MinLevelMana);
-            data.curmana = cInfo->MinLevelMana;
         }
 
         if (data.spawndist < 0.0f)
@@ -1988,7 +1979,7 @@ void ObjectMgr::LoadItemPrototypes()
 
         if (proto->RequiredReputationFaction)
         {
-            if (!sFactionStore.LookupEntry(proto->RequiredReputationFaction))
+            if (!sFactionStore.LookupEntry<FactionEntry>(proto->RequiredReputationFaction))
             {
                 sLog.outErrorDb("Item (Entry: %u) has wrong (not existing) faction in RequiredReputationFaction (%u)", i, proto->RequiredReputationFaction);
                 const_cast<ItemPrototype*>(proto)->RequiredReputationFaction = 0;
@@ -3643,21 +3634,21 @@ void ObjectMgr::LoadQuests()
         }
         // else Skill quests can have 0 skill level, this is ok
 
-        if (qinfo->RepObjectiveFaction && !sFactionStore.LookupEntry(qinfo->RepObjectiveFaction))
+        if (qinfo->RepObjectiveFaction && !sFactionStore.LookupEntry<FactionEntry>(qinfo->RepObjectiveFaction))
         {
             sLog.outErrorDb("Quest %u has `RepObjectiveFaction` = %u but faction template %u does not exist, quest can't be done.",
                             qinfo->GetQuestId(), qinfo->RepObjectiveFaction, qinfo->RepObjectiveFaction);
             // no changes, quest can't be done for this requirement
         }
 
-        if (qinfo->RequiredMinRepFaction && !sFactionStore.LookupEntry(qinfo->RequiredMinRepFaction))
+        if (qinfo->RequiredMinRepFaction && !sFactionStore.LookupEntry<FactionEntry>(qinfo->RequiredMinRepFaction))
         {
             sLog.outErrorDb("Quest %u has `RequiredMinRepFaction` = %u but faction template %u does not exist, quest can't be done.",
                             qinfo->GetQuestId(), qinfo->RequiredMinRepFaction, qinfo->RequiredMinRepFaction);
             // no changes, quest can't be done for this requirement
         }
 
-        if (qinfo->RequiredMaxRepFaction && !sFactionStore.LookupEntry(qinfo->RequiredMaxRepFaction))
+        if (qinfo->RequiredMaxRepFaction && !sFactionStore.LookupEntry<FactionEntry>(qinfo->RequiredMaxRepFaction))
         {
             sLog.outErrorDb("Quest %u has `RequiredMaxRepFaction` = %u but faction template %u does not exist, quest can't be done.",
                             qinfo->GetQuestId(), qinfo->RequiredMaxRepFaction, qinfo->RequiredMaxRepFaction);
@@ -3950,7 +3941,7 @@ void ObjectMgr::LoadQuests()
                     sLog.outErrorDb("Quest %u has `RewRepFaction%d` = %u but `RewRepValue%d` = 0, quest will not reward this reputation.",
                                     qinfo->GetQuestId(), j + 1, qinfo->RewRepValue[j], j + 1);
 
-                if (!sFactionStore.LookupEntry(qinfo->RewRepFaction[j]))
+                if (!sFactionStore.LookupEntry<FactionEntry>(qinfo->RewRepFaction[j]))
                 {
                     sLog.outErrorDb("Quest %u has `RewRepFaction%d` = %u but raw faction (faction.dbc) %u does not exist, quest will not reward reputation for this faction.",
                                     qinfo->GetQuestId(), j + 1, qinfo->RewRepFaction[j], qinfo->RewRepFaction[j]);
@@ -5050,6 +5041,110 @@ void ObjectMgr::LoadQuestgiverGreetingLocales()
     sLog.outString();
 }
 
+TrainerGreeting const* ObjectMgr::GetTrainerGreetingData(uint32 entry) const
+{
+    auto itr = m_trainerGreetingMap.find(entry);
+    if (itr == m_trainerGreetingMap.end()) return nullptr;
+    return &itr->second;
+}
+
+void ObjectMgr::LoadTrainerGreetings()
+{
+    m_trainerGreetingMap.clear();                           // need for reload case
+
+    QueryResult* result = WorldDatabase.Query("SELECT Entry, Text FROM trainer_greeting");
+    if (!result)
+    {
+        BarGoLink bar(1);
+        bar.step();
+
+        sLog.outString(">> Loaded 0 trainer greetings. DB table `trainer_greeting` is empty!");
+        sLog.outString();
+
+        return;
+    }
+
+    BarGoLink bar(result->GetRowCount());
+
+    do
+    {
+        Field* fields = result->Fetch();
+        bar.step();
+
+        uint32 entry = fields[0].GetUInt32();
+
+        if (!sCreatureStorage.LookupEntry<CreatureInfo>(entry))
+        {
+            sLog.outErrorDb("Table trainer_greeting uses nonexistent creature entry %u. Skipping.", entry);
+            continue;
+        }
+
+        TrainerGreeting& var = m_trainerGreetingMap[entry];
+        var.text = fields[1].GetString();
+    }
+    while (result->NextRow());
+
+    delete result;
+
+    sLog.outString(">> Loaded %u trainer greetings.", uint32(m_trainerGreetingMap.size()));
+    sLog.outString();
+}
+
+void ObjectMgr::LoadTrainerGreetingLocales()
+{
+    m_trainerGreetingLocaleMap.clear();                     // need for reload case
+
+    QueryResult* result = WorldDatabase.Query("SELECT Entry, Text_loc1, Text_loc2, Text_loc3, Text_loc4, Text_loc5, Text_loc6, Text_loc7, Text_loc8 FROM locales_trainer_greeting");
+    if (!result)
+    {
+        BarGoLink bar(1);
+        bar.step();
+
+        sLog.outString(">> Loaded 0 locales trainer greetings.");
+        return;
+    }
+
+    BarGoLink bar(result->GetRowCount());
+
+    do
+    {
+        Field* fields = result->Fetch();
+        bar.step();
+
+        uint32 entry = fields[0].GetUInt32();
+
+        if (!sCreatureStorage.LookupEntry<CreatureInfo>(entry))
+        {
+            sLog.outErrorDb("Table locales_trainer_greeting uses nonexistent creature entry %u. Skipping.", entry);
+            continue;
+        }
+
+        TrainerGreetingLocale& var = m_trainerGreetingLocaleMap[entry];
+
+        for (int i = 1; i < MAX_LOCALE; ++i)
+        {
+            std::string str = fields[i].GetCppString();
+            if (!str.empty())
+            {
+                int idx = GetOrNewIndexForLocale(LocaleConstant(i));
+                if (idx >= 0)
+                {
+                    if (var.localeText.size() <= static_cast<size_t>(idx))
+                        var.localeText.resize(idx + 1);
+
+                    var.localeText[idx] = str;
+                }
+            }
+        }
+    }
+    while (result->NextRow());
+
+    delete result;
+
+    sLog.outString(">> Loaded %u locales trainer greetings.", uint32(m_trainerGreetingLocaleMap.size()));
+    sLog.outString();
+}
+
 void ObjectMgr::LoadAreatriggerLocales()
 {
     for (uint32 i = 0; i < QUESTGIVER_TYPE_MAX; i++)        // need for reload case
@@ -5322,6 +5417,99 @@ void ObjectMgr::LoadTavernAreaTriggers()
     delete result;
 
     sLog.outString(">> Loaded %u tavern triggers", count);
+    sLog.outString();
+}
+
+bool ObjectMgr::AddTaxiShortcut(TaxiPathEntry const* path, uint32 lengthTakeoff, uint32 lengthLanding)
+{
+    if (!path)
+        return false;
+
+    auto shortcut = m_TaxiShortcutMap.find(path->ID);
+    if (shortcut == m_TaxiShortcutMap.end())
+    {
+        TaxiShortcutData data;
+        data.lengthTakeoff = lengthTakeoff;
+        data.lengthLanding = lengthLanding;
+        m_TaxiShortcutMap.insert(TaxiShortcutMap::value_type(path->ID, data));
+        return true;
+    }
+    // Already exists
+    return false;
+}
+
+bool ObjectMgr::GetTaxiShortcut(uint32 pathid, TaxiShortcutData& data)
+{
+    auto shortcut = m_TaxiShortcutMap.find(pathid);
+
+    // No record for this path
+    if (shortcut == m_TaxiShortcutMap.end())
+        return false;
+
+    data = (*shortcut).second;
+    return true;
+}
+
+void ObjectMgr::LoadTaxiShortcuts()
+{
+    m_TaxiShortcutMap.clear();                              // need for reload case
+
+    QueryResult* result = WorldDatabase.Query("SELECT pathid,takeoff,landing FROM taxi_shortcuts");
+
+    uint32 count = 0;
+
+    if (!result)
+    {
+        BarGoLink bar(1);
+        bar.step();
+        sLog.outString(">> Loaded %u taxi shortcuts", count);
+        sLog.outString();
+        return;
+    }
+
+    BarGoLink bar(int(result->GetRowCount()));
+
+    do
+    {
+        ++count;
+        bar.step();
+
+        Field* fields = result->Fetch();
+
+        uint32 pathid = fields[0].GetUInt32();
+        uint32 takeoff = fields[1].GetUInt32();
+        uint32 landing = fields[2].GetUInt32();
+
+        TaxiPathEntry const* path = sTaxiPathStore.LookupEntry(pathid);
+        if (!path)
+        {
+            sLog.outErrorDb("Table `taxi_shortcuts` has a record for non-existent taxi path id %u, skipped.", pathid);
+            continue;
+        }
+
+        if (!takeoff && !landing)
+        {
+            sLog.outErrorDb("Table `taxi_shortcuts` has a useless record for taxi path id %u: takeoff and landing lengths are missing, skipped.", pathid);
+            continue;
+        }
+
+        TaxiPathNodeList const& waypoints = sTaxiPathNodesByPath[pathid];
+        const size_t bounds = waypoints.size();
+
+        if (takeoff >= bounds || landing >= bounds)
+        {
+            sLog.outErrorDb("Table `taxi_shortcuts` has a malformed record for taxi path id %u: lengths are out of bounds, skipped.", pathid);
+            continue;
+        }
+
+        if (!AddTaxiShortcut(path, takeoff, landing))
+            sLog.outErrorDb("Table `taxi_shortcuts` has a duplicate record for taxi path id %u, skipped.", pathid);
+    }
+    while (result->NextRow());
+
+    delete result;
+
+    sLog.outString(">> Loaded %u taxi shortcuts", count);
     sLog.outString();
 }
 
@@ -6573,7 +6761,7 @@ void ObjectMgr::LoadReputationRewardRate()
         repRate.creature_rate   = fields[2].GetFloat();
         repRate.spell_rate      = fields[3].GetFloat();
 
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionId);
         if (!factionEntry)
         {
             sLog.outErrorDb("Faction (faction.dbc) %u does not exist but is used in `reputation_reward_rate`", factionId);
@@ -6657,7 +6845,7 @@ void ObjectMgr::LoadReputationOnKill()
 
         if (repOnKill.repfaction1)
         {
-            FactionEntry const* factionEntry1 = sFactionStore.LookupEntry(repOnKill.repfaction1);
+            FactionEntry const* factionEntry1 = sFactionStore.LookupEntry<FactionEntry>(repOnKill.repfaction1);
             if (!factionEntry1)
             {
                 sLog.outErrorDb("Faction (faction.dbc) %u does not exist but is used in `creature_onkill_reputation`", repOnKill.repfaction1);
@@ -6667,7 +6855,7 @@ void ObjectMgr::LoadReputationOnKill()
 
         if (repOnKill.repfaction2)
         {
-            FactionEntry const* factionEntry2 = sFactionStore.LookupEntry(repOnKill.repfaction2);
+            FactionEntry const* factionEntry2 = sFactionStore.LookupEntry<FactionEntry>(repOnKill.repfaction2);
             if (!factionEntry2)
             {
                 sLog.outErrorDb("Faction (faction.dbc) %u does not exist but is used in `creature_onkill_reputation`", repOnKill.repfaction2);
@@ -6728,7 +6916,7 @@ void ObjectMgr::LoadReputationSpilloverTemplate()
         repTemplate.faction_rate[3]     = fields[11].GetFloat();
         repTemplate.faction_rank[3]     = fields[12].GetUInt32();
 
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionId);
 
         if (!factionEntry)
         {
@@ -6746,7 +6934,7 @@ void ObjectMgr::LoadReputationSpilloverTemplate()
         {
             if (repTemplate.faction[i])
             {
-                FactionEntry const* factionSpillover = sFactionStore.LookupEntry(repTemplate.faction[i]);
+                FactionEntry const* factionSpillover = sFactionStore.LookupEntry<FactionEntry>(repTemplate.faction[i]);
 
                 if (!factionSpillover)
                 {
@@ -6768,25 +6956,25 @@ void ObjectMgr::LoadReputationSpilloverTemplate()
             }
         }
 
-        FactionEntry const* factionEntry0 = sFactionStore.LookupEntry(repTemplate.faction[0]);
+        FactionEntry const* factionEntry0 = sFactionStore.LookupEntry<FactionEntry>(repTemplate.faction[0]);
         if (repTemplate.faction[0] && !factionEntry0)
         {
             sLog.outErrorDb("Faction (faction.dbc) %u does not exist but is used in `reputation_spillover_template`", repTemplate.faction[0]);
             continue;
         }
-        FactionEntry const* factionEntry1 = sFactionStore.LookupEntry(repTemplate.faction[1]);
+        FactionEntry const* factionEntry1 = sFactionStore.LookupEntry<FactionEntry>(repTemplate.faction[1]);
         if (repTemplate.faction[1] && !factionEntry1)
         {
             sLog.outErrorDb("Faction (faction.dbc) %u does not exist but is used in `reputation_spillover_template`", repTemplate.faction[1]);
             continue;
         }
-        FactionEntry const* factionEntry2 = sFactionStore.LookupEntry(repTemplate.faction[2]);
+        FactionEntry const* factionEntry2 = sFactionStore.LookupEntry<FactionEntry>(repTemplate.faction[2]);
         if (repTemplate.faction[2] && !factionEntry2)
         {
             sLog.outErrorDb("Faction (faction.dbc) %u does not exist but is used in `reputation_spillover_template`", repTemplate.faction[2]);
             continue;
         }
-        FactionEntry const* factionEntry3 = sFactionStore.LookupEntry(repTemplate.faction[3]);
+        FactionEntry const* factionEntry3 = sFactionStore.LookupEntry<FactionEntry>(repTemplate.faction[3]);
         if (repTemplate.faction[3] && !factionEntry3)
         {
             sLog.outErrorDb("Faction (faction.dbc) %u does not exist but is used in `reputation_spillover_template`", repTemplate.faction[3]);
@@ -6912,7 +7100,25 @@ void ObjectMgr::LoadSpellTemplate()
 #endif
     }
 
-    sLog.outString(">> Loaded %u spell_dbc records", sSpellTemplate.GetRecordCount());
+    sLog.outString(">> Loaded %u spell_template records", sSpellTemplate.GetRecordCount());
+    sLog.outString();
+}
+
+void ObjectMgr::LoadFactions()
+{
+    sFactionStore.Load();
+
+    for (uint32 i = 0; i < sFactionStore.GetMaxEntry(); ++i)
+    {
+        FactionEntry const* faction = sFactionStore.LookupEntry<FactionEntry>(i);
+        if (faction && faction->team)
+        {
+            SimpleFactionsList& flist = sFactionTeamMap[faction->team];
+            flist.push_back(i);
+        }
+    }
+
+    sLog.outString(">> Loaded %u faction_store records", sFactionStore.GetRecordCount());
     sLog.outString();
 }
 
@@ -7034,8 +7240,6 @@ void ObjectMgr::LoadCreatureQuestRelations()
         CreatureInfo const* cInfo = GetCreatureTemplate(itr->first);
         if (!cInfo)
             sLog.outErrorDb("Table `creature_questrelation` have data for nonexistent creature entry (%u) and existing quest %u", itr->first, itr->second);
-        else if (!(cInfo->NpcFlags & UNIT_NPC_FLAG_QUESTGIVER))
-            sLog.outErrorDb("Table `creature_questrelation` has creature entry (%u) for quest %u, but NpcFlags does not include UNIT_NPC_FLAG_QUESTGIVER", itr->first, itr->second);
     }
 }
 
@@ -7048,8 +7252,6 @@ void ObjectMgr::LoadCreatureInvolvedRelations()
         CreatureInfo const* cInfo = GetCreatureTemplate(itr->first);
         if (!cInfo)
             sLog.outErrorDb("Table `creature_involvedrelation` have data for nonexistent creature entry (%u) and existing quest %u", itr->first, itr->second);
-        else if (!(cInfo->NpcFlags & UNIT_NPC_FLAG_QUESTGIVER))
-            sLog.outErrorDb("Table `creature_involvedrelation` has creature entry (%u) for quest %u, but NpcFlags does not include UNIT_NPC_FLAG_QUESTGIVER", itr->first, itr->second);
     }
 }
 
@@ -7686,7 +7888,7 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
         }
         case CONDITION_REPUTATION_RANK_MIN:
         {
-            FactionEntry const* faction = sFactionStore.LookupEntry(m_value1);
+            FactionEntry const* faction = sFactionStore.LookupEntry<FactionEntry>(m_value1);
             return faction && player->GetReputationMgr().GetRank(faction) >= ReputationRank(m_value2);
         }
         case CONDITION_TEAM:
@@ -7843,7 +8045,7 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
         }
         case CONDITION_REPUTATION_RANK_MAX:
         {
-            FactionEntry const* faction = sFactionStore.LookupEntry(m_value1);
+            FactionEntry const* faction = sFactionStore.LookupEntry<FactionEntry>(m_value1);
             return faction && player->GetReputationMgr().GetRank(faction) <= ReputationRank(m_value2);
         }
         case CONDITION_COMPLETED_ENCOUNTER:
@@ -8146,7 +8348,7 @@ bool PlayerCondition::IsValid(uint16 entry, ConditionType condition, uint32 valu
         case CONDITION_REPUTATION_RANK_MIN:
         case CONDITION_REPUTATION_RANK_MAX:
         {
-            FactionEntry const* factionEntry = sFactionStore.LookupEntry(value1);
+            FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(value1);
             if (!factionEntry)
             {
                 sLog.outErrorDb("Reputation condition (entry %u, type %u) requires to have reputation non existing faction (%u), skipped", entry, condition, value1);
@@ -9581,6 +9783,19 @@ void ObjectMgr::GetQuestgiverGreetingLocales(uint32 entry, uint32 type, int32 lo
     }
 }
 
+void ObjectMgr::GetTrainerGreetingLocales(uint32 entry, int32 loc_idx, std::string* titlePtr) const
+{
+    if (loc_idx >= 0)
+    {
+        if (TrainerGreetingLocale const* tL = GetTrainerGreetingLocale(entry))
+        {
+            if (titlePtr)
+                if (tL->localeText.size() > (size_t)loc_idx && !tL->localeText[loc_idx].empty())
+                    *titlePtr = tL->localeText[loc_idx];
+        }
+    }
+}
+
 void ObjectMgr::GetAreaTriggerLocales(uint32 entry, int32 loc_idx, std::string* titlePtr) const
 {
     if (loc_idx >= 0)
@@ -9631,6 +9846,14 @@ void ObjectMgr::LoadCreatureTemplateSpells()
 
     sLog.outString(">> Loaded %u creature_template_spells definitions", sCreatureTemplateSpellsStorage.GetRecordCount());
     sLog.outString();
+}
+
+SimpleFactionsList const* GetFactionTeamList(uint32 faction)
+{
+    FactionTeamMap::const_iterator itr = sFactionTeamMap.find(faction);
+    if (itr == sFactionTeamMap.end())
+        return nullptr;
+    return &itr->second;
 }
 
 CreatureInfo const* GetCreatureTemplateStore(uint32 entry)

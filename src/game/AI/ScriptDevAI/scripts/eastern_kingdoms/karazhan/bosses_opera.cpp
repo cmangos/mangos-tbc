@@ -576,27 +576,27 @@ struct boss_croneAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_dorothee(Creature* pCreature)
+UnitAI* GetAI_boss_dorothee(Creature* pCreature)
 {
     return new boss_dorotheeAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_strawman(Creature* pCreature)
+UnitAI* GetAI_boss_strawman(Creature* pCreature)
 {
     return new boss_strawmanAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_tinhead(Creature* pCreature)
+UnitAI* GetAI_boss_tinhead(Creature* pCreature)
 {
     return new boss_tinheadAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_roar(Creature* pCreature)
+UnitAI* GetAI_boss_roar(Creature* pCreature)
 {
     return new boss_roarAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_crone(Creature* pCreature)
+UnitAI* GetAI_boss_crone(Creature* pCreature)
 {
     return new boss_croneAI(pCreature);
 }
@@ -724,7 +724,7 @@ struct boss_bigbadwolfAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_bigbadwolf(Creature* pCreature)
+UnitAI* GetAI_boss_bigbadwolf(Creature* pCreature)
 {
     return new boss_bigbadwolfAI(pCreature);
 }
@@ -902,6 +902,7 @@ struct boss_julianneAI : public ScriptedAI
 
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        DoResetThreat();
         m_creature->GetMotionMaster()->Clear();
         DoStartMovement(m_creature->getVictim());
     }
@@ -986,7 +987,7 @@ struct boss_julianneAI : public ScriptedAI
 
         if (m_uiPowerfulAttractionTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_POWERFUL_ATTRACTION) == CAST_OK)
                     m_uiPowerfulAttractionTimer = urand(5000, 30000);
@@ -1151,6 +1152,7 @@ struct boss_romuloAI : public ScriptedAI
 
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        DoResetThreat();
         m_creature->GetMotionMaster()->Clear();
         DoStartMovement(m_creature->getVictim());
     }
@@ -1250,12 +1252,12 @@ struct boss_romuloAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_julianne(Creature* pCreature)
+UnitAI* GetAI_boss_julianne(Creature* pCreature)
 {
     return new boss_julianneAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_romulo(Creature* pCreature)
+UnitAI* GetAI_boss_romulo(Creature* pCreature)
 {
     return new boss_romuloAI(pCreature);
 }

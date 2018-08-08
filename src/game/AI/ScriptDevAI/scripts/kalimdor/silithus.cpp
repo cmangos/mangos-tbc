@@ -616,7 +616,7 @@ struct npc_anachronos_the_ancientAI : public ScriptedAI, private DialogueHelper
                     case 2:
                         // Complete quest and despawn gate
                         if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
-                            pPlayer->GroupEventHappens(QUEST_A_PAWN_ON_THE_ETERNAL_BOARD, m_creature);
+                            pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_A_PAWN_ON_THE_ETERNAL_BOARD, m_creature);
                         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                         m_uiEventTimer = 4000;
                         break;
@@ -643,7 +643,7 @@ struct npc_anachronos_the_ancientAI : public ScriptedAI, private DialogueHelper
     }
 };
 
-CreatureAI* GetAI_npc_anachronos_the_ancient(Creature* pCreature)
+UnitAI* GetAI_npc_anachronos_the_ancient(Creature* pCreature)
 {
     return new npc_anachronos_the_ancientAI(pCreature);
 }
@@ -915,7 +915,7 @@ struct npc_solenorAI : public ScriptedAI
         {
             if (Unit* pUnit = m_creature->getVictim())
             {
-                if (m_creature->GetDistance2d(pUnit) > 5.0f)
+                if (m_creature->GetDistance(pUnit, false) > 5.0f)
                 {
                     if (DoCastSpellIfCan(pUnit, SPELL_DREADFUL_FRIGHT) == CAST_OK)
                         m_uiDreadfulFright_Timer = urand(15000, 20000);
@@ -945,7 +945,7 @@ bool GossipSelect_npc_solenor(Player* pPlayer, Creature* pCreature, uint32 uiSen
     return true;
 }
 
-CreatureAI* GetAI_npc_solenor(Creature* pCreature)
+UnitAI* GetAI_npc_solenor(Creature* pCreature)
 {
     return new npc_solenorAI(pCreature);
 }

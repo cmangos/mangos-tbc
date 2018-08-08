@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: bosses_emerald_dragons
-SD%Complete: 95
-SDComment: Missing correct behaviour of used trigger NPCs, some spell issues, summon player NYI
+SD%Complete: 98
+SDComment: Correct models used by Spirit Shade for each race/gender combination are missing (Lethon) / Player summon NYI
 SDCategory: Emerald Dragon Bosses
 EndScriptData */
 
@@ -40,14 +40,11 @@ enum
 {
     SPELL_MARK_OF_NATURE_PLAYER     = 25040,
     SPELL_MARK_OF_NATURE_AURA       = 25041,
-    SPELL_SEEPING_FOG_R             = 24813,                // Summons 15224 'Dream Fog'
+    SPELL_SEEPING_FOG_R             = 24813,                // Summons NPC 15224 (Dream Fog) that cast auras 24777 and 24780 on spawn
     SPELL_SEEPING_FOG_L             = 24814,
-    SPELL_DREAM_FOG                 = 24777,                // Used by summoned Adds
     SPELL_NOXIOUS_BREATH            = 24818,
     SPELL_TAILSWEEP                 = 15847,
-    SPELL_SUMMON_PLAYER             = 24776,                // NYI
-
-    NPC_DREAM_FOG                   = 15224,
+    SPELL_SUMMON_PLAYER             = 24776,                // Not yet implemented
 };
 
 struct boss_emerald_dragonAI : public ScriptedAI
@@ -87,9 +84,6 @@ struct boss_emerald_dragonAI : public ScriptedAI
     {
         if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             pSummoned->AI()->AttackStart(pTarget);
-
-        if (pSummoned->GetEntry() == NPC_DREAM_FOG)
-            pSummoned->CastSpell(pSummoned, SPELL_DREAM_FOG, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
     }
 
     // Return true, if succeeded
@@ -152,7 +146,8 @@ enum
 
     SPELL_VOLATILE_INFECTION    = 24928,
     SPELL_CORRUPTION_OF_EARTH   = 24910,
-    SPELL_PUTRID_MUSHROOM       = 24904,                    // Summons a mushroom on killing a player
+    SPELL_PUTRID_MUSHROOM       = 24904,                    // Summons a Putrid Mushroom (GO 180517 with trap spell 24871) on killing a player
+    SPELL_DESPAWN_MUSHROOMS     = 24958,                    // Removes all Putrid Mushrooms in case of raid wipe
 };
 
 struct boss_emerissAI : public boss_emerald_dragonAI
@@ -166,6 +161,7 @@ struct boss_emerissAI : public boss_emerald_dragonAI
         boss_emerald_dragonAI::Reset();
 
         m_uiVolatileInfectionTimer = 12000;
+        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_MUSHROOMS, CAST_TRIGGERED);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -212,7 +208,7 @@ struct boss_emerissAI : public boss_emerald_dragonAI
     }
 };
 
-CreatureAI* GetAI_boss_emeriss(Creature* pCreature)
+UnitAI* GetAI_boss_emeriss(Creature* pCreature)
 {
     return new boss_emerissAI(pCreature);
 }
@@ -228,7 +224,8 @@ enum
 
     SPELL_SHADOW_BOLT_WIRL      = 24834,                    // Periodic aura
     SPELL_DRAW_SPIRIT           = 24811,
-    SPELL_SUMMON_SPIRIT_SHADE   = 24810,                    // Summon spell was removed, was SPELL_EFFECT_SUMMON_DEMON
+    // SPELL_SUMMON_SPIRIT_SHADE   = 24810,                    // Summon spell was removed in TBC, was using SPELL_EFFECT_SUMMON_DEMON
+                                                               // Classic uses same code than TBC and WotLK for consistency
 
     NPC_LETHON                  = 14888,
     NPC_SPIRIT_SHADE            = 15261,                    // Add summoned by Lethon
@@ -243,7 +240,7 @@ struct boss_lethonAI : public boss_emerald_dragonAI
     void Aggro(Unit* /*pWho*/) override
     {
         DoScriptText(SAY_LETHON_AGGRO, m_creature);
-        // Shadow bolt wirl is a periodic aura which triggers a set of shadowbolts every 2 secs; may need some core tunning
+        // Shadow bolt wirl is a periodic aura which triggers a set of shadowbolts every 2 secs
         DoCastSpellIfCan(m_creature, SPELL_SHADOW_BOLT_WIRL, CAST_TRIGGERED);
     }
 
@@ -259,27 +256,18 @@ struct boss_lethonAI : public boss_emerald_dragonAI
         return false;
     }
 
-    // Need this code here, as SPELL_DRAW_SPIRIT has no Script- or Dummyeffect
+    // Need this code here, as SPELL_DRAW_SPIRIT has no Script - or Dummy Effect
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
         // Summon a shade for each player hit
         if (pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_DRAW_SPIRIT)
         {
-            // Summon this way, to be able to cast the shade visual spell with player as original caster
-            // This might not be supported currently by core, but this spell's visual should be dependend on the player
+            // Summon this way to be able to cast the shade visual spell with player as original caster
+            // This is not currently supported by core but this spell's visual should be dependent on player
             // Also possible that this was no problem due to the special way these NPCs had been summoned in classic times
             if (Creature* pSummoned = pTarget->SummonCreature(NPC_SPIRIT_SHADE, 0.0f, 0.0f, 0.0f, pTarget->GetOrientation(), TEMPSPAWN_DEAD_DESPAWN, 0))
                 pSummoned->CastSpell(pSummoned, SPELL_SPIRIT_SHAPE_VISUAL, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, pTarget->GetObjectGuid());
         }
-    }
-
-    void JustSummoned(Creature* pSummoned) override
-    {
-        // Move the shade to lethon
-        if (pSummoned->GetEntry() == NPC_SPIRIT_SHADE)
-            pSummoned->GetMotionMaster()->MoveFollow(m_creature, 0.0f, 0.0f);
-        else
-            boss_emerald_dragonAI::JustSummoned(pSummoned);
     }
 };
 
@@ -296,13 +284,18 @@ struct npc_spirit_shadeAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bHasHealed && pWho->GetEntry() == NPC_LETHON && pWho->IsWithinDistInMap(m_creature, 3.0f))
+        if (pWho->GetEntry() == NPC_LETHON)
         {
-            if (DoCastSpellIfCan(pWho, SPELL_DARK_OFFERING) == CAST_OK)
+            if (!m_bHasHealed && pWho->IsWithinDistInMap(m_creature, 3.0f))
             {
-                m_bHasHealed = true;
-                m_creature->ForcedDespawn(1000);
+                if (DoCastSpellIfCan(pWho, SPELL_DARK_OFFERING) == CAST_OK)
+                {
+                    m_bHasHealed = true;
+                    m_creature->ForcedDespawn(1000);
+                }
             }
+            else
+                m_creature->GetMotionMaster()->MovePoint(0, pWho->GetPositionX(), pWho->GetPositionY(), pWho->GetPositionZ());
         }
     }
 
@@ -311,12 +304,12 @@ struct npc_spirit_shadeAI : public ScriptedAI
     void UpdateAI(const uint32 /*uiDiff*/) override { }
 };
 
-CreatureAI* GetAI_boss_lethon(Creature* pCreature)
+UnitAI* GetAI_boss_lethon(Creature* pCreature)
 {
     return new boss_lethonAI(pCreature);
 }
 
-CreatureAI* GetAI_npc_spirit_shade(Creature* pCreature)
+UnitAI* GetAI_npc_spirit_shade(Creature* pCreature)
 {
     return new npc_spirit_shadeAI(pCreature);
 }
@@ -333,14 +326,13 @@ enum
     SPELL_ARCANE_BLAST      = 24857,
     SPELL_BELLOWING_ROAR    = 22686,
 
-    SPELL_SUMMON_SHADE_1    = 24841,
+    SPELL_SUMMON_SHADE_1    = 24841,                        // Summon one NPC 15302 (Shade of Taerar) that cast spells 24839 & 24840
     SPELL_SUMMON_SHADE_2    = 24842,
     SPELL_SUMMON_SHADE_3    = 24843,
-    SPELL_SELF_STUN         = 24883,                        // Stunns the main boss until the shades are dead or timer expires
+    SPELL_SELF_STUN         = 24883,                        // Stuns the main boss until the shades are dead or timer expires
+    SPELL_DESPAWN_SHADES    = 24886,
 
     NPC_SHADE_OF_TAERAR     = 15302,
-    SPELL_POSIONCLOUD       = 24840,
-    SPELL_POSIONBREATH      = 20667
 };
 
 struct boss_taerarAI : public boss_emerald_dragonAI
@@ -364,6 +356,9 @@ struct boss_taerarAI : public boss_emerald_dragonAI
         // Remove Unselectable if needed
         if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+
+        // Despawn all remaining summoned NPCs in case of raid wipe
+        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_SHADES, CAST_TRIGGERED);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -451,7 +446,7 @@ struct boss_taerarAI : public boss_emerald_dragonAI
     }
 };
 
-CreatureAI* GetAI_boss_taerar(Creature* pCreature)
+UnitAI* GetAI_boss_taerar(Creature* pCreature)
 {
     return new boss_taerarAI(pCreature);
 }
@@ -466,10 +461,7 @@ enum
     SAY_SUMMON_DRUIDS       = -1000361,
 
     SPELL_LIGHTNING_WAVE    = 24819,
-    SPELL_SUMMON_DRUIDS     = 24795,
-
-    // druid spells
-    SPELL_MOONFIRE          = 21669
+    SPELL_SUMMON_DRUIDS     = 24796,    // Summon NPC 15260 (Demented Druid Spirit) that uses spells 6726, 16247 & 24957
 };
 
 // Ysondre script
@@ -491,15 +483,16 @@ struct boss_ysondreAI : public boss_emerald_dragonAI
         DoScriptText(SAY_YSONDRE_AGGRO, m_creature);
     }
 
-    // Summon Druids - TODO FIXME (spell not understood)
+    // Summon Druids, one druid per player engaged in combat (actual summon handled in child spell 24795)
     bool DoSpecialDragonAbility()
     {
-        DoScriptText(SAY_SUMMON_DRUIDS, m_creature);
+        if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_DRUIDS, CAST_TRIGGERED) == CAST_OK)
+        {
+            DoScriptText(SAY_SUMMON_DRUIDS, m_creature);
+            return true;
+        }
 
-        for (int i = 0; i < 10; ++i)
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_DRUIDS, CAST_TRIGGERED);
-
-        return true;
+        return false;
     }
 
     bool UpdateDragonAI(const uint32 uiDiff)
@@ -518,7 +511,7 @@ struct boss_ysondreAI : public boss_emerald_dragonAI
     }
 };
 
-CreatureAI* GetAI_boss_ysondre(Creature* pCreature)
+UnitAI* GetAI_boss_ysondre(Creature* pCreature)
 {
     return new boss_ysondreAI(pCreature);
 }

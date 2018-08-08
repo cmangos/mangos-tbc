@@ -604,7 +604,7 @@ void BattleGround::RewardHonorToTeam(uint32 Honor, Team teamId)
 
 void BattleGround::RewardReputationToTeam(uint32 faction_id, uint32 Reputation, Team teamId)
 {
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction_id);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(faction_id);
 
     if (!factionEntry)
         return;
@@ -771,7 +771,6 @@ void BattleGround::EndBattleGround(Team winner)
         {
             // needed cause else in av some creatures will kill the players at the end
             plr->CombatStop();
-            plr->getHostileRefManager().deleteReferences();
         }
 
         // this line is obsolete - team is set ALWAYS
@@ -1413,7 +1412,7 @@ void BattleGround::DoorClose(ObjectGuid guid)
     if (obj)
     {
         // if doors are open, close it
-        if (obj->getLootState() == GO_ACTIVATED && obj->GetGoState() != GO_STATE_READY)
+        if (obj->GetLootState() == GO_ACTIVATED && obj->GetGoState() != GO_STATE_READY)
         {
             // change state to allow door to be closed
             obj->SetLootState(GO_READY);
@@ -1552,7 +1551,7 @@ void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
     if (respawntime == 0)
     {
         // we need to change state from GO_JUST_DEACTIVATED to GO_READY in case battleground is starting again
-        if (obj->getLootState() == GO_JUST_DEACTIVATED)
+        if (obj->GetLootState() == GO_JUST_DEACTIVATED)
             obj->SetLootState(GO_READY);
         obj->SetRespawnTime(0);
         map->Add(obj);
@@ -1647,7 +1646,7 @@ buffs are in their positions when battleground starts
 void BattleGround::HandleTriggerBuff(ObjectGuid go_guid)
 {
     GameObject* obj = GetBgMap()->GetGameObject(go_guid);
-    if (!obj || obj->GetGoType() != GAMEOBJECT_TYPE_TRAP || !obj->isSpawned())
+    if (!obj || obj->GetGoType() != GAMEOBJECT_TYPE_TRAP || !obj->IsSpawned())
         return;
 
     obj->SetLootState(GO_JUST_DEACTIVATED);             // can be despawned or destroyed

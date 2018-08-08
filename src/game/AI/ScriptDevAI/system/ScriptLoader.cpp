@@ -24,6 +24,7 @@ extern void AddSC_guards();
 extern void AddSC_item_scripts();
 extern void AddSC_npc_professions();
 extern void AddSC_npcs_special();
+extern void AddSC_quests_scripts();
 extern void AddSC_spell_scripts();
 extern void AddSC_world_map_scripts();
 
@@ -293,6 +294,7 @@ extern void AddSC_boss_mekgineer_steamrigger();
 extern void AddSC_boss_warlord_kalithresh();
 extern void AddSC_instance_steam_vault();
 extern void AddSC_boss_hungarfen();                         // CR, Underbog
+extern void AddSC_instance_underbog();
 extern void AddSC_boss_gruul();                             // gruuls_lair
 extern void AddSC_boss_high_king_maulgar();
 extern void AddSC_instance_gruuls_lair();
@@ -338,6 +340,7 @@ extern void AddSC_netherstorm();
 extern void AddSC_shadowmoon_valley();
 extern void AddSC_shattrath_city();
 extern void AddSC_terokkar_forest();
+extern void AddSC_boss_terokk();
 extern void AddSC_zangarmarsh();
 
 void AddScripts()
@@ -362,6 +365,7 @@ void AddScripts()
     AddSC_item_scripts();
     AddSC_npc_professions();
     AddSC_npcs_special();
+    AddSC_quests_scripts();
     AddSC_spell_scripts();
     AddSC_world_map_scripts();
 
@@ -631,6 +635,7 @@ void AddScripts()
     AddSC_boss_warlord_kalithresh();
     AddSC_instance_steam_vault();
     AddSC_boss_hungarfen();                                 // CR, Underbog
+    AddSC_instance_underbog();
     AddSC_boss_gruul();                                     // gruuls_lair
     AddSC_boss_high_king_maulgar();
     AddSC_instance_gruuls_lair();
@@ -676,5 +681,6 @@ void AddScripts()
     AddSC_shadowmoon_valley();
     AddSC_shattrath_city();
     AddSC_terokkar_forest();
+    AddSC_boss_terokk();
     AddSC_zangarmarsh();
 }

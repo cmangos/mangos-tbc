@@ -68,6 +68,7 @@ enum
     SD_SPELL_DRINK              = 30024,
     SPELL_MANA_POTION           = 32453,
     SPELL_PYROBLAST             = 29978,
+    SPELL_DISPEL_BLIZZARD       = 29970,
 
     // super spells
     SPELL_FLAME_WREATH          = 30004,                // triggers 29946 on targets
@@ -230,7 +231,7 @@ struct boss_aranAI : public ScriptedAI
             m_pInstance->SetData(TYPE_ARAN, FAIL);
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
     {
         if (eventType == AI_EVENT_CUSTOM_A)
         {
@@ -300,6 +301,7 @@ struct boss_aranAI : public ScriptedAI
                         case ARAN_ACTION_DRINK:
                             if (DoCastSpellIfCan(m_creature, SPELL_MASS_POLYMORPH) == CAST_OK)
                             {
+                                m_creature->CastSpell(nullptr, SPELL_DISPEL_BLIZZARD, TRIGGERED_NONE);
                                 DoScriptText(SAY_DRINK, m_creature);
                                 SetCombatMovement(false);
                                 SetCombatScriptStatus(true);
@@ -557,7 +559,7 @@ struct boss_aranAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_aran(Creature* pCreature)
+UnitAI* GetAI_boss_aran(Creature* pCreature)
 {
     return new boss_aranAI(pCreature);
 }
@@ -573,7 +575,7 @@ struct npc_shade_of_aran_blizzardAI : public ScriptedAI
     void UpdateAI(const uint32 /*uiDiff*/) override { }
 };
 
-CreatureAI* GetAI_npc_shade_of_aran_blizzard(Creature* pCreature)
+UnitAI* GetAI_npc_shade_of_aran_blizzard(Creature* pCreature)
 {
     return new npc_shade_of_aran_blizzardAI(pCreature);
 }

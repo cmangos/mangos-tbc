@@ -12,7 +12,7 @@
 
 class Player;
 class Creature;
-class CreatureAI;
+class UnitAI;
 class InstanceData;
 class Quest;
 class Item;
@@ -72,7 +72,7 @@ struct Script
         pQuestRewardedNPC(nullptr), pQuestRewardedGO(nullptr),
         pGOUse(nullptr), pItemUse(nullptr), pItemLoot(nullptr), pAreaTrigger(nullptr), pProcessEventId(nullptr),
         pEffectDummyNPC(nullptr), pEffectDummyGO(nullptr), pEffectDummyItem(nullptr), pEffectScriptEffectNPC(nullptr),
-        pEffectAuraDummy(nullptr), GetGameObjectAI(nullptr), GetAI(nullptr), GetInstanceData(nullptr)
+        pEffectAuraDummy(nullptr), GetGameObjectAI(nullptr), GetAI(nullptr), GetInstanceData(nullptr), pTrapSearching(nullptr)
     {}
 
     std::string Name;
@@ -103,7 +103,7 @@ struct Script
     std::function<bool(Unit*)>* pTrapSearching;
 
     GameObjectAI* (*GetGameObjectAI)(GameObject*);
-    CreatureAI* (*GetAI)(Creature*);
+    UnitAI* (*GetAI)(Creature*);
     InstanceData* (*GetInstanceData)(Map*);
 
     void RegisterSelf(bool bReportError = true);
@@ -149,7 +149,7 @@ class ScriptDevAIMgr
         uint32 GetScriptId(const char* name) const;
         uint32 GetScriptIdsCount() const { return m_scriptNames.size(); }
 
-        CreatureAI* GetCreatureAI(Creature* creature);
+        UnitAI* GetCreatureAI(Creature* creature);
         GameObjectAI* GetGameObjectAI(GameObject* gameobject);
 
         InstanceData* CreateInstanceData(Map* pMap);

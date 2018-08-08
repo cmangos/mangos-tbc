@@ -81,7 +81,7 @@ struct npc_professor_phizzlethorpeAI : public npc_escortAI
             case 20:
                 DoScriptText(EMOTE_PROGRESS_8, m_creature);
                 DoScriptText(SAY_PROGRESS_9, m_creature, pPlayer);
-                pPlayer->GroupEventHappens(QUEST_SUNKEN_TREASURE, m_creature);
+                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_SUNKEN_TREASURE, m_creature);
                 break;
         }
     }
@@ -110,7 +110,7 @@ bool QuestAccept_npc_professor_phizzlethorpe(Player* pPlayer, Creature* pCreatur
     return true;
 }
 
-CreatureAI* GetAI_npc_professor_phizzlethorpe(Creature* pCreature)
+UnitAI* GetAI_npc_professor_phizzlethorpe(Creature* pCreature)
 {
     return new npc_professor_phizzlethorpeAI(pCreature);
 }
@@ -185,7 +185,7 @@ struct npc_kineloryAI : public npc_escortAI
                 break;
             case 34:
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_HINTS_NEW_PLAGUE, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_HINTS_NEW_PLAGUE, m_creature);
                 break;
         }
     }
@@ -198,7 +198,7 @@ struct npc_kineloryAI : public npc_escortAI
             DoScriptText(SAY_AGGRO_KINELORY, m_creature);
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {   
@@ -236,7 +236,7 @@ struct npc_kineloryAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_kinelory(Creature* pCreature)
+UnitAI* GetAI_npc_kinelory(Creature* pCreature)
 {
     return new npc_kineloryAI(pCreature);
 }

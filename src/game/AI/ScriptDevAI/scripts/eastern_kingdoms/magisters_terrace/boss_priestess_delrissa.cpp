@@ -272,7 +272,7 @@ struct boss_priestess_delrissaAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_priestess_delrissa(Creature* pCreature)
+UnitAI* GetAI_boss_priestess_delrissa(Creature* pCreature)
 {
     return new boss_priestess_delrissaAI(pCreature);
 }
@@ -476,7 +476,7 @@ struct npc_kagani_nightstrikeAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_kagani_nightstrike(Creature* pCreature)
+UnitAI* GetAI_npc_kagani_nightstrike(Creature* pCreature)
 {
     return new npc_kagani_nightstrikeAI(pCreature);
 }
@@ -521,22 +521,13 @@ struct npc_ellris_duskhallowAI : public priestess_companion_commonAI
         m_uiFearTimer           = 10000;
         m_uiDeathCoilTimer      = 8000;
 
+        m_attackDistance = 20.0f;
+
         priestess_companion_commonAI::Reset();
 
         // Check if we already have an imp summoned
         if (!GetClosestCreatureWithEntry(m_creature, NPC_FIZZLE, 50.0f))
             DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP);
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 20.0f);
-        }
     }
 
     bool UpdateCompanionAI(const uint32 uiDiff)
@@ -611,7 +602,7 @@ struct npc_ellris_duskhallowAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_ellris_duskhallow(Creature* pCreature)
+UnitAI* GetAI_npc_ellris_duskhallow(Creature* pCreature)
 {
     return new npc_ellris_duskhallowAI(pCreature);
 }
@@ -664,7 +655,7 @@ struct npc_eramas_brightblazeAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_eramas_brightblaze(Creature* pCreature)
+UnitAI* GetAI_npc_eramas_brightblaze(Creature* pCreature)
 {
     return new npc_eramas_brightblazeAI(pCreature);
 }
@@ -716,18 +707,9 @@ struct npc_yazzaiAI : public priestess_companion_commonAI
         m_uiFrostboltTimer  = 3000;
         m_uiBlinkTimer      = 8000;
 
-        priestess_companion_commonAI::Reset();
-    }
+        m_attackDistance = 20.0f;
 
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 20.0f);
-        }
+        priestess_companion_commonAI::Reset();
     }
 
     bool UpdateCompanionAI(const uint32 uiDiff)
@@ -808,7 +790,7 @@ struct npc_yazzaiAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_yazzai(Creature* pCreature)
+UnitAI* GetAI_npc_yazzai(Creature* pCreature)
 {
     return new npc_yazzaiAI(pCreature);
 }
@@ -919,7 +901,7 @@ struct npc_warlord_salarisAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_warlord_salaris(Creature* pCreature)
+UnitAI* GetAI_npc_warlord_salaris(Creature* pCreature)
 {
     return new npc_warlord_salarisAI(pCreature);
 }
@@ -962,22 +944,13 @@ struct npc_garaxxasAI : public priestess_companion_commonAI
         m_uiWingClipTimer       = 4000;
         m_uiFreezingTrapTimer   = 15000;
 
+        m_attackDistance = 20.0f;
+
         priestess_companion_commonAI::Reset();
 
         // Check if the pet was killed
         if (!GetClosestCreatureWithEntry(m_creature, NPC_SLIVER, 50.0f))
             m_creature->SummonCreature(NPC_SLIVER, 0, 0, 0, 0, TEMPSPAWN_CORPSE_DESPAWN, 0);
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 20.0f);
-        }
     }
 
     bool UpdateCompanionAI(const uint32 uiDiff)
@@ -1051,7 +1024,7 @@ struct npc_garaxxasAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_garaxxas(Creature* pCreature)
+UnitAI* GetAI_npc_garaxxas(Creature* pCreature)
 {
     return new npc_garaxxasAI(pCreature);
 }
@@ -1152,7 +1125,7 @@ struct npc_apokoAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_apoko(Creature* pCreature)
+UnitAI* GetAI_npc_apoko(Creature* pCreature)
 {
     return new npc_apokoAI(pCreature);
 }
@@ -1264,7 +1237,7 @@ struct npc_zelfanAI : public priestess_companion_commonAI
     }
 };
 
-CreatureAI* GetAI_npc_zelfan(Creature* pCreature)
+UnitAI* GetAI_npc_zelfan(Creature* pCreature)
 {
     return new npc_zelfanAI(pCreature);
 }

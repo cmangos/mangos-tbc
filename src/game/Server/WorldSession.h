@@ -221,7 +221,6 @@ class WorldSession
         static void SendNameQueryOpcodeFromDBCallBack(QueryResult* result, uint32 accountId);
 
         void SendTrainerList(ObjectGuid guid) const;
-        void SendTrainerList(ObjectGuid guid, const std::string& strTitle) const;
 
         void SendListInventory(ObjectGuid guid) const;
         bool CheckBanker(ObjectGuid guid) const;
@@ -286,7 +285,6 @@ class WorldSession
         // Taxi
         void SendTaxiStatus(ObjectGuid guid) const;
         void SendTaxiMenu(Creature* unit) const;
-        void SendDoFlight(uint32 mountDisplayId, uint32 path, uint32 pathNode = 0) const;
         bool SendLearnNewTaxiNode(Creature* unit) const;
         void SendActivateTaxiReply(ActivateTaxiReply reply) const;
 

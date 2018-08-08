@@ -52,7 +52,8 @@ Pet::Pet(PetType type) :
     m_TrainingPoints(0), m_resetTalentsCost(0), m_resetTalentsTime(0),
     m_removed(false), m_happinessTimer(7500), m_loyaltyTimer(12000), m_petType(type), m_duration(0),
     m_loyaltyPoints(0), m_bonusdamage(0), m_auraUpdateMask(0), m_loading(false),
-    m_declinedname(nullptr), m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr)
+    m_xpRequiredForNextLoyaltyLevel(0), m_declinedname(nullptr),
+    m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr)
 {
     m_name = "Pet";
     m_regenTimer = 4000;
@@ -161,25 +162,25 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     QueryResult* result;
 
     if (petnumber)
-        // known petnumber entry                  0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType "
+        // known petnumber entry                  0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND id = '%u'",
                                           ownerid, petnumber);
     else if (current)
-        // current pet (slot 0)                   0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType "
+        // current pet (slot 0)                   0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND slot = '%u'",
                                           ownerid, PET_SAVE_AS_CURRENT);
     else if (petentry)
         // known petentry entry (unique for summoned pet, but non unique for hunter pet (only from current or not stabled pets)
-        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType "
+        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND entry = '%u' AND (slot = '%u' OR slot > '%u') ",
                                           ownerid, petentry, PET_SAVE_AS_CURRENT, PET_SAVE_LAST_STABLE_SLOT);
     else
         // any current or other non-stabled pet (for hunter "call pet")
-        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType "
+        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND (slot = '%u' OR slot > '%u') ",
                                           ownerid, PET_SAVE_AS_CURRENT, PET_SAVE_LAST_STABLE_SLOT);
 
@@ -279,8 +280,8 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
     SetName(fields[11].GetString());
 
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
     SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     if (getPetType() == HUNTER_PET)
     {
@@ -293,6 +294,8 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
         SetMaxPower(POWER_HAPPINESS, GetCreatePowers(POWER_HAPPINESS));
         SetPower(POWER_HAPPINESS, fields[15].GetUInt32());
         SetPowerType(POWER_FOCUS);
+        m_xpRequiredForNextLoyaltyLevel = fields[23].GetUInt32();
+        m_loyaltyPoints = fields[7].GetInt32();
     }
     else if (getPetType() != SUMMON_PET)
         sLog.outError("Pet have incorrect type (%u) for pet loading.", getPetType());
@@ -312,7 +315,6 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, fields[5].GetUInt32());
 
     ReactStates reactState = ReactStates(fields[6].GetUInt8());
-    m_loyaltyPoints = fields[7].GetInt32();
 
     uint32 savedhealth = fields[13].GetUInt32();
     uint32 savedpower = fields[14].GetUInt32();
@@ -358,6 +360,11 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     // The following call was moved here to fix health is not full after pet invocation (before, they where placed after map->Add())
     _LoadSpells();
     // TODO: confirm line above work in all situation
+    InitPetScalingAuras();
+
+    // remove arena auras if in arena
+    if (map->IsBattleArena())
+        RemoveArenaAuras();
 
     // failsafe check
     savedhealth = savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth;
@@ -520,8 +527,8 @@ void Pet::SavePetToDB(PetSaveMode mode)
 
         // save pet
         SqlStatement savePet = CharacterDatabase.CreateStatement(insPet, "INSERT INTO character_pet "
-                               "( id, entry,  owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata,TeachSpelldata,savetime,resettalents_cost,resettalents_time,CreatedBySpell,PetType) "
-                               "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                               "( id, entry,  owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty) "
+                               "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         savePet.addUInt32(m_charmInfo->GetPetNumber());
         savePet.addUInt32(GetEntry());
@@ -563,6 +570,12 @@ void Pet::SavePetToDB(PetSaveMode mode)
         savePet.addUInt64(uint64(m_resetTalentsTime));
         savePet.addUInt32(GetUInt32Value(UNIT_CREATED_BY_SPELL));
         savePet.addUInt32(uint32(getPetType()));
+
+        // loyalty values should only be saved for hunter pets
+        if (getPetType() == HUNTER_PET)
+            savePet.addUInt32(m_xpRequiredForNextLoyaltyLevel);
+        else
+            savePet.addUInt32(0);
 
         savePet.Execute();
         CharacterDatabase.CommitTransaction();
@@ -773,6 +786,30 @@ void Pet::LooseHappiness()
     ModifyPower(POWER_HAPPINESS, -addvalue);
 }
 
+void Pet::SetRequiredXpForNextLoyaltyLevel()
+{
+    uint32 loyaltylevel = GetLoyaltyLevel();
+    if (loyaltylevel >= BEST_FRIEND)
+    {
+        m_xpRequiredForNextLoyaltyLevel = 0;
+        return;
+    }
+    Unit* owner = GetOwner();
+    if (owner)
+    {
+        uint32 ownerLevel = owner->getLevel();
+        m_xpRequiredForNextLoyaltyLevel = ownerLevel < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) ? sObjectMgr.GetXPForLevel(ownerLevel) * 5 / 100 : sObjectMgr.GetXPForLevel(ownerLevel - 1) * 5 / 100;
+    }
+}
+
+void Pet::UpdateRequireXpForNextLoyaltyLevel(uint32 xp)
+{
+    if (xp > m_xpRequiredForNextLoyaltyLevel)
+        m_xpRequiredForNextLoyaltyLevel = 0;
+    else
+        m_xpRequiredForNextLoyaltyLevel -= xp;
+}
+
 void Pet::ModifyLoyalty(int32 addvalue)
 {
     uint32 loyaltylevel = GetLoyaltyLevel();
@@ -796,6 +833,7 @@ void Pet::ModifyLoyalty(int32 addvalue)
             SetLoyaltyLevel(LoyaltyLevel(loyaltylevel));
             m_loyaltyPoints = GetStartLoyaltyPoints(loyaltylevel);
             SetTP(m_TrainingPoints - int32(getLevel()));
+            SetRequiredXpForNextLoyaltyLevel();
         }
         else
         {
@@ -837,12 +875,13 @@ void Pet::ModifyLoyalty(int32 addvalue)
         }
     }
     // level up
-    else if (m_loyaltyPoints > int32(GetMaxLoyaltyPoints(loyaltylevel)))
+    else if (m_loyaltyPoints > int32(GetMaxLoyaltyPoints(loyaltylevel)) && m_xpRequiredForNextLoyaltyLevel <= 0)
     {
         ++loyaltylevel;
         SetLoyaltyLevel(LoyaltyLevel(loyaltylevel));
         m_loyaltyPoints = GetStartLoyaltyPoints(loyaltylevel);
         SetTP(m_TrainingPoints + getLevel());
+        SetRequiredXpForNextLoyaltyLevel();
     }
 }
 
@@ -935,11 +974,19 @@ bool Pet::HasTPForSpell(uint32 spellid) const
 
 int32 Pet::GetTPForSpell(uint32 spellid) const
 {
-    SkillLineAbilityEntry const* newSpell = sSkillLineAbilityStore.LookupEntry(spellid);
-    if (!newSpell || !newSpell->reqtrainpoints)
-        return 0;
+    uint32 basetrainp = 0;
 
-    uint32 basetrainp = newSpell->reqtrainpoints;
+    SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBounds(spellid);
+
+    for (SkillLineAbilityMap::const_iterator _spell_idx = bounds.first; _spell_idx != bounds.second; ++_spell_idx)
+    {
+        if (!_spell_idx->second->reqtrainpoints)
+            return 0;
+
+        basetrainp = _spell_idx->second->reqtrainpoints;
+        break;
+    }
+
     uint32 spenttrainp = 0;
     uint32 chainstart = sSpellMgr.GetFirstSpellInChain(spellid);
 
@@ -1001,7 +1048,7 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
     if (!owner)
         owner = GetOwner();
 
-    CombatStop();
+    CombatStop(true);
 
     if (owner)
     {
@@ -1110,7 +1157,10 @@ void Pet::GivePetXP(uint32 xp)
     SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, level < maxlevel ? newXP : 0);
 
     if (getPetType() == HUNTER_PET)
+    {
+        UpdateRequireXpForNextLoyaltyLevel(xp);
         KillLoyaltyBonus(level);
+    }
 }
 
 void Pet::GivePetLevel(uint32 level)
@@ -1177,7 +1227,7 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
     // SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED | UNIT_CAN_BE_ABANDONED); (need to test and check these for vanilla and TBC)
 
     SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED | UNIT_FLAG_RENAME);
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     SetUInt32Value(UNIT_MOD_CAST_SPEED, creature->GetUInt32Value(UNIT_MOD_CAST_SPEED));
     SetLoyaltyLevel(REBELLIOUS);
@@ -1285,6 +1335,8 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, 1);
                 SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, 1);
             }
+
+
 
             break;
         }
@@ -1466,6 +1518,8 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     // Set base Armor
     SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, armor);
 
+    InitPetScalingAuras();
+
     // Need to update stats - calculates max health/mana etc
     UpdateAllStats();
 
@@ -1481,6 +1535,92 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     SetPower(POWER_RAGE, 0);
 
     return;
+}
+
+void Pet::InitPetScalingAuras()
+{
+    switch (GetUInt32Value(UNIT_CREATED_BY_SPELL))
+    {
+        case 13481: // Tame Beast - Hunter
+            CastSpell(nullptr, 34902, TRIGGERED_NONE);
+            CastSpell(nullptr, 34903, TRIGGERED_NONE);
+            CastSpell(nullptr, 34904, TRIGGERED_NONE);
+            break;
+        case 688: // Imp - Warlock
+        case 691: // Felhunter
+        case 697: // Voidwalker
+        case 712: // Succubus
+        case 30146: // Felguard
+            CastSpell(nullptr, 34947, TRIGGERED_NONE);
+            CastSpell(nullptr, 34956, TRIGGERED_NONE);
+            CastSpell(nullptr, 34957, TRIGGERED_NONE);
+            CastSpell(nullptr, 34958, TRIGGERED_NONE);
+            break;
+        case 12740: // Infernal - Warlock - unique - isnt updated on stat changes
+            CastSpell(nullptr, 36186, TRIGGERED_NONE);
+            CastSpell(nullptr, 36188, TRIGGERED_NONE);
+            CastSpell(nullptr, 36189, TRIGGERED_NONE);
+            CastSpell(nullptr, 36190, TRIGGERED_NONE);
+            break;
+        case 31687: // Water Elemental - Mage
+            CastSpell(nullptr, 35657, TRIGGERED_NONE);
+            CastSpell(nullptr, 35658, TRIGGERED_NONE);
+            CastSpell(nullptr, 35659, TRIGGERED_NONE);
+            CastSpell(nullptr, 35660, TRIGGERED_NONE);
+            break;
+        case 32982: // Fire Elemental - Shaman
+            CastSpell(nullptr, 35665, TRIGGERED_NONE);
+            CastSpell(nullptr, 35666, TRIGGERED_NONE);
+            CastSpell(nullptr, 35667, TRIGGERED_NONE);
+            CastSpell(nullptr, 35668, TRIGGERED_NONE);
+            break;
+        case 33663: // Earth Elemental - Shaman
+            CastSpell(nullptr, 35674, TRIGGERED_NONE);
+            CastSpell(nullptr, 35675, TRIGGERED_NONE);
+            CastSpell(nullptr, 35676, TRIGGERED_NONE);
+            break;
+        case 33831: // Force Of Nature - Treants - Druid
+            CastSpell(nullptr, 35669, TRIGGERED_NONE);
+            CastSpell(nullptr, 35670, TRIGGERED_NONE);
+            CastSpell(nullptr, 35671, TRIGGERED_NONE);
+            CastSpell(nullptr, 35672, TRIGGERED_NONE);
+            break;
+        case 34433: // Shadowfiend - Priest
+            CastSpell(nullptr, 35661, TRIGGERED_NONE);
+            CastSpell(nullptr, 35662, TRIGGERED_NONE);
+            CastSpell(nullptr, 35663, TRIGGERED_NONE);
+            CastSpell(nullptr, 35664, TRIGGERED_NONE);
+            break;
+        default:
+            break;
+    }
+}
+
+void Pet::PlayDismissSound()
+{
+    uint32 soundId = 0;
+    switch (GetUInt32Value(UNIT_CREATED_BY_SPELL))
+    {
+        case 688: // Imp - Warlock
+            soundId = urand(0, 1) ? 11 : 371;
+            break;
+        //case 691: // Felhunter
+        //    soundId = 11;
+        //    break;
+        case 697: // Voidwalker
+            soundId = 162;
+            break;
+        case 712: // Succubus
+            soundId = 37;
+            break;
+        case 22865: // Doomguard
+            soundId = 68;
+            break;
+        case 30146: // Felguard
+            soundId = 551;
+            break;
+    }
+    SendPetDismiss(soundId);
 }
 
 bool Pet::HaveInDiet(ItemPrototype const* item) const

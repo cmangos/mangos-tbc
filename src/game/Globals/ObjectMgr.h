@@ -294,6 +294,14 @@ struct DungeonEncounter
 typedef std::multimap<uint32, DungeonEncounter const*> DungeonEncounterMap;
 typedef std::pair<DungeonEncounterMap::const_iterator, DungeonEncounterMap::const_iterator> DungeonEncounterMapBounds;
 
+struct TaxiShortcutData
+{
+    uint32 lengthTakeoff;
+    uint32 lengthLanding;
+};
+
+typedef std::unordered_multimap <uint32 /*nodeid*/, TaxiShortcutData> TaxiShortcutMap;
+
 struct GraveYardData
 {
     uint32 safeLocId;
@@ -323,6 +331,19 @@ enum
     QUESTGIVER_GAMEOBJECT = 1,
     QUESTGIVER_TYPE_MAX = 2,
 };
+
+struct TrainerGreeting
+{
+    std::string text;
+};
+
+struct TrainerGreetingLocale
+{
+    std::vector<std::string> localeText;
+};
+
+typedef std::map<uint32, TrainerGreeting> TrainerGreetingMap;
+typedef std::map<uint32, TrainerGreetingLocale> TrainerGreetingLocaleMap;
 
 enum ConditionType
 {
@@ -476,6 +497,9 @@ class IdGenerator
         T m_nextGuid;
 };
 
+typedef std::list<uint32> SimpleFactionsList;
+SimpleFactionsList const* GetFactionTeamList(uint32 faction);
+
 class ObjectMgr
 {
         friend class PlayerDumpReader;
@@ -549,6 +573,9 @@ class ObjectMgr
         uint32 GetPlayerAccountIdByGUID(ObjectGuid guid) const;
         uint32 GetPlayerAccountIdByPlayerName(const std::string& name) const;
 
+        bool AddTaxiShortcut(const TaxiPathEntry* path, uint32 lengthTakeoff, uint32 lengthLanding);
+        bool GetTaxiShortcut(uint32 pathid, TaxiShortcutData& data);
+        void LoadTaxiShortcuts();
         uint32 GetNearestTaxiNode(float x, float y, float z, uint32 mapid, Team team) const;
         void GetTaxiPath(uint32 source, uint32 destination, uint32& path, uint32& cost) const;
         uint32 GetTaxiMountDisplayId(uint32 id, Team team, bool allowed_alt_team = false) const;
@@ -580,6 +607,7 @@ class ObjectMgr
         GossipText const* GetGossipText(uint32 Text_ID) const;
 
         QuestgiverGreeting const* GetQuestgiverGreetingData(uint32 entry, uint32 type) const;
+        TrainerGreeting const* GetTrainerGreetingData(uint32 entry) const;
 
         WorldSafeLocsEntry const* GetClosestGraveYard(float x, float y, float z, uint32 MapId, Team team);
         bool AddGraveYardLink(uint32 id, uint32 zone, Team team, bool inDB = true);
@@ -689,6 +717,8 @@ class ObjectMgr
         void LoadGossipTextLocales();
         void LoadQuestgiverGreeting();
         void LoadQuestgiverGreetingLocales();
+        void LoadTrainerGreetings();
+        void LoadTrainerGreetingLocales();
         void LoadPageTextLocales();
         void LoadGossipMenuItemsLocales();
         void LoadPointOfInterestLocales();
@@ -738,6 +768,8 @@ class ObjectMgr
         void LoadVendors() { LoadVendors("npc_vendor", false); }
         void LoadTrainerTemplates();
         void LoadTrainers() { LoadTrainers("npc_trainer", false); }
+
+        void LoadFactions();
 
         /// @param _map Map* of the map for which to load active entities. If nullptr active entities on continents are loaded
         void LoadActiveEntities(Map* _map);
@@ -876,6 +908,15 @@ class ObjectMgr
         {
             auto itr = m_questgiverGreetingLocaleMap[type].find(entry);
             if (itr == m_questgiverGreetingLocaleMap[type].end()) return nullptr;
+            return &itr->second;
+        }
+
+        void GetTrainerGreetingLocales(uint32 entry, int32 loc_idx, std::string* titlePtr) const;
+
+        TrainerGreetingLocale const* GetTrainerGreetingLocale(uint32 entry) const
+        {
+            auto itr = m_trainerGreetingLocaleMap.find(entry);
+            if (itr == m_trainerGreetingLocaleMap.end()) return nullptr;
             return &itr->second;
         }
 
@@ -1171,6 +1212,8 @@ class ObjectMgr
         typedef std::set<std::wstring> ReservedNamesMap;
         ReservedNamesMap    m_ReservedNames;
 
+        TaxiShortcutMap     m_TaxiShortcutMap;
+
         GraveYardMap        mGraveYardMap;
 
         GameTeleMap         m_GameTeleMap;
@@ -1248,6 +1291,8 @@ class ObjectMgr
 
         QuestgiverGreetingMap m_questgiverGreetingMap[QUESTGIVER_TYPE_MAX];
         QuestgiverGreetingLocaleMap m_questgiverGreetingLocaleMap[QUESTGIVER_TYPE_MAX];
+        TrainerGreetingMap m_trainerGreetingMap;
+        TrainerGreetingLocaleMap m_trainerGreetingLocaleMap;
 
         CreatureModelRaceMap m_mCreatureModelRaceMap;
 

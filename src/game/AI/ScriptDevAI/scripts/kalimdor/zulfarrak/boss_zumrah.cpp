@@ -71,6 +71,8 @@ struct boss_zumrahAI : public ScriptedAI
         m_uiWardOfZumrahTimer       = urand(7000, 20000);
         m_uHealingWaveTimer         = urand(10000, 15000);
         m_uiSpawnZombieTimer        = 1000;
+
+        m_attackDistance = 10.0f;
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -81,17 +83,6 @@ struct boss_zumrahAI : public ScriptedAI
     void KilledUnit(Unit* /*pVictim*/) override
     {
         DoScriptText(SAY_KILL, m_creature);
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 10.0f);
-        }
     }
 
     void MoveInLineOfSight(Unit* pWho) override
@@ -127,7 +118,7 @@ struct boss_zumrahAI : public ScriptedAI
         {
             GameObject* pGo = m_creature->GetMap()->GetGameObject(*itr);
             // Go spawned and no looting in process
-            if (pGo && pGo->isSpawned() && pGo->getLootState() == GO_READY)
+            if (pGo && pGo->IsSpawned() && pGo->GetLootState() == GO_READY)
                 lGravesInRange.push_back(pGo);
         }
 
@@ -209,7 +200,7 @@ struct boss_zumrahAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_zumrah(Creature* pCreature)
+UnitAI* GetAI_boss_zumrah(Creature* pCreature)
 {
     return new boss_zumrahAI(pCreature);
 }

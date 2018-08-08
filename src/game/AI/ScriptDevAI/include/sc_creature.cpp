@@ -65,7 +65,7 @@ void ScriptedAI::UpdateAI(const uint32 /*diff*/)
  */
 void ScriptedAI::EnterEvadeMode()
 {
-    CreatureAI::EnterEvadeMode();
+    UnitAI::EnterEvadeMode();
 
     Reset();
 }
@@ -76,10 +76,10 @@ void ScriptedAI::JustRespawned()
     Reset();
 }
 
-void ScriptedAI::DoStartMovement(Unit* victim, float distance, float angle)
+void ScriptedAI::DoStartMovement(Unit* victim)
 {
     if (victim)
-        m_creature->GetMotionMaster()->MoveChase(victim, distance, angle);
+        m_creature->GetMotionMaster()->MoveChase(victim, m_attackDistance, m_attackAngle, m_moveFurther);
 }
 
 void ScriptedAI::DoStartNoMovement(Unit* victim)
@@ -479,7 +479,7 @@ void Scripted_NoMovementAI::GetAIInformation(ChatHandler& reader)
 
 void Scripted_NoMovementAI::AttackStart(Unit* who)
 {
-    if (who && m_creature->Attack(who, true))
+    if (who && m_creature->Attack(who, m_meleeEnabled))
     {
         m_creature->AddThreat(who);
         m_creature->SetInCombatWith(who);

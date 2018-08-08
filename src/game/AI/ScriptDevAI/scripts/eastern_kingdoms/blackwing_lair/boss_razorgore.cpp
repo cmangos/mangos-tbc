@@ -161,7 +161,7 @@ struct boss_razorgoreAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_razorgore(Creature* pCreature)
+UnitAI* GetAI_boss_razorgore(Creature* pCreature)
 {
     return new boss_razorgoreAI(pCreature);
 }
@@ -236,7 +236,7 @@ struct npc_blackwing_orbAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_blackwing_orb(Creature* pCreature)
+UnitAI* GetAI_npc_blackwing_orb(Creature* pCreature)
 {
     return new npc_blackwing_orbAI(pCreature);
 }
@@ -245,7 +245,7 @@ bool EffectDummyGameObj_go_black_dragon_egg(Unit* pCaster, uint32 uiSpellId, Spe
 {
     if (uiSpellId == SPELL_DESTROY_EGG && uiEffIndex == EFFECT_INDEX_1)
     {
-        if (!pGOTarget->isSpawned())
+        if (!pGOTarget->IsSpawned())
             return true;
 
         if (ScriptedInstance* pInstance = (ScriptedInstance*)pGOTarget->GetInstanceData())

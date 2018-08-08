@@ -47,6 +47,10 @@ struct boss_void_reaverAI : public ScriptedAI
     boss_void_reaverAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_PERIODIC_LEECH, true);
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_PERIODIC_MANA_LEECH, true);
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_DISPEL, DISPEL_POISON, true);
+        m_creature->ApplySpellImmune(nullptr, IMMUNITY_EFFECT, SPELL_EFFECT_HEALTH_LEECH, true);
         Reset();
     }
 
@@ -181,7 +185,7 @@ struct boss_void_reaverAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_void_reaver(Creature* pCreature)
+UnitAI* GetAI_boss_void_reaver(Creature* pCreature)
 {
     return new boss_void_reaverAI(pCreature);
 }

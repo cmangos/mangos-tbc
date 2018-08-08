@@ -147,7 +147,6 @@ struct boss_soccothratesAI : public ScriptedAI, private DialogueHelper
     void EnterEvadeMode() override
     {
         m_creature->RemoveAllAurasOnEvade();
-        m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
 
@@ -280,7 +279,7 @@ struct boss_soccothratesAI : public ScriptedAI, private DialogueHelper
     }
 };
 
-CreatureAI* GetAI_boss_soccothrates(Creature* pCreature)
+UnitAI* GetAI_boss_soccothrates(Creature* pCreature)
 {
     return new boss_soccothratesAI(pCreature);
 }

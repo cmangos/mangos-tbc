@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: Shadowmoon_Valley
 SD%Complete: 100
-SDComment: Quest support: 10451, 10458, 10480, 10481, 10514, 10540, 10588, 10781, 10804, 10854, 11020.
+SDComment: Quest support: 10451, 10458, 10480, 10481, 10514, 10540, 10588, 10707, 10781, 10804, 10854, 11020.
 SDCategory: Shadowmoon Valley
 EndScriptData */
 
@@ -52,6 +52,7 @@ enum
     SPELL_PLACE_CARCASS         = 38439,
     SPELL_JUST_EATEN            = 38502,
     SPELL_NETHER_BREATH         = 38467,
+    SPELL_INTANGIBLE_PRESENCE   = 36513,
 
     QUEST_KINDNESS              = 10804,
     NPC_EVENT_PINGER            = 22131,
@@ -67,7 +68,8 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
 
     uint32 m_uiEatTimer;
     uint32 m_uiCreditTimer;
-    uint32 m_uiCastTimer;
+    uint32 m_uiNetherbreathTimer;
+    uint32 m_uiIntangiblePresenceTimer;
 
     void Reset() override
     {
@@ -75,7 +77,8 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
 
         m_uiEatTimer    = 0;
         m_uiCreditTimer = 0;
-        m_uiCastTimer   = 5000;
+        m_uiNetherbreathTimer = 5000;
+        m_uiIntangiblePresenceTimer = 12000;
     }
 
     void SpellHit(Unit* pCaster, SpellEntry const* pSpell) override
@@ -129,7 +132,6 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
 
             return;
         }
-
         if (m_uiCreditTimer)
         {
             if (m_uiCreditTimer <= uiDiff)
@@ -155,19 +157,27 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        if (m_uiCastTimer < uiDiff)
+        if (m_uiNetherbreathTimer < uiDiff)
         {
             DoCastSpellIfCan(m_creature->getVictim(), SPELL_NETHER_BREATH);
-            m_uiCastTimer = 5000;
+            m_uiNetherbreathTimer = urand(9000, 13000);
         }
         else
-            m_uiCastTimer -= uiDiff;
+            m_uiNetherbreathTimer -= uiDiff;
+
+        if (m_uiIntangiblePresenceTimer < uiDiff)
+        {
+            DoCastSpellIfCan(m_creature->getVictim(), SPELL_INTANGIBLE_PRESENCE);
+            m_uiIntangiblePresenceTimer = urand(12000, 16000);
+        }
+        else
+            m_uiIntangiblePresenceTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
 };
 
-CreatureAI* GetAI_mob_mature_netherwing_drake(Creature* pCreature)
+UnitAI* GetAI_mob_mature_netherwing_drake(Creature* pCreature)
 {
     return new mob_mature_netherwing_drakeAI(pCreature);
 }
@@ -182,6 +192,8 @@ enum
 
     SPELL_HIT_FORCE_OF_NELTHARAKU   = 38762,
     SPELL_FORCE_OF_NELTHARAKU       = 38775,
+
+    EMOTE_ON_HIT_FORCE              = -1015001,
 
     QUEST_FORCE_OF_NELT             = 10854,
     NPC_DRAGONMAW_SUBJUGATOR        = 21718,
@@ -209,6 +221,8 @@ struct mob_enslaved_netherwing_drakeAI : public ScriptedAI
             {
                 m_uiFlyTimer = 2500;
                 m_playerGuid = pPlayer->GetObjectGuid();
+
+                DoScriptText(EMOTE_ON_HIT_FORCE, m_creature);
 
                 m_creature->SetFactionTemporary(FACTION_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN);
 
@@ -269,7 +283,7 @@ struct mob_enslaved_netherwing_drakeAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_enslaved_netherwing_drake(Creature* pCreature)
+UnitAI* GetAI_mob_enslaved_netherwing_drake(Creature* pCreature)
 {
     return new mob_enslaved_netherwing_drakeAI(pCreature);
 }
@@ -411,7 +425,7 @@ struct npc_dragonmaw_peonAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_dragonmaw_peon(Creature* pCreature)
+UnitAI* GetAI_npc_dragonmaw_peon(Creature* pCreature)
 {
     return new npc_dragonmaw_peonAI(pCreature);
 }
@@ -487,23 +501,14 @@ struct npc_wildaAI : public npc_escortAI
         m_uiHealingTimer = 0;
         m_uiShockTimer = 1000;
         m_uiLightningTimer = 2000;
+
+        m_attackDistance = 10.0f;
     }
 
     void Aggro(Unit* pWho) override
     {
         if (roll_chance_i(30))
             DoCastSpellIfCan(m_creature, SPELL_EARTHBING_TOTEM);
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 10.0f);
-        }
     }
 
     void WaypointReached(uint32 uiPointId) override
@@ -542,7 +547,7 @@ struct npc_wildaAI : public npc_escortAI
                     DoDespawnSpirits();
                     m_creature->SetFacingToObject(pPlayer);
                     DoScriptText(SAY_WIL_END, m_creature, pPlayer);
-                    pPlayer->GroupEventHappens(QUEST_ESCAPE_COILSCAR, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ESCAPE_COILSCAR, m_creature);
                 }
                 break;
         }
@@ -658,7 +663,7 @@ struct npc_wildaAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_npc_wilda(Creature* pCreature)
+UnitAI* GetAI_npc_wilda(Creature* pCreature)
 {
     return new npc_wildaAI(pCreature);
 }
@@ -885,7 +890,7 @@ struct mob_torlothAI : public ScriptedAI
     {
         if (Player* pPlayer = pKiller->GetBeneficiaryPlayer())
         {
-            pPlayer->GroupEventHappens(QUEST_BATTLE_OF_THE_CRIMSON_WATCH, m_creature);
+            pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_BATTLE_OF_THE_CRIMSON_WATCH, m_creature);
 
             if (Creature* pLordIllidan = m_creature->GetMap()->GetCreature(m_lordIllidanGuid))
             {
@@ -938,7 +943,7 @@ struct mob_torlothAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_mob_torloth(Creature* pCreature)
+UnitAI* GetAI_mob_torloth(Creature* pCreature)
 {
     return new mob_torlothAI(pCreature);
 }
@@ -1162,7 +1167,7 @@ struct npc_lord_illidan_stormrageAI : public Scripted_NoMovementAI
     }
 };
 
-CreatureAI* GetAI_npc_lord_illidan_stormrage(Creature * (pCreature))
+UnitAI* GetAI_npc_lord_illidan_stormrage(Creature * (pCreature))
 {
     return new npc_lord_illidan_stormrageAI(pCreature);
 }
@@ -1281,7 +1286,7 @@ struct npc_totem_of_spiritsAI : public ScriptedPetAI
     }
 };
 
-CreatureAI* GetAI_npc_totem_of_spirits(Creature* pCreature)
+UnitAI* GetAI_npc_totem_of_spirits(Creature* pCreature)
 {
     return new npc_totem_of_spiritsAI(pCreature);
 }
@@ -1348,6 +1353,545 @@ bool ProcessEventId_event_spell_soul_captured_credit(uint32 uiEventId, Object* p
 }
 
 /*#####
+#npc_shadowlord_deathwail
+#####*/
+
+struct WaveCoords 
+{
+    float xCoord, yCoord, zCoord;
+};
+
+const static WaveCoords WaveSpawnCoords[3][3] = 
+{
+    {
+        /////////////GROUP 1//////////// 0
+        {-3220.212f, 257.0669f, 139.0887f},
+        {-3214.421f, 253.1379f, 139.1302f},
+        {-3218.280f, 248.6299f, 139.1302f},
+    },
+    {
+        /////////////GROUP 2//////////// 1
+        {-3256.545f, 260.2362f, 137.1539f},
+        {-3253.961f, 257.7454f, 137.1894f},
+        {-3258.832f, 256.8369f, 137.1468f},
+    },
+    {
+        /////////////GROUP 3//////////// 2
+        {-3219.986f, 259.6718f, 139.0960f},
+        {-3214.978f, 256.4007f, 139.1302f},
+        {-3217.333f, 252.0130f, 139.1302f},
+    }
+};
+
+const static WaveCoords* WaveGroupOneSpawnCoords	= WaveSpawnCoords[0];
+const static WaveCoords* WaveGroupTwoSpawnCoords	= WaveSpawnCoords[1];
+const static WaveCoords* WaveGroupThreeSpawnCoords	= WaveSpawnCoords[2];
+
+const static WaveCoords DeathwailDescentCoords[] = 
+{
+    {-3245.675f, 298.3688f, 171.9848f},
+    {-3251.500f, 301.2324f, 167.3459f},
+    {-3258.824f, 302.1381f, 162.9848f},
+    {-3267.146f, 297.6195f, 157.9292f},
+    {-3266.891f, 283.9230f, 155.4848f},
+    {-3261.760f, 278.8767f, 150.5682f},
+    {-3255.110f, 278.1188f, 147.8738f},
+    {-3248.274f, 278.3419f, 143.6453f},
+    {-3245.108f, 287.5689f, 142.7843f},
+    {-3248.166f, 289.8274f, 139.0618f},
+};
+
+enum
+{
+    SAY_BEGIN_DESCENT			= -1015002,
+    SAY_HEART_RETRIEVED			= -1015003,
+    SAY_DEAD					= -1015004,
+
+    NPC_SHADOWLORD_DEATHWAIL	= 22006,
+    NPC_HOF_VISUAL_TRIGGER		= 22058,
+    NPC_SHADOWMOON_SOULSTEALER	= 22061,
+    NPC_DEATHWAIL_VISUAL_TRIG	= 22096,
+    NPC_SHADOWMOON_RETAINER		= 22102,
+    NPC_FELFIRE_SUMMONER		= 22121,
+
+    GOBJECT_HEART_OF_FURY		= 185125,
+
+    SPELL_SHADOW_BOLT			= 12471,
+    SPELL_SHADOW_BOLT_VOLLEY	= 15245,
+    SPELL_FEAR					= 27641,
+    SPELL_FEL_FIREBALL			= 38312,
+    SPELL_SUMMON_FEL_FIRE		= 38375,
+
+    FEAR_CD					= 20000,
+    FEL_FIREBALL_CD			= 6000,
+    SHADOW_BOLT_CD			= 4000,
+    SHADOW_BOLT_VOLLEY_CD	= 10000,
+    PLAYER_CHECK_CD			= 2000,
+    RETAINER_WAVE_CD		= 100000,
+
+    MAX_PLAYER_DISTANCE		= 100,
+
+    RETAINER_DESPAWN_TIME	= 180000,
+    DEATHWAIL_DESPAWN_TIME	= 300000
+};
+
+struct npc_shadowlord_deathwailAI : public ScriptedAI
+{
+    npc_shadowlord_deathwailAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    const static uint8 WaveCoordOffset = 11;
+
+    ObjectGuid m_playerGuid;
+
+    std::list<Creature*> m_lSoulstealers;
+
+    Creature* m_cHOFVisualTrigger;
+    Creature* m_cDeathwailTrigger;
+
+    uint32 m_uiFelFireballTimer;
+    uint32 m_uiFearTimer;
+    uint32 m_uiShadowBoltTimer;
+    uint32 m_uiShadowBoltVolleyTimer;
+    uint32 m_uiPlayerCheckTimer;
+    uint32 m_uiPeriodicWaveTimer;
+    uint32 m_uiDeathwailDespawnTimer;
+
+    bool m_bEventInProgress = false;
+    bool m_bDeathwailGrounded;
+
+    void Reset() override
+    {
+        if (m_bEventInProgress && !m_bDeathwailGrounded)
+            return;
+
+        m_playerGuid = ObjectGuid();
+        m_lSoulstealers.clear();
+        m_cHOFVisualTrigger = nullptr;
+        m_cDeathwailTrigger = nullptr;
+        
+        m_uiFelFireballTimer		= FEL_FIREBALL_CD;
+        m_uiFearTimer				= 8000 + urand(0, 5000);
+        m_uiShadowBoltTimer			= SHADOW_BOLT_CD;
+        m_uiShadowBoltVolleyTimer	= SHADOW_BOLT_VOLLEY_CD;
+        m_uiPlayerCheckTimer		= PLAYER_CHECK_CD;
+        m_uiPeriodicWaveTimer		= RETAINER_WAVE_CD;
+        m_uiDeathwailDespawnTimer	= DEATHWAIL_DESPAWN_TIME;
+    }
+
+    void JustRespawned() override
+    {
+        m_bDeathwailGrounded = false;
+        m_bEventInProgress = false;
+        SetReactState(REACT_PASSIVE);
+        m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        m_creature->SetLevitate(true);
+        Reset();
+    }
+
+    void DoReleaseSoulstealersAndReset()
+    {
+        for (Creature* soulstealer : m_lSoulstealers)
+            if (soulstealer)
+            {
+                soulstealer->CombatStop();
+                soulstealer->SetActiveObjectState(false);
+            }
+        
+        m_bEventInProgress = false;
+
+        m_creature->SetActiveObjectState(false);
+        Reset();
+    }
+
+    void DoSummonWave(bool both = false)
+    {
+        if (both)
+        {
+            // Wave starting indoors
+            Creature* pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupOneSpawnCoords[0].xCoord, WaveGroupOneSpawnCoords[0].yCoord, WaveGroupOneSpawnCoords[0].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 1);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupOneSpawnCoords[1].xCoord, WaveGroupOneSpawnCoords[1].yCoord, WaveGroupOneSpawnCoords[1].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 2);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupOneSpawnCoords[2].xCoord, WaveGroupOneSpawnCoords[2].yCoord, WaveGroupOneSpawnCoords[2].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 3);
+        
+            // Wave starting outdoors
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupTwoSpawnCoords[0].xCoord, WaveGroupTwoSpawnCoords[0].yCoord, WaveGroupTwoSpawnCoords[0].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 4);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupTwoSpawnCoords[1].xCoord, WaveGroupTwoSpawnCoords[1].yCoord, WaveGroupTwoSpawnCoords[1].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 5);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupTwoSpawnCoords[2].xCoord, WaveGroupTwoSpawnCoords[2].yCoord, WaveGroupTwoSpawnCoords[2].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 6);
+        }
+        else
+        {
+            Creature* pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupThreeSpawnCoords[0].xCoord, WaveGroupThreeSpawnCoords[0].yCoord, WaveGroupThreeSpawnCoords[0].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 1);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupThreeSpawnCoords[1].xCoord, WaveGroupThreeSpawnCoords[1].yCoord, WaveGroupThreeSpawnCoords[1].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 2);
+            pSummoned = m_creature->SummonCreature(NPC_SHADOWMOON_RETAINER, WaveGroupThreeSpawnCoords[2].xCoord, WaveGroupThreeSpawnCoords[2].yCoord, WaveGroupThreeSpawnCoords[2].zCoord, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, RETAINER_DESPAWN_TIME, true, true, 3);
+        }
+    }
+
+    void DoBeginDescent()
+    {
+        m_bDeathwailGrounded = true;
+        m_creature->GetMotionMaster()->MovePoint(0, DeathwailDescentCoords[0].xCoord, DeathwailDescentCoords[0].yCoord, DeathwailDescentCoords[0].zCoord);
+        DoScriptText(SAY_BEGIN_DESCENT, m_creature);
+    }
+
+    void MovementInform(uint32 motionType, uint32 pointId) override
+    {
+        if (motionType != POINT_MOTION_TYPE)
+            return;
+
+        switch (pointId)
+        {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+                m_creature->GetMotionMaster()->MovePoint(pointId + 1, DeathwailDescentCoords[pointId + 1].xCoord, DeathwailDescentCoords[pointId + 1].yCoord, DeathwailDescentCoords[pointId + 1].zCoord);
+                break;
+            case 9:
+                DoScriptText(SAY_HEART_RETRIEVED, m_creature);
+                SetReactState(REACT_AGGRESSIVE);
+                m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                m_creature->SetLevitate(false);
+
+                if (GameObject* goHoF = GetClosestGameObjectWithEntry(m_creature, GOBJECT_HEART_OF_FURY, 30.0f))
+                {
+                    goHoF->SetRespawnTime(5 * MINUTE);
+                    goHoF->Refresh();
+                }
+                if (m_cHOFVisualTrigger || (m_cHOFVisualTrigger = GetClosestCreatureWithEntry(m_creature, NPC_HOF_VISUAL_TRIGGER, 175.0f)))
+                    m_cHOFVisualTrigger->ForcedDespawn();
+
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+                break;
+        }
+    }
+
+    // true = event started normally
+    // false = something's wrong, ignore
+    bool SoulstealerEnteredCombat(Creature* unit, Unit* attacker)
+    {
+        if (!m_bEventInProgress)
+        {
+            // Begin event
+            m_bEventInProgress = true;
+            m_creature->SetActiveObjectState(true);
+
+            m_cHOFVisualTrigger = GetClosestCreatureWithEntry(m_creature, NPC_HOF_VISUAL_TRIGGER, 175.0f);
+            m_cDeathwailTrigger = GetClosestCreatureWithEntry(m_creature, NPC_DEATHWAIL_VISUAL_TRIG, 175.0f);
+
+            std::list<Creature*> lOtherChannelers;
+            GetCreatureListWithEntryInGrid(lOtherChannelers, m_creature, NPC_SHADOWMOON_SOULSTEALER, 175.0f);
+
+            for (std::list<Creature*>::iterator itr = lOtherChannelers.begin(); itr != lOtherChannelers.end(); ++itr)
+                if ((*itr)->isAlive())
+                {
+                    (*itr)->SetInCombatWith(attacker);
+                    attacker->SetInCombatWith((*itr));
+                    (*itr)->SetActiveObjectState(true);
+                    (*itr)->AddThreat(attacker);
+
+                    // agro on party members
+                    if (Player* player = m_creature->GetMap()->GetPlayer(attacker->GetObjectGuid()))
+                        if (Group* group = player->GetGroup())
+                            for (GroupReference* ref = group->GetFirstMember(); ref != nullptr; ref = ref->next())
+                            {
+                                Player* member = ref->getSource();
+                                if (member && member->isAlive() && m_cHOFVisualTrigger && m_cHOFVisualTrigger->IsWithinDistInMap(member, MAX_PLAYER_DISTANCE))
+                                {
+                                    (*itr)->SetInCombatWith(member);
+                                    member->SetInCombatWith((*itr));
+                                    (*itr)->AddThreat(member);
+                                }
+                            }
+
+                    m_lSoulstealers.push_back((*itr));
+                }
+
+            m_playerGuid = attacker->GetObjectGuid();
+            DoSummonWave();
+        }
+        else if (m_bDeathwailGrounded)
+            return false; // possbile edge case
+
+        return true;
+    }
+
+    void SoulstealerDied(Creature* unit)
+    {
+        m_lSoulstealers.remove(unit);
+
+        if (m_bEventInProgress && !m_bDeathwailGrounded && m_lSoulstealers.size() == 0)
+            DoBeginDescent();
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        DoScriptText(SAY_DEAD, m_creature);
+        m_bEventInProgress = false;
+        m_creature->SetActiveObjectState(false);
+    }
+
+    void SpellHitTarget(Unit* pTarget, SpellEntry const* pSpellEntry) override
+    {
+        if (pSpellEntry->Id == SPELL_FEL_FIREBALL && pTarget->GetEntry() == NPC_DEATHWAIL_VISUAL_TRIG)
+            if (Creature* summoner = GetClosestCreatureWithEntry(m_creature, NPC_FELFIRE_SUMMONER, 175.0f))
+            {
+                summoner->CastSpell(pTarget, SPELL_SUMMON_FEL_FIRE, TRIGGERED_NONE);
+                summoner->ForcedDespawn();
+            }
+    }
+
+    /* Reset if:
+     * Players run away (100 dist)
+     * All players die
+     * All players dead/dropped agro */
+    bool IsPlayerOrGroupInRangeAndActiveInEvent()
+    {
+        for (Creature* soulstealer : m_lSoulstealers)
+        {
+            ThreatList const& threatList = soulstealer->getThreatManager().getThreatList();
+
+            if (threatList.size() == 0)
+                return false;
+        }
+
+        if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid)) // can find player
+            if (Group* group = player->GetGroup()) // player in group
+            {
+                for (GroupReference* ref = group->GetFirstMember(); ref != nullptr; ref = ref->next())
+                {
+                    Player* member = ref->getSource(); // any member gettable, alive & in range
+                    if (member && member->isAlive() && m_cHOFVisualTrigger && m_cHOFVisualTrigger->IsWithinDistInMap(member, MAX_PLAYER_DISTANCE))
+                        return true;
+                }
+            }
+            else // player alone
+            {
+                if (player->isAlive() && m_cHOFVisualTrigger && m_cHOFVisualTrigger->IsWithinDistInMap(player, MAX_PLAYER_DISTANCE))
+                    return true;
+            }
+
+        return false;
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (!m_bEventInProgress)
+            return;
+
+        if (m_bDeathwailGrounded)
+        {
+            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            {
+                if (m_uiDeathwailDespawnTimer < uiDiff)
+                {
+                    m_creature->ForcedDespawn();
+                    m_creature->SetRespawnTime(60);
+                }
+                else
+                    m_uiDeathwailDespawnTimer -= uiDiff;
+
+                return;
+            }
+
+            if (m_uiShadowBoltTimer < uiDiff)
+            {
+
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT) == CAST_OK)
+                    m_uiShadowBoltTimer = SHADOW_BOLT_CD + urand(0, SHADOW_BOLT_CD);
+            }
+            else
+                m_uiShadowBoltTimer -= uiDiff;
+
+            if (m_uiShadowBoltVolleyTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT_VOLLEY) == CAST_OK)
+                    m_uiShadowBoltVolleyTimer = SHADOW_BOLT_VOLLEY_CD + urand(0, SHADOW_BOLT_VOLLEY_CD);
+            }
+            else
+                m_uiShadowBoltVolleyTimer -= uiDiff;
+
+            if (m_uiFearTimer < uiDiff)
+            {
+                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FEAR) == CAST_OK)
+                    m_uiFearTimer = FEAR_CD + urand(0, FEAR_CD);
+            }
+            else
+                m_uiFearTimer -= uiDiff;
+
+            DoMeleeAttackIfReady();
+        }
+        else
+        {
+            // Check if event should reset
+            if (m_playerGuid)
+            {
+                if (m_uiPlayerCheckTimer < uiDiff)
+                {
+                    if (!IsPlayerOrGroupInRangeAndActiveInEvent())
+                    {
+                        DoReleaseSoulstealersAndReset();
+                        return;
+                    }
+
+                    m_uiPlayerCheckTimer = PLAYER_CHECK_CD;
+                }
+                else
+                    m_uiPlayerCheckTimer -= uiDiff;
+            }
+            else
+            {
+                DoReleaseSoulstealersAndReset();
+                return;
+            }
+
+            if (m_uiFelFireballTimer < uiDiff)
+            {
+                if (m_cDeathwailTrigger)
+                {
+                    if (m_creature->CastSpell(m_cDeathwailTrigger, SPELL_FEL_FIREBALL, TRIGGERED_NONE) == SPELL_CAST_OK)
+                    {
+                        // TODO: creature summoning should be handled by spell, not here?
+                        m_creature->SummonCreature(NPC_FELFIRE_SUMMONER, 
+                                                    m_cDeathwailTrigger->GetPositionX(),
+                                                    m_cDeathwailTrigger->GetPositionY(),
+                                                    m_cDeathwailTrigger->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 6000, true);
+                    }
+                }
+
+                m_uiFelFireballTimer = FEL_FIREBALL_CD;
+            }
+            else
+                m_uiFelFireballTimer -= uiDiff;
+
+            if (m_uiPeriodicWaveTimer < uiDiff)
+            {
+                DoSummonWave();
+                m_uiPeriodicWaveTimer = RETAINER_WAVE_CD;
+            }
+            else
+                m_uiPeriodicWaveTimer -= uiDiff;
+        }
+    }
+};
+
+UnitAI* GetAI_npc_shadowlord_deathwail(Creature* pCreature)
+{
+    return new npc_shadowlord_deathwailAI(pCreature);
+}
+
+/*#####
+#mob_shadowmoon_soulstealer
+#####*/
+
+struct mob_shadowmoon_soulstealerAI : public ScriptedAI
+{
+    mob_shadowmoon_soulstealerAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    Creature* m_cDeathwail;
+
+    bool m_bSixtyTriggered;
+    bool m_bTwentyTriggered;
+
+    void Reset() override
+    {
+        m_cDeathwail = nullptr;
+        m_bSixtyTriggered = false;
+        m_bTwentyTriggered = false;
+    }
+
+    void JustRespawned() override
+    {
+        m_creature->SetActiveObjectState(false);
+        m_creature->AI()->SetReactState(REACT_DEFENSIVE);
+
+        Reset();
+    }
+
+    void EnterEvadeMode() override
+    {
+        m_creature->AI()->SetReactState(REACT_DEFENSIVE);
+        Reset();
+    }
+
+    void Aggro(Unit* who) override
+    {
+        m_cDeathwail = GetClosestCreatureWithEntry(m_creature, NPC_SHADOWLORD_DEATHWAIL, 175.0f);
+        bool exitCombat = false;
+
+        if (m_cDeathwail)
+        {
+            if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+            {
+                if (!who->GetObjectGuid().IsPlayer()) // not attacked by player
+                    if (Unit* attackerOwner = m_creature->GetMap()->GetPlayer(who->GetOwnerGuid()))
+                        who = attackerOwner;
+                    else // not attacked by player, nor NPC owned by player... just ignore
+                        exitCombat = true;
+
+                if (!exitCombat && DeathwailAI->SoulstealerEnteredCombat(m_creature, who))
+                {
+                    m_creature->AI()->SetReactState(REACT_PASSIVE);
+                }
+                else
+                    exitCombat = true;
+            }
+            else
+                exitCombat = true;
+        }
+        else
+            exitCombat = true;
+
+        if (exitCombat)
+            m_creature->CombatStop();
+    }
+
+    void JustDied(Unit* /*killer*/) override 
+    {
+        if (m_cDeathwail)
+            if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+                DeathwailAI->SoulstealerDied(m_creature);
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (!m_bSixtyTriggered)
+        {
+            if (m_creature->GetHealthPercent() <= 60.0f)
+                if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+                {
+                    DeathwailAI->DoSummonWave(true);
+                    m_bSixtyTriggered = true;
+                }
+        }
+        else if (!m_bTwentyTriggered)
+        {
+            if (m_creature->GetHealthPercent() <= 20.0f)
+                if (npc_shadowlord_deathwailAI* DeathwailAI = dynamic_cast<npc_shadowlord_deathwailAI*>(m_cDeathwail->AI()))
+                {
+                    DeathwailAI->DoSummonWave(true);
+                    m_bTwentyTriggered = true;
+                }
+        }
+    }
+};
+
+UnitAI* GetAI_mob_shadowmoon_soulstealer(Creature* pCreature)
+{
+    return new mob_shadowmoon_soulstealerAI(pCreature);
+}
+
+/*#####
 #npc_spawned_oronok_tornheart
 #####*/
 
@@ -1375,6 +1919,8 @@ enum
     SPELL_EARTHBIND_TOTEM           = 15786,
     // SPELL_FROST_SHOCK             = 12548,
     // SPELL_HEALING_WAVE            = 12491,
+    SPELL_ORONOK_SPEED_INCREASE     = 37246,
+    SPELL_ELEMENTAL_SPAWN_IN        = 25035,
 
     // npcs
     NPC_ORONOK_TORN_HEART           = 21685,
@@ -1395,12 +1941,27 @@ enum
     POINT_ID_ATTACK_READY           = 1,
     POINT_ID_ELEMENTS               = 2,
     POINT_ID_EPILOGUE               = 3,
+    WAYPOINT_ID_DESPAWN             = 5,
+    WAYPOINT_ID_INTRO_FINAL         = 31,
+
+    EVENT_STARTED_MOVING            = 1,
+    EVENT_GIVE_WEAPONS              = 2,
+    EVENT_MOUNT                     = 3,
+    EVENT_HOVER_AND_MOVE            = 4,
+
+    MOUNT_ID_ORONOK                 = 17721,
+
+    FACTION_ORONOK_COMBAT           = 495,
+    FACTION_ORONOK_FRIENDLY         = 35,
+
+    PATH_ID_OUTRO                   = 2,
 };
 
 static const DialogueEntry aOutroDialogue[] =
 {
-    {QUEST_CIPHER_OF_DAMNATION,     0,                              1000},
+    {QUEST_CIPHER_OF_DAMNATION,     0,                              32000},
     {NPC_CYRUKH_THE_FIRELORD,       0,                              0},
+    {EVENT_STARTED_MOVING,          0,                              1000},
     {NPC_EARTHMENDER_TORLOK,        0,                              1000},
     {SAY_ORONOK_EPILOGUE_1,         NPC_ORONOK_TORN_HEART,          5000},
     {SAY_TORLOK_EPILOGUE_2,         NPC_EARTHMENDER_TORLOK,         5000},
@@ -1410,8 +1971,10 @@ static const DialogueEntry aOutroDialogue[] =
     {SAY_FIRE_EPILOGUE_5,           NPC_REDEEMED_SPIRIT_OF_FIRE,    14000},
     {SAY_EARTH_EPILOGUE_6,          NPC_REDEEMED_SPIRIT_OF_EARTH,   6000},
     {SAY_ORONOK_EPILOGUE_7,         NPC_ORONOK_TORN_HEART,          6000},
-    {EMOTE_GIVE_WEAPONS,            NPC_ORONOK_TORN_HEART,          6000},
-    {SAY_ORONOK_EPILOGUE_8,         NPC_ORONOK_TORN_HEART,          10000},
+    {SAY_ORONOK_EPILOGUE_8,         NPC_ORONOK_TORN_HEART,          1000},
+    {EVENT_GIVE_WEAPONS,            0,                              8500},
+    {EVENT_MOUNT,                   0,                              1000},
+    {EVENT_HOVER_AND_MOVE,          0,                              1000},
     {NPC_ORONOK_TORN_HEART,         0,                              0},
     {0, 0, 0},
 };
@@ -1423,15 +1986,16 @@ struct EventLocations
 
 const static EventLocations aDamnationLocations[] =
 {
-    { -3605.09f, 1885.47f, 47.24f, 1.81f},     // 0 fire spirit summon loc
-    { -3600.68f, 1886.58f, 47.24f, 1.81f},     // 1 earth spirit summon loc
-    { -3597.19f, 1887.46f, 47.24f, 1.77f},     // 2 water spirit summon loc
-    { -3593.18f, 1888.27f, 47.24f, 1.77f},     // 3 air spirit summon loc
+    { -3587.229f, 1892.889f, 47.32373f, 2.199115f}, // 0 air spirit summon loc
+    { -3598.681f, 1888.016f, 47.32373f, 1.692969f}, // 1 earth spirit summon loc
+    { -3605.315f, 1884.477f, 47.32373f, 1.308997f}, // 2 fire spirit summon loc
+    { -3591.871f, 1886.822f, 47.32373f, 1.850049f}, // 3 water spirit summon loc
     { -3595.36f, 1869.78f, 47.24f},            // 4 fight ready move loc
     { -3635.90f, 1860.94f, 52.93f},            // 5 elementals move loc
     { -3599.71f, 1897.94f, 47.24f}             // 6 epilogue move loc
 };
 
+// TODO: Add formations and more shaking animations during intro
 struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelper
 {
     npc_spawned_oronok_tornheartAI(Creature* pCreature) : ScriptedAI(pCreature),
@@ -1453,6 +2017,9 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
     ObjectGuid m_gromtorGuid;
     ObjectGuid m_cyrukhGuid;
 
+    Creature* m_borak;
+    Creature* m_gromtor;
+
     bool m_bHasAttackStart;
 
     void Reset() override
@@ -1465,27 +2032,37 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         m_bHasAttackStart   = false;
     }
 
+    void JustRespawned() override
+    {
+        m_creature->Mount(MOUNT_ID_ORONOK);
+        m_creature->SetLevitate(true);
+        m_creature->SetHover(true);
+        m_creature->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
+        Creature* borak = m_creature->SummonCreature(NPC_BORAK_SON_OF_ORONOK, -3419.458f, 1383.739f, 228.1865f, 5.532694f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 300000, true, true);
+        borak->Mount(MOUNT_ID_ORONOK);
+        borak->SetLevitate(true);
+        borak->SetHover(true);
+        borak->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
+        borak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
+        Creature* gromtor = m_creature->SummonCreature(NPC_GROMTOR_SON_OF_ORONOK, -3419.458f, 1383.739f, 228.1865f, 5.532694f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 300000, true, true);
+        gromtor->Mount(MOUNT_ID_ORONOK);
+        gromtor->SetLevitate(true);
+        gromtor->SetHover(true);
+        gromtor->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
+        gromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
+        gromtor->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
+    }
+
     void JustDidDialogueStep(int32 iEntry) override
     {
         switch (iEntry)
         {
             case NPC_CYRUKH_THE_FIRELORD:
-                // Set them in motion
-                m_creature->SetWalk(false);
-                m_creature->GetMotionMaster()->MovePoint(POINT_ID_ATTACK_READY, aDamnationLocations[4].m_fX, aDamnationLocations[4].m_fY, aDamnationLocations[4].m_fZ);
-                if (Creature* pBorak = GetClosestCreatureWithEntry(m_creature, NPC_BORAK_SON_OF_ORONOK, 10.0f))
-                {
-                    m_borakGuid = pBorak->GetObjectGuid();
-                    pBorak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2);
-                }
-                if (Creature* pGromtor = GetClosestCreatureWithEntry(m_creature, NPC_GROMTOR_SON_OF_ORONOK, 10.0f))
-                {
-                    m_gromtorGuid = pGromtor->GetObjectGuid();
-                    pGromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2);
-                }
-                if (Unit* summoner = m_creature->GetMap()->GetUnit(m_creature->GetSpawnerGuid()))
-                    DoScriptText(SAY_ORONOK_TOGETHER, m_creature, summoner);
+            {
+                Creature* cyrukh = m_creature->SummonCreature(NPC_CYRUKH_THE_FIRELORD, -3600.073f, 1799.803f, 39.70634f, 1.448623f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 300000, true, true);
+                cyrukh->AI()->SetReactState(REACT_DEFENSIVE);
                 break;
+            }
             case NPC_EARTHMENDER_TORLOK:
                 if (Creature* pTorlok = GetClosestCreatureWithEntry(m_creature, NPC_EARTHMENDER_TORLOK, 25.0f))
                 {
@@ -1494,15 +2071,64 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 }
                 break;
             case NPC_REDEEMED_SPIRIT_OF_EARTH:
+            {
                 m_creature->SetFacingTo(4.9f);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_FIRE, aDamnationLocations[0].m_fX, aDamnationLocations[0].m_fY, aDamnationLocations[0].m_fZ, aDamnationLocations[0].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_EARTH, aDamnationLocations[1].m_fX, aDamnationLocations[1].m_fY, aDamnationLocations[1].m_fZ, aDamnationLocations[1].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_WATER, aDamnationLocations[2].m_fX, aDamnationLocations[2].m_fY, aDamnationLocations[2].m_fZ, aDamnationLocations[2].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
-                m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_AIR, aDamnationLocations[3].m_fX, aDamnationLocations[3].m_fY, aDamnationLocations[3].m_fZ, aDamnationLocations[3].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                Creature* elemental = m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_AIR, aDamnationLocations[0].m_fX, aDamnationLocations[0].m_fY, aDamnationLocations[0].m_fZ, aDamnationLocations[0].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                elemental->CastSpell(nullptr, SPELL_ELEMENTAL_SPAWN_IN, TRIGGERED_NONE);
+                elemental = m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_EARTH, aDamnationLocations[1].m_fX, aDamnationLocations[1].m_fY, aDamnationLocations[1].m_fZ, aDamnationLocations[1].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                elemental->CastSpell(nullptr, SPELL_ELEMENTAL_SPAWN_IN, TRIGGERED_NONE);
+                elemental = m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_FIRE, aDamnationLocations[2].m_fX, aDamnationLocations[2].m_fY, aDamnationLocations[2].m_fZ, aDamnationLocations[2].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                elemental->CastSpell(nullptr, SPELL_ELEMENTAL_SPAWN_IN, TRIGGERED_NONE);
+                elemental = m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_WATER, aDamnationLocations[3].m_fX, aDamnationLocations[3].m_fY, aDamnationLocations[3].m_fZ, aDamnationLocations[3].m_fO, TEMPSPAWN_TIMED_DESPAWN, 32000);
+                elemental->CastSpell(nullptr, SPELL_ELEMENTAL_SPAWN_IN, TRIGGERED_NONE);
                 break;
+            }
             case SAY_ORONOK_EPILOGUE_7:
                 if (Creature* pTorlok = m_creature->GetMap()->GetCreature(m_torlokGuid))
                     m_creature->SetFacingToObject(pTorlok);
+                DoScriptText(EMOTE_GIVE_WEAPONS, m_creature);
+                break;
+            case EVENT_GIVE_WEAPONS:
+                m_creature->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
+                if (Creature* pBorak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                {
+                    pBorak->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
+                    pBorak->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
+                }
+                if (Creature* pGromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                {
+                    pGromtor->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
+                    pGromtor->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
+                }
+                break;
+            case EVENT_MOUNT:
+                m_creature->Mount(MOUNT_ID_ORONOK);
+                if (Creature* pBorak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                    pBorak->Mount(MOUNT_ID_ORONOK);
+                if (Creature* pGromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                    pGromtor->Mount(MOUNT_ID_ORONOK);
+                break;
+            case EVENT_HOVER_AND_MOVE:
+                m_creature->Mount(MOUNT_ID_ORONOK);
+                m_creature->SetLevitate(true);
+                m_creature->SetHover(true);
+                m_creature->StopMoving();
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveWaypoint(PATH_ID_OUTRO);
+                if (Creature* pBorak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                {
+                    pBorak->Mount(MOUNT_ID_ORONOK);
+                    pBorak->SetLevitate(true);
+                    pBorak->SetHover(true);
+                    pBorak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
+                }
+                if (Creature* pGromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                {
+                    pGromtor->Mount(MOUNT_ID_ORONOK);
+                    pGromtor->SetLevitate(true);
+                    pGromtor->SetHover(true);
+                    pGromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
+                }
                 break;
             case NPC_ORONOK_TORN_HEART:
                 if (GameObject* pMark = GetClosestGameObjectWithEntry(m_creature, GO_MARK_OF_KAELTHAS, 30.0f))
@@ -1510,11 +2136,6 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                     pMark->SetRespawnTime(5 * MINUTE);
                     pMark->Refresh();
                 }
-                if (Creature* pBorak = m_creature->GetMap()->GetCreature(m_borakGuid))
-                    pBorak->ForcedDespawn();
-                if (Creature* pGromtor = m_creature->GetMap()->GetCreature(m_gromtorGuid))
-                    pGromtor->ForcedDespawn();
-                m_creature->ForcedDespawn();
                 break;
         }
     }
@@ -1527,9 +2148,10 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
             case NPC_EARTHMENDER_TORLOK:        return m_creature->GetMap()->GetCreature(m_torlokGuid);
             case NPC_REDEEMED_SPIRIT_OF_EARTH:  return m_creature->GetMap()->GetCreature(m_earthSpiritGuid);
             case NPC_REDEEMED_SPIRIT_OF_FIRE:   return m_creature->GetMap()->GetCreature(m_fireSpiritGuid);
-
-            default:
-                return nullptr;
+            case NPC_GROMTOR_SON_OF_ORONOK:     return m_creature->GetMap()->GetCreature(m_gromtorGuid);
+            case NPC_BORAK_SON_OF_ORONOK:       return m_creature->GetMap()->GetCreature(m_borakGuid);
+            case NPC_CYRUKH_THE_FIRELORD:       return m_creature->GetMap()->GetCreature(m_cyrukhGuid);
+            default:                            return nullptr;
         }
     }
 
@@ -1537,19 +2159,17 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
     {
         switch (pSummoned->GetEntry())
         {
-            case NPC_REDEEMED_SPIRIT_OF_FIRE:
-                m_fireSpiritGuid = pSummoned->GetObjectGuid();
-                break;
-            case NPC_REDEEMED_SPIRIT_OF_EARTH:
-                m_earthSpiritGuid = pSummoned->GetObjectGuid();
-                break;
+            case NPC_REDEEMED_SPIRIT_OF_FIRE:    m_fireSpiritGuid = pSummoned->GetObjectGuid();  break;
+            case NPC_REDEEMED_SPIRIT_OF_EARTH:   m_earthSpiritGuid = pSummoned->GetObjectGuid(); break;
+            case NPC_GROMTOR_SON_OF_ORONOK:      m_gromtorGuid = pSummoned->GetObjectGuid();     break;
+            case NPC_BORAK_SON_OF_ORONOK:        m_borakGuid = pSummoned->GetObjectGuid();       break;
+            case NPC_CYRUKH_THE_FIRELORD:        m_cyrukhGuid = pSummoned->GetObjectGuid();      break;
         }
     }
 
     void EnterEvadeMode() override
     {
         m_creature->RemoveAllAurasOnEvade();
-        m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
 
@@ -1560,10 +2180,26 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         if (!m_creature->isAlive())
             return;
 
-        if (Creature* pCyrukh = m_creature->GetMap()->GetCreature(m_cyrukhGuid))
+        if (Creature* pCyrukh = GetSpeakerByEntry(NPC_CYRUKH_THE_FIRELORD))
         {
             if (!pCyrukh->isAlive())
+            {
                 m_creature->GetMotionMaster()->MovePoint(POINT_ID_EPILOGUE, aDamnationLocations[6].m_fX, aDamnationLocations[6].m_fY, aDamnationLocations[6].m_fZ);
+                m_creature->setFaction(FACTION_ORONOK_FRIENDLY);
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                {
+                    borak->setFaction(FACTION_ORONOK_FRIENDLY);
+                    borak->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                    borak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
+                }
+                if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                {
+                    gromtor->setFaction(FACTION_ORONOK_FRIENDLY);
+                    gromtor->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                    gromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
+                }
+            }
         }
         else
         {
@@ -1572,26 +2208,94 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         }
     }
 
-    void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
+    void MovementInform(uint32 motionType, uint32 pointId) override
     {
-        if (uiMotionType != POINT_MOTION_TYPE)
-            return;
+        switch (motionType)
+        {
+            case POINT_MOTION_TYPE: PointMovementInform(motionType, pointId); break;
+            case WAYPOINT_MOTION_TYPE: WaypointMotionType(motionType, pointId); break;
+            default: break;
+        }
+    }
 
-        switch (uiPointId)
+    void WaypointMotionType(uint32 motionType, uint32 pointId)
+    {
+        switch (pointId)
+        {
+            case WAYPOINT_ID_DESPAWN:
+            {
+                if (m_creature->GetMotionMaster()->GetPathId() == 2)
+                {
+                    if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                        borak->ForcedDespawn();
+                    if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                        gromtor->ForcedDespawn();
+                    m_creature->ForcedDespawn();
+                }
+                break;
+            }
+            case WAYPOINT_ID_INTRO_FINAL:
+            {
+                // Set them in motion
+                m_creature->SetWalk(false);
+                m_creature->Mount(0);
+                m_creature->SetLevitate(false);
+                m_creature->SetHover(false);
+                m_creature->Unmount();
+                m_creature->StopMoving();
+                m_creature->RemoveAurasDueToSpell(SPELL_ORONOK_SPEED_INCREASE);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+                m_creature->GetMotionMaster()->MovePoint(POINT_ID_ATTACK_READY, aDamnationLocations[4].m_fX, aDamnationLocations[4].m_fY, aDamnationLocations[4].m_fZ);
+                if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                {
+                    borak->Mount(0);
+                    borak->SetLevitate(false);
+                    borak->SetHover(false);
+                    borak->Unmount();
+                    borak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
+                    borak->RemoveAurasDueToSpell(SPELL_ORONOK_SPEED_INCREASE);
+                    m_borak = borak;
+                }
+                if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                {
+                    gromtor->Mount(0);
+                    gromtor->SetLevitate(false);
+                    gromtor->SetHover(false);
+                    gromtor->Unmount();
+                    gromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
+                    gromtor->RemoveAurasDueToSpell(SPELL_ORONOK_SPEED_INCREASE);
+                    m_gromtor = gromtor;
+                }
+                if (Unit* summoner = m_creature->GetMap()->GetUnit(m_creature->GetSpawnerGuid()))
+                    DoScriptText(SAY_ORONOK_TOGETHER, m_creature, summoner);
+                break;
+            }
+        }
+    }
+
+    void PointMovementInform(uint32 motionType, uint32 pointId)
+    {
+        switch (pointId)
         {
             case POINT_ID_ATTACK_READY:
-                // Get Cyrukh guid now, because we are at a closer distance
-                if (Creature* pCyrukh = GetClosestCreatureWithEntry(m_creature, NPC_CYRUKH_THE_FIRELORD, 70.0f))
-                    m_cyrukhGuid = pCyrukh->GetObjectGuid();
-
                 m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                 DoScriptText(SAY_ORONOK_READY, m_creature);
                 break;
             case POINT_ID_ELEMENTS:
                 // Cyrukh starts to attack
-                if (Creature* pCyrukh = m_creature->GetMap()->GetCreature(m_cyrukhGuid))
+                m_creature->setFaction(FACTION_ORONOK_COMBAT);
+                if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                    borak->setFaction(FACTION_ORONOK_COMBAT);
+                if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                    gromtor->setFaction(FACTION_ORONOK_COMBAT);
+                if (Creature* pCyrukh = GetSpeakerByEntry(NPC_CYRUKH_THE_FIRELORD))
                 {
                     pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                    if (m_borak)
+                        printf("%p\n", m_borak);
+                    if (m_gromtor)
+                        printf("%p\n", m_gromtor);
                     pCyrukh->AI()->AttackStart(m_creature);
                     AttackStart(pCyrukh);
                     m_bHasAttackStart = true;
@@ -1649,7 +2353,7 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
     }
 };
 
-CreatureAI* GetAI_npc_spawned_oronok_tornheart(Creature* pCreature)
+UnitAI* GetAI_npc_spawned_oronok_tornheart(Creature* pCreature)
 {
     return new npc_spawned_oronok_tornheartAI(pCreature);
 }
@@ -1726,7 +2430,7 @@ struct npc_domesticated_felboarAI : public ScriptedAI
         }
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Creature* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
         if (eventType == AI_EVENT_START_EVENT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
@@ -1780,7 +2484,7 @@ struct npc_domesticated_felboarAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_domesticated_felboar(Creature* pCreature)
+UnitAI* GetAI_npc_domesticated_felboar(Creature* pCreature)
 {
     return new npc_domesticated_felboarAI(pCreature);
 }
@@ -1794,7 +2498,7 @@ bool EffectDummyCreature_npc_shadowmoon_tuber_node(Unit* pCaster, uint32 uiSpell
         {
             // Check if tuber mound exists or it's spawned
             GameObject* pTuber = GetClosestGameObjectWithEntry(pCreatureTarget, GO_SHADOWMOON_TUBER_MOUND, 1.0f);
-            if (!pTuber || !pTuber->isSpawned())
+            if (!pTuber || !pTuber->IsSpawned())
                 return true;
 
             // Call nearby felboar
@@ -1841,9 +2545,180 @@ struct npc_veneratus_spawn_nodeAI : public Scripted_NoMovementAI
     void UpdateAI(const uint32 uiDiff) override { }
 };
 
-CreatureAI* GetAI_npc_veneratus_spawn_node(Creature* pCreature)
+UnitAI* GetAI_npc_veneratus_spawn_node(Creature* pCreature)
 {
     return new npc_veneratus_spawn_nodeAI(pCreature);
+}
+
+/*######
+## npc_disobedient_dragonmaw_peon
+######*/
+
+enum
+{
+    SAY_IDLE1   = -1001285,
+    SAY_IDLE2   = -1001286,
+    SAY_BOOTERANG1 = -1001287,
+    SAY_BOOTERANG2 = -1001288,
+    SAY_BOOTERANG3 = -1001289,
+    SAY_BOOTERANG4 = -1001290,
+    SAY_BOOTERANG5 = -1001291,
+    SAY_BOOTERANG6 = -1001292,
+
+    SPELL_BOOTERANG                 = 40742,
+    SPELL_LAZY_AND_GOOD_FOR_NOTHING = 40732,
+    SPELL_DEFIANT_AND_ENRAGED       = 40735,
+    SPELL_PEON_CLEAR_ALL            = 40762,
+    
+    NPC_PEON                = 22252,
+    NPC_PEON_WORK_NODE      = 23308,
+    NPC_DISOBEDIENT_PEON    = 23311,
+
+    FACTION_DISOBEDIENT     = 14,
+    FACTION_WHACKED         = 62,
+
+    EMOTE_WORKING           = 233,
+
+    POINT_ARRIVED           = 1,
+};
+
+struct npc_disobedient_dragonmaw_peonAI : public ScriptedAI
+{
+    npc_disobedient_dragonmaw_peonAI(Creature* creature) : ScriptedAI(creature)
+    {
+        Reset();
+    }
+
+    uint32 m_angryTimer;
+    uint32 m_booterangTimer;
+    ObjectGuid m_lastPlayerGuid;
+
+    void Reset() override
+    {
+        if (m_lastPlayerGuid.IsEmpty())
+        {
+            if (m_creature->HasAura(SPELL_LAZY_AND_GOOD_FOR_NOTHING))
+                m_angryTimer = 0;
+            else
+                m_angryTimer = urand(6000, 10000);
+            m_booterangTimer = 0;
+        }
+    }
+
+    void MovementInform(uint32 movementType, uint32 data) override
+    {
+        if (movementType == POINT_MOTION_TYPE)
+        {
+            if (data == POINT_ARRIVED)
+            {
+                Creature* node = GetClosestCreatureWithEntry(m_creature, NPC_PEON_WORK_NODE, 10.f);
+                if (node)
+                {
+                    float angle = m_creature->GetAngle(node);
+                    m_creature->SetOrientation(angle);
+                    m_creature->SetFacingTo(angle);
+                }
+                if (Player* player = m_creature->GetMap()->GetPlayer(m_lastPlayerGuid))
+                    player->RewardPlayerAndGroupAtEventCredit(NPC_DISOBEDIENT_PEON, m_creature);
+
+                m_lastPlayerGuid = ObjectGuid();
+                m_creature->UpdateEntry(NPC_PEON);
+                m_creature->HandleEmote(EMOTE_WORKING);
+                m_creature->ForcedDespawn(90000);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+            }
+        }
+    }
+
+    void SpellHit(Unit* caster, const SpellEntry* spell) override
+    {
+        if (spell->Id == SPELL_BOOTERANG)
+            HandleBooterang(caster);
+    }
+
+    void HandleAngry()
+    {
+        DoCastSpellIfCan(nullptr, SPELL_DEFIANT_AND_ENRAGED);
+        uint32 textId = 0;
+        switch (urand(0, 4))
+        {
+            case 0: textId = SAY_IDLE1; break;
+            case 1: textId = SAY_IDLE2; break;
+            default: break;
+        }
+        if (textId)
+            DoScriptText(textId, m_creature);
+    }
+
+    void HandleBooterang(Unit* caster)
+    {
+        if (caster->GetTypeId() != TYPEID_PLAYER && m_lastPlayerGuid.IsEmpty())
+            return;
+
+        Player* player = static_cast<Player*>(caster);
+        m_lastPlayerGuid = player->GetObjectGuid();
+
+        uint32 textId = 0;
+        switch (urand(0, 5))
+        {
+            case 0: textId = SAY_BOOTERANG1; break;
+            case 1: textId = SAY_BOOTERANG2; break;
+            case 2: textId = SAY_BOOTERANG3; break;
+            case 3: textId = SAY_BOOTERANG4; break;
+            case 4: textId = SAY_BOOTERANG5; break;
+            case 5: textId = SAY_BOOTERANG6; break;
+        }
+        float angle = m_creature->GetAngle(player);
+        m_creature->SetOrientation(angle);
+        m_creature->SetFacingTo(angle);
+        DoScriptText(textId, m_creature, player);
+
+        DoCastSpellIfCan(nullptr, SPELL_PEON_CLEAR_ALL); // clears combat and removes aura
+        m_creature->setFaction(FACTION_WHACKED);
+
+        m_booterangTimer = 3000;
+        m_angryTimer = 0;
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (!m_creature->isInCombat())
+        {
+            if (m_angryTimer)
+            {
+                if (m_angryTimer <= diff)
+                {
+                    HandleAngry();
+                    m_angryTimer = urand(6000, 10000);
+                }
+                else m_angryTimer -= diff;
+            }
+
+            if (m_booterangTimer)
+            {
+                if (m_booterangTimer <= diff)
+                {
+                    float x, y, z;
+                    Creature* node = GetClosestCreatureWithEntry(m_creature, NPC_PEON_WORK_NODE, 60.f);
+                    if (node)
+                        node->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), 5.f, node->GetAngle(m_creature));
+                    else // failsafe
+                        m_creature->GetPosition(x, y, z);
+                    m_creature->GetMotionMaster()->MovePoint(POINT_ARRIVED, x, y, z);
+                    m_booterangTimer = 0;
+                }
+                else m_booterangTimer -= diff;
+            }
+        }
+
+        ScriptedAI::UpdateAI(diff);
+    }
+};
+
+UnitAI* GetAI_npc_disobedient_dragonmaw_peon(Creature* pCreature)
+{
+    return new npc_disobedient_dragonmaw_peonAI(pCreature);
 }
 
 void AddSC_shadowmoon_valley()
@@ -1887,6 +2762,16 @@ void AddSC_shadowmoon_valley()
     pNewScript->GetAI = &GetAI_npc_totem_of_spirits;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_npc_totem_of_spirits;
     pNewScript->RegisterSelf();
+    
+    pNewScript = new Script;
+    pNewScript->Name = "npc_shadowlord_deathwail";
+    pNewScript->GetAI = &GetAI_npc_shadowlord_deathwail;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "mob_shadowmoon_soulstealer";
+    pNewScript->GetAI = &GetAI_mob_shadowmoon_soulstealer;
+    pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "event_spell_soul_captured_credit";
@@ -1918,5 +2803,10 @@ void AddSC_shadowmoon_valley()
     pNewScript = new Script;
     pNewScript->Name = "npc_veneratus_spawn_node";
     pNewScript->GetAI = &GetAI_npc_veneratus_spawn_node;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_disobedient_dragonmaw_peon";
+    pNewScript->GetAI = &GetAI_npc_disobedient_dragonmaw_peon;
     pNewScript->RegisterSelf();
 }

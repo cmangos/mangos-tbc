@@ -476,17 +476,8 @@ struct boss_high_nethermancer_zerevorAI : public boss_illidari_councilAI
         m_uiArcaneBoltTimer         = 3000;
         m_uiDampenMagicTimer        = 2000;
         m_uiArcaneExplosionTimer    = 13000;
-    }
 
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 20.0f);
-        }
+        m_attackDistance = 20.0f;
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -579,17 +570,8 @@ struct boss_lady_malandeAI : public boss_illidari_councilAI
         m_uiCircleOfHealingTimer    = 20000;
         m_uiDivineWrathTimer        = 5000;
         m_uiReflectiveShieldTimer   = 0;
-    }
 
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            DoStartMovement(pWho, 20.0f);
-        }
+        m_attackDistance = 20.0f;
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -745,32 +727,32 @@ struct boss_veras_darkshadowAI : public boss_illidari_councilAI
     }
 };
 
-CreatureAI* GetAI_mob_blood_elf_council_voice_trigger(Creature* pCreature)
+UnitAI* GetAI_mob_blood_elf_council_voice_trigger(Creature* pCreature)
 {
     return new mob_blood_elf_council_voice_triggerAI(pCreature);
 }
 
-CreatureAI* GetAI_mob_illidari_council(Creature* pCreature)
+UnitAI* GetAI_mob_illidari_council(Creature* pCreature)
 {
     return new mob_illidari_councilAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_gathios_the_shatterer(Creature* pCreature)
+UnitAI* GetAI_boss_gathios_the_shatterer(Creature* pCreature)
 {
     return new boss_gathios_the_shattererAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_lady_malande(Creature* pCreature)
+UnitAI* GetAI_boss_lady_malande(Creature* pCreature)
 {
     return new boss_lady_malandeAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_veras_darkshadow(Creature* pCreature)
+UnitAI* GetAI_boss_veras_darkshadow(Creature* pCreature)
 {
     return new boss_veras_darkshadowAI(pCreature);
 }
 
-CreatureAI* GetAI_boss_high_nethermancer_zerevor(Creature* pCreature)
+UnitAI* GetAI_boss_high_nethermancer_zerevor(Creature* pCreature)
 {
     return new boss_high_nethermancer_zerevorAI(pCreature);
 }

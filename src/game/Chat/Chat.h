@@ -41,6 +41,7 @@ class MailDraft;
 class Object;
 class GameObject;
 class Creature;
+class Pet;
 class Player;
 class Unit;
 
@@ -220,12 +221,17 @@ class ChatHandler
         bool HandleDebugSpellCheckCommand(char* args);
         bool HandleDebugSpellCoefsCommand(char* args);
         bool HandleDebugSpellModsCommand(char* args);
+        bool HandleDebugTaxiCommand(char* /*args*/);
         bool HandleDebugUpdateWorldStateCommand(char* args);
         bool HandleDebugWaypoint(char* args);
+        bool HandleDebugSpellVisual(char* args);
+        bool HandleDebugMoveflags(char* args);
 
         bool HandleDebugPlayCinematicCommand(char* args);
         bool HandleDebugPlaySoundCommand(char* args);
         bool HandleDebugPlayMusicCommand(char* args);
+
+        bool HandleDebugPetDismissSound(char* args);
 
         bool HandleDebugSendBuyErrorCommand(char* args);
         bool HandleDebugSendChannelNotifyCommand(char* args);
@@ -247,9 +253,11 @@ class ChatHandler
         bool HandleGameObjectDeleteCommand(char* args);
         bool HandleGameObjectMoveCommand(char* args);
         bool HandleGameObjectNearCommand(char* args);
+        bool HandleGameObjectNearSpawnedCommand(char* args);
         bool HandleGameObjectPhaseCommand(char* args);
         bool HandleGameObjectTargetCommand(char* args);
         bool HandleGameObjectTurnCommand(char* args);
+        bool HandleGameObjectActivateCommand(char* args);
 
         bool HandleGMCommand(char* args);
         bool HandleGMChatCommand(char* args);
@@ -354,6 +362,7 @@ class ChatHandler
         bool HandleNpcFlagCommand(char* args);
         bool HandleNpcFollowCommand(char* args);
         bool HandleNpcInfoCommand(char* args);
+        bool HandleNpcThreatCommand(char* args);
         bool HandleNpcMoveCommand(char* args);
         bool HandleNpcPlayEmoteCommand(char* args);
         bool HandleNpcSayCommand(char* args);
@@ -424,6 +433,7 @@ class ChatHandler
         bool HandleReloadGameTeleCommand(char* args);
         bool HandleReloadGossipMenuCommand(char* args);
         bool HandleReloadQuestgiverGreetingCommand(char* args);
+        bool HandleReloadTrainerGreetingCommand(char* args);
         bool HandleReloadGOQuestRelationsCommand(char* args);
         bool HandleReloadGOQuestInvRelationsCommand(char* args);
         bool HandleReloadItemEnchantementsCommand(char* args);
@@ -438,6 +448,7 @@ class ChatHandler
         bool HandleReloadLocalesQuestCommand(char* args);
         bool HandleReloadLocalesAreaTriggerCommand(char*);
         bool HandleReloadQuestgiverGreetingLocalesCommand(char* args);
+        bool HandleReloadLocalesTrainerGreetingCommand(char* args);
         bool HandleReloadLootTemplatesCreatureCommand(char* args);
         bool HandleReloadLootTemplatesDisenchantCommand(char* args);
         bool HandleReloadLootTemplatesFishingCommand(char* args);
@@ -475,6 +486,7 @@ class ChatHandler
         bool HandleReloadSpellScriptTargetCommand(char* args);
         bool HandleReloadSpellTargetPositionCommand(char* args);
         bool HandleReloadSpellThreatsCommand(char* args);
+        bool HandleReloadTaxiShortcuts(char* args);
         bool HandleReloadSpellPetAurasCommand(char* args);
         bool HandleReloadExpectedSpamRecords(char* args);
 
@@ -621,9 +633,12 @@ class ChatHandler
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
 
+        bool HandlePetLevelLoyaltyCommand(char* args);
+
         Player*   getSelectedPlayer() const;
+        Unit*     getSelectedUnit(bool self = true) const;
         Creature* getSelectedCreature() const;
-        Unit*     getSelectedUnit() const;
+        Pet*      getSelectedPet() const;
 
         // extraction different type params from args string, all functions update (char** args) to first unparsed tail symbol at return
         static void  SkipWhiteSpaces(char** args);

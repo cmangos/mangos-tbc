@@ -119,21 +119,25 @@ namespace MaNGOS
         void Visit(CreatureMapType&);
     };
 
-    struct PlayerRelocationNotifier
+    struct PlayerVisitObjectsNotifier
     {
         Player& i_player;
-        PlayerRelocationNotifier(Player& pl) : i_player(pl) {}
-        template<class T> void Visit(GridRefManager<T>&) {}
-        void Visit(CreatureMapType&);
-    };
-
-    struct CreatureRelocationNotifier
-    {
-        Creature& i_creature;
-        CreatureRelocationNotifier(Creature& c) : i_creature(c) {}
+        PlayerVisitObjectsNotifier(Player& pl) : i_player(pl) {}
         template<class T> void Visit(GridRefManager<T>&) {}
 #ifdef _MSC_VER
         template<> void Visit(PlayerMapType&);
+        template<> void Visit(CreatureMapType&);
+#endif
+    };
+
+    struct CreatureVisitObjectsNotifier
+    {
+        Creature& i_creature;
+        CreatureVisitObjectsNotifier(Creature& c) : i_creature(c) {}
+        template<class T> void Visit(GridRefManager<T>&) {}
+#ifdef _MSC_VER
+        template<> void Visit(PlayerMapType&);
+        template<> void Visit(CreatureMapType&);
 #endif
     };
 
@@ -593,7 +597,7 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return i_obj; }
             bool operator()(GameObject* go)
             {
-                if (go->GetGOInfo()->type == GAMEOBJECT_TYPE_FISHINGHOLE && go->isSpawned() && i_obj.IsWithinDistInMap(go, i_range) && i_obj.IsWithinDistInMap(go, (float)go->GetGOInfo()->fishinghole.radius))
+                if (go->GetGOInfo()->type == GAMEOBJECT_TYPE_FISHINGHOLE && go->IsSpawned() && i_obj.IsWithinDistInMap(go, i_range) && i_obj.IsWithinDistInMap(go, (float)go->GetGOInfo()->fishinghole.radius))
                 {
                     i_range = i_obj.GetDistance(go);
                     return true;
@@ -642,7 +646,7 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return i_obj; }
             bool operator()(GameObject* go)
             {
-                if (go->isSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && i_obj.IsWithinDistInMap(go, i_range, i_is3D))
+                if (go->IsSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && i_obj.IsWithinDistInMap(go, i_range, i_is3D))
                     return true;
 
                 return false;
@@ -666,7 +670,7 @@ namespace MaNGOS
         AllGameObjectEntriesListInPosRangeCheck(float x, float y, float z, std::set<uint32>& entries, float range, bool is3D = true) : i_x(x), i_y(y), i_z(z), i_entries(entries), i_range(range), i_is3D(is3D) {}
         bool operator()(GameObject* go)
         {
-            if (go->isSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && go->IsWithinDist3d(i_x, i_y, i_z, i_range))
+            if (go->IsSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && go->IsWithinDist3d(i_x, i_y, i_z, i_range))
                 return true;
 
             return false;
@@ -743,6 +747,33 @@ namespace MaNGOS
 
             // prevent clone this object
             GameObjectEntryInPosRangeCheck(GameObjectEntryInPosRangeCheck const&);
+    };
+
+    class GameObjectInPosRangeCheck
+    {
+        public:
+            GameObjectInPosRangeCheck(WorldObject const& obj, float x, float y, float z, float range)
+                : i_obj(obj), i_x(x), i_y(y), i_z(z), i_range(range) {}
+
+            WorldObject const& GetFocusObject() const { return i_obj; }
+
+            bool operator()(GameObject* go)
+            {
+                if (go->IsWithinDist3d(i_x, i_y, i_z, i_range))
+                    return true;
+
+                return false;
+            }
+
+            float GetLastRange() const { return i_range; }
+
+        private:
+            WorldObject const& i_obj;
+            float i_x, i_y, i_z;
+            float i_range;
+
+            // prevent clone this object
+            GameObjectInPosRangeCheck(GameObjectEntryInPosRangeCheck const&);
     };
 
     // Unit checks
@@ -849,7 +880,7 @@ namespace MaNGOS
                 i_controlledByPlayer = obj->IsControlledByPlayer();
             }
             WorldObject const& GetFocusObject() const { return *i_obj; }
-            bool operator()(Unit* u)
+            bool operator()(Unit* u) const
             {
                 if (u->isAlive() && (i_controlledByPlayer ? !i_obj->IsFriendlyTo(u) && i_obj->CanAttackSpell(u) : i_obj->IsHostileTo(u))
                     && i_obj->IsWithinDistInMap(u, i_range))
@@ -881,6 +912,65 @@ namespace MaNGOS
             float i_range;
     };
 
+    class AnyFriendlyOrGroupMemberUnitInUnitRangeCheck
+    {
+        public:
+            AnyFriendlyOrGroupMemberUnitInUnitRangeCheck(Unit const* obj, Group const* group, SpellEntry const* spellInfo, float range)
+                : i_obj(obj), i_group(group), i_spellInfo(spellInfo), i_range(range) {}
+            Unit const& GetFocusObject() const { return *i_obj; }
+            bool operator()(Unit* u)
+            {
+                if (!u->isAlive() || !i_obj->IsWithinDistInMap(u, i_range) || !i_obj->CanAssistSpell(u, i_spellInfo))
+                    return false;
+
+                //if group is defined then we apply group members only filtering
+                if (i_group)
+                {
+                    switch (u->GetTypeId())
+                    {
+                        case TYPEID_PLAYER:
+                        {
+                            if (i_group != static_cast<Player*>(u)->GetGroup())
+                                return false;
+
+                            break;
+                        }
+                        case TYPEID_UNIT:
+                        {
+                            Creature* creature = static_cast<Creature*>(u);
+
+                            //the only other possible group members besides players are pets, we exclude anyone else
+                            if (!creature->IsPet())
+                                return false;
+
+                            Group* group = nullptr;
+
+                            if (Unit* owner = creature->GetOwner(nullptr, true))
+                            {
+                                if (owner->GetTypeId() == TYPEID_PLAYER)
+                                {
+                                    group = static_cast<Player*>(owner)->GetGroup();
+                                }
+                            }
+
+                            if (i_group != group)
+                                return false;
+
+                            break;
+                        }
+                        default: return false;
+                    }
+                }
+
+                return true;
+            }
+        private:
+            Group const* i_group;
+            Unit const* i_obj;
+            SpellEntry const* i_spellInfo;
+            float i_range;
+    };
+ 
     class AnyUnitInObjectRangeCheck
     {
         public:
@@ -1229,9 +1319,10 @@ namespace MaNGOS
     };
 
 #ifndef _MSC_VER
-    template<> void PlayerRelocationNotifier::Visit<Creature>(CreatureMapType&);
-    template<> void CreatureRelocationNotifier::Visit<Player>(PlayerMapType&);
-    template<> void CreatureRelocationNotifier::Visit<Creature>(CreatureMapType&);
+    template<> void PlayerVisitObjectsNotifier::Visit<Player>(PlayerMapType&);
+    template<> void PlayerVisitObjectsNotifier::Visit<Creature>(CreatureMapType&);
+    template<> void CreatureVisitObjectsNotifier::Visit<Player>(PlayerMapType&);
+    template<> void CreatureVisitObjectsNotifier::Visit<Creature>(CreatureMapType&);
     template<> inline void DynamicObjectUpdater::Visit<Creature>(CreatureMapType&);
     template<> inline void DynamicObjectUpdater::Visit<Player>(PlayerMapType&);
 #endif

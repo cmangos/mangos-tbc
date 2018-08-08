@@ -106,7 +106,7 @@ struct boss_silver_hand_bossesAI : public ScriptedAI
                 if (pKiller->GetTypeId() == TYPEID_PLAYER)
                 {
                     if (Creature* pCredit = m_pInstance->GetSingleCreatureFromStorage(NPC_PALADIN_QUEST_CREDIT))
-                        ((Player*)pKiller)->RewardPlayerAndGroupAtEvent(pCredit->GetEntry(), pCredit);
+                        ((Player*)pKiller)->RewardPlayerAndGroupAtEventCredit(pCredit->GetEntry(), pCredit);
                 }
             }
         }
@@ -165,7 +165,7 @@ struct boss_silver_hand_bossesAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_silver_hand_bossesAI(Creature* pCreature)
+UnitAI* GetAI_boss_silver_hand_bossesAI(Creature* pCreature)
 {
     return new boss_silver_hand_bossesAI(pCreature);
 }

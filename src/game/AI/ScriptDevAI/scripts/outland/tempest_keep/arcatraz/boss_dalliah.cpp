@@ -99,7 +99,6 @@ struct boss_dalliahAI : public ScriptedAI
     void EnterEvadeMode() override
     {
         m_creature->RemoveAllAurasOnEvade();
-        m_creature->DeleteThreatList();
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
 
@@ -201,7 +200,7 @@ struct boss_dalliahAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_boss_dalliah(Creature* pCreature)
+UnitAI* GetAI_boss_dalliah(Creature* pCreature)
 {
     return new boss_dalliahAI(pCreature);
 }

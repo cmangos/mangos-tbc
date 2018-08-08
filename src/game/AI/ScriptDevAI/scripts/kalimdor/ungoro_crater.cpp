@@ -65,7 +65,7 @@ struct npc_ame01AI : public npc_escortAI
             case 37:
                 DoScriptText(SAY_AME_END, m_creature);
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_CHASING_AME, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_CHASING_AME, m_creature);
                 break;
         }
     }
@@ -109,7 +109,7 @@ bool QuestAccept_npc_ame01(Player* pPlayer, Creature* pCreature, const Quest* pQ
     return true;
 }
 
-CreatureAI* GetAI_npc_ame01(Creature* pCreature)
+UnitAI* GetAI_npc_ame01(Creature* pCreature)
 {
     return new npc_ame01AI(pCreature);
 }
@@ -176,7 +176,7 @@ struct npc_ringoAI : public FollowerAI
                 if (Player* pPlayer = GetLeaderForFollower())
                 {
                     if (pPlayer->GetQuestStatus(QUEST_A_LITTLE_HELP) == QUEST_STATUS_INCOMPLETE)
-                        pPlayer->GroupEventHappens(QUEST_A_LITTLE_HELP, m_creature);
+                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_A_LITTLE_HELP, m_creature);
                 }
 
                 pSpraggle = pWho;
@@ -309,7 +309,7 @@ struct npc_ringoAI : public FollowerAI
     }
 };
 
-CreatureAI* GetAI_npc_ringo(Creature* pCreature)
+UnitAI* GetAI_npc_ringo(Creature* pCreature)
 {
     return new npc_ringoAI(pCreature);
 }
@@ -412,7 +412,7 @@ struct npc_precious_the_devourerAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_precious_the_devourer(Creature* pCreature)
+UnitAI* GetAI_npc_precious_the_devourer(Creature* pCreature)
 {
     return new npc_precious_the_devourerAI(pCreature);
 }
@@ -651,7 +651,7 @@ struct npc_simone_seductressAI : public ScriptedAI
     }
 };
 
-CreatureAI* GetAI_npc_simone_seductress(Creature* pCreature)
+UnitAI* GetAI_npc_simone_seductress(Creature* pCreature)
 {
     return new npc_simone_seductressAI(pCreature);
 }
@@ -800,7 +800,7 @@ bool GossipSelect_npc_simone_the_inconspicuous(Player* pPlayer, Creature* pCreat
     return true;
 }
 
-CreatureAI* GetAI_npc_simone_the_inconspicuous(Creature* pCreature)
+UnitAI* GetAI_npc_simone_the_inconspicuous(Creature* pCreature)
 {
     return new npc_simone_the_inconspicuousAI(pCreature);
 }

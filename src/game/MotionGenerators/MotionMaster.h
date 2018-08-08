@@ -50,9 +50,9 @@ enum MovementGeneratorType
     FOLLOW_MOTION_TYPE              = 14,                   // TargetedMovementGenerator.h
     EFFECT_MOTION_TYPE              = 15,
 
-    EXTERNAL_WAYPOINT_MOVE          = 256,                  // Only used in CreatureAI::MovementInform when a waypoint is reached. The pathId >= 0 is added as additonal value
-    EXTERNAL_WAYPOINT_MOVE_START    = 512,                  // Only used in CreatureAI::MovementInform when a waypoint is started. The pathId >= 0 is added as additional value
-    EXTERNAL_WAYPOINT_FINISHED_LAST = 1024,                 // Only used in CreatureAI::MovementInform when the waittime of the last wp is finished The pathId >= 0 is added as additional value
+    EXTERNAL_WAYPOINT_MOVE          = 16,                   // Only used in UnitAI::MovementInform when a waypoint is reached. The pathId >= 0 is added as additonal value
+    EXTERNAL_WAYPOINT_MOVE_START    = 17,                   // Only used in UnitAI::MovementInform when a waypoint is started. The pathId >= 0 is added as additional value
+    EXTERNAL_WAYPOINT_FINISHED_LAST = 18,                   // Only used in UnitAI::MovementInform when the waittime of the last wp is finished The pathId >= 0 is added as additional value
 };
 
 enum MMCleanFlag
@@ -102,15 +102,15 @@ class MotionMaster : private std::stack<MovementGenerator*>
         void MoveIdle();
         void MoveRandomAroundPoint(float x, float y, float z, float radius, float verticalZ = 0.0f);
         void MoveTargetedHome(bool runHome = true);
-        void MoveFollow(Unit* target, float dist, float angle);
-        void MoveChase(Unit* target, float dist = 0.0f, float angle = 0.0f, bool moveFurther = true);
+        void MoveFollow(Unit* target, float dist, float angle, bool asMain = false);
+        void MoveChase(Unit* target, float dist = 0.0f, float angle = 0.0f, bool moveFurther = false, bool walk = false, bool combat = true);
         void MoveConfused();
         void MoveFleeing(Unit* enemy, uint32 timeLimit = 0);
         void MovePoint(uint32 id, float x, float y, float z, bool generatePath = true);
         void MoveSeekAssistance(float x, float y, float z);
         void MoveSeekAssistanceDistract(uint32 timer);
         void MoveWaypoint(uint32 pathId = 0, uint32 source = 0, uint32 initialDelay = 0, uint32 overwriteEntry = 0);
-        void MoveTaxiFlight(uint32 path, uint32 pathnode);
+        void MoveTaxiFlight();
         void MoveDistract(uint32 timeLimit);
         void MoveFall();
         void MoveFlyOrLand(uint32 id, float x, float y, float z, bool liftOff);
@@ -125,6 +125,7 @@ class MotionMaster : private std::stack<MovementGenerator*>
         bool GetDestination(float& x, float& y, float& z) const;
 
         void SetPathId(uint32 pathId) { m_defaultPathId = pathId; }
+        uint32 GetPathId() { return m_defaultPathId; }
 
     private:
         void Mutate(MovementGenerator* m);                  // use Move* functions instead

@@ -200,68 +200,7 @@ void PlayerTaxi::AppendTaximaskTo(ByteBuffer& data, bool all)
     }
 }
 
-bool PlayerTaxi::LoadTaxiDestinationsFromString(const std::string& values, Team team)
-{
-    ClearTaxiDestinations();
-
-    Tokens tokens = StrSplit(values, " ");
-
-    for (Tokens::iterator iter = tokens.begin(); iter != tokens.end(); ++iter)
-    {
-        uint32 node = std::stoul(iter->c_str());
-        AddTaxiDestination(node);
-    }
-
-    if (m_TaxiDestinations.empty())
-        return true;
-
-    // Check integrity
-    if (m_TaxiDestinations.size() < 2)
-        return false;
-
-    for (size_t i = 1; i < m_TaxiDestinations.size(); ++i)
-    {
-        uint32 cost;
-        uint32 path;
-        sObjectMgr.GetTaxiPath(m_TaxiDestinations[i - 1], m_TaxiDestinations[i], path, cost);
-        if (!path)
-            return false;
-    }
-
-    // can't load taxi path without mount set (quest taxi path?)
-    if (!sObjectMgr.GetTaxiMountDisplayId(GetTaxiSource(), team, true))
-        return false;
-
-    return true;
-}
-
-std::string PlayerTaxi::SaveTaxiDestinationsToString()
-{
-    if (m_TaxiDestinations.empty())
-        return "";
-
-    std::ostringstream ss;
-
-    for (size_t i = 0; i < m_TaxiDestinations.size(); ++i)
-        ss << m_TaxiDestinations[i] << " ";
-
-    return ss.str();
-}
-
-uint32 PlayerTaxi::GetCurrentTaxiPath() const
-{
-    if (m_TaxiDestinations.size() < 2)
-        return 0;
-
-    uint32 path;
-    uint32 cost;
-
-    sObjectMgr.GetTaxiPath(m_TaxiDestinations[0], m_TaxiDestinations[1], path, cost);
-
-    return path;
-}
-
-std::ostringstream& operator<< (std::ostringstream& ss, PlayerTaxi const& taxi)
+std::ostringstream& operator<<(std::ostringstream& ss, PlayerTaxi const& taxi)
 {
     for (int i = 0; i < TaxiMaskSize; ++i)
         ss << taxi.m_taximask[i] << " ";
@@ -401,7 +340,7 @@ void TradeData::SetAccepted(bool state, bool crosssend /*= false*/)
 
 UpdateMask Player::updateVisualBits;
 
-Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_reputationMgr(this)
+Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(this), m_camera(this), m_reputationMgr(this)
 {
     m_transport = nullptr;
 
@@ -476,6 +415,8 @@ Player::Player(WorldSession* session): Unit(), m_mover(this), m_camera(this), m_
     m_bHasDelayedTeleport = false;
     m_bHasBeenAliveAtDelayedTeleport = true;                // overwrite always at setup teleport data, so not used infact
     m_teleport_options = 0;
+
+    m_needsZoneUpdate = false;
 
     m_trade = nullptr;
 
@@ -694,7 +635,7 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
 
     InitDisplayIds();                                       // model, scale and model data
 
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);               // fix cast time showed in spell tooltip on client
@@ -1926,34 +1867,13 @@ void Player::ProcessDelayedOperations()
         return;
 
     if (m_DelayedOperations & DELAYED_RESURRECT_PLAYER)
-    {
-        ResurrectPlayer(0.0f, false);
-
-        if (GetMaxHealth() > m_resurrectHealth)
-            SetHealth(m_resurrectHealth);
-        else
-            SetHealth(GetMaxHealth());
-
-        if (GetMaxPower(POWER_MANA) > m_resurrectMana)
-            SetPower(POWER_MANA, m_resurrectMana);
-        else
-            SetPower(POWER_MANA, GetMaxPower(POWER_MANA));
-
-        SetPower(POWER_RAGE, 0);
-        SetPower(POWER_ENERGY, GetMaxPower(POWER_ENERGY));
-
-        SpawnCorpseBones();
-    }
+        ResurrectUsingRequestDataFinish();
 
     if (m_DelayedOperations & DELAYED_SAVE_PLAYER)
-    {
         SaveToDB();
-    }
 
     if (m_DelayedOperations & DELAYED_SPELL_CAST_DESERTER)
-    {
         CastSpell(this, 26013, TRIGGERED_OLD_TRIGGERED);               // Deserter
-    }
 
     // we have executed ALL delayed ops, so clear the flag
     m_DelayedOperations = 0;
@@ -2214,7 +2134,7 @@ GameObject* Player::GetGameObjectIfCanInteractWith(ObjectGuid guid, uint32 gameo
         if (uint32(go->GetGoType()) == gameobject_type || gameobject_type == MAX_GAMEOBJECT_TYPE)
         {
             float maxdist = go->GetInteractionDistance();
-            if (go->IsWithinDistInMap(this, maxdist) && go->isSpawned())
+            if (go->IsWithinDistInMap(this, maxdist) && go->IsSpawned())
                 return go;
 
             sLog.outError("GetGameObjectIfCanInteractWith: GameObject '%s' [GUID: %u] is too far away from player %s [GUID: %u] to be used by him (distance=%f, maximal %f is allowed)",
@@ -2253,7 +2173,7 @@ struct SetGameMasterOnHelper
     void operator()(Unit* unit) const
     {
         unit->setFaction(35);
-        unit->getHostileRefManager().setOnlineOfflineState(false);
+        unit->getHostileRefManager().updateOnlineOfflineState(false);
     }
 };
 
@@ -2263,7 +2183,7 @@ struct SetGameMasterOffHelper
     void operator()(Unit* unit) const
     {
         unit->setFaction(faction);
-        unit->getHostileRefManager().setOnlineOfflineState(true);
+        unit->getHostileRefManager().updateOnlineOfflineState(true);
     }
     uint32 faction;
 };
@@ -2283,7 +2203,6 @@ void Player::SetGameMaster(bool on)
         SetPvPFreeForAll(false);
         UpdatePvPContested(false, true);
 
-        getHostileRefManager().setOnlineOfflineState(false);
         CombatStopWithPets();
     }
     else
@@ -2302,8 +2221,6 @@ void Player::SetGameMaster(bool on)
 
         // restore FFA PvP area state, remove not allowed for GM mounts
         UpdateArea(m_areaUpdateId);
-
-        getHostileRefManager().setOnlineOfflineState(true);
     }
 
     m_camera.UpdateVisibilityForOwner();
@@ -2334,22 +2251,6 @@ void Player::SetGMVisible(bool on)
 
         SetVisibility(VISIBILITY_OFF);
     }
-}
-
-bool Player::IsGroupVisibleFor(Player* p) const
-{
-    switch (sWorld.getConfig(CONFIG_UINT32_GROUP_VISIBILITY))
-    {
-        default: return IsInSameGroupWith(p);
-        case 1:  return IsInSameRaidWith(p);
-        case 2:  return GetTeam() == p->GetTeam();
-    }
-}
-
-bool Player::IsInSameGroupWith(Player const* p) const
-{
-    return (p == this || (GetGroup() != nullptr &&
-                          GetGroup()->SameSubGroup(this, p)));
 }
 
 ///- If the player is invited, remove him. If the group if then only 1 person, disband the group.
@@ -2689,7 +2590,7 @@ void Player::InitStatsForLevel(bool reapplyMods)
     SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);    // must be set
 
     // cleanup player flags (will be re-applied if need at aura load), to avoid have ghost flag without ghost aura, for example.
-    RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK | PLAYER_FLAGS_DND | PLAYER_FLAGS_GM | PLAYER_FLAGS_GHOST | PLAYER_FLAGS_PVP_DESIRED | PLAYER_FLAGS_FFA_PVP);
+    RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK | PLAYER_FLAGS_DND | PLAYER_FLAGS_GM | PLAYER_FLAGS_GHOST | PLAYER_FLAGS_PVP_DESIRED | PLAYER_FLAGS_FFA_PVP | PLAYER_FLAGS_TAXI_BENCHMARK);
 
     RemoveStandFlags(UNIT_STAND_FLAGS_ALL);                 // one form stealth modified bytes
 
@@ -3055,13 +2956,10 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
                 }
             }
             // We do not learn previous rank if its owned by a talent we don't know
-            if (!talent)
-            {
-                if (!IsInWorld() || disabled)                   // at spells loading, no output, but allow save
-                    addSpell(prev_spell, active, true, true, disabled);
-                else                                            // at normal learning
-                    learnSpell(prev_spell, true);
-            }
+            if (!IsInWorld() || disabled || talent)        // at spells loading, no output, but allow save
+                addSpell(prev_spell, active, true, true, disabled);
+            else                                            // at normal learning
+                learnSpell(prev_spell, true);
         }
 
         PlayerSpell newspell;
@@ -3115,6 +3013,8 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
                             newspell.active = false;
                             if (newspell.state != PLAYERSPELL_NEW)
                                 newspell.state = PLAYERSPELL_CHANGED;
+                            playerSpell2.disabled = false;
+                            playerSpell2.state = PLAYERSPELL_CHANGED;
                         }
                     }
                 }
@@ -5954,6 +5854,21 @@ bool Player::SetPosition(float x, float y, float z, float orientation, bool tele
 
         if (GetTrader() && !IsWithinDistInMap(GetTrader(), INTERACTION_DISTANCE))
             GetSession()->SendCancelTrade();   // will close both side trade windows
+
+        if (m_needsZoneUpdate)
+        {
+            // Get server side data
+            uint32 newzone, newarea;
+            GetZoneAndAreaId(newzone, newarea);
+            if (!MapCoordinateVsZoneCheck(x, y, GetMapId(), m_newZone))
+            {
+                sLog.outError("Delayed Zone Update: Client sent invalid zoneId for X,Y & MAP Coordinates. GUID: %u zoneId: %u Expected %u, Coords: %f %f %f", GetGUIDLow(), m_newZone, newzone, x, y, z);
+                m_newZone = newzone;
+            }
+
+            UpdateZone(m_newZone, newarea);
+            m_needsZoneUpdate = false;
+        }
     }
 
     if (m_positionStatusUpdateTimer)                        // Update position's state only on interval
@@ -6157,7 +6072,7 @@ void Player::setFactionForRace(uint8 race)
 
 ReputationRank Player::GetReputationRank(uint32 faction) const
 {
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(faction);
     return GetReputationMgr().GetRank(factionEntry);
 }
 
@@ -6221,9 +6136,9 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
 
     int32 result = int32(sWorld.getConfig(CONFIG_FLOAT_RATE_REPUTATION_GAIN) * rep * percent / 100.0f);
 
-    if (result && maxRep && faction)
+    if (source == REPUTATION_SOURCE_QUEST && result && faction)
     {
-        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction))
+        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(faction))
         {
             int32 current = GetReputationMgr().GetReputation(factionEntry);
 
@@ -6256,9 +6171,9 @@ void Player::RewardReputation(Unit* pVictim, float rate)
 
     if (Rep->repfaction1 && (!Rep->team_dependent || GetTeam() == ALLIANCE))
     {
-        int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue1, Rep->repfaction1, pVictim->getLevel());
+        int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue1, 0, Rep->repfaction1, pVictim->getLevel());
         donerep1 = int32(donerep1 * rate);
-        FactionEntry const* factionEntry1 = sFactionStore.LookupEntry(Rep->repfaction1);
+        FactionEntry const* factionEntry1 = sFactionStore.LookupEntry<FactionEntry>(Rep->repfaction1);
         uint32 current_reputation_rank1 = GetReputationMgr().GetRank(factionEntry1);
         if (factionEntry1 && current_reputation_rank1 <= Rep->reputation_max_cap1)
             GetReputationMgr().ModifyReputation(factionEntry1, donerep1);
@@ -6266,7 +6181,7 @@ void Player::RewardReputation(Unit* pVictim, float rate)
         // Wiki: Team factions value divided by 2
         if (factionEntry1 && Rep->is_teamaward1)
         {
-            FactionEntry const* team1_factionEntry = sFactionStore.LookupEntry(factionEntry1->team);
+            FactionEntry const* team1_factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionEntry1->team);
             if (team1_factionEntry)
                 GetReputationMgr().ModifyReputation(team1_factionEntry, donerep1 / 2);
         }
@@ -6274,9 +6189,9 @@ void Player::RewardReputation(Unit* pVictim, float rate)
 
     if (Rep->repfaction2 && (!Rep->team_dependent || GetTeam() == HORDE))
     {
-        int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue2, Rep->repfaction2, pVictim->getLevel());
+        int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue2, 0, Rep->repfaction2, pVictim->getLevel());
         donerep2 = int32(donerep2 * rate);
-        FactionEntry const* factionEntry2 = sFactionStore.LookupEntry(Rep->repfaction2);
+        FactionEntry const* factionEntry2 = sFactionStore.LookupEntry<FactionEntry>(Rep->repfaction2);
         uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
         if (factionEntry2 && current_reputation_rank2 <= Rep->reputation_max_cap2)
             GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
@@ -6284,7 +6199,7 @@ void Player::RewardReputation(Unit* pVictim, float rate)
         // Wiki: Team factions value divided by 2
         if (factionEntry2 && Rep->is_teamaward2)
         {
-            FactionEntry const* team2_factionEntry = sFactionStore.LookupEntry(factionEntry2->team);
+            FactionEntry const* team2_factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionEntry2->team);
             if (team2_factionEntry)
                 GetReputationMgr().ModifyReputation(team2_factionEntry, donerep2 / 2);
         }
@@ -6304,7 +6219,7 @@ void Player::RewardReputation(Quest const* pQuest)
         {
             int32 rep = CalculateReputationGain(REPUTATION_SOURCE_QUEST, pQuest->RewRepValue[i], pQuest->RewMaxRepValue[i], pQuest->RewRepFaction[i], GetQuestLevelForPlayer(pQuest));
 
-            if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(pQuest->RewRepFaction[i]))
+            if (FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(pQuest->RewRepFaction[i]))
                 GetReputationMgr().ModifyReputation(factionEntry, rep);
         }
     }
@@ -7330,7 +7245,7 @@ void Player::DestroyItemWithOnStoreSpell(Item* item, uint32 spellId)
     }
 }
 
-void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
+void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType, bool spellProc)
 {
     Item* item = GetWeaponForAttack(attType, true, true);
     if (!item)
@@ -7396,23 +7311,7 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
         {
             uint32 proc_spell_id = pEnchant->spellid[s];
 
-            // Flametongue Weapon (Passive), Ranks (used not existed equip spell id in pre-3.x spell.dbc)
-            if (pEnchant->type[s] == ITEM_ENCHANTMENT_TYPE_EQUIP_SPELL)
-            {
-                switch (proc_spell_id)
-                {
-                    case 10400: proc_spell_id =  8026; break; // Rank 1
-                    case 15567: proc_spell_id =  8028; break; // Rank 2
-                    case 15568: proc_spell_id =  8029; break; // Rank 3
-                    case 15569: proc_spell_id = 10445; break; // Rank 4
-                    case 16311: proc_spell_id = 16343; break; // Rank 5
-                    case 16312: proc_spell_id = 16344; break; // Rank 6
-                    case 16313: proc_spell_id = 25488; break; // Rank 7
-                    default:
-                        continue;
-                }
-            }
-            else if (pEnchant->type[s] != ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL)
+            if (pEnchant->type[s] != ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL)
                 continue;
 
             SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(proc_spell_id);
@@ -7425,6 +7324,11 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType)
             // not allow proc extra attack spell at extra attack
             if (m_extraAttacks && IsSpellHaveEffect(spellInfo, SPELL_EFFECT_ADD_EXTRA_ATTACKS))
                 continue;
+
+            // some weapon enchantments have proc flags which need to be checked
+            if (spellInfo->procFlags)
+                if (!(spellInfo->procFlags & PROC_FLAG_SUCCESSFUL_MELEE_SPELL_HIT) && spellProc)
+                    continue;
 
             // Use first rank to access spell item enchant procs
             float ppmRate = sSpellMgr.GetItemEnchantProcChance(spellInfo->Id);
@@ -7776,6 +7680,9 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid) const
                 bg->FillInitialWorldStates(data, count);
             break;
     }
+
+    if (InstanceData* instanceData = GetMap()->GetInstanceData())
+        instanceData->FillInitialWorldStates(data, count, zoneid, areaid);
 
     data.put<uint16>(count_pos, count);                     // set actual world state amount
 
@@ -11448,13 +11355,6 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     break;
                 case ITEM_ENCHANTMENT_TYPE_DAMAGE:
                     // processed in Player::_ApplyWeaponDependentAuraMods
-                    //if (item->GetSlot() == EQUIPMENT_SLOT_MAINHAND)
-                    //    HandleStatModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_VALUE, float(enchant_amount), apply);
-                    //else if (item->GetSlot() == EQUIPMENT_SLOT_OFFHAND)
-                    //    HandleStatModifier(UNIT_MOD_DAMAGE_OFFHAND, TOTAL_VALUE, float(enchant_amount), apply);
-                    //else if (item->GetSlot() == EQUIPMENT_SLOT_RANGED)
-                    //    HandleStatModifier(UNIT_MOD_DAMAGE_RANGED, TOTAL_VALUE, float(enchant_amount), apply);
-                    //UpdateDamagePhysical
                     if (item->GetSlot() == EQUIPMENT_SLOT_MAINHAND)
                     {
                         SetEnchantmentModifier(enchant_amount, BASE_ATTACK, apply);
@@ -11473,26 +11373,6 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                     break;
                 case ITEM_ENCHANTMENT_TYPE_EQUIP_SPELL:
                 {
-                    // Flametongue Weapon (Passive), Ranks (used not existed equip spell id in pre-3.x spell.dbc)
-                    // See Player::CastItemCombatSpell for workaround implementation
-                    if (enchant_spell_id && apply)
-                    {
-                        switch (enchant_spell_id)
-                        {
-                            case 10400:                     // Rank 1
-                            case 15567:                     // Rank 2
-                            case 15568:                     // Rank 3
-                            case 15569:                     // Rank 4
-                            case 16311:                     // Rank 5
-                            case 16312:                     // Rank 6
-                            case 16313:                     // Rank 7
-                                enchant_spell_id = 0;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-
                     if (enchant_spell_id)
                     {
                         if (apply)
@@ -12762,7 +12642,7 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
     }
 
     if (pQuest->GetRepObjectiveFaction())
-        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(pQuest->GetRepObjectiveFaction()))
+        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(pQuest->GetRepObjectiveFaction()))
             GetReputationMgr().SetVisible(factionEntry);
 
     uint32 qtime = 0;
@@ -13056,6 +12936,26 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
 
     // resend quests status directly
     SendQuestGiverStatusMultiple();
+}
+
+void Player::FailQuestForGroup(uint32 questId)
+{
+    if (Group* group = GetGroup())
+    {
+        for (GroupReference* ref = group->GetFirstMember(); ref != nullptr; ref = ref->next())
+        {
+            if (Player* member = ref->getSource())
+            {
+                if (member->GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE)
+                    member->FailQuest(questId);
+            }
+        }
+    }
+    else
+    {
+        if (GetQuestStatus(questId) == QUEST_STATUS_INCOMPLETE)
+            FailQuest(questId);
+    }
 }
 
 void Player::FailQuest(uint32 questId)
@@ -13686,7 +13586,7 @@ void Player::AreaExploredOrEventHappens(uint32 questId)
 }
 
 // not used in mangosd, function for external script library
-void Player::GroupEventHappens(uint32 questId, WorldObject const* pEventObject)
+void Player::RewardPlayerAndGroupAtEventExplored(uint32 questId, WorldObject const* pEventObject)
 {
     if (Group* pGroup = GetGroup())
     {
@@ -14007,8 +13907,23 @@ void Player::MoneyChanged(uint32 count)
     }
 }
 
+enum TitleFactions
+{
+    FACTION_LEAGUE_OF_ARATHOR       = 509, 
+    FACTION_STORMPIKE_GUARD         = 730,   
+    FACTION_SILVERWING_SENTINELS    = 890,
+
+    FACTION_DEFILERS                = 510,
+    FACTION_FROSTWOLF_CLAN          = 729,
+    FACTION_WARSONG_OUTRIDERS       = 889,
+
+    TITLE_CONQUEROR                 = 47,
+    TITLE_JUSTICAR                  = 48,
+};
+
 void Player::ReputationChanged(FactionEntry const* factionEntry)
 {
+    ReputationMgr const& repMgr = GetReputationMgr();
     for (int i = 0; i < MAX_QUEST_LOG_SIZE; ++i)
     {
         if (uint32 questid = GetQuestSlotQuestId(i))
@@ -14020,17 +13935,47 @@ void Player::ReputationChanged(FactionEntry const* factionEntry)
                     QuestStatusData& q_status = mQuestStatus[questid];
                     if (q_status.m_status == QUEST_STATUS_INCOMPLETE)
                     {
-                        if (GetReputationMgr().GetReputation(factionEntry) >= qInfo->GetRepObjectiveValue())
+                        if (repMgr.GetReputation(factionEntry) >= qInfo->GetRepObjectiveValue())
                             if (CanCompleteQuest(questid))
                                 CompleteQuest(questid);
                     }
                     else if (q_status.m_status == QUEST_STATUS_COMPLETE)
                     {
-                        if (GetReputationMgr().GetReputation(factionEntry) < qInfo->GetRepObjectiveValue())
+                        if (repMgr.GetReputation(factionEntry) < qInfo->GetRepObjectiveValue())
                             IncompleteQuest(questid);
                     }
                 }
             }
+        }
+    }
+
+    switch (factionEntry->ID)
+    {
+        case FACTION_LEAGUE_OF_ARATHOR:
+        case FACTION_STORMPIKE_GUARD:
+        case FACTION_SILVERWING_SENTINELS:
+        {
+            FactionEntry const* factionEntryArathor = sFactionStore.LookupEntry<FactionEntry>(FACTION_LEAGUE_OF_ARATHOR);
+            if (repMgr.GetRank(factionEntryArathor) < REP_EXALTED) break;
+            FactionEntry const* factionEntryStormpike = sFactionStore.LookupEntry<FactionEntry>(FACTION_STORMPIKE_GUARD);
+            if (repMgr.GetRank(factionEntryStormpike) < REP_EXALTED) break;
+            FactionEntry const* factionEntrySentinels = sFactionStore.LookupEntry<FactionEntry>(FACTION_SILVERWING_SENTINELS);
+            if (repMgr.GetRank(factionEntrySentinels) < REP_EXALTED) break;
+            SetTitle(TITLE_JUSTICAR);
+            break;
+        }
+        case FACTION_DEFILERS:
+        case FACTION_FROSTWOLF_CLAN:
+        case FACTION_WARSONG_OUTRIDERS:
+        {
+            FactionEntry const* factionEntryDefilers = sFactionStore.LookupEntry<FactionEntry>(FACTION_DEFILERS);
+            if (repMgr.GetRank(factionEntryDefilers) < REP_EXALTED) break;
+            FactionEntry const* factionEntryFrostwolf = sFactionStore.LookupEntry<FactionEntry>(FACTION_FROSTWOLF_CLAN);
+            if (repMgr.GetRank(factionEntryFrostwolf) < REP_EXALTED) break;
+            FactionEntry const* factionEntryWarsong = sFactionStore.LookupEntry<FactionEntry>(FACTION_WARSONG_OUTRIDERS);
+            if (repMgr.GetRank(factionEntryWarsong) < REP_EXALTED) break;
+            SetTitle(TITLE_CONQUEROR);
+            break;
         }
     }
 }
@@ -14460,7 +14405,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     uint8 gender = fields[5].GetUInt8() & 0x01;             // allowed only 1 bit values male/female cases (for fit drunk gender part)
     SetByteValue(UNIT_FIELD_BYTES_0, 2, gender);            // gender
 
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, 0x28);
+    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     SetUInt32Value(UNIT_FIELD_LEVEL, fields[6].GetUInt8());
     SetUInt32Value(PLAYER_XP, fields[7].GetUInt32());
@@ -14854,12 +14799,11 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     SetUInt32Value(PLAYER_CHOSEN_TITLE, curTitle);
 
-    if (!m_taxi.LoadTaxiDestinationsFromString(taxi_nodes, GetTeam()))
+    Taxi::DestID destOrphan = 0;
+    if (!m_taxiTracker.Load(taxi_nodes, destOrphan))
     {
         // problems with taxi path loading
-        TaxiNodesEntry const* nodeEntry = nullptr;
-        if (uint32 node_id = m_taxi.GetTaxiSource())
-            nodeEntry = sTaxiNodesStore.LookupEntry(node_id);
+        TaxiNodesEntry const* nodeEntry = (destOrphan ? sTaxiNodesStore.LookupEntry(destOrphan) : nullptr);
 
         if (!nodeEntry)                                     // don't know taxi start node, to homebind
         {
@@ -14877,21 +14821,28 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
         // so we need to get a new Map pointer!
         SetMap(sMapMgr.CreateMap(GetMapId(), this));
         SaveRecallPosition();                           // save as recall also to prevent recall and fall from sky
-
-        m_taxi.ClearTaxiDestinations();
     }
-
-    if (uint32 node_id = m_taxi.GetTaxiSource())
+    else if (!m_taxiTracker.GetRoadmap().empty() && !m_taxiTracker.GetAtlas().empty())
     {
-        // save source node as recall coord to prevent recall and fall from sky
-        TaxiNodesEntry const* nodeEntry = sTaxiNodesStore.LookupEntry(node_id);
-        MANGOS_ASSERT(nodeEntry);                           // checked in m_taxi.LoadTaxiDestinationsFromString
-        m_recallMap = nodeEntry->map_id;
-        m_recallX = nodeEntry->x;
-        m_recallY = nodeEntry->y;
-        m_recallZ = nodeEntry->z;
+        if (size_t nodeResume = m_taxiTracker.GetResumeWaypointIndex())
+        {
+            const TaxiPathNodeEntry* entry = m_taxiTracker.GetMap().at(nodeResume);
+            MANGOS_ASSERT(entry);
+            Relocate(entry->x, entry->y, entry->z, GetOrientation());
+        }
 
-        // flight will started later
+        // save source node as recall coord to prevent recall and fall from sky
+        if (uint32 destSource = m_taxiTracker.GetRoute().destStart)
+        {
+            TaxiNodesEntry const* destination = sTaxiNodesStore.LookupEntry(destSource);
+            MANGOS_ASSERT(destination);
+            m_recallMap = destination->map_id;
+            m_recallX = destination->x;
+            m_recallY = destination->y;
+            m_recallZ = destination->z;
+
+        }
+        // flight will start later
     }
 
     // has to be called after last Relocate() in Player::LoadFromDB
@@ -16143,7 +16094,7 @@ void Player::SaveToDB()
 
     uberInsert.addUInt64(uint64(m_deathExpireTime));
 
-    ss << m_taxi.SaveTaxiDestinationsToString();       // string
+    ss << m_taxiTracker.Save();
     uberInsert.addString(ss);
 
     uberInsert.addUInt32(GetArenaPoints());
@@ -16319,7 +16270,7 @@ void Player::_SaveAuras()
         // save singleTarget auras if self cast.
         bool selfCastHolder = holder->GetCasterGuid() == GetObjectGuid();
         TrackedAuraType trackedType = holder->GetTrackedAuraType();
-        if (!holder->IsPassive() && !IsChanneledSpell(holder->GetSpellProto()) &&
+        if (!holder->IsPassive() && !IsChanneledSpell(holder->GetSpellProto()) && !IsItemAura(holder->GetSpellProto()) &&
                 (trackedType == TRACK_AURA_TYPE_NOT_TRACKED || (trackedType == TRACK_AURA_TYPE_SINGLE_TARGET && selfCastHolder)))
         {
             int32  damage[MAX_EFFECT_INDEX];
@@ -17664,153 +17615,291 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     // stop trade (client cancel trade at taxi map open but cheating tools can be used for reopen it)
     TradeCancel(true);
 
-    // clean not finished taxi path if any
-    m_taxi.ClearTaxiDestinations();
-
-    // 0 element current node
-    m_taxi.AddTaxiDestination(sourcenode);
-
-    // fill destinations path tail
-    uint32 sourcepath = 0;
-    uint32 totalcost = 0;
-    uint32 firstcost = 0;
-
-    uint32 prevnode = sourcenode;
-    uint32 lastnode = 0;
-
-    for (uint32 i = 1; i < nodes.size(); ++i)
-    {
-        uint32 path, cost;
-        lastnode = nodes[i];
-        sObjectMgr.GetTaxiPath(prevnode, lastnode, path, cost);
-
-        if (!path)
-        {
-            m_taxi.ClearTaxiDestinations();
-            return false;
-        }
-
-        totalcost += cost;
-        if (i == 1)
-            firstcost = cost;
-
-        if (prevnode == sourcenode)
-            sourcepath = path;
-
-        m_taxi.AddTaxiDestination(lastnode);
-
-        prevnode = lastnode;
-    }
-
-    m_taxi.SetLastNode(lastnode);
-
-    // get mount model (in case non taximaster (npc==nullptr) allow more wide lookup)
-    uint32 mount_display_id = sObjectMgr.GetTaxiMountDisplayId(sourcenode, GetTeam(), npc == nullptr);
-
-    // in spell case allow 0 model
-    if ((mount_display_id == 0 && spellid == 0) || sourcepath == 0)
+    if (!m_taxiTracker.AddRoutes(nodes, (npc ? GetReputationPriceDiscount(npc) : 0.0f), !spellid))
     {
         GetSession()->SendActivateTaxiReply(ERR_TAXIUNSPECIFIEDSERVERERROR);
-
-        m_taxi.ClearTaxiDestinations();
         return false;
     }
 
-    uint32 money = GetMoney();
-
-    if (npc)
-    {
-        float discount = GetReputationPriceDiscount(npc);
-        totalcost = (uint32)ceil(totalcost * discount);
-        firstcost = (uint32)ceil(firstcost * discount);
-    }
-
-    if (money < totalcost)
+    if (GetMoney() < m_taxiTracker.GetCostTotal())
     {
         GetSession()->SendActivateTaxiReply(ERR_TAXINOTENOUGHMONEY);
-
-        m_taxi.ClearTaxiDestinations();
+        m_taxiTracker.Clear();
         return false;
     }
 
-    // Checks and preparations done, DO FLIGHT
-    ModifyMoney(-(int32)firstcost);
+    if (!m_taxiTracker.Prepare())
+        return false;
 
     // prevent stealth flight
     RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
     GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
-    GetSession()->SendDoFlight(mount_display_id, sourcepath);
+
+    GetMotionMaster()->MoveTaxiFlight();
 
     return true;
 }
 
-bool Player::ActivateTaxiPathTo(uint32 taxi_path_id, uint32 spellid /*= 0*/)
+bool Player::ActivateTaxiPathTo(uint32 path_id, uint32 spellid /*= 0*/)
 {
-    TaxiPathEntry const* entry = sTaxiPathStore.LookupEntry(taxi_path_id);
+    TaxiPathEntry const* entry = sTaxiPathStore.LookupEntry(path_id);
     if (!entry)
         return false;
 
-    std::vector<uint32> nodes;
-
-    nodes.resize(2);
-    nodes[0] = entry->from;
-    nodes[1] = entry->to;
-
-    return ActivateTaxiPathTo(nodes, nullptr, spellid);
+    return ActivateTaxiPathTo({ entry->from, entry->to }, nullptr, spellid);
 }
 
-// TODO: Check for bugs
-void Player::ContinueTaxiFlight() const
+void Player::TaxiFlightResume()
 {
-    uint32 sourceNode = m_taxi.GetTaxiSource();
-    if (!sourceNode)
+    if (m_taxiTracker.GetState() < Taxi::TRACKER_STANDBY)
         return;
 
-    DEBUG_LOG("WORLD: Restart character %u taxi flight", GetGUIDLow());
+    DEBUG_LOG("WORLD: Resuming taxi flight for character %u", GetGUIDLow());
 
-    uint32 mountDisplayId = sObjectMgr.GetTaxiMountDisplayId(sourceNode, GetTeam(), true);
-    uint32 path = m_taxi.GetCurrentTaxiPath();
-
-    // search appropriate start path node
-    uint32 startNode = 0;
-
-    TaxiPathNodeList const& nodeList = sTaxiPathNodesByPath[path];
-
-    float distNext =
-        (nodeList[0]->x - GetPositionX()) * (nodeList[0]->x - GetPositionX()) +
-        (nodeList[0]->y - GetPositionY()) * (nodeList[0]->y - GetPositionY()) +
-        (nodeList[0]->z - GetPositionZ()) * (nodeList[0]->z - GetPositionZ());
-
-    for (uint32 i = 1; i < nodeList.size(); ++i)
+    // Already in flight: just make sure client control is updated
+    if (hasUnitState(UNIT_STAT_TAXI_FLIGHT))
     {
-        TaxiPathNodeEntry const& node = *nodeList[i];
-        TaxiPathNodeEntry const& prevNode = *nodeList[i - 1];
-
-        // skip nodes at another map
-        if (node.mapid != GetMapId())
-            continue;
-
-        float distPrev = distNext;
-
-        distNext =
-            (node.x - GetPositionX()) * (node.x - GetPositionX()) +
-            (node.y - GetPositionY()) * (node.y - GetPositionY()) +
-            (node.z - GetPositionZ()) * (node.z - GetPositionZ());
-
-        float distNodes =
-            (node.x - prevNode.x) * (node.x - prevNode.x) +
-            (node.y - prevNode.y) * (node.y - prevNode.y) +
-            (node.z - prevNode.z) * (node.z - prevNode.z);
-
-        if (distNext + distPrev < distNodes)
-        {
-            startNode = i;
-            break;
-        }
+        UpdateClientControl(this, IsClientControlled(this));
+        return;
     }
 
-    GetSession()->SendDoFlight(mountDisplayId, path, startNode);
+    GetMotionMaster()->MoveTaxiFlight();
+}
+
+bool Player::TaxiFlightInterrupt(bool cancel /*= true*/)
+{
+    // Simply pauses if bool is not set (for example, storing the flight for one reason or another)
+    if (GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE)
+    {
+        OnTaxiFlightEject(cancel);
+        GetMotionMaster()->MovementExpired();
+        return true;
+    }
+    return false;
+}
+
+const Taxi::Map& Player::GetTaxiPathSpline() const
+{
+    // Bugcheck: container continuity error
+    MANGOS_ASSERT(!m_taxiTracker.GetAtlas().empty());
+    return m_taxiTracker.GetMap();
+}
+
+size_t Player::GetTaxiSplinePathOffset() const
+{
+    return m_taxiTracker.GetResumeWaypointIndex();
+}
+
+void Player::OnTaxiFlightStart(const TaxiPathEntry* /*path*/)
+{
+
+}
+
+void Player::OnTaxiFlightEnd(const TaxiPathEntry* path)
+{
+    // Final destination
+    if (const TaxiNodesEntry* destination = sTaxiNodesStore.LookupEntry(path->to))
+        TeleportTo(GetMap()->GetId(), destination->x, destination->y, destination->z, GetOrientation());
+
+    if (pvpInfo.inPvPEnforcedArea)
+        CastSpell(this, 2479, TRIGGERED_OLD_TRIGGERED);
+
+    /*
+    NOTE: B clearly has some form of extra scripts on certain fly path ends. Nodes contain extra events, that can be done using dbscript_on_event,
+    but these extra scripts have no EventID in the DBC. In future if this place fills up, need to consider moving it to a more generic way of scripting.
+    */
+    if (path)
+    {
+        switch (path->to)
+        {
+            case 91:        // Susurrus
+                RemoveAurasDueToSpell(32474);
+                break;
+            case 158:        // Vision Guide
+                AreaExploredOrEventHappens(10525);
+                RemoveAurasDueToSpell(36573);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void Player::OnTaxiFlightEject(bool clear /*= true*/)
+{
+    OnTaxiFlightSplineEnd();
+    if (clear)
+        m_taxiTracker.Clear(true);
+}
+
+bool Player::OnTaxiFlightUpdate(const size_t waypointIndex, const bool movement)
+{
+    switch (m_taxiTracker.GetState())
+    {
+        case Taxi::TRACKER_FLIGHT:
+        {
+            // Bugcheck: container continuity error
+            MANGOS_ASSERT(!m_taxiTracker.GetAtlas().empty());
+
+            // Check for spline interference before updating the container
+            if (!movement)
+            {
+                float x, y, z;
+                GetPosition(x, y, z);
+                const TaxiPathNodeEntry* dest = m_taxiTracker.GetMap().back();
+                if (int32(x * 100) != int32(dest->x * 100) || int32(y * 100) != int32(dest->y * 100) || int32(z * 100) != int32(dest->z * 100))
+                    return false;
+            }
+
+            // Due to nature of update ticks, we have to check if we have queued up several nodes inbetween updates
+            const size_t current = m_taxiTracker.GetCurrentWaypointIndex();
+            const bool start = (!waypointIndex && !m_taxiTracker.GetCurrentWaypoint());
+            if (waypointIndex > current || start)
+            {
+                Taxi::Map map = m_taxiTracker.GetMap();
+                for (size_t next = (start ? current : current + 1); next <= waypointIndex; ++next)
+                {
+                    const TaxiPathNodeEntry* entry = map.at(next);
+                    const bool last = (entry == map.back());
+                    Taxi::PathID startID = 0;
+                    Taxi::PathID endID = 0;
+                    // Notify taxi container, check if we advanced to next route
+                    if (m_taxiTracker.UpdateRoute(entry, startID, endID))
+                    {
+                        if (endID)
+                            OnTaxiFlightRouteEnd(endID, last);
+                        if (startID)
+                            OnTaxiFlightRouteStart(startID, (entry == map.front()));
+                    }
+                    OnTaxiFlightRouteProgress(entry, (last ? nullptr : map.at(next + 1)));
+                }
+            }
+            return true;
+        }
+        case Taxi::TRACKER_STANDBY:
+        case Taxi::TRACKER_TRANSFER:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
+
+void Player::OnTaxiFlightSplineStart(const TaxiPathNodeEntry* node)
+{
+    if (m_taxiTracker.GetState() == Taxi::TRACKER_TRANSFER)
+        UpdateClientControl(this, false);
+
+    if (const TaxiPathEntry* path = sTaxiPathStore.LookupEntry(node->path))
+        Mount(m_taxiTracker.GetMountDisplayId());
+
+    getHostileRefManager().updateOnlineOfflineState(false);
+
+    // Bugcheck: container continuity error
+    MANGOS_ASSERT(m_taxiTracker.SetState(Taxi::TRACKER_FLIGHT));
+}
+
+void Player::OnTaxiFlightSplineEnd()
+{
+    Unmount();
+
+    getHostileRefManager().updateOnlineOfflineState(true);
+
+    // Note: only gets set by itself when container does not end up empty
+    m_taxiTracker.SetState(Taxi::TRACKER_TRANSFER);
+}
+
+bool Player::OnTaxiFlightSplineUpdate()
+{
+    switch (m_taxiTracker.GetState())
+    {
+        case Taxi::TRACKER_FLIGHT:
+        case Taxi::TRACKER_STANDBY:
+        case Taxi::TRACKER_TRANSFER:
+        {
+            // Bugcheck: container continuity error
+            MANGOS_ASSERT(!m_taxiTracker.GetAtlas().empty());
+
+            const Taxi::Map& map = m_taxiTracker.GetMap();
+
+            // Bugcheck: spline is too short for a taxi
+            MANGOS_ASSERT(map.size() > 1);
+
+            uint32 mapid = GetMapId();
+
+            size_t nodeResume = m_taxiTracker.GetResumeWaypointIndex();
+            const TaxiPathNodeEntry* first = (nodeResume ? map.at(nodeResume) : map.front());
+
+            // Check if we are starting on the same game level with the spline
+            if (first->mapid == mapid)
+            {
+                OnTaxiFlightSplineStart(first);
+                return true;
+            }
+            else if (m_taxiTracker.GetState() == Taxi::TRACKER_TRANSFER)
+            {
+                OnTaxiFlightSplineEnd();
+                TeleportTo(first->mapid, first->x, first->y, first->z, GetOrientation());
+            }
+            break;
+        }
+        default:
+            // All done, simply finalize
+            OnTaxiFlightSplineEnd();
+            break;
+    }
+    return false;
+}
+
+void Player::OnTaxiFlightRouteStart(uint32 pathID, bool initial)
+{
+    if (IsTaxiDebug())
+        ChatHandler(this).PSendSysMessage(LANG_TAXI_DEBUG_PATH, pathID);
+
+    if (initial)
+    {
+        ModifyMoney(-int32(m_taxiTracker.GetCost()));
+
+        if (const TaxiPathEntry* path = sTaxiPathStore.LookupEntry(pathID))
+            OnTaxiFlightStart(path);
+    }
+}
+
+void Player::OnTaxiFlightRouteEnd(uint32 pathID, bool final)
+{
+    if (final)
+    {
+        if (const TaxiPathEntry* path = sTaxiPathStore.LookupEntry(pathID))
+            OnTaxiFlightEnd(path);
+    }
+    else
+        ModifyMoney(-int32(m_taxiTracker.GetCost()));
+}
+
+void Player::OnTaxiFlightRouteProgress(const TaxiPathNodeEntry* node, const TaxiPathNodeEntry* next /*= nullptr*/)
+{
+    if (!node)
+        return;
+
+    if (IsTaxiDebug())
+    {
+        if (next)
+            ChatHandler(this).PSendSysMessage(LANG_TAXI_DEBUG_NODE, node->path, node->index, next->path, next->index);
+        else
+            ChatHandler(this).PSendSysMessage(LANG_TAXI_DEBUG_NODE_FINAL, node->path, node->index);
+    }
+
+    // Needs to be confirmed: first one shouldn't fire arrival event, final one shouldnt fire departure event?
+    for (int arrival = 1; arrival > -int(bool(next)); --arrival)
+    {
+        if (uint32 eventid = (arrival ? node->arrivalEventID : node->departureEventID))
+        {
+            const char* desc = (arrival ? "arrival" : "departure");
+            DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Taxi %s event %u of node %u of path %u for player %s", desc, eventid, node->index, node->path, GetName());
+            StartEvents_Event(GetMap(), eventid, this, this, !arrival);
+        }
+    }
 }
 
 void Player::InitDataForForm(bool reapplyMods)
@@ -18492,7 +18581,7 @@ bool Player::IsVisibleInGridForPlayer(Player* pl) const
         return true;
 
     // player see dead player/ghost from own group/raid
-    if (IsInSameRaidWith(pl))
+    if (IsInGroup(pl))
         return true;
 
     // Live player see live player or dead player with not realized corpse
@@ -19239,13 +19328,17 @@ BattleGroundBracketId Player::GetBattleGroundBracketIdFromLevel(BattleGroundType
     return BattleGroundBracketId(bracket_id);
 }
 
-float Player::GetReputationPriceDiscount(Creature const* pCreature) const
+float Player::GetReputationPriceDiscount(Creature const* creature) const
 {
-    FactionTemplateEntry const* vendor_faction = pCreature->getFactionTemplateEntry();
-    if (!vendor_faction || !vendor_faction->faction)
+    return GetReputationPriceDiscount(creature->getFactionTemplateEntry());
+}
+
+float Player::GetReputationPriceDiscount(FactionTemplateEntry const* factionTemplate) const
+{
+    if (!factionTemplate || !factionTemplate->faction)
         return 1.0f;
 
-    ReputationRank rank = GetReputationRank(vendor_faction->faction);
+    ReputationRank rank = GetReputationRank(factionTemplate->faction);
     if (rank <= REP_NEUTRAL)
         return 1.0f;
 
@@ -19380,11 +19473,7 @@ void Player::SummonIfPossible(bool agree)
         return;
 
     // stop taxi flight at summon
-    if (IsTaxiFlying())
-    {
-        GetMotionMaster()->MovementExpired();
-        m_taxi.ClearTaxiDestinations();
-    }
+    TaxiFlightInterrupt();
 
     // drop flag at summon
     // this code can be reached only when GM is summoning player who carries flag, because player should be immune to summoning spells when he carries flag
@@ -19623,7 +19712,7 @@ void Player::RewardSinglePlayerAtKill(Unit* pVictim)
     }
 }
 
-void Player::RewardPlayerAndGroupAtEvent(uint32 creature_id, WorldObject* pRewardSource)
+void Player::RewardPlayerAndGroupAtEventCredit(uint32 creature_id, WorldObject* pRewardSource)
 {
     MANGOS_ASSERT((!GetGroup() || pRewardSource) && "Player::RewardPlayerAndGroupAtEvent called for Group-Case but no source for range searching provided");
 
@@ -19714,7 +19803,7 @@ uint32 Player::GetPureWeaponSkillValue(WeaponAttackType attType) const
     return GetPureSkillValue(skill);
 }
 
-void Player::ResurectUsingRequestData()
+void Player::ResurrectUsingRequestDataInit()
 {
     /// Teleport before resurrecting by player, otherwise the player might get attacked from creatures near his corpse
     if (m_resurrectGuid.IsPlayer())
@@ -19722,12 +19811,18 @@ void Player::ResurectUsingRequestData()
 
     // we cannot resurrect player when we triggered far teleport
     // player will be resurrected upon teleportation
-    if (IsBeingTeleportedFar())
+    if (IsBeingTeleported())
     {
         ScheduleDelayedOperation(DELAYED_RESURRECT_PLAYER);
         return;
     }
 
+    // Redundant unless at some point we dont teleport on rezzurect
+    ResurrectUsingRequestDataFinish();
+}
+
+void Player::ResurrectUsingRequestDataFinish()
+{
     ResurrectPlayer(0.0f, false);
 
     if (GetMaxHealth() > m_resurrectHealth)
@@ -19908,19 +20003,19 @@ Player* Player::GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType
 
         if (target && target != this)
         {
-            // First not picked
-            if (!lowestPercentagePlayer)
-            {
-                lowestPercentagePlayer = target;
-                lowestPercentage = target->GetHealthPercent();
-                continue;
-            }
-
+            float x, y, z;
+            GetPosition(x, y, z);
             // CanAssist check duel and controlled by enemy
-            if (IsWithinDistInMap(target, radius) &&
+            if (target->IsWithinDist3d(x, y, z, radius) &&
                     !target->HasInvisibilityAura() && CanAssist(target) && !target->HasAuraType(noAuraType))
             {
-                if (target->GetHealthPercent() < lowestPercentage)
+                // First not picked
+                if (!lowestPercentagePlayer)
+                {
+                    lowestPercentagePlayer = target;
+                    lowestPercentage = target->GetHealthPercent();
+                }
+                else if (target->GetHealthPercent() < lowestPercentage)
                 {
                     lowestPercentagePlayer = target;
                     lowestPercentage = target->GetHealthPercent();
@@ -20132,6 +20227,12 @@ bool Player::HasTitle(uint32 bitIndex) const
     uint32 fieldIndexOffset = bitIndex / 32;
     uint32 flag = 1 << (bitIndex % 32);
     return HasFlag(PLAYER__FIELD_KNOWN_TITLES + fieldIndexOffset, flag);
+}
+
+void Player::SetTitle(uint32 titleId, bool lost)
+{
+    if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(titleId))
+        SetTitle(titleEntry, lost);
 }
 
 void Player::SetTitle(CharTitlesEntry const* title, bool lost)
@@ -20987,8 +21088,8 @@ void Player::AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration /*= 0*/,
 void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/, bool permanent /*= false*/, uint32 forcedDuration /*= 0*/)
 {
     uint32 spellCategory = spellEntry.Category;
-    int32 recTime = spellEntry.RecoveryTime; // int because of spellmod calculations
-    int32 categoryRecTime = spellEntry.CategoryRecoveryTime; // int because of spellmod calculations
+    uint32 recTime = spellEntry.RecoveryTime; // int because of spellmod calculations
+    uint32 categoryRecTime = spellEntry.CategoryRecoveryTime; // int because of spellmod calculations
     uint32 itemId = 0;
 
     if (itemProto)
@@ -21057,6 +21158,17 @@ void Player::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* item
             data << GetObjectGuid();
             SendDirectMessage(data);
             sLog.outDebug("Sending SMSG_COOLDOWN_EVENT with spell id = %u", spellEntry.Id);
+        }
+
+        if (spellEntry.AttributesServerside & SPELL_ATTR_SS_SEND_COOLDOWN)
+        {
+            // send to client
+            WorldPacket data(SMSG_SPELL_COOLDOWN, 8 + 1 + 4);
+            data << GetObjectGuid();
+            data << uint8(1);
+            data << uint32(spellEntry.Id);
+            data << uint32(recTime);
+            GetSession()->SendPacket(data);
         }
     }
 }

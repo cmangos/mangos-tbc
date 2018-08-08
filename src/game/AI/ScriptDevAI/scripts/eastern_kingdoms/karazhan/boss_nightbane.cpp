@@ -37,6 +37,7 @@ enum
     // ground phase spells
     SPELL_BELLOWING_ROAR        = 39427,
     SPELL_CHARRED_EARTH         = 30129,                    // Also 30209 (Target Charred Earth) triggers this
+    SPELL_CHARRED_EARTH_TARGETING = 30209,
     SPELL_SMOLDERING_BREATH     = 30210,
     SPELL_TAIL_SWEEP            = 25653,
     SPELL_CLEAVE                = 30131,
@@ -230,7 +231,7 @@ struct boss_nightbaneAI : public npc_escortAI
         {
             if (Creature* pTrigger = m_creature->GetMap()->GetCreature(*itr))
             {
-                if (!pChosenTrigger || m_creature->GetDistanceOrder(pTrigger, pChosenTrigger, false))
+                if (!pChosenTrigger || m_creature->GetDistanceOrder(pTrigger, pChosenTrigger, false, DIST_CALC_NONE))
                     pChosenTrigger = pTrigger;
             }
         }
@@ -270,9 +271,9 @@ struct boss_nightbaneAI : public npc_escortAI
 
                 if (m_uiCharredEarthTimer < uiDiff)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER))
                     {
-                        if (DoCastSpellIfCan(pTarget, SPELL_CHARRED_EARTH) == CAST_OK)
+                        if (DoCastSpellIfCan(pTarget, SPELL_CHARRED_EARTH_TARGETING) == CAST_OK) // shouldnt be sent to client
                             m_uiCharredEarthTimer = urand(25000, 35000);
                     }
                 }
@@ -384,7 +385,7 @@ struct boss_nightbaneAI : public npc_escortAI
     }
 };
 
-CreatureAI* GetAI_boss_nightbane(Creature* pCreature)
+UnitAI* GetAI_boss_nightbane(Creature* pCreature)
 {
     return new boss_nightbaneAI(pCreature);
 }

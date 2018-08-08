@@ -886,9 +886,9 @@ bool ChatHandler::HandleGameObjectTargetCommand(char* args)
         ShowNpcOrGoSpawnInformation<GameObject>(target->GetGUIDLow());
 
         if (target->GetGoType() == GAMEOBJECT_TYPE_DOOR)
-            PSendSysMessage(LANG_COMMAND_GO_STATUS_DOOR, uint32(target->GetGoState()), uint32(target->getLootState()), GetOnOffStr(target->IsCollisionEnabled()), goI->door.startOpen ? "open" : "closed");
+            PSendSysMessage(LANG_COMMAND_GO_STATUS_DOOR, uint32(target->GetGoState()), uint32(target->GetLootState()), GetOnOffStr(target->IsCollisionEnabled()), goI->door.startOpen ? "open" : "closed");
         else
-            PSendSysMessage(LANG_COMMAND_GO_STATUS, uint32(target->GetGoState()), uint32(target->getLootState()), GetOnOffStr(target->IsCollisionEnabled()));
+            PSendSysMessage(LANG_COMMAND_GO_STATUS, uint32(target->GetGoState()), uint32(target->GetLootState()), GetOnOffStr(target->IsCollisionEnabled()));
     }
     return true;
 }
@@ -1184,6 +1184,68 @@ bool ChatHandler::HandleGameObjectNearCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleGameObjectActivateCommand(char* args) {
+    // number or [name] Shift-click form |color|Hgameobject:go_id|h[name]|h|r
+    uint32 lowguid;
+    if (!ExtractUint32KeyFromLink(&args, "Hgameobject", lowguid))
+        return false;
+
+    if (!lowguid)
+        return false;
+
+    GameObject* obj = nullptr;
+
+    // by DB guid
+    if (GameObjectData const* go_data = sObjectMgr.GetGOData(lowguid))
+        obj = GetGameObjectWithGuid(lowguid, go_data->id);
+
+    if (!obj)
+    {
+        PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, lowguid);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    uint32 const autoCloseTime = obj->GetGOInfo()->GetAutoCloseTime() ? 10000 : 0;
+
+    obj->SetLootState(GO_READY);
+    obj->UseDoorOrButton(autoCloseTime, false);
+
+    PSendSysMessage("GameObject entry: %u guid: %u activated!", obj->GetEntry(), lowguid);
+    return true;
+}
+
+bool ChatHandler::HandleGameObjectNearSpawnedCommand(char* args)
+{
+    float distance;
+    if (!ExtractOptFloat(&args, distance, 10.0f))
+        return false;
+
+    std::list<GameObject*> gameobjects;
+    Player* player = m_session->GetPlayer();
+
+    MaNGOS::GameObjectInPosRangeCheck go_check(*player, player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), distance);
+    MaNGOS::GameObjectListSearcher<MaNGOS::GameObjectInPosRangeCheck> checker(gameobjects, go_check);
+    Cell::VisitGridObjects(player, checker, distance);
+
+    for (GameObject* go : gameobjects)
+    {
+        uint32 entry = go->GetEntry();
+        GameObjectInfo const* goInfo = ObjectMgr::GetGameObjectInfo(entry);
+
+        if (!goInfo)
+            continue;
+
+        float x, y, z;
+        go->GetPosition(x, y, z);
+        ObjectGuid guid = go->GetObjectGuid();
+        PSendSysMessage(LANG_GO_MIXED_LIST_CHAT, guid, PrepareStringNpcOrGoSpawnInformation<GameObject>(guid).c_str(), entry, guid, goInfo->name, x, y, z, go->GetMapId());
+    }
+
+    PSendSysMessage(LANG_COMMAND_NEAROBJMESSAGE, distance, gameobjects.size());
+    return true;
+}
+
 bool ChatHandler::HandleGUIDCommand(char* /*args*/)
 {
     ObjectGuid guid = m_session->GetPlayer()->GetSelectionGuid();
@@ -1255,9 +1317,9 @@ bool ChatHandler::HandleLookupFactionCommand(char* args)
 
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
-    for (uint32 id = 0; id < sFactionStore.GetNumRows(); ++id)
+    for (uint32 id = 0; id < sFactionStore.GetMaxEntry(); ++id)
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry(id);
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(id);
         if (factionEntry)
         {
             int loc = GetSessionDbcLocale();
@@ -1370,7 +1432,7 @@ bool ChatHandler::HandleModifyRepCommand(char* args)
         }
     }
 
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionId);
 
     if (!factionEntry)
     {
@@ -1534,7 +1596,7 @@ bool ChatHandler::HandleNpcAIInfoCommand(char* /*args*/)
 
     std::string strScript = pTarget->GetScriptName();
     std::string strAI = pTarget->GetAIName();
-    CreatureAI* ai = pTarget->AI();
+    UnitAI* ai = pTarget->AI();
     char const* cstrAIClass = ai ? typeid(*ai).name() : " - ";
 
     PSendSysMessage(LANG_NPC_AI_NAMES,
@@ -3432,7 +3494,7 @@ bool ChatHandler::HandleCharacterReputationCommand(char* args)
     FactionStateList const& targetFSL = target->GetReputationMgr().GetStateList();
     for (FactionStateList::const_iterator itr = targetFSL.begin(); itr != targetFSL.end(); ++itr)
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry(itr->second.ID);
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(itr->second.ID);
 
         ShowFactionListHelper(factionEntry, loc, &itr->second, target);
     }
@@ -3732,7 +3794,6 @@ bool ChatHandler::HandleCombatStopCommand(char* args)
         return false;
 
     target->CombatStop();
-    target->getHostileRefManager().deleteReferences();
     return true;
 }
 

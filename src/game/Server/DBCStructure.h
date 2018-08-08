@@ -334,10 +334,14 @@ struct FactionEntry
     int32       BaseRepValue[4];                            // 10-13    m_reputationBase
     uint32      ReputationFlags[4];                         // 14-17    m_reputationFlags
     uint32      team;                                       // 18       m_parentFactionID
-    char*       name[16];                                   // 19-34    m_name_lang
-    // 35 string flags
-    // char*     description[16];                           // 36-51    m_description_lang
-    // 52 string flags
+    float       spilloverRateIn;                            // 19       m_parentFactionMod[2] Faction gains incoming rep * spilloverRateIn
+    float       spilloverRateOut;                           // 20       Faction outputs rep * spilloverRateOut as spillover reputation
+    uint32      spilloverMaxRankIn;                         // 21       m_parentFactionCap[2] The highest rank the faction will profit from incoming spillover
+    uint32      spilloverRank_unk;                          // 22       It does not seem to be the max standing at which a faction outputs spillover ...so no idea
+    char*       name[16];                                   // 23-38    m_name_lang
+    // 39 string flags
+    // char*     description[16];                           // 40-55    m_description_lang
+    // 56 string flags
 
     // helpers
 
@@ -870,7 +874,10 @@ struct SpellEntry
         uint32    TotemCategory[MAX_SPELL_TOTEM_CATEGORIES];// 212-213  m_requiredTotemCategoryID
         uint32    AreaId;                                   // 214
         uint32    SchoolMask;                               // 215      m_schoolMask
-        uint32    IsServerSide;
+
+        // custom
+        uint32    IsServerSide;                             // 216
+        uint32    AttributesServerside;                     // 217
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }
@@ -902,6 +909,9 @@ struct SpellEntry
         bool HasAttribute(SpellAttributesEx4 attribute) const { return !!(AttributesEx4 & attribute); }
         bool HasAttribute(SpellAttributesEx5 attribute) const { return !!(AttributesEx5 & attribute); }
         bool HasAttribute(SpellAttributesEx6 attribute) const { return !!(AttributesEx6 & attribute); }
+
+        // custom
+        bool HasAttribute(SpellAttributesServerside attribute) const { return !!(AttributesServerside & attribute); }
 
     private:
         // prevent creating custom entries (copy data from original in fact)

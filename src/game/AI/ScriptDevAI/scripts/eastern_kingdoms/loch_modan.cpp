@@ -135,7 +135,7 @@ struct npc_miranAI: public npc_escortAI
             case 23:
                 DoScriptText(SAY_MIRAN_3, m_creature);
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->GroupEventHappens(QUEST_PROTECTING_THE_SHIPMENT, m_creature);
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_PROTECTING_THE_SHIPMENT, m_creature);
                 break;
         }
     }
@@ -172,7 +172,7 @@ bool QuestAccept_npc_miran(Player* pPlayer, Creature* pCreature, const Quest* pQ
     return true;
 }
 
-CreatureAI* GetAI_npc_miran(Creature* pCreature)
+UnitAI* GetAI_npc_miran(Creature* pCreature)
 {
     return new npc_miranAI(pCreature);
 }

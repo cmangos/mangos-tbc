@@ -22,6 +22,7 @@
 #include "Entities/Corpse.h"
 #include "Entities/GameObject.h"
 #include "Entities/DynamicObject.h"
+#include "Globals/ObjectMgr.h"
 #include "Tools/Formulas.h"
 
 /////////////////////////////////////////////////
@@ -145,7 +146,7 @@ static ReputationRank GetFactionReaction(FactionTemplateEntry const* thisTemplat
 
                     if (!unit->HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_IGNORE_REPUTATION))
                     {
-                        const FactionEntry* thisFactionEntry = sFactionStore.LookupEntry(thisTemplate->faction);
+                        const FactionEntry* thisFactionEntry = sFactionStore.LookupEntry<FactionEntry>(thisTemplate->faction);
                         if (thisFactionEntry && thisFactionEntry->HasReputation())
                         {
                             const ReputationMgr& reputationMgr = unitPlayer->GetReputationMgr();
@@ -202,7 +203,7 @@ ReputationRank Unit::GetReactionTo(Unit const* unit) const
             }
 
             // Pre-WotLK group check: always, replaced with faction template check in WotLK
-            if (thisPlayer->IsInSameRaidWith(unitPlayer))
+            if (thisPlayer->IsInGroup(unitPlayer))
                 return REP_FRIENDLY;
 
             // Pre-WotLK FFA check, known limitation: FFA doesn't work with totem elementals both client-side and server-side
@@ -217,7 +218,7 @@ ReputationRank Unit::GetReactionTo(Unit const* unit) const
                 if (const ReputationRank* rank = thisPlayer->GetReputationMgr().GetForcedRankIfAny(unitFactionTemplate))
                     return (*rank);
 
-                const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry(unitFactionTemplate->faction);
+                const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry<FactionEntry>(unitFactionTemplate->faction);
 
                 // If the faction has reputation ranks available, "at war" and contested PVP flags decide outcome
                 if (!this->HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_IGNORE_REPUTATION) && unitFactionEntry && unitFactionEntry->HasReputation())
@@ -238,7 +239,7 @@ ReputationRank Unit::GetReactionTo(Unit const* unit) const
     {
         if (const FactionTemplateEntry* unitFactionTemplate = unit->getFactionTemplateEntry())
         {
-            const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry(unitFactionTemplate->faction);
+            const FactionEntry* unitFactionEntry = sFactionStore.LookupEntry<FactionEntry>(unitFactionTemplate->faction);
             if (unitFactionEntry && unitFactionEntry->HasReputation())
                 reaction = ReputationRank(int32(reaction) + 1);
         }
@@ -351,7 +352,7 @@ bool Unit::CanAttack(const Unit* unit) const
     }
 
     // We can't attack unit when at least one of these flags is present on it:
-    const uint32 mask = (UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_UNK_16 | UNIT_FLAG_TAXI_FLIGHT | UNIT_FLAG_NOT_SELECTABLE);
+    const uint32 mask = (UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_NON_ATTACKABLE_2 | UNIT_FLAG_TAXI_FLIGHT | UNIT_FLAG_NOT_SELECTABLE);
     if (unit->HasFlag(UNIT_FIELD_FLAGS, mask))
         return false;
 
@@ -749,6 +750,87 @@ bool Unit::IsCivilianForTarget(Unit const* pov) const
     return false;
 }
 
+/////////////////////////////////////////////////
+/// Group: Unit counts as being placed in the same group (party or raid) with another unit (for gameplay purposes)
+///
+/// @note Relations API Tier 1
+///
+/// Based on client-side counterpart: <tt>static CGUnit_C::IsUnitInGroup(const CGUnit_C *this, const CGUnit_C *unit)</tt>
+/// Additionally contains optional detection of same group from UI standpoint datamined from other functions.
+/// Points of view are swapped to fit in with the rest of API, logic is preserved.
+/////////////////////////////////////////////////
+bool Unit::IsInGroup(Unit const* other, bool party/* = false*/, bool UI/* = false*/) const
+{
+    // Simple sanity check
+    if (!other)
+        return false;
+
+    // Original logic adaptation for server (original function was operating as a local player PoV only)
+
+    // Same unit is always in group with itself
+    if (this == other)
+        return true;
+
+    // Only player controlled
+    if (this->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && other->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    {
+        // UI mode: only players and their current pets/charms are in the party UI
+        if (UI)
+        {
+            const size_t comparisions = 3;
+            const Player* thisPlayer[comparisions] = { nullptr, nullptr, nullptr };
+            const Player* otherPlayer[comparisions] = { nullptr, nullptr, nullptr };
+
+            auto getUIPlayerComparisions = [] (const Unit* unit, const Player* (&array)[comparisions])
+            {
+                // In reverse order
+                if (unit->GetTypeId() == TYPEID_PLAYER)
+                    array[0] = static_cast<const Player*>(unit);
+                 ObjectGuid const& summonerGuid = unit->GetSummonerGuid();
+                 ObjectGuid const& charmerGuid = unit->GetCharmerGuid();
+                 if (summonerGuid.IsPlayer())
+                    array[1] = sObjectMgr.GetPlayer(summonerGuid);
+                 if (charmerGuid.IsPlayer())
+                    array[2] = sObjectMgr.GetPlayer(charmerGuid);
+            };
+
+            getUIPlayerComparisions(this, thisPlayer);
+            getUIPlayerComparisions(other, otherPlayer);
+
+            for (size_t i = 0; i < comparisions; ++i)
+            {
+                if (thisPlayer[i])
+                {
+                    for (size_t j = 0; j < comparisions; ++j)
+                    {
+                        if (otherPlayer[j])
+                        {
+                            const Group* group = thisPlayer[i]->GetGroup();
+                            if (thisPlayer[i] == otherPlayer[j] || (group && group == otherPlayer[j]->GetGroup() && (!party || group->SameSubGroup(thisPlayer[i], otherPlayer[j]))))
+                                return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Check if controlling players are in the same group (same logic as client, but not local)
+        if (const Player* thisPlayer = GetControllingPlayer())
+        {
+            if (const Player* otherPlayer = other->GetControllingPlayer())
+            {
+                const Group* group = thisPlayer->GetGroup();
+                return (thisPlayer == otherPlayer || (group && group == otherPlayer->GetGroup() && (!party || group->SameSubGroup(thisPlayer, otherPlayer))));
+            }
+        }
+    }
+
+    // NOTE: For future reference: server uses additional gameplay grouping logic for mobs (in combat and out of combat) - requires research for Tier 2 implementation
+
+    return false;
+}
+
 /*##########################
 ########            ########
 ########   TIER 2   ########
@@ -1072,4 +1154,69 @@ bool Unit::CanAssistSpell(Unit* target, SpellEntry const* spellInfo) const
 bool Unit::CanAttackOnSight(Unit* target)
 {
     return CanAttack(target) && !target->IsFeigningDeathSuccessfully() && IsEnemy(target);
+}
+
+/////////////////////////////////////////////////
+/// [Serverside] Fog of War: Unit can be seen by other unit through invisibility effects
+///
+/// @note Relations API Tier 3
+///
+/// This function is not intented to have client-side counterpart by original design.
+/// A helper function to determine if unit is always visible to another unit.
+/////////////////////////////////////////////////
+bool Unit::IsFogOfWarVisibleStealth(Unit const* other) const
+{
+    // Gamemasters can see through invisibility
+    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+        return true;
+
+    switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_STEALTH))
+    {
+        default: return IsInGroup(other);
+        case 1:  return CanCooperate(other);
+    }
+}
+
+/////////////////////////////////////////////////
+/// [Serverside] Fog of War: Unit's health values can be seen by other unit
+///
+/// @note Relations API Tier 3
+///
+/// This function is not intented to have client-side counterpart by original design.
+/// A helper function to determine if unit's health values are always visible to another unit.
+/////////////////////////////////////////////////
+bool Unit::IsFogOfWarVisibleHealth(Unit const* other) const
+{
+    // Gamemasters can see health values
+    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+        return true;
+
+    switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_HEALTH))
+    {
+        default: return IsInGroup(other, false, true);
+        case 1:  return CanCooperate(other);
+        case 2:  return true;
+    }
+}
+
+/////////////////////////////////////////////////
+/// [Serverside] Fog of War: Unit's stat values can be seen by other unit
+///
+/// @note Relations API Tier 3
+///
+/// This function is not intented to have client-side counterpart by original design.
+/// A helper function to determine if unit's stat values are always visible to another unit.
+/////////////////////////////////////////////////
+bool Unit::IsFogOfWarVisibleStats(Unit const* other) const
+{
+    // Gamemasters can see stat values
+    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+        return true;
+
+    switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_STATS))
+    {
+        default: return (this == other || GetSummonerGuid() == other->GetObjectGuid());
+        case 1:  return CanCooperate(other);
+        case 2:  return true;
+    }
 }

@@ -26,6 +26,8 @@
 #ifdef _WIN32
 #include <WinSock2.h>
 #include <mysql/mysql.h>
+#elif __APPLE__
+#include <mysql/mysql.h>
 #else
 #include <mysql.h>
 #endif

@@ -7905,7 +7905,7 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    if (m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (pos.coord_z < m_caster->GetPositionZ()) && (fabs(pos.coord_z - m_caster->GetPositionZ()) > 3.0f))
+    if (m_caster->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (pos.coord_z < m_caster->GetPositionZ()) && (fabs(pos.coord_z - m_caster->GetPositionZ()) > 3.0f))
         m_caster->MonsterMoveWithSpeed(pos.coord_x, pos.coord_y, (pos.coord_z + unitTarget->GetObjectScale()), speed, false, false);
     else
         m_caster->MonsterMoveWithSpeed(pos.coord_x, pos.coord_y, (pos.coord_z + unitTarget->GetObjectScale()), speed, true, true);
@@ -7938,7 +7938,7 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
     float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    if (unitTarget && m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (loc.coord_z < m_caster->GetPositionZ()) && (fabs(loc.coord_z - m_caster->GetPositionZ()) > 3.0f))
+    if (unitTarget && m_caster->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (loc.coord_z < m_caster->GetPositionZ()) && (fabs(loc.coord_z - m_caster->GetPositionZ()) > 3.0f))
         m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, (loc.coord_z + unitTarget->GetObjectScale()), speed, false, false);
     else if (unitTarget)
         m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, (loc.coord_z + unitTarget->GetObjectScale()), speed, true, true);

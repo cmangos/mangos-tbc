@@ -43,6 +43,9 @@ CPlayer::~CPlayer()
 
 bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
 {
+    if (!IsInWorld())
+        return false;
+
     bool cheat = false;
 
     for (auto& i : m_AntiCheatStorage)

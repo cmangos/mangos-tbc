@@ -1701,9 +1701,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
     uint32 unMaxTargets = m_affectedTargetCount;  // Get spell max affected targets
 
     GetSpellRangeAndRadius(effIndex, radius, EffectChainTarget);
-
     GameObjectList tempTargetGOList;
-
+    float cone = GetCone();
+ 
     switch (targetMode)
     {
         case TARGET_LOCATION_UNIT_RANDOM_SIDE:
@@ -1819,17 +1819,17 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             {
                 case TARGET_UNIT_ENEMY_NEAR_CASTER:
                 {
-                    FillAreaTargets(tempTargetUnitMap, max_range, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                    FillAreaTargets(tempTargetUnitMap, max_range, 0.f, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
                     break;
                 }
                 case TARGET_UNIT_NEAR_CASTER: // TODO: Rename TARGET_UNIT_NEAR_CASTER to something better and find real difference with TARGET_UNIT_FRIEND_NEAR_CASTER.
                 {
-                    FillAreaTargets(tempTargetUnitMap, max_range, PUSH_SELF_CENTER, SPELL_TARGETS_ALL);
+                    FillAreaTargets(tempTargetUnitMap, max_range, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ALL);
                     break;
                 }
                 case TARGET_UNIT_FRIEND_NEAR_CASTER:
                 {
-                    FillAreaTargets(tempTargetUnitMap, max_range, PUSH_SELF_CENTER, SPELL_TARGETS_ASSISTABLE);
+                    FillAreaTargets(tempTargetUnitMap, max_range, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ASSISTABLE);
                     break;
                 }
             }
@@ -1941,7 +1941,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 // Filling target map
                 UnitList unsteadyTargetMap;
                 {
-                    FillAreaTargets(unsteadyTargetMap, maxRadiusTarget, PUSH_TARGET_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                    SpellNotifyPushType pushType = PUSH_TARGET_CENTER;
+                    if (m_spellInfo->AttributesEx5 & SPELL_ATTR_EX5_CLEAVE_FRONT_TARGET)
+                        pushType = PUSH_CONE;
+                    FillAreaTargets(unsteadyTargetMap, maxRadiusTarget, cone, pushType, SPELL_TARGETS_AOE_ATTACKABLE);
                     unsteadyTargetMap.remove(m_caster);
                     unsteadyTargetMap.remove(newUnitTarget);
                 }
@@ -1981,14 +1984,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
                     // If spell targets only players
                     if ((m_spellInfo->AttributesEx3 & SPELL_ATTR_EX3_TARGET_ONLY_PLAYER) && ((*activeUnit)->GetTypeId() != TYPEID_PLAYER))
-                    {
-                        unsteadyTargetMap.erase(activeUnit++);
-                        continue;
-                    }
-
-                    // Remove tergets not in front caster(M_PI_F)
-                    if (((m_spellInfo->AttributesEx5 & SPELL_ATTR_EX5_CLEAVE_FRONT_TARGET || GetSpellSchoolMask(m_spellInfo) == SPELL_SCHOOL_MASK_NORMAL))
-                        && !originalCaster->HasInArc(*activeUnit))
                     {
                         unsteadyTargetMap.erase(activeUnit++);
                         continue;
@@ -2057,7 +2052,18 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_ENUM_UNITS_ENEMY_AOE_AT_SRC_LOC:
-            FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+            switch (m_spellInfo->Id)
+            {
+                case 17441:
+                case 17443:
+                case 17775: // Air Bubbles - GO spell
+                case 18733:
+                    FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
+                    break;
+                default:
+                    FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                    break;
+            }
 
             if (m_spellInfo->Id == 42005)                   // Bloodboil (spell hits only the 5 furthest away targets)
             {
@@ -2124,7 +2130,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
             // fill real target list if no spell script target defined
             FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
-                            radius, PUSH_DEST_CENTER, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetB);
+                            radius, cone, PUSH_DEST_CENTER, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetB);
 
             if (!tempTargetUnitMap.empty())
                 CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
@@ -2141,7 +2147,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             UnitList tempTargetUnitMap;
             SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
             // fill real target list if no spell script target defined
-            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
+            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
 
             if (!tempTargetUnitMap.empty())
                 CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
@@ -2201,7 +2207,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     targetUnitMap.push_back(m_caster);
                     break;
                 default:
-                    FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                    FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
                     break;
             }
             break;
@@ -2277,11 +2283,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_ENUM_UNITS_ENEMY_WITHIN_CASTER_RANGE:
-            FillAreaTargets(targetUnitMap, radius, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+            FillAreaTargets(targetUnitMap, radius, cone, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
             break;
         case TARGET_ENUM_UNITS_FRIEND_AOE_AT_SRC_LOC:
             // selected friendly units (for casting objects) around casting object
-            FillAreaTargets(targetUnitMap, radius, PUSH_SELF_CENTER, SPELL_TARGETS_ASSISTABLE, GetCastingObject());
+            FillAreaTargets(targetUnitMap, radius, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ASSISTABLE, GetCastingObject());
             break;
         case TARGET_ENUM_UNITS_FRIEND_AOE_AT_DEST_LOC:
             switch (m_spellInfo->Effect[effIndex])
@@ -2289,7 +2295,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case SPELL_EFFECT_PERSISTENT_AREA_AURA:
                     break;
                 default:
-                    FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_ASSISTABLE);
+                    FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ASSISTABLE);
                     break;
             }
             break;
@@ -2354,57 +2360,39 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 AddGOTarget(m_targets.getGOTarget(), effIndex);
             break;
         case TARGET_ENUM_UNITS_ENEMY_IN_CONE_24:
-        {
-            SpellNotifyPushType pushType = PUSH_IN_FRONT;
-            switch (m_spellInfo->SpellVisual)            // Some spell require a different target fill
-            {
-                case 3879: pushType = PUSH_IN_BACK_90;  break;
-                case 7441: pushType = PUSH_IN_FRONT_15; break;
-                case 8669: pushType = PUSH_IN_FRONT_15; break;
-            }
-            switch (m_spellInfo->Id)
-            {
-                case 30210: // Smoldering Breath - Nightbane
-                case 31306: // Carrion Swarm - Anetheron
-                    pushType = PUSH_IN_FRONT_90; break;
-                case 8374:  // Arcing Smash - 8374 and 38761 confirmed on retail
-                case 16169:
-                case 28168:
-                case 38761:
-                case 39144:
-                case 40457:
-                case 40599: // Arcing Smash end
-                case 38145: // Forked Lightning - Vashj
-                    pushType = PUSH_IN_FRONT_60; break;
-                case 38524: // Netherbreath - Netherspite
-                    pushType = PUSH_IN_FRONT_15; break;
-                default: break;
-            }
-            FillAreaTargets(targetUnitMap, radius, pushType, SPELL_TARGETS_AOE_ATTACKABLE);
-            break;
-        }
         case TARGET_ENUM_UNITS_ENEMY_IN_CONE_54:
-            FillAreaTargets(targetUnitMap, radius, PUSH_IN_FRONT_90, SPELL_TARGETS_AOE_ATTACKABLE);
-            break;
         case TARGET_ENUM_UNITS_FRIEND_IN_CONE:
-            FillAreaTargets(targetUnitMap, radius, PUSH_IN_FRONT_90, SPELL_TARGETS_ASSISTABLE);
-            break;
         case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
         {
-            SpellTargets targetB = SPELL_TARGETS_AOE_ATTACKABLE;
+            SpellTargets targetType;
+            switch (targetMode)
+            {
+                case TARGET_ENUM_UNITS_ENEMY_IN_CONE_24:
+                case TARGET_ENUM_UNITS_ENEMY_IN_CONE_54: targetType = SPELL_TARGETS_AOE_ATTACKABLE; break;
+                case TARGET_ENUM_UNITS_FRIEND_IN_CONE: targetType = SPELL_TARGETS_ASSISTABLE; break;
+            }
 
-            if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SCRIPT_EFFECT)
-                targetB = SPELL_TARGETS_ALL;
-
-            UnitList tempTargetUnitMap;
-            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
-
-            // fill real target list if no spell script target defined
-            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
-                            radius, PUSH_IN_FRONT_15, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetB);
-
-            if (!tempTargetUnitMap.empty())
-                CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
+            switch (targetMode)
+            {
+                case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
+                {
+                    if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SCRIPT_EFFECT) // workaround for neutral target type
+                        targetType = SPELL_TARGETS_ALL;
+                    UnitList tempTargetUnitMap;
+                    SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+                    // fill real target list if no spell script target defined
+                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
+                        radius, cone, PUSH_CONE, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetType);
+                    if (!tempTargetUnitMap.empty())
+                    {
+                        CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
+                    }
+                    break;
+                }
+                default:
+                    FillAreaTargets(targetUnitMap, radius, cone, PUSH_CONE, targetType);
+                    break;
+            }
             break;
         }
         case TARGET_LOCKED:
@@ -2420,7 +2408,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ENUM_UNITS_ENEMY_AOE_AT_DYNOBJ_LOC:
             // targets the ground, not the units in the area
             if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_PERSISTENT_AREA_AURA)
-                FillAreaTargets(targetUnitMap, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
             else
             {
                 if (Unit* target = m_targets.getUnitTarget()) // trap activation where we supply triggerer
@@ -5300,7 +5288,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     UnitList targetsCombat;
                     float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
 
-                    FillAreaTargets(targetsCombat, radius, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                    FillAreaTargets(targetsCombat, radius, 0.f, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
 
                     if (targetsCombat.empty())
                         break;
@@ -7498,9 +7486,9 @@ SpellCastResult Spell::CanOpenLock(SpellEffectIndex effIndex, uint32 lockId, Ski
  * @param spellTargets         Additional rules for target selection base at hostile/friendly state to original spell caster
  * @param originalCaster       If provided set alternative original caster, if =nullptr then used Spell::GetAffectiveObject() return
  */
-void Spell::FillAreaTargets(UnitList& targetUnitMap, float radius, SpellNotifyPushType pushType, SpellTargets spellTargets, WorldObject* originalCaster /*=nullptr*/)
+void Spell::FillAreaTargets(UnitList& targetUnitMap, float radius, float cone, SpellNotifyPushType pushType, SpellTargets spellTargets, WorldObject* originalCaster /*=nullptr*/)
 {
-    MaNGOS::SpellNotifierCreatureAndPlayer notifier(*this, targetUnitMap, radius, pushType, spellTargets, originalCaster);
+    MaNGOS::SpellNotifierCreatureAndPlayer notifier(*this, targetUnitMap, radius, cone, pushType, spellTargets, originalCaster);
     Cell::VisitAllObjects(notifier.GetCenterX(), notifier.GetCenterY(), m_caster->GetMap(), notifier, radius);
 }
 
@@ -7721,6 +7709,14 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
         default:
             break;
     }
+}
+
+float Spell::GetCone()
+{
+    if (SpellCone const* coneData = sSpellCones.LookupEntry<SpellCone>(sSpellMgr.GetFirstSpellInChain(m_spellInfo->Id)))
+        return G3D::toRadians(coneData->coneAngle);
+
+    return M_PI_F / 3.f; // 60 degrees is default
 }
 
 void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)

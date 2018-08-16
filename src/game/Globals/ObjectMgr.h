@@ -756,6 +756,7 @@ class ObjectMgr
         void LoadPointsOfInterest();
 
         void LoadSpellTemplate();
+        void CheckSpellCones();
         void LoadCreatureTemplateSpells();
 
         void LoadGameTele();

@@ -2362,9 +2362,24 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case 7441: pushType = PUSH_IN_FRONT_15; break;
                 case 8669: pushType = PUSH_IN_FRONT_15; break;
             }
-
-            if (m_spellInfo->Id == 30210)
-                pushType = PUSH_IN_FRONT_90; // Smoldering Breath - Nightbane
+            switch (m_spellInfo->Id)
+            {
+                case 30210: // Smoldering Breath - Nightbane
+                case 31306: // Carrion Swarm - Anetheron
+                    pushType = PUSH_IN_FRONT_90; break;
+                case 8374:  // Arcing Smash - 8374 and 38761 confirmed on retail
+                case 16169:
+                case 28168:
+                case 38761:
+                case 39144:
+                case 40457:
+                case 40599: // Arcing Smash end
+                case 38145: // Forked Lightning - Vashj
+                    pushType = PUSH_IN_FRONT_60; break;
+                case 38524: // Netherbreath - Netherspite
+                    pushType = PUSH_IN_FRONT_15; break;
+                default: break;
+            }
             FillAreaTargets(targetUnitMap, radius, pushType, SPELL_TARGETS_AOE_ATTACKABLE);
             break;
         }

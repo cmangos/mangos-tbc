@@ -8742,7 +8742,7 @@ bool Unit::SelectHostileTarget()
     }
 
     // enter in evade mode in other case
-    m_fixateTargetGuid.Clear();
+    FixateTarget(nullptr);
     AI()->EnterEvadeMode();
 
     return false;

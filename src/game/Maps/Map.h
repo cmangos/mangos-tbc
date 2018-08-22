@@ -453,6 +453,8 @@ class DungeonMap : public Map
         void SendResetWarnings(uint32 timeLeft) const;
         void SetResetSchedule(bool on);
 
+        Team GetInstanceTeam() { return m_team; };
+
         // can't be nullptr for loaded map
         DungeonPersistentState* GetPersistanceState() const;
 
@@ -460,6 +462,7 @@ class DungeonMap : public Map
     private:
         bool m_resetAfterUnload;
         bool m_unloadWhenEmpty;
+        Team m_team;
 };
 
 class BattleGroundMap : public Map

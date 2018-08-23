@@ -2069,7 +2069,6 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                     break;
                 // case 38363: break;                   // Gushing Wound
                 // case 39215: break;                   // Gushing Wound
-                // case 40250: break;                   // Improved Duration
                 // case 40329: break;                   // Demo Shout Sensor
                 // case 40364: break;                   // Entangling Roots Sensor
                 // case 41054: break;                   // Copy Weapon

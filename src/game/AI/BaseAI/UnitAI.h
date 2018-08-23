@@ -432,6 +432,7 @@ class UnitAI
         virtual void JustStoppedMovementOfTarget(SpellEntry const* spellInfo, Unit* victim) {}
 
     protected:
+        virtual std::string GetAIName() { return "UnitAI"; }
 
         ///== Fields =======================================
 

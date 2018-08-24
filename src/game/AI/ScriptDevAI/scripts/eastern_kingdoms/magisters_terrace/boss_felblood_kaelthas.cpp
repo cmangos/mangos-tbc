@@ -260,8 +260,8 @@ struct boss_felblood_kaelthasAI : public ScriptedAI, private DialogueHelper
         if (pSpell->Id == SPELL_GRAVITY_LAPSE && pTarget->GetTypeId() == TYPEID_PLAYER)
         {
             DoCastSpellIfCan(pTarget, aGravityLapseSpells[m_uiGravityIndex], CAST_TRIGGERED);
-            pTarget->CastSpell(pTarget, SPELL_GRAVITY_LAPSE_FLY, TRIGGERED_OLD_TRIGGERED, 0, 0, m_creature->GetObjectGuid());
-            pTarget->CastSpell(pTarget, SPELL_GRAVITY_LAPSE_DOT, TRIGGERED_OLD_TRIGGERED, 0, 0, m_creature->GetObjectGuid());
+            pTarget->CastSpell(pTarget, SPELL_GRAVITY_LAPSE_FLY, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
+            pTarget->CastSpell(pTarget, SPELL_GRAVITY_LAPSE_DOT, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
             ++m_uiGravityIndex;
         }
     }

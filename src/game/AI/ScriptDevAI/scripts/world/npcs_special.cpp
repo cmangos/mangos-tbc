@@ -148,7 +148,7 @@ struct npc_air_force_botsAI : public ScriptedAI
         return pSummoned;
     }
 
-    Creature* GetSummonedGuard()
+    Creature* GetSummonedGuard() const
     {
         Creature* pCreature = m_creature->GetMap()->GetCreature(m_spawnedGuid);
 
@@ -1411,7 +1411,7 @@ struct npc_burster_wormAI : public ScriptedAI
     }
 
     // function to check for bone worms
-    bool IsBoneWorm()
+    bool IsBoneWorm() const
     {
         if (m_creature->GetEntry() == NPC_BONE_CRAWLER || m_creature->GetEntry() == NPC_HAISHULUD || m_creature->GetEntry() == NPC_BONE_SIFTER
                 || m_creature->GetEntry() == NPC_MATURE_BONE_SIFTER)

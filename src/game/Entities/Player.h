@@ -1614,7 +1614,7 @@ class Player : public Unit
 
         void UpdateDefenseBonusesMod();
         float GetMeleeCritFromAgility() const;
-        float GetDodgeFromAgility(float amount);
+        float GetDodgeFromAgility(float amount) const;
         float GetSpellCritFromIntellect() const;
         float OCTRegenHPPerSpirit() const;
         float OCTRegenMPPerSpirit() const;
@@ -1948,7 +1948,7 @@ class Player : public Unit
         void ClearAfkReports() { m_bgData.bgAfkReporter.clear(); }
 
         bool GetBGAccessByLevel(BattleGroundTypeId bgTypeId) const;
-        bool CanUseBattleGroundObject();
+        bool CanUseBattleGroundObject() const;
         bool isTotalImmune() const;
 
         // returns true if the player is in active state for capture point capturing

@@ -2114,7 +2114,6 @@ void SpellMgr::LoadSpellScriptTarget()
                 {
                     sLog.outErrorDb("Table `spell_script_target`: gameobject template entry %u does not exist.", itr->targetEntry);
                     sSpellScriptTargetStorage.EraseEntry(itr->spellId);
-                    continue;
                 }
                 break;
             }
@@ -2124,7 +2123,6 @@ void SpellMgr::LoadSpellScriptTarget()
                 {
                     sLog.outErrorDb("Table `spell_script_target`: creature entry %u does not exist.", itr->targetEntry);
                     sSpellScriptTargetStorage.EraseEntry(itr->spellId);
-                    continue;
                 }
                 break;
             }
@@ -2141,14 +2139,12 @@ void SpellMgr::LoadSpellScriptTarget()
                     {
                         sLog.outErrorDb("Table `spell_script_target` has creature %u as a target of spellid 30427, but this creature has no SkinningLootId. Gas extraction will not work!", cInfo->Entry);
                         sSpellScriptTargetStorage.EraseEntry(itr->spellId);
-                        continue;
                     }
                 }
                 else
                 {
                     sLog.outErrorDb("Table `spell_script_target`: creature template entry %u does not exist.", itr->targetEntry);
                     sSpellScriptTargetStorage.EraseEntry(itr->spellId);
-                    continue;
                 }
                 break;
         }
@@ -2857,7 +2853,6 @@ void SpellMgr::CheckUsedSpells(char const* table) const
                 if (auraType >= 0 && spellEntry->EffectApplyAuraName[effectIdx] != uint32(auraType))
                 {
                     sLog.outError("Spell %u '%s' aura%d <> %u but used in %s.", spell, name.c_str(), effectIdx + 1, auraType, code.c_str());
-                    continue;
                 }
             }
             else
@@ -2871,7 +2866,6 @@ void SpellMgr::CheckUsedSpells(char const* table) const
                 if (auraType >= 0 && !IsSpellHaveAura(spellEntry, AuraType(auraType)))
                 {
                     sLog.outError("Spell %u '%s' not have aura %u but used in %s.", spell, name.c_str(), auraType, code.c_str());
-                    continue;
                 }
             }
         }
@@ -2941,7 +2935,6 @@ void SpellMgr::CheckUsedSpells(char const* table) const
                 else
                     sLog.outError("Spells '%s' not found for family %i (" UI64FMTD ") icon(%i) visual(%i) category(%i) effect(%i) aura(%i) but used in %s",
                                   name.c_str(), family, familyMask, spellIcon, spellVisual, category, effectType, auraType, code.c_str());
-                continue;
             }
         }
     }

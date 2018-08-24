@@ -1814,7 +1814,7 @@ bool BattleGroundMgr::IsArenaType(BattleGroundTypeId bgTypeId)
             return true;
         default:
             return false;
-    };
+    }
 }
 
 BattleGroundQueueTypeId BattleGroundMgr::BGQueueTypeId(BattleGroundTypeId bgTypeId, ArenaType arenaType)

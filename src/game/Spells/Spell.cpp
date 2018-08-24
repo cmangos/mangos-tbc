@@ -802,7 +802,6 @@ void Spell::FillTargetMap()
             if (!CheckTarget(*itr, SpellEffectIndex(i), effException[effToIndex[i]]))
             {
                 itr = tmpUnitLists[effToIndex[i]].erase(itr);
-                continue;
             }
             else
                 ++itr;
@@ -3552,7 +3551,6 @@ void Spell::_handle_immediate_phase()
         if (m_spellInfo->Effect[j] == SPELL_EFFECT_SEND_EVENT && !HaveTargetsForEffect(SpellEffectIndex(j)))
         {
             HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
-            continue;
         }
     }
 
@@ -5997,7 +5995,6 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
             else if (m_spellInfo->EffectImplicitTargetA[i] == TARGET_SCRIPT_COORDINATES)
             {
                 script = true;
-                continue;
             }
         }
         if (need)
@@ -6457,7 +6454,6 @@ SpellCastResult Spell::CheckItems()
                     if (m_targets.getUnitTarget()->GetPower(power) == m_targets.getUnitTarget()->GetMaxPower(power))
                     {
                         failReason = SPELL_FAILED_ALREADY_AT_FULL_POWER;
-                        continue;
                     }
                     else
                     {
@@ -6538,7 +6534,6 @@ SpellCastResult Spell::CheckItems()
                 if (p_caster->HasItemCount(m_spellInfo->Totem[i], 1))
                 {
                     totems -= 1;
-                    continue;
                 }
             }
             else
@@ -6557,7 +6552,6 @@ SpellCastResult Spell::CheckItems()
                 if (p_caster->HasItemTotemCategory(m_spellInfo->TotemCategory[i]))
                 {
                     TotemCategory -= 1;
-                    continue;
                 }
             }
             else
@@ -6690,7 +6684,8 @@ SpellCastResult Spell::CheckItems()
                         uint32 ammo = pItem->GetEntry();
                         if (!((Player*)m_caster)->HasItemCount(ammo, 1))
                             return SPELL_FAILED_NO_AMMO;
-                    };  break;
+                    }
+                    break;
                     case ITEM_SUBCLASS_WEAPON_GUN:
                     case ITEM_SUBCLASS_WEAPON_BOW:
                     case ITEM_SUBCLASS_WEAPON_CROSSBOW:
@@ -6730,7 +6725,8 @@ SpellCastResult Spell::CheckItems()
 
                         if (!((Player*)m_caster)->HasItemCount(ammo, 1))
                             return SPELL_FAILED_NO_AMMO;
-                    };  break;
+                    }
+                        break;
                     case ITEM_SUBCLASS_WEAPON_WAND:
                         break;
                     default:
@@ -7660,7 +7656,6 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)
 
             filterUnitList.clear();
             filterUnitList.push_back(closestUnit);
-            return;
         }
     }
 }

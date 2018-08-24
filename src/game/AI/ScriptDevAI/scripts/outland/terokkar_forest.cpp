@@ -1463,9 +1463,7 @@ UnitAI* GetAI_npc_vengeful_harbinger(Creature* pCreature)
 
 void AddSC_terokkar_forest()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "mob_unkor_the_ruthless";
     pNewScript->GetAI = &GetAI_mob_unkor_the_ruthless;
     pNewScript->RegisterSelf();

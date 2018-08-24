@@ -404,7 +404,7 @@ void WorldSession::HandleMinimapPingOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandleRandomRollOpcode(WorldPacket& recv_data)
 {
-    uint32 minimum, maximum, roll;
+    uint32 minimum, maximum;
     recv_data >> minimum;
     recv_data >> maximum;
 
@@ -414,7 +414,7 @@ void WorldSession::HandleRandomRollOpcode(WorldPacket& recv_data)
     /********************/
 
     // everything is fine, do it
-    roll = urand(minimum, maximum);
+    uint32 roll = urand(minimum, maximum);
 
     // DEBUG_LOG("ROLL: MIN: %u, MAX: %u, ROLL: %u", minimum, maximum, roll);
 

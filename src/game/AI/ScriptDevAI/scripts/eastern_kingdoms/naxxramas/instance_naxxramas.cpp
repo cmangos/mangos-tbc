@@ -760,9 +760,7 @@ bool AreaTrigger_at_naxxramas(Player* pPlayer, AreaTriggerEntry const* pAt)
 
 void AddSC_instance_naxxramas()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_naxxramas";
     pNewScript->GetInstanceData = &GetInstanceData_instance_naxxramas;
     pNewScript->RegisterSelf();

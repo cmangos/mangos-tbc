@@ -13287,7 +13287,7 @@ bool Player::SatisfyQuestPrevChain(Quest const* qInfo, bool msg) const
     if (qInfo->prevChainQuests.empty())
         return true;
 
-    for (std::_Simple_types<unsigned int>::value_type prevId : qInfo->prevChainQuests)
+    for (uint32 prevId : qInfo->prevChainQuests)
     {
         // If any of the previous quests in chain active, return false
         if (IsCurrentQuest(prevId))
@@ -16541,7 +16541,7 @@ void Player::_SaveWeeklyQuestStatus()
 
     stmtDel.PExecute(GetGUIDLow());
 
-    for (std::_Simple_types<unsigned int>::value_type quest_id : m_weeklyquests)
+    for (uint32 quest_id : m_weeklyquests)
         stmtIns.PExecute(GetGUIDLow(), quest_id);
 
     m_WeeklyQuestChanged = false;
@@ -16561,7 +16561,7 @@ void Player::_SaveMonthlyQuestStatus()
 
     stmtDel.PExecute(GetGUIDLow());
 
-    for (std::_Simple_types<unsigned int>::value_type quest_id : m_monthlyquests)
+    for (uint32 quest_id : m_monthlyquests)
     {
         stmtIns.PExecute(GetGUIDLow(), quest_id);
     }
@@ -19000,7 +19000,7 @@ void Player::learnDefaultSpells()
 {
     // learn default race/class spells
     PlayerInfo const* info = sObjectMgr.GetPlayerInfo(getRace(), getClass());
-    for (std::_Simple_types<unsigned int>::value_type tspell : info->spell)
+    for (uint32 tspell : info->spell)
     {
         DEBUG_LOG("PLAYER (Class: %u Race: %u): Adding initial spell, id = %u", uint32(getClass()), uint32(getRace()), tspell);
         if (!IsInWorld())                                   // will send in INITIAL_SPELLS in list anyway at map add

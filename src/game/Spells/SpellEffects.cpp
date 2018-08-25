@@ -467,7 +467,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                         for (auto aura : auras)
                         {
                             if (aura->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE &&
-                                    aura->GetSpellProto()->SpellFamilyFlags & uint64(0x10000)) &&
+                                    aura->GetSpellProto()->SpellFamilyFlags & uint64(0x10000) &&
                                     aura->GetSpellProto()->SpellVisual == 5100 &&
                                     aura->GetCasterGuid() == m_caster->GetObjectGuid())
                             {
@@ -6865,7 +6865,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                             rank = 1;
                             break;
                         }
-                        else if (mDummyAura->GetId() == 18693)
+                        if (mDummyAura->GetId() == 18693)
                         {
                             rank = 2;
                             break;
@@ -6918,20 +6918,20 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 Unit::AuraList const& m_dummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
                 for (auto m_dummyAura : m_dummyAuras)
                 {
-                    SpellEntry const* spellInfo = (*itr)->GetSpellProto();
+                    SpellEntry const* spellInfo = m_dummyAura->GetSpellProto();
 
                     // search seal (all seals have judgement's aura dummy spell id in 2 effect
-                    if (!spellInfo || !IsSealSpell((*itr)->GetSpellProto()) || (*itr)->GetEffIndex() != 2)
+                    if (!spellInfo || !IsSealSpell(m_dummyAura->GetSpellProto()) || m_dummyAura->GetEffIndex() != 2)
                         continue;
 
                     // must be calculated base at raw base points in spell proto, GetModifier()->m_value for S.Righteousness modified by SPELLMOD_DAMAGE
-                    spellId2 = (*itr)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_2);
+                    spellId2 = m_dummyAura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_2);
 
                     if (spellId2 <= 1)
                         continue;
 
                     // found, remove seal
-                    m_caster->RemoveAurasDueToSpell((*itr)->GetId());
+                    m_caster->RemoveAurasDueToSpell(m_dummyAura->GetId());
 
                     // Sanctified Judgement
                     Unit::AuraList const& m_auras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
@@ -8077,8 +8077,7 @@ void Spell::EffectDispelMechanic(SpellEffectIndex eff_idx)
             unitTarget->RemoveAurasDueToSpell(spell->Id);
             if (Auras.empty())
                 break;
-            else
-                next = Auras.begin();
+            next = Auras.begin();
         }
     }
 }

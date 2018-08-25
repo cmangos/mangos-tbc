@@ -597,16 +597,18 @@ uint32 Item::GetSkill() const
     switch (proto->Class)
     {
         case ITEM_CLASS_WEAPON:
+        {
             if (proto->SubClass >= MAX_ITEM_SUBCLASS_WEAPON)
                 return 0;
-            else
-                return item_weapon_skills[proto->SubClass];
+            return item_weapon_skills[proto->SubClass];
+        }
 
         case ITEM_CLASS_ARMOR:
+        {
             if (proto->SubClass >= MAX_ITEM_SUBCLASS_ARMOR)
                 return 0;
-            else
-                return item_armor_skills[proto->SubClass];
+            return item_armor_skills[proto->SubClass];
+        }
 
         default:
             return 0;
@@ -678,18 +680,15 @@ int32 Item::GenerateItemRandomPropertyId(uint32 item_id)
         return random_id->ID;
     }
     // Random Suffix case
-    else
+    uint32 randomPropId = GetItemEnchantMod(itemProto->RandomSuffix);
+    ItemRandomSuffixEntry const* random_id = sItemRandomSuffixStore.LookupEntry(randomPropId);
+    if (!random_id)
     {
-        uint32 randomPropId = GetItemEnchantMod(itemProto->RandomSuffix);
-        ItemRandomSuffixEntry const* random_id = sItemRandomSuffixStore.LookupEntry(randomPropId);
-        if (!random_id)
-        {
-            sLog.outErrorDb("Enchantment id #%u used but it doesn't have records in sItemRandomSuffixStore.", randomPropId);
-            return 0;
-        }
-
-        return -int32(random_id->ID);
+        sLog.outErrorDb("Enchantment id #%u used but it doesn't have records in sItemRandomSuffixStore.", randomPropId);
+        return 0;
     }
+
+    return -int32(random_id->ID);
 }
 
 void Item::SetItemRandomProperties(int32 randomPropId)
@@ -1073,8 +1072,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 
             return pItem;
         }
-        else
-            delete pItem;
+        delete pItem;
     }
     return nullptr;
 }

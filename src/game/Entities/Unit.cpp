@@ -659,14 +659,12 @@ bool Unit::haveOffhandWeapon() const
 
     if (GetTypeId() == TYPEID_PLAYER)
         return !!((Player*)this)->GetWeaponForAttack(OFF_ATTACK, true, true);
-    else
-    {
-        uint8 itemClass = GetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_CLASS);
-        if (itemClass == ITEM_CLASS_WEAPON)
-            return true;
 
-        return false;
-    }
+    uint8 itemClass = GetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_CLASS);
+    if (itemClass == ITEM_CLASS_WEAPON)
+        return true;
+
+    return false;
 }
 
 void Unit::SendHeartBeat()
@@ -2666,8 +2664,7 @@ uint32 Unit::GetDefenseSkillValue(Unit const* target) const
         value += uint32(((Player*)this)->GetRatingBonusValue(CR_DEFENSE_SKILL));
         return value;
     }
-    else
-        return GetUnitMeleeSkill(target);
+    return GetUnitMeleeSkill(target);
 }
 
 bool Unit::CanCrush() const
@@ -3704,7 +3701,7 @@ float Unit::CalculateEffectiveMagicResistancePercent(const Unit* attacker, Spell
                 break;
             }
             // Else if first school encountered or more vulnerable: memorize and continue
-            else if (!resistance || amount < resistance)
+            if (!resistance || amount < resistance)
                 resistance = amount;
         }
         schools >>= 1;
@@ -4078,14 +4075,14 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
         return true;
 
     // channeled spells may be delayed, but they are still considered casted
-    else if (!skipChanneled && m_currentSpells[CURRENT_CHANNELED_SPELL] &&
-            !m_currentSpells[CURRENT_CHANNELED_SPELL]->m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING) &&
-            !m_currentSpells[CURRENT_CHANNELED_SPELL]->m_IsTriggeredSpell &&
-            (m_currentSpells[CURRENT_CHANNELED_SPELL]->getState() != SPELL_STATE_FINISHED))
+    if (!skipChanneled && m_currentSpells[CURRENT_CHANNELED_SPELL] &&
+        !m_currentSpells[CURRENT_CHANNELED_SPELL]->m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING) &&
+        !m_currentSpells[CURRENT_CHANNELED_SPELL]->m_IsTriggeredSpell &&
+        (m_currentSpells[CURRENT_CHANNELED_SPELL]->getState() != SPELL_STATE_FINISHED))
         return true;
 
     // autorepeat spells may be finished or delayed, but they are still considered casted
-    else if (!skipAutorepeat && m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
+    if (!skipAutorepeat && m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
         return true;
 
     return false;
@@ -4140,8 +4137,7 @@ bool Unit::isInAccessablePlaceFor(Unit const* unit) const
 {
     if (IsInWater())
         return unit->CanSwim();
-    else
-        return unit->CanWalk() || unit->CanFly();
+    return unit->CanWalk() || unit->CanFly();
 }
 
 bool Unit::IsInWater() const
@@ -4537,8 +4533,7 @@ void Unit::RemoveRankAurasDueToSpell(uint32 spellId)
 
                 if (m_spellAuraHolders.empty())
                     break;
-                else
-                    next =  m_spellAuraHolders.begin();
+                next =  m_spellAuraHolders.begin();
             }
         }
     }
@@ -4558,8 +4553,7 @@ void Unit::RemoveAllGroupBuffsFromCaster(ObjectGuid casterGuid)
 
             if (m_spellAuraHolders.empty())
                 break;
-            else
-                next = m_spellAuraHolders.begin();
+            next = m_spellAuraHolders.begin();
         }
     }
 }
@@ -4649,8 +4643,8 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
 
             if (m_spellAuraHolders.empty())
                 break;
-            else
-                next = m_spellAuraHolders.begin();
+
+            next = m_spellAuraHolders.begin();
         }
     }
     return true;
@@ -7172,7 +7166,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* pVictim, SpellEntry const* spellProto, 
             case 28853:
             case 32403:
             case 34246: // Lifebloom
-                DoneAdvertisedBenefit += (*i)->GetModifier()->m_amount;
+                DoneAdvertisedBenefit += i->GetModifier()->m_amount;
                 break;
         }
     }
@@ -7226,7 +7220,7 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellProto,
         AuraList const& auraDummy = GetAurasByType(SPELL_AURA_DUMMY);
         for (auto i : auraDummy)
         {
-            if ((*i)->GetSpellProto()->SpellVisual == 9180)
+            if (i->GetSpellProto()->SpellVisual == 9180)
             {
                 if (((spellProto->SpellFamilyFlags & uint64(0x0000000040000000)) && i->GetEffIndex() == EFFECT_INDEX_1) ||  // Flash of Light
                         ((spellProto->SpellFamilyFlags & uint64(0x0000000080000000)) && i->GetEffIndex() == EFFECT_INDEX_0))    // Holy Light
@@ -7709,7 +7703,7 @@ float Unit::GetWeaponProcChance() const
     // (odd formula...)
     if (isAttackReady(BASE_ATTACK))
         return (GetAttackTime(BASE_ATTACK) * 1.8f / 1000.0f);
-    else if (haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
+    if (haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
         return (GetAttackTime(OFF_ATTACK) * 1.6f / 1000.0f);
 
     return 0.0f;
@@ -8094,8 +8088,7 @@ bool Unit::isVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     {
         if (GetTypeId() == TYPEID_PLAYER)
             return ((Player*)this)->GetSession()->GetSecurity() <= ((Player*)u)->GetSession()->GetSecurity();
-        else
-            return true;
+        return true;
     }
 
     // non faction visibility non-breakable for non-GMs
@@ -8734,8 +8727,9 @@ bool Unit::SelectHostileTarget()
         }
         return true;
     }
-    else if (IsIgnoringRangedTargets() && !getThreatManager().isThreatListEmpty())
-        return true; // return true but no target
+    if (IsIgnoringRangedTargets() && !getThreatManager().isThreatListEmpty())
+        return true;
+    // return true but no target
 
     // no target but something prevent go to evade mode
     if (!isInCombat() || HasAuraType(SPELL_AURA_MOD_TAUNT))
@@ -8927,10 +8921,7 @@ DiminishingLevels Unit::GetDiminishing(DiminishingGroup group)
             return DIMINISHING_LEVEL_1;
         }
         // or else increase the count.
-        else
-        {
-            return DiminishingLevels(i.hitCount);
-        }
+        return DiminishingLevels(i.hitCount);
     }
     return DIMINISHING_LEVEL_1;
 }
@@ -9064,11 +9055,9 @@ uint32 Unit::GetCreatureType() const
         SpellShapeshiftFormEntry const* ssEntry = sSpellShapeshiftFormStore.LookupEntry(GetShapeshiftForm());
         if (ssEntry && ssEntry->creatureType > 0)
             return ssEntry->creatureType;
-        else
-            return CREATURE_TYPE_HUMANOID;
+        return CREATURE_TYPE_HUMANOID;
     }
-    else
-        return ((Creature*)this)->GetCreatureInfo()->CreatureType;
+    return ((Creature*)this)->GetCreatureInfo()->CreatureType;
 }
 
 /*#######################################
@@ -9259,13 +9248,10 @@ float Unit::GetTotalAttackPowerValue(WeaponAttackType attType) const
             return 0.0f;
         return ap * (1.0f + GetFloatValue(UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER));
     }
-    else
-    {
-        int32 ap = GetInt32Value(UNIT_FIELD_ATTACK_POWER) + GetInt32Value(UNIT_FIELD_ATTACK_POWER_MODS);
-        if (ap < 0)
-            return 0.0f;
-        return ap * (1.0f + GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER));
-    }
+    int32 ap = GetInt32Value(UNIT_FIELD_ATTACK_POWER) + GetInt32Value(UNIT_FIELD_ATTACK_POWER_MODS);
+    if (ap < 0)
+        return 0.0f;
+    return ap * (1.0f + GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER));
 }
 
 float Unit::GetWeaponDamageRange(WeaponAttackType attType, WeaponDamageRange type) const
@@ -9981,8 +9967,7 @@ void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid
         {
             if (state == UNIT_FLAG_FLEEING)
                 return;
-            else
-                state &= ~UNIT_FLAG_FLEEING;
+            state &= ~UNIT_FLAG_FLEEING;
         }
 
         // Apply confusion or fleeing: update client control state before altering flags
@@ -10514,8 +10499,7 @@ void Unit::RemoveAurasAtMechanicImmunity(uint32 mechMask, uint32 exceptSpellId, 
 
             if (auras.empty())
                 break;
-            else
-                iter = auras.begin();
+            iter = auras.begin();
         }
         else
             ++iter;

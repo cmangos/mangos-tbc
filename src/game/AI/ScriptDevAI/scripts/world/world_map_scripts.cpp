@@ -253,8 +253,7 @@ struct world_map_kalimdor : public ScriptedMap
             }
             return true;
         }
-        else
-            return false;
+        return false;
     }
 
     void Update(uint32 diff)
@@ -281,8 +280,7 @@ struct world_map_kalimdor : public ScriptedMap
                     // Return is Omen is in fight
                     if (pOmen->isInCombat())
                         return;
-                    else
-                        pOmen->ForcedDespawn();
+                    pOmen->ForcedDespawn();
                 }
                 m_encounter[TYPE_OMEN] = NOT_STARTED;
                 m_uiOmenResetTimer = 0;

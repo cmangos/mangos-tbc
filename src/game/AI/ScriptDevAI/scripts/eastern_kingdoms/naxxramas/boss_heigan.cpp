@@ -198,8 +198,7 @@ struct boss_heiganAI : public ScriptedAI
                 ResetPhase();
                 return;
             }
-            else
-                m_uiPhaseTimer -= uiDiff;
+            m_uiPhaseTimer -= uiDiff;
 
             if (m_uiStartChannelingTimer)
             {

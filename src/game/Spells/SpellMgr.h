@@ -915,13 +915,13 @@ inline bool IsPositiveEffectTargetMode(const SpellEntry* entry, SpellEffectIndex
 
     if ((!a && !b) || IsEffectTargetPositive(a, b) || IsEffectTargetScript(a, b))
         return true;
-    else if (IsEffectTargetNegative(a, b))
+    if (IsEffectTargetNegative(a, b))
     {
         // Workaround: Passive talents with negative target modes are getting removed by ice block and similar effects
         // TODO: Fix removal of passives in appropriate places and remove the check below afterwards
         return entry->HasAttribute(SPELL_ATTR_PASSIVE);
     }
-    else if (IsEffectTargetNeutral(a, b))
+    if (IsEffectTargetNeutral(a, b))
         return (IsPointEffectTarget(Targets(b ? b : a)) || IsNeutralEffectTargetPositive((b ? b : a), caster, target));
 
     // If we ever get to this point, we have unhandled target. Gotta say something about it.
@@ -1456,8 +1456,7 @@ inline uint32 GetDispellMask(DispelType dispel)
     // If dispell all
     if (dispel == DISPEL_ALL)
         return DISPEL_ALL_MASK;
-    else
-        return (1 << dispel);
+    return (1 << dispel);
 }
 
 inline bool IsAuraAddedBySpell(uint32 auraType, uint32 spellId)
@@ -2100,14 +2099,10 @@ class PetAura
             std::map<uint32, uint32>::const_iterator itr = auras.find(petEntry);
             if (itr != auras.end())
                 return itr->second;
-            else
-            {
-                std::map<uint32, uint32>::const_iterator itr2 = auras.find(0);
-                if (itr2 != auras.end())
-                    return itr2->second;
-                else
-                    return 0;
-            }
+            std::map<uint32, uint32>::const_iterator itr2 = auras.find(0);
+            if (itr2 != auras.end())
+                return itr2->second;
+            return 0;
         }
 
         void AddAura(uint32 petEntry, uint32 aura)
@@ -2249,14 +2244,13 @@ class SpellMgr
             uint32 mask = GetSpellElixirMask(spellid);
             if ((mask & ELIXIR_FLASK_MASK) == ELIXIR_FLASK_MASK)
                 return SPELL_FLASK_ELIXIR;
-            else if (mask & ELIXIR_BATTLE_MASK)
+            if (mask & ELIXIR_BATTLE_MASK)
                 return SPELL_BATTLE_ELIXIR;
-            else if (mask & ELIXIR_GUARDIAN_MASK)
+            if (mask & ELIXIR_GUARDIAN_MASK)
                 return SPELL_GUARDIAN_ELIXIR;
-            else if (mask & ELIXIR_WELL_FED)
+            if (mask & ELIXIR_WELL_FED)
                 return SPELL_WELL_FED;
-            else
-                return SPELL_NORMAL;
+            return SPELL_NORMAL;
         }
 
         SpellSpecific GetSpellFoodSpecific(const SpellEntry* entry) const
@@ -2529,8 +2523,7 @@ class SpellMgr
             SpellLearnSkillMap::const_iterator itr = mSpellLearnSkills.find(spell_id);
             if (itr != mSpellLearnSkills.end())
                 return &itr->second;
-            else
-                return nullptr;
+            return nullptr;
         }
 
         bool IsSpellLearnSpell(uint32 spell_id) const

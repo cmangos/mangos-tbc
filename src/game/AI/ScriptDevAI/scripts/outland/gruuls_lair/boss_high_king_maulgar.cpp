@@ -377,13 +377,14 @@ struct boss_kiggler_the_crazedAI : public Council_Base_AI
                         }
                         break;
                     case KIGGLER_ACTION_LIGHTNING_BOLT:
+                    {
                         if (!m_creature->IsSpellReady(SPELL_LIGHTNING_BOLT))
                         {
                             m_attackDistance = 0.f;
                             SetMeleeEnabled(true);
                             return;
                         }
-                        else if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_LIGHTNING_BOLT) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_LIGHTNING_BOLT) == CAST_OK)
                         {
                             if (m_attackDistance == 0.f)
                             {
@@ -392,7 +393,8 @@ struct boss_kiggler_the_crazedAI : public Council_Base_AI
                             }
                             return;
                         }
-                        break;
+                    }
+                    break;
                 }
             }
         }

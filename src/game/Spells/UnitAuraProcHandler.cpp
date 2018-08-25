@@ -2186,8 +2186,9 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                 trigger_spell_id = 12721;
                 break;
             }
+
             // Rampage
-            else if (auraSpellInfo->SpellIconID == 2006 && auraSpellInfo->IsFitToFamilyMask(uint64(0x0000000000100000)))
+            if (auraSpellInfo->SpellIconID == 2006 && auraSpellInfo->IsFitToFamilyMask(uint64(0x0000000000100000)))
             {
                 switch (auraSpellInfo->Id)
                 {
@@ -2570,7 +2571,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
     if (!target || (target != this && !target->isAlive()))
         return SPELL_AURA_PROC_FAILED;
     // Quick check for target modes for procs: do not cast offensive procs on friendly targets and in reverse
-    else if (!(procEx & PROC_EX_REFLECT))
+    if (!(procEx & PROC_EX_REFLECT))
     {
         if (IsPositiveSpellTargetMode(triggerEntry, this, target) != CanAssist(target))
             return SPELL_AURA_PROC_FAILED;

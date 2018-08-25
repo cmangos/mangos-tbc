@@ -17832,7 +17832,7 @@ void Player::OnTaxiFlightRouteProgress(const TaxiPathNodeEntry* node, const Taxi
     }
 
     // Needs to be confirmed: first one shouldn't fire arrival event, final one shouldnt fire departure event?
-    for (int arrival = 1; arrival > -int(bool(next)); --arrival)
+    for (int arrival = 1; arrival > -int(next != nullptr); --arrival)
     {
         if (uint32 eventid = (arrival ? node->arrivalEventID : node->departureEventID))
         {

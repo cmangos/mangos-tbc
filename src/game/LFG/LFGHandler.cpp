@@ -261,9 +261,9 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
 
     // TODO: Guard Player map
     HashMapHolder<Player>::MapType const& players = sObjectAccessor.GetPlayers();
-    for (HashMapHolder<Player>::MapType::const_iterator iter = players.begin(); iter != players.end(); ++iter)
+    for (const auto& player : players)
     {
-        Player* plr = iter->second;
+        Player* plr = player.second;
 
         if (!plr || plr->GetTeam() != _player->GetTeam())
             continue;

@@ -487,8 +487,8 @@ bool AuctionHouseMgr::RemoveAItem(uint32 id)
 
 void AuctionHouseMgr::Update()
 {
-    for (int i = 0; i < MAX_AUCTION_HOUSE_TYPE; ++i)
-        mAuctions[i].Update();
+    for (auto& mAuction : mAuctions)
+        mAuction.Update();
 }
 
 uint32 AuctionHouseMgr::GetAuctionHouseTeam(AuctionHouseEntry const* house)
@@ -785,9 +785,8 @@ void WorldSession::BuildListAuctionItems(std::vector<AuctionEntry*> const& aucti
 {
     int loc_idx = _player->GetSession()->GetSessionDbLocaleIndex();
 
-    for (std::vector<AuctionEntry*>::const_iterator itr = auctions.begin(); itr != auctions.end(); ++itr)
+    for (auto Aentry : auctions)
     {
-        AuctionEntry* Aentry = *itr;
         Item* item = sAuctionMgr.GetAItem(Aentry->itemGuidLow);
         if (!item)
             continue;

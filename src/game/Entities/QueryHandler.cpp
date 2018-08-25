@@ -46,8 +46,8 @@ void WorldSession::SendNameQueryOpcode(Player* p) const
     if (DeclinedName const* names = p->GetDeclinedNames())
     {
         data << uint8(1);                                   // is declined
-        for (int i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
-            data << names->name[i];
+        for (const auto& i : names->name)
+            data << i;
     }
     else
         data << uint8(0);                                   // is not declined
@@ -171,8 +171,8 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket& recv_data)
         data << uint32(0);                                  // unknown        wdbFeild11
         data << uint32(ci->PetSpellDataId);                 // Id from CreatureSpellData.dbc    wdbField12
 
-        for (int i = 0; i < MAX_CREATURE_MODEL; ++i)
-            data << uint32(ci->ModelId[i]);
+        for (unsigned int i : ci->ModelId)
+            data << uint32(i);
 
         data << float(ci->HealthMultiplier);                 // health multiplier
         data << float(ci->PowerMultiplier);                   // mana multiplier
@@ -354,10 +354,10 @@ void WorldSession::HandleNpcTextQueryOpcode(WorldPacket& recv_data)
 
             data << pGossip->Options[i].Language;
 
-            for (int j = 0; j < 3; ++j)
+            for (auto Emote : pGossip->Options[i].Emotes)
             {
-                data << pGossip->Options[i].Emotes[j]._Delay;
-                data << pGossip->Options[i].Emotes[j]._Emote;
+                data << Emote._Delay;
+                data << Emote._Emote;
             }
         }
     }

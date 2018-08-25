@@ -96,8 +96,8 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo);
 
 inline bool IsSpellHaveEffect(SpellEntry const* spellInfo, SpellEffects effect)
 {
-    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (SpellEffects(spellInfo->Effect[i]) == effect)
+    for (unsigned int i : spellInfo->Effect)
+        if (SpellEffects(i) == effect)
             return true;
     return false;
 }
@@ -659,8 +659,8 @@ inline bool IsAreaAuraEffect(uint32 effect)
 
 inline bool HasAreaAuraEffect(SpellEntry const* spellInfo)
 {
-    for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (IsAreaAuraEffect(spellInfo->Effect[i]))
+    for (unsigned int i : spellInfo->Effect)
+        if (IsAreaAuraEffect(i))
             return true;
     return false;
 }
@@ -672,8 +672,8 @@ inline bool IsPersistentAuraEffect(uint32 effect)
 
 inline bool HasPersistentAuraEffect(SpellEntry const* spellInfo)
 {
-    for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (IsPersistentAuraEffect(spellInfo->Effect[i]))
+    for (unsigned int i : spellInfo->Effect)
+        if (IsPersistentAuraEffect(i))
             return true;
     return false;
 }
@@ -1436,9 +1436,9 @@ inline uint32 GetAllSpellMechanicMask(SpellEntry const* spellInfo)
     uint32 mask = 0;
     if (spellInfo->Mechanic)
         mask |= 1 << (spellInfo->Mechanic - 1);
-    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (spellInfo->EffectMechanic[i])
-            mask |= 1 << (spellInfo->EffectMechanic[i] - 1);
+    for (unsigned int i : spellInfo->EffectMechanic)
+        if (i)
+            mask |= 1 << (i - 1);
     return mask;
 }
 
@@ -1493,9 +1493,9 @@ inline bool IsPartyOrRaidTarget(uint32 target)
 
 inline bool IsGroupBuff(SpellEntry const* spellInfo)
 {
-    for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    for (unsigned int i : spellInfo->EffectImplicitTargetA)
     {
-        if (IsPartyOrRaidTarget(spellInfo->EffectImplicitTargetA[i]))
+        if (IsPartyOrRaidTarget(i))
             return true;
     }
 

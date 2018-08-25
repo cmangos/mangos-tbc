@@ -1140,10 +1140,7 @@ bool ChatHandler::HandleReloadExpectedSpamRecords(char* /*args*/)
 
 bool ChatHandler::HandleLoadScriptsCommand(char* args)
 {
-    if (!*args)
-        return false;
-
-    return true;
+    return *args != 0;
 }
 
 bool ChatHandler::HandleAccountSetGmLevelCommand(char* args)

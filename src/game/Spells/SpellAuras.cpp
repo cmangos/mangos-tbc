@@ -695,7 +695,7 @@ void AreaAura::Update(uint32 diff)
         // remove aura if out-of-range from caster (after teleport for example)
         // or caster is isolated or caster no longer has the aura
         // or caster is (no longer) friendly
-        bool needFriendly = (m_areaAuraType == AREA_AURA_ENEMY ? false : true);
+        bool needFriendly = (m_areaAuraType != AREA_AURA_ENEMY);
         if (!caster ||
                 caster->hasUnitState(UNIT_STAT_ISOLATED)               ||
                 !caster->HasAura(originalRankSpellId, GetEffIndex())   ||

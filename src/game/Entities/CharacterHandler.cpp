@@ -235,8 +235,8 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
             Team team = Player::TeamForRace(race_);
             switch (team)
             {
-                case ALLIANCE: disabled = !!(mask & (1 << 0)); break;
-                case HORDE:    disabled = !!(mask & (1 << 1)); break;
+                case ALLIANCE: disabled = (mask & (1 << 0)) != 0; break;
+                case HORDE:    disabled = (mask & (1 << 1)) != 0; break;
                 default: break;
             }
 
@@ -753,7 +753,7 @@ void WorldSession::HandleSetFactionAtWarOpcode(WorldPacket& recv_data)
     recv_data >> repListID;
     recv_data >> flag;
 
-    GetPlayer()->GetReputationMgr().SetAtWar(repListID, !!flag);
+    GetPlayer()->GetReputationMgr().SetAtWar(repListID, flag != 0);
 }
 
 void WorldSession::HandleMeetingStoneInfoOpcode(WorldPacket& /*recv_data*/)
@@ -812,7 +812,7 @@ void WorldSession::HandleSetFactionInactiveOpcode(WorldPacket& recv_data)
     uint8 inactive;
     recv_data >> replistid >> inactive;
 
-    _player->GetReputationMgr().SetInactive(replistid, !!inactive);
+    _player->GetReputationMgr().SetInactive(replistid, inactive != 0);
 }
 
 void WorldSession::HandleShowingHelmOpcode(WorldPacket& /*recv_data*/)

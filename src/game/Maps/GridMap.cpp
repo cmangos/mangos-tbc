@@ -865,9 +865,9 @@ inline bool IsOutdoorWMO(uint32 mogpFlags, uint32 mapId)
 {
     // in flyable areas mounting up is also allowed if 0x0008 flag is set
     if (mapId == 530)
-        return !!(mogpFlags & 0x8008);
+        return (mogpFlags & 0x8008) != 0;
 
-    return !!(mogpFlags & 0x8000);
+    return (mogpFlags & 0x8) != 0;
 }
 
 bool TerrainInfo::IsOutdoors(float x, float y, float z) const

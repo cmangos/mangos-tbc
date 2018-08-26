@@ -250,7 +250,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (!group)
             {
                 group = _player->GetGroup();
-                if (!group || group->isBGGroup())
+                if (!group || group->isBattleGroup())
                     return;
             }
 
@@ -328,7 +328,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (!group)
             {
                 group = GetPlayer()->GetGroup();
-                if (!group || group->isBGGroup() || !group->isRaidGroup())
+                if (!group || group->isBattleGroup() || !group->isRaidGroup())
                     return;
             }
 
@@ -358,7 +358,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (!group)
             {
                 group = GetPlayer()->GetGroup();
-                if (!group || group->isBGGroup() || !group->isRaidGroup() || !group->IsLeader(_player->GetObjectGuid()))
+                if (!group || group->isBattleGroup() || !group->isRaidGroup() || !group->IsLeader(_player->GetObjectGuid()))
                     return;
             }
 
@@ -402,7 +402,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
 
             // battleground raid is always in Player->GetGroup(), never in GetOriginalGroup()
             Group* group = GetPlayer()->GetGroup();
-            if (!group || !group->isBGGroup())
+            if (!group || !group->isBattleGroup())
                 return;
 
             WorldPacket data;
@@ -423,7 +423,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
 
             // battleground raid is always in Player->GetGroup(), never in GetOriginalGroup()
             Group* group = GetPlayer()->GetGroup();
-            if (!group || !group->isBGGroup() || !group->IsLeader(GetPlayer()->GetObjectGuid()))
+            if (!group || !group->isBattleGroup() || !group->IsLeader(GetPlayer()->GetObjectGuid()))
                 return;
 
             WorldPacket data;

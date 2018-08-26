@@ -7471,7 +7471,6 @@ void SpellAuraHolder::SetStackAmount(uint32 stackAmount, Unit* newCaster)
     {
         if (aur)
         {
-            int32 bp = aur->GetBasePoints();
             int32 baseAmount = aur->GetModifier()->m_baseAmount;
             int32 amount = m_stackAmount * baseAmount;
             // Reapply if amount change

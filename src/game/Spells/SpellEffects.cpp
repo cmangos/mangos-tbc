@@ -8376,9 +8376,7 @@ void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
     }
 
     Loot*& loot = itemTarget->loot;
-
-    if (loot)
-        delete loot;
+    delete loot;
 
     loot = new Loot(p_caster, itemTarget, LOOT_PROSPECTING);
 

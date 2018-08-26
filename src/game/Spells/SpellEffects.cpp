@@ -404,6 +404,8 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                     damage = uint32(damage * m_caster->GetTotalAttackPowerValue(BASE_ATTACK) / 100);
                     m_caster->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, false);
                 }
+                if (m_spellInfo->Id == 20647)
+                    m_caster->SetPower(POWER_RAGE, 0);
                 break;
             }
             case SPELLFAMILY_WARLOCK:
@@ -2394,17 +2396,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
             {
                 int32 chargeBasePoints0 = damage;
                 m_caster->CastCustomSpell(m_caster, 34846, &chargeBasePoints0, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
-                return;
-            }
-            // Execute
-            if (m_spellInfo->SpellFamilyFlags & uint64(0x20000000))
-            {
-                if (!unitTarget)
-                    return;
-
-                int32 basePoints0 = damage + int32(m_caster->GetPower(POWER_RAGE) * m_spellInfo->DmgMultiplier[eff_idx]);
-                m_caster->CastCustomSpell(unitTarget, 20647, &basePoints0, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr);
-                m_caster->SetPower(POWER_RAGE, 0);
                 return;
             }
 

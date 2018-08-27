@@ -272,6 +272,8 @@ struct go_ai_bell : public GameObjectAI
             case GO_KARAZHAN_BELL:
                 soundId = BELLTOLLKARAZHAN;
                 break;
+            default:
+                return 0;
         }
         return soundId;
     }
@@ -693,6 +695,8 @@ struct go_elemental_rift : public GameObjectAI
             case GO_FIRE_ELEMENTAL_RIFT:
                 elementalEntry = NPC_BLAZING_INVADER;
                 break;
+            default:
+                return;
         }
 
         std::list<Creature*> lElementalList;

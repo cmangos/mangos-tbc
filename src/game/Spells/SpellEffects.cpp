@@ -1702,6 +1702,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         case 37867: spellId = 37868; break;
                         case 37892: spellId = 37893; break;
                         case 37894: spellId = 37895; break;
+                        default:
+                            return;
                     }
 
                     unitTarget->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
@@ -1824,6 +1826,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     switch (urand(0, 1))
                     {
                         case 0: spellId = 39241; break; // Summon Mature Bone Sifter
+                        default:
                         case 1: spellId = 39240; break; // Summon Sand Gnome
                     }
 
@@ -1840,6 +1843,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     {
                         case 0: spellId = 39248; break; // Summon Hai'Shulud
                         case 1: spellId = 39245; break; // Summon Mature Bone Sifter 2x
+                        default:
                         case 2: spellId = 39247; break; // Summon Sand Gnome 2x
                     }
                     m_caster->CastSpell(unitTarget, spellId, TRIGGERED_OLD_TRIGGERED);

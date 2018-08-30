@@ -2180,7 +2180,7 @@ struct SetGameMasterOnHelper
     void operator()(Unit* unit) const
     {
         unit->setFaction(35);
-        unit->getHostileRefManager().updateOnlineOfflineState(false);
+        unit->getHostileRefManager().clearReferences();
     }
 };
 
@@ -2190,7 +2190,7 @@ struct SetGameMasterOffHelper
     void operator()(Unit* unit) const
     {
         unit->setFaction(faction);
-        unit->getHostileRefManager().updateOnlineOfflineState(true);
+        unit->getHostileRefManager().clearReferences();
     }
     uint32 faction;
 };

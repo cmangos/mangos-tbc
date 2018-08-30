@@ -3736,6 +3736,8 @@ void Aura::HandleModConfuse(bool apply, bool Real)
         return;
 
     GetTarget()->SetConfused(apply, GetCasterGuid(), GetId(), m_removeMode);
+
+    GetTarget()->getHostileRefManager().HandleSuppressed(apply);
 }
 
 void Aura::HandleModFear(bool apply, bool Real)
@@ -3748,6 +3750,9 @@ void Aura::HandleModFear(bool apply, bool Real)
         return;
 
     GetTarget()->SetFeared(apply, GetCasterGuid(), GetId());
+
+    // 2.3.0 - fear no longer applies suppression - in case of uncomment, need to adjust IsSuppressedTarget
+    // GetTarget()->getHostileRefManager().HandleSuppressed(apply);
 }
 
 void Aura::HandleFeignDeath(bool apply, bool Real)
@@ -3840,6 +3845,9 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             if (UnitAI* ai = caster->AI())
                 ai->JustStunnedTarget(GetSpellProto(), target);
 
+        if (GetSpellProto()->AuraInterruptFlags & AURA_INTERRUPT_FLAG_DAMAGE)
+            target->getHostileRefManager().HandleSuppressed(apply);
+
         // Summon the Naj'entus Spine GameObject on target if spell is Impaling Spine
         if (GetId() == 39837)
             target->CastSpell(nullptr, 39929, TRIGGERED_OLD_TRIGGERED);
@@ -3868,6 +3876,9 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
             if (!found_another)
                 target->ModifyAuraState(AURA_STATE_FROZEN, apply);
         }
+
+        if (GetSpellProto()->AuraInterruptFlags & AURA_INTERRUPT_FLAG_DAMAGE)
+            target->getHostileRefManager().HandleSuppressed(apply);
 
         // Real remove called after current aura remove from lists, check if other similar auras active
         if (target->HasAuraType(SPELL_AURA_MOD_STUN))
@@ -4521,11 +4532,15 @@ void Aura::HandleAuraModSchoolImmunity(bool apply, bool Real)
         else
             target->clearUnitState(UNIT_STAT_ISOLATED);
     }
+
+    GetTarget()->getHostileRefManager().HandleSuppressed(apply, true);
 }
 
 void Aura::HandleAuraModDmgImmunity(bool apply, bool /*Real*/)
 {
     GetTarget()->ApplySpellImmune(this, IMMUNITY_DAMAGE, m_modifier.m_miscvalue, apply);
+
+    GetTarget()->getHostileRefManager().HandleSuppressed(apply, true);
 }
 
 void Aura::HandleAuraModDispelImmunity(bool apply, bool Real)
@@ -6472,7 +6487,7 @@ void Aura::PeriodicTick()
                 if (BattleGround* bg = ((Player*)pCaster)->GetBattleGround())
                     bg->UpdatePlayerScore(((Player*)pCaster), SCORE_HEALING_DONE, gain);
 
-            if (pCaster->isInCombat())
+            if (pCaster->isInCombat() && !pCaster->IsIncapacitated())
                 target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
 
             pCaster->ProcDamageAndSpell(ProcSystemArguments(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, spellProto, nullptr, gain));

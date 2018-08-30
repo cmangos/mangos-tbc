@@ -580,7 +580,7 @@ void Unit::EvadeTimerExpired()
         return;
     }
 
-    getThreatManager().SetTargetNotAccessible(getVictim());
+    getThreatManager().SetTargetSuppressed(getVictim());
     SelectHostileTarget();
 }
 
@@ -8688,22 +8688,6 @@ void Unit::FixateTarget(Unit* taunter)
 
 //======================================================================
 
-bool Unit::IsSecondChoiceTarget(Unit* pTarget, bool checkThreatArea) const
-{
-    MANGOS_ASSERT(pTarget);
-
-    // little hack before handling threatarea in unit instead of creature as charmed players will act like creature
-    const Creature* thisCreature = GetTypeId() == TYPEID_UNIT ? static_cast<const Creature*>(this) : nullptr;
-
-    return
-        pTarget->IsTargetUnderControl(*this) ||
-        pTarget->IsImmuneToDamage(GetMeleeDamageSchoolMask()) || pTarget->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED) ||
-        pTarget->hasNegativeAuraWithInterruptFlag(AURA_INTERRUPT_FLAG_DAMAGE) ||
-        (thisCreature && checkThreatArea && thisCreature->IsOutOfThreatArea(pTarget));
-}
-
-//======================================================================
-
 bool Unit::SelectHostileTarget()
 {
     // function provides main threat functionality
@@ -8728,7 +8712,6 @@ bool Unit::SelectHostileTarget()
     Unit* target = nullptr;
     Unit* oldTarget = getVictim();
 
-    // No valid fixate target, taunt aura or taunt aura caster is dead, standard target selection
     if (!target && !getThreatManager().isThreatListEmpty())
         target = getThreatManager().getHostileTarget();
 
@@ -9059,12 +9042,25 @@ bool Unit::isInvisibleForAlive() const
     return isSpiritService();
 }
 
-bool Unit::IsOutOfThreatArea(Unit* victim) const
+bool Unit::IsSuppressedTarget(Unit* target) const
 {
-    if (!victim)
+    MANGOS_ASSERT(target);
+
+    if (target->IsImmuneToDamage(GetMeleeDamageSchoolMask()))
         return true;
 
-    if (!victim->IsInMap(this))
+    if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED))
+        return true;
+
+    if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED) && target->HasDamageInterruptibleStunAura())
+        return true;
+
+    return false;
+}
+
+bool Unit::IsOfflineTarget(Unit* victim) const
+{
+    if (IsFeigningDeathSuccessfully())
         return true;
 
     if (!CanAttack(victim))
@@ -9073,17 +9069,6 @@ bool Unit::IsOutOfThreatArea(Unit* victim) const
     if (!victim->isInAccessablePlaceFor(this))
         return true;
 
-    // Todo make vanish to reset combat state/threat/whatever we need to do.
-    // This is just workaround here
-    if (!victim->IsVisibleForOrDetect(this, this, true))
-        return true;
-
-    if (sMapStore.LookupEntry(GetMapId())->IsDungeon())
-        return false;
-
-    float AttackDist = GetAttackDistance(victim);
-    float ThreatRadius = sWorld.getConfig(CONFIG_FLOAT_THREAT_RADIUS);
-
     float x, y, z, ori;
     if (GetTypeId() == TYPEID_UNIT)
         static_cast<Creature const*>(this)->GetCombatStartPosition(x, y, z, ori);
@@ -9091,7 +9076,8 @@ bool Unit::IsOutOfThreatArea(Unit* victim) const
         GetPosition(x, y, z);
 
     // Use AttackDistance in distance check if threat radius is lower. This prevents creature bounce in and out of combat every update tick.
-    return !victim->IsWithinDist3d(x, y, z, ThreatRadius > AttackDist ? ThreatRadius : AttackDist);
+    // TODO: Implement proper leashing
+    return !victim->IsWithinDist3d(x, y, z, 40.f);
 }
 
 uint32 Unit::GetCreatureType() const
@@ -10153,8 +10139,6 @@ void Unit::SetFeignDeath(bool apply, ObjectGuid casterGuid /*= ObjectGuid()*/, u
     }
     else if (IsFeigningDeath())
     {
-        getHostileRefManager().updateOnlineOfflineState(true);
-
         clearUnitState(UNIT_STAT_FEIGN_DEATH);
 
         // blizz like 2.0.x
@@ -10163,6 +10147,8 @@ void Unit::SetFeignDeath(bool apply, ObjectGuid casterGuid /*= ObjectGuid()*/, u
         RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
         // blizz like 2.0.x
         RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
+
+        getHostileRefManager().updateOnlineOfflineState(true);
     }
 }
 
@@ -10455,13 +10441,12 @@ Unit* Unit::SelectRandomFriendlyTarget(Unit* except /*= nullptr*/, float radius 
     return *tcIter;
 }
 
-bool Unit::hasNegativeAuraWithInterruptFlag(uint32 flag) const
+bool Unit::HasDamageInterruptibleStunAura() const
 {
-    for (const auto& m_spellAuraHolder : m_spellAuraHolders)
-    {
-        if (!m_spellAuraHolder.second->IsPositive() && m_spellAuraHolder.second->GetSpellProto()->AuraInterruptFlags & flag)
+    for (Aura* aura : GetAurasByType(SPELL_AURA_MOD_STUN))
+        if (aura->GetSpellProto()->AuraInterruptFlags & AURA_INTERRUPT_FLAG_DAMAGE)
             return true;
-    }
+
     return false;
 }
 

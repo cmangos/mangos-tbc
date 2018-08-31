@@ -5857,7 +5857,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 case 30121:                                 // Forceful Howl - Plagued Deathhound
                 case 31389:                                 // Knock Away
                 case 32077:                                 // Boglord Bash
-                case 32637:                                 // Overrun - Doomwalker
                 case 32959:                                 // Knock Away
                 case 37597:                                 // Meat Slap
                 case 40486:                                 // Eject - Bloodboil
@@ -5877,8 +5876,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         case 40486:
                             pct = -25;
                             break;
-                        case 32637:
-                            pct = -100;
+                        case 30013:                                 // Disarm - Ethereal Thief 16544
+                            pct = -99;
                             break;
                     }
                     m_caster->getThreatManager().modifyThreatPercent(unitTarget, pct);

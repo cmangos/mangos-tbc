@@ -5752,8 +5752,6 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
         }
     }
 
-    pGameObj->SummonLinkedTrapIfAny();
-
     // Notify Summoner
     if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))
         m_originalCaster->AI()->JustSummoned(pGameObj);
@@ -5761,6 +5759,9 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
         m_caster->AI()->JustSummoned(pGameObj);
 
     m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_OBJECT_WILD), pGameObj->GetPackGUID());
+
+    if (GameObject* linkedGO = pGameObj->GetLinkedTrap())
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_OBJECT_WILD), linkedGO->GetPackGUID());
 }
 
 void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
@@ -7684,8 +7685,6 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
 
     m_caster->m_ObjectSlotGuid[slot] = pGameObj->GetObjectGuid();
 
-    pGameObj->SummonLinkedTrapIfAny();
-
     // Notify Summoner
     if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))
         m_originalCaster->AI()->JustSummoned(pGameObj);
@@ -7693,6 +7692,9 @@ void Spell::EffectSummonObject(SpellEffectIndex eff_idx)
         m_caster->AI()->JustSummoned(pGameObj);
 
     m_spellLog.AddLog(m_spellInfo->Effect[eff_idx], pGameObj->GetPackGUID());
+
+    if (GameObject* linkedGO = pGameObj->GetLinkedTrap())
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_OBJECT_WILD), linkedGO->GetPackGUID());
 }
 
 void Spell::EffectResurrect(SpellEffectIndex /*eff_idx*/)
@@ -8356,8 +8358,6 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
 
     cMap->Add(pGameObj);
 
-    pGameObj->SummonLinkedTrapIfAny();
-
     // Notify Summoner
     if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))
         m_originalCaster->AI()->JustSummoned(pGameObj);
@@ -8365,6 +8365,9 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
         m_caster->AI()->JustSummoned(pGameObj);
 
     m_spellLog.AddLog(uint32(SPELL_EFFECT_TRANS_DOOR), pGameObj->GetPackGUID());
+
+    if (GameObject* linkedGO = pGameObj->GetLinkedTrap())
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON_OBJECT_WILD), linkedGO->GetPackGUID());
 }
 
 void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)

@@ -867,7 +867,7 @@ inline bool IsOutdoorWMO(uint32 mogpFlags, uint32 mapId)
     if (mapId == 530)
         return (mogpFlags & 0x8008) != 0;
 
-    return (mogpFlags & 0x8) != 0;
+    return (mogpFlags & 0x8000) != 0;
 }
 
 bool TerrainInfo::IsOutdoors(float x, float y, float z) const

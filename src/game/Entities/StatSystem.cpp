@@ -73,18 +73,26 @@ bool Player::UpdateStats(Stats stat)
     UpdateAttackPowerAndDamage();
     UpdateAttackPowerAndDamage(true);
 
-    UpdateSpellDamageAndHealingBonus();
+    UpdateSpellHealingBonus();
+    UpdateSpellDamageBonus();
     UpdateManaRegen();
 
     return true;
 }
 
-void Player::UpdateSpellDamageAndHealingBonus()
+void Player::UpdateSpellHealingBonus()
 {
     // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
     // This information for client side use only
     // Get healing bonus for all schools
     SetStatInt32Value(PLAYER_FIELD_MOD_HEALING_DONE_POS, SpellBaseHealingBonusDone(SPELL_SCHOOL_MASK_ALL));
+
+}
+
+void Player::UpdateSpellDamageBonus()
+{
+    // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
+    // This information for client side use only
     // Get damage bonus for all schools
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
         SetStatInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + i, SpellBaseDamageBonusDone(SpellSchoolMask(1 << i)));
@@ -111,7 +119,8 @@ bool Player::UpdateAllStats()
     UpdateAllSpellCritChances();
     UpdateDefenseBonusesMod();
     UpdateShieldBlockValue();
-    UpdateSpellDamageAndHealingBonus();
+    UpdateSpellHealingBonus();
+    UpdateSpellDamageBonus();
     UpdateManaRegen();
     UpdateExpertise(BASE_ATTACK);
     UpdateExpertise(OFF_ATTACK);

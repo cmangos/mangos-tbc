@@ -5003,7 +5003,7 @@ void Aura::HandleModSpellDamagePercentFromStat(bool /*apply*/, bool /*Real*/)
     // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
     // This information for client side use only
     // Recalculate bonus
-    ((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
+    ((Player*)GetTarget())->UpdateSpellDamageBonus();
 }
 
 void Aura::HandleModSpellHealingPercentFromStat(bool /*apply*/, bool /*Real*/)
@@ -5012,7 +5012,7 @@ void Aura::HandleModSpellHealingPercentFromStat(bool /*apply*/, bool /*Real*/)
         return;
 
     // Recalculate bonus
-    ((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
+    ((Player*)GetTarget())->UpdateSpellHealingBonus();
 }
 
 void Aura::HandleAuraModDispelResist(bool apply, bool Real)
@@ -5032,7 +5032,7 @@ void Aura::HandleModSpellDamagePercentFromAttackPower(bool /*apply*/, bool /*Rea
     // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
     // This information for client side use only
     // Recalculate bonus
-    ((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
+    ((Player*)GetTarget())->UpdateSpellDamageBonus();
 }
 
 void Aura::HandleModSpellHealingPercentFromAttackPower(bool /*apply*/, bool /*Real*/)
@@ -5041,7 +5041,7 @@ void Aura::HandleModSpellHealingPercentFromAttackPower(bool /*apply*/, bool /*Re
         return;
 
     // Recalculate bonus
-    ((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
+    ((Player*)GetTarget())->UpdateSpellHealingBonus();
 }
 
 void Aura::HandleModHealingDone(bool /*apply*/, bool /*Real*/)
@@ -5050,7 +5050,7 @@ void Aura::HandleModHealingDone(bool /*apply*/, bool /*Real*/)
         return;
     // implemented in Unit::SpellHealingBonusDone
     // this information is for client side only
-    ((Player*)GetTarget())->UpdateSpellDamageAndHealingBonus();
+    ((Player*)GetTarget())->UpdateSpellHealingBonus();
 }
 
 void Aura::HandleModTotalPercentStat(bool apply, bool /*Real*/)

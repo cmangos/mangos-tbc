@@ -289,7 +289,6 @@ UPDATE creature_template SET ScriptName='npc_volcano' WHERE entry=23085; -- Supr
 UPDATE creature_template SET ScriptName='molten_flame' WHERE entry=23095; -- Molten Flame in SUpremus
 UPDATE creature_template SET ScriptName='mob_ashtongue_channeler' WHERE entry=23421; -- Ashtongue CHanneler in Shade of AKama
 UPDATE creature_template SET ScriptName='mob_ashtongue_sorcerer' WHERE entry=23215; -- Ashtongue Sorcerer in Shade of Akama
-UPDATE creature_template SET ScriptName='npc_spirit_of_olum' WHERE entry=23411;
 UPDATE creature_template SET ScriptName='npc_enslaved_soul' WHERE entry=23469;
 
 /* BLACKFATHOM DEPTHS */
@@ -407,7 +406,6 @@ UPDATE creature_template SET ScriptName='mob_webbed_creature' WHERE entry=17680;
 UPDATE creature_template SET ScriptName='npc_demolitionist_legoso' WHERE entry=17982;
 
 /* BURNING STEPPES */
-UPDATE creature_template SET ScriptName='npc_ragged_john' WHERE entry=9563;
 UPDATE creature_template SET ScriptName='npc_grark_lorkrub' WHERE entry=9520;
 UPDATE creature_template SET ScriptName='npc_klinfran' WHERE entry IN (14529,14534);
 

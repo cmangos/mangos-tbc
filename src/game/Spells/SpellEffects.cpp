@@ -6548,7 +6548,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 38794:                                 // Murmur's Touch - Heroic
                 {
-                    std::list<Unit*> objectList;
+                    UnitList objectList;
                     MaNGOS::AnyFriendlyUnitInObjectRangeCheck check(unitTarget, nullptr, 100.f);
                     MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> searcher(objectList, check);
                     Cell::VisitAllObjects(unitTarget, searcher, 100.0f);

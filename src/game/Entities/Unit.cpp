@@ -10307,7 +10307,7 @@ void Unit::UpdateReactives(uint32 p_time)
 
 Unit* Unit::SelectRandomUnfriendlyTarget(Unit* except /*= nullptr*/, float radius /*= ATTACK_DISTANCE*/) const
 {
-    std::list<Unit*> targets;
+    UnitList targets;
 
     MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(this, radius);
     MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(targets, u_check);
@@ -10318,7 +10318,7 @@ Unit* Unit::SelectRandomUnfriendlyTarget(Unit* except /*= nullptr*/, float radiu
         targets.remove(except);
 
     // remove not LoS targets
-    for (std::list<Unit*>::iterator tIter = targets.begin(); tIter != targets.end();)
+    for (UnitList::iterator tIter = targets.begin(); tIter != targets.end();)
     {
         bool remove = false;
         if (!IsWithinLOSInMap(*tIter))
@@ -10341,7 +10341,7 @@ Unit* Unit::SelectRandomUnfriendlyTarget(Unit* except /*= nullptr*/, float radiu
 
         if (remove)
         {
-            std::list<Unit*>::iterator tIter2 = tIter;
+            UnitList::iterator tIter2 = tIter;
             ++tIter;
             targets.erase(tIter2);
         }
@@ -10355,7 +10355,7 @@ Unit* Unit::SelectRandomUnfriendlyTarget(Unit* except /*= nullptr*/, float radiu
 
     // select random
     uint32 rIdx = urand(0, targets.size() - 1);
-    std::list<Unit*>::const_iterator tcIter = targets.begin();
+    UnitList::const_iterator tcIter = targets.begin();
     for (uint32 i = 0; i < rIdx; ++i)
         ++tcIter;
 
@@ -10364,7 +10364,7 @@ Unit* Unit::SelectRandomUnfriendlyTarget(Unit* except /*= nullptr*/, float radiu
 
 Unit* Unit::SelectRandomFriendlyTarget(Unit* except /*= nullptr*/, float radius /*= ATTACK_DISTANCE*/) const
 {
-    std::list<Unit*> targets;
+    UnitList targets;
 
     MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(this, nullptr, radius);
     MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> searcher(targets, u_check);
@@ -10376,11 +10376,11 @@ Unit* Unit::SelectRandomFriendlyTarget(Unit* except /*= nullptr*/, float radius 
         targets.remove(except);
 
     // remove not LoS targets
-    for (std::list<Unit*>::iterator tIter = targets.begin(); tIter != targets.end();)
+    for (UnitList::iterator tIter = targets.begin(); tIter != targets.end();)
     {
         if (!IsWithinLOSInMap(*tIter))
         {
-            std::list<Unit*>::iterator tIter2 = tIter;
+            UnitList::iterator tIter2 = tIter;
             ++tIter;
             targets.erase(tIter2);
         }
@@ -10394,7 +10394,7 @@ Unit* Unit::SelectRandomFriendlyTarget(Unit* except /*= nullptr*/, float radius 
 
     // select random
     uint32 rIdx = urand(0, targets.size() - 1);
-    std::list<Unit*>::const_iterator tcIter = targets.begin();
+    UnitList::const_iterator tcIter = targets.begin();
     for (uint32 i = 0; i < rIdx; ++i)
         ++tcIter;
 
@@ -11534,7 +11534,7 @@ float Unit::GetAttackDistance(Unit const* pl) const
 
 void Unit::InterruptSpellsCastedOnMe(bool killDelayed)
 {
-    std::list<Unit*> targets;
+    UnitList targets;
     // Maximum spell range=100m ?
     MaNGOS::AnyUnitInObjectRangeCheck u_check(this, 100.0f);
     MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(targets, u_check);

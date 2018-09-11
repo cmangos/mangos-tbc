@@ -6384,7 +6384,7 @@ void PlayerbotAI::findNearbyGO()
     if (m_collectObjects.empty())
         return;
 
-    std::list<GameObject*> tempTargetGOList;
+    GameObjectList tempTargetGOList;
     float radius = 20.0f;
 
     for (BotEntryList::iterator itr = m_collectObjects.begin(); itr != m_collectObjects.end(); ++itr)
@@ -6414,7 +6414,7 @@ void PlayerbotAI::findNearbyGO()
             continue;
 
         // add any objects found to our lootTargets
-        for (std::list<GameObject*>::iterator iter = tempTargetGOList.begin(); iter != tempTargetGOList.end(); iter++)
+        for (GameObjectList::iterator iter = tempTargetGOList.begin(); iter != tempTargetGOList.end(); iter++)
         {
             GameObject* go = (*iter);
 
@@ -6430,7 +6430,7 @@ void PlayerbotAI::findNearbyGO()
 
 void PlayerbotAI::findNearbyCreature()
 {
-    std::list<Creature*> creatureList;
+    CreatureList creatureList;
     float radius = 2.5;
 
     CellPair pair(MaNGOS::ComputeCellPair(m_bot->GetPositionX(), m_bot->GetPositionY()));
@@ -6446,7 +6446,7 @@ void PlayerbotAI::findNearbyCreature()
     // if (!creatureList.empty())
     //    TellMaster("Found %i Creatures & size of m_findNPC (%i)", creatureList.size(),m_findNPC.size());
 
-    for (std::list<Creature*>::iterator iter = creatureList.begin(); iter != creatureList.end(); iter++)
+    for (CreatureList::iterator iter = creatureList.begin(); iter != creatureList.end(); iter++)
     {
         Creature* currCreature = *iter;
 

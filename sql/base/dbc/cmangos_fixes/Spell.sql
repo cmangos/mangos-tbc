@@ -43,8 +43,6 @@ UPDATE spell_template SET AttributesServerside= AttributesServerside|1 WHERE id 
 
 UPDATE spell_template SET EffectItemType2=268435456 WHERE Id IN(16106); -- all ranks except rank 3 have mask
 
-UPDATE spell_template SET Attributes= Attributes|0x00200000 WHERE Id IN(20424); -- Set Seal of Command proc as Impossible do dodge/parry/block, source - patchnotes 1.3
-
 INSERT INTO spell_template(Id,Attributes,procFlags,procChance,procCharges,DurationIndex,Effect1,EffectDieSides1,EffectBasePoints1,EffectImplicitTargetA1,EffectApplyAuraName1,EffectMiscValue1,DmgMultiplier1,SpellName) VALUES
 (31934,384,1048576,100,1,21,6,1,-51,1,87,127,1,'Blessed Life Proc');
 -- Talent will work as expected but very counterintuitively. It will proc on one damage source and reduce damage on the next.
@@ -131,7 +129,7 @@ INSERT INTO spell_template(Id, Category, Dispel, Mechanic, Attributes, Attribute
 ('19394', '0', '0', '0', '384', '268435456', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '101', '0', '0', '0', '0', '4', '0', '0', '0', '0', '0', '12', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '0', '0', '76', '0', '0', '1', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '47', '0', '0', '0', '0', '0', '15', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '177681', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', 'Summon Gordunni chest (JUNK)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0');
 
 -- Spells used in Ragnaros encounter
-INSERT INTO `spell_template` (`Id`,`Attributes`,`CastingTimeIndex`,`ProcChance`,`DurationIndex`,`RangeIndex`,`EquippedItemClass`,`Effect1`,`EffectImplicitTargetA1`,`EffectRadiusIndex1`,`EffectMiscValue1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`EffectMiscValueB1`) VALUES 
+INSERT INTO `spell_template` (`Id`,`Attributes`,`CastingTimeIndex`,`ProcChance`,`DurationIndex`,`RangeIndex`,`EquippedItemClass`,`Effect1`,`EffectImplicitTargetA1`,`EffectRadiusIndex1`,`EffectMiscValue1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`EffectMiscValueB1`) VALUES
 ('21108','256','1','101','0','13','-1','3','0','16','0','876','Summon Sons of Flame','1','0'),
 ('21110','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame B','1','64'),
 ('21111','256','1','101','30','13','-1','28','17','16','12143','876','Summon Son of Flame C','1','64'),
@@ -316,7 +314,7 @@ INSERT INTO spell_template(Id,Attributes,AttributesEx,AttributesEx2,AttributesEx
 (39960,0x09800180,0x10000020,0x00000001,0x00100000,1,21,13,6,6,1,1,1,1,2,2,1,1,139,139,929,1001,1,'Finish the Gronn: Ogre Force Reaction',1,1); -- data gathered ID
 
 -- Missing Elemental Shield spell from Classic (BWL)
-INSERT INTO `spell_template` (`Id`, `Attributes`, `AttributesEx`, `AttributesEx3`, `AttributesEx4`, `CastingTimeIndex`, `ProcChance`, `DurationIndex`, `rangeIndex`, `Effect1`, `EffectDieSides1`, `EffectBaseDice1`, `EffectImplicitTargetA1`, `EffectRadiusIndex1`, `EffectMiscValue1`, `SpellIconID`, `SpellName`, `DmgMultiplier1`, `DmgMultiplier2`) VALUES 
+INSERT INTO `spell_template` (`Id`, `Attributes`, `AttributesEx`, `AttributesEx3`, `AttributesEx4`, `CastingTimeIndex`, `ProcChance`, `DurationIndex`, `rangeIndex`, `Effect1`, `EffectDieSides1`, `EffectBaseDice1`, `EffectImplicitTargetA1`, `EffectRadiusIndex1`, `EffectMiscValue1`, `SpellIconID`, `SpellName`, `DmgMultiplier1`, `DmgMultiplier2`) VALUES
 (22276, 272, 0, 0, 0, 1, 101, 0, 1, 3, 1, 1, 1, 0, 0, 459, 'Elemental Shield', 1, 0);
 
 -- Add missing vanilla spells used in scripts

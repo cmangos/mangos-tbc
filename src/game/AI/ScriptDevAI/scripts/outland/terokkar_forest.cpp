@@ -1276,7 +1276,7 @@ struct npc_draenei_tomb_guardian : public ScriptedAI
 
         // Despawn Bone Wastes - Orb Waypoint 01, Bone Wastes - Event Trigger B, Nether Cloud
         m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_EVENT_RESET, m_creature, m_creature);
-        
+
         // Despawn Vengeful Harbinger and Vengeful Draenei
         for (ObjectGuid &guid : summons)
             if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
@@ -1306,6 +1306,8 @@ struct npc_draenei_tomb_guardian : public ScriptedAI
             {
                 ResetEvent();
             }
+            default:
+                break;
         }
     }
 
@@ -1351,7 +1353,7 @@ struct npc_vengeful_harbinger : public ScriptedAI
     uint32 eventResetTimer;
     ObjectGuid m_playerGuid;
 
-    void Reset() override 
+    void Reset() override
     {
         eventResetTimer = EVENT_RESET_TIMER;
     }
@@ -1428,7 +1430,7 @@ struct npc_vengeful_harbinger : public ScriptedAI
             }
         }
         else
-            DoMeleeAttackIfReady();  
+            DoMeleeAttackIfReady();
     }
 
     void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override

@@ -4302,14 +4302,9 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         m_targets.getDestination(summonPositions[0].x, summonPositions[0].y, summonPositions[0].z);
     else
     {
-        if (m_spellInfo->EffectImplicitTargetA[eff_idx] == TARGET_LOCATION_CASTER_DEST || m_spellInfo->EffectImplicitTargetB[eff_idx] == TARGET_LOCATION_CASTER_DEST) // custom, done in SetTargetMap
-            m_targets.getDestination(summonPositions[0].x, summonPositions[0].y, summonPositions[0].z);
-        else
-        {
-            realCaster->GetPosition(summonPositions[0].x, summonPositions[0].y, summonPositions[0].z);
-            // TODO - Is this really an error?
-            sLog.outDebug("Spell Effect EFFECT_SUMMON (%u) - summon without destination (spell id %u, effIndex %u)", m_spellInfo->Effect[eff_idx], m_spellInfo->Id, eff_idx);
-        }
+        realCaster->GetPosition(summonPositions[0].x, summonPositions[0].y, summonPositions[0].z);
+        // TODO - Is this really an error?
+        sLog.outDebug("Spell Effect EFFECT_SUMMON (%u) - summon without destination (spell id %u, effIndex %u)", m_spellInfo->Effect[eff_idx], m_spellInfo->Id, eff_idx);
     }
 
     // Set summon positions
@@ -4346,7 +4341,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                     // 121: 23035, battlestands
                     // 647: 52893, Anti-Magic Zone (npc used)
                     if (prop_id == 121 || prop_id == 647)
-                        summonResult = DoSummonTotem(eff_idx);
+                        summonResult = DoSummonTotem(summonPositions, eff_idx);
                     else
                     {
                         switch (m_spellInfo->Id) // unable to distinguish based on prop_id, therefore spell by spell override
@@ -4373,7 +4368,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                         {
                             if (cInfo->CreatureType == CREATURE_TYPE_TOTEM)
                             {
-                                summonResult = DoSummonTotem(eff_idx);
+                                summonResult = DoSummonTotem(summonPositions, eff_idx);
                                 break;
                             }
                         }
@@ -4385,7 +4380,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                     break;
                 }
                 case UNITNAME_SUMMON_TITLE_TOTEM:
-                    summonResult = DoSummonTotem(eff_idx, summon_prop->Slot);
+                    summonResult = DoSummonTotem(summonPositions, eff_idx, summon_prop->Slot);
                     break;
                 case UNITNAME_SUMMON_TITLE_COMPANION:
                     // slot 6 set for critters that can help to player in fighting
@@ -7540,7 +7535,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
     }
 }
 
-bool Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
+bool Spell::DoSummonTotem(CreatureSummonPositions& list, SpellEffectIndex eff_idx, uint8 slot_dbc)
 {
     // DBC store slots starting from 1, with no slot 0 value)
     int slot = slot_dbc ? slot_dbc - 1 : TOTEM_SLOT_NONE;
@@ -7554,7 +7549,7 @@ bool Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     // if totem have creature_template_addon.auras with persistent point for example or script call
     float angle = slot < MAX_TOTEM_SLOT ? M_PI_F / MAX_TOTEM_SLOT - (slot * 2 * M_PI_F / MAX_TOTEM_SLOT) : 0;
 
-    CreatureCreatePos pos(m_caster, m_caster->GetOrientation(), 2.0f, angle);
+    CreatureCreatePos pos(m_caster->GetMap(), list[0].x, list[0].y, list[0].z, m_caster->GetOrientation());
 
     CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(m_spellInfo->EffectMiscValue[eff_idx]);
     if (!cinfo)
@@ -7564,6 +7559,7 @@ bool Spell::DoSummonTotem(SpellEffectIndex eff_idx, uint8 slot_dbc)
     }
 
     Totem* pTotem = new Totem;
+    list[0].creature = pTotem;
 
     if (!pTotem->Create(m_caster->GetMap()->GenerateLocalLowGuid(HIGHGUID_UNIT), pos, cinfo, m_caster))
     {

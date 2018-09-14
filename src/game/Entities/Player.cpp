@@ -3387,9 +3387,9 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
 
 void Player::RemoveArenaSpellCooldowns()
 {
-    // remove cooldowns on spells that has < 15 min CD
+    // remove cooldowns on spells that has < 15 min CD - has to by in sync with spell check
     const uint32 MaxCDDelay = 15 * MINUTE * IN_MILLISECONDS;
-    auto cdCheck = [&](SpellEntry const & spellEntry) -> bool { return (spellEntry.RecoveryTime < MaxCDDelay && (spellEntry.CategoryRecoveryTime < MaxCDDelay)); };
+    auto cdCheck = [&](SpellEntry const & spellEntry) -> bool { return (spellEntry.RecoveryTime <= MaxCDDelay && (spellEntry.CategoryRecoveryTime <= MaxCDDelay)); };
     RemoveSomeCooldown(cdCheck);
 }
 

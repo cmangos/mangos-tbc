@@ -9553,12 +9553,10 @@ CharmInfo::~CharmInfo()
     delete m_ai;
 }
 
-void CharmInfo::SetCharmState(std::string const& ainame /*= "PetAI"*/, bool withNewThreatList /*= true*/)
+void CharmInfo::SetCharmState(std::string const& ainame, bool withNewThreatList /*= true*/)
 {
     if (!ainame.empty())
         m_ai = FactorySelector::GetSpecificAI(m_unit, ainame);
-    else
-        m_ai = FactorySelector::GetSpecificAI(m_unit, "PetAI");
 
     if (withNewThreatList)
         m_combatData = new CombatData(m_unit);
@@ -11218,7 +11216,7 @@ bool Unit::TakePossessOf(Unit* possessed)
     return true;
 }
 
-bool Unit::TakeCharmOf(Unit* charmed, bool advertised /*= true*/)
+bool Unit::TakeCharmOf(Unit* charmed, uint32 spellId, bool advertised /*= true*/)
 {
     Player* charmerPlayer = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
 
@@ -11247,6 +11245,8 @@ bool Unit::TakeCharmOf(Unit* charmed, bool advertised /*= true*/)
     CharmInfo* charmInfo = charmed->InitCharmInfo(charmed);
     charmed->DeleteThreatList();
 
+    bool isPossessCharm = IsPossessCharmType(spellId);
+
     if (charmed->GetTypeId() == TYPEID_PLAYER)
     {
         Player* charmedPlayer = static_cast<Player*>(charmed);
@@ -11257,28 +11257,42 @@ bool Unit::TakeCharmOf(Unit* charmed, bool advertised /*= true*/)
 
         charmInfo->SetCharmState("PetAI");
 
-        //charmedPlayer->SetWalk(IsWalking(), true);
-
-        charmInfo->InitCharmCreateSpells();
-        charmed->AI()->SetReactState(REACT_DEFENSIVE);
-
-        charmInfo->SetCommandState(COMMAND_FOLLOW);
-        charmInfo->SetIsRetreating(true);
+        if (isPossessCharm)
+            charmInfo->InitPossessCreateSpells();
+        else
+        {
+            charmInfo->InitCharmCreateSpells();
+            charmed->AI()->SetReactState(REACT_DEFENSIVE);
+            charmInfo->SetCommandState(COMMAND_FOLLOW);
+            charmInfo->SetIsRetreating(true);
+        }
 
         charmedPlayer->SendForcedObjectUpdate();
     }
     else if (charmed->GetTypeId() == TYPEID_UNIT)
     {
         Creature* charmedCreature = static_cast<Creature*>(charmed);
-        charmInfo->SetCharmState("PetAI");
+
+        if (charmed->AI() && charmed->AI()->CanHandleCharm())
+            charmInfo->SetCharmState("", false);
+        else
+            charmInfo->SetCharmState("PetAI");
+
         getHostileRefManager().deleteReference(charmedCreature);
+
         charmedCreature->SetFactionTemporary(getFaction(), TEMPFACTION_NONE);
+
         charmedCreature->SetWalk(IsWalking(), true);
 
-        charmInfo->InitCharmCreateSpells();
-        charmed->AI()->SetReactState(REACT_DEFENSIVE);
-        charmInfo->SetCommandState(COMMAND_FOLLOW);
-        charmInfo->SetIsRetreating(true);
+        if (isPossessCharm)
+            charmInfo->InitPossessCreateSpells();
+        else
+        {
+            charmInfo->InitCharmCreateSpells();
+            charmed->AI()->SetReactState(REACT_DEFENSIVE);
+            charmInfo->SetCommandState(COMMAND_FOLLOW);
+            charmInfo->SetIsRetreating(true);
+        }
 
         if (charmerPlayer && advertised)
         {
@@ -11398,7 +11412,7 @@ void Unit::BreakCharmIncoming()
         charmer->BreakCharmOutgoing(this);
 }
 
-void Unit::Uncharm(Unit* charmed)
+void Unit::Uncharm(Unit* charmed, uint32 spellId)
 {
     Player* player = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
 
@@ -11427,8 +11441,11 @@ void Unit::Uncharm(Unit* charmed)
         m_charmedUnitsPrivate.erase(charmedGuid);
 
     // may be not correct we have to remove only some generator taking account of the current situation
-    charmed->StopMoving(true);
-    charmed->GetMotionMaster()->Clear();
+    if (!IsPossessCharmType(spellId))
+    {
+        charmed->StopMoving(true);
+        charmed->GetMotionMaster()->Clear();
+    }
 
     Creature* charmedCreature = nullptr;
     CharmInfo* charmInfo = charmed->GetCharmInfo();

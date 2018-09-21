@@ -896,6 +896,9 @@ uint32 Loot::GetLootStatusFor(Player const* player) const
 {
     uint32 status = 0;
 
+    if (m_isFakeLoot && !IsLootOpenedBy(player->GetObjectGuid()))
+        return LOOT_STATUS_FAKE_LOOT;
+
     if (m_gold != 0)
         status |= LOOT_STATUS_CONTAIN_GOLD;
 
@@ -1270,6 +1273,13 @@ void Loot::Release(Player* player)
                 {
                     Creature* creature = (Creature*)m_lootTarget;
                     SetPlayerIsNotLooting(player);
+
+                    if (m_isFakeLoot)
+                    {
+                        m_lootTarget->ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);
+                        break;
+                    }
+
                     if (IsLootedForAll())
                     {
                         SendReleaseForAll();
@@ -1295,6 +1305,9 @@ void Loot::Release(Player* player)
 // Popup windows with loot content
 void Loot::ShowContentTo(Player* plr)
 {
+    // add this player to the the openers list of this loot
+    m_playersOpened.emplace(plr->GetObjectGuid());
+
     if (m_isChest)
     {
         if (static_cast<GameObject*>(m_lootTarget)->IsInUse())
@@ -1549,7 +1562,7 @@ void Loot::SetGroupLootRight(Player* player)
 Loot::Loot(Player* player, Creature* creature, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
     m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
-    m_isChecked(false), m_isChest(false), m_isChanged(false)
+    m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
     if (!player)
@@ -1579,12 +1592,22 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
             if ((creatureInfo->LootId && FillLoot(creatureInfo->LootId, LootTemplates_Creature, player, false)) || creatureInfo->MaxLootGold > 0)
             {
                 GenerateMoneyLoot(creatureInfo->MinLootGold, creatureInfo->MaxLootGold);
-                // loot may be anyway empty
-                if (!IsLootedForAll())      // TODO:: implement empty windows? sWorld.getConfig(CONFIG_BOOL_CORPSE_EMPTY_LOOT_SHOW))
+                // loot may be anyway empty (loot may be empty or contain items that no one have right to loot)
+                if (IsLootedForAll())
                 {
-                    creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                    // show sometimes an empty window
+                    if (sWorld.getConfig(CONFIG_BOOL_CORPSE_EMPTY_LOOT_SHOW) && urand(0, 2) == 1) //33% chance to see an empty loot window
+                    {
+                        m_isFakeLoot = true;
+                        creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                        break;
+                    }
+                    creature->SetLootStatus(CREATURE_LOOT_STATUS_LOOTED);
                     break;
                 }
+
+                creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                break;
             }
 
             sLog.outDebug("Loot::CreateLoot> cannot create corpse loot, FillLoot failed with loot id(%u)!", creatureInfo->LootId);
@@ -1639,7 +1662,7 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
 Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
     m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
-    m_isChecked(false), m_isChest(false), m_isChanged(false)
+    m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
     if (!player)
@@ -1738,7 +1761,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
 Loot::Loot(Player* player, Corpse* corpse, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
     m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
-    m_isChecked(false), m_isChest(false), m_isChanged(false)
+    m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
     if (!player)
@@ -1783,7 +1806,7 @@ Loot::Loot(Player* player, Corpse* corpse, LootType type) :
 Loot::Loot(Player* player, Item* item, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
     m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
-    m_isChecked(false), m_isChest(false), m_isChanged(false)
+    m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
     if (!player)
@@ -1826,7 +1849,7 @@ Loot::Loot(Player* player, Item* item, LootType type) :
 Loot::Loot(Unit* unit, Item* item) :
     m_lootTarget(nullptr), m_itemTarget(item), m_gold(0), m_maxSlot(0),
     m_lootType(LOOT_SKINNING), m_clientLootType(CLIENT_LOOT_PICKPOCKETING), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false),
-    m_haveItemOverThreshold(false), m_isChecked(false), m_isChest(false), m_isChanged(false)
+    m_haveItemOverThreshold(false), m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     m_ownerSet.insert(unit->GetObjectGuid());
     m_guidTarget = item->GetObjectGuid();
@@ -1835,7 +1858,7 @@ Loot::Loot(Unit* unit, Item* item) :
 Loot::Loot(Player* player, uint32 id, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
     m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
-    m_isChecked(false), m_isChest(false), m_isChanged(false)
+    m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     switch (type)
     {

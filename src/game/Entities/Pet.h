@@ -307,6 +307,8 @@ class Pet : public Creature
 
         void InitTamedPetPassives(Unit* player);
 
+        virtual void RegenerateHealth() override;
+
     protected:
         uint32  m_happinessTimer;
         uint32  m_loyaltyTimer;

@@ -25,6 +25,7 @@ bin
 build
 tags
 TAGS
+run
 win
 !.gitignore
 !.gitattributes

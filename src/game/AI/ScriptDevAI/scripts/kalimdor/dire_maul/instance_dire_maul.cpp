@@ -26,8 +26,8 @@ EndScriptData */
 
 instance_dire_maul::instance_dire_maul(Map* pMap) : ScriptedInstance(pMap),
     m_bWallDestroyed(false),
-    m_bDoNorthBeforeWest(false),
-    m_uiDreadsteedEventTimer(0)
+    m_uiDreadsteedEventTimer(0),
+    m_bDoNorthBeforeWest(false)
 {
     Initialize();
 }
@@ -442,10 +442,10 @@ void instance_dire_maul::Load(const char* chrIn)
     if (m_auiEncounter[TYPE_ALZZIN] >= DONE)
         m_bWallDestroyed = true;
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -477,10 +477,7 @@ bool instance_dire_maul::CheckConditionCriteriaMeet(Player const* pPlayer, uint3
 
 bool instance_dire_maul::CheckAllGeneratorsDestroyed()
 {
-    if (m_auiEncounter[TYPE_PYLON_1] != DONE || m_auiEncounter[TYPE_PYLON_2] != DONE || m_auiEncounter[TYPE_PYLON_3] != DONE || m_auiEncounter[TYPE_PYLON_4] != DONE || m_auiEncounter[TYPE_PYLON_5] != DONE)
-        return false;
-
-    return true;
+    return !(m_auiEncounter[TYPE_PYLON_1] != DONE || m_auiEncounter[TYPE_PYLON_2] != DONE || m_auiEncounter[TYPE_PYLON_3] != DONE || m_auiEncounter[TYPE_PYLON_4] != DONE || m_auiEncounter[TYPE_PYLON_5] != DONE);
 }
 
 void instance_dire_maul::ProcessForceFieldOpening()
@@ -640,9 +637,7 @@ bool EffectDummyCreature_spell_guard_slip_kik(Unit* pCaster, uint32 uiSpellId, S
 
 void AddSC_instance_dire_maul()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_dire_maul";
     pNewScript->GetInstanceData = &GetInstanceData_instance_dire_maul;
     pNewScript->RegisterSelf();

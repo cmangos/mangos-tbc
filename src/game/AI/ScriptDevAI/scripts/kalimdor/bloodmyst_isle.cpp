@@ -399,7 +399,7 @@ struct npc_demolitionist_legosoAI : public npc_escortAI, private DialogueHelper
         if (uiEntry == NPC_LEGOSO)
             return m_creature;
 
-        return NULL;
+        return nullptr;
     }
 
     void UpdateEscortAI(const uint32 uiDiff) override
@@ -431,9 +431,7 @@ bool QuestAccept_npc_demolitionist_legoso(Player* pPlayer, Creature* pCreature, 
 
 void AddSC_bloodmyst_isle()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "mob_webbed_creature";
     pNewScript->GetAI = &GetAI_mob_webbed_creature;
     pNewScript->RegisterSelf();

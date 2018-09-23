@@ -534,9 +534,9 @@ struct npc_simone_seductressAI : public ScriptedAI
             {
                 ThreatList const& SimonetList = m_creature->getThreatManager().getThreatList();
 
-                for (ThreatList::const_iterator itr = SimonetList.begin(); itr != SimonetList.end(); ++itr)
+                for (auto itr : SimonetList)
                 {
-                    if (Unit* pUnit = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
+                    if (Unit* pUnit = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                     {
                         if (pUnit->isAlive())
                         {
@@ -551,9 +551,9 @@ struct npc_simone_seductressAI : public ScriptedAI
                 {
                     ThreatList const& PrecioustList = pPrecious->getThreatManager().getThreatList();
 
-                    for (ThreatList::const_iterator itr = PrecioustList.begin(); itr != PrecioustList.end(); ++itr)
+                    for (auto itr : PrecioustList)
                     {
-                        if (Unit* pUnit = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
+                        if (Unit* pUnit = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                         {
                             if (pUnit->isAlive())
                             {
@@ -670,7 +670,6 @@ struct npc_simone_the_inconspicuousAI : public ScriptedAI
     bool m_bTransform;
 
     ObjectGuid m_playerGuid;
-    Creature* pPrecious;
 
     void Reset() override
     {
@@ -685,7 +684,8 @@ struct npc_simone_the_inconspicuousAI : public ScriptedAI
         m_uiTransformEmote_Timer = 5000;
         m_bTransform = false;
 
-        if (pPrecious = GetClosestCreatureWithEntry(m_creature, NPC_PRECIOUS, 100.0f))
+        Creature* pPrecious = GetClosestCreatureWithEntry(m_creature, NPC_PRECIOUS, 100.0f);
+        if (pPrecious)
         {
             pPrecious->SetVisibility(VISIBILITY_ON);
             pPrecious->GetMotionMaster()->MoveFollow(m_creature, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
@@ -700,9 +700,8 @@ struct npc_simone_the_inconspicuousAI : public ScriptedAI
 
     void Transform()
     {
-        if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
+        if (m_creature->GetMap()->GetPlayer(m_playerGuid))
         {
-            Creature* pPreciousDevourer = NULL;
             Creature* pDemon = m_creature->SummonCreature(NPC_SIMONE_THE_SEDUCTRESS,
                 m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), m_creature->GetAngle(m_creature), TEMPSPAWN_DEAD_DESPAWN, 0);
             Creature* pPrecious = GetClosestCreatureWithEntry(m_creature, NPC_PRECIOUS, 100.0f);
@@ -718,7 +717,7 @@ struct npc_simone_the_inconspicuousAI : public ScriptedAI
 
             if (pDemon && pPrecious)
             {
-                pPreciousDevourer = m_creature->SummonCreature(NPC_PRECIOUS_THE_DEVOURER,
+                Creature* pPreciousDevourer = m_creature->SummonCreature(NPC_PRECIOUS_THE_DEVOURER,
                     pPrecious->GetPositionX(), pPrecious->GetPositionY(), pPrecious->GetPositionZ(), pPrecious->GetAngle(pPrecious), TEMPSPAWN_DEAD_DESPAWN, 0, true);
 
                 if (pPreciousDevourer)
@@ -807,9 +806,7 @@ UnitAI* GetAI_npc_simone_the_inconspicuous(Creature* pCreature)
 
 void AddSC_ungoro_crater()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_ame01";
     pNewScript->GetAI = &GetAI_npc_ame01;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_ame01;

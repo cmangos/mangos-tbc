@@ -96,9 +96,9 @@ struct boss_grobbulusAI : public ScriptedAI
         std::vector<Unit*> suitableTargets;
         ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
 
-        for (ThreatList::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
+        for (auto itr : threatList)
         {
-            if (Unit* pTarget = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
+            if (Unit* pTarget = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
             {
                 if (pTarget->GetTypeId() == TYPEID_PLAYER && !pTarget->HasAura(SPELL_MUTATING_INJECTION))
                     suitableTargets.push_back(pTarget);
@@ -114,8 +114,7 @@ struct boss_grobbulusAI : public ScriptedAI
             DoScriptText(EMOTE_INJECTION, m_creature, pTarget);
             return true;
         }
-        else
-            return false;
+        return false;
     }
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
@@ -206,9 +205,7 @@ UnitAI* GetAI_boss_grobbulus(Creature* pCreature)
 
 void AddSC_boss_grobbulus()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_grobbulus";
     pNewScript->GetAI = &GetAI_boss_grobbulus;
     pNewScript->RegisterSelf();

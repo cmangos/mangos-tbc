@@ -161,10 +161,7 @@ namespace VMAP
             return true;
         // direction with length of 1
         G3D::Ray ray = G3D::Ray::fromOriginAndDirection(pos1, (pos2 - pos1) / maxDist);
-        if (getIntersectionTime(ray, maxDist, true, ignoreM2Model))
-            return false;
-
-        return true;
+        return !getIntersectionTime(ray, maxDist, true, ignoreM2Model);
     }
     //=========================================================
     /**
@@ -323,11 +320,11 @@ namespace VMAP
 
     void StaticMapTree::UnloadMap(VMapManager2* vm)
     {
-        for (loadedSpawnMap::iterator i = iLoadedSpawns.begin(); i != iLoadedSpawns.end(); ++i)
+        for (auto& iLoadedSpawn : iLoadedSpawns)
         {
-            iTreeValues[i->first].setUnloaded();
-            for (uint32 refCount = 0; refCount < i->second; ++refCount)
-                vm->releaseModelInstance(iTreeValues[i->first].name);
+            iTreeValues[iLoadedSpawn.first].setUnloaded();
+            for (uint32 refCount = 0; refCount < iLoadedSpawn.second; ++refCount)
+                vm->releaseModelInstance(iTreeValues[iLoadedSpawn.first].name);
         }
         iLoadedSpawns.clear();
         iLoadedTiles.clear();
@@ -418,7 +415,7 @@ namespace VMAP
         loadedTileMap::iterator tile = iLoadedTiles.find(tileID);
         if (tile == iLoadedTiles.end())
         {
-            ERROR_LOG("StaticMapTree::UnloadMapTile(): Trying to unload non-loaded tile. Map:%u X:%u Y:%u", iMapID, tileX, tileY);
+            //ERROR_LOG("StaticMapTree::UnloadMapTile(): Trying to unload non-loaded tile. Map:%u X:%u Y:%u", iMapID, tileX, tileY);
             return;
         }
         if (tile->second) // file associated with tile

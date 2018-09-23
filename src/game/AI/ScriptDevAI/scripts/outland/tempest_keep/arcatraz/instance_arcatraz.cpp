@@ -247,9 +247,9 @@ void instance_arcatraz::SetData(uint32 uiType, uint32 uiData)
                     {
                         Map::PlayerList const& PlayerList = instance->GetPlayers();
 
-                        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+                        for (const auto& itr : PlayerList)
                         {
-                            Player* pPlayer = itr->getSource();
+                            Player* pPlayer = itr.getSource();
                             if (pPlayer && pPlayer->GetQuestStatus(QUEST_TRIAL_OF_THE_NAARU_TENACITY) == QUEST_STATUS_INCOMPLETE)
                                 pPlayer->AreaExploredOrEventHappens(QUEST_TRIAL_OF_THE_NAARU_TENACITY);
                         }
@@ -336,10 +336,10 @@ void instance_arcatraz::Load(const char* chrIn)
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
                >> m_auiEncounter[4];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -495,9 +495,7 @@ InstanceData* GetInstanceData_instance_arcatraz(Map* pMap)
 
 void AddSC_instance_arcatraz()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_arcatraz";
     pNewScript->GetInstanceData = &GetInstanceData_instance_arcatraz;
     pNewScript->RegisterSelf();

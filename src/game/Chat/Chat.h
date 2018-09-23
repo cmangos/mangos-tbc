@@ -24,6 +24,7 @@
 #include "Entities/ObjectGuid.h"
 
 #include <functional>
+#include <utility>
 
 struct AreaTrigger;
 struct AreaTriggerEntry;
@@ -94,7 +95,7 @@ class ChatHandler
         bool ParseCommands(const char* text);
         ChatCommand const* FindCommand(char const* text);
 
-        bool isValidChatMessage(const char* msg) const;
+        bool isValidChatMessage(const char* message) const;
         bool HasSentErrorMessage() const { return sentErrorMessage;}
 
         /**
@@ -137,11 +138,11 @@ class ChatHandler
         virtual int GetSessionDbLocaleIndex() const;
 
         bool HasLowerSecurity(Player* target, ObjectGuid guid = ObjectGuid(), bool strong = false);
-        bool HasLowerSecurityAccount(WorldSession* target, uint32 account, bool strong = false);
+        bool HasLowerSecurityAccount(WorldSession* target, uint32 target_account, bool strong = false);
 
         void SendGlobalSysMessage(const char* str) const;
 
-        bool SetDataForCommandInTable(ChatCommand* table, const char* text, uint32 security, std::string const& help);
+        bool SetDataForCommandInTable(ChatCommand* commandTable, const char* text, uint32 security, std::string const& help);
         void ExecuteCommand(const char* text);
         void LogCommand(char const* fullcmd) const;
 
@@ -725,7 +726,7 @@ class ChatHandler
         };
 
         typedef std::list<DeletedInfo> DeletedInfoList;
-        bool GetDeletedCharacterInfoList(DeletedInfoList& foundList, std::string searchString = "");
+        bool GetDeletedCharacterInfoList(DeletedInfoList& foundList, std::string searchString = "") const;
         std::string GenerateDeletedCharacterGUIDsWhereStr(DeletedInfoList::const_iterator& itr, DeletedInfoList::const_iterator const& itr_end);
         void HandleCharacterDeletedListHelper(DeletedInfoList const& foundList);
         void HandleCharacterDeletedRestoreHelper(DeletedInfo const& delInfo);
@@ -749,7 +750,7 @@ class CliHandler : public ChatHandler
 
     public:
         CliHandler(uint32 accountId, AccountTypes accessLevel, Print zprint)
-            : m_accountId(accountId), m_loginAccessLevel(accessLevel), m_print(zprint) {}
+            : m_accountId(accountId), m_loginAccessLevel(accessLevel), m_print(std::move(zprint)) {}
 
         // overwrite functions
         const char* GetMangosString(int32 entry) const override;

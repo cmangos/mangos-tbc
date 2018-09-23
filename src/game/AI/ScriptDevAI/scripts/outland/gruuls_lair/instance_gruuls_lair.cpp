@@ -42,8 +42,8 @@ void instance_gruuls_lair::Initialize()
 
 bool instance_gruuls_lair::IsEncounterInProgress() const
 {
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-        if (m_auiEncounter[i] == IN_PROGRESS)
+    for (uint32 i : m_auiEncounter)
+        if (i == IN_PROGRESS)
             return true;
 
     return false;
@@ -134,9 +134,9 @@ void instance_gruuls_lair::Load(const char* chrIn)
 
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+    for (uint32& i : m_auiEncounter)
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
 
     OUT_LOAD_INST_DATA_COMPLETE;
 }
@@ -148,9 +148,7 @@ InstanceData* GetInstanceData_instance_gruuls_lair(Map* pMap)
 
 void AddSC_instance_gruuls_lair()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_gruuls_lair";
     pNewScript->GetInstanceData = &GetInstanceData_instance_gruuls_lair;
     pNewScript->RegisterSelf();

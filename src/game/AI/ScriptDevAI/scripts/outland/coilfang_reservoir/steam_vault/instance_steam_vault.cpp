@@ -178,10 +178,10 @@ void instance_steam_vault::Load(const char* chrIn)
     std::istringstream loadStream(chrIn);
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -194,9 +194,7 @@ InstanceData* GetInstanceData_instance_steam_vault(Map* pMap)
 
 void AddSC_instance_steam_vault()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "go_main_chambers_access_panel";
     pNewScript->pGOUse = &GOUse_go_main_chambers_access_panel;
     pNewScript->RegisterSelf();

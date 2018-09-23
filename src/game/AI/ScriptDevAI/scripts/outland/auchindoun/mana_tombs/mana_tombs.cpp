@@ -257,7 +257,7 @@ struct npc_shaheenAI : public npc_escortAI, private DialogueHelper
             case NPC_ENGINEER_SHAEEN:        return m_creature;
             case NPC_SHADOW_LORD_XIRAXIS:    return m_creature->GetMap()->GetCreature(m_xiraxisGuid);
             default:
-                return NULL;
+                return nullptr;
         }
     }
 
@@ -292,9 +292,7 @@ bool QuestAccept_npc_shaheen(Player* pPlayer, Creature* pCreature, const Quest* 
 
 void AddSC_mana_tombs()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_shaheen";
     pNewScript->GetAI = &GetAI_npc_shaheen;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_shaheen;

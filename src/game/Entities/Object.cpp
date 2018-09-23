@@ -43,7 +43,7 @@
 
 #include "Entities/CPlayer.h"
 
-Object::Object(): m_updateFlag(0)
+Object::Object(): m_updateFlag(0), m_itsNewObject(false)
 {
     m_objectTypeId      = TYPEID_OBJECT;
     m_objectType        = TYPEMASK_OBJECT;
@@ -113,10 +113,10 @@ void Object::SendForcedObjectUpdate()
     RemoveFromClientUpdateList();
 
     WorldPacket packet;                                     // here we allocate a std::vector with a size of 0x10000
-    for (UpdateDataMapType::iterator iter = update_players.begin(); iter != update_players.end(); ++iter)
+    for (auto& update_player : update_players)
     {
-        iter->second.BuildPacket(packet);
-        iter->first->GetSession()->SendPacket(packet);
+        update_player.second.BuildPacket(packet);
+        update_player.first->GetSession()->SendPacket(packet);
         packet.clear();                                     // clean the string
     }
 }
@@ -527,7 +527,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                         {
                             // creature is not in combat so its not tapped
                             dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
-                            //sLog.outString(">> %s is not in combat so not tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                            //sLog.outString(">> %s is not in combat so not tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
                         }
                     }
                     else
@@ -537,13 +537,13 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                         {
                             // creature is dead and this player can loot it
                             dynflagsValue = dynflagsValue | UNIT_DYNFLAG_LOOTABLE;
-                            //sLog.outString(">> %s is lootable for %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                            //sLog.outString(">> %s is lootable for %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
                         }
                         else
                         {
                             // creature is dead but this player cannot loot it
                             dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
-                            //sLog.outString(">> %s is not lootable for %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                            //sLog.outString(">> %s is not lootable for %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
                         }
 
                         // as creature is died we have to manage tap flags
@@ -557,13 +557,13 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                         {
                             // creature is in combat or died and tapped by this player
                             dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
-                            //sLog.outString(">> %s is tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                            //sLog.outString(">> %s is tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
                         }
                         else
                         {
                             // creature is in combat or died but not tapped by this player
                             dynflagsValue = dynflagsValue | UNIT_DYNFLAG_TAPPED;
-                            //sLog.outString(">> %s is not tapped by %s", this->GetObjectGuid().GetString().c_str(), target->GetObjectGuid().GetString().c_str());
+                            //sLog.outString(">> %s is not tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
                         }
                     }
 
@@ -673,7 +673,7 @@ bool Object::LoadValues(const char* data)
     int index;
     for (iter = tokens.begin(), index = 0; index < m_valuesCount; ++iter, ++index)
     {
-        m_uint32Values[index] = std::stoul((*iter).c_str());
+        m_uint32Values[index] = std::stoul(*iter);
     }
 
     return true;
@@ -1478,13 +1478,11 @@ void WorldObject::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap 
 
 void WorldObject::MovePositionToFirstCollision(WorldLocation &pos, float dist, float angle)
 {
-    float destX, destY, destZ, ground, floor;
-
-    destX = pos.coord_x + dist * cos(angle);
-    destY = pos.coord_y + dist * sin(angle);
-    ground = GetMap()->GetTerrain()->GetHeightStatic(destX, destY, MAX_HEIGHT, true);
-    floor = GetMap()->GetTerrain()->GetHeightStatic(destX, destY, pos.coord_z, true);
-    destZ = fabs(ground - pos.coord_z) <= fabs(floor - pos.coord_z) ? ground : floor;
+    float destX = pos.coord_x + dist * cos(angle);
+    float destY = pos.coord_y + dist * sin(angle);
+    float ground = GetMap()->GetTerrain()->GetHeightStatic(destX, destY, MAX_HEIGHT, true);
+    float floor = GetMap()->GetTerrain()->GetHeightStatic(destX, destY, pos.coord_z, true);
+    float destZ = fabs(ground - pos.coord_z) <= fabs(floor - pos.coord_z) ? ground : floor;
 
     bool colPoint = GetMap()->GetHitPosition(pos.coord_x, pos.coord_y, pos.coord_z + 0.5f, destX, destY, destZ, -0.5f);
 
@@ -1530,7 +1528,7 @@ float WorldObject::GetCombinedCombatReach(WorldObject const* pVictim, bool forMe
 float WorldObject::GetCombinedCombatReach(bool forMeleeRange, float flat_mod) const
 {
     // The measured values show BASE_MELEE_OFFSET in (1.3224, 1.342)
-    float reach = GetCombatReach() + 
+    float reach = GetCombatReach() +
         BASE_MELEERANGE_OFFSET + flat_mod;
 
     if (forMeleeRange && reach < ATTACK_DISTANCE)
@@ -1843,10 +1841,8 @@ namespace MaNGOS
                 if (u == i_searcher || u == &i_object)
                     return;
 
-                float x, y;
-
-                x = u->GetPositionX();
-                y = u->GetPositionY();
+                float x = u->GetPositionX();
+                float y = u->GetPositionY();
 
                 add(u, x, y);
             }
@@ -2102,9 +2098,9 @@ struct WorldObjectChangeAccumulator
 
     void Visit(CameraMapType& m)
     {
-        for (CameraMapType::iterator iter = m.begin(); iter != m.end(); ++iter)
+        for (auto& iter : m)
         {
-            Player* owner = iter->getSource()->GetOwner();
+            Player* owner = iter.getSource()->GetOwner();
             if (owner != &i_object && owner->HaveAtClient(&i_object))
                 i_object.BuildUpdateDataForPlayer(owner, i_updateDatas);
         }
@@ -2192,9 +2188,7 @@ bool WorldObject::HasGCD(SpellEntry const* spellEntry) const
     if (spellEntry)
     {
         auto gcdItr = m_GCDCatMap.find(spellEntry->StartRecoveryCategory);
-        if (gcdItr != m_GCDCatMap.end())
-            return true;
-        return false;
+        return gcdItr != m_GCDCatMap.end();
     }
 
     return !m_GCDCatMap.empty();
@@ -2246,9 +2240,8 @@ bool WorldObject::CheckLockout(SpellSchoolMask schoolMask) const
     return false;
 }
 
-bool WorldObject::GetExpireTime(SpellEntry const& spellEntry, TimePoint& expireTime, bool& isPermanent)
+bool WorldObject::GetExpireTime(SpellEntry const& spellEntry, TimePoint& expireTime, bool& isPermanent) const
 {
-    TimePoint resultExpireTime;
     auto spellItr = m_cooldownMap.FindBySpellId(spellEntry.Id);
     if (spellItr != m_cooldownMap.end())
     {
@@ -2279,11 +2272,11 @@ bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const
     // overwrite category by provided category in item prototype during item cast if need
     if (itemProto)
     {
-        for (int idx = 0; idx < MAX_ITEM_PROTO_SPELLS; ++idx)
+        for (const auto& Spell : itemProto->Spells)
         {
-            if (itemProto->Spells[idx].SpellId == spellEntry.Id)
+            if (Spell.SpellId == spellEntry.Id)
             {
-                spellCategory = itemProto->Spells[idx].SpellCategory;
+                spellCategory = Spell.SpellCategory;
                 break;
             }
         }
@@ -2435,7 +2428,6 @@ void WorldObject::PrintCooldownList(ChatHandler& chat) const
 
     for (auto& lockoutItr : m_lockoutMap)
     {
-        SpellSchoolMask lockoutSchoolMask = SpellSchoolMask(1 << lockoutItr.first);
         std::stringstream cdLine;
         std::stringstream durationStr;
         auto& cdData = lockoutItr.second;

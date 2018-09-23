@@ -401,7 +401,7 @@ struct boss_felmystAI : public ScriptedAI
                                     return;
 
                                 // select the side on which we want to fly
-                                m_bIsLeftSide = urand(0, 1) ? true : false;
+                                m_bIsLeftSide = urand(0, 1) != 0;
                                 m_uiCorruptionCount = 0;
                                 m_uiSubPhase = SUBPHASE_BREATH_PREPARE;
                                 if (Creature* pTrigger = m_pInstance->GetSingleCreatureFromStorage(m_bIsLeftSide ? NPC_FLIGHT_TRIGGER_LEFT : NPC_FLIGHT_TRIGGER_RIGHT))
@@ -495,9 +495,7 @@ UnitAI* GetAI_npc_demonic_vapor(Creature* pCreature)
 
 void AddSC_boss_felmyst()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_felmyst";
     pNewScript->GetAI = &GetAI_boss_felmyst;
     pNewScript->RegisterSelf();

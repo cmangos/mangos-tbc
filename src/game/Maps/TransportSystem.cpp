@@ -45,7 +45,7 @@ TransportBase::TransportBase(WorldObject* owner) :
 
 TransportBase::~TransportBase()
 {
-    MANGOS_ASSERT(m_passengers.size() == 0);
+    MANGOS_ASSERT(m_passengers.empty());
 }
 
 // Update every now and then (after some change of transporter's position)

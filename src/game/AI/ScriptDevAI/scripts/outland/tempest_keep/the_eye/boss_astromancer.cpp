@@ -317,8 +317,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                     // Do nothing more, if phase switched
                     return;
                 }
-                else
-                    m_uiSplitTimer -= uiDiff;
+                m_uiSplitTimer -= uiDiff;
 
                 DoMeleeAttackIfReady();
                 break;
@@ -472,9 +471,7 @@ UnitAI* GetAI_boss_high_astromancer_solarian(Creature* pCreature)
 
 void AddSC_boss_high_astromancer_solarian()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_high_astromancer_solarian";
     pNewScript->GetAI = &GetAI_boss_high_astromancer_solarian;
     pNewScript->RegisterSelf();

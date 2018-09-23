@@ -3,7 +3,7 @@
 #####################################
 
 [MangosdConf]
-ConfVersion=2018060601
+ConfVersion=2018092101
 
 ###################################################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -62,9 +62,9 @@ ConfVersion=2018060601
 RealmID = 1
 DataDir = "."
 LogsDir = ""
-LoginDatabaseInfo     = "127.0.0.1;3306;mangos;mangos;realmd"
-WorldDatabaseInfo     = "127.0.0.1;3306;mangos;mangos;mangos"
-CharacterDatabaseInfo = "127.0.0.1;3306;mangos;mangos;characters"
+LoginDatabaseInfo     = "127.0.0.1;3306;mangos;mangos;tbcrealmd"
+WorldDatabaseInfo     = "127.0.0.1;3306;mangos;mangos;tbcmangos"
+CharacterDatabaseInfo = "127.0.0.1;3306;mangos;mangos;tbccharacters"
 LoginDatabaseConnections = 1
 WorldDatabaseConnections = 1
 CharacterDatabaseConnections = 1
@@ -940,6 +940,12 @@ TalentsInspecting = 1
 #        Default: 1 (show)
 #                 0 (not show)
 #
+#    Corpse.AllowAllItemsShowInMasterLoot
+#        In master loot mode every one can see the loot content under or over treshold
+#        Only the master loot can still distrube it
+#                 1 (show)
+#        Default: 0 (not show)
+#
 #    Corpse.Decay.NORMAL
 #    Corpse.Decay.RARE
 #    Corpse.Decay.ELITE
@@ -1007,6 +1013,7 @@ CreatureFamilyAssistanceDelay = 1500
 CreatureFamilyFleeDelay = 7000
 WorldBossLevelDiff = 3
 Corpse.EmptyLootShow = 1
+Corpse.AllowAllItemsShowInMasterLoot = 1
 Corpse.Decay.NORMAL = 300
 Corpse.Decay.RARE = 900
 Corpse.Decay.ELITE = 600

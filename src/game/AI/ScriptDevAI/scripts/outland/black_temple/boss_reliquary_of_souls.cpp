@@ -212,7 +212,7 @@ struct boss_reliquary_of_soulsAI : public Scripted_NoMovementAI
         {
             case NPC_ESSENCE_SUFFERING:
                 DoScriptText(SUFF_SAY_AFTER, pSummoned);
-                m_uiPhase = PHASE_2_DESIRE;;
+                m_uiPhase = PHASE_2_DESIRE;
                 break;
             case NPC_ESSENCE_DESIRE:
                 DoScriptText(DESI_SAY_AFTER, pSummoned);
@@ -685,9 +685,7 @@ UnitAI* GetAI_npc_enslaved_soul(Creature* pCreature)
 
 void AddSC_boss_reliquary_of_souls()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_reliquary_of_souls";
     pNewScript->GetAI = &GetAI_boss_reliquary_of_souls;
     pNewScript->RegisterSelf();

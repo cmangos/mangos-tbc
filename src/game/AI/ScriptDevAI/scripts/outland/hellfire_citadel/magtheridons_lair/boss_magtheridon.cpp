@@ -448,7 +448,7 @@ struct go_manticron_cubeAI : public GameObjectAI
     ObjectGuid m_lastUser;
 
     void SetManticronCubeUser(ObjectGuid user) { m_lastUser = user; }
-    Player* GetManticronCubeLastUser() { return m_go->GetMap()->GetPlayer(m_lastUser); }
+    Player* GetManticronCubeLastUser() const { return m_go->GetMap()->GetPlayer(m_lastUser); }
 };
 
 GameObjectAI* GetAIgo_manticron_cube(GameObject* go)
@@ -541,9 +541,7 @@ UnitAI* GetAI_mob_abyssalAI(Creature* pCreature)
 
 void AddSC_boss_magtheridon()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_magtheridon";
     pNewScript->GetAI = &GetAI_boss_magtheridon;
     pNewScript->RegisterSelf();

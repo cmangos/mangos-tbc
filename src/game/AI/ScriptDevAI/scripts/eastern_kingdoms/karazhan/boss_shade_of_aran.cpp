@@ -160,18 +160,18 @@ struct boss_aranAI : public ScriptedAI
 
         m_attackDistance        = 100.f;
 
-        for (uint32 i = 0; i < ARAN_ACTION_MAX; ++i)
-            m_actionReadyStatus[i] = false;
+        for (bool& m_actionReadyStatu : m_actionReadyStatus)
+            m_actionReadyStatu = false;
 
         m_actionReadyStatus[ARAN_ACTION_PRIMARY_SPELL] = true;
 
-        for (uint32 i = 0; i < NORMAL_SPELL_COUNT; ++i)
-            m_normalSpellCooldown[i] = 0;
+        for (unsigned int& i : m_normalSpellCooldown)
+            i = 0;
 
         SetCombatMovement(true);
     }
 
-    uint32 GetNormalSpellId(uint32 index)
+    uint32 GetNormalSpellId(uint32 index) const
     {
         switch (index)
         {
@@ -182,7 +182,7 @@ struct boss_aranAI : public ScriptedAI
         }
     }
 
-    uint32 GetNormalSpellCooldown(uint32 spellId)
+    uint32 GetNormalSpellCooldown(uint32 spellId) const
     {
         switch (spellId)
         {
@@ -330,7 +330,7 @@ struct boss_aranAI : public ScriptedAI
                         }
                         case ARAN_ACTION_BERSERK:
                         {
-                            for (uint8 i = 0; i < MAX_SHADOWS_OF_ARAN; ++i)
+                            for (uint8 j = 0; j < MAX_SHADOWS_OF_ARAN; ++j)
                                 m_creature->SummonCreature(NPC_SHADOW_OF_ARAN, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 5000);
 
                             DoScriptText(SAY_TIMEOVER, m_creature);
@@ -415,29 +415,26 @@ struct boss_aranAI : public ScriptedAI
 
                             m_choiceVector.clear();
 
-                            for (uint32 i = 0; i < NORMAL_SPELL_COUNT; ++i)
+                            for (uint32 j = 0; j < NORMAL_SPELL_COUNT; ++j)
                             {
-                                uint32 spellId = GetNormalSpellId(i);
-                                if (m_normalSpellCooldown[i] == 0 && m_creature->IsSpellReady(spellId))
-                                    m_choiceVector.push_back(i);
+                                uint32 spellId = GetNormalSpellId(j);
+                                if (m_normalSpellCooldown[j] == 0 && m_creature->IsSpellReady(spellId))
+                                    m_choiceVector.push_back(j);
                             }
 
-                            if (m_choiceVector.size() == 0)
+                            if (m_choiceVector.empty())
                             {
                                 m_attackDistance = 0; // go into melee range
                                 DoStartMovement(m_creature->getVictim());
                                 return;
                             }
-                            else
-                            {
-                                uint32 currentSpellIndex = urand(0, m_choiceVector.size() - 1);
-                                uint32 currentSpellId = GetNormalSpellId(currentSpellIndex);
-                                DoCastSpellIfCan(pTarget, currentSpellId);
-                                m_normalSpellCooldown[currentSpellIndex] = GetNormalSpellCooldown(currentSpellId);
-                                m_attackDistance = 100.f;
-                                DoStartMovement(m_creature->getVictim());
-                                return;
-                            }                            
+                            uint32 currentSpellIndex = urand(0, m_choiceVector.size() - 1);
+                            uint32 currentSpellId = GetNormalSpellId(currentSpellIndex);
+                            DoCastSpellIfCan(pTarget, currentSpellId);
+                            m_normalSpellCooldown[currentSpellIndex] = GetNormalSpellCooldown(currentSpellId);
+                            m_attackDistance = 100.f;
+                            DoStartMovement(m_creature->getVictim());
+                            return;
                         }
                     }
                 }
@@ -541,14 +538,14 @@ struct boss_aranAI : public ScriptedAI
                 m_uiBerserkTimer -= uiDiff;
         }
 
-        for (uint32 i = 0; i < NORMAL_SPELL_COUNT; ++i)
+        for (unsigned int& i : m_normalSpellCooldown)
         {
-            if (m_normalSpellCooldown[i])
+            if (i)
             {
-                if (m_normalSpellCooldown[i] <= uiDiff)
-                    m_normalSpellCooldown[i] = 0;
+                if (i <= uiDiff)
+                    i = 0;
                 else
-                    m_normalSpellCooldown[i] -= uiDiff;
+                    i -= uiDiff;
             }
         }
 
@@ -582,9 +579,7 @@ UnitAI* GetAI_npc_shade_of_aran_blizzard(Creature* pCreature)
 
 void AddSC_boss_shade_of_aran()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_shade_of_aran";
     pNewScript->GetAI = &GetAI_boss_aran;
     pNewScript->RegisterSelf();

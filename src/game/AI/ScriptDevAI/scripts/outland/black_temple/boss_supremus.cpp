@@ -163,15 +163,15 @@ struct boss_supremusAI : public ScriptedAI
             pSummoned->CastSpell(pSummoned, SPELL_VOLCANIC_ERUPTION_VOLCANO, TRIGGERED_NONE, nullptr, nullptr, m_creature->GetObjectGuid());
     }
 
-    Unit* GetHatefulStrikeTarget()
+    Unit* GetHatefulStrikeTarget() const
     {
         uint32 uiHealth = 0;
         Unit* pTarget = nullptr;
 
         ThreatList const& tList = m_creature->getThreatManager().getThreatList();
-        for (ThreatList::const_iterator iter = tList.begin(); iter != tList.end(); ++iter)
+        for (auto iter : tList)
         {
-            Unit* pUnit = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid());
+            Unit* pUnit = m_creature->GetMap()->GetUnit(iter->getUnitGuid());
 
             if (pUnit && m_creature->CanReachWithMeleeAttack(pUnit))
             {
@@ -321,9 +321,7 @@ UnitAI* GetAI_npc_volcano(Creature* pCreature)
 
 void AddSC_boss_supremus()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_supremus";
     pNewScript->GetAI = &GetAI_boss_supremus;
     pNewScript->RegisterSelf();

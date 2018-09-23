@@ -179,7 +179,7 @@ void WaypointMovementGenerator<Creature>::StartMove(Creature& creature)
 
     creature.addUnitState(UNIT_STAT_ROAMING_MOVE);
 
-    WaypointNode const& nextNode = currPoint->second;;
+    WaypointNode const& nextNode = currPoint->second;
     Movement::MoveSplineInit init(creature);
     init.MoveTo(nextNode.x, nextNode.y, nextNode.z, true);
 
@@ -375,7 +375,33 @@ bool FlightPathMovementGenerator::Update(Player& player, const uint32& /*diff*/)
     // We are waiting for spline to complete at this point
     if (movement)
         return true;
-    else if (player.IsMounted())
+    if (player.IsMounted())
+        player.OnTaxiFlightSplineEnd();
+
+    // Load and execute the spline
+    if (player.OnTaxiFlightSplineUpdate())
+    {
+        auto nodes = player.GetTaxiPathSpline();
+        auto offset = player.GetTaxiSplinePathOffset();
+        Movement::MoveSplineInit init(player);
+        Movement::PointsArray& path = init.Path();
+        for (auto i = offset; i < nodes.size(); ++i)
+        {
+            auto node = nodes.at(i);
+            path.push_back({ node->x, node->y, node->z });
+        }
+        init.SetFirstPointId(int32(offset));
+        init.SetFly();
+        init.SetVelocity(PLAYER_FLIGHT_SPEED);
+        init.Launch();
+        return true;
+    }
+    return false;
+}
+
+bool FlightPathMovementGenerator::Resume(Player& player) const
+{
+    if (player.IsMounted())
         player.OnTaxiFlightSplineEnd();
 
     // Load and execute the spline

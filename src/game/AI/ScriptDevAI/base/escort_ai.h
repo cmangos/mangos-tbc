@@ -36,7 +36,7 @@ struct npc_escortAI : public ScriptedAI
         void UpdateAI(const uint32 diff) override;               // the "internal" update, calls UpdateEscortAI()
         virtual void UpdateEscortAI(const uint32 diff);          // used when it's needed to add code in update (abilities, scripted events, etc)
 
-        void MovementInform(uint32 movementType, uint32 data) override;
+        void MovementInform(uint32 moveType, uint32 pointId) override;
 
         virtual void WaypointReached(uint32 pointId) = 0;
         virtual void WaypointStart(uint32 /*pointId*/) {}
@@ -46,7 +46,7 @@ struct npc_escortAI : public ScriptedAI
         void SetRun(bool run = true);
         void SetEscortPaused(bool paused);
 
-        bool HasEscortState(uint32 escortState) const { return !!(m_escortState & escortState); }
+        bool HasEscortState(uint32 escortState) const { return (m_escortState & escortState) != 0; }
 
         // update current point
         void SetCurrentWaypoint(uint32 pointId);
@@ -55,7 +55,7 @@ struct npc_escortAI : public ScriptedAI
 
         bool AssistPlayerInCombat(Unit* who) override;
     protected:
-        Player* GetPlayerForEscort() { return m_creature->GetMap()->GetPlayer(m_playerGuid); }
+        Player* GetPlayerForEscort() const { return m_creature->GetMap()->GetPlayer(m_playerGuid); }
         bool IsSD2EscortMovement(uint32 moveType) const;
         virtual void JustStartedEscort() {}
 

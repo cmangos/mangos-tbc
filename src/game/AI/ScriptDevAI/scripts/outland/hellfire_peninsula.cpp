@@ -762,7 +762,7 @@ struct npc_anchorite_baradaAI : public ScriptedAI, private DialogueHelper
         ScriptedAI::EnterEvadeMode();
     }
 
-    bool IsExorcismComplete() { return m_bEventComplete; }
+    bool IsExorcismComplete() const { return m_bEventComplete; }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
@@ -1007,7 +1007,7 @@ bool GossipHello_npc_colonel_jules(Player* pPlayer, Creature* pCreature)
         return true;
     }
     // quest active but not complete
-    else if (pPlayer->IsCurrentQuest(QUEST_ID_EXORCISM, 1))
+    if (pPlayer->IsCurrentQuest(QUEST_ID_EXORCISM, 1))
     {
         Creature* pAnchorite = GetClosestCreatureWithEntry(pCreature, NPC_ANCHORITE_BARADA, 15.0f);
         if (!pAnchorite)
@@ -1371,7 +1371,7 @@ struct npc_danath_trollbaneAI : public ScriptedAI
     void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*miscValue*/) override
     {
         if (eventType == AI_EVENT_START_EVENT && pSender == m_creature) // sanity check
-            if (m_bYelling == false) // don't override anything if yelling already...
+            if (!m_bYelling) // don't override anything if yelling already...
             {
                 m_uiYell1DelayRemaining = YELL_1_DELAY;
                 m_uiYell2DelayRemaining = YELL_2_DELAY;
@@ -1455,7 +1455,7 @@ struct npc_nazgrelAI : public ScriptedAI
     {
         if (eventType == AI_EVENT_START_EVENT && pSender == m_creature) // sanity check
         {
-            if (m_bYelling == false) // don't override anything if yelling already...
+            if (!m_bYelling) // don't override anything if yelling already...
             {
                 m_uiYell1DelayRemaining = YELL_1_DELAY;
                 m_uiYell2DelayRemaining = YELL_2_DELAY;
@@ -1482,9 +1482,7 @@ UnitAI* GetAI_nazgrel(Creature* pCreature)
 
 void AddSC_hellfire_peninsula()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_aeranas";
     pNewScript->GetAI = &GetAI_npc_aeranas;
     pNewScript->RegisterSelf();

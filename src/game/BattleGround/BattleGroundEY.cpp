@@ -126,8 +126,8 @@ void BattleGroundEY::EndBattleGround(Team winner)
     RewardHonorToTeam(GetBonusHonorFromKill(1), HORDE);
 
     // disable capture points
-    for (uint8 i = 0; i < EY_NODES_MAX; ++i)
-        if (GameObject* go = GetBgMap()->GetGameObject(m_towers[i]))
+    for (auto m_tower : m_towers)
+        if (GameObject* go = GetBgMap()->GetGameObject(m_tower))
             go->SetLootState(GO_JUST_DEACTIVATED);
 
     BattleGround::EndBattleGround(winner);
@@ -540,8 +540,6 @@ WorldSafeLocsEntry const* BattleGroundEY::GetClosestGraveYard(Player* player)
         default:       return nullptr;
     }
 
-    float distance, nearestDistance;
-
     WorldSafeLocsEntry const* entry = sWorldSafeLocsStore.LookupEntry(g_id);
     WorldSafeLocsEntry const* nearestEntry = entry;
 
@@ -555,9 +553,8 @@ WorldSafeLocsEntry const* BattleGroundEY::GetClosestGraveYard(Player* player)
     float plr_y = player->GetPositionY();
     float plr_z = player->GetPositionZ();
 
-
-    distance = (entry->x - plr_x) * (entry->x - plr_x) + (entry->y - plr_y) * (entry->y - plr_y) + (entry->z - plr_z) * (entry->z - plr_z);
-    nearestDistance = distance;
+    float distance = (entry->x - plr_x) * (entry->x - plr_x) + (entry->y - plr_y) * (entry->y - plr_y) + (entry->z - plr_z) * (entry->z - plr_z);
+    float nearestDistance = distance;
 
     for (uint8 i = 0; i < EY_NODES_MAX; ++i)
     {

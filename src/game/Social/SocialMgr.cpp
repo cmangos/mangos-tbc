@@ -130,12 +130,12 @@ void PlayerSocial::SendSocialList()
     data << uint32(7);                                      // unk flag (0x1, 0x2, 0x4), 0x7 if it include ignore list
     data << uint32(size);                                   // friends count
 
-    for (PlayerSocialMap::iterator itr = m_playerSocialMap.begin(); itr != m_playerSocialMap.end(); ++itr)
+    for (auto& itr : m_playerSocialMap)
     {
-        FriendInfo& friendInfo = itr->second;
-        sSocialMgr.GetFriendInfo(plr, itr->first, friendInfo);
+        FriendInfo& friendInfo = itr.second;
+        sSocialMgr.GetFriendInfo(plr, itr.first, friendInfo);
 
-        data << ObjectGuid(HIGHGUID_PLAYER, itr->first);    // player guid
+        data << ObjectGuid(HIGHGUID_PLAYER, itr.first);    // player guid
         data << uint32(friendInfo.Flags);                  // player flag (0x1-friend?, 0x2-ignored?, 0x4-muted?)
         data << friendInfo.Note;                           // string note
         if (friendInfo.Flags & SOCIAL_FLAG_FRIEND)         // if IsFriend()
@@ -165,10 +165,7 @@ bool PlayerSocial::HasFriend(ObjectGuid friend_guid)
 bool PlayerSocial::HasIgnore(ObjectGuid ignore_guid)
 {
     PlayerSocialMap::const_iterator itr = m_playerSocialMap.find(ignore_guid.GetCounter());
-    if (itr != m_playerSocialMap.end())
-        return !!(itr->second.Flags & SOCIAL_FLAG_IGNORED);
-
-    return false;
+    return itr == m_playerSocialMap.end() ? false : (itr->second.Flags & SOCIAL_FLAG_IGNORED) != 0;
 }
 
 SocialMgr::SocialMgr()

@@ -130,8 +130,8 @@ struct boss_grandmaster_vorpilAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_VOID_PORTAL_A);
 
         // summon the other 4 portals
-        for (uint8 i = 0; i < MAX_PORTALS; ++i)
-            m_creature->SummonCreature(NPC_VOID_PORTAL, aVorpilLocation[i].m_fX, aVorpilLocation[i].m_fY, aVorpilLocation[i].m_fZ, 0.0f, TEMPSPAWN_CORPSE_DESPAWN, 0);
+        for (auto i : aVorpilLocation)
+            m_creature->SummonCreature(NPC_VOID_PORTAL, i.m_fX, i.m_fY, i.m_fZ, 0.0f, TEMPSPAWN_CORPSE_DESPAWN, 0);
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_VORPIL, IN_PROGRESS);
@@ -206,8 +206,7 @@ struct boss_grandmaster_vorpilAI : public ScriptedAI
 
                 return;                                     // Nothing more todo after the players had been teleported
             }
-            else
-                m_uiRainOfFireTimer -= uiDiff;
+            m_uiRainOfFireTimer -= uiDiff;
         }
 
         if (m_uiShadowBoltVolleyTimer < uiDiff)
@@ -321,9 +320,7 @@ UnitAI* GetAI_npc_void_traveler(Creature* pCreature)
 
 void AddSC_boss_grandmaster_vorpil()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_grandmaster_vorpil";
     pNewScript->GetAI = &GetAI_boss_grandmaster_vorpil;
     pNewScript->RegisterSelf();

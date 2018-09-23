@@ -43,11 +43,11 @@ void AddItemsSetItem(Player* player, Item* item)
 
     ItemSetEffect* eff = nullptr;
 
-    for (size_t x = 0; x < player->ItemSetEff.size(); ++x)
+    for (auto& x : player->ItemSetEff)
     {
-        if (player->ItemSetEff[x] && player->ItemSetEff[x]->setid == setid)
+        if (x && x->setid == setid)
         {
-            eff = player->ItemSetEff[x];
+            eff = x;
             break;
         }
     }
@@ -88,9 +88,9 @@ void AddItemsSetItem(Player* player, Item* item)
             continue;
 
         // new spell
-        for (uint32 y = 0; y < 8; ++y)
+        for (auto& spell : eff->spells)
         {
-            if (!eff->spells[y])                            // free slot
+            if (!spell)                            // free slot
             {
                 SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(set->spells[x]);
                 if (!spellInfo)
@@ -101,7 +101,7 @@ void AddItemsSetItem(Player* player, Item* item)
 
                 // spell casted only if fit form requirement, in other case will casted at form change
                 player->ApplyEquipSpell(spellInfo, nullptr, true);
-                eff->spells[y] = spellInfo;
+                spell = spellInfo;
                 break;
             }
         }
@@ -146,13 +146,13 @@ void RemoveItemsSetItem(Player* player, ItemPrototype const* proto)
         if (set->items_to_triggerspell[x] <= eff->item_count)
             continue;
 
-        for (uint32 z = 0; z < 8; ++z)
+        for (auto& spell : eff->spells)
         {
-            if (eff->spells[z] && eff->spells[z]->Id == set->spells[x])
+            if (spell && spell->Id == set->spells[x])
             {
                 // spell can be not active if not fit form requirement
-                player->ApplyEquipSpell(eff->spells[z], nullptr, false);
-                eff->spells[z] = nullptr;
+                player->ApplyEquipSpell(spell, nullptr, false);
+                spell = nullptr;
                 break;
             }
         }
@@ -597,16 +597,18 @@ uint32 Item::GetSkill() const
     switch (proto->Class)
     {
         case ITEM_CLASS_WEAPON:
+        {
             if (proto->SubClass >= MAX_ITEM_SUBCLASS_WEAPON)
                 return 0;
-            else
-                return item_weapon_skills[proto->SubClass];
+            return item_weapon_skills[proto->SubClass];
+        }
 
         case ITEM_CLASS_ARMOR:
+        {
             if (proto->SubClass >= MAX_ITEM_SUBCLASS_ARMOR)
                 return 0;
-            else
-                return item_armor_skills[proto->SubClass];
+            return item_armor_skills[proto->SubClass];
+        }
 
         default:
             return 0;
@@ -678,18 +680,15 @@ int32 Item::GenerateItemRandomPropertyId(uint32 item_id)
         return random_id->ID;
     }
     // Random Suffix case
-    else
+    uint32 randomPropId = GetItemEnchantMod(itemProto->RandomSuffix);
+    ItemRandomSuffixEntry const* random_id = sItemRandomSuffixStore.LookupEntry(randomPropId);
+    if (!random_id)
     {
-        uint32 randomPropId = GetItemEnchantMod(itemProto->RandomSuffix);
-        ItemRandomSuffixEntry const* random_id = sItemRandomSuffixStore.LookupEntry(randomPropId);
-        if (!random_id)
-        {
-            sLog.outErrorDb("Enchantment id #%u used but it doesn't have records in sItemRandomSuffixStore.", randomPropId);
-            return 0;
-        }
-
-        return -int32(random_id->ID);
+        sLog.outErrorDb("Enchantment id #%u used but it doesn't have records in sItemRandomSuffixStore.", randomPropId);
+        return 0;
     }
+
+    return -int32(random_id->ID);
 }
 
 void Item::SetItemRandomProperties(int32 randomPropId)
@@ -1000,7 +999,7 @@ bool Item::GemsFitSockets() const
             }
         }
 
-        fits &= (GemColor & SocketColor) ? true : false;
+        fits &= (GemColor & SocketColor) != 0;
     }
     return fits;
 }
@@ -1073,8 +1072,7 @@ Item* Item::CreateItem(uint32 item, uint32 count, Player const* player, uint32 r
 
             return pItem;
         }
-        else
-            delete pItem;
+        delete pItem;
     }
     return nullptr;
 }

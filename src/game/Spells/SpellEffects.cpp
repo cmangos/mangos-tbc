@@ -418,13 +418,13 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                 {
                     // for caster applied auras only
                     Unit::AuraList const& mPeriodic = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
-                    for (Unit::AuraList::const_iterator i = mPeriodic.begin(); i != mPeriodic.end(); ++i)
+                    for (auto i : mPeriodic)
                     {
-                        if ((*i)->GetCasterGuid() == m_caster->GetObjectGuid() &&
+                        if (i->GetCasterGuid() == m_caster->GetObjectGuid() &&
                                 // Immolate
-                                (*i)->GetSpellProto()->IsFitToFamily(SPELLFAMILY_WARLOCK, uint64(0x0000000000000004)))
+                                i->GetSpellProto()->IsFitToFamily(SPELLFAMILY_WARLOCK, uint64(0x0000000000000004)))
                         {
-                            unitTarget->RemoveAurasByCasterSpell((*i)->GetId(), m_caster->GetObjectGuid());
+                            unitTarget->RemoveAurasByCasterSpell(i->GetId(), m_caster->GetObjectGuid());
                             break;
                         }
                     }
@@ -464,14 +464,14 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                         Aura* poison = nullptr;
                         // Lookup for Deadly poison (only attacker applied)
                         Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
-                        for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                        for (auto aura : auras)
                         {
-                            if ((*itr)->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE &&
-                                    ((*itr)->GetSpellProto()->SpellFamilyFlags & uint64(0x10000)) &&
-                                    (*itr)->GetSpellProto()->SpellVisual == 5100 &&
-                                    (*itr)->GetCasterGuid() == m_caster->GetObjectGuid())
+                            if (aura->GetSpellProto()->SpellFamilyName == SPELLFAMILY_ROGUE &&
+                                    aura->GetSpellProto()->SpellFamilyFlags & uint64(0x10000) &&
+                                    aura->GetSpellProto()->SpellVisual == 5100 &&
+                                    aura->GetCasterGuid() == m_caster->GetObjectGuid())
                             {
-                                poison = *itr;
+                                poison = aura;
                                 break;
                             }
                         }
@@ -525,11 +525,11 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                     // Get stack of Holy Vengeance on the target added by caster
                     uint32 stacks = 0;
                     Unit::AuraList const& auras = unitTarget->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
-                    for (Unit::AuraList::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                    for (auto aura : auras)
                     {
-                        if (((*itr)->GetId() == 31803) && (*itr)->GetCasterGuid() == m_caster->GetObjectGuid())
+                        if ((aura->GetId() == 31803) && aura->GetCasterGuid() == m_caster->GetObjectGuid())
                         {
-                            stacks = (*itr)->GetStackAmount();
+                            stacks = aura->GetStackAmount();
                             break;
                         }
                     }
@@ -857,9 +857,9 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             {
                                 // Need remove self if Lightning Shield not active
                                 Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
-                                for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+                                for (const auto& aura : auras)
                                 {
-                                    SpellEntry const* spell = itr->second->GetSpellProto();
+                                    SpellEntry const* spell = aura.second->GetSpellProto();
                                     if (spell->SpellFamilyName == SPELLFAMILY_SHAMAN
                                         && spell->SpellFamilyFlags & uint64(0x0000000000000400))
                                         return;
@@ -1702,6 +1702,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         case 37867: spellId = 37868; break;
                         case 37892: spellId = 37893; break;
                         case 37894: spellId = 37895; break;
+                        default:
+                            return;
                     }
 
                     unitTarget->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
@@ -1824,6 +1826,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     switch (urand(0, 1))
                     {
                         case 0: spellId = 39241; break; // Summon Mature Bone Sifter
+                        default:
                         case 1: spellId = 39240; break; // Summon Sand Gnome
                     }
 
@@ -1840,9 +1843,10 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     {
                         case 0: spellId = 39248; break; // Summon Hai'Shulud
                         case 1: spellId = 39245; break; // Summon Mature Bone Sifter 2x
+                        default:
                         case 2: spellId = 39247; break; // Summon Sand Gnome 2x
                     }
-                    m_caster->CastSpell(unitTarget, 39248, TRIGGERED_OLD_TRIGGERED);
+                    m_caster->CastSpell(unitTarget, spellId, TRIGGERED_OLD_TRIGGERED);
 
                     ((Creature*)unitTarget)->ForcedDespawn();
                     return;
@@ -2541,6 +2545,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         {
             switch (m_spellInfo->Id)
             {
+                case 5229:                                  // Enrage
+                {
+                    int32 reductionMod = -27;
+                    if (m_caster->HasAura(9634)) // If in Dire Bear form only 16%
+                        reductionMod = -16;
+                    m_caster->CastCustomSpell(nullptr, 25503, &reductionMod, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
                 case 5420:                                  // Tree of Life passive
                 {
                     // Tree of Life area effect
@@ -4463,7 +4475,7 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
     spawnCreature->InitStatsForLevel(level);
 
     if (CharmInfo* charmInfo = spawnCreature->GetCharmInfo())
-        charmInfo->SetPetNumber(pet_number, spawnCreature->isControlled());
+        charmInfo->SetPetNumber(pet_number, (m_caster->GetTypeId() == TYPEID_PLAYER && spawnCreature->isControlled()));
 
     // spawnCreature->SetName("");                          // generated by client
 
@@ -5172,7 +5184,7 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     if (plr->IsPvP())
         pet->SetPvP(true);
 
-    pet->GetCharmInfo()->SetPetNumber(sObjectMgr.GeneratePetNumber(), true);
+    pet->GetCharmInfo()->SetPetNumber(sObjectMgr.GeneratePetNumber(), (m_caster->GetTypeId() == TYPEID_PLAYER));
 
     uint32 level = creatureTarget->getLevel();
     pet->InitStatsForLevel(level);
@@ -5331,7 +5343,7 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     {
         NewSummon->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
 
-        NewSummon->GetCharmInfo()->SetPetNumber(pet_number, true);
+        NewSummon->GetCharmInfo()->SetPetNumber(pet_number, (m_caster->GetTypeId() == TYPEID_PLAYER));
 
         // generate new name for summon pet
         NewSummon->SetName(sObjectMgr.GeneratePetName(petentry));
@@ -6536,7 +6548,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 38794:                                 // Murmur's Touch - Heroic
                 {
-                    std::list<Unit*> objectList;
+                    UnitList objectList;
                     MaNGOS::AnyFriendlyUnitInObjectRangeCheck check(unitTarget, nullptr, 100.f);
                     MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> searcher(objectList, check);
                     Cell::VisitAllObjects(unitTarget, searcher, 100.0f);
@@ -6858,14 +6870,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     uint32 itemtype;
                     uint32 rank = 0;
                     Unit::AuraList const& mDummyAuras = unitTarget->GetAurasByType(SPELL_AURA_DUMMY);
-                    for (Unit::AuraList::const_iterator i = mDummyAuras.begin(); i != mDummyAuras.end(); ++i)
+                    for (auto mDummyAura : mDummyAuras)
                     {
-                        if ((*i)->GetId() == 18692)
+                        if (mDummyAura->GetId() == 18692)
                         {
                             rank = 1;
                             break;
                         }
-                        else if ((*i)->GetId() == 18693)
+                        if (mDummyAura->GetId() == 18693)
                         {
                             rank = 2;
                             break;
@@ -6916,22 +6928,22 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                 // all seals have aura dummy
                 Unit::AuraList const& m_dummyAuras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
-                for (Unit::AuraList::const_iterator itr = m_dummyAuras.begin(); itr != m_dummyAuras.end(); ++itr)
+                for (auto m_dummyAura : m_dummyAuras)
                 {
-                    SpellEntry const* spellInfo = (*itr)->GetSpellProto();
+                    SpellEntry const* spellInfo = m_dummyAura->GetSpellProto();
 
                     // search seal (all seals have judgement's aura dummy spell id in 2 effect
-                    if (!spellInfo || !IsSealSpell((*itr)->GetSpellProto()) || (*itr)->GetEffIndex() != 2)
+                    if (!spellInfo || !IsSealSpell(m_dummyAura->GetSpellProto()) || m_dummyAura->GetEffIndex() != 2)
                         continue;
 
                     // must be calculated base at raw base points in spell proto, GetModifier()->m_value for S.Righteousness modified by SPELLMOD_DAMAGE
-                    spellId2 = (*itr)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_2);
+                    spellId2 = m_dummyAura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_2);
 
                     if (spellId2 <= 1)
                         continue;
 
                     // found, remove seal
-                    m_caster->RemoveAurasDueToSpell((*itr)->GetId());
+                    m_caster->RemoveAurasDueToSpell(m_dummyAura->GetId());
 
                     // Sanctified Judgement
                     Unit::AuraList const& m_auras = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
@@ -7890,8 +7902,6 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     if (!unitTarget || !m_caster)
         return;
 
-    float angle = unitTarget->GetAngle(m_caster) - unitTarget->GetOrientation();
-
     WorldLocation pos;
     unitTarget->GetFirstCollisionPosition(pos, unitTarget->GetCombatReach(), unitTarget->GetAngle(m_caster));
 
@@ -8077,8 +8087,7 @@ void Spell::EffectDispelMechanic(SpellEffectIndex eff_idx)
             unitTarget->RemoveAurasDueToSpell(spell->Id);
             if (Auras.empty())
                 break;
-            else
-                next = Auras.begin();
+            next = Auras.begin();
         }
     }
 }
@@ -8110,7 +8119,7 @@ void Spell::EffectSummonDeadPet(SpellEffectIndex /*eff_idx*/)
     pet->SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);
     pet->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
     pet->SetDeathState(ALIVE);
-    pet->clearUnitState(UNIT_STAT_ALL_STATE);
+    pet->clearUnitState(static_cast<uint32>(UNIT_STAT_ALL_STATE));
     pet->SetHealth(uint32(pet->GetMaxHealth() * (float(damage) / 100)));
 
     // _player->PetSpellInitialize(); // action bar not removed at death and not required send at revive
@@ -8377,9 +8386,7 @@ void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
     }
 
     Loot*& loot = itemTarget->loot;
-
-    if (loot)
-        delete loot;
+    delete loot;
 
     loot = new Loot(p_caster, itemTarget, LOOT_PROSPECTING);
 
@@ -8429,9 +8436,9 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
     // Create dispel mask by dispel type
     uint32 dispelMask  = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[eff_idx]));
     Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
-    for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
+    for (const auto& aura : auras)
     {
-        SpellAuraHolder* holder = itr->second;
+        SpellAuraHolder* holder = aura.second;
         if (holder && (1 << holder->GetSpellProto()->Dispel) & dispelMask)
         {
             // Need check for passive? this
@@ -8477,12 +8484,12 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
             data << uint32(m_spellInfo->Id);         // Dispell spell id
             data << uint8(0);                        // not used
             data << uint32(count);                   // count
-            for (SuccessList::iterator j = success_list.begin(); j != success_list.end(); ++j)
+            for (auto& j : success_list)
             {
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(j->first);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(j.first);
                 data << uint32(spellInfo->Id);       // Spell Id
                 data << uint8(0);                    // 0 - steals !=0 transfers
-                unitTarget->RemoveAurasDueToSpellBySteal(spellInfo->Id, j->second, m_caster);
+                unitTarget->RemoveAurasDueToSpellBySteal(spellInfo->Id, j.second, m_caster);
             }
             m_caster->SendMessageToSet(data, true);
         }

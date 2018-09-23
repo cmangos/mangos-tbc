@@ -17,6 +17,7 @@
  */
 
 #include <zlib.h>
+#include <utility>
 
 #include "Common.h"
 #include "Tools/Language.h"
@@ -488,7 +489,7 @@ void WorldSession::HandleAddFriendOpcodeCallBack(QueryResult* result, uint32 acc
                 DEBUG_LOG("WORLD: %s's friend list is full.", player->GetName());
             }
 
-            player->GetSocial()->SetFriendNote(friendGuid, friendNote);
+            player->GetSocial()->SetFriendNote(friendGuid, std::move(friendNote));
         }
     }
 
@@ -757,7 +758,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
     // ghost resurrected at enter attempt to dungeon with corpse (including fail enter cases)
     if (!player->isAlive() && targetMapEntry->IsDungeon())
     {
-        int32 corpseMapId = 0;
+        uint32 corpseMapId = 0;
         if (Corpse* corpse = player->GetCorpse())
             corpseMapId = corpse->GetMapId();
 

@@ -430,12 +430,12 @@ struct npc_letollAI : public npc_escortAI
     {
         uint32 uiCount = 0;
 
-        for (std::list<Creature*>::iterator itr = m_lResearchersList.begin(); itr != m_lResearchersList.end(); ++itr)
+        for (auto& itr : m_lResearchersList)
         {
             float fAngle = uiCount < MAX_RESEARCHER ? M_PI / MAX_RESEARCHER - (uiCount * 2 * M_PI / MAX_RESEARCHER) : 0.0f;
 
-            if ((*itr)->isAlive() && !(*itr)->isInCombat())
-                (*itr)->GetMotionMaster()->MoveFollow(m_creature, 2.5f, fAngle);
+            if (itr->isAlive() && !itr->isInCombat())
+                itr->GetMotionMaster()->MoveFollow(m_creature, 2.5f, fAngle);
 
             ++uiCount;
         }
@@ -447,7 +447,7 @@ struct npc_letollAI : public npc_escortAI
         {
             uint8 uiNum = 1;
 
-            for (std::list<Creature*>::iterator itr = m_lResearchersList.begin(); itr != m_lResearchersList.end(); ++itr)
+            for (auto& itr : m_lResearchersList)
             {
                 if (uiListNum && uiListNum != uiNum)
                 {
@@ -455,8 +455,8 @@ struct npc_letollAI : public npc_escortAI
                     continue;
                 }
 
-                if ((*itr)->isAlive() && (*itr)->IsWithinDistInMap(m_creature, 20.0f))
-                    return (*itr);
+                if (itr->isAlive() && itr->IsWithinDistInMap(m_creature, 20.0f))
+                    return itr;
             }
         }
 
@@ -1186,8 +1186,7 @@ struct npc_avatar_of_terokkAI : public ScriptedAI
             m_creature->CastSpell(m_creature->getVictim(), SPELL_FEATHER_BURST, TRIGGERED_NONE);
             return;
         }
-        else
-            m_uiAbilityTimer -= uiDiff;
+        m_uiAbilityTimer -= uiDiff;
         DoMeleeAttackIfReady();
     }
 };
@@ -1219,8 +1218,7 @@ struct npc_minion_of_terokkAI : public ScriptedAI
             m_creature->CastSpell(m_creature->getVictim(), SPELL_TERRIFYING_SCREECH, TRIGGERED_NONE);
             return;
         }
-        else
-            m_uiAbilityTimer -= uiDiff;
+        m_uiAbilityTimer -= uiDiff;
         DoMeleeAttackIfReady();
     }
 };
@@ -1278,7 +1276,7 @@ struct npc_draenei_tomb_guardian : public ScriptedAI
 
         // Despawn Bone Wastes - Orb Waypoint 01, Bone Wastes - Event Trigger B, Nether Cloud
         m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_EVENT_RESET, m_creature, m_creature);
-        
+
         // Despawn Vengeful Harbinger and Vengeful Draenei
         for (ObjectGuid &guid : summons)
             if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
@@ -1308,6 +1306,8 @@ struct npc_draenei_tomb_guardian : public ScriptedAI
             {
                 ResetEvent();
             }
+            default:
+                break;
         }
     }
 
@@ -1353,7 +1353,7 @@ struct npc_vengeful_harbinger : public ScriptedAI
     uint32 eventResetTimer;
     ObjectGuid m_playerGuid;
 
-    void Reset() override 
+    void Reset() override
     {
         eventResetTimer = EVENT_RESET_TIMER;
     }
@@ -1430,7 +1430,7 @@ struct npc_vengeful_harbinger : public ScriptedAI
             }
         }
         else
-            DoMeleeAttackIfReady();  
+            DoMeleeAttackIfReady();
     }
 
     void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
@@ -1463,9 +1463,7 @@ UnitAI* GetAI_npc_vengeful_harbinger(Creature* pCreature)
 
 void AddSC_terokkar_forest()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "mob_unkor_the_ruthless";
     pNewScript->GetAI = &GetAI_mob_unkor_the_ruthless;
     pNewScript->RegisterSelf();

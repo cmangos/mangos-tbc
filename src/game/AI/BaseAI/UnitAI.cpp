@@ -34,11 +34,11 @@ UnitAI::UnitAI(Unit* unit) :
     m_attackDistance(0.0f),
     m_attackAngle(0.0f),
     m_moveFurther(false),
+    m_visibilityDistance(VISIBLE_RANGE),
     m_combatMovementStarted(false),
     m_dismountOnAggro(true),
-    m_reactState(REACT_AGGRESSIVE),
     m_meleeEnabled(true),
-    m_visibilityDistance(VISIBLE_RANGE),
+    m_reactState(REACT_AGGRESSIVE),
     m_combatScriptHappening(false)
 {
 }
@@ -64,14 +64,19 @@ void UnitAI::MoveInLineOfSight(Unit* who)
     if (who->GetObjectGuid().IsCreature() && who->isInCombat())
         CheckForHelp(who, m_unit, 10.0);
 
-    if (m_unit->CanInitiateAttack() && who->isInAccessablePlaceFor(m_unit))
-    {
-        if (AssistPlayerInCombat(who))
-            return;
+    if (!m_unit->CanInitiateAttack())
+        return;
 
-        if (m_unit->CanAttackOnSight(who))
-            DetectOrAttack(who);
-    }
+    if (AssistPlayerInCombat(who))
+        return;
+
+    if (!m_unit->CanAttackOnSight(who))
+        return;
+
+    if (!who->isInAccessablePlaceFor(m_unit))
+        return;
+
+    DetectOrAttack(who);
 }
 
 void UnitAI::EnterEvadeMode()
@@ -136,8 +141,7 @@ CanCastResult UnitAI::CanCastSpell(Unit* target, const SpellEntry* spellInfo, bo
 
         return CAST_OK;
     }
-    else
-        return CAST_FAIL_OTHER;
+    return CAST_FAIL_OTHER;
 }
 
 CanCastResult UnitAI::DoCastSpellIfCan(Unit* target, uint32 spellId, uint32 castFlags, ObjectGuid originalCasterGUID) const
@@ -175,7 +179,7 @@ CanCastResult UnitAI::DoCastSpellIfCan(Unit* target, uint32 spellId, uint32 cast
             // Check if cannot cast spell
             if (!(castFlags & (CAST_FORCE_TARGET_SELF | CAST_FORCE_CAST)))
             {
-                CanCastResult castResult = CanCastSpell(target, spellInfo, !!(castFlags & CAST_TRIGGERED));
+                CanCastResult castResult = CanCastSpell(target, spellInfo, (castFlags & CAST_TRIGGERED) != 0);
 
                 if (castResult != CAST_OK)
                     return castResult;
@@ -203,14 +207,10 @@ CanCastResult UnitAI::DoCastSpellIfCan(Unit* target, uint32 spellId, uint32 cast
             caster->CastSpell(target, spellInfo, flags, nullptr, nullptr, originalCasterGUID);
             return CAST_OK;
         }
-        else
-        {
-            sLog.outErrorDb("DoCastSpellIfCan by %s attempt to cast spell %u but spell does not exist.", m_unit->GetObjectGuid().GetString().c_str(), spellId);
-            return CAST_FAIL_OTHER;
-        }
+        sLog.outErrorDb("DoCastSpellIfCan by %s attempt to cast spell %u but spell does not exist.", m_unit->GetGuidStr().c_str(), spellId);
+        return CAST_FAIL_OTHER;
     }
-    else
-        return CAST_FAIL_IS_CASTING;
+    return CAST_FAIL_IS_CASTING;
 }
 
 void UnitAI::AttackStart(Unit* who)
@@ -416,7 +416,7 @@ void UnitAI::DetectOrAttack(Unit* who)
     }
 }
 
-bool UnitAI::CanTriggerStealthAlert(Unit* who, float attackRadius)
+bool UnitAI::CanTriggerStealthAlert(Unit* who, float attackRadius) const
 {
     if (who->GetTypeId() != TYPEID_PLAYER)
         return false;
@@ -437,7 +437,7 @@ bool UnitAI::CanTriggerStealthAlert(Unit* who, float attackRadius)
 class AiDelayEventAround : public BasicEvent
 {
     public:
-        AiDelayEventAround(AIEventType eventType, ObjectGuid invokerGuid, Unit& owner, std::list<Creature*> const& receivers, uint32 miscValue) :
+        AiDelayEventAround(AIEventType eventType, ObjectGuid invokerGuid, Unit& owner, CreatureList const& receivers, uint32 miscValue) :
             BasicEvent(),
             m_eventType(eventType),
             m_invokerGuid(invokerGuid),
@@ -446,8 +446,8 @@ class AiDelayEventAround : public BasicEvent
         {
             // Pushing guids because in delay can happen some creature gets despawned => invalid pointer
             m_receiverGuids.reserve(receivers.size());
-            for (std::list<Creature*>::const_iterator itr = receivers.begin(); itr != receivers.end(); ++itr)
-                m_receiverGuids.push_back((*itr)->GetObjectGuid());
+            for (auto receiver : receivers)
+                m_receiverGuids.push_back(receiver->GetObjectGuid());
         }
 
         bool Execute(uint64 /*e_time*/, uint32 /*p_time*/) override
@@ -487,7 +487,7 @@ void UnitAI::SendAIEventAround(AIEventType eventType, Unit* invoker, uint32 dela
 {
     if (radius > 0)
     {
-        std::list<Creature*> receiverList;
+        CreatureList receiverList;
 
         // Allow sending custom AI events to all units in range
         if (eventType >= AI_EVENT_CUSTOM_EVENTAI_A && eventType <= AI_EVENT_CUSTOM_EVENTAI_F && eventType != AI_EVENT_GOT_CCED)

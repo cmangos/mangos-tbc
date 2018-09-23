@@ -76,7 +76,7 @@ class BIH
             tree.clear();
             objects.clear();
             // create space for the first node
-            tree.push_back(3 << 30); // dummy leaf
+            tree.push_back(static_cast<uint32>(3 << 30)); // dummy leaf
             tree.insert(tree.end(), 2, 0);
         }
 
@@ -179,7 +179,7 @@ class BIH
                 {
                     uint32 tn = tree[node];
                     uint32 axis = (tn & (3 << 30)) >> 30;
-                    const bool BVH2 = !!(tn & (1 << 29));
+                    const bool BVH2 = (tn & (1 << 29)) != 0;
                     int offset = tn & ~(7 << 29);
                     if (!BVH2)
                     {
@@ -214,7 +214,6 @@ class BIH
                             ++stackPos;
                             // update ray interval for front node
                             intervalMax = (tf <= intervalMax) ? tf : intervalMax;
-                            continue;
                         }
                         else
                         {
@@ -241,7 +240,6 @@ class BIH
                         intervalMax = (tb <= intervalMax) ? tb : intervalMax;
                         if (intervalMin > intervalMax)
                             break;
-                        continue;
                     }
                 } // traversal loop
                 do
@@ -277,7 +275,7 @@ class BIH
                 {
                     uint32 tn = tree[node];
                     uint32 axis = (tn & (3 << 30)) >> 30;
-                    const bool BVH2 = !!(tn & (1 << 29));
+                    const bool BVH2 = (tn & (1 << 29)) != 0;
                     int offset = tn & ~(7 << 29);
                     if (!BVH2)
                     {
@@ -306,7 +304,6 @@ class BIH
                             // push back right node
                             stack[stackPos].node = right;
                             ++stackPos;
-                            continue;
                         }
                         else
                         {
@@ -330,7 +327,6 @@ class BIH
                         node = offset;
                         if (tl > p[axis] || tr < p[axis])
                             break;
-                        continue;
                     }
                 } // traversal loop
 
@@ -385,7 +381,7 @@ class BIH
                     maxObjects(0xFFFFFFFF), sumDepth(0), minDepth(0x0FFFFFFF),
                     maxDepth(0xFFFFFFFF), numBVH2(0)
                 {
-                    for (int i = 0; i < 6; ++i) numLeavesN[i] = 0;
+                    for (int& i : numLeavesN) i = 0;
                 }
 
                 void updateInner() { ++numNodes; }

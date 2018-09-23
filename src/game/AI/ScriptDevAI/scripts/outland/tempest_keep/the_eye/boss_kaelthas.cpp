@@ -296,8 +296,8 @@ struct boss_kaelthasAI : public ScriptedAI
         // Handle summon weapons event
         if (pSpell->Id == SPELL_SUMMON_WEAPONS)
         {
-            for (uint8 i = 0; i < MAX_WEAPONS; ++i)
-                DoCastSpellIfCan(m_creature, m_auiSpellSummonWeapon[i], CAST_TRIGGERED);
+            for (unsigned int i : m_auiSpellSummonWeapon)
+                DoCastSpellIfCan(m_creature, i, CAST_TRIGGERED);
 
             m_uiPhase      = PHASE_2_WEAPON;
             m_uiPhaseTimer = 120000;
@@ -618,7 +618,7 @@ struct boss_kaelthasAI : public ScriptedAI
                     {
                         if (DoCastSpellIfCan(m_creature, SPELL_GRAVITY_LAPSE) == CAST_OK)
                         {
-                            DoScriptText(urand(0, 1) ? SAY_GRAVITYLAPSE1 : SAY_GRAVITYLAPSE2, m_creature);;
+                            DoScriptText(urand(0, 1) ? SAY_GRAVITYLAPSE1 : SAY_GRAVITYLAPSE2, m_creature);
                             m_uiGravityIndex       = 0;
                             m_uiNetherBeamTimer    = 8000;
                             m_uiNetherVaporTimer   = 4000;
@@ -1181,7 +1181,7 @@ struct mob_phoenix_tkAI : public ScriptedAI
             if (uiDmg > m_creature->GetHealth())
                 DoSetFakeDeath();
             else
-                m_creature->DealDamage(m_creature, uiDmg, 0, DOT, SPELL_SCHOOL_MASK_FIRE, nullptr, false);
+                m_creature->DealDamage(m_creature, uiDmg, nullptr, DOT, SPELL_SCHOOL_MASK_FIRE, nullptr, false);
 
             m_uiCycleTimer = 2000;
         }
@@ -1244,9 +1244,7 @@ UnitAI* GetAI_mob_phoenix_egg_tk(Creature* pCreature)
 
 void AddSC_boss_kaelthas()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_kaelthas";
     pNewScript->GetAI = &GetAI_boss_kaelthas;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_kael_phase_2;

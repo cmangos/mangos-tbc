@@ -3703,8 +3703,12 @@ void PlayerbotAI::DoLoot()
         return;
     }
 
-    Creature* c = m_bot->GetMap()->GetCreature(m_lootCurrent);
-    GameObject* go = m_bot->GetMap()->GetGameObject(m_lootCurrent);
+    Creature* c = nullptr;
+    GameObject* go = nullptr;
+    if (m_lootCurrent.IsAnyTypeCreature())
+        c = static_cast<Creature*>(wo);
+    else if (m_lootCurrent.IsGameObject())
+        go = static_cast<GameObject*>(wo);
 
     // clear creature or object that is not spawned or if not creature or object
     if ((c && c->IsDespawned()) || (go && !go->IsSpawned()) || (!c && !go))
@@ -6223,8 +6227,8 @@ void PlayerbotAI::extractGOinfo(const std::string& text, BotObjectList& m_lootTa
 
         ObjectGuid lootCurrent = ObjectGuid(HIGHGUID_GAMEOBJECT, entry, guid);
 
-        if (guid)
-            m_lootTargets.push_back(lootCurrent);
+        if (GameObject* gob = m_bot->GetMap()->GetGameObject(lootCurrent))
+            m_lootTargets.push_back(gob->GetObjectGuid());
     }
 }
 
@@ -6384,7 +6388,7 @@ void PlayerbotAI::findNearbyGO()
     if (m_collectObjects.empty())
         return;
 
-    std::list<GameObject*> tempTargetGOList;
+    GameObjectList tempTargetGOList;
     float radius = 20.0f;
 
     for (BotEntryList::iterator itr = m_collectObjects.begin(); itr != m_collectObjects.end(); ++itr)
@@ -6414,7 +6418,7 @@ void PlayerbotAI::findNearbyGO()
             continue;
 
         // add any objects found to our lootTargets
-        for (std::list<GameObject*>::iterator iter = tempTargetGOList.begin(); iter != tempTargetGOList.end(); iter++)
+        for (GameObjectList::iterator iter = tempTargetGOList.begin(); iter != tempTargetGOList.end(); iter++)
         {
             GameObject* go = (*iter);
 
@@ -6430,7 +6434,7 @@ void PlayerbotAI::findNearbyGO()
 
 void PlayerbotAI::findNearbyCreature()
 {
-    std::list<Creature*> creatureList;
+    CreatureList creatureList;
     float radius = 2.5;
 
     CellPair pair(MaNGOS::ComputeCellPair(m_bot->GetPositionX(), m_bot->GetPositionY()));
@@ -6446,16 +6450,19 @@ void PlayerbotAI::findNearbyCreature()
     // if (!creatureList.empty())
     //    TellMaster("Found %i Creatures & size of m_findNPC (%i)", creatureList.size(),m_findNPC.size());
 
-    for (std::list<Creature*>::iterator iter = creatureList.begin(); iter != creatureList.end(); iter++)
+    for (CreatureList::iterator iter = creatureList.begin(); iter != creatureList.end(); iter++)
     {
         Creature* currCreature = *iter;
 
-        for (std::list<enum NPCFlags>::iterator itr = m_findNPC.begin(); itr != m_findNPC.end(); itr = m_findNPC.erase(itr))
+        for (std::list<enum NPCFlags>::iterator itr = m_findNPC.begin(); itr != m_findNPC.end();)
         {
             uint32 npcflags = currCreature->GetUInt32Value(UNIT_NPC_FLAGS);
 
             if (!(*itr & npcflags))
-                break;
+            {
+                ++itr;
+                continue;
+            }
 
             if ((*itr == UNIT_NPC_FLAG_TRAINER) && !currCreature->CanTrainAndResetTalentsOf(m_bot))
                 break;

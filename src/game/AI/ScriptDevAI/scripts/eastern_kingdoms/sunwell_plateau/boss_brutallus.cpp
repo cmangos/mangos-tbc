@@ -197,7 +197,7 @@ struct boss_brutallusAI : public ScriptedAI, private DialogueHelper
             if (m_pInstance->GetData(TYPE_BRUTALLUS) != NOT_STARTED)
             {
                 if (Creature* pMadrigosa = m_pInstance->GetSingleCreatureFromStorage(NPC_MADRIGOSA, true))
-                    reader.PSendSysMessage("Madrigosa guid is %s and has %u health.", pMadrigosa->GetObjectGuid().GetString().c_str(), pMadrigosa->GetHealth());
+                    reader.PSendSysMessage("Madrigosa guid is %s and has %u health.", pMadrigosa->GetGuidStr().c_str(), pMadrigosa->GetHealth());
             }
         }
     }
@@ -512,9 +512,7 @@ bool AreaTrigger_at_madrigosa(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
 
 void AddSC_boss_brutallus()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_brutallus";
     pNewScript->GetAI = &GetAI_boss_brutallus;
     pNewScript->RegisterSelf();

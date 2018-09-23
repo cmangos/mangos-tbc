@@ -200,12 +200,12 @@ class instance_karazhan : public ScriptedInstance
         void SetData(uint32 uiType, uint32 uiData) override;
         uint32 GetData(uint32 uiType) const override;
 
-        void SetData64(uint32 uiType, uint64 uiGuid) override;
+        void SetData64(uint32 uiData, uint64 uiGuid) override;
 
         void DoPrepareOperaStage(Creature* pOrganizer);
 
-        uint32 GetPlayerTeam() { return m_uiTeam; }
-        bool IsFriendlyGameReady() { return m_bFriendlyGame; }
+        uint32 GetPlayerTeam() const { return m_uiTeam; }
+        bool IsFriendlyGameReady() const { return m_bFriendlyGame; }
         void DoMoveChessPieceToSides(uint32 uiSpellId, uint32 uiFaction, bool bGameEnd = false);
         void DoFailChessEvent();
         void DoFinishChessEvent();

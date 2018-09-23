@@ -76,12 +76,12 @@ struct boss_golemaggAI : public ScriptedAI
     void JustDied(Unit* /*pKiller*/) override
     {
         // Send event to the Core Ragers so they know that Golemagg is dead and that they must go suicide
-        std::list<Creature*> lCoreRagerList;
+        CreatureList lCoreRagerList;
         GetCreatureListWithEntryInGrid(lCoreRagerList, m_creature, NPC_CORE_RAGER, 100.0f);
-        for (std::list<Creature*>::iterator itr = lCoreRagerList.begin(); itr != lCoreRagerList.end(); ++itr)
+        for (auto& itr : lCoreRagerList)
         {
-            if ((*itr)->isAlive())
-                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, (*itr));
+            if (itr->isAlive())
+                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, itr);
         }
         if (m_pInstance)
             m_pInstance->SetData(TYPE_GOLEMAGG, DONE);
@@ -218,9 +218,7 @@ UnitAI* GetAI_mob_core_rager(Creature* pCreature)
 
 void AddSC_boss_golemagg()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_golemagg";
     pNewScript->GetAI = &GetAI_boss_golemagg;
     pNewScript->RegisterSelf();

@@ -24,6 +24,7 @@
 #include "Entities/UpdateFields.h"
 #include "Entities/UpdateData.h"
 #include "Entities/ObjectGuid.h"
+#include "Entities/EntitiesMgr.h"
 #include "Globals/SharedDefines.h"
 #include "Camera.h"
 #include "Server/DBCStructure.h"
@@ -122,18 +123,14 @@ struct SpellEntry;
 
 typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
 
-// cooldown system
-typedef std::chrono::system_clock Clock;
-typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds> TimePoint;
-
 class CooldownData
 {
         friend class CooldownContainer;
     public:
         CooldownData(TimePoint clockNow, uint32 spellId, uint32 duration, uint32 spellCategory, uint32 categoryDuration, uint32 itemId = 0, bool isPermanent = false) :
             m_spellId(spellId),
-            m_expireTime(duration ? std::chrono::milliseconds(duration) + clockNow : TimePoint()),
             m_category(spellCategory),
+            m_expireTime(duration ? std::chrono::milliseconds(duration) + clockNow : TimePoint()),
             m_catExpireTime(spellCategory && categoryDuration ? std::chrono::milliseconds(categoryDuration) + clockNow : TimePoint()),
             m_typePermanent(isPermanent),
             m_itemId(itemId)
@@ -164,10 +161,7 @@ class CooldownData
             if (m_typePermanent)
                 return false;
 
-            if (now >= m_expireTime)
-                return true;
-
-            return false;
+            return now >= m_expireTime;
         }
 
         bool IsCatCDExpired(TimePoint const& now) const
@@ -396,7 +390,7 @@ class Object
         void SetObjectScale(float newScale);
 
         uint8 GetTypeId() const { return m_objectTypeId; }
-        bool isType(TypeMask mask) const { return !!(mask & m_objectType); }
+        bool isType(TypeMask mask) const { return (mask & m_objectType) != 0; }
 
         virtual void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const;
         void SendCreateUpdateToPlayer(Player* player) const;
@@ -465,7 +459,6 @@ class Object
         void SetStatFloatValue(uint16 index, float value);
         void SetStatInt32Value(uint16 index, int32 value);
         void ForceValuesUpdateAtIndex(uint32 index);
-
         void ApplyModUInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModPositiveFloatValue(uint16 index, float val, bool apply);
@@ -503,7 +496,7 @@ class Object
         }
 
         void SetByteFlag(uint16 index, uint8 offset, uint8 newFlag);
-        void RemoveByteFlag(uint16 index, uint8 offset, uint8 newFlag);
+        void RemoveByteFlag(uint16 index, uint8 offset, uint8 oldFlag);
 
         void ToggleByteFlag(uint16 index, uint8 offset, uint8 flag)
         {
@@ -774,9 +767,9 @@ class WorldObject : public Object
         virtual ObjectGuid const& GetOwnerGuid() const { return GetGuidValue(OBJECT_FIELD_GUID); }
         virtual void SetOwnerGuid(ObjectGuid /*guid*/) { }
 
-        float GetDistance(const WorldObject* obj, bool is3D = true, DistanceCalculation calcdifftype = DIST_CALC_BOUNDING_RADIUS) const;
-        float GetDistance(float x, float y, float z, DistanceCalculation calcdifftype = DIST_CALC_BOUNDING_RADIUS) const;
-        float GetDistance2d(float x, float y, DistanceCalculation calcdifftype = DIST_CALC_BOUNDING_RADIUS) const;
+        float GetDistance(const WorldObject* obj, bool is3D = true, DistanceCalculation distcalc = DIST_CALC_BOUNDING_RADIUS) const;
+        float GetDistance(float x, float y, float z, DistanceCalculation distcalc = DIST_CALC_BOUNDING_RADIUS) const;
+        float GetDistance2d(float x, float y, DistanceCalculation distcalc = DIST_CALC_BOUNDING_RADIUS) const;
         float GetDistanceZ(const WorldObject* obj) const;
         bool IsInMap(const WorldObject* obj) const
         {
@@ -805,16 +798,16 @@ class WorldObject : public Object
         {
             return obj && IsInMap(obj) && _IsWithinDist(obj, dist2compare, is3D);
         }
-        bool IsWithinLOS(float x, float y, float z, bool ignoreM2Model = false) const;
+        bool IsWithinLOS(float ox, float oy, float oz, bool ignoreM2Model = false) const;
         bool IsWithinLOSInMap(const WorldObject* obj, bool ignoreM2Model = false) const;
-        bool GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D = true, DistanceCalculation calcdifftype = DIST_CALC_NONE) const;
+        bool GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D = true, DistanceCalculation distcalc = DIST_CALC_NONE) const;
         bool IsInRange(WorldObject const* obj, float minRange, float maxRange, bool is3D = true, bool combat = false) const;
         bool IsInRange2d(float x, float y, float minRange, float maxRange, bool combat = false) const;
         bool IsInRange3d(float x, float y, float z, float minRange, float maxRange, bool combat = false) const;
 
         float GetAngle(const WorldObject* obj) const;
         float GetAngle(const float x, const float y) const;
-        bool HasInArc(const WorldObject* target, const float arcangle = M_PI) const;
+        bool HasInArc(const WorldObject* target, const float arc = M_PI) const;
         bool isInFrontInMap(WorldObject const* target, float distance, float arc = M_PI) const;
         bool isInBackInMap(WorldObject const* target, float distance, float arc = M_PI) const;
         // Used in AOE - meant to ignore bounding radius of source
@@ -844,9 +837,6 @@ class WorldObject : public Object
 
         void SendObjectDeSpawnAnim(ObjectGuid guid) const;
         void SendGameObjectCustomAnim(ObjectGuid guid, uint32 animId = 0) const;
-
-        virtual bool IsHostileTo(Unit const* unit) const = 0;
-        virtual bool IsFriendlyTo(Unit const* unit) const = 0;
 
         virtual ReputationRank GetReactionTo(Unit const* unit) const;
         virtual ReputationRank GetReactionTo(Corpse const* corpse) const;
@@ -929,7 +919,7 @@ class WorldObject : public Object
         // cooldown system
         void UpdateCooldowns(TimePoint const& now);
         bool CheckLockout(SpellSchoolMask schoolMask) const;
-        bool GetExpireTime(SpellEntry const& spellEntry, TimePoint& expireTime, bool& isPermanent);
+        bool GetExpireTime(SpellEntry const& spellEntry, TimePoint& expireTime, bool& isPermanent) const;
 
         GCDMap            m_GCDCatMap;
         LockoutMap        m_lockoutMap;

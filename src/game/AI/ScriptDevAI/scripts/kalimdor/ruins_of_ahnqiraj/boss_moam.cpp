@@ -123,7 +123,6 @@ struct boss_moamAI : public ScriptedAI
                         DoCastSpellIfCan(m_creature, SPELL_ARCANE_ERUPTION);
                         DoScriptText(EMOTE_MANA_FULL, m_creature);
                         m_uiPhase = PHASE_ATTACKING;
-                        return;
                     }
                 }
                 else
@@ -140,9 +139,7 @@ UnitAI* GetAI_boss_moam(Creature* pCreature)
 
 void AddSC_boss_moam()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_moam";
     pNewScript->GetAI = &GetAI_boss_moam;
     pNewScript->RegisterSelf();

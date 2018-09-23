@@ -30,7 +30,8 @@ at_scent_larkorwi               1726,1727,1728,1729,1730,1731,1732,1733,1734,173
 at_murkdeep                     1966
 at_ancient_leaf                 3587
 at_haramad_teleport             4479
-at_huldar_miran
+at_huldar_miran                 171
+at_area_52                      4422, 4466, 4471, 4472
 EndContentData */
 
 #include "AI/ScriptDevAI/include/precompiled.h"
@@ -48,12 +49,12 @@ static uint32 TriggerOrphanSpell[6][3] =
 
 bool AreaTrigger_at_childrens_week_spot(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
-    for (uint8 i = 0; i < 6; ++i)
+    for (auto& i : TriggerOrphanSpell)
     {
-        if (pAt->id == TriggerOrphanSpell[i][0] &&
-                pPlayer->GetMiniPet() && pPlayer->GetMiniPet()->GetEntry() == TriggerOrphanSpell[i][1])
+        if (pAt->id == i[0] &&
+                pPlayer->GetMiniPet() && pPlayer->GetMiniPet()->GetEntry() == i[1])
         {
-            pPlayer->CastSpell(pPlayer, TriggerOrphanSpell[i][2], TRIGGERED_OLD_TRIGGERED);
+            pPlayer->CastSpell(pPlayer, i[2], TRIGGERED_OLD_TRIGGERED);
             return true;
         }
     }
@@ -232,8 +233,8 @@ bool AreaTrigger_at_ancient_leaf(Player* pPlayer, AreaTriggerEntry const* pAt)
         if (GetClosestCreatureWithEntry(pPlayer, NPC_VARTRUS, 50.0f) || GetClosestCreatureWithEntry(pPlayer, NPC_STOMA, 50.0f) || GetClosestCreatureWithEntry(pPlayer, NPC_HASTAT, 50.0f))
             return true;
 
-        for (uint8 i = 0; i < MAX_ANCIENTS; ++i)
-            pPlayer->SummonCreature(afSpawnLocations[i].uiEntry, afSpawnLocations[i].fX, afSpawnLocations[i].fY, afSpawnLocations[i].fZ, afSpawnLocations[i].fO, TEMPSPAWN_TIMED_DESPAWN, 5 * MINUTE * IN_MILLISECONDS);
+        for (const auto& afSpawnLocation : afSpawnLocations)
+            pPlayer->SummonCreature(afSpawnLocation.uiEntry, afSpawnLocation.fX, afSpawnLocation.fY, afSpawnLocation.fZ, afSpawnLocation.fO, TEMPSPAWN_TIMED_DESPAWN, 5 * MINUTE * IN_MILLISECONDS);
     }
 
     return false;
@@ -333,11 +334,27 @@ bool AreaTrigger_at_huldar_miran(Player* pPlayer, AreaTriggerEntry const* /*pAt*
     return true;
 }
 
+/*######
+## at_area_52
+######*/
+
+enum
+{
+    SPELL_A52_NEURALYZER = 34400
+};
+
+bool AreaTrigger_at_area_52(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
+{
+    // ToDo: research if there should be other actions happening here
+    if (!pPlayer->HasAura(SPELL_A52_NEURALYZER))
+        pPlayer->CastSpell(pPlayer, SPELL_A52_NEURALYZER, TRIGGERED_NONE);
+
+    return false;
+}
+
 void AddSC_areatrigger_scripts()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "at_childrens_week_spot";
     pNewScript->pAreaTrigger = &AreaTrigger_at_childrens_week_spot;
     pNewScript->RegisterSelf();
@@ -380,5 +397,10 @@ void AddSC_areatrigger_scripts()
     pNewScript = new Script;
     pNewScript->Name = "at_huldar_miran";
     pNewScript->pAreaTrigger = &AreaTrigger_at_huldar_miran;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_area_52";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_area_52;
     pNewScript->RegisterSelf();
 }

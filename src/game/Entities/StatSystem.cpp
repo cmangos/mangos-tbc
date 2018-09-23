@@ -73,18 +73,26 @@ bool Player::UpdateStats(Stats stat)
     UpdateAttackPowerAndDamage();
     UpdateAttackPowerAndDamage(true);
 
-    UpdateSpellDamageAndHealingBonus();
+    UpdateSpellHealingBonus();
+    UpdateSpellDamageBonus();
     UpdateManaRegen();
 
     return true;
 }
 
-void Player::UpdateSpellDamageAndHealingBonus()
+void Player::UpdateSpellHealingBonus()
 {
     // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
     // This information for client side use only
     // Get healing bonus for all schools
     SetStatInt32Value(PLAYER_FIELD_MOD_HEALING_DONE_POS, SpellBaseHealingBonusDone(SPELL_SCHOOL_MASK_ALL));
+
+}
+
+void Player::UpdateSpellDamageBonus()
+{
+    // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
+    // This information for client side use only
     // Get damage bonus for all schools
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
         SetStatInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + i, SpellBaseDamageBonusDone(SpellSchoolMask(1 << i)));
@@ -111,7 +119,8 @@ bool Player::UpdateAllStats()
     UpdateAllSpellCritChances();
     UpdateDefenseBonusesMod();
     UpdateShieldBlockValue();
-    UpdateSpellDamageAndHealingBonus();
+    UpdateSpellHealingBonus();
+    UpdateSpellDamageBonus();
     UpdateManaRegen();
     UpdateExpertise(BASE_ATTACK);
     UpdateExpertise(OFF_ATTACK);
@@ -138,21 +147,20 @@ void Player::UpdateResistances(uint32 school)
 
 void Player::UpdateArmor()
 {
-    float value;
     UnitMods unitMod = UNIT_MOD_ARMOR;
 
-    value  = GetModifierValue(unitMod, BASE_VALUE);         // base armor (from items)
+    float value = GetModifierValue(unitMod, BASE_VALUE);         // base armor (from items)
     value *= GetModifierValue(unitMod, BASE_PCT);           // armor percent from items
     value += GetStat(STAT_AGILITY) * 2.0f;                  // armor bonus from stats
     value += GetModifierValue(unitMod, TOTAL_VALUE);
 
     // add dynamic flat mods
     AuraList const& mResbyIntellect = GetAurasByType(SPELL_AURA_MOD_RESISTANCE_OF_STAT_PERCENT);
-    for (AuraList::const_iterator i = mResbyIntellect.begin(); i != mResbyIntellect.end(); ++i)
+    for (auto i : mResbyIntellect)
     {
-        Modifier* mod = (*i)->GetModifier();
+        Modifier* mod = i->GetModifier();
         if (mod->m_miscvalue & SPELL_SCHOOL_MASK_NORMAL)
-            value += int32(GetStat(Stats((*i)->GetMiscBValue())) * mod->m_amount / 100.0f);
+            value += int32(GetStat(Stats(i->GetMiscBValue())) * mod->m_amount / 100.0f);
     }
 
     value *= GetModifierValue(unitMod, TOTAL_PCT);
@@ -271,12 +279,12 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
                     case FORM_MOONKIN:
                     {
                         Unit::AuraList const& mDummy = GetAurasByType(SPELL_AURA_DUMMY);
-                        for (Unit::AuraList::const_iterator itr = mDummy.begin(); itr != mDummy.end(); ++itr)
+                        for (auto itr : mDummy)
                         {
                             // Predatory Strikes
-                            if ((*itr)->GetSpellProto()->SpellIconID == 1563)
+                            if (itr->GetSpellProto()->SpellIconID == 1563)
                             {
-                                mLevelMult = (*itr)->GetModifier()->m_amount / 100.0f;
+                                mLevelMult = itr->GetModifier()->m_amount / 100.0f;
                                 break;
                             }
                         }
@@ -316,8 +324,8 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
         if ((getClassMask() & CLASSMASK_WAND_USERS) == 0)
         {
             AuraList const& mRAPbyStat = GetAurasByType(SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT);
-            for (AuraList::const_iterator i = mRAPbyStat.begin(); i != mRAPbyStat.end(); ++i)
-                attPowerMod += int32(GetStat(Stats((*i)->GetModifier()->m_miscvalue)) * (*i)->GetModifier()->m_amount / 100.0f);
+            for (auto i : mRAPbyStat)
+                attPowerMod += int32(GetStat(Stats(i->GetModifier()->m_miscvalue)) * i->GetModifier()->m_amount / 100.0f);
         }
     }
 
@@ -622,14 +630,14 @@ void Player::UpdateExpertise(WeaponAttackType attack)
     Item* weapon = GetWeaponForAttack(attack);
 
     AuraList const& expAuras = GetAurasByType(SPELL_AURA_MOD_EXPERTISE);
-    for (AuraList::const_iterator itr = expAuras.begin(); itr != expAuras.end(); ++itr)
+    for (auto expAura : expAuras)
     {
         // item neutral spell
-        if ((*itr)->GetSpellProto()->EquippedItemClass == -1)
-            expertise += (*itr)->GetModifier()->m_amount;
+        if (expAura->GetSpellProto()->EquippedItemClass == -1)
+            expertise += expAura->GetModifier()->m_amount;
         // item dependent spell
-        else if (weapon && weapon->IsFitToSpellRequirements((*itr)->GetSpellProto()))
-            expertise += (*itr)->GetModifier()->m_amount;
+        else if (weapon && weapon->IsFitToSpellRequirements(expAura->GetSpellProto()))
+            expertise += expAura->GetModifier()->m_amount;
     }
 
     if (expertise < 0)
@@ -656,9 +664,9 @@ void Player::UpdateManaRegen()
 
     // Get bonus from SPELL_AURA_MOD_MANA_REGEN_FROM_STAT aura
     AuraList const& regenAura = GetAurasByType(SPELL_AURA_MOD_MANA_REGEN_FROM_STAT);
-    for (AuraList::const_iterator i = regenAura.begin(); i != regenAura.end(); ++i)
+    for (auto i : regenAura)
     {
-        Modifier* mod = (*i)->GetModifier();
+        Modifier* mod = i->GetModifier();
         power_regen_mp5 += GetStat(Stats(mod->m_miscvalue)) * mod->m_amount / 500.0f;
     }
 

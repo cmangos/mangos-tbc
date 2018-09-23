@@ -214,12 +214,13 @@ bool GossipHello_npc_barnes(Player* pPlayer, Creature* pCreature)
                         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_HOOD", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
                         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_RAJ", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 5);
                     }
-                    uint32 gossipItemText;
+                    int32 gossipItemText;
                     uint32 gossipMenuText;
                     switch (pInstance->GetData(TYPE_OPERA_PERFORMANCE))
                     {
                         case OPERA_EVENT_WIZARD_OZ: gossipItemText = GOSSIP_ITEM_OPERA_OZ_WIPE; gossipMenuText = TEXT_ID_OPERA_OZ_WIPE; break;
                         case OPERA_EVENT_RED_RIDING_HOOD: gossipItemText = GOSSIP_ITEM_WOLF_WIPE; gossipMenuText = TEXT_ID_OPERA_WOLF_WIPE; break;
+                        default:
                         case OPERA_EVENT_ROMULO_AND_JUL:  gossipItemText = GOSSIP_ITEM_JUL_WIPE; gossipMenuText = TEXT_ID_OPERA_JUL_WIPE; break;
                     }
                     pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, gossipItemText, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
@@ -505,9 +506,7 @@ bool ProcessEventId_event_spell_medivh_journal(uint32 /*uiEventId*/, Object* pSo
 
 void AddSC_karazhan()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_barnes";
     pNewScript->GetAI = &GetAI_npc_barnesAI;
     pNewScript->pGossipHello = &GossipHello_npc_barnes;

@@ -110,9 +110,9 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
 
     if (pUser->isInCombat())
     {
-        for (int i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
+        for (const auto& Spell : proto->Spells)
         {
-            if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(proto->Spells[i].SpellId))
+            if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(Spell.SpellId))
             {
                 if (IsNonCombatSpell(spellInfo))
                 {
@@ -347,7 +347,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     else
     {
         // not have spell in spellbook or spell passive and not casted by client
-        if (!((Creature*)mover)->HasSpell(spellId) || IsPassiveSpell(spellInfo))
+        if (!mover->HasSpell(spellId) || IsPassiveSpell(spellInfo))
         {
             // cheater? kick? ban?
             recvPacket.rpos(recvPacket.wpos());             // prevent spam at ignore packet
@@ -423,10 +423,10 @@ void WorldSession::HandleCancelAuraOpcode(WorldPacket& recvPacket)
         {
             // except own aura spells
             bool allow = false;
-            for (int k = 0; k < MAX_EFFECT_INDEX; ++k)
+            for (unsigned int k : spellInfo->EffectApplyAuraName)
             {
-                if (spellInfo->EffectApplyAuraName[k] == SPELL_AURA_MOD_POSSESS ||
-                        spellInfo->EffectApplyAuraName[k] == SPELL_AURA_MOD_POSSESS_PET)
+                if (k == SPELL_AURA_MOD_POSSESS ||
+                    k == SPELL_AURA_MOD_POSSESS_PET)
                 {
                     allow = true;
                     break;

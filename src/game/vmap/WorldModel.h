@@ -53,11 +53,11 @@ namespace VMAP
             WmoLiquid& operator=(const WmoLiquid& other);
             bool GetLiquidHeight(const Vector3& pos, float& liqHeight) const;
             uint32 GetType() const { return iType; }
-            float* GetHeightStorage() { return iHeight; }
-            uint8* GetFlagsStorage() { return iFlags; }
-            uint32 GetFileSize();
+            float* GetHeightStorage() const { return iHeight; }
+            uint8* GetFlagsStorage() const { return iFlags; }
+            uint32 GetFileSize() const;
             bool writeToFile(FILE* wf);
-            static bool readFromFile(FILE* rf, WmoLiquid*& liquid);
+            static bool readFromFile(FILE* rf, WmoLiquid*& out);
         private:
             WmoLiquid() : iTilesX(0), iTilesY(0), iType(0), iHeight(nullptr), iFlags(nullptr) {};
             uint32 iTilesX;  //!< number of tiles in x direction, each

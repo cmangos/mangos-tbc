@@ -176,13 +176,10 @@ struct boss_curatorAI : public ScriptedAI
                         }
                         return;
                     }
-                    else
+                    switch (urand(0, 3))
                     {
-                        switch (urand(0, 3))
-                        {
-                            case 0: DoScriptText(SAY_SUMMON1, m_creature); break;
-                            case 1: DoScriptText(SAY_SUMMON2, m_creature); break;
-                        }
+                        case 0: DoScriptText(SAY_SUMMON1, m_creature); break;
+                        case 1: DoScriptText(SAY_SUMMON2, m_creature); break;
                     }
                 }
             }
@@ -224,9 +221,7 @@ UnitAI* GetAI_boss_curator(Creature* pCreature)
 
 void AddSC_boss_curator()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_curator";
     pNewScript->GetAI = &GetAI_boss_curator;
     pNewScript->RegisterSelf();

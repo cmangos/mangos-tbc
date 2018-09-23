@@ -172,8 +172,8 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
 
         std::list<Creature*> lFelConverts;
         GetCreatureListWithEntryInGrid(lFelConverts, m_creature, NPC_FEL_ORC_CONVERT, 40.0f);
-        for (std::list<Creature*>::iterator itr = lFelConverts.begin(); itr != lFelConverts.end(); ++itr)
-            (*itr)->DealDamage(*itr, (*itr)->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+        for (auto& lFelConvert : lFelConverts)
+            lFelConvert->DealDamage(lFelConvert, lFelConvert->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
 
         m_bIsIntroEvent = false;
         m_uiPeonEngagedCount = 4;
@@ -254,10 +254,10 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
 
         std::list<Creature*> lFelConverts;
         GetCreatureListWithEntryInGrid(lFelConverts, m_creature, NPC_FEL_ORC_CONVERT, 40.0f);
-        for (std::list<Creature*>::iterator itr = lFelConverts.begin(); itr != lFelConverts.end(); ++itr)
+        for (auto& lFelConvert : lFelConverts)
         {
-            if (!(*itr)->isAlive())
-                (*itr)->Respawn();
+            if (!lFelConvert->isAlive())
+                lFelConvert->Respawn();
         }
     }
 
@@ -347,7 +347,6 @@ struct mob_fel_orc_convertAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* /*pWho*/) override
     {
-        return;
     }
 
     void Aggro(Unit* pWho) override
@@ -362,8 +361,7 @@ struct mob_fel_orc_convertAI : public ScriptedAI
 
                 if (m_pInstance->GetData(TYPE_NETHEKURSE) == IN_PROGRESS)
                     return;
-                else
-                    m_pInstance->SetData(TYPE_NETHEKURSE, IN_PROGRESS);
+                m_pInstance->SetData(TYPE_NETHEKURSE, IN_PROGRESS);
             }
         }
     }
@@ -427,9 +425,7 @@ UnitAI* GetAI_mob_lesser_shadow_fissure(Creature* pCreature)
 
 void AddSC_boss_grand_warlock_nethekurse()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_grand_warlock_nethekurse";
     pNewScript->GetAI = &GetAI_boss_grand_warlock_nethekurse;
     pNewScript->RegisterSelf();

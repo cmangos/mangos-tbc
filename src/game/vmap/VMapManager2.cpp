@@ -39,13 +39,13 @@ namespace VMAP
 
     VMapManager2::~VMapManager2(void)
     {
-        for (InstanceTreeMap::iterator i = iInstanceMapTrees.begin(); i != iInstanceMapTrees.end(); ++i)
+        for (auto& iInstanceMapTree : iInstanceMapTrees)
         {
-            delete i->second;
+            delete iInstanceMapTree.second;
         }
-        for (ModelFileMap::iterator i = iLoadedModelFiles.begin(); i != iLoadedModelFiles.end(); ++i)
+        for (auto& iLoadedModelFile : iLoadedModelFiles)
         {
-            delete i->second.getModel();
+            delete iLoadedModelFile.second.getModel();
         }
     }
 
@@ -87,6 +87,16 @@ namespace VMAP
     }
 
     //=========================================================
+    // Check if specified map have tile loaded
+    bool VMapManager2::IsTileLoaded(uint32 mapId, uint32 x, uint32 y) const
+    {
+        InstanceTreeMap::const_iterator instanceTree = iInstanceMapTrees.find(mapId);
+        if (instanceTree == iInstanceMapTrees.end())
+            return false;
+        return instanceTree->second->IsTileLoaded(x, y);
+    }
+
+    //=========================================================
     // load one tile (internal use only)
 
     bool VMapManager2::_loadMap(unsigned int pMapId, const std::string& basePath, uint32 tileX, uint32 tileY)
@@ -101,7 +111,12 @@ namespace VMAP
                 delete newTree;
                 return false;
             }
-            instanceTree = iInstanceMapTrees.insert(InstanceTreeMap::value_type(pMapId, newTree)).first;
+
+            // insert new data
+            {
+                std::lock_guard<std::mutex> lock(m_vmStaticMapMutex);
+                instanceTree = iInstanceMapTrees.insert(InstanceTreeMap::value_type(pMapId, newTree)).first;
+            }
         }
         return instanceTree->second->LoadMapTile(tileX, tileY, this);
     }
@@ -249,6 +264,7 @@ namespace VMAP
 
     WorldModel* VMapManager2::acquireModelInstance(const std::string& basepath, const std::string& filename)
     {
+        std::lock_guard<std::mutex> lock(m_vmModelMutex);
         ModelFileMap::iterator model = iLoadedModelFiles.find(filename);
         if (model == iLoadedModelFiles.end())
         {
@@ -259,6 +275,8 @@ namespace VMAP
                 delete worldmodel;
                 return nullptr;
             }
+
+            // insert new data
             DEBUG_FILTER_LOG(LOG_FILTER_MAP_LOADING, "VMapManager2: loading file '%s%s'.", basepath.c_str(), filename.c_str());
             model = iLoadedModelFiles.insert(std::pair<std::string, ManagedModel>(filename, ManagedModel())).first;
             model->second.setModel(worldmodel);

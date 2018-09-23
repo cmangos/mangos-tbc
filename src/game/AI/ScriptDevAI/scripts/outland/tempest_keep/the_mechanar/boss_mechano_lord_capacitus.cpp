@@ -179,6 +179,7 @@ struct boss_mechano_lord_capacitusAI : public ScriptedAI
                 case 0: spellId = SPELL_SUMMON_NETHER_CHARGE_NE; break;
                 case 1: spellId = SPELL_SUMMON_NETHER_CHARGE_NW; break;
                 case 2: spellId = SPELL_SUMMON_NETHER_CHARGE_SE; break;
+                default:
                 case 3: spellId = SPELL_SUMMON_NETHER_CHARGE_SW; break;
             }
             m_creature->CastSpell(m_creature, spellId, TRIGGERED_NONE);
@@ -223,9 +224,7 @@ UnitAI* GetAI_boss_mechano_lord_capacitus(Creature* creature)
 
 void AddSC_boss_mechano_lord_capacitus()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_mechano_lord_capacitus";
     pNewScript->GetAI = &GetAI_boss_mechano_lord_capacitus;
     pNewScript->RegisterSelf();

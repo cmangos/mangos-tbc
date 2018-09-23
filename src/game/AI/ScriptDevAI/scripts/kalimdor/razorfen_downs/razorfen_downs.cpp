@@ -241,7 +241,7 @@ struct npc_belnistraszAI : public npc_escortAI
 
                         // Desactivate the fires on the idol now it is extinguished
                         DoCastSpellIfCan(m_creature, SPELL_IDOL_ROOM_SHAKE);
-                        std::list<GameObject*> lOvenFires;
+                        GameObjectList lOvenFires;
                         for (auto&& gameObjectEntry : aGOList)
                             GetGameObjectListWithEntryInGrid(lOvenFires, m_creature, gameObjectEntry, 40.0f);
 
@@ -305,9 +305,7 @@ bool QuestAccept_npc_belnistrasz(Player* pPlayer, Creature* pCreature, const Que
 
 void AddSC_razorfen_downs()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_belnistrasz";
     pNewScript->GetAI = &GetAI_npc_belnistrasz;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_belnistrasz;

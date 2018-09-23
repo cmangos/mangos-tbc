@@ -53,9 +53,9 @@ void instance_black_temple::OnPlayerEnter(Player* /*pPlayer*/)
 
 bool instance_black_temple::IsEncounterInProgress() const
 {
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32 i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
+        if (i == IN_PROGRESS)
             return true;
     }
 
@@ -280,10 +280,10 @@ void instance_black_temple::Load(const char* chrIn)
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
                >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7] >> m_auiEncounter[8];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)            // Do not load an encounter as "In Progress" - reset it instead.
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)            // Do not load an encounter as "In Progress" - reset it instead.
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -296,9 +296,7 @@ InstanceData* GetInstanceData_instance_black_temple(Map* pMap)
 
 void AddSC_instance_black_temple()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_black_temple";
     pNewScript->GetInstanceData = &GetInstanceData_instance_black_temple;
     pNewScript->RegisterSelf();

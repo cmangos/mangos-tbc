@@ -350,14 +350,14 @@ struct boss_sacrolashAI : public ScriptedAI
     }
 
     // Return a random target which it's not in range of 10 yards of boss
-    Unit* GetRandomTargetAtDist(float fDist)
+    Unit* GetRandomTargetAtDist(float fDist) const
     {
         std::vector<Unit*> m_vRangeTargets;
 
         ThreatList const& tList = m_creature->getThreatManager().getThreatList();
-        for (ThreatList::const_iterator iter = tList.begin(); iter != tList.end(); ++iter)
+        for (auto iter : tList)
         {
-            if (Unit* pTempTarget = m_creature->GetMap()->GetUnit((*iter)->getUnitGuid()))
+            if (Unit* pTempTarget = m_creature->GetMap()->GetUnit(iter->getUnitGuid()))
             {
                 if (!pTempTarget->IsWithinDistInMap(m_creature, fDist))
                     m_vRangeTargets.push_back(pTempTarget);
@@ -366,8 +366,7 @@ struct boss_sacrolashAI : public ScriptedAI
 
         if (!m_vRangeTargets.empty())
             return m_vRangeTargets[urand(0, m_vRangeTargets.size() - 1)];
-        else
-            return m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
+        return m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -497,7 +496,6 @@ struct npc_shadow_imageAI : public ScriptedAI
             if (m_uiSuicideTimer <= uiDiff)
             {
                 m_creature->DealDamage(m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
-                return;
             }
             else
                 m_uiSuicideTimer -= uiDiff;
@@ -557,9 +555,7 @@ UnitAI* GetAI_npc_shadow_image(Creature* pCreature)
 
 void AddSC_boss_eredar_twins()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_alythess";
     pNewScript->GetAI = &GetAI_boss_alythess;
     pNewScript->RegisterSelf();

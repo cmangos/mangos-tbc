@@ -30,11 +30,11 @@ instance_dark_portal::instance_dark_portal(Map* pMap) : ScriptedInstance(pMap),
     m_uiWorldStateShieldCount(100),
     m_uiSummonedCrystalCount(0),
 
-    m_uiSummonCrystalTimer(0),
     m_bHasIntroYelled(false),
     m_uiMedivhYellCount(1),
-
     m_uiNextPortalTimer(0),
+
+    m_uiSummonCrystalTimer(0),
     m_uiCurrentRiftId(0)
 {
     Initialize();
@@ -70,7 +70,7 @@ void instance_dark_portal::UpdateWorldState(bool bEnable)
 
 void instance_dark_portal::OnPlayerEnter(Player* /*pPlayer*/)
 {
-    UpdateWorldState(m_auiEncounter[TYPE_MEDIVH] == IN_PROGRESS ? true : false);
+    UpdateWorldState(m_auiEncounter[TYPE_MEDIVH] == IN_PROGRESS);
 }
 
 void instance_dark_portal::DoHandleAreaTrigger(uint32 uiTriggerId)
@@ -148,9 +148,9 @@ void instance_dark_portal::SetData(uint32 uiType, uint32 uiData)
 
                 if (!players.isEmpty())
                 {
-                    for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                    for (const auto& player : players)
                     {
-                        if (Player* pPlayer = itr->getSource())
+                        if (Player* pPlayer = player.getSource())
                         {
                             if (pPlayer->GetQuestStatus(QUEST_OPENING_PORTAL) == QUEST_STATUS_INCOMPLETE)
                                 pPlayer->AreaExploredOrEventHappens(QUEST_OPENING_PORTAL);
@@ -261,10 +261,10 @@ void instance_dark_portal::Load(const char* chrIn)
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
                >> m_auiEncounter[4] >> m_auiEncounter[5];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -431,9 +431,7 @@ bool AreaTrigger_at_dark_portal(Player* pPlayer, AreaTriggerEntry const* pAt)
 
 void AddSC_instance_dark_portal()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_dark_portal";
     pNewScript->GetInstanceData = &GetInstanceData_instance_dark_portal;
     pNewScript->RegisterSelf();

@@ -1113,6 +1113,7 @@ enum Targets
     TARGET_FRIENDLY_FRONTAL_CONE       = 59,
     TARGET_NARROW_FRONTAL_CONE         = 60,
     TARGET_AREAEFFECT_PARTY_AND_CLASS  = 61,
+    TARGET_62                          = 62,
     TARGET_DUELVSPLAYER_COORDINATES    = 63,
     TARGET_INFRONT_OF_VICTIM           = 64,
     TARGET_BEHIND_VICTIM               = 65,                // used in teleport behind spells, caster/target dependent from spell effect
@@ -1137,6 +1138,9 @@ enum Targets
     TARGET_DEST_DESTINATION            = 87,
     TARGET_88                          = 88,                // Smoke Flare(s)
     TARGET_NONCOMBAT_PET               = 90,
+    TARGET_DEST_RADIUS                 = 91,
+    TARGET_SUMMONER                    = 92,
+    TARGET_93                          = 93,
 };
 
 enum SpellMissInfo
@@ -1157,12 +1161,12 @@ enum SpellMissInfo
 
 enum SpellHitType
 {
-    SPELL_HIT_TYPE_UNK1 = 0x00001,
-    SPELL_HIT_TYPE_CRIT = 0x00002,
-    SPELL_HIT_TYPE_UNK3 = 0x00004,
-    SPELL_HIT_TYPE_UNK4 = 0x00008,
-    SPELL_HIT_TYPE_UNK5 = 0x00010,
-    SPELL_HIT_TYPE_UNK6 = 0x00020
+    SPELL_HIT_TYPE_CRIT_DEBUG           = 0x01,
+    SPELL_HIT_TYPE_CRIT                 = 0x02,
+    SPELL_HIT_TYPE_HIT_DEBUG            = 0x04,
+    SPELL_HIT_TYPE_SPLIT                = 0x08,
+    SPELL_HIT_TYPE_VICTIM_IS_ATTACKER   = 0x10,
+    SPELL_HIT_TYPE_ATTACK_TABLE_DEBUG   = 0x20
 };
 
 enum SpellDmgClass
@@ -2410,6 +2414,18 @@ enum ShapeshiftFormFlags
     SHAPESHIFT_FORM_FLAG_AUTO_UNSHIFT       = 0x00000100,   // Handled at client side
 };
 
+enum CharLoginFailReasons
+{
+    CHAR_LOGIN_NO_WORLD                                    = 0x01,
+    CHAR_LOGIN_DUPLICATE_CHARACTER                         = 0x02,
+    CHAR_LOGIN_NO_INSTANCES                                = 0x03,
+    CHAR_LOGIN_DISABLED                                    = 0x04,
+    CHAR_LOGIN_NO_CHARACTER                                = 0x05,
+    CHAR_LOGIN_LOCKED_FOR_TRANSFER                         = 0x06,
+    CHAR_LOGIN_LOCKED_BY_BILLING                           = 0x07,
+    CHAR_LOGIN_FAILED                                      = 0x08,
+};
+
 enum ResponseCodes
 {
     RESPONSE_SUCCESS                                       = 0x00,
@@ -2484,7 +2500,7 @@ enum ResponseCodes
     CHAR_DELETE_FAILED_GUILD_LEADER                        = 0x3E,
     CHAR_DELETE_FAILED_ARENA_CAPTAIN                       = 0x3F,
 
-    CHAR_LOGIN_IN_PROGRESS                                 = 0x40,
+    /*CHAR_LOGIN_IN_PROGRESS                                 = 0x40,
     CHAR_LOGIN_SUCCESS                                     = 0x41,
     CHAR_LOGIN_NO_WORLD                                    = 0x42,
     CHAR_LOGIN_DUPLICATE_CHARACTER                         = 0x43,
@@ -2493,7 +2509,7 @@ enum ResponseCodes
     CHAR_LOGIN_DISABLED                                    = 0x46,
     CHAR_LOGIN_NO_CHARACTER                                = 0x47,
     CHAR_LOGIN_LOCKED_FOR_TRANSFER                         = 0x48,
-    CHAR_LOGIN_LOCKED_BY_BILLING                           = 0x49,
+    CHAR_LOGIN_LOCKED_BY_BILLING                           = 0x49,*/
 
     CHAR_NAME_SUCCESS                                      = 0x4A,
     CHAR_NAME_FAILURE                                      = 0x4B,

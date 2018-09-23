@@ -192,10 +192,10 @@ struct boss_moroesAI : public ScriptedAI
             if (PlayerList.isEmpty())
                 return;
 
-            for (Map::PlayerList::const_iterator i = PlayerList.begin(); i != PlayerList.end(); ++i)
+            for (const auto& i : PlayerList)
             {
-                if (i->getSource()->isAlive() && i->getSource()->HasAura(SPELL_GARROTE))
-                    i->getSource()->RemoveAurasDueToSpell(SPELL_GARROTE);
+                if (i.getSource()->isAlive() && i.getSource()->HasAura(SPELL_GARROTE))
+                    i.getSource()->RemoveAurasDueToSpell(SPELL_GARROTE);
             }
         }
     }
@@ -283,9 +283,7 @@ UnitAI* GetAI_boss_moroes(Creature* pCreature)
 
 void AddSC_boss_moroes()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_moroes";
     pNewScript->GetAI = &GetAI_boss_moroes;
     pNewScript->RegisterSelf();

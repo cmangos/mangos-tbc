@@ -234,7 +234,7 @@ struct go_ai_bell : public GameObjectAI
     uint32 m_uiBellTimer;
     PlayPacketSettings m_playTo;
 
-    uint32 GetBellSound(GameObject* pGo)
+    uint32 GetBellSound(GameObject* pGo) const
     {
         uint32 soundId;
         switch (pGo->GetEntry())
@@ -272,11 +272,13 @@ struct go_ai_bell : public GameObjectAI
             case GO_KARAZHAN_BELL:
                 soundId = BELLTOLLKARAZHAN;
                 break;
+            default:
+                return 0;
         }
         return soundId;
     }
 
-    PlayPacketSettings GetBellZoneOrArea(GameObject* pGo)
+    PlayPacketSettings GetBellZoneOrArea(GameObject* pGo) const
     {
         PlayPacketSettings playTo = PLAY_AREA;
         switch (pGo->GetEntry())
@@ -430,7 +432,7 @@ enum BrewfestMusicEvents
 
 struct go_brewfest_music : public GameObjectAI
 {
-    go_brewfest_music(GameObject* go) : GameObjectAI(go), m_zoneTeam(GetZoneAlignment(go))
+    go_brewfest_music(GameObject* go) : GameObjectAI(go), m_zoneTeam(GetZoneAlignment(go)), m_rand(0)
     {
         m_musicSelectTimer = 1000;
         m_musicStartTimer = 1000;
@@ -441,7 +443,7 @@ struct go_brewfest_music : public GameObjectAI
     int32 m_musicStartTimer;
     uint32 m_rand;
 
-    Team GetZoneAlignment(GameObject* go)
+    Team GetZoneAlignment(GameObject* go) const
     {
         switch (go->GetAreaId())
         {
@@ -529,6 +531,8 @@ struct go_brewfest_music : public GameObjectAI
                     break;
                 case HORDE:
                     PlayHordeMusic();
+                    break;
+                default:
                     break;
             }
             m_musicStartTimer = 5000;
@@ -693,9 +697,11 @@ struct go_elemental_rift : public GameObjectAI
             case GO_FIRE_ELEMENTAL_RIFT:
                 elementalEntry = NPC_BLAZING_INVADER;
                 break;
+            default:
+                return;
         }
 
-        std::list<Creature*> lElementalList;
+        CreatureList lElementalList;
         GetCreatureListWithEntryInGrid(lElementalList, m_go, elementalEntry, 35.0f);
         // Do nothing if at least three elementals are found nearby
         if (lElementalList.size() >= 3)
@@ -732,9 +738,7 @@ std::function<bool(Unit*)> function = &TrapTargetSearch;
 
 void AddSC_go_scripts()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "go_ethereum_prison";
     pNewScript->pGOUse =          &GOUse_go_ethereum_prison;
     pNewScript->RegisterSelf();

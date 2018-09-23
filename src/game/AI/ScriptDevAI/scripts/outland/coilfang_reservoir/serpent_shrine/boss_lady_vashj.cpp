@@ -255,7 +255,7 @@ struct boss_lady_vashjAI : public ScriptedAI
             m_pInstance->SetData(TYPE_LADYVASHJ_EVENT, FAIL);
     }
 
-    bool CanCastShootOrMultishot()
+    bool CanCastShootOrMultishot() const
     {
         // It's not very clear how this should work - requires additional research!
         if (DoCastSpellIfCan(m_creature->getVictim(), urand(0, 1) ? SPELL_SHOOT : SPELL_MULTI_SHOT) == CAST_OK)
@@ -513,9 +513,7 @@ bool OnLootItemTaintedCore(Player* player, Item* item, bool apply)
 
 void AddSC_boss_lady_vashj()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_lady_vashj";
     pNewScript->GetAI = &GetAI_boss_lady_vashj;
     pNewScript->RegisterSelf();

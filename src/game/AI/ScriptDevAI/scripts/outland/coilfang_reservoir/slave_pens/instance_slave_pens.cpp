@@ -37,7 +37,7 @@ void instance_slave_pens::Initialize()
 void instance_slave_pens::SetData(uint32 type, uint32 data)
 {
     if (type == DATA_NATURALIST)
-        m_naturalistYelled = bool(data);
+        m_naturalistYelled = data != 0;
 }
 
 uint32 instance_slave_pens::GetData(uint32 type) const
@@ -104,9 +104,7 @@ bool GossipHello_npc_naturalist_bite(Player* player, Creature* creature)
 
 void AddSC_instance_slave_pens()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_slave_pens";
     pNewScript->GetInstanceData = &GetInstanceData_instance_slave_pens;
     pNewScript->RegisterSelf();

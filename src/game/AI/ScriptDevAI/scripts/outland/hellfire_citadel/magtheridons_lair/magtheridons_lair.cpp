@@ -39,9 +39,9 @@ void instance_magtheridons_lair::Initialize()
 
 bool instance_magtheridons_lair::IsEncounterInProgress() const
 {
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32 i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
+        if (i == IN_PROGRESS)
             return true;
     }
 
@@ -246,9 +246,7 @@ InstanceData* GetInstanceData_instance_magtheridons_lair(Map* pMap)
 
 void AddSC_instance_magtheridons_lair()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_magtheridons_lair";
     pNewScript->GetInstanceData = &GetInstanceData_instance_magtheridons_lair;
     pNewScript->RegisterSelf();

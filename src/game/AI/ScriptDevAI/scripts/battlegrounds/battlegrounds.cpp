@@ -72,9 +72,9 @@ struct npc_spirit_guideAI : public ScriptedAI
 
         Map::PlayerList const& PlayerList = pMap->GetPlayers();
 
-        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+        for (const auto& itr : PlayerList)
         {
-            Player* pPlayer = itr->getSource();
+            Player* pPlayer = itr.getSource();
             if (!pPlayer || !pPlayer->IsWithinDistInMap(m_creature, 20.0f) || !pPlayer->HasAura(SPELL_WAITING_TO_RESURRECT))
                 continue;
 
@@ -104,9 +104,7 @@ UnitAI* GetAI_npc_spirit_guide(Creature* pCreature)
 
 void AddSC_battleground()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_spirit_guide";
     pNewScript->GetAI = &GetAI_npc_spirit_guide;
     pNewScript->pGossipHello = &GossipHello_npc_spirit_guide;

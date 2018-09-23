@@ -132,8 +132,8 @@ struct boss_the_lurker_belowAI : public Scripted_NoMovementAI
     // Wrapper to summon adds in phase 2
     void DoSummonCoilfangNaga()
     {
-        for (uint8 i = 0; i < MAX_SUBMERGE_ADDS; ++i)
-            m_creature->SummonCreature(aLurkerLoc[i].uiEntry, aLurkerLoc[i].fX, aLurkerLoc[i].fY, aLurkerLoc[i].fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
+        for (auto i : aLurkerLoc)
+            m_creature->SummonCreature(i.uiEntry, i.fX, i.fY, i.fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
     }
 
     // Custom threat management
@@ -302,9 +302,7 @@ bool GOUse_go_strange_pool(Player* pPlayer, GameObject* pGo)
 
 void AddSC_boss_the_lurker_below()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_the_lurker_below";
     pNewScript->GetAI = &GetAI_boss_the_lurker_below;
     pNewScript->RegisterSelf();

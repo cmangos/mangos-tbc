@@ -54,9 +54,9 @@ void instance_temple_of_ahnqiraj::Initialize()
 
 bool instance_temple_of_ahnqiraj::IsEncounterInProgress() const
 {
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32 i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
+        if (i == IN_PROGRESS)
             return true;
     }
 
@@ -217,10 +217,10 @@ void instance_temple_of_ahnqiraj::Load(const char* chrIn)
                >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7]
                >> m_auiEncounter[8];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -288,9 +288,7 @@ bool AreaTrigger_at_temple_ahnqiraj(Player* pPlayer, AreaTriggerEntry const* pAt
 
 void AddSC_instance_temple_of_ahnqiraj()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_temple_of_ahnqiraj";
     pNewScript->GetInstanceData = &GetInstanceData_instance_temple_of_ahnqiraj;
     pNewScript->RegisterSelf();

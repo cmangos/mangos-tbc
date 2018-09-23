@@ -193,9 +193,9 @@ struct boss_zuljinAI : public ScriptedAI
         DoDespawnVortexes();
 
         // Reset all spirits
-        for (uint8 i = 0; i < MAX_VORTEXES; ++i)
+        for (const auto& aZuljinPhase : aZuljinPhases)
         {
-            if (Creature* pSpirit = m_pInstance->GetSingleCreatureFromStorage(aZuljinPhases[i].uiSpiritId))
+            if (Creature* pSpirit = m_pInstance->GetSingleCreatureFromStorage(aZuljinPhase.uiSpiritId))
             {
                 pSpirit->SetStandState(UNIT_STAND_STATE_STAND);
                 pSpirit->AI()->EnterEvadeMode();
@@ -501,8 +501,8 @@ struct npc_feather_vortexAI : public ScriptedAI
             if (Creature* pZuljin = m_pInstance->GetSingleCreatureFromStorage(NPC_ZULJIN))
             {
                 // Change target on player hit
-                if (Unit* pTarget = pZuljin->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    m_creature->GetMotionMaster()->MoveFollow(pTarget, 0, 0);
+                if (Unit* newTarget = pZuljin->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    m_creature->GetMotionMaster()->MoveFollow(newTarget, 0, 0);
             }
         }
     }
@@ -519,9 +519,7 @@ UnitAI* GetAI_npc_feather_vortex(Creature* pCreature)
 
 void AddSC_boss_zuljin()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_zuljin";
     pNewScript->GetAI = &GetAI_boss_zuljin;
     pNewScript->RegisterSelf();

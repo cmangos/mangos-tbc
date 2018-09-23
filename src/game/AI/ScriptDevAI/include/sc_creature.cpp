@@ -127,13 +127,10 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* target, int32 school, int32 mech
 
     uint32 spellCount = 0;
 
-    SpellEntry const* tempSpellInfo;
-    SpellRangeEntry const* tempRange;
-
     // Check if each spell is viable(set it to null if not)
     for (uint8 i = 0; i < 4; ++i)
     {
-        tempSpellInfo = GetSpellStore()->LookupEntry<SpellEntry>(m_creature->m_spells[i]);
+        SpellEntry const* tempSpellInfo = GetSpellStore()->LookupEntry<SpellEntry>(m_creature->m_spells[i]);
 
         // This spell doesn't exist
         if (!tempSpellInfo)
@@ -168,7 +165,7 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* target, int32 school, int32 mech
             continue;
 
         // Get the Range
-        tempRange = GetSpellRangeStore()->LookupEntry(tempSpellInfo->rangeIndex);
+        SpellRangeEntry const* tempRange = GetSpellRangeStore()->LookupEntry(tempSpellInfo->rangeIndex);
 
         // Spell has invalid range store so we can't use it
         if (!tempRange)
@@ -228,14 +225,12 @@ void FillSpellSummary()
 {
     SpellSummary = new TSpellSummary[GetSpellStore()->GetMaxEntry()];
 
-    SpellEntry const* tempSpell;
-
     for (uint32 i = 0; i < GetSpellStore()->GetMaxEntry(); ++i)
     {
         SpellSummary[i].Effects = 0;
         SpellSummary[i].Targets = 0;
 
-        tempSpell = GetSpellStore()->LookupEntry<SpellEntry>(i);
+        SpellEntry const* tempSpell = GetSpellStore()->LookupEntry<SpellEntry>(i);
         // This spell doesn't exist
         if (!tempSpell)
             continue;
@@ -318,9 +313,9 @@ void ScriptedAI::DoResetThreat()
     }
 
     ThreatList const& tList = m_creature->getThreatManager().getThreatList();
-    for (ThreatList::const_iterator itr = tList.begin(); itr != tList.end(); ++itr)
+    for (auto itr : tList)
     {
-        Unit* unit = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid());
+        Unit* unit = m_creature->GetMap()->GetUnit(itr->getUnitGuid());
 
         if (unit && m_creature->getThreatManager().getThreat(unit))
             m_creature->getThreatManager().modifyThreatPercent(unit, -100);
@@ -341,9 +336,9 @@ void ScriptedAI::DoTeleportPlayer(Unit* unit, float x, float y, float z, float o
     ((Player*)unit)->TeleportTo(unit->GetMapId(), x, y, z, ori, TELE_TO_NOT_LEAVE_COMBAT);
 }
 
-std::list<Creature*> ScriptedAI::DoFindFriendlyCC(float range)
+CreatureList ScriptedAI::DoFindFriendlyCC(float range)
 {
-    std::list<Creature*> creatureList;
+    CreatureList creatureList;
 
     MaNGOS::FriendlyCCedInRangeCheck u_check(m_creature, range);
     MaNGOS::CreatureListSearcher<MaNGOS::FriendlyCCedInRangeCheck> searcher(creatureList, u_check);
@@ -353,9 +348,9 @@ std::list<Creature*> ScriptedAI::DoFindFriendlyCC(float range)
     return creatureList;
 }
 
-std::list<Creature*> ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 spellId)
+CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 spellId)
 {
-    std::list<Creature*> creatureList;
+    CreatureList creatureList;
 
     MaNGOS::FriendlyMissingBuffInRangeCheck u_check(m_creature, range, spellId);
     MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeCheck> searcher(creatureList, u_check);
@@ -365,7 +360,7 @@ std::list<Creature*> ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 s
     return creatureList;
 }
 
-Player* ScriptedAI::GetPlayerAtMinimumRange(float minimumRange)
+Player* ScriptedAI::GetPlayerAtMinimumRange(float minimumRange) const
 {
     Player* player = nullptr;
 

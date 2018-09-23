@@ -437,7 +437,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
         {
             uiDamage = 0;
             return;
-        };
+        }
 
         uiDamage = 0;
         m_creature->InterruptNonMeleeSpells(true);
@@ -1209,8 +1209,8 @@ struct npc_akama_illidanAI : public npc_escortAI, private DialogueHelper
         {
             if (m_uiSummonMinionTimer < uiDiff)
             {
-                for (uint8 i = 0; i < MAX_ILLIDARI_ELITES; ++i)
-                    m_creature->SummonCreature(NPC_ILLIDARI_ELITE, aIllidariElitesPos[i].fX, aIllidariElitesPos[i].fY, aIllidariElitesPos[i].fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
+                for (auto aIllidariElitesPo : aIllidariElitesPos)
+                    m_creature->SummonCreature(NPC_ILLIDARI_ELITE, aIllidariElitesPo.fX, aIllidariElitesPo.fY, aIllidariElitesPo.fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
 
                 m_uiSummonMinionTimer = urand(35000, 50000);
             }
@@ -1270,7 +1270,7 @@ bool GossipHello_npc_akama_illidan(Player* pPlayer, Creature* pCreature)
 
 bool GossipSelect_npc_akama_illidan(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
-    if (uiAction == GOSSIP_ACTION_INFO_DEF + 1 || GOSSIP_ACTION_INFO_DEF + 2)
+    if (uiAction == GOSSIP_ACTION_INFO_DEF + 1 || uiAction == GOSSIP_ACTION_INFO_DEF + 2)
     {
         pPlayer->CLOSE_GOSSIP_MENU();
 
@@ -1432,11 +1432,11 @@ struct npc_cage_trap_triggerAI : public ScriptedAI
             pWho->CastSpell(pWho, SPELL_CAGED, TRIGGERED_OLD_TRIGGERED);
 
             // Cast the visual effects
-            for (uint8 i = 0; i < MAX_CAGE_SPELLS; ++i)
-                DoCastSpellIfCan(m_creature, aCagedSummonSpells[i], CAST_TRIGGERED);
+            for (unsigned int aCagedSummonSpell : aCagedSummonSpells)
+                DoCastSpellIfCan(m_creature, aCagedSummonSpell, CAST_TRIGGERED);
 
-            for (uint8 i = 0; i < MAX_CAGE_SPELLS; ++i)
-                DoCastSpellIfCan(m_creature, aCagedVisualSpells[i], CAST_TRIGGERED);
+            for (unsigned int aCagedVisualSpell : aCagedVisualSpells)
+                DoCastSpellIfCan(m_creature, aCagedVisualSpell, CAST_TRIGGERED);
 
             if (GameObject* pCageTrap = GetClosestGameObjectWithEntry(m_creature, GO_CAGE_TRAP, 5.0f))
                 pCageTrap->Use(m_creature);
@@ -1527,9 +1527,9 @@ struct npc_flame_of_azzinothAI : public ScriptedAI
             std::vector<Unit*> suitableTargets;
             ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
 
-            for (ThreatList::const_iterator itr = threatList.begin(); itr != threatList.end(); ++itr)
+            for (auto itr : threatList)
             {
-                if (Unit* pTarget = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
+                if (Unit* pTarget = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                 {
                     if (pTarget->GetTypeId() == TYPEID_PLAYER && !pTarget->IsWithinDist(m_creature, 30.0f))
                         suitableTargets.push_back(pTarget);
@@ -1684,9 +1684,7 @@ UnitAI* GetAI_npc_blade_of_azzinoth(Creature* pCreature)
 
 void AddSC_boss_illidan()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_illidan_stormrage";
     pNewScript->GetAI = &GetAI_boss_illidan_stormrage;
     pNewScript->RegisterSelf();

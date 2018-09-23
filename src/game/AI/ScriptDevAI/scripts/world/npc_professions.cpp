@@ -147,18 +147,16 @@ int32 GetUnlearnCostMedium(Player* pPlayer)                 // blacksmith, leath
 
     if (level < 51)
         return 250000;
-    else if (level < 66)
+    if (level < 66)
         return 500000;
-    else
-        return 1000000;
+    return 1000000;
 }
 
 int32 GetUnlearnCostLow(Player* pPlayer)                    // blacksmith
 {
     if (pPlayer->getLevel() < 66)
         return 50000;
-    else
-        return 100000;
+    return 100000;
 }
 
 /*###
@@ -172,16 +170,14 @@ bool EquippedOk(Player* pPlayer, uint32 spellId)
     if (!spell)
         return false;
 
-    for (int i = 0; i < 3; ++i)
+    for (unsigned int reqSpell : spell->EffectTriggerSpell)
     {
-        uint32 reqSpell = spell->EffectTriggerSpell[i];
         if (!reqSpell)
             continue;
 
-        Item* pItem;
         for (int j = EQUIPMENT_SLOT_START; j < EQUIPMENT_SLOT_END; ++j)
         {
-            pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, j);
+            Item* pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, j);
             if (pItem)
                 if (pItem->GetProto()->RequiredSpell == reqSpell)
                 {
@@ -293,9 +289,7 @@ void ProfessionUnlearnSpells(Player* pPlayer, uint32 type)
 
 bool HasWeaponSub(Player* pPlayer)
 {
-    if (pPlayer->HasSpell(S_HAMMER) || pPlayer->HasSpell(S_AXE) || pPlayer->HasSpell(S_SWORD))
-        return true;
-    return false;
+    return pPlayer->HasSpell(S_HAMMER) || pPlayer->HasSpell(S_AXE) || pPlayer->HasSpell(S_SWORD);
 }
 
 bool GossipHello_npc_prof_blacksmith(Player* pPlayer, Creature* pCreature)
@@ -743,9 +737,7 @@ bool GossipSelect_npc_prof_leather(Player* pPlayer, Creature* pCreature, uint32 
 
 void AddSC_npc_professions()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_prof_blacksmith";
     pNewScript->pGossipHello =  &GossipHello_npc_prof_blacksmith;
     pNewScript->pGossipSelect = &GossipSelect_npc_prof_blacksmith;

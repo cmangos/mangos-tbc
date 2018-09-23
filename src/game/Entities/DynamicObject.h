@@ -58,9 +58,6 @@ class DynamicObject : public WorldObject
         void RemoveAffected(Unit* unit) { m_affected.erase(unit->GetObjectGuid()); }
         void Delay(int32 delaytime);
 
-        bool IsHostileTo(Unit const* unit) const override;
-        bool IsFriendlyTo(Unit const* unit) const override;
-
         ReputationRank GetReactionTo(Unit const* unit) const override;
 
         bool IsEnemy(Unit const* unit) const override;
@@ -77,7 +74,7 @@ class DynamicObject : public WorldObject
         }
 
         bool isVisibleForInState(Player const* u, WorldObject const* viewPoint, bool inVisibleList) const override;
-        Targets GetTarget() { return m_target; }
+        Targets GetTarget() const { return m_target; }
 
         GridReference<DynamicObject>& GetGridRef() { return m_gridRef; }
 

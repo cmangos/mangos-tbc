@@ -101,11 +101,11 @@ struct npc_kelerun_bloodmournAI : public ScriptedAI
         m_uiEngageTimer = 0;
 
         m_bIsEventInProgress = false;
-        for (uint8 i = 0; i < MAX_CHALLENGER; ++i)          // Despawn challengers
+        for (auto& m_aChallengerGuid : m_aChallengerGuids)          // Despawn challengers
         {
-            if (Creature* pChallenger = m_creature->GetMap()->GetCreature(m_aChallengerGuids[i]))
+            if (Creature* pChallenger = m_creature->GetMap()->GetCreature(m_aChallengerGuid))
                 pChallenger->ForcedDespawn(1000);
-            m_aChallengerGuids[i].Clear();
+            m_aChallengerGuid.Clear();
         }
     }
 
@@ -184,8 +184,7 @@ struct npc_kelerun_bloodmournAI : public ScriptedAI
                         Reset();
                         return;
                     }
-                    else
-                        m_uiEngageTimer = 15000;
+                    m_uiEngageTimer = 15000;
                 }
                 m_uiCheckAliveStateTimer = 2500;
             }
@@ -554,9 +553,7 @@ UnitAI* GetAI_npc_infused_crystalAI(Creature* pCreature)
 
 void AddSC_eversong_woods()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_kelerun_bloodmourn";
     pNewScript->GetAI = &GetAI_npc_kelerun_bloodmourn;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_kelerun_bloodmourn;

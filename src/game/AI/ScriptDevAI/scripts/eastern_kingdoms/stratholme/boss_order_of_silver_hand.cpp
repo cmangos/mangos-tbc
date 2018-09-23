@@ -89,8 +89,8 @@ struct boss_silver_hand_bossesAI : public ScriptedAI
 
     void Reset() override
     {
-        for (std::unordered_map<uint8, uint32>::iterator itr = m_mSpellTimers.begin(); itr != m_mSpellTimers.end(); ++itr)
-            itr->second = m_aSilverHandAbility[itr->first].m_uiInitialTimer;
+        for (auto& m_mSpellTimer : m_mSpellTimers)
+            m_mSpellTimer.second = m_aSilverHandAbility[m_mSpellTimer.first].m_uiInitialTimer;
     }
 
     void JustDied(Unit* pKiller) override
@@ -147,18 +147,18 @@ struct boss_silver_hand_bossesAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
 
-        for (std::unordered_map<uint8, uint32>::iterator itr = m_mSpellTimers.begin(); itr != m_mSpellTimers.end(); ++itr)
+        for (auto& m_mSpellTimer : m_mSpellTimers)
         {
-            if (itr->second < uiDiff)
+            if (m_mSpellTimer.second < uiDiff)
             {
-                if (CanUseSpecialAbility(itr->first))
+                if (CanUseSpecialAbility(m_mSpellTimer.first))
                 {
-                    itr->second = m_aSilverHandAbility[itr->first].m_uiCooldown;
+                    m_mSpellTimer.second = m_aSilverHandAbility[m_mSpellTimer.first].m_uiCooldown;
                     break;
                 }
             }
             else
-                itr->second -= uiDiff;
+                m_mSpellTimer.second -= uiDiff;
         }
 
         DoMeleeAttackIfReady();
@@ -172,9 +172,7 @@ UnitAI* GetAI_boss_silver_hand_bossesAI(Creature* pCreature)
 
 void AddSC_boss_order_of_silver_hand()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_silver_hand_bosses";
     pNewScript->GetAI = &GetAI_boss_silver_hand_bossesAI;
     pNewScript->RegisterSelf();

@@ -29,7 +29,6 @@ Channel::Channel(const std::string& name, uint32 channel_id)
     ChatChannelsEntry const* ch = GetChannelEntryFor(channel_id);
     if (ch)                                                 // it's built-in channel
     {
-        channel_id = ch->ChannelID;                         // built-in channel
         m_announce = false;                                 // no join/leave announces
 
         m_flags |= CHANNEL_FLAG_GENERAL;                    // for all built-in channels
@@ -114,7 +113,7 @@ void Channel::Join(Player* player, const char* password)
     // if no owner first logged will become
     if (!IsConstant() && !m_ownerGuid)
     {
-        SetOwner(guid, (m_players.size() > 1 ? true : false));
+        SetOwner(guid, (m_players.size() > 1));
         m_players[guid].SetModerator(true);
     }
 }
@@ -774,7 +773,7 @@ void Channel::MakeNotOwner(WorldPacket& data) const
 
 void Channel::MakeChannelOwner(WorldPacket& data) const
 {
-    std::string name = "";
+    std::string name;
 
     if (!sObjectMgr.GetPlayerNameByGUID(m_ownerGuid, name) || name.empty())
         name = "PLAYER_NOT_FOUND";

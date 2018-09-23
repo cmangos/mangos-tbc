@@ -283,7 +283,7 @@ bool CreatureLinkingMgr::IsLinkedEventTrigger(Creature* pCreature) const
 
     // Also return true for npcs that trigger reverse actions, or for followers(needed in respawn)
     if (CreatureLinkingInfo const* pInfo = GetLinkedTriggerInformation(pCreature))
-        return !!(pInfo->linkingFlag & EVENT_MASK_TRIGGER_TO);
+        return (pInfo->linkingFlag & EVENT_MASK_TRIGGER_TO) != 0;
 
     return false;
 }
@@ -584,10 +584,9 @@ void CreatureLinkingHolder::SetFollowing(Creature* pWho, Creature* pWhom) const
     pWho->GetRespawnCoord(sX, sY, sZ);
     pWhom->GetRespawnCoord(mX, mY, mZ, &mO);
 
-    float dx, dy, dz;
-    dx = sX - mX;
-    dy = sY - mY;
-    dz = sZ - mZ;
+    float dx = sX - mX;
+    float dy = sY - mY;
+    float dz = sZ - mZ;
 
     float dist = sqrt(dx * dx + dy * dy + dz * dz);
     // REMARK: This code needs the same distance calculation that is used for following
@@ -616,11 +615,11 @@ bool CreatureLinkingHolder::IsSlaveInRangeOfMaster(Creature const* pBoss, float 
         return true;
 
     // Do some calculations
-    float mX, mY, mZ, dx, dy;
+    float mX, mY, mZ;
     pBoss->GetRespawnCoord(mX, mY, mZ);
 
-    dx = sX - mX;
-    dy = sY - mY;
+    float dx = sX - mX;
+    float dy = sY - mY;
 
     return dx * dx + dy * dy < searchRange * searchRange;
 }
@@ -679,10 +678,9 @@ bool CreatureLinkingHolder::CanSpawn(uint32 lowGuid, Map* _map, CreatureLinkingI
 
         if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_DEAD)
             return IsRespawnReady(pInfo->masterDBGuid, _map);
-        else if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
+        if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
             return !IsRespawnReady(pInfo->masterDBGuid, _map);
-        else
-            return true;
+        return true;
     }
 
     // Search for nearby master
@@ -694,10 +692,9 @@ bool CreatureLinkingHolder::CanSpawn(uint32 lowGuid, Map* _map, CreatureLinkingI
         {
             if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_DEAD)
                 return pMaster->isAlive();
-            else if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
+            if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ALIVE)
                 return !pMaster->isAlive();
-            else
-                return true;
+            return true;
         }
     }
 

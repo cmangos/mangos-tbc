@@ -104,11 +104,11 @@ struct npc_air_force_botsAI : public ScriptedAI
         m_pSpawnAssoc = nullptr;
 
         // find the correct spawnhandling
-        for (uint8 i = 0; i < countof(m_aSpawnAssociations); ++i)
+        for (auto& m_aSpawnAssociation : m_aSpawnAssociations)
         {
-            if (m_aSpawnAssociations[i].m_uiThisCreatureEntry == pCreature->GetEntry())
+            if (m_aSpawnAssociation.m_uiThisCreatureEntry == pCreature->GetEntry())
             {
-                m_pSpawnAssoc = &m_aSpawnAssociations[i];
+                m_pSpawnAssoc = &m_aSpawnAssociation;
                 break;
             }
         }
@@ -148,7 +148,7 @@ struct npc_air_force_botsAI : public ScriptedAI
         return pSummoned;
     }
 
-    Creature* GetSummonedGuard()
+    Creature* GetSummonedGuard() const
     {
         Creature* pCreature = m_creature->GetMap()->GetCreature(m_spawnedGuid);
 
@@ -660,12 +660,12 @@ void npc_doctorAI::BeginEvent(Player* pPlayer)
     switch (m_creature->GetEntry())
     {
         case DOCTOR_ALLIANCE:
-            for (uint8 i = 0; i < ALLIANCE_COORDS; ++i)
-                m_vPatientSummonCoordinates.push_back(&AllianceCoords[i]);
+            for (auto& AllianceCoord : AllianceCoords)
+                m_vPatientSummonCoordinates.push_back(&AllianceCoord);
             break;
         case DOCTOR_HORDE:
-            for (uint8 i = 0; i < HORDE_COORDS; ++i)
-                m_vPatientSummonCoordinates.push_back(&HordeCoords[i]);
+            for (auto& HordeCoord : HordeCoords)
+                m_vPatientSummonCoordinates.push_back(&HordeCoord);
             break;
         default:
             script_error_log("Invalid entry for Triage doctor. Please check your database");
@@ -1307,7 +1307,9 @@ enum
 // TODO: Add random repositioning logic
 struct npc_burster_wormAI : public ScriptedAI
 {
-    npc_burster_wormAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiBorePassive(SetBorePassive()), m_boreDamageSpell(SetBoreDamageSpell()) { }
+    npc_burster_wormAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiPhase(0), m_uiChaseTimer(0), m_uiBirthDelayTimer(0), m_uiBoreTimer(0), m_uiEnrageTimer(0), m_uiBorePassive(SetBorePassive()), m_boreDamageSpell(SetBoreDamageSpell())
+    {
+    }
 
     uint8 m_uiPhase;
 
@@ -1411,13 +1413,9 @@ struct npc_burster_wormAI : public ScriptedAI
     }
 
     // function to check for bone worms
-    bool IsBoneWorm()
+    bool IsBoneWorm() const
     {
-        if (m_creature->GetEntry() == NPC_BONE_CRAWLER || m_creature->GetEntry() == NPC_HAISHULUD || m_creature->GetEntry() == NPC_BONE_SIFTER
-                || m_creature->GetEntry() == NPC_MATURE_BONE_SIFTER)
-            return true;
-
-        return false;
+        return m_creature->GetEntry() == NPC_BONE_CRAWLER || m_creature->GetEntry() == NPC_HAISHULUD || m_creature->GetEntry() == NPC_BONE_SIFTER || m_creature->GetEntry() == NPC_MATURE_BONE_SIFTER;
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -1648,7 +1646,7 @@ struct npc_shaman_fire_elementalAI : public ScriptedAI
         {
             std::vector<Unit*> unitVector;
             m_creature->SelectAttackingTargets(unitVector, ATTACKING_TARGET_ALL_SUITABLE, uint32(0), uint32(0), SELECT_FLAG_RANGE_AOE_RANGE, m_fireNovaParams);
-            if (unitVector.size() >= 1)
+            if (!unitVector.empty())
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_FIRE_NOVA) == CAST_OK)
                 {
@@ -1699,7 +1697,7 @@ struct npc_shaman_earth_elementalAI : public ScriptedAI
             m_angeredEarthTimer = 0;
             std::vector<Unit*> unitVector;
             m_creature->SelectAttackingTargets(unitVector, ATTACKING_TARGET_ALL_SUITABLE, uint32(0), uint32(0), SELECT_FLAG_RANGE_AOE_RANGE, m_angeredEarthParams);
-            if (unitVector.size() >= 1)
+            if (!unitVector.empty())
                 if (DoCastSpellIfCan(nullptr, SPELL_ANGERED_EARTH) == CAST_OK)
                     m_angeredEarthTimer = 15000;
         }
@@ -1770,9 +1768,7 @@ UnitAI* GetAI_npc_snakes(Creature* pCreature)
 
 void AddSC_npcs_special()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_air_force_bots";
     pNewScript->GetAI = &GetAI_npc_air_force_bots;
     pNewScript->RegisterSelf();

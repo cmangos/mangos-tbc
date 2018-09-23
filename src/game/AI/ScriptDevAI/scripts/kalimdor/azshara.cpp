@@ -314,8 +314,8 @@ struct mobs_spitelashesAI : public ScriptedAI
     {
         m_uiMorphTimer = 0;
 
-        for (std::unordered_map<uint8, uint32>::iterator itr = m_mSpellTimers.begin(); itr != m_mSpellTimers.end(); ++itr)
-            itr->second = m_aSpitelashAbility[itr->first].m_uiInitialTimer;
+        for (auto& m_mSpellTimer : m_mSpellTimers)
+            m_mSpellTimer.second = m_aSpitelashAbility[m_mSpellTimer.first].m_uiInitialTimer;
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
@@ -378,18 +378,18 @@ struct mobs_spitelashesAI : public ScriptedAI
                 m_uiMorphTimer -= uiDiff;
         }
 
-        for (std::unordered_map<uint8, uint32>::iterator itr = m_mSpellTimers.begin(); itr != m_mSpellTimers.end(); ++itr)
+        for (auto& m_mSpellTimer : m_mSpellTimers)
         {
-            if (itr->second < uiDiff)
+            if (m_mSpellTimer.second < uiDiff)
             {
-                if (CanUseSpecialAbility(itr->first))
+                if (CanUseSpecialAbility(m_mSpellTimer.first))
                 {
-                    itr->second = m_aSpitelashAbility[itr->first].m_uiCooldown;
+                    m_mSpellTimer.second = m_aSpitelashAbility[m_mSpellTimer.first].m_uiCooldown;
                     break;
                 }
             }
             else
-                itr->second -= uiDiff;
+                m_mSpellTimer.second -= uiDiff;
         }
 
         DoMeleeAttackIfReady();
@@ -516,10 +516,10 @@ struct npc_felhound_trackerAI : public ScriptedPetAI
     // Function to search for new tubber in range
     void DoFindNewCrystal(Player* pMaster)
     {
-        std::list<GameObject*> lCrystalsInRange;
-        for (uint8 i = 0; i < 4; i++)
+        GameObjectList lCrystalsInRange;
+        for (unsigned int i : aGOList)
         {
-            GetGameObjectListWithEntryInGrid(lCrystalsInRange, m_creature, aGOList[i], 40.0f);
+            GetGameObjectListWithEntryInGrid(lCrystalsInRange, m_creature, i, 40.0f);
             // If a crystal was found in range, stop the search here, else try with another GO
             if (!lCrystalsInRange.empty())
                 break;
@@ -534,7 +534,7 @@ struct npc_felhound_trackerAI : public ScriptedPetAI
         GameObject* pNearestCrystal = nullptr;
 
         // Always need to find new ones
-        for (std::list<GameObject*>::const_iterator itr = lCrystalsInRange.begin(); itr != lCrystalsInRange.end(); ++itr)
+        for (GameObjectList::const_iterator itr = lCrystalsInRange.begin(); itr != lCrystalsInRange.end(); ++itr)
         {
             if ((*itr)->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_INTERACT_COND))
             {
@@ -584,9 +584,7 @@ UnitAI* GetAI_npc_felhound_tracker(Creature* pCreature)
 
 void AddSC_azshara()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_rizzle_sprysprocket";
     pNewScript->GetAI = &GetAI_npc_rizzle_sprysprocket;
     pNewScript->pGossipHello = &GossipHello_npc_rizzle_sprysprocket;

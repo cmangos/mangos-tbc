@@ -358,7 +358,7 @@ struct npc_netherspite_portalAI : public Scripted_NoMovementAI
     {
         m_uiOrientationTimer = 0;
 
-        m_uiCurrentBeamTarget = ObjectGuid();;
+        m_uiCurrentBeamTarget = ObjectGuid();
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
@@ -448,9 +448,7 @@ bool EffectScriptEffectCreature_spell_portal_attunement(Unit* pCaster, uint32 ui
 
 void AddSC_boss_netherspite()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_netherspite";
     pNewScript->GetAI = &GetAI_boss_netherspite;
     pNewScript->RegisterSelf();

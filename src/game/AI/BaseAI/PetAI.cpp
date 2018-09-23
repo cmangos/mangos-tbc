@@ -48,6 +48,8 @@ PetAI::PetAI(Creature* creature) : UnitAI(creature), m_creature(creature), inCom
         case MINI_PET:
             SetReactState(REACT_PASSIVE);
             break;
+        default:
+            break;
     }
 
     switch (creature->GetUInt32Value(UNIT_CREATED_BY_SPELL))
@@ -158,14 +160,14 @@ void PetAI::UpdateAI(const uint32 diff)
 
             return;
         }
-        else
-            charminfo->SetIsRetreating();
+        charminfo->SetIsRetreating();
     }
     else if (charminfo->GetSpellOpener() != 0) // have opener stored
     {
         uint32 minRange = charminfo->GetSpellOpenerMinRange();
+        victim = m_unit->getVictim();
 
-        if (!(victim = m_unit->getVictim())
+        if (!victim
                 || (minRange != 0 && m_unit->IsWithinDistInMap(victim, minRange)))
             charminfo->SetSpellOpener();
         else if (m_unit->IsWithinDistInMap(victim, charminfo->GetSpellOpenerMaxRange())
@@ -253,14 +255,13 @@ void PetAI::UpdateAI(const uint32 diff)
                 if (inCombat && spell->CanAutoCast(victim))
                 {
                     targetSpellStore.push_back(TargetSpellList::value_type(victim, spell));
-                    continue;
                 }
                 else
                 {
                     bool spellUsed = false;
-                    for (GuidSet::const_iterator tar = m_AllySet.begin(); tar != m_AllySet.end(); ++tar)
+                    for (auto tar : m_AllySet)
                     {
-                        Unit* Target = m_unit->GetMap()->GetUnit(*tar);
+                        Unit* Target = m_unit->GetMap()->GetUnit(tar);
 
                         // only buff targets that are in combat, unless the spell can only be cast while out of combat
                         if (!Target)
@@ -416,7 +417,7 @@ void PetAI::UpdateAllies()
 
     if (!owner)
         return;
-    else if (owner->GetTypeId() == TYPEID_PLAYER)
+    if (owner->GetTypeId() == TYPEID_PLAYER)
         group = ((Player*)owner)->GetGroup();
 
     // only pet and owner/not in group->ok

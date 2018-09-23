@@ -37,7 +37,7 @@ namespace FactorySelector
     UnitAI* selectAI(Creature* creature)
     {
         // Allow scripting AI for normal creatures and not controlled pets (guardians and mini-pets)
-        if ((!creature->IsPet() || !static_cast<Pet*>(creature)->isControlled()) && !creature->HasCharmer())
+        if ((!creature->IsPet() || !static_cast<Pet*>(creature)->isControlled()) || creature->HasCharmer())
             if (UnitAI* scriptedAI = sScriptDevAIMgr.GetCreatureAI(creature))
                 return scriptedAI;
 
@@ -58,7 +58,7 @@ namespace FactorySelector
         else if (creature->IsTotem())
             ai_factory = ai_registry.GetRegistryItem("TotemAI");
         else if (!ainame.empty())           // select by script name
-            ai_factory = ai_registry.GetRegistryItem(ainame.c_str());
+            ai_factory = ai_registry.GetRegistryItem(ainame);
         else if (creature->IsGuard())
             ai_factory = ai_registry.GetRegistryItem("GuardAI");
         else if (creature->IsCritter())
@@ -68,9 +68,9 @@ namespace FactorySelector
             int best_val = PERMIT_BASE_NO;
             typedef CreatureAIRegistry::RegistryMapType RMT;
             RMT const& l = ai_registry.GetRegisteredItems();
-            for (RMT::const_iterator iter = l.begin(); iter != l.end(); ++iter)
+            for (const auto& iter : l)
             {
-                const CreatureAICreator* factory = iter->second;
+                const CreatureAICreator* factory = iter.second;
                 const SelectableAI* p = dynamic_cast<const SelectableAI*>(factory);
                 MANGOS_ASSERT(p != nullptr);
                 int val = p->Permit(creature);
@@ -98,12 +98,12 @@ namespace FactorySelector
         const CreatureAICreator* ai_factory = ai_registry.GetRegistryItem(ainame);
         if (creature)
             return  ai_factory->Create(creature);
-        else if (ainame == "PetAI")
+        if (ainame == "PetAI")
             return (new PetAI(unit));
-        else if (ainame == "PossessedAI")
+        if (ainame == "PossessedAI")
             return (new PossessedAI(unit));
 
-        sLog.outError("FactorySelector::GetSpecificAI> Cannot get %s AI for %s", ainame.c_str(), unit->GetObjectGuid().GetString().c_str());
+        sLog.outError("FactorySelector::GetSpecificAI> Cannot get %s AI for %s", ainame.c_str(), unit->GetGuidStr().c_str());
         MANGOS_ASSERT(false);
         return nullptr;
     }

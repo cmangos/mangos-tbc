@@ -331,8 +331,8 @@ struct npc_bloodmaul_stout_triggerAI : public ScriptedAI
             {
                 // get all the ogres in range
                 std::list<Creature*> lOgreList;
-                for (uint8 i = 0; i < countof(aOgreEntries); ++i)
-                    GetCreatureListWithEntryInGrid(lOgreList, m_creature,  aOgreEntries[i], 30.0f);
+                for (unsigned int aOgreEntrie : aOgreEntries)
+                    GetCreatureListWithEntryInGrid(lOgreList, m_creature, aOgreEntrie, 30.0f);
 
                 if (lOgreList.empty())
                 {
@@ -556,9 +556,9 @@ struct npc_simon_game_bunnyAI : public ScriptedAI
                 m_masterPlayerGuid = m_creature->GetSpawnerGuid();
 
             // Get closest apexis
-            if (GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_APEXIS_RELIC, 5.0f))
+            if (GetClosestGameObjectWithEntry(m_creature, GO_APEXIS_RELIC, 5.0f))
                 m_bIsLargeEvent = false;
-            else if (GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_APEXIS_MONUMENT, 17.0f))
+            else if (GetClosestGameObjectWithEntry(m_creature, GO_APEXIS_MONUMENT, 17.0f))
                 m_bIsLargeEvent = true;
         }
 
@@ -788,7 +788,7 @@ bool EffectDummyCreature_npc_simon_game_bunny(Unit* pCaster, uint32 uiSpellId, S
         pCreatureTarget->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pCaster, pCreatureTarget);
         return true;
     }
-    else if (uiSpellId == SPELL_PRE_EVENT_TIMER && uiEffIndex == EFFECT_INDEX_0)
+    if (uiSpellId == SPELL_PRE_EVENT_TIMER && uiEffIndex == EFFECT_INDEX_0)
     {
         pCreatureTarget->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, pCaster, pCreatureTarget);
         return true;
@@ -884,7 +884,7 @@ struct npc_light_orb_collectorAI : public ScriptedAI
                 pSelectedOrb->SetWalk(false);
 
                 // Move orb to the collector
-                float fX, fY, fZ;;
+                float fX, fY, fZ;
                 pSelectedOrb->GetMotionMaster()->MoveIdle();
                 m_creature->GetContactPoint(pSelectedOrb, fX, fY, fZ);
                 pSelectedOrb->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
@@ -1097,8 +1097,8 @@ struct npc_vimgol_middle_bunnyAI : public ScriptedAI
     {
         m_uiSpawned = false;
 
-        for (int i = 0; i < 5; i++)
-            m_uiActiveCircles[i] = false;
+        for (bool& m_uiActiveCircle : m_uiActiveCircles)
+            m_uiActiveCircle = false;
 
         m_uiScanTimer = 0;
         m_uiBeamTimer = 5;
@@ -1120,25 +1120,25 @@ struct npc_vimgol_middle_bunnyAI : public ScriptedAI
             m_pMap->GetCreatureGuidVectorFromStorage(NPC_VIMGOL_VISUAL_BUNNY, m_uiBunnyGuids);
         }
 
-        for (int i = 0; i < 5; i++)
-            m_uiActiveCircles[i] = false;
+        for (bool& m_uiActiveCircle : m_uiActiveCircles)
+            m_uiActiveCircle = false;
 
         std::list<Player*> playerList;
         GetPlayerListWithEntryInWorld(playerList, m_creature, 30);
-        for (auto itr = playerList.begin(); itr != playerList.end(); ++itr)
+        for (auto& itr : playerList)
         {
-            if (!(*itr)->HasAura(SPELL_VIMGOL_POP_TEST_A) && !(*itr)->HasAura(SPELL_VIMGOL_POP_TEST_B) && !(*itr)->HasAura(SPELL_VIMGOL_POP_TEST_C) &&
-                    !(*itr)->HasAura(SPELL_VIMGOL_POP_TEST_D) && !(*itr)->HasAura(SPELL_VIMGOL_POP_TEST_E))
+            if (!itr->HasAura(SPELL_VIMGOL_POP_TEST_A) && !itr->HasAura(SPELL_VIMGOL_POP_TEST_B) && !itr->HasAura(SPELL_VIMGOL_POP_TEST_C) &&
+                    !itr->HasAura(SPELL_VIMGOL_POP_TEST_D) && !itr->HasAura(SPELL_VIMGOL_POP_TEST_E))
                 continue;
 
             for (auto it = m_uiBunnyGuids.begin(); it != m_uiBunnyGuids.end(); ++it)
             {
-                for (int i = 0; i < 5; ++i)
+                for (unsigned int tmpAura : tmpAuras)
                 {
-                    if (!(*itr)->GetAura(tmpAuras[i], SpellEffectIndex(0)))
+                    if (!itr->GetAura(tmpAura, SpellEffectIndex(0)))
                         continue;
 
-                    if ((*it) != (*itr)->GetAura(tmpAuras[i], SpellEffectIndex(0))->GetCasterGuid())
+                    if ((*it) != itr->GetAura(tmpAura, SpellEffectIndex(0))->GetCasterGuid())
                         continue;
 
                     m_uiActiveCircles[std::distance(m_uiBunnyGuids.begin(), it)] = true;
@@ -1146,8 +1146,8 @@ struct npc_vimgol_middle_bunnyAI : public ScriptedAI
             }
         }
 
-        for (int i = 0; i < 5; i++)
-            if (m_uiActiveCircles[i])
+        for (bool m_uiActiveCircle : m_uiActiveCircles)
+            if (m_uiActiveCircle)
                 ++tmpCounter;
 
         return tmpCounter;
@@ -1173,8 +1173,8 @@ struct npc_vimgol_middle_bunnyAI : public ScriptedAI
         CastBunnySpell(nullptr, SPELL_PENTAGRAM_BEAM);
         m_uiSpawned = true;
 
-        for (int i = 0; i < 5; i++)
-            m_uiActiveCircles[i] = false;
+        for (bool& m_uiActiveCircle : m_uiActiveCircles)
+            m_uiActiveCircle = false;
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -1359,7 +1359,7 @@ bool AreaTrigger_at_raven_prophecy(Player* pPlayer, AreaTriggerEntry const* pAt)
             {
                 if (Creature* whisper = ((ScriptedMap*)pPlayer->GetInstanceData())->GetSingleCreatureFromStorage(NPC_WHISPER_RAVEN_GOD_TEMPLATE))
                 {
-                    if (Creature* vision = pPlayer->SummonCreature(NPC_VISION_RAVEN_GOD_TEMPLATE, prophecy.x, prophecy.y, prophecy.z, prophecy.o, TEMPSPAWN_TIMED_DESPAWN, 6000))
+                    if (pPlayer->SummonCreature(NPC_VISION_RAVEN_GOD_TEMPLATE, prophecy.x, prophecy.y, prophecy.z, prophecy.o, TEMPSPAWN_TIMED_DESPAWN, 6000))
                     {
                         DoScriptText(prophecy.text, whisper, pPlayer);
 
@@ -1400,22 +1400,19 @@ enum
     SPELL_SPIRIT_PARTICLES_PURPLE       = 28126,
     SPELL_SOULGRINDER_GHOST_SPAWN_IN    = 17321,
 
-    SAY_SKULLOC_SOULGRINDER = -1001230,
-    SAY_FAIL_QUEST          = -1001231,
+    SAY_SKULLOC_SOULGRINDER = -1015016,
+    SAY_FAIL_QUEST          = -1015017,
 };
 
 bool ProcessEventId_Soulgrinder(uint32 uiEventId, Object* pSource, Object* pTarget, bool bIsStart)
 {
-    if (Creature* bunny = GetClosestCreatureWithEntry((WorldObject*)pSource, NPC_SOULGRINDER, 20))
+    if (GetClosestCreatureWithEntry((WorldObject*)pSource, NPC_SOULGRINDER, 20))
     {
         return false;
     }
-    else
-    {
-        Player* player = (Player*)pSource;
-        player->SummonCreature(NPC_SOULGRINDER, 3535.111f, 5590.628f, 0.3859383f, 0.7853982f, TEMPSPAWN_TIMED_OR_CORPSE_DESPAWN, 265000);
-        return true;
-    }
+    Player* player = (Player*)pSource;
+    player->SummonCreature(NPC_SOULGRINDER, 3535.111f, 5590.628f, 0.3859383f, 0.7853982f, TEMPSPAWN_TIMED_OR_CORPSE_DESPAWN, 265000);
+    return true;
 }
 
 struct npc_soulgrinderAI : public ScriptedAI
@@ -1663,7 +1660,6 @@ struct npc_soulgrinderAI : public ScriptedAI
                             m_creature->InterruptSpell(CURRENT_CHANNELED_SPELL);
                         }
                         m_uiTimer = 0;
-                        return;
                     }
                 }
             }
@@ -1747,7 +1743,7 @@ struct npc_supplicantAI : public ScriptedAI
     npc_supplicantAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_summonerGuid = m_creature->GetSpawnerGuid();
-        m_last = -1;
+        m_last = static_cast<uint32>(-1);
         Reset();
     }
 
@@ -2207,7 +2203,9 @@ enum
 
 struct npc_evergrove_druidAI : public ScriptedAI
 {
-    npc_evergrove_druidAI(Creature* pCreature) : ScriptedAI(pCreature) {}
+    npc_evergrove_druidAI(Creature* pCreature) : ScriptedAI(pCreature), m_summoner(nullptr), returnTimer(0), landingDone(false), alreadySummoned(false)
+    {
+    }
 
     Player* m_summoner;
     uint32 returnTimer;
@@ -2330,9 +2328,7 @@ UnitAI* GetAI_npc_evergrove_druidAI(Creature* creature)
 
 void AddSC_blades_edge_mountains()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "mobs_nether_drake";
     pNewScript->GetAI = &GetAI_mobs_nether_drake;
     pNewScript->RegisterSelf();

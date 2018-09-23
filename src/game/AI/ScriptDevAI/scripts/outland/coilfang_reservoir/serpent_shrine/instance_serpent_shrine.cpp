@@ -46,9 +46,9 @@ void instance_serpentshrine_cavern::Initialize()
 
 bool instance_serpentshrine_cavern::IsEncounterInProgress() const
 {
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32 i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
+        if (i == IN_PROGRESS)
             return true;
     }
 
@@ -173,10 +173,10 @@ void instance_serpentshrine_cavern::Load(const char* chrIn)
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
                >> m_auiEncounter[4] >> m_auiEncounter[5];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -256,9 +256,7 @@ InstanceData* GetInstanceData_instance_serpentshrine_cavern(Map* pMap)
 
 void AddSC_instance_serpentshrine_cavern()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_serpent_shrine";
     pNewScript->GetInstanceData = &GetInstanceData_instance_serpentshrine_cavern;
     pNewScript->RegisterSelf();

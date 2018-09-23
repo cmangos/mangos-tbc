@@ -63,13 +63,13 @@ BattleGroundQueue::BattleGroundQueue()
 BattleGroundQueue::~BattleGroundQueue()
 {
     m_QueuedPlayers.clear();
-    for (uint8 i = 0; i < MAX_BATTLEGROUND_BRACKETS; ++i)
+    for (auto& m_QueuedGroup : m_QueuedGroups)
     {
         for (uint8 j = 0; j < BG_QUEUE_GROUP_TYPES_COUNT; ++j)
         {
-            for (GroupsQueueType::iterator itr = m_QueuedGroups[i][j].begin(); itr != m_QueuedGroups[i][j].end(); ++itr)
+            for (GroupsQueueType::iterator itr = m_QueuedGroup[j].begin(); itr != m_QueuedGroup[j].end(); ++itr)
                 delete (*itr);
-            m_QueuedGroups[i][j].clear();
+            m_QueuedGroup[j].clear();
         }
     }
 }
@@ -132,9 +132,7 @@ bool BattleGroundQueue::SelectionPool::AddGroup(GroupQueueInfo* ginfo, uint32 de
         PlayerCount += ginfo->Players.size();
         return true;
     }
-    if (PlayerCount < desiredCount)
-        return true;
-    return false;
+    return PlayerCount < desiredCount;
 }
 
 /*********************************************************/
@@ -287,9 +285,8 @@ uint32 BattleGroundQueue::GetAverageQueueWaitTime(GroupQueueInfo* ginfo, BattleG
     // check if there is enought values(we always add values > 0)
     if (m_WaitTimes[team_index][bracket_id][COUNT_OF_PLAYERS_TO_AVERAGE_WAIT_TIME - 1])
         return (m_SumOfWaitTimes[team_index][bracket_id] / COUNT_OF_PLAYERS_TO_AVERAGE_WAIT_TIME);
-    else
         // if there aren't enough values return 0 - not available
-        return 0;
+    return 0;
 }
 
 // remove player from queue and from group info, if group info is empty then remove it too
@@ -299,10 +296,9 @@ void BattleGroundQueue::RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount)
     // std::lock_guard<std::recursive_mutex> guard(m_Lock);
 
     int32 bracket_id = -1;                                  // signed for proper for-loop finish
-    QueuedPlayersMap::iterator itr;
 
     // remove player from map, if he's there
-    itr = m_QueuedPlayers.find(guid);
+    QueuedPlayersMap::iterator itr = m_QueuedPlayers.find(guid);
     if (itr == m_QueuedPlayers.end())
     {
         sLog.outError("BattleGroundQueue: couldn't find for remove: %s", guid.GetString().c_str());
@@ -310,7 +306,7 @@ void BattleGroundQueue::RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount)
     }
 
     GroupQueueInfo* group = itr->second.GroupInfo;
-    GroupsQueueType::iterator group_itr, group_itr_tmp;
+    GroupsQueueType::iterator group_itr;
     // mostly people with the highest levels are in battlegrounds, thats why
     // we count from MAX_BATTLEGROUND_QUEUES - 1 to 0
     // variable index removes useless searching in other team's queue
@@ -322,7 +318,7 @@ void BattleGroundQueue::RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount)
         // they leave groupinfo so we can't use its players size to find out index
         for (uint8 j = index; j < BG_QUEUE_GROUP_TYPES_COUNT; j += BG_QUEUE_NORMAL_ALLIANCE)
         {
-            for (group_itr_tmp = m_QueuedGroups[bracket_id_tmp][j].begin(); group_itr_tmp != m_QueuedGroups[bracket_id_tmp][j].end(); ++group_itr_tmp)
+            for (GroupsQueueType::iterator group_itr_tmp = m_QueuedGroups[bracket_id_tmp][j].begin(); group_itr_tmp != m_QueuedGroups[bracket_id_tmp][j].end(); ++group_itr_tmp)
             {
                 if ((*group_itr_tmp) == group)
                 {
@@ -603,10 +599,9 @@ bool BattleGroundQueue::CheckPremadeMatch(BattleGroundBracketId bracket_id, uint
             m_SelectionPools[TEAM_INDEX_HORDE].AddGroup((*horde_group), MaxPlayersPerTeam);
             // add groups/players from normal queue to size of bigger group
             uint32 maxPlayers = std::max(m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount(), m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount());
-            GroupsQueueType::const_iterator itr;
             for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
             {
-                for (itr = m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].begin(); itr != m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].end(); ++itr)
+                for (GroupsQueueType::const_iterator itr = m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].begin(); itr != m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE + i].end(); ++itr)
                 {
                     // if itr can join BG and player count is less that maxPlayers, then add group to selectionpool
                     if (!(*itr)->IsInvitedToBGInstanceGUID && !m_SelectionPools[i].AddGroup((*itr), maxPlayers))
@@ -758,8 +753,8 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
 
     // battleground with free slot for player should be always in the beggining of the queue
     // maybe it would be better to create bgfreeslotqueue for each bracket_id
-    BGFreeSlotQueueType::iterator itr, next;
-    for (itr = sBattleGroundMgr.BGFreeSlotQueue[bgTypeId].begin(); itr != sBattleGroundMgr.BGFreeSlotQueue[bgTypeId].end(); itr = next)
+    BGFreeSlotQueueType::iterator next;
+    for (BGFreeSlotQueueType::iterator itr = sBattleGroundMgr.BGFreeSlotQueue[bgTypeId].begin(); itr != sBattleGroundMgr.BGFreeSlotQueue[bgTypeId].end(); itr = next)
     {
         next = itr;
         ++next;
@@ -1157,13 +1152,13 @@ void BattleGroundMgr::Update(uint32 diff)
             // release lock
         }
 
-        for (uint8 i = 0; i < scheduled.size(); ++i)
+        for (unsigned long long i : scheduled)
         {
-            uint32 arenaRating = scheduled[i] >> 32;
-            ArenaType arenaType = ArenaType(scheduled[i] >> 24 & 255);
-            BattleGroundQueueTypeId bgQueueTypeId = BattleGroundQueueTypeId(scheduled[i] >> 16 & 255);
-            BattleGroundTypeId bgTypeId = BattleGroundTypeId((scheduled[i] >> 8) & 255);
-            BattleGroundBracketId bracket_id = BattleGroundBracketId(scheduled[i] & 255);
+            uint32 arenaRating = i >> 32;
+            ArenaType arenaType = ArenaType(i >> 24 & 255);
+            BattleGroundQueueTypeId bgQueueTypeId = BattleGroundQueueTypeId(i >> 16 & 255);
+            BattleGroundTypeId bgTypeId = BattleGroundTypeId((i >> 8) & 255);
+            BattleGroundBracketId bracket_id = BattleGroundBracketId(i & 255);
             m_BattleGroundQueues[bgQueueTypeId].Update(bgTypeId, bracket_id, arenaType, arenaRating > 0, arenaRating);
         }
     }
@@ -1392,10 +1387,10 @@ BattleGround* BattleGroundMgr::GetBattleGroundThroughClientInstance(uint32 insta
     if (bg->isArena())
         return GetBattleGround(instanceId, bgTypeId);
 
-    for (BattleGroundSet::iterator itr = m_BattleGrounds[bgTypeId].begin(); itr != m_BattleGrounds[bgTypeId].end(); ++itr)
+    for (auto& itr : m_BattleGrounds[bgTypeId])
     {
-        if (itr->second->GetClientInstanceID() == instanceId)
-            return itr->second;
+        if (itr.second->GetClientInstanceID() == instanceId)
+            return itr.second;
     }
     return nullptr;
 }
@@ -1725,13 +1720,13 @@ void BattleGroundMgr::DistributeArenaPoints() const
     }
 
     // cycle that gives points to all players
-    for (std::map<uint32, uint32>::iterator plr_itr = PlayerPoints.begin(); plr_itr != PlayerPoints.end(); ++plr_itr)
+    for (auto& PlayerPoint : PlayerPoints)
     {
         // update to database
-        CharacterDatabase.PExecute("UPDATE characters SET arenaPoints = arenaPoints + '%u' WHERE guid = '%u'", plr_itr->second, plr_itr->first);
+        CharacterDatabase.PExecute("UPDATE characters SET arenaPoints = arenaPoints + '%u' WHERE guid = '%u'", PlayerPoint.second, PlayerPoint.first);
         // add points if player is online
-        if (Player* pl = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, plr_itr->first)))
-            pl->ModifyArenaPoints(plr_itr->second);
+        if (Player* pl = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, PlayerPoint.first)))
+            pl->ModifyArenaPoints(PlayerPoint.second);
     }
 
     PlayerPoints.clear();
@@ -1818,7 +1813,7 @@ bool BattleGroundMgr::IsArenaType(BattleGroundTypeId bgTypeId)
             return true;
         default:
             return false;
-    };
+    }
 }
 
 BattleGroundQueueTypeId BattleGroundMgr::BGQueueTypeId(BattleGroundTypeId bgTypeId, ArenaType arenaType)
@@ -1913,9 +1908,9 @@ void BattleGroundMgr::ScheduleQueueUpdate(uint32 arenaRating, ArenaType arenaTyp
     // we will use only 1 number created of bgTypeId and bracket_id
     uint64 schedule_id = ((uint64)arenaRating << 32) | (arenaType << 24) | (bgQueueTypeId << 16) | (bgTypeId << 8) | bracket_id;
     bool found = false;
-    for (uint8 i = 0; i < m_QueueUpdateScheduler.size(); ++i)
+    for (unsigned long long i : m_QueueUpdateScheduler)
     {
-        if (m_QueueUpdateScheduler[i] == schedule_id)
+        if (i == schedule_id)
         {
             found = true;
             break;
@@ -2023,9 +2018,9 @@ void BattleGroundMgr::LoadBattleEventIndexes()
     events.event1 = BG_EVENT_NONE;
     events.event2 = BG_EVENT_NONE;
     m_GameObjectBattleEventIndexMap.clear();             // need for reload case
-    m_GameObjectBattleEventIndexMap[-1] = events;
+    m_GameObjectBattleEventIndexMap[static_cast<uint32>(-1)] = events;
     m_CreatureBattleEventIndexMap.clear();               // need for reload case
-    m_CreatureBattleEventIndexMap[-1] = events;
+    m_CreatureBattleEventIndexMap[static_cast<uint32>(-1)] = events;
 
     uint32 count = 0;
 
@@ -2108,12 +2103,9 @@ void BattleGroundMgr::LoadBattleEventIndexes()
                 continue;
             }
             // we have an event which shouldn't exist
-            else
-            {
-                sLog.outErrorDb("BattleGroundEvent: %s with guid %u is registered, for a nonexistent event: map:%u, event1:%u, event2:%u",
-                                (gameobject) ? "gameobject" : "creature", dbTableGuidLow, map, events.event1, events.event2);
-                continue;
-            }
+            sLog.outErrorDb("BattleGroundEvent: %s with guid %u is registered, for a nonexistent event: map:%u, event1:%u, event2:%u",
+                    (gameobject) ? "gameobject" : "creature", dbTableGuidLow, map, events.event1, events.event2);
+            continue;
         }
 
         if (gameobject)

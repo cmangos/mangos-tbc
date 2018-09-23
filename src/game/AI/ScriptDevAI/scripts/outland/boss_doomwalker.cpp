@@ -179,7 +179,7 @@ struct boss_doomwalkerAI : public ScriptedAI
             while (targets.size() > COUNT_OVERRUN)
                 targets.erase(targets.begin() + urand(0, targets.size() - 1));
 
-            if (targets.size() > 0)
+            if (!targets.empty())
             {
                 float angle = m_creature->GetAngle(targets[0]);
                 m_creature->SetFacingTo(angle);
@@ -241,9 +241,7 @@ UnitAI* GetAI_boss_doomwalker(Creature* pCreature)
 
 void AddSC_boss_doomwalker()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_doomwalker";
     pNewScript->GetAI = &GetAI_boss_doomwalker;
     pNewScript->RegisterSelf();

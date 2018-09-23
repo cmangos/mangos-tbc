@@ -207,12 +207,11 @@ struct boss_talon_king_ikissAI : public ScriptedAI
 
         if (m_creature->HasAura(SPELL_ARCANE_BUBBLE))
             return;
-        else if (m_reinitCombatMovement)
+        if (m_reinitCombatMovement)
         {
             m_reinitCombatMovement = false;
             SetCombatMovement(true);
         }
-
 
         if (!m_bBlink)
             DoMeleeAttackIfReady();
@@ -226,9 +225,7 @@ UnitAI* GetAI_boss_talon_king_ikiss(Creature* pCreature)
 
 void AddSC_boss_talon_king_ikiss()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_talon_king_ikiss";
     pNewScript->GetAI = &GetAI_boss_talon_king_ikiss;
     pNewScript->RegisterSelf();

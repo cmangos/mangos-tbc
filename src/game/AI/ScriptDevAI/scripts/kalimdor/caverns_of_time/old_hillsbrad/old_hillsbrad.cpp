@@ -933,9 +933,9 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
 
         if (!lPlayerList.isEmpty())
         {
-            for (Map::PlayerList::const_iterator itr = lPlayerList.begin(); itr != lPlayerList.end(); ++itr)
+            for (const auto& itr : lPlayerList)
             {
-                if (Player* pPlayer = itr->getSource())
+                if (Player* pPlayer = itr.getSource())
                     pPlayer->KilledMonsterCredit(NPC_THRALL_QUEST_TRIGGER, m_creature->GetObjectGuid());
             }
         }
@@ -1298,9 +1298,7 @@ bool GossipSelect_npc_taretha(Player* pPlayer, Creature* pCreature, uint32 /*uiS
 
 void AddSC_old_hillsbrad()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_erozion";
     pNewScript->pGossipHello = &GossipHello_npc_erozion;
     pNewScript->pGossipSelect = &GossipSelect_npc_erozion;

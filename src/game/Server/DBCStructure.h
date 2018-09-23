@@ -388,11 +388,11 @@ struct FactionTemplateEntry
     {
         if (entry.faction)
         {
-            for (int i = 0; i < 4; ++i)
-                if (enemyFaction[i]  == entry.faction)
+            for (unsigned int i : enemyFaction)
+                if (i == entry.faction)
                     return false;
-            for (int i = 0; i < 4; ++i)
-                if (friendFaction[i] == entry.faction)
+            for (unsigned int i : friendFaction)
+                if (i == entry.faction)
                     return true;
         }
         return (friendGroupMask & entry.factionGroupMask) || (factionGroupMask & entry.friendGroupMask);
@@ -401,11 +401,11 @@ struct FactionTemplateEntry
     {
         if (entry.faction)
         {
-            for (int i = 0; i < 4; ++i)
-                if (enemyFaction[i]  == entry.faction)
+            for (unsigned int i : enemyFaction)
+                if (i == entry.faction)
                     return true;
-            for (int i = 0; i < 4; ++i)
-                if (friendFaction[i] == entry.faction)
+            for (unsigned int i : friendFaction)
+                if (i == entry.faction)
                     return false;
         }
         return (enemyGroupMask & entry.factionGroupMask) != 0;
@@ -413,8 +413,8 @@ struct FactionTemplateEntry
     bool IsHostileToPlayers() const { return (enemyGroupMask & FACTION_GROUP_MASK_PLAYER) != 0; }
     bool IsNeutralToAll() const
     {
-        for (int i = 0; i < 4; ++i)
-            if (enemyFaction[i] != 0)
+        for (unsigned int i : enemyFaction)
+            if (i != 0)
                 return false;
         return enemyGroupMask == 0 && friendGroupMask == 0;
     }
@@ -902,16 +902,16 @@ struct SpellEntry
             return SpellFamily(SpellFamilyName) == family && IsFitToFamilyMask(mask);
         }
 
-        bool HasAttribute(SpellAttributes attribute) const { return !!(Attributes & attribute); }
-        bool HasAttribute(SpellAttributesEx attribute) const { return !!(AttributesEx & attribute); }
-        bool HasAttribute(SpellAttributesEx2 attribute) const { return !!(AttributesEx2 & attribute); }
-        bool HasAttribute(SpellAttributesEx3 attribute) const { return !!(AttributesEx3 & attribute); }
-        bool HasAttribute(SpellAttributesEx4 attribute) const { return !!(AttributesEx4 & attribute); }
-        bool HasAttribute(SpellAttributesEx5 attribute) const { return !!(AttributesEx5 & attribute); }
-        bool HasAttribute(SpellAttributesEx6 attribute) const { return !!(AttributesEx6 & attribute); }
+        inline bool HasAttribute(SpellAttributes attribute) const { return (Attributes & attribute) != 0; }
+        inline bool HasAttribute(SpellAttributesEx attribute) const { return (AttributesEx & attribute) != 0; }
+        inline bool HasAttribute(SpellAttributesEx2 attribute) const { return (AttributesEx2 & attribute) != 0; }
+        inline bool HasAttribute(SpellAttributesEx3 attribute) const { return (AttributesEx3 & attribute) != 0; }
+        inline bool HasAttribute(SpellAttributesEx4 attribute) const { return (AttributesEx4 & attribute) != 0; }
+        inline bool HasAttribute(SpellAttributesEx5 attribute) const { return (AttributesEx5 & attribute) != 0; }
+        inline bool HasAttribute(SpellAttributesEx6 attribute) const { return (AttributesEx6 & attribute) != 0; }
 
         // custom
-        bool HasAttribute(SpellAttributesServerside attribute) const { return !!(AttributesServerside & attribute); }
+        bool HasAttribute(SpellAttributesServerside attribute) const { return (AttributesServerside & attribute) != 0; }
 
     private:
         // prevent creating custom entries (copy data from original in fact)

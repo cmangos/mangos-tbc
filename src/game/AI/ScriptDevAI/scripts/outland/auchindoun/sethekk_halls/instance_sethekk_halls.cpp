@@ -124,10 +124,10 @@ void instance_sethekk_halls::Load(const char* chrIn)
     std::istringstream loadStream(chrIn);
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -160,9 +160,7 @@ bool ProcessEventId_event_spell_summon_raven_god(uint32 /*uiEventId*/, Object* p
 
 void AddSC_instance_sethekk_halls()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_sethekk_halls";
     pNewScript->GetInstanceData = &GetInstanceData_instance_sethekk_halls;
     pNewScript->RegisterSelf();

@@ -316,10 +316,7 @@ struct npc_tesla_coilAI : public Scripted_NoMovementAI
 
         m_bToFeugen = m_creature->GetDistanceOrder(pNoxTeslaFeugen, pNoxTeslaStalagg);
 
-        if (DoCastSpellIfCan(m_creature, m_bToFeugen ? SPELL_FEUGEN_CHAIN : SPELL_STALAGG_CHAIN) == CAST_OK)
-            return true;
-
-        return false;
+        return DoCastSpellIfCan(m_creature, m_bToFeugen ? SPELL_FEUGEN_CHAIN : SPELL_STALAGG_CHAIN) == CAST_OK;
     }
 
     void ReApplyChain(uint32 uiEntry)
@@ -430,7 +427,8 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
-    Creature* GetOtherAdd()                                 // For Stalagg returns pFeugen, for Feugen returns pStalagg
+    Creature* GetOtherAdd() const
+    // For Stalagg returns pFeugen, for Feugen returns pStalagg
     {
         switch (m_creature->GetEntry())
         {
@@ -508,7 +506,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         Reset();
     }
 
-    bool IsCountingDead()
+    bool IsCountingDead() const
     {
         return m_bFakeDeath || m_creature->isDead();
     }
@@ -729,9 +727,7 @@ UnitAI* GetAI_boss_feugen(Creature* pCreature)
 
 void AddSC_boss_thaddius()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_thaddius";
     pNewScript->GetAI = &GetAI_boss_thaddius;
     pNewScript->pEffectDummyNPC = &EffectDummyNPC_spell_thaddius_encounter;

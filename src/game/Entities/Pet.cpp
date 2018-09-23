@@ -59,7 +59,7 @@ Pet::Pet(PetType type) :
     m_regenTimer = 4000;
 
     // pets always have a charminfo, even if they are not actually charmed
-    CharmInfo* charmInfo = InitCharmInfo(this);
+    InitCharmInfo(this);
 }
 
 Pet::~Pet()
@@ -243,8 +243,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
         delete result;
         return false;
     }
-    else
-        owner->SetTemporaryUnsummonedPetNumber(0);
+    owner->SetTemporaryUnsummonedPetNumber(0);
 
     Map* map = owner->GetMap();
 
@@ -552,7 +551,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
         {
             ss << uint32(m_charmInfo->GetActionBarEntry(i)->GetType()) << " "
                << uint32(m_charmInfo->GetActionBarEntry(i)->GetAction()) << " ";
-        };
+        }
         savePet.addString(ss);
 
         // save spells the pet can teach to it's Master
@@ -914,10 +913,9 @@ HappinessState Pet::GetHappinessState() const
 {
     if (GetPower(POWER_HAPPINESS) < HAPPINESS_LEVEL_SIZE)
         return UNHAPPY;
-    else if (GetPower(POWER_HAPPINESS) >= HAPPINESS_LEVEL_SIZE * 2)
+    if (GetPower(POWER_HAPPINESS) >= HAPPINESS_LEVEL_SIZE * 2)
         return HAPPY;
-    else
-        return CONTENT;
+    return CONTENT;
 }
 
 void Pet::SetLoyaltyLevel(LoyaltyLevel level)
@@ -1048,7 +1046,8 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
     if (!owner)
         owner = GetOwner();
 
-    CombatStop(true);
+    if (isInCombat())
+        CombatStop(true);
 
     if (owner)
     {
@@ -1272,7 +1271,9 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
         SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, float(createResistance[i]));
 
-    float health, mana, armor, minDmg;
+    float health = 0.f;
+    float mana = 0.f;
+    float armor = 0.f;
 
     switch (getPetType())
     {
@@ -1390,7 +1391,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 // Info found in ClassLevelStats
                 if (CreatureClassLvlStats const* cCLS = sObjectMgr.GetCreatureClassLvlStats(petlevel, cInfo->UnitClass, cInfo->Expansion))
                 {
-                    minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
+                    float minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
 
                     // Apply custom damage setting (from config)
                     minDmg *= _GetDamageMod(cInfo->Rank);
@@ -1438,7 +1439,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 armor = cCLS->BaseArmor;
 
                 // Melee
-                minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
+                float minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
 
                 // Get custom setting
                 minDmg *= _GetDamageMod(cInfo->Rank);
@@ -1533,8 +1534,6 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     // Remove rage bar from pets (By setting rage = 0, and ensuring it stays that way by setting max rage = 0 as well)
     SetMaxPower(POWER_RAGE, 0);
     SetPower(POWER_RAGE, 0);
-
-    return;
 }
 
 void Pet::InitPetScalingAuras()
@@ -1638,7 +1637,7 @@ bool Pet::HaveInDiet(ItemPrototype const* item) const
 
     const uint32 diet = cFamily->petFoodMask;
     const uint32 FoodMask = 1 << (item->FoodType - 1);
-    return !!(diet & FoodMask);
+    return (diet & FoodMask) != 0;
 }
 
 uint32 Pet::GetCurrentFoodBenefitLevel(uint32 itemlevel) const
@@ -1647,14 +1646,14 @@ uint32 Pet::GetCurrentFoodBenefitLevel(uint32 itemlevel) const
     if (getLevel() <= itemlevel + 5)                        // possible to feed level 60 pet with level 55 level food for full effect
         return 35000;
     // -10..-6
-    else if (getLevel() <= itemlevel + 10)                  // pure guess, but sounds good
+    if (getLevel() <= itemlevel + 10)                  // pure guess, but sounds good
         return 17000;
     // -14..-11
-    else if (getLevel() <= itemlevel + 14)                  // level 55 food gets green on 70, makes sense to me
+    if (getLevel() <= itemlevel + 14)                  // level 55 food gets green on 70, makes sense to me
         return 8000;
-    // -15 or less
-    else
-        return 0;                                           // food too low level
+        // -15 or less
+    return 0;
+    // food too low level
 }
 
 void Pet::_LoadSpellCooldowns()
@@ -1922,9 +1921,9 @@ void Pet::_SaveAuras()
             "basepoints0, basepoints1, basepoints2, periodictime0, periodictime1, periodictime2, maxduration, remaintime, effIndexMask) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-    for (SpellAuraHolderMap::const_iterator itr = auraHolders.begin(); itr != auraHolders.end(); ++itr)
+    for (const auto& auraHolder : auraHolders)
     {
-        SpellAuraHolder* holder = itr->second;
+        SpellAuraHolder* holder = auraHolder.second;
 
         bool save = true;
         for (int32 j = 0; j < MAX_EFFECT_INDEX; ++j)
@@ -1974,11 +1973,11 @@ void Pet::_SaveAuras()
             stmt.addUInt32(holder->GetStackAmount());
             stmt.addUInt8(holder->GetAuraCharges());
 
-            for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-                stmt.addInt32(damage[i]);
+            for (int i : damage)
+                stmt.addInt32(i);
 
-            for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-                stmt.addUInt32(periodicTime[i]);
+            for (unsigned int i : periodicTime)
+                stmt.addUInt32(i);
 
             stmt.addInt32(holder->GetAuraMaxDuration());
             stmt.addInt32(holder->GetAuraDuration());
@@ -2066,7 +2065,7 @@ bool Pet::addSpell(uint32 spell_id, ActiveStates active /*= ACT_DECIDE*/, PetSpe
                     break;
                 }
                 // ignore new lesser rank
-                else if (sSpellMgr.IsHighRankOfSpell(oldspell_id, spell_id))
+                if (sSpellMgr.IsHighRankOfSpell(oldspell_id, spell_id))
                     return false;
             }
         }
@@ -2237,14 +2236,13 @@ uint32 Pet::resetTalentsCost() const
     if (m_resetTalentsCost < 10 * SILVER || days > 0)
         return 10 * SILVER;
     // then 50 silver
-    else if (m_resetTalentsCost < 50 * SILVER)
+    if (m_resetTalentsCost < 50 * SILVER)
         return 50 * SILVER;
-    // then 1 gold
-    else if (m_resetTalentsCost < 1 * GOLD)
+        // then 1 gold
+    if (m_resetTalentsCost < 1 * GOLD)
         return 1 * GOLD;
     // then increasing at a rate of 1 gold; cap 10 gold
-    else
-        return (m_resetTalentsCost + 1 * GOLD > 10 * GOLD ? 10 * GOLD : m_resetTalentsCost + 1 * GOLD);
+    return (m_resetTalentsCost + 1 * GOLD > 10 * GOLD ? 10 * GOLD : m_resetTalentsCost + 1 * GOLD);
 }
 
 CharmInfo* Pet::InitCharmInfo(Unit* charm)
@@ -2358,8 +2356,8 @@ void Pet::LearnPetPassives()
     PetFamilySpellsStore::const_iterator petStore = sPetFamilySpellsStore.find(cFamily->ID);
     if (petStore != sPetFamilySpellsStore.end())
     {
-        for (PetFamilySpellsSet::const_iterator petSet = petStore->second.begin(); petSet != petStore->second.end(); ++petSet)
-            addSpell(*petSet, ACT_DECIDE, PETSPELL_NEW, PETSPELL_FAMILY);
+        for (uint32 petSet : petStore->second)
+            addSpell(petSet, ACT_DECIDE, PETSPELL_NEW, PETSPELL_FAMILY);
     }
 }
 
@@ -2499,4 +2497,56 @@ void Pet::InitTamedPetPassives(Unit* player)
         default:
             break;
     }
+}
+
+void Pet::RegenerateHealth()
+{
+    if (!IsRegeneratingHealth())
+        return;
+
+    uint32 curValue = GetHealth();
+    uint32 maxValue = GetMaxHealth();
+
+    if (curValue >= maxValue)
+        return;
+
+    float HealthIncreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_HEALTH);
+    uint32 addvalue = 0;
+
+    switch (m_petType)
+    {
+        case SUMMON_PET:
+        case HUNTER_PET:
+        {
+            float Spirit = GetStat(STAT_SPIRIT);
+
+            if (GetPower(POWER_MANA) > 0)
+                addvalue = uint32(Spirit * 0.25 * HealthIncreaseRate);
+            else
+                addvalue = uint32(Spirit * 0.80 * HealthIncreaseRate);
+            break;
+
+            // HACK: increase warlock pet regen *5 until formula is found
+            if (m_petType == SUMMON_PET)
+                addvalue *= 5;
+        }
+
+        case GUARDIAN_PET:
+        {
+            // HACK: use this formula until we know the exact way to regen these type
+            addvalue = maxValue / 20;
+            break;
+        }
+
+        case MINI_PET:
+        {
+            // HACK: use this formula until we know the exact way to regen these type
+            addvalue = maxValue / 3;
+            break;
+        }
+        default:
+            return;
+    }
+
+    ModifyHealth(addvalue);
 }

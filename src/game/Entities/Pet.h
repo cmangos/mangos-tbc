@@ -190,8 +190,7 @@ class Pet : public Creature
         {
             if (pos >= m_autospells.size())
                 return 0;
-            else
-                return m_autospells[pos];
+            return m_autospells[pos];
         }
 
         bool CanSwim() const
@@ -199,8 +198,7 @@ class Pet : public Creature
             Unit const* owner = GetOwner();
             if (owner)
                 return owner->GetTypeId() == TYPEID_PLAYER ? true : ((Creature const*)owner)->CanSwim();
-            else
-                return Creature::CanSwim();
+            return Creature::CanSwim();
         }
 
         bool CanFly() const { return false; } // pet are not able to fly. TODO: check if this is right
@@ -218,7 +216,7 @@ class Pet : public Creature
         void GivePetXP(uint32 xp);
         void GivePetLevel(uint32 level);
         void SynchronizeLevelWithOwner();
-        void InitStatsForLevel(uint32 level);
+        void InitStatsForLevel(uint32 petlevel);
         void InitPetScalingAuras();
         bool HaveInDiet(ItemPrototype const* item) const;
         uint32 GetCurrentFoodBenefitLevel(uint32 itemlevel) const;
@@ -237,7 +235,7 @@ class Pet : public Creature
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
         void UpdateDamagePhysical(WeaponAttackType attType) override;
 
-        bool   CanTakeMoreActiveSpells(uint32 SpellIconID) const;
+        bool   CanTakeMoreActiveSpells(uint32 spellid) const;
         void   ToggleAutocast(uint32 spellid, bool apply);
         bool   HasTPForSpell(uint32 spellid) const;
         int32  GetTPForSpell(uint32 spellid) const;
@@ -299,10 +297,17 @@ class Pet : public Creature
         bool    m_removed;                                  // prevent overwrite pet state in DB at next Pet::Update if pet already removed(saved)
 
         // return charminfo ai only when this pet is possessed. (eye of the beast case for ex.)
-        virtual UnitAI* AI() override { if (hasUnitState(UNIT_STAT_POSSESSED) && m_charmInfo->GetAI()) return m_charmInfo->GetAI(); else return m_ai.get(); }
+        virtual UnitAI* AI() override
+        {
+            if (hasUnitState(UNIT_STAT_POSSESSED) && m_charmInfo->GetAI()) return m_charmInfo->GetAI();
+            return m_ai.get();
+        }
+
         virtual CombatData* GetCombatData() override { return m_combatData; }
 
         void InitTamedPetPassives(Unit* player);
+
+        virtual void RegenerateHealth() override;
 
     protected:
         uint32  m_happinessTimer;

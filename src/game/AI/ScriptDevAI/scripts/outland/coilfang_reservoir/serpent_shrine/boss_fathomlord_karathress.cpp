@@ -183,9 +183,9 @@ struct boss_fathomlord_karathressAI : public ScriptedAI
 
         if (!m_bBlessingOfTides && m_creature->GetHealthPercent() < 75.0f)
         {
-            for (uint8 i = 0; i < MAX_ADVISORS; ++i)
+            for (unsigned int aAdvisor : aAdvisors)
             {
-                if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(aAdvisors[i]))
+                if (Creature* pAdvisor = m_pInstance->GetSingleCreatureFromStorage(aAdvisor))
                 {
                     // stack max three times (one for each alive)
                     if (pAdvisor->isAlive())
@@ -490,9 +490,7 @@ UnitAI* GetAI_boss_fathomguard_caribdis(Creature* pCreature)
 
 void AddSC_boss_fathomlord_karathress()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_fathomlord_karathress";
     pNewScript->GetAI = &GetAI_boss_fathomlord_karathress;
     pNewScript->RegisterSelf();

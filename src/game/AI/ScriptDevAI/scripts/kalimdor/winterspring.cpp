@@ -276,9 +276,9 @@ struct npc_ranshallaAI : public npc_escortAI, private DialogueHelper
             case 41:
             {
                 // Search for all nearest lights and respawn them
-                std::list<GameObject*> m_lEluneLights;
+                GameObjectList m_lEluneLights;
                 GetGameObjectListWithEntryInGrid(m_lEluneLights, m_creature, GO_ELUNE_LIGHT, 20.0f);
-                for (std::list<GameObject*>::const_iterator itr = m_lEluneLights.begin(); itr != m_lEluneLights.end(); ++itr)
+                for (GameObjectList::const_iterator itr = m_lEluneLights.begin(); itr != m_lEluneLights.end(); ++itr)
                 {
                     if ((*itr)->IsSpawned())
                         continue;
@@ -613,9 +613,9 @@ struct npc_artoriusAI : public ScriptedAI
             {
                 ThreatList const& tList = m_creature->getThreatManager().getThreatList();
 
-                for (ThreatList::const_iterator itr = tList.begin(); itr != tList.end(); ++itr)
+                for (auto itr : tList)
                 {
-                    if (Unit* pUnit = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
+                    if (Unit* pUnit = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                     {
                         if (pUnit->isAlive())
                         {
@@ -729,9 +729,7 @@ UnitAI* GetAI_npc_artorius(Creature* pCreature)
 
 void AddSC_winterspring()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_ranshalla";
     pNewScript->GetAI = &GetAI_npc_ranshalla;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_ranshalla;

@@ -81,7 +81,7 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
     uint32 instanceId;
     uint8 joinAsGroup;
     bool isPremade = false;
-    Group* grp;
+    Group* grp = nullptr;
 
     recv_data >> guid;                                      // battlemaster guid
     recv_data >> bgTypeId_;                                 // battleground type id (DBC id)
@@ -116,8 +116,9 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
     BattleGround* bg = nullptr;
     if (instanceId)
         bg = sBattleGroundMgr.GetBattleGroundThroughClientInstance(instanceId, bgTypeId);
-
-    if (!bg && !(bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId)))
+    if (!bg)
+        bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
+    if (!bg)
     {
         sLog.outError("Battleground: no available bg / template found");
         return;
@@ -670,7 +671,7 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
         // no group found, error
         if (!grp)
             return;
-        uint32 err = grp->CanJoinBattleGroundQueue(bgTypeId, bgQueueTypeId, arenatype, arenatype, !!isRated, arenaslot);
+        uint32 err = grp->CanJoinBattleGroundQueue(bgTypeId, bgQueueTypeId, arenatype, arenatype, isRated != 0, arenaslot);
         if (err != BG_JOIN_ERR_OK)
         {
             SendBattleGroundOrArenaJoinError(err);
@@ -696,9 +697,9 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
         // get the personal ratings for queue
         uint32 avg_pers_rating = 0;
 
-        for (Group::member_citerator citr = grp->GetMemberSlots().begin(); citr != grp->GetMemberSlots().end(); ++citr)
+        for (const auto& citr : grp->GetMemberSlots())
         {
-            ArenaTeamMember const* at_member = at->GetMember(citr->guid);
+            ArenaTeamMember const* at_member = at->GetMember(citr.guid);
             if (!at_member)                                 // group member joining to arena must be in leader arena team
                 return;
 
@@ -721,9 +722,9 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
             DEBUG_LOG("Battleground: arena team id %u, leader %s queued with rating %u for type %u", _player->GetArenaTeamId(arenaslot), _player->GetName(), arenaRating, arenatype);
 
         // set arena rated type to show correct minimap arena icon
-        bg->SetRated(!!isRated);
+        bg->SetRated(isRated != 0);
 
-        GroupQueueInfo* ginfo = bgQueue.AddGroup(_player, grp, bgTypeId, bgBracketId, arenatype, !!isRated, false, arenaRating, ateamId);
+        GroupQueueInfo* ginfo = bgQueue.AddGroup(_player, grp, bgTypeId, bgBracketId, arenatype, isRated != 0, false, arenaRating, ateamId);
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, _player->GetBattleGroundBracketIdFromLevel(bgTypeId));
         for (GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
         {
@@ -749,7 +750,7 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
     }
     else
     {
-        GroupQueueInfo* ginfo = bgQueue.AddGroup(_player, nullptr, bgTypeId, bgBracketId, arenatype, !!isRated, false, arenaRating, ateamId);
+        GroupQueueInfo* ginfo = bgQueue.AddGroup(_player, nullptr, bgTypeId, bgBracketId, arenatype, isRated != 0, false, arenaRating, ateamId);
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(ginfo, _player->GetBattleGroundBracketIdFromLevel(bgTypeId));
         uint32 queueSlot = _player->AddBattleGroundQueueId(bgQueueTypeId);
 

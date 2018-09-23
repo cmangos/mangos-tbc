@@ -186,7 +186,7 @@ typedef std::pair<QuestRelationsMap::const_iterator, QuestRelationsMap::const_it
 
 struct PetLevelInfo
 {
-    PetLevelInfo() : health(0), mana(0), armor(0) { for (int i = 0; i < MAX_STATS; ++i) stats[i] = 0; }
+    PetLevelInfo() : health(0), mana(0), armor(0) { for (unsigned short& stat : stats) stat = 0; }
 
     uint16 stats[MAX_STATS];
     uint16 health;
@@ -433,7 +433,7 @@ class PlayerCondition
         static bool CanBeUsedWithoutPlayer(uint16 entry);
 
         // Checks if the player meets the condition
-        bool Meets(Player const* pPlayer, Map const* map, WorldObject const* source, ConditionSource conditionSourceType) const;
+        bool Meets(Player const* player, Map const* map, WorldObject const* source, ConditionSource conditionSourceType) const;
 
     private:
         bool CheckParamRequirements(Player const* pPlayer, Map const* map, WorldObject const* source, ConditionSource conditionSourceType) const;
@@ -610,10 +610,10 @@ class ObjectMgr
         TrainerGreeting const* GetTrainerGreetingData(uint32 entry) const;
 
         WorldSafeLocsEntry const* GetClosestGraveYard(float x, float y, float z, uint32 MapId, Team team);
-        bool AddGraveYardLink(uint32 id, uint32 zone, Team team, bool inDB = true);
+        bool AddGraveYardLink(uint32 id, uint32 zoneId, Team team, bool inDB = true);
         void SetGraveYardLinkTeam(uint32 id, uint32 zoneId, Team team);
         void LoadGraveyardZones();
-        GraveYardData const* FindGraveYardData(uint32 id, uint32 zone) const;
+        GraveYardData const* FindGraveYardData(uint32 id, uint32 zoneId) const;
 
         AreaTrigger const* GetAreaTrigger(uint32 trigger) const
         {
@@ -623,7 +623,7 @@ class ObjectMgr
             return nullptr;
         }
 
-        AreaTrigger const* GetGoBackTrigger(uint32 Map) const;
+        AreaTrigger const* GetGoBackTrigger(uint32 map_id) const;
         AreaTrigger const* GetMapEntranceTrigger(uint32 Map) const;
 
         RepRewardRate const* GetRepRewardRate(uint32 factionId) const
@@ -681,6 +681,7 @@ class ObjectMgr
         static ItemPrototype const* GetItemPrototype(uint32 id);                    ///< Wrapper for sItemStorage.LookupEntry
         static InstanceTemplate const* GetInstanceTemplate(uint32 map);             ///< Wrapper for sInstanceTemplate.LookupEntry
         static WorldTemplate const* GetWorldTemplate(uint32 map);                   ///< Wrapper for sWorldTemplate.LookupEntry
+        static CreatureConditionalSpawn const* GetCreatureConditionalSpawn(uint32 lowguid); ///< Wrapper for sCreatureConditionalSpawnStore.LookupEntry
 
         void LoadArenaTeams();
         void LoadGroups();
@@ -705,6 +706,7 @@ class ObjectMgr
         void LoadCreatures();
         void LoadCreatureAddons();
         void LoadCreatureClassLvlStats();
+        void LoadCreatureConditionalSpawn();
         void LoadCreatureModelInfo();
         void LoadCreatureModelRace();
         void LoadEquipmentTemplates();
@@ -826,9 +828,9 @@ class ObjectMgr
             if (map_itr == m_mailLevelRewardMap.end())
                 return nullptr;
 
-            for (MailLevelRewardList::const_iterator set_itr = map_itr->second.begin(); set_itr != map_itr->second.end(); ++set_itr)
-                if (set_itr->raceMask & raceMask)
-                    return &*set_itr;
+            for (const auto& set_itr : map_itr->second)
+                if (set_itr.raceMask & raceMask)
+                    return &set_itr;
 
             return nullptr;
         }
@@ -844,6 +846,14 @@ class ObjectMgr
         {
             CreatureDataPair const* dataPair = GetCreatureDataPair(guid);
             return dataPair ? &dataPair->second : nullptr;
+        }
+
+        CreatureData* GetCreatureData(uint32 guid)
+        {
+            auto dataItr = mCreatureDataMap.find(guid);
+            if (dataItr != mCreatureDataMap.end())
+                return &dataItr->second;
+            return nullptr;
         }
 
         CreatureData& NewOrExistCreatureData(uint32 guid) { return mCreatureDataMap[guid]; }
@@ -1034,7 +1044,7 @@ class ObjectMgr
 
         GameTele const* GetGameTele(const std::string& name) const;
         GameTeleMap const& GetGameTeleMap() const { return m_GameTeleMap; }
-        bool AddGameTele(GameTele& data);
+        bool AddGameTele(GameTele& tele);
         bool DeleteGameTele(const std::string& name);
 
         uint32 GetNpcGossip(uint32 entry) const
@@ -1082,9 +1092,9 @@ class ObjectMgr
             return &iter->second;
         }
 
-        void AddVendorItem(uint32 entry, uint32 item, uint32 maxcount, uint32 incrtime, uint32 ExtendedCost);
+        void AddVendorItem(uint32 entry, uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost);
         bool RemoveVendorItem(uint32 entry, uint32 item);
-        bool IsVendorItemValid(bool isTemplate, char const* tableName, uint32 vendor_entry, uint32 item, uint32 maxcount, uint32 ptime, uint32 ExtendedCost, uint16 conditionId, Player* pl = nullptr, std::set<uint32>* skip_vendors = nullptr) const;
+        bool IsVendorItemValid(bool isTemplate, char const* tableName, uint32 vendor_entry, uint32 item_id, uint32 maxcount, uint32 incrtime, uint32 ExtendedCost, uint16 conditionId, Player* pl = nullptr, std::set<uint32>* skip_vendors = nullptr) const;
 
         int GetOrNewIndexForLocale(LocaleConstant loc);
 
@@ -1250,7 +1260,7 @@ class ObjectMgr
 
         PlayerClassInfo playerClassInfo[MAX_CLASSES];
 
-        void BuildPlayerLevelInfo(uint8 race, uint8 class_, uint8 level, PlayerLevelInfo* plinfo) const;
+        void BuildPlayerLevelInfo(uint8 race, uint8 _class, uint8 level, PlayerLevelInfo* info) const;
         PlayerInfo playerInfo[MAX_RACES][MAX_CLASSES];
 
         typedef std::vector<uint32> PlayerXPperLevel;       // [level]

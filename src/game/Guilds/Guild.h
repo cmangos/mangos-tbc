@@ -358,13 +358,13 @@ class Guild
                         _do(player);
         }
 
-        void CreateRank(std::string name, uint32 rights);
+        void CreateRank(std::string name_, uint32 rights);
         void DelRank();
         std::string GetRankName(uint32 rankId);
         uint32 GetRankRights(uint32 rankId);
         uint32 GetRanksSize() const { return m_Ranks.size(); }
 
-        void SetRankName(uint32 rankId, std::string name);
+        void SetRankName(uint32 rankId, std::string name_);
         void SetRankRights(uint32 rankId, uint32 rights);
         bool HasRankRight(uint32 rankId, uint32 right)
         {
@@ -385,9 +385,9 @@ class Guild
 
         MemberSlot* GetMemberSlot(const std::string& name)
         {
-            for (MemberList::iterator itr = members.begin(); itr != members.end(); ++itr)
-                if (itr->second.Name == name)
-                    return &itr->second;
+            for (auto& member : members)
+                if (member.second.Name == name)
+                    return &member.second;
 
             return nullptr;
         }
@@ -414,7 +414,7 @@ class Guild
         void   CreateNewBankTab();
         void   SetGuildBankTabText(uint8 TabId, std::string text);
         void   SendGuildBankTabText(WorldSession* session, uint8 TabId);
-        void   SetGuildBankTabInfo(uint8 TabId, std::string name, std::string icon);
+        void   SetGuildBankTabInfo(uint8 TabId, std::string Name, std::string Icon);
         uint8  GetPurchasedTabs() const { return m_TabListMap.size(); }
         uint32 GetBankRights(uint32 rankId, uint8 TabId) const;
         bool   IsMemberHaveRights(uint32 LowGuid, uint8 TabId, uint32 rights) const;
@@ -430,7 +430,7 @@ class Guild
         uint32 GetMemberSlotWithdrawRem(uint32 LowGuid, uint8 TabId);
         uint32 GetMemberMoneyWithdrawRem(uint32 LowGuid);
         void   SetBankMoneyPerDay(uint32 rankId, uint32 money);
-        void   SetBankRightsAndSlots(uint32 rankId, uint8 TabId, uint32 right, uint32 SlotPerDay, bool db);
+        void   SetBankRightsAndSlots(uint32 rankId, uint8 TabId, uint32 right, uint32 nbSlots, bool db);
         uint32 GetBankMoneyPerDay(uint32 rankId);
         uint32 GetBankSlotPerDay(uint32 rankId, uint8 TabId);
         // rights per day
@@ -442,7 +442,7 @@ class Guild
         bool   AddGBankItemToDB(uint32 GuildId, uint32 BankTab, uint32 BankTabSlot, uint32 GUIDLow, uint32 Entry) const;
 
     protected:
-        void AddRank(const std::string& name, uint32 rights, uint32 money);
+        void AddRank(const std::string& name_, uint32 rights, uint32 money);
 
         uint32 m_Id;
         std::string m_Name;
@@ -486,7 +486,7 @@ class Guild
         // used only from high level Swap/Move functions
         Item*  GetItem(uint8 TabId, uint8 SlotId);
         InventoryResult CanStoreItem(uint8 tab, uint8 slot, GuildItemPosCountVec& dest, uint32 count, Item* pItem, bool swap = false) const;
-        Item*  StoreItem(uint8 tab, GuildItemPosCountVec const& pos, Item* pItem);
+        Item*  StoreItem(uint8 tabId, GuildItemPosCountVec const& dest, Item* pItem);
         void   RemoveItem(uint8 tab, uint8 slot);
         void   DisplayGuildBankContentUpdate(uint8 TabId, int32 slot1, int32 slot2 = -1);
         void   DisplayGuildBankContentUpdate(uint8 TabId, GuildItemPosCountVec const& slots);

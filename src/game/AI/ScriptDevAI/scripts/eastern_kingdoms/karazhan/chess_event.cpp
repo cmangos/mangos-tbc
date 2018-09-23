@@ -410,7 +410,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     }
 
     // Function which returns a random target by type and range
-    Unit* GetTargetByType(uint8 uiType, float fRange, float fArc = M_PI_F)
+    Unit* GetTargetByType(uint8 uiType, float fRange, float fArc = M_PI_F) const
     {
         if (!m_pInstance)
             return nullptr;
@@ -451,7 +451,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     }
 
     // Function to get a square as close as possible to the enemy
-    Unit* GetMovementSquare()
+    Unit* GetMovementSquare() const
     {
         if (!m_pInstance)
             return nullptr;
@@ -537,8 +537,8 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
                         //DoCastSpellIfCan(m_creature, uiMoveSpell, CAST_TRIGGERED);
 
                         // workaround which provides specific move target
-                        if (Unit* pTarget = GetMovementSquare())
-                            DoCastSpellIfCan(pTarget, SPELL_MOVE_GENERIC, CAST_TRIGGERED | CAST_INTERRUPT_PREVIOUS);
+                        if (Unit* spellTarget = GetMovementSquare())
+                            DoCastSpellIfCan(spellTarget, SPELL_MOVE_GENERIC, CAST_TRIGGERED | CAST_INTERRUPT_PREVIOUS);
 
                         m_fCurrentOrientation = m_creature->GetOrientation();
                     }
@@ -624,7 +624,7 @@ bool EffectDummyCreature_npc_chess_generic(Unit* pCaster, uint32 uiSpellId, Spel
         return true;
     }
     // generic melee tick
-    else if (uiSpellId == SPELL_ACTION_MELEE && uiEffIndex == EFFECT_INDEX_0)
+    if (uiSpellId == SPELL_ACTION_MELEE && uiEffIndex == EFFECT_INDEX_0)
     {
         uint32 uiMeleeSpell = 0;
 
@@ -647,8 +647,8 @@ bool EffectDummyCreature_npc_chess_generic(Unit* pCaster, uint32 uiSpellId, Spel
         pCreatureTarget->CastSpell(pCreatureTarget, uiMeleeSpell, TRIGGERED_OLD_TRIGGERED);
         return true;
     }
-    // square facing
-    else if (uiSpellId == SPELL_FACE_SQUARE && uiEffIndex == EFFECT_INDEX_0)
+        // square facing
+    if (uiSpellId == SPELL_FACE_SQUARE && uiEffIndex == EFFECT_INDEX_0)
     {
         if (pCaster->GetTypeId() == TYPEID_UNIT)
         {
@@ -727,7 +727,7 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 20.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 20.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_HEROISM);
 
@@ -741,7 +741,7 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 10.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_SWEEP);
 
@@ -840,7 +840,7 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 20.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 20.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_BLOODLUST);
 
@@ -854,7 +854,7 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 10.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_CLEAVE);
 
@@ -1082,7 +1082,7 @@ struct npc_human_footmanAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_HEROIC_BLOW);
 
@@ -1096,7 +1096,7 @@ struct npc_human_footmanAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 8.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_SHIELD_BLOCK);
 
@@ -1172,7 +1172,7 @@ struct npc_orc_gruntAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_VICIOUS_STRIKE);
 
@@ -1186,7 +1186,7 @@ struct npc_orc_gruntAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 8.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_WEAPON_DEFLECTION);
 
@@ -1248,7 +1248,7 @@ struct npc_water_elementalAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_GEYSER);
 
@@ -1262,7 +1262,7 @@ struct npc_water_elementalAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_WATER_SHIELD);
 
@@ -1324,7 +1324,7 @@ struct npc_summoned_daemonAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_HELLFIRE);
 
@@ -1338,7 +1338,7 @@ struct npc_summoned_daemonAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
             DoCastSpellIfCan(m_creature, SPELL_FIRE_SHIELD);
 
@@ -1400,7 +1400,7 @@ struct npc_human_chargerAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_SMASH);
 
@@ -1414,7 +1414,7 @@ struct npc_human_chargerAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 10.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_STOMP);
 
@@ -1476,7 +1476,7 @@ struct npc_orc_wolfAI : public npc_chess_piece_genericAI
 
     uint32 DoCastPrimarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_BITE);
 
@@ -1490,7 +1490,7 @@ struct npc_orc_wolfAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 10.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_HOWL);
 
@@ -1566,7 +1566,7 @@ struct npc_human_clericAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 18.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 18.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_HOLY_LANCE);
 
@@ -1642,7 +1642,7 @@ struct npc_orc_necrolyteAI : public npc_chess_piece_genericAI
 
     uint32 DoCastSecondarySpell() override
     {
-        if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 18.0f, M_PI_F / 12))
+        if (GetTargetByType(TARGET_TYPE_RANDOM, 18.0f, M_PI_F / 12))
         {
             DoCastSpellIfCan(m_creature, SPELL_SHADOW_SPEAR);
 
@@ -1677,9 +1677,7 @@ bool GossipHello_npc_orc_necrolyte(Player* pPlayer, Creature* pCreature)
 
 void AddSC_chess_event()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_echo_of_medivh";
     pNewScript->GetAI = GetAI_npc_echo_of_medivh;
     pNewScript->pGossipHello = GossipHello_npc_echo_of_medivh;

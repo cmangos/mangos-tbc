@@ -32,7 +32,10 @@ class MapPersistentState;
 
 struct GameEventData
 {
-    GameEventData() : start(1), end(0), occurence(0), length(0), holiday_id(HOLIDAY_NONE) {}
+    GameEventData() : start(1), end(0), occurence(0), length(0), holiday_id(HOLIDAY_NONE), linkedTo(0), eventGroup(0)
+    {
+    }
+
     time_t start;
     time_t end;
     uint32 occurence;                                       // Delay in minutes between occurences of the event
@@ -92,7 +95,7 @@ class GameEventMgr
         template<typename T>
         int16 GetGameEventId(uint32 guid_or_poolid);
 
-        std::unordered_map<uint32, std::vector<uint32>> const& GetEventGroups() { return mGameEventGroups; }
+        std::unordered_map<uint32, std::vector<uint32>> const& GetEventGroups() const { return mGameEventGroups; }
 
         GameEventCreatureData const* GetCreatureUpdateDataForActiveEvent(uint32 lowguid) const;
     private:
@@ -101,7 +104,7 @@ class GameEventMgr
         void GameEventSpawn(int16 event_id);
         void GameEventUnspawn(int16 event_id);
         void UpdateCreatureData(int16 event_id, bool activate);
-        void UpdateEventQuests(uint16 event_id, bool activate);
+        void UpdateEventQuests(uint16 event_id, bool Activate);
         void SendEventMails(int16 event_id);
         void OnEventHappened(uint16 event_id, bool activate, bool resume);
     protected:

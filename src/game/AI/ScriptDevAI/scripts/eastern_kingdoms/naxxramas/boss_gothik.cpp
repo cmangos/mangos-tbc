@@ -115,7 +115,7 @@ struct boss_gothikAI : public ScriptedAI
         m_uiSpeechTimer = 1 * IN_MILLISECONDS;
 
         // Despawn Adds
-        for (GuidList::const_iterator itr = m_lSummonedAddGuids.begin(); itr != m_lSummonedAddGuids.end(); itr++)
+        for (GuidList::const_iterator itr = m_lSummonedAddGuids.begin(); itr != m_lSummonedAddGuids.end(); ++itr)
         {
             if (Creature* pCreature = m_creature->GetMap()->GetCreature(*itr))
                 pCreature->ForcedDespawn();
@@ -141,7 +141,7 @@ struct boss_gothikAI : public ScriptedAI
         PrepareSummonPlaces();
     }
 
-    bool IsCentralDoorClosed()
+    bool IsCentralDoorClosed() const
     {
         return m_pInstance && m_pInstance->GetData(TYPE_GOTHIK) != SPECIAL;
     }
@@ -155,16 +155,16 @@ struct boss_gothikAI : public ScriptedAI
         }
     }
 
-    bool HasPlayersInLeftSide()
+    bool HasPlayersInLeftSide() const
     {
         Map::PlayerList const& lPlayers = m_pInstance->instance->GetPlayers();
 
         if (lPlayers.isEmpty())
             return false;
 
-        for (Map::PlayerList::const_iterator itr = lPlayers.begin(); itr != lPlayers.end(); ++itr)
+        for (const auto& lPlayer : lPlayers)
         {
-            if (Player* pPlayer = itr->getSource())
+            if (Player* pPlayer = lPlayer.getSource())
             {
                 if (!m_pInstance->IsInRightSideGothArea(pPlayer) && pPlayer->isAlive())
                     return true;
@@ -196,7 +196,7 @@ struct boss_gothikAI : public ScriptedAI
 
     void PrepareSummonPlaces()
     {
-        std::list<Creature*> lSummonList;
+        CreatureList lSummonList;
         m_pInstance->GetGothSummonPointCreatures(lSummonList, true);
 
         if (lSummonList.empty())
@@ -206,17 +206,17 @@ struct boss_gothikAI : public ScriptedAI
         uint8 index = 0;
         uint8 uiTraineeCount = 3;
         lSummonList.sort(ObjectDistanceOrder(m_creature));
-        for (std::list<Creature*>::iterator itr = lSummonList.begin(); itr != lSummonList.end(); ++itr)
+        for (auto& itr : lSummonList)
         {
-            if (*itr)
+            if (itr)
             {
                 if (uiTraineeCount == 0)
                     break;
                 if (index == 1)
-                    m_lRiderSummonPosGuids.push_back((*itr)->GetObjectGuid());
+                    m_lRiderSummonPosGuids.push_back(itr->GetObjectGuid());
                 else
                 {
-                    m_lTraineeSummonPosGuids.push_back((*itr)->GetObjectGuid());
+                    m_lTraineeSummonPosGuids.push_back(itr->GetObjectGuid());
                     --uiTraineeCount;
                 }
                 index++;
@@ -226,13 +226,13 @@ struct boss_gothikAI : public ScriptedAI
         // DeathKnights
         uint8 uiDeathKnightCount = 2;
         lSummonList.sort(ObjectDistanceOrderReversed(m_creature));
-        for (std::list<Creature*>::iterator itr = lSummonList.begin(); itr != lSummonList.end(); ++itr)
+        for (auto& itr : lSummonList)
         {
-            if (*itr)
+            if (itr)
             {
                 if (uiDeathKnightCount == 0)
                     break;
-                m_lDeathKnightSummonPosGuids.push_back((*itr)->GetObjectGuid());
+                m_lDeathKnightSummonPosGuids.push_back(itr->GetObjectGuid());
                 --uiDeathKnightCount;
             }
         }
@@ -252,9 +252,9 @@ struct boss_gothikAI : public ScriptedAI
         if (plSummonPosGuids->empty())
             return;
 
-        for (GuidList::iterator itr = plSummonPosGuids->begin(); itr != plSummonPosGuids->end(); ++itr)
+        for (auto& plSummonPosGuid : *plSummonPosGuids)
         {
-            if (Creature* pPos = m_creature->GetMap()->GetCreature(*itr))
+            if (Creature* pPos = m_creature->GetMap()->GetCreature(plSummonPosGuid))
                 m_creature->SummonCreature(uiSummonEntry, pPos->GetPositionX(), pPos->GetPositionY(), pPos->GetPositionZ(), pPos->GetOrientation(), TEMPSPAWN_DEAD_DESPAWN, 0);
         }
     }
@@ -425,7 +425,7 @@ struct boss_gothikAI : public ScriptedAI
                 if (m_pInstance && !HasPlayersInLeftSide())
                 {
                     ProcessCentralDoor();
-                    for (GuidList::const_iterator itr = m_lSummonedAddGuids.begin(); itr != m_lSummonedAddGuids.end(); itr++)
+                    for (GuidList::const_iterator itr = m_lSummonedAddGuids.begin(); itr != m_lSummonedAddGuids.end(); ++itr)
                     {
                         if (Creature* pCreature = m_pInstance->instance->GetCreature(*itr))
                         {
@@ -480,12 +480,12 @@ bool EffectDummyCreature_spell_anchor(Unit* /*pCaster*/, uint32 uiSpellId, Spell
         case SPELL_B_TO_ANCHOR_2:
         case SPELL_C_TO_ANCHOR_2:
         {
-            std::list<Creature*> lTargets;
+            CreatureList lTargets;
             pInstance->GetGothSummonPointCreatures(lTargets, false);
 
             if (!lTargets.empty())
             {
-                std::list<Creature*>::iterator itr = lTargets.begin();
+                CreatureList::iterator itr = lTargets.begin();
                 uint32 uiPosition = urand(0, lTargets.size() - 1);
                 advance(itr, uiPosition);
 
@@ -530,9 +530,7 @@ bool EffectDummyCreature_spell_anchor(Unit* /*pCaster*/, uint32 uiSpellId, Spell
 
 void AddSC_boss_gothik()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_gothik";
     pNewScript->GetAI = &GetAI_boss_gothik;
     pNewScript->RegisterSelf();

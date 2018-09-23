@@ -306,13 +306,13 @@ struct npc_melizza_brimbuzzleAI : public npc_escortAI, private DialogueHelper
                 m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_PASSIVE, TEMPFACTION_RESTORE_RESPAWN);
                 break;
             case 4:
-                for (uint8 i = 0; i < MAX_MARAUDERS; ++i)
+                for (auto i : aMarauderSpawn)
                 {
                     for (uint8 j = 0; j < MAX_MARAUDERS; ++j)
                     {
                         // Summon 2 Marauders on each point
                         float fX, fY, fZ;
-                        m_creature->GetRandomPoint(aMarauderSpawn[i].m_fX, aMarauderSpawn[i].m_fY, aMarauderSpawn[i].m_fZ, 7.0f, fX, fY, fZ);
+                        m_creature->GetRandomPoint(i.m_fX, i.m_fY, i.m_fZ, 7.0f, fX, fY, fZ);
                         m_creature->SummonCreature(NPC_MARAUDINE_MARAUDER, fX, fY, fZ, 0.0f, TEMPSPAWN_DEAD_DESPAWN, 0);
                     }
                 }
@@ -499,13 +499,11 @@ struct npc_cork_gizeltonAI : public ScriptedAI
                 }
                 break;
         }
-
-        return;
     }
 
     void MovementInform(uint32 uiType, uint32 uiPointId) override
     {
-        if (uiType != WAYPOINT_MOTION_TYPE)
+        if (m_playerGuid.IsEmpty() || uiType != WAYPOINT_MOTION_TYPE)
             return;
 
         // No player assigned as quest taker: abort to avoid summoning adds
@@ -637,8 +635,7 @@ bool QuestAccept_npc_cork_gizelton(Player* pPlayer, Creature* pCreature, const Q
         if (pPlayer->GetTeam() == HORDE)
             pCreature->SetFactionTemporary(FACTION_ESCORT_H_PASSIVE, TEMPFACTION_RESTORE_RESPAWN);
 
-        if (npc_cork_gizeltonAI* pCork = dynamic_cast<npc_cork_gizeltonAI*>(pCreature->AI()))
-            pCreature->AI()->SendAIEvent(AI_EVENT_START_ESCORT, pPlayer, pCreature, pQuest->GetQuestId());
+        pCreature->AI()->SendAIEvent(AI_EVENT_START_ESCORT, pPlayer, pCreature, pQuest->GetQuestId());
     }
     return true;
 }
@@ -761,9 +758,7 @@ UnitAI* GetAI_npc_magrami_spectre(Creature* pCreature)
 
 void AddSC_desolace()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_aged_dying_ancient_kodo";
     pNewScript->GetAI = &GetAI_npc_aged_dying_ancient_kodo;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_npc_aged_dying_ancient_kodo;

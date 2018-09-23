@@ -206,8 +206,7 @@ struct boss_sapphironAI : public ScriptedAI
 
                         return;
                     }
-                    else
-                        m_uiFlyTimer -= uiDiff;
+                    m_uiFlyTimer -= uiDiff;
                 }
 
                 // Only Phase in which we have melee attack!
@@ -326,9 +325,7 @@ bool GOUse_go_sapphiron_birth(Player* pPlayer, GameObject* pGo)
 
 void AddSC_boss_sapphiron()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_sapphiron";
     pNewScript->GetAI = &GetAI_boss_sapphiron;
     pNewScript->RegisterSelf();

@@ -45,9 +45,9 @@ void instance_blackwing_lair::Initialize()
 
 bool instance_blackwing_lair::IsEncounterInProgress() const
 {
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32 i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
+        if (i == IN_PROGRESS)
             return true;
     }
     return false;
@@ -296,10 +296,10 @@ void instance_blackwing_lair::Load(const char* chrIn)
                >> m_auiEncounter[8] >> m_auiEncounter[9] >> m_auiEncounter[10]>> m_auiEncounter[11]
                >> m_auiEncounter[12];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -630,8 +630,6 @@ void instance_blackwing_lair::InitiateBreath(uint32 uiEventId)
             SetData(TYPE_CHROMA_RBREATH, rightBreath);
         debug_log("SD2 Instance Blackwing Lair: Chromaggus' right breath set to spell %u", GetData(TYPE_CHROMA_RBREATH));
     }
-
-    return;
 }
 
 void instance_blackwing_lair::InitiateDrakonid(uint32 uiEventId)
@@ -667,8 +665,6 @@ void instance_blackwing_lair::InitiateDrakonid(uint32 uiEventId)
             SetData(TYPE_NEFA_RTUNNEL, rightTunnel);
         debug_log("SD2 Instance Blackwing Lair: Nefarian's lair left tunnel set with drakonid spawner %u", GetData(TYPE_NEFA_RTUNNEL));
     }
-
-    return;
 }
 
 void instance_blackwing_lair::CleanupNefarianStage(bool fullCleanup)
@@ -816,9 +812,7 @@ bool ProcessEventId_event_weekly_chromatic_selection(uint32 uiEventId, Object* p
 
 void AddSC_instance_blackwing_lair()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_blackwing_lair";
     pNewScript->GetInstanceData = &GetInstanceData_instance_blackwing_lair;
     pNewScript->RegisterSelf();

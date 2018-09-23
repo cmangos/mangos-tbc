@@ -21,6 +21,7 @@ SDComment:
 SDCategory: Terokkar Forest
 EndScriptData */
 
+#include <utility>
 #include "AI/ScriptDevAI/include/precompiled.h"
 
 enum
@@ -88,7 +89,7 @@ enum TerokkActions
 
 struct Timer
 {
-    Timer(TerokkActions id, uint32 timer, std::function<void()> functor, bool disabled = false) : id(id), timer(timer), disabled(disabled), functor(functor) {}
+    Timer(TerokkActions id, uint32 timer, std::function<void()> functor, bool disabled = false) : id(id), timer(timer), disabled(disabled), functor(std::move(functor)) {}
     TerokkActions id;
     uint32 timer;
     bool disabled;
@@ -104,7 +105,7 @@ struct Timer
                 disabled = true;
                 return true;
             }
-            else timer -= diff;
+            timer -= diff;
         }
         return false;
     }
@@ -152,7 +153,7 @@ struct boss_terokkAI : public ScriptedAI
 
     void AddCustomAction(TerokkActions id, uint32 timer, std::function<void()> functor, bool disabled = false)
     {
-        m_timers.emplace(id, Timer(id, timer, functor, disabled));
+        m_timers.emplace(id, Timer(id, timer, std::move(functor), disabled));
     }
 
     void UpdateTimers(const uint32 diff)
@@ -179,7 +180,7 @@ struct boss_terokkAI : public ScriptedAI
         (*data).second.timer = 0; (*data).second.disabled = true;
     }
 
-    uint32 GetInitialActionTimer(TerokkActions id)
+    uint32 GetInitialActionTimer(TerokkActions id) const
     {
         switch (id)
         {
@@ -192,7 +193,7 @@ struct boss_terokkAI : public ScriptedAI
         }
     }
 
-    uint32 GetSubsequentActionTimer(TerokkActions id)
+    uint32 GetSubsequentActionTimer(TerokkActions id) const
     {
         switch (id)
         {
@@ -382,7 +383,6 @@ struct boss_terokkAI : public ScriptedAI
                         ResetTimer(i, GetSubsequentActionTimer(TerokkActions(i)));
                         return;
                     }
-                    continue;
             }
         }
     }
@@ -415,9 +415,7 @@ bool ProcessEventId_event_summon_terokk(uint32 eventId, Object* source, Object* 
 
 void AddSC_boss_terokk()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "event_summon_terokk";
     pNewScript->pProcessEventId = &ProcessEventId_event_summon_terokk;
     pNewScript->RegisterSelf();

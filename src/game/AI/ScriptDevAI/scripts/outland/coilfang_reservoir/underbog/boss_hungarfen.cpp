@@ -126,8 +126,10 @@ struct mob_underbog_mushroomAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_PUTRID_MUSHROOM);
     }
 
-    void MoveInLineOfSight(Unit* /*pWho*/) override { return; }
-    void AttackStart(Unit* /*pWho*/) override { return; }
+    void MoveInLineOfSight(Unit* /*pWho*/) override {
+    }
+    void AttackStart(Unit* /*pWho*/) override {
+    }
 
     void UpdateAI(const uint32 uiDiff) override
     {
@@ -176,9 +178,7 @@ UnitAI* GetAI_mob_underbog_mushroom(Creature* pCreature)
 
 void AddSC_boss_hungarfen()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_hungarfen";
     pNewScript->GetAI = &GetAI_boss_hungarfen;
     pNewScript->RegisterSelf();

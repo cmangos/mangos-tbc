@@ -37,7 +37,7 @@ void instance_underbog::Initialize()
 void instance_underbog::SetData(uint32 type, uint32 data)
 {
     if (type == DATA_GHAZAN_SURFACE)
-        m_bGhazanSurfaced = bool(data);
+        m_bGhazanSurfaced = data != 0;
 }
 
 uint32 instance_underbog::GetData(uint32 type) const
@@ -85,9 +85,7 @@ bool AreaTrigger_at_ghazan_surface(Player* player, AreaTriggerEntry const* /*pAt
 
 void AddSC_instance_underbog()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_underbog";
     pNewScript->GetInstanceData = &GetInstanceData_instance_underbog;
     pNewScript->RegisterSelf();

@@ -33,10 +33,10 @@ void instance_gnomeregan::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 
-    for (uint8 i = 0; i < MAX_GNOME_FACES; ++i)
+    for (auto& m_asBombFace : m_asBombFaces)
     {
-        m_asBombFaces[i].m_bActivated = false;
-        m_asBombFaces[i].m_uiBombTimer = 0;
+        m_asBombFace.m_bActivated = false;
+        m_asBombFace.m_uiBombTimer = 0;
     }
 }
 
@@ -64,7 +64,7 @@ void instance_gnomeregan::OnObjectCreate(GameObject* pGo)
         case GO_GNOME_FACE_3: m_asBombFaces[2].m_gnomeFaceGuid = pGo->GetObjectGuid(); return;
         case GO_GNOME_FACE_4: m_asBombFaces[3].m_gnomeFaceGuid = pGo->GetObjectGuid(); return;
         case GO_GNOME_FACE_5: m_asBombFaces[4].m_gnomeFaceGuid = pGo->GetObjectGuid(); return;
-        case GO_GNOME_FACE_6: m_asBombFaces[5].m_gnomeFaceGuid = pGo->GetObjectGuid(); return;
+        case GO_GNOME_FACE_6: m_asBombFaces[5].m_gnomeFaceGuid = pGo->GetObjectGuid();
     }
 }
 
@@ -84,7 +84,7 @@ void instance_gnomeregan::SetData(uint32 uiType, uint32 uiData)
                 // Sort the explosive charges if needed
                 if (!m_luiExplosiveChargeGUIDs.empty())
                 {
-                    std::list<GameObject*> lExplosiveCharges;
+                    GameObjectList lExplosiveCharges;
                     for (GuidList::const_iterator itr = m_luiExplosiveChargeGUIDs.begin(); itr != m_luiExplosiveChargeGUIDs.end(); ++itr)
                     {
                         if (GameObject* pCharge = instance->GetGameObject(*itr))
@@ -102,16 +102,16 @@ void instance_gnomeregan::SetData(uint32 uiType, uint32 uiData)
                     GameObject* pCaveInNorth = GetSingleGameObjectFromStorage(GO_CAVE_IN_NORTH);
                     if (pCaveInSouth && pCaveInNorth)
                     {
-                        for (std::list<GameObject*>::iterator itr = lExplosiveCharges.begin(); itr != lExplosiveCharges.end(); ++itr)
+                        for (auto& lExplosiveCharge : lExplosiveCharges)
                         {
-                            if ((*itr)->GetDistanceOrder(pCaveInSouth, pCaveInNorth) && uiCounterSouth < MAX_EXPLOSIVES_PER_SIDE)
+                            if (lExplosiveCharge->GetDistanceOrder(pCaveInSouth, pCaveInNorth) && uiCounterSouth < MAX_EXPLOSIVES_PER_SIDE)
                             {
-                                m_aExplosiveSortedGuids[0][uiCounterSouth] = (*itr)->GetObjectGuid();
+                                m_aExplosiveSortedGuids[0][uiCounterSouth] = lExplosiveCharge->GetObjectGuid();
                                 ++uiCounterSouth;
                             }
                             else if (uiCounterNorth < MAX_EXPLOSIVES_PER_SIDE)
                             {
-                                m_aExplosiveSortedGuids[1][uiCounterNorth] = (*itr)->GetObjectGuid();
+                                m_aExplosiveSortedGuids[1][uiCounterNorth] = lExplosiveCharge->GetObjectGuid();
                                 ++uiCounterNorth;
                             }
                         }
@@ -220,10 +220,10 @@ void instance_gnomeregan::Load(const char* chrIn)
     std::istringstream loadStream(chrIn);
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -278,9 +278,7 @@ InstanceData* GetInstanceData_instance_gnomeregan(Map* pMap)
 
 void AddSC_instance_gnomeregan()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_gnomeregan";
     pNewScript->GetInstanceData = &GetInstanceData_instance_gnomeregan;
     pNewScript->RegisterSelf();

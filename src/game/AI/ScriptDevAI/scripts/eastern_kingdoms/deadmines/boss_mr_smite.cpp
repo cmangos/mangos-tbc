@@ -182,8 +182,7 @@ struct boss_mr_smiteAI : public ScriptedAI
                     m_uiEquipTimer -= uiDiff;
                     return;
                 }
-                else
-                    m_uiEquipTimer = 0;
+                m_uiEquipTimer = 0;
             }
 
             switch (m_uiPhase)
@@ -266,9 +265,7 @@ UnitAI* GetAI_boss_mr_smite(Creature* pCreature)
 
 void AddSC_boss_mr_smite()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_mr_smite";
     pNewScript->GetAI = &GetAI_boss_mr_smite;
     pNewScript->RegisterSelf();

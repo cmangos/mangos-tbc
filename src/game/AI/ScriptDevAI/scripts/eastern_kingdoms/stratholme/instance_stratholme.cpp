@@ -31,12 +31,12 @@ instance_stratholme::instance_stratholme(Map* pMap) : ScriptedInstance(pMap),
     m_uiSlaugtherSquareTimer(0),
     m_uiSlaughterDoorTimer(0),
     m_uiBlackGuardsTimer(0),
+    m_uiAuriusSummonTimer(0),
+    m_bIsSlaughterDoorOpen(false),
     m_uiYellCounter(0),
     m_uiMindlessCount(0),
     m_uiPostboxesUsed(0),
-    m_uiSilverHandKilled(0),
-    m_uiAuriusSummonTimer(0),
-    m_bIsSlaughterDoorOpen(false)
+    m_uiSilverHandKilled(0)
 {
     Initialize();
 }
@@ -45,9 +45,9 @@ void instance_stratholme::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 
-    for (uint8 i = 0; i < 2; ++i)
+    for (auto& m_uiGateTrapTimer : m_uiGateTrapTimers)
         for (uint8 j = 0; j < 3; ++j)
-            m_uiGateTrapTimers[i][j] = 0;
+            m_uiGateTrapTimer[j] = 0;
 }
 
 void instance_stratholme::OnPlayerEnter(Player* pPlayer)
@@ -332,9 +332,9 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
                 m_uiSlaugtherSquareTimer = 0;
 
                 // Let already moving Abomnations stop
-                for (GuidSet::const_iterator itr = m_sAbomnationGUID.begin(); itr != m_sAbomnationGUID.end(); ++itr)
+                for (auto itr : m_sAbomnationGUID)
                 {
-                    Creature* pAbom = instance->GetCreature(*itr);
+                    Creature* pAbom = instance->GetCreature(itr);
                     if (pAbom && pAbom->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
                         pAbom->GetMotionMaster()->MovementExpired();
                 }
@@ -363,9 +363,9 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
                     SetData(TYPE_BARON_RUN, DONE);
                     Map::PlayerList const& players = instance->GetPlayers();
 
-                    for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+                    for (const auto& player : players)
                     {
-                        if (Player* pPlayer = itr->getSource())
+                        if (Player* pPlayer = player.getSource())
                         {
                             if (pPlayer->HasAura(SPELL_BARON_ULTIMATUM))
                                 pPlayer->RemoveAurasDueToSpell(SPELL_BARON_ULTIMATUM);
@@ -519,10 +519,10 @@ void instance_stratholme::Load(const char* chrIn)
     loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
                >> m_auiEncounter[4] >> m_auiEncounter[5] >> m_auiEncounter[6] >> m_auiEncounter[7];
 
-    for (uint8 i = 0; i < MAX_ENCOUNTER; ++i)
+    for (uint32& i : m_auiEncounter)
     {
-        if (m_auiEncounter[i] == IN_PROGRESS)
-            m_auiEncounter[i] = NOT_STARTED;
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
     }
 
     // Special Treatment for the Ziggurat-Bosses, as otherwise the event couldn't reload
@@ -566,7 +566,7 @@ void instance_stratholme::DoSortZiggurats()
     if (m_luiAcolyteGUIDs.empty())
         return;
 
-    std::list<Creature*> lAcolytes;                         // Valid pointers, only used locally
+    CreatureList lAcolytes;                         // Valid pointers, only used locally
     for (GuidList::const_iterator itr = m_luiAcolyteGUIDs.begin(); itr != m_luiAcolyteGUIDs.end(); ++itr)
     {
         if (Creature* pAcolyte = instance->GetCreature(*itr))
@@ -586,16 +586,16 @@ void instance_stratholme::DoSortZiggurats()
     }
 
     // Sort Acolytes
-    for (std::list<Creature*>::iterator itr = lAcolytes.begin(); itr != lAcolytes.end();)
+    for (CreatureList::iterator itr = lAcolytes.begin(); itr != lAcolytes.end();)
     {
         bool bAlreadyIterated = false;
-        for (uint8 i = 0; i < MAX_ZIGGURATS; ++i)
+        for (auto& i : m_zigguratStorage)
         {
-            if (GameObject* pZigguratDoor = instance->GetGameObject(m_zigguratStorage[i].m_doorGuid))
+            if (GameObject* pZigguratDoor = instance->GetGameObject(i.m_doorGuid))
             {
                 if ((*itr)->isAlive() && (*itr)->IsWithinDistInMap(pZigguratDoor, 35.0f, false))
                 {
-                    m_zigguratStorage[i].m_lZigguratAcolyteGuid.push_back((*itr)->GetObjectGuid());
+                    i.m_lZigguratAcolyteGuid.push_back((*itr)->GetObjectGuid());
                     itr = lAcolytes.erase(itr);
                     bAlreadyIterated = true;
                     break;
@@ -608,7 +608,7 @@ void instance_stratholme::DoSortZiggurats()
     }
 
     // In case some mobs have not been able to be sorted, store their GUIDs again
-    for (std::list<Creature*>::const_iterator itr = lAcolytes.begin(); itr != lAcolytes.end(); ++itr)
+    for (CreatureList::const_iterator itr = lAcolytes.begin(); itr != lAcolytes.end(); ++itr)
         m_luiAcolyteGUIDs.push_back((*itr)->GetObjectGuid());
 
     // Sort Crystal
@@ -622,13 +622,13 @@ void instance_stratholme::DoSortZiggurats()
         }
 
         bool bAlreadyIterated = false;
-        for (uint8 i = 0; i < MAX_ZIGGURATS; ++i)
+        for (auto& i : m_zigguratStorage)
         {
-            if (GameObject* pZigguratDoor = instance->GetGameObject(m_zigguratStorage[i].m_doorGuid))
+            if (GameObject* pZigguratDoor = instance->GetGameObject(i.m_doorGuid))
             {
                 if (pCrystal->IsWithinDistInMap(pZigguratDoor, 50.0f, false))
                 {
-                    m_zigguratStorage[i].m_crystalGuid = pCrystal->GetObjectGuid();
+                    i.m_crystalGuid = pCrystal->GetObjectGuid();
                     itr = m_luiCrystalGUIDs.erase(itr);
                     bAlreadyIterated = true;
                     break;
@@ -814,8 +814,6 @@ void instance_stratholme::DoSpawnScarletGuards(uint8 uiStep, Player* pSummoner)
             pTemp->GetMotionMaster()->MovePoint(0, aScarletGuards[uiIndex + i + 1].m_fX, aScarletGuards[uiIndex + i + 1].m_fY, aScarletGuards[uiIndex + i + 1].m_fZ);
         }
     }
-
-    return;
 }
 
 void instance_stratholme::DoSpawnScourgeInvaders(uint8 uiStep, Player* pSummoner)
@@ -864,8 +862,6 @@ void instance_stratholme::DoSpawnScourgeInvaders(uint8 uiStep, Player* pSummoner
             pTemp->GetMotionMaster()->MovePoint(0, fTargetPosX, fTargetPosY, fTargetPosZ);
         }
     }
-
-    return;
 }
 
 void instance_stratholme::DoMoveBackDefenders(uint8 uiStep, Creature* pCreature)
@@ -907,8 +903,6 @@ void instance_stratholme::DoMoveBackDefenders(uint8 uiStep, Creature* pCreature)
         if (uiFoundGuards == 3)
             return;
     }
-
-    return;
 }
 
 void instance_stratholme::DoScarletBastionDefense(uint8 uiStep, Creature* pCreature)
@@ -939,9 +933,7 @@ void instance_stratholme::DoScarletBastionDefense(uint8 uiStep, Creature* pCreat
         case CRIMSON_THRONE:
             if (Player* pPlayer = GetPlayerInMap())
                 DoSpawnScourgeInvaders(uiStep, pPlayer);
-            return;
     }
-    return;
 }
 
 void instance_stratholme::DoGateTrap(uint8 uiGate)
@@ -995,9 +987,9 @@ void instance_stratholme::Update(uint32 uiDiff)
         else
         {
             Map::PlayerList const& players = instance->GetPlayers();
-            for (Map::PlayerList::const_iterator itr = players.begin(); itr != players.end(); ++itr)
+            for (const auto& player : players)
             {
-                if (Player* pPlayer = itr->getSource())
+                if (Player* pPlayer = player.getSource())
                 {
                     if (!pPlayer->isGameMaster() && pPlayer->IsWithinDist2d(aGateTrap[i].m_fX, aGateTrap[i].m_fY, 5.5f))
                         DoGateTrap(i);
@@ -1200,9 +1192,9 @@ void instance_stratholme::Update(uint32 uiDiff)
         if (m_uiSlaugtherSquareTimer <= uiDiff)
         {
             // Call next Abomnations
-            for (GuidSet::const_iterator itr = m_sAbomnationGUID.begin(); itr != m_sAbomnationGUID.end(); ++itr)
+            for (auto itr : m_sAbomnationGUID)
             {
-                Creature* pAbom = instance->GetCreature(*itr);
+                Creature* pAbom = instance->GetCreature(itr);
                 // Skip killed and already walking Abomnations
                 if (!pAbom || !pAbom->isAlive() || pAbom->GetMotionMaster()->GetCurrentMovementGeneratorType() == POINT_MOTION_TYPE)
                     continue;
@@ -1235,9 +1227,7 @@ InstanceData* GetInstanceData_instance_stratholme(Map* pMap)
 
 void AddSC_instance_stratholme()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "instance_stratholme";
     pNewScript->GetInstanceData = &GetInstanceData_instance_stratholme;
     pNewScript->RegisterSelf();

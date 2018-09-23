@@ -295,12 +295,11 @@ void AuctionHouseMgr::LoadAuctionItems()
 
     uint32 count = 0;
 
-    Field* fields;
     do
     {
         bar.step();
 
-        fields = result->Fetch();
+        Field* fields = result->Fetch();
         uint32 item_guid        = fields[1].GetUInt32();
         uint32 item_template    = fields[2].GetUInt32();
 
@@ -488,8 +487,8 @@ bool AuctionHouseMgr::RemoveAItem(uint32 id)
 
 void AuctionHouseMgr::Update()
 {
-    for (int i = 0; i < MAX_AUCTION_HOUSE_TYPE; ++i)
-        mAuctions[i].Update();
+    for (auto& mAuction : mAuctions)
+        mAuction.Update();
 }
 
 uint32 AuctionHouseMgr::GetAuctionHouseTeam(AuctionHouseEntry const* house)
@@ -639,7 +638,7 @@ int AuctionEntry::CompareAuctionEntry(uint32 column, const AuctionEntry* auc, Pl
                 return 0;
             if (itemProto1->RequiredLevel < itemProto2->RequiredLevel)
                 return -1;
-            else if (itemProto1->RequiredLevel > itemProto2->RequiredLevel)
+            if (itemProto1->RequiredLevel > itemProto2->RequiredLevel)
                 return +1;
             break;
         }
@@ -651,7 +650,7 @@ int AuctionEntry::CompareAuctionEntry(uint32 column, const AuctionEntry* auc, Pl
                 return 0;
             if (itemProto1->Quality < itemProto2->Quality)
                 return -1;
-            else if (itemProto1->Quality > itemProto2->Quality)
+            if (itemProto1->Quality > itemProto2->Quality)
                 return +1;
             break;
         }
@@ -660,29 +659,33 @@ int AuctionEntry::CompareAuctionEntry(uint32 column, const AuctionEntry* auc, Pl
             {
                 if (buyout < auc->buyout)
                     return -1;
-                else if (buyout > auc->buyout)
+                if (buyout > auc->buyout)
                     return +1;
             }
             else
             {
                 if (bid < auc->bid)
                     return -1;
-                else if (bid > auc->bid)
+                if (bid > auc->bid)
                     return +1;
             }
             break;
         case 3:                                             // duration = 3
+        {
             if (expireTime < auc->expireTime)
                 return -1;
-            else if (expireTime > auc->expireTime)
+            if (expireTime > auc->expireTime)
                 return +1;
-            break;
+        }
+        break;
         case 4:                                             // status = 4
+        {
             if (bidder < auc->bidder)
                 return -1;
-            else if (bidder > auc->bidder)
+            if (bidder > auc->bidder)
                 return +1;
-            break;
+        }
+        break;
         case 5:                                             // name = 5
         {
             ItemPrototype const* itemProto1 = ObjectMgr::GetItemPrototype(itemTemplate);
@@ -712,14 +715,14 @@ int AuctionEntry::CompareAuctionEntry(uint32 column, const AuctionEntry* auc, Pl
             {
                 if (bid1 < bid2)
                     return -1;
-                else if (bid1 > bid2)
+                if (bid1 > bid2)
                     return +1;
             }
             else
             {
                 if (buyout < auc->buyout)
                     return -1;
-                else if (buyout > auc->buyout)
+                if (buyout > auc->buyout)
                     return +1;
             }
 
@@ -734,7 +737,7 @@ int AuctionEntry::CompareAuctionEntry(uint32 column, const AuctionEntry* auc, Pl
 
             if (bid1 < bid2)
                 return -1;
-            else if (bid1 > bid2)
+            if (bid1 > bid2)
                 return +1;
             break;
         }
@@ -742,16 +745,18 @@ int AuctionEntry::CompareAuctionEntry(uint32 column, const AuctionEntry* auc, Pl
         {
             if (itemCount < auc->itemCount)
                 return -1;
-            else if (itemCount > auc->itemCount)
+            if (itemCount > auc->itemCount)
                 return +1;
             break;
         }
         case 10:                                            // buyout = 10
+        {
             if (buyout < auc->buyout)
                 return -1;
-            else if (buyout > auc->buyout)
+            if (buyout > auc->buyout)
                 return +1;
-            break;
+        }
+        break;
         case 11:                                            // unused = 11
         default:
             break;
@@ -786,9 +791,8 @@ void WorldSession::BuildListAuctionItems(std::vector<AuctionEntry*> const& aucti
 {
     int loc_idx = _player->GetSession()->GetSessionDbLocaleIndex();
 
-    for (std::vector<AuctionEntry*>::const_iterator itr = auctions.begin(); itr != auctions.end(); ++itr)
+    for (auto Aentry : auctions)
     {
-        AuctionEntry* Aentry = *itr;
         Item* item = sAuctionMgr.GetAItem(Aentry->itemGuidLow);
         if (!item)
             continue;
@@ -1012,9 +1016,7 @@ bool AuctionEntry::UpdateBid(uint32 newbid, Player* newbidder /*=nullptr*/)
         CharacterDatabase.CommitTransaction();
         return true;
     }
-    else                                                    // buyout
-    {
-        AuctionBidWinning(newbidder);
-        return false;
-    }
+        // buyout
+    AuctionBidWinning(newbidder);
+    return false;
 }

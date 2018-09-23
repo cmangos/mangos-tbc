@@ -96,8 +96,8 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo);
 
 inline bool IsSpellHaveEffect(SpellEntry const* spellInfo, SpellEffects effect)
 {
-    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (SpellEffects(spellInfo->Effect[i]) == effect)
+    for (unsigned int i : spellInfo->Effect)
+        if (SpellEffects(i) == effect)
             return true;
     return false;
 }
@@ -143,6 +143,19 @@ inline bool IsDestinationOnlyEffect(SpellEntry const* spellInfo, SpellEffectInde
 {
     switch (spellInfo->Effect[effIdx])
     {
+        case SPELL_EFFECT_TRIGGER_SPELL:
+        case SPELL_EFFECT_DUMMY: // special - can be either
+            if (spellInfo->EffectImplicitTargetB[effIdx] == 0)
+            {
+                switch (spellInfo->EffectImplicitTargetA[effIdx])
+                {
+                    case TARGET_AREAEFFECT_CUSTOM:
+                    case TARGET_CURRENT_ENEMY_COORDINATES:
+                        return true;
+                }
+            }
+            return false;
+        case SPELL_EFFECT_TRIGGER_MISSILE:
         case SPELL_EFFECT_PERSISTENT_AREA_AURA:
         case SPELL_EFFECT_TRANS_DOOR:
         case SPELL_EFFECT_SUMMON:
@@ -646,23 +659,21 @@ inline bool IsAreaAuraEffect(uint32 effect)
 
 inline bool HasAreaAuraEffect(SpellEntry const* spellInfo)
 {
-    for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (IsAreaAuraEffect(spellInfo->Effect[i]))
+    for (unsigned int i : spellInfo->Effect)
+        if (IsAreaAuraEffect(i))
             return true;
     return false;
 }
 
 inline bool IsPersistentAuraEffect(uint32 effect)
 {
-    if (effect == SPELL_EFFECT_PERSISTENT_AREA_AURA)
-        return true;
-    return false;
+    return effect == SPELL_EFFECT_PERSISTENT_AREA_AURA;
 }
 
 inline bool HasPersistentAuraEffect(SpellEntry const* spellInfo)
 {
-    for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (IsPersistentAuraEffect(spellInfo->Effect[i]))
+    for (unsigned int i : spellInfo->Effect)
+        if (IsPersistentAuraEffect(i))
             return true;
     return false;
 }
@@ -695,6 +706,16 @@ inline bool IsOnlySelfTargeting(SpellEntry const* spellInfo)
     return true;
 }
 
+inline bool IsUnitTargetTarget(uint32 target)
+{
+    switch (target)
+    {
+        case TARGET_CHAIN_DAMAGE:
+        case TARGET_DUELVSPLAYER: return true;
+        default: return false;
+    }
+}
+
 inline bool IsScriptTarget(uint32 target)
 {
     switch (target)
@@ -712,6 +733,114 @@ inline bool IsScriptTarget(uint32 target)
             break;
     }
     return false;
+}
+
+// Reverse engineered from binary: do not alter
+inline bool IsHarmfulSpellTargetAtClient(uint32 target)
+{
+    switch (target)
+    {
+        case TARGET_RANDOM_ENEMY_CHAIN_IN_AREA:
+        case TARGET_CHAIN_DAMAGE:
+        case TARGET_ALL_ENEMY_IN_AREA:
+        case TARGET_ALL_ENEMY_IN_AREA_INSTANT:
+        case TARGET_IN_FRONT_OF_CASTER:
+        case TARGET_ALL_ENEMY_IN_AREA_CHANNELED:
+        case TARGET_CURRENT_ENEMY_COORDINATES:
+        case TARGET_LARGE_FRONTAL_CONE:
+        case TARGET_93:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// Reverse engineered from binary: do not alter
+inline bool IsHelpfulSpellTargetAtClient(uint32 target)
+{
+    switch (target)
+    {
+        case TARGET_SELF:
+        case TARGET_RANDOM_FRIEND_CHAIN_IN_AREA:
+        case TARGET_RANDOM_UNIT_CHAIN_IN_AREA:
+        case TARGET_PET:
+        case TARGET_ALL_PARTY_AROUND_CASTER:
+        case TARGET_SINGLE_FRIEND:
+        case TARGET_MASTER:
+        case TARGET_29:
+        case TARGET_ALL_FRIENDLY_UNITS_AROUND_CASTER:
+        case TARGET_ALL_FRIENDLY_UNITS_IN_AREA:
+        case TARGET_ALL_PARTY:
+        case TARGET_ALL_PARTY_AROUND_CASTER_2:
+        case TARGET_SINGLE_PARTY:
+        case TARGET_CHAIN_HEAL:
+        case TARGET_ALL_RAID_AROUND_CASTER:
+        case TARGET_SINGLE_FRIEND_2:
+        case TARGET_58:
+        case TARGET_FRIENDLY_FRONTAL_CONE:
+        case TARGET_AREAEFFECT_PARTY_AND_CLASS:
+        case TARGET_62:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// Reverse engineered from binary: do not alter
+inline bool IsHarmfulSpellEffectAtClient(const SpellEntry &entry, SpellEffectIndex effIndex)
+{
+    return (IsHarmfulSpellTargetAtClient(entry.EffectImplicitTargetA[effIndex]) || IsHarmfulSpellTargetAtClient(entry.EffectImplicitTargetB[effIndex]));
+}
+
+// Reverse engineered from binary: do not alter
+inline bool IsHelpfulSpellEffectAtClient(const SpellEntry &entry, SpellEffectIndex effIndex)
+{
+    if (IsHelpfulSpellTargetAtClient(entry.EffectImplicitTargetA[effIndex]))
+    {
+        if (entry.EffectImplicitTargetA[effIndex] != TARGET_SELF || entry.EffectApplyAuraName[effIndex] != SPELL_AURA_DUMMY)
+            return true;
+    }
+
+    if (IsHelpfulSpellTargetAtClient(entry.EffectImplicitTargetB[effIndex]))
+    {
+        if (entry.EffectImplicitTargetB[effIndex] != TARGET_SELF || entry.EffectApplyAuraName[effIndex] != SPELL_AURA_DUMMY)
+            return true;
+    }
+
+    return false;
+}
+
+// Reverse engineered from binary: do not alter
+enum SpellFaction
+{
+    SPELL_NEUTRAL = 0,
+    SPELL_HELPFUL = 1,
+    SPELL_HARMFUL = 2,
+};
+
+// Reverse engineered from binary: do not alter
+inline SpellFaction GetSpellFactionAtClient(const SpellEntry &entry, SpellEffectIndexMask mask = EFFECT_MASK_ALL)
+{
+    if (entry.Targets & TARGET_FLAG_UNIT_TARGET)
+        return SPELL_HELPFUL;
+
+    if (entry.Targets & TARGET_FLAG_OBJECT_UNK)
+        return SPELL_HARMFUL;
+
+    for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        // Customization: skip junk, skip by mask
+        if (!entry.Effect[i] || !(mask & (1 << i)))
+            continue;
+
+        if (IsHarmfulSpellEffectAtClient(entry, SpellEffectIndex(i)))
+            return SPELL_HARMFUL;
+
+        if (IsHelpfulSpellEffectAtClient(entry, SpellEffectIndex(i)))
+            return SPELL_HELPFUL;
+    }
+
+    return SPELL_NEUTRAL;
 }
 
 inline bool IsNeutralTarget(uint32 target)
@@ -904,15 +1033,13 @@ inline bool IsPositiveEffectTargetMode(const SpellEntry* entry, SpellEffectIndex
 
     if ((!a && !b) || IsEffectTargetPositive(a, b) || IsEffectTargetScript(a, b))
         return true;
-    else if (IsEffectTargetNegative(a, b))
+    if (IsEffectTargetNegative(a, b))
     {
         // Workaround: Passive talents with negative target modes are getting removed by ice block and similar effects
         // TODO: Fix removal of passives in appropriate places and remove the check below afterwards
-        if (entry->HasAttribute(SPELL_ATTR_PASSIVE))
-            return true;
-        return false;
+        return entry->HasAttribute(SPELL_ATTR_PASSIVE);
     }
-    else if (IsEffectTargetNeutral(a, b))
+    if (IsEffectTargetNeutral(a, b))
         return (IsPointEffectTarget(Targets(b ? b : a)) || IsNeutralEffectTargetPositive((b ? b : a), caster, target));
 
     // If we ever get to this point, we have unhandled target. Gotta say something about it.
@@ -956,10 +1083,8 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
         case SPELL_EFFECT_CREATE_ITEM:
         case SPELL_EFFECT_SUMMON_CHANGE_ITEM:
             return true;
-            break;
         case SPELL_EFFECT_APPLY_AREA_AURA_ENEMY:    // Always hostile effects
             return false;
-            break;
         case SPELL_EFFECT_DUMMY:
             // some explicitly required dummy effect sets
             switch (spellproto->Id)
@@ -1427,9 +1552,9 @@ inline uint32 GetAllSpellMechanicMask(SpellEntry const* spellInfo)
     uint32 mask = 0;
     if (spellInfo->Mechanic)
         mask |= 1 << (spellInfo->Mechanic - 1);
-    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (spellInfo->EffectMechanic[i])
-            mask |= 1 << (spellInfo->EffectMechanic[i] - 1);
+    for (unsigned int i : spellInfo->EffectMechanic)
+        if (i)
+            mask |= 1 << (i - 1);
     return mask;
 }
 
@@ -1447,8 +1572,7 @@ inline uint32 GetDispellMask(DispelType dispel)
     // If dispell all
     if (dispel == DISPEL_ALL)
         return DISPEL_ALL_MASK;
-    else
-        return (1 << dispel);
+    return (1 << dispel);
 }
 
 inline bool IsAuraAddedBySpell(uint32 auraType, uint32 spellId)
@@ -1484,9 +1608,9 @@ inline bool IsPartyOrRaidTarget(uint32 target)
 
 inline bool IsGroupBuff(SpellEntry const* spellInfo)
 {
-    for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    for (unsigned int i : spellInfo->EffectImplicitTargetA)
     {
-        if (IsPartyOrRaidTarget(spellInfo->EffectImplicitTargetA[i]))
+        if (IsPartyOrRaidTarget(i))
             return true;
     }
 
@@ -2055,7 +2179,7 @@ struct SpellTargetEntry
     uint32 targetEntry;
     uint32 inverseEffectMask;
 
-    bool CanNotHitWithSpellEffect(SpellEffectIndex effect) const { return !!(inverseEffectMask & (1 << effect)); }
+    bool CanNotHitWithSpellEffect(SpellEffectIndex effect) const { return (inverseEffectMask & (1 << effect)) != 0; }
 };
 
 // coordinates for spells (accessed using SpellMgr functions)
@@ -2091,14 +2215,10 @@ class PetAura
             std::map<uint32, uint32>::const_iterator itr = auras.find(petEntry);
             if (itr != auras.end())
                 return itr->second;
-            else
-            {
-                std::map<uint32, uint32>::const_iterator itr2 = auras.find(0);
-                if (itr2 != auras.end())
-                    return itr2->second;
-                else
-                    return 0;
-            }
+            std::map<uint32, uint32>::const_iterator itr2 = auras.find(0);
+            if (itr2 != auras.end())
+                return itr2->second;
+            return 0;
         }
 
         void AddAura(uint32 petEntry, uint32 aura)
@@ -2240,14 +2360,13 @@ class SpellMgr
             uint32 mask = GetSpellElixirMask(spellid);
             if ((mask & ELIXIR_FLASK_MASK) == ELIXIR_FLASK_MASK)
                 return SPELL_FLASK_ELIXIR;
-            else if (mask & ELIXIR_BATTLE_MASK)
+            if (mask & ELIXIR_BATTLE_MASK)
                 return SPELL_BATTLE_ELIXIR;
-            else if (mask & ELIXIR_GUARDIAN_MASK)
+            if (mask & ELIXIR_GUARDIAN_MASK)
                 return SPELL_GUARDIAN_ELIXIR;
-            else if (mask & ELIXIR_WELL_FED)
+            if (mask & ELIXIR_WELL_FED)
                 return SPELL_WELL_FED;
-            else
-                return SPELL_NORMAL;
+            return SPELL_NORMAL;
         }
 
         SpellSpecific GetSpellFoodSpecific(const SpellEntry* entry) const
@@ -2474,7 +2593,7 @@ class SpellMgr
 
         bool IsRankSpellDueToSpell(SpellEntry const* spellInfo_1, uint32 spellId_2) const;
         bool IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
-        bool IsSingleTargetSpell(SpellEntry const* entry)
+        bool IsSingleTargetSpell(SpellEntry const* entry) const
         {
             if (entry->HasAttribute(SPELL_ATTR_EX5_SINGLE_TARGET_SPELL))
                 return true;
@@ -2488,7 +2607,7 @@ class SpellMgr
             return false;
         }
 
-        bool IsSingleTargetSpells(SpellEntry const* entry1, SpellEntry const* entry2)
+        bool IsSingleTargetSpells(SpellEntry const* entry1, SpellEntry const* entry2) const
         {
             if (!IsSingleTargetSpell(entry1) || !IsSingleTargetSpell(entry2))
                 return false;
@@ -2512,7 +2631,7 @@ class SpellMgr
         // return true if spell1 can affect spell2
         bool IsSpellCanAffectSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
 
-        SpellEntry const* SelectAuraRankForLevel(SpellEntry const* spellInfo, uint32 Level) const;
+        SpellEntry const* SelectAuraRankForLevel(SpellEntry const* spellInfo, uint32 level) const;
 
         // Spell learning
         SpellLearnSkillNode const* GetSpellLearnSkill(uint32 spell_id) const
@@ -2520,8 +2639,7 @@ class SpellMgr
             SpellLearnSkillMap::const_iterator itr = mSpellLearnSkills.find(spell_id);
             if (itr != mSpellLearnSkills.end())
                 return &itr->second;
-            else
-                return nullptr;
+            return nullptr;
         }
 
         bool IsSpellLearnSpell(uint32 spell_id) const

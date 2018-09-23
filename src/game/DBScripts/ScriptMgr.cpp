@@ -153,7 +153,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 sLog.outErrorDb("Table `%s` has buddyEntry = %u in command %u for script id %u, but this creature_template does not exist, skipping.", tablename, tmp.buddyEntry, tmp.command, tmp.id);
                 continue;
             }
-            else if (!tmp.IsCreatureBuddy() && !ObjectMgr::GetGameObjectInfo(tmp.buddyEntry))
+            if (!tmp.IsCreatureBuddy() && !ObjectMgr::GetGameObjectInfo(tmp.buddyEntry))
             {
                 sLog.outErrorDb("Table `%s` has buddyEntry = %u in command %u for script id %u, but this gameobject_template does not exist, skipping.", tablename, tmp.buddyEntry, tmp.command, tmp.id);
                 continue;
@@ -253,7 +253,6 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                         if (tmp.textId[i] && (tmp.textId[i] < MIN_DB_SCRIPT_STRING_ID || tmp.textId[i] >= MAX_DB_SCRIPT_STRING_ID))
                         {
                             sLog.outErrorDb("Table `%s` has out of range text_id%u (dataint = %i expected %u-%u) in SCRIPT_COMMAND_TALK for script id %u", tablename, i + 1, tmp.textId[i], MIN_DB_SCRIPT_STRING_ID, MAX_DB_SCRIPT_STRING_ID, tmp.id);
-                            continue;
                         }
                     }
                 }
@@ -273,7 +272,6 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                     if (tmp.textId[i] && !sEmotesStore.LookupEntry(tmp.textId[i]))
                     {
                         sLog.outErrorDb("Table `%s` has invalid emote id (text_id%u = %u) in SCRIPT_COMMAND_EMOTE for script id %u", tablename, i + 1, tmp.textId[i], tmp.id);
-                        continue;
                     }
                 }
                 break;
@@ -652,7 +650,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                     sLog.outErrorDb("Table `%s` has npc entry = '%u' in SCRIPT_COMMAND_TERMINATE_SCRIPT for script id %u, but this npc entry does not exist.", tablename, tmp.terminateScript.npcEntry, tmp.id);
                     continue;
                 }
-                else if (tmp.terminateScript.poolId && tmp.terminateScript.poolId > sPoolMgr.GetMaxPoolId())
+                if (tmp.terminateScript.poolId && tmp.terminateScript.poolId > sPoolMgr.GetMaxPoolId())
                 {
                     sLog.outErrorDb("Table `%s` has pool id = '%u' in SCRIPT_COMMAND_TERMINATE_SCRIPT for script id %u, but this pool id does not exist.", tablename, tmp.terminateScript.poolId, tmp.id);
                     continue;
@@ -979,8 +977,8 @@ void ScriptMgr::LoadDbScriptStrings()
     CheckScriptTexts(sCreatureMovementScripts, ids);
     CheckScriptTexts(sRelayScripts, ids);
 
-    for (std::set<int32>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr)
-        sLog.outErrorDb("Table `dbscript_string` has unused string id %u", *itr);
+    for (int32 id : ids)
+    sLog.outErrorDb("Table `dbscript_string` has unused string id %u", id);
 }
 
 void ScriptMgr::LoadDbScriptRandomTemplates()
@@ -1032,13 +1030,13 @@ void ScriptMgr::CheckScriptTexts(ScriptMapMapName const& scripts, std::set<int32
         {
             if (itrM->second.command == SCRIPT_COMMAND_TALK)
             {
-                for (int i = 0; i < MAX_TEXT_ID; ++i)
+                for (int i : itrM->second.textId)
                 {
-                    if (itrM->second.textId[i] && !sObjectMgr.GetMangosStringLocale(itrM->second.textId[i]))
-                        sLog.outErrorDb("Table `dbscript_string` is missing string id %u, used in database script table %s id %u.", itrM->second.textId[i], scripts.first, itrMM->first);
+                    if (i && !sObjectMgr.GetMangosStringLocale(i))
+                        sLog.outErrorDb("Table `dbscript_string` is missing string id %u, used in database script table %s id %u.", i, scripts.first, itrMM->first);
 
-                    if (ids.find(itrM->second.textId[i]) != ids.end())
-                        ids.erase(itrM->second.textId[i]);
+                    if (ids.find(i) != ids.end())
+                        ids.erase(i);
                 }
 
                 if (itrM->second.talk.stringTemplateId)
@@ -1391,11 +1389,11 @@ bool ScriptAction::HandleScriptStep()
 
             std::vector<uint32> emotes;
             emotes.push_back(m_script->emote.emoteId);
-            for (int i = 0; i < MAX_TEXT_ID; ++i)
+            for (int i : m_script->textId)
             {
-                if (!m_script->textId[i])
+                if (!i)
                     break;
-                emotes.push_back(uint32(m_script->textId[i]));
+                emotes.push_back(uint32(i));
             }
 
             ((Unit*)pSource)->HandleEmote(emotes[urand(0, emotes.size() - 1)]);
@@ -1609,7 +1607,7 @@ bool ScriptAction::HandleScriptStep()
             uint32 factionId = m_script->textId[1];
             uint32 modelId = m_script->textId[2];
 
-            Creature* pCreature = pSource->SummonCreature(m_script->summonCreature.creatureEntry, x, y, z, o, m_script->summonCreature.despawnDelay ? TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN : TEMPSPAWN_DEAD_DESPAWN, m_script->summonCreature.despawnDelay, (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL) ? true : false, run, m_script->summonCreature.pathId, factionId, modelId);
+            Creature* pCreature = pSource->SummonCreature(m_script->summonCreature.creatureEntry, x, y, z, o, m_script->summonCreature.despawnDelay ? TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN : TEMPSPAWN_DEAD_DESPAWN, m_script->summonCreature.despawnDelay, (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL) != 0, run, m_script->summonCreature.pathId, factionId, modelId);
             if (!pCreature)
             {
                 sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed for creature (entry: %u).", m_table, m_script->id, m_script->command, m_script->summonCreature.creatureEntry);
@@ -1748,8 +1746,13 @@ bool ScriptAction::HandleScriptStep()
             if (!pPlayer)
                 break;
 
-            if (Item* pItem = pPlayer->StoreNewItemInInventorySlot(m_script->createItem.itemEntry, m_script->createItem.amount))
-                pPlayer->SendNewItem(pItem, m_script->createItem.amount, true, false);
+            if (m_script->data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL)
+                pPlayer->DestroyItemCount(m_script->createItem.itemEntry, m_script->createItem.amount, true, false);
+            else
+            {
+                if (Item* pItem = pPlayer->StoreNewItemInInventorySlot(m_script->createItem.itemEntry, m_script->createItem.amount))
+                    pPlayer->SendNewItem(pItem, m_script->createItem.amount, true, false);
+            }
 
             break;
         }
@@ -1813,7 +1816,7 @@ bool ScriptAction::HandleScriptStep()
             if (LogIfNotCreature(pSource))
                 break;
 
-            ((Creature*)pSource)->SetActiveObjectState(!!m_script->activeObject.activate);
+            ((Creature*)pSource)->SetActiveObjectState(m_script->activeObject.activate != 0);
             break;
         }
         case SCRIPT_COMMAND_SET_FACTION:                    // 22
@@ -2225,7 +2228,7 @@ bool ScriptAction::HandleScriptStep()
                     pSource->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
             }
 
-            ((Creature*)pSource)->SetLevitate(!!m_script->fly.fly);
+            ((Creature*)pSource)->SetLevitate(m_script->fly.fly != 0);
             break;
         }
         case SCRIPT_COMMAND_DESPAWN_GO:                     // 40
@@ -2360,18 +2363,15 @@ int32 ScriptMgr::GetRandomScriptTemplateId(uint32 id, uint8 templateType)
         uint32 random = urand(0, scriptTemplate.size() - 1);
         return scriptTemplate[random].first;
     }
-    else
+    uint32 random = urand(0, totalChance);
+    uint32 cumulativeChance = 0;
+    for (auto& data : scriptTemplate)
     {
-        uint32 random = urand(0, totalChance);
-        uint32 cumulativeChance = 0;
-        for (auto& data : scriptTemplate)
-        {
-            cumulativeChance += data.second;
-            if (cumulativeChance >= random)
-                return data.first;
-        }
-        return 0; // should never get here - error suppression
+        cumulativeChance += data.second;
+        if (cumulativeChance >= random)
+            return data.first;
     }
+    return 0; // should never get here - error suppression
 }
 
 int32 ScriptMgr::GetRandomScriptStringFromTemplate(uint32 id)
@@ -2437,11 +2437,11 @@ void ScriptMgr::CollectPossibleEventIds(std::set<uint32>& eventIds)
     }
 
     // Load all possible event entries from taxi path nodes
-    for (size_t path_idx = 0; path_idx < sTaxiPathNodesByPath.size(); ++path_idx)
+    for (auto& path_idx : sTaxiPathNodesByPath)
     {
-        for (size_t node_idx = 0; node_idx < sTaxiPathNodesByPath[path_idx].size(); ++node_idx)
+        for (size_t node_idx = 0; node_idx < path_idx.size(); ++node_idx)
         {
-            TaxiPathNodeEntry const& node = *sTaxiPathNodesByPath[path_idx][node_idx];
+            TaxiPathNodeEntry const& node = *path_idx[node_idx];
 
             if (node.arrivalEventID)
                 eventIds.insert(node.arrivalEventID);

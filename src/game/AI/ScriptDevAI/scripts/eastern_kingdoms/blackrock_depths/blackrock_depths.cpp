@@ -56,9 +56,8 @@ bool GOUse_go_bar_beer_keg(Player* /*pPlayer*/, GameObject* pGo)
     {
         if (pInstance->GetData(TYPE_HURLEY) == IN_PROGRESS || pInstance->GetData(TYPE_HURLEY) == DONE) // GOs despawning on use, this check should never be true but this is proper to have it there
             return false;
-        else
             // Every time we set the event to SPECIAL, the instance script increments the number of broken kegs, capping at 3
-            pInstance->SetData(TYPE_HURLEY, SPECIAL);
+        pInstance->SetData(TYPE_HURLEY, SPECIAL);
     }
     return false;
 }
@@ -298,9 +297,9 @@ struct npc_grimstoneAI : public npc_escortAI
     {
         Map::PlayerList const& PlayerList = m_creature->GetMap()->GetPlayers();
 
-        for (Map::PlayerList::const_iterator itr = PlayerList.begin(); itr != PlayerList.end(); ++itr)
+        for (const auto& itr : PlayerList)
         {
-            Player* pPlayer = itr->getSource();
+            Player* pPlayer = itr.getSource();
             if (pPlayer && pPlayer->GetQuestStatus(QUEST_THE_CHALLENGE) == QUEST_STATUS_INCOMPLETE)
                 pPlayer->KilledMonsterCredit(NPC_THELDREN_QUEST_CREDIT);
         }
@@ -419,9 +418,9 @@ struct npc_grimstoneAI : public npc_escortAI
                         // Some of the NPCs in the crowd do cheer emote at event start
                         // we randomly select 25% of the NPCs to do this
                         m_pInstance->GetArenaCrowdGuid(m_lArenaCrowd);
-                        for (GuidSet::const_iterator itr = m_lArenaCrowd.begin(); itr != m_lArenaCrowd.end(); ++itr)
+                        for (auto itr : m_lArenaCrowd)
                         {
-                            if (Creature* pSpectator = m_creature->GetMap()->GetCreature(*itr))
+                            if (Creature* pSpectator = m_creature->GetMap()->GetCreature(itr))
                             {
                                 if (urand(0, 3) < 1)
                                     pSpectator->HandleEmote(EMOTE_ONESHOT_CHEER);
@@ -492,8 +491,8 @@ struct npc_grimstoneAI : public npc_escortAI
                         {
                             m_uiPhase = PHASE_GLADIATORS;
                             SummonRingMob(NPC_THELDREN, 1, POS_NORTH);
-                            for (uint8 i = 0; i < MAX_THELDREN_ADDS; ++i)
-                                SummonRingMob(m_uiGladiatorId[i], 1, POS_NORTH);
+                            for (unsigned int i : m_uiGladiatorId)
+                                SummonRingMob(i, 1, POS_NORTH);
                         }
                         else
                         {
@@ -1482,8 +1481,7 @@ struct npc_hurley_blackbreathAI : public npc_escortAI
     {
         if (pWho && (pWho->GetEntry() == NPC_RIBBLY_SCREWSPIGOT || pWho->GetEntry() == NPC_RIBBLY_CRONY))
             return;
-        else
-            ScriptedAI::AttackStart(pWho);
+        ScriptedAI::AttackStart(pWho);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -1509,12 +1507,12 @@ struct npc_hurley_blackbreathAI : public npc_escortAI
                     SetEscortPaused(true);
                     // Make Hurley and his cronies able to attack players (and be attacked)
                     m_creature->SetImmuneToPlayer(false);
-                    std::list<Creature*> lCroniesList;
+                    CreatureList lCroniesList;
                     GetCreatureListWithEntryInGrid(lCroniesList, m_creature, NPC_BLACKBREATH_CRONY, 30.0f);
-                    for (std::list<Creature*>::iterator itr = lCroniesList.begin(); itr != lCroniesList.end(); ++itr)
+                    for (auto& itr : lCroniesList)
                     {
-                        if ((*itr)->isAlive())
-                            (*itr)->SetImmuneToPlayer(false);
+                        if (itr->isAlive())
+                            itr->SetImmuneToPlayer(false);
                     }
                     break;
                 }
@@ -1812,21 +1810,18 @@ bool GOUse_go_bar_ale_mug(Player* pPlayer, GameObject* pGo)
     {
         if (pInstance->GetData(TYPE_PLUGGER) == IN_PROGRESS || pInstance->GetData(TYPE_PLUGGER) == DONE) // GOs despawning on use, this check should never be true but this is proper to have it there
             return false;
-        else
+        if (Creature* pPlugger = pInstance->GetSingleCreatureFromStorage(NPC_PLUGGER_SPAZZRING))
         {
-            if (Creature* pPlugger = pInstance->GetSingleCreatureFromStorage(NPC_PLUGGER_SPAZZRING))
+            if (boss_plugger_spazzringAI* pPluggerAI = dynamic_cast<boss_plugger_spazzringAI*>(pPlugger->AI()))
             {
-                if (boss_plugger_spazzringAI* pPluggerAI = dynamic_cast<boss_plugger_spazzringAI*>(pPlugger->AI()))
-                {
-                    // Every time we set the event to SPECIAL, the instance script increments the number of stolen mugs/boars, capping at 3
-                    pInstance->SetData(TYPE_PLUGGER, SPECIAL);
-                    // If the cap is reached the instance script changes the type from SPECIAL to IN_PROGRESS
-                    // Plugger then aggroes and engage players, else he just warns them
-                    if (pInstance->GetData(TYPE_PLUGGER) == IN_PROGRESS)
-                        pPluggerAI->AttackThief(pPlayer);
-                    else
-                        pPluggerAI->WarnThief(pPlayer);
-                }
+                // Every time we set the event to SPECIAL, the instance script increments the number of stolen mugs/boars, capping at 3
+                pInstance->SetData(TYPE_PLUGGER, SPECIAL);
+                // If the cap is reached the instance script changes the type from SPECIAL to IN_PROGRESS
+                // Plugger then aggroes and engage players, else he just warns them
+                if (pInstance->GetData(TYPE_PLUGGER) == IN_PROGRESS)
+                    pPluggerAI->AttackThief(pPlayer);
+                else
+                    pPluggerAI->WarnThief(pPlayer);
             }
         }
     }
@@ -1899,9 +1894,7 @@ UnitAI* GetAI_npc_ironhand_guardian(Creature* pCreature)
 
 void AddSC_blackrock_depths()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "go_bar_beer_keg";
     pNewScript->pGOUse = &GOUse_go_bar_beer_keg;
     pNewScript->RegisterSelf();

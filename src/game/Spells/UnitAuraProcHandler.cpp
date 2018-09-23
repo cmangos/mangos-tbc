@@ -455,7 +455,7 @@ void Unit::ProcDamageAndSpell(ProcSystemArguments&& data)
 }
 
 ProcExecutionData::ProcExecutionData(ProcSystemArguments& data, bool isVictim) :
-    isVictim(isVictim), procExtra(data.procExtra), attType(data.attType), damage(data.damage), procSpell(data.procSpell), spell(data.spell), healthGain(data.healthGain)
+    isVictim(isVictim), procExtra(data.procExtra), attType(data.attType), damage(data.damage), procSpell(data.procSpell), spell(data.spell), healthGain(data.healthGain), triggeredByAura(nullptr), cooldown(0)
 {
     if (isVictim)
     {
@@ -667,7 +667,7 @@ bool Unit::IsTriggeredAtSpellProcEvent(ProcExecutionData& data, SpellAuraHolder*
 
 SpellAuraProcResult Unit::HandleHasteAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; uint32 cooldown = data.cooldown;
     SpellEntry const* hasteSpell = triggeredByAura->GetSpellProto();
 
     Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
@@ -810,9 +810,9 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     // find Mage Armor
                     bool found = false;
                     AuraList const& mRegenInterrupt = GetAurasByType(SPELL_AURA_MOD_MANA_REGEN_INTERRUPT);
-                    for (AuraList::const_iterator iter = mRegenInterrupt.begin(); iter != mRegenInterrupt.end(); ++iter)
+                    for (auto iter : mRegenInterrupt)
                     {
-                        if (SpellEntry const* iterSpellProto = (*iter)->GetSpellProto())
+                        if (SpellEntry const* iterSpellProto = iter->GetSpellProto())
                         {
                             if (iterSpellProto->SpellFamilyName == SPELLFAMILY_MAGE && (iterSpellProto->SpellFamilyFlags & uint64(0x10000000)))
                             {
@@ -2186,8 +2186,9 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                 trigger_spell_id = 12721;
                 break;
             }
+
             // Rampage
-            else if (auraSpellInfo->SpellIconID == 2006 && auraSpellInfo->IsFitToFamilyMask(uint64(0x0000000000100000)))
+            if (auraSpellInfo->SpellIconID == 2006 && auraSpellInfo->IsFitToFamilyMask(uint64(0x0000000000100000)))
             {
                 switch (auraSpellInfo->Id)
                 {
@@ -2234,12 +2235,12 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
             else if (auraSpellInfo->SpellFamilyFlags & uint64(0x0000000000004000))
             {
                 Unit::AuraList const& mAddFlatModifier = GetAurasByType(SPELL_AURA_ADD_FLAT_MODIFIER);
-                for (Unit::AuraList::const_iterator i = mAddFlatModifier.begin(); i != mAddFlatModifier.end(); ++i)
+                for (auto i : mAddFlatModifier)
                 {
-                    if ((*i)->GetModifier()->m_miscvalue == SPELLMOD_CHANCE_OF_SUCCESS && (*i)->GetSpellProto()->SpellIconID == 113)
+                    if (i->GetModifier()->m_miscvalue == SPELLMOD_CHANCE_OF_SUCCESS && i->GetSpellProto()->SpellIconID == 113)
                     {
                         // basepoints of trigger spell stored in dummyeffect of spellProto
-                        basepoints[EFFECT_INDEX_0] = GetMaxPower(POWER_MANA) * (*i)->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_2) / 100;
+                        basepoints[EFFECT_INDEX_0] = GetMaxPower(POWER_MANA) * i->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_2) / 100;
                         trigger_spell_id = 18371;
                         break;
                     }
@@ -2570,7 +2571,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
     if (!target || (target != this && !target->isAlive()))
         return SPELL_AURA_PROC_FAILED;
     // Quick check for target modes for procs: do not cast offensive procs on friendly targets and in reverse
-    else if (!(procEx & PROC_EX_REFLECT))
+    if (!(procEx & PROC_EX_REFLECT))
     {
         if (IsPositiveSpellTargetMode(triggerEntry, this, target) != CanAssist(target))
             return SPELL_AURA_PROC_FAILED;
@@ -2593,7 +2594,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
 
 SpellAuraProcResult Unit::HandleProcTriggerDamageAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Unit* pVictim = data.victim; Aura* triggeredByAura = data.triggeredByAura;
     SpellEntry const* spellInfo = triggeredByAura->GetSpellProto();
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "ProcDamageAndSpell: doing %u damage from spell id %u (triggered by auratype %u of spell %u)",
                      triggeredByAura->GetModifier()->m_amount, spellInfo->Id, triggeredByAura->GetModifier()->m_auraname, triggeredByAura->GetId());
@@ -2608,7 +2609,7 @@ SpellAuraProcResult Unit::HandleProcTriggerDamageAuraProc(ProcExecutionData& dat
 
 SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Unit* pVictim = data.victim; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 cooldown = data.cooldown;
     int32 scriptId = triggeredByAura->GetModifier()->m_miscvalue;
 
     if (!pVictim || !pVictim->isAlive())
@@ -2707,7 +2708,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(ProcExecutionData& d
 
 SpellAuraProcResult Unit::HandleMendingAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura;
     //if no damage then mending proc has failed, we dont need to do unecessary steps
     if (!damage)
         return SPELL_AURA_PROC_FAILED;
@@ -2758,21 +2759,21 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(ProcExecutionData& data)
 
 SpellAuraProcResult Unit::HandleModCastingSpeedNotStackAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    SpellEntry const* procSpell = data.procSpell;
     // Skip melee hits or instant cast spells
     return !(procSpell == nullptr || GetSpellCastTime(procSpell) == 0) ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED;
 }
 
 SpellAuraProcResult Unit::HandleReflectSpellsSchoolAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell;
     // Skip Melee hits and spells ws wrong school
     return !(procSpell == nullptr || (triggeredByAura->GetModifier()->m_miscvalue & procSpell->SchoolMask) == 0) ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED;
 }
 
 SpellAuraProcResult Unit::HandleModPowerCostSchoolAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell;
     // Skip melee hits and spells ws wrong school or zero cost
     return !(procSpell == nullptr ||
              (procSpell->manaCost == 0 && procSpell->ManaCostPercentage == 0) ||           // Cost check
@@ -2781,7 +2782,7 @@ SpellAuraProcResult Unit::HandleModPowerCostSchoolAuraProc(ProcExecutionData& da
 
 SpellAuraProcResult Unit::HandleMechanicImmuneResistanceAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell;
     // Compare mechanic
     return !(procSpell == nullptr || procSpell->Mechanic != triggeredByAura->GetModifier()->m_miscvalue)
            ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED;
@@ -2789,13 +2790,13 @@ SpellAuraProcResult Unit::HandleMechanicImmuneResistanceAuraProc(ProcExecutionDa
 
 SpellAuraProcResult Unit::HandleMagnetAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Aura* triggeredByAura = data.triggeredByAura; uint32 procEx = data.procExtra;
     return procEx & PROC_EX_MAGNET && triggeredByAura->IsMagnetUsed() ? SPELL_AURA_PROC_OK : SPELL_AURA_PROC_FAILED;
 }
 
 SpellAuraProcResult Unit::HandleManaShieldAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Unit* pVictim = data.victim; Aura* triggeredByAura = data.triggeredByAura; uint32 cooldown = data.cooldown;
     SpellEntry const* dummySpell = triggeredByAura->GetSpellProto();
 
     Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
@@ -2880,7 +2881,7 @@ SpellAuraProcResult Unit::HandleAttackPowerAttackerBonusAuraProc(ProcExecutionDa
 
 SpellAuraProcResult Unit::HandleModResistanceAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura;
     SpellEntry const* spellInfo = triggeredByAura->GetSpellProto();
 
     // Inner Fire
@@ -2896,7 +2897,7 @@ SpellAuraProcResult Unit::HandleModResistanceAuraProc(ProcExecutionData& data)
 
 SpellAuraProcResult Unit::HandleRemoveByDamageChanceProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura;
     // The chance to dispel an aura depends on the damage taken with respect to the casters level.
     uint32 max_dmg = getLevel() > 8 ? 25 * getLevel() - 150 : 50;
     float chance = float(damage) / max_dmg * 100.0f;
@@ -2911,7 +2912,7 @@ SpellAuraProcResult Unit::HandleRemoveByDamageChanceProc(ProcExecutionData& data
 
 SpellAuraProcResult Unit::HandleInvisibilityAuraProc(ProcExecutionData& data)
 {
-    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+    Aura* triggeredByAura = data.triggeredByAura;
     if (triggeredByAura->GetSpellProto()->HasAttribute(SPELL_ATTR_PASSIVE) || triggeredByAura->GetSpellProto()->HasAttribute(SPELL_ATTR_NEGATIVE))
         return SPELL_AURA_PROC_FAILED;
 

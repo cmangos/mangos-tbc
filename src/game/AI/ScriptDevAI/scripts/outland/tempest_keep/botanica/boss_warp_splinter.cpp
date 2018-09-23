@@ -52,8 +52,8 @@ struct boss_warp_splinterAI : public ScriptedAI
     boss_warp_splinterAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         // Add the summon spells to a vector for better handling
-        for (uint8 i = 0; i < 10; ++i)
-            m_vSummonSpells.push_back(aSaplingsSummonSpells[i]);
+        for (unsigned int aSaplingsSummonSpell : aSaplingsSummonSpells)
+            m_vSummonSpells.push_back(aSaplingsSummonSpell);
 
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         Reset();
@@ -178,9 +178,7 @@ UnitAI* GetAI_npc_sapling(Creature* pCreature)
 
 void AddSC_boss_warp_splinter()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_warp_splinter";
     pNewScript->GetAI = &GetAI_boss_warp_splinter;
     pNewScript->RegisterSelf();

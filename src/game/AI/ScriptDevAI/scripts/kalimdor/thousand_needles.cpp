@@ -229,9 +229,9 @@ struct npc_paoka_swiftmountainAI : public npc_escortAI
 
     void DoSpawnWyvern()
     {
-        for (int i = 0; i < 3; ++i)
+        for (auto& i : m_afWyvernLoc)
             m_creature->SummonCreature(NPC_WYVERN,
-                                       m_afWyvernLoc[i][0], m_afWyvernLoc[i][1], m_afWyvernLoc[i][2], 0.0f,
+                i[0], i[1], i[2], 0.0f,
                                        TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
     }
 };
@@ -303,13 +303,10 @@ struct npc_plucky_johnsonAI : public ScriptedAI
         {
             if (m_creature->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP))
                 return;
-            else
-            {
-                m_creature->SetFactionTemporary(FACTION_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_RESTORE_COMBAT_STOP);
-                m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-                m_creature->CastSpell(m_creature, SPELL_PLUCKY_HUMAN, TRIGGERED_NONE);
-                m_creature->HandleEmote(EMOTE_ONESHOT_WAVE);
-            }
+            m_creature->SetFactionTemporary(FACTION_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_RESTORE_COMBAT_STOP);
+            m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+            m_creature->CastSpell(m_creature, SPELL_PLUCKY_HUMAN, TRIGGERED_NONE);
+            m_creature->HandleEmote(EMOTE_ONESHOT_WAVE);
         }
     }
 
@@ -326,8 +323,7 @@ struct npc_plucky_johnsonAI : public ScriptedAI
 
                 return;
             }
-            else
-                m_uiResetTimer -= uiDiff;
+            m_uiResetTimer -= uiDiff;
         }
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -364,9 +360,7 @@ bool GossipSelect_npc_plucky_johnson(Player* pPlayer, Creature* pCreature, uint3
 
 void AddSC_thousand_needles()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_kanati";
     pNewScript->GetAI = &GetAI_npc_kanati;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_kanati;

@@ -137,7 +137,6 @@ struct npc_time_riftAI : public ScriptedAI
         m_pInstance = (instance_dark_portal*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         m_bIsFirstSummon = true;
-        m_uiRiftNumber   = 0;
         m_uiRiftWaveId   = 0;
         DoCastSpellIfCan(m_creature, SPELL_RIFT_PERIODIC);
         SetReactState(REACT_PASSIVE);
@@ -383,9 +382,7 @@ bool EffectDummyCreature_npc_time_rift_channel(Unit* /*pCaster*/, uint32 uiSpell
 
 void AddSC_dark_portal()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_medivh_black_morass";
     pNewScript->GetAI = &GetAI_npc_medivh_black_morass;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_npc_medivh_black_morass;

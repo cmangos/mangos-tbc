@@ -76,8 +76,8 @@ bool Tracker::Load(std::string& string, DestID &destOrphan)
 
     std::deque<PathID> numbers;
 
-    for (auto i = tokens.begin(); i != tokens.end(); ++i)
-        numbers.push_back(uint32(std::stoi(i->c_str())));
+    for (auto& token : tokens)
+        numbers.push_back(uint32(std::stoi(token)));
 
     // Try to parse as robustly as possible
     switch (numbers.size())
@@ -133,7 +133,7 @@ bool Tracker::AddRoute(const TaxiPathEntry *entry, float discountMulti /*= 0.0f*
 
     uint32 cost = entry->price;
 
-    const bool commercial = bool(int32(discountMulti));
+    const bool commercial = int32(discountMulti) != 0;
 
     // Can't add taxi path without mount display id unless specified otherwise
     uint32 displayId = sObjectMgr.GetTaxiMountDisplayId(entry->from, m_owner.GetTeam(), commercial);
@@ -273,7 +273,7 @@ bool Tracker::Prepare(Index nodeResume /*= 0*/)
                 if (prev && (*j)->mapid != prev->mapid)
                 {
                     // Detect map change and advance atlas by adding a new map
-                    if (const MapEntry* entry = sMapStore.LookupEntry((*j)->mapid))
+                    if (sMapStore.LookupEntry((*j)->mapid))
                     {
                         // Bugcheck: latest finished map spline is suspiciously short
                         MANGOS_ASSERT(m_atlas.back().size() > 2);
@@ -368,7 +368,7 @@ bool Tracker::UpdateRoute(const TaxiPathNodeEntry* entry, PathID& start, PathID&
         }
         return true;
     }
-    else if (entry->index == route.nodeStart)
+    if (entry->index == route.nodeStart)
     {
         // Acknowledge the start of the current route to other systems
         start = route.pathID;

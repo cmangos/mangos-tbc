@@ -102,7 +102,7 @@ struct npc_daphne_stilwellAI : public npc_escortAI
                 case 7: DoScriptText(SAY_DS_DOWN_1, m_creature); break;
                 case 8: DoScriptText(SAY_DS_DOWN_2, m_creature); break;
                 case 9:
-                    if (m_lSummonedRaidersGUIDs.size() == 0)
+                    if (m_lSummonedRaidersGUIDs.empty())
                         DoScriptText(SAY_DS_DOWN_3, m_creature);
                     break;
             }
@@ -238,7 +238,7 @@ struct npc_daphne_stilwellAI : public npc_escortAI
     {
         m_lSummonedRaidersGUIDs.remove(pSummoned->GetObjectGuid());
 
-        if (m_uiWPHolder >= 9 && m_lSummonedRaidersGUIDs.size() == 0)
+        if (m_uiWPHolder >= 9 && m_lSummonedRaidersGUIDs.empty())
             SetEscortPaused(false);
     }
 
@@ -369,9 +369,7 @@ UnitAI* GetAI_npc_defias_traitor(Creature* pCreature)
 
 void AddSC_westfall()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "npc_daphne_stilwell";
     pNewScript->GetAI = &GetAI_npc_daphne_stilwell;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_daphne_stilwell;

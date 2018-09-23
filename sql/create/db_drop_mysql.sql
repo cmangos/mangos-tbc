@@ -1,21 +1,21 @@
 REVOKE ALL PRIVILEGES ON * . * FROM 'mangos'@'localhost';
 
-REVOKE ALL PRIVILEGES ON `mangos` . * FROM 'mangos'@'localhost';
+REVOKE ALL PRIVILEGES ON `tbcmangos` . * FROM 'mangos'@'localhost';
 
-REVOKE GRANT OPTION ON `mangos` . * FROM 'mangos'@'localhost';
+REVOKE GRANT OPTION ON `tbcmangos` . * FROM 'mangos'@'localhost';
 
-REVOKE ALL PRIVILEGES ON `characters` . * FROM 'mangos'@'localhost';
+REVOKE ALL PRIVILEGES ON `tbccharacters` . * FROM 'mangos'@'localhost';
 
-REVOKE GRANT OPTION ON `characters` . * FROM 'mangos'@'localhost';
+REVOKE GRANT OPTION ON `tbccharacters` . * FROM 'mangos'@'localhost';
 
-REVOKE ALL PRIVILEGES ON `realmd` . * FROM 'mangos'@'localhost';
+REVOKE ALL PRIVILEGES ON `tbcrealmd` . * FROM 'mangos'@'localhost';
 
-REVOKE GRANT OPTION ON `realmd` . * FROM 'mangos'@'localhost';
+REVOKE GRANT OPTION ON `tbcrealmd` . * FROM 'mangos'@'localhost';
 
 DELETE FROM `user` WHERE CONVERT( User USING utf8 ) = CONVERT( 'mangos' USING utf8 ) AND CONVERT( Host USING utf8 ) = CONVERT( 'localhost' USING utf8 ) ;
 
-DROP DATABASE IF EXISTS `mangos` ;
+DROP DATABASE IF EXISTS `tbcmangos` ;
 
-DROP DATABASE IF EXISTS `characters` ;
+DROP DATABASE IF EXISTS `tbccharacters` ;
 
-DROP DATABASE IF EXISTS `realmd` ;
+DROP DATABASE IF EXISTS `tbcrealmd` ;

@@ -240,12 +240,10 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                     }
                     else
                     {
-                        // move in bladedance
-                        float x, y, randx, randy;
-                        randx = (rand() % 40);
-                        randy = (rand() % 40);
-                        x = 210 + randx ;
-                        y = -60 - randy ;
+                        float randx = (rand() % 40);
+                        float randy = (rand() % 40);
+                        float x = 210 + randx;
+                        float y = -60 - randy;
                         m_creature->GetMotionMaster()->MovePoint(1, x, y, m_creature->GetPositionZ());
                         m_uiWaitTimer = 0;
                     }
@@ -266,8 +264,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                 m_creature->SetSpeedRate(MOVE_RUN, 4.0f);
                 return;
             }
-            else
-                m_uiBladeDanceTimer -= uiDiff;
+            m_uiBladeDanceTimer -= uiDiff;
 
             if (m_uiChargeTimer)
             {
@@ -314,9 +311,7 @@ UnitAI* GetAI_boss_warchief_kargath_bladefist(Creature* pCreature)
 
 void AddSC_boss_warchief_kargath_bladefist()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_warchief_kargath_bladefist";
     pNewScript->GetAI = &GetAI_boss_warchief_kargath_bladefist;
     pNewScript->RegisterSelf();

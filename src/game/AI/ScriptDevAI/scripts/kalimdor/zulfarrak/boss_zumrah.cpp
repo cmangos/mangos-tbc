@@ -111,7 +111,7 @@ struct boss_zumrahAI : public ScriptedAI
 
         // Get the list of usable graves (not used already by players)
         GuidList lTempList;
-        std::list<GameObject*> lGravesInRange;
+        GameObjectList lGravesInRange;
 
         m_pInstance->GetShallowGravesGuidList(lTempList);
         for (GuidList::const_iterator itr = lTempList.begin(); itr != lTempList.end(); ++itr)
@@ -207,9 +207,7 @@ UnitAI* GetAI_boss_zumrah(Creature* pCreature)
 
 void AddSC_boss_zumrah()
 {
-    Script* pNewScript;
-
-    pNewScript = new Script;
+    Script* pNewScript = new Script;
     pNewScript->Name = "boss_zumrah";
     pNewScript->GetAI = &GetAI_boss_zumrah;
     pNewScript->RegisterSelf();

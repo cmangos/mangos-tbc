@@ -80,9 +80,9 @@ static inline ReputationRank GetFactionReaction(FactionTemplateEntry const* this
 
     if (thisTemplate->enemyFaction[0] && otherTemplate->faction)
     {
-        for (int i = 0; i < 4; ++i)
+        for (unsigned int i : thisTemplate->enemyFaction)
         {
-            if (thisTemplate->enemyFaction[i] == otherTemplate->faction)
+            if (i == otherTemplate->faction)
                 return REP_HOSTILE;
         }
     }
@@ -92,9 +92,9 @@ static inline ReputationRank GetFactionReaction(FactionTemplateEntry const* this
 
     if (thisTemplate->friendFaction[0] && otherTemplate->faction)
     {
-        for (int i = 0; i < 4; ++i)
+        for (unsigned int i : thisTemplate->friendFaction)
         {
-            if (thisTemplate->friendFaction[i] == otherTemplate->faction)
+            if (i == otherTemplate->faction)
                 return REP_FRIENDLY;
         }
     }
@@ -104,9 +104,9 @@ static inline ReputationRank GetFactionReaction(FactionTemplateEntry const* this
 
     if (otherTemplate->friendFaction[0] && thisTemplate->faction)
     {
-        for (int i = 0; i < 4; ++i)
+        for (unsigned int i : otherTemplate->friendFaction)
         {
-            if (otherTemplate->friendFaction[i] == thisTemplate->faction)
+            if (i == thisTemplate->faction)
                 return REP_FRIENDLY;
         }
     }
@@ -290,7 +290,7 @@ ReputationRank GameObject::GetReactionTo(Unit const* unit) const
 
     if (const Unit* owner = GetOwner())
         return owner->GetReactionTo(unit);
-    else if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
+    if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
     {
         if (const FactionTemplateEntry* factionTemplate = sFactionTemplateStore.LookupEntry(faction))
             return GetFactionReaction(factionTemplate, unit);
@@ -797,16 +797,16 @@ bool Unit::IsInGroup(Unit const* other, bool party/* = false*/, bool UI/* = fals
             getUIPlayerComparisions(this, thisPlayer);
             getUIPlayerComparisions(other, otherPlayer);
 
-            for (size_t i = 0; i < comparisions; ++i)
+            for (auto& i : thisPlayer)
             {
-                if (thisPlayer[i])
+                if (i)
                 {
-                    for (size_t j = 0; j < comparisions; ++j)
+                    for (auto& j : otherPlayer)
                     {
-                        if (otherPlayer[j])
+                        if (j)
                         {
-                            const Group* group = thisPlayer[i]->GetGroup();
-                            if (thisPlayer[i] == otherPlayer[j] || (group && group == otherPlayer[j]->GetGroup() && (!party || group->SameSubGroup(thisPlayer[i], otherPlayer[j]))))
+                            const Group* group = i->GetGroup();
+                            if (i == j || (group && group == j->GetGroup() && (!party || group->SameSubGroup(i, j))))
                                 return true;
                         }
                     }
@@ -905,7 +905,7 @@ bool GameObject::IsEnemy(Unit const* unit) const
 
     if (const Unit* owner = GetOwner())
         return owner->IsEnemy(unit);
-    else if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
+    if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
     {
         if (const FactionTemplateEntry* factionTemplate = sFactionTemplateStore.LookupEntry(faction))
             return (GetFactionReaction(factionTemplate, unit) < REP_UNFRIENDLY);
@@ -930,7 +930,7 @@ bool GameObject::IsFriend(Unit const* unit) const
 
     if (const Unit* owner = GetOwner())
         return owner->IsFriend(unit);
-    else if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
+    if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
     {
         if (const FactionTemplateEntry* factionTemplate = sFactionTemplateStore.LookupEntry(faction))
             return (GetFactionReaction(factionTemplate, unit) > REP_NEUTRAL);
@@ -1018,8 +1018,7 @@ bool DynamicObject::CanAttackSpell(Unit* target, SpellEntry const* spellInfo, bo
 {
     if (Unit* owner = GetCaster())
         return owner->CanAttackSpell(target, spellInfo, isAOE);
-    else
-        return false;
+    return false;
 }
 
 /////////////////////////////////////////////////
@@ -1035,8 +1034,7 @@ bool DynamicObject::CanAssistSpell(Unit* target, SpellEntry const* spellInfo) co
 {
     if (Unit* owner = GetCaster())
         return owner->CanAttackSpell(target, spellInfo);
-    else
-        return false;
+    return false;
 }
 
 /////////////////////////////////////////////////
@@ -1126,7 +1124,7 @@ bool Unit::CanAttackSpell(Unit* target, SpellEntry const* spellInfo, bool isAOE)
 
         return true;
     }
-    else return false;
+    return false;
 }
 
 /////////////////////////////////////////////////

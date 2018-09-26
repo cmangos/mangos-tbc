@@ -505,63 +505,86 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                 }
                 // Hide lootable animation for unallowed players
                 // Handle tapped flag
-                else if (index == UNIT_DYNAMIC_FLAGS && GetTypeId() == TYPEID_UNIT)
+                // Hide special-info for non empathy-casters,
+                else if (index == UNIT_DYNAMIC_FLAGS)
                 {
-                    Creature* creature = (Creature*)this;
                     uint32 dynflagsValue = m_uint32Values[index];
-                    bool setTapFlags = false;
 
-                    if (creature->isAlive())
+                    // Checking SPELL_AURA_EMPATHY and caster
+                    if (dynflagsValue & UNIT_DYNFLAG_SPECIALINFO && ((Unit*)this)->isAlive())
                     {
-                        // creature is alive so, not lootable
-                        dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
-
-                        if (creature->isInCombat())
+                        bool bIsEmpathy = false;
+                        bool bIsCaster = false;
+                        Unit::AuraList const& mAuraEmpathy = ((Unit*)this)->GetAurasByType(SPELL_AURA_EMPATHY);
+                        for (Unit::AuraList::const_iterator itr = mAuraEmpathy.begin(); !bIsCaster && itr != mAuraEmpathy.end(); ++itr)
                         {
-                            // as creature is in combat we have to manage tap flags
+                            bIsEmpathy = true;              // Empathy by aura set
+                            if ((*itr)->GetCasterGuid() == target->GetObjectGuid())
+                                bIsCaster = true;           // target is the caster of an empathy aura
+                        }
+                        if (bIsEmpathy && !bIsCaster)       // Empathy by aura, but target is not the caster
+                            dynflagsValue &= ~UNIT_DYNFLAG_SPECIALINFO;
+                    }
+
+                    // Hide lootable animation for unallowed players
+                    // Handle tapped flag
+                    if (GetTypeId() == TYPEID_UNIT)
+                    {
+                        Creature* creature = (Creature*)this;
+                        bool setTapFlags = false;
+
+                        if (creature->isAlive())
+                        {
+                            // creature is alive so, not lootable
+                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
+
+                            if (creature->isInCombat())
+                            {
+                                // as creature is in combat we have to manage tap flags
+                                setTapFlags = true;
+                            }
+                            else
+                            {
+                                // creature is not in combat so its not tapped
+                                dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
+                                //sLog.outString(">> %s is not in combat so not tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
+                            }
+                        }
+                        else
+                        {
+                            // check loot flag
+                            if (creature->loot && creature->loot->CanLoot(target))
+                            {
+                                // creature is dead and this player can loot it
+                                dynflagsValue = dynflagsValue | UNIT_DYNFLAG_LOOTABLE;
+                                //sLog.outString(">> %s is lootable for %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
+                            }
+                            else
+                            {
+                                // creature is dead but this player cannot loot it
+                                dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
+                                //sLog.outString(">> %s is not lootable for %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
+                            }
+
+                            // as creature is died we have to manage tap flags
                             setTapFlags = true;
                         }
-                        else
-                        {
-                            // creature is not in combat so its not tapped
-                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
-                            //sLog.outString(">> %s is not in combat so not tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
-                        }
-                    }
-                    else
-                    {
-                        // check loot flag
-                        if (creature->loot && creature->loot->CanLoot(target))
-                        {
-                            // creature is dead and this player can loot it
-                            dynflagsValue = dynflagsValue | UNIT_DYNFLAG_LOOTABLE;
-                            //sLog.outString(">> %s is lootable for %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
-                        }
-                        else
-                        {
-                            // creature is dead but this player cannot loot it
-                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
-                            //sLog.outString(">> %s is not lootable for %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
-                        }
 
-                        // as creature is died we have to manage tap flags
-                        setTapFlags = true;
-                    }
-
-                    // check tap flags
-                    if (setTapFlags)
-                    {
-                        if (creature->IsTappedBy(target))
+                        // check tap flags
+                        if (setTapFlags)
                         {
-                            // creature is in combat or died and tapped by this player
-                            dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
-                            //sLog.outString(">> %s is tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
-                        }
-                        else
-                        {
-                            // creature is in combat or died but not tapped by this player
-                            dynflagsValue = dynflagsValue | UNIT_DYNFLAG_TAPPED;
-                            //sLog.outString(">> %s is not tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
+                            if (creature->IsTappedBy(target))
+                            {
+                                // creature is in combat or died and tapped by this player
+                                dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_TAPPED;
+                                //sLog.outString(">> %s is tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
+                            }
+                            else
+                            {
+                                // creature is in combat or died but not tapped by this player
+                                dynflagsValue = dynflagsValue | UNIT_DYNFLAG_TAPPED;
+                                //sLog.outString(">> %s is not tapped by %s", this->GetGuidStr().c_str(), target->GetGuidStr().c_str());
+                            }
                         }
                     }
 

@@ -360,7 +360,8 @@ LootItem::LootItem(LootStoreItem const& li, uint32 _lootSlot, uint32 threshold)
     randomPropertyId  = Item::GenerateItemRandomPropertyId(itemId);
     isBlocked         = false;
     currentLooterPass = false;
-    isReleased        = false;
+    isNotVisibleForML = false;
+    checkRollNeed     = false;
 }
 
 LootItem::LootItem(uint32 _itemId, uint32 _count, uint32 _randomSuffix, int32 _randomPropertyId, uint32 _lootSlot)
@@ -388,7 +389,8 @@ LootItem::LootItem(uint32 _itemId, uint32 _count, uint32 _randomSuffix, int32 _r
     isBlocked         = false;
     isUnderThreshold  = false;
     currentLooterPass = false;
-    isReleased        = false;
+    isNotVisibleForML = false;
+    checkRollNeed     = false;
 }
 
 
@@ -428,59 +430,31 @@ bool LootItem::AllowedForPlayer(Player const* player, WorldObject const* lootTar
 
 LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const* loot) const
 {
-    // GM can see all loot items in any corpses
-    if (player->isGameMaster())
-        return LOOT_SLOT_VIEW;
+    // ignore looted, FFA (each player get own copy) and not allowed items
+    if (IsLootedFor(player->GetObjectGuid()))
+        return MAX_LOOT_SLOT_TYPE;
 
-    // Master looter needs to see quest/conditional items above threshold so he can distribute them
-    if (!IsAllowed(player->GetObjectGuid()) && (loot->m_lootMethod != MASTER_LOOT || player->GetObjectGuid() != loot->m_masterOwnerGuid || allowedGuid.empty()))
+    // Master looter needs to see conditional items above threshold so he can distribute them
+    bool isAllowed = AllowedForPlayer(player, loot->GetLootTarget());
+    if (!isAllowed && (loot->m_lootMethod != MASTER_LOOT || freeForAll))
         return MAX_LOOT_SLOT_TYPE;
 
     if (freeForAll)
         return loot->m_lootMethod == NOT_GROUP_TYPE_LOOT ? LOOT_SLOT_OWNER : LOOT_SLOT_NORMAL; // player have not yet looted a free for all item
 
-    // quest items and conditional items cases
-    if (lootItemType == LOOTITEM_TYPE_QUEST || lootItemType == LOOTITEM_TYPE_CONDITIONNAL)
+    if (!lootedBy.empty())
+        return MAX_LOOT_SLOT_TYPE;                                       // a not free for all item should not be looted more than once
+
+    if (lootItemType == LOOTITEM_TYPE_QUEST)
     {
-        switch (loot->m_lootMethod)
-        {
-            case NOT_GROUP_TYPE_LOOT:
-            case FREE_FOR_ALL:
-                return LOOT_SLOT_OWNER;
+        if (loot->m_lootMethod == NOT_GROUP_TYPE_LOOT || loot->m_lootMethod == FREE_FOR_ALL)
+            return LOOT_SLOT_OWNER;
 
-            case MASTER_LOOT:
-                if (!IsAllowed(player->GetObjectGuid()))
-                {
-                    if (!isUnderThreshold && player->GetObjectGuid() == loot->m_masterOwnerGuid && !allowedGuid.empty())
-                        return LOOT_SLOT_MASTER;
+        // Check if its turn of that player to loot a not party loot. The loot may be released or the item may be passed by currentLooter
+        if (loot->m_isReleased || currentLooterPass || loot->m_currentLooterGuid == player->GetObjectGuid())
+            return LOOT_SLOT_OWNER;
 
-                    return MAX_LOOT_SLOT_TYPE;
-                }
-
-                if (isUnderThreshold)
-                {
-                    // Check if its turn of that player to loot a not party loot. The loot may be released or the item may be passed by currentLooter
-                    if (isReleased || currentLooterPass || loot->m_currentLooterGuid == player->GetObjectGuid())
-                        return LOOT_SLOT_OWNER;
-                    return MAX_LOOT_SLOT_TYPE;
-                }
-
-                if (player->GetObjectGuid() == loot->m_masterOwnerGuid)
-                    return LOOT_SLOT_MASTER;
-
-                // give a chance to let others just see the content of the loot
-                if (isBlocked || sWorld.getConfig(CONFIG_BOOL_CORPSE_ALLOW_ALL_ITEMS_SHOW_IN_MASTER_LOOT))
-                    return LOOT_SLOT_VIEW;
-
-                return MAX_LOOT_SLOT_TYPE;
-                break;
-
-            default:
-                // Check if its turn of that player to loot a not party loot. The loot may be released or the item may be passed by currentLooter
-                if (isReleased || currentLooterPass || loot->m_currentLooterGuid == player->GetObjectGuid())
-                    return LOOT_SLOT_OWNER;
-                return MAX_LOOT_SLOT_TYPE;
-        }
+        return MAX_LOOT_SLOT_TYPE;
     }
 
     switch (loot->m_lootMethod)
@@ -492,8 +466,9 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
         {
             if (!isBlocked)
             {
-                if (isReleased || currentLooterPass || player->GetObjectGuid() == loot->m_currentLooterGuid)
+                if (loot->m_isReleased || player->GetObjectGuid() == loot->m_currentLooterGuid)
                     return LOOT_SLOT_NORMAL;
+
                 return MAX_LOOT_SLOT_TYPE;
             }
             return LOOT_SLOT_VIEW;
@@ -502,28 +477,29 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
         {
             if (isUnderThreshold)
             {
-                if (!IsAllowed(player->GetObjectGuid()))
+                if (!isAllowed)
                     return MAX_LOOT_SLOT_TYPE;
-                if (isReleased || currentLooterPass || player->GetObjectGuid() == loot->m_currentLooterGuid)
+                if (loot->m_isReleased || player->GetObjectGuid() == loot->m_currentLooterGuid)
                     return LOOT_SLOT_NORMAL;
                 return MAX_LOOT_SLOT_TYPE;
             }
-
             if (player->GetObjectGuid() == loot->m_masterOwnerGuid)
                 return LOOT_SLOT_MASTER;
-
-            if (!IsAllowed(player->GetObjectGuid()))
+            if (!isAllowed)
                 return MAX_LOOT_SLOT_TYPE;
 
+            if (!isBlocked && isNotVisibleForML)
+                return LOOT_SLOT_NORMAL;
+
             // give a chance to let others just see the content of the loot
-            if (isBlocked || sWorld.getConfig(CONFIG_BOOL_CORPSE_ALLOW_ALL_ITEMS_SHOW_IN_MASTER_LOOT))
+            if (sWorld.getConfig(CONFIG_BOOL_CORPSE_ALLOW_ALL_ITEMS_SHOW_IN_MASTER_LOOT))
                 return LOOT_SLOT_VIEW;
 
             return MAX_LOOT_SLOT_TYPE;
         }
         case ROUND_ROBIN:
         {
-            if (isReleased || currentLooterPass || player->GetObjectGuid() == loot->m_currentLooterGuid)
+            if (loot->m_isReleased || player->GetObjectGuid() == loot->m_currentLooterGuid)
                 return LOOT_SLOT_OWNER;
             return MAX_LOOT_SLOT_TYPE;
         }
@@ -691,7 +667,7 @@ bool GroupLootRoll::TryToStart(Loot& loot, uint32 itemSlot)
         for (auto itr : m_loot->m_ownerSet)
         {
             Player* plr = sObjectMgr.GetPlayer(itr);
-            if (!plr || !m_lootItem->IsAllowed(plr->GetObjectGuid())) // check if player meet the condition to be able to roll this item
+            if (!plr || !m_lootItem->AllowedForPlayer(plr, loot.GetLootTarget()))   // check if player meet the condition to be able to roll this item
             {
                 m_rollVoteMap[itr].vote = ROLL_NOT_VALID;
                 continue;
@@ -818,7 +794,7 @@ void GroupLootRoll::Finish(RollVoteMap::const_iterator& winnerItr)
     if (winnerItr == m_rollVoteMap.end())
     {
         SendAllPassed();
-        m_lootItem->isReleased = true;
+        m_loot->m_isReleased = true;
     }
     else
     {
@@ -832,7 +808,7 @@ void GroupLootRoll::Finish(RollVoteMap::const_iterator& winnerItr)
         else
         {
             // hum the winner is not available
-            m_lootItem->isReleased = true;
+            m_loot->m_isReleased = true;
         }
     }
     m_isStarted = false;
@@ -895,50 +871,20 @@ bool Loot::FillLoot(uint32 loot_id, LootStore const& store, Player* lootOwner, b
 
     tab->Process(*this, lootOwner, store, store.IsRatesAllowed()); // Processing is done there, callback via Loot::AddItem()
 
-    // fill the loot owners right here so its impossible from this point to change loot result
-    Player* masterLooter = nullptr;
-    if (m_lootMethod == MASTER_LOOT)
-        masterLooter = ObjectAccessor::FindPlayer(m_masterOwnerGuid);
-
-    for (auto playerGuid : m_ownerSet)
+    // Must now check if current looter have right to loot all item or he will lockout that item until he look and release the loot
+    if (!m_currentLooterGuid.IsEmpty() && m_ownerSet.size() > 1 && m_lootMethod != FREE_FOR_ALL) // only for group that are not free for all
     {
-        Player* player = ObjectAccessor::FindPlayer(playerGuid);
-
-        for (auto lootItem : m_lootItems)
+        Player* currentLooter = ObjectAccessor::FindPlayer(m_currentLooterGuid);
+        for (LootItemList::const_iterator lootItemItr = m_lootItems.begin(); lootItemItr != m_lootItems.end(); ++lootItemItr)
         {
-            // roll for over-threshold item if it's one-player loot
-            if (!lootItem->freeForAll && lootItem->itemProto->Quality < uint32(m_threshold))
-                lootItem->isUnderThreshold = true;
-            else
-            {
-                switch (m_lootMethod)
-                {
-                    case MASTER_LOOT:
-                    {
-                        if (!masterLooter)
-                            lootItem->isBlocked = true;
-                        break;
-                    }
+            LootItem* lootItem = *lootItemItr;
 
-                    case GROUP_LOOT:
-                    case NEED_BEFORE_GREED:
-                    {
-                        lootItem->isBlocked = true;
-                        break;
-                    }
+            // Normal loot have no condition to check
+            if (lootItem->lootItemType == LOOTITEM_TYPE_NORMAL)
+                continue;
 
-                    default:
-                        break;
-                }
-            }
-
-            if (player && (lootItem->lootItemType == LOOTITEM_TYPE_NORMAL || lootItem->AllowedForPlayer(player, GetLootTarget())))
-                lootItem->allowedGuid.emplace(player->GetObjectGuid());
-            else
-            {
-                if (playerGuid == m_currentLooterGuid)
-                    lootItem->currentLooterPass = true;         // Some item may not be allowed for current looter, must set this flag to avoid item not distributed to other player
-            }
+            if (!currentLooter || !lootItem->AllowedForPlayer(currentLooter, m_lootTarget))
+                lootItem->currentLooterPass = true;         // Some item may not be allowed for current looter, must set this flag to avoid item not distributed to other player
         }
     }
 
@@ -966,9 +912,6 @@ uint32 Loot::GetLootStatusFor(Player const* player) const
 
         if (lootItem->freeForAll)
             status |= LOOT_STATUS_CONTAIN_FFA;
-
-        if (lootItem->isReleased)
-            status |= LOOT_STATUS_CONTAIN_RELEASED_ITEMS;
     }
     return status;
 }
@@ -995,9 +938,6 @@ bool Loot::IsLootedForAll() const
 
 bool Loot::CanLoot(Player const* player)
 {
-    if (player->isGameMaster())
-        return true;
-
     ObjectGuid const& playerGuid = player->GetObjectGuid();
 
     // not in Guid list of possible owner mean cheat or big problem
@@ -1012,7 +952,7 @@ bool Loot::CanLoot(Player const* player)
         return false;
 
     // all player that have right too loot have right to loot dropped money
-    if ((lootStatus & LOOT_STATUS_CONTAIN_GOLD) != 0 || (lootStatus & LOOT_STATUS_CONTAIN_FFA) != 0)
+    if (lootStatus & LOOT_STATUS_CONTAIN_GOLD || lootStatus & LOOT_STATUS_CONTAIN_FFA)
         return true;
 
     if (m_lootMethod == NOT_GROUP_TYPE_LOOT || m_lootMethod == FREE_FOR_ALL)
@@ -1030,7 +970,7 @@ bool Loot::CanLoot(Player const* player)
     }
 
     // if the player is the current looter (his turn to loot under threshold item) or the current looter released the loot then the player can loot
-    if ((lootStatus & LOOT_STATUS_CONTAIN_RELEASED_ITEMS) != 0 || player->GetObjectGuid() == m_currentLooterGuid)
+    if (m_isReleased || player->GetObjectGuid() == m_currentLooterGuid)
         return true;
 
     return false;
@@ -1143,25 +1083,12 @@ void Loot::SetPlayerIsNotLooting(Player* player)
 
 void Loot::Release(Player* player)
 {
-    if (player->isGameMaster())
-    {
-        SetPlayerIsNotLooting(player);
-        return;
-    }
-
     bool updateClients = false;
-    if (player->GetObjectGuid() == m_currentLooterGuid)
+    // the owner of the loot released it
+    if (!m_isReleased && player->GetObjectGuid() == m_currentLooterGuid)
     {
-        // the owner of the loot released his item
-        for (auto lootItem : m_lootItems)
-        {
-            // do not release blocked item (rolling ongoing)
-            if (!lootItem->isBlocked && !lootItem->isReleased)
-            {
-                lootItem->isReleased = true;
-                updateClients = true;
-            }
-        }
+        m_isReleased = true;
+        updateClients = true;
     }
 
     switch (m_guidTarget.GetHigh())
@@ -1378,44 +1305,45 @@ void Loot::Release(Player* player)
 // Popup windows with loot content
 void Loot::ShowContentTo(Player* plr)
 {
-    if (!plr->isGameMaster())
+    // add this player to the the openers list of this loot
+    m_playersOpened.emplace(plr->GetObjectGuid());
+
+    if (m_isChest)
     {
-        // add this player to the the openers list of this loot
-        m_playersOpened.emplace(plr->GetObjectGuid());
-
-        if (m_isChest)
+        if (static_cast<GameObject*>(m_lootTarget)->IsInUse())
         {
-            if (static_cast<GameObject*>(m_lootTarget)->IsInUse())
-            {
-                SendReleaseFor(plr);
-                return;
-            }
-
-            if (m_ownerSet.find(plr->GetObjectGuid()) == m_ownerSet.end())
-            {
-                // TODO:: Player who had no right before opened the chest. Sure for wild chest this is right but, in case of
-                // a player released its corpse during a boss fight and that boss drop a chest that player must not have right
-                // to loot the chest in any way
-                SetGroupLootRight(plr);
-            }
+            SendReleaseFor(plr);
+            return;
         }
 
-        if (m_lootMethod != NOT_GROUP_TYPE_LOOT && !m_isChecked)
+        if (m_ownerSet.find(plr->GetObjectGuid()) == m_ownerSet.end())
         {
-            GroupCheck();
-            switch (m_lootMethod)
-            {
-                case NEED_BEFORE_GREED:
-                case GROUP_LOOT:
-                {
-                    CheckIfRollIsNeeded(plr);               // check if there is the need to start a roll
-                    break;
-                }
-                default:
-                    break;
-            }
+            // TODO:: Player who had no right before opened the chest. Sure for wild chest this is right but, in case of
+            // a player released its corpse during a boss fight and that boss drop a chest that player must not have right
+            // to loot the chest in any way
+            SetGroupLootRight(plr);
         }
     }
+
+    if (m_lootMethod != NOT_GROUP_TYPE_LOOT)
+    {
+        if (!m_isChecked)
+            GroupCheck();
+
+        switch (m_lootMethod)
+        {
+            case MASTER_LOOT:
+            case NEED_BEFORE_GREED:
+            case GROUP_LOOT:
+            {
+                CheckIfRollIsNeeded(plr);               // check if there is the need to start a roll
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
 
     WorldPacket data(SMSG_LOOT_RESPONSE);
     data << m_guidTarget;
@@ -1432,32 +1360,69 @@ void Loot::ShowContentTo(Player* plr)
 void Loot::GroupCheck()
 {
     m_isChecked = true;
-
-    PlayerList playerList;
-    Player* masterLooter = nullptr;
-    for (auto playerGuid : m_ownerSet)
+    switch (m_lootMethod)
     {
-        Player* player = sObjectAccessor.FindPlayer(playerGuid);
-        if (!player)
-            continue;
+        case MASTER_LOOT:
+        {
+            uint8 playerCount = 0;
+            WorldPacket data(SMSG_LOOT_MASTER_LIST);
+            data << uint8(0);
+            for (auto itr : m_ownerSet)
+            {
+                Player* looter = sObjectAccessor.FindPlayer(itr);
+                if (!looter)
+                    continue;
 
-        if (!player->GetSession())
-            continue;
+                data << itr;
+                ++playerCount;
+            }
+            data.put<uint8>(0, playerCount);
 
-        playerList.emplace_back(player);
+            for (auto itr : m_ownerSet)
+            {
+                Player* looter = sObjectAccessor.FindPlayer(itr);
+                if (!looter)
+                    continue;
+                looter->GetSession()->SendPacket(data);
+            }
 
-        if (m_lootMethod == MASTER_LOOT && !masterLooter && playerGuid == m_masterOwnerGuid)
-            masterLooter = player;
-    }
+            for (uint8 itemSlot = 0; itemSlot < m_lootItems.size(); ++itemSlot)
+            {
+                LootItem* lootItem = GetLootItemInSlot(itemSlot);
 
-    // in master loot case we have to send looter list to client
-    if (masterLooter)
-    {
-        WorldPacket data(SMSG_LOOT_MASTER_LIST);
-        data << uint8(playerList.size());
-        for (auto itr : playerList)
-            data << itr->GetObjectGuid();
-        masterLooter->GetSession()->SendPacket(data);
+                // roll for over-threshold item if it's one-player loot
+                if (!lootItem->freeForAll && lootItem->itemProto->Quality < uint32(m_threshold))
+                    lootItem->isUnderThreshold = true;
+
+                if (!lootItem->isUnderThreshold)
+                {
+                    // we need to skip quest items
+                    if (lootItem->lootItemType == LOOTITEM_TYPE_QUEST)
+                    {
+                        lootItem->isNotVisibleForML = true;
+                        lootItem->checkRollNeed = true;
+                    }
+                }
+            }
+            break;
+        }
+        case NEED_BEFORE_GREED:
+        case GROUP_LOOT:
+        {
+            for (uint8 itemSlot = 0; itemSlot < m_lootItems.size(); ++itemSlot)
+            {
+                LootItem* lootItem = GetLootItemInSlot(itemSlot);
+
+                // roll for over-threshold item if it's one-player loot
+                if (lootItem->itemProto->Quality >= uint32(m_threshold) && !lootItem->freeForAll)
+                    lootItem->checkRollNeed = true;
+                else
+                    lootItem->isUnderThreshold = true;
+            }
+            break;
+        }
+        default:
+            break;
     }
 }
 
@@ -1467,16 +1432,19 @@ void Loot::CheckIfRollIsNeeded(Player const* plr)
     if (!plr)
         return;
 
-    for (auto lootItem : m_lootItems)
+    for (uint8 itemSlot = 0; itemSlot < m_lootItems.size(); ++itemSlot)
     {
-        if (!lootItem->isBlocked)
+        LootItem* lootItem = GetLootItemInSlot(itemSlot);
+
+        if (!lootItem->checkRollNeed)
             continue;
 
-        if (lootItem->IsAllowed(plr->GetObjectGuid()))
+        if (lootItem->AllowedForPlayer(plr, m_lootTarget))
         {
-            uint32 itemSlot = lootItem->lootSlot;
             if (!m_roll[itemSlot].TryToStart(*this, itemSlot))      // Create and try to start a roll
                 m_roll.erase(m_roll.find(itemSlot));                // Cannot start roll so we have to delete it (find will not fail as the item was just created)
+
+            lootItem->checkRollNeed = false;                       // No more check is needed for this item
         }
     }
 }
@@ -1554,9 +1522,12 @@ void Loot::SetGroupLootRight(Player* player)
         if (m_lootMethod == MASTER_LOOT)
         {
             m_masterOwnerGuid = grp->GetMasterLooterGuid();
-            // Set group method to GROUP_LOOT if no master loot found
+            // check if master is in looter list
             if (m_ownerSet.find(m_masterOwnerGuid) == m_ownerSet.end())
-                m_lootMethod = GROUP_LOOT;
+            {
+                m_ownerSet.insert(m_masterOwnerGuid);
+                ownerList.push_back(m_masterOwnerGuid);
+            }
         }
 
         // if more than one player have right to loot than we have to handle group method, round robin, roll, etc..
@@ -1590,7 +1561,7 @@ void Loot::SetGroupLootRight(Player* player)
 
 Loot::Loot(Player* player, Creature* creature, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
-    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_haveItemOverThreshold(false),
+    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
     m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
@@ -1622,22 +1593,20 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
             {
                 GenerateMoneyLoot(creatureInfo->MinLootGold, creatureInfo->MaxLootGold);
                 // loot may be anyway empty (loot may be empty or contain items that no one have right to loot)
-                bool isLootedForAll = IsLootedForAll();
-                if (isLootedForAll)
+                if (IsLootedForAll())
                 {
                     // show sometimes an empty window
-                    if (sWorld.getConfig(CONFIG_BOOL_CORPSE_EMPTY_LOOT_SHOW) && urand(0, 2) == 1)
+                    if (sWorld.getConfig(CONFIG_BOOL_CORPSE_EMPTY_LOOT_SHOW) && urand(0, 2) == 1) //33% chance to see an empty loot window
                     {
                         m_isFakeLoot = true;
-                        isLootedForAll = false;
+                        creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                        break;
                     }
+                    creature->SetLootStatus(CREATURE_LOOT_STATUS_LOOTED);
+                    break;
                 }
 
-                if (!isLootedForAll)
-                    creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
-                else
-                    creature->SetLootStatus(CREATURE_LOOT_STATUS_LOOTED);
-                ForceLootAnimationCLientUpdate();
+                creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
                 break;
             }
 
@@ -1692,7 +1661,7 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
 
 Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
-    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_haveItemOverThreshold(false),
+    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
     m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
@@ -1791,7 +1760,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
 
 Loot::Loot(Player* player, Corpse* corpse, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
-    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_haveItemOverThreshold(false),
+    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
     m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
@@ -1836,7 +1805,7 @@ Loot::Loot(Player* player, Corpse* corpse, LootType type) :
 
 Loot::Loot(Player* player, Item* item, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
-    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_haveItemOverThreshold(false),
+    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
     m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     // the player whose group may loot the corpse
@@ -1879,7 +1848,7 @@ Loot::Loot(Player* player, Item* item, LootType type) :
 
 Loot::Loot(Unit* unit, Item* item) :
     m_lootTarget(nullptr), m_itemTarget(item), m_gold(0), m_maxSlot(0),
-    m_lootType(LOOT_SKINNING), m_clientLootType(CLIENT_LOOT_PICKPOCKETING), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0),
+    m_lootType(LOOT_SKINNING), m_clientLootType(CLIENT_LOOT_PICKPOCKETING), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false),
     m_haveItemOverThreshold(false), m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     m_ownerSet.insert(unit->GetObjectGuid());
@@ -1888,7 +1857,7 @@ Loot::Loot(Unit* unit, Item* item) :
 
 Loot::Loot(Player* player, uint32 id, LootType type) :
     m_lootTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
-    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_haveItemOverThreshold(false),
+    m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_isReleased(false), m_haveItemOverThreshold(false),
     m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false)
 {
     switch (type)
@@ -1958,10 +1927,7 @@ InventoryResult Loot::SendItem(Player* target, LootItem* lootItem)
 
             target->SendNewItem(newItem, uint32(lootItem->count), false, false, true);
 
-            if (lootItem->freeForAll)
-                lootItem->allowedGuid.erase(target->GetObjectGuid());
-            else
-                lootItem->allowedGuid.clear();
+            lootItem->lootedBy.insert(target->GetObjectGuid());     // mark looted by this target
 
             playerGotItem = true;
             m_isChanged = true;
@@ -1975,7 +1941,7 @@ InventoryResult Loot::SendItem(Player* target, LootItem* lootItem)
         // an error occurred player didn't received his loot
         lootItem->isBlocked = false;                                  // make the item available (was blocked since roll started)
         m_currentLooterGuid = target->GetObjectGuid();                // change looter guid to let only him right to loot
-        lootItem->isReleased = false;                                 // be sure the loot was not already released by another player
+        m_isReleased = false;                                         // be sure the loot was not already released by another player
         SendAllowedLooter();                                          // update the looter right for client
     }
     else
@@ -2010,9 +1976,11 @@ bool Loot::AutoStore(Player* player, bool broadcast /*= false*/, uint32 bag /*= 
     for (LootItemList::const_iterator lootItemItr = m_lootItems.begin(); lootItemItr != m_lootItems.end(); ++lootItemItr)
     {
         LootItem* lootItem = *lootItemItr;
+        if (!lootItem->AllowedForPlayer(player, m_lootTarget))
+            continue; // player have no right to see/loot this item
 
-        if (!lootItem->IsAllowed(player->GetObjectGuid()))
-            continue; // already looted or not allowed
+        if (!lootItem->lootedBy.empty())
+            continue; // already looted
 
         ItemPosCountVec dest;
         InventoryResult msg = player->CanStoreNewItem(bag, slot, dest, lootItem->itemId, lootItem->count);
@@ -2027,11 +1995,7 @@ bool Loot::AutoStore(Player* player, bool broadcast /*= false*/, uint32 bag /*= 
             continue;
         }
 
-        if (lootItem->freeForAll)
-            lootItem->allowedGuid.erase(player->GetObjectGuid());
-        else
-            lootItem->allowedGuid.clear();
-
+        lootItem->lootedBy.insert(player->GetObjectGuid());
         Item* pItem = player->StoreNewItem(dest, lootItem->itemId, true, lootItem->randomPropertyId);
         player->SendNewItem(pItem, lootItem->count, false, false, broadcast);
         m_isChanged = true;
@@ -2076,8 +2040,11 @@ void Loot::GetLootItemsListFor(Player* player, LootItemList& lootList)
     for (LootItemList::const_iterator lootItemItr = m_lootItems.begin(); lootItemItr != m_lootItems.end(); ++lootItemItr)
     {
         LootItem* lootItem = *lootItemItr;
-        if (!lootItem->IsAllowed(player->GetObjectGuid()))
-            continue; // already looted or player have no right to see/loot this item
+        if (!lootItem->AllowedForPlayer(player, m_lootTarget))
+            continue; // player have no right to see/loot this item
+
+        if (!lootItem->lootedBy.empty())
+            continue; // already looted
 
         lootList.push_back(lootItem);
     }
@@ -2102,6 +2069,7 @@ void Loot::Clear()
     m_currentLooterGuid.Clear();
     m_roll.clear();
     m_maxEnchantSkill = 0;
+    m_isReleased = false;
     m_haveItemOverThreshold = false;
     m_isChecked = false;
     m_maxSlot = 0;
@@ -2871,4 +2839,17 @@ Loot* LootMgr::GetLoot(Player* player, ObjectGuid const& targetGuid) const
     }
 
     return loot;
+}
+
+bool LootMgr::IsAllowedToLoot(Player* player, Creature* creature) const
+{
+    // never tapped by any (mob solo kill)
+    if (!creature->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_TAPPED))
+        return false;
+
+    bool canLoot = false;
+    if (Loot* loot = creature->loot)
+        canLoot = loot->CanLoot(player);
+
+    return canLoot;
 }

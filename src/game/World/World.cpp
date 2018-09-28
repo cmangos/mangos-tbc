@@ -241,8 +241,6 @@ World::AddSession_(WorldSession* s)
         return;
     }
 
-    s->SendAuthOk();
-
     UpdateMaxSessionCounters();
 
     // Updates the population
@@ -276,9 +274,6 @@ void World::AddQueuedSession(WorldSession* sess)
 {
     sess->SetInQueue(true);
     m_QueuedSessions.push_back(sess);
-
-    // The 1st SMSG_AUTH_RESPONSE needs to contain other info too.
-    sess->SendAuthQueued();
 }
 
 bool World::RemoveQueuedSession(WorldSession* sess)

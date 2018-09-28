@@ -1274,7 +1274,7 @@ void WorldSession::HandleRealmSplitOpcode(WorldPacket& recv_data)
     // 0x1 realm split
     // 0x2 realm split pending
     data << split_date;
-    SendPacket(data);
+    SendPacket(data, true);
     // DEBUG_LOG("response sent %u", unk);
 }
 

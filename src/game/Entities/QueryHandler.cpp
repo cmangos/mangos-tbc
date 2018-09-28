@@ -52,7 +52,7 @@ void WorldSession::SendNameQueryOpcode(Player* p) const
     else
         data << uint8(0);                                   // is not declined
 
-    SendPacket(data);
+    SendPacket(data, true);
 }
 
 void WorldSession::SendNameQueryOpcodeFromDB(ObjectGuid guid) const
@@ -116,7 +116,7 @@ void WorldSession::SendNameQueryOpcodeFromDBCallBack(QueryResult* result, uint32
     else
         data << uint8(0);                                   // is not declined
 
-    session->SendPacket(data);
+    session->SendPacket(data, true);
     delete result;
 }
 

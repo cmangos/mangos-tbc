@@ -850,6 +850,10 @@ void WorldSession::HandlePlayerReconnect()
     uint32 zoneId = 0;
     _player->GetZoneAndAreaId(zoneId, areaId);
     _player->SendInitWorldStates(zoneId, areaId);
+    _player->ResetTimeSync();
+    _player->SendTimeSync();
+    _player->SendAllSpellMods(SPELLMOD_FLAT);
+    _player->SendAllSpellMods(SPELLMOD_PCT);
     _player->CastSpell(_player, 836, TRIGGERED_OLD_TRIGGERED);       // LOGINEFFECT
     _player->SendEnchantmentDurations();                             // must be after add to map
     _player->SendItemDurations();                                    // must be after add to map

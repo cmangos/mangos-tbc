@@ -17262,12 +17262,7 @@ void Player::SendAllSpellMods(SpellModType modType)
         {
             uint64 _mask = uint64(1) << eff;
             int32 val = 0;
-            for (SpellModifier* modifier : m_spellModsPermanent[op])
-            {
-                if (modifier->type == modType && (modifier->mask.IsFitToFamilyMask(_mask)))
-                    val += modifier->value;
-            }
-            for (SpellModifier* modifier : m_spellModsTemporary[op])
+            for (SpellModifier* modifier : m_spellMods[op])
             {
                 if (modifier->type == modType && (modifier->mask.IsFitToFamilyMask(_mask)))
                     val += modifier->value;

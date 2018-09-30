@@ -5,12 +5,12 @@ jobs:
       - image: ubuntu:rolling
     steps:
      - run:
-          name: Install Deps
-          command: apt update ; apt install -y build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev cmake ; apt upgrade -y
+          name: Install tools and dependencies
+          command: apt update ; apt install -y build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev libboost-dev cmake pgloader postgresql ; apt upgrade -y
      - checkout
      - run:
-          name: CMake
+          name: Configure CMake
           command: mkdir _build ; cd _build ; cmake .. -DDEBUG=1
      - run:
-          name: Make
+          name: Build with make
           command: make -j$(nproc) install

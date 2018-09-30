@@ -6,7 +6,7 @@ jobs:
     steps:
      - run:
           name: Install tools and dependencies
-          command: apt update ; apt install -y build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev libboost-dev cmake pgloader postgresql ; apt upgrade -y
+          command: export DEBIAN_FRONTEND=noninteractive ;  apt update ; apt install -yq build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev libboost-dev cmake pgloader postgresql ; apt upgrade -yq
      - checkout
      - run:
           name: Configure CMake

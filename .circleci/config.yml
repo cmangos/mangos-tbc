@@ -4,10 +4,13 @@ jobs:
     docker:
       - image: ubuntu:rolling
     steps:
-      - checkout
-      - run:
+     - run:
           name: Install Deps
-          command: apt install build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev cmake 
-      - run:
-          name: Print the Current Time
-          command: date
+          command: apt update ; apt install build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev cmake 
+     - checkout
+     - run:
+          name: CMake
+          command: mkdir _build ; cd _build ; cmake .. -DDEBUG=1
+     - run:
+          name: Make
+          command: make -j$(nproc) install

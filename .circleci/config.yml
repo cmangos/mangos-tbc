@@ -6,7 +6,7 @@ jobs:
     steps:
      - run:
           name: Install Deps
-          command: apt update ; apt install build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev cmake 
+          command: apt update ; apt install -y build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev cmake ; apt upgrade -y
      - checkout
      - run:
           name: CMake

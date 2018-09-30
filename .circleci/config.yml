@@ -3,10 +3,15 @@ jobs:
   build:
     docker:
       - image: ubuntu:rolling
+      - image: circleci/postgres
+      - image: circleci/mysql
+        environment:
+          POSTGRES_USER: mangos
+          POSTGRES_PASSWORD: mangos
     steps:
      - run:
           name: Install tools and dependencies
-          command: export DEBIAN_FRONTEND=noninteractive ;  apt update ; apt install -yq build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev libboost-all-dev cmake pgloader postgresql ; apt upgrade -yq
+          command: export DEBIAN_FRONTEND=noninteractive ;  apt update ; apt install -yq build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev libboost-all-dev cmake pgloader postgresql screen ; apt upgrade -yq
      - checkout
      - run:
           name: Configure CMake

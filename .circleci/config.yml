@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: ubuntu:rolling
+    steps:
+      - checkout
+      - run:
+          name: Install Deps
+          command: apt install build-essential git libmysql++-dev mysql-server libssl-dev zlibc libbz2-dev cmake 
+      - run:
+          name: Print the Current Time
+          command: date

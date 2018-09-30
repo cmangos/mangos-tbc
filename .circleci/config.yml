@@ -13,4 +13,4 @@ jobs:
           command: mkdir _build ; cd _build ; cmake .. -DDEBUG=1
      - run:
           name: Build with make
-          command: make -j$(nproc) install
+          command: cd _build ; make -j$(nproc) install

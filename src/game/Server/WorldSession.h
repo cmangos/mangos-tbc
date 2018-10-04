@@ -196,12 +196,8 @@ class WorldSession
         Player* GetPlayer() const { return _player; }
         char const* GetPlayerName() const;
         void SetSecurity(AccountTypes security) { _security = security; }
-#ifdef BUILD_PLAYERBOT
-        // Players connected without socket are bot
+        // Players connected without socket are bot or disconnected waiting for kick
         const std::string GetRemoteAddress() const { return m_Socket ? m_Socket->GetRemoteAddress() : "bot"; }
-#else
-        const std::string GetRemoteAddress() const { return m_Socket->GetRemoteAddress(); }
-#endif
         void SetPlayer(Player* plr) { _player = plr; }
         uint8 Expansion() const { return m_expansion; }
 

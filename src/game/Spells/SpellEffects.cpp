@@ -4557,7 +4557,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
         {
             if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
             {
-                bool positive;
+                bool positive = true;
                 if (!holder->IsPositive())
                     positive = false;
 

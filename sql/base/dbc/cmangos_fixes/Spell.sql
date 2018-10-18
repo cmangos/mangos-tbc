@@ -1181,3 +1181,8 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 INSERT INTO `spell_template` (`Id`, `Attributes`, `CastingTimeIndex`, `DurationIndex`, `Effect1`, `EffectImplicitTargetA1`, `EffectMiscValue1`, `EffectMiscValueB1`, `SpellIconID`, `SpellName`, `IsServerSide`) VALUES 
 ('40182', '384', '1', '21', '28', '18', '23119', '64', '1', 'Bombing Run: Summon Bombing Run Explosion Dummy', '1');
 
+-- Add serverside spell triggered by 40198 on Bombing Run quest complete
+-- Note that this spell is guesswork. We have no official source for what effects it should have
+INSERT INTO `spell_template` (`Id`, `Attributes`, `CastingTimeIndex`, `procChance`, `Effect1`, `EffectImplicitTargetA1`, `SpellIconID`, `SpellName`, `DmgMultiplier1`, `DmgMultiplier2`, `DmgMultiplier3`) VALUES 
+('40200', '150995200', '1', '101', '3', '1', '1', 'Bombing Run: Remove See Invisibility', '1', '1', '1');
+

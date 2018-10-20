@@ -184,6 +184,19 @@ struct boss_nightbaneAI : public npc_escortAI
         }
     }
 
+    void PhaseTransitionTimersReset()
+    {
+        if (m_uiPhase == PHASE_GROUND)
+        {
+            m_uiBellowingRoarTimer = 10000;
+            m_uiSmolderingBreathTimer = 5000;
+        }
+        else
+        {
+            // TODO:
+        }
+    }
+
     void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
     {
         // avoid overlapping of escort and combat movement
@@ -213,6 +226,7 @@ struct boss_nightbaneAI : public npc_escortAI
                     DoStartMovement(m_creature->getVictim());
                     break;
             }
+            PhaseTransitionTimersReset();
         }
     }
 
@@ -258,7 +272,7 @@ struct boss_nightbaneAI : public npc_escortAI
 
                 if (m_uiBellowingRoarTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature, SPELL_BELLOWING_ROAR) == CAST_OK)
+                    if (DoCastSpellIfCan(nullptr, SPELL_BELLOWING_ROAR) == CAST_OK)
                         m_uiBellowingRoarTimer = urand(30000, 45000);
                 }
                 else
@@ -266,7 +280,7 @@ struct boss_nightbaneAI : public npc_escortAI
 
                 if (m_uiSmolderingBreathTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature, SPELL_SMOLDERING_BREATH) == CAST_OK)
+                    if (DoCastSpellIfCan(nullptr, SPELL_SMOLDERING_BREATH) == CAST_OK)
                         m_uiSmolderingBreathTimer = urand(14000, 20000);
                 }
                 else
@@ -285,7 +299,7 @@ struct boss_nightbaneAI : public npc_escortAI
 
                 if (m_uiTailSweepTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature, SPELL_TAIL_SWEEP) == CAST_OK)
+                    if (DoCastSpellIfCan(nullptr, SPELL_TAIL_SWEEP) == CAST_OK)
                         m_uiTailSweepTimer = urand(14000, 20000);
                 }
                 else

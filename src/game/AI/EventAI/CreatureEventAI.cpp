@@ -1653,7 +1653,8 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
                 SetCombatMovement(true, true);
         }
         else if (m_meleeEnabled && !m_currentRangedMode)
-            DoMeleeAttackIfReady();
+			SetCombatMovement(true, true);
+			DoMeleeAttackIfReady();
     }
 }
 

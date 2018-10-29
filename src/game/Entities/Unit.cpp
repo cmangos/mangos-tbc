@@ -400,6 +400,7 @@ Unit::Unit() :
 
     m_canEnterCombat = true;
 
+    m_alwaysHit = false;
     m_extraAttacksExecuting = false;
 
     m_baseSpeedWalk = 1.f;
@@ -919,6 +920,7 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
             tapperGroup = tapper->GetGroup();
     }
 
+    // On death scripts
     // Spirit of Redemtion Talent
     bool damageFromSpiritOfRedemtionTalent = spellProto && spellProto->Id == 27795;
     // if talent known but not triggered (check priest class for speedup check)
@@ -2254,20 +2256,30 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
             }
             case SPELLFAMILY_ROGUE:
             {
-                // Cheat Death
-                if (spellProto->SpellIconID == 2109)
+                switch (spellProto->Id)
                 {
-                    if (!preventDeathSpell &&
+                    case 31228: // Cheat Death
+                    case 31229:
+                    case 31230:
+                    {
+                        if (!preventDeathSpell &&
                             GetTypeId() == TYPEID_PLAYER && // Only players
                             IsSpellReady(31231) &&
                             // Only if no cooldown
                             roll_chance_i((*i)->GetModifier()->m_amount))
-                        // Only if roll
-                    {
-                        preventDeathSpell = (*i)->GetSpellProto();
+                            // Only if roll
+                        {
+                            preventDeathSpell = (*i)->GetSpellProto();
+                        }
+                        // always skip this spell in charge dropping, absorb amount calculation since it has chance as m_amount and doesn't need to absorb any damage
+                        continue;
                     }
-                    // always skip this spell in charge dropping, absorb amount calculation since it has chance as m_amount and doesn't need to absorb any damage
-                    continue;
+                    case 40251: // Shadow of Death
+                    {
+                        preventDeathSpell = spellProto;
+                        currentAbsorb = 0;
+                        continue;
+                    }
                 }
                 break;
             }
@@ -2466,20 +2478,33 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
     {
         switch (preventDeathSpell->SpellFamilyName)
         {
-            // Cheat Death
             case SPELLFAMILY_ROGUE:
             {
-                // Cheat Death
-                if (preventDeathSpell->SpellIconID == 2109)
+                switch (preventDeathSpell->Id)
                 {
-                    SpellEntry const* cheatDeath = sSpellTemplate.LookupEntry<SpellEntry>(31231);
-                    CastSpell(this, cheatDeath, TRIGGERED_OLD_TRIGGERED);
-                    AddCooldown(*cheatDeath, nullptr, false, 60 * IN_MILLISECONDS); // TODO this may be removed by fixing cooldown value in spell template
-                    // with health > 10% lost health until health==10%, in other case no losses
-                    uint32 health10 = GetMaxHealth() / 10;
-                    RemainingDamage = GetHealth() > health10 ? GetHealth() - health10 : 0;
+                    case 31228: // Cheat Death
+                    case 31229:
+                    case 31230:
+                    {
+                        SpellEntry const* cheatDeath = sSpellTemplate.LookupEntry<SpellEntry>(31231);
+                        CastSpell(this, cheatDeath, TRIGGERED_OLD_TRIGGERED);
+                        AddCooldown(*cheatDeath, nullptr, false, 60 * IN_MILLISECONDS); // TODO this may be removed by fixing cooldown value in spell template
+                        // with health > 10% lost health until health==10%, in other case no losses
+                        uint32 health10 = GetMaxHealth() / 10;
+                        RemainingDamage = GetHealth() > health10 ? GetHealth() - health10 : 0;
+                        break;
+                    }
+                    case 40251: // Shadow of Death
+                    {
+                        if (RemainingDamage >= int32(GetHealth()))
+                        {
+                            RemainingDamage = GetHealth() - 1;
+                            RemoveAurasDueToSpell(40251, nullptr, AURA_REMOVE_BY_SHIELD_BREAK);
+                        }
+                        break;
+                    }
+                    default: break;
                 }
-                break;
             }
         }
     }
@@ -2600,6 +2625,9 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
 {
     if (pVictim->IsInEvadeMode())
         return MELEE_HIT_EVADE;
+
+    if (m_alwaysHit)
+        return MELEE_HIT_NORMAL;
 
     Die<UnitCombatDieSide, UNIT_COMBAT_DIE_HIT, NUM_UNIT_COMBAT_DIE_SIDES> die;
     die.set(UNIT_COMBAT_DIE_MISS, CalculateEffectiveMissChance(pVictim, attType));

@@ -60,8 +60,7 @@ To be able to accomplish these goals, we support and promote:
   Once ScriptDev2 is compiled it is automatically run by MaNGOS on server
   startup.
 
-  For further information on ScriptDev2, please visit our project subforum
-  at http://cmangos.net/forum-32.html
+  For further discussion on ScriptDev2, please join us on [discord](https://discord.gg/Dgzerzb)! 
 
   Documentation on various development related topics can be found in the
   ../doc/scripts docs/ sub directory as well as on the subforum.
@@ -82,6 +81,7 @@ To be able to accomplish these goals, we support and promote:
   * [Current build status on Travis CI](https://travis-ci.org/cmangos/mangos-tbc/)
   * [Wiki](https://github.com/cmangos/issues/wiki) with additional information on installation
   * [Contributing Guidelines](CONTRIBUTING.md)
+  * [Installation Guidelines](https://gist.github.com/Muehe/175d2e761169327d50c40eda2b6d4a32)
   * Documentation can be found in the doc/ subdirectory and on the GitHub wiki
 
 ## License

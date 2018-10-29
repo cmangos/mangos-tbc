@@ -81,6 +81,7 @@ To be able to accomplish these goals, we support and promote:
   * [Current build status on Travis CI](https://travis-ci.org/cmangos/mangos-tbc/)
   * [Wiki](https://github.com/cmangos/issues/wiki) with additional information on installation
   * [Contributing Guidelines](CONTRIBUTING.md)
+  * [Toolkit Guidelines](https://github.com/cmangos/issues/wiki/Installation-Instructions)
   * [Installation Guidelines](https://gist.github.com/Muehe/175d2e761169327d50c40eda2b6d4a32)
   * Documentation can be found in the doc/ subdirectory and on the GitHub wiki
 

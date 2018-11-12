@@ -63,13 +63,12 @@ void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)
     m_StartVelocity = 0.f;
 }
 
-void AntiCheat::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
+void AntiCheat::HandleKnockBack(float /*angle*/, float horizontalSpeed, float verticalSpeed)
 {
     m_Falling = true;
     m_Jumping = false;
     m_StartFallZ = newmoveInfo->GetPos()->z;
     m_StartVelocity = -verticalSpeed;
-    m_InitialDiff = -1.f;
 
     m_Knockback = true;
     m_KnockbackSpeed = horizontalSpeed;
@@ -91,7 +90,6 @@ bool AntiCheat::Initialized()
         m_SlowFall = false;
         m_StartFallZ = 0.f;
         m_StartVelocity = 0.f;
-        m_InitialDiff = -1.f;
 
         return false;
     }
@@ -339,11 +337,10 @@ float AntiCheat::GetVirtualDiffInSec()
 
 float AntiCheat::ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity)
 {
-    double gravity = 19.29110527038574;
+    float gravity = 19.29110527038574f;
     /// Velocity bounds that makes fall speed limited
     float terminalVelocity = isSafeFall ? 7.f : 60.148003f;
 
-    float terminal_length = float(terminalVelocity * terminalVelocity) / (2.f* gravity);
     float terminalFallTime = float(terminalVelocity / gravity); // the time that needed to reach terminalVelocity
 
     float result = 0.f;
@@ -366,53 +363,29 @@ float AntiCheat::ComputeFallElevation(float t_passed, bool isSafeFall, float sta
 
 void AntiCheat::UpdateGravityInfo(Opcodes opcode)
 {
-    float alloweddiff = 0.05f;
-
     bool startfalling = !isFalling(oldmoveInfo) && isFalling(newmoveInfo);
     bool stopfalling = !isFalling(newmoveInfo) && isFalling(oldmoveInfo);
 
     if (!m_Falling)
         m_StartFallZ = newmoveInfo->GetPos()->z;
 
-    uint32 falltime = m_Falling ? newmoveInfo->GetFallTime() : 0;
-
     if (!m_Falling && (startfalling || opcode == MSG_MOVE_JUMP))
     {
         m_Falling = true;
-        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newmoveInfo->GetJumpInfo().velocity : 0.1f);
-        storedmoveInfo = opcode == MSG_MOVE_JUMP ? newmoveInfo : oldmoveInfo;
-        storedMapID = opcode == MSG_MOVE_JUMP ? newMapID : oldMapID;
+        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newmoveInfo->GetJumpInfo().velocity : 0.f);
 
-        // Revisit this again, we wanna keep this enabled.
-        //if (opcode == MSG_MOVE_JUMP)
-        //    m_Jumping = true;
+        if (opcode == MSG_MOVE_JUMP)
+            m_Jumping = true;
     }
-
-    bool oldslowfall = m_SlowFall;
 
     if ((m_Falling || isFalling() || opcode == MSG_MOVE_JUMP) && m_Player->HasAuraType(SPELL_AURA_FEATHER_FALL))
         m_SlowFall = true;
-
-    if (!oldslowfall && m_SlowFall)
-        m_InitialDiff = -1.f;
-
-    float expectedfalldist = ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
-    float expectedz = m_StartFallZ - expectedfalldist;
-
-    float diff = newmoveInfo->GetPos()->z - expectedz;
-
-    if (m_InitialDiff <= 0.f && diff > alloweddiff)
-        m_InitialDiff = diff;
-
-    if (!m_Jumping && m_InitialDiff >= 0.f)
-        diff -= m_InitialDiff;
 
     if (stopfalling || opcode == MSG_MOVE_FALL_LAND || opcode == MSG_MOVE_START_SWIM)
     {
         m_Falling = false;
         m_Jumping = false;
         m_SlowFall = false;
-        m_InitialDiff = -1.f;
     }
 }
 

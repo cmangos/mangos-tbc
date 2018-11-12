@@ -98,7 +98,6 @@ private:
 
     float m_StartFallZ;
     float m_StartVelocity;
-    float m_InitialDiff;
     bool m_Falling;
     bool m_Jumping;
     bool m_SlowFall;

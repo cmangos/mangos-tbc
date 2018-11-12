@@ -1701,6 +1701,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 dest_z = 342.9485; // confirmed with sniffs
             m_targets.setDestination(dest_x, dest_y, dest_z);
 
+            // This targetMode is often used as 'last' implicitTarget for positive spells, that just require coordinates
+            // and no unitTarget (e.g. summon effects). As MaNGOS always needs a unitTarget we add just the caster here.
+            // Logic: This is first target, and no second target => use m_caster -- This is second target: use m_caster if the spell is positive or a summon spell
             if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
                 targetUnitMap.push_back(m_caster);
             break;
@@ -1719,9 +1722,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 m_targets.setDestination(dest_x, dest_y, dest_z);
             }
 
+            // This targetMode is often used as 'last' implicitTarget for positive spells, that just require coordinates
+            // and no unitTarget (e.g. summon effects). As MaNGOS always needs a unitTarget we add just the caster here.
+            // Logic: This is first target, and no second target => use m_caster -- This is second target: use m_caster if the spell is positive or a summon spell
             if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
                 targetUnitMap.push_back(m_caster);
-
             break;
         }
         case TARGET_LOCATION_CASTER_FRONT_RIGHT:
@@ -1754,13 +1759,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             m_caster->GetNearPoint(nullptr, x, y, z, m_caster->GetObjectBoundingRadius(), radius, angle, m_caster->IsInWater());
             m_targets.setDestination(x, y, z);
 
-            // Add Summoner
-            targetUnitMap.push_back(m_caster);
+            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                targetUnitMap.push_back(m_caster);
             break;
         }
-        case TARGET_UNIT_CASTER:
-            targetUnitMap.push_back(m_caster);
-            break;
         case TARGET_LOCATION_CURRENT_REFERENCE:
             // Uses destination supplied to spell or fill caster position
             if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
@@ -1777,7 +1779,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
                 m_targets.setDestination(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ());
             break;
-        case TARGET_LOCATION_NORTH: // TODO: Add LOS collision safety for point to point
+        case TARGET_LOCATION_NORTH:
         case TARGET_LOCATION_SOUTH:
         case TARGET_LOCATION_EAST:
         case TARGET_LOCATION_WEST:
@@ -1787,6 +1789,365 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_LOCATION_SW:
         {
             if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+            {
+                Unit* currentTarget = m_targets.getUnitTarget() ? m_targets.getUnitTarget() : m_caster;
+                float angle = currentTarget != m_caster ? currentTarget->GetAngle(m_caster) : m_caster->GetOrientation();
+
+                switch (targetMode)
+                {
+                    case TARGET_LOCATION_NORTH:                         break;
+                    case TARGET_LOCATION_SOUTH: angle += M_PI_F;        break;
+                    case TARGET_LOCATION_EAST:  angle -= M_PI_F / 2;    break;
+                    case TARGET_LOCATION_WEST:  angle += M_PI_F / 2;    break;
+                    case TARGET_LOCATION_NE:    angle -= M_PI_F / 4;    break;
+                    case TARGET_LOCATION_NW:    angle += M_PI_F / 4;    break;
+                    case TARGET_LOCATION_SE:    angle -= 3 * M_PI_F / 4;    break;
+                    case TARGET_LOCATION_SW:    angle += 3 * M_PI_F / 4;    break;
+                }
+
+                float x, y;
+                currentTarget->GetNearPoint2D(x, y, radius + currentTarget->GetObjectBoundingRadius(), angle);
+                m_targets.setDestination(x, y, currentTarget->GetPositionZ());
+            }
+            break;
+        }
+        case TARGET_LOCATION_CASTER_DEST:
+        {
+            if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+                if (WorldObject* caster = GetCastingObject())
+                    m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
+
+            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                targetUnitMap.push_back(m_caster);
+            break;
+        }
+        case TARGET_LOCATION_DATABASE:
+        {
+            if (SpellTargetPosition const* st = sSpellMgr.GetSpellTargetPosition(m_spellInfo->Id))
+            {
+                m_targets.setDestination(st->target_X, st->target_Y, st->target_Z);
+                // TODO - maybe use an (internal) value for the map for neat far teleport handling
+
+                // far-teleport spells are handled in SpellEffect, elsewise report an error about an unexpected map (spells are always locally)
+                if (st->target_mapId != m_caster->GetMapId() && m_spellInfo->Effect[effIndex] != SPELL_EFFECT_TELEPORT_UNITS && m_spellInfo->Effect[effIndex] != SPELL_EFFECT_BIND)
+                    sLog.outError("SPELL: wrong map (%u instead %u) target coordinates for spell ID %u", st->target_mapId, m_caster->GetMapId(), m_spellInfo->Id);
+            }
+            else
+                sLog.outError("SPELL: unknown target coordinates for spell ID %u", m_spellInfo->Id);
+            break;
+        }
+        case TARGET_LOCATION_UNIT_FRONT:
+        case TARGET_LOCATION_UNIT_BACK:
+        case TARGET_LOCATION_UNIT_RIGHT:
+        case TARGET_LOCATION_UNIT_LEFT:
+        {
+            Unit* pTarget = nullptr;
+
+            // explicit cast data from client or server-side cast
+            // some spell at client send caster
+            if (m_targets.getUnitTarget() && m_targets.getUnitTarget() != m_caster)
+                pTarget = m_targets.getUnitTarget();
+            else if (m_caster->getVictim())
+                pTarget = m_caster->getVictim();
+            else if (m_caster->GetTypeId() == TYPEID_PLAYER)
+                pTarget = ObjectAccessor::GetUnit(*m_caster, ((Player*)m_caster)->GetSelectionGuid());
+            else if (m_targets.getUnitTarget())
+                pTarget = m_caster;
+
+            if (pTarget)
+            {
+                float angle = 0.0f;
+
+                switch (targetMode)
+                {
+                    case TARGET_LOCATION_UNIT_FRONT:                        break;
+                    case TARGET_LOCATION_UNIT_BACK:   angle = M_PI_F;       break;
+                    case TARGET_LOCATION_UNIT_RIGHT:  angle = -M_PI_F / 2;  break;
+                    case TARGET_LOCATION_UNIT_LEFT:   angle = M_PI_F / 2;   break;
+                }
+
+                float _target_x, _target_y, _target_z;
+                pTarget->GetClosePoint(_target_x, _target_y, _target_z, pTarget->GetObjectBoundingRadius(), radius, angle);
+                if (pTarget->IsWithinLOS(_target_x, _target_y, _target_z))
+                {                    
+                    m_targets.setDestination(_target_x, _target_y, _target_z);
+                    if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                        targetUnitMap.push_back(m_caster);
+                }
+            }
+            break;
+        }
+        case TARGET_LOCATION_CASTER_FRONT_LEAP:
+        {
+            float dist = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
+            const float IN_OR_UNDER_LIQUID_RANGE = 0.8f;                // range to make player under liquid or on liquid surface from liquid level
+
+            G3D::Vector3 prevPos, nextPos;
+            float orientation = m_caster->GetOrientation();
+
+            prevPos.x = m_caster->GetPositionX();
+            prevPos.y = m_caster->GetPositionY();
+            prevPos.z = m_caster->GetPositionZ();
+
+            float groundZ = prevPos.z;
+            bool isPrevInLiquid = false;
+
+            // falling case
+            if (!m_caster->GetMap()->GetHeightInRange(prevPos.x, prevPos.y, groundZ, 3.0f) && m_caster->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLING))
+            {
+                nextPos.x = prevPos.x + dist * cos(orientation);
+                nextPos.y = prevPos.y + dist * sin(orientation);
+                nextPos.z = prevPos.z - 2.0f; // little hack to avoid the impression to go up when teleporting instead of continue to fall. This value may need some tweak
+
+                //
+                GridMapLiquidData liquidData;
+                if (m_caster->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData))
+                {
+                    if (fabs(nextPos.z - liquidData.level) < 10.0f)
+                        nextPos.z = liquidData.level - IN_OR_UNDER_LIQUID_RANGE;
+                }
+                else
+                {
+                    // fix z to ground if near of it
+                    m_caster->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, nextPos.z, 10.0f);
+                }
+
+                // check any obstacle and fix coords
+                m_caster->GetMap()->GetHitPosition(prevPos.x, prevPos.y, prevPos.z + 0.5f, nextPos.x, nextPos.y, nextPos.z, -0.5f);
+            }
+            else
+            {
+                // fix origin position if player was jumping and near of the ground but not in ground
+                if (fabs(prevPos.z - groundZ) > 0.5f)
+                    prevPos.z = groundZ;
+
+                //check if in liquid
+                isPrevInLiquid = m_caster->GetMap()->GetTerrain()->IsInWater(prevPos.x, prevPos.y, prevPos.z);
+
+                const float step = 2.0f;                                    // step length before next check slope/edge/water
+                const float maxSlope = 50.0f;                               // 50(degree) max seem best value for walkable slope
+                const float MAX_SLOPE_IN_RADIAN = maxSlope / 180.0f * M_PI_F;
+                float nextZPointEstimation = 1.0f;
+                float destx = prevPos.x + dist * cos(orientation);
+                float desty = prevPos.y + dist * sin(orientation);
+                const uint32 numChecks = ceil(fabs(dist / step));
+                const float DELTA_X = (destx - prevPos.x) / numChecks;
+                const float DELTA_Y = (desty - prevPos.y) / numChecks;
+
+                for (uint32 i = 1; i < numChecks + 1; ++i)
+                {
+                    // compute next point average position
+                    nextPos.x = prevPos.x + DELTA_X;
+                    nextPos.y = prevPos.y + DELTA_Y;
+                    nextPos.z = prevPos.z + nextZPointEstimation;
+
+                    bool isInLiquid = false;
+                    bool isInLiquidTested = false;
+                    bool isOnGround = false;
+                    GridMapLiquidData liquidData = {};
+
+                    // try fix height for next position
+                    if (!m_caster->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, nextPos.z))
+                    {
+                        // we cant so test if we are on water
+                        if (!m_caster->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData))
+                        {
+                            // not in water and cannot get correct height, maybe flying?
+                            //sLog.outString("Can't get height of point %u, point value %s", i, nextPos.toString().c_str());
+                            nextPos = prevPos;
+                            break;
+                        }
+                        isInLiquid = true;
+                        isInLiquidTested = true;
+                    }
+                    else
+                        isOnGround = true;                                  // player is on ground
+
+                    if (isInLiquid || (!isInLiquidTested && m_caster->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData)))
+                    {
+                        if (!isPrevInLiquid && fabs(liquidData.level - prevPos.z) > 2.0f)
+                        {
+                            // on edge of water with difference a bit to high to continue
+                            //sLog.outString("Ground vs liquid edge detected!");
+                            nextPos = prevPos;
+                            break;
+                        }
+
+                        if ((liquidData.level - IN_OR_UNDER_LIQUID_RANGE) > nextPos.z)
+                            nextPos.z = prevPos.z;                                      // we are under water so next z equal prev z
+                        else
+                            nextPos.z = liquidData.level - IN_OR_UNDER_LIQUID_RANGE;    // we are on water surface, so next z equal liquid level
+
+                        isInLiquid = true;
+
+                        float ground = nextPos.z;
+                        if (m_caster->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, ground))
+                        {
+                            if (nextPos.z < ground)
+                            {
+                                nextPos.z = ground;
+                                isOnGround = true;                          // player is on ground of the water
+                            }
+                        }
+                    }
+
+                    //unitTarget->SummonCreature(VISUAL_WAYPOINT, nextPos.x, nextPos.y, nextPos.z, 0, TEMPSUMMON_TIMED_DESPAWN, 15000);
+                    float hitZ = nextPos.z + 1.5f;
+                    if (m_caster->GetMap()->GetHitPosition(prevPos.x, prevPos.y, prevPos.z + 1.5f, nextPos.x, nextPos.y, hitZ, -1.0f))
+                    {
+                        //sLog.outString("Blink collision detected!");
+                        nextPos = prevPos;
+                        break;
+                    }
+
+                    if (isOnGround)
+                    {
+                        // project vector to get only positive value
+                        float ac = fabs(prevPos.z - nextPos.z);
+
+                        // compute slope (in radian)
+                        float slope = atan(ac / step);
+
+                        // check slope value
+                        if (slope > MAX_SLOPE_IN_RADIAN)
+                        {
+                            //sLog.outString("bad slope detected! %4.2f max %4.2f, ac(%4.2f)", slope * 180 / M_PI_F, maxSlope, ac);
+                            nextPos = prevPos;
+                            break;
+                        }
+                        //sLog.outString("slope is ok! %4.2f max %4.2f, ac(%4.2f)", slope * 180 / M_PI_F, maxSlope, ac);
+                    }
+
+                    //sLog.outString("point %u is ok, coords %s", i, nextPos.toString().c_str());
+                    nextZPointEstimation = (nextPos.z - prevPos.z) / 2.0f;
+                    isPrevInLiquid = isInLiquid;
+                    prevPos = nextPos;
+                }
+            }
+            m_targets.setDestination(nextPos.x, nextPos.y, nextPos.z);
+        }
+        case TARGET_LOCATION_UNIT_POSITION:
+        {
+            if (Unit* currentTarget = m_targets.getUnitTarget())
+                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
+
+            // workaround for core always requiring target, needs to be fixed to allow per-destination execution
+            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                targetUnitMap.push_back(m_caster);
+            break;
+        }
+        case TARGET_LOCATION_CASTER_FISHING_SPOT:
+        {
+            float x, y, z;
+            // special code for fishing bobber (TARGET_LOCATION_CASTER_FISHING_SPOT), should not try to avoid objects
+            // nor try to find ground level, but randomly vary in angle
+            float min_dis = GetSpellMinRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+            float max_dis = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+            float dis = rand_norm_f() * (max_dis - min_dis) + min_dis;
+            // calculate angle variation for roughly equal dimensions of target area
+            float max_angle = (max_dis - min_dis) / (max_dis + m_caster->GetObjectBoundingRadius());
+            float angle_offset = max_angle * (rand_norm_f() - 0.5f);
+            m_caster->GetNearPoint2D(x, y, dis + m_caster->GetObjectBoundingRadius(), m_caster->GetOrientation() + angle_offset);
+
+            GridMapLiquidData liqData;
+            if (!m_caster->GetTerrain()->IsInWater(x, y, m_caster->GetPositionZ() + 1.f, &liqData))
+            {
+                SendCastResult(SPELL_FAILED_NOT_FISHABLE);
+                cancel();
+                return;
+            }
+
+            z = liqData.level;
+            // finally, check LoS
+            if (!m_caster->IsWithinLOS(x, y, z))
+            {
+                SendCastResult(SPELL_FAILED_LINE_OF_SIGHT);
+                cancel();
+                return;
+            }
+            m_targets.setDestination(x, y, z);
+            targetUnitMap.push_back(m_caster);
+            break;
+        }
+        case TARGET_LOCATION_CASTER_TARGET_POSITION:
+        {
+            Unit* currentTarget = m_targets.getUnitTarget();
+            if (currentTarget)
+            {
+                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
+                if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                    targetUnitMap.push_back(m_caster); // effect should only fill destination - TODO: remove this line
+            }
+            break;
+        }
+        case TARGET_UNIT_CASTER:
+            targetUnitMap.push_back(m_caster);
+            break;
+        case TARGET_UNIT_ENEMY_NEAR_CASTER:
+        case TARGET_UNIT_FRIEND_NEAR_CASTER:
+        case TARGET_UNIT_NEAR_CASTER:
+        {
+            m_targets.m_targetMask = 0;
+            unMaxTargets = EffectChainTarget;
+            float max_range = radius + unMaxTargets * CHAIN_SPELL_JUMP_RADIUS;
+
+            UnitList tempTargetUnitMap;
+
+            switch (targetMode)
+            {
+                case TARGET_UNIT_ENEMY_NEAR_CASTER:
+                {
+                    FillAreaTargets(tempTargetUnitMap, max_range, 0.f, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                    break;
+                }
+                case TARGET_UNIT_NEAR_CASTER: // TODO: Rename TARGET_UNIT_NEAR_CASTER to something better and find real difference with TARGET_UNIT_FRIEND_NEAR_CASTER.
+                {
+                    FillAreaTargets(tempTargetUnitMap, max_range, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ALL);
+                    break;
+                }
+                case TARGET_UNIT_FRIEND_NEAR_CASTER:
+                {
+                    FillAreaTargets(tempTargetUnitMap, max_range, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ASSISTABLE);
+                    break;
+                }
+            }
+
+            if (tempTargetUnitMap.empty())
+                break;
+
+            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+            if (bounds.first != bounds.second)
+            {
+                UnitList sourceTempTargetUnitMap = tempTargetUnitMap;
+                tempTargetUnitMap.clear();
+                CheckSpellScriptTargets(bounds, sourceTempTargetUnitMap, tempTargetUnitMap, effIndex);
+            }
+
+            tempTargetUnitMap.sort(TargetDistanceOrderNear(m_caster));
+
+            // Now to get us a random target that's in the initial range of the spell
+            uint32 t = 0;
+            UnitList::iterator itr = tempTargetUnitMap.begin();
+            while (itr != tempTargetUnitMap.end() && (*itr)->IsWithinDist(m_caster, radius))
+                ++t, ++itr;
+
+            if (!t)
+                break;
+
+            itr = tempTargetUnitMap.begin();
+            std::advance(itr, urand() % t);
+            Unit* pUnitTarget = *itr;
+            targetUnitMap.push_back(pUnitTarget);
+
+            tempTargetUnitMap.erase(itr);
+
+            tempTargetUnitMap.sort(TargetDistanceOrderNear(pUnitTarget));
+
+            t = unMaxTargets - 1;
+            Unit* prev = pUnitTarget;
+            UnitList::iterator next = tempTargetUnitMap.begin();
+
+            while (t && next != tempTargetUnitMap.end())
             {
                 if (!prev->IsWithinDist(*next, CHAIN_SPELL_JUMP_RADIUS))
                     break;
@@ -1814,37 +2175,18 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             }
             break;
         }
-        case TARGET_LOCATION_UNIT_FRONT:
-        case TARGET_LOCATION_UNIT_BACK:
-        case TARGET_LOCATION_UNIT_RIGHT:
-        case TARGET_LOCATION_UNIT_LEFT:
-        case TARGET_LOCATION_UNIT_FRONT_RIGHT:
-        case TARGET_LOCATION_UNIT_BACK_RIGHT:
-        case TARGET_LOCATION_UNIT_BACK_LEFT:
-        case TARGET_LOCATION_UNIT_FRONT_LEFT:
+        case TARGET_UNIT:
         {
-            Unit* target = GetUnitTarget(effIndex);
-            if (target)
+            Unit* newUnitTarget = GetUnitTarget(effIndex);
+            if (!newUnitTarget)
+                break;
+
+            if (m_caster->CanAssist(newUnitTarget))
+                targetUnitMap.push_back(newUnitTarget);
+            else
             {
-                float angle = 0.0f;
-
-                switch (targetMode)
-                {
-                    case TARGET_LOCATION_UNIT_FRONT:                                 break;
-                    case TARGET_LOCATION_UNIT_BACK:         angle = M_PI_F;          break;
-                    case TARGET_LOCATION_UNIT_RIGHT:        angle = -M_PI_F / 2;     break;
-                    case TARGET_LOCATION_UNIT_LEFT:         angle = M_PI_F / 2;      break;
-                    case TARGET_LOCATION_UNIT_FRONT_RIGHT:  angle += M_PI_F * 1.75f; break;
-                    case TARGET_LOCATION_UNIT_BACK_RIGHT:   angle += M_PI_F * 1.25f; break;
-                    case TARGET_LOCATION_UNIT_BACK_LEFT:    angle += M_PI_F * 0.75f; break;
-                    case TARGET_LOCATION_UNIT_FRONT_LEFT:   angle += M_PI_F * 0.25f; break;
-                }
-
-                float x, y, z;
-                target->GetNearPoint(nullptr, x, y, z, target->GetObjectBoundingRadius(), radius, angle, target->IsInWater());
-                m_targets.setDestination(x, y, z);
-                if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
-                    targetUnitMap.push_back(m_caster);
+                if (!CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetUnitMap, exception))
+                    targetUnitMap.push_back(newUnitTarget);
             }
             break;
         }
@@ -1910,7 +2252,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
                 bool ignoreLos = IsIgnoreLosSpellEffect(m_spellInfo, effIndex); // optimization
 
-                                                                                // Removing not matched units
+                // Removing not matched units
                 for (UnitList::iterator activeUnit = unsteadyTargetMap.begin(); activeUnit != unsteadyTargetMap.end(); )
                 {
                     if (!m_caster->CanAttackSpell((*activeUnit), m_spellInfo, true))
@@ -1957,19 +2299,19 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     }
 
                     ++activeUnit;
-                }
+                }                
 
                 uint32 t = m_spellInfo->EffectChainTarget[effIndex] - 1;
                 unsteadyTargetMap.sort(TargetDistanceOrderNear(newUnitTarget));
 
                 if (IsChainAOESpell(m_spellInfo)) // Spell like Multi-Shot
-                {
+                {                    
                     // Fill TargetUnitMap
                     for (UnitList::iterator activeUnit = unsteadyTargetMap.begin(); t && activeUnit != unsteadyTargetMap.end(); ++activeUnit, --t)
                         targetUnitMap.push_back((*activeUnit));
                 }
                 else // spell like Chain Lightning
-                {
+                {              
                     Unit* prev = newUnitTarget;
                     UnitList::iterator next = unsteadyTargetMap.begin();
 
@@ -1978,7 +2320,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                         if (!prev->IsWithinDist(*next, jumpRadius))
                             break;
 
-                        if (!prev->IsWithinLOSInMap(*next, true))
+                        if (!prev->IsWithinLOSInMap(*next))
                         {
                             ++next;
                             continue;
@@ -1993,15 +2335,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     }
                 }
             }
-            m_targets.setDestination(nextPos.x, nextPos.y, nextPos.z);
-        }
-        case TARGET_LOCATION_UNIT_POSITION:
-        {
-            if (Unit* currentTarget = GetUnitTarget(effIndex))
-                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
-
-            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
-                targetUnitMap.push_back(m_caster);
             break;
         }
         case TARGET_ENUM_UNITS_ENEMY_AOE_AT_SRC_LOC:
@@ -2026,20 +2359,22 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     targetUnitMap.resize(unMaxTargets);
                 }
             }
-            m_targets.setDestination(x, y, z);
-            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
-                targetUnitMap.push_back(m_caster);
             break;
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC:
         {
-            Unit* currentTarget = GetUnitTarget(effIndex);
-            if (currentTarget)
+            SpellTargets targetB = SPELL_TARGETS_AOE_ATTACKABLE;
+            switch (m_spellInfo->Effect[effIndex])
             {
-                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
-                if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
-                    targetUnitMap.push_back(m_caster);
+                case SPELL_EFFECT_QUEST_COMPLETE:
+                case SPELL_EFFECT_KILL_CREDIT_GROUP:
+                    targetB = SPELL_TARGETS_ALL;
+                    break;
+                default:
+                    // Select friendly targets for positive effect
+                    if (IsPositiveEffect(m_spellInfo, effIndex))
+                        targetB = SPELL_TARGETS_ASSISTABLE;
+                    break;
             }
-
             // 30571 - Quake - Target Trigger is supposed to knockback players, spell has SPELL_ATTR_EX3_TARGET_ONLY_PLAYER, possibly need to consult Faction from sniffs and tweak that
             // TODO: In future try to find out if neutral target types shouldnt have this
             switch (m_spellInfo->Id)
@@ -2092,6 +2427,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     break;
                 }
             }
+
             break;
         }
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_DEST_LOC:
@@ -2168,16 +2504,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
                     break;
             }
-            break;
-        }
-        case TARGET_LOCATION_UNIT_POSITION:
-        {
-            if (Unit* currentTarget = m_targets.getUnitTarget())
-                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
-
-            // workaround for core always requiring target, needs to be fixed to allow per-destination execution
-            if (m_spellInfo->EffectImplicitTargetA[effIndex] == targetMode && (m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_NONE || IsDestinationOnlyEffect(m_spellInfo, effIndex)))
-                targetUnitMap.push_back(m_caster);
             break;
         }
         case TARGET_ENUM_UNITS_PARTY_WITHIN_CASTER_RANGE:
@@ -2322,7 +2648,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ENUM_UNITS_FRIEND_IN_CONE:
         case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
         {
-            SpellTargets targetType = SPELL_TARGETS_ALL;
+            SpellTargets targetType;
             switch (targetMode)
             {
                 case TARGET_ENUM_UNITS_ENEMY_IN_CONE_24:
@@ -2334,12 +2660,17 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             {
                 case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
                 {
+                    if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SCRIPT_EFFECT) // workaround for neutral target type
+                        targetType = SPELL_TARGETS_ALL;
                     UnitList tempTargetUnitMap;
                     SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
                     // fill real target list if no spell script target defined
-                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, cone, PUSH_CONE, targetType);
+                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
+                        radius, cone, PUSH_CONE, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetType);
                     if (!tempTargetUnitMap.empty())
+                    {
                         CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
+                    }
                     break;
                 }
                 default:
@@ -2373,6 +2704,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_LOCATION_UNIT_MINION_POSITION:
             if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_DUEL)
                 targetUnitMap.push_back(m_caster);
+
+
             break;
         case TARGET_UNIT_CHANNEL_TARGET:
         {
@@ -2457,9 +2790,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 AddItemTarget(m_targets.getItemTarget(), effIndex);
             break;
         }
-        case TARGET_LOCATION_CASTER_FISHING_SPOT:
-            targetUnitMap.push_back(m_caster);
-            break;
         case TARGET_UNIT_FRIEND_CHAIN_HEAL:
         {
             Unit* pUnitTarget = m_targets.getUnitTarget();
@@ -2514,7 +2844,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
                     }
                 }
-
+             
                 MaNGOS::AnyFriendlyOrGroupMemberUnitInUnitRangeCheck u_check(m_caster, group, m_spellInfo, max_range);
                 MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyOrGroupMemberUnitInUnitRangeCheck> searcher(tempTargetUnitMap, u_check);
                 Cell::VisitAllObjects(m_caster, searcher, max_range);
@@ -2564,17 +2894,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             }
             break;
         }
-        case TARGET_LOCATION_CASTER_TARGET_POSITION:
-        {
-            Unit* currentTarget = m_targets.getUnitTarget();
-            if (currentTarget)
-            {
-                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
-                if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
-                    targetUnitMap.push_back(m_caster); // effect should only fill destination - TODO: remove this line
-            }
-            break;
-        }
         case TARGET_UNIT_RAID_AND_CLASS:
         {
             Player* targetPlayer = m_targets.getUnitTarget() && m_targets.getUnitTarget()->GetTypeId() == TYPEID_PLAYER
@@ -2583,340 +2902,22 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             Group* pGroup = targetPlayer ? targetPlayer->GetGroup() : nullptr;
             if (pGroup)
             {
-                float x, y, z;
-                targetPlayer->GetPosition(x, y, z);
                 for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
                 {
-                    Player* target = itr->getSource();
+                    Player* Target = itr->getSource();
 
                     // CanAssist check duel and controlled by enemy
-                    if (target)
+                    if (Target && targetPlayer->IsWithinDistInMap(Target, radius) &&
+                            targetPlayer->getClass() == Target->getClass() &&
+                            m_caster->CanAssist(Target))
                     {
-                        if (target->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) <= radius &&
-                            targetPlayer->getClass() == target->getClass() &&
-                            m_caster->CanAssist(target))
-                        {
-                            targetUnitMap.push_back(target);
-                        }
-                        if (Pet* pet = target->GetPet())
-                        {
-                            if (pet->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) <= radius &&
-                                targetPlayer->getClass() == pet->getClass() &&
-                                m_caster->CanAssist(pet))
-                                targetUnitMap.push_back(pet);
-                        }
+                        targetUnitMap.push_back(Target);
                     }
                 }
             }
             else if (m_targets.getUnitTarget())
                 targetUnitMap.push_back(m_targets.getUnitTarget());
             break;
-        }
-        case TARGET_LOCATION_DATABASE:
-        {
-            if (SpellTargetPosition const* st = sSpellMgr.GetSpellTargetPosition(m_spellInfo->Id))
-            {
-                m_targets.setDestination(st->target_X, st->target_Y, st->target_Z);
-                // TODO - maybe use an (internal) value for the map for neat far teleport handling
-
-                // far-teleport spells are handled in SpellEffect, elsewise report an error about an unexpected map (spells are always locally)
-                if (st->target_mapId != m_caster->GetMapId() && m_spellInfo->Effect[effIndex] != SPELL_EFFECT_TELEPORT_UNITS && m_spellInfo->Effect[effIndex] != SPELL_EFFECT_BIND)
-                    sLog.outError("SPELL: wrong map (%u instead %u) target coordinates for spell ID %u", st->target_mapId, m_caster->GetMapId(), m_spellInfo->Id);
-            }
-            else
-                sLog.outError("SPELL: unknown target coordinates for spell ID %u", m_spellInfo->Id);
-
-            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
-                targetUnitMap.push_back(m_caster);
-            break;
-        }
-        case TARGET_LOCATION_UNIT_FRONT:
-        case TARGET_LOCATION_UNIT_BACK:
-        case TARGET_LOCATION_UNIT_RIGHT:
-        case TARGET_LOCATION_UNIT_LEFT:
-        {
-            Unit* pTarget = nullptr;
-
-            // explicit cast data from client or server-side cast
-            // some spell at client send caster
-            if (m_targets.getUnitTarget() && m_targets.getUnitTarget() != m_caster)
-                pTarget = m_targets.getUnitTarget();
-            else if (m_caster->getVictim())
-                pTarget = m_caster->getVictim();
-            else if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                pTarget = ObjectAccessor::GetUnit(*m_caster, ((Player*)m_caster)->GetSelectionGuid());
-            else if (m_targets.getUnitTarget())
-                pTarget = m_caster;
-
-            if (pTarget)
-            {
-                float angle = 0.0f;
-
-                switch (targetMode)
-                {
-                    case TARGET_LOCATION_UNIT_FRONT:                        break;
-                    case TARGET_LOCATION_UNIT_BACK:      angle = M_PI_F;       break;
-                    case TARGET_LOCATION_UNIT_RIGHT:  angle = -M_PI_F / 2;  break;
-                    case TARGET_LOCATION_UNIT_LEFT:   angle = M_PI_F / 2;   break;
-                }
-
-                float _target_x, _target_y, _target_z;
-                pTarget->GetClosePoint(_target_x, _target_y, _target_z, pTarget->GetObjectBoundingRadius(), radius, angle);
-                if (pTarget->IsWithinLOS(_target_x, _target_y, _target_z))
-                {
-                    targetUnitMap.push_back(m_caster);
-                    m_targets.setDestination(_target_x, _target_y, _target_z);
-                }
-            }
-            break;
-        case TARGET_LOCATION_UNIT_MINION_POSITION:
-            if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_DUEL)
-                targetUnitMap.push_back(m_caster);
-            break;
-
-        case TARGET_LOCATION_CASTER_FRONT:
-        case TARGET_LOCATION_CASTER_BACK:
-        case TARGET_LOCATION_CASTER_LEFT:
-        case TARGET_LOCATION_CASTER_RIGHT:
-        {
-            if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
-            {
-                // General override, we don't want to use max spell range here.
-                // Note: 0.0 radius is also for index 36. It is possible that 36 must be defined as
-                // "at the base of", in difference to 0 which appear to be "directly in front of".
-                // TODO: some summoned will make caster be half inside summoned object. Need to fix
-                // that in the below code (nearpoint vs closepoint, etc).
-                if (m_spellInfo->EffectRadiusIndex[effIndex] == 0)
-                    radius = 0.0f;
-
-                float angle = m_caster->GetOrientation();
-                switch (targetMode)
-                {
-                    case TARGET_LOCATION_CASTER_FRONT:                        break;
-                    case TARGET_LOCATION_CASTER_BACK:   angle += M_PI_F;      break;
-                    case TARGET_LOCATION_CASTER_LEFT:   angle += M_PI_F / 2;  break;
-                    case TARGET_LOCATION_CASTER_RIGHT:  angle -= M_PI_F / 2;  break;
-                }
-
-                float x, y, z = m_caster->GetPositionZ();
-                m_caster->GetNearPoint2D(x, y, radius, angle);
-                m_caster->UpdateGroundPositionZ(x, y, z);
-                m_targets.setDestination(x, y, z);
-            }
-
-            targetUnitMap.push_back(m_caster);
-            break;
-        }
-        case TARGET_LOCATION_NORTH:
-        case TARGET_LOCATION_SOUTH:
-        case TARGET_LOCATION_EAST:
-        case TARGET_LOCATION_WEST:
-        case TARGET_LOCATION_NE:
-        case TARGET_LOCATION_NW:
-        case TARGET_LOCATION_SE:
-        case TARGET_LOCATION_SW:
-        {
-            if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
-            {
-                Unit* currentTarget = m_targets.getUnitTarget() ? m_targets.getUnitTarget() : m_caster;
-                float angle = currentTarget != m_caster ? currentTarget->GetAngle(m_caster) : m_caster->GetOrientation();
-
-                switch (targetMode)
-                {
-                    case TARGET_LOCATION_NORTH:                         break;
-                    case TARGET_LOCATION_SOUTH: angle +=   M_PI_F;        break;
-                    case TARGET_LOCATION_EAST:  angle -=   M_PI_F / 2;    break;
-                    case TARGET_LOCATION_WEST:  angle +=   M_PI_F / 2;    break;
-                    case TARGET_LOCATION_NE:    angle -=   M_PI_F / 4;    break;
-                    case TARGET_LOCATION_NW:    angle +=   M_PI_F / 4;    break;
-                    case TARGET_LOCATION_SE:    angle -= 3 * M_PI_F / 4;    break;
-                    case TARGET_LOCATION_SW:    angle += 3 * M_PI_F / 4;    break;
-                }
-
-                float x, y;
-                currentTarget->GetNearPoint2D(x, y, radius + currentTarget->GetObjectBoundingRadius(), angle);
-                m_targets.setDestination(x, y, currentTarget->GetPositionZ());
-            }
-            break;
-        }
-        case TARGET_LOCATION_CASTER_DEST:
-        {
-            // add here custom effects that need default target.
-            // FOR EVERY TARGET TYPE THERE IS A DIFFERENT FILL!!
-            switch (m_spellInfo->Effect[effIndex])
-            {
-                case SPELL_EFFECT_APPLY_AURA:
-                case SPELL_EFFECT_SCHOOL_DAMAGE: // This is proper future code of TARGET_LOCATION_CASTER_DEST, the others are workaround for NO_TARGET
-                    if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
-                        if (WorldObject* caster = GetCastingObject())
-                            m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
-                    break;
-                case SPELL_EFFECT_DUMMY:
-                default:
-                    if (m_spellInfo->Targets & TARGET_FLAG_UNIT_TARGET) // TODO: Move this code to NO_TARGET default effect handling
-                    {
-                        if (m_targets.getUnitTarget())
-                            targetUnitMap.push_back(m_targets.getUnitTarget());
-                    }
-                    else
-                    {
-                        if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
-                            if (WorldObject* caster = GetCastingObject())
-                                m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
-                        targetUnitMap.push_back(m_caster);
-                    }
-                    break;
-            }
-            break;
-        }
-        case TARGET_LOCATION_CASTER_FRONT_LEAP:
-        {
-            float dist = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
-            const float IN_OR_UNDER_LIQUID_RANGE = 0.8f;                // range to make player under liquid or on liquid surface from liquid level
-
-            G3D::Vector3 prevPos, nextPos;
-            float orientation = m_caster->GetOrientation();
-
-            prevPos.x = m_caster->GetPositionX();
-            prevPos.y = m_caster->GetPositionY();
-            prevPos.z = m_caster->GetPositionZ();
-
-            float groundZ = prevPos.z;
-            bool isPrevInLiquid = false;
-
-            // falling case
-            if (!m_caster->GetMap()->GetHeightInRange(prevPos.x, prevPos.y, groundZ, 3.0f) && m_caster->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLING))
-            {
-                nextPos.x = prevPos.x + dist * cos(orientation);
-                nextPos.y = prevPos.y + dist * sin(orientation);
-                nextPos.z = prevPos.z - 2.0f; // little hack to avoid the impression to go up when teleporting instead of continue to fall. This value may need some tweak
-
-                //
-                GridMapLiquidData liquidData;
-                if (m_caster->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData))
-                {
-                    if (fabs(nextPos.z - liquidData.level) < 10.0f)
-                        nextPos.z = liquidData.level - IN_OR_UNDER_LIQUID_RANGE;
-                }
-                else
-                {
-                    // fix z to ground if near of it
-                    m_caster->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, nextPos.z, 10.0f);
-                }
-
-                // check any obstacle and fix coords
-                m_caster->GetMap()->GetHitPosition(prevPos.x, prevPos.y, prevPos.z + 0.5f, nextPos.x, nextPos.y, nextPos.z, -0.5f);
-            }
-            else
-            {
-                // fix origin position if player was jumping and near of the ground but not in ground
-                if (fabs(prevPos.z - groundZ) > 0.5f)
-                    prevPos.z = groundZ;
-
-                //check if in liquid
-                isPrevInLiquid = m_caster->GetMap()->GetTerrain()->IsInWater(prevPos.x, prevPos.y, prevPos.z);
-
-                const float step = 2.0f;                                    // step length before next check slope/edge/water
-                const float maxSlope = 50.0f;                               // 50(degree) max seem best value for walkable slope
-                const float MAX_SLOPE_IN_RADIAN = maxSlope / 180.0f * M_PI_F;
-                float nextZPointEstimation = 1.0f;
-                float destx = prevPos.x + dist * cos(orientation);
-                float desty = prevPos.y + dist * sin(orientation);
-                const uint32 numChecks = ceil(fabs(dist / step));
-                const float DELTA_X = (destx - prevPos.x) / numChecks;
-                const float DELTA_Y = (desty - prevPos.y) / numChecks;
-
-                for (uint32 i = 1; i < numChecks + 1; ++i)
-                {
-                    // compute next point average position
-                    nextPos.x = prevPos.x + DELTA_X;
-                    nextPos.y = prevPos.y + DELTA_Y;
-                    nextPos.z = prevPos.z + nextZPointEstimation;
-
-                    bool isInLiquid = false;
-                    bool isInLiquidTested = false;
-                    bool isOnGround = false;
-                    GridMapLiquidData liquidData = {};
-
-                    // try fix height for next position
-                    if (!m_caster->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, nextPos.z))
-                    {
-                        // we cant so test if we are on water
-                        if (!m_caster->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData))
-                        {
-                            // not in water and cannot get correct height, maybe flying?
-                            //sLog.outString("Can't get height of point %u, point value %s", i, nextPos.toString().c_str());
-                            nextPos = prevPos;
-                            break;
-                        }
-                        isInLiquid = true;
-                        isInLiquidTested = true;
-                    }
-                    else
-                        isOnGround = true;                                  // player is on ground
-
-                    if (isInLiquid || (!isInLiquidTested && m_caster->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData)))
-                    {
-                        if (!isPrevInLiquid && fabs(liquidData.level - prevPos.z) > 2.0f)
-                        {
-                            // on edge of water with difference a bit to high to continue
-                            //sLog.outString("Ground vs liquid edge detected!");
-                            nextPos = prevPos;
-                            break;
-                        }
-
-                        if ((liquidData.level - IN_OR_UNDER_LIQUID_RANGE) > nextPos.z)
-                            nextPos.z = prevPos.z;                                      // we are under water so next z equal prev z
-                        else
-                            nextPos.z = liquidData.level - IN_OR_UNDER_LIQUID_RANGE;    // we are on water surface, so next z equal liquid level
-
-                        isInLiquid = true;
-
-                        float ground = nextPos.z;
-                        if (m_caster->GetMap()->GetHeightInRange(nextPos.x, nextPos.y, ground))
-                        {
-                            if (nextPos.z < ground)
-                            {
-                                nextPos.z = ground;
-                                isOnGround = true;                          // player is on ground of the water
-                            }
-                        }
-                    }
-
-                    //unitTarget->SummonCreature(VISUAL_WAYPOINT, nextPos.x, nextPos.y, nextPos.z, 0, TEMPSPAWN_TIMED_DESPAWN, 15000);
-                    float hitZ = nextPos.z + 1.5f;
-                    if (m_caster->GetMap()->GetHitPosition(prevPos.x, prevPos.y, prevPos.z + 1.5f, nextPos.x, nextPos.y, hitZ, -1.0f))
-                    {
-                        //sLog.outString("Blink collision detected!");
-                        nextPos = prevPos;
-                        break;
-                    }
-
-                    if (isOnGround)
-                    {
-                        // project vector to get only positive value
-                        float ac = fabs(prevPos.z - nextPos.z);
-
-                        // compute slope (in radian)
-                        float slope = atan(ac / step);
-
-                        // check slope value
-                        if (slope > MAX_SLOPE_IN_RADIAN)
-                        {
-                            //sLog.outString("bad slope detected! %4.2f max %4.2f, ac(%4.2f)", slope * 180 / M_PI_F, maxSlope, ac);
-                            nextPos = prevPos;
-                            break;
-                        }
-                        //sLog.outString("slope is ok! %4.2f max %4.2f, ac(%4.2f)", slope * 180 / M_PI_F, maxSlope, ac);
-                    }
-
-                    //sLog.outString("point %u is ok, coords %s", i, nextPos.toString().c_str());
-                    nextZPointEstimation = (nextPos.z - prevPos.z) / 2.0f;
-                    isPrevInLiquid = isInLiquid;
-                    prevPos = nextPos;
-                }
-            }
-            m_targets.setDestination(nextPos.x, nextPos.y, nextPos.z);
         }
         default:
             // sLog.outError( "SPELL: Unknown implicit target (%u) for spell ID %u", targetMode, m_spellInfo->Id );

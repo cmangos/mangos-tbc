@@ -450,7 +450,7 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
         {
             case NOT_GROUP_TYPE_LOOT:
             case FREE_FOR_ALL:
-                return LOOT_SLOT_NORMAL;
+                return LOOT_SLOT_OWNER;
 
             case MASTER_LOOT:
                 if (!IsAllowed(player, loot))
@@ -467,11 +467,11 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
                 if (isUnderThreshold)
                 {
                     if (loot->m_isChest)
-                        return LOOT_SLOT_NORMAL;
+                        return LOOT_SLOT_OWNER;
 
                     // Check if its turn of that player to loot a not party loot. The loot may be released or the item may be passed by currentLooter
                     if (isReleased || currentLooterPass || loot->m_currentLooterGuid == player->GetObjectGuid())
-                        return LOOT_SLOT_NORMAL;
+                        return LOOT_SLOT_OWNER;
                     return MAX_LOOT_SLOT_TYPE;
                 }
 
@@ -487,11 +487,11 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
 
             default:
                 if (loot->m_isChest)
-                    return LOOT_SLOT_NORMAL;
+                    return LOOT_SLOT_OWNER;
 
                 // Check if its turn of that player to loot a not party loot. The loot may be released or the item may be passed by currentLooter
                 if (isReleased || currentLooterPass || loot->m_currentLooterGuid == player->GetObjectGuid())
-                    return LOOT_SLOT_NORMAL;
+                    return LOOT_SLOT_OWNER;
                 return MAX_LOOT_SLOT_TYPE;
         }
     }
@@ -499,7 +499,7 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
     switch (loot->m_lootMethod)
     {
         case FREE_FOR_ALL:
-            return LOOT_SLOT_NORMAL;
+            return LOOT_SLOT_OWNER;
         case GROUP_LOOT:
         case NEED_BEFORE_GREED:
         {
@@ -520,13 +520,13 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
             if (isUnderThreshold)
             {
                 if (loot->m_isChest)
-                    return LOOT_SLOT_NORMAL;
+                    return LOOT_SLOT_OWNER;
 
                 if (!IsAllowed(player, loot))
                     return MAX_LOOT_SLOT_TYPE;
 
                 if (isReleased || currentLooterPass || player->GetObjectGuid() == loot->m_currentLooterGuid)
-                    return LOOT_SLOT_NORMAL;
+                    return LOOT_SLOT_OWNER;
 
                 return MAX_LOOT_SLOT_TYPE;
             }
@@ -549,7 +549,7 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
                 return LOOT_SLOT_NORMAL;
 
             if (isReleased || currentLooterPass || player->GetObjectGuid() == loot->m_currentLooterGuid)
-                return LOOT_SLOT_NORMAL;
+                return LOOT_SLOT_OWNER;
 
             return MAX_LOOT_SLOT_TYPE;
         }

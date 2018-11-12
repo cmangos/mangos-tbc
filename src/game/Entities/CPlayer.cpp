@@ -19,26 +19,24 @@
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
-    new AntiCheat_speed(this);
-    new AntiCheat_teleport(this);
-    new AntiCheat_fly(this);
-    new AntiCheat_jump(this);
-    new AntiCheat_gravity(this);
-    new AntiCheat_waterwalking(this);
-    new AntiCheat_wallclimb(this);
-    new AntiCheat_walljump(this);
-    new AntiCheat_tptoplane(this);
-    new AntiCheat_nofall(this);
-    new AntiCheat_time(this);
-    //new AntiCheat_test(this);
+    AntiCheat_speed(this);
+    AntiCheat_teleport(this);
+    AntiCheat_fly(this);
+    AntiCheat_jump(this);
+    AntiCheat_gravity(this);
+    AntiCheat_waterwalking(this);
+    AntiCheat_wallclimb(this);
+    AntiCheat_walljump(this);
+    AntiCheat_tptoplane(this);
+    AntiCheat_nofall(this);
+    AntiCheat_time(this);
+    //AntiCheat_test(this);
 
     m_GMFly = false;
 }
 
 CPlayer::~CPlayer()
 {
-    for (auto& i : m_AntiCheatStorage)
-        delete i;
 }
 
 bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
@@ -49,7 +47,7 @@ bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
     bool cheat = false;
 
     for (auto& i : m_AntiCheatStorage)
-        if (i->HandleMovement(moveInfo, opcode, cheat))
+        if (i.HandleMovement(moveInfo, opcode, cheat))
             cheat = true;
 
     return cheat;
@@ -58,28 +56,28 @@ bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
 void CPlayer::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
 {
     for (auto& i : m_AntiCheatStorage)
-        i->HandleKnockBack(angle, horizontalSpeed, verticalSpeed);
+        i.HandleKnockBack(angle, horizontalSpeed, verticalSpeed);
 }
 
 void CPlayer::HandleRelocate(float x, float y, float z, float o)
 {
     for (auto& i : m_AntiCheatStorage)
-        i->HandleRelocate(x, y, z, o);
+        i.HandleRelocate(x, y, z, o);
 }
 
 void CPlayer::HandleTeleport(uint32 map, float x, float y, float z, float o)
 {
     for (auto& i : m_AntiCheatStorage)
-        i->HandleTeleport(map, x, y, z, o);
+        i.HandleTeleport(map, x, y, z, o);
 }
 
 void CPlayer::HandleUpdate(uint32 update_diff, uint32 p_time)
 {
     for (auto& i : m_AntiCheatStorage)
-        i->HandleUpdate(update_diff, p_time);
+        i.HandleUpdate(update_diff, p_time);
 }
 
-void CPlayer::AddAntiCheatModule(AntiCheat* antiCheat)
+void CPlayer::AddAntiCheatModule(AntiCheat antiCheat)
 {
     m_AntiCheatStorage.push_back(antiCheat);
 }

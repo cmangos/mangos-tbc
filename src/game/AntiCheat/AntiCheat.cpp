@@ -19,10 +19,10 @@ AntiCheat::AntiCheat(CPlayer* player)
     m_Knockback = false;
     m_KnockbackSpeed = 0.f;
 
-    player->AddAntiCheatModule(this);
+    player->AddAntiCheatModule(*this);
 }
 
-bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool /*cheat*/)
 {
     newmoveInfo = MoveInfo;
     newMapID = m_Player->GetMapId();

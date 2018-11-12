@@ -46,7 +46,7 @@ class CPlayer : public Player
 {
     // Typedefs
 public:
-    typedef std::vector<AntiCheat*> AntiCheatStorage;
+    typedef std::vector<AntiCheat> AntiCheatStorage;
 
     // Constructor / destructor
 public:
@@ -64,7 +64,7 @@ public:
     void HandleRelocate(float x, float y, float z, float o);
     void HandleTeleport(uint32 map, float x, float y, float z, float o);
     void HandleUpdate(uint32 update_diff, uint32 p_time);
-    void AddAntiCheatModule(AntiCheat* antiCheat);
+    void AddAntiCheatModule(AntiCheat antiCheat);
     void SetGMFly(bool value) { m_GMFly = value; }
     bool GetGMFly() { return m_GMFly; }
 

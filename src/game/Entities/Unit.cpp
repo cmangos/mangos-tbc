@@ -4547,7 +4547,7 @@ void Unit::RemoveRankAurasDueToSpell(uint32 spellId)
         uint32 i_spellId = (*i).second->GetId();
         if ((*i).second && i_spellId && i_spellId != spellId)
         {
-            if (sSpellMgr.IsRankSpellDueToSpell(spellInfo, i_spellId))
+            if (sSpellMgr.IsSpellAnotherRankOfSpell(spellId, i_spellId))
             {
                 RemoveAurasDueToSpell(i_spellId);
 
@@ -4623,7 +4623,7 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
                 continue;
 
             // passive non-stackable spells not stackable only with another rank of same spell
-            if (!sSpellMgr.IsRankSpellDueToSpell(spellProto, existingSpellId))
+            if (!sSpellMgr.IsSpellAnotherRankOfSpell(spellId, existingSpellId))
                 continue;
         }
 
@@ -4652,7 +4652,7 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
                 if (personal && stackable)
                     continue;
                 // holder cannot remove higher rank if it isn't from the same caster
-                if (IsSimilarExistingAuraStronger(holder, existing) || (sSpellMgr.IsRankSpellDueToSpell(spellProto, existingSpellId) && sSpellMgr.IsHighRankOfSpell(existingSpellId, spellId)))
+                if (IsSimilarExistingAuraStronger(holder, existing) || (sSpellMgr.IsSpellAnotherRankOfSpell(spellId, existingSpellId) && sSpellMgr.IsSpellHigherRankOfSpell(existingSpellId, spellId)))
                     return false;
             }
 
@@ -5592,15 +5592,19 @@ void Unit::CasterHitTargetWithSpell(Unit* realCaster, Unit* target, SpellEntry c
 {
     if (realCaster->CanAttack(target))
     {
+        if (spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO) && !spellInfo->HasAttribute(SPELL_ATTR_EX3_OUT_OF_COMBAT_ATTACK))
+            return;
+
+        // Hostile spell hits count as attack made against target (if detected), stealth removed at Spell::cast if spell break it
+        const bool attack = (!IsPositiveSpell(spellInfo->Id, realCaster, target) && isVisibleForOrDetect(target, target, false));
+
         if (!spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO))
         {
             // not break stealth by cast targeting
             if (!spellInfo->HasAttribute(SPELL_ATTR_EX_NOT_BREAK_STEALTH))
                 target->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
 
-            // Hostile spell hits count as attack made against target (if detected), stealth removed at Spell::cast if spell break it
-            if (!IsPositiveSpell(spellInfo->Id, realCaster, target) &&
-                isVisibleForOrDetect(target, target, false))
+            if (attack)
             {
                 // Since patch 1.5.0 sitting characters always stand up on attack (even if stunned)
                 if (!target->IsStandState() && target->GetTypeId() == TYPEID_PLAYER)
@@ -5624,17 +5628,24 @@ void Unit::CasterHitTargetWithSpell(Unit* realCaster, Unit* target, SpellEntry c
                 }
             }
         }
+
+        if (attack && spellInfo->HasAttribute(SPELL_ATTR_EX3_OUT_OF_COMBAT_ATTACK))
+        {
+            target->SetOutOfCombatWithAggressor(realCaster);
+            realCaster->SetOutOfCombatWithVictim(target);
+        }
     }
-    else if (realCaster->CanAssist(target))
+    else if (realCaster->CanAssist(target) && target->isInCombat())
     {
         // assisting case, healing and resurrection
-        if (target->isInCombat() &&
-            !spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO) &&
-            !spellInfo->HasAttribute(SPELL_ATTR_EX_NO_THREAT))
+        if (!spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO) && !spellInfo->HasAttribute(SPELL_ATTR_EX_NO_THREAT))
         {
             realCaster->SetInCombatWithAssisted(target);
             target->getHostileRefManager().threatAssist(realCaster, 0.0f, spellInfo, false);
         }
+
+        if (spellInfo->HasAttribute(SPELL_ATTR_EX3_OUT_OF_COMBAT_ATTACK))
+            realCaster->SetOutOfCombatWithAssisted(target);
     }
 }
 
@@ -5855,10 +5866,11 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
 
     m_attacking = victim;
 
-    if (GetTypeId() == TYPEID_UNIT)
+    if (AI())
     {
-        ((Creature*)this)->SendAIReaction(AI_REACTION_HOSTILE);
-        ((Creature*)this)->CallAssistance();
+        SendAIReaction(AI_REACTION_HOSTILE);
+        if (GetTypeId() == TYPEID_UNIT)
+            ((Creature*)this)->CallAssistance();
     }
 
     // delay offhand weapon attack to next attack time
@@ -7582,7 +7594,7 @@ void Unit::SetInCombatWith(Unit* enemy)
     SetInCombatState(enemy->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED), enemy);
 }
 
-void Unit::SetInCombatWithAggressor(Unit* aggressor)
+void Unit::SetInCombatWithAggressor(Unit* aggressor, bool touchOnly/* = false*/)
 {
     // This is a wrapper for SetInCombatWith initially created to improve PvP timers responsiveness. Can be extended in the future for broader use.
 
@@ -7602,7 +7614,7 @@ void Unit::SetInCombatWithAggressor(Unit* aggressor)
                 {
                     if (thisPlayer != aggressorPlayer && !thisPlayer->IsInDuelWith(aggressorPlayer))
                     {
-                        thisPlayer->pvpInfo.inPvPCombat = true;
+                        thisPlayer->pvpInfo.inPvPCombat = (thisPlayer->pvpInfo.inPvPCombat || !touchOnly);
                         thisPlayer->UpdatePvP(true);
                     }
                 }
@@ -7610,10 +7622,11 @@ void Unit::SetInCombatWithAggressor(Unit* aggressor)
         }
     }
 
-    SetInCombatWith(aggressor);
+    if (!touchOnly)
+        SetInCombatWith(aggressor);
 }
 
-void Unit::SetInCombatWithAssisted(Unit* assisted)
+void Unit::SetInCombatWithAssisted(Unit* assisted, bool touchOnly/* = false*/)
 {
     // This is a wrapper for SetInCombatWith initially created to improve PvP timers responsiveness. Can be extended in the future for broader use.
 
@@ -7634,7 +7647,7 @@ void Unit::SetInCombatWithAssisted(Unit* assisted)
                     if (thisPlayer != assistedPlayer)
                     {
                         if (assistedPlayer->pvpInfo.inPvPCombat)
-                            thisPlayer->pvpInfo.inPvPCombat = true;
+                            thisPlayer->pvpInfo.inPvPCombat = (thisPlayer->pvpInfo.inPvPCombat || !touchOnly);
 
                         thisPlayer->UpdatePvP(true);
 
@@ -7646,10 +7659,11 @@ void Unit::SetInCombatWithAssisted(Unit* assisted)
         }
     }
 
-    SetInCombatState(assisted->GetCombatTimer() > 0);
+    if (!touchOnly)
+        SetInCombatState(assisted->GetCombatTimer() > 0);
 }
 
-void Unit::SetInCombatWithVictim(Unit* victim)
+void Unit::SetInCombatWithVictim(Unit* victim, bool touchOnly/* = false*/)
 {
     // This is a wrapper for SetInCombatWith initially created to improve PvP timers responsiveness. Can be extended in the future for broader use.
 
@@ -7669,7 +7683,7 @@ void Unit::SetInCombatWithVictim(Unit* victim)
                 {
                     if (thisPlayer != victimPlayer && !thisPlayer->IsInDuelWith(victimPlayer))
                     {
-                        thisPlayer->pvpInfo.inPvPCombat = true;
+                        thisPlayer->pvpInfo.inPvPCombat = (thisPlayer->pvpInfo.inPvPCombat || !touchOnly);
                         thisPlayer->UpdatePvP(true);
                         thisPlayer->UpdatePvPContested(true);
                     }
@@ -7678,7 +7692,8 @@ void Unit::SetInCombatWithVictim(Unit* victim)
         }
     }
 
-    SetInCombatWith(victim);
+    if (!touchOnly)
+        SetInCombatWith(victim);
 }
 
 void Unit::SetInCombatState(bool PvP, Unit* enemy)
@@ -9430,7 +9445,7 @@ void CharmInfo::InitCharmCreateSpells()
 
             for (uint32 i = 0; i < 3 && onlyselfcast; ++i)  // nonexistent spell will not make any problems as onlyselfcast would be false -> break right away
             {
-                if (spellInfo->EffectImplicitTargetA[i] != TARGET_SELF && spellInfo->EffectImplicitTargetA[i] != 0)
+                if (spellInfo->EffectImplicitTargetA[i] != TARGET_UNIT_CASTER && spellInfo->EffectImplicitTargetA[i] != 0)
                     onlyselfcast = false;
             }
 
@@ -9728,12 +9743,12 @@ void Unit::SetImmobilizedState(bool apply, bool stun)
 
 void Unit::SetFeared(bool apply, ObjectGuid casterGuid, uint32 spellID, uint32 time)
 {
-    SetIncapacitatedState(apply, UNIT_FLAG_FLEEING, casterGuid, spellID, time);
+    SetIncapacitatedState(apply, UNIT_FLAG_FLEEING, casterGuid, spellID, AURA_REMOVE_BY_DEFAULT, time);
 }
 
-void Unit::SetConfused(bool apply, ObjectGuid casterGuid, uint32 spellID)
+void Unit::SetConfused(bool apply, ObjectGuid casterGuid, uint32 spellID, AuraRemoveMode removeMode)
 {
-    SetIncapacitatedState(apply, UNIT_FLAG_CONFUSED, casterGuid, spellID);
+    SetIncapacitatedState(apply, UNIT_FLAG_CONFUSED, casterGuid, spellID, removeMode);
 }
 
 void Unit::SetStunned(bool apply, ObjectGuid casterGuid, uint32 spellID)
@@ -9741,7 +9756,7 @@ void Unit::SetStunned(bool apply, ObjectGuid casterGuid, uint32 spellID)
     SetIncapacitatedState(apply, UNIT_FLAG_STUNNED, casterGuid, spellID);
 }
 
-void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid, uint32 spellID, uint32 time)
+void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid, uint32 spellID, AuraRemoveMode removeMode, uint32 time)
 {
     // We are interested only in a particular subset of flags:
     const uint32 filter = (UNIT_FLAG_STUNNED | UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING);
@@ -9783,40 +9798,43 @@ void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid
     }
 
     if (movement)
-        GetMotionMaster()->MovementExpired(false);
+        GetMotionMaster()->MovementExpired();
     if (apply)
         CastStop(GetObjectGuid() == casterGuid ? spellID : 0);
 
-    if (GetTypeId() == TYPEID_UNIT)
+    bool requireTargetChange = GetTypeId() != TYPEID_PLAYER || !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+    if (requireTargetChange)
     {
         if (HasFlag(UNIT_FIELD_FLAGS, filter))
         {
             if (!GetTargetGuid().IsEmpty()) // Incapacitated creature loses its target
                 SetTargetGuid(ObjectGuid());
         }
-        else if (isAlive())
+        else if (isAlive() && removeMode != AURA_REMOVE_BY_STACK)
         {
             if (Unit* victim = getVictim())
             {
                 SetTargetGuid(victim->GetObjectGuid());  // Restore target
                 if (movement)
-                    GetMotionMaster()->MoveChase(victim); // Restore movement generator
+                    AI()->HandleMovementOnAttackStart(victim);
             }
-            else if (movement)
-                GetMotionMaster()->Initialize(); // Reset movement generator
 
             if (!apply && fleeing)
             {
                 // Attack the caster if can on fear expiration
                 if (Unit* caster = IsInWorld() ? GetMap()->GetUnit(casterGuid) : nullptr)
-                    ((Creature*)this)->AttackedBy(caster);
+                    AttackedBy(caster);
             }
         }
     }
 
     // Update stun if required:
     if (stun)
+    {
         SetImmobilizedState(apply, true);
+        if (apply && requireTargetChange)
+            SetFacingTo(GetOrientation()); // broadcast orientation change on stun start for creatures
+    }
 
     if (!movement)
         return;
@@ -9830,7 +9848,7 @@ void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid
     else if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING))
     {
         StopMoving(true);
-        GetMotionMaster()->MoveFleeing(IsInWorld() ?  GetMap()->GetUnit(casterGuid) : nullptr, time);
+        GetMotionMaster()->MoveFleeing(IsInWorld() ? GetMap()->GetUnit(casterGuid) : nullptr, time);
     }
 }
 

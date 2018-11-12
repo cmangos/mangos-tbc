@@ -7,7 +7,7 @@
 
 If you're interested in anything specific to this CMaNGOS fork, then I'm on [#lillecarl @ irc.rizon.net](http://qchat.rizon.net/?channels=lillecarl&uio=d4) :)
 
-This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) file for Copyright information
+This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) and [COPYRIGHT](COPYRIGHT.md) files for Copyright information
 
 ## Welcome to C(ontinued)-MaNGOS
 
@@ -55,7 +55,7 @@ To be able to accomplish these goals, we support and promote:
 -- The C(ontinued)-MaNGOS Team!
 
 ## ScriptDev2
-  ScriptDev2 is a script library, an extention of the scripting capabilities
+  ScriptDev2 is a script library, an extension of the scripting capabilities
   that comes with cMaNGOS ( http://cmangos.net/ ), written in C++ and is
   compatible with Windows and Linux. SQL needed for database support both
   MySQL and PostgreSQL.
@@ -110,6 +110,9 @@ To be able to accomplish these goals, we support and promote:
   You can find the full license text in the file [COPYING](COPYING) delivered with this package.
 
 ### Exceptions to GPL
+
+  World of Warcraft content and materials are trademarks and copyrights of Blizzard or its licensors. All rights reserved.
+  CMaNGOS project is not affiliated with Blizzard or its licensors.
 
   Some third-party libraries CMaNGOS uses have other licenses, that must be
   uphold.  These libraries are located within the dep/ directory

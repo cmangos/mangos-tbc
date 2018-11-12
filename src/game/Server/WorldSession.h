@@ -223,6 +223,11 @@ class WorldSession
             return (_logoutTime > 0 && currTime >= _logoutTime + 20);
         }
 
+        bool ShouldDisconnect(time_t currTime)
+        {
+            return (_logoutTime > 0 && currTime >= _logoutTime + 60);
+        }
+
         void LogoutPlayer(bool Save);
         void KickPlayer();
 

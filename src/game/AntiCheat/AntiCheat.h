@@ -72,7 +72,7 @@ protected:
     void UpdateGravityInfo(Opcodes opcode);
     void UpdateSpeedInfo(Opcodes opcode);
 
-    float IsKnockedback() { return m_Knockback; }
+    bool IsKnockedback() { return m_Knockback; }
     float GetKnockBackSpeed() { return m_KnockbackSpeed; }
     float GetFallDistance() { return m_StartFallZ - newmoveInfo->GetPos()->z; }
 

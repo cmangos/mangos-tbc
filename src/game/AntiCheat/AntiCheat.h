@@ -61,6 +61,7 @@ protected:
     float GetServerSpeed(bool includeold = true);
     float GetAllowedDistance();
     float GetExpectedZ();
+    float GetExpectedZ(uint32 falltime);
 
     uint32 GetDiff();
     float GetDiffInSec();
@@ -73,6 +74,7 @@ protected:
 
     float IsKnockedback() { return m_Knockback; }
     float GetKnockBackSpeed() { return m_KnockbackSpeed; }
+    float GetFallDistance() { return m_StartFallZ - newmoveInfo->GetPos()->z; }
 
 protected:
     CPlayer* m_Player;

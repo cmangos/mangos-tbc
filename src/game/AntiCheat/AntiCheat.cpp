@@ -300,10 +300,15 @@ float AntiCheat::GetAllowedSpeed()
 
 float AntiCheat::GetExpectedZ()
 {
+    return GetExpectedZ(newmoveInfo->GetFallTime());
+}
+
+float AntiCheat::GetExpectedZ(uint32 falltime)
+{
     if (!m_Falling)
         return newmoveInfo->GetPos()->z;
 
-    return m_StartFallZ - ComputeFallElevation(newmoveInfo->GetFallTime() / 1000.f, m_SlowFall, m_StartVelocity);
+    return m_StartFallZ - ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
 }
 
 float AntiCheat::GetAllowedDistance()
@@ -374,7 +379,7 @@ void AntiCheat::UpdateGravityInfo(Opcodes opcode)
     if (!m_Falling && (startfalling || opcode == MSG_MOVE_JUMP))
     {
         m_Falling = true;
-        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newmoveInfo->GetJumpInfo().velocity : 0.f);
+        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newmoveInfo->GetJumpInfo().velocity : 0.1f);
         storedmoveInfo = opcode == MSG_MOVE_JUMP ? newmoveInfo : oldmoveInfo;
         storedMapID = opcode == MSG_MOVE_JUMP ? newMapID : oldMapID;
 

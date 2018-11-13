@@ -11,6 +11,4 @@ public:
 
 private:
     uint32 GetCorrectedFallTime();
-    int32 timeCorrection;
-    float startZ;
 };

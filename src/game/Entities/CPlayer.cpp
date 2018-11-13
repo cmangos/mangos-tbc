@@ -19,26 +19,24 @@
 
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
-    new AntiCheat_speed(this);
-    new AntiCheat_teleport(this);
-    new AntiCheat_fly(this);
-    new AntiCheat_jump(this);
-    new AntiCheat_gravity(this);
-    new AntiCheat_waterwalking(this);
-    new AntiCheat_wallclimb(this);
-    new AntiCheat_walljump(this);
-    new AntiCheat_tptoplane(this);
-    new AntiCheat_nofall(this);
-    new AntiCheat_time(this);
-    //new AntiCheat_test(this);
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_speed(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_teleport(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_fly(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_jump(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_gravity(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_waterwalking(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_wallclimb(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_walljump(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_tptoplane(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_nofall(this)));
+    antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_time(this)));
+    //antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_test(this)));
 
     m_GMFly = false;
 }
 
 CPlayer::~CPlayer()
 {
-    for (auto& i : m_AntiCheatStorage)
-        delete i;
 }
 
 bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
@@ -48,7 +46,7 @@ bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
 
     bool cheat = false;
 
-    for (auto& i : m_AntiCheatStorage)
+    for (auto& i : antiCheatStorage)
         if (i->HandleMovement(moveInfo, opcode, cheat))
             cheat = true;
 
@@ -57,31 +55,26 @@ bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
 
 void CPlayer::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
 {
-    for (auto& i : m_AntiCheatStorage)
+    for (auto& i : antiCheatStorage)
         i->HandleKnockBack(angle, horizontalSpeed, verticalSpeed);
 }
 
 void CPlayer::HandleRelocate(float x, float y, float z, float o)
 {
-    for (auto& i : m_AntiCheatStorage)
+    for (auto& i : antiCheatStorage)
         i->HandleRelocate(x, y, z, o);
 }
 
 void CPlayer::HandleTeleport(uint32 map, float x, float y, float z, float o)
 {
-    for (auto& i : m_AntiCheatStorage)
+    for (auto& i : antiCheatStorage)
         i->HandleTeleport(map, x, y, z, o);
 }
 
 void CPlayer::HandleUpdate(uint32 update_diff, uint32 p_time)
 {
-    for (auto& i : m_AntiCheatStorage)
+    for (auto& i : antiCheatStorage)
         i->HandleUpdate(update_diff, p_time);
-}
-
-void CPlayer::AddAntiCheatModule(AntiCheat* antiCheat)
-{
-    m_AntiCheatStorage.push_back(antiCheat);
 }
 
 void CPlayer::SendStreamMessages(MessageTypes type, std::stringstream &ss)
@@ -135,7 +128,7 @@ bool CPlayer::AddAura(uint32 spellid)
 
     for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
-        uint8 eff = spellInfo->Effect[i];
+        const uint32 eff = spellInfo->Effect[i];
         if (eff >= TOTAL_SPELL_EFFECTS)
             continue;
         if (IsAreaAuraEffect(eff) ||

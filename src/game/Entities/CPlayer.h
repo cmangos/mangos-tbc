@@ -44,16 +44,14 @@ struct Position;
 
 class CPlayer : public Player
 {
-    // Typedefs
 public:
-    typedef std::vector<AntiCheat*> AntiCheatStorage;
+    typedef std::unique_ptr<AntiCheat> AntiCheatPtr;
+    typedef std::vector<AntiCheatPtr> AntiCheatStorage;
 
-    // Constructor / destructor
 public:
     explicit CPlayer(WorldSession* session);
     ~CPlayer();
 
-    // Cast helper
 public:
     Player* ToPlayer() { return static_cast<Player*>(this); }
 
@@ -64,12 +62,11 @@ public:
     void HandleRelocate(float x, float y, float z, float o);
     void HandleTeleport(uint32 map, float x, float y, float z, float o);
     void HandleUpdate(uint32 update_diff, uint32 p_time);
-    void AddAntiCheatModule(AntiCheat* antiCheat);
     void SetGMFly(bool value) { m_GMFly = value; }
     bool GetGMFly() { return m_GMFly; }
 
 private:
-    AntiCheatStorage m_AntiCheatStorage;
+    AntiCheatStorage antiCheatStorage;
     bool m_GMFly;
 
     // Chat messages
@@ -85,6 +82,7 @@ public:
     void CUpdate(uint32 update_diff, uint32 p_time);
 
     // Misc
+public:
     bool AddAura(uint32 spellid);
 	bool TeleportToPos(uint32 mapid, const Position* pos, uint32 options = 0, AreaTrigger const* at = nullptr);
 };

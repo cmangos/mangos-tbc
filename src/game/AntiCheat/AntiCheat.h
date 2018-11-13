@@ -16,15 +16,15 @@ public:
     virtual ~AntiCheat() {}
 
     virtual bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat);
-    virtual void HandleUpdate(uint32 update_diff, uint32 p_time) { };
+    virtual void HandleUpdate(uint32 /*update_diff*/, uint32 /*p_time*/) { }
     virtual void HandleRelocate(float x, float y, float z, float o);
     virtual void HandleTeleport(uint32 map, float x, float y, float z, float o);
     virtual void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);
 
 protected:
     bool Initialized();
-    bool SetOldMoveInfo(bool value);
-    bool SetStoredMoveInfo(bool value);
+    bool SetOldMoveInfo(bool cheat = false);
+    bool SetStoredMoveInfo(bool cheat = false);
 
     bool CanFly() { return m_CanFly; }
     bool CanWaterwalk() { return m_CanWaterwalk; }
@@ -37,6 +37,7 @@ protected:
     bool isFalling(const MovementInfoPtr& moveInfo);
     bool isFalling();
     bool isFallingMoveInfo();
+    bool isJumping();
     bool isTransport(const MovementInfoPtr& moveInfo);
     bool isTransport();
     bool isSwimming(const MovementInfoPtr& moveInfo);
@@ -95,6 +96,7 @@ private:
 
     float m_StartFallZ;
     float m_StartVelocity;
+    float m_InitialFallDiff;
     bool m_Falling;
     bool m_Jumping;
     bool m_SlowFall;

@@ -13,16 +13,15 @@ AntiCheat::AntiCheat(CPlayer* player)
     m_CanFly = false;
     m_CanWaterwalk = false;
 
-    m_StartFallZ = 0;
+    m_StartFallZ = 0.f;
     m_Falling = false;
+    m_InitialFallDiff = 0.f;
 
     m_Knockback = false;
     m_KnockbackSpeed = 0.f;
-
-    player->AddAntiCheatModule(this);
 }
 
-bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool /*cheat*/)
 {
     newmoveInfo = MoveInfo;
     newMapID = m_Player->GetMapId();
@@ -61,6 +60,7 @@ void AntiCheat::HandleTeleport(uint32 map, float x, float y, float z, float o)
     m_Jumping = false;
     m_StartFallZ = z;
     m_StartVelocity = 0.f;
+    m_InitialFallDiff = 0.f;
 }
 
 void AntiCheat::HandleKnockBack(float /*angle*/, float horizontalSpeed, float verticalSpeed)
@@ -69,6 +69,7 @@ void AntiCheat::HandleKnockBack(float /*angle*/, float horizontalSpeed, float ve
     m_Jumping = false;
     m_StartFallZ = newmoveInfo->GetPos()->z;
     m_StartVelocity = -verticalSpeed;
+    m_InitialFallDiff = 0.f;
 
     m_Knockback = true;
     m_KnockbackSpeed = horizontalSpeed;
@@ -97,21 +98,21 @@ bool AntiCheat::Initialized()
     return true;
 }
 
-bool AntiCheat::SetOldMoveInfo(bool value)
+bool AntiCheat::SetOldMoveInfo(bool cheat)
 {
     oldmoveInfo = newmoveInfo;
     oldMapID = m_Player->GetMapId();
 
     OldServerSpeed = GetServerSpeed(false);
 
-    return value;
+    return cheat;
 }
 
-bool AntiCheat::SetStoredMoveInfo(bool value)
+bool AntiCheat::SetStoredMoveInfo(bool cheat)
 {
     storedmoveInfo = newmoveInfo;
     storedMapID = m_Player->GetMapId();
-    return value;
+    return cheat;
 }
 
 bool AntiCheat::IsMoving(const MovementInfoPtr& moveInfo)
@@ -164,6 +165,11 @@ bool AntiCheat::isFalling()
 bool AntiCheat::isFallingMoveInfo()
 {
     return isFalling(newmoveInfo) || isFalling(oldmoveInfo);
+}
+
+bool AntiCheat::isJumping()
+{
+    return m_Jumping;
 }
 
 bool AntiCheat::isTransport(const MovementInfoPtr& moveInfo)
@@ -306,7 +312,7 @@ float AntiCheat::GetExpectedZ(uint32 falltime)
     if (!m_Falling)
         return newmoveInfo->GetPos()->z;
 
-    return m_StartFallZ - ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity);
+    return m_StartFallZ - ComputeFallElevation(falltime / 1000.f, m_SlowFall, m_StartVelocity) + m_InitialFallDiff;
 }
 
 float AntiCheat::GetAllowedDistance()
@@ -338,7 +344,6 @@ float AntiCheat::GetVirtualDiffInSec()
 float AntiCheat::ComputeFallElevation(float t_passed, bool isSafeFall, float start_velocity)
 {
     float gravity = 19.29110527038574f;
-    /// Velocity bounds that makes fall speed limited
     float terminalVelocity = isSafeFall ? 7.f : 60.148003f;
 
     float terminalFallTime = float(terminalVelocity / gravity); // the time that needed to reach terminalVelocity
@@ -363,30 +368,38 @@ float AntiCheat::ComputeFallElevation(float t_passed, bool isSafeFall, float sta
 
 void AntiCheat::UpdateGravityInfo(Opcodes opcode)
 {
-    bool startfalling = !isFalling(oldmoveInfo) && isFalling(newmoveInfo);
-    bool stopfalling = !isFalling(newmoveInfo) && isFalling(oldmoveInfo);
-
-    if (!m_Falling)
+    // Start falling by jumping
+    if (opcode == MSG_MOVE_JUMP)
+    {
         m_StartFallZ = newmoveInfo->GetPos()->z;
-
-    if (!m_Falling && (startfalling || opcode == MSG_MOVE_JUMP))
+        m_Jumping = true;
+        m_Falling = true;
+        m_StartVelocity = newmoveInfo->GetJumpInfo().velocity;
+    }
+    // Start falling by walking off a cliff
+    else if (!m_Falling && isFalling(newmoveInfo))
     {
         m_Falling = true;
-        m_StartVelocity = (opcode == MSG_MOVE_JUMP ? newmoveInfo->GetJumpInfo().velocity : 0.f);
-
-        if (opcode == MSG_MOVE_JUMP)
-            m_Jumping = true;
+        m_StartVelocity = 0.f;
+        m_StartFallZ = std::max(oldmoveInfo->GetPos()->z, newmoveInfo->GetPos()->z);
     }
-
-    if ((m_Falling || isFalling() || opcode == MSG_MOVE_JUMP) && m_Player->HasAuraType(SPELL_AURA_FEATHER_FALL))
-        m_SlowFall = true;
-
-    if (stopfalling || opcode == MSG_MOVE_FALL_LAND || opcode == MSG_MOVE_START_SWIM)
+    // Landing
+    else if (opcode == MSG_MOVE_FALL_LAND || opcode == MSG_MOVE_START_SWIM || !isFalling(newmoveInfo))
     {
-        m_Falling = false;
         m_Jumping = false;
+        m_Falling = false;
         m_SlowFall = false;
+        m_StartFallZ = 0.f;
+        m_InitialFallDiff = 0.f;
     }
+
+    auto falldiff = newmoveInfo->GetPos()->z - GetExpectedZ(newmoveInfo->GetFallTime());
+
+    if (m_InitialFallDiff == 0.f && falldiff != 0.f)
+        m_InitialFallDiff = falldiff;
+
+    if (isFalling() && m_Player->HasAuraType(SPELL_AURA_FEATHER_FALL))
+        m_SlowFall = true;
 }
 
 void AntiCheat::UpdateSpeedInfo(Opcodes opcode)

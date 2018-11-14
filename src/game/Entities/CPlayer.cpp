@@ -17,6 +17,8 @@
 #include "AntiCheat/AntiCheat_test.h"
 #include "AntiCheat/AntiCheat_time.h"
 
+#include <iomanip>
+
 CPlayer::CPlayer(WorldSession* session) : Player(session)
 {
     antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_speed(this)));
@@ -100,6 +102,7 @@ void CPlayer::SendStreamMessages(MessageTypes type, std::stringstream &ss)
 
         ss.str(""); // Clear content
         ss.clear(); // Clear state flags.
+        ss << std::fixed; // Use fixed precision
     }
 }
 

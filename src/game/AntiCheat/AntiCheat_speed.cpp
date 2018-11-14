@@ -64,7 +64,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
 
         return SetOldMoveInfo(true);
     }
-    else
+    else if (!isFalling())
         SetStoredMoveInfo(false);
 
     return SetOldMoveInfo(false);

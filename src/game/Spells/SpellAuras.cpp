@@ -4942,27 +4942,34 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
     {
         case SPELLFAMILY_GENERIC:
         {
-            if (!target)
-                return;
-
-            if (spell->Id == 36207) // Steal Weapon
+            switch (spell->Id)
             {
-                if (target->GetTypeId() != TYPEID_UNIT)
-                    return;
-
-                if (apply)
+                case 36207: // Steal Weapon
                 {
-                    if (Player* playerCaster = GetCaster()->GetBeneficiaryPlayer())
+                    if (target->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    if (apply)
                     {
-                        if (Item* item = playerCaster->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+                        if (Player* playerCaster = GetCaster()->GetBeneficiaryPlayer())
                         {
-                            ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, item->GetEntry());
+                            if (Item* item = playerCaster->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
+                            {
+                                ((Creature*)target)->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, item->GetEntry());
+                            }
                         }
                     }
+                    else
+                    {
+                        ((Creature*)target)->LoadEquipment(((Creature*)target)->GetCreatureInfo()->EquipmentTemplateId, true);
+                    }
+                    break;
                 }
-                else
+                case 39993: // Simon Game START timer, (DND)
                 {
-                    ((Creature*)target)->LoadEquipment(((Creature*)target)->GetCreatureInfo()->EquipmentTemplateId, true);
+                    if (apply)
+                        target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, GetCaster(), target);
+                    break;
                 }
             }
         }
@@ -7191,7 +7198,6 @@ void Aura::PeriodicDummyTick()
                 case 40084: // Harpooner's Mark
                     target->CastSpell(nullptr, 40085, TRIGGERED_OLD_TRIGGERED);
                     break;
-//              case 40084: break;
 //              // Old Mount Spell
 //              case 40154: break;
 //              // Magnetic Pull

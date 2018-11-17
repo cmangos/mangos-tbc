@@ -30,6 +30,7 @@
 #include "Tools/Language.h"
 #include "Entities/TemporarySpawn.h"
 #include "Spells/Spell.h"
+#include "MotionGenerators/MovementGenerator.h"
 
 bool CreatureEventAIHolder::UpdateRepeatTimer(Creature* creature, uint32 repeatMin, uint32 repeatMax)
 {
@@ -323,12 +324,6 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
 
     CreatureEventAI_Event const& event = holder.event;
 
-    uint32 rnd = urand();
-
-    // Return if chance for event is not met
-    if (holder.event.event_chance <= rnd % 100)
-        return false;
-
     // Check event conditions based on the event type, also reset events
     switch (event.event_type)
     {
@@ -608,8 +603,24 @@ void CreatureEventAI::CheckAndReadyEventForExecution(CreatureEventAIHolder& hold
 bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& holder, Unit* actionInvoker, Unit* AIEventSender /*=nullptr*/)
 {
     bool actionSuccess = false;
+    if (holder.event.event_flags & EFLAG_COMBAT_ACTION && !CanExecuteCombatAction())
+    {
+        holder.inProgress = false;
+        return false;
+    }
+
     uint32 rnd = urand();
+
+    // Reset timer if roll failed
+    if (holder.event.event_chance <= rnd % 100)
+    {
+        ResetEvent(holder);
+        holder.inProgress = false;
+        return false;
+    }
+
     // Process actions, normal case
+    rnd = urand();
     if (!(holder.event.event_flags & EFLAG_RANDOM_ACTION))
     {
         actionSuccess = ProcessAction(holder.event.action[0], rnd, holder.event.event_id, actionInvoker, AIEventSender, holder.eventTarget);
@@ -1353,6 +1364,37 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             SetRangedMode(action.rangedMode.type != TYPE_NONE, float(action.rangedMode.chaseDistance), RangeModeType(action.rangedMode.type));
             break;
         }
+        case ACTION_T_SET_FACING:
+        {
+            if (action.setFacing.reset)
+            {
+                float x, y, z, o;
+                if (m_creature->GetMotionMaster()->empty() || !m_creature->GetMotionMaster()->top()->GetResetPosition(*m_creature, x, y, z, o))
+                    m_creature->GetRespawnCoord(x, y, z, &o);
+                m_creature->SetFacingTo(o);
+            }
+            else
+            {
+                Unit* target = GetTargetByType(action.attackStart.target, actionInvoker, AIEventSender, eventTarget, failedTargetSelection);
+                if (!target)
+                {
+                    if (failedTargetSelection)
+                        sLog.outErrorEventAI("Event %d attempt to attack nullptr target. Creature %d", eventId, m_creature->GetEntry());
+                    return false;
+                }
+                m_creature->SetFacingToObject(target);
+            }
+            break;
+        }
+        case ACTION_T_SET_WALK:
+            switch (action.walkSetting.type)
+            {
+                case WALK_DEFAULT: m_creature->SetWalk(false, true); break;
+                case RUN_DEFAULT: m_creature->SetWalk(true, true); break;
+                case WALK_CHASE: m_chaseRun = false; break;
+                case RUN_CHASE: m_chaseRun = true; break;
+            }
+            break;
         default:
             sLog.outError("%s::ProcessAction(): action(%u) not implemented", GetAIName().data(), static_cast<uint32>(action.type));
             return false;

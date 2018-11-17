@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s2376_01_characters_taxi_system_format_update` bit(1) DEFAULT NULL
+  `required_s2379_01_characters_playerbot_saved_data` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Last applied sql update to DB';
 
 --
@@ -1545,8 +1545,7 @@ CREATE TABLE `petition_sign` (
 DROP TABLE IF EXISTS `playerbot_saved_data`;
 CREATE TABLE `playerbot_saved_data` (
   `guid` int(11) unsigned NOT NULL DEFAULT '0',
-  `bot_primary_order` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `bot_secondary_order` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `combat_order` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `primary_target` int(11) unsigned NOT NULL DEFAULT '0',
   `secondary_target` int(11) unsigned NOT NULL DEFAULT '0',
   `pname` varchar(12) NOT NULL DEFAULT '',

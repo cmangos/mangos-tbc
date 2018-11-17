@@ -249,7 +249,7 @@ inline PackedGuid ObjectGuid::WriteAsPacked() const { return PackedGuid(*this); 
 namespace std
 {
     template<>
-    class hash<ObjectGuid>
+    struct hash<ObjectGuid>
     {
         public:
 

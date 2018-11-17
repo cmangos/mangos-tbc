@@ -12,28 +12,22 @@ bool AntiCheat_tptoplane::HandleMovement(const MovementInfoPtr& MoveInfo, Opcode
     if (!Initialized())
         return SetOldMoveInfo(false);
 
-    const Position* p = newmoveInfo->GetPos();
+    const Position* pn = newmoveInfo->GetPos();
+    const Position* po = oldmoveInfo->GetPos();
 
-    if (GetDiff() < 1000 || std::abs(p->z) > 0.1f)
-        return false;
-
-    TerrainInfo const* terrain = m_Player->GetTerrain();
-
-    float groundZ = terrain->GetHeightStatic(p->x, p->y, p->z, true);
-
-    float playerZ = p->z;
-
-    if (!cheat && playerZ - groundZ < -1.f && playerZ < groundZ)
+    if (std::fabs(po->z) <= 0.0001f && std::fabs(pn->z) <= 0.0001f &&
+        std::fabs(po->z - pn->z) < 0.0001f)
     {
-        p = oldmoveInfo->GetPos();
-        groundZ = terrain->GetHeightStatic(p->x, p->y, p->z);
+        auto groundz = m_Player->GetTerrain()->GetHeightStatic(pn->x, pn->y, pn->y, true);
+        if (groundz > pn->z + 2.f)
+        {
+            if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
+                m_Player->BoxChat << "TELEPORT TO PLANE CHEAT" << "\n";
 
-		m_Player->TeleportToPos(oldMapID, oldmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
-
-        if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
-            m_Player->BoxChat << "TELEPORT TO PLANE CHEAT" << "\n";
-
-        return SetOldMoveInfo(true);
+            // Since tptoplane cheats forces the player back to 0.f again
+            // The only protection is to kill them and hope they've learned their lesson
+            m_Player->EnvironmentalDamage(DAMAGE_FALL_TO_VOID, m_Player->GetHealth());
+        }
     }
 
     return SetOldMoveInfo(false);

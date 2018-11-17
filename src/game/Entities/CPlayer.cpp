@@ -38,8 +38,7 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
 }
 
 CPlayer::~CPlayer()
-{
-}
+= default;
 
 bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
 {
@@ -87,7 +86,7 @@ void CPlayer::SendStreamMessages(MessageTypes type, std::stringstream &ss)
 
         while (std::getline(ss, item))
         {
-            item = MSG_COLOR_WHITE + item + "|r"; // Default chat to white.
+            item.insert(0, MSG_COLOR_WHITE).append("|r");
             const char* msg = item.c_str();
 
             if ((type & CHAT_BOX) != 0)
@@ -106,8 +105,10 @@ void CPlayer::SendStreamMessages(MessageTypes type, std::stringstream &ss)
     }
 }
 
-void CPlayer::CUpdate(uint32 update_diff, uint32 p_time)
+void CPlayer::Update(uint32 update_diff, uint32 p_time)
 {
+    Player::Update(update_diff, p_time);
+
     HandleUpdate(update_diff, p_time);
 
     SendStreamMessages(MessageTypes(CHAT_BOX), BoxChat);
@@ -117,7 +118,7 @@ void CPlayer::CUpdate(uint32 update_diff, uint32 p_time)
 
 bool CPlayer::AddAura(uint32 spellid)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+    auto const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
     if (!spellInfo)
         return false;
 

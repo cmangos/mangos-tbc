@@ -91,7 +91,7 @@ private:
     bool m_CanFly;
     bool m_CanWaterwalk;
 
-    float AllowedSpeed[MAX_MOVE_TYPE];
+    std::array<float, MAX_MOVE_TYPE> AllowedSpeed;
     float OldServerSpeed;
 
     float m_StartFallZ;

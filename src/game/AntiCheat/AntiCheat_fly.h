@@ -8,7 +8,4 @@ public:
     AntiCheat_fly(CPlayer* player);
 
     bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat) override;
-
-private:
-    uint32 m_LastCanFlyTime;
 };

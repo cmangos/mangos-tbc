@@ -4,6 +4,7 @@
 
 AntiCheat_walljump::AntiCheat_walljump(CPlayer* player) : AntiCheat(player)
 {
+    AboveAngleCount = 0;
 }
 
 bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
@@ -12,8 +13,7 @@ bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
 
     if (!Initialized())
     {
-        AboveAngleCount = 0;
-        return false;
+        return SetOldMoveInfo(false);
     }
 
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;

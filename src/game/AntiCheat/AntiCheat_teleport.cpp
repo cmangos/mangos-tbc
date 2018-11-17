@@ -38,7 +38,7 @@ bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
     return SetOldMoveInfo(false);
 }
 
-void AntiCheat_teleport::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)
+void AntiCheat_teleport::HandleKnockBack(float  /*angle*/, float  /*horizontalSpeed*/, float  /*verticalSpeed*/)
 {
     knockBack = true;
 }

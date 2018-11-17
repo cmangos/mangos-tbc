@@ -8,17 +8,6 @@ AntiCheat::AntiCheat(CPlayer* player)
     newmoveInfo = MovementInfoPtr(new MovementInfo());
     oldmoveInfo = MovementInfoPtr(new MovementInfo());
     storedmoveInfo = MovementInfoPtr(new MovementInfo());
-
-    m_Initialized = false;
-    m_CanFly = false;
-    m_CanWaterwalk = false;
-
-    m_StartFallZ = 0.f;
-    m_Falling = false;
-    m_InitialFallDiff = 0.f;
-
-    m_Knockback = false;
-    m_KnockbackSpeed = 0.f;
 }
 
 bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool /*cheat*/)
@@ -84,7 +73,7 @@ bool AntiCheat::Initialized()
         SetStoredMoveInfo(false);
 
         for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
-            AllowedSpeed[i] = m_Player->GetSpeed(UnitMoveType(i));
+            AllowedSpeed.at(i) = m_Player->GetSpeed(UnitMoveType(i));
 
         m_Falling = false;
         m_Jumping = false;
@@ -114,7 +103,6 @@ bool AntiCheat::SetStoredMoveInfo(bool cheat)
     storedMapID = m_Player->GetMapId();
     return cheat;
 }
-
 bool AntiCheat::IsMoving(const MovementInfoPtr& moveInfo)
 {
     return moveInfo->HasMovementFlag(MOVEFLAG_FORWARD) ||
@@ -282,14 +270,14 @@ float AntiCheat::GetTransportDistZ()
 float AntiCheat::GetServerSpeed(bool includeold)
 {
     bool back = newmoveInfo->HasMovementFlag(MOVEFLAG_BACKWARD);
-    float speed = AllowedSpeed[back ? MOVE_RUN_BACK : MOVE_RUN];
+    float speed = AllowedSpeed.at(back ? MOVE_RUN_BACK : MOVE_RUN);
 
     if (isFlying(newmoveInfo))
-        speed = AllowedSpeed[back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT];
+        speed = AllowedSpeed.at(back ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
     else if (isSwimming(newmoveInfo))
-        speed = AllowedSpeed[back ? MOVE_SWIM_BACK : MOVE_SWIM];
+        speed = AllowedSpeed.at(back ? MOVE_SWIM_BACK : MOVE_SWIM);
     else if (isWalking(newmoveInfo))
-        speed = AllowedSpeed[MOVE_WALK];
+        speed = AllowedSpeed.at(MOVE_WALK);
 
     return includeold ? std::max(OldServerSpeed, speed) : speed;
 }
@@ -346,7 +334,7 @@ float AntiCheat::ComputeFallElevation(float t_passed, bool isSafeFall, float sta
     float gravity = 19.29110527038574f;
     float terminalVelocity = isSafeFall ? 7.f : 60.148003f;
 
-    float terminalFallTime = float(terminalVelocity / gravity); // the time that needed to reach terminalVelocity
+    auto terminalFallTime = float(terminalVelocity / gravity); // the time that needed to reach terminalVelocity
 
     float result = 0.f;
 
@@ -407,33 +395,33 @@ void AntiCheat::UpdateSpeedInfo(Opcodes opcode)
     switch (opcode)
     {
     case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_WALK] = m_Player->GetSpeed(MOVE_WALK);
+        AllowedSpeed.at(MOVE_WALK) = m_Player->GetSpeed(MOVE_WALK);
         break;
     case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_RUN] = m_Player->GetSpeed(MOVE_RUN);
+        AllowedSpeed.at(MOVE_RUN) = m_Player->GetSpeed(MOVE_RUN);
         break;
     case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_RUN_BACK] = m_Player->GetSpeed(MOVE_RUN_BACK);
+        AllowedSpeed.at(MOVE_RUN_BACK) = m_Player->GetSpeed(MOVE_RUN_BACK);
         break;
     case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_SWIM] = m_Player->GetSpeed(MOVE_SWIM);
+        AllowedSpeed.at(MOVE_SWIM) = m_Player->GetSpeed(MOVE_SWIM);
         break;
     case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_SWIM_BACK] = m_Player->GetSpeed(MOVE_SWIM_BACK);
+        AllowedSpeed.at(MOVE_SWIM_BACK) = m_Player->GetSpeed(MOVE_SWIM_BACK);
         break;
     case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
-        AllowedSpeed[MOVE_TURN_RATE] = m_Player->GetSpeed(MOVE_TURN_RATE);
+        AllowedSpeed.at(MOVE_TURN_RATE) = m_Player->GetSpeed(MOVE_TURN_RATE);
         break;
     case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_FLIGHT] = m_Player->GetSpeed(MOVE_FLIGHT);
+        AllowedSpeed.at(MOVE_FLIGHT) = m_Player->GetSpeed(MOVE_FLIGHT);
         break;
     case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
-        AllowedSpeed[MOVE_FLIGHT_BACK] = m_Player->GetSpeed(MOVE_FLIGHT_BACK);
+        AllowedSpeed.at(MOVE_FLIGHT_BACK) = m_Player->GetSpeed(MOVE_FLIGHT_BACK);
         break;
     default: break;
     }
 
     for (uint8 i = 0; i < MAX_MOVE_TYPE; ++i)
-        if (m_Player->GetSpeed(UnitMoveType(i)) > AllowedSpeed[UnitMoveType(i)])
-            AllowedSpeed[UnitMoveType(i)] = m_Player->GetSpeed(UnitMoveType(i));
+        if (m_Player->GetSpeed(UnitMoveType(i)) > AllowedSpeed.at(UnitMoveType(i)))
+            AllowedSpeed.at(UnitMoveType(i)) = m_Player->GetSpeed(UnitMoveType(i));
 }

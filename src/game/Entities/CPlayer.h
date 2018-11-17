@@ -79,7 +79,7 @@ public:
 
     // Hooked Player functions
 public:
-    void CUpdate(uint32 update_diff, uint32 p_time);
+    void Update(uint32 update_diff, uint32 p_time) override;
 
     // Misc
 public:

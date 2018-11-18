@@ -297,10 +297,6 @@ void GameObject::Update(const uint32 diff)
                     m_respawnTime = 0;
                     ClearAllUsesData();
 
-                    // If nearby linked trap exists, respawn it
-                    if (GameObject* linkedTrap = GetLinkedTrap())
-                        linkedTrap->SetLootState(GO_READY);
-
                     switch (GetGoType())
                     {
                         case GAMEOBJECT_TYPE_FISHINGNODE:   // can't fish now
@@ -488,10 +484,10 @@ void GameObject::Update(const uint32 diff)
 
             // If nearby linked trap exists, despawn it
             if (GameObject* linkedTrap = GetLinkedTrap())
+            {
                 linkedTrap->SetLootState(GO_JUST_DEACTIVATED);
-
-            if (AI())
-                AI()->JustDespawned();
+                linkedTrap->Delete();
+            }
 
             switch (GetGoType())
             {
@@ -509,6 +505,7 @@ void GameObject::Update(const uint32 diff)
                     }
 
                     SetGoState(GO_STATE_READY);
+                    // research - 185861 needs to be able to despawn as well TODO: fixup
 
                     // any return here in case battleground traps
                     break;
@@ -568,6 +565,9 @@ void GameObject::Update(const uint32 diff)
 
             if (!m_respawnDelayTime)
                 return;
+
+            if (AI())
+                AI()->JustDespawned();
 
             // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
             if (GameObjectData const* data = sObjectMgr.GetGOData(GetObjectGuid().GetCounter()))
@@ -632,6 +632,9 @@ void GameObject::Delete()
 
     SetGoState(GO_STATE_READY);
     SetUInt32Value(GAMEOBJECT_FLAGS, GetGOInfo()->flags);
+
+    if (AI())
+        AI()->JustDespawned();
 
     if (uint16 poolid = sPoolMgr.IsPartOfAPool<GameObject>(GetGUIDLow()))
         sPoolMgr.UpdatePool<GameObject>(*GetMap()->GetPersistentState(), poolid, GetGUIDLow());

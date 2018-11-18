@@ -1066,7 +1066,7 @@ struct npc_magister_aledisAI : public ScriptedAI
         m_uiPyroblastTimer      = urand(10000, 14000);
         m_uiFrostNovaTimer      = 0;
         m_uiFireballTimer       = 1000;
-
+        m_bIsDefeated = false;
         m_attackDistance = 10.0f;
     }
 

@@ -2000,7 +2000,10 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         creature->ForcedDespawn(4000);
                     }
                     if (go)
-                        go->AddObjectToRemoveList();
+                    {
+                        go->SetRespawnTime(1);
+                        go->SetLootState(GO_JUST_DEACTIVATED);
+                    }
                     static_cast<Creature*>(unitTarget)->ForcedDespawn();
                     return;
                 }

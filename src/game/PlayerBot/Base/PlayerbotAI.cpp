@@ -7958,12 +7958,15 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
     {
         // only tell the player once instead of endlessly nagging them
         if (m_ignorePlayersChat.find(fromPlayer.GetObjectGuid()) == m_ignorePlayersChat.end())
-        {
+        {	
+            /*
+            ** Do not send message to player while using bots for testing porpouses.
             std::string msg = "I can't talk to you. Please speak to my master ";
             msg += GetMaster()->GetName();
             SendWhisper(msg, fromPlayer);
             m_bot->HandleEmoteCommand(EMOTE_ONESHOT_NO);
             m_ignorePlayersChat.insert(fromPlayer.GetObjectGuid());
+            */
         }
         return;
     }

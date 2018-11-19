@@ -1057,9 +1057,6 @@ UPDATE `spell_template` SET `Attributes`=Attributes&~0x00080000 WHERE `Id`=31598
 -- Consumption - Unbound Void Zone - Zereketh The Unbound - Unbound Void Zone should not be put into combat
 UPDATE `spell_template` SET `AttributesEx`=AttributesEx|0x00000400 WHERE `id` IN(36121,39004);
 
--- Energy Discharge - Destroyed Sentinel 21761 - Arcatraz Sentinel 20869 - Destroyed Sentinel should not be put into combat -- Doesnt work for this case
--- UPDATE spell_template SET AttributesEx=AttributesEx|0x00000400 WHERE id IN(36717,38829);
-
 -- serverside for kargath
 INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx2`,`baseLevel`,`spellLevel`,`powerType`,`Effect1`,`EffectImplicitTargetA1`,`EffectImplicitTargetB1`,`EffectRadiusIndex1`,`SpellIconID`,`spellPriority`,`SpellName`) VALUES
 (30738,262544,2,70,70,1,3,22,7,20,515,50,'Blade Dance Targeting');

@@ -4683,10 +4683,26 @@ SpellCastResult Spell::CheckCast(bool strict)
             // warrior not have real combo-points at client side but use this way for mark allow Overpower use
             return m_caster->getClass() == CLASS_WARRIOR ? SPELL_FAILED_CASTER_AURASTATE : SPELL_FAILED_NO_COMBO_POINTS;
 
-        // Loatheb Corrupted Mind spell failed
+        // Loatheb Corrupted Mind and Nefarian class calls spell failed
         switch (m_spellInfo->SpellFamilyName)
         {
             case SPELLFAMILY_DRUID:
+            {
+                if (IsSpellHaveAura(m_spellInfo, SPELL_AURA_MOD_SHAPESHIFT))
+                {
+                    Unit::AuraList const& auraClassScripts = m_caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+                    for (Unit::AuraList::const_iterator itr = auraClassScripts.begin(); itr != auraClassScripts.end();)
+                    {
+                        if ((*itr)->GetModifier()->m_miscvalue == 3655)
+                        {
+                            return SPELL_FAILED_TARGET_AURASTATE;
+                        }
+                        else
+                            ++itr;
+                    }
+                }
+                // No break
+            }
             case SPELLFAMILY_PRIEST:
             case SPELLFAMILY_SHAMAN:
             case SPELLFAMILY_PALADIN:
@@ -4705,7 +4721,27 @@ SpellCastResult Spell::CheckCast(bool strict)
                             ++itr;
                     }
                 }
+                break;
             }
+            case SPELLFAMILY_WARRIOR:
+            {
+                if (IsSpellHaveAura(m_spellInfo, SPELL_AURA_MOD_SHAPESHIFT))
+                {
+                    Unit::AuraList const& auraClassScripts = m_caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+                    for (Unit::AuraList::const_iterator itr = auraClassScripts.begin(); itr != auraClassScripts.end();)
+                    {
+                        if ((*itr)->GetModifier()->m_miscvalue == 3654)
+                        {
+                            return SPELL_FAILED_TARGET_AURASTATE;
+                        }
+                        else
+                            ++itr;
+                    }
+                }
+                break;
+            }
+            default:
+                break;
         }
     }
 

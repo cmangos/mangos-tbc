@@ -2345,9 +2345,6 @@ void Player::GiveXP(uint32 xp, Creature* victim)
     if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
         return;
 
-    if (victim)
-        xp *= victim->GetCreatureInfo()->ExperienceMultiplier;
-
     // handle SPELL_AURA_MOD_XP_PCT auras
     Unit::AuraList const& ModXPPctAuras = GetAurasByType(SPELL_AURA_MOD_XP_PCT);
     for (auto ModXPPctAura : ModXPPctAuras)

@@ -2391,7 +2391,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001307,'You''re in for a rough ride, $n. I hope you''ve already made funeral arrangements.',0,0,0,1,'Wing Commander Mulverick SAY_START_MULVERICK'),
 (-1001308,'You''re the best I''ve ever seen. I can''t believe I''m saying this but you might have a chance against Skyshatter. And hey, if that doesn''t go so well you can be my wing man...',0,0,0,1,'Wing Commander Mulverick SAY_END_MULVERICK'),
 (-1001309,'Prepare a funeral pyre! $n has challenged Skyshatter!',0,1,0,1,'Captain Skyshatter - SAY_START_SKYSHATTER'),
-(-1001310,'I weep for you, $n. You really have no idea what you''ve gotten yourself into... - say before start big flight?',0,0,0,1,'Captain Skyshatter - SAY_MID_SKYSHATTER'),
+(-1001310,'I weep for you, $n. You really have no idea what you''ve gotten yourself into...',0,0,0,1,'Captain Skyshatter - SAY_MID_SKYSHATTER'),
 (-1001311,'I... I am undone... The new top orc is $n!',0,1,0,1,'Captain Skyshatter - SAY_END_SKYSHATTER');
 
 -- -1 010 000 Classic texts

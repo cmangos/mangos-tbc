@@ -1219,6 +1219,8 @@ UPDATE creature_template SET ScriptName='npc_dragonhawk_egg' WHERE entry=23817;
 UPDATE creature_template SET ScriptName='npc_janalai_firebomb' WHERE entry=23920;
 UPDATE creature_template SET ScriptName='npc_amanishi_hatcher' WHERE entry IN (23818,24504);
 UPDATE creature_template SET ScriptName='npc_forest_frog' WHERE entry=24396;
+UPDATE creature_template SET ScriptName='npc_amanishi_lookout' WHERE entry=24175;
+UPDATE creature_template SET ScriptName='npc_amanishi_tempest' WHERE entry=24549;
 
 /* ZUL'FARRAK */
 UPDATE instance_template SET ScriptName='instance_zulfarrak' WHERE map=209;
@@ -4464,7 +4466,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1568085,'%s absorbs the essence of the dragonhawk spirit!',0,2,0,0,'zuljin EMOTE_DRAGONHAWK_SPIRIT'),
 
 (-1568086,'In fact, it would be best if you just stay here. You\'d only get in my way....',0,1,0,0,'harrison SAY_OPEN_ENTRANCE_2'),
-(-1568087,'More intruders! Sound da alarm!',12104,1,0,25,'amanshi guardian SAY_SOUND_ALARM');
+(-1568087,'More intruders! Sound da alarm!',12104,1,0,25,'amanishi guardian SAY_SOUND_ALARM'),
+
+(-1568088,'Akil\'zon, the invaders approach!',0,1,0,5,'amanishi lookout SAY_START_GAUNTLET');
+
 
 -- -1 580 000 SUNWELL PLATEAU
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -8426,19 +8431,30 @@ INSERT INTO script_waypoint VALUES
 (23383,0,43,-3724.522,3313.627,297.02,0,0,0,''),
 (23383,0,44,-3734.422,3315.625,292.3213,0,5000,0,'SAY_ESCORT_COMPLETE'),
 (23383,0,45,-3730.11,3326.87,290.705,0,0,0,''),
-(24358,0,0,121.194,1645.62,42.021,0,0,0,''),
-(24358,0,1,132.051,1642.18,42.021,0,4000,0,'SAY_AT_GONG'),
-(24358,0,2,132.051,1642.18,42.021,0,1000,0,'start pounding gong'),
-(24358,0,3,127.5514,1641.869,42.35881,0,0,0,''),
-(24358,0,4,123.5514,1640.119,42.35881,0,0,0,''),
-(24358,0,5,121.947,1639.015,42.19603,0,0,0,''),
-(24358,0,6,120.8522,1637.931,42.37172,0,0,0,'SAY_OPEN_ENTRANCE'),
-(24358,0,7,121.071,1622.997,43.93089,0,0,0,''),
+(24175,0,0,216.3581,1467.675,25.9713,100,0,0,''),
+(24175,0,1,217.2123,1467.155,25.9713,100,0,0,''),
+(24175,0,2,226.0859,1461.754,25.93943,100,0,0,''),
+(24175,0,3,228.0156,1435.83,26.68943,100,0,0,''),
+(24175,0,4,228.1763,1433.847,27.18943,100,0,0,''),
+(24175,0,5,227.731,1412.553,34.4392,100,0,0,''),
+(24175,0,6,228.1711,1388.288,42.68928,100,0,0,''),
+(24175,0,7,232.5426,1374.381,47.43928,100,0,0,''),
+(24175,0,8,263.1866,1376.492,49.32307,100,0,0,''),
+(24175,0,9,265.7423,1376.84,49.34044,100,0,0,''),
+(24175,0,10,298.9646,1385.205,57.77875,100,0,0,''),
+(24358,0,0,121.194,1645.62,42.021,100,0,0,''),
+(24358,0,1,132.051,1642.18,42.021,100,4000,0,'SAY_AT_GONG'),
+(24358,0,2,132.051,1642.18,42.021,100,1000,0,'start pounding gong'),
+(24358,0,3,127.5514,1641.869,42.35881,100,0,0,''),
+(24358,0,4,123.5514,1640.119,42.35881,100,0,0,''),
+(24358,0,5,121.947,1639.015,42.19603,100,0,0,''),
+(24358,0,6,120.8522,1637.931,42.37172,100,0,0,'SAY_OPEN_ENTRANCE'),
+(24358,0,7,121.071,1622.997,43.93089,100,0,0,''),
 (24358,0,8,120.7898,1609.063,43.49005,100,9000,0,'SAY_OPEN_ENTRANCE_2'),
 (24358,0,9,120.7898,1609.063,43.49005,100,2000,0,'door opens, cast stealth'),
-(24358,0,10,120.9933,1605.888,43.97018,0,0,0,''),
-(24358,0,11,120.6967,1603.713,43.4503,0,0,0,'guardian attacker moves 1'),
-(24358,0,12,120.9157,1595.822,43.96694,0,0,0,'guardian attacker moves 2'),
+(24358,0,10,120.9933,1605.888,43.97018,100,0,0,''),
+(24358,0,11,120.6967,1603.713,43.4503,100,0,0,'guardian attacker moves 1'),
+(24358,0,12,120.9157,1595.822,43.96694,100,0,0,'guardian attacker moves 2'),
 (24358,0,13,120.594,1587.591,43.43018,100,5000,0,'dies');
 
 -- EOF

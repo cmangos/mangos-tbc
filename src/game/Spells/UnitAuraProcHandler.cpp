@@ -2780,7 +2780,7 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(ProcExecutionData& data)
     }
 
     // heal
-    CastCustomSpell(this, 33110, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, caster_guid);
+    CastCustomSpell(this, 33110, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
     return SPELL_AURA_PROC_OK;
 }
 

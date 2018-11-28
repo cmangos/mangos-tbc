@@ -7838,6 +7838,16 @@ void SpellAuraHolder::SetAuraMaxDuration(int32 duration)
     }
 }
 
+void SpellAuraHolder::SetAuraCharges(uint32 charges, bool update)
+{
+    if (m_procCharges == charges)
+        return;
+    m_procCharges = charges;
+
+    if (update)
+        UpdateAuraApplication();
+}
+
 bool SpellAuraHolder::DropAuraCharge()
 {
     if (m_procCharges == 0)

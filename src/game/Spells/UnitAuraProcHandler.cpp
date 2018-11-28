@@ -2753,14 +2753,28 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(ProcExecutionData& data)
 
             if (Player* target = ((Player*)this)->GetNextRaidMemberWithLowestLifePercentage(radius, SPELL_AURA_PRAYER_OF_MENDING))
             {
-                // aura will applied from caster, but spell casted from current aura holder
-                SpellModifier* mod = new SpellModifier(SPELLMOD_CHARGES, SPELLMOD_FLAT, jumps - 5, spellProto->Id, spellProto->SpellFamilyFlags);
+                SpellAuraHolder* holder = GetSpellAuraHolder(spellProto->Id, caster->GetObjectGuid());
+                SpellAuraHolder* new_holder = CreateSpellAuraHolder(spellProto, target, caster);
 
-                RemoveAurasByCasterSpell(spellProto->Id, caster->GetObjectGuid());
+                for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+                {
+                    Aura* aur = holder->GetAuraByEffectIndex(SpellEffectIndex(i));
+                    if (!aur)
+                        continue;
 
-                ((Player*)this)->AddSpellMod(mod, true);
-                CastCustomSpell(target, spellProto->Id, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, triggeredByAura, caster->GetObjectGuid());
-                ((Player*)this)->AddSpellMod(mod, false);
+                    int32 basePoints = aur->GetBasePoints();
+                    Aura* new_aur = CreateAura(spellProto, aur->GetEffIndex(), &basePoints, new_holder, target, caster);
+                    new_holder->AddAura(new_aur, new_aur->GetEffIndex());
+                }
+                new_holder->SetAuraCharges(jumps, false);
+
+                // lock aura holder (currently SPELL_AURA_PRAYER_OF_MENDING is single target spell, so will attempt removing from old target
+                // when applied to new one)
+                if (!target->AddSpellAuraHolder(new_holder))
+                    delete new_holder;
+                else
+                    new_holder->SetState(SPELLAURAHOLDER_STATE_READY);
+                CastSpell(target, 41637, TRIGGERED_OLD_TRIGGERED);
             }
         }
     }

@@ -328,14 +328,11 @@ class Map : public GridRefManager<NGridType>
         void AddToSpawnCount(const ObjectGuid& guid);
         void RemoveFromSpawnCount(const ObjectGuid& guid);
 
+        uint32 GetCurrentMSTime() const;
         TimePoint GetCurrentClockTime() const;
         uint32 GetCurrentDiff() const;
 
         void CreatePlayerOnClient(Player* player);
-
-        uint32 GetCurrentMSTime();
-        TimePoint GetCurrentClockTime();
-        uint32 GetCurrentDiff();
 
     private:
         void LoadMapAndVMap(int gx, int gy);

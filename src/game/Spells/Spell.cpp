@@ -3553,10 +3553,6 @@ void Spell::_handle_immediate_phase()
 
         // Proc spell aura triggers on start of channeled spell
         ProcSpellAuraTriggers();
-
-        if (m_finalSpell)
-            if (Player* modOwner = m_caster->GetSpellModOwner())
-                modOwner->RemoveSpellMods(m_usedAuraCharges);
     }
 }
 

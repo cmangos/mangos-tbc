@@ -5258,7 +5258,6 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     pet->LearnPetPassives();
     pet->CastPetAuras(true);
     pet->CastOwnerTalentAuras();
-    pet->InitTamedPetPassives(m_caster);
     pet->UpdateAllStats();
 
     pet->SetRequiredXpForNextLoyaltyLevel();
@@ -5394,7 +5393,6 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         NewSummon->LearnPetPassives();
         NewSummon->CastPetAuras(true);
         NewSummon->CastOwnerTalentAuras();
-        NewSummon->InitTamedPetPassives(m_caster);
         NewSummon->UpdateAllStats();
 
         NewSummon->SavePetToDB(PET_SAVE_AS_CURRENT);

@@ -216,19 +216,29 @@ void SpellCastTargets::write(ByteBuffer& data) const
         {
             if (m_unitTarget)
                 data << m_unitTarget->GetPackGUID();
+            else
+                data << uint8(0);
         }
         else if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_UNK))
         {
             if (m_GOTarget)
                 data << m_GOTarget->GetPackGUID();
+            else
+                data << uint8(0);
         }
         else if (m_targetMask & (TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_PVP_CORPSE))
             data << m_CorpseTargetGUID.WriteAsPacked();
+        else
+            data << uint8(0);
     }
 
     if (m_targetMask & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM))
+    {
         if (m_itemTarget)
             data << m_itemTarget->GetPackGUID();
+        else
+            data << uint8(0);
+    }
 
     if (m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
         data << m_srcX << m_srcY << m_srcZ;

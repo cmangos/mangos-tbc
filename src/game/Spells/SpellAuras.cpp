@@ -4725,9 +4725,6 @@ void Aura::HandlePeriodicHeal(bool apply, bool /*Real*/)
             case 12939: m_modifier.m_amount = target->GetMaxHealth() / 3; break; // Polymorph Heal Effect
             default: m_modifier.m_amount = caster->SpellHealingBonusDone(target, GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount()); break;
         }
-
-        if (GetId() == 37121) // Crystalcore Mechanic - Recharge
-            caster->SetTurningOff(apply);
     }
 }
 

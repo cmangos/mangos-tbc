@@ -1221,6 +1221,7 @@ UPDATE creature_template SET ScriptName='npc_amanishi_hatcher' WHERE entry IN (2
 UPDATE creature_template SET ScriptName='npc_forest_frog' WHERE entry=24396;
 UPDATE creature_template SET ScriptName='npc_amanishi_lookout' WHERE entry=24175;
 UPDATE creature_template SET ScriptName='npc_amanishi_tempest' WHERE entry=24549;
+UPDATE creature_template SET ScriptName='npc_harkor' WHERE entry=23999;
 
 /* ZUL'FARRAK */
 UPDATE instance_template SET ScriptName='instance_zulfarrak' WHERE map=209;
@@ -4468,7 +4469,11 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1568086,'In fact, it would be best if you just stay here. You\'d only get in my way....',0,1,0,0,'harrison SAY_OPEN_ENTRANCE_2'),
 (-1568087,'More intruders! Sound da alarm!',12104,1,0,25,'amanishi guardian SAY_SOUND_ALARM'),
 
-(-1568088,'Akil\'zon, the invaders approach!',0,1,0,5,'amanishi lookout SAY_START_GAUNTLET');
+(-1568088,'Akil\'zon, the invaders approach!',0,1,0,5,'amanishi lookout SAY_START_GAUNTLET'),
+(-1568089,'Hallooo.... You just gunna sit down there an\' pat yerselves on the back? What kinda rescuers are ya?',0,1,0,1,'harkor SAY_HARKOR_HELP'),
+(-1568090,"Ahh, freedom!",2725,0,0,4,'harkor SAY_HARKOR_EVENT_1'),
+(-1568091,"A'course it only be fair that I reward yeh fer me rescue. Now where'd them savages put me satchel?",0,0,0,1,'harkor SAY_HARKOR_EVENT_2'),
+(-1568092,"Don't be shy, now. Help yerselves. If it weren't fer yer help, them basterds'd be shrinkin' me head right about now.",0,0,0,1,'harkor SAY_HARKOR_EVENT_3');
 
 
 -- -1 580 000 SUNWELL PLATEAU
@@ -4781,7 +4786,8 @@ INSERT INTO gossip_texts (entry,content_default,comment) VALUES
 
 -- -3 568 000 ZUL'AMAN
 INSERT INTO gossip_texts (entry,content_default,comment) VALUES
-(-3568000,'Thanks for the concern, but we intend to explore Zul\'Aman.','harrison jones GOSSIP_ITEM_BEGIN');
+(-3568000,'Thanks for the concern, but we intend to explore Zul\'Aman.','harrison jones GOSSIP_ITEM_BEGIN'),
+(-3568001,'The coast is clear. You\'re free!','harkor GOSSIP_ITEM_FREE');
 
 --
 -- Below just for beautiful view in table, run at own desire
@@ -8431,6 +8437,11 @@ INSERT INTO script_waypoint VALUES
 (23383,0,43,-3724.522,3313.627,297.02,0,0,0,''),
 (23383,0,44,-3734.422,3315.625,292.3213,0,5000,0,'SAY_ESCORT_COMPLETE'),
 (23383,0,45,-3730.11,3326.87,290.705,0,0,0,''),
+(23999,0,0,297.9303,1465.843,81.57809,100,7000,0,'SAY_HARKOR_EVENT_1, SAY_HARKOR_EVENT_2'),
+(23999,0,1,302.2797,1462.846,81.57086,100,0,0,''),
+(23999,0,2,306.3771,1463.949,81.58128,100,6000,0,''),
+(23999,0,3,304.3857,1465.72,81.58634,100,6000,0,''),
+(23999,0,4,298.7304,1464.985,81.57541,100,60000,0,'SAY_HARKOR_EVENT_3'),
 (24175,0,0,216.3581,1467.675,25.9713,100,0,0,''),
 (24175,0,1,217.2123,1467.155,25.9713,100,0,0,''),
 (24175,0,2,226.0859,1461.754,25.93943,100,0,0,''),

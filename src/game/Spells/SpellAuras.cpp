@@ -5394,9 +5394,25 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
             }
             return;
         }
+        case 30421:
+        {
+            if (m_removeMode != AURA_REMOVE_BY_GAINED_STACK)
+                target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(30000 + m_modifier.m_amount), apply);
+            else
+                target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_recentAmount), apply);
+            if (apply)
+                target->SetHealth(target->GetMaxHealth());
+            else if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                target->CastSpell(target, 38637, TRIGGERED_OLD_TRIGGERED);
+            return;
+        }
         // generic case
         default:
-            target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+            if (m_removeMode != AURA_REMOVE_BY_GAINED_STACK)
+                target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+            else
+                target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_recentAmount), apply);
+            break;
     }
 }
 
@@ -5428,7 +5444,7 @@ void Aura::HandleAuraModIncreaseEnergy(bool apply, bool /*Real*/)
 
     UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + powerType);
 
-    target->HandleStatModifier(unitMod, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+    target->HandleStatModifier(unitMod, TOTAL_VALUE, float(m_removeMode == AURA_REMOVE_BY_GAINED_STACK ? m_modifier.m_recentAmount : m_modifier.m_amount), apply);
 }
 
 void Aura::HandleAuraModIncreaseEnergyPercent(bool apply, bool /*Real*/)
@@ -5842,6 +5858,10 @@ void Aura::HandleModDamagePercentDone(bool apply, bool Real)
     if (target->GetTypeId() == TYPEID_PLAYER)
         for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
             target->ApplyModSignedFloatValue(PLAYER_FIELD_MOD_DAMAGE_DONE_PCT + i, m_modifier.m_amount / 100.0f, apply);
+
+    if (!apply && m_removeMode == AURA_REMOVE_BY_EXPIRE)
+        if (GetId() == 30423)
+            target->CastSpell(target, 38639, TRIGGERED_OLD_TRIGGERED);
 }
 
 void Aura::HandleModOffhandDamagePercent(bool apply, bool Real)
@@ -5865,10 +5885,16 @@ void Aura::HandleModPowerCostPCT(bool apply, bool Real)
     if (!Real)
         return;
 
-    float amount = m_modifier.m_amount / 100.0f;
+    Unit* target = GetTarget();
+
+    float amount = (m_removeMode == AURA_REMOVE_BY_GAINED_STACK ? m_modifier.m_recentAmount : m_modifier.m_amount) / 100.0f;
     for (int i = 0; i < MAX_SPELL_SCHOOL; ++i)
         if (m_modifier.m_miscvalue & (1 << i))
-            GetTarget()->ApplyModSignedFloatValue(UNIT_FIELD_POWER_COST_MULTIPLIER + i, amount, apply);
+            target->ApplyModSignedFloatValue(UNIT_FIELD_POWER_COST_MULTIPLIER + i, amount, apply);
+
+    if (!apply && m_removeMode == AURA_REMOVE_BY_EXPIRE)
+        if (GetId() == 30422)
+            target->CastSpell(target, 38638, TRIGGERED_OLD_TRIGGERED);
 }
 
 void Aura::HandleModPowerCost(bool apply, bool Real)
@@ -7673,7 +7699,9 @@ void SpellAuraHolder::SetStackAmount(uint32 stackAmount, Unit* newCaster)
             // Reapply if amount change
             if (amount != aur->GetModifier()->m_amount)
             {
-                aur->ApplyModifier(false, true);
+                aur->SetRemoveMode(AURA_REMOVE_BY_GAINED_STACK);
+                if (IsAuraRemoveOnStacking(this->GetSpellProto(), aur->GetEffIndex()))
+                    aur->ApplyModifier(false, true);
                 aur->GetModifier()->m_amount = amount;
                 aur->GetModifier()->m_recentAmount = baseAmount * (stackAmount - oldStackAmount);
                 aur->ApplyModifier(true, true);

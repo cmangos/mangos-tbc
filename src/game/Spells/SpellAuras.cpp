@@ -1373,8 +1373,17 @@ void Aura::TriggerSpell()
                         triggerTarget->CastCustomSpell(triggerTarget, 35283, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, this, casterGUID);
                         return;
                     }
-//                    // Gravity Lapse
-//                    case 34480: break;
+                    // Gravity Lapse
+                    case 34480:
+                    {
+                        float x, y, z;
+                        target->GetPosition(x, y, z);
+                        float floorZ = target->GetMap()->GetHeight(x, y, z);
+                        if (std::abs(z - floorZ) < 4.f) // knock up player if he is too close to the ground
+                            target->CastSpell(nullptr, 35938, TRIGGERED_OLD_TRIGGERED);
+
+                        return;
+                    }
 //                    // Tornado
 //                    case 34683: break;
 //                    // Frostbite Rotate
@@ -1412,7 +1421,34 @@ void Aura::TriggerSpell()
 //                    // Professor Dabiri Talks
 //                    case 36064: break;
 //                    // Kael Gaining Power
-//                    case 36091: break;
+                    case 36091:
+                    {
+                        switch (GetAuraTicks())
+                        {
+                            case 1:
+                                target->CastSpell(target, 36364, TRIGGERED_OLD_TRIGGERED);
+                                target->PlayDirectSound(27);
+                                target->PlayDirectSound(1136);
+                                break;
+                            case 2:
+                                target->RemoveAurasDueToSpell(36364);
+                                target->CastSpell(target, 36370, TRIGGERED_OLD_TRIGGERED);
+                                target->PlayDirectSound(27);
+                                target->PlayDirectSound(1136);
+                                break;
+                            case 3:
+                                target->RemoveAurasDueToSpell(36370);
+                                target->CastSpell(target, 36371, TRIGGERED_OLD_TRIGGERED);
+                                target->PlayDirectSound(27);
+                                target->PlayDirectSound(1136);
+                                break;
+                            case 4:
+                                if (target->GetTypeId() == TYPEID_UNIT && target->AI())
+                                    target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, static_cast<Creature*>(target));
+                                break;
+                        }
+                        break;
+                    }
 //                    // They Must Burn Bomb Aura
 //                    case 36344: break;
 //                    // They Must Burn Bomb Aura (self)
@@ -1436,7 +1472,10 @@ void Aura::TriggerSpell()
 //                    // Cannon Charging (self)
 //                    case 36860: break;
                     case 37027:                             // Remote Toy
-                        trigger_spell_id = 37029;
+                        if (urand(0, 4) == 0)               // 20% chance to apply trigger spell
+                            trigger_spell_id = 37029;
+                        else
+                            return;
                         break;
 //                    // Mark of Death
 //                    case 37125: break;
@@ -2196,6 +2235,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         //    caster->SetLevitate(true);
                         //    caster->SetCanFly(true);
                         //}
+                        return;
+                    }
+                    case 36089:
+                    case 36090:                             // Netherbeam - Kaelthas
+                    {
+                        float speed = target->GetBaseRunSpeed(); // fetch current base speed
+                        target->ApplyModPositiveFloatValue(OBJECT_FIELD_SCALE_X, float(m_modifier.m_amount) / 100, apply);
+                        target->UpdateModelData(); // resets speed
+                        target->SetBaseRunSpeed(speed + (1.f / 7.f));
+                        target->UpdateSpeed(MOVE_RUN, true); // sends speed packet
                         return;
                     }
                     case 36587:                             // Vision Guide

@@ -774,7 +774,7 @@ struct SpellEntry
 {
         uint32    Id;                                       // 0        m_ID
         uint32    Category;                                 // 1        m_category
-        // uint32     castUI                                // 2 not used
+        uint32    CastUI;                                   // 2        not used
         uint32    Dispel;                                   // 3        m_dispelType
         uint32    Mechanic;                                 // 4        m_mechanic
         uint32    Attributes;                               // 5        m_attributes
@@ -814,7 +814,7 @@ struct SpellEntry
         uint32    manaPerSecondPerLevel;                    // 39       m_manaPerSecondPerLevel
         uint32    rangeIndex;                               // 40       m_rangeIndex
         float     speed;                                    // 41       m_speed
-        // uint32    modalNextSpell;                        // 42       m_modalNextSpell not used
+        uint32    modalNextSpell;                           // 42       m_modalNextSpell not used
         uint32    StackAmount;                              // 43       m_cumulativeAura
         uint32    Totem[MAX_SPELL_TOTEMS];                  // 44-45    m_totem
         int32     Reagent[MAX_SPELL_REAGENTS];              // 46-53    m_reagent
@@ -863,11 +863,11 @@ struct SpellEntry
         uint32    MaxAffectedTargets;                       // 202      m_maxTargets
         uint32    DmgClass;                                 // 203      m_defenseType
         uint32    PreventionType;                           // 204      m_preventionType
-        // uint32    StanceBarOrder;                        // 205      m_stanceBarOrder not used
+        int32    StanceBarOrder;                            // 205      m_stanceBarOrder not used
         float     DmgMultiplier[MAX_EFFECT_INDEX];          // 206-208  m_effectChainAmplitude
-        // uint32    MinFactionId;                          // 209      m_minFactionID not used
-        // uint32    MinReputation;                         // 210      m_minReputation not used
-        // uint32    RequiredAuraVision;                    // 211      m_requiredAuraVision not used
+        uint32    MinFactionId;                             // 209      m_minFactionID not used
+        uint32    MinReputation;                            // 210      m_minReputation not used
+        uint32    RequiredAuraVision;                       // 211      m_requiredAuraVision not used
         uint32    TotemCategory[MAX_SPELL_TOTEM_CATEGORIES];// 212-213  m_requiredTotemCategoryID
         uint32    AreaId;                                   // 214
         uint32    SchoolMask;                               // 215      m_schoolMask

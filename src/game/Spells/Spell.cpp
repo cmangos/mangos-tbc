@@ -2087,23 +2087,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     targetUnitMap.resize(unMaxTargets);
                 }
             }
-            else
-            {
-                // Do not target current victim
-                switch (m_spellInfo->Id)
-                {
-                    case 30769:                             // Pick Red Riding Hood
-                    case 30843:                             // Enfeeble
-                    case 31347:                             // Doom
-                    case 37676:                             // Insidious Whisper
-                    case 38028:                             // Watery Grave
-                    case 40618:                             // Insignificance
-                    case 41376:                             // Spite
-                        if (Unit* pVictim = m_caster->getVictim())
-                            targetUnitMap.remove(pVictim);
-                        break;
-                }
-            }
             break;
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC:
         {

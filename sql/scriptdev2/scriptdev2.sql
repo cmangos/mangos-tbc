@@ -1222,6 +1222,7 @@ UPDATE creature_template SET ScriptName='npc_forest_frog' WHERE entry=24396;
 UPDATE creature_template SET ScriptName='npc_amanishi_lookout' WHERE entry=24175;
 UPDATE creature_template SET ScriptName='npc_amanishi_tempest' WHERE entry=24549;
 UPDATE creature_template SET ScriptName='npc_harkor' WHERE entry=23999;
+UPDATE creature_template SET ScriptName='npc_tanzar' WHERE entry=23790;
 
 /* ZUL'FARRAK */
 UPDATE instance_template SET ScriptName='instance_zulfarrak' WHERE map=209;
@@ -4473,7 +4474,14 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1568089,'Hallooo.... You just gunna sit down there an\' pat yerselves on the back? What kinda rescuers are ya?',2716,1,0,1,'harkor SAY_HARKOR_HELP'),
 (-1568090,"Ahh, freedom!",2725,0,0,4,'harkor SAY_HARKOR_EVENT_1'),
 (-1568091,"A'course it only be fair that I reward yeh fer me rescue. Now where'd them savages put me satchel?",0,0,0,1,'harkor SAY_HARKOR_EVENT_2'),
-(-1568092,"Don't be shy, now. Help yerselves. If it weren't fer yer help, them basterds'd be shrinkin' me head right about now.",0,0,0,1,'harkor SAY_HARKOR_EVENT_3');
+(-1568092,"Don't be shy, now. Help yerselves. If it weren't fer yer help, them basterds'd be shrinkin' me head right about now.",0,0,0,1,'harkor SAY_HARKOR_EVENT_3'),
+
+(-1568093,'You kill the trollbear, mon? It be safe for Tanzar to come out now?',2850,1,0,1,'tanzar SAY_TANZAR_HELP'),
+(-1568094,'Wahoo! Tanzar be free!',2859,0,0,4,'tanzar SAY_TANZAR_EVENT_1'),
+(-1568095,'What luck! Here be one of Tanzar\'s things....',0,0,0,0,'tanzar SAY_TANZAR_EVENT_2'),
+(-1568096,'Hrmm... left, right, wiggle, press....',0,0,0,0,'tanzar SAY_TANZAR_EVENT_3'),
+(-1568097,'A little deeper now - almost got it....',0,0,0,0,'tanzar SAY_TANZAR_EVENT_3_ALT'),
+(-1568098,'There now. It be a gift to you, to celebrate Tanzar\'s great escape!',0,0,0,1,'tanzar SAY_TANZAR_EVENT_4');
 
 
 -- -1 580 000 SUNWELL PLATEAU
@@ -4787,7 +4795,8 @@ INSERT INTO gossip_texts (entry,content_default,comment) VALUES
 -- -3 568 000 ZUL'AMAN
 INSERT INTO gossip_texts (entry,content_default,comment) VALUES
 (-3568000,'Thanks for the concern, but we intend to explore Zul\'Aman.','harrison jones GOSSIP_ITEM_BEGIN'),
-(-3568001,'The coast is clear. You\'re free!','harkor GOSSIP_ITEM_FREE');
+(-3568001,'The coast is clear. You\'re free!','harkor GOSSIP_ITEM_FREE'),
+(-3568002,'Nalorakk is dead, you\'re free to go.','tanzar GOSSIP_ITEM_ID_FREE_TANZAR');
 
 --
 -- Below just for beautiful view in table, run at own desire
@@ -8437,6 +8446,12 @@ INSERT INTO script_waypoint VALUES
 (23383,0,43,-3724.522,3313.627,297.02,0,0,0,''),
 (23383,0,44,-3734.422,3315.625,292.3213,0,5000,0,'SAY_ESCORT_COMPLETE'),
 (23383,0,45,-3730.11,3326.87,290.705,0,0,0,''),
+(23790,0,0,-145.6961,1334.897,48.17388,100,0,0,''),
+(23790,0,1,-142.8265,1336.211,48.17387,100,8000,0,''),
+(23790,0,2,-139.6775,1335.789,48.17387,100,0,0,''),
+(23790,0,3,-136.364,1333.894,48.17387,100,17000,0,''),
+(23790,0,4,-138.0992,1332.832,48.17387,100,0,0,''),
+(23790,0,5,-139.3139,1331.377,48.17387,100,60000,0,''),
 (23999,0,0,297.9303,1465.843,81.57809,100,7000,0,'SAY_HARKOR_EVENT_1, SAY_HARKOR_EVENT_2'),
 (23999,0,1,302.2797,1462.846,81.57086,100,0,0,''),
 (23999,0,2,306.3771,1463.949,81.58128,100,6000,0,''),

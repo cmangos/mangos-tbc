@@ -4,7 +4,7 @@ CREATE DATABASE `tbccharacters` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_
 
 CREATE DATABASE `tbcrealmd` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
-CREATE USER 'mangos'@'localhost' IDENTIFIED BY 'mangos';
+CREATE USER IF NOT EXISTS 'mangos'@'localhost' IDENTIFIED BY 'mangos';
 
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, LOCK TABLES, CREATE TEMPORARY TABLES ON `tbcmangos`.* TO 'mangos'@'localhost';
 

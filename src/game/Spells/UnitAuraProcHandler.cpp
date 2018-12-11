@@ -1868,6 +1868,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 basepoints[0] = triggerAmount;
                 target = this;
                 triggered_spell_id = 379;
+                triggeredByAura = nullptr;
                 break;
             }
             // Lightning Overload

@@ -438,10 +438,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
             }
             case SPELLFAMILY_PRIEST:
             {
-                // Shadow Word: Death - deals damage equal to damage done to caster
-                // TODO: fix so that it has all dmg bonuses as well - chain lighting multiplier issue
-                if (m_spellInfo->SpellFamilyFlags & 0x0000000200000000LL)
-                    m_caster->CastCustomSpell(m_caster, 32409, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
                 break;
             }
             case SPELLFAMILY_DRUID:

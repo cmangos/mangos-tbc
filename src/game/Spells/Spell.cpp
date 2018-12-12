@@ -1242,6 +1242,11 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
         procEx |= createProcExtendMask(&damageInfo, missInfo);
         procVictim |= PROC_FLAG_TAKEN_ANY_DAMAGE;
 
+        // Shadow Word: Death - deals damage equal to damage done to caster
+        // TODO: fix effect damage calculation so that this can be moved to a script hook - must be before DealSpellDamage
+        if (m_spellInfo->SpellFamilyFlags & 0x0000000200000000LL)
+            m_caster->CastCustomSpell(m_caster, 32409, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+
         caster->DealSpellDamage(&damageInfo, true);
 
         // Judgement of Blood

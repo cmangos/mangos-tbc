@@ -1127,8 +1127,6 @@ void Player::Update(const uint32 diff)
     if (!IsInWorld())
         return;
 
-    ToCPlayer()->CUpdate(update_diff, p_time);
-
     // Undelivered mail
     if (m_nextMailDelivereTime && m_nextMailDelivereTime <= time(nullptr))
     {

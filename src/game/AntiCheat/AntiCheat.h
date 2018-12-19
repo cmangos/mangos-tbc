@@ -16,7 +16,7 @@ public:
     virtual ~AntiCheat() {}
 
     virtual bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat);
-    virtual void HandleUpdate(uint32 /*update_diff*/, uint32 /*p_time*/) { }
+    virtual void HandleUpdate(uint32 /*update_diff*/) { }
     virtual void HandleRelocate(float x, float y, float z, float o);
     virtual void HandleTeleport(uint32 map, float x, float y, float z, float o);
     virtual void HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed);

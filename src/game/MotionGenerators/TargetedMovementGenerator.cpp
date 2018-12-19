@@ -131,6 +131,14 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
     if (!owner.isAlive())
         return true;
 
+    // prevent movement while casting spells with cast time or channel time
+    if (owner.IsNonMeleeSpellCasted(false, false, true, true))
+    {
+        if (!owner.IsStopped())
+            owner.StopMoving();
+        return true;
+    }
+
     if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))
     {
         D::_clearUnitStateMove(owner);
@@ -223,8 +231,7 @@ bool ChaseMovementGenerator<T>::_lostTarget(T& u) const
 template<class T>
 void ChaseMovementGenerator<T>::_reachTarget(T& owner)
 {
-    if (m_combat && owner.CanReachWithMeleeAttack(this->i_target.getTarget()))
-        owner.Attack(this->i_target.getTarget(), true);
+
 }
 
 template<>

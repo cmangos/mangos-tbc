@@ -50,6 +50,7 @@ enum CanCastResult
     CAST_FAIL_TARGET_AURA       = 7,
     CAST_FAIL_NOT_IN_LOS        = 8,
     CAST_FAIL_COOLDOWN          = 9,
+    CAST_FAIL_EVADE             = 10,
 };
 
 enum CastFlags
@@ -108,6 +109,15 @@ enum ReactStates
     REACT_PASSIVE    = 0,
     REACT_DEFENSIVE  = 1,
     REACT_AGGRESSIVE = 2
+};
+
+enum AIOrders
+{
+    ORDER_NONE,
+    ORDER_DISTANCING,
+    ORDER_FLEEING,
+    ORDER_EVADE,
+    ORDER_CUSTOM,
 };
 
 class UnitAI
@@ -320,10 +330,6 @@ class UnitAI
         /// Check if this AI can be replaced in possess case
         // virtual bool IsControllable() const { return false; }
 
-        // Called when victim entered water and creature can not enter water
-        // TODO: rather unused
-        virtual bool canReachByRangeAttack(Unit*) { return false; }
-
         ///== Helper functions =============================
 
         /// This function is used to do the actual melee damage (if possible)
@@ -401,6 +407,8 @@ class UnitAI
          */
         virtual void OnChannelStateChange(SpellEntry const* spellInfo, bool state, WorldObject* target = nullptr);
 
+        virtual void TimedFleeingEnded();
+
         void CheckForHelp(Unit* /*who*/, Unit* /*me*/, float /*dist*/);
         void DetectOrAttack(Unit* who);
         bool CanTriggerStealthAlert(Unit* who, float attackRadius) const;
@@ -425,12 +433,23 @@ class UnitAI
         void SetCombatScriptStatus(bool state) { m_combatScriptHappening = state; };
         bool GetCombatScriptStatus() const { return m_combatScriptHappening; }
 
+        void SetAIOrder(AIOrders order) { m_currentAIOrder = order; }
+        AIOrders GetAIOrder() const { return m_currentAIOrder; }
+
+        void DoFlee();
+        void DoDistance(); // TODO
+        void DoCallForHelp(); // TODO
+        void DoSeekAssistance(); // TODO
+
         void SetMeleeEnabled(bool state);
 
         // Rough prototype, we might not need such fidelity
         virtual void JustRootedTarget(SpellEntry const* spellInfo, Unit* victim) { JustStoppedMovementOfTarget(spellInfo, victim); }
         virtual void JustStunnedTarget(SpellEntry const* spellInfo, Unit* victim) { JustStoppedMovementOfTarget(spellInfo, victim); }
         virtual void JustStoppedMovementOfTarget(SpellEntry const* spellInfo, Unit* victim) {}
+
+        // AI selection - works in connection with IsPossessCharmType
+        virtual bool CanHandleCharm() { return false; }
 
     protected:
         virtual std::string GetAIName() { return "UnitAI"; }
@@ -458,6 +477,7 @@ class UnitAI
         ReactStates m_reactState;
 
         bool m_combatScriptHappening;                    // disables normal combat functions without leaving combat
+        AIOrders m_currentAIOrder;
 };
 
 struct SelectableAI : public FactoryHolder<UnitAI>, public Permissible<Creature>

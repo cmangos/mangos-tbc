@@ -33,6 +33,7 @@ extern SQLStorage sInstanceTemplate;
 extern SQLStorage sWorldTemplate;
 extern SQLStorage sConditionStorage;
 extern SQLStorage sSpellTemplate;
+extern SQLStorage sSpellCones;
 extern SQLStorage sDungeonEncounterStore;
 extern SQLStorage sFactionStore;
 extern SQLStorage sCreatureConditionalSpawnStore;

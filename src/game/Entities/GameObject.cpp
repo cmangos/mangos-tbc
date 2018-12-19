@@ -212,7 +212,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
     return true;
 }
 
-void GameObject::Update(uint32 update_diff, uint32 p_time)
+void GameObject::Update(const uint32 diff)
 {
     if (GetObjectGuid().IsMOTransport())
     {
@@ -465,7 +465,7 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
                     }
                     break;
                 case GAMEOBJECT_TYPE_CAPTURE_POINT:
-                    m_captureTimer += p_time;
+                    m_captureTimer += diff;
                     if (m_captureTimer >= 5000)
                     {
                         TickCapturePoint();
@@ -592,17 +592,17 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
 
     if (m_delayedActionTimer)
     {
-        if (m_delayedActionTimer <= update_diff)
+        if (m_delayedActionTimer <= diff)
         {
             m_delayedActionTimer = 0;
             TriggerDelayedAction();
         }
         else
-            m_delayedActionTimer -= update_diff;
+            m_delayedActionTimer -= diff;
     }
 
     if (m_AI)
-        m_AI->UpdateAI(update_diff);
+        m_AI->UpdateAI(diff);
 }
 
 void GameObject::Refresh()
@@ -935,7 +935,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
         }
 
         // Smuggled Mana Cell required 10 invisibility type detection/state
-        if (GetEntry() == 187039 && ((u->m_detectInvisibilityMask | u->m_invisibilityMask) & (1 << 10)) == 0)
+        if (GetEntry() == 187039 && ((u->GetInvisibilityDetectMask() | u->GetInvisibilityMask()) & (1 << 10)) == 0)
             return false;
     }
 
@@ -2266,7 +2266,7 @@ void GameObject::TriggerSummoningRitual()
         ClearAllUsesData();
 
     if (caster)
-        caster->CastSpell(sObjectMgr.GetPlayer(m_actionTarget), info->summoningRitual.spellId, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid());
+        caster->CastSpell(sObjectMgr.GetPlayer(m_actionTarget), info->summoningRitual.spellId, TRIGGERED_OLD_TRIGGERED | TRIGGERED_INSTANT_CAST, nullptr, nullptr, GetObjectGuid());
 }
 
 void GameObject::TriggerDelayedAction()

@@ -178,7 +178,7 @@ struct boss_high_king_maulgarAI : public ScriptedAI
             {
                 if (m_uiChargeTimer <= uiDiff)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER))
                     {
                         if (DoCastSpellIfCan(pTarget, SPELL_CHARGE) == CAST_OK)
                             m_uiChargeTimer = urand(14000, 20000);
@@ -311,7 +311,7 @@ struct boss_kiggler_the_crazedAI : public Council_Base_AI
 
     void Reset() override
     {
-        m_actionTimers[KIGGLER_ACTION_GREATER_POLYMORPH] = 15000;
+        m_actionTimers[KIGGLER_ACTION_GREATER_POLYMORPH] = 5000;
         m_actionTimers[KIGGLER_ACTION_LIGHTNING_BOLT] = 0;
         m_actionTimers[KIGGLER_ACTION_ARCANE_SHOCK] = 20000;
         m_actionTimers[KIGGLER_ACTION_ARCANE_EXPLOSION] = 30000;
@@ -340,7 +340,7 @@ struct boss_kiggler_the_crazedAI : public Council_Base_AI
 
     void ExecuteActions()
     {
-        if (m_creature->IsNonMeleeSpellCasted(false) || !CanExecuteCombatAction())
+        if (!CanExecuteCombatAction())
             return;
 
         for (uint32 i = 0; i < KIGGLER_ACTION_MAX; ++i)
@@ -352,7 +352,7 @@ struct boss_kiggler_the_crazedAI : public Council_Base_AI
                     case KIGGLER_ACTION_GREATER_POLYMORPH:
                         if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_GREATER_POLYMORPH) == CAST_OK)
                         {
-                            m_actionTimers[KIGGLER_ACTION_GREATER_POLYMORPH] = urand(15000, 20000);
+                            m_actionTimers[KIGGLER_ACTION_GREATER_POLYMORPH] = 11000;
                             m_actionReadyStatus[i] = false;
                             return;
                         }

@@ -34,7 +34,7 @@ pAuraProcHandler AuraProcHandler[TOTAL_AURAS] =
     &Unit::HandleNULLProc,                                  //  0 SPELL_AURA_NONE
     &Unit::HandleNULLProc,                                  //  1 SPELL_AURA_BIND_SIGHT
     &Unit::HandleNULLProc,                                  //  2 SPELL_AURA_MOD_POSSESS
-    &Unit::HandleNULLProc,                                  //  3 SPELL_AURA_PERIODIC_DAMAGE
+    &Unit::HandlePeriodicAuraProc,                          //  3 SPELL_AURA_PERIODIC_DAMAGE
     &Unit::HandleDummyAuraProc,                             //  4 SPELL_AURA_DUMMY
     &Unit::HandleNULLProc,                                  //  5 SPELL_AURA_MOD_CONFUSE
     &Unit::HandleNULLProc,                                  //  6 SPELL_AURA_MOD_CHARM
@@ -508,9 +508,8 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
         bool procSuccess = true;
         bool anyAuraProc = false;
 
-        // For players set spell cooldown if need
         execData.cooldown = 0;
-        if (GetTypeId() == TYPEID_PLAYER && spellProcEvent && spellProcEvent->cooldown)
+        if (spellProcEvent && spellProcEvent->cooldown)
             execData.cooldown = spellProcEvent->cooldown;
 
         for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
@@ -677,26 +676,33 @@ SpellAuraProcResult Unit::HandleHasteAuraProc(ProcExecutionData& data)
     Unit* target = pVictim;
     int32 basepoints0 = 0;
 
-    switch (hasteSpell->SpellFamilyName)
+    switch (hasteSpell->Id)
     {
-        case SPELLFAMILY_ROGUE:
+        // Blade Flurry
+        case 13877:
+        case 33735:
         {
-            switch (hasteSpell->Id)
-            {
-                // Blade Flurry
-                case 13877:
-                case 33735:
-                {
-                    target = SelectRandomUnfriendlyTarget(pVictim);
-                    if (!target)
-                        return SPELL_AURA_PROC_FAILED;
-                    basepoints0 = damage;
-                    triggered_spell_id = 22482;
-                    break;
-                }
-            }
+            target = SelectRandomUnfriendlyTarget(pVictim);
+            if (!target)
+                return SPELL_AURA_PROC_FAILED;
+            basepoints0 = damage;
+            triggered_spell_id = 22482;
             break;
         }
+        // Flurry - Warrior/Shaman
+        case 12966:
+        case 12967:
+        case 12968:
+        case 12969:
+        case 12970:
+        case 16257:
+        case 16277:
+        case 16278:
+        case 16279:
+        case 16280:
+            if (pVictim != GetTarget() || m_extraAttacksExecuting) // can only proc on main target
+                return SPELL_AURA_PROC_FAILED;
+            break;
     }
 
     // processed charge only counting case
@@ -979,6 +985,17 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     target = this;
                     if (roll_chance_i(10))
                         ((Player*)this)->Say("This is Madness!", LANG_UNIVERSAL);
+                    break;
+                }
+                case 42454: // Captured Totem - procs on death quest credit
+                {
+                    Unit* caster = triggeredByAura->GetCaster();
+                    if (!caster)
+                        return SPELL_AURA_PROC_FAILED;
+                    Unit* owner = caster->GetOwner();
+                    if (!owner)
+                        return SPELL_AURA_PROC_FAILED;
+                    CastSpell(owner, 42455, TRIGGERED_NONE);
                     break;
                 }
                 // Sunwell Exalted Caster Neck (Shattered Sun Pendant of Acumen neck)
@@ -1851,6 +1868,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 basepoints[0] = triggerAmount;
                 target = this;
                 triggered_spell_id = 379;
+                triggeredByAura = nullptr;
                 break;
             }
             // Lightning Overload
@@ -2051,7 +2069,6 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                     break;
                 // case 38363: break;                   // Gushing Wound
                 // case 39215: break;                   // Gushing Wound
-                // case 40250: break;                   // Improved Duration
                 // case 40329: break;                   // Demo Shout Sensor
                 // case 40364: break;                   // Entangling Roots Sensor
                 // case 41054: break;                   // Copy Weapon
@@ -2573,8 +2590,12 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
     // Quick check for target modes for procs: do not cast offensive procs on friendly targets and in reverse
     if (!(procEx & PROC_EX_REFLECT))
     {
-        if (IsPositiveSpellTargetMode(triggerEntry, this, target) != CanAssist(target))
-            return SPELL_AURA_PROC_FAILED;
+        // TODO: add neutral target handling, neutral targets should still be able to go through
+        if (!(this == target && IsOnlySelfTargeting(triggerEntry)))
+        {
+            if (IsPositiveSpellTargetMode(triggerEntry, this, target) != CanAssist(target))
+                return SPELL_AURA_PROC_FAILED;
+        }
     }
 
     if (basepoints[EFFECT_INDEX_0] || basepoints[EFFECT_INDEX_1] || basepoints[EFFECT_INDEX_2])
@@ -2644,6 +2665,15 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(ProcExecutionData& d
             if (!procSpell || procSpell->SpellVisual != 9487)
                 return SPELL_AURA_PROC_FAILED;
             triggered_spell_id = 12486;
+            break;
+        }
+        case 3656:                                          // Corrupted Healing (Priest class call in Nefarian encounter)
+        {
+            // Procced spell can only be triggered by direct heals
+            // Heal over time like Renew does not trigger it
+            // Check that only priest class can proc it is done in Spell::CheckTargetScript() for aura 23401
+            if (IsSpellHaveEffect(procSpell, SPELL_EFFECT_HEAL))
+                triggered_spell_id = 23402;
             break;
         }
         case 4086:                                          // Improved Mend Pet (Rank 1)
@@ -2740,20 +2770,34 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(ProcExecutionData& data)
 
             if (Player* target = ((Player*)this)->GetNextRaidMemberWithLowestLifePercentage(radius, SPELL_AURA_PRAYER_OF_MENDING))
             {
-                // aura will applied from caster, but spell casted from current aura holder
-                SpellModifier* mod = new SpellModifier(SPELLMOD_CHARGES, SPELLMOD_FLAT, jumps - 5, spellProto->Id, spellProto->SpellFamilyFlags);
+                SpellAuraHolder* holder = GetSpellAuraHolder(spellProto->Id, caster->GetObjectGuid());
+                SpellAuraHolder* new_holder = CreateSpellAuraHolder(spellProto, target, caster);
 
-                RemoveAurasByCasterSpell(spellProto->Id, caster->GetObjectGuid());
+                for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+                {
+                    Aura* aur = holder->GetAuraByEffectIndex(SpellEffectIndex(i));
+                    if (!aur)
+                        continue;
 
-                ((Player*)this)->AddSpellMod(mod, true);
-                CastCustomSpell(target, spellProto->Id, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, triggeredByAura, caster->GetObjectGuid());
-                ((Player*)this)->AddSpellMod(mod, false);
+                    int32 basePoints = aur->GetBasePoints();
+                    Aura* new_aur = CreateAura(spellProto, aur->GetEffIndex(), &basePoints, new_holder, target, caster);
+                    new_holder->AddAura(new_aur, new_aur->GetEffIndex());
+                }
+                new_holder->SetAuraCharges(jumps, false);
+
+                // lock aura holder (currently SPELL_AURA_PRAYER_OF_MENDING is single target spell, so will attempt removing from old target
+                // when applied to new one)
+                if (!target->AddSpellAuraHolder(new_holder))
+                    delete new_holder;
+                else
+                    new_holder->SetState(SPELLAURAHOLDER_STATE_READY);
+                CastSpell(target, 41637, TRIGGERED_OLD_TRIGGERED);
             }
         }
     }
 
     // heal
-    CastCustomSpell(this, 33110, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, caster_guid);
+    CastCustomSpell(this, 33110, &heal, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
     return SPELL_AURA_PROC_OK;
 }
 
@@ -2917,5 +2961,23 @@ SpellAuraProcResult Unit::HandleInvisibilityAuraProc(ProcExecutionData& data)
         return SPELL_AURA_PROC_FAILED;
 
     RemoveAurasDueToSpell(triggeredByAura->GetId());
+    return SPELL_AURA_PROC_OK;
+}
+
+SpellAuraProcResult Unit::HandlePeriodicAuraProc(ProcExecutionData& data)
+{
+    Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
+
+    SpellEntry const* auraInfo = triggeredByAura->GetSpellProto();
+    switch (auraInfo->Id)
+    {
+        case 32065: // Fungal Decay - all three consume one stack on proc
+        case 35244: // Choking Vines
+        case 36659: // Tail Sting
+            if (triggeredByAura->GetHolder()->ModStackAmount(-1, nullptr)) // Remove aura on return true
+                RemoveSpellAuraHolder(triggeredByAura->GetHolder(), AURA_REMOVE_BY_DEFAULT);
+            break;
+    }
+
     return SPELL_AURA_PROC_OK;
 }

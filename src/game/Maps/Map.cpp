@@ -63,6 +63,11 @@ Map::~Map()
     m_weatherSystem = nullptr;
 }
 
+uint32 Map::GetCurrentMSTime() const
+{
+    return World::GetCurrentMSTime();
+}
+
 TimePoint Map::GetCurrentClockTime() const
 {
     return World::GetCurrentClockTime();
@@ -589,10 +594,7 @@ void Map::Update(const uint32& t_diff)
     {
         Player* plr = m_mapRefIter->getSource();
         if (plr && plr->IsInWorld())
-        {
-            WorldObject::UpdateHelper helper(plr);
-            helper.Update(t_diff);
-        }
+            plr->Update(t_diff);
     }
 
     /// update active cells around players and active objects
@@ -614,16 +616,14 @@ void Map::Update(const uint32& t_diff)
     // to make sure calls to Map::Remove don't invalidate it
     for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
     {
-        Player* plr = m_mapRefIter->getSource();
-
-        if (!plr->IsInWorld() || !plr->IsPositionValid())
+        Player* player = m_mapRefIter->getSource();
+        if (!player->IsInWorld() || !player->IsPositionValid())
             continue;
 
-
-        VisitNearbyCellsOf(plr, grid_object_update, world_object_update);
+        VisitNearbyCellsOf(player, grid_object_update, world_object_update);
 
         // If player is using far sight, visit that object too
-        if (WorldObject* viewPoint = GetWorldObject(plr->GetFarSightGuid()))
+        if (WorldObject* viewPoint = GetWorldObject(player->GetFarSightGuid()))
             VisitNearbyCellsOf(viewPoint, grid_object_update, world_object_update);
     }
 
@@ -1733,11 +1733,7 @@ void BattleGroundMap::UnloadAll(bool pForce)
 bool Map::CanEnter(Player* player)
 {
     if (player->GetMapRef().getTarget() == this)
-    {
-        sLog.outError("Map::CanEnter -%s already in map!", player->GetGuidStr().c_str());
-        MANGOS_ASSERT(false);
         return false;
-    }
 
     return true;
 }

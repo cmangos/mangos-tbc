@@ -34,6 +34,7 @@ class LootStore;
 class WorldObject;
 class LootTemplate;
 class Loot;
+class WorldSession;
 struct LootItem;
 struct ItemPrototype;
 
@@ -309,7 +310,9 @@ class Loot
         void GetLootItemsListFor(Player* player, LootItemList& lootList);
         void SetGoldAmount(uint32 _gold);
         void SendGold(Player* player);
+        void SendReleaseFor(Player* plr);
         bool IsItemAlreadyIn(uint32 itemId) const;
+        void PrintLootList(ChatHandler& chat, WorldSession* session) const;
         uint32 GetGoldAmount() const { return m_gold; }
         LootType GetLootType() const { return m_lootType; }
         LootItem* GetLootItemInSlot(uint32 itemSlot);
@@ -320,6 +323,7 @@ class Loot
         ObjectGuid const& GetLootGuid() const { return m_guidTarget; }
         ObjectGuid const& GetMasterLootGuid() const { return m_masterOwnerGuid; }
         GuidSet const& GetOwnerSet() const { return m_ownerSet; }
+        TimePoint const& GetCreateTime() const { return m_createTime; }
 
     private:
         Loot(): m_lootTarget(nullptr), m_itemTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(),
@@ -330,14 +334,12 @@ class Loot
         bool IsLootedFor(Player const* player) const;
         bool IsLootedForAll() const;
         void SendReleaseFor(ObjectGuid const& guid);
-        void SendReleaseFor(Player* plr);
         void SendReleaseForAll();
         void SendAllowedLooter();
         void NotifyMoneyRemoved();
         void NotifyItemRemoved(uint32 lootIndex);
         void NotifyItemRemoved(Player* player, uint32 lootIndex) const;
         void GroupCheck();
-        void CheckIfRollIsNeeded(Player const* plr);
         void SetGroupLootRight(Player* player);
         void GenerateMoneyLoot(uint32 minAmount, uint32 maxAmount);
         bool FillLoot(uint32 loot_id, LootStore const& store, Player* lootOwner, bool personal, bool noEmptyError = false);
@@ -372,6 +374,7 @@ class Loot
         GroupLootRollMap m_roll;                          // used if an item is under rolling
         GuidSet          m_playersLooting;                // player who opened loot windows
         GuidSet          m_playersOpened;                 // players that have released the corpse
+        TimePoint        m_createTime;                    // create time (used to refill loot if need)
 };
 
 extern LootStore LootTemplates_Creature;

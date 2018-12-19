@@ -307,6 +307,14 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sLockStore,                dbcPath, "Lock.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sMailTemplateStore,        dbcPath, "MailTemplate.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sMapStore,                 dbcPath, "Map.dbc");
+    {
+        // repairs entry for netherstorm - should be moved to SQL
+        MapEntry const* mEntry = sMapStore.LookupEntry(550);
+        MapEntry* tempestKeepMap = new MapEntry(*mEntry);
+        tempestKeepMap->ghost_entrance_map = 530;
+        sMapStore.EraseEntry(550);
+        sMapStore.InsertEntry(tempestKeepMap, 550);
+    }
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sQuestSortStore,           dbcPath, "QuestSort.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sRandomPropertiesPointsStore, dbcPath, "RandPropPoints.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sSkillLineStore,           dbcPath, "SkillLine.dbc");

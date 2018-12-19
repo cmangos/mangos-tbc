@@ -166,7 +166,7 @@ struct boss_mekgineer_steamriggerAI : public ScriptedAI
 
         if (m_uiSawBladeTimer < uiDiff)
         {
-            Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1);
+            Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER);
             if (!pTarget)
                 pTarget = m_creature->getVictim();
 
@@ -181,7 +181,7 @@ struct boss_mekgineer_steamriggerAI : public ScriptedAI
 
         if (m_uiElectrifiedNetTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_ELECTRIFIED_NET) == CAST_OK)
                     m_uiElectrifiedNetTimer = 10000;
@@ -195,7 +195,7 @@ struct boss_mekgineer_steamriggerAI : public ScriptedAI
         {
             if (m_uiMechanicTimer < uiDiff)
             {
-                m_creature->SummonCreature(NPC_STEAMRIGGER_MECHANIC, aSteamriggerSpawnLocs[2].m_fX, aSteamriggerSpawnLocs[2].m_fY, aSteamriggerSpawnLocs[2].m_fZ, 0, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 240000);
+                m_creature->SummonCreature(NPC_STEAMRIGGER_MECHANIC, aSteamriggerSpawnLocs[2].m_fX, aSteamriggerSpawnLocs[2].m_fY, aSteamriggerSpawnLocs[2].m_fZ, 0, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 5000);
                 m_uiMechanicTimer = 20000;
             }
             else

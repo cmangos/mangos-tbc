@@ -180,7 +180,7 @@ struct boss_selin_fireheartAI : public ScriptedAI
             {
                 if (m_uiDrainLifeTimer < uiDiff)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                     {
                         if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_DRAIN_LIFE : SPELL_DRAIN_LIFE_H) == CAST_OK)
                             m_uiDrainLifeTimer = 10000;
@@ -194,7 +194,7 @@ struct boss_selin_fireheartAI : public ScriptedAI
                 {
                     if (m_uiDrainManaTimer < uiDiff)
                     {
-                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DRAIN_MANA, SELECT_FLAG_POWER_MANA))
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DRAIN_MANA, SELECT_FLAG_PLAYER | SELECT_FLAG_POWER_MANA))
                         {
                             if (DoCastSpellIfCan(pTarget, SPELL_DRAIN_MANA) == CAST_OK)
                                 m_uiDrainManaTimer = 10000;
@@ -267,16 +267,7 @@ struct mob_fel_crystalAI : public ScriptedAI
 
     void AttackStart(Unit* /*pWho*/) override {}
 
-    void MoveInLineOfSight(Unit* pWho) override
-    {
-        // Cosmetic spell
-        if (m_sWretchedGuids.find(pWho->GetObjectGuid()) == m_sWretchedGuids.end() && pWho->IsWithinDist(m_creature, 5.0f) && pWho->isAlive() &&
-                (pWho->GetEntry() == NPC_SKULER || pWho->GetEntry() == NPC_BRUISER || pWho->GetEntry() == NPC_HUSK))
-        {
-            pWho->CastSpell(m_creature, SPELL_FEL_CRYSTAL_COSMETIC, TRIGGERED_NONE);
-            m_sWretchedGuids.insert(pWho->GetObjectGuid());
-        }
-    }
+    void MoveInLineOfSight(Unit* /*pWho*/) override {}
 
     void JustDied(Unit* /*pKiller*/) override
     {

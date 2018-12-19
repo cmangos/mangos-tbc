@@ -95,7 +95,7 @@ enum PetSpellType
 
 struct PetSpell
 {
-    uint8 active;                                           // use instead enum (not good use *uint8* limited enum in case when value in enum not possitive in *int8*)
+    uint8 active;                                           // use instead enum (not good use *uint8* limited enum in case when value in enum not positive in *int8*)
 
     PetSpellState state : 8;
     PetSpellType type   : 8;
@@ -170,6 +170,7 @@ class Pet : public Creature
         bool LoadPetFromDB(Player* owner, uint32 petentry = 0, uint32 petnumber = 0, bool current = false, uint32 healthPercentage = 0, bool permanentOnly = false, bool forced = false);
         void SavePetToDB(PetSaveMode mode);
         bool isLoading() const { return m_loading; }
+        void SetLoading(bool state) { m_loading = state; }
         void Unsummon(PetSaveMode mode, Unit* owner = nullptr);
         static void DeleteFromDB(uint32 guidlow, bool separate_transaction = true);
         static void DeleteFromDB(Unit* owner, PetSaveMode slot);
@@ -183,7 +184,7 @@ class Pet : public Creature
         Player* GetSpellModOwner() const override;
 
         void SetDeathState(DeathState s) override;          // overwrite virtual Creature::SetDeathState and Unit::SetDeathState
-        void Update(uint32 update_diff, uint32 diff) override;  // overwrite virtual Creature::Update and Unit::Update
+        void Update(const uint32 diff) override;  // overwrite virtual Creature::Update and Unit::Update
 
         uint8 GetPetAutoSpellSize() const { return m_autospells.size(); }
         uint32 GetPetAutoSpellOnPos(uint8 pos) const override
@@ -282,10 +283,6 @@ class Pet : public Creature
         uint32  m_resetTalentsCost;
         time_t  m_resetTalentsTime;
 
-        const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
-        void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
-        void ResetAuraUpdateMask() { m_auraUpdateMask = 0; }
-
         // overwrite Creature function for name localization back to WorldObject version without localization
         const char* GetNameForLocaleIdx(int32 locale_idx) const { return WorldObject::GetNameForLocaleIdx(locale_idx); }
 
@@ -305,8 +302,6 @@ class Pet : public Creature
 
         virtual CombatData* GetCombatData() override { return m_combatData; }
 
-        void InitTamedPetPassives(Unit* player);
-
         virtual void RegenerateHealth() override;
 
     protected:
@@ -316,7 +311,6 @@ class Pet : public Creature
         int32   m_duration;                                 // time until unsummon (used mostly for summoned guardians and not used for controlled pets)
         int32   m_loyaltyPoints;
         int32   m_bonusdamage;
-        uint64  m_auraUpdateMask;
         bool    m_loading;
         uint32  m_xpRequiredForNextLoyaltyLevel;
         DeclinedName* m_declinedname;

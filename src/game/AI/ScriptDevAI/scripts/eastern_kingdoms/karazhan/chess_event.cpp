@@ -302,6 +302,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     npc_chess_piece_genericAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
     {
         m_pInstance = (instance_karazhan*)pCreature->GetInstanceData();
+        m_creature->SetCanEnterCombat(false); // chess pieces never enter combat
         Reset();
     }
 
@@ -338,6 +339,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     void MoveInLineOfSight(Unit* /*pWho*/) override { }
     void AttackStart(Unit* /*pWho*/) override { }
     void EnterEvadeMode() override { }
+    bool CanHandleCharm() override { return true; }
 
     void JustDied(Unit* /*pKiller*/) override
     {
@@ -457,7 +459,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
             return nullptr;
 
         // define distance based on the spell radius
-        // this will replace the targeting sysmte of spells SPELL_MOVE_1 and SPELL_MOVE_2
+        // this will replace the targeting sysmte of spells SPELL_MOVE_1 and SPELL_MOVE_2 - HACK
         float fRadius = 10.0f;
         std::list<Creature*> lSquaresList;
 
@@ -475,6 +477,16 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
         // get all available squares for movement
         GetCreatureListWithEntryInGrid(lSquaresList, m_creature, NPC_SQUARE_BLACK, fRadius);
         GetCreatureListWithEntryInGrid(lSquaresList, m_creature, NPC_SQUARE_WHITE, fRadius);
+
+        for (auto itr = lSquaresList.begin(); itr != lSquaresList.end(); )
+        {
+            Creature* square = (*itr);
+            if (square->HasAura(SPELL_IS_SQUARE_USED))
+                itr = lSquaresList.erase(itr);
+            else
+                ++itr;
+        }
+            
 
         if (lSquaresList.empty())
             return nullptr;
@@ -536,11 +548,10 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
                         //}
                         //DoCastSpellIfCan(m_creature, uiMoveSpell, CAST_TRIGGERED);
 
+                        m_fCurrentOrientation = m_creature->GetOrientation();
                         // workaround which provides specific move target
                         if (Unit* spellTarget = GetMovementSquare())
-                            DoCastSpellIfCan(spellTarget, SPELL_MOVE_GENERIC, CAST_TRIGGERED | CAST_INTERRUPT_PREVIOUS);
-
-                        m_fCurrentOrientation = m_creature->GetOrientation();
+                            spellTarget->CastSpell(m_creature, SPELL_MOVE_TO_SQUARE, TRIGGERED_NONE);
                     }
                 }
 

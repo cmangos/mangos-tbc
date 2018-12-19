@@ -43,10 +43,7 @@ inline void MaNGOS::VisibleNotifier::Visit(GridRefManager<T>& m)
 inline void MaNGOS::ObjectUpdater::Visit(CreatureMapType& m)
 {
     for (auto& iter : m)
-    {
-        WorldObject::UpdateHelper helper(iter.getSource());
-        helper.Update(i_timeDiff);
-    }
+        iter.getSource()->Update(i_timeDiff);
 }
 
 inline void UnitVisitObjectsNotifierWorker(Unit* unitA, Unit* unitB)
@@ -156,7 +153,7 @@ inline void MaNGOS::CreatureVisitObjectsNotifier::Visit(PlayerMapType& m)
     for (auto& iter : m)
     {
         Player* player = iter.getSource();
-        if (player->isAlive() && !player->IsTaxiFlying())
+        if (!player->isAlive() || player->IsTaxiFlying())
             continue;
 
         if (player->AI())
@@ -192,7 +189,7 @@ inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
     if (target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->IsTotem())
         return;
 
-    if (!i_dynobject.IsWithinDistInMap(target, i_dynobject.GetRadius()))
+    if (i_dynobject.GetDistance(target, true, DIST_CALC_COMBAT_REACH) > i_dynobject.GetRadius())
         return;
 
     // Evade target
@@ -251,7 +248,10 @@ inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
     }
 
     // Check target immune to spell or aura
-    if (target->IsImmuneToSpell(spellInfo, false) || target->IsImmuneToSpellEffect(spellInfo, eff_index, false))
+    if (target->IsImmuneToSpell(spellInfo, false, eff_index) || target->IsImmuneToSpellEffect(spellInfo, eff_index, false))
+        return;
+
+    if (!i_dynobject.IsWithinLOSInMap(target))
         return;
 
     // Apply PersistentAreaAura on target

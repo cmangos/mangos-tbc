@@ -50,14 +50,13 @@ WorldState::~WorldState()
 {
 }
 
-void WorldState::HandleGameObjectUse(GameObject * go, Unit* user)
+void WorldState::HandleGameObjectUse(GameObject* go, Unit* user)
 {
-    std::lock_guard<std::mutex> guard(m_mutex);
-
     switch (go->GetEntry())
     {
         case OBJECT_MAGTHERIDONS_HEAD:
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             if (Player* player = dynamic_cast<Player*>(user))
             {
                 if (player->GetTeam() == HORDE)
@@ -80,14 +79,13 @@ void WorldState::HandleGameObjectUse(GameObject * go, Unit* user)
     }
 }
 
-void WorldState::HandleGameObjectRevertState(GameObject * go)
+void WorldState::HandleGameObjectRevertState(GameObject* go)
 {
-    std::lock_guard<std::mutex> guard(m_mutex);
-
     switch (go->GetEntry())
     {
         case OBJECT_MAGTHERIDONS_HEAD:
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             if (go->GetObjectGuid() == m_guidMagtheridonHeadHorde)
             {
                 m_isMagtheridonHeadSpawnedHorde = false;
@@ -107,10 +105,8 @@ void WorldState::HandleGameObjectRevertState(GameObject * go)
     }
 }
 
-void WorldState::HandlePlayerEnterZone(Player * player, uint32 zoneId)
+void WorldState::HandlePlayerEnterZone(Player* player, uint32 zoneId)
 {
-    std::lock_guard<std::mutex> guard(m_mutex);
-
     switch (zoneId)
     {
         case ZONEID_HELLFIRE_PENINSULA:
@@ -120,6 +116,7 @@ void WorldState::HandlePlayerEnterZone(Player * player, uint32 zoneId)
         case ZONEID_SHATTERED_HALLS:
         case ZONEID_MAGTHERIDON_LAIR:
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             if (m_isMagtheridonHeadSpawnedAlliance && player->GetTeam() == ALLIANCE)
                 player->CastSpell(player, SPELL_TROLLBANES_COMMAND, TRIGGERED_OLD_TRIGGERED);
             if (m_isMagtheridonHeadSpawnedHorde && player->GetTeam() == HORDE)
@@ -131,6 +128,7 @@ void WorldState::HandlePlayerEnterZone(Player * player, uint32 zoneId)
         case ZONEID_MECHANAR:
         case ZONEID_ARCATRAZ:
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             if (m_adalSongOfBattleTimer)
                 player->CastSpell(player, SPELL_ADAL_SONG_OF_BATTLE, TRIGGERED_OLD_TRIGGERED);
             m_adalSongOfBattlePlayers.push_back(player->GetObjectGuid());
@@ -140,10 +138,8 @@ void WorldState::HandlePlayerEnterZone(Player * player, uint32 zoneId)
     }
 }
 
-void WorldState::HandlePlayerLeaveZone(Player * player, uint32 zoneId)
+void WorldState::HandlePlayerLeaveZone(Player* player, uint32 zoneId)
 {
-    std::lock_guard<std::mutex> guard(m_mutex);
-
     switch (zoneId)
     {
         case ZONEID_HELLFIRE_PENINSULA:
@@ -153,6 +149,7 @@ void WorldState::HandlePlayerLeaveZone(Player * player, uint32 zoneId)
         case ZONEID_SHATTERED_HALLS:
         case ZONEID_MAGTHERIDON_LAIR:
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             if (player->GetTeam() == ALLIANCE)
                 player->RemoveAurasDueToSpell(SPELL_TROLLBANES_COMMAND);
             if (player->GetTeam() == HORDE)
@@ -166,6 +163,7 @@ void WorldState::HandlePlayerLeaveZone(Player * player, uint32 zoneId)
         case ZONEID_MECHANAR:
         case ZONEID_ARCATRAZ:
         {
+            std::lock_guard<std::mutex> guard(m_mutex);
             player->RemoveAurasDueToSpell(SPELL_ADAL_SONG_OF_BATTLE);
             auto position = std::find(m_adalSongOfBattlePlayers.begin(), m_adalSongOfBattlePlayers.end(), player->GetObjectGuid());
             if (position != m_adalSongOfBattlePlayers.end()) // == myVector.end() means the element was not found
@@ -173,6 +171,40 @@ void WorldState::HandlePlayerLeaveZone(Player * player, uint32 zoneId)
         }
         default:
             break;
+    }
+}
+
+void WorldState::HandlePlayerEnterArea(Player* player, uint32 areaId)
+{
+    switch (areaId)
+    {
+        case AREAID_SKYGUARD_OUTPOST:
+        case AREAID_SHARTUUL_TRANSPORTER:
+        case AREAID_DEATHS_DOOR:
+        {
+            std::lock_guard<std::mutex> guard(m_mutex);
+            m_areaPlayers[areaId].push_back(player->GetObjectGuid());
+            break;
+        }
+        default: break;
+    }
+}
+
+void WorldState::HandlePlayerLeaveArea(Player* player, uint32 areaId)
+{
+    switch (areaId)
+    {
+        case AREAID_SKYGUARD_OUTPOST:
+        case AREAID_SHARTUUL_TRANSPORTER:
+        case AREAID_DEATHS_DOOR:
+        {
+            std::lock_guard<std::mutex> guard(m_mutex);
+            auto position = std::find(m_areaPlayers[areaId].begin(), m_areaPlayers[areaId].end(), player->GetObjectGuid());
+            if (position != m_areaPlayers[areaId].end()) // == myVector.end() means the element was not found
+                m_areaPlayers[areaId].erase(position);
+            break;
+        }
+        default: break;
     }
 }
 
@@ -292,4 +324,12 @@ void WorldState::DispelAdalsSongOfBattle()
             });
         }
     }
+}
+
+void WorldState::ExecuteOnAreaPlayers(uint32 areaId, std::function<void(Player*)> executor)
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
+    for (ObjectGuid guid : m_areaPlayers[areaId])
+        if (Player* player = sObjectMgr.GetPlayer(guid))
+            executor(player);
 }

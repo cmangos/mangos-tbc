@@ -31,7 +31,6 @@ npc_bloodmaul_dire_wolf
 npc_frequency_scanner
 npc_fel_cannon
 npc_warp_gate
-npc_grimgut
 npc_obelisk_trigger
 npc_vimgol
 npc_vimgol_visual_bunny
@@ -44,7 +43,11 @@ npc_evergrove_druid
 EndContentData */
 
 #include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/scripts/world/world_map_scripts.h"
 #include "Entities/TemporarySpawn.h"
+#include "Reputation/ReputationMgr.h"
+#include "Spells/Spell.h"
+#include "AI/ScriptDevAI/base/TimerAI.h"
 
 /*######
 ## mobs_nether_drake
@@ -232,9 +235,9 @@ UnitAI* GetAI_mobs_nether_drake(Creature* pCreature)
 
 enum
 {
-    SAY_SPELL_INFLUENCE     = -1000174,
-    NPC_KALIRI_AURA_DISPEL  = 21511,
-    SPELL_LASHHAN_CHANNEL   = 36904
+    SAY_SPELL_INFLUENCE         = -1000174,
+    SPELL_LASHHAN_CHANNEL       = 36904,
+    SPELL_DISPELLING_ANALYSIS   = 37028
 };
 
 struct npc_daranelleAI : public ScriptedAI
@@ -251,9 +254,7 @@ struct npc_daranelleAI : public ScriptedAI
             {
                 DoScriptText(SAY_SPELL_INFLUENCE, m_creature, pWho);
 
-                // TODO: Move the below to updateAI and run if this statement == true
-                ((Player*)pWho)->KilledMonsterCredit(NPC_KALIRI_AURA_DISPEL, m_creature->GetObjectGuid());
-                pWho->RemoveAurasDueToSpell(SPELL_LASHHAN_CHANNEL);
+                m_creature->CastSpell(pWho, SPELL_DISPELLING_ANALYSIS, TRIGGERED_NONE);
             }
         }
 
@@ -904,13 +905,164 @@ UnitAI* GetAI_npc_light_orb_collector(Creature* pCreature)
 }
 
 /*######
+## npc_obelisk_trigger
+######*/
+
+enum
+{
+    NPC_TRIGGER = 20736,
+    NPC_DOOMCRYER = 19963,
+
+    SPELL_GREEN_BEAM = 35846
+};
+
+static const uint32 aObeliskEntries[] = { 185193, 185195, 185196, 185197, 185198 };
+
+struct npc_obelisk_triggerAI : public ScriptedAI
+{
+    npc_obelisk_triggerAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    // Active count (updates every 1sec)
+    uint8 m_uiActiveObelisk;
+
+    // Timers
+    uint32 m_uiActivateTimer;
+    uint32 m_uiCheckTimer;
+    uint32 m_uiBeamTimer;
+    uint32 m_uiResetTimer;
+
+    // Bool checks to prevent spam
+    bool m_uiSpawnBoss;
+    bool m_uiMarkForReset;
+
+    void Reset() override
+    {
+        m_uiActiveObelisk = 0;
+        m_uiCheckTimer = 1000;
+
+        m_uiActivateTimer = 30 * IN_MILLISECONDS;
+        m_uiBeamTimer = 5 * IN_MILLISECONDS;
+        m_uiResetTimer= 120 * IN_MILLISECONDS;
+
+        m_uiSpawnBoss = false;
+        m_uiMarkForReset = false;
+
+        std::list<GameObject*> lObelisk;
+        for (uint8 i = 0; i < countof(aObeliskEntries); ++i)
+            GetGameObjectListWithEntryInGrid(lObelisk, m_creature, aObeliskEntries[i], 100.0f);
+
+        for (std::list<GameObject*>::iterator itr = lObelisk.begin(); itr != lObelisk.end(); ++itr)
+        {
+            if ((*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->GetLootState() == GO_ACTIVATED)
+            {
+                (*itr)->ResetDoorOrButton();
+            }
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiCheckTimer)
+        {
+            if (m_uiCheckTimer <= uiDiff && m_uiActiveObelisk < 5)
+            {
+                m_uiActiveObelisk = 0;
+
+                std::list<GameObject*> lObelisk;
+                for (uint8 i = 0; i < countof(aObeliskEntries); ++i)
+                    GetGameObjectListWithEntryInGrid(lObelisk, m_creature, aObeliskEntries[i], 100.0f);
+
+                for (std::list<GameObject*>::iterator itr = lObelisk.begin(); itr != lObelisk.end(); ++itr)
+                {
+                    if ((*itr)->GetGoState() == GO_STATE_ACTIVE && (*itr)->GetLootState() == GO_ACTIVATED)
+                        ++m_uiActiveObelisk;
+                }
+
+                m_uiCheckTimer = 1000;
+            }
+            else
+                m_uiCheckTimer -= uiDiff;
+        }
+        
+        if (m_uiActiveObelisk == 5)
+        {
+            if (m_uiActivateTimer)
+            {
+                if (m_uiActivateTimer <= uiDiff && !m_uiSpawnBoss)
+                {
+                    Creature* m_uiDoomcryer = m_creature->SummonCreature(NPC_DOOMCRYER, m_creature->GetPositionX(), m_creature->GetPositionY(), 283.65f, 0.32f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
+
+                    if (m_uiDoomcryer)
+                        m_uiDoomcryer->GetMotionMaster()->MovePoint(1, 2882.60f, 4818.73f, 282.0f);
+
+                    std::list<Creature*> lBunny;
+                    GetCreatureListWithEntryInGrid(lBunny, m_creature, NPC_TRIGGER, 100.0f);
+                    for (std::list<Creature*>::iterator itr = lBunny.begin(); itr != lBunny.end(); ++itr)
+                        (*itr)->RemoveAllAuras();
+
+                    m_uiSpawnBoss = true;
+                    m_uiMarkForReset = true;
+                }
+                else
+                {
+                    if (m_uiBeamTimer && !m_uiSpawnBoss)
+                    {
+                        if (m_uiBeamTimer <= uiDiff)
+                        {
+                            std::list<Creature*> lBunny;
+                            GetCreatureListWithEntryInGrid(lBunny, m_creature, NPC_TRIGGER, 100.0f);
+                            for (std::list<Creature*>::iterator itr = lBunny.begin(); itr != lBunny.end(); ++itr)
+                            {
+                                std::list<GameObject*> lObelisk;
+                                for (uint8 i = 0; i < countof(aObeliskEntries); ++i)
+                                    GetGameObjectListWithEntryInGrid(lObelisk, (*itr), aObeliskEntries[i], 1.0f);
+
+                                if (!(*itr)->HasAura(SPELL_GREEN_BEAM) && lObelisk.begin() != lObelisk.end())
+                                {
+                                    (*itr)->CastSpell(m_creature, SPELL_GREEN_BEAM, TRIGGERED_OLD_TRIGGERED);
+                                    break;
+                                }
+                            }
+
+                            m_uiBeamTimer = 5 * IN_MILLISECONDS;
+
+                        }
+                        else
+                            m_uiBeamTimer -= uiDiff;
+                    }
+
+                    m_uiActivateTimer -= uiDiff;
+                }
+            }
+        }
+
+        if (m_uiMarkForReset)
+        {
+            if (m_uiResetTimer <= uiDiff)
+            {
+                Reset();
+            }
+            else
+                m_uiResetTimer -= uiDiff;
+
+        }
+
+    }
+};
+
+UnitAI* GetAI_obelisk_triggerAI(Creature* pCreature)
+{
+    return new npc_obelisk_triggerAI(pCreature);
+}
+
+/*######
 ## npc_vimgol
 ######*/
 
 enum
 {
     NPC_VIMGOL_THE_VILE         = 22911,
-    NPC_VIMGOL_VISUAL_BUNNY     = 23040,
+    // NPC_VIMGOL_VISUAL_BUNNY     = 23040,
     NPC_VIMGOL_MIDDLE_BUNNY     = 23081,
 
     SPELL_VIMGOL_POP_TEST_A     = 39834,
@@ -1225,6 +1377,94 @@ UnitAI* GetAI_npc_vimgol_middle_bunny(Creature* pCreature)
 }
 
 /*######
+## npc_bird_spirit
+######*/
+
+enum
+{
+    NPC_TASKMASTER = 22160,
+};
+
+struct npc_bird_spiritAI : public ScriptedAI
+{
+    npc_bird_spiritAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    uint8 m_uiPhase;
+    uint32 m_uiTimer;
+    ObjectGuid m_taskmasterGuid;
+
+    void Reset() override
+    {
+        m_uiTimer = 2000;
+        m_uiPhase = 0;
+    }
+
+    void JustRespawned() override
+    {
+        Creature* taskmaster = GetClosestCreatureWithEntry(m_creature, NPC_TASKMASTER, 15.f);
+        if (taskmaster) // should always be valid - spell checks for it
+        {
+            m_creature->SetWalk(false, true);
+            m_taskmasterGuid = taskmaster->GetObjectGuid();
+        }
+    }
+
+    void MovementInform(uint32 /*uiMovementType*/, uint32 uiData) override
+    {
+        switch (uiData)
+        {
+            case 1: m_uiTimer = 2000; break;
+            case 2: m_uiTimer = 2000; break;
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiTimer)
+        {
+            if (m_uiTimer <= uiDiff)
+            {
+                switch (m_uiPhase)
+                {
+                    case 0:
+                    {
+                        if (Creature* taskM = m_creature->GetMap()->GetCreature(m_taskmasterGuid))
+                            m_creature->GetMotionMaster()->MovePoint(1, taskM->GetPositionX(), taskM->GetPositionY(), taskM->GetPositionZ());
+                        m_uiTimer = 0;
+                        m_uiPhase++;
+                        break;
+                    }
+                    case 1:
+                    {
+                        m_creature->SetSelectionGuid(m_creature->GetSpawnerGuid());
+                        if (Unit* summoner = m_creature->GetMap()->GetUnit(m_creature->GetSpawnerGuid()))
+                            m_creature->GetMotionMaster()->MovePoint(2, summoner->GetPositionX(), summoner->GetPositionY(), summoner->GetPositionZ());
+                        m_uiTimer = 0;
+                        m_uiPhase++;
+                        break;
+                    }
+                    case 2:
+                    {
+                        TemporarySpawn* summon = (TemporarySpawn*)m_creature;
+                        summon->UnSummon();
+                        m_uiTimer = 0;
+                        m_uiPhase++;
+                        break;
+                    }
+                }
+            }
+            else
+                m_uiTimer -= uiDiff;
+        }
+    }
+};
+
+UnitAI* GetAI_npc_bird_spirit(Creature* pCreature)
+{
+    return new npc_bird_spiritAI(pCreature);
+}
+
+/*######
 ## npc_bloodmaul_dire_wolf
 ######*/
 
@@ -1340,7 +1580,7 @@ enum
     UNDERSTAND_RAVENSPEECH_SPELL    = 37466,
     UNDERSTAND_RAVENSPEECH_AURA     = 37642,
     QUEST_WHISPERS_OF_THE_RAVEN_GOD = 10607,
-    NPC_WHISPER_RAVEN_GOD_TEMPLATE  = 21851,
+    // NPC_WHISPER_RAVEN_GOD_TEMPLATE  = 21851,
     NPC_VISION_RAVEN_GOD_TEMPLATE   = 21861,
 };
 
@@ -1371,6 +1611,298 @@ bool AreaTrigger_at_raven_prophecy(Player* pPlayer, AreaTriggerEntry const* pAt)
         }
     }
     return false;
+}
+
+/*######
+## npc_fel_cannon
+######*/
+
+enum
+{
+    SPELL_DEATHS_DOOR_FEL_CANNON = 39219,
+    SPELL_ANTI_DEMON_FLAME_THROWER = 39222,
+    SPELL_ARTILLERY_ON_THE_WARP_GATE = 39221,
+    SPELL_FEL_CANNON_BLAST = 36242,
+    SPELL_UNSTABLE_FEL_IMP_TRANSFORM = 39227, // cast in acid
+    SPELL_UNSTABLE_EXPLOSION = 39266, // cast in acid
+
+    SPELL_GO_SMALL_FIRE = 49910, // serverside spells for spawning GOs - TODO: Remove and substitute with pre-spawned gos
+    SPELL_GO_SMOKE = 49911,
+    SPELL_GO_BIG_FIRE = 49912,
+
+    SPELL_EXPLOSION = 30934,
+
+    NPC_DEATHS_DOOR_FEL_CANNON = 22443,
+    // NPC_DEATHS_DOOR_NORTH_WARP_GATE = 22471,
+    // NPC_DEATHS_DOOR_SOUTH_WARP_GATE = 22472,
+    NPC_UNSTABLE_FEL_IMP = 22474,
+    NPC_DEATHS_DOOR_FEL_CANNON_TARGET_BUNNY = 22495,
+    NPC_WARP_GATE_SHIELD = 23116, // not sure about this one
+    NPC_DEATHS_DOOR_EXPLOSION_BUNNY = 22502,
+    NPC_NORTH_WARP_GATE_CREDIT = 22503,
+    NPC_SOUTH_WARP_GATE_CREDIT = 22504,
+
+    GO_SMALL_FIRE = 185317,
+    GO_SMOKE = 185318,
+    GO_BIG_FIRE = 185319,
+
+    NPC_EXPLOSION_BUNNY = 22502,
+};
+
+struct npc_fel_cannon : public Scripted_NoMovementAI
+{
+    npc_fel_cannon(Creature* pCreature) : Scripted_NoMovementAI(pCreature) { Reset(); }
+
+    uint32 m_uiCannonBlastTimer;
+
+    bool m_bMCed;
+    
+    void Reset() override
+    {
+        m_uiCannonBlastTimer = 1000;
+        m_bMCed = false;
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    }
+
+    bool CanHandleCharm() override { return true; }
+
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
+    {
+        if (pSpell->Id == SPELL_DEATHS_DOOR_FEL_CANNON)
+        {
+            m_bMCed = true;
+            if (Creature* target = GetClosestCreatureWithEntry(m_creature, NPC_DEATHS_DOOR_FEL_CANNON_TARGET_BUNNY, 100.f))
+            {
+                m_creature->SetFacingToObject(target);
+                m_creature->FixateTarget(target);
+            }
+
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
+        }
+    }
+
+    void MoveInLineOfSight(Unit* pWho) override {} // disable changing facing of any kind
+
+    void EnterEvadeMode() override
+    {
+        if (!m_bMCed)
+        {
+            ScriptedAI::EnterEvadeMode();
+            m_creature->FixateTarget(nullptr);
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_bMCed && !m_creature->HasCharmer())
+        {            
+            ScriptedAI::EnterEvadeMode();
+            m_creature->FixateTarget(nullptr);
+            return;
+        }
+
+        if (!m_bMCed)
+        {
+            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+                return;
+
+            if (m_uiCannonBlastTimer <= uiDiff)
+            {
+                m_uiCannonBlastTimer = 2500;
+                m_creature->CastSpell(m_creature->getVictim(), SPELL_FEL_CANNON_BLAST, TRIGGERED_NONE);
+            }
+            else
+                m_uiCannonBlastTimer -= uiDiff;
+        }
+    }
+};
+
+UnitAI* GetAI_npc_fel_cannon(Creature* pCreature)
+{
+    return new npc_fel_cannon(pCreature);
+}
+
+/*######
+## npc_warp_gate
+######*/
+
+static float impSpawns[2][4] = 
+{
+    { 2188.340f, 5476.629f, 155.069f, 5.259f }, // north
+    { 1981.730f, 5315.390f, 156.600f, 0.262f} // south
+};
+
+static float fireSpawns[14][3] =
+{
+    { 2199.255f,5474.860f,153.578f},
+    { 2185.102f,5470.938f,164.374f },
+    { 2185.104f,5484.197f,154.817f },
+    { 2188.340f, 5476.629f, 155.069f },
+    { 2194.513f,5481.483f,164.991f },
+    { 2178.581f,5477.184f, 157.264f},
+    { 2188.340f, 5476.629f, 155.069f},
+    { 1982.273f,5331.832f,153.952f },
+    { 1987.307f,5307.395f,169.677f },
+    { 1980.868f,8325.251f,169.290f },
+    { 1981.730f, 5315.390f, 156.600f },
+    { 1989.396f,5322.008f,155.384f },
+    { 1973.351f,5299.629f,155.395f},
+    { 1981.730f, 5315.390f, 156.600f }
+};
+
+struct npc_warp_gate : public Scripted_NoMovementAI
+{
+    npc_warp_gate(Creature* pCreature) : Scripted_NoMovementAI(pCreature), m_resetTimer(0) { Reset(); }
+
+    uint32 m_uiHitCounter;
+    uint32 m_uiSpawnImpTimer;
+    uint32 m_resetTimer;
+
+    ObjectGuid m_guidFelCannon;
+    ObjectGuid m_guidSmoke;
+
+    std::vector<ObjectGuid> m_vImpGuids;
+    
+    void Reset() override
+    {
+        m_uiHitCounter = 0;
+        m_uiSpawnImpTimer = 0;
+
+        for (ObjectGuid& guid : m_vImpGuids)
+            if (Creature* imp = m_creature->GetMap()->GetCreature(guid))
+                imp->ForcedDespawn(100);
+
+        m_vImpGuids.clear();
+
+        m_guidSmoke = ObjectGuid();
+
+        if (m_creature->isAlive())
+        {
+            float x, y, z, ori;
+            m_creature->GetRespawnCoord(x, y, z, &ori);
+            m_creature->SetOrientation(ori);
+            m_creature->SetFacingTo(ori);
+        }
+    }
+
+    void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
+    {
+        if (pSpell->Id == SPELL_ARTILLERY_ON_THE_WARP_GATE)
+        {
+            if (!m_uiHitCounter)
+            {
+                if (m_resetTimer)
+                {
+                    m_resetTimer = 0;
+                    m_creature->GetInstanceData()->SetData(m_creature->GetEntry() == NPC_DEATHS_DOOR_NORTH_WARP_GATE ? TYPE_DEATHS_DOOR_NORTH : TYPE_DEATHS_DOOR_SOUTH, 0);
+                }
+                m_guidFelCannon = pCaster->GetObjectGuid();
+            }
+            
+            uint32 spellId;
+
+            switch (m_uiHitCounter)
+            {
+                case 0:
+                case 1:
+                case 2:
+                case 4:
+                case 5:
+                {
+                    spellId = SPELL_GO_SMALL_FIRE;
+                    break;
+                }
+                case 3:
+                {
+                    spellId = SPELL_GO_SMOKE;
+                    break;
+                }
+                case 6:
+                {
+                    spellId = SPELL_GO_BIG_FIRE;
+                    if (GameObject* smoke = m_creature->GetMap()->GetGameObject(m_guidSmoke))
+                        smoke->AddObjectToRemoveList();
+                    if (Creature* cannon = m_creature->GetMap()->GetCreature(m_guidFelCannon))
+                    {
+                        if (Player* player = dynamic_cast<Player*>(cannon->GetCharmer()))
+                        {
+                            player->RewardPlayerAndGroupAtEventCredit(m_creature->GetEntry() == NPC_DEATHS_DOOR_NORTH_WARP_GATE ? NPC_NORTH_WARP_GATE_CREDIT : NPC_SOUTH_WARP_GATE_CREDIT, m_creature);
+                        }
+                    }
+                    if (Creature* explosionBunny = GetClosestCreatureWithEntry(m_creature, NPC_EXPLOSION_BUNNY, 30.f))
+                        explosionBunny->CastSpell(nullptr, SPELL_EXPLOSION, TRIGGERED_NONE);
+                    break;
+                }
+            }
+            uint32 i = m_creature->GetEntry() - NPC_DEATHS_DOOR_NORTH_WARP_GATE;
+            m_creature->CastSpell(fireSpawns[i * 7 + m_uiHitCounter][0], fireSpawns[i * 7 + m_uiHitCounter][1], fireSpawns[i * 7 + m_uiHitCounter][2], spellId, TRIGGERED_OLD_TRIGGERED);
+
+            m_uiHitCounter++;
+            m_creature->GetInstanceData()->SetData(m_creature->GetEntry() == NPC_DEATHS_DOOR_NORTH_WARP_GATE ? TYPE_DEATHS_DOOR_NORTH : TYPE_DEATHS_DOOR_SOUTH, m_uiHitCounter);
+            if (m_uiHitCounter == 7)
+            {
+                m_resetTimer = 30000;
+                Reset();
+            }
+        }
+    }
+
+    void JustSummoned(GameObject* pGo) override
+    {
+        if (pGo->GetEntry() == GO_SMOKE)
+            m_guidSmoke = pGo->GetObjectGuid();
+    }
+
+    void JustSummoned(Creature* pSummoned) override
+    {
+        if (pSummoned->GetEntry() == NPC_UNSTABLE_FEL_IMP)
+        {
+            m_vImpGuids.push_back(pSummoned->GetObjectGuid());
+            pSummoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            pSummoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            if (Creature* cannon = m_creature->GetMap()->GetCreature(m_guidFelCannon))
+            {
+                pSummoned->AI()->AttackStart(cannon);
+            }
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiHitCounter)
+        {
+            Creature* cannon = m_creature->GetMap()->GetCreature(m_guidFelCannon);
+            if (!cannon || !cannon->HasCharmer())
+            {
+                Reset();
+                return;
+            }
+
+            if (m_uiSpawnImpTimer <= uiDiff)
+            {
+                uint32 i = m_creature->GetEntry() - NPC_DEATHS_DOOR_NORTH_WARP_GATE;
+                if (m_creature->SummonCreature(NPC_UNSTABLE_FEL_IMP, impSpawns[i][0], impSpawns[i][1], impSpawns[i][2], impSpawns[i][3], TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 20000, true, true))
+                    m_uiSpawnImpTimer = 3000;
+            }
+            else
+                m_uiSpawnImpTimer -= uiDiff;
+        }
+
+        if (m_resetTimer)
+        {
+            if (m_resetTimer <= uiDiff)
+            {
+                m_creature->GetInstanceData()->SetData(m_creature->GetEntry() == NPC_DEATHS_DOOR_NORTH_WARP_GATE ? TYPE_DEATHS_DOOR_NORTH : TYPE_DEATHS_DOOR_SOUTH, 0);
+                m_resetTimer = 0;
+            }
+            else m_resetTimer -= uiDiff;
+        }
+    }
+};
+
+UnitAI* GetAI_npc_warp_gate(Creature* pCreature)
+{
+    return new npc_warp_gate(pCreature);
 }
 
 /*######
@@ -1757,7 +2289,7 @@ struct npc_supplicantAI : public ScriptedAI
     uint8 m_phase;
 
     GuidVector m_supplicants;
-    uint32 m_last;
+    int32 m_last;
 
     void Reset() override
     {
@@ -2326,6 +2858,218 @@ UnitAI* GetAI_npc_evergrove_druidAI(Creature* creature)
     return new npc_evergrove_druidAI(creature);
 }
 
+/*######
+## npc_apexis_flayer
+######*/
+
+enum
+{
+    NPC_NETHERSTORM_TRIGGER = 19656,
+
+    FLAYER_SPELL_SPECIAL_UNARMED = 33334,
+    FLAYER_SPELL_REND = 13443,
+    FLAYER_SPELL_SHRED_ARMOR = 40770,
+};
+
+enum FlayerActions
+{
+    FLAYER_ACTION_REND,
+    FLAYER_ACTION_SHRED_ARMOR,
+    FLAYER_ACTION_MAX,
+};
+
+struct npc_apexis_flayerAI : public ScriptedAI, public CombatTimerAI
+{
+    npc_apexis_flayerAI(Creature* creature) : ScriptedAI(creature), CombatTimerAI(FLAYER_ACTION_MAX)
+    { 
+        AddCombatAction(FLAYER_ACTION_REND, 0);
+        AddCombatAction(FLAYER_ACTION_SHRED_ARMOR, 0);
+        Reset();
+    }
+
+    uint8 strikeCount;
+    uint32 idleTimer;
+    uint32 crystalTimer;
+    uint32 rendTimer;
+    uint32 shredArmorTimer;
+
+    void Reset() override 
+    {
+        for (uint32 i = 0; i < FLAYER_ACTION_MAX; ++i)
+            SetActionReadyStatus(i, false);
+
+        ResetTimer(FLAYER_ACTION_REND, GetInitialActionTimer(FLAYER_ACTION_REND));
+        ResetTimer(FLAYER_ACTION_SHRED_ARMOR, GetInitialActionTimer(FLAYER_ACTION_SHRED_ARMOR));
+
+        idleTimer = urand(15000, 20000);
+        crystalTimer = 0;
+        strikeCount = 0;
+    }
+
+    uint32 GetInitialActionTimer(uint32 id) // Timers are copied from the EventAI script
+    {
+        switch (id)
+        {
+            case FLAYER_ACTION_REND: return urand(8300, 13300);
+            case FLAYER_ACTION_SHRED_ARMOR: return urand(4200, 6200);
+            default: return 0; // never occurs but for compiler
+        }
+    }
+
+    uint32 GetSubsequentActionTimer(uint32 id) // Timers are copied from the EventAI script
+    {
+        switch (id)
+        {
+            case FLAYER_ACTION_REND: return urand(22000, 26000);
+            case FLAYER_ACTION_SHRED_ARMOR: return urand(28100, 31600);
+            default: return 0; // never occurs but for compiler
+        }
+    }
+
+    void ExecuteActions() override
+    {
+        if (!CanExecuteCombatAction())
+            return;
+
+        for (uint32 i = 0; i < FLAYER_ACTION_MAX; ++i)
+        {
+            if (GetActionReadyStatus(i))
+            {
+                switch (i)
+                {
+                    case FLAYER_ACTION_REND:
+                    {
+                        if (Unit* target = m_creature->getVictim())
+                        {
+                            if (DoCastSpellIfCan(target, FLAYER_SPELL_REND) == CAST_OK)
+                            {
+                                ResetTimer(i, GetSubsequentActionTimer(i));
+                                SetActionReadyStatus(i, false);
+                                return;
+                            }
+                        }
+                        continue;
+                    }
+                    case FLAYER_ACTION_SHRED_ARMOR:
+                    {
+                        if (Unit* target = m_creature->getVictim())
+                        {
+                            if (DoCastSpellIfCan(target, FLAYER_SPELL_SHRED_ARMOR) == CAST_OK)
+                            {
+                                ResetTimer(i, GetSubsequentActionTimer(i));
+                                SetActionReadyStatus(i, false);
+                                return;
+                            }
+                        }
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        {
+            if (idleTimer)
+            {
+                if (idleTimer <= diff)
+                {
+                    MoveToCrystal();
+                    idleTimer = 0;
+                }
+                else
+                    idleTimer -= diff;
+            }
+
+            if (crystalTimer)
+            {
+                if (crystalTimer <= diff)
+                {
+                    CrystalStrike();
+                }
+                else
+                    crystalTimer -= diff;
+            }
+        }
+        else
+        {
+            UpdateTimers(diff, m_creature->isInCombat());
+            ExecuteActions();
+
+            DoMeleeAttackIfReady();
+        }
+    }
+
+    void MoveToCrystal()
+    {
+        if (Creature* triggerNPC = GetClosestCreatureWithEntry(m_creature, NPC_NETHERSTORM_TRIGGER, 15))
+        {
+            float fX, fY, fZ;
+            m_creature->GetContactPoint(triggerNPC, fX, fY, fZ);
+            m_creature->GetMotionMaster()->MovePoint(1, fX, fY, fZ);
+        }
+    }
+
+    void CrystalStrike()
+    {
+        switch (strikeCount)
+        {
+            case 0:
+                m_creature->CastSpell(m_creature, FLAYER_SPELL_SPECIAL_UNARMED, TRIGGERED_NONE);
+                crystalTimer = 2400;
+                strikeCount++;
+                break;
+            case 1:
+                m_creature->CastSpell(m_creature, FLAYER_SPELL_SPECIAL_UNARMED, TRIGGERED_NONE);
+                crystalTimer = 2400;
+                strikeCount++;
+                break;
+            case 2:
+                m_creature->CastSpell(m_creature, FLAYER_SPELL_SPECIAL_UNARMED, TRIGGERED_NONE);
+                crystalTimer = 2400;
+                strikeCount++;
+                break;
+            case 3:
+                m_creature->CastSpell(m_creature, FLAYER_SPELL_SPECIAL_UNARMED, TRIGGERED_NONE);
+                crystalTimer = 2400;
+                strikeCount++;
+                break;
+            case 4:
+                float respX, respY, respZ, respO, wander_distance;
+                m_creature->GetRespawnCoord(respX, respY, respZ, &respO, &wander_distance);
+                m_creature->GetMotionMaster()->MoveRandomAroundPoint(respX, respY, respZ, wander_distance);
+                crystalTimer = 0;
+                strikeCount = 0;
+                idleTimer = urand(15000, 20000);
+                break;
+            default:
+                break;
+        }
+    }
+
+    void MovementInform(uint32 /*movementType*/, uint32 data) override
+    {
+        switch (data)
+        {
+            case 1:
+            {
+                m_creature->GetMotionMaster()->MoveIdle();
+                crystalTimer = 1;
+                break;
+            }
+        }
+    }
+};
+
+UnitAI* GetAI_npc_apexis_flayerAI(Creature* creature)
+{
+    return new npc_apexis_flayerAI(creature);
+}
+
+
 void AddSC_blades_edge_mountains()
 {
     Script* pNewScript = new Script;
@@ -2356,6 +3100,11 @@ void AddSC_blades_edge_mountains()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
+    pNewScript->Name = "npc_obelisk_trigger";
+    pNewScript->GetAI = &GetAI_obelisk_triggerAI;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
     pNewScript->Name = "npc_vimgol_visual_bunny";
     pNewScript->GetAI = &GetAI_npc_vimgol_visual_bunny;
     pNewScript->RegisterSelf();
@@ -2371,6 +3120,11 @@ void AddSC_blades_edge_mountains()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
+    pNewScript->Name = "npc_bird_spirit";
+    pNewScript->GetAI = &GetAI_npc_bird_spirit;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
     pNewScript->Name = "npc_bloodmaul_dire_wolf";
     pNewScript->GetAI = &GetAI_npc_bloodmaul_dire_wolf;
     pNewScript->pEffectScriptEffectNPC = &EffectScriptEffectCreature_spell_diminution_powder;
@@ -2379,6 +3133,16 @@ void AddSC_blades_edge_mountains()
     pNewScript = new Script;
     pNewScript->Name = "mobs_grishna_arrakoa";
     pNewScript->pAreaTrigger = &AreaTrigger_at_raven_prophecy;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_fel_cannon";
+    pNewScript->GetAI = &GetAI_npc_fel_cannon;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_warp_gate";
+    pNewScript->GetAI = &GetAI_npc_warp_gate;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -2415,5 +3179,10 @@ void AddSC_blades_edge_mountains()
     pNewScript->Name = "npc_evergrove_druid";
     pNewScript->GetAI = &GetAI_npc_evergrove_druidAI;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_evergrove_druid;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_apexis_flayer";
+    pNewScript->GetAI = &GetAI_npc_apexis_flayerAI;
     pNewScript->RegisterSelf();
 }

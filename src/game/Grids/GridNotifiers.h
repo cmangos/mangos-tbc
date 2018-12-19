@@ -670,7 +670,7 @@ namespace MaNGOS
         AllGameObjectEntriesListInPosRangeCheck(float x, float y, float z, std::set<uint32>& entries, float range, bool is3D = true) : i_x(x), i_y(y), i_z(z), i_entries(entries), i_range(range), i_is3D(is3D) {}
         bool operator()(GameObject* go)
         {
-            if (go->IsSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && go->IsWithinDist3d(i_x, i_y, i_z, i_range))
+            if (go->IsSpawned() && i_entries.find(go->GetEntry()) != i_entries.end() && go->GetDistance(i_x, i_y, i_z, DIST_CALC_COMBAT_REACH) < i_range)
                 return true;
 
             return false;
@@ -989,7 +989,7 @@ namespace MaNGOS
             {
                 if (currUnit->isAlive() && (m_source->IsAttackedBy(currUnit) || (m_owner && m_owner->IsAttackedBy(currUnit)) || m_source->IsEnemy(currUnit))
                     && m_source->CanAttack(currUnit)
-                    && currUnit->isVisibleForOrDetect(m_source, m_source, false)
+                    && currUnit->IsVisibleForOrDetect(m_source, m_source, false)
                     && m_source->IsWithinDistInMap(currUnit, m_range))
                 {
                     m_range = m_source->GetDistance(currUnit);        // use found unit range as new range limit for next check
@@ -1127,9 +1127,10 @@ namespace MaNGOS
             {
                 if (u->GetEntry() == i_entry && ((i_onlyAlive && u->isAlive()) || (i_onlyDead && u->IsCorpse()) || (!i_onlyAlive && !i_onlyDead)) && (!i_excludeSelf || (&i_obj != u)))
                 {
-                    if (i_obj.IsWithinDistInMap(u, i_range))
+                    float dist = sqrt(i_obj.GetDistance(u, true, DIST_CALC_NONE));
+                    if (dist < i_range)
                     {
-                        i_range = i_obj.GetDistance(u);         // use found unit range as new range limit for next check
+                        i_range = dist;         // use found unit range as new range limit for next check
                         return true;
                     }
                     i_foundOutOfRange = true;
@@ -1137,7 +1138,6 @@ namespace MaNGOS
                 return false;
             }
             float GetLastRange() const { return i_range; }
-            bool FoundOutOfRange() const { return i_foundOutOfRange; }
         private:
             WorldObject const& i_obj;
             uint32 i_entry;

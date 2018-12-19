@@ -33,7 +33,6 @@ Enrages 26527*/
 enum
 {
     EMOTE_SPRAY_SLIME               = -1533021,
-    EMOTE_INJECTION                 = -1533158,
 
     SPELL_SLIME_STREAM              = 28137,
     SPELL_MUTATING_INJECTION        = 28169,
@@ -110,10 +109,8 @@ struct boss_grobbulusAI : public ScriptedAI
 
         Unit* pTarget = suitableTargets[urand(0, suitableTargets.size() - 1)];
         if (DoCastSpellIfCan(pTarget, SPELL_MUTATING_INJECTION) == CAST_OK)
-        {
-            DoScriptText(EMOTE_INJECTION, m_creature, pTarget);
             return true;
-        }
+
         return false;
     }
 

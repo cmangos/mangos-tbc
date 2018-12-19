@@ -164,10 +164,7 @@ template<class T>
 void ObjectUpdater::Visit(GridRefManager<T>& m)
 {
     for (typename GridRefManager<T>::iterator iter = m.begin(); iter != m.end(); ++iter)
-    {
-        WorldObject::UpdateHelper helper(iter->getSource());
-        helper.Update(i_timeDiff);
-    }
+        iter->getSource()->Update(i_timeDiff);
 }
 
 bool CannibalizeObjectCheck::operator()(Corpse* u)
@@ -237,7 +234,7 @@ bool MaNGOS::AnyAssistCreatureInRangeCheck::operator()(Creature* u)
     if (u == i_funit)
         return false;
 
-    if (!u->CanAssist(i_funit) || !u->CanAttack(i_enemy))
+    if (!u->CanAssistInCombatAgainst(i_funit, i_enemy))
         return false;
 
     // too far

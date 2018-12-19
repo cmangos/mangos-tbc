@@ -211,6 +211,22 @@ void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) c
     data->AddUpdateBlock(buf);
 }
 
+void Object::BuildForcedValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
+{
+    ByteBuffer buf(500);
+
+    buf << uint8(UPDATETYPE_VALUES);
+    buf << GetPackGUID();
+
+    UpdateMask updateMask;
+    updateMask.SetCount(m_valuesCount);
+
+    _SetCreateBits(&updateMask, target);
+    BuildValuesUpdate(UPDATETYPE_VALUES, &buf, &updateMask, target);
+
+    data->AddUpdateBlock(buf);
+}
+
 void Object::BuildOutOfRangeUpdateBlock(UpdateData* data) const
 {
     data->AddOutOfRangeGUID(GetObjectGuid());
@@ -1375,22 +1391,22 @@ bool WorldObject::IsFacingTargetsFront(const WorldObject* target, float arc /*= 
 
 bool WorldObject::isInFrontInMap(WorldObject const* target, float distance,  float arc /*= M_PI_F*/) const
 {
-    return IsWithinDistInMap(target, distance) && HasInArc(target, arc);
+    return IsInMap(target) && isInFront(target, distance, arc);
 }
 
 bool WorldObject::isInBackInMap(WorldObject const* target, float distance, float arc /*= M_PI_F*/) const
 {
-    return IsWithinDistInMap(target, distance) && !HasInArc(target, 2 * M_PI_F - arc);
+    return IsInMap(target) && isInBack(target, distance, arc);
 }
 
 bool WorldObject::isInFront(WorldObject const* target, float distance,  float arc /*= M_PI_F*/) const
 {
-    return target->IsWithinDist3d(GetPositionX(), GetPositionY(), GetPositionZ(), distance) && HasInArc(target, arc);
+    return target->GetDistance(GetPositionX(), GetPositionY(), GetPositionZ(), DIST_CALC_COMBAT_REACH) <= distance && HasInArc(target, arc);
 }
 
 bool WorldObject::isInBack(WorldObject const* target, float distance, float arc /*= M_PI_F*/) const
 {
-    return target->IsWithinDist3d(GetPositionX(), GetPositionY(), GetPositionZ(), distance) && !HasInArc(target, 2 * M_PI_F - arc);
+    return target->GetDistance(GetPositionX(), GetPositionY(), GetPositionZ(), DIST_CALC_COMBAT_REACH) <= distance && !HasInArc(target, 2 * M_PI_F - arc);
 }
 
 void WorldObject::GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist /*=0.0f*/, float const* ori /*=nullptr*/) const
@@ -1422,7 +1438,7 @@ void WorldObject::GetRandomPoint(float x, float y, float z, float distance, floa
 
     MaNGOS::NormalizeMapCoord(rand_x);
     MaNGOS::NormalizeMapCoord(rand_y);
-    UpdateGroundPositionZ(rand_x, rand_y, rand_z);          // update to LOS height if available
+    UpdateAllowedPositionZ(rand_x, rand_y, rand_z);          // update to LOS height if available
 }
 
 void WorldObject::UpdateGroundPositionZ(float x, float y, float& z) const
@@ -1768,7 +1784,7 @@ void WorldObject::AddObjectToRemoveList()
     GetMap()->AddObjectToRemoveList(this);
 }
 
-Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject, bool setRun, uint32 pathId, uint32 faction, uint32 modelId, bool spawnCounting)
+Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject, bool setRun, uint32 pathId, uint32 faction, uint32 modelId, bool spawnCounting, bool forcedOnTop)
 {
     CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(id);
     if (!cinfo)
@@ -1779,16 +1795,15 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
 
     TemporarySpawn* pCreature = new TemporarySpawn(GetObjectGuid());
 
-    Team team = TEAM_NONE;
-    if (GetTypeId() == TYPEID_PLAYER)
-        team = ((Player*)this)->GetTeam();
-
     CreatureCreatePos pos(GetMap(), x, y, z, ang);
 
     if (x == 0.0f && y == 0.0f && z == 0.0f)
-        pos = CreatureCreatePos(this, GetOrientation(), CONTACT_DISTANCE, ang);
+    {
+        float dist = forcedOnTop ? 0.0f : CONTACT_DISTANCE;
+        pos = CreatureCreatePos(this, GetOrientation(), dist, ang);
+    }
 
-    if (!pCreature->Create(GetMap()->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo, team))
+    if (!pCreature->Create(GetMap()->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo))
     {
         delete pCreature;
         return nullptr;
@@ -1811,7 +1826,7 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
     if (spawnCounting)
         pCreature->SetSpawnCounting(true);
 
-    pCreature->GetMotionMaster()->SetPathId(pathId);
+    pCreature->GetMotionMaster()->SetDefaultPathId(pathId);
 
     pCreature->Summon(spwtype, despwtime);                  // Also initializes the AI and MMGen
 
@@ -1942,13 +1957,13 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     // prepare selector for work
     ObjectPosSelector selector(GetPositionX(), GetPositionY(), distance2d, searcher_bounding_radius, searcher);
 
-    // adding used positions around object
-    {
-        MaNGOS::NearUsedPosDo u_do(*this, searcher, absAngle, selector);
-        MaNGOS::WorldObjectWorker<MaNGOS::NearUsedPosDo> worker(u_do);
+    // adding used positions around object - unused because its not blizzlike
+    //{
+    //    MaNGOS::NearUsedPosDo u_do(*this, searcher, absAngle, selector);
+    //    MaNGOS::WorldObjectWorker<MaNGOS::NearUsedPosDo> worker(u_do);
 
-        Cell::VisitAllObjects(this, worker, dist);
-    }
+    //    Cell::VisitAllObjects(this, worker, dist);
+    //}
 
     // maybe can just place in primary position
     if (selector.CheckOriginalAngle())

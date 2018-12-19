@@ -116,7 +116,7 @@ Unit* DynamicObject::GetCaster() const
     return ObjectAccessor::GetUnit(*this, GetCasterGuid());
 }
 
-void DynamicObject::Update(uint32 /*update_diff*/, uint32 p_time)
+void DynamicObject::Update(const uint32 diff)
 {
     // caster can be not in world at time dynamic object update, but dynamic object not yet deleted in Unit destructor
     Unit* caster = GetCaster();
@@ -128,8 +128,8 @@ void DynamicObject::Update(uint32 /*update_diff*/, uint32 p_time)
 
     bool deleteThis = false;
 
-    if (m_aliveDuration > int32(p_time))
-        m_aliveDuration -= p_time;
+    if (m_aliveDuration > int32(diff))
+        m_aliveDuration -= diff;
     else
         deleteThis = true;
 
@@ -214,6 +214,10 @@ void DynamicObject::OnPersistentAreaAuraEnd()
         case 30632: // Magtheridon - Debris
             if (Unit* owner = GetCaster())
                 owner->CastSpell(nullptr, 30631, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid());
+            break;
+        case 32286: // Shirakk - Focus fire
+            if (Unit* owner = GetCaster())
+                owner->CastSpell(nullptr, 32301, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid());
             break;
     }
 }

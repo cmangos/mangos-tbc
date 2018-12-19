@@ -396,7 +396,6 @@ struct ScriptInfo
         struct                                              // SCRIPT_COMMAND_UPDATE_TEMPLATE (44)
         {
             uint32 newTemplate;                             // datalong
-            uint32 newFactionTeam;                          // datalong2
         } updateTemplate;
 
         struct                                              // SCRIPT_COMMAND_START_RELAY_SCRIPT
@@ -464,6 +463,11 @@ struct ScriptInfo
             default:
                 return true;
         }
+    }
+
+    bool IsDeadOrDespawnedBuddy() const
+    {
+        return (data_flags & SCRIPT_FLAG_BUDDY_IS_DESPAWNED) != 0;
     }
 
     bool HasAdditionalScriptFlag() const

@@ -169,10 +169,7 @@ struct boss_vazruden_heraldAI : public ScriptedAI
                     // undo flying
                     m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
                     m_creature->SetLevitate(false);
-
-                    Player* pPlayer = m_creature->GetMap()->GetPlayer(m_lastSeenPlayerGuid);
-                    if (pPlayer && pPlayer->isAlive())
-                        AttackStart(pPlayer);
+                    m_creature->SetInCombatWithZone();
 
                     // Initialize for combat
                     m_uiFireballTimer = urand(5200, 16500);
@@ -234,8 +231,7 @@ struct boss_vazruden_heraldAI : public ScriptedAI
         if (pSummoned->GetEntry() != NPC_VAZRUDEN)
             return;
 
-        if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_lastSeenPlayerGuid))
-            pSummoned->AI()->AttackStart(pPlayer);
+        pSummoned->SetInCombatWithZone();
 
         m_vazrudenGuid = pSummoned->GetObjectGuid();
 
@@ -282,7 +278,7 @@ struct boss_vazruden_heraldAI : public ScriptedAI
                 {
                     if (Creature* pVazruden = m_creature->GetMap()->GetCreature(m_vazrudenGuid))
                     {
-                        if (Unit* pEnemy = pVazruden->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                        if (Unit* pEnemy = pVazruden->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                         {
                             if (DoCastSpellIfCan(pEnemy, m_bIsRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H, 0, pVazruden->GetObjectGuid()) == CAST_OK)
                                 m_uiFireballTimer = urand(2100, 7300);
@@ -302,7 +298,7 @@ struct boss_vazruden_heraldAI : public ScriptedAI
         // In Combat
         if (m_uiFireballTimer < uiDiff)
         {
-            if (Unit* pEnemy = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pEnemy = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pEnemy, m_bIsRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H) == CAST_OK)
                     m_uiFireballTimer = urand(7300, 13200);
@@ -331,6 +327,18 @@ struct boss_vazruden_heraldAI : public ScriptedAI
         }
 
         DoMeleeAttackIfReady();
+
+        if (EnterEvadeIfOutOfCombatArea(uiDiff))
+        {
+            if (m_vazrudenGuid)
+            {
+                if (Creature* pVazruden = m_creature->GetMap()->GetCreature(m_vazrudenGuid))
+                {
+                    DoScriptText(SAY_TAUNT, pVazruden);
+                    pVazruden->AI()->EnterEvadeMode();
+                }
+            }
+        }
     }
 };
 
@@ -392,7 +400,7 @@ struct boss_vazrudenAI : public ScriptedAI
 
     void DamageTaken(Unit* /*pDealer*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
-        if (!m_bHealthBelow && m_pInstance && (float(m_creature->GetHealth() - uiDamage) / m_creature->GetMaxHealth()) < 0.30f)
+        if (!m_bHealthBelow && m_pInstance && (float(m_creature->GetHealth() - uiDamage) / m_creature->GetMaxHealth()) < 0.40f)
         {
             if (Creature* pNazan = m_pInstance->GetSingleCreatureFromStorage(NPC_VAZRUDEN_HERALD))
                 if (boss_vazruden_heraldAI* pNazanAI = dynamic_cast<boss_vazruden_heraldAI*>(pNazan->AI()))
@@ -416,6 +424,13 @@ struct boss_vazrudenAI : public ScriptedAI
             m_uiRevengeTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
+
+        if (EnterEvadeIfOutOfCombatArea(uiDiff))
+        {
+            DoScriptText(SAY_TAUNT, m_creature);
+            if (Creature* pNazan = m_pInstance->GetSingleCreatureFromStorage(NPC_VAZRUDEN_HERALD))
+                pNazan->AI()->EnterEvadeMode();
+        }
     }
 };
 

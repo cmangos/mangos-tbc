@@ -72,6 +72,7 @@ enum EventAI_Type
     EVENT_T_ENERGY                  = 31,                   // EnergyMax%, EnergyMin%, RepeatMin, RepeatMax
     EVENT_T_SELECT_ATTACKING_TARGET = 32,                   // MinRange, MaxRange, RepeatMin, RepeatMax
     EVENT_T_FACING_TARGET           = 33,                   // Position, unused, RepeatMin, RepeatMax
+    EVENT_T_SPELLHIT_TARGET         = 34,                   // SpellID, School, RepeatMin, RepeatMax
 
     EVENT_T_END,
 };
@@ -114,7 +115,7 @@ enum EventAI_ActionType
     ACTION_T_KILLED_MONSTER             = 33,               // CreatureId, Target
     ACTION_T_SET_INST_DATA              = 34,               // Field, Data
     ACTION_T_SET_INST_DATA64            = 35,               // Field, Target
-    ACTION_T_UPDATE_TEMPLATE            = 36,               // Entry, Team
+    ACTION_T_UPDATE_TEMPLATE            = 36,               // Entry
     ACTION_T_DIE                        = 37,               // No Params
     ACTION_T_ZONE_COMBAT_PULSE          = 38,               // No Params
     ACTION_T_CALL_FOR_HELP              = 39,               // Radius
@@ -408,7 +409,6 @@ struct CreatureEventAI_Action
         struct
         {
             uint32 creatureId;
-            uint32 team;
         } update_template;
         // ACTION_T_CALL_FOR_HELP                           = 39
         struct
@@ -720,6 +720,14 @@ struct CreatureEventAI_Event
             uint32 repeatMin;
             uint32 repeatMax;
         } facingTarget;
+        // EVENT_T_SPELLHIT_TARGET                          = 34
+        struct
+        {
+            uint32 spellId;
+            uint32 schoolMask;                              // -1 (==0xffffffff) is ok value for full mask, or must be more limited mask like (0 < 1) = 1 for normal/physical school
+            uint32 repeatMin;
+            uint32 repeatMax;
+        } spell_hit_target;
         // RAW
         struct
         {
@@ -787,7 +795,8 @@ class CreatureEventAI : public CreatureAI
         void JustSummoned(Creature* summoned) override;
         // void AttackStart(Unit* who) override;
         void MoveInLineOfSight(Unit* who) override;
-        void SpellHit(Unit* pUnit, const SpellEntry* spellInfo) override;
+        void SpellHit(Unit* unit, const SpellEntry* spellInfo) override;
+        void SpellHitTarget(Unit* target, const SpellEntry* spell) override;
         void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType damagetype) override;
         void HealedBy(Unit* healer, uint32& healedAmount) override;
         void UpdateAI(const uint32 diff) override;
@@ -862,6 +871,7 @@ class CreatureEventAI : public CreatureAI
         std::unordered_set<uint32> m_distanceSpells;
         uint32 m_mainSpellId;
         uint32 m_mainSpellCost;
+        float m_mainSpellMinRange;
 };
 
 #endif

@@ -42,7 +42,7 @@ class DynamicObject : public WorldObject
         void RemoveFromWorld() override;
 
         bool Create(uint32 guidlow, Unit* caster, uint32 spellId, SpellEffectIndex effIndex, float x, float y, float z, int32 duration, float radius, DynamicObjectType type, SpellTarget target);
-        void Update(uint32 update_diff, uint32 p_time) override;
+        void Update(const uint32 diff) override;
         void Delete();
         uint32 GetSpellId() const { return m_spellId; }
         SpellEffectIndex GetEffIndex() const { return m_effIndex; }
@@ -64,8 +64,8 @@ class DynamicObject : public WorldObject
         bool IsEnemy(Unit const* unit) const override;
         bool IsFriend(Unit const* unit) const override;
 
-        bool CanAttackSpell(Unit* target, SpellEntry const* spellInfo = nullptr, bool isAOE = false) const override;
-        bool CanAssistSpell(Unit* target, SpellEntry const* spellInfo = nullptr) const override;
+        bool CanAttackSpell(Unit const* target, SpellEntry const* spellInfo = nullptr, bool isAOE = false) const override;
+        bool CanAssistSpell(Unit const* target, SpellEntry const* spellInfo = nullptr) const override;
 
         void OnPersistentAreaAuraEnd();
 

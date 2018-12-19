@@ -18,6 +18,7 @@
 SDName: Boss_Omar_The_Unscarred
 SD%Complete: 90
 SDComment: Temporary solution for orbital/shadow whip-ability. Needs more core support before making it more proper.
+Players should be ~6 seconds airborne, shadow whip should be casted ~3 maybe 4 times
 SDCategory: Hellfire Citadel, Hellfire Ramparts
 EndScriptData */
 
@@ -66,10 +67,8 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
 
     void Reset() override
     {
-        DoScriptText(SAY_WIPE, m_creature);
-
         m_uiOrbitalStrikeTimer = 25000;
-        m_uiShadowWhipTimer = 2000;
+        m_uiShadowWhipTimer = 3500;
         m_uiAuraTimer = urand(12300, 23300);
         m_uiDemonicShieldTimer = 1000;
         m_uiShadowboltTimer = urand(0, 2000);
@@ -109,6 +108,13 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
         DoScriptText(SAY_DIE, m_creature);
     }
 
+    void EnterEvadeMode() override
+    {
+        DoScriptText(SAY_WIPE, m_creature);
+
+        ScriptedAI::EnterEvadeMode();
+    }
+
     void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
@@ -133,7 +139,7 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
                         DoCastSpellIfCan(pPlayer, SPELL_SHADOW_WHIP, CAST_INTERRUPT_PREVIOUS);
                 }
                 m_playerGuid.Clear();
-                m_uiShadowWhipTimer = 2000;
+                m_uiShadowWhipTimer = 1000;
                 m_bCanPullBack = false;
             }
             else
@@ -145,15 +151,15 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
             if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
                 pTemp = m_creature->getVictim();
             else
-                pTemp = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+                pTemp = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER | SELECT_FLAG_IN_MELEE_RANGE);
 
-            if (pTemp && pTemp->GetTypeId() == TYPEID_PLAYER)
+            if (pTemp)
             {
                 if (DoCastSpellIfCan(pTemp, SPELL_ORBITAL_STRIKE) == CAST_OK)
                 {
                     m_uiOrbitalStrikeTimer = urand(14000, 16000);
                     m_playerGuid = pTemp->GetObjectGuid();
-
+                    m_uiShadowWhipTimer = 3500;
                     m_bCanPullBack = true;
                 }
             }
@@ -174,7 +180,7 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
 
         if (m_uiAuraTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_TREACHEROUS_AURA, SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_TREACHEROUS_AURA : SPELL_BANE_OF_TREACHERY_H) == CAST_OK)
                 {
@@ -188,10 +194,13 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
 
         if (m_uiShadowboltTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, SPELL_SHADOW_BOLT, SELECT_FLAG_PLAYER))
             {
-                if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_SHADOW_BOLT : SPELL_SHADOW_BOLT_H) == CAST_OK)
-                    m_uiShadowboltTimer = urand(3000, 4000);
+                if (!m_creature->CanReachWithMeleeAttack(pTarget))
+                {
+                    if (DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_SHADOW_BOLT : SPELL_SHADOW_BOLT_H) == CAST_OK)
+                        m_uiShadowboltTimer = urand(3000, 4000);
+                }
             }
             else
                 m_uiShadowboltTimer = 2000;

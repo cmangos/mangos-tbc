@@ -69,6 +69,16 @@ enum
     NPC_IMAGE_OF_MEDIVH             = 17651,
     NPC_IMAGE_OF_ARCANAGOS          = 17652,
 
+    // Aran Teleport npcs
+    NPC_TELEPORT_N                  = 17168,
+    NPC_TELEPORT_S                  = 17169,
+    NPC_TELEPORT_E                  = 17170,
+    NPC_TELEPORT_W                  = 17171,
+    NPC_TELEPORT_NE                 = 17172,
+    NPC_TELEPORT_SE                 = 17173,
+    NPC_TELEPORT_SW                 = 17174,
+    NPC_TELEPORT_NW                 = 17175,
+
     // Chess event
     NPC_ORC_GRUNT                   = 17469,                    // pawn
     NPC_ORC_WOLF                    = 21748,                    // knight
@@ -109,6 +119,7 @@ enum
     GO_GAMESMANS_HALL_EXIT_DOOR     = 184277,
     GO_NETHERSPACE_DOOR             = 185134,
     GO_SIDE_ENTRANCE_DOOR           = 184275,
+    GO_SERVANTS_ACCESS_DOOR         = 184281,
     GO_DUST_COVERED_CHEST           = 185119,
     GO_MASTERS_TERRACE_DOOR_1       = 184274,
     GO_MASTERS_TERRACE_DOOR_2       = 184280,
@@ -195,6 +206,7 @@ class instance_karazhan : public ScriptedInstance
         void OnCreatureCreate(Creature* pCreature) override;
         void OnObjectCreate(GameObject* pGo) override;
 
+        void OnCreatureEvade(Creature* creature) override;
         void OnCreatureDeath(Creature* pCreature) override;
 
         void SetData(uint32 uiType, uint32 uiData) override;
@@ -210,6 +222,8 @@ class instance_karazhan : public ScriptedInstance
         void DoFailChessEvent();
         void DoFinishChessEvent();
         void GetChessPiecesByFaction(GuidList& lList, uint32 uiFaction) { lList = uiFaction == FACTION_ID_CHESS_ALLIANCE ? m_lChessPiecesAlliance : m_lChessPiecesHorde; }
+
+        GuidVector& GetAranTeleportNPCs() { return m_aranTeleportNPCs; }
 
         void GetNightbaneTriggers(GuidList& lList, bool bGround) { lList = bGround ? m_lNightbaneGroundTriggers : m_lNightbaneAirTriggers; }
 
@@ -258,6 +272,7 @@ class instance_karazhan : public ScriptedInstance
         GuidVector m_vAllianceStalkers;
         GuidVector m_vVictoryDummyTools;
         GuidVector m_vChessSquares;
+        GuidVector m_aranTeleportNPCs;
 };
 
 #endif

@@ -57,13 +57,10 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiRepentanceTimer    = urand(25000, 40000);
+        m_uiRepentanceTimer    = urand(42000, 44000);
         m_uiHolyfireTimer      = urand(8000, 25000);
         m_uiHolywrathTimer     = urand(15000, 25000);
         m_uiHolygroundTimer    = 3000;
-
-        m_creature->ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
-        m_creature->ApplySpellImmune(nullptr, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, true);
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -116,7 +113,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
             if (DoCastSpellIfCan(m_creature, SPELL_REPENTANCE) == CAST_OK)
             {
                 DoScriptText(urand(0, 1) ? SAY_REPENTANCE1 : SAY_REPENTANCE2, m_creature);
-                m_uiRepentanceTimer = urand(25000, 35000);
+                m_uiRepentanceTimer = urand(28000, 36000);
             }
         }
         else
@@ -124,7 +121,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
 
         if (m_uiHolyfireTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_HOLYFIRE, SELECT_FLAG_NOT_IN_MELEE_RANGE))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_HOLYFIRE, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_HOLYFIRE) == CAST_OK)
                     m_uiHolyfireTimer = urand(8000, 23000);
@@ -135,7 +132,7 @@ struct boss_maiden_of_virtueAI : public ScriptedAI
 
         if (m_uiHolywrathTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                 DoCastSpellIfCan(pTarget, SPELL_HOLYWRATH);
 
             m_uiHolywrathTimer = urand(20000, 25000);

@@ -571,7 +571,6 @@ void Unit::EvadeTimerExpired()
     }
 
     getThreatManager().SetTargetSuppressed(getVictim());
-    SelectHostileTarget();
 }
 
 void Unit::StopEvade()

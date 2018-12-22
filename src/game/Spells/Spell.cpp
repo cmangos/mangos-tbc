@@ -7831,7 +7831,7 @@ SpellCastResult Spell::OnCheckCast(bool strict)
     {
         case 30077:
             if (ObjectGuid target = m_caster->GetSelectionGuid())
-                if (!(target.GetEntry() == 17226))
+                if (target.GetEntry() != 17226)
                     return SPELL_FAILED_BAD_TARGETS;
             break;
         case 31958: // Fire Bomb Halaa - Must be Taxi Flying
@@ -7848,7 +7848,7 @@ SpellCastResult Spell::OnCheckCast(bool strict)
             break;
         case 38915:
             if (ObjectGuid target = m_caster->GetSelectionGuid())
-                if (!(target.GetEntry() == 16943 || target.GetEntry() == 20928))  // Mental Interference can be cast only on these two targets
+                if (target.GetEntry() != 16943 && target.GetEntry() != 20928)  // Mental Interference can be cast only on these two targets
                     return SPELL_FAILED_BAD_TARGETS;
             break;
         case 40472: // Booterang -  Must have aura Defiant And Enraged or Lazy and Good for Nothing
@@ -7859,17 +7859,14 @@ SpellCastResult Spell::OnCheckCast(bool strict)
             break;
         }
         case 40856: // Wrangling rope - should only be usable on aether rays
-        {
             if (ObjectGuid target = m_caster->GetSelectionGuid())
                 if (target.GetEntry() != 22181)
                     return SPELL_FAILED_BAD_TARGETS;
             break;
-        }
         case 37390: // Oscillating Frequency Scanner
-        {
             if (m_caster->HasAura(37407))
                 return SPELL_FAILED_NOT_HERE;
-        }
+            break;
         case 27230: // Health Stone
         case 11730:
         case 11729:

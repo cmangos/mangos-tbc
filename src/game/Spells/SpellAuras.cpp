@@ -1648,8 +1648,10 @@ void Aura::TriggerSpell()
 //                    case 41404: break;
 //                    // Chaos Form
 //                    case 41629: break;
-//                    // Alert Drums
-//                    case 42177: break;
+                    case 42177:                             // Alert Drums
+                        if (target->GetTypeId() == TYPEID_UNIT && target->AI())
+                            target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, static_cast<Creature*>(target));
+                        break;
                     case 42581:                             // Spout (left)
                     case 42582:                             // Spout (right)
                     {
@@ -4919,6 +4921,13 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
             case 42783:                                     // Wrath of the Astrom...
                 if (m_removeMode == AURA_REMOVE_BY_EXPIRE && GetEffIndex() + 1 < MAX_EFFECT_INDEX)
                     target->CastSpell(target, GetSpellProto()->CalculateSimpleValue(SpellEffectIndex(GetEffIndex() + 1)), TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetCasterGuid());
+                return;
+            case 42177:                                     // Alert Drums
+                if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
+                {
+                    if (Creature* creature = (Creature*)target)
+                        creature->AI()->SetReactState(REACT_AGGRESSIVE);
+                }
                 return;
             default:
                 break;

@@ -7118,6 +7118,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 41131, TRIGGERED_OLD_TRIGGERED);
                     break;
                 }
+                case 42179:                                 // Summon Amani'shi Sentries
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 42182, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
                 case 42281:                                 // Sprouting
                 {
                     if (!unitTarget)

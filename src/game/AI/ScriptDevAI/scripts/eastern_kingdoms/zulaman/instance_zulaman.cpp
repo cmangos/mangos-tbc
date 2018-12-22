@@ -131,6 +131,13 @@ void instance_zulaman::OnCreatureCreate(Creature* pCreature)
                 pCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_IMMUNE_TO_PLAYER);
             }
             break;
+        case NPC_WORLD_TRIGGER:
+            if (pCreature->GetOrientation() > 2.7f)
+                sHutTriggerGuidSet.insert(pCreature->GetObjectGuid());
+            else
+                sDrumTriggerGuidSet.insert(pCreature->GetObjectGuid());
+
+            break;
     }
 }
 

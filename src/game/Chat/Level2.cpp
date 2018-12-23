@@ -2715,6 +2715,7 @@ inline Creature* Helper_CreateWaypointFor(Creature* wpOwner, WaypointPathOrigin 
 
     wpCreature->SetVisibility(VISIBILITY_OFF);
     wpCreature->SetRespawnCoord(pos);
+    wpCreature->SetLevel(wpId);
 
     wpCreature->SetActiveObjectState(true);
 

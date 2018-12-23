@@ -1649,8 +1649,11 @@ void Aura::TriggerSpell()
 //                    // Chaos Form
 //                    case 41629: break;
                     case 42177:                             // Alert Drums
-                        if (target->GetTypeId() == TYPEID_UNIT && target->AI())
-                            target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, static_cast<Creature*>(target));
+                        if (GetAuraTicks() < 3 || GetAuraTicks() > 8)
+                        {
+                            if (target->GetTypeId() == TYPEID_UNIT && target->AI())
+                                target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, static_cast<Creature*>(target));
+                        }
                         break;
                     case 42581:                             // Spout (left)
                     case 42582:                             // Spout (right)
@@ -4926,7 +4929,7 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                 if (m_removeMode == AURA_REMOVE_BY_EXPIRE)
                 {
                     if (Creature* creature = (Creature*)target)
-                        creature->AI()->SetReactState(REACT_AGGRESSIVE);
+                        creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, creature, creature);
                 }
                 return;
             default:

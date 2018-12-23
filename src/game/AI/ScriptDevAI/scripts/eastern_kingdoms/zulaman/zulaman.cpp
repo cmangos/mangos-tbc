@@ -1552,19 +1552,22 @@ struct npc_amanishi_scoutAI : public ScriptedAI
     {
         m_uiShootTimer = 2000;
         m_uiMultiShotTimer = 6000;
-        SetReactState(REACT_PASSIVE);
+        m_creature->SetWalk(true);
     }
 
     void Aggro(Unit* /*pWho*/) override
     {
+        m_creature->SetInCombatWithZone();
+        SetCombatScriptStatus(true);
+        SetCombatMovement(false);
         m_creature->SetWalk(false);
         DoScriptText(SAY_ALARM, m_creature);
 
         if (m_pInstance)
         {
+            float minDist = 99999.9f;
             for (auto itr : m_pInstance->sDrumTriggerGuidSet)
             {
-                float minDist = 99999.9f;
                 if (Creature* pDrum = m_pInstance->instance->GetCreature(itr))
                 {
                     if (pDrum->GetDistance(m_creature) < minDist)
@@ -1576,7 +1579,10 @@ struct npc_amanishi_scoutAI : public ScriptedAI
             }
 
             if (Creature* pCloseDrum = m_pInstance->instance->GetCreature(m_targetDrumGuid))
+            {
+                m_creature->GetMotionMaster()->MoveIdle();
                 m_creature->GetMotionMaster()->MovePoint(1, pCloseDrum->GetPositionX(), pCloseDrum->GetPositionY(), pCloseDrum->GetPositionZ());
+            }
         }
     }
 
@@ -1590,13 +1596,13 @@ struct npc_amanishi_scoutAI : public ScriptedAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
-        if (eventType == AI_EVENT_CUSTOM_A)
+        if (m_pInstance)
         {
-            if (m_pInstance)
+            if (eventType == AI_EVENT_CUSTOM_A)
             {
+                float minDist = 99999.9f;
                 for (auto itr : m_pInstance->sHutTriggerGuidSet)
                 {
-                    float minDist = 99999.9f;
                     if (Creature* pHut = m_pInstance->instance->GetCreature(itr))
                     {
                         if (pHut->GetDistance(m_creature) < minDist)
@@ -1610,12 +1616,19 @@ struct npc_amanishi_scoutAI : public ScriptedAI
                 if (Creature* pCloseHut = m_pInstance->instance->GetCreature(m_targetHutGuid))
                     pCloseHut->CastSpell(pCloseHut, SPELL_SUMMON_AMANISHI_SENTRIES, TRIGGERED_OLD_TRIGGERED);
             }
+            else if (eventType == AI_EVENT_CUSTOM_B)
+            {
+                SetCombatScriptStatus(false);
+                SetCombatMovement(true);
+                if (m_creature->getVictim())
+                    DoStartMovement(m_creature->getVictim());
+            }
         }
     }
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim()) //|| !m_bDoneDrumming)
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || GetCombatScriptStatus())
             return;
 
         if (m_uiShootTimer < uiDiff)

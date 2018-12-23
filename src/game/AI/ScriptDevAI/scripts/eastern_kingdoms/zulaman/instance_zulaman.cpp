@@ -136,7 +136,9 @@ void instance_zulaman::OnCreatureCreate(Creature* pCreature)
                 sHutTriggerGuidSet.insert(pCreature->GetObjectGuid());
             else
                 sDrumTriggerGuidSet.insert(pCreature->GetObjectGuid());
-
+            break;
+        case NPC_REINFORCEMENT:
+            pCreature->SetInCombatWithZone();
             break;
     }
 }
@@ -211,6 +213,9 @@ void instance_zulaman::OnCreatureEvade(Creature* pCreature)
                         pTemp->Respawn();
                 }
             }
+            break;
+        case NPC_REINFORCEMENT:
+            pCreature->ForcedDespawn(10000);
             break;
     }
 }

@@ -124,6 +124,7 @@ enum InstanceZA
     GO_ASHLIS_VASE          = 186671,
 
     NPC_WORLD_TRIGGER       = 22515,                        // used to mark location of drums for Amani'shi Scouts and Amani'shi Reinforcement spawns
+    NPC_REINFORCEMENT       = 23587,
 };
 
 enum BossToChestIndex

@@ -7123,7 +7123,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    unitTarget->CastSpell(unitTarget, 42182, TRIGGERED_OLD_TRIGGERED);
+                    uint32 spells[4] = { 42180, 42181, 42182, 42183 };
+                    unitTarget->CastSpell(unitTarget, spells[urand(0, 3)], TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
                 case 42281:                                 // Sprouting

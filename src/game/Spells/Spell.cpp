@@ -1696,23 +1696,18 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             // Get a random point AT the circumference
             float angle = 2.0f * M_PI_F * rand_norm_f();
             float dest_x, dest_y, dest_z;
-            target->GetClosePoint(dest_x, dest_y, dest_z, 0.0f, radius, angle, nullptr);
+            target->GetNearPoint(nullptr, dest_x, dest_y, dest_z, target->GetObjectBoundingRadius(), radius, angle, target->IsInWater());
             if (m_spellInfo->Id == 41289)
                 dest_z = 342.9485; // confirmed with sniffs
             m_targets.setDestination(dest_x, dest_y, dest_z);
 
-            // This targetMode is often used as 'last' implicitTarget for positive spells, that just require coordinates
-            // and no unitTarget (e.g. summon effects). As MaNGOS always needs a unitTarget we add just the caster here.
-            // Logic: This is first target, and no second target => use m_caster -- This is second target: use m_caster if the spell is positive or a summon spell
-            if ((m_spellInfo->EffectImplicitTargetA[effIndex] == targetMode && m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_NONE) ||
-                    (m_spellInfo->EffectImplicitTargetB[effIndex] == targetMode && (IsPositiveSpell(m_spellInfo) || m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SUMMON)))
+            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
                 targetUnitMap.push_back(m_caster);
             break;
         }
-        case TARGET_LOCATION_RANDOM_SIDE:
+        case TARGET_LOCATION_RANDOM_SIDE: // TODO: Add LOS collision safety for point to point
         {
-            // Get a random point IN the CIRCEL around current M_TARGETS COORDINATES(!).
-            if (radius > 0.0f)
+            if (radius > 0.0f) // Get a random point in the circle around current dest target
             {
                 // Use sqrt(rand) to correct distribution when converting polar to Cartesian coordinates.
                 radius *= sqrtf(rand_norm_f());
@@ -1724,11 +1719,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 m_targets.setDestination(dest_x, dest_y, dest_z);
             }
 
-            // This targetMode is often used as 'last' implicitTarget for positive spells, that just require coordinates
-            // and no unitTarget (e.g. summon effects). As MaNGOS always needs a unitTarget we add just the caster here.
-            // Logic: This is first target, and no second target => use m_caster -- This is second target: use m_caster if the spell is positive or a summon spell
-            if ((m_spellInfo->EffectImplicitTargetA[effIndex] == targetMode && m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_NONE) ||
-                    (m_spellInfo->EffectImplicitTargetB[effIndex] == targetMode && (IsPositiveSpell(m_spellInfo) || m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SUMMON)))
+            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
                 targetUnitMap.push_back(m_caster);
 
             break;
@@ -1737,24 +1728,30 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_LOCATION_CASTER_BACK_RIGHT:
         case TARGET_LOCATION_CASTER_BACK_LEFT:
         case TARGET_LOCATION_CASTER_FRONT_LEFT:
+        case TARGET_LOCATION_CASTER_FRONT:
+        case TARGET_LOCATION_CASTER_BACK:
+        case TARGET_LOCATION_CASTER_LEFT:
+        case TARGET_LOCATION_CASTER_RIGHT:
         {
             float angle = m_caster->GetOrientation();
             switch (targetMode)
             {
-                case TARGET_LOCATION_CASTER_FRONT_LEFT:  angle += M_PI_F * 0.25f; break;            // front - left
-                case TARGET_LOCATION_CASTER_BACK_LEFT:   angle += M_PI_F * 0.75f; break;            // back  - left
-                case TARGET_LOCATION_CASTER_BACK_RIGHT: angle += M_PI_F * 1.25f; break;            // back  - right
-                case TARGET_LOCATION_CASTER_FRONT_RIGHT: angle += M_PI_F * 1.75f; break;            // front - right
+                case TARGET_LOCATION_CASTER_FRONT_LEFT:  angle += M_PI_F * 0.25f; break;
+                case TARGET_LOCATION_CASTER_BACK_LEFT:   angle += M_PI_F * 0.75f; break;
+                case TARGET_LOCATION_CASTER_BACK_RIGHT:  angle += M_PI_F * 1.25f; break;
+                case TARGET_LOCATION_CASTER_FRONT_RIGHT: angle += M_PI_F * 1.75f; break;
+                case TARGET_LOCATION_CASTER_FRONT:                                break;
+                case TARGET_LOCATION_CASTER_BACK:        angle += M_PI_F;         break;
+                case TARGET_LOCATION_CASTER_LEFT:        angle += M_PI_F / 2;     break;
+                case TARGET_LOCATION_CASTER_RIGHT:       angle -= M_PI_F / 2;     break;
             }
 
             float x, y;
             float z = m_caster->GetPositionZ();
             if (radius == 0.f) // All shaman totems have 0 radius - need to override with proper value
                 radius = 2.f;
-            // Do not search for a free spot. TODO: Should there be searched for a free spot. There was once a discussion that in case this space was impossible (LOS) m_caster's position should be used.
-            // TODO Bring this back to memory and search for it!
-            m_caster->GetNearPoint2D(x, y, radius, angle);
-            m_caster->UpdateAllowedPositionZ(x, y, z);
+
+            m_caster->GetNearPoint(nullptr, x, y, z, m_caster->GetObjectBoundingRadius(), radius, angle, m_caster->IsInWater());
             m_targets.setDestination(x, y, z);
 
             // Add Summoner
@@ -1773,65 +1770,23 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 m_targets.setDestination(x, y, z);
             }
             if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
-                targetUnitMap.push_back(m_caster); // TODO: Remove this when dest only effects are added
+                targetUnitMap.push_back(m_caster);
             break;
-        case TARGET_UNIT_ENEMY_NEAR_CASTER:
-        case TARGET_UNIT_FRIEND_NEAR_CASTER:
-        case TARGET_UNIT_NEAR_CASTER:
+        case TARGET_LOCATION_DYNOBJ_POSITION:
+            // if parent spell create dynamic object extract area from it
+            if (DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
+                m_targets.setDestination(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ());
+            break;
+        case TARGET_LOCATION_NORTH: // TODO: Add LOS collision safety for point to point
+        case TARGET_LOCATION_SOUTH:
+        case TARGET_LOCATION_EAST:
+        case TARGET_LOCATION_WEST:
+        case TARGET_LOCATION_NE:
+        case TARGET_LOCATION_NW:
+        case TARGET_LOCATION_SE:
+        case TARGET_LOCATION_SW:
         {
-            m_targets.m_targetMask = 0;
-            unMaxTargets = EffectChainTarget;
-            float max_range = radius + unMaxTargets * CHAIN_SPELL_JUMP_RADIUS;
-
-            UnitList tempTargetUnitMap;
-
-            switch (targetMode)
-            {
-                case TARGET_UNIT_ENEMY_NEAR_CASTER:
-                {
-                    FillAreaTargets(tempTargetUnitMap, max_range, 0.f, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
-                    break;
-                }
-                case TARGET_UNIT_NEAR_CASTER: // TODO: Rename TARGET_UNIT_NEAR_CASTER to something better and find real difference with TARGET_UNIT_FRIEND_NEAR_CASTER.
-                {
-                    FillAreaTargets(tempTargetUnitMap, max_range, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ALL);
-                    break;
-                }
-                case TARGET_UNIT_FRIEND_NEAR_CASTER:
-                {
-                    FillAreaTargets(tempTargetUnitMap, max_range, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ASSISTABLE);
-                    break;
-                }
-            }
-
-            if (tempTargetUnitMap.empty())
-                break;
-
-            tempTargetUnitMap.sort(TargetDistanceOrderNear(m_caster));
-
-            // Now to get us a random target that's in the initial range of the spell
-            uint32 t = 0;
-            UnitList::iterator itr = tempTargetUnitMap.begin();
-            while (itr != tempTargetUnitMap.end() && (*itr)->IsWithinDist(m_caster, radius))
-                ++t, ++itr;
-
-            if (!t)
-                break;
-
-            itr = tempTargetUnitMap.begin();
-            std::advance(itr, urand() % t);
-            Unit* pUnitTarget = *itr;
-            targetUnitMap.push_back(pUnitTarget);
-
-            tempTargetUnitMap.erase(itr);
-
-            tempTargetUnitMap.sort(TargetDistanceOrderNear(pUnitTarget));
-
-            t = unMaxTargets - 1;
-            Unit* prev = pUnitTarget;
-            UnitList::iterator next = tempTargetUnitMap.begin();
-
-            while (t && next != tempTargetUnitMap.end())
+            if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
             {
                 if (!prev->IsWithinDist(*next, CHAIN_SPELL_JUMP_RADIUS))
                     break;
@@ -1859,18 +1814,37 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             }
             break;
         }
-        case TARGET_UNIT:
+        case TARGET_LOCATION_UNIT_FRONT:
+        case TARGET_LOCATION_UNIT_BACK:
+        case TARGET_LOCATION_UNIT_RIGHT:
+        case TARGET_LOCATION_UNIT_LEFT:
+        case TARGET_LOCATION_UNIT_FRONT_RIGHT:
+        case TARGET_LOCATION_UNIT_BACK_RIGHT:
+        case TARGET_LOCATION_UNIT_BACK_LEFT:
+        case TARGET_LOCATION_UNIT_FRONT_LEFT:
         {
-            Unit* newUnitTarget = GetUnitTarget(effIndex);
-            if (!newUnitTarget)
-                break;
-
-            if (m_caster->CanAssist(newUnitTarget))
-                targetUnitMap.push_back(newUnitTarget);
-            else
+            Unit* target = GetUnitTarget(effIndex);
+            if (target)
             {
-                if (!CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetUnitMap, exception))
-                    targetUnitMap.push_back(newUnitTarget);
+                float angle = 0.0f;
+
+                switch (targetMode)
+                {
+                    case TARGET_LOCATION_UNIT_FRONT:                                 break;
+                    case TARGET_LOCATION_UNIT_BACK:         angle = M_PI_F;          break;
+                    case TARGET_LOCATION_UNIT_RIGHT:        angle = -M_PI_F / 2;     break;
+                    case TARGET_LOCATION_UNIT_LEFT:         angle = M_PI_F / 2;      break;
+                    case TARGET_LOCATION_UNIT_FRONT_RIGHT:  angle += M_PI_F * 1.75f; break;
+                    case TARGET_LOCATION_UNIT_BACK_RIGHT:   angle += M_PI_F * 1.25f; break;
+                    case TARGET_LOCATION_UNIT_BACK_LEFT:    angle += M_PI_F * 0.75f; break;
+                    case TARGET_LOCATION_UNIT_FRONT_LEFT:   angle += M_PI_F * 0.25f; break;
+                }
+
+                float x, y, z;
+                target->GetNearPoint(nullptr, x, y, z, target->GetObjectBoundingRadius(), radius, angle, target->IsInWater());
+                m_targets.setDestination(x, y, z);
+                if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                    targetUnitMap.push_back(m_caster);
             }
             break;
         }
@@ -2019,6 +1993,15 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     }
                 }
             }
+            m_targets.setDestination(nextPos.x, nextPos.y, nextPos.z);
+        }
+        case TARGET_LOCATION_UNIT_POSITION:
+        {
+            if (Unit* currentTarget = GetUnitTarget(effIndex))
+                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
+
+            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                targetUnitMap.push_back(m_caster);
             break;
         }
         case TARGET_ENUM_UNITS_ENEMY_AOE_AT_SRC_LOC:
@@ -2043,21 +2026,18 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     targetUnitMap.resize(unMaxTargets);
                 }
             }
+            m_targets.setDestination(x, y, z);
+            if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                targetUnitMap.push_back(m_caster);
             break;
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC:
         {
-            SpellTargets targetB = SPELL_TARGETS_AOE_ATTACKABLE;
-            switch (m_spellInfo->Effect[effIndex])
+            Unit* currentTarget = GetUnitTarget(effIndex);
+            if (currentTarget)
             {
-                case SPELL_EFFECT_QUEST_COMPLETE:
-                case SPELL_EFFECT_KILL_CREDIT_GROUP:
-                    targetB = SPELL_TARGETS_ALL;
-                    break;
-                default:
-                    // Select friendly targets for positive effect
-                    if (IsPositiveEffect(m_spellInfo, effIndex))
-                        targetB = SPELL_TARGETS_ASSISTABLE;
-                    break;
+                m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
+                if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
+                    targetUnitMap.push_back(m_caster);
             }
 
             // 30571 - Quake - Target Trigger is supposed to knockback players, spell has SPELL_ATTR_EX3_TARGET_ONLY_PLAYER, possibly need to consult Faction from sniffs and tweak that
@@ -2689,11 +2669,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 }
             }
             break;
-        }
-        case TARGET_LOCATION_DYNOBJ_POSITION:
-            // if parent spell create dynamic object extract area from it
-            if (DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
-                m_targets.setDestination(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ());
+        case TARGET_LOCATION_UNIT_MINION_POSITION:
+            if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_DUEL)
+                targetUnitMap.push_back(m_caster);
             break;
 
         case TARGET_LOCATION_CASTER_FRONT:

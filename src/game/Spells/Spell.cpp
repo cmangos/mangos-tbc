@@ -2335,43 +2335,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC:
         {
-            SpellTargets targetB = SPELL_TARGETS_AOE_ATTACKABLE;
-            switch (m_spellInfo->Effect[effIndex])
-            {
-                case SPELL_EFFECT_QUEST_COMPLETE:
-                case SPELL_EFFECT_KILL_CREDIT_GROUP:
-                    targetB = SPELL_TARGETS_ALL;
-                    break;
-                default:
-                    // Select friendly targets for positive effect
-                    if (IsPositiveEffect(m_spellInfo, effIndex))
-                        targetB = SPELL_TARGETS_ASSISTABLE;
-                    break;
-            }
-            // 30571 - Quake - Target Trigger is supposed to knockback players, spell has SPELL_ATTR_EX3_TARGET_ONLY_PLAYER, possibly need to consult Faction from sniffs and tweak that
-            // TODO: In future try to find out if neutral target types shouldnt have this
-            switch (m_spellInfo->Id)
-            {
-                case 39384:
-                case 30659:
-                case 36823:
-                case 39497: // remove weapons on kael, should hit all players, including the ones MCed
-                case 30571: // this spell needs custom targeting and is handled later, in sniff faction has 35 and no matter to what positive effect is set it doesnt work
-                case 39977: // needs to hit all targets, due to being neutral spell, it checks for specific aura
-                case 41284: // needs to hit everything, including self
-                    targetB = SPELL_TARGETS_ALL;
-                    break;
-                case 45339:
-                    targetB = SPELL_TARGETS_AOE_ATTACKABLE;
-                    break;
-            }
-
             UnitList tempTargetUnitMap;
             SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
 
             // fill real target list if no spell script target defined
             FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
-                            radius, cone, PUSH_SRC_CENTER, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetB);
+                            radius, cone, PUSH_SRC_CENTER, SPELL_TARGETS_ALL);
 
             if (!tempTargetUnitMap.empty())
                 CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);

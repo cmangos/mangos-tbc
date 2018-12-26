@@ -1723,6 +1723,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 targetUnitMap.push_back(m_caster);
             break;
         }
+        case TARGET_LOCATION_UNIT_MINION_POSITION: // unknown how pet summon is different - maybe some formation support?
         case TARGET_LOCATION_CASTER_FRONT_RIGHT:
         case TARGET_LOCATION_CASTER_BACK_RIGHT:
         case TARGET_LOCATION_CASTER_BACK_LEFT:
@@ -1741,6 +1742,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case TARGET_LOCATION_CASTER_FRONT_RIGHT: angle += M_PI_F * 1.75f; break;
                 case TARGET_LOCATION_CASTER_FRONT:                                break;
                 case TARGET_LOCATION_CASTER_BACK:        angle += M_PI_F;         break;
+                case TARGET_LOCATION_UNIT_MINION_POSITION:
                 case TARGET_LOCATION_CASTER_LEFT:        angle += M_PI_F / 2;     break;
                 case TARGET_LOCATION_CASTER_RIGHT:       angle -= M_PI_F / 2;     break;
             }
@@ -2687,10 +2689,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 else
                     targetUnitMap.push_back(m_caster); // cases like blizzard
             }
-            break;
-        case TARGET_LOCATION_UNIT_MINION_POSITION:
-            if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_DUEL)
-                targetUnitMap.push_back(m_caster);
             break;
         case TARGET_UNIT_CHANNEL_TARGET:
         {

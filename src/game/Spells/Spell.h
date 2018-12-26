@@ -62,6 +62,7 @@ enum SpellNotifyPushType
 {
     PUSH_CONE,
     PUSH_SELF_CENTER,
+    PUSH_SRC_CENTER,
     PUSH_DEST_CENTER,
     PUSH_TARGET_CENTER
 };
@@ -831,10 +832,12 @@ namespace MaNGOS
                         i_centerY = i_castingObject->GetPositionY();
                     }
                     break;
-                case PUSH_DEST_CENTER:
+                case PUSH_SRC_CENTER:
                     if (i_spell.m_targets.m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
                         i_spell.m_targets.getSource(i_centerX, i_centerY, i_centerZ);
-                    else
+                    break;
+                case PUSH_DEST_CENTER:
+                    if (i_spell.m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
                         i_spell.m_targets.getDestination(i_centerX, i_centerY, i_centerZ);
                     break;
                 case PUSH_TARGET_CENTER:
@@ -905,6 +908,7 @@ namespace MaNGOS
                         if (itr->getSource()->GetDistance2d(i_centerX, i_centerY, DIST_CALC_COMBAT_REACH) <= i_radius)
                             i_data.push_back(itr->getSource());
                         break;
+                    case PUSH_SRC_CENTER:
                     case PUSH_DEST_CENTER:
                     case PUSH_TARGET_CENTER:
                         if (itr->getSource()->GetDistance(i_centerX, i_centerY, i_centerZ, DIST_CALC_COMBAT_REACH) <= i_radius)

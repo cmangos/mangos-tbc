@@ -2394,12 +2394,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         {
             float x, y, z;
             if (targetMode == TARGET_ENUM_GAMEOBJECTS_SCRIPT_AOE_AT_SRC_LOC)
-            {
-                if (m_targets.m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
-                    m_targets.getSource(x, y, z);
-                else
-                    m_caster->GetPosition(x, y, z);
-            }
+                m_targets.getSource(x, y, z);
             else
                 m_targets.getDestination(x, y, z);
 
@@ -2633,21 +2628,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             // targets the ground, not the units in the area
             if (m_spellInfo->Effect[effIndex] != SPELL_EFFECT_PERSISTENT_AREA_AURA)
                 FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
-            else
-            {
-                if (Unit* target = m_targets.getUnitTarget()) // trap activation where we supply triggerer
-                    targetUnitMap.push_back(target);
-                else
-                    targetUnitMap.push_back(m_caster); // cases like blizzard
-            }
             break;
         case TARGET_UNIT_CHANNEL_TARGET:
         {
             if (Unit* target = m_caster->GetChannelObject())
-            {
                 if (!CheckAndAddMagnetTarget(target, effIndex, targetUnitMap, exception))
                     targetUnitMap.push_back(target);
-            }
             break;
         }
         case TARGET_UNIT_FRIEND_AND_PARTY:
@@ -2861,7 +2847,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
     // remove caster from the list if required by attribute
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_TARGET_SELF))
     {
-        if (targetMode != TARGET_UNIT_CASTER && targetMode != TARGET_LOCATION_CURRENT_REFERENCE && !IsDestinationOnlyEffect(m_spellInfo, effIndex))
+        if (targetMode != TARGET_UNIT_CASTER && !IsDestinationOnlyEffect(m_spellInfo, effIndex))
             targetUnitMap.remove(m_caster);
     }
 

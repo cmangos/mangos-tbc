@@ -57,7 +57,7 @@ enum SpellTarget
     TARGET_ENUM_UNITS_PARTY_AOE_AT_SRC_LOC             = 33,
     TARGET_ENUM_UNITS_PARTY_AOE_AT_DEST_LOC            = 34,
     TARGET_UNIT_PARTY                                  = 35,
-    TARGET_ENUM_UNITS_ENEMY_WITHIN_CASTER_RANGE        = 36,
+    TARGET_ENUM_UNITS_ENEMY_WITHIN_CASTER_RANGE        = 36, // TODO: only used with dest-effects - reinvestigate naming
     TARGET_UNIT_FRIEND_AND_PARTY                       = 37,
     TARGET_UNIT_SCRIPT_NEAR_CASTER                     = 38,
     TARGET_LOCATION_CASTER_FISHING_SPOT                = 39,

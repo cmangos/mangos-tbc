@@ -2513,7 +2513,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_ENUM_UNITS_FRIEND_AOE_AT_SRC_LOC:
             // selected friendly units (for casting objects) around casting object
-            FillAreaTargets(targetUnitMap, radius, cone, PUSH_SELF_CENTER, SPELL_TARGETS_ASSISTABLE, GetCastingObject());
+            FillAreaTargets(targetUnitMap, radius, cone, PUSH_SRC_CENTER, SPELL_TARGETS_ASSISTABLE, GetCastingObject());
             break;
         case TARGET_ENUM_UNITS_FRIEND_AOE_AT_DEST_LOC:
             switch (m_spellInfo->Effect[effIndex])

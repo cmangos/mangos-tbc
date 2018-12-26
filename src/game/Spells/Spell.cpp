@@ -2596,19 +2596,17 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 case TARGET_ENUM_UNITS_ENEMY_IN_CONE_24:
                 case TARGET_ENUM_UNITS_ENEMY_IN_CONE_54: targetType = SPELL_TARGETS_AOE_ATTACKABLE; break;
                 case TARGET_ENUM_UNITS_FRIEND_IN_CONE: targetType = SPELL_TARGETS_ASSISTABLE; break;
+                case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60: targetType = SPELL_TARGETS_ALL; break;
             }
 
             switch (targetMode)
             {
                 case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
                 {
-                    if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SCRIPT_EFFECT) // workaround for neutral target type
-                        targetType = SPELL_TARGETS_ALL;
                     UnitList tempTargetUnitMap;
                     SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
                     // fill real target list if no spell script target defined
-                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
-                        radius, cone, PUSH_CONE, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetType);
+                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, cone, PUSH_CONE, targetType);
                     if (!tempTargetUnitMap.empty())
                     {
                         CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);

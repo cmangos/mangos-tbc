@@ -149,11 +149,29 @@ inline bool IsDestinationOnlyEffect(SpellEntry const* spellInfo, SpellEffectInde
         case SPELL_EFFECT_TRIGGER_MISSILE:
         {
             auto& targetA = SpellTargetInfoTable[spellInfo->EffectImplicitTargetA[effIdx]];
-            if (spellInfo->EffectImplicitTargetB[effIdx] == 0)
-                if (targetA.type == TARGET_TYPE_LOCATION)
-                    return true;
+            auto& targetB = SpellTargetInfoTable[spellInfo->EffectImplicitTargetB[effIdx]];
+            bool dest = false;
+            switch (targetB.type)
+            {
+                case TARGET_TYPE_UNIT:
+                case TARGET_TYPE_PLAYER:
+                case TARGET_TYPE_CORPSE:
+                case TARGET_TYPE_LOCK:
+                    return false;
+                case TARGET_TYPE_LOCATION_DEST: dest = true; // no break
+                default: break;
+            }
 
-            return false;
+            switch (targetA.type)
+            {
+                case TARGET_TYPE_UNIT:
+                case TARGET_TYPE_PLAYER:
+                case TARGET_TYPE_CORPSE:
+                case TARGET_TYPE_LOCK:
+                    return false;
+                case TARGET_TYPE_LOCATION_DEST: return true;
+                default: return dest;
+            }
         }
         case SPELL_EFFECT_TRIGGER_SPELL_2: // only one in wotlk and tbc - possibly investigate further
         case SPELL_EFFECT_PERSISTENT_AREA_AURA:

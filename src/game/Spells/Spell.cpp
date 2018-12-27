@@ -46,7 +46,7 @@
 #include "MotionGenerators/PathFinder.h"
 #include "Entities/ObjectGuid.h"
 
-extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
+extern pEffect SpellEffects[MAX_SPELL_EFFECTS];
 
 bool IsQuestTameSpell(uint32 spellId)
 {
@@ -268,11 +268,11 @@ void SpellLog::Initialize()
 
 void SpellLog::FinalizePrevious()
 {
-    if (m_currentEffect < uint32(TOTAL_SPELL_EFFECTS))
+    if (m_currentEffect < uint32(MAX_SPELL_EFFECTS))
     {
         // not first effect processed so we have to finalize the previous one by putting correct amount of targets
         m_spellLogData.put<uint32>(m_spellLogDataTargetsCounterPos, m_spellLogDataTargetsCounter);
-        m_currentEffect = uint32(TOTAL_SPELL_EFFECTS);
+        m_currentEffect = uint32(MAX_SPELL_EFFECTS);
     }
 }
 
@@ -4448,10 +4448,10 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOT
                      itemTarget ? itemTarget->GetGuidStr().c_str() : "-",
                      gameObjTarget ? gameObjTarget->GetGuidStr().c_str() : "-");
 
-    if (eff < TOTAL_SPELL_EFFECTS)
+    if (eff < MAX_SPELL_EFFECTS)
         (*this.*SpellEffects[eff])(i);
     else
-        sLog.outError("WORLD: Spell FX %d > TOTAL_SPELL_EFFECTS ", eff);
+        sLog.outError("WORLD: Spell FX %d > MAX_SPELL_EFFECTS ", eff);
 
     if (IsEffectWithImplementedMultiplier(eff))
     {

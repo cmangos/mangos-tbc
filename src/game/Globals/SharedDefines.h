@@ -760,7 +760,7 @@ enum SpellEffects
     SPELL_EFFECT_TRIGGER_SPELL_2           = 151,
     SPELL_EFFECT_SUMMON_RAF_FRIEND         = 152, // TODO: Implement
     SPELL_EFFECT_CREATE_PET                = 153, // TODO: Implement
-    TOTAL_SPELL_EFFECTS                    = 154
+    MAX_SPELL_EFFECTS                      = 154
 };
 
 enum SpellCastResult

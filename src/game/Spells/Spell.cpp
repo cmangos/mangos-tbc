@@ -1827,6 +1827,16 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 sLog.outError("SPELL: unknown target coordinates for spell ID %u", m_spellInfo->Id);
             break;
         }
+        case TARGET_LOCATION_CASTER_HOME_BIND:
+        {
+            if (m_caster->GetTypeId() == TYPEID_PLAYER)
+            {
+                float x, y, z;
+                static_cast<Player*>(m_caster)->GetHomebindLocation(x, y, z);
+                m_targets.setDestination(x, y, z);
+            }
+            break;
+        }
         case TARGET_LOCATION_UNIT_FRONT:
         case TARGET_LOCATION_UNIT_BACK:
         case TARGET_LOCATION_UNIT_RIGHT:

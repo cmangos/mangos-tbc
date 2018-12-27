@@ -2118,6 +2118,7 @@ class Player : public Unit
         void   SaveRecallPosition();
 
         void SetHomebindToLocation(WorldLocation const& loc, uint32 area_id);
+        void GetHomebindLocation(float &x, float &y, float &z) { x = m_homebindX; y = m_homebindY; z = m_homebindZ; }
         void RelocateToHomebind() { SetLocationMapId(m_homebindMapId); Relocate(m_homebindX, m_homebindY, m_homebindZ); }
         bool TeleportToHomebind(uint32 options = 0) { return TeleportTo(m_homebindMapId, m_homebindX, m_homebindY, m_homebindZ, GetOrientation(), options); }
 

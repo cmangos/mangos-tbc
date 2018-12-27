@@ -129,6 +129,13 @@ enum SpellTargetImplicitType
     TARGET_TYPE_PLAYER,
     TARGET_TYPE_CORPSE,
     TARGET_TYPE_LOCK,
+    // effect custom types
+    TARGET_TYPE_NONE,
+    TARGET_TYPE_ITEM, // TARGET_FLAG_ITEM
+    TARGET_TYPE_UNIT_DEST,
+    TARGET_TYPE_DYNAMIC, // changes based on other targets
+    TARGET_TYPE_SPECIAL_DEST, // overrides existing targets with custom logic - Persistent AA
+    TARGET_TYPE_SPECIAL_UNIT, // Area Auras
 };
 
 enum SpellTargetEnumerator
@@ -160,6 +167,14 @@ struct SpellTargetInfo
     SpellTargetInfo(char const* name = "", SpellTargetImplicitType type = TARGET_TYPE_UNKNOWN, SpellTargetFilter filter = TARGET_NEUTRAL, SpellTargetEnumerator enumerator = TARGET_ENUMERATOR_UNKNOWN);
 };
 
+struct SpellEffectInfo
+{
+    char const* name;
+    SpellTargetImplicitType requiredTarget;                 // Needs to correspond to what handler can handle
+    SpellTarget defaultTarget;                              // [TARGET_NONE,TARGET_NONE] case
+};
+
 extern SpellTargetInfo SpellTargetInfoTable[MAX_SPELL_TARGETS];
+extern SpellEffectInfo SpellEffectInfoTable[MAX_SPELL_EFFECTS];
 
 #endif

@@ -35,6 +35,7 @@
 #include "Entities/Player.h"
 #include "Spells/SpellAuras.h"
 #include "Server/SQLStorages.h"
+#include "Spells/SpellEffectDefines.h"
 
 #include <map>
 

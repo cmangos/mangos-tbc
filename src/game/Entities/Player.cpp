@@ -6973,7 +6973,7 @@ void Player::_ApplyItemBonuses(ItemPrototype const* proto, uint8 slot, bool appl
             attType = OFF_ATTACK;
 
         bool hasDamage = false;
-        m_weaponDamageCount[attType] = 0;
+        m_weaponDamageInfo.weapon[attType].lines = 0;
 
         for (int i = 0; i < MAX_ITEM_PROTO_DAMAGES; i++)
         {
@@ -6992,7 +6992,7 @@ void Player::_ApplyItemBonuses(ItemPrototype const* proto, uint8 slot, bool appl
                 maxDamage = proto->Damage[i].DamageMax;
                 school = SpellSchools(proto->Damage[i].DamageType);
 
-                m_weaponDamageCount[attType]++;
+                m_weaponDamageInfo.weapon[attType].lines++;
             }
 
             SetBaseWeaponDamage(attType, MINDAMAGE, minDamage, i);
@@ -7000,8 +7000,8 @@ void Player::_ApplyItemBonuses(ItemPrototype const* proto, uint8 slot, bool appl
             SetWeaponDamageSchool(attType, school, i);
         }
 
-        if (m_weaponDamageCount[attType] == 0)
-            m_weaponDamageCount[attType] = 1;
+        if (!m_weaponDamageInfo.weapon[attType].lines)
+            m_weaponDamageInfo.weapon[attType].lines = 1;
 
         if (!CanUseEquippedWeapon(attType))
             return;

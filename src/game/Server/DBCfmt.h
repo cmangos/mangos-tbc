@@ -85,6 +85,7 @@ const char SpellItemEnchantmentConditionfmt[] = "nbbbbbxxxxxbbbbbbbbbbiiiiiXXXXX
 const char SpellRadiusfmt[] = "nfxx";
 const char SpellRangefmt[] = "nffixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 const char SpellShapeshiftfmt[] = "nxxxxxxxxxxxxxxxxxxiixiixxxiiiiiiii";
+const char SpellVisualfmt[] = "nxxxxxiixxxxxxxxxxxxxxxxx"; // wotlk - "nxxxxxxiixxxxxxxxxxxxxxxxxxxxxxx"
 const char StableSlotPricesfmt[] = "ni";
 const char SummonPropertiesfmt[] = "niiiii";
 const char TalentEntryfmt[] = "niiiiiiiixxxxixxixxxi";

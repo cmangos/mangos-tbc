@@ -4970,6 +4970,16 @@ void Aura::HandleAuraPeriodicDummy(bool apply, bool Real)
             }
             break;
         }
+        case SPELLFAMILY_HUNTER:
+        {
+            // Harpooner's Mark
+            if (spell->Id == 40084 && apply)
+            {
+                target->CastSpell(nullptr, 40085, TRIGGERED_OLD_TRIGGERED);
+                break;
+            }
+            break;
+        }
     }
 
     m_isPeriodic = apply;
@@ -7172,7 +7182,9 @@ void Aura::PeriodicDummyTick()
                 case 39993: // Simon Game START timer, (DND)
                     target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, target);
                     break;
-//              // Harpooner's Mark
+                case 40084: // Harpooner's Mark
+                    target->CastSpell(nullptr, 40085, TRIGGERED_OLD_TRIGGERED);
+                    break;
 //              case 40084: break;
 //              // Old Mount Spell
 //              case 40154: break;

@@ -301,12 +301,6 @@ enum WeaponDamageRange
     MAXDAMAGE
 };
 
-struct WeaponDamageInfo
-{
-    float damage[2];
-    SpellSchools school;
-};
-
 enum DamageTypeToSchool
 {
     RESISTANCE,

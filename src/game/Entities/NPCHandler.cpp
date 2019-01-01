@@ -284,8 +284,12 @@ void WorldSession::HandleTrainerBuySpellOpcode(WorldPacket& recv_data)
     data << uint32(0x016A);                                 // index from SpellVisualKit.dbc
     SendPacket(data);
 
-    // learn explicitly
-    _player->learnSpell(trainer_spell->spell, false);
+    // learn explicitly or cast explicitly
+    // TODO - Are these spells really cast correctly this way?
+    if (trainer_spell->IsCastable())
+        _player->CastSpell(_player, trainer_spell->spell, TRIGGERED_OLD_TRIGGERED);
+    else
+        _player->learnSpell(spellId, false);
 
     data.Initialize(SMSG_TRAINER_BUY_SUCCEEDED, 12);
     data << ObjectGuid(guid);

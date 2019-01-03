@@ -1966,7 +1966,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (!newUnitTarget)
                 break;
 
-            if (m_caster->CanAssist(newUnitTarget))
+            if (m_caster->CanAssistSpell(newUnitTarget, m_spellInfo))
                 targetUnitMap.push_back(newUnitTarget);
             else
             {
@@ -2451,7 +2451,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     Player* Target = itr->getSource();
 
                     // CanAssist check duel and controlled by enemy
-                    if (Target && Target->GetSubGroup() == subgroup && m_caster->CanAssist(Target))
+                    if (Target && Target->GetSubGroup() == subgroup && m_caster->CanAssistSpell(Target, m_spellInfo))
                     {
                         if (pTarget->IsWithinDistInMap(Target, radius))
                             targetUnitMap.push_back(Target);
@@ -2597,16 +2597,28 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             Group* pGroup = targetPlayer ? targetPlayer->GetGroup() : nullptr;
             if (pGroup)
             {
+                float x, y, z;
+                targetPlayer->GetPosition(x, y, z);
                 for (GroupReference* itr = pGroup->GetFirstMember(); itr != nullptr; itr = itr->next())
                 {
-                    Player* Target = itr->getSource();
+                    Player* target = itr->getSource();
 
                     // CanAssist check duel and controlled by enemy
-                    if (Target && targetPlayer->IsWithinDistInMap(Target, radius) &&
-                            targetPlayer->getClass() == Target->getClass() &&
-                            m_caster->CanAssist(Target))
+                    if (target)
                     {
-                        targetUnitMap.push_back(Target);
+                        if (target->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) <= radius &&
+                            targetPlayer->getClass() == target->getClass() &&
+                            m_caster->CanAssistSpell(target, m_spellInfo))
+                        {
+                            targetUnitMap.push_back(target);
+                        }
+                        if (Pet* pet = target->GetPet())
+                        {
+                            if (pet->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) <= radius &&
+                                targetPlayer->getClass() == pet->getClass() &&
+                                m_caster->CanAssistSpell(pet, m_spellInfo))
+                                targetUnitMap.push_back(pet);
+                        }
                     }
                 }
             }
@@ -4534,7 +4546,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                         if (!target_hostile_checked)
                         {
                             target_hostile_checked = true;
-                            target_hostile = !m_caster->CanAssist(target);
+                            target_hostile = !m_caster->CanAssistSpell(target, m_spellInfo);
                         }
 
                         if (target_hostile)
@@ -4547,7 +4559,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                         if (!target_friendly_checked)
                         {
                             target_friendly_checked = true;
-                            target_friendly = !m_caster->CanAttack(target);
+                            target_friendly = !m_caster->CanAttackSpell(target, m_spellInfo);
                         }
 
                         if (target_friendly)
@@ -4575,7 +4587,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     {
                         if (!target_friendly_checked)
                         {
-                            target_friendly = m_caster->CanAssist(target) && m_caster->IsFriend(target);
+                            target_friendly = m_caster->CanAssistSpell(target, m_spellInfo) && m_caster->IsFriend(target);
                         }
 
                         if (target_friendly)
@@ -4980,7 +4992,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                         if (!m_caster->HasInArc(target))
                             return SPELL_FAILED_UNIT_NOT_INFRONT;
                     }
-                    else if (!m_caster->CanAssist(target))
+                    else if (!m_caster->CanAssistSpell(target, m_spellInfo))
                         return SPELL_FAILED_BAD_TARGETS;
                 }
                 break;
@@ -5716,7 +5728,7 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
         {
             if (IsPositiveSpell(m_spellInfo->Id, m_caster, _target))
             {
-                if (!m_caster->CanAssist(_target))
+                if (!m_caster->CanAssistSpell(_target, m_spellInfo))
                     return SPELL_FAILED_BAD_TARGETS;
             }
             else
@@ -7242,7 +7254,7 @@ void Spell::FillRaidOrPartyTargets(UnitList& targetUnitMap, Unit* member, float 
 
             // CanAssist check duel and controlled by enemy
             if (Target && (raid || subgroup == Target->GetSubGroup())
-                    && m_caster->CanAssist(Target))
+                    && m_caster->CanAssistSpell(Target, m_spellInfo))
             {
                 if (((Target == m_caster) && withcaster) ||
                         ((Target != m_caster) && m_caster->IsWithinDistInMap(Target, radius)))

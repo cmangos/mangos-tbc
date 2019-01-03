@@ -2892,7 +2892,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             return;
                     }
 
-                    if (m_caster->CanAssist(unitTarget))
+                    if (m_caster->CanAssistSpell(unitTarget, m_spellInfo))
                         m_caster->CastSpell(unitTarget, heal, TRIGGERED_OLD_TRIGGERED);
                     else
                         m_caster->CastSpell(unitTarget, hurt, TRIGGERED_OLD_TRIGGERED);
@@ -2932,7 +2932,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
 
                     // 31989 -> dummy effect (step 1) + taunt (step 2) -> 31790 (hits each target) + 31980 - UNK purpose
-                    Unit* friendTarget = !unitTarget || m_caster->CanAssist(unitTarget) ? unitTarget : unitTarget->getVictim();
+                    Unit* friendTarget = !unitTarget || m_caster->CanAssistSpell(unitTarget, m_spellInfo) ? unitTarget : unitTarget->getVictim();
 
                     // non-standard cast requirement check
                     if (!friendTarget || friendTarget->getAttackers().empty())
@@ -4737,7 +4737,7 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
             {
                 // do not remove positive auras if friendly target
                 //               negative auras if non-friendly target
-                if (holder->IsPositive() == m_caster->CanAssist(unitTarget))
+                if (holder->IsPositive() == m_caster->CanAssistSpell(unitTarget, m_spellInfo))
                     continue;
             }
             dispel_list.push_back(std::pair<SpellAuraHolder*, uint32>(holder, holder->GetStackAmount()));

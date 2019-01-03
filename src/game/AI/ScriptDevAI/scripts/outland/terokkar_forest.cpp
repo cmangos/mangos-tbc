@@ -1451,17 +1451,16 @@ struct npc_vengeful_harbinger : public ScriptedAI
             DoMeleeAttackIfReady();
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        if (uiDamage < m_creature->GetHealth())
+        if (damage < m_creature->GetHealth())
             return;
 
-        uiDamage = 0;
+        damage = std::min(damage, m_creature->GetHealth() - 1);
 
         m_creature->CombatStop();
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->DeleteThreatList();
-        m_creature->SetHealth(1);
         m_creature->StopMoving();
         m_creature->ClearComboPointHolders();
         m_creature->RemoveAllAurasOnDeath();

@@ -13257,8 +13257,12 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     ModifyMoney(pQuest->GetRewOrReqMoney());
 
     // honor reward
+    uint32 honor = 0;
     if (pQuest->GetRewHonorableKills())
-        RewardHonor(nullptr, 0, MaNGOS::Honor::hk_honor_at_level(getLevel(), pQuest->GetRewHonorableKills()));
+    {
+        honor = MaNGOS::Honor::hk_honor_at_level(getLevel(), pQuest->GetRewHonorableKills());
+        RewardHonor(nullptr, 0, honor);
+    }
 
     // title reward
     if (pQuest->GetCharTitleId())
@@ -13290,7 +13294,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
         q_status.uState = QUEST_CHANGED;
 
     if (announce)
-        SendQuestReward(pQuest, xp);
+        SendQuestReward(pQuest, xp, honor);
 
     bool handled = false;
 
@@ -14464,7 +14468,7 @@ void Player::SendQuestCompleteEvent(uint32 quest_id) const
     }
 }
 
-void Player::SendQuestReward(Quest const* pQuest, uint32 XP) const
+void Player::SendQuestReward(Quest const* pQuest, uint32 XP, uint32 honor) const
 {
     uint32 questid = pQuest->GetQuestId();
     DEBUG_LOG("WORLD: Sent SMSG_QUESTGIVER_QUEST_COMPLETE quest = %u", questid);
@@ -14482,7 +14486,7 @@ void Player::SendQuestReward(Quest const* pQuest, uint32 XP) const
         data << uint32(0);
         data << uint32(pQuest->GetRewOrReqMoney() + int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY)));
     }
-    data << uint32(0);                                      // new 2.3.0, HonorPoints?
+    data << uint32(honor);                                  // new 2.3.0, HonorPoints
     data << uint32(pQuest->GetRewItemsCount());             // max is 5
 
     for (uint32 i = 0; i < pQuest->GetRewItemsCount(); ++i)

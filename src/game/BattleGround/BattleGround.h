@@ -455,7 +455,7 @@ class BattleGround
         virtual void HandleKillUnit(Creature* /*unit*/, Player* /*killer*/) {}
 
         // Process Capture event
-        virtual bool HandleEvent(uint32 /*eventId*/, GameObject* /*go*/) { return false; }
+        virtual bool HandleEvent(uint32 /*eventId*/, GameObject* /*go*/, Unit* /*invoker*/) { return false; }
 
         // Called when a gameobject is created
         virtual void HandleGameObjectCreate(GameObject* /*go*/) {}

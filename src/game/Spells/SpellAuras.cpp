@@ -4628,10 +4628,20 @@ void Aura::HandleAuraModDecreaseSpeed(bool apply, bool Real)
     if (apply)
     {
         // Gronn Lord's Grasp, becomes stoned
-        if (GetId() == 33572)
+        switch (GetId())
         {
-            if (GetStackAmount() >= 5 && !target->HasAura(33652))
-                target->CastSpell(target, 33652, TRIGGERED_OLD_TRIGGERED);
+            case 33572: // Gronn Lord's Grasp, becomes stoned
+            {
+                if (GetStackAmount() >= 5 && !target->HasAura(33652))
+                    target->CastSpell(target, 33652, TRIGGERED_OLD_TRIGGERED);
+                break;
+            }
+            case 35244: // Choking Vines - applies Choking Wound on 5 stacks
+            {
+                if (GetStackAmount() >= 5 && !target->HasAura(35247))
+                    target->CastSpell(target, 35247, TRIGGERED_OLD_TRIGGERED);
+                break;
+            }
         }
     }
 
@@ -7732,7 +7742,6 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
         case 24662:                                         // Restless Strength
         case 26464:                                         // Mercurial Shield
         case 32065:                                         // Fungal Decay
-        case 35244:                                         // Choking Vines
         case 36659:                                         // Tail Sting
             m_stackAmount = m_spellProto->StackAmount;
             break;

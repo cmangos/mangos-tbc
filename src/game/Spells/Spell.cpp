@@ -3271,6 +3271,8 @@ void Spell::cast(bool skipCheck)
 
     // CAST SPELL
     SendSpellCooldown();
+    if (m_caster->AI())
+        m_caster->AI()->OnSpellCooldownAdded(m_spellInfo);
 
     TakePower();
     TakeReagents();                                         // we must remove reagents before HandleEffects to allow place crafted item in same slot

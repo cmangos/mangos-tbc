@@ -1315,10 +1315,11 @@ INSERT INTO spell_template (Id, SchoolMask, Category, Dispel, Mechanic, Attribut
 ('34792', '64', '0', '0', '0', '448', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '20', '30', '0', '0', '70', '70', '21', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '-1', '0', '6', '0', '0', '1', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '42', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '34794', '0', '0', '0', '0', '0', '0', '127', '0', '0', 'Arcane Resonance', '', '', '', '', '', '', '', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1', '1', '0', '0', '0');
 
 -- Rain of Chaos 40946 - Remove SPELL_ATTR_EX_CHANNELED_1 making it a "passive" channeled spell which is not interrupted
-UPDATE `spell_template` SET `AttributesEx`=`AttributesEx`&~0x00000004  WHERE `Id` IN(40946);
+UPDATE `spell_template` SET `AttributesEx`=`AttributesEx`&~0x00000004  WHERE `Id` IN(40948);
 
 -- Illidari Flames 40938 - Remove SPELL_ATTR_EX_CHANNELED_2 making it a "passive" channeled spell which is not interrupted
 UPDATE `spell_template` SET `AttributesEx`=`AttributesEx`&~0x00000040  WHERE `Id` IN(40938);
+UPDATE `spell_template` SET `AttributesEx`=`AttributesEx`&~0x00000040  WHERE `Id` IN(40939);
 
 -- Cyclone, used by Cyclone Totem (22894)
 UPDATE spell_template SET `MaxAffectedTargets`=5 WHERE id=39594;

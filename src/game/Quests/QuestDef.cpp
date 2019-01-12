@@ -123,21 +123,23 @@ Quest::Quest(Field* questRecord)
         DetailsEmoteDelay[i] = questRecord[111 + i].GetUInt32();
 
     IncompleteEmote = questRecord[115].GetUInt32();
-    CompleteEmote = questRecord[116].GetUInt32();
+    IncompleteEmoteDelay = questRecord[116].GetUInt32();
+    CompleteEmote = questRecord[117].GetUInt32();
+    CompleteEmoteDelay = questRecord[118].GetUInt32();
 
     for (int i = 0; i < QUEST_EMOTE_COUNT; ++i)
-        OfferRewardEmote[i] = questRecord[117 + i].GetInt32();
+        OfferRewardEmote[i] = questRecord[119 + i].GetInt32();
 
     for (int i = 0; i < QUEST_EMOTE_COUNT; ++i)
-        OfferRewardEmoteDelay[i] = questRecord[121 + i].GetInt32();
+        OfferRewardEmoteDelay[i] = questRecord[123 + i].GetInt32();
 
-    QuestStartScript = questRecord[125].GetUInt32();
-    QuestCompleteScript = questRecord[126].GetUInt32();
+    QuestStartScript = questRecord[127].GetUInt32();
+    QuestCompleteScript = questRecord[128].GetUInt32();
 
     for (int i = 0; i < QUEST_REPUTATIONS_COUNT; ++i)
-        RewMaxRepValue[i] = questRecord[127 + i].GetInt32();
+        RewMaxRepValue[i] = questRecord[129 + i].GetInt32();
 
-    RequiredCondition = questRecord[132].GetUInt32();
+    RequiredCondition = questRecord[134].GetUInt32();
 
     m_isActive = true;
 

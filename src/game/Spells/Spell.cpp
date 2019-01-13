@@ -1709,18 +1709,17 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 targetUnitMap.push_back(m_caster);
             break;
         }
-        case TARGET_LOCATION_RANDOM_SIDE: // TODO: Add LOS collision safety for point to point
+        case TARGET_LOCATION_RANDOM_SIDE:
         {
             if (radius > 0.0f) // Get a random point in the circle around current dest target
             {
                 // Use sqrt(rand) to correct distribution when converting polar to Cartesian coordinates.
                 radius *= sqrtf(rand_norm_f());
                 float angle = 2.0f * M_PI_F * rand_norm_f();
-                float dest_x = m_targets.m_destX + cos(angle) * radius;
-                float dest_y = m_targets.m_destY + sin(angle) * radius;
-                float dest_z = m_targets.m_destZ ? m_targets.m_destZ : m_caster->GetPositionZ();
-                m_caster->UpdateGroundPositionZ(dest_x, dest_y, dest_z);
-                m_targets.setDestination(dest_x, dest_y, dest_z);
+                WorldLocation loc;
+                m_targets.getDestination(loc);
+                m_caster->MovePositionToFirstCollision(loc, radius, angle);
+                m_targets.setDestination(loc.coord_x, loc.coord_y, loc.coord_z);
             }
 
             if (IsDestinationOnlyEffect(m_spellInfo, effIndex))
@@ -1779,7 +1778,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
                 m_targets.setDestination(dynObj->GetPositionX(), dynObj->GetPositionY(), dynObj->GetPositionZ());
             break;
-        case TARGET_LOCATION_NORTH: // TODO: Add LOS collision safety for point to point
+        case TARGET_LOCATION_NORTH:
         case TARGET_LOCATION_SOUTH:
         case TARGET_LOCATION_EAST:
         case TARGET_LOCATION_WEST:
@@ -1805,9 +1804,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     case TARGET_LOCATION_SW:    angle += 3 * M_PI_F / 4;    break;
                 }
 
-                float x, y;
-                currentTarget->GetNearPoint2D(x, y, radius + currentTarget->GetObjectBoundingRadius(), angle);
-                m_targets.setDestination(x, y, currentTarget->GetPositionZ());
+                WorldLocation loc;
+                m_targets.getDestination(loc);
+                currentTarget->MovePositionToFirstCollision(loc, radius, angle);
+                m_targets.setDestination(loc.coord_x, loc.coord_y, loc.coord_z);
             }
             break;
         }

@@ -180,24 +180,4 @@ enum SpellTargetFilter
     TARGET_SCRIPT,
 };
 
-struct SpellTargetInfo
-{
-    char const* name;
-    SpellTargetImplicitType type;
-    SpellTargetFilter filter;
-    SpellTargetEnumerator enumerator;
-
-    SpellTargetInfo(char const* name = "", SpellTargetImplicitType type = TARGET_TYPE_UNKNOWN, SpellTargetFilter filter = TARGET_NEUTRAL, SpellTargetEnumerator enumerator = TARGET_ENUMERATOR_UNKNOWN);
-};
-
-struct SpellEffectInfo
-{
-    char const* name;
-    SpellTargetImplicitType requiredTarget;                 // Needs to correspond to what handler can handle
-    SpellTarget defaultTarget;                              // [TARGET_NONE,TARGET_NONE] case
-};
-
-extern SpellTargetInfo SpellTargetInfoTable[MAX_SPELL_TARGETS];
-extern SpellEffectInfo SpellEffectInfoTable[MAX_SPELL_EFFECTS];
-
 #endif

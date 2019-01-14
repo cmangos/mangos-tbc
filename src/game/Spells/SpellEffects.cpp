@@ -2563,6 +2563,14 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         m_caster->CastSpell(unitTarget, 38643, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 41060:                                 // Return
+                {
+                    if (!unitTarget || m_caster->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    ((Creature*)m_caster)->ForcedDespawn(2500);
+                    return;
+                }
             }
             break;
         }

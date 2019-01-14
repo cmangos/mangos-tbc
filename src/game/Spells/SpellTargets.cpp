@@ -164,8 +164,8 @@ SpellEffectInfo SpellEffectInfoTable[MAX_SPELL_EFFECTS] =
     /*[38]*/     { "SPELL_EFFECT_DISPEL",                       TARGET_TYPE_UNIT,           TARGET_NONE },
     /*[39]*/     { "SPELL_EFFECT_LANGUAGE",                     TARGET_TYPE_NONE,           TARGET_NONE },
     /*[40]*/     { "SPELL_EFFECT_DUAL_WIELD",                   TARGET_TYPE_UNIT,           TARGET_NONE },
-    /*[41]*/     { "SPELL_EFFECT_41",                           TARGET_TYPE_UNIT_DEST,      TARGET_NONE },
-    /*[42]*/     { "SPELL_EFFECT_42",                           TARGET_TYPE_UNIT_DEST,      TARGET_NONE },
+    /*[41]*/     { "SPELL_EFFECT_41",                           TARGET_TYPE_LOCATION_DEST,  TARGET_NONE },
+    /*[42]*/     { "SPELL_EFFECT_42",                           TARGET_TYPE_LOCATION_DEST,  TARGET_NONE },
     /*[43]*/     { "SPELL_EFFECT_TELEPORT_UNITS_FACE_CASTER",   TARGET_TYPE_UNIT,           TARGET_NONE },
     /*[44]*/     { "SPELL_EFFECT_SKILL_STEP",                   TARGET_TYPE_UNKNOWN,        TARGET_UNIT },
     /*[45]*/     { "SPELL_EFFECT_ADD_HONOR",                    TARGET_TYPE_UNIT,           TARGET_NONE },
@@ -278,3 +278,73 @@ SpellEffectInfo SpellEffectInfoTable[MAX_SPELL_EFFECTS] =
     /*[152]*/    { "SPELL_EFFECT_SUMMON_RAF_FRIEND",            TARGET_TYPE_NONE,           TARGET_NONE }, // TODO: Investigate when implementing RAF
     /*[153]*/    { "SPELL_EFFECT_CREATE_PET",                   TARGET_TYPE_UNIT,           TARGET_NONE },
 };
+
+std::map<uint32, SpellTargetingData> SpellTargetMgr::spellTargetingData;
+
+SpellTargetingData& SpellTargetMgr::GetSpellTargetingData(uint32 spellId)
+{
+    return (*spellTargetingData.find(spellId)).second;
+}
+
+void SpellTargetMgr::Initialize()
+{
+    for (uint32 i = 0; i <= sSpellTemplate.GetMaxEntry(); ++i)
+    {
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(i);
+        if (!spellInfo)
+            continue;
+
+        SpellTargetingData& data = spellTargetingData[i];
+        for (uint32 effIdx = 0; effIdx < MAX_EFFECT_INDEX; ++effIdx)
+        {
+            if (!spellInfo->Effect[effIdx])
+                continue;
+
+            uint32 effect = spellInfo->Effect[effIdx];
+            uint32 targetA = spellInfo->EffectImplicitTargetA[effIdx];
+            uint32 targetB = spellInfo->EffectImplicitTargetB[effIdx];
+            if (SpellEffectInfoTable[effect].requiredTarget != TARGET_TYPE_DYNAMIC)
+                data.implicitType[effIdx] = SpellEffectInfoTable[effect].requiredTarget;
+            else
+            {
+                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCK || SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCK)
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_LOCK;
+                    continue;
+                }
+                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_CORPSE || SpellTargetInfoTable[targetB].type == TARGET_TYPE_CORPSE)
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_CORPSE;
+                    continue;
+                }
+                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_GAMEOBJECT || SpellTargetInfoTable[targetB].type == TARGET_TYPE_GAMEOBJECT)
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_GAMEOBJECT;
+                    continue;
+                }
+                if ((SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST && SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT)
+                        || SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_UNIT_DEST;
+                    continue;
+                }
+                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST || SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_LOCATION_DEST;
+                    continue;
+                }
+                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT || SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT)
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_UNIT;
+                    continue;
+                }
+                if ((SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_SRC || targetA == TARGET_NONE) && targetB == TARGET_NONE)
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_NONE;
+                    continue;
+                }
+                sLog.outError("Spell %u effect index %u failed to pick type for dynamic effect targeting type.", i, effIdx);
+            }
+        }
+    }
+}

@@ -7333,6 +7333,8 @@ void ObjectMgr::LoadSpellTemplate()
     sSpellCones.Load();
     sLog.outString(">> Loaded %u spell_cone records", sSpellCones.GetRecordCount());
     sLog.outString();
+
+    SpellTargetMgr::Initialize();
 }
 
 void ObjectMgr::CheckSpellCones()

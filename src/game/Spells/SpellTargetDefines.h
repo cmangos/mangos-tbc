@@ -114,7 +114,7 @@ enum SpellTarget
     TARGET_UNIT_CASTER_COMPANION                       = 90,
     TARGET_LOCATION_RANDOM_CIRCUMFERENCE               = 91,
     TARGET_UNIT_CASTER_SUMMONER                        = 92,
-    TARGET_CORPSE_ENEMY_NEAR_CASTER_NYI                = 93,
+    TARGET_CORPSE_ENEMY_NEAR_CASTER_NYI                = 93, // TODO: Implement
 
     MAX_SPELL_TARGETS
 };
@@ -158,6 +158,7 @@ enum SpellTargetImplicitType
     TARGET_TYPE_DYNAMIC, // changes based on other targets
     TARGET_TYPE_SPECIAL_DEST, // overrides existing targets with custom logic - Persistent AA
     TARGET_TYPE_SPECIAL_UNIT, // Area Auras
+    TARGET_TYPE_SPECIAL_SCRIPT,
 };
 
 enum SpellTargetEnumerator

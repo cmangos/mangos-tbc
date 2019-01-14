@@ -119,6 +119,28 @@ enum SpellTarget
     MAX_SPELL_TARGETS
 };
 
+enum SpellCastTargetFlags
+{
+    TARGET_FLAG_SELF            = 0x00000000,
+    TARGET_FLAG_UNUSED1         = 0x00000001,               // not used in any spells as of 2.4.3 (can be set dynamically)
+    TARGET_FLAG_UNIT            = 0x00000002,               // pguid
+    TARGET_FLAG_UNIT_RAID       = 0x00000004,               // not used in any spells as of 2.4.3 (can be set dynamically) - raid member
+    TARGET_FLAG_UNIT_PARTY      = 0x00000008,               // not used in any spells as of 2.4.3 (can be set dynamically) - party member
+    TARGET_FLAG_ITEM            = 0x00000010,               // pguid
+    TARGET_FLAG_SOURCE_LOCATION = 0x00000020,               // 3xfloat
+    TARGET_FLAG_DEST_LOCATION   = 0x00000040,               // 3xfloat
+    TARGET_FLAG_UNIT_ENEMY      = 0x00000080,               // CanAttack == true
+    TARGET_FLAG_UNIT_ALLY       = 0x00000100,               // CanAssist == true
+    TARGET_FLAG_CORPSE_ENEMY    = 0x00000200,               // pguid, CanAssist == false
+    TARGET_FLAG_UNIT_DEAD       = 0x00000400,               // skinning-like effects
+    TARGET_FLAG_GAMEOBJECT      = 0x00000800,               // pguid, 0 spells in 2.4.3
+    TARGET_FLAG_TRADE_ITEM      = 0x00001000,               // pguid, 0 spells
+    TARGET_FLAG_STRING          = 0x00002000,               // string, 0 spells
+    TARGET_FLAG_LOCKED          = 0x00004000,               // 199 spells, opening object/lock
+    TARGET_FLAG_CORPSE_ALLY     = 0x00008000,               // pguid, CanAssist == true
+    TARGET_FLAG_UNIT_MINIPET    = 0x00010000,               // pguid, not used in any spells as of 2.4.3 (can be set dynamically)
+};
+
 enum SpellTargetImplicitType
 {
     TARGET_TYPE_UNKNOWN         = 0,

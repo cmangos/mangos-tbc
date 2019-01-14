@@ -111,7 +111,7 @@ void SpellCastTargets::setGOTarget(GameObject* target)
 {
     m_GOTarget = target;
     m_GOTargetGUID = target->GetObjectGuid();
-    //    m_targetMask |= TARGET_FLAG_OBJECT;
+    //    m_targetMask |= TARGET_FLAG_GAMEOBJECT;
 }
 
 void SpellCastTargets::setItemTarget(Item* item)
@@ -175,10 +175,10 @@ void SpellCastTargets::read(ByteBuffer& data, Unit* caster)
         return;
 
     // TARGET_FLAG_UNK2 is used for non-combat pets, maybe other?
-    if (m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_UNK2))
+    if (m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_MINIPET | TARGET_FLAG_UNIT_ENEMY))
         data >> m_unitTargetGUID.ReadAsPacked();
 
-    if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_UNK | TARGET_FLAG_GAMEOBJECT_ITEM))
+    if (m_targetMask & (TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_LOCKED))
         data >> m_GOTargetGUID.ReadAsPacked();
 
     if ((m_targetMask & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM)) && caster->GetTypeId() == TYPEID_PLAYER)
@@ -201,7 +201,7 @@ void SpellCastTargets::read(ByteBuffer& data, Unit* caster)
     if (m_targetMask & TARGET_FLAG_STRING)
         data >> m_strTarget;
 
-    if (m_targetMask & (TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_PVP_CORPSE))
+    if (m_targetMask & (TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_CORPSE_ENEMY))
         data >> m_CorpseTargetGUID.ReadAsPacked();
 
     // find real units/GOs
@@ -212,23 +212,23 @@ void SpellCastTargets::write(ByteBuffer& data) const
 {
     data << uint32(m_targetMask);
 
-    if (m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_OBJECT | TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_UNK2))
+    if (m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_UNIT_MINIPET))
     {
-        if (m_targetMask & TARGET_FLAG_UNIT)
+        if (m_targetMask & (TARGET_FLAG_UNIT))
         {
             if (m_unitTarget)
                 data << m_unitTarget->GetPackGUID();
             else
                 data << uint8(0);
         }
-        else if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_UNK))
+        else if (m_targetMask & (TARGET_FLAG_GAMEOBJECT))
         {
             if (m_GOTarget)
                 data << m_GOTarget->GetPackGUID();
             else
                 data << uint8(0);
         }
-        else if (m_targetMask & (TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_PVP_CORPSE))
+        else if (m_targetMask & (TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_CORPSE_ENEMY))
             data << m_CorpseTargetGUID.WriteAsPacked();
         else
             data << uint8(0);
@@ -487,12 +487,12 @@ void Spell::FillTargetMap()
                             // TODO: Investigate TARGET_FLAG relationship with TARGET_NONE
                             if (m_spellInfo->Targets)
                             {
-                                if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_TARGET | TARGET_FLAG_UNIT))
+                                if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT))
                                 {
                                     if (m_targets.getUnitTarget())
                                         tmpUnitLists[i].push_back(m_targets.getUnitTarget());
                                 }
-                                else if (m_spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_CORPSE_ALLY))
+                                else if (m_spellInfo->Targets & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY))
                                 {
                                     if (m_targets.getUnitTarget())
                                         tmpUnitLists[i].push_back(m_targets.getUnitTarget());
@@ -1022,7 +1022,7 @@ void Spell::AddGOTarget(GameObject* pVictim, SpellEffectIndex effIndex)
     if (m_spellInfo->Effect[effIndex] == 0)
         return;
 
-    m_targets.m_targetMask |= TARGET_FLAG_OBJECT; // all spells with unit target must have this flag TODO: do this based on target type
+    m_targets.m_targetMask |= TARGET_FLAG_GAMEOBJECT; // all spells with GO target must have this flag TODO: do this based on target type
 
     ObjectGuid targetGUID = pVictim->GetObjectGuid();
 

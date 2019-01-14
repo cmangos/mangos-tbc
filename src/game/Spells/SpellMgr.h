@@ -260,7 +260,7 @@ inline bool IsAuraRemoveOnStacking(SpellEntry const* spellInfo, int32 effIdx) //
 
 inline bool IsAllowingDeadTarget(SpellEntry const* spellInfo)
 {
-    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
+    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) || spellInfo->Targets & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_UNIT_DEAD | TARGET_FLAG_CORPSE_ALLY);
 }
 
 inline bool IsSealSpell(SpellEntry const* spellInfo)
@@ -2451,10 +2451,10 @@ class SpellMgr
         // Reverse engineered from binary: do not alter
         static inline SpellFaction GetSpellFactionAtClient(const SpellEntry &entry, SpellEffectIndexMask mask = EFFECT_MASK_ALL)
         {
-            if (entry.Targets & TARGET_FLAG_UNIT_TARGET)
+            if (entry.Targets & TARGET_FLAG_UNIT_ALLY)
                 return SPELL_HELPFUL;
 
-            if (entry.Targets & TARGET_FLAG_OBJECT_UNK)
+            if (entry.Targets & TARGET_FLAG_UNIT_ENEMY)
                 return SPELL_HARMFUL;
 
             for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)

@@ -2079,7 +2079,7 @@ void Aura::TriggerSpellWithValue()
     uint32 trigger_spell_id = GetSpellProto()->EffectTriggerSpell[m_effIndex];
     int32  basepoints0 = GetModifier()->m_amount;
 
-    target->CastCustomSpell(target, trigger_spell_id, &basepoints0, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, this, casterGuid);
+    target->CastCustomSpell(target, trigger_spell_id, &basepoints0, &basepoints0, &basepoints0, TRIGGERED_OLD_TRIGGERED, nullptr, this, casterGuid);
 }
 
 /*********************************************************/

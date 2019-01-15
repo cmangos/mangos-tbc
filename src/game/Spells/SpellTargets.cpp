@@ -350,5 +350,31 @@ void SpellTargetMgr::Initialize()
                 sLog.outError("Spell %u effect index %u failed to pick type for dynamic effect targeting type.", i, effIdx);
             }
         }
+        data.targetingIndex[0] = SpellEffectIndex(0);
+        for (uint32 effIdx = 1; effIdx < MAX_EFFECT_INDEX; ++effIdx)
+        {
+            data.targetingIndex[effIdx] = SpellEffectIndex(effIdx);
+            if (!spellInfo->Effect[effIdx])
+                continue;
+
+            uint32 targetA = spellInfo->EffectImplicitTargetA[effIdx];
+            uint32 targetB = spellInfo->EffectImplicitTargetB[effIdx];
+            for (uint32 effIdxPrevious = 0; effIdxPrevious < effIdx; ++effIdxPrevious)
+            {
+                if (!spellInfo->Effect[effIdxPrevious])
+                    continue;
+
+                uint32 previousTargetA = spellInfo->EffectImplicitTargetA[effIdx];
+                uint32 previousTargetB = spellInfo->EffectImplicitTargetB[effIdx];
+                if (targetA != previousTargetA || targetB != previousTargetB || data.implicitType[effIdx] != data.implicitType[effIdxPrevious])
+                    continue;
+
+                if (SpellTargetInfoTable[targetA].filter == TARGET_SCRIPT || SpellTargetInfoTable[targetA].filter == TARGET_SCRIPT)
+                    continue; // TODO: add checks here to allow some
+
+                data.targetingIndex[effIdx] = SpellEffectIndex(data.targetingIndex[effIdxPrevious]);
+                break;
+            }
+        }
     }
 }

@@ -16,7 +16,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "Spells/SpellTargetDefines.h"
+#include "Spells/SpellTargets.h"
+#include "Spells/SpellEffectDefines.h"
+#include "Server/DBCStructure.h"
+#include "Server/SQLStorages.h"
+#include "Log.h"
 
 SpellTargetInfo::SpellTargetInfo(char const* name, SpellTargetImplicitType type, SpellTargetFilter filter, SpellTargetEnumerator enumerator) :
     name(name), type(type), filter(filter), enumerator(enumerator)

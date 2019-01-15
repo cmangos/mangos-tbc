@@ -7098,6 +7098,23 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 40887:                                 // Assist
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(m_caster, 40892, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 40892:                                 // Fixate
+                {
+                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    m_caster->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, unitTarget, m_caster);
+                    unitTarget->CastSpell(m_caster, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
                 case 41055:                                 // Copy Weapon
                 {
                     if (m_caster->GetTypeId() != TYPEID_UNIT || !unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)

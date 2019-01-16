@@ -6774,16 +6774,6 @@ bool Spell::CheckTargetCreatureType(Unit* target) const
 {
     uint32 spellCreatureTargetMask = m_spellInfo->TargetCreatureType;
 
-    // Curse of Doom: not find another way to fix spell target check :/
-    if (m_spellInfo->IsFitToFamily(SPELLFAMILY_WARLOCK, uint64(0x0000000200000000)))
-    {
-        // not allow cast at player
-        if (target->GetTypeId() == TYPEID_PLAYER)
-            return false;
-
-        spellCreatureTargetMask = 0x7FF;
-    }
-
     // Dismiss Pet, Taming Lesson and Control Robot skipped
     if (m_spellInfo->Id == 2641 || m_spellInfo->Id == 23356 || m_spellInfo->Id == 30009)
         spellCreatureTargetMask =  0;
@@ -7745,6 +7735,14 @@ SpellCastResult Spell::OnCheckCast(bool strict)
 {
     switch (m_spellInfo->Id)
     {
+        case 603: // Curse of Doom
+        case 30910:
+        {
+            // not allow cast at player
+            Unit* target = m_targets.getUnitTarget();
+            if (!target || target->GetTypeId() == TYPEID_PLAYER)
+                return SPELL_FAILED_BAD_TARGETS;
+        }
         case 30077:
             if (ObjectGuid target = m_caster->GetSelectionGuid())
                 if (target.GetEntry() != 17226)

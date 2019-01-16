@@ -548,46 +548,6 @@ void Spell::FillTargetMap()
                                         SetTargetMap(SpellEffectIndex(i), TARGET_UNIT_CASTER_PET, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]); // No spell like this exists, guesswork
                                         break;
                                     case SPELL_EFFECT_DUMMY:
-                                    {
-                                        bool end = true;
-                                        switch (m_spellInfo->Id) // place for enabling scriptability for dummy targeting
-                                        {
-                                            case 20577:                         // Cannibalize
-                                            {
-                                                WorldObject* result = FindCorpseUsing<MaNGOS::CannibalizeObjectCheck>();
-
-                                                if (result)
-                                                {
-                                                    switch (result->GetTypeId())
-                                                    {
-                                                        case TYPEID_UNIT:
-                                                        case TYPEID_PLAYER:
-                                                            tmpUnitLists[i].push_back((Unit*)result);
-                                                            break;
-                                                        case TYPEID_CORPSE:
-                                                            m_targets.setCorpseTarget((Corpse*)result);
-                                                            if (Player* owner = ObjectAccessor::FindPlayer(((Corpse*)result)->GetOwnerGuid()))
-                                                                tmpUnitLists[i].push_back(owner);
-                                                            break;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    // clear cooldown at fail
-                                                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                                                        m_caster->RemoveSpellCooldown(*m_spellInfo, true);
-                                                    SendCastResult(SPELL_FAILED_NO_EDIBLE_CORPSES);
-                                                    finish(false);
-                                                }
-                                                break;
-                                            }
-                                            default:
-                                                end = false; // continue to TARGET_UNIT
-                                                break;
-                                        }
-                                        if (end)
-                                            break;
-                                    }
                                     case SPELL_EFFECT_STUCK: // guessed based on 7355
                                     case SPELL_EFFECT_TRIGGER_SPELL: // guessed based on 37851
                                     case SPELL_EFFECT_SEND_TAXI: // based on 42295
@@ -5129,6 +5089,28 @@ SpellCastResult Spell::CheckCast(bool strict)
                     // 17743 = Lazy Peon Sleep | 10556 = Lazy Peon
                     if (!target || !target->HasAura(17743) || target->GetEntry() != 10556)
                         return SPELL_FAILED_BAD_TARGETS;
+                }
+                else if (m_spellInfo->Id == 20577)
+                {
+                    WorldObject* result = FindCorpseUsing<MaNGOS::CannibalizeObjectCheck>();
+                    if (result)
+                    {
+                        switch (result->GetTypeId())
+                        {
+                            case TYPEID_UNIT:
+                            case TYPEID_PLAYER:
+                                if (!CheckTarget(static_cast<Unit*>(result), SpellEffectIndex(i), EXCEPTION_NONE))
+                                    return SPELL_FAILED_NO_EDIBLE_CORPSES;
+                                break;
+                            case TYPEID_CORPSE:
+                                if (Player* owner = ObjectAccessor::FindPlayer(static_cast<Corpse*>(result)->GetOwnerGuid()))
+                                    if (!CheckTarget(owner, SpellEffectIndex(i), EXCEPTION_NONE))
+                                        return SPELL_FAILED_NO_EDIBLE_CORPSES;
+                                break;
+                        }
+                    }
+                    else
+                        return SPELL_FAILED_NO_EDIBLE_CORPSES;
                 }
                 // By SpellIconID
                 else if (m_spellInfo->SpellIconID == 1648)       // Execute

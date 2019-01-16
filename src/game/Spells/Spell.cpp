@@ -684,59 +684,49 @@ void Spell::FillTargetMap()
                         break;
                 }
             }
-        }
 
-        switch (m_spellInfo->Id) // workaround for targetless effects - TODO: Add support for targetless SPELL_EFFECT_TRIGGER_SPELL
-        {
-            case 1680: // Whirlwind
-                if (SpellEffectIndex(i) == EFFECT_INDEX_1)
-                    tmpUnitLists[i].push_back(m_caster);
-                break;
-        }
-
-        for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end();)
-        {
-            if (!CheckTarget(*itr, SpellEffectIndex(i), effException[effToIndex[i]]))
+            for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end();)
             {
-                itr = tmpUnitLists[effToIndex[i]].erase(itr);
+                if (!CheckTarget(*itr, SpellEffectIndex(i), effException[effToIndex[i]]))
+                    itr = tmpUnitLists[effToIndex[i]].erase(itr);
+                else
+                    ++itr;
             }
-            else
-                ++itr;
-        }
 
-        // Secial target filter before adding targets to list
-        FilterTargetMap(tmpUnitLists[effToIndex[i]], SpellEffectIndex(i));
+            // Secial target filter before adding targets to list
+            FilterTargetMap(tmpUnitLists[effToIndex[i]], SpellEffectIndex(i));
 
-        if (m_affectedTargetCount && tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
-        {
-            // remove random units from the map
-            while (tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
+            if (m_affectedTargetCount && tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
             {
-                uint32 poz = urand(0, tmpUnitLists[effToIndex[i]].size() - 1);
-                for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end(); ++itr, --poz)
+                // remove random units from the map
+                while (tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
                 {
-                    if (!*itr) continue;
-
-                    if (!poz)
+                    uint32 poz = urand(0, tmpUnitLists[effToIndex[i]].size() - 1);
+                    for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end(); ++itr, --poz)
                     {
-                        itr = tmpUnitLists[effToIndex[i]].erase(itr);
-                        break;
+                        if (!*itr) continue;
+
+                        if (!poz)
+                        {
+                            itr = tmpUnitLists[effToIndex[i]].erase(itr);
+                            break;
+                        }
                     }
                 }
             }
-        }
 
-        if (m_caster->GetTypeId() == TYPEID_PLAYER)
-        {
-            Player* me = (Player*)m_caster;
-            for (UnitList::const_iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end(); ++itr)
+            if (m_caster->GetTypeId() == TYPEID_PLAYER)
             {
-                Player* targetOwner = (*itr)->GetBeneficiaryPlayer();
-                if (targetOwner && targetOwner != me && targetOwner->IsPvP() && !me->IsInDuelWith(targetOwner))
+                Player* me = (Player*)m_caster;
+                for (UnitList::const_iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end(); ++itr)
                 {
-                    me->UpdatePvP(true);
-                    me->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
-                    break;
+                    Player* targetOwner = (*itr)->GetBeneficiaryPlayer();
+                    if (targetOwner && targetOwner != me && targetOwner->IsPvP() && !me->IsInDuelWith(targetOwner))
+                    {
+                        me->UpdatePvP(true);
+                        me->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+                        break;
+                    }
                 }
             }
         }

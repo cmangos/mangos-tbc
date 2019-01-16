@@ -482,6 +482,10 @@ void Spell::FillTargetMap()
 
                 tmpUnitLists[i].push_back(m_caster); // Hack until destination only targeting is finished
             }
+            if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
+            {
+                tmpUnitLists[i].push_back(m_caster); // Hack until no target is supported
+            }
             else // old targeting
             {
                 // TargetA/TargetB dependent from each other, we not switch to full support this dependences

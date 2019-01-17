@@ -449,30 +449,16 @@ void Spell::FillTargetMap()
                 (m_spellInfo->EffectImplicitTargetB[i] == TARGET_UNIT_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetA[i] != TARGET_UNIT_CASTER))
             continue;
 
+        auto& data = SpellTargetMgr::GetSpellTargetingData(m_spellInfo->Id);
         // TODO: find a way so this is not needed?
         // for area auras always add caster as target (needed for totems for example)
         if (IsAreaAuraEffect(m_spellInfo->Effect[i]))
             AddUnitTarget(m_caster, SpellEffectIndex(i));
         else
-        {
-            // no double fill for same targets - exclude effects with different properties
-            for (int j = 0; j < i; ++j)
-            {
-                // Check if same target, but handle i.e. AreaAuras different
-                if (m_spellInfo->EffectImplicitTargetA[i] == m_spellInfo->EffectImplicitTargetA[j] && m_spellInfo->EffectImplicitTargetB[i] == m_spellInfo->EffectImplicitTargetB[j]
-                    && m_spellInfo->Effect[j] != SPELL_EFFECT_NONE && m_spellInfo->Effect[j] != SPELL_EFFECT_PERSISTENT_AREA_AURA
-                    && !IsAreaAuraEffect(m_spellInfo->Effect[i]) && !IsAreaAuraEffect(m_spellInfo->Effect[j]) && !IsDestinationOnlyEffect(m_spellInfo, SpellEffectIndex(i)))
-                    // Add further conditions here if required
-                {
-                    effToIndex[i] = j;                          // effect i has same targeting list as effect j
-                    break;
-                }
-            }
-        }
+            effToIndex[i] = data.targetingIndex[i];
 
         if (effToIndex[i] == i)                             // New target combination
         {
-            auto& data = SpellTargetMgr::GetSpellTargetingData(m_spellInfo->Id);
             if (data.implicitType[i] == TARGET_TYPE_LOCATION_DEST || data.implicitType[i] == TARGET_TYPE_SPECIAL_DEST) // destination effect
             {
                 uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];

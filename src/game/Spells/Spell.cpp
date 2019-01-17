@@ -440,15 +440,6 @@ void Spell::FillTargetMap()
         if (m_spellInfo->Effect[i] == SPELL_EFFECT_NONE)
             continue;
 
-        // targets for TARGET_LOCATION_SCRIPT_NEAR_CASTER (A) and TARGET_UNIT_SCRIPT_NEAR_CASTER
-        // for TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER (A) all is checked in Spell::CheckCast and in Spell::CheckItem
-        // filled in Spell::CheckCast call
-        if ((m_spellInfo->EffectImplicitTargetA[i] == TARGET_LOCATION_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetB[i] == TARGET_NONE) ||
-                m_spellInfo->EffectImplicitTargetA[i] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER ||
-                (m_spellInfo->EffectImplicitTargetA[i] == TARGET_UNIT_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetB[i] != TARGET_UNIT_CASTER) ||
-                (m_spellInfo->EffectImplicitTargetB[i] == TARGET_UNIT_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetA[i] != TARGET_UNIT_CASTER))
-            continue;
-
         auto& data = SpellTargetMgr::GetSpellTargetingData(m_spellInfo->Id);
         // TODO: find a way so this is not needed?
         // for area auras always add caster as target (needed for totems for example)
@@ -4985,8 +4976,6 @@ SpellCastResult Spell::CheckCast(bool strict)
                     {
                         Creature* creatureScriptTarget = foundScriptCreatureTargets.front(); // can only have one target in this case
                         m_targets.setDestination(creatureScriptTarget->GetPositionX(), creatureScriptTarget->GetPositionY(), creatureScriptTarget->GetPositionZ());
-
-                        AddUnitTarget(creatureScriptTarget, SpellEffectIndex(j));
                     }
                     // store explicit target for TARGET_UNIT_SCRIPT_NEAR_CASTER
                     else

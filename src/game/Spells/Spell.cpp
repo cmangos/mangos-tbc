@@ -396,6 +396,10 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
 
     m_spellLog.Initialize();
     m_needSpellLog = (m_spellInfo->Attributes & (SPELL_ATTR_HIDE_IN_COMBAT_LOG | SPELL_ATTR_HIDDEN_CLIENTSIDE)) == 0;
+
+    for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+        for (uint32 k = 0; k < 2; ++k)
+            m_usedTargets[i][k] = false;
 }
 
 Spell::~Spell()
@@ -473,16 +477,16 @@ void Spell::FillTargetMap()
             {
                 uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
                 uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
-                if (targetA && SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST)
+                if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST)
                     SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                if (targetB && SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
+                if (targetB && !m_usedTargets[i][0] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
                     SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
                 if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
                     sLog.outError("No destination for spell with DEST targeting, spell ID: %u", m_spellInfo->Id); // should never occur
 
                 tmpUnitLists[i].push_back(m_caster); // Hack until destination only targeting is finished
             }
-            if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
+            else if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
             {
                 tmpUnitLists[i].push_back(m_caster); // Hack until no target is supported
             }
@@ -4859,6 +4863,14 @@ SpellCastResult Spell::CheckCast(bool strict)
                     m_spellInfo->EffectImplicitTargetA[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER ||
                     m_spellInfo->EffectImplicitTargetB[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
             {
+                if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
+                        m_spellInfo->EffectImplicitTargetA[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
+                        m_spellInfo->EffectImplicitTargetA[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
+                    m_usedTargets[j][0] = true;
+                if (m_spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
+                        m_spellInfo->EffectImplicitTargetB[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
+                        m_spellInfo->EffectImplicitTargetB[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
+                    m_usedTargets[j][1] = true;
                 SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
 
                 if (bounds.first == bounds.second)

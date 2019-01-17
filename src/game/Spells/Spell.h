@@ -704,8 +704,9 @@ class Spell
         TargetList     m_UniqueTargetInfo;
         GOTargetList   m_UniqueGOTargetInfo;
         ItemTargetList m_UniqueItemInfo;
+        bool m_usedTargets[MAX_EFFECT_INDEX][2];
 
-        void AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex, CheckException exception = EXCEPTION_NONE);
+        void AddUnitTarget(Unit* target, SpellEffectIndex effIndex, CheckException exception = EXCEPTION_NONE);
         void AddUnitTarget(ObjectGuid unitGuid, SpellEffectIndex effIndex);
         void AddGOTarget(GameObject* pVictim, SpellEffectIndex effIndex);
         void AddGOTarget(ObjectGuid goGuid, SpellEffectIndex effIndex);

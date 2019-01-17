@@ -575,19 +575,6 @@ void Spell::FillTargetMap()
                                 break;
                         }
                         break;
-                    case TARGET_UNIT_CASTER:
-                        switch (m_spellInfo->EffectImplicitTargetB[i])
-                        {
-                            case TARGET_NONE:                   // Fill Target based on A only
-                            case TARGET_UNIT_SCRIPT_NEAR_CASTER:                 // B-target only used with CheckCast here
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                            default:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                        }
-                        break;
                     case TARGET_LOCATION_CASTER_SRC:
                         switch (m_spellInfo->EffectImplicitTargetB[i])
                         {
@@ -615,57 +602,13 @@ void Spell::FillTargetMap()
                                 break;
                         }
                         break;
-                    case TARGET_LOCATION_CURRENT_REFERENCE:
-                        switch (m_spellInfo->EffectImplicitTargetB[i])
-                        {
-                            case TARGET_NONE:
-                            case TARGET_LOCATION_CASTER_DEST:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                                // most A/B target pairs is self->negative and not expect adding caster to target list
-                            default:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                        }
-                        break;
-                    case TARGET_LOCATION_UNIT_POSITION:
-                        switch (m_spellInfo->EffectImplicitTargetB[i])
-                        {
-                            case TARGET_NONE:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                            default:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                        }
-                        break;
-                    case TARGET_UNIT_SCRIPT_NEAR_CASTER:
-                        switch (m_spellInfo->EffectImplicitTargetB[i])
-                        {
-                            case TARGET_UNIT_CASTER:
-                                // Fill target based on B only, A is only used with CheckCast here.
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                            default:
-                                break;
-                        }
-                        break;
                     default:
-                        switch (m_spellInfo->EffectImplicitTargetB[i])
-                        {
-                            case TARGET_NONE:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                            case TARGET_LOCATION_SCRIPT_NEAR_CASTER:     // B case filled in CheckCast but we need fill unit list base at A case
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                            default:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                        }
+                        uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
+                        uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
+                        if (targetA && !m_usedTargets[i][0])
+                            SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                        if (targetB && !m_usedTargets[i][0])
+                            SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
                         break;
                 }
             }

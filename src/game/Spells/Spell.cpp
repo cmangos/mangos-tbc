@@ -441,12 +441,7 @@ void Spell::FillTargetMap()
             continue;
 
         auto& data = SpellTargetMgr::GetSpellTargetingData(m_spellInfo->Id);
-        // TODO: find a way so this is not needed?
-        // for area auras always add caster as target (needed for totems for example)
-        if (IsAreaAuraEffect(m_spellInfo->Effect[i]))
-            AddUnitTarget(m_caster, SpellEffectIndex(i));
-        else
-            effToIndex[i] = data.targetingIndex[i];
+        effToIndex[i] = data.targetingIndex[i];
 
         if (effToIndex[i] == i)                             // New target combination
         {
@@ -456,7 +451,7 @@ void Spell::FillTargetMap()
                 uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
                 if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST)
                     SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                if (targetB && !m_usedTargets[i][0] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
+                if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
                     SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
                 if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
                     sLog.outError("No destination for spell with DEST targeting, spell ID: %u", m_spellInfo->Id); // should never occur
@@ -466,6 +461,24 @@ void Spell::FillTargetMap()
             else if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
             {
                 tmpUnitLists[i].push_back(m_caster); // Hack until no target is supported
+            }
+            else if (data.implicitType[i] == TARGET_TYPE_SPECIAL_UNIT) // area auras
+            {
+                uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
+                uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
+                bool hadTarget = false;
+                if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
+                {
+                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                    hadTarget = true;
+                }
+                if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
+                {
+                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                    hadTarget = true;
+                }
+                if (!hadTarget)
+                    tmpUnitLists[i].push_back(m_caster);
             }
             else // old targeting
             {
@@ -513,9 +526,9 @@ void Spell::FillTargetMap()
                 }
                 else
                 {
-                    if (targetA && !m_usedTargets[i][0])
+                    if (targetA && !m_usedTargets[i][1])
                         SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                    if (targetB && !m_usedTargets[i][0])
+                    if (targetB && !m_usedTargets[i][1])
                         SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
                 }
             }

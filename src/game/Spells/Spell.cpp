@@ -575,33 +575,6 @@ void Spell::FillTargetMap()
                                 break;
                         }
                         break;
-                    case TARGET_LOCATION_CASTER_SRC:
-                        switch (m_spellInfo->EffectImplicitTargetB[i])
-                        {
-                            case TARGET_ENUM_UNITS_ENEMY_AOE_AT_SRC_LOC:
-                                // Note: this hack with search required until GO casting not implemented
-                                // environment damage spells already have around enemies targeting but this not help in case nonexistent GO casting support
-                                // currently each enemy selected explicitly and self cast damage
-                                if (m_spellInfo->Effect[i] == SPELL_EFFECT_ENVIRONMENTAL_DAMAGE)
-                                {
-                                    if (m_targets.getUnitTarget())
-                                        tmpUnitLists[i /*==effToIndex[i]*/].push_back(m_targets.getUnitTarget());
-                                }
-                                else
-                                {
-                                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                }
-                                break;
-                            case TARGET_NONE:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                            default:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
-                        }
-                        break;
                     default:
                         uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
                         uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];

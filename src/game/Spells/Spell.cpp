@@ -469,120 +469,54 @@ void Spell::FillTargetMap()
             }
             else // old targeting
             {
-                // TargetA/TargetB dependent from each other, we not switch to full support this dependences
-                // but need it support in some know cases
-                switch (m_spellInfo->EffectImplicitTargetA[i])
+                uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
+                uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
+                if (targetA == TARGET_NONE && targetB == TARGET_NONE)
                 {
-                    case TARGET_NONE:
-                        switch (m_spellInfo->EffectImplicitTargetB[i])
+                    // TODO: TARGETING: move this to default target selection
+                    // TODO: Investigate TARGET_FLAG relationship with TARGET_NONE
+                    if (m_spellInfo->Targets)
+                    {
+                        if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT))
                         {
-                            case TARGET_NONE:
-                                // TODO: TARGETING: move this to default target selection
-                                // TODO: Investigate TARGET_FLAG relationship with TARGET_NONE
-                                if (m_spellInfo->Targets)
-                                {
-                                    if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT))
-                                    {
-                                        if (m_targets.getUnitTarget())
-                                            tmpUnitLists[i].push_back(m_targets.getUnitTarget());
-                                    }
-                                    else if (m_spellInfo->Targets & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY))
-                                    {
-                                        if (m_targets.getUnitTarget())
-                                            tmpUnitLists[i].push_back(m_targets.getUnitTarget());
-                                        else if (m_targets.getCorpseTargetGuid())
-                                        {
-                                            if (Corpse* corpse = m_targets.getCorpseTarget())
-                                                if (Player* owner = ObjectAccessor::FindPlayer(corpse->GetOwnerGuid()))
-                                                    tmpUnitLists[i].push_back(owner);
-                                        }
-                                    }
-                                    else if (m_spellInfo->Targets & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM))
-                                    {
-                                        if (m_targets.getItemTarget())
-                                            AddItemTarget(m_targets.getItemTarget(), SpellEffectIndex(i));
-                                    }
-                                    else if (m_spellInfo->Targets & (TARGET_FLAG_DEST_LOCATION))
-                                    {
-                                        if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
-                                        {
-                                            sLog.outError("No destination for spell with flag TARGET_FLAG_DEST_LOCATION, spell ID: %u", m_spellInfo->Id); // should never occur
-                                            if (WorldObject* caster = GetCastingObject())
-                                                m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
-                                        }
-                                    }
-                                    break; // uses flag for target
-                                }
-                                switch (m_spellInfo->Effect[i])
-                                {
-                                    case SPELL_EFFECT_SCHOOL_DAMAGE: // Spell 34451 suggests this
-                                        SetTargetMap(SpellEffectIndex(i), TARGET_UNIT_ENEMY, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                        break;
-                                    case SPELL_EFFECT_BIND: // guessed based on 3286
-                                    case SPELL_EFFECT_CREATE_ITEM:
-                                    case SPELL_EFFECT_LEARN_SPELL: // Sniffs suggest supplied target
-                                    case SPELL_EFFECT_SKILL_STEP:
-                                    case SPELL_EFFECT_SKILL:
-                                    case SPELL_EFFECT_RESURRECT: // no spell guesswork
-                                    case SPELL_EFFECT_RESURRECT_NEW: // no spell guesswork
-                                    case SPELL_EFFECT_SKIN_PLAYER_CORPSE: // no spell guesswork
-                                    case SPELL_EFFECT_SUMMON_PLAYER: // guessed based on 7720 sniff data
-                                        SetTargetMap(SpellEffectIndex(i), TARGET_UNIT, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                        break;
-                                    case SPELL_EFFECT_LEARN_PET_SPELL: // Always targets pet supplied from client
-                                        SetTargetMap(SpellEffectIndex(i), TARGET_UNIT_CASTER_PET, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]); // No spell like this exists, guesswork
-                                        break;
-                                    case SPELL_EFFECT_DUMMY:
-                                    case SPELL_EFFECT_STUCK: // guessed based on 7355
-                                    case SPELL_EFFECT_TRIGGER_SPELL: // guessed based on 37851
-                                    case SPELL_EFFECT_SEND_TAXI: // based on 42295
-                                    case SPELL_EFFECT_APPLY_AURA:
-                                    case SPELL_EFFECT_BLOCK: // no packets sent ever to client - guessing its a targetless effect
-                                    case SPELL_EFFECT_PARRY: // no packets sent ever to client - guessing its a targetless effect
-                                    case SPELL_EFFECT_SELF_RESURRECT: // targetless effect - verified with sniffs
-                                    case SPELL_EFFECT_WEAPON:
-                                    case SPELL_EFFECT_PROFICIENCY:
-                                        SetTargetMap(SpellEffectIndex(i), TARGET_UNIT_CASTER, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                        break;
-                                    case SPELL_EFFECT_SUMMON: // no spell guesswork - dest only effect
-                                    case SPELL_EFFECT_TRANS_DOOR:
-                                    case SPELL_EFFECT_TRIGGER_SPELL_2:
-                                        SetTargetMap(SpellEffectIndex(i), TARGET_LOCATION_CASTER_DEST, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                        break;
-                                    case SPELL_EFFECT_ENCHANT_ITEM:
-                                    case SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY:
-                                    case SPELL_EFFECT_DISENCHANT:
-                                    case SPELL_EFFECT_FEED_PET: // no spell guesswork
-                                    case SPELL_EFFECT_PROSPECTING: // no spell guesswork
-                                    case SPELL_EFFECT_ADD_FARSIGHT:
-                                    case SPELL_EFFECT_TELEPORT_UNITS:
-                                        sLog.outError("Reached invalid default target for spell: %d.", m_spellInfo->Id); // should never occur
-                                        break;
-                                    case SPELL_EFFECT_SUMMON_CHANGE_ITEM: // targets unit, caster item
-                                    case SPELL_EFFECT_DESTROY_ALL_TOTEMS: // no targeting needed, no data is needed - iteration through totem slots
-                                        SetTargetMap(SpellEffectIndex(i), TARGET_UNIT_CASTER, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]); // workaround for item only effects
-                                        break;
-                                    default: // old Legacy code
-                                        if (m_caster->GetObjectGuid().IsPet())
-                                            SetTargetMap(SpellEffectIndex(i), TARGET_UNIT_CASTER, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                        else
-                                            SetTargetMap(SpellEffectIndex(i), TARGET_LOCATION_CASTER_DEST, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                        break;
-                                }
-                                break;
-                            default:
-                                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                                break;
+                            if (m_targets.getUnitTarget())
+                                tmpUnitLists[i].push_back(m_targets.getUnitTarget());
                         }
-                        break;
-                    default:
-                        uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
-                        uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
-                        if (targetA && !m_usedTargets[i][0])
-                            SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                        if (targetB && !m_usedTargets[i][0])
-                            SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                        break;
+                        else if (m_spellInfo->Targets & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY))
+                        {
+                            if (m_targets.getUnitTarget())
+                                tmpUnitLists[i].push_back(m_targets.getUnitTarget());
+                            else if (m_targets.getCorpseTargetGuid())
+                            {
+                                if (Corpse* corpse = m_targets.getCorpseTarget())
+                                    if (Player* owner = ObjectAccessor::FindPlayer(corpse->GetOwnerGuid()))
+                                        tmpUnitLists[i].push_back(owner);
+                            }
+                        }
+                        else if (m_spellInfo->Targets & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM))
+                        {
+                            if (m_targets.getItemTarget())
+                                AddItemTarget(m_targets.getItemTarget(), SpellEffectIndex(i));
+                        }
+                        else if (m_spellInfo->Targets & (TARGET_FLAG_DEST_LOCATION))
+                        {
+                            if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
+                            {
+                                sLog.outError("No destination for spell with flag TARGET_FLAG_DEST_LOCATION, spell ID: %u", m_spellInfo->Id); // should never occur
+                                if (WorldObject* caster = GetCastingObject())
+                                    m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
+                            }
+                        }
+                    }
+                    else if (uint32 defaultTarget = SpellEffectInfoTable[m_spellInfo->Effect[i]].defaultTarget)
+                        SetTargetMap(SpellEffectIndex(i), defaultTarget, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                }
+                else
+                {
+                    if (targetA && !m_usedTargets[i][0])
+                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                    if (targetB && !m_usedTargets[i][0])
+                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
                 }
             }
 

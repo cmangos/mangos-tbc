@@ -519,9 +519,8 @@ bool GossipSelect_npc_akama(Player* pPlayer, Creature* pCreature, uint32 /*uiSen
 
 struct boss_shade_of_akamaAI : public ScriptedAI
 {
-    boss_shade_of_akamaAI(Creature* creature) : ScriptedAI(creature)
+    boss_shade_of_akamaAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<instance_black_temple*>(creature->GetInstanceData()))
     {
-        m_instance = static_cast<instance_black_temple*>(creature->GetInstanceData());
         Reset();
     }
 
@@ -564,11 +563,13 @@ struct boss_shade_of_akamaAI : public ScriptedAI
         ScriptedAI::JustRespawned();
         m_creature->SetWalk(false, true);
         if (m_instance)
-            m_instance->RespawnChannelers();
-        if (m_instance->GetData(TYPE_SHADE) != FAIL)
         {
-            sLog.outCustomLog("Shade respawned and shouldnt have");
-            sLog.traceLog();
+            m_instance->RespawnChannelers();
+            if (m_instance->GetData(TYPE_SHADE) != FAIL && m_creature->isAlive())
+            {
+                sLog.outCustomLog("Shade respawned and shouldnt have");
+                sLog.traceLog();
+            }
         }
     }
 

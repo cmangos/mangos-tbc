@@ -364,8 +364,8 @@ void SpellTargetMgr::Initialize()
                 if (!spellInfo->Effect[effIdxPrevious])
                     continue;
 
-                uint32 previousTargetA = spellInfo->EffectImplicitTargetA[effIdx];
-                uint32 previousTargetB = spellInfo->EffectImplicitTargetB[effIdx];
+                uint32 previousTargetA = spellInfo->EffectImplicitTargetA[effIdxPrevious];
+                uint32 previousTargetB = spellInfo->EffectImplicitTargetB[effIdxPrevious];
                 if (targetA != previousTargetA || targetB != previousTargetB || data.implicitType[effIdx] != data.implicitType[effIdxPrevious])
                     continue;
 

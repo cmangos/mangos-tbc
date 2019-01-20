@@ -4279,6 +4279,7 @@ struct mob_bt_battle_fighterAI : public ScriptedAI, public CombatActions
             case NPC_SHADOWHOOF_ASSASSIN:
             case NPC_ILLIDARI_SUCCUBUS:
             {
+                m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveWaypoint(0, 1, 1000);
                 m_creature->GetMotionMaster()->SetNextWaypoint(m_uiLastWaypoint + 1);
                 break;
@@ -4288,6 +4289,7 @@ struct mob_bt_battle_fighterAI : public ScriptedAI, public CombatActions
             case NPC_SEASONED_MAGISTER:
             case NPC_FYRA_DAWNSTAR:
             {
+                m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveWaypoint(0, 2, 1000);
                 m_creature->GetMotionMaster()->SetNextWaypoint(m_uiLastWaypoint + 1);
                 break;
@@ -4296,6 +4298,7 @@ struct mob_bt_battle_fighterAI : public ScriptedAI, public CombatActions
             {
                 if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
                 {
+                    m_creature->GetMotionMaster()->Clear(false, true);
                     m_creature->GetMotionMaster()->MoveWaypoint(m_uiPathId, 2, 1000);
                     m_creature->GetMotionMaster()->SetNextWaypoint(m_uiLastWaypoint + 1);
                 }
@@ -4404,7 +4407,8 @@ struct FormationMap
                 if (occupant->isInCombat())
                     continue;
 
-                occupant->GetMotionMaster()->MoveWaypoint(0, 2, 0);
+                occupant->GetMotionMaster()->Clear(false, true);
+                occupant->GetMotionMaster()->MoveWaypoint(0, 2);
                 occupant->GetMotionMaster()->SetNextWaypoint(point);
                 occupant->SetWalk(false);
 
@@ -4764,7 +4768,7 @@ struct npc_bt_battle_sensor : public ScriptedAI
                         if (urand(0, 1) || doomwalkerDead)
                         {
                             sender->GetMotionMaster()->Clear(false, true);
-                            sender->GetMotionMaster()->MoveWaypoint(0, 3, 0);
+                            sender->GetMotionMaster()->MoveWaypoint(0, 3);
                             sender->GetMotionMaster()->SetNextWaypoint(urand(0, 8));
 
                             if (Creature* senderAI = dynamic_cast<Creature*>(sender))
@@ -4825,7 +4829,7 @@ struct npc_bt_battle_sensor : public ScriptedAI
                         if (urand(0, 1) || doomwalkerDead)
                         {
                             sender->GetMotionMaster()->Clear(false, true);
-                            sender->GetMotionMaster()->MoveWaypoint(0, 3, 0);
+                            sender->GetMotionMaster()->MoveWaypoint(0, 3);
                             sender->GetMotionMaster()->SetNextWaypoint(urand(0, 8));
 
                             if (Creature* senderAI = dynamic_cast<Creature*>(sender))
@@ -4887,7 +4891,7 @@ struct npc_bt_battle_sensor : public ScriptedAI
                     }
                     case AI_EVENT_CUSTOM_EVENTAI_B:
                         sender->GetMotionMaster()->Clear(false, true);
-                        sender->GetMotionMaster()->MoveWaypoint(0, 3, 0);
+                        sender->GetMotionMaster()->MoveWaypoint(0, 3);
                         sender->GetMotionMaster()->SetNextWaypoint(0);
 
                         if (Creature* senderAI = dynamic_cast<Creature*>(sender))
@@ -4926,7 +4930,8 @@ struct npc_bt_battle_sensor : public ScriptedAI
 
                     if (Creature* caalen = m_creature->GetMap()->GetCreature(m_caalenGuid))
                     {
-                        caalen->GetMotionMaster()->MoveWaypoint(0, 2, 0);
+                        caalen->GetMotionMaster()->Clear(false, true);
+                        caalen->GetMotionMaster()->MoveWaypoint(0, 2);
                         caalen->GetMotionMaster()->SetNextWaypoint(0);
                         caalen->SetWalk(false);
 
@@ -4935,7 +4940,8 @@ struct npc_bt_battle_sensor : public ScriptedAI
                     }
                     if (Creature* fyra = m_creature->GetMap()->GetCreature(m_fyraGuid))
                     {
-                        fyra->GetMotionMaster()->MoveWaypoint(0, 2, 0);
+                        fyra->GetMotionMaster()->Clear(false, true);
+                        fyra->GetMotionMaster()->MoveWaypoint(0, 2);
                         fyra->GetMotionMaster()->SetNextWaypoint(0);
                         fyra->SetWalk(false);
 
@@ -5117,6 +5123,7 @@ struct npc_bt_battle_sensor : public ScriptedAI
 
         if (Creature* leader = m_creature->GetMap()->GetCreature(leaderGuid))
         {
+            leader->GetMotionMaster()->Clear(false, true);
             leader->GetMotionMaster()->MoveWaypoint(0, 1);
             leader->GetMotionMaster()->SetNextWaypoint(waypoint);
             m_attackReadyMask -= attackGroup;

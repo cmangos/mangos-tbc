@@ -7568,6 +7568,7 @@ SpellCastResult Spell::OnCheckCast(bool strict)
             Unit* target = m_targets.getUnitTarget();
             if (!target || target->GetTypeId() == TYPEID_PLAYER)
                 return SPELL_FAILED_BAD_TARGETS;
+            break;
         }
         case 30077:
             if (ObjectGuid target = m_caster->GetSelectionGuid())

@@ -5702,7 +5702,9 @@ void Player::UpdateSpellTrainedSkills(uint32 spellId, bool apply)
                     case SKILL_CATEGORY_PROFESSION:
                         if (IsProfessionSkill(skillId) || info->racemask != 0)
                             continue;
-                        [[clang::fallthrough]];
+                        SetSkill(skillId, 0, 0);
+                        break;
+
                     default:
                         SetSkill(skillId, 0, 0);
                 }

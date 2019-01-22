@@ -2113,10 +2113,10 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                     if (int32(GetHealth()) - int32(damage) >= int32(GetMaxHealth() * triggerAmount / 100))
                         return SPELL_AURA_PROC_FAILED;
                     break;
-                    // case 45205: break;                   // Copy Offhand Weapon
-                    // case 45903: break:                   // Offensive State
-                    // case 46146: break:                   // [PH] Ahune  Spanky Hands
-                    // case 46146: break;                   // [PH] Ahune  Spanky Hands
+                // case 45205: break;                   // Copy Offhand Weapon
+                // case 45903: break:                   // Offensive State
+                // case 46146: break:                   // [PH] Ahune  Spanky Hands
+                // case 46146: break;                   // [PH] Ahune  Spanky Hands
                 case 45343:                          // Dark Flame Aura proc from scarolash
                 {
                     if (!procSpell)
@@ -2168,7 +2168,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                         if (lootRecipient->GetTeam() != ((Player*)pVictim)->GetTeam()) // prevents horde/alliance griefing
                             return SPELL_AURA_PROC_FAILED;
                     break;
-                    // case 50051: break;                   // Ethereal Pet Aura
+                // case 50051: break;                   // Ethereal Pet Aura
             }
             break;
         case SPELLFAMILY_MAGE:

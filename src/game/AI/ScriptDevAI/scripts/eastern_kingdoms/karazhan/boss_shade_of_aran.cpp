@@ -71,12 +71,13 @@ enum
     SPELL_DISPEL_BLIZZARD       = 29970,
 
     // super spells
-    SPELL_FLAME_WREATH          = 30004,                // triggers 29946 on targets
-    SPELL_SUMMON_BLIZZARD       = 29969,                // script target on npc 17161 - triggers spell 29952 on target
+    SPELL_FLAME_WREATH          = 30004,
+    SPELL_SUMMON_BLIZZARD       = 29969,                // triggers spell 29952 on target
     SPELL_BLINK_CENTER          = 29967,
     SPELL_MASSIVE_MAGNETIC_PULL = 29979,                // triggers 30010 on target
     SPELL_MASS_SLOW             = 30035,
     SPELL_ARCANE_EXPLOSION      = 29973,
+	SPELL_CIRCULAR_BLIZZARD 	= 29951,
 
     // summon elemental spells
     SPELL_SUMMON_WATER_ELEM_1   = 29962,
@@ -87,6 +88,7 @@ enum
     // Creatures
     NPC_WATER_ELEMENTAL         = 17167,
     NPC_SHADOW_OF_ARAN          = 18254,
+	NPC_ARAN_BLIZZARD 			= 17161,
 
     MAX_SHADOWS_OF_ARAN         = 5,                    // this is not confirmed
 
@@ -397,7 +399,10 @@ struct boss_aranAI : public ScriptedAI
                                 break;
                             case SUPER_BLIZZARD:
                                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_BLIZZARD) == CAST_OK)
-                                    DoScriptText(urand(0, 1) ? SAY_BLIZZARD1 : SAY_BLIZZARD2, m_creature);
+									DoScriptText(urand(0, 1) ? SAY_BLIZZARD1 : SAY_BLIZZARD2, m_creature);
+								{
+									m_creature->CastSpell(nullptr, SPELL_CIRCULAR_BLIZZARD, TRIGGERED_OLD_TRIGGERED);
+								}
                                 break;
                         }
                         m_uiSuperCastTimer = 30000;

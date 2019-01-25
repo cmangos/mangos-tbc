@@ -77,7 +77,7 @@ enum
     SPELL_MASSIVE_MAGNETIC_PULL = 29979,                // triggers 30010 on target
     SPELL_MASS_SLOW             = 30035,
     SPELL_ARCANE_EXPLOSION      = 29973,
-	SPELL_CIRCULAR_BLIZZARD 	= 29951,
+    SPELL_CIRCULAR_BLIZZARD     = 29951,
 
     // summon elemental spells
     SPELL_SUMMON_WATER_ELEM_1   = 29962,
@@ -88,7 +88,7 @@ enum
     // Creatures
     NPC_WATER_ELEMENTAL         = 17167,
     NPC_SHADOW_OF_ARAN          = 18254,
-	NPC_ARAN_BLIZZARD 			= 17161,
+    NPC_ARAN_BLIZZARD           = 17161,
 
     MAX_SHADOWS_OF_ARAN         = 5,                    // this is not confirmed
 
@@ -400,9 +400,9 @@ struct boss_aranAI : public ScriptedAI
                             case SUPER_BLIZZARD:
                                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_BLIZZARD) == CAST_OK)
 									DoScriptText(urand(0, 1) ? SAY_BLIZZARD1 : SAY_BLIZZARD2, m_creature);
-								{
-									m_creature->CastSpell(nullptr, SPELL_CIRCULAR_BLIZZARD, TRIGGERED_OLD_TRIGGERED);
-								}
+                                {
+                                    m_creature->CastSpell(nullptr, SPELL_CIRCULAR_BLIZZARD, TRIGGERED_OLD_TRIGGERED);
+                                }
                                 break;
                         }
                         m_uiSuperCastTimer = 30000;

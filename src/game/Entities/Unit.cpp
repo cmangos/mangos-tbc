@@ -5719,7 +5719,7 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo) const
             data << uint32(pInfo->damage);                  // damage
             data << uint32(GetSpellSchoolMask(aura->GetSpellProto()));
             data << uint32(pInfo->absorb);                  // absorb
-            data << uint32(pInfo->resist);                  // resist
+            data << int32(pInfo->resist);                   // resist
             break;
         case SPELL_AURA_PERIODIC_HEAL:
         case SPELL_AURA_OBS_MOD_HEALTH:

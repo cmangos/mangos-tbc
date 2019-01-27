@@ -7100,7 +7100,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 40887:                                 // Assist
                 {
-                    if (!unitTarget)
+                    if (!unitTarget || !unitTarget->isInCombat())
                         return;
 
                     unitTarget->CastSpell(m_caster, 40892, TRIGGERED_OLD_TRIGGERED);

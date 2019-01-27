@@ -399,8 +399,8 @@ struct boss_aranAI : public ScriptedAI
                                 break;
                             case SUPER_BLIZZARD:
                                 if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_BLIZZARD) == CAST_OK)
-                                   DoScriptText(urand(0, 1) ? SAY_BLIZZARD1 : SAY_BLIZZARD2, m_creature);
-								    DoCastSpellIfCan(m_creature, SPELL_CIRCULAR_BLIZZARD, CAST_TRIGGERED);
+                                    DoScriptText(urand(0, 1) ? SAY_BLIZZARD1 : SAY_BLIZZARD2, m_creature);
+                                    DoCastSpellIfCan(m_creature, SPELL_CIRCULAR_BLIZZARD, CAST_TRIGGERED);
                                 break;
                         }
                         m_uiSuperCastTimer = 30000;

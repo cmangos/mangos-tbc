@@ -1643,6 +1643,27 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss)
     DealDamage(pVictim, damageInfo->damage, &cleanDamage, SPELL_DIRECT_DAMAGE, damageInfo->schoolMask, spellProto, durabilityLoss);
 }
 
+uint32 Unit::GetResilienceRatingDamageReduction(uint32 damage, SpellDmgClass dmgClass, bool periodic/* = false*/, Powers pwrType/* = POWER_HEALtH*/) const
+{
+    // NOTE: Resilince increases all 3 ratings at once, verify if specialized cases actually exist
+    CombatRating rating;
+    switch (dmgClass)
+    {
+        case SPELL_DAMAGE_CLASS_MELEE:  rating = CR_CRIT_TAKEN_MELEE;   break;
+        case SPELL_DAMAGE_CLASS_RANGED: rating = CR_CRIT_TAKEN_RANGED;  break;
+        default:                        rating = CR_CRIT_TAKEN_SPELL;   break;
+    }
+
+    if (periodic)
+        return GetCombatRatingDamageReduction(rating, 1.0f, 100.0f, damage);                            // DOTs: 2.2.0+
+
+    switch (uint32(pwrType))
+    {
+        case POWER_MANA:        return GetCombatRatingDamageReduction(rating, 1.0f, 100.0f, damage);    // Mana drains: 2.4.0+
+    }
+    return 0;
+}
+
 // TODO for melee need create structure as in
 void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, WeaponAttackType attackType /*= BASE_ATTACK*/)
 {

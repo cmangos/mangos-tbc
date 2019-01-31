@@ -1283,3 +1283,9 @@ UPDATE spell_template SET AttributesEx2=AttributesEx2&~4 WHERE Id IN(27285);
 -- Wrangle Aether Rays: Wrangling Rope Channel - during this channel aether rays move - addition of SPELL_ATTR_EX5_CAN_CHANNEL_WHEN_MOVING
 UPDATE spell_template SET AttributesEx5=AttributesEx5|0x00000001 WHERE id IN(40926);
 
+-- targeting section
+-- Lightwell targeting fixed to wotlk data - was never updated in client to proper target - TARGET_LOCATION_CURRENT_REFERENCE
+UPDATE spell_template SET EffectImplicitTargetA1=87 WHERE Id IN(724,27870,27871,28275);
+-- Mass Dispel - SPELL_EFFECT_TRIGGER_SPELL are dest targeted - verified from sniff
+UPDATE spell_template SET EffectImplicitTargetA2=87 WHERE Id IN(32375,32592);
+

@@ -534,54 +534,90 @@ void Spell::FillTargetMap()
                 }
             }
 
-            for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end();)
+            if (!targetingData.data[i].tmpGOList.empty()) // GO case
             {
-                if (!CheckTarget(*itr, SpellEffectIndex(i), CheckException(targetingData.magnet)))
-                    itr = targetingData.data[i].tmpUnitList.erase(itr);
-                else
-                    ++itr;
+                if (m_affectedTargetCount && targetingData.data[i].tmpGOList.size() > m_affectedTargetCount)
+                {
+                    // remove random units from the map
+                    while (targetingData.data[i].tmpGOList.size() > m_affectedTargetCount)
+                    {
+                        uint32 poz = urand(0, targetingData.data[i].tmpGOList.size() - 1);
+                        for (GameObjectList::iterator itr = targetingData.data[i].tmpGOList.begin(); itr != targetingData.data[i].tmpGOList.end(); ++itr, --poz)
+                        {
+                            if (!*itr) continue;
+
+                            if (!poz)
+                            {
+                                targetingData.data[i].tmpGOList.erase(itr);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                for (GameObjectList::iterator iter = targetingData.data[i].tmpGOList.begin(); iter != targetingData.data[i].tmpGOList.end();)
+                {
+                    if (CheckTargetGOScript(*iter, SpellEffectIndex(i)))
+                        ++iter;
+                    else
+                        iter = targetingData.data[i].tmpGOList.erase(iter);
+                }
+
+                // Add resulting GOs as GOTargets
+                for (auto& iter : targetingData.data[i].tmpGOList)
+                    AddGOTarget(iter, SpellEffectIndex(i));
             }
 
-            // Secial target filter before adding targets to list
-            FilterTargetMap(targetingData.data[i].tmpUnitList, SpellEffectIndex(i));
-
-            if (m_affectedTargetCount && targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
+            if (targetingData.data[i].tmpUnitList.size() > 0) // Unit case
             {
-                // remove random units from the map
-                while (targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
+                for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end();)
                 {
-                    uint32 poz = urand(0, targetingData.data[i].tmpUnitList.size() - 1);
-                    for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr, --poz)
-                    {
-                        if (!*itr) continue;
+                    if (!CheckTarget(*itr, SpellEffectIndex(i), CheckException(targetingData.magnet)))
+                        itr = targetingData.data[i].tmpUnitList.erase(itr);
+                    else
+                        ++itr;
+                }
 
-                        if (!poz)
+                // Secial target filter before adding targets to list
+                FilterTargetMap(targetingData.data[i].tmpUnitList, SpellEffectIndex(i));
+
+                if (m_affectedTargetCount && targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
+                {
+                    // remove random units from the map
+                    while (targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
+                    {
+                        uint32 poz = urand(0, targetingData.data[i].tmpUnitList.size() - 1);
+                        for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr, --poz)
                         {
-                            itr = targetingData.data[i].tmpUnitList.erase(itr);
+                            if (!*itr) continue;
+
+                            if (!poz)
+                            {
+                                itr = targetingData.data[i].tmpUnitList.erase(itr);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (m_caster->GetTypeId() == TYPEID_PLAYER)
+                {
+                    Player* me = (Player*)m_caster;
+                    for (UnitList::const_iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr)
+                    {
+                        Player* targetOwner = (*itr)->GetBeneficiaryPlayer();
+                        if (targetOwner && targetOwner != me && targetOwner->IsPvP() && !me->IsInDuelWith(targetOwner))
+                        {
+                            me->UpdatePvP(true);
+                            me->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
                             break;
                         }
                     }
                 }
-            }
-
-            if (m_caster->GetTypeId() == TYPEID_PLAYER)
-            {
-                Player* me = (Player*)m_caster;
-                for (UnitList::const_iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr)
-                {
-                    Player* targetOwner = (*itr)->GetBeneficiaryPlayer();
-                    if (targetOwner && targetOwner != me && targetOwner->IsPvP() && !me->IsInDuelWith(targetOwner))
-                    {
-                        me->UpdatePvP(true);
-                        me->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
-                        break;
-                    }
-                }
+                for (UnitList::const_iterator iunit = targetingData.data[i].tmpUnitList.begin(); iunit != targetingData.data[i].tmpUnitList.end(); ++iunit)
+                    AddUnitTarget((*iunit), SpellEffectIndex(i));
             }
         }
-
-        for (UnitList::const_iterator iunit = targetingData.data[i].tmpUnitList.begin(); iunit != targetingData.data[i].tmpUnitList.end(); ++iunit)
-            AddUnitTarget((*iunit), SpellEffectIndex(i));
     }
 }
 
@@ -2652,54 +2688,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
     {
         if (targetMode != TARGET_UNIT_CASTER)
             data.tmpUnitList.remove(m_caster);
-    }
-
-    if (!data.tmpGOList.empty())                          // GO CASE
-    {
-        if (unMaxTargets && data.tmpGOList.size() > unMaxTargets)
-        {
-            // make sure one go is always removed per iteration
-            uint32 removed_utarget = 0;
-            for (GameObjectList::iterator itr = data.tmpGOList.begin(), next; itr != data.tmpGOList.end(); itr = next)
-            {
-                next = itr;
-                ++next;
-                if (!*itr) continue;
-                if ((*itr) == m_targets.getGOTarget())
-                {
-                    data.tmpGOList.erase(itr);
-                    removed_utarget = 1;
-                    //        break;
-                }
-            }
-            // remove random units from the map
-            while (data.tmpGOList.size() > unMaxTargets - removed_utarget)
-            {
-                uint32 poz = urand(0, data.tmpGOList.size() - 1);
-                for (GameObjectList::iterator itr = data.tmpGOList.begin(); itr != data.tmpGOList.end(); ++itr, --poz)
-                {
-                    if (!*itr) continue;
-
-                    if (!poz)
-                    {
-                        data.tmpGOList.erase(itr);
-                        break;
-                    }
-                }
-            }
-        }
-
-        for (GameObjectList::iterator iter = data.tmpGOList.begin(); iter != data.tmpGOList.end();)
-        {
-            if (CheckTargetGOScript(*iter, SpellEffectIndex(effIndex)))
-                ++iter;
-            else
-                iter = data.tmpGOList.erase(iter);
-        }
-
-        // Add resulting GOs as GOTargets
-        for (auto& iter : data.tmpGOList)
-            AddGOTarget(iter, effIndex);
     }
 }
 

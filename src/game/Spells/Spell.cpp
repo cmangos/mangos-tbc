@@ -400,6 +400,9 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
         for (uint32 k = 0; k < 2; ++k)
             m_usedTargets[i][k] = false;
+
+    for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+        m_targetlessExecution[i] = false;
 }
 
 Spell::~Spell()
@@ -454,11 +457,11 @@ void Spell::FillTargetMap()
                 if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
                     sLog.outError("No destination for spell with DEST targeting, spell ID: %u", m_spellInfo->Id); // should never occur
 
-                targetingData.data[i].tmpUnitList.push_back(m_caster); // Hack until destination only targeting is finished
+                m_targetlessExecution[i] = true;
             }
             else if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
             {
-                targetingData.data[i].tmpUnitList.push_back(m_caster); // Hack until no target is supported
+                m_targetlessExecution[i] = true;
             }
             else if (data.implicitType[i] == TARGET_TYPE_SPECIAL_UNIT) // area auras
             {
@@ -1250,6 +1253,31 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
             delete m_spellAuraHolder;
             m_spellAuraHolder = nullptr;
         }
+    }
+}
+
+void Spell::DoAllTargetlessEffects()
+{
+    uint32 procAttacker;
+    uint32 procVictim;
+    uint32 procEx = PROC_EX_NONE;
+    WorldObject* caster = m_caster; // preparation for GO casting
+    Unit* unitCaster = caster->GetTypeId() == TYPEID_UNIT ? static_cast<Unit*>(caster) : nullptr;
+
+    uint8 effectMask = 0;
+    for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+    {
+        if (m_targetlessExecution[j])
+        {
+            effectMask |= 1 << j;
+            HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
+        }
+    }
+
+    if (effectMask && unitCaster)
+    {
+        PrepareMasksForProcSystem(effectMask, procAttacker, procVictim, caster, unitTarget);
+        unitCaster->ProcDamageAndSpell(ProcSystemArguments(procAttacker & PROC_FLAG_ON_TRAP_ACTIVATION ? m_targets.getUnitTarget() : nullptr, unitCaster ? procAttacker : uint32(PROC_FLAG_NONE), procVictim, procEx, 0, m_attackType, m_spellInfo, this));
     }
 }
 
@@ -3194,15 +3222,8 @@ void Spell::_handle_immediate_phase()
     // handle some immediate features of the spell here
     HandleThreatSpells();
 
-    for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
-    {
-        if (m_spellInfo->Effect[j] == 0)
-            continue;
-
-        // apply Send Event effect to ground in case empty target lists
-        if (m_spellInfo->Effect[j] == SPELL_EFFECT_SEND_EVENT && !HaveTargetsForEffect(SpellEffectIndex(j)))
-            HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
-    }
+    // handle none and dest targeted effects
+    DoAllTargetlessEffects();
 
     // initialize Diminishing Returns Data
     m_diminishLevel = DIMINISHING_LEVEL_1;
@@ -3211,14 +3232,6 @@ void Spell::_handle_immediate_phase()
     // process items
     for (auto& ihit : m_UniqueItemInfo)
         DoAllEffectOnTarget(&ihit);
-
-    // process ground
-    for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
-    {
-        //summon a gameobject at the spell's destination xyz
-        if (m_spellInfo->Effect[j] == SPELL_EFFECT_TRANS_DOOR && m_spellInfo->EffectImplicitTargetA[j] == TARGET_ENUM_GAMEOBJECTS_SCRIPT_AOE_AT_DEST_LOC)
-            HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
-    }
 
     // start channeling if applicable (after _handle_immediate_phase for get persistent effect dynamic object for channel target
     if (IsChanneledSpell(m_spellInfo) && m_duration)

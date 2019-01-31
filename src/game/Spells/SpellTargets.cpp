@@ -351,6 +351,7 @@ void SpellTargetMgr::Initialize()
             }
         }
         data.targetingIndex[0] = SpellEffectIndex(0);
+        // TODO: replace with just logic for AOE search skip
         for (uint32 effIdx = 1; effIdx < MAX_EFFECT_INDEX; ++effIdx)
         {
             data.targetingIndex[effIdx] = SpellEffectIndex(effIdx);
@@ -359,6 +360,7 @@ void SpellTargetMgr::Initialize()
 
             uint32 targetA = spellInfo->EffectImplicitTargetA[effIdx];
             uint32 targetB = spellInfo->EffectImplicitTargetB[effIdx];
+            uint32 effect = spellInfo->Effect[effIdx];
             for (uint32 effIdxPrevious = 0; effIdxPrevious < effIdx; ++effIdxPrevious)
             {
                 if (!spellInfo->Effect[effIdxPrevious])
@@ -367,6 +369,11 @@ void SpellTargetMgr::Initialize()
                 uint32 previousTargetA = spellInfo->EffectImplicitTargetA[effIdxPrevious];
                 uint32 previousTargetB = spellInfo->EffectImplicitTargetB[effIdxPrevious];
                 if (targetA != previousTargetA || targetB != previousTargetB || data.implicitType[effIdx] != data.implicitType[effIdxPrevious])
+                    continue;
+
+                // temporary workaround
+                if (SpellEffectInfoTable[effect].requiredTarget == TARGET_TYPE_LOCATION_DEST || SpellEffectInfoTable[effect].requiredTarget == TARGET_TYPE_SPECIAL_DEST
+                        || SpellEffectInfoTable[effect].requiredTarget == TARGET_TYPE_NONE)
                     continue;
 
                 if (SpellTargetInfoTable[targetA].filter == TARGET_SCRIPT || SpellTargetInfoTable[targetA].filter == TARGET_SCRIPT)

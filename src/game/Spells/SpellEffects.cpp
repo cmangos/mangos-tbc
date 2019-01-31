@@ -3177,14 +3177,6 @@ void Spell::EffectForceCast(SpellEffectIndex eff_idx)
 
 void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
 {
-    // only unit case known
-    if (!unitTarget)
-    {
-        if (gameObjTarget || itemTarget)
-            sLog.outError("Spell::EffectTriggerSpell (Spell: %u): Unsupported non-unit case!", m_spellInfo->Id);
-        return;
-    }
-
     uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[effIndex];
 
     // special cases
@@ -3262,6 +3254,13 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
     {
         case TARGET_LOCATION_UNIT_MINION_POSITION: break; // confirmed by 31348 nothing is forwarded
         default: targets.setUnitTarget(unitTarget);
+    }
+
+    if (spellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
+    {
+        float x, y, z;
+        m_targets.getDestination(x, y, z);
+        targets.setDestination(x, y, z);
     }
 
     caster->CastSpell(targets, spellInfo, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);

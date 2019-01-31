@@ -714,6 +714,7 @@ class Spell
         TargetList     m_UniqueTargetInfo;
         GOTargetList   m_UniqueGOTargetInfo;
         ItemTargetList m_UniqueItemInfo;
+        bool           m_targetlessExecution[MAX_EFFECT_INDEX];
         bool m_usedTargets[MAX_EFFECT_INDEX][2];
 
         void AddUnitTarget(Unit* target, SpellEffectIndex effIndex, CheckException exception = EXCEPTION_NONE);
@@ -726,6 +727,7 @@ class Spell
         void InitializeDamageMultipliers();
         void ResetEffectDamageAndHeal();
         void DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected = false);
+        void DoAllTargetlessEffects();
         void DoAllEffectOnTarget(GOTargetInfo* target);
         void DoAllEffectOnTarget(ItemTargetInfo* target);
         bool IsAliveUnitPresentInTargetList();

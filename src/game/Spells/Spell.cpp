@@ -762,8 +762,8 @@ void Spell::AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex, CheckExcepti
     if (m_spellInfo->Effect[effIndex] == 0)
         return;
 
-    if (m_caster != pVictim || !IsDestinationOnlyEffect(m_spellInfo, effIndex))
-        m_targets.m_targetMask |= TARGET_FLAG_UNIT; // all spells with unit target must have this flag TODO: do this based on target type
+    if (m_caster != pVictim)
+        m_targets.m_targetMask |= TARGET_FLAG_UNIT; // all spells with unit target must have this flag
 
     // Check for effect immune skip if immuned
     bool immuned = pVictim->IsImmuneToSpellEffect(m_spellInfo, effIndex, pVictim == m_caster);
@@ -793,10 +793,7 @@ void Spell::AddUnitTarget(Unit* pVictim, SpellEffectIndex effIndex, CheckExcepti
     target.magnet = (exception == EXCEPTION_MAGNET);
 
     // Calculate hit result
-    if (IsDestinationOnlyEffect(m_spellInfo, effIndex) && pVictim == m_caster) // TODO: research and unhack
-        target.missCondition = SPELL_MISS_NONE;
-    else
-        target.missCondition = m_ignoreHitResult ? SPELL_MISS_NONE : m_caster->SpellHitResult(pVictim, m_spellInfo, target.effectMask, m_reflectable);
+    target.missCondition = m_ignoreHitResult ? SPELL_MISS_NONE : m_caster->SpellHitResult(pVictim, m_spellInfo, target.effectMask, m_reflectable);
 
     // spell fly from visual cast object
     WorldObject* affectiveObject = GetAffectiveCasterObject();
@@ -6990,7 +6987,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, CheckException excep
     }
 
     if (target->GetTypeId() != TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER)
-            && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_CASTER && !IsDestinationOnlyEffect(m_spellInfo, eff))
+            && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_CASTER)
         return false;
 
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD) && target->isAlive())

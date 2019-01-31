@@ -649,9 +649,19 @@ class Spell
         //*****************************************
         // Spell target filling
         //*****************************************
+        struct TempTargetData
+        {
+            UnitList tmpUnitList;
+            GameObjectList tmpGOList;            
+        };
+        struct TempTargetingData
+        {
+            TempTargetData data[MAX_EFFECT_INDEX];
+            bool magnet;
+        };
         void FillTargetMap();
-        void SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList& targetUnitMap, CheckException& exception);
-        bool CheckAndAddMagnetTarget(Unit* unitTarget, SpellEffectIndex effIndex, UnitList& targetUnitMap, CheckException& exception);
+        void SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targetB, TempTargetingData& targetingData);
+        bool CheckAndAddMagnetTarget(Unit* unitTarget, SpellEffectIndex effIndex, TempTargetingData& data);
         Unit* GetUnitTarget(SpellEffectIndex effIdx); // SetTargetMap wrapper for bad client fill
         static void CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry>& bounds, UnitList& tempTargetUnitMap, UnitList& targetUnitMap, SpellEffectIndex effIndex);
         void FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex);

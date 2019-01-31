@@ -429,10 +429,8 @@ WorldObject* Spell::FindCorpseUsing()
 void Spell::FillTargetMap()
 {
     // TODO: ADD the correct target FILLS!!!!!!
-
-    UnitList tmpUnitLists[MAX_EFFECT_INDEX];                // Stores the temporary Target Lists for each effect
+    TempTargetingData targetingData;
     uint8 effToIndex[MAX_EFFECT_INDEX] = {0, 1, 2};         // Helper array, to link to another tmpUnitList, if the targets for both effects match
-    CheckException effException[MAX_EFFECT_INDEX] = { EXCEPTION_NONE };
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         // not call for empty effect.
@@ -450,17 +448,17 @@ void Spell::FillTargetMap()
                 uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
                 uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
                 if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST)
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
                 if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
                 if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
                     sLog.outError("No destination for spell with DEST targeting, spell ID: %u", m_spellInfo->Id); // should never occur
 
-                tmpUnitLists[i].push_back(m_caster); // Hack until destination only targeting is finished
+                targetingData.data[i].tmpUnitList.push_back(m_caster); // Hack until destination only targeting is finished
             }
             else if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
             {
-                tmpUnitLists[i].push_back(m_caster); // Hack until no target is supported
+                targetingData.data[i].tmpUnitList.push_back(m_caster); // Hack until no target is supported
             }
             else if (data.implicitType[i] == TARGET_TYPE_SPECIAL_UNIT) // area auras
             {
@@ -469,16 +467,16 @@ void Spell::FillTargetMap()
                 bool hadTarget = false;
                 if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
                 {
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
                     hadTarget = true;
                 }
                 if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
                 {
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
                     hadTarget = true;
                 }
                 if (!hadTarget)
-                    tmpUnitLists[i].push_back(m_caster);
+                    targetingData.data[i].tmpUnitList.push_back(m_caster);
             }
             else // old targeting
             {
@@ -493,17 +491,17 @@ void Spell::FillTargetMap()
                         if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT))
                         {
                             if (m_targets.getUnitTarget())
-                                tmpUnitLists[i].push_back(m_targets.getUnitTarget());
+                                targetingData.data[i].tmpUnitList.push_back(m_targets.getUnitTarget());
                         }
                         else if (m_spellInfo->Targets & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY))
                         {
                             if (m_targets.getUnitTarget())
-                                tmpUnitLists[i].push_back(m_targets.getUnitTarget());
+                                targetingData.data[i].tmpUnitList.push_back(m_targets.getUnitTarget());
                             else if (m_targets.getCorpseTargetGuid())
                             {
                                 if (Corpse* corpse = m_targets.getCorpseTarget())
                                     if (Player* owner = ObjectAccessor::FindPlayer(corpse->GetOwnerGuid()))
-                                        tmpUnitLists[i].push_back(owner);
+                                        targetingData.data[i].tmpUnitList.push_back(owner);
                             }
                         }
                         else if (m_spellInfo->Targets & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM))
@@ -522,41 +520,41 @@ void Spell::FillTargetMap()
                         }
                     }
                     else if (uint32 defaultTarget = SpellEffectInfoTable[m_spellInfo->Effect[i]].defaultTarget)
-                        SetTargetMap(SpellEffectIndex(i), defaultTarget, tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                        SetTargetMap(SpellEffectIndex(i), defaultTarget, false, targetingData);
                 }
                 else
                 {
                     if (targetA && !m_usedTargets[i][1])
-                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
                     if (targetB && !m_usedTargets[i][1])
-                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
+                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], false, targetingData);
                 }
             }
 
-            for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end();)
+            for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end();)
             {
-                if (!CheckTarget(*itr, SpellEffectIndex(i), effException[effToIndex[i]]))
-                    itr = tmpUnitLists[effToIndex[i]].erase(itr);
+                if (!CheckTarget(*itr, SpellEffectIndex(i), CheckException(targetingData.magnet)))
+                    itr = targetingData.data[i].tmpUnitList.erase(itr);
                 else
                     ++itr;
             }
 
             // Secial target filter before adding targets to list
-            FilterTargetMap(tmpUnitLists[effToIndex[i]], SpellEffectIndex(i));
+            FilterTargetMap(targetingData.data[i].tmpUnitList, SpellEffectIndex(i));
 
-            if (m_affectedTargetCount && tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
+            if (m_affectedTargetCount && targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
             {
                 // remove random units from the map
-                while (tmpUnitLists[effToIndex[i]].size() > m_affectedTargetCount)
+                while (targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
                 {
-                    uint32 poz = urand(0, tmpUnitLists[effToIndex[i]].size() - 1);
-                    for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end(); ++itr, --poz)
+                    uint32 poz = urand(0, targetingData.data[i].tmpUnitList.size() - 1);
+                    for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr, --poz)
                     {
                         if (!*itr) continue;
 
                         if (!poz)
                         {
-                            itr = tmpUnitLists[effToIndex[i]].erase(itr);
+                            itr = targetingData.data[i].tmpUnitList.erase(itr);
                             break;
                         }
                     }
@@ -566,7 +564,7 @@ void Spell::FillTargetMap()
             if (m_caster->GetTypeId() == TYPEID_PLAYER)
             {
                 Player* me = (Player*)m_caster;
-                for (UnitList::const_iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end(); ++itr)
+                for (UnitList::const_iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr)
                 {
                     Player* targetOwner = (*itr)->GetBeneficiaryPlayer();
                     if (targetOwner && targetOwner != me && targetOwner->IsPvP() && !me->IsInDuelWith(targetOwner))
@@ -579,7 +577,7 @@ void Spell::FillTargetMap()
             }
         }
 
-        for (UnitList::const_iterator iunit = tmpUnitLists[effToIndex[i]].begin(); iunit != tmpUnitLists[effToIndex[i]].end(); ++iunit)
+        for (UnitList::const_iterator iunit = targetingData.data[i].tmpUnitList.begin(); iunit != targetingData.data[i].tmpUnitList.end(); ++iunit)
             AddUnitTarget((*iunit), SpellEffectIndex(i));
     }
 }
@@ -1448,14 +1446,14 @@ class ChainHealingFullHealth: std::unary_function<const Unit*, bool>
         }
 };
 
-bool Spell::CheckAndAddMagnetTarget(Unit* target, SpellEffectIndex effIndex, UnitList& targetUnitMap, CheckException& exception)
+bool Spell::CheckAndAddMagnetTarget(Unit* target, SpellEffectIndex effIndex, TempTargetingData& data)
 {
     if (Unit* magnetTarget = m_caster->SelectMagnetTarget(target, this, effIndex))
     {
         // Found. Push totem as target instead.
         m_targets.setUnitTarget(magnetTarget);
-        targetUnitMap.push_back(magnetTarget);
-        exception = EXCEPTION_MAGNET;
+        data.data[effIndex].tmpUnitList.push_back(magnetTarget);
+        data.magnet = true;
         return true;
     }
 
@@ -1471,14 +1469,14 @@ Unit* Spell::GetUnitTarget(SpellEffectIndex effIdx)
     return target;
 }
 
-void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList& targetUnitMap, CheckException& exception)
+void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targetB, TempTargetingData& targetingData)
 {
+    TempTargetData& data = targetingData.data[effIndex];
     float radius;
     uint32 EffectChainTarget = m_spellInfo->EffectChainTarget[effIndex];
     uint32 unMaxTargets = m_affectedTargetCount;  // Get spell max affected targets
 
     GetSpellRangeAndRadius(effIndex, radius, EffectChainTarget);
-    GameObjectList tempTargetGOList;
     float cone = GetCone();
  
     switch (targetMode)
@@ -1866,7 +1864,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_UNIT_CASTER:
-            targetUnitMap.push_back(m_caster);
+            data.tmpUnitList.push_back(m_caster);
             break;
         case TARGET_UNIT_ENEMY_NEAR_CASTER:
         case TARGET_UNIT_FRIEND_NEAR_CASTER:
@@ -1922,7 +1920,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             itr = tempTargetUnitMap.begin();
             std::advance(itr, urand() % t);
             Unit* pUnitTarget = *itr;
-            targetUnitMap.push_back(pUnitTarget);
+            data.tmpUnitList.push_back(pUnitTarget);
 
             tempTargetUnitMap.erase(itr);
 
@@ -1943,7 +1941,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     continue;
                 }
                 prev = *next;
-                targetUnitMap.push_back(prev);
+                data.tmpUnitList.push_back(prev);
                 tempTargetUnitMap.erase(next);
                 tempTargetUnitMap.sort(TargetDistanceOrderNear(prev));
                 next = tempTargetUnitMap.begin();
@@ -1956,7 +1954,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             Pet* tmpUnit = m_caster->GetPet();
             if (tmpUnit)
             {
-                targetUnitMap.push_back(tmpUnit);
+                data.tmpUnitList.push_back(tmpUnit);
             }
             break;
         }
@@ -1967,11 +1965,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 break;
 
             if (m_caster->CanAssistSpell(newUnitTarget, m_spellInfo))
-                targetUnitMap.push_back(newUnitTarget);
+                data.tmpUnitList.push_back(newUnitTarget);
             else
             {
-                if (!CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetUnitMap, exception))
-                    targetUnitMap.push_back(newUnitTarget);
+                if (!CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetingData))
+                    data.tmpUnitList.push_back(newUnitTarget);
             }
             break;
         }
@@ -1982,10 +1980,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 break;
 
             // Check if target have Grounding Totem Aura(Magnet target). Check for physical school inside included.
-            if (CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetUnitMap, exception))
+            if (CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetingData))
                 break;
 
-            targetUnitMap.push_back(newUnitTarget);
+            data.tmpUnitList.push_back(newUnitTarget);
 
             // More than one target
             if (EffectChainTarget > 1)
@@ -2093,7 +2091,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 {                    
                     // Fill TargetUnitMap
                     for (UnitList::iterator activeUnit = unsteadyTargetMap.begin(); t && activeUnit != unsteadyTargetMap.end(); ++activeUnit, --t)
-                        targetUnitMap.push_back((*activeUnit));
+                        data.tmpUnitList.push_back((*activeUnit));
                 }
                 else // spell like Chain Lightning
                 {              
@@ -2111,7 +2109,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                             continue;
                         }
                         prev = *next;
-                        targetUnitMap.push_back(prev);
+                        data.tmpUnitList.push_back(prev);
                         unsteadyTargetMap.erase(next);
                         unsteadyTargetMap.sort(TargetDistanceOrderNear(prev));
                         next = unsteadyTargetMap.begin();
@@ -2123,16 +2121,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_ENUM_UNITS_ENEMY_AOE_AT_SRC_LOC:
-            FillAreaTargets(targetUnitMap, radius, cone, PUSH_SRC_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
-
-            if (m_spellInfo->Id == 42005)                   // Bloodboil (spell hits only the 5 furthest away targets)
-            {
-                if (targetUnitMap.size() > unMaxTargets)
-                {
-                    targetUnitMap.sort(TargetDistanceOrderFarAway(m_caster));
-                    targetUnitMap.resize(unMaxTargets);
-                }
-            }
+            FillAreaTargets(data.tmpUnitList, radius, cone, PUSH_SRC_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
             break;
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC:
         {
@@ -2140,18 +2129,18 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
 
             // fill real target list if no spell script target defined
-            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
+            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : data.tmpUnitList,
                             radius, cone, PUSH_SRC_CENTER, SPELL_TARGETS_ALL);
 
             if (!tempTargetUnitMap.empty())
-                CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
+                CheckSpellScriptTargets(bounds, tempTargetUnitMap, data.tmpUnitList, effIndex);
 
             switch (m_spellInfo->Id)
             {
                 case 40307: // AOEs which should only be cast if a target was found
                 case 40350:
                 {
-                    if (targetUnitMap.size() <= 0)
+                    if (data.tmpUnitList.size() <= 0)
                     {
                         cancel();
                         return;
@@ -2160,10 +2149,10 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 }
                 case 45339:
                 {
-                    for (UnitList::const_iterator iter = targetUnitMap.begin(); iter != targetUnitMap.end();)
+                    for (UnitList::const_iterator iter = data.tmpUnitList.begin(); iter != data.tmpUnitList.end();)
                     {
                         if ((*iter)->HasCharmer(m_caster->GetObjectGuid()))
-                            iter = targetUnitMap.erase(iter);
+                            iter = data.tmpUnitList.erase(iter);
                         else
                             ++iter;
                     }
@@ -2178,10 +2167,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             UnitList tempTargetUnitMap;
             SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
             // fill real target list if no spell script target defined
-            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
+            FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : data.tmpUnitList, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
 
             if (!tempTargetUnitMap.empty())
-                CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
+                CheckSpellScriptTargets(bounds, tempTargetUnitMap, data.tmpUnitList, effIndex);
+
             break;
         }
         case TARGET_ENUM_GAMEOBJECTS_SCRIPT_AOE_AT_SRC_LOC:
@@ -2214,7 +2204,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (!entriesToUse.empty())
             {
                 MaNGOS::AllGameObjectEntriesListInPosRangeCheck go_check(x, y, z, entriesToUse, radius);
-                MaNGOS::GameObjectListSearcher<MaNGOS::AllGameObjectEntriesListInPosRangeCheck> checker(tempTargetGOList, go_check);
+                MaNGOS::GameObjectListSearcher<MaNGOS::AllGameObjectEntriesListInPosRangeCheck> checker(data.tmpGOList, go_check);
                 Cell::VisitGridObjects(m_caster, checker, radius);
             }
 
@@ -2223,19 +2213,19 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ENUM_UNITS_ENEMY_AOE_AT_DEST_LOC:
         {
             // targets the ground, not the units in the area
-            FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+            FillAreaTargets(data.tmpUnitList, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
             break;
         }
         case TARGET_ENUM_UNITS_PARTY_WITHIN_CASTER_RANGE:
         case TARGET_ENUM_UNITS_PARTY_AOE_AT_DEST_LOC:
         case TARGET_ENUM_UNITS_PARTY_AOE_AT_SRC_LOC:
         {
-            FillRaidOrPartyTargets(targetUnitMap, m_caster, radius, false, true, true);
+            FillRaidOrPartyTargets(data.tmpUnitList, m_caster, radius, false, true, true);
             break;
         }
         case TARGET_ENUM_UNITS_RAID_WITHIN_CASTER_RANGE:
         {
-            FillRaidOrPartyTargets(targetUnitMap, m_caster, radius, true, true, IsPositiveSpell(m_spellInfo->Id));
+            FillRaidOrPartyTargets(data.tmpUnitList, m_caster, radius, true, true, IsPositiveSpell(m_spellInfo->Id));
             break;
         }
         case TARGET_UNIT_FRIEND:
@@ -2244,7 +2234,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             if (Unit* target = m_targets.getUnitTarget())
             {
                 if (m_caster->CanAssistSpell(target, m_spellInfo))
-                    targetUnitMap.push_back(target);
+                    data.tmpUnitList.push_back(target);
                 else
                 {
                     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX5_ALLOW_TARGET_OF_TARGET_AS_TARGET))
@@ -2257,14 +2247,14 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                                 {
                                     case 3411: // Intervene target must be in group with caster
                                         if (targetOfUnitTarget->IsInGroup(m_caster))
-                                            targetUnitMap.push_back(targetOfUnitTarget);
+                                            data.tmpUnitList.push_back(targetOfUnitTarget);
                                         break;
                                     case 31789: // Righteous defense needs player target
                                         if (targetOfUnitTarget->GetTypeId() == TYPEID_PLAYER)
-                                            targetUnitMap.push_back(targetOfUnitTarget);
+                                            data.tmpUnitList.push_back(targetOfUnitTarget);
                                         break;
                                     default:
-                                        targetUnitMap.push_back(targetOfUnitTarget);
+                                        data.tmpUnitList.push_back(targetOfUnitTarget);
                                         break;
                                 }
                             }
@@ -2277,7 +2267,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_UNIT_CASTER_COMPANION:
             if (Unit* target = m_targets.getUnitTarget())
                 if (target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->IsPet() && ((Pet*)target)->getPetType() == MINI_PET)
-                    targetUnitMap.push_back(target);
+                    data.tmpUnitList.push_back(target);
             break;
         case TARGET_LOCATION_CASTER_SRC:
         {
@@ -2287,14 +2277,14 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         }
         case TARGET_ENUM_UNITS_ENEMY_WITHIN_CASTER_RANGE:
-            FillAreaTargets(targetUnitMap, radius, cone, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+            FillAreaTargets(data.tmpUnitList, radius, cone, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
             break;
         case TARGET_ENUM_UNITS_FRIEND_AOE_AT_SRC_LOC:
             // selected friendly units (for casting objects) around casting object
-            FillAreaTargets(targetUnitMap, radius, cone, PUSH_SRC_CENTER, SPELL_TARGETS_ASSISTABLE, GetCastingObject());
+            FillAreaTargets(data.tmpUnitList, radius, cone, PUSH_SRC_CENTER, SPELL_TARGETS_ASSISTABLE, GetCastingObject());
             break;
         case TARGET_ENUM_UNITS_FRIEND_AOE_AT_DEST_LOC:
-            FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ASSISTABLE);
+            FillAreaTargets(data.tmpUnitList, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ASSISTABLE);
             break;
         // TARGET_UNIT_PARTY means that the spells can only be casted on a party member and not on the caster (some seals, fire shield from imp, etc..)
         case TARGET_UNIT_PARTY:
@@ -2314,7 +2304,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     {
                         if (target == owner)
                         {
-                            targetUnitMap.push_back(target);
+                            data.tmpUnitList.push_back(target);
                             break;
                         }
                         pGroup = ((Player*)owner)->GetGroup();
@@ -2324,7 +2314,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 {
                     if (targetOwner == m_caster && target->GetTypeId() == TYPEID_UNIT && ((Creature*)target)->IsPet())
                     {
-                        targetUnitMap.push_back(target);
+                        data.tmpUnitList.push_back(target);
                         break;
                     }
                     pGroup = ((Player*)m_caster)->GetGroup();
@@ -2340,13 +2330,13 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                                 target->GetOwnerGuid() == targetOwner->GetObjectGuid() &&
                                 pGroup->IsMember(((Player*)targetOwner)->GetObjectGuid()))
                         {
-                            targetUnitMap.push_back(target);
+                            data.tmpUnitList.push_back(target);
                         }
                     }
                     // 1Our target can be a player who is on our group
                     else if (target->GetTypeId() == TYPEID_PLAYER && pGroup->IsMember(((Player*)target)->GetObjectGuid()))
                     {
-                        targetUnitMap.push_back(target);
+                        data.tmpUnitList.push_back(target);
                     }
                 }
             }
@@ -2377,15 +2367,13 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     UnitList tempTargetUnitMap;
                     SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
                     // fill real target list if no spell script target defined
-                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, cone, PUSH_CONE, targetType);
+                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : data.tmpUnitList, radius, cone, PUSH_CONE, targetType);
                     if (!tempTargetUnitMap.empty())
-                    {
-                        CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
-                    }
+                        CheckSpellScriptTargets(bounds, tempTargetUnitMap, data.tmpUnitList, effIndex);
                     break;
                 }
                 default:
-                    FillAreaTargets(targetUnitMap, radius, cone, PUSH_CONE, targetType);
+                    FillAreaTargets(data.tmpUnitList, radius, cone, PUSH_CONE, targetType);
                     break;
             }
             break;
@@ -2398,17 +2386,17 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             break;
         case TARGET_UNIT_CASTER_MASTER:
             if (Unit* owner = m_caster->GetMaster())
-                targetUnitMap.push_back(owner);
+                data.tmpUnitList.push_back(owner);
             break;
         case TARGET_ENUM_UNITS_ENEMY_AOE_AT_DYNOBJ_LOC:
             // targets the ground, not the units in the area
-            FillAreaTargets(targetUnitMap, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+            FillAreaTargets(data.tmpUnitList, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
             break;
         case TARGET_UNIT_CHANNEL_TARGET:
         {
             if (Unit* target = m_caster->GetChannelObject())
-                if (!CheckAndAddMagnetTarget(target, effIndex, targetUnitMap, exception))
-                    targetUnitMap.push_back(target);
+                if (!CheckAndAddMagnetTarget(target, effIndex, targetingData))
+                    data.tmpUnitList.push_back(target);
             break;
         }
         case TARGET_UNIT_FRIEND_AND_PARTY:
@@ -2418,7 +2406,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
 
             if (owner)
             {
-                targetUnitMap.push_back(m_caster);
+                data.tmpUnitList.push_back(m_caster);
                 if (owner->GetTypeId() == TYPEID_PLAYER)
                     pTarget = (Player*)owner;
             }
@@ -2454,33 +2442,33 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     if (Target && Target->GetSubGroup() == subgroup && m_caster->CanAssistSpell(Target, m_spellInfo))
                     {
                         if (pTarget->IsWithinDistInMap(Target, radius))
-                            targetUnitMap.push_back(Target);
+                            data.tmpUnitList.push_back(Target);
 
                         if (Pet* pet = Target->GetPet())
                             if (pTarget->IsWithinDistInMap(pet, radius))
-                                targetUnitMap.push_back(pet);
+                                data.tmpUnitList.push_back(pet);
                     }
                 }
             }
             else if (owner)
             {
                 if (m_caster->IsWithinDistInMap(owner, radius))
-                    targetUnitMap.push_back(owner);
+                    data.tmpUnitList.push_back(owner);
             }
             else if (pTarget)
             {
-                targetUnitMap.push_back(pTarget);
+                data.tmpUnitList.push_back(pTarget);
 
                 if (Pet* pet = pTarget->GetPet())
                     if (m_caster->IsWithinDistInMap(pet, radius))
-                        targetUnitMap.push_back(pet);
+                        data.tmpUnitList.push_back(pet);
             }
             break;
         }
         case TARGET_UNIT_SCRIPT_NEAR_CASTER:
         {
             if (m_targets.getUnitTarget())
-                targetUnitMap.push_back(m_targets.getUnitTarget());
+                data.tmpUnitList.push_back(m_targets.getUnitTarget());
             if (m_targets.getItemTarget())
                 AddItemTarget(m_targets.getItemTarget(), effIndex);
             break;
@@ -2495,7 +2483,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 break;
 
             if (EffectChainTarget <= 1)
-                targetUnitMap.push_back(pUnitTarget);
+                data.tmpUnitList.push_back(pUnitTarget);
             else
             {
                 unMaxTargets = EffectChainTarget;
@@ -2552,7 +2540,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 //remove root target unit since it already defaults to the first target
                 tempTargetUnitMap.remove(pUnitTarget);
 
-                targetUnitMap.push_back(pUnitTarget);
+                data.tmpUnitList.push_back(pUnitTarget);
 
                 uint32 t = unMaxTargets - 1;
                 Unit* prev = pUnitTarget;
@@ -2579,7 +2567,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                     }
 
                     prev = *next;
-                    targetUnitMap.push_back(prev);
+                    data.tmpUnitList.push_back(prev);
                     tempTargetUnitMap.erase(next);
                     tempTargetUnitMap.sort(LowestHPNearestOrder(prev, DIST_CALC_COMBAT_REACH_WITH_MELEE));
                     next = tempTargetUnitMap.begin();
@@ -2610,20 +2598,20 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                             targetPlayer->getClass() == target->getClass() &&
                             m_caster->CanAssistSpell(target, m_spellInfo))
                         {
-                            targetUnitMap.push_back(target);
+                            data.tmpUnitList.push_back(target);
                         }
                         if (Pet* pet = target->GetPet())
                         {
                             if (pet->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) <= radius &&
                                 targetPlayer->getClass() == pet->getClass() &&
                                 m_caster->CanAssistSpell(pet, m_spellInfo))
-                                targetUnitMap.push_back(pet);
+                                data.tmpUnitList.push_back(pet);
                         }
                     }
                 }
             }
             else if (m_targets.getUnitTarget())
-                targetUnitMap.push_back(m_targets.getUnitTarget());
+                data.tmpUnitList.push_back(m_targets.getUnitTarget());
             break;
         }
         default:
@@ -2635,54 +2623,54 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_TARGET_SELF))
     {
         if (targetMode != TARGET_UNIT_CASTER)
-            targetUnitMap.remove(m_caster);
+            data.tmpUnitList.remove(m_caster);
     }
 
-    if (!tempTargetGOList.empty())                          // GO CASE
+    if (!data.tmpGOList.empty())                          // GO CASE
     {
-        if (unMaxTargets && tempTargetGOList.size() > unMaxTargets)
+        if (unMaxTargets && data.tmpGOList.size() > unMaxTargets)
         {
             // make sure one go is always removed per iteration
             uint32 removed_utarget = 0;
-            for (GameObjectList::iterator itr = tempTargetGOList.begin(), next; itr != tempTargetGOList.end(); itr = next)
+            for (GameObjectList::iterator itr = data.tmpGOList.begin(), next; itr != data.tmpGOList.end(); itr = next)
             {
                 next = itr;
                 ++next;
                 if (!*itr) continue;
                 if ((*itr) == m_targets.getGOTarget())
                 {
-                    tempTargetGOList.erase(itr);
+                    data.tmpGOList.erase(itr);
                     removed_utarget = 1;
                     //        break;
                 }
             }
             // remove random units from the map
-            while (tempTargetGOList.size() > unMaxTargets - removed_utarget)
+            while (data.tmpGOList.size() > unMaxTargets - removed_utarget)
             {
-                uint32 poz = urand(0, tempTargetGOList.size() - 1);
-                for (GameObjectList::iterator itr = tempTargetGOList.begin(); itr != tempTargetGOList.end(); ++itr, --poz)
+                uint32 poz = urand(0, data.tmpGOList.size() - 1);
+                for (GameObjectList::iterator itr = data.tmpGOList.begin(); itr != data.tmpGOList.end(); ++itr, --poz)
                 {
                     if (!*itr) continue;
 
                     if (!poz)
                     {
-                        tempTargetGOList.erase(itr);
+                        data.tmpGOList.erase(itr);
                         break;
                     }
                 }
             }
         }
 
-        for (GameObjectList::iterator iter = tempTargetGOList.begin(); iter != tempTargetGOList.end();)
+        for (GameObjectList::iterator iter = data.tmpGOList.begin(); iter != data.tmpGOList.end();)
         {
             if (CheckTargetGOScript(*iter, SpellEffectIndex(effIndex)))
                 ++iter;
             else
-                iter = tempTargetGOList.erase(iter);
+                iter = data.tmpGOList.erase(iter);
         }
 
         // Add resulting GOs as GOTargets
-        for (auto& iter : tempTargetGOList)
+        for (auto& iter : data.tmpGOList)
             AddGOTarget(iter, effIndex);
     }
 }
@@ -7511,6 +7499,16 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)
 
             filterUnitList.clear();
             filterUnitList.push_back(closestUnit);
+            return;
+        }
+        case 42005: // Bloodboil (spell hits only the 5 furthest away targets)
+        {
+            if (filterUnitList.size() > 5)
+            {
+                filterUnitList.sort(TargetDistanceOrderFarAway(m_caster));
+                filterUnitList.resize(5);
+            }
+            return;
         }
     }
 }

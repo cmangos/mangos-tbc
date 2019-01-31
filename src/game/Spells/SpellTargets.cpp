@@ -177,7 +177,7 @@ SpellEffectInfo SpellEffectInfoTable[MAX_SPELL_EFFECTS] =
     /*[47]*/     { "SPELL_EFFECT_TRADE_SKILL",                  TARGET_TYPE_UNIT,           TARGET_UNIT_CASTER },
     /*[48]*/     { "SPELL_EFFECT_STEALTH",                      TARGET_TYPE_UNKNOWN,        TARGET_NONE },
     /*[49]*/     { "SPELL_EFFECT_DETECT",                       TARGET_TYPE_UNKNOWN,        TARGET_NONE },
-    /*[50]*/     { "SPELL_EFFECT_TRANS_DOOR",                   TARGET_TYPE_UNIT_DEST,      TARGET_LOCATION_CASTER_DEST },
+    /*[50]*/     { "SPELL_EFFECT_TRANS_DOOR",                   TARGET_TYPE_LOCATION_DEST,  TARGET_LOCATION_CASTER_DEST },
     /*[51]*/     { "SPELL_EFFECT_FORCE_CRITICAL_HIT",           TARGET_TYPE_UNKNOWN,        TARGET_NONE },
     /*[52]*/     { "SPELL_EFFECT_GUARANTEE_HIT",                TARGET_TYPE_UNKNOWN,        TARGET_NONE },
     /*[53]*/     { "SPELL_EFFECT_ENCHANT_ITEM",                 TARGET_TYPE_ITEM,           TARGET_NONE },

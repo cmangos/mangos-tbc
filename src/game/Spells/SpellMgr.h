@@ -141,55 +141,6 @@ inline bool IsAuraApplyEffects(SpellEntry const* entry, SpellEffectIndexMask mas
     return !empty;
 }
 
-inline bool IsDestinationOnlyEffect(SpellEntry const* spellInfo, SpellEffectIndex effIdx)
-{
-    switch (spellInfo->Effect[effIdx])
-    {
-        case SPELL_EFFECT_TRIGGER_SPELL:
-        case SPELL_EFFECT_DUMMY: // special - can be either
-        case SPELL_EFFECT_TRIGGER_MISSILE:
-        {
-            auto& targetA = SpellTargetInfoTable[spellInfo->EffectImplicitTargetA[effIdx]];
-            auto& targetB = SpellTargetInfoTable[spellInfo->EffectImplicitTargetB[effIdx]];
-            bool dest = false;
-            switch (targetB.type)
-            {
-                case TARGET_TYPE_UNIT:
-                case TARGET_TYPE_PLAYER:
-                case TARGET_TYPE_CORPSE:
-                case TARGET_TYPE_LOCK:
-                    return false;
-                case TARGET_TYPE_LOCATION_DEST: dest = true; // no break
-                default: break;
-            }
-
-            switch (targetA.type)
-            {
-                case TARGET_TYPE_UNIT:
-                case TARGET_TYPE_PLAYER:
-                case TARGET_TYPE_CORPSE:
-                case TARGET_TYPE_LOCK:
-                    return false;
-                case TARGET_TYPE_LOCATION_DEST: return true;
-                default: return dest;
-            }
-        }
-        case SPELL_EFFECT_TRIGGER_SPELL_2: // only one in wotlk and tbc - possibly investigate further
-        case SPELL_EFFECT_PERSISTENT_AREA_AURA:
-        case SPELL_EFFECT_TRANS_DOOR:
-        case SPELL_EFFECT_SUMMON:
-        case SPELL_EFFECT_SUMMON_PET:
-        case SPELL_EFFECT_SUMMON_DEAD_PET:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT1:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT2:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT3:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT4:
-            return true;
-        default:
-            return false;
-    }
-}
-
 inline bool IsSpellAppliesAura(SpellEntry const* spellInfo, uint32 effectMask = ((1 << EFFECT_INDEX_0) | (1 << EFFECT_INDEX_1) | (1 << EFFECT_INDEX_2)))
 {
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)

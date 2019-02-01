@@ -448,9 +448,9 @@ void Spell::FillTargetMap()
             uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
             uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
             if (targetA && !m_usedTargets[i][0])
-                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
+                SetTargetMap(SpellEffectIndex(i), targetA, false, targetingData);
             if (targetB && !m_usedTargets[i][1])
-                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
+                SetTargetMap(SpellEffectIndex(i), targetB, true, targetingData);
             if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
                 sLog.outError("No destination for spell with DEST targeting, spell ID: %u", m_spellInfo->Id); // should never occur
 
@@ -461,9 +461,9 @@ void Spell::FillTargetMap()
             uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
             uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
             if (targetA && !m_usedTargets[i][0])
-                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
+                SetTargetMap(SpellEffectIndex(i), targetA, false, targetingData);
             if (targetB && !m_usedTargets[i][1])
-                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
+                SetTargetMap(SpellEffectIndex(i), targetB, true, targetingData);
             m_targetlessExecution[i] = true;
         }
         else if (data.implicitType[i] == TARGET_TYPE_SPECIAL_UNIT) // area auras
@@ -471,18 +471,25 @@ void Spell::FillTargetMap()
             uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
             uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
             bool hadTarget = false;
-            if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
+            if (targetA && !m_usedTargets[i][0])
             {
-                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
-                hadTarget = true;
+                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
+                    hadTarget = true;
+                if (SpellTargetInfoTable[targetA].enumerator != TARGET_ENUMERATOR_AOE)
+                    SetTargetMap(SpellEffectIndex(i), targetA, false, targetingData);
             }
-            if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
+            if (targetB && !m_usedTargets[i][1])
             {
-                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
-                hadTarget = true;
+                if (SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetB].enumerator == TARGET_ENUMERATOR_SINGLE)
+                    hadTarget = true;
+                if (SpellTargetInfoTable[targetB].enumerator != TARGET_ENUMERATOR_AOE)
+                    SetTargetMap(SpellEffectIndex(i), targetB, true, targetingData);
             }
             if (!hadTarget)
                 targetingData.data[i].tmpUnitList.push_back(m_caster);
+
+            for (UnitList::const_iterator iunit = targetingData.data[effToIndex[i]].tmpUnitList.begin(); iunit != targetingData.data[effToIndex[i]].tmpUnitList.end(); ++iunit)
+                AddUnitTarget((*iunit), SpellEffectIndex(i));
         }
         else // old targeting
         {
@@ -533,10 +540,10 @@ void Spell::FillTargetMap()
                 }
                 else
                 {
-                    if (targetA && !m_usedTargets[i][1])
-                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
+                    if (targetA && !m_usedTargets[i][0])
+                        SetTargetMap(SpellEffectIndex(i), targetA, false, targetingData);
                     if (targetB && !m_usedTargets[i][1])
-                        SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], false, targetingData);
+                        SetTargetMap(SpellEffectIndex(i), targetB, false, targetingData);
                 }
 
                 if (!targetingData.data[i].tmpGOList.empty()) // GO case

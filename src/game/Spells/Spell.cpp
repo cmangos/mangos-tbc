@@ -442,46 +442,52 @@ void Spell::FillTargetMap()
             continue;
 
         auto& data = SpellTargetMgr::GetSpellTargetingData(m_spellInfo->Id);
-        effToIndex[i] = data.targetingIndex[i];
 
-        if (effToIndex[i] == i)                             // New target combination
+        if (data.implicitType[i] == TARGET_TYPE_LOCATION_DEST || data.implicitType[i] == TARGET_TYPE_SPECIAL_DEST) // destination effect
         {
-            if (data.implicitType[i] == TARGET_TYPE_LOCATION_DEST || data.implicitType[i] == TARGET_TYPE_SPECIAL_DEST) // destination effect
-            {
-                uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
-                uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
-                if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST)
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
-                if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
-                if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
-                    sLog.outError("No destination for spell with DEST targeting, spell ID: %u", m_spellInfo->Id); // should never occur
+            uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
+            uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
+            if (targetA && !m_usedTargets[i][0])
+                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
+            if (targetB && !m_usedTargets[i][1])
+                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
+            if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
+                sLog.outError("No destination for spell with DEST targeting, spell ID: %u", m_spellInfo->Id); // should never occur
 
-                m_targetlessExecution[i] = true;
-            }
-            else if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
+            m_targetlessExecution[i] = true;
+        }
+        else if (data.implicitType[i] == TARGET_TYPE_NONE) // doesnt target anything
+        {
+            uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
+            uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
+            if (targetA && !m_usedTargets[i][0])
+                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
+            if (targetB && !m_usedTargets[i][1])
+                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
+            m_targetlessExecution[i] = true;
+        }
+        else if (data.implicitType[i] == TARGET_TYPE_SPECIAL_UNIT) // area auras
+        {
+            uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
+            uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
+            bool hadTarget = false;
+            if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
             {
-                m_targetlessExecution[i] = true;
+                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
+                hadTarget = true;
             }
-            else if (data.implicitType[i] == TARGET_TYPE_SPECIAL_UNIT) // area auras
+            if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
             {
-                uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
-                uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
-                bool hadTarget = false;
-                if (targetA && !m_usedTargets[i][0] && SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
-                {
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], false, targetingData);
-                    hadTarget = true;
-                }
-                if (targetB && !m_usedTargets[i][1] && SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT && SpellTargetInfoTable[targetA].enumerator == TARGET_ENUMERATOR_SINGLE)
-                {
-                    SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
-                    hadTarget = true;
-                }
-                if (!hadTarget)
-                    targetingData.data[i].tmpUnitList.push_back(m_caster);
+                SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], true, targetingData);
+                hadTarget = true;
             }
-            else // old targeting
+            if (!hadTarget)
+                targetingData.data[i].tmpUnitList.push_back(m_caster);
+        }
+        else // old targeting
+        {
+            effToIndex[i] = data.targetingIndex[i];
+            if (effToIndex[i] == i)                             // New target combination
             {
                 uint32 targetA = m_spellInfo->EffectImplicitTargetA[i];
                 uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
@@ -532,91 +538,92 @@ void Spell::FillTargetMap()
                     if (targetB && !m_usedTargets[i][1])
                         SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], false, targetingData);
                 }
-            }
 
-            if (!targetingData.data[i].tmpGOList.empty()) // GO case
-            {
-                if (m_affectedTargetCount && targetingData.data[i].tmpGOList.size() > m_affectedTargetCount)
+                if (!targetingData.data[i].tmpGOList.empty()) // GO case
                 {
-                    // remove random units from the map
-                    while (targetingData.data[i].tmpGOList.size() > m_affectedTargetCount)
+                    if (m_affectedTargetCount && targetingData.data[i].tmpGOList.size() > m_affectedTargetCount)
                     {
-                        uint32 poz = urand(0, targetingData.data[i].tmpGOList.size() - 1);
-                        for (GameObjectList::iterator itr = targetingData.data[i].tmpGOList.begin(); itr != targetingData.data[i].tmpGOList.end(); ++itr, --poz)
+                        // remove random units from the map
+                        while (targetingData.data[i].tmpGOList.size() > m_affectedTargetCount)
                         {
-                            if (!*itr) continue;
-
-                            if (!poz)
+                            uint32 poz = urand(0, targetingData.data[i].tmpGOList.size() - 1);
+                            for (GameObjectList::iterator itr = targetingData.data[i].tmpGOList.begin(); itr != targetingData.data[i].tmpGOList.end(); ++itr, --poz)
                             {
-                                targetingData.data[i].tmpGOList.erase(itr);
+                                if (!*itr) continue;
+
+                                if (!poz)
+                                {
+                                    targetingData.data[i].tmpGOList.erase(itr);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    for (GameObjectList::iterator iter = targetingData.data[i].tmpGOList.begin(); iter != targetingData.data[i].tmpGOList.end();)
+                    {
+                        if (CheckTargetGOScript(*iter, SpellEffectIndex(i)))
+                            ++iter;
+                        else
+                            iter = targetingData.data[i].tmpGOList.erase(iter);
+                    }
+
+                    // Add resulting GOs as GOTargets
+                    for (auto& iter : targetingData.data[i].tmpGOList)
+                        AddGOTarget(iter, SpellEffectIndex(i));
+                }
+
+                if (targetingData.data[i].tmpUnitList.size() > 0) // Unit case
+                {
+                    for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end();)
+                    {
+                        if (!CheckTarget(*itr, SpellEffectIndex(i), CheckException(targetingData.magnet)))
+                            itr = targetingData.data[i].tmpUnitList.erase(itr);
+                        else
+                            ++itr;
+                    }
+
+                    // Secial target filter before adding targets to list
+                    FilterTargetMap(targetingData.data[i].tmpUnitList, SpellEffectIndex(i));
+
+                    if (m_affectedTargetCount && targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
+                    {
+                        // remove random units from the map
+                        while (targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
+                        {
+                            uint32 poz = urand(0, targetingData.data[i].tmpUnitList.size() - 1);
+                            for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr, --poz)
+                            {
+                                if (!*itr) continue;
+
+                                if (!poz)
+                                {
+                                    itr = targetingData.data[i].tmpUnitList.erase(itr);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+                    {
+                        Player* me = (Player*)m_caster;
+                        for (UnitList::const_iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr)
+                        {
+                            Player* targetOwner = (*itr)->GetBeneficiaryPlayer();
+                            if (targetOwner && targetOwner != me && targetOwner->IsPvP() && !me->IsInDuelWith(targetOwner))
+                            {
+                                me->UpdatePvP(true);
+                                me->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
                                 break;
                             }
                         }
                     }
                 }
-
-                for (GameObjectList::iterator iter = targetingData.data[i].tmpGOList.begin(); iter != targetingData.data[i].tmpGOList.end();)
-                {
-                    if (CheckTargetGOScript(*iter, SpellEffectIndex(i)))
-                        ++iter;
-                    else
-                        iter = targetingData.data[i].tmpGOList.erase(iter);
-                }
-
-                // Add resulting GOs as GOTargets
-                for (auto& iter : targetingData.data[i].tmpGOList)
-                    AddGOTarget(iter, SpellEffectIndex(i));
             }
 
-            if (targetingData.data[i].tmpUnitList.size() > 0) // Unit case
-            {
-                for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end();)
-                {
-                    if (!CheckTarget(*itr, SpellEffectIndex(i), CheckException(targetingData.magnet)))
-                        itr = targetingData.data[i].tmpUnitList.erase(itr);
-                    else
-                        ++itr;
-                }
-
-                // Secial target filter before adding targets to list
-                FilterTargetMap(targetingData.data[i].tmpUnitList, SpellEffectIndex(i));
-
-                if (m_affectedTargetCount && targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
-                {
-                    // remove random units from the map
-                    while (targetingData.data[i].tmpUnitList.size() > m_affectedTargetCount)
-                    {
-                        uint32 poz = urand(0, targetingData.data[i].tmpUnitList.size() - 1);
-                        for (UnitList::iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr, --poz)
-                        {
-                            if (!*itr) continue;
-
-                            if (!poz)
-                            {
-                                itr = targetingData.data[i].tmpUnitList.erase(itr);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (m_caster->GetTypeId() == TYPEID_PLAYER)
-                {
-                    Player* me = (Player*)m_caster;
-                    for (UnitList::const_iterator itr = targetingData.data[i].tmpUnitList.begin(); itr != targetingData.data[i].tmpUnitList.end(); ++itr)
-                    {
-                        Player* targetOwner = (*itr)->GetBeneficiaryPlayer();
-                        if (targetOwner && targetOwner != me && targetOwner->IsPvP() && !me->IsInDuelWith(targetOwner))
-                        {
-                            me->UpdatePvP(true);
-                            me->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
-                            break;
-                        }
-                    }
-                }
-                for (UnitList::const_iterator iunit = targetingData.data[i].tmpUnitList.begin(); iunit != targetingData.data[i].tmpUnitList.end(); ++iunit)
-                    AddUnitTarget((*iunit), SpellEffectIndex(i));
-            }
+            for (UnitList::const_iterator iunit = targetingData.data[effToIndex[i]].tmpUnitList.begin(); iunit != targetingData.data[effToIndex[i]].tmpUnitList.end(); ++iunit)
+                AddUnitTarget((*iunit), SpellEffectIndex(i));
         }
     }
 }

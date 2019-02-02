@@ -8132,12 +8132,9 @@ void Spell::EffectQuestComplete(SpellEffectIndex eff_idx)
 
 void Spell::EffectSelfResurrect(SpellEffectIndex eff_idx)
 {
-    if (!unitTarget || unitTarget->isAlive())
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
         return;
-    if (unitTarget->GetTypeId() != TYPEID_PLAYER)
-        return;
-    if (!unitTarget->IsInWorld())
-        return;
+    Player* player = static_cast<Player*>(m_caster);
 
     uint32 health;
     uint32 mana = 0;
@@ -8151,20 +8148,19 @@ void Spell::EffectSelfResurrect(SpellEffectIndex eff_idx)
     // percent case
     else
     {
-        health = uint32(damage / 100.0f * unitTarget->GetMaxHealth());
-        if (unitTarget->GetMaxPower(POWER_MANA) > 0)
-            mana = uint32(damage / 100.0f * unitTarget->GetMaxPower(POWER_MANA));
+        health = uint32(damage / 100.0f * player->GetMaxHealth());
+        if (player->GetMaxPower(POWER_MANA) > 0)
+            mana = uint32(damage / 100.0f * player->GetMaxPower(POWER_MANA));
     }
 
-    Player* plr = ((Player*)unitTarget);
-    plr->ResurrectPlayer(0.0f);
+    player->ResurrectPlayer(0.0f);
 
-    plr->SetHealth(health);
-    plr->SetPower(POWER_MANA, mana);
-    plr->SetPower(POWER_RAGE, 0);
-    plr->SetPower(POWER_ENERGY, plr->GetMaxPower(POWER_ENERGY));
+    player->SetHealth(health);
+    player->SetPower(POWER_MANA, mana);
+    player->SetPower(POWER_RAGE, 0);
+    player->SetPower(POWER_ENERGY, player->GetMaxPower(POWER_ENERGY));
 
-    plr->SpawnCorpseBones();
+    player->SpawnCorpseBones();
 }
 
 void Spell::EffectSkinning(SpellEffectIndex /*eff_idx*/)

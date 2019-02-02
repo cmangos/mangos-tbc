@@ -4563,9 +4563,6 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
     if (m_caster->GetPetGuid())
         return false;
 
-    if (!unitTarget)
-        return false;
-
     uint32 pet_entry = m_spellInfo->EffectMiscValue[eff_idx];
     if (!pet_entry)
         return false;

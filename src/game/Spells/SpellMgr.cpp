@@ -1301,31 +1301,6 @@ void SpellMgr::LoadSpellThreats()
     sLog.outString();
 }
 
-bool SpellMgr::canStackSpellRanksInSpellBook(SpellEntry const* spellInfo) const
-{
-    if (IsPassiveSpell(spellInfo))                          // ranked passive spell
-        return false;
-    if (const SpellChainNode* node = GetSpellChainNode(spellInfo->Id))
-    {
-        // do not corrupt talent tree display by removing a rank from there, e.g. Faerie Fire (feral)
-        if (GetTalentSpellPos(node->first))
-            return true;
-    }
-    if (spellInfo->powerType != POWER_MANA && spellInfo->powerType != POWER_HEALTH)
-        return false;
-    if (IsProfessionOrRidingSpell(spellInfo->Id))
-        return false;
-
-    if (IsSkillBonusSpell(spellInfo->Id))
-        return false;
-
-    // All stances and stance-like spells
-    if (spellInfo->HasAttribute(SPELL_ATTR_EX2_DISPLAY_IN_STANCE_BAR) || IsSpellHaveAura(spellInfo, SPELL_AURA_MOD_SHAPESHIFT))
-        return false;
-
-    return true;
-}
-
 bool SpellMgr::IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const
 {
     if (!spellInfo_1 || !spellInfo_2)
@@ -1412,7 +1387,7 @@ bool SpellMgr::IsPrimaryProfessionFirstRankSpell(uint32 spellId) const
 
 bool SpellMgr::IsSkillBonusSpell(uint32 spellId) const
 {
-    SkillLineAbilityMapBounds bounds = GetSkillLineAbilityMapBounds(spellId);
+    SkillLineAbilityMapBounds bounds = GetSkillLineAbilityMapBoundsBySpellId(spellId);
 
     for (SkillLineAbilityMap::const_iterator _spell_idx = bounds.first; _spell_idx != bounds.second; ++_spell_idx)
     {
@@ -1583,7 +1558,7 @@ void SpellMgr::LoadSpellChains()
     {
         // we can calculate ranks only after full data generation
         AbilitySpellPrevMap prevRanks;
-        for (SkillLineAbilityMap::const_iterator ab_itr = mSkillLineAbilityMap.begin(); ab_itr != mSkillLineAbilityMap.end(); ++ab_itr)
+        for (SkillLineAbilityMap::const_iterator ab_itr = mSkillLineAbilityMapBySpellId.begin(); ab_itr != mSkillLineAbilityMapBySpellId.end(); ++ab_itr)
         {
             uint32 spell_id = ab_itr->first;
 
@@ -1612,7 +1587,7 @@ void SpellMgr::LoadSpellChains()
                 continue;
 
             // some forward spells still exist but excluded from real use as ranks and not listed in skill abilities now
-            SkillLineAbilityMapBounds bounds = mSkillLineAbilityMap.equal_range(forward_id);
+            SkillLineAbilityMapBounds bounds = mSkillLineAbilityMapBySpellId.equal_range(forward_id);
             if (bounds.first == bounds.second)
                 continue;
 
@@ -1910,15 +1885,14 @@ void SpellMgr::LoadSpellLearnSkills()
                 SpellLearnSkillNode dbc_node;
                 dbc_node.skill    = entry->EffectMiscValue[i];
                 dbc_node.step     = entry->CalculateSimpleValue(SpellEffectIndex(i));
-                if (dbc_node.skill != SKILL_RIDING)
-                    dbc_node.value = 1;
-                else
-                    dbc_node.value = dbc_node.step * 75;
-                dbc_node.maxvalue = dbc_node.step * 75;
+                dbc_node.effect   = SpellEffects(entry->Effect[i]);
 
-                mSpellLearnSkills[spell] = dbc_node;
-                ++dbc_count;
-                break;
+                if (dbc_node.skill && dbc_node.step)
+                {
+                    mSpellLearnSkills[spell] = dbc_node;
+                    ++dbc_count;
+                    break;
+                }
             }
         }
     }
@@ -2451,14 +2425,22 @@ void SpellMgr::LoadSpellAreas()
                 continue;
             }
 
-            switch (spellInfo->EffectApplyAuraName[EFFECT_INDEX_0])
+            bool validSpellEffect = false;
+            for (uint32 i = EFFECT_INDEX_0; i < MAX_EFFECT_INDEX; ++i)
             {
-                case SPELL_AURA_DUMMY:
-                case SPELL_AURA_GHOST:
-                    break;
-                default:
-                    sLog.outErrorDb("Spell %u listed in `spell_area` have aura spell requirement (%u) without dummy/phase/ghost aura in effect 0", spell, abs(spellArea.auraSpell));
-                    continue;
+                switch (spellInfo->EffectApplyAuraName[i])
+                {
+                    case SPELL_AURA_DUMMY:
+                    case SPELL_AURA_GHOST:
+                        validSpellEffect = true;
+                        break;
+                }
+            }
+
+            if (!validSpellEffect)
+            {
+                sLog.outErrorDb("Spell %u listed in `spell_area` have aura spell requirement (%u) without dummy/ghost aura in spell effects", spell, abs(spellArea.auraSpell));
+                continue;
             }
 
             if (uint32(abs(spellArea.auraSpell)) == spellArea.spellId)
@@ -2638,25 +2620,27 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
     return SPELL_CAST_OK;
 }
 
-void SpellMgr::LoadSkillLineAbilityMap()
+void SpellMgr::LoadSkillLineAbilityMaps()
 {
-    mSkillLineAbilityMap.clear();
+    mSkillLineAbilityMapBySpellId.clear();
+    mSkillLineAbilityMapBySkillId.clear();
 
-    BarGoLink bar(sSkillLineAbilityStore.GetNumRows());
+    const uint32 rows = sSkillLineAbilityStore.GetNumRows();
     uint32 count = 0;
 
-    for (uint32 i = 0; i < sSkillLineAbilityStore.GetNumRows(); ++i)
+    BarGoLink bar(rows);
+    for (uint32 row = 0; row < rows; ++row)
     {
         bar.step();
-        SkillLineAbilityEntry const* SkillInfo = sSkillLineAbilityStore.LookupEntry(i);
-        if (!SkillInfo)
-            continue;
-
-        mSkillLineAbilityMap.insert(SkillLineAbilityMap::value_type(SkillInfo->spellId, SkillInfo));
-        ++count;
+        if (SkillLineAbilityEntry const* entry = sSkillLineAbilityStore.LookupEntry(row))
+        {
+            mSkillLineAbilityMapBySpellId.insert(SkillLineAbilityMap::value_type(entry->spellId, entry));
+            mSkillLineAbilityMapBySkillId.insert(SkillLineAbilityMap::value_type(entry->skillId, entry));
+            ++count;
+        }
     }
 
-    sLog.outString(">> Loaded %u SkillLineAbility MultiMap Data", count);
+    sLog.outString(">> Loaded %u SkillLineAbility MultiMaps Data", count);
     sLog.outString();
 }
 

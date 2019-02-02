@@ -382,7 +382,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
     SetCanParry(!(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_PARRY));
     SetCanBlock(!(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_BLOCK));
     SetForceAttackingCapability((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_FORCE_ATTACKING_CAPABILITY) != 0);
-    SetNoXP(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_XP_AT_KILL);
+    SetNoXP((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_XP_AT_KILL) != 0);
     SetNoLoot(false);
     SetNoReputation(false);
 
@@ -2736,6 +2736,14 @@ void Creature::SetVirtualItemRaw(VirtualItemSlot slot, uint32 display_id, uint32
     SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_DISPLAY + slot, display_id);
     SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 0, info0);
     SetUInt32Value(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 1, info1);
+}
+
+bool Creature::hasWeapon(WeaponAttackType type) const
+{
+    const uint8 slot = uint8(type);
+    const uint8 itemClass = GetByteValue(UNIT_VIRTUAL_ITEM_INFO + (slot * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_CLASS);
+
+    return (itemClass == ITEM_CLASS_WEAPON);
 }
 
 void Creature::SetWalk(bool enable, bool asDefault)

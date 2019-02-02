@@ -524,7 +524,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                 // Steady Shot
                 if (m_spellInfo->SpellFamilyFlags & uint64(0x100000000))
                 {
-                    int32 base = irand((int32)m_caster->GetWeaponDamageRange(RANGED_ATTACK, MINDAMAGE), (int32)m_caster->GetWeaponDamageRange(RANGED_ATTACK, MAXDAMAGE));
+                    int32 base = irand((int32)m_caster->GetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE), (int32)m_caster->GetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE));
                     damage += int32(float(base) / m_caster->GetAttackTime(RANGED_ATTACK) * 2800 + m_caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.2f);
                 }
                 break;
@@ -2417,15 +2417,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 case 1661:
                 {
                     uint32 healthPerc = uint32((float(m_caster->GetHealth()) / m_caster->GetMaxHealth()) * 100);
-                    int32 melee_mod = 10;
+                    int32 haste_mod = 10;
                     if (healthPerc <= 40)
-                        melee_mod = 30;
+                        haste_mod = 30;
                     if (healthPerc < 100 && healthPerc > 40)
-                        melee_mod = 10 + (100 - healthPerc) / 3;
+                        haste_mod = 10 + (100 - healthPerc) / 3;
 
-                    int32 hasteModBasePoints0 = melee_mod;  // (EffectBasePoints[0]+1)-1+(5-melee_mod) = (melee_mod-1+1)-1+5-melee_mod = 5-1
-                    int32 hasteModBasePoints1 = (5 - melee_mod);
-                    int32 hasteModBasePoints2 = 5;
+                    // haste_mod is the same for all effects
+                    int32 hasteModBasePoints0 = haste_mod;	// Haste Melee
+                    int32 hasteModBasePoints1 = haste_mod;	// Haste Range
+                    int32 hasteModBasePoints2 = haste_mod;	// Haste Cast
 
                     // FIXME: custom spell required this aura state by some unknown reason, we not need remove it anyway
                     m_caster->ModifyAuraState(AURA_STATE_BERSERKING, true);
@@ -3484,10 +3485,9 @@ void Spell::EffectPowerDrain(SpellEffectIndex eff_idx)
     damage = m_caster->SpellDamageBonusDone(unitTarget, m_spellInfo, uint32(damage), SPELL_DIRECT_DAMAGE);
     damage = unitTarget->SpellDamageBonusTaken(m_caster, m_spellInfo, uint32(damage), SPELL_DIRECT_DAMAGE);
 
-    // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
     uint32 power = damage;
-    if (powerType == POWER_MANA)
-        power -= unitTarget->GetManaDrainReduction(power);
+
+    power -= unitTarget->GetResilienceRatingDamageReduction(power, SpellDmgClass(m_spellInfo->DmgClass), false, powerType);
 
     int32 new_damage;
     if (curPower < power)
@@ -3543,10 +3543,9 @@ void Spell::EffectPowerBurn(SpellEffectIndex eff_idx)
 
     int32 curPower = int32(unitTarget->GetPower(powertype));
 
-    // resilience reduce mana draining effect at spell crit damage reduction (added in 2.4)
     int32 power = damage;
-    if (powertype == POWER_MANA)
-        power -= unitTarget->GetManaDrainReduction(uint32(power));
+
+    power -= unitTarget->GetResilienceRatingDamageReduction(uint32(power), SpellDmgClass(m_spellInfo->DmgClass), false, powertype);
 
     int32 new_damage = (curPower < power) ? curPower : power;
 
@@ -4146,7 +4145,7 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
     if (!m_CastItem && skillId != SKILL_NONE)
     {
         // update skill if really known
-        if (uint32 pureSkillValue = player->GetPureSkillValue(skillId))
+        if (uint32 pureSkillValue = player->GetSkillValuePure(skillId))
         {
             if (gameObjTarget && !gameObjTarget->loot)
             {
@@ -5071,12 +5070,14 @@ void Spell::EffectLearnSkill(SpellEffectIndex eff_idx)
     if (damage < 0)
         return;
 
-    uint32 skillid =  m_spellInfo->EffectMiscValue[eff_idx];
-    uint16 skillval = ((Player*)unitTarget)->GetPureSkillValue(skillid);
-    ((Player*)unitTarget)->SetSkill(skillid, skillval ? skillval : 1, damage * 75, damage);
+    Player* target = static_cast<Player*>(unitTarget);
+
+    uint16 skillid =  uint16(m_spellInfo->EffectMiscValue[eff_idx]);
+    uint16 step = uint16(damage);
+    target->SetSkillStep(skillid, step);
 
     if (WorldObject const* caster = GetCastingObject())
-        DEBUG_LOG("Spell: %s has learned skill %u (to maxlevel %u) from %s", unitTarget->GetGuidStr().c_str(), skillid, damage * 75, caster->GetGuidStr().c_str());
+        DEBUG_LOG("Spell: %s has learned skill %u (to step %u) from %s", target->GetGuidStr().c_str(), skillid, step, caster->GetGuidStr().c_str());
 }
 
 void Spell::EffectAddHonor(SpellEffectIndex /*eff_idx*/)
@@ -8149,7 +8150,7 @@ void Spell::EffectSkinning(SpellEffectIndex /*eff_idx*/)
 
         int32 reqValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
 
-        int32 skillValue = ((Player*)m_caster)->GetPureSkillValue(skill);
+        int32 skillValue = ((Player*)m_caster)->GetSkillValuePure(skill);
 
         // Double chances for elites
         ((Player*)m_caster)->UpdateGatherSkill(skill, skillValue, reqValue, creature->IsElite() ? 2 : 1);
@@ -8325,6 +8326,9 @@ void Spell::EffectPlayerPull(SpellEffectIndex eff_idx)
     float dist = unitTarget->GetDistance(m_caster, false);
     if (damage && dist > damage)
         dist = float(damage);
+
+    if (dist < 0.1f)
+        return;
 
     // Projectile motion
     float speedXY = float(m_spellInfo->EffectMiscValue[eff_idx]) * 0.1f;
@@ -8646,7 +8650,7 @@ void Spell::EffectProspecting(SpellEffectIndex /*eff_idx*/)
 
     if (sWorld.getConfig(CONFIG_BOOL_SKILL_PROSPECTING))
     {
-        uint32 SkillValue = p_caster->GetPureSkillValue(SKILL_JEWELCRAFTING);
+        uint32 SkillValue = p_caster->GetSkillValuePure(SKILL_JEWELCRAFTING);
         uint32 reqSkillValue = itemTarget->GetProto()->RequiredSkillRank;
         p_caster->UpdateGatherSkill(SKILL_JEWELCRAFTING, SkillValue, reqSkillValue);
     }

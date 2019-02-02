@@ -455,7 +455,7 @@ class BattleGround
         virtual void HandleKillUnit(Creature* /*unit*/, Player* /*killer*/) {}
 
         // Process Capture event
-        virtual bool HandleEvent(uint32 /*eventId*/, GameObject* /*go*/) { return false; }
+        virtual bool HandleEvent(uint32 /*eventId*/, GameObject* /*go*/, Unit* /*invoker*/) { return false; }
 
         // Called when a gameobject is created
         virtual void HandleGameObjectCreate(GameObject* /*go*/) {}
@@ -512,6 +512,9 @@ class BattleGround
         static Team GetOtherTeam(Team team) { return (team == ALLIANCE || team == HORDE) ? ((team == ALLIANCE) ? HORDE : ALLIANCE) : TEAM_NONE; }
         static PvpTeamIndex GetOtherTeamIndex(PvpTeamIndex teamIdx) { return teamIdx == TEAM_INDEX_ALLIANCE ? TEAM_INDEX_HORDE : TEAM_INDEX_ALLIANCE; }
         bool IsPlayerInBattleGround(ObjectGuid guid);
+
+        // Handle script condition fulfillment
+        virtual bool IsConditionFulfilled(Player const* /*source*/, uint32 /*conditionId*/, WorldObject const* /*conditionSource*/, uint32 /*conditionSourceType*/) { return false; }
 
         /* virtual score-array - get's used in bg-subclasses */
         int32 m_TeamScores[PVP_TEAM_COUNT];

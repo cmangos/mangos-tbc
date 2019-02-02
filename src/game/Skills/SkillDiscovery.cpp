@@ -110,7 +110,7 @@ void LoadSkillDiscoveryTable()
         }
         else if (reqSkillOrSpell == 0)                      // skill case
         {
-            SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBounds(spellId);
+            SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBoundsBySpellId(spellId);
 
             if (bounds.first == bounds.second)
             {

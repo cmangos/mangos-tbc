@@ -1533,7 +1533,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 uint32 spellId;
                 switch (triggeredByAura->GetId())
                 {
-                    case 21084: spellId = 25742; break;     // Rank 1
+                    case 20154: spellId = 25742; break;     // Rank 1
+                    case 21084: spellId = 25741; break;     // Rank 1.5
                     case 20287: spellId = 25740; break;     // Rank 2
                     case 20288: spellId = 25739; break;     // Rank 3
                     case 20289: spellId = 25738; break;     // Rank 4
@@ -1557,7 +1558,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     // one hand weapon/no weapon
                     damageBasePoints = 0.85f * ceil(triggerAmount * 1.2f * 1.03f * speed / 100.0f) - 1;
 
-                int32 damagePoint = int32(damageBasePoints + 0.03f * (GetWeaponDamageRange(BASE_ATTACK, MINDAMAGE) + GetWeaponDamageRange(BASE_ATTACK, MAXDAMAGE)) / 2.0f) + 1;
+                int32 damagePoint = int32(damageBasePoints + 0.03f * (GetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE) + GetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE)) / 2.0f) + 1;
 
                 // apply damage bonuses manually
                 if (damagePoint >= 0)
@@ -2181,7 +2182,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                 float weaponDamage;
                 // DW should benefit of attack power, damage percent mods etc.
                 // TODO: check if using offhand damage is correct and if it should be divided by 2
-                if (haveOffhandWeapon() && getAttackTimer(BASE_ATTACK) > getAttackTimer(OFF_ATTACK))
+                if (hasOffhandWeaponForAttack() && getAttackTimer(BASE_ATTACK) > getAttackTimer(OFF_ATTACK))
                     weaponDamage = (GetFloatValue(UNIT_FIELD_MINOFFHANDDAMAGE) + GetFloatValue(UNIT_FIELD_MAXOFFHANDDAMAGE)) / 2;
                 else
                     weaponDamage = (GetFloatValue(UNIT_FIELD_MINDAMAGE) + GetFloatValue(UNIT_FIELD_MAXDAMAGE)) / 2;
@@ -2957,7 +2958,7 @@ SpellAuraProcResult Unit::HandleRemoveByDamageChanceProc(ProcExecutionData& data
 SpellAuraProcResult Unit::HandleInvisibilityAuraProc(ProcExecutionData& data)
 {
     Aura* triggeredByAura = data.triggeredByAura;
-    if (triggeredByAura->GetSpellProto()->HasAttribute(SPELL_ATTR_PASSIVE) || triggeredByAura->GetSpellProto()->HasAttribute(SPELL_ATTR_NEGATIVE))
+    if (triggeredByAura->GetSpellProto()->HasAttribute(SPELL_ATTR_PASSIVE) || triggeredByAura->GetSpellProto()->HasAttribute(SPELL_ATTR_AURA_IS_DEBUFF))
         return SPELL_AURA_PROC_FAILED;
 
     RemoveAurasDueToSpell(triggeredByAura->GetId());

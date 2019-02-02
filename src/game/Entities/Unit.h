@@ -301,12 +301,6 @@ enum WeaponDamageRange
     MAXDAMAGE
 };
 
-struct WeaponDamageInfo
-{
-    float damage[2];
-    SpellSchools school;
-};
-
 enum DamageTypeToSchool
 {
     RESISTANCE,
@@ -545,7 +539,7 @@ enum UnitVisibility
 // Value masks for UNIT_FIELD_FLAGS
 enum UnitFlags
 {
-    UNIT_FLAG_UNK_0                 = 0x00000001,           // Movement checks disabled, likely paired with loss of client control packet.
+    UNIT_FLAG_UNK_0                 = 0x00000001,           // Movement checks disabled, likely paired with loss of client control packet. We use it to add custom cliffwalking to GM mode until actual usecases will be known.
     UNIT_FLAG_NON_ATTACKABLE        = 0x00000002,           // not attackable
     UNIT_FLAG_CLIENT_CONTROL_LOST   = 0x00000004,           // Generic unspecified loss of control initiated by server script, movement checks disabled, paired with loss of client control packet.
     UNIT_FLAG_PLAYER_CONTROLLED     = 0x00000008,           // players, pets, totems, guardians, companions, charms, any units associated with players
@@ -935,13 +929,13 @@ struct SpellNonMeleeDamage
 
 struct SpellPeriodicAuraLogInfo
 {
-    SpellPeriodicAuraLogInfo(Aura* _aura, uint32 _damage, uint32 _absorb, uint32 _resist, float _multiplier)
+    SpellPeriodicAuraLogInfo(Aura* _aura, uint32 _damage, uint32 _absorb, int32 _resist, float _multiplier)
         : aura(_aura), damage(_damage), absorb(_absorb), resist(_resist), multiplier(_multiplier) {}
 
     Aura*   aura;
     uint32 damage;
     uint32 absorb;
-    uint32 resist;
+    int32 resist;
     float  multiplier;
 };
 
@@ -1326,11 +1320,22 @@ class Unit : public WorldObject
          */
         bool isAttackReady(WeaponAttackType type = BASE_ATTACK) const { return m_attackTimer[type] == 0; }
         /**
-         * Checks if the current Unit has an offhand weapon
-         * @return True if there is a offhand weapon.
+         * Checks if the current Unit has a weapon equipped at the moment
+         * @return True if there is a weapon.
          */
-        bool haveOffhandWeapon() const;
+        virtual bool hasWeapon(WeaponAttackType type) const = 0;
+        inline bool hasMainhandWeapon() const { return hasWeapon(BASE_ATTACK); }
+        inline bool hasOffhandWeapon() const { return hasWeapon(OFF_ATTACK); }
+        inline bool hasRangedWeapon() const { return hasWeapon(RANGED_ATTACK); }
         /**
+         * Checks if the current Unit has a usable weapon at the moment
+         * @return True if there is a weapon.
+         */
+        virtual bool hasWeaponForAttack(WeaponAttackType type) const { return CanUseEquippedWeapon(type); }
+        inline bool hasMainhandWeaponForAttack() const { return hasWeaponForAttack(BASE_ATTACK); }
+        inline bool hasOffhandWeaponForAttack() const { return hasWeaponForAttack(OFF_ATTACK); }
+        inline bool hasRangedWeaponForAttack() const { return hasWeaponForAttack(RANGED_ATTACK); }
+         /**
          * Does an attack if any of the timers allow it and resets them, if the user
          * isn't in range or behind the target an error is sent to the client.
          * Also makes sure to not make and offhand and mainhand attack at the same
@@ -1588,7 +1593,7 @@ class Unit : public WorldObject
         void Mount(uint32 mount, uint32 spellId = 0);
         void Unmount(bool from_aura = false);
 
-        uint16 GetMaxSkillValueForLevel(Unit const* target = nullptr) const { return (target ? GetLevelForTarget(target) : getLevel()) * 5; }
+        uint16 GetSkillMaxForLevel(Unit const* target = nullptr) const { return (target ? GetLevelForTarget(target) : getLevel()) * 5; }
 
         void Suicide();
         void DealDamageMods(Unit* pVictim, uint32& damage, uint32* absorb, DamageEffectType damagetype, SpellEntry const* spellProto = nullptr);
@@ -1617,8 +1622,7 @@ class Unit : public WorldObject
         void CalculateSpellDamage(SpellNonMeleeDamage* spellDamageInfo, int32 damage, SpellEntry const* spellInfo, WeaponAttackType attackType = BASE_ATTACK);
         void DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss);
 
-        uint32 GetDoTDamageReduction(uint32 damage) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_SPELL, 1.0f, 100.0f, damage); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
-        uint32 GetManaDrainReduction(uint32 amount) const { return GetCombatRatingDamageReduction(CR_CRIT_TAKEN_SPELL, 1.0f, 100.0f, amount); /*NOTE: Verify if cases with melee/ranged ratings exist*/ }
+        uint32 GetResilienceRatingDamageReduction(uint32 damage, SpellDmgClass dmgClass, bool periodic = false, Powers pwrType = POWER_HEALTH) const;
 
         SpellMissInfo MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell);
         SpellMissInfo MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell, SpellSchoolMask schoolMask);
@@ -2111,15 +2115,23 @@ class Unit : public WorldObject
         virtual void UpdateAttackPowerAndDamage(bool ranged = false) = 0;
         virtual void UpdateDamagePhysical(WeaponAttackType attType) = 0;
         float GetTotalAttackPowerValue(WeaponAttackType attType) const;
-        float GetWeaponDamageRange(WeaponAttackType attType, WeaponDamageRange damageRange, uint8 index = 0) const;
-        SpellSchools GetWeaponDamageSchool(WeaponAttackType attType, uint8 index = 0) const { return m_weaponDamage[attType][index].school; }
-        void SetBaseWeaponDamage(WeaponAttackType attType, WeaponDamageRange damageRange, float value, uint8 index = 0) { m_weaponDamage[attType][index].damage[damageRange] = value; }
-        void SetWeaponDamageSchool(WeaponAttackType attType, SpellSchools school, uint8 index = 0) { m_weaponDamage[attType][index].school = school; }
 
-        SpellSchoolMask GetMeleeDamageSchoolMask(bool main, bool first = false) const;
-        SpellSchoolMask GetMeleeDamageSchoolMask() const { return SpellSchoolMask(GetMeleeDamageSchoolMask(true, true) | GetMeleeDamageSchoolMask(false, true)); }
-        void SetMeleeDamageSchool(bool main, SpellSchools school);
-        void SetMeleeDamageSchool(SpellSchools school) { SetMeleeDamageSchool(true, school); SetMeleeDamageSchool(false, school); }
+        float GetBaseWeaponDamage(WeaponAttackType attType, WeaponDamageRange damageRange, uint8 index = 0) const;
+        void SetBaseWeaponDamage(WeaponAttackType attType, WeaponDamageRange damageRange, float value, uint8 index = 0) { m_weaponDamageInfo.weapon[attType].damage[index].value[damageRange] = value; }
+
+        SpellSchools GetWeaponDamageSchool(WeaponAttackType attType, uint8 index = 0) const { return m_weaponDamageInfo.weapon[attType].damage[index].school; }
+        void SetWeaponDamageSchool(WeaponAttackType attType, SpellSchools school, uint8 index = 0) { m_weaponDamageInfo.weapon[attType].damage[index].school = school; }
+
+        SpellSchoolMask GetAttackDamageSchoolMask(WeaponAttackType attType, bool first = false) const;
+        void SetAttackDamageSchool(WeaponAttackType attType, SpellSchools school);
+
+        inline SpellSchoolMask GetRangedDamageSchoolMask(bool first = false) const { return GetAttackDamageSchoolMask(RANGED_ATTACK, first); }
+        inline void SetRangedDamageSchool(SpellSchools school) { SetAttackDamageSchool(RANGED_ATTACK, school); }
+
+        inline SpellSchoolMask GetMeleeDamageSchoolMask(bool main, bool first = false) const { return GetAttackDamageSchoolMask((main ? BASE_ATTACK : OFF_ATTACK), first); }
+        inline SpellSchoolMask GetMeleeDamageSchoolMask() const { return SpellSchoolMask(GetMeleeDamageSchoolMask(true, true) | GetMeleeDamageSchoolMask(false, true)); }
+        inline void SetMeleeDamageSchool(bool main, SpellSchools school) { SetAttackDamageSchool((main ? BASE_ATTACK : OFF_ATTACK), school); }
+        inline void SetMeleeDamageSchool(SpellSchools school) { SetMeleeDamageSchool(true, school); SetMeleeDamageSchool(false, school); }
 
         // Visibility system
         UnitVisibility GetVisibility() const { return m_Visibility; }
@@ -2369,7 +2381,7 @@ class Unit : public WorldObject
         Movement::MoveSpline* movespline;
 
         void ScheduleAINotify(uint32 delay, bool forced = false);
-        bool IsAINotifyScheduled() const { return bool(m_AINotifyEvent);}
+        bool IsAINotifyScheduled() const { return m_AINotifyEvent != nullptr;}
         void FinalizeAINotifyEvent() { m_AINotifyEvent = nullptr; }
         void AbortAINotifyEvent();
         void OnRelocated();
@@ -2438,6 +2450,24 @@ class Unit : public WorldObject
         void ResetAuraUpdateMask() { m_auraUpdateMask = 0; }
 
     protected:
+
+        struct WeaponDamageInfo
+        {
+            struct Weapon
+            {
+                struct Damage
+                {
+                    SpellSchools school = SPELL_SCHOOL_NORMAL;
+                    float value[2] = { BASE_MINDAMAGE, BASE_MAXDAMAGE };
+                };
+
+                uint32 lines = 1;
+                Damage damage[MAX_ITEM_PROTO_DAMAGES];
+            };
+
+            Weapon weapon[MAX_ATTACK];
+        };
+
         explicit Unit();
 
         void _UpdateSpells(uint32 time);
@@ -2473,8 +2503,7 @@ class Unit : public WorldObject
         AuraList m_modAuras[TOTAL_AURAS];
         float m_auraModifiersGroup[UNIT_MOD_END][MODIFIER_TYPE_END];
 
-        WeaponDamageInfo m_weaponDamage[MAX_ATTACK][MAX_ITEM_PROTO_DAMAGES];
-        uint8 m_weaponDamageCount[MAX_ATTACK];
+        WeaponDamageInfo m_weaponDamageInfo;
 
         bool m_canModifyStats;
         // std::list< spellEffectPair > AuraSpells[TOTAL_AURAS];  // TODO: use this if ok for mem

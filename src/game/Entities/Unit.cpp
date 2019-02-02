@@ -362,18 +362,6 @@ Unit::Unit() :
     // implement 50% base damage from offhand
     m_auraModifiersGroup[UNIT_MOD_DAMAGE_OFFHAND][TOTAL_PCT] = 0.5f;
 
-    for (int i = 0; i < MAX_ATTACK; ++i)
-    {
-        for (int j = 0; j < MAX_ITEM_PROTO_DAMAGES; j++)
-        {
-            m_weaponDamage[i][j].damage[MINDAMAGE] = (j == 0) ? BASE_MINDAMAGE : 0;
-            m_weaponDamage[i][j].damage[MAXDAMAGE] = (j == 0) ? BASE_MAXDAMAGE : 0;
-            m_weaponDamage[i][j].school = SPELL_SCHOOL_NORMAL;
-        }
-
-        m_weaponDamageCount[i] = 1;
-    }
-
     for (float& m_createStat : m_createStats)
         m_createStat = 0.0f;
 
@@ -609,7 +597,7 @@ bool Unit::UpdateMeleeAttackingState()
     if (!CanAttack(victim))
         return false;
 
-    if (!isAttackReady(BASE_ATTACK) && !(isAttackReady(OFF_ATTACK) && haveOffhandWeapon()))
+    if (!isAttackReady(BASE_ATTACK) && !(isAttackReady(OFF_ATTACK) && hasOffhandWeaponForAttack()))
         return false;
 
     uint8 swingError = 0;
@@ -617,7 +605,7 @@ bool Unit::UpdateMeleeAttackingState()
     {
         if (isAttackReady(BASE_ATTACK))
             setAttackTimer(BASE_ATTACK, 100);
-        if (haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
+        if (hasOffhandWeaponForAttack() && isAttackReady(OFF_ATTACK))
             setAttackTimer(OFF_ATTACK, 100);
 
         swingError = 1;
@@ -627,7 +615,7 @@ bool Unit::UpdateMeleeAttackingState()
     {
         if (isAttackReady(BASE_ATTACK))
             setAttackTimer(BASE_ATTACK, 100);
-        if (haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
+        if (hasOffhandWeaponForAttack() && isAttackReady(OFF_ATTACK))
             setAttackTimer(OFF_ATTACK, 100);
 
         swingError = 2;
@@ -637,7 +625,7 @@ bool Unit::UpdateMeleeAttackingState()
         if (isAttackReady(BASE_ATTACK))
         {
             // prevent base and off attack in same time, delay attack at 0.2 sec
-            if (haveOffhandWeapon())
+            if (hasOffhandWeaponForAttack())
             {
                 if (getAttackTimer(OFF_ATTACK) < ATTACK_DISPLAY_DELAY)
                     setAttackTimer(OFF_ATTACK, ATTACK_DISPLAY_DELAY);
@@ -645,7 +633,7 @@ bool Unit::UpdateMeleeAttackingState()
             AttackerStateUpdate(victim, BASE_ATTACK);
             resetAttackTimer(BASE_ATTACK);
         }
-        if (haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
+        if (hasOffhandWeaponForAttack() && isAttackReady(OFF_ATTACK))
         {
             // prevent base and off attack in same time, delay attack at 0.2 sec
             uint32 base_att = getAttackTimer(BASE_ATTACK);
@@ -668,21 +656,6 @@ bool Unit::UpdateMeleeAttackingState()
     }
 
     return swingError != 0;
-}
-
-bool Unit::haveOffhandWeapon() const
-{
-    if (!CanUseEquippedWeapon(OFF_ATTACK))
-        return false;
-
-    if (GetTypeId() == TYPEID_PLAYER)
-        return ((Player*)this)->GetWeaponForAttack(OFF_ATTACK, true, true) != 0;
-
-    uint8 itemClass = GetByteValue(UNIT_VIRTUAL_ITEM_INFO + (1 * 2) + 0, VIRTUAL_ITEM_INFO_0_OFFSET_CLASS);
-    if (itemClass == ITEM_CLASS_WEAPON)
-        return true;
-
-    return false;
 }
 
 void Unit::SendHeartBeat()
@@ -974,7 +947,7 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
     // call kill spell proc event (before real die and combat stop to triggering auras removed at death/combat stop)
     if (damagetype != INSTAKILL)
     {
-        if (killer && killer != victim && (killer == tapper || killer->GetGroup() == tapperGroup && tapperGroup))
+        if (killer && killer != victim && (killer == tapper || (killer->GetGroup() == tapperGroup && tapperGroup)))
         {
             WorldPacket data(SMSG_PARTYKILLLOG, (8 + 8));   // send event PARTY_KILL
             data << killer->GetObjectGuid();                // player with killing blow
@@ -1673,6 +1646,27 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss)
     DealDamage(pVictim, damageInfo->damage, &cleanDamage, SPELL_DIRECT_DAMAGE, damageInfo->schoolMask, spellProto, durabilityLoss);
 }
 
+uint32 Unit::GetResilienceRatingDamageReduction(uint32 damage, SpellDmgClass dmgClass, bool periodic/* = false*/, Powers pwrType/* = POWER_HEALtH*/) const
+{
+    // NOTE: Resilince increases all 3 ratings at once, verify if specialized cases actually exist
+    CombatRating rating;
+    switch (dmgClass)
+    {
+        case SPELL_DAMAGE_CLASS_MELEE:  rating = CR_CRIT_TAKEN_MELEE;   break;
+        case SPELL_DAMAGE_CLASS_RANGED: rating = CR_CRIT_TAKEN_RANGED;  break;
+        default:                        rating = CR_CRIT_TAKEN_SPELL;   break;
+    }
+
+    if (periodic)
+        return GetCombatRatingDamageReduction(rating, 1.0f, 100.0f, damage);                            // DOTs: 2.2.0+
+
+    switch (uint32(pwrType))
+    {
+        case POWER_MANA:        return GetCombatRatingDamageReduction(rating, 1.0f, 100.0f, damage);    // Mana drains: 2.4.0+
+    }
+    return 0;
+}
+
 // TODO for melee need create structure as in
 void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, WeaponAttackType attackType /*= BASE_ATTACK*/)
 {
@@ -1719,7 +1713,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
 
     bool immune = true;
 
-    for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
     {
         SubDamageInfo *subDamage = &calcDamageInfo->subDamage[i];
 
@@ -1763,7 +1757,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
 
     // FIXME: Fix individual school results later when appropriate API is ready
     uint32 mask = SPELL_SCHOOL_MASK_NORMAL;
-    for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; ++i)
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; ++i)
     {
         SubDamageInfo& subDamage = calcDamageInfo->subDamage[i];
         mask |= subDamage.damageSchoolMask;
@@ -1788,7 +1782,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
             calcDamageInfo->totalDamage = 0;
             calcDamageInfo->cleanDamage = 0;
 
-            for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+            for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
                 calcDamageInfo->subDamage[i].damage = 0;
 
             return;
@@ -1802,7 +1796,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
             calcDamageInfo->totalDamage = 0;
             calcDamageInfo->cleanDamage = 0;
 
-            for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+            for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
                 calcDamageInfo->subDamage[i].damage = 0;
 
             break;
@@ -1828,7 +1822,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
             calcDamageInfo->cleanDamage += calcDamageInfo->totalDamage;
             calcDamageInfo->totalDamage = 0;
 
-            for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+            for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
                 calcDamageInfo->subDamage[i].damage = 0;
 
             break;
@@ -1840,7 +1834,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
             calcDamageInfo->cleanDamage += calcDamageInfo->totalDamage;
             calcDamageInfo->totalDamage = 0;
 
-            for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+            for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
                 calcDamageInfo->subDamage[i].damage = 0;
 
             break;
@@ -1858,7 +1852,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
                 calcDamageInfo->TargetState = VICTIMSTATE_BLOCKS;
                 calcDamageInfo->blocked_amount = calcDamageInfo->totalDamage;
 
-                for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+                for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
                     calcDamageInfo->subDamage[i].damage = 0;
             }
             else if (calcDamageInfo->blocked_amount)
@@ -1868,7 +1862,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
 
                 auto amount = calcDamageInfo->blocked_amount;
 
-                for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+                for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
                 {
                     if (calcDamageInfo->subDamage[i].damage >= amount)
                     {
@@ -1906,7 +1900,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
             // 150% of normal damage
             calcDamageInfo->totalDamage += calcDamageInfo->totalDamage / 2;
 
-            for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+            for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
                 calcDamageInfo->subDamage[i].damage += calcDamageInfo->subDamage[i].damage / 2;
 
             break;
@@ -1921,7 +1915,7 @@ void Unit::CalculateMeleeDamage(Unit* pVictim, CalcDamageInfo* calcDamageInfo, W
         calcDamageInfo->procVictim |= PROC_FLAG_TAKEN_ANY_DAMAGE;
 
         // Calculate absorb & resists
-        for (uint8 i = 0; i < m_weaponDamageCount[calcDamageInfo->attackType]; i++)
+        for (uint8 i = 0; i < m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines; i++)
         {
             SubDamageInfo* subDamage = &calcDamageInfo->subDamage[i];
 
@@ -1973,7 +1967,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo* calcDamageInfo, bool durabilityLoss)
             float offtime = float(pVictim->getAttackTimer(OFF_ATTACK));
             float basetime = float(pVictim->getAttackTimer(BASE_ATTACK));
             // Reduce attack time
-            if (pVictim->haveOffhandWeapon() && offtime < basetime)
+            if (pVictim->hasOffhandWeaponForAttack() && offtime < basetime)
             {
                 float percent20 = pVictim->GetAttackTime(OFF_ATTACK) * 0.20f;
                 float percent60 = 3.0f * percent20;
@@ -2487,7 +2481,7 @@ void Unit::CalculateAbsorbResistBlock(Unit* pCaster, SpellNonMeleeDamage* damage
         damageInfo->damage -= damageInfo->blocked;
     }
 
-    CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), SPELL_DIRECT_DAMAGE, damageInfo->damage, &damageInfo->absorb, &damageInfo->resist, IsReflectableSpell(spellProto), IsResistableSpell(spellProto), IsBinarySpell(spellProto));
+    CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), SPELL_DIRECT_DAMAGE, damageInfo->damage, &damageInfo->absorb, &damageInfo->resist, IsReflectableSpell(spellProto), IsResistableSpell(spellProto), IsBinarySpell(*spellProto));
     damageInfo->damage -= damageInfo->absorb + damageInfo->resist;
 }
 
@@ -2522,7 +2516,7 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     CalculateMeleeDamage(pVictim, &meleeDamageInfo, attType);
 
     // Send log damage message to client
-    for (uint8 i = 0; i < m_weaponDamageCount[attType]; i++)
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[attType].lines; i++)
     {
         meleeDamageInfo.totalDamage -= meleeDamageInfo.subDamage[i].damage;
         DealDamageMods(pVictim, meleeDamageInfo.subDamage[i].damage, &meleeDamageInfo.subDamage[i].absorb, DIRECT_DAMAGE);
@@ -2536,7 +2530,7 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     uint32 totalAbsorb = 0;
     uint32 totalResist = 0;
 
-    for (uint8 i = 0; i < m_weaponDamageCount[attType]; i++)
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[attType].lines; i++)
     {
         totalAbsorb += meleeDamageInfo.subDamage[i].absorb;
         totalResist += meleeDamageInfo.subDamage[i].resist;
@@ -2815,7 +2809,7 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, uint8
     // wand case
     bool wand = spell->Id == 5019;
     if (wand && !!(getClassMask() & CLASSMASK_WAND_USERS) && GetTypeId() == TYPEID_PLAYER)
-        schoolMask = SpellSchoolMask(GetWeaponDamageSchool(RANGED_ATTACK));
+        schoolMask = GetRangedDamageSchoolMask();
 
     // Reflect (when available)
     if (reflectable)
@@ -2829,6 +2823,9 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, uint8
         // TODO: improve for partial application
         // Check for immune
         if (!wand && pVictim->IsImmuneToSpell(spell, (this == pVictim), effectMask))
+            return SPELL_MISS_IMMUNE;
+        // Check for immune to damage as hit result if spell hit composed entirely out of damage effects
+        if (IsSpellEffectsDamage(*spell, effectMask) && pVictim->IsImmuneToDamage(schoolMask))
             return SPELL_MISS_IMMUNE;
     }
     switch (spell->DmgClass)
@@ -2851,7 +2848,7 @@ uint32 Unit::GetDefenseSkillValue(Unit const* target) const
     {
         // in PvP always use full skill (and bonuses on top of it if present)
         uint32 value = (target && target->GetTypeId() == TYPEID_PLAYER)
-                       ? std::max(((Player*)this)->GetMaxSkillValue(SKILL_DEFENSE), ((Player*)this)->GetSkillValue(SKILL_DEFENSE))
+                       ? std::max(((Player*)this)->GetSkillMax(SKILL_DEFENSE), ((Player*)this)->GetSkillValue(SKILL_DEFENSE))
                        : ((Player*)this)->GetSkillValue(SKILL_DEFENSE);
         value += uint32(((Player*)this)->GetRatingBonusValue(CR_DEFENSE_SKILL));
         return value;
@@ -3132,7 +3129,7 @@ float Unit::CalculateEffectiveDodgeChance(const Unit* attacker, WeaponAttackType
     // a) Attacker's level is higher
     // b) Attacker has +skill bonuses
     const bool isPlayerOrPet = (GetTypeId() == TYPEID_PLAYER || GetOwnerGuid().IsPlayer());
-    const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetMaxSkillValueForLevel(this));
+    const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
@@ -3163,7 +3160,7 @@ float Unit::CalculateEffectiveParryChance(const Unit* attacker, WeaponAttackType
     // a) Attacker's level is higher
     // b) Attacker has +skill bonuses
     const bool isPlayerOrPet = (GetTypeId() == TYPEID_PLAYER || GetOwnerGuid().IsPlayer());
-    const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetMaxSkillValueForLevel(this));
+    const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
@@ -3203,7 +3200,7 @@ float Unit::CalculateEffectiveBlockChance(const Unit* attacker, WeaponAttackType
     // a) Attacker's level is higher
     // b) Attacker has +skill bonuses
     const bool isPlayerOrPet = (GetTypeId() == TYPEID_PLAYER || GetOwnerGuid().IsPlayer());
-    const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetMaxSkillValueForLevel(this));
+    const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     const int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
@@ -3222,7 +3219,7 @@ float Unit::CalculateEffectiveCrushChance(const Unit* victim, WeaponAttackType a
 
     // Crushing blow chance is present when attacker's weapon skill is >= 15 over victim's own capped defense skill
     // The chance starts at 15% and increased by 2% per each additional skill point of defense deficit
-    const uint32 cap = victim->GetMaxSkillValueForLevel();
+    const uint32 cap = victim->GetSkillMaxForLevel();
     const uint32 defense = std::min(victim->GetDefenseSkillValue(this), cap);
     const int32 deficit = (int32(GetWeaponSkillValue(attType, victim)) - int32(defense));
     if (deficit >= 15)
@@ -3236,7 +3233,7 @@ float Unit::CalculateEffectiveGlanceChance(const Unit* victim, WeaponAttackType 
 
     // Glancing blow chance starts at 1% when victim's defense skill is > 10 lower than attacker's own capped weapon skill
     // The chance is increased for each point of skill diffrernce
-    const uint32 cap = GetMaxSkillValueForLevel();
+    const uint32 cap = GetSkillMaxForLevel();
     const uint32 skill = std::min(GetWeaponSkillValue(attType, victim), cap);
     const int32 level = int32(GetLevelForTarget(victim));
     const uint32 defense = victim->GetDefenseSkillValue(this);
@@ -3270,7 +3267,7 @@ uint32 Unit::CalculateGlanceAmount(CalcDamageInfo* meleeInfo) const
     if (!meleeInfo)
         return 0;
     // Post-2.0.1: capped skill value
-    const uint32 cap = GetMaxSkillValueForLevel();
+    const uint32 cap = GetSkillMaxForLevel();
     const uint32 skill = std::min(GetWeaponSkillValue(meleeInfo->attackType, meleeInfo->target), cap);
     const uint32 defense = meleeInfo->target->GetDefenseSkillValue(this);
     const int32 difference = int32(defense - skill);
@@ -3294,7 +3291,7 @@ uint32 Unit::CalculateGlanceAmount(CalcDamageInfo* meleeInfo) const
     const uint32 result = uint32(meleeInfo->totalDamage * multiplier);
     meleeInfo->cleanDamage += (meleeInfo->totalDamage - result);
     meleeInfo->totalDamage = result;
-    for (uint8 i = 0; i < m_weaponDamageCount[meleeInfo->attackType]; i++)
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[meleeInfo->attackType].lines; i++)
         meleeInfo->subDamage[i].damage = uint32(meleeInfo->subDamage[i].damage * multiplier);
     return result;
 }
@@ -3557,7 +3554,7 @@ uint32 Unit::CalculateCritAmount(CalcDamageInfo* meleeInfo) const
     const uint32 creatureTypeMask = (victim ? victim->GetCreatureTypeMask() : 0);
     const SpellDmgClass dmgClass = ((meleeInfo->attackType == RANGED_ATTACK) ? SPELL_DAMAGE_CLASS_RANGED : SPELL_DAMAGE_CLASS_MELEE);
     const float ignoreReduction = 0.0f;
-    for (uint8 i = 0; i < m_weaponDamageCount[meleeInfo->attackType]; i++)
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[meleeInfo->attackType].lines; i++)
     {
         SubDamageInfo& subDamage = meleeInfo->subDamage[i];
         const uint32 amount = subDamage.damage;
@@ -3696,7 +3693,7 @@ float Unit::CalculateEffectiveCritChance(const Unit* victim, WeaponAttackType at
     // a) Positive means that attacker's level is higher or additional weapon +skill bonuses
     // b) Negative means that victim's level is higher or additional +defense bonuses
     const bool ranged = (attType == RANGED_ATTACK);
-    const uint32 skill = (weapon ? GetWeaponSkillValue(attType, victim) : GetMaxSkillValueForLevel(victim));
+    const uint32 skill = (weapon ? GetWeaponSkillValue(attType, victim) : GetSkillMaxForLevel(victim));
     const int32 difference = int32(skill - victim->GetDefenseSkillValue(this));
     // Weapon skill factor: for players and NPCs
     float factor = 0.04f;
@@ -3718,13 +3715,13 @@ float Unit::CalculateEffectiveMissChance(const Unit* victim, WeaponAttackType at
     const bool ranged = (attType == RANGED_ATTACK);
     const bool weapon = (!ability || ability->EquippedItemClass == ITEM_CLASS_WEAPON);
     // Check if dual wielding, add additional miss penalty
-    if (!ability && !ranged && haveOffhandWeapon())
+    if (!ability && !ranged && hasOffhandWeaponForAttack())
         chance += 19.0f;
     // Skill difference can be both negative and positive. Positive difference means that:
     // a) Victim's level is higher
     // b) Victim has additional defense skill bonuses
     const bool vsPlayerOrPet = (victim->GetTypeId() == TYPEID_PLAYER || victim->GetOwnerGuid().IsPlayer());
-    const uint32 skill = (weapon ? GetWeaponSkillValue(attType, victim) : GetMaxSkillValueForLevel(victim));
+    const uint32 skill = (weapon ? GetWeaponSkillValue(attType, victim) : GetSkillMaxForLevel(victim));
     int32 difference = int32(victim->GetDefenseSkillValue(this) - skill);
     // Defense/weapon skill factor: for players and NPCs
     float factor = 0.04f;
@@ -3919,11 +3916,11 @@ float Unit::CalculateEffectiveMagicResistancePercent(const Unit* attacker, Spell
         schools >>= 1;
     }
     // Attacker's level based skill, penalize when calculating for low levels (< 20):
-    const uint32 skill = std::max(attacker->GetMaxSkillValueForLevel(this), uint16(100));
+    const uint32 skill = std::max(attacker->GetSkillMaxForLevel(this), uint16(100));
     float percent = float(float(resistance) / float(skill)) * 100 * 0.75f;
     // Bonus resistance by level difference when calculating damage hit for NPCs only
     if (!binary && GetTypeId() == TYPEID_UNIT && !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
-        percent += (0.4f * std::max(int32(GetMaxSkillValueForLevel(attacker) - skill), 0));
+        percent += (0.4f * std::max(int32(GetSkillMaxForLevel(attacker) - skill), 0));
     // Magic resistance percentage cap (same as armor cap)
     return std::max(0.0f, std::min(percent, 75.0f));
 }
@@ -3961,7 +3958,7 @@ float Unit::CalculateSpellResistChance(const Unit* victim, SpellSchoolMask schoo
     // Chance to fully resist a spell by magic resistance
     if (IsResistableSpell(spell) && spell->DmgClass == SPELL_DAMAGE_CLASS_MAGIC)
     {
-        const bool binary = IsBinarySpell(spell);
+        const bool binary = IsBinarySpell(*spell);
         const float percent = victim->CalculateEffectiveMagicResistancePercent(this, schoolMask, binary);
         if (binary)
             chance += percent;
@@ -4006,14 +4003,14 @@ uint32 Unit::GetWeaponSkillValue(WeaponAttackType attType, Unit const* target) c
             return 0;
 
         if (IsInFeralForm())
-            return GetMaxSkillValueForLevel();              // always maximized SKILL_FERAL_COMBAT in fact
+            return GetSkillMaxForLevel();              // always maximized SKILL_FERAL_COMBAT in fact
 
         // weapon skill or (unarmed for base attack)
         uint32 skill = item ? item->GetSkill() : uint32(SKILL_UNARMED);
 
         // in PvP always use full skill (and bonuses on top of it if present)
         value = (target && target->GetTypeId() == TYPEID_PLAYER)
-                ? std::max(((Player*)this)->GetMaxSkillValue(skill), ((Player*)this)->GetSkillValue(skill))
+                ? std::max(((Player*)this)->GetSkillMax(skill), ((Player*)this)->GetSkillValue(skill))
                 : ((Player*)this)->GetSkillValue(skill);
         // Modify value from ratings
         value += uint32(((Player*)this)->GetRatingBonusValue(CR_WEAPON_SKILL));
@@ -4781,6 +4778,7 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
 
     const uint32 spellId = holder->GetId();
     const SpellSpecific specific = GetSpellSpecific(spellId);
+    auto drGroup = holder->getDiminishGroup();
     SpellEntry const* triggeredBy = holder->GetTriggeredBy();
 
     SpellAuraHolderMap::iterator next;
@@ -4798,6 +4796,7 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
 
         const uint32 existingSpellId = existingSpellProto->Id;
         const SpellSpecific existingSpecific = GetSpellSpecific(existingSpellId);
+        auto existingDrGroup = existing->getDiminishGroup();
         const bool own = (holder->GetCasterGuid() == existing->GetCasterGuid());
 
         // early checks that spellId is passive non stackable spell
@@ -4825,6 +4824,14 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
             unique = (personal || IsSpellSpecificUniquePerTarget(specific));
         }
 
+        bool diminished = false;
+        // Remove any existing holders from the same diminishing returns group by treating as unique
+        if (!unique && drGroup)
+        {
+            diminished = (drGroup == existingDrGroup);
+            unique = diminished;
+        }
+
         const bool stackable = !sSpellMgr.IsNoStackSpellDueToSpell(spellProto, existingSpellProto);
         if (unique || !stackable)
         {
@@ -4836,8 +4843,12 @@ bool Unit::RemoveNoStackAurasDueToAuraHolder(SpellAuraHolder* holder)
             {
                 if (personal && stackable)
                     continue;
-                // holder cannot remove higher rank if it isn't from the same caster
-                if (IsSimilarExistingAuraStronger(holder, existing) || (sSpellMgr.IsSpellAnotherRankOfSpell(spellId, existingSpellId) && sSpellMgr.IsSpellHigherRankOfSpell(existingSpellId, spellId)))
+
+                // holder cannot remove higher/stronger rank if it isn't from the same caster
+                if (IsSimilarExistingAuraStronger(holder, existing))
+                    return false;
+
+                if (!diminished && sSpellMgr.IsSpellAnotherRankOfSpell(spellId, existingSpellId) && sSpellMgr.IsSpellHigherRankOfSpell(existingSpellId, spellId))
                     return false;
             }
 
@@ -5309,14 +5320,14 @@ void Unit::RemoveArenaAuras(bool onleave)
     // used to remove positive visible auras in arenas
     for (SpellAuraHolderMap::iterator iter = m_spellAuraHolders.begin(); iter != m_spellAuraHolders.end();)
     {
-        if (!iter->second->GetSpellProto()->HasAttribute(SPELL_ATTR_EX4_UNK21) &&
+        if ((!iter->second->GetSpellProto()->HasAttribute(SPELL_ATTR_EX4_UNK21) &&
                 // don't remove stances, shadowform, pally/hunter auras
                 !iter->second->IsPassive() &&               // don't remove passive auras
                 (!iter->second->GetSpellProto()->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) ||
                  !iter->second->GetSpellProto()->HasAttribute(SPELL_ATTR_HIDE_IN_COMBAT_LOG)) &&
                 !HasAreaAuraEffect(iter->second->GetSpellProto()) &&
                 // not unaffected by invulnerability auras or not having that unknown flag (that seemed the most probable)
-                (iter->second->IsPositive() != onleave)    // remove positive buffs on enter, negative buffs on leave
+                (iter->second->IsPositive() != onleave))   // remove positive buffs on enter, negative buffs on leave
                 || iter->second->GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_REMOVE_ON_ARENA_ENTER))
         {
             RemoveSpellAuraHolder(iter->second);
@@ -5732,7 +5743,7 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo) const
             data << uint32(pInfo->damage);                  // damage
             data << uint32(GetSpellSchoolMask(aura->GetSpellProto()));
             data << uint32(pInfo->absorb);                  // absorb
-            data << uint32(pInfo->resist);                  // resist
+            data << int32(pInfo->resist);                   // resist
             break;
         case SPELL_AURA_PERIODIC_HEAL:
         case SPELL_AURA_OBS_MOD_HEALTH:
@@ -5871,7 +5882,7 @@ void Unit::SendAttackStateUpdate(CalcDamageInfo* calcDamageInfo) const
     DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Sending SMSG_ATTACKERSTATEUPDATE");
 
     // Subdamage count:
-    uint8 lines = m_weaponDamageCount[calcDamageInfo->attackType];
+    uint32 lines = m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines;
 
     WorldPacket data(SMSG_ATTACKERSTATEUPDATE, (4 + 8 + 8 + 4) + 1 + (lines * (4 + 4 + 4 + 4 + 4)) + (4 + 4 + 4 + 4));
 
@@ -5891,7 +5902,7 @@ void Unit::SendAttackStateUpdate(CalcDamageInfo* calcDamageInfo) const
         data << float(line.damage) / float(calcDamageInfo->totalDamage);   // Float coefficient of subdamage
         data << uint32(line.damage);
         data << uint32(line.absorb);
-        data << uint32(line.resist);
+        data << int32(line.resist);
     }
 
     data << uint32(calcDamageInfo->TargetState);
@@ -6095,7 +6106,7 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
     }
 
     // delay offhand weapon attack to next attack time
-    if (haveOffhandWeapon())
+    if (hasOffhandWeaponForAttack())
         resetAttackTimer(OFF_ATTACK);
 
     if (meleeAttack)
@@ -7371,7 +7382,7 @@ bool Unit::IsImmuneToSpell(SpellEntry const* spellInfo, bool /*castOnSelf*/, uin
         {
             SpellImmuneList const& schoolList = m_spellImmune[IMMUNITY_SCHOOL];
             for (auto itr : schoolList)
-                if (!(itr.aura && IsPositiveEffectMask(itr.aura->GetSpellProto(), itr.aura->GetEffIndex()) && isPositive && !itr.aura->GetSpellProto()->HasAttribute(SPELL_ATTR_EX_UNAFFECTED_BY_SCHOOL_IMMUNE)) &&
+                if (!(itr.aura && IsPositiveEffectMask(itr.aura->GetSpellProto(), uint8(1 << (itr.aura->GetEffIndex() - 1))) && isPositive && !itr.aura->GetSpellProto()->HasAttribute(SPELL_ATTR_EX_UNAFFECTED_BY_SCHOOL_IMMUNE)) &&
                     (itr.type & GetSpellSchoolMask(spellInfo)))
                     return true;
         }
@@ -7749,7 +7760,7 @@ float Unit::GetWeaponProcChance() const
     // (odd formula...)
     if (isAttackReady(BASE_ATTACK))
         return (GetAttackTime(BASE_ATTACK) * 1.8f / 1000.0f);
-    if (haveOffhandWeapon() && isAttackReady(OFF_ATTACK))
+    if (hasOffhandWeaponForAttack() && isAttackReady(OFF_ATTACK))
         return (GetAttackTime(OFF_ATTACK) * 1.6f / 1000.0f);
 
     return 0.0f;
@@ -9375,29 +9386,29 @@ float Unit::GetTotalAttackPowerValue(WeaponAttackType attType) const
     return ap * (1.0f + GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER));
 }
 
-float Unit::GetWeaponDamageRange(WeaponAttackType attType, WeaponDamageRange damageRange, uint8 index) const
+float Unit::GetBaseWeaponDamage(WeaponAttackType attType, WeaponDamageRange damageRange, uint8 index) const
 {
-    if (attType == OFF_ATTACK && !haveOffhandWeapon())
+    if (attType == OFF_ATTACK && !hasOffhandWeaponForAttack())
         return 0.0f;
 
-    return m_weaponDamage[attType][index].damage[damageRange];
+    return m_weaponDamageInfo.weapon[attType].damage[index].value[damageRange];
 }
 
-SpellSchoolMask Unit::GetMeleeDamageSchoolMask(bool main, bool first /*= false*/) const
+SpellSchoolMask Unit::GetAttackDamageSchoolMask(WeaponAttackType attType, bool first /*= false*/) const
 {
     if (first)
-        return SpellSchoolMask(1 << (m_weaponDamage[(main ? BASE_ATTACK : OFF_ATTACK)][0]).school);
+        return SpellSchoolMask(1 << (m_weaponDamageInfo.weapon[attType].damage[0].school));
 
-    uint32 mask = SPELL_SCHOOL_MASK_NORMAL;
-    for (auto& damage : m_weaponDamage[(main ? BASE_ATTACK : OFF_ATTACK)])
-        mask |= (1 << damage.school);
+    uint32 mask = SPELL_SCHOOL_MASK_NONE;
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[attType].lines; i++)
+        mask |= (1 << m_weaponDamageInfo.weapon[attType].damage[i].school);
     return SpellSchoolMask(mask);
 }
 
-void Unit::SetMeleeDamageSchool(bool main, SpellSchools school)
+void Unit::SetAttackDamageSchool(WeaponAttackType attType, SpellSchools school)
 {
-    for (auto& damage : m_weaponDamage[(main ? BASE_ATTACK : OFF_ATTACK)])
-        damage.school = school;
+    for (uint8 i = 0; i < m_weaponDamageInfo.weapon[attType].lines; i++)
+        m_weaponDamageInfo.weapon[attType].damage[i].school = school;
 }
 
 void Unit::SetLevel(uint32 lvl)
@@ -11542,6 +11553,8 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
     Creature* charmedCreature = nullptr;
     CharmInfo* charmInfo = charmed->GetCharmInfo();
 
+    charmed->SetEvade(EVADE_NONE); // if charm expires mid evade clear evade since movement is also cleared - TODO: maybe should be done on HomeMovementGenerator::MovementExpires?
+
     if (charmed->GetTypeId() == TYPEID_UNIT)
     {
         // now we have to clean threat list to be able to restore normal creature behavior
@@ -11611,7 +11624,6 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
         charmedPlayer->DeleteThreatList(); // TODO: Add threat management for player during charm, only entries with 0 threat
     }
 
-    charmed->SetEvade(EVADE_NONE); // if charm expires mid evade clear evade since movement is also cleared - TODO: maybe should be done on HomeMovementGenerator::MovementExpires?
     // Update possessed's client control status after altering flags
     if (const Player* controllingClientPlayer = charmed->GetClientControlling())
         controllingClientPlayer->UpdateClientControl(charmed, true);

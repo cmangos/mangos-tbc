@@ -98,11 +98,11 @@ void WorldSession::HandleTrainerListOpcode(WorldPacket& recv_data)
 
 static void SendTrainerSpellHelper(WorldPacket& data, TrainerSpell const* tSpell, TrainerSpellState state, float fDiscountMod, bool can_learn_primary_prof, uint32 reqLevel)
 {
-    bool primary_prof_first_rank = sSpellMgr.IsPrimaryProfessionFirstRankSpell(tSpell->spell);
+    bool primary_prof_first_rank = sSpellMgr.IsPrimaryProfessionFirstRankSpell(tSpell->learnedSpell);
 
-    SpellChainNode const* chain_node = sSpellMgr.GetSpellChainNode(tSpell->spell);
+    SpellChainNode const* chain_node = sSpellMgr.GetSpellChainNode(tSpell->learnedSpell);
 
-    data << uint32(tSpell->spell);
+    data << uint32(tSpell->spell);                      // learned spell (or cast-spell in profession case)
     data << uint8(state == TRAINER_SPELL_GREEN_DISABLED ? TRAINER_SPELL_GREEN : state);
     data << uint32(floor(tSpell->spellCost * fDiscountMod));
 
@@ -112,8 +112,8 @@ static void SendTrainerSpellHelper(WorldPacket& data, TrainerSpell const* tSpell
     data << uint8(reqLevel);
     data << uint32(tSpell->reqSkill);
     data << uint32(tSpell->reqSkillValue);
-    data << uint32(chain_node ? (chain_node->prev ? chain_node->prev : chain_node->req) : 0);
-    data << uint32(chain_node && chain_node->prev ? chain_node->req : 0);
+    data << uint32(!tSpell->IsCastable() && chain_node ? (chain_node->prev ? chain_node->prev : chain_node->req) : 0);
+    data << uint32(!tSpell->IsCastable() && chain_node && chain_node->prev ? chain_node->req : 0);
     data << uint32(0);
 }
 
@@ -178,7 +178,7 @@ void WorldSession::SendTrainerList(ObjectGuid guid) const
             TrainerSpell const* tSpell = &itr.second;
 
             uint32 reqLevel = 0;
-            if (!_player->IsSpellFitByClassAndRace(tSpell->spell, &reqLevel))
+            if (!_player->IsSpellFitByClassAndRace(tSpell->learnedSpell, &reqLevel))
                 continue;
 
             if (tSpell->conditionId && !sObjectMgr.IsPlayerMeetToCondition(tSpell->conditionId, GetPlayer(), unit->GetMap(), unit, CONDITION_FROM_TRAINER))
@@ -201,7 +201,7 @@ void WorldSession::SendTrainerList(ObjectGuid guid) const
             TrainerSpell const* tSpell = &itr.second;
 
             uint32 reqLevel = 0;
-            if (!_player->IsSpellFitByClassAndRace(tSpell->spell, &reqLevel))
+            if (!_player->IsSpellFitByClassAndRace(tSpell->learnedSpell, &reqLevel))
                 continue;
 
             if (tSpell->conditionId && !sObjectMgr.IsPlayerMeetToCondition(tSpell->conditionId, GetPlayer(), unit->GetMap(), unit, CONDITION_FROM_TRAINER))
@@ -261,7 +261,7 @@ void WorldSession::HandleTrainerBuySpellOpcode(WorldPacket& recv_data)
 
     // can't be learn, cheat? Or double learn with lags...
     uint32 reqLevel = 0;
-    if (!_player->IsSpellFitByClassAndRace(trainer_spell->spell, &reqLevel))
+    if (!_player->IsSpellFitByClassAndRace(trainer_spell->learnedSpell, &reqLevel))
         return;
 
     reqLevel = trainer_spell->isProvidedReqLevel ? trainer_spell->reqLevel : std::max(reqLevel, trainer_spell->reqLevel);
@@ -284,8 +284,12 @@ void WorldSession::HandleTrainerBuySpellOpcode(WorldPacket& recv_data)
     data << uint32(0x016A);                                 // index from SpellVisualKit.dbc
     SendPacket(data);
 
-    // learn explicitly
-    _player->learnSpell(trainer_spell->spell, false);
+    // learn explicitly or cast explicitly
+    // TODO - Are these spells really cast correctly this way?
+    if (trainer_spell->IsCastable())
+        _player->CastSpell(_player, trainer_spell->spell, TRIGGERED_OLD_TRIGGERED);
+    else
+        _player->learnSpell(spellId, false);
 
     data.Initialize(SMSG_TRAINER_BUY_SUCCEEDED, 12);
     data << ObjectGuid(guid);

@@ -257,6 +257,14 @@ struct PlayerCreateInfoAction
 
 typedef std::list<PlayerCreateInfoAction> PlayerCreateInfoActions;
 
+struct PlayerCreateInfoSkill
+{
+    uint16 SkillId;
+    uint16 Step;
+};
+
+typedef std::list<PlayerCreateInfoSkill> PlayerCreateInfoSkills;
+
 struct PlayerInfo
 {
     // existence checked by displayId != 0             // existence checked by displayId != 0
@@ -274,6 +282,7 @@ struct PlayerInfo
     uint16 displayId_f;
     PlayerCreateInfoItems item;
     PlayerCreateInfoSpells spell;
+    PlayerCreateInfoSkills skill;
     PlayerCreateInfoActions action;
 
     PlayerLevelInfo* levelInfo;                             //[level-1] 0..MaxPlayerLevel-1
@@ -1107,6 +1116,9 @@ class Player : public Unit
         bool StoreNewItemInBestSlots(uint32 titem_id, uint32 titem_amount);
         Item* StoreNewItemInInventorySlot(uint32 itemEntry, uint32 amount);
 
+        bool hasWeapon(WeaponAttackType type) const override { return GetWeaponForAttack(type, false, false); }
+        bool hasWeaponForAttack(WeaponAttackType type) const override { return (Unit::hasWeaponForAttack(type) && GetWeaponForAttack(type, true, true)); }
+
         Item* ConvertItem(Item* item, uint32 newItemId);
 
         InventoryResult _CanTakeMoreSimilarItems(uint32 entry, uint32 count, Item* pItem, uint32* no_space_count = nullptr) const;
@@ -1525,7 +1537,8 @@ class Player : public Unit
         void UpdatePvP(bool state, bool overriding = false);
         void UpdatePvPContested(bool state, bool overriding = false);
 
-        void UpdateZone(uint32 newZone, uint32 newArea);
+        // forced update needed for on-resurrection event
+        void UpdateZone(uint32 newZone, uint32 newArea, bool force = false);
         void UpdateArea(uint32 newArea);
         uint32 GetCachedZoneId() const { return m_zoneUpdateId; }
 
@@ -1587,17 +1600,17 @@ class Player : public Unit
         void SendPetBar();
         void StartCinematic();
         void StopCinematic();
-        bool UpdateSkill(uint32 skill_id, uint32 step);
-        bool UpdateSkillPro(uint16 SkillId, int32 Chance, uint32 step);
+        bool UpdateSkill(uint16 id, uint16 diff);
+        bool UpdateSkillPro(uint16 id, int32 Chance, uint16 diff);
 
         bool UpdateCraftSkill(uint32 spellid);
         bool UpdateGatherSkill(uint32 SkillId, uint32 SkillValue, uint32 RedLevel, uint32 Multiplicator = 1);
         bool UpdateFishingSkill();
 
-        uint32 GetBaseDefenseSkillValue() const { return GetBaseSkillValue(SKILL_DEFENSE); }
+        uint32 GetBaseDefenseSkillValue() const { return GetSkillValueBase(SKILL_DEFENSE); }
         uint32 GetBaseWeaponSkillValue(WeaponAttackType attType) const;
 
-        uint32 GetPureDefenseSkillValue() const { return GetPureSkillValue(SKILL_DEFENSE); }
+        uint32 GetPureDefenseSkillValue() const { return GetSkillValuePure(SKILL_DEFENSE); }
         uint32 GetPureWeaponSkillValue(WeaponAttackType attType) const;
 
         float GetHealthBonusFromStamina() const;
@@ -1725,16 +1738,26 @@ class Player : public Unit
         void UpdateWeaponSkill(WeaponAttackType attType);
         void UpdateCombatSkills(Unit* pVictim, WeaponAttackType attType, bool defence);
 
-        void SetSkill(uint16 id, uint16 currVal, uint16 maxVal, uint16 step = 0);
-        uint16 GetMaxSkillValue(uint32 skill) const;        // max + perm. bonus + temp bonus
-        uint16 GetPureMaxSkillValue(uint32 skill) const;    // max
-        uint16 GetSkillValue(uint32 skill) const;           // skill value + perm. bonus + temp bonus
-        uint16 GetBaseSkillValue(uint32 skill) const;       // skill value + perm. bonus
-        uint16 GetPureSkillValue(uint32 skill) const;       // skill value
-        int16 GetSkillPermBonusValue(uint32 skill) const;
-        int16 GetSkillTempBonusValue(uint32 skill) const;
-        bool HasSkill(uint32 skill) const;
-        void learnSkillRewardedSpells(uint32 skill_id, uint32 skill_value);
+        SkillRaceClassInfoEntry const* GetSkillInfo(uint16 id, std::function<bool (SkillRaceClassInfoEntry const&)> filterfunc = nullptr) const;
+        bool HasSkill(uint16 id) const;
+        void SetSkill(SkillStatusMap::iterator itr, uint16 value, uint16 max, uint16 step = 0);
+        void SetSkill(uint16 id, uint16 value, uint16 max, uint16 step = 0);
+        uint16 GetSkill(uint16 id, bool bonusPerm, bool bonusTemp, bool max = false) const;
+        inline uint16 GetSkillValue(uint16 id) const { return GetSkill(id, true, true); }           // skill value + perm. bonus + temp bonus
+        inline uint16 GetSkillValueBase(uint16 id) const { return GetSkill(id, true, false); }      // skill value + perm. bonus
+        inline uint16 GetSkillValuePure(uint16 id) const { return GetSkill(id, false, false); }     // skill value
+        inline uint16 GetSkillMax(uint16 id) const { return GetSkill(id, true, true, true); }       // skill max + perm. bonus + temp bonus
+        inline uint16 GetSkillMaxPure(uint16 id) const { return GetSkill(id, false, false, true); } // skill max
+        void SetSkillStep(uint16 id, uint16 step);
+        uint16 GetSkillStep(uint16 id) const;
+        bool ModifySkillBonus(uint16 id, int16 diff, bool permanent = false);
+        int16 GetSkillBonus(uint16 id, bool permanent = false) const;
+        inline int16 GetSkillBonusPermanent(uint16 id) const { return GetSkillBonus(id, true); }    // skill perm. bonus
+        inline int16 GetSkillBonusTemporary(uint16 id) const { return GetSkillBonus(id); }          // skill temp bonus
+        void UpdateSkillsForLevel(bool maximize = false);
+        void UpdateSkillTrainedSpells(uint16 id, uint16 currVal);                                   // learns/unlearns spells dependent on a skill
+        void UpdateSpellTrainedSkills(uint32 spellId, bool apply);                                  // learns/unlearns skills dependent on a spell
+        void LearnDefaultSkills();
 
         WorldLocation& GetTeleportDest() { return m_teleport_dest; }
         bool IsBeingTeleported() const { return mSemaphoreTeleport_Near || mSemaphoreTeleport_Far; }
@@ -1767,10 +1790,6 @@ class Player : public Unit
         void RewardReputation(Creature* victim, float rate);
         void RewardReputation(Quest const* pQuest);
         int32 CalculateReputationGain(ReputationSource source, int32 rep, int32 maxRep, int32 faction, uint32 creatureOrQuestLevel = 0, bool noAuraBonus = false);
-
-        void UpdateSkillsForLevel();
-        void UpdateSkillsToMaxSkillsForLevel();             // for .levelup
-        void ModifySkillBonus(uint32 skillid, int32 val, bool talent);
 
         /*********************************************************/
         /***                  PVP SYSTEM                       ***/

@@ -608,7 +608,8 @@ void Map::Update(const uint32& t_diff)
         m_messageVector.clear();
     }
 
-    MaNGOS::ObjectUpdater obj_updater(t_diff);
+    WorldObjectUnSet objToUpdate;
+    MaNGOS::ObjectUpdater obj_updater(objToUpdate);
     TypeContainerVisitor<MaNGOS::ObjectUpdater, GridTypeMapContainer  > grid_object_update(obj_updater);    // For creature
     TypeContainerVisitor<MaNGOS::ObjectUpdater, WorldTypeMapContainer > world_object_update(obj_updater);   // For pets
 
@@ -665,6 +666,10 @@ void Map::Update(const uint32& t_diff)
             }
         }
     }
+
+    // update all objects
+    for (auto wObj : objToUpdate)
+        wObj->Update(t_diff);
 
     // Send world objects and item update field changes
     SendObjectUpdates();
@@ -2167,7 +2172,7 @@ bool Map::GetHeightInRange(float x, float y, float& z, float maxSearchDist /*= 4
         if (diffMaps < maxSearchDist)
         {
             // well we simply have to take the highest as normally there we cannot be on top of cavern is maxSearchDist is not too big
-            if (vmapHeight > mapHeight)
+            if (vmapHeight > mapHeight || std::fabs(mapHeight - z) > std::fabs(vmapHeight - z))
                 height = vmapHeight;
             else
                 height = mapHeight;

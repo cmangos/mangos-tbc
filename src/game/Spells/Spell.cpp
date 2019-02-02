@@ -335,7 +335,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     // wand case
     if (m_attackType == RANGED_ATTACK)
         if (!!(m_caster->getClassMask() & CLASSMASK_WAND_USERS) && m_caster->GetTypeId() == TYPEID_PLAYER)
-            m_spellSchoolMask = SpellSchoolMask(m_caster->GetWeaponDamageSchool(RANGED_ATTACK));
+            m_spellSchoolMask = m_caster->GetRangedDamageSchoolMask();
 
     // Set health leech amount to zero
     m_healthLeech = 0;
@@ -634,36 +634,9 @@ void Spell::FillTargetMap()
                         case TARGET_LOCATION_CASTER_DEST:
                             SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
                             break;
-                        // dest point setup required
-                        case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC:
-                        case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_DEST_LOC:
-                        case TARGET_ENUM_UNITS_ENEMY_AOE_AT_SRC_LOC:
-                        case TARGET_ENUM_UNITS_ENEMY_AOE_AT_DEST_LOC:
-                        case TARGET_ENUM_UNITS_ENEMY_AOE_AT_DYNOBJ_LOC:
-                        case TARGET_ENUM_UNITS_FRIEND_AOE_AT_SRC_LOC:
-                        case TARGET_ENUM_GAMEOBJECTS_SCRIPT_AOE_AT_DEST_LOC:
-                        case TARGET_LOCATION_RANDOM_SIDE:
-                        // target pre-selection required
-                        case TARGET_LOCATION_CASTER_HOME_BIND:
-                        case TARGET_LOCATION_DATABASE:
-                        case TARGET_LOCATION_CASTER_SRC:
-                        case TARGET_LOCATION_SCRIPT_NEAR_CASTER:
-                        case TARGET_LOCATION_CASTER_TARGET_POSITION:
-                        case TARGET_LOCATION_UNIT_POSITION:
-                        case TARGET_LOCATION_DYNOBJ_POSITION:
-                        case TARGET_LOCATION_NORTH:
-                        case TARGET_LOCATION_SOUTH:
-                        case TARGET_LOCATION_EAST:
-                        case TARGET_LOCATION_WEST:
-                        case TARGET_LOCATION_NE:
-                        case TARGET_LOCATION_NW:
-                        case TARGET_LOCATION_SE:
-                        case TARGET_LOCATION_SW:
+                        default:
                             // need some target for processing
                             SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetA[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                            SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
-                            break;
-                        default:
                             SetTargetMap(SpellEffectIndex(i), m_spellInfo->EffectImplicitTargetB[i], tmpUnitLists[i /*==effToIndex[i]*/], effException[i]);
                             break;
                     }
@@ -1763,7 +1736,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
                 float angle = 2.0f * M_PI_F * rand_norm_f();
                 float dest_x = m_targets.m_destX + cos(angle) * radius;
                 float dest_y = m_targets.m_destY + sin(angle) * radius;
-                float dest_z = m_caster->GetPositionZ();
+                float dest_z = m_targets.m_destZ ? m_targets.m_destZ : m_caster->GetPositionZ();
                 m_caster->UpdateGroundPositionZ(dest_x, dest_y, dest_z);
                 m_targets.setDestination(dest_x, dest_y, dest_z);
             }
@@ -2361,7 +2334,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
         case TARGET_ENUM_UNITS_FRIEND_IN_CONE:
         case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
         {
-            SpellTargets targetType;
+            SpellTargets targetType = SPELL_TARGETS_ALL;
             switch (targetMode)
             {
                 case TARGET_ENUM_UNITS_ENEMY_IN_CONE_24:
@@ -2373,17 +2346,12 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, UnitList&
             {
                 case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
                 {
-                    if (m_spellInfo->Effect[effIndex] == SPELL_EFFECT_SCRIPT_EFFECT) // workaround for neutral target type
-                        targetType = SPELL_TARGETS_ALL;
                     UnitList tempTargetUnitMap;
                     SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
                     // fill real target list if no spell script target defined
-                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap,
-                        radius, cone, PUSH_CONE, bounds.first != bounds.second ? SPELL_TARGETS_ALL : targetType);
+                    FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : targetUnitMap, radius, cone, PUSH_CONE, targetType);
                     if (!tempTargetUnitMap.empty())
-                    {
                         CheckSpellScriptTargets(bounds, tempTargetUnitMap, targetUnitMap, effIndex);
-                    }
                     break;
                 }
                 default:
@@ -3525,7 +3493,7 @@ void Spell::_handle_immediate_phase()
         if (!m_spellInfo->HasAttribute(SPELL_ATTR_EX2_NOT_RESET_AUTO_ACTIONS))
         {
             m_caster->resetAttackTimer(BASE_ATTACK);
-            if (m_caster->haveOffhandWeapon())
+            if (m_caster->hasOffhandWeaponForAttack())
                 m_caster->resetAttackTimer(OFF_ATTACK);
         }
     }
@@ -4237,8 +4205,8 @@ void Spell::SendChannelStart(uint32 duration)
     {
         for (TargetList::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
         {
-            if ((itr->effectHitMask & (1 << EFFECT_INDEX_0)) && itr->reflectResult == SPELL_MISS_NONE &&
-                    m_CastItem || itr->targetGUID != m_caster->GetObjectGuid())
+            if (((itr->effectHitMask & (1 << EFFECT_INDEX_0)) && itr->reflectResult == SPELL_MISS_NONE &&
+                    m_CastItem) || itr->targetGUID != m_caster->GetObjectGuid())
             {
                 target = ObjectAccessor::GetUnit(*m_caster, itr->targetGUID);
                 break;
@@ -5908,6 +5876,17 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 // It is assumed that target can not be cloned if already cloned by same or other clone auras
                 if (expectedTarget->HasAuraType(SPELL_AURA_MIRROR_IMAGE))
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                break;
+            }
+            case SPELL_AURA_MOD_DISARM:
+            {
+                if (!expectedTarget)
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                // Target must be a weapon wielder
+                if (!expectedTarget->hasMainhandWeapon())
                     return SPELL_FAILED_BAD_TARGETS;
 
                 break;

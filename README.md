@@ -5,7 +5,7 @@
 * Serverside anticheat
 * Crossfaction Battlegrounds
 
-If you're interested in anything specific to this CMaNGOS fork, then I'm on [#lillecarl @ irc.rizon.net](http://qchat.rizon.net/?channels=lillecarl&uio=d4) :)
+If you're interested in anything specific to this CMaNGOS fork, then I'm on Discord (sometimes) LilleCarl#8098 
 
 This file is part of the CMaNGOS Project. See [AUTHORS](AUTHORS.md) and [COPYRIGHT](COPYRIGHT.md) files for Copyright information
 

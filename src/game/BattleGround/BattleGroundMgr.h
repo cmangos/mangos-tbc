@@ -52,6 +52,7 @@ struct GroupQueueInfo                                       // stores informatio
 {
     GroupQueueInfoPlayers Players;                          // player queue info map
     Team  GroupTeam;                                        // Player team (ALLIANCE/HORDE)
+    Team  OGroupTeam;                                       // Original player team (ALLIANCE/HORDE)
     BattleGroundTypeId BgTypeId;                            // battleground type id
     bool    IsRated;                                        // rated
     ArenaType arenaType;                                    // 2v2, 3v3, 5v5 or 0 when BG
@@ -61,12 +62,6 @@ struct GroupQueueInfo                                       // stores informatio
     uint32  IsInvitedToBGInstanceGUID;                      // was invited to certain BG
     uint32  ArenaTeamRating;                                // if rated match, inited to the rating of the team
     uint32  OpponentsTeamRating;                            // for rated arena matches
-};
-
-struct GroupQueueInfoComparator {
-    bool operator()(const GroupQueueInfo* first, const GroupQueueInfo* second) const {
-        return first->JoinTime < second->JoinTime;
-    }
 };
 
 enum BattleGroundQueueGroupTypes

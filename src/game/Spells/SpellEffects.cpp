@@ -8231,33 +8231,21 @@ void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
 {
     WorldLocation loc;
 
-    if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
-    {
-        m_targets.getDestination(loc.coord_x, loc.coord_y, loc.coord_z);
-
-        if (unitTarget->GetTypeId() != TYPEID_PLAYER)
-            ((Creature*)unitTarget)->StopMoving();
-    }
-    else if (unitTarget && unitTarget != m_caster)
-    {
-        float angle = unitTarget->GetAngle(m_caster) - unitTarget->GetOrientation();
-
-        unitTarget->GetFirstCollisionPosition(loc, unitTarget->GetCombatReach(), unitTarget->GetAngle(m_caster));
-    }
-    else
+    if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
         return;
+
+    m_targets.getDestination(loc.coord_x, loc.coord_y, loc.coord_z);
+    m_caster->GetFirstCollisionPosition(loc, 0.f, m_caster->GetAngle(loc.coord_x, loc.coord_y));
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+        ((Creature*)m_caster)->StopMoving();
 
     float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
 
     // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    if (unitTarget && m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (loc.coord_z < m_caster->GetPositionZ()) && (fabs(loc.coord_z - m_caster->GetPositionZ()) > 3.0f))
-        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, (loc.coord_z + unitTarget->GetObjectScale()), speed, false, false);
-    else if (unitTarget)
-        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, (loc.coord_z + unitTarget->GetObjectScale()), speed, true, true);
-
-    // not all charge effects used in negative spells
-    if (unitTarget && unitTarget != m_caster && !IsPositiveSpell(m_spellInfo->Id, m_caster, unitTarget))
-        m_caster->Attack(unitTarget, true);
+    if (m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (loc.coord_z < m_caster->GetPositionZ()) && (fabs(loc.coord_z - m_caster->GetPositionZ()) > 3.0f))
+        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, loc.coord_z, speed, false, false);
+    else
+        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, loc.coord_z, speed, true, true);
 }
 
 

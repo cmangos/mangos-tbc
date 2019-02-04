@@ -188,6 +188,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_FOGOFWAR_STEALTH,
     CONFIG_UINT32_FOGOFWAR_HEALTH,
     CONFIG_UINT32_FOGOFWAR_STATS,
+    CONFIG_UINT32_AUTOBROADCAST_TIMER,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -442,6 +443,7 @@ struct CliCommandHolder
 /// The World
 class World
 {
+    friend class Custom;
     public:
         static volatile uint32 m_worldLoopCounter;
 

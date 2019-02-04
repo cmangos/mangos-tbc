@@ -1,4 +1,5 @@
 #include "CPlayer.h"
+#include "Globals/Custom.h"
 #include "Entities/Object.h"
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
@@ -72,7 +73,7 @@ void CPlayer::HandleTeleport(uint32 map, float x, float y, float z, float o)
         i->HandleTeleport(map, x, y, z, o);
 }
 
-void CPlayer::SendStreamMessages(MessageTypes type, std::stringstream &ss)
+void CPlayer::SendStreamMessages(MessageType type, std::stringstream &ss)
 {
     if (!ss.str().empty())
     {
@@ -103,9 +104,9 @@ void CPlayer::Update(uint32 update_diff)
 {
     Player::Update(update_diff);
 
-    SendStreamMessages(MessageTypes(CHAT_BOX), BoxChat);
-    SendStreamMessages(MessageTypes(CHAT_WIDE), WideChat);
-    SendStreamMessages(MessageTypes(CHAT_BOX | CHAT_WIDE), BothChat);
+    SendStreamMessages(MessageType(CHAT_BOX), BoxChat);
+    SendStreamMessages(MessageType(CHAT_WIDE), WideChat);
+    SendStreamMessages(MessageType(CHAT_BOX | CHAT_WIDE), BothChat);
 
     for (auto& i : antiCheatStorage)
         i->HandleUpdate(update_diff);

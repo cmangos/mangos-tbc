@@ -1726,11 +1726,22 @@ CharDelete.KeepDays = 30
 ###################################################################################################################
 # CUSTOM NON BLIZZLIKE SERVER FEATURES
 #
-#	Custom.DuelReset
-#		Reset health, mana and arena cooldowns when duel starts
-#		Default: 0 - Disabled
-#			 1 - Enabled
+#    Custom.DuelReset
+#        Reset health, mana and arena cooldowns when duel starts
+#        Default: 0 - Disabled
+#             1 - Enabled
+#
+#    Custom.AutoBroadcastTimer
+#        Default timer between announcements
+#               Default: 0   - Disabled
+#                        300 - 300 seconds (5 minutes)
+#
+#    Custom.AutoBroadcastPrefix
+#        Prefix that's always applied for AutoBroadcast messages
+#        Default: "" - No prefixed text
 #
 ###################################################################################################################
 
 Custom.DuelReset = 0
+Custom.AutoBroadcastTimer = 0
+Custom.AutoBroadcastPrefix = ""

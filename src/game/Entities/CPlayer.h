@@ -33,14 +33,9 @@ static const std::string MSG_COLOR_SHAMAN = "|cff0070de";
 static const std::string MSG_COLOR_WARLOCK = "|cff9482c9";
 static const std::string MSG_COLOR_WARRIOR = "|cffc79c6e";
 
-enum MessageTypes
-{
-    CHAT_BOX = 0x1,
-    CHAT_WIDE = 0x2
-};
-
 class AntiCheat;
 struct Position;
+enum MessageType : uint8;
 
 class CPlayer : public Player
 {
@@ -70,7 +65,7 @@ private:
 
     // Chat messages
 public:
-    void SendStreamMessages(MessageTypes type, std::stringstream &ss);
+    void SendStreamMessages(MessageType type, std::stringstream &ss);
 
     std::stringstream BoxChat;
     std::stringstream WideChat;

@@ -828,7 +828,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
     setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
 
-    setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.CrossfactionQueueing", false); // Should be false for PR
+    setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.CrossfactionQueueing", false);
+    setConfig(CONFIG_BOOL_DUELRESET_ENABLED, "Custom.DuelReset", false);
 
     sLog.outString();
 }

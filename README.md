@@ -4,6 +4,7 @@
 ## Additional features
 * Serverside anticheat
 * Crossfaction Battlegrounds
+* AutoBroadcaster (very basic)
 
 If you're interested in anything specific to this CMaNGOS fork, then I'm on Discord (sometimes) LilleCarl#8098 [My Server](https://discord.gg/qgTkNXa)
 

@@ -17,13 +17,8 @@ enum CustomTimers : uint8
     CUPDATE_COUNT
 };
 
-struct AutoBroadcastMsg
-{
-    std::string text { "" };
-    MessageType type { CHAT_BOX };
-};
-
 class SpellRegulator;
+class AutoBroadcast;
 
 class Custom : public CSingleton<Custom>
 {
@@ -31,17 +26,13 @@ public:
     Custom();
     ~Custom();
 
-    SpellRegulator* SpellRegulator {};
+    SpellRegulator* spellRegulator {};
+    AutoBroadcast* autoBroadcast {};
 
     void LoadConfig();
-    void LoadAutoBroadcasts();
-    void SendAutoBroadcasts();
     void Update(uint32 diff);
+    IntervalTimer& GetTimer(CustomTimers timer) { return m_timers[timer]; }
 private:
-    IntervalTimer m_timers[CUPDATE_COUNT];
-    std::string AutoBroadcastPrefix {""};
-    std::vector<AutoBroadcastMsg> AutoBroadcastMessages {};
-    size_t AutoBroadcastItr { 0 };
-};
+    IntervalTimer m_timers[CUPDATE_COUNT];};
 
 #define sCustom Custom::Instance()

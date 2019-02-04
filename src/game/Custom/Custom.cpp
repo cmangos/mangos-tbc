@@ -5,13 +5,16 @@
 #include "Server/WorldSession.h"
 #include "Entities/Player.h"
 #include "Custom/CPlayer.h"
+#include "SpellRegulator.hpp"
 
 Custom::Custom()
 {
+    SpellRegulator = new class SpellRegulator();
 }
 
 Custom::~Custom()
 {
+    delete SpellRegulator;
 }
 
 void Custom::Update(uint32 diff)
@@ -31,6 +34,7 @@ void Custom::LoadConfig()
     AutoBroadcastPrefix = sConfig.GetStringDefault("Custom.AutoBroadcastPrefix", "");
 
     LoadAutoBroadcasts();
+    SpellRegulator->LoadRegulators();
 }
 
 void Custom::LoadAutoBroadcasts()

@@ -48,6 +48,9 @@
 #include "Entities/CreatureLinkingMgr.h"
 #include "Tools/Formulas.h"
 
+#include "Custom/Custom.h"
+#include "Custom/SpellRegulator.hpp"
+
 #include <math.h>
 #include <array>
 
@@ -800,6 +803,9 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
         return 0;
     }
+
+    if (spellProto)
+        sCustom.SpellRegulator->RegulateSpell(spellProto->Id, damage);
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageStart");
 
@@ -5663,6 +5669,8 @@ void Unit::RemoveAllGameObjects()
 
 void Unit::SendSpellNonMeleeDamageLog(SpellNonMeleeDamage* log) const
 {
+    sCustom.SpellRegulator->RegulateSpell(log->SpellID, log->damage);
+
     WorldPacket data(SMSG_SPELLNONMELEEDAMAGELOG, (8 + 8 + 4 + 4 + 1 + 4 + 4 + 1 + 1 + 4 + 4 + 1));
     data << log->target->GetPackGUID();
     data << log->attacker->GetPackGUID();
@@ -5729,6 +5737,8 @@ void Unit::SendPeriodicAuraLog(SpellPeriodicAuraLogInfo* pInfo) const
 {
     Aura* aura = pInfo->aura;
     Modifier* mod = aura->GetModifier();
+
+    sCustom.SpellRegulator->RegulateSpell(aura->GetId(), pInfo->damage);
 
     WorldPacket data(SMSG_PERIODICAURALOG, 30);
     data << aura->GetTarget()->GetPackGUID();
@@ -6710,6 +6720,9 @@ void Unit::UnsummonAllTotems() const
 
 int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellProto, bool critical)
 {
+    if (spellProto)
+        sCustom.SpellRegulator->RegulateSpell(spellProto->Id, addhealth);
+
     int32 gain = pVictim->ModifyHealth(int32(addhealth));
 
     Unit* unit = this;

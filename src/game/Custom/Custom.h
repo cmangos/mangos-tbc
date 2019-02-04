@@ -23,11 +23,15 @@ struct AutoBroadcastMsg
     MessageType type { CHAT_BOX };
 };
 
+class SpellRegulator;
+
 class Custom : public CSingleton<Custom>
 {
 public:
     Custom();
     ~Custom();
+
+    SpellRegulator* SpellRegulator {};
 
     void LoadConfig();
     void LoadAutoBroadcasts();

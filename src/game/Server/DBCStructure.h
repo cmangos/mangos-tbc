@@ -575,6 +575,20 @@ struct ItemSetEntry
     uint32    required_skill_value;                         // 52       m_requiredSkillRank
 };
 
+struct LanguagesRec
+{
+    uint32  Id;                                             // 0        m_ID
+    char*   name[16];                                       // 1-16     m_name_lang
+    uint32  flags;                                          // 17       flags
+};
+
+struct LanguageWordsRec
+{
+    uint32  Id;                                             // 0    m_ID
+    uint32  LangId;                                         // 1    m_languageID
+    char*   Word;                                           // 2    m_word
+};
+
 struct LiquidTypeEntry
 {
     uint32 Id;                                              // 0

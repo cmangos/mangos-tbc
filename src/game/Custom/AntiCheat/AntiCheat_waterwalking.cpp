@@ -1,5 +1,5 @@
 #include "AntiCheat_waterwalking.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 #include "Spells/Spell.h"
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"

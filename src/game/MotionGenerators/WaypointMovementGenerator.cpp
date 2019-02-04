@@ -26,7 +26,7 @@
 #include "Movement/MoveSplineInit.h"
 #include "Movement/MoveSpline.h"
 
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 #include <cassert>
 

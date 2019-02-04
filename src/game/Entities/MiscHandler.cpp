@@ -40,7 +40,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "Entities/Pet.h"
 #include "Social/SocialMgr.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
 {

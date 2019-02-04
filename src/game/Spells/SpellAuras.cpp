@@ -50,7 +50,7 @@
 #include "Maps/InstanceData.h"
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 #define NULL_AURA_SLOT 0xFF
 

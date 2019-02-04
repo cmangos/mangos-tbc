@@ -41,7 +41,7 @@
 #include "Loot/LootMgr.h"
 #include "Spells/SpellMgr.h"
 
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 Object::Object(): m_updateFlag(0), m_itsNewObject(false)
 {

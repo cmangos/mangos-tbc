@@ -4,7 +4,7 @@
 #include "World/World.h"
 #include "Server/WorldSession.h"
 #include "Entities/Player.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 Custom::Custom()
 {

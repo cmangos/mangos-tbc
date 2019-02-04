@@ -1,5 +1,5 @@
 #include "AntiCheat_teleport.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 AntiCheat_teleport::AntiCheat_teleport(CPlayer* player) : AntiCheat(player)
 {

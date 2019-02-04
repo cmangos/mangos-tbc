@@ -1,5 +1,5 @@
 #include "AntiCheat_nofall.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 #include "World/World.h"
 
 AntiCheat_nofall::AntiCheat_nofall(CPlayer* player) : AntiCheat(player)

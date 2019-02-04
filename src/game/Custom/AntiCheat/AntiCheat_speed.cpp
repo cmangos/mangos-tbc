@@ -1,5 +1,5 @@
 #include "AntiCheat_speed.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 #include "World/World.h"
 #include "Maps/Map.h"
 #include "Maps/MapManager.h"

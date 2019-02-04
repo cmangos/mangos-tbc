@@ -57,7 +57,7 @@
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
 {

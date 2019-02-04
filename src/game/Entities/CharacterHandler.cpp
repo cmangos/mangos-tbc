@@ -39,7 +39,7 @@
 #include "Tools/Language.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Spells/SpellMgr.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"

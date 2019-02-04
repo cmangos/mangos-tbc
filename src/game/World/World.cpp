@@ -67,7 +67,7 @@
 #include "World/WorldState.h"
 #include "Cinematics/CinematicMgr.h"
 
-#include "Globals/Custom.h"
+#include "Custom/Custom.h"
 
 #include <algorithm>
 #include <mutex>

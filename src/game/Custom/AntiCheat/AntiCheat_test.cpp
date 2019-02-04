@@ -1,5 +1,5 @@
 #include "AntiCheat_test.h"
-#include "Entities/CPlayer.h"
+#include "Custom/CPlayer.h"
 #include "Entities/Transports.h"
 
 AntiCheat_test::AntiCheat_test(CPlayer* player) : AntiCheat(player)

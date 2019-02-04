@@ -1,5 +1,5 @@
 #include "CPlayer.h"
-#include "Globals/Custom.h"
+#include "Custom/Custom.h"
 #include "Entities/Object.h"
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"

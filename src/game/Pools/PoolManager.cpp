@@ -25,6 +25,7 @@
 #include "World/World.h"
 #include "Policies/Singleton.h"
 #include <algorithm>
+#include <random>
 
 INSTANTIATE_SINGLETON_1(PoolManager);
 
@@ -210,7 +211,7 @@ PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom)
         std::transform(ExplicitlyChanced.begin(), ExplicitlyChanced.end(), std::back_inserter(explicitlyChancedVector), [](PoolObject& objPtr) { return &objPtr; });
 
         // randomize the new vector
-        random_shuffle(explicitlyChancedVector.begin(), explicitlyChancedVector.end());
+        std::shuffle(explicitlyChancedVector.begin(), explicitlyChancedVector.end(), std::mt19937(std::random_device()()));
 
         for (auto obj : explicitlyChancedVector)
         {
@@ -240,7 +241,7 @@ PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom)
         std::transform(EqualChanced.begin(), EqualChanced.end(), std::back_inserter(equalyChancedVector), [](PoolObject& objPtr) { return &objPtr; });
 
         // randomize the new vector
-        random_shuffle(equalyChancedVector.begin(), equalyChancedVector.end());
+        std::shuffle(equalyChancedVector.begin(), equalyChancedVector.end(), std::mt19937(std::random_device()()));
 
         for (auto obj : equalyChancedVector)
         {

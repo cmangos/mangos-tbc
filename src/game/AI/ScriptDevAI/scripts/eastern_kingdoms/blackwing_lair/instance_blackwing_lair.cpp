@@ -24,6 +24,8 @@ EndScriptData */
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "blackwing_lair.h"
 
+#include <random>
+
 instance_blackwing_lair::instance_blackwing_lair(Map* pMap) : ScriptedInstance(pMap),
     m_uiResetTimer(0),
     m_uiDefenseTimer(0),
@@ -555,7 +557,7 @@ void instance_blackwing_lair::Update(uint32 uiDiff)
     if (m_uiDefenseTimer < uiDiff)
     {
         // Randomize generators
-        std::random_shuffle(m_vGeneratorGuids.begin(), m_vGeneratorGuids.end());
+        std::shuffle(m_vGeneratorGuids.begin(), m_vGeneratorGuids.end(), std::mt19937(std::random_device()()));
 
         // Spawn the defenders
         for (uint8 i = 0; i < MAX_EGGS_DEFENDERS; ++i)

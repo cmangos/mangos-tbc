@@ -1909,7 +1909,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             if (!m_caster->GetTerrain()->IsInWater(x, y, m_caster->GetPositionZ() + 1.f, &liqData))
             {
                 SendCastResult(SPELL_FAILED_NOT_FISHABLE);
-                cancel();
+                finish(false);
                 return;
             }
 
@@ -1918,7 +1918,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             if (!m_caster->IsWithinLOS(x, y, z))
             {
                 SendCastResult(SPELL_FAILED_LINE_OF_SIGHT);
-                cancel();
+                finish(false);
                 return;
             }
             m_targets.setDestination(x, y, z);
@@ -2210,7 +2210,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                 {
                     if (data.tmpUnitList.size() <= 0)
                     {
-                        cancel();
+                        finish(false);
                         return;
                     }
                     break;
@@ -2533,14 +2533,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             }
             break;
         }
-        case TARGET_UNIT_SCRIPT_NEAR_CASTER:
-        {
-            if (m_targets.getUnitTarget())
-                data.tmpUnitList.push_back(m_targets.getUnitTarget());
-            if (m_targets.getItemTarget())
-                AddItemTarget(m_targets.getItemTarget(), effIndex);
-            break;
-        }
         case TARGET_UNIT_FRIEND_CHAIN_HEAL:
         {
             Unit* pUnitTarget = m_targets.getUnitTarget();
@@ -2680,6 +2672,179 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             }
             else if (m_targets.getUnitTarget())
                 data.tmpUnitList.push_back(m_targets.getUnitTarget());
+            break;
+        }
+        case TARGET_UNIT_SCRIPT_NEAR_CASTER:
+        case TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER:
+        case TARGET_LOCATION_SCRIPT_NEAR_CASTER:
+        {
+            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+
+            if (bounds.first == bounds.second)
+            {
+                if (m_spellInfo->EffectImplicitTargetA[effIndex] == TARGET_UNIT_SCRIPT_NEAR_CASTER || m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_UNIT_SCRIPT_NEAR_CASTER)
+                    sLog.outErrorDb("Spell entry %u, effect %i has EffectImplicitTargetA/EffectImplicitTargetB = TARGET_UNIT_SCRIPT_NEAR_CASTER, but creature are not defined in `spell_script_target`", m_spellInfo->Id, effIndex);
+
+                if (m_spellInfo->EffectImplicitTargetA[effIndex] == TARGET_LOCATION_SCRIPT_NEAR_CASTER || m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_LOCATION_SCRIPT_NEAR_CASTER)
+                    sLog.outErrorDb("Spell entry %u, effect %i has EffectImplicitTargetA/EffectImplicitTargetB = TARGET_LOCATION_SCRIPT_NEAR_CASTER, but gameobject or creature are not defined in `spell_script_target`", m_spellInfo->Id, effIndex);
+
+                if (m_spellInfo->EffectImplicitTargetA[effIndex] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER || m_spellInfo->EffectImplicitTargetB[effIndex] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
+                    sLog.outErrorDb("Spell entry %u, effect %i has EffectImplicitTargetA/EffectImplicitTargetB = TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER, but gameobject are not defined in `spell_script_target`", m_spellInfo->Id, effIndex);
+
+                break;
+            }
+
+            CreatureList foundScriptCreatureTargets;
+            GameObjectList foundScriptGOTargets;
+            std::set<uint32> entriesToUse;
+            uint32 type = MAX_SPELL_TARGET_TYPE;
+            bool foundButOutOfRange = false;
+            // corrections for numerous spells missing it
+            uint32 targetCount = std::max(EffectChainTarget, uint32(1));
+            if (radius == 0.f)
+                radius = m_caster->GetMap()->IsDungeon() ? DEFAULT_VISIBILITY_INSTANCE : DEFAULT_VISIBILITY_DISTANCE;
+
+            for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+            {
+                if (i_spellST->CanNotHitWithSpellEffect(effIndex))
+                    continue;
+
+                type = i_spellST->type;
+                switch (i_spellST->type)
+                {
+                    case SPELL_TARGET_TYPE_GAMEOBJECT:
+                    case SPELL_TARGET_TYPE_CREATURE:
+                    case SPELL_TARGET_TYPE_DEAD:
+                    case SPELL_TARGET_TYPE_CREATURE_GUID:
+                    default:
+                        entriesToUse.insert(i_spellST->targetEntry);
+                        break;
+                }
+            }
+
+            WorldObject* caster = GetAffectiveCasterObject();
+
+            switch (type) // TODO: Unify logic with all other spell_script_target uses
+            {
+                case SPELL_TARGET_TYPE_GAMEOBJECT:
+                {
+                    MaNGOS::AllGameObjectEntriesListInObjectRangeCheck go_check(*m_caster, entriesToUse, radius);
+                    MaNGOS::GameObjectListSearcher<MaNGOS::AllGameObjectEntriesListInObjectRangeCheck> checker(foundScriptGOTargets, go_check);
+                    Cell::VisitGridObjects(m_caster, checker, radius);
+                    for (auto itr = foundScriptGOTargets.begin(); itr != foundScriptGOTargets.end();)
+                    {
+                        if (!CheckTargetGOScript(*itr, effIndex))
+                            itr = foundScriptGOTargets.erase(itr);
+                        else
+                            ++itr;
+                    }
+                    foundScriptGOTargets.sort([=](const GameObject * a, const GameObject * b) -> bool
+                    {
+                        return caster->GetDistance(a, true, DIST_CALC_NONE) < caster->GetDistance(b, true, DIST_CALC_NONE);
+                    });
+
+                    if (foundScriptGOTargets.size() > targetCount) // if we have too many targets, we need to trim the list
+                        foundScriptGOTargets.resize(targetCount);
+                    break;
+                }
+                case SPELL_TARGET_TYPE_CREATURE:
+                case SPELL_TARGET_TYPE_DEAD:
+                case SPELL_TARGET_TYPE_CREATURE_GUID:
+                {
+                    if (Unit* target = m_targets.getUnitTarget())
+                    {
+                        if (target->GetTypeId() == TYPEID_UNIT && entriesToUse.find(type == SPELL_TARGET_TYPE_CREATURE_GUID ? target->GetGUIDLow() : target->GetEntry()) != entriesToUse.end())
+                        {
+                            if ((type == SPELL_TARGET_TYPE_CREATURE && target->isAlive()) ||
+                                (type == SPELL_TARGET_TYPE_DEAD && ((Creature*)target)->IsCorpse()))
+                            {
+                                if (target->IsWithinDistInMap(caster, radius))
+                                    foundScriptCreatureTargets.push_back((Creature*)target);
+                                else
+                                    foundButOutOfRange = true;
+                            }
+                        }
+                    }
+                    if (foundScriptCreatureTargets.size() < targetCount)
+                    {
+                        MaNGOS::AllCreatureEntriesWithLiveStateInObjectRangeCheck u_check(*caster, entriesToUse, type != SPELL_TARGET_TYPE_DEAD, radius, type == SPELL_TARGET_TYPE_CREATURE_GUID, false, true);
+                        MaNGOS::CreatureListSearcher<MaNGOS::AllCreatureEntriesWithLiveStateInObjectRangeCheck> searcher(foundScriptCreatureTargets, u_check);
+
+                        // Visit all, need to find also Pet* objects
+                        Cell::VisitAllObjects(caster, searcher, radius);
+                        for (auto iter = foundScriptCreatureTargets.begin(); iter != foundScriptCreatureTargets.end();)
+                        {
+                            bool failed = false;
+                            if (!CheckTargetScript(*iter, effIndex))
+                                failed = true;
+                            else if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_TARGET_SELF) && m_caster == (*iter))
+                                failed = true;
+                            if (failed)
+                                iter = foundScriptCreatureTargets.erase(iter);
+                            else
+                                ++iter;
+                        }
+
+                        foundScriptCreatureTargets.sort([=](const Creature * a, const Creature * b) -> bool
+                        {
+                            return caster->GetDistance(a, true, DIST_CALC_NONE) < caster->GetDistance(b, true, DIST_CALC_NONE);
+                        });
+
+                        if (foundScriptCreatureTargets.size() > targetCount) // if we have too many targets, we need to trim the list
+                            foundScriptCreatureTargets.resize(targetCount);
+
+                        if (u_check.FoundOutOfRange())
+                            foundButOutOfRange = true;
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            if (!foundScriptCreatureTargets.empty())
+            {
+                // store coordinates for TARGET_LOCATION_SCRIPT_NEAR_CASTER
+                if (targetMode == TARGET_LOCATION_SCRIPT_NEAR_CASTER)
+                {
+                    Creature* creatureScriptTarget = foundScriptCreatureTargets.front(); // can only have one target in this case
+                    m_targets.setDestination(creatureScriptTarget->GetPositionX(), creatureScriptTarget->GetPositionY(), creatureScriptTarget->GetPositionZ());
+                }
+                // store explicit target for TARGET_UNIT_SCRIPT_NEAR_CASTER
+                else
+                    for (Creature* creature : foundScriptCreatureTargets)
+                        data.tmpUnitList.push_back(creature);
+            }
+            else if (!foundScriptGOTargets.empty())
+            {
+                // store coordinates for TARGET_LOCATION_SCRIPT_NEAR_CASTER
+                if (targetMode == TARGET_LOCATION_SCRIPT_NEAR_CASTER)
+                {
+                    GameObject* goScriptTarget = foundScriptGOTargets.front(); // can only have one target in this case
+                    m_targets.setDestination(goScriptTarget->GetPositionX(), goScriptTarget->GetPositionY(), goScriptTarget->GetPositionZ());
+                }
+                // store explicit target for TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER
+                else
+                    data.tmpGOList.splice(data.tmpGOList.end(), foundScriptGOTargets);
+            }
+            // Missing DB Entry or targets for this spellEffect.
+            else
+            {
+                /* For TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER makes DB targets optional not required for now
+                 * TODO: Makes more research for this target type
+                 */
+                if (targetMode != TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
+                {
+                    // not report target not existence for triggered spells
+                    SpellCastResult result = SPELL_CAST_OK;
+                    if (m_triggeredByAuraSpell || m_IsTriggeredSpell)
+                        result = SPELL_FAILED_DONT_REPORT;
+                    result = foundButOutOfRange ? SPELL_FAILED_OUT_OF_RANGE : SPELL_FAILED_BAD_TARGETS;
+                    SendCastResult(result);
+                    finish(false);
+                    return;
+                }
+            }
             break;
         }
         default:
@@ -4694,212 +4859,6 @@ SpellCastResult Spell::CheckCast(bool strict)
         focusObject = ok;                                   // game object found in range
     }
 
-    WorldObject* worldObject = m_caster->GetMap()->GetWorldObject(m_originalCasterGUID); // will be maybe needed in more places where we calculate distance
-
-    // Database based targets from spell_target_script
-    if (m_UniqueTargetInfo.empty())                         // skip second CheckCast apply (for delayed spells for example)
-    {
-        for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
-        {
-            if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
-                    m_spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
-                    m_spellInfo->EffectImplicitTargetA[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
-                    m_spellInfo->EffectImplicitTargetB[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
-                    m_spellInfo->EffectImplicitTargetA[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER ||
-                    m_spellInfo->EffectImplicitTargetB[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
-            {
-                if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
-                        m_spellInfo->EffectImplicitTargetA[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
-                        m_spellInfo->EffectImplicitTargetA[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
-                    m_usedTargets[j][0] = true;
-                if (m_spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
-                        m_spellInfo->EffectImplicitTargetB[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
-                        m_spellInfo->EffectImplicitTargetB[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
-                    m_usedTargets[j][1] = true;
-                SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
-
-                if (bounds.first == bounds.second)
-                {
-                    if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER || m_spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER)
-                        sLog.outErrorDb("Spell entry %u, effect %i has EffectImplicitTargetA/EffectImplicitTargetB = TARGET_UNIT_SCRIPT_NEAR_CASTER, but creature are not defined in `spell_script_target`", m_spellInfo->Id, j);
-
-                    if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER || m_spellInfo->EffectImplicitTargetB[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER)
-                        sLog.outErrorDb("Spell entry %u, effect %i has EffectImplicitTargetA/EffectImplicitTargetB = TARGET_LOCATION_SCRIPT_NEAR_CASTER, but gameobject or creature are not defined in `spell_script_target`", m_spellInfo->Id, j);
-
-                    if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER || m_spellInfo->EffectImplicitTargetB[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
-                        sLog.outErrorDb("Spell entry %u, effect %i has EffectImplicitTargetA/EffectImplicitTargetB = TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER, but gameobject are not defined in `spell_script_target`", m_spellInfo->Id, j);
-                }
-
-                SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex);
-                float range = GetSpellMaxRange(srange);
-
-                // override range with default when it's not provided
-                if (!range)
-                    range = m_caster->GetMap()->IsDungeon() ? DEFAULT_VISIBILITY_INSTANCE : DEFAULT_VISIBILITY_DISTANCE;
-
-                uint32 targetCount = std::max(m_spellInfo->EffectChainTarget[j], uint32(1));
-                CreatureList foundScriptCreatureTargets;
-                GameObjectList foundScriptGOTargets;
-                std::set<uint32> entriesToUse;
-                uint32 type = MAX_SPELL_TARGET_TYPE;
-                bool foundButOutOfRange = false;
-
-                for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
-                {
-                    if (i_spellST->CanNotHitWithSpellEffect(SpellEffectIndex(j)))
-                        continue;
-
-                    type = i_spellST->type;
-                    switch (i_spellST->type)
-                    {
-                        case SPELL_TARGET_TYPE_GAMEOBJECT:
-                        case SPELL_TARGET_TYPE_CREATURE:
-                        case SPELL_TARGET_TYPE_DEAD:
-                        case SPELL_TARGET_TYPE_CREATURE_GUID:
-                        default:
-                            entriesToUse.insert(i_spellST->targetEntry);
-                            break;
-                    }
-                }
-
-                WorldObject* objectForSearch = (worldObject && (worldObject->GetTypeId() == TYPEID_GAMEOBJECT || worldObject->GetTypeId() == TYPEID_DYNAMICOBJECT)) ? worldObject : m_caster;
-
-                switch (type) // TODO: Unify logic with all other spell_script_target uses
-                {
-                    case SPELL_TARGET_TYPE_GAMEOBJECT:
-                    {
-                        MaNGOS::AllGameObjectEntriesListInObjectRangeCheck go_check(*m_caster, entriesToUse, range);
-                        MaNGOS::GameObjectListSearcher<MaNGOS::AllGameObjectEntriesListInObjectRangeCheck> checker(foundScriptGOTargets, go_check);
-                        Cell::VisitGridObjects(m_caster, checker, range);
-                        foundScriptGOTargets.sort([ = ](const GameObject * a, const GameObject * b) -> bool
-                        {
-                            return objectForSearch->GetDistance(a, true, DIST_CALC_NONE) < objectForSearch->GetDistance(b, true, DIST_CALC_NONE);
-                        });
-
-                        if (foundScriptGOTargets.size() > targetCount) // if we have too many targets, we need to trim the list
-                            foundScriptGOTargets.resize(targetCount);
-                        break;
-                    }
-                    case SPELL_TARGET_TYPE_CREATURE:
-                    case SPELL_TARGET_TYPE_DEAD:
-                    case SPELL_TARGET_TYPE_CREATURE_GUID:
-                    {
-                        if (Unit* target = m_targets.getUnitTarget())
-                        {
-                            if (target->GetTypeId() == TYPEID_UNIT && entriesToUse.find(type == SPELL_TARGET_TYPE_CREATURE_GUID ? target->GetGUIDLow() : target->GetEntry()) != entriesToUse.end())
-                            {
-                                if ((type == SPELL_TARGET_TYPE_CREATURE && target->isAlive()) ||
-                                        (type == SPELL_TARGET_TYPE_DEAD && ((Creature*)target)->IsCorpse()))
-                                {
-                                    if (target->IsWithinDistInMap(objectForSearch, GetSpellMaxRange(srange)))
-                                        foundScriptCreatureTargets.push_back((Creature*)target);
-                                    else
-                                        foundButOutOfRange = true;
-                                }
-                            }
-                        }
-                        if (foundScriptCreatureTargets.size() < targetCount)
-                        {
-                            MaNGOS::AllCreatureEntriesWithLiveStateInObjectRangeCheck u_check(*objectForSearch, entriesToUse, type != SPELL_TARGET_TYPE_DEAD, range, type == SPELL_TARGET_TYPE_CREATURE_GUID, false, true);
-                            MaNGOS::CreatureListSearcher<MaNGOS::AllCreatureEntriesWithLiveStateInObjectRangeCheck> searcher(foundScriptCreatureTargets, u_check);
-
-                            // Visit all, need to find also Pet* objects
-                            Cell::VisitAllObjects(objectForSearch, searcher, range);
-
-                            for (auto iter = foundScriptCreatureTargets.begin(); iter != foundScriptCreatureTargets.end();)
-                            {
-                                bool failed = false;
-                                if (!CheckTargetScript(*iter, SpellEffectIndex(j)))
-                                    failed = true;
-                                else if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_TARGET_SELF) && m_caster == (*iter))
-                                    failed = true;
-                                if (failed)
-                                    iter = foundScriptCreatureTargets.erase(iter);
-                                else
-                                    ++iter;
-                            }
-
-                            foundScriptCreatureTargets.sort([ = ](const Creature * a, const Creature * b) -> bool
-                            {
-                                return objectForSearch->GetDistance(a, true, DIST_CALC_NONE) < objectForSearch->GetDistance(b, true, DIST_CALC_NONE);
-                            });
-
-                            if (foundScriptCreatureTargets.size() > targetCount) // if we have too many targets, we need to trim the list
-                                foundScriptCreatureTargets.resize(targetCount);
-
-                            if (u_check.FoundOutOfRange())
-                                foundButOutOfRange = true;
-                        }
-                        break;
-                    }
-                    default:
-                        break;
-                }
-
-                if (!foundScriptCreatureTargets.empty())
-                {
-                    // store coordinates for TARGET_LOCATION_SCRIPT_NEAR_CASTER
-                    if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
-                            m_spellInfo->EffectImplicitTargetB[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER)
-                    {
-                        Creature* creatureScriptTarget = foundScriptCreatureTargets.front(); // can only have one target in this case
-                        m_targets.setDestination(creatureScriptTarget->GetPositionX(), creatureScriptTarget->GetPositionY(), creatureScriptTarget->GetPositionZ());
-                    }
-                    // store explicit target for TARGET_UNIT_SCRIPT_NEAR_CASTER
-                    else
-                    {
-                        if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
-                                m_spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER)
-                        {
-                            for (Creature* creatureScriptTarget : foundScriptCreatureTargets)
-                                AddUnitTarget(creatureScriptTarget, SpellEffectIndex(j));
-
-                            // Need to fill unittarget for SMSG_SPELL_START - makes some visuals work
-                            if (!foundScriptCreatureTargets.empty())
-                                m_targets.setUnitTarget(foundScriptCreatureTargets.front());
-                        }
-                    }
-                }
-                else if (!foundScriptGOTargets.empty())
-                {
-                    // store coordinates for TARGET_LOCATION_SCRIPT_NEAR_CASTER
-                    if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
-                            m_spellInfo->EffectImplicitTargetB[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER)
-                    {
-                        GameObject* goScriptTarget = foundScriptGOTargets.front(); // can only have one target in this case
-                        m_targets.setDestination(goScriptTarget->GetPositionX(), goScriptTarget->GetPositionY(), goScriptTarget->GetPositionZ());
-
-                        AddGOTarget(goScriptTarget, SpellEffectIndex(j));
-                    }
-                    // store explicit target for TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER
-                    else
-                    {
-                        if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER ||
-                                m_spellInfo->EffectImplicitTargetB[j] == TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
-                        {
-                            for (GameObject* goScriptTarget : foundScriptGOTargets)
-                                AddGOTarget(goScriptTarget, SpellEffectIndex(j));
-                        }
-                    }
-                }
-                // Missing DB Entry or targets for this spellEffect.
-                else
-                {
-                    /* For TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER makes DB targets optional not required for now
-                    * TODO: Makes more research for this target type
-                    */
-                    if (m_spellInfo->EffectImplicitTargetA[j] != TARGET_GAMEOBJECT_SCRIPT_NEAR_CASTER)
-                    {
-                        // not report target not existence for triggered spells
-                        if (m_triggeredByAuraSpell || m_IsTriggeredSpell)
-                            return SPELL_FAILED_DONT_REPORT;
-                        return foundButOutOfRange ? SPELL_FAILED_OUT_OF_RANGE : SPELL_FAILED_BAD_TARGETS;
-                    }
-                }
-            }
-        }
-    }
-
     if (!m_IsTriggeredSpell)
     {
         if (!m_triggeredByAuraSpell)
@@ -6899,6 +6858,9 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, CheckException excep
     }
 
     Unit* realCaster = m_originalCaster ? m_originalCaster : m_caster;
+    SpellTargetInfo infoA = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetA[eff]];
+    SpellTargetInfo infoB = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetB[eff]];
+    bool scriptTarget = (infoA.type == TARGET_TYPE_UNIT && infoA.filter == TARGET_SCRIPT) || (infoB.type == TARGET_TYPE_UNIT && infoB.filter == TARGET_SCRIPT);
 
     if (target != realCaster)
     {
@@ -6910,18 +6872,9 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, CheckException excep
             if (!m_ignoreUnattackableTarget && target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
                 return false;
 
-            // unselectable targets skipped in all cases except TARGET_UNIT_SCRIPT_NEAR_CASTER targeting
-            // in case TARGET_UNIT_SCRIPT_NEAR_CASTER target selected by server always and can't be cheated
-            if ((!m_ignoreUnselectableTarget || target != m_targets.getUnitTarget()) &&
-                target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE) &&
-                m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_SCRIPT_NEAR_CASTER &&
-                m_spellInfo->EffectImplicitTargetB[eff] != TARGET_UNIT_SCRIPT_NEAR_CASTER &&
-                m_spellInfo->EffectImplicitTargetA[eff] != TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC &&
-                m_spellInfo->EffectImplicitTargetB[eff] != TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC &&
-                m_spellInfo->EffectImplicitTargetA[eff] != TARGET_ENUM_UNITS_SCRIPT_AOE_AT_DEST_LOC &&
-                m_spellInfo->EffectImplicitTargetB[eff] != TARGET_ENUM_UNITS_SCRIPT_AOE_AT_DEST_LOC &&
-                m_spellInfo->EffectImplicitTargetA[eff] != TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60 &&
-                m_spellInfo->EffectImplicitTargetB[eff] != TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60)
+            // unselectable targets skipped in all cases except targets with TARGET_SCRIPT
+            if (!m_ignoreUnselectableTarget && target != m_targets.getUnitTarget() &&
+                    target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE) && !scriptTarget)
                 return false;
         }
 
@@ -6945,63 +6898,63 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, CheckException excep
         }
     }
 
-    // Check targets for LOS visibility (except spells without range limitations )
-    switch (m_spellInfo->Effect[eff])
+    if (!scriptTarget)
     {
-        case SPELL_EFFECT_SUMMON_PLAYER:                    // from anywhere
-            break;
-        case SPELL_EFFECT_DUMMY:
-            if (m_spellInfo->Id != 20577)                   // Cannibalize
+        // Check targets for LOS visibility (except spells without range limitations )
+        switch (m_spellInfo->Effect[eff])
+        {
+            case SPELL_EFFECT_SUMMON_PLAYER:                    // from anywhere
                 break;
-        // fall through
-        case SPELL_EFFECT_RESURRECT_NEW:
-            // player far away, maybe his corpse near?
-            if (target != m_caster && !IsIgnoreLosSpellEffect(m_spellInfo, eff) && !target->IsWithinLOSInMap(m_caster, true))
-            {
-                if (!m_targets.getCorpseTargetGuid())
-                    return false;
-
-                Corpse* corpse = m_caster->GetMap()->GetCorpse(m_targets.getCorpseTargetGuid());
-                if (!corpse)
-                    return false;
-
-                if (target->GetObjectGuid() != corpse->GetOwnerGuid())
-                    return false;
-
-                if (!IsIgnoreLosSpellEffect(m_spellInfo, eff) && !corpse->IsWithinLOSInMap(m_caster, true))
-                    return false;
-            }
-
-            // all ok by some way or another, skip normal check
-            break;
-        default:                                            // normal case
-            if (!IsIgnoreLosSpellEffect(m_spellInfo, eff))
-            {
-                if (target != m_caster)
+                // fall through
+            case SPELL_EFFECT_RESURRECT_NEW:
+                // player far away, maybe his corpse near?
+                if (target != m_caster && !target->IsWithinLOSInMap(m_caster, true))
                 {
-                    if (m_spellInfo->EffectImplicitTargetA[eff] == TARGET_LOCATION_DYNOBJ_POSITION)
+                    if (!m_targets.getCorpseTargetGuid())
+                        return false;
+
+                    Corpse* corpse = m_caster->GetMap()->GetCorpse(m_targets.getCorpseTargetGuid());
+                    if (!corpse)
+                        return false;
+
+                    if (target->GetObjectGuid() != corpse->GetOwnerGuid())
+                        return false;
+
+                    if (!corpse->IsWithinLOSInMap(m_caster))
+                        return false;
+                }
+
+                // all ok by some way or another, skip normal check
+                break;
+            default:                                            // normal case
+                if (!IsIgnoreLosSpellEffect(m_spellInfo, eff))
+                {
+                    if (target != m_caster)
                     {
-                        if (DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
-                            if (!target->IsWithinLOSInMap(dynObj, true))
+                        if (m_spellInfo->EffectImplicitTargetA[eff] == TARGET_LOCATION_DYNOBJ_POSITION)
+                        {
+                            if (DynamicObject* dynObj = m_caster->GetDynObject(m_triggeredByAuraSpell ? m_triggeredByAuraSpell->Id : m_spellInfo->Id))
+                                if (!target->IsWithinLOSInMap(dynObj, true))
+                                    return false;
+                        }
+                        else if (WorldObject* caster = GetCastingObject())
+                            if (!target->IsWithinLOSInMap(caster, true))
                                 return false;
                     }
-                    else if (WorldObject* caster = GetCastingObject())
-                        if (!target->IsWithinLOSInMap(caster, true))
-                            return false;
                 }
-            }
-            break;
-    }
+                break;
+        }
 
-    if (target->GetTypeId() != TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER)
+        if (target->GetTypeId() != TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER)
             && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_CASTER)
-        return false;
+            return false;
 
-    if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD) && target->isAlive())
-        return false;
+        if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD) && target->isAlive())
+            return false;
 
-    if (!IsAllowingDeadTarget(m_spellInfo) && !target->isAlive() && !(target == m_caster && m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD)) && m_caster->GetTypeId() == TYPEID_PLAYER)
-        return false;
+        if (!IsAllowingDeadTarget(m_spellInfo) && !target->isAlive() && !(target == m_caster && m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD)) && m_caster->GetTypeId() == TYPEID_PLAYER)
+            return false;
+    }
 
     return CheckTargetScript(target, eff);
 }

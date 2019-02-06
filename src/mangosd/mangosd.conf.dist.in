@@ -3,7 +3,7 @@
 #####################################
 
 [MangosdConf]
-ConfVersion=2019020502
+ConfVersion=2019020503
 
 ###################################################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -1326,7 +1326,7 @@ Visibility.AIRelocationNotifyDelay = 1000
 #
 #    Rate.Reputation.LowLevel.Quest
 #         Lowest Reputation Gain rate from low level quest
-#         Default: 0.2
+#         Default: 1
 #
 #    Rate.InstanceResetTime
 #        Multiplier for the number of days in between global raid/heroic instance resets.
@@ -1444,7 +1444,7 @@ Rate.Mining.Next   = 1
 Rate.Talent = 1
 Rate.Reputation.Gain = 1
 Rate.Reputation.LowLevel.Kill    = 0.2
-Rate.Reputation.LowLevel.Quest   = 0.2
+Rate.Reputation.LowLevel.Quest   = 1
 Rate.InstanceResetTime = 1
 SkillGain.Crafting = 1
 SkillGain.Defense = 1

@@ -3023,6 +3023,23 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
         }
         case SPELLFAMILY_ROGUE:
             break;
+        case SPELLFAMILY_PALADIN:
+        {
+            switch (GetId())
+            {
+                case 21082:                                 // Seal of the Crusader, rank 1
+                case 20162:                                 // rank 2
+                case 20305:                                 // rank 3
+                case 20306:                                 // rank 4
+                case 20307:                                 // rank 5
+                case 20308:                                 // rank 6
+                case 27158:                                 // rank 7
+                    ApplyPercentModFloatVar(target->m_modAttackBaseDPSPct[BASE_ATTACK], 40, !apply);
+                    target->UpdateDamagePhysical(BASE_ATTACK);
+                    return;
+            }
+            break;
+        }
         case SPELLFAMILY_SHAMAN:
         {
             switch (GetId())

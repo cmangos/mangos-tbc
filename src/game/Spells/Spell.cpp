@@ -779,7 +779,7 @@ void Spell::AddUnitTarget(Unit* target, uint8 effectMask, CheckException excepti
     for (uint8 effIndex = 0; effIndex < MAX_EFFECT_INDEX; ++effIndex)
         if ((effectMask & (1 << effIndex)) != 0)
             if (!target->IsImmuneToSpellEffect(m_spellInfo, SpellEffectIndex(effIndex), target == m_caster))
-                notImmunedMask = (1 << effIndex);
+                notImmunedMask |= (1 << effIndex);
 
     ObjectGuid targetGUID = target->GetObjectGuid();
 

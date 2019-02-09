@@ -526,6 +526,7 @@ void Spell::FillTargetMap()
                 m_targetlessExecution[i] = true;
                 break;
             case TARGET_TYPE_UNIT:
+            case TARGET_TYPE_UNIT_DEST:
             case TARGET_TYPE_PLAYER: // for now player handled here
             case TARGET_TYPE_SPECIAL_UNIT:
                 processedUnits = true;

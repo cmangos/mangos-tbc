@@ -7386,12 +7386,6 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uin
         {
             switch (m_spellInfo->Id)
             {
-                case 24811:                                 // Draw Spirit (Lethon)
-                {
-                    if (effIndex == EFFECT_INDEX_0)         // Copy range from EFF_1 to 0
-                        radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_1]));
-                    break;
-                }
                 case 28241:                                 // Poison (Naxxramas, Grobbulus Cloud)
                 {
                     if (SpellAuraHolder* auraHolder = m_caster->GetSpellAuraHolder(28158))

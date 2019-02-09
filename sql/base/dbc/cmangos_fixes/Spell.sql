@@ -1288,4 +1288,6 @@ UPDATE spell_template SET AttributesEx5=AttributesEx5|0x00000001 WHERE id IN(409
 UPDATE spell_template SET EffectImplicitTargetA1=87 WHERE Id IN(724,27870,27871,28275);
 -- Mass Dispel - SPELL_EFFECT_TRIGGER_SPELL are dest targeted - verified from sniff
 UPDATE spell_template SET EffectImplicitTargetA2=87 WHERE Id IN(32375,32592);
+-- Draw Spirit - Lethon - both effects need to have same radius index - faulty data
+UPDATE spell_template SET EffectRadiusIndex1=EffectRadiusIndex2 WHERE Id IN(24811);
 

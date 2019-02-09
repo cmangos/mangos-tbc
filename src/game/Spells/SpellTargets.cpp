@@ -18,6 +18,7 @@
 
 #include "Spells/SpellTargets.h"
 #include "Spells/SpellEffectDefines.h"
+#include "Spells/SpellMgr.h"
 #include "Server/DBCStructure.h"
 #include "Server/SQLStorages.h"
 #include "Log.h"

@@ -5411,8 +5411,6 @@ SpellCastResult Spell::CheckCast(bool strict)
 
         // Possible Unit-target for the spell
         Unit* expectedTarget = GetPrefilledUnitTargetOrUnitTarget(SpellEffectIndex(i));
-        if (!expectedTarget)
-            expectedTarget = m_caster;
 
         switch (m_spellInfo->EffectApplyAuraName[i])
         {
@@ -5421,24 +5419,23 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (m_caster->GetTypeId() != TYPEID_PLAYER)
                     return SPELL_FAILED_UNKNOWN;
 
-                if (expectedTarget == m_caster)
-                    return SPELL_FAILED_BAD_TARGETS;
-
                 if (m_caster->HasCharm())
                     return SPELL_FAILED_ALREADY_HAVE_CHARM;
 
                 if (m_caster->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
-                if (!expectedTarget)
-                    return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
+                if (expectedTarget) // target may not be known at CheckCast time - TODO: add support for these checks on CheckTarget
+                {
+                    if (expectedTarget == m_caster)
+                        return SPELL_FAILED_BAD_TARGETS;
 
-                if (expectedTarget->HasCharmer())
-                    return SPELL_FAILED_CHARMED;
+                    if (expectedTarget->HasCharmer())
+                        return SPELL_FAILED_CHARMED;
 
-                if (int32(expectedTarget->getLevel()) > CalculateDamage(SpellEffectIndex(i), expectedTarget))
-                    return SPELL_FAILED_HIGHLEVEL;
-
+                    if (int32(expectedTarget->getLevel()) > CalculateDamage(SpellEffectIndex(i), expectedTarget))
+                        return SPELL_FAILED_HIGHLEVEL;
+                }
                 break;
             }
             case SPELL_AURA_MOD_CHARM:
@@ -5452,15 +5449,17 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (m_caster->HasCharmer())
                     return SPELL_FAILED_CHARMED;
 
-                if (!expectedTarget)
-                    return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
+                if (expectedTarget) // target may not be known at CheckCast time - TODO: add support for these checks on CheckTarget
+                {
+                    if (expectedTarget == m_caster)
+                        return SPELL_FAILED_BAD_TARGETS;
 
-                if (expectedTarget->HasCharmer())
-                    return SPELL_FAILED_CHARMED;
+                    if (expectedTarget->HasCharmer())
+                        return SPELL_FAILED_CHARMED;
 
-                if (int32(expectedTarget->getLevel()) > CalculateDamage(SpellEffectIndex(i), expectedTarget))
-                    return SPELL_FAILED_HIGHLEVEL;
-
+                    if (int32(expectedTarget->getLevel()) > CalculateDamage(SpellEffectIndex(i), expectedTarget))
+                        return SPELL_FAILED_HIGHLEVEL;
+                }
                 break;
             }
             case SPELL_AURA_MOD_POSSESS_PET:
@@ -5541,7 +5540,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_AURA_WATER_WALK:
             {
-                if (expectedTarget->GetTypeId() == TYPEID_PLAYER)
+                if (expectedTarget && expectedTarget->GetTypeId() == TYPEID_PLAYER)
                 {
                     Player const* player = static_cast<Player const*>(expectedTarget);
 
@@ -5554,31 +5553,29 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_AURA_MIRROR_IMAGE:
             {
-                if (!expectedTarget)
-                    return SPELL_FAILED_BAD_TARGETS;
+                if (expectedTarget)
+                {
+                    // Target must be creature. TODO: Check if target can also be player
+                    if (expectedTarget->GetTypeId() != TYPEID_UNIT)
+                        return SPELL_FAILED_BAD_TARGETS;
 
-                // Target must be creature. TODO: Check if target can also be player
-                if (expectedTarget->GetTypeId() != TYPEID_UNIT)
-                    return SPELL_FAILED_BAD_TARGETS;
+                    if (expectedTarget == m_caster)             // Clone self can't be accepted
+                        return SPELL_FAILED_BAD_TARGETS;
 
-                if (expectedTarget == m_caster)             // Clone self can't be accepted
-                    return SPELL_FAILED_BAD_TARGETS;
-
-                // It is assumed that target can not be cloned if already cloned by same or other clone auras
-                if (expectedTarget->HasAuraType(SPELL_AURA_MIRROR_IMAGE))
-                    return SPELL_FAILED_BAD_TARGETS;
-
+                    // It is assumed that target can not be cloned if already cloned by same or other clone auras
+                    if (expectedTarget->HasAuraType(SPELL_AURA_MIRROR_IMAGE))
+                        return SPELL_FAILED_BAD_TARGETS;
+                }
                 break;
             }
             case SPELL_AURA_MOD_DISARM:
             {
-                if (!expectedTarget)
-                    return SPELL_FAILED_BAD_TARGETS;
-
-                // Target must be a weapon wielder
-                if (!expectedTarget->hasMainhandWeapon())
-                    return SPELL_FAILED_BAD_TARGETS;
-
+                if (expectedTarget)
+                {
+                    // Target must be a weapon wielder
+                    if (!expectedTarget->hasMainhandWeapon())
+                        return SPELL_FAILED_BAD_TARGETS;
+                }
                 break;
             }
             default:

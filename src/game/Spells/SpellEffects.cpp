@@ -8406,6 +8406,7 @@ void Spell::EffectSummonDeadPet(SpellEffectIndex /*eff_idx*/)
 {
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         return;
+
     Player* _player = static_cast<Player*>(m_caster);
     Pet* pet = _player->GetPet();
     if (!pet)
@@ -8421,9 +8422,9 @@ void Spell::EffectSummonDeadPet(SpellEffectIndex /*eff_idx*/)
 
     if (_player->GetDistance(pet) >= 2.0f)
     {
-        float px, py, pz;
-        m_caster->GetClosePoint(px, py, pz, pet->GetObjectBoundingRadius());
-        ((Unit*)pet)->NearTeleportTo(px, py, pz, -m_caster->GetOrientation());
+        float x, y, z; // this effect is destination targeted
+        m_targets.getDestination(x, y, z);
+        pet->NearTeleportTo(x, y, z, -m_caster->GetOrientation());
     }
 
     pet->SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);

@@ -522,6 +522,7 @@ void Spell::FillTargetMap()
         {
             case TARGET_TYPE_NONE:
             case TARGET_TYPE_LOCATION_DEST:
+            case TARGET_TYPE_SPECIAL_DEST:
                 m_targetlessExecution[i] = true;
                 break;
             case TARGET_TYPE_UNIT:

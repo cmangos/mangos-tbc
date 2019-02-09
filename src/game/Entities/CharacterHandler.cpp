@@ -906,6 +906,9 @@ void WorldSession::HandlePlayerReconnect()
     // initialize client pet bar if need
     _player->SendPetBar();
 
+    // send mirror timers
+    _player->SendMirrorTimers(true);
+
     m_playerLoading = false;
 }
 

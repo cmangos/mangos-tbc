@@ -30,6 +30,8 @@
 #include "World/World.h"
 
 #include <mutex>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<ObjectAccessor, std::mutex>
 INSTANTIATE_SINGLETON_2(ObjectAccessor, CLASS_LOCK);
@@ -297,7 +299,7 @@ void ObjectAccessor::RemoveOldCorpses()
 /// Define the static member of HashMapHolder
 
 template <class T> typename HashMapHolder<T>::MapType HashMapHolder<T>::m_objectMap;
-template <class T> std::mutex HashMapHolder<T>::i_lock;
+template <class T> boost::shared_mutex HashMapHolder<T>::i_lock;
 
 /// Global definitions for the hashmap storage
 

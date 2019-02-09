@@ -32,6 +32,8 @@
 #include "Entities/Corpse.h"
 
 #include <mutex>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 class Unit;
 class WorldObject;
@@ -42,10 +44,10 @@ class HashMapHolder
 {
     public:
 
-        typedef std::unordered_map<ObjectGuid, T*>   MapType;
-        typedef std::mutex LockType;
-        typedef std::lock_guard<std::mutex> ReadGuard;
-        typedef std::lock_guard<std::mutex> WriteGuard;
+        typedef std::unordered_map<ObjectGuid, T*>      MapType;
+        typedef boost::shared_mutex                     LockType;
+        typedef boost::shared_lock<boost::shared_mutex> ReadGuard;
+        typedef boost::unique_lock<boost::shared_mutex> WriteGuard;
 
         static void Insert(T* o);
 

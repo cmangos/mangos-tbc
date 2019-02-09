@@ -73,8 +73,7 @@ ObjectAccessor::~ObjectAccessor()
     }
 }
 
-Unit*
-ObjectAccessor::GetUnit(WorldObject const& u, ObjectGuid guid)
+Unit* ObjectAccessor::GetUnit(WorldObject const& u, ObjectGuid guid)
 {
     if (!guid)
         return nullptr;
@@ -147,8 +146,7 @@ void ObjectAccessor::KickPlayer(ObjectGuid guid)
     }
 }
 
-Corpse*
-ObjectAccessor::GetCorpseForPlayerGUID(ObjectGuid guid)
+Corpse* ObjectAccessor::GetCorpseForPlayerGUID(ObjectGuid guid)
 {
     Guard guard(i_corpseGuard);
 
@@ -161,8 +159,7 @@ ObjectAccessor::GetCorpseForPlayerGUID(ObjectGuid guid)
     return iter->second;
 }
 
-void
-ObjectAccessor::RemoveCorpse(Corpse* corpse)
+void ObjectAccessor::RemoveCorpse(Corpse* corpse)
 {
     MANGOS_ASSERT(corpse && corpse->GetType() != CORPSE_BONES);
 
@@ -181,8 +178,7 @@ ObjectAccessor::RemoveCorpse(Corpse* corpse)
     i_player2corpse.erase(iter);
 }
 
-void
-ObjectAccessor::AddCorpse(Corpse* corpse)
+void ObjectAccessor::AddCorpse(Corpse* corpse)
 {
     MANGOS_ASSERT(corpse && corpse->GetType() != CORPSE_BONES);
 
@@ -197,8 +193,7 @@ ObjectAccessor::AddCorpse(Corpse* corpse)
     sObjectMgr.AddCorpseCellData(corpse->GetMapId(), cell_id, corpse->GetOwnerGuid().GetCounter(), corpse->GetInstanceId());
 }
 
-void
-ObjectAccessor::AddCorpsesToGrid(GridPair const& gridpair, GridType& grid, Map* map)
+void ObjectAccessor::AddCorpsesToGrid(GridPair const& gridpair, GridType& grid, Map* map)
 {
     Guard guard(i_corpseGuard);
     for (auto& iter : i_player2corpse)
@@ -219,8 +214,7 @@ ObjectAccessor::AddCorpsesToGrid(GridPair const& gridpair, GridType& grid, Map* 
         }
 }
 
-Corpse*
-ObjectAccessor::ConvertCorpseForPlayer(ObjectGuid player_guid, bool insignia)
+Corpse* ObjectAccessor::ConvertCorpseForPlayer(ObjectGuid player_guid, bool insignia)
 {
     Corpse* corpse = GetCorpseForPlayerGUID(player_guid);
     if (!corpse)

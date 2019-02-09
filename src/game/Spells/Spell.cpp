@@ -1678,6 +1678,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
                 if (WorldObject* caster = GetCastingObject())
                     m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
+            if (m_spellInfo->Id == 40186) // Summon Blossom Move Target - Teron Gorefiend
+            {
+                m_targets.m_destZ += 12.f;
+                return;
+            }
             break;
         }
         case TARGET_LOCATION_DATABASE:

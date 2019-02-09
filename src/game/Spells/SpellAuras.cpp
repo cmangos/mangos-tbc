@@ -1979,6 +1979,20 @@ void Aura::TriggerSpell()
                     return;
                 break;
             }
+            case 37098:                                     // Rain of Bones - Nightbane
+            {
+                switch (GetAuraTicks()) // on some aura ticks also spawn skeletons
+                {
+                    case 2:
+                    case 7:
+                    case 13:
+                    case 16:
+                    case 20:
+                        target->CastSpell(triggerTargetObject->GetPositionX(), triggerTargetObject->GetPositionY(), triggerTargetObject->GetPositionZ(), 30170, TRIGGERED_OLD_TRIGGERED);
+                        break;
+                }
+                break;
+            }
             case 39575:                                     // Charge Frenzy
             {
                 Unit* caster = GetCaster();

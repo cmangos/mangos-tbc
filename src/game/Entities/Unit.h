@@ -2234,7 +2234,7 @@ class Unit : public WorldObject
         bool HasAuraState(AuraState flag) const { return HasFlag(UNIT_FIELD_AURASTATE, 1 << (flag - 1)); }
         bool HasAuraStateForCaster(AuraState flag, ObjectGuid casterGuid) const;
         void UnsummonAllTotems() const;
-        Unit* SelectMagnetTarget(Unit* victim, Spell* spell = nullptr, SpellEffectIndex eff = EFFECT_INDEX_0);
+        Unit* SelectMagnetTarget(Unit* victim, Spell* spell = nullptr);
 
         int32 SpellBonusWithCoeffs(SpellEntry const* spellProto, int32 total, int32 benefit, int32 ap_benefit, DamageEffectType damagetype, bool donePart);
         int32 SpellBaseDamageBonusDone(SpellSchoolMask schoolMask);
@@ -2738,7 +2738,7 @@ struct TargetDistanceOrderNear : public std::binary_function<Unit const, Unit co
     // functor for operator ">"
     bool operator()(Unit const* _Left, Unit const* _Right) const
     {
-        return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc != 0);
+        return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
     }
 };
 
@@ -2752,7 +2752,7 @@ struct TargetDistanceOrderFarAway : public std::binary_function<Unit const, Unit
     // functor for operator "<"
     bool operator()(Unit const* _Left, Unit const* _Right) const
     {
-        return !m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc != 0);
+        return !m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
     }
 };
 
@@ -2766,7 +2766,7 @@ struct LowestHPNearestOrder : public std::binary_function<Unit const, Unit const
     bool operator()(Unit const* _Left, Unit const* _Right) const
     {
         if (_Left->GetHealthPercent() == _Right->GetHealthPercent())
-            return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc != 0);
+            return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
         return _Left->GetHealthPercent() < _Right->GetHealthPercent();
     }
 };

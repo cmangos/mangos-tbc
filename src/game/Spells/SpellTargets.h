@@ -39,10 +39,11 @@ extern SpellTargetInfo SpellTargetInfoTable[MAX_SPELL_TARGETS];
 struct SpellTargetingData
 {
     SpellTargetImplicitType implicitType[MAX_EFFECT_INDEX];
-    SpellEffectIndex targetingIndex[MAX_EFFECT_INDEX];
+    uint8 targetMask[MAX_EFFECT_INDEX][2] = { {1, 1}, {2, 2}, {4, 4} };
+    std::pair<bool, bool> ignoredTargets[MAX_EFFECT_INDEX] = { {false, false}, {false, false}, {false, false} };
 };
 
-class SpellTargetMgr
+class SpellTargetMgr // thread safe
 {
     public:
         static SpellTargetingData& GetSpellTargetingData(uint32 spellId);

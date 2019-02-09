@@ -290,6 +290,18 @@ SpellTargetingData& SpellTargetMgr::GetSpellTargetingData(uint32 spellId)
     return (*spellTargetingData.find(spellId)).second;
 }
 
+// check if at least one target is different from different effIdx
+bool CheckBoundsEqualForEffects(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry>& bounds, SpellEffectIndex effIdxSource, SpellEffectIndex effIdxTarget)
+{
+    for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+    {
+        SpellTargetEntry const* spellST = (*i_spellST);
+        if (spellST->CanNotHitWithSpellEffect(effIdxSource) != spellST->CanNotHitWithSpellEffect(effIdxTarget))
+            return false;
+    }
+    return true;
+}
+
 void SpellTargetMgr::Initialize()
 {
     for (uint32 i = 0; i <= sSpellTemplate.GetMaxEntry(); ++i)
@@ -350,37 +362,109 @@ void SpellTargetMgr::Initialize()
                 sLog.outError("Spell %u effect index %u failed to pick type for dynamic effect targeting type.", i, effIdx);
             }
         }
-        data.targetingIndex[0] = SpellEffectIndex(0);
-        // TODO: replace with just logic for AOE search skip
-        for (uint32 effIdx = 1; effIdx < MAX_EFFECT_INDEX; ++effIdx)
+        // data.sharedTargetingEffects.push_back();
+        // data.ignoredTargets
+        //for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+        //    data.ignoredTargets[i] = {false, false};
+        for (uint32 effIdxSource = 0; effIdxSource < MAX_EFFECT_INDEX; ++effIdxSource)
         {
-            data.targetingIndex[effIdx] = SpellEffectIndex(effIdx);
-            if (!spellInfo->Effect[effIdx])
+            if (!spellInfo->Effect[effIdxSource])
                 continue;
 
-            uint32 targetA = spellInfo->EffectImplicitTargetA[effIdx];
-            uint32 targetB = spellInfo->EffectImplicitTargetB[effIdx];
-            uint32 effect = spellInfo->Effect[effIdx];
-            for (uint32 effIdxPrevious = 0; effIdxPrevious < effIdx; ++effIdxPrevious)
+            SpellTargetImplicitType implicitEffectType = data.implicitType[effIdxSource];
+            for (uint8 rightSource = 0; rightSource < 2; ++rightSource)
             {
-                if (!spellInfo->Effect[effIdxPrevious])
+                uint32 targetSource;
+                if (rightSource == 0)
+                {
+                    if (data.ignoredTargets[effIdxSource].first) // already evaluated as ignored
+                        continue;
+                    targetSource = spellInfo->EffectImplicitTargetA[effIdxSource];
+                }
+                else
+                {
+                    if (data.ignoredTargets[effIdxSource].second) // already evaluated as ignored
+                        continue;
+                    targetSource = spellInfo->EffectImplicitTargetB[effIdxSource];
+                }
+                if (!targetSource) // no target found
                     continue;
-
-                uint32 previousTargetA = spellInfo->EffectImplicitTargetA[effIdxPrevious];
-                uint32 previousTargetB = spellInfo->EffectImplicitTargetB[effIdxPrevious];
-                if (targetA != previousTargetA || targetB != previousTargetB || data.implicitType[effIdx] != data.implicitType[effIdxPrevious])
-                    continue;
-
-                // temporary workaround
-                if (SpellEffectInfoTable[effect].requiredTarget == TARGET_TYPE_LOCATION_DEST || SpellEffectInfoTable[effect].requiredTarget == TARGET_TYPE_SPECIAL_DEST
-                        || SpellEffectInfoTable[effect].requiredTarget == TARGET_TYPE_NONE)
-                    continue;
-
-                if (SpellTargetInfoTable[targetA].filter == TARGET_SCRIPT || SpellTargetInfoTable[targetA].filter == TARGET_SCRIPT)
-                    continue; // TODO: add checks here to allow some
-
-                data.targetingIndex[effIdx] = SpellEffectIndex(data.targetingIndex[effIdxPrevious]);
-                break;
+                // start from first next target
+                for (uint32 effIdxTarget = effIdxSource; effIdxTarget < MAX_EFFECT_INDEX; ++effIdxTarget)
+                {
+                    for (uint8 rightTarget = effIdxSource == effIdxTarget ? rightSource + 1 : 0; rightTarget < 2; ++rightTarget)
+                    {
+                        uint32 targetTarget;
+                        if (rightTarget == 0)
+                        {
+                            if (data.ignoredTargets[effIdxTarget].first) // already evaluated as ignored
+                                continue;
+                            targetTarget = spellInfo->EffectImplicitTargetA[effIdxTarget];
+                        }
+                        else
+                        {
+                            if (data.ignoredTargets[effIdxTarget].second) // already evaluated as ignored
+                                continue;
+                            targetTarget = spellInfo->EffectImplicitTargetB[effIdxTarget];
+                        }
+                        if (!targetTarget) // no target found
+                            continue;
+                        if (targetSource == targetTarget) // if both target types are the same check if subsequent can be skipped
+                        {
+                            SpellTargetInfo& info = SpellTargetInfoTable[targetTarget];
+                            bool ignore = false;
+                            // exception for area auras
+                            if (implicitEffectType == TARGET_TYPE_SPECIAL_UNIT && info.type == TARGET_TYPE_UNIT && info.enumerator != TARGET_ENUMERATOR_SINGLE)
+                                ignore = true;
+                            else
+                            {
+                                switch (info.type)
+                                {
+                                    case TARGET_TYPE_LOCATION_SRC:
+                                    case TARGET_TYPE_LOCATION_DEST:
+                                    case TARGET_TYPE_LOCK:
+                                    case TARGET_TYPE_CORPSE: ignore = true; break; // always ignore subsequent
+                                    case TARGET_TYPE_GAMEOBJECT:
+                                    case TARGET_TYPE_UNIT:
+                                    case TARGET_TYPE_PLAYER:
+                                    {
+                                        if (info.enumerator == TARGET_ENUMERATOR_SINGLE) // always ignore subsequent
+                                        {
+                                            ignore = true;
+                                            break;
+                                        }
+                                        // aoe and chain case
+                                        if (info.enumerator == TARGET_ENUMERATOR_CHAIN) // chain checks chaining
+                                            // if chain targets are not the same, cant ignore
+                                            if (spellInfo->EffectChainTarget[effIdxSource] != spellInfo->EffectChainTarget[effIdxTarget])
+                                                continue;
+                                        // different radiuses, cant ignore
+                                        if (spellInfo->EffectRadiusIndex[effIdxSource] != spellInfo->EffectRadiusIndex[effIdxTarget])
+                                            continue;
+                                        if (info.filter == TARGET_SCRIPT && effIdxSource != effIdxTarget)
+                                        {
+                                            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(i);
+                                            if (!CheckBoundsEqualForEffects(bounds, SpellEffectIndex(effIdxSource), SpellEffectIndex(effIdxTarget)))
+                                                continue;
+                                        }
+                                        ignore = true;
+                                        break;
+                                    }
+                                }
+                                if (ignore)
+                                    data.targetMask[effIdxSource][rightTarget] |= (1 << effIdxTarget);
+                            }
+                            if (ignore)
+                            {
+                                auto& ignored = data.ignoredTargets[effIdxTarget];
+                                if (rightTarget == 0)
+                                    ignored.first = true;
+                                else
+                                    ignored.second = true;
+                            }
+                        }
+                    }
+                }
             }
         }
     }

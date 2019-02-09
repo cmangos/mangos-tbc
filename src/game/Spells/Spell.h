@@ -651,8 +651,9 @@ class Spell
         //*****************************************
         struct TempTargetData
         {
-            UnitList tmpUnitList;
-            GameObjectList tmpGOList;            
+            UnitList tmpUnitList[2];
+            GameObjectList tmpGOList[2];
+            std::list<Item*> tempItemList;
         };
         struct TempTargetingData
         {
@@ -661,7 +662,7 @@ class Spell
         };
         void FillTargetMap();
         void SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targetB, TempTargetingData& targetingData);
-        bool CheckAndAddMagnetTarget(Unit* unitTarget, SpellEffectIndex effIndex, TempTargetingData& data);
+        bool CheckAndAddMagnetTarget(Unit* unitTarget, SpellEffectIndex effIndex, bool targetB, TempTargetingData& data);
         Unit* GetUnitTarget(SpellEffectIndex effIdx); // SetTargetMap wrapper for bad client fill
         static void CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry>& bounds, UnitList& tempTargetUnitMap, UnitList& targetUnitMap, SpellEffectIndex effIndex);
         void FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex);
@@ -715,13 +716,10 @@ class Spell
         GOTargetList   m_UniqueGOTargetInfo;
         ItemTargetList m_UniqueItemInfo;
         bool           m_targetlessExecution[MAX_EFFECT_INDEX];
-        bool m_usedTargets[MAX_EFFECT_INDEX][2];
 
-        void AddUnitTarget(Unit* target, SpellEffectIndex effIndex, CheckException exception = EXCEPTION_NONE);
-        void AddUnitTarget(ObjectGuid unitGuid, SpellEffectIndex effIndex);
-        void AddGOTarget(GameObject* pVictim, SpellEffectIndex effIndex);
-        void AddGOTarget(ObjectGuid goGuid, SpellEffectIndex effIndex);
-        void AddItemTarget(Item* pitem, SpellEffectIndex effIndex);
+        void AddUnitTarget(Unit* target, uint8 effectMask, CheckException exception = EXCEPTION_NONE);
+        void AddGOTarget(GameObject* target, uint8 effectMask);
+        void AddItemTarget(Item* item, uint8 effectMask);
         void DoAllEffectOnTarget(TargetInfo* target);
         void HandleDelayedSpellLaunch(TargetInfo* target);
         void InitializeDamageMultipliers();

@@ -524,11 +524,6 @@ void Spell::FillTargetMap()
             case TARGET_TYPE_LOCATION_DEST:
                 m_targetlessExecution[i] = true;
                 break;
-            case TARGET_TYPE_ITEM:
-                if (targetingData.data[i].tempItemList.size() > 0) // Item case
-                    for (Item* item : targetingData.data[i].tempItemList)
-                        AddItemTarget(item, SpellEffectIndex(i));
-                break;
             case TARGET_TYPE_UNIT:
             case TARGET_TYPE_PLAYER: // for now player handled here
             case TARGET_TYPE_SPECIAL_UNIT:
@@ -588,6 +583,14 @@ void Spell::FillTargetMap()
                         AddUnitTarget(unit, effectMask);
                 }
                 break;
+            case TARGET_TYPE_LOCK:
+            case TARGET_TYPE_ITEM:
+                if (targetingData.data[i].tempItemList.size() > 0) // Item case
+                    for (Item* item : targetingData.data[i].tempItemList)
+                        AddItemTarget(item, SpellEffectIndex(i));
+                if (effectTargetType == TARGET_TYPE_ITEM)
+                    break;
+                // [[fallthrough]]
             case TARGET_TYPE_GAMEOBJECT:
                 processedGOs = true;
                 for (uint8 rightTarget = 0; rightTarget < 2; ++rightTarget)

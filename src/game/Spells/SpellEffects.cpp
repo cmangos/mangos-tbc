@@ -3258,9 +3258,18 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
 
     if (spellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
     {
-        float x, y, z;
-        m_targets.getDestination(x, y, z);
-        targets.setDestination(x, y, z);
+        if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+        {
+            float x, y, z;
+            m_targets.getDestination(x, y, z);
+            targets.setDestination(x, y, z);
+        }
+        else if (unitTarget)
+        {
+            float x, y, z;
+            unitTarget->GetPosition(x, y, z);
+            targets.setDestination(x, y, z);
+        }
     }
 
     caster->CastSpell(targets, spellInfo, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);

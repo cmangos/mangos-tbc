@@ -589,7 +589,7 @@ void Spell::FillTargetMap()
             case TARGET_TYPE_ITEM:
                 if (targetingData.data[i].tempItemList.size() > 0) // Item case
                     for (Item* item : targetingData.data[i].tempItemList)
-                        AddItemTarget(item, SpellEffectIndex(i));
+                        AddItemTarget(item, targetMask[0]); // no spell in all of vanilla through wotlk has item target in B
                 if (effectTargetType == TARGET_TYPE_ITEM)
                     break;
                 // [[fallthrough]]

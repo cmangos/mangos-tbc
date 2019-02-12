@@ -368,7 +368,6 @@ bool ChatHandler::HandleReloadConfigCommand(char* /*args*/)
 {
     sLog.outString("Re-Loading config settings...");
     sWorld.LoadConfigSettings(true);
-    sMapMgr.InitializeVisibilityDistanceInfo();
     SendGlobalSysMessage("World config settings reloaded.");
     return true;
 }
@@ -5675,7 +5674,7 @@ bool ChatHandler::HandleRespawnCommand(char* /*args*/)
 
     MaNGOS::RespawnDo u_do;
     MaNGOS::WorldObjectWorker<MaNGOS::RespawnDo> worker(u_do);
-    Cell::VisitGridObjects(pl, worker, pl->GetMap()->GetVisibilityDistance());
+    Cell::VisitGridObjects(pl, worker, pl->GetVisibilityRange());
     return true;
 }
 

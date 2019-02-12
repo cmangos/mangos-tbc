@@ -197,6 +197,9 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
             break;
     }
 
+    if (goinfo->IsLargeGameObject())
+        SetVisibilityRange(VISIBILITY_DISTANCE_LARGE);
+
     // Notify the battleground or outdoor pvp script
     if (map->IsBattleGroundOrArena())
         ((BattleGroundMap*)map)->GetBG()->HandleGameObjectCreate(this);
@@ -360,7 +363,7 @@ void GameObject::Update(const uint32 diff)
                             {
                                 if (m_respawnTime > 0)
                                     valid = false;
-                                else // battlegrounds gameobjects has data2 == 0 && data5 == 3                                
+                                else // battlegrounds gameobjects has data2 == 0 && data5 == 3
                                     radius = float(goInfo->trap.cooldown);
                             }
                         }
@@ -940,7 +943,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
     }
 
     // check distance
-    return IsWithinDistInMap(viewPoint, GetMap()->GetVisibilityDistance() +
+    return IsWithinDistInMap(viewPoint, GetVisibilityRange() +
                              (inVisibleList ? World::GetVisibleObjectGreyDistance() : 0.0f), false);
 }
 
@@ -1705,7 +1708,7 @@ void GameObject::Use(Unit* user)
                 return;
 
             Player* player = (Player*)user;
-            
+
             delete loot;
             loot = new Loot(player, this, LOOT_FISHINGHOLE);
             loot->ShowContentTo(player);

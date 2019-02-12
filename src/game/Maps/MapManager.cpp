@@ -82,12 +82,6 @@ void MapManager::UpdateGridState(grid_state_t state, Map& map, NGridType& ngrid,
     si_GridStates[state]->Update(map, ngrid, ginfo, x, y, t_diff);
 }
 
-void MapManager::InitializeVisibilityDistanceInfo()
-{
-    for (auto& i_map : i_maps)
-        i_map.second->InitVisibilityDistance();
-}
-
 void MapManager::CreateContinents()
 {
 

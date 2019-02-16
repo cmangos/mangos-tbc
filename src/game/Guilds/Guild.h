@@ -262,6 +262,7 @@ struct MemberSlot
     uint32 RankId;
     uint8 Level;
     uint8 Class;
+    uint8 Gender_;
     uint32 ZoneId;
     uint64 LogoutTime;
     std::string Pnote;

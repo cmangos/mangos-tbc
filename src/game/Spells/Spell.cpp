@@ -539,7 +539,7 @@ void Spell::FillTargetMap()
                     {
                         for (auto itr = unitTargetList.begin(); itr != unitTargetList.end();)
                         {
-                            if (!CheckTarget(*itr, SpellEffectIndex(i), CheckException(targetingData.magnet)))
+                            if (!CheckTarget(*itr, SpellEffectIndex(i), bool(rightTarget), CheckException(targetingData.magnet)))
                                 itr = unitTargetList.erase(itr);
                             else
                                 ++itr;
@@ -4906,12 +4906,12 @@ SpellCastResult Spell::CheckCast(bool strict)
                         {
                             case TYPEID_UNIT:
                             case TYPEID_PLAYER:
-                                if (!CheckTarget(static_cast<Unit*>(result), SpellEffectIndex(i), EXCEPTION_NONE))
+                                if (!CheckTarget(static_cast<Unit*>(result), SpellEffectIndex(i), false, EXCEPTION_NONE))
                                     return SPELL_FAILED_NO_EDIBLE_CORPSES;
                                 break;
                             case TYPEID_CORPSE:
                                 if (Player* owner = ObjectAccessor::FindPlayer(static_cast<Corpse*>(result)->GetOwnerGuid()))
-                                    if (!CheckTarget(owner, SpellEffectIndex(i), EXCEPTION_NONE))
+                                    if (!CheckTarget(owner, SpellEffectIndex(i), false, EXCEPTION_NONE))
                                         return SPELL_FAILED_NO_EDIBLE_CORPSES;
                                 break;
                         }
@@ -6844,7 +6844,7 @@ bool Spell::CheckTargetScript(Unit* target, SpellEffectIndex eff) const
     return true;
 }
 
-bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, CheckException exception) const
+bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckException exception) const
 {
     // Check targets for creature type mask and remove not appropriate (skip explicit self target case, maybe need other explicit targets)
     if (exception != EXCEPTION_MAGNET && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_CASTER)
@@ -6854,9 +6854,13 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, CheckException excep
     }
 
     Unit* realCaster = m_originalCaster ? m_originalCaster : m_caster;
-    SpellTargetInfo infoA = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetA[eff]];
-    SpellTargetInfo infoB = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetB[eff]];
-    bool scriptTarget = (infoA.type == TARGET_TYPE_UNIT && infoA.filter == TARGET_SCRIPT) || (infoB.type == TARGET_TYPE_UNIT && infoB.filter == TARGET_SCRIPT);
+    uint32 targetType;
+    SpellTargetInfo info;
+    if (!targetB)
+        targetType = m_spellInfo->EffectImplicitTargetA[eff], info = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetA[eff]];
+    else
+        targetType = m_spellInfo->EffectImplicitTargetB[eff], info = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetB[eff]];
+    bool scriptTarget = (info.type == TARGET_TYPE_UNIT && info.filter == TARGET_SCRIPT);
 
     if (target != realCaster)
     {
@@ -6941,16 +6945,16 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, CheckException excep
                 break;
         }
 
-        if (target->GetTypeId() != TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER)
-            && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_SCRIPT_NEAR_CASTER && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_CASTER)
-            return false;
-
         if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CAST_ON_DEAD) && target->isAlive())
             return false;
 
         if (!IsAllowingDeadTarget(m_spellInfo) && !target->isAlive() && !(target == m_caster && m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD)) && m_caster->GetTypeId() == TYPEID_PLAYER)
             return false;
     }
+
+    if (target->GetTypeId() != TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER)
+        && targetType != TARGET_UNIT_CASTER)
+        return false;
 
     return CheckTargetScript(target, eff);
 }

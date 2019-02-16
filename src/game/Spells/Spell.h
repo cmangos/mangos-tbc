@@ -451,7 +451,7 @@ class Spell
 
         bool CheckTargetGOScript(GameObject* target, SpellEffectIndex eff) const;
         bool CheckTargetScript(Unit* target, SpellEffectIndex eff) const;
-        bool CheckTarget(Unit* target, SpellEffectIndex eff, CheckException exception = EXCEPTION_NONE) const;
+        bool CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckException exception = EXCEPTION_NONE) const;
         bool CanAutoCast(Unit* target);
 
         static void SendCastResult(Player const* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult = false);

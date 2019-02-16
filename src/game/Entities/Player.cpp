@@ -21269,7 +21269,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
                 (!at->requiredItem2 || !HasItemCount(at->requiredItem2, 1)))
         {
             miscRequirement = at->requiredItem;
-            return AREA_LOCKSTATUS_MISSING_ITEM;
+		    return AREA_LOCKSTATUS_MISSING_ITEM;
         }
     }
     else if (at->requiredItem2 && !HasItemCount(at->requiredItem2, 1))
@@ -21278,7 +21278,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
         return AREA_LOCKSTATUS_MISSING_ITEM;
     }
     // Heroic item requirements
-    if (!isRegularTargetMap && at->heroicKey)
+    if (!isRegularTargetMap && at->heroicKey && !sWorld.getConfig(CONFIG_BOOL_INSTANCE_IGNORE_HEROIC_KEY))
     {
         if (!HasItemCount(at->heroicKey, 1) && (!at->heroicKey2 || !HasItemCount(at->heroicKey2, 1)))
         {
@@ -21286,7 +21286,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
             return AREA_LOCKSTATUS_MISSING_ITEM;
         }
     }
-    else if (!isRegularTargetMap && at->heroicKey2 && !HasItemCount(at->heroicKey2, 1))
+    else if (!isRegularTargetMap && at->heroicKey2 && !HasItemCount(at->heroicKey2, 1 ) && !sWorld.getConfig(CONFIG_BOOL_INSTANCE_IGNORE_HEROIC_KEY))
     {
         miscRequirement = at->heroicKey2;
         return AREA_LOCKSTATUS_MISSING_ITEM;

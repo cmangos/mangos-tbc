@@ -64,7 +64,7 @@ struct boss_void_reaverAI : public ScriptedAI
     void Reset() override
     {
         m_uiPoundingTimer   = 12000;
-        m_uiArcaneOrbTimer  = 3000;
+        m_uiArcaneOrbTimer  = 7000;
         m_uiKnockAwayTimer  = 30000;
         m_uiBerserkTimer    = 10 * MINUTE * IN_MILLISECONDS;
     }

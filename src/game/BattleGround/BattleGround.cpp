@@ -1190,6 +1190,8 @@ void BattleGround::StartBattleGround()
 
 void BattleGround::AddPlayer(Player* plr)
 {
+    plr->CFJoinBattleGround();
+    
     // remove afk from player
     if (plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK))
         plr->ToggleAFK();

@@ -42,7 +42,7 @@ public:
             uint32 spellid = fields[0].GetUInt32();
             float modifier = fields[1].GetFloat();
 
-            if (SpellRegulationMap.find(spellid) == SpellRegulationMap.end())
+            if (SpellRegulationMap.find(spellid) == SpellRegulationMap.end() && sSpellTemplate.LookupEntry<SpellEntry>(spellid))
                 SpellRegulationMap.insert(std::make_pair(spellid, modifier));
 
             auto chainresult = WorldDatabase.PQuery("SELECT spell_id FROM spell_chain WHERE first_spell = (SELECT first_spell FROM spell_chain WHERE spell_id = '%u')", spellid);
@@ -54,7 +54,7 @@ public:
             {
                 auto chainspellid = chainresult->Fetch()[0].GetUInt32();
 
-                if (SpellRegulationMap.find(chainspellid) == SpellRegulationMap.end())
+                if (SpellRegulationMap.find(chainspellid) == SpellRegulationMap.end() && sSpellTemplate.LookupEntry<SpellEntry>(chainspellid))
                     SpellRegulationMap.insert(std::make_pair(chainspellid, modifier));
             }
             while (chainresult->NextRow());

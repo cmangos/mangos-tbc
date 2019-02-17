@@ -81,9 +81,9 @@ static const EventLocation aPlatformLocation[MAX_PLATFORMS] =
 {
     {340.15f, 58.65f, 17.71f},
     {340.15f, 58.65f, 17.71f},
-	{340.15f, 58.65f, 17.71f},
-	{340.15f, 58.65f, 17.71f},
-	{340.15f, 58.65f, 17.71f},
+    {340.15f, 58.65f, 17.71f},
+    {340.15f, 58.65f, 17.71f},
+    {340.15f, 58.65f, 17.71f},
 };
 
 static const EventLocation aCenterLocation[] =

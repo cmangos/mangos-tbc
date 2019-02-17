@@ -223,8 +223,6 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
                     DoSpawnAdds();
 
                     m_creature->SetMeleeDamageSchool(SPELL_SCHOOL_FROST);
-                    m_creature->ApplySpellImmune(nullptr, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FROST, true);
-                    m_creature->ApplySpellImmune(nullptr, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_NATURE, false);
 
                     m_bCorruptedForm = false;
                     m_uiMarkTimer    = 15000;
@@ -264,8 +262,6 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
                         DoSpawnAdds();
 
                         m_creature->SetMeleeDamageSchool(SPELL_SCHOOL_NATURE);
-                        m_creature->ApplySpellImmune(nullptr, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_NATURE, true);
-                        m_creature->ApplySpellImmune(nullptr, IMMUNITY_SCHOOL, SPELL_SCHOOL_MASK_FROST, false);
 
                         m_bCorruptedForm = true;
                         m_uiMarkTimer    = 15000;

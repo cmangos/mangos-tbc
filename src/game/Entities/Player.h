@@ -2115,7 +2115,7 @@ class Player : public Unit
         bool CanWalk() const { return true; }
         bool IsFlying() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_FLYING); }
         bool IsFreeFlying() const { return HasAuraType(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED) || HasAuraType(SPELL_AURA_FLY); }
-        bool IsSwimming() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_SWIMMING); }
+        bool IsSwimming() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_SWIMMING); }
 
         void UpdateClientControl(Unit const* target, bool enabled, bool forced = false) const;
 

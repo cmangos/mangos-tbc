@@ -535,7 +535,7 @@ void Pet::SavePetToDB(PetSaveMode mode)
         savePet.addUInt32(GetUInt32Value(UNIT_FIELD_PETEXPERIENCE));
         savePet.addUInt32(uint32(AI()->GetReactState()));
         savePet.addInt32(m_loyaltyPoints);
-        savePet.addUInt32(GetLoyaltyLevel());
+        savePet.addUInt32(6);
         savePet.addInt32(m_TrainingPoints);
         savePet.addUInt32(uint32(mode));
         savePet.addString(m_name);
@@ -2201,7 +2201,7 @@ void Pet::InitPetCreateSpells()
 
     CastPetAuras(false);
 
-    SetTP(-usedtrainpoints);
+    SetTP(290);
 }
 
 void Pet::CheckLearning(uint32 spellid)

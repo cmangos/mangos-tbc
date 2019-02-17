@@ -750,15 +750,16 @@ void Spell::FillTargetMap()
             }
         }
 
-        for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end();)
-        {
-            if (!CheckTarget(*itr, SpellEffectIndex(i), effException[effToIndex[i]]))
-            {
-                itr = tmpUnitLists[effToIndex[i]].erase(itr);
-            }
-            else
-                ++itr;
-        }
+       if (!IsDestinationOnlyEffect(m_spellInfo, SpellEffectIndex(i))) 
+		{
+			for (UnitList::iterator itr = tmpUnitLists[effToIndex[i]].begin(); itr != tmpUnitLists[effToIndex[i]].end();)
+			{
+				if (!CheckTarget(*itr, SpellEffectIndex(i), effException[effToIndex[i]]))
+					itr = tmpUnitLists[effToIndex[i]].erase(itr);
+				else
+					++itr;
+			}
+		}
 
         // Secial target filter before adding targets to list
         FilterTargetMap(tmpUnitLists[effToIndex[i]], SpellEffectIndex(i));

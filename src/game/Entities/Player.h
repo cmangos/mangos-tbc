@@ -1818,7 +1818,7 @@ class Player : public Unit
         void CheckAreaExploreAndOutdoor();
 
         static Team TeamForRace(uint8 race);
-        Team GetTeam() const { return m_team; }
+        Team GetOTeam() const { return m_team; }
         static uint32 getFactionForRace(uint8 race);
         void setFactionForRace(uint8 race);
 
@@ -2027,6 +2027,38 @@ class Player : public Unit
 
         // returns true if the player is in active state for capture point capturing
         bool CanUseCapturePoint() const;
+        
+         // LilleCarl
+
+        Team GetTeam() const
+        {
+            if (GetBattleGround() && GetBattleGround()->isBattleGround())
+                return m_bgData.bgTeam ? m_bgData.bgTeam : GetOTeam();
+
+            return GetOTeam();
+        }
+
+        bool NativeTeam() const { return GetTeam() == GetOTeam(); }
+        uint8 getFRace() const { return m_fRace; }
+        uint8 getORace() const { return m_oRace; }
+        uint32 getOFaction() const { return m_oFaction; }
+        uint32 getFFaction() const { return m_fFaction; }
+
+        void CFJoinBattleGround();
+
+        void CFLeaveBattleGround();
+
+        void FakeDisplayID();
+        void FixLanguageSkills(bool force = false, bool native = false);
+
+        void SetFakeValues();
+
+        uint8 m_fRace;
+        uint8 m_oRace;
+        uint32 m_fFaction;
+        uint32 m_oFaction;
+
+        // ! LilleCarl
 
         /*********************************************************/
         /***                    REST SYSTEM                    ***/

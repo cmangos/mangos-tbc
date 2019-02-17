@@ -24,6 +24,8 @@ EndScriptData */
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "the_eye.h"
 
+#include <random>
+
 enum
 {
     SAY_AGGRO                           = -1550007,
@@ -351,7 +353,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                     {
                         m_Phase = PHASE_NORMAL;
                         // Randomize the portals
-                        std::random_shuffle(m_vSpotLightsGuidVector.begin(), m_vSpotLightsGuidVector.end());
+                        std::shuffle(m_vSpotLightsGuidVector.begin(), m_vSpotLightsGuidVector.end(), std::mt19937(std::random_device()()));
                         // Summon 2 priests
                         for (uint8 i = 0; i < 2; ++i)
                         {

@@ -24,6 +24,8 @@ EndScriptData */
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "karazhan.h"
 
+#include <random>
+
 enum
 {
     // netherspite spells
@@ -257,7 +259,7 @@ struct boss_netherspiteAI : public ScriptedAI
             m_creature->SummonCreature(m_vPortalEntryList[i], aPortalCoordinates[i].fX, aPortalCoordinates[i].fY, aPortalCoordinates[i].fZ, aPortalCoordinates[i].fO, TEMPSPAWN_DEAD_DESPAWN, 0);
 
         // randomize the portals after the first summon
-        std::random_shuffle(m_vPortalEntryList.begin(), m_vPortalEntryList.end());
+        std::shuffle(m_vPortalEntryList.begin(), m_vPortalEntryList.end(), std::mt19937(std::random_device()()));
     }
 
     void JustSummoned(Creature* pSummoned) override

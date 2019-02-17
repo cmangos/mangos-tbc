@@ -24,39 +24,46 @@ public:
 
     void LoadRegulators()
     {
+        // TODO: Anyone great with SQL who can unnest these queries?
+
         SpellRegulationMap.clear();
 
-        try {
-            auto result = WorldDatabase.PQuery("SELECT spellid, modifier FROM custom_spellregulator");
+        auto result = WorldDatabase.PQuery("SELECT spellid, modifier FROM custom_spellregulator");
+
+        if (!result)
+        {
+            sLog.outString("Couldn't load custom_spellregulator table");
+            return;
+        }
+
+        do
+        {
+            auto fields = result->Fetch();
+            uint32 spellid = fields[0].GetUInt32();
+            float modifier = fields[1].GetFloat();
+
+            if (SpellRegulationMap.find(spellid) == SpellRegulationMap.end())
+                SpellRegulationMap.insert(std::make_pair(spellid, modifier));
+
+            auto chainresult = WorldDatabase.PQuery("SELECT spell_id FROM spell_chain WHERE first_spell = (SELECT first_spell FROM spell_chain WHERE spell_id = '%u')", spellid);
+
+            if (!chainresult)
+                continue;
 
             do
             {
-                auto fields = result->Fetch();
-                uint32 spellid = fields[0].GetUInt32();
-                float modifier = fields[1].GetFloat();
+                auto chainspellid = chainresult->Fetch()[0].GetUInt32();
 
-                if (SpellRegulationMap.find(spellid) == SpellRegulationMap.end())
-                    SpellRegulationMap.insert(std::make_pair(spellid, modifier));
-
-                auto chainresult = WorldDatabase.PQuery("SELECT spell_id FROM spell_chain WHERE first_spell = (SELECT first_spell FROM spell_chain WHERE spell_id = '%u')", spellid);
-
-                do
-                {
-                    auto chainspellid = chainresult->Fetch()[0].GetUInt32();
-
-                    if (SpellRegulationMap.find(chainspellid) == SpellRegulationMap.end())
-                        SpellRegulationMap.insert(std::make_pair(chainspellid, modifier));
-                }
-                while (chainresult->NextRow());
+                if (SpellRegulationMap.find(chainspellid) == SpellRegulationMap.end())
+                    SpellRegulationMap.insert(std::make_pair(chainspellid, modifier));
             }
-            while (result->NextRow());
-
-            sLog.outString("Loaded spellregulator data");
-        } catch (std::exception) {
-            sLog.outError("Failed to load spellregulator from database");
+            while (chainresult->NextRow());
         }
+        while (result->NextRow());
+
+        sLog.outString("Loaded spellregulator data");
     }
 
-//private:
+private:
     std::unordered_map<uint32, float> SpellRegulationMap {};
 };

@@ -1495,6 +1495,12 @@ Death.Ghost.RunSpeed.Battleground = 1.0
 #        Default: 1800000 (30 minutes)
 #                 0 - disable premade group matches (group always added to bg team in normal way)
 #
+#    BattleGround.CrossfactionQueueing
+#        Enable crossfaction battleground queueing.
+#        Default: 0 - (Disabled)
+#                 1 - (Enabled)
+#
+#
 ###################################################################################################################
 
 Battleground.CastDeserter = 1
@@ -1504,6 +1510,7 @@ Battleground.ScoreStatistics = 0
 Battleground.InvitationType = 0
 BattleGround.PrematureFinishTimer = 300000
 BattleGround.PremadeGroupWaitForMatch = 1800000
+BattleGround.CrossfactionQueueing = 1
 
 ###################################################################################################################
 # ARENA CONFIG

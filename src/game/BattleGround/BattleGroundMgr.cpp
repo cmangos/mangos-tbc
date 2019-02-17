@@ -2368,37 +2368,35 @@ bool BattleGroundQueue::CheckMixedMatch(BattleGround* bg_template, BattleGroundB
 
     return false;
 }
-
 bool BattleGroundQueue::MixPlayersToBG(BattleGround* bg, BattleGroundBracketId bracket_id)
 {
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg->isBattleGround())
-        return false;
+	if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg->isBattleGround())
+		return false;
 
-    int32 allyFree = bg->GetFreeSlotsForTeam(ALLIANCE);
-    int32 hordeFree = bg->GetFreeSlotsForTeam(HORDE);
+	int32 allyFree = bg->GetFreeSlotsForTeam(ALLIANCE);
+	int32 hordeFree = bg->GetFreeSlotsForTeam(HORDE);
 
-    uint32 addedally = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(ALLIANCE);
-    uint32 addedhorde = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(HORDE);
+	uint32 addedally = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(ALLIANCE);
+	uint32 addedhorde = bg->GetMaxPlayersPerTeam() - bg->GetFreeSlotsForTeam(HORDE);
 
-    for (auto& itr : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
-    {
-        GroupQueueInfo* ginfo = itr;
-        if (!ginfo->IsInvitedToBGInstanceGUID)
-        {
-            bool makeally = addedally < addedhorde;
+	for (auto& itr : m_QueuedGroups[bracket_id][BG_QUEUE_NORMAL_ALLIANCE])
+	{
+		GroupQueueInfo* ginfo = itr;
+		if (!ginfo->IsInvitedToBGInstanceGUID)
+		{
+			bool makeally = addedally < addedhorde;
 
-            if (addedally == addedhorde)
-                makeally = urand(0, 1);
+			if (addedally == addedhorde)
+				makeally = urand(0, 1);
 
-            makeally ? ++addedally : ++addedhorde;
+			makeally ? ++addedally : ++addedhorde;
 
-            ginfo->GroupTeam = makeally ? ALLIANCE : HORDE;
+			ginfo->GroupTeam = makeally ? ALLIANCE : HORDE;
 
-            if (m_SelectionPools[makeally ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, makeally ? allyFree : hordeFree))
-                makeally ? addedally += ginfo->Players.size() : addedhorde += ginfo->Players.size();
-            else
-                break;
-        }
-    }
-
-    return true;
+			if (m_SelectionPools[makeally ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, makeally ? allyFree : hordeFree))
+				makeally ? addedally += ginfo->Players.size() : addedhorde += ginfo->Players.size();
+			else
+				break;
+		}
+	}
+}

@@ -140,7 +140,6 @@ class MapManager : public MaNGOS::Singleton<MapManager, MaNGOS::ClassLevelLockab
 
         uint32 GenerateInstanceId() { return ++i_MaxInstanceId; }
         void InitMaxInstanceId();
-        void InitializeVisibilityDistanceInfo();
         /* statistics */
         uint32 GetNumInstances();
         uint32 GetNumPlayersInInstances();

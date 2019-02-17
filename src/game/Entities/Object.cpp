@@ -1027,7 +1027,8 @@ void Object::ForceValuesUpdateAtIndex(uint32 index)
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_currMap(nullptr), m_mapId(0),
-    m_InstanceId(0), m_isActiveObject(false)
+    m_InstanceId(0), m_isActiveObject(false),
+    m_visibilityRange(DefaultObjectsVisibilityDistance[VISIBILITY_DISTANCE_NORMAL])
 {
 }
 
@@ -1721,7 +1722,7 @@ void WorldObject::SendMessageToSetExcept(WorldPacket const& data, Player const* 
     if (IsInWorld())
     {
         MaNGOS::MessageDelivererExcept notifier(data, skipped_receiver);
-        Cell::VisitWorldObjects(this, notifier, GetMap()->GetVisibilityDistance());
+        Cell::VisitWorldObjects(this, notifier, GetVisibilityRange());
     }
 }
 
@@ -2142,7 +2143,7 @@ struct WorldObjectChangeAccumulator
 void WorldObject::BuildUpdateData(UpdateDataMapType& update_players)
 {
     WorldObjectChangeAccumulator notifier(*this, update_players);
-    Cell::VisitWorldObjects(this, notifier, GetMap()->GetVisibilityDistance());
+    Cell::VisitWorldObjects(this, notifier, GetVisibilityRange());
 
     ClearUpdateMask(false);
 }

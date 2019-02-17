@@ -338,7 +338,7 @@ Unit::Unit() :
 
     m_detectInvisibilityMask = 0;
     m_invisibilityMask = 0;
-    
+
     memset(m_invisibilityValues, 0, sizeof(m_invisibilityValues));
     memset(m_invisibilityDetectValues, 0, sizeof(m_invisibilityDetectValues));
 
@@ -8203,7 +8203,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     else if (!at_same_transport)                            // distance for show player/pet/creature (no transport case)
     {
         // Any units far than max visible distance for viewer or not in our map are not visible too
-        if (!IsWithinDistInMap(viewPoint, _map.GetVisibilityDistance() + (inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
+        if (!IsWithinDistInMap(viewPoint, GetVisibilityRange() + (inVisibleList ? World::GetVisibleUnitGreyDistance() : 0.0f), is3dDistance))
             return false;
     }
 
@@ -9820,7 +9820,7 @@ void CharmInfo::InitCharmCreateSpells()
             m_charmspells[x].SetActionAndType(spellId, ACT_DISABLED);
 
             ActiveStates newstate;
-            bool onlyselfcast = true;            
+            bool onlyselfcast = true;
 
             for (uint32 i = 0; i < 3 && onlyselfcast; ++i)  // nonexistent spell will not make any problems as onlyselfcast would be false -> break right away
             {
@@ -11776,7 +11776,7 @@ void Unit::InterruptSpellsCastedOnMe(bool killDelayed)
     // Maximum spell range=100m ?
     MaNGOS::AnyUnitInObjectRangeCheck u_check(this, 100.0f);
     MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(targets, u_check);
-    Cell::VisitAllObjects(this, searcher, GetMap()->GetVisibilityDistance());
+    Cell::VisitAllObjects(this, searcher, GetVisibilityRange());
     for (auto& target : targets)
     {
         if (!CanAttack(target))

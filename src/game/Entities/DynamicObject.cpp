@@ -204,7 +204,7 @@ bool DynamicObject::isVisibleForInState(Player const* u, WorldObject const* view
         return true;
 
     // normal case
-    return IsWithinDistInMap(viewPoint, GetMap()->GetVisibilityDistance() + (inVisibleList ? World::GetVisibleObjectGreyDistance() : 0.0f), false);
+    return IsWithinDistInMap(viewPoint, GetVisibilityRange() + (inVisibleList ? World::GetVisibleObjectGreyDistance() : 0.0f), false);
 }
 
 void DynamicObject::OnPersistentAreaAuraEnd()

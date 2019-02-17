@@ -813,10 +813,14 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
     if (InstanceData* iData = GetMap()->GetInstanceData())
         iData->OnCreatureCreate(this);
 
+    // set distance from where player can see this creature.
+    //SetVisibilityRange(cinfo->VisibilityRange);
+
     if (sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
     {
         // encounter boss forced decay timer to 1h
         m_corpseDelay = 3600;                               // TODO: maybe add that to config file
+        SetVisibilityRange(VISIBILITY_DISTANCE_GIGANTIC);
     }
     else
     {
@@ -824,21 +828,28 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
         {
             case CREATURE_ELITE_RARE:
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RARE);
+                SetVisibilityRange(VISIBILITY_DISTANCE_LARGE);
                 break;
             case CREATURE_ELITE_ELITE:
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_ELITE);
+                SetVisibilityRange(VISIBILITY_DISTANCE_LARGE);
                 break;
             case CREATURE_ELITE_RAREELITE:
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RAREELITE);
+                SetVisibilityRange(VISIBILITY_DISTANCE_LARGE);
                 break;
             case CREATURE_ELITE_WORLDBOSS:
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_WORLDBOSS);
+                SetVisibilityRange(VISIBILITY_DISTANCE_LARGE);
                 break;
             default:
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
                 break;
         }
     }
+
+    if (GetEntry() == 18733)
+        SetVisibilityRange(VISIBILITY_DISTANCE_GIGANTIC);
 
     // Add to CreatureLinkingHolder if needed
     if (sCreatureLinkingMgr.GetLinkedTriggerInformation(this))

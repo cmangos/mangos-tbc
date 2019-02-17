@@ -89,8 +89,7 @@ void Map::LoadMapAndVMap(int gx, int gy)
 
 Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
     : i_mapEntry(sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode),
-      i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
-      m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_persistentState(nullptr),
+      i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0), m_persistentState(nullptr),
       m_activeNonPlayersIter(m_activeNonPlayers.end()), m_onEventNotifiedIter(m_onEventNotifiedObjects.end()),
       i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id)),
       i_data(nullptr), i_script_id(0)
@@ -113,9 +112,6 @@ void Map::Initialize(bool loadInstanceData /*= true*/)
         }
     }
 
-    // lets initialize visibility distance for map
-    Map::InitVisibilityDistance();
-
     // add reference for TerrainData object
     m_TerrainData->AddRef();
 
@@ -126,12 +122,6 @@ void Map::Initialize(bool loadInstanceData /*= true*/)
     m_persistentState->InitPools();
 
     sObjectMgr.LoadActiveEntities(this);
-}
-
-void Map::InitVisibilityDistance()
-{
-    // init visibility for continents
-    m_VisibleDistance = World::GetMaxVisibleDistanceOnContinents();
 }
 
 // Template specialization of utility methods
@@ -407,7 +397,7 @@ void Map::MessageBroadcast(Player const* player, WorldPacket const& msg, bool to
 
     MaNGOS::MessageDeliverer post_man(*player, msg, to_self);
     TypeContainerVisitor<MaNGOS::MessageDeliverer, WorldTypeMapContainer > message(post_man);
-    cell.Visit(p, message, *this, *player, GetVisibilityDistance());
+    cell.Visit(p, message, *this, *player, player->GetVisibilityRange());
 }
 
 void Map::MessageBroadcast(WorldObject const* obj, WorldPacket const& msg)
@@ -430,7 +420,7 @@ void Map::MessageBroadcast(WorldObject const* obj, WorldPacket const& msg)
     // we have alot of blinking mobs because monster move packet send is broken...
     MaNGOS::ObjectMessageDeliverer post_man(msg);
     TypeContainerVisitor<MaNGOS::ObjectMessageDeliverer, WorldTypeMapContainer > message(post_man);
-    cell.Visit(p, message, *this, *obj, GetVisibilityDistance());
+    cell.Visit(p, message, *this, *obj, obj->GetVisibilityRange());
 }
 
 void Map::MessageDistBroadcast(Player const* player, WorldPacket const& msg, float dist, bool to_self, bool own_team_only)
@@ -550,7 +540,7 @@ bool Map::loaded(const GridPair& p) const
 void Map::VisitNearbyCellsOf(WorldObject* obj, TypeContainerVisitor<MaNGOS::ObjectUpdater, GridTypeMapContainer> &gridVisitor, TypeContainerVisitor<MaNGOS::ObjectUpdater, WorldTypeMapContainer> &worldVisitor)
 {
     // lets update mobs/objects in ALL visible cells around player!
-    CellArea area = Cell::CalculateCellArea(obj->GetPositionX(), obj->GetPositionY(), GetVisibilityDistance());
+    CellArea area = Cell::CalculateCellArea(obj->GetPositionX(), obj->GetPositionY(), MAX_VISIBILITY_DISTANCE);
 
     for (uint32 x = area.low_bound.x_coord; x <= area.high_bound.x_coord; ++x)
     {
@@ -644,7 +634,7 @@ void Map::Update(const uint32& t_diff)
                 continue;
 
             // lets update mobs/objects in ALL visible cells around player!
-            CellArea area = Cell::CalculateCellArea(obj->GetPositionX(), obj->GetPositionY(), GetVisibilityDistance());
+            CellArea area = Cell::CalculateCellArea(obj->GetPositionX(), obj->GetPositionY(), obj->GetVisibilityRange());
 
             for (uint32 x = area.low_bound.x_coord; x <= area.high_bound.x_coord; ++x)
             {
@@ -975,7 +965,7 @@ void Map::UpdateObjectVisibility(WorldObject* obj, Cell cell, const CellPair& ce
     cell.SetNoCreate();
     MaNGOS::VisibleChangesNotifier notifier(*obj);
     TypeContainerVisitor<MaNGOS::VisibleChangesNotifier, WorldTypeMapContainer > player_notifier(notifier);
-    cell.Visit(cellpair, player_notifier, *this, *obj, GetVisibilityDistance());
+    cell.Visit(cellpair, player_notifier, *this, *obj, MAX_VISIBILITY_DISTANCE);
 }
 
 void Map::SendInitSelf(Player* player) const
@@ -1165,7 +1155,7 @@ bool Map::ActiveObjectsNearGrid(uint32 x, uint32 y) const
     CellPair cell_max(cell_min.x_coord + MAX_NUMBER_OF_CELLS, cell_min.y_coord + MAX_NUMBER_OF_CELLS);
 
     // we must find visible range in cells so we unload only non-visible cells...
-    float viewDist = GetVisibilityDistance();
+    float viewDist = MAX_VISIBILITY_DISTANCE;
     int cell_range = (int)ceilf(viewDist / SIZE_OF_GRID_CELL) + 1;
 
     cell_min << cell_range;
@@ -1390,9 +1380,6 @@ DungeonMap::DungeonMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnM
 {
     MANGOS_ASSERT(i_mapEntry->IsDungeon());
 
-    // lets initialize visibility distance for dungeons
-    DungeonMap::InitVisibilityDistance();
-
     // the timer is started by default, and stopped when the first player joins
     // this make sure it gets unloaded if for some reason no player joins
     m_unloadTimer = std::max(sWorld.getConfig(CONFIG_UINT32_INSTANCE_UNLOAD_DELAY), (uint32)MIN_UNLOAD_DELAY);
@@ -1400,12 +1387,6 @@ DungeonMap::DungeonMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnM
 
 DungeonMap::~DungeonMap()
 {
-}
-
-void DungeonMap::InitVisibilityDistance()
-{
-    // init visibility distance for instances
-    m_VisibleDistance = World::GetMaxVisibleDistanceInInstances();
 }
 
 /*
@@ -1662,8 +1643,6 @@ DungeonPersistentState* DungeonMap::GetPersistanceState() const
 BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId)
     : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY)
 {
-    // lets initialize visibility distance for BG/Arenas
-    BattleGroundMap::InitVisibilityDistance();
 }
 
 BattleGroundMap::~BattleGroundMap()
@@ -1685,13 +1664,6 @@ void BattleGroundMap::Update(const uint32& diff)
 BattleGroundPersistentState* BattleGroundMap::GetPersistanceState() const
 {
     return (BattleGroundPersistentState*)Map::GetPersistentState();
-}
-
-
-void BattleGroundMap::InitVisibilityDistance()
-{
-    // init visibility distance for BG/Arenas
-    m_VisibleDistance = World::GetMaxVisibleDistanceInBGArenas();
 }
 
 bool BattleGroundMap::CanEnter(Player* player)

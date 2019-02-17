@@ -44,10 +44,23 @@
 #define DEFAULT_VISIBILITY_INSTANCE 120.0f      // default visible distance in instances, 120 yards
 #define DEFAULT_VISIBILITY_BGARENAS 180.0f      // default visible distance in BG/Arenas, 180 yards
 
+// Default objects visibility distance
+const float DefaultObjectsVisibilityDistance[6] = { 100.0f, 25.0f, 50.0f, 200.0f, 300.0f, 333.0f };
+
 #define DEFAULT_WORLD_OBJECT_SIZE   0.388999998569489f      // currently used (correctly?) for any non Unit world objects. This is actually the bounding_radius, like player/creature from creature_model_data
 #define DEFAULT_OBJECT_SCALE        1.0f                    // player/item scale as default, npc/go from database, pets from dbc
 
 #define MAX_STEALTH_DETECT_RANGE    45.0f
+
+enum VisibilityDistanceType : uint8
+{
+    VISIBILITY_DISTANCE_NORMAL   = 0,
+    VISIBILITY_DISTANCE_TINY     = 1,
+    VISIBILITY_DISTANCE_SMALL    = 2,
+    VISIBILITY_DISTANCE_LARGE    = 3,
+    VISIBILITY_DISTANCE_GIGANTIC = 4,
+    VISIBILITY_DISTANCE_INFINITE = 5
+};
 
 enum TempSpawnType
 {
@@ -807,6 +820,8 @@ class WorldObject : public Object
         virtual void SaveRespawnTime() {}
         void AddObjectToRemoveList();
 
+        void SetVisibilityRange(VisibilityDistanceType type) { m_visibilityRange = DefaultObjectsVisibilityDistance[type]; }
+        float GetVisibilityRange() const { return m_visibilityRange; }
         void UpdateObjectVisibility();
         virtual void UpdateVisibilityAndView();             // update visibility for object and object for all around
 
@@ -882,6 +897,8 @@ class WorldObject : public Object
         GCDMap            m_GCDCatMap;
         LockoutMap        m_lockoutMap;
         CooldownContainer m_cooldownMap;
+
+        float m_visibilityRange;
 
         std::string m_name;
 

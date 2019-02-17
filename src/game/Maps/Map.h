@@ -141,10 +141,6 @@ class Map : public GridRefManager<NGridType>
         void ExecuteMapWorkerZone(uint32 zoneId, std::function<void(Player*)> const& worker);
         void ExecuteMapWorkerArea(uint32 areaId, std::function<void(Player*)> const& worker);
 
-        float GetVisibilityDistance() const { return m_VisibleDistance; }
-        // function for setting up visibility distance for maps on per-type/per-Id basis
-        virtual void InitVisibilityDistance();
-
         void PlayerRelocation(Player*, float x, float y, float z, float orientation);
         void CreatureRelocation(Creature* creature, float x, float y, float z, float ang);
 
@@ -375,7 +371,6 @@ class Map : public GridRefManager<NGridType>
         uint32 i_id;
         uint32 i_InstanceId;
         uint32 m_unloadTimer;
-        float m_VisibleDistance;
         MapPersistentState* m_persistentState;
 
         MapRefManager m_mapRefManager;
@@ -468,7 +463,6 @@ class DungeonMap : public Map
         // can't be nullptr for loaded map
         DungeonPersistentState* GetPersistanceState() const;
 
-        virtual void InitVisibilityDistance() override;
     private:
         bool m_resetAfterUnload;
         bool m_unloadWhenEmpty;
@@ -491,7 +485,6 @@ class BattleGroundMap : public Map
         void SetUnload();
         void UnloadAll(bool pForce) override;
 
-        virtual void InitVisibilityDistance() override;
         BattleGround* GetBG() const { return m_bg; }
         void SetBG(BattleGround* bg) { m_bg = bg; }
 

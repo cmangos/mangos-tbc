@@ -4982,7 +4982,7 @@ SpellCastResult Spell::CheckCast(bool strict)
         GameObject* ok = nullptr;
         MaNGOS::GameObjectFocusCheck go_check(m_caster, m_spellInfo->RequiresSpellFocus);
         MaNGOS::GameObjectSearcher<MaNGOS::GameObjectFocusCheck> checker(ok, go_check);
-        Cell::VisitGridObjects(m_caster, checker, m_caster->GetMap()->GetVisibilityDistance());
+        Cell::VisitGridObjects(m_caster, checker, m_caster->GetVisibilityRange());
 
         if (!ok)
             return SPELL_FAILED_REQUIRES_SPELL_FOCUS;

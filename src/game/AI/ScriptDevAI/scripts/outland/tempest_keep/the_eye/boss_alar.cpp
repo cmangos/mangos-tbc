@@ -80,11 +80,10 @@ struct EventLocation
 static const EventLocation aPlatformLocation[MAX_PLATFORMS] =
 {
     {340.15f, 58.65f, 17.71f},
-    {388.09f, 31.54f, 20.18f},
-    {388.18f,-32.85f, 20.18f},
-    {340.29f,-60.19f, 17.72f},
-    {264.36f, 40.78f, 20.21f},
-    {268.38f,-49.80f, 20.38f}
+    {340.15f, 58.65f, 17.71f},
+	{340.15f, 58.65f, 17.71f},
+	{340.15f, 58.65f, 17.71f},
+	{340.15f, 58.65f, 17.71f},
 };
 
 static const EventLocation aCenterLocation[] =
@@ -315,7 +314,7 @@ struct boss_alarAI : public ScriptedAI
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->RemoveAurasDueToSpell(SPELL_FLAME_QUILLS);
         // We set the health to 1 in order to avoid the forced death stand flag - this way we can have the ressurrect animation
-        m_creature->SetHealth(1);
+        m_creature->SetHealth(424928);
         m_creature->StopMoving();
         m_creature->ClearComboPointHolders();
         m_creature->RemoveAllAurasOnDeath();
@@ -327,7 +326,6 @@ struct boss_alarAI : public ScriptedAI
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
 
-        m_bInvulnerability = true;
         m_creature->SetIgnoreRangedTargets(false);
 
         // Stop damage and stop checking for flame buffet.

@@ -585,9 +585,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
 
 void Spell::EffectDummy(SpellEffectIndex eff_idx)
 {
-    if (!unitTarget && !gameObjTarget && !itemTarget)
-        return;
-
     // selection by spell family
     switch (m_spellInfo->SpellFamilyName)
     {
@@ -1013,9 +1010,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 20577:                                 // Cannibalize
                 {
-                    if (unitTarget)
-                        m_caster->CastSpell(m_caster, 20578, TRIGGERED_NONE);
-
+                    m_caster->CastSpell(nullptr, 20578, TRIGGERED_NONE);
                     return;
                 }
                 case 21108:                                 // Summon Sons of Flame

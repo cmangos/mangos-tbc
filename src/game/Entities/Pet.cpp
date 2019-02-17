@@ -1419,7 +1419,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
         }
         case GUARDIAN_PET:
         {
-            SelectLevel();
+            SelectLevel(petlevel);
             break;
         }
         default:

@@ -87,61 +87,6 @@ struct boss_nalorakkAI : public ScriptedAI
         m_bIsInBearForm             = false;
     }
 
-    void MoveInLineOfSight(Unit* pWho) override
-    {
-        ScriptedAI::MoveInLineOfSight(pWho);
-
-        if (m_pInstance && m_pInstance->IsBearPhaseInProgress())
-            return;
-
-        if (pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->IsWithinDistInMap(pWho, aBearEventInfo[m_uiCurrentWave].fAggroDist))
-        {
-            DoScriptText(aBearEventInfo[m_uiCurrentWave].iYellId, m_creature);
-            if (m_pInstance)
-                m_pInstance->SendNextBearWave(pWho);
-        }
-    }
-
-    void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
-    {
-        if (uiMotionType != POINT_MOTION_TYPE)
-            return;
-
-        if (uiPointId)
-        {
-            m_creature->SetFacingTo(aBearEventInfo[m_uiCurrentWave].fO);
-
-            if (m_uiCurrentWave < MAX_BEAR_WAVES - 1)
-            {
-                if (m_pInstance)
-                    m_pInstance->SetBearEventProgress(false);
-                ++m_uiCurrentWave;
-            }
-            else
-            {
-                // Set the instance data to fail on movement inform because we are not moving the boss to home position
-                if (m_pInstance)
-                    m_pInstance->SetData(TYPE_NALORAKK, FAIL);
-            }
-        }
-    }
-
-    // Nalorakk evades only after the trash waves are finished
-    void EnterEvadeMode() override
-    {
-        m_creature->RemoveAllAurasOnEvade();
-        m_creature->CombatStop(true);
-        m_creature->LoadCreatureAddon(true);
-
-        // Boss should evade on the top of the platform
-        if (m_creature->isAlive())
-            m_creature->GetMotionMaster()->MovePoint(1, aBearEventInfo[m_uiCurrentWave].fX, aBearEventInfo[m_uiCurrentWave].fY, aBearEventInfo[m_uiCurrentWave].fZ);
-
-        m_creature->SetLootRecipient(nullptr);
-
-        Reset();
-    }
-
     void Aggro(Unit* /*pWho*/) override
     {
         DoScriptText(SAY_AGGRO, m_creature);

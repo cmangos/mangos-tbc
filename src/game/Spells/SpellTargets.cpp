@@ -453,7 +453,7 @@ void SpellTargetMgr::Initialize()
                                     }
                                 }
                                 if (ignore)
-                                    data.targetMask[effIdxSource][rightTarget] |= (1 << effIdxTarget);
+                                    data.targetMask[effIdxSource][rightSource] |= (1 << effIdxTarget);
                             }
                             if (ignore)
                             {

@@ -641,6 +641,9 @@ bool BattleGroundQueue::CheckPremadeMatch(BattleGroundBracketId bracket_id, uint
 // this method tries to create battleground or arena with MinPlayersPerTeam against MinPlayersPerTeam
 bool BattleGroundQueue::CheckNormalMatch(BattleGround* bg_template, BattleGroundBracketId bracket_id, uint32 minPlayers, uint32 maxPlayers)
 {
+    if (CheckMixedMatch(bg_template, bracket_id, minPlayers, maxPlayers))
+        return true;
+    
     GroupsQueueType::const_iterator itr_team[PVP_TEAM_COUNT];
     for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
     {

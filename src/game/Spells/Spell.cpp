@@ -1537,7 +1537,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
     uint32 EffectChainTarget = m_spellInfo->EffectChainTarget[effIndex];
     uint32 unMaxTargets = m_affectedTargetCount;  // Get spell max affected targets
 
-    GetSpellRangeAndRadius(effIndex, radius, EffectChainTarget);
+    GetSpellRangeAndRadius(effIndex, radius, targetB, EffectChainTarget);
     float cone = GetCone();
 
     UnitList& tempUnitList = data.tmpUnitList[targetB];
@@ -7359,12 +7359,36 @@ void Spell::ClearCastItem()
     m_CastItemGuid.Clear();
 }
 
-void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, uint32& EffectChainTarget)
+void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, bool targetB, uint32& EffectChainTarget)
 {
     if (m_spellInfo->EffectRadiusIndex[effIndex])
         radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
     else
         radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+
+    if (radius == 50000.f) // safety against bad data
+    {
+        uint32 targetMode;
+        if (!targetB)
+            targetMode = m_spellInfo->EffectImplicitTargetA[effIndex];
+        else
+            targetMode = m_spellInfo->EffectImplicitTargetB[effIndex];
+        SpellTargetInfo& data = SpellTargetInfoTable[targetMode];
+        switch (data.type)
+        {
+            case TARGET_TYPE_LOCATION_DEST:
+                if (radius == 50000.f)
+                    radius = 3.0f;
+                break;
+            case TARGET_TYPE_UNIT:
+            case TARGET_TYPE_GAMEOBJECT:
+                if (radius == 50000.f)
+                    if (data.type == TARGET_ENUMERATOR_CHAIN || data.type == TARGET_ENUMERATOR_AOE || data.type == TARGET_ENUMERATOR_CONE)
+                        radius = 200.f;
+                break;
+        }
+    }
+
 
     if (Unit* realCaster = GetAffectiveCaster())
     {

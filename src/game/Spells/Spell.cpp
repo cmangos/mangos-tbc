@@ -7383,7 +7383,7 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
             case TARGET_TYPE_UNIT:
             case TARGET_TYPE_GAMEOBJECT:
                 if (radius == 50000.f)
-                    if (data.type == TARGET_ENUMERATOR_CHAIN || data.type == TARGET_ENUMERATOR_AOE || data.type == TARGET_ENUMERATOR_CONE)
+                    if (data.enumerator == TARGET_ENUMERATOR_CHAIN || data.enumerator == TARGET_ENUMERATOR_AOE || data.enumerator == TARGET_ENUMERATOR_CONE)
                         radius = 200.f;
                 break;
         }

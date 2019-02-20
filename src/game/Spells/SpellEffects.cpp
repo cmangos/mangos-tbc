@@ -2773,7 +2773,9 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     return;
                 }
                 case 36448:                                 // Focused Bursts
-                case 36475:                                 // Focused Bursts
+                case 36475:
+                case 38986:
+                case 38987:
                 {
                     if (!unitTarget || eff_idx != EFFECT_INDEX_0)
                         return;

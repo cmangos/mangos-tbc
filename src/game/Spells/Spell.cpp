@@ -6866,7 +6866,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
     {
         // Check targets for not_selectable unit flag and remove
         // A player can cast spells on his pet (or other controlled unit) though in any state
-        if (target->GetMasterGuid() != realCaster->GetObjectGuid())
+        if (target->GetMasterGuid() != realCaster->GetObjectGuid() && !scriptTarget)
         {
             // any unattackable target skipped
             if (!m_ignoreUnattackableTarget && target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
@@ -6874,7 +6874,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
 
             // unselectable targets skipped in all cases except targets with TARGET_SCRIPT
             if (!m_ignoreUnselectableTarget && target != m_targets.getUnitTarget() &&
-                    target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE) && !scriptTarget)
+                    target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
                 return false;
         }
 

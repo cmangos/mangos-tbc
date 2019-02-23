@@ -211,7 +211,7 @@ SpellEffectInfo SpellEffectInfoTable[MAX_SPELL_EFFECTS] =
     /*[80]*/     { "SPELL_EFFECT_ADD_COMBO_POINTS",             TARGET_TYPE_UNIT,           TARGET_NONE },
     /*[81]*/     { "SPELL_EFFECT_CREATE_HOUSE",                 TARGET_TYPE_LOCATION_DEST,  TARGET_NONE },
     /*[82]*/     { "SPELL_EFFECT_BIND_SIGHT",                   TARGET_TYPE_UNIT,           TARGET_NONE },
-    /*[83]*/     { "SPELL_EFFECT_DUEL",                         TARGET_TYPE_LOCATION_DEST,  TARGET_NONE },
+    /*[83]*/     { "SPELL_EFFECT_DUEL",                         TARGET_TYPE_UNIT_DEST,      TARGET_NONE },
     /*[84]*/     { "SPELL_EFFECT_STUCK",                        TARGET_TYPE_NONE,           TARGET_NONE }, // confirmed none
     /*[85]*/     { "SPELL_EFFECT_SUMMON_PLAYER",                TARGET_TYPE_UNIT,           TARGET_UNIT }, // not meant to send anything - TODO: Fix
     /*[86]*/     { "SPELL_EFFECT_ACTIVATE_OBJECT",              TARGET_TYPE_GAMEOBJECT,     TARGET_NONE },

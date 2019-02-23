@@ -147,7 +147,7 @@ struct boss_void_reaverAI : public ScriptedAI
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                 {
                     m_creature->SummonCreature(NPC_ARCANE_ORB_TARGET, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSPAWN_TIMED_DESPAWN, 15000);
-                    m_uiArcaneOrbTimer = 3000;
+                    m_uiArcaneOrbTimer = 7000;
                 }
             }
             else
@@ -157,7 +157,7 @@ struct boss_void_reaverAI : public ScriptedAI
                 if (pTarget)
                     m_creature->SummonCreature(NPC_ARCANE_ORB_TARGET, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSPAWN_TIMED_DESPAWN, 15000);
 
-                m_uiArcaneOrbTimer = 3000;
+                m_uiArcaneOrbTimer = 7000;
             }
         }
         else

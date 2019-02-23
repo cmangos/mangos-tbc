@@ -3324,6 +3324,9 @@ uint64 Spell::handle_delayed(uint64 t_offset)
 {
     uint64 next_time = 0;
 
+    // handle none and dest targeted effects
+    DoAllTargetlessEffects();
+
     // now recheck units targeting correctness (need before any effects apply to prevent adding immunity at first effect not allow apply second spell effect and similar cases)
     for (auto& ihit : m_UniqueTargetInfo)
     {

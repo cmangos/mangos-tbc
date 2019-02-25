@@ -692,6 +692,11 @@ struct boss_lady_vashjAI : public ScriptedAI
                     m_lastSporebatSpell = batSpells[randSpell];
 
                     m_creature->CastSpell(nullptr, batSpells[randSpell], TRIGGERED_OLD_TRIGGERED);
+                    
+                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER))
+					{
+						m_creature->SummonCreature(NPC_SPORE_DROP_TRIGGER, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSPAWN_TIMED_DESPAWN, 100000000);
+					}
 
                     // summon sporebats faster and faster
                     if (m_uiSummonSporebatStaticTimer > 2000)

@@ -646,6 +646,8 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
     m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
 
     m_cinematicMgr = nullptr;
+    
+    m_visibilityRange = DefaultObjectsVisibilityDistance[VISIBILITY_DISTANCE_LARGE];
 }
 
 Player::~Player()

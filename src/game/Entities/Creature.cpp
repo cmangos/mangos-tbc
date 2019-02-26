@@ -844,6 +844,7 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
                 break;
             default:
                 m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
+		SetVisibilityRange(VISIBILITY_DISTANCE_LARGE);
                 break;
         }
     }

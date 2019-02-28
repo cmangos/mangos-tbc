@@ -3296,7 +3296,7 @@ void Spell::cast(bool skipCheck)
     _handle_immediate_phase();
 
     // Okay, everything is prepared. Now we need to distinguish between immediate and evented delayed spells
-    if (GetSpellSpeed() > 0.0f)
+    if (GetSpellSpeed() > 0.0f && !IsChanneledSpell(m_spellInfo))
     {
         // Remove used for cast item if need (it can be already nullptr after TakeReagents call
         // in case delayed spell remove item at cast delay start

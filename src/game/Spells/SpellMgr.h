@@ -430,6 +430,20 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
     }
 }
 
+inline bool IsChanneledDelayedSpell(SpellEntry const* spellInfo)
+{
+    if (!spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNELED_1) && !spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNELED_2))
+        return false;
+
+    switch (spellInfo->Id)
+    {
+        case 39238: // Fumping
+        case 39246:
+            return true;
+        default: return false;
+    }
+}
+
 bool IsExplicitPositiveTarget(uint32 targetA);
 bool IsExplicitNegativeTarget(uint32 targetA);
 

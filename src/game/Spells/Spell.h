@@ -546,7 +546,8 @@ class Spell
         WorldObject* GetCastingObject() const;
 
         uint32 GetPowerCost() const { return m_powerCost; }
-        float GetSpellSpeed() const { return m_spellInfo->speed; }
+        // channels are generally instant - until more research provided all need to have speed 0
+        float GetSpellSpeed() const { if (IsChanneledSpell(m_spellInfo)) return 0.f; return m_spellInfo->speed; }
 
         void UpdatePointers();                              // must be used at call Spell code after time delay (non triggered spell cast/update spell call/etc)
 

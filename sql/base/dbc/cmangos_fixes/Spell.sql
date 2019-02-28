@@ -1290,4 +1290,7 @@ UPDATE spell_template SET EffectImplicitTargetA1=87 WHERE Id IN(724,27870,27871,
 UPDATE spell_template SET EffectImplicitTargetA2=87 WHERE Id IN(32375,32592);
 -- Draw Spirit - Lethon - both effects need to have same radius index - faulty data
 UPDATE spell_template SET EffectRadiusIndex1=EffectRadiusIndex2 WHERE Id IN(24811);
+-- Infernal - Hyjal - SPELL_EFFECT_TRIGGER_MISSILE can target units, but in this case it would execute the AOE N times, but its supposed to execute only once
+-- changed targeting to destination-targeted
+UPDATE spell_template SET EffectImplicitTargetA2=0 WHERE Id IN(32148);
 

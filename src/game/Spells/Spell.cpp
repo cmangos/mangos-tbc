@@ -397,8 +397,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     m_spellLog.Initialize();
     m_needSpellLog = (m_spellInfo->Attributes & (SPELL_ATTR_HIDE_IN_COMBAT_LOG | SPELL_ATTR_HIDDEN_CLIENTSIDE)) == 0;
 
-    for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        m_targetlessExecution[i] = false;
+    m_targetlessMask = 0;
 }
 
 Spell::~Spell()
@@ -521,9 +520,11 @@ void Spell::FillTargetMap()
         switch (effectTargetType)
         {
             case TARGET_TYPE_NONE:
+                m_targetlessMask |= (1 << i);
+                break;
             case TARGET_TYPE_LOCATION_DEST:
             case TARGET_TYPE_SPECIAL_DEST:
-                m_targetlessExecution[i] = true;
+                AddDestExecution(SpellEffectIndex(i));
                 break;
             case TARGET_TYPE_UNIT:
             case TARGET_TYPE_UNIT_DEST:
@@ -936,6 +937,32 @@ void Spell::AddItemTarget(Item* item, uint8 effectMask)
     m_UniqueItemInfo.push_back(target);
 }
 
+void Spell::AddDestExecution(SpellEffectIndex effIndex)
+{
+    m_destTargetInfo.effectMask |= (1 << effIndex);
+    if (m_destTargetInfo.effectMask == 0)
+    {
+        // spell fly from visual cast object
+        WorldObject* affectiveObject = GetAffectiveCasterObject();
+        float speed = GetSpellSpeed();
+        if (speed > 0.0f)
+        {
+            // calculate spell incoming interval
+            float x, y, z;
+            m_targets.getDestination(x, y, z);
+            float dist = affectiveObject->GetDistance(x, y, z, DIST_CALC_NONE);
+            dist = sqrt(dist); // default distance calculation is raw, apply sqrt before the next step
+            if (dist < 5.0f)
+                dist = 5.0f;
+            m_destTargetInfo.timeDelay = (uint64)floor(dist / speed * 1000.0f);
+            if (m_delayMoment == 0 || m_delayMoment > m_destTargetInfo.timeDelay)
+                m_delayMoment = m_destTargetInfo.timeDelay;
+        }
+        else
+            m_destTargetInfo.timeDelay = uint64(0);
+    }
+}
+
 void Spell::DoAllEffectOnTarget(TargetInfo* target)
 {
     if (target->processed)                                  // Check target
@@ -1289,7 +1316,7 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected)
     }
 }
 
-void Spell::DoAllTargetlessEffects()
+void Spell::DoAllTargetlessEffects(bool dest)
 {
     uint32 procAttacker;
     uint32 procVictim;
@@ -1297,13 +1324,24 @@ void Spell::DoAllTargetlessEffects()
     WorldObject* caster = m_caster; // preparation for GO casting
     Unit* unitCaster = caster->GetTypeId() == TYPEID_UNIT ? static_cast<Unit*>(caster) : nullptr;
 
-    uint8 effectMask = 0;
-    for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+    uint32 effectMask;
+    if (dest) // can have delay
     {
-        if (m_targetlessExecution[j])
+        effectMask = m_destTargetInfo.effectMask;
+        m_destTargetInfo.processed = true;
+        for (uint32 j = 0; j < MAX_EFFECT_INDEX; ++j)
         {
-            effectMask |= 1 << j;
-            HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
+            if ((effectMask & (1 << j)) != 0)
+                HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
+        }
+    }
+    else // always immediate
+    {
+        effectMask = m_targetlessMask;
+        for (uint32 j = 0; j < MAX_EFFECT_INDEX; ++j)
+        {
+            if ((effectMask & (1 << j)) != 0)
+                HandleEffects(nullptr, nullptr, nullptr, SpellEffectIndex(j));
         }
     }
 
@@ -3301,8 +3339,7 @@ void Spell::handle_immediate()
     if (m_spellState != SPELL_STATE_CHANNELING)
         m_spellState = SPELL_STATE_LANDING;
 
-    // handle none and dest targeted effects
-    DoAllTargetlessEffects();
+    DoAllTargetlessEffects(true);
 
     for (auto& ihit : m_UniqueTargetInfo)
         DoAllEffectOnTarget(&ihit);
@@ -3324,8 +3361,11 @@ uint64 Spell::handle_delayed(uint64 t_offset)
 {
     uint64 next_time = 0;
 
-    // handle none and dest targeted effects
-    DoAllTargetlessEffects();
+    if (!m_destTargetInfo.processed)
+        if (m_destTargetInfo.timeDelay <= t_offset)
+            DoAllTargetlessEffects(true);
+        else if (next_time == 0 || m_destTargetInfo.timeDelay < next_time)
+            next_time = m_destTargetInfo.timeDelay;
 
     // now recheck units targeting correctness (need before any effects apply to prevent adding immunity at first effect not allow apply second spell effect and similar cases)
     for (auto& ihit : m_UniqueTargetInfo)
@@ -3387,6 +3427,9 @@ void Spell::_handle_immediate_phase()
     // initialize Diminishing Returns Data
     m_diminishLevel = DIMINISHING_LEVEL_1;
     m_diminishGroup = DIMINISHING_NONE;
+
+    // handle none and dest targeted effects
+    DoAllTargetlessEffects(false);
 
     // process items
     for (auto& ihit : m_UniqueItemInfo)

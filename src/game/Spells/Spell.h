@@ -704,8 +704,16 @@ class Spell
 
         struct ItemTargetInfo
         {
-            Item*  item;
+            Item* item;
             uint8 effectMask;
+        };
+
+        struct DestTargetInfo
+        {
+            uint32 effectMask;
+            uint64 timeDelay;
+            bool processed;
+            DestTargetInfo() : effectMask(0), timeDelay(0), processed(false) {}
         };
 
         typedef std::list<TargetInfo>     TargetList;
@@ -715,17 +723,19 @@ class Spell
         TargetList     m_UniqueTargetInfo;
         GOTargetList   m_UniqueGOTargetInfo;
         ItemTargetList m_UniqueItemInfo;
-        bool           m_targetlessExecution[MAX_EFFECT_INDEX];
+        uint32         m_targetlessMask;
+        DestTargetInfo m_destTargetInfo;
 
         void AddUnitTarget(Unit* target, uint8 effectMask, CheckException exception = EXCEPTION_NONE);
         void AddGOTarget(GameObject* target, uint8 effectMask);
         void AddItemTarget(Item* item, uint8 effectMask);
+        void AddDestExecution(SpellEffectIndex effIndex);
         void DoAllEffectOnTarget(TargetInfo* target);
         void HandleDelayedSpellLaunch(TargetInfo* target);
         void InitializeDamageMultipliers();
         void ResetEffectDamageAndHeal();
         void DoSpellHitOnUnit(Unit* unit, uint32 effectMask, bool isReflected = false);
-        void DoAllTargetlessEffects();
+        void DoAllTargetlessEffects(bool dest);
         void DoAllEffectOnTarget(GOTargetInfo* target);
         void DoAllEffectOnTarget(ItemTargetInfo* target);
         bool IsAliveUnitPresentInTargetList();

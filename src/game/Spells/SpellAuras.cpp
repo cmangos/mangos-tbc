@@ -1819,6 +1819,7 @@ void Aura::TriggerSpell()
             case TARGET_LOCATION_UNIT_RANDOM_SIDE: // fireball barrage
             case TARGET_UNIT_ENEMY:
             case TARGET_UNIT:
+            case TARGET_UNIT_CHANNEL_TARGET: // Electrified net
                 triggerCaster = GetCaster();
                 triggerTarget = triggerCaster->GetTarget(); // This will default to channel target for channels
                 break;

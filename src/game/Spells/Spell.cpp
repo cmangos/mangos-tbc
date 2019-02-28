@@ -819,20 +819,10 @@ void Spell::AddUnitTarget(Unit* target, uint8 effectMask, CheckException excepti
 
     // Spell have speed (possible inherited from triggering spell) - need calculate incoming time
     float speed = GetSpellSpeed();
-    if (speed > 0.0f && affectiveObject && (target != affectiveObject || (m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))))
+    if (speed > 0.0f && affectiveObject && target != affectiveObject)
     {
         // calculate spell incoming interval
-        float dist = 0.0f;                                  // distance to impact
-        if (target == affectiveObject)                     // Calculate dist to destination target also for self-cast spells
-        {
-            if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
-                dist = affectiveObject->GetDistance(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, DIST_CALC_NONE);
-            else                                            // Must have Source Target
-                dist = affectiveObject->GetDistance(m_targets.m_srcX, m_targets.m_srcY, m_targets.m_srcZ, DIST_CALC_NONE);
-        }
-        else                                                // normal unit target, take distance
-            dist = affectiveObject->GetDistance(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), DIST_CALC_NONE);
-
+        float dist = affectiveObject->GetDistance(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), DIST_CALC_NONE);
         dist = sqrt(dist); // default distance calculation is raw, apply sqrt before the next step
 
         if (dist < 5.0f)

@@ -156,6 +156,7 @@ enum SpellTargetImplicitType
     TARGET_TYPE_ITEM, // TARGET_FLAG_ITEM
     TARGET_TYPE_UNIT_DEST,
     TARGET_TYPE_DYNAMIC, // changes based on other targets
+    TARGET_TYPE_DYNAMIC_ANY, // cant be purely targetless
     TARGET_TYPE_SPECIAL_DEST, // overrides existing targets with custom logic - Persistent AA
     TARGET_TYPE_SPECIAL_UNIT, // Area Auras
     TARGET_TYPE_SPECIAL_SCRIPT,

@@ -160,7 +160,7 @@ SpellEffectInfo SpellEffectInfoTable[MAX_SPELL_EFFECTS] =
     /*[29]*/     { "SPELL_EFFECT_LEAP",                         TARGET_TYPE_UNIT_DEST,      TARGET_NONE },
     /*[30]*/     { "SPELL_EFFECT_ENERGIZE",                     TARGET_TYPE_UNIT,           TARGET_NONE },
     /*[31]*/     { "SPELL_EFFECT_WEAPON_PERCENT_DAMAGE",        TARGET_TYPE_UNIT,           TARGET_NONE },
-    /*[32]*/     { "SPELL_EFFECT_TRIGGER_MISSILE",              TARGET_TYPE_DYNAMIC,        TARGET_NONE },
+    /*[32]*/     { "SPELL_EFFECT_TRIGGER_MISSILE",              TARGET_TYPE_DYNAMIC_ANY,    TARGET_NONE },
     /*[33]*/     { "SPELL_EFFECT_OPEN_LOCK",                    TARGET_TYPE_LOCK,           TARGET_NONE },
     /*[34]*/     { "SPELL_EFFECT_SUMMON_CHANGE_ITEM",           TARGET_TYPE_UNIT,           TARGET_UNIT_CASTER }, // caster item, target unit
     /*[35]*/     { "SPELL_EFFECT_APPLY_AREA_AURA_PARTY",        TARGET_TYPE_SPECIAL_UNIT,   TARGET_NONE },
@@ -320,7 +320,7 @@ void SpellTargetMgr::Initialize()
             uint32 effect = spellInfo->Effect[effIdx];
             uint32 targetA = spellInfo->EffectImplicitTargetA[effIdx];
             uint32 targetB = spellInfo->EffectImplicitTargetB[effIdx];
-            if (SpellEffectInfoTable[effect].requiredTarget != TARGET_TYPE_DYNAMIC)
+            if (SpellEffectInfoTable[effect].requiredTarget != TARGET_TYPE_DYNAMIC && SpellEffectInfoTable[effect].requiredTarget != TARGET_TYPE_DYNAMIC_ANY)
                 data.implicitType[effIdx] = SpellEffectInfoTable[effect].requiredTarget;
             else
             {
@@ -345,14 +345,15 @@ void SpellTargetMgr::Initialize()
                     data.implicitType[effIdx] = TARGET_TYPE_UNIT_DEST;
                     continue;
                 }
-                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST || SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST)
-                {
-                    data.implicitType[effIdx] = TARGET_TYPE_LOCATION_DEST;
-                    continue;
-                }
                 if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_UNIT || SpellTargetInfoTable[targetB].type == TARGET_TYPE_UNIT)
                 {
                     data.implicitType[effIdx] = TARGET_TYPE_UNIT;
+                    continue;
+                }
+                if (SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_DEST || SpellTargetInfoTable[targetB].type == TARGET_TYPE_LOCATION_DEST ||
+                    SpellEffectInfoTable[effect].requiredTarget == TARGET_TYPE_DYNAMIC_ANY) // some effects cant be none
+                {
+                    data.implicitType[effIdx] = TARGET_TYPE_LOCATION_DEST;
                     continue;
                 }
                 if ((SpellTargetInfoTable[targetA].type == TARGET_TYPE_LOCATION_SRC || targetA == TARGET_NONE) && targetB == TARGET_NONE)

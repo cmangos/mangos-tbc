@@ -46,8 +46,9 @@ struct SpellTargetingData
 class SpellTargetMgr // thread safe
 {
     public:
-        static SpellTargetingData& GetSpellTargetingData(uint32 spellId);
         static void Initialize();
+        static SpellTargetingData& GetSpellTargetingData(uint32 spellId);
+        static bool CanEffectBeFilledWithMask(uint32 spellId, uint32 effIdx, uint32 mask);
     private:
         static std::map<uint32, SpellTargetingData> spellTargetingData;
 };

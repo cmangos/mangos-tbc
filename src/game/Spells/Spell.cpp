@@ -468,11 +468,9 @@ void Spell::FillTargetMap()
             uint32 targetB = m_spellInfo->EffectImplicitTargetB[i];
             if (targetA == TARGET_NONE && targetB == TARGET_NONE)
             {
-                // TODO: TARGETING: move this to default target selection
-                // TODO: Investigate TARGET_FLAG relationship with TARGET_NONE
-                if (m_spellInfo->Targets)
+                if (m_spellInfo->Targets && SpellTargetMgr::CanEffectBeFilledWithMask(m_spellInfo->Id, i, m_spellInfo->Targets))
                 {
-                    if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT))
+                    if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_ENEMY))
                     {
                         if (Unit* unit = m_targets.getUnitTarget())
                             targetingData.data[i].tmpUnitList[false].push_back(unit);
@@ -493,7 +491,7 @@ void Spell::FillTargetMap()
                         if (Item* item = m_targets.getItemTarget())
                             targetingData.data[i].tempItemList.push_back(item);
                     }
-                    else if (m_spellInfo->Targets & (TARGET_FLAG_DEST_LOCATION))
+                    else if (m_spellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
                     {
                         if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
                         {

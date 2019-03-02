@@ -471,3 +471,20 @@ void SpellTargetMgr::Initialize()
         }
     }
 }
+
+bool SpellTargetMgr::CanEffectBeFilledWithMask(uint32 spellId, uint32 effIdx, uint32 mask)
+{
+    SpellTargetingData& data = GetSpellTargetingData(spellId);
+    switch (data.implicitType[effIdx])
+    {
+        case TARGET_TYPE_SPECIAL_DEST:
+        case TARGET_TYPE_LOCATION_DEST: return bool(mask & TARGET_FLAG_DEST_LOCATION);
+        case TARGET_TYPE_GAMEOBJECT: return bool(mask & (TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_LOCKED));
+        case TARGET_TYPE_PLAYER:
+        case TARGET_TYPE_UNIT: return bool(mask & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_ENEMY | TARGET_FLAG_UNIT_DEAD));
+        case TARGET_TYPE_CORPSE: return bool(mask & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY));
+        case TARGET_TYPE_LOCK: return bool(mask & (TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_LOCKED | TARGET_FLAG_ITEM));
+        case TARGET_TYPE_ITEM: return bool(mask & (TARGET_FLAG_LOCKED | TARGET_FLAG_ITEM));
+        default: return false;
+    }
+}

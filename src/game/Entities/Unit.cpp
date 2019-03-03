@@ -3930,15 +3930,17 @@ float Unit::CalculateEffectiveMagicResistancePercent(const Unit* attacker, Spell
     {
         if (schools & 1)
         {
-            // Victim resistance
             int32 amount = GetResistance(SpellSchools(school));
-
-            // Modify by penetration, but can't go negative with it since early stages of development
             int32 penetration = attacker->GetResistancePenetration(SpellSchools(school));
-            amount = std::max((amount + penetration), ((amount > 0) ? 0 : amount));
 
-            if (!resistance || amount < resistance)
-                resistance = amount;
+            // Modify by penetration, but can't go negative with it
+            int32 result = (amount + penetration);
+
+            if (result < 0)
+                result = std::min(amount, 0);
+
+            if (!resistance || result < resistance)
+                resistance = result;
         }
     }
 
@@ -6404,7 +6406,7 @@ bool Unit::IsClientControlled(Player const* exactClient /*= nullptr*/) const
         return false;
 
     // These flags are meant to be used when server controls this unit, client control is taken away
-    if (HasFlag(UNIT_FIELD_FLAGS, (UNIT_FLAG_UNK_0 | UNIT_FLAG_CLIENT_CONTROL_LOST | UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING)))
+    if (HasFlag(UNIT_FIELD_FLAGS, (UNIT_FLAG_CLIENT_CONTROL_LOST | UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING)))
         return false;
 
     // If unit is possessed, it has lost original control...
@@ -9384,6 +9386,11 @@ float Unit::GetTotalAuraModValue(UnitMods unitMod) const
     value *= m_auraModifiersGroup[unitMod][BASE_PCT];
     value += m_auraModifiersGroup[unitMod][TOTAL_VALUE];
     value *= m_auraModifiersGroup[unitMod][TOTAL_PCT];
+
+    // Auras can't cause resistances to dip below 0 since early vanilla
+    // PS: Actually, they can, but only visually advertised in the fields, calculations ignore it, we limit both
+    if (value < 0 && unitMod >= UNIT_MOD_RESISTANCE_START && unitMod < UNIT_MOD_RESISTANCE_END)
+        value = 0;
 
     return value;
 }

@@ -4997,6 +4997,18 @@ SpellCastResult Spell::CheckCast(bool strict)
     {
         for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
         {
+            // There are some items that do not reliably filter client-side if they are usable
+            // i.e. a proper target exists.
+            if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_ENEMY ||
+                m_spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_ENEMY)
+            {
+                if (m_caster->GetTarget())
+                    // Explicitly set implicitTarget so other checks have something to work with
+                    m_targets.setUnitTarget(m_caster->GetTarget());
+                else
+                    return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
+            }
+
             if (m_spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
                     m_spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
                     m_spellInfo->EffectImplicitTargetA[j] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||

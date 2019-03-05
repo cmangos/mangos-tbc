@@ -1799,10 +1799,10 @@ void Aura::TriggerSpell()
 //                }
 //                break;
 //            }
-            case SPELLFAMILY_SHAMAN:
-            {
-                break;
-            }
+            //case SPELLFAMILY_SHAMAN:
+            //{
+            //    break;
+            //}
             default:
                 break;
         }

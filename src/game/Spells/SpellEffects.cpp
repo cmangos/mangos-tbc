@@ -809,6 +809,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 16049:                                 // Emberseer Growing
+                {
+                    if (UnitAI* ai = m_caster->AI())
+                        ai->SendAIEvent(AI_EVENT_CUSTOM_A, m_caster, m_caster);
+                    return;
+                }
                 case 16589:                                 // Noggenfogger Elixir
                 {
                     if (m_caster->GetTypeId() == TYPEID_PLAYER)

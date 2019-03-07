@@ -3812,39 +3812,39 @@ void PlayerbotAI::DoLoot()
                         switch (LockType(lockInfo->Index[i]))
                         {
                             case LOCKTYPE_OPEN:
-                                if (CastSpell(3365))    // Opening
+                                if (CastSpell(3365) == SPELL_CAST_OK)    // Opening
                                     return;
                                 break;
                             case LOCKTYPE_CLOSE:
-                                if (CastSpell(6233))    // Closing
+                                if (CastSpell(6233) == SPELL_CAST_OK)    // Closing
                                     return;
                                 break;
                             case LOCKTYPE_QUICK_OPEN:
-                                if (CastSpell(6247))    // Opening
+                                if (CastSpell(6247) == SPELL_CAST_OK)    // Opening
                                     return;
                                 break;
                             case LOCKTYPE_QUICK_CLOSE:
-                                if (CastSpell(6247))    // Closing
+                                if (CastSpell(6247) == SPELL_CAST_OK)    // Closing
                                     return;
                                 break;
                             case LOCKTYPE_OPEN_TINKERING:
-                                if (CastSpell(6477))    // Opening
+                                if (CastSpell(6477) == SPELL_CAST_OK)    // Opening
                                     return;
                                 break;
                             case LOCKTYPE_OPEN_KNEELING:
-                                if (CastSpell(22810))    // Opening; listed with 17667 and 22810
+                                if (CastSpell(22810) == SPELL_CAST_OK)    // Opening; listed with 17667 and 22810
                                     return;
                                 break;
                             case LOCKTYPE_OPEN_ATTACKING:
-                                if (CastSpell(8386))    // Attacking
+                                if (CastSpell(8386) == SPELL_CAST_OK)    // Attacking
                                     return;
                                 break;
                             case LOCKTYPE_SLOW_OPEN:
-                                if (CastSpell(21651))   // Opening; also had 26868
+                                if (CastSpell(21651) == SPELL_CAST_OK)   // Opening; also had 26868
                                     return;
                                 break;
                             case LOCKTYPE_SLOW_CLOSE:
-                                if (CastSpell(21652))   // Closing
+                                if (CastSpell(21652) == SPELL_CAST_OK)   // Closing
                                     return;
                                 break;
                             default:
@@ -3884,32 +3884,32 @@ void PlayerbotAI::DoLoot()
             switch (skillId)
             {
                 case SKILL_MINING:
-                    if (HasTool(TC_MINING_PICK) && CastSpell(MINING))
+                    if (HasTool(TC_MINING_PICK) && CastSpell(MINING) == SPELL_CAST_OK)
                         return;
                     else
                         skillFailed = true;
                     break;
                 case SKILL_HERBALISM:
-                    if (CastSpell(HERB_GATHERING))
+                    if (CastSpell(HERB_GATHERING) == SPELL_CAST_OK)
                         return;
                     else
                         skillFailed = true;
                     break;
                 case SKILL_SKINNING:
                     if (c && HasCollectFlag(COLLECT_FLAG_SKIN) &&
-                            HasTool(TC_SKINNING_KNIFE) && CastSpell(SKINNING, *c))
+                            HasTool(TC_SKINNING_KNIFE) && CastSpell(SKINNING, *c) == SPELL_CAST_OK)
                         return;
                     else
                         skillFailed = true;
                     break;
                 case SKILL_LOCKPICKING:
-                    if (CastSpell(PICK_LOCK_1))
+                    if (CastSpell(PICK_LOCK_1) == SPELL_CAST_OK)
                         return;
                     else
                         skillFailed = true;
                     break;
                 case SKILL_NONE:
-                    if (CastSpell(3365)) //Spell 3365 = Opening?
+                    if (CastSpell(3365) == SPELL_CAST_OK) //Spell 3365 = Opening?
                         return;
                     else
                         skillFailed = true;
@@ -5183,10 +5183,10 @@ bool PlayerbotAI::In_Range(Unit* Target, uint32 spellId)
     return true;
 }
 
-bool PlayerbotAI::CheckBotCast(const SpellEntry* sInfo)
+SpellCastResult PlayerbotAI::CheckBotCast(const SpellEntry* sInfo)
 {
     if (!sInfo)
-        return false;
+        return SPELL_FAILED_ERROR;
 
     // check DoLoot() spells before casting
     Spell* tmp_spell = new Spell(m_bot, sInfo, false);
@@ -5203,42 +5203,34 @@ bool PlayerbotAI::CheckBotCast(const SpellEntry* sInfo)
                 tmp_spell->m_targets.setGOTarget(obj);
         }
 
+        // DEBUG_LOG("CheckBotCast SpellCastResult res(%u)", res);
         SpellCastResult res = tmp_spell->CheckCast(false);
-        switch (res)
-        {
-            case SPELL_CAST_OK:
-                return true;
-            case SPELL_FAILED_ALREADY_OPEN:
-            case SPELL_FAILED_TRY_AGAIN:
-                return true;
-            default:
-                DEBUG_LOG("CheckBotCast SpellCastResult res(%u)", res);
-        }
+        return tmp_spell->CheckCast(false);
     }
-    return false;
+    return SPELL_FAILED_ERROR;
 }
 
-bool PlayerbotAI::CastSpell(const char* args)
+SpellCastResult PlayerbotAI::CastSpell(const char* args)
 {
     uint32 spellId = getSpellId(args);
-    return (spellId) ? CastSpell(spellId) : false;
+    return (spellId) ? CastSpell(spellId) : SPELL_NOT_FOUND;
 }
 
-bool PlayerbotAI::CastSpell(uint32 spellId, Unit& target)
+SpellCastResult PlayerbotAI::CastSpell(uint32 spellId, Unit& target)
 {
     ObjectGuid oldSel = m_bot->GetSelectionGuid();
     m_bot->SetSelectionGuid(target.GetObjectGuid());
-    bool rv = CastSpell(spellId);
+    SpellCastResult rv = CastSpell(spellId);
     m_bot->SetSelectionGuid(oldSel);
     return rv;
 }
 
-bool PlayerbotAI::CastSpell(uint32 spellId)
+SpellCastResult PlayerbotAI::CastSpell(uint32 spellId)
 {
     // some AIs don't check if the bot doesn't have spell before using it
     // so just return false when this happens
     if (spellId == 0)
-        return false;
+        return SPELL_FAILED_NOT_KNOWN;
 
     // see Creature.cpp 1738 for reference
     // don't allow bot to cast damage spells on friends
@@ -5246,19 +5238,19 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     if (!pSpellInfo)
     {
         TellMaster("missing spell entry in CastSpell for spellid %u.", spellId);
-        return false;
+        return SPELL_NOT_FOUND;
     }
 
     // check spell cooldown
     if (!m_bot->IsSpellReady(*pSpellInfo))
-        return false;
+        return SPELL_FAILED_NOT_READY;
 
     // for AI debug purpose: uncomment the following line and bot will tell Master of every spell they attempt to cast
     // TellMaster("I'm trying to cast %s (spellID %u)", pSpellInfo->SpellName[0], spellId);
 
     // Power check (stolen from: CreatureAI.cpp - CreatureAI::CanCastSpell)
     if (m_bot->GetPower((Powers)pSpellInfo->powerType) < Spell::CalculatePowerCost(pSpellInfo, m_bot))
-        return false;
+        return SPELL_FAILED_NO_POWER;
 
     // set target
     ObjectGuid targetGUID = m_bot->GetSelectionGuid();
@@ -5274,8 +5266,8 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     }
     else
     {
-        if (pTarget && m_bot->CanAssist(pTarget))
-            return false;
+        if (pTarget && m_bot->CanAssist(pTarget))    // Can't cast hostile spell on friendly unit
+            return SPELL_FAILED_TARGET_FRIENDLY;
 
         m_bot->SetInFront(pTarget);
     }
@@ -5305,8 +5297,9 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
     {
         if (m_lootCurrent)
         {
-            if (!CheckBotCast(pSpellInfo))
-                return false;
+            SpellCastResult castResult = CheckBotCast(pSpellInfo);
+            if (castResult != SPELL_CAST_OK)
+                return castResult;
 
             std::unique_ptr<WorldPacket> packet(new WorldPacket(CMSG_CAST_SPELL, 4 + 1 + 4 + 8));
             *packet << spellId;
@@ -5323,7 +5316,7 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
 
                 GameObject* obj = m_bot->GetMap()->GetGameObject(m_lootCurrent);
                 if (!obj)
-                    return false;
+                    return SPELL_FAILED_BAD_TARGETS;
 
                 // add other go types here, i.e.:
                 // GAMEOBJECT_TYPE_CHEST - loot quest items of chest
@@ -5348,48 +5341,46 @@ bool PlayerbotAI::CastSpell(uint32 spellId)
             }
         }
         else
-            return false;
+            return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
     }
     else
     {
         // Check spell range
         if (!In_Range(pTarget, spellId))
-            return false;
+            return SPELL_FAILED_OUT_OF_RANGE;
 
         // Check line of sight
         if (!m_bot->IsWithinLOSInMap(pTarget))
-            return false;
+            return SPELL_FAILED_LINE_OF_SIGHT;
+
+        // Some casting times are negative so set ignore update time to 1 sec to avoid stucking the bot AI
+        SetIgnoreUpdateTime(std::max(CastTime, 0.0f) + 1);
 
         if (IsAutoRepeatRangedSpell(pSpellInfo))
-            m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_OLD_TRIGGERED); // cast triggered spell
+            return m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_OLD_TRIGGERED); // cast triggered spell
         else
-            m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_NONE);          // uni-cast spell
+            return m_bot->CastSpell(pTarget, pSpellInfo, TRIGGERED_NONE);          // uni-cast spell
     }
-
-    // Some casting times are negative so set ignore update time to 1 sec to avoid stucking the bot AI
-    SetIgnoreUpdateTime(std::max(CastTime, 0.0f) + 1);
-
-    return true;
 }
 
-bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
+SpellCastResult PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
 {
     if (spellId == 0)
-        return false;
+        return SPELL_FAILED_NOT_KNOWN;
 
     Pet* pet = m_bot->GetPet();
     if (!pet)
-        return false;
+        return SPELL_FAILED_NO_PET;
 
     const SpellEntry* const pSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!pSpellInfo)
     {
         TellMaster("Missing spell entry in CastPetSpell()");
-        return false;
+        return SPELL_NOT_FOUND;
     }
 
     if (!pet->IsSpellReady(*pSpellInfo))
-        return false;
+        return SPELL_FAILED_NOT_READY;
 
     // set target
     Unit* pTarget;
@@ -5408,8 +5399,8 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
     }
     else
     {
-        if (pTarget && m_bot->CanAssist(pTarget))
-            return false;
+        if (pTarget && m_bot->CanAssist(pTarget))    // Can cast hostile spell on friendly unit
+            return SPELL_FAILED_TARGET_FRIENDLY;
 
         if (!pet->isInFrontInMap(pTarget, 10)) // distance probably should be calculated
             pet->SetFacingTo(pet->GetAngle(pTarget));
@@ -5419,29 +5410,29 @@ bool PlayerbotAI::CastPetSpell(uint32 spellId, Unit* target)
 
     Spell* const pSpell = pet->FindCurrentSpellBySpellId(spellId);
     if (!pSpell)
-        return false;
+        return SPELL_FAILED_NOT_KNOWN;
 
-    return true;
+    return SPELL_CAST_OK;
 }
 
 // Perform sanity checks and cast spell
-bool PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCast)(Player*))
+SpellCastResult PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCast)(Player*))
 {
     if (spellId == 0)
-        return false;
+        return SPELL_FAILED_NOT_KNOWN;
 
     SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
     if (!spellProto)
-        return false;
+        return SPELL_NOT_FOUND;
 
     if (!target)
-        return false;
+        return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
 
     // Select appropriate spell rank for target's level
     spellProto = sSpellMgr.SelectAuraRankForLevel(spellProto, target->getLevel());
     if (!spellProto)
-        return false;
+        return SPELL_NOT_FOUND;
 
     // Check if spell will boost one of already existent auras
     bool willBenefitFromSpell = false;
@@ -5463,7 +5454,7 @@ bool PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCast)(Player*)
     }
 
     if (!willBenefitFromSpell)
-        return false;
+        return SPELL_FAILED_AURA_BOUNCED;
 
     // Druids may need to shapeshift before casting
     if (beforeCast)
@@ -5473,13 +5464,13 @@ bool PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCast)(Player*)
 }
 
 // Can be used for personal buffs like Mage Armor and Inner Fire
-bool PlayerbotAI::SelfBuff(uint32 spellId)
+SpellCastResult PlayerbotAI::SelfBuff(uint32 spellId)
 {
     if (spellId == 0)
-        return false;
+        return SPELL_FAILED_NOT_KNOWN;
 
     if (m_bot->HasAura(spellId))
-        return false;
+        return SPELL_FAILED_AURA_BOUNCED;
 
     return CastSpell(spellId, *m_bot);
 }

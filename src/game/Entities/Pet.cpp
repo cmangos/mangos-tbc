@@ -1242,8 +1242,6 @@ void Pet::InitStatsForLevel(uint32 petlevel)
 
     SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0);
 
-    int32 createResistance[MAX_SPELL_SCHOOL] = {0, 0, 0, 0, 0, 0, 0};
-
     if (getPetType() == HUNTER_PET)
     {
         SetMeleeDamageSchool(SpellSchools(SPELL_SCHOOL_NORMAL));
@@ -1258,16 +1256,13 @@ void Pet::InitStatsForLevel(uint32 petlevel)
         SetAttackTime(OFF_ATTACK, cInfo->MeleeBaseAttackTime);
         SetAttackTime(RANGED_ATTACK, cInfo->RangedBaseAttackTime);
 
-        createResistance[SPELL_SCHOOL_HOLY]   = cInfo->ResistanceHoly;
-        createResistance[SPELL_SCHOOL_FIRE]   = cInfo->ResistanceFire;
-        createResistance[SPELL_SCHOOL_NATURE] = cInfo->ResistanceNature;
-        createResistance[SPELL_SCHOOL_FROST]  = cInfo->ResistanceFrost;
-        createResistance[SPELL_SCHOOL_SHADOW] = cInfo->ResistanceShadow;
-        createResistance[SPELL_SCHOOL_ARCANE] = cInfo->ResistanceArcane;
+        SetCreateResistance(SPELL_SCHOOL_HOLY, cInfo->ResistanceHoly);
+        SetCreateResistance(SPELL_SCHOOL_FIRE, cInfo->ResistanceFire);
+        SetCreateResistance(SPELL_SCHOOL_NATURE, cInfo->ResistanceNature);
+        SetCreateResistance(SPELL_SCHOOL_FROST, cInfo->ResistanceFrost);
+        SetCreateResistance(SPELL_SCHOOL_SHADOW, cInfo->ResistanceShadow);
+        SetCreateResistance(SPELL_SCHOOL_ARCANE, cInfo->ResistanceArcane);
     }
-
-    for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
-        SetModifierValue(UnitMods(UNIT_MOD_RESISTANCE_START + i), BASE_VALUE, float(createResistance[i]));
 
     float health = 0.f;
     float mana = 0.f;
@@ -1515,7 +1510,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     SetCreateHealth(health);
     SetCreateMana(mana);
     // Set base Armor
-    SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, armor);
+    SetCreateResistance(SPELL_SCHOOL_NORMAL, int32(armor));
 
     InitPetScalingAuras();
 
@@ -2033,7 +2028,7 @@ bool Pet::addSpell(uint32 spell_id, ActiveStates active /*= ACT_DECIDE*/, PetSpe
     if (active == ACT_DECIDE)                               // active was not used before, so we save it's autocast/passive state here
     {
         if (IsAutocastable(spellInfo))
-            newspell.active = ACT_DISABLED;
+            newspell.active = ACT_ENABLED;
         else
             newspell.active = ACT_PASSIVE;
     }

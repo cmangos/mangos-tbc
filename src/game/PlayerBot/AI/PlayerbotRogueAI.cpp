@@ -326,7 +326,7 @@ CombatManeuverReturns PlayerbotRogueAI::DoNextCombatManeuverPVP(Unit* pTarget)
     bool meleeReach = m_bot->CanReachWithMeleeAttack(pTarget);
 
     // decide what to do:
-    if (pVictim == m_bot && CLOAK_OF_SHADOWS > 0 && m_bot->HasAura(SPELL_AURA_PERIODIC_DAMAGE) && !m_bot->HasAura(CLOAK_OF_SHADOWS, EFFECT_INDEX_0) && m_ai->CastSpell(CLOAK_OF_SHADOWS)) == SPELL_CAST_OK)
+    if (pVictim == m_bot && CLOAK_OF_SHADOWS > 0 && m_bot->HasAura(SPELL_AURA_PERIODIC_DAMAGE) && !m_bot->HasAura(CLOAK_OF_SHADOWS, EFFECT_INDEX_0) && m_ai->CastSpell(CLOAK_OF_SHADOWS) == SPELL_CAST_OK)
     {
         if (m_ai->GetManager()->m_confDebugWhisper)
             m_ai->TellMaster("CoS!");

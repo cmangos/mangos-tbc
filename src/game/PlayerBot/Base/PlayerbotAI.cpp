@@ -5289,6 +5289,15 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
     {
         GetClassAI()->DoNonCombatActions();
 
+        // have we been told to collect loot after combat
+        if (HasCollectFlag(COLLECT_FLAG_LOOT))
+        {
+            findNearbyCorpse();
+            // start looting if have targets
+            if (!m_lootTargets.empty())
+                SetState(BOTSTATE_LOOTING);
+        }
+
         // have we been told to collect GOs
         if (HasCollectFlag(COLLECT_FLAG_NEAROBJECT))
         {
@@ -6572,7 +6581,6 @@ void PlayerbotAI::findNearbyGO()
         return;
 
     GameObjectList tempTargetGOList;
-    float radius = 20.0f;
 
     for (BotEntryList::iterator itr = m_collectObjects.begin(); itr != m_collectObjects.end(); ++itr)
     {
@@ -6592,9 +6600,9 @@ void PlayerbotAI::findNearbyGO()
                     }
 
         // search for GOs with entry, within range of m_bot
-        MaNGOS::GameObjectEntryInPosRangeCheck go_check(*m_bot, entry, m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), radius);
+        MaNGOS::GameObjectEntryInPosRangeCheck go_check(*m_bot, entry, m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), float(m_collectDist));
         MaNGOS::GameObjectListSearcher<MaNGOS::GameObjectEntryInPosRangeCheck> checker(tempTargetGOList, go_check);
-        Cell::VisitGridObjects(m_bot, checker, radius);
+        Cell::VisitGridObjects(m_bot, checker, float(m_collectDist));
 
         // no objects found, continue to next entry
         if (tempTargetGOList.empty())
@@ -6611,6 +6619,42 @@ void PlayerbotAI::findNearbyGO()
             // DEBUG_LOG("ground_z (%f) > INVALID_HEIGHT (%f)",ground_z,INVALID_HEIGHT);
             if ((ground_z > INVALID_HEIGHT) && go->IsSpawned())
                 m_lootTargets.push_back(go->GetObjectGuid());
+        }
+    }
+}
+
+void PlayerbotAI::findNearbyCorpse()
+{
+    UnitList corpseList;
+    float radius = float(m_mgr->m_confCollectDistance);
+    MaNGOS::AnyDeadUnitCheck corpse_check(m_bot);
+    MaNGOS::UnitListSearcher<MaNGOS::AnyDeadUnitCheck> reaper(corpseList, corpse_check);
+    Cell::VisitAllObjects(m_bot, reaper, radius);
+
+    //if (!corpseList.empty())
+    //    TellMaster("Found %i Corpse(s)", corpseList.size());
+
+    for (UnitList::const_iterator i = corpseList.begin(); i != corpseList.end(); ++i)
+    {
+        Creature* corpse = (Creature*)*i;
+        if (!corpse)
+            continue;
+
+        if (!corpse->IsCorpse() || corpse->IsDespawned() || m_bot->CanAssist(corpse) || !corpse->loot)
+            continue;
+
+        if (!corpse->loot->CanLoot(m_bot) && !corpse->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
+            continue;
+
+        uint32 skillId = 0;
+        if (corpse->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
+            skillId = corpse->GetCreatureInfo()->GetRequiredLootSkill();
+
+        if (corpse->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE) ||
+                (corpse->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) && m_bot->HasSkill(skillId)))
+        {
+            m_lootTargets.push_back(corpse->GetObjectGuid());
+            m_lootTargets.unique();
         }
     }
 }

@@ -214,6 +214,10 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
     if (InstanceData* iData = map->GetInstanceData())
         iData->OnObjectCreate(this);
 
+    // Check if GameObject is Large
+    if (GetGOInfo()->IsLargeGameObject())
+        SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
+
     return true;
 }
 
@@ -944,8 +948,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
     }
 
     // check distance
-    return IsWithinDistInMap(viewPoint, GetMap()->GetVisibilityDistance() +
-                             (inVisibleList ? World::GetVisibleObjectGreyDistance() : 0.0f), false);
+    return IsWithinDistInMap(viewPoint, GetVisibilityDistance(), false);
 }
 
 void GameObject::Respawn()

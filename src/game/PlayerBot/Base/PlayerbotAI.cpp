@@ -1462,11 +1462,11 @@ void PlayerbotAI::SendOrders(Player& /*player*/)
 
     if (!m_combatOrder)
         out << "Got no combat orders!";
-    else if (m_combatOrder & ORDERS_TANK)
+    else if (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK)
         out << "I TANK";
     else if (m_combatOrder & ORDERS_ASSIST)
         out << "I ASSIST " << (m_targetAssist ? m_targetAssist->GetName() : "unknown");
-    else if (m_combatOrder & ORDERS_HEAL)
+    else if (m_combatOrder & ORDERS_HEAL || m_combatOrder & ORDERS_MAIN_HEAL)
         out << "I HEAL and DISPEL";
     else if (m_combatOrder & ORDERS_NODISPEL)
         out << "I HEAL and WON'T DISPEL";
@@ -3211,7 +3211,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
     {
         if (m_mgr->m_confDebugWhisper)
             TellMaster("Changing target to %s by force!", forcedTarget->GetName());
-        m_targetType = (m_combatOrder & ORDERS_TANK ? TARGET_THREATEN : TARGET_NORMAL);
+        m_targetType = (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK ? TARGET_THREATEN : TARGET_NORMAL);
     }
 
     // we already have a target and we are not forced to change it
@@ -3234,14 +3234,14 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
         m_targetCombat = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF | AIT_LOWESTTHREAT), m_targetAssist);
         if (m_mgr->m_confDebugWhisper && m_targetCombat)
             TellMaster("Attacking %s to assist %s", m_targetCombat->GetName(), m_targetAssist->GetName());
-        m_targetType = (m_combatOrder & ORDERS_TANK ? TARGET_THREATEN : TARGET_NORMAL);
+        m_targetType = (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK ? TARGET_THREATEN : TARGET_NORMAL);
         m_targetChanged = true;
     }
     // are there any other attackers?
     if (!m_targetCombat)
     {
         m_targetCombat = FindAttacker();
-        m_targetType = (m_combatOrder & ORDERS_TANK ? TARGET_THREATEN : TARGET_NORMAL);
+        m_targetType = (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK ? TARGET_THREATEN : TARGET_NORMAL);
         m_targetChanged = true;
     }
     // no attacker found anyway
@@ -3548,7 +3548,7 @@ bool PlayerbotAI::CanPull(Player& fromPlayer)
         return false;
     }
 
-    if ((GetCombatOrder() & ORDERS_TANK) == 0)
+    if (!IsTank())
     {
         SendWhisper("I cannot pull as I do not have combat orders to tank.", fromPlayer);
         return false;
@@ -3595,7 +3595,7 @@ bool PlayerbotAI::CastPull()
     if (!GetClassAI()) return false;
     if (!GetCurrentTarget()) return false;
 
-    if ((GetCombatOrder() & ORDERS_TANK) == 0) return false;
+    if (!IsTank()) return false;
 
     switch (m_bot->getClass())
     {
@@ -4620,8 +4620,10 @@ void PlayerbotAI::SetCombatOrderByStr(std::string str, Unit* target)
 {
     CombatOrderType co;
     if (str == "tank")              co = ORDERS_TANK;
+    else if (str == "maintank")     co = ORDERS_MAIN_TANK;
     else if (str == "assist")       co = ORDERS_ASSIST;
     else if (str == "heal")         co = ORDERS_HEAL;
+    else if (str == "mainheal")     co = ORDERS_MAIN_HEAL;
     else if (str == "protect")      co = ORDERS_PROTECT;
     else if (str == "passive")      co = ORDERS_PASSIVE;
     else if (str == "pull")         co = ORDERS_TEMP_WAIT_TANKAGGRO;
@@ -4726,8 +4728,10 @@ void PlayerbotAI::ClearCombatOrder(CombatOrderType co)
     {
         case ORDERS_NONE:
         case ORDERS_TANK:
+        case ORDERS_MAIN_TANK:
         case ORDERS_ASSIST:
         case ORDERS_HEAL:
+        case ORDERS_MAIN_HEAL:
         case ORDERS_PASSIVE:
         case ORDERS_PRIMARY:
         case ORDERS_RESET:

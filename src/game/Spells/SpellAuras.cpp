@@ -6240,7 +6240,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
         Unit::SpellAuraHolderMap& tAuras = target->GetSpellAuraHolderMap();
         for (Unit::SpellAuraHolderMap::iterator itr = tAuras.begin(); itr != tAuras.end();)
         {
-            if (itr->second->IsRemovedOnShapeLost())
+            if (itr->second->IsRemovedOnShapeLost() && itr->second->GetSpellProto()->Id != 12328)  // Stop Sweeping Strikes dropping on stance change
             {
                 target->RemoveAurasDueToSpell(itr->second->GetId());
                 itr = tAuras.begin();

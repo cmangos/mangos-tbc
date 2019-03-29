@@ -491,8 +491,6 @@ class PlayerbotAI
 
         uint8 GetHealthPercent(const Unit& target) const;
         uint8 GetHealthPercent() const;
-        uint8 GetBaseManaPercent(const Unit& target) const;
-        uint8 GetBaseManaPercent() const;
         uint8 GetManaPercent(const Unit& target) const;
         uint8 GetManaPercent() const;
         uint8 GetRageAmount(const Unit& target) const;
@@ -642,7 +640,6 @@ class PlayerbotAI
         MovementOrderType GetMovementOrder() { return this->m_movementOrder; }
         void MovementReset();
         void MovementClear();
-        bool IsMoving();
 
         void ItemLocalization(std::string& itemName, const uint32 itemID) const;
         void QuestLocalization(std::string& questTitle, const uint32 questID) const;
@@ -761,8 +758,6 @@ class PlayerbotAI
         bool m_inventory_full;
         uint32 m_itemTarget;
 
-        time_t m_TimeDoneEating;
-        time_t m_TimeDoneDrinking;
         uint32 m_CurrentlyCastingSpellId;
         uint32 m_CraftSpellId;
         //bool m_IsFollowingMaster;

@@ -93,7 +93,7 @@ PlayerbotAI::PlayerbotAI(PlayerbotMgr* const mgr, Player* const bot) :
     m_targetGuidCommand(ObjectGuid()),
     m_taxiMaster(ObjectGuid()),
     m_AutoEquipToggle(false),
-    m_bDebugCommandChat(false)
+    m_bDebugCommandChat(false),
     m_ignoreNeutralizeEffect(false)
 {
     // set bot state

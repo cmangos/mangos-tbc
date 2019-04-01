@@ -28,6 +28,9 @@ public:
         {
             auto result = WorldDatabase.PQuery("SELECT text, type FROM custom_autobroadcasts ORDER BY id");
 
+            if (!result)
+                return;
+
             do
             {
                 auto field = result->Fetch();

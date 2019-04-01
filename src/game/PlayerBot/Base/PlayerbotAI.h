@@ -253,6 +253,8 @@ class PlayerbotAI
             ORDERS_RESIST_NATURE        = 0x0200,   // resist nature
             ORDERS_RESIST_FROST         = 0x0400,   // resist frost
             ORDERS_RESIST_SHADOW        = 0x0800,   // resist shadow
+            ORDERS_MAIN_TANK            = 0x1000,   // main attackers binder by gaining threat in raid situation
+            ORDERS_MAIN_HEAL            = 0x2000,   // concentrate on healing the main tank (will ignore other targets as long as MT needs healing)
 
             // Cumulative orders
             ORDERS_PRIMARY              = 0x0007,
@@ -279,6 +281,7 @@ class PlayerbotAI
 
         enum BotState
         {
+            BOTSTATE_LOADING,           // loading state during world load
             BOTSTATE_NORMAL,            // normal AI routines are processed
             BOTSTATE_COMBAT,            // bot is in combat
             BOTSTATE_DEAD,              // we are dead and wait for becoming ghost
@@ -402,11 +405,6 @@ class PlayerbotAI
         // For a list of opcodes that can be caught see Opcodes.cpp (SMSG_* opcodes only)
         void HandleBotOutgoingPacket(const WorldPacket& packet);
 
-        // This is called by WorldSession.cpp
-        // when it detects that a bot is being teleported. It acknowledges to the server to complete the
-        // teleportation
-        void HandleTeleportAck();
-
         // Returns what kind of situation we are in so the ai can react accordingly
         ScenarioType GetScenarioType() { return m_ScenarioType; }
         CombatStyle GetCombatStyle() { return m_combatStyle; }
@@ -459,6 +457,8 @@ class PlayerbotAI
         void findNearbyGO();
         // finds nearby creatures, whose UNIT_NPC_FLAGS match the flags specified in item list m_itemIds
         void findNearbyCreature();
+        // finds nearby corpse that is lootable
+        void findNearbyCorpse();
         bool IsElite(Unit* pTarget, bool isWorldBoss = false) const;
         // Used by bots to check if their target is neutralized (polymorph, shackle or the like). Useful to avoid breaking crowd control
         bool IsNeutralized(Unit* pTarget);
@@ -491,8 +491,6 @@ class PlayerbotAI
 
         uint8 GetHealthPercent(const Unit& target) const;
         uint8 GetHealthPercent() const;
-        uint8 GetBaseManaPercent(const Unit& target) const;
-        uint8 GetBaseManaPercent() const;
         uint8 GetManaPercent(const Unit& target) const;
         uint8 GetManaPercent() const;
         uint8 GetRageAmount(const Unit& target) const;
@@ -597,7 +595,7 @@ class PlayerbotAI
         void DoFlight();
         void GetTaxi(ObjectGuid guid, BotTaxiNode& nodes);
 
-        bool HasCollectFlag(uint8 flag) { return m_collectionFlags & flag; }
+        bool HasCollectFlag(uint8 flag) { return (m_collectionFlags & flag) ? true : false; }
         void SetCollectFlag(uint8 flag)
         {
             if (HasCollectFlag(flag)) m_collectionFlags &= ~flag;
@@ -631,8 +629,10 @@ class PlayerbotAI
         void SetCombatOrder(CombatOrderType co, Unit* target = 0);
         void ClearCombatOrder(CombatOrderType co);
         CombatOrderType GetCombatOrder() { return this->m_combatOrder; }
-        bool IsTank() { return (m_combatOrder & ORDERS_TANK) ? true : false; }
-        bool IsHealer() { return (m_combatOrder & ORDERS_HEAL) ? true : false; }
+        bool IsMainTank() { return (m_combatOrder & ORDERS_MAIN_TANK) ? true : false; }
+        bool IsTank() { return (m_combatOrder & ORDERS_TANK) || IsMainTank() ? true : false; }
+        bool IsMainHealer() { return (m_combatOrder & ORDERS_MAIN_HEAL) ? true : false; }
+        bool IsHealer() { return (m_combatOrder & ORDERS_HEAL) || IsMainHealer() ? true : false; }
         bool IsDPS() { return (m_combatOrder & ORDERS_ASSIST) ? true : false; }
         bool Impulse() { srand(time(nullptr)); return (((rand() % 100) > 50) ? true : false); }
         ResistType GetResistType() { return this->m_resistType; }
@@ -640,7 +640,6 @@ class PlayerbotAI
         MovementOrderType GetMovementOrder() { return this->m_movementOrder; }
         void MovementReset();
         void MovementClear();
-        bool IsMoving();
 
         void ItemLocalization(std::string& itemName, const uint32 itemID) const;
         void QuestLocalization(std::string& questTitle, const uint32 questID) const;
@@ -759,8 +758,6 @@ class PlayerbotAI
         bool m_inventory_full;
         uint32 m_itemTarget;
 
-        time_t m_TimeDoneEating;
-        time_t m_TimeDoneDrinking;
         uint32 m_CurrentlyCastingSpellId;
         uint32 m_CraftSpellId;
         //bool m_IsFollowingMaster;
@@ -775,6 +772,8 @@ class PlayerbotAI
 
         AttackerInfoList m_attackerInfo;
 
+        // Force bot to pick a neutralised unit as combat target when told so
+        bool m_ignoreNeutralizeEffect;
         bool m_targetChanged;
         CombatTargetType m_targetType;
 

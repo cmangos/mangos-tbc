@@ -706,7 +706,7 @@ void PlayerbotDruidAI::DoNonCombatActions()
     CheckForms();
 
     // Nothing else to do, Night Elves will cast Shadowmeld to reduce their aggro versus patrols or nearby mobs
-    if (SHADOWMELD && !m_bot->isMovingOrTurning()
+    if (SHADOWMELD > 0 && !m_bot->isMovingOrTurning()
         && !m_bot->IsMounted()
         && !m_bot->HasAura(SHADOWMELD, EFFECT_INDEX_0))
     {
@@ -749,7 +749,7 @@ void PlayerbotDruidAI::GoBuffForm(Player* self)
 // Match up with "Pull()" below
 bool PlayerbotDruidAI::CanPull()
 {
-    if (BEAR_FORM && FAERIE_FIRE_FERAL)
+    if (BEAR_FORM > 0 && FAERIE_FIRE_FERAL)
         return true;
 
     return false;
@@ -758,7 +758,7 @@ bool PlayerbotDruidAI::CanPull()
 // Match up with "CanPull()" above
 bool PlayerbotDruidAI::Pull()
 {
-    if (BEAR_FORM && (CastSpell(FAERIE_FIRE_FERAL) & RETURN_CONTINUE))
+    if (BEAR_FORM > 0 && (CastSpell(FAERIE_FIRE_FERAL) & RETURN_CONTINUE))
         return true;
 
     return false;
@@ -771,7 +771,7 @@ bool PlayerbotDruidAI::CastHoTOnTank()
     if ((PlayerbotAI::ORDERS_HEAL & m_ai->GetCombatOrder()) == 0) return false;
 
     // Druid HoTs: Rejuvenation, Regrowth, Tranquility (channeled, AoE), Lifebloom, and Wild Growth
-    if (REJUVENATION)
+    if (REJUVENATION > 0)
         return (RETURN_CONTINUE & CastSpell(REJUVENATION, m_ai->GetGroupTank()));
 
     return false;

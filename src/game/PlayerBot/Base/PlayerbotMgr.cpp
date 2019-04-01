@@ -30,6 +30,7 @@
 #include "../../Loot/LootMgr.h"
 #include "../../MotionGenerators/WaypointMovementGenerator.h"
 #include "../../Tools/Language.h"
+#include "../../World/World.h"
 
 class LoginQueryHolder;
 class CharacterHandler;
@@ -270,12 +271,6 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
                 std::ostringstream out;
                 out << "CurrentTime: " << CurrentTime()
                 << " m_ignoreAIUpdatesUntilTime: " << pBot->m_ignoreAIUpdatesUntilTime;
-                ch.SendSysMessage(out.str().c_str());
-                }
-                {
-                std::ostringstream out;
-                out << "m_TimeDoneEating: " << pBot->m_TimeDoneEating
-                << " m_TimeDoneDrinking: " << pBot->m_TimeDoneDrinking;
                 ch.SendSysMessage(out.str().c_str());
                 }
                 {
@@ -811,6 +806,15 @@ Player* PlayerbotMgr::GetPlayerBot(ObjectGuid playerGuid) const
 
 void PlayerbotMgr::OnBotLogin(Player* const bot)
 {
+    // simulate client taking control
+    WorldPacket* const pCMSG_SET_ACTIVE_MOVER = new WorldPacket(CMSG_SET_ACTIVE_MOVER, 8);
+    *pCMSG_SET_ACTIVE_MOVER << bot->GetObjectGuid();
+    bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(pCMSG_SET_ACTIVE_MOVER)));
+
+    WorldPacket* const pMSG_MOVE_FALL_LAND = new WorldPacket(MSG_MOVE_FALL_LAND, 28);
+    *pMSG_MOVE_FALL_LAND << bot->GetMover()->m_movementInfo;
+    bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(pMSG_MOVE_FALL_LAND)));
+
     // give the bot some AI, object is owned by the player class
     PlayerbotAI* ai = new PlayerbotAI(this, bot);
     bot->SetPlayerbotAI(ai);
@@ -1103,13 +1107,19 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
         delete resultchar;
     }
 
-    QueryResult* resultlvl = CharacterDatabase.PQuery("SELECT level,name FROM characters WHERE guid = '%u'", guid.GetCounter());
+    QueryResult* resultlvl = CharacterDatabase.PQuery("SELECT level, name, race FROM characters WHERE guid = '%u'", guid.GetCounter());
     if (resultlvl)
     {
         Field* fields = resultlvl->Fetch();
         int charlvl = fields[0].GetUInt32();
         int maxlvl = botConfig.GetIntDefault("PlayerbotAI.RestrictBotLevel", 80);
+        uint8 race = fields[2].GetUInt8();
+        uint32 team = 0;
+
+        team = Player::TeamForRace(race);
+
         if (!(m_session->GetSecurity() > SEC_PLAYER))
+        {
             if (charlvl > maxlvl)
             {
                 PSendSysMessage("|cffff0000You cannot summon |cffffffff[%s]|cffff0000, it's level is too high.(Current Max:lvl |cffffffff%u)", fields[1].GetString(), maxlvl);
@@ -1117,6 +1127,16 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
                 delete resultlvl;
                 return false;
             }
+
+            // Opposing team bot
+            if (!sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP) && m_session->GetPlayer()->GetTeam() != team)
+            {
+                PSendSysMessage("|cffff0000You cannot summon |cffffffff[%s]|cffff0000, a member of the enemy side", fields[1].GetString());
+                SetSentErrorMessage(true);
+                delete resultlvl;
+                return false;
+            }
+        }
         delete resultlvl;
     }
     // end of gmconfig patch

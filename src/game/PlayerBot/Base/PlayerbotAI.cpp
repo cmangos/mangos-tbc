@@ -89,15 +89,15 @@ class PlayerbotChatHandler : protected ChatHandler
 PlayerbotAI::PlayerbotAI(PlayerbotMgr* const mgr, Player* const bot) :
     m_mgr(mgr), m_bot(bot), m_classAI(0), m_ignoreAIUpdatesUntilTime(CurrentTime()),
     m_combatOrder(ORDERS_NONE), m_ScenarioType(SCENARIO_PVE),
-    m_TimeDoneEating(0), m_TimeDoneDrinking(0),
     m_CurrentlyCastingSpellId(0), m_CraftSpellId(0), m_spellIdCommand(0),
     m_targetGuidCommand(ObjectGuid()),
     m_taxiMaster(ObjectGuid()),
     m_AutoEquipToggle(false),
-    m_bDebugCommandChat(false)
+    m_bDebugCommandChat(false),
+    m_ignoreNeutralizeEffect(false)
 {
     // set bot state
-    m_botState = BOTSTATE_NORMAL;
+    m_botState = BOTSTATE_LOADING;
 
     // reset some pointers
     m_targetChanged = false;
@@ -1462,11 +1462,11 @@ void PlayerbotAI::SendOrders(Player& /*player*/)
 
     if (!m_combatOrder)
         out << "Got no combat orders!";
-    else if (m_combatOrder & ORDERS_TANK)
+    else if (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK)
         out << "I TANK";
     else if (m_combatOrder & ORDERS_ASSIST)
         out << "I ASSIST " << (m_targetAssist ? m_targetAssist->GetName() : "unknown");
-    else if (m_combatOrder & ORDERS_HEAL)
+    else if (m_combatOrder & ORDERS_HEAL || m_combatOrder & ORDERS_MAIN_HEAL)
         out << "I HEAL and DISPEL";
     else if (m_combatOrder & ORDERS_NODISPEL)
         out << "I HEAL and WON'T DISPEL";
@@ -2183,25 +2183,42 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                     return;
                 }
 
-                // list out items available for trade
+                // list out items
                 std::ostringstream out;
-                std::list<std::string> lsItemsTradable;
-                std::list<std::string> lsItemsUntradable;
+                std::ostringstream outT;
+                std::ostringstream outNT;
+                uint8 countTotalTradeable = 0;
+                uint8 countTradeable = 0;
+                uint8 countNonTradeable = 0;
 
+                outT << "Tradeable:";
+                outNT << "Non-tradeable:";
                 // list out items in main backpack
                 for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; slot++)
                 {
                     const Item* const pItem = m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
                     if (pItem)
                     {
-                        MakeItemLink(pItem, out, true);
                         if (pItem->CanBeTraded())
-                            lsItemsTradable.push_back(out.str());
+                        {
+                            countTradeable++;
+                            MakeItemLink(pItem, outT, true);
+                        }
                         else
-                            lsItemsUntradable.push_back(out.str());
-                        out.str("");
+                        {
+                            countNonTradeable++;
+                            MakeItemLink(pItem, outNT, true);
+                        }
                     }
                 }
+
+                countTotalTradeable = countTradeable;
+                out << "Backpack (" << countTradeable + countNonTradeable << "/16) ";
+                if (countTradeable > 0)
+                    out << outT.str();
+                if (countNonTradeable > 0)
+                    out << "\r" << outNT.str();
+                SendWhisper(out.str().c_str(), *(m_bot->GetTrader()));
 
                 // list out items in other removable backpacks
                 for (uint8 bag = INVENTORY_SLOT_BAG_START; bag < INVENTORY_SLOT_BAG_END; ++bag)
@@ -2209,63 +2226,48 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                     const Bag* const pBag = (Bag*) m_bot->GetItemByPos(INVENTORY_SLOT_BAG_0, bag);
                     if (pBag)
                     {
-                        // Very cool, but unnecessary
-                        //const ItemPrototype* const pBagProto = pBag->GetProto();
-                        //std::string bagName = pBagProto->Name1;
-                        //ItemLocalization(bagName, pBagProto->ItemId);
+                        countTradeable = 0;
+                        countNonTradeable = 0;
+                        std::ostringstream outbagT;
+                        std::ostringstream outbagNT;
+                        outbagT << "Tradeable:";
+                        outbagNT << "Non-tradeable:";
 
                         for (uint8 slot = 0; slot < pBag->GetBagSize(); ++slot)
                         {
                             const Item* const pItem = m_bot->GetItemByPos(bag, slot);
                             if (pItem)
                             {
-                                MakeItemLink(pItem, out, true);
                                 if (pItem->CanBeTraded())
-                                    lsItemsTradable.push_back(out.str());
+                                {
+                                    countTradeable++;
+                                    MakeItemLink(pItem, outbagT, true);
+                                }
                                 else
-                                    lsItemsUntradable.push_back(out.str());
-                                out.str("");
+                                {
+                                    countNonTradeable++;
+                                    MakeItemLink(pItem, outbagNT, true);
+                                }
                             }
                         }
-                    }
-                }
 
-                ChatHandler ch(m_bot->GetTrader());
-                out.str("");
-                out << "Items I have but cannot trade:";
-                uint32 count = 0;
-                for (std::list<std::string>::iterator iter = lsItemsUntradable.begin(); iter != lsItemsUntradable.end(); iter++)
-                {
-                    out << (*iter);
-                    // Why this roundabout way of posting max 20 items per whisper? To keep the list scrollable.
-                    count++;
-                    if (count % 20 == 0)
-                    {
-                        ch.SendSysMessage(out.str().c_str());
-                        out.str("");
+                        countTotalTradeable += countTradeable;
+                        std::ostringstream outbag;
+                        const ItemPrototype* const pBagProto = pBag->GetProto();
+                        std::string bagName = pBagProto->Name1;
+                        ItemLocalization(bagName, pBagProto->ItemId);
+                        outbag << bagName << " (";
+                        outbag << countTradeable + countNonTradeable << "/" << pBag->GetBagSize();
+                        outbag << ") ";
+                        if (countTradeable > 0)
+                            outbag << outbagT.str();
+                        if (countNonTradeable > 0)
+                            outbag << "\r" << outbagNT.str();
+                        SendWhisper(outbag.str().c_str(), *(m_bot->GetTrader()));
                     }
                 }
-                if (count > 0)
-                    ch.SendSysMessage(out.str().c_str());
-
-                out.str("");
-                out << "I could give you:";
-                count = 0;
-                for (std::list<std::string>::iterator iter = lsItemsTradable.begin(); iter != lsItemsTradable.end(); iter++)
-                {
-                    out << (*iter);
-                    // Why this roundabout way of posting max 20 items per whisper? To keep the list scrollable.
-                    count++;
-                    if (count % 20 == 0)
-                    {
-                        ch.SendSysMessage(out.str().c_str());
-                        out.str("");
-                    }
-                }
-                if (count > 0)
-                    ch.SendSysMessage(out.str().c_str());
-                else
-                    ch.SendSysMessage("I have nothing to give you.");
+                if (countTotalTradeable == 0)
+                    SendWhisper("I have no items to give you.", *(m_bot->GetTrader()));
 
                 // calculate how much money bot has
                 // send bot the message
@@ -2330,6 +2332,10 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             uint16 castFlags;
             p >> castFlags;
 
+            // use this spell, 836 login effect, as a signal from server that we're in world
+            if (spellId == 836 && m_botState == BOTSTATE_LOADING)
+                SetState(BOTSTATE_NORMAL);
+
             return;
         }
 
@@ -2388,6 +2394,10 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                 p.read_skip<uint32>();  // 4 randomPropertyId
                 p >> lootslot_type;     // 1 LootSlotType
 
+                ItemPrototype const *pProto = ObjectMgr::GetItemPrototype(itemid);
+                if (!pProto)
+                    continue;
+
                 if (lootslot_type != LOOT_SLOT_NORMAL && lootslot_type != LOOT_SLOT_OWNER)
                     continue;
 
@@ -2396,13 +2406,34 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                 if (loot_type == LOOT_SKINNING || HasCollectFlag(COLLECT_FLAG_LOOT) ||
                         (loot_type == LOOT_CORPSE && (IsInQuestItemList(itemid) || IsItemUseful(itemid))))
                 {
+                    ItemPosCountVec dest;
+                    if (m_bot->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemid, itemcount) == EQUIP_ERR_INVENTORY_FULL)
+                    {
+                        if (GetManager()->m_confDebugWhisper)
+                            TellMaster("I can't take %; my inventory is full.", pProto->Name1);
+                        m_inventory_full = true;
+                        continue;
+                    }
+
+                    if (GetManager()->m_confDebugWhisper)
+                        TellMaster("Store loot item %s", pProto->Name1);
+
                     WorldPacket* const packet = new WorldPacket(CMSG_AUTOSTORE_LOOT_ITEM, 1);
                     *packet << itemindex;
                     m_bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(packet)));
                 }
+                else
+                {
+                    if (GetManager()->m_confDebugWhisper)
+                        TellMaster("Skipping loot item %s", pProto->Name1);
+                }
             }
 
+            if (GetManager()->m_confDebugWhisper)
+                TellMaster("Releasing loot");
             // release loot
+            m_lootPrev = m_lootCurrent;
+            m_lootCurrent = ObjectGuid();
             WorldPacket* const packet = new WorldPacket(CMSG_LOOT_RELEASE, 8);
             *packet << guid;
             m_bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(packet)));
@@ -2417,10 +2448,9 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
 
             p >> guid;
 
-            if (guid == m_lootCurrent)
+            if (guid == m_lootPrev)
             {
-
-                Creature* c = m_bot->GetMap()->GetCreature(m_lootCurrent);
+                Creature* c = m_bot->GetMap()->GetCreature(m_lootPrev);
 
                 if (c && c->GetCreatureInfo()->SkinningLootId && c->GetLootStatus() != CREATURE_LOOT_STATUS_LOOTED)
                 {
@@ -2435,23 +2465,18 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                         uint32 reqSkillValue = targetLevel < 10 ? 0 : targetLevel < 20 ? (targetLevel - 10) * 10 : targetLevel * 5;
                         if (skillValue >= reqSkillValue)
                         {
-                            if (m_lootCurrent != m_lootPrev)    // if this wasn't previous loot try again
-                            {
-                                m_lootPrev = m_lootCurrent;
-                                SetIgnoreUpdateTime(3);
-                                return; // so that the DoLoot function is called again to get skin
-                            }
+                            m_lootCurrent = m_lootPrev;
+                            if (GetManager()->m_confDebugWhisper)
+                                TellMaster("I will try to skin next loot attempt.");
+
+                            SetIgnoreUpdateTime(1);
+                            return; // so that the DoLoot function is called again to get skin
                         }
                         else
                             TellMaster("My skill is %u but it requires %u", skillValue, reqSkillValue);
                     }
                 }
 
-                // if previous is current, clear
-                if (m_lootPrev == m_lootCurrent)
-                    m_lootPrev = ObjectGuid();
-                // clear current target
-                m_lootCurrent = ObjectGuid();
                 // clear movement
                 m_bot->GetMotionMaster()->Clear(false);
                 m_bot->GetMotionMaster()->MoveIdle();
@@ -2550,6 +2575,75 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             return;
         }
 
+        case MSG_MOVE_TELEPORT_ACK:
+        {
+            WorldPacket rp(packet);
+            ObjectGuid guid;
+            rp >> guid.ReadAsPacked();
+
+            if (guid != m_bot->GetObjectGuid())
+                return;
+
+            uint32 counter;
+            rp >> counter;
+            // movement location to teleport to
+            MovementInfo mi;
+            rp >> mi;
+
+            if (GetManager()->m_confDebugWhisper)
+                TellMaster("Preparing to teleport");
+
+            if (m_bot->IsBeingTeleportedNear())
+            {
+                // simulate same packets that are sent for client
+                WorldPacket* const p = new WorldPacket(MSG_MOVE_TELEPORT_ACK, 8 + 4 + 4);
+                *p << m_bot->GetObjectGuid();
+                *p << counter;
+                *p << (uint32) time(0); // time - not currently used
+                m_bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(p)));
+
+                // send movement info using received movement packet, pops in location
+                WorldPacket* const p2 = new WorldPacket(MSG_MOVE_HEARTBEAT, 28);
+                *p2 << mi;
+                m_bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(p2)));
+
+                WorldPacket* const p3 = new WorldPacket(MSG_MOVE_FALL_LAND, 28);
+                *p3 << mi;
+                m_bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(p3)));
+
+                // resume normal state if was loading
+                if (m_botState == BOTSTATE_LOADING)
+                    SetState(BOTSTATE_NORMAL);
+            }
+            return;
+        }
+        case SMSG_TRANSFER_PENDING:
+        {
+            if (GetManager()->m_confDebugWhisper)
+                TellMaster("World transfer is pending");
+            SetState(BOTSTATE_LOADING);
+            SetIgnoreUpdateTime(1);
+            m_bot->GetMotionMaster()->Clear(true);
+            return;
+        }
+        case SMSG_NEW_WORLD:
+        {
+            if (GetManager()->m_confDebugWhisper)
+                TellMaster("Preparing to teleport far");
+
+            if (m_bot->IsBeingTeleportedFar())
+            {
+                // simulate client canceling trade before worldport
+                WorldPacket* const pt1 = new WorldPacket(CMSG_CANCEL_TRADE);
+                m_bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(pt1)));
+
+                WorldPacket* const p = new WorldPacket(MSG_MOVE_WORLDPORT_ACK);
+                m_bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(p)));
+                SetState(BOTSTATE_NORMAL);
+            }
+            return;
+        }
+
         /* uncomment this and your bots will tell you all their outgoing packet opcode names
            case SMSG_MONSTER_MOVE:
            case SMSG_UPDATE_WORLD_STATE:
@@ -2600,19 +2694,6 @@ uint8 PlayerbotAI::GetManaPercent(const Unit& target) const
 uint8 PlayerbotAI::GetManaPercent() const
 {
     return GetManaPercent(*m_bot);
-}
-
-uint8 PlayerbotAI::GetBaseManaPercent(const Unit& target) const
-{
-    if (target.GetPower(POWER_MANA) >= target.GetCreateMana())
-        return (100);
-    else
-        return (static_cast<float>(target.GetPower(POWER_MANA)) / target.GetCreateMana()) * 100;
-}
-
-uint8 PlayerbotAI::GetBaseManaPercent() const
-{
-    return GetBaseManaPercent(*m_bot);
 }
 
 uint8 PlayerbotAI::GetRageAmount(const Unit& target) const
@@ -3089,65 +3170,93 @@ void PlayerbotAI::Attack(Unit* forcedTarget)
 
     m_bot->Attack(m_targetCombat, true);
 
-    // add thingToAttack to loot list
-    m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
+    // add thingToAttack to loot list to loot after combat
+    if (HasCollectFlag(COLLECT_FLAG_COMBAT))
+        m_lootTargets.push_back(m_targetCombat->GetObjectGuid());
 }
 
 // intelligently sets a reasonable combat order for this bot
 // based on its class / level / etc
+// Function will try to avoid returning crowd controlled (neutralised) unit
+// unless told so by using forcedTarget parameter
 void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
 {
     // update attacker info now
     UpdateAttackerInfo();
 
+    Unit* candidateTarget;
+
     // check for attackers on protected unit, and make it a forcedTarget if any
     if (!forcedTarget && (m_combatOrder & ORDERS_PROTECT) && m_targetProtect)
     {
-        Unit* newTarget = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF | AIT_HIGHESTTHREAT), m_targetProtect);
-        if (newTarget && newTarget != m_targetCombat)
+        candidateTarget = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF | AIT_HIGHESTTHREAT), m_targetProtect);
+        if (candidateTarget && candidateTarget != m_targetCombat && !IsNeutralized(candidateTarget))
         {
-            forcedTarget = newTarget;
+            forcedTarget = candidateTarget;
             m_targetType = TARGET_THREATEN;
             if (m_mgr->m_confDebugWhisper)
                 TellMaster("Changing target to %s to protect %s", forcedTarget->GetName(), m_targetProtect->GetName());
         }
     }
-    else if (forcedTarget)
-    {
-        if (m_mgr->m_confDebugWhisper)
-            TellMaster("Changing target to %s by force!", forcedTarget->GetName());
-        m_targetType = (m_combatOrder & ORDERS_TANK ? TARGET_THREATEN : TARGET_NORMAL);
-    }
-
-    // we already have a target and we are not forced to change it
-    if (m_targetCombat && !forcedTarget)
-        return;
-
-    // forced to change target to current target == null operation
-    if (forcedTarget && forcedTarget == m_targetCombat)
-        return;
 
     // are we forced on a target?
     if (forcedTarget)
     {
+        // forced to change target to current target == null operation
+        if (forcedTarget && forcedTarget == m_targetCombat)
+            return;
+
+        if (m_mgr->m_confDebugWhisper)
+            TellMaster("Changing target to %s by force!", forcedTarget->GetName());
         m_targetCombat = forcedTarget;
+        m_ignoreNeutralizeEffect = true;    // Bypass IsNeutralized() checks on next updates
         m_targetChanged = true;
+        m_targetType = (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK ? TARGET_THREATEN : TARGET_NORMAL);
     }
+
+    // we already have a target and we are not forced to change it
+    if (m_targetCombat)
+    {
+        // We have a target but it is neutralised and we are not forced to attack it: clear it for now
+        if ((IsNeutralized(m_targetCombat) && !m_ignoreNeutralizeEffect))
+        {
+            m_targetCombat = nullptr;
+            m_targetType = TARGET_NORMAL;
+            m_targetChanged = true;
+            return;
+        }
+        else
+        {
+            if (!IsNeutralized(m_targetCombat) && m_ignoreNeutralizeEffect)
+                m_ignoreNeutralizeEffect = false;                           // target is no longer neutralised, clear ignore order
+            return;                                                         // keep on attacking target
+        }
+    }
+
+    // No target for now, try to get one
     // do we have to assist someone?
     if (!m_targetCombat && (m_combatOrder & ORDERS_ASSIST) && m_targetAssist)
     {
-        m_targetCombat = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF | AIT_LOWESTTHREAT), m_targetAssist);
-        if (m_mgr->m_confDebugWhisper && m_targetCombat)
-            TellMaster("Attacking %s to assist %s", m_targetCombat->GetName(), m_targetAssist->GetName());
-        m_targetType = (m_combatOrder & ORDERS_TANK ? TARGET_THREATEN : TARGET_NORMAL);
-        m_targetChanged = true;
+        candidateTarget = FindAttacker((ATTACKERINFOTYPE)(AIT_VICTIMNOTSELF | AIT_LOWESTTHREAT), m_targetAssist);
+        if (candidateTarget && !IsNeutralized(candidateTarget))
+        {
+            m_targetCombat = candidateTarget;
+            if (m_mgr->m_confDebugWhisper)
+                TellMaster("Attacking %s to assist %s", m_targetCombat->GetName(), m_targetAssist->GetName());
+            m_targetType = (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK ? TARGET_THREATEN : TARGET_NORMAL);
+            m_targetChanged = true;
+        }
     }
     // are there any other attackers?
     if (!m_targetCombat)
     {
-        m_targetCombat = FindAttacker();
-        m_targetType = (m_combatOrder & ORDERS_TANK ? TARGET_THREATEN : TARGET_NORMAL);
-        m_targetChanged = true;
+        candidateTarget = FindAttacker();
+        if (candidateTarget && !IsNeutralized(candidateTarget))
+        {
+            m_targetCombat = candidateTarget;
+            m_targetType = (m_combatOrder & ORDERS_TANK || m_combatOrder & ORDERS_MAIN_TANK ? TARGET_THREATEN : TARGET_NORMAL);
+            m_targetChanged = true;
+        }
     }
     // no attacker found anyway
     if (!m_targetCombat)
@@ -3325,13 +3434,26 @@ Player* PlayerbotAI::GetGroupTank()
     if (m_bot->GetGroup())
     {
         Group::MemberSlotList const& groupSlot = m_bot->GetGroup()->GetMemberSlots();
+        // First loop: we look for a main tank (only bots with JOB_MAIN_TANK) can announce themselves as main tank
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
             Player* groupMember = sObjectMgr.GetPlayer(itr->guid);
             if (!groupMember || !groupMember->GetPlayerbotAI())
-                return nullptr;
-            if (groupMember->GetPlayerbotAI()->IsTank())
+                continue;
+            if (groupMember->GetPlayerbotAI()->IsMainTank())
                 return groupMember;
+        }
+        // Second loop: we look for any tank (bots with JOB_TANK or human players with the right class/spec combination)
+        for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
+        {
+            Player* groupMember = sObjectMgr.GetPlayer(itr->guid);
+            if (groupMember)
+            {
+                if (!groupMember->GetPlayerbotAI() && m_bot->GetPlayerbotAI()->GetClassAI()->GetTargetJob(groupMember) & JOB_TANK)
+                    return groupMember;
+                else if (groupMember->GetPlayerbotAI() && groupMember->GetPlayerbotAI()->IsTank())
+                    return groupMember;
+            }
         }
     }
 
@@ -3453,7 +3575,7 @@ bool PlayerbotAI::CanPull(Player& fromPlayer)
         return false;
     }
 
-    if ((GetCombatOrder() & ORDERS_TANK) == 0)
+    if (!IsTank())
     {
         SendWhisper("I cannot pull as I do not have combat orders to tank.", fromPlayer);
         return false;
@@ -3500,7 +3622,7 @@ bool PlayerbotAI::CastPull()
     if (!GetClassAI()) return false;
     if (!GetCurrentTarget()) return false;
 
-    if ((GetCombatOrder() & ORDERS_TANK) == 0) return false;
+    if (!IsTank()) return false;
 
     switch (m_bot->getClass())
     {
@@ -3756,6 +3878,8 @@ void PlayerbotAI::DoLoot()
     if (!wo || GetMaster()->GetDistance(wo) > float(m_mgr->m_confCollectDistanceMax))
     {
         m_lootCurrent = ObjectGuid();
+        if (GetManager()->m_confDebugWhisper)
+            TellMaster("Object is too far away.");
         return;
     }
 
@@ -3770,6 +3894,8 @@ void PlayerbotAI::DoLoot()
     if ((c && c->IsDespawned()) || (go && !go->IsSpawned()) || (!c && !go))
     {
         m_lootCurrent = ObjectGuid();
+        if (GetManager()->m_confDebugWhisper)
+            TellMaster("Object is not spawned.");
         return;
     }
 
@@ -3781,10 +3907,20 @@ void PlayerbotAI::DoLoot()
             skillId = c->GetCreatureInfo()->GetRequiredLootSkill();
 
         // not a lootable creature, clear it
-        if (!c->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE) &&
-                !c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) ||
+        if ((!c->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE) &&
+                !c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE)) ||
                 (c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) && !m_bot->HasSkill(skillId)))
         {
+            m_lootCurrent = ObjectGuid();
+            // clear movement target, take next target on next update
+            m_bot->GetMotionMaster()->Clear(false);
+            m_bot->GetMotionMaster()->MoveIdle();
+            return;
+        }
+        else if (c->loot && !c->loot->CanLoot(m_bot) && !c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
+        {
+            if (GetManager()->m_confDebugWhisper)
+                TellMaster("%s is not lootable by me.", wo->GetName());
             m_lootCurrent = ObjectGuid();
             // clear movement target, take next target on next update
             m_bot->GetMotionMaster()->Clear(false);
@@ -3798,6 +3934,8 @@ void PlayerbotAI::DoLoot()
         m_bot->GetMotionMaster()->MovePoint(wo->GetMapId(), wo->GetPositionX(), wo->GetPositionY(), wo->GetPositionZ());
         // give time to move to point before trying again
         SetIgnoreUpdateTime(1);
+        if (GetManager()->m_confDebugWhisper)
+            TellMaster("Moving to loot %s", go ? go->GetName() : wo->GetName());
     }
 
     if (m_bot->GetDistance(wo) < INTERACTION_DISTANCE)
@@ -3807,6 +3945,9 @@ void PlayerbotAI::DoLoot()
         bool keyFailed = false;
         bool skillFailed = false;
         bool forceFailed = false;
+
+        if (GetManager()->m_confDebugWhisper)
+            TellMaster("Beginning to loot %s", go ? go->GetName() : wo->GetName());
 
         if (c)  // creature
         {
@@ -4506,8 +4647,10 @@ void PlayerbotAI::SetCombatOrderByStr(std::string str, Unit* target)
 {
     CombatOrderType co;
     if (str == "tank")              co = ORDERS_TANK;
+    else if (str == "maintank")     co = ORDERS_MAIN_TANK;
     else if (str == "assist")       co = ORDERS_ASSIST;
     else if (str == "heal")         co = ORDERS_HEAL;
+    else if (str == "mainheal")     co = ORDERS_MAIN_HEAL;
     else if (str == "protect")      co = ORDERS_PROTECT;
     else if (str == "passive")      co = ORDERS_PASSIVE;
     else if (str == "pull")         co = ORDERS_TEMP_WAIT_TANKAGGRO;
@@ -4612,8 +4755,10 @@ void PlayerbotAI::ClearCombatOrder(CombatOrderType co)
     {
         case ORDERS_NONE:
         case ORDERS_TANK:
+        case ORDERS_MAIN_TANK:
         case ORDERS_ASSIST:
         case ORDERS_HEAL:
+        case ORDERS_MAIN_HEAL:
         case ORDERS_PASSIVE:
         case ORDERS_PRIMARY:
         case ORDERS_RESET:
@@ -4630,7 +4775,8 @@ void PlayerbotAI::SetMovementOrder(MovementOrderType mo, Unit* followTarget)
 {
     m_movementOrder = mo;
     m_followTarget = followTarget;
-    MovementReset();
+    if (m_botState != BOTSTATE_LOADING)
+        MovementReset();
 }
 
 void PlayerbotAI::MovementReset()
@@ -4641,8 +4787,6 @@ void PlayerbotAI::MovementReset()
     {
         if (!m_followTarget)
             return;
-
-        WorldObject* distTarget = m_followTarget;   // target to distance check
 
         // don't follow while in combat
         if (m_bot->isInCombat())
@@ -4655,16 +4799,12 @@ void PlayerbotAI::MovementReset()
         if (pTarget)
         {
             // check player for follow situations
-            if (pTarget->IsBeingTeleported() || pTarget->IsTaxiFlying())
+            if (pTarget->IsBeingTeleported() || pTarget->IsTaxiFlying() || pTarget->GetCorpse())
                 return;
-
-            // use player's corpse as distance check target
-            if (pTarget->GetCorpse())
-                distTarget = pTarget->GetCorpse();
         }
 
         // is bot too far from the follow target
-        if (!m_bot->IsWithinDistInMap(distTarget, 50))
+        if (!m_bot->IsWithinDistInMap(m_followTarget, 50))
         {
             DoTeleport(*m_followTarget);
             return;
@@ -4870,11 +5010,6 @@ void PlayerbotAI::Announce(AnnounceFlags msg)
     }
 }
 
-bool PlayerbotAI::IsMoving()
-{
-    return (m_bot->GetMotionMaster()->GetCurrentMovementGeneratorType() == IDLE_MOTION_TYPE ? false : true);
-}
-
 // some possible things to use in AI
 // GetRandomContactPoint
 // GetPower, GetMaxPower
@@ -4886,14 +5021,37 @@ bool PlayerbotAI::IsMoving()
 
 void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
 {
-    if (m_bot->IsBeingTeleported() || m_bot->GetTrader())
-        return;
+    if (GetClassAI()->GetWaitUntil() <= CurrentTime())
+        GetClassAI()->ClearWait();
 
     if (CurrentTime() < m_ignoreAIUpdatesUntilTime)
         return;
 
     // default updates occur every two seconds
     SetIgnoreUpdateTime(2);
+    
+    if (m_botState == BOTSTATE_LOADING)
+    {
+        if (m_bot->IsBeingTeleported())
+            return;
+        else
+        {
+            // is bot too far from the follow target
+            if (!m_bot->IsWithinDistInMap(m_followTarget, 50))
+            {
+                DoTeleport(*m_followTarget);
+                return;
+            }
+            else
+                SetState(BOTSTATE_NORMAL);
+
+            return;
+        }
+    }
+
+    if (m_bot->IsBeingTeleported() || m_bot->GetTrader())
+        return;
+
     if (m_FollowAutoGo == FOLLOWAUTOGO_INIT)
     {
         if (m_combatOrder & ORDERS_TANK)
@@ -4937,9 +5095,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
             if (!corpse)
                 // DEBUG_LOG ("[PlayerbotAI]: UpdateAI - %s has no corpse!", m_bot->GetName());
                 return;
-            // teleport ghost from graveyard to corpse
-            // DEBUG_LOG ("[PlayerbotAI]: UpdateAI - Teleport %s to corpse...", m_bot->GetName());
-            DoTeleport(*corpse);
+
             // check if we are allowed to resurrect now
             time_t resurrect_time = corpse->GetGhostTime() + m_bot->GetCorpseReclaimDelay(corpse->GetType() == CORPSE_RESURRECTABLE_PVP);
             if (resurrect_time > CurrentTime())
@@ -5154,13 +5310,22 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
     }
 
     // if commanded to follow master and not already following master then follow master
-    if (!m_bot->isInCombat() && !IsMoving())
+    if (!m_bot->isInCombat() && !m_bot->IsMoving())
         return MovementReset();
 
     // do class specific non combat actions
     if (GetClassAI() && !m_bot->IsMounted() && !IsRegenerating())
     {
         GetClassAI()->DoNonCombatActions();
+
+        // have we been told to collect loot after combat
+        if (HasCollectFlag(COLLECT_FLAG_LOOT))
+        {
+            findNearbyCorpse();
+            // start looting if have targets
+            if (!m_lootTargets.empty())
+                SetState(BOTSTATE_LOOTING);
+        }
 
         // have we been told to collect GOs
         if (HasCollectFlag(COLLECT_FLAG_NEAROBJECT))
@@ -5481,6 +5646,10 @@ SpellCastResult PlayerbotAI::Buff(uint32 spellId, Unit* target, void (*beforeCas
 {
     if (spellId == 0)
         return SPELL_FAILED_NOT_KNOWN;
+
+    // Target already has aura from spellId, skip for speed. May need to add exceptions
+    if (target->HasAura(spellId))
+        return SPELL_FAILED_AURA_BOUNCED;
 
     SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
 
@@ -6441,7 +6610,6 @@ void PlayerbotAI::findNearbyGO()
         return;
 
     GameObjectList tempTargetGOList;
-    float radius = 20.0f;
 
     for (BotEntryList::iterator itr = m_collectObjects.begin(); itr != m_collectObjects.end(); ++itr)
     {
@@ -6461,9 +6629,9 @@ void PlayerbotAI::findNearbyGO()
                     }
 
         // search for GOs with entry, within range of m_bot
-        MaNGOS::GameObjectEntryInPosRangeCheck go_check(*m_bot, entry, m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), radius);
+        MaNGOS::GameObjectEntryInPosRangeCheck go_check(*m_bot, entry, m_bot->GetPositionX(), m_bot->GetPositionY(), m_bot->GetPositionZ(), float(m_collectDist));
         MaNGOS::GameObjectListSearcher<MaNGOS::GameObjectEntryInPosRangeCheck> checker(tempTargetGOList, go_check);
-        Cell::VisitGridObjects(m_bot, checker, radius);
+        Cell::VisitGridObjects(m_bot, checker, float(m_collectDist));
 
         // no objects found, continue to next entry
         if (tempTargetGOList.empty())
@@ -6484,10 +6652,53 @@ void PlayerbotAI::findNearbyGO()
     }
 }
 
+void PlayerbotAI::findNearbyCorpse()
+{
+    UnitList corpseList;
+    float radius = float(m_mgr->m_confCollectDistance);
+    MaNGOS::AnyDeadUnitCheck corpse_check(m_bot);
+    MaNGOS::UnitListSearcher<MaNGOS::AnyDeadUnitCheck> reaper(corpseList, corpse_check);
+    Cell::VisitAllObjects(m_bot, reaper, radius);
+
+    //if (!corpseList.empty())
+    //    TellMaster("Found %i Corpse(s)", corpseList.size());
+
+    for (UnitList::const_iterator i = corpseList.begin(); i != corpseList.end(); ++i)
+    {
+        Creature* corpse = (Creature*)*i;
+        if (!corpse)
+            continue;
+
+        if (!corpse->IsCorpse() || corpse->IsDespawned() || m_bot->CanAssist(corpse) || !corpse->loot)
+            continue;
+
+        if (!corpse->loot->CanLoot(m_bot) && !corpse->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
+            continue;
+
+        uint32 skillId = 0;
+        if (corpse->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
+            skillId = corpse->GetCreatureInfo()->GetRequiredLootSkill();
+
+        if (corpse->HasFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE) ||
+                (corpse->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE) && m_bot->HasSkill(skillId)))
+        {
+            m_lootTargets.push_back(corpse->GetObjectGuid());
+            m_lootTargets.unique();
+        }
+    }
+}
+
 void PlayerbotAI::findNearbyCreature()
 {
+    // Do not waste time finding a creature if bot has nothing to do
+    // and clear list (sanity check)
+    if (m_tasks.empty())
+    {
+        m_findNPC.clear();
+        return;
+    }
     CreatureList creatureList;
-    float radius = 2.5;
+    float radius = INTERACTION_DISTANCE;
 
     CellPair pair(MaNGOS::ComputeCellPair(m_bot->GetPositionX(), m_bot->GetPositionY()));
     Cell cell(pair);
@@ -6506,7 +6717,7 @@ void PlayerbotAI::findNearbyCreature()
     {
         Creature* currCreature = *iter;
 
-        for (std::list<enum NPCFlags>::iterator itr = m_findNPC.begin(); itr != m_findNPC.end();)
+        for (std::list<enum NPCFlags>::iterator itr = m_findNPC.begin(); itr != m_findNPC.end(); itr = m_findNPC.erase(itr))
         {
             uint32 npcflags = currCreature->GetUInt32Value(UNIT_NPC_FLAGS);
 
@@ -6533,6 +6744,9 @@ void PlayerbotAI::findNearbyCreature()
             if (m_bot->GetDistance(wo) < INTERACTION_DISTANCE)
             {
                 // DEBUG_LOG("%s is interacting with (%s)",m_bot->GetName(),currCreature->GetCreatureInfo()->Name);
+                // Stop moving as soon as bot is in range
+                m_bot->GetMotionMaster()->Clear(false);
+                m_bot->GetMotionMaster()->MoveIdle();
                 GossipMenuItemsMapBounds pMenuItemBounds = sObjectMgr.GetGossipMenuItemsMapBounds(currCreature->GetCreatureInfo()->GossipMenuId);
 
                 // prepares quest menu when true
@@ -6680,8 +6894,6 @@ void PlayerbotAI::findNearbyCreature()
                     m_bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
                 }
             }
-            m_bot->GetMotionMaster()->Clear(false);
-            m_bot->GetMotionMaster()->MoveIdle();
         }
     }
 }
@@ -6799,7 +7011,7 @@ bool PlayerbotAI::CanStore()
                 totalfree =  totalfree + pBag->GetFreeSlots();
         }
     }
-    return totalfree;
+    return totalfree > 0;
 }
 
 // use item on self
@@ -7109,22 +7321,6 @@ bool PlayerbotAI::DoTeleport(WorldObject& /*obj*/)
         }
     }
     return true;
-}
-
-void PlayerbotAI::HandleTeleportAck()
-{
-    SetIgnoreUpdateTime(6);
-    m_bot->GetMotionMaster()->Clear(true);
-    if (m_bot->IsBeingTeleportedNear())
-    {
-        WorldPacket p = WorldPacket(MSG_MOVE_TELEPORT_ACK, 8 + 4 + 4);
-        p << m_bot->GetObjectGuid();
-        p << (uint32) 0; // supposed to be flags? not used currently
-        p << (uint32) CurrentTime(); // time - not currently used
-        m_bot->GetSession()->HandleMoveTeleportAckOpcode(p);
-    }
-    else if (m_bot->IsBeingTeleportedFar())
-        m_bot->GetSession()->HandleMoveWorldportAckOpcode();
 }
 
 // Localization support
@@ -8038,6 +8234,18 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
     else if (ExtractCommand("help", input))
         _HandleCommandHelp(input, fromPlayer);
 
+    // debug can be enabled without needing to change playerbot.conf file
+    else if (text == "debug")
+    {
+        TellMaster("Debugging is on. Type 'no debug' to disable.");
+        GetManager()->m_confDebugWhisper = true;
+    }
+    else if (text == "no debug")
+    {
+        TellMaster("Debugging is off.");
+        GetManager()->m_confDebugWhisper = false;
+    }
+
     else if (fromPlayer.GetSession()->GetSecurity() > SEC_PLAYER && ExtractCommand("gm", input))
         _HandleCommandGM(input, fromPlayer);
 
@@ -8186,7 +8394,14 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
         else
         {
             // TODO: make this only in response to direct whispers (chatting in party chat can in fact be between humans)
-            std::string msg = "What? For a list of commands, ask for 'help'.";
+            std::string msg = "What is [";
+            std::string textsub;
+            if (text.length() > 10)
+                textsub = text.substr(0, 10) + "...";
+            else
+                textsub = text;
+            msg += textsub.c_str();
+            msg += "]? For a list of commands, ask for 'help'.";
             SendWhisper(msg, fromPlayer);
             m_bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
         }

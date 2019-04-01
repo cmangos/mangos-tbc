@@ -544,8 +544,12 @@ void PlayerbotPriestAI::DoNonCombatActions()
         return;
 
     // Nothing else to do, Night Elves will cast Shadowmeld to reduce their aggro versus patrols or nearby mobs
-    if (SHADOWMELD && !m_bot->HasAura(SHADOWMELD, EFFECT_INDEX_0) && m_ai->CastSpell(SHADOWMELD, *m_bot) == SPELL_CAST_OK)
-        return;
+    if (SHADOWMELD > 0 && !m_bot->isMovingOrTurning()
+        && !m_bot->IsMounted()
+        && !m_bot->HasAura(SHADOWMELD, EFFECT_INDEX_0))
+    {
+        m_ai->CastSpell(SHADOWMELD, *m_bot);
+    }
 } // end DoNonCombatActions
 
 // TODO: this and mage's BuffHelper are identical and thus could probably go in PlayerbotClassAI.cpp somewhere
@@ -572,7 +576,7 @@ bool PlayerbotPriestAI::CastHoTOnTank()
     if ((PlayerbotAI::ORDERS_HEAL & m_ai->GetCombatOrder()) == 0) return false;
 
     // Priest HoTs: Renew (with talents, channeled)
-    if (RENEW && m_ai->In_Reach(m_ai->GetGroupTank(), RENEW))
+    if (RENEW > 0 && m_ai->In_Reach(m_ai->GetGroupTank(), RENEW))
         return (RETURN_CONTINUE & CastSpell(RENEW, m_ai->GetGroupTank()));
 
     return false;

@@ -29,7 +29,7 @@ public:
     SpellRegulator* spellRegulator {};
     AutoBroadcast* autoBroadcast {};
 
-    void LoadConfig();
+    void Load();
     void Update(uint32 diff);
     IntervalTimer& GetTimer(CustomTimers timer) { return m_timers[timer]; }
 private:

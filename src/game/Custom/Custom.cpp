@@ -28,7 +28,7 @@ void Custom::Update(uint32 diff)
     autoBroadcast->SendAutoBroadcasts();
 }
 
-void Custom::LoadConfig()
+void Custom::Load()
 {
     sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.Queueing", false);
     sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.ReplaceRacials", false);

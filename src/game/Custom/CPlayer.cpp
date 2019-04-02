@@ -168,13 +168,12 @@ void CPlayer::CFJoinBattleGround()
     if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
         return;
 
-    if (!NativeTeam())
-    {
-        SetByteValue(UNIT_FIELD_BYTES_0, 0, getFRace());
-        setFaction(getFFaction());
-        ReplaceRacials(false);
-    }
+    if (NativeTeam())
+        return;
 
+    SetByteValue(UNIT_FIELD_BYTES_0, 0, getFRace());
+    setFaction(getFFaction());
+    ReplaceRacials(false);
     FakeDisplayID();
 
     sWorld.InvalidatePlayerDataToAllClient(this->GetObjectGuid());
@@ -185,10 +184,9 @@ void CPlayer::CFLeaveBattleGround()
     if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
         return;
 
-    ReplaceRacials(true);
-
     SetByteValue(UNIT_FIELD_BYTES_0, 0, getORace());
     setFaction(getOFaction());
+    ReplaceRacials(true);
     InitDisplayIds();
 
     sWorld.InvalidatePlayerDataToAllClient(GetObjectGuid());
@@ -196,7 +194,7 @@ void CPlayer::CFLeaveBattleGround()
 
 void CPlayer::FakeDisplayID()
 {
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || NativeTeam())
+    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
         return;
 
     PlayerInfo const* info = sObjectMgr.GetPlayerInfo(getRace(), getClass());

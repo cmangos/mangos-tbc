@@ -32,7 +32,7 @@ public:
 
         if (!result)
         {
-            sLog.outString("Couldn't load custom_spellregulator table");
+            sLog.outErrorDb("Couldn't load custom_spellregulator table");
             return;
         }
 

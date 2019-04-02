@@ -1495,8 +1495,13 @@ Death.Ghost.RunSpeed.Battleground = 1.0
 #        Default: 1800000 (30 minutes)
 #                 0 - disable premade group matches (group always added to bg team in normal way)
 #
-#    BattleGround.CrossfactionQueueing
+#    BattleGround.Crossfaction.Queueing
 #        Enable crossfaction battleground queueing.
+#        Default: 0 - (Disabled)
+#                 1 - (Enabled)
+#
+#    BattleGround.Crossfaction.ReplaceRacials
+#       Replace racial spells with the ones from the race you're faking
 #        Default: 0 - (Disabled)
 #                 1 - (Enabled)
 #
@@ -1509,7 +1514,8 @@ Battleground.ScoreStatistics = 0
 Battleground.InvitationType = 0
 BattleGround.PrematureFinishTimer = 300000
 BattleGround.PremadeGroupWaitForMatch = 1800000
-BattleGround.CrossfactionQueueing = 0
+BattleGround.Crossfaction.Queueing = 0
+BattleGround.Crossfaction.ReplaceRacials = 0
 
 ###################################################################################################################
 # ARENA CONFIG

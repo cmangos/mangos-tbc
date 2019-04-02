@@ -220,7 +220,8 @@ void CPlayer::FakeDisplayID()
 
 void CPlayer::ReplaceRacials(bool native)
 {
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
+    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) ||
+        sWorld.getConfig(CONFIG_BOOL_CFBG_REPLACERACIALS))
         return;
 
     // SpellId, Original Team Spell

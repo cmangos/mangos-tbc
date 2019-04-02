@@ -30,7 +30,8 @@ void Custom::Update(uint32 diff)
 
 void Custom::LoadConfig()
 {
-    sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.CrossfactionQueueing", false);
+    sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.Queueing", false);
+    sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.ReplaceRacials", false);
     sWorld.setConfig(CONFIG_BOOL_DUELRESET_ENABLED, "Custom.DuelReset", false);
     sWorld.setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "Custom.AutoBroadcastTimer", 0);
     m_timers[CUPDATE_AUTOBROADCAST].SetInterval(sWorld.getConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER) * IN_MILLISECONDS);

@@ -34,6 +34,8 @@
 #include "Grids/GridNotifiersImpl.h"
 #include "Chat/Chat.h"
 
+#include "Custom/CPlayer.h"
+
 #include <cstdarg>
 
 namespace MaNGOS
@@ -1031,7 +1033,7 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid guid, bool Transport, bool Sen
 
     if (plr)
     {
-        plr->CFLeaveBattleGround();
+        plr->ToCPlayer()->CFLeaveBattleGround();
 
         // Remove flag set in BattleGround::BlockMovement()
         plr->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CLIENT_CONTROL_LOST);
@@ -1192,7 +1194,7 @@ void BattleGround::StartBattleGround()
 
 void BattleGround::AddPlayer(Player* plr)
 {
-    plr->CFJoinBattleGround();
+    plr->ToCPlayer()->CFJoinBattleGround();
 
     // remove afk from player
     if (plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK))

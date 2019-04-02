@@ -921,7 +921,7 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
     }
     // all item positions resolved
 
-    SetFakeValues();
+    ToCPlayer()->SetFakeValues();
 
     return true;
 }
@@ -14760,7 +14760,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     setFactionForRace(getRace());
     SetCharm(nullptr);
 
-    SetFakeValues();
+    ToCPlayer()->SetFakeValues();
 
     // load home bind and check in same time class/race pair, it used later for restore broken positions
     if (!_LoadHomeBind(holder->GetResult(PLAYER_LOGIN_QUERY_LOADHOMEBIND)))
@@ -16345,7 +16345,7 @@ void Player::SaveToDB()
     uberInsert.addUInt32(GetGUIDLow());
     uberInsert.addUInt32(GetSession()->GetAccountId());
     uberInsert.addString(m_name);
-    uberInsert.addUInt8(getORace());
+    uberInsert.addUInt8(ToCPlayer()->getORace());
     uberInsert.addUInt8(getClass());
     uberInsert.addUInt8(getGender());
     uberInsert.addUInt32(getLevel());
@@ -21732,24 +21732,6 @@ void Player::SendPetBar()
     }
 }
 
-void Player::CFJoinBattleGround()
-{
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
-        return;
-
-    FixLanguageSkills();
-
-    if (!NativeTeam())
-    {
-        SetByteValue(UNIT_FIELD_BYTES_0, 0, getFRace());
-        setFaction(getFFaction());
-    }
-
-    FakeDisplayID();
-
-    sWorld.InvalidatePlayerDataToAllClient(this->GetObjectGuid());
-}
-
 void Player::StartCinematic()
 {
     // server sent cinematic start?
@@ -21767,118 +21749,4 @@ void Player::StopCinematic()
 
     m_cinematicMgr->EndCinematic();
     m_cinematicMgr.reset(nullptr);
-}
-
-void Player::CFLeaveBattleGround()
-{
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
-        return;
-
-    FixLanguageSkills(true, true);
-
-    SetByteValue(UNIT_FIELD_BYTES_0, 0, getORace());
-    setFaction(getOFaction());
-    InitDisplayIds();
-
-    sWorld.InvalidatePlayerDataToAllClient(GetObjectGuid());
-}
-
-void Player::FakeDisplayID()
-{
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
-        return;
-
-    if (!NativeTeam())
-    {
-        PlayerInfo const* info = sObjectMgr.GetPlayerInfo(getRace(), getClass());
-        if (!info)
-        {
-            for (int i = 1; i <= CLASS_DRUID; i++)
-            {
-                info = sObjectMgr.GetPlayerInfo(getRace(), i);
-                if (info)
-                    break;
-            }
-        }
-
-        if (!info)
-        {
-            sLog.outError("Player %u has incorrect race/class pair. Can't init display ids.", GetGUIDLow());
-            return;
-        }
-
-        SetObjectScale(DEFAULT_OBJECT_SCALE);
-
-        uint8 gender = getGender();
-        switch (gender)
-        {
-        case GENDER_FEMALE:
-            SetDisplayId(info->displayId_f);
-            SetNativeDisplayId(info->displayId_f);
-            break;
-        case GENDER_MALE:
-            SetDisplayId(info->displayId_m);
-            SetNativeDisplayId(info->displayId_m);
-            break;
-        default:
-            sLog.outError("Invalid gender %u for player", gender);
-            return;
-        }
-    }
-}
-
-void Player::FixLanguageSkills(bool force, bool native)
-{
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
-        return;
-
-    if (!force)
-        native = NativeTeam();
-
-    // SpellId, OriginalSpell
-    auto spells = std::unordered_map<uint32, bool>();
-
-    for (auto& i : sObjectMgr.GetPlayerInfo(getORace(), getClass())->spell)
-        if (auto spell = sSpellTemplate.LookupEntry<SpellEntry>(i))
-                if (spell->Effect[0] == SPELL_EFFECT_LANGUAGE)
-                    spells[spell->Id] = true;
-
-    for (auto& i : sObjectMgr.GetPlayerInfo(getFRace(), getClass())->spell)
-        if (auto spell = sSpellTemplate.LookupEntry<SpellEntry>(i))
-                if (spell->Effect[0] == SPELL_EFFECT_LANGUAGE)
-                    spells[spell->Id] = false;
-
-    for (auto& i : spells)
-    {
-        if (i.second == native)
-            learnSpell(i.first, true);
-        else
-            this->removeSpell(i.first);
-    }
-}
-
-void Player::SetFakeValues()
-{
-    m_oRace = GetByteValue(UNIT_FIELD_BYTES_0, 0);
-    m_oFaction = GetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE);
-
-    m_fRace = 0;
-
-    while (m_fRace == 0)
-    {
-        for (uint8 i = RACE_HUMAN; i <= RACE_DRAENEI; ++i)
-        {
-            if (i == RACE_GOBLIN)
-                continue;
-
-            PlayerInfo const* info = sObjectMgr.GetPlayerInfo(i, getClass());
-            if (!info || Player::TeamForRace(i) == GetOTeam())
-                continue;
-
-            if (urand(0, 5) == 0)
-                m_fRace = i;
-        }
-    }
-
-    m_fFaction = Player::getFactionForRace(m_fRace);
 }

@@ -1737,8 +1737,85 @@ CharDelete.KeepDays = 30
 #        Prefix that's always applied for AutoBroadcast messages
 #        Default: "" - No prefixed text
 #
+#
+#    Custom.AntiCheat.SpeedCheat
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.Teleport
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.Fly
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.Jump
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.Gravity
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.WaterWalking
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.WallClimbing
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.WallJumping
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.Tele2Plane
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.NoFall
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
+#
+#    Custom.AntiCheat.Time
+#        Enables or disables AntiCheat module
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
 ###################################################################################################################
 
 Custom.DuelReset = 0
 Custom.AutoBroadcastTimer = 0
 Custom.AutoBroadcastPrefix = ""
+Custom.AntiCheat.SpeedCheat = 0
+Custom.AntiCheat.Teleport = 0
+Custom.AntiCheat.Fly = 0
+Custom.AntiCheat.Jump = 0
+Custom.AntiCheat.Gravity = 0
+Custom.AntiCheat.WaterWalking = 0
+Custom.AntiCheat.WallClimbing = 0
+Custom.AntiCheat.WallJumping = 0
+Custom.AntiCheat.Tele2Plane = 0
+Custom.AntiCheat.NoFall = 0
+Custom.AntiCheat.Time = 0

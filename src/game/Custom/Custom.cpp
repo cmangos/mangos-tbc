@@ -34,6 +34,17 @@ void Custom::LoadConfig()
     sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.ReplaceRacials", false);
     sWorld.setConfig(CONFIG_BOOL_DUELRESET_ENABLED, "Custom.DuelReset", false);
     sWorld.setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "Custom.AutoBroadcastTimer", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_SPEEDCHEAT, "Custom.AntiCheat.SpeedCheat", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TELEPORT, "Custom.AntiCheat.Teleport", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_FLY, "Custom.AntiCheat.Fly", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_JUMP, "Custom.AntiCheat.Jump", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_GRAVITY, "Custom.AntiCheat.Gravity", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_WATERWALKING, "Custom.AntiCheat.WaterWalking", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_WALLCLIMBING, "Custom.AntiCheat.WallClimbing", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_WALLJUMPING, "Custom.AntiCheat.WallJumping", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TELE2PLANE, "Custom.AntiCheat.Tele2Plane", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_NOFALL, "Custom.AntiCheat.NoFall", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TIME, "Custom.AntiCheat.Time", 0);
     m_timers[CUPDATE_AUTOBROADCAST].SetInterval(sWorld.getConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER) * IN_MILLISECONDS);
     autoBroadcast->SetAutoBroadcastPrefix(sConfig.GetStringDefault("Custom.AutoBroadcastPrefix", ""));
 

@@ -5,6 +5,7 @@
 #include "Database/DatabaseEnv.h"
 #include "Server/Opcodes.h"
 #include "WorldPacket.h"
+#include "Log.h"
 
 struct AutoBroadcastMsg
 {
@@ -29,7 +30,10 @@ public:
             auto result = WorldDatabase.PQuery("SELECT text, type FROM custom_autobroadcasts ORDER BY id");
 
             if (!result)
+            {
+                sLog.outErrorDb("Couldn't load custom_autobroadcasts table");
                 return;
+            }
 
             do
             {

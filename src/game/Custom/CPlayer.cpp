@@ -156,12 +156,11 @@ void CPlayer::CFJoinBattleGround()
     if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
         return;
 
-    ReplaceRacials();
-
     if (!NativeTeam())
     {
         SetByteValue(UNIT_FIELD_BYTES_0, 0, getFRace());
         setFaction(getFFaction());
+        ReplaceRacials(false);
     }
 
     FakeDisplayID();
@@ -174,7 +173,7 @@ void CPlayer::CFLeaveBattleGround()
     if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
         return;
 
-    ReplaceRacials(true, true);
+    ReplaceRacials(true);
 
     SetByteValue(UNIT_FIELD_BYTES_0, 0, getORace());
     setFaction(getOFaction());
@@ -185,52 +184,46 @@ void CPlayer::CFLeaveBattleGround()
 
 void CPlayer::FakeDisplayID()
 {
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
+    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || NativeTeam())
         return;
 
-    if (!NativeTeam())
+    PlayerInfo const* info = sObjectMgr.GetPlayerInfo(getRace(), getClass());
+    if (!info)
+        for (uint32 i = 1; i <= CLASS_DRUID; i++)
+            if ((info = sObjectMgr.GetPlayerInfo(getRace(), i)))
+                break;
+
+    if (!info)
     {
-        PlayerInfo const* info = sObjectMgr.GetPlayerInfo(getRace(), getClass());
-        if (!info)
-            for (uint32 i = 1; i <= CLASS_DRUID; i++)
-                if ((info = sObjectMgr.GetPlayerInfo(getRace(), i)))
-                    break;
+        sLog.outError("Player %u has incorrect race/class pair. Can't init display ids.", GetGUIDLow());
+        return;
+    }
 
-        if (!info)
-        {
-            sLog.outError("Player %u has incorrect race/class pair. Can't init display ids.", GetGUIDLow());
-            return;
-        }
+    SetObjectScale(DEFAULT_OBJECT_SCALE);
 
-        SetObjectScale(DEFAULT_OBJECT_SCALE);
-
-        uint8 gender = getGender();
-        switch (gender)
-        {
-        case GENDER_FEMALE:
-            SetDisplayId(info->displayId_f);
-            SetNativeDisplayId(info->displayId_f);
-            break;
-        case GENDER_MALE:
-            SetDisplayId(info->displayId_m);
-            SetNativeDisplayId(info->displayId_m);
-            break;
-        default:
-            sLog.outError("Invalid gender %u for player", gender);
-            return;
-        }
+    uint8 gender = getGender();
+    switch (gender)
+    {
+    case GENDER_FEMALE:
+        SetDisplayId(info->displayId_f);
+        SetNativeDisplayId(info->displayId_f);
+        break;
+    case GENDER_MALE:
+        SetDisplayId(info->displayId_m);
+        SetNativeDisplayId(info->displayId_m);
+        break;
+    default:
+        sLog.outError("Invalid gender %u for player", gender);
+        return;
     }
 }
 
-void CPlayer::ReplaceRacials(bool force, bool native)
+void CPlayer::ReplaceRacials(bool native)
 {
     if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED))
         return;
 
-    if (!force)
-        native = NativeTeam();
-
-    // SpellId, OriginalSpell
+    // SpellId, Original Team Spell
     auto spells = std::unordered_map<uint32, bool>();
 
     for (auto& i : sObjectMgr.GetPlayerInfo(getORace(), getClass())->spell)

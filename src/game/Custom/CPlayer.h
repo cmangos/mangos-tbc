@@ -71,7 +71,7 @@ public:
     std::stringstream WideChat;
     std::stringstream BothChat;
 
-    // Hooked Player functions
+    // Virtualised Player functions
 public:
     void Update(uint32 update_diff) override;
 
@@ -101,7 +101,7 @@ public:
     void CFLeaveBattleGround();
 
     void FakeDisplayID();
-    void ReplaceRacials(bool force = false, bool native = false);
+    void ReplaceRacials(bool native);
 
     void SetFakeValues();
 

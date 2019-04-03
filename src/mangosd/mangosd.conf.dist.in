@@ -1728,6 +1728,11 @@ CharDelete.KeepDays = 30
 #        Default: 0 - Disabled
 #             1 - Enabled
 #
+#    Custom.AutoLearnSpells
+#        Enables or disables automatic learning of spells
+#        Default: 0 - Disabled
+#				  1 - Enabled
+#
 #    Custom.AutoBroadcastTimer
 #        Default timer between announcements
 #               Default: 0   - Disabled
@@ -1806,6 +1811,7 @@ CharDelete.KeepDays = 30
 ###################################################################################################################
 
 Custom.DuelReset = 0
+Custom.AutoLearnSpells = 0
 Custom.AutoBroadcastTimer = 0
 Custom.AutoBroadcastPrefix = ""
 Custom.AntiCheat.SpeedCheat = 0

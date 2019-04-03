@@ -828,7 +828,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
     setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
 
-    sCustom.Load();
+    sCustom.LoadConfig();
 
     sLog.outString();
 }
@@ -1350,6 +1350,10 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Initialize AuctionHouseBot...");
     sAuctionBot.Initialize();
+    sLog.outString();
+
+    sLog.outString("Loading custom database related stuff");
+    sCustom.Load();
     sLog.outString();
 
 #ifdef BUILD_PLAYERBOT

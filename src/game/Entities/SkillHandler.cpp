@@ -23,6 +23,8 @@
 #include "WorldPacket.h"
 #include "Server/WorldSession.h"
 
+#include "Custom/CPlayer.h"
+
 void WorldSession::HandleLearnTalentOpcode(WorldPacket& recv_data)
 {
     uint32 talent_id, requested_rank;
@@ -33,6 +35,8 @@ void WorldSession::HandleLearnTalentOpcode(WorldPacket& recv_data)
     // if player has a pet, update owner talent auras
     if (_player->GetPet())
         _player->GetPet()->CastOwnerTalentAuras();
+
+    _player->ToCPlayer()->AutoLearnSpells();
 }
 
 void WorldSession::HandleTalentWipeConfirmOpcode(WorldPacket& recv_data)

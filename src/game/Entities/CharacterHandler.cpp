@@ -790,7 +790,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         pCurrChar->ToCPlayer()->FakeDisplayID();
     }
 
-    pCurrChar->ToCPlayer()->ReplaceRacials(!pCurrChar->ToCPlayer()->NativeTeam());
+    pCurrChar->ToCPlayer()->OnLogin();
 
     m_playerLoading = false;
     delete holder;

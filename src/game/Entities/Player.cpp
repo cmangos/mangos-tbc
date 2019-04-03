@@ -64,6 +64,7 @@
 #include "Loot/LootMgr.h"
 #include "World/WorldStateDefines.h"
 #include "World/WorldState.h"
+
 #include "Custom/CPlayer.h"
 
 #ifdef BUILD_PLAYERBOT
@@ -2644,6 +2645,8 @@ void Player::GiveLevel(uint32 level)
 
     // resend quests status directly
     SendQuestGiverStatusMultiple();
+
+    ToCPlayer()->AutoLearnSpells();
 }
 
 void Player::UpdateFreeTalentPoints(bool resetIfNeed)

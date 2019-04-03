@@ -7,17 +7,20 @@
 #include "Custom/CPlayer.h"
 #include "SpellRegulator.hpp"
 #include "AutoBroadcast.hpp"
+#include "AutoLearnSpells.hpp"
 
 Custom::Custom()
 {
     spellRegulator = new SpellRegulator();
     autoBroadcast = new AutoBroadcast();
+    autoLearnSpells = new AutoLearnSpells;
 }
 
 Custom::~Custom()
 {
     delete spellRegulator;
     delete autoBroadcast;
+    delete autoLearnSpells;
 }
 
 void Custom::Update(uint32 diff)
@@ -30,9 +33,17 @@ void Custom::Update(uint32 diff)
 
 void Custom::Load()
 {
+    autoBroadcast->LoadAutoBroadcasts();
+    spellRegulator->LoadRegulators();
+    autoLearnSpells->LoadTrainerSpells();
+}
+
+void Custom::LoadConfig()
+{
     sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.Queueing", false);
     sWorld.setConfig(CONFIG_BOOL_CFBG_REPLACERACIALS, "BattleGround.Crossfaction.ReplaceRacials", false);
     sWorld.setConfig(CONFIG_BOOL_DUELRESET_ENABLED, "Custom.DuelReset", false);
+    sWorld.setConfig(CONFIG_BOOL_AUTOLEARNSPELLS, "Custom.AutoLearnSpells", false);
     sWorld.setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "Custom.AutoBroadcastTimer", 0);
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_SPEEDCHEAT, "Custom.AntiCheat.SpeedCheat", 0);
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TELEPORT, "Custom.AntiCheat.Teleport", 0);
@@ -47,9 +58,4 @@ void Custom::Load()
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TIME, "Custom.AntiCheat.Time", 0);
     m_timers[CUPDATE_AUTOBROADCAST].SetInterval(sWorld.getConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER) * IN_MILLISECONDS);
     autoBroadcast->SetAutoBroadcastPrefix(sConfig.GetStringDefault("Custom.AutoBroadcastPrefix", ""));
-
-    autoBroadcast->LoadAutoBroadcasts();
-    spellRegulator->LoadRegulators();
 }
-
-

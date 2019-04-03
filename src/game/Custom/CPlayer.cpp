@@ -6,6 +6,7 @@
 #include "Spells/Spell.h"
 #include "Globals/ObjectMgr.h"
 #include "World/World.h"
+#include "AutoLearnSpells.hpp"
 #include "AntiCheat/AntiCheat.h"
 #include "AntiCheat/AntiCheat_speed.h"
 #include "AntiCheat/AntiCheat_teleport.h"
@@ -161,6 +162,44 @@ bool CPlayer::AddAura(uint32 spellid)
 bool CPlayer::TeleportToPos(uint32 mapid, const Position* pos, uint32 options, AreaTrigger const* at)
 {
 	return TeleportTo(mapid, pos->x, pos->y, pos->z, pos->o, options, at);
+}
+
+void CPlayer::AutoLearnSpells()
+{
+    if (!sWorld.getConfig(CONFIG_BOOL_AUTOLEARNSPELLS))
+        return;
+
+    bool runagain = false;
+
+    for (auto itr = sCustom.autoLearnSpells->Begin(getClass()); itr != sCustom.autoLearnSpells->End(getClass()); ++itr)
+    {
+        auto trainer_spell = &itr->second;
+
+        // can't be learn, cheat? Or double learn with lags...
+        uint32 reqLevel = 0;
+        if (!IsSpellFitByClassAndRace(trainer_spell->learnedSpell, &reqLevel))
+            continue;
+
+        reqLevel = trainer_spell->isProvidedReqLevel ? trainer_spell->reqLevel : std::max(reqLevel, trainer_spell->reqLevel);
+        if (GetTrainerSpellState(trainer_spell, reqLevel) != TRAINER_SPELL_GREEN)
+            continue;
+
+        if (trainer_spell->IsCastable())
+            CastSpell(this, trainer_spell->spell, TRIGGERED_OLD_TRIGGERED);
+        else
+            learnSpell(trainer_spell->spell, false);
+
+        runagain = true;
+    }
+
+    if (runagain)
+        AutoLearnSpells();
+}
+
+void CPlayer::OnLogin()
+{
+    AutoLearnSpells();
+    ReplaceRacials(NativeTeam());
 }
 
 void CPlayer::CFJoinBattleGround()

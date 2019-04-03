@@ -5,6 +5,8 @@
 * Serverside anticheat
 * Crossfaction Battlegrounds
 * AutoBroadcaster (very basic)
+* AutoTrainer (Auto Learn Spells when they're available)
+* Spell Regulator (Put modifiers on damage and healing spells)
 
 If you're interested in anything specific to this CMaNGOS fork, then I'm on Discord (sometimes) LilleCarl#8098 [My Server](https://discord.gg/qgTkNXa)
 

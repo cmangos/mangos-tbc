@@ -31,7 +31,7 @@ void Custom::Update(uint32 diff)
 void Custom::Load()
 {
     sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.Queueing", false);
-    sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.ReplaceRacials", false);
+    sWorld.setConfig(CONFIG_BOOL_CFBG_REPLACERACIALS, "BattleGround.Crossfaction.ReplaceRacials", false);
     sWorld.setConfig(CONFIG_BOOL_DUELRESET_ENABLED, "Custom.DuelReset", false);
     sWorld.setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "Custom.AutoBroadcastTimer", 0);
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_SPEEDCHEAT, "Custom.AntiCheat.SpeedCheat", 0);

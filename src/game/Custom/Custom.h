@@ -5,8 +5,6 @@
 #include "World/World.h"
 #include "Singleton.h"
 
-#include <map>
-
 enum MessageType : uint8
 {
     CHAT_BOX = 0x1,

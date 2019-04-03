@@ -21057,6 +21057,8 @@ void Player::_SaveBGData()
 
         stmt.Execute();
     }
+    else
+        Player::SavePositionInDB(GetObjectGuid(), GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), GetZoneId());
 
     m_bgData.m_needSave = false;
 }

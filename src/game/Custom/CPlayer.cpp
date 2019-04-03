@@ -234,22 +234,22 @@ void CPlayer::ReplaceRacials(bool native)
         sWorld.getConfig(CONFIG_BOOL_CFBG_REPLACERACIALS))
         return;
 
-    // SpellId, Original Team Spell
+    // SpellId, Should have spell
     auto spells = std::unordered_map<uint32, bool>();
 
-    for (auto& i : sObjectMgr.GetPlayerInfo(getORace(), getClass())->spell)
-        if (auto spell = sSpellTemplate.LookupEntry<SpellEntry>(i))
-                if (spell->Effect[0] != SPELL_EFFECT_LANGUAGE)
-                    spells[spell->Id] = true;
-
-    for (auto& i : sObjectMgr.GetPlayerInfo(getFRace(), getClass())->spell)
+    for (auto& i : sObjectMgr.GetPlayerInfo(native ? getFRace() : getORace(), getClass())->spell)
         if (auto spell = sSpellTemplate.LookupEntry<SpellEntry>(i))
                 if (spell->Effect[0] != SPELL_EFFECT_LANGUAGE)
                     spells[spell->Id] = false;
 
+    for (auto& i : sObjectMgr.GetPlayerInfo(native ? getORace() : getFRace(), getClass())->spell)
+        if (auto spell = sSpellTemplate.LookupEntry<SpellEntry>(i))
+                if (spell->Effect[0] != SPELL_EFFECT_LANGUAGE)
+                    spells[spell->Id] = true;
+
     for (auto& i : spells)
     {
-        if (i.second == native)
+        if (i.second)
             learnSpell(i.first, true);
         else
             this->removeSpell(i.first);

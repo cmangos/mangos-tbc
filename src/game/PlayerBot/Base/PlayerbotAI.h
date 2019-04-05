@@ -633,6 +633,7 @@ class PlayerbotAI
         bool IsTank() { return (m_combatOrder & ORDERS_TANK) || IsMainTank() ? true : false; }
         bool IsMainHealer() { return (m_combatOrder & ORDERS_MAIN_HEAL) ? true : false; }
         bool IsHealer() { return (m_combatOrder & ORDERS_HEAL) || IsMainHealer() ? true : false; }
+        bool HasDispelOrder() { return !(m_combatOrder & ORDERS_NODISPEL); }
         bool IsDPS() { return (m_combatOrder & ORDERS_ASSIST) ? true : false; }
         bool Impulse() { srand(time(nullptr)); return (((rand() % 100) > 50) ? true : false); }
         ResistType GetResistType() { return this->m_resistType; }

@@ -6246,7 +6246,7 @@ void ObjectMgr::PackGroupIds()
     // all valid ids are in the instance table
     // any associations to ids not in this table are assumed to be
     // cleaned already in CleanupInstances
-    QueryResult* result = CharacterDatabase.Query("SELECT groupId FROM `groups`");
+    QueryResult* result = CharacterDatabase.Query("SELECT groupId FROM 'groups'");
     if (result)
     {
         do
@@ -6258,7 +6258,7 @@ void ObjectMgr::PackGroupIds()
             if (id == 0)
             {
                 CharacterDatabase.BeginTransaction();
-                CharacterDatabase.PExecute("DELETE FROM `groups` WHERE groupId = '%u'", id);
+                CharacterDatabase.PExecute("DELETE FROM 'groups' WHERE groupId = '%u'", id);
                 CharacterDatabase.PExecute("DELETE FROM group_member WHERE groupId = '%u'", id);
                 CharacterDatabase.CommitTransaction();
                 continue;

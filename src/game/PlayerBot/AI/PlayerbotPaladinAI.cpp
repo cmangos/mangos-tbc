@@ -221,44 +221,22 @@ CombatManeuverReturns PlayerbotPaladinAI::DoNextCombatManeuverPVE(Unit* pTarget)
             return RETURN_CONTINUE;
     }
 
+    // Dispel magic/disease/poison
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return RETURN_CONTINUE;
+
     // Check if bot needs to cast a seal on self or judge the target
     if (CheckSealAndJudgement(pTarget))
         return RETURN_CONTINUE;
 
-    // Heal
-    if (m_ai->IsHealer())
-    {
-        // Heal other players/bots first
-        // Select a target based on orders and some context (pets are ignored because GetHealTarget() only works on players)
-        Player* targetToHeal;
-        // 1. bot has orders to focus on main tank
-        if (m_ai->IsMainHealer())
-            targetToHeal = GetHealTarget(JOB_MAIN_TANK);
-        // 2. Look at its own group (this implies raid leader creates balanced groups, except for the MT group)
-        else
-            targetToHeal = GetHealTarget(JOB_ALL, true);
-        // 3. still no target to heal, search amongst everyone
-        if (!targetToHeal)
-            targetToHeal = GetHealTarget();
-
-        if (HealPlayer(targetToHeal) & (RETURN_NO_ACTION_OK | RETURN_CONTINUE))
-            return RETURN_CONTINUE;
-    }
-    else
-    {
-        // Is this desirable? Debatable.
-        // TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
-        if (HealPlayer(m_bot) & (RETURN_NO_ACTION_OK | RETURN_CONTINUE))
-            return RETURN_CONTINUE;
-    }
+    // Heal (try to pick a target by on common rules, than heal using each PlayerbotClassAI HealPlayer() method)
+    if (FindTargetAndHeal())
+        return RETURN_CONTINUE;
 
     //Used to determine if this bot has highest threat
     Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE)(PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
     if (newTarget && !(m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK) && !m_ai->IsNeutralized(newTarget)) // TODO: && party has a tank
     {
-        if (HealPlayer(m_bot) == RETURN_CONTINUE)
-            return RETURN_CONTINUE;
-
         // Aggroed by an elite
         if (m_ai->IsElite(newTarget))
         {
@@ -340,40 +318,6 @@ CombatManeuverReturns PlayerbotPaladinAI::HealPlayer(Player* target)
     if (r != RETURN_NO_ACTION_OK)
         return r;
 
-    if (!target->isAlive())
-    {
-        if (REDEMPTION && m_ai->CastSpell(REDEMPTION, *target) == SPELL_CAST_OK)
-        {
-            std::string msg = "Resurrecting ";
-            msg += target->GetName();
-            m_bot->Say(msg, LANG_UNIVERSAL);
-            return RETURN_CONTINUE;
-        }
-        return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
-    }
-
-    uint32 dispel = CLEANSE > 0 ? CLEANSE : PURIFY;
-    // Remove negative magic on group members if orders allow bot to do so
-    if (Player* pCursedTarget = GetDispelTarget(DISPEL_MAGIC))
-    {
-        if (dispel > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && m_ai->CastSpell(dispel, *pCursedTarget) == SPELL_CAST_OK)
-            return RETURN_CONTINUE;
-    }
-    // Remove poison on group members if orders allow bot to do so
-    if (Player* pPoisonedTarget = GetDispelTarget(DISPEL_POISON))
-    {
-        m_ai->TellMaster("Has poison %s :", pPoisonedTarget->GetName());
-        if (dispel > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && m_ai->CastSpell(dispel, *pPoisonedTarget) == SPELL_CAST_OK)
-            return RETURN_CONTINUE;
-    }
-
-    // Remove disease on group members if orders allow bot to do so
-    if (Player* pDiseasedTarget = GetDispelTarget(DISPEL_DISEASE))
-    {
-        if (dispel > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && m_ai->CastSpell(dispel, *pDiseasedTarget) == SPELL_CAST_OK)
-            return RETURN_CONTINUE;
-    }
-
     // If target is out of range (40 yards) and is a tank: move towards it
     // if bot is not asked to stay
     // Other classes have to adjust their position to the healers
@@ -390,7 +334,7 @@ CombatManeuverReturns PlayerbotPaladinAI::HealPlayer(Player* target)
     uint8 hp = target->GetHealthPercent();
 
     // Everyone is healthy enough, return OK. MUST correlate to highest value below (should be last HP check)
-    if (hp >= 90)
+    if (hp >= 80)
         return RETURN_NO_ACTION_OK;
 
     if (hp < 10 && LAY_ON_HANDS && m_bot->IsSpellReady(LAY_ON_HANDS) && m_ai->In_Reach(target, LAY_ON_HANDS) && m_ai->CastSpell(LAY_ON_HANDS, *target) == SPELL_CAST_OK)
@@ -398,7 +342,7 @@ CombatManeuverReturns PlayerbotPaladinAI::HealPlayer(Player* target)
 
     // Target is a moderately wounded healer or a badly wounded not tank? Blessing of Protection!
     if (BLESSING_OF_PROTECTION > 0
-            && ((hp < 25 && (GetTargetJob(target) & JOB_HEAL || GetTargetJob(target) & JOB_MAIN_HEAL)) 
+            && ((hp < 25 && (GetTargetJob(target) & JOB_HEAL || GetTargetJob(target) & JOB_MAIN_HEAL))
             || (hp < 15 && !(GetTargetJob(target) & JOB_TANK) && !(GetTargetJob(target) & JOB_MAIN_TANK)))
             && m_bot->IsSpellReady(BLESSING_OF_PROTECTION) && m_ai->In_Reach(target, BLESSING_OF_PROTECTION)
             && !target->HasAura(FORBEARANCE, EFFECT_INDEX_0)
@@ -408,20 +352,77 @@ CombatManeuverReturns PlayerbotPaladinAI::HealPlayer(Player* target)
         return RETURN_CONTINUE;
 
     // Low HP : activate Divine Favor to make next heal a critical heal
-    if (hp < 25 && DIVINE_FAVOR > 0 && !m_bot->HasAura(DIVINE_FAVOR, EFFECT_INDEX_0) && m_bot->IsSpellReady(DIVINE_FAVOR) && m_ai->CastSpell(DIVINE_FAVOR, *m_bot) == SPELL_CAST_OK)
-        return RETURN_CONTINUE;
+    if (hp < 25 && DIVINE_FAVOR > 0 && !m_bot->HasAura(DIVINE_FAVOR, EFFECT_INDEX_0) && m_bot->IsSpellReady(DIVINE_FAVOR))
+        m_ai->CastSpell(DIVINE_FAVOR, *m_bot);
 
-    if (hp < 40 && FLASH_OF_LIGHT > 0 && m_ai->In_Reach(target, FLASH_OF_LIGHT) && m_ai->CastSpell(FLASH_OF_LIGHT, *target) == SPELL_CAST_OK)
+    if (hp < 40 && HOLY_LIGHT > 0 && m_ai->In_Reach(target, HOLY_LIGHT) && m_ai->CastSpell(HOLY_LIGHT, *target) == SPELL_CAST_OK)
         return RETURN_CONTINUE;
 
     if (hp < 60 && HOLY_SHOCK > 0 && m_ai->In_Reach(target, HOLY_SHOCK) && m_ai->CastSpell(HOLY_SHOCK, *target) == SPELL_CAST_OK)
         return RETURN_CONTINUE;
 
-    if (hp < 90 && HOLY_LIGHT > 0 && m_ai->In_Reach(target, HOLY_LIGHT) && m_ai->CastSpell(HOLY_LIGHT, *target) == SPELL_CAST_OK)
+    if (hp < 80 && FLASH_OF_LIGHT > 0 && m_ai->In_Reach(target, FLASH_OF_LIGHT) && m_ai->CastSpell(FLASH_OF_LIGHT, *target) == SPELL_CAST_OK)
         return RETURN_CONTINUE;
 
     return RETURN_NO_ACTION_UNKNOWN;
 } // end HealTarget
+
+CombatManeuverReturns PlayerbotPaladinAI::ResurrectPlayer(Player* target)
+{
+    CombatManeuverReturns r = PlayerbotClassAI::ResurrectPlayer(target);
+    if (r != RETURN_NO_ACTION_OK)
+        return r;
+
+    if (m_ai->IsInCombat())     // Just in case as this was supposedly checked before calling this function
+        return RETURN_NO_ACTION_ERROR;
+
+    if (REDEMPTION > 0 && m_ai->In_Reach(target, REDEMPTION) && m_ai->CastSpell(REDEMPTION, *target) == SPELL_CAST_OK)
+    {
+        std::string msg = "Resurrecting ";
+        msg += target->GetName();
+        m_bot->Say(msg, LANG_UNIVERSAL);
+        return RETURN_CONTINUE;
+    }
+    return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
+}
+
+CombatManeuverReturns PlayerbotPaladinAI::DispelPlayer(Player* target)
+{
+    uint32 dispel = CLEANSE > 0 ? CLEANSE : PURIFY;
+    // Remove negative magic on group members
+    if (Player* cursedTarget = GetDispelTarget(DISPEL_MAGIC))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(cursedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        if (dispel > 0 && m_ai->CastSpell(dispel, *cursedTarget) == SPELL_CAST_OK)
+            return RETURN_CONTINUE;
+    }
+
+    // Remove poison on group members
+    if (Player* poisonedTarget = GetDispelTarget(DISPEL_POISON))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(poisonedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        if (dispel > 0 && m_ai->CastSpell(dispel, *poisonedTarget) == SPELL_CAST_OK)
+            return RETURN_CONTINUE;
+    }
+
+    // Remove disease on group members
+    if (Player* diseasedTarget = GetDispelTarget(DISPEL_DISEASE))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(diseasedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        if (dispel > 0 && m_ai->CastSpell(dispel, *diseasedTarget) == SPELL_CAST_OK)
+            return RETURN_CONTINUE;
+    }
+    return RETURN_NO_ACTION_OK;
+}
 
 void PlayerbotPaladinAI::CheckAuras()
 {
@@ -613,8 +614,12 @@ void PlayerbotPaladinAI::DoNonCombatActions()
     else if (m_bot->HasAura(RIGHTEOUS_FURY))
         m_bot->RemoveAurasDueToSpell(RIGHTEOUS_FURY);
 
+    // Dispel magic/disease/poison
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return;
+
     // Revive
-    if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
+    if (ResurrectPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
         return;
 
     // Heal

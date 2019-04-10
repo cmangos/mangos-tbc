@@ -398,6 +398,14 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverSpellDPS(Unit* p
 
     uint32 NATURE = (STARFIRE > 0 ? STARFIRE : WRATH);
 
+    // Dispel curse/poison
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return RETURN_CONTINUE;
+
+    // Combat resurrection (only tanks or master. If other targets are required, let master explicitly ask to)
+    if (ResurrectPlayer(GetResurrectionTarget(JOB_TANK_MASTER, false)) & RETURN_CONTINUE)
+        return RETURN_CONTINUE;
+
     // Face enemy, make sure you're attacking
     m_ai->FaceTarget(pTarget);
 
@@ -433,20 +441,16 @@ CombatManeuverReturns PlayerbotDruidAI::_DoNextPVECombatManeuverHeal()
     if (!m_ai)  return RETURN_NO_ACTION_ERROR;
     if (!m_bot) return RETURN_NO_ACTION_ERROR;
 
-    // Heal other players/bots first
-    // Select a target based on orders and some context (pets are ignored because GetHealTarget() only works on players)
-    Player* targetToHeal;
-    // 1. bot has orders to focus on main tank
-    if (m_ai->IsMainHealer())
-        targetToHeal = GetHealTarget(JOB_MAIN_TANK);
-    // 2. Look at its own group (this implies raid leader creates balanced groups, except for the MT group)
-    else
-        targetToHeal = GetHealTarget(JOB_ALL, true);
-    // 3. still no target to heal, search amongst everyone
-    if (!targetToHeal)
-        targetToHeal = GetHealTarget();
+    // Dispel curse/poison
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return RETURN_CONTINUE;
 
-    if (HealPlayer(targetToHeal) & (RETURN_NO_ACTION_OK | RETURN_CONTINUE))
+    // Combat resurrection (only tanks or master. If other targets are required, let master explicitly requests it)
+    if (ResurrectPlayer(GetResurrectionTarget(JOB_TANK_MASTER, false)) & RETURN_CONTINUE)
+        return RETURN_CONTINUE;
+
+    // Heal (try to pick a target by on common rules, than heal using each PlayerbotClassAI HealPlayer() method)
+    if (FindTargetAndHeal())
         return RETURN_CONTINUE;
 
     return RETURN_NO_ACTION_UNKNOWN;
@@ -457,36 +461,6 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
     CombatManeuverReturns r = PlayerbotClassAI::HealPlayer(target);
     if (r != RETURN_NO_ACTION_OK)
         return r;
-
-    if (!target->isAlive())
-    {
-        if (m_bot->isInCombat())
-        {
-            if (REBIRTH && m_ai->In_Reach(target, REBIRTH) && m_bot->IsSpellReady(REBIRTH) && m_ai->CastSpell(REBIRTH, *target) == SPELL_CAST_OK)
-            {
-                std::string msg = "Resurrecting ";
-                msg += target->GetName();
-                m_bot->Say(msg, LANG_UNIVERSAL);
-                return RETURN_CONTINUE;
-            }
-        }
-        return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
-    }
-
-    // Remove curse on group members if orders allow bot to do so
-    if (Player* pCursedTarget = GetDispelTarget(DISPEL_CURSE))
-    {
-        if (REMOVE_CURSE > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && CastSpell(REMOVE_CURSE, pCursedTarget))
-            return RETURN_CONTINUE;
-    }
-
-    // Remove poison on group members if orders allow bot to do so
-    if (Player* pPoisonedTarget = GetDispelTarget(DISPEL_POISON))
-    {
-        uint32 cure = ABOLISH_POISON > 0 ? ABOLISH_POISON : CURE_POISON;
-        if (cure > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && CastSpell(cure, pPoisonedTarget))
-            return RETURN_CONTINUE;
-    }
 
     uint8 hp = target->GetHealthPercent();
 
@@ -518,8 +492,8 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
             || (GetTargetJob(target) != JOB_TANK && GetTargetJob(target) != JOB_MAIN_TANK && hp < 15))
     {
         // first try Nature's Swiftness + Healing Touch: instant heal
-        if (NATURES_SWIFTNESS > 0 && m_bot->IsSpellReady(NATURES_SWIFTNESS) && CastSpell(NATURES_SWIFTNESS, m_bot))
-            return RETURN_CONTINUE;
+        if (NATURES_SWIFTNESS > 0 && m_bot->IsSpellReady(NATURES_SWIFTNESS))
+            CastSpell(NATURES_SWIFTNESS, m_bot);
 
         if (HEALING_TOUCH > 0 && m_bot->HasAura(NATURES_SWIFTNESS, EFFECT_INDEX_0) && m_ai->In_Reach(target, HEALING_TOUCH) && CastSpell(HEALING_TOUCH, target))
             return RETURN_CONTINUE;
@@ -552,6 +526,49 @@ CombatManeuverReturns PlayerbotDruidAI::HealPlayer(Player* target)
 
     return RETURN_NO_ACTION_UNKNOWN;
 } // end HealTarget
+
+CombatManeuverReturns PlayerbotDruidAI::ResurrectPlayer(Player* target)
+{
+    CombatManeuverReturns r = PlayerbotClassAI::ResurrectPlayer(target);
+    if (r != RETURN_NO_ACTION_OK)
+        return r;
+
+    if (REBIRTH > 0 && m_ai->In_Reach(target, REBIRTH) && m_bot->IsSpellReady(REBIRTH) && m_ai->CastSpell(REBIRTH, *target) == SPELL_CAST_OK)
+    {
+        std::string msg = "Resurrecting ";
+        msg += target->GetName();
+        m_bot->Say(msg, LANG_UNIVERSAL);
+        return RETURN_CONTINUE;
+    }
+    return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
+}
+
+CombatManeuverReturns PlayerbotDruidAI::DispelPlayer(Player* target)
+{
+    // Remove curse on group members
+    if (Player* cursedTarget = GetDispelTarget(DISPEL_CURSE))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(cursedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        if (REMOVE_CURSE > 0 && CastSpell(REMOVE_CURSE, cursedTarget))
+            return RETURN_CONTINUE;
+    }
+
+    // Remove poison on group members
+    if (Player* poisonedTarget = GetDispelTarget(DISPEL_POISON))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(poisonedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        uint32 cure = ABOLISH_POISON > 0 ? ABOLISH_POISON : CURE_POISON;
+        if (cure > 0 && CastSpell(cure, poisonedTarget))
+            return RETURN_CONTINUE;
+    }
+    return RETURN_NO_ACTION_OK;
+}
 
 /**
 * CheckForms()
@@ -680,6 +697,13 @@ void PlayerbotDruidAI::DoNonCombatActions()
 
     if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
 
+    // Revive
+    // No auto-revive out of combat to preserve cooldown. Let master explicitly ask bot to cast Rebirth if needed
+
+    // Dispel curse/poison
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return;
+
     // Heal
     if (m_ai->IsHealer())
     {
@@ -703,7 +727,7 @@ void PlayerbotDruidAI::DoNonCombatActions()
     }
     else if (Buff(&PlayerbotDruidAI::BuffHelper, MARK_OF_THE_WILD) & RETURN_CONTINUE)
         return;
-    if (Buff(&PlayerbotDruidAI::BuffHelper, THORNS, (m_bot->GetGroup() ? JOB_TANK : JOB_ALL)) & RETURN_CONTINUE)
+    if (Buff(&PlayerbotDruidAI::BuffHelper, THORNS, (m_bot->GetGroup() ? JOB_TANK | JOB_MAIN_TANK : JOB_ALL)) & RETURN_CONTINUE)
         return;
     if (OMEN_OF_CLARITY > 0 && !m_bot->HasAura(OMEN_OF_CLARITY) && CastSpell(OMEN_OF_CLARITY, m_bot))
         return;

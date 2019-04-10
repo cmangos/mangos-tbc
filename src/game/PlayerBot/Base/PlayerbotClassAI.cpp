@@ -107,7 +107,29 @@ CombatManeuverReturns PlayerbotClassAI::HealPlayer(Player* target)
     if (!m_bot) return RETURN_NO_ACTION_ERROR;
 
     if (!target) return RETURN_NO_ACTION_INVALIDTARGET;
-    if (target->IsInDuel()) return RETURN_NO_ACTION_INVALIDTARGET;
+    if (target->IsInDuel() || !target->isAlive()) return RETURN_NO_ACTION_INVALIDTARGET;
+
+    return RETURN_NO_ACTION_OK;
+}
+
+CombatManeuverReturns PlayerbotClassAI::ResurrectPlayer(Player* target)
+{
+    if (!m_ai)  return RETURN_NO_ACTION_ERROR;
+    if (!m_bot) return RETURN_NO_ACTION_ERROR;
+
+    if (!target) return RETURN_NO_ACTION_INVALIDTARGET;
+    if (target->isAlive()) return RETURN_NO_ACTION_INVALIDTARGET;
+
+    return RETURN_NO_ACTION_OK;
+}
+
+CombatManeuverReturns PlayerbotClassAI::DispelPlayer(Player* target)
+{
+    if (!m_ai)  return RETURN_NO_ACTION_ERROR;
+    if (!m_bot) return RETURN_NO_ACTION_ERROR;
+
+    if (!target) return RETURN_NO_ACTION_INVALIDTARGET;
+    if (target->IsInDuel() || !target->isAlive()) return RETURN_NO_ACTION_INVALIDTARGET;
 
     return RETURN_NO_ACTION_OK;
 }
@@ -194,6 +216,38 @@ bool PlayerbotClassAI::NeedGroupBuff(uint32 groupBuffSpellId, uint32 singleBuffS
     }
     else
         return false;   // no group, no group buff
+}
+
+/**
+ * FindTargetAndHeal()
+ * return bool Returns true if a unit in need of healing was found and healed. Returns false else.
+ * Find a target based on healing orders (no orders = no healing), then try to heal it
+ * using own class HealPlayer() method
+ */
+bool PlayerbotClassAI::FindTargetAndHeal()
+{
+    if (!m_ai)  return false;
+    if (!m_bot) return false;
+    if (!m_bot->isAlive() || m_bot->IsInDuel() || !m_ai->IsHealer()) return false;
+
+    // Heal other players/bots first
+    // Select a target based on orders and some context (pets are ignored because GetHealTarget() only works on players)
+    Player* targetToHeal;
+    JOB_TYPE type = (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NOT_MAIN_HEAL) ? JOB_ALL_NO_MT : JOB_ALL;
+    // 1. bot has orders to focus on main tank
+    if (m_ai->IsMainHealer())
+        targetToHeal = GetHealTarget(JOB_MAIN_TANK);
+    // 2. Look at its own group (this implies raid leader creates balanced groups, except for the MT group)
+    else
+        targetToHeal = GetHealTarget(type, true);
+    // 3. still no target to heal, search amongst everyone
+    if (!targetToHeal)
+        targetToHeal = GetHealTarget(type);
+
+    if (m_ai->GetClassAI()->HealPlayer(targetToHeal) & RETURN_CONTINUE)
+        return true;
+
+    return false;   
 }
 
 /**

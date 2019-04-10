@@ -190,32 +190,13 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit* pTarget)
     else if (!m_ai->IsHealer() && m_ai->GetCombatStyle() != PlayerbotAI::COMBAT_MELEE)
         m_ai->SetCombatStyle(PlayerbotAI::COMBAT_MELEE);
 
-    // Heal
-    if (m_ai->IsHealer())
-    {
-        // Heal other players/bots first
-        // Select a target based on orders and some context (pets are ignored because GetHealTarget() only works on players)
-        Player* targetToHeal;
-        // 1. bot has orders to focus on main tank
-        if (m_ai->IsMainHealer())
-            targetToHeal = GetHealTarget(JOB_MAIN_TANK);
-        // 2. Look at its own group (this implies raid leader creates balanced groups, except for the MT group)
-        else
-            targetToHeal = GetHealTarget(JOB_ALL, true);
-        // 3. still no target to heal, search amongst everyone
-        if (!targetToHeal)
-            targetToHeal = GetHealTarget();
+    // Dispel disease/poison
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return RETURN_CONTINUE;
 
-        if (HealPlayer(targetToHeal) & (RETURN_NO_ACTION_OK | RETURN_CONTINUE))
-            return RETURN_CONTINUE;
-    }
-    else
-    {
-        // Is this desirable? Debatable.
-        // TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
-        if (HealPlayer(m_bot) & RETURN_CONTINUE)
-            return RETURN_CONTINUE;
-    }
+    // Heal (try to pick a target by on common rules, than heal using each PlayerbotClassAI HealPlayer() method)
+    if (FindTargetAndHeal())
+        return RETURN_CONTINUE;
 
     // Damage Spells
     DropTotems();
@@ -242,8 +223,6 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit* pTarget)
                 return RETURN_CONTINUE;
             if (LIGHTNING_BOLT > 0 && m_ai->CastSpell(LIGHTNING_BOLT, *pTarget) == SPELL_CAST_OK)
                 return RETURN_CONTINUE;
-            /*if (PURGE > 0 && m_ai->CastSpell(PURGE, *pTarget) == SPELL_CAST_OK)
-                return RETURN_CONTINUE;*/
             /*if (WIND_SHOCK > 0 && m_ai->CastSpell(WIND_SHOCK, *pTarget) == SPELL_CAST_OK)
                 return RETURN_CONTINUE;*/
             /*if (FROST_SHOCK > 0 && !pTarget->HasAura(FROST_SHOCK, EFFECT_INDEX_0) && m_ai->CastSpell(FROST_SHOCK, *pTarget) == SPELL_CAST_OK)
@@ -278,32 +257,6 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
     if (r != RETURN_NO_ACTION_OK)
         return r;
 
-    if (!target->isAlive())
-    {
-        if (ANCESTRAL_SPIRIT > 0 && m_ai->CastSpell(ANCESTRAL_SPIRIT, *target) == SPELL_CAST_OK)
-        {
-            std::string msg = "Resurrecting ";
-            msg += target->GetName();
-            m_bot->Say(msg, LANG_UNIVERSAL);
-            return RETURN_CONTINUE;
-        }
-        return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
-    }
-
-    // Remove poison on group members if orders allow bot to do so
-    if (Player* pPoisonedTarget = GetDispelTarget(DISPEL_POISON))
-    {
-        if (CURE_POISON_SHAMAN > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && m_ai->CastSpell(CURE_POISON_SHAMAN, *pPoisonedTarget) == SPELL_CAST_OK)
-            return RETURN_CONTINUE;
-    }
-
-    // Remove disease on group members if orders allow bot to do so
-    if (Player* pDiseasedTarget = GetDispelTarget(DISPEL_DISEASE))
-    {
-        if (CURE_DISEASE_SHAMAN > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && m_ai->CastSpell(CURE_DISEASE_SHAMAN, *pDiseasedTarget) == SPELL_CAST_OK)
-            return RETURN_CONTINUE;
-    }
-
     // If target is out of range (40 yards) and is a tank: move towards it
     // if bot is not asked to stay
     // Other classes have to adjust their position to the healers
@@ -331,6 +284,51 @@ CombatManeuverReturns PlayerbotShamanAI::HealPlayer(Player* target)
 
     return RETURN_NO_ACTION_UNKNOWN;
 } // end HealTarget
+
+CombatManeuverReturns PlayerbotShamanAI::ResurrectPlayer(Player* target)
+{
+    CombatManeuverReturns r = PlayerbotClassAI::ResurrectPlayer(target);
+    if (r != RETURN_NO_ACTION_OK)
+        return r;
+
+    if (m_ai->IsInCombat())     // Just in case as this was supposedly checked before calling this function
+        return RETURN_NO_ACTION_ERROR;
+
+    if (ANCESTRAL_SPIRIT > 0 && m_ai->In_Reach(target, ANCESTRAL_SPIRIT) && m_ai->CastSpell(ANCESTRAL_SPIRIT, *target) == SPELL_CAST_OK)
+    {
+        std::string msg = "Resurrecting ";
+        msg += target->GetName();
+        m_bot->Say(msg, LANG_UNIVERSAL);
+        return RETURN_CONTINUE;
+    }
+    return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
+}
+
+CombatManeuverReturns PlayerbotShamanAI::DispelPlayer(Player* target)
+{
+    // Remove poison on group members
+    if (Player* poisonedTarget = GetDispelTarget(DISPEL_POISON))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(poisonedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        if (CURE_POISON_SHAMAN > 0 && m_ai->CastSpell(CURE_POISON_SHAMAN, *poisonedTarget) == SPELL_CAST_OK)
+            return RETURN_CONTINUE;
+    }
+
+    // Remove disease on group members
+    if (Player* diseasedTarget = GetDispelTarget(DISPEL_DISEASE))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(diseasedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        if (CURE_DISEASE_SHAMAN > 0 && m_ai->CastSpell(CURE_DISEASE_SHAMAN, *diseasedTarget) == SPELL_CAST_OK)
+            return RETURN_CONTINUE;
+    }
+    return RETURN_NO_ACTION_OK;
+}
 
 void PlayerbotShamanAI::DropTotems()
 {
@@ -460,6 +458,28 @@ void PlayerbotShamanAI::DoNonCombatActions()
 
     if (!m_bot->isAlive() || m_bot->IsInDuel()) return;
 
+    // Dispel disease/poison
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return;
+
+    // Revive
+    if (ResurrectPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
+        return;
+
+    // Heal
+    if (m_ai->IsHealer())
+    {
+        if (HealPlayer(GetHealTarget()) & RETURN_CONTINUE)
+            return;// RETURN_CONTINUE;
+    }
+    else
+    {
+        // Is this desirable? Debatable.
+        // TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
+        if (HealPlayer(m_bot) & RETURN_CONTINUE)
+            return;// RETURN_CONTINUE;
+    }
+
     uint32 spec = m_bot->GetSpec();
 
     CheckShields();
@@ -486,24 +506,6 @@ void PlayerbotShamanAI::DoNonCombatActions()
     weapon = m_bot->GetItemByPos(EQUIPMENT_SLOT_OFFHAND);
     if (weapon && (weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0) && spec == SHAMAN_SPEC_ENHANCEMENT)
         m_ai->CastSpell(FLAMETONGUE_WEAPON, *m_bot);
-
-    // Revive
-    if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
-        return;
-
-    // Heal
-    if (m_ai->IsHealer())
-    {
-        if (HealPlayer(GetHealTarget()) & RETURN_CONTINUE)
-            return;// RETURN_CONTINUE;
-    }
-    else
-    {
-        // Is this desirable? Debatable.
-        // TODO: In a group/raid with a healer you'd want this bot to focus on DPS (it's not specced/geared for healing either)
-        if (HealPlayer(m_bot) & RETURN_CONTINUE)
-            return;// RETURN_CONTINUE;
-    }
 
     // hp/mana check
     if (EatDrinkBandage())

@@ -286,23 +286,15 @@ CombatManeuverReturns PlayerbotPriestAI::DoNextCombatManeuverPVE(Unit* pTarget)
         }
     }
 
+    // Dispel magic/disease
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return RETURN_CONTINUE;
+
     // Damage tweaking for healers
     if (m_ai->IsHealer())
     {
-        // Heal other players/bots first
-        // Select a target based on orders and some context (pets are ignored because GetHealTarget() only works on players)
-        Player* targetToHeal;
-        // 1. bot has orders to focus on main tank
-        if (m_ai->IsMainHealer())
-            targetToHeal = GetHealTarget(JOB_MAIN_TANK);
-        // 2. Look at its own group (this implies raid leader creates balanced groups, except for the MT group)
-        else
-            targetToHeal = GetHealTarget(JOB_ALL, true);
-        // 3. still no target to heal, search amongst everyone
-        if (!targetToHeal)
-            targetToHeal = GetHealTarget();
-
-        if (HealPlayer(targetToHeal) & RETURN_CONTINUE)
+        // Heal (try to pick a target by on common rules, than heal using each PlayerbotClassAI HealPlayer() method)
+        if (FindTargetAndHeal())
             return RETURN_CONTINUE;
 
         // No one needs to be healed: do small damage instead
@@ -418,33 +410,6 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
     if (r != RETURN_NO_ACTION_OK)
         return r;
 
-    if (!target->isAlive())
-    {
-        if (RESURRECTION > 0 && !m_ai->IsInCombat() && m_ai->In_Reach(target, RESURRECTION) && m_ai->CastSpell(RESURRECTION, *target) == SPELL_CAST_OK)
-        {
-            std::string msg = "Resurrecting ";
-            msg += target->GetName();
-            m_bot->Say(msg, LANG_UNIVERSAL);
-            return RETURN_CONTINUE;
-        }
-        return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
-    }
-
-    // Remove negative magic on group members if orders allow bot to do so
-    if (Player* pCursedTarget = GetDispelTarget(DISPEL_MAGIC))
-    {
-        if (PRIEST_DISPEL_MAGIC > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && CastSpell(PRIEST_DISPEL_MAGIC, pCursedTarget))
-            return RETURN_CONTINUE;
-    }
-
-    // Remove disease on group members if orders allow bot to do so
-    if (Player* pDiseasedTarget = GetDispelTarget(DISPEL_DISEASE))
-    {
-        uint32 cure = ABOLISH_DISEASE > 0 ? ABOLISH_DISEASE : CURE_DISEASE;
-        if (cure > 0 && (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_NODISPEL) == 0 && CastSpell(cure, pDiseasedTarget))
-            return RETURN_CONTINUE;
-    }
-
     uint8 hp = target->GetHealthPercent();
     uint8 hpSelf = m_ai->GetHealthPercent();
 
@@ -495,6 +460,53 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
     return RETURN_NO_ACTION_OK;
 } // end HealTarget
 
+CombatManeuverReturns PlayerbotPriestAI::ResurrectPlayer(Player* target)
+{
+    CombatManeuverReturns r = PlayerbotClassAI::ResurrectPlayer(target);
+    if (r != RETURN_NO_ACTION_OK)
+        return r;
+
+    if (m_ai->IsInCombat())     // Just in case as this was supposedly checked before calling this function
+        return RETURN_NO_ACTION_ERROR;
+
+    if (RESURRECTION > 0 && m_ai->In_Reach(target, RESURRECTION) && m_ai->CastSpell(RESURRECTION, *target) == SPELL_CAST_OK)
+    {
+        std::string msg = "Resurrecting ";
+        msg += target->GetName();
+        m_bot->Say(msg, LANG_UNIVERSAL);
+        return RETURN_CONTINUE;
+    }
+    return RETURN_NO_ACTION_ERROR; // not error per se - possibly just OOM
+}
+
+CombatManeuverReturns PlayerbotPriestAI::DispelPlayer(Player* target)
+{
+    // Remove negative magic on group members
+    if (Player* cursedTarget = GetDispelTarget(DISPEL_MAGIC))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(cursedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        if (PRIEST_DISPEL_MAGIC > 0 && CastSpell(PRIEST_DISPEL_MAGIC, cursedTarget))
+            return RETURN_CONTINUE;
+    }
+
+    // Remove disease on group members
+    if (Player* diseasedTarget = GetDispelTarget(DISPEL_DISEASE))
+    {
+        CombatManeuverReturns r = PlayerbotClassAI::DispelPlayer(diseasedTarget);
+        if (r != RETURN_NO_ACTION_OK)
+            return r;
+
+        uint32 cure = ABOLISH_DISEASE > 0 ? ABOLISH_DISEASE : CURE_DISEASE;
+        if (cure > 0 && CastSpell(cure, diseasedTarget))
+            return RETURN_CONTINUE;
+    }
+
+    return RETURN_NO_ACTION_OK;
+}
+
 void PlayerbotPriestAI::DoNonCombatActions()
 {
     if (!m_ai)   return;
@@ -508,8 +520,12 @@ void PlayerbotPriestAI::DoNonCombatActions()
     if (m_ai->SelfBuff(INNER_FIRE) == SPELL_CAST_OK)
         return;
 
+    // Dispel magic/disease
+    if (m_ai->HasDispelOrder() && DispelPlayer() & RETURN_CONTINUE)
+        return;
+
     // Revive
-    if (HealPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
+    if (ResurrectPlayer(GetResurrectionTarget()) & RETURN_CONTINUE)
         return;
 
     // After revive

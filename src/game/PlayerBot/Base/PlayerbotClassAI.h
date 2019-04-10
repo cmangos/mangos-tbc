@@ -36,14 +36,16 @@ class PlayerbotAI;
 
 enum JOB_TYPE
 {
-    JOB_MAIN_TANK = 0x01,   // for main tank that will need specific heal focus and priority over other party members or even regular tanks
-    JOB_MAIN_HEAL = 0x02,   // for healers that will focus on main tank
-    JOB_HEAL      = 0x04,
-    JOB_TANK      = 0x08,
-    JOB_MASTER    = 0x10,   // Not a fan of this distinction but user (or rather, admin) choice
-    JOB_DPS       = 0x20,
-    JOB_ALL       = 0x3F,   // all of the above
-    JOB_MANAONLY  = 0x40    // for buff checking (NOTE: this means any with powertype mana AND druids (who may be shifted but still have mana)
+    JOB_MAIN_TANK   = 0x01,     // for main tank that will need specific heal focus and priority over other party members or even regular tanks
+    JOB_MAIN_HEAL   = 0x02,     // for healers that will focus on main tank
+    JOB_HEAL        = 0x04,
+    JOB_TANK        = 0x08,
+    JOB_MASTER      = 0x10,     // Not a fan of this distinction but user (or rather, admin) choice
+    JOB_TANK_MASTER = 0x19, 
+    JOB_DPS         = 0x20,
+    JOB_ALL_NO_MT   = 0x3E,     // all of the above except Main Tank
+    JOB_ALL         = 0x3F,     // all of the above
+    JOB_MANAONLY    = 0x40      // for buff checking (NOTE: this means any with powertype mana AND druids (who may be shifted but still have mana)
 };
 
 struct heal_priority
@@ -94,7 +96,10 @@ class PlayerbotClassAI
         CombatManeuverReturns CastSpellNoRanged(uint32 nextAction, Unit* pTarget);
         CombatManeuverReturns CastSpellWand(uint32 nextAction, Unit* pTarget, uint32 SHOOT);
         virtual CombatManeuverReturns HealPlayer(Player* target);
+        virtual CombatManeuverReturns ResurrectPlayer(Player* target);
+        virtual CombatManeuverReturns DispelPlayer(Player* target);
         CombatManeuverReturns Buff(bool (*BuffHelper)(PlayerbotAI*, uint32, Unit*), uint32 spellId, uint32 type = JOB_ALL, bool bMustBeOOC = true);
+        bool FindTargetAndHeal();
         bool NeedGroupBuff(uint32 groupBuffSpellId, uint32 singleBuffSpellId);
         Player* GetHealTarget(JOB_TYPE type = JOB_ALL, bool onlyPickFromSameGroup = false);
         Player* GetDispelTarget(DispelType dispelType, JOB_TYPE type = JOB_ALL, bool bMustBeOOC = false);

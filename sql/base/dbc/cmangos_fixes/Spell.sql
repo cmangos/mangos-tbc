@@ -1429,3 +1429,6 @@ INSERT INTO `spell_template` (`Id`, `SchoolMask`, `Category`, `CastUI`, `Dispel`
 -- Defiance - Warrior Protection talent - make it applicable anytime and script threat req elsewhere
 UPDATE spell_template SET Stances=0 WHERE Id IN(12303,12788,12789);
 
+-- Arcatraz Sentinel - Energy Discharge - should only hit one player
+UPDATE spell_template SET MaxAffectedTargets=1 WHERE Id IN(36717,38829);
+

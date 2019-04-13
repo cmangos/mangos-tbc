@@ -1241,6 +1241,9 @@ UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(40055,401
 UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id = 41070; -- Death Coil used by Shadowmoon Deathshaper 22882
 UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id = 37675; -- Chaos Blast - Leotheras
 UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id = 38065; -- Death Coil
+UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(41292,41337,41350); -- Reliquary of Souls essences
+UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(41914); -- Parasitic Shadowfiend dot should be debuff
+UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(41083); -- Shadow Demon - Paralyze is a debuff
 
 -- NPCs Faerie Fire not preventing players stealth
 UPDATE `spell_template` SET `AttributesServerside`=1 WHERE `id`=6950 OR `id`=16498 OR `id`=20656 OR `id`=21670 OR `id`=25602 OR `id`=32129;
@@ -1499,6 +1502,32 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 ('41824', '4', '0', '0', '0', '256', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '101', '0', '0', '0', '0', '21', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '-1', '0', '28', '0', '0', '1', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '47', '0', '0', '0', '0', '0', '13', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '19551', '0', '0', '0', '0', '0', '0', '0', '0', '0', '173', '0', '0', 'Summon Phoenix Adds', '', '', '', '', '', '', '', '0', '133', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0', '0', '0', '64');
 
 
+-- Gathios - Seal of Command - add mask to register as seal spell so it applies AURA_STATE_JUDGEMENT - no idea if should be c++ script instead
+UPDATE spell_template SET SpellFamilyFlags=0x0000000002000000 WHERE Id IN(41469);
+
+-- Gathios - should melee during Judgement
+UPDATE `spell_template` SET `AttributesEx4`=AttributesEx4|0x00000080 WHERE `Id`=41467;
+
+-- Promenade Sentinel - L1 Arcane Charge should only hit 3 targets
+UPDATE spell_template SET MaxAffectedTargets=3 WHERE Id IN(41357);
+
+-- Illidan - Shadow Prison - doesnt put akama into combat with illidan - no aggro attribute
+UPDATE spell_template SET AttributesEx3=AttributesEx3|0x00020000 WHERE Id IN(40647);
+
+-- Illidan - Agonizing Flames
+UPDATE spell_template SET EffectBasePoints2=1200 WHERE Id IN(40932); -- correct post-nerf value verified by videos
+
+-- Quiet Suicide should bypass invulnerabilities
+UPDATE spell_template SET Attributes=Attributes|0x20000000 WHERE Id IN(3617);
+
+-- Shared Bonds spells - Add SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING - they should melee during the channel
+UPDATE `spell_template` SET `AttributesEx4`=`AttributesEx4`|0x00000080  WHERE `Id` IN(34788,41363);
+
+-- Gurtogg - Fel Rage 3 - should be castable always not just in cat form
+UPDATE spell_template SET Stances=0 WHERE Id IN(41625);
+
+-- Illidan - Demon fire - video evidence that it can resist
+UPDATE spell_template SET AttributesEx4=AttributesEx4&~0x00000001 WHERE Id IN(40030);
 
 -- MgT Kaelthas phoenix egg summoning spell - made by hand from TK version
 INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx`,`DurationIndex`,`Effect1`,`EffectDieSides1`,`EffectBaseDice1`,`EffectImplicitTargetA1`,`EffectMiscValue1`,`EffectMiscValueB1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`DmgMultiplier2`,`IsServerSide`) VALUES

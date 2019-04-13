@@ -667,6 +667,7 @@ void Creature::Update(const uint32 diff)
                 if (AI())
                     AI()->JustRespawned();
 
+                // Inform Instance Data
                 if (InstanceData* mapInstance = GetInstanceData())
                     mapInstance->OnCreatureRespawn(this);
 
@@ -2208,6 +2209,9 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
             return false;
 
         if ((selectFlags & SELECT_FLAG_SKIP_TANK) && pTarget == getVictim())
+            return false;
+
+        if ((selectFlags & SELECT_FLAG_SKIP_CUSTOM) && pTarget->GetObjectGuid() == params.skip.guid)
             return false;
     }
 

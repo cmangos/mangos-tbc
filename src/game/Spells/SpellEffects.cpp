@@ -5962,11 +5962,11 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
         {
             switch (m_spellInfo->Id)
             {
-				case 39835:                                 //Needle Spine
-				{
-					unitTarget->CastSpell(m_caster, 39968, TRIGGERED_OLD_TRIGGERED);
-					return;
-				}
+		case 39835:                                 //Needle Spine
+		{
+			unitTarget->CastSpell(m_caster, 39968, TRIGGERED_OLD_TRIGGERED);
+			return;
+		}
                 case 5249:                                  // Ice Lock
                 {
                     if (unitTarget)

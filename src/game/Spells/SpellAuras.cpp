@@ -1866,8 +1866,8 @@ void Aura::TriggerSpell()
 		if (caster->IsAllTotemSlotsUsed())
 		    caster->CastSpell(caster, 38437, TRIGGERED_OLD_TRIGGERED);
 		else
-		     caster->RemoveAurasDueToSpell(38437);
-		     return;
+		    caster->RemoveAurasDueToSpell(38437);
+		    return;
 	    }
             case 9347:                                      // Mortal Strike
             {

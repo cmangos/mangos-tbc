@@ -6240,7 +6240,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
         Unit::SpellAuraHolderMap& tAuras = target->GetSpellAuraHolderMap();
         for (Unit::SpellAuraHolderMap::iterator itr = tAuras.begin(); itr != tAuras.end();)
         {
-            if (itr->second->IsRemovedOnShapeLost() && itr->second->GetSpellProto()->Id != 12328)  // Stop Sweeping Strikes dropping on stance change
+            if (itr->second->IsRemovedOnShapeLost())
             {
                 target->RemoveAurasDueToSpell(itr->second->GetId());
                 itr = tAuras.begin();
@@ -7522,6 +7522,8 @@ inline bool IsRemovedOnShapeshiftLost(SpellEntry const* spellproto, ObjectGuid c
                 case 11329: // but they have attribute SPELL_ATTR_NOT_SHAPESHIFT
                 case 26888: // maybe relic from when they had Effect1?
                     return true;
+                case 12328:
+                    return false;
                 default:
                     break;
             }

@@ -1251,10 +1251,10 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     return;
                 }
                 case 39992:                                 // Needle Spine Targeting
-				{
-					m_caster->CastSpell(unitTarget, 39835, TRIGGERED_OLD_TRIGGERED);
-					return;
-				}
+		{
+		     m_caster->CastSpell(unitTarget, 39835, TRIGGERED_OLD_TRIGGERED);
+		     return;
+		}
                 case 24019:                                 // Gurubashi Axe Thrower; Axe Flurry.
                 {
                     if (unitTarget && m_caster->IsWithinLOSInMap(unitTarget))

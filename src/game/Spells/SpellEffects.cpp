@@ -866,6 +866,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     {
                         switch (m_triggeredByAuraSpell->Id)
                         {
+                            case 38443:                             // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
+							{
+								Unit* caster = GetCaster();
+								if (!caster->IsPlayer())
+									return;
+							}
                             case 13810: // Frost Trap Aura
                             {
                                 // Need to check casting of entrapment on every pulse

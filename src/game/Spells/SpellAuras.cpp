@@ -1807,14 +1807,14 @@ void Aura::TriggerSpell()
                         triggerTarget->RemoveAurasDueToSpell(28820);
                         return;
                     }
-                    case 38443:                             // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
-                    {
-                        if (triggerTarget->IsAllTotemSlotsUsed())
-                            triggerTarget->CastSpell(triggerTarget, 38437, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                        else
-                            triggerTarget->RemoveAurasDueToSpell(38437);
-                        return;
-                    }
+                    //case 38443:                             // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
+                    //{
+                    //    if (triggerTarget->IsAllTotemSlotsUsed())
+                    //        triggerTarget->CastSpell(triggerTarget, 38437, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+                    //    else
+                    //        triggerTarget->RemoveAurasDueToSpell(38437);
+                    //    return;
+                    //}
                     default:
                         break;
                 }
@@ -1860,6 +1860,15 @@ void Aura::TriggerSpell()
         // Spell exist but require custom code
         switch (auraId)
         {
+            case 38443:                             // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
+			{
+				Unit* caster = GetCaster();
+				if (caster->IsAllTotemSlotsUsed())
+					caster->CastSpell(caster, 38437, TRIGGERED_OLD_TRIGGERED);
+				else
+					caster->RemoveAurasDueToSpell(38437);
+				return;
+			}
             case 9347:                                      // Mortal Strike
             {
                 if (target->GetTypeId() != TYPEID_UNIT)

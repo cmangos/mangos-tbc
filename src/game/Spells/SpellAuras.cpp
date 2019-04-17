@@ -1860,7 +1860,7 @@ void Aura::TriggerSpell()
         // Spell exist but require custom code
         switch (auraId)
         {
-            case 38443:                             // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
+            case 38443:                            // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
 			{
 				Unit* caster = GetCaster();
 				if (caster->IsAllTotemSlotsUsed())

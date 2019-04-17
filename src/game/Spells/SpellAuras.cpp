@@ -1861,14 +1861,14 @@ void Aura::TriggerSpell()
         switch (auraId)
         {
             case 38443:                            // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
-			{
-				Unit* caster = GetCaster();
-				if (caster->IsAllTotemSlotsUsed())
-					caster->CastSpell(caster, 38437, TRIGGERED_OLD_TRIGGERED);
-				else
-					caster->RemoveAurasDueToSpell(38437);
-				return;
-			}
+            {
+		Unit* caster = GetCaster();
+		if (caster->IsAllTotemSlotsUsed())
+		    caster->CastSpell(caster, 38437, TRIGGERED_OLD_TRIGGERED);
+		else
+		     caster->RemoveAurasDueToSpell(38437);
+		     return;
+	    }
             case 9347:                                      // Mortal Strike
             {
                 if (target->GetTypeId() != TYPEID_UNIT)

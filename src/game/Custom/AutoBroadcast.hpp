@@ -25,31 +25,25 @@ public:
     {
         AutoBroadcastMessages.clear();
 
-        try
+        auto result = WorldDatabase.PQuery("SELECT text, type FROM custom_autobroadcasts ORDER BY id");
+
+        if (!result)
         {
-            auto result = WorldDatabase.PQuery("SELECT text, type FROM custom_autobroadcasts ORDER BY id");
-
-            if (!result)
-            {
-                sLog.outErrorDb("Couldn't load custom_autobroadcasts table");
-                return;
-            }
-
-            do
-            {
-                auto field = result->Fetch();
-
-                AutoBroadcastMsg msg;
-                msg.text = field[0].GetCppString();
-                msg.type = MessageType(field[1].GetUInt8());
-                AutoBroadcastMessages.push_back(msg);
-            }
-            while (result->NextRow());
+            sLog.outErrorDb("Couldn't load custom_autobroadcasts table");
+            return;
         }
-        catch (std::exception)
+
+        do
         {
-            sLog.outError("Failed to load autobroadcasts, make sure table exists in world database");
+            auto field = result->Fetch();
+
+            AutoBroadcastMsg msg;
+            msg.text = field[0].GetCppString();
+            msg.type = MessageType(field[1].GetUInt8());
+            AutoBroadcastMessages.push_back(msg);
         }
+        while (result->NextRow());
+        delete result;
     }
 
     void SendAutoBroadcasts()

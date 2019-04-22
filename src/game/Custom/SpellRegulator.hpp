@@ -60,6 +60,7 @@ public:
             while (chainresult->NextRow());
         }
         while (result->NextRow());
+        delete result;
 
         sLog.outString("Loaded spellregulator data");
     }

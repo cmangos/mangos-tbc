@@ -38,6 +38,7 @@ public:
                     m_trainerspells.insert(std::make_pair(i, j.second));
             }
             while (result->NextRow());
+            delete result;
         }
     }
 

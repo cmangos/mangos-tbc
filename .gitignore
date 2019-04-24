@@ -17,6 +17,7 @@
 *.so.dbg
 *.bin
 *.gz
+compile_commands.json
 
 #
 # Top-level generic files

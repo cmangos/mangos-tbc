@@ -168,7 +168,7 @@ bool MySQLConnection::Initialize(const char* infoString)
     // server configs - core sends data in UTF8, so MySQL must expect UTF8 too
     Execute("SET NAMES `utf8`");
     Execute("SET CHARACTER SET `utf8`");
-    Execute("SET SESSION sql_mode = 'ANSI_QUOTES'")
+    Execute("SET SESSION sql_mode = 'ANSI_QUOTES'");
 
     return true;
 }

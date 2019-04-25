@@ -19,27 +19,25 @@ public:
         if (!sWorld.getConfig(CONFIG_BOOL_AUTOLEARNSPELLS))
             return;
 
-        for (uint8 i = CLASS_WARRIOR; i <= CLASS_DRUID; ++i)
-        {
-            auto result = WorldDatabase.PQuery("SELECT DISTINCT trainertemplateid FROM creature_template WHERE trainerclass = %u AND trainertemplateid != 0", i);
+            auto result = WorldDatabase.PQuery("SELECT DISTINCT trainertemplateid, trainerclass FROM creature_template WHERE trainertemplateid != 0");
 
             if (!result)
-                continue;
+                return;
 
             do
             {
                 auto trainerid = result->Fetch()[0].GetUInt32();
+                auto classid   = result->Fetch()[1].GetUInt32();
 
                 TrainerSpellData const* tSpells = sObjectMgr.GetNpcTrainerTemplateSpells(trainerid);
                 if (!tSpells)
                     continue;
 
                 for (auto& j : tSpells->spellList)
-                    m_trainerspells.insert(std::make_pair(i, j.second));
+                    m_trainerspells.insert(std::make_pair(classid, j.second));
             }
             while (result->NextRow());
             delete result;
-        }
     }
 
     TrainerMap::const_iterator Begin(uint8 classid) { return m_trainerspells.lower_bound(classid); }

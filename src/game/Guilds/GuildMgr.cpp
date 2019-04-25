@@ -108,7 +108,7 @@ void GuildMgr::LoadGuilds()
 
     // load guild members
     //                                                                0       1                  2     3     4       5                  6
-    QueryResult* guildMembersResult = CharacterDatabase.Query("SELECT guildid,guild_member.guid,'rank',pnote,offnote,BankResetTimeMoney,BankRemMoney,"
+    QueryResult* guildMembersResult = CharacterDatabase.Query("SELECT guildid,guild_member.guid,\"rank\",pnote,offnote,BankResetTimeMoney,BankRemMoney,"
                                       //   7                 8                9                 10               11                12
                                       "BankResetTimeTab0,BankRemSlotsTab0,BankResetTimeTab1,BankRemSlotsTab1,BankResetTimeTab2,BankRemSlotsTab2,"
                                       //   13                14               15                16               17                18

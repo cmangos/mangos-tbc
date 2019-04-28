@@ -169,13 +169,13 @@ void CPlayer::AutoLearnSpells()
     if (!sWorld.getConfig(CONFIG_BOOL_AUTOLEARNSPELLS))
         return;
 
+    // If we taught the player one or more spells, there's a chance we unlocked new spells to be taught.
     bool runagain = false;
 
     for (auto itr = sCustom.autoLearnSpells->Begin(getClass()); itr != sCustom.autoLearnSpells->End(getClass()); ++itr)
     {
         auto trainer_spell = &itr->second;
 
-        // can't be learn, cheat? Or double learn with lags...
         uint32 reqLevel = 0;
         if (!IsSpellFitByClassAndRace(trainer_spell->learnedSpell, &reqLevel))
             continue;

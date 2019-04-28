@@ -28,8 +28,7 @@ public:
                 auto trainerid = result->Fetch()[0].GetUInt32();
                 auto classid   = result->Fetch()[1].GetUInt32();
 
-                auto* clsEntry = sChrClassesStore.LookupEntry(classid);
-                if (!clsEntry)
+                if (!sChrClassesStore.LookupEntry(classid))
                     continue;
 
                 auto* tSpells = sObjectMgr.GetNpcTrainerTemplateSpells(trainerid);
@@ -40,6 +39,7 @@ public:
                     m_trainerspells.insert(std::make_pair(classid, j.second));
             }
             while (result->NextRow());
+
             delete result;
             result = nullptr;
 
@@ -64,8 +64,8 @@ public:
                                     m_trainerspells.insert(std::make_pair(classid, j.second));
              }
             while (result->NextRow());
+
             delete result;
-            result = nullptr;
     }
 
     TrainerMap::const_iterator Begin(uint8 classid) { return m_trainerspells.lower_bound(classid); }

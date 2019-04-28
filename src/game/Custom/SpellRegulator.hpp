@@ -28,7 +28,7 @@ public:
 
         SpellRegulationMap.clear();
 
-        auto result = WorldDatabase.PQuery("SELECT spellid, modifier FROM custom_spellregulator");
+        auto result = WorldDatabase.PQuery("SELECT spellid, modifier, allranks FROM custom_spellregulator");
 
         if (!result)
         {
@@ -41,23 +41,19 @@ public:
             auto fields = result->Fetch();
             uint32 spellid = fields[0].GetUInt32();
             float modifier = fields[1].GetFloat();
+            bool allranks = fields[2].GetBool();
 
-            if (SpellRegulationMap.find(spellid) == SpellRegulationMap.end() && sSpellTemplate.LookupEntry<SpellEntry>(spellid))
-                SpellRegulationMap.insert(std::make_pair(spellid, modifier));
-
-            auto chainresult = WorldDatabase.PQuery("SELECT spell_id FROM spell_chain WHERE first_spell = (SELECT first_spell FROM spell_chain WHERE spell_id = '%u')", spellid);
-
-            if (!chainresult)
-                continue;
-
-            do
+            if (!allranks)
             {
-                auto chainspellid = chainresult->Fetch()[0].GetUInt32();
-
-                if (SpellRegulationMap.find(chainspellid) == SpellRegulationMap.end() && sSpellTemplate.LookupEntry<SpellEntry>(chainspellid))
-                    SpellRegulationMap.insert(std::make_pair(chainspellid, modifier));
+                SpellRegulationMap.insert(std::make_pair(spellid, modifier));
+                continue;
             }
-            while (chainresult->NextRow());
+
+            auto spellmap = sSpellMgr.GetSpellChainNext();
+
+            for (auto i = spellmap.lower_bound(spellid); i != spellmap.upper_bound(spellid); ++i)
+               if (SpellRegulationMap.find(i->second) == SpellRegulationMap.end())
+                    SpellRegulationMap.insert(std::make_pair(i->second, modifier));
         }
         while (result->NextRow());
         delete result;

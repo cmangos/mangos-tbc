@@ -397,7 +397,7 @@ void SendActionMenu_npc_prof_Alchemy(Player* pPlayer, Creature* pCreature, uint3
 		break;
 		//Unlearn Alchemy
 	case GOSSIP_ACTION_INFO_DEF + 4:
-		if (pPlayer->HasSpell(S_POTION))
+		if (pPlayer->HasSpell(S_TRANSMUTE))
 		{
 			//ProcessUnlearnAction(player, creature, S_UNLEARN_TRANSMUTE, 0, DoHighUnlearnCost(player));
 			if (pPlayer->GetMoney() >= uint32(GetUnlearnCostLow(pPlayer)))

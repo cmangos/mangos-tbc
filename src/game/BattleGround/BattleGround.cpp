@@ -1197,7 +1197,7 @@ void BattleGround::AddPlayer(Player* plr)
     plr->ToCPlayer()->CFJoinBattleGround();
 
     // remove afk from player
-    if (plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK))
+    if (plr->isAFK())
         plr->ToggleAFK();
 
     // score struct must be created in inherited class

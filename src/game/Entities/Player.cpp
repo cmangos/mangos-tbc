@@ -19836,12 +19836,10 @@ void Player::UpdateForQuestWorldObjects()
                 obj->BuildValuesUpdateBlockForPlayer(&updateData, this);
         }
     }
-    WorldPacket packet;
     for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
     {
-        updateData.BuildPacket(packet, i);
+        WorldPacket packet = updateData.BuildPacket(i);
         GetSession()->SendPacket(packet);
-        packet.clear();
     }
 }
 
@@ -19854,12 +19852,10 @@ void Player::UpdateEverything()
     for (const auto guid : m_clientGUIDs)
         if (WorldObject* obj = GetMap()->GetWorldObject(guid))
             obj->BuildForcedValuesUpdateBlockForPlayer(&updateData, this);
-    WorldPacket packet;
     for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
     {
-        updateData.BuildPacket(packet, i);
+        WorldPacket packet = updateData.BuildPacket(i);
         GetSession()->SendPacket(packet);
-        packet.clear();
     }
 }
 

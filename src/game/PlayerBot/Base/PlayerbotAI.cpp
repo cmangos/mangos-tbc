@@ -6933,6 +6933,7 @@ void PlayerbotAI::findNearbyCreature()
                     m_bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
                 }
                 itr = m_findNPC.erase(itr); // all done lets go home
+                continue;
             }
             ++itr;
         }

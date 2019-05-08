@@ -82,7 +82,7 @@ class QueryResultPostgre : public QueryResult
 
     private:
         enum Field::DataTypes ConvertNativeType(Oid pOid) const;
-        void EndQuery() override;
+        void EndQuery();
 
         PGresult* mResult;
         uint32 mTableIndex;

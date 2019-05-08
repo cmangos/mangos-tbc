@@ -998,7 +998,7 @@ void ChatHandler::SendSysMessage(const char* str)
 
     while (char* line = LineFromMessage(pos))
     {
-        BuildChatPacket(data, CHAT_MSG_SYSTEM, line, LANG_UNIVERSAL, CHAT_TAG_NONE, m_session->GetPlayer()->GetObjectGuid());
+        BuildChatPacket(data, CHAT_MSG_SYSTEM, line);
         m_session->SendPacket(data);
     }
 
@@ -1017,7 +1017,7 @@ void ChatHandler::SendGlobalSysMessage(const char* str) const
 
     while (char* line = LineFromMessage(pos))
     {
-        BuildChatPacket(data, CHAT_MSG_SYSTEM, line, LANG_UNIVERSAL, CHAT_TAG_NONE, guid);
+        BuildChatPacket(data, CHAT_MSG_SYSTEM, line);
         sWorld.SendGlobalMessage(data);
     }
 

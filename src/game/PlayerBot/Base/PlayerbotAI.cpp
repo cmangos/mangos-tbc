@@ -5349,7 +5349,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
     }
 
     // if commanded to follow master and not already following master then follow master
-    if (!m_bot->isInCombat() && !(m_bot->GetMotionMaster()->GetCurrentMovementGeneratorType() == IDLE_MOTION_TYPE))
+    if (!m_bot->isInCombat() && m_bot->GetMotionMaster()->GetCurrentMovementGeneratorType() == IDLE_MOTION_TYPE)
         return MovementReset();
 
     // do class specific non combat actions
@@ -6933,7 +6933,9 @@ void PlayerbotAI::findNearbyCreature()
                     m_bot->HandleEmoteCommand(EMOTE_ONESHOT_TALK);
                 }
                 itr = m_findNPC.erase(itr); // all done lets go home
+                continue;
             }
+            ++itr;
         }
     }
 }

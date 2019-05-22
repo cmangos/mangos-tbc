@@ -1247,6 +1247,7 @@ UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id = 38065; -- 
 UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(41292,41337,41350); -- Reliquary of Souls essences
 UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(41914); -- Parasitic Shadowfiend dot should be debuff
 UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(41083); -- Shadow Demon - Paralyze is a debuff
+UPDATE spell_template SET Attributes=Attributes|0x04000000 WHERE Id IN(43501); -- Malacrass - Soul Siphon
 
 -- NPCs Faerie Fire not preventing players stealth
 UPDATE `spell_template` SET `AttributesServerside`=1 WHERE `id`=6950 OR `id`=16498 OR `id`=20656 OR `id`=21670 OR `id`=25602 OR `id`=32129;
@@ -1584,6 +1585,24 @@ UPDATE `spell_template` SET `AttributesEx3`=AttributesEx3|0x00020000 WHERE `Id` 
 
 -- Rallying Cry of the Dragonslayer - cant be acquired above 63 - patch 2.1
 UPDATE spell_template SET MaxTargetLevel=63 WHERE Id IN(22888);
+
+-- Malacrass - Warrior siphon Whirlwind - for now channels are exclusive - breaks soul siphon - need sniff to verify protocol
+UPDATE spell_template SET AttributesEx=AttributesEx&~0x00000040 WHERE Id IN(43442);
+
+-- Akilzon - Static Disruption - client data wrong - sniff no cast time
+UPDATE spell_template SET CastingTimeIndex=1 WHERE Id IN(43622);
+
+-- Akilzon - give category to rest of akilzon spells so that the category cooldowns from storm and gust actually do anything
+UPDATE spell_template SET Category=1152 WHERE Id IN(43648,43661,43622);
+
+-- Malacrass - Priest drain Mind Control - should only hit one target
+UPDATE spell_template SET MaxAffectedTargets=1 WHERE Id IN(43550);
+
+-- Zuljin - Lynx Rush
+UPDATE spell_template SET Speed=60 WHERE Id IN(43153);
+
+-- Akilzon - Electrical Storm - should not be resistable - TODO: Find out of SPELL_ATTR_EX3_CANT_MISS should affect this instead for binary spells
+UPDATE spell_template SET AttributesEx4=AttributesEx4|0x00000001 WHERE Id IN(43648);
 
 -- MgT Kaelthas phoenix egg summoning spell - made by hand from TK version
 INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx`,`DurationIndex`,`Effect1`,`EffectDieSides1`,`EffectBaseDice1`,`EffectImplicitTargetA1`,`EffectMiscValue1`,`EffectMiscValueB1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`DmgMultiplier2`,`IsServerSide`) VALUES

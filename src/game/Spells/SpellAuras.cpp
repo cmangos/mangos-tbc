@@ -3156,10 +3156,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         target->CastSpell(target, 42517, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 42520:                                 // Spirit Drained - Zul'Jin
+                {
+                    target->SetFeignDeath(apply, GetCasterGuid(), GetId());
+                    return;
+                }
+                case 34719:                                 // Fixate
                 case 42583:                                 // Claw Rage
                 {
                     Unit* caster = GetCaster();
-                    if (!caster || target->GetTypeId() != TYPEID_PLAYER)
+                    if (!caster)
                         return;
 
                     if (apply)
@@ -3167,6 +3173,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     else
                         caster->FixateTarget(nullptr);
 
+                    if (GetId() == 42583)
+                        caster->CastSpell(nullptr, 43149, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
                 case 27978:
@@ -3830,8 +3838,14 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
         target->RestoreDisplayId();
 
         // apply default equipment for creature case
-        if (target->GetTypeId() == TYPEID_UNIT)
-            ((Creature*)target)->LoadEquipment(((Creature*)target)->GetCreatureInfo()->EquipmentTemplateId, true);
+        bool restoreEquip = true;
+        switch (GetId())
+        {
+            case 42594: case 42606: case 42607: case 42608: restoreEquip = false; break;
+            default: break;
+        }
+        if (target->GetTypeId() == TYPEID_UNIT && restoreEquip)
+            static_cast<Creature*>(target)->LoadEquipment(static_cast<Creature*>(target)->GetCreatureInfo()->EquipmentTemplateId, true);
 
         // Dragonmaw Illusion (restore mount model)
         if (GetId() == 42016 && target->GetMountID() == 16314)
@@ -5099,6 +5113,10 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
             case 29946:
                 if (target->HasAura(29947))
                     target->RemoveAurasDueToSpellByCancel(29947);
+                break;
+            case 43648: // Electrical Storm - Akil'zon - cast teleport self
+                target->CastSpell(nullptr, 44006, TRIGGERED_OLD_TRIGGERED); // done here instead of script effect due to auras being applied after effects
+                break;
             default:
                 break;
         }
@@ -5324,6 +5342,9 @@ void Aura::HandlePeriodicHeal(bool apply, bool /*Real*/)
             default: m_modifier.m_amount = caster->SpellHealingBonusDone(target, GetSpellProto(), m_modifier.m_amount, DOT, GetStackAmount()); break;
         }
     }
+    else
+        if (GetSpellProto()->Id == 43421) // Malacrass - Lifebloom
+            target->CastSpell(nullptr, 43422, TRIGGERED_OLD_TRIGGERED);
 }
 
 void Aura::HandlePeriodicDamage(bool apply, bool Real)
@@ -6255,6 +6276,9 @@ void Aura::HandleModMeleeSpeedPct(bool apply, bool /*Real*/)
     Unit* target = GetTarget();
     target->ApplyAttackTimePercentMod(BASE_ATTACK, float(m_modifier.m_amount), apply);
     target->ApplyAttackTimePercentMod(OFF_ATTACK, float(m_modifier.m_amount), apply);
+
+    if (GetId() == 42583)
+        target->AI()->SendAIEvent(AI_EVENT_CUSTOM_C, target, target, apply);
 }
 
 void Aura::HandleAuraModRangedHaste(bool apply, bool /*Real*/)
@@ -7664,6 +7688,8 @@ void Aura::PeriodicDummyTick()
                             break;
                         }
                     }
+                    if (GetAuraTicks() == 50)
+                        target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, target);
                     break;
                 }
 //              // Headless Horseman - Conflagrate, Periodic Aura

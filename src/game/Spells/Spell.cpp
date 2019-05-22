@@ -392,7 +392,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
 
     m_reflectable = IsReflectableSpell(m_spellInfo);
 
-    m_affectedTargetCount = GetAffectedTargets(m_spellInfo);
+    m_affectedTargetCount = GetAffectedTargets(m_spellInfo, caster);
 
     m_scriptValue = 0;
 
@@ -1700,10 +1700,11 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
                 if (WorldObject* caster = GetCastingObject())
                     m_targets.setDestination(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
-            if (m_spellInfo->Id == 40186) // Summon Blossom Move Target - Teron Gorefiend
+            switch (m_spellInfo->Id)
             {
-                m_targets.m_destZ += 12.f;
-                return;
+                case 40186: m_targets.m_destZ += 12.f; break; // Summon Blossom Move Target - Teron Gorefiend
+                case 44006: m_targets.m_destZ += 10.f; break; // Teleport Self - Akil'zon
+                default: break;
             }
             break;
         }
@@ -6838,6 +6839,7 @@ bool Spell::CheckTargetScript(Unit* target, SpellEffectIndex eff) const
         case 36797:                             // Mind Control (Kael'thas)
         case 40243:                             // Crushing Shadows - Teron Gorefiend
         case 41376:                             // Spite
+        case 43550:                             // Mind Control - Malacrass
             if (m_caster->getVictim() == target)
                 return false;
             break;
@@ -6872,6 +6874,10 @@ bool Spell::CheckTargetScript(Unit* target, SpellEffectIndex eff) const
             break;
         case 40870:                             // Fatal Attraction - tick - Mother Shahraz
             if (!target->HasAura(41001)) // Fatal Attraction Aura
+                return false;
+            break;
+        case 43657:                             // Electrical Storm - Akil'zon
+            if (target->HasAura(44007)) // Electrical Storm - Safe within eye
                 return false;
             break;
         case 37676:                             // Insidious Whisper

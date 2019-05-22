@@ -408,6 +408,12 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                         damage = unitTarget->GetMaxHealth() / 3;
                         break;
                     }
+                    case 43657: // Electrical Storm - Akil'zon
+                    {
+                        if (Aura* aura = m_caster->GetAura(43648, EFFECT_INDEX_1))
+                            damage *= std::min(aura->GetAuraTicks(), uint32(3));
+                        break;
+                    }
                 }
                 break;
             }
@@ -2386,7 +2392,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    unitTarget->CastSpell(unitTarget, 42629, TRIGGERED_OLD_TRIGGERED);
+                    unitTarget->CastSpell(nullptr, 42629, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
                 case 42631:                                 // Fire Bomb (explode)
@@ -2414,7 +2420,23 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    unitTarget->CastSpell(unitTarget, 42493, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+                    unitTarget->CastSpell(nullptr, 42493, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+                    return;
+                }
+                case 43152:                                 // Lynx Rush - Zul'Jin
+                {
+                    if (!unitTarget || m_scriptValue)
+                        return;
+
+                    m_scriptValue = 1;
+                    GuidVector targets;
+                    for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ ihit)
+                        if (ihit->effectMask & (1 << eff_idx) && ihit->missCondition == SPELL_MISS_NONE)
+                            targets.push_back(ihit->targetGUID);
+
+                    ObjectGuid guid = targets[urand(0, targets.size() - 1)];
+                    if (Unit * target = m_caster->GetMap()->GetUnit(guid))
+                        m_caster->CastSpell(target, 43153, TRIGGERED_NONE);
                     return;
                 }
                 case 43498:                                 // Siphon Soul

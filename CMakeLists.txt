@@ -30,6 +30,7 @@ project(CMaNGOS_TBC)
 # Define here name of the binaries
 set(CMANGOS_BINARY_SERVER_NAME "mangosd")
 set(CMANGOS_BINARY_REALMD_NAME "realmd")
+set(CMANGOS_BINARY_ANTICHEAT_NAME "anticheat")
 
 # Function to remove duplicate entries in provided string
 function(RemoveDuplicateSubstring stringIn stringOut)

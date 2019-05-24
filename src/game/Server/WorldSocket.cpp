@@ -244,6 +244,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     std::string account;
     Sha1Hash sha1;
     BigNumber v, s, g, N, K;
+    std::string os;
     WorldPacket packet, SendAddonPacked;
 
     // Read the content of the packet
@@ -286,7 +287,8 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
                              "s, "                       //6
                              "expansion, "               //7
                              "mutetime, "                //8
-                             "locale "                   //9
+                             "locale, "                  //9
+							 "os "                       //10
                              "FROM account "
                              "WHERE username = '%s'",
                              safe_account.c_str());
@@ -354,6 +356,8 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     else
         locale = LocaleConstant(tempLoc);
 
+    os = fields[10].GetString();
+
     delete result;
 
     // Re-check account ban (same check as in realmd)
@@ -388,6 +392,24 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
         BASIC_LOG("WorldSocket::HandleAuthSession: User tries to login but his security level is not enough");
         return false;
     }
+
+#ifdef BUILD_ANTICHEAT
+	if ((os == "niW") || (os == "XSO"))
+		std::reverse(os.begin(), os.end());
+
+    bool wardenActive = (sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED) || sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED));
+
+    // Must be done before WorldSession is created
+    if (wardenActive && os != "Win" && os != "OSX") {
+        WorldPacket Packet(SMSG_AUTH_RESPONSE, 1);
+        Packet << uint8(AUTH_REJECT);
+
+        SendPacket(packet);
+
+        BASIC_LOG("WorldSocket::HandleAuthSession: Client %s attempted to log in using invalid client OS (%s).", GetRemoteAddress().c_str(), os.c_str());
+        return false;
+    }
+#endif
 
     // Check that Key and account name are the same on client and server
     Sha1Hash sha;
@@ -457,6 +479,12 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
             return false;
 
         m_session->LoadTutorialsData();
+
+#ifdef BUILD_ANTICHEAT
+		// Initialize Warden system only if it is enabled by config
+		if (wardenActive)
+			m_session->InitWarden(uint16(ClientBuild), &K, os);
+#endif
 
         sWorld.AddSession(m_session);
     }

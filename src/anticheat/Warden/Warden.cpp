@@ -141,15 +141,15 @@ void Warden::Update()
             // Kick player if client response delays more than set in config
             if (_clientResponseTimer > maxClientResponseDelay * IN_MILLISECONDS)
             {
-                sLog.outWardenLog("%s (latency: %u, IP: %s) exceeded Warden module response delay on state %s for more than %s - disconnecting client",
-                    _session->GetPlayerName(), _session->GetLatency(), _session->GetRemoteAddress().c_str(), WardenState::to_string(_state), secsToTimeString(maxClientResponseDelay, true).c_str());
+                sLog.outWardenLog("%s (latency: %u, IP: %s) exceeded Warden module response delay on state %s for more than %s (%u) - disconnecting client",
+                    _session->GetPlayerName(), _session->GetLatency(), _session->GetRemoteAddress().c_str(), WardenState::to_string(_state), secsToTimeString(maxClientResponseDelay, true).c_str(),
+                    _clientResponseTimer);
                 _session->KickPlayer();
             }
             else
             {
                 _clientResponseTimer += diff;
             }
-
         }
     }
     break;

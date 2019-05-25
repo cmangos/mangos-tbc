@@ -288,7 +288,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
                              "expansion, "               //7
                              "mutetime, "                //8
                              "locale, "                  //9
-							 "os "                       //10
+                             "os "                       //10
                              "FROM account "
                              "WHERE username = '%s'",
                              safe_account.c_str());
@@ -394,8 +394,8 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     }
 
 #ifdef BUILD_ANTICHEAT
-	if ((os == "niW") || (os == "XSO"))
-		std::reverse(os.begin(), os.end());
+    if ((os == "niW") || (os == "XSO"))
+        std::reverse(os.begin(), os.end());
 
     bool wardenActive = (sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED) || sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED));
 
@@ -481,9 +481,9 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
         m_session->LoadTutorialsData();
 
 #ifdef BUILD_ANTICHEAT
-		// Initialize Warden system only if it is enabled by config
-		if (wardenActive)
-			m_session->InitWarden(uint16(ClientBuild), &K, os);
+        // Initialize Warden system only if it is enabled by config
+        if (wardenActive)
+            m_session->InitWarden(uint16(ClientBuild), &K, os);
 #endif
 
         sWorld.AddSession(m_session);

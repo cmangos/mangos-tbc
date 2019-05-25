@@ -103,7 +103,7 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     m_requestSocket(nullptr)
 {
 #ifdef BUILD_ANTICHEAT
-	_warden = NULL;
+    _warden = NULL;
 #endif
 }
 
@@ -125,9 +125,9 @@ WorldSession::~WorldSession()
     }
 
 #ifdef BUILD_ANTICHEAT
-	// Warden
-	if (_warden)
-		delete _warden;
+    // Warden
+    if (_warden)
+        delete _warden;
 #endif
 }
 
@@ -285,16 +285,21 @@ bool WorldSession::Update(PacketFilter& updater)
                         packet->GetOpcode());
         #endif*/
 
-        OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
+        Opcodes _opcode = packet->GetOpcode();
+        OpcodeHandler const& opHandle = opcodeTable[_opcode];
         try
         {
             switch (opHandle.status)
             {
                 case STATUS_LOGGEDIN:
-					if (packet->GetOpcodeName() == LookupOpcodeName(CMSG_WARDEN_DATA))
-						ExecuteOpcode(opHandle, *packet);
-					else if (!_player)
+                    if (!_player)
                     {
+                        if ((_opcode == CMSG_WARDEN_DATA) || (_opcode == SMSG_WARDEN_DATA))
+                        {
+                            ExecuteOpcode(opHandle, *packet);
+                            break;
+                        }
+
                         // skip STATUS_LOGGEDIN opcode unexpected errors if player logout sometime ago - this can be network lag delayed packets
                         if (!m_playerRecentlyLogout)
                             LogUnexpectedOpcode(*packet, "the player has not logged in yet");
@@ -320,7 +325,15 @@ bool WorldSession::Update(PacketFilter& updater)
                     break;
                 case STATUS_TRANSFER:
                     if (!_player)
+                    {
+                        if ((_opcode == CMSG_WARDEN_DATA) || (_opcode == SMSG_WARDEN_DATA))
+                        {
+                            ExecuteOpcode(opHandle, *packet);
+                            break;
+                        }
+
                         LogUnexpectedOpcode(*packet, "the player has not logged in yet");
+                    }
                     else if (_player->IsInWorld())
                         LogUnexpectedOpcode(*packet, "the player is still in world");
                     else
@@ -479,9 +492,9 @@ bool WorldSession::Update(PacketFilter& updater)
                 }
 
 #ifdef BUILD_ANTICHEAT
-        // Warden
-        if (m_Socket && !m_Socket->IsClosed() && _warden)
-            _warden->Update();
+                // Warden
+                if (m_Socket && !m_Socket->IsClosed() && _warden)
+                    _warden->Update();
 #endif
 
                 return true;

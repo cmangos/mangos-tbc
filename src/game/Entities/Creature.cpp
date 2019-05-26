@@ -154,7 +154,13 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
 
 Creature::~Creature()
 {
-    CleanupsBeforeDelete();
+    // Ensure the clean up hasn't already taken place, this can
+    // happen when the map removes an object and requires the 
+    // objects map variable to remain valid for the clean up.
+    if (isDirty())
+    {
+        CleanupsBeforeDelete();
+    }
 }
 
 void Creature::CleanupsBeforeDelete()

@@ -833,6 +833,9 @@ class WorldObject : public Object
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
         void SetActiveObjectState(bool active);
 
+        bool isDirty() const { return m_dirty; }
+        void SetDirty(bool dirty) { m_dirty = dirty; }
+
         ViewPoint& GetViewPoint() { return m_viewPoint; }
 
         // ASSERT print helper
@@ -898,6 +901,7 @@ class WorldObject : public Object
         Position m_position;
         ViewPoint m_viewPoint;
         bool m_isActiveObject;
+        bool m_dirty;                                       // cleaned for deletion flag
 };
 
 #endif

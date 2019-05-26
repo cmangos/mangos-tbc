@@ -649,7 +649,13 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
 
 Player::~Player()
 {
-    CleanupsBeforeDelete();
+    // Ensure the clean up hasn't already taken place, this can
+    // happen when the map removes an object and requires the 
+    // objects map variable to remain valid for the clean up.
+    if (isDirty())
+    {
+        CleanupsBeforeDelete();
+    }
 
     // it must be unloaded already in PlayerLogout and accessed only for loggined player
     // m_social = nullptr;

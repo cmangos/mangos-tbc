@@ -3236,11 +3236,7 @@ void Spell::cast(bool skipCheck)
     SpellCastResult castResult = CheckPower();
     if (castResult != SPELL_CAST_OK)
     {
-        SendCastResult(castResult);
-        SendInterrupted(castResult);
-        finish(false);
-        m_caster->DecreaseCastCounter();
-        SetExecutedCurrently(false);
+        StopCast(castResult);
         return;
     }
 
@@ -3250,11 +3246,7 @@ void Spell::cast(bool skipCheck)
         castResult = CheckCast(false);
         if (castResult != SPELL_CAST_OK)
         {
-            SendCastResult(castResult);
-            SendInterrupted(castResult);
-            finish(false);
-            m_caster->DecreaseCastCounter();
-            SetExecutedCurrently(false);
+            StopCast(castResult);
             return;
         }
     }
@@ -4381,7 +4373,7 @@ void Spell::TakeAmmo() const
 
 void Spell::TakeReagents()
 {
-    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+    if (!m_caster->IsPlayer())
         return;
 
     if (IgnoreItemRequirements())                           // reagents used in triggered spell removed by original spell or don't must be removed.
@@ -5949,6 +5941,19 @@ SpellCastResult Spell::CheckCast(bool strict)
             Unit* target = m_targets.getUnitTarget();
             if (!target || !target->HasAura(40735))
                 return SPELL_FAILED_BAD_TARGETS;
+            break;
+        }
+        case 27230: // Health Stone
+        case 11730:
+        case 11729:
+        case 6202:
+        case 6201:
+        case 5699:
+        {
+            // check if we already have a healthstone
+            uint32 itemType = GetUsableHealthStoneItemType(m_caster);
+            if (itemType && m_caster->IsPlayer() && ((Player*)m_caster)->GetItemCount(itemType) > 0)
+                return SPELL_FAILED_TOO_MANY_OF_ITEM;
             break;
         }
     }
@@ -7830,4 +7835,13 @@ void Spell::OnSuccessfulSpellFinish()
             break;
         }
     }
+}
+
+void Spell::StopCast(SpellCastResult castResult)
+{
+    SendCastResult(castResult);
+    SendInterrupted(castResult);
+    finish(false);
+    m_caster->DecreaseCastCounter();
+    SetExecutedCurrently(false);
 }

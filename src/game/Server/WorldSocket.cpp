@@ -362,7 +362,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
 
     // Re-check account ban (same check as in realmd)
     QueryResult* banresult =
-        LoginDatabase.PQuery("SELECT 1 FROM account_banned WHERE id = %u AND active = 1 AND (unbandate > UNIX_TIMESTAMP() OR unbandate = bandate)"
+        LoginDatabase.PQuery("SELECT 1 FROM account_banned WHERE id = %u AND active = 1 AND (unbandate > UNIX_TIMESTAMP() OR unbandate = bandate) "
                              "UNION "
                              "SELECT 1 FROM ip_banned WHERE (unbandate = bandate OR unbandate > UNIX_TIMESTAMP()) AND ip = '%s'",
                              id, GetRemoteAddress().c_str());
@@ -394,9 +394,6 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     }
 
 #ifdef BUILD_ANTICHEAT
-    if ((os == "niW") || (os == "XSO"))
-        std::reverse(os.begin(), os.end());
-
     bool wardenActive = (sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED) || sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED));
 
     // Must be done before WorldSession is created
@@ -480,14 +477,14 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
 
         m_session->LoadTutorialsData();
 
-#ifdef BUILD_ANTICHEAT
-        // Initialize Warden system only if it is enabled by config
-        if (wardenActive)
-            m_session->InitWarden(uint16(ClientBuild), &K, os);
-#endif
-
         sWorld.AddSession(m_session);
     }
+
+#ifdef BUILD_ANTICHEAT
+    // Initialize Warden system only if it is enabled by config
+    if (wardenActive)
+        m_session->InitWarden(uint16(ClientBuild), &K, os);
+#endif
 
     return true;
 }

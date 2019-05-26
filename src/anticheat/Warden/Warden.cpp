@@ -64,7 +64,7 @@ void Warden::RequestHash()
 
     WorldPacket pkt(SMSG_WARDEN_DATA, sizeof(WardenHashRequest));
     pkt.append((uint8*)&Request, sizeof(WardenHashRequest));
-    _session->SendPacket(pkt);
+    _session->SendPacketWarden(pkt);
 
     SetNewState(WardenState::STATE_REQUESTED_HASH);
 }
@@ -91,7 +91,7 @@ void Warden::SendModuleToClient()
         EncryptData((uint8*)&packet, burstSize + 3);
         WorldPacket pkt1(SMSG_WARDEN_DATA, burstSize + 3);
         pkt1.append((uint8*)&packet, burstSize + 3);
-        _session->SendPacket(pkt1);
+        _session->SendPacketWarden(pkt1);
     }
 
     SetNewState(WardenState::STATE_SENT_MODULE);

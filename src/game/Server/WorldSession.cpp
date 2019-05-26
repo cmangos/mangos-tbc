@@ -974,13 +974,17 @@ void WorldSession::SendAuthQueued() const
 }
 
 #ifdef BUILD_ANTICHEAT
-void WorldSession::InitWarden(uint16 build, BigNumber* k, std::string const& os) {
+void WorldSession::InitWarden(uint16 build, BigNumber* k, std::string const& os)
+{
     _build = build;
 
-    if (os == "Win" && sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED)) {
+    if (os == "Win" && sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED))
+    {
         _warden = new WardenWin();
         _warden->Init(this, k);
-    } else if (os == "OSX" && sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED)) {
+    }
+    else if (os == "OSX" && sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED))
+    {
         _warden = new WardenMac();
         _warden->Init(this, k);
     }

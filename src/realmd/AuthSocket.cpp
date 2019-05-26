@@ -369,13 +369,6 @@ bool AuthSocket::_HandleLogonChallenge()
 
     _login = (const char*)ch->I;
     _build = ch->build;
-    _os = (const char*)ch->os;
-
-    if (_os.size() > 4)
-        return false;
-
-    // Restore string order as its byte order is reversed
-    std::reverse(_os.begin(), _os.end());
 
     // convert uint8[4] to string and storing to m_os
     std::array<char, 5> os;
@@ -686,7 +679,7 @@ bool AuthSocket::_HandleLogonProof()
             K_hex, 
             m_address.c_str(), 
             GetLocaleByName(_localizationName), 
-            _os.c_str(),
+            m_os.c_str(),
             _safelogin.c_str());
 
         OPENSSL_free((void*)K_hex);

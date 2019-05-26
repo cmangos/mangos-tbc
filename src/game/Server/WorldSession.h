@@ -213,7 +213,7 @@ class WorldSession
 
 #ifdef BUILD_ANTICHEAT
         // Warden
-        void InitWarden(uint16 build, BigNumber* k, std::string const& os);
+        void InitWarden(BigNumber* k, std::string const& os);
 #endif
 
         /// Session in auth.queue currently
@@ -779,6 +779,7 @@ class WorldSession
         void HandleGetMirrorimageData(WorldPacket& recv_data);
 
         uint16 GetClientBuild() const { return _build; }
+        void SetClientBuild(uint16 build) { _build = build; }
 
     private:
         // Additional private opcode handlers

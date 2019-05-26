@@ -480,10 +480,12 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
         sWorld.AddSession(m_session);
     }
 
+    m_session->SetClientBuild(uint16(ClientBuild));
+
 #ifdef BUILD_ANTICHEAT
     // Initialize Warden system only if it is enabled by config
     if (wardenActive)
-        m_session->InitWarden(uint16(ClientBuild), &K, os);
+        m_session->InitWarden(&K, os);
 #endif
 
     return true;

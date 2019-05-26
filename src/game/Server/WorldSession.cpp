@@ -956,7 +956,7 @@ void WorldSession::SendAuthOk() const
     packet << uint32(0);                                    // BillingTimeRemaining
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint32(0);                                    // BillingTimeRested
-    packet << uint8(Expansion());                        // 0 - normal, 1 - TBC. Must be set in database manually for each account.
+    packet << uint8(Expansion());                           // 0 - normal, 1 - TBC. Must be set in database manually for each account.
     SendPacket(packet, true);
 }
 
@@ -968,16 +968,14 @@ void WorldSession::SendAuthQueued() const
     packet << uint32(0);                                    // BillingTimeRemaining
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint32(0);                                    // BillingTimeRested
-    packet << uint8(Expansion());                     // 0 - normal, 1 - TBC, must be set in database manually for each account
-    packet << uint32(sWorld.GetQueuedSessionPos(this));            // position in queue
+    packet << uint8(Expansion());                           // 0 - normal, 1 - TBC, must be set in database manually for each account
+    packet << uint32(sWorld.GetQueuedSessionPos(this));     // position in queue
     SendPacket(packet, true);
 }
 
 #ifdef BUILD_ANTICHEAT
-void WorldSession::InitWarden(uint16 build, BigNumber* k, std::string const& os)
+void WorldSession::InitWarden(BigNumber* k, std::string const& os)
 {
-    _build = build;
-
     if (os == "Win" && sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED))
     {
         _warden = new WardenWin();

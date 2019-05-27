@@ -719,11 +719,10 @@ void Map::Remove(Player* player, bool remove)
     CellPair p = MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY());
     if (p.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || p.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
     {
-        // invalid coordinates
-        player->ResetMap();
-
         if (remove)
             DeleteFromWorld(player);
+        else
+            player->ResetMap(); // invalid coordinates
 
         return;
     }
@@ -744,15 +743,15 @@ void Map::Remove(Player* player, bool remove)
 
     SendRemoveTransports(player);
     UpdateObjectVisibility(player, cell, p);
-
-    player->ResetMap();
+   
     if (remove)
         DeleteFromWorld(player);
+    else
+        player->ResetMap();
 }
 
 template<class T>
-void
-Map::Remove(T* obj, bool remove)
+void Map::Remove(T* obj, bool remove)
 {
     CellPair p = MaNGOS::ComputeCellPair(obj->GetPositionX(), obj->GetPositionY());
     if (p.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || p.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
@@ -777,10 +776,11 @@ Map::Remove(T* obj, bool remove)
     else
         obj->RemoveFromWorld();
 
-    UpdateObjectVisibility(obj, cell, p);                   // i think will be better to call this function while object still in grid, this changes nothing but logically is better(as for me)
+    // Might be better to call this function while object still 
+    // in grid, this changes nothing but logically is better (as for me)
+    UpdateObjectVisibility(obj, cell, p);
     RemoveFromGrid(obj, grid, cell);
 
-    obj->ResetMap();
     if (remove)
     {
         // if option set then object already saved at this moment
@@ -789,6 +789,10 @@ Map::Remove(T* obj, bool remove)
 
         // Note: In case resurrectable corpse and pet its removed from global lists in own destructor
         delete obj;
+    }
+    else
+    {
+        obj->ResetMap();
     }
 }
 

@@ -1061,6 +1061,11 @@ WorldObject::WorldObject() :
 {
 }
 
+WorldObject::~WorldObject()
+{
+    ResetMap();
+}
+
 void WorldObject::CleanupsBeforeDelete()
 {
     RemoveFromWorld();

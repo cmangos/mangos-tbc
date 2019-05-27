@@ -21,10 +21,6 @@ if(BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS OR BUILD_TESTING)
   add_subdirectory(shared)
 endif()
 
-if(BUILD_TESTING)
-  add_subdirectory(testing)
-endif()
-
 if(BUILD_GAME_SERVER)
   add_subdirectory(game)
   add_subdirectory(mangosd)
@@ -32,4 +28,8 @@ endif()
 
 if(BUILD_LOGIN_SERVER)
   add_subdirectory(realmd)
+endif()
+
+if(BUILD_TESTING)
+  add_subdirectory(testing)
 endif()

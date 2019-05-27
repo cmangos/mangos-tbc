@@ -9,6 +9,7 @@ option(BUILD_SCRIPTDEV      "Build ScriptDev. (OFF Speedup build)"  ON)
 option(BUILD_PLAYERBOT      "Build Playerbot mod"                   OFF)
 option(BUILD_RECASTDEMOMOD  "Build map/vmap/mmap viewer"            OFF)
 option(BUILD_GIT_ID         "Build git_id"                          OFF)
+option(BUILD_TESTING        "Build testing"                         OFF)
 
 # TODO: options that should be checked/created:
 #option(CLI                  "With CLI"                              ON)
@@ -33,6 +34,7 @@ message(STATUS
     BUILD_PLAYERBOT         Build Playerbot mod
     BUILD_RECASTDEMOMOD     Build map/vmap/mmap viewer
     BUILD_GIT_ID            Build git_id
+    BUILD_TESTING           Build testing framework (unit/integration testing)
 
   To set an option simply type -D<OPTION>=<VALUE> after 'cmake <srcs>'.
   Also, you can specify the generator with -G. see 'cmake --help' for more details

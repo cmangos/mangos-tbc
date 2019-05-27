@@ -73,6 +73,12 @@ else()
   message(STATUS "Build git_id          : No  (default)")
 endif()
 
+if(BUILD_TESTING)
+  message(STATUS "Build testing         : Yes")
+else()
+  message(STATUS "Build testing         : No  (default)")
+endif()
+
 # if(SQL)
 #   message(STATUS "Install SQL-files     : Yes")
 # else()

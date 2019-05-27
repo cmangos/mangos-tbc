@@ -30,6 +30,7 @@ project(CMaNGOS_TBC)
 # Define here name of the binaries
 set(CMANGOS_BINARY_SERVER_NAME "mangosd")
 set(CMANGOS_BINARY_REALMD_NAME "realmd")
+set(CMANGOS_BINARY_TESTING_NAME "testing")
 
 # Function to remove duplicate entries in provided string
 function(RemoveDuplicateSubstring stringIn stringOut)
@@ -143,7 +144,7 @@ set(BIN_DIR ${CMAKE_INSTALL_PREFIX}/${BIN_FOLDER_NAME})
 set(CONF_DIR ${CMAKE_INSTALL_PREFIX}/${CONF_FOLDER_NAME})
 set(LIBS_DIR ${CMAKE_INSTALL_PREFIX}/${LIBS_FOLDER_NAME})
 
-# On windows define more developpement folders and install provided libs
+# On windows define more developement folders and install provided libs
 if(WIN32)
   set(BIN_DIR ${CMAKE_INSTALL_PREFIX})
   set(LIBS_DIR ${BIN_DIR})
@@ -399,6 +400,8 @@ if(MSVC)
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMANGOS_BINARY_SERVER_NAME})
   elseif(BUILD_LOGIN_SERVER)
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMANGOS_BINARY_REALMD_NAME})
+  elseif(BUILD_TESTING)
+    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMANGOS_BINARY_TESTING_NAME})
   elseif(BUILD_RECASTDEMOMOD)
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT "RecastDemoMod")
   endif()

@@ -6,40 +6,41 @@
 #include "Server/WorldSession.h"
 #include "TestEngine.h"
 
+TestEngine* engine = new TestEngine();
+
 struct MyGlobalFixture {
-    static MyGlobalFixture*& instance() {
-        static MyGlobalFixture* s_inst = 0;
-        return s_inst;
-    }
-
-    TestEngine* engine = new TestEngine();
-
     MyGlobalFixture() {
-        std::cout << "global setup" << std::endl;
-        engine->start(0, nullptr);
+        std::cout << "ctor fixture i=" << i << std::endl;
+    }
+    void setup() {
+        std::cout << "setup fixture i=" << i << std::endl;
+        i++;
+    }
+    void teardown() {
+        std::cout << "teardown fixture i=" << i << std::endl;
+        i += 2;
     }
     ~MyGlobalFixture() {
-        std::cout << "global teardown" << std::endl;
-        delete engine;
+        std::cout << "dtor fixture i=" << i << std::endl;
     }
+    static int i;
 };
+int MyGlobalFixture::i = 0;
 
-BOOST_GLOBAL_FIXTURE(MyGlobalFixture);
+BOOST_TEST_GLOBAL_FIXTURE(MyGlobalFixture);
 
-struct F {
-    F() : i(0) { BOOST_TEST_MESSAGE("setup fixture"); }
-    ~F() { BOOST_TEST_MESSAGE("teardown fixture"); }
+BOOST_AUTO_TEST_SUITE(test_suite1)
 
-    int i;
-};
-
-BOOST_FIXTURE_TEST_SUITE(s, F)
-
-BOOST_AUTO_TEST_CASE(PlayerTest)
+BOOST_AUTO_TEST_CASE(test_case1)
 {
-    Player* player = new Player(nullptr);
+    std::cout << ("running test_case1") << std::endl;
+    BOOST_TEST(MyGlobalFixture::i == 1);
+}
 
-    BOOST_CHECK(true);
+BOOST_AUTO_TEST_CASE(test_case2)
+{
+    std::cout << ("running test_case2") << std::endl;
+    BOOST_TEST(MyGlobalFixture::i == 3);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

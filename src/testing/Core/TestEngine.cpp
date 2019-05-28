@@ -16,11 +16,11 @@ int m_ServiceStatus = -1;
 #include "PosixDaemon.h"
 #endif
 
-DatabaseType WorldDatabase;                                 ///< Accessor to the world database
-DatabaseType CharacterDatabase;                             ///< Accessor to the character database
-DatabaseType LoginDatabase;                                 ///< Accessor to the realm/login database
+DatabaseType WorldDatabase;       ///< Accessor to the world database
+DatabaseType CharacterDatabase;   ///< Accessor to the character database
+DatabaseType LoginDatabase;       ///< Accessor to the realm/login database
 
-uint32 realmID;                                             ///< Id of the realm
+uint32 realmID;                   ///< Id of the realm
 
 /*
 TODO: We need to set up a test thread where we get access to all the world/master.

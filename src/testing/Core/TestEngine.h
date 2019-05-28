@@ -44,7 +44,9 @@
 class TestEngine
 {
 public:
-    TestEngine() {};
+    TestEngine() {
+        std::cout << "Creating" << std::endl;
+    };
 
     int start(int argc, char* argv[]);
 };

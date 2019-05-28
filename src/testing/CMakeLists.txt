@@ -20,45 +20,54 @@ set(EXECUTABLE_NAME ${CMANGOS_BINARY_TESTING_NAME})
 
 add_definitions(-DBUILD_TESTING)
 
+file(GLOB CORE_SRC
+  Core/*.cpp
+  Core/*.h
+)
+
+source_group("Core"
+  FILES ${CORE_SRC}
+)
+
 file(GLOB UNIT_SRC
-    Unit/*.cpp
-    Unit/*.h
+  Unit/*.cpp
+  Unit/*.h
 )
 
 source_group("Unit"
-  FILES
-    ${UNIT_SRC}
+  FILES ${UNIT_SRC}
 )
 
 file(GLOB INTEGRATION_SRC
-    Integration/*.cpp
-    Integration/*.h
+  Integration/*.cpp
+  Integration/*.h
 )
 
 source_group("Integration"
-  FILES
-    ${INTEGRATION_SRC}
+  FILES ${INTEGRATION_SRC}
 )
 
 add_executable(${EXECUTABLE_NAME}
+  ${CORE_SRC}
   ${UNIT_SRC}
   ${INTEGRATION_SRC}
 )
 
 target_include_directories(${EXECUTABLE_NAME}
-  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Core
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Integration
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Unit
   PRIVATE ${OPENSSL_INCLUDE_DIR}
   PRIVATE ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(${EXECUTABLE_NAME}
-  Catch2
   shared
   game
   gsoap
+  mangosd_core
 )
-
-find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
 if(WIN32)
   target_link_libraries(${EXECUTABLE_NAME}

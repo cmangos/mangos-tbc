@@ -17,48 +17,73 @@
 #
 
 set(EXECUTABLE_NAME ${CMANGOS_BINARY_SERVER_NAME})
+set(EXECUTABLE_NAME_BIN ${EXECUTABLE_NAME})
+set(LIBRARY_NAME ${CMANGOS_BINARY_SERVER_NAME}_core)
+
+# enumerate all library files
+FILE(GLOB_RECURSE CORE_SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "Core/*")
+
+source_group("Core"
+  FILES
+    ${CORE_SRCS}
+)
+
+include_directories(
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${CORE_SRCS}
+)
+
+# create the lib
+add_library(${LIBRARY_NAME} STATIC
+  ${CORE_SRCS}
+)
+
+# add header include folder
+target_include_directories(${LIBRARY_NAME}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Core
+  PRIVATE ${OPENSSL_INCLUDE_DIR}
+  PRIVATE ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(${LIBRARY_NAME}
+  shared
+  game
+  gsoap
+)
+
+if(MSVC)
+  # Put this lib in dependencies category
+  set_target_properties(${LIBRARY_NAME} PROPERTIES FOLDER "Dependencies")
+endif()
 
 set(EXECUTABLE_SRCS
-    CliRunnable.cpp
-    CliRunnable.h
-    MaNGOSsoap.cpp
-    MaNGOSsoap.h
-    Main.cpp
-    Master.cpp
-    Master.h
-    RASocket.cpp
-    RASocket.h
-    WorldRunnable.cpp
-    WorldRunnable.h
-    soapC.cpp
-    soapH.h
-    soapServer.cpp
-    soapStub.h
-   )
+  Main.cpp
+  ${CORE_SRCS}
+)
 
 if(WIN32)
   # add resource file to windows build
   set(EXECUTABLE_SRCS ${EXECUTABLE_SRCS} mangosd.rc)
 endif()
 
-add_executable(${EXECUTABLE_NAME}
+add_executable(${EXECUTABLE_NAME_BIN}
   ${EXECUTABLE_SRCS}
 )
 
-target_include_directories(${EXECUTABLE_NAME}
-  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+target_include_directories(${EXECUTABLE_NAME_BIN}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Core
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
   PRIVATE ${OPENSSL_INCLUDE_DIR}
   PRIVATE ${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries(${EXECUTABLE_NAME}
+target_link_libraries(${EXECUTABLE_NAME_BIN}
   shared
   game
   gsoap
 )
 
 if(WIN32)
-  target_link_libraries(${EXECUTABLE_NAME}
+  target_link_libraries(${EXECUTABLE_NAME_BIN}
     optimized ${MYSQL_LIBRARY}
     optimized ${OPENSSL_LIBRARIES}
     debug ${MYSQL_DEBUG_LIBRARY}
@@ -66,17 +91,18 @@ if(WIN32)
     ${Boost_LIBRARIES}
   )
   if(MINGW)
-    target_link_libraries(${EXECUTABLE_NAME}
+    target_link_libraries(${EXECUTABLE_NAME_BIN}
       wsock32
       ws2_32
     )
   endif()
 
   # Define OutDir to source/bin/(platform)_(configuaration) folder.
-  set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${DEV_BIN_DIR}")
-  set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${DEV_BIN_DIR}")
-  set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
-  set_target_properties(${EXECUTABLE_NAME} PROPERTIES PROJECT_LABEL "WorldServer")
+  set_target_properties(${EXECUTABLE_NAME_BIN} PROPERTIES OUTPUT_NAME ${EXECUTABLE_NAME})
+  set_target_properties(${EXECUTABLE_NAME_BIN} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${DEV_BIN_DIR}")
+  set_target_properties(${EXECUTABLE_NAME_BIN} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${DEV_BIN_DIR}")
+  set_target_properties(${EXECUTABLE_NAME_BIN} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
+  set_target_properties(${EXECUTABLE_NAME_BIN} PROPERTIES PROJECT_LABEL "mangosd")
 
   # Add provided dependency lib to dev folder
   string(REGEX REPLACE "/" "\\\\" LibFolder ${DEV_PROVIDED_LIBS_FOLDER})
@@ -89,16 +115,16 @@ if(WIN32)
 endif()
 
 if(UNIX)
-  target_link_libraries(${EXECUTABLE_NAME}
+  target_link_libraries(${EXECUTABLE_NAME_BIN}
     ${OPENSSL_LIBRARIES}
     ${OPENSSL_EXTRA_LIBRARIES}
     ${Boost_LIBRARIES}
   )
 
   if(POSTGRESQL AND POSTGRESQL_FOUND)
-    target_link_libraries(${EXECUTABLE_NAME} ${PostgreSQL_LIBRARIES})
+    target_link_libraries(${EXECUTABLE_NAME_BIN} ${PostgreSQL_LIBRARIES})
   else()
-    target_link_libraries(${EXECUTABLE_NAME} ${MYSQL_LIBRARY})
+    target_link_libraries(${EXECUTABLE_NAME_BIN} ${MYSQL_LIBRARY})
   endif()
 endif()
 
@@ -112,14 +138,14 @@ if(UNIX)
   endif()
 endif()
 
-set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS
+set_target_properties(${EXECUTABLE_NAME_BIN} PROPERTIES LINK_FLAGS
   "${EXECUTABLE_LINK_FLAGS}"
 )
 
 if (NOT WIN32)
   install(FILES run-mangosd DESTINATION ${BIN_DIR})
 endif()
-install(TARGETS ${EXECUTABLE_NAME} DESTINATION ${BIN_DIR})
+install(TARGETS ${EXECUTABLE_NAME_BIN} DESTINATION ${BIN_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangosd.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist DESTINATION ${CONF_DIR})
 

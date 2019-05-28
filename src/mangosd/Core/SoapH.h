@@ -13,7 +13,7 @@ A commercial use license is available from Genivia Inc., contact@genivia.com
 
 #ifndef soapH_H
 #define soapH_H
-#include "soapStub.h"
+#include "SoapStub.h"
 #ifndef WITH_NOIDREF
 
 #ifdef __cplusplus

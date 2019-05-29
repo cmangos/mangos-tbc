@@ -15,8 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef TEST_ENGINE_H
-#define TEST_ENGINE_H
+
+#ifndef TEST_SERVER_H
+#define TEST_SERVER_H
 
 #include "Common.h"
 #include "Database/DatabaseEnv.h"
@@ -27,31 +28,37 @@
 #include "Master.h"
 #include "SystemConfig.h"
 #include "AuctionHouseBot/AuctionHouseBot.h"
+#include "Common.h"
+#include "Threading.h"
 
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 
 #include <boost/program_options.hpp>
 #include <boost/version.hpp>
-#include <boost/test/unit_test.hpp>
 
 #include <iostream>
 #include <string>
 
-using namespace boost::unit_test;
-
-class TestEngine
+class TestServer
 {
 public:
-    TestEngine() {
-        
+    TestServer() {
+        std::cout << "Creating Server" << std::endl;
     };
-    
-    void run();
-    void registerTest(std::string suite, boost::function<void()> const& testFunc);
 
-    std::map<std::string, test_suite*> m_testSuites;
+    int start(int argc, char* argv[]);
+    void end(uint8 exitCode = SHUTDOWN_EXIT_CODE);
 };
 
-#define sTestEngine MaNGOS::Singleton<TestEngine>::Instance()
+
+class ServerRunnable : public MaNGOS::Runnable
+{
+public:
+    void run() override;
+};
+
+#define sMaster MaNGOS::Singleton<Master>::Instance()
+#define sTestServer MaNGOS::Singleton<TestServer>::Instance()
+
 #endif

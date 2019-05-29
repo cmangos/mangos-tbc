@@ -20,37 +20,24 @@ set(EXECUTABLE_NAME ${CMANGOS_BINARY_TESTING_NAME})
 
 add_definitions(-DBUILD_TESTING)
 
-file(GLOB CORE_SRC
-  Core/*.cpp
-  Core/*.h
-)
+# disable auto link
+add_definitions(-DBOOST_TEST_NO_LIB)
 
-source_group("Core"
-  FILES ${CORE_SRC}
-)
+# link against dynamic libraries
+add_definitions(-DBOOST_TEST_DYN_LINK)
 
-file(GLOB UNIT_SRC
-  Unit/*.cpp
-  Unit/*.h
-)
+# Find all the input files
+FILE(GLOB_RECURSE LIBRARY_SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.h" "*.cpp")
 
-source_group("Unit"
-  FILES ${UNIT_SRC}
-)
-
-file(GLOB INTEGRATION_SRC
-  Integration/*.cpp
-  Integration/*.h
-)
-
-source_group("Integration"
-  FILES ${INTEGRATION_SRC}
-)
+# Create visual studio groups using folder structure
+foreach(source ${LIBRARY_SRCS})
+    get_filename_component(source_path "${source}" PATH)
+    string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+    source_group("${source_path_msvc}" FILES "${source}")
+endforeach()
 
 add_executable(${EXECUTABLE_NAME}
-  ${CORE_SRC}
-  ${UNIT_SRC}
-  ${INTEGRATION_SRC}
+  ${LIBRARY_SRCS}
 )
 
 target_include_directories(${EXECUTABLE_NAME}
@@ -69,13 +56,15 @@ target_link_libraries(${EXECUTABLE_NAME}
   mangosd_core
 )
 
+string(REPLACE "libboost_unit_test_framework" "boost_unit_test_framework" Boost_TEST_LIBRARIES "${Boost_LIBRARIES}")
+
 if(WIN32)
   target_link_libraries(${EXECUTABLE_NAME}
     optimized ${MYSQL_LIBRARY}
     optimized ${OPENSSL_LIBRARIES}
     debug ${MYSQL_DEBUG_LIBRARY}
     debug ${OPENSSL_DEBUG_LIBRARIES}
-    ${Boost_LIBRARIES}
+    ${Boost_TEST_LIBRARIES}
   )
   if(MINGW)
     target_link_libraries(${EXECUTABLE_NAME}
@@ -100,7 +89,7 @@ if(UNIX)
   target_link_libraries(${EXECUTABLE_NAME}
     ${OPENSSL_LIBRARIES}
     ${OPENSSL_EXTRA_LIBRARIES}
-    ${Boost_LIBRARIES}
+    ${Boost_TEST_LIBRARIES}
   )
 
   if(POSTGRESQL AND POSTGRESQL_FOUND)

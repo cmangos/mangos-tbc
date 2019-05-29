@@ -16,38 +16,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "TestEngine.h"
-#include "GlobalTestFixture.h"
+#ifndef TEST_REGISTRY_H
+#define TEST_REGISTRY_H
 
 #include <boost/test/unit_test.hpp>
 
-using namespace boost::unit_test;
+#include "TestEngine.h"
+#include "PlayerTest.h"
 
-BOOST_GLOBAL_FIXTURE(GlobalTestFixture);
-
-void TestEngine::run()
-{
-    auto it = m_testSuites.begin();
-    while (it != m_testSuites.end())
-    {
-        test_suite* suite = it->second;
-        //framework::run(suite);
-        it++;
+class TestRegistry {
+public:
+    static void register_tests() {
+        sTestEngine.registerTest(PlayerTest::default_suite(), PlayerTest::test_case1);
+        sTestEngine.registerTest(PlayerTest::default_suite(), PlayerTest::test_case2);
     }
-}
+};
 
-void TestEngine::registerTest(std::string suiteName, boost::function<void()> const& testFunc)
-{
-    test_suite* suite = nullptr;
-
-    auto suiteIterator = m_testSuites.find(suiteName);
-    if (suiteIterator == m_testSuites.end()) {
-        suite = BOOST_TEST_SUITE(suiteName);
-        m_testSuites.emplace(suiteName, suite);
-        framework::master_test_suite().add(suite);
-    } else {
-        suite = suiteIterator->second;
-    }
-
-    suite->add(BOOST_TEST_CASE(testFunc));
-}
+#endif

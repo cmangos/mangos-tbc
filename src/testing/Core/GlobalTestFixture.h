@@ -15,43 +15,34 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef TEST_ENGINE_H
-#define TEST_ENGINE_H
 
-#include "Common.h"
-#include "Database/DatabaseEnv.h"
-#include "Config/Config.h"
-#include "World/World.h"
-#include "ProgressBar.h"
-#include "Log.h"
-#include "Master.h"
-#include "SystemConfig.h"
-#include "AuctionHouseBot/AuctionHouseBot.h"
-
-#include <openssl/opensslv.h>
-#include <openssl/crypto.h>
-
-#include <boost/program_options.hpp>
-#include <boost/version.hpp>
-#include <boost/test/unit_test.hpp>
+#ifndef GLOBAL_TEST_FIXTURE_H
+#define GLOBAL_TEST_FIXTURE_H
 
 #include <iostream>
-#include <string>
 
-using namespace boost::unit_test;
+#include "TestServer.h"
 
-class TestEngine
-{
+class GlobalTestFixture {
 public:
-    TestEngine() {
-        
-    };
-    
-    void run();
-    void registerTest(std::string suite, boost::function<void()> const& testFunc);
+    GlobalTestFixture() {
+        //serverThread = new MaNGOS::Thread(new ServerRunnable);
+    }
+    void setup() {
+        std::cout << "setup fixture" << std::endl;
+    }
+    void teardown() {
+        std::cout << "teardown fixture" << std::endl;
+    }
+    ~GlobalTestFixture() {
+        // end the test engine
+        //sTestServer.end();
+        // destroy the server thread
+        //serverThread->destroy();
+    }
 
-    std::map<std::string, test_suite*> m_testSuites;
+    public: 
+        MaNGOS::Thread* serverThread;
 };
 
-#define sTestEngine MaNGOS::Singleton<TestEngine>::Instance()
 #endif

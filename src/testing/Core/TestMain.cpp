@@ -16,6 +16,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#define BOOST_TEST_NO_MAIN
+
+#include "TestRegistry.h"
 #include "TestEngine.h"
 #include "GlobalTestFixture.h"
 
@@ -23,31 +26,21 @@
 
 using namespace boost::unit_test;
 
-BOOST_GLOBAL_FIXTURE(GlobalTestFixture);
-
-void TestEngine::run()
+bool init_fnction()
 {
-    auto it = m_testSuites.begin();
-    while (it != m_testSuites.end())
-    {
-        test_suite* suite = it->second;
-        //framework::run(suite);
-        it++;
-    }
+    // do your own initialization here
+    // if it successful return true
+
+    TestRegistry::register_tests();
+    //framework::register_global_fixture();
+
+    sTestEngine.run();
+
+    return true;
 }
 
-void TestEngine::registerTest(std::string suiteName, boost::function<void()> const& testFunc)
+int main(int argc, char *argv[])
 {
-    test_suite* suite = nullptr;
-
-    auto suiteIterator = m_testSuites.find(suiteName);
-    if (suiteIterator == m_testSuites.end()) {
-        suite = BOOST_TEST_SUITE(suiteName);
-        m_testSuites.emplace(suiteName, suite);
-        framework::master_test_suite().add(suite);
-    } else {
-        suite = suiteIterator->second;
-    }
-
-    suite->add(BOOST_TEST_CASE(testFunc));
+    // pass empty initialization function as we've already constructed the test tree
+    return unit_test_main(&init_fnction, argc, argv);
 }

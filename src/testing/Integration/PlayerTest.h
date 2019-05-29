@@ -16,38 +16,38 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "TestEngine.h"
-#include "GlobalTestFixture.h"
+#ifndef PLAYER_TEST_H
+#define PLAYER_TEST_H
 
 #include <boost/test/unit_test.hpp>
 
-using namespace boost::unit_test;
+#include "GlobalTestFixture.h"
+#include "TestEngine.h"
 
-BOOST_GLOBAL_FIXTURE(GlobalTestFixture);
+#include "Entities/Player.h"
+#include "Server/WorldSession.h"
 
-void TestEngine::run()
-{
-    auto it = m_testSuites.begin();
-    while (it != m_testSuites.end())
+class PlayerTest {
+public:
+    static std::string default_suite() {
+        return typeid(PlayerTest).name();
+    }
+
+    static void test_case1()
     {
-        test_suite* suite = it->second;
-        //framework::run(suite);
-        it++;
-    }
-}
-
-void TestEngine::registerTest(std::string suiteName, boost::function<void()> const& testFunc)
-{
-    test_suite* suite = nullptr;
-
-    auto suiteIterator = m_testSuites.find(suiteName);
-    if (suiteIterator == m_testSuites.end()) {
-        suite = BOOST_TEST_SUITE(suiteName);
-        m_testSuites.emplace(suiteName, suite);
-        framework::master_test_suite().add(suite);
-    } else {
-        suite = suiteIterator->second;
+        BOOST_TEST_MESSAGE("running test_case1");
+        std::cout << ("running test_case1") << std::endl;
+        BOOST_TEST(true);
     }
 
-    suite->add(BOOST_TEST_CASE(testFunc));
-}
+    static void test_case2()
+    {
+        BOOST_TEST_MESSAGE("running test_case2");
+        std::cout << ("running test_case2") << std::endl;
+        BOOST_TEST(false);
+    }
+
+    // TODO: Add more tests!
+};
+
+#endif

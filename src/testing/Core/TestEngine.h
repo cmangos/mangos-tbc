@@ -18,39 +18,33 @@
 #ifndef TEST_ENGINE_H
 #define TEST_ENGINE_H
 
-#include "Common.h"
-#include "Database/DatabaseEnv.h"
-#include "Config/Config.h"
-#include "World/World.h"
-#include "ProgressBar.h"
-#include "Log.h"
-#include "Master.h"
-#include "SystemConfig.h"
-#include "AuctionHouseBot/AuctionHouseBot.h"
+#include "TestServer.h"
 
-#include <openssl/opensslv.h>
-#include <openssl/crypto.h>
-
-#include <boost/program_options.hpp>
-#include <boost/version.hpp>
-#include <boost/test/unit_test.hpp>
-
-#include <iostream>
-#include <string>
-
-using namespace boost::unit_test;
-
-class TestEngine
-{
+class TestEngine {
 public:
-    TestEngine() {
-        
-    };
-    
-    void run();
-    void registerTest(std::string suite, boost::function<void()> const& testFunc);
+    TestEngine() {}
+    ~TestEngine() {}
 
-    std::map<std::string, test_suite*> m_testSuites;
+    void run() {
+        if (serverThread == nullptr) {
+            serverThread = new MaNGOS::Thread(new ServerRunnable);
+        }
+    }
+
+    void kill() {
+        // end the test server
+        sTestServer.end();
+
+        // destroy the server thread
+        serverThread->destroy();
+    }
+
+    MaNGOS::Thread* getServerThread() {
+        return serverThread;
+    }
+
+private:
+    MaNGOS::Thread* serverThread;
 };
 
 #define sTestEngine MaNGOS::Singleton<TestEngine>::Instance()

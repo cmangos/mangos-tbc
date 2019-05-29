@@ -207,10 +207,6 @@ endif()
 
 set(BOOST_COMPONENTS system program_options thread regex)
 
-if (BUILD_TESTING)
-  set(BOOST_COMPONENTS ${BOOST_COMPONENTS} unit_test_framework)
-endif()
-
 # Find needed packages and if necessery abort if something important is missing
 find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 

@@ -15,32 +15,34 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+#define CATCH_CONFIG_RUNNER
+#include  <catch2/catch.hpp>
 
-#define BOOST_TEST_NO_MAIN
-
-#include "TestRegistry.h"
 #include "TestEngine.h"
-#include "GlobalTestFixture.h"
-
-#include <boost/test/unit_test.hpp>
-
-using namespace boost::unit_test;
-
-bool init_fnction()
-{
-    // do your own initialization here
-    // if it successful return true
-
-    TestRegistry::register_tests();
-    //framework::register_global_fixture();
-
-    sTestEngine.run();
-
-    return true;
-}
 
 int main(int argc, char *argv[])
 {
-    // pass empty initialization function as we've already constructed the test tree
-    return unit_test_main(&init_fnction, argc, argv);
+    //sTestEngine.run();
+
+    Catch::Session session; // There must be exactly one instance
+
+  // writing to session.configData() here sets defaults
+  // this is the preferred way to set them
+
+    int returnCode = session.applyCommandLine(argc, argv);
+    if (returnCode != 0) // Indicates a command line error
+        return returnCode;
+
+    // writing to session.configData() or session.Config() here 
+    // overrides command line args
+    // only do this if you know you need to
+
+    int numFailed = session.run();
+
+    //sTestEngine.kill();
+
+    // numFailed is clamped to 255 as some unices only use the lower 8 bits.
+    // This clamping has already been applied, so just return it here
+    // You can also do any post run clean-up here
+    return numFailed;
 }

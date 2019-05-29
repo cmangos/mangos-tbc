@@ -20,12 +20,6 @@ set(EXECUTABLE_NAME ${CMANGOS_BINARY_TESTING_NAME})
 
 add_definitions(-DBUILD_TESTING)
 
-# disable auto link
-add_definitions(-DBOOST_TEST_NO_LIB)
-
-# link against dynamic libraries
-add_definitions(-DBOOST_TEST_DYN_LINK)
-
 # Find all the input files
 FILE(GLOB_RECURSE LIBRARY_SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*.h" "*.cpp")
 
@@ -41,22 +35,23 @@ add_executable(${EXECUTABLE_NAME}
 )
 
 target_include_directories(${EXECUTABLE_NAME}
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Core
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Integration
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Unit
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}"
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Core"
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Integration"
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Unit"
   PRIVATE ${OPENSSL_INCLUDE_DIR}
   PRIVATE ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(${EXECUTABLE_NAME}
+  Catch2
   shared
   game
   gsoap
   mangosd_core
 )
 
-string(REPLACE "libboost_unit_test_framework" "boost_unit_test_framework" Boost_TEST_LIBRARIES "${Boost_LIBRARIES}")
+set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Bin")
 
 if(WIN32)
   target_link_libraries(${EXECUTABLE_NAME}
@@ -64,7 +59,7 @@ if(WIN32)
     optimized ${OPENSSL_LIBRARIES}
     debug ${MYSQL_DEBUG_LIBRARY}
     debug ${OPENSSL_DEBUG_LIBRARIES}
-    ${Boost_TEST_LIBRARIES}
+    ${Boost_LIBRARIES}
   )
   if(MINGW)
     target_link_libraries(${EXECUTABLE_NAME}
@@ -74,8 +69,8 @@ if(WIN32)
   endif()
 
   # Define OutDir to source/bin/(platform)_(configuaration) folder.
-  set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${DEV_BIN_DIR}")
-  set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${DEV_BIN_DIR}")
+  set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIR}")
+  set_target_properties(${EXECUTABLE_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}")
   set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$(OutDir)")
   set_target_properties(${EXECUTABLE_NAME} PROPERTIES PROJECT_LABEL "testing")
 
@@ -83,6 +78,14 @@ if(WIN32)
   string(REGEX REPLACE "/" "\\\\" LibFolder ${DEV_PROVIDED_LIBS_FOLDER})
   add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
     COMMAND copy \"${LibFolder}\\*.dll\" \"$(OutDir)\")
+
+  # Add conf file to dev folder
+  add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${BASE_DIR}/realmd/realmd.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/realmd.conf\")
+
+   # Add conf file to dev folder
+  add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${BASE_DIR}/mangosd/mangosd.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/mangosd.conf\")
 endif()
 
 if(UNIX)
@@ -113,4 +116,10 @@ set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS
   "${EXECUTABLE_LINK_FLAGS}"
 )
 
-install(TARGETS ${EXECUTABLE_NAME} DESTINATION ${BIN_DIR})
+install(TARGETS ${EXECUTABLE_NAME} DESTINATION ${OUTPUT_DIR})
+install(FILES "${BASE_DIR}/realmd/realmd.conf.dist.in" DESTINATION ${CONF_DIR} RENAME realmd.conf)
+install(FILES "${BASE_DIR}/mangosd/mangosd.conf.dist.in" DESTINATION ${CONF_DIR} RENAME mangosd.conf)
+
+if(MSVC)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/\${BUILD_TYPE}/${EXECUTABLE_NAME}.pdb DESTINATION ${OUTPUT_DIR} CONFIGURATIONS Debug)
+endif()

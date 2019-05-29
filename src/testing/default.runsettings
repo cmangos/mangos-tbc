@@ -1,140 +1,157 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
 
-    <RunConfiguration>
-        <MaxCpuCount>8</MaxCpuCount>
+  <RunConfiguration>
+    <MaxCpuCount>8</MaxCpuCount>
 
-        <!-- Path relative to solution directory -->
-        <ResultsDirectory>.\TestResults</ResultsDirectory>
-      
-        <!-- [x86] | x64    
-          - You can also change it from menu Test, Test Settings, Default Processor Architecture -->  
-        <TargetPlatform>x64</TargetPlatform>
-    </RunConfiguration>
+    <!-- Path relative to solution directory -->
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+    
+    <!-- [x86] | x64  
+      - You can also change it from menu Test, Test Settings, Default Processor Architecture -->  
+    <TargetPlatform>x64</TargetPlatform>
+  </RunConfiguration>
 
-    <!-- General RunSettings Settings Section -->
-    <!-- Reference: https://msdn.microsoft.com/en-us/library/jj635153.aspx -->
+  <!-- General RunSettings Settings Section -->
+  <!-- Reference: https://msdn.microsoft.com/en-us/library/jj635153.aspx -->
 
-    <!-- Parallel Test Execution -->
-    <!-- Reference: http://blog.drorhelper.com/2015/12/vs2015-update-1-brings-back-parallel.html -->
+  <!-- Parallel Test Execution -->
+  <!-- Reference: http://blog.drorhelper.com/2015/12/vs2015-update-1-brings-back-parallel.html -->
 
-    <!-- Adapter Specific Settings Section -->
+  <!-- Adapter Specific Settings Section -->
 
-    <!-- Boost Test Adapter Specific Settings Section -->
-    <BoostTest>
+  <!-- Boost Test Adapter Specific Settings Section -->
+  <BoostTest>
 
-        <!--
-        ExecutionTimeoutMilliseconds - Specifies the duration in milliseconds test process are allowed to execute until forcibly terminated. Use '-1' to allow tests to execute indefinitely.
-        Default: '-1' (Indefinite)
-        -->
-        <!-- <ExecutionTimeoutMilliseconds>100</ExecutionTimeoutMilliseconds> -->
+    <!--
+    ExecutionTimeoutMilliseconds - Specifies the duration in milliseconds test process are allowed to execute until forcibly terminated. Use '-1' to allow tests to execute indefinitely.
+    Default: '-1' (Indefinite)
+    -->
+    <!-- <ExecutionTimeoutMilliseconds>100</ExecutionTimeoutMilliseconds> -->
 
-        <!--
-        DiscoveryTimeoutMilliseconds - Specifies the duration in milliseconds test process are allowed to execute in order to have their list_content output analyzed until forcibly terminated.
-        Default: '5000'
-        -->
-        <!-- <DiscoveryTimeoutMilliseconds>100</DiscoveryTimeoutMilliseconds> -->
+    <!--
+    DiscoveryTimeoutMilliseconds - Specifies the duration in milliseconds test process are allowed to execute in order to have their list_content output analyzed until forcibly terminated.
+    Default: '5000'
+    -->
+    <!-- <DiscoveryTimeoutMilliseconds>100</DiscoveryTimeoutMilliseconds> -->
 
-        <!--
-        FailTestOnMemoryLeak - Set to 'true'|'1' to fail tests in case memory leaks are detected.
-        Default: 'false'|'0'
-        -->
-        <FailTestOnMemoryLeak>true</FailTestOnMemoryLeak>
+    <!--
+    FailTestOnMemoryLeak - Set to 'true'|'1' to fail tests in case memory leaks are detected.
+    Default: 'false'|'0'
+    -->
+    <FailTestOnMemoryLeak>true</FailTestOnMemoryLeak>
 
-        <!--
-        LogLevel - Specify Boost.Test log verbosity.
-        Possible values: 'All', 'Success', 'TestSuite', 'Message', 'Warning', 'Error', 'CppException', 'SystemError', 'FatalError', 'Nothing'
-        Default: 'TestSuite'
-        Reference: http://www.boost.org/doc/libs/1_55_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html
-        -->
-        <LogLevel>All</LogLevel>
+    <!--
+    LogLevel - Specify Boost.Test log verbosity.
+    Possible values: 'All', 'Success', 'TestSuite', 'Message', 'Warning', 'Error', 'CppException', 'SystemError', 'FatalError', 'Nothing'
+    Default: 'TestSuite'
+    Reference: http://www.boost.org/doc/libs/1_55_0/libs/test/doc/html/utf/user-guide/runtime-config/reference.html
+    -->
+    <LogLevel>All</LogLevel>
 
-        <!--
-        CatchSystemErrors - Set to 'true'|'1' to force system exceptions (e.g. assert) to be treated as test errors.
-        Default: 'false'|'0'
-        Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference/catch_system.html
-        -->
-        <CatchSystemErrors>false</CatchSystemErrors>
+    <!--
+    CatchSystemErrors - Set to 'true'|'1' to force system exceptions (e.g. assert) to be treated as test errors.
+    Default: 'false'|'0'
+    Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference/catch_system.html
+    -->
+    <CatchSystemErrors>false</CatchSystemErrors>
 
-        <!--
-        DetectFloatingPointExceptions - Set to 'true'|'1' to enable Boost.Test's detect_fp_exceptions.
-        Default: 'false'|'0'
-        Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference/detect_fp_exceptions.html
-        -->
-        <DetectFloatingPointExceptions>true</DetectFloatingPointExceptions>
+    <!--
+    DetectFloatingPointExceptions - Set to 'true'|'1' to enable Boost.Test's detect_fp_exceptions.
+    Default: 'false'|'0'
+    Reference: http://www.boost.org/doc/libs/1_60_0/libs/test/doc/html/boost_test/utf_reference/rt_param_reference/detect_fp_exceptions.html
+    -->
+    <DetectFloatingPointExceptions>true</DetectFloatingPointExceptions>
 
-        <!--
-        ExternalTestRunner - Describes the discovery and test execution mechanisms for Boost.Test executables using a custom runner implementation. Refer to 'Additional Sample Configuration Files' for sample configurations.
-        -->
-        <!-- <ExternalTestRunner /> -->
+    <!--
+    ExternalTestRunner - Describes the discovery and test execution mechanisms for Boost.Test executables using a custom runner implementation. Refer to 'Additional Sample Configuration Files' for sample configurations.
+    -->
+    <!-- <ExternalTestRunner /> -->
 
-        <!--
-        TestBatchStrategy - Determines how tests should be grouped for execution.
-        Possible values: Source, One, TestSuite, TestCase.
-        Default: TestCase
-        -->
-        <TestBatchStrategy>TestSuite</TestBatchStrategy>
+    <!--
+    TestBatchStrategy - Determines how tests should be grouped for execution.
+    Possible values: Source, One, TestSuite, TestCase.
+    Default: TestCase
+    -->
+    <TestBatchStrategy>TestSuite</TestBatchStrategy>
 
-        <!--
-        RunDisabledTests - Set to 'true'|'1' to force explicitly disabled tests to be run with any other enabled tests if "Run all..." is pressed. By default, only enabled tests are run.
-        Default: 'false'|'0'
-        -->
-        <RunDisabledTests>false</RunDisabledTests>
+    <!--
+    RunDisabledTests - Set to 'true'|'1' to force explicitly disabled tests to be run with any other enabled tests if "Run all..." is pressed. By default, only enabled tests are run.
+    Default: 'false'|'0'
+    -->
+    <RunDisabledTests>false</RunDisabledTests>
 
-        <!--
-        DEPRECATED: Prefer the use of <ForceBoostVersion> instead
-        ForceListContent - Forces the use of 'list_content=DOT' even if the test module is not recognized as a safe module.
-        Default: 'false'|'0'
-        -->
-        <!-- <ForceListContent>false</ForceListContent> -->
+    <!--
+    DEPRECATED: Prefer the use of <ForceBoostVersion> instead
+    ForceListContent - Forces the use of 'list_content=DOT' even if the test module is not recognized as a safe module.
+    Default: 'false'|'0'
+    -->
+    <!-- <ForceListContent>false</ForceListContent> -->
 
-        <!--
-        ForceBoostVersion - Forces the adapter to assume that all modules are Boost.Test modules using the specified Boost version. The adapter will assume the module's 'list_content' and 'version' capabilities from the specified Boost version.
-        -->
-        <!-- <ForceBoostVersion>1.63</ForceBoostVersion> -->
+    <!--
+    ForceBoostVersion - Forces the adapter to assume that all modules are Boost.Test modules using the specified Boost version. The adapter will assume the module's 'list_content' and 'version' capabilities from the specified Boost version.
+    -->
+    <!-- <ForceBoostVersion>1.63</ForceBoostVersion> -->
 
-        <!--
-        WorkingDirectory - Determines the working directory which is to be used during the discovery/execution of the test module. If the test module is executed within a Visual Studio test adapter session, the Working Directory defined in the 'Debug' property sheet configuration overrides this value.
-        -->
-        <!-- <WorkingDirectory>C:\</WorkingDirectory> -->
+    <!--
+    WorkingDirectory - Determines the working directory which is to be used during the discovery/execution of the test module. If the test module is executed within a Visual Studio test adapter session, the Working Directory defined in the 'Debug' property sheet configuration overrides this value.
+    -->
+    <!-- <WorkingDirectory>C:\</WorkingDirectory> -->
 
-        <!--
-        EnableStdOutRedirection - Enables/Disables standard output redirection. Note that if disabled, memory leak detection is implicitly disabled.
-        Default: 'true'|'1'
-        -->
-        <EnableStdOutRedirection>true</EnableStdOutRedirection>
+    <!--
+    EnableStdOutRedirection - Enables/Disables standard output redirection. Note that if disabled, memory leak detection is implicitly disabled.
+    Default: 'true'|'1'
+    -->
+    <EnableStdOutRedirection>true</EnableStdOutRedirection>
 
-        <!--
-        EnableStdErrRedirection - Enables/Disables standard error redirection.
-        Default: 'true'|'1'
-        -->
-        <EnableStdErrRedirection>true</EnableStdErrRedirection>
+    <!--
+    EnableStdErrRedirection - Enables/Disables standard error redirection.
+    Default: 'true'|'1'
+    -->
+    <EnableStdErrRedirection>true</EnableStdErrRedirection>
 
-        <!--
-        Filters - Define a series of regular expression patterns which determine which test modules should be taken into consideration for discovery/execution.
-        Default: All test modules are taken into consideration.
-        -->
-        <!--Filters>
-            <Include>
-                <Pattern>[^\\]+?.exe$</Pattern>
-            </Include>
-            <Exclude>
-                <Pattern>.dll$</Pattern>
-            </Exclude>
-        </Filters-->
+    <!--
+    Filters - Define a series of regular expression patterns which determine which test modules should be taken into consideration for discovery/execution.
+    Default: All test modules are taken into consideration.
+    -->
+    <!--Filters>
+      <Include>
+        <Pattern>[^\\]+?.exe$</Pattern>
+      </Include>
+      <Exclude>
+        <Pattern>.dll$</Pattern>
+      </Exclude>
+    </Filters-->
 
-        <!--
-        UseBoost162Workaround - Enables/Disables the Boost 1.62 workaround. Allows the use of the test adapter with Boost.Test released with Boost 1.62.
-        Default: 'false'|'0'
-        -->
-        <!-- <UseBoost162Workaround>false</UseBoost162Workaround> -->
+    <!--
+    UseBoost162Workaround - Enables/Disables the Boost 1.62 workaround. Allows the use of the test adapter with Boost.Test released with Boost 1.62.
+    Default: 'false'|'0'
+    -->
+    <!-- <UseBoost162Workaround>false</UseBoost162Workaround> -->
 
-        <!--
-        PostTestDelay - Determines a delay (represented in milliseconds) which is applied following test execution to allow correct release of resources.
-        Default: 0
-        -->
-        <!-- <PostTestDelay>0</PostTestDelay> -->
+    <!--
+    PostTestDelay - Determines a delay (represented in milliseconds) which is applied following test execution to allow correct release of resources.
+    Default: 0
+    -->
+    <!-- <PostTestDelay>0</PostTestDelay> -->
 
-    </BoostTest>
+  </BoostTest>
+
+  <!-- Catch2 Adapter -->
+  <Catch2Adapter disabled="false">
+    <DebugBreak>on</DebugBreak>
+    <!-- Note this custom discoverer is not part of the Catch2 framework -->
+    <DiscoverCommandLine>--verbosity high --list-tests *</DiscoverCommandLine>
+    <DiscoverTimeout>500</DiscoverTimeout>
+    <FilenameFilter>^testing</FilenameFilter>
+    <IncludeHidden>true</IncludeHidden>
+    <Logging>verbose</Logging>
+    <MessageFormat>AdditionalInfo</MessageFormat>
+    <StackTraceFormat>ShortInfo</StackTraceFormat>
+    <StackTracePointReplacement>,</StackTracePointReplacement>
+    <TestCaseTimeout>20000</TestCaseTimeout><!-- Milliseconds -->
+    <WorkingDirectory>/Bin</WorkingDirectory>
+    <WorkingDirectoryRoot>Executable</WorkingDirectoryRoot>
+  </Catch2Adapter>
 
 </RunSettings>

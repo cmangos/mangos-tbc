@@ -16,6 +16,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+set(BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 if(BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS OR BUILD_TESTING)
   add_subdirectory(framework)
   add_subdirectory(shared)

@@ -15,7 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
 #include "TestServer.h"
 
 #include "Common.h"
@@ -26,12 +25,7 @@
 char serviceName[] = "mangosd";
 char serviceLongName[] = "MaNGOS world service";
 char serviceDescription[] = "Massive Network Game Object Server";
-/*
- * -1 - not in service mode
- *  0 - stopped
- *  1 - running
- *  2 - paused
- */
+
 int m_ServiceStatus = -1;
 #else
 #include "PosixDaemon.h"

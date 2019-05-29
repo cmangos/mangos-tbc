@@ -22,7 +22,7 @@
 
 class TestEngine {
 public:
-    TestEngine() {}
+    TestEngine() : serverThread(nullptr) {}
     ~TestEngine() {}
 
     void run() {

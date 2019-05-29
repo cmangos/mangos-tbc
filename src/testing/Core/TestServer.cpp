@@ -37,24 +37,15 @@ DatabaseType LoginDatabase;       ///< Accessor to the realm/login database
 
 uint32 realmID;                   ///< Id of the realm
 
-/*
-TODO: We need to set up a test thread where we get access to all the world/master.
-      Then when the test has ended we need to call World::StopNow(SHUTDOWN_EXIT_CODE)
-*/
-int TestServer::start(int argc, char* argv[])
+int TestServer::start()
 {
-    std::string auctionBotConfig, configFile, serviceParameter;
-
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("ahbot,a", boost::program_options::value<std::string>(&auctionBotConfig), "ahbot configuration file")
-        ("config,c", boost::program_options::value<std::string>(&configFile)->default_value(_MANGOSD_CONFIG), "configuration file")
-        ("help,h", "prints usage")
-        ("version,v", "print version and exit");
+    std::string auctionBotConfig;
+    std::string configFile = _MANGOSD_CONFIG;
+    std::string serviceParameter;
 
     boost::program_options::variables_map vm;
 
-    if (vm.count("ahbot"))
+    if (!auctionBotConfig.empty())
         sAuctionBotConfig.SetConfigFileName(auctionBotConfig);
 
     if (!sConfig.SetSource(configFile))
@@ -76,5 +67,5 @@ void TestServer::end(uint8 exitCode/* = SHUTDOWN_EXIT_CODE*/)
 
 void ServerRunnable::run()
 {
-
+    sTestServer.start();
 }

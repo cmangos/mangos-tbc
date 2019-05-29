@@ -46,7 +46,7 @@ public:
         std::cout << "Creating Server" << std::endl;
     };
 
-    int start(int argc, char* argv[]);
+    int start();
     void end(uint8 exitCode = SHUTDOWN_EXIT_CODE);
 };
 

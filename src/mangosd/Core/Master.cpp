@@ -269,7 +269,6 @@ int Master::Run()
     if (cliThread)
     {
 #ifdef _WIN32
-
         // this only way to terminate CLI thread exist at Win32 (alt. way exist only in Windows Vista API)
         //_exit(1);
         // send keyboard input to safely unblock the CLI thread
@@ -306,11 +305,8 @@ int Master::Run()
         BOOL ret = WriteConsoleInput(hStdIn, b, 4, &numb);
 
         cliThread->wait();
-
 #else
-
         cliThread->destroy();
-
 #endif
 
         delete cliThread;

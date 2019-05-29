@@ -20,13 +20,22 @@
 
 #include "TestEngine.h"
 
-int main(int argc, char *argv[])
+#include "World/World.h"
+
+int main(int argc, char* argv[])
 {
-    //sTestEngine.run();
+    sTestEngine.run();
 
-    int result = Catch::Session().run(argc, argv);
+    // Wait for the server to start before running tests
 
-    //sTestEngine.kill();
+    int result = SHUTDOWN_EXIT_CODE;
+    while (true) {
+        if (World::IsStarted()) {
+            result = Catch::Session().run(argc, argv);
+        }
+    }
+
+    sTestEngine.kill();
 
     // numFailed is clamped to 255 as some unices only use the lower 8 bits.
     // This clamping has already been applied, so just return it here

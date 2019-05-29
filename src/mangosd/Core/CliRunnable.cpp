@@ -615,6 +615,8 @@ void CliRunnable::run()
     // later it will be printed after command queue updates
     printf("mangos>");
 
+    World::SetStarted(true);
+
 #ifdef __unix__
     //Set stdin IO to nonblocking - prevent Server from hanging in shutdown process till enter is pressed
     int fd = fileno(stdin);

@@ -1375,7 +1375,7 @@ void Loot::Release(Player* player)
     }
 
     if (updateClients)
-        ForceLootAnimationCLientUpdate();
+        ForceLootAnimationClientUpdate();
 }
 
 // Popup windows with loot content
@@ -1633,7 +1633,7 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
                     creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
                 else
                     creature->SetLootStatus(CREATURE_LOOT_STATUS_LOOTED);
-                ForceLootAnimationCLientUpdate();
+                ForceLootAnimationClientUpdate();
                 break;
             }
 
@@ -2021,7 +2021,7 @@ InventoryResult Loot::SendItem(Player* target, LootItem* lootItem)
         }
         else if (IsLootedFor(target))
             SendReleaseFor(target);
-        ForceLootAnimationCLientUpdate();
+        ForceLootAnimationClientUpdate();
     }
     return msg;
 }
@@ -2077,7 +2077,7 @@ void Loot::Update()
 
 // this will force server to update all client that is showing this object
 // used to update players right to loot or sparkles animation
-void Loot::ForceLootAnimationCLientUpdate() const
+void Loot::ForceLootAnimationClientUpdate() const
 {
     if (!m_lootTarget)
         return;
@@ -2189,7 +2189,8 @@ void Loot::SendGold(Player* player)
 
     if (IsLootedFor(player))
         Release(player);
-    ForceLootAnimationCLientUpdate();
+    else
+        ForceLootAnimationClientUpdate();
 }
 
 bool Loot::IsItemAlreadyIn(uint32 itemId) const

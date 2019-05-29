@@ -81,11 +81,11 @@ if(WIN32)
 
   # Add conf file to dev folder
   add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${BASE_DIR}/realmd/realmd.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/realmd.conf\")
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${BASE_DIR}/realmd/realmd.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/realmd.conf.dist\")
 
    # Add conf file to dev folder
   add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${BASE_DIR}/mangosd/mangosd.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/mangosd.conf\")
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${BASE_DIR}/mangosd/mangosd.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/mangosd.conf.dist\")
 endif()
 
 if(UNIX)
@@ -117,8 +117,8 @@ set_target_properties(${EXECUTABLE_NAME} PROPERTIES LINK_FLAGS
 )
 
 install(TARGETS ${EXECUTABLE_NAME} DESTINATION ${OUTPUT_DIR})
-install(FILES "${BASE_DIR}/realmd/realmd.conf.dist.in" DESTINATION ${CONF_DIR} RENAME realmd.conf)
-install(FILES "${BASE_DIR}/mangosd/mangosd.conf.dist.in" DESTINATION ${CONF_DIR} RENAME mangosd.conf)
+install(FILES "${BASE_DIR}/realmd/realmd.conf.dist.in" DESTINATION ${CONF_DIR} RENAME realmd.conf.dist)
+install(FILES "${BASE_DIR}/mangosd/mangosd.conf.dist.in" DESTINATION ${CONF_DIR} RENAME mangosd.conf.dist)
 
 if(MSVC)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/\${BUILD_TYPE}/${EXECUTABLE_NAME}.pdb DESTINATION ${OUTPUT_DIR} CONFIGURATIONS Debug)

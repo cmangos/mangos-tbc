@@ -140,8 +140,6 @@
   <!-- Catch2 Adapter -->
   <Catch2Adapter disabled="false">
     <DebugBreak>on</DebugBreak>
-    <!-- Note this custom discoverer is not part of the Catch2 framework -->
-    <DiscoverCommandLine>--verbosity high --list-tests *</DiscoverCommandLine>
     <DiscoverTimeout>500</DiscoverTimeout>
     <FilenameFilter>^testing</FilenameFilter>
     <IncludeHidden>true</IncludeHidden>

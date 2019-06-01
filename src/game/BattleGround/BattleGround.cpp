@@ -1561,10 +1561,10 @@ void BattleGround::SpawnEvent(uint8 event1, uint8 event2, bool spawn)
         SpawnBGCreature(*itr, (spawn) ? RESPAWN_IMMEDIATELY : RESPAWN_ONE_DAY);
     GuidVector::const_iterator itr2 = m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.begin();
     for (; itr2 != m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.end(); ++itr2)
-        SpawnBGObject(*itr2, (spawn) ? RESPAWN_IMMEDIATELY : RESPAWN_ONE_DAY);
+        SpawnBGObject(*itr2, (spawn) ? RESPAWN_IMMEDIATELY : RESPAWN_ONE_DAY, true);
 }
 
-void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
+void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime, bool storeUpdate/* = false*/)
 {
     Map* map = GetBgMap();
     GameObject* obj = map->GetGameObject(guid);
@@ -1581,7 +1581,7 @@ void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
         // The objects state will sometimes not sync correctly with the client
         // since the object is invisible when the state change takes place.
         // In order to maintain its object state on the clients we will keep track.
-        if (respawntime == RESPAWN_ONE_DAY && GetStatus() == STATUS_IN_PROGRESS)
+        if (storeUpdate && respawntime == RESPAWN_ONE_DAY && GetStatus() == STATUS_IN_PROGRESS)
             AddPlayerUpdateObject(guid);
     }
     else

@@ -500,7 +500,7 @@ class BattleGround
 
         void HandleTriggerBuff(ObjectGuid go_guid);
 
-        void SpawnBGObject(ObjectGuid guid, uint32 respawntime);
+        void SpawnBGObject(ObjectGuid guid, uint32 respawntime, bool storeUpdate = false);
         void SpawnBGCreature(ObjectGuid guid, uint32 respawntime);
 
         void DoorOpen(ObjectGuid guid);

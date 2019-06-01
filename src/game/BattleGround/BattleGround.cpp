@@ -365,7 +365,7 @@ void BattleGround::Update(uint32 diff)
                     {
                         float x, y, z, o;
                         GetTeamStartLoc(player->GetTeam(), x, y, z, o);
-                        if (!player->IsWithinDist3d(x, y, z, maxDist))
+                        if (!player->IsWithinDist3d(x, y, z, maxDist) && !sBattleGroundMgr.isTesting())
                         {
                             player->TeleportTo(GetMapId(), x, y, z, o);
                         }
@@ -529,7 +529,7 @@ void BattleGround::SendObjectUpdatesToPlayer(Player* player)
     if (!player)
         return;
     Map* map = GetBgMap();
-    GuidVector::const_iterator it = m_objUpdates.begin();
+    auto it = m_objUpdates.begin();
     for (; it != m_objUpdates.end(); ++it)
     {
         GameObject* obj = map->GetGameObject(*it);
@@ -542,11 +542,7 @@ void BattleGround::SendObjectUpdatesToPlayer(Player* player)
 
 void BattleGround::AddPlayerUpdateObject(ObjectGuid guid)
 {
-    auto it = std::find(m_objUpdates.begin(), m_objUpdates.end(), guid);
-    if (it == m_objUpdates.end())
-    {
-        m_objUpdates.push_back(guid);
-    }
+    m_objUpdates.insert(guid);
 }
 
 void BattleGround::PlaySoundToAll(uint32 SoundID) const

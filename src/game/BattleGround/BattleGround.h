@@ -620,7 +620,7 @@ class BattleGround
         float m_TeamStartLocO[PVP_TEAM_COUNT];
         float m_startMaxDist;
 
-        GuidVector m_objUpdates;
+        std::set<ObjectGuid> m_objUpdates;
 };
 
 // helper functions for world state list fill

@@ -1581,7 +1581,7 @@ void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
         // The objects state will sometimes not sync correctly with the client
         // since the object is invisible when the state change takes place.
         // In order to maintain its object state on the clients we will keep track.
-        if (respawntime == RESPAWN_ONE_DAY)
+        if (respawntime == RESPAWN_ONE_DAY && GetStatus() == STATUS_IN_PROGRESS)
             AddPlayerUpdateObject(guid);
     }
     else

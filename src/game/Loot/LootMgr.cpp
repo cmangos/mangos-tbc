@@ -1147,7 +1147,7 @@ void Loot::SetPlayerIsNotLooting(Player* player)
     }
 }
 
-void Loot::Release(Player* player)
+bool Loot::Release(Player* player)
 {
     bool updateClients = false;
     if (player->GetObjectGuid() == m_currentLooterGuid)
@@ -1251,7 +1251,7 @@ void Loot::Release(Player* player)
         {
             Corpse* corpse = (Corpse*) m_lootTarget;
             if (!corpse || !corpse->IsWithinDistInMap(player, INTERACTION_DISTANCE))
-                return;
+                return false;
 
             if (IsLootedFor(player))
             {
@@ -1302,7 +1302,7 @@ void Loot::Release(Player* player)
                     break;
                 }
             }
-            return;                                         // item can be looted only single player
+            return false; // item can be looted only single player
         }
         case HIGHGUID_UNIT:
         {
@@ -1376,6 +1376,8 @@ void Loot::Release(Player* player)
 
     if (updateClients)
         ForceLootAnimationClientUpdate();
+
+    return updateClients;
 }
 
 // Popup windows with loot content
@@ -2187,9 +2189,7 @@ void Loot::SendGold(Player* player)
     }
     m_gold = 0;
 
-    if (IsLootedFor(player))
-        Release(player);
-    else
+    if(!IsLootedFor(player) || Release(player))
         ForceLootAnimationClientUpdate();
 }
 

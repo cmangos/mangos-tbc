@@ -308,7 +308,7 @@ class Loot
         void ShowContentTo(Player* plr);
         void Update();
         bool IsChanged() const { return m_isChanged; }
-        void Release(Player* player);
+        bool Release(Player* player);
         void GetLootItemsListFor(Player* player, LootItemList& lootList);
         void SetGoldAmount(uint32 _gold);
         void SendGold(Player* player);

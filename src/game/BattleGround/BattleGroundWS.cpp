@@ -356,7 +356,7 @@ void BattleGroundWS::EventPlayerClickedOnFlag(Player* source, GameObject* target
         }
         else
         {
-			if(GetFlagState(HORDE) == BG_WS_FLAG_STATE_ON_GROUND)
+	        if(GetFlagState(HORDE) == BG_WS_FLAG_STATE_ON_GROUND)
                 return;
             message_id = LANG_BG_WS_PICKEDUP_AF;
             type = CHAT_MSG_BG_SYSTEM_HORDE;

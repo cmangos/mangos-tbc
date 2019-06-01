@@ -356,6 +356,8 @@ void BattleGroundWS::EventPlayerClickedOnFlag(Player* source, GameObject* target
         }
         else
         {
+			if(GetFlagState(HORDE) == BG_WS_FLAG_STATE_ON_GROUND)
+                return;
             message_id = LANG_BG_WS_PICKEDUP_AF;
             type = CHAT_MSG_BG_SYSTEM_HORDE;
             PlaySoundToAll(BG_WS_SOUND_ALLIANCE_FLAG_PICKED_UP);
@@ -384,6 +386,8 @@ void BattleGroundWS::EventPlayerClickedOnFlag(Player* source, GameObject* target
         }
         else
         {
+            if (GetFlagState(ALLIANCE) == BG_WS_FLAG_STATE_ON_GROUND)
+                return;
             message_id = LANG_BG_WS_PICKEDUP_HF;
             type = CHAT_MSG_BG_SYSTEM_ALLIANCE;
             PlaySoundToAll(BG_WS_SOUND_HORDE_FLAG_PICKED_UP);
@@ -581,12 +585,12 @@ void BattleGroundWS::FillInitialWorldStates(WorldPacket& data, uint32& count)
 
     FillInitialWorldState(data, count, BG_WS_FLAG_CAPTURES_MAX, BG_WS_MAX_TEAM_SCORE);
 
-    if (m_FlagState[TEAM_INDEX_HORDE] == BG_WS_FLAG_STATE_ON_PLAYER)
+    if (m_FlagState[TEAM_INDEX_ALLIANCE] == BG_WS_FLAG_STATE_ON_PLAYER)
         FillInitialWorldState(data, count, BG_WS_FLAG_STATE_HORDE, 2);
     else
         FillInitialWorldState(data, count, BG_WS_FLAG_STATE_HORDE, 1);
-
-    if (m_FlagState[TEAM_INDEX_ALLIANCE] == BG_WS_FLAG_STATE_ON_PLAYER)
+    
+    if (m_FlagState[TEAM_INDEX_HORDE] == BG_WS_FLAG_STATE_ON_PLAYER)
         FillInitialWorldState(data, count, BG_WS_FLAG_STATE_ALLIANCE, 2);
     else
         FillInitialWorldState(data, count, BG_WS_FLAG_STATE_ALLIANCE, 1);

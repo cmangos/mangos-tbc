@@ -220,6 +220,9 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player* source)
     {
         m_FlagsTimer[GetOtherTeamIndex(GetTeamIndexByTeamId(source->GetTeam()))] = BG_WS_FLAG_RESPAWN_TIME;
     }
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 }
 
 void BattleGroundWS::EventPlayerDroppedFlag(Player* source)
@@ -298,6 +301,9 @@ void BattleGroundWS::EventPlayerDroppedFlag(Player* source)
 
         m_FlagsDropTimer[GetOtherTeamIndex(GetTeamIndexByTeamId(source->GetTeam()))] = BG_WS_FLAG_DROP_TIME;
     }
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 }
 
 void BattleGroundWS::EventPlayerClickedOnFlag(Player* source, GameObject* target_obj)
@@ -403,6 +409,9 @@ void BattleGroundWS::EventPlayerClickedOnFlag(Player* source, GameObject* target
 
     SendMessageToAll(message_id, type, source);
     source->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 }
 
 void BattleGroundWS::RemovePlayer(Player* plr, ObjectGuid guid)

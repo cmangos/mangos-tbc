@@ -193,6 +193,17 @@ void Object::SendCreateUpdateToPlayer(Player* player) const
     player->GetSession()->SendPacket(packet);
 }
 
+void Object::SendUpdateToPlayer(Player* player) const
+{
+    // send create update to player
+    UpdateData upd;
+    WorldPacket packet;
+
+    BuildValuesUpdateBlockForPlayer(&upd, player);
+    upd.BuildPacket(packet);
+    player->GetSession()->SendPacket(packet);
+}
+
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
 {
     ByteBuffer buf(500);

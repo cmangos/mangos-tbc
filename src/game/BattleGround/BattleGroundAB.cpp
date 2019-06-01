@@ -400,6 +400,9 @@ void BattleGroundAB::EventPlayerClickedOnFlag(Player* source, GameObject* target
             SendMessage2ToAll(LANG_BG_AB_NODE_TAKEN, CHAT_MSG_BG_SYSTEM_HORDE, nullptr, LANG_BG_HORDE, _GetNodeNameId(node));
     }
     PlaySoundToAll(sound);
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 }
 
 void BattleGroundAB::Reset()

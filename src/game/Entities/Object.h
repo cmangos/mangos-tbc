@@ -373,6 +373,7 @@ class Object
 
         virtual void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const;
         void SendCreateUpdateToPlayer(Player* player) const;
+        void SendUpdateToPlayer(Player* player) const;
 
         // must be overwrite in appropriate subclasses (WorldObject, Item currently), or will crash
         virtual void AddToClientUpdateList();

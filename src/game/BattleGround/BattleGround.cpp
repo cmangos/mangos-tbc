@@ -524,6 +524,31 @@ void BattleGround::SendPacketToTeam(Team teamId, WorldPacket const& packet, Play
     }
 }
 
+void BattleGround::SendObjectUpdatesToPlayer(Player* player)
+{
+    if (!player)
+        return;
+    Map* map = GetBgMap();
+    GuidVector::const_iterator it = m_objUpdates.begin();
+    for (; it != m_objUpdates.end(); ++it)
+    {
+        GameObject* obj = map->GetGameObject(*it);
+        if (obj)
+            obj->SendUpdateToPlayer(player);
+    }
+
+    m_objUpdates.clear();
+}
+
+void BattleGround::AddPlayerUpdateObject(ObjectGuid guid)
+{
+    auto it = std::find(m_objUpdates.begin(), m_objUpdates.end(), guid);
+    if (it == m_objUpdates.end())
+    {
+        m_objUpdates.push_back(guid);
+    }
+}
+
 void BattleGround::PlaySoundToAll(uint32 SoundID) const
 {
     WorldPacket data;
@@ -1469,6 +1494,7 @@ void BattleGround::OnObjectDBLoad(GameObject* obj)
     const BattleGroundEventIdx eventId = sBattleGroundMgr.GetGameObjectEventIndex(obj->GetGUIDLow());
     if (eventId.event1 == BG_EVENT_NONE)
         return;
+
     m_EventObjects[MAKE_PAIR32(eventId.event1, eventId.event2)].gameobjects.push_back(obj->GetObjectGuid());
     if (!IsActiveEvent(eventId.event1, eventId.event2))
     {
@@ -1541,23 +1567,34 @@ void BattleGround::SpawnEvent(uint8 event1, uint8 event2, bool spawn)
 void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
 {
     Map* map = GetBgMap();
-
     GameObject* obj = map->GetGameObject(guid);
     if (!obj)
         return;
-    if (respawntime == 0)
+
+    if (respawntime)
+    {
+        map->Add(obj);
+        obj->SetRespawnTime(respawntime);
+        obj->SetGoState(GO_STATE_ACTIVE);
+        obj->SetLootState(GO_JUST_DEACTIVATED);
+
+        // The objects state will sometimes not sync correctly with the client
+        // since the object is invisible when the state change takes place.
+        // In order to maintain its object state on the clients we will keep track.
+        if (respawntime == RESPAWN_ONE_DAY)
+            AddPlayerUpdateObject(guid);
+    }
+    else
     {
         // we need to change state from GO_JUST_DEACTIVATED to GO_READY in case battleground is starting again
         if (obj->GetLootState() == GO_JUST_DEACTIVATED)
             obj->SetLootState(GO_READY);
+
+        if (obj->GetGOInfo()->type != GAMEOBJECT_TYPE_FLAGSTAND)
+            obj->SetGoState(GO_STATE_READY);
+
         obj->SetRespawnTime(0);
         map->Add(obj);
-    }
-    else
-    {
-        map->Add(obj);
-        obj->SetRespawnTime(respawntime);
-        obj->SetLootState(GO_JUST_DEACTIVATED);
     }
 }
 

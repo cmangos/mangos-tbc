@@ -400,6 +400,9 @@ void BattleGroundEY::EventPlayerDroppedFlag(Player* source)
         UpdateWorldState(WORLD_STATE_EY_NETHERSTORM_FLAG_STATE_HORDE, 1);
         SendMessageToAll(LANG_BG_EY_DROPPED_FLAG, CHAT_MSG_BG_SYSTEM_HORDE, nullptr);
     }
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 }
 
 void BattleGroundEY::EventPlayerClickedOnFlag(Player* source, GameObject* target_obj)
@@ -437,6 +440,9 @@ void BattleGroundEY::EventPlayerClickedOnFlag(Player* source, GameObject* target
         PSendMessageToAll(LANG_BG_EY_HAS_TAKEN_FLAG, CHAT_MSG_BG_SYSTEM_ALLIANCE, nullptr, source->GetName());
     else
         PSendMessageToAll(LANG_BG_EY_HAS_TAKEN_FLAG, CHAT_MSG_BG_SYSTEM_HORDE, nullptr, source->GetName());
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 }
 
 void BattleGroundEY::EventPlayerCapturedFlag(Player* source, EYNodes node)
@@ -472,6 +478,9 @@ void BattleGroundEY::EventPlayerCapturedFlag(Player* source, EYNodes node)
     }
 
     SpawnEvent(EY_EVENT_CAPTURE_FLAG, node, true);
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 
     UpdatePlayerScore(source, SCORE_FLAG_CAPTURES, 1);
 }

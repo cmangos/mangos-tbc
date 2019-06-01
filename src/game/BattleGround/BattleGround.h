@@ -415,6 +415,9 @@ class BattleGround
         virtual void EndBattleGround(Team winner);
         static void BlockMovement(Player* plr);
 
+        void SendObjectUpdatesToPlayer(Player* player);
+        void AddPlayerUpdateObject(ObjectGuid guid);
+
         void SendMessageToAll(int32 entry, ChatMsg type, Player const* source = nullptr);
         void SendYellToAll(int32 entry, uint32 language, ObjectGuid guid);
         void PSendMessageToAll(int32 entry, ChatMsg type, Player const* source, ...);
@@ -616,6 +619,8 @@ class BattleGround
         float m_TeamStartLocZ[PVP_TEAM_COUNT];
         float m_TeamStartLocO[PVP_TEAM_COUNT];
         float m_startMaxDist;
+
+        GuidVector m_objUpdates;
 };
 
 // helper functions for world state list fill

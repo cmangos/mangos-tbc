@@ -507,6 +507,9 @@ void BattleGroundAV::EventPlayerClickedOnFlag(Player* source, GameObject* target
         default:
             break;
     }
+
+    // Make sure any objects that require player updates are handled.
+    SendObjectUpdatesToPlayer(source);
 }
 
 void BattleGroundAV::EventPlayerDefendsPoint(Player* player, BG_AV_Nodes node)

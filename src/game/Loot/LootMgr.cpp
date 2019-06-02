@@ -2189,7 +2189,7 @@ void Loot::SendGold(Player* player)
     }
     m_gold = 0;
 
-    if(!IsLootedFor(player) || Release(player))
+    if (!IsLootedFor(player) || Release(player))
         ForceLootAnimationClientUpdate();
 }
 

@@ -149,7 +149,7 @@ void instance_mount_hyjal::SetData(uint32 uiType, uint32 uiData)
             if (uiData == SPECIAL)
             {
                 if (GetData(TYPE_ANETHERON) == DONE && stopnoderespawn != 1)
-		        {
+                {
                     if (!lAncientGemGUIDList.empty())
                     {
                         for (GuidList::const_iterator itr = lAncientGemGUIDList.begin(); itr != lAncientGemGUIDList.end(); ++itr)
@@ -158,8 +158,7 @@ void instance_mount_hyjal::SetData(uint32 uiType, uint32 uiData)
                             DoRespawnGameObject(*itr, DAY);
                             stopnoderespawn = 1;
                         }
-			        
-		            }
+                    }
                 }
             }
             break;

@@ -148,21 +148,19 @@ void instance_mount_hyjal::SetData(uint32 uiType, uint32 uiData)
         case TYPE_RETREAT:
             if (uiData == SPECIAL)
             {
-                if (GetData(TYPE_ANETHERON) == DONE && stopnoderespawn != 1)
+                if (!lAncientGemGUIDList.empty() && stopnoderespawn != 1)
                 {
-                    if (!lAncientGemGUIDList.empty())
+                    for (GuidList::const_iterator itr = lAncientGemGUIDList.begin(); itr != lAncientGemGUIDList.end(); ++itr)
                     {
-                        for (GuidList::const_iterator itr = lAncientGemGUIDList.begin(); itr != lAncientGemGUIDList.end(); ++itr)
-                        {
-                            // don't know how long it expected
-                            DoRespawnGameObject(*itr, DAY);
-                            stopnoderespawn = 1;
-                        }
+                        // don't know how long it expected
+                        DoRespawnGameObject(*itr, DAY);
+                        stopnoderespawn = 1;
                     }
                 }
             }
             break;
     }
+    
     debug_log("SD2: Instance Hyjal: Instance data updated for event %u (Data=%u)", uiType, uiData);
 
     if (uiData == DONE)

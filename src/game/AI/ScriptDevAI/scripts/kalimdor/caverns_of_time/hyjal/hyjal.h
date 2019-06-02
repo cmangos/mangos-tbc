@@ -82,6 +82,7 @@ class instance_mount_hyjal : public ScriptedInstance
         GuidList lAncientGemGUIDList;
 
         uint32 m_uiTrashCount;
+        uint32 stopnoderespawn; 
 };
 
 #endif

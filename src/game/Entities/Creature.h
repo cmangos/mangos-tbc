@@ -779,7 +779,10 @@ class Creature : public Unit
         void SaveRespawnTime() override;
 
         uint32 GetRespawnDelay() const { return m_respawnDelay; }
-        void SetRespawnDelay(uint32 delay) { m_respawnDelay = delay; }
+        void SetRespawnDelay(uint32 delay, bool allowRandomized = true) {
+            m_respawnRandomized = allowRandomized;
+            m_respawnDelay = delay;
+        }
 
         float GetRespawnRadius() const { return m_respawnradius; }
         void SetRespawnRadius(float dist) { m_respawnradius = dist; }
@@ -853,6 +856,9 @@ class Creature : public Unit
 
         void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration) override;
 
+        bool IsRespawnRandomized() { return m_respawnRandomized; }
+        void SetRespawnRandomized(bool respawnRandomized) { m_respawnRandomized = respawnRandomized; }
+
         bool CanAggro() const { return m_canAggro; }
         void SetCanAggro(bool canAggro) { m_canAggro = canAggro; }
 
@@ -889,6 +895,7 @@ class Creature : public Unit
         time_t m_respawnTime;                               // (secs) time of next respawn
         uint32 m_respawnDelay;                              // (secs) delay between corpse disappearance and respawning
         uint32 m_corpseDelay;                               // (secs) delay between death and corpse disappearance
+        bool m_respawnRandomized;                           // should the respawn be randomized, if so a new respawn value is made each death cycle
         bool m_canAggro;                                    // controls response of creature to attacks
         float m_respawnradius;
 

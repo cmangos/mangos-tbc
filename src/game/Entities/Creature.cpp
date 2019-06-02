@@ -132,7 +132,7 @@ bool CreatureCreatePos::Relocate(Creature* cr) const
 
 Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_lootMoney(0), m_lootGroupRecipientId(0),
-    m_lootStatus(CREATURE_LOOT_STATUS_NONE),
+    m_lootStatus(CREATURE_LOOT_STATUS_NONE), m_respawnRandomized(true),
     m_respawnTime(0), m_respawnDelay(25), m_corpseDelay(60), m_canAggro(false),
     m_respawnradius(5.0f), m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE),
     m_equipmentId(0), m_AlreadyCallAssistance(false),
@@ -1478,7 +1478,7 @@ bool Creature::LoadFromDB(uint32 guidlow, Map* map)
     SetRespawnCoord(pos);
     m_respawnradius = data->spawndist;
 
-    m_respawnDelay = data->GetRandomRespawnTime();
+    m_respawnDelay = m_respawnRandomized ? data->GetRandomRespawnTime() : data->spawntimesecsmax;
     m_corpseDelay = std::min(m_respawnDelay * 9 / 10, m_corpseDelay); // set corpse delay to 90% of the respawn delay
     m_isDeadByDefault = data->is_dead;
     m_deathState = m_isDeadByDefault ? DEAD : ALIVE;
@@ -1637,8 +1637,11 @@ void Creature::SetDeathState(DeathState s)
 {
     if ((s == JUST_DIED && !m_isDeadByDefault) || (s == JUST_ALIVED && m_isDeadByDefault))
     {
-        if (CreatureData const* data = sObjectMgr.GetCreatureData(GetGUIDLow()))
-            m_respawnDelay = data->GetRandomRespawnTime();
+        if (m_respawnRandomized)
+        {
+            if (CreatureData const* data = sObjectMgr.GetCreatureData(GetGUIDLow()))
+                m_respawnDelay = data->GetRandomRespawnTime();
+        }
 
         m_corpseExpirationTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(m_corpseDelay * IN_MILLISECONDS); // the max/default time for corpse decay (before creature is looted/AllLootRemovedFromCorpse() is called)
         m_respawnTime = time(nullptr) + m_respawnDelay; // respawn delay (spawntimesecs)

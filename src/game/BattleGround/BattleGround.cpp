@@ -302,7 +302,8 @@ void BattleGround::Update(uint32 diff)
     /*********************************************************/
 
     // if less then minimum players are in on one side, then start premature finish timer
-    if (GetStatus() == STATUS_IN_PROGRESS && !isArena() && sBattleGroundMgr.GetPrematureFinishTime() && (GetPlayersCountByTeam(ALLIANCE) < GetMinPlayersPerTeam() || GetPlayersCountByTeam(HORDE) < GetMinPlayersPerTeam()))
+    if (GetStatus() == STATUS_IN_PROGRESS && !isArena() && sBattleGroundMgr.GetPrematureFinishTime() && 
+       (GetPlayersCountByTeam(ALLIANCE) < GetMinPlayersPerTeam() || GetPlayersCountByTeam(HORDE) < GetMinPlayersPerTeam()))
     {
         if (!m_PrematureCountDown)
         {
@@ -365,7 +366,7 @@ void BattleGround::Update(uint32 diff)
                     {
                         float x, y, z, o;
                         GetTeamStartLoc(player->GetTeam(), x, y, z, o);
-                        if (!player->IsWithinDist3d(x, y, z, maxDist))
+                        if (!player->IsWithinDist3d(x, y, z, maxDist) && !sBattleGroundMgr.isTesting())
                         {
                             player->TeleportTo(GetMapId(), x, y, z, o);
                         }
@@ -968,8 +969,8 @@ void BattleGround::SendRewardMarkByMail(Player* plr, uint32 mark, uint32 count) 
         snprintf(textBuf, 300, textFormat.c_str(), GetName(), GetName());
 
         MailDraft(subject, textBuf)
-        .AddItem(markItem)
-        .SendMailTo(plr, MailSender(MAIL_CREATURE, bmEntry));
+            .AddItem(markItem)
+            .SendMailTo(plr, MailSender(MAIL_CREATURE, bmEntry));
     }
 }
 
@@ -1451,9 +1452,14 @@ void BattleGround::OnObjectDBLoad(Creature* creature)
     const BattleGroundEventIdx eventId = sBattleGroundMgr.GetCreatureEventIndex(creature->GetGUIDLow());
     if (eventId.event1 == BG_EVENT_NONE)
         return;
+
     m_EventObjects[MAKE_PAIR32(eventId.event1, eventId.event2)].creatures.push_back(creature->GetObjectGuid());
+
     if (!IsActiveEvent(eventId.event1, eventId.event2))
+    {
+        // hide the creature spawn since we need to wait for the event
         SpawnBGCreature(creature->GetObjectGuid(), RESPAWN_ONE_DAY);
+    }
 }
 
 ObjectGuid BattleGround::GetSingleCreatureGuid(uint8 event1, uint8 event2)
@@ -1469,10 +1475,13 @@ void BattleGround::OnObjectDBLoad(GameObject* obj)
     const BattleGroundEventIdx eventId = sBattleGroundMgr.GetGameObjectEventIndex(obj->GetGUIDLow());
     if (eventId.event1 == BG_EVENT_NONE)
         return;
+
     m_EventObjects[MAKE_PAIR32(eventId.event1, eventId.event2)].gameobjects.push_back(obj->GetObjectGuid());
+
     if (!IsActiveEvent(eventId.event1, eventId.event2))
     {
-        SpawnBGObject(obj->GetObjectGuid(), RESPAWN_ONE_DAY);
+        // hide the object spawn since we need to wait for the event
+        DespawnBGObject(obj->GetObjectGuid());
     }
     else
     {
@@ -1503,11 +1512,13 @@ void BattleGround::OpenDoorEvent(uint8 event1, uint8 event2 /*=0*/)
         sLog.outError("BattleGround:OpenDoorEvent this is no door event1:%u event2:%u", event1, event2);
         return;
     }
-    if (!IsActiveEvent(event1, event2))                 // maybe already despawned (eye)
+
+    if (!IsActiveEvent(event1, event2)) // maybe already despawned (eye)
     {
         sLog.outError("BattleGround:OpenDoorEvent this event isn't active event1:%u event2:%u", event1, event2);
         return;
     }
+
     GuidVector::const_iterator itr = m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.begin();
     for (; itr != m_EventObjects[MAKE_PAIR32(event1, event2)].gameobjects.end(); ++itr)
         DoorOpen(*itr);
@@ -1545,21 +1556,33 @@ void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
     GameObject* obj = map->GetGameObject(guid);
     if (!obj)
         return;
-    if (respawntime == 0)
+
+    if (respawntime)
+    {
+        map->Add(obj);
+        obj->SetRespawnTime(respawntime, false);
+        obj->SetGoState(GO_STATE_ACTIVE);
+        obj->SetLootState(GO_JUST_DEACTIVATED);
+    }
+    else
     {
         // we need to change state from GO_JUST_DEACTIVATED to GO_READY in case battleground is starting again
         if (obj->GetLootState() == GO_JUST_DEACTIVATED)
             obj->SetLootState(GO_READY);
-        obj->SetRespawnTime(0);
+
+        if (obj->GetGOInfo()->type != GAMEOBJECT_TYPE_FLAGSTAND)
+            obj->SetGoState(GO_STATE_READY);
+
+        obj->SetRespawnTime(0, false);
         map->Add(obj);
-    }
-    else
-    {
-        map->Add(obj);
-        obj->SetRespawnTime(respawntime);
-        obj->SetLootState(GO_JUST_DEACTIVATED);
     }
 }
+
+void BattleGround::DespawnBGObject(ObjectGuid guid)
+{
+    SpawnBGObject(guid, RESPAWN_ONE_DAY);
+}
+
 
 void BattleGround::SpawnBGCreature(ObjectGuid guid, uint32 respawntime)
 {
@@ -1568,18 +1591,23 @@ void BattleGround::SpawnBGCreature(ObjectGuid guid, uint32 respawntime)
     Creature* obj = map->GetCreature(guid);
     if (!obj)
         return;
-    if (respawntime == 0)
+    if (respawntime)
+    {
+        map->Add(obj);
+        obj->SetRespawnDelay(respawntime, false);
+        obj->SetDeathState(JUST_DIED);
+        obj->RemoveCorpse();
+    }
+    else
     {
         obj->Respawn();
         map->Add(obj);
     }
-    else
-    {
-        map->Add(obj);
-        obj->SetRespawnDelay(respawntime);
-        obj->SetDeathState(JUST_DIED);
-        obj->RemoveCorpse();
-    }
+}
+
+void BattleGround::DespawnBGCreature(ObjectGuid guid)
+{
+    SpawnBGCreature(guid, RESPAWN_ONE_DAY);
 }
 
 void BattleGround::SendMessageToAll(int32 entry, ChatMsg type, Player const* source)
@@ -1684,6 +1712,7 @@ Team BattleGround::GetPlayerTeam(ObjectGuid guid)
     BattleGroundPlayerMap::const_iterator itr = m_Players.find(guid);
     if (itr != m_Players.end())
         return itr->second.PlayerTeam;
+
     return TEAM_NONE;
 }
 
@@ -1706,7 +1735,8 @@ void BattleGround::PlayerAddedToBGCheckIfBGIsRunning(Player* plr)
     sBattleGroundMgr.BuildPvpLogDataPacket(data, this);
     plr->GetSession()->SendPacket(data);
 
-    sBattleGroundMgr.BuildBattleGroundStatusPacket(data, this, plr->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_IN_PROGRESS, GetEndTime(), GetStartTime(), GetArenaType(), plr->GetBGTeam());
+    sBattleGroundMgr.BuildBattleGroundStatusPacket(data, this, plr->GetBattleGroundQueueIndex(bgQueueTypeId), 
+        STATUS_IN_PROGRESS, GetEndTime(), GetStartTime(), GetArenaType(), plr->GetBGTeam());
     plr->GetSession()->SendPacket(data);
 }
 

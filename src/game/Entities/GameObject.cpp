@@ -59,6 +59,7 @@ GameObject::GameObject() : WorldObject(),
     m_respawnTime = 0;
     m_respawnDelayTime = 25;
     m_lootState = GO_READY;
+    m_respawnRandomized = true;
     m_spawnedByDefault = true;
     m_useTimes = 0;
     m_spellId = 0;
@@ -561,9 +562,12 @@ void GameObject::Update(const uint32 diff)
             if (!m_respawnDelayTime)
                 return;
 
-            // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
-            if (GameObjectData const* data = sObjectMgr.GetGOData(GetObjectGuid().GetCounter()))
-                m_respawnDelayTime = data->GetRandomRespawnTime();
+            if (m_respawnRandomized)
+            {
+                // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
+                if (GameObjectData const* data = sObjectMgr.GetGOData(GetObjectGuid().GetCounter()))
+                    m_respawnDelayTime = data->GetRandomRespawnTime();
+            }
 
             m_respawnTime = m_spawnedByDefault ? time(nullptr) + m_respawnDelayTime : 0;
 

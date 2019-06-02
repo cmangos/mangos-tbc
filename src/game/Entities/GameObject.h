@@ -647,8 +647,9 @@ class GameObject : public WorldObject
             return now;
         }
 
-        void SetRespawnTime(time_t respawn)
+        void SetRespawnTime(time_t respawn, bool allowRandomized = true)
         {
+            m_respawnRandomized = allowRandomized;
             m_respawnTime = respawn > 0 ? time(nullptr) + respawn : 0;
             m_respawnDelayTime = respawn > 0 ? uint32(respawn) : 0;
         }
@@ -661,6 +662,10 @@ class GameObject : public WorldObject
         }
         bool IsSpawnedByDefault() const { return m_spawnedByDefault; }
         uint32 GetRespawnDelay() const { return m_respawnDelayTime; }
+
+        bool IsRespawnRandomized() { return m_respawnRandomized; }
+        void SetRespawnRandomized(bool respawnRandomized) { m_respawnRandomized = respawnRandomized;  }
+
         void Refresh();
         void Delete();
 
@@ -765,6 +770,7 @@ class GameObject : public WorldObject
         uint32      m_respawnDelayTime;                     // (secs) if 0 then current GO state no dependent from timer
         LootState   m_lootState;
         bool        m_spawnedByDefault;
+        bool        m_respawnRandomized;                    // should the respawn be randomized, if so a new respawn value is made each spawn
         time_t      m_cooldownTime;                         // used as internal reaction delay time store (not state change reaction).
         // For traps/goober this: spell casting cooldown, for doors/buttons: reset time.
 

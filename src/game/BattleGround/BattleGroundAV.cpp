@@ -458,7 +458,8 @@ bool BattleGroundAV::PlayerCanDoMineQuest(int32 GOId, Team team)
         return (m_Mine_Owner[BG_AV_NORTH_MINE] == GetAVTeamIndexByTeamId(team));
     if (GOId == BG_AV_OBJECTID_MINE_S)
         return (m_Mine_Owner[BG_AV_SOUTH_MINE] == GetAVTeamIndexByTeamId(team));
-    return true;                                            // cause it's no mine'object it is ok if this is true
+
+    return true; // cause it's no mine'object it is ok if this is true
 }
 
 /// will spawn and despawn creatures around a node
@@ -735,7 +736,7 @@ void BattleGroundAV::InitNode(BG_AV_Nodes node, BattleGroundAVTeamIndex teamIdx,
     m_Nodes[node].Timer      = 0;
     m_Nodes[node].Tower      = tower;
     m_ActiveEvents[node] = teamIdx * BG_AV_MAX_STATES + m_Nodes[node].State;
-    if (IsGrave(node))                                      // grave-creatures are special cause of a quest
+    if (IsGrave(node)) // grave-creatures are special cause of a quest
         m_ActiveEvents[node + BG_AV_NODES_MAX]  = teamIdx * BG_AV_MAX_GRAVETYPES;
 }
 

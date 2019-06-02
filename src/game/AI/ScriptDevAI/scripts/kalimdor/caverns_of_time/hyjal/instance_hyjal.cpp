@@ -154,8 +154,8 @@ void instance_mount_hyjal::SetData(uint32 uiType, uint32 uiData)
                     {
                         // don't know how long it expected
                         DoRespawnGameObject(*itr, DAY);
-                        stopnoderespawn = 1;
                     }
+                    stopnoderespawn = 1;
                 }
             }
             break;

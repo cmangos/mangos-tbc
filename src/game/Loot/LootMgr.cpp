@@ -1251,7 +1251,7 @@ bool Loot::Release(Player* player)
         {
             Corpse* corpse = (Corpse*) m_lootTarget;
             if (!corpse || !corpse->IsWithinDistInMap(player, INTERACTION_DISTANCE))
-                return false;
+                return true;
 
             if (IsLootedFor(player))
             {
@@ -1377,7 +1377,7 @@ bool Loot::Release(Player* player)
     if (updateClients)
         ForceLootAnimationClientUpdate();
 
-    return updateClients;
+    return true;
 }
 
 // Popup windows with loot content

@@ -42,6 +42,12 @@
 #include <algorithm>
 #include <cstdarg>
 
+#ifdef BUILD_ANTICHEAT
+// Warden
+#include "Warden/WardenWin.h"
+#include "Warden/WardenMac.h"
+#endif
+
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -94,7 +100,12 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
     m_latency(0), m_clientTimeDelay(0), m_tutorialState(TUTORIALDATA_UNCHANGED), m_sessionState(WORLD_SESSION_STATE_CREATED),
-    m_requestSocket(nullptr) {}
+    m_requestSocket(nullptr)
+{
+#ifdef BUILD_ANTICHEAT
+    _warden = NULL;
+#endif
+}
 
 /// WorldSession destructor
 WorldSession::~WorldSession()
@@ -112,6 +123,12 @@ WorldSession::~WorldSession()
 
         m_Socket->FinalizeSession();
     }
+
+#ifdef BUILD_ANTICHEAT
+    // Warden
+    if (_warden)
+        delete _warden;
+#endif
 }
 
 void WorldSession::SetOffline()
@@ -268,7 +285,8 @@ bool WorldSession::Update(PacketFilter& updater)
                         packet->GetOpcode());
         #endif*/
 
-        OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
+        Opcodes _opcode = packet->GetOpcode();
+        OpcodeHandler const& opHandle = opcodeTable[_opcode];
         try
         {
             switch (opHandle.status)
@@ -276,6 +294,12 @@ bool WorldSession::Update(PacketFilter& updater)
                 case STATUS_LOGGEDIN:
                     if (!_player)
                     {
+                        if ((_opcode == CMSG_WARDEN_DATA) || (_opcode == SMSG_WARDEN_DATA))
+                        {
+                            ExecuteOpcode(opHandle, *packet);
+                            break;
+                        }
+
                         // skip STATUS_LOGGEDIN opcode unexpected errors if player logout sometime ago - this can be network lag delayed packets
                         if (!m_playerRecentlyLogout)
                             LogUnexpectedOpcode(*packet, "the player has not logged in yet");
@@ -301,7 +325,15 @@ bool WorldSession::Update(PacketFilter& updater)
                     break;
                 case STATUS_TRANSFER:
                     if (!_player)
+                    {
+                        if ((_opcode == CMSG_WARDEN_DATA) || (_opcode == SMSG_WARDEN_DATA))
+                        {
+                            ExecuteOpcode(opHandle, *packet);
+                            break;
+                        }
+
                         LogUnexpectedOpcode(*packet, "the player has not logged in yet");
+                    }
                     else if (_player->IsInWorld())
                         LogUnexpectedOpcode(*packet, "the player is still in world");
                     else
@@ -384,6 +416,12 @@ bool WorldSession::Update(PacketFilter& updater)
     }
 #endif
 
+#ifdef BUILD_ANTICHEAT
+    // Warden
+    if (m_Socket && !m_Socket->IsClosed() && _warden)
+        _warden->Update();
+#endif
+
     // check if we are safe to proceed with logout
     // logout procedure should happen only in World::UpdateSessions() method!!!
     if (updater.ProcessLogout())
@@ -452,6 +490,12 @@ bool WorldSession::Update(PacketFilter& updater)
                     if (!m_requestSocket && (!m_Socket || m_Socket->IsClosed()))
                         return false;
                 }
+
+#ifdef BUILD_ANTICHEAT
+                // Warden
+                if (m_Socket && !m_Socket->IsClosed() && _warden)
+                    _warden->Update();
+#endif
 
                 return true;
             }
@@ -912,7 +956,7 @@ void WorldSession::SendAuthOk() const
     packet << uint32(0);                                    // BillingTimeRemaining
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint32(0);                                    // BillingTimeRested
-    packet << uint8(Expansion());                        // 0 - normal, 1 - TBC. Must be set in database manually for each account.
+    packet << uint8(Expansion());                           // 0 - normal, 1 - TBC. Must be set in database manually for each account.
     SendPacket(packet, true);
 }
 
@@ -924,7 +968,28 @@ void WorldSession::SendAuthQueued() const
     packet << uint32(0);                                    // BillingTimeRemaining
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint32(0);                                    // BillingTimeRested
-    packet << uint8(Expansion());                     // 0 - normal, 1 - TBC, must be set in database manually for each account
-    packet << uint32(sWorld.GetQueuedSessionPos(this));            // position in queue
+    packet << uint8(Expansion());                           // 0 - normal, 1 - TBC, must be set in database manually for each account
+    packet << uint32(sWorld.GetQueuedSessionPos(this));     // position in queue
     SendPacket(packet, true);
 }
+
+#ifdef BUILD_ANTICHEAT
+void WorldSession::InitWarden(BigNumber* k, std::string const& os)
+{
+    if (os == "Win" && sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED))
+    {
+        _warden = new WardenWin();
+        _warden->Init(this, k);
+    }
+    else if (os == "OSX" && sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED))
+    {
+        _warden = new WardenMac();
+        _warden->Init(this, k);
+    }
+}
+
+void WorldSession::SendPacketWarden(WorldPacket const& packet) const
+{
+    m_Socket->SendPacket(packet);
+}
+#endif

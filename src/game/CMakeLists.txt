@@ -64,6 +64,10 @@ target_link_libraries(${LIBRARY_NAME}
   PRIVATE ${ZLIB_LIBRARIES}
 )
 
+if (BUILD_ANTICHEAT)
+  target_link_libraries(${LIBRARY_NAME} PUBLIC anticheat)
+endif()
+
 # include additionals headers
 set(ADDITIONAL_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -96,6 +100,11 @@ endif()
 # Define BUILD_PLAYERBOT if need
 if (BUILD_PLAYERBOT)
   add_definitions(-DBUILD_PLAYERBOT)
+endif()
+
+# Define BUILD_ANTICHEAT if need
+if (BUILD_ANTICHEAT)
+  add_definitions(-DBUILD_ANTICHEAT)
 endif()
 
 # Generate precompiled header

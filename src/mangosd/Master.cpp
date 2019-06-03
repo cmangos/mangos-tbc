@@ -231,6 +231,12 @@ int Master::Run()
         if (sConfig.GetBoolDefault("SOAP.Enabled", false))
             soapThread.reset(new SOAPThread(sConfig.GetStringDefault("SOAP.IP", "127.0.0.1"), sConfig.GetIntDefault("SOAP.Port", 7878)));
 
+#ifdef BUILD_ANTICHEAT
+        /*std::unique_ptr<MaNGOS::Listener<AnticheatSocket>> acListener;
+        if (sConfig.GetBoolDefault("Anticheat.Enable", false))
+            acListener.reset(new MaNGOS::Listener<AnticheatSocket>(sConfig.GetStringDefault("Anticheat.IP", "0.0.0.0"), sConfig.GetIntDefault("Anticheat.Port", 3725), 1));*/
+#endif
+
         // wait for shut down and then let things go out of scope to close them down
         while (!World::IsStopped())
             std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -448,7 +454,7 @@ void Master::clearOnlineAccounts()
 {
     // Cleanup online status for characters hosted at current realm
     /// \todo Only accounts with characters logged on *this* realm should have online status reset. Move the online column from 'account' to 'realmcharacters'?
-    LoginDatabase.PExecute("UPDATE account SET active_realm_id = 0 WHERE active_realm_id = '%u'", realmID);
+    LoginDatabase.PExecute("UPDATE account SET active_realm_id = 0, os = '' WHERE active_realm_id = '%u'", realmID);
 
     CharacterDatabase.Execute("UPDATE characters SET online = 0 WHERE online<>0");
 

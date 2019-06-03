@@ -1660,6 +1660,26 @@ LOCK TABLES `world` WRITE;
 /*!40000 ALTER TABLE `world` DISABLE KEYS */;
 /*!40000 ALTER TABLE `world` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `warden_action`
+--
+
+DROP TABLE IF EXISTS `warden_action`;
+CREATE TABLE `warden_action` (
+  `wardenId` SMALLINT(5) UNSIGNED NOT NULL,
+  `action` TINYINT(3) UNSIGNED DEFAULT NULL,
+  PRIMARY KEY (`wardenId`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `warden_action`
+--
+
+LOCK TABLES `warden_action` WRITE;
+/*!40000 ALTER TABLE `warden_action` DISABLE KEYS */;
+/*!40000 ALTER TABLE `warden_action` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

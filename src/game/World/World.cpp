@@ -67,6 +67,10 @@
 #include "World/WorldState.h"
 #include "Cinematics/CinematicMgr.h"
 
+#ifdef BUILD_ANTICHEAT
+#include "Warden/WardenCheckMgr.h"
+#endif
+
 #include <algorithm>
 #include <mutex>
 #include <cstdarg>
@@ -710,6 +714,17 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", false);
     setConfig(CONFIG_BOOL_PET_ATTACK_FROM_BEHIND,     "PetAttackFromBehind", true);
 
+    // Warden
+    setConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED,             "Warden.WinEnabled", true);
+    setConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED,             "Warden.OSXEnabled", false);
+    setConfig(CONFIG_UINT32_WARDEN_NUM_MEM_CHECKS,        "Warden.NumMemChecks", 3);
+    setConfig(CONFIG_UINT32_WARDEN_NUM_OTHER_CHECKS,      "Warden.NumOtherChecks", 7);
+    setConfig(CONFIG_UINT32_WARDEN_CLIENT_BAN_DURATION,   "Warden.BanDuration", 86400);
+    setConfig(CONFIG_UINT32_WARDEN_CLIENT_CHECK_HOLDOFF,  "Warden.ClientCheckHoldOff", 30);
+    setConfig(CONFIG_UINT32_WARDEN_CLIENT_FAIL_ACTION,    "Warden.ClientCheckFailAction", 0);
+    setConfig(CONFIG_UINT32_WARDEN_CLIENT_RESPONSE_DELAY, "Warden.ClientResponseDelay", 600);
+    setConfig(CONFIG_UINT32_WARDEN_DB_LOGLEVEL,           "Warden.DBLogLevel", 0);
+
     m_relocation_ai_notify_delay = sConfig.GetIntDefault("Visibility.AIRelocationNotifyDelay", 1000u);
     m_relocation_lower_limit_sq  = pow(sConfig.GetFloatDefault("Visibility.RelocationLowerLimit", 10), 2);
 
@@ -1308,6 +1323,17 @@ void World::SetInitialWorldSettings()
     sBattleGroundMgr.CreateInitialBattleGrounds();
     sBattleGroundMgr.InitAutomaticArenaPointDistribution();
 
+#ifdef BUILD_ANTICHEAT
+    // Initialize Warden
+    sLog.outString("Loading Warden Checks...");
+    sWardenCheckMgr->LoadWardenChecks();
+    sLog.outString();
+
+    sLog.outString("Loading Warden Action Overrides...");
+    sWardenCheckMgr->LoadWardenOverrides();
+    sLog.outString();
+#endif
+
     // Not sure if this can be moved up in the sequence (with static data loading) as it uses MapManager
     sLog.outString("Loading Transports...");
     sMapMgr.LoadTransports();
@@ -1348,9 +1374,42 @@ void World::SetInitialWorldSettings()
     sAuctionBot.Initialize();
     sLog.outString();
 
+    // PLAYERBOTS can be included or excluded but also disabled via mangos.conf
+    bool playerBotActive = sConfig.GetBoolDefault("PlayerbotAI.DisableBots", true);
+    if (playerBotActive) {
+        sLog.outString("         PlayerBots : Disabled");
+    } else {
+        sLog.outString("         PlayerBots : Enabled");
+    }
+
+    // Remote Access can be activated / deactivated via mangos.conf
+    bool raActive = sConfig.GetBoolDefault("Ra.Enable", false);
+    if (raActive) {
+        sLog.outString(" Remote Access (RA) : Enabled");
+    } else {
+        sLog.outString(" Remote Access (RA) : Disabled");
+    }
+
+    // SOAP can be included or excluded but also disabled via mangos.conf
+    bool soapActive = sConfig.GetBoolDefault("SOAP.Enabled", false);
+    if (soapActive) {
+        sLog.outString("               SOAP : Enabled");
+    } else {
+        sLog.outString("               SOAP : Disabled");
+    }
+
+    // Warden is always included, set active or disabled via mangos.conf
+    bool wardenActive = (sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED) || sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED));
+    if (wardenActive) {
+        sLog.outString("             Warden : Enabled");
+    } else {
+        sLog.outString("             Warden : Disabled");
+    }
+
 #ifdef BUILD_PLAYERBOT
     PlayerbotMgr::SetInitialWorldSettings();
 #endif
+    sLog.outString();
     sLog.outString("---------------------------------------");
     sLog.outString("      CMANGOS: World initialized       ");
     sLog.outString("---------------------------------------");

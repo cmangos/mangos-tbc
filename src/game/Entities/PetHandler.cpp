@@ -779,30 +779,17 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
 
     petUnit->clearUnitState(UNIT_STAT_MOVING);
 
+    if (HasMissingTargetFromClient(spellInfo))
+        targets.setUnitTarget(petUnit->GetTarget());
     Spell* spell = new Spell(petUnit, spellInfo, TRIGGERED_PET_CAST);
-    spell->m_targets = targets;
-
-    SpellCastResult result = spell->CheckPetCast(nullptr);
-    if (result == SPELL_CAST_OK)
+    if (spell->SpellStart(&targets) == SPELL_CAST_OK)
     {
         if (pet)
             pet->CheckLearning(spellid);
-
-        spell->SpellStart(&(spell->m_targets));
-    }
-    else
-    {
-        Unit* owner = petCreature ? petCreature->GetMaster() : nullptr;
-        if (owner && owner->GetTypeId() == TYPEID_PLAYER)
-        {
-            Spell::SendCastResult((Player*)owner, spellInfo, 0, result, true);
-
-            if (petUnit->IsSpellReady(*spellInfo))
-                GetPlayer()->SendClearCooldown(spellid, petUnit);
-        }
-
-        spell->finish(false);
-        delete spell;
+        petUnit->SendPetAIReaction();
+        if (petUnit->GetTypeId() == TYPEID_UNIT)
+            if (static_cast<Creature*>(petUnit)->IsPet() && (static_cast<Pet*>(petUnit)->getPetType() == SUMMON_PET) && (petUnit != targets.getUnitTarget()) && (urand(0, 100) < 10))
+                petUnit->SendPetTalk((uint32)PET_TALK_SPECIAL_SPELL);
     }
 }
 

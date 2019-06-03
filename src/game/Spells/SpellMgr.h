@@ -792,9 +792,23 @@ inline bool IsUnitTargetTarget(uint32 target)
     switch (target)
     {
         case TARGET_UNIT_ENEMY:
-        case TARGET_UNIT: return true;
+        case TARGET_UNIT:
+        case TARGET_UNIT_FRIEND:
+        case TARGET_UNIT_FRIEND_CHAIN_HEAL:
+            return true;
         default: return false;
     }
+}
+
+inline bool HasMissingTargetFromClient(SpellEntry const* spellInfo)
+{
+    if (IsUnitTargetTarget(spellInfo->EffectImplicitTargetA[EFFECT_INDEX_0]))
+        return false;
+
+    if (IsUnitTargetTarget(spellInfo->EffectImplicitTargetA[EFFECT_INDEX_1]) || IsUnitTargetTarget(spellInfo->EffectImplicitTargetA[EFFECT_INDEX_2]))
+        return true;
+
+    return false;
 }
 
 inline bool IsScriptTarget(uint32 target)

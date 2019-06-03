@@ -7775,7 +7775,7 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType, bool sp
     }
 }
 
-void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, uint8 cast_count, uint8 spell_index)
+void Player::CastItemUseSpell(Item* item, SpellCastTargets& targets, uint8 cast_count, uint8 spell_index)
 {
     ItemPrototype const* proto = item->GetProto();
     // special learning case
@@ -7825,7 +7825,10 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets const& targets, uint8
             continue;
         }
 
-        Spell* spell = new Spell(this, spellInfo, (count > 0));
+        if (HasMissingTargetFromClient(spellInfo))
+            targets.setUnitTarget(GetTarget());
+
+        Spell* spell = CreateSpell(this, spellInfo, (count > 0));
         spell->m_CastItem = item;
         spell->m_cast_count = cast_count;                   // set count of casts
         spell->SpellStart(&targets);

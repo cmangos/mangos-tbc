@@ -1547,15 +1547,6 @@ bool Spell::CheckAndAddMagnetTarget(Unit* target, SpellEffectIndex effIndex, boo
     return false;
 }
 
-Unit* Spell::GetUnitTarget(SpellEffectIndex effIdx)
-{
-    Unit* target = m_targets.getUnitTarget();
-    if (!target && effIdx != EFFECT_INDEX_0 && !IsUnitTargetTarget(m_spellInfo->EffectImplicitTargetA[EFFECT_INDEX_0])) // eff index 0 always need to supply correct target or from client
-        target = m_caster->GetTarget();
-
-    return target;
-}
-
 void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targetB, TempTargetingData& targetingData)
 {
     TempTargetData& data = targetingData.data[effIndex];
@@ -1741,7 +1732,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         case TARGET_LOCATION_UNIT_BACK_LEFT:
         case TARGET_LOCATION_UNIT_FRONT_LEFT:
         {
-            Unit* target = GetUnitTarget(effIndex);
+            Unit* target = m_targets.getUnitTarget();
             if (target)
             {
                 float angle = 0.0f;
@@ -1915,7 +1906,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         }
         case TARGET_LOCATION_UNIT_POSITION:
         {
-            if (Unit* currentTarget = GetUnitTarget(effIndex))
+            if (Unit* currentTarget = m_targets.getUnitTarget())
                 m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
             break;
         }
@@ -1953,7 +1944,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         }
         case TARGET_LOCATION_CASTER_TARGET_POSITION:
         {
-            Unit* currentTarget = GetUnitTarget(effIndex);
+            Unit* currentTarget = m_targets.getUnitTarget();
             if (currentTarget)
                 m_targets.setDestination(currentTarget->GetPositionX(), currentTarget->GetPositionY(), currentTarget->GetPositionZ());
             break;
@@ -2055,7 +2046,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         }
         case TARGET_UNIT:
         {
-            Unit* newUnitTarget = GetUnitTarget(effIndex);
+            Unit* newUnitTarget = m_targets.getUnitTarget();
             if (!newUnitTarget)
                 break;
 
@@ -2070,7 +2061,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         }
         case TARGET_UNIT_ENEMY:
         {
-            Unit* newUnitTarget = GetUnitTarget(effIndex);
+            Unit* newUnitTarget = m_targets.getUnitTarget();
             if (!newUnitTarget)
                 break;
 
@@ -4722,67 +4713,20 @@ SpellCastResult Spell::CheckCast(bool strict)
                         return SPELL_FAILED_TARGET_IS_PLAYER;
                     return SPELL_FAILED_BAD_TARGETS;
                 }
+            }
 
-                // simple cases
-                // TODO: To function properly, need to extend to pos/neutral/neg
-                bool explicit_target_mode = false;
-                bool target_hostile = false;
-                bool target_hostile_checked = false;
-                bool target_friendly = false;
-                bool target_friendly_checked = false;
-                for (unsigned int k : m_spellInfo->EffectImplicitTargetA)
+            for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+            {
+                auto& data = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetA[i]];
+                if (data.type == TARGET_TYPE_UNIT && (data.enumerator == TARGET_ENUMERATOR_SINGLE || data.enumerator == TARGET_ENUMERATOR_CHAIN))
                 {
-                    if (IsExplicitPositiveTarget(k))
+                    switch (data.filter)
                     {
-                        if (!target_hostile_checked)
-                        {
-                            target_hostile_checked = true;
-                            target_hostile = !m_caster->CanAssistSpell(target, m_spellInfo);
-                        }
-
-                        if (target_hostile)
-                            return SPELL_FAILED_BAD_TARGETS;
-
-                        explicit_target_mode = true;
-                    }
-                    else if (IsExplicitNegativeTarget(k))
-                    {
-                        if (!target_friendly_checked)
-                        {
-                            target_friendly_checked = true;
-                            target_friendly = !m_caster->CanAttackSpell(target, m_spellInfo);
-                        }
-
-                        if (target_friendly)
-                            return SPELL_FAILED_BAD_TARGETS;
-
-                        explicit_target_mode = true;
-                    }
-                }
-                // TODO: this check can be applied and for player to prevent cheating when IsPositiveSpell will return always correct result.
-                // check target for pet/charmed casts (not self targeted), self targeted cast used for area effects and etc
-                if (!explicit_target_mode && m_caster->GetTypeId() == TYPEID_UNIT && m_caster->GetMasterGuid())
-                {
-                    // check correctness positive/negative cast target (pet cast real check and cheating check)
-                    if (IsPositiveSpell(m_spellInfo->Id, m_caster, target))
-                    {
-                        if (!target_hostile_checked)
-                        {
-                            target_hostile = m_caster->CanAttack(target) && m_caster->IsEnemy(target);
-                        }
-
-                        if (target_hostile)
-                            return SPELL_FAILED_BAD_TARGETS;
-                    }
-                    else
-                    {
-                        if (!target_friendly_checked)
-                        {
-                            target_friendly = m_caster->CanAssistSpell(target, m_spellInfo) && m_caster->IsFriend(target);
-                        }
-
-                        if (target_friendly)
-                            return SPELL_FAILED_BAD_TARGETS;
+                        case TARGET_HARMFUL: if (!m_caster->CanAttackSpell(target, m_spellInfo)) return SPELL_FAILED_BAD_TARGETS; break;
+                        case TARGET_HELPFUL: if (!m_caster->CanAssistSpell(target, m_spellInfo)) return SPELL_FAILED_BAD_TARGETS; break;
+                        case TARGET_PARTY: if (!m_caster->CanAssistSpell(target, m_spellInfo) || !m_caster->IsInGroup(target, true)) return SPELL_FAILED_BAD_TARGETS; break;
+                        case TARGET_GROUP: if (!m_caster->CanAssistSpell(target, m_spellInfo) || !m_caster->IsInGroup(target)) return SPELL_FAILED_BAD_TARGETS; break;
+                        default: break;
                     }
                 }
             }
@@ -4847,6 +4791,11 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_HIGHLEVEL;
         }
     }
+    else // some spells always require targets - generally checked in client - need to check serverside as well
+        for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+            if (IsUnitTargetTarget(m_spellInfo->EffectImplicitTargetA[i]))
+                return SPELL_FAILED_BAD_TARGETS;
+
     // zone check
     uint32 zone, area;
     m_caster->GetZoneAndAreaId(zone, area);

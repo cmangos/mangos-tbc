@@ -1793,33 +1793,6 @@ void Aura::TriggerSpell()
 //            }
             case SPELLFAMILY_SHAMAN:
             {
-                switch (auraId)
-                {
-                    case 28820:                             // Lightning Shield (The Earthshatterer set trigger after cast Lighting Shield)
-                    {
-                        // Need remove self if Lightning Shield not active
-                        Unit::SpellAuraHolderMap const& auras = triggerTarget->GetSpellAuraHolderMap();
-                        for (const auto& aura : auras)
-                        {
-                            SpellEntry const* spell = aura.second->GetSpellProto();
-                            if (spell->SpellFamilyName == SPELLFAMILY_SHAMAN &&
-                                    (spell->SpellFamilyFlags & uint64(0x0000000000000400)))
-                                return;
-                        }
-                        triggerTarget->RemoveAurasDueToSpell(28820);
-                        return;
-                    }
-                    case 38443:                             // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
-                    {
-                        if (triggerTarget->IsAllTotemSlotsUsed())
-                            triggerTarget->CastSpell(triggerTarget, 38437, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                        else
-                            triggerTarget->RemoveAurasDueToSpell(38437);
-                        return;
-                    }
-                    default:
-                        break;
-                }
                 break;
             }
             default:
@@ -1938,6 +1911,13 @@ void Aura::TriggerSpell()
             case 38025:
             {
                 casterGUID = target->GetObjectGuid();
+                break;
+            }
+            // dummy trigger 18350 family
+            case 28820:                                     // Lightning Shield
+            case 38443:                                     // Totemic Mastery
+            {
+                triggerTarget = target;
                 break;
             }
             case 38736:                                     // Rod of Purification - for quest 10839 (Veil Skith: Darkstone of Terokk)
@@ -7091,6 +7071,11 @@ void Aura::PeriodicTick()
         }
         case SPELL_AURA_PERIODIC_TRIGGER_SPELL:
         {
+            // Some NPCs have persistent passive auras that are not removed on death
+            // so prevent them from triggering if aura holder is dead
+            Unit* caster = GetCaster();
+            if (caster && caster->GetTypeId() == TYPEID_UNIT && !caster->isAlive())
+                break;
             TriggerSpell();
             break;
         }

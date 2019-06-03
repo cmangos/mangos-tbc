@@ -527,7 +527,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                 if (m_spellInfo->SpellFamilyFlags & uint64(0x100000000))
                 {
                     int32 base = irand((int32)m_caster->GetBaseWeaponDamage(RANGED_ATTACK, MINDAMAGE), (int32)m_caster->GetBaseWeaponDamage(RANGED_ATTACK, MAXDAMAGE));
-                    damage += int32(float(base) / m_caster->GetAttackTime(RANGED_ATTACK) * 2800 + m_caster->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.2f);
+                    damage += int32(float(base) / m_caster->GetAttackTime(RANGED_ATTACK) * 2800);
                 }
                 break;
             }
@@ -901,6 +901,28 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                                 unitTarget->RemoveAurasDueToSpell(28820);
                                 break;
                             }
+                            case 28820:                             // Lightning Shield (The Earthshatterer set trigger after cast Lighting Shield)
+                            {
+                                // Need remove self if Lightning Shield not active
+                                Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
+                                for (const auto& aura : auras)
+                                {
+                                    SpellEntry const* spell = aura.second->GetSpellProto();
+                                    if (spell->SpellFamilyName == SPELLFAMILY_SHAMAN &&
+                                        (spell->SpellFamilyFlags & uint64(0x0000000000000400)))
+                                        return;
+                                }
+                                unitTarget->RemoveAurasDueToSpell(28820);
+                                return;
+                            }
+                            case 38443:                             // Totemic Mastery (Skyshatter Regalia (Shaman Tier 6) - bonus)
+                            {
+                                if (unitTarget->IsAllTotemSlotsUsed())
+                                    unitTarget->CastSpell(nullptr, 38437, TRIGGERED_OLD_TRIGGERED, nullptr);
+                                else
+                                    unitTarget->RemoveAurasDueToSpell(38437);
+                                return;
+                            }
                             case 37594: // Greater Heal Refund
                             {
                                 // If your Greater Heal brings the target to full health, you gain $37595s1 mana.
@@ -911,7 +933,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             case 37705: // Healing Discount
                             {
                                 uint32 spellId = 0;
-                                switch (unitTarget->getClass())
+                                switch (m_caster->getClass())
                                 {
                                     case CLASS_PALADIN:
                                         spellId = 37723;
@@ -926,7 +948,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                                         spellId = 37721;
                                         break;
                                 }
-                                unitTarget->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
+                                m_caster->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
                                 break;
                             }
                         }

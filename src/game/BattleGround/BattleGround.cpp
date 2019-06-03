@@ -32,7 +32,7 @@
 #include "WorldPacket.h"
 #include "Tools/Formulas.h"
 #include "Grids/GridNotifiersImpl.h"
-#include "Chat/Chat.h"
+#include "World/World.h"
 
 #include <cstdarg>
 
@@ -379,6 +379,8 @@ void BattleGround::Update(uint32 diff)
 
         ModifyStartDelayTime(diff);
 
+        ChatMsg announcerMsgType = GetAnnouncerMessageType();
+
         if (!(m_Events & BG_STARTING_EVENT_1))
         {
             m_Events |= BG_STARTING_EVENT_1;
@@ -387,19 +389,20 @@ void BattleGround::Update(uint32 diff)
             SetStartDelayTime(m_StartDelayTimes[BG_STARTING_EVENT_FIRST]);
             // first start warning - 2 or 1 minute, only if defined
             if (m_StartMessageIds[BG_STARTING_EVENT_FIRST])
-                SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_FIRST], CHAT_MSG_BG_SYSTEM_NEUTRAL);
+                SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_FIRST], announcerMsgType);
         }
         // After 1 minute or 30 seconds, warning is signalled
         else if (GetStartDelayTime() <= m_StartDelayTimes[BG_STARTING_EVENT_SECOND] && !(m_Events & BG_STARTING_EVENT_2))
         {
             m_Events |= BG_STARTING_EVENT_2;
-            SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_SECOND], CHAT_MSG_BG_SYSTEM_NEUTRAL);
+
+            SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_SECOND], announcerMsgType);
         }
         // After 30 or 15 seconds, warning is signalled
         else if (GetStartDelayTime() <= m_StartDelayTimes[BG_STARTING_EVENT_THIRD] && !(m_Events & BG_STARTING_EVENT_3))
         {
             m_Events |= BG_STARTING_EVENT_3;
-            SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_THIRD], CHAT_MSG_BG_SYSTEM_NEUTRAL);
+            SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_THIRD], announcerMsgType);
         }
         // delay expired (atfer 2 or 1 minute)
         else if (GetStartDelayTime() <= 0 && !(m_Events & BG_STARTING_EVENT_4))
@@ -409,7 +412,7 @@ void BattleGround::Update(uint32 diff)
             StartingEventOpenDoors();
 
             if (m_StartMessageIds[BG_STARTING_EVENT_FOURTH])
-                SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_FOURTH], CHAT_MSG_BG_SYSTEM_NEUTRAL);
+                SendMessageToAll(m_StartMessageIds[BG_STARTING_EVENT_FOURTH], announcerMsgType);
 
             SetStatus(STATUS_IN_PROGRESS);
             SetStartDelayTime(m_StartDelayTimes[BG_STARTING_EVENT_FOURTH]);
@@ -474,6 +477,14 @@ void BattleGround::Update(uint32 diff)
 
     // update start time
     m_StartTime += diff;
+}
+
+ChatMsg BattleGround::GetAnnouncerMessageType()
+{
+    if (sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_RAIDWARNING_ANNOUNCE))
+        return CHAT_MSG_RAID_WARNING;
+    else
+        return CHAT_MSG_BG_SYSTEM_NEUTRAL;
 }
 
 void BattleGround::SetTeamStartLoc(Team team, float X, float Y, float Z, float O)
@@ -846,7 +857,7 @@ void BattleGround::EndBattleGround(Team winner)
     }
 
     if (winmsg_id)
-        SendMessageToAll(winmsg_id, CHAT_MSG_BG_SYSTEM_NEUTRAL);
+        SendMessageToAll(winmsg_id, GetAnnouncerMessageType());
 }
 
 uint32 BattleGround::GetBonusHonorFromKill(uint32 kills) const

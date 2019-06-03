@@ -1480,6 +1480,11 @@ Death.Ghost.RunSpeed.Battleground = 1.0
 #        Default: 0 (disable)
 #                 1 (enable)
 #
+#    Battleground.RaidWarningAnnouncer
+#        Enable the use of raid warning message type for announcements (i.e starting messages)
+#        Default: 0 (disable)
+#                 1 (enable)
+#
 #    Battleground.ScoreStatistics
 #        Enable Battleground scores storage in database.
 #        Default: 0 - (Disabled)
@@ -1505,6 +1510,7 @@ Death.Ghost.RunSpeed.Battleground = 1.0
 Battleground.CastDeserter = 1
 Battleground.QueueAnnouncer.Join = 0
 Battleground.QueueAnnouncer.Start = 0
+Battleground.RaidWarningAnnouncer = 0
 Battleground.ScoreStatistics = 0
 Battleground.InvitationType = 0
 BattleGround.PrematureFinishTimer = 300000

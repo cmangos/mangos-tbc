@@ -540,6 +540,8 @@ class BattleGround
         void EndNow();
         void PlayerAddedToBGCheckIfBGIsRunning(Player* plr);
 
+        ChatMsg GetAnnouncerMessageType();
+
         /* Scorekeeping */
 
         BattleGroundScoreMap m_PlayerScores;                // Player scores

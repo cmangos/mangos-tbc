@@ -287,10 +287,10 @@ std::string Warden::Penalty(WardenCheck* check /*= NULL*/)
 
 void WorldSession::HandleWardenDataOpcode(WorldPacket& recvData)
 {
-    if (!_warden || recvData.empty())
+    if (!m_warden || recvData.empty())
         return;
 
-    _warden->DecryptData(const_cast<uint8*>(recvData.contents()), recvData.size());
+    m_warden->DecryptData(const_cast<uint8*>(recvData.contents()), recvData.size());
     uint8 opcode;
     recvData >> opcode;
     sLog.outWardenLog("Got packet, opcode %02X, size %u", opcode, uint32(recvData.size()));
@@ -299,20 +299,20 @@ void WorldSession::HandleWardenDataOpcode(WorldPacket& recvData)
     switch (opcode)
     {
     case WARDEN_CMSG_MODULE_MISSING:
-        _warden->SendModuleToClient();
+        m_warden->SendModuleToClient();
         break;
     case WARDEN_CMSG_MODULE_OK:
-        _warden->RequestHash();
+        m_warden->RequestHash();
         break;
     case WARDEN_CMSG_CHEAT_CHECKS_RESULT:
-        _warden->HandleData(recvData);
+        m_warden->HandleData(recvData);
         break;
     case WARDEN_CMSG_MEM_CHECKS_RESULT:
         sLog.outWardenLog("NYI WARDEN_CMSG_MEM_CHECKS_RESULT received!");
         break;
     case WARDEN_CMSG_HASH_RESULT:
-        _warden->HandleHashResult(recvData);
-        _warden->InitializeModule();
+        m_warden->HandleHashResult(recvData);
+        m_warden->InitializeModule();
         break;
     case WARDEN_CMSG_MODULE_FAILED:
         sLog.outWardenLog("NYI WARDEN_CMSG_MODULE_FAILED received!");

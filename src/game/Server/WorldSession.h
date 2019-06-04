@@ -809,7 +809,7 @@ class WorldSession
 
 #ifdef BUILD_ANTICHEAT
         // Warden
-        Warden* _warden;                                    // Remains NULL if Warden system is not enabled by config
+        Warden* m_warden;                                    // Remains NULL if Warden system is not enabled by config
 #endif
         uint16 _build;
 

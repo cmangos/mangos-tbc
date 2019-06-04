@@ -103,7 +103,7 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     m_requestSocket(nullptr)
 {
 #ifdef BUILD_ANTICHEAT
-    _warden = NULL;
+    m_warden = NULL;
 #endif
 }
 
@@ -126,8 +126,8 @@ WorldSession::~WorldSession()
 
 #ifdef BUILD_ANTICHEAT
     // Warden
-    if (_warden)
-        delete _warden;
+    if (m_warden)
+        delete m_warden;
 #endif
 }
 
@@ -418,8 +418,8 @@ bool WorldSession::Update(PacketFilter& updater)
 
 #ifdef BUILD_ANTICHEAT
     // Warden
-    if (m_Socket && !m_Socket->IsClosed() && _warden)
-        _warden->Update();
+    if (m_Socket && !m_Socket->IsClosed() && m_warden)
+        m_warden->Update();
 #endif
 
     // check if we are safe to proceed with logout
@@ -493,8 +493,8 @@ bool WorldSession::Update(PacketFilter& updater)
 
 #ifdef BUILD_ANTICHEAT
                 // Warden
-                if (m_Socket && !m_Socket->IsClosed() && _warden)
-                    _warden->Update();
+                if (m_Socket && !m_Socket->IsClosed() && m_warden)
+                    m_warden->Update();
 #endif
 
                 return true;
@@ -978,13 +978,13 @@ void WorldSession::InitWarden(BigNumber* k, std::string const& os)
 {
     if (os == "Win" && sWorld.getConfig(CONFIG_BOOL_WARDEN_WIN_ENABLED))
     {
-        _warden = new WardenWin();
-        _warden->Init(this, k);
+        m_warden = new WardenWin();
+        m_warden->Init(this, k);
     }
     else if (os == "OSX" && sWorld.getConfig(CONFIG_BOOL_WARDEN_OSX_ENABLED))
     {
-        _warden = new WardenMac();
-        _warden->Init(this, k);
+        m_warden = new WardenMac();
+        m_warden->Init(this, k);
     }
 }
 

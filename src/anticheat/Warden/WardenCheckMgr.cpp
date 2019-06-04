@@ -104,7 +104,7 @@ void WardenCheckMgr::LoadWardenChecks()
 
         // PROC_CHECK support missing
         if (checkType == MEM_CHECK || checkType == MPQ_CHECK || checkType == LUA_STR_CHECK || checkType == DRIVER_CHECK || checkType == MODULE_CHECK)
-            wardenCheck->Str = str;
+            wardenCheck->Str = fields[5].GetCppString();
 
         CheckStore.insert(std::pair<uint16, WardenCheck*>(build, wardenCheck));
 

@@ -96,10 +96,10 @@ void WardenWin::InitializeModule()
     Request.Unk2 = 0;
     Request.Type = 1;
     Request.String_library1 = 0;
-    Request.Function1[0] = 0x002485F0;                      // 0x00400000 + 0x002485F0 SFileOpenFile
-    Request.Function1[1] = 0x002487F0;                      // 0x00400000 + 0x002487F0 SFileGetFileSize
-    Request.Function1[2] = 0x00248460;                      // 0x00400000 + 0x00248460 SFileReadFile
-    Request.Function1[3] = 0x00248730;                      // 0x00400000 + 0x00248730 SFileCloseFile
+    Request.Function1[0] = 0x00024F80;                      // 0x00400000 + 0x00024F80 SFileOpenFile
+    Request.Function1[1] = 0x000218C0;                      // 0x00400000 + 0x000218C0 SFileGetFileSize
+    Request.Function1[2] = 0x00022530;                      // 0x00400000 + 0x00022530 SFileReadFile
+    Request.Function1[3] = 0x00022910;                      // 0x00400000 + 0x00022910 SFileCloseFile
 
     Request.Command2 = WARDEN_SMSG_MODULE_INITIALIZE;
     Request.Size2 = 8;
@@ -248,7 +248,7 @@ void WardenWin::RequestData()
             case PAGE_CHECK_A:
             case PAGE_CHECK_B:
             {
-                buff.append(wd->Data.AsByteArray(0, false), wd->Data.GetNumBytes());
+                buff.append(wd->Data.AsByteArray(0), wd->Data.GetNumBytes());
                 buff << uint32(wd->Address);
                 buff << uint8(wd->Length);
                 break;
@@ -261,7 +261,7 @@ void WardenWin::RequestData()
             }
             case DRIVER_CHECK:
             {
-                buff.append(wd->Data.AsByteArray(0, false), wd->Data.GetNumBytes());
+                buff.append(wd->Data.AsByteArray(0), wd->Data.GetNumBytes());
                 buff << uint8(index++);
                 break;
             }
@@ -372,7 +372,30 @@ void WardenWin::HandleData(ByteBuffer &buff)
                 }
                 if (memcmp(buff.contents() + buff.rpos(), rs->Result.AsByteArray(0, false), rd->Length) != 0)
                 {
-                    sLog.outWardenLog("RESULT MEM_CHECK fail CheckId %u account Id %u", *itr, _session->GetAccountId());
+                    std::string tmpStrContentsRev, tmpStrContents, tmpStrByteArray;
+
+                    uint8 * tmpContentsRev = new uint8[rd->Length];
+                    uint8 * tmpContents = new uint8[rd->Length];
+                    uint8 * tmpByteArray = rs->Result.AsByteArray(0, false);
+
+                    for (int i = 0; i < rd->Length; ++i)
+                    {
+                        tmpContentsRev[i] = buff.contents()[buff.rpos() + i];
+                        tmpContents[i] = tmpContentsRev[i];
+                    }
+
+                    for (int i = 0; i < rd->Length; ++i)
+                    {
+                        char * tmp = new char[2];
+
+                        sprintf(tmp, "%02X", tmpContents[i]);
+                        tmpStrContents += tmp;
+
+                        sprintf(tmp, "%02X", tmpByteArray[i]);
+                        tmpStrByteArray += tmp;
+                    }
+
+                    sLog.outWardenLog("RESULT MEM_CHECK failed CheckId %u account Id %u got: %s  should be: %s;", *itr, _session->GetAccountId(), tmpStrContents.c_str(), tmpStrByteArray.c_str());
                     checkFailed = *itr;
                     buff.rpos(buff.rpos() + rd->Length);
                     continue;
@@ -449,7 +472,7 @@ void WardenWin::HandleData(ByteBuffer &buff)
                     continue;
                 }
 
-                if (memcmp(buff.contents() + buff.rpos(), rs->Result.AsByteArray(0, false), 20) != 0) // SHA1
+                if (memcmp(buff.contents() + buff.rpos(), rs->Result.AsByteArray(0), 20) != 0) // SHA1
                 {
                     sLog.outWardenLog("RESULT MPQ_CHECK fail, CheckId %u account Id %u", *itr, _session->GetAccountId());
                     checkFailed = *itr;

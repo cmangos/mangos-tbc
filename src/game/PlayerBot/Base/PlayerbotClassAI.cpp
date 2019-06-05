@@ -342,7 +342,7 @@ Player* PlayerbotClassAI::GetHealTarget(JOB_TYPE type, bool onlyPickFromSameGrou
     // Try to find a tank in need of healing (if multiple, the lowest health one)
     while (true)
     {
-        if ((uCount + i) >= uint32(targets.size()) || !(targets.at(uCount).type & JOB_TANK)) break;
+        if (uint32(uCount + i) >= uint32(targets.size()) || !(targets.at(uCount).type & JOB_TANK)) break;
         uCount++;
     }
 
@@ -359,7 +359,7 @@ Player* PlayerbotClassAI::GetHealTarget(JOB_TYPE type, bool onlyPickFromSameGrou
     {
         while (true)
         {
-            if ((uCount + i) >= uint32(targets.size()) || !(targets.at(uCount).type & JOB_MASTER)) break;
+            if (uint32(uCount + i) >= uint32(targets.size()) || !(targets.at(uCount).type & JOB_MASTER)) break;
             uCount++;
         }
 
@@ -375,7 +375,7 @@ Player* PlayerbotClassAI::GetHealTarget(JOB_TYPE type, bool onlyPickFromSameGrou
     // Try to find anyone else in need of healing (lowest health one first)
     while (true)
     {
-        if ((uCount + i) >= uint32(targets.size())) break;
+        if (uint32(uCount + i) >= uint32(targets.size())) break;
         uCount++;
     }
 

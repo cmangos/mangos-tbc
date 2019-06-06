@@ -65,13 +65,14 @@ enum BG_WS_WorldStates
 
 enum BG_WS_FlagActions
 {
+    BG_WS_FLAG_ACTION_NONE     = -1,
     BG_WS_FLAG_ACTION_PICKEDUP = 0,
     BG_WS_FLAG_ACTION_RETURNED = 1,
     BG_WS_FLAG_ACTION_DROPPED  = 2,
     BG_WS_FLAG_ACTION_CAPTURED = 3,
     BG_WS_FLAG_ACTION_RESPAWN  = 4
 };
-#define WS_FLAG_ACTIONS_TOTAL                       5
+#define WS_FLAG_ACTIONS_TOTAL 5
 
 enum BG_WS_FlagState
 {

@@ -358,7 +358,7 @@ uint32 BattleGroundWS::GroundFlagInteraction(Player* player, GameObject* target)
     PvpTeamIndex teamIdx = GetTeamIndexByTeamId(team);
     PvpTeamIndex otherTeamIdx = GetOtherTeamIndex(teamIdx);
 
-    int32 actionId = -1;
+    int32 actionId = BG_WS_FLAG_ACTION_NONE;
     uint32 displayId = target->GetDisplayId();
 
     // check if we are returning our flag
@@ -385,7 +385,7 @@ uint32 BattleGroundWS::GroundFlagInteraction(Player* player, GameObject* target)
         PlaySoundToAll(wsSounds[otherTeamIdx][actionId]);
     }
 
-    if (actionId > -1)
+    if (actionId != BG_WS_FLAG_ACTION_NONE)
         player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
     return actionId;
 }
@@ -404,7 +404,7 @@ void BattleGroundWS::EventPlayerClickedOnFlag(Player* player, GameObject* target
         PickUpFlagFromBase(player);
     }
     // Check if we are trying to pick up or return a flag from the ground
-    else if (player->IsWithinDistInMap(target, 10) && !GroundFlagInteraction(player, target))
+    else if (player->IsWithinDistInMap(target, 10) && GroundFlagInteraction(player, target) == BG_WS_FLAG_ACTION_NONE)
     {
         sLog.outError("Failed to action the WS flag from event '%d'.", event);
     }

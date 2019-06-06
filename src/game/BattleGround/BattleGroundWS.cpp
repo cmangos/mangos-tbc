@@ -243,7 +243,8 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player* player)
 
     player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
 
-    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(player->GetTeam());
+    Team team = player->GetTeam();
+    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(team);
     uint8 otherTeamIdx = GetOtherTeamIndex(teamIdx);
 
     if (!IsFlagPickedUp(otherTeamIdx))
@@ -260,10 +261,10 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player* player)
         m_TeamScores[teamIdx] += 1;
     
     PlaySoundToAll(wsSounds[teamIdx][BG_WS_FLAG_ACTION_CAPTURED]);
-    RewardReputationToTeam(890, m_ReputationCapture, player->GetTeam());
+    RewardReputationToTeam(890, m_ReputationCapture, team);
 
     // for flag capture is reward 2 honorable kills
-    RewardHonorToTeam(GetBonusHonorFromKill(2), player->GetTeam());
+    RewardHonorToTeam(GetBonusHonorFromKill(2), team);
 
     // despawn flags
     SpawnEvent(WS_EVENT_FLAG_A, 0, false);
@@ -272,8 +273,8 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player* player)
     SendMessageToAll(wsMessageIds[otherTeamIdx][BG_WS_FLAG_ACTION_CAPTURED],
                      wsChatMessageTypes[teamIdx][BG_WS_FLAG_ACTION_CAPTURED], player);
 
-    UpdateFlagState(player->GetTeam(), 1);                  // flag state none
-    UpdateTeamScore(player->GetTeam());
+    UpdateFlagState(team, 1);                  // flag state none
+    UpdateTeamScore(team);
     // only flag capture should be updated
     UpdatePlayerScore(player, SCORE_FLAG_CAPTURES, 1);      // +1 flag captures
 
@@ -298,7 +299,8 @@ void BattleGroundWS::EventPlayerCapturedFlag(Player* player)
 
 void BattleGroundWS::EventPlayerDroppedFlag(Player* player)
 {
-    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(player->GetTeam());
+    Team team = player->GetTeam();
+    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(team);
     PvpTeamIndex otherTeamIdx = GetOtherTeamIndex(teamIdx);
 
     if (GetStatus() != STATUS_IN_PROGRESS)
@@ -320,7 +322,7 @@ void BattleGroundWS::EventPlayerDroppedFlag(Player* player)
         }
 
         player->CastSpell(player, SPELL_RECENTLY_DROPPED_FLAG, TRIGGERED_OLD_TRIGGERED);
-        UpdateFlagState(player->GetTeam(), 1);
+        UpdateFlagState(team, 1);
 
         SendMessageToAll(wsMessageIds[otherTeamIdx][BG_WS_FLAG_ACTION_DROPPED],
                          wsChatMessageTypes[TEAM_INDEX_HORDE][BG_WS_FLAG_ACTION_DROPPED], player);
@@ -331,7 +333,8 @@ void BattleGroundWS::EventPlayerDroppedFlag(Player* player)
 
 void BattleGroundWS::PickUpFlagFromBase(Player* player)
 {
-    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(player->GetTeam());
+    Team team = player->GetTeam();
+    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(team);
     PvpTeamIndex otherTeamIdx = GetOtherTeamIndex(teamIdx);
 
     PlaySoundToAll(wsSounds[otherTeamIdx][BG_WS_FLAG_ACTION_PICKEDUP]);
@@ -340,7 +343,7 @@ void BattleGroundWS::PickUpFlagFromBase(Player* player)
     m_FlagState[otherTeamIdx] = BG_WS_FLAG_STATE_ON_PLAYER;
 
     // update world state to show correct flag carrier
-    UpdateFlagState(player->GetTeam(), BG_WS_FLAG_STATE_ON_PLAYER);
+    UpdateFlagState(team, BG_WS_FLAG_STATE_ON_PLAYER);
     UpdateWorldState(wsStateUpdateId[otherTeamIdx], 1);
 
     player->CastSpell(player, wsSpellTypes[otherTeamIdx][BG_WS_FLAG_ACTION_PICKEDUP], TRIGGERED_OLD_TRIGGERED);
@@ -351,7 +354,8 @@ void BattleGroundWS::PickUpFlagFromBase(Player* player)
 
 uint32 BattleGroundWS::GroundFlagInteraction(Player* player, GameObject* target)
 {
-    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(player->GetTeam());
+    Team team = player->GetTeam();
+    PvpTeamIndex teamIdx = GetTeamIndexByTeamId(team);
     PvpTeamIndex otherTeamIdx = GetOtherTeamIndex(teamIdx);
 
     int32 actionId = -1;
@@ -361,7 +365,6 @@ uint32 BattleGroundWS::GroundFlagInteraction(Player* player, GameObject* target)
     if (wsFlagIds[teamIdx] == displayId)
     {
         actionId = BG_WS_FLAG_ACTION_RETURNED;
-        Team team = player->GetTeam();
         UpdateFlagState(GetOtherTeam(team), BG_WS_FLAG_STATE_WAIT_RESPAWN);
         RespawnFlag(team, false);
         UpdatePlayerScore(player, SCORE_FLAG_RETURNS, 1);
@@ -374,9 +377,9 @@ uint32 BattleGroundWS::GroundFlagInteraction(Player* player, GameObject* target)
         actionId = BG_WS_FLAG_ACTION_PICKEDUP;
         SpawnEvent(otherTeamIdx, 0, false);
         SetFlagCarrier(otherTeamIdx, player->GetObjectGuid());
-        player->CastSpell(player, wsSpellTypes[otherTeamIdx][BG_WS_FLAG_ACTION_PICKEDUP], TRIGGERED_OLD_TRIGGERED);
+        player->CastSpell(player, wsSpellTypes[otherTeamIdx][actionId], TRIGGERED_OLD_TRIGGERED);
         m_FlagState[otherTeamIdx] = BG_WS_FLAG_STATE_ON_PLAYER;
-        UpdateFlagState(player->GetTeam(), BG_WS_FLAG_STATE_ON_PLAYER);
+        UpdateFlagState(team, BG_WS_FLAG_STATE_ON_PLAYER);
         UpdateWorldState(wsStateUpdateId[otherTeamIdx], 1);
         SendMessageToAll(wsMessageIds[otherTeamIdx][actionId], wsChatMessageTypes[teamIdx][actionId], player);
         PlaySoundToAll(wsSounds[otherTeamIdx][actionId]);

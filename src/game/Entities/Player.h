@@ -1184,6 +1184,8 @@ class Player : public Unit
         void RemoveAmmo();
         float GetAmmoDPS() const { return m_ammoDPS; }
         bool CheckAmmoCompatibility(const ItemPrototype* ammo_proto) const;
+        void SetPendingSteadyShot(bool pendingSteadyShot) { m_pendingSteadyShot = pendingSteadyShot; }
+        float IsPendingSteadyShot() const { return m_pendingSteadyShot; }
         void QuickEquipItem(uint16 pos, Item* pItem);
         void VisualizeItem(uint8 slot, Item* pItem);
         void SetVisibleItemSlot(uint8 slot, Item* pItem);
@@ -2444,6 +2446,8 @@ class Player : public Unit
         uint32 m_ArmorProficiency;
         uint8 m_swingErrorMsg;
         float m_ammoDPS;
+
+        bool m_pendingSteadyShot;
 
         //////////////////// Rest System/////////////////////
         time_t time_inn_enter;

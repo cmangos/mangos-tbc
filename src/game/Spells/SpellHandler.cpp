@@ -355,6 +355,9 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         }
     }
 
+    if (spellId == 75 && mover->FindCurrentSpellBySpellId(spellId))
+        return;
+
     // client provided targets
     SpellCastTargets targets;
 

@@ -4274,7 +4274,7 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed)
         // send autorepeat cancel message for autorepeat spells
         if (spellType == CURRENT_AUTOREPEAT_SPELL)
         {
-            if (GetTypeId() == TYPEID_PLAYER)
+            if (IsPlayer())
                 ((Player*)this)->SendAutoRepeatCancel();
         }
 

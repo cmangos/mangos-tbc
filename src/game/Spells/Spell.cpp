@@ -383,6 +383,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     m_doNotProc = (triggeredFlags & TRIGGERED_DO_NOT_PROC) != 0;
     m_petCast = (triggeredFlags & TRIGGERED_PET_CAST) != 0;
     m_notifyAI = (triggeredFlags & TRIGGERED_NORMAL_COMBAT_CAST) != 0;
+    m_ignoreGCD = (triggeredFlags & TRIGGERED_IGNORE_GCD) != 0;
 
     m_reflectable = IsReflectableSpell(m_spellInfo);
 
@@ -3074,6 +3075,7 @@ SpellCastResult Spell::SpellStart(SpellCastTargets const* targets, Aura* trigger
         finish(false);
         return result;
     }
+
     Prepare();
 
     return SPELL_CAST_OK;
@@ -3116,8 +3118,11 @@ void Spell::Prepare()
         // will show cast bar
         SendSpellStart();
 
-        // add gcd server side (client side is handled by client itself)
-        m_caster->AddGCD(*m_spellInfo);
+        if (!m_ignoreGCD)
+        {
+            // add gcd server side (client side is handled by client itself)
+            m_caster->AddGCD(*m_spellInfo);
+        }
 
         // Execute instant spells immediate
         if (m_timer == 0 && !IsNextMeleeSwingSpell() && (!IsAutoRepeat() || m_triggerAutorepeat))
@@ -3188,6 +3193,10 @@ void Spell::cancel()
 
         case SPELL_STATE_FINISHED: break; // should not occur
     }
+
+    // Interrupt pending steady shot if auto shot was cancelled
+    if (m_spellInfo->Id == 75 && m_caster->IsPlayer() && ((Player*)m_caster)->IsPendingSteadyShot())
+        ((Player*)m_caster)->SetPendingSteadyShot(false);
 
     finish(false);
     m_caster->RemoveDynObject(m_spellInfo->Id);
@@ -3421,6 +3430,17 @@ void Spell::cast(bool skipCheck)
 
     m_caster->DecreaseCastCounter();
     SetExecutedCurrently(false);
+
+    // Auto shot: We need to start steady shot if it was started within 500 ms
+    // (the "load gun" phase) of auto shot
+    if (m_spellInfo->Id == 75 && m_caster->IsPlayer() && ((Player*)m_caster)->IsPendingSteadyShot())
+    {
+        Unit* target = m_targets.getUnitTarget();
+        if (target && target->isAlive())
+            m_caster->CastSpell(target, 34120, TRIGGERED_IGNORE_GCD);
+
+        ((Player*)m_caster)->SetPendingSteadyShot(false);
+    }
 }
 
 void Spell::handle_immediate()
@@ -4593,7 +4613,7 @@ SpellCastResult Spell::CheckCast(bool strict)
         return SPELL_FAILED_CASTER_DEAD;
 
     // check global cooldown
-    if (strict && !m_IsTriggeredSpell && m_caster->HasGCD(m_spellInfo))
+    if (strict && !m_ignoreGCD && !m_IsTriggeredSpell && m_caster->HasGCD(m_spellInfo))
         return SPELL_FAILED_NOT_READY;
 
     // only allow triggered spells if at an ended battleground
@@ -5951,6 +5971,18 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_BAD_TARGETS;
             break;
         }
+        case 34120:
+            // If auto shot is currently in its prepare fire stage, we need to delay
+            // steady shot, but still consume GCD
+            if (!m_ignoreGCD && m_caster->IsPlayer() && m_caster->getAttackTimer(RANGED_ATTACK) <= 500)
+            {
+                // Prepare a steady shot that will be executed without GCD when auto
+                // shot finishes.
+                ((Player*)m_caster)->SetPendingSteadyShot(true);
+                m_caster->AddGCD(*m_spellInfo);
+                return SPELL_FAILED_DONT_REPORT;
+            }
+            break;
     }
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX2_TAME_BEAST))

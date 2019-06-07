@@ -213,7 +213,7 @@ struct npc_shay_leafrunnerAI : public FollowerAI
             pWho->GetContactPoint(m_creature, fX, fY, fZ, INTERACTION_DISTANCE);
             m_creature->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
         }
-        else if (m_bIsRecalled && pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(pWho, INTERACTION_DISTANCE))
+        else if (m_bIsRecalled && pWho->IsPlayer() && pWho->IsWithinDistInMap(pWho, INTERACTION_DISTANCE))
         {
             m_uiWanderTimer = 60000;
             m_bIsRecalled = false;
@@ -230,7 +230,7 @@ struct npc_shay_leafrunnerAI : public FollowerAI
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         // start following
-        if (eventType == AI_EVENT_START_EVENT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_EVENT && pInvoker->IsPlayer())
         {
             StartFollow((Player*)pInvoker, 0, GetQuestTemplateStore(uiMiscValue));
             m_uiWanderTimer = 30000;
@@ -298,7 +298,7 @@ bool EffectDummyCreature_npc_shay_leafrunner(Unit* pCaster, uint32 uiSpellId, Sp
 {
     if (uiSpellId == SPELL_SHAYS_BELL && uiEffIndex == EFFECT_INDEX_0)
     {
-        if (pCaster->GetTypeId() != TYPEID_PLAYER)
+        if (!pCaster->IsPlayer())
             return true;
 
         pCreatureTarget->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pCaster, pCreatureTarget);

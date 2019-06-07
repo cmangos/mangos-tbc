@@ -138,7 +138,7 @@ struct boss_venoxisAI : public ScriptedAI
                 {
                     if (Unit* pTempTarget = m_creature->GetMap()->GetUnit(iter->getUnitGuid()))
                     {
-                        if (pTempTarget->GetTypeId() == TYPEID_PLAYER && m_creature->CanReachWithMeleeAttack(pTempTarget))
+                        if (pTempTarget->IsPlayer() && m_creature->CanReachWithMeleeAttack(pTempTarget))
                             ++uiTargetsInRange;
                     }
                 }

@@ -1186,7 +1186,7 @@ bool ScriptAction::GetScriptProcessTargets(WorldObject* pOrigSource, WorldObject
 
             // Prefer non-players as searcher
             WorldObject* pSearcher = pOrigSource ? pOrigSource : pOrigTarget;
-            if (pSearcher->GetTypeId() == TYPEID_PLAYER && pOrigTarget && pOrigTarget->GetTypeId() != TYPEID_PLAYER)
+            if (pSearcher->IsPlayer() && pOrigTarget && !pOrigTarget->IsPlayer())
                 pSearcher = pOrigTarget;
 
             if (m_script->IsCreatureBuddy())
@@ -1288,7 +1288,7 @@ bool ScriptAction::LogIfNotGameObject(WorldObject* pWorldObject) const
 }
 bool ScriptAction::LogIfNotPlayer(WorldObject* pWorldObject) const
 {
-    if (!pWorldObject || pWorldObject->GetTypeId() != TYPEID_PLAYER)
+    if (!pWorldObject || !pWorldObject->IsPlayer())
     {
         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u call for non-player, skipping.", m_table, m_script->id, m_script->command);
         return true;
@@ -1299,13 +1299,13 @@ bool ScriptAction::LogIfNotPlayer(WorldObject* pWorldObject) const
 /// Helper to get a player if possible (target preferred)
 Player* ScriptAction::GetPlayerTargetOrSourceAndLog(WorldObject* pSource, WorldObject* pTarget) const
 {
-    if ((!pTarget || pTarget->GetTypeId() != TYPEID_PLAYER) && (!pSource || pSource->GetTypeId() != TYPEID_PLAYER))
+    if ((!pTarget || !pTarget->IsPlayer()) && (!pSource || !pSource->IsPlayer()))
     {
         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u call for non player, skipping.", m_table, m_script->id, m_script->command);
         return nullptr;
     }
 
-    return pTarget && pTarget->GetTypeId() == TYPEID_PLAYER ? (Player*)pTarget : (Player*)pSource;
+    return pTarget && pTarget->IsPlayer() ? (Player*)pTarget : (Player*)pSource;
 }
 
 /// Handle one Script Step
@@ -1982,7 +1982,7 @@ bool ScriptAction::HandleScriptStep()
                     return false;
                 }
 
-                if (pSearcher->GetTypeId() == TYPEID_PLAYER && pTarget && pTarget->GetTypeId() != TYPEID_PLAYER)
+                if (pSearcher->IsPlayer() && pTarget && !pTarget->IsPlayer())
                     pSearcher = pTarget;
 
                 if (m_script->terminateScript.npcEntry)
@@ -2090,10 +2090,10 @@ bool ScriptAction::HandleScriptStep()
             Player* player = nullptr;
             WorldObject* second = pSource;
             // First case: target is player
-            if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER)
+            if (pTarget && pTarget->IsPlayer())
                 player = static_cast<Player*>(pTarget);
             // Second case: source is player
-            else if (pSource && pSource->GetTypeId() == TYPEID_PLAYER)
+            else if (pSource && pSource->IsPlayer())
             {
                 player = static_cast<Player*>(pSource);
                 second = pTarget;
@@ -2473,7 +2473,7 @@ bool StartEvents_Event(Map* map, uint32 id, Object* source, Object* target, bool
     {
         BattleGround* bg = nullptr;
         OutdoorPvP* opvp = nullptr;
-        if (forwardToPvp->GetTypeId() == TYPEID_PLAYER)
+        if (forwardToPvp->IsPlayer())
         {
             bg = ((Player*)forwardToPvp)->GetBattleGround();
             if (!bg)

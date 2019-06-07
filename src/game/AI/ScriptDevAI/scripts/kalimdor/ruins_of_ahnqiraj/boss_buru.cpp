@@ -79,7 +79,7 @@ struct boss_buruAI : public ScriptedAI
     void KilledUnit(Unit* pVictim) override
     {
         // Attack a new random target when a player is killed
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoAttackNewTarget();
     }
 

@@ -156,7 +156,7 @@ struct npc_tapoke_slim_jahnAI : public npc_escortAI, private DialogueHelper
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         // start escort
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
             Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue), true);
     }
 

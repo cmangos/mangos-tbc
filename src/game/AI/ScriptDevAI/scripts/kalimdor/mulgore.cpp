@@ -69,7 +69,7 @@ struct npc_kyle_the_frenziedAI : public ScriptedAI
     {
         if (!m_creature->getVictim() && !m_bEvent && pSpell->Id == SPELL_LUNCH)
         {
-            if (pCaster->GetTypeId() == TYPEID_PLAYER)
+            if (pCaster->IsPlayer())
                 m_playerGuid = pCaster->GetObjectGuid();
 
             if (m_creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)

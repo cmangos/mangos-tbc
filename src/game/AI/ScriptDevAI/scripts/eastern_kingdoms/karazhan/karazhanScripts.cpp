@@ -489,7 +489,7 @@ UnitAI* GetAI_npc_image_arcanagosAI(Creature* pCreature)
 
 bool ProcessEventId_event_spell_medivh_journal(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         // Summon Medivh and Arcanagos
         if (Creature* pMedivh = ((Player*)pSource)->SummonCreature(NPC_IMAGE_OF_MEDIVH, afMedivhSpawnLoc[0], afMedivhSpawnLoc[1], afMedivhSpawnLoc[2], afMedivhSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0))

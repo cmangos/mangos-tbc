@@ -389,7 +389,7 @@ struct boss_sathrovarrAI : public ScriptedAI
         DoScriptText(urand(0, 1) ? SAY_SATH_SLAY_1 : SAY_SATH_SLAY_2, m_creature);
 
         // !!! Workaround which ejects the players from the spectral realm on death !!!
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
         {
             pVictim->CastSpell(pVictim, SPELL_TELEPORT_NORMAL_REALM, TRIGGERED_OLD_TRIGGERED);
             pVictim->CastSpell(pVictim, SPELL_SPECTRAL_EXHAUSTION, TRIGGERED_OLD_TRIGGERED);
@@ -399,7 +399,7 @@ struct boss_sathrovarrAI : public ScriptedAI
     void MoveInLineOfSight(Unit* pWho) override
     {
         // !!! Workaround which ejects the players from the spectral realm !!!
-        if (pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinLOSInMap(m_creature) && pWho->IsWithinDistInMap(m_creature, 75.0f))
+        if (pWho->IsPlayer() && pWho->IsWithinLOSInMap(m_creature) && pWho->IsWithinDistInMap(m_creature, 75.0f))
         {
             if (!pWho->HasAura(SPELL_SPECTRAL_REALM_AURA))
             {
@@ -596,7 +596,7 @@ bool EffectDummyCreature_spell_spectral_realm_notify(Unit* pCaster, uint32 uiSpe
 {
     if (uiSpellId == SPELL_SPECTRAL_REALM_NOTIFY && uiEffIndex == EFFECT_INDEX_0)
     {
-        if (pCaster->GetTypeId() == TYPEID_PLAYER)
+        if (pCaster->IsPlayer())
             pCreatureTarget->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pCaster, pCreatureTarget);
 
         return true;

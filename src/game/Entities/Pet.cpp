@@ -399,14 +399,14 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     owner->SetPet(this);                                    // in DB stored only full controlled creature
     DEBUG_LOG("New Pet has guid %u", GetGUIDLow());
 
-    if (owner->GetTypeId() == TYPEID_PLAYER)
+    if (owner->IsPlayer())
     {
         ((Player*)owner)->PetSpellInitialize();
         if (((Player*)owner)->GetGroup())
             ((Player*)owner)->SetGroupUpdateFlag(GROUP_UPDATE_PET);
     }
 
-    if (owner->GetTypeId() == TYPEID_PLAYER && getPetType() == HUNTER_PET)
+    if (owner->IsPlayer() && getPetType() == HUNTER_PET)
     {
         result = CharacterDatabase.PQuery("SELECT genitive, dative, accusative, instrumental, prepositional FROM character_pet_declinedname WHERE owner = '%u' AND id = '%u'", owner->GetGUIDLow(), GetCharmInfo()->GetPetNumber());
 
@@ -644,7 +644,7 @@ void Pet::SetOwnerGuid(ObjectGuid owner)
 Player* Pet::GetSpellModOwner() const
 {
     Unit* owner = GetOwner();
-    if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+    if (owner && owner->IsPlayer())
         return static_cast<Player*>(owner);
     return nullptr;
 }
@@ -835,7 +835,7 @@ void Pet::ModifyLoyalty(int32 addvalue)
         else
         {
             Unit* owner = GetOwner();
-            if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+            if (owner && owner->IsPlayer())
             {
                 switch (urand(0, 2))
                 {
@@ -1052,7 +1052,7 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
         if (GetOwnerGuid() != owner->GetObjectGuid())
             return;
 
-        Player* p_owner = owner->GetTypeId() == TYPEID_PLAYER ? (Player*)owner : nullptr;
+        Player* p_owner = owner->IsPlayer() ? (Player*)owner : nullptr;
 
         if (p_owner)
         {
@@ -1695,7 +1695,7 @@ void Pet::_LoadSpellCooldowns()
 
         delete result;
 
-        if (cdCount && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER)
+        if (cdCount && GetOwner() && GetOwner()->IsPlayer())
         {
             WorldPacket data(SMSG_SPELL_COOLDOWN, 8 + 1 + cdData.size());
             data << GetObjectGuid();
@@ -2086,7 +2086,7 @@ bool Pet::learnSpell(uint32 spell_id)
     if (!m_loading)
     {
         Unit* owner = GetOwner();
-        if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+        if (owner && owner->IsPlayer())
             ((Player*)owner)->PetSpellInitialize();
     }
     return true;
@@ -2130,7 +2130,7 @@ bool Pet::removeSpell(uint32 spell_id, bool learn_prev, bool clear_ab)
         {
             // need update action bar for last removed rank
             if (Unit* owner = GetOwner())
-                if (owner->GetTypeId() == TYPEID_PLAYER)
+                if (owner->IsPlayer())
                     ((Player*)owner)->PetSpellInitialize();
         }
     }
@@ -2159,7 +2159,7 @@ void Pet::InitPetCreateSpells()
     if (CreateSpells)
     {
         Unit* owner = GetOwner();
-        Player* p_owner = owner && owner->GetTypeId() == TYPEID_PLAYER ? (Player*)owner : nullptr;
+        Player* p_owner = owner && owner->IsPlayer() ? (Player*)owner : nullptr;
 
         for (uint8 i = 0; i < 4; ++i)
         {
@@ -2202,12 +2202,12 @@ void Pet::InitPetCreateSpells()
 void Pet::CheckLearning(uint32 spellid)
 {
     // charmed case -> prevent crash
-    if (GetTypeId() == TYPEID_PLAYER || getPetType() != HUNTER_PET)
+    if (IsPlayer() || getPetType() != HUNTER_PET)
         return;
 
     Unit* owner = GetOwner();
 
-    if (m_teachspells.empty() || !owner || owner->GetTypeId() != TYPEID_PLAYER)
+    if (m_teachspells.empty() || !owner || !owner->IsPlayer())
         return;
 
     TeachSpellMap::iterator itr = m_teachspells.find(spellid);
@@ -2375,7 +2375,7 @@ void Pet::CastPetAuras(bool current)
 
 void Pet::CastOwnerTalentAuras()
 {
-    if (!GetOwner() || GetOwner()->GetTypeId() != TYPEID_PLAYER)
+    if (!GetOwner() || !GetOwner()->IsPlayer())
         return;
 
     Player* pOwner = static_cast<Player*>(GetOwner());
@@ -2420,7 +2420,7 @@ void Pet::CastPetAura(PetAura const* aura)
 void Pet::SynchronizeLevelWithOwner()
 {
     Unit* owner = GetOwner();
-    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+    if (!owner || !owner->IsPlayer())
         return;
 
     switch (getPetType())
@@ -2444,7 +2444,7 @@ void Pet::SetModeFlags(PetModeFlags mode)
     m_petModeFlags = mode;
 
     Unit* owner = GetOwner();
-    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+    if (!owner || !owner->IsPlayer())
         return;
 
     WorldPacket data(SMSG_PET_MODE, 12);

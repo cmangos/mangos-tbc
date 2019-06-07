@@ -104,7 +104,7 @@ UnitAI* GetAI_npc_kalecgos(Creature* pCreature)
 
 bool ProcessEventId_event_go_scrying_orb(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         if (instance_magisters_terrace* pInstance = (instance_magisters_terrace*)((Player*)pSource)->GetInstanceData())
         {

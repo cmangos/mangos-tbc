@@ -798,7 +798,7 @@ enum
 
 bool TrapTargetSearch(Unit* unit)
 {
-    if (unit->GetTypeId() == TYPEID_PLAYER)
+    if (unit->IsPlayer())
     {
         Player* player = static_cast<Player*>(unit);
         if (player->HasItemCount(ITEM_GOBLIN_TRANSPONDER, 1))

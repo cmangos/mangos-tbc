@@ -4238,7 +4238,7 @@ void Player::SetRoot(bool enable)
     data << GetPackGUID();
     data << uint32(0);
 
-    if (GetMover() && GetMover()->GetTypeId() == TYPEID_PLAYER)
+    if (GetMover() && GetMover()->IsPlayer())
     {
         Player* pMover = (Player*)GetMover();
         if (pMover != this)
@@ -6577,7 +6577,7 @@ bool Player::RewardHonor(Unit* uVictim, uint32 groupsize, float honor)
     // do not reward honor in arenas, but enable onkill spellproc
     if (InArena())
     {
-        if (!uVictim || uVictim == this || uVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!uVictim || uVictim == this || !uVictim->IsPlayer())
             return false;
 
         if (GetBGTeam() == ((Player*)uVictim)->GetBGTeam())
@@ -6603,7 +6603,7 @@ bool Player::RewardHonor(Unit* uVictim, uint32 groupsize, float honor)
 
         victim_guid = uVictim->GetObjectGuid();
 
-        if (uVictim->GetTypeId() == TYPEID_PLAYER)
+        if (uVictim->IsPlayer())
         {
             Player* pVictim = (Player*)uVictim;
 
@@ -12957,7 +12957,7 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
         uint32 limittime = pQuest->GetLimitTime();
 
         // shared timed quest
-        if (questGiver && questGiver->GetTypeId() == TYPEID_PLAYER)
+        if (questGiver && questGiver->IsPlayer())
             limittime = ((Player*)questGiver)->getQuestStatusMap()[quest_id].m_timer / IN_MILLISECONDS;
 
         AddTimedQuest(quest_id);
@@ -17519,7 +17519,7 @@ void Player::CharmSpellInitialize() const
 
     uint8 addlist = 0;
 
-    if (charm->GetTypeId() != TYPEID_PLAYER)
+    if (!charm->IsPlayer())
     {
         CreatureInfo const* cinfo = ((Creature*)charm)->GetCreatureInfo();
 

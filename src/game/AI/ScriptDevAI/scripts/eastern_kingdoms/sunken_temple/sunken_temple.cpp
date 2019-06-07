@@ -151,7 +151,7 @@ UnitAI* GetAI_npc_malfurion(Creature* pCreature)
 
 bool ProcessEventId_event_antalarion_statue_activation(uint32 uiEventId, Object* pSource, Object* pTarget, bool /*bIsStart*/)
 {
-    if (pSource->GetTypeId() == TYPEID_PLAYER && pTarget->GetTypeId() == TYPEID_GAMEOBJECT)
+    if (pSource->IsPlayer() && pTarget->GetTypeId() == TYPEID_GAMEOBJECT)
     {
         if (instance_sunken_temple* pInstance = (instance_sunken_temple*)((Player*)pSource)->GetInstanceData())
         {
@@ -189,7 +189,7 @@ bool ProcessEventId_event_antalarion_statue_activation(uint32 uiEventId, Object*
 ######*/
 bool ProcessEventId_event_avatar_of_hakkar(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool /*bIsStart*/)
 {
-    if (pSource->GetTypeId() == TYPEID_PLAYER)
+    if (pSource->IsPlayer())
     {
         if (instance_sunken_temple* pInstance = (instance_sunken_temple*)((Player*)pSource)->GetInstanceData())
         {

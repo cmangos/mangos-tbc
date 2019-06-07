@@ -70,7 +70,7 @@ struct boss_thorngrinAI : ScriptedAI
 
     void KilledUnit(Unit* victim) override
     {
-        if (victim->GetTypeId() == TYPEID_PLAYER)
+        if (victim->IsPlayer())
             DoScriptText(SAY_PLAYER_KILL, m_creature);
     }
 

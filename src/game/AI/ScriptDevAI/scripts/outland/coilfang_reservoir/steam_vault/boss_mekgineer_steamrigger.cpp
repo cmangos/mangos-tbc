@@ -239,7 +239,7 @@ struct mob_steamrigger_mechanicAI : public ScriptedAI
     void AttackStart(Unit* pWho) override
     {
         // Trigger attack only for players
-        if (pWho->GetTypeId() != TYPEID_PLAYER)
+        if (!pWho->IsPlayer())
             return;
 
         m_creature->InterruptNonMeleeSpells(false);

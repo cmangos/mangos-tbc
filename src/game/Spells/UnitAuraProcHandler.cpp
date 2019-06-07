@@ -351,12 +351,12 @@ void Unit::ProcSkillsAndReactives(bool isVictim, Unit* target, uint32 procFlags,
     if (procFlags & MELEE_BASED_TRIGGER_MASK)
     {
         // Update skills here for players
-        if (GetTypeId() == TYPEID_PLAYER)
+        if (IsPlayer())
         {
             // On melee based hit/miss/resist need update skill (for victim and attacker)
             if (procEx & (PROC_EX_NORMAL_HIT | PROC_EX_CRITICAL_HIT | PROC_EX_MISS | PROC_EX_DODGE | PROC_EX_PARRY | PROC_EX_BLOCK))
             {
-                if (target->GetTypeId() != TYPEID_PLAYER && target->GetCreatureType() != CREATURE_TYPE_CRITTER)
+                if (!target->IsPlayer() && target->GetCreatureType() != CREATURE_TYPE_CRITTER)
                     ((Player*)this)->UpdateCombatSkills(target, attType, isVictim);
             }
             // Update defence if player is victim and parry/dodge/block
@@ -404,7 +404,7 @@ void Unit::ProcSkillsAndReactives(bool isVictim, Unit* target, uint32 procFlags,
             else // For attacker
             {
                 // Overpower on victim dodge
-                if (procEx & PROC_EX_DODGE && GetTypeId() == TYPEID_PLAYER && getClass() == CLASS_WARRIOR)
+                if (procEx & PROC_EX_DODGE && IsPlayer() && getClass() == CLASS_WARRIOR)
                 {
                     ((Player*)this)->AddComboPoints(target, 1);
                     StartReactiveTimer(REACTIVE_OVERPOWER);
@@ -594,7 +594,7 @@ bool Unit::IsTriggeredAtSpellProcEvent(ProcExecutionData& data, SpellAuraHolder*
         return false;
 
     // In most cases req get honor or XP from kill
-    if (EventProcFlag & PROC_FLAG_KILL && GetTypeId() == TYPEID_PLAYER)
+    if (EventProcFlag & PROC_FLAG_KILL && IsPlayer())
     {
         bool allow = ((Player*)this)->isHonorOrXPTarget(data.victim);
         // Shadow Word: Death - can trigger from every kill
@@ -609,7 +609,7 @@ bool Unit::IsTriggeredAtSpellProcEvent(ProcExecutionData& data, SpellAuraHolder*
         return false;
 
     // Check if current equipment allows aura to proc
-    if (!data.isVictim && GetTypeId() == TYPEID_PLAYER)
+    if (!data.isVictim && IsPlayer())
     {
         if (spellProto->EquippedItemClass == ITEM_CLASS_WEAPON)
         {
@@ -669,7 +669,7 @@ SpellAuraProcResult Unit::HandleHasteAuraProc(ProcExecutionData& data)
     Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; uint32 cooldown = data.cooldown;
     SpellEntry const* hasteSpell = triggeredByAura->GetSpellProto();
 
-    Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
+    Item* castItem = triggeredByAura->GetCastItemGuid() && IsPlayer()
                      ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGuid()) : nullptr;
 
     uint32 triggered_spell_id = 0;
@@ -742,7 +742,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
     SpellEffectIndex effIndex = triggeredByAura->GetEffIndex();
     int32  triggerAmount = triggeredByAura->GetModifier()->m_amount;
 
-    Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
+    Item* castItem = triggeredByAura->GetCastItemGuid() && IsPlayer()
                      ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGuid()) : nullptr;
 
     uint32 triggered_spell_id = 0;
@@ -943,7 +943,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 // 41409 Dementia: Every 5 seconds either gives you -5% damage/healing. (Druid, Shaman, Priest, Warlock, Mage, Paladin)
                 case 39446:
                 {
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         return SPELL_AURA_PROC_FAILED;
 
                     // Select class defined buff
@@ -1003,7 +1003,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 // cast 45429 Arcane Bolt if Exalted by Scryers
                 case 45481:
                 {
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         return SPELL_AURA_PROC_FAILED;
 
                     // Get Aldor reputation rank
@@ -1040,7 +1040,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 // cast 45428 Arcane Strike if Exalted by Scryers
                 case 45482:
                 {
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         return SPELL_AURA_PROC_FAILED;
 
                     // Get Aldor reputation rank
@@ -1063,7 +1063,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 // cast 45432 Light's Ward if Exalted by Scryers
                 case 45483:
                 {
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         return SPELL_AURA_PROC_FAILED;
 
                     // Get Aldor reputation rank
@@ -1087,7 +1087,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 // cast 45430 Arcane Surge if Exalted by Scryers
                 case 45484:
                 {
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         return SPELL_AURA_PROC_FAILED;
 
                     // Get Aldor reputation rank
@@ -1527,7 +1527,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
             // Seal of Righteousness - melee proc dummy
             if ((dummySpell->SpellFamilyFlags & uint64(0x000000008000000)) && triggeredByAura->GetEffIndex() == EFFECT_INDEX_0)
             {
-                if (GetTypeId() != TYPEID_PLAYER)
+                if (!IsPlayer())
                     return SPELL_AURA_PROC_FAILED;
 
                 uint32 spellId;
@@ -1734,7 +1734,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 case 33757:
                 {
                     // TODO: unify handling of all enchantments - some are in procs some are in Player::CastItemCombatSpell
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         return SPELL_AURA_PROC_FAILED;
 
                     if (!castItem || !castItem->IsEquipped())
@@ -1840,7 +1840,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
             // Flametongue Weapon (Passive), Ranks
             if (dummySpell->SpellFamilyFlags & uint64(0x0000000000200000))
             {
-                if (GetTypeId() != TYPEID_PLAYER || !castItem)
+                if (!IsPlayer() || !castItem)
                     return SPELL_AURA_PROC_FAILED;
 
                 // Only proc for enchanted weapon
@@ -1875,7 +1875,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
             // Lightning Overload
             if (dummySpell->SpellIconID == 2018)            // only this spell have SpellFamily Shaman SpellIconID == 2018 and dummy aura
             {
-                if (!procSpell || GetTypeId() != TYPEID_PLAYER || !pVictim)
+                if (!procSpell || !IsPlayer() || !pVictim)
                     return SPELL_AURA_PROC_FAILED;
 
                 // custom cooldown processing case
@@ -1986,7 +1986,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
     if (triggeredByAura->GetModifier()->m_auraname == SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE)
         basepoints[0] = triggerAmount;
 
-    Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
+    Item* castItem = triggeredByAura->GetCastItemGuid() && IsPlayer()
                      ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGuid()) : nullptr;
 
     // Try handle unknown trigger spells
@@ -2144,7 +2144,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                     break;
                 }
                 case 48473:                                 // Capture Soul - Doom Lord Kazzak
-                    if (pVictim->GetTypeId() != TYPEID_PLAYER) // only player death procs
+                    if (!pVictim->IsPlayer()) // only player death procs
                         return SPELL_AURA_PROC_FAILED;
                     if (Player* lootRecipient = ((Creature*)this)->GetLootRecipient()) // only same team as the one that tagged procs
                         if (lootRecipient->GetTeam() != ((Player*)pVictim)->GetTeam()) // prevents horde/alliance griefing
@@ -2637,7 +2637,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(ProcExecutionData& d
     if (!pVictim || !pVictim->isAlive())
         return SPELL_AURA_PROC_FAILED;
 
-    Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
+    Item* castItem = triggeredByAura->GetCastItemGuid() && IsPlayer()
                      ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGuid()) : nullptr;
 
     // Basepoints of trigger aura
@@ -2757,7 +2757,7 @@ SpellAuraProcResult Unit::HandleMendingAuraProc(ProcExecutionData& data)
     triggeredByAura->GetHolder()->SetAuraCharges(1);        // will removed at next charges decrease
 
     // next target selection
-    if (jumps > 0 && GetTypeId() == TYPEID_PLAYER && caster_guid.IsPlayer())
+    if (jumps > 0 && IsPlayer() && caster_guid.IsPlayer())
     {
         float radius;
         if (spellProto->EffectRadiusIndex[effIdx])
@@ -2844,7 +2844,7 @@ SpellAuraProcResult Unit::HandleManaShieldAuraProc(ProcExecutionData& data)
     Unit* pVictim = data.victim; Aura* triggeredByAura = data.triggeredByAura; uint32 cooldown = data.cooldown;
     SpellEntry const* dummySpell = triggeredByAura->GetSpellProto();
 
-    Item* castItem = triggeredByAura->GetCastItemGuid() && GetTypeId() == TYPEID_PLAYER
+    Item* castItem = triggeredByAura->GetCastItemGuid() && IsPlayer()
                      ? ((Player*)this)->GetItemByGuid(triggeredByAura->GetCastItemGuid()) : nullptr;
 
     uint32 triggered_spell_id = 0;
@@ -2857,7 +2857,7 @@ SpellAuraProcResult Unit::HandleManaShieldAuraProc(ProcExecutionData& data)
             // Incanter's Regalia set (add trigger chance to Mana Shield)
             if (dummySpell->SpellFamilyFlags & uint64(0x0000000000008000) && HasAura(37424)) // Improved Mana Shield
             {
-                if (GetTypeId() != TYPEID_PLAYER)
+                if (!IsPlayer())
                     return SPELL_AURA_PROC_FAILED;
 
                 target = this;

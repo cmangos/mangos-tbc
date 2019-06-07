@@ -95,7 +95,7 @@ struct boss_doomwalkerAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         pVictim->CastSpell(pVictim, SPELL_MARK_OF_DEATH_PLAYER, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());

@@ -104,7 +104,7 @@ struct boss_priestess_delrissaAI : public ScriptedAI
 
     void Aggro(Unit* pWho) override
     {
-        if (pWho->GetTypeId() != TYPEID_PLAYER)
+        if (!pWho->IsPlayer())
             return;
 
         DoScriptText(SAY_AGGRO, m_creature);
@@ -155,7 +155,7 @@ struct boss_priestess_delrissaAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(aPlayerDeath[m_uiPlayersKilled], m_creature);

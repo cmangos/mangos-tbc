@@ -192,7 +192,7 @@ struct boss_exarch_maladaarAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bHasTaunted && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 150.0f) && m_creature->IsWithinLOSInMap(pWho))
+        if (!m_bHasTaunted && pWho->IsPlayer() && m_creature->IsWithinDistInMap(pWho, 150.0f) && m_creature->IsWithinLOSInMap(pWho))
         {
             DoScriptText(SAY_INTRO, m_creature);
             m_bHasTaunted = true;
@@ -254,7 +254,7 @@ struct boss_exarch_maladaarAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
-        if (pSpell->Id == SPELL_STOLEN_SOUL && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpell->Id == SPELL_STOLEN_SOUL && pTarget->IsPlayer())
             m_creature->SummonCreature(NPC_STOLEN_SOUL, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
     }
 

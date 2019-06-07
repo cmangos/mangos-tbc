@@ -71,7 +71,7 @@ struct boss_void_reaverAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         switch (urand(0, 2))
@@ -138,7 +138,7 @@ struct boss_void_reaverAI : public ScriptedAI
             {
                 if (Unit* pTarget = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                 {
-                    if (pTarget->GetTypeId() == TYPEID_PLAYER && !pTarget->IsWithinDist3d(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 18.0f))
+                    if (pTarget->IsPlayer() && !pTarget->IsWithinDist3d(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 18.0f))
                         suitableTargets.push_back(pTarget);
                 }
             }

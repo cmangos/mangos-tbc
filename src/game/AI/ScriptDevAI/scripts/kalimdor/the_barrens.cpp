@@ -98,7 +98,7 @@ struct npc_giltharesAI : public npc_escortAI
             return;
 
         // only aggro text if not player and only in this area
-        if (pWho->GetTypeId() != TYPEID_PLAYER && m_creature->GetAreaId() == AREA_MERCHANT_COAST)
+        if (!pWho->IsPlayer() && m_creature->GetAreaId() == AREA_MERCHANT_COAST)
         {
             // appears to be pretty much random (possible only if escorter not in combat with pWho yet?)
             switch (urand(0, 3))
@@ -174,7 +174,7 @@ struct npc_taskmaster_fizzuleAI : public ScriptedAI
 
     void SpellHit(Unit* caster, const SpellEntry* spell) override
     {
-        if (caster->GetTypeId() != TYPEID_PLAYER)
+        if (!caster->IsPlayer())
             return;
 
         switch (spell->Id)

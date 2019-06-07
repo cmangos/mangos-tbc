@@ -441,7 +441,7 @@ void UnitAI::DetectOrAttack(Unit* who)
 
 bool UnitAI::CanTriggerStealthAlert(Unit* who, float attackRadius) const
 {
-    if (who->GetTypeId() != TYPEID_PLAYER)
+    if (!who->IsPlayer())
         return false;
     if (m_unit->hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
         return false;

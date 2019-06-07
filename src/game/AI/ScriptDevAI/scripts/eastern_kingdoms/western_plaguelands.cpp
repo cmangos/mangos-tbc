@@ -54,10 +54,10 @@ struct npc_the_scourge_cauldronAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* who) override
     {
-        if (!who || who->GetTypeId() != TYPEID_PLAYER)
+        if (!who || !who->IsPlayer())
             return;
 
-        if (who->GetTypeId() == TYPEID_PLAYER)
+        if (who->IsPlayer())
         {
             switch (m_creature->GetAreaId())
             {
@@ -139,7 +139,7 @@ struct npc_anchorite_truuenAI: public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             DoScriptText(SAY_BEGIN, m_creature);
             Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue));
@@ -438,13 +438,13 @@ struct npc_taelan_fordringAI: public npc_escortAI, private DialogueHelper
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue));
             DoScriptText(SAY_ESCORT_START, m_creature);
             m_creature->SetFactionTemporary(FACTION_ESCORT_N_FRIEND_PASSIVE, TEMPFACTION_RESTORE_RESPAWN);
         }
-        else if (eventType == AI_EVENT_CUSTOM_A && pInvoker->GetTypeId() == TYPEID_PLAYER && uiMiscValue == QUEST_ID_SCARLET_SUBTERFUGE)
+        else if (eventType == AI_EVENT_CUSTOM_A && pInvoker->IsPlayer() && uiMiscValue == QUEST_ID_SCARLET_SUBTERFUGE)
             StartNextDialogueText(NPC_SCARLET_CAVALIER);
         else if (eventType == AI_EVENT_CUSTOM_B && pInvoker->GetEntry() == NPC_ISILLIEN)
         {

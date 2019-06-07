@@ -79,7 +79,7 @@ struct boss_faerlinaAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bHasTaunted && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 80.0f) &&  m_creature->IsWithinLOSInMap(pWho))
+        if (!m_bHasTaunted && pWho->IsPlayer() && m_creature->IsWithinDistInMap(pWho, 80.0f) &&  m_creature->IsWithinLOSInMap(pWho))
         {
             DoScriptText(SAY_GREET, m_creature);
             m_bHasTaunted = true;

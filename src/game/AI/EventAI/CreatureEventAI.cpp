@@ -364,7 +364,7 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
         case EVENT_T_AGGRO:
             break;
         case EVENT_T_KILL:
-            if (event.kill.playerOnly == 1 && actionInvoker->GetTypeId() != TYPEID_PLAYER)
+            if (event.kill.playerOnly == 1 && !actionInvoker->IsPlayer())
                 return false;
             break;
         case EVENT_T_DEATH:
@@ -714,21 +714,21 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
 
                 if (actionInvoker)
                 {
-                    if (actionInvoker->GetTypeId() == TYPEID_PLAYER)
+                    if (actionInvoker->IsPlayer())
                         target = actionInvoker;
                     else if (Unit* owner = actionInvoker->GetOwner())
                     {
-                        if (owner->GetTypeId() == TYPEID_PLAYER)
+                        if (owner->IsPlayer())
                             target = owner;
                     }
                 }
                 else
                 {
                     target = m_creature->getVictim();
-                    if (target && target->GetTypeId() != TYPEID_PLAYER)
+                    if (target && !target->IsPlayer())
                     {
                         Unit* owner = target->GetOwner();
-                        if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+                        if (owner && owner->IsPlayer())
                             target = owner;
                     }
                 }
@@ -934,7 +934,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         {
             if (Unit* target = GetTargetByType(action.quest_event.target, actionInvoker, AIEventSender, eventTarget, failedTargetSelection))
             {
-                if (target->GetTypeId() == TYPEID_PLAYER)
+                if (target->IsPlayer())
                 {
                     Player* playerTarget = static_cast<Player*>(target);
                     if (action.quest_event.rewardGroup)
@@ -950,7 +950,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         case ACTION_T_CAST_EVENT:
             if (Unit* target = GetTargetByType(action.cast_event.target, actionInvoker, AIEventSender, eventTarget, failedTargetSelection, 0, SELECT_FLAG_PLAYER))
             {
-                if (target->GetTypeId() == TYPEID_PLAYER)
+                if (target->IsPlayer())
                     ((Player*)target)->CastedCreatureOrGO(action.cast_event.creatureId, m_creature->GetObjectGuid(), action.cast_event.spellId);
             }
             else if (failedTargetSelection)
@@ -1039,7 +1039,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                     if (Player* temp = m_creature->GetMap()->GetPlayer(i->getUnitGuid()))
                         temp->RewardPlayerAndGroupAtEventExplored(action.quest_event_all.questId, m_creature);
             }
-            else if (actionInvoker && actionInvoker->GetTypeId() == TYPEID_PLAYER)
+            else if (actionInvoker && actionInvoker->IsPlayer())
                 ((Player*)actionInvoker)->RewardPlayerAndGroupAtEventExplored(action.quest_event_all.questId, m_creature);
             break;
         case ACTION_T_CAST_EVENT_ALL:
@@ -1634,7 +1634,7 @@ void CreatureEventAI::MoveInLineOfSight(Unit* who)
                 float fMaxAllowedRange = (float)itr.event.ooc_los.maxRange;
 
                 // who must be player type if this option is turned on
-                if (!itr.event.ooc_los.playerOnly || who->GetTypeId() == TYPEID_PLAYER)
+                if (!itr.event.ooc_los.playerOnly || who->IsPlayer())
                 {
                     // if friendly event && who is not hostile OR hostile event && who is hostile
                     if ((itr.event.ooc_los.noHostile && !m_creature->IsEnemy(who)) ||

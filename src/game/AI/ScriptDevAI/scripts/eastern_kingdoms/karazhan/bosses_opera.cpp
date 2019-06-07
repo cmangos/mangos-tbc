@@ -997,7 +997,7 @@ struct boss_julianneAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(SAY_JULIANNE_SLAY, m_creature);
@@ -1243,7 +1243,7 @@ struct boss_romuloAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(SAY_ROMULO_SLAY, m_creature);

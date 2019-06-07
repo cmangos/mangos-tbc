@@ -456,7 +456,7 @@ struct boss_arugalAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoScriptText(YELL_KILLED_PLAYER, m_creature);
     }
 

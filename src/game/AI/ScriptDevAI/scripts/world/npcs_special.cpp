@@ -168,7 +168,7 @@ struct npc_air_force_botsAI : public ScriptedAI
 
         if (m_creature->CanAttackOnSight(pWho))
         {
-            Player* pPlayerTarget = pWho->GetTypeId() == TYPEID_PLAYER ? (Player*)pWho : nullptr;
+            Player* pPlayerTarget = pWho->IsPlayer() ? (Player*)pWho : nullptr;
 
             // airforce guards only spawn for players
             if (!pPlayerTarget)
@@ -524,7 +524,7 @@ struct npc_injured_patientAI : public ScriptedAI
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
     {
-        if (pCaster->GetTypeId() == TYPEID_PLAYER && m_creature->isAlive() && pSpell->Id == 20804)
+        if (pCaster->IsPlayer() && m_creature->isAlive() && pSpell->Id == 20804)
         {
             // make not selectable
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
@@ -884,7 +884,7 @@ struct npc_garments_of_questsAI : public npc_escortAI
             if (m_bIsHealed && m_bCanRun)
                 return;
 
-            if (pCaster->GetTypeId() == TYPEID_PLAYER)
+            if (pCaster->IsPlayer())
             {
                 switch (m_creature->GetEntry())
                 {
@@ -1347,7 +1347,7 @@ struct npc_burster_wormAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
-        if (pSpell->Id == m_boreDamageSpell && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpell->Id == m_boreDamageSpell && pTarget->IsPlayer())
             AttackStart(pTarget);
     }
 

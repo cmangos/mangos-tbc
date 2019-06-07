@@ -201,7 +201,7 @@ struct npc_custodian_of_timeAI : public npc_escortAI
         if (HasEscortState(STATE_ESCORT_ESCORTING))
             return;
 
-        if (pWho->GetTypeId() == TYPEID_PLAYER)
+        if (pWho->IsPlayer())
         {
             if (pWho->HasAura(SPELL_CUSTODIAN_OF_TIME) && ((Player*)pWho)->GetQuestStatus(QUEST_ID_CAVERNS_OF_TIME) == QUEST_STATUS_INCOMPLETE)
             {

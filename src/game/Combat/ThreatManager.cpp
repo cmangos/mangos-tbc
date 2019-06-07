@@ -414,7 +414,7 @@ void ThreatManager::addThreat(Unit* victim, float threat, bool crit, SpellSchool
         return;
 
     // not to GM
-    if (!victim || (victim->GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(victim)->isGameMaster()))
+    if (!victim || (victim->IsPlayer() && static_cast<Player*>(victim)->isGameMaster()))
         return;
 
     // not to dead and not for dead
@@ -451,7 +451,7 @@ void ThreatManager::addThreatDirectly(Unit* victim, float threat)
         HostileReference* hostileReference = new HostileReference(victim, this, 0);
         iThreatContainer.addReference(hostileReference);
         hostileReference->addThreat(threat);                // now we add the real threat
-        if (victim->GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(victim)->isGameMaster())
+        if (victim->IsPlayer() && static_cast<Player*>(victim)->isGameMaster())
             hostileReference->setOnlineOfflineState(false); // GM is always offline
     }
 }

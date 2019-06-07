@@ -119,7 +119,7 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
     Map* m;
     if (entry->Instanceable())
     {
-        MANGOS_ASSERT(obj && obj->GetTypeId() == TYPEID_PLAYER);
+        MANGOS_ASSERT(obj && obj->IsPlayer());
         // create DungeonMap object
         m = CreateInstance(id, (Player*)obj);
     }

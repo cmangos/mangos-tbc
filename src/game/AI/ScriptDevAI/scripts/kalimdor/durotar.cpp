@@ -84,7 +84,7 @@ struct npc_lazy_peonAI : public ScriptedAI
 
     void Awaken(Unit* pInvoker)
     {
-        if (pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (pInvoker->IsPlayer())
         {
             DoScriptText(SAY_PEON_AWOKEN, m_creature, pInvoker);
             m_creature->PlayDistanceSound(urand(0, 1) ? SOUND_PEON_AWAKE_1 : SOUND_PEON_AWAKE_2);

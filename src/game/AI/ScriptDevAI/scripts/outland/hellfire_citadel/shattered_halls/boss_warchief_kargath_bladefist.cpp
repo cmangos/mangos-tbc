@@ -132,7 +132,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 

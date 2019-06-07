@@ -2323,7 +2323,7 @@ bool ChatHandler::HandleDeMorphCommand(char* /*args*/)
 
 
     // check online security
-    else if (target->GetTypeId() == TYPEID_PLAYER && HasLowerSecurity((Player*)target))
+    else if (target->IsPlayer() && HasLowerSecurity((Player*)target))
         return false;
 
     target->DeMorph();
@@ -2352,7 +2352,7 @@ bool ChatHandler::HandleModifyMorphCommand(char* args)
         target = m_session->GetPlayer();
 
     // check online security
-    else if (target->GetTypeId() == TYPEID_PLAYER && HasLowerSecurity((Player*)target))
+    else if (target->IsPlayer() && HasLowerSecurity((Player*)target))
         return false;
 
     target->SetDisplayId(display_id);
@@ -3609,7 +3609,7 @@ bool ChatHandler::HandleHonorAddKillCommand(char* /*args*/)
     }
 
     // check online security
-    if (target->GetTypeId() == TYPEID_PLAYER && HasLowerSecurity((Player*)target))
+    if (target->IsPlayer() && HasLowerSecurity((Player*)target))
         return false;
 
     m_session->GetPlayer()->RewardHonor(target, 1);

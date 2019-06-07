@@ -64,7 +64,7 @@ struct boss_azuregosAI : public ScriptedAI
     void KilledUnit(Unit* pVictim) override
     {
         // Mark killed players with Mark of Frost
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             pVictim->CastSpell(pVictim, SPELL_MARK_OF_FROST_PLAYER, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
     }
 

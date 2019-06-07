@@ -85,8 +85,7 @@ struct npc_spirit_guideAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pUnit, const SpellEntry* pSpellEntry) override
     {
-        if (pSpellEntry->Id == SPELL_SPIRIT_HEAL && pUnit->GetTypeId() == TYPEID_PLAYER
-                && pUnit->HasAura(SPELL_WAITING_TO_RESURRECT))
+        if (pSpellEntry->Id == SPELL_SPIRIT_HEAL && pUnit->IsPlayer() && pUnit->HasAura(SPELL_WAITING_TO_RESURRECT))
             pUnit->CastSpell(pUnit, SPELL_SPIRIT_HEAL_MANA, TRIGGERED_OLD_TRIGGERED);
     }
 };

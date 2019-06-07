@@ -61,7 +61,7 @@ bool EffectDummyGameObj_spell_dummy_go(Unit* pCaster, uint32 uiSpellId, SpellEff
         {
             if (uiEffIndex == EFFECT_INDEX_0)
             {
-                if (pGOTarget->GetRespawnTime() != 0 || pGOTarget->GetEntry() != GO_RED_SNAPPER || pCaster->GetTypeId() != TYPEID_PLAYER)
+                if (pGOTarget->GetRespawnTime() != 0 || pGOTarget->GetEntry() != GO_RED_SNAPPER || !pCaster->IsPlayer())
                     return true;
 
                 if (urand(0, 2))
@@ -312,7 +312,7 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
         {
             if (uiEffIndex == EFFECT_INDEX_0)
             {
-                if (pCaster->GetTypeId() != TYPEID_PLAYER)
+                if (!pCaster->IsPlayer())
                     return true;
 
                 if (pCreatureTarget->GetEntry() != NPC_SICKLY_DEER && pCreatureTarget->GetEntry() != NPC_SICKLY_GAZELLE)
@@ -437,7 +437,7 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
         {
             if (uiEffIndex == EFFECT_INDEX_0)
             {
-                if (pCaster->GetTypeId() != TYPEID_PLAYER && pCreatureTarget->GetEntry() != NPC_DEEPRUN_RAT)
+                if (!pCaster->IsPlayer() && pCreatureTarget->GetEntry() != NPC_DEEPRUN_RAT)
                     return true;
 
                 pCreatureTarget->UpdateEntry(NPC_ENTHRALLED_DEEPRUN_RAT);

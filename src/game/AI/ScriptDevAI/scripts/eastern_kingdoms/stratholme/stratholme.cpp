@@ -161,7 +161,7 @@ struct mob_restless_soulAI : public ScriptedAI
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
     {
-        if (pCaster->GetTypeId() == TYPEID_PLAYER)
+        if (pCaster->IsPlayer())
         {
             if (!m_bIsTagged && pSpell->Id == SPELL_EGAN_BLASTER && ((Player*)pCaster)->GetQuestStatus(QUEST_RESTLESS_SOUL) == QUEST_STATUS_INCOMPLETE)
             {

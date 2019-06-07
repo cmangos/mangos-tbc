@@ -200,7 +200,7 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
     DEBUG_LOG("Counter %u, time %u", counter, time / IN_MILLISECONDS);
 
     Unit* mover = _player->GetMover();
-    Player* plMover = mover->GetTypeId() == TYPEID_PLAYER ? (Player*)mover : nullptr;
+    Player* plMover = mover->IsPlayer() ? (Player*)mover : nullptr;
 
     if (!plMover || !plMover->IsBeingTeleportedNear())
         return;
@@ -245,7 +245,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     }
 
     Unit* mover = _player->GetMover();
-    Player* plMover = mover->GetTypeId() == TYPEID_PLAYER ? (Player*)mover : nullptr;
+    Player* plMover = mover->IsPlayer() ? (Player*)mover : nullptr;
 
     // ignore, waiting processing in WorldSession::HandleMoveWorldportAckOpcode and WorldSession::HandleMoveTeleportAck
     if (plMover && plMover->IsBeingTeleported())
@@ -403,7 +403,7 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket& recv_data)
     DEBUG_LOG("CMSG_MOVE_KNOCK_BACK_ACK");
 
     Unit* mover = _player->GetMover();
-    Player* plMover = mover->GetTypeId() == TYPEID_PLAYER ? (Player*)mover : nullptr;
+    Player* plMover = mover->IsPlayer() ? (Player*)mover : nullptr;
 
     // ignore, waiting processing in WorldSession::HandleMoveWorldportAckOpcode and WorldSession::HandleMoveTeleportAck
     if (plMover && plMover->IsBeingTeleported())
@@ -528,7 +528,7 @@ void WorldSession::HandleMoverRelocation(MovementInfo& movementInfo)
 
     Unit* mover = _player->GetMover();
 
-    if (Player* plMover = mover->GetTypeId() == TYPEID_PLAYER ? (Player*)mover : nullptr)
+    if (Player* plMover = mover->IsPlayer() ? (Player*)mover : nullptr)
     {
         if (movementInfo.HasMovementFlag(MOVEFLAG_ONTRANSPORT))
         {

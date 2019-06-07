@@ -137,7 +137,7 @@ struct boss_halazziAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);

@@ -183,7 +183,7 @@ enum
 
 bool ProcessEventId_event_taxi_stormcrow(uint32 uiEventId, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (uiEventId == EVENT_ID_STORMCROW && !bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (uiEventId == EVENT_ID_STORMCROW && !bIsStart && pSource->IsPlayer())
     {
         ((Player*)pSource)->SetDisplayId(((Player*)pSource)->GetNativeDisplayId());
         ((Player*)pSource)->AreaExploredOrEventHappens(QUEST_AS_THE_CROW_FLIES);
@@ -235,7 +235,7 @@ struct npc_fhwoorAI : public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             DoScriptText(SAY_ESCORT_START, m_creature, pInvoker);
             m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);

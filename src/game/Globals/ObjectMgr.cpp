@@ -10204,7 +10204,7 @@ bool DoDisplayText(WorldObject* source, int32 entry, Unit const* target /*=nullp
             case CHAT_TYPE_WHISPER:
             case CHAT_TYPE_BOSS_WHISPER:
                 // An error will be displayed for the text
-                if (target && target->GetTypeId() == TYPEID_PLAYER)
+                if (target && target->IsPlayer())
                     source->PlayDirectSound(data->SoundId, PlayPacketParameters(PLAY_TARGET, (Player const*)target));
                 break;
             default:
@@ -10215,7 +10215,7 @@ bool DoDisplayText(WorldObject* source, int32 entry, Unit const* target /*=nullp
 
     if (data->Emote)
     {
-        if (source->GetTypeId() == TYPEID_UNIT || source->GetTypeId() == TYPEID_PLAYER)
+        if (source->GetTypeId() == TYPEID_UNIT || source->IsPlayer())
         {
             ((Unit*)source)->HandleEmote(data->Emote);
         }
@@ -10226,7 +10226,7 @@ bool DoDisplayText(WorldObject* source, int32 entry, Unit const* target /*=nullp
         }
     }
 
-    if ((data->Type == CHAT_TYPE_WHISPER || data->Type == CHAT_TYPE_BOSS_WHISPER) && (!target || target->GetTypeId() != TYPEID_PLAYER))
+    if ((data->Type == CHAT_TYPE_WHISPER || data->Type == CHAT_TYPE_BOSS_WHISPER) && (!target || !target->IsPlayer()))
     {
         _DoStringError(entry, "DoDisplayText entry %i cannot whisper without target unit (TYPEID_PLAYER).", entry);
         return false;

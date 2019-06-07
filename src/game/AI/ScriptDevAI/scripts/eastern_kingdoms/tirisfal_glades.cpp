@@ -115,7 +115,7 @@ struct npc_calvin_montagueAI : public ScriptedAI
 
             m_uiPhase = 1;
 
-            if (pDoneBy->GetTypeId() == TYPEID_PLAYER)
+            if (pDoneBy->IsPlayer())
                 m_playerGuid = pDoneBy->GetObjectGuid();
         }
     }

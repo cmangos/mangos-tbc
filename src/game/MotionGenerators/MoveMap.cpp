@@ -66,7 +66,7 @@ namespace MMAP
         if (unit)
         {
             // always use mmaps for players
-            if (unit->GetTypeId() == TYPEID_PLAYER)
+            if (unit->IsPlayer())
                 return true;
 
             if (IsPathfindingForceDisabled(unit))
@@ -77,7 +77,7 @@ namespace MMAP
 
             // always use mmaps for pets of players (can still be disabled by extra-flag for pet creature)
             if (unit->GetTypeId() == TYPEID_UNIT && ((Creature*)unit)->IsPet() && unit->GetOwner() &&
-                    unit->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+                    unit->GetOwner()->IsPlayer())
                 return true;
         }
 

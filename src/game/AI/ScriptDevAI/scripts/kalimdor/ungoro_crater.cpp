@@ -72,7 +72,7 @@ struct npc_ame01AI : public npc_escortAI
 
     void Aggro(Unit* pWho) override
     {
-        if (pWho->GetTypeId() == TYPEID_PLAYER)
+        if (pWho->IsPlayer())
             return;
 
         if (Player* pPlayer = GetPlayerForEscort())

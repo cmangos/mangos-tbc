@@ -833,7 +833,7 @@ inline bool IsNeutralEffectTargetPositive(uint32 etarget, const WorldObject* cas
     if (etarget < MAX_SPELL_TARGETS && SpellTargetInfoTable[etarget].type != TARGET_TYPE_UNIT)
         return true; // Some gameobjects or coords, who cares
 
-    if (!target || (target->GetTypeId() != TYPEID_PLAYER && target->GetTypeId() != TYPEID_UNIT))
+    if (!target || (!target->IsPlayer() && target->GetTypeId() != TYPEID_UNIT))
         return true;
 
     if (caster == target)
@@ -1842,7 +1842,7 @@ inline bool IsSimilarExistingAuraStronger(const Unit* caster, const SpellEntry* 
                 // FIXME: We need API to peacefully pre-calculate static base spell damage without destroying mods
                 // Until then this is a rather lame set of hacks
                 // Apply combo points base damage for spells like expose armor
-                if (caster->GetTypeId() == TYPEID_PLAYER)
+                if (caster->IsPlayer())
                 {
                     const Player* player = (const Player*)caster;
                     const Unit* target = existing->GetTarget();

@@ -94,7 +94,7 @@ struct boss_nalorakkAI : public ScriptedAI
         if (m_pInstance && m_pInstance->IsBearPhaseInProgress())
             return;
 
-        if (pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->IsWithinDistInMap(pWho, aBearEventInfo[m_uiCurrentWave].fAggroDist))
+        if (pWho->IsPlayer() && !((Player*)pWho)->isGameMaster() && m_creature->IsWithinDistInMap(pWho, aBearEventInfo[m_uiCurrentWave].fAggroDist))
         {
             DoScriptText(aBearEventInfo[m_uiCurrentWave].iYellId, m_creature);
             if (m_pInstance)

@@ -36,7 +36,7 @@ EndContentData */
 
 bool ProcessEventId_event_go_zulfarrak_gong(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         if (instance_zulfarrak* pInstance = (instance_zulfarrak*)((Player*)pSource)->GetInstanceData())
         {
@@ -58,7 +58,7 @@ bool ProcessEventId_event_go_zulfarrak_gong(uint32 /*uiEventId*/, Object* pSourc
 
 bool ProcessEventId_event_spell_unlocking(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         if (instance_zulfarrak* pInstance = (instance_zulfarrak*)((Player*)pSource)->GetInstanceData())
         {

@@ -220,7 +220,7 @@ struct boss_zuljinAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bHasTaunted && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 60.0f))
+        if (!m_bHasTaunted && pWho->IsPlayer() && m_creature->IsWithinDistInMap(pWho, 60.0f))
         {
             DoScriptText(SAY_INTRO, m_creature);
             m_bHasTaunted = true;
@@ -307,7 +307,7 @@ struct boss_zuljinAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pTarget, SpellEntry const* pSpellEntry) override
     {
-        if (pSpellEntry->Id == SPELL_CLAW_RAGE && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpellEntry->Id == SPELL_CLAW_RAGE && pTarget->IsPlayer())
         {
             DoCastSpellIfCan(m_creature, SPELL_CLAW_RAGE_TRIGGER, CAST_TRIGGERED);
             m_uiLynxRushTimer += 8000;
@@ -496,7 +496,7 @@ struct npc_feather_vortexAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pTarget, SpellEntry const* pSpellEntry) override
     {
-        if (pSpellEntry->Id == SPELL_CYCLONE && pTarget->GetTypeId() == TYPEID_PLAYER && m_pInstance)
+        if (pSpellEntry->Id == SPELL_CYCLONE && pTarget->IsPlayer() && m_pInstance)
         {
             if (Creature* pZuljin = m_pInstance->GetSingleCreatureFromStorage(NPC_ZULJIN))
             {

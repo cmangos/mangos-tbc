@@ -933,7 +933,7 @@ namespace MaNGOS
 
                             if (Unit* owner = creature->GetOwner(nullptr, true))
                             {
-                                if (owner->GetTypeId() == TYPEID_PLAYER)
+                                if (owner->IsPlayer())
                                 {
                                     group = static_cast<Player*>(owner)->GetGroup();
                                 }

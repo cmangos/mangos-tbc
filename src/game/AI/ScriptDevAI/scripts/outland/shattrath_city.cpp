@@ -350,7 +350,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
 {
     npc_khadgars_servantAI(Creature* pCreature) : npc_escortAI(pCreature)
     {
-        if (pCreature->GetOwner() && pCreature->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+        if (pCreature->GetOwner() && pCreature->GetOwner()->IsPlayer())
             Start(false, (Player*)pCreature->GetOwner());
         else
             script_error_log("npc_khadgars_servant can not obtain owner or owner is not a player.");
@@ -608,7 +608,7 @@ struct npc_salsalabimAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32& uiDamage, DamageEffectType /*damagetype*/) override
     {
-        if (pDoneBy->GetTypeId() == TYPEID_PLAYER)
+        if (pDoneBy->IsPlayer())
         {
             if (m_creature->GetHealthPercent() < 20.0f)
             {

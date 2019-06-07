@@ -105,7 +105,7 @@ struct npc_kerlonianAI : public FollowerAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_CUSTOM_A && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_CUSTOM_A && pInvoker->IsPlayer())
         {
             if (HasFollowState(STATE_FOLLOW_INPROGRESS | STATE_FOLLOW_PAUSED))
                 ClearSleeping();
@@ -697,7 +697,7 @@ struct npc_rabid_bearAI : public ScriptedAI
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
     {
-        if (pCaster->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_BEAR_CAPTURED)
+        if (pCaster->IsPlayer() && pSpell->Id == SPELL_BEAR_CAPTURED)
         {
             m_creature->RemoveAllAurasOnEvade();
             m_creature->CombatStop(true);

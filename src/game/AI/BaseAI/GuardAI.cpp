@@ -51,14 +51,14 @@ void GuardAI::MoveInLineOfSight(Unit* who)
 
         if (m_creature->CanInitiateAttack() && m_creature->CanAttackOnSight(victim) && victim->isInAccessablePlaceFor(m_creature))
         {
-            if (who->GetTypeId() == TYPEID_PLAYER && victim->GetTypeId() != TYPEID_PLAYER)
+            if (who->IsPlayer() && !victim->IsPlayer())
             {
                 if (m_creature->IsWithinDistInMap(who, 5.0) && m_creature->IsWithinDistInMap(victim, 10.0) && m_creature->IsWithinLOSInMap(victim))
                 {
                     AttackStart(victim);
                 }
             }
-            else if ((who->GetTypeId() == TYPEID_PLAYER && victim->GetTypeId() == TYPEID_PLAYER) || (victim->GetObjectGuid().IsCreature() && ((Creature*)victim)->IsPet() && ((Creature*)victim)->GetOwnerGuid().IsPlayer()))
+            else if ((who->IsPlayer() && victim->IsPlayer()) || (victim->GetObjectGuid().IsCreature() && ((Creature*)victim)->IsPet() && ((Creature*)victim)->GetOwnerGuid().IsPlayer()))
             {
                 if (m_creature->IsWithinDistInMap(who, 30.0) && m_creature->IsWithinLOSInMap(who))
                 {

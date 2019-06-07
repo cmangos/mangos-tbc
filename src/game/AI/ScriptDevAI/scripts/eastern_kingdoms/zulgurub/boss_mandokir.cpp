@@ -166,7 +166,7 @@ struct boss_mandokirAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
         {
             ++m_uiKillCount;
 
@@ -309,7 +309,7 @@ struct boss_mandokirAI : public ScriptedAI
                 {
                     Unit* pTarget = m_creature->GetMap()->GetUnit(i->getUnitGuid());
 
-                    if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER && m_creature->CanReachWithMeleeAttack(pTarget))
+                    if (pTarget && pTarget->IsPlayer() && m_creature->CanReachWithMeleeAttack(pTarget))
                         ++uiTargetInRangeCount;
                 }
 
@@ -352,7 +352,7 @@ struct mob_ohganAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
         {
             if (m_creature->isInCombat())
             {

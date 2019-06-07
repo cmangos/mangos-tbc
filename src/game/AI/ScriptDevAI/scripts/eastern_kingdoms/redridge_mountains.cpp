@@ -60,7 +60,7 @@ struct npc_corporal_keeshan_escortAI : public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             DoScriptText(SAY_CORPORAL_KEESHAN_1, m_creature);
             m_creature->SetFactionTemporary(FACTION_ESCORT_A_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);

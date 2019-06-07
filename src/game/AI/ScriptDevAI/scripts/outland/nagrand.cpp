@@ -202,7 +202,7 @@ struct npc_nagrand_captiveAI : public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             if (m_creature->GetEntry() == NPC_MAGHAR_CAPTIVE)
             {
@@ -420,7 +420,7 @@ struct npc_creditmarker_visit_with_ancestorsAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 30.0f))
+        if (pWho->IsPlayer() && m_creature->IsWithinDistInMap(pWho, 30.0f))
         {
             if (((Player*)pWho)->GetQuestStatus(QUEST_VISIT_WITH_ANCESTORS) == QUEST_STATUS_INCOMPLETE)
             {

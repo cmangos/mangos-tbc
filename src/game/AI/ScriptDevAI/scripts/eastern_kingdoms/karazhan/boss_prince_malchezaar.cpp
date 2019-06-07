@@ -198,7 +198,7 @@ struct boss_malchezaarAI : public ScriptedAI
     void SpellHitTarget(Unit* pTarget, SpellEntry const* pSpellEntry) override
     {
         // Target selection is already handled properly in core (doesn't affect tank)
-        if (pSpellEntry->Id == SPELL_ENFEEBLE && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpellEntry->Id == SPELL_ENFEEBLE && pTarget->IsPlayer())
         {
             // Workaround to handle health set to 1
             m_aEnfeebleTargetGuid[m_uiEnfeebleIndex] = pTarget->GetObjectGuid();

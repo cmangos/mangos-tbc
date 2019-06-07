@@ -80,19 +80,19 @@ Player const* Unit::GetControllingPlayer(bool ignoreCharms/* = false*/) const
     {
         if (Unit const* master = ObjectAccessor::GetUnit(*this, masterGuid))
         {
-            if (master->GetTypeId() == TYPEID_PLAYER)
+            if (master->IsPlayer())
                 return static_cast<Player const*>(master);
             if (ObjectGuid const& masterMasterGuid = (master->*getter)())
             {
                 if (Unit const* masterMaster = ObjectAccessor::GetUnit(*this, masterMasterGuid))
                 {
-                    if (masterMaster->GetTypeId() == TYPEID_PLAYER)
+                    if (masterMaster->IsPlayer())
                         return static_cast<Player const*>(masterMaster);
                 }
             }
         }
     }
-    else if (GetTypeId() == TYPEID_PLAYER)
+    else if (IsPlayer())
         return static_cast<Player const*>(this);
     return nullptr;
 }
@@ -378,11 +378,11 @@ bool Unit::CanAttack(const Unit* unit) const
     // Original logic
 
     // TBC+: Arena Tournament commenatator
-    if (GetTypeId() == TYPEID_PLAYER && static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_COMMENTATOR))
+    if (IsPlayer() && static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_COMMENTATOR))
         return false;
 
     // Creatures cannot attack player ghosts, unless it is a specially flagged ghost creature
-    if (GetTypeId() == TYPEID_UNIT && unit->GetTypeId() == TYPEID_PLAYER && static_cast<const Player*>(unit)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
+    if (GetTypeId() == TYPEID_UNIT && unit->IsPlayer() && static_cast<const Player*>(unit)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
     {
         if (!(static_cast<const Creature*>(this)->GetCreatureInfo()->CreatureTypeFlags & CREATURE_TYPEFLAGS_GHOST_VISIBLE))
             return false;
@@ -645,7 +645,7 @@ bool Unit::CanInteract(const GameObject* object) const
     // Original logic
 
     // Can't interact with GOs as a ghost
-    if (GetTypeId() == TYPEID_PLAYER && static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
+    if (IsPlayer() && static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
         return false;
 
     return (object->GetReactionTo(this) > REP_UNFRIENDLY);
@@ -675,7 +675,7 @@ bool Unit::CanInteract(const Unit* unit) const
         return false;
 
     // We can't interact with anyone as a ghost except specially flagged NPCs
-    if (GetTypeId() == TYPEID_PLAYER && static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
+    if (IsPlayer() && static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
     {
         if (unit->GetTypeId() != TYPEID_UNIT || !(static_cast<const Creature*>(unit)->GetCreatureInfo()->CreatureTypeFlags & CREATURE_TYPEFLAGS_GHOST_VISIBLE))
             return false;
@@ -756,7 +756,7 @@ bool Unit::IsTrivialForTarget(Unit const* pov) const
     // Original logic adapation for server (original function was operating as a local player PoV only)
 
     // Players are never seen as trivial
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         return false;
 
     // Perform a level range query on the appropriate global constant NON_TRIVIAL_LEVEL_DIFFS array for the expansion
@@ -1167,7 +1167,7 @@ bool Unit::CanAttackOnSight(Unit const* target) const
 bool Unit::IsFogOfWarVisibleStealth(Unit const* other) const
 {
     // Gamemasters can see through invisibility
-    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+    if (other->IsPlayer() && static_cast<Player const*>(other)->isGameMaster())
         return true;
 
     switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_STEALTH))
@@ -1188,7 +1188,7 @@ bool Unit::IsFogOfWarVisibleStealth(Unit const* other) const
 bool Unit::IsFogOfWarVisibleHealth(Unit const* other) const
 {
     // Gamemasters can see health values
-    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+    if (other->IsPlayer() && static_cast<Player const*>(other)->isGameMaster())
         return true;
 
     switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_HEALTH))
@@ -1210,7 +1210,7 @@ bool Unit::IsFogOfWarVisibleHealth(Unit const* other) const
 bool Unit::IsFogOfWarVisibleStats(Unit const* other) const
 {
     // Gamemasters can see stat values
-    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+    if (other->IsPlayer() && static_cast<Player const*>(other)->isGameMaster())
         return true;
 
     switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_STATS))

@@ -230,7 +230,7 @@ void MotionMaster::MoveIdle()
 
 void MotionMaster::MoveRandomAroundPoint(float x, float y, float z, float radius, float verticalZ)
 {
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
     {
         sLog.outError("%s attempt to move random.", m_owner->GetGuidStr().c_str());
     }
@@ -272,7 +272,7 @@ void MotionMaster::MoveConfused()
 {
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s move confused", m_owner->GetGuidStr().c_str());
 
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
         Mutate(new ConfusedMovementGenerator<Player>());
     else
         Mutate(new ConfusedMovementGenerator<Creature>());
@@ -286,7 +286,7 @@ void MotionMaster::MoveChase(Unit* target, float dist, float angle, bool moveFur
 
     if (GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
     {
-        if (m_owner->GetTypeId() == TYPEID_PLAYER)
+        if (m_owner->IsPlayer())
         {
             auto gen = (ChaseMovementGenerator<Player>*)top();
             gen->SetMovementParameters(dist, angle, moveFurther);
@@ -304,7 +304,7 @@ void MotionMaster::MoveChase(Unit* target, float dist, float angle, bool moveFur
 
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s chase to %s", m_owner->GetGuidStr().c_str(), target->GetGuidStr().c_str());
 
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
         Mutate(new ChaseMovementGenerator<Player>(*target, dist, angle, moveFurther, walk, combat));
     else
         Mutate(new ChaseMovementGenerator<Creature>(*target, dist, angle, moveFurther, walk, combat));
@@ -326,7 +326,7 @@ void MotionMaster::MoveFollow(Unit* target, float dist, float angle, bool asMain
 
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s follow to %s", m_owner->GetGuidStr().c_str(), target->GetGuidStr().c_str());
 
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
         Mutate(new FollowMovementGenerator<Player>(*target, dist, angle));
     else
         Mutate(new FollowMovementGenerator<Creature>(*target, dist, angle));
@@ -336,7 +336,7 @@ void MotionMaster::MovePoint(uint32 id, float x, float y, float z, bool generate
 {
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s targeted point (Id: %u X: %f Y: %f Z: %f)", m_owner->GetGuidStr().c_str(), id, x, y, z);
 
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
         Mutate(new PointMovementGenerator<Player>(id, x, y, z, generatePath));
     else
         Mutate(new PointMovementGenerator<Creature>(id, x, y, z, generatePath));
@@ -344,7 +344,7 @@ void MotionMaster::MovePoint(uint32 id, float x, float y, float z, bool generate
 
 void MotionMaster::MoveSeekAssistance(float x, float y, float z)
 {
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
     {
         sLog.outError("%s attempt to seek assistance", m_owner->GetGuidStr().c_str());
     }
@@ -358,7 +358,7 @@ void MotionMaster::MoveSeekAssistance(float x, float y, float z)
 
 void MotionMaster::MoveSeekAssistanceDistract(uint32 time)
 {
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
     {
         sLog.outError("%s attempt to call distract after assistance", m_owner->GetGuidStr().c_str());
     }
@@ -377,7 +377,7 @@ void MotionMaster::MoveFleeing(Unit* enemy, uint32 time)
 
     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s flee from %s", m_owner->GetGuidStr().c_str(), enemy->GetGuidStr().c_str());
 
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
         Mutate(new FleeingMovementGenerator<Player>(enemy->GetObjectGuid()));
     else
     {
@@ -416,7 +416,7 @@ void MotionMaster::MoveTaxiFlight()
 {
     if (m_owner->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE)
     {
-        if (m_owner->GetTypeId() == TYPEID_PLAYER)
+        if (m_owner->IsPlayer())
         {
             auto flightMGen = static_cast<FlightPathMovementGenerator const*>(m_owner->GetMotionMaster()->GetCurrent());
             flightMGen->Resume(*static_cast<Player*>(m_owner));
@@ -434,7 +434,7 @@ void MotionMaster::MoveTaxiFlight()
         return;
     }
 
-    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    if (m_owner->IsPlayer())
     {
         DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s is now in taxi flight", m_owner->GetGuidStr().c_str());
         Mutate(new FlightPathMovementGenerator());

@@ -120,7 +120,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
     {
-        if (pSpell->Id == SPELL_T_PHASE_MODULATOR && pCaster->GetTypeId() == TYPEID_PLAYER)
+        if (pSpell->Id == SPELL_T_PHASE_MODULATOR && pCaster->IsPlayer())
         {
             // we are nihil, so say before transform
             if (m_creature->GetEntry() == NPC_NIHIL)
@@ -248,7 +248,7 @@ struct npc_daranelleAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (pWho->GetTypeId() == TYPEID_PLAYER)
+        if (pWho->IsPlayer())
         {
             if (pWho->HasAura(SPELL_LASHHAN_CHANNEL, EFFECT_INDEX_0) && m_creature->IsWithinDistInMap(pWho, 10.0f))
             {
@@ -803,7 +803,7 @@ bool EffectScriptEffectCreature_npc_simon_game_bunny(Unit* pCaster, uint32 uiSpe
     if ((uiSpellId == SPELL_INTROSPECTION_BLUE || uiSpellId == SPELL_INTROSPECTION_GREEN || uiSpellId == SPELL_INTROSPECTION_RED ||
             uiSpellId == SPELL_INTROSPECTION_YELLOW) && uiEffIndex == EFFECT_INDEX_1)
     {
-        if (pCreatureTarget->GetEntry() == NPC_SIMON_GAME_BUNNY && pCaster->GetTypeId() == TYPEID_PLAYER && originalCasterGuid.IsGameObject())
+        if (pCreatureTarget->GetEntry() == NPC_SIMON_GAME_BUNNY && pCaster->IsPlayer() && originalCasterGuid.IsGameObject())
             pCreatureTarget->AI()->SendAIEvent(AI_EVENT_CUSTOM_C, pCaster, pCreatureTarget, uiSpellId);
 
         return true;
@@ -2758,7 +2758,7 @@ struct npc_evergrove_druidAI : public ScriptedAI
         if (alreadySummoned)
             return;
 
-        if (caster->GetTypeId() != TYPEID_PLAYER)
+        if (!caster->IsPlayer())
             return;
 
         if (spell->Id == SPELL_DRUID_SIGNAL)
@@ -2776,7 +2776,7 @@ struct npc_evergrove_druidAI : public ScriptedAI
         if (landingDone)
             return;
 
-        if (who->GetTypeId() != TYPEID_PLAYER)
+        if (!who->IsPlayer())
             return;
 
         if (who != m_summoner)

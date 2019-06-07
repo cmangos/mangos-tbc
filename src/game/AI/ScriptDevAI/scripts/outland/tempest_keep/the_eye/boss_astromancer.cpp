@@ -134,7 +134,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         switch (urand(0, 2))

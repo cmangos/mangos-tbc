@@ -76,7 +76,7 @@ struct boss_emerald_dragonAI : public ScriptedAI
     void KilledUnit(Unit* pVictim) override
     {
         // Mark killed players with Mark of Nature
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             pVictim->CastSpell(pVictim, SPELL_MARK_OF_NATURE_PLAYER, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
     }
 
@@ -172,7 +172,7 @@ struct boss_emerissAI : public boss_emerald_dragonAI
     void KilledUnit(Unit* pVictim) override
     {
         // summon a mushroom on the spot the player dies
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             pVictim->CastSpell(pVictim, SPELL_PUTRID_MUSHROOM, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
 
         boss_emerald_dragonAI::KilledUnit(pVictim);
@@ -260,7 +260,7 @@ struct boss_lethonAI : public boss_emerald_dragonAI
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
         // Summon a shade for each player hit
-        if (pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_DRAW_SPIRIT)
+        if (pTarget->IsPlayer() && pSpell->Id == SPELL_DRAW_SPIRIT)
         {
             // Summon this way to be able to cast the shade visual spell with player as original caster
             // This is not currently supported by core but this spell's visual should be dependent on player

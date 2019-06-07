@@ -421,7 +421,7 @@ struct boss_illidan_stormrageAI : public ScriptedAI, private DialogueHelper
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
@@ -1040,7 +1040,7 @@ struct npc_akama_illidanAI : public npc_escortAI, private DialogueHelper
             return;
 
         // Star the event
-        if (pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(m_creature, 70.0f) && pWho->IsWithinLOSInMap(m_creature))
+        if (pWho->IsPlayer() && pWho->IsWithinDistInMap(m_creature, 70.0f) && pWho->IsWithinLOSInMap(m_creature))
             Start(true);
     }
 
@@ -1531,7 +1531,7 @@ struct npc_flame_of_azzinothAI : public ScriptedAI
             {
                 if (Unit* pTarget = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                 {
-                    if (pTarget->GetTypeId() == TYPEID_PLAYER && !pTarget->IsWithinDist(m_creature, 30.0f))
+                    if (pTarget->IsPlayer() && !pTarget->IsWithinDist(m_creature, 30.0f))
                         suitableTargets.push_back(pTarget);
                 }
             }

@@ -989,7 +989,7 @@ void Pet::UpdateAttackPowerAndDamage(bool ranged)
         val = 2 * GetStat(STAT_STRENGTH) - 20.0f;
 
     Unit* owner = GetOwner();
-    if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+    if (owner && owner->IsPlayer())
     {
         if (getPetType() == HUNTER_PET)                     // hunter pets benefit from owner's attack power
         {

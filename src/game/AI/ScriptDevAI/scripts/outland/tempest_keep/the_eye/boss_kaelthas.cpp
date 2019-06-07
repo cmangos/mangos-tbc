@@ -421,7 +421,7 @@ struct boss_kaelthasAI : public ScriptedAI
     // Custom Move in LoS function
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (m_uiPhase == PHASE_0_NOT_BEGUN && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() &&
+        if (m_uiPhase == PHASE_0_NOT_BEGUN && pWho->IsPlayer() && !((Player*)pWho)->isGameMaster() &&
                 m_creature->IsWithinDistInMap(pWho, m_creature->GetAttackDistance(pWho)) && m_creature->IsWithinLOSInMap(pWho))
         {
             DoScriptText(SAY_INTRO, m_creature);
@@ -532,7 +532,7 @@ struct boss_kaelthasAI : public ScriptedAI
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
         // Handle gravity lapse teleport - each player hit has his own teleport spell
-        if (pSpell->Id == SPELL_GRAVITY_LAPSE && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpell->Id == SPELL_GRAVITY_LAPSE && pTarget->IsPlayer())
         {
             DoCastSpellIfCan(pTarget, m_auiSpellGravityLapseTeleport[m_uiGravityIndex], CAST_TRIGGERED);
             pTarget->CastSpell(pTarget, SPELL_GRAVITY_LAPSE_KNOCKBACK, TRIGGERED_OLD_TRIGGERED);
@@ -540,7 +540,7 @@ struct boss_kaelthasAI : public ScriptedAI
             ++m_uiGravityIndex;
         }
         // Handle remove items - each item has its own removal spell
-        if (pSpell->Id == SPELL_REMOVE_WEAPONS && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpell->Id == SPELL_REMOVE_WEAPONS && pTarget->IsPlayer())
         {
             DoCastSpellIfCan(pTarget, m_auiSpellRemoveItems[m_uiItemIndex], CAST_TRIGGERED);
             ++m_uiItemIndex;

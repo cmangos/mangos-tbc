@@ -590,7 +590,7 @@ bool Unit::UpdateMeleeAttackingState()
     if (!victim || IsNonMeleeSpellCasted(false))
         return false;
 
-    if (GetTypeId() != TYPEID_PLAYER && (!((Creature*)this)->CanInitiateAttack() || !victim->isInAccessablePlaceFor((Creature*)this)))
+    if (!IsPlayer() && (!((Creature*)this)->CanInitiateAttack() || !victim->isInAccessablePlaceFor((Creature*)this)))
         return false;
 
     if (!CanAttack(victim))
@@ -644,7 +644,7 @@ bool Unit::UpdateMeleeAttackingState()
         }
     }
 
-    Player* player = (GetTypeId() == TYPEID_PLAYER ? (Player*)this : nullptr);
+    Player* player = (IsPlayer() ? (Player*)this : nullptr);
     if (player && swingError != player->LastSwingErrorMsg())
     {
         if (swingError == 1)
@@ -787,14 +787,14 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
     if (damagetype != DOT && damagetype != INSTAKILL)
     {
         // Since patch 1.5.0 sitting characters always stand up on attack (even if stunned)
-        if (!pVictim->IsStandState() && (pVictim->GetTypeId() == TYPEID_PLAYER || !pVictim->hasUnitState(UNIT_STAT_STUNNED)))
+        if (!pVictim->IsStandState() && (pVictim->IsPlayer() || !pVictim->hasUnitState(UNIT_STAT_STUNNED)))
             pVictim->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
     if (!damage)
     {
         // Rage from physical damage received .
-        if (cleanDamage && cleanDamage->damage && (damageSchoolMask & SPELL_SCHOOL_MASK_NORMAL) && pVictim->GetTypeId() == TYPEID_PLAYER && (pVictim->GetPowerType() == POWER_RAGE))
+        if (cleanDamage && cleanDamage->damage && (damageSchoolMask & SPELL_SCHOOL_MASK_NORMAL) && pVictim->IsPlayer() && (pVictim->GetPowerType() == POWER_RAGE))
             ((Player*)pVictim)->RewardRage(cleanDamage->damage, 0, false);
 
         return 0;
@@ -806,7 +806,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "deal dmg:%d to health:%d ", damage, health);
 
     // Rage from Damage made (only from direct weapon damage)
-    if (cleanDamage && damagetype == DIRECT_DAMAGE && this != pVictim && GetTypeId() == TYPEID_PLAYER && (GetPowerType() == POWER_RAGE))
+    if (cleanDamage && damagetype == DIRECT_DAMAGE && this != pVictim && IsPlayer() && (GetPowerType() == POWER_RAGE))
     {
         uint32 weaponSpeedHitFactor;
 
@@ -858,7 +858,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
 
     // duel ends when player has 1 or less hp
     bool duel_hasEnded = false;
-    if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && pVictim->GetTypeId() == TYPEID_PLAYER && ((Player*)pVictim)->duel && damage >= (health - 1))
+    if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && pVictim->IsPlayer() && ((Player*)pVictim)->duel && damage >= (health - 1))
     {
         // prevent kill only if killed in duel and killed by opponent or opponent controlled creature
         Player* playerVictim = static_cast<Player*>(pVictim);
@@ -868,12 +868,12 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         duel_hasEnded = true;
     }
 
-    if (GetTypeId() == TYPEID_PLAYER && this != pVictim)
+    if (IsPlayer() && this != pVictim)
     {
         Player* killer = ((Player*)this);
 
         // in bg, count dmg if victim is also a player
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
         {
             if (BattleGround* bg = killer->GetBattleGround())
             {
@@ -927,7 +927,7 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
     // if talent known but not triggered (check priest class for speedup check)
     Aura* spiritOfRedemtionTalentReady = nullptr;
     if (!damageFromSpiritOfRedemtionTalent &&           // not called from SPELL_AURA_SPIRIT_OF_REDEMPTION
-        victim->GetTypeId() == TYPEID_PLAYER && victim->getClass() == CLASS_PRIEST)
+        victim->IsPlayer() && victim->getClass() == CLASS_PRIEST)
     {
         AuraList const& vDummyAuras = victim->GetAurasByType(SPELL_AURA_DUMMY);
         for (AuraList::const_iterator itr = vDummyAuras.begin(); itr != vDummyAuras.end(); ++itr)
@@ -1010,7 +1010,7 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
     /*
     *                      Actions for the victim
     */
-    if (victim->GetTypeId() == TYPEID_PLAYER)          // Killed player
+    if (victim->IsPlayer())          // Killed player
     {
         Player* playerVictim = (Player*)victim;
 
@@ -1086,7 +1086,7 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
         }
     }
 
-    if (victim->GetTypeId() == TYPEID_PLAYER)                               // victim is a player
+    if (victim->IsPlayer())                               // victim is a player
     {
         // Rage from damage received
         if (this != victim && victim->GetPowerType() == POWER_RAGE)
@@ -1103,7 +1103,7 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
         }
     }
 
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         // random durability for items (HIT DONE)
         if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_DAMAGE)))
@@ -1147,7 +1147,7 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
     // last damage from duel opponent
     if (duel_hasEnded)
     {
-        MANGOS_ASSERT(victim->GetTypeId() == TYPEID_PLAYER);
+        MANGOS_ASSERT(victim->IsPlayer());
         Player* he = (Player*)victim;
 
         MANGOS_ASSERT(he->duel);
@@ -1227,7 +1227,7 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
     // must be used only shortly before SetDeathState(JUST_DIED) and only for Creatures or Pets
 
     // some critters required for quests (need normal entry instead possible heroic in any cases)
-    if (victim->GetCreatureType() == CREATURE_TYPE_CRITTER && GetTypeId() == TYPEID_PLAYER)
+    if (victim->GetCreatureType() == CREATURE_TYPE_CRITTER && IsPlayer())
     {
         if (CreatureInfo const* normalInfo = ObjectMgr::GetCreatureTemplate(victim->GetEntry()))
             ((Player*)this)->KilledMonster(normalInfo, victim->GetObjectGuid());
@@ -2040,7 +2040,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo* calcDamageInfo, bool durabilityLoss)
         if (calcDamageInfo->TargetState != VICTIMSTATE_IS_IMMUNE)
         {
             // on weapon hit casts
-            if (GetTypeId() == TYPEID_PLAYER && pVictim->isAlive())
+            if (IsPlayer() && pVictim->isAlive())
                 ((Player*)this)->CastItemCombatSpell(pVictim, calcDamageInfo->attackType);
 
             SetInCombatWithVictim(pVictim);
@@ -2262,7 +2262,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolM
                 if (spellProto->SpellIconID == 2109)
                 {
                     if (!preventDeathSpell &&
-                            GetTypeId() == TYPEID_PLAYER && // Only players
+                            IsPlayer() && // Only players
                             IsSpellReady(31231) &&
                             // Only if no cooldown
                             roll_chance_i((*i)->GetModifier()->m_amount))
@@ -2558,7 +2558,7 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
         totalResist += meleeDamageInfo.subDamage[i].resist;
     }
 
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (Player) %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
                          GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), meleeDamageInfo.totalDamage, totalAbsorb, meleeDamageInfo.blocked_amount, totalResist);
     else
@@ -2607,7 +2607,7 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
 
     Die<UnitCombatDieSide, UNIT_COMBAT_DIE_HIT, NUM_UNIT_COMBAT_DIE_SIDES> die;
     die.set(UNIT_COMBAT_DIE_MISS, CalculateEffectiveMissChance(pVictim, attType));
-    if (pVictim->GetTypeId() == TYPEID_PLAYER && !pVictim->IsStandState() && CanCrit(attType))
+    if (pVictim->IsPlayer() && !pVictim->IsStandState() && CanCrit(attType))
     {
         die.chance[UNIT_COMBAT_DIE_CRIT] = 10000;
         DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "RollMeleeOutcomeAgainst: New attack die: [MISS:%u, CRIT:%u] (target is sitting)",
@@ -2656,10 +2656,10 @@ uint32 Unit::CalculateDamage(WeaponAttackType attType, bool normalized, uint8 in
 {
     float min_damage, max_damage;
 
-    if (GetTypeId() != TYPEID_PLAYER && index != 0)
+    if (!IsPlayer() && index != 0)
         return 0;
 
-    if ((normalized || index != 0) && GetTypeId() == TYPEID_PLAYER)
+    if ((normalized || index != 0) && IsPlayer())
         ((Player*)this)->CalculateMinMaxDamage(attType, normalized, min_damage, max_damage, index);
     else
     {
@@ -2734,7 +2734,7 @@ void Unit::SendMeleeAttackStop(Unit* victim) const
     data << victim->GetPackGUID();                          // can be 0x00...
     data << uint32(0);                                      // can be 0x1
     SendMessageToSet(data, true);
-    DETAIL_FILTER_LOG(LOG_FILTER_COMBAT, "%s %u stopped attacking %s %u", (GetTypeId() == TYPEID_PLAYER ? "player" : "creature"), GetGUIDLow(), (victim->GetTypeId() == TYPEID_PLAYER ? "player" : "creature"), victim->GetGUIDLow());
+    DETAIL_FILTER_LOG(LOG_FILTER_COMBAT, "%s %u stopped attacking %s %u", (IsPlayer() ? "player" : "creature"), GetGUIDLow(), (victim->IsPlayer() ? "player" : "creature"), victim->GetGUIDLow());
 
     /*if(victim->GetTypeId() == TYPEID_UNIT)
     ((Creature*)victim)->AI().EnterEvadeMode(this);*/
@@ -2830,7 +2830,7 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, uint8
     SpellSchoolMask schoolMask = GetSpellSchoolMask(spell);
     // wand case
     bool wand = spell->Id == 5019;
-    if (wand && !!(getClassMask() & CLASSMASK_WAND_USERS) && GetTypeId() == TYPEID_PLAYER)
+    if (wand && !!(getClassMask() & CLASSMASK_WAND_USERS) && IsPlayer())
         schoolMask = GetRangedDamageSchoolMask();
 
     // Reflect (when available)
@@ -2866,10 +2866,10 @@ SpellMissInfo Unit::SpellHitResult(Unit* pVictim, SpellEntry const* spell, uint8
 
 uint32 Unit::GetDefenseSkillValue(Unit const* target) const
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         // in PvP always use full skill (and bonuses on top of it if present)
-        uint32 value = (target && target->GetTypeId() == TYPEID_PLAYER)
+        uint32 value = (target && target->IsPlayer())
                        ? std::max(((Player*)this)->GetSkillMax(SKILL_DEFENSE), ((Player*)this)->GetSkillValue(SKILL_DEFENSE))
                        : ((Player*)this)->GetSkillValue(SKILL_DEFENSE);
         value += uint32(((Player*)this)->GetRatingBonusValue(CR_DEFENSE_SKILL));
@@ -2881,7 +2881,7 @@ uint32 Unit::GetDefenseSkillValue(Unit const* target) const
 bool Unit::CanCrush() const
 {
     // Generally, only npcs and npc-controlled players/units are eligible to deal crushing blows
-    if (GetTypeId() == TYPEID_PLAYER || HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    if (IsPlayer() || HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         return GetCharmerGuid().IsCreature();
     return !GetMasterGuid().IsPlayer();
 }
@@ -2889,7 +2889,7 @@ bool Unit::CanCrush() const
 bool Unit::CanGlance() const
 {
     // Generally, only players and player-controlled units are eligible to deal glancing blows
-    if (GetTypeId() == TYPEID_PLAYER || HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    if (IsPlayer() || HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         return !GetCharmerGuid().IsCreature();
     return false;
 }
@@ -2906,7 +2906,7 @@ void Unit::SetCanDodge(const bool flag)
         return;
 
     m_canDodge = flag;
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         ((Player*)this)->UpdateDodgePercentage();
 }
 
@@ -2916,7 +2916,7 @@ void Unit::SetCanParry(const bool flag)
         return;
 
     m_canParry = flag;
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         ((Player*)this)->UpdateParryPercentage();
 }
 
@@ -2926,7 +2926,7 @@ void Unit::SetCanBlock(const bool flag)
         return;
 
     m_canBlock = flag;
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         ((Player*)this)->UpdateBlockPercentage();
 }
 
@@ -2945,7 +2945,7 @@ bool Unit::CanDodgeInCombat(const Unit* attacker) const
     if (!attacker || !CanDodgeInCombat())
         return false;
     // Players can't dodge attacks from behind
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         return attacker->IsFacingTargetsFront(this);
     return true;
 }
@@ -2958,7 +2958,7 @@ bool Unit::CanParryInCombat() const
     if (GetParryChance() < 0.005f)
         return false;
     // Players need a melee weapon they can use to parry an attack
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         const Player* player = (const Player*)this;
         return (player->GetWeaponForAttack(BASE_ATTACK, true, true) || player->GetWeaponForAttack(OFF_ATTACK, true, true));
@@ -2982,7 +2982,7 @@ bool Unit::CanBlockInCombat(SpellSchoolMask weaponSchoolMask) const
     if (GetBlockChance() < 0.005f)
         return false;
     // Players need a shield equipped to block an attack
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         const Player* player = (const Player*)this;
         if (player->CanUseEquippedWeapon(OFF_ATTACK))
@@ -3021,7 +3021,7 @@ bool Unit::CanGlanceInCombat(const Unit* victim) const
 
 bool Unit::CanDazeInCombat(const Unit* victim) const
 {
-    return (victim && CanDazeInCombat() && (victim->GetTypeId() == TYPEID_PLAYER) && IsFacingTargetsBack(victim));
+    return (victim && CanDazeInCombat() && (victim->IsPlayer()) && IsFacingTargetsBack(victim));
 }
 
 bool Unit::CanReactOnAbility(const SpellEntry* ability) const
@@ -3150,7 +3150,7 @@ float Unit::CalculateEffectiveDodgeChance(const Unit* attacker, WeaponAttackType
     // Skill difference can be negative (and reduce our chance to mitigate an attack), which means:
     // a) Attacker's level is higher
     // b) Attacker has +skill bonuses
-    const bool isPlayerOrPet = (GetTypeId() == TYPEID_PLAYER || GetOwnerGuid().IsPlayer());
+    const bool isPlayerOrPet = (IsPlayer() || GetOwnerGuid().IsPlayer());
     const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
     // Defense/weapon skill factor: for players and NPCs
@@ -3181,7 +3181,7 @@ float Unit::CalculateEffectiveParryChance(const Unit* attacker, WeaponAttackType
     // Skill difference can be negative (and reduce our chance to mitigate an attack), which means:
     // a) Attacker's level is higher
     // b) Attacker has +skill bonuses
-    const bool isPlayerOrPet = (GetTypeId() == TYPEID_PLAYER || GetOwnerGuid().IsPlayer());
+    const bool isPlayerOrPet = (IsPlayer() || GetOwnerGuid().IsPlayer());
     const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
     // Defense/weapon skill factor: for players and NPCs
@@ -3221,7 +3221,7 @@ float Unit::CalculateEffectiveBlockChance(const Unit* attacker, WeaponAttackType
     // Skill difference can be negative (and reduce our chance to mitigate an attack), which means:
     // a) Attacker's level is higher
     // b) Attacker has +skill bonuses
-    const bool isPlayerOrPet = (GetTypeId() == TYPEID_PLAYER || GetOwnerGuid().IsPlayer());
+    const bool isPlayerOrPet = (IsPlayer() || GetOwnerGuid().IsPlayer());
     const uint32 skill = (weapon ? attacker->GetWeaponSkillValue(attType, this) : attacker->GetSkillMaxForLevel(this));
     const int32 difference = int32(GetDefenseSkillValue(attacker) - skill);
     // Defense/weapon skill factor: for players and NPCs
@@ -3260,7 +3260,7 @@ float Unit::CalculateEffectiveGlanceChance(const Unit* victim, WeaponAttackType 
     const int32 level = int32(GetLevelForTarget(victim));
     const uint32 defense = victim->GetDefenseSkillValue(this);
     // Penalty for caster classes lower than level 30 in TBC
-    if (GetTypeId() == TYPEID_PLAYER && (getClassMask() & CLASSMASK_WAND_USERS) && level < 30)
+    if (IsPlayer() && (getClassMask() & CLASSMASK_WAND_USERS) && level < 30)
         chance += (level + int32(defense - skill));
     else
         chance += (10 + int32(defense - skill));
@@ -3651,7 +3651,7 @@ float Unit::GetMissChance(WeaponAttackType attackType) const
     // Default base chance to be missed for all acting units: 5%
     float chance = 5.0f;
     // Rating contribution
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         chance += ((const Player*)this)->GetRatingBonusValue((attackType == RANGED_ATTACK) ? CR_HIT_TAKEN_RANGED : CR_HIT_TAKEN_MELEE);
     return chance;
 }
@@ -3664,7 +3664,7 @@ float Unit::GetMissChance(SpellSchoolMask /*schoolMask*/) const
     // Default base chance to be missed by a spell for all acting units: 4%
     float chance = 4.0f;
     // Rating contribution
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         chance += ((const Player*)this)->GetRatingBonusValue(CR_HIT_TAKEN_SPELL);
     return chance;
 }
@@ -3742,7 +3742,7 @@ float Unit::CalculateEffectiveMissChance(const Unit* victim, WeaponAttackType at
     // Skill difference can be both negative and positive. Positive difference means that:
     // a) Victim's level is higher
     // b) Victim has additional defense skill bonuses
-    const bool vsPlayerOrPet = (victim->GetTypeId() == TYPEID_PLAYER || victim->GetOwnerGuid().IsPlayer());
+    const bool vsPlayerOrPet = (victim->IsPlayer() || victim->GetOwnerGuid().IsPlayer());
     const uint32 skill = (weapon ? GetWeaponSkillValue(attType, victim) : GetSkillMaxForLevel(victim));
     int32 difference = int32(victim->GetDefenseSkillValue(this) - skill);
     // Defense/weapon skill factor: for players and NPCs
@@ -3854,7 +3854,7 @@ float Unit::CalculateSpellMissChance(const Unit* victim, SpellSchoolMask schoolM
     if (chance < 0.005f)
         return 0.0f;
     // Level difference: positive adds to miss chance, negative substracts
-    const bool vsPlayerOrPet = (victim->GetTypeId() == TYPEID_PLAYER || victim->GetOwnerGuid().IsPlayer());
+    const bool vsPlayerOrPet = (victim->IsPlayer() || victim->GetOwnerGuid().IsPlayer());
     int32 difference = int32(victim->GetLevelForTarget(this) - GetLevelForTarget(victim));
     // Level difference factor: 1% per level
     uint8 factor = 1;
@@ -3887,7 +3887,7 @@ bool Unit::RollSpellCritOutcome(const Unit* victim, SpellSchoolMask schoolMask, 
 float Unit::GetExpertisePercent(WeaponAttackType attType) const
 {
     int32 expertise = 0;
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         switch (uint32(attType))
         {
@@ -4049,7 +4049,7 @@ float Unit::CalculateSpellResistChance(const Unit* victim, SpellSchoolMask schoo
 uint32 Unit::GetWeaponSkillValue(WeaponAttackType attType, Unit const* target) const
 {
     uint32 value;
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         Item* item = ((Player*)this)->GetWeaponForAttack(attType, true, true);
 
@@ -4064,7 +4064,7 @@ uint32 Unit::GetWeaponSkillValue(WeaponAttackType attType, Unit const* target) c
         uint32 skill = item ? item->GetSkill() : uint32(SKILL_UNARMED);
 
         // in PvP always use full skill (and bonuses on top of it if present)
-        value = (target && target->GetTypeId() == TYPEID_PLAYER)
+        value = (target && target->IsPlayer())
                 ? std::max(((Player*)this)->GetSkillMax(skill), ((Player*)this)->GetSkillValue(skill))
                 : ((Player*)this)->GetSkillValue(skill);
         // Modify value from ratings
@@ -4593,7 +4593,7 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder* holder)
     // ghost spell check, allow apply any auras at player loading in ghost mode (will be cleanup after load)
     if (!isAlive() && !IsDeathPersistentSpell(aurSpellInfo) &&
             !IsDeathOnlySpell(aurSpellInfo) && !aurSpellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) &&
-            (GetTypeId() != TYPEID_PLAYER || !((Player*)this)->GetSession()->PlayerLoading()))
+            (!IsPlayer() || !((Player*)this)->GetSession()->PlayerLoading()))
     {
         return false;
     }
@@ -4601,8 +4601,8 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder* holder)
     if (holder->GetTarget() != this)
     {
         sLog.outError("Holder (spell %u) add to spell aura holder list of %s (lowguid: %u) but spell aura holder target is %s (lowguid: %u)",
-                      holder->GetId(), (GetTypeId() == TYPEID_PLAYER ? "player" : "creature"), GetGUIDLow(),
-                      (holder->GetTarget()->GetTypeId() == TYPEID_PLAYER ? "player" : "creature"), holder->GetTarget()->GetGUIDLow());
+                      holder->GetId(), (IsPlayer() ? "player" : "creature"), GetGUIDLow(),
+                      (holder->GetTarget()->IsPlayer() ? "player" : "creature"), holder->GetTarget()->GetGUIDLow());
         return false;
     }
 
@@ -5670,7 +5670,7 @@ void Unit::RemoveGameObject(GameObject* gameObj, bool del)
     {
         RemoveAurasDueToSpell(spellid);
 
-        if (GetTypeId() == TYPEID_PLAYER)
+        if (IsPlayer())
         {
             SpellEntry const* createBySpell = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
             // Need activate spell use for owner
@@ -5869,7 +5869,7 @@ void Unit::CasterHitTargetWithSpell(Unit* realCaster, Unit* target, SpellEntry c
             {
                 // Since patch 1.5.0 sitting characters always stand up on attack (even if stunned)
                 if (!spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING))
-                    if (success && !target->IsStandState() && target->GetTypeId() == TYPEID_PLAYER)
+                    if (success && !target->IsStandState() && target->IsPlayer())
                         target->SetStandState(UNIT_STAND_STATE_STAND);
 
                 if (!spellInfo->HasAttribute(SPELL_ATTR_EX_NO_THREAT))
@@ -6023,7 +6023,7 @@ void Unit::SetPowerType(Powers new_powertype)
     SetByteValue(UNIT_FIELD_BYTES_0, 3, new_powertype);
 
     // group updates
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (((Player*)this)->GetGroup())
             ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_POWER_TYPE);
@@ -6031,12 +6031,12 @@ void Unit::SetPowerType(Powers new_powertype)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_POWER_TYPE);
     }
 
     // special cases for power type switching (druid and pets only)
-    if (GetTypeId() == TYPEID_PLAYER || (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->IsPet()))
+    if (IsPlayer() || (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->IsPet()))
     {
         uint32 maxValue = GetCreatePowers(new_powertype);
         uint32 curValue = maxValue;
@@ -6115,11 +6115,11 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
         return false;
 
     // player cannot attack in mount state
-    if (GetTypeId() == TYPEID_PLAYER && IsMounted())
+    if (IsPlayer() && IsMounted())
         return false;
 
     // nobody can attack GM in GM-mode
-    if (victim->GetTypeId() == TYPEID_PLAYER)
+    if (victim->IsPlayer())
     {
         if (((Player*)victim)->isGameMaster())
             return false;
@@ -6186,7 +6186,7 @@ bool Unit::AttackStop(bool targetSwitch /*= false*/, bool includingCast /*= fals
         InterruptNonMeleeSpells(false);
 
     // Clear our target only if targetSwitch == true
-    if (targetSwitch && GetTypeId() != TYPEID_PLAYER)
+    if (targetSwitch && !IsPlayer())
         SetTargetGuid(ObjectGuid());
 
     MeleeAttackStop(m_attacking);
@@ -6202,14 +6202,14 @@ bool Unit::AttackStop(bool targetSwitch /*= false*/, bool includingCast /*= fals
 
 void Unit::CombatStop(bool includingCast, bool includingCombo)
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         ((Player*)this)->SendAttackSwingCancelAttack();     // melee and ranged forced attack cancel
 
     AttackStop(true, includingCast, includingCombo);
     RemoveAllAttackers();
     DeleteThreatList();
 
-    if (GetTypeId() != TYPEID_PLAYER)
+    if (!IsPlayer())
     {
         ((Creature*)this)->SetNoCallAssistance(false);
 
@@ -6310,7 +6310,7 @@ void Unit::ModifyAuraState(AuraState flag, bool apply)
         if (!HasFlag(UNIT_FIELD_AURASTATE, 1 << (flag - 1)))
         {
             SetFlag(UNIT_FIELD_AURASTATE, 1 << (flag - 1));
-            if (GetTypeId() == TYPEID_PLAYER)
+            if (IsPlayer())
             {
                 const PlayerSpellMap& sp_list = ((Player*)this)->GetSpellMap();
                 for (const auto& itr : sp_list)
@@ -6364,8 +6364,8 @@ Player* Unit::GetBeneficiaryPlayer() const
 {
     Unit const* beneficiary = GetBeneficiary();
     if (beneficiary)
-        return (beneficiary->GetTypeId() == TYPEID_PLAYER ? const_cast<Player*>(static_cast<Player const*>(beneficiary)) : nullptr);
-    return (GetTypeId() == TYPEID_PLAYER ? const_cast<Player*>(static_cast<Player const*>(this)) : nullptr);
+        return (beneficiary->IsPlayer() ? const_cast<Player*>(static_cast<Player const*>(beneficiary)) : nullptr);
+    return (IsPlayer() ? const_cast<Player*>(static_cast<Player const*>(this)) : nullptr);
 }
 
 bool Unit::IsClientControlled(Player const* exactClient /*= nullptr*/) const
@@ -6390,7 +6390,7 @@ bool Unit::IsClientControlled(Player const* exactClient /*= nullptr*/) const
     }
 
     // By default: players have client control over themselves
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         return (exactClient ? (exactClient == this) : true);
     return false;
 }
@@ -6409,11 +6409,11 @@ Player const* Unit::GetClientControlling() const
             if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_POSSESSED))
             {
                 Unit const* charmer = GetCharmer();
-                if (charmer && charmer->GetTypeId() == TYPEID_PLAYER)
+                if (charmer && charmer->IsPlayer())
                     return static_cast<Player const*>(charmer);
             }
         }
-        else if (GetTypeId() == TYPEID_PLAYER)
+        else if (IsPlayer())
         {
             // Check if anything prevents original client from controlling
             if (IsClientControlled(static_cast<Player const*>(this)))
@@ -6759,7 +6759,7 @@ int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellPro
 
     unit->SendHealSpellLog(pVictim, spellProto->Id, addhealth, critical);
 
-    if (unit->GetTypeId() == TYPEID_PLAYER)
+    if (unit->IsPlayer())
     {
         if (BattleGround* bg = ((Player*)unit)->GetBattleGround())
             bg->UpdatePlayerScore((Player*)unit, SCORE_HEALING_DONE, gain);
@@ -7108,7 +7108,7 @@ uint32 Unit::SpellDamageBonusTaken(Unit* pCaster, SpellEntry const* spellProto, 
             case 2109:
                 if (mDummyAura->GetModifier()->m_miscvalue & GetSpellSchoolMask(spellProto))
                 {
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         continue;
                     float mod = -((Player*)this)->GetRatingBonusValue(CR_CRIT_TAKEN_SPELL) * 2 * 4;
                     if (mod < float(mDummyAura->GetModifier()->m_amount))
@@ -7149,7 +7149,7 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
             DoneAdvertisedBenefit += i->GetModifier()->m_amount;
     }
 
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         // Damage bonus from stats
         AuraList const& mDamageDoneOfStatPercent = GetAurasByType(SPELL_AURA_MOD_SPELL_DAMAGE_OF_STAT_PERCENT);
@@ -7352,7 +7352,7 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
             AdvertisedBenefit += i->GetModifier()->m_amount;
 
     // Healing bonus of spirit, intellect and strength
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         // Healing bonus from stats
         AuraList const& mHealingDoneOfStatPercent = GetAurasByType(SPELL_AURA_MOD_SPELL_HEALING_OF_STAT_PERCENT);
@@ -7505,7 +7505,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
 
     // differentiate for weapon damage based spells
     bool isWeaponDamageBasedSpell = !(spellProto && (damagetype == DOT || IsSpellHaveEffect(spellProto, SPELL_EFFECT_SCHOOL_DAMAGE)));
-    Item*  pWeapon          = GetTypeId() == TYPEID_PLAYER ? ((Player*)this)->GetWeaponForAttack(attType, true, false) : nullptr;
+    Item*  pWeapon          = IsPlayer() ? ((Player*)this)->GetWeaponForAttack(attType, true, false) : nullptr;
     uint32 creatureTypeMask = pVictim->GetCreatureTypeMask();
     schoolMask              = ((spellProto && schoolMask != spellProto->SchoolMask) ? SpellSchoolMask(spellProto->SchoolMask) : schoolMask);
 
@@ -7719,7 +7719,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* pCaster, uint32 pdamage, WeaponAttackTy
             case 2109:                                      // Cheating Death
                 if (mDummyAura->GetModifier()->m_miscvalue & SPELL_SCHOOL_MASK_NORMAL)
                 {
-                    if (GetTypeId() != TYPEID_PLAYER)
+                    if (!IsPlayer())
                         continue;
 
                     float mod = ((Player*)this)->GetRatingBonusValue(CR_CRIT_TAKEN_MELEE) * (-8.0f);
@@ -7825,7 +7825,7 @@ void Unit::Mount(uint32 mount, uint32 spellId)
 
     SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT);
 
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         // Called by Taxi system / GM command
         if (!spellId)
@@ -7870,7 +7870,7 @@ void Unit::Unmount(bool from_aura)
     // only resummon old pet if the player is already added to a map
     // this prevents adding a pet to a not created map which would otherwise cause a crash
     // (it could probably happen when logging in after a previous crash)
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (Pet* pet = GetPet())
         {
@@ -8069,7 +8069,7 @@ void Unit::ClearInCombat()
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
 
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         static_cast<Player*>(this)->pvpInfo.inPvPCombat = false;
 }
 
@@ -8147,7 +8147,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // player visible for other player if not logout and at same transport
     // including case when player is out of world
     bool at_same_transport =
-        GetTypeId() == TYPEID_PLAYER &&  u->GetTypeId() == TYPEID_PLAYER &&
+        IsPlayer() &&  u->IsPlayer() &&
         !((Player*)this)->GetSession()->PlayerLogout() && !((Player*)u)->GetSession()->PlayerLogout() &&
         !((Player*)this)->GetSession()->PlayerLoading() && !((Player*)u)->GetSession()->PlayerLoading() &&
         ((Player*)this)->GetTransport() && ((Player*)this)->GetTransport() == ((Player*)u)->GetTransport();
@@ -8162,7 +8162,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
 
     Map& _map = *u->GetMap();
     // Grid dead/alive checks
-    if (u->GetTypeId() == TYPEID_PLAYER)
+    if (u->IsPlayer())
     {
         // non visible at grid for any stealth state
         if (!IsVisibleInGridForPlayer((Player*)u))
@@ -8201,7 +8201,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // unit is also invisible for alive.. if an isinvisibleforalive unit dies we
     // should be able to see it too
     if (u->isAlive() && isAlive() && isInvisibleForAlive() != u->isInvisibleForAlive())
-        if (u->GetTypeId() != TYPEID_PLAYER || !((Player*)u)->isGameMaster())
+        if (!u->IsPlayer() || !((Player*)u)->isGameMaster())
             return false;
 
     // Visible units, always are visible for all units, except for units under invisibility
@@ -8209,9 +8209,9 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return true;
 
     // GMs see any players, not higher GMs and all units
-    if (u->GetTypeId() == TYPEID_PLAYER && ((Player*)u)->isGameMaster())
+    if (u->IsPlayer() && ((Player*)u)->isGameMaster())
     {
-        if (GetTypeId() == TYPEID_PLAYER)
+        if (IsPlayer())
             return ((Player*)this)->GetSession()->GetSecurity() <= ((Player*)u)->GetSession()->GetSecurity();
         return true;
     }
@@ -8230,7 +8230,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
 
     // raw invisibility
     bool invisible = (m_invisibilityMask != 0 || u->m_invisibilityMask != 0);
-    if (u->GetTypeId() == TYPEID_PLAYER) // if object is player with mover, use its visibility masks, so that an invisible player MCing a creature can see stuff
+    if (u->IsPlayer()) // if object is player with mover, use its visibility masks, so that an invisible player MCing a creature can see stuff
     {
         if (Player* player = (Player*)u)
         {
@@ -8279,7 +8279,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
     // mobs always detect players (detect == true)... return 'false' for those mobs which have (detect == false)
     // players detect players only in Player::HandleStealthedUnitsDetection()
     if (!detect)
-        return (u->GetTypeId() == TYPEID_PLAYER) ? ((Player*)u)->HaveAtClient(this) : false;
+        return (u->IsPlayer()) ? ((Player*)u)->HaveAtClient(this) : false;
 
     // Special cases
 
@@ -8292,7 +8292,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         return false;
 
     // set max ditance
-    float visibleDistance = (u->GetTypeId() == TYPEID_PLAYER) ? MAX_PLAYER_STEALTH_DETECT_RANGE : ((Creature const*)u)->GetAttackDistance(this);
+    float visibleDistance = (u->IsPlayer()) ? MAX_PLAYER_STEALTH_DETECT_RANGE : ((Creature const*)u)->GetAttackDistance(this);
 
     // Always invisible from back (when stealth detection is on), also filter max distance cases
     bool isInFront = viewPoint->isInFrontInMap(this, visibleDistance);
@@ -8397,7 +8397,7 @@ bool Unit::CanDetectInvisibilityOf(Unit const* u) const
             // find invisibility detect level - this is taken from controlling player or self
             int32 detectLevel = GetInvisibilityDetectValue(i);
 
-            if (i == 6 && GetTypeId() == TYPEID_PLAYER)     // special drunk detection case
+            if (i == 6 && IsPlayer())     // special drunk detection case
                 detectLevel += ((Player*)this)->GetDrunkValue();
 
             if (invLevel <= detectLevel)
@@ -8545,7 +8545,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
         {
             // Normalize speed by 191 aura SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED if need
             // TODO: possible affect only on MOVE_RUN
-            if (GetTypeId() == TYPEID_PLAYER)
+            if (IsPlayer())
             {
                 if (int32 normalization = GetMaxPositiveAuraModifier(SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED))
                 {
@@ -8635,7 +8635,7 @@ void Unit::SetSpeedRate(UnitMoveType mtype, float rate, bool forced)
 
         const SpeedOpcodePair& speedOpcodes = SetSpeed2Opc_table[mtype];
 
-        if (forced && GetTypeId() == TYPEID_PLAYER)
+        if (forced && IsPlayer())
         {
             // register forced speed changes for WorldSession::HandleForceSpeedChangeAck
             // and do it only for real sent packets and use run for run/mounted as client expected
@@ -8918,7 +8918,7 @@ bool Unit::SelectHostileTarget()
 
 int32 Unit::CalculateSpellDamage(Unit const* target, SpellEntry const* spellProto, SpellEffectIndex effect_index, int32 const* effBasePoints)
 {
-    Player* unitPlayer = (GetTypeId() == TYPEID_PLAYER) ? (Player*)this : nullptr;
+    Player* unitPlayer = (IsPlayer()) ? (Player*)this : nullptr;
 
     uint8 comboPoints = unitPlayer ? unitPlayer->GetComboPoints() : 0;
 
@@ -9116,14 +9116,14 @@ void Unit::ApplyDiminishingToDuration(DiminishingGroup group, int32& duration, U
         Unit const* target = targetOwner ? targetOwner : this;
         Unit const* source = casterOwner ? casterOwner : caster;
 
-        if (target->GetTypeId() == TYPEID_PLAYER && source->GetTypeId() == TYPEID_PLAYER)
+        if (target->IsPlayer() && source->IsPlayer())
             duration = 10000;
     }
 
     float mod = 1.0f;
 
     // Some diminishings applies to mobs too (for example, Stun)
-    if ((GetDiminishingReturnsGroupType(group) == DRTYPE_PLAYER && GetTypeId() == TYPEID_PLAYER) || GetDiminishingReturnsGroupType(group) == DRTYPE_ALL)
+    if ((GetDiminishingReturnsGroupType(group) == DRTYPE_PLAYER && IsPlayer()) || GetDiminishingReturnsGroupType(group) == DRTYPE_ALL)
     {
         DiminishingLevels diminish = Level;
         switch (diminish)
@@ -9221,7 +9221,7 @@ bool Unit::IsLeashingTarget(Unit* victim) const
 
 uint32 Unit::GetCreatureType() const
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         SpellShapeshiftFormEntry const* ssEntry = sSpellShapeshiftFormStore.LookupEntry(GetShapeshiftForm());
         if (ssEntry && ssEntry->creatureType > 0)
@@ -9478,7 +9478,7 @@ void Unit::SetLevel(uint32 lvl)
     SetUInt32Value(UNIT_FIELD_LEVEL, lvl);
 
     // group update
-    if ((GetTypeId() == TYPEID_PLAYER) && ((Player*)this)->GetGroup())
+    if ((IsPlayer()) && ((Player*)this)->GetGroup())
         ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_LEVEL);
 }
 
@@ -9491,7 +9491,7 @@ void Unit::SetHealth(uint32 val)
     SetUInt32Value(UNIT_FIELD_HEALTH, val);
 
     // group update
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (((Player*)this)->GetGroup())
             ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_CUR_HP);
@@ -9499,7 +9499,7 @@ void Unit::SetHealth(uint32 val)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_CUR_HP);
     }
 }
@@ -9510,7 +9510,7 @@ void Unit::SetMaxHealth(uint32 val)
     SetUInt32Value(UNIT_FIELD_MAXHEALTH, val);
 
     // group update
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (((Player*)this)->GetGroup())
             ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_MAX_HP);
@@ -9518,7 +9518,7 @@ void Unit::SetMaxHealth(uint32 val)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_MAX_HP);
     }
 
@@ -9544,7 +9544,7 @@ void Unit::SetPower(Powers power, uint32 val)
     SetStatInt32Value(UNIT_FIELD_POWER1 + power, val);
 
     // group update
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (((Player*)this)->GetGroup())
             ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_CUR_POWER);
@@ -9552,7 +9552,7 @@ void Unit::SetPower(Powers power, uint32 val)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_CUR_POWER);
     }
 
@@ -9571,7 +9571,7 @@ void Unit::SetMaxPower(Powers power, uint32 val)
     SetStatInt32Value(UNIT_FIELD_MAXPOWER1 + power, val);
 
     // group update
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (((Player*)this)->GetGroup())
             ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_MAX_POWER);
@@ -9579,7 +9579,7 @@ void Unit::SetMaxPower(Powers power, uint32 val)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_MAX_POWER);
     }
 
@@ -9592,7 +9592,7 @@ void Unit::ApplyPowerMod(Powers power, uint32 val, bool apply)
     ApplyModUInt32Value(UNIT_FIELD_POWER1 + power, val, apply);
 
     // group update
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (((Player*)this)->GetGroup())
             ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_CUR_POWER);
@@ -9600,7 +9600,7 @@ void Unit::ApplyPowerMod(Powers power, uint32 val, bool apply)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_CUR_POWER);
     }
 }
@@ -9610,7 +9610,7 @@ void Unit::ApplyMaxPowerMod(Powers power, uint32 val, bool apply)
     ApplyModUInt32Value(UNIT_FIELD_MAXPOWER1 + power, val, apply);
 
     // group update
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (((Player*)this)->GetGroup())
             ((Player*)this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_MAX_POWER);
@@ -9618,7 +9618,7 @@ void Unit::ApplyMaxPowerMod(Powers power, uint32 val, bool apply)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_MAX_POWER);
     }
 }
@@ -9639,9 +9639,9 @@ uint32 Unit::GetCreatePowers(Powers power) const
         case POWER_HEALTH:      return 0;                   // is it really should be here?
         case POWER_MANA:        return GetCreateMana();
         case POWER_RAGE:        return POWER_RAGE_DEFAULT;
-        case POWER_FOCUS:       return (GetTypeId() == TYPEID_PLAYER || !((Creature const*)this)->IsPet() || ((Pet const*)this)->getPetType() != HUNTER_PET ? 0 : POWER_FOCUS_DEFAULT);
+        case POWER_FOCUS:       return (IsPlayer() || !((Creature const*)this)->IsPet() || ((Pet const*)this)->getPetType() != HUNTER_PET ? 0 : POWER_FOCUS_DEFAULT);
         case POWER_ENERGY:      return POWER_ENERGY_DEFAULT;
-        case POWER_HAPPINESS:   return (GetTypeId() == TYPEID_PLAYER || !((Creature const*)this)->IsPet() || ((Pet const*)this)->getPetType() != HUNTER_PET ? 0 : POWER_HAPPINESS_DEFAULT);
+        case POWER_HAPPINESS:   return (IsPlayer() || !((Creature const*)this)->IsPet() || ((Pet const*)this)->getPetType() != HUNTER_PET ? 0 : POWER_HAPPINESS_DEFAULT);
     }
 
     return 0;
@@ -9780,7 +9780,7 @@ void CharmInfo::InitPossessCreateSpells()
 {
     InitEmptyActionBar();                                   // charm action bar
 
-    if (m_unit->GetTypeId() == TYPEID_PLAYER)               // possessed players don't have spells, keep the action bar empty
+    if (m_unit->IsPlayer())               // possessed players don't have spells, keep the action bar empty
         return;
 
     Creature* creature = static_cast<Creature*>(m_unit);
@@ -9802,7 +9802,7 @@ void CharmInfo::InitCharmCreateSpells()
 
     SetActionBar(ACTION_BAR_INDEX_START, COMMAND_ATTACK, ACT_COMMAND);
 
-    if (m_unit->GetTypeId() == TYPEID_PLAYER)               // charmed players don't have spells
+    if (m_unit->IsPlayer())               // charmed players don't have spells
         return;
 
     for (uint32 x = 0; x < CREATURE_MAX_SPELLS; ++x)
@@ -10025,7 +10025,7 @@ bool Unit::isFrozen() const
 void Unit::SendPetActionFeedback(uint8 msg) const
 {
     Unit* owner = GetOwner();
-    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+    if (!owner || !owner->IsPlayer())
         return;
 
     WorldPacket data(SMSG_PET_ACTION_FEEDBACK, 1);
@@ -10036,7 +10036,7 @@ void Unit::SendPetActionFeedback(uint8 msg) const
 void Unit::SendPetTalk(uint32 pettalk) const
 {
     Unit* owner = GetOwner();
-    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+    if (!owner || !owner->IsPlayer())
         return;
 
     WorldPacket data(SMSG_PET_ACTION_SOUND, 8 + 4);
@@ -10048,7 +10048,7 @@ void Unit::SendPetTalk(uint32 pettalk) const
 void Unit::SendPetAIReaction() const
 {
     Unit* owner = GetOwner();
-    if (!owner || owner->GetTypeId() != TYPEID_PLAYER)
+    if (!owner || !owner->IsPlayer())
         return;
 
     WorldPacket data(SMSG_AI_REACTION, 8 + 4);
@@ -10102,7 +10102,7 @@ void Unit::SetImmobilizedState(bool apply, bool stun)
     const uint32 immobilized = (UNIT_STAT_ROOT | UNIT_STAT_STUNNED);
     const uint32 state = stun ? UNIT_STAT_STUNNED : UNIT_STAT_ROOT;
     const Unit* charmer = GetCharmer();
-    const bool player = ((charmer ? charmer : this)->GetTypeId() == TYPEID_PLAYER);
+    const bool player = ((charmer ? charmer : this)->IsPlayer());
     if (apply)
     {
         addUnitState(state);
@@ -10185,7 +10185,7 @@ void Unit::SetIncapacitatedState(bool apply, uint32 state, ObjectGuid casterGuid
     if (apply)
         CastStop(GetObjectGuid() == casterGuid ? spellID : 0);
 
-    bool requireTargetChange = GetTypeId() != TYPEID_PLAYER || !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+    bool requireTargetChange = !IsPlayer() || !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     if (requireTargetChange)
     {
         if (HasFlag(UNIT_FIELD_FLAGS, filter))
@@ -10252,7 +10252,7 @@ void Unit::SetFeignDeath(bool apply, ObjectGuid casterGuid /*= ObjectGuid()*/, u
                 if (instance && sWorld.getConfig(CONFIG_BOOL_INSTANCE_STRICT_COMBAT_LOCKDOWN) && instance->IsEncounterInProgress())
                 {
                     // This rule was introduced in 2.3.0+: do not clear combat state if zone is in combat lockdown by encounter
-                    if (GetTypeId() == TYPEID_PLAYER)
+                    if (IsPlayer())
                         static_cast<Player*>(this)->SendAttackSwingCancelAttack();
                     AttackStop(true, false, true);
                     getHostileRefManager().addThreatPercent(-100);
@@ -10266,7 +10266,7 @@ void Unit::SetFeignDeath(bool apply, ObjectGuid casterGuid /*= ObjectGuid()*/, u
             else
             {
                 // Unsuccessful FD: do not set UNIT_STAT_FEIGN_DEATH, send resist message and stop attack (+clear target for player-controlled npcs)
-                if (GetTypeId() == TYPEID_PLAYER)
+                if (IsPlayer())
                 {
                     static_cast<Player*>(this)->SendFeignDeathResisted();
                     static_cast<Player*>(this)->SendAttackSwingCancelAttack();
@@ -10345,7 +10345,7 @@ void Unit::SetStandState(uint8 state, bool acknowledge/* = false*/)
     if (!IsSeatedState())
         RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_NOT_SEATED);
 
-    if (!acknowledge && GetTypeId() == TYPEID_PLAYER)
+    if (!acknowledge && IsPlayer())
     {
         WorldPacket data(SMSG_STANDSTATE_UPDATE, 1);
         data << uint8(state);
@@ -10367,7 +10367,7 @@ void Unit::SetDisplayId(uint32 modelId)
     if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_MODEL_ID);
     }
 }
@@ -10422,7 +10422,7 @@ void Unit::UpdateModelData()
         SetFloatValue(UNIT_FIELD_BOUNDINGRADIUS, GetObjectScale() * modelInfo->bounding_radius);
 
         // never actually update combat_reach for player, it's always the same. Below player case is for initialization
-        if (GetTypeId() == TYPEID_PLAYER)
+        if (IsPlayer())
             SetFloatValue(UNIT_FIELD_COMBATREACH, 1.5f);
         else
             SetFloatValue(UNIT_FIELD_COMBATREACH, GetObjectScale() * modelInfo->combat_reach);
@@ -10460,7 +10460,7 @@ void Unit::ClearAllReactives()
     if (getClass() == CLASS_HUNTER && HasAuraState(AURA_STATE_HUNTER_CRIT_STRIKE))
         ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, false);
 
-    if (getClass() == CLASS_WARRIOR && GetTypeId() == TYPEID_PLAYER)
+    if (getClass() == CLASS_WARRIOR && IsPlayer())
         ((Player*)this)->ClearComboPoints();
 }
 
@@ -10496,7 +10496,7 @@ void Unit::UpdateReactives(uint32 p_time)
                         ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, false);
                     break;
                 case REACTIVE_OVERPOWER:
-                    if (getClass() == CLASS_WARRIOR && GetTypeId() == TYPEID_PLAYER)
+                    if (getClass() == CLASS_WARRIOR && IsPlayer())
                         ((Player*)this)->ClearComboPoints();
                     break;
                 default:
@@ -10641,7 +10641,7 @@ void Unit::ApplyCastTimePercentMod(float val, bool apply)
 
 void Unit::UpdateAuraForGroup(uint8 slot)
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         Player* player = (Player*)this;
         if (player->GetGroup())
@@ -10653,7 +10653,7 @@ void Unit::UpdateAuraForGroup(uint8 slot)
     else if (HasCharmer())
     {
         Unit* charmer = GetCharmer();
-        if (charmer && (charmer->GetTypeId() == TYPEID_PLAYER) && ((Player*)charmer)->GetGroup())
+        if (charmer && (charmer->IsPlayer()) && ((Player*)charmer)->GetGroup())
         {
             ((Player*)charmer)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_AURAS);
             SetAuraUpdateMask(slot);
@@ -10663,7 +10663,7 @@ void Unit::UpdateAuraForGroup(uint8 slot)
 
 float Unit::GetAPMultiplier(WeaponAttackType attType, bool normalized)
 {
-    if (!normalized || GetTypeId() != TYPEID_PLAYER)
+    if (!normalized || !IsPlayer())
         return float(GetAttackTime(attType)) / 1000.0f;
 
     Item* Weapon = ((Player*)this)->GetWeaponForAttack(attType, true, false);
@@ -10737,7 +10737,7 @@ void Unit::RemoveAurasAtMechanicImmunity(uint32 mechMask, uint32 exceptSpellId, 
 
 void Unit::NearTeleportTo(float x, float y, float z, float orientation, bool casting /*= false*/)
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         static_cast<Player*>(this)->TeleportTo(GetMapId(), x, y, z, orientation, TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (casting ? TELE_TO_SPELL : 0));
     else
     {
@@ -10824,7 +10824,7 @@ void Unit::SetPvP(bool state)
     // Do not propagate during charm
     if (!HasCharmer())
     {
-        if (GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(this)->GetGroup())
+        if (IsPlayer() && static_cast<Player*>(this)->GetGroup())
             static_cast<Player*>(this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_STATUS);
 
         CallForAllControlledUnits(SetPvPHelper(state), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
@@ -10864,7 +10864,7 @@ bool Unit::IsPvPFreeForAll() const
 void Unit::SetPvPFreeForAll(bool state)
 {
     // Pre-WotLK free for all set (for player only)
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (state)
             SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_FFA_PVP);
@@ -10886,7 +10886,7 @@ bool Unit::IsPvPContested() const
 
 void Unit::SetPvPContested(bool state)
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (state)
             SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_CONTESTED_PVP);
@@ -10906,7 +10906,7 @@ bool Unit::IsPvPSanctuary() const
 void Unit::SetPvPSanctuary(bool state)
 {
     // Pre-WotLK sanctuary set (for player only)
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
     {
         if (state)
             SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY);
@@ -10917,7 +10917,7 @@ void Unit::SetPvPSanctuary(bool state)
 
 void Unit::RestoreOriginalFaction()
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         ((Player*)this)->setFactionForRace(getRace());
     else
     {
@@ -10935,7 +10935,7 @@ void Unit::RestoreOriginalFaction()
 
 float Unit::GetCombatRatingReduction(CombatRating cr) const
 {
-    if (GetTypeId() == TYPEID_PLAYER)
+    if (IsPlayer())
         return ((Player const*)this)->GetRatingBonusValue(cr);
 
     return 0.0f;
@@ -10967,7 +10967,7 @@ void Unit::StopAttackFaction(uint32 faction_id)
                 InterruptNonMeleeSpells(false);
 
             // melee and ranged forced attack cancel
-            if (GetTypeId() == TYPEID_PLAYER)
+            if (IsPlayer())
                 ((Player*)this)->SendAttackSwingCancelAttack();
         }
     }
@@ -11076,7 +11076,7 @@ class UnitVisitObjectsInRangeNotifyEvent : public BasicEvent
         bool Execute(uint64 /*e_time*/, uint32 /*p_time*/) override
         {
             float radius = MAX_CREATURE_ATTACK_RADIUS * sWorld.getConfig(CONFIG_FLOAT_RATE_CREATURE_AGGRO);
-            if (m_owner.GetTypeId() == TYPEID_PLAYER)
+            if (m_owner.IsPlayer())
             {
                 MaNGOS::PlayerVisitObjectsNotifier notify(static_cast<Player&>(m_owner));
                 Cell::VisitAllObjects(&m_owner, notify, radius);
@@ -11167,7 +11167,7 @@ void Unit::UpdateSplineMovement(uint32 t_diff)
         m_movesplineTimer.Reset(POSITION_UPDATE_DELAY);
         Movement::Location loc = movespline->ComputePosition();
 
-        if (GetTypeId() == TYPEID_PLAYER)
+        if (IsPlayer())
             ((Player*)this)->SetPosition(loc.x, loc.y, loc.z, loc.orientation);
         else
             GetMap()->CreatureRelocation((Creature*)this, loc.x, loc.y, loc.z, loc.orientation);
@@ -11214,7 +11214,7 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
         return nullptr;
     }
 
-    Player* player = GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr;
+    Player* player = IsPlayer() ? static_cast<Player*>(this) : nullptr;
 
     pCreature->SetFactionTemporary(getFaction(), TEMPFACTION_NONE);     // set same faction than player
     pCreature->SetRespawnCoord(pos);                                    // set spawn coord
@@ -11289,7 +11289,7 @@ bool Unit::TakePossessOf(Unit* possessed)
     if (HasCharm())
         return false;
 
-    Player* player = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
+    Player* player = (IsPlayer() ? static_cast<Player*>(this) : nullptr);
 
     if (player && possessed->GetObjectGuid() != GetPetGuid())
         player->UnsummonPetTemporaryIfAny();
@@ -11321,7 +11321,7 @@ bool Unit::TakePossessOf(Unit* possessed)
         charmInfo->SetCharmState("PossessedAI");
         getHostileRefManager().deleteReference(possessedCreature);
     }
-    else if (possessed->GetTypeId() == TYPEID_PLAYER)
+    else if (possessed->IsPlayer())
     {
         possessedPlayer = static_cast<Player*>(possessed);
 
@@ -11386,7 +11386,7 @@ bool Unit::TakePossessOf(Unit* possessed)
 
 bool Unit::TakeCharmOf(Unit* charmed, uint32 spellId, bool advertised /*= true*/)
 {
-    Player* charmerPlayer = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
+    Player* charmerPlayer = (IsPlayer() ? static_cast<Player*>(this) : nullptr);
 
     if (charmerPlayer && advertised)
         charmerPlayer->UnsummonPetTemporaryIfAny();
@@ -11415,7 +11415,7 @@ bool Unit::TakeCharmOf(Unit* charmed, uint32 spellId, bool advertised /*= true*/
 
     bool isPossessCharm = IsPossessCharmType(spellId);
 
-    if (charmed->GetTypeId() == TYPEID_PLAYER)
+    if (charmed->IsPlayer())
     {
         Player* charmedPlayer = static_cast<Player*>(charmed);
         if (charmerPlayer && charmerPlayer->IsInDuelWith(charmedPlayer))
@@ -11582,7 +11582,7 @@ void Unit::BreakCharmIncoming()
 
 void Unit::Uncharm(Unit* charmed, uint32 spellId)
 {
-    Player* player = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
+    Player* player = (IsPlayer() ? static_cast<Player*>(this) : nullptr);
 
     // Charmed unit should exist and be charmed by us
     if (!charmed || !charmed->HasCharmer(GetObjectGuid()))
@@ -11669,7 +11669,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
             charmed->DeleteCharmInfo();
         }
     }
-    else if (charmed->GetTypeId() == TYPEID_PLAYER)
+    else if (charmed->IsPlayer())
     {
         charmed->AttackStop(true, true);
 

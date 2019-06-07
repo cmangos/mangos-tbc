@@ -105,7 +105,7 @@ struct boss_teron_gorefiendAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bIntroDone && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 60.0f))
+        if (!m_bIntroDone && pWho->IsPlayer() && m_creature->IsWithinDistInMap(pWho, 60.0f))
         {
             DoScriptText(SAY_INTRO, m_creature);
             m_bIntroDone = true;
@@ -116,7 +116,7 @@ struct boss_teron_gorefiendAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);

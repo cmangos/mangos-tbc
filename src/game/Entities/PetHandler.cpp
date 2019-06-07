@@ -303,12 +303,12 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                 if (unit_target)
                 {
                     petUnit->SetInFront(unit_target);
-                    if (unit_target->GetTypeId() == TYPEID_PLAYER)
+                    if (unit_target->IsPlayer())
                         petUnit->SendCreateUpdateToPlayer((Player*)unit_target);
                 }
 
                 if (Unit* powner = petUnit->GetMaster())
-                    if (powner->GetTypeId() == TYPEID_PLAYER)
+                    if (powner->IsPlayer())
                         petUnit->SendCreateUpdateToPlayer((Player*)powner);
                 result = SPELL_CAST_OK;
             }
@@ -793,7 +793,7 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
     else
     {
         Unit* owner = petCreature ? petCreature->GetMaster() : nullptr;
-        if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+        if (owner && owner->IsPlayer())
         {
             Spell::SendCastResult((Player*)owner, spellInfo, 0, result, true);
 

@@ -147,7 +147,7 @@ struct boss_thaddiusAI : public Scripted_NoMovementAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(SAY_SLAY, m_creature);
@@ -650,7 +650,7 @@ struct boss_stalaggAI : public boss_thaddiusAddsAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoScriptText(SAY_STAL_SLAY, m_creature);
     }
 
@@ -704,7 +704,7 @@ struct boss_feugenAI : public boss_thaddiusAddsAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoScriptText(SAY_FEUG_SLAY, m_creature);
     }
 

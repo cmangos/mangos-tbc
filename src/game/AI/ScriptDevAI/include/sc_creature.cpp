@@ -327,7 +327,7 @@ void ScriptedAI::DoTeleportPlayer(Unit* unit, float x, float y, float z, float o
     if (!unit)
         return;
 
-    if (unit->GetTypeId() != TYPEID_PLAYER)
+    if (!unit->IsPlayer())
     {
         script_error_log("%s tried to teleport non-player (%s) to x: %f y:%f z: %f o: %f. Aborted.", m_creature->GetGuidStr().c_str(), unit->GetGuidStr().c_str(), x, y, z, ori);
         return;

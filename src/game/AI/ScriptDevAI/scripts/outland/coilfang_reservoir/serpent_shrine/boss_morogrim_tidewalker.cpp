@@ -168,7 +168,7 @@ struct boss_morogrim_tidewalkerAI : public ScriptedAI
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
         // Handle watery grave teleport - each player hit has his own teleport spell
-        if (pSpell->Id == SPELL_WATERY_GRAVE && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpell->Id == SPELL_WATERY_GRAVE && pTarget->IsPlayer())
         {
             DoCastSpellIfCan(pTarget, m_auiSpellWateryGraveTeleport[m_uiGraveIndex], CAST_TRIGGERED);
             ++m_uiGraveIndex;

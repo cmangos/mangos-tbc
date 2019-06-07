@@ -109,7 +109,7 @@ struct boss_grandmaster_vorpilAI : public ScriptedAI
     void MoveInLineOfSight(Unit* pWho) override
     {
         // not sure about right radius
-        if (!m_bHasDoneIntro && pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinDistInMap(m_creature, 50.0f) && pWho->IsWithinLOSInMap(m_creature))
+        if (!m_bHasDoneIntro && pWho->IsPlayer() && pWho->IsWithinDistInMap(m_creature, 50.0f) && pWho->IsWithinLOSInMap(m_creature))
         {
             DoScriptText(SAY_INTRO, m_creature);
             m_bHasDoneIntro = true;
@@ -178,7 +178,7 @@ struct boss_grandmaster_vorpilAI : public ScriptedAI
         {
             Unit* pTarget = m_creature->GetMap()->GetUnit(*itr);
 
-            if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER)
+            if (pTarget && pTarget->IsPlayer())
             {
                 pTarget->GetRandomPoint(aVorpilTeleportLoc[0], aVorpilTeleportLoc[1], aVorpilTeleportLoc[2], 4.0f, fX, fY, fZ);
                 DoTeleportPlayer(pTarget, fX, fY, fZ, m_creature->GetAngle(fX, fY));

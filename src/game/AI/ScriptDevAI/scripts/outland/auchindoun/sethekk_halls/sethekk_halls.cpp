@@ -258,7 +258,7 @@ void instance_sethekk_halls::Update(uint32 diff)
 
 bool ProcessEventId_event_spell_summon_raven_god(uint32 /*uiEventId*/, Object* source, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && source->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && source->IsPlayer())
     {
         Player* player = static_cast<Player*>(source);
         if (instance_sethekk_halls* instance = (instance_sethekk_halls*)(player->GetInstanceData()))

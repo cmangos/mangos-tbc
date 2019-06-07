@@ -76,7 +76,7 @@ struct npc_web_wrapAI : public ScriptedAI
 
     void SetVictim(Unit* pVictim)
     {
-        if (pVictim && pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim && pVictim->IsPlayer())
         {
             // Vanilla spell 28618, 28619, 28620, 28621 had effect SPELL_EFFECT_PLAYER_PULL with EffectMiscValue = 200, 300, 400 and 500
             // All these spells trigger 28622 after 1 or 2 seconds

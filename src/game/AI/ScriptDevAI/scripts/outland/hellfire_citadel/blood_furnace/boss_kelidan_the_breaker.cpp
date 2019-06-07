@@ -105,7 +105,7 @@ struct boss_kelidan_the_breakerAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bDidMagtheridonYell && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->_IsWithinDist(pWho, 73.0f, false))
+        if (!m_bDidMagtheridonYell && pWho->IsPlayer() && !((Player*)pWho)->isGameMaster() && m_creature->_IsWithinDist(pWho, 73.0f, false))
         {
             if (m_pInstance)
                 m_pInstance->DoOrSimulateScriptTextForThisInstance(SAY_MAGTHERIDON_INTRO, NPC_MAGTHERIDON);

@@ -40,7 +40,7 @@ bool Totem::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* 
         return false;
 
     // special model selection case for totems
-    if (owner->GetTypeId() == TYPEID_PLAYER)
+    if (owner->IsPlayer())
     {
         if (uint32 modelid_race = sObjectMgr.GetModelForRace(GetNativeDisplayId(), owner->getRaceMask()))
             SetDisplayId(modelid_race);
@@ -131,7 +131,7 @@ void Totem::UnSummon()
         owner->RemoveAurasDueToSpell(GetSpell());
 
         // remove aura all party members too
-        if (owner->GetTypeId() == TYPEID_PLAYER)
+        if (owner->IsPlayer())
         {
             // Not only the player can summon the totem (scripted AI)
             if (Group* pGroup = ((Player*)owner)->GetGroup())
@@ -173,7 +173,7 @@ void Totem::SetTypeBySummonSpell(SpellEntry const* spellProto)
 Player* Totem::GetSpellModOwner() const
 {
     Unit* owner = GetOwner();
-    if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+    if (owner && owner->IsPlayer())
         return static_cast<Player*>(owner);
     return nullptr;
 }

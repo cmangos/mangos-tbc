@@ -92,7 +92,7 @@ struct boss_harbinger_skyrissAI : public ScriptedAI
     void KilledUnit(Unit* pVictim) override
     {
         // won't yell killing pet/other unit
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(urand(0, 1) ? SAY_KILL_1 : SAY_KILL_2, m_creature);

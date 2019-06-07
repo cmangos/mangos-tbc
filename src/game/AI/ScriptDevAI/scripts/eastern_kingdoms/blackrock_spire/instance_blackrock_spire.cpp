@@ -870,7 +870,7 @@ bool AreaTrigger_at_blackrock_spire(Player* pPlayer, AreaTriggerEntry const* pAt
 
 bool ProcessEventId_event_spell_altar_emberseer(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         if (instance_blackrock_spire* pInstance = (instance_blackrock_spire*)((Player*)pSource)->GetInstanceData())
         {

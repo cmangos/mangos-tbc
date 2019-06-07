@@ -161,7 +161,7 @@ struct boss_najentusAI : public ScriptedAI
             if (!pTarget)
                 pTarget = m_creature->getVictim();
 
-            if (pTarget && pTarget->GetTypeId() == TYPEID_PLAYER)
+            if (pTarget && pTarget->IsPlayer())
             {
                 DoCastSpellIfCan(pTarget, SPELL_IMPALING_SPINE);
                 m_uiImpalingSpineTimer = 20000;

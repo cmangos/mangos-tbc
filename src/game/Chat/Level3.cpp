@@ -1381,7 +1381,7 @@ bool ChatHandler::HandleCooldownClearCommand(char* args)
     }
 
     std::string tNameLink = "Unknown";
-    if (target->GetTypeId() == TYPEID_PLAYER)
+    if (target->IsPlayer())
         tNameLink = GetNameLink(static_cast<Player*>(target));
     else
         tNameLink = target->GetName();
@@ -3591,7 +3591,7 @@ bool ChatHandler::HandleDieCommand(char* args)
         return false;
     }
 
-    if (target->GetTypeId() == TYPEID_PLAYER)
+    if (target->IsPlayer())
     {
         if (HasLowerSecurity((Player*)target, ObjectGuid(), false))
             return false;
@@ -4283,7 +4283,7 @@ bool ChatHandler::HandleLevelUpCommand(char* args)
     {
         Pet* pet = getSelectedPet();
         Player* player = m_session->GetPlayer();
-        if (pet && pet->GetOwner() && pet->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+        if (pet && pet->GetOwner() && pet->GetOwner()->IsPlayer())
         {
             if (pet->getPetType() == HUNTER_PET)
             {
@@ -5880,7 +5880,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
         return false;
     }
 
-    PSendSysMessage(LANG_MOVEGENS_LIST, (unit->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), unit->GetGUIDLow());
+    PSendSysMessage(LANG_MOVEGENS_LIST, (unit->IsPlayer() ? "Player" : "Creature"), unit->GetGUIDLow());
 
     MotionMaster* mm = unit->GetMotionMaster();
     float x, y, z;
@@ -5899,7 +5899,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
                 Unit* target = nullptr;
                 float distance = 0.f;
                 float angle = 0.f;
-                if (unit->GetTypeId() == TYPEID_PLAYER)
+                if (unit->IsPlayer())
                 {
                     ChaseMovementGenerator<Player> const* movegen = static_cast<ChaseMovementGenerator<Player> const*>(*itr);
                     target = movegen->GetCurrentTarget();
@@ -5916,7 +5916,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
 
                 if (!target)
                     SendSysMessage(LANG_MOVEGENS_CHASE_NULL);
-                else if (target->GetTypeId() == TYPEID_PLAYER)
+                else if (target->IsPlayer())
                     PSendSysMessage(LANG_MOVEGENS_CHASE_PLAYER, target->GetName(), target->GetGUIDLow(), distance, angle);
                 else
                     PSendSysMessage(LANG_MOVEGENS_CHASE_CREATURE, target->GetName(), target->GetGUIDLow(), distance, angle);
@@ -5925,14 +5925,14 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
             case FOLLOW_MOTION_TYPE:
             {
                 Unit* target;
-                if (unit->GetTypeId() == TYPEID_PLAYER)
+                if (unit->IsPlayer())
                     target = static_cast<FollowMovementGenerator<Player> const*>(*itr)->GetCurrentTarget();
                 else
                     target = static_cast<FollowMovementGenerator<Creature> const*>(*itr)->GetCurrentTarget();
 
                 if (!target)
                     SendSysMessage(LANG_MOVEGENS_FOLLOW_NULL);
-                else if (target->GetTypeId() == TYPEID_PLAYER)
+                else if (target->IsPlayer())
                     PSendSysMessage(LANG_MOVEGENS_FOLLOW_PLAYER, target->GetName(), target->GetGUIDLow());
                 else
                     PSendSysMessage(LANG_MOVEGENS_FOLLOW_CREATURE, target->GetName(), target->GetGUIDLow());
@@ -6951,7 +6951,7 @@ bool ChatHandler::HandleMmapTestHeight(char* args)
     }
     else
     {
-        if (unit->GetTypeId() != TYPEID_PLAYER)
+        if (!unit->IsPlayer())
         {
             PSendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
             return false;

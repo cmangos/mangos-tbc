@@ -159,7 +159,7 @@ struct guard_shattrath_aldorAI : public guardAI
         {
             Unit* pVictim = m_creature->getVictim();
 
-            if (pVictim && pVictim->GetTypeId() == TYPEID_PLAYER)
+            if (pVictim && pVictim->IsPlayer())
             {
                 DoCastSpellIfCan(pVictim, SPELL_BANISHED_SHATTRATH_A);
                 m_uiBanish_Timer = 9000;
@@ -226,7 +226,7 @@ struct guard_shattrath_scryerAI : public guardAI
         {
             Unit* pVictim = m_creature->getVictim();
 
-            if (pVictim && pVictim->GetTypeId() == TYPEID_PLAYER)
+            if (pVictim && pVictim->IsPlayer())
             {
                 DoCastSpellIfCan(pVictim, SPELL_BANISHED_SHATTRATH_S);
                 m_uiBanish_Timer = 9000;

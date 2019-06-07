@@ -298,7 +298,7 @@ struct boss_malacrassAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->GetTypeId())
             return;
 
         DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
@@ -325,7 +325,7 @@ struct boss_malacrassAI : public ScriptedAI
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
         // Set the player's class when hit with soul siphon
-        if (pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_SIPHON_SOUL)
+        if (pTarget->IsPlayer() && pSpell->Id == SPELL_SIPHON_SOUL)
         {
             m_uiPlayerClass = ((Player*)pTarget)->getClass();
             m_bCanUsePlayerSpell = true;

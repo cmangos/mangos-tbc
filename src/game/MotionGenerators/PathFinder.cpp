@@ -180,7 +180,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
             m_type = m_sourceUnit->CanSwim() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
         else
         {
-            if (m_sourceUnit->GetTypeId() != TYPEID_PLAYER)
+            if (!m_sourceUnit->IsPlayer())
                 m_type = m_sourceUnit->CanFly() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
             else
                 m_type = PATHFIND_NOPATH;
@@ -583,7 +583,7 @@ void PathFinder::createFilter()
         if (creature->CanSwim())
             includeFlags |= (NAV_WATER | NAV_MAGMA | NAV_SLIME);           // swim
     }
-    else if (m_sourceUnit->GetTypeId() == TYPEID_PLAYER)
+    else if (m_sourceUnit->IsPlayer())
     {
         // perfect support not possible, just stay 'safe'
         includeFlags |= (NAV_GROUND | NAV_WATER);

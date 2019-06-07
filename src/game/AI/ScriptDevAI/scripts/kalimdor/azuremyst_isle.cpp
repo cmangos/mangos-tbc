@@ -82,7 +82,7 @@ struct npc_draenei_survivorAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (m_bCanSayHelp && pWho->GetTypeId() == TYPEID_PLAYER && pWho->CanAssist(m_creature) &&
+        if (m_bCanSayHelp && pWho->IsPlayer() && pWho->CanAssist(m_creature) &&
                 m_creature->IsWithinDistInMap(pWho, 25.0f))
         {
             // Random switch between 4 texts
@@ -124,7 +124,7 @@ struct npc_draenei_survivorAI : public ScriptedAI
 
                 if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_casterGuid))
                 {
-                    if (pPlayer->GetTypeId() != TYPEID_PLAYER)
+                    if (!pPlayer->IsPlayer())
                         return;
 
                     switch (urand(0, 6))
@@ -259,7 +259,7 @@ struct npc_magwinAI : public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             m_creature->SetFactionTemporary(FACTION_ESCORT_A_NEUTRAL_PASSIVE, TEMPFACTION_RESTORE_RESPAWN);
             Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue));

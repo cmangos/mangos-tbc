@@ -88,7 +88,7 @@ struct boss_doomlordkazzakAI : public ScriptedAI
     void KilledUnit(Unit* pVictim) override
     {
         // When Kazzak kills a player (not pets/totems), he regens some health
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         switch (urand(0, 2))

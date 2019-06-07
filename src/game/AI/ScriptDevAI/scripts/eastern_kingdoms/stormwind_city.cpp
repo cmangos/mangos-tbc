@@ -58,7 +58,7 @@ struct npc_bartlebyAI : public ScriptedAI
         {
             uiDamage = 0;
 
-            if (pDoneBy->GetTypeId() == TYPEID_PLAYER)
+            if (pDoneBy->IsPlayer())
                 ((Player*)pDoneBy)->AreaExploredOrEventHappens(QUEST_BEAT);
 
             EnterEvadeMode();

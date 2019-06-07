@@ -76,7 +76,7 @@ struct npc_shenthulAI : public ScriptedAI
             {
                 if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 {
-                    if (pPlayer->GetTypeId() == TYPEID_PLAYER && pPlayer->GetQuestStatus(QUEST_SHATTERED_SALUTE) == QUEST_STATUS_INCOMPLETE)
+                    if (pPlayer->IsPlayer() && pPlayer->GetQuestStatus(QUEST_SHATTERED_SALUTE) == QUEST_STATUS_INCOMPLETE)
                         pPlayer->FailQuest(QUEST_SHATTERED_SALUTE);
                 }
 

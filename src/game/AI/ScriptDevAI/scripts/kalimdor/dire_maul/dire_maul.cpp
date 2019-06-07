@@ -42,7 +42,7 @@ enum
 
 bool ProcessEventId_event_spells_warlock_dreadsteed(uint32 uiEventId, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         if (instance_dire_maul* pInstance = (instance_dire_maul*)((Player*)pSource)->GetInstanceData())
         {

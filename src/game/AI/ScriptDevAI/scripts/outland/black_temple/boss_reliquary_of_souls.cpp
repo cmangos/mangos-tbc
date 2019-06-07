@@ -156,7 +156,7 @@ struct boss_reliquary_of_soulsAI : public Scripted_NoMovementAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (m_uiPhase == PHASE_0_NOT_BEGUN && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() &&
+        if (m_uiPhase == PHASE_0_NOT_BEGUN && pWho->IsPlayer() && !((Player*)pWho)->isGameMaster() &&
                 m_creature->IsWithinDistInMap(pWho, m_creature->GetAttackDistance(pWho)) && m_creature->IsWithinLOSInMap(pWho))
         {
             // Start phase 1

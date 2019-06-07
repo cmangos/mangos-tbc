@@ -93,7 +93,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
 
         if (m_pInstance->GetData(TYPE_ASHBRINGER_EVENT) == IN_PROGRESS)
         {
-            if (pWho->GetTypeId() == TYPEID_PLAYER)
+            if (pWho->IsPlayer())
             {
                 Player* player = static_cast<Player*>(pWho);
                 if (player->HasItemOrGemWithIdEquipped(ITEM_CORRUPTED_ASHBRINGER, 1) && m_creature->IsWithinDist(player, 20.0f))

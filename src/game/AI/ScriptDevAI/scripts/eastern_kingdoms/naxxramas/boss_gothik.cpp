@@ -176,7 +176,7 @@ struct boss_gothikAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoScriptText(SAY_KILL, m_creature);
     }
 

@@ -87,7 +87,7 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
         if (m_uiEatTimer || m_uiCreditTimer)
             return;
 
-        if (pCaster->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_PLACE_CARCASS && !m_creature->HasAura(SPELL_JUST_EATEN))
+        if (pCaster->IsPlayer() && pSpell->Id == SPELL_PLACE_CARCASS && !m_creature->HasAura(SPELL_JUST_EATEN))
         {
             m_playerGuid = pCaster->GetObjectGuid();
             m_uiEatTimer = 5000;
@@ -435,7 +435,7 @@ UnitAI* GetAI_npc_dragonmaw_peon(Creature* pCreature)
 
 bool EffectDummyCreature_npc_dragonmaw_peon(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, Creature* pCreatureTarget, ObjectGuid /*originalCasterGuid*/)
 {
-    if (uiEffIndex != EFFECT_INDEX_1 || uiSpellId != SPELL_SERVING_MUTTON || pCaster->GetTypeId() != TYPEID_PLAYER)
+    if (uiEffIndex != EFFECT_INDEX_1 || uiSpellId != SPELL_SERVING_MUTTON || !pCaster->IsPlayer())
         return false;
 
     npc_dragonmaw_peonAI* pPeonAI = dynamic_cast<npc_dragonmaw_peonAI*>(pCreatureTarget->AI());
@@ -2439,7 +2439,7 @@ struct npc_domesticated_felboarAI : public ScriptedAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
-        if (eventType == AI_EVENT_START_EVENT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_EVENT && pInvoker->IsPlayer())
         {
             DoScriptText(EMOTE_SNIFF_AIR, m_creature);
 
@@ -2657,7 +2657,7 @@ struct npc_disobedient_dragonmaw_peonAI : public ScriptedAI
 
     void HandleBooterang(Unit* caster)
     {
-        if (caster->GetTypeId() != TYPEID_PLAYER && m_lastPlayerGuid.IsEmpty())
+        if (!caster->IsPlayer() && m_lastPlayerGuid.IsEmpty())
             return;
 
         Player* player = static_cast<Player*>(caster);

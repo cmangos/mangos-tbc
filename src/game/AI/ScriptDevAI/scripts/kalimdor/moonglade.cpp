@@ -128,7 +128,7 @@ struct npc_clintar_dw_spiritAI : public npc_escortAI
 
         m_creature->SetVisibility(VISIBILITY_ON);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-        Start(false, pStarter && pStarter->GetTypeId() == TYPEID_PLAYER ? (Player*)pStarter : nullptr);
+        Start(false, pStarter && pStarter->IsPlayer() ? (Player*)pStarter : nullptr);
     }
 
     void JustSummoned(Creature* summoned) override
@@ -148,7 +148,7 @@ bool EffectDummyCreature_npc_clintar_dw_spirit(Unit* pCaster, uint32 spellId, Sp
     // always check spellid and effectindex
     if (spellId == SPELL_EMERALD_DREAM && effIndex == EFFECT_INDEX_0)
     {
-        if (pCaster->GetTypeId() != TYPEID_PLAYER || pCaster->HasAura(SPELL_EMERALD_DREAM))
+        if (!pCaster->IsPlayer() || pCaster->HasAura(SPELL_EMERALD_DREAM))
             return true;
 
         if (pCreatureTarget->GetEntry() != NPC_CLINTAR_DW_SPIRIT)
@@ -710,7 +710,7 @@ struct boss_eranikusAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
+        if (!pVictim->IsPlayer())
             return;
 
         DoScriptText(SAY_ERANIKUS_KILL, m_creature);

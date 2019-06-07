@@ -270,10 +270,10 @@ void PetAI::UpdateAI(const uint32 diff)
             if (!m_unit->HasInArc(target))
             {
                 m_unit->SetInFront(target);
-                if (target->GetTypeId() == TYPEID_PLAYER)
+                if (target->IsPlayer())
                     m_unit->SendCreateUpdateToPlayer((Player*)target);
 
-                if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+                if (owner && owner->IsPlayer())
                     m_unit->SendCreateUpdateToPlayer((Player*)owner);
             }
 
@@ -315,10 +315,10 @@ void PetAI::UpdateAI(const uint32 diff)
             if (!m_unit->HasInArc(victim, 2 * M_PI_F / 3))
             {
                 m_unit->SetInFront(victim);
-                if (victim->GetTypeId() == TYPEID_PLAYER)
+                if (victim->IsPlayer())
                     m_unit->SendCreateUpdateToPlayer((Player*)victim);
 
-                if (owner && owner->GetTypeId() == TYPEID_PLAYER)
+                if (owner && owner->IsPlayer())
                     m_unit->SendCreateUpdateToPlayer((Player*)owner);
             }
 
@@ -391,7 +391,7 @@ void PetAI::UpdateAllies()
 
     if (!owner)
         return;
-    if (owner->GetTypeId() == TYPEID_PLAYER)
+    if (owner->IsPlayer())
         group = ((Player*)owner)->GetGroup();
 
     // only pet and owner/not in group->ok

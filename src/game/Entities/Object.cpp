@@ -248,7 +248,7 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
     {
         Unit* unit = ((Unit*)this);
 
-        if (GetTypeId() == TYPEID_PLAYER)
+        if (IsPlayer())
         {
             Player* player = ((Player*)unit);
             if (player->GetTransport())
@@ -612,7 +612,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                         }
                     }
 
-                    if (GetTypeId() == TYPEID_UNIT || GetTypeId() == TYPEID_PLAYER)
+                    if (GetTypeId() == TYPEID_UNIT || IsPlayer())
                     {
                         Unit* unit = (Unit*)this; // hunters mark effects should only be visible to owners and not all players
                         if (!unit->HasAuraTypeWithCaster(SPELL_AURA_MOD_STALKED, target->GetObjectGuid()))
@@ -626,7 +626,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                     uint32 value = m_uint32Values[index];
 
                     // [XFACTION]: Alter faction if detected crossfaction group interaction when updating faction field:
-                    if (this != target && GetTypeId() == TYPEID_PLAYER && sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP))
+                    if (this != target && IsPlayer() && sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP))
                     {
                         Player const* thisPlayer = static_cast<Player const*>(this);
                         const uint32 targetTeam = target->GetTeam();
@@ -1629,7 +1629,7 @@ void WorldObject::MonsterTextEmote(const char* text, Unit const* target, bool Is
 
 void WorldObject::MonsterWhisper(const char* text, Unit const* target, bool IsBossWhisper) const
 {
-    if (!target || target->GetTypeId() != TYPEID_PLAYER)
+    if (!target || !target->IsPlayer())
         return;
 
     WorldPacket data;
@@ -1696,7 +1696,7 @@ void WorldObject::MonsterText(MangosStringLocale const* textData, Unit const* ta
             break;
         case CHAT_TYPE_WHISPER:
         {
-            if (!target || target->GetTypeId() != TYPEID_PLAYER)
+            if (!target || !target->IsPlayer())
                 return;
             MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_MONSTER_WHISPER, textData, LANG_UNIVERSAL, target);
             MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> say_do(say_build);
@@ -1705,7 +1705,7 @@ void WorldObject::MonsterText(MangosStringLocale const* textData, Unit const* ta
         }
         case CHAT_TYPE_BOSS_WHISPER:
         {
-            if (!target || target->GetTypeId() != TYPEID_PLAYER)
+            if (!target || !target->IsPlayer())
                 return;
             MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_RAID_BOSS_WHISPER, textData, LANG_UNIVERSAL, target);
             MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> say_do(say_build);

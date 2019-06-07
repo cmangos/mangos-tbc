@@ -194,7 +194,7 @@ struct boss_ossirianAI : public ScriptedAI
     void MoveInLineOfSight(Unit* pWho) override
     {
         // TODO: Range guesswork
-        if (!m_bSaidIntro && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 75.0f, false))
+        if (!m_bSaidIntro && pWho->IsPlayer() && m_creature->IsWithinDistInMap(pWho, 75.0f, false))
         {
             switch (urand(0, 2))
             {

@@ -444,7 +444,7 @@ void hyjalAI::DoTalk(YellType pYellType)
 void hyjalAI::SpellHitTarget(Unit* /*pTarget*/, const SpellEntry* /*pSpell*/)
 {
     // TODO: this spell should cause misc mobs to despawn
-    // if (pSpell->Id == SPELL_MASS_TELEPORT && pTarget->GetTypeId() != TYPEID_PLAYER)
+    // if (pSpell->Id == SPELL_MASS_TELEPORT && !pTarget->IsPlayer())
     //{
     // despawn;
     //}

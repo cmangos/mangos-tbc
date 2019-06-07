@@ -103,7 +103,7 @@ struct boss_silver_hand_bossesAI : public ScriptedAI
             // For the last one which dies, give the quest credit
             if (m_pInstance->GetData(TYPE_TRUE_MASTERS) == DONE)
             {
-                if (pKiller->GetTypeId() == TYPEID_PLAYER)
+                if (pKiller->IsPlayer())
                 {
                     if (Creature* pCredit = m_pInstance->GetSingleCreatureFromStorage(NPC_PALADIN_QUEST_CREDIT))
                         ((Player*)pKiller)->RewardPlayerAndGroupAtEventCredit(pCredit->GetEntry(), pCredit);

@@ -336,7 +336,7 @@ InstanceData* GetInstanceData_instance_old_hillsbrad(Map* pMap)
 
 bool ProcessEventId_event_go_barrel_old_hillsbrad(uint32 /*uiEventId*/, Object* pSource, Object* pTarget, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         if (instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)((Player*)pSource)->GetInstanceData())
         {

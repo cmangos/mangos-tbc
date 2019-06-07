@@ -179,7 +179,7 @@ InstanceData* GetInstanceData_instance_razorfen_downs(Map* pMap)
 
 bool ProcessEventId_event_go_tutenkash_gong(uint32 /*uiEventId*/, Object* pSource, Object* pTarget, bool /*bIsStart*/)
 {
-    if (pSource->GetTypeId() == TYPEID_PLAYER && pTarget->GetTypeId() == TYPEID_GAMEOBJECT)
+    if (pSource->IsPlayer() && pTarget->GetTypeId() == TYPEID_GAMEOBJECT)
     {
         instance_razorfen_downs* pInstance = (instance_razorfen_downs*)((Player*)pSource)->GetInstanceData();
         if (!pInstance)

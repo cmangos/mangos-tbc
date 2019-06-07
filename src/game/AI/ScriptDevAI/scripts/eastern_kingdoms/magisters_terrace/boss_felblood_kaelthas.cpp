@@ -194,7 +194,7 @@ struct boss_felblood_kaelthasAI : public ScriptedAI, private DialogueHelper
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bHasTaunted && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() &&
+        if (!m_bHasTaunted && pWho->IsPlayer() && !((Player*)pWho)->isGameMaster() &&
                 m_creature->IsWithinDistInMap(pWho, 40.0) && m_creature->IsWithinLOSInMap(pWho))
         {
             StartNextDialogueText(SAY_INTRO_1);
@@ -257,7 +257,7 @@ struct boss_felblood_kaelthasAI : public ScriptedAI, private DialogueHelper
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
         // Handle Gravity Lapse on targets
-        if (pSpell->Id == SPELL_GRAVITY_LAPSE && pTarget->GetTypeId() == TYPEID_PLAYER)
+        if (pSpell->Id == SPELL_GRAVITY_LAPSE && pTarget->IsPlayer())
         {
             DoCastSpellIfCan(pTarget, aGravityLapseSpells[m_uiGravityIndex], CAST_TRIGGERED);
             pTarget->CastSpell(pTarget, SPELL_GRAVITY_LAPSE_FLY, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
@@ -276,7 +276,7 @@ struct boss_felblood_kaelthasAI : public ScriptedAI, private DialogueHelper
         {
             Unit* pUnit = m_creature->GetMap()->GetUnit(*itr);
 
-            if (pUnit && pUnit->GetTypeId() == TYPEID_PLAYER)
+            if (pUnit && pUnit->IsPlayer())
             {
                 pUnit->RemoveAurasDueToSpell(SPELL_GRAVITY_LAPSE_FLY);
                 pUnit->RemoveAurasDueToSpell(SPELL_GRAVITY_LAPSE_DOT);

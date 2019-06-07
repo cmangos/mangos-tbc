@@ -93,7 +93,7 @@ struct npc_rizzle_sprysprocketAI : public npc_escortAI
 
     void MoveInLineOfSight(Unit* pUnit) override
     {
-        if (HasEscortState(STATE_ESCORT_ESCORTING) && pUnit->GetTypeId() == TYPEID_PLAYER)
+        if (HasEscortState(STATE_ESCORT_ESCORTING) && pUnit->IsPlayer())
         {
             if (!HasEscortState(STATE_ESCORT_PAUSED) && m_creature->IsWithinDistInMap(pUnit, INTERACTION_DISTANCE) && m_creature->IsWithinLOSInMap(pUnit))
             {
@@ -130,7 +130,7 @@ struct npc_rizzle_sprysprocketAI : public npc_escortAI
     // this may be wrong (and doesn't work)
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
-        if (pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_FROST_GRENADE)
+        if (pTarget->IsPlayer() && pSpell->Id == SPELL_FROST_GRENADE)
             DoScriptText(SAY_WHISPER_CHILL, m_creature, pTarget);
     }
 
@@ -216,7 +216,7 @@ struct npc_depth_chargeAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pUnit) override
     {
-        if (pUnit->GetTypeId() != TYPEID_PLAYER)
+        if (!pUnit->IsPlayer())
             return;
 
         if (m_creature->IsWithinDistInMap(pUnit, INTERACTION_DISTANCE) && m_creature->IsWithinLOSInMap(pUnit))
@@ -328,7 +328,7 @@ struct mobs_spitelashesAI : public ScriptedAI
             return;
 
         // Creature get polymorphed into a sheep and after 5 secs despawns
-        if (pCaster->GetTypeId() == TYPEID_PLAYER && ((Player*)pCaster)->GetQuestStatus(QUEST_FRAGMENTED_MAGIC) == QUEST_STATUS_INCOMPLETE &&
+        if (pCaster->IsPlayer() && ((Player*)pCaster)->GetQuestStatus(QUEST_FRAGMENTED_MAGIC) == QUEST_STATUS_INCOMPLETE &&
                 (pSpell->Id == 118 || pSpell->Id == 12824 || pSpell->Id == 12825 || pSpell->Id == 12826))
             m_uiMorphTimer = 5000;
     }
@@ -607,7 +607,7 @@ bool ProcessEventId_arcanite_buoy(uint32 uiEventId, Object* pSource, Object* /*p
 {
     if (uiEventId == EVENT_ARCANITE_BUOY)
     {
-        if (pSource->GetTypeId() == TYPEID_PLAYER)
+        if (pSource->IsPlayer())
         {
             // Do not summon it twice
             if (Creature* temp = GetClosestCreatureWithEntry((Player*)pSource, NPC_MAWS, 200.0f))

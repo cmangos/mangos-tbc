@@ -1690,7 +1690,7 @@ struct boss_plugger_spazzringAI : public ScriptedAI
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
     {
-        if (pCaster->GetTypeId() == TYPEID_PLAYER)
+        if (pCaster->IsPlayer())
         {
             if (pSpell->Id == SPELL_PICKPOCKET)
                 m_uiPickpocketTimer = 5000;

@@ -56,7 +56,7 @@ struct npc_kittenAI : public FollowerAI
 {
     npc_kittenAI(Creature* pCreature) : FollowerAI(pCreature)
     {
-        if (pCreature->GetOwner() && pCreature->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+        if (pCreature->GetOwner() && pCreature->GetOwner()->IsPlayer())
         {
             StartFollow((Player*)pCreature->GetOwner());
             SetFollowPaused(true);
@@ -390,7 +390,7 @@ bool ProcessEventId_npc_kroshius(uint32 uiEventId, Object* pSource, Object* /*pT
 {
     if (uiEventId == EVENT_KROSHIUS_REVIVE)
     {
-        if (pSource->GetTypeId() == TYPEID_PLAYER)
+        if (pSource->IsPlayer())
         {
             if (Creature* pKroshius = GetClosestCreatureWithEntry((Player*)pSource, NPC_KROSHIUS, 20.0f))
             {
@@ -475,7 +475,7 @@ struct npc_captured_arkonarinAI : public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
             m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);
@@ -692,7 +692,7 @@ struct npc_areiAI : public npc_escortAI, private DialogueHelper
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             DoScriptText(SAY_AREI_ESCORT_START, m_creature, pInvoker);
 

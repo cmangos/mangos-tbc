@@ -2144,7 +2144,7 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
 {
     if (selectFlags)
     {
-        if ((selectFlags & SELECT_FLAG_PLAYER) && pTarget->GetTypeId() != TYPEID_PLAYER)
+        if ((selectFlags & SELECT_FLAG_PLAYER) && !pTarget->IsPlayer())
             return false;
 
         if ((selectFlags & SELECT_FLAG_POWER_MANA) && pTarget->GetPowerType() != POWER_MANA)

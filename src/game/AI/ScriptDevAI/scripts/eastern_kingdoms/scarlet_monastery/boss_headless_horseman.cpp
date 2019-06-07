@@ -152,7 +152,7 @@ struct boss_headless_horsemanAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
         {
             DoCastSpellIfCan(pVictim, SPELL_JACK_LANTERNED, CAST_TRIGGERED);
             DoScriptText(SAY_SLAY, m_creature);

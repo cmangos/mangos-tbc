@@ -93,9 +93,9 @@ void TransportBase::UpdateGlobalPositionOf(WorldObject* passenger, float lx, flo
     float gx, gy, gz, go;
     CalculateGlobalPositionOf(lx, ly, lz, lo, gx, gy, gz, go);
 
-    if (passenger->GetTypeId() == TYPEID_PLAYER || passenger->GetTypeId() == TYPEID_UNIT)
+    if (passenger->IsPlayer() || passenger->GetTypeId() == TYPEID_UNIT)
     {
-        if (passenger->GetTypeId() == TYPEID_PLAYER)
+        if (passenger->IsPlayer())
         {
             m_owner->GetMap()->PlayerRelocation((Player*)passenger, gx, gy, gz, go);
         }

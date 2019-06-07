@@ -819,7 +819,7 @@ struct npc_stinky_ignatzAI : public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             DoScriptText(SAY_STINKY_BEGIN, m_creature);
             Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue));

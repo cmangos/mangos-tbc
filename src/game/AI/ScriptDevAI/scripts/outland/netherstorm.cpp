@@ -1484,7 +1484,7 @@ struct npc_protectorate_demolitionistAI : public npc_escortAI
             return;
 
         // Star the escort
-        if (pWho->GetTypeId() == TYPEID_PLAYER)
+        if (pWho->IsPlayer())
         {
             if (pWho->HasAura(SPELL_PROTECTORATE) && ((Player*)pWho)->GetQuestStatus(QUEST_ID_DELIVERING_MESSAGE) == QUEST_STATUS_INCOMPLETE)
             {
@@ -1900,7 +1900,7 @@ struct npc_drijyaAI : public npc_escortAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_PASSIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
             Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue), true);

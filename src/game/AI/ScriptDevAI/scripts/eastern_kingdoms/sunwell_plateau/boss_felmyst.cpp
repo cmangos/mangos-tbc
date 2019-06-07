@@ -142,7 +142,7 @@ struct boss_felmystAI : public ScriptedAI
     {
         if (!m_bHasTransformed)
         {
-            if (pWho->GetTypeId() == TYPEID_PLAYER && pWho->IsWithinLOSInMap(m_creature) && pWho->IsWithinDistInMap(m_creature, 100.0f))
+            if (pWho->IsPlayer() && pWho->IsWithinLOSInMap(m_creature) && pWho->IsWithinDistInMap(m_creature, 100.0f))
             {
                 DoScriptText(SAY_INTRO, m_creature);
                 m_bHasTransformed = true;
@@ -294,7 +294,7 @@ struct boss_felmystAI : public ScriptedAI
 
     void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
     {
-        if (pTarget->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_ENCAPSULATE_CHANNEL)
+        if (pTarget->IsPlayer() && pSpell->Id == SPELL_ENCAPSULATE_CHANNEL)
             pTarget->CastSpell(pTarget, SPELL_ENCAPSULATE, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid());
     }
 

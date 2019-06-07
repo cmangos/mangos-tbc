@@ -198,7 +198,7 @@ class Pet : public Creature
         {
             Unit const* owner = GetOwner();
             if (owner)
-                return owner->GetTypeId() == TYPEID_PLAYER ? true : ((Creature const*)owner)->CanSwim();
+                return owner->IsPlayer() ? true : ((Creature const*)owner)->CanSwim();
             return Creature::CanSwim();
         }
 

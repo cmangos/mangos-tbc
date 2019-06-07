@@ -407,7 +407,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
     {
         // do a soft reset when the piece is controlled
-        if (pCaster->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_CONTROL_PIECE)
+        if (pCaster->IsPlayer() && pSpell->Id == SPELL_CONTROL_PIECE)
             Reset();
     }
 

@@ -119,7 +119,7 @@ bool ChatHandler::HandleDebugSendBuyErrorCommand(char* args)
 bool ChatHandler::HandleDebugSendOpcodeCommand(char* /*args*/)
 {
     Unit* unit = getSelectedUnit();
-    if (!unit || (unit->GetTypeId() != TYPEID_PLAYER))
+    if (!unit || (!unit->IsPlayer()))
         unit = m_session->GetPlayer();
 
     std::ifstream stream("opcode.txt");

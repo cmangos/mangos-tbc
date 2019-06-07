@@ -148,7 +148,7 @@ struct boss_magtheridonAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoScriptText(SAY_PLAYER_KILLED, m_creature);
     }
 

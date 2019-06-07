@@ -57,7 +57,7 @@ struct mob_webbed_creatureAI : public Scripted_NoMovementAI
         {
             case 0:
                 uiSpawnCreatureEntry = NPC_EXPEDITION_RESEARCHER;
-                if (pKiller->GetTypeId() == TYPEID_PLAYER)
+                if (pKiller->IsPlayer())
                     ((Player*)pKiller)->KilledMonsterCredit(uiSpawnCreatureEntry, m_creature->GetObjectGuid());
                 break;
             case 1:
@@ -186,7 +186,7 @@ struct npc_demolitionist_legosoAI : public npc_escortAI, private DialogueHelper
     void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 uiMiscValue) override
     {
         // start quest
-        if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (eventType == AI_EVENT_START_ESCORT && pInvoker->IsPlayer())
         {
             m_bFirstExplosives = true;
             DoScriptText(SAY_ESCORT_START, m_creature, pInvoker);

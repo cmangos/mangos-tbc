@@ -81,7 +81,7 @@ struct boss_mechano_lord_capacitusAI : public ScriptedAI
 
     void KilledUnit(Unit* pVictim) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        if (pVictim->IsPlayer())
             DoScriptText(urand(0, 1) ? SAY_PLAYER_KILL_1 : SAY_PLAYER_KILL_2, m_creature);
     }
 

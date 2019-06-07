@@ -146,7 +146,7 @@ struct boss_nexusprince_shaffarAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_hasTaunted && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 100.0f) && m_creature->IsWithinLOSInMap(pWho))
+        if (!m_hasTaunted && pWho->IsPlayer() && m_creature->IsWithinDistInMap(pWho, 100.0f) && m_creature->IsWithinLOSInMap(pWho))
         {
             DoScriptText(SAY_INTRO, m_creature);
             m_hasTaunted = true;

@@ -242,7 +242,7 @@ void GameObject::Update(const uint32 diff)
                     {
                         // splash bobber (bobber ready now)
                         Unit* caster = GetOwner();
-                        if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+                        if (caster && caster->IsPlayer())
                         {
                             SetGoState(GO_STATE_ACTIVE);
                             // SetUInt32Value(GAMEOBJECT_FLAGS, GO_FLAG_NODESPAWN);
@@ -301,7 +301,7 @@ void GameObject::Update(const uint32 diff)
                         case GAMEOBJECT_TYPE_FISHINGNODE:   // can't fish now
                         {
                             Unit* caster = GetOwner();
-                            if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+                            if (caster && caster->IsPlayer())
                             {
                                 caster->FinishSpell(CURRENT_CHANNELED_SPELL);
 
@@ -890,7 +890,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
                 // handle summoned traps, usually by players
                 if (Unit* owner = GetOwner())
                 {
-                    if (owner->GetTypeId() == TYPEID_PLAYER)
+                    if (owner->IsPlayer())
                     {
                         Player* ownerPlayer = (Player*)owner;
                         if ((GetMap()->IsBattleGroundOrArena() && ownerPlayer->GetBGTeam() != u->GetBGTeam()) ||
@@ -1180,7 +1180,7 @@ void GameObject::Use(Unit* user)
         m_cooldownTime = sWorld.GetGameTime() + cooldown;
     }
 
-    bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptDevAIMgr.OnGameObjectUse((Player*)user, this);
+    bool scriptReturnValue = user->IsPlayer() && sScriptDevAIMgr.OnGameObjectUse((Player*)user, this);
     if (!scriptReturnValue)
         GetMap()->ScriptsStart(sGameObjectTemplateScripts, GetEntry(), spellCaster, this);
 
@@ -1213,7 +1213,7 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_QUESTGIVER:                    // 2
         {
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;
@@ -1228,7 +1228,7 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_CHEST:                         // 3
         {
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             TriggerLinkedGameObject(user);
@@ -1274,7 +1274,7 @@ void GameObject::Use(Unit* user)
             if (goInfo->trap.charges > 0)
                 AddUse();
 
-            if (IsBattleGroundTrap && user->GetTypeId() == TYPEID_PLAYER)
+            if (IsBattleGroundTrap && user->IsPlayer())
             {
                 // BattleGround gameobjects case
                 if (BattleGround* bg = ((Player*)user)->GetBattleGround())
@@ -1297,7 +1297,7 @@ void GameObject::Use(Unit* user)
             if (!info)
                 return;
 
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;
@@ -1362,7 +1362,7 @@ void GameObject::Use(Unit* user)
         {
             // Handle OutdoorPvP use cases
             // Note: this may be also handled by DB spell scripts in the future, when the world state manager is implemented
-            if (user->GetTypeId() == TYPEID_PLAYER)
+            if (user->IsPlayer())
             {
                 Player* player = (Player*)user;
                 if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player->GetCachedZoneId()))
@@ -1384,7 +1384,7 @@ void GameObject::Use(Unit* user)
 
             m_cooldownTime = time(nullptr) + info->GetAutoCloseTime();
 
-            if (user->GetTypeId() == TYPEID_PLAYER)
+            if (user->IsPlayer())
             {
                 Player* player = (Player*)user;
 
@@ -1444,7 +1444,7 @@ void GameObject::Use(Unit* user)
             if (!info)
                 return;
 
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;
@@ -1459,7 +1459,7 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_FISHINGNODE:                   // 17 fishing bobber
         {
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;
@@ -1561,7 +1561,7 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_SUMMONING_RITUAL:              // 18
         {
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             if (m_delayedActionTimer)
@@ -1575,7 +1575,7 @@ void GameObject::Use(Unit* user)
 
             if (owner)
             {
-                if (owner->GetTypeId() != TYPEID_PLAYER)
+                if (!owner->IsPlayer())
                     return;
 
                 // accept only use by player from same group as owner, excluding owner itself (unique use already added in spell effect)
@@ -1625,10 +1625,10 @@ void GameObject::Use(Unit* user)
             if (info->spellcaster.partyOnly)
             {
                 Unit* caster = GetOwner();
-                if (!caster || caster->GetTypeId() != TYPEID_PLAYER)
+                if (!caster || !caster->IsPlayer())
                     return;
 
-                if (user->GetTypeId() != TYPEID_PLAYER || !user->IsInGroup(caster))
+                if (!user->IsPlayer() || !user->IsInGroup(caster))
                     return;
             }
 
@@ -1648,7 +1648,7 @@ void GameObject::Use(Unit* user)
         {
             GameObjectInfo const* info = GetGOInfo();
 
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;
@@ -1676,7 +1676,7 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_FLAGSTAND:                     // 24
         {
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;
@@ -1701,7 +1701,7 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_FISHINGHOLE:                   // 25
         {
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;
@@ -1714,7 +1714,7 @@ void GameObject::Use(Unit* user)
         }
         case GAMEOBJECT_TYPE_FLAGDROP:                      // 26
         {
-            if (user->GetTypeId() != TYPEID_PLAYER)
+            if (!user->IsPlayer())
                 return;
 
             Player* player = (Player*)user;

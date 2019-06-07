@@ -416,7 +416,7 @@ UnitAI* GetAI_boss_nightbane(Creature* pCreature)
 
 bool ProcessEventId_event_spell_summon_nightbane(uint32 /*uiEventId*/, Object* pSource, Object* /*pTarget*/, bool bIsStart)
 {
-    if (bIsStart && pSource->GetTypeId() == TYPEID_PLAYER)
+    if (bIsStart && pSource->IsPlayer())
     {
         ScriptedInstance* pInstance = (ScriptedInstance*)((Player*)pSource)->GetInstanceData();
         if (!pInstance)

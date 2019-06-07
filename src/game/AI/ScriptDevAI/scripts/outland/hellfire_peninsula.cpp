@@ -126,7 +126,7 @@ struct npc_ancestral_wolfAI : public npc_escortAI
 {
     npc_ancestral_wolfAI(Creature* pCreature) : npc_escortAI(pCreature)
     {
-        if (pCreature->GetOwner() && pCreature->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+        if (pCreature->GetOwner() && pCreature->GetOwner()->IsPlayer())
             Start(false, (Player*)pCreature->GetOwner());
         else
             script_error_log("npc_ancestral_wolf can not obtain owner or owner is not a player.");
@@ -766,7 +766,7 @@ struct npc_anchorite_baradaAI : public ScriptedAI, private DialogueHelper
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
     {
-        if (!m_bEventInProgress && eventType == AI_EVENT_START_EVENT && pInvoker->GetTypeId() == TYPEID_PLAYER)
+        if (!m_bEventInProgress && eventType == AI_EVENT_START_EVENT && pInvoker->IsPlayer())
         {
             m_bEventInProgress = true;
 

@@ -334,8 +334,8 @@ bool ChatHandler::HandleGPSCommand(char* args)
 
     DEBUG_LOG("Player %s GPS call for %s '%s' (%s: %u):",
               m_session ? GetNameLink().c_str() : GetMangosString(LANG_CONSOLE_COMMAND),
-              (obj->GetTypeId() == TYPEID_PLAYER ? "player" : "creature"), obj->GetName(),
-              (obj->GetTypeId() == TYPEID_PLAYER ? "GUID" : "Entry"), (obj->GetTypeId() == TYPEID_PLAYER ? obj->GetGUIDLow() : obj->GetEntry()));
+              (obj->IsPlayer() ? "player" : "creature"), obj->GetName(),
+              (obj->IsPlayer() ? "GUID" : "Entry"), (obj->IsPlayer() ? obj->GetGUIDLow() : obj->GetEntry()));
 
     DEBUG_LOG(GetMangosString(LANG_MAP_POSITION),
               obj->GetMapId(), (mapEntry ? mapEntry->name[sWorld.GetDefaultDbcLocale()] : "<unknown>"),
@@ -1157,7 +1157,7 @@ bool ChatHandler::HandleModifyScaleCommand(char* args)
         return false;
     }
 
-    if (target->GetTypeId() == TYPEID_PLAYER)
+    if (target->IsPlayer())
     {
         // check online security
         if (HasLowerSecurity((Player*)target))

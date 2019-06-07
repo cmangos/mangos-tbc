@@ -1907,7 +1907,7 @@ struct npc_mojoAI : public ScriptedAI
     {
         heartsResetTimer = 15000;
         hearts = false;
-        m_creature->GetMotionMaster()->MoveFollow(m_creature->GetOwner(), 2.0f, M_PI / 2.0f);
+        m_creature->GetMotionMaster()->MoveFollow(m_creature->GetOwner(), 2.0f, M_PI_F / 2.0f);
     }
 
     void SpellHit(Unit* caster, const SpellEntry* spell) override
@@ -1927,7 +1927,7 @@ struct npc_mojoAI : public ScriptedAI
             {
                 m_creature->RemoveAurasDueToSpell(SPELL_HEARTS);
                 hearts = false;
-                m_creature->GetMotionMaster()->MoveFollow(m_creature->GetOwner(), 2.0f, M_PI / 2.0f);
+                m_creature->GetMotionMaster()->MoveFollow(m_creature->GetOwner(), 2.0f, M_PI_F / 2.0f);
                 m_creature->SetTarget(nullptr);
             }
             else

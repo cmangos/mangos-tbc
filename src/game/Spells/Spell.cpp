@@ -4592,6 +4592,9 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (!m_caster->isAlive() && m_caster->GetTypeId() == TYPEID_PLAYER && !m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD) && !m_spellInfo->HasAttribute(SPELL_ATTR_PASSIVE))
         return SPELL_FAILED_CASTER_DEAD;
 
+    if (!m_caster->IsStandState() && !m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING))
+        return SPELL_FAILED_NOT_STANDING;
+
     // check global cooldown
     if (strict && !m_IsTriggeredSpell && m_caster->HasGCD(m_spellInfo))
         return SPELL_FAILED_NOT_READY;

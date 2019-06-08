@@ -5858,14 +5858,8 @@ void Unit::CasterHitTargetWithSpell(Unit* realCaster, Unit* target, SpellEntry c
 
         // we want to change the stand state of each character if possible/required
          // Since patch 1.5.0 sitting creature always stand up on attack (even if stunned)
-        if (success)
-        {
-            if (!spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING) && !realCaster->IsStandState())
-                realCaster->SetStandState(UNIT_STAND_STATE_STAND);
-
-            if (!target->IsStandState())
-                target->SetStandState(UNIT_STAND_STATE_STAND);
-        }
+        if (success && !target->IsStandState() && target->IsPlayer())
+            target->SetStandState(UNIT_STAND_STATE_STAND);
 
         // Hostile spell hits count as attack made against target (if detected), stealth removed at Spell::cast if spell break it
         const bool attack = (!IsPositiveSpell(spellInfo->Id, realCaster, target) && IsVisibleForOrDetect(target, target, false) && CanEnterCombat() && target->CanEnterCombat());

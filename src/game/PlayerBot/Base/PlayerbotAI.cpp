@@ -5180,10 +5180,10 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
     if (m_bot->IsInWater())
     {
         if (!m_bot->IsSwimming())
-            m_bot->m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
+            m_bot->m_movementInfo->AddMovementFlag(MOVEFLAG_SWIMMING);
     }
     else if (m_bot->IsSwimming())   // Clear swimming when going out of water
-        m_bot->m_movementInfo.RemoveMovementFlag(MOVEFLAG_SWIMMING);
+        m_bot->m_movementInfo->RemoveMovementFlag(MOVEFLAG_SWIMMING);
     
     // bot still alive
     if (!m_findNPC.empty())

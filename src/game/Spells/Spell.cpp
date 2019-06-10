@@ -1662,7 +1662,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         case TARGET_LOCATION_SE:
         case TARGET_LOCATION_SW:
         {
-            if (!(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+            if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) // takes current dest and offsets it
             {
                 Unit* currentTarget = m_targets.getUnitTarget() ? m_targets.getUnitTarget() : m_caster;
                 float angle = currentTarget != m_caster ? currentTarget->GetAngle(m_caster) : m_caster->GetOrientation();

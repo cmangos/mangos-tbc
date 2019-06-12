@@ -3872,7 +3872,7 @@ void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, ui
 
     WorldPacket data(isPetCastResult ? SMSG_PET_CAST_FAILED : SMSG_CAST_RESULT, (4 + 1 + 2));                              // single cast or multi 2.3 (0/1)
     data << uint32(spellInfo->Id);
-    data << uint8(!CanReportSpell(spellInfo) ? result : SPELL_FAILED_DONT_REPORT); // do not report failed passive spells
+    data << uint8(CanReportSpell(spellInfo) ? result : SPELL_FAILED_DONT_REPORT); // do not report failed passive spells
     data << uint8(cast_count);                              // single cast or multi 2.3 (0/1)
     switch (result)
     {

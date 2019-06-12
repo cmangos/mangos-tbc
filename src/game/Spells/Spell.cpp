@@ -4717,7 +4717,10 @@ SpellCastResult Spell::CheckCast(bool strict)
 
             for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
             {
-                auto& data = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetA[i]];
+                uint32 targetType = m_spellInfo->EffectImplicitTargetA[i];
+                if (targetType == TARGET_UNIT_CASTER) // fits the description but should never be checked
+                    continue;
+                auto& data = SpellTargetInfoTable[targetType];
                 if (data.type == TARGET_TYPE_UNIT && (data.enumerator == TARGET_ENUMERATOR_SINGLE || data.enumerator == TARGET_ENUMERATOR_CHAIN))
                 {
                     switch (data.filter)

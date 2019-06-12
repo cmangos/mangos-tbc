@@ -102,14 +102,14 @@ namespace MaNGOS
 
         inline uint32 BaseGain(uint32 unit_level, uint32 mob_level, ContentLevels content)
         {
-            uint32 nBaseExp;
+            uint32 nBaseExp = unit_level * 5;
             switch (content)
             {
-                case CONTENT_1_60:  nBaseExp = 45;  break;
-                case CONTENT_61_70: nBaseExp = 235; break;
+                case CONTENT_1_60:  nBaseExp += 45;  break;
+                case CONTENT_61_70: nBaseExp += 235; break;
                 default:
                     sLog.outError("BaseGain: Unsupported content level %u", content);
-                    nBaseExp = 45;  break;
+                    nBaseExp += 45;  break;
             }
 
             if (mob_level >= unit_level)

@@ -325,6 +325,26 @@ inline bool IsSpellAbleToCrit(const SpellEntry* entry)
     return false;
 }
 
+inline bool CanReportSpell(SpellEntry const* spellInfo)
+{
+    // There are cases where passive spells should
+    // still be reported as failing.
+    switch (spellInfo->Id)
+    {
+        case 15473:
+            return true;
+    }
+
+    // Otherwise default to non-passive spells
+    return !spellInfo->HasAttribute(SPELL_ATTR_PASSIVE);
+}
+
+inline bool CanReportSpell(uint32 spellId)
+{
+    const SpellEntry* entry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    return (entry && CanReportSpell(entry));
+}
+
 inline bool IsPassiveSpell(SpellEntry const* spellInfo)
 {
     return spellInfo->HasAttribute(SPELL_ATTR_PASSIVE);

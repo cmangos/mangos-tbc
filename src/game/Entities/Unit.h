@@ -2182,6 +2182,8 @@ class Unit : public WorldObject
         void addHatedBy(HostileReference* pHostileReference) { GetCombatData()->hostileRefManager.insertFirst(pHostileReference); };
         void removeHatedBy(HostileReference* /*pHostileReference*/) { /* nothing to do yet */ }
         HostileRefManager& getHostileRefManager() { return GetCombatData()->hostileRefManager; }
+        void SetNoThreatState(bool state) { m_noThreat = state; }
+        bool GetNoThreatState() { return m_noThreat; }
 
         Aura* GetAura(uint32 spellId, SpellEffectIndex effindex);
         Aura* GetAura(AuraType type, SpellFamily family, uint64 familyFlag, ObjectGuid casterGuid = ObjectGuid());
@@ -2625,6 +2627,7 @@ class Unit : public WorldObject
         std::vector<SpellAuraHolder*> m_delayedSpellAuraHolders;
 
         bool m_alwaysHit;
+        bool m_noThreat;
 
         // guard to prevent chaining extra attacks
         bool m_extraAttacksExecuting;

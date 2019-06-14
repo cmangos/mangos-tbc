@@ -5481,7 +5481,6 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
         m_caster->AddGuardian(NewSummon);
     else
         m_caster->SetPet(NewSummon);
-    DEBUG_LOG("New Pet has guid %u", NewSummon->GetGUIDLow());
 
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {

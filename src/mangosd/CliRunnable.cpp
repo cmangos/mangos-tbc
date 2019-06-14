@@ -580,6 +580,125 @@ bool ChatHandler::HandleServerLogLevelCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleServerLogGuidFilterCommand(char* args)
+{
+    if (!*args)
+    {
+        std::set<uint32> const& filterList = sLog.GetGuidFilterSet();
+        if (filterList.empty())
+        {
+            PSendSysMessage("To add or remove an existing filter 'server log guidfilter #guid'");
+            PSendSysMessage("You can do 'server log guidfilter 38 40'");
+        }
+        else
+        {
+            for (auto guid : filterList)
+                PSendSysMessage("%u guid is filtered!", guid);
+        }
+
+        return true;
+    }
+
+    uint32 gFilter = 0;
+
+    ExtractUInt32(&args, gFilter);
+
+    if (gFilter)
+    {
+        if (sLog.IsGuidFiltered(gFilter))
+        {
+            sLog.RemoveGuidFilter(gFilter);
+            PSendSysMessage("Guid(%u) removed from filter list!", gFilter);
+        }
+        else
+        {
+            sLog.AddGuidFilter(gFilter);
+            PSendSysMessage("Guid(%u) added to filter list!", gFilter);
+        }
+    }
+    return true;
+}
+
+bool ChatHandler::HandleServerLogTypeFilterCommand(char* args)
+{
+    if (!*args)
+    {
+        std::set<uint32> const& filterList = sLog.GetTypeIdFilterSet();
+        if (filterList.empty())
+        {
+            PSendSysMessage("To add or remove an existing filter 'server log typefilter (player|creature|gobject|dgobject|corpse|item)'");
+            PSendSysMessage("You can do 'server log typefilter player gobject'");
+        }
+        else
+        {
+            for (auto typeId : filterList)
+                PSendSysMessage("%u typeId is filtered!", typeId);
+        }
+
+        return true;
+    }
+
+    std::vector<std::string> validName = { "object", "item", "container", "creature", "player", "gobject", "dgobject", "corpse" };
+    do
+    {
+        std::string tName = ExtractLiteralArg(&args);
+        if (tName.empty())
+            break;
+
+        uint32 tFilter = 0;
+        for (auto vName : validName)
+        {
+            if (vName.rfind(tName, 0) == 0)
+                break;
+
+            ++tFilter;
+        }
+
+        if (tFilter >= validName.size())
+        {
+            PSendSysMessage("Value for type id is not recognized! Please use 'player|creature|gobject|dgobject|corpse|item'");
+            return true;
+        }
+
+        if (tFilter)
+        {
+            if (sLog.IsTypeFiltered(tFilter))
+            {
+                sLog.RemoveTypedIdFilter(tFilter);
+                PSendSysMessage("Type %s(%u) removed from filter list!", validName.at(tFilter), tFilter);
+            }
+            else
+            {
+                sLog.AddTypeIdFilter(tFilter);
+                PSendSysMessage("Type %s(%u) added to filter list!", validName.at(tFilter), tFilter);
+            }
+        }
+    } while (1);
+    return true;
+}
+
+bool ChatHandler::HandleLogTargetCommand(char* args)
+{
+    Unit* unit =  getSelectedUnit();
+    if (!unit)
+    {
+        PSendSysMessage("Please select a creature or a player!");
+        return true;
+    }
+
+    if (!sLog.IsGuidFiltered(unit->GetObjectGuid().GetCounter()))
+    {
+        sLog.AddGuidFilter(unit->GetObjectGuid().GetCounter());
+        PSendSysMessage("Creature %s added to filter list!", unit->GetGuidStr().c_str());
+    }
+    else
+    {
+        sLog.RemoveGuidFilter(unit->GetObjectGuid().GetCounter());
+        PSendSysMessage("Creature %s removed from filter list!", unit->GetGuidStr().c_str());
+    }
+    return true;
+}
+
 /// @}
 
 #ifdef __unix__

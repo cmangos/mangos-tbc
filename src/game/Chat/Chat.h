@@ -562,6 +562,8 @@ class ChatHandler
         bool HandleServerInfoCommand(char* args);
         bool HandleServerLogFilterCommand(char* args);
         bool HandleServerLogLevelCommand(char* args);
+        bool HandleServerLogGuidFilterCommand(char* args);
+        bool HandleServerLogTypeFilterCommand(char* args);
         bool HandleServerMotdCommand(char* args);
         bool HandleServerPLimitCommand(char* args);
         bool HandleServerResetAllRaidCommand(char* args);
@@ -662,6 +664,8 @@ class ChatHandler
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);
         bool HandleQuitCommand(char* args);
+        bool HandleLogTargetCommand(char* args);
+
 #ifdef BUILD_PLAYERBOT
         bool HandlePlayerbotCommand(char* args);
 #endif

@@ -260,7 +260,7 @@ Map::EnsureGridLoadedAtEnter(const Cell& cell, Player* player)
 
         if (player)
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_MOVES, "Player %s enter cell[%u,%u] triggers of loading grid[%u,%u] on map %u", player->GetName(), cell.CellX(), cell.CellY(), cell.GridX(), cell.GridY(), i_id);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_PLAYER_MOVES, player->GetObjectGuid().GetCounter(), player->GetTypeId(), "Player %s enter cell[%u,%u] triggers of loading grid[%u,%u] on map %u", player->GetName(), cell.CellX(), cell.CellY(), cell.GridX(), cell.GridY(), i_id);
         }
         else
         {
@@ -381,7 +381,7 @@ Map::Add(T* obj)
     if (obj->isActiveObject())
         AddToActive(obj);
 
-    DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "%s enters grid[%u,%u]", obj->GetGuidStr().c_str(), cell.GridX(), cell.GridY());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_CREATURE_MOVES, obj->GetObjectGuid().GetCounter(), obj->GetTypeId(), "%s enters grid[%u,%u]", obj->GetGuidStr().c_str(), cell.GridX(), cell.GridY());
 
     obj->GetViewPoint().Event_AddedToWorld(&(*grid)(cell.CellX(), cell.CellY()));
     obj->SetItsNewObject(true);
@@ -736,7 +736,7 @@ void Map::Remove(Player* player, bool remove)
         return;
     }
 
-    DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_MOVES, "Remove player %s from grid[%u,%u]", player->GetName(), cell.GridX(), cell.GridY());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_PLAYER_MOVES, player->GetObjectGuid().GetCounter(), player->GetTypeId(), "Remove player %s from grid[%u,%u]", player->GetName(), cell.GridX(), cell.GridY());
     NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
     MANGOS_ASSERT(grid != nullptr);
 
@@ -765,7 +765,7 @@ Map::Remove(T* obj, bool remove)
     if (!loaded(GridPair(cell.data.Part.grid_x, cell.data.Part.grid_y)))
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Remove %s from grid[%u,%u]", obj->GetGuidStr().c_str(), cell.data.Part.grid_x, cell.data.Part.grid_y);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_CREATURE_MOVES, obj->GetObjectGuid().GetCounter(), obj->GetTypeId(), "Remove %s from grid[%u,%u]", obj->GetGuidStr().c_str(), cell.data.Part.grid_x, cell.data.Part.grid_y);
     NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
     MANGOS_ASSERT(grid != nullptr);
 
@@ -808,7 +808,7 @@ Map::PlayerRelocation(Player* player, float x, float y, float z, float orientati
 
     if (old_cell.DiffGrid(new_cell) || old_cell.DiffCell(new_cell))
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_MOVES, "Player %s relocation grid[%u,%u]cell[%u,%u]->grid[%u,%u]cell[%u,%u]", player->GetName(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.GridX(), new_cell.GridY(), new_cell.CellX(), new_cell.CellY());
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PLAYER_MOVES, player->GetObjectGuid().GetCounter(), player->GetTypeId(), "Player %s relocation grid[%u,%u]cell[%u,%u]->grid[%u,%u]cell[%u,%u]", player->GetName(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.GridX(), new_cell.GridY(), new_cell.CellX(), new_cell.CellY());
 
         NGridType* oldGrid = getNGrid(old_cell.GridX(), old_cell.GridY());
         RemoveFromGrid(player, oldGrid, old_cell);
@@ -847,7 +847,7 @@ void Map::CreatureRelocation(Creature* creature, float x, float y, float z, floa
     else if (!CreatureRespawnRelocation(creature))
     {
         // ... or unload (if respawn grid also not loaded)
-        DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u ) can't be move to unloaded respawn grid.", creature->GetGUIDLow(), creature->GetEntry());
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_CREATURE_MOVES, creature->GetObjectGuid().GetCounter(), creature->GetTypeId(), "Creature (GUID: %u Entry: %u ) can't be move to unloaded respawn grid.", creature->GetGUIDLow(), creature->GetEntry());
     }
 }
 
@@ -858,7 +858,7 @@ bool Map::CreatureCellRelocation(Creature* c, const Cell& new_cell)
     {
         if (!c->isActiveObject() && !loaded(new_cell.gridPair()))
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u) attempt move from grid[%u,%u]cell[%u,%u] to unloaded grid[%u,%u]cell[%u,%u].", c->GetGUIDLow(), c->GetEntry(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.GridX(), new_cell.GridY(), new_cell.CellX(), new_cell.CellY());
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_CREATURE_MOVES, c->GetObjectGuid().GetCounter(), c->GetTypeId(), "Creature (GUID: %u Entry: %u) attempt move from grid[%u,%u]cell[%u,%u] to unloaded grid[%u,%u]cell[%u,%u].", c->GetGUIDLow(), c->GetEntry(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.GridX(), new_cell.GridY(), new_cell.CellX(), new_cell.CellY());
             return false;
         }
         EnsureGridLoadedAtEnter(new_cell);
@@ -866,7 +866,7 @@ bool Map::CreatureCellRelocation(Creature* c, const Cell& new_cell)
 
     if (old_cell != new_cell)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u) moved in grid[%u,%u] from cell[%u,%u] to cell[%u,%u].", c->GetGUIDLow(), c->GetEntry(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.CellX(), new_cell.CellY());
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_CREATURE_MOVES, c->GetObjectGuid().GetCounter(), c->GetTypeId(), "Creature (GUID: %u Entry: %u) moved in grid[%u,%u] from cell[%u,%u] to cell[%u,%u].", c->GetGUIDLow(), c->GetEntry(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.CellX(), new_cell.CellY());
         NGridType* oldGrid = getNGrid(old_cell.GridX(), old_cell.GridY());
         NGridType* newGrid = getNGrid(new_cell.GridX(), new_cell.GridY());
         RemoveFromGrid(c, oldGrid, old_cell);
@@ -887,7 +887,7 @@ bool Map::CreatureRespawnRelocation(Creature* c)
     c->CombatStopWithPets();
     c->GetMotionMaster()->Clear();
 
-    DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u) will moved from grid[%u,%u]cell[%u,%u] to respawn grid[%u,%u]cell[%u,%u].", c->GetGUIDLow(), c->GetEntry(), c->GetCurrentCell().GridX(), c->GetCurrentCell().GridY(), c->GetCurrentCell().CellX(), c->GetCurrentCell().CellY(), resp_cell.GridX(), resp_cell.GridY(), resp_cell.CellX(), resp_cell.CellY());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_CREATURE_MOVES, c->GetObjectGuid().GetCounter(), c->GetTypeId(), "Creature (GUID: %u Entry: %u) will moved from grid[%u,%u]cell[%u,%u] to respawn grid[%u,%u]cell[%u,%u].", c->GetGUIDLow(), c->GetEntry(), c->GetCurrentCell().GridX(), c->GetCurrentCell().GridY(), c->GetCurrentCell().CellX(), c->GetCurrentCell().CellY(), resp_cell.GridX(), resp_cell.GridY(), resp_cell.CellX(), resp_cell.CellY());
 
     // teleport it to respawn point (like normal respawn if player see)
     if (CreatureCellRelocation(c, resp_cell))

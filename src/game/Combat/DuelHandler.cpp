@@ -50,9 +50,9 @@ void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
     if (self->duel->startTime != 0 || opponent->duel->startTime != 0)
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: received CMSG_DUEL_ACCEPTED");
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "Player 1 is: %u (%s)", self->GetGUIDLow(), self->GetName());
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "Player 2 is: %u (%s)", opponent->GetGUIDLow(), opponent->GetName());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, self->GetObjectGuid().GetCounter(), self->GetTypeId(), "WORLD: received CMSG_DUEL_ACCEPTED");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, self->GetObjectGuid().GetCounter(), self->GetTypeId(), "Player 1 is: %u (%s)", self->GetGUIDLow(), self->GetName());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, self->GetObjectGuid().GetCounter(), self->GetTypeId(), "Player 2 is: %u (%s)", opponent->GetGUIDLow(), opponent->GetName());
 
     time_t now = time(nullptr);
     self->duel->startTimer = now;

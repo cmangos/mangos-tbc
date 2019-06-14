@@ -3946,7 +3946,7 @@ void Spell::SendSpellStart() const
     if (!IsNeedSendToClient())
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Sending SMSG_SPELL_START id=%u", m_spellInfo->Id);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Sending SMSG_SPELL_START id=%u", m_spellInfo->Id);
 
     uint32 castFlags = CAST_FLAG_UNKNOWN2;
     if ((m_IsTriggeredSpell && !IsAutoRepeatRangedSpell(m_spellInfo)) || m_triggeredByAuraSpell)
@@ -3981,7 +3981,7 @@ void Spell::SendSpellGo()
     if (!IsNeedSendToClient())
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Sending SMSG_SPELL_GO id=%u", m_spellInfo->Id);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Sending SMSG_SPELL_GO id=%u", m_spellInfo->Id);
 
     uint32 castFlags = CAST_FLAG_UNKNOWN9;
     if ((m_IsTriggeredSpell && !IsAutoRepeatRangedSpell(m_spellInfo)) || m_triggeredByAuraSpell)
@@ -4480,7 +4480,7 @@ void Spell::HandleThreatSpells()
         // so abort when only some effects are negative.
         if ((m_negativeEffectMask & effectMask) != effectMask)
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell %u, rank %u, is not clearly positive or negative, ignoring bonus threat", m_spellInfo->Id, sSpellMgr.GetSpellRank(m_spellInfo->Id));
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell %u, rank %u, is not clearly positive or negative, ignoring bonus threat", m_spellInfo->Id, sSpellMgr.GetSpellRank(m_spellInfo->Id));
             return;
         }
         positive = false;
@@ -4513,7 +4513,7 @@ void Spell::HandleThreatSpells()
         }
     }
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell %u added an additional %f threat for %s " SIZEFMTD " target(s)", m_spellInfo->Id, threat, positive ? "assisting" : "harming", m_UniqueTargetInfo.size());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell %u added an additional %f threat for %s " SIZEFMTD " target(s)", m_spellInfo->Id, threat, positive ? "assisting" : "harming", m_UniqueTargetInfo.size());
 }
 
 void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOTarget, SpellEffectIndex i, float DamageMultiplier)
@@ -4533,7 +4533,7 @@ void Spell::HandleEffects(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOT
     else
         damage = int32(CalculateDamage(i, unitTarget) * DamageMultiplier);
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell %u Effect%d : %u Targets: %s, %s, %s",
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell %u Effect%d : %u Targets: %s, %s, %s",
                      m_spellInfo->Id, i, eff,
                      unitTarget ? unitTarget->GetGuidStr().c_str() : "-",
                      itemTarget ? itemTarget->GetGuidStr().c_str() : "-",
@@ -6814,7 +6814,7 @@ void Spell::Delayed()
     else
         m_timer += delaytime;
 
-    DETAIL_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell %u partially interrupted for (%d) ms at damage", m_spellInfo->Id, delaytime);
+    DETAIL_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell %u partially interrupted for (%d) ms at damage", m_spellInfo->Id, delaytime);
 
     WorldPacket data(SMSG_SPELL_DELAYED, 8 + 4);
     data << m_caster->GetPackGUID();
@@ -6845,7 +6845,7 @@ void Spell::DelayedChannel()
     else
         m_timer -= delaytime;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell %u partially interrupted for %i ms, new duration: %u ms", m_spellInfo->Id, delaytime, m_timer);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell %u partially interrupted for %i ms, new duration: %u ms", m_spellInfo->Id, delaytime, m_timer);
 
     for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
     {

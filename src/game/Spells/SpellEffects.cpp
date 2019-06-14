@@ -3102,7 +3102,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         // Previous effect might have started script
         if (ScriptMgr::CanSpellEffectStartDBScript(m_spellInfo, eff_idx))
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell ScriptStart spellid %u in EffectDummy", m_spellInfo->Id);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell ScriptStart spellid %u in EffectDummy", m_spellInfo->Id);
             m_caster->GetMap()->ScriptsStart(sSpellScripts, m_spellInfo->Id, m_caster, unitTarget);
         }
     }
@@ -3121,7 +3121,7 @@ void Spell::EffectTriggerSpellWithValue(SpellEffectIndex eff_idx)
         bool startDBScript = unitTarget && ScriptMgr::CanSpellEffectStartDBScript(m_spellInfo, eff_idx);
         if (startDBScript)
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell ScriptStart spellid %u in EffectTriggerSpell", m_spellInfo->Id);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell ScriptStart spellid %u in EffectTriggerSpell", m_spellInfo->Id);
             startDBScript = m_caster->GetMap()->ScriptsStart(sSpellScripts, m_spellInfo->Id, m_caster, unitTarget);
         }
 
@@ -3278,7 +3278,7 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
     {
         if (unitTarget)
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell ScriptStart spellid %u in EffectTriggerMissileSpell", m_spellInfo->Id);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell ScriptStart spellid %u in EffectTriggerMissileSpell", m_spellInfo->Id);
             m_caster->GetMap()->ScriptsStart(sSpellScripts, m_spellInfo->Id, m_caster, unitTarget);
         }
         else
@@ -3288,7 +3288,7 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
     }
 
     if (m_CastItem)
-        DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "WORLD: cast Item spellId - %i", spellInfo->Id);
 
     m_caster->CastSpell(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, spellInfo, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);
 }
@@ -3501,7 +3501,7 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
             return;
     }
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
 
     Aura* aur = CreateAura(m_spellInfo, eff_idx, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, caster, m_CastItem);
     m_spellAuraHolder->AddAura(aur, eff_idx);
@@ -3578,7 +3578,7 @@ void Spell::EffectSendEvent(SpellEffectIndex effectIndex)
     we do not handle a flag dropping or clicking on flag in battleground by sendevent system
     TODO: Actually, why not...
     */
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell ScriptStart %u for spellid %u in EffectSendEvent ", m_spellInfo->EffectMiscValue[effectIndex], m_spellInfo->Id);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell ScriptStart %u for spellid %u in EffectSendEvent ", m_spellInfo->EffectMiscValue[effectIndex], m_spellInfo->Id);
 
     StartEvents_Event(m_caster->GetMap(), m_spellInfo->EffectMiscValue[effectIndex], m_caster, focusObject, true, m_caster);
 }
@@ -3770,7 +3770,7 @@ void Spell::EffectHealthLeech(SpellEffectIndex eff_idx)
     if (damage < 0)
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "HealthLeech :%i", damage);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "HealthLeech :%i", damage);
 
     uint32 curHealth = unitTarget->GetHealth();
     damage = m_caster->SpellNonMeleeDamageLog(unitTarget, m_spellInfo->Id, damage);
@@ -5151,7 +5151,7 @@ void Spell::EffectAddHonor(SpellEffectIndex /*eff_idx*/)
     // 2.4.3 honor-spells don't scale with level and won't be casted by an item
     // also we must use damage+1 (spelldescription says +25 honor but damage is only 24)
     ((Player*)unitTarget)->RewardHonor(nullptr, 1, float(damage + 1));
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "SpellEffect::AddHonor (spell_id %u) rewards %u honor points (non scale) for player: %u", m_spellInfo->Id, damage, ((Player*)unitTarget)->GetGUIDLow());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "SpellEffect::AddHonor (spell_id %u) rewards %u honor points (non scale) for player: %u", m_spellInfo->Id, damage, ((Player*)unitTarget)->GetGUIDLow());
 }
 
 void Spell::EffectSpawn(SpellEffectIndex /*eff_idx*/)
@@ -7344,7 +7344,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
     if (!ScriptMgr::CanSpellEffectStartDBScript(m_spellInfo, eff_idx))
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell ScriptStart spellid %u in EffectScriptEffect", m_spellInfo->Id);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, m_caster->GetObjectGuid().GetCounter(), m_caster->GetTypeId(), "Spell ScriptStart spellid %u in EffectScriptEffect", m_spellInfo->Id);
     m_caster->GetMap()->ScriptsStart(sSpellScripts, m_spellInfo->Id, m_caster, unitTarget);
 }
 

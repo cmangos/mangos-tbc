@@ -202,7 +202,7 @@ void Creature::RemoveCorpse(bool inPlace)
     if ((getDeathState() != CORPSE && !m_isDeadByDefault) || (getDeathState() != ALIVE && m_isDeadByDefault))
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Removing corpse of %s ", GetGuidStr().c_str());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_AI_AND_MOVEGENSS, GetObjectGuid().GetCounter(), GetTypeId(), "Removing corpse of %s ", GetGuidStr().c_str());
 
     m_corpseExpirationTime = TimePoint();
     SetDeathState(DEAD);
@@ -588,7 +588,7 @@ void Creature::Update(const uint32 diff)
         {
             if (m_respawnTime <= time(nullptr) && (!m_isSpawningLinked || GetMap()->GetCreatureLinkingHolder()->CanSpawn(this)))
             {
-                DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Respawning...");
+                DEBUG_FILTER_LOG_GUID(LOG_FILTER_AI_AND_MOVEGENSS, GetObjectGuid().GetCounter(), GetTypeId(), "Respawning...");
                 m_respawnTime = 0;
                 SetCanAggro(false);
                 delete loot;

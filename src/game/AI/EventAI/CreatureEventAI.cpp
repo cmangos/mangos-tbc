@@ -307,7 +307,7 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
     if (holder.event.event_inverse_phase_mask & (1 << m_Phase))
     {
         if (!IsTimerExecutedEvent(holder.event.event_type))
-            DEBUG_FILTER_LOG(LOG_FILTER_EVENT_AI_DEV, "%s: Event %u skipped because of phasemask %u. Current phase %u", GetAIName().data(), holder.event.event_id, holder.event.event_inverse_phase_mask, m_Phase);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_EVENT_AI_DEV, m_unit->GetObjectGuid().GetCounter(), m_unit->GetTypeId(), "%s: Event %u skipped because of phasemask %u. Current phase %u", GetAIName().data(), holder.event.event_id, holder.event.event_inverse_phase_mask, m_Phase);
         return false;
     }
 
@@ -676,7 +676,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
     if (action.type == ACTION_T_NONE)
         return false;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_EVENT_AI_DEV, "%s: Process action %u (script %u) triggered for %s (invoked by %s)", GetAIName().data(),
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_EVENT_AI_DEV, m_unit->GetObjectGuid().GetCounter(), m_unit->GetTypeId(), "%s: Process action %u (script %u) triggered for %s (invoked by %s)", GetAIName().data(),
                      action.type, eventId, m_creature->GetGuidStr().c_str(), actionInvoker ? actionInvoker->GetGuidStr().c_str() : "<no invoker>");
 
     bool failedTargetSelection = false;
@@ -1004,7 +1004,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         }
         case ACTION_T_SET_PHASE:
             m_Phase = action.set_phase.phase;
-            DEBUG_FILTER_LOG(LOG_FILTER_EVENT_AI_DEV, "%s: ACTION_T_SET_PHASE - script %u for %s, phase is now %u", GetAIName().data(), eventId, m_creature->GetGuidStr().c_str(), m_Phase);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_EVENT_AI_DEV, m_unit->GetObjectGuid().GetCounter(), m_unit->GetTypeId(), "%s: ACTION_T_SET_PHASE - script %u for %s, phase is now %u", GetAIName().data(), eventId, m_creature->GetGuidStr().c_str(), m_Phase);
             break;
         case ACTION_T_INC_PHASE:
         {
@@ -1022,7 +1022,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             else
                 m_Phase = new_phase;
 
-            DEBUG_FILTER_LOG(LOG_FILTER_EVENT_AI_DEV, "%s: ACTION_T_INC_PHASE - script %u for %s, phase is now %u", GetAIName().data(), eventId, m_creature->GetGuidStr().c_str(), m_Phase);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_EVENT_AI_DEV, m_unit->GetObjectGuid().GetCounter(), m_unit->GetTypeId(), "%s: ACTION_T_INC_PHASE - script %u for %s, phase is now %u", GetAIName().data(), eventId, m_creature->GetGuidStr().c_str(), m_Phase);
             break;
         }
         case ACTION_T_EVADE:
@@ -1072,7 +1072,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             break;
         case ACTION_T_RANDOM_PHASE:
             m_Phase = GetRandActionParam(rnd, action.random_phase.phase1, action.random_phase.phase2, action.random_phase.phase3);
-            DEBUG_FILTER_LOG(LOG_FILTER_EVENT_AI_DEV, "%s: ACTION_T_RANDOM_PHASE - script %u for %s, phase is now %u", GetAIName().data(), eventId, m_creature->GetGuidStr().c_str(), m_Phase);
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_EVENT_AI_DEV, m_unit->GetObjectGuid().GetCounter(), m_unit->GetTypeId(), "%s: ACTION_T_RANDOM_PHASE - script %u for %s, phase is now %u", GetAIName().data(), eventId, m_creature->GetGuidStr().c_str(), m_Phase);
             break;
         case ACTION_T_RANDOM_PHASE_RANGE:
             if (action.random_phase_range.phaseMax > action.random_phase_range.phaseMin)

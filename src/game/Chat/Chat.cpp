@@ -190,8 +190,9 @@ ChatCommand* ChatHandler::getCommandTable()
     {
         { "list",           SEC_ADMINISTRATOR,  false, &ChatHandler::HandleCooldownListCommand,             "", nullptr },
         { "clear",          SEC_ADMINISTRATOR,  false, &ChatHandler::HandleCooldownClearCommand,            "", nullptr },
-        { "clearclientside", SEC_ADMINISTRATOR,  false, &ChatHandler::HandleCooldownClearClientSideCommand,  "", nullptr },
+        { "clearclientside", SEC_ADMINISTRATOR, false, &ChatHandler::HandleCooldownClearClientSideCommand,  "", nullptr },
         { "cleararena",     SEC_ADMINISTRATOR,  false, &ChatHandler::HandleCooldownClearArenaCommand,       "", nullptr },
+        { "",               SEC_ADMINISTRATOR,  false, &ChatHandler::HandleCooldownListCommand,             "", nullptr },
         { nullptr,             0,                  false, nullptr,                                          "", nullptr }
     };
 
@@ -705,8 +706,10 @@ ChatCommand* ChatHandler::getCommandTable()
 
     static ChatCommand serverLogCommandTable[] =
     {
-        { "filter",         SEC_CONSOLE,        true,  &ChatHandler::HandleServerLogFilterCommand,     "", nullptr },
-        { "level",          SEC_CONSOLE,        true,  &ChatHandler::HandleServerLogLevelCommand,      "", nullptr },
+        { "filter",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerLogFilterCommand,     "", nullptr },
+        { "level",          SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerLogLevelCommand,      "", nullptr },
+        { "guidfilter",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerLogGuidFilterCommand, "", nullptr },
+        { "typefilter",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerLogTypeFilterCommand, "", nullptr },
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
@@ -723,7 +726,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "idlerestart",    SEC_ADMINISTRATOR,  true,  nullptr,                                        "", serverIdleRestartCommandTable },
         { "idleshutdown",   SEC_ADMINISTRATOR,  true,  nullptr,                                        "", serverIdleShutdownCommandTable },
         { "info",           SEC_PLAYER,         true,  &ChatHandler::HandleServerInfoCommand,          "", nullptr },
-        { "log",            SEC_CONSOLE,        true,  nullptr,                                        "", serverLogCommandTable },
+        { "log",            SEC_ADMINISTRATOR,  true,  nullptr,                                        "", serverLogCommandTable },
         { "motd",           SEC_PLAYER,         true,  &ChatHandler::HandleServerMotdCommand,          "", nullptr },
         { "plimit",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerPLimitCommand,        "", nullptr },
         { "resetallraid",   SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerResetAllRaidCommand,  "", nullptr },
@@ -871,6 +874,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", nullptr },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", nullptr },
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
+        { "logtarget",      SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLogTargetCommand,           "", nullptr },
 #ifdef BUILD_PLAYERBOT
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
 #endif

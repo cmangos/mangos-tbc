@@ -28,7 +28,7 @@ void WorldSession::HandleAttackSwingOpcode(WorldPacket& recv_data)
     ObjectGuid guid;
     recv_data >> guid;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Received opcode CMSG_ATTACKSWING %s", guid.GetString().c_str());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, _player->GetObjectGuid().GetCounter(), _player->GetTypeId(), "WORLD: Received opcode CMSG_ATTACKSWING %s", guid.GetString().c_str());
 
     if (!guid.IsUnit())
     {

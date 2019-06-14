@@ -799,10 +799,10 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         return 0;
     }
 
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageStart");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "DealDamageStart");
 
     uint32 health = pVictim->GetHealth();
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "deal dmg:%d to health:%d ", damage, health);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "deal dmg:%d to health:%d ", damage, health);
 
     // Rage from Damage made (only from direct weapon damage)
     if (cleanDamage && damagetype == DIRECT_DAMAGE && this != pVictim && GetTypeId() == TYPEID_PLAYER && (GetPowerType() == POWER_RAGE))
@@ -845,7 +845,7 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
         // Critter may not die of damage taken, instead expect it to run away (no fighting back)
         // If (this) is TYPEID_PLAYER, (this) will enter combat w/victim, but after some time, automatically leave combat.
         // It is unclear how it should work for other cases.
-        DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage critter, critter dies");
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "DealDamage critter, critter dies");
 
         ((Creature*)pVictim)->SetLootRecipient(this);
 
@@ -890,14 +890,14 @@ uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDa
     else                                                    // if (health <= damage)
         HandleDamageDealt(pVictim, damage, cleanDamage, damagetype, damageSchoolMask, spellProto, duel_hasEnded);
 
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageEnd returned %d damage", damage);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "DealDamageEnd returned %d damage", damage);
 
     return damage;
 }
 
 void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spellProto, bool durabilityLoss, bool duel_hasEnded)
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage %s Killed %s", GetGuidStr().c_str(), victim->GetGuidStr().c_str());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "DealDamage %s Killed %s", GetGuidStr().c_str(), victim->GetGuidStr().c_str());
 
     /*
     *                      Preparation: Who gets credit for killing whom, invoke SpiritOfRedemtion?
@@ -980,7 +980,7 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
     */
     if (spiritOfRedemtionTalentReady)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage: Spirit of Redemtion ready");
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "DealDamage: Spirit of Redemtion ready");
 
         // save value before aura remove
         uint32 ressSpellId = victim->GetUInt32Value(PLAYER_SELF_RES_SPELL);
@@ -1031,7 +1031,7 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
 
         if (!spiritOfRedemtionTalentReady)              // Before informing Battleground
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "SET JUST_DIED");
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "SET JUST_DIED");
             victim->SetDeathState(JUST_DIED);
         }
 
@@ -1063,13 +1063,13 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
         JustKilledCreature((Creature*)victim, killer);
 
     // stop combat
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageAttackStop");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "DealDamageAttackStop");
     victim->CombatStop();
 }
 
 void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const* spellProto, bool duel_hasEnded)
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageAlive");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "DealDamageAlive");
 
     victim->ModifyHealth(-(int32)damage);
 
@@ -1302,7 +1302,7 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
     bool isPet = victim->IsPet();
 
     /* ********************************* Set Death finally ************************************* */
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "SET JUST_DIED");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_DAMAGE, GetObjectGuid().GetCounter(), GetTypeId(), "SET JUST_DIED");
     victim->SetDeathState(JUST_DIED);                       // if !spiritOfRedemtionTalentReady always true for unit
 
     if (isPet)
@@ -1357,7 +1357,7 @@ SpellCastResult Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint3
     }
 
     if (castItem)
-        DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetObjectGuid().GetCounter(), GetTypeId(), "WORLD: cast Item spellId - %i", spellInfo->Id);
 
     if (triggeredByAura)
     {
@@ -1410,7 +1410,7 @@ SpellCastResult Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo,
     }
 
     if (castItem)
-        DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetObjectGuid().GetCounter(), GetTypeId(), "WORLD: cast Item spellId - %i", spellInfo->Id);
 
     if (triggeredByAura)
     {
@@ -1474,7 +1474,7 @@ SpellCastResult Unit::CastSpell(float x, float y, float z, SpellEntry const* spe
     }
 
     if (castItem)
-        DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetObjectGuid().GetCounter(), GetTypeId(), "WORLD: cast Item spellId - %i", spellInfo->Id);
 
     if (triggeredByAura)
     {
@@ -1513,7 +1513,7 @@ SpellCastResult Unit::CastSpell(SpellCastTargets& targets, SpellEntry const* spe
     }
 
     if (castItem)
-        DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetObjectGuid().GetCounter(), GetTypeId(), "WORLD: cast Item spellId - %i", spellInfo->Id);
 
     if (triggeredByAura)
     {
@@ -2558,10 +2558,10 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     }
 
     if (GetTypeId() == TYPEID_PLAYER)
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (Player) %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "AttackerStateUpdate: (Player) %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
                          GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), meleeDamageInfo.totalDamage, totalAbsorb, meleeDamageInfo.blocked_amount, totalResist);
     else
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "AttackerStateUpdate: (NPC)    %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "AttackerStateUpdate: (NPC)    %u attacked %u (TypeId: %u) for %u dmg, absorbed %u, blocked %u, resisted %u.",
                          GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), meleeDamageInfo.totalDamage, totalAbsorb, meleeDamageInfo.blocked_amount, totalResist);
 
     if (CanEnterCombat() && pVictim->CanEnterCombat())
@@ -2609,7 +2609,7 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
     if (pVictim->GetTypeId() == TYPEID_PLAYER && !pVictim->IsStandState() && CanCrit(attType))
     {
         die.chance[UNIT_COMBAT_DIE_CRIT] = 10000;
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "RollMeleeOutcomeAgainst: New attack die: [MISS:%u, CRIT:%u] (target is sitting)",
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "RollMeleeOutcomeAgainst: New attack die: [MISS:%u, CRIT:%u] (target is sitting)",
                          die.chance[UNIT_COMBAT_DIE_MISS], die.chance[UNIT_COMBAT_DIE_CRIT]);
     }
     else
@@ -2628,7 +2628,7 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
         die.set(UNIT_COMBAT_DIE_CRIT, CalculateEffectiveCritChance(pVictim, attType));
         if (CanCrushInCombat(pVictim))
             die.set(UNIT_COMBAT_DIE_CRUSH, CalculateEffectiveCrushChance(pVictim, attType));
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "RollMeleeOutcomeAgainst: New attack die: [MISS:%u, DODGE:%u, PARRY:%u, BLOCK:%u, GLANCE:%u, CRIT:%u, CRUSH:%u]",
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "RollMeleeOutcomeAgainst: New attack die: [MISS:%u, DODGE:%u, PARRY:%u, BLOCK:%u, GLANCE:%u, CRIT:%u, CRUSH:%u]",
                          die.chance[UNIT_COMBAT_DIE_MISS], die.chance[UNIT_COMBAT_DIE_DODGE], die.chance[UNIT_COMBAT_DIE_PARRY], die.chance[UNIT_COMBAT_DIE_BLOCK],
                          die.chance[UNIT_COMBAT_DIE_GLANCE], die.chance[UNIT_COMBAT_DIE_CRIT], die.chance[UNIT_COMBAT_DIE_CRUSH]);
     }
@@ -2636,7 +2636,7 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
     const uint32 random = urand(1, 10000);
     const UnitCombatDieSide side = die.roll(random);
     if (side != UNIT_COMBAT_DIE_HIT)
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "RollMeleeOutcomeAgainst: Rolled %u, result: %s (chance %u)", random, UnitCombatDieSideText(side), die.chance[side]);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "RollMeleeOutcomeAgainst: Rolled %u, result: %s (chance %u)", random, UnitCombatDieSideText(side), die.chance[side]);
     switch (uint32(side))
     {
         case UNIT_COMBAT_DIE_MISS:   return MELEE_HIT_MISS;
@@ -2647,7 +2647,7 @@ MeleeHitOutcome Unit::RollMeleeOutcomeAgainst(const Unit* pVictim, WeaponAttackT
         case UNIT_COMBAT_DIE_CRIT:   return MELEE_HIT_CRIT;
         case UNIT_COMBAT_DIE_CRUSH:  return MELEE_HIT_CRUSHING;
     }
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "RollMeleeOutcomeAgainst: Rolled %u, result: HIT", random);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "RollMeleeOutcomeAgainst: Rolled %u, result: HIT", random);
     return MELEE_HIT_NORMAL;
 }
 
@@ -2720,7 +2720,7 @@ void Unit::SendMeleeAttackStart(Unit* pVictim) const
     data << pVictim->GetObjectGuid();
 
     SendMessageToSet(data, true);
-    DEBUG_LOG("WORLD: Sent SMSG_ATTACKSTART");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "WORLD: Sent SMSG_ATTACKSTART");
 }
 
 void Unit::SendMeleeAttackStop(Unit* victim) const
@@ -2733,7 +2733,7 @@ void Unit::SendMeleeAttackStop(Unit* victim) const
     data << victim->GetPackGUID();                          // can be 0x00...
     data << uint32(0);                                      // can be 0x1
     SendMessageToSet(data, true);
-    DETAIL_FILTER_LOG(LOG_FILTER_COMBAT, "%s stopped attacking %s", GetGuidStr().c_str(), victim->GetGuidStr().c_str());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "%s stopped attacking %s", GetGuidStr().c_str(), victim->GetGuidStr().c_str());
 
     /*if(victim->GetTypeId() == TYPEID_UNIT)
     ((Creature*)victim)->AI().EnterEvadeMode(this);*/
@@ -2756,13 +2756,13 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
         if (pVictim->CanBlockAbility(this, spell, true))
             die.set(UNIT_COMBAT_DIE_BLOCK, pVictim->CalculateEffectiveBlockChance(this, attackType, spell));
     }
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "MeleeSpellHitResult: New ability hit die: %u [MISS:%u, RESIST:%u, DODGE:%u, PARRY:%u, DEFLECT:%u, BLOCK:%u]", spell->Id,
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "MeleeSpellHitResult: New ability hit die: %u [MISS:%u, RESIST:%u, DODGE:%u, PARRY:%u, DEFLECT:%u, BLOCK:%u]", spell->Id,
                      die.chance[UNIT_COMBAT_DIE_MISS], die.chance[UNIT_COMBAT_DIE_RESIST], die.chance[UNIT_COMBAT_DIE_DODGE],
                      die.chance[UNIT_COMBAT_DIE_PARRY], die.chance[UNIT_COMBAT_DIE_DEFLECT], die.chance[UNIT_COMBAT_DIE_BLOCK]);
     const uint32 random = urand(1, 10000);
     const UnitCombatDieSide side = die.roll(random);
     if (side != UNIT_COMBAT_DIE_HIT)
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "MeleeSpellHitResult: Rolled %u, result: %s (chance %u)", random, UnitCombatDieSideText(side), die.chance[side]);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "MeleeSpellHitResult: Rolled %u, result: %s (chance %u)", random, UnitCombatDieSideText(side), die.chance[side]);
     switch (uint32(side))
     {
         case UNIT_COMBAT_DIE_MISS:      return SPELL_MISS_MISS;
@@ -2772,7 +2772,7 @@ SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell)
         case UNIT_COMBAT_DIE_DEFLECT:   return SPELL_MISS_DEFLECT;
         case UNIT_COMBAT_DIE_BLOCK:     return SPELL_MISS_BLOCK;
     }
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "MeleeSpellHitResult: Rolled %u, result: HIT", random);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "MeleeSpellHitResult: Rolled %u, result: HIT", random);
     return SPELL_MISS_NONE;
 }
 
@@ -2784,18 +2784,18 @@ SpellMissInfo Unit::MagicSpellHitResult(Unit* pVictim, SpellEntry const* spell, 
     if (pVictim->CanDeflectAbility(this, spell))
        die.set(UNIT_COMBAT_DIE_DEFLECT, pVictim->CalculateAbilityDeflectChance(this, spell));
     */
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "MagicSpellHitResult: New spell hit die: %u [RESIST:%u, DEFLECT:%u]", spell->Id,
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "MagicSpellHitResult: New spell hit die: %u [RESIST:%u, DEFLECT:%u]", spell->Id,
                      die.chance[UNIT_COMBAT_DIE_RESIST], die.chance[UNIT_COMBAT_DIE_DEFLECT]);
     const uint32 random = urand(1, 10000);
     const UnitCombatDieSide side = die.roll(random);
     if (side != UNIT_COMBAT_DIE_HIT)
-        DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "MagicSpellHitResult: Rolled %u, result: %s (chance %u)", random, UnitCombatDieSideText(side), die.chance[side]);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "MagicSpellHitResult: Rolled %u, result: %s (chance %u)", random, UnitCombatDieSideText(side), die.chance[side]);
     switch (uint32(side))
     {
         case UNIT_COMBAT_DIE_RESIST:    return SPELL_MISS_RESIST;   // Pre-WotLK: magic resist and miss/hit are on the same die side
         case UNIT_COMBAT_DIE_DEFLECT:   return SPELL_MISS_DEFLECT;
     }
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "MagicSpellHitResult: Rolled %u, result: HIT", random);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "MagicSpellHitResult: Rolled %u, result: HIT", random);
     return SPELL_MISS_NONE;
 }
 
@@ -4760,7 +4760,7 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder* holder)
             AddAuraToModList(aur);
 
     holder->ApplyAuraModifiers(true, true);                 // This is the place where auras are actually applied onto the target
-    DETAIL_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Holder of spell %u now is in use", holder->GetId());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetObjectGuid().GetCounter(), GetTypeId(), "Holder of spell %u now is in use", holder->GetId());
 
     // if aura deleted before boosts apply ignore
     // this can be possible it it removed indirectly by triggered spell effect at ApplyModifier
@@ -5353,7 +5353,7 @@ void Unit::RemoveAura(Aura* Aur, AuraRemoveMode mode)
     // remove aura from list before to prevent deleting it before
     /// m_Auras.erase(i);
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura %u now is remove mode %d", Aur->GetModifier()->m_auraname, mode);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetObjectGuid().GetCounter(), GetTypeId(), "Aura %u now is remove mode %d", Aur->GetModifier()->m_auraname, mode);
 
     // aura _MUST_ be remove from holder before unapply.
     // un-apply code expected that aura not find by diff searches
@@ -5465,7 +5465,7 @@ void Unit::DelaySpellAuraHolder(uint32 spellId, int32 delaytime, ObjectGuid cast
 
         holder->UpdateAuraDuration();
 
-        DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell %u partially interrupted on %s, new duration: %u ms", spellId, GetGuidStr().c_str(), holder->GetAuraDuration());
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetObjectGuid().GetCounter(), GetTypeId(), "Spell %u partially interrupted on %s, new duration: %u ms", spellId, GetGuidStr().c_str(), holder->GetAuraDuration());
     }
 }
 
@@ -5932,7 +5932,7 @@ void Unit::SendAIReaction(AiReaction reactionType)
 
     SendMessageToSet(data, true);
 
-    DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "WORLD: Sent SMSG_AI_REACTION, type %u.", reactionType);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_AI_AND_MOVEGENSS, GetObjectGuid().GetCounter(), GetTypeId(), "WORLD: Sent SMSG_AI_REACTION, type %u.", reactionType);
 }
 
 bool Unit::CanInitiateAttack() const
@@ -5952,7 +5952,7 @@ bool Unit::CanInitiateAttack() const
 
 void Unit::SendAttackStateUpdate(CalcDamageInfo* calcDamageInfo) const
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Sending SMSG_ATTACKERSTATEUPDATE");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_COMBAT, GetObjectGuid().GetCounter(), GetTypeId(), "WORLD: Sending SMSG_ATTACKERSTATEUPDATE");
 
     // Subdamage count:
     uint32 lines = m_weaponDamageInfo.weapon[calcDamageInfo->attackType].lines;
@@ -6450,7 +6450,7 @@ Unit* Unit::GetCharm(WorldObject const* pov /*= nullptr*/) const
                     return ObjectAccessor::FindPlayer(guid);
             }
             // Bugcheck
-            sLog.outDebug("Unit::GetCharm: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+            DEBUG_LOG("Unit::GetCharm: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
                           GetGuidStr().c_str(), guid.GetString().c_str());
             return nullptr;
         }
@@ -6458,7 +6458,7 @@ Unit* Unit::GetCharm(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
-        sLog.outDebug("Unit::GetCharm: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
+        DEBUG_LOG("Unit::GetCharm: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
                       GetGuidStr().c_str(), accessor->GetMap()->GetMapName(), guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetCharm(nullptr);
     }
@@ -6479,7 +6479,7 @@ Unit* Unit::GetCharmer(WorldObject const* pov /*= nullptr*/) const
                     return ObjectAccessor::FindPlayer(guid);
             }
             // Bugcheck
-            sLog.outDebug("Unit::GetCharmer: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+            DEBUG_LOG("Unit::GetCharmer: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
                           GetGuidStr().c_str(), guid.GetString().c_str());
             return nullptr;
         }
@@ -6487,7 +6487,7 @@ Unit* Unit::GetCharmer(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
-        sLog.outDebug("Unit::GetCharmer: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
+        DEBUG_LOG("Unit::GetCharmer: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
                       GetGuidStr().c_str(), accessor->GetMap()->GetMapName(), guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetCharmer(nullptr);
     }
@@ -6508,7 +6508,7 @@ Unit* Unit::GetCreator(WorldObject const* pov /*= nullptr*/) const
                     return ObjectAccessor::FindPlayer(guid);
             }
             // Bugcheck
-            sLog.outDebug("Unit::GetCreator: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+            DEBUG_LOG("Unit::GetCreator: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
                           GetGuidStr().c_str(), guid.GetString().c_str());
             return nullptr;
         }
@@ -6516,7 +6516,7 @@ Unit* Unit::GetCreator(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
-        sLog.outDebug("Unit::GetCreator: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
+        DEBUG_LOG("Unit::GetCreator: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
                       GetGuidStr().c_str(), accessor->GetMap()->GetMapName(), guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetCreator(nullptr);
     }
@@ -6537,7 +6537,7 @@ Unit* Unit::GetTarget(WorldObject const* pov /*= nullptr*/) const
                     return ObjectAccessor::FindPlayer(guid);
             }
             // Bugcheck
-            sLog.outDebug("Unit::GetTarget: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+            DEBUG_LOG("Unit::GetTarget: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
                           GetGuidStr().c_str(), guid.GetString().c_str());
             return nullptr;
         }
@@ -6545,7 +6545,7 @@ Unit* Unit::GetTarget(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
-        sLog.outDebug("Unit::GetTarget: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
+        DEBUG_LOG("Unit::GetTarget: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
                       GetGuidStr().c_str(), accessor->GetMap()->GetMapName(), guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetTarget(nullptr);
     }
@@ -6566,7 +6566,7 @@ Unit* Unit::GetChannelObject(WorldObject const* pov /*= nullptr*/) const
                     return ObjectAccessor::FindPlayer(guid);
             }
             // Bugcheck
-            sLog.outDebug("Unit::GetChannelObject: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+            DEBUG_LOG("Unit::GetChannelObject: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
                           GetGuidStr().c_str(), guid.GetString().c_str());
             return nullptr;
         }
@@ -6574,7 +6574,7 @@ Unit* Unit::GetChannelObject(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
-        sLog.outDebug("Unit::GetChannelObject: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
+        DEBUG_LOG("Unit::GetChannelObject: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
                       GetGuidStr().c_str(), accessor->GetMap()->GetMapName(), guid.GetString().c_str());
         // const_cast<Unit*>(this)->SetChannelObject(nullptr);
     }
@@ -6614,7 +6614,7 @@ Unit* Unit::GetSpawner(WorldObject const* pov /*= nullptr*/) const
                     return ObjectAccessor::FindPlayer(guid);
             }
             // Bugcheck
-            sLog.outDebug("Unit::GetSpawner: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
+            DEBUG_LOG("Unit::GetSpawner: Guid field management continuity violation for %s, can't look up %s while accessor is outside of the world",
                           GetGuidStr().c_str(), guid.GetString().c_str());
             return nullptr;
         }
@@ -6622,7 +6622,7 @@ Unit* Unit::GetSpawner(WorldObject const* pov /*= nullptr*/) const
         if (Unit* unit = accessor->GetMap()->GetUnit(guid))
             return unit;
         // Bugcheck
-        sLog.outDebug("Unit::GetSpawner: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
+        DEBUG_LOG("Unit::GetSpawner: Guid field management continuity violation for %s in map '%s', %s does not exist in this instance",
                       GetGuidStr().c_str(), accessor->GetMap()->GetMapName(), guid.GetString().c_str());
     }
     return nullptr;

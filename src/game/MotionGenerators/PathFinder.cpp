@@ -32,7 +32,7 @@ PathFinder::PathFinder(const Unit* owner) :
     m_useStraightPath(false), m_forceDestination(false), m_pointPathLimit(MAX_POINT_PATH_LENGTH),
     m_sourceUnit(owner), m_navMesh(nullptr), m_navMeshQuery(nullptr)
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::PathInfo for %u \n", m_sourceUnit->GetGUIDLow());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ PathFinder::PathInfo for %u \n", m_sourceUnit->GetGUIDLow());
 
     uint32 mapId = m_sourceUnit->GetMapId();
     if (MMAP::MMapFactory::IsPathfindingEnabled(mapId, owner))
@@ -47,7 +47,7 @@ PathFinder::PathFinder(const Unit* owner) :
 
 PathFinder::~PathFinder()
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::~PathInfo() for %u \n", m_sourceUnit->GetGUIDLow());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ PathFinder::~PathInfo() for %u \n", m_sourceUnit->GetGUIDLow());
 }
 
 bool PathFinder::calculate(float destX, float destY, float destZ, bool forceDest)
@@ -68,7 +68,7 @@ bool PathFinder::calculate(float destX, float destY, float destZ, bool forceDest
 
     m_forceDestination = forceDest;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::calculate() for %u \n", m_sourceUnit->GetGUIDLow());
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ PathFinder::calculate() for %u \n", m_sourceUnit->GetGUIDLow());
 
     // make sure navMesh works - we can run on map w/o mmap
     // check if the start and end point have a .mmtile loaded (can we pass via not loaded tile on the way?)
@@ -171,7 +171,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
     // its up to caller how he will use this info
     if (startPoly == INVALID_POLYREF || endPoly == INVALID_POLYREF)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
 
         // Check for swimming or flying shortcut
@@ -193,7 +193,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
     bool farFromPoly = (distToStartPoly > 7.0f || distToEndPoly > 7.0f);
     if (farFromPoly)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
 
         bool buildShotrcut = false;
         if (m_sourceUnit->GetTypeId() == TYPEID_UNIT)
@@ -203,13 +203,13 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
             Vector3 p = (distToStartPoly > 7.0f) ? startPos : endPos;
             if (m_sourceUnit->GetTerrain()->IsUnderWater(p.x, p.y, p.z))
             {
-                DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: underWater case\n");
+                DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: underWater case\n");
                 if (owner->CanSwim())
                     buildShotrcut = true;
             }
             else
             {
-                DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: flying case\n");
+                DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: flying case\n");
                 if (owner->CanFly())
                     buildShotrcut = true;
             }
@@ -238,7 +238,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
     // just need to move in straight line
     if (startPoly == endPoly)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (startPoly == endPoly)\n");
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: (startPoly == endPoly)\n");
 
         BuildShortcut();
 
@@ -246,7 +246,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
         m_polyLength = 1;
 
         m_type = farFromPoly ? PATHFIND_INCOMPLETE : PATHFIND_NORMAL;
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: path type %d\n", m_type);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: path type %d\n", m_type);
         return;
     }
 
@@ -290,7 +290,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
 
     if (startPolyFound && endPolyFound)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (startPolyFound && endPolyFound)\n");
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: (startPolyFound && endPolyFound)\n");
 
         // we moved along the path and the target did not move out of our old poly-path
         // our path is a simple subpath case, we have all the data we need
@@ -301,7 +301,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
     }
     else if (startPolyFound && !endPolyFound)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (startPolyFound && !endPolyFound)\n");
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: (startPolyFound && !endPolyFound)\n");
 
         // we are moving on the old path but target moved out
         // so we have atleast part of poly-path ready
@@ -357,14 +357,14 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
             sLog.outError("%u's Path Build failed: 0 length path", m_sourceUnit->GetGUIDLow());
         }
 
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++  m_polyLength=%u prefixPolyLength=%u suffixPolyLength=%u \n", m_polyLength, prefixPolyLength, suffixPolyLength);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++  m_polyLength=%u prefixPolyLength=%u suffixPolyLength=%u \n", m_polyLength, prefixPolyLength, suffixPolyLength);
 
         // new path = prefix + suffix - overlap
         m_polyLength = prefixPolyLength + suffixPolyLength - 1;
     }
     else
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (!startPolyFound && !endPolyFound)\n");
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ BuildPolyPath :: (!startPolyFound && !endPolyFound)\n");
 
         // either we have no path at all -> first run
         // or something went really wrong -> we aren't moving along the path to the target
@@ -439,7 +439,7 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
         // only happens if pass bad data to findStraightPath or navmesh is broken
         // single point paths can be generated here
         // TODO : check the exact cases
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::BuildPointPath FAILED! path sized %d returned\n", pointCount);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ PathFinder::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
         m_type = PATHFIND_NOPATH;
         return;
@@ -447,7 +447,7 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
 
     if (pointCount == m_pointPathLimit)
     {
-        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::BuildPointPath FAILED! path sized %d returned, lower than limit set to %d\n", pointCount, m_pointPathLimit);
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ PathFinder::BuildPointPath FAILED! path sized %d returned, lower than limit set to %d\n", pointCount, m_pointPathLimit);
         BuildShortcut();
         m_type = PATHFIND_SHORT;
         return;
@@ -538,7 +538,7 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
 
     NormalizePath();
 
-    DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::BuildPointPath path type %d size %d poly-size %d\n", m_type, pointCount, m_polyLength);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ PathFinder::BuildPointPath path type %d size %d poly-size %d\n", m_type, pointCount, m_polyLength);
 }
 
 void PathFinder::NormalizePath()
@@ -552,7 +552,7 @@ void PathFinder::NormalizePath()
 
 void PathFinder::BuildShortcut()
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::BuildShortcut :: making shortcut\n");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_PATHFINDING, m_sourceUnit->GetObjectGuid().GetCounter(), m_sourceUnit->GetTypeId(), "++ PathFinder::BuildShortcut :: making shortcut\n");
 
     clear();
 

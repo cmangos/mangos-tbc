@@ -85,7 +85,7 @@ namespace FactorySelector
         // select NullCreatureAI if not another cases
         ainame = (ai_factory == nullptr) ? "NullCreatureAI" : ai_factory->key();
 
-        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Creature %u used AI is %s.", creature->GetGUIDLow(), ainame.c_str());
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_AI_AND_MOVEGENSS, creature->GetObjectGuid().GetCounter(), creature->GetTypeId(), "Creature %u used AI is %s.", creature->GetGUIDLow(), ainame.c_str());
         return (ai_factory == nullptr ? new NullCreatureAI(creature) : ai_factory->Create(creature));
     }
 

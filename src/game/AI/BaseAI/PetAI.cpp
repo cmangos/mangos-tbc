@@ -301,7 +301,7 @@ void PetAI::UpdateAI(const uint32 diff)
         // This is needed for charmed creatures, as once their target was reset other effects can trigger threat
         if (!m_unit->CanAttack(victim))
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "PetAI (guid = %u) is stopping attack.", m_unit->GetGUIDLow());
+            DEBUG_FILTER_LOG_GUID(LOG_FILTER_AI_AND_MOVEGENSS, m_unit->GetObjectGuid().GetCounter(), m_unit->GetTypeId(), "PetAI (guid = %u) is stopping attack.", m_unit->GetGUIDLow());
             m_unit->CombatStop();
             inCombat = false;
 

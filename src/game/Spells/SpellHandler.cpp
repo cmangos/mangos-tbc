@@ -546,7 +546,7 @@ void WorldSession::HandleTotemDestroyed(WorldPacket& recvPacket)
 
 void WorldSession::HandleSelfResOpcode(WorldPacket& /*recv_data*/)
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: CMSG_SELF_RES");                  // empty opcode
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, _player->GetObjectGuid().GetCounter(), _player->GetTypeId(), "WORLD: CMSG_SELF_RES");                  // empty opcode
 
     if (_player->GetUInt32Value(PLAYER_SELF_RES_SPELL))
     {
@@ -560,7 +560,7 @@ void WorldSession::HandleSelfResOpcode(WorldPacket& /*recv_data*/)
 
 void WorldSession::HandleGetMirrorimageData(WorldPacket& recv_data)
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: CMSG_GET_MIRRORIMAGE_DATA");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, _player->GetObjectGuid().GetCounter(), _player->GetTypeId(), "WORLD: CMSG_GET_MIRRORIMAGE_DATA");
 
     ObjectGuid guid;
     recv_data >> guid;

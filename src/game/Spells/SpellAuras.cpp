@@ -379,7 +379,7 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32* currentBas
         }
     }
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura: construct Spellid : %u, Aura : %u Target : %d Damage : %d", spellproto->Id, spellproto->EffectApplyAuraName[eff], spellproto->EffectImplicitTargetA[eff], damage);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetTarget()->GetObjectGuid().GetCounter(), GetTarget()->GetTypeId(), "Aura: construct Spellid : %u, Aura : %u Target : %d Damage : %d", spellproto->Id, spellproto->EffectApplyAuraName[eff], spellproto->EffectImplicitTargetA[eff], damage);
 
     SetModifier(AuraType(spellproto->EffectApplyAuraName[eff]), damage, spellproto->EffectAmplitude[eff], spellproto->EffectMiscValue[eff]);
 
@@ -6027,7 +6027,7 @@ void Aura::HandleModDamageDone(bool apply, bool Real)
 
 void Aura::HandleModDamagePercentDone(bool apply, bool Real)
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "AURA MOD DAMAGE type:%u negative:%u", m_modifier.m_miscvalue, m_positive ? 0 : 1);
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetTarget()->GetObjectGuid().GetCounter(), GetTarget()->GetTypeId(), "AURA MOD DAMAGE type:%u negative:%u", m_modifier.m_miscvalue, m_positive ? 0 : 1);
     Unit* target = GetTarget();
 
     // apply item specific bonuses for already equipped weapon
@@ -6095,7 +6095,7 @@ void Aura::HandleModOffhandDamagePercent(bool apply, bool Real)
     if (!Real)
         return;
 
-    DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "AURA MOD OFFHAND DAMAGE");
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_SPELL_CAST, GetTarget()->GetObjectGuid().GetCounter(), GetTarget()->GetTypeId(), "AURA MOD OFFHAND DAMAGE");
 
     GetTarget()->HandleStatModifier(UNIT_MOD_DAMAGE_OFFHAND, TOTAL_PCT, float(m_modifier.m_amount), apply);
 }
@@ -6625,7 +6625,7 @@ void Aura::PeriodicTick()
 
             target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, IsReflectableSpell(spellProto), IsResistableSpell(spellProto));
 
-            DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s attacked %s for %u dmg inflicted by %u",
+            DETAIL_FILTER_LOG_GUID(LOG_FILTER_PERIODIC_AFFECTS, GetCasterGuid().GetCounter(), GetCasterGuid().GetTypeId(), "PeriodicTick: %s attacked %s for %u dmg inflicted by %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
 
             pCaster->DealDamageMods(target, pdamage, &absorb, DOT, spellProto);
@@ -6690,7 +6690,7 @@ void Aura::PeriodicTick()
 
             target->CalculateDamageAbsorbAndResist(pCaster, GetSpellSchoolMask(spellProto), DOT, pdamage, &absorb, &resist, IsReflectableSpell(spellProto), IsResistableSpell(spellProto));
 
-            DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s health leech of %s for %u dmg inflicted by %u abs is %u",
+            DETAIL_FILTER_LOG_GUID(LOG_FILTER_PERIODIC_AFFECTS, GetCasterGuid().GetCounter(), GetCasterGuid().GetTypeId(), "PeriodicTick: %s health leech of %s for %u dmg inflicted by %u abs is %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId(), absorb);
 
             pCaster->DealDamageMods(target, pdamage, &absorb, DOT, spellProto);
@@ -6770,7 +6770,7 @@ void Aura::PeriodicTick()
 
             pdamage = target->SpellHealingBonusTaken(pCaster, spellProto, pdamage, DOT, GetStackAmount());
 
-            DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s heal of %s for %u health inflicted by %u",
+            DETAIL_FILTER_LOG_GUID(LOG_FILTER_PERIODIC_AFFECTS, GetCasterGuid().GetCounter(), GetCasterGuid().GetTypeId(), "PeriodicTick: %s heal of %s for %u health inflicted by %u",
                 GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
 
             int32 gain = target->ModifyHealth(pdamage);
@@ -6856,7 +6856,7 @@ void Aura::PeriodicTick()
             // ignore non positive values (can be result apply spellmods to aura damage
             uint32 pdamage = m_modifier.m_amount > 0 ? m_modifier.m_amount : 0;
 
-            DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s power leech of %s for %u dmg inflicted by %u",
+            DETAIL_FILTER_LOG_GUID(LOG_FILTER_PERIODIC_AFFECTS, GetCasterGuid().GetCounter(), GetCasterGuid().GetTypeId(), "PeriodicTick: %s power leech of %s for %u dmg inflicted by %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
 
             int32 drain_amount = target->GetPower(power) > pdamage ? pdamage : target->GetPower(power);
@@ -6947,7 +6947,7 @@ void Aura::PeriodicTick()
             // ignore non positive values (can be result apply spellmods to aura damage
             uint32 pdamage = m_modifier.m_amount > 0 ? m_modifier.m_amount : 0;
 
-            DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s energize %s for %u dmg inflicted by %u",
+            DETAIL_FILTER_LOG_GUID(LOG_FILTER_PERIODIC_AFFECTS, GetCasterGuid().GetCounter(), GetCasterGuid().GetTypeId(), "PeriodicTick: %s energize %s for %u dmg inflicted by %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
 
             if (m_modifier.m_miscvalue < 0 || m_modifier.m_miscvalue >= MAX_POWERS)
@@ -6989,7 +6989,7 @@ void Aura::PeriodicTick()
 
             uint32 pdamage = uint32(target->GetMaxPower(POWER_MANA) * amount / 100);
 
-            DETAIL_FILTER_LOG(LOG_FILTER_PERIODIC_AFFECTS, "PeriodicTick: %s energize %s for %u mana inflicted by %u",
+            DETAIL_FILTER_LOG_GUID(LOG_FILTER_PERIODIC_AFFECTS, GetCasterGuid().GetCounter(), GetCasterGuid().GetTypeId(), "PeriodicTick: %s energize %s for %u mana inflicted by %u",
                               GetCasterGuid().GetString().c_str(), target->GetGuidStr().c_str(), pdamage, GetId());
 
             if (target->GetMaxPower(POWER_MANA) == 0)

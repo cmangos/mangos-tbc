@@ -33,7 +33,7 @@ class WorldObject;
 #define MAX_PHASE                       32
 
 #define LOG_PROCESS_EVENT                                                                                                       \
-    DEBUG_FILTER_LOG(LOG_FILTER_EVENT_AI_DEV, "CreatureEventAI: Event type %u (script %u) triggered for %s (invoked by %s)",    \
+    DEBUG_FILTER_LOG_GUID(LOG_FILTER_EVENT_AI_DEV, m_unit->GetObjectGuid().GetCounter(), m_unit->GetTypeId(), "CreatureEventAI: Event type %u (script %u) triggered for %s (invoked by %s)",    \
                      holder.event.event_type, holder.event.event_id, m_creature->GetGuidStr().c_str(), actionInvoker ? actionInvoker->GetGuidStr().c_str() : "<no invoker>")
 
 enum EventAI_Type

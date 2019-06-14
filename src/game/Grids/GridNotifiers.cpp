@@ -61,7 +61,7 @@ void VisibleNotifier::Notify()
     {
         player.m_clientGUIDs.erase(*itr);
 
-        DEBUG_FILTER_LOG(LOG_FILTER_VISIBILITY_CHANGES, "%s is out of range (no in active cells set) now for %s",
+        DEBUG_FILTER_LOG_GUID(LOG_FILTER_VISIBILITY_CHANGES, player.GetObjectGuid().GetCounter(), player.GetTypeId(), "%s is out of range (no in active cells set) now for %s",
                          itr->GetString().c_str(), player.GetGuidStr().c_str());
     }
 

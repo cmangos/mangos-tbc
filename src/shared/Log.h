@@ -184,7 +184,16 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, std::m
         bool HasLogLevelOrHigher(LogLevel loglvl) const { return m_logLevel >= loglvl || (m_logFileLevel >= loglvl && logfile); }
         bool IsOutCharDump() const { return m_charLog_Dump; }
         bool IsIncludeTime() const { return m_includeTime; }
-
+        bool IsFilteringOngoing() const { return !GuidFilterList.empty() || !TypeIdFilterList.empty(); }
+        bool IsNotFiltered(uint32 guid, uint32 typeID) const { return IsGuidFiltered(guid) || IsTypeFiltered(typeID); }
+        bool IsGuidFiltered(uint32 guid) const { return GuidFilterList.find(guid) != GuidFilterList.end(); }
+        bool IsTypeFiltered(uint32 typeId) const { return TypeIdFilterList.find(typeId) != TypeIdFilterList.end(); }
+        void AddGuidFilter(uint32 guid) { GuidFilterList.emplace(guid); }
+        void AddTypeIdFilter(uint32 typeId) { TypeIdFilterList.emplace(typeId); }
+        void RemoveGuidFilter(uint32 guid) { GuidFilterList.erase(guid); }
+        void RemoveTypedIdFilter(uint32 typeId) { TypeIdFilterList.erase(typeId); }
+        std::set<uint32> const& GetGuidFilterSet() const { return GuidFilterList; }
+        std::set<uint32> const& GetTypeIdFilterSet() const { return TypeIdFilterList; }
         static void WaitBeforeContinueIfNeed();
 
         // Set filename for scriptlibrary error output
@@ -225,54 +234,91 @@ class Log : public MaNGOS::Singleton<Log, MaNGOS::ClassLevelLockable<Log, std::m
         std::string m_gmlog_filename_format;
 
         char const* m_scriptLibName;
+
+        std::set<uint32> GuidFilterList;
+        std::set<uint32> TypeIdFilterList;
 };
 
 #define sLog MaNGOS::Singleton<Log>::Instance()
 
-#define BASIC_LOG(...)                                  \
-    do {                                                \
-        if (sLog.HasLogLevelOrHigher(LOG_LVL_BASIC))    \
-            sLog.outBasic(__VA_ARGS__);                 \
-    } while(0)
-
-#define BASIC_FILTER_LOG(F,...)                         \
-    do {                                                \
-        if (sLog.HasLogLevelOrHigher(LOG_LVL_BASIC) && !sLog.HasLogFilter(F)) \
-            sLog.outBasic(__VA_ARGS__);                 \
-    } while(0)
-
-#define DETAIL_LOG(...)                                 \
-    do {                                                \
-        if (sLog.HasLogLevelOrHigher(LOG_LVL_DETAIL))   \
-            sLog.outDetail(__VA_ARGS__);                \
-    } while(0)
-
-#define DETAIL_FILTER_LOG(F,...)                        \
-    do {                                                \
-        if (sLog.HasLogLevelOrHigher(LOG_LVL_DETAIL) && !sLog.HasLogFilter(F)) \
-            sLog.outDetail(__VA_ARGS__);                \
-    } while(0)
-
-#define DEBUG_LOG(...)                                  \
-    do {                                                \
-        if (sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG))    \
-            sLog.outDebug(__VA_ARGS__);                 \
-    } while(0)
-
-#define DEBUG_FILTER_LOG(F,...)                         \
-    do {                                                \
-        if (sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG) && !sLog.HasLogFilter(F)) \
-            sLog.outDebug(__VA_ARGS__);                 \
-    } while(0)
-
-#define ERROR_DB_FILTER_LOG(F,...)                      \
-    do {                                                \
-        if (!sLog.HasLogFilter(F))                      \
-            sLog.outErrorDb(__VA_ARGS__);               \
-    } while(0)
-
-#define ERROR_DB_STRICT_LOG(...) \
-    ERROR_DB_FILTER_LOG(LOG_FILTER_DB_STRICTED_CHECK, __VA_ARGS__)
+#ifdef NDEBUG
+  #define BASIC_LOG(...)                                  \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_BASIC) && !sLog.IsFilteringOngoing())    \
+              sLog.outBasic(__VA_ARGS__);                 \
+      } while(0)                                          \
+  
+  #define BASIC_FILTER_LOG(F,...)                         \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_BASIC) && !sLog.HasLogFilter(F) && !sLog.IsFilteringOngoing()) \
+              sLog.outBasic(__VA_ARGS__);                 \
+      } while(0)
+  
+  #define DETAIL_LOG(...)                                 \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_DETAIL) && !sLog.IsFilteringOngoing())   \
+              sLog.outDetail(__VA_ARGS__);                \
+      } while(0)
+  
+  #define DETAIL_FILTER_LOG(F,...)                        \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_DETAIL) && !sLog.HasLogFilter(F) && !sLog.IsFilteringOngoing())\
+              sLog.outDetail(__VA_ARGS__);                \
+      } while(0)
+  
+  #define DETAIL_FILTER_LOG_GUID(F, G, T,...)             \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_DETAIL) && !sLog.HasLogFilter(F) && (!sLog.IsFilteringOngoing() || sLog.IsNotFiltered(G, T))) \
+              sLog.outDetail(__VA_ARGS__);                \
+      } while(0)
+  
+  #define DEBUG_LOG(...)                                  \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG) && !sLog.IsFilteringOngoing())    \
+              sLog.outDebug(__VA_ARGS__);                 \
+      } while(0)
+  
+  #define DEBUG_FILTER_LOG(F,...)                         \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG) && !sLog.HasLogFilter(F) && !sLog.IsFilteringOngoing()) \
+              sLog.outDebug(__VA_ARGS__);                 \
+      } while(0)
+  
+  #define DEBUG_FILTER_LOG_GUID(F, G, T,...)              \
+      do {                                                \
+          if (sLog.HasLogLevelOrHigher(LOG_LVL_DEBUG) && !sLog.HasLogFilter(F) && (!sLog.IsFilteringOngoing() || sLog.IsNotFiltered(G, T))) \
+              sLog.outDebug(__VA_ARGS__);                 \
+      } while(0)
+  
+  #define ERROR_DB_FILTER_LOG(F,...)                      \
+      do {                                                \
+          if (!sLog.HasLogFilter(F))                      \
+              sLog.outErrorDb(__VA_ARGS__);               \
+      } while(0)
+  
+  #define ERROR_DB_STRICT_LOG(...) \
+      ERROR_DB_FILTER_LOG(LOG_FILTER_DB_STRICTED_CHECK, __VA_ARGS__)
+#else
+  #define BASIC_LOG(...)
+  
+  #define BASIC_FILTER_LOG(F,...)
+  
+  #define DETAIL_LOG(...)
+  
+  #define DETAIL_FILTER_LOG(F,...)
+  
+  #define DETAIL_FILTER_LOG_GUID(F, G, T,...)
+  
+  #define DEBUG_LOG(...)
+  
+  #define DEBUG_FILTER_LOG(F,...)
+  
+  #define DEBUG_FILTER_LOG_GUID(F, G, T,...)
+  
+  #define ERROR_DB_FILTER_LOG(F,...)
+  
+  #define ERROR_DB_STRICT_LOG(...)
+#endif
 
 // primary for script library
 void outstring_log();

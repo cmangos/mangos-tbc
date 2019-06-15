@@ -2309,13 +2309,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1001172,'Spare my life! I will tell you about Arelion\'s secret.',0,0,0,0,'magister_aledis SAY_ALEDIS_DEFEAT'),
 
-(-1001173,'Do not return, draenei scum. Next time we won\'t spare your life, unarmed or not!',0,0,0,0,'Maghar escort SAY'),
-(-1001174,'I\'ve failed... peace is impossible.',0,0,0,0,'Vindicator Sedai SAY 1'),
-(-1001175,'What in the Light\'s name...?',0,0,0,0,'Vindicator Sedai SAY 2'),
-(-1001176,'Fel orcs!',0,0,0,0,'Vindicator Sedai SAY 3'),
-(-1001177,'The cycle of bloodshed is unending... Is there nothing I can do?',0,0,0,0,'Vindicator Sedai SAY 4'),
-(-1001178,'You can die!',0,0,0,0,'Krun Spinebreaker SAY 1'),
-
 -- warning ids in range -1001173 to -1001190 are used in WOTLK
 
 (-1001191,'Hey, you call yourself a body guard? Get to work and protect us...',0,0,0,0,'SAY_CORK_AMBUSH1'),
@@ -2469,7 +2462,14 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1015029,'For the Deceiver! For Kil''jaeden!',0,0,0,0,'Trelopades on aggro 1'),
 (-1015030,'Only flesh and blood...',0,0,0,0,'Trelopades on aggro 2'),
 (-1015031, 'Onward, Scryers!  Show Illidan\'s lackeys the temper of our steel!', 0, 1, 0, 0, 'Onward Scryers'),
-(-1015032, 'Forward, vindicators!  Drive these demons from our sacred temple!', 0, 1, 0, 0, 'Forward vindicators');
+(-1015032, 'Forward, vindicators!  Drive these demons from our sacred temple!', 0, 1, 0, 0, 'Forward vindicators'),
+
+(-1015066,'Do not return, draenei scum. Next time we won\'t spare your life, unarmed or not!',0,0,0,0,'Maghar escort SAY'),
+(-1015067,'I\'ve failed... peace is impossible.',0,0,0,0,'Vindicator Sedai SAY 1'),
+(-1015068,'What in the Light\'s name...?',0,0,0,0,'Vindicator Sedai SAY 2'),
+(-1015069,'Fel orcs!',0,0,0,0,'Vindicator Sedai SAY 3'),
+(-1015070,'The cycle of bloodshed is unending... Is there nothing I can do?',0,0,0,0,'Vindicator Sedai SAY 4'),
+(-1015071,'You can die!',0,0,0,0,'Krun Spinebreaker SAY 1'),
 -- -1 020 000 WOTLK texts
 
 -- -1 033 000 SHADOWFANG KEEP

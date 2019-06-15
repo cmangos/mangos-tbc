@@ -650,6 +650,12 @@ UPDATE creature_template SET ScriptName='npc_magister_aledis' WHERE entry=20159;
 UPDATE creature_template SET ScriptName='npc_living_flare' WHERE entry=24916;
 UPDATE creature_template SET ScriptName='npc_danath_trollbane' WHERE `Entry`='16819';
 UPDATE creature_template SET ScriptName='npc_nazgrel' WHERE `Entry`='3230';
+UPDATE creature_template SET ScriptName='npc_vindicator_sedai' WHERE entry=17404;
+UPDATE creature_template SET ScriptName='npc_krun' WHERE entry=17405;
+UPDATE creature_template SET ScriptName='npc_laughing_skull' WHERE entry=17418;
+UPDATE creature_template SET ScriptName='npc_maghar_escort' WHERE entry=17417;
+DELETE FROM scripted_event_id WHERE id=10745;
+INSERT INTO scripted_event_id VALUES(10745,'npc_vindicator_sedai');
 
 /* HILLSBRAD FOOTHILLS */
 
@@ -2302,6 +2308,13 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001171,'I hunger! Feed me the power of this forge, my children!',0,1,0,0,'dimensius SAY_SUMMON'),
 
 (-1001172,'Spare my life! I will tell you about Arelion\'s secret.',0,0,0,0,'magister_aledis SAY_ALEDIS_DEFEAT'),
+
+(-1001173,'Do not return, draenei scum. Next time we won\'t spare your life, unarmed or not!',0,0,0,0,'Maghar escort SAY'),
+(-1001174,'I\'ve failed... peace is impossible.',0,0,0,0,'Vindicator Sedai SAY 1'),
+(-1001175,'What in the Light\'s name...?',0,0,0,0,'Vindicator Sedai SAY 2'),
+(-1001176,'Fel orcs!',0,0,0,0,'Vindicator Sedai SAY 3'),
+(-1001177,'The cycle of bloodshed is unending... Is there nothing I can do?',0,0,0,0,'Vindicator Sedai SAY 4'),
+(-1001178,'You can die!',0,0,0,0,'Krun Spinebreaker SAY 1'),
 
 -- warning ids in range -1001173 to -1001190 are used in WOTLK
 

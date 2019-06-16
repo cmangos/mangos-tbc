@@ -1818,7 +1818,6 @@ void Aura::TriggerSpell()
                 break;
             case TARGET_UNIT_FRIEND: // Abolish Disease / Poison confirms this
             case TARGET_UNIT_CASTER:
-            case TARGET_UNIT_FRIEND:
                 triggerCaster = target;
                 triggerTarget = target;
                 break;

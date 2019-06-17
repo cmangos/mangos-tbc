@@ -599,23 +599,27 @@ bool ChatHandler::HandleServerLogGuidFilterCommand(char* args)
         return true;
     }
 
-    uint32 gFilter = 0;
-
-    ExtractUInt32(&args, gFilter);
-
-    if (gFilter)
+    do
     {
-        if (sLog.IsGuidFiltered(gFilter))
+        uint32 gFilter = 0;
+
+        if (!ExtractUInt32(&args, gFilter))
+            break;
+
+        if (gFilter)
         {
-            sLog.RemoveGuidFilter(gFilter);
-            PSendSysMessage("Guid(%u) removed from filter list!", gFilter);
+            if (sLog.IsGuidFiltered(gFilter))
+            {
+                sLog.RemoveGuidFilter(gFilter);
+                PSendSysMessage("Guid(%u) removed from filter list!", gFilter);
+            }
+            else
+            {
+                sLog.AddGuidFilter(gFilter);
+                PSendSysMessage("Guid(%u) added to filter list!", gFilter);
+            }
         }
-        else
-        {
-            sLog.AddGuidFilter(gFilter);
-            PSendSysMessage("Guid(%u) added to filter list!", gFilter);
-        }
-    }
+    } while (1);
     return true;
 }
 

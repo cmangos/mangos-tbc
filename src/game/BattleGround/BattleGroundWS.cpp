@@ -222,10 +222,10 @@ void BattleGroundWS::RespawnDroppedFlag(Team team)
     PvpTeamIndex teamIdx = GetTeamIndexByTeamId(team);
     RespawnFlag(team, false);
 
-    SendMessageToAll(wsMessageIds[teamIdx][BG_WS_FLAG_ACTION_CAPTURED],
-        wsChatMessageTypes[teamIdx][BG_WS_FLAG_ACTION_CAPTURED]);
+    SendMessageToAll(wsMessageIds[teamIdx][BG_WS_FLAG_ACTION_RESPAWN],
+        wsChatMessageTypes[teamIdx][BG_WS_FLAG_ACTION_RESPAWN]);
 
-    PlaySoundToAll(wsSounds[teamIdx][BG_WS_FLAG_ACTION_CAPTURED]);
+    PlaySoundToAll(wsSounds[teamIdx][BG_WS_FLAG_ACTION_RESPAWN]);
 
     GameObject* obj = GetBgMap()->GetGameObject(GetDroppedFlagGuid(team));
     if (obj)
@@ -325,7 +325,7 @@ void BattleGroundWS::EventPlayerDroppedFlag(Player* player)
         UpdateFlagState(team, 1);
 
         SendMessageToAll(wsMessageIds[otherTeamIdx][BG_WS_FLAG_ACTION_DROPPED],
-                         wsChatMessageTypes[TEAM_INDEX_HORDE][BG_WS_FLAG_ACTION_DROPPED], player);
+                         wsChatMessageTypes[otherTeamIdx][BG_WS_FLAG_ACTION_DROPPED], player);
         UpdateWorldState(wsStateUpdateId[otherTeamIdx], uint32(-1));
         m_FlagsDropTimer[otherTeamIdx] = BG_WS_FLAG_DROP_TIME;
     }

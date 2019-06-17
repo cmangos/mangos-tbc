@@ -641,7 +641,11 @@ bool ChatHandler::HandleServerLogTypeFilterCommand(char* args)
     std::vector<std::string> validName = { "object", "item", "container", "creature", "player", "gobject", "dgobject", "corpse" };
     do
     {
-        std::string tName = ExtractLiteralArg(&args);
+        char* pName = ExtractLiteralArg(&args);
+        if (!pName)
+            break;
+
+        std::string tName(pName);
         if (tName.empty())
             break;
 
@@ -665,15 +669,15 @@ bool ChatHandler::HandleServerLogTypeFilterCommand(char* args)
             if (sLog.IsTypeFiltered(tFilter))
             {
                 sLog.RemoveTypedIdFilter(tFilter);
-                PSendSysMessage("Type %s(%u) removed from filter list!", validName.at(tFilter), tFilter);
+                PSendSysMessage("Type %s(%u) removed from filter list!", validName.at(tFilter).c_str(), tFilter);
             }
             else
             {
                 sLog.AddTypeIdFilter(tFilter);
-                PSendSysMessage("Type %s(%u) added to filter list!", validName.at(tFilter), tFilter);
+                PSendSysMessage("Type %s(%u) added to filter list!", validName.at(tFilter).c_str(), tFilter);
             }
         }
-    } while (1);
+     } while (1);
     return true;
 }
 

@@ -874,27 +874,37 @@ void WorldSession::HandleNextCinematicCamera(WorldPacket& /*recv_data*/)
     GetPlayer()->StartCinematic();
 }
 
-void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recv_data)
+void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recvData)
 {
-    /*  WorldSession::Update( WorldTimer::getMSTime() );*/
     DEBUG_LOG("WORLD: Received opcode CMSG_MOVE_TIME_SKIPPED");
 
-    recv_data >> Unused<uint64>();
-    recv_data >> Unused<uint32>();
+    ObjectGuid guid;
+    uint32 timeSkipped;
+    recvData >> guid.ReadAsPacked();
+    recvData >> timeSkipped;
 
-    /*
-        ObjectGuid guid;
-        uint32 time_skipped;
-        recv_data >> guid;
-        recv_data >> time_skipped;
-        DEBUG_LOG("WORLD: Received opcode CMSG_MOVE_TIME_SKIPPED");
+    Unit* mover = GetPlayer()->m_mover;
 
-        /// TODO
-        must be need use in mangos
-        We substract server Lags to move time ( AntiLags )
-        for exmaple
-        GetPlayer()->ModifyLastMoveTime( -int32(time_skipped) );
-    */
+    if (!mover)
+    {
+        DETAIL_LOG("WorldSession::HandleMoveTimeSkippedOpcode wrong mover state from the unit moved by the player %s", GetPlayer()->GetOwnerGuid().GetString().c_str());
+        return;
+    }
+
+    // prevent tampered movement data
+    if (guid != mover->GetOwnerGuid())
+    {
+        DETAIL_LOG("WorldSession::HandleMoveTimeSkippedOpcode wrong guid from the unit moved by the player %s", GetPlayer()->GetOwnerGuid().GetString().c_str());
+        return;
+    }
+
+    uint32 time = mover->m_movementInfo.GetTime();
+    mover->m_movementInfo.UpdateTime(time + timeSkipped);
+
+    WorldPacket data(MSG_MOVE_TIME_SKIPPED, recvData.size());
+    data << guid.WriteAsPacked();
+    data << timeSkipped;
+    GetPlayer()->SendMessageToSet(data, false);
 }
 
 void WorldSession::HandleFeatherFallAck(WorldPacket& recv_data)

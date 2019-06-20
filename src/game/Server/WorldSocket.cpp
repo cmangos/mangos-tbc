@@ -195,22 +195,23 @@ bool WorldSocket::ProcessIncomingData()
 
             case CMSG_KEEP_ALIVE:
                 DEBUG_LOG("CMSG_KEEP_ALIVE ,size: " SIZEFMTD " ", pct->size());
-
                 return true;
+
+            case CMSG_TIME_SYNC_RESP:
+                pct = std::unique_ptr<WorldPacket>(new WorldPacket(*pct, std::chrono::steady_clock::now()));
+                break;
 
             default:
-            {
-                if (!m_session)
-                {
-                    sLog.outError("WorldSocket::ProcessIncomingData: Client not authed opcode = %u", uint32(opcode));
-                    return false;
-                }
-
-                m_session->QueuePacket(std::move(pct));
-
-                return true;
-            }
+                break;
         }
+
+        if (!m_session)
+        {
+            sLog.outError("WorldSocket::ProcessIncomingData: Client not authed opcode = %u", uint32(opcode));
+            return false;
+        }
+
+        m_session->QueuePacket(std::move(pct));
     }
     catch (ByteBufferException&)
     {
@@ -507,7 +508,6 @@ bool WorldSocket::HandlePing(WorldPacket& recvPacket)
         if (m_session)
         {
             m_session->SetLatency(latency);
-            m_session->ResetClientTimeDelay();
         }
         else
         {

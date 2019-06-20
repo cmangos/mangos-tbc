@@ -53,26 +53,23 @@ void WorldRunnable::run()
         ++World::m_worldLoopCounter;
         realCurrTime = WorldTimer::getMSTime();
 
-        uint32 diff = WorldTimer::tick();
-
-        sWorld.Update(diff);
+        sWorld.Update(WorldTimer::tick());
         realPrevTime = realCurrTime;
 
         // diff (D0) include time of previous sleep (d0) + tick time (t0)
         // we want that next d1 + t1 == WORLD_SLEEP_CONST
         // we can't know next t1 and then can use (t0 + d1) == WORLD_SLEEP_CONST requirement
         // d1 = WORLD_SLEEP_CONST - t0 = WORLD_SLEEP_CONST - (D0 - d0) = WORLD_SLEEP_CONST + d0 - D0
-        if (diff <= WORLD_SLEEP_CONST + prevSleepTime)
-        {
-            prevSleepTime = WORLD_SLEEP_CONST + prevSleepTime - diff;
-            MaNGOS::Thread::Sleep(prevSleepTime);
-        }
-        else
-            prevSleepTime = 0;
+        uint32 executionTimeDiff = WorldTimer::getMSTimeDiff(realCurrTime, WorldTimer::getMSTime());
+        if (executionTimeDiff < WORLD_SLEEP_CONST)
+            MaNGOS::Thread::Sleep(WORLD_SLEEP_CONST - executionTimeDiff);
 
 #ifdef _WIN32
-        if (m_ServiceStatus == 0) World::StopNow(SHUTDOWN_EXIT_CODE);
-        while (m_ServiceStatus == 2) Sleep(1000);
+        if (m_ServiceStatus == 0)
+            World::StopNow(SHUTDOWN_EXIT_CODE);
+
+        while (m_ServiceStatus == 2)
+            Sleep(1000);
 #endif
     }
 

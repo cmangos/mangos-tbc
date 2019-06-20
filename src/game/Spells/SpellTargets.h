@@ -24,6 +24,9 @@
 #include "Server/DBCEnums.h"
 #include "Platform/Define.h"
 
+#include <map>
+#include <utility>
+
 struct SpellTargetInfo
 {
     char const* name;

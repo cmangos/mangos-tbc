@@ -7828,7 +7828,7 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets& targets, uint8 cast_
         if (HasMissingTargetFromClient(spellInfo))
             targets.setUnitTarget(GetTarget());
 
-        Spell* spell = CreateSpell(this, spellInfo, (count > 0));
+        Spell* spell = new Spell(this, spellInfo, (count > 0));
         spell->m_CastItem = item;
         spell->m_cast_count = cast_count;                   // set count of casts
         spell->SpellStart(&targets);

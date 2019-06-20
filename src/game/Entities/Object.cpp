@@ -1897,7 +1897,7 @@ void WorldObject::GetNearPoint2D(float& x, float& y, float distance2d, float abs
     MaNGOS::NormalizeMapCoord(y);
 }
 
-void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle) const
+void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater) const
 {
     GetNearPoint2D(x, y, distance2d, absAngle);
     const float init_z = z = GetPositionZ();
@@ -1907,7 +1907,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     {
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
-        else
+        else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
         return;
     }
@@ -1935,7 +1935,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     {
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
-        else
+        else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
         if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
@@ -1957,7 +1957,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
 
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
-        else
+        else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
         if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
@@ -1973,7 +1973,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
 
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
-        else
+        else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
         return;
     }
@@ -1989,7 +1989,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
 
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
-        else
+        else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
         if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
@@ -2002,7 +2002,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
 
     if (searcher)
         searcher->UpdateAllowedPositionZ(x, y, z, GetMap());// update to LOS height if available
-    else
+    else if (!isInWater)
         UpdateGroundPositionZ(x, y, z);
 }
 

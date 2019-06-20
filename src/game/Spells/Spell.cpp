@@ -2168,19 +2168,19 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                     }
 
                     ++activeUnit;
-                }                
+                }
 
                 uint32 t = m_spellInfo->EffectChainTarget[effIndex] - 1;
                 unsteadyTargetMap.sort(TargetDistanceOrderNear(newUnitTarget));
 
                 if (IsChainAOESpell(m_spellInfo)) // Spell like Multi-Shot
-                {                    
+                {
                     // Fill TargetUnitMap
                     for (UnitList::iterator activeUnit = unsteadyTargetMap.begin(); t && activeUnit != unsteadyTargetMap.end(); ++activeUnit, --t)
                         tempUnitList.push_back((*activeUnit));
                 }
                 else // spell like Chain Lightning
-                {              
+                {
                     Unit* prev = newUnitTarget;
                     UnitList::iterator next = unsteadyTargetMap.begin();
 
@@ -2235,7 +2235,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                 }
                 case 45339:
                 {
-                    for (UnitList::const_iterator iter = tempUnitList.begin(); iter != tempUnitList.end();)
+                    for (auto iter = tempUnitList.begin(); iter != tempUnitList.end();)
                     {
                         if ((*iter)->HasCharmer(m_caster->GetObjectGuid()))
                             iter = tempUnitList.erase(iter);
@@ -2605,7 +2605,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
 
                     }
                 }
-             
+
                 MaNGOS::AnyFriendlyOrGroupMemberUnitInUnitRangeCheck u_check(m_caster, group, m_spellInfo, max_range);
                 MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyOrGroupMemberUnitInUnitRangeCheck> searcher(tempTargetUnitMap, u_check);
                 Cell::VisitAllObjects(m_caster, searcher, max_range);
@@ -3470,7 +3470,7 @@ void Spell::update(uint32 difftime)
         {
             if (m_spellInfo->ChannelInterruptFlags & CHANNEL_FLAG_MOVEMENT && !m_spellInfo->HasAttribute(SPELL_ATTR_EX5_CAN_CHANNEL_WHEN_MOVING))
                 cancel();
-        }            
+        }
         // don't cancel for melee, autorepeat, triggered and instant spells
         else if (!IsNextMeleeSwingSpell() && !IsAutoRepeat() && !m_IsTriggeredSpell && (m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_MOVEMENT))
             cancel();

@@ -13,6 +13,8 @@
 ## Expected param 1 to be 'a' for all, else ask some questions
 ## optionally param 1 or param 2 is the path to game client
 
+PREFIX="$(dirname $0)"
+
 ## Normal log file (if not overwritten by second param)
 LOG_FILE="MaNGOSExtractor.log"
 ## Detailed log file
@@ -104,7 +106,7 @@ fi
 if [ "$USE_MMAPS_OFFMESH" = "1" ]
 then
   echo "Only extracting offmesh tiles"
-  ./MoveMapGen.sh offmesh $OUTPUT_PATH $LOG_FILE $DETAIL_LOG_FILE
+  $PREFIX/MoveMapGen.sh offmesh $OUTPUT_PATH $LOG_FILE $DETAIL_LOG_FILE
   exit 0
 fi
 
@@ -212,7 +214,7 @@ echo | tee -a $DETAIL_LOG_FILE
 if [ "$USE_AD" = "1" ]
 then
  echo "$(date): Start extraction of DBCs and map files..." | tee -a $LOG_FILE
- ./ad $AD_RES $AD_OPT_RES | tee -a $DETAIL_LOG_FILE
+ $PREFIX/ad $AD_RES $AD_OPT_RES | tee -a $DETAIL_LOG_FILE
  echo "$(date): Extracting of DBCs and map files finished" | tee -a $LOG_FILE
  echo | tee -a $LOG_FILE
  echo | tee -a $DETAIL_LOG_FILE
@@ -222,11 +224,11 @@ fi
 if [ "$USE_VMAPS" = "1" ]
 then
   echo "$(date): Start extraction of vmaps..." | tee -a $LOG_FILE
-  ./vmap_extractor $VMAP_RES $VMAP_OPT_RES | tee -a $DETAIL_LOG_FILE
+  $PREFIX/vmap_extractor $VMAP_RES $VMAP_OPT_RES | tee -a $DETAIL_LOG_FILE
   echo "$(date): Extracting of vmaps finished" | tee -a $LOG_FILE
   mkdir ${OUTPUT_PATH:-.}/vmaps
   echo "$(date): Start assembling of vmaps..." | tee -a $LOG_FILE
-  ./vmap_assembler ${OUTPUT_PATH:-.}/Buildings ${OUTPUT_PATH:-.}/vmaps | tee -a $DETAIL_LOG_FILE
+  $PREFIX/vmap_assembler ${OUTPUT_PATH:-.}/Buildings ${OUTPUT_PATH:-.}/vmaps | tee -a $DETAIL_LOG_FILE
   echo "$(date): Assembling of vmaps finished" | tee -a $LOG_FILE
 
   echo | tee -a $LOG_FILE

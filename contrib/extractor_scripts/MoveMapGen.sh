@@ -16,6 +16,8 @@
 ## 3rd param may be an addition filename for storing detailed log
 ## 4th param may be a number of threads to use for maps processing
 
+PREFIX="$(dirname $0)"
+
 ## Additional Parameters to be forwarded to MoveMapGen, see mmaps/readme for instructions
 PARAMS="--silent --configInputPath config.json"
 
@@ -101,7 +103,7 @@ case "$1" in
    echo "Recreate offmeshes from file $OFFMESH_FILE" | tee -a $DETAIL_LOG_FILE
    while read map tile line
    do
-     ./MoveMapGen $PARAMS $OFFMESH $MMG_RES $map --tile $tile | tee -a $DETAIL_LOG_FILE
+     $PREFIX/MoveMapGen $PARAMS $OFFMESH $MMG_RES $map --tile $tile | tee -a $DETAIL_LOG_FILE
      echo "`date`: Recreated $map $tile from $OFFMESH_FILE" | tee -a $LOG_FILE
    done < $OFFMESH_FILE &
    ;;

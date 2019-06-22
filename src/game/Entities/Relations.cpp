@@ -1139,7 +1139,7 @@ bool Unit::CanAttackSpell(Unit const* target, SpellEntry const* spellInfo, bool 
 /////////////////////////////////////////////////
 bool Unit::CanAssistSpell(Unit const* target, SpellEntry const* spellInfo) const
 {
-    return CanAssist(target);
+    return CanAssist(target, spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX6_ASSIST_IGNORE_IMMUNE_FLAG));
 }
 
 /////////////////////////////////////////////////

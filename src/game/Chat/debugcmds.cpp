@@ -31,6 +31,7 @@
 #include "Globals/ObjectMgr.h"
 #include "Entities/ObjectGuid.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "Maps/InstanceData.h"
 #include "Cinematics/M2Stores.h"
 
 bool ChatHandler::HandleDebugSendSpellFailCommand(char* args)
@@ -1282,6 +1283,26 @@ bool ChatHandler::HandleDebugMoveflags(char* args)
     return true;
 }
 
+bool ChatHandler::HandleSD2HelpCommand(char* /*args*/)
+{
+    Player* player = m_session->GetPlayer();
+    if (InstanceData* data = player->GetMap()->GetInstanceData())
+        data->ShowChatCommands(this);
+    else
+        PSendSysMessage("Map script does not support chat commands.");
+    return true;
+}
+
+bool ChatHandler::HandleSD2ScriptCommand(char* args)
+{
+    Player* player = m_session->GetPlayer();
+    if (InstanceData* data = player->GetMap()->GetInstanceData())
+        data->ExecuteChatCommand(this, args);
+    else
+        PSendSysMessage("Map script does not support chat commands.");
+    return true;
+}
+
 bool ChatHandler::HandleDebugLootDropStats(char* args)
 {
     uint32 amountOfCheck = 100000;
@@ -1378,6 +1399,42 @@ bool ChatHandler::HandleDebugSendWorldState(char* args)
     return true;
 }
 
+bool ChatHandler::HandleDebugHaveAtClientCommand(char* args)
+{
+    Player* player = m_session->GetPlayer();
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        return false;
+    }
+
+    if (player->HaveAtClient(target))
+        PSendSysMessage("Target %s is at your client.", target->GetName());
+    else
+        PSendSysMessage("Target %s is not at your client.", target->GetName());
+
+    return true;
+}
+
+bool ChatHandler::HandleDebugIsVisibleCommand(char* args)
+{
+    Player* player = m_session->GetPlayer();
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        return false;
+    }
+
+    Camera& camera = player->GetCamera();
+    if (target->isVisibleForInState(player, camera.GetBody(), player->HaveAtClient(target)))
+        PSendSysMessage("Target %s should be visible at client.", target->GetName());
+    else
+        PSendSysMessage("Target %s should not be visible at client.", target->GetName());
+
+    return true;
+}
 
 bool ChatHandler::HandleDebugOverflowCommand(char* args)
 {

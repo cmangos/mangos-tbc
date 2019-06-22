@@ -217,12 +217,6 @@ struct boss_felmystAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit* /*pDealer*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
-    {
-        if (m_uiPhase != PHASE_GROUND && uiDamage >= m_creature->GetHealth())
-            uiDamage = 0;
-    }
-
     void MovementInform(uint32 uiMoveType, uint32 uiPointId) override
     {
         if (uiMoveType != POINT_MOTION_TYPE)
@@ -285,6 +279,7 @@ struct boss_felmystAI : public ScriptedAI
             case PHASE_TRANSITION:
                 // switch back to ground combat from flight transition
                 m_uiPhase = PHASE_GROUND;
+                SetDeathPrevention(false);
                 SetCombatMovement(true);
                 m_creature->SetLevitate(false);
                 DoStartMovement(m_creature->getVictim());
@@ -379,6 +374,7 @@ struct boss_felmystAI : public ScriptedAI
                     m_creature->SetLevitate(true);
                     m_creature->GetMotionMaster()->MoveIdle();
                     m_creature->GetMotionMaster()->MovePoint(PHASE_AIR, m_creature->GetPositionX(), m_creature->GetPositionY(), 50.083f, false);
+                    SetDeathPrevention(true);
 
                     m_uiPhase = PHASE_TRANSITION;
                     m_uiSubPhase = SUBPHASE_VAPOR;

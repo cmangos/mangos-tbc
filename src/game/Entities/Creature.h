@@ -682,7 +682,7 @@ class Creature : public Unit
         bool HasSpell(uint32 spellID) const override;
 
         bool UpdateEntry(uint32 Entry, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr, bool preserveHPAndPower = true);
-        void ResetEntry();
+        void ResetEntry(bool respawn = false);
 
         void ApplyGameEventSpells(GameEventCreatureData const* eventData, bool activated);
         bool UpdateStats(Stats stat) override;
@@ -790,7 +790,7 @@ class Creature : public Unit
 
         void SendZoneUnderAttackMessage(Player* attacker) const;
 
-        void SetInCombatWithZone();
+        void SetInCombatWithZone(bool checkAttackability = false);
 
         Unit* SelectAttackingTarget(AttackingTarget target, uint32 position, uint32 spellId, uint32 selectFlags = 0, SelectAttackingTargetParams params = SelectAttackingTargetParams()) const;
         Unit* SelectAttackingTarget(AttackingTarget target, uint32 position, SpellEntry const* spellInfo = nullptr, uint32 selectFlags = 0, SelectAttackingTargetParams params = SelectAttackingTargetParams()) const;
@@ -850,6 +850,9 @@ class Creature : public Unit
         void SetSpawnCounting(bool state) { m_countSpawns = state; }
 
         uint32 GetDetectionRange() const override { return m_creatureInfo->Detection; }
+
+        void SetBaseWalkSpeed(float speed) override;
+        void SetBaseRunSpeed(float speed) override;
 
         void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration) override;
 
@@ -919,9 +922,6 @@ class Creature : public Unit
         bool m_noXP;
         bool m_noLoot;
         bool m_noReputation;
-
-        void SetBaseWalkSpeed(float speed) override;
-        void SetBaseRunSpeed(float speed) override;
 
         // Script logic
         bool m_ignoreRangedTargets;                         // Ignores ranged targets when picking someone to attack

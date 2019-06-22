@@ -294,6 +294,7 @@ UPDATE creature_template SET ScriptName='molten_flame' WHERE entry=23095; -- Mol
 UPDATE creature_template SET ScriptName='mob_ashtongue_channeler' WHERE entry=23421; -- Ashtongue CHanneler in Shade of AKama
 UPDATE creature_template SET ScriptName='mob_ashtongue_sorcerer' WHERE entry=23215; -- Ashtongue Sorcerer in Shade of Akama
 UPDATE creature_template SET ScriptName='npc_enslaved_soul' WHERE entry=23469;
+UPDATE creature_template SET ScriptName='npc_greater_shadowfiend' WHERE entry=22929;
 
 /* BLACKFATHOM DEPTHS */
 UPDATE instance_template SET ScriptName='instance_blackfathom_deeps' WHERE map=48;
@@ -379,7 +380,7 @@ INSERT INTO scripted_event_id VALUES
 UPDATE creature_template SET ScriptName='mobs_nether_drake' WHERE entry IN (20021,21817,21820,21821,21823);
 UPDATE creature_template SET ScriptName='npc_daranelle' WHERE entry=21469;
 UPDATE creature_template SET ScriptName='npc_bloodmaul_stout_trigger' WHERE entry=21241;
-UPDATE creature_template SET ScriptName='npc_simon_game_bunny' WHERE entry=22923;
+UPDATE creature_template SET ScriptName='npc_simon_game_bunny' WHERE entry IN(22923,23378);
 UPDATE creature_template SET ScriptName='npc_light_orb_collector' WHERE entry IN (21926,22333);
 UPDATE creature_template SET ScriptName='npc_bloodmaul_dire_wolf' WHERE entry=20058;
 UPDATE creature_template SET ScriptName='npc_obelisk_trigger' WHERE entry=22422;
@@ -402,6 +403,16 @@ UPDATE creature_template SET ScriptName='npc_supplicant' WHERE entry IN(23052,23
 INSERT INTO scripted_event_id VALUES(14739,'event_into_the_soulgrinder');
 UPDATE creature_template SET ScriptName='npc_warp_gate' WHERE entry IN(22471,22472);
 UPDATE creature_template SET ScriptName='npc_fel_cannon' WHERE entry=22443;
+UPDATE gameobject_template SET ScriptName='go_fel_cannonball_stack_trap' WHERE entry IN(185862);
+UPDATE creature_template SET ScriptName='npc_frequency_scanner' WHERE entry=21760;
+UPDATE gameobject_template SET ScriptName='go_aura_generator_000' WHERE entry=184926;
+UPDATE creature_template SET ScriptName='npc_skyguard_aether_tech' WHERE entry IN(23241);
+UPDATE creature_template SET ScriptName='npc_skyguard_ranger' WHERE entry IN(23242);
+UPDATE creature_template SET ScriptName='npc_skyguard_lieutenant' WHERE entry IN(23430);
+UPDATE creature_template SET ScriptName='npc_aether_tech_vendor' WHERE entry IN(23243,23244,23245);
+UPDATE creature_template SET ScriptName='npc_bashir_flesh_fiend' WHERE entry IN(23249);
+UPDATE creature_template SET ScriptName='npc_disruptor_tower' WHERE entry IN(23250);
+UPDATE creature_template SET ScriptName='npc_grand_collector' WHERE entry IN(23333);
 
 /* BLASTED LANDS */
 
@@ -457,9 +468,11 @@ UPDATE creature_template SET ScriptName='npc_naturalist_bite' WHERE entry IN(178
 /* THE UNDERBOG */
 UPDATE creature_template SET ScriptName='mob_underbog_mushroom' WHERE entry=17990;
 UPDATE creature_template SET ScriptName='boss_hungarfen' WHERE entry=17770;
+UPDATE creature_template SET ScriptName='boss_swamplord_muselek' WHERE entry=17826;
 UPDATE instance_template SET ScriptName='instance_underbog' WHERE map=546;
 INSERT INTO scripted_areatrigger VALUES
 (4302,'at_ghazan_surface');
+UPDATE creature_template SET ScriptName='boss_black_stalker' WHERE entry=17882;
 
 /* THE STEAMVAULT */
 UPDATE instance_template SET ScriptName='instance_steam_vault' WHERE map=545;
@@ -648,8 +661,14 @@ UPDATE creature_template SET ScriptName='npc_anchorite_barada' WHERE entry=22431
 UPDATE creature_template SET ScriptName='npc_colonel_jules' WHERE entry=22432;
 UPDATE creature_template SET ScriptName='npc_magister_aledis' WHERE entry=20159;
 UPDATE creature_template SET ScriptName='npc_living_flare' WHERE entry=24916;
-UPDATE creature_template SET ScriptName='npc_danath_trollbane' WHERE `Entry`='16819';
-UPDATE creature_template SET ScriptName='npc_nazgrel' WHERE `Entry`='3230';
+UPDATE creature_template SET ScriptName='npc_danath_trollbane' WHERE `entry`='16819';
+UPDATE creature_template SET ScriptName='npc_nazgrel' WHERE `entry`='3230';
+UPDATE creature_template SET ScriptName='npc_vindicator_sedai' WHERE entry=17404;
+UPDATE creature_template SET ScriptName='npc_krun' WHERE entry=17405;
+UPDATE creature_template SET ScriptName='npc_laughing_skull' WHERE entry=17418;
+UPDATE creature_template SET ScriptName='npc_maghar_escort' WHERE entry=17417;
+DELETE FROM scripted_event_id WHERE id=10745;
+INSERT INTO scripted_event_id VALUES(10745,'npc_vindicator_sedai');
 
 /* HILLSBRAD FOOTHILLS */
 
@@ -806,7 +825,7 @@ INSERT INTO scripted_areatrigger VALUES
 (4497,'at_commander_dawnforge');
 UPDATE gameobject_template SET ScriptName='go_manaforge_control_console' WHERE entry IN (183770,183956,184311,184312);
 UPDATE creature_template SET ScriptName='npc_manaforge_control_console' WHERE entry IN (20209,20417,20418,20440);
-UPDATE `creature_template` SET `ScriptName`='npc_manaforge_spawn' WHERE `Entry` IN(20218,20438,20439,20460);
+UPDATE creature_template SET ScriptName='npc_manaforge_spawn' WHERE entry IN(20218,20438,20439,20460);
 UPDATE creature_template SET ScriptName='npc_commander_dawnforge' WHERE entry=19831;
 UPDATE creature_template SET ScriptName='npc_bessy' WHERE entry=20415;
 UPDATE creature_template SET ScriptName='npc_maxx_a_million' WHERE entry=19589;
@@ -815,6 +834,8 @@ UPDATE creature_template SET ScriptName='npc_protectorate_demolitionist' WHERE e
 UPDATE creature_template SET ScriptName='npc_captured_vanguard' WHERE entry=20763;
 UPDATE creature_template SET ScriptName='npc_drijya' WHERE entry=20281;
 UPDATE creature_template SET ScriptName='npc_dimensius' WHERE entry=19554;
+UPDATE creature_template SET ScriptName='npc_saeed' WHERE entry=20985;
+UPDATE creature_template SET ScriptName='npc_void_conduit' WHERE entry=20899;
 UPDATE creature_template SET ScriptName='npc_salhadaar' WHERE entry=20454;
 UPDATE creature_template SET ScriptName='npc_energy_ball' WHERE entry=20769;
 UPDATE creature_template SET ScriptName='npc_scrap_reaver' WHERE entry IN(19849);
@@ -2456,7 +2477,47 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1015029,'For the Deceiver! For Kil''jaeden!',0,0,0,0,'Trelopades on aggro 1'),
 (-1015030,'Only flesh and blood...',0,0,0,0,'Trelopades on aggro 2'),
 (-1015031, 'Onward, Scryers!  Show Illidan\'s lackeys the temper of our steel!', 0, 1, 0, 0, 'Onward Scryers'),
-(-1015032, 'Forward, vindicators!  Drive these demons from our sacred temple!', 0, 1, 0, 0, 'Forward vindicators');
+(-1015032, 'Forward, vindicators!  Drive these demons from our sacred temple!', 0, 1, 0, 0, 'Forward vindicators'),
+(-1015033,'You heard the fleshling! MOVE OUT!',0,0,0,1,'Captain Saeed SAY_SAEED_START'),
+(-1015034,'Tell me when you are ready, $N. We will attack on your command.',0,0,0,0,'Captain Saeed SAY_SAEED_PREPARE'),
+(-1015035,'It''s now or never, soldiers! Let''s do this! For K''aresh! For the Protectorate!',0,0,0,0,'Captain Saeed SAY_SAEED_ATTACK'),
+(-1015036,'%s laughs.',0,2,0,0,'Dimensius EMOTE_DIMENSIUS_LAUGH'),
+(-1015037,'The time for your destruction has finally come, Dimensius!',0,0,0,0,'Captain Saeed SAY_SAEED_TAUNT'),
+(-1015038,'We are victorious! Dimensius is no more! Report back to the Professor, hero.',0,0,0,0,'Protectorate Avenger SAY_AVENGER_QUEST_COMPLETE'),
+(-1015039,'Rangers, listen up! We stand ready to take the pain directly to the heathen Bash''ir devils.  Our mission is simple. Hold the area long enough to get accurate readings on their new technology. ',0,0,0,5,'Bashir Intro - Lieutenant 1'),
+(-1015040,'But don''t underestimate our enemies.  We are invading them.  We are taking the fight to them.  We have them backed into a corner and they will strike back.',0,0,0,5,'Bashir Intro - Lieutenant 2'),
+(-1015041,'We are Skyguard!  This is what we are trained to do.  We do not retreat, we do not surrender.  We will see our mission through even if it means death! We will secure that information or we will die on the field of battle.',0,0,0,0,'Bashir Intro - Lieutenant 3'),
+(-1015042,'Anyone have any questions?',0,0,0,6,'Bashir Intro - Lieutenant 4'),
+(-1015043,'Look man, I only need to know one thing, where they are.',0,0,0,1,'Bashir Intro - Ranger 1'),
+(-1015044,'You are about to find out!',0,0,0,0,'Bashir Intro - Lieutenant 5'),
+(-1015045,'Skyguard Rangers, MOUNT UP!!',0,0,0,0,'Bashir Intro - Lieutenant 6'),
+(-1015046,'A discovery!  I need aid with these measurements... I''ll send a signal to my colleague!',0,0,0,0,'Bashir - Tech Phase 1 end'),
+(-1015047,'This forge can make unstable concoctions... to study them, I need Apexis Shards!',0,0,0,0,'Bashir - Assistant arrived'),
+(-1015048,'The disruptor towers over charged the crystalforge, and uncovered more secrets!  Hold them!  Hold them while we gather new data!',0,0,0,0,'Bashir - Tech Phase 2 end'),
+(-1015049,'I am growing amazing crystals from these waters.  For catalysts, I must have more Apexis shards!',0,0,0,0,'Bashir - Adept arrived'),
+(-1015050,'They called me down from K''aresh to deal with this band of misfits?  Unbelievable!  Prepare to be collected!',0,0,0,0,'Bashir - Collector spawned'),
+(-1015051,'Enough!  I will take care of these fools myself!',0,0,0,0,'Bashir - Collector attacks'),
+(-1015052,'At last!  The information we seek!  Gather quickly, skyguard.  We must soon return to headquarters with our findings!',0,0,0,0,'Bashir - Tech Phase 3 end'),
+(-1015053,'Its properties are amazing!  Provide me with Apexis crystals, and I''ll form weapons and armor within crystal geodes.',0,0,0,0,'Bashir - Master arrived'),
+(-1015054,'Our studies are complete!  Well fought!  Headquarters will pour over our gained measurements and, with luck, uncover the Bash''ir''s intentions.  Now, to the skies!',0,0,0,0,'Bashir - Tech Event end'),
+(-1015055,'LET''S ROCK!',0,0,0,0,'Bashir Ranger - On Aggro 1'),
+(-1015056,'Heads up!',0,0,0,0,'Bashir Ranger - On Aggro 2'),
+(-1015057,'Let''s go!',0,0,0,0,'Bashir Ranger - On Aggro 3'),
+(-1015058,'Who''s next?',0,0,0,0,'Bashir Ranger - On Aggro 4'),
+(-1015059,'Come on!',0,0,0,0,'Bashir Ranger - On Aggro 5'),
+(-1015060,'Oh, you want some of this?',0,0,0,0,'Bashir Ranger - On Aggro 6'),
+(-1015061,'Come on!',0,0,0,0,'Bashir Ranger - On Aggro 7'),
+(-1015062,'The enemy is upon us!  Stand your ground!',0,0,0,0,'Vindicator on aggro 1'),
+(-1015063,'Illidan\'s lapdogs!  Destroy them all!',0,0,0,0,'Magister on aggro 1'),
+(-1015064,'Come closer, demon!  Death awaits!',0,0,0,0,'Magister on aggro 2'),
+(-1015065,'I\'ve a message for your master, scum!',0,0,0,0,'Magister on aggro 3'),
+
+(-1015066,'Do not return, draenei scum. Next time we won\'t spare your life, unarmed or not!',0,0,0,0,'Maghar escort SAY'),
+(-1015067,'I\'ve failed... peace is impossible.',0,0,0,0,'Vindicator Sedai SAY 1'),
+(-1015068,'What in the Light\'s name...?',0,0,0,0,'Vindicator Sedai SAY 2'),
+(-1015069,'Fel orcs!',0,0,0,0,'Vindicator Sedai SAY 3'),
+(-1015070,'The cycle of bloodshed is unending... Is there nothing I can do?',0,0,0,0,'Vindicator Sedai SAY 4'),
+(-1015071,'You can die!',0,0,0,0,'Krun Spinebreaker SAY 1');
 -- -1 020 000 WOTLK texts
 
 -- -1 033 000 SHADOWFANG KEEP
@@ -3666,6 +3727,14 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1545024,'Enjoy the storm, warm bloods!',0,1,0,0,'thespia SAY_CLOUD');
 
 -- -1 546 000 THE UNDERBOG
+INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
+(-1546000, 'I will end this quickly...', 10385, 1, 0, 0, 'MUSELEK AGGRO_1'),
+(-1546001, 'We fight to the death!', 10384, 1, 0, 0, 'MUSELEK AGGRO_2'),
+(-1546002, 'Acalah pek ecta!', 10386, 1, 0, 0, 'MUSELEK AGGRO_3'),
+(-1546003, 'Beast! Obey me! Kill them at once!', 10383, 1, 0, 0, 'MUSELEK COMMAND'),
+(-1546004, 'Krypta!', 10387, 1, 0, 0, 'MUSELEK SLAY_1'),
+(-1546005, 'It is finished.', 10388, 1, 0, 0, 'MUSELEK SLAY_2'),
+(-1546006, 'Well... done...', 10389, 1, 0, 0, 'MUSELEK DEATH');
 
 -- -1 547 000 THE SLAVE PENS
 INSERT INTO script_texts(entry, content_default, sound, type, language, emote, comment) VALUES
@@ -3909,7 +3978,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1554021,'I\'m looking for a team player...',11197,1,0,0,'pathaleon SAY_DOMINATION_1'),
 (-1554022,'You work for me now!',11198,1,0,0,'pathaleon SAY_DOMINATION_2'),
 (-1554023,'Time to supplement my work force.',11196,1,0,0,'pathaleon SAY_SUMMON'),
-(-1554024,'I prefeer to be hands-on...',11199,1,0,0,'pathaleon SAY_ENRAGE'),
+(-1554024,'I prefer to be hands-on...',11199,1,0,0,'pathaleon SAY_ENRAGE'),
 (-1554025,'A minor inconvenience.',11194,1,0,0,'pathaleon SAY_SLAY_1'),
 (-1554026,'Looks like you lose.',11195,1,0,0,'pathaleon SAY_SLAY_2'),
 (-1554027,'The project will... continue.',11200,1,0,0,'pathaleon SAY_DEATH'),
@@ -4548,7 +4617,9 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1585027,'Master... grant me strength.',12419,1,0,0,'kaelthas MT SAY_TIRED'),
 (-1585028,'Do not... get too comfortable.',12420,1,0,0,'kaelthas MT SAY_RECAST_GRAVITY'),
 (-1585029,'My demise accomplishes nothing! The Master will have you! You will drown in your own blood! This world shall burn! Aaaghh!',12421,1,0,0,'kaelthas MT SAY_DEATH'),
-(-1585030,'Oh no, he was merely an instrument, a stepping stone to a much larger plan! It has all led to this, and this time, you will not interfere!',0,1,0,0,'kaelthas MT SAY_INTRO_2');
+(-1585030,'Oh no, he was merely an instrument, a stepping stone to a much larger plan! It has all led to this, and this time, you will not interfere!',0,1,0,0,'kaelthas MT SAY_INTRO_2'),
+
+(-1585031,'%s overloads!',0,3,0,0,'vexallus EMOTE_OVERLOAD');
 
 -- -1 999 900 EXAMPLE TEXT
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -6412,7 +6483,7 @@ INSERT INTO script_waypoint VALUES
 (16812,0,1,-10875.6,-1779.58,90.478,0,0,0,''),
 (16812,0,2,-10887.4,-1779.26,90.476,0,0,0,''),
 (16812,0,3,-10894.6,-1780.67,90.476,0,0,0,''),
-(16812,0,4,-10895,-1782.04,90.476,0,2500,0,'Begin Speech after this'),
+(16812,0,4,-10895,-1782.04,90.476,4.633,2500,0,'Begin Speech after this'),
 (16812,0,5,-10894.6,-1780.67,90.476,0,0,0,'Resume walking (back to spawn point now) after speech'),
 (16812,0,6,-10887.4,-1779.26,90.476,0,0,0,''),
 (16812,0,7,-10875.6,-1779.58,90.478,0,0,0,''),
@@ -7287,6 +7358,47 @@ INSERT INTO script_waypoint VALUES
 (20802,0,11,3861.24,2344.89,115.201,0,0,0,''),
 (20802,0,12,3872.46,2323.11,114.671,0,0,0,'escort paused - SAY_DISRUPTOR'),
 (20802,0,13,3863.74,2349.79,115.382,0,0,0,'SAY_FINISH_2'),
+(20985,0,1,4264.29,2102.7,140.839,6.108,0,0,''),
+(20985,0,2,4257.76,2099.95,143.481,0,0,0,''),
+(20985,0,3,4249.97,2105.68,144.083,0,0,0,''),
+(20985,0,4,4246.45,2111.34,144.552,0,0,0,''),
+(20985,0,5,4244.12,2117.8,145.031,0,0,0,''),
+(20985,0,6,4233.49,2118.49,149.54,0,0,0,''),
+(20985,0,7,4221.95,2117.72,153.124,0,0,0,''),
+(20985,0,8,4209.7,2114.4,155.606,0,0,0,''),
+(20985,0,9,4204.6,2110.8,160.063,0,0,0,''),
+(20985,0,10,4180.8,2081.76,161.666,0,0,0,''),
+(20985,0,11,4174.75,2070.9,164.385,0,0,0,''),
+(20985,0,12,4174.37,2058.48,169.121,0,0,0,''),
+(20985,0,13,4178.27,2051.2,172.75,0,0,0,''),
+(20985,0,14,4182.15,2044.52,176.056,0,0,0,''),
+(20985,0,15,4185.74,2035.18,179.999,0,0,0,''),
+(20985,0,16,4186.65,2023.36,184.971,0,0,0,''),
+(20985,0,17,4185.54,2014.54,189.862,0,0,0,''),
+(20985,0,18,4182.17,2006.35,195.371,0,0,0,''),
+(20985,0,19,4177.94,1999.77,200.164,0,0,0,''),
+(20985,0,20,4173.38,1994.37,203.833,0,0,0,''),
+(20985,0,21,4168.69,1989.66,206.921,0,0,0,''),
+(20985,0,22,4162.75,1984.9,209.942,0,0,0,''),
+(20985,0,23,4157.4,1981.32,212.398,0,0,0,''),
+(20985,0,24,4150.51,1977.62,215.067,0,0,0,''),
+(20985,0,25,4144.56,1974.64,217.155,0,0,0,''),
+(20985,0,26,4134.58,1969.06,220.354,0,0,0,''),
+(20985,0,27,4117.35,1985,223.929,0,0,0,''),
+(20985,0,28,4110.04,1994.4,226.897,0,0,0,''),
+(20985,0,29,4104.33,2005.52,229.987,0,0,0,''),
+(20985,0,30,4097.22,2020.26,234.464,0,0,0,''),
+(20985,0,31,4083.09,2037.36,240.329,0,0,0,''),
+(20985,0,32,4070.09,2051.12,246.065,0,0,0,''),
+(20985,0,33,4057.96,2062.31,250.666,0,0,0,''),
+(20985,0,34,4034.9,2077.34,254.478,0,0,0,''),
+(20985,0,35,4002.98,2097.8,254.212,0,0,0,''),
+(20985,0,36,3992.89,2088.86,254.33,4.073,0,0,''),
+(20985,0,37,3989.38,2083.54,256.337,0,0,0,''),
+(20985,0,38,3984.63,2077.76,256.405,0,0,0,''),
+(20985,0,39,3978.75,2066.79,256.405,0,0,0,''),
+(20985,0,40,3959.94,2039.18,257.63,0,0,0,''),
+(20985,0,41,3955.86,2030.96,257.812,4.133,0,0,''),
 (21027,0,0,-2638.89,1358.96,35.9607,0,0,0,''),
 (21027,0,1,-2652.62,1354.46,34.8615,0,0,0,''),
 (21027,0,2,-2670.7,1348.18,34.446,0,0,0,''),
@@ -8284,24 +8396,33 @@ INSERT INTO script_waypoint VALUES
 (23383,0,16,-4178.77,3090.1,323.955,0,0,0,''),
 (23383,0,17,-4177.96,3093.87,323.839,0,5000,0,'SAY_ESCORT_COMPLETE'),
 (23383,0,18,-4166.25,3106.51,320.961,0,0,0,''),
-(23383,0,19,-3718.81,3787.24,302.89,0,5000,0,'SAY_ESCORT_START'),
-(23383,0,20,-3714.44,3780.35,302.075,0,0,0,''),
-(23383,0,21,-3698.33,3788.04,302.171,0,0,0,''),
-(23383,0,22,-3679.36,3780.25,295.077,0,0,0,''),
-(23383,0,23,-3654.82,3770.43,301.291,0,0,0,'ambush'),
-(23383,0,24,-3656.07,3757.31,301.985,0,3000,0,'SAY_AMBUSH_END'),
-(23383,0,25,-3648.83,3743.07,302.173,0,0,0,''),
-(23383,0,26,-3659.16,3714.94,281.576,0,5000,0,'SAY_ESCORT_COMPLETE'),
-(23383,0,27,-3652.71,3704.63,280.646,0,0,0,''),
-(23383,0,28,-3671.51,3385.36,312.956,0,5000,0,'SAY_ESCORT_START'),
-(23383,0,29,-3677.74,3379.05,312.136,0,0,0,''),
-(23383,0,30,-3667.52,3366.45,312.233,0,0,0,''),
-(23383,0,31,-3672.87,3343.52,304.994,0,0,0,'ambush'),
-(23383,0,32,-3679.35,3319.01,311.419,0,3000,0,'SAY_AMBUSH_END'),
-(23383,0,33,-3692.93,3318.69,312.081,0,0,0,''),
-(23383,0,34,-3704.08,3309.56,312.233,0,0,0,''),
-(23383,0,35,-3733.99,3315.77,292.093,0,5000,0,'SAY_ESCORT_COMPLETE'),
-(23383,0,36,-3730.11,3326.87,290.705,0,0,0,''),
+(23383,0,19,-3716.813,3784.913,302.7957,0,5000,0,'SAY_ESCORT_START'),
+(23383,0,20,-3713.891,3785.578,302.9066,0,0,0,''),
+(23383,0,21,-3701.317,3788.437,302.1635,0,0,0,''),
+(23383,0,22,-3691.435,3784.761,298.6149,0,0,0,''),
+(23383,0,23,-3679.718,3780.137,295.1252,0,0,0,''),
+(23383,0,24,-3678.255,3779.54,294.927,0,0,0,''),
+(23383,0,25,-3665.416,3774.3,296.5848,0,0,0,''),
+(23383,0,26,-3652.483,3769.122,301.5699,0,0,0,'ambush'),
+(23383,0,27,-3655.307,3758.888,301.9366,0,3000,0,'SAY_AMBUSH_END'),
+(23383,0,28,-3647.862,3745.505,302.1535,0,0,0,''),
+(23383,0,29,-3653.096,3731.482,293.2672,0,0,0,''),
+(23383,0,30,-3658.584,3718.315,283.3129,0,0,0,''),
+(23383,0,31,-3660.324,3713.304,281.269,0,5000,0,'SAY_ESCORT_COMPLETE'),
+(23383,0,32,-3652.71,3704.63,280.646,0,0,0,''),
+(23383,0,33,-3669.901,3388.204,312.9493,0,5000,0,'SAY_ESCORT_START'),
+(23383,0,34,-3672.78,3371.396,312.1327,0,0,0,''),
+(23383,0,35,-3666.887,3367.723,312.2306,0,0,0,''),
+(23383,0,36,-3670.773,3352.389,306.7109,0,0,0,''),
+(23383,0,37,-3673.615,3342.424,304.9935,0,0,0,'ambush'),
+(23383,0,38,-3679.221,3318.798,311.436,0,3000,0,'SAY_AMBUSH_END'),
+(23383,0,39,-3687.093,3318.624,311.8744,0,0,0,''),
+(23383,0,40,-3697.118,3315.984,312.1466,0,0,0,''),
+(23383,0,41,-3703.314,3309.11,312.2234,0,0,0,''),
+(23383,0,42,-3713.242,3311.646,307.328,0,0,0,''),
+(23383,0,43,-3724.522,3313.627,297.02,0,0,0,''),
+(23383,0,44,-3734.422,3315.625,292.3213,0,5000,0,'SAY_ESCORT_COMPLETE'),
+(23383,0,45,-3730.11,3326.87,290.705,0,0,0,''),
 (24358,0,0,121.194,1645.62,42.021,0,0,0,''),
 (24358,0,1,132.051,1642.18,42.021,0,5000,0,'SAY_AT_GONG'),
 (24358,0,2,120.671,1636.35,42.415,0,0,0,''),

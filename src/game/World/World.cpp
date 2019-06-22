@@ -1018,11 +1018,17 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading Creature Conditional Spawn Data...");  // must be after LoadCreatureTemplates and before LoadCreatures
     sObjectMgr.LoadCreatureConditionalSpawn();
 
+    sLog.outString("Loading Creature Spawn Entry Data..."); // must be before LoadCreatures
+    sObjectMgr.LoadCreatureSpawnEntry();
+
     sLog.outString("Loading Creature Data...");
     sObjectMgr.LoadCreatures();
 
     sLog.outString("Loading SpellsScriptTarget...");
     sSpellMgr.LoadSpellScriptTarget();                      // must be after LoadCreatureTemplates, LoadCreatures and LoadGameobjectInfo
+
+    sLog.outString("Generating SpellTargetMgr data...\n");
+    SpellTargetMgr::Initialize(); // must be after LoadSpellScriptTarget
 
     sLog.outString("Loading Creature Addon Data...");
     sObjectMgr.LoadCreatureAddons();                        // must be after LoadCreatureTemplates() and LoadCreatures()

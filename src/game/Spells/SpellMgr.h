@@ -25,7 +25,7 @@
 #include "Common.h"
 #include "Globals/SharedDefines.h"
 #include "Spells/SpellAuraDefines.h"
-#include "Spells/SpellTargetDefines.h"
+#include "Spells/SpellTargets.h"
 #include "Server/DBCStructure.h"
 #include "Server/DBCStores.h"
 #include "Entities/DynamicObject.h"
@@ -35,6 +35,7 @@
 #include "Entities/Player.h"
 #include "Spells/SpellAuras.h"
 #include "Server/SQLStorages.h"
+#include "Spells/SpellEffectDefines.h"
 
 #include <map>
 
@@ -140,36 +141,6 @@ inline bool IsAuraApplyEffects(SpellEntry const* entry, SpellEffectIndexMask mas
     return !empty;
 }
 
-inline bool IsDestinationOnlyEffect(SpellEntry const* spellInfo, SpellEffectIndex effIdx)
-{
-    switch (spellInfo->Effect[effIdx])
-    {
-        case SPELL_EFFECT_TRIGGER_SPELL:
-        case SPELL_EFFECT_DUMMY: // special - can be either
-        case SPELL_EFFECT_TRIGGER_MISSILE:
-        {
-            auto& targetA = SpellTargetInfoTable[spellInfo->EffectImplicitTargetA[effIdx]];
-            if (spellInfo->EffectImplicitTargetB[effIdx] == 0)
-                if (targetA.type == TARGET_TYPE_LOCATION)
-                    return true;
-
-            return false;
-        }
-        case SPELL_EFFECT_TRIGGER_SPELL_2: // only one in wotlk and tbc - possibly investigate further
-        case SPELL_EFFECT_PERSISTENT_AREA_AURA:
-        case SPELL_EFFECT_TRANS_DOOR:
-        case SPELL_EFFECT_SUMMON:
-        case SPELL_EFFECT_SUMMON_DEAD_PET:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT1:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT2:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT3:
-        case SPELL_EFFECT_SUMMON_OBJECT_SLOT4:
-            return true;
-        default:
-            return false;
-    }
-}
-
 inline bool IsSpellAppliesAura(SpellEntry const* spellInfo, uint32 effectMask = ((1 << EFFECT_INDEX_0) | (1 << EFFECT_INDEX_1) | (1 << EFFECT_INDEX_2)))
 {
     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
@@ -241,7 +212,7 @@ inline bool IsAuraRemoveOnStacking(SpellEntry const* spellInfo, int32 effIdx) //
 
 inline bool IsAllowingDeadTarget(SpellEntry const* spellInfo)
 {
-    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) || spellInfo->Targets & (TARGET_FLAG_PVP_CORPSE | TARGET_FLAG_UNIT_CORPSE | TARGET_FLAG_CORPSE_ALLY);
+    return spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD) || spellInfo->HasAttribute(SPELL_ATTR_PASSIVE) || spellInfo->Targets & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_UNIT_DEAD | TARGET_FLAG_CORPSE_ALLY);
 }
 
 inline bool IsSealSpell(SpellEntry const* spellInfo)
@@ -414,24 +385,62 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
 
     switch (spellInfo->Id)
     {
+        case 3417:          // Thrash
+        case 8876:          // Thrash
+        case 9205:          // Hate to Zero (Hate to Zero)
         case 9460:          // Corrosive Ooze
+        case 10095:         // Hate to Zero (Hate to Zero)
+        case 11838:         // Hate to Zero (Hate to Zero)
+        case 12546:         // Spitelash (Spitelash)
+        case 12787:         // Thrash
+        case 13767:         // Hate to Zero (Hate to Zero)
+        case 16140:         // Exploding Cadaver (Exploding Cadaver)
         case 17327:         // Spirit Particles
+        case 18943:         // Double Attack
+        case 18950:         // Invisibility and Stealth Detection
+        case 19194:         // Double Attack
+        case 19195:         // Hate to 90% (Hate to 90%)
+        case 19396:         // Incinerate (Incinerate)
+        case 19626:         // Fire Shield (Fire Shield)
+        case 19640:         // Pummel (Pummel)
+        case 19817:         // Double Attack
+        case 19818:         // Double Attack
+        case 21857:         // Lava Shield
         case 22735:         // Spirit of Runn Tum
         case 22856:         // Ice Lock (Guard Slip'kik ice trap in Dire Maul)
+        case 25592:         // Hate to Zero (Hate to Zero)
         case 28126:         // Spirit Particles (purple)
         case 29406:         // Shadowform
+        case 29526:         // Hate to Zero (Hate to Zero)
         case 31332:         // Dire Wolf Visual
         case 31690:         // Putrid Mushroom
         case 32007:         // Mo'arg Engineer Transform Visual
+        case 33460:         // Inhibit Magic
         case 35596:         // Power of the Legion
         case 35841:         // Draenei Spirit Visual
         case 35850:         // Draenei Spirit Visual 2
+        case 37497:         // Shadowmoon Ghost Invisibility (Ghostrider of Karabor in SMV) 
         case 39311:         // Scrapped Fel Reaver transform aura that is never removed even on evade
-        case 39918:         // visual auras in Soulgrinder script
-        case 39920:
+        case 39918:         // Soulgrinder Ritual Visual ( in progress)
+        case 39920:         // Soulgrinder Ritual Visual ( beam)
+        case 41634:         // Invisibility and Stealth Detection
             return false;
         default:
             return true;
+    }
+}
+
+inline bool IsChanneledDelayedSpell(SpellEntry const* spellInfo)
+{
+    if (!spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNELED_1) && !spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNELED_2))
+        return false;
+
+    switch (spellInfo->Id)
+    {
+        case 39238: // Fumping
+        case 39246:
+            return true;
+        default: return false;
     }
 }
 
@@ -783,9 +792,23 @@ inline bool IsUnitTargetTarget(uint32 target)
     switch (target)
     {
         case TARGET_UNIT_ENEMY:
-        case TARGET_UNIT: return true;
+        case TARGET_UNIT:
+        case TARGET_UNIT_FRIEND:
+        case TARGET_UNIT_FRIEND_CHAIN_HEAL:
+            return true;
         default: return false;
     }
+}
+
+inline bool HasMissingTargetFromClient(SpellEntry const* spellInfo)
+{
+    if (IsUnitTargetTarget(spellInfo->EffectImplicitTargetA[EFFECT_INDEX_0]))
+        return false;
+
+    if (IsUnitTargetTarget(spellInfo->EffectImplicitTargetA[EFFECT_INDEX_1]) || IsUnitTargetTarget(spellInfo->EffectImplicitTargetA[EFFECT_INDEX_2]))
+        return true;
+
+    return false;
 }
 
 inline bool IsScriptTarget(uint32 target)
@@ -926,6 +949,15 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
         case 34700: // Allergic Reaction - Neutral target type - needs to be a debuff
         case 36717: // Neutral spells with SPELL_ATTR_EX3_TARGET_ONLY_PLAYER as a filter
         case 38829:
+        case 40055: // Introspection - Apexis Relic
+        case 40165:
+        case 40166:
+        case 40167:
+        case 36812: // Soaring
+        case 37910: // overriding because immunity is preventing the spellcast - maybe neutral spells should be judged like negatives?
+        case 37940:
+        case 37962:
+        case 37968:
             return false;
     }
 
@@ -1324,6 +1356,7 @@ inline bool IsIgnoreLosSpell(SpellEntry const* spellInfo)
         case 31630:                                 // Green Beam
         case 31631:                                 // Green Beam
         case 24742:                                 // Magic Wings
+        case 40639:                                 // Arcane Beam - Channel target inside gameobject
         case 42867:                                 // both need LOS, likely TARGET_UNIT should use LOS ignore from normal radius, not per-effect radius WIP
             return true;
         default:
@@ -1577,6 +1610,10 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
             return true; // No similarities
     }
 
+    // Special case for potions
+    if (entry->SpellFamilyName == SPELLFAMILY_POTION || entry2->SpellFamilyName == SPELLFAMILY_POTION)
+        return true;
+
     // Special rule for food buffs
     if (GetSpellSpecific(entry->Id) == SPELL_WELL_FED && GetSpellSpecific(entry2->Id) != SPELL_WELL_FED)
         return true;
@@ -1799,12 +1836,18 @@ inline bool IsSimilarExistingAuraStronger(const SpellAuraHolder* holder, const S
     if (!entry || !entry2)
         return false;
 
+    // Already compared effects masks to avoid re-entrance
+    uint32 effectmask1 = 0;
+    uint32 effectmask2 = 0;
+
     for (uint32 e = EFFECT_INDEX_0; e < MAX_EFFECT_INDEX; ++e)
     {
         for (uint32 e2 = EFFECT_INDEX_0; e2 < MAX_EFFECT_INDEX; ++e2)
         {
-            if (IsSimilarAuraEffect(entry, e, entry2, e2))
+            if (IsSimilarAuraEffect(entry, e, entry2, e2) && !(effectmask1 & (1 << e)) && !(effectmask2 & (1 << e2)))
             {
+                effectmask1 |= (1 << e);
+                effectmask2 |= (1 << e2);
                 Aura* aura1 = holder->GetAuraByEffectIndex(SpellEffectIndex(e));
                 Aura* aura2 = existing->GetAuraByEffectIndex(SpellEffectIndex(e2));
                 int32 value = aura1 ? (aura1->GetModifier()->m_amount / int32(aura1->GetStackAmount())) : 0;
@@ -1830,12 +1873,18 @@ inline bool IsSimilarExistingAuraStronger(const Unit* caster, const SpellEntry* 
     if (!entry || !entry2)
         return false;
 
+    // Already compared effects masks to avoid re-entrance
+    uint32 effectmask1 = 0;
+    uint32 effectmask2 = 0;
+
     for (uint32 e = EFFECT_INDEX_0; e < MAX_EFFECT_INDEX; ++e)
     {
         for (uint32 e2 = EFFECT_INDEX_0; e2 < MAX_EFFECT_INDEX; ++e2)
         {
-            if (IsSimilarAuraEffect(entry, e, entry2, e2))
+            if (IsSimilarAuraEffect(entry, e, entry2, e2) && !(effectmask1 & (1 << e)) && !(effectmask2 & (1 << e2)))
             {
+                effectmask1 |= (1 << e);
+                effectmask2 |= (1 << e2);
                 Aura* aura = existing->GetAuraByEffectIndex(SpellEffectIndex(e2));
                 int32 value = entry->CalculateSimpleValue(SpellEffectIndex(e));
                 int32 value2 = aura ? (aura->GetModifier()->m_amount / int32(aura->GetStackAmount())) : 0;
@@ -2382,10 +2431,10 @@ class SpellMgr
         // Reverse engineered from binary: do not alter
         static inline SpellFaction GetSpellFactionAtClient(const SpellEntry &entry, SpellEffectIndexMask mask = EFFECT_MASK_ALL)
         {
-            if (entry.Targets & TARGET_FLAG_UNIT_TARGET)
+            if (entry.Targets & TARGET_FLAG_UNIT_ALLY)
                 return SPELL_HELPFUL;
 
-            if (entry.Targets & TARGET_FLAG_OBJECT_UNK)
+            if (entry.Targets & TARGET_FLAG_UNIT_ENEMY)
                 return SPELL_HARMFUL;
 
             for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
@@ -2559,8 +2608,6 @@ class SpellMgr
             return (spellId1 != spellId2 && GetFirstSpellInChain(spellId1) == GetFirstSpellInChain(spellId2));
         }
 
-        bool IsNoStackSpellDueToSpellAndCastItem(SpellAuraHolder const* spellHolder1, SpellAuraHolder const* spellHolder2) const;
-        bool IsNoStackSpellDueToSpell(SpellEntry const* spellInfo_1, SpellEntry const* spellInfo_2) const;
         bool IsSingleTargetSpell(SpellEntry const* entry) const
         {
             if (entry->HasAttribute(SPELL_ATTR_EX5_SINGLE_TARGET_SPELL))
@@ -2589,6 +2636,44 @@ class SpellMgr
                 return true;
 
             return false;
+        }
+
+        bool IsSpellRankOfSpell(SpellEntry const* spellInfo_1, uint32 spellId_2) const;
+        bool IsSpellStackableWithSpell(const SpellEntry* entry1, const SpellEntry* entry2) const
+        {
+            if (!entry1 || !entry2)
+                return true;
+
+            // Uncancellable spells are expected to be persistent at all times
+            if (entry1->HasAttribute(SPELL_ATTR_CANT_CANCEL) || entry2->HasAttribute(SPELL_ATTR_CANT_CANCEL))
+                return true;
+
+            // Allow stacking passive and active spells
+            if (entry1->HasAttribute(SPELL_ATTR_PASSIVE) != entry2->HasAttribute(SPELL_ATTR_PASSIVE))
+                return true;
+
+            return IsStackableSpell(entry1, entry2);
+        }
+
+        bool IsSpellStackableWithSpellForDifferentCasters(const SpellEntry* entry1, const SpellEntry* entry2) const
+        {
+            if (!entry1 || !entry2)
+                return true;
+
+            // If spells are two instances of the same spell, check attribute first, and formal aura holder stacking rules after
+            if (entry1 == entry2)
+                return (entry1->HasAttribute(SPELL_ATTR_EX3_STACK_FOR_DIFF_CASTERS) || IsSpellStackableWithSpell(entry1, entry2));
+
+            // If spells are in the same spell chain
+            if (IsSpellAnotherRankOfSpell(entry1->Id, entry2->Id))
+            {
+                // Both ranks have attribute, allow stacking
+                if (entry1->HasAttribute(SPELL_ATTR_EX3_STACK_FOR_DIFF_CASTERS) && entry2->HasAttribute(SPELL_ATTR_EX3_STACK_FOR_DIFF_CASTERS))
+                    return true;
+            }
+
+            // By default, check formal aura holder stacking rules
+            return IsSpellStackableWithSpell(entry1, entry2);
         }
 
         uint32 GetSpellBookSuccessorSpellId(uint32 spellId)

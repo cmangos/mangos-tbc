@@ -41,6 +41,7 @@ enum
     SPELL_RAIN_OF_FIRE              = 33617,
     SPELL_RAIN_OF_FIRE_H            = 39363,
     SPELL_BANISH_H                  = 38791,
+    SPELL_SUMMON_VOID_SUMMONER      = 33927,                // serverside unused currently, summoned trigger 19427 probably handles add spawning
     SPELL_SUMMON_VOIDWALKER_A       = 33582,                // the void travelers are summond at portal locations according to DB coords
     SPELL_SUMMON_VOIDWALKER_B       = 33583,
     SPELL_SUMMON_VOIDWALKER_C       = 33584,
@@ -61,16 +62,16 @@ enum
 
 struct SummonLocations
 {
-    float m_fX, m_fY, m_fZ;
+    float m_fX, m_fY, m_fZ, m_fO;
 };
 
 // Summon locations for the void portals
 static const SummonLocations aVorpilLocation[MAX_PORTALS] =
 {
-    { -262.40f, -229.57f, 17.08f},
-    { -260.35f, -297.56f, 17.08f},
-    { -292.05f, -270.37f, 12.68f},
-    { -301.64f, -255.97f, 12.68f}
+    { -282.272f, -240.432f, 12.6839f, 5.58017f},
+    { -261.676f, -297.69f, 17.08701f, 1.36025f},
+    { -291.833f, -268.595f, 12.68254f, 0.047734f},
+    { -303.966f, -255.759f, 12.6834f, 6.01283f}
 };
 
 static const float aVorpilTeleportLoc[3] = { -253.06f, -264.02f, 17.08f};
@@ -131,7 +132,7 @@ struct boss_grandmaster_vorpilAI : public ScriptedAI
 
         // summon the other 4 portals
         for (auto i : aVorpilLocation)
-            m_creature->SummonCreature(NPC_VOID_PORTAL, i.m_fX, i.m_fY, i.m_fZ, 0.0f, TEMPSPAWN_CORPSE_DESPAWN, 0);
+            m_creature->SummonCreature(NPC_VOID_PORTAL, i.m_fX, i.m_fY, i.m_fZ, i.m_fO, TEMPSPAWN_CORPSE_DESPAWN, 0);
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_VORPIL, IN_PROGRESS);

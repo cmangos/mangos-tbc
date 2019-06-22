@@ -647,7 +647,9 @@ enum MovementFlags
     MOVEFLAG_SPLINE_ENABLED     = 0x08000000,               // used for flight paths
     MOVEFLAG_WATERWALKING       = 0x10000000,               // prevent unit from falling through water
     MOVEFLAG_SAFE_FALL          = 0x20000000,               // active rogue safe fall spell (passive)
-    MOVEFLAG_HOVER              = 0x40000000
+    MOVEFLAG_HOVER              = 0x40000000,
+
+    MOVEFLAG_MASK_MOVING_FORWARD = MOVEFLAG_FORWARD | MOVEFLAG_STRAFE_LEFT | MOVEFLAG_STRAFE_RIGHT | MOVEFLAG_FALLING,
 };
 
 // flags that use in movement check for example at spell casting
@@ -1589,8 +1591,8 @@ class Unit : public WorldObject
         bool IsSeatedState() const;
         void SetStandState(uint8 state, bool acknowledge = false);
 
-        void  SetStandFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
-        void  RemoveStandFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
+        void SetStandFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
+        void RemoveStandFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, 2, flags); }
 
         bool IsMounted() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT); }
         uint32 GetMountID() const { return GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID); }
@@ -1805,6 +1807,7 @@ class Unit : public WorldObject
         bool isFrozen() const;
 
         virtual bool IsInWater() const;
+        bool IsInSwimmableWater() const;
         virtual bool IsUnderwater() const;
         bool isInAccessablePlaceFor(Unit const* unit) const;
 
@@ -1871,10 +1874,11 @@ class Unit : public WorldObject
         // if used additional args in ... part then floats must explicitly casted to double
         void SendHeartBeat();
 
-        bool IsMoving() const { return m_movementInfo->HasMovementFlag(movementFlagsMask); }
-        bool IsLevitating() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_LEVITATING); }
-        bool IsWalking() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_WALK_MODE); }
-        bool IsRooted() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT); }
+        bool IsMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
+        bool IsMovingForward() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_MASK_MOVING_FORWARD); }
+        bool IsLevitating() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_LEVITATING); }
+        bool IsWalking() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE); }
+        bool IsRooted() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT); }
 
         virtual void SetLevitate(bool /*enabled*/) {}
         virtual void SetSwim(bool /*enabled*/) {}
@@ -2246,7 +2250,7 @@ class Unit : public WorldObject
         bool HasAuraState(AuraState flag) const { return HasFlag(UNIT_FIELD_AURASTATE, 1 << (flag - 1)); }
         bool HasAuraStateForCaster(AuraState flag, ObjectGuid casterGuid) const;
         void UnsummonAllTotems() const;
-        Unit* SelectMagnetTarget(Unit* victim, Spell* spell = nullptr, SpellEffectIndex eff = EFFECT_INDEX_0);
+        Unit* SelectMagnetTarget(Unit* victim, Spell* spell = nullptr);
 
         int32 SpellBonusWithCoeffs(SpellEntry const* spellProto, int32 total, int32 benefit, int32 ap_benefit, DamageEffectType damagetype, bool donePart);
         int32 SpellBaseDamageBonusDone(SpellSchoolMask schoolMask);
@@ -2303,7 +2307,7 @@ class Unit : public WorldObject
         virtual bool IsImmuneToSpell(SpellEntry const* spellInfo, bool castOnSelf, uint8 effectMask);
         virtual bool IsImmuneToDamage(SpellSchoolMask meleeSchoolMask);
         virtual bool IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index, bool castOnSelf) const;
-        bool IsImmuneToSchool(SpellEntry const* spellInfo) const;
+        bool IsImmuneToSchool(SpellEntry const* spellInfo, uint8 effectMask) const;
 
         uint32 CalcArmorReducedDamage(Unit* pVictim, const uint32 damage);
         void CalculateDamageAbsorbAndResist(Unit* pCaster, SpellSchoolMask schoolMask, DamageEffectType damagetype, const uint32 damage, uint32* absorb, int32* resist, bool canReflect = false, bool canResist = true, bool binary = false);
@@ -2458,6 +2462,9 @@ class Unit : public WorldObject
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
         void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
         void ResetAuraUpdateMask() { m_auraUpdateMask = 0; }
+
+        // WorldObject overrides
+        void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = nullptr) const override;
 
     protected:
 
@@ -2747,7 +2754,7 @@ struct TargetDistanceOrderNear : public std::binary_function<Unit const, Unit co
     // functor for operator ">"
     bool operator()(Unit const* _Left, Unit const* _Right) const
     {
-        return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc != 0);
+        return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
     }
 };
 
@@ -2761,7 +2768,7 @@ struct TargetDistanceOrderFarAway : public std::binary_function<Unit const, Unit
     // functor for operator "<"
     bool operator()(Unit const* _Left, Unit const* _Right) const
     {
-        return !m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc != 0);
+        return !m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
     }
 };
 
@@ -2775,7 +2782,7 @@ struct LowestHPNearestOrder : public std::binary_function<Unit const, Unit const
     bool operator()(Unit const* _Left, Unit const* _Right) const
     {
         if (_Left->GetHealthPercent() == _Right->GetHealthPercent())
-            return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc != 0);
+            return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
         return _Left->GetHealthPercent() < _Right->GetHealthPercent();
     }
 };

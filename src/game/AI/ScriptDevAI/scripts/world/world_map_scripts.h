@@ -30,6 +30,10 @@ enum
     NPC_IRESPEAKER              = 24999,
     NPC_UNLEASHED_HELLION       = 25002,
 
+    // Quest 10594 - Gauging the Resonant Frequency
+    NPC_WYRM_FROM_BEYOND = 21796,
+    NPC_OSCILLATING_FREQUENCY_SCANNER_BUNNY = 21760,
+
     // Quest 10998
     NPC_VIMGOL_VISUAL_BUNNY     = 23040,
 
@@ -82,6 +86,13 @@ enum
     TYPE_HIVE                   = 1,
     MAX_ENCOUNTER               = 2,
     NPC_HIVE_ASHI_DRONES        = 13136,
+
+    TYPE_BASHIR                 = 3,
+
+    // Bashir
+    SPELL_SPIRIT_SPAWN_IN       = 17321,
+    SPELL_ETHEREAL_TELEPORT     = 34427,
+    MOUNT_NETHER_RAY_DISPLAY_ID = 21156,
 };
 
 enum ElementalInvasionIndexes

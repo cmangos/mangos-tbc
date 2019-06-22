@@ -528,6 +528,8 @@ class ObjectMgr
 
         typedef std::unordered_map<uint32, PetCreateSpellEntry> PetCreateSpellMap;
 
+        std::unordered_map<uint32, std::vector<uint32>> const& GetCreatureSpawnEntry() const { return mCreatureSpawnEntryMap; }
+
         void LoadGameobjectInfo();
 
         void PackGroupIds();
@@ -708,6 +710,7 @@ class ObjectMgr
         void LoadCreatureAddons();
         void LoadCreatureClassLvlStats();
         void LoadCreatureConditionalSpawn();
+        void LoadCreatureSpawnEntry();
         void LoadCreatureModelInfo();
         void LoadCreatureModelRace();
         void LoadEquipmentTemplates();
@@ -1216,6 +1219,9 @@ class ObjectMgr
 
         GossipMenusMap      m_mGossipMenusMap;
         GossipMenuItemsMap  m_mGossipMenuItemsMap;
+
+        std::unordered_map<uint32, std::vector<uint32>> mCreatureSpawnEntryMap;
+		
         PointOfInterestMap  mPointsOfInterest;
 
         PetCreateSpellMap   mPetCreateSpell;

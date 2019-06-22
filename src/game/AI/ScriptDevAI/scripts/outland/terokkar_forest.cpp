@@ -1009,6 +1009,11 @@ enum
     GO_PRISONER_CAGE            = 185952,
 
     QUEST_ID_ESCAPE_SKETTIS     = 11085,
+
+    SPELL_PORT_LOCATION_1		= 41136,
+    SPELL_PORT_LOCATION_2		= 41138,
+    SPELL_PORT_LOCATION_3		= 41141,
+    SPELL_CAGE_SUMMON			= 41147
 };
 
 struct npc_skyguard_prisonerAI : public npc_escortAI
@@ -1016,6 +1021,19 @@ struct npc_skyguard_prisonerAI : public npc_escortAI
     npc_skyguard_prisonerAI(Creature* pCreature) : npc_escortAI(pCreature) { Reset(); }
 
     void Reset() override { }
+
+    void JustRespawned() override
+    {
+        m_creature->SetActiveObjectState(true);
+        switch (urand(0, 2))
+        {
+            case 0: DoCastSpellIfCan(m_creature, SPELL_PORT_LOCATION_1); break;
+            case 1: DoCastSpellIfCan(m_creature, SPELL_PORT_LOCATION_2); break;
+            case 2: DoCastSpellIfCan(m_creature, SPELL_PORT_LOCATION_3); break;
+        }
+        DoCastSpellIfCan(m_creature, SPELL_CAGE_SUMMON);
+        m_creature->SetActiveObjectState(false);
+    }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
@@ -1030,7 +1048,7 @@ struct npc_skyguard_prisonerAI : public npc_escortAI
             if (m_creature->GetPositionZ() < 310.0f)
                 SetCurrentWaypoint(19);
             else if (m_creature->GetPositionZ() < 330.0f)
-                SetCurrentWaypoint(28);
+                SetCurrentWaypoint(33);
             else
                 SetCurrentWaypoint(0);
 
@@ -1064,7 +1082,7 @@ struct npc_skyguard_prisonerAI : public npc_escortAI
         {
             case 0:
             case 19:
-            case 28:
+            case 33:
                 DoScriptText(SAY_ESCORT_START, m_creature);
                 break;
 
@@ -1072,24 +1090,24 @@ struct npc_skyguard_prisonerAI : public npc_escortAI
                 m_creature->SummonCreature(NPC_WING_GUARD, -4179.043f, 3081.007f, 328.28f, 4.51f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 m_creature->SummonCreature(NPC_WING_GUARD, -4181.610f, 3081.289f, 328.32f, 4.52f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 break;
-            case 23:
+            case 26:
                 m_creature->SummonCreature(NPC_WING_GUARD, -3653.75f, 3750.8f, 302.101f, 2.11185f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 m_creature->SummonCreature(NPC_WING_GUARD, -3649.91f, 3754.08f, 303.007f, 2.3911f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 break;
-            case 31:
+            case 37:
                 m_creature->SummonCreature(NPC_WING_GUARD, -3680.32f, 3318.81f, 311.501f, 1.55334f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 m_creature->SummonCreature(NPC_WING_GUARD, -3677.91f, 3317.93f, 311.573f, 1.48353f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 break;
 
             case 13:
-            case 24:
-            case 32:
+            case 27:
+            case 38:
                 DoScriptText(SAY_AMBUSH_END, m_creature);
                 break;
 
             case 17:
-            case 26:
-            case 35:
+            case 31:
+            case 44:
                 DoScriptText(SAY_ESCORT_COMPLETE, m_creature);
                 SetRun();
 
@@ -1099,8 +1117,8 @@ struct npc_skyguard_prisonerAI : public npc_escortAI
                 break;
 
             case 18:
-            case 27:
-            case 36:
+            case 32:
+            case 45:
                 m_creature->ForcedDespawn();
                 break;
         }
@@ -1433,17 +1451,16 @@ struct npc_vengeful_harbinger : public ScriptedAI
             DoMeleeAttackIfReady();
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& uiDamage, DamageEffectType /*damagetype*/) override
+    void DamageTaken(Unit* /*pDoneBy*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        if (uiDamage < m_creature->GetHealth())
+        if (damage < m_creature->GetHealth())
             return;
 
-        uiDamage = 0;
+        damage = std::min(damage, m_creature->GetHealth() - 1);
 
         m_creature->CombatStop();
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->DeleteThreatList();
-        m_creature->SetHealth(1);
         m_creature->StopMoving();
         m_creature->ClearComboPointHolders();
         m_creature->RemoveAllAurasOnDeath();

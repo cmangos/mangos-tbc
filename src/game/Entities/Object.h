@@ -35,7 +35,6 @@
 #define INTERACTION_DISTANCE        5.0f
 #define ATTACK_DISTANCE             5.0f
 #define MELEE_LEEWAY                8.0f / 3.0f // Melee attack and melee spell leeway when moving
-#define RANGED_LEEWAY               2.0f        // Ranged leeway when moving
 #define AOE_LEEWAY                  2.0f        // AOE leeway when moving
 #define INSPECT_DISTANCE            28.0f
 #define TRADE_DISTANCE              11.11f
@@ -691,7 +690,7 @@ class WorldObject : public Object
          * @param distance2d        -           distance between the middle-points
          * @param absAngle          -           angle in which the spot is preferred
          */
-        void GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle) const;
+        void GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater = false) const;
         /** Gives a "free" spot for a searcher on the distance (including bounding-radius calculation)
          * @param x, y, z           -           position for the found spot
          * @param bounding_radius   -           radius for the searcher
@@ -722,7 +721,7 @@ class WorldObject : public Object
 
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float& z) const;
-        void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = nullptr) const;
+        virtual void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = nullptr) const;
 
         void MovePositionToFirstCollision(WorldLocation &pos, float dist, float angle);
         void GetFirstCollisionPosition(WorldLocation &pos, float dist, float angle)

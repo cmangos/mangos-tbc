@@ -60,20 +60,20 @@ enum PrisonerActions
     PRISONER_CREDIT,
 };
 
-struct boss_yorAI : public ScriptedAI, public CombatTimerAI
+struct boss_yorAI : public ScriptedAI, public CombatActions
 {
-    boss_yorAI(Creature* creature) : ScriptedAI(creature), CombatTimerAI(YOR_COMBAT_ACTION_MAX)
+    boss_yorAI(Creature* creature) : ScriptedAI(creature), CombatActions(YOR_COMBAT_ACTION_MAX)
     {
-        AddCustomAction(YOR_ATTACK, 0, [&]
+        AddCustomAction(YOR_ATTACK, true, [&]
         {
             m_creature->SetImmuneToNPC(false);
             m_creature->SetImmuneToPlayer(false);
             m_creature->setFaction(FACTION_HOSTILE);
             if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 AttackStart(player);
-        }, true);
-        AddCombatAction(YOR_ACTION_STOMP, 0);
-        AddCombatAction(YOR_ACTION_DOUBLE_BREATH, 0);
+        });
+        AddCombatAction(YOR_ACTION_STOMP, 0u);
+        AddCombatAction(YOR_ACTION_DOUBLE_BREATH, 0u);
         JustRespawned();
     }
 
@@ -198,21 +198,21 @@ enum
     SPELL_QID_10977 = 39660,
 };
 
-struct npc_ethereum_prisoner_dungeonAI : public ScriptedAI, public CombatTimerAI
+struct npc_ethereum_prisoner_dungeonAI : public ScriptedAI, public CombatActions
 {
-    npc_ethereum_prisoner_dungeonAI(Creature* creature) : ScriptedAI(creature), CombatTimerAI(0)
+    npc_ethereum_prisoner_dungeonAI(Creature* creature) : ScriptedAI(creature), CombatActions(0)
     {
-        AddCustomAction(PRISONER_CREDIT, 0, [&]
+        AddCustomAction(PRISONER_CREDIT, true, [&]
         {
             if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 player->CastSpell(nullptr, SPELL_QID_10977, TRIGGERED_NONE);
-        }, true);
-        AddCustomAction(PRISONER_TALK, 0, [&]
+        });
+        AddCustomAction(PRISONER_TALK, true, [&]
         {
             if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 DoScriptText(SAY_RELEASED_2, m_creature, player);
             m_creature->ForcedDespawn(600000);
-        }, true);
+        });
         JustRespawned();
     }
 

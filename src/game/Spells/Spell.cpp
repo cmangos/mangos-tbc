@@ -2779,29 +2779,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                         return caster->GetDistance(a, true, DIST_CALC_NONE) < caster->GetDistance(b, true, DIST_CALC_NONE);
                     });
 
-            G3D::Vector3 prevPos, nextPos;
-            float orientation = m_caster->GetOrientation();
-
-            prevPos.x = m_caster->GetPositionX();
-            prevPos.y = m_caster->GetPositionY();
-            prevPos.z = m_caster->GetPositionZ();
-
-            float groundZ = prevPos.z;
-            bool isPrevInLiquid = false;
-
-            // falling case
-            if (!m_caster->GetMap()->GetHeightInRange(prevPos.x, prevPos.y, groundZ, 3.0f) && m_caster->m_movementInfo->HasMovementFlag(MOVEFLAG_FALLING))
-            {
-                nextPos.x = prevPos.x + dist * cos(orientation);
-                nextPos.y = prevPos.y + dist * sin(orientation);
-                nextPos.z = prevPos.z - 2.0f; // little hack to avoid the impression to go up when teleporting instead of continue to fall. This value may need some tweak
-
-                //
-                GridMapLiquidData liquidData;
-                if (m_caster->GetMap()->GetTerrain()->IsInWater(nextPos.x, nextPos.y, nextPos.z, &liquidData))
-                {
-                    if (fabs(nextPos.z - liquidData.level) < 10.0f)
-                        nextPos.z = liquidData.level - IN_OR_UNDER_LIQUID_RANGE;
+                    if (foundScriptGOTargets.size() > targetCount) // if we have too many targets, we need to trim the list
+                        foundScriptGOTargets.resize(targetCount);
+                    break;
                 }
                 case SPELL_TARGET_TYPE_CREATURE:
                 case SPELL_TARGET_TYPE_DEAD:
@@ -3709,7 +3689,8 @@ void Spell::finish(bool ok)
                 case SPELL_MISS_DEFLECT:
                     m_caster->ModifyPower(Powers(m_spellInfo->powerType), int32(float(m_powerCost) * 0.8f));
                     break;
-                default: break;
+                default:
+                    break;
             }
         }
     }
@@ -5155,7 +5136,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     target->GetFirstCollisionPosition(pos, target->GetCombatReach(), target->GetAngle(m_caster));
 
                     // TODO: Implement jumpin case check
-                    //if (!m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (pos.coord_z < m_caster->GetPositionZ()) && (fabs(pos.coord_z - m_caster->GetPositionZ()) < 3.0f))
+                    //if (!m_caster->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (pos.coord_z < m_caster->GetPositionZ()) && (fabs(pos.coord_z - m_caster->GetPositionZ()) < 3.0f))
                     //{
                     PathFinder pathFinder(m_caster);
                     pathFinder.setPathLengthLimit(range * 1.5f);

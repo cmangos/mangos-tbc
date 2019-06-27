@@ -518,7 +518,7 @@ void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recv_data)
     if (mover == nullptr || guid != mover->GetObjectGuid())
         return;
 
-    mover->m_movementInfo.UpdateTime(mover->m_movementInfo.GetTime() + timeSkipped);
+    mover->m_movementInfo->UpdateTime(mover->m_movementInfo->GetTime() + timeSkipped);
 
     // Send to other players
     WorldPacket data(MSG_MOVE_TIME_SKIPPED, 16);
@@ -527,6 +527,7 @@ void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recv_data)
     mover->SendMessageToSetExcept(data, _player);
 }
 
+bool WorldSession::VerifyMovementInfo(const MovementInfoPtr& movementInfo, ObjectGuid const& guid) const
 {
     // ignore wrong guid (player attempt cheating own session for not own guid possible...)
     if (guid != _player->GetMover()->GetObjectGuid())

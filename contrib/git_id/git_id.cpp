@@ -57,7 +57,7 @@ char remotes[NUM_REMOTES][MAX_REMOTE] =
 {
     "git@github.com:cmangos/mangos-tbc.git",
     "git://github.com/cmangos/mangos-tbc.git",      // used for fetch if present
-    "https://github.com/cmangos/mangos-tbc.git"
+    "https://github.com/cmangos/mangos-tbc.git",
     "https://github.com/cmangos/mangos-tbc/"
 };
 

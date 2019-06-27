@@ -143,7 +143,7 @@ bool CPlayer::AddAura(uint32 spellid)
     for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         const uint32 eff = spellInfo->Effect[i];
-        if (eff >= TOTAL_SPELL_EFFECTS)
+        if (eff >= MAX_SPELL_EFFECTS)
             continue;
         if (IsAreaAuraEffect(eff) ||
             eff == SPELL_EFFECT_APPLY_AURA ||

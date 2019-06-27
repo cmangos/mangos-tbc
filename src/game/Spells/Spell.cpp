@@ -1771,7 +1771,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             bool isPrevInLiquid = false;
 
             // falling case
-            if (!m_caster->GetMap()->GetHeightInRange(prevPos.x, prevPos.y, groundZ, 3.0f) && m_caster->m_movementInfo.HasMovementFlag(MOVEFLAG_FALLING))
+            if (!m_caster->GetMap()->GetHeightInRange(prevPos.x, prevPos.y, groundZ, 3.0f) && m_caster->m_movementInfo->HasMovementFlag(MOVEFLAG_FALLING))
             {
                 nextPos.x = prevPos.x + dist * cos(orientation);
                 nextPos.y = prevPos.y + dist * sin(orientation);

@@ -1874,11 +1874,11 @@ class Unit : public WorldObject
         // if used additional args in ... part then floats must explicitly casted to double
         void SendHeartBeat();
 
-        bool IsMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
-        bool IsMovingForward() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_MASK_MOVING_FORWARD); }
-        bool IsLevitating() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_LEVITATING); }
-        bool IsWalking() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_WALK_MODE); }
-        bool IsRooted() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT); }
+        bool IsMoving() const { return m_movementInfo->HasMovementFlag(movementFlagsMask); }
+        bool IsMovingForward() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_MASK_MOVING_FORWARD); }
+        bool IsLevitating() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_LEVITATING); }
+        bool IsWalking() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_WALK_MODE); }
+        bool IsRooted() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT); }
 
         virtual void SetLevitate(bool /*enabled*/) {}
         virtual void SetSwim(bool /*enabled*/) {}

@@ -85,24 +85,24 @@ enum SupremusActions // order based on priority
     SUPREMUS_ACTION_DELAY,
 };
 
-struct boss_supremusAI : public ScriptedAI, CombatTimerAI
+struct boss_supremusAI : public ScriptedAI, CombatActions
 {
-    boss_supremusAI(Creature* creature) : ScriptedAI(creature), CombatTimerAI(SUPREMUS_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    boss_supremusAI(Creature* creature) : ScriptedAI(creature), CombatActions(SUPREMUS_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddCombatAction(SUPREMUS_ACTION_PHASE_SWITCH, 0);
-        AddCombatAction(SUPREMUS_ACTION_BERSERK, 0);
-        AddCombatAction(SUPREMUS_ACTION_MOLTEN_PUNCH, 0);
-        AddCombatAction(SUPREMUS_ACTION_VOLCANIC_ERUPTION, 0);
-        AddCombatAction(SUPREMUS_ACTION_SWITCH_TARGET, 0);
-        AddCombatAction(SUPREMUS_ACTION_HATEFUL_STRIKE, 0);
-        AddCustomAction(SUPREMUS_ACTION_DELAY, 0, [&]
+        AddCombatAction(SUPREMUS_ACTION_PHASE_SWITCH, 0u);
+        AddCombatAction(SUPREMUS_ACTION_BERSERK, 0u);
+        AddCombatAction(SUPREMUS_ACTION_MOLTEN_PUNCH, 0u);
+        AddCombatAction(SUPREMUS_ACTION_VOLCANIC_ERUPTION, 0u);
+        AddCombatAction(SUPREMUS_ACTION_SWITCH_TARGET, 0u);
+        AddCombatAction(SUPREMUS_ACTION_HATEFUL_STRIKE, 0u);
+        AddCustomAction(SUPREMUS_ACTION_DELAY, true, [&]
         {
             SetCombatScriptStatus(false);
             SetCombatMovement(true);
             if (!m_bTankPhase)
                 ResetTimer(SUPREMUS_ACTION_SWITCH_TARGET, 0); // switch target immediately
             DoStartMovement(m_creature->getVictim());
-        }, true);
+        });
         Reset();
     }
 

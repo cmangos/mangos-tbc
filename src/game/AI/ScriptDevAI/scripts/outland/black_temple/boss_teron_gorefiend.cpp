@@ -82,16 +82,16 @@ enum GorefiendActions
     GOREFIEND_ACTION_MAX,
 };
 
-struct boss_teron_gorefiendAI : public ScriptedAI, public CombatTimerAI
+struct boss_teron_gorefiendAI : public ScriptedAI, public CombatActions
 {
-    boss_teron_gorefiendAI(Creature* creature) : ScriptedAI(creature), CombatTimerAI(GOREFIEND_ACTION_MAX), m_introDone(false)
+    boss_teron_gorefiendAI(Creature* creature) : ScriptedAI(creature), CombatActions(GOREFIEND_ACTION_MAX), m_introDone(false)
     {
         m_instance = static_cast<instance_black_temple*>(creature->GetInstanceData());
-        AddCombatAction(GOREFIEND_ACTION_DOOM_BLOSSOM, 0);
-        AddCombatAction(GOREFIEND_ACTION_INCINERATE, 0);
-        AddCombatAction(GOREFIEND_ACTION_SHADOW_OF_DEATH, 0);
-        AddCombatAction(GOREFIEND_ACTION_CRUSHING_SHADOWS, 0);
-        AddCombatAction(GOREFIEND_ACTION_BERSERK, 0);
+        AddCombatAction(GOREFIEND_ACTION_DOOM_BLOSSOM, 0u);
+        AddCombatAction(GOREFIEND_ACTION_INCINERATE, 0u);
+        AddCombatAction(GOREFIEND_ACTION_SHADOW_OF_DEATH, 0u);
+        AddCombatAction(GOREFIEND_ACTION_CRUSHING_SHADOWS, 0u);
+        AddCombatAction(GOREFIEND_ACTION_BERSERK, 0u);
         Reset();
     }
 
@@ -303,12 +303,12 @@ struct npc_doom_blossomAI : public ScriptedAI, public TimerManager
 {
     npc_doom_blossomAI(Creature* creature) : ScriptedAI(creature)
     {
-        AddCustomAction(0, 0, [&]
+        AddCustomAction(0, true, [&]
         {
             if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_SHADOW_BOLT, SELECT_FLAG_PLAYER))
                 DoCastSpellIfCan(target, SPELL_SHADOW_BOLT);
             ResetTimer(0, 1200);
-        }, true);
+        });
         SetCombatMovement(false);
     }
 
@@ -346,7 +346,7 @@ struct npc_shadow_constructAI : public ScriptedAI, public TimerManager
 {
     npc_shadow_constructAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<instance_black_temple*>(creature->GetMap()->GetInstanceData()))
     {
-        AddCustomAction(1, 0, [&]
+        AddCustomAction(1, 0u, [&]
         {
             if (Creature* teron = m_instance->GetSingleCreatureFromStorage(NPC_TERON_GOREFIEND))
             {
@@ -380,15 +380,6 @@ struct npc_shadow_constructAI : public ScriptedAI, public TimerManager
         DoCastSpellIfCan(nullptr, SPELL_SHADOW_STRIKES, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
         SetReactState(REACT_DEFENSIVE);
         ResetTimer(1, 1500);
-    }
-
-    void EnterCombat(Unit* enemy) override
-    {
-        if (enemy && enemy->GetEntry() == NPC_TERON_GOREFIEND)
-        {
-            sLog.outCustomLog("Teron entered into combat with spirits");
-            sLog.traceLog();
-        }
     }
 
     void UpdateAI(const uint32 diff) override

@@ -82,7 +82,6 @@ enum
     TYPE_SHARTUUL               = 2,
 
     // Quest 1126
-    MAX_ENCOUNTER               = 2,
     NPC_HIVE_ASHI_DRONES        = 13136,
 
     // Bashir

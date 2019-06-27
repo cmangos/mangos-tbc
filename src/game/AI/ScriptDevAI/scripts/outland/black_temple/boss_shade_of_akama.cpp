@@ -169,16 +169,16 @@ enum AkamaActions
 ## npc_akama
 ######*/
 
-struct npc_akamaAI : public ScriptedAI, public CombatTimerAI, private DialogueHelper
+struct npc_akamaAI : public ScriptedAI, public CombatActions, private DialogueHelper
 {
-    npc_akamaAI(Creature* creature) : ScriptedAI(creature), CombatTimerAI(AKAMA_ACTION_MAX),
+    npc_akamaAI(Creature* creature) : ScriptedAI(creature), CombatActions(AKAMA_ACTION_MAX),
         DialogueHelper(aOutroDialogue)
     {
         m_instance = static_cast<instance_black_temple*>(creature->GetInstanceData());
         InitializeDialogueHelper(m_instance);
-        AddCombatAction(AKAMA_ACTION_LOW_HEALTH, 0);
-        AddCombatAction(AKAMA_ACTION_DESTRUCTIVE_POISON, 0);
-        AddCombatAction(AKAMA_ACTION_CHAIN_LIGHTNING, 0);
+        AddCombatAction(AKAMA_ACTION_LOW_HEALTH, 0u);
+        AddCombatAction(AKAMA_ACTION_DESTRUCTIVE_POISON, 0u);
+        AddCombatAction(AKAMA_ACTION_CHAIN_LIGHTNING, 0u);
         Reset();
     }
 
@@ -271,12 +271,6 @@ struct npc_akamaAI : public ScriptedAI, public CombatTimerAI, private DialogueHe
                         channeler->ForcedDespawn();
             }
         }
-    }
-
-    void JustDied(Unit* /*killer*/) override
-    {
-        sLog.outCustomLog("Akama died on Shade - should never happen.");
-        sLog.traceLog();
     }
 
     void CorpseRemoved(uint32& respawnDelay) override
@@ -565,11 +559,6 @@ struct boss_shade_of_akamaAI : public ScriptedAI
         if (m_instance)
         {
             m_instance->RespawnChannelers();
-            if (m_instance->GetData(TYPE_SHADE) != FAIL && m_creature->isAlive())
-            {
-                sLog.outCustomLog("Shade respawned and shouldnt have");
-                sLog.traceLog();
-            }
         }
     }
 
@@ -704,7 +693,7 @@ struct npc_creature_generatorAI : public ScriptedAI, public TimerManager
     npc_creature_generatorAI(Creature* creature) : ScriptedAI(creature), m_spawn(false), m_left(creature->GetPositionY() > 400.f)
     {
         m_instance = static_cast<instance_black_temple*>(creature->GetInstanceData());
-        AddCustomAction(0, 0, [&] { m_spawn = true; }, true);
+        AddCustomAction(0, true, [&] { m_spawn = true; });
     }
 
     bool m_spawn;

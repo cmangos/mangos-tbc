@@ -63,15 +63,15 @@ enum NajentusActions // order based on priority
 
 // TODO: review opening of door - it has a text
 
-struct boss_najentusAI : public ScriptedAI, CombatTimerAI
+struct boss_najentusAI : public ScriptedAI, CombatActions
 {
-    boss_najentusAI(Creature* pCreature) : ScriptedAI(pCreature), CombatTimerAI(NAJENTUS_ACTION_MAX)
+    boss_najentusAI(Creature* pCreature) : ScriptedAI(pCreature), CombatActions(NAJENTUS_ACTION_MAX)
     {
         m_instance = static_cast<instance_black_temple*>(pCreature->GetInstanceData());
-        AddCombatAction(NAJENTUS_ACTION_TIDAL_SHIELD, 0);
-        AddCombatAction(NAJENTUS_ACTION_ENRAGE, 0);
-        AddCombatAction(NAJENTUS_ACTION_IMPALING_SPINE, 0);
-        AddCombatAction(NAJENTUS_ACTION_NEEDLE_SPINE, 0);
+        AddCombatAction(NAJENTUS_ACTION_TIDAL_SHIELD, 0u);
+        AddCombatAction(NAJENTUS_ACTION_ENRAGE, 0u);
+        AddCombatAction(NAJENTUS_ACTION_IMPALING_SPINE, 0u);
+        AddCombatAction(NAJENTUS_ACTION_NEEDLE_SPINE, 0u);
         Reset();
     }
 

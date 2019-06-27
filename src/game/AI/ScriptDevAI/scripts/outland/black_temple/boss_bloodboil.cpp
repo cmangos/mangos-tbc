@@ -87,18 +87,18 @@ enum GurtoggActions
     GURTOGG_ACTION_MAX,
 };
 
-struct boss_gurtogg_bloodboilAI : public ScriptedAI, public CombatTimerAI
+struct boss_gurtogg_bloodboilAI : public ScriptedAI, public CombatActions
 {
-    boss_gurtogg_bloodboilAI(Creature* creature) : ScriptedAI(creature), CombatTimerAI(GURTOGG_ACTION_MAX)
+    boss_gurtogg_bloodboilAI(Creature* creature) : ScriptedAI(creature), CombatActions(GURTOGG_ACTION_MAX)
     {
         m_instance = static_cast<ScriptedInstance*>(creature->GetInstanceData());
-        AddCombatAction(GURTOGG_ACTION_CHANGE_PHASE, 0);
-        AddCombatAction(GURTOGG_ACTION_BERSERK, 0);
-        AddCombatAction(GURTOGG_ACTION_BLOODBOIL, 0);
-        AddCombatAction(GURTOGG_ACTION_ARCING_SMASH, 0);
-        AddCombatAction(GURTOGG_ACTION_FEL_ACID, 0);
-        AddCombatAction(GURTOGG_ACTION_BEWILDERING_STRIKE, 0);
-        AddCombatAction(GURTOGG_ACTION_EJECT, 0);
+        AddCombatAction(GURTOGG_ACTION_CHANGE_PHASE, 0u);
+        AddCombatAction(GURTOGG_ACTION_BERSERK, 0u);
+        AddCombatAction(GURTOGG_ACTION_BLOODBOIL, 0u);
+        AddCombatAction(GURTOGG_ACTION_ARCING_SMASH, 0u);
+        AddCombatAction(GURTOGG_ACTION_FEL_ACID, 0u);
+        AddCombatAction(GURTOGG_ACTION_BEWILDERING_STRIKE, 0u);
+        AddCombatAction(GURTOGG_ACTION_EJECT, 0u);
         Reset();
     }
 

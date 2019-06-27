@@ -149,7 +149,9 @@ bool CPlayer::AddAura(uint32 spellid)
             eff == SPELL_EFFECT_APPLY_AURA ||
             eff == SPELL_EFFECT_PERSISTENT_AREA_AURA)
         {
-            Aura* aur = CreateAura(spellInfo, SpellEffectIndex(i), nullptr, holder, this);
+            int32 basePoints = spellInfo->CalculateSimpleValue(SpellEffectIndex(i));
+            int32 damage = 0; // no damage cos caster doesnt exist
+            Aura* aur = CreateAura(spellInfo, SpellEffectIndex(i), &damage, &basePoints, holder, target);
             holder->AddAura(aur, SpellEffectIndex(i));
         }
     }

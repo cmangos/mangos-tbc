@@ -142,6 +142,7 @@ UPDATE creature_template SET ScriptName='npc_shaman_earth_elemental' WHERE entry
 UPDATE creature_template SET ScriptName='npc_shaman_fire_elemental' WHERE entry IN(15438); -- greater fire elemental
 UPDATE creature_template SET ScriptName='npc_snakes' WHERE entry IN(19921,19833);
 UPDATE creature_template SET ScriptName='npc_nether_ray' WHERE entry IN(18880,21901,23501);
+UPDATE creature_template SET ScriptName='npc_mojo' WHERE entry=24480;
 
 /*Quest (quest scripts which are not in one zone)*/
 UPDATE creature_template SET ScriptName='npc_quest_attunement' WHERE entry IN(22421,18528,19935);
@@ -271,8 +272,12 @@ UPDATE creature_template SET ScriptName='mob_illidari_council' WHERE entry=23426
 UPDATE creature_template SET ScriptName='mob_blood_elf_council_voice_trigger' WHERE entry=23499; -- Voice Trigger Mob (Controls Aggro + Enrage yells)
 UPDATE creature_template SET ScriptName='boss_veras_darkshadow' WHERE entry=22952; -- Rogue of Illidari Council
 UPDATE creature_template SET ScriptName='boss_teron_gorefiend' WHERE entry=22871; -- Teron Gorefiend
+UPDATE creature_template SET ScriptName='npc_doom_blossom' WHERE entry=23123; -- Doom Blossom
+UPDATE creature_template SET ScriptName='npc_shadow_construct' WHERE entry IN(23111); -- Shadowy Construct
+INSERT INTO scripted_areatrigger VALUES (4665, 'at_teron_gorefiend');
 UPDATE creature_template SET ScriptName='boss_supremus' WHERE entry=22898; -- Supremus
 UPDATE creature_template SET ScriptName='boss_shade_of_akama' WHERE entry=22841; -- Shade of Akama
+UPDATE creature_template SET ScriptName='npc_creature_generator' WHERE entry IN(23210);
 UPDATE creature_template SET ScriptName='boss_reliquary_of_souls' WHERE entry=22856; -- Reliquary Controller Mob
 UPDATE creature_template SET ScriptName='boss_essence_of_suffering' WHERE entry=23418; -- Essence Of Suffering
 UPDATE creature_template SET ScriptName='boss_essence_of_desire' WHERE entry=23419; -- Essence of Desire
@@ -289,8 +294,6 @@ UPDATE creature_template SET ScriptName='mob_flame_of_azzinoth' WHERE entry=2299
 UPDATE creature_template SET ScriptName='mob_blade_of_azzinoth' WHERE entry=22996; -- Blade of Azzinoth (Illidan Phase 2)
 UPDATE creature_template SET ScriptName='mob_cage_trap_trigger' WHERE entry=23304; -- Cage Trap mob in Illidan Phase 3/4 Normal
 UPDATE creature_template SET ScriptName='mob_shadow_demon' WHERE entry=23375; -- Shadow Demon in Illidan Demon Form
-UPDATE creature_template SET ScriptName='npc_volcano' WHERE entry=23085; -- Supremus Volcano
-UPDATE creature_template SET ScriptName='molten_flame' WHERE entry=23095; -- Molten Flame in SUpremus
 UPDATE creature_template SET ScriptName='mob_ashtongue_channeler' WHERE entry=23421; -- Ashtongue CHanneler in Shade of AKama
 UPDATE creature_template SET ScriptName='mob_ashtongue_sorcerer' WHERE entry=23215; -- Ashtongue Sorcerer in Shade of Akama
 UPDATE creature_template SET ScriptName='npc_enslaved_soul' WHERE entry=23469;
@@ -559,6 +562,10 @@ UPDATE creature_template SET ScriptName='npc_restless_apparition' WHERE entry=23
 UPDATE creature_template SET ScriptName='npc_private_hendel' WHERE entry=4966;
 UPDATE creature_template SET ScriptName='npc_stinky_ignatz' WHERE entry=4880;
 UPDATE creature_template SET ScriptName='boss_tethyr' WHERE entry=23899;
+UPDATE creature_template SET ScriptName='npc_major_mills' WHERE entry=23905;
+UPDATE creature_template SET ScriptName='mob_invis_firework_helper' WHERE entry=24025;
+UPDATE creature_template SET ScriptName='npc_smolderwing' WHERE entry=23789;
+
 INSERT INTO scripted_areatrigger VALUES
 (302,'at_sentry_point');
 INSERT INTO scripted_areatrigger VALUES
@@ -1219,6 +1226,14 @@ UPDATE creature_template SET ScriptName='npc_dragonhawk_egg' WHERE entry=23817;
 UPDATE creature_template SET ScriptName='npc_janalai_firebomb' WHERE entry=23920;
 UPDATE creature_template SET ScriptName='npc_amanishi_hatcher' WHERE entry IN (23818,24504);
 UPDATE creature_template SET ScriptName='npc_forest_frog' WHERE entry=24396;
+UPDATE creature_template SET ScriptName='npc_amanishi_lookout' WHERE entry=24175;
+UPDATE creature_template SET ScriptName='npc_amanishi_tempest' WHERE entry=24549;
+UPDATE creature_template SET ScriptName='npc_harkor' WHERE entry=23999;
+UPDATE creature_template SET ScriptName='npc_tanzar' WHERE entry=23790;
+UPDATE creature_template SET ScriptName='npc_kraz' WHERE entry=24024;
+UPDATE creature_template SET ScriptName='npc_ashli' WHERE entry=24001;
+UPDATE creature_template SET ScriptName='npc_amanishi_scout' WHERE entry=23586;
+UPDATE gameobject_template SET ScriptName='go_wooden_door' WHERE entry=186306;
 
 /* ZUL'FARRAK */
 UPDATE instance_template SET ScriptName='instance_zulfarrak' WHERE map=209;
@@ -1580,7 +1595,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1000341,'%s eats his lunch.',0,2,0,0,'kyle EMOTE_EAT_LUNCH'),
 (-1000342,'%s thanks you with a special dance.',0,2,0,0,'kyle EMOTE_DANCE'),
 
--- REUSE 343-347
+(-1000343,'Pitiful mortal, Onyxia answers to no one!',0,1,0,0,'smolderwing SAY_1'),
+(-1000344,'Your pathetic challenge has not gone unnoticed. I shall enjoy toying with you before you die.',0,1,0,0,'smolderwing SAY_2'),
+
+-- REUSE 345-347
 
 (-1000348,'Ah...the wondrous sound of kodos. I love the way they make the ground shake... inspect the beast for me.',0,0,0,0,'kodo round SAY_SMEED_HOME_1'),
 (-1000349,'Hey, look out with that kodo! You had better inspect that beast before i give you credit!',0,0,0,0,'kodo round SAY_SMEED_HOME_2'),
@@ -2517,7 +2535,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1015068,'What in the Light\'s name...?',0,0,0,0,'Vindicator Sedai SAY 2'),
 (-1015069,'Fel orcs!',0,0,0,0,'Vindicator Sedai SAY 3'),
 (-1015070,'The cycle of bloodshed is unending... Is there nothing I can do?',0,0,0,0,'Vindicator Sedai SAY 4'),
-(-1015071,'You can die!',0,0,0,0,'Krun Spinebreaker SAY 1');
+(-1015071,'You can die!',0,0,0,0,'Krun Spinebreaker SAY 1'),
+(-1015072,'%s plants the Flag of Ownership in the corpse of $N.',0,0,0,0,'Item - Flag of Ownership');
 -- -1 020 000 WOTLK texts
 
 -- -1 033 000 SHADOWFANG KEEP
@@ -3329,7 +3348,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1532130,'%s takes a deep breath.',0,3,0,0,'nightbane EMOTE_DEEP_BREATH'),
 
 (-1532131,'The halls of Karazhan shake, as the curse binding the doors of the Gamesman''s Hall is lifted.',0,2,0,0,'echo_of_medivh EMOTE_LIFT_CURSE'),
-(-1532132,'%s cheats!',0,3,0,0,'echo_of_medivh EMOTE_CHEAT'),
+(-1532132,'Echo of Medivh cheats!',0,3,0,0,'echo_of_medivh EMOTE_CHEAT'),
 
 (-1532133,'%s flaps down from the ceiling...',0,7,0,0,'shadikith_the_glider EMOTE_BAT_SPAWN'),
 (-1532134,'%s howls through the halls...',0,7,0,0,'rokad_the_ravager EMOTE_DOG_SPAWN'),
@@ -4192,19 +4211,20 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1564002,'I\'ll deal with you later!',11452,1,0,0,'SAY_NEEDLE2'),
 (-1564003,'Your success was short lived!',11455,1,0,0,'SAY_SLAY1'),
 (-1564004,'Time for you to go!',11456,1,0,0,'SAY_SLAY2'),
-(-1564005,'Bel\'anen dal\'lorei!',11453,1,0,0,'SAY_SPECIAL1'),
+(-1564005,'Be''lanen dalorai!',11453,1,0,0,'SAY_SPECIAL1'),
 (-1564006,'Blood will flow!',11454,1,0,0,'SAY_SPECIAL2'),
-(-1564007,'Bal\'amer ch\'itah!',11457,1,0,0,'SAY_ENRAGE1'),
-(-1564008,'My patience has ran out! Die, DIE!',11458,1,0,0,'SAY_ENRAGE2'),
+(-1564007,'Bal, lamer zhita!',11457,1,0,0,'SAY_ENRAGE1'),
+(-1564008,'Enough! Taste the full fury of High Warlord Naj''entus!',0,1,0,0,'SAY_ENRAGE2'),
 (-1564009,'Lord Illidan will... crush you!',11459,1,0,0,'SAY_DEATH'),
+(-1564138,'My patience has ran out! Die! Die!',11458,1,0,0,'SAY_UNK'),
 
-(-1564010,'%s acquires a new target!',0,3,0,0,'supremus EMOTE_NEW_TARGET'),
-(-1564011,'%s punches the ground in anger!',0,3,0,0,'supremus EMOTE_PUNCH_GROUND'),
+(-1564010,'Supremus acquires a new target!',0,3,0,0,'supremus EMOTE_NEW_TARGET'), -- note: intentionally literal
+(-1564011,'Supremus punches the ground in anger!',0,3,53,0,'supremus EMOTE_PUNCH_GROUND'), -- note: intentionally literal
 (-1564012,'The ground begins to crack open!',0,3,0,0,'supremus EMOTE_GROUND_CRACK'),
 
 (-1564013,'No! Not yet...',11386,1,0,0,'akama shade SAY_LOW_HEALTH'),
 (-1564014,'I will not last much longer...',11385,1,0,0,'akama shade SAY_DEATH'),
-(-1564015,'Come out from the shadows! I\'ve returned to lead you against our true enemy! Shed your chains and raise your weapons against your Illidari masters!',0,1,0,0,'akama shade SAY_FREE'),
+(-1564015,'Come out from the shadows! I\'ve returned to lead you against our true enemy! Shed your chains and raise your weapons against your Illidari masters!',0,1,0,397,'akama shade SAY_FREE_3'),
 (-1564016,'Hail our leader! Hail Akama!',0,1,0,0,'akama shade broken SAY_BROKEN_FREE_01'),
 (-1564017,'Hail Akama!',0,1,0,0,'akama shade broken SAY_BROKEN_FREE_02'),
 
@@ -4237,7 +4257,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1564042,'Death really isn\'t so bad.',11516,1,0,0,'teron SAY_SPELL2'),
 (-1564043,'Give in.',11518,1,0,0,'teron SAY_SPECIAL1'),
 (-1564044,'I have something for you...',11519,1,0,0,'teron SAY_SPECIAL2'),
-(-1564045,'YOU WILL SHOW THE PROPER RESPECT!',11520,1,0,0,'teron SAY_ENRAGE'),
+(-1564045,'YOU WILL SHOW THE PROPER RESPECT!',11520,1,0,0,'teron SAY_UNK'),
 (-1564046,'The wheel... spins... again.',11521,1,0,0,'teron SAY_DEATH'),
 
 (-1564047,'Pain and suffering are all that await you!',11415,1,0,0,'essence SUFF_SAY_FREED'),
@@ -4323,7 +4343,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1564117,'Bleed as I have bled!',11494,1,0,0,'maiev SAY_MAIEV_TAUNT_2'),
 (-1564118,'There shall be no prison for you this time!',11495,1,0,0,'maiev SAY_MAIEV_TRAP'),
 (-1564119,'Meet your end, demon!',11500,1,0,0,'maiev SAY_MAIEV_TAUNT_4'),
-(-1564120,'Be wary friends, The Betrayer meditates in the court just beyond.',11388,1,0,0,'akama(illidan) SAY_AKAMA_BEWARE'),
+(-1564120,'Be wary friends, The Betrayer meditates in the court just beyond.',11388,0,0,0,'akama(illidan) SAY_AKAMA_BEWARE'),
 (-1564121,'Come, my minions. Deal with this traitor as he deserves!',11465,1,0,0,'illidan SAY_AKAMA_MINION'),
 (-1564122,'I\'ll deal with these mongrels. Strike now, friends! Strike at the betrayer!',11390,1,0,22,'akama(illidan) SAY_AKAMA_LEAVE'),
 (-1564123,'Who shall be next to taste my blades?!',11473,1,0,0,'illidan SAY_KILL1'),
@@ -4334,12 +4354,18 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1564128,'Behold the power... of the demon within!',11475,1,0,0,'illidan SAY_MORPH'),
 (-1564129,'You\'ve wasted too much time mortals, now you shall fall!',11474,1,0,0,'illidan SAY_ENRAGE'),
 
-(-1564130,'Broken of the Ashtongue tribe, your leader speaks!',0,1,0,0,'akama(shade) SAY_FREE_1'),
+(-1564130,'Broken of the Ashtongue tribe, your leader speaks!',0,1,0,15,'akama(shade) SAY_FREE_1'),
 
 (-1564131,'This door is all that stands between us and the Betrayer.  Stand aside, friends.',0,0,0,1,'akama(illidan) SAY_OPEN_DOOR_1'),
-(-1564132,'I cannot do this alone...',0,0,0,0,'akama(illidan) SAY_OPEN_DOOR_2'),
+(-1564132,'I cannot do this alone...',0,0,0,274,'akama(illidan) SAY_OPEN_DOOR_2'),
 (-1564133,'You are not alone, Akama.',0,0,0,0,'spirit_Udalo SAY_OPEN_DOOR_3'),
-(-1564134,'Your people will always be with you!',0,0,0,0,'spirit_Olum SAY_OPEN_DOOR_4');
+(-1564134,'Your people will always be with you!',0,0,0,0,'spirit_Olum SAY_OPEN_DOOR_4'),
+(-1564135,'The Betrayer no longer holds sway over us.  His dark magic over the Ashtongue soul has been destroyed!',0,1,0,1,'akama shade SAY_FREE_2'),
+(-1564136,'I thank you for your aid, brothers.  Our people will be redeemed!',0,0,0,66,'akama(illidan) SAY_OPEN_DOOR_5'),
+
+(-1564137,'You hear a loud rumble of metal grinding on stone...',0,2,0,0,'Black Temple Trigger - Open Najentus Door');
+-- -1564138 taken on najentus
+
 
 -- -1 565 000 GRUUL'S LAIR
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -4379,10 +4405,10 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1568008,'Come, strangers. The spirit of the dragonhawk hot be hungry for worthy souls.',12039,1,0,0,'janalai SAY_EVENT_STRANGERS'),
 (-1568009,'Come, friends. Your bodies gonna feed ma hatchlings, and your souls are going to feed me with power!',12040,1,0,0,'janalai SAY_EVENT_FRIENDS'),
 
-(-1568010,'Get da move on, guards! It be killin\' time!',12066,1,0,0,'nalorakk SAY_WAVE1_AGGRO'),
-(-1568011,'Guards, go already! Who you more afraid of, dem... or me?',12067,1,0,0,'nalorakk SAY_WAVE2_STAIR1'),
-(-1568012,'Ride now! Ride out dere and bring me back some heads!',12068,1,0,0,'nalorakk SAY_WAVE3_STAIR2'),
-(-1568013,'I be losin\' me patience! Go on: make dem wish dey was never born!',12069,1,0,0,'nalorakk SAY_WAVE4_PLATFORM'),
+(-1568010,'Get da move on, guards! It be killin\' time!',12066,1,0,51,'nalorakk SAY_WAVE1_AGGRO'),
+(-1568011,'Guards, go already! Who you more afraid of, dem... or me?',12067,1,0,51,'nalorakk SAY_WAVE2_STAIR1'),
+(-1568012,'Ride now! Ride out dere and bring me back some heads!',12068,1,0,51,'nalorakk SAY_WAVE3_STAIR2'),
+(-1568013,'I be losin\' me patience! Go on: make dem wish dey was never born!',12069,1,0,51,'nalorakk SAY_WAVE4_PLATFORM'),
 (-1568014,'What could be better than servin\' da bear spirit for eternity? Come closer now. Bring your souls to me!',12078,1,0,0,'nalorakk SAY_EVENT1_SACRIFICE'),
 (-1568015,'Don\'t be delayin\' your fate. Come to me now. I make your sacrifice quick.',12079,1,0,0,'nalorakk SAY_EVENT2_SACRIFICE'),
 (-1568016,'You be dead soon enough!',12070,1,0,0,'nalorakk SAY_AGGRO'),
@@ -4451,17 +4477,124 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1568074,'Time be running low, strangers. Soon you gonna join da souls of dem ya failed to save.',12059,6,0,0,'zulaman SAY_INST_WARN_3'),
 (-1568075,'Make haste, ma priests! Da rituals must not be interrupted!',12060,6,0,0,'zulaman SAY_INST_WARN_4'),
 (-1568076,'Ya make a good try... but now you gonna join da ones who already fall.',12061,6,0,0,'zulaman SAY_INST_SACRIF1'),
-(-1568077,'Ya not do too bad. Ya efforts [...] for a small time. Come to me now. Ya prove yourself worthy offerings.',12062,6,0,0,'zulaman SAY_INST_SACRIF2'),
+(-1568077,'Ya not do too bad.... Your efforts delay da inevitable for a small time. Come to me now. Ya prove yourselves worthy offerings.',12062,6,0,0,'zulaman SAY_INST_SACRIF2'),
 (-1568078,'Watch now. Every offering gonna strengthen our ties to da spirit world. Soon, we gonna be unstoppable!',12065,6,0,0,'zulaman SAY_INST_COMPLETE'),
 
-(-1568079,'Suit yourself. At least five of you must assist me if we\'re to get inside. Follow me.',0,1,0,0,'harrison SAY_START'),
+(-1568079,'Suit yourself. At least five of you must assist me if we\'re to get inside. Follow me....',0,1,0,0,'harrison SAY_START'),
 (-1568080,'According to my calculations, if enough of us bang the gong at once the seal on these doors will break and we can enter.',0,1,0,0,'harrison SAY_AT_GONG'),
 (-1568081,'I\'ve researched this site extensively and I won\'t allow any dim-witted treasure hunters to swoop in and steal what belongs to in a museum. I\'ll lead this charge.',0,1,0,0,'harrison SAY_OPEN_ENTRANCE'),
 
 (-1568082,'%s absorbs the essence of the bear spirit!',0,2,0,0,'zuljin EMOTE_BEAR_SPIRIT'),
 (-1568083,'%s absorbs the essence of the eagle spirit!',0,2,0,0,'zuljin EMOTE_EAGLE_SPIRIT'),
 (-1568084,'%s absorbs the essence of the lynx spirit!',0,2,0,0,'zuljin EMOTE_LYNX_SPIRIT'),
-(-1568085,'%s absorbs the essence of the dragonhawk spirit!',0,2,0,0,'zuljin EMOTE_DRAGONHAWK_SPIRIT');
+(-1568085,'%s absorbs the essence of the dragonhawk spirit!',0,2,0,0,'zuljin EMOTE_DRAGONHAWK_SPIRIT'),
+
+(-1568086,'In fact, it would be best if you just stay here. You\'d only get in my way....',0,1,0,0,'harrison SAY_OPEN_ENTRANCE_2'),
+
+(-1568087,'More intruders! Sound da alarm!',12104,1,0,25,'amanishi guardian SAY_SOUND_ALARM'),
+
+(-1568088,'Akil\'zon, the invaders approach!',0,1,0,5,'amanishi lookout SAY_START_GAUNTLET'),
+
+(-1568089,'Hallooo.... You just gunna sit down there an\' pat yerselves on the back? What kinda rescuers are ya?',2716,1,0,1,'harkor SAY_HARKOR_HELP_1'),
+(-1568090,'Pssst! Up \'ere, in the cage. Come and lemme get a look at yeh.',2716,1,0,1,'harkor SAY_HARKOR_HELP_2'),
+(-1568091,'So.... How\'s about one \'a ya stroll on up \'ere an\' help me out, eh?',2716,1,0,1,'harkor SAY_HARKOR_HELP_3'),
+(-1568092,'Yoohoo. Over here... the trapped dwarf. Come on, lemme have a word with yeh.',2716,1,0,1,'harkor SAY_HARKOR_HELP_4'),
+(-1568093,"Ahh, freedom!",2725,0,0,4,'harkor SAY_HARKOR_EVENT_1'),
+(-1568094,"A'course it only be fair that I reward yeh fer me rescue. Now where'd them savages put me satchel?",0,0,0,1,'harkor SAY_HARKOR_EVENT_2'),
+(-1568095,"Don't be shy, now. Help yerselves. If it weren't fer yer help, them basterds'd be shrinkin' me head right about now.",0,0,0,1,'harkor SAY_HARKOR_EVENT_3'),
+
+(-1568096,'You kill the trollbear, mon? It be safe for Tanzar to come out now?',2850,1,0,1,'tanzar SAY_TANZAR_HELP_1'),
+(-1568097,'Hey mon! Don\'t ya be forgettin\' about Tanzar over here.',2850,1,0,1,'tanzar SAY_TANZAR_HELP_2'),
+(-1568098,'Hello out there. Anybody be hearin\' Tanzar?',2850,1,0,1,'tanzar SAY_TANZAR_HELP_3'),
+(-1568099,'Pleaase! Someone save poor ol\' Tanzar.',2850,1,0,1,'tanzar SAY_TANZAR_HELP_4'),
+(-1568100,'Wahoo! Tanzar be free!',2859,0,0,4,'tanzar SAY_TANZAR_EVENT_1'),
+(-1568101,'What luck! Here be one of Tanzar\'s things....',0,0,0,0,'tanzar SAY_TANZAR_EVENT_2'),
+(-1568102,'Hrmm... left, right, wiggle, press....',0,0,0,0,'tanzar SAY_TANZAR_EVENT_3'),
+(-1568103,'A little deeper now - almost got it....',0,0,0,0,'tanzar SAY_TANZAR_EVENT_3_ALT'),
+(-1568104,'There now. It be a gift to you, to celebrate Tanzar\'s great escape!',0,0,0,1,'tanzar SAY_TANZAR_EVENT_4'),
+
+(-1568105,'My liberators! Come down and speak with Kraz.',2692,1,0,1,'kraz SAY_KRAZ_HELP_1'),
+(-1568106,'Kraz must meet the slayers of the great troll-beast!',2692,1,0,1,'kraz SAY_KRAZ_HELP_2'),
+(-1568107,'Come to Kraz. Accept my thanks.',2692,1,0,1,'kraz SAY_KRAZ_HELP_3'),
+(-1568108,'Kraz lives!',2701,0,0,4,'kraz SAY_KRAZ_EVENT_1'),
+(-1568109,'Now, where have they put Kraz\'s things?',0,0,0,6,'kraz SAY_KRAZ_EVENT_2'),
+(-1568110,'Stand clear....',0,0,0,0,'kraz SAY_KRAZ_EVENT_3'),
+(-1568111,'Please, friends, accept this offering with Kraz\'s thanks.',6364,0,0,66,'kraz SAY_KRAZ_EVENT_4'),
+
+(-1568112,'Wowee! It was amazing how you beat that big bad troll into the ground like that and it\'s too bad I can\'t reach the handle of this cage or I would have jumped in and blown him to bits to get him back for killing all of the other poor prisoners and scaring me so badly and I feel bad for asking you for any more help but could you maybe come over and let me out of here?',0,1,0,21,'ashli SAY_ASHLI_HELP_1'),
+(-1568113,'Ahem... so, I most certainly don\'t blame you for taking your time and catching your breath and congratulating yourselves for such heroism after such a long and hard-fought battle with that horrible monster just so long as when you\'re finished you don\'t forget about me over here because even though I\'m small I think I can still find some way to repay you for your amazing bravery....',0,1,0,1,'ashli SAY_ASHLI_HELP_2'),
+(-1568114,'So... as much as I hate to complain after being saved from a horrible death I just thought you should know that I\'m still over here stuck in one of these messy cages and it would really be great if you could come on over and let me out so I could help you celebrate your amazing victory over that big crazy scary troll-cat... thing.',0,1,0,1,'ashli SAY_ASHLI_HELP_3'),
+(-1568115,'I\'m sure you all must be in a big hurry and probably have some more big dangerous monsters to kill but if you would just take a moment and come help me out of this cage before rushing off it would make me so happy and excited that I would barely be able to contain myself so if you get a moment I\'ll just be over here... waiting... patiently....',0,1,0,1,'ashli SAY_ASHLI_HELP_4'),
+(-1568116,'Weeee! I\'m alive, I\'m alive, I\'m alive! Oh, I hope it\'s not too forward of me to tell you that I think I love you all and I hope I can find my bag because you certainly deserve a little something extra, you know, for the effort and all that you must have went through to save me...',0,0,0,4,'ashli SAY_ASHLI_EVENT_1'),
+(-1568117,'Hmm, maybe it\'s this one - oh by the way, did I ever tell you about the time Fudgerick Two-toots snuck up on me while I was casting a fireball? We call him two-toots because, well, nevermind that, it was just terrible timing, and momma was soo mad - my eyebrows are just now growing back....',0,0,0,0,'ashli SAY_ASHLI_EVENT_2'),
+(-1568118,'Nope, not in that one either - well, it must be around here somewhere, by the way, did I mention how wonderful it is to be out of that stinky cage? It was almost impossible to run around in there but I did anyway but sometimes I got going so fast that I ended up walking on the walls of the  cage so finally I stopped trying and just turned around in circles....',2691,0,0,0,'ashli SAY_ASHLI_EVENT_3'),
+(-1568119,'There\'s my bag! At last I\'ve found it and now it\'s my gift to you and I truly hope you like it because I want you to all remember this wonderful moment for as long as you live and I hope that when you think of it you\'ll smile inside because I know I\'ll never forget it in a million years and I can\'t wait to tell momma all about it when I get back home.... Do you like my earrings?',0,0,0,0,'ashli SAY_ASHLI_EVENT_4'),
+
+(-1568120,'Invaders! Sound the alarm!',0,1,0,0,'amanishi scout SAY_ALARM'),
+
+(-1568121,'%s shimmers and begins to fade away...',0,2,0,0,'zuljin EMOTE_FADE_AWAY'), -- broadcast text id 23604
+
+(-1568122,'Greetings, kind stranger, and thank you for your selfless act.',6378,0,0,0,'mannuth SAY_MANNUTH_1'), -- broadcast text id 23346
+(-1568123,'These heathens have robbed me of my belongings, but I can offer you this charm I took from my captors.',0,0,0,0,'mannuth SAY_MANNUTH_2'), -- broadcast text id 23347
+(-1568124,'May it serve you well, $n.',0,0,0,0,'mannuth SAY_MANNUTH_3'), -- broadcast text id 23369
+(-1568125,'Farewell.',6379,0,0,0,'mannuth SAY_MANNUTH_4'), -- broadcast text id 23348
+
+(-1568126,'Hmm, thank you stranger.',6414,0,0,0,'deez SAY_DEEZ_1'), -- broadcast text id 23373
+(-1568127,'I fear I have nothing but this old chest I discovered here. You\'re welcome to it.',0,0,0,0,'deez SAY_DEEZ_2'), -- broadcast text id 23374
+(-1568128,'I hope you find its contents... useful.',0,0,0,0,'deez SAY_DEEZ_3'), -- broadcast text id 23375
+(-1568129,'Until we next meet....',6415,0,0,0,'deez SAY_DEEZ_4'), -- broadcast text id 23376
+
+(-1568130,'Oooh! It\'s about time someone rescued me....',9635,0,0,0,'galathryn SAY_GALATHRYN_1'), -- broadcast text id 23379
+(-1568131,'I suppose I should be grateful. Please, take this. I want nothing to remind me of this place.',0,0,0,0,'galathryn SAY_GALATHRYN_2'), -- broadcast text id 23380
+(-1568132,'I took it from one of these trolls as I was captured. Maybe you can find a way to use it against them.',0,0,0,0,'galathryn SAY_GALATHRYN_3'), -- broadcast text id 23381
+(-1568133,'I\'ve had quite enough of this place. Goodbye.',9636,0,0,0,'galathryn SAY_GALATHRYN_4'), -- broadcast text id 23382
+
+(-1568134,'Ahhh, finally!',6134,0,0,0,'adarrah SAY_ADARRAH_1'), -- broadcast text id 23383
+(-1568135,'Say, I found this charm just before they caught me. Maybe it\'ll do you some good here....',0,0,0,0,'adarrah SAY_ADARRAH_2'), -- broadcast text id 23384
+(-1568136,'I hope it helps. These vile beasts simply must be stopped!',0,0,0,0,'adarrah SAY_ADARRAH_3'), -- broadcast text id 23385
+(-1568137,'Good luck to you!',6135,0,0,0,'adarrah SAY_ADARRAH_4'), -- broadcast text id 23386
+
+(-1568138,'Well, now. What a pleasant turn of events.',0,0,0,0,'darwen SAY_DARWEN_1'), -- broadcast text id 23387
+(-1568139,'It\'s most fortunate for you that you rescued me, and not one of these other poor sots.',0,0,0,0,'darwen SAY_DARWEN_2'), -- broadcast text id 23388
+(-1568140,'Please accept this payment, as well as my gratitude, for your trouble.',0,0,0,0,'darwen SAY_DARWEN_3'), -- broadcast text id 23389
+(-1568141,'Be well, $n.',0,0,0,0,'darwen SAY_DARWEN_4'), -- broadcast text id 23390
+
+(-1568142,'Woohoo! I\'m saved! I thank you, $n.',6129,0,0,0,'fudgerick SAY_FUDGERICK_1'), -- broadcast text id 23391
+(-1568143,'Oh, my. What IS that smell - oh wait, heh, whoops! Guess my senses will take a little time to get readjusted.',0,0,0,0,'fudgerick SAY_FUDGERICK_2'), -- broadcast text id 23392
+(-1568144,'My apologies, friends. Here, now. This should help to cover the expenses involved in my rescue.',0,0,0,0,'fudgerick SAY_FUDGERICK_3'), -- broadcast text id 23393
+(-1568145,'See ya later!',6126,0,0,113,'fudgerick SAY_FUDGERICK_4'), -- broadcast text id 23394
+
+(-1568146,'Oh, can it be? I... I\'m free of that hideous curse?',0,0,0,0,'gunter SAY_GUNTER_1'), -- broadcast text id 23401
+(-1568147,'Words cannot express my gratitude, $n. Thank you for your kindness',0,0,0,0,'gunter SAY_GUNTER_2'), -- broadcast text id 23402
+(-1568148,'As you can see, I have but little after these savages got hold of me, but you\'re welcome to what I have. Come, have a look.',0,0,0,0,'gunter SAY_GUNTER_3'), -- broadcast text id 23403
+(-1568149,'I must go now, before I get myself caught again. If you need anything, I won\'t be far.',0,0,0,0,'gunter SAY_GUNTER_4'), -- broadcast text id 23404
+
+(-1568150,'Mmmm, flies! Even better now that I can taste them.',0,0,0,0,'kyren SAY_KYREN_1'), -- broadcast text id 23405
+(-1568151,'Nice to be back among the unliving, thanks to you.',0,0,0,0,'kyren SAY_KYREN_2'), -- broadcast text id 23406
+(-1568152,'Perhaps I am able to offer something of interest to you? Come, see if there\'s anything you like.',0,0,0,0,'kyren SAY_KYREN_3'), -- broadcast text id 23407
+(-1568153,'I must be off now, $n. See you around.',0,0,0,0,'kyren SAY_KYREN_4'), -- broadcast text id 23408
+
+(-1568154,'Weee! I\'m a girl again!',0,0,0,0,'mitzi SAY_MITZI_1'), -- broadcast text id 23411
+(-1568155,'Thank you for rescuing me. I simply hate being a yucky frog!',0,0,0,0,'mitzi SAY_MITZI_2'), -- broadcast text id 23412
+(-1568156,'I\'m really not supposed to talk to strangers, but you\'ve been so nice to me. Here\'s a special something I found just before I was kidnapped.',0,0,0,0,'mitzi SAY_MITZI_3'), -- broadcast text id 23413
+(-1568157,'I should go now. Be careful!',0,0,0,0,'mitzi SAY_MITZI_4'), -- broadcast text id 23414
+
+(-1568158,'Aww, nuts! You\'ve ruined everything!',0,0,0,0,'christian SAY_CHRISTIAN_1'), -- broadcast text id 23417
+(-1568159,'Do you have any idea how neat it is to hop that far?',0,0,0,0,'christian SAY_CHRISTIAN_2'), -- broadcast text id 23418
+(-1568160,'Oh well, I was starting to miss my pals anyway - they\'re not gunna believe this! Oh, here - you can have this, I found it playin\' hide and seek.',0,0,0,0,'christian SAY_CHRISTIAN_3'), -- broadcast text id 23419
+(-1568161,'Let\'s see if I can still make that sound....',0,0,0,0,'christian SAY_CHRISTIAN_4'), -- broadcast text id 23420
+
+(-1568162,'Hrmmph. Thanks all the same, but I didn\'t need any help.',0,0,0,0,'brennan SAY_BRENNAN_1'), -- broadcast text id 23421
+(-1568163,'I was working on a cantrip that would counteract my predicament and I was very close to finding a <CROOAAK>... Oh my!',8353,0,0,0,'brennan SAY_BRENNAN_2'), -- broadcast text id 23422
+(-1568164,'Well, I suppose I do owe you a little something - here, take one of these. I\'ve got lots.',0,0,0,0,'brennan SAY_BRENNAN_3'), -- broadcast text id 23423
+(-1568165,'You may want to consider leaving this place. I think being transformed into a frog is one of the better things that can happen to one here.',0,0,0,0,'brennan SAY_BRENNAN_4'), -- broadcast text id 23424
+
+(-1568166,'Oh! Back to my beautiful self? How lovely! I thought I would be a frog forever.',0,0,0,0,'hollee SAY_HOLLEE_1'), -- broadcast text id 23425
+(-1568167,'It was just terrible. I was all slimy, and I kept licking my eyes!',0,0,0,0,'hollee SAY_HOLLEE_1'), -- broadcast text id 23426
+(-1568168,'Thank goodness you came along when you did. Please, take one of these troll boxes to remember me by.',0,0,0,0,'hollee SAY_HOLLEE_1'), -- broadcast text id 23427
+(-1568169,'I never want to see this nasty pond again. Thank you, $n. I\'ll never forget you!',0,0,0,0,'hollee SAY_HOLLEE_1'), -- broadcast text id 23428
+
+(-1568170,'Mojo leaps into $n\'s pocket!',0,2,0,0,'forest frog SAY_MOJO'); -- broadcast text id 23485
 
 -- -1 580 000 SUNWELL PLATEAU
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -4773,7 +4906,16 @@ INSERT INTO gossip_texts (entry,content_default,comment) VALUES
 
 -- -3 568 000 ZUL'AMAN
 INSERT INTO gossip_texts (entry,content_default,comment) VALUES
-(-3568000,'Thanks for the concern, but we intend to explore Zul\'Aman.','harrison jones GOSSIP_ITEM_BEGIN');
+(-3568000,'Thanks for the concern, but we intend to explore Zul\'Aman.','harrison jones GOSSIP_ITEM_BEGIN'),
+(-3568001,'The coast is clear. You\'re free!','harkor GOSSIP_ITEM_ID_HARKOR_FREE'),
+(-3568002,'So, how does a dwarf like you end up in a place like this?','harkor GOSSIP_ITEM_ID_HARKOR_DONE'),
+(-3568003,'Nalorakk is dead, you\'re free to go.','tanzar GOSSIP_ITEM_ID_TANZAR_FREE'),
+(-3568004,'You\'re welcome... Now tell us what\'s going on here!','tanzar GOSSIP_ITEM_ID_TANZAR_DONE'),
+(-3568005,'What can you tell us about Budd?','tanzar GOSSIP_ITEM_ID_TANZAR_DONE2'),
+(-3568006,'We\'ve killed your captors. You\'re free to go.','kraz GOSSIP_ITEM_ID_KRAZ_FREE'),
+(-3568007,'What happened to you, orc?','kraz GOSSIP_ITEM_ID_KRAZ_DONE'),
+(-3568008,'It\'s safe, little gnome. You can come out now.','ashli GOSSIP_ITEM_ID_ASHLI_FREE'),
+(-3568009,'How\'d a perky little gnome like you get caught up in a mess like this?','ashli GOSSIP_ITEM_ID_ASHLI_DONE');
 
 --
 -- Below just for beautiful view in table, run at own desire
@@ -7731,37 +7873,33 @@ INSERT INTO script_waypoint VALUES
 (23002,0,72,1780.24,-3775.53,30.5931,0,0,0,''),
 (23002,0,73,1753.28,-3786.79,30.7445,0,0,0,''),
 (23002,0,74,1731.09,-3796.64,36.8866,0,0,0,''),
-(23089,0,0,660.22,305.74,271.688,0,0,0,'escort paused - GOSSIP_ITEM_PREPARE'),
-(23089,0,1,675.1,343.3,271.688,0,0,0,''),
-(23089,0,2,694.01,374.84,271.687,0,0,0,''),
-(23089,0,3,706.22,375.75,274.888,0,0,0,''),
-(23089,0,4,720.48,370.38,281.3,0,0,0,''),
-(23089,0,5,733.3,357.66,292.477,0,0,0,''),
-(23089,0,6,740.4,344.39,300.92,0,0,0,''),
-(23089,0,7,747.54,329.03,308.509,0,0,0,''),
-(23089,0,8,748.24,318.78,311.781,0,0,0,''),
-(23089,0,9,752.41,304.31,312.077,0,0,0,'escort paused - SAY_AKAMA_OPEN_DOOR_1'),
-(23089,0,10,770.27,304.89,312.35,0,0,0,''),
-(23089,0,11,780.18,305.26,319.71,0,0,0,''),
-(23089,0,12,791.45,289.27,319.8,0,0,0,''),
-(23089,0,13,790.41,262.7,341.42,0,0,0,''),
-(23089,0,14,782.88,250.2,341.6,0,0,0,''),
-(23089,0,15,765.35,241.4,353.62,0,0,0,''),
-(23089,0,16,750.61,235.63,353.02,0,0,0,'escort paused - GOSSIP_ITEM_START_EVENT'),
-(23089,0,17,748.87,304.93,352.99,0,0,0,'escort paused - SAY_ILLIDAN_SPEECH_1'),
-(23089,0,18,737.92,368.15,352.99,0,0,0,''),
-(23089,0,19,749.64,378.69,352.99,0,0,0,''),
-(23089,0,20,766.49,371.79,353.63,0,0,0,''),
-(23089,0,21,784.98,361.89,341.41,0,0,0,''),
+(23089,0,0,660.7646,305.7663,271.7023,0,0,0,'escort paused - GOSSIP_ITEM_PREPARE'),
+(23089,0,1,673.1424,354.9833,271.6941,0,0,0,''),
+(23089,0,2,696.6788,380.0098,271.8946,0,0,0,''),
+(23089,0,3,721.3693,374.3735,280.9952,0,0,0,''),
+(23089,0,4,736.7919,352.5067,296.4388,0,0,0,''),
+(23089,0,5,745.5639,336.7462,306.2994,0,0,0,''),
+(23089,0,6,749.1409,319.2256,311.6859,0,0,0,''),
+(23089,0,7,755.7801,304.4006,312.1697,6.27,0,0,'escort paused - SAY_AKAMA_OPEN_DOOR_1'),
+(23089,0,8,788.4127,296.7718,319.7609,0,0,0,''),
+(23089,0,9,798.0642,282.9705,324.8198,0,0,0,''),
+(23089,0,10,795.3637,264.1908,340.1823,0,0,0,''),
+(23089,0,11,772.6248,242.5376,349.0187,0,0,0,''),
+(23089,0,12,748.4362,235.8051,353.0343,0,0,0,'escort paused - GOSSIP_ITEM_START_EVENT'),
+(23089,0,13,748.87,304.93,352.99,0,0,0,'escort paused - SAY_ILLIDAN_SPEECH_1'),
+(23089,0,14,737.92,368.15,352.99,0,0,0,''),
+(23089,0,15,749.64,378.69,352.99,0,0,0,''),
+(23089,0,16,766.49,371.79,353.63,0,0,0,''),
+(23089,0,17,784.98,361.89,341.41,0,0,0,''),
+(23089,0,18,791.44,347.1,341.41,0,0,0,''),
+(23089,0,19,794.8,319.47,319.75,0,0,0,''),
+(23089,0,20,794.34,304.34,319.75,0,0,0,'escort paused - fight illidari elites'),
+(23089,0,21,794.8,319.47,319.75,0,0,0,''),
 (23089,0,22,791.44,347.1,341.41,0,0,0,''),
-(23089,0,23,794.8,319.47,319.75,0,0,0,''),
-(23089,0,24,794.34,304.34,319.75,0,0,0,'escort paused - fight illidari elites'),
-(23089,0,25,794.8,319.47,319.75,0,0,0,''),
-(23089,0,26,791.44,347.1,341.41,0,0,0,''),
-(23089,0,27,784.98,361.89,341.41,0,0,0,''),
-(23089,0,28,766.49,371.79,353.63,0,0,0,''),
-(23089,0,29,749.64,378.69,352.99,0,0,0,''),
-(23089,0,30,737.92,368.15,352.99,0,0,0,'escort paused'),
+(23089,0,23,784.98,361.89,341.41,0,0,0,''),
+(23089,0,24,766.49,371.79,353.63,0,0,0,''),
+(23089,0,25,749.64,378.69,352.99,0,0,0,''),
+(23089,0,26,737.92,368.15,352.99,0,0,0,'escort paused'),
 (23340,0,0,-5100.367,646.988,86.75992,0,0,0,''),
 (23340,0,1,-5098.652,661.8313,87.08841,0,0,0,''),
 (23340,0,2,-5092.219,664.3353,87.73563,0,0,0,''),
@@ -8423,11 +8561,323 @@ INSERT INTO script_waypoint VALUES
 (23383,0,43,-3724.522,3313.627,297.02,0,0,0,''),
 (23383,0,44,-3734.422,3315.625,292.3213,0,5000,0,'SAY_ESCORT_COMPLETE'),
 (23383,0,45,-3730.11,3326.87,290.705,0,0,0,''),
-(24358,0,0,121.194,1645.62,42.021,0,0,0,''),
-(24358,0,1,132.051,1642.18,42.021,0,5000,0,'SAY_AT_GONG'),
-(24358,0,2,120.671,1636.35,42.415,0,0,0,''),
-(24358,0,3,120.536,1611.65,43.473,0,10000,0,'SAY_OPEN_ENTRANCE'),
-(24358,0,4,120.536,1611.65,43.473,0,0,0,'');
+
+-- Escape
+-- sniffed
+(23790,0,0,-145.6961,1334.897,48.17388,100,0,0,''),
+(23790,0,1,-142.8265,1336.211,48.17387,100,8000,0,''),
+(23790,0,2,-139.6775,1335.789,48.17387,100,0,0,''),
+(23790,0,3,-136.364,1333.894,48.17387,100,17000,0,''),
+(23790,0,4,-138.0992,1332.832,48.17387,100,0,0,''),
+(23790,0,5,-139.3139,1331.377,48.17387,100,60000,0,''),
+-- guessed
+(23790,0,6,-135.124146,1339.056763,48.174061,100,0,0,''),
+(23790,0,7,-130.729034,1339.119629,48.173988,100,0,0,''),
+(23790,0,8,-112.540375,1346.102295,40.825539,100,0,0,''),
+(23790,0,9,-80.070129,1369.448608,40.765926,100,0,0,''),
+(23790,0,10,-80.220963,1378.210205,40.753429,100,0,0,''),
+-- sniffed
+(23790,0,11,-80.00238,1394.841,27.12944,100,0,0,''),
+(23790,0,12,-70.83681,1409.247,27.23804,100,0,0,''),
+(23790,0,13,-69.8846,1410.743,27.48376,100,0,0,''),
+(23790,0,14,-67.50447,1414.484,27.24984,100,0,0,''),
+(23790,0,15,-66.64658,1415.833,27.30231,100,0,0,''),
+(23790,0,16,-65.23666,1418.048,27.28767,100,0,0,''),
+(23790,0,17,-49.86122,1419.456,26.73495,100,0,0,''),
+(23790,0,18,-24.96838,1419.364,15.42664,100,0,0,''),
+(23790,0,19,-21.82492,1419.352,14.49998,100,0,0,''),
+(23790,0,20,-19.67221,1419.344,13.06147,100,0,0,''),
+(23790,0,21,-16.66602,1419.791,12.70261,100,0,0,''),
+(23790,0,22,-11.11133,1422.047,12.07761,100,0,0,''),
+(23790,0,23,-1.389323,1425.999,11.82761,100,0,0,''),
+(23790,0,24,4.324544,1453.16,9.195978,100,0,0,''),
+-- guessed
+(23790,0,25,18.132174,1462.589844,3.926991,100,0,0,''),
+(23790,0,26,39.477196,1450.521118,0.008979,100,0,0,''),
+(23790,0,27,45.961079,1436.188843,0.350973,100,0,0,''),
+(23790,0,28,56.151379,1419.242798,0.870952,100,0,0,''),
+(23790,0,29,82.673813,1420.432129,0.768901,100,0,0,''),
+(23790,0,30,86.237938,1446.306763,4.588818,100,0,0,''),
+-- sniffed
+(23790,0,31,86.40972,1465.93,18.13711,100,0,0,''),
+(23790,0,32,86.42712,1466.93,18.13711,100,0,0,''),
+(23790,0,33,86.47798,1469.854,20.05609,100,0,0,''),
+(23790,0,34,86.49686,1470.938,20.05659,100,0,0,''),
+(23790,0,35,86.52221,1473.874,20.07913,100,0,0,''),
+(23790,0,36,86.54096,1476.046,20.07852,100,0,0,''),
+(23790,0,37,86.55298,1477.437,20.07859,100,0,0,''),
+(23790,0,38,86.5663,1478.979,20.07858,100,0,0,''),
+(23790,0,39,86.59805,1482.655,20.07867,100,0,0,''),
+(23790,0,40,86.64377,1487.949,20.07862,100,0,0,''),
+(23790,0,41,86.65562,1489.32,20.07856,100,0,0,''),
+(23790,0,42,86.66718,1490.659,20.07886,100,0,0,''),
+(23790,0,43,86.68359,1492.56,20.28248,100,0,0,''),
+(23790,0,44,86.73339,1519.45,21.23376,100,0,0,''),
+-- guessed
+(23790,0,45,115.147484,1532.465454,21.233761,100,0,0,''),
+(23790,0,46,114.396042,1568.857422,43.523689,100,0,0,''),
+(23790,0,47,120.363640,1620.080933,43.428474,100,0,0,''),
+(23790,0,48,109.219406,1657.896240,42.021641,100,0,0,''),
+(23790,0,49,86.464722,1674.980103,42.021641,100,0,0,''),
+(23790,0,50,79.154434,1708.618286,42.021641,100,0,0,''),
+(23790,0,51,97.701767,1726.481079,42.021656,100,0,0,''),
+(23790,0,52,106.0898,1726.898,44.25594,100,12000,0,''),
+(23790,0,53,117.4575,1726.867,42.02155,100,0,0,''),
+(23790,0,54,137.6877,1719.041,42.02158,1.653,5000,0,''),
+
+-- Post-Zul'jin
+-- sniffed
+(23790,1,0,129.8052, 807.7782, 33.37591,100,0,0,''),
+(23790,1,1,128.9954, 807.1915, 33.37591,100,0,0,''),
+(23790,1,2,122.3719, 802.3923, 33.37591,100,0,0,''),
+(23790,1,3,121.3112, 799.9839, 33.37591,100,0,0,''),
+(23790,1,4,119.7329, 796.4, 33.38746,100,0,0,''),
+(23790,1,5,118.9309, 794.579, 33.3964,100,0,0,''),
+(23790,1,6,117.9491, 792.3499, 33.40257,100,0,0,''),
+(23790,1,7,118.0568, 788.0145, 33.4185,100,0,0,''),
+(23790,1,8,118.4408, 772.561, 33.47497,100,0,0,''),
+(23790,1,9,115.1441, 752.7275, 34.33925,100,0,0,''),
+(23790,1,10,116.8422, 738.0901, 45.11,100,0,0,''),
+(23790,1,11,105.3121, 719.1982, 45.11137,100,0,0,''),
+(23790,1,12,107.0615, 717.4769, 45.11137,100,8000,0,''),
+(23790,1,13,100.1625, 707.4741, 45.11137,100,0,0,''),
+(23790,1,14,96.8226, 707.6073, 45.11137,100,5000,0,''),
+
+-- Escape
+-- sniffed
+(23999,0,0,297.9303,1465.843,81.57809,100,7000,0,''),
+(23999,0,1,302.2797,1462.846,81.57086,100,0,0,''),
+(23999,0,2,306.3771,1463.949,81.58128,100,6000,0,''),
+(23999,0,3,304.3857,1465.72,81.58634,100,6000,0,''),
+(23999,0,4,298.7304,1464.985,81.57541,100,60000,0,''),
+-- guessed
+(23999,0,5,305.810455,1456.020264,81.506264,100,0,0,''),
+(23999,0,6,318.924622,1443.872070,74.343231,100,0,0,''),
+(23999,0,7,335.608856,1422.748779,74.192307,100,0,0,''),
+(23999,0,8,341.013275,1404.486328,74.441917,100,0,0,''),
+(23999,0,9,335.152588,1395.553467,74.619873,100,0,0,''),
+(23999,0,10,314.284271,1388.893066,57.596497,100,0,0,''),
+(23999,0,11,299.649597,1384.947144,57.865318,100,0,0,''),
+(23999,0,12,285.159729,1380.798828,49.321720,100,0,0,''),
+(23999,0,13,246.258118,1375.042358,49.321400,100,0,0,''),
+(23999,0,14,229.536514,1383.580078,44.411644,100,0,0,''),
+(23999,0,15,227.194946,1440.485352,26.142105,100,0,0,''),
+(23999,0,16,225.105408,1461.739990,25.916895,100,0,0,''),
+(23999,0,17,208.522751,1471.140137,25.905643,100,0,0,''),
+(23999,0,18,197.647491,1460.624756,20.287682,100,0,0,''),
+(23999,0,19,192.763382,1426.174805,15.769067,100,0,0,''),
+(23999,0,20,183.723358,1408.998413,15.064493,100,0,0,''),
+-- sniffed
+(23999,0,21,165.6035,1405.484,6.324402,100,0,0,''),
+(23999,0,22,164.5332,1407.174,5.699402,100,0,0,''),
+(23999,0,23,163.4629,1408.863,5.074402,100,0,0,''),
+(23999,0,24,162.3926,1410.553,4.449402,100,0,0,''),
+(23999,0,25,160.7871,1413.087,3.824402,100,0,0,''),
+(23999,0,26,153.7922,1424.13,3.324402,100,0,0,''),
+(23999,0,27,154.049,1444.969,3.551069,100,0,0,''),
+(23999,0,28,154.2901,1471.561,20.06003,100,0,0,''),
+-- guessed
+(23999,0,29,154.191864,1492.069580,20.207298,100,0,0,''),
+(23999,0,30,156.734192,1516.477295,21.234205,100,0,0,''),
+(23999,0,31,123.011536,1532.006104,21.234205,100,0,0,''),
+-- sniffed
+(23999,0,32,119.9618,1564.408,41.02303,100,0,0,''),
+(23999,0,33,119.8572,1568.617,43.39333,100,0,0,''),
+(23999,0,34,119.5184,1583.925,43.4181,100,0,0,''),
+(23999,0,35,119.266,1595.325,43.4474,100,0,0,''),
+(23999,0,36,119.1767,1599.363,43.41511,100,0,0,''),
+(23999,0,37,121.4332,1646.606,42.02159,100,0,0,''),
+-- guessed
+(23999,0,38,156.613251,1669.096436,42.021591,100,0,0,''),
+(23999,0,39,161.727570,1716.291260,42.021591,100,0,0,''),
+(23999,0,40,145.963959,1721.568848,42.021591,100,0,0,''),
+(23999,0,41,111.525749,1714.873169,42.021591,1.426348,5000,0,''),
+
+-- Post-Zul'jin
+-- sniffed
+(23999,1,0,130.8155,809.079,33.37591,100,0,0,''),
+(23999,1,1,129.9751,808.537,33.37591,100,0,0,''),
+(23999,1,2,123.364,804.2735,33.37591,100,0,0,''),
+(23999,1,3,120.6925,802.5507,33.37591,100,0,0,''),
+(23999,1,4,120.6637,800.8959,33.37591,100,0,0,''),
+(23999,1,5,120.645,799.8185,33.37591,100,0,0,''),
+(23999,1,6,120.3445,782.5253,33.43821,100,0,0,''),
+(23999,1,7,120.1743,772.7297,33.47401,100,0,0,''),
+(23999,1,8,120.1556,771.6559,33.47368,100,0,0,''),
+(23999,1,9,113.2892,752.9368,33.76631,100,0,0,''),
+(23999,1,10,113.6587,738.6876,45.28601,100,0,0,''),
+(23999,1,11,113.3314,719.3889,45.11137,100,16000,0,''),
+(23999,1,12,106.0395,720.9223,45.11136,100,0,0,''),
+(23999,1,13,101.7941,706.7435,45.11137,100,0,0,''),
+(23999,1,14,100.6341,697.988,45.11136,100,0,0,''),
+-- guessed
+(23999,1,15,100.851,695.5559,45.11136,4.1273,6000,0,'spawn Harkor\'s Brew Keg'),
+(23999,1,16,109.048912,687.187317,45.111408,100,0,0,''),
+(23999,1,17,112.137337,677.090271,52.330826,100,0,0,''),
+(23999,1,18,114.103127,671.329712,51.719406,1.551169,5000,0,''),
+
+-- Escape
+-- sniffed
+(24001,0,0,383.5332,1086.308,5.974173,100,1000,0,''),
+(24001,0,1,383.3186,1088.672,5.989234,100,0,0,''),
+(24001,0,2,383.3262,1090.004,6.320981,100,0,0,''),
+(24001,0,3,398.1089,1126.298,6.303194,100,0,0,''),
+(24001,0,4,392.3712,1146.572,6.222425,100,0,0,''),
+(24001,0,5,355.8842,1129.587,6.525888,100,0,0,''),
+(24001,0,6,344.3732,1100.115,6.457113,100,12000,0,''),
+(24001,0,7,364.8193,1103.98,6.138184,100,0,0,''),
+(24001,0,8,389.1712,1086.583,5.902591,100,0,0,''),
+(24001,0,9,406.2733,1113.202,6.390222,100,0,0,''),
+(24001,0,10,389.5124,1148.138,6.220311,100,0,0,''),
+(24001,0,11,352.5295,1118.125,6.44824,100,0,0,''),
+(24001,0,12,338.2169,1126.372,6.455091,100,12000,0,''),
+(24001,0,13,345.4488,1088.852,7.004283,100,0,0,''),
+(24001,0,14,373.4771,1097.548,6.308249,100,0,0,''),
+(24001,0,15,399.9229,1132.639,6.309431,100,0,0,''),
+(24001,0,16,392.4269,1143.645,6.147355,100,0,0,''),
+(24001,0,17,347.0435,1142.894,6.186779,100,0,0,''),
+(24001,0,18,338.6937,1126,6.452535,100,0,0,''),
+(24001,0,19,369.6844,1117.15,5.95745,100,0,0,''),
+(24001,0,20,401.7724,1098.962,6.580225,100,12000,0,''),
+(24001,0,21,334.3144,1117.262,6.0273,100,0,0,''),
+(24001,0,22,313.4415,1123.747,9.704546,100,60000,0,''),
+-- guessed
+(24001,0,23,309.743408,1117.530151,9.717999,100,0,0,''),
+(24001,0,24,301.905029,1117.733276,10.289268,100,0,0,''),
+(24001,0,25,283.300385,1117.645752,0.000099,100,0,0,''),
+(24001,0,26,261.491364,1118.421631,0.000099,100,0,0,''),
+-- sniffed
+(24001,0,27,204.5145,1115.355,0.125,100,0,0,''),
+(24001,0,28,187.0511,1121.262,0.125,100,0,0,''),
+(24001,0,29,177.7114,1135.33,0.125,100,0,0,''),
+(24001,0,30,161.3966,1146.505,0.07049704,100,0,0,''),
+-- guessed
+(24001,0,31,137.688263,1155.374023,0.981615,100,0,0,''),
+(24001,0,32,130.043289,1159.478271,-2.338670,100,0,0,''),
+(24001,0,33,125.371216,1174.883911,-6.650873,100,0,0,''),
+-- sniffed
+(24001,0,34,121.5685,1178.793,-12.62515,100,0,0,''),
+(24001,0,35,121.4629,1179.581,-13.32066,100,0,0,''),
+(24001,0,36,120.666,1185.528,-14.07066,100,0,0,''),
+(24001,0,37,120.002,1190.484,-14.82066,100,0,0,''),
+(24001,0,38,119.4707,1194.449,-15.44566,100,0,0,''),
+(24001,0,39,119.0723,1197.423,-16.07066,100,0,0,''),
+(24001,0,40,118.7324,1200.402,-16.72363,100,0,0,''),
+(24001,0,41,118.5059,1202.389,-17.34863,100,0,0,''),
+(24001,0,42,118.2793,1204.375,-17.97363,100,0,0,''),
+(24001,0,43,118.0527,1206.361,-19.34863,100,0,0,''),
+(24001,0,44,117.8262,1208.348,-21.34863,100,0,0,''),
+(24001,0,45,117.2598,1213.313,-20.72363,100,0,0,''),
+(24001,0,46,117.0332,1215.3,-21.59863,100,0,0,''),
+(24001,0,47,116.8066,1217.286,-22.22363,100,0,0,''),
+(24001,0,48,116.5801,1219.272,-22.84863,100,0,0,''),
+(24001,0,49,116.2402,1222.252,-23.59863,100,0,0,''),
+(24001,0,50,115.7871,1226.225,-24.22363,100,0,0,''),
+(24001,0,51,115.2244,1231.232,-24.47363,100,0,0,''),
+(24001,0,52,115.2154,1236.795,-21.77824,100,0,0,''),
+(24001,0,53,115.0737,1243.064,-21.81769,100,0,0,''),
+(24001,0,54,115.1374,1246.035,-20.19992,100,0,0,''),
+(24001,0,55,115.8309,1271.141,-15.35199,100,0,0,''),
+(24001,0,56,129.004,1284.024,-15.35208,100,0,0,''),
+(24001,0,57,128.5221,1296.326,-15.35208,100,0,0,''),
+(24001,0,58,117.06,1307.122,-15.35201,100,0,0,''),
+(24001,0,59,115.6787,1310.843,-15.35201,100,0,0,''),
+(24001,0,60,115.8802,1330.122,-20.30514,100,0,0,''),
+(24001,0,61,115.7944,1335.341,-21.63844,100,0,0,''),
+(24001,0,62,115.8271,1341.045,-21.68019,100,0,0,''),
+(24001,0,63,115.0957,1347.816,-24.65599,100,0,0,''),
+(24001,0,64,115.8129,1362.714,-23.36664,100,0,0,''),
+(24001,0,65,116.1325,1386.015,-15.87422,100,0,0,''),
+(24001,0,66,118.8566,1405.228,-6.975243,100,0,0,''),
+-- guessed
+(24001,0,67,145.574234,1418.649780,3.101707,100,0,0,''),
+(24001,0,68,153.649857,1430.683716,3.302236,100,0,0,''),
+(24001,0,69,154.572861,1444.352539,3.303317,100,0,0,''),
+(24001,0,70,154.179489,1471.110962,20.054930,100,0,0,''),
+(24001,0,71,153.942856,1492.816040,20.347717,100,0,0,''),
+(24001,0,72,157.635666,1517.935791,21.234461,100,0,0,''),
+(24001,0,73,131.859650,1524.410645,21.234461,100,0,0,''),
+(24001,0,74,125.264290,1531.958740,21.234461,100,0,0,''),
+(24001,0,75,124.113449,1568.925781,43.517063,100,0,0,''),
+(24001,0,76,125.377708,1621.279175,43.441097,100,0,0,''),
+(24001,0,77,129.068375,1653.187012,42.022205,100,0,0,''),
+(24001,0,78,150.881958,1663.231445,42.022205,100,0,0,''),
+(24001,0,79,162.436722,1683.081787,42.022205,100,0,0,''),
+(24001,0,80,162.504486,1714.189209,42.022205,100,0,0,''),
+(24001,0,81,147.798157,1723.008423,42.022205,100,0,0,''),
+(24001,0,82,136.507858,1721.674805,42.022205,100,0,0,''),
+(24001,0,83,130.966125,1713.293701,42.022205,1.691113,5000,0,''),
+
+-- Post-Zul'jin
+-- sniffed
+(24001,1,0,137.0035, 814.2776, 33.37591, 100, 0, 0, ''),
+(24001,1,1,136.3934, 813.4853, 33.37591, 100, 0, 0, ''),
+(24001,1,2,131.3571, 806.944, 33.37591, 100, 0, 0, ''),
+(24001,1,3,122.2147, 802.8359, 33.37591, 100, 0, 0, ''),
+(24001,1,4,120.2096, 801.9349, 33.37591, 100, 0, 0, ''),
+(24001,1,5,120.1491, 800.2522, 33.37591, 100, 0, 0, ''),
+(24001,1,6,119.8858, 792.9299, 33.40015, 100, 0, 0, ''),
+(24001,1,7,119.1559, 772.6306, 33.47458, 100, 0, 0, ''),
+(24001,1,8,119.1119, 771.4086, 33.47368, 100, 0, 0, ''),
+(24001,1,9,119.081, 770.5477, 33.44409, 100, 0, 0, ''),
+(24001,1,10,126.0739, 752.9862, 34.05475, 100, 0, 0, ''),
+(24001,1,11,125.4523, 737.8333, 45.1387, 100, 0, 0, ''),
+(24001,1,12,136.2864, 715.3524, 45.11137, 100, 0, 0, ''),
+(24001,1,13,134.3398, 714.4622, 45.11137, 100, 14000, 0, ''),
+(24001,1,14,134.4575, 686.9156, 45.11136, 100, 0, 0, ''),
+(24001,1,15,130.1011, 676.2486, 52.19216, 100, 0, 0, ''),
+(24001,1,16,125.7827, 655.5018, 51.67329, 100, 0, 0, ''),
+(24001,1,17,113.7838, 655.6854, 51.68291, 100, 0, 0, ''),
+(24001,1,18,109.9202, 674.5815, 51.95691, 100, 0, 0, ''),
+(24001,1,19,105.8745, 702.0614, 45.11136, 100, 0, 0, ''),
+(24001,1,20,83.96203, 697.8445, 45.11135, 100, 0, 0, ''),
+(24001,1,21,83.43729, 714.374, 45.11136, 100, 0, 0, ''),
+(24001,1,22,105.979, 711.717, 45.11137, 100, 0, 0, ''),
+(24001,1,23,101.5918, 729.3037, 45.11136, 100, 0, 0, ''),
+(24001,1,24,138.5485, 729.1754, 45.11137, 100, 0, 0, ''),
+(24001,1,25,132.9379, 712.7618, 45.11137, 100, 0, 0, ''),
+(24001,1,26,156.897, 714.4436, 45.11136, 100, 0, 0, ''),
+(24001,1,27,157.6463, 697.4852, 45.11136, 100, 0, 0, ''),
+(24001,1,28,132.5298, 700.6038, 45.11136, 100, 0, 0, ''),
+(24001,1,29,106.818, 700.1823, 45.11136, 0.856, 5000, 0, ''), -- orientation guessed
+
+(24024,0,0,-73.60417,1161.902,5.189967,100,0,0,''),
+(24024,0,1,-75.65417,1157.752,5.364081,100,7000,0,''),
+(24024,0,2,-76.48643,1156.667,5.299397,100,0,0,''),
+(24024,0,3,-89.46484,1142.276,5.594042,100,0,0,''),
+(24024,0,4,-84.86057,1127.99,5.594042,100,0,0,''),
+(24024,0,5,-81.4426,1125.975,5.593996,100,10000,0,''),
+(24024,0,6,-86.68555,1133.053,5.594041,100,0,0,''),
+(24024,0,7,-79.09592,1138.717,5.458687,100,8000,0,''),
+(24024,0,8,-82.01552,1138.562,5.594041,100,0,0,''),
+(24024,0,9,-84.77876,1135.255,5.594041,100,0,0,''),
+(24024,0,10,-84.96288,1132.281,5.594057,100,0,0,''),
+(24024,0,11,-82.6097,1128.821,5.594056,100,60000,0,''),
+(24175,0,0,216.3581,1467.675,25.9713,100,0,0,''),
+(24175,0,1,217.2123,1467.155,25.9713,100,0,0,''),
+(24175,0,2,226.0859,1461.754,25.93943,100,0,0,''),
+(24175,0,3,228.0156,1435.83,26.68943,100,0,0,''),
+(24175,0,4,228.1763,1433.847,27.18943,100,0,0,''),
+(24175,0,5,227.731,1412.553,34.4392,100,0,0,''),
+(24175,0,6,228.1711,1388.288,42.68928,100,0,0,''),
+(24175,0,7,232.5426,1374.381,47.43928,100,0,0,''),
+(24175,0,8,263.1866,1376.492,49.32307,100,0,0,''),
+(24175,0,9,265.7423,1376.84,49.34044,100,0,0,''),
+(24175,0,10,298.9646,1385.205,57.77875,100,0,0,''),
+(24358,0,0,121.194,1645.62,42.021,100,0,0,''),
+(24358,0,1,132.051,1642.18,42.021,100,4000,0,'SAY_AT_GONG'),
+(24358,0,2,132.051,1642.18,42.021,100,1000,0,'start pounding gong'),
+(24358,0,3,127.5514,1641.869,42.35881,100,0,0,''),
+(24358,0,4,123.5514,1640.119,42.35881,100,0,0,''),
+(24358,0,5,121.947,1639.015,42.19603,100,0,0,''),
+(24358,0,6,120.8522,1637.931,42.37172,100,0,0,'SAY_OPEN_ENTRANCE'),
+(24358,0,7,121.071,1622.997,43.93089,100,0,0,''),
+(24358,0,8,120.7898,1609.063,43.49005,100,9000,0,'SAY_OPEN_ENTRANCE_2'),
+(24358,0,9,120.7898,1609.063,43.49005,100,2000,0,'door opens, cast stealth'),
+(24358,0,10,120.9933,1605.888,43.97018,100,0,0,''),
+(24358,0,11,120.6967,1603.713,43.4503,100,0,0,'guardian attacker moves 1'),
+(24358,0,12,120.9157,1595.822,43.96694,100,0,0,'guardian attacker moves 2'),
+(24358,0,13,120.594,1587.591,43.43018,100,5000,0,'dies');
 
 -- EOF
 

@@ -36,6 +36,7 @@ void MemberSlot::SetMemberStats(Player* player)
     Name   = player->GetName();
     Level  = player->getLevel();
     Class  = player->getClass();
+    Gender_ = player->getGender();
     ZoneId = player->IsInWorld() ? player->GetZoneId() : player->GetCachedZoneId();
 }
 
@@ -197,12 +198,13 @@ bool Guild::AddMember(ObjectGuid plGuid, uint32 plRank)
         newmember.Name   = pl->GetName();
         newmember.Level  = pl->getLevel();
         newmember.Class  = pl->getClass();
+        newmember.Gender_ = pl->getGender();
         newmember.ZoneId = pl->GetZoneId();
     }
     else
     {
-        //                                                     0    1     2     3    4
-        QueryResult* result = CharacterDatabase.PQuery("SELECT name,level,class,zone,account FROM characters WHERE guid = '%u'", lowguid);
+        //                                                     0    1     2     3      4    5
+        QueryResult* result = CharacterDatabase.PQuery("SELECT name,level,class,gender,zone,account FROM characters WHERE guid = '%u'", lowguid);
         if (!result)
             return false;                                   // player doesn't exist
 
@@ -210,8 +212,9 @@ bool Guild::AddMember(ObjectGuid plGuid, uint32 plRank)
         newmember.Name   = fields[0].GetCppString();
         newmember.Level  = fields[1].GetUInt8();
         newmember.Class  = fields[2].GetUInt8();
-        newmember.ZoneId = fields[3].GetUInt32();
-        newmember.accountId = fields[4].GetInt32();
+        newmember.Gender_ = fields[3].GetUInt8();
+        newmember.ZoneId = fields[4].GetUInt32();
+        newmember.accountId = fields[5].GetInt32();
         delete result;
 
         if (newmember.Level < 1 || newmember.Class < 1 ||
@@ -458,9 +461,10 @@ bool Guild::LoadMembersFromDB(QueryResult* guildMembersResult)
         newmember.Name                  = fields[19].GetCppString();
         newmember.Level                 = fields[20].GetUInt8();
         newmember.Class                 = fields[21].GetUInt8();
-        newmember.ZoneId                = fields[22].GetUInt32();
-        newmember.LogoutTime            = fields[23].GetUInt64();
-        newmember.accountId             = fields[24].GetInt32();
+        newmember.Gender_               = fields[22].GetUInt8();
+        newmember.ZoneId                = fields[23].GetUInt32();
+        newmember.LogoutTime            = fields[24].GetUInt64();
+        newmember.accountId             = fields[25].GetInt32();
 
         // this code will remove not existing character guids from guild
         if (newmember.Level < 1 || newmember.Class < 1) // can be at broken `data` field
@@ -780,7 +784,7 @@ void Guild::Roster(WorldSession* session /*= nullptr*/)
             data << uint32(itr->second.RankId);
             data << uint8(pl->getLevel());
             data << uint8(pl->getClass());
-            data << uint8(0);                               // new 2.4.0
+            data << uint8(pl->getGender());                                     // new 2.4.0
             data << uint32(pl->GetZoneId());
             data << itr->second.Pnote;
             data << ((session && HasRankRight(session->GetPlayer()->GetRank(), GR_RIGHT_VIEWOFFNOTE)) ? itr->second.OFFnote : "");
@@ -793,7 +797,7 @@ void Guild::Roster(WorldSession* session /*= nullptr*/)
             data << uint32(itr->second.RankId);
             data << uint8(itr->second.Level);
             data << uint8(itr->second.Class);
-            data << uint8(0);                               // new 2.4.0
+            data << uint8(itr->second.Gender_);                                 // new 2.4.0
             data << uint32(itr->second.ZoneId);
             data << float(float(time(nullptr) - itr->second.LogoutTime) / DAY);
             data << itr->second.Pnote;
@@ -1370,7 +1374,7 @@ void Guild::SetBankMoneyPerDay(uint32 rankId, uint32 money)
     }
 
     CharacterDatabase.PExecute("UPDATE guild_rank SET BankMoneyPerDay='%u' WHERE rid='%u' AND guildid='%u'", money, rankId, m_Id);
-    CharacterDatabase.PExecute("UPDATE guild_member SET BankResetTimeMoney='0' WHERE guildid='%u' AND rank='%u'", m_Id, rankId);
+    CharacterDatabase.PExecute("UPDATE guild_member SET BankResetTimeMoney='0' WHERE guildid='%u' AND `rank`='%u'", m_Id, rankId);
 }
 
 void Guild::SetBankRightsAndSlots(uint32 rankId, uint8 TabId, uint32 right, uint32 nbSlots, bool db)
@@ -1404,7 +1408,7 @@ void Guild::SetBankRightsAndSlots(uint32 rankId, uint8 TabId, uint32 right, uint
         CharacterDatabase.PExecute("DELETE FROM guild_bank_right WHERE guildid='%u' AND TabId='%u' AND rid='%u'", m_Id, uint32(TabId), rankId);
         CharacterDatabase.PExecute("INSERT INTO guild_bank_right (guildid,TabId,rid,gbright,SlotPerDay) VALUES "
                                    "('%u','%u','%u','%u','%u')", m_Id, uint32(TabId), rankId, m_Ranks[rankId].TabRight[TabId], m_Ranks[rankId].TabSlotPerDay[TabId]);
-        CharacterDatabase.PExecute("UPDATE guild_member SET BankResetTimeTab%u='0' WHERE guildid='%u' AND rank='%u'", uint32(TabId), m_Id, rankId);
+        CharacterDatabase.PExecute("UPDATE guild_member SET BankResetTimeTab%u='0' WHERE guildid='%u' AND `rank`='%u'", uint32(TabId), m_Id, rankId);
     }
 }
 

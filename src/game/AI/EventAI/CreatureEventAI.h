@@ -93,7 +93,7 @@ enum EventAI_ActionType
     ACTION_T_RANDOM_EMOTE               = 10,               // EmoteId1, EmoteId2, EmoteId3 (-1 in any field means no output if randomed that field)
     ACTION_T_CAST                       = 11,               // SpellId, Target - default = 15, CastFlags
     ACTION_T_SPAWN                      = 12,               // CreatureID, Target, Duration in ms
-    ACTION_T_THREAT_SINGLE_PCT          = 13,               // Threat%, Target
+    ACTION_T_THREAT_SINGLE              = 13,               // Threat, Target, IsDirect
     ACTION_T_THREAT_ALL_PCT             = 14,               // Threat%
     ACTION_T_QUEST_EVENT                = 15,               // QuestID, Target
     ACTION_T_CAST_EVENT                 = 16,               // QuestID, SpellId, Target - must be removed as hack?
@@ -128,8 +128,8 @@ enum EventAI_ActionType
     ACTION_T_THROW_AI_EVENT             = 45,               // EventType, Radius, Target
     ACTION_T_SET_THROW_MASK             = 46,               // EventTypeMask, unused, unused
     ACTION_T_SET_STAND_STATE            = 47,               // StandState, unused, unused
-    ACTION_T_CHANGE_MOVEMENT            = 48,               // MovementType, WanderDistance if Movement Type 1 and PathId if Movement Type 2, unused
-    ACTION_T_DYNAMIC_MOVEMENT           = 49,               // EnableDynamicMovement (1 = on; 0 = off)
+    ACTION_T_CHANGE_MOVEMENT            = 48,               // MovementType, WanderDistance if Movement Type 1 and PathId if Movement Type 2, asDefault
+    ACTION_T_REUSE                      = 49,               // REUSE
     ACTION_T_SET_REACT_STATE            = 50,               // React state, unused, unused
     ACTION_T_PAUSE_WAYPOINTS            = 51,               // DoPause 0: unpause waypoint 1: pause waypoint, unused, unused
     ACTION_T_INTERRUPT_SPELL            = 52,               // SpellType enum CurrentSpellTypes, unused, unused
@@ -284,12 +284,13 @@ struct CreatureEventAI_Action
             uint32 target;
             uint32 duration;
         } summon;
-        // ACTION_T_THREAT_SINGLE_PCT                       = 13
+        // ACTION_T_THREAT_SINGLE                           = 13
         struct
         {
-            int32 percent;
+            int32 value;
             uint32 target;
-        } threat_single_pct;
+            uint32 isDirect;
+        } threat_single;
         // ACTION_T_THREAT_ALL_PCT                          = 14
         struct
         {
@@ -469,15 +470,15 @@ struct CreatureEventAI_Action
         {
             uint32 movementType;
             uint32 wanderORpathID;
-            uint32 unused1;
+            uint32 asDefault;
         } changeMovement;
-        // ACTION_T_DYNAMIC_MOVEMENT                        = 49
+        // ACTION_T_REUSE                                   = 49
         struct
         {
-            uint32 state;                                   // bool: 1 = on; 0 = off
             uint32 unused1;
             uint32 unused2;
-        } dynamicMovement;
+            uint32 unused3;
+        } reuse;
         // ACTION_T_SET_REACT_STATE                         = 50
         struct
         {
@@ -854,6 +855,7 @@ class CreatureEventAI : public CreatureAI
         void DistancingStarted() override;
         void DistancingEnded() override;
 
+        MovementGeneratorType GetDefaultMovement() { return m_defaultMovement; }
     protected:
         std::string GetAIName() override { return "EventAI"; }
         // Event rules specifiers
@@ -873,7 +875,6 @@ class CreatureEventAI : public CreatureAI
         uint32 m_depth;
 
         uint8  m_Phase;                                     // Current phase, max 32 phases
-        bool   m_DynamicMovement;                           // Core will control creatures movement if this is enabled
         bool   m_HasOOCLoSEvent;                            // Cache if a OOC-LoS Event exists
         uint32 m_InvinceabilityHpLevel;                     // Minimal health level allowed at damage apply
 
@@ -893,6 +894,8 @@ class CreatureEventAI : public CreatureAI
         uint32 m_mainSpellId;
         uint32 m_mainSpellCost;
         float m_mainSpellMinRange;
+
+        MovementGeneratorType m_defaultMovement; // TODO: Extend to all of AI
 };
 
 #endif

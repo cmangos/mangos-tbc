@@ -141,6 +141,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
             while (aNetherDrakeEntries[uiIndex] == m_creature->GetEntry())
                 uiIndex = urand(0, MAX_ENTRIES - 1);
 
+            m_creature->CastSpell(nullptr, 35426, TRIGGERED_OLD_TRIGGERED); // arcane explosion visual
             if (m_creature->UpdateEntry(aNetherDrakeEntries[uiIndex]))
             {
                 // Nihil does only dialogue
@@ -1709,7 +1710,7 @@ struct go_aura_generator_000AI : public GameObjectAI
                     {
                         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_OSCILLATING_FREQUENCY_SCANNER);
                         myHolder = CreateSpellAuraHolder(spellInfo, player, m_go);
-                        GameObjectAura* Aur = new GameObjectAura(spellInfo, EFFECT_INDEX_0, nullptr, myHolder, player, m_go);
+                        GameObjectAura* Aur = new GameObjectAura(spellInfo, EFFECT_INDEX_0, nullptr, nullptr, myHolder, player, m_go);
                         myHolder->AddAura(Aur, EFFECT_INDEX_0);
                         if (!player->AddSpellAuraHolder(myHolder))
                             delete myHolder;

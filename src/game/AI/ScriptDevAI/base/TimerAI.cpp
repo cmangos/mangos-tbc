@@ -70,7 +70,7 @@ void TimerManager::AddTimer(uint32 id, Timer&& timer)
 
 void TimerManager::AddCustomAction(uint32 id, bool disabled, std::function<void()> functor)
 {
-    m_timers.emplace(id, Timer(id, functor, 0, 0, false));
+    m_timers.emplace(id, Timer(id, functor, 0, 0, disabled));
 }
 
 void TimerManager::AddCustomAction(uint32 id, uint32 timer, std::function<void()> functor)
@@ -155,18 +155,6 @@ void CombatActions::AddCombatAction(uint32 id, uint32 timerMin, uint32 timerMax)
 void CombatActions::AddTimerlessCombatAction(uint32 id, bool byDefault)
 {
     m_timerlessActionSettings[id] = byDefault;
-}
-
-void CombatActions::AddSpellCombatAction(uint32 id, bool disabled)
-{
-}
-
-void CombatActions::AddSpellCombatAction(uint32 id, uint32 timer)
-{
-}
-
-void CombatActions::AddSpellCombatAction(uint32 id, uint32 timerMin, uint32 timerMax)
-{
 }
 
 void CombatActions::ResetTimer(uint32 index, uint32 timer)

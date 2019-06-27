@@ -169,11 +169,33 @@ void Creature::AddToWorld()
     if (!IsInWorld() && GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
         GetMap()->GetObjectsStore().insert<Creature>(GetObjectGuid(), (Creature*)this);
 
+    switch (GetSubtype())
+    {
+        case CREATURE_SUBTYPE_PET:
+        case CREATURE_SUBTYPE_TEMPORARY_SUMMON:
+        {
+            std::map<uint32, uint32>& targetArray = GetMap()->GetTempCreatures();
+            if (GetSubtype() == CREATURE_SUBTYPE_PET)
+                targetArray = GetMap()->GetTempPets();
+            // If creature exists, add count
+            if (targetArray.find(this->GetEntry()) != targetArray.end())
+                ++targetArray[this->GetEntry()];
+            else
+                targetArray.insert(std::pair<uint32, uint32>(this->GetEntry(), 1));
+            break;
+        }
+        default: break;
+    }
+
     Unit::AddToWorld();
 
     // Make active if required
     if (sWorld.isForceLoadMap(GetMapId()) || (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_ACTIVE))
         SetActiveObjectState(true);
+
+    // Check if visibility distance different
+    if (GetCreatureInfo()->visibilityDistanceType != VisibilityDistanceType::Normal)
+        SetVisibilityDistanceOverride(GetCreatureInfo()->visibilityDistanceType);
 
     if (m_countSpawns)
         GetMap()->AddToSpawnCount(GetObjectGuid());
@@ -186,6 +208,26 @@ void Creature::RemoveFromWorld()
     {
         if (GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
             GetMap()->GetObjectsStore().erase<Creature>(GetObjectGuid(), (Creature*)nullptr);
+
+        switch (GetSubtype())
+        {
+            case CREATURE_SUBTYPE_PET:
+            case CREATURE_SUBTYPE_TEMPORARY_SUMMON:
+            {
+                std::map<uint32, uint32>& targetArray = GetMap()->GetTempCreatures();
+                if (GetSubtype() == CREATURE_SUBTYPE_PET)
+                    targetArray = GetMap()->GetTempPets();
+                if (targetArray.find(this->GetEntry()) != targetArray.end())
+                {
+                    --targetArray[this->GetEntry()];
+
+                    if (targetArray[this->GetEntry()] <= 0)
+                        targetArray.erase(this->GetEntry());
+                }
+                break;
+            }
+            default: break;
+        }
 
         if (m_countSpawns)
             GetMap()->RemoveFromSpawnCount(GetObjectGuid());
@@ -675,12 +717,12 @@ void Creature::RegenerateAll(uint32 update_diff)
     if (!isInCombat() || IsEvadeRegen())
         RegenerateHealth();
 
-    RegeneratePower();
+    RegeneratePower(2.f);
 
     m_regenTimer = REGEN_TIME_FULL;
 }
 
-void Creature::RegeneratePower()
+void Creature::RegeneratePower(float timerMultiplier)
 {
     if (!IsRegeneratingPower())
         return;
@@ -703,9 +745,8 @@ void Creature::RegeneratePower()
                 if (!IsUnderLastManaUseEffect())
                 {
                     float ManaIncreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_MANA);
-                    float Spirit = GetStat(STAT_SPIRIT);
-
-                    addValue = (Spirit / 5.0f + 17.0f) * ManaIncreaseRate;
+                    float intellect = GetStat(STAT_INTELLECT);
+                    addValue = sqrt(intellect) * OCTRegenMPPerSpirit() * ManaIncreaseRate / 5.f * timerMultiplier;
                 }
             }
             else
@@ -1164,8 +1205,8 @@ void Creature::SaveToDB(uint32 mapid, uint8 spawnMask)
     // prevent add data integrity problems
     data.spawndist = GetDefaultMovementType() == IDLE_MOTION_TYPE ? 0 : m_respawnradius;
     data.currentwaypoint = 0;
-    data.curhealth = GetHealth();
-    data.curmana = GetPower(POWER_MANA);
+    data.curhealth = 0;
+    data.curmana = 0;
     data.is_dead = m_isDeadByDefault;
     // prevent add data integrity problems
     data.movementType = !m_respawnradius && GetDefaultMovementType() == RANDOM_MOTION_TYPE

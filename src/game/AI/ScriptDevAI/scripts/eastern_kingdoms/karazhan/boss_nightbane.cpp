@@ -35,7 +35,7 @@ enum
     EMOTE_DEEP_BREATH           = -1532130,
 
     // ground phase spells
-    SPELL_BELLOWING_ROAR        = 39427,
+    SPELL_BELLOWING_ROAR        = 36922,
     SPELL_CHARRED_EARTH         = 30129,                    // Also 30209 (Target Charred Earth) triggers this
     SPELL_CHARRED_EARTH_TARGETING = 30209,
     SPELL_SMOLDERING_BREATH     = 30210,
@@ -290,11 +290,8 @@ struct boss_nightbaneAI : public npc_escortAI
 
                 if (m_uiCharredEarthTimer < uiDiff)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER))
-                    {
-                        if (DoCastSpellIfCan(pTarget, SPELL_CHARRED_EARTH_TARGETING) == CAST_OK) // shouldnt be sent to client
-                            m_uiCharredEarthTimer = urand(25000, 35000);
-                    }
+                    if (DoCastSpellIfCan(nullptr, SPELL_CHARRED_EARTH_TARGETING) == CAST_OK) // shouldnt be sent to client
+                        m_uiCharredEarthTimer = urand(25000, 35000);
                 }
                 else
                     m_uiCharredEarthTimer -= uiDiff;

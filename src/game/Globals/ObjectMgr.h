@@ -761,7 +761,9 @@ class ObjectMgr
 
         void LoadSpellTemplate();
         void CheckSpellCones();
+
         void LoadCreatureTemplateSpells();
+        void LoadCreatureCooldowns();
 
         void LoadGameTele();
 
@@ -1153,6 +1155,18 @@ class ObjectMgr
 
         QuestRelationsMap& GetCreatureQuestRelationsMap() { return m_CreatureQuestRelations; }
 
+        uint32 GetCreatureCooldown(uint32 entry, uint32 spellId)
+        {
+            auto itrEntry = m_creatureCooldownMap.find(entry);
+            if (itrEntry == m_creatureCooldownMap.end())
+                return 0;
+            auto& map = itrEntry->second;
+            auto itrSpell = map.find(spellId);
+            if (itrSpell == map.end())
+                return 0;
+            return urand(itrSpell->second.first, itrSpell->second.second);
+        }
+
         uint32 GetModelForRace(uint32 sourceModelId, uint32 racemask);
         /**
         * \brief: Data returned is used to compute health, mana, armor, damage of creatures. May be nullptr.
@@ -1293,6 +1307,7 @@ class ObjectMgr
         ActiveCreatureGuidsOnMap m_activeCreatures;
         CreatureDataMap mCreatureDataMap;
         CreatureLocaleMap mCreatureLocaleMap;
+        std::unordered_map<uint32, std::unordered_map<uint32, std::pair<uint32, uint32>>> m_creatureCooldownMap;
         GameObjectDataMap mGameObjectDataMap;
         GameObjectLocaleMap mGameObjectLocaleMap;
         ItemLocaleMap mItemLocaleMap;

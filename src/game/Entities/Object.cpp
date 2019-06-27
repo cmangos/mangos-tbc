@@ -43,6 +43,16 @@
 
 #include "Custom/CPlayer.h"
 
+constexpr float VisibilityDistances[AsUnderlyingType(VisibilityDistanceType::Max)] =
+{
+    DEFAULT_VISIBILITY_DISTANCE,
+    VISIBILITY_DISTANCE_TINY,
+    VISIBILITY_DISTANCE_SMALL,
+    VISIBILITY_DISTANCE_LARGE,
+    VISIBILITY_DISTANCE_GIGANTIC,
+    MAX_VISIBILITY_DISTANCE
+};
+
 Object::Object(): m_updateFlag(0), m_itsNewObject(false)
 {
     m_objectTypeId      = TYPEID_OBJECT;
@@ -112,12 +122,14 @@ void Object::SendForcedObjectUpdate()
     BuildUpdateData(update_players);
     RemoveFromClientUpdateList();
 
-    WorldPacket packet;                                     // here we allocate a std::vector with a size of 0x10000
+    // here we allocate a std::vector with a size of 0x10000
     for (auto& update_player : update_players)
     {
-        update_player.second.BuildPacket(packet);
-        update_player.first->GetSession()->SendPacket(packet);
-        packet.clear();                                     // clean the string
+        for (size_t i = 0; i < update_player.second.GetPacketCount(); ++i)
+        {
+            WorldPacket packet = update_player.second.BuildPacket(i);
+            update_player.first->GetSession()->SendPacket(packet);
+        }
     }
 }
 
@@ -187,12 +199,14 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
 void Object::SendCreateUpdateToPlayer(Player* player) const
 {
     // send create update to player
-    UpdateData upd;
-    WorldPacket packet;
+    UpdateData updateData;
+    BuildCreateUpdateBlockForPlayer(&updateData, player);
 
-    BuildCreateUpdateBlockForPlayer(&upd, player);
-    upd.BuildPacket(packet);
-    player->GetSession()->SendPacket(packet);
+    for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
+    {
+        WorldPacket packet = updateData.BuildPacket(i);
+        player->GetSession()->SendPacket(packet);
+    }
 }
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
@@ -1059,7 +1073,8 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_currMap(nullptr), m_mapId(0),
-    m_InstanceId(0), m_isActiveObject(false)
+    m_InstanceId(0), m_isActiveObject(false),
+    m_visibilityDistanceOverride(0.f)
 {
 }
 
@@ -1213,7 +1228,7 @@ float WorldObject::GetDistance2d(float x, float y, DistanceCalculation distcalc)
 float WorldObject::GetDistanceZ(const WorldObject* obj) const
 {
     float dz = fabs(GetPositionZ() - obj->GetPositionZ());
-    float sizefactor = GetObjectBoundingRadius() + obj->GetObjectBoundingRadius();
+    float sizefactor = GetCombatReach() + obj->GetCombatReach();
     float dist = dz - sizefactor;
     return dist > 0 ? dist : 0;
 }
@@ -1221,7 +1236,7 @@ float WorldObject::GetDistanceZ(const WorldObject* obj) const
 bool WorldObject::IsWithinDist3d(float x, float y, float z, float dist2compare) const
 {
     float distsq = GetDistance(x, y, z, DIST_CALC_NONE);
-    float sizefactor = GetObjectBoundingRadius();
+    float sizefactor = GetCombatReach();
     float maxdist = dist2compare + sizefactor;
 
     return distsq < maxdist * maxdist;
@@ -1230,7 +1245,7 @@ bool WorldObject::IsWithinDist3d(float x, float y, float z, float dist2compare) 
 bool WorldObject::IsWithinDist2d(float x, float y, float dist2compare) const
 {
     float distsq = GetDistance2d(x, y, DIST_CALC_NONE);
-    float sizefactor = GetObjectBoundingRadius();
+    float sizefactor = GetCombatReach();
     float maxdist = dist2compare + sizefactor;
 
     return distsq < maxdist * maxdist;
@@ -1239,7 +1254,7 @@ bool WorldObject::IsWithinDist2d(float x, float y, float dist2compare) const
 bool WorldObject::_IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const
 {
     float distsq = GetDistance(obj, is3D, DIST_CALC_NONE);
-    float sizefactor = GetObjectBoundingRadius() + obj->GetObjectBoundingRadius();
+    float sizefactor = GetCombatReach() + obj->GetCombatReach();
     float maxdist = dist2compare + sizefactor;
 
     return distsq < maxdist * maxdist;
@@ -2167,6 +2182,31 @@ void WorldObject::SetActiveObjectState(bool active)
             GetMap()->AddToActive(this);
     }
     m_isActiveObject = active;
+}
+
+void WorldObject::SetVisibilityDistanceOverride(VisibilityDistanceType type)
+{
+    MANGOS_ASSERT(type < VisibilityDistanceType::Max);
+    if (GetTypeId() == TYPEID_PLAYER)
+        return;
+
+    m_visibilityDistanceOverride = VisibilityDistances[AsUnderlyingType(type)];
+}
+
+float WorldObject::GetVisibilityDistance() const
+{
+    if (IsVisibilityOverridden())
+        return m_visibilityDistanceOverride;
+    else
+        return GetMap()->GetVisibilityDistance();
+}
+
+float WorldObject::GetVisibilityDistanceFor(WorldObject* obj) const
+{
+    if (IsVisibilityOverridden() && obj->GetTypeId() == TYPEID_PLAYER)
+        return m_visibilityDistanceOverride;
+    else
+        return obj->GetVisibilityDistance();
 }
 
 void WorldObject::SetNotifyOnEventState(bool state)

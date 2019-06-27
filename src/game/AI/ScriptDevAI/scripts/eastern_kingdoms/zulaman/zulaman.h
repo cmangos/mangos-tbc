@@ -58,6 +58,12 @@ enum InstanceZA
     NPC_AXETHROWER          = 23542,
     NPC_WARBRINGER          = 23580,
 
+    // Akil'zon gauntlet npcs
+    NPC_TEMPEST             = 24549,
+    NPC_LOOKOUT             = 24175,
+    NPC_PROTECTOR           = 24180,
+    NPC_WIND_WALKER         = 24179,
+
     // Malacrass companions
     NPC_ALYSON              = 24240,
     NPC_THURG               = 24241,
@@ -80,6 +86,8 @@ enum InstanceZA
     NPC_ASHIL_CORPSE        = 24441,
     NPC_HARKOR_CORPSE       = 24443,
 
+    NPC_EXTERIOR_INVISMAN   = 23746,
+
     // Zul'jin event spirits
     NPC_BEAR_SPIRIT         = 23878,                        // They should all have aura 42466
     NPC_EAGLE_SPIRIT        = 23880,
@@ -99,6 +107,27 @@ enum InstanceZA
     GO_KRAZS_PACKAGE        = 186667,
     GO_ASHLIS_BAG           = 186672,
     GO_HARKORS_SATCHEL      = 187021,
+
+    GO_GOLD_COINS_1         = 186633,
+    GO_GOLD_COINS_2         = 186634,
+
+    GO_HARKORS_CAGE         = 187378,
+    GO_DWARF_HAMMER         = 186623,
+    GO_DWARF_LOOT_BOX       = 186622,
+    GO_HARKORS_BREW_KEG     = 186748,
+
+    GO_TANZARS_CAGE         = 187377,
+    GO_AMANI_DRUM           = 186865,
+
+    GO_KRAZS_CHEST          = 186658,
+    GO_KRAZS_CAGE           = 187379,
+
+    GO_ASHLIS_CAGE          = 187380,
+    GO_ASHLIS_VASE          = 186671,
+
+    NPC_WORLD_TRIGGER       = 22515,                        // used to mark location of drums for Amani'shi Scouts and Amani'shi Reinforcement spawns
+    NPC_REINFORCEMENT       = 23587,
+    NPC_SAVAGE              = 23889,
 };
 
 enum BossToChestIndex
@@ -170,9 +199,15 @@ class instance_zulaman : public ScriptedInstance
         void SetBearEventProgress(bool bIsInProgress) { m_bIsBearPhaseInProgress = bIsInProgress; }
         void SendNextBearWave(Unit* pTarget);
 
+        bool IsAkilzonGauntletInProgress() const { return m_bIsAkilzonGauntletInProgress; }
+        void SetAkilzonGauntletProgress(bool bIsInProgress) { m_bIsAkilzonGauntletInProgress = bIsInProgress; }
+
         bool CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const override;
 
         void Update(uint32 uiDiff) override;
+
+        GuidSet sDrumTriggerGuidSet;
+        GuidSet sHutTriggerGuidSet;
 
     private:
         uint8 GetKilledPreBosses();
@@ -190,6 +225,9 @@ class instance_zulaman : public ScriptedInstance
         NalorakkTrashInfo m_aNalorakkEvent[MAX_BEAR_WAVES];
         uint8 m_uiBearEventPhase;
         bool m_bIsBearPhaseInProgress;
+
+        GuidSet sAkilzonTrashGuidSet;
+        bool m_bIsAkilzonGauntletInProgress;
 };
 
 #endif

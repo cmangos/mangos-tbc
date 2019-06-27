@@ -402,10 +402,15 @@ enum
     NPC_NETHERMANCER_SEPETHREA  = 19221,
     NPC_MOROES                  = 15687,
     NPC_MOROGRIM_TIDEWALKER     = 21213,
+    NPC_KELIDAN_THE_BREAKER     = 17377,
     NPC_NAZAN                   = 17536,
     NPC_VAZRUDEN                = 17537,
     NPC_BLACK_STALKER           = 17882,
     NPC_LEOTHERAS               = 21215,
+
+    // Black Temple
+    NPC_HIGH_WARLORD_NAJENTUS   = 22887,
+    NPC_GURTOGG_BLOODBOIL       = 22948,
 };
 
 bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 diff)
@@ -462,6 +467,10 @@ bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 diff)
             if (x > 304.12f && x < 457.35f)
                 return false;
             break;
+        case NPC_KELIDAN_THE_BREAKER:   // out of his room
+            if (y > -158.23)
+                return false;
+            break;
         case NPC_VAZRUDEN:
         case NPC_NAZAN:
             if (x < -1336.0f)
@@ -473,6 +482,14 @@ bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 diff)
             break;
         case NPC_LEOTHERAS:
             if (x < 409.0f && y > -524.0f &&  x > 300.0f && y < -301.0f)
+                return false;
+            break;
+        case NPC_HIGH_WARLORD_NAJENTUS:
+            if (x > 300.f)
+                return false;
+            break;
+        case NPC_GURTOGG_BLOODBOIL:
+            if (y > 140.f)
                 return false;
             break;
         default:

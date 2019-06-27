@@ -36,6 +36,7 @@ EndContentData */
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/WorldStateDefines.h"
+#include "AI/ScriptDevAI/scripts/world/world_map_scripts.h"
 
 /*######
 ## mobs_risen_husk_spirit
@@ -911,12 +912,85 @@ bool AreaTrigger_at_nats_landing(Player* pPlayer, const AreaTriggerEntry* /*pAt*
         Creature* pShark = GetClosestCreatureWithEntry(pPlayer, NPC_LURKING_SHARK, 20.0f);
 
         if (!pShark)
-            pShark = pPlayer->SummonCreature(NPC_LURKING_SHARK, -4246.243f, -3922.356f, -7.488f, 5.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 100000);
+            pShark = pPlayer->SummonCreature(NPC_LURKING_SHARK, -4254.339f, -3914.995f, -15.61402f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 100000);
 
         pShark->AI()->AttackStart(pPlayer);
         return false;
     }
     return true;
+}
+
+/*######
+## mob_invis_firework_helper
+######*/
+
+enum
+{
+    SPELL_BLUE_THERAMORE_ROCKET = 42813,
+    SPELL_YELLOW_THERAMORE_ROCKET = 42815,
+    SPELL_PURPLE_THERAMORE_ROCKET = 42816,
+};
+
+int32 fireworkMidPoint = -4650;
+
+struct mob_invis_firework_helper : public Scripted_NoMovementAI
+{
+    mob_invis_firework_helper(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
+    {
+        Reset();
+    }
+
+    uint32 m_uiFireworkTimer;
+    uint8  m_uiFireworkCounter;
+
+    void Reset() override
+    {
+        m_uiFireworkTimer = 0;
+        m_uiFireworkCounter = 0;
+    }
+
+    bool GroupDeterminerFunc()
+    {
+        return m_creature->GetPositionY() > fireworkMidPoint;
+    }
+
+    void DoBeginCelebration(uint32 timer)
+    {
+        m_uiFireworkTimer = timer;
+        m_uiFireworkCounter = 0;
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiFireworkTimer)
+            if (m_uiFireworkTimer < uiDiff)
+            {
+                if (++m_uiFireworkCounter >= 5)
+                    m_uiFireworkTimer = 0;
+                else
+                    m_uiFireworkTimer = 4000;
+
+                switch (urand(0, 2))
+                {
+                    case 0:
+                        m_creature->CastSpell(m_creature, SPELL_BLUE_THERAMORE_ROCKET, TRIGGERED_NONE);
+                        break;
+                    case 1:
+                        m_creature->CastSpell(m_creature, SPELL_YELLOW_THERAMORE_ROCKET, TRIGGERED_NONE);
+                        break;
+                    case 2:
+                        m_creature->CastSpell(m_creature, SPELL_PURPLE_THERAMORE_ROCKET, TRIGGERED_NONE);
+                        break;
+                }
+            }
+            else
+                m_uiFireworkTimer -= uiDiff;
+    }
+};
+
+UnitAI* GetAI_mob_invis_firework_helper(Creature* pCreature)
+{
+    return new mob_invis_firework_helper(pCreature);
 }
 
 /*######
@@ -934,63 +1008,73 @@ enum
     NPC_TETHYR                  = 23899,
     NPC_THERAMORE_MARKSMAN      = 23900,
     NPC_THERAMORE_CANNON        = 23907,
+    NPC_FIREWORK_HELPER         = 24025,
 
     GO_COVE_CANNON              = 186432,               // cast 42578
-    QUEST_ID_TETHYR             = 11198,
+    QUEST_TAKE_DOWN_TETHYR      = 11198,
 
-    MAX_MARKSMEN                = 12,
-    PHASE_NORMAL                = 1,
-    PHASE_SPOUT                 = 2,
+    PHASE_TETHYR_INTRO          = 0,
+    PHASE_TETHYR_NORMAL         = 1,
+    PHASE_TETHYR_SPOUT          = 2,
+    PHASE_TETHYR_MOVING         = 3,
 };
 
 struct boss_tethyrAI : public Scripted_NoMovementAI
 {
     boss_tethyrAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature)
     {
-        // send world states to player summoner
-        if (m_creature->IsTemporarySummon())
-            m_summonerGuid = m_creature->GetSpawnerGuid();
+        // Update worldstate
+        m_creature->GetMap()->GetInstanceData()->SetData(TYPE_TETHYR, IN_PROGRESS);
 
-        // TODO: Move this to Send Initial World State packet
-        if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_summonerGuid))
-        {
-            pPlayer->SendUpdateWorldState(WORLD_STATE_TETHYR_SHOW, 1);
-            pPlayer->SendUpdateWorldState(WORLD_STATE_TETHYR_COUNT, MAX_MARKSMEN);
-        }
-
-        m_creature->SetSwim(true);
+        m_creature->SetCanEnterCombat(false);
+        m_creature->SetSwim(true); // Needed?
+        m_uiPhase = PHASE_INTRO;
         Reset();
     }
 
-    ObjectGuid m_summonerGuid;
+    std::list<ObjectGuid> m_lMarksmenGUIDs;
 
     uint8 m_uiPhase;
-    uint8 m_uiMarksmenKilled;
     uint32 m_uiWaterBoltTimer;
     uint32 m_uiSpoutEndTimer;
+    uint32 m_uiFireworkTimer;
+
+    bool m_bSpoutDirection;
+
+    float m_fGridSearchRange = 150.f;
 
     void Reset() override
     {
-        m_uiPhase           = PHASE_NORMAL;
-        m_uiMarksmenKilled  = 0;
-        m_uiWaterBoltTimer  = urand(0, 1000);
+        m_uiWaterBoltTimer  = urand(1000, 2000);
         m_uiSpoutEndTimer   = 7000;
-    }
-
-    void JustReachedHome() override
-    {
-        // cleanup
-        DoEncounterCleanup();
-        m_creature->ForcedDespawn(5000);
+        m_uiFireworkTimer   = 1000;
     }
 
     void JustDied(Unit* /*pVictim*/) override
     {
-        // quest complete and cleanup
-        if (Player* pSummoner = m_creature->GetMap()->GetPlayer(m_summonerGuid))
-            pSummoner->RewardPlayerAndGroupAtEventExplored(QUEST_ID_TETHYR, m_creature);
+        // TODO: reward credit?
+        //pPlayer->RewardPlayerAndGroupAtEventCredit(pCreature->GetEntry(), pCreature); // Needed?
 
-        // ToDo: trigger some fireworks!
+        // fireworks! 
+        std::list<Creature*> lFirworkHelpers;
+        GetCreatureListWithEntryInGrid(lFirworkHelpers, m_creature, NPC_FIREWORK_HELPER, m_fGridSearchRange);
+
+        uint32 timer1 = 2000; uint32 timer2 = 2000;
+        for (std::list<Creature*>::const_iterator itr = lFirworkHelpers.begin(); itr != lFirworkHelpers.end(); ++itr)
+            if (mob_invis_firework_helper* fireworkAI = dynamic_cast<mob_invis_firework_helper*>((*itr)->AI()))
+            {
+                if (fireworkAI->GroupDeterminerFunc())
+                {
+                    fireworkAI->DoBeginCelebration(timer1);
+                    timer1 += 2000;
+                }
+                else
+                {
+                    fireworkAI->DoBeginCelebration(timer2);
+                    timer2 += 2000;
+                }
+            }
+
         DoEncounterCleanup();
     }
 
@@ -999,24 +1083,59 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
         if (uiMotionType == WAYPOINT_MOTION_TYPE)
         {
             // start attacking
-            if (uiPointId == 12)
+            switch (uiPointId)
             {
-                // make cannons usable
-                std::list<GameObject*> lCannonsInRange;
-                GetGameObjectListWithEntryInGrid(lCannonsInRange, m_creature, GO_COVE_CANNON, 100.0f);
-
-                for (std::list<GameObject*>::const_iterator itr = lCannonsInRange.begin(); itr != lCannonsInRange.end(); ++itr)
-                    (*itr)->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-
-                // attack all marksmen
-                std::list<Creature*> lMarksmenInRange;
-                GetCreatureListWithEntryInGrid(lMarksmenInRange, m_creature, NPC_THERAMORE_MARKSMAN, 100.0f);
-
-                for (std::list<Creature*>::const_iterator itr = lMarksmenInRange.begin(); itr != lMarksmenInRange.end(); ++itr)
+                case 12:
                 {
-                    (*itr)->AI()->AttackStart(m_creature);
-                    AttackStart(*itr);
+                    // remove flags
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                    break;
                 }
+                case 15:
+                {
+                    // attack all marksmen
+                    m_creature->SetCanEnterCombat(true);
+
+                    std::list<Creature*> lMarksmen;
+                    GetCreatureListWithEntryInGrid(lMarksmen, m_creature, NPC_THERAMORE_MARKSMAN, m_fGridSearchRange);
+
+                    for (std::list<Creature*>::const_iterator itr = lMarksmen.begin(); itr != lMarksmen.end(); ++itr)
+                    {
+                        m_lMarksmenGUIDs.push_back((*itr)->GetObjectGuid());
+
+                        //(*itr)->SetInCombatWith(m_creature);
+                        //(*itr)->AddThreat(m_creature);
+                        (*itr)->AI()->AttackStart(m_creature);
+                        AttackStart(*itr);
+                    }
+
+                    if (m_lMarksmenGUIDs.size() == 0) // sanity check
+                    {
+                        m_creature->ForcedDespawn(5000);
+                        DoEncounterCleanup();
+                    }
+
+                    // make cannons usable
+                    std::list<GameObject*> lCannonsInRange;
+                    GetGameObjectListWithEntryInGrid(lCannonsInRange, m_creature, GO_COVE_CANNON, m_fGridSearchRange);
+
+                    for (std::list<GameObject*>::const_iterator itr = lCannonsInRange.begin(); itr != lCannonsInRange.end(); ++itr)
+                    {
+                        (*itr)->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+                        (*itr)->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_INTERACT_COND);
+                    }
+
+                    m_uiPhase = PHASE_TETHYR_NORMAL;
+                    break;
+                }
+                case 22:
+                {
+                    m_creature->ForcedDespawn(10000);
+                    DoEncounterCleanup();
+                    break;
+                }
+                default: break;
             }
         }
         else if (uiMotionType == POINT_MOTION_TYPE)
@@ -1024,14 +1143,21 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
             // Spout on cannon point reach
             if (uiPointId)
             {
-                if (DoCastSpellIfCan(m_creature, urand(0, 1) ? SPELL_SPOUT_LEFT : SPELL_SPOUT_RIGHT, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature, m_bSpoutDirection ? SPELL_SPOUT_RIGHT : SPELL_SPOUT_LEFT, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
                 {
                     // Remove the target focus
                     m_creature->SetTarget(nullptr);
-                    m_uiPhase = PHASE_SPOUT;
+                    m_uiPhase = PHASE_TETHYR_SPOUT;
                 }
             }
         }
+    }
+
+    void EnterCombat(Unit* pEnemy) override
+    {
+        if (m_uiPhase == PHASE_INTRO)
+            return;
+        ScriptedAI::EnterCombat(pEnemy);
     }
 
     void KilledUnit(Unit* pVictim) override
@@ -1040,19 +1166,17 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
         if (pVictim->GetEntry() != NPC_THERAMORE_MARKSMAN)
             return;
 
-        ++m_uiMarksmenKilled;
-
         // update world state
-        if (Player* pSummoner = m_creature->GetMap()->GetPlayer(m_summonerGuid))
-        {
-            pSummoner->SendUpdateWorldState(WORLD_STATE_TETHYR_COUNT, MAX_MARKSMEN - m_uiMarksmenKilled);
+        m_creature->GetMap()->GetInstanceData()->SetData(TYPE_TETHYR, SPECIAL);
+        m_lMarksmenGUIDs.remove(pVictim->GetObjectGuid());
 
-            // fail quest if all marksmen are killed
-            if (m_uiMarksmenKilled == MAX_MARKSMEN)
-            {
-                pSummoner->FailQuest(QUEST_ID_TETHYR);
-                EnterEvadeMode();
-            }
+        // fail quest if all marksmen are killed
+        if (m_lMarksmenGUIDs.size() == 0)
+        {
+            //pSummoner->FailQuest(QUEST_ID_TETHYR); Needed?
+            m_creature->ForcedDespawn(10000);
+            DoEncounterCleanup();
+            EnterEvadeMode();
         }
     }
 
@@ -1061,99 +1185,92 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
         // spout on cannon
         if (pCaster->GetEntry() == NPC_THERAMORE_CANNON && pSpell->Id == SPELL_CANNON_BLAST_DMG)
         {
-            if (m_uiPhase == PHASE_SPOUT)
+            if (m_uiPhase == PHASE_TETHYR_SPOUT || m_uiPhase == PHASE_TETHYR_MOVING)
                 return;
 
             // not all cannons have same distance range
-            uint8 uiDistMod = pCaster->GetPositionY() > -4650.0f ? 6 : 5;
+            m_bSpoutDirection = pCaster->GetPositionY() > fireworkMidPoint;
+            uint8 uiDistMod = m_bSpoutDirection ? 6 : 5;
 
             float fX, fY, fZ;
             pCaster->GetContactPoint(m_creature, fX, fY, fZ, uiDistMod * ATTACK_DISTANCE);
             m_creature->GetMotionMaster()->MovePoint(1, fX, fY, m_creature->GetPositionZ());
+            m_uiPhase = PHASE_TETHYR_MOVING;
 
-            m_uiWaterBoltTimer = 10000;
+            m_uiWaterBoltTimer = 3000;
         }
     }
 
     // function to cleanup the world states and GO flags
     void DoEncounterCleanup()
     {
-        // remove world state
-        if (Player* pSummoner = m_creature->GetMap()->GetPlayer(m_summonerGuid))
-            pSummoner->SendUpdateWorldState(WORLD_STATE_TETHYR_SHOW, 0);
+        // update world state
+        m_creature->GetMap()->GetInstanceData()->SetData(TYPE_TETHYR, NOT_STARTED);
 
         // reset all cannons
         std::list<GameObject*> lCannonsInRange;
-        GetGameObjectListWithEntryInGrid(lCannonsInRange, m_creature, GO_COVE_CANNON, 100.0f);
+        GetGameObjectListWithEntryInGrid(lCannonsInRange, m_creature, GO_COVE_CANNON, m_fGridSearchRange);
 
         for (std::list<GameObject*>::const_iterator itr = lCannonsInRange.begin(); itr != lCannonsInRange.end(); ++itr)
+        {
             (*itr)->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+            (*itr)->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_INTERACT_COND);
+        }
 
         // despawn all marksmen
         std::list<Creature*> lMarksmenInRange;
-        GetCreatureListWithEntryInGrid(lMarksmenInRange, m_creature, NPC_THERAMORE_MARKSMAN, 100.0f);
+        GetCreatureListWithEntryInGrid(lMarksmenInRange, m_creature, NPC_THERAMORE_MARKSMAN, m_fGridSearchRange);
 
         for (std::list<Creature*>::const_iterator itr = lMarksmenInRange.begin(); itr != lMarksmenInRange.end(); ++itr)
-            (*itr)->ForcedDespawn(30000);
-    }
-
-    // Custom threat management
-    bool SelectCustomHostileTarget()
-    {
-        // Not started combat or evading prevented
-        if (!m_creature->isInCombat() || m_creature->HasAuraType(SPELL_AURA_MOD_TAUNT))
-            return false;
-
-        // Check if there are still enemies (marksmen) in the threatList
-        ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
-        for (auto itr : threatList)
-        {
-            if (itr->getUnitGuid().IsCreature())
-                return true;
-        }
-
-        EnterEvadeMode();
-        return false;
+            (*itr)->ForcedDespawn(10000);
     }
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!SelectCustomHostileTarget())
-            return;
-
-        if (m_uiPhase == PHASE_SPOUT)
+        switch (m_uiPhase)
         {
-            if (m_uiSpoutEndTimer < uiDiff)
+            case PHASE_TETHYR_SPOUT:
             {
-                // Remove rotation auras
-                m_creature->RemoveAurasDueToSpell(SPELL_SPOUT_LEFT);
-                m_creature->RemoveAurasDueToSpell(SPELL_SPOUT_RIGHT);
-
-                m_uiPhase = PHASE_NORMAL;
-                m_uiSpoutEndTimer = 7000;
-                m_uiWaterBoltTimer = urand(0, 1000);
-            }
-            else
-                m_uiSpoutEndTimer -= uiDiff;
-        }
-        else if (m_uiPhase == PHASE_NORMAL)
-        {
-            if (m_uiWaterBoltTimer < uiDiff)
-            {
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                if (m_uiSpoutEndTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(pTarget, SPELL_WATER_BOLT) == CAST_OK)
-                    {
-                        // mimic boss turning because of the missing threat system
-                        m_creature->SetTarget(pTarget);
-                        m_creature->SetInFront(pTarget);
+                    // Remove rotation auras
+                    m_creature->RemoveAurasDueToSpell(SPELL_SPOUT_LEFT);
+                    m_creature->RemoveAurasDueToSpell(SPELL_SPOUT_RIGHT);
 
-                        m_uiWaterBoltTimer = urand(0, 1000);
+                    m_uiPhase = PHASE_TETHYR_NORMAL;
+                    m_uiSpoutEndTimer = 7000;
+                    m_uiWaterBoltTimer = 2000;
+                }
+                else
+                    m_uiSpoutEndTimer -= uiDiff;
+                return;
+            }
+            case PHASE_TETHYR_NORMAL:
+            {
+                if (m_uiWaterBoltTimer < uiDiff)
+                {
+                    uint32 chance = m_lMarksmenGUIDs.size();
+                    for (auto itr = m_lMarksmenGUIDs.begin(); itr != m_lMarksmenGUIDs.end(); ++itr)
+                    {
+                        if (urand(0, chance--) == 0)
+                            if (Creature *target = m_creature->GetMap()->GetCreature((*itr)))
+                                if (DoCastSpellIfCan(target, SPELL_WATER_BOLT) == CAST_OK)
+                                {
+                                    // mimic boss turning because of the missing threat system
+                                    m_creature->SetTarget(target);
+                                    m_creature->SetInFront(target);
+
+                                    m_uiWaterBoltTimer = 2000;
+                                }
                     }
                 }
+                else
+                    m_uiWaterBoltTimer -= uiDiff;
+                return;
             }
-            else
-                m_uiWaterBoltTimer -= uiDiff;
+            case PHASE_INTRO:
+            case PHASE_TETHYR_MOVING:
+                return;
         }
     }
 };
@@ -1164,8 +1281,46 @@ UnitAI* GetAI_boss_tethyr(Creature* pCreature)
 }
 
 /*######
-## at_sentry_point
+## npc_major_mills
 ######*/
+
+enum
+{
+    DBSCRIPT_RELAY_TAKE_DOWN_TETHYR = 10161
+};
+
+struct npc_major_mills : public ScriptedAI
+{
+    npc_major_mills(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        Reset();
+    }
+
+    void Reset() override {}
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        ScriptedAI::UpdateAI(uiDiff);
+    }
+};
+
+UnitAI* GetAI_npc_major_mills(Creature* pCreature)
+{
+    return new npc_major_mills(pCreature);
+}
+
+bool QuestAccept_npc_major_mills(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+{
+    if (pQuest->GetQuestId() == QUEST_TAKE_DOWN_TETHYR)
+    {
+        if (pCreature->GetMap()->GetInstanceData()->GetData(TYPE_TETHYR) == NOT_STARTED)
+        {
+            pCreature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_RELAY_TAKE_DOWN_TETHYR, pCreature, pPlayer);
+        }
+    }
+
+    return true;
+}
 
 enum SentryPoint
 {
@@ -1196,6 +1351,130 @@ bool AreaTrigger_at_sentry_point(Player* pPlayer, const AreaTriggerEntry* /*pAt*
 
     return true;
 };
+
+/*######
+## npc_smolderwing
+######*/
+
+enum
+{
+    DO_NOTHING = 111111, // some unlikely to be needed number
+
+    SAY_1 = -1000343,
+    SAY_2 = -1000344,
+
+    NPC_SMOLDERWING = 23789,
+
+    SPELL_SMOLDERWING_FIRE_BREATH = 42433,
+
+    GO_STONEMAUL_BANNER = 186335,
+
+    MAP_ID_KALIMDOR = 1,
+    ZONE_ID_ONY_LAIR = 2159,
+};
+
+static const DialogueEntry SmolderDialogue[] =
+{
+    {DO_NOTHING,                    0,               2000},
+    {SAY_1,                         NPC_SMOLDERWING, 6500},
+    {SAY_2,                         NPC_SMOLDERWING, 5000},
+    {SPELL_SMOLDERWING_FIRE_BREATH, 0,               4000},
+    {GO_STONEMAUL_BANNER,           0,               0},
+    {0, 0, 0 },
+};
+
+struct npc_smolderwing : public ScriptedAI, private DialogueHelper
+{
+    npc_smolderwing(Creature* pCreature) : ScriptedAI(pCreature),
+        DialogueHelper(SmolderDialogue)
+    {
+        Reset();
+    }
+
+    void Reset() override {}
+    
+    void JustDidDialogueStep(int32 iEntry) override
+    {
+        switch (iEntry)
+        {
+            case SPELL_SMOLDERWING_FIRE_BREATH:
+            {
+                if (GameObject* banner = GetClosestGameObjectWithEntry(m_creature, GO_STONEMAUL_BANNER, 50.f))
+                {
+                    if (m_creature->GetDistance(banner) >= 10.f)
+                    {
+                        float fX, fY, fZ;
+                        banner->GetContactPoint(m_creature, fX, fY, fZ, ATTACK_DISTANCE / 2.f);
+                        m_creature->SetWalk(false);
+                        m_creature->GetMotionMaster()->MovePoint(1, fX, fY, m_creature->GetPositionZ());
+                    }
+                    else
+                    {
+                        m_creature->SetFacingToObject(banner);
+                        m_creature->CastSpell(m_creature, SPELL_SMOLDERWING_FIRE_BREATH, TRIGGERED_NONE);
+                    }
+                }
+                break;
+            }
+            case GO_STONEMAUL_BANNER:
+            {
+                // remove flags
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                break;
+            }
+            case DO_NOTHING:
+                break;
+        }
+    }
+
+    Creature* GetSpeakerByEntry(uint32 uiEntry) override
+    {
+        switch (uiEntry)
+        {
+            case NPC_SMOLDERWING: return m_creature;
+            default:
+                return nullptr;
+        }
+    }
+
+    void MovementInform(uint32 movementType, uint32 uiPointId) override
+    {
+        if (movementType == POINT_MOTION_TYPE)
+        {
+            if (uiPointId == 1)
+            {
+                m_creature->CastSpell(m_creature, SPELL_SMOLDERWING_FIRE_BREATH, TRIGGERED_NONE);
+            }
+        }
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_creature->GetMapId() != MAP_ID_KALIMDOR || m_creature->GetZoneId() != ZONE_ID_ONY_LAIR)
+            return; // sanity check
+
+        DialogueUpdate(uiDiff);
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            return;
+
+        DoMeleeAttackIfReady();
+    }
+
+    void JustRespawned() override
+    {
+        if (m_creature->GetMapId() != MAP_ID_KALIMDOR || m_creature->GetZoneId() != ZONE_ID_ONY_LAIR)
+            return; // sanity check
+
+        StartNextDialogueText(DO_NOTHING);
+    }
+};
+
+UnitAI* GetAI_npc_smolderwing(Creature* pCreature)
+{
+    return new npc_smolderwing(pCreature);
+}
 
 void AddSC_dustwallow_marsh()
 {
@@ -1244,7 +1523,23 @@ void AddSC_dustwallow_marsh()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
+    pNewScript->Name = "mob_invis_firework_helper";
+    pNewScript->GetAI = &GetAI_mob_invis_firework_helper;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
     pNewScript->Name = "boss_tethyr";
     pNewScript->GetAI = &GetAI_boss_tethyr;
+    pNewScript->RegisterSelf();
+    
+    pNewScript = new Script;
+    pNewScript->Name = "npc_major_mills";
+    pNewScript->GetAI = &GetAI_npc_major_mills;
+    pNewScript->pQuestAcceptNPC = &QuestAccept_npc_major_mills;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_smolderwing";
+    pNewScript->GetAI = &GetAI_npc_smolderwing;
     pNewScript->RegisterSelf();
 }

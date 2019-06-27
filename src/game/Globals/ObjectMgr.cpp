@@ -684,6 +684,13 @@ void ObjectMgr::LoadCreatureTemplates()
             else
                 const_cast<CreatureInfo*>(cInfo)->Scale = DEFAULT_OBJECT_SCALE;
         }
+
+        if (cInfo->visibilityDistanceType >= VisibilityDistanceType::Max)
+        {
+            sLog.outErrorDb("sql.sql", "Creature (Entry: %u) has invalid visibilityDistanceType (%u) defined in `creature_template`.", cInfo->Entry, AsUnderlyingType(cInfo->visibilityDistanceType));
+            const_cast<CreatureInfo*>(cInfo)->visibilityDistanceType = VisibilityDistanceType::Normal;
+        }
+
     }
 
     sLog.outString(">> Loaded %u creature definitions", sCreatureStorage.GetRecordCount());
@@ -3447,7 +3454,7 @@ void ObjectMgr::LoadArenaTeams()
     //                                                     0                      1    2           3    4               5
     QueryResult* result = CharacterDatabase.Query("SELECT arena_team.arenateamid,name,captainguid,type,BackgroundColor,EmblemStyle,"
                           //   6           7           8            9      10         11        12           13          14
-                          "EmblemColor,BorderStyle,BorderColor, rating,games_week,wins_week,games_season,wins_season,rank "
+                          "EmblemColor,BorderStyle,BorderColor, rating,games_week,wins_week,games_season,wins_season,`rank` "
                           "FROM arena_team LEFT JOIN arena_team_stats ON arena_team.arenateamid = arena_team_stats.arenateamid ORDER BY arena_team.arenateamid ASC");
 
     if (!result)
@@ -3649,7 +3656,7 @@ void ObjectMgr::LoadGroups()
             else
                 diff = Difficulty(tempDiff);
 
-            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, fields[2].GetUInt32(), Difficulty(diff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true, true, fields[8].GetUInt32());
+            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, fields[2].GetUInt32(), Difficulty(diff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true, fields[8].GetUInt32());
             group->BindToInstance(state, fields[3].GetBool(), true);
         }
         while (result->NextRow());
@@ -3701,11 +3708,11 @@ void ObjectMgr::LoadQuests()
                           "RewHonorableKills, RewOrReqMoney, RewMoneyMaxLevel, RewSpell, RewSpellCast, RewMailTemplateId, RewMailDelaySecs, PointMapId, PointX, PointY, PointOpt,"
                           //   107            108            109            110            111                 112                 113                 114
                           "DetailsEmote1, DetailsEmote2, DetailsEmote3, DetailsEmote4, DetailsEmoteDelay1, DetailsEmoteDelay2, DetailsEmoteDelay3, DetailsEmoteDelay4,"
-                          //   115              116            117                118                119                120
-                          "IncompleteEmote, CompleteEmote, OfferRewardEmote1, OfferRewardEmote2, OfferRewardEmote3, OfferRewardEmote4,"
-                          //   121                     122                     123                     124
+                          //   115          116                   117                118                119                120             121                 122          
+                          "IncompleteEmote, IncompleteEmoteDelay, CompleteEmote, CompleteEmoteDelay, OfferRewardEmote1, OfferRewardEmote2, OfferRewardEmote3, OfferRewardEmote4,"
+                          //   123                     124                     125                     126
                           "OfferRewardEmoteDelay1, OfferRewardEmoteDelay2, OfferRewardEmoteDelay3, OfferRewardEmoteDelay4,"
-                          //   125          126          127             128              129              130              131              132
+                          //   127          128            129              130             131               132             133               134
                           "StartScript, CompleteScript, RewMaxRepValue1, RewMaxRepValue2, RewMaxRepValue3, RewMaxRepValue4, RewMaxRepValue5, RequiredCondition"
 
                           " FROM quest_template");
@@ -10114,6 +10121,45 @@ void ObjectMgr::LoadCreatureTemplateSpells()
     }
 
     sLog.outString(">> Loaded %u creature_template_spells definitions", sCreatureTemplateSpellsStorage.GetRecordCount());
+    sLog.outString();
+}
+
+void ObjectMgr::LoadCreatureCooldowns()
+{
+    uint32 count = 0;
+    QueryResult* result = WorldDatabase.Query("SELECT Entry, SpellId, CooldownMin, CooldownMax FROM creature_cooldowns");
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+
+            uint32 entry = fields[0].GetUInt32();
+            if (!sCreatureStorage.LookupEntry<CreatureInfo>(entry))
+            {
+                sLog.outErrorDb("LoadCreatureCooldowns: Entry %u does not exist.", entry);
+                continue;
+            }
+            uint32 spellId = fields[1].GetUInt32();
+            if (!sSpellTemplate.LookupEntry<SpellEntry>(spellId))
+            {
+                sLog.outErrorDb("LoadCreatureCooldowns: SpellId %u does not exist.", spellId);
+                continue;
+            }
+            uint32 cooldownMin = fields[2].GetUInt32();
+            uint32 cooldownMax = fields[3].GetUInt32();
+            if (cooldownMin == 0 && cooldownMax == 0)
+            {
+                sLog.outErrorDb("LoadCreatureCooldowns: Cooldowns are both 0 for entry %u spellId %u - redundant entry.", entry, spellId);
+                continue;
+            }
+            m_creatureCooldownMap[entry].emplace(spellId, std::make_pair(cooldownMin, cooldownMax));
+        } while (result->NextRow());
+    }
+    delete result;
+
+    sLog.outString(">> Loaded %u creature_cooldowns definitions", count);
     sLog.outString();
 }
 

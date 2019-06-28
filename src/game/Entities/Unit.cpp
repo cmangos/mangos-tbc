@@ -8933,8 +8933,12 @@ bool Unit::SelectHostileTarget()
     {
         if (IsLeashingTarget(target))
         {
-            AI()->EnterEvadeMode();
-            return false;
+            const MapEntry* entry = sMapStore.LookupEntry(GetMapId());
+            if (entry->map_type != MAP_RAID && entry->map_type != MAP_INSTANCE)
+            {
+                AI()->EnterEvadeMode();
+                return false;
+            }
         }
 
         // needs a much better check, seems to cause quite a bit of trouble

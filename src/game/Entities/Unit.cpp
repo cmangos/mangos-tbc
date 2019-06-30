@@ -2168,7 +2168,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
     int32  reflectDamage = 0;
     Aura*  reflectTriggeredBy = nullptr;                       // expected as not expired at reflect as in current cases
     // Death Prevention Aura
-    SpellEntry const*  preventDeathSpell = nullptr;
+    Aura* preventDeathAura = nullptr;
 
     // full absorb cases (by chance)
     /* none cases, but preserve for better backporting conflict resolve
@@ -2260,22 +2260,16 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
                     case 31229:
                     case 31230:
                     {
-                        if (!preventDeathSpell &&
+                        if (!preventDeathAura &&
                             GetTypeId() == TYPEID_PLAYER && // Only players
                             IsSpellReady(31231) &&
                             // Only if no cooldown
                             roll_chance_i((*i)->GetModifier()->m_amount))
                             // Only if roll
                         {
-                            preventDeathSpell = (*i)->GetSpellProto();
+                            preventDeathAura = (*i);
                         }
                         // always skip this spell in charge dropping, absorb amount calculation since it has chance as m_amount and doesn't need to absorb any damage
-                        continue;
-                    }
-                    case 40251: // Shadow of Death
-                    {
-                        preventDeathSpell = spellProto;
-                        currentAbsorb = 0;
                         continue;
                     }
                 }
@@ -2324,6 +2318,11 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
         // If need absorb less damage
         if (RemainingDamage < currentAbsorb)
             currentAbsorb = RemainingDamage;
+
+        bool preventedDeath = false;
+        (*i)->OnAbsorb(currentAbsorb, reflectSpell, reflectDamage, preventedDeath);
+        if (preventedDeath)
+            preventDeathAura = (*i);
 
         RemainingDamage -= currentAbsorb;
 
@@ -2385,6 +2384,8 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
             int32 manaReduction = int32(currentAbsorb * manaMultiplier);
             ApplyPowerMod(POWER_MANA, manaReduction, false);
         }
+
+        (*i)->OnManaAbsorb(currentAbsorb);
 
         (*i)->GetModifier()->m_amount -= currentAbsorb;
         if ((*i)->GetModifier()->m_amount <= 0)
@@ -2472,13 +2473,14 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
     }
 
     // Apply death prevention spells effects
-    if (preventDeathSpell && RemainingDamage >= (int32)GetHealth())
+    if (preventDeathAura && RemainingDamage >= (int32)GetHealth())
     {
-        switch (preventDeathSpell->SpellFamilyName)
+        SpellEntry const* spellInfo = preventDeathAura->GetSpellProto();
+        switch (spellInfo->SpellFamilyName)
         {
             case SPELLFAMILY_ROGUE:
             {
-                switch (preventDeathSpell->Id)
+                switch (spellInfo->Id)
                 {
                     case 31228: // Cheat Death
                     case 31229:
@@ -2492,19 +2494,11 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
                         RemainingDamage = GetHealth() > health10 ? GetHealth() - health10 : 0;
                         break;
                     }
-                    case 40251: // Shadow of Death
-                    {
-                        if (RemainingDamage >= int32(GetHealth()))
-                        {
-                            RemainingDamage = GetHealth() - 1;
-                            RemoveAurasDueToSpell(40251, nullptr, AURA_REMOVE_BY_SHIELD_BREAK);
-                        }
-                        break;
-                    }
                     default: break;
                 }
             }
         }
+        preventDeathAura->OnAuraDeathPrevention(RemainingDamage);
     }
 
     *absorb = damage - RemainingDamage - *resist;
@@ -4998,30 +4992,20 @@ void Unit::RemoveSingleAuraFromSpellAuraHolder(uint32 spellId, SpellEffectIndex 
     }
 }
 
-void Unit::RemoveAuraHolderDueToSpellByDispel(uint32 spellId, uint32 stackAmount, ObjectGuid casterGuid, Unit* dispeller)
+void Unit::RemoveAuraHolderDueToSpellByDispel(uint32 spellId, uint32 dispellingSpellId, uint32 stackAmount, ObjectGuid casterGuid, Unit* dispeller)
 {
-    SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
-
-    // Custom dispel case
-    // Unstable Affliction
-    if (spellEntry->SpellFamilyName == SPELLFAMILY_WARLOCK && (spellEntry->SpellFamilyFlags & uint64(0x010000000000)))
+    SpellAuraHolderBounds spair = GetSpellAuraHolderBounds(spellId);
+    for (SpellAuraHolderMap::iterator iter = spair.first; iter != spair.second; ++iter)
     {
-        if (Aura* dotAura = GetAura(SPELL_AURA_PERIODIC_DAMAGE, SPELLFAMILY_WARLOCK, uint64(0x010000000000), casterGuid))
+        if (!casterGuid || iter->second->GetCasterGuid() == casterGuid)
         {
-            // use clean value for initial damage
-            int32 damage = dotAura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);
-            damage *= 9;
-
-            // Remove spell auras from stack
-            RemoveAuraHolderFromStack(spellId, stackAmount, casterGuid, AURA_REMOVE_BY_DISPEL);
-
-            // backfire damage and silence
-            dispeller->CastCustomSpell(dispeller, 31117, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, casterGuid);
-            return;
+            uint32 originalStacks = iter->second->GetStackAmount();
+            if (iter->second->ModStackAmount(-int32(stackAmount), nullptr))
+                RemoveSpellAuraHolder(iter->second, AURA_REMOVE_BY_DISPEL);
+            iter->second->OnDispel(dispeller, dispellingSpellId, originalStacks);
+            break;
         }
     }
-
-    RemoveAuraHolderFromStack(spellId, stackAmount, casterGuid, AURA_REMOVE_BY_DISPEL);
 }
 
 void Unit::RemoveAurasDueToSpellBySteal(uint32 spellId, ObjectGuid casterGuid, Unit* stealer)

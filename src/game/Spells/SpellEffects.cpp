@@ -7514,7 +7514,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     ((Player*)unitTarget)->ModifyMoney(50000000);
                     break;
                 }
-                case 47108:
+                case 47108:                                 // Clear Energy Feedback
                 {
                     if (unitTarget && unitTarget->IsPlayer())
                     {

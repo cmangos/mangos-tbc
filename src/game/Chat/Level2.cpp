@@ -2164,7 +2164,7 @@ bool ChatHandler::HandleNpcSetDeathStateCommand(char* args)
 }
 
 // set model of creature
-bool ChatHandler::HandleNpcShowLootCommand(char* args)
+bool ChatHandler::HandleNpcShowLootCommand(char* /*args*/)
 {
     Creature* creature = getSelectedCreature();
 

@@ -162,8 +162,8 @@ class InstanceData
             ++count;
         }
 
-        virtual void ShowChatCommands(ChatHandler* handler) {}
-        virtual void ExecuteChatCommand(ChatHandler* handler, char* args) {}
+        virtual void ShowChatCommands(ChatHandler* /*handler*/) {}
+        virtual void ExecuteChatCommand(ChatHandler* /*handler*/, char* /*args*/) {}
 };
 
 #endif

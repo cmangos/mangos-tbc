@@ -4362,7 +4362,7 @@ void Player::SetWaterWalk(bool enable)
     GetSession()->SendPacket(data);
 }
 
-void Player::SetLevitate(bool enable)
+void Player::SetLevitate(bool /*enable*/)
 {
     // TODO: check if there is something similar for 2.4.3.
     // WorldPacket data;
@@ -21435,7 +21435,7 @@ void Player::SendLootError(ObjectGuid guid, LootError error) const
     SendDirectMessage(data);
 }
 
-void Player::AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration /*= 0*/, bool updateClient /*= false*/)
+void Player::AddGCD(SpellEntry const& spellEntry, uint32 /*forcedDuration = 0*/, bool updateClient /*= false*/)
 {
     int32 gcdDuration = spellEntry.StartRecoveryTime;
     if (!spellEntry.StartRecoveryCategory && !gcdDuration)

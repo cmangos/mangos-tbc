@@ -6594,7 +6594,7 @@ CurrentSpellTypes Spell::GetCurrentContainer() const
     return (CURRENT_GENERIC_SPELL);
 }
 
-bool Spell::CheckTargetGOScript(GameObject* target, SpellEffectIndex eff) const
+bool Spell::CheckTargetGOScript(GameObject* target, SpellEffectIndex /*eff*/) const
 {
     switch (m_spellInfo->Id)
     {
@@ -7579,7 +7579,7 @@ void Spell::OnSuccessfulSpellFinish()
     }
 }
 
-SpellCastResult Spell::OnCheckCast(bool strict)
+SpellCastResult Spell::OnCheckCast(bool /*strict*/)
 {
     switch (m_spellInfo->Id)
     {

@@ -550,6 +550,12 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
             }
 
             anyAuraProc = true;
+            if (execData.procSpell && execData.spell)  // Fix Blizzard procSpell consumes Clearcasting here.
+            {
+                if (execData.procSpell->manaCost == 0 && execData.spell->m_IsTriggeredSpell && 
+                    (auraModifier->m_auraname == SPELL_AURA_ADD_FLAT_MODIFIER || auraModifier->m_auraname == SPELL_AURA_ADD_PCT_MODIFIER))
+                    useCharges = false;
+            }
         }
 
         // Remove charge (aura can be removed by triggers)

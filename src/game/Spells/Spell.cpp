@@ -7425,7 +7425,6 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
         }
     }
 
-
     if (Unit* realCaster = GetAffectiveCaster())
     {
         if (Player* modOwner = realCaster->GetSpellModOwner())
@@ -7454,8 +7453,11 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
                 }
                 case 43486:                                 // Summon Amani'shi Warriors
                 case 43487:                                 // Summon Amani Eagle
+                case 43962:                                 // Summon Amani'shi Hatcher
+                case 45340:
                 {
-                    radius = 250.f;
+                    if (!targetB)
+                        radius = 250.f;
                     break;
                 }
                 default:

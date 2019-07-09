@@ -1333,6 +1333,10 @@ void World::SetInitialWorldSettings()
     sAuctionBot.Initialize();
     sLog.outString();
 
+    sLog.outString("Loading WorldState");
+    sWorldState.Load();
+    sLog.outString();
+
 #ifdef BUILD_PLAYERBOT
     PlayerbotMgr::SetInitialWorldSettings();
 #endif

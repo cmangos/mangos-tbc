@@ -652,6 +652,7 @@ UPDATE creature_template SET ScriptName='mob_fel_orc_convert' WHERE entry=17083;
 UPDATE creature_template SET ScriptName='mob_omrogg_heads' WHERE entry IN (19523,19524);
 UPDATE creature_template SET ScriptName='boss_warchief_kargath_bladefist' WHERE entry=16808;
 UPDATE creature_template SET ScriptName='npc_blade_dance_target' WHERE entry IN(20709);
+UPDATE creature_template SET ScriptName='npc_shattered_hand_scout' WHERE entry=17693;
 UPDATE instance_template SET ScriptName='instance_shattered_halls' WHERE map=540;
 
 /* MAGTHERIDON'S LAIR */
@@ -3679,7 +3680,13 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1540048,'Cowards! You\'ll never pull me into the shadows!',0,1,0,0,'kargath SAY_EVADE'),
 
 (-1540049,'The Alliance dares to intrude this far into my fortress? Bring out the Honor Hold prisoners and call for the executioner! They\'ll pay with their lives for this trespass!',0,6,0,0,'kargath SAY_EXECUTE_ALLY'),
-(-1540050,'It looks like we have a ranking officer among our captives...how amusing. Execute the green-skinned dog at once!',0,6,0,0,'kargath SAY_EXECUTE_HORDE');
+(-1540050,'It looks like we have a ranking officer among our captives...how amusing. Execute the green-skinned dog at once!',0,6,0,0,'kargath SAY_EXECUTE_HORDE'),
+
+(-1540051,'Invaders have breached the defenses!',10285,6,0,0,'Gauntlet of fire yell 1'),
+(-1540052,'Archers, form ranks! On my mark!',10156,6,0,0,'Gauntlet of fire yell 2'),
+(-1540053,'Ready!',10157,6,0,0,'Gauntlet of fire yell 3'),
+(-1540054,'Aim!',10158,6,0,0,'Gauntlet of fire yell 4'),
+(-1540055,'Fire!',10159,6,0,0,'Gauntlet of fire yell 5');
 
 -- -1 542 000 BLOOD FURNACE
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES

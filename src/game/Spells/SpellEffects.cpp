@@ -6881,6 +6881,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->RemoveAurasAtMechanicImmunity(IMMUNE_TO_ROOT_AND_SNARE_MASK, 30918, true);
                     break;
                 }
+                case 30952:                                 // Shoot Flame Arrow (Shattered Halls)
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 30953, TRIGGERED_NONE); // cast explosion
+                    break;
+                }
                 case 37142:                                 // Karazhan - Chess NPC Action: Melee Attack: Conjured Water Elemental
                 case 37143:                                 // Karazhan - Chess NPC Action: Melee Attack: Charger
                 case 37147:                                 // Karazhan - Chess NPC Action: Melee Attack: Human Cleric

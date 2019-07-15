@@ -30,9 +30,12 @@
 #include "Entities/Item.h"
 #include "WorldSocket.h"
 
+#include <map>
 #include <deque>
 #include <mutex>
 #include <memory>
+
+#include <boost/circular_buffer.hpp>
 
 struct ItemPrototype;
 struct AuctionEntry;
@@ -232,7 +235,7 @@ class WorldSession
 
         void QueuePacket(std::unique_ptr<WorldPacket> new_packet);
 
-        bool Update(PacketFilter& updater);
+        bool Update(uint32 diff, PacketFilter& updater);
 
         /// Handle the authentication waiting queue (to be completed)
         void SendAuthWaitQue(uint32 position) const;
@@ -333,8 +336,11 @@ class WorldSession
 
         uint32 GetLatency() const { return m_latency; }
         void SetLatency(uint32 latency) { m_latency = latency; }
-        void ResetClientTimeDelay() { m_clientTimeDelay = 0; }
         uint32 getDialogStatus(const Player* pPlayer, const Object* questgiver, uint32 defstatus) const;
+
+        // Time Synchronisation
+        void ResetTimeSync();
+        void SendTimeSync();
 
         // Misc
         void SendKnockBack(float angle, float horizontalSpeed, float verticalSpeed) const;
@@ -342,6 +348,7 @@ class WorldSession
 
         void SendAuthOk() const;
         void SendAuthQueued() const;
+
         // opcodes handlers
         void Handle_NULL(WorldPacket& recvPacket);          // not used
         void Handle_EarlyProccess(WorldPacket& recvPacket); // just mark packets processed in WorldSocket::OnRead
@@ -765,6 +772,9 @@ class WorldSession
         void HandleSetGuildBankTabText(WorldPacket& recv_data);
 
         void HandleGetMirrorimageData(WorldPacket& recv_data);
+
+        // Movement
+        void SynchronizeMovement(MovementInfo &movementInfo);
     private:
         // Additional private opcode handlers
         void HandleComplainMail(WorldPacket& recv_data);
@@ -800,9 +810,16 @@ class WorldSession
         LocaleConstant m_sessionDbcLocale;
         int m_sessionDbLocaleIndex;
         uint32 m_latency;
-        uint32 m_clientTimeDelay;
         uint32 m_Tutorials[8];
         TutorialDataState m_tutorialState;
+
+        boost::circular_buffer<std::pair<int64, uint32>> m_timeSyncClockDeltaQueue; // first member: clockDelta. Second member: latency of the packet exchange that was used to compute that clockDelta.
+        int64 m_timeSyncClockDelta;
+        void ComputeNewClockDelta();
+
+        std::map<uint32, uint32> m_pendingTimeSyncRequests; // key: counter. value: server time when packet with that counter was sent.
+        uint32 m_timeSyncNextCounter;
+        uint32 m_timeSyncTimer;
 
         std::mutex m_recvQueueLock;
         std::deque<std::unique_ptr<WorldPacket>> m_recvQueue;

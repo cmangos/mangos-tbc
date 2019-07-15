@@ -939,7 +939,7 @@ OpcodeHandler opcodeTable[NUM_MSG_TYPES] =
     /*0x38E*/ { "MSG_PARTY_ASSIGNMENT",                         STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandlePartyAssignmentOpcode     },
     /*0x38F*/ { "SMSG_OFFER_PETITION_ERROR",                    STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
     /*0x390*/ { "SMSG_TIME_SYNC_REQ",                           STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_ServerSide               },
-    /*0x391*/ { "CMSG_TIME_SYNC_RESP",                          STATUS_LOGGEDIN, PROCESS_INPLACE,      &WorldSession::HandleTimeSyncResp              },
+    /*0x391*/ { "CMSG_TIME_SYNC_RESP",                          STATUS_LOGGEDIN, PROCESS_THREADSAFE,   &WorldSession::HandleTimeSyncResp              },
     /*0x392*/ { "CMSG_SEND_LOCAL_EVENT",                        STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
     /*0x393*/ { "CMSG_SEND_GENERAL_TRIGGER",                    STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },
     /*0x394*/ { "CMSG_SEND_COMBAT_TRIGGER",                     STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::Handle_NULL                     },

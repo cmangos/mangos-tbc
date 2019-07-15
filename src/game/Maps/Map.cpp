@@ -596,7 +596,7 @@ void Map::Update(const uint32& t_diff)
             WorldSession* pSession = plr->GetSession();
             MapSessionFilter updater(pSession);
 
-            pSession->Update(updater);
+            pSession->Update(t_diff, updater);
         }
     }
 

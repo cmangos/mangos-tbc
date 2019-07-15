@@ -812,7 +812,7 @@ void World::SetInitialWorldSettings()
     srand((unsigned int)time(nullptr));
 
     ///- Time server startup
-    uint32 uStartTime = WorldTimer::getMSTime();
+    uint32 startTime = WorldTimer::getMSTime();
 
     ///- Initialize detour memory management
     dtAllocSetCustom(dtCustomAlloc, dtCustomFree);
@@ -1345,7 +1345,7 @@ void World::SetInitialWorldSettings()
     sLog.outString("---------------------------------------");
     sLog.outString();
 
-    uint32 uStartInterval = WorldTimer::getMSTimeDiff(uStartTime, WorldTimer::getMSTime());
+    uint32 uStartInterval = WorldTimer::getMSTimeDiff(startTime, WorldTimer::getMSTime());
     sLog.outString("SERVER STARTUP TIME: %i minutes %i seconds", uStartInterval / 60000, (uStartInterval % 60000) / 1000);
     sLog.outString();
 }
@@ -1884,7 +1884,7 @@ void World::ShutdownCancel()
     DEBUG_LOG("Server %s cancelled.", (m_ShutdownMask & SHUTDOWN_MASK_RESTART ? "restart" : "shutdown"));
 }
 
-void World::UpdateSessions(uint32 /*diff*/)
+void World::UpdateSessions(uint32 diff)
 {
     ///- Add new sessions
     {
@@ -1904,7 +1904,7 @@ void World::UpdateSessions(uint32 /*diff*/)
         WorldSessionFilter updater(pSession);
 
         // if WorldSession::Update fails, it means that the session should be destroyed
-        if (!pSession->Update(updater))
+        if (!pSession->Update(diff, updater))
         {
             RemoveQueuedSession(pSession);
             itr = m_sessions.erase(itr);

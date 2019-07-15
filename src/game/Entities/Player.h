@@ -1034,9 +1034,6 @@ class Player : public Unit
         uint32 GetTotalPlayedTime() { return m_Played_time[PLAYED_TIME_TOTAL]; }
         uint32 GetLevelPlayedTime() { return m_Played_time[PLAYED_TIME_LEVEL]; }
 
-        void ResetTimeSync();
-        void SendTimeSync();
-
         Player* GetSpellModOwner() const override { return const_cast<Player*>(this); }
 
         void SetDeathState(DeathState s) override;          // overwrite Unit::SetDeathState

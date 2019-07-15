@@ -5856,9 +5856,7 @@ void Aura::HandleAuraModIncreaseMaxHealth(bool apply, bool /*Real*/)
 void Aura::HandleAuraModIncreaseEnergy(bool apply, bool /*Real*/)
 {
     Unit* target = GetTarget();
-    Powers powerType = target->GetPowerType();
-    if (int32(powerType) != m_modifier.m_miscvalue)
-        return;
+    Powers powerType = Powers(m_modifier.m_miscvalue);
 
     UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + powerType);
 
@@ -5867,13 +5865,12 @@ void Aura::HandleAuraModIncreaseEnergy(bool apply, bool /*Real*/)
 
 void Aura::HandleAuraModIncreaseEnergyPercent(bool apply, bool /*Real*/)
 {
-    Powers powerType = GetTarget()->GetPowerType();
-    if (int32(powerType) != m_modifier.m_miscvalue)
-        return;
+    Unit* target = GetTarget();
+    Powers powerType = Powers(m_modifier.m_miscvalue);
 
     UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + powerType);
 
-    GetTarget()->HandleStatModifier(unitMod, TOTAL_PCT, float(m_modifier.m_amount), apply);
+    target->HandleStatModifier(unitMod, TOTAL_PCT, float(m_modifier.m_amount), apply);
 }
 
 void Aura::HandleAuraModIncreaseHealthPercent(bool apply, bool /*Real*/)

@@ -6831,7 +6831,7 @@ void Aura::PeriodicTick()
             {
                 if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
-                    pCaster->SendSpellOrDamageImmune(target, spellProto->Id);
+                    Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     return;
                 }
             }
@@ -6963,7 +6963,7 @@ void Aura::PeriodicTick()
             {
                 if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
-                    pCaster->SendSpellOrDamageImmune(target, spellProto->Id);
+                    Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     return;
                 }
             }
@@ -7044,7 +7044,7 @@ void Aura::PeriodicTick()
 
             if (target->IsImmuneToSchool(spellProto, (1 << GetEffIndex())))
             {
-                pCaster->SendSpellOrDamageImmune(target, spellProto->Id);
+                Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                 return;
             }
 
@@ -7138,7 +7138,7 @@ void Aura::PeriodicTick()
             {
                 if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
-                    pCaster->SendSpellOrDamageImmune(target, spellProto->Id);
+                    Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     return;
                 }
             }
@@ -7229,7 +7229,7 @@ void Aura::PeriodicTick()
             {
                 if (target->IsImmuneToSchool(spellProto, (1 << GetEffIndex())))
                 {
-                    pCaster->SendSpellOrDamageImmune(target, spellProto->Id);
+                    Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     return;
                 }
             }
@@ -7269,7 +7269,7 @@ void Aura::PeriodicTick()
             {
                 if (target->IsImmuneToSchool(spellProto, (1 << GetEffIndex())))
                 {
-                    pCaster->SendSpellOrDamageImmune(target, spellProto->Id);
+                    Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     return;
                 }
             }
@@ -7309,7 +7309,7 @@ void Aura::PeriodicTick()
             {
                 if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
-                    pCaster->SendSpellOrDamageImmune(target, spellProto->Id);
+                    Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     return;
                 }
             }

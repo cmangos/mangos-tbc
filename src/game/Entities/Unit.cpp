@@ -812,134 +812,122 @@ void Unit::DealDamageMods(Unit* dealer, Unit* victim, uint32& damage, uint32* ab
 
 void Unit::Suicide()
 {
-    DealDamage(this, this->GetHealth(), nullptr, INSTAKILL, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+    DealDamage(this, this, this->GetHealth(), nullptr, INSTAKILL, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
 }
 
-uint32 Unit::DealDamage(Unit* pVictim, uint32 damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const* spellProto, bool durabilityLoss)
+uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const* spellProto, bool durabilityLoss)
 {
     // remove affects from attacker at any non-DoT damage (including 0 damage)
     if (damagetype != DOT && damagetype != INSTAKILL)
     {
         // Since patch 1.5.0 sitting characters always stand up on attack (even if stunned)
-        if (!pVictim->IsStandState() && (pVictim->GetTypeId() == TYPEID_PLAYER || !pVictim->hasUnitState(UNIT_STAT_STUNNED)))
-            pVictim->SetStandState(UNIT_STAND_STATE_STAND);
+        if (!victim->IsStandState() && (victim->GetTypeId() == TYPEID_PLAYER || !victim->hasUnitState(UNIT_STAT_STUNNED)))
+            victim->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
     if (!damage)
     {
-        // Rage from physical damage received .
-        if (cleanDamage && cleanDamage->damage && (damageSchoolMask & SPELL_SCHOOL_MASK_NORMAL) && pVictim->GetTypeId() == TYPEID_PLAYER && (pVictim->GetPowerType() == POWER_RAGE))
-            ((Player*)pVictim)->RewardRage(cleanDamage->damage, 0, false);
+        // Rage from physical damage received - extend to all units
+        if (cleanDamage && cleanDamage->damage && (damageSchoolMask & SPELL_SCHOOL_MASK_NORMAL) && victim->GetTypeId() == TYPEID_PLAYER && (victim->GetPowerType() == POWER_RAGE))
+            static_cast<Player*>(victim)->RewardRage(cleanDamage->damage, 0, false);
 
         return 0;
     }
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageStart");
 
-    uint32 health = pVictim->GetHealth();
+    uint32 health = victim->GetHealth();
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "deal dmg:%d to health:%d ", damage, health);
-
-    // Rage from Damage made (only from direct weapon damage)
-    if (cleanDamage && damagetype == DIRECT_DAMAGE && this != pVictim && GetTypeId() == TYPEID_PLAYER && (GetPowerType() == POWER_RAGE))
-    {
-        uint32 weaponSpeedHitFactor;
-
-        switch (cleanDamage->attackType)
-        {
-            case BASE_ATTACK:
-            {
-                if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
-                    weaponSpeedHitFactor = uint32(GetAttackTime(cleanDamage->attackType) / 1000.0f * 7);
-                else
-                    weaponSpeedHitFactor = uint32(GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
-
-                ((Player*)this)->RewardRage(damage, weaponSpeedHitFactor, true);
-
-                break;
-            }
-            case OFF_ATTACK:
-            {
-                if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
-                    weaponSpeedHitFactor = uint32(GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
-                else
-                    weaponSpeedHitFactor = uint32(GetAttackTime(cleanDamage->attackType) / 1000.0f * 1.75f);
-
-                ((Player*)this)->RewardRage(damage, weaponSpeedHitFactor, true);
-
-                break;
-            }
-            case RANGED_ATTACK:
-                break;
-        }
-    }
-
-    // no xp,health if type 8 /critters/
-    if (pVictim->GetTypeId() == TYPEID_UNIT && pVictim->GetCreatureType() == CREATURE_TYPE_CRITTER)
-    {
-        // TODO: fix this part
-        // Critter may not die of damage taken, instead expect it to run away (no fighting back)
-        // If (this) is TYPEID_PLAYER, (this) will enter combat w/victim, but after some time, automatically leave combat.
-        // It is unclear how it should work for other cases.
-        DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage critter, critter dies");
-
-        ((Creature*)pVictim)->SetLootRecipient(this);
-
-        JustKilledCreature((Creature*)pVictim, nullptr);
-        pVictim->SetHealth(0);
-
-        return damage;
-    }
 
     // duel ends when player has 1 or less hp
     bool duel_hasEnded = false;
-    if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && pVictim->GetTypeId() == TYPEID_PLAYER && ((Player*)pVictim)->duel && damage >= (health - 1))
+    if (dealer)
     {
-        // prevent kill only if killed in duel and killed by opponent or opponent controlled creature
-        Player* playerVictim = static_cast<Player*>(pVictim);
-        if (playerVictim->duel->opponent == this || playerVictim->duel->opponent->GetObjectGuid() == GetControllingPlayer()->GetObjectGuid())
-            damage = health - 1;
-
-        duel_hasEnded = true;
-    }
-
-    if (GetTypeId() == TYPEID_PLAYER && this != pVictim)
-    {
-        Player* killer = ((Player*)this);
-
-        // in bg, count dmg if victim is also a player
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
+        // Rage from Damage made (only from direct weapon damage)
+        if (cleanDamage && damagetype == DIRECT_DAMAGE && dealer != victim && dealer->GetTypeId() == TYPEID_PLAYER && (dealer->GetPowerType() == POWER_RAGE))
         {
-            if (BattleGround* bg = killer->GetBattleGround())
+            uint32 weaponSpeedHitFactor;
+
+            switch (cleanDamage->attackType)
             {
-                // FIXME: kept by compatibility. don't know in BG if the restriction apply.
-                bg->UpdatePlayerScore(killer, SCORE_DAMAGE_DONE, damage);
+                case BASE_ATTACK:
+                {
+                    if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 7);
+                    else
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
+
+                    static_cast<Player*>(dealer)->RewardRage(damage, weaponSpeedHitFactor, true);
+
+                    break;
+                }
+                case OFF_ATTACK:
+                {
+                    if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
+                    else
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 1.75f);
+
+                    static_cast<Player*>(dealer)->RewardRage(damage, weaponSpeedHitFactor, true);
+
+                    break;
+                }
+                case RANGED_ATTACK:
+                    break;
             }
         }
+
+        if (dealer->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && victim->GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(victim)->duel && damage >= (health - 1))
+        {
+            // prevent kill only if killed in duel and killed by opponent or opponent controlled creature
+            Player* playerVictim = static_cast<Player*>(victim);
+            if (playerVictim->duel->opponent == dealer || playerVictim->duel->opponent->GetObjectGuid() == dealer->GetControllingPlayer()->GetObjectGuid())
+                damage = health - 1;
+
+            duel_hasEnded = true;
+        }
+
+        if (dealer->GetTypeId() == TYPEID_PLAYER && dealer != victim)
+        {
+            Player* killer = static_cast<Player*>(dealer);
+
+            // in bg, count dmg if victim is also a player
+            if (victim->GetTypeId() == TYPEID_PLAYER)
+            {
+                if (BattleGround* bg = killer->GetBattleGround())
+                {
+                    // FIXME: kept by compatibility. don't know in BG if the restriction apply.
+                    bg->UpdatePlayerScore(killer, SCORE_DAMAGE_DONE, damage);
+                }
+            }
+        }
+
+        if (victim->GetTypeId() == TYPEID_UNIT)
+            if (Creature* creatureVictim = static_cast<Creature*>(victim))
+                if (!creatureVictim->IsPet() && !creatureVictim->HasLootRecipient())
+                    creatureVictim->SetLootRecipient(dealer);
     }
 
-    if (pVictim->GetTypeId() == TYPEID_UNIT && !((Creature*)pVictim)->IsPet() && !((Creature*)pVictim)->HasLootRecipient())
-        ((Creature*)pVictim)->SetLootRecipient(this);
-
     if (health <= damage)
-        Kill(pVictim, damagetype, spellProto, durabilityLoss, duel_hasEnded);
+        Kill(dealer, victim, damagetype, spellProto, durabilityLoss, duel_hasEnded);
     else                                                    // if (health <= damage)
-        HandleDamageDealt(pVictim, damage, cleanDamage, damagetype, damageSchoolMask, spellProto, duel_hasEnded);
+        HandleDamageDealt(dealer, victim, damage, cleanDamage, damagetype, damageSchoolMask, spellProto, duel_hasEnded);
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageEnd returned %d damage", damage);
 
     return damage;
 }
 
-void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spellProto, bool durabilityLoss, bool duel_hasEnded)
+void Unit::Kill(Unit* killer, Unit* victim, DamageEffectType damagetype, SpellEntry const* spellProto, bool durabilityLoss, bool duel_hasEnded)
 {
-    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage %s Killed %s", GetGuidStr().c_str(), victim->GetGuidStr().c_str());
+    DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamage %s Killed %s", killer ? killer->GetGuidStr().c_str() : "", victim->GetGuidStr().c_str());
 
     /*
-    *                      Preparation: Who gets credit for killing whom, invoke SpiritOfRedemtion?
+    *  Preparation: Who gets credit for killing whom, invoke SpiritOfRedemtion?
     */
     // for loot will be used only if group_tap == nullptr
-    Player* killer = GetBeneficiaryPlayer();
-    Player* tapper = killer;
+    Player* responsiblePlayer = killer ? killer->GetBeneficiaryPlayer() : nullptr;
+    Player* tapper = responsiblePlayer;
     Group* tapperGroup = nullptr;
 
     // in creature kill case group/player tap stored for creature
@@ -981,24 +969,25 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
     // call kill spell proc event (before real die and combat stop to triggering auras removed at death/combat stop)
     if (damagetype != INSTAKILL)
     {
-        if (killer && killer != victim && (killer == tapper || (killer->GetGroup() == tapperGroup && tapperGroup)))
+        if (responsiblePlayer && responsiblePlayer != victim && (responsiblePlayer == tapper || (responsiblePlayer->GetGroup() == tapperGroup && tapperGroup)))
         {
             WorldPacket data(SMSG_PARTYKILLLOG, (8 + 8));   // send event PARTY_KILL
-            data << killer->GetObjectGuid();                // player with killing blow
+            data << responsiblePlayer->GetObjectGuid();     // player with killing blow
             data << victim->GetObjectGuid();                // victim
 
             if (tapperGroup)
-                tapperGroup->BroadcastPacket(data, false, tapperGroup->GetMemberGroup(killer->GetObjectGuid()), killer->GetObjectGuid());
+                tapperGroup->BroadcastPacket(data, false, tapperGroup->GetMemberGroup(responsiblePlayer->GetObjectGuid()), responsiblePlayer->GetObjectGuid());
 
-            killer->SendDirectMessage(data);
+            responsiblePlayer->SendDirectMessage(data);
         }
     }
 
     // proc only once for victim
-    if (Unit* owner = GetOwner())
-        ProcDamageAndSpell(ProcSystemArguments(owner, victim, PROC_FLAG_KILL, PROC_FLAG_NONE, PROC_EX_NONE, 0));
+    if (killer)
+        if (Unit* owner = killer->GetOwner())
+            ProcDamageAndSpell(ProcSystemArguments(owner, victim, PROC_FLAG_KILL, PROC_FLAG_NONE, PROC_EX_NONE, 0));
 
-    ProcDamageAndSpell(ProcSystemArguments(this, victim, PROC_FLAG_KILL, PROC_FLAG_KILLED, PROC_EX_NONE, 0));
+    ProcDamageAndSpell(ProcSystemArguments(killer, victim, PROC_FLAG_KILL, PROC_FLAG_KILLED, PROC_EX_NONE, 0));
 
     ProcDamageAndSpell(ProcSystemArguments(victim, victim, PROC_FLAG_NONE, PROC_FLAG_DEATH, PROC_EX_NONE, 0));
 
@@ -1012,7 +1001,7 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
     }
 
     /*
-    *                      Actions for the killer
+    *  Actions for the killer
     */
     if (spiritOfRedemtionTalentReady)
     {
@@ -1035,15 +1024,18 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
     else
         victim->SetHealth(0);
 
-    // Call KilledUnit for creatures
-    if (AI())
-        AI()->KilledUnit(victim);
+    if (killer)
+    {
+        // Call KilledUnit for creatures
+        if (UnitAI* ai = killer->AI())
+            ai->KilledUnit(victim);
 
-    // Call AI OwnerKilledUnit (for any current summoned minipet/guardian/protector)
-    PetOwnerKilledUnit(victim);
+        // Call AI OwnerKilledUnit (for any current summoned minipet/guardian/protector)
+        killer->PetOwnerKilledUnit(victim);
+    }
 
     /*
-    *                      Actions for the victim
+    *  Actions for the victim
     */
     if (victim->GetTypeId() == TYPEID_PLAYER)          // Killed player
     {
@@ -1052,11 +1044,11 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
         // remember victim PvP death for corpse type and corpse reclaim delay
         // at original death (not at SpiritOfRedemtionTalent timeout)
         if (!damageFromSpiritOfRedemtionTalent)
-            playerVictim->SetPvPDeath(killer != nullptr);
+            playerVictim->SetPvPDeath(responsiblePlayer != nullptr);
 
         // 10% durability loss on death
         // only if not player and not controlled by player pet. And not at BG
-        if (durabilityLoss && !killer && !playerVictim->InBattleGround())
+        if (durabilityLoss && !responsiblePlayer && !playerVictim->InBattleGround())
         {
             DEBUG_LOG("DealDamage: Killed %s, looing 10 percents durability", victim->GetGuidStr().c_str());
             playerVictim->DurabilityLossAll(0.10f, false);
@@ -1081,50 +1073,63 @@ void Unit::Kill(Unit* victim, DamageEffectType damagetype, SpellEntry const* spe
             playerVictim->DuelComplete(DUEL_INTERRUPTED);
         }
 
-        if (killer)                                 // PvP kill
+        if (responsiblePlayer)                         // PvP kill
         {
             if (BattleGround* bg = playerVictim->GetBattleGround())
             {
-                bg->HandleKillPlayer(playerVictim, killer);
+                bg->HandleKillPlayer(playerVictim, responsiblePlayer);
             }
-            else if (victim != this)
+            else if (victim != killer)
             {
                 // selfkills are not handled in outdoor pvp scripts
                 if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(playerVictim->GetCachedZoneId()))
-                    outdoorPvP->HandlePlayerKill(killer, playerVictim);
+                    outdoorPvP->HandlePlayerKill(responsiblePlayer, playerVictim);
             }
         }
     }
     else                                                // Killed creature
-        JustKilledCreature((Creature*)victim, killer);
+        JustKilledCreature(killer, static_cast<Creature*>(victim), responsiblePlayer);
 
     // stop combat
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageAttackStop");
     victim->CombatStop();
 }
 
-void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const* spellProto, bool duel_hasEnded)
+void Unit::HandleDamageDealt(Unit* dealer, Unit* victim, uint32& damage, CleanDamage const* cleanDamage, DamageEffectType damagetype, SpellSchoolMask damageSchoolMask, SpellEntry const* spellProto, bool duel_hasEnded)
 {
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageAlive");
 
     victim->ModifyHealth(-(int32)damage);
 
-    if (victim->CanAttack(this) && (!spellProto || (!spellProto->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO) &&
-        !spellProto->HasAttribute(SPELL_ATTR_EX_NO_THREAT))) && CanEnterCombat() && victim->CanEnterCombat())
+    if (dealer)
     {
-        float threat = damage * sSpellMgr.GetSpellThreatMultiplier(spellProto);
-        victim->AddThreat(this, threat, (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
-        if (damagetype != DOT) // DOTs dont put in combat but still cause threat
+        if (victim->CanAttack(dealer) && (!spellProto || (!spellProto->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO) &&
+            !spellProto->HasAttribute(SPELL_ATTR_EX_NO_THREAT))) && dealer->CanEnterCombat() && victim->CanEnterCombat())
         {
-            SetInCombatWith(victim);
-            victim->SetInCombatWith(this);
+            float threat = damage * sSpellMgr.GetSpellThreatMultiplier(spellProto);
+            victim->AddThreat(dealer, threat, (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
+            if (damagetype != DOT) // DOTs dont put in combat but still cause threat
+            {
+                dealer->SetInCombatWith(victim);
+                victim->SetInCombatWith(dealer);
+            }
+        }
+
+        if (dealer->GetTypeId() == TYPEID_PLAYER)
+        {
+            // random durability for items (HIT DONE)
+            if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_DAMAGE)))
+            {
+                EquipmentSlots slot = EquipmentSlots(urand(0, EQUIPMENT_SLOT_END - 1));
+                static_cast<Player*>(dealer)->DurabilityPointLossForEquipSlot(slot);
+            }
         }
     }
 
     if (victim->GetTypeId() == TYPEID_PLAYER)                               // victim is a player
     {
         // Rage from damage received
-        if (this != victim && victim->GetPowerType() == POWER_RAGE)
+        if (dealer != victim && victim->GetPowerType() == POWER_RAGE)
             ((Player*)victim)->RewardRage(cleanDamage ? cleanDamage->damage : 0, 0, false);
 
         // random durability for items (HIT TAKEN)
@@ -1132,16 +1137,6 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
         {
             EquipmentSlots slot = EquipmentSlots(urand(0, EQUIPMENT_SLOT_END - 1));
             ((Player*)victim)->DurabilityPointLossForEquipSlot(slot);
-        }
-    }
-
-    if (GetTypeId() == TYPEID_PLAYER)
-    {
-        // random durability for items (HIT DONE)
-        if (roll_chance_f(sWorld.getConfig(CONFIG_FLOAT_RATE_DURABILITY_LOSS_DAMAGE)))
-        {
-            EquipmentSlots slot = EquipmentSlots(urand(0, EQUIPMENT_SLOT_END - 1));
-            ((Player*)this)->DurabilityPointLossForEquipSlot(slot);
         }
     }
 
@@ -1173,8 +1168,9 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
         for (auto aura : cleanupHolder)
             victim->RemoveAurasDueToSpell(aura);
     }
-
-    InterruptOrDelaySpell(victim, damagetype);
+    
+    if (dealer)
+        dealer->InterruptOrDelaySpell(victim, damagetype);
 
     // last damage from duel opponent
     if (duel_hasEnded)
@@ -1253,23 +1249,23 @@ struct PetOwnerKilledUnitHelper
     Unit* m_victim;
 };
 
-void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
+void Unit::JustKilledCreature(Unit* killer, Creature* victim, Player* responsiblePlayer)
 {
-    victim->m_deathState = DEAD;                            // so that isAlive, isDead return expected results in the called hooks of JustKilledCreature
+    victim->m_deathState = DEAD; // so that isAlive, isDead return expected results in the called hooks of JustKilledCreature
     // must be used only shortly before SetDeathState(JUST_DIED) and only for Creatures or Pets
 
     // some critters required for quests (need normal entry instead possible heroic in any cases)
-    if (victim->GetCreatureType() == CREATURE_TYPE_CRITTER && GetTypeId() == TYPEID_PLAYER)
+    if (killer && victim->GetCreatureType() == CREATURE_TYPE_CRITTER && killer->GetTypeId() == TYPEID_PLAYER)
     {
         if (CreatureInfo const* normalInfo = ObjectMgr::GetCreatureTemplate(victim->GetEntry()))
-            ((Player*)this)->KilledMonster(normalInfo, victim->GetObjectGuid());
+            static_cast<Player*>(killer)->KilledMonster(normalInfo, victim->GetObjectGuid());
     }
 
     // Interrupt channeling spell when a Possessed Summoned is killed
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(victim->GetUInt32Value(UNIT_CREATED_BY_SPELL));
     if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX_FARSIGHT) && spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNELED_1))
     {
-        Unit* creator = GetMap()->GetUnit(victim->GetCreatorGuid());
+        Unit* creator = victim->GetMap()->GetUnit(victim->GetCreatorGuid());
         if (creator && creator->GetCharmGuid() == victim->GetObjectGuid())
         {
             Spell* channeledSpell = creator->GetCurrentSpell(CURRENT_CHANNELED_SPELL);
@@ -1281,7 +1277,7 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
     /* ******************************* Inform various hooks ************************************ */
     // Inform victim's AI
     if (victim->AI())
-        victim->AI()->JustDied(this);
+        victim->AI()->JustDied(killer);
 
     // Inform Owner
     Unit* pOwner = victim->GetMaster();
@@ -1304,11 +1300,11 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
             bg->HandleKillUnit(victim, responsiblePlayer);
 
     // Notify the outdoor pvp script
-    if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(responsiblePlayer ? responsiblePlayer->GetCachedZoneId() : GetZoneId()))
+    if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(responsiblePlayer ? responsiblePlayer->GetCachedZoneId() : victim->GetZoneId()))
         outdoorPvP->HandleCreatureDeath(victim);
 
     // Start creature death script
-    GetMap()->ScriptsStart(sCreatureDeathScripts, victim->GetEntry(), victim, responsiblePlayer ? responsiblePlayer : this);
+    victim->GetMap()->ScriptsStart(sCreatureDeathScripts, victim->GetEntry(), victim, responsiblePlayer ? responsiblePlayer : killer);
 
     if (victim->IsLinkingEventTrigger())
         victim->GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_DIE, victim);
@@ -1316,16 +1312,16 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
     // Dungeon specific stuff
     if (victim->GetInstanceId())
     {
-        Map* m = victim->GetMap();
-        if (m->IsDungeon())
+        Map* map = victim->GetMap();
+        if (map->IsDungeon())
         {
-            Player* creditedPlayer = GetBeneficiaryPlayer(); // TODO: do instance binding anyway if the charmer/owner is offline
-            if (m->IsRaidOrHeroicDungeon() && creditedPlayer)
+            Player* creditedPlayer = killer ? killer->GetBeneficiaryPlayer() : nullptr; // TODO: do instance binding anyway if the charmer/owner is offline
+            if (map->IsRaidOrHeroicDungeon() && creditedPlayer)
             {
                 if (victim->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_INSTANCE_BIND)
-                    ((DungeonMap*)m)->PermBindAllPlayers(creditedPlayer);
+                    static_cast<DungeonMap*>(map)->PermBindAllPlayers(creditedPlayer);
             }
-            ((DungeonMap*)m)->GetPersistanceState()->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, victim->GetEntry());
+            static_cast<DungeonMap*>(map)->GetPersistanceState()->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, victim->GetEntry());
         }
     }
 
@@ -1634,22 +1630,22 @@ void Unit::CalculateSpellDamage(SpellNonMeleeDamage* spellDamageInfo, int32 dama
     spellDamageInfo->damage = damage;
 }
 
-void Unit::DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss)
+void Unit::DealSpellDamage(SpellNonMeleeDamage* spellDamageInfo, bool durabilityLoss)
 {
-    if (!damageInfo)
+    if (!spellDamageInfo)
         return;
 
-    Unit* pVictim = damageInfo->target;
+    Unit* pVictim = spellDamageInfo->target;
     if (!pVictim)
         return;
 
     if (!pVictim->isAlive() || pVictim->IsTaxiFlying() || pVictim->IsInEvadeMode())
         return;
 
-    SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(damageInfo->SpellID);
+    SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellDamageInfo->SpellID);
     if (spellProto == nullptr)
     {
-        sLog.outError("Unit::DealSpellDamage have wrong damageInfo->SpellID: %u", damageInfo->SpellID);
+        sLog.outError("Unit::DealSpellDamage have wrong damageInfo->SpellID: %u", spellDamageInfo->SpellID);
         return;
     }
 
@@ -1659,7 +1655,7 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss)
         return;
 
     // update at damage Judgement aura duration that applied by attacker at victim
-    if (damageInfo->damage && spellProto->Id == 35395)
+    if (spellDamageInfo->damage && spellProto->Id == 35395)
     {
         SpellAuraHolderMap const& vAuras = pVictim->GetSpellAuraHolderMap();
         for (SpellAuraHolderMap::const_iterator itr = vAuras.begin(); itr != vAuras.end(); ++itr)
@@ -1671,8 +1667,8 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage* damageInfo, bool durabilityLoss)
     }
 
     // Call default DealDamage (send critical in hit info for threat calculation)
-    CleanDamage cleanDamage(damageInfo->damage, BASE_ATTACK, damageInfo->HitInfo & SPELL_HIT_TYPE_CRIT ? MELEE_HIT_CRIT : MELEE_HIT_NORMAL);
-    DealDamage(pVictim, damageInfo->damage, &cleanDamage, SPELL_DIRECT_DAMAGE, damageInfo->schoolMask, spellProto, durabilityLoss);
+    CleanDamage cleanDamage(spellDamageInfo->damage, BASE_ATTACK, spellDamageInfo->HitInfo & SPELL_HIT_TYPE_CRIT ? MELEE_HIT_CRIT : MELEE_HIT_NORMAL);
+    DealDamage(this, pVictim, spellDamageInfo->damage, &cleanDamage, SPELL_DIRECT_DAMAGE, spellDamageInfo->schoolMask, spellProto, durabilityLoss);
 }
 
 uint32 Unit::GetResilienceRatingDamageReduction(uint32 damage, SpellDmgClass dmgClass, bool periodic/* = false*/, Powers pwrType/* = POWER_HEALtH*/) const
@@ -2046,7 +2042,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo* calcDamageInfo, bool durabilityLoss)
 
     // Call default DealDamage
     CleanDamage cleanDamage(calcDamageInfo->cleanDamage, calcDamageInfo->attackType, calcDamageInfo->hitOutCome);
-    DealDamage(pVictim, calcDamageInfo->totalDamage, &cleanDamage, DIRECT_DAMAGE, SpellSchoolMask(calcDamageInfo->subDamage[0].damageSchoolMask), nullptr, durabilityLoss);
+    DealDamage(this, pVictim, calcDamageInfo->totalDamage, &cleanDamage, DIRECT_DAMAGE, SpellSchoolMask(calcDamageInfo->subDamage[0].damageSchoolMask), nullptr, durabilityLoss);
 
     // If this attack by an NPC dealt some damage from behind to a player, it has a chance to daze victim
     if (calcDamageInfo->totalDamage && CanDazeInCombat(pVictim) && roll_chance_f(CalculateEffectiveDazeChance(pVictim, calcDamageInfo->attackType)))
@@ -2120,7 +2116,7 @@ void Unit::DealMeleeDamage(CalcDamageInfo* calcDamageInfo, bool durabilityLoss)
                     data << uint32(i_spellProto->SchoolMask);
                     pVictim->SendMessageToSet(data, true);
 
-                    pVictim->DealDamage(this, damage, nullptr, SPELL_DIRECT_DAMAGE, GetSpellSchoolMask(i_spellProto), i_spellProto, true);
+                    DealDamage(pVictim, this, damage, nullptr, SPELL_DIRECT_DAMAGE, GetSpellSchoolMask(i_spellProto), i_spellProto, true);
 
                     i = vDamageShields.begin();
                 }
@@ -2469,7 +2465,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
             caster->SendSpellNonMeleeDamageLog(caster, (*i)->GetSpellProto()->Id, splitted, schoolMask, splitted_absorb, 0, (damagetype == DOT), 0, false, true);
 
             CleanDamage cleanDamage = CleanDamage(splitted, BASE_ATTACK, MELEE_HIT_NORMAL);
-            caster->DealDamage(caster, splitted, &cleanDamage, DIRECT_DAMAGE, schoolMask, (*i)->GetSpellProto(), false);
+            DealDamage(caster, caster, splitted, &cleanDamage, DIRECT_DAMAGE, schoolMask, (*i)->GetSpellProto(), false);
         }
 
         AuraList const& vSplitDamagePct = GetAurasByType(SPELL_AURA_SPLIT_DAMAGE_PCT);
@@ -2502,7 +2498,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
             caster->SendSpellNonMeleeDamageLog(caster, (*i)->GetSpellProto()->Id, splitted, schoolMask, split_absorb, 0, (damagetype == DOT), 0, false, true);
 
             CleanDamage cleanDamage = CleanDamage(splitted, BASE_ATTACK, MELEE_HIT_NORMAL);
-            caster->DealDamage(caster, splitted, &cleanDamage, DIRECT_DAMAGE, schoolMask, (*i)->GetSpellProto(), false);
+            Unit::DealDamage(caster, caster, splitted, &cleanDamage, DIRECT_DAMAGE, schoolMask, (*i)->GetSpellProto(), false);
         }
     }
 

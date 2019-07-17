@@ -3613,14 +3613,14 @@ bool ChatHandler::HandleDieCommand(char* args)
             uint32 absorb = 0;
             uint32 damage = target->GetHealth();
             Unit::DealDamageMods(player, target, damage, &absorb, damageType);
-            player->DealDamage(target, damage, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+            Unit::DealDamage(player, target, damage, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
         }
     }
     else
     {
         if (target->isAlive())
         {
-            player->DealDamage(target, target->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+            Unit::DealDamage(player, target, target->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
         }
     }
 
@@ -3659,7 +3659,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
     {
         uint32 absorb = 0;
         Unit::DealDamageMods(player, target, damage, &absorb, DIRECT_DAMAGE);
-        player->DealDamage(target, damage, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+        Unit::DealDamage(player, target, damage, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
         if (target != player)
             player->SendAttackStateUpdate(HITINFO_NORMALSWING2, target, SPELL_SCHOOL_MASK_NORMAL, damage, 0, 0, VICTIMSTATE_NORMAL, 0);
         return true;
@@ -3695,7 +3695,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
         damage -= malus;
 
         Unit::DealDamageMods(player, target, damage, &absorb, DIRECT_DAMAGE);
-        player->DealDamage(target, damage, nullptr, DIRECT_DAMAGE, schoolmask, nullptr, false);
+        Unit::DealDamage(player, target, damage, nullptr, DIRECT_DAMAGE, schoolmask, nullptr, false);
         player->SendAttackStateUpdate(HITINFO_NORMALSWING2, target, schoolmask, damage, absorb, resist, VICTIMSTATE_NORMAL, 0);
         return true;
     }

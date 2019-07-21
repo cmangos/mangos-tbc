@@ -1720,6 +1720,8 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
                 case SPELLFAMILY_GENERIC:
                     if (entry->SpellIconID == 92 && entry->SpellVisual == 99 && icon && visual)
                         return false; // Soulstone Resurrection
+                    if (entry->Id == 31944) // Archimonde - Doomfire
+                        return false;
                     break;
                 case SPELLFAMILY_SHAMAN:
                     if (entry->IsFitToFamilyMask(uint64(0x200)) && multirank)

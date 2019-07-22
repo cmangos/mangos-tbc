@@ -2990,9 +2990,6 @@ SpellCastResult Spell::SpellStart(SpellCastTargets const* targets, Aura* trigger
         return SPELL_FAILED_SPELL_IN_PROGRESS;
     }
 
-    // Fill cost data
-    m_powerCost = m_IsTriggeredSpell ? 0 : CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem);
-
     SpellCastResult result = PreCastCheck();
     if (result != SPELL_CAST_OK)
     {
@@ -3017,8 +3014,6 @@ void Spell::Prepare()
     // calculate cast time (calculated after first CheckCast check to prevent charge counting for first CheckCast fail)
     if (!m_ignoreCastTime)
         m_casttime = GetSpellCastTime(m_spellInfo, m_caster, this);
-
-    m_duration = CalculateSpellDuration(m_spellInfo, m_caster);
 
     // set timer base at cast time
     ReSetTimer();
@@ -3159,14 +3154,8 @@ void Spell::cast(bool skipCheck)
             m_caster->SetInFront(m_targets.getUnitTarget());
     }
 
-    SpellCastResult castResult = CheckPower();
-    if (castResult != SPELL_CAST_OK)
-    {
-        StopCast(castResult);
-        return;
-    }
-
     // triggered cast called from Spell::prepare where it was already checked
+    SpellCastResult castResult = SPELL_CAST_OK;
     if (!skipCheck)
     {
         castResult = CheckCast(false);
@@ -3297,6 +3286,8 @@ void Spell::cast(bool skipCheck)
         return;
     }
 
+    m_duration = CalculateSpellDuration(m_spellInfo, m_caster);
+
     // CAST SPELL
     SendSpellCooldown();
     if (m_notifyAI && m_caster->AI())
@@ -3333,11 +3324,8 @@ void Spell::cast(bool skipCheck)
             SetDelayStart(0);
         }
     }
-    else
-    {
-        // Immediate spell, no big deal
+    else // Immediate spell, no big deal
         handle_immediate();
-    }
 
     m_caster->DecreaseCastCounter();
     SetExecutedCurrently(false);
@@ -4876,8 +4864,11 @@ SpellCastResult Spell::CheckCast(bool strict)
             if (castResult != SPELL_CAST_OK)
                 return castResult;
         }
+    }
 
-        castResult = CheckPower();
+    if (!m_IsTriggeredSpell)
+    {
+        SpellCastResult castResult = CheckPower(strict);
         if (castResult != SPELL_CAST_OK)
             return castResult;
 
@@ -5990,7 +5981,7 @@ SpellCastResult Spell::CheckRange(bool strict)
     return SPELL_CAST_OK;
 }
 
-uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spell const* spell, Item* castItem)
+uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spell* spell, Item* castItem, bool finalUse)
 {
     // item cast not used power
     if (castItem)
@@ -6043,7 +6034,7 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     // Apply cost mod by spell
     if (spell)
         if (Player* modOwner = caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_COST, powerCost, spell);
+            modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_COST, powerCost, spell, finalUse);
 
     if (spellInfo->HasAttribute(SPELL_ATTR_LEVEL_DAMAGE_CALCULATION))
     {
@@ -6060,11 +6051,13 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     return powerCost;
 }
 
-SpellCastResult Spell::CheckPower()
+SpellCastResult Spell::CheckPower(bool strict)
 {
     // item cast not used power
     if (m_CastItem)
         return SPELL_CAST_OK;
+
+    m_powerCost = CalculatePowerCost(m_spellInfo, m_caster, this, m_CastItem, !strict);
 
     // health as power used - need check health amount
     if (m_spellInfo->powerType == POWER_HEALTH)

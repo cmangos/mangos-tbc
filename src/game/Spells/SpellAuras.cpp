@@ -369,6 +369,32 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* curr
         // scripting location for custom aura damage
         switch (spellproto->Id)
         {
+            case 6143: // Frost Ward
+            case 8461: // spell reflect chance
+            case 8462:
+            case 10177:
+            case 28609:
+            case 32796:
+            {
+                if (eff != EFFECT_INDEX_1)
+                    break;
+                SpellAuraHolder* holder = target->GetSpellAuraHolder(11189);
+                if (!holder)
+                    holder = target->GetSpellAuraHolder(28332);
+                if (holder)
+                {
+                    damage += target->CalculateSpellDamage(target, holder->GetSpellProto(), EFFECT_INDEX_1);
+                }
+                break;
+            }
+            case 8516: // Windfury Totem
+            case 10608:
+            case 10610:
+            case 25583:
+            case 25584:
+                if (castItem)
+                    damage += (damage * castItem->GetEnchantmentModifier() / 100);
+                break;
             case 34501: // Expose Weakness
                 damage = (caster->GetStat(STAT_AGILITY) * damage) / 100;
                 break;
@@ -8466,22 +8492,11 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
         }
         case SPELLFAMILY_MAGE:
         {
-            switch (GetId())
-            {
-                case 11189:                                 // Frost Warding
-                case 28332:
-                {
-                    if (m_target->GetTypeId() == TYPEID_PLAYER && !apply)
-                    {
-                        // reflection chance (effect 1) of Frost Ward, applied in dummy effect
-                        if (SpellModifier* mod = ((Player*)m_target)->GetSpellMod(SPELLMOD_EFFECT2, GetId()))
-                            ((Player*)m_target)->AddSpellMod(mod, false);
-                    }
-                    return;
-                }
-                default:
-                    break; // Break here for poly below - 2.4.2+ only player poly regens
-            }
+            //switch (GetId())
+            //{
+            //    default:
+            //        break; // Break here for poly below - 2.4.2+ only player poly regens
+            //}
             break;
         }
         case SPELLFAMILY_WARRIOR:

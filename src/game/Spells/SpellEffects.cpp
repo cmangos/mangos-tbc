@@ -5990,6 +5990,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                 // Sunder Armor
                 Aura* sunder = unitTarget->GetAura(SPELL_AURA_MOD_RESISTANCE, SPELLFAMILY_WARRIOR, uint64(0x0000000000004000), m_caster->GetObjectGuid());
 
+                // 44452 unknown use
                 // apply sunder armor first
                 if (!sunder || sunder->GetStackAmount() < sunder->GetSpellProto()->StackAmount)
                 {
@@ -6008,7 +6009,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                         if (spellInfo->IsFitToFamily(SPELLFAMILY_WARRIOR, uint64(0x0000000000004000)) && spellInfo->SpellIconID == 565)
                         {
                             // child sunder cant miss
-                            m_caster->CastSpell(unitTarget, spellInfo, TRIGGERED_OLD_TRIGGERED | TRIGGERED_IGNORE_HIT_CALCULATION);
+                            m_caster->CastSpell(unitTarget, spellInfo, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
                             break;
                         }
                     }

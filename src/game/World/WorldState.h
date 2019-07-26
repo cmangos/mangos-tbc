@@ -108,8 +108,8 @@ class WorldState
         void Save(SaveIds saveId);
 
         // Called when a gameobject is created or removed
-        virtual void HandleGameObjectUse(GameObject* go, Unit* user);
-        virtual void HandleGameObjectRevertState(GameObject* go);
+        void HandleGameObjectUse(GameObject* go, Unit* user);
+        void HandleGameObjectRevertState(GameObject* go);
 
         void HandlePlayerEnterZone(Player* player, uint32 zoneId);
         void HandlePlayerLeaveZone(Player* player, uint32 zoneId);

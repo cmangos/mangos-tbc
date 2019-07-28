@@ -111,6 +111,7 @@ class instance_arcatraz : public ScriptedInstance, private DialogueHelper
         uint8 m_uiKilledDefenders;
 
         GuidList m_lSkyrissEventMobsGuidList;
+        GuidList m_ChargeFelfireMobsGuidList;
 };
 
 #endif

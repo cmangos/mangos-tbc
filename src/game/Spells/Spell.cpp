@@ -7310,8 +7310,9 @@ void Spell::ProcSpellAuraTriggers()
                     SpellEntry const* auraSpellInfo = targetTrigger->GetSpellProto();
                     SpellEffectIndex auraSpellIdx = targetTrigger->GetEffIndex();
                     const uint32 procid = auraSpellInfo->EffectTriggerSpell[auraSpellIdx];
+                    const uint32 proctarget = auraSpellInfo->EffectImplicitTargetA[0];
                     // Quick target mode check for procs and triggers (do not cast at friendly targets stuff against hostiles only)
-                    if (IsPositiveSpellTargetModeForSpecificTarget(m_spellInfo, ihit->effectMask, m_caster, unit) != IsPositiveSpellTargetModeForSpecificTarget(procid, ihit->effectMask, m_caster, unit))
+                    if (IsPositiveSpellTargetModeForSpecificTarget(m_spellInfo, ihit->effectMask, m_caster, unit) != IsPositiveSpellTargetModeForSpecificTarget(procid, ihit->effectMask, m_caster, unit) && proctarget != 1)
                         continue;
                     // Calculate chance at that moment (can be depend for example from combo points)
                     int32 auraBasePoints = targetTrigger->GetBasePoints();

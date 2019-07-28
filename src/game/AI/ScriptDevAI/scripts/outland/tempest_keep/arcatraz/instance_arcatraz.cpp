@@ -203,13 +203,13 @@ void instance_arcatraz::SetData(uint32 uiType, uint32 uiData)
             if (uiData == DONE)
             { 
                 DoUseDoorOrButton(GO_CORE_SECURITY_FIELD_ALPHA);
-                for (ObjectGuid& guid : m_ChargetargetMobsGuidList)
+                for (ObjectGuid& guid : m_ChargeFelfireMobsGuidList)
                     if (Creature* creature = instance->GetCreature(guid))
                         creature->ForcedDespawn();
             }
             if(uiData == FAIL)
             { 
-                for (ObjectGuid& guid : m_ChargetargetMobsGuidList)
+                for (ObjectGuid& guid : m_ChargeFelfireMobsGuidList)
                     if (Creature* creature = instance->GetCreature(guid))
                         creature->ForcedDespawn();
             }

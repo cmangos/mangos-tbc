@@ -159,6 +159,7 @@ void instance_arcatraz::OnCreatureCreate(Creature* pCreature)
             break;
         case NPC_WRATH_SCRYER_FELFIRE:
             m_npcEntryGuidCollection[pCreature->GetEntry()].push_back(pCreature->GetObjectGuid());
+            m_ChargetargetMobsGuidList.push_back(pCreature->GetObjectGuid());
             break;
         case NPC_BLAZING_TRICKSTER:
         case NPC_PHASE_HUNTER:
@@ -200,7 +201,18 @@ void instance_arcatraz::SetData(uint32 uiType, uint32 uiData)
 
         case TYPE_SOCCOTHRATES:
             if (uiData == DONE)
+            { 
                 DoUseDoorOrButton(GO_CORE_SECURITY_FIELD_ALPHA);
+                for (ObjectGuid& guid : m_ChargetargetMobsGuidList)
+                    if (Creature* creature = instance->GetCreature(guid))
+                        creature->ForcedDespawn();
+            }
+            if(uiData == FAIL)
+            { 
+                for (ObjectGuid& guid : m_ChargetargetMobsGuidList)
+                    if (Creature* creature = instance->GetCreature(guid))
+                        creature->ForcedDespawn();
+            }
             m_auiEncounter[uiType] = uiData;
             break;
 

@@ -1532,6 +1532,9 @@ UPDATE spell_template SET AttributesEx4=AttributesEx4&~0x00000001 WHERE Id IN(40
 -- Karazhan - Game in Session - infinite duration per sniff
 UPDATE spell_template SET DurationIndex=21 WHERE Id IN(39331);
 
+-- Leotheras - Chaos Blast parent spell should never miss
+UPDATE spell_template SET AttributesEx3=AttributesEx3|0x00040000 WHERE Id IN(37674);
+
 -- MgT Kaelthas phoenix egg summoning spell - made by hand from TK version
 INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx`,`DurationIndex`,`Effect1`,`EffectDieSides1`,`EffectBaseDice1`,`EffectImplicitTargetA1`,`EffectMiscValue1`,`EffectMiscValueB1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`DmgMultiplier2`,`IsServerSide`) VALUES
 (44195,256,268435456,21,28,1,1,18,24675,64,1,'Summon Phoenix Egg',1,1,2);

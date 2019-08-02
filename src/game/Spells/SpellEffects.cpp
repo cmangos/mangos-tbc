@@ -3633,7 +3633,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)   // TODO - Use target
             float orientation = unitTarget->GetOrientation();
             // Teleport
             unitTarget->NearTeleportTo(x, y, z, orientation, unitTarget == m_caster);
-            return;
+            break;
         }
     }
 

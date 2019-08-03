@@ -37,10 +37,9 @@ static const DialogueEntry aIntroDialogue[] =
     {0, 0, 0}
 };
 
-instance_temple_of_ahnqiraj::instance_temple_of_ahnqiraj(Map* pMap) : ScriptedInstance(pMap),
+instance_temple_of_ahnqiraj::instance_temple_of_ahnqiraj(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aIntroDialogue),
     m_uiBugTrioDeathCount(0),
-    m_uiCthunWhisperTimer(90000),
-    DialogueHelper(aIntroDialogue)
+    m_uiCthunWhisperTimer(90000)
 {
     Initialize();
 };

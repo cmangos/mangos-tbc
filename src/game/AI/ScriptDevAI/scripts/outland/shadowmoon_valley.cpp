@@ -2865,8 +2865,11 @@ static DeadliestScriptInfo deadliestScriptInfo[COMMANDER_COUNT] =
 
 struct npc_commanderAI : public ScriptedAI, public CombatActions
 {
-    npc_commanderAI(Creature* creature, uint8 commanderId) : ScriptedAI(creature), CombatActions(COMMANDER_COMBAT_ACTION_MAX), m_commanderId(commanderId),
-            m_defenderSpawns(DEFENDER_SPAWN_COUNT), m_dragonmawSpawns(DRAGONMAW_SPAWN_COUNT), m_killCounter(0)
+    npc_commanderAI(Creature* creature, uint8 commanderId) : ScriptedAI(creature), CombatActions(COMMANDER_COMBAT_ACTION_MAX),
+        m_defenderSpawns(DEFENDER_SPAWN_COUNT),
+        m_dragonmawSpawns(DRAGONMAW_SPAWN_COUNT),
+        m_killCounter(0),
+        m_commanderId(commanderId)
     {
         m_attackDistance = 30.f;
         m_meleeEnabled = false;

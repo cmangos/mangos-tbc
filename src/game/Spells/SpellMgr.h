@@ -223,13 +223,6 @@ inline bool IsSealSpell(SpellEntry const* spellInfo)
            spellInfo->EffectImplicitTargetA[0] == TARGET_UNIT_CASTER;
 }
 
-inline bool IsSpellMagePolymorph(uint32 spellid)
-{
-    // Only mage polymorph bears hidden scripted regeneration
-    const SpellEntry* entry = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
-    return (entry && entry->SpellFamilyName == SPELLFAMILY_MAGE && (entry->SpellFamilyFlags & uint64(0x1000000)) && IsSpellHaveAura(entry, SPELL_AURA_MOD_CONFUSE));
-}
-
 inline bool IsSpellEffectTriggerSpell(const SpellEntry* entry, SpellEffectIndex effIndex)
 {
     if (!entry)

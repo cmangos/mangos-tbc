@@ -1326,6 +1326,7 @@ struct npc_living_flareAI : public ScriptedPetAI
         m_bCheckComplete    = false;
 
         DoCastSpellIfCan(m_creature, SPELL_LIVING_COSMETIC);
+        SetReactState(REACT_PASSIVE);
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override

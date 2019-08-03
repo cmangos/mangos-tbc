@@ -335,7 +335,7 @@ bool Database::Execute(const char* sql)
     else
     {
         // if async execution is not available
-        if (!m_bAllowAsyncTransactions)
+        if (!mAllowAsyncTransactions)
             return DirectExecute(sql);
 
         // Simple sql statement
@@ -404,7 +404,7 @@ bool Database::CommitTransaction()
         return false;
 
     // if async execution is not available
-    if (!m_bAllowAsyncTransactions)
+    if (!mAllowAsyncTransactions)
         return CommitTransactionDirect();
 
     // add SqlTransaction to the async queue
@@ -559,7 +559,7 @@ bool Database::ExecuteStmt(const SqlStatementID& id, SqlStmtParameters* params)
     else
     {
         // if async execution is not available
-        if (!m_bAllowAsyncTransactions)
+        if (!mAllowAsyncTransactions)
             return DirectExecuteStmt(id, params);
 
         // Simple sql statement

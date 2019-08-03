@@ -2286,7 +2286,8 @@ class Unit : public WorldObject
         SpellAuraProcResult HandleProcTriggerSpellAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleProcTriggerDamageAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleOverrideClassScriptAuraProc(ProcExecutionData& data);
-        SpellAuraProcResult HandleMendingAuraProc(ProcExecutionData& data);
+        SpellAuraProcResult HandleRaidProcFromChargeAuraProc(ProcExecutionData& data);
+        SpellAuraProcResult HandleRaidProcFromChargeWithValueAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleModCastingSpeedNotStackAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleReflectSpellsSchoolAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleModPowerCostSchoolAuraProc(ProcExecutionData& data);
@@ -2485,6 +2486,8 @@ class Unit : public WorldObject
         void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = nullptr) const override;
 
         virtual uint32 GetSpellRank(SpellEntry const* spellInfo);
+
+        Player* GetNextRandomRaidMember(float radius, AuraType noAuraType);
 
     protected:
 

@@ -960,7 +960,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         if (action.changeMovement.asDefault > 1)
                         {
                             sLog.outErrorEventAI("Event %u Action %u uses invalid default movement setting %u. Setting to 0.", i, j + 1, action.changeMovement.asDefault);
-                            action.deathPrevention.state = 0;
+                            action.changeMovement.asDefault = 0;
                         }
                         break;
                     case ACTION_T_SET_REACT_STATE:

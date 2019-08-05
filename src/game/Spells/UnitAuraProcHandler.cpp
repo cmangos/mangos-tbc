@@ -1808,7 +1808,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         return SPELL_AURA_PROC_FAILED;
                     }
 
-                    int32 extra_attack_power = CalculateSpellDamage(pVictim, windfurySpellEntry, EFFECT_INDEX_0);
+                    int32 extra_attack_power = CalculateSpellEffectValue(pVictim, windfurySpellEntry, EFFECT_INDEX_0);
 
                     if (Aura* aura = GetAura(34244, EFFECT_INDEX_0)) // Increased Windfury Weapon
                     {

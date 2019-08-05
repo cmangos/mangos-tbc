@@ -382,9 +382,7 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* curr
                 if (!holder)
                     holder = target->GetSpellAuraHolder(28332);
                 if (holder)
-                {
-                    damage += target->CalculateSpellDamage(target, holder->GetSpellProto(), EFFECT_INDEX_1);
-                }
+                    damage += target->CalculateSpellEffectValue(target, holder->GetSpellProto(), EFFECT_INDEX_1);
                 break;
             }
             case 8516: // Windfury Totem
@@ -3604,7 +3602,7 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
 
                             SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
                             if (spellInfo && spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && spellInfo->SpellIconID == 139)
-                                Rage_val += target->CalculateSpellDamage(target, spellInfo, EFFECT_INDEX_0) * 10;
+                                Rage_val += target->CalculateSpellEffectValue(target, spellInfo, EFFECT_INDEX_0) * 10;
                         }
                     }
 
@@ -6949,7 +6947,7 @@ void Aura::PeriodicTick()
                 {
                     uint32 percent =
                         GetEffIndex() < EFFECT_INDEX_2 && spellProto->Effect[GetEffIndex()] == SPELL_EFFECT_DUMMY ?
-                        caster->CalculateSpellDamage(target, spellProto, SpellEffectIndex(GetEffIndex() + 1)) :
+                        caster->CalculateSpellEffectValue(target, spellProto, SpellEffectIndex(GetEffIndex() + 1)) :
                         100;
                     if (target->GetHealth() * 100 >= target->GetMaxHealth() * percent)
                     {
@@ -7549,7 +7547,7 @@ void Aura::PeriodicDummyTick()
                 {
                     if (roll_chance_i(5))
                     {
-                        int32 damageValue = target->CalculateSpellDamage(target, spell, EFFECT_INDEX_1);
+                        int32 damageValue = target->CalculateSpellEffectValue(target, spell, EFFECT_INDEX_1);
                         target->CastCustomSpell(nullptr, spell->Id == 6946 ? 6945 : 41356, nullptr, &damageValue, nullptr, TRIGGERED_OLD_TRIGGERED);
                     }
                     return;

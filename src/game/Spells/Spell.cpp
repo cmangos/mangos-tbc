@@ -5950,9 +5950,6 @@ SpellCastResult Spell::CheckRange(bool strict)
         if ((spellRange->Flags & SPELL_RANGE_FLAG_MELEE) == 0 && !strict)
             maxRange += std::min(3.f, maxRange * 0.1f); // 10% but no more than MAX_SPELL_RANGE_TOLERANCE
 
-    if (!target && m_spellInfo->Targets & (TARGET_FLAG_LOCKED | TARGET_FLAG_GAMEOBJECT))
-        target = m_targets.getGOTarget();
-
     if (target && target != m_caster)
     {
         // distance from target in checks
@@ -5965,6 +5962,10 @@ SpellCastResult Spell::CheckRange(bool strict)
                 (m_spellInfo->FacingCasterFlags & SPELL_FACING_FLAG_INFRONT) && !m_caster->HasInArc(target))
             return SPELL_FAILED_UNIT_NOT_INFRONT;
     }
+
+    if (GameObject* goTarget = m_targets.getGOTarget())
+        if (!goTarget->IsAtInteractDistance(dynamic_cast<Player*>(m_caster), maxRange)) // only player casts these
+            return SPELL_FAILED_OUT_OF_RANGE;
 
     if (m_targets.m_targetMask == TARGET_FLAG_DEST_LOCATION)
     {
@@ -7344,7 +7345,7 @@ void Spell::ProcSpellAuraTriggers()
                 const uint32 procid = auraSpellInfo->EffectTriggerSpell[auraSpellIdx];
                 int32 auraBasePoints = targetTrigger->GetBasePoints();
                 // Calculate chance at that moment (can be depend for example from combo points)
-                int32 chance = m_caster->CalculateSpellDamage(target, auraSpellInfo, auraSpellIdx, &auraBasePoints);
+                int32 chance = m_caster->CalculateSpellEffectValue(target, auraSpellInfo, auraSpellIdx, &auraBasePoints);
                 if (roll_chance_i(chance))
                     m_caster->CastSpell(target, procid, TRIGGERED_OLD_TRIGGERED, nullptr, targetTrigger);
             }
@@ -7637,8 +7638,8 @@ void Spell::OnSuccessfulSpellStart()
         case 25234:
         case 25236:
         {
-            int32 basePoints0 = m_caster->CalculateSpellDamage(m_targets.getUnitTarget(), m_spellInfo, SpellEffectIndex(0)) + int32(m_caster->GetPower(POWER_RAGE) * m_spellInfo->DmgMultiplier[0]);
-            SpellCastResult result = m_caster->CastCustomSpell(m_targets.getUnitTarget(), 20647, &basePoints0, nullptr, nullptr, TRIGGERED_NONE, nullptr);
+            int32 basePoints0 = m_caster->CalculateSpellEffectValue(m_targets.getUnitTarget(), m_spellInfo, SpellEffectIndex(0)) + int32((m_caster->GetPower(POWER_RAGE) - m_powerCost) * m_spellInfo->DmgMultiplier[0]);
+            SpellCastResult result = m_caster->CastCustomSpell(m_targets.getUnitTarget(), 20647, &basePoints0, nullptr, nullptr, TRIGGERED_NONE);
             m_powerCost = 0;
             break;
         }

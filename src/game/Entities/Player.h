@@ -2176,6 +2176,8 @@ class Player : public Unit
         void SetTitle(uint32 titleId, bool lost = false);
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
+        void SendMessageToPlayer(std::string const& const message) const; // debugging purposes
+
 #ifdef BUILD_PLAYERBOT
         // A Player can either have a playerbotMgr (to manage its bots), or have playerbotAI (if it is a bot), or
         // neither. Code that enables bots must create the playerbotMgr and set it using SetPlayerbotMgr.

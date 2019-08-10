@@ -764,7 +764,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
         m_bRunning = false;
     }
 
-    void Aggro(Unit* pWho) override {}
+    void Aggro(Unit* /*pWho*/) override {}
 
     void MoveInLineOfSight(Unit* pWho) override
     {
@@ -817,7 +817,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
         }
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void UpdateAI(const uint32 /*uiDiff*/) override
     {
         return;
     }

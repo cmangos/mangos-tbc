@@ -263,6 +263,7 @@ INSERT INTO scripted_areatrigger VALUES
 (522,'at_twiggy_flathead');
 UPDATE creature_template SET ScriptName='npc_wizzlecranks_shredder' WHERE entry=3439;
 UPDATE creature_template SET ScriptName='npc_gallywix' WHERE entry=7288;
+UPDATE creature_template SET ScriptName = 'npc_regthar_deathgate' WHERE entry = 3389;
 
 /* BLACK TEMPLE */
 UPDATE instance_template SET ScriptName='instance_black_temple' WHERE map=564;
@@ -1684,7 +1685,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1000410,'Here they come! Defend yourself!',0,0,1,5,'kanati SAY_KAN_START'),
 
-(-1000411,'Come, $N. See what the Nightmare brings...',15625,4,0,0,'Twilight Corrupter SAY_TWILIGHT_CORRUPTER_SPAWN'),
+(-1000411,'Come, $N. See what the Nightmare brings...',0,4,0,0,'Twilight Corrupter SAY_TWILIGHT_CORRUPTER_SPAWN'),
 
 -- REUSE -1000412 TO -1000414
 (-1000415,'%s, too injured, gives up the chase.',0,2,0,0,'hendel EMOTE_SURRENDER'),
@@ -2467,7 +2468,11 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1001311,'I... I am undone... The new top orc is $n!',0,1,0,1,'Captain Skyshatter - SAY_END_SKYSHATTER'),
 
 -- -1 010 000 Classic texts
-(-1010000,'The beast returns from whence it came. The wrath of Neptulon has subsided.',0,3,0,0,'Maws EMOTE_MAWS_KILL');
+(-1010000,'The beast returns from whence it came. The wrath of Neptulon has subsided.',0,3,0,0,'Maws EMOTE_MAWS_KILL'),
+
+(-1010001,'Beware, $N! Look to the west!',0,0,0,0,'regthar SAY_START_REGTHAR'),
+(-1010002,'A defender has fallen!',0,0,0,0,'regthar SAY_DEFENDER'),
+(-1010003,'The Kolkar invaders are retreating!',0,1,0,0,'regthar YELL_RETREAT');
 
 -- -1 015 000 TBC texts
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
@@ -3147,14 +3152,15 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 -- -1 531 000 TEMPLE OF AHN'QIRAJ
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES
-(-1531000,'Are you so eager to die? I would be happy to accomodate you.',8615,1,0,0,'skeram SAY_AGGRO1'),
-(-1531001,'Cower mortals! The age of darkness is at hand.',8616,1,0,0,'skeram SAY_AGGRO2'),
-(-1531002,'Tremble! The end is upon you.',8621,1,0,0,'skeram SAY_AGGRO3'),
-(-1531003,'Let your death serve as an example!',8617,1,0,0,'skeram SAY_SLAY1'),
-(-1531004,'Spineless wretches! You will drown in rivers of blood!',8619,1,0,0,'skeram SAY_SLAY2'),
-(-1531005,'The screams of the dying will fill the air. A symphony of terror is about to begin!',8620,1,0,0,'skeram SAY_SLAY3'),
-(-1531006,'Prepare for the return of the ancient ones!',8618,1,0,0,'skeram SAY_SPLIT'),
-(-1531007,'You only delay... the inevitable.',8622,1,0,0,'skeram SAY_DEATH'),
+(-1531000,'Are you so eager to die? I would be happy to accomodate you.',8615,1,0,0,'skeram SAY_AGGRO'),
+(-1531001,'Let your death serve as an example!',8617,1,0,0,'skeram SAY_SLAY'),
+(-1531002,'You only delay... the inevitable.',8622,1,0,0,'skeram SAY_DEATH'),
+
+(-1531003,'REUSE_ME',0,0,0,0,'REUSE'),
+(-1531004,'REUSE_ME',0,0,0,0,'REUSE'),
+(-1531005,'REUSE_ME',0,0,0,0,'REUSE'),
+(-1531006,'REUSE_ME',0,0,0,0,'REUSE'),
+(-1531007,'REUSE_ME',0,0,0,0,'REUSE'),
 
 (-1531008,'You will be judged for defiling these sacred grounds! The laws of the Ancients will not be challenged! Trespassers will be annihilated!',8646,1,0,0,'sartura SAY_AGGRO'),
 (-1531009,'I sentence you to death!',8647,1,0,0,'sartura SAY_SLAY'),
@@ -3162,13 +3168,13 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 
 (-1531011,'%s is weakened!',0,2,0,0,'cthun EMOTE_WEAKENED'),
 
-(-1531012,'The massive floating eyeball in the center of the chamber turns its gaze upon you. You stand before a god.',0,2,0,0,'eye cthun EMOTE_INTRO'),
-(-1531013,'Only flesh and bone. Mortals are such easy prey...',0,1,0,0,'veklor SAY_INTRO_1'),
-(-1531014,'Where are your manners, brother. Let us properly welcome our guests.',0,1,0,0,'veknilash SAY_INTRO_2'),
+(-1531012,'The massive floating eyeball in the center of the chamber turns its gaze upon you. You stand before a god.',0,7,0,0,'eye cthun EMOTE_INTRO'),
+(-1531013,'Only flesh and bone. Mortals are such easy prey...',0,1,0,1,'veklor SAY_INTRO_1'),
+(-1531014,'Where are your manners, brother. Let us properly welcome our guests.',0,1,0,5,'veknilash SAY_INTRO_2'),
 (-1531015,'There will be pain...',0,1,0,0,'veklor SAY_INTRO_3'),
-(-1531016,'Oh so much pain...',0,1,0,0,'veknilash SAY_INTRO_4'),
-(-1531017,'Come, little ones.',0,1,0,0,'veklor SAY_INTRO_5'),
-(-1531018,'The feast of souls begins now...',0,1,0,0,'veknilash SAY_INTRO_6'),
+(-1531016,'Oh so much pain...',0,1,0,5,'veknilash SAY_INTRO_4'),
+(-1531017,'Come, little ones.',0,1,0,15,'veklor SAY_INTRO_5'),
+(-1531018,'The feast of souls begins now...',0,1,0,15,'veknilash SAY_INTRO_6'),
 
 (-1531019,'It\'s too late to turn away.',8623,1,0,0,'veklor SAY_AGGRO_1'),
 (-1531020,'Prepare to embrace oblivion!',8626,1,0,0,'veklor SAY_AGGRO_2'),
@@ -3200,7 +3206,9 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1531043,'%s is frozen solid!',0,2,0,0,'viscidus EMOTE_FROZEN'),
 (-1531044,'%s begins to crack!',0,2,0,0,'viscidus EMOTE_CRACK'),
 (-1531045,'%s looks ready to shatter!',0,2,0,0,'viscidus EMOTE_SHATTER'),
-(-1531046,'%s explodes!',0,2,0,0,'viscidus EMOTE_EXPLODE');
+(-1531046,'%s explodes!',0,2,0,0,'viscidus EMOTE_EXPLODE'),
+
+(-1531047,'%s shares his powers with his brethren.',0,2,0,0,'anubisath sentinelle EMOTE_SHARE');
 
 -- -1 532 000 KARAZHAN
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,comment) VALUES

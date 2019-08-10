@@ -592,11 +592,50 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         {
             switch (m_spellInfo->Id)
             {
+                case 794:                                   // Initialize Images (Prophet Skeram in AQ40)
+                {
+                    if (unitTarget)
+                    {
+                        // Cast Initialize Image for each image target with orignal boss HP percent as basepoints
+                        int32 healthPercent = int32(m_caster->GetHealthPercent());
+                        unitTarget->CastCustomSpell(unitTarget, 3730, &healthPercent, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr);
+                        unitTarget->CastSpell(unitTarget, 26591, TRIGGERED_OLD_TRIGGERED);   // Teleport Image
+                    }
+                    return;
+                }
+                case 2400:                                  // Transfer Powers
+                {
+                    if (unitTarget)
+                        m_caster->CastSpell(unitTarget, 26565, TRIGGERED_OLD_TRIGGERED);   // Heal Brethren
+
+                    return;
+                }
                 case 3360:                                  // Curse of the Eye
                 {
                     if (unitTarget)
                         m_caster->CastSpell(unitTarget, ((unitTarget->getGender() == GENDER_MALE) ? 10651 : 10653), TRIGGERED_OLD_TRIGGERED);
 
+                    return;
+                }
+                case 3730:                                  // Initialize Image (Prophet Skeram in AQ40)
+                {
+                    if (unitTarget)
+                    {
+                        float healthPct = m_currentBasePoints[EFFECT_INDEX_0];
+                        float maxHealthPct = 0.0f;
+
+                        // The max health depends on the split phase. It's percent * original boss health
+                        if (healthPct < 25.0f)
+                            maxHealthPct = 0.50f;
+                        else if (healthPct < 50.0f)
+                            maxHealthPct = 0.20f;
+                        else
+                            maxHealthPct = 0.10f;
+
+                        // Set the same health percent as the original boss
+                        unitTarget->SetMaxHealth(unitTarget->GetMaxHealth() * maxHealthPct);
+                        unitTarget->SetHealthPercent(healthPct);
+                    }
                     return;
                 }
                 case 7671:                                  // Transformation (human<->worgen)
@@ -6500,6 +6539,31 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     unitTarget->HandleEmote(EMOTE_ONESHOT_CHEER);
+                    return;
+                }
+                case 26084:                                 // Whirlwind
+                case 26686:                                 // Whirlwind
+                {
+                   if (!m_caster->CanHaveThreatList() || m_caster->getThreatManager().isThreatListEmpty())
+                        return;
+
+                    if (!m_triggeredByAuraSpell)
+                        return;
+
+                    SpellAuraHolder* holder = m_caster->GetSpellAuraHolder(m_triggeredByAuraSpell->Id);
+                    if (holder->m_auras[EFFECT_INDEX_0]->GetAuraTicks() != holder->m_auras[EFFECT_INDEX_0]->GetAuraMaxTicks())
+                    {
+                        if (m_spellInfo->Id == 26686)
+                            if (urand(0, 2))
+                                return;
+
+                        m_caster->getThreatManager().modifyAllThreatPercent(-100);
+                        if (Unit* target = static_cast<Creature*>(m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
+                            m_caster->getThreatManager().addThreatDirectly(target, 100000);
+                    }
+                    else
+                        m_caster->getThreatManager().modifyAllThreatPercent(-100);
+
                     return;
                 }
                 case 26137:                                 // Rotate Trigger

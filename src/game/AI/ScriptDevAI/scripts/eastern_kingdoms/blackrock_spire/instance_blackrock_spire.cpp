@@ -97,11 +97,11 @@ static const DialogueEntry aStadiumDialogue[] =
 static const float rookeryEventSpawnPos[3] = {43.7685f, -259.82f, 91.6483f};
 
 instance_blackrock_spire::instance_blackrock_spire(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aStadiumDialogue),
+    m_bBeastIntroDone(false),
+    m_bBeastOutOfLair(false),
     m_bUpperDoorOpened(false),
     m_uiDragonspineDoorTimer(0),
     m_uiDragonspineGoCount(0),
-    m_bBeastIntroDone(false),
-    m_bBeastOutOfLair(false),
     m_uiFlamewreathEventTimer(0),
     m_uiFlamewreathWaveCount(0),
     m_uiStadiumEventTimer(0),

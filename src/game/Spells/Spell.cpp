@@ -5530,14 +5530,9 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_AURA_PERIODIC_MANA_LEECH:
             {
-                if (!expectedTarget)
-                    return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
-
-                if (m_caster->GetTypeId() != TYPEID_PLAYER || m_CastItem)
-                    break;
-
-                if (expectedTarget->GetPowerType() != POWER_MANA)
-                    return SPELL_FAILED_BAD_TARGETS;
+                if (expectedTarget)
+                    if (expectedTarget->GetPowerType() != POWER_MANA)
+                        return SPELL_FAILED_BAD_TARGETS;
 
                 break;
             }
@@ -7482,6 +7477,34 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)
 {
     switch (m_spellInfo->Id)
     {
+        case 14297: // Shadow Storm (exclude targets below 25 yards and above 40 yards. Max value is handled by spell effect radius)
+        case 26546:
+        case 26555:
+        {
+            float x, y, z;
+            m_caster->GetPosition(x, y, z);
+            uint8 eligibleTargets = 0;
+            for (auto& unit : filterUnitList)
+            {
+                float dist = unit->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH);
+                if (dist > 25.0f)
+                    ++eligibleTargets;
+            }
+
+            filterUnitList.sort(TargetDistanceOrderFarAway(m_caster));
+            filterUnitList.resize(eligibleTargets);
+            return;
+        }
+        case 26052: // Poison Bolt Volley (spell hits only the 15 closest targets)
+        case 26180: // Wyvern Sting (spell hits only the 10 closest targets)
+        {
+            if (filterUnitList.size() > m_affectedTargetCount)
+            {
+                filterUnitList.sort(TargetDistanceOrderNear(m_caster));
+                filterUnitList.resize(m_affectedTargetCount);
+            }
+            return;
+        }
         case 30284: // Change Facing - Chess event - QOL to pick deterministically closest target
         case 37144: // Move - Chess event - same QOL change
         case 37146:
@@ -7523,10 +7546,10 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)
         }
         case 42005: // Bloodboil (spell hits only the 5 furthest away targets)
         {
-            if (filterUnitList.size() > 5)
+            if (filterUnitList.size() > m_affectedTargetCount)
             {
                 filterUnitList.sort(TargetDistanceOrderFarAway(m_caster));
-                filterUnitList.resize(5);
+                filterUnitList.resize(m_affectedTargetCount);
             }
             return;
         }

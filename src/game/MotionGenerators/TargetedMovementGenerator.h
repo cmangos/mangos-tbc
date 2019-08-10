@@ -45,7 +45,7 @@ class TargetedMovementGeneratorMedium
             i_recheckDistance(0),
             i_offset(offset), i_angle(angle),
             m_speedChanged(false), i_targetReached(false),
-            i_path(nullptr), i_faceTarget(true)
+            i_faceTarget(true), i_path(nullptr)
         {
         }
         ~TargetedMovementGeneratorMedium() { delete i_path; }
@@ -104,8 +104,9 @@ class ChaseMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Chas
     using TargetedMovementGeneratorMedium<Unit, ChaseMovementGenerator>::i_angle;
     public:
         ChaseMovementGenerator(Unit& target, float offset, float angle, bool moveFurther = true, bool walk = false, bool combat = true)
-            : TargetedMovementGeneratorMedium<Unit, ChaseMovementGenerator >(target, offset, angle), m_moveFurther(moveFurther), m_walk(walk), m_combat(combat), m_currentMode(CHASE_MODE_NORMAL),
-              m_closenessAndFanningTimer(0), m_closenessExpired(false), m_reachable(true) {}
+            : TargetedMovementGeneratorMedium<Unit, ChaseMovementGenerator >(target, offset, angle),
+              m_moveFurther(moveFurther), m_walk(walk), m_combat(combat), m_reachable(true),
+              m_closenessAndFanningTimer(0), m_closenessExpired(false), m_currentMode(CHASE_MODE_NORMAL) {}
         ~ChaseMovementGenerator() {}
 
         MovementGeneratorType GetMovementGeneratorType() const override { return CHASE_MOTION_TYPE; }

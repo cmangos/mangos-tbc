@@ -2282,7 +2282,7 @@ class Unit : public WorldObject
         {
             m_lastManaUseTimer = 5000;
         }
-        bool IsUnderLastManaUseEffect() const { return m_lastManaUseTimer != 0; }
+        bool IsUnderLastManaUseEffect() const { return m_lastManaUseTimer != 0 && m_lastManaUseTimer != 5000; }
 
         void SetContestedPvP(Player* attackedPlayer = nullptr);
 

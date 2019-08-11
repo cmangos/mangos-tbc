@@ -1397,8 +1397,8 @@ class Player : public Unit
         void RewardRage(uint32 damage, uint32 weaponSpeedHitFactor, bool attacker);
         void SendPetSkillWipeConfirm() const;
         void RegenerateAll();
-        void Regenerate(Powers power);
-        void RegenerateHealth();
+        void Regenerate(Powers power, uint32 diff);
+        void RegenerateHealth(uint32 diff);
         void setRegenTimer(uint32 time) {m_regenTimer = time;}
         void setWeaponChangeTimer(uint32 time) {m_weaponChangeTimer = time;}
 
@@ -1676,6 +1676,7 @@ class Player : public Unit
         void UpdateSpellCritChance(uint32 school);
         void UpdateExpertise(WeaponAttackType attType);
         void UpdateManaRegen();
+        void UpdateEnergyRegen();
 
         ObjectGuid const& GetLootGuid() const { return m_lootGuid; }
         void SetLootGuid(ObjectGuid const& guid) { m_lootGuid = guid; }
@@ -2533,6 +2534,8 @@ class Player : public Unit
         uint32 m_timeSyncTimer;
         uint32 m_timeSyncClient;
         uint32 m_timeSyncServer;
+
+        float m_energyRegenRate;
 
         std::unordered_map<uint32, TimePoint> m_enteredInstances;
         uint32 m_createdInstanceClearTimer;

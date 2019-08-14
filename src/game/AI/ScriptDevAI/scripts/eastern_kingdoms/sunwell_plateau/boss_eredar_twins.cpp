@@ -184,7 +184,7 @@ struct boss_alythessAI : public ScriptedAI
                 else
                 {
                     // Remove loot flag and cast empower
-                    m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                    m_creature->SetCanLoot(false);
                     DoScriptText(SAY_SACROLASH_EMPOWER, pSacrolash);
                     pSacrolash->InterruptNonMeleeSpells(true);
                     pSacrolash->CastSpell(pSacrolash, DARK_FLAME_AURA_ALYTHESS, TRIGGERED_NONE);
@@ -339,7 +339,7 @@ struct boss_sacrolashAI : public ScriptedAI
                 else
                 {
                     // Remove loot flag and cast empower
-                    m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                    m_creature->SetCanLoot(false);
                     DoScriptText(SAY_ALYTHESS_EMPOWER, pAlythess);
                     pAlythess->InterruptNonMeleeSpells(true);
                     pAlythess->CastSpell(pAlythess, DARK_FLAME_AURA_SCAROLASH, TRIGGERED_NONE);

@@ -173,11 +173,10 @@ struct boss_priestess_delrissaAI : public ScriptedAI
         if (!m_pInstance)
             return;
 
-        // Remove lootable flag if the lackeys are not killed
         if (m_pInstance->GetData(TYPE_DELRISSA) == SPECIAL)
             m_pInstance->SetData(TYPE_DELRISSA, DONE);
         else
-            m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+            m_creature->SetCanLoot(false);
     }
 
     void UpdateAI(const uint32 uiDiff) override

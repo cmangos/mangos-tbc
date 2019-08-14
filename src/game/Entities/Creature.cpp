@@ -1761,6 +1761,18 @@ void Creature::SetDeathState(DeathState s)
     }
 }
 
+void Creature::SetCanLoot(bool enable)
+{
+    if (enable)
+    {
+        m_canloot = true;
+        SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+        ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);
+    }
+    else
+        m_canloot = false;
+}
+
 void Creature::Respawn()
 {
     RemoveCorpse();

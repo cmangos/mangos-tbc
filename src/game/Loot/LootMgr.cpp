@@ -1016,6 +1016,10 @@ bool Loot::CanLoot(Player const* player)
     // is already looted?
     if (!lootStatus)
         return false;
+    
+    // creature set to not lootable
+    if(!((Creature*)m_lootTarget)->GetCanLoot())
+        return false;
 
     // all player that have right too loot have right to loot dropped money
     if ((lootStatus & LOOT_STATUS_CONTAIN_GOLD) != 0 || (lootStatus & LOOT_STATUS_CONTAIN_FFA) != 0)

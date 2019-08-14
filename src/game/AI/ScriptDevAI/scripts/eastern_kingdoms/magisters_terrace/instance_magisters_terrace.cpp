@@ -117,7 +117,7 @@ void instance_magisters_terrace::OnCreatureDeath(Creature* pCreature)
                 else if (GetData(TYPE_DELRISSA) == SPECIAL)
                 {
                     SetData(TYPE_DELRISSA, DONE);
-                    pDelrissa->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+                    pDelrissa->SetCanLoot(true);
                 }
             }
             break;

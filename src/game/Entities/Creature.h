@@ -711,6 +711,8 @@ class Creature : public Unit
         const char* GetNameForLocaleIdx(int32 loc_idx) const override;
 
         void SetDeathState(DeathState s) override;          // overwrite virtual Unit::SetDeathState
+        
+        void SetCanLoot(bool enable);
 
         bool LoadFromDB(uint32 guidlow, Map* map);
         virtual void SaveToDB();
@@ -858,6 +860,7 @@ class Creature : public Unit
         void SetNoLoot(bool state) { m_noLoot = state; }
         bool IsNoReputation() { return m_noReputation; }
         void SetNoReputation(bool state) { m_noReputation = state; }
+        bool GetCanLoot() const { return m_canloot; }
 
     protected:
         bool MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* pSpellInfo, uint32 selectFlags, SelectAttackingTargetParams params) const;
@@ -914,6 +917,7 @@ class Creature : public Unit
         bool m_noXP;
         bool m_noLoot;
         bool m_noReputation;
+        bool m_canloot;
 
         // Script logic
         bool m_ignoreRangedTargets;                         // Ignores ranged targets when picking someone to attack

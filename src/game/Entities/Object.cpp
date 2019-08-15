@@ -1312,6 +1312,13 @@ bool WorldObject::IsWithinLOS(float ox, float oy, float oz, bool ignoreM2Model) 
     return GetMap()->IsInLineOfSight(x, y, z + GetCollisionHeight(), ox, oy, oz, ignoreM2Model);
 }
 
+bool WorldObject::IsWithinLOSForMe(float ox, float oy, float oz, float collisionHeight, bool ignoreM2Model) const
+{
+    float x, y, z;
+    GetPosition(x, y, z);
+    return GetMap()->IsInLineOfSight(x, y, z + collisionHeight, ox, oy, oz + collisionHeight, ignoreM2Model);
+}
+
 bool WorldObject::GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D /* = true */, DistanceCalculation distcalc /* = NONE */) const
 {
     float distsq1 = GetDistance(obj1, is3D, distcalc);
@@ -1994,6 +2001,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
     //}
 
     // maybe can just place in primary position
+    float collisionHeight = GetCollisionHeight();
     if (selector.CheckOriginalAngle())
     {
         if (searcher)
@@ -2001,7 +2009,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (fabs(init_z - z) < dist && IsWithinLOSForMe(x, y, z, collisionHeight))
             return;
 
         first_los_conflict = true;                          // first point have LOS problems
@@ -2023,7 +2031,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (fabs(init_z - z) < dist && IsWithinLOSForMe(x, y, z, collisionHeight))
             return;
     }
 
@@ -2055,7 +2063,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (fabs(init_z - z) < dist && IsWithinLOSForMe(x, y, z, collisionHeight))
             return;
     }
 

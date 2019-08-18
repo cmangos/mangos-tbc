@@ -1547,6 +1547,19 @@ void Unit::CalculateSpellDamage(SpellNonMeleeDamage* spellDamageInfo, int32 dama
 
     if (!pVictim)
         return;
+    
+    if (spellInfo->SpellIconID == 2293) //Seal of blood
+    {
+        bool crit = RollSpellCritOutcome(pVictim, damageSchoolMask, spellInfo);
+        // if crit add critical bonus
+        if (crit)
+        {
+            spellDamageInfo->HitInfo |= MELEE_HIT_CRIT;
+            damage = CalculateCritAmount(pVictim, damage, spellInfo);
+        }
+        spellDamageInfo->damage = damage;
+        return;
+    }
 
     if (spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
     {

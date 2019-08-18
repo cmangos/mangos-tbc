@@ -3750,7 +3750,7 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
             target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID, 16314);
 
         // polymorph case
-        if (Real && target->GetTypeId() == TYPEID_PLAYER && target->IsPolymorphed())
+        if (Real && target->GetTypeId() == TYPEID_PLAYER && GetSpellProto()->Mechanic == 17)
         {
             // for players, start regeneration after 1s (in polymorph fast regeneration case)
             // only if caster is Player (after patch 2.4.2)

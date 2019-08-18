@@ -7682,7 +7682,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
         AuraList const& mOverrideClassScript = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
         for (auto i : mOverrideClassScript)
         {
-            if (!(i->GetSpellProto() || i->GetSpellProto()->SpellIconID || spellProto->SpellFamilyName || i->GetMiscValue()))
+            if (!(i->GetSpellProto() && i->GetSpellProto()->SpellIconID && spellProto->SpellFamilyName && i->GetMiscValue()))
                 continue;
             if (!(i->GetSpellProto()->SpellIconID == 216 && i->GetMiscValue() > 6400 && i->GetMiscValue() < 6600 && spellProto->SpellFamilyName == 8))
                 continue;

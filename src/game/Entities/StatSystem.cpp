@@ -655,8 +655,9 @@ void Player::UpdateExpertise(WeaponAttackType attack)
 
 void Player::UpdateManaRegen()
 {
-    // need to award mana based on previous rate
-    RegenerateAll();
+    // need to award mana based on previous rate - Patch 2.2
+    if (GetHealth() > 0) // on death we must never do this
+        RegenerateAll();
 
     float Intellect = GetStat(STAT_INTELLECT);
     // Mana regen from spirit and intellect
@@ -686,8 +687,9 @@ void Player::UpdateManaRegen()
 
 void Player::UpdateEnergyRegen()
 {
-    // need to award energy based on previous rate
-    RegenerateAll();
+    // need to award mana based on previous rate - Patch 2.2
+    if (GetHealth() > 0) // on death we must never do this
+        RegenerateAll();
 
     m_energyRegenRate = GetTotalAuraMultiplierByMiscValue(SPELL_AURA_MOD_POWER_REGEN_PERCENT, POWER_ENERGY);
 }

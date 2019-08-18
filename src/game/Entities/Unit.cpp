@@ -7682,28 +7682,29 @@ uint32 Unit::MeleeDamageBonusDone(Unit* pVictim, uint32 pdamage, WeaponAttackTyp
         AuraList const& mOverrideClassScript = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
         for (auto i : mOverrideClassScript)
         {
-            if (!(i->isAffectedOnSpell(spellProto)))
+            if (!(i->GetSpellProto() || i->GetSpellProto()->SpellIconID || spellProto->SpellFamilyName || i->GetMiscValue()))
+                continue;
+            if (!(i->GetSpellProto()->SpellIconID == 216 && i->GetMiscValue() > 6400 && i->GetMiscValue() < 6600 && spellProto->SpellFamilyName == 8))
                 continue;
             switch (i->GetMiscValue())
             {
                 // Dirty Deeds
-                case 6427:
-                case 6428:
-                    if (pVictim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
-                    {
-                        Aura* eff0 = i->GetHolder()->m_auras[EFFECT_INDEX_0];
-                        if (!eff0)
-                        {
-                            sLog.outError("Spell structure of DD (%u) changed.", i->GetId());
-                            continue;
-                        }
-
-                        // effect 0 have expected value but in negative state
-                        DonePercent *= (-eff0->GetModifier()->m_amount + 100.0f) / 100.0f;
-                    }
-                    break;
+            case 6427:
+            case 6580:
+                if (pVictim->GetHealthPercent() < 35)
+                {
+                    DonePercent *= 1.5f;
+                }
+                break;
+            case 6428:
+            case 6579:
+                if (pVictim->GetHealthPercent() < 35)
+				{                 
+                    DonePercent *= 1.10f;
+                }
+                break;
             }
-        }
+		}
     }
 
     // final calculation

@@ -8404,6 +8404,14 @@ float Unit::GetVisibleDistance(Unit const* target, bool alert) const
     //-Stealth Mod(positive like Master of Deception) and Stealth Detection(negative like paranoia)
     // based on wowwiki every 5 mod we have 1 more level diff in calculation
     visibleDistance += (int32(target->GetTotalAuraModifier(SPELL_AURA_MOD_STEALTH_DETECT)) - stealthMod) / 5.0f;
+    if(target->HasAura(2836)) //Remove spell Detect Traps stealth detection increase(only applies to traps)
+    {
+      if(Aura* aura = ((Player*)target)->GetAura(2836, EFFECT_INDEX_0))
+      { 
+        float detectmod = (aura->GetModifier()->m_amount) / 5.0f;
+        visibleDistance = visibleDistance - detectmod;
+      }
+    }
     visibleDistance = visibleDistance > MAX_PLAYER_STEALTH_DETECT_RANGE ? MAX_PLAYER_STEALTH_DETECT_RANGE : visibleDistance;
 
     if (visibleDistance < 1.5f)

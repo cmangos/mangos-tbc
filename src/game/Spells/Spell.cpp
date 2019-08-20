@@ -7319,7 +7319,7 @@ void Spell::ProcSpellAuraTriggers()
                 const uint32 procid = auraSpellInfo->EffectTriggerSpell[auraSpellIdx];
                 int32 auraBasePoints = targetTrigger->GetBasePoints();
                 // Calculate chance at that moment (can be depend for example from combo points)
-                int32 chance = m_caster->CalculateSpellEffectValue(target, auraSpellInfo, auraSpellIdx, m_damageInfo, &auraBasePoints);
+                int32 chance = m_caster->CalculateSpellDamage(target, auraSpellInfo, auraSpellIdx, &auraBasePoints);
                 if (roll_chance_i(chance))
                     m_caster->CastSpell(target, procid, TRIGGERED_OLD_TRIGGERED, nullptr, targetTrigger);
             }

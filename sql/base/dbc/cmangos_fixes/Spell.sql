@@ -1582,6 +1582,9 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- Flame Wave 19381,22228 dont enter combat and move in a straight line
 UPDATE `spell_template` SET `AttributesEx3`=AttributesEx3|0x00020000 WHERE `Id` IN (33802,38610); -- SPELL_ATTR_EX3_NO_INITIAL_AGGRO
 
+-- Rallying Cry of the Dragonslayer - cant be acquired above 63 - patch 2.1
+UPDATE spell_template SET MaxTargetLevel=63 WHERE Id IN(22888);
+
 -- MgT Kaelthas phoenix egg summoning spell - made by hand from TK version
 INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx`,`DurationIndex`,`Effect1`,`EffectDieSides1`,`EffectBaseDice1`,`EffectImplicitTargetA1`,`EffectMiscValue1`,`EffectMiscValueB1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`DmgMultiplier2`,`IsServerSide`) VALUES
 (44195,256,268435456,21,28,1,1,18,24675,64,1,'Summon Phoenix Egg',1,1,2);

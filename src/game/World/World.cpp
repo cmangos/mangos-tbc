@@ -2192,6 +2192,7 @@ void World::ResetWeeklyQuests()
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextWeeklyQuestResetTime = '" UI64FMTD "'", uint64(m_NextWeeklyQuestReset));
 
     GenerateEventGroupEvents(false, true, true); // generate weeklies and save to DB
+    sGameEventMgr.WeeklyEventTimerRecalculation();
 }
 
 void World::ResetMonthlyQuests()

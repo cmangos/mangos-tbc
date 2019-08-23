@@ -35,16 +35,14 @@ int main(int argc, char* argv[])
 
     std::cout << "using " << src << " as source directory and writing output to " << dest << std::endl;
 
-    VMAP::TileAssembler* ta = new VMAP::TileAssembler(src, dest);
+    VMAP::TileAssembler tileAssembler(src, dest);
 
-    if (!ta->convertWorld2())
+    if (!tileAssembler.convertWorld2())
     {
         std::cout << "exit with errors" << std::endl;
-        delete ta;
         return 1;
     }
 
-    delete ta;
     std::cout << "Ok, all done" << std::endl;
     return 0;
 }

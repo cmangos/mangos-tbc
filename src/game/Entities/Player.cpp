@@ -1059,6 +1059,8 @@ void Player::SetDrunkValue(uint16 newDrunkenValue, uint32 itemId)
     else
         SetInvisibilityDetectMask(6, false);
 
+    SetInvisibilityValue(6, m_drunk);
+
     if (newDrunkenState == oldDrunkenState)
         return;
 

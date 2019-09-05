@@ -3165,7 +3165,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         corpse->GetPosition(x, y, z);
                     else
                         unitTarget->GetPosition(x, y, z);
-                    
+
                     DoScriptText(-1015072, m_caster, unitTarget);
                     m_caster->CastSpell(x, y, z, 52605, TRIGGERED_OLD_TRIGGERED); // should also send start
                     return;
@@ -4519,7 +4519,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 {
     switch (m_spellInfo->Id)
     {
-        case 44322: // Hacky fix for summon spell in Vexallus fight (MGT) 
+        case 44322: // Hacky fix for summon spell in Vexallus fight (MGT)
         case 46154: // need more info on how to handle this
         case 46159:
             break;
@@ -6800,6 +6800,10 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
+                    // Return if not player, pet nor Zombie Chow NPC
+                    if (unitTarget->GetTypeId() == TYPEID_UNIT && !unitTarget->IsControlledByPlayer() && unitTarget->GetEntry() != 16360)
+                        return;
+
                     int32 damage = unitTarget->GetHealth() - unitTarget->GetMaxHealth() * 0.05f;
                     if (damage > 0)
                         m_caster->CastCustomSpell(unitTarget, 28375, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
@@ -7554,7 +7558,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         case 1099: guardEntry = 8147;   break;      // Camp Mojache
                         case 1116: guardEntry = 7939;   break;      // Feathermoon Stronghold
                         case 1497: guardEntry = 5624;   break;      // Undercity
-                        case 1519: guardEntry = 68;     break;      // Stormwind City 
+                        case 1519: guardEntry = 68;     break;      // Stormwind City
                         case 1537: guardEntry = 5595;   break;      // Ironforge
                         case 1637: guardEntry = 3296;   break;      // Orgrimmar
                         case 1638: guardEntry = 3084;   break;      // Thunder Bluff
@@ -7577,7 +7581,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     m_caster->GetRandomPoint(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), 30.0f, pointX, pointY, pointZ, 20.0f);
 
-                
+
                     while (counter < 100)
                     {
                         foundPosition = m_caster->GetMap()->GetReachableRandomPosition(m_caster, pointX, pointY, pointZ, 20.0f);

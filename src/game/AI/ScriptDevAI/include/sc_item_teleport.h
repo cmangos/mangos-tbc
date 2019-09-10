@@ -20,7 +20,7 @@ namespace Teleport
 	{
 		SHOW_SUB_MENU   = 0,
 		TELEPORT        = 1,
-		AH              = 2,
+		STORE           = 2,
 		BANK            = 3,
 		ACTIVATE_FLIGHT = 4
 	};

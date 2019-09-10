@@ -16,8 +16,7 @@ using namespace Teleport;
 
 void AddFilteredGossipMenuForPlayer(uint32 menu_id, Player* pPlayer, ObjectGuid guid, TELE_ORDER order)
 {
-	size_t length = map_count[menu_id];
-	for (size_t i = 0; i < length; ++i)
+	for (size_t i = 0; i < map_item[menu_id].size(); ++i)
 	{
 		auto item = map_item[menu_id][i];
 		if (order != item.camp_order) continue;
@@ -62,9 +61,28 @@ void TeleportTo(Player* const player, const uint16& map,
 	player->TeleportTo(map, X, Y, Z, orient);
 }
 
+bool FindActionItem(uint32 menu_id, uint32 action, TELE_ITEM& item)
+{
+	for (size_t i = 0; i < map_item[menu_id].size(); ++i)
+	{
+		if (map_item[menu_id][i].action_id == action)
+		{
+			item = map_item[menu_id][i];
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 {
-	auto item = map_item[sender][action];
+	TELE_ITEM item;
+	if (!FindActionItem(sender, action, item))
+	{
+		return false;
+	}
+
 	// TODO: Support more functions
 	switch (item.function)
 	{
@@ -107,9 +125,11 @@ bool GossipSelectItem(Player* pPlayer, Item* pItem, uint32 sender, uint32 action
 
 void AddSC_item_teleport()
 {
+	// Load data from DB
 	BuildTeleportMenuMap();
-    Script *newscript;
 
+	// Register script
+    Script *newscript;
     newscript = new Script;
     newscript->Name="item_teleport";
 	newscript->pItemUse = &GossipItemUse;

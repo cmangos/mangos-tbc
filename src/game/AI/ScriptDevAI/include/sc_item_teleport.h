@@ -51,9 +51,8 @@ namespace Teleport
 	};
 
 	void BuildTeleportMenuMap();
-	extern std::map<uint32, TeleportMenuItem[20]> map_item;
-	extern std::map<uint32, size_t> map_count;
-	extern std::map<uint32, bool> map_order;
+	extern std::unordered_map<uint32, std::vector<TELE_ITEM>> map_item;
+	extern std::unordered_map<uint32, bool> map_order;
 }
 
 #endif

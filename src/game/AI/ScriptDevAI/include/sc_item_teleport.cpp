@@ -12,11 +12,10 @@
 #include "ProgressBar.h"
 
 // Initializing maps
-std::map<uint32, TELE_ITEM[20]> Teleport::map_item = std::map<uint32, TELE_ITEM[20]>();
-std::map<uint32, size_t> Teleport::map_count = std::map<uint32, size_t>();
-std::map<uint32, bool> Teleport::map_order = std::map<uint32, bool>();
+std::unordered_map<uint32, std::vector<TELE_ITEM>> Teleport::map_item;
+std::unordered_map<uint32, bool> Teleport::map_order;
 
-TELE_ITEM* LoadTeleportTemplate(size_t& length)
+std::vector<TELE_ITEM> LoadTeleportTemplate()
 {
 	// Load teleport menu items from database
 	auto qr = WorldDatabase.PQuery(
@@ -25,53 +24,45 @@ TELE_ITEM* LoadTeleportTemplate(size_t& length)
 	" `level_required`, `permission_required`, `trigger_menu`, `camp_order` "
 	" FROM `pomelo_teleport_template` order by `menu_id`, `action_id` "
 	);
-
+	std::vector<TELE_ITEM> ret;
 	if (qr)
 	{
-		length = qr->GetRowCount();
-		outstring_log("SD2: %u teleport menu items loaded...", length);
-		auto result = new TELE_ITEM[length];
-		auto i = 0;
+		outstring_log("SD2: %u teleport menu items loaded...", qr->GetRowCount());
 		do
 		{
 			Field* field = qr->Fetch();
-			result[i] = TELE_ITEM();
-			result[i].menu_id = field[0].GetUInt32();
-			result[i].action_id = field[1].GetUInt32();
-			result[i].icon = field[2].GetUInt32();
-			result[i].text = field[3].GetCppString();
-			result[i].function = (TELE_FUNC)field[4].GetUInt32();
-			result[i].teleport_map = field[5].GetUInt32();
-			result[i].teleport_x = field[6].GetFloat();
-			result[i].teleport_y = field[7].GetFloat();
-			result[i].teleport_z = field[8].GetFloat();
-			result[i].cost_money = field[9].GetUInt32();
-			result[i].level_required = field[10].GetUInt32();
-			result[i].permission_required = field[11].GetUInt32();
-			result[i].trigger_menu = field[12].GetUInt32();
-			result[i].camp_order = (TELE_ORDER)field[13].GetUInt32();
-			++i;
+			TELE_ITEM item;
+			item.menu_id = field[0].GetUInt32();
+			item.action_id = field[1].GetUInt32();
+			item.icon = field[2].GetUInt32();
+			item.text = field[3].GetCppString();
+			item.function = (TELE_FUNC)field[4].GetUInt32();
+			item.teleport_map = field[5].GetUInt32();
+			item.teleport_x = field[6].GetFloat();
+			item.teleport_y = field[7].GetFloat();
+			item.teleport_z = field[8].GetFloat();
+			item.cost_money = field[9].GetUInt32();
+			item.level_required = field[10].GetUInt32();
+			item.permission_required = field[11].GetUInt32();
+			item.trigger_menu = field[12].GetUInt32();
+			item.camp_order = (TELE_ORDER)field[13].GetUInt32();
+			ret.push_back(item);
 		} while (qr->NextRow());
 
 		delete qr;
-		return result;
 	}
-	else
-	{
-		length = 0;
-		return nullptr;
-	}
+
+	return ret;
 }
 
 void Teleport::BuildTeleportMenuMap()
 {
-	size_t length;
-	auto result = LoadTeleportTemplate(length);
+	auto result = LoadTeleportTemplate();
 
 	// Grouping the menu items
-	for (size_t i = 0; i < length; ++i)
+	for (size_t i = 0; i < result.size(); ++i)
 	{
-		map_item[result[i].menu_id][map_count[result[i].menu_id]++] = result[i];
+		map_item[result[i].menu_id].push_back(result[i]);
 		if (result[i].camp_order > TELE_ORDER::NONE)
 		{
 			map_order[result[i].menu_id] = true;

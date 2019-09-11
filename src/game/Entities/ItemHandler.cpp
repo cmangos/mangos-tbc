@@ -780,7 +780,14 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid) const
                 data << uint32(itemId);
                 data << uint32(pProto->DisplayInfoID);
                 data << uint32(crItem->maxcount <= 0 ? 0xFFFFFFFF : pCreature->GetVendorItemCurrentCount(crItem));
-                data << uint32(price);
+				if (pProto->CustomCurrency > 0)
+				{
+					data << uint32(price * 10000); // Display as gold when costs custom currency
+				}
+				else
+				{
+					data << uint32(price);
+				}
                 data << uint32(pProto->MaxDurability);
                 data << uint32(pProto->BuyCount);
                 data << uint32(crItem->ExtendedCost);

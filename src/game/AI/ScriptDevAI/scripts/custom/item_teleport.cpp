@@ -96,7 +96,13 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	// Delete previous store npc
 	if (npc_container[pObj->GetObjectGuid()])
 	{
-		npc_container[pObj->GetObjectGuid()]->RemoveFromWorld();
+		try 
+		{
+			npc_container[pObj->GetObjectGuid()]->RemoveFromWorld();
+		}
+		catch (...) 
+		{
+		}
 	}
 
 	if (!FindActionItem(sender, action, item))

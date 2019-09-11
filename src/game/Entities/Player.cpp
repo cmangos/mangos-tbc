@@ -18508,7 +18508,7 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 		if (customCurrencyBalance < pProto->BuyPrice)
 		{
 			GetSession()->SendNotification(
-				GetSession()->GetMangosString(80003),
+				GetSession()->GetMangosString(LANG_TELE_STORE_NO_CURRENCY_TO_BUY),
 				pProto->BuyPrice,
 				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
 				customCurrencyBalance,
@@ -18541,7 +18541,7 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 		{
 			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
 			ChatHandler(this).PSendSysMessage(
-				GetSession()->GetMangosString(80004),
+				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
 				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
 				pProto->BuyPrice,
 				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
@@ -18577,7 +18577,7 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 		{
 			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
 			ChatHandler(this).PSendSysMessage(
-				GetSession()->GetMangosString(80004),
+				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
 				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
 				pProto->BuyPrice,
 				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
@@ -21818,4 +21818,9 @@ uint32 Player::GetCurrency(uint32 curid)
 bool Player::ModifyCurrency(uint32 curid, int32 amount)
 {
 	return sCustomCurrencyMgr.ModifyAccountCurrency(GetSession()->GetAccountId(), curid, amount);
+}
+
+std::vector<CustomCurrencyOwnedPair> Player::GetOwnedCustomCurrencies()
+{
+	return sCustomCurrencyMgr.GetOwnedCurrencies(GetSession()->GetAccountId());
 }

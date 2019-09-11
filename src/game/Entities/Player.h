@@ -41,6 +41,7 @@
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 #include "Cinematics/CinematicMgr.h"
+#include "Pomelo/CustomCurrencyMgr.h"
 
 #include<vector>
 
@@ -1403,6 +1404,7 @@ class Player : public Unit
 		/*********************************************************/
 		uint32 GetCurrency(uint32 curid);
 		bool ModifyCurrency(uint32 curid, int32 amount);
+		std::vector<CustomCurrencyOwnedPair> GetOwnedCustomCurrencies();
 
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/

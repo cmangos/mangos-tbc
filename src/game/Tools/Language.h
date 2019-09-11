@@ -1024,6 +1024,12 @@ enum MangosStrings
 
     // Use for not-in-official-sources patches
     //                                    10000-10999
+	LANG_TELE_CANNOT_USE_WHEN_ATTACK    = 80001,
+	LANG_TELE_NO_MONEY_TO_USE           = 80002,
+	LANG_TELE_STORE_NO_CURRENCY_TO_BUY  = 80003,
+	LANG_TELE_STORE_PAID_WITH_CURRENCY  = 80004,
+	LANG_TELE_CURR_NO_RESULT            = 80005,
+	LANG_TELE_CURR_QUERY_RESULT         = 80006
 
     // Use for custom patches             11000-11999
 

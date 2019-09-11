@@ -61,3 +61,28 @@ CustomCurrencyInfo CustomCurrencyMgr::GetCurrencyInfo(uint32 curid)
 {
 	return m_currency[curid];
 }
+
+
+std::vector<CustomCurrencyOwnedPair> CustomCurrencyMgr::GetOwnedCurrencies(uint32 accid)
+{
+	std::vector<CustomCurrencyOwnedPair> ret;
+
+	QueryResult* result = LoginDatabase.PQuery(
+		" SELECT `currency`, `amount` "
+		" FROM `pomelo_currency_owned` "
+		" WHERE `accid` = %u ", accid);
+
+	if (result)
+	{
+		do
+		{
+			Field* field = result->Fetch();
+			CustomCurrencyOwnedPair item;
+			item.curid = field[0].GetUInt32();
+			item.amount = field[1].GetUInt32();
+			ret.push_back(item);
+		} while (result->NextRow());
+	}
+
+	return ret;
+}

@@ -9,6 +9,8 @@
 #include "AI/ScriptDevAI/include/sc_gossip.h"
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "AI/ScriptDevAI/include/sc_item_teleport.h"
+#include "Tools/Language.h"
+#include "Pomelo/CustomCurrencyMgr.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
 
@@ -35,7 +37,7 @@ bool DetectAttacks(Player* pPlayer)
 {
 	if (pPlayer->getAttackers().size() > 0)
 	{
-		pPlayer->GetSession()->SendNotification(80001);
+		pPlayer->GetSession()->SendNotification(LANG_TELE_CANNOT_USE_WHEN_ATTACK);
 		pPlayer->PlayerTalkClass->CloseGossip();
 		return true;
 	}
@@ -115,6 +117,8 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		return true;
 	}
 
+	std::vector<CustomCurrencyOwnedPair> currencies;
+
 	// TODO: Support more functions
 	switch (item.function)
 	{
@@ -126,7 +130,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		{
 			if (pPlayer->GetMoney() < item.cost_money)
 			{
-				pPlayer->GetSession()->SendNotification(80001);
+				pPlayer->GetSession()->SendNotification(LANG_TELE_NO_MONEY_TO_USE);
 				pPlayer->PlayerTalkClass->CloseGossip();
 			}
 			else
@@ -147,6 +151,26 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	case TELE_FUNC::BANK:
 		pPlayer->GetSession()->SendShowBank(pObj->GetObjectGuid());
 		pPlayer->PlayerTalkClass->CloseGossip();
+		break;
+	case TELE_FUNC::QUERY_CURRENCY:
+		currencies = pPlayer->GetOwnedCustomCurrencies();
+		if (!currencies.size())
+		{
+			pPlayer->GetSession()->SendNotification(LANG_TELE_CURR_NO_RESULT);
+		}
+		else
+		{
+			for (size_t i = 0; i < currencies.size(); ++i)
+			{
+				ChatHandler(pPlayer).PSendSysMessage(
+					LANG_TELE_CURR_QUERY_RESULT,
+					sCustomCurrencyMgr.GetCurrencyInfo(currencies[i].curid).name.c_str(),
+					currencies[i].amount);
+			}
+		}
+
+		pPlayer->PlayerTalkClass->CloseGossip();
+		break;
 	default:
 		return false;
 		break;

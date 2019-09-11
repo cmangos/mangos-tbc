@@ -11,6 +11,12 @@ struct CustomCurrencyInfo
 	std::string  name;
 };
 
+struct CustomCurrencyOwnedPair
+{
+	uint32       curid;
+	uint32       amount;
+};
+
 class CustomCurrencyMgr
 {
 public:
@@ -19,6 +25,7 @@ public:
 	uint32 GetAccountCurrency(uint32 accid, uint32 curid);
 	bool ModifyAccountCurrency(uint32 accid, uint32 curid, int32 amount);
 	CustomCurrencyInfo GetCurrencyInfo(uint32 curid);
+	std::vector<CustomCurrencyOwnedPair> GetOwnedCurrencies(uint32 accid);
 };
 
 #define sCustomCurrencyMgr MaNGOS::Singleton<CustomCurrencyMgr>::Instance()

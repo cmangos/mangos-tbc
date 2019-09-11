@@ -22,7 +22,8 @@ namespace Teleport
 		TELEPORT        = 1,
 		STORE           = 2,
 		BANK            = 3,
-		ACTIVATE_FLIGHT = 4
+		ACTIVATE_FLIGHT = 4,
+		QUERY_CURRENCY  = 5
 	};
 
 	enum TeleportMenuItemCampOrder

@@ -18,7 +18,7 @@ std::unordered_map<uint32, bool> Teleport::map_order;
 std::vector<TELE_ITEM> LoadTeleportTemplate()
 {
 	// Load teleport menu items from database
-	auto qr = WorldDatabase.PQuery(
+	QueryResult* qr = WorldDatabase.PQuery(
 	" SELECT `menu_id`, `action_id`, `icon`, `menu_item_text`, `function`, "
 	" `teleport_map`, `teleport_x`, `teleport_y`, `teleport_z`, `cost_money`, "
 	" `level_required`, `permission_required`, `trigger_menu`, `camp_order` "

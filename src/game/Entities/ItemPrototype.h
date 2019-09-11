@@ -564,6 +564,7 @@ struct ItemPrototype
     uint32 MaxMoneyLoot;
     uint32 Duration;
     uint32 ExtraFlags;                                      // see ItemExtraFlags
+	uint32 CustomCurrency;
 
     // helpers
     bool CanChangeEquipStateInCombat() const

@@ -14,6 +14,8 @@
 
 using namespace Teleport;
 
+std::unordered_map<ObjectGuid, Creature*> npc_container;
+
 void AddFilteredGossipMenuForPlayer(uint32 menu_id, Player* pPlayer, ObjectGuid guid, TELE_ORDER order)
 {
 	for (size_t i = 0; i < map_item[menu_id].size(); ++i)
@@ -27,6 +29,18 @@ void AddFilteredGossipMenuForPlayer(uint32 menu_id, Player* pPlayer, ObjectGuid 
 bool IsAlliance(uint8 race)
 {
 	return race == 1 || race == 3 || race == 4 || race == 7 || race == 11;
+}
+
+bool DetectAttacks(Player* pPlayer)
+{
+	if (pPlayer->getAttackers().size() > 0)
+	{
+		pPlayer->GetSession()->SendNotification(80001);
+		pPlayer->PlayerTalkClass->CloseGossip();
+		return true;
+	}
+
+	return false;
 }
 
 void GenerateGossipMenu(uint32 menu_id, Player* pPlayer, ObjectGuid guid)
@@ -78,9 +92,27 @@ bool FindActionItem(uint32 menu_id, uint32 action, TELE_ITEM& item)
 bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 {
 	TELE_ITEM item;
+
+	// Delete previous store npc
+	if (npc_container[pObj->GetObjectGuid()])
+	{
+		try 
+		{
+			npc_container[pObj->GetObjectGuid()]->RemoveFromWorld();
+		}
+		catch (...) 
+		{
+		}
+	}
+
 	if (!FindActionItem(sender, action, item))
 	{
 		return false;
+	}
+
+	if (DetectAttacks(pPlayer))
+	{
+		return true;
 	}
 
 	// TODO: Support more functions
@@ -90,9 +122,31 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		GenerateGossipMenu(item.trigger_menu, pPlayer, pObj->GetObjectGuid());
 		break;
 	case TELE_FUNC::TELEPORT:
+		if (item.cost_money > 0)
+		{
+			if (pPlayer->GetMoney() < item.cost_money)
+			{
+				pPlayer->GetSession()->SendNotification(80001);
+				pPlayer->PlayerTalkClass->CloseGossip();
+			}
+			else
+			{
+				pPlayer->ModifyMoney(-1 * item.cost_money);	
+			}
+		}
 		TeleportTo(pPlayer, item.teleport_map, item.teleport_x, item.teleport_y, item.teleport_z, 0);
 		pPlayer->PlayerTalkClass->CloseGossip();
 		break;
+	case TELE_FUNC::STORE:
+		Creature* pStoreNpc;
+		pStoreNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
+		pStoreNpc->SetObjectScale(0.000001f);
+		pPlayer->GetSession()->SendListInventory(pStoreNpc->GetObjectGuid());
+		npc_container[pObj->GetObjectGuid()] = pStoreNpc;
+		break;
+	case TELE_FUNC::BANK:
+		pPlayer->GetSession()->SendShowBank(pObj->GetObjectGuid());
+		pPlayer->PlayerTalkClass->CloseGossip();
 	default:
 		return false;
 		break;
@@ -109,7 +163,10 @@ bool GossipHello(Player* pPlayer, Creature* pCreature)
 
 bool GossipItemUse(Player* pPlayer, Item* pItem, SpellCastTargets const& targets)
 {
-	GenerateGossipMenu(0, pPlayer, pItem->GetObjectGuid());
+	if (!DetectAttacks(pPlayer))
+	{
+		GenerateGossipMenu(0, pPlayer, pItem->GetObjectGuid());
+	}
 	return true;
 }
 

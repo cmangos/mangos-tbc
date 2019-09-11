@@ -64,6 +64,7 @@
 #include "Loot/LootMgr.h"
 #include "World/WorldStateDefines.h"
 #include "World/WorldState.h"
+#include "Pomelo/CustomCurrencyMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -18499,11 +18500,30 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
     // reputation discount
     price = uint32(floor(price * GetReputationPriceDiscount(pCreature)));
 
-    if (GetMoney() < price)
-    {
-        SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, pCreature, item, 0);
-        return false;
-    }
+	uint32 customCurrencyBalance;
+
+	if (pProto->CustomCurrency > 0) // Custom currency
+	{
+		customCurrencyBalance = GetCurrency(pProto->CustomCurrency);
+		if (customCurrencyBalance < pProto->BuyPrice)
+		{
+			GetSession()->SendNotification(
+				GetSession()->GetMangosString(80003),
+				pProto->BuyPrice,
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+				customCurrencyBalance,
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str());
+			return false;
+		}
+	}
+	else // Common currency
+	{
+		if (GetMoney() < price)
+		{
+			SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, pCreature, item, 0);
+			return false;
+		}
+	}
 
     Item* pItem;
 
@@ -18517,10 +18537,23 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
             return false;
         }
 
-        ModifyMoney(-int32(price));
+		if (pProto->CustomCurrency > 0)
+		{
+			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
+			ChatHandler(this).PSendSysMessage(
+				GetSession()->GetMangosString(80004),
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+				pProto->BuyPrice,
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+				customCurrencyBalance - pProto->BuyPrice);
+		}
+		else
+		{
+			ModifyMoney(-int32(price));
+		}
 
-        if (crItem->ExtendedCost)
-            TakeExtendedCost(crItem->ExtendedCost, count);
+		if (crItem->ExtendedCost)
+			TakeExtendedCost(crItem->ExtendedCost, count);
 
         pItem = StoreNewItem(dest, item, true);
     }
@@ -18540,10 +18573,23 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
             return false;
         }
 
-        ModifyMoney(-int32(price));
+		if (pProto->CustomCurrency > 0) // Cost custom currency if using custom currency
+		{
+			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
+			ChatHandler(this).PSendSysMessage(
+				GetSession()->GetMangosString(80004),
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+				pProto->BuyPrice,
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+				customCurrencyBalance - pProto->BuyPrice);
+		}
+		else // Cost money
+		{
+			ModifyMoney(-int32(price));
+		}
 
-        if (crItem->ExtendedCost)
-            TakeExtendedCost(crItem->ExtendedCost, count);
+		if (crItem->ExtendedCost)
+			TakeExtendedCost(crItem->ExtendedCost, count);
 
         pItem = EquipNewItem(dest, item, true);
 
@@ -21761,4 +21807,15 @@ void Player::StopCinematic()
 
     m_cinematicMgr->EndCinematic();
     m_cinematicMgr.reset(nullptr);
+}
+
+// Custom currency system
+uint32 Player::GetCurrency(uint32 curid)
+{
+	return sCustomCurrencyMgr.GetAccountCurrency(GetSession()->GetAccountId(), curid);
+}
+
+bool Player::ModifyCurrency(uint32 curid, int32 amount)
+{
+	return sCustomCurrencyMgr.ModifyAccountCurrency(GetSession()->GetAccountId(), curid, amount);
 }

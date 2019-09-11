@@ -18500,16 +18500,18 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
     // reputation discount
     price = uint32(floor(price * GetReputationPriceDiscount(pCreature)));
 
+	uint32 customCurrencyBalance;
+
 	if (pProto->CustomCurrency > 0) // Custom currency
 	{
-		uint32 amount = GetCurrency(pProto->CustomCurrency);
-		if (amount < pProto->BuyPrice)
+		customCurrencyBalance = GetCurrency(pProto->CustomCurrency);
+		if (customCurrencyBalance < pProto->BuyPrice)
 		{
 			GetSession()->SendNotification(
 				GetSession()->GetMangosString(80003),
 				pProto->BuyPrice,
 				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
-				amount,
+				customCurrencyBalance,
 				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str());
 			return false;
 		}
@@ -18540,8 +18542,10 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(80004),
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
 				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str());
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+				customCurrencyBalance - pProto->BuyPrice);
 		}
 		else
 		{
@@ -18574,8 +18578,10 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(80004),
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
 				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str());
+				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+				customCurrencyBalance - pProto->BuyPrice);
 		}
 		else // Cost money
 		{

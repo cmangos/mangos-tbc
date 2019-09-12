@@ -48,7 +48,7 @@ ChannelMgr::~ChannelMgr()
 Channel* ChannelMgr::GetJoinChannel(const std::string& name, uint32 channel_id)
 {
     std::wstring wname;
-    if (trade_cid != (uint32)-1 && channel_id == trade_cid)
+    if (sWorld.getConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL) && trade_cid != (uint32)-1 && channel_id == trade_cid)
     {
 		Utf8toWStr(std::string(sObjectMgr.GetMangosString(LANG_WORLD_CHANNEL_NAME, 0)), wname);
 		wstrToLower(wname);
@@ -62,7 +62,7 @@ Channel* ChannelMgr::GetJoinChannel(const std::string& name, uint32 channel_id)
     if (channels.find(wname) == channels.end())
     {
         Channel* nchan = new Channel(name, channel_id); // The trade channel will be renamed in Channel ctor, so DON'T use wname directly.
-        if (nchan->IsTrade() && trade_cid == (uint32)-1)
+        if (sWorld.getConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL) && nchan->IsTrade() && trade_cid == (uint32)-1)
         {
             trade_cid = channel_id;
         }

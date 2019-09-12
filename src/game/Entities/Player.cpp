@@ -4938,7 +4938,7 @@ void Player::UpdateLocalChannels(uint32 newZone)
             continue;
 
 		// Overrided trade channel to be global channel
-		if ((*i)->IsTrade())
+		if ((*i)->IsTrade() && sWorld.getConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL))
 			continue;
 
         ChatChannelsEntry const* ch = GetChannelEntryFor((*i)->GetChannelId());

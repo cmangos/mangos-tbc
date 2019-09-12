@@ -267,7 +267,8 @@ class Channel
     private:
         bool        m_announce;
         bool        m_moderate;
-        std::string m_name;
+		std::string m_name;
+		std::string m_origin_name;
         std::string m_password;
         uint8       m_flags;
         uint32      m_channelId;

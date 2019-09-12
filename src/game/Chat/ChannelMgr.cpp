@@ -52,7 +52,9 @@ Channel* ChannelMgr::GetJoinChannel(const std::string& name, uint32 channel_id)
 
     if (channels.find(wname) == channels.end())
     {
-        Channel* nchan = new Channel(name, channel_id);
+        Channel* nchan = new Channel(name, channel_id); // The LFG channel will be renamed in Channel ctor, so DON'T use wname directly.
+		Utf8toWStr(nchan->GetName(), wname);
+		wstrToLower(wname);
         channels[wname] = nchan;
         return nchan;
     }

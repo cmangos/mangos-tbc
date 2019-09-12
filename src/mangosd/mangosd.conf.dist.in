@@ -210,6 +210,12 @@ SD2ErrorLogFile = "SD2Errors.log"
 #        (some client side addons can stop work correctly with disabled addon channel)
 #        Default: 1 (permit addon channel)
 #                 0 (do not permit addon channel)
+#    OverrideTradeChannelWithGlobalChannel 
+#        Override the trade channel to be global channel, and the global channel is not influenced by the
+#        location changing.
+#        Default: 0 (do not override the trade channel)
+#                 1 (replace trade channel by global channel, new channel name could be specified in 
+#                    mangos string table entry=80007)
 #
 #    CleanCharacterDB
 #        Perform character db cleanups on start up

@@ -440,7 +440,8 @@ void World::LoadConfigSettings(bool reload)
 
     ///- Read other configuration items from the config file
     setConfigMinMax(CONFIG_UINT32_COMPRESSION, "Compression", 1, 1, 9);
-    setConfig(CONFIG_BOOL_ADDON_CHANNEL, "AddonChannel", true);
+	setConfig(CONFIG_BOOL_ADDON_CHANNEL, "AddonChannel", true);
+	setConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL, "OverrideTradeChannelWithGlobalChannel", false);
     setConfig(CONFIG_BOOL_CLEAN_CHARACTER_DB, "CleanCharacterDB", true);
     setConfig(CONFIG_BOOL_GRID_UNLOAD, "GridUnload", true);
     setConfig(CONFIG_UINT32_MAX_WHOLIST_RETURNS, "MaxWhoListReturns", 49);

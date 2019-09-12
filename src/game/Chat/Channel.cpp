@@ -47,7 +47,8 @@ Channel::Channel(const std::string& name, uint32 channel_id)
         else                                                // for all other channels
             m_flags |= CHANNEL_FLAG_NOT_LFG;
 		
-		if (ch->flags & CHANNEL_DBC_FLAG_LFG)
+		// Override trade channel name into global channel
+		if (ch->flags & CHANNEL_DBC_FLAG_TRADE)
 		{
 			const char* channel_name = sObjectMgr.GetMangosString(LANG_WORLD_CHANNEL_NAME, 0);
 			m_name = std::string(channel_name);
@@ -599,7 +600,7 @@ void Channel::Say(Player* player, const char* text, uint32 lang)
     ChatHandler::BuildChatPacket(data, CHAT_MSG_CHANNEL, text, Language(lang), player->GetChatTag(), guid, player->GetName(), ObjectGuid(), "", channel_name);
     SendToAll(data, !m_players[guid].IsModerator() ? guid : ObjectGuid());
 
-	if (IsLFG())
+	if (IsTrade())
 	{
 		channel_name = m_origin_name.c_str();
 		ChatHandler::BuildChatPacket(data, CHAT_MSG_CHANNEL, text, Language(lang), player->GetChatTag(), guid, player->GetName(), ObjectGuid(), "", channel_name);

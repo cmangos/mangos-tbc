@@ -4937,6 +4937,10 @@ void Player::UpdateLocalChannels(uint32 newZone)
         if (!(*i)->IsConstant())
             continue;
 
+		// Overrided trade channel to be global channel
+		if ((*i)->IsTrade())
+			continue;
+
         ChatChannelsEntry const* ch = GetChannelEntryFor((*i)->GetChannelId());
         if (!ch)
             continue;

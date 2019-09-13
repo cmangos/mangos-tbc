@@ -256,7 +256,7 @@ void WorldSession::HandleOpenItemOpcode(WorldPacket& recvPacket)
     }
     else
     {
-        Loot*& loot = pItem->loot;
+        Loot*& loot = pItem->m_loot;
         if (!loot)
             loot = new Loot(pUser, pItem, LOOT_PICKPOCKETING);
 

@@ -7525,6 +7525,29 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)
             }
             return;
         }
+        case 28307: // Hateful Strike Primer
+        {
+            // Returns the target with the highest HP in melee range
+            Unit* hatedTarget = nullptr;
+            uint32 maxHP = 0;
+            for (auto& unit : filterUnitList)
+            {
+                if (m_caster->CanReachWithMeleeAttack(unit))
+                {
+                    if (unit->GetHealth() > maxHP)
+                    {
+                        maxHP = unit->GetHealth();
+                        hatedTarget = unit;
+                    }
+                }
+            }
+            if (!hatedTarget)
+                return;
+
+            filterUnitList.clear();
+            filterUnitList.push_back(hatedTarget);
+            return;
+        }
         case 30284: // Change Facing - Chess event - QOL to pick deterministically closest target
         case 37144: // Move - Chess event - same QOL change
         case 37146:

@@ -7634,6 +7634,13 @@ SpellCastResult Spell::OnCheckCast(bool /*strict*/)
 {
     switch (m_spellInfo->Id)
     {
+        case 19574: //Hunter Bestrial Wrath pet LOS check
+        {
+            Pet* m_pet = m_caster->GetPet();
+            if (!m_pet || !m_pet->IsWithinLOSInMap(m_caster))
+                return SPELL_FAILED_LINE_OF_SIGHT;
+            break;
+        }
         case 603: // Curse of Doom
         case 30910:
         {

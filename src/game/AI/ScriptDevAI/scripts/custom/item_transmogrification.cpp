@@ -62,6 +62,7 @@ void GenerateTransmogrificationSelectModelGossipMenu(Player* pPlayer, ObjectGuid
 	{
 		Item* pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, i);
 		if (!pItem) continue;
+		if (sTransmogrificationMgr.IsItemTransmogrified(pItem->GetGUIDLow())) continue;
         auto pProto = pItem->GetProto();
 		pPlayer->ADD_GOSSIP_ITEM(0, GenerateItemText(pProto->Name1, pProto->Quality), 80003, i);
 	}
@@ -86,7 +87,22 @@ void GenerateTransmogrificationApplyModelGossipMenu(Player* pPlayer, ObjectGuid 
 		}
 	}
 	
-	pPlayer->SEND_GOSSIP_MENU(100000 - 1001, guid);
+	pPlayer->SEND_GOSSIP_MENU(100000 - 1002, guid);
+}
+
+void GenerateTransmogrificationRestoreModelGossipMenu(Player* pPlayer, ObjectGuid guid)
+{
+	// Clear menu
+	pPlayer->PlayerTalkClass->ClearMenus();
+
+	std::vector<TransmogrificationTempStore> stored = sTransmogrificationMgr.GetTransmogrifiedItems(pPlayer);
+	for (auto i = stored.begin(); i != stored.end(); ++i)
+	{
+		auto str = GenerateItemText(i->name, i->quality);
+		pPlayer->ADD_GOSSIP_ITEM(0, str.c_str(), 80005, i->item_template_id);
+	}
+
+	pPlayer->SEND_GOSSIP_MENU(100000 - 1003, guid);
 }
 
 bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
@@ -105,6 +121,9 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 				break;
 			case 2:
 				GenerateTransmogrificationApplyModelGossipMenu(pPlayer, pObj->GetObjectGuid());
+				break;
+			case 3:
+				GenerateTransmogrificationRestoreModelGossipMenu(pPlayer, pObj->GetObjectGuid());
 				break;
 			default:
 				return false;
@@ -130,6 +149,17 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 			sTransmogrificationMgr.TransmogrifyItemFromTempStore(pItem, (EquipmentSlots)action);
 			pPlayer->PlayerTalkClass->CloseGossip();
 			// TODO: Notify transmog succeeded.
+		}
+		return true;
+	}
+	else if (sender == 80005)
+	{
+		Item* pItem = pPlayer->GetItemByGuid(ObjectGuid(HIGHGUID_ITEM, action));
+		if (pItem)
+		{
+			sTransmogrificationMgr.RestoreTransmogrification(pPlayer, pItem->GetGUIDLow());
+			pPlayer->PlayerTalkClass->CloseGossip();
+			// TODO: Notify restore transmog succeeded.
 		}
 		return true;
 	}

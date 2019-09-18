@@ -222,3 +222,39 @@ void TransmogrificationMgr::TransmogrifyItem(Item* pItem, uint32 display)
 		}
 	}
 }
+
+std::vector<TransmogrificationTempStore> TransmogrificationMgr::GetTransmogrifiedItems(Player* pPlayer)
+{
+	std::vector<TransmogrificationTempStore> ret;
+	auto map = character_itemguid_transmogdata_map[pPlayer->GetGUIDLow()];
+	for (auto i = map.begin(); i != map.end(); ++i)
+	{
+		TransmogrificationTempStore data;
+		auto pProto = sObjectMgr.GetItemPrototype(i->second.item_template_id);
+		data.name = pProto->Name1;
+		data.quality = pProto->Quality;
+		data.item_template_id = i->second.item_instance_guid;
+		ret.push_back(data);
+	}
+	return ret;
+}
+
+bool TransmogrificationMgr::IsItemTransmogrified(uint32 itemguid)
+{
+	return transmogid_item_map.find(itemguid) == transmogid_item_map.end();
+}
+
+void TransmogrificationMgr::RestoreTransmogrification(Player* pPlayer, uint32 itemguid)
+{
+	CharacterDatabase.PExecute(
+		"DELETE FROM `pomelo_transmogrification` "
+		"WHERE `item_instance_guid` = %u AND `owner_guid` = %u;",
+		itemguid, pPlayer->GetGUIDLow());
+
+	auto transmogId = character_itemguid_transmogdata_map[pPlayer->GetGUIDLow()][itemguid].entry;
+	itemguid_character_map.erase(itemguid);
+	character_itemguid_transmogdata_map[pPlayer->GetGUIDLow()].erase(itemguid);
+	transmogid_item_map.erase(transmogId);
+	transmogid_transmogdata_map.erase(transmogId);
+	ApplyTransmogrification(pPlayer, pPlayer->GetItemByGuid(ObjectGuid(HIGHGUID_ITEM, itemguid)));
+}

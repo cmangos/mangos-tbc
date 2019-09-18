@@ -55,6 +55,9 @@ public:
 	std::vector<TransmogrificationTempStore> GetStoredDisplays(Player* pPlayer);
 	void ClearStoredDisplays(Player* pPlayer);
 	void TransmogrifyItemFromTempStore(Item* pItem, EquipmentSlots slot);
+	std::vector<TransmogrificationTempStore> GetTransmogrifiedItems(Player* pPlayer);
+	bool IsItemTransmogrified(uint32 itemguid);
+	void RestoreTransmogrification(Player* pPlayer, uint32 itemguid);
 };
 
 #define sTransmogrificationMgr MaNGOS::Singleton<TransmogrificationMgr>::Instance()

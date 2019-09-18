@@ -1,3 +1,11 @@
+/**
+ *
+ * @File : item_transmogrification.cpp
+ * @Authors : yukozh
+ * @Date : 09/18/2019
+ *
+ **/
+
 #include "item_transmogrification.h"
 #include "Pomelo/TransmogrificationMgr.h"
 #include "AI/ScriptDevAI/include/sc_gossip.h"

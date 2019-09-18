@@ -1,3 +1,11 @@
+/**
+ *
+ * @File : TransmogrificationMgr.cpp
+ * @Authors : yukozh
+ * @Date : 09/18/2019
+ *
+ **/
+
 #include "TransmogrificationMgr.h"
 #include "Entities/Item.h"
 #include "Globals/ObjectMgr.h"

@@ -1,3 +1,11 @@
+/**
+ *
+ * @File : TransmogrificationMgr.h
+ * @Authors : yukozh
+ * @Date : 09/18/2019
+ *
+ **/
+
 #include "Common.h"
 #include "Globals/SharedDefines.h"
 #include "Platform/Define.h"

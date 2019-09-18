@@ -1034,7 +1034,11 @@ enum MangosStrings
     LANG_TRANSMOG_SELECT_MODEL          = 80008,
     LANG_TRANSMOG_UNSELECT_MODEL        = 80009,
     LANG_TRANSMOG_APPLY                 = 80010,
-    LANG_TRANSMOG_REMOVE                = 80011
+    LANG_TRANSMOG_REMOVE                = 80011,
+	LANG_TRANSMOG_UNSELECT_MODEL_OK     = 80012,
+	LANG_TRANSMOG_SELECT_MODEL_OK       = 80013,
+	LANG_TRANSMOG_APPLY_OK              = 80014,
+	LANG_TRANSMOG_RESTORE_OK            = 80015
 
     // Use for custom patches             11000-11999
 

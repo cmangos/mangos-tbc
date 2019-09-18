@@ -117,7 +117,7 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 			case 1:
 				sTransmogrificationMgr.ClearStoredDisplays(pPlayer);
 				pPlayer->PlayerTalkClass->CloseGossip();
-				// TODO: Notify clear store succeeded.
+				pPlayer->GetSession()->SendNotification(LANG_TRANSMOG_UNSELECT_MODEL_OK);
 				break;
 			case 2:
 				GenerateTransmogrificationApplyModelGossipMenu(pPlayer, pObj->GetObjectGuid());
@@ -137,7 +137,7 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 		{
 			sTransmogrificationMgr.StoreDisplay(pPlayer, pItem);
 			pPlayer->PlayerTalkClass->CloseGossip();
-			// TODO: Notify store succeeded.
+			pPlayer->GetSession()->SendNotification(LANG_TRANSMOG_SELECT_MODEL_OK);
 		}
 		return true;
 	}
@@ -148,7 +148,7 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 		{
 			sTransmogrificationMgr.TransmogrifyItemFromTempStore(pItem, (EquipmentSlots)action);
 			pPlayer->PlayerTalkClass->CloseGossip();
-			// TODO: Notify transmog succeeded.
+			pPlayer->GetSession()->SendNotification(LANG_TRANSMOG_APPLY_OK);
 		}
 		return true;
 	}
@@ -159,7 +159,7 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 		{
 			sTransmogrificationMgr.RestoreTransmogrification(pPlayer, pItem->GetGUIDLow());
 			pPlayer->PlayerTalkClass->CloseGossip();
-			// TODO: Notify restore transmog succeeded.
+			pPlayer->GetSession()->SendNotification(LANG_TRANSMOG_RESTORE_OK);
 		}
 		return true;
 	}

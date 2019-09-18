@@ -1030,7 +1030,11 @@ enum MangosStrings
 	LANG_TELE_STORE_PAID_WITH_CURRENCY  = 80004,
 	LANG_TELE_CURR_NO_RESULT            = 80005,
 	LANG_TELE_CURR_QUERY_RESULT         = 80006,
-	LANG_WORLD_CHANNEL_NAME             = 80007
+	LANG_WORLD_CHANNEL_NAME             = 80007,
+    LANG_TRANSMOG_SELECT_MODEL          = 80008,
+    LANG_TRANSMOG_UNSELECT_MODEL        = 80009,
+    LANG_TRANSMOG_APPLY                 = 80010,
+    LANG_TRANSMOG_REMOVE                = 80011
 
     // Use for custom patches             11000-11999
 

@@ -12,6 +12,7 @@
 #include "Tools/Language.h"
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
+#include "item_transmogrification.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
 
@@ -68,52 +69,6 @@ void GenerateGossipMenu(uint32 menu_id, Player* pPlayer, ObjectGuid guid)
 	pPlayer->SEND_GOSSIP_MENU(100000 - menu_id, guid);
 }
 
-void GenerateTransmogrificationGossipMenu(Player* pPlayer, ObjectGuid guid)
-{
-	// Clear menu
-	pPlayer->PlayerTalkClass->ClearMenus();
-
-	pPlayer->ADD_GOSSIP_ITEM(0, "Select model from equiped item", 80002, 0);
-	pPlayer->ADD_GOSSIP_ITEM(0, "Clear stored models", 80002, 1);
-	pPlayer->ADD_GOSSIP_ITEM(0, "Apply model to equiped item", 80002, 2);
-	
-	pPlayer->SEND_GOSSIP_MENU(100000 - 1000, guid);
-}
-
-void GenerateTransmogrificationSelectModelGossipMenu(Player* pPlayer, ObjectGuid guid)
-{
-	// Clear menu
-	pPlayer->PlayerTalkClass->ClearMenus();
-
-	for (uint8 i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
-	{
-		Item* pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, i);
-		if (!pItem) continue;
-		pPlayer->ADD_GOSSIP_ITEM(0, pItem->GetProto()->Name1, 80003, i);
-	}
-	
-	pPlayer->SEND_GOSSIP_MENU(100000 - 1001, guid);
-}
-
-void GenerateTransmogrificationApplyModelGossipMenu(Player* pPlayer, ObjectGuid guid)
-{
-	// Clear menu
-	pPlayer->PlayerTalkClass->ClearMenus();
-
-	std::vector<TransmogrificationTempStore> stored = sTransmogrificationMgr.GetStoredDisplays(pPlayer);
-	for (auto i = stored.begin(); i != stored.end(); ++i) 
-	{
-		Item* pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, i->slot);
-		if (pItem)
-		{
-			auto str = i->name + " " + pItem->GetProto()->Name1;
-			pPlayer->ADD_GOSSIP_ITEM(0, str.c_str(), 80004, i->slot);
-		}
-	}
-	
-	pPlayer->SEND_GOSSIP_MENU(100000 - 1001, guid);
-}
-
 void TeleportTo(Player* const player, const uint16& map,
 	const float& X, const float& Y, const float& Z, const float& orient)
 {
@@ -154,46 +109,8 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		}
 	}
 
-	if (sender == 80002) // 幻化
+	if (HandleTransmogrificationGossipMenuSelect(pPlayer, pObj, sender, action)) // Transmogrification
 	{
-		switch(action)
-		{
-			case 0:
-				GenerateTransmogrificationSelectModelGossipMenu(pPlayer, pObj->GetObjectGuid());
-				break;
-			case 1:
-				sTransmogrificationMgr.ClearStoredDisplays(pPlayer);
-				pPlayer->PlayerTalkClass->CloseGossip();
-				// TODO: Notify clear store succeeded.
-				break;
-			case 2:
-				GenerateTransmogrificationApplyModelGossipMenu(pPlayer, pObj->GetObjectGuid());
-				break;
-			default:
-				return false;
-		}
-		return true;
-	}
-	else if (sender == 80003) // 幻化
-	{
-		Item* pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, uint8(action));
-		if (pItem)
-		{
-			sTransmogrificationMgr.StoreDisplay(pPlayer, pItem);
-			pPlayer->PlayerTalkClass->CloseGossip();
-			// TODO: Notify store succeeded.
-		}
-		return true;
-	}
-	else if (sender == 80004)
-	{
-		Item* pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, uint8(action));
-		if (pItem)
-		{
-			sTransmogrificationMgr.TransmogrifyItemFromTempStore(pItem, (EquipmentSlots)action);
-			pPlayer->PlayerTalkClass->CloseGossip();
-			// TODO: Notify transmog succeeded.
-		}
 		return true;
 	}
 	else if (!FindActionItem(sender, action, item))

@@ -18,12 +18,13 @@ namespace Teleport
 {
 	enum TeleportMenuItemFunction
 	{
-		SHOW_SUB_MENU   = 0,
-		TELEPORT        = 1,
-		STORE           = 2,
-		BANK            = 3,
-		ACTIVATE_FLIGHT = 4,
-		QUERY_CURRENCY  = 5
+		SHOW_SUB_MENU        = 0,
+		TELEPORT             = 1,
+		STORE                = 2,
+		BANK                 = 3,
+		ACTIVATE_FLIGHT      = 4,
+		QUERY_CURRENCY       = 5,
+		TRANSMOGRIFY_MENU    = 6,
 	};
 
 	enum TeleportMenuItemCampOrder

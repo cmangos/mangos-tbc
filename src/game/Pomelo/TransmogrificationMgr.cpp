@@ -2,23 +2,24 @@
 #include "Entities/Item.h"
 #include "Globals/ObjectMgr.h"
 
-std::unordered_map<uint32, uint32> transmog_user_map;
-std::unordered_map<uint32, std::map<uint32, TransmogrificationData>> user_transmog_map; // map[user][item-id] = transmog-data
-std::unordered_map<uint32, uint32> fake_item_map;
-std::unordered_map<uint32, TransmogrificationData> fake_transmog_map;
+std::unordered_map<uint32, uint32> itemguid_character_map;
+std::unordered_map<uint32, std::map<uint32, TransmogrificationData>> character_itemguid_transmogdata_map; // map[user][item-id] = transmog-data
+std::unordered_map<uint32, uint32> transmogid_item_map;
+std::unordered_map<uint32, TransmogrificationData> transmogid_transmogdata_map;
+std::unordered_map<uint32, std::map<EquipmentSlots, TransmogrificationTempStore>> character_slot_display_map;
 
 void TransmogrificationMgr::ApplyTransmogrification(Player* pPlayer, Item* pItem)
 {
 	uint32 character_id = pPlayer->GetGUIDLow();
 	if (pItem)
 	{
-		if (transmog_user_map.find(pItem->GetGUIDLow()) == transmog_user_map.end())
+		if (itemguid_character_map.find(pItem->GetGUIDLow()) == itemguid_character_map.end())
 		{
 			pPlayer->SetUInt64Value(PLAYER_VISIBLE_ITEM_1_0 + (pItem->GetSlot() * MAX_VISIBLE_ITEM_OFFSET), pItem->GetEntry());
 			return;
 		}
 
-		auto fakeEntry = ToItemEntry(user_transmog_map[character_id][pItem->GetGUIDLow()].entry);
+		auto fakeEntry = ToItemEntry(character_itemguid_transmogdata_map[character_id][pItem->GetGUIDLow()].entry);
 		pPlayer->SetUInt64Value(PLAYER_VISIBLE_ITEM_1_0 + (pItem->GetSlot() * MAX_VISIBLE_ITEM_OFFSET), fakeEntry);
 	}
 }
@@ -34,7 +35,7 @@ void TransmogrificationMgr::ApplyTransmogrification(Player* pPlayer)
 {
 	// If there is no transmog data then return.
 	uint32 character_id = pPlayer->GetGUIDLow();
-	if (transmog_user_map.find(character_id) == transmog_user_map.end())
+	if (itemguid_character_map.find(character_id) == itemguid_character_map.end())
 	{
 		return;
 	}
@@ -48,9 +49,9 @@ void TransmogrificationMgr::ApplyTransmogrification(Player* pPlayer)
 void TransmogrificationMgr::OnLogin(uint32 characterId)
 {
 	QueryResult* result = CharacterDatabase.PQuery(
-	"SELECT `entry`, `item_instance_guid`, `model`, `owner_guid`, `item_template_id` "
-	"FROM `pomelo_transmogrification` "
-	"WHERE `owner_guid` = %u", characterId);
+		"SELECT `entry`, `item_instance_guid`, `model`, `owner_guid`, `item_template_id` "
+		"FROM `pomelo_transmogrification` "
+		"WHERE `owner_guid` = %u", characterId);
 
 	if (result)
 	{
@@ -64,22 +65,23 @@ void TransmogrificationMgr::OnLogin(uint32 characterId)
 			data.owner_guid = field[3].GetUInt32();
 			data.item_template_id = field[4].GetUInt32();
 
-			transmog_user_map[data.item_instance_guid] = data.owner_guid;
-			user_transmog_map[data.owner_guid][data.item_instance_guid] = data;
-			fake_item_map[data.entry] = data.item_template_id;
-			fake_transmog_map[data.entry] = data;
+			itemguid_character_map[data.item_instance_guid] = data.owner_guid;
+			character_itemguid_transmogdata_map[data.owner_guid][data.item_instance_guid] = data;
+			transmogid_item_map[data.entry] = data.item_template_id;
+			transmogid_transmogdata_map[data.entry] = data;
 		} while (result->NextRow());
 	}
 }
 
-void TransmogrificationMgr::OnLogout(uint32 characterId) 
+void TransmogrificationMgr::OnLogout(uint32 characterId)
 {
-	for (auto i = user_transmog_map[characterId].begin(); i != user_transmog_map[characterId].end(); ++i)
+	for (auto i = character_itemguid_transmogdata_map[characterId].begin(); i != character_itemguid_transmogdata_map[characterId].end(); ++i)
 	{
-		fake_item_map.erase(i->second.entry);
-		fake_transmog_map.erase(i->second.entry);
+		transmogid_item_map.erase(i->second.entry);
+		transmogid_transmogdata_map.erase(i->second.entry);
 	}
-	user_transmog_map.erase(characterId);
+	character_itemguid_transmogdata_map.erase(characterId);
+	character_slot_display_map.erase(characterId);
 }
 
 uint32 TransmogrificationMgr::ToItemEntry(uint32 fakeEntry)
@@ -99,24 +101,24 @@ bool TransmogrificationMgr::IsFakeEntry(uint32 entry)
 
 uint32 TransmogrificationMgr::GetModelId(uint32 fakeId)
 {
-	return fake_transmog_map[ToFakeEntry(fakeId)].model;
+	return transmogid_transmogdata_map[ToFakeEntry(fakeId)].model;
 }
 
 const ItemPrototype* TransmogrificationMgr::GetOriginItemProto(uint32 fakeId)
 {
-	auto fakeEntry = fake_item_map[ToFakeEntry(fakeId)];
+	auto fakeEntry = transmogid_item_map[ToFakeEntry(fakeId)];
 	return sObjectMgr.GetItemPrototype(fakeEntry);
 }
 
 uint32 TransmogrificationMgr::GetModelIdByItemInstanceId(uint32 itemGuid)
 {
-	uint32 owner_id = transmog_user_map[itemGuid];
-	return user_transmog_map[owner_id][itemGuid].model;
+	uint32 owner_id = itemguid_character_map[itemGuid];
+	return character_itemguid_transmogdata_map[owner_id][itemGuid].model;
 }
 
 bool TransmogrificationMgr::IsTransmogrified(uint32 itemGuid)
 {
-	return transmog_user_map.find(itemGuid) != transmog_user_map.end();
+	return itemguid_character_map.find(itemGuid) != itemguid_character_map.end();
 }
 
 uint32 TransmogrificationMgr::GetCharacterIdByTransmogrificationId(uint32 transmogId)
@@ -133,4 +135,82 @@ uint32 TransmogrificationMgr::GetCharacterIdByTransmogrificationId(uint32 transm
 	Field* field = result->Fetch();
 
 	return field[0].GetUInt32();
+}
+
+void TransmogrificationMgr::StoreDisplay(Player* pPlayer, Item* pItem)
+{
+	if (pItem)
+	{
+		TransmogrificationTempStore info;
+		auto pProto = pItem->GetProto();
+		info.name = std::string(pProto->Name1);
+		info.display = pProto->DisplayInfoID;
+		info.quality = pProto->Quality;
+		info.item_template_id = pItem->GetEntry();
+		info.slot = (EquipmentSlots)pItem->GetSlot();
+		character_slot_display_map[pPlayer->GetGUIDLow()][(EquipmentSlots)pItem->GetSlot()] = info;
+	}
+}
+
+std::vector<TransmogrificationTempStore> TransmogrificationMgr::GetStoredDisplays(Player* pPlayer)
+{
+	std::vector<TransmogrificationTempStore> ret;
+	auto map = character_slot_display_map[pPlayer->GetGUIDLow()];
+	for (auto i = map.begin(); i != map.end(); ++i) 
+	{
+		ret.push_back(i->second);
+	}
+	return ret;
+}
+
+void TransmogrificationMgr::ClearStoredDisplays(Player* pPlayer)
+{
+	character_slot_display_map.erase(pPlayer->GetGUIDLow());
+}
+
+void TransmogrificationMgr::TransmogrifyItemFromTempStore(Item* pItem, EquipmentSlots slot)
+{
+	Player* pPlayer = pItem->GetOwner();
+	auto store = character_slot_display_map[pPlayer->GetGUIDLow()][slot];
+	if (store.display)
+	{
+		TransmogrifyItem(pItem, store.display);
+	}
+}
+
+void TransmogrificationMgr::TransmogrifyItem(Item* pItem, uint32 display)
+{
+	if (pItem)
+	{
+		CharacterDatabase.DirectPExecute(
+			"INSERT INTO `pomelo_transmogrification` "
+			"(`item_instance_guid`, `model`, `owner_guid`, `item_template_id`) "
+			"VALUES (%u, %u, %u, %u);",
+			pItem->GetGUIDLow(), display, pItem->GetOwner()->GetGUIDLow(), pItem->GetEntry());
+		
+		// TODO: How to get inserted id in this MySQL client?
+		QueryResult* result = CharacterDatabase.PQuery(
+			"SELECT `entry` FROM `pomelo_transmogrification` "
+			"WHERE `item_instance_guid` = %u "
+			"AND `model` = %u "
+			"AND `owner_guid` = %u "
+			"AND `item_template_id` = %u", pItem->GetGUIDLow(), display, pItem->GetOwner()->GetGUIDLow(), pItem->GetEntry());
+		if (result)
+		{
+			Field* field = result->Fetch();
+			TransmogrificationData data;
+			data.entry = field[0].GetUInt32();
+			data.item_instance_guid = pItem->GetGUIDLow();
+			data.model = display;
+			data.owner_guid = pItem->GetOwner()->GetGUIDLow();
+			data.item_template_id = pItem->GetEntry();
+
+			itemguid_character_map[data.item_instance_guid] = data.owner_guid;
+			character_itemguid_transmogdata_map[data.owner_guid][data.item_instance_guid] = data;
+			transmogid_item_map[data.entry] = data.item_template_id;
+			transmogid_transmogdata_map[data.entry] = data;
+
+			ApplyTransmogrification(pItem->GetOwner(), pItem);
+		}
+	}
 }

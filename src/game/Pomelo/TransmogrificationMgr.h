@@ -17,6 +17,15 @@ struct TransmogrificationData
 	uint32 item_template_id;
 };
 
+struct TransmogrificationTempStore
+{
+	uint32 display;
+	std::string name;
+	uint32 item_template_id;
+	uint32 quality;
+	EquipmentSlots slot;
+};
+
 class TransmogrificationMgr
 {
 public:
@@ -33,6 +42,11 @@ public:
 	void ApplyTransmogrification(Player* pPlayer, EquipmentSlots slot);
 	void ApplyTransmogrification(Player* pPlayer);
 	bool IsTransmogrified(uint32 itemGuid);
+	void TransmogrifyItem(Item* pItem, uint32 display);
+	void StoreDisplay(Player* pPlayer, Item* pItem);
+	std::vector<TransmogrificationTempStore> GetStoredDisplays(Player* pPlayer);
+	void ClearStoredDisplays(Player* pPlayer);
+	void TransmogrifyItemFromTempStore(Item* pItem, EquipmentSlots slot);
 };
 
 #define sTransmogrificationMgr MaNGOS::Singleton<TransmogrificationMgr>::Instance()

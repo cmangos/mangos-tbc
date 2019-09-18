@@ -36,6 +36,7 @@
 #include "BattleGround/BattleGroundMgr.h"
 #include "Social/SocialMgr.h"
 #include "Loot/LootMgr.h"
+#include "Pomelo/TransmogrificationMgr.h"
 
 #include <mutex>
 #include <deque>
@@ -495,6 +496,9 @@ void WorldSession::LogoutPlayer(bool Save)
 #endif
 
         sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), GetRemoteAddress().c_str(), _player->GetName(), _player->GetGUIDLow());
+
+		// Transmogrification
+		sTransmogrificationMgr.OnLogout(_player->GetGUIDLow());
 
         if (Loot* loot = sLootMgr.GetLoot(_player))
             loot->Release(_player);

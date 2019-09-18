@@ -241,7 +241,7 @@ std::vector<TransmogrificationTempStore> TransmogrificationMgr::GetTransmogrifie
 
 bool TransmogrificationMgr::IsItemTransmogrified(uint32 itemguid)
 {
-	return transmogid_item_map.find(itemguid) == transmogid_item_map.end();
+	return transmogid_item_map.find(itemguid) != transmogid_item_map.end();
 }
 
 void TransmogrificationMgr::RestoreTransmogrification(Player* pPlayer, uint32 itemguid)

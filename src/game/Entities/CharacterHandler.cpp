@@ -37,6 +37,7 @@
 #include "Social/SocialMgr.h"
 #include "Util.h"
 #include "Tools/Language.h"
+#include "Pomelo/TransmogrificationMgr.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 
 #ifdef BUILD_PLAYERBOT
@@ -791,6 +792,10 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (!pCurrChar->IsStandState() && !pCurrChar->hasUnitState(UNIT_STAT_STUNNED))
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
 
+	// Transmogrification
+	sTransmogrificationMgr.OnLogin(pCurrChar->GetGUIDLow());
+	sTransmogrificationMgr.ApplyTransmogrification(pCurrChar);
+
     m_playerLoading = false;
     delete holder;
 }
@@ -910,6 +915,9 @@ void WorldSession::HandlePlayerReconnect()
 
     // send mirror timers
     _player->SendMirrorTimers(true);
+
+	// Transmogrification, TODO: test if missing this line, will the transmog still work?
+	sTransmogrificationMgr.OnLogin(_player->GetGUIDLow());
 
     m_playerLoading = false;
 }

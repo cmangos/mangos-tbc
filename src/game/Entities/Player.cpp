@@ -65,6 +65,7 @@
 #include "World/WorldStateDefines.h"
 #include "World/WorldState.h"
 #include "Pomelo/CustomCurrencyMgr.h"
+#include "Pomelo/TransmogrificationMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -1736,11 +1737,33 @@ bool Player::BuildEnumData(QueryResult* result, WorldPacket& p_data)
 
 
     Tokens data = StrSplit(fields[19].GetCppString(), " ");
+	// Transmogrification
+	bool need_load_transmog_data = true;
     for (uint8 slot = 0; slot < EQUIPMENT_SLOT_END; ++slot)
     {
         uint32 visualbase = slot * 2;                       // entry, perm ench., temp ench.
         uint32 item_id = GetUInt32ValueFromArray(data, visualbase);
-        const ItemPrototype* proto = ObjectMgr::GetItemPrototype(item_id);
+		const ItemPrototype* proto;
+		uint32 display_info_id;
+		if (sTransmogrificationMgr.IsFakeEntry(item_id))
+		{
+			if (need_load_transmog_data)
+			{
+				need_load_transmog_data = false;
+				sTransmogrificationMgr.OnLogin(guid);
+			}
+			proto = sTransmogrificationMgr.GetOriginItemProto(item_id);
+			display_info_id = sTransmogrificationMgr.GetModelId(item_id);
+		}
+		else
+		{
+			proto = ObjectMgr::GetItemPrototype(item_id);
+			if (proto)
+			{
+				display_info_id = proto->DisplayInfoID;
+			}
+		}
+
         if (!proto)
         {
             p_data << uint32(0);
@@ -1764,7 +1787,7 @@ bool Player::BuildEnumData(QueryResult* result, WorldPacket& p_data)
                 break;
         }
 
-        p_data << uint32(proto->DisplayInfoID);
+		p_data << uint32(display_info_id);
         p_data << uint8(proto->InventoryType);
         p_data << uint32(enchant ? enchant->aura_id : 0);
     }
@@ -10486,6 +10509,8 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
 
         int VisibleBase = PLAYER_VISIBLE_ITEM_1_0 + (slot * MAX_VISIBLE_ITEM_OFFSET);
         SetUInt32Value(VisibleBase + 0, pItem->GetEntry());
+
+		sTransmogrificationMgr.ApplyTransmogrification(this, pItem);
 
         for (int i = 0; i < MAX_INSPECTED_ENCHANTMENT_SLOT; ++i)
             SetUInt32Value(VisibleBase + 1 + i, pItem->GetEnchantmentId(EnchantmentSlot(i)));

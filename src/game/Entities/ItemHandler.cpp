@@ -26,6 +26,7 @@
 #include "Entities/Item.h"
 #include "Entities/UpdateData.h"
 #include "Chat/Chat.h"
+#include "Pomelo/TransmogrificationMgr.h"
 
 void WorldSession::HandleSplitItemOpcode(WorldPacket& recv_data)
 {
@@ -283,9 +284,15 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
     uint32 item;
     recv_data >> item;
 
+	bool isTransmogrification = false;
+	if (sTransmogrificationMgr.IsFakeEntry(item))
+	{
+		isTransmogrification = true;
+	}
+
     DETAIL_LOG("STORAGE: Item Query = %u", item);
 
-    ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(item);
+    ItemPrototype const* pProto = isTransmogrification ? sTransmogrificationMgr.GetOriginItemProto(item) : ObjectMgr::GetItemPrototype(item);
     if (pProto)
     {
         int loc_idx = GetSessionDbLocaleIndex();
@@ -296,7 +303,7 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
 
         // guess size
         WorldPacket data(SMSG_ITEM_QUERY_SINGLE_RESPONSE, 600);
-        data << pProto->ItemId;
+        data << (isTransmogrification ? item : pProto->ItemId);
         data << pProto->Class;
         data << pProto->SubClass;
         data << uint32(-1);                                 // new 2.0.3, not exist in wdb cache?
@@ -304,7 +311,7 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
         data << uint8(0x00);                                // pProto->Name2; // blizz not send name there, just uint8(0x00); <-- \0 = empty string = empty name...
         data << uint8(0x00);                                // pProto->Name3; // blizz not send name there, just uint8(0x00);
         data << uint8(0x00);                                // pProto->Name4; // blizz not send name there, just uint8(0x00);
-        data << pProto->DisplayInfoID;
+        data << (isTransmogrification ? sTransmogrificationMgr.GetModelId(item) : pProto->DisplayInfoID);
         data << pProto->Quality;
         data << pProto->Flags;
         data << pProto->BuyPrice;

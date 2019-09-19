@@ -11,6 +11,8 @@
 #include "AI/ScriptDevAI/include/sc_item_teleport.h"
 #include "Tools/Language.h"
 #include "Pomelo/CustomCurrencyMgr.h"
+#include "Pomelo/TransmogrificationMgr.h"
+#include "item_transmogrification.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
 
@@ -107,7 +109,11 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		}
 	}
 
-	if (!FindActionItem(sender, action, item))
+	if (HandleTransmogrificationGossipMenuSelect(pPlayer, pObj, sender, action)) // Transmogrification
+	{
+		return true;
+	}
+	else if (!FindActionItem(sender, action, item))
 	{
 		return false;
 	}
@@ -170,6 +176,9 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		}
 
 		pPlayer->PlayerTalkClass->CloseGossip();
+		break;
+	case TELE_FUNC::TRANSMOGRIFY_MENU:
+		GenerateTransmogrificationGossipMenu(pPlayer, pObj->GetObjectGuid());
 		break;
 	default:
 		return false;

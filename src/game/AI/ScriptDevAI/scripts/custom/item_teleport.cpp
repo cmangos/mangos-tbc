@@ -13,6 +13,7 @@
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
 #include "item_transmogrification.h"
+#include "item_multi_talent.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
 
@@ -113,6 +114,10 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	{
 		return true;
 	}
+	else if (HandleMultiTalentGossipMenuSelect(pPlayer, pObj, sender, action))
+	{
+		return true;
+	}
 	else if (!FindActionItem(sender, action, item))
 	{
 		return false;
@@ -179,6 +184,9 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		break;
 	case TELE_FUNC::TRANSMOGRIFY_MENU:
 		GenerateTransmogrificationGossipMenu(pPlayer, pObj->GetObjectGuid());
+		break;
+	case TELE_FUNC::MULTI_TALENT_MENU:
+		GenerateMultiTalentGossipMenu(pPlayer, pObj->GetObjectGuid());
 		break;
 	default:
 		return false;

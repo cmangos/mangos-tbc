@@ -39,7 +39,7 @@ bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sen
 		if (action > pPlayer->GetMaxTalentTemplate())
 		{
             pPlayer->PlayerTalkClass->CloseGossip();
-			return false;
+			return true;
 		}
 
 		if (pPlayer->GetCurrentTalentTemplate() == action)
@@ -60,6 +60,8 @@ bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sen
 		// TODO: Check limitation
         //pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_CREATE_EXCEED);
 		sMultiTalentMgr.IncreaseMaxTemplate(pPlayer);
+        sMultiTalentMgr.SwichTemplate(pPlayer, pPlayer->GetMaxTalentTemplate());
+        pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_CREATE_EXCEED);
         pPlayer->PlayerTalkClass->CloseGossip();
 		return true;
 	}

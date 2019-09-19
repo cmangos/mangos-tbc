@@ -19,15 +19,15 @@ void GenerateMultiTalentGossipMenu(Player* pPlayer, ObjectGuid guid)
 
 	for (uint32 i = 0; i <= pPlayer->GetMaxTalentTemplate(); ++i)
 	{
-		auto str = "Template #" + std::to_string(i + 1) + " ";
+		auto str = pPlayer->GetSession()->GetMangosString(LANG_MULTI_TALENT_TEMPLATE_NUM) + std::to_string(i + 1) + " ";
 		if (i == pPlayer->GetCurrentTalentTemplate())
 		{
-			str.append("(Current)");
+			str.append(pPlayer->GetSession()->GetMangosString(LANG_MULTI_TALENT_TEMPLATE_CURRENT));
 		}
 		pPlayer->ADD_GOSSIP_ITEM(0, str.c_str(), 80006, i);
 	}
 
-	pPlayer->ADD_GOSSIP_ITEM(0, "Request turn on a new template", 80007, 0);
+	pPlayer->ADD_GOSSIP_ITEM(0, pPlayer->GetSession()->GetMangosString(LANG_MULTI_TALENT_CREATE), 80007, 0);
 
 	pPlayer->SEND_GOSSIP_MENU(100000 - 1000, guid);
 }
@@ -38,24 +38,29 @@ bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sen
 	{
 		if (action > pPlayer->GetMaxTalentTemplate())
 		{
+            pPlayer->PlayerTalkClass->CloseGossip();
 			return false;
 		}
 
 		if (pPlayer->GetCurrentTalentTemplate() == action)
 		{
-			// TODO: Notify
+            pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_TEMPLATE_IN_USE);
+            pPlayer->PlayerTalkClass->CloseGossip();
 			return true;
 		}
 
 		sMultiTalentMgr.SwichTemplate(pPlayer, action);
-		// TODO: Notify
+        pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_SWITCH_OK);
+        pPlayer->PlayerTalkClass->CloseGossip();
 
 		return true;
 	}
 	else if (sender == 80007)
 	{
 		// TODO: Check limitation
+        //pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_CREATE_EXCEED);
 		sMultiTalentMgr.IncreaseMaxTemplate(pPlayer);
+        pPlayer->PlayerTalkClass->CloseGossip();
 		return true;
 	}
 	else

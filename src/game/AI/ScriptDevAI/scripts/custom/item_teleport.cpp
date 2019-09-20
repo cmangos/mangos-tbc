@@ -26,7 +26,7 @@ void AddFilteredGossipMenuForPlayer(uint32 menu_id, Player* pPlayer, ObjectGuid 
 	for (size_t i = 0; i < map_item[menu_id].size(); ++i)
 	{
 		auto item = map_item[menu_id][i];
-		if (order != item.camp_order) continue;
+		if (order != item.faction_order) continue;
 		pPlayer->ADD_GOSSIP_ITEM(item.icon, item.text, menu_id, item.action_id);
 	}
 }
@@ -137,18 +137,63 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		GenerateGossipMenu(item.trigger_menu, pPlayer, pObj->GetObjectGuid());
 		break;
 	case TELE_FUNC::TELEPORT:
-		if (item.cost_money > 0)
+		// Permission check
+		if (pPlayer->GetSession()->GetSecurity() < (AccountTypes)item.permission_required)
 		{
-			if (pPlayer->GetMoney() < item.cost_money)
+			pPlayer->PlayerTalkClass->CloseGossip();
+			pPlayer->GetSession()->SendNotification(LANG_NO_PERMISSION_TO_USE);
+			return true;
+		}
+
+		// Level check
+		if (pPlayer->getLevel() < item.level_required)
+		{
+			pPlayer->PlayerTalkClass->CloseGossip();
+			pPlayer->GetSession()->SendNotification(LANG_LEVEL_NOT_REACHED, item.level_required);
+			return true;
+		}
+
+		// Cost
+		if (item.cost_type == TELE_COST::COST_MONEY)
+		{
+			if (pPlayer->GetMoney() < item.cost_amount)
 			{
 				pPlayer->GetSession()->SendNotification(LANG_TELE_NO_MONEY_TO_USE);
 				pPlayer->PlayerTalkClass->CloseGossip();
 			}
 			else
 			{
-				pPlayer->ModifyMoney(-1 * item.cost_money);	
+				pPlayer->ModifyMoney(-1 * item.cost_amount);	
 			}
 		}
+		else if (item.cost_type == TELE_COST::COST_CUSTOM_CURRENCY)
+		{
+			uint32 balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), item.cost_currency_id);
+			auto currency_info = sCustomCurrencyMgr.GetCurrencyInfo(item.cost_currency_id);
+			if (item.cost_amount > balance)
+			{
+				pPlayer->PlayerTalkClass->CloseGossip();
+				pPlayer->GetSession()->SendNotification(
+					LANG_TELE_STORE_NO_CURRENCY_TO_BUY, 
+					item.cost_amount,
+					currency_info.name,
+					balance,
+					currency_info.name);
+				return true;
+			}
+			else
+			{
+				sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), item.cost_currency_id, -1 * item.cost_amount);
+				pPlayer->GetSession()->SendNotification(
+					LANG_TELE_STORE_PAID_WITH_CURRENCY, 
+					currency_info.name,
+					item.cost_amount,
+					currency_info.name,
+					balance - item.cost_amount);
+			}
+		}
+
+		// Teleport
 		TeleportTo(pPlayer, item.teleport_map, item.teleport_x, item.teleport_y, item.teleport_z, 0);
 		pPlayer->PlayerTalkClass->CloseGossip();
 		break;

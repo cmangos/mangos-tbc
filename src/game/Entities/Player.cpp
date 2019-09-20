@@ -66,6 +66,7 @@
 #include "World/WorldState.h"
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
+#include "Pomelo/MultiTalentMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -3705,64 +3706,77 @@ uint32 Player::resetTalentsCost() const
     return new_cost;
 }
 
+// Internal reset function for multi talent
+bool Player::resetTalentsInternal(bool no_cost, bool reset_template)
+{
+	// not need after this call
+	if (HasAtLoginFlag(AT_LOGIN_RESET_TALENTS))
+		RemoveAtLoginFlag(AT_LOGIN_RESET_TALENTS, true);
+
+	if (!m_usedTalentCount)
+		no_cost = true;
+
+	uint32 cost = 0;
+
+	if (!no_cost)
+	{
+		cost = resetTalentsCost();
+
+		if (GetMoney() < cost)
+		{
+			SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, nullptr, 0, 0);
+			return false;
+		}
+	}
+
+	for (unsigned int i = 0; i < sTalentStore.GetNumRows(); ++i)
+	{
+		TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
+
+		if (!talentInfo)
+			continue;
+
+		TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+
+		if (!talentTabInfo)
+			continue;
+
+		// unlearn only talents for character class
+		// some spell learned by one class as normal spells or know at creation but another class learn it as talent,
+		// to prevent unexpected lost normal learned spell skip another class talents
+		if ((getClassMask() & talentTabInfo->ClassMask) == 0)
+			continue;
+
+		for (unsigned int j : talentInfo->RankID)
+			if (j)
+				removeSpell(j, !IsPassiveSpell(j), false);
+	}
+
+	UpdateFreeTalentPoints(false);
+
+	if (!no_cost)
+	{
+		ModifyMoney(-(int32)cost);
+
+		m_resetTalentsCost = cost;
+		m_resetTalentsTime = time(nullptr);
+	}
+
+	// FIXME: remove pet before or after unlearn spells? for now after unlearn to allow removing of talent related, pet affecting auras
+	RemovePet(PET_SAVE_REAGENTS);
+
+	// Multi talent
+	if (reset_template)
+	{
+		sMultiTalentMgr.ResetTemplate(this);
+	}
+
+	return true;
+}
+
 bool Player::resetTalents(bool no_cost)
 {
-    // not need after this call
-    if (HasAtLoginFlag(AT_LOGIN_RESET_TALENTS))
-        RemoveAtLoginFlag(AT_LOGIN_RESET_TALENTS, true);
-
-    if (!m_usedTalentCount)
-        no_cost = true;
-
-    uint32 cost = 0;
-
-    if (!no_cost)
-    {
-        cost = resetTalentsCost();
-
-        if (GetMoney() < cost)
-        {
-            SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, nullptr, 0, 0);
-            return false;
-        }
-    }
-
-    for (unsigned int i = 0; i < sTalentStore.GetNumRows(); ++i)
-    {
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
-
-        if (!talentInfo)
-            continue;
-
-        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
-
-        if (!talentTabInfo)
-            continue;
-
-        // unlearn only talents for character class
-        // some spell learned by one class as normal spells or know at creation but another class learn it as talent,
-        // to prevent unexpected lost normal learned spell skip another class talents
-        if ((getClassMask() & talentTabInfo->ClassMask) == 0)
-            continue;
-
-        for (unsigned int j : talentInfo->RankID)
-            if (j)
-                removeSpell(j, !IsPassiveSpell(j), false);
-    }
-
-    UpdateFreeTalentPoints(false);
-
-    if (!no_cost)
-    {
-        ModifyMoney(-(int32)cost);
-
-        m_resetTalentsCost = cost;
-        m_resetTalentsTime = time(nullptr);
-    }
-
-    // FIXME: remove pet before or after unlearn spells? for now after unlearn to allow removing of talent related, pet affecting auras
-    RemovePet(PET_SAVE_REAGENTS);
-    return true;
+	return resetTalentsInternal(no_cost, true);
 }
 
 Mail* Player::GetMail(uint32 id)
@@ -14757,7 +14771,7 @@ void Player::_LoadIntoDataField(const char* data, uint32 startOffset, uint32 cou
 
 bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 {
-    //       0     1        2     3     4      5       6      7   8      9            10            11
+    //        0     1        2     3     4      5       6      7   8      9            10            11
     // SELECT guid, account, name, race, class, gender, level, xp, money, playerBytes, playerBytes2, playerFlags,"
     // 12          13          14          15   16           17        18         19         20         21          22           23                 24
     //"position_x, position_y, position_z, map, orientation, taximask, cinematic, totaltime, leveltime, rest_bonus, logout_time, is_logout_resting, resettalents_cost,"
@@ -14765,8 +14779,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, dungeon_difficulty,"
     // 39           40                41                42                    43          44          45              46           47              48
     //"arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk,"
-    // 49      50      51      52      53      54      55             56              57      58           59
-    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
+    // 49      50      51      52      53      54      55             56              57      58           59          60                     61
+    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult* result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
     if (!result)
@@ -14844,6 +14858,10 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     // Action bars state
     SetByteValue(PLAYER_FIELD_BYTES, 2, fields[59].GetUInt8());
+
+	// Multi talent
+	m_currentTalentTemplate = fields[60].GetUInt32();
+	m_maxTalentTemplate = fields[61].GetUInt32();
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
     for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
@@ -16432,7 +16450,7 @@ void Player::SaveToDB()
                               "trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, "
                               "death_expire_time, taxi_path, arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, "
                               "todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, health, power1, power2, power3, "
-                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars) "
+                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate) "
                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, "
@@ -16440,7 +16458,7 @@ void Player::SaveToDB()
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                              "?, ?, ?, ?, ?, ?, ?) ");
+                              "?, ?, ?, ?, ?, ?, ?, ?, ?) ");
 
     uberInsert.addUInt32(GetGUIDLow());
     uberInsert.addUInt32(GetSession()->GetAccountId());
@@ -16568,6 +16586,10 @@ void Player::SaveToDB()
     uberInsert.addString(ss);
 
     uberInsert.addUInt32(uint32(GetByteValue(PLAYER_FIELD_BYTES, 2)));
+
+	// Multi talent
+	uberInsert.addUInt32(m_currentTalentTemplate);
+	uberInsert.addUInt32(m_maxTalentTemplate);
 
     uberInsert.Execute();
 
@@ -20962,120 +20984,131 @@ void Player::HandleFall(MovementInfo const& movementInfo)
     }
 }
 
+// Internal learn talent function for multi talent
+bool Player::LearnTalentInternal(uint32 talentId, uint32 talentRank, bool force)
+{
+	uint32 CurTalentPoints = GetFreeTalentPoints();
+
+	if (CurTalentPoints == 0 && !force)
+		return false;
+
+	if (talentRank >= MAX_TALENT_RANK)
+		return false;
+
+	TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
+
+	if (!talentInfo)
+		return false;
+
+	TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+
+	if (!talentTabInfo)
+		return false;
+
+	// prevent learn talent for different class (cheating)
+	if ((getClassMask() & talentTabInfo->ClassMask) == 0)
+		return false;
+
+	// find current max talent rank
+	uint32 curtalent_maxrank = 0;
+	for (int32 k = MAX_TALENT_RANK - 1; k > -1; --k)
+	{
+		if (talentInfo->RankID[k] && HasSpell(talentInfo->RankID[k]))
+		{
+			curtalent_maxrank = k + 1;
+			break;
+		}
+	}
+
+	// we already have same or higher talent rank learned
+	if (curtalent_maxrank >= (talentRank + 1))
+		return false;
+
+	// check if we have enough talent points
+	if (CurTalentPoints < (talentRank - curtalent_maxrank + 1) && !force)
+		return false;
+
+	// Check if it requires another talent
+	if (talentInfo->DependsOn > 0 && !force)
+	{
+		if (TalentEntry const* depTalentInfo = sTalentStore.LookupEntry(talentInfo->DependsOn))
+		{
+			bool hasEnoughRank = false;
+			for (int i = talentInfo->DependsOnRank; i < MAX_TALENT_RANK; ++i)
+			{
+				if (depTalentInfo->RankID[i] != 0)
+					if (HasSpell(depTalentInfo->RankID[i]))
+						hasEnoughRank = true;
+			}
+
+			if (!hasEnoughRank)
+				return false;
+		}
+	}
+
+	// Check if it requires spell
+	if (talentInfo->DependsOnSpell && !HasSpell(talentInfo->DependsOnSpell) && !force)
+		return false;
+
+	// Find out how many points we have in this field
+	uint32 spentPoints = 0;
+
+	uint32 tTab = talentInfo->TalentTab;
+	if (talentInfo->Row > 0)
+	{
+		unsigned int numRows = sTalentStore.GetNumRows();
+		for (unsigned int i = 0; i < numRows; ++i)          // Loop through all talents.
+		{
+			// Someday, someone needs to revamp
+			const TalentEntry* tmpTalent = sTalentStore.LookupEntry(i);
+			if (tmpTalent)                                  // the way talents are tracked
+			{
+				if (tmpTalent->TalentTab == tTab)
+				{
+					for (int j = 0; j < MAX_TALENT_RANK; ++j)
+					{
+						if (tmpTalent->RankID[j] != 0)
+						{
+							if (HasSpell(tmpTalent->RankID[j]))
+							{
+								spentPoints += j + 1;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// not have required min points spent in talent tree
+	if (spentPoints < (talentInfo->Row * MAX_TALENT_RANK) && !force)
+		return false;
+
+	// spell not set in talent.dbc
+	uint32 spellid = talentInfo->RankID[talentRank];
+	if (spellid == 0)
+	{
+		sLog.outError("Talent.dbc have for talent: %u Rank: %u spell id = 0", talentId, talentRank);
+		return false;
+	}
+
+	// already known
+	if (HasSpell(spellid))
+		return false;
+
+	// learn! (other talent ranks will unlearned at learning)
+	learnSpell(spellid, false, true);
+	DETAIL_LOG("TalentID: %u Rank: %u Spell: %u\n", talentId, talentRank, spellid);
+
+	return true;
+}
+
 void Player::LearnTalent(uint32 talentId, uint32 talentRank)
 {
-    uint32 CurTalentPoints = GetFreeTalentPoints();
-
-    if (CurTalentPoints == 0)
-        return;
-
-    if (talentRank >= MAX_TALENT_RANK)
-        return;
-
-    TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
-
-    if (!talentInfo)
-        return;
-
-    TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
-
-    if (!talentTabInfo)
-        return;
-
-    // prevent learn talent for different class (cheating)
-    if ((getClassMask() & talentTabInfo->ClassMask) == 0)
-        return;
-
-    // find current max talent rank
-    uint32 curtalent_maxrank = 0;
-    for (int32 k = MAX_TALENT_RANK - 1; k > -1; --k)
-    {
-        if (talentInfo->RankID[k] && HasSpell(talentInfo->RankID[k]))
-        {
-            curtalent_maxrank = k + 1;
-            break;
-        }
-    }
-
-    // we already have same or higher talent rank learned
-    if (curtalent_maxrank >= (talentRank + 1))
-        return;
-
-    // check if we have enough talent points
-    if (CurTalentPoints < (talentRank - curtalent_maxrank + 1))
-        return;
-
-    // Check if it requires another talent
-    if (talentInfo->DependsOn > 0)
-    {
-        if (TalentEntry const* depTalentInfo = sTalentStore.LookupEntry(talentInfo->DependsOn))
-        {
-            bool hasEnoughRank = false;
-            for (int i = talentInfo->DependsOnRank; i < MAX_TALENT_RANK; ++i)
-            {
-                if (depTalentInfo->RankID[i] != 0)
-                    if (HasSpell(depTalentInfo->RankID[i]))
-                        hasEnoughRank = true;
-            }
-
-            if (!hasEnoughRank)
-                return;
-        }
-    }
-
-    // Check if it requires spell
-    if (talentInfo->DependsOnSpell && !HasSpell(talentInfo->DependsOnSpell))
-        return;
-
-    // Find out how many points we have in this field
-    uint32 spentPoints = 0;
-
-    uint32 tTab = talentInfo->TalentTab;
-    if (talentInfo->Row > 0)
-    {
-        unsigned int numRows = sTalentStore.GetNumRows();
-        for (unsigned int i = 0; i < numRows; ++i)          // Loop through all talents.
-        {
-            // Someday, someone needs to revamp
-            const TalentEntry* tmpTalent = sTalentStore.LookupEntry(i);
-            if (tmpTalent)                                  // the way talents are tracked
-            {
-                if (tmpTalent->TalentTab == tTab)
-                {
-                    for (int j = 0; j < MAX_TALENT_RANK; ++j)
-                    {
-                        if (tmpTalent->RankID[j] != 0)
-                        {
-                            if (HasSpell(tmpTalent->RankID[j]))
-                            {
-                                spentPoints += j + 1;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // not have required min points spent in talent tree
-    if (spentPoints < (talentInfo->Row * MAX_TALENT_RANK))
-        return;
-
-    // spell not set in talent.dbc
-    uint32 spellid = talentInfo->RankID[talentRank];
-    if (spellid == 0)
-    {
-        sLog.outError("Talent.dbc have for talent: %u Rank: %u spell id = 0", talentId, talentRank);
-        return;
-    }
-
-    // already known
-    if (HasSpell(spellid))
-        return;
-
-    // learn! (other talent ranks will unlearned at learning)
-    learnSpell(spellid, false, true);
-    DETAIL_LOG("TalentID: %u Rank: %u Spell: %u\n", talentId, talentRank, spellid);
+	if (LearnTalentInternal(talentId, talentRank))
+	{
+		sMultiTalentMgr.AddLearnRecord(this, talentId, talentRank);
+	}
 }
 
 void Player::UpdateFallInformationIfNeed(MovementInfo const& minfo, uint16 opcode)

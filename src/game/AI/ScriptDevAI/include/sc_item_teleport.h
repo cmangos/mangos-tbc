@@ -25,6 +25,7 @@ namespace Teleport
 		ACTIVATE_FLIGHT      = 4,
 		QUERY_CURRENCY       = 5,
 		TRANSMOGRIFY_MENU    = 6,
+		MULTI_TALENT_MENU    = 7
 	};
 
 	enum TeleportMenuItemCampOrder

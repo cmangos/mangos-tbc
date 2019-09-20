@@ -1406,6 +1406,15 @@ class Player : public Unit
 		bool ModifyCurrency(uint32 curid, int32 amount);
 		std::vector<CustomCurrencyOwnedPair> GetOwnedCustomCurrencies();
 
+		/*********************************************************/
+		/***                 MULTI TALENT SYSTEM               ***/
+		/*********************************************************/
+		uint32 GetCurrentTalentTemplate() { return m_currentTalentTemplate; }
+		uint32 GetMaxTalentTemplate() { return m_maxTalentTemplate; }
+		bool LearnTalentInternal(uint32 talentId, uint32 talentRank, bool force = false);
+		uint32 m_currentTalentTemplate = 0;
+		uint32 m_maxTalentTemplate = 0;
+
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
         /*********************************************************/
@@ -1551,7 +1560,8 @@ class Player : public Unit
         uint32 GetFreeTalentPoints() const { return GetUInt32Value(PLAYER_CHARACTER_POINTS1); }
         void SetFreeTalentPoints(uint32 points) { SetUInt32Value(PLAYER_CHARACTER_POINTS1, points); }
         void UpdateFreeTalentPoints(bool resetIfNeed = true);
-        bool resetTalents(bool no_cost = false);
+		bool resetTalentsInternal(bool no_cost, bool reset_template);
+		bool resetTalents(bool no_cost = false);
         uint32 resetTalentsCost() const;
         void InitTalentForLevel();
         void LearnTalent(uint32 talentId, uint32 talentRank);

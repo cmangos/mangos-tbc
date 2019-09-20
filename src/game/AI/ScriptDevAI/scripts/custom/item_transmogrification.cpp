@@ -7,7 +7,9 @@
  **/
 
 #include "item_transmogrification.h"
+#include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
+#include "Pomelo/CustomCurrencyMgr.h"
 #include "AI/ScriptDevAI/include/sc_gossip.h"
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "Tools/Language.h"
@@ -105,8 +107,23 @@ void GenerateTransmogrificationRestoreModelGossipMenu(Player* pPlayer, ObjectGui
 	pPlayer->SEND_GOSSIP_MENU(100000 - 1003, guid);
 }
 
+bool CheckTransmogrificationPermission(Player* pPlayer)
+{
+    uint32 permission = sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_PERMISSION);
+    return pPlayer->GetSession()->GetSecurity() >= permission;
+}
+
 bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 {
+	if (sender < 80002 || sender > 80005) return false;
+
+	if (!CheckTransmogrificationPermission(pPlayer))
+	{
+		pPlayer->PlayerTalkClass->CloseGossip();
+		pPlayer->GetSession()->SendNotification(LANG_NO_PERMISSION_TO_USE);
+		return true;
+	}
+
     if (sender == 80002)
 	{
 		switch(action)
@@ -146,6 +163,50 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 		Item* pItem = pPlayer->GetItemByPos(INVENTORY_SLOT_BAG_0, uint8(action));
 		if (pItem)
 		{
+			uint32 cost = 0;
+			uint32 balance = 0;
+			uint32 currency_id;
+			CustomCurrencyInfo currency_info;
+			switch(sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_COST_TYPE))
+			{
+				case TRANSMOG_COST_MONEY:
+					cost = sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_COST_VALUE);
+					if (pPlayer->GetMoney() < cost)
+					{
+						pPlayer->PlayerTalkClass->CloseGossip();
+						pPlayer->GetSession()->SendNotification(LANG_TRANSMOG_NO_MONEY);
+						return true;
+					}
+					pPlayer->ModifyMoney(-1 * cost);
+					break;
+				case TRANSMOG_COST_CUSTOM_CURRENCY:
+					cost = sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_COST_VALUE);
+					currency_id = sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_COST_CURRENCY);
+					balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id);
+					if (balance < cost)
+					{
+						pPlayer->PlayerTalkClass->CloseGossip();
+						currency_info = sCustomCurrencyMgr.GetCurrencyInfo(currency_id);
+						pPlayer->GetSession()->SendNotification(
+							LANG_TELE_STORE_NO_CURRENCY_TO_BUY, 
+							cost,
+							currency_info.name,
+							balance,
+							currency_info.name);
+						return true;
+					}
+					sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id, -1 * cost);
+					pPlayer->GetSession()->SendNotification(
+						LANG_TELE_STORE_PAID_WITH_CURRENCY, 
+						currency_info.name,
+						cost,
+						currency_info.name,
+						balance - cost);
+					break;
+				case TRANSMOG_COST_FREE:
+				default:
+					break;
+			}
 			sTransmogrificationMgr.TransmogrifyItemFromTempStore(pItem, (EquipmentSlots)action);
 			pPlayer->PlayerTalkClass->CloseGossip();
 			pPlayer->GetSession()->SendNotification(LANG_TRANSMOG_APPLY_OK);

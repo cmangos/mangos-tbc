@@ -7,7 +7,9 @@
  **/
 
 #include "item_multi_talent.h"
+#include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/MultiTalentMgr.h"
+#include "Pomelo/CustomCurrencyMgr.h"
 #include "AI/ScriptDevAI/include/sc_gossip.h"
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "Tools/Language.h"
@@ -32,8 +34,23 @@ void GenerateMultiTalentGossipMenu(Player* pPlayer, ObjectGuid guid)
 	pPlayer->SEND_GOSSIP_MENU(100000 - 1000, guid);
 }
 
+bool CheckCreateTalentTemplatePermission(Player* pPlayer)
+{
+    uint32 permission = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_PERMISSION);
+    return pPlayer->GetSession()->GetSecurity() >= permission;
+}
+
 bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 {
+	if (sender < 80006 || sender > 80007) return false;
+
+	if (!CheckCreateTalentTemplatePermission(pPlayer))
+	{
+		pPlayer->PlayerTalkClass->CloseGossip();
+		pPlayer->GetSession()->SendNotification(LANG_NO_PERMISSION_TO_USE);
+		return true;
+	}
+
 	if (sender == 80006)
 	{
 		if (action > pPlayer->GetMaxTalentTemplate())
@@ -57,11 +74,63 @@ bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sen
 	}
 	else if (sender == 80007)
 	{
-		// TODO: Check limitation
-        //pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_CREATE_EXCEED);
+		// Check limitation
+		uint32 limit = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_MAX);
+		if (pPlayer->GetMaxTalentTemplate() >= limit - 1)
+		{
+        	pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_CREATE_EXCEED);
+			pPlayer->PlayerTalkClass->CloseGossip();
+			return true;
+		}
+		// Cost
+		uint32 cost = 0;
+		uint32 balance = 0;
+		uint32 currency_id;
+		CustomCurrencyInfo currency_info;
+		switch(sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_COST_TYPE))
+		{
+			case MULTI_TALENT_COST_MONEY:
+				cost = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_COST_VALUE);
+				if (pPlayer->GetMoney() < cost)
+				{
+					pPlayer->PlayerTalkClass->CloseGossip();
+					pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_NO_MONEY);
+					return true;
+				}
+				pPlayer->ModifyMoney(-1 * cost);
+				break;
+			case MULTI_TALENT_COST_CUSTOM_CURRENCY:
+				cost = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_COST_VALUE);
+				currency_id = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_COST_CURRENCY);
+				balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id);
+				if (balance < cost)
+				{
+					pPlayer->PlayerTalkClass->CloseGossip();
+					currency_info = sCustomCurrencyMgr.GetCurrencyInfo(currency_id);
+					pPlayer->GetSession()->SendNotification(
+						LANG_TELE_STORE_NO_CURRENCY_TO_BUY, 
+						cost,
+						currency_info.name,
+						balance,
+						currency_info.name);
+					return true;
+				}
+				sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id, -1 * cost);
+				pPlayer->GetSession()->SendNotification(
+					LANG_TELE_STORE_PAID_WITH_CURRENCY, 
+					currency_info.name,
+					cost,
+					currency_info.name,
+					balance - cost);
+				break;
+			case MULTI_TALENT_COST_FREE:
+			default:
+				break;
+		}
+
 		sMultiTalentMgr.IncreaseMaxTemplate(pPlayer);
         sMultiTalentMgr.SwichTemplate(pPlayer, pPlayer->GetMaxTalentTemplate());
-        pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_CREATE_EXCEED);
+        pPlayer->GetSession()->SendNotification(LANG_MULTI_TALENT_CREATE_OK);
         pPlayer->PlayerTalkClass->CloseGossip();
 		return true;
 	}

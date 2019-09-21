@@ -66,6 +66,7 @@
 #include "Weather/Weather.h"
 #include "World/WorldState.h"
 #include "Cinematics/CinematicMgr.h"
+#include "Pomelo/DBConfigMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -803,6 +804,8 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
     setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
+
+    sDBConfigMgr.LoadFromDB();
 
     sLog.outString();
 }

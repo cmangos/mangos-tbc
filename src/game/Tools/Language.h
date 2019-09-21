@@ -1045,7 +1045,11 @@ enum MangosStrings
     LANG_MULTI_TALENT_TEMPLATE_IN_USE   = 80019,
     LANG_MULTI_TALENT_SWITCH_OK         = 80020,
     LANG_MULTI_TALENT_CREATE_EXCEED     = 80021,
-    LANG_MULTI_TALENT_CREATE_OK         = 80022
+    LANG_MULTI_TALENT_CREATE_OK         = 80022,
+    LANG_TRANSMOG_NO_MONEY              = 80023,
+    LANG_NO_PERMISSION_TO_USE           = 80024,
+    LANG_MULTI_TALENT_NO_MONEY          = 80025,
+    LANG_LEVEL_NOT_REACHED              = 80026
 
     // Use for custom patches             11000-11999
 

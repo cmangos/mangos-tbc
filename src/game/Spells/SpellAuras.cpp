@@ -2675,6 +2675,12 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             case 28084:                                     // Negative Charge
                 target->RemoveAurasDueToSpell(29660);
                 return;
+            case 29104:                                     // Anub'Rekhan Aura
+            {
+                if (m_removeMode == AURA_REMOVE_BY_DEATH && target->GetTypeId() == TYPEID_PLAYER)
+                    target->CastSpell(target, 29105, TRIGGERED_OLD_TRIGGERED, nullptr, this);
+                return;
+            }
             case 30019:                                     // Control Piece - Chess
             {
                 if (target->GetTypeId() != TYPEID_PLAYER)
@@ -2726,8 +2732,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
                 return;
             }
-            case 35016:										// Interrupt shutdown
-            case 35176:										// Interrupt shutdown (ara)
+            case 35016:                                     // Interrupt shutdown
+            case 35176:                                     // Interrupt shutdown (ara)
             {
                 if (m_removeMode == AURA_REMOVE_BY_DEFAULT)
                 {

@@ -6848,6 +6848,12 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     m_caster->SummonCreature(16474, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 30000);
                     return;
                 }
+                case 29379:                                 // Despawn Crypt Guards
+                {
+                    if (unitTarget)
+                        ((Creature*)unitTarget)->ForcedDespawn();
+                    return;
+                }
                 case 29395:                                 // Break Kaliri Egg
                 {
                     uint32 creature_id;

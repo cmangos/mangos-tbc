@@ -26,7 +26,9 @@ namespace Teleport
 		ACTIVATE_FLIGHT      = 4,
 		QUERY_CURRENCY       = 5,
 		TRANSMOGRIFY_MENU    = 6,
-		MULTI_TALENT_MENU    = 7
+		MULTI_TALENT_MENU    = 7,
+        TRAIN                = 8,
+		TRAIN_CLASS          = 9
 	};
 
 	enum TeleportMenuItemFactionOrder

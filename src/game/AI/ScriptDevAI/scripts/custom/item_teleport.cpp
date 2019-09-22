@@ -12,6 +12,7 @@
 #include "Tools/Language.h"
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
+#include "Pomelo/DBConfigMgr.h"
 #include "item_transmogrification.h"
 #include "item_multi_talent.h"
 
@@ -94,16 +95,47 @@ bool FindActionItem(uint32 menu_id, uint32 action, TELE_ITEM& item)
 	return false;
 }
 
+void LearnAllGreenClassSpells(Player* pPlayer, Creature* pCreature)
+{
+    TrainerSpellData const* spells = pCreature->GetTrainerTemplateSpells();
+    if (!spells) return;
+    for (const auto& itr : spells->spellList)
+    {
+        TrainerSpell const* tSpell = &itr.second;
+
+        uint32 reqLevel = 0;
+        if (!pPlayer->IsSpellFitByClassAndRace(tSpell->learnedSpell, &reqLevel))
+            continue;
+
+        if (tSpell->conditionId && !sObjectMgr.IsPlayerMeetToCondition(tSpell->conditionId, pPlayer, pCreature->GetMap(), pCreature, CONDITION_FROM_TRAINER))
+            continue;
+
+        reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
+
+        TrainerSpellState state = pPlayer->GetTrainerSpellState(tSpell, reqLevel);
+
+        if (state == TrainerSpellState::TRAINER_SPELL_GREEN)
+        {
+            pPlayer->learnSpell(itr.first, true);
+        }
+    }
+}
+
 bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 {
 	TELE_ITEM item;
 
 	// Delete previous store npc
-	if (npc_container[pObj->GetObjectGuid()])
+	if (pObj && pObj->GetObjectGuid() && npc_container[pObj->GetObjectGuid()])
 	{
 		try 
 		{
-			npc_container[pObj->GetObjectGuid()]->RemoveFromWorld();
+            auto pCreature = npc_container[pObj->GetObjectGuid()];
+            if (pCreature)
+            {
+                pCreature->RemoveFromWorld();
+            }
+            npc_container.erase(pObj->GetObjectGuid());
 		}
 		catch (...) 
 		{
@@ -129,6 +161,8 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	}
 
 	std::vector<CustomCurrencyOwnedPair> currencies;
+    uint8 classId;
+    uint32 npcId;
 
 	// TODO: Support more functions
 	switch (item.function)
@@ -201,9 +235,34 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		Creature* pStoreNpc;
 		pStoreNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
 		pStoreNpc->SetObjectScale(0.000001f);
-		pPlayer->GetSession()->SendListInventory(pStoreNpc->GetObjectGuid());
+		
 		npc_container[pObj->GetObjectGuid()] = pStoreNpc;
 		break;
+    case TELE_FUNC::TRAIN:
+        Creature* pTrainNpc;
+        pTrainNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
+        pTrainNpc->SetObjectScale(0.000001f);
+        pPlayer->PlayerTalkClass->CloseGossip();
+		LearnAllGreenClassSpells(pPlayer, pTrainNpc);
+        npc_container[pObj->GetObjectGuid()] = pTrainNpc;
+        break;
+    case TELE_FUNC::TRAIN_CLASS:
+        Creature* pTrainClassNpc;
+		classId = pPlayer->getClass();
+		if (IsAlliance(pPlayer->getRace())) 
+		{
+			npcId = sDBConfigMgr.GetUInt32("stone.trainer.alliance." + std::to_string(classId));
+		}
+		else
+		{
+			npcId = sDBConfigMgr.GetUInt32("stone.trainer.horde." + std::to_string(classId));
+		}
+        pTrainClassNpc = pPlayer->SummonCreature(npcId, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
+        pTrainClassNpc->SetObjectScale(0.000001f);
+		pPlayer->PlayerTalkClass->CloseGossip();
+		LearnAllGreenClassSpells(pPlayer, pTrainClassNpc);
+        npc_container[pObj->GetObjectGuid()] = pTrainClassNpc;
+        break;
 	case TELE_FUNC::BANK:
 		pPlayer->GetSession()->SendShowBank(pObj->GetObjectGuid());
 		pPlayer->PlayerTalkClass->CloseGossip();

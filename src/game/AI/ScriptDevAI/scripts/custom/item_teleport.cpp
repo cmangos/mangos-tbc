@@ -235,7 +235,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		Creature* pStoreNpc;
 		pStoreNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
 		pStoreNpc->SetObjectScale(0.000001f);
-		
+        pPlayer->GetSession()->SendListInventory(pStoreNpc->GetObjectGuid());
 		npc_container[pObj->GetObjectGuid()] = pStoreNpc;
 		break;
     case TELE_FUNC::TRAIN:

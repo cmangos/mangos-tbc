@@ -239,6 +239,62 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		npc_container[pObj->GetObjectGuid()] = pStoreNpc;
 		break;
     case TELE_FUNC::TRAIN:
+        // Permission check
+        if (pPlayer->GetSession()->GetSecurity() < (AccountTypes)item.permission_required)
+        {
+            pPlayer->PlayerTalkClass->CloseGossip();
+            pPlayer->GetSession()->SendNotification(LANG_NO_PERMISSION_TO_USE);
+            return true;
+        }
+
+        // Level check
+        if (pPlayer->getLevel() < item.level_required)
+        {
+            pPlayer->PlayerTalkClass->CloseGossip();
+            pPlayer->GetSession()->SendNotification(LANG_LEVEL_NOT_REACHED, item.level_required);
+            return true;
+        }
+
+        // Cost
+        if (item.cost_type == TELE_COST::COST_MONEY)
+        {
+            if (pPlayer->GetMoney() < item.cost_amount)
+            {
+                pPlayer->GetSession()->SendNotification(LANG_TELE_NO_MONEY_TO_USE);
+                pPlayer->PlayerTalkClass->CloseGossip();
+            }
+            else
+            {
+                pPlayer->ModifyMoney(-1 * item.cost_amount);
+            }
+        }
+        else if (item.cost_type == TELE_COST::COST_CUSTOM_CURRENCY)
+        {
+            uint32 balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), item.cost_currency_id);
+            auto currency_info = sCustomCurrencyMgr.GetCurrencyInfo(item.cost_currency_id);
+            if (item.cost_amount > balance)
+            {
+                pPlayer->PlayerTalkClass->CloseGossip();
+                pPlayer->GetSession()->SendNotification(
+                    LANG_TELE_STORE_NO_CURRENCY_TO_BUY,
+                    item.cost_amount,
+                    currency_info.name,
+                    balance,
+                    currency_info.name);
+                return true;
+            }
+            else
+            {
+                sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), item.cost_currency_id, -1 * item.cost_amount);
+                pPlayer->GetSession()->SendNotification(
+                    LANG_TELE_STORE_PAID_WITH_CURRENCY,
+                    currency_info.name,
+                    item.cost_amount,
+                    currency_info.name,
+                    balance - item.cost_amount);
+            }
+        }
+
         Creature* pTrainNpc;
         pTrainNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
         pTrainNpc->SetObjectScale(0.000001f);
@@ -247,6 +303,62 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
         npc_container[pObj->GetObjectGuid()] = pTrainNpc;
         break;
     case TELE_FUNC::TRAIN_CLASS:
+        // Permission check
+        if (pPlayer->GetSession()->GetSecurity() < (AccountTypes)item.permission_required)
+        {
+            pPlayer->PlayerTalkClass->CloseGossip();
+            pPlayer->GetSession()->SendNotification(LANG_NO_PERMISSION_TO_USE);
+            return true;
+        }
+
+        // Level check
+        if (pPlayer->getLevel() < item.level_required)
+        {
+            pPlayer->PlayerTalkClass->CloseGossip();
+            pPlayer->GetSession()->SendNotification(LANG_LEVEL_NOT_REACHED, item.level_required);
+            return true;
+        }
+
+        // Cost
+        if (item.cost_type == TELE_COST::COST_MONEY)
+        {
+            if (pPlayer->GetMoney() < item.cost_amount)
+            {
+                pPlayer->GetSession()->SendNotification(LANG_TELE_NO_MONEY_TO_USE);
+                pPlayer->PlayerTalkClass->CloseGossip();
+            }
+            else
+            {
+                pPlayer->ModifyMoney(-1 * item.cost_amount);
+            }
+        }
+        else if (item.cost_type == TELE_COST::COST_CUSTOM_CURRENCY)
+        {
+            uint32 balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), item.cost_currency_id);
+            auto currency_info = sCustomCurrencyMgr.GetCurrencyInfo(item.cost_currency_id);
+            if (item.cost_amount > balance)
+            {
+                pPlayer->PlayerTalkClass->CloseGossip();
+                pPlayer->GetSession()->SendNotification(
+                    LANG_TELE_STORE_NO_CURRENCY_TO_BUY,
+                    item.cost_amount,
+                    currency_info.name,
+                    balance,
+                    currency_info.name);
+                return true;
+            }
+            else
+            {
+                sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), item.cost_currency_id, -1 * item.cost_amount);
+                pPlayer->GetSession()->SendNotification(
+                    LANG_TELE_STORE_PAID_WITH_CURRENCY,
+                    currency_info.name,
+                    item.cost_amount,
+                    currency_info.name,
+                    balance - item.cost_amount);
+            }
+        }
+
         Creature* pTrainClassNpc;
 		classId = pPlayer->getClass();
 		if (IsAlliance(pPlayer->getRace())) 

@@ -141,7 +141,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_originalEntry(0), m_gameEventVendorId(0), m_ai(nullptr),
     m_isInvisible(false), m_ignoreMMAP(false), m_forceAttackingCapability(false),
     m_noXP(false), m_noLoot(false), m_noReputation(false),
-    m_ignoreRangedTargets(false), m_countSpawns(false),
+    m_countSpawns(false),
     m_creatureInfo(nullptr)
 {
     m_regenTimer = 200;

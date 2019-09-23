@@ -117,7 +117,7 @@ void LearnAllGreenClassSpells(Player* pPlayer, Creature* pCreature)
 
         if (state == TrainerSpellState::TRAINER_SPELL_GREEN)
         {
-            pPlayer->learnSpell(itr.first, true);
+            pPlayer->learnSpell(itr.first, false);
         }
     }
 }

@@ -67,6 +67,7 @@
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
 #include "Pomelo/MultiTalentMgr.h"
+#include "Pomelo/DungeonSwitchMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -1873,6 +1874,14 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
     {
         uint32 miscRequirement = 0;
         AreaLockStatus lockStatus = GetAreaTriggerLockStatus(at, miscRequirement);
+
+        // Pomelo dungeon switch
+        uint32 mapId = at->target_mapId;
+        if (sDungeonSwitchMgr.IsLocked(mapId) && GetSession()->GetSecurity() < SEC_GAMEMASTER)
+        {
+            lockStatus = AREA_LOCKSTATUS_NOT_ALLOWED;
+        }
+
         if (lockStatus != AREA_LOCKSTATUS_OK)
         {
             // Teleport not requested by area-trigger
@@ -19451,6 +19460,8 @@ void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaTrigg
             GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_TOO_MANY_INSTANCES);
             break;
         case AREA_LOCKSTATUS_NOT_ALLOWED:
+            GetSession()->SendNotification(LANG_DUNGEON_NOT_AVAILABLE);
+            break;
         case AREA_LOCKSTATUS_RAID_LOCKED:
         case AREA_LOCKSTATUS_UNKNOWN_ERROR:
             // ToDo: SendAreaTriggerMessage or Transfer Abort for these cases!

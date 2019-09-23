@@ -128,7 +128,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	// Delete previous store npc
 	if (pObj && pObj->GetObjectGuid() && npc_container[pObj->GetObjectGuid()])
 	{
-		try 
+		try // Need enable /EHa in VC 
 		{
             auto pCreature = npc_container[pObj->GetObjectGuid()];
             if (pCreature)

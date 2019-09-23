@@ -67,6 +67,7 @@
 #include "World/WorldState.h"
 #include "Cinematics/CinematicMgr.h"
 #include "Pomelo/DBConfigMgr.h"
+#include "Pomelo/DungeonSwitchMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -805,7 +806,9 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
     setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
 
+    // Pomelo advanced features
     sDBConfigMgr.LoadFromDB();
+    sDungeonSwitchMgr.LoadFromDB();
 
     sLog.outString();
 }

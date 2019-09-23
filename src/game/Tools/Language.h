@@ -1050,7 +1050,9 @@ enum MangosStrings
     LANG_NO_PERMISSION_TO_USE           = 80024,
     LANG_MULTI_TALENT_NO_MONEY          = 80025,
     LANG_LEVEL_NOT_REACHED              = 80026,
-    LANG_DUNGEON_NOT_AVAILABLE          = 80027
+    LANG_DUNGEON_NOT_AVAILABLE          = 80027,
+    LANG_CLAIM_DAILY_REWARD_OK          = 80028,
+    LANG_CLAIM_DAILY_REWARD_FAIL        = 80029
 
     // Use for custom patches             11000-11999
 

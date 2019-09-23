@@ -28,7 +28,8 @@ namespace Teleport
 		TRANSMOGRIFY_MENU    = 6,
 		MULTI_TALENT_MENU    = 7,
         TRAIN                = 8,
-		TRAIN_CLASS          = 9
+		TRAIN_CLASS          = 9,
+		DAILY_REWARD         = 10
 	};
 
 	enum TeleportMenuItemFactionOrder

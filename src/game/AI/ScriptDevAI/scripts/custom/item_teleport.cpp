@@ -13,6 +13,7 @@
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
 #include "Pomelo/DBConfigMgr.h"
+#include "Pomelo/DailySignInRewardMgr.h"
 #include "item_transmogrification.h"
 #include "item_multi_talent.h"
 
@@ -403,6 +404,40 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		break;
 	case TELE_FUNC::MULTI_TALENT_MENU:
 		GenerateMultiTalentGossipMenu(pPlayer, pObj->GetObjectGuid());
+		break;
+	case TELE_FUNC::DAILY_REWARD:
+        // Permission check
+        if (pPlayer->GetSession()->GetSecurity() < (AccountTypes)item.permission_required)
+        {
+            pPlayer->PlayerTalkClass->CloseGossip();
+            pPlayer->GetSession()->SendNotification(LANG_NO_PERMISSION_TO_USE);
+            return true;
+        }
+
+        // Level check
+        if (pPlayer->getLevel() < item.level_required)
+        {
+            pPlayer->PlayerTalkClass->CloseGossip();
+            pPlayer->GetSession()->SendNotification(LANG_LEVEL_NOT_REACHED, item.level_required);
+            return true;
+        }
+
+		if (sDailySignInRewardMgr.ClaimReward(pPlayer))
+		{
+    		uint32 amount = sDBConfigMgr.GetUInt32("reward.daily.amount");
+    		uint32 currencyId = sDBConfigMgr.GetUInt32("reward.daily.currency");
+			ChatHandler(pPlayer).PSendSysMessage(
+				LANG_CLAIM_DAILY_REWARD_OK,
+				sCustomCurrencyMgr.GetCurrencyInfo(currencyId).name.c_str(),
+				amount);
+            pPlayer->PlayerTalkClass->CloseGossip();
+		}
+		else
+		{
+            pPlayer->GetSession()->SendNotification(LANG_CLAIM_DAILY_REWARD_FAIL);
+            pPlayer->PlayerTalkClass->CloseGossip();
+		}
+
 		break;
 	default:
 		return false;

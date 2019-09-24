@@ -96,10 +96,11 @@ bool FindActionItem(uint32 menu_id, uint32 action, TELE_ITEM& item)
 	return false;
 }
 
-void LearnAllGreenClassSpells(Player* pPlayer, Creature* pCreature)
+void LearnAllGreenClassSpells(Player* pPlayer, Creature* pCreature, size_t nonGreenCount = 0)
 {
     TrainerSpellData const* spells = pCreature->GetTrainerTemplateSpells();
     if (!spells) return;
+    size_t non_green = 0;
     for (const auto& itr : spells->spellList)
     {
         TrainerSpell const* tSpell = &itr.second;
@@ -119,7 +120,16 @@ void LearnAllGreenClassSpells(Player* pPlayer, Creature* pCreature)
         {
             pPlayer->learnSpell(itr.first, false);
         }
+        else
+        {
+            ++non_green;
+        }
     }
+
+    if (non_green == nonGreenCount)
+        return;
+    else
+        LearnAllGreenClassSpells(pPlayer, pCreature, non_green);
 }
 
 bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)

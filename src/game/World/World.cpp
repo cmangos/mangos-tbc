@@ -68,6 +68,7 @@
 #include "Cinematics/CinematicMgr.h"
 #include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/DungeonSwitchMgr.h"
+#include "Pomelo/InitPlayerItemMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -809,6 +810,7 @@ void World::LoadConfigSettings(bool reload)
     // Pomelo advanced features
     sDBConfigMgr.LoadFromDB();
     sDungeonSwitchMgr.LoadFromDB();
+    sInitPlayerItemMgr.LoadFromDB();
 
     sLog.outString();
 }

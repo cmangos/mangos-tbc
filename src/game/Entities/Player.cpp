@@ -68,6 +68,7 @@
 #include "Pomelo/TransmogrificationMgr.h"
 #include "Pomelo/MultiTalentMgr.h"
 #include "Pomelo/DungeonSwitchMgr.h"
+#include "Pomelo/InitPlayerItemMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -890,6 +891,10 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
 
     for (auto item_id_itr : info->item)
         StoreNewItemInBestSlots(item_id_itr.item_id, item_id_itr.item_amount);
+
+    // Init global items
+    for (auto itr : sInitPlayerItemMgr.ListItems())
+        StoreNewItemInBestSlots(itr.id, itr.amount);
 
     // bags and main-hand weapon must equipped at this moment
     // now second pass for not equipped (offhand weapon/shield if it attempt equipped before main-hand weapon)

@@ -1509,3 +1509,6 @@ INSERT INTO `spell_template` (`Id`,`Category`,`Dispel`,`Mechanic`,`Attributes`,`
 
 -- Patchwerk spell for Hateful Strike mechanics - Source: Classic DBCs
 (28307, 0, 0, 0, 384, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 15, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 'Hateful Strike Primer', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0);
+
+-- Fix radius of summoning spells for Corpse Scarabs used for Anub'Rekhan
+UPDATE spell_template SET EffectRadiusIndex1=16 WHERE id IN (28864, 29105);

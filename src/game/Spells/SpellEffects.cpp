@@ -1567,6 +1567,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 28961:                                 // Summon Corpse Scarabs (10)
+                 {
+                    if (unitTarget->isAlive())
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 28864, TRIGGERED_OLD_TRIGGERED);  // Actual summoning spell
+                    ((Creature*)unitTarget)->ForcedDespawn(2000);
+
+                    return;
+                }
                 case 29200:                                 // Purify Helboar Meat
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)

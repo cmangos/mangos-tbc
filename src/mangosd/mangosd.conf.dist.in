@@ -1268,6 +1268,10 @@ Visibility.AIRelocationNotifyDelay = 1000
 #    Rate.XP.Kill
 #    Rate.XP.Quest
 #    Rate.XP.Explore
+#    Rate.Pet.XP.Kill.TBC (Player lvl >= 60)
+#    Rate.XP.Kill.TBC (Player lvl >= 60)
+#    Rate.XP.Quest.TBC (Player lvl >= 60)
+#    Rate.XP.Explore.TBC (Player lvl >= 60)
 #        XP rates
 #        Default: 1
 #
@@ -1414,6 +1418,10 @@ Rate.Pet.XP.Kill = 1
 Rate.XP.Kill    = 1
 Rate.XP.Quest   = 1
 Rate.XP.Explore = 1
+Rate.Pet.XP.Kill.TBC = 1
+Rate.XP.Kill.TBC    = 1
+Rate.XP.Quest.TBC   = 1
+Rate.XP.Explore.TBC = 1
 Rate.Rest.InGame = 1
 Rate.Rest.Offline.InTavernOrCity = 1
 Rate.Rest.Offline.InWilderness = 1

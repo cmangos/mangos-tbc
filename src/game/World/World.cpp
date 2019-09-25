@@ -389,6 +389,10 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_XP_KILL,                              "Rate.XP.Kill",                              1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_QUEST,                             "Rate.XP.Quest",                             1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE,                           "Rate.XP.Explore",                           1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL_TBC,                      "Rate.Pet.XP.Kill.TBC",                      1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_KILL_TBC,                          "Rate.XP.Kill.TBC",                          1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_QUEST_TBC,                         "Rate.XP.Quest.TBC",                         1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE_TBC,                       "Rate.XP.Explore.TBC",                       1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_GAIN,                      "Rate.Reputation.Gain",                      1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_KILL,             "Rate.Reputation.LowLevel.Kill",             0.2f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_QUEST,            "Rate.Reputation.LowLevel.Quest",            1.0f);

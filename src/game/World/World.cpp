@@ -76,7 +76,7 @@ INSTANTIATE_SINGLETON_1(World);
 
 extern void LoadGameObjectModelList();
 
-volatile bool World::m_stopEvent = false;
+std::atomic<bool> World::m_stopEvent { false };
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
 volatile uint32 World::m_worldLoopCounter = 0;
 

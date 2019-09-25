@@ -28,6 +28,7 @@
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
 
+#include <atomic>
 #include <set>
 #include <list>
 #include <deque>
@@ -637,7 +638,7 @@ class World
         bool configNoReload(bool reload, eConfigFloatValues index, char const* fieldname, float defvalue) const;
         bool configNoReload(bool reload, eConfigBoolValues index, char const* fieldname, bool defvalue) const;
 
-        static volatile bool m_stopEvent;
+        static std::atomic<bool> m_stopEvent;
         static uint8 m_ExitCode;
         uint32 m_ShutdownTimer;
         uint32 m_ShutdownMask;

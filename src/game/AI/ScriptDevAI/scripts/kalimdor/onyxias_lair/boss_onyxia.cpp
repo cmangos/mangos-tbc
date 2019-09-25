@@ -405,7 +405,7 @@ struct boss_onyxiaAI : public CombatAI
                 SetCombatScriptStatus(true);
                 m_creature->RemoveAurasDueToSpell(SPELL_DRAGON_HOVER);
                 float fGroundZ = m_creature->GetMap()->GetHeight(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
-                m_creature->GetMotionMaster()->MoveFlyOrLand(POINT_ID_LAND, m_creature->GetPositionX(), m_creature->GetPositionY(), fGroundZ, false);
+                m_creature->GetMotionMaster()->MovePointTOL(POINT_ID_LAND, m_creature->GetPositionX(), m_creature->GetPositionY(), fGroundZ, false);
                 SetActionReadyStatus(action, false);
                 break;
             }

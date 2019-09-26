@@ -21,7 +21,7 @@
 
 using namespace Teleport;
 
-std::unordered_map<ObjectGuid, Creature*> npc_container;
+//std::unordered_map<ObjectGuid, Creature*> npc_container;
 
 void AddFilteredGossipMenuForPlayer(uint32 menu_id, Player* pPlayer, ObjectGuid guid, TELE_ORDER order)
 {
@@ -137,21 +137,21 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	TELE_ITEM item;
 
 	// Delete previous store npc
-	if (pObj && pObj->GetObjectGuid() && npc_container[pObj->GetObjectGuid()])
-	{
-		try // Need enable /EHa in VC 
-		{
-            auto pCreature = npc_container[pObj->GetObjectGuid()];
-            if (pCreature)
-            {
-                pCreature->RemoveFromWorld();
-            }
-            npc_container.erase(pObj->GetObjectGuid());
-		}
-		catch (...) 
-		{
-		}
-	}
+	//if (pObj && pObj->GetObjectGuid() && npc_container[pObj->GetObjectGuid()])
+	//{
+	//	try // Need enable /EHa in VC 
+	//	{
+ //           auto pCreature = npc_container[pObj->GetObjectGuid()];
+ //           if (pCreature)
+ //           {
+ //               pCreature->RemoveFromWorld();
+ //           }
+ //           npc_container.erase(pObj->GetObjectGuid());
+	//	}
+	//	catch (...) 
+	//	{
+	//	}
+	//}
 
 	if (HandleTransmogrificationGossipMenuSelect(pPlayer, pObj, sender, action)) // Transmogrification
 	{
@@ -247,7 +247,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		pStoreNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
 		pStoreNpc->SetObjectScale(0.000001f);
         pPlayer->GetSession()->SendListInventory(pStoreNpc->GetObjectGuid());
-		npc_container[pObj->GetObjectGuid()] = pStoreNpc;
+		//npc_container[pObj->GetObjectGuid()] = pStoreNpc;
 		break;
     case TELE_FUNC::TRAIN:
         // Permission check
@@ -311,7 +311,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
         pTrainNpc->SetObjectScale(0.000001f);
         pPlayer->PlayerTalkClass->CloseGossip();
 		LearnAllGreenClassSpells(pPlayer, pTrainNpc);
-        npc_container[pObj->GetObjectGuid()] = pTrainNpc;
+        //npc_container[pObj->GetObjectGuid()] = pTrainNpc;
         break;
     case TELE_FUNC::TRAIN_CLASS:
         // Permission check
@@ -384,7 +384,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
         pTrainClassNpc->SetObjectScale(0.000001f);
 		pPlayer->PlayerTalkClass->CloseGossip();
 		LearnAllGreenClassSpells(pPlayer, pTrainClassNpc);
-        npc_container[pObj->GetObjectGuid()] = pTrainClassNpc;
+        //npc_container[pObj->GetObjectGuid()] = pTrainClassNpc;
         break;
 	case TELE_FUNC::BANK:
 		pPlayer->GetSession()->SendShowBank(pObj->GetObjectGuid());

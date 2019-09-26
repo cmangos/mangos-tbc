@@ -1531,6 +1531,17 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
+                case 28238:                                 // Zombie Chow Search
+                {
+                    m_caster->SetHealth(m_caster->GetHealth() + m_caster->GetMaxHealth() * 0.05f); // Gain 5% heal
+                    return;
+                }
+                case 28307:                                 // Hateful Strike Primer
+                {
+                    // Target is filtered in Spell::FilterTargetMap
+                    m_caster->CastSpell(unitTarget, 28308, TRIGGERED_NONE); // Hateful Strike
+                    return;
+                }
                 case 28414:                                 // Call of the Ashbringer
                 {
                     if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -1556,6 +1567,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 28961:                                 // Summon Corpse Scarabs (10)
+                 {
+                    if (unitTarget->isAlive())
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 28864, TRIGGERED_OLD_TRIGGERED);  // Actual summoning spell
+                    ((Creature*)unitTarget)->ForcedDespawn(2000);
+
+                    return;
+                }
                 case 29200:                                 // Purify Helboar Meat
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -1566,6 +1587,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                                       : 29278;              // Summon Toxic Helboar Meat
 
                     m_caster->CastSpell(m_caster, spell_id, TRIGGERED_OLD_TRIGGERED, nullptr);
+                    return;
+                }
+                case 29682:                                 // Call All Zombie Chow
+                {
+                    if (unitTarget->isAlive())
+                     {
+                        float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+                        unitTarget->GetMotionMaster()->MoveFollow(m_caster, radius, 0);
+                    }
                     return;
                 }
                 case 29767:                                 // Overload
@@ -6787,6 +6817,17 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 27699, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 28236:                                 // Zombie Chow Search
+                {
+                    if (!unitTarget->isAlive())
+                        return;
+
+                    m_caster->SetTarget(nullptr);
+                    m_caster->SetFacingToObject(unitTarget);
+                    if (m_caster->CastSpell(unitTarget, 28239, TRIGGERED_NONE) == SPELL_CAST_OK)    // Zombie Chow Search - Insta kill, single target
+                        DoScriptText(-1533119, m_caster, unitTarget);
+                    return;
+                }
                 case 28352:                                 // Breath of Sargeras
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -6815,6 +6856,12 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     m_caster->SummonCreature(16474, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 30000);
+                    return;
+                }
+                case 29379:                                 // Despawn Crypt Guards
+                {
+                    if (unitTarget)
+                        ((Creature*)unitTarget)->ForcedDespawn();
                     return;
                 }
                 case 29395:                                 // Break Kaliri Egg

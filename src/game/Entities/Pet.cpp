@@ -25,27 +25,9 @@
 #include "Tools/Formulas.h"
 #include "Spells/SpellAuras.h"
 #include "Entities/Unit.h"
+#include "Pomelo/PetLoyaltyMgr.h"
 
 // numbers represent minutes * 100 while happy (you get 100 loyalty points per min while happy)
-uint32 const LevelUpLoyalty[6] =
-{
-    5500,
-    11500,
-    17000,
-    23500,
-    31000,
-    39500,
-};
-
-uint32 const LevelStartLoyalty[6] =
-{
-    2000,
-    4500,
-    7000,
-    10000,
-    13500,
-    17500,
-};
 
 Pet::Pet(PetType type) :
     Creature(CREATURE_SUBTYPE_PET),
@@ -1003,14 +985,14 @@ uint32 Pet::GetMaxLoyaltyPoints(uint32 level) const
 {
     if (level < 1) level = 1; // prevent SIGSEGV (out of range)
     if (level > 7) level = 7; // prevent SIGSEGV (out of range)
-    return LevelUpLoyalty[level - 1];
+    return sPetLoyaltyMgr.GetLevelUp()[level - 1];
 }
 
 uint32 Pet::GetStartLoyaltyPoints(uint32 level) const
 {
     if (level < 1) level = 1; // prevent SIGSEGV (out of range)
     if (level > 7) level = 7; // prevent SIGSEGV (out of range)
-    return LevelStartLoyalty[level - 1];
+    return sPetLoyaltyMgr.GetLevelStart()[level - 1];
 }
 
 void Pet::SetTP(int32 TP)

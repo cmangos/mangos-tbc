@@ -69,6 +69,7 @@
 #include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/DungeonSwitchMgr.h"
 #include "Pomelo/InitPlayerItemMgr.h"
+#include "Pomelo/PetLoyaltyMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -815,6 +816,7 @@ void World::LoadConfigSettings(bool reload)
     sDBConfigMgr.LoadFromDB();
     sDungeonSwitchMgr.LoadFromDB();
     sInitPlayerItemMgr.LoadFromDB();
+    sPetLoyaltyMgr.LoadFromDB();
 
     sLog.outString();
 }

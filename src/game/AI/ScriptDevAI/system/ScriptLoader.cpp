@@ -10,6 +10,9 @@ extern void AddSC_battleground();
 // custom
 extern void AddSC_item_teleport();
 
+// pomelo
+extern void AddSC_quest_brewfest_ram_racing_1();
+
 // examples
 extern void AddSC_example_creature();
 extern void AddSC_example_escort();
@@ -358,6 +361,9 @@ void AddScripts()
 
     // custom
 	AddSC_item_teleport();
+
+    // pomelo
+    AddSC_quest_brewfest_ram_racing_1();
 
     // examples
     AddSC_example_creature();

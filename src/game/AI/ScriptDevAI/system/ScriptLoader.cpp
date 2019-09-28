@@ -9,6 +9,7 @@ extern void AddSC_battleground();
 
 // custom
 extern void AddSC_item_teleport();
+extern void AddSC_item_levelup();
 
 // pomelo
 extern void AddSC_quest_brewfest_ram_racing_1();
@@ -360,7 +361,8 @@ void AddScripts()
     AddSC_battleground();
 
     // custom
-	AddSC_item_teleport();
+    AddSC_item_teleport();
+    AddSC_item_levelup();
 
     // pomelo
     AddSC_quest_brewfest_ram_racing_1();

@@ -356,6 +356,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 			return true;
 		}
 		pPlayer->UpdateSkillsForLevel(true);
+        pPlayer->PlayerTalkClass->CloseGossip();
 		break;
 	default:
 		return false;

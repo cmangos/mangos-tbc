@@ -767,16 +767,36 @@ void Pet::SetRequiredXpForNextLoyaltyLevel()
     if (owner)
     {
         uint32 ownerLevel = owner->getLevel();
-        m_xpRequiredForNextLoyaltyLevel = ownerLevel < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) ? sObjectMgr.GetXPForLevel(ownerLevel) * 5 / 100 : sObjectMgr.GetXPForLevel(ownerLevel - 1) * 5 / 100;
+        if (owner->getLevel() == getLevel())
+        {
+            m_xpRequiredForNextLoyaltyLevel = 0;
+        }
+        else
+        {
+            m_xpRequiredForNextLoyaltyLevel = ownerLevel < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) ? sObjectMgr.GetXPForLevel(ownerLevel) * 5 / 100 : sObjectMgr.GetXPForLevel(ownerLevel - 1) * 5 / 100;
+        }
     }
 }
 
 void Pet::UpdateRequireXpForNextLoyaltyLevel(uint32 xp)
 {
     if (xp > m_xpRequiredForNextLoyaltyLevel)
+    {
         m_xpRequiredForNextLoyaltyLevel = 0;
+    }
     else
+    {
         m_xpRequiredForNextLoyaltyLevel -= xp;
+        
+        Unit* owner = GetOwner();
+        if (owner)
+        {
+            if (owner->getLevel() == getLevel())
+            {
+                m_xpRequiredForNextLoyaltyLevel = 0;
+            }
+        }
+    }
 }
 
 void Pet::ModifyLoyalty(int32 addvalue)
@@ -1155,6 +1175,7 @@ void Pet::GivePetLevel(uint32 level)
     }
 
     InitStatsForLevel(level);
+    SetRequiredXpForNextLoyaltyLevel();
     SetTP(m_TrainingPoints + (GetLoyaltyLevel() - 1));
 }
 

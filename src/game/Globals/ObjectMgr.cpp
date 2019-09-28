@@ -47,6 +47,7 @@
 #include "OutdoorPvP/OutdoorPvPMgr.h"
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "World/WorldState.h"
+#include "Pomelo/DBConfigMgr.h"
 
 #include "Entities/ItemEnchantmentMgr.h"
 #include "Loot/LootMgr.h"
@@ -9345,7 +9346,11 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
 
     std::set<uint32> skip_vendors;
 
-    QueryResult* result = WorldDatabase.PQuery("SELECT entry, item, maxcount, incrtime, ExtendedCost, condition_id FROM %s", tableName);
+    QueryResult* result = WorldDatabase.PQuery(
+    "SELECT %s.entry, %s.item, %s.maxcount, %s.incrtime, %s.ExtendedCost, %s.condition_id "
+    "FROM %s INNER JOIN item_template ON %s.item = item_template.entry "
+    "WHERE item_template.ItemLevel <= %u;", 
+    tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, sDBConfigMgr.GetUInt32("limit.itemlevel"));
     if (!result)
     {
         BarGoLink bar(1);

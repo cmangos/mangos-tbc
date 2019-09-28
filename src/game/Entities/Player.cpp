@@ -68,6 +68,7 @@
 #include "Pomelo/TransmogrificationMgr.h"
 #include "Pomelo/MultiTalentMgr.h"
 #include "Pomelo/DungeonSwitchMgr.h"
+#include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/InitPlayerItemMgr.h"
 
 #ifdef BUILD_PLAYERBOT
@@ -18472,6 +18473,12 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
     ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(item);
     if (!pProto)
+    {
+        SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, item, 0);
+        return false;
+    }
+    uint32 itemLevelLimit = sDBConfigMgr.GetUInt32("limit.itemlevel");
+    if (pProto->ItemLevel > itemLevelLimit)
     {
         SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, item, 0);
         return false;

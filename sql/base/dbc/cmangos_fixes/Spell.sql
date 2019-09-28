@@ -268,10 +268,6 @@ INSERT INTO `spell_template` (`Id`,`Dispel`,`Attributes`,`CastingTimeIndex`,`Pro
 INSERT INTO `spell_template` (`Id`,`Attributes`,`CastingTimeIndex`,`ProcFlags`,`ProcChance`,`DurationIndex`,`RangeIndex`,`EquippedItemClass`,`Effect1`,`EffectDieSides1`,`EffectImplicitTargetA1`,`EffectApplyAuraName1`,`EffectTriggerSpell1`,`DmgMultiplier1`,`DmgMultiplier2`,`DmgMultiplier3`,`SchoolMask`,`IsServerSide`,`SpellName`) VALUES
 ('19195','464','1','20','100','21','1','-1','6','1','1','42','9204','1','1','1','1','1','Hate to 90%');
 
--- ServerSide 'Firesworn Eruption Trigger'
-INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx`,`CastingTimeIndex`,`ProcChance`,`BaseLevel`,`SpellLevel`,`DurationIndex`,`RangeIndex`,`EquippedItemClass`,`Effect1`,`Effect2`,`EffectDieSides1`,`EffectImplicitTargetA1`,`EffectImplicitTargetA2`,`EffectApplyAuraName1`,`EffectMiscValue1`,`EffectMiscValue2`,`DmgClass`,`PreventionType`,`DmgMultiplier1`,`DmgMultiplier2`,`SchoolMask`,`IsServerSide`,`SpellName`) VALUES
-('20482','128','268468224','1','101','62','62','21','13','-1','6','108','1','38','38','77','18','18','1','1','1','1','1','1','Firesworn Eruption Trigger');
-
 -- ServerSide 'Immunity'
 INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx`,`AttributesEx2`,`CastingTimeIndex`,`ProcChance`,`BaseLevel`,`SpellLevel`,`DurationIndex`,`RangeIndex`,`StackAmount`,`EquippedItemClass`,`Effect1`,`Effect2`,`EffectDieSides1`,`EffectBaseDice1`,`EffectImplicitTargetA1`,`EffectImplicitTargetA2`,`EffectImplicitTargetB1`,`EffectImplicitTargetB2`,`EffectRadiusIndex1`,`EffectRadiusIndex2`,`EffectApplyAuraName1`,`EffectApplyAuraName2`,`EffectMiscValue1`,`EffectMiscValue2`,`DmgClass`,`PreventionType`,`DmgMultiplier1`,`DmgMultiplier2`,`SchoolMask`,`IsServerSide`,`SpellName`) VALUES
 ('21087','256','268468360','4','1','101','62','62','30','1','10','-1','6','6','1','5','22','22','7','7','12','12','77','38','17','5','1','1','1','1','1','1','Immunity');

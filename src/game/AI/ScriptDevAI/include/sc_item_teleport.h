@@ -19,17 +19,18 @@ namespace Teleport
 {
 	enum TeleportMenuItemFunction
 	{
-		SHOW_SUB_MENU        = 0,
-		TELEPORT             = 1,
-		STORE                = 2,
-		BANK                 = 3,
-		ACTIVATE_FLIGHT      = 4,
-		QUERY_CURRENCY       = 5,
-		TRANSMOGRIFY_MENU    = 6,
-		MULTI_TALENT_MENU    = 7,
-        TRAIN                = 8,
-		TRAIN_CLASS          = 9,
-		DAILY_REWARD         = 10
+		SHOW_SUB_MENU         = 0,
+		TELEPORT              = 1,
+		STORE                 = 2,
+		BANK                  = 3,
+		ACTIVATE_FLIGHT       = 4,
+		QUERY_CURRENCY        = 5,
+		TRANSMOGRIFY_MENU     = 6,
+		MULTI_TALENT_MENU     = 7,
+        TRAIN                 = 8,
+		TRAIN_CLASS           = 9,
+		DAILY_REWARD          = 10,
+		INCREASE_WEAPON_SKILL = 11
 	};
 
 	enum TeleportMenuItemFactionOrder

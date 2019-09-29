@@ -2413,3 +2413,10 @@ void World::InvalidatePlayerDataToAllClient(ObjectGuid guid) const
     data << guid;
     SendGlobalMessage(data);
 }
+
+void World::UpdateSessionExpansion(uint8 expansion)
+{
+    for (auto& data : m_sessions)
+        if (data.second->GetSecurity() < SEC_GAMEMASTER)
+            data.second->SetExpansion(expansion);
+}

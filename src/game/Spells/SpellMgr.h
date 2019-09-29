@@ -161,6 +161,7 @@ inline bool IsEffectHandledOnDelayedSpellLaunch(SpellEntry const* spellInfo, Spe
         case SPELL_EFFECT_WEAPON_DAMAGE:
         case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
         case SPELL_EFFECT_CHARGE:
+        case SPELL_EFFECT_CHARGE_DEST:
             return true;
         default:
             return false;
@@ -390,6 +391,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 5680:          // Torch Burn
         case 6718:          // Phasing Stealth
         case 6752:          // Weak Poison Proc
+        case 6947:          // Curse of the Bleakheart Proc
         case 7090:          // Bear Form (Shapeshift)
         case 7276:          // Poison Proc
         case 8247:          // Wandering Plague
@@ -996,6 +998,8 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
         case 33637: // Infernal spells - Neutral targets - in sniff never put into combat - Maybe neutral spells do not put into combat?
         case 33241:
         case 35424: // Soul Shadows - used by Shade of Mal'druk on Mal'druk the Soulrender
+        case 42628: // Zul'Aman - Fire Bomb - Neutral spell
+        case 44406: // Energy Infusion - supposed to be buff despite negative targeting
             return true;
         case 43101: // Headless Horseman Climax - Command, Head Requests Body - must be negative so that SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY isn't ignored, Headless Horseman script target is immune
         case 34190: // Arcane Orb - should be negative

@@ -76,7 +76,7 @@ INSTANTIATE_SINGLETON_1(World);
 
 extern void LoadGameObjectModelList();
 
-volatile bool World::m_stopEvent = false;
+std::atomic<bool> World::m_stopEvent { false };
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
 volatile uint32 World::m_worldLoopCounter = 0;
 
@@ -655,6 +655,7 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_FLOAT_THREAT_RADIUS, "ThreatRadius", 100.0f);
     setConfigMin(CONFIG_UINT32_CREATURE_RESPAWN_AGGRO_DELAY, "CreatureRespawnAggroDelay", 5000, 0);
+    setConfig(CONFIG_UINT32_CREATURE_PICKPOCKET_RESTOCK_DELAY, "CreaturePickpocketRestockDelay", 600);
 
     // always use declined names in the russian client
     if (getConfig(CONFIG_UINT32_REALM_ZONE) == REALM_ZONE_RUSSIAN)
@@ -2192,6 +2193,7 @@ void World::ResetWeeklyQuests()
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextWeeklyQuestResetTime = '" UI64FMTD "'", uint64(m_NextWeeklyQuestReset));
 
     GenerateEventGroupEvents(false, true, true); // generate weeklies and save to DB
+    sGameEventMgr.WeeklyEventTimerRecalculation();
 }
 
 void World::ResetMonthlyQuests()

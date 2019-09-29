@@ -183,7 +183,7 @@ pEffect SpellEffects[MAX_SPELL_EFFECTS] =
     &Spell::EffectWeaponDmg,                                //121 SPELL_EFFECT_NORMALIZED_WEAPON_DMG
     &Spell::EffectUnused,                                   //122 SPELL_EFFECT_122                      unused
     &Spell::EffectSendTaxi,                                 //123 SPELL_EFFECT_SEND_TAXI                taxi/flight related (misc value is taxi path id)
-    &Spell::EffectPlayerPull,                               //124 SPELL_EFFECT_PLAYER_PULL              opposite of knockback effect (pulls player twoard caster)
+    &Spell::EffectPullTowards,                              //124 SPELL_EFFECT_PULL_TOWARDS
     &Spell::EffectModifyThreatPercent,                      //125 SPELL_EFFECT_MODIFY_THREAT_PERCENT
     &Spell::EffectStealBeneficialBuff,                      //126 SPELL_EFFECT_STEAL_BENEFICIAL_BUFF    spell steal effect?
     &Spell::EffectProspecting,                              //127 SPELL_EFFECT_PROSPECTING              Prospecting spell
@@ -204,11 +204,11 @@ pEffect SpellEffects[MAX_SPELL_EFFECTS] =
     &Spell::EffectTriggerSpellWithValue,                    //142 SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE
     &Spell::EffectApplyAreaAura,                            //143 SPELL_EFFECT_APPLY_AREA_AURA_OWNER
     &Spell::EffectKnockBackFromPosition,                    //144 SPELL_EFFECT_KNOCKBACK_FROM_POSITION
-    &Spell::EffectNULL,                                     //145 SPELL_EFFECT_GRAVITY_PULL                      Black Hole Effect
+    &Spell::EffectPullTowards,                              //145 SPELL_EFFECT_PULL_TOWARDS_DEST
     &Spell::EffectUnused,                                   //146 SPELL_EFFECT_146                      unused
     &Spell::EffectQuestFail,                                //147 SPELL_EFFECT_QUEST_FAIL               quest fail
     &Spell::EffectUnused,                                   //148 SPELL_EFFECT_148                      unused
-    &Spell::EffectCharge2,                                  //149 SPELL_EFFECT_CHARGE2                  swoop
+    &Spell::EffectChargeDest,                               //149 SPELL_EFFECT_CHARGE_DEST                  swoop
     &Spell::EffectUnused,                                   //150 SPELL_EFFECT_150                      unused
     &Spell::EffectTriggerRitualOfSummoning,                 //151 SPELL_EFFECT_TRIGGER_SPELL_2
     &Spell::EffectNULL,                                     //152 SPELL_EFFECT_SUMMON_RAF_FRIEND                      summon Refer-a-Friend
@@ -1380,6 +1380,13 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 25171, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 25792:                                 // Despawn Brood
+                {
+                    // Despawn all Yauj Brood
+                    if (unitTarget->GetTypeId() == TYPEID_UNIT && unitTarget->GetEntry() == 15621)
+                        ((Creature*)unitTarget)->ForcedDespawn();
+                    return;
+                }
                 case 26080:                                 // Stinger Charge Primer
                 {
                     if (unitTarget->HasAura(26078))
@@ -1524,6 +1531,17 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
+                case 28238:                                 // Zombie Chow Search
+                {
+                    m_caster->SetHealth(m_caster->GetHealth() + m_caster->GetMaxHealth() * 0.05f); // Gain 5% heal
+                    return;
+                }
+                case 28307:                                 // Hateful Strike Primer
+                {
+                    // Target is filtered in Spell::FilterTargetMap
+                    m_caster->CastSpell(unitTarget, 28308, TRIGGERED_NONE); // Hateful Strike
+                    return;
+                }
                 case 28414:                                 // Call of the Ashbringer
                 {
                     if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -1549,6 +1567,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 28961:                                 // Summon Corpse Scarabs (10)
+                 {
+                    if (unitTarget->isAlive())
+                        return;
+
+                    unitTarget->CastSpell(unitTarget, 28864, TRIGGERED_OLD_TRIGGERED);  // Actual summoning spell
+                    ((Creature*)unitTarget)->ForcedDespawn(2000);
+
+                    return;
+                }
                 case 29200:                                 // Purify Helboar Meat
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -1559,6 +1587,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                                       : 29278;              // Summon Toxic Helboar Meat
 
                     m_caster->CastSpell(m_caster, spell_id, TRIGGERED_OLD_TRIGGERED, nullptr);
+                    return;
+                }
+                case 29682:                                 // Call All Zombie Chow
+                {
+                    if (unitTarget->isAlive())
+                     {
+                        float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+                        unitTarget->GetMotionMaster()->MoveFollow(m_caster, radius, 0);
+                    }
                     return;
                 }
                 case 29767:                                 // Overload
@@ -3158,7 +3195,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         corpse->GetPosition(x, y, z);
                     else
                         unitTarget->GetPosition(x, y, z);
-                    
+
                     DoScriptText(-1015072, m_caster, unitTarget);
                     m_caster->CastSpell(x, y, z, 52605, TRIGGERED_OLD_TRIGGERED); // should also send start
                     return;
@@ -4512,7 +4549,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 {
     switch (m_spellInfo->Id)
     {
-        case 44322: // Hacky fix for summon spell in Vexallus fight (MGT) 
+        case 44322: // Hacky fix for summon spell in Vexallus fight (MGT)
         case 46154: // need more info on how to handle this
         case 46159:
             break;
@@ -5110,45 +5147,64 @@ void Spell::EffectPickPocket(SpellEffectIndex /*eff_idx*/)
     Creature* creatureTarget = static_cast<Creature*>(unitTarget);
     Player* playerCaster = static_cast<Player*>(m_caster);
 
-    // victim have to be alive and humanoid or undead
-    if (unitTarget->isAlive() && (unitTarget->GetCreatureTypeMask() & CREATURE_TYPEMASK_HUMANOID_OR_UNDEAD) != 0)
+    int chance = 5; //base failure chance is 5%
+
+    //TODO investigate if font pickpocketing has higher failure chance then from behind
+    //if (m_caster->IsFacingTargetsFront(unitTarget))
+    //    chance *= 4; //base chance is 20% from the front
+
+    int casterLevel = int32(m_caster->getLevel());
+    int targetLevel = int32(unitTarget->getLevel());
+
+    //we need to increase the base chance for failure if target is higher level then caster
+    //incremental chance to fail based on level. maximum is 97% chance if level difference is dramatic (give it 3% chance to succeed?).
+    if (targetLevel > casterLevel)
+        chance = int32(std::min(int32(std::floor(((targetLevel - casterLevel) * 2.0) + 0.5) * chance), 97));
+
+    int result = urand() % 100;
+
+    if (result >= chance)
     {
-        int32 chance = 10 + int32(m_caster->getLevel()) - int32(unitTarget->getLevel());
+        // Stealing successful
+        //BASIC_LOG("Successfull pickpocket result %i for chance %i", result, chance);
 
-        if (chance > irand(0, 19))
+        Loot*& loot = unitTarget->loot;
+        if (!loot)
+            loot = new Loot(playerCaster, creatureTarget, LOOT_PICKPOCKETING);
+        else
         {
-            // Stealing successful
-            // DEBUG_LOG("Sending loot from pickpocket");
-            Loot*& loot = unitTarget->loot;
-            if (!loot)
-                loot = new Loot(playerCaster, creatureTarget, LOOT_PICKPOCKETING);
-            else
+            if (loot->GetLootType() == LOOT_PICKPOCKETING)
             {
-                if (loot->GetLootType() == LOOT_PICKPOCKETING)
+                if (creatureTarget->GetLootStatus() == CREATURE_LOOT_STATUS_PICKPOCKETED)
                 {
-                    auto msec = (World::GetCurrentClockTime() - loot->GetCreateTime()).count();
-
-                    if (msec > creatureTarget->GetRespawnDelay() * 1000)
+                    if (creatureTarget->CanRestockPickpocketLoot())
                     {
                         // refill pickpocket
                         delete loot;
                         loot = new Loot(playerCaster, creatureTarget, LOOT_PICKPOCKETING);
                     }
-                }
-                else
-                {
-                    delete loot;
-                    loot = new Loot(playerCaster, creatureTarget, LOOT_PICKPOCKETING);
-                }
+                    else
+                    {
+                        playerCaster->SendLootError(unitTarget->GetObjectGuid(), LOOT_ERROR_ALREADY_PICKPOCKETED);
+                        return;
+                    }
+                } // else not fully taken
             }
-            loot->ShowContentTo(playerCaster);
+            else
+            {
+                delete loot;
+                loot = new Loot(playerCaster, creatureTarget, LOOT_PICKPOCKETING);
+            }
         }
-        else
-        {
-            // Reveal action + get attack
-            m_caster->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TALK);
-            unitTarget->AttackedBy(m_caster);
-        }
+        loot->ShowContentTo(playerCaster);
+    }
+    else
+    {
+        //BASIC_LOG("Failed pickpocket result %i for chance %i", result, chance);
+
+        // Reveal action + get attack
+        m_caster->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TALK);
+        unitTarget->AttackedBy(m_caster);
     }
 }
 
@@ -6761,6 +6817,17 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 27699, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 28236:                                 // Zombie Chow Search
+                {
+                    if (!unitTarget->isAlive())
+                        return;
+
+                    m_caster->SetTarget(nullptr);
+                    m_caster->SetFacingToObject(unitTarget);
+                    if (m_caster->CastSpell(unitTarget, 28239, TRIGGERED_NONE) == SPELL_CAST_OK)    // Zombie Chow Search - Insta kill, single target
+                        DoScriptText(-1533119, m_caster, unitTarget);
+                    return;
+                }
                 case 28352:                                 // Breath of Sargeras
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -6774,6 +6841,10 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
+                    // Return if not player, pet nor Zombie Chow NPC
+                    if (unitTarget->GetTypeId() == TYPEID_UNIT && !unitTarget->IsControlledByPlayer() && unitTarget->GetEntry() != 16360)
+                        return;
+
                     int32 damage = unitTarget->GetHealth() - unitTarget->GetMaxHealth() * 0.05f;
                     if (damage > 0)
                         m_caster->CastCustomSpell(unitTarget, 28375, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
@@ -6785,6 +6856,12 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     m_caster->SummonCreature(16474, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 30000);
+                    return;
+                }
+                case 29379:                                 // Despawn Crypt Guards
+                {
+                    if (unitTarget)
+                        ((Creature*)unitTarget)->ForcedDespawn();
                     return;
                 }
                 case 29395:                                 // Break Kaliri Egg
@@ -7461,6 +7538,164 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastCustomSpell(unitTarget, 42576, &basePoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 42577:                                 // Zap
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(m_caster, 43137, TRIGGERED_NONE);
+                    return;
+                }
+                case 43783:                                 // Spawn Guard
+                {
+                    float pointX = 0;
+                    float pointY = 0;
+                    float pointZ = 0;
+
+                    uint32 guardEntry = 0;
+                    uint32 counter = 0;
+
+                    bool foundPosition = false;
+
+                    switch (m_caster->GetAreaId())
+                    {
+                        case 9:
+                        case 24: guardEntry = 1642;     break;      // Northshire
+                        case 42: guardEntry = 10038;    break;      // Darkshire
+                        case 69: guardEntry = 10037;    break;      // Lakeshire
+                        case 87: guardEntry = 1423;     break;      // Goldshire
+                        case 108: guardEntry = 8096;    break;      // Sentinel Hill
+                        case 131: guardEntry = 727;     break;      // Kharanos
+                        case 132: guardEntry = 853;     break;      // Coldridge Valley
+                        case 144: guardEntry = 8055;    break;      // Thelsamar
+                        case 152:                                   // The Bulwark
+                        case 154:                                   // Deathknell
+                        case 159: guardEntry = 7980;    break;      // Brill
+                        case 188: guardEntry = 4844;    break;      // Shadowglen
+                        case 186: guardEntry = 3571;    break;      // Dolanaar
+                        case 221:                                   // Camp Narache
+                        case 222:                                   // Bloodhoof Village
+                        {
+                            switch (rand() % 4)
+                            {
+                                case 0: guardEntry = 3210; break;
+                                case 1: guardEntry = 3211; break;
+                                case 2: guardEntry = 3213; break;
+                                case 3: guardEntry = 3214; break;
+                            }
+                            break;
+                        }
+                        case 228: guardEntry = 7489;    break;      // Sulpcher
+                        case 271: guardEntry = 2386;    break;      // Southshore
+                        case 272: guardEntry = 2405;    break;      // Tarren Mill
+                        case 320: guardEntry = 10696;   break;      // Refuge Pointe
+                        case 321: guardEntry = 2621;    break;      // Hammerfall
+                        case 340: guardEntry = 8155;    break;      // Kargath
+                        case 362: guardEntry = 5953;    break;      // Razor Hill
+                        case 363: guardEntry = 5952;    break;      // Valley of Trials
+                        case 380: guardEntry = 3501;    break;      // Crossroads
+                        case 415: guardEntry = 6087;    break;      // Astranaar
+                        case 431: guardEntry = 12903;   break;      // Splintertree Post
+                        case 442: guardEntry = 6086;    break;      // Auberdine
+                        case 460: guardEntry = 7730;    break;      // Sun Rock Retreat
+                        case 484: guardEntry = 9525;    break;      // Freewind Post
+                        case 513: guardEntry = 4979;    break;      // Threamore
+                        case 597: guardEntry = 8154;    break;      // Ghost Walker Post
+                        case 608: guardEntry = 8151;    break;      // Nijel's Point
+                        case 1099: guardEntry = 8147;   break;      // Camp Mojache
+                        case 1116: guardEntry = 7939;   break;      // Feathermoon Stronghold
+                        case 1497: guardEntry = 5624;   break;      // Undercity
+                        case 1519: guardEntry = 68;     break;      // Stormwind City
+                        case 1537: guardEntry = 5595;   break;      // Ironforge
+                        case 1637: guardEntry = 3296;   break;      // Orgrimmar
+                        case 1638: guardEntry = 3084;   break;      // Thunder Bluff
+                        case 1657: guardEntry = 4262;   break;      // Darnassus
+                        case 2408: guardEntry = 12338;  break;      // Shadowprey Village
+                        case 2897: guardEntry = 12903;  break;      // Zoram'gar Outpost
+                        case 3462:                                  // Fairbreeze Village
+                        case 3487:                                  // Silvermoon City
+                        case 3488: guardEntry = 16222;  break;      // Tranquillien
+                        case 3527: guardEntry = 16921;  break;      // Crash Site
+                        case 3557: guardEntry = 16733;  break;      // Exodar
+                        case 3576: guardEntry = 18038;  break;      // Azure Watch
+                        case 3584: guardEntry = 17549;  break;      // Blood Watch
+                        case 3665: guardEntry = 16222;  break;      // Falconwing Square
+                    }
+
+
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->GetRandomPoint(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), 30.0f, pointX, pointY, pointZ, 20.0f);
+
+
+                    while (counter < 100)
+                    {
+                        foundPosition = m_caster->GetMap()->GetReachableRandomPosition(m_caster, pointX, pointY, pointZ, 20.0f);
+
+                        if (foundPosition)
+                            break;
+
+                        counter++;
+                    }
+
+                    // Spawn Guards only if we have random position.
+                    if (foundPosition && guardEntry != 0)
+                    {
+                        Creature* pGuard = m_caster->SummonCreature(guardEntry, pointX, pointY, pointZ, m_caster->GetOrientation(), TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 30 * IN_MILLISECONDS);
+
+                        if (pGuard)
+                            pGuard->AI()->AttackStart(m_caster->getAttackerForHelper());
+                    }
+
+                    return;
+                }
+                case 43648:                                 // Akilzon - Electrical Storm
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(nullptr, 44007, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 43658:                                 // Akilzon - Electrical Overload Graphic Pulse
+                {
+                    m_caster->CastSpell(nullptr, 43653, TRIGGERED_OLD_TRIGGERED);
+                    m_caster->CastSpell(nullptr, 43654, TRIGGERED_OLD_TRIGGERED);
+                    m_caster->CastSpell(nullptr, 43655, TRIGGERED_OLD_TRIGGERED);
+                    m_caster->CastSpell(nullptr, 43656, TRIGGERED_OLD_TRIGGERED);
+                    m_caster->CastSpell(nullptr, 43659, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 44008:                                 // Akilzon - Static Disruption
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(nullptr, 45265, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 44224:                                 // Gravity Lapse
+                {
+                    if (!unitTarget)
+                        return;
+
+                    static const uint32 aGravityLapseSpells[] = { 44219, 44220, 44221, 44222, 44223 };
+                    m_caster->CastSpell(unitTarget, aGravityLapseSpells[m_scriptValue], TRIGGERED_OLD_TRIGGERED);
+                    unitTarget->CastSpell(nullptr, 44227, TRIGGERED_OLD_TRIGGERED);
+                    unitTarget->CastSpell(nullptr, 44226, TRIGGERED_OLD_TRIGGERED);
+                    ++m_scriptValue;
+                    return;
+                }
+                case 44232:                                 // Clear Flight
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->RemoveAurasDueToSpell(44227);
+                    unitTarget->RemoveAurasDueToSpell(44226);
+                    return;
+                }
                 case 44876:                                 // Force Cast - Portal Effect: Sunwell Isle
                 {
                     if (!unitTarget)
@@ -7580,10 +7815,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 47108:                                 // Clear Energy Feedback
                 {
-                    if (unitTarget && unitTarget->IsPlayer())
-                    {
+                    if (unitTarget)
                         unitTarget->RemoveAurasDueToSpell(44335);
-                    }
                     return;
                 }
                 case 47977:                                 // Use Broom
@@ -8661,32 +8894,22 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
 
     float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
 
-    // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    if (m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (pos.coord_z < m_caster->GetPositionZ()) && (fabs(pos.coord_z - m_caster->GetPositionZ()) > 3.0f))
-        m_caster->MonsterMoveWithSpeed(pos.coord_x, pos.coord_y, (pos.coord_z + unitTarget->GetObjectScale()), speed, false, false);
-    else
-        m_caster->MonsterMoveWithSpeed(pos.coord_x, pos.coord_y, (pos.coord_z + unitTarget->GetObjectScale()), speed, true, true);
+    m_caster->GetMotionMaster()->MoveCharge(pos.coord_x, pos.coord_y, pos.coord_z, speed, m_spellInfo->Id);
 }
 
-void Spell::EffectCharge2(SpellEffectIndex /*eff_idx*/)
+void Spell::EffectChargeDest(SpellEffectIndex /*eff_idx*/)
 {
-    WorldLocation loc;
-
     if ((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) == 0)
         return;
 
-    m_targets.getDestination(loc.coord_x, loc.coord_y, loc.coord_z);
-    m_caster->GetFirstCollisionPosition(loc, 0.f, m_caster->GetAngle(loc.coord_x, loc.coord_y));
+    float x, y, z;
+    m_targets.getDestination(x, y, z);
     if (m_caster->GetTypeId() != TYPEID_PLAYER)
         ((Creature*)m_caster)->StopMoving();
 
     float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
 
-    // Only send MOVEMENTFLAG_WALK_MODE, client has strange issues with other move flags
-    if (m_caster->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)) && (loc.coord_z < m_caster->GetPositionZ()) && (fabs(loc.coord_z - m_caster->GetPositionZ()) > 3.0f))
-        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, loc.coord_z, speed, false, false);
-    else
-        m_caster->MonsterMoveWithSpeed(loc.coord_x, loc.coord_y, loc.coord_z, speed, true, true);
+    m_caster->GetMotionMaster()->MoveCharge(x, y, z, speed, m_spellInfo->Id);
 }
 
 
@@ -8800,12 +9023,24 @@ void Spell::EffectSendTaxi(SpellEffectIndex eff_idx)
     ((Player*)unitTarget)->ActivateTaxiPathTo(m_spellInfo->EffectMiscValue[eff_idx], m_spellInfo->Id);
 }
 
-void Spell::EffectPlayerPull(SpellEffectIndex eff_idx)
+void Spell::EffectPullTowards(SpellEffectIndex eff_idx)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return;
 
-    float dist = unitTarget->GetDistance(m_caster, false);
+    float x, y, z, dist;
+
+    if (m_spellInfo->Effect[eff_idx] == SPELL_EFFECT_PULL_TOWARDS)
+    {
+        z = m_caster->GetPositionZ();
+        dist = unitTarget->GetDistance(m_caster, false);
+    }
+    else // SPELL_EFFECT_PULL_TOWARDS_DEST
+    {
+        m_targets.getDestination(x, y, z);
+        dist = sqrt(unitTarget->GetDistance2d(x, y, DIST_CALC_NONE));
+    }
+
     if (damage && dist > damage)
         dist = float(damage);
 
@@ -8815,7 +9050,7 @@ void Spell::EffectPlayerPull(SpellEffectIndex eff_idx)
     // Projectile motion
     float speedXY = float(m_spellInfo->EffectMiscValue[eff_idx]) * 0.1f;
     float time = dist / speedXY;
-    float speedZ = ((m_caster->GetPositionZ() - unitTarget->GetPositionZ()) + 0.5f * time * time * Movement::gravity) / time;
+    float speedZ = ((z - unitTarget->GetPositionZ()) + 0.5f * time * time * Movement::gravity) / time;
 
     ((Player*)unitTarget)->KnockBackFrom(m_caster, -speedXY, speedZ);
 }

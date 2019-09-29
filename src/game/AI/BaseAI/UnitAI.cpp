@@ -51,7 +51,7 @@ UnitAI::~UnitAI()
 
 void UnitAI::MoveInLineOfSight(Unit* who)
 {
-    if (!HasReactState(REACT_AGGRESSIVE))
+    if (GetReactState() < REACT_DEFENSIVE)
         return;
 
     if (!m_unit->CanFly() && m_unit->GetDistanceZ(who) > CREATURE_Z_ATTACK_RANGE)
@@ -65,6 +65,9 @@ void UnitAI::MoveInLineOfSight(Unit* who)
 
     if (who->GetObjectGuid().IsCreature() && who->isInCombat())
         CheckForHelp(who, m_unit, 10.0);
+
+    if (!HasReactState(REACT_AGGRESSIVE)) // mobs who are aggressive can still assist
+        return;
 
     if (!m_unit->CanInitiateAttack())
         return;
@@ -383,6 +386,9 @@ void UnitAI::CheckForHelp(Unit* who, Unit* me, float distance)
     if (me->isInCombat())
         return;
 
+    if (who->IsFleeing()) // pulling happens once flee ends
+        return;
+
     if (me->GetMap()->Instanceable())
         distance = distance / 2.5f;
 
@@ -577,7 +583,7 @@ void UnitAI::DoResetThreat()
 
 bool UnitAI::CanExecuteCombatAction()
 {
-    return m_unit->CanReactInCombat() && !m_unit->hasUnitState(UNIT_STAT_DONT_TURN | UNIT_STAT_SEEKING_ASSISTANCE) && !m_unit->IsNonMeleeSpellCasted(false) && !m_combatScriptHappening;
+    return m_unit->CanReactInCombat() && !(m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED) && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED)) && !m_unit->hasUnitState(UNIT_STAT_CHARGING | UNIT_STAT_SEEKING_ASSISTANCE) && !m_unit->IsNonMeleeSpellCasted(false) && !m_combatScriptHappening;
 }
 
 void UnitAI::SetMeleeEnabled(bool state)

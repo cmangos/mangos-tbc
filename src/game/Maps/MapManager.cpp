@@ -90,7 +90,6 @@ void MapManager::InitializeVisibilityDistanceInfo()
 
 void MapManager::CreateContinents()
 {
-
     std::vector<std::future<void>> futures;
     uint32 continents[] = { 0, 1, 530 };
     for (auto id : continents)

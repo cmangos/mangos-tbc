@@ -21451,30 +21451,36 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
         return AREA_LOCKSTATUS_MISSING_ITEM;
     }
     // Heroic item requirements
-    if (!isRegularTargetMap && at->heroicKey)
+    if (!sDBConfigMgr.GetUInt32("dungeon.heroickeyfree"))
     {
-        if (!HasItemCount(at->heroicKey, 1) && (!at->heroicKey2 || !HasItemCount(at->heroicKey2, 1)))
+        if (!isRegularTargetMap && at->heroicKey)
         {
-            miscRequirement = at->heroicKey;
+            if (!HasItemCount(at->heroicKey, 1) && (!at->heroicKey2 || !HasItemCount(at->heroicKey2, 1)))
+            {
+                miscRequirement = at->heroicKey;
+                return AREA_LOCKSTATUS_MISSING_ITEM;
+            }
+        }
+        else if (!isRegularTargetMap && at->heroicKey2 && !HasItemCount(at->heroicKey2, 1))
+        {
+            miscRequirement = at->heroicKey2;
             return AREA_LOCKSTATUS_MISSING_ITEM;
         }
     }
-    else if (!isRegularTargetMap && at->heroicKey2 && !HasItemCount(at->heroicKey2, 1))
-    {
-        miscRequirement = at->heroicKey2;
-        return AREA_LOCKSTATUS_MISSING_ITEM;
-    }
 
     // Quest Requirements
-    if (isRegularTargetMap && at->requiredQuest && !GetQuestRewardStatus(at->requiredQuest))
+    if (!sDBConfigMgr.GetUInt32("dungeon.questfree"))
     {
-        miscRequirement = at->requiredQuest;
-        return AREA_LOCKSTATUS_QUEST_NOT_COMPLETED;
-    }
-    if (!isRegularTargetMap && at->requiredQuestHeroic && !GetQuestRewardStatus(at->requiredQuestHeroic))
-    {
-        miscRequirement = at->requiredQuestHeroic;
-        return AREA_LOCKSTATUS_QUEST_NOT_COMPLETED;
+        if (isRegularTargetMap && at->requiredQuest && !GetQuestRewardStatus(at->requiredQuest))
+        {
+            miscRequirement = at->requiredQuest;
+            return AREA_LOCKSTATUS_QUEST_NOT_COMPLETED;
+        }
+        if (!isRegularTargetMap && at->requiredQuestHeroic && !GetQuestRewardStatus(at->requiredQuestHeroic))
+        {
+            miscRequirement = at->requiredQuestHeroic;
+            return AREA_LOCKSTATUS_QUEST_NOT_COMPLETED;
+        }
     }
 
     // If the map is not created, assume it is possible to enter it.

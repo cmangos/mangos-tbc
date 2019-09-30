@@ -293,6 +293,8 @@ class ChatHandler
         bool HandleDebugSendSpellFailCommand(char* args);
         bool HandleDebugSendWorldState(char* args);
 
+        bool HandleDebugFlyCommand(char* args);
+
         bool HandleSD2HelpCommand(char* args);
         bool HandleSD2ScriptCommand(char* args);
 

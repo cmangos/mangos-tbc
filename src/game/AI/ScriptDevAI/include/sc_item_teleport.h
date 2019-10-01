@@ -30,7 +30,8 @@ namespace Teleport
         TRAIN                 = 8,
 		TRAIN_CLASS           = 9,
 		DAILY_REWARD          = 10,
-		INCREASE_WEAPON_SKILL = 11
+		INCREASE_WEAPON_SKILL = 11,
+        BUY_TIER_THREE        = 12
 	};
 
 	enum TeleportMenuItemFactionOrder

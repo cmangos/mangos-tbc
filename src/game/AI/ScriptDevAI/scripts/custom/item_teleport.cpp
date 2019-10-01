@@ -18,9 +18,25 @@
 #include "item_multi_talent.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
+#define STORE_ITEM_ENTRY        83501
 
 using namespace Teleport;
 
+char* t3_itemset[12] = 
+{
+    "0",
+    "523",
+    "528",
+    "530",
+    "524",
+    "525",
+    "0",
+    "527",
+    "526",
+    "529",
+    "",
+    "521",
+};
 //std::unordered_map<ObjectGuid, Creature*> npc_container;
 
 void AddFilteredGossipMenuForPlayer(uint32 menu_id, Player* pPlayer, ObjectGuid guid, TELE_ORDER order)
@@ -234,6 +250,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	std::vector<CustomCurrencyOwnedPair> currencies;
     uint8 classId;
     uint32 npcId;
+    ItemPosCountVec dest;
 
 	// TODO: Support more functions
 	switch (item.function)
@@ -358,6 +375,23 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		pPlayer->UpdateSkillsForLevel(true);
         pPlayer->PlayerTalkClass->CloseGossip();
 		break;
+    case TELE_FUNC::BUY_TIER_THREE:
+        // Check empty slots
+        if (pPlayer->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, STORE_ITEM_ENTRY, 9) != EQUIP_ERR_OK)
+        {
+            pPlayer->GetSession()->SendNotification(LANG_MUST_LEAVE_9_SLOTS);
+            pPlayer->PlayerTalkClass->CloseGossip();
+            return true;
+        }
+
+        if (!CheckAndDoCost(pPlayer, &item))
+        {
+            return true;
+        }
+
+        ChatHandler(pPlayer).HandleAddItemSetCommand(t3_itemset[pPlayer->getClass()]);
+        pPlayer->PlayerTalkClass->CloseGossip();
+        break;
 	default:
 		return false;
 		break;

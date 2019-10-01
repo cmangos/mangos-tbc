@@ -23,7 +23,7 @@ std::vector<TELE_ITEM> LoadTeleportTemplate()
 	" `teleport_map`, `teleport_x`, `teleport_y`, `teleport_z`, `cost_amount`, "
 	" `cost_type`, `cost_custom_currency_id`, `level_required`, "
     "`permission_required`, `trigger_menu`, `faction_order` "
-	" FROM `pomelo_teleport_template` order by `menu_id`, `action_id` "
+	" FROM `pomelo_teleport_template` ORDER BY `menu_id`, `action_id` "
 	);
 	std::vector<TELE_ITEM> ret;
 	if (qr)

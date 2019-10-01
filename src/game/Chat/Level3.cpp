@@ -2401,7 +2401,7 @@ bool ChatHandler::HandleAddItemSetCommand(char* args)
 
     Player* pl = m_session->GetPlayer();
     Player* plTarget = getSelectedPlayer();
-    if (!plTarget)
+    if (!plTarget || pl->GetSession()->GetSecurity() < SEC_GAMEMASTER) // A workaround avoid buy T3 set for target (Teleport stone)
         plTarget = pl;
 
     DETAIL_LOG(GetMangosString(LANG_ADDITEMSET), itemsetId);

@@ -8422,6 +8422,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
             // Specific case for Darkmoon Faire Cannon (this is probably a hint that our logic about GO use / activation is not accurate)
             switch (m_spellInfo->Id)
             {
+                case 17731:         // Onyxia - Eruption
                 case 24731:
                 case 40964:         // Fel Crystalforge: Create 1 Flask
                 case 40965:         // Fel Crystalforge: Create 5 Flasks

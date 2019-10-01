@@ -4345,7 +4345,8 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
             bool specialResult = true;
             if (forMovement) // mobs can move during spells without this flag
                 specialResult = genericSpell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_MOVEMENT;
-            if (specialResult && (withDelayed || genericSpell->getState() != SPELL_STATE_TRAVELING))
+            bool autoAction = !(genericSpell->m_spellInfo->AttributesEx2 & SPELL_ATTR_EX2_NOT_RESET_AUTO_ACTIONS);
+            if (autoAction && specialResult && (withDelayed || genericSpell->getState() != SPELL_STATE_TRAVELING))
                 return true;
         }
     }

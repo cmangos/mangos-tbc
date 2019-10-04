@@ -48,6 +48,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "World/WorldState.h"
 #include "Pomelo/DBConfigMgr.h"
+#include "Pomelo/VendorItemBlacklistMgr.h"
 
 #include "Entities/ItemEnchantmentMgr.h"
 #include "Loot/LootMgr.h"
@@ -9378,6 +9379,10 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
         uint16 conditionId  = fields[5].GetUInt16();
 
         if (!IsVendorItemValid(isTemplates, tableName, entry, item_id, maxcount, incrtime, ExtendedCost, conditionId, nullptr, &skip_vendors))
+            continue;
+
+        // Pomelo vendor item blacklist
+        if (sVendorItemBlacklistMgr.IsInBlacklist(item_id))
             continue;
 
         VendorItemData& vList = vendorList[entry];

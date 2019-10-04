@@ -70,6 +70,7 @@
 #include "Pomelo/DungeonSwitchMgr.h"
 #include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/InitPlayerItemMgr.h"
+#include "Pomelo/VendorItemBlacklistMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -18478,7 +18479,14 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
         return false;
     }
     uint32 itemLevelLimit = sDBConfigMgr.GetUInt32("limit.itemlevel");
-    if (pProto->ItemLevel > itemLevelLimit)
+    if (itemLevelLimit > 0 && pProto->ItemLevel > itemLevelLimit)
+    {
+        SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, item, 0);
+        return false;
+    }
+
+    // Pomelo vendor item blacklist
+    if (sVendorItemBlacklistMgr.IsInBlacklist(pProto->ItemId))
     {
         SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, item, 0);
         return false;

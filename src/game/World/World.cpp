@@ -70,6 +70,7 @@
 #include "Pomelo/DungeonSwitchMgr.h"
 #include "Pomelo/InitPlayerItemMgr.h"
 #include "Pomelo/PetLoyaltyMgr.h"
+#include "Pomelo/VendorItemBlacklistMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -817,6 +818,7 @@ void World::LoadConfigSettings(bool reload)
     sDungeonSwitchMgr.LoadFromDB();
     sInitPlayerItemMgr.LoadFromDB();
     sPetLoyaltyMgr.LoadFromDB();
+    sVendorItemBlacklistMgr.LoadFromDB();
 
     sLog.outString();
 }

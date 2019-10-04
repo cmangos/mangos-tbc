@@ -56,6 +56,13 @@
 #include "AuctionHouseBot/AuctionHouseBot.h"
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
+#include "Pomelo/DBConfigMgr.h"
+#include "Pomelo/DungeonSwitchMgr.h"
+#include "Pomelo/InitPlayerItemMgr.h"
+#include "Pomelo/PetLoyaltyMgr.h"
+#include "Pomelo/CustomCurrencyMgr.h"
+#include "Pomelo/VendorItemBlacklistMgr.h"
+#include "AI/ScriptDevAI/include/sc_item_teleport.h"
 
 static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
 {
@@ -234,6 +241,7 @@ bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
     HandleReloadAllItemCommand((char*)"");
     HandleReloadAllGossipsCommand((char*)"");
     HandleReloadAllLocalesCommand((char*)"");
+    HandleReloadAllPomeloCommand((char*)"");
 
     HandleReloadMailLevelRewardCommand((char*)"");
     HandleReloadCommandCommand((char*)"");
@@ -361,6 +369,38 @@ bool ChatHandler::HandleReloadAllLocalesCommand(char* /*args*/)
     HandleReloadLocalesPageTextCommand((char*)"a");
     HandleReloadLocalesPointsOfInterestCommand((char*)"a");
     HandleReloadLocalesQuestCommand((char*)"a");
+    return true;
+}
+
+bool ChatHandler::HandleReloadAllPomeloCommand(char* /*args*/)
+{
+    sLog.outString("Re-Loading Pomelo DB-based settings...");
+    sDBConfigMgr.LoadFromDB();
+    sLog.outString("Pomelo DB-based settings reloaded.");
+
+    sLog.outString("Re-Loading Pomelo dungeon switches...");
+    sDungeonSwitchMgr.LoadFromDB();
+    sLog.outString("Pomelo dungeon switches reloaded.");
+
+    sLog.outString("Re-Loading Pomelo init items for players...");
+    sInitPlayerItemMgr.LoadFromDB();
+    sLog.outString("Pomelo init items for players reloaded.");
+
+    sLog.outString("Re-Loading Pomelo pet loyalty settings...");
+    sPetLoyaltyMgr.LoadFromDB();
+    sLog.outString("Pomelo pet loyalty settings reloaded.");
+
+    sLog.outString("Re-Loading Pomelo custom currencies...");
+    sCustomCurrencyMgr.LoadFromDB();
+    sLog.outString("Pomelo custom currencies reloaded.");
+
+    sLog.outString("Re-Loading Pomelo teleport stone menu...");
+    Teleport::BuildTeleportMenuMap();
+    sLog.outString("Pomelo teleport stone menu reloaded.");
+
+    sLog.outString("Re-Loading Pomelo vendor item blacklist...");
+    sVendorItemBlacklistMgr.LoadFromDB();
+    sLog.outString("Pomelo vendor item blacklist reloaded.");
     return true;
 }
 

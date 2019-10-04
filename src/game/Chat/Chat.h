@@ -461,6 +461,7 @@ class ChatHandler
         bool HandleReloadAllEventAICommand(char* args);
         bool HandleReloadAllSpellCommand(char* args);
         bool HandleReloadAllLocalesCommand(char* args);
+        bool HandleReloadAllPomeloCommand(char* args);
 
         bool HandleReloadConfigCommand(char* args);
 

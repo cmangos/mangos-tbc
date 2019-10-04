@@ -71,6 +71,7 @@
 #include "Pomelo/InitPlayerItemMgr.h"
 #include "Pomelo/PetLoyaltyMgr.h"
 #include "Pomelo/VendorItemBlacklistMgr.h"
+#include "Pomelo/AnnounceMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -819,6 +820,7 @@ void World::LoadConfigSettings(bool reload)
     sInitPlayerItemMgr.LoadFromDB();
     sPetLoyaltyMgr.LoadFromDB();
     sVendorItemBlacklistMgr.LoadFromDB();
+    sAnnounceMgr.LoadFromDB();
 
     sLog.outString();
 }
@@ -1831,6 +1833,27 @@ void World::_UpdateGameTime()
             m_ShutdownTimer -= elapsed;
 
             ShutdownMsg();
+        }
+    }
+
+    uint32 announce_interval = sDBConfigMgr.GetUInt32("announce.interval");
+    if (announce_interval > 0)
+    {
+        if (m_AnnounceTimer >= announce_interval)
+        {
+            // Send announcements
+            std::string announcement = sAnnounceMgr.NextAnnouncement();
+            if (announcement.size() > 0)
+            {
+                SendServerMessage(SERVER_MSG_CUSTOM, announcement.c_str(), nullptr);
+            }
+
+            // Reset timer
+            m_AnnounceTimer = 0;
+        }
+        else
+        {
+            m_AnnounceTimer += elapsed;
         }
     }
 }

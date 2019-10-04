@@ -8,11 +8,11 @@
 
 #include "DungeonSwitchMgr.h"
 
-std::unordered_set<uint32> map;
+std::unordered_set<uint32> m_dungeonSwitch;
 
 void DungeonSwitchMgr::LoadFromDB()
 {
-    map.clear();
+    m_dungeonSwitch.clear();
     QueryResult* result = WorldDatabase.PQuery(
         "SELECT `entry` "
         "FROM `pomelo_dungeon_switch` "
@@ -23,12 +23,12 @@ void DungeonSwitchMgr::LoadFromDB()
 		do
 		{
 			Field* field = result->Fetch(); 
-            map.insert(field[0].GetUInt32());
+            m_dungeonSwitch.insert(field[0].GetUInt32());
 		} while (result->NextRow());
 	}
 }
 
 bool DungeonSwitchMgr::IsLocked(uint32 mapId)
 {
-    return map.find(mapId) != map.end();
+    return m_dungeonSwitch.find(mapId) != m_dungeonSwitch.end();
 }

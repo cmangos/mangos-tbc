@@ -1591,7 +1591,7 @@ void Player::Update(const uint32 diff)
         if (itr.interval <= 0)
             continue;
 
-        if (m_onlineRewardTimer[itr.index] > itr.interval * 1000)
+        if (m_onlineRewardTimer[itr.index] > itr.interval * 1000 * 2)
         {
             if (itr.type == REWARD_TYPE_MONEY)
             {

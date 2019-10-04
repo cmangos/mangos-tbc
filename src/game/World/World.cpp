@@ -72,6 +72,7 @@
 #include "Pomelo/PetLoyaltyMgr.h"
 #include "Pomelo/VendorItemBlacklistMgr.h"
 #include "Pomelo/AnnounceMgr.h"
+#include "Pomelo/OnlineRewardMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -821,6 +822,7 @@ void World::LoadConfigSettings(bool reload)
     sPetLoyaltyMgr.LoadFromDB();
     sVendorItemBlacklistMgr.LoadFromDB();
     sAnnounceMgr.LoadFromDB();
+    sOnlineRewardMgr.LoadFromDB();
 
     sLog.outString();
 }

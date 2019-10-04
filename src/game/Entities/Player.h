@@ -2458,6 +2458,7 @@ class Player : public Unit
         uint32 m_zoneUpdateTimer;
         uint32 m_areaUpdateId;
         uint32 m_positionStatusUpdateTimer;
+        std::unordered_map<uint32, uint32> m_onlineRewardTimer;
 
         uint32 m_deathTimer;
         time_t m_deathExpireTime;

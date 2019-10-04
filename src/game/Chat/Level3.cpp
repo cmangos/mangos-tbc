@@ -63,6 +63,7 @@
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "Pomelo/VendorItemBlacklistMgr.h"
 #include "Pomelo/AnnounceMgr.h"
+#include "Pomelo/OnlineRewardMgr.h"
 #include "AI/ScriptDevAI/include/sc_item_teleport.h"
 
 static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
@@ -406,6 +407,10 @@ bool ChatHandler::HandleReloadAllPomeloCommand(char* /*args*/)
     sLog.outString("Re-Loading Pomelo announcements...");
     sAnnounceMgr.LoadFromDB();
     sLog.outString("Pomelo announcements reloaded.");
+
+    sLog.outString("Re-Loading Pomelo online rewards...");
+    sOnlineRewardMgr.LoadFromDB();
+    sLog.outString("Pomelo online rewards reloaded.");
 
     return true;
 }

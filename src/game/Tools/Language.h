@@ -1053,7 +1053,8 @@ enum MangosStrings
     LANG_DUNGEON_NOT_AVAILABLE          = 80027,
     LANG_CLAIM_DAILY_REWARD_OK          = 80028,
     LANG_CLAIM_DAILY_REWARD_FAIL        = 80029,
-    LANG_MUST_LEAVE_9_SLOTS             = 80030
+    LANG_MUST_LEAVE_9_SLOTS             = 80030,
+    LANG_CLAIM_ONLINE_REWARD_CURRENCY   = 80031
 
     // Use for custom patches             11000-11999
 

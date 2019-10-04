@@ -24,7 +24,7 @@ public:
 	void LoadFromDB();
 	uint32 GetAccountCurrency(uint32 accid, uint32 curid);
 	bool ModifyAccountCurrency(uint32 accid, uint32 curid, int32 amount);
-	CustomCurrencyInfo GetCurrencyInfo(uint32 curid);
+	CustomCurrencyInfo* GetCurrencyInfo(uint32 curid);
 	std::vector<CustomCurrencyOwnedPair> GetOwnedCurrencies(uint32 accid);
 };
 

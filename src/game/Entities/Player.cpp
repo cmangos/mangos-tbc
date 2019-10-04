@@ -71,6 +71,7 @@
 #include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/InitPlayerItemMgr.h"
 #include "Pomelo/VendorItemBlacklistMgr.h"
+#include "Pomelo/OnlineRewardMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -1583,6 +1584,56 @@ void Player::Update(const uint32 diff)
 
     if (IsHasDelayedTeleport())
         TeleportTo(m_teleport_dest, m_teleport_options);
+
+    // Pomelo online reward
+    for (auto &itr : sOnlineRewardMgr.GetRewardItems())
+    {
+        if (itr.interval <= 0)
+            continue;
+
+        if (m_onlineRewardTimer[itr.index] > itr.interval * 1000)
+        {
+            if (itr.type == REWARD_TYPE_MONEY)
+            {
+                ModifyMoney(itr.amount);
+            }
+            else if (itr.type == REWARD_TYPE_ITEM)
+            {
+                ItemPosCountVec dest;
+                if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itr.index, itr.amount) != EQUIP_ERR_OK)
+                    break;
+                Item* item = StoreNewItem(dest, itr.index, true, Item::GenerateItemRandomPropertyId(itr.index));
+                if (itr.amount > 0 && item)
+                    SendNewItem(item, itr.amount, false, true);
+            }
+            else if (itr.type == REWARD_TYPE_CUSTOM_CURRENCY)
+            {
+                CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(itr.index);
+                sCustomCurrencyMgr.ModifyAccountCurrency(GetSession()->GetAccountId(), itr.index, itr.amount);
+                ChatHandler(this).PSendSysMessage(
+                    LANG_CLAIM_ONLINE_REWARD_CURRENCY,
+                    currency_info->name,
+                    itr.amount);
+            }
+            else if (itr.type == REWARD_TYPE_XP)
+            {
+                uint32 curXP = GetUInt32Value(PLAYER_XP);
+                uint32 nextLvlXP = GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
+                uint32 maxXP = nextLvlXP - curXP;
+                uint32 gainXP = nextLvlXP * 0.01 * itr.amount;
+                if (gainXP > maxXP)
+                    gainXP = maxXP;
+                GiveXP(gainXP, nullptr);
+            }
+
+            // Reset timer
+            m_onlineRewardTimer[itr.index] = 0;
+        }
+        else
+        {
+            m_onlineRewardTimer[itr.index] += diff;
+        }
+    }
 
 #ifdef BUILD_PLAYERBOT
     if (m_playerbotAI)
@@ -18606,12 +18657,13 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 		customCurrencyBalance = GetCurrency(pProto->CustomCurrency);
 		if (customCurrencyBalance < pProto->BuyPrice)
 		{
+            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency);
 			GetSession()->SendNotification(
 				GetSession()->GetMangosString(LANG_TELE_STORE_NO_CURRENCY_TO_BUY),
 				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+                currency_info->name.c_str(),
 				customCurrencyBalance,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str());
+                currency_info->name.c_str());
 			return false;
 		}
 	}
@@ -18639,11 +18691,12 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 		if (pProto->CustomCurrency > 0)
 		{
 			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
+            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency);
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+                currency_info->name.c_str(),
 				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+                currency_info->name.c_str(),
 				customCurrencyBalance - pProto->BuyPrice);
 		}
 		else
@@ -18675,11 +18728,12 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 		if (pProto->CustomCurrency > 0) // Cost custom currency if using custom currency
 		{
 			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
+            const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency)->name.c_str();
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+                currency_name,
 				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
+                currency_name,
 				customCurrencyBalance - pProto->BuyPrice);
 		}
 		else // Cost money

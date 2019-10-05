@@ -393,14 +393,15 @@ enum RegenStatsFlags
 // Vendors
 struct VendorItem
 {
-    VendorItem(uint32 _item, uint32 _maxcount, uint32 _incrtime, uint32 _ExtendedCost, uint16 _conditionId)
-        : item(_item), maxcount(_maxcount), incrtime(_incrtime), ExtendedCost(_ExtendedCost), conditionId(_conditionId) {}
+    VendorItem(uint32 _item, uint32 _maxcount, uint32 _incrtime, uint32 _ExtendedCost, uint16 _conditionId, uint32 _currencyId)
+        : item(_item), maxcount(_maxcount), incrtime(_incrtime), ExtendedCost(_ExtendedCost), conditionId(_conditionId), currencyId(_currencyId) {}
 
     uint32 item;
     uint32 maxcount;                                        // 0 for infinity item amount
     uint32 incrtime;                                        // time for restore items amount if maxcount != 0
     uint32 ExtendedCost;                                    // index in ItemExtendedCost.dbc
     uint16 conditionId;                                     // condition to check for this item
+    uint32 currencyId;
 };
 typedef std::vector<VendorItem*> VendorItemList;
 
@@ -415,9 +416,9 @@ struct VendorItemData
     }
     bool Empty() const { return m_items.empty(); }
     uint8 GetItemCount() const { return m_items.size(); }
-    void AddItem(uint32 item, uint32 maxcount, uint32 ptime, uint32 ExtendedCost, uint16 conditonId)
+    void AddItem(uint32 item, uint32 maxcount, uint32 ptime, uint32 ExtendedCost, uint16 conditonId, uint32 currencyId)
     {
-        m_items.push_back(new VendorItem(item, maxcount, ptime, ExtendedCost, conditonId));
+        m_items.push_back(new VendorItem(item, maxcount, ptime, ExtendedCost, conditonId, currencyId));
     }
     bool RemoveItem(uint32 item_id);
     VendorItem const* FindItem(uint32 item_id) const;

@@ -1591,7 +1591,7 @@ void Player::Update(const uint32 diff)
         if (itr.interval <= 0)
             continue;
 
-        if (m_onlineRewardTimer[itr.entry] > itr.interval * 1000 * 2)
+        if (m_onlineRewardTimer[itr.entry] > itr.interval * 1000)
         {
             if (itr.type == REWARD_TYPE_MONEY)
             {
@@ -18597,7 +18597,24 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
         return false;
     }
 
-    if (uint32 extendedCostId = crItem->ExtendedCost)
+    uint32 customCurrencyBalance = 0;
+    uint32 customCurrencyType = 0;
+    uint32 customCurrencyCost = 0;
+
+    if (pProto->CustomCurrency > 0)
+    {
+        customCurrencyType = pProto->CustomCurrency;
+        customCurrencyCost = pProto->BuyPrice;
+        customCurrencyBalance = GetCurrency(customCurrencyType);
+    }
+    else if (crItem->currencyId > 0)
+    {
+        customCurrencyType = crItem->currencyId;
+        customCurrencyCost = crItem->ExtendedCost;
+        customCurrencyBalance = GetCurrency(customCurrencyType);
+    }
+
+    if (uint32 extendedCostId = crItem->ExtendedCost && customCurrencyType == 0)
     {
         ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(extendedCostId);
         if (!iece)
@@ -18649,20 +18666,17 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
     // reputation discount
     price = uint32(floor(price * GetReputationPriceDiscount(pCreature)));
-
-	uint32 customCurrencyBalance;
-
-	if (pProto->CustomCurrency > 0) // Custom currency
+    
+	if (customCurrencyType > 0) // Custom currency
 	{
-		customCurrencyBalance = GetCurrency(pProto->CustomCurrency);
-		if (customCurrencyBalance < pProto->BuyPrice)
+		if (customCurrencyBalance < customCurrencyCost)
 		{
-            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency);
+            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType);
 			GetSession()->SendNotification(
 				GetSession()->GetMangosString(LANG_TELE_STORE_NO_CURRENCY_TO_BUY),
-				pProto->BuyPrice,
+                customCurrencyCost,
                 currency_info->name.c_str(),
-				customCurrencyBalance,
+                customCurrencyBalance,
                 currency_info->name.c_str());
 			return false;
 		}
@@ -18690,21 +18704,21 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
 		if (pProto->CustomCurrency > 0)
 		{
-			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
-            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency);
+			ModifyCurrency(pProto->CustomCurrency, -1 * customCurrencyCost);
+            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType);
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
                 currency_info->name.c_str(),
-				pProto->BuyPrice,
+                customCurrencyCost,
                 currency_info->name.c_str(),
-				customCurrencyBalance - pProto->BuyPrice);
+				customCurrencyBalance - customCurrencyCost);
 		}
 		else
 		{
 			ModifyMoney(-int32(price));
 		}
 
-		if (crItem->ExtendedCost)
+		if (crItem->ExtendedCost && customCurrencyType == 0)
 			TakeExtendedCost(crItem->ExtendedCost, count);
 
         pItem = StoreNewItem(dest, item, true);
@@ -18725,23 +18739,23 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
             return false;
         }
 
-		if (pProto->CustomCurrency > 0) // Cost custom currency if using custom currency
+		if (customCurrencyType > 0) // Cost custom currency if using custom currency
 		{
-			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
-            const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency)->name.c_str();
+			ModifyCurrency(customCurrencyType, -1 * customCurrencyCost);
+            const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType)->name.c_str();
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
                 currency_name,
-				pProto->BuyPrice,
+                customCurrencyCost,
                 currency_name,
-				customCurrencyBalance - pProto->BuyPrice);
+				customCurrencyBalance - customCurrencyCost);
 		}
 		else // Cost money
 		{
 			ModifyMoney(-int32(price));
 		}
 
-		if (crItem->ExtendedCost)
+		if (crItem->ExtendedCost && customCurrencyType == 0)
 			TakeExtendedCost(crItem->ExtendedCost, count);
 
         pItem = EquipNewItem(dest, item, true);

@@ -9348,10 +9348,10 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
     std::set<uint32> skip_vendors;
 
     QueryResult* result = WorldDatabase.PQuery(
-    "SELECT %s.entry, %s.item, %s.maxcount, %s.incrtime, %s.ExtendedCost, %s.condition_id "
+    "SELECT %s.entry, %s.item, %s.maxcount, %s.incrtime, %s.ExtendedCost, %s.condition_id, %s.currency_id "
     "FROM %s INNER JOIN item_template ON %s.item = item_template.entry "
     "WHERE item_template.ItemLevel <= %u;", 
-    tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, sDBConfigMgr.GetUInt32("limit.itemlevel"));
+    tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, sDBConfigMgr.GetUInt32("limit.itemlevel"));
     if (!result)
     {
         BarGoLink bar(1);
@@ -9377,8 +9377,9 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
         uint32 incrtime     = fields[3].GetUInt32();
         uint32 ExtendedCost = fields[4].GetUInt32();
         uint16 conditionId  = fields[5].GetUInt16();
+        uint32 currencyId   = fields[6].GetUInt32();
 
-        if (!IsVendorItemValid(isTemplates, tableName, entry, item_id, maxcount, incrtime, ExtendedCost, conditionId, nullptr, &skip_vendors))
+        if (!IsVendorItemValid(isTemplates, tableName, entry, item_id, maxcount, incrtime, ExtendedCost, conditionId, currencyId, nullptr, &skip_vendors))
             continue;
 
         // Pomelo vendor item blacklist
@@ -9387,7 +9388,7 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
 
         VendorItemData& vList = vendorList[entry];
 
-        vList.AddItem(item_id, maxcount, incrtime, ExtendedCost, conditionId);
+        vList.AddItem(item_id, maxcount, incrtime, ExtendedCost, conditionId, currencyId);
         ++count;
     }
     while (result->NextRow());
@@ -9813,7 +9814,7 @@ void ObjectMgr::LoadDungeonEncounters()
 void ObjectMgr::AddVendorItem(uint32 entry, uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost)
 {
     VendorItemData& vList = m_mCacheVendorItemMap[entry];
-    vList.AddItem(item, maxcount, incrtime, extendedcost, 0);
+    vList.AddItem(item, maxcount, incrtime, extendedcost, 0, 0);
 
     WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost) VALUES('%u','%u','%u','%u','%u')", entry, item, maxcount, incrtime, extendedcost);
 }
@@ -9831,7 +9832,7 @@ bool ObjectMgr::RemoveVendorItem(uint32 entry, uint32 item)
     return true;
 }
 
-bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32 vendor_entry, uint32 item_id, uint32 maxcount, uint32 incrtime, uint32 ExtendedCost, uint16 conditionId, Player* pl, std::set<uint32>* skip_vendors) const
+bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32 vendor_entry, uint32 item_id, uint32 maxcount, uint32 incrtime, uint32 ExtendedCost, uint16 conditionId, uint32 currencyId, Player* pl, std::set<uint32>* skip_vendors) const
 {
     char const* idStr = isTemplate ? "vendor template" : "vendor";
     CreatureInfo const* cInfo = nullptr;
@@ -9874,7 +9875,7 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
         return false;
     }
 
-    if (ExtendedCost && !sItemExtendedCostStore.LookupEntry(ExtendedCost))
+    if (ExtendedCost && currencyId == 0 && !sItemExtendedCostStore.LookupEntry(ExtendedCost))
     {
         if (pl)
             ChatHandler(pl).PSendSysMessage(LANG_EXTENDED_COST_NOT_EXIST, ExtendedCost);

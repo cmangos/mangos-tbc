@@ -782,6 +782,7 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid) const
 
                 // reputation discount
                 uint32 price = uint32(floor(pProto->BuyPrice * discountMod));
+                bool isCustomCurrency = false;
 
                 data << uint32(count);
                 data << uint32(itemId);
@@ -789,15 +790,28 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid) const
                 data << uint32(crItem->maxcount <= 0 ? 0xFFFFFFFF : pCreature->GetVendorItemCurrentCount(crItem));
 				if (pProto->CustomCurrency > 0)
 				{
+                    isCustomCurrency = true;
 					data << uint32(price * 10000); // Display as gold when costs custom currency
 				}
+                else if (crItem->currencyId > 0)
+                {
+                    isCustomCurrency = true;
+                    data << uint32(crItem->ExtendedCost * 10000); // Display as gold when costs custom currency
+                }
 				else
 				{
 					data << uint32(price);
 				}
                 data << uint32(pProto->MaxDurability);
                 data << uint32(pProto->BuyCount);
-                data << uint32(crItem->ExtendedCost);
+                if (!isCustomCurrency)
+                {
+                    data << uint32(crItem->ExtendedCost);
+                }
+                else
+                {
+                    data << uint32(0);
+                }
             }
         }
     }

@@ -6281,20 +6281,23 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
     uint32 counter = 0;
     for (uint8 i = 0; i < MAX_DIFFICULTY; ++i)
     {
-        Player::BoundInstancesMap& binds = player->GetBoundInstances(Difficulty(i));
-        for (Player::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
+        for (uint8 j = 0; j < MAX_DIFFICULTY; ++j)
         {
-            DungeonPersistentState* state = itr->second.state;
-            std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
-            if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
+            Player::BoundInstancesMap& binds = player->GetBoundInstances(Difficulty(i), AdvancedDifficulty(j));
+            for (Player::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
             {
-                PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
-                                itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                                state->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", state->CanReset() ? "yes" : "no", timeleft.c_str());
+                DungeonPersistentState* state = itr->second.state;
+                std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
+                if (const MapEntry * entry = sMapStore.LookupEntry(itr->first))
+                {
+                    PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
+                        itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
+                        state->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", state->CanReset() ? "yes" : "no", timeleft.c_str());
+                }
+                else
+                    PSendSysMessage("bound for a nonexistent map %u", itr->first);
+                ++counter;
             }
-            else
-                PSendSysMessage("bound for a nonexistent map %u", itr->first);
-            ++counter;
         }
     }
     PSendSysMessage("player binds: %d", counter);
@@ -6304,20 +6307,23 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
     {
         for (uint8 i = 0; i < MAX_DIFFICULTY; ++i)
         {
-            Group::BoundInstancesMap& binds = group->GetBoundInstances(Difficulty(i));
-            for (Group::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
+            for(uint8 j = 0; j < MAX_ADVANCED_DIFFICULTY; ++j)
             {
-                DungeonPersistentState* state = itr->second.state;
-                std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
-                if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
+                Group::BoundInstancesMap& binds = group->GetBoundInstances(Difficulty(i), AdvancedDifficulty(j));
+                for (Group::BoundInstancesMap::const_iterator itr = binds.begin(); itr != binds.end(); ++itr)
                 {
-                    PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
-                                    itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                                    state->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", state->CanReset() ? "yes" : "no", timeleft.c_str());
+                    DungeonPersistentState* state = itr->second.state;
+                    std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
+                    if (const MapEntry * entry = sMapStore.LookupEntry(itr->first))
+                    {
+                        PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
+                            itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
+                            state->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", state->CanReset() ? "yes" : "no", timeleft.c_str());
+                    }
+                    else
+                        PSendSysMessage("bound for a nonexistent map %u", itr->first);
+                    ++counter;
                 }
-                else
-                    PSendSysMessage("bound for a nonexistent map %u", itr->first);
-                ++counter;
             }
         }
     }
@@ -6349,32 +6355,35 @@ bool ChatHandler::HandleInstanceUnbindCommand(char* args)
 
     for (uint8 i = 0; i < MAX_DIFFICULTY; ++i)
     {
-        Player::BoundInstancesMap& binds = player->GetBoundInstances(Difficulty(i));
-        for (Player::BoundInstancesMap::iterator itr = binds.begin(); itr != binds.end();)
+        for (uint8 j = 0; j < MAX_ADVANCED_DIFFICULTY; ++j)
         {
-            if (got_map && mapid != itr->first)
+            Player::BoundInstancesMap& binds = player->GetBoundInstances(Difficulty(i), AdvancedDifficulty(j));
+            for (Player::BoundInstancesMap::iterator itr = binds.begin(); itr != binds.end();)
             {
-                ++itr;
-                continue;
-            }
-            if (itr->first != player->GetMapId())
-            {
-                DungeonPersistentState* save = itr->second.state;
-                std::string timeleft = secsToTimeString(save->GetResetTime() - time(nullptr), true);
-
-                if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
+                if (got_map && mapid != itr->first)
                 {
-                    PSendSysMessage("unbinding map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
-                                    itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
-                                    save->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", save->CanReset() ? "yes" : "no", timeleft.c_str());
+                    ++itr;
+                    continue;
+                }
+                if (itr->first != player->GetMapId())
+                {
+                    DungeonPersistentState* save = itr->second.state;
+                    std::string timeleft = secsToTimeString(save->GetResetTime() - time(nullptr), true);
+
+                    if (const MapEntry * entry = sMapStore.LookupEntry(itr->first))
+                    {
+                        PSendSysMessage("unbinding map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
+                            itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
+                            save->GetDifficulty() == DUNGEON_DIFFICULTY_NORMAL ? "normal" : "heroic", save->CanReset() ? "yes" : "no", timeleft.c_str());
+                    }
+                    else
+                        PSendSysMessage("bound for a nonexistent map %u", itr->first);
+                    player->UnbindInstance(itr, Difficulty(i), AdvancedDifficulty(j));
+                    ++counter;
                 }
                 else
-                    PSendSysMessage("bound for a nonexistent map %u", itr->first);
-                player->UnbindInstance(itr, Difficulty(i));
-                ++counter;
+                    ++itr;
             }
-            else
-                ++itr;
         }
     }
     PSendSysMessage("instances unbound: %d", counter);

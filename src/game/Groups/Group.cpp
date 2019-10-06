@@ -62,7 +62,7 @@ GroupMemberStatus GetGroupMemberStatus(const Player* member = nullptr)
 //===================================================
 
 Group::Group() : m_Id(0), m_leaderLastOnline(0), m_groupType(GROUPTYPE_NORMAL),
-    m_difficulty(REGULAR_DIFFICULTY),
+    m_difficulty(REGULAR_DIFFICULTY), m_pomeloDifficulty(ADVANCED_DIFFICULTY_NORMAL),
     m_bgGroup(nullptr), m_lootMethod(FREE_FOR_ALL), m_lootThreshold(ITEM_QUALITY_UNCOMMON),
     m_subGroupsCounts(nullptr)
 {
@@ -84,9 +84,10 @@ Group::~Group()
     // it is undefined whether objectmgr (which stores the groups) or instancesavemgr
     // will be unloaded first so we must be prepared for both cases
     // this may unload some dungeon persistent state
-    for (auto& m_boundInstance : m_boundInstances)
-        for (BoundInstancesMap::iterator itr2 = m_boundInstance.begin(); itr2 != m_boundInstance.end(); ++itr2)
-            itr2->second.state->RemoveGroup(this);
+    for (auto& m_boundInstance1 : m_boundInstances)
+        for (auto& m_boundInstance : m_boundInstance1)
+            for (BoundInstancesMap::iterator itr2 = m_boundInstance.begin(); itr2 != m_boundInstance.end(); ++itr2)
+                itr2->second.state->RemoveGroup(this);
 
     // Sub group counters clean up
     delete[] m_subGroupsCounts;
@@ -314,6 +315,7 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
             {
                 player->SetDifficulty(GetDifficulty());
                 player->SendDungeonDifficulty(true);
+                player->SetAdvancedDifficulty(GetAdvancedDifficulty());
             }
         }
         player->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
@@ -913,17 +915,20 @@ void Group::_setLeader(ObjectGuid guid)
 
         if (player)
         {
-            for (auto& m_boundInstance : m_boundInstances)
+            for (auto& m_boundInstance1 : m_boundInstances)
             {
-                for (BoundInstancesMap::iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end();)
+                for (auto& m_boundInstance : m_boundInstance1)
                 {
-                    if (itr->second.perm)
+                    for (BoundInstancesMap::iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end();)
                     {
-                        itr->second.state->RemoveGroup(this);
-                        m_boundInstance.erase(itr++);
+                        if (itr->second.perm)
+                        {
+                            itr->second.state->RemoveGroup(this);
+                            m_boundInstance.erase(itr++);
+                        }
+                        else
+                            ++itr;
                     }
-                    else
-                        ++itr;
                 }
             }
         }
@@ -1197,6 +1202,17 @@ void Group::SetDifficulty(Difficulty difficulty)
     }
 }
 
+void Group::SetAdvancedDifficulty(AdvancedDifficulty difficulty)
+{
+    m_pomeloDifficulty = difficulty;
+
+    for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
+    {
+        Player* player = itr->getSource();
+        player->SetAdvancedDifficulty(difficulty);
+    }
+}
+
 bool Group::InCombatToInstance(uint32 instanceId)
 {
     for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
@@ -1217,6 +1233,7 @@ void Group::ResetInstances(InstanceResetMethod method, Player* SendMsgTo)
 
     // we assume that when the difficulty changes, all instances that can be reset will be
     Difficulty diff = GetDifficulty();
+    AdvancedDifficulty advDiff = GetAdvancedDifficulty();
 
     typedef std::set<uint32> Uint32Set;
     Uint32Set mapsWithOfflinePlayer;                        // to store map of offline players
@@ -1242,7 +1259,7 @@ void Group::ResetInstances(InstanceResetMethod method, Player* SendMsgTo)
         }
     }
 
-    for (BoundInstancesMap::iterator itr = m_boundInstances[diff].begin(); itr != m_boundInstances[diff].end();)
+    for (BoundInstancesMap::iterator itr = m_boundInstances[diff][advDiff].begin(); itr != m_boundInstances[diff][advDiff].end();)
     {
         DungeonPersistentState* state = itr->second.state;
         const MapEntry* entry = sMapStore.LookupEntry(itr->first);
@@ -1302,8 +1319,8 @@ void Group::ResetInstances(InstanceResetMethod method, Player* SendMsgTo)
             else
                 CharacterDatabase.PExecute("DELETE FROM group_instance WHERE instance = '%u'", state->GetInstanceId());
             // i don't know for sure if hash_map iterators
-            m_boundInstances[diff].erase(itr);
-            itr = m_boundInstances[diff].begin();
+            m_boundInstances[diff][advDiff].erase(itr);
+            itr = m_boundInstances[diff][advDiff].begin();
             // this unloads the instance save unless online players are bound to it
             // (eg. permanent binds or GM solo binds)
             state->RemoveGroup(this);
@@ -1320,21 +1337,22 @@ InstanceGroupBind* Group::GetBoundInstance(uint32 mapid)
         return nullptr;
 
     Difficulty difficulty = GetDifficulty();
+    AdvancedDifficulty advDiff = GetAdvancedDifficulty();
 
     // some instances only have one difficulty
     if (!mapEntry->SupportsHeroicMode())
         difficulty = DUNGEON_DIFFICULTY_NORMAL;
 
-    BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
-    if (itr != m_boundInstances[difficulty].end())
+    BoundInstancesMap::iterator itr = m_boundInstances[difficulty][advDiff].find(mapid);
+    if (itr != m_boundInstances[difficulty][advDiff].end())
         return &itr->second;
     return nullptr;
 }
 
-InstanceGroupBind* Group::GetBoundInstance(Map* aMap, Difficulty difficulty)
+InstanceGroupBind* Group::GetBoundInstance(Map* aMap, Difficulty difficulty, AdvancedDifficulty advDiff)
 {
-    BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(aMap->GetId());
-    if (itr != m_boundInstances[difficulty].end())
+    BoundInstancesMap::iterator itr = m_boundInstances[difficulty][advDiff].find(aMap->GetId());
+    if (itr != m_boundInstances[difficulty][advDiff].end())
         return &itr->second;
     return nullptr;
 }
@@ -1343,7 +1361,7 @@ InstanceGroupBind* Group::BindToInstance(DungeonPersistentState* state, bool per
 {
     if (state && !isBattleGroup())
     {
-        InstanceGroupBind& bind = m_boundInstances[state->GetDifficulty()][state->GetMapId()];
+        InstanceGroupBind& bind = m_boundInstances[state->GetDifficulty()][state->GetAdvancedDifficulty()][state->GetMapId()];
         if (bind.state)
         {
             // when a boss is killed or when copying the players's binds to the group
@@ -1373,16 +1391,16 @@ InstanceGroupBind* Group::BindToInstance(DungeonPersistentState* state, bool per
     return nullptr;
 }
 
-void Group::UnbindInstance(uint32 mapid, uint8 difficulty, bool unload)
+void Group::UnbindInstance(uint32 mapid, uint8 difficulty, uint8 advDiff, bool unload)
 {
-    BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
-    if (itr != m_boundInstances[difficulty].end())
+    BoundInstancesMap::iterator itr = m_boundInstances[difficulty][advDiff].find(mapid);
+    if (itr != m_boundInstances[difficulty][advDiff].end())
     {
         if (!unload)
             CharacterDatabase.PExecute("DELETE FROM group_instance WHERE leaderGuid = '%u' AND instance = '%u'",
                                        GetLeaderGuid().GetCounter(), itr->second.state->GetInstanceId());
         itr->second.state->RemoveGroup(this);               // state can become invalid
-        m_boundInstances[difficulty].erase(itr);
+        m_boundInstances[difficulty][advDiff].erase(itr);
     }
 }
 
@@ -1395,7 +1413,7 @@ void Group::_homebindIfInstance(Player* player) const
         {
             // leaving the group in an instance, the homebind timer is started
             // unless the player is permanently saved to the instance
-            InstancePlayerBind* playerBind = player->GetBoundInstance(map->GetId(), map->GetDifficulty());
+            InstancePlayerBind* playerBind = player->GetBoundInstance(map->GetId(), map->GetDifficulty(), map->GetAdvancedDifficulty());
             if (!playerBind || !playerBind->perm)
                 player->m_InstanceValid = false;
         }

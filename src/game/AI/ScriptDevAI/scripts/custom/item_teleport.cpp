@@ -16,6 +16,7 @@
 #include "Pomelo/DailySignInRewardMgr.h"
 #include "item_transmogrification.h"
 #include "item_multi_talent.h"
+#include "item_dungeon.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
 #define STORE_ITEM_ENTRY        83501
@@ -237,6 +238,10 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	{
 		return true;
 	}
+	else if (HandleDungeonGossipMenuSelect(pPlayer, pObj, sender, action))
+	{
+		return true;
+	}
 	else if (!FindActionItem(sender, action, item))
 	{
 		return false;
@@ -392,6 +397,9 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
         ChatHandler(pPlayer).HandleAddItemSetCommand(t3_itemset[pPlayer->getClass()]);
         pPlayer->PlayerTalkClass->CloseGossip();
         break;
+	case TELE_FUNC::DUNGEON_SETTINGS:
+		GenerateDungeonGossipMenu(pPlayer, pObj->GetObjectGuid());
+		break;
 	default:
 		return false;
 		break;

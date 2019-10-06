@@ -3613,6 +3613,8 @@ void ObjectMgr::LoadGroups()
                  "(SELECT COUNT(*) FROM character_instance WHERE guid = group_instance.leaderGuid AND instance = group_instance.instance AND permanent = 1 LIMIT 1), "
                  // 7
                  "`groups`.groupId, instance.encountersMask "
+                 // 8
+                 " instance.advanced_difficulty "
                  "FROM group_instance LEFT JOIN instance ON instance = id LEFT JOIN `groups` ON `groups`.leaderGUID = group_instance.leaderGUID ORDER BY leaderGuid"
              );
 
@@ -3637,6 +3639,7 @@ void ObjectMgr::LoadGroups()
             uint8 tempDiff = fields[4].GetUInt8();
             uint32 groupId = fields[7].GetUInt32();
             Difficulty diff = REGULAR_DIFFICULTY;
+            uint8 advDiff = fields[8].GetUInt8();
 
             if (!group || group->GetId() != groupId)
             {
@@ -3661,7 +3664,7 @@ void ObjectMgr::LoadGroups()
             else
                 diff = Difficulty(tempDiff);
 
-            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, fields[2].GetUInt32(), Difficulty(diff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true, fields[8].GetUInt32());
+            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, fields[2].GetUInt32(), Difficulty(diff), AdvancedDifficulty(advDiff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true, fields[8].GetUInt32());
             group->BindToInstance(state, fields[3].GetBool(), true);
         }
         while (result->NextRow());

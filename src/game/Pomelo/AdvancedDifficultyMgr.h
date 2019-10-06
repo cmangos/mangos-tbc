@@ -14,6 +14,8 @@
 #include "Platform/Define.h"
 #include <string>
 
+#define MAX_ADVANCED_DIFFICULTY 2
+
 enum AdvancedDifficulty : uint8
 {
     ADVANCED_DIFFICULTY_NORMAL      = 0,

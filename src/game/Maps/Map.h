@@ -193,6 +193,7 @@ class Map : public GridRefManager<NGridType>
         // regular difficulty = continent/dungeon normal/raid normal difficulty
         uint8 GetSpawnMode() const { return (i_spawnMode); }
         Difficulty GetDifficulty() const { return Difficulty(GetSpawnMode()); }
+        AdvancedDifficulty GetAdvancedDifficulty() const { return AdvancedDifficulty(i_advancedDifficulty); }
         bool IsRegularDifficulty() const { return GetDifficulty() == REGULAR_DIFFICULTY; }
         uint32 GetMaxPlayers() const;
         uint32 GetMaxResetDelay() const;
@@ -381,7 +382,7 @@ class Map : public GridRefManager<NGridType>
     protected:
         MapEntry const* i_mapEntry;
         uint8 i_spawnMode;
-        uint8 i_pomeloDifficulty;
+        uint8 i_advancedDifficulty;
         uint32 i_id;
         uint32 i_InstanceId;
         uint32 m_unloadTimer;

@@ -239,6 +239,7 @@ class Group
 
         void SetDifficulty(Difficulty difficulty);
         Difficulty GetDifficulty() const { return m_difficulty; }
+        AdvancedDifficulty GetAdvancedDifficulty() const { return m_pomeloDifficulty; }
         bool InCombatToInstance(uint32 instanceId);
         void ResetInstances(InstanceResetMethod method, Player* SendMsgTo);
 
@@ -354,6 +355,7 @@ class Group
         ObjectGuid          m_mainAssistantGuid;
         GroupType           m_groupType;
         Difficulty          m_difficulty;
+        AdvancedDifficulty  m_pomeloDifficulty;
         BattleGround*       m_bgGroup;
         ObjectGuid          m_targetIcons[TARGET_ICON_COUNT];
         LootMethod          m_lootMethod;

@@ -16193,6 +16193,7 @@ void Player::_LoadBoundInstances(QueryResult* result)
             uint8 difficulty = fields[3].GetUInt8();
 
             time_t resetTime = (time_t)fields[4].GetUInt64();
+            uint8 pomeloDifficulty = fields[5].GetUInt8();
             // the resettime for normal instances is only saved when the InstanceSave is unloaded
             // so the value read from the DB may be wrong here but only if the InstanceSave is loaded
             // and in that case it is not used
@@ -16222,7 +16223,7 @@ void Player::_LoadBoundInstances(QueryResult* result)
             }
 
             // since non permanent binds are always solo bind, they can always be reset
-            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, instanceId, Difficulty(difficulty), resetTime, !perm, true);
+            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, instanceId, Difficulty(difficulty), AdvancedDifficulty(pomeloDifficulty), resetTime, !perm, true);
             if (state) BindToInstance(state, perm, true);
         }
         while (result->NextRow());
@@ -18614,45 +18615,48 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
         customCurrencyBalance = GetCurrency(customCurrencyType);
     }
 
-    if (uint32 extendedCostId = crItem->ExtendedCost && customCurrencyType == 0)
+    if (customCurrencyType == 0)
     {
-        ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(extendedCostId);
-        if (!iece)
+        if (uint32 extendedCostId = crItem->ExtendedCost)
         {
-            sLog.outError("Item %u have wrong ExtendedCost field value %u", pProto->ItemId, extendedCostId);
-            return false;
-        }
-
-        // honor points price
-        if (GetHonorPoints() < (iece->reqhonorpoints * count))
-        {
-            SendEquipError(EQUIP_ERR_NOT_ENOUGH_HONOR_POINTS, nullptr, nullptr);
-            return false;
-        }
-
-        // arena points price
-        if (GetArenaPoints() < (iece->reqarenapoints * count))
-        {
-            SendEquipError(EQUIP_ERR_NOT_ENOUGH_ARENA_POINTS, nullptr, nullptr);
-            return false;
-        }
-
-        // item base price
-        for (uint8 i = 0; i < MAX_EXTENDED_COST_ITEMS; ++i)
-        {
-            if (iece->reqitem[i] && !HasItemCount(iece->reqitem[i], iece->reqitemcount[i] * count))
+            ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(extendedCostId);
+            if (!iece)
             {
-                SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, nullptr, nullptr);
+                sLog.outError("Item %u have wrong ExtendedCost field value %u", pProto->ItemId, extendedCostId);
                 return false;
             }
-        }
 
-        // check for personal arena rating requirement
-        if (GetMaxPersonalArenaRatingRequirement() < iece->reqpersonalarenarating)
-        {
-            // probably not the proper equip err
-            SendEquipError(EQUIP_ERR_CANT_EQUIP_RANK, nullptr, nullptr);
-            return false;
+            // honor points price
+            if (GetHonorPoints() < (iece->reqhonorpoints * count))
+            {
+                SendEquipError(EQUIP_ERR_NOT_ENOUGH_HONOR_POINTS, nullptr, nullptr);
+                return false;
+            }
+
+            // arena points price
+            if (GetArenaPoints() < (iece->reqarenapoints * count))
+            {
+                SendEquipError(EQUIP_ERR_NOT_ENOUGH_ARENA_POINTS, nullptr, nullptr);
+                return false;
+            }
+
+            // item base price
+            for (uint8 i = 0; i < MAX_EXTENDED_COST_ITEMS; ++i)
+            {
+                if (iece->reqitem[i] && !HasItemCount(iece->reqitem[i], iece->reqitemcount[i] * count))
+                {
+                    SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, nullptr, nullptr);
+                    return false;
+                }
+            }
+
+            // check for personal arena rating requirement
+            if (GetMaxPersonalArenaRatingRequirement() < iece->reqpersonalarenarating)
+            {
+                // probably not the proper equip err
+                SendEquipError(EQUIP_ERR_CANT_EQUIP_RANK, nullptr, nullptr);
+                return false;
+            }
         }
     }
 

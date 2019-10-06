@@ -1378,6 +1378,13 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
         }
     }
 
+    // Pomelo 10 players raid
+    Map* mMap = this->GetMap();
+    if (mMap->IsRaid())
+    {
+        InstanceData* mInstance = mMap->GetInstanceData();
+    }
+
     health *= _GetHealthMod(rank); // Apply custom config settting
     if (health < 1)
         health = 1;

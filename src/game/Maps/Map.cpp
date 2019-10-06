@@ -87,8 +87,8 @@ void Map::LoadMapAndVMap(int gx, int gy)
         m_bLoadedGrids[gx][gy] = true;
 }
 
-Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
-    : i_mapEntry(sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode),
+Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, uint8 PomeloDifficulty)
+    : i_mapEntry(sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode), i_pomeloDifficulty(PomeloDifficulty),
       i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
       m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_persistentState(nullptr),
       m_activeNonPlayersIter(m_activeNonPlayers.end()), m_onEventNotifiedIter(m_onEventNotifiedObjects.end()),
@@ -1413,8 +1413,8 @@ WorldPersistentState* WorldMap::GetPersistanceState() const
 
 /* ******* Dungeon Instance Maps ******* */
 
-DungeonMap::DungeonMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
-    : Map(id, expiry, InstanceId, SpawnMode),
+DungeonMap::DungeonMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, uint8 PomeloDifficulty)
+    : Map(id, expiry, InstanceId, SpawnMode, PomeloDifficulty),
       m_resetAfterUnload(false), m_unloadWhenEmpty(false), m_team(TEAM_NONE)
 {
     MANGOS_ASSERT(i_mapEntry->IsDungeon());
@@ -1689,7 +1689,7 @@ DungeonPersistentState* DungeonMap::GetPersistanceState() const
 /* ******* Battleground Instance Maps ******* */
 
 BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId)
-    : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY)
+    : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY, ADVANCED_DIFFICULTY_NORMAL)
 {
     // lets initialize visibility distance for BG/Arenas
     BattleGroundMap::InitVisibilityDistance();

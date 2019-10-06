@@ -34,6 +34,7 @@
 #include "DBScripts/ScriptMgr.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "vmap/DynamicTree.h"
+#include "Pomelo/AdvancedDifficultyMgr.h"
 
 #include <bitset>
 #include <functional>
@@ -102,7 +103,7 @@ class Map : public GridRefManager<NGridType>
         friend class ObjectWorldLoader;
 
     protected:
-        Map(uint32 id, time_t, uint32 InstanceId, uint8 SpawnMode);
+        Map(uint32 id, time_t, uint32 InstanceId, uint8 SpawnMode, uint8 PomeloDifficulty);
 
     public:
         virtual ~Map();
@@ -380,6 +381,7 @@ class Map : public GridRefManager<NGridType>
     protected:
         MapEntry const* i_mapEntry;
         uint8 i_spawnMode;
+        uint8 i_pomeloDifficulty;
         uint32 i_id;
         uint32 i_InstanceId;
         uint32 m_unloadTimer;
@@ -456,7 +458,7 @@ class WorldMap : public Map
     private:
         using Map::GetPersistentState;                      // hide in subclass for overwrite
     public:
-        WorldMap(uint32 id, time_t expiry) : Map(id, expiry, 0, REGULAR_DIFFICULTY) {}
+        WorldMap(uint32 id, time_t expiry) : Map(id, expiry, 0, REGULAR_DIFFICULTY, ADVANCED_DIFFICULTY_NORMAL) {}
         ~WorldMap() {}
 
         // can't be nullptr for loaded map
@@ -468,7 +470,7 @@ class DungeonMap : public Map
     private:
         using Map::GetPersistentState;                      // hide in subclass for overwrite
     public:
-        DungeonMap(uint32 id, time_t, uint32 InstanceId, uint8 SpawnMode);
+        DungeonMap(uint32 id, time_t, uint32 InstanceId, uint8 SpawnMode, uint8 PomeloDifficulty);
         ~DungeonMap();
         bool Add(Player*) override;
         void Remove(Player*, bool) override;

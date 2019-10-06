@@ -1666,6 +1666,7 @@ class Player : public Unit
 
         void SetDifficulty(Difficulty dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
         Difficulty GetDifficulty() const { return m_dungeonDifficulty; }
+        AdvancedDifficulty GetAdvancedDifficulty() const { return m_dungeonPomeloDifficulty; }
 
         bool CanEnterNewInstance(uint32 instanceId);
         void AddNewInstanceId(uint32 instanceId);
@@ -2394,6 +2395,7 @@ class Player : public Unit
         time_t m_speakTime;
         uint32 m_speakCount;
         Difficulty m_dungeonDifficulty;
+        AdvancedDifficulty m_dungeonPomeloDifficulty;
 
         uint32 m_atLoginFlags;
 

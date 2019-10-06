@@ -2281,6 +2281,10 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     }
                     case 30166:                             // Shadow Grasp - upon magtheridon
                     {
+                        uint8 hitCount = 5;
+                        // Simplify the difficulty for 10 players
+                        if (target->GetMap()->GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS)
+                            hitCount = 2;
                         if (target->GetAuraCount(30166) == 5)
                         {
                             target->CastSpell(target, 30168, TRIGGERED_OLD_TRIGGERED); // cast Shadow cage if stacks are 5

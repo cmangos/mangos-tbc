@@ -47,6 +47,7 @@
 #include "Movement/MoveSpline.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Tools/Formulas.h"
+#include "Pomelo/DBConfigMgr.h"
 
 #include <math.h>
 #include <array>
@@ -1078,6 +1079,21 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
         !spellProto->HasAttribute(SPELL_ATTR_EX_NO_THREAT))) && CanEnterCombat() && victim->CanEnterCombat())
     {
         float threat = damage * sSpellMgr.GetSpellThreatMultiplier(spellProto);
+
+        // Pomelo enhance tank threat
+        if (this->GetTypeId() == TYPEID_PLAYER)
+        {
+            float tankMultiplier = sDBConfigMgr.GetFloat("tank.threat");
+            if (tankMultiplier < 1) 
+                tankMultiplier = 1;
+            if (this->HasAura(71) // Vanguard
+                || this->HasAura(5487) // Bear Form
+                || this->HasAura(9634) // Dire Bear Form
+                || this->HasAura(25780)) // Righteous Fury
+            {
+                threat = threat * tankMultiplier;
+            }
+        }
         victim->AddThreat(this, threat, (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
         if (damagetype != DOT) // DOTs dont put in combat but still cause threat
         {

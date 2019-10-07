@@ -1614,7 +1614,7 @@ void Player::Update(const uint32 diff)
                 sCustomCurrencyMgr.ModifyAccountCurrency(GetSession()->GetAccountId(), itr.index, itr.amount);
                 ChatHandler(this).PSendSysMessage(
                     LANG_CLAIM_ONLINE_REWARD_CURRENCY,
-                    currency_info->name,
+                    currency_info->name.c_str(),
                     itr.amount);
             }
             else if (itr.type == REWARD_TYPE_XP)
@@ -1962,6 +1962,13 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
             SendTransferAbortedByLockStatus(mEntry, at, lockStatus, miscRequirement);
             return false;
+        }
+
+        if (isDungeon && GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS)
+        {
+            // Notify the 10 players rule
+            ChatHandler(this).PSendSysMessage(
+                LANG_10_PLR_DIFFICULTY_WELCOME);
         }
     }
 

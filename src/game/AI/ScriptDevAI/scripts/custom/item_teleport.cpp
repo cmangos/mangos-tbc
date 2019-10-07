@@ -182,16 +182,16 @@ bool CheckAndDoCost(Player* pPlayer, TELE_ITEM* pMenu)
 	else if (pMenu->cost_type == TELE_COST::COST_CUSTOM_CURRENCY)
 	{
 		uint32 balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), pMenu->cost_currency_id);
-		auto currency_info = sCustomCurrencyMgr.GetCurrencyInfo(pMenu->cost_currency_id);
+		const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(pMenu->cost_currency_id)->name.c_str();
 		if (pMenu->cost_amount > balance)
 		{
 			pPlayer->PlayerTalkClass->CloseGossip();
 			pPlayer->GetSession()->SendNotification(
 				LANG_TELE_STORE_NO_CURRENCY_TO_BUY,
 				pMenu->cost_amount,
-				currency_info->name,
+                currency_name,
 				balance,
-				currency_info->name);
+                currency_name);
 			return false;
 		}
 		else
@@ -199,9 +199,9 @@ bool CheckAndDoCost(Player* pPlayer, TELE_ITEM* pMenu)
 			sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), pMenu->cost_currency_id, -1 * pMenu->cost_amount);
             ChatHandler(pPlayer).PSendSysMessage(
 				LANG_TELE_STORE_PAID_WITH_CURRENCY,
-				currency_info->name,
+                currency_name,
 				pMenu->cost_amount,
-				currency_info->name,
+                currency_name,
 				balance - pMenu->cost_amount);
 		}
 	}

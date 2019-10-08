@@ -36,6 +36,10 @@ void GenerateDungeonGossipMenu(Player* pPlayer, ObjectGuid guid)
 bool HandleDungeonGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 {
 	if (sender != 80008) return false;
+
+    if (action >= MAX_ADVANCED_DIFFICULTY)
+        return true;
+
     if (pPlayer->GetMap()->IsDungeon() || pPlayer->GetMap()->IsRaid())
     {
         pPlayer->GetSession()->SendNotification(LANG_DIFFICULTY_WRONG_MAP);

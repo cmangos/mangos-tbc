@@ -48,6 +48,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "World/WorldState.h"
 #include "Pomelo/DBConfigMgr.h"
+#include "Pomelo/VendorItemBlacklistMgr.h"
 
 #include "Entities/ItemEnchantmentMgr.h"
 #include "Loot/LootMgr.h"
@@ -3612,6 +3613,8 @@ void ObjectMgr::LoadGroups()
                  "(SELECT COUNT(*) FROM character_instance WHERE guid = group_instance.leaderGuid AND instance = group_instance.instance AND permanent = 1 LIMIT 1), "
                  // 7
                  "`groups`.groupId, instance.encountersMask "
+                 // 8
+                 " instance.advanced_difficulty "
                  "FROM group_instance LEFT JOIN instance ON instance = id LEFT JOIN `groups` ON `groups`.leaderGUID = group_instance.leaderGUID ORDER BY leaderGuid"
              );
 
@@ -3636,6 +3639,7 @@ void ObjectMgr::LoadGroups()
             uint8 tempDiff = fields[4].GetUInt8();
             uint32 groupId = fields[7].GetUInt32();
             Difficulty diff = REGULAR_DIFFICULTY;
+            uint8 advDiff = fields[8].GetUInt8();
 
             if (!group || group->GetId() != groupId)
             {
@@ -3660,7 +3664,7 @@ void ObjectMgr::LoadGroups()
             else
                 diff = Difficulty(tempDiff);
 
-            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, fields[2].GetUInt32(), Difficulty(diff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true, fields[8].GetUInt32());
+            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, fields[2].GetUInt32(), Difficulty(diff), AdvancedDifficulty(advDiff), (time_t)fields[5].GetUInt64(), (fields[6].GetUInt32() == 0), true, fields[8].GetUInt32());
             group->BindToInstance(state, fields[3].GetBool(), true);
         }
         while (result->NextRow());
@@ -9347,10 +9351,10 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
     std::set<uint32> skip_vendors;
 
     QueryResult* result = WorldDatabase.PQuery(
-    "SELECT %s.entry, %s.item, %s.maxcount, %s.incrtime, %s.ExtendedCost, %s.condition_id "
+    "SELECT %s.entry, %s.item, %s.maxcount, %s.incrtime, %s.ExtendedCost, %s.condition_id, %s.currency_id "
     "FROM %s INNER JOIN item_template ON %s.item = item_template.entry "
     "WHERE item_template.ItemLevel <= %u;", 
-    tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, sDBConfigMgr.GetUInt32("limit.itemlevel"));
+    tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, tableName, sDBConfigMgr.GetUInt32("limit.itemlevel"));
     if (!result)
     {
         BarGoLink bar(1);
@@ -9376,13 +9380,18 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
         uint32 incrtime     = fields[3].GetUInt32();
         uint32 ExtendedCost = fields[4].GetUInt32();
         uint16 conditionId  = fields[5].GetUInt16();
+        uint32 currencyId   = fields[6].GetUInt32();
 
-        if (!IsVendorItemValid(isTemplates, tableName, entry, item_id, maxcount, incrtime, ExtendedCost, conditionId, nullptr, &skip_vendors))
+        if (!IsVendorItemValid(isTemplates, tableName, entry, item_id, maxcount, incrtime, ExtendedCost, conditionId, currencyId, nullptr, &skip_vendors))
+            continue;
+
+        // Pomelo vendor item blacklist
+        if (sVendorItemBlacklistMgr.IsInBlacklist(item_id))
             continue;
 
         VendorItemData& vList = vendorList[entry];
 
-        vList.AddItem(item_id, maxcount, incrtime, ExtendedCost, conditionId);
+        vList.AddItem(item_id, maxcount, incrtime, ExtendedCost, conditionId, currencyId);
         ++count;
     }
     while (result->NextRow());
@@ -9808,7 +9817,7 @@ void ObjectMgr::LoadDungeonEncounters()
 void ObjectMgr::AddVendorItem(uint32 entry, uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost)
 {
     VendorItemData& vList = m_mCacheVendorItemMap[entry];
-    vList.AddItem(item, maxcount, incrtime, extendedcost, 0);
+    vList.AddItem(item, maxcount, incrtime, extendedcost, 0, 0);
 
     WorldDatabase.PExecuteLog("INSERT INTO npc_vendor (entry,item,maxcount,incrtime,extendedcost) VALUES('%u','%u','%u','%u','%u')", entry, item, maxcount, incrtime, extendedcost);
 }
@@ -9826,7 +9835,7 @@ bool ObjectMgr::RemoveVendorItem(uint32 entry, uint32 item)
     return true;
 }
 
-bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32 vendor_entry, uint32 item_id, uint32 maxcount, uint32 incrtime, uint32 ExtendedCost, uint16 conditionId, Player* pl, std::set<uint32>* skip_vendors) const
+bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32 vendor_entry, uint32 item_id, uint32 maxcount, uint32 incrtime, uint32 ExtendedCost, uint16 conditionId, uint32 currencyId, Player* pl, std::set<uint32>* skip_vendors) const
 {
     char const* idStr = isTemplate ? "vendor template" : "vendor";
     CreatureInfo const* cInfo = nullptr;
@@ -9869,7 +9878,7 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
         return false;
     }
 
-    if (ExtendedCost && !sItemExtendedCostStore.LookupEntry(ExtendedCost))
+    if (ExtendedCost && currencyId == 0 && !sItemExtendedCostStore.LookupEntry(ExtendedCost))
     {
         if (pl)
             ChatHandler(pl).PSendSysMessage(LANG_EXTENDED_COST_NOT_EXIST, ExtendedCost);

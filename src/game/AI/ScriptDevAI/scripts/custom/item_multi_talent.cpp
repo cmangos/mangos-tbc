@@ -37,7 +37,7 @@ void GenerateMultiTalentGossipMenu(Player* pPlayer, ObjectGuid guid)
 bool CheckCreateTalentTemplatePermission(Player* pPlayer)
 {
     uint32 permission = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_PERMISSION);
-    return pPlayer->GetSession()->GetSecurity() >= permission;
+    return pPlayer->GetSession()->GetSecurity() >= (AccountTypes)permission;
 }
 
 bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
@@ -86,7 +86,7 @@ bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sen
 		uint32 cost = 0;
 		uint32 balance = 0;
 		uint32 currency_id;
-		CustomCurrencyInfo currency_info;
+		CustomCurrencyInfo* currency_info = nullptr;
 		switch(sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_COST_TYPE))
 		{
 			case MULTI_TALENT_COST_MONEY:
@@ -103,24 +103,24 @@ bool HandleMultiTalentGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sen
 				cost = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_COST_VALUE);
 				currency_id = sDBConfigMgr.GetUInt32(CONFIG_MULTI_TALENT_COST_CURRENCY);
 				balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id);
+                currency_info = sCustomCurrencyMgr.GetCurrencyInfo(currency_id);
 				if (balance < cost)
 				{
 					pPlayer->PlayerTalkClass->CloseGossip();
-					currency_info = sCustomCurrencyMgr.GetCurrencyInfo(currency_id);
 					pPlayer->GetSession()->SendNotification(
 						LANG_TELE_STORE_NO_CURRENCY_TO_BUY, 
 						cost,
-						currency_info.name,
+						currency_info->name,
 						balance,
-						currency_info.name);
+						currency_info->name);
 					return true;
 				}
 				sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id, -1 * cost);
 				pPlayer->GetSession()->SendNotification(
 					LANG_TELE_STORE_PAID_WITH_CURRENCY, 
-					currency_info.name,
+					currency_info->name,
 					cost,
-					currency_info.name,
+					currency_info->name,
 					balance - cost);
 				break;
 			case MULTI_TALENT_COST_FREE:

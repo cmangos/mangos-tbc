@@ -12,6 +12,7 @@ std::vector<InitPlayerItem> items;
 
 void InitPlayerItemMgr::LoadFromDB()
 {
+    items.clear();
     QueryResult* result = WorldDatabase.PQuery(
     "SELECT `itemid`, `amount` "
     "FROM `playercreateinfo_item` "

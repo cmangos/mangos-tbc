@@ -5367,8 +5367,9 @@ SpellCastResult Spell::CheckCast(bool strict)
                         return SPELL_FAILED_HIGHLEVEL;
 
                     Difficulty difficulty = m_caster->GetMap()->GetDifficulty();
-                    if (InstancePlayerBind* targetBind = target->GetBoundInstance(mapId, difficulty))
-                        if (InstancePlayerBind* casterBind = caster->GetBoundInstance(mapId, difficulty))
+                    AdvancedDifficulty advDiff = m_caster->GetMap()->GetAdvancedDifficulty();
+                    if (InstancePlayerBind* targetBind = target->GetBoundInstance(mapId, difficulty, advDiff))
+                        if (InstancePlayerBind* casterBind = caster->GetBoundInstance(mapId, difficulty, advDiff))
                             if (targetBind->perm && targetBind->state != casterBind->state)
                                 return SPELL_FAILED_TARGET_LOCKED_TO_RAID_INSTANCE;
 

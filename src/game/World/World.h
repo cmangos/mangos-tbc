@@ -647,6 +647,7 @@ class World
         static uint8 m_ExitCode;
         uint32 m_ShutdownTimer;
         uint32 m_ShutdownMask;
+        uint32 m_AnnounceTimer; // Pomelo auto announce timer
 
         time_t m_startTime;
         time_t m_gameTime;

@@ -47,6 +47,7 @@
 #include "Movement/MoveSpline.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Tools/Formulas.h"
+#include "Pomelo/DBConfigMgr.h"
 
 #include <math.h>
 #include <array>
@@ -1078,6 +1079,21 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
         !spellProto->HasAttribute(SPELL_ATTR_EX_NO_THREAT))) && CanEnterCombat() && victim->CanEnterCombat())
     {
         float threat = damage * sSpellMgr.GetSpellThreatMultiplier(spellProto);
+
+        // Pomelo enhance tank threat
+        if (this->GetTypeId() == TYPEID_PLAYER)
+        {
+            float tankMultiplier = sDBConfigMgr.GetFloat("tank.threat");
+            if (tankMultiplier < 1) 
+                tankMultiplier = 1;
+            if (this->HasAura(71) // Vanguard
+                || this->HasAura(5487) // Bear Form
+                || this->HasAura(9634) // Dire Bear Form
+                || this->HasAura(25780)) // Righteous Fury
+            {
+                threat = threat * tankMultiplier;
+            }
+        }
         victim->AddThreat(this, threat, (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
         if (damagetype != DOT) // DOTs dont put in combat but still cause threat
         {
@@ -4345,7 +4361,7 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
             bool specialResult = true;
             if (forMovement) // mobs can move during spells without this flag
                 specialResult = genericSpell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_MOVEMENT;
-            bool autoAction = !(genericSpell->m_spellInfo->AttributesEx2 & SPELL_ATTR_EX2_NOT_RESET_AUTO_ACTIONS);
+            bool autoAction = !(genericSpell->m_spellInfo->HasAttribute(SPELL_ATTR_EX2_NOT_RESET_AUTO_ACTIONS));
             if (autoAction && specialResult && (withDelayed || genericSpell->getState() != SPELL_STATE_TRAVELING))
                 return true;
         }
@@ -9293,7 +9309,7 @@ bool Unit::IsLeashingTarget(Unit* victim) const
 
     // Use AttackDistance in distance check if threat radius is lower. This prevents creature bounce in and out of combat every update tick.
     // TODO: Implement proper leashing
-    return !victim->IsWithinDist3d(x, y, z, ThreatRadius > AttackDist ? ThreatRadius : AttackDist);
+    return !victim->IsWithinDist3d(x, y, z, ThreatRadius > AttackDist ? ThreatRadius : AttackDist) && !GetMap()->IsDungeon();
 }
 
 uint32 Unit::GetCreatureType() const

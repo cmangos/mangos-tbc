@@ -11,7 +11,7 @@
 #include <iostream>
 #include <sstream>
 
-std::unordered_map<std::string, std::string> map;
+std::unordered_map<std::string, std::string> m_dbConfig;
 
 template <class Type> 
 Type StringToType(const std::string& str){ 
@@ -23,6 +23,7 @@ Type StringToType(const std::string& str){
 
 void DBConfigMgr::LoadFromDB()
 {
+    m_dbConfig.clear();
     QueryResult* result = WorldDatabase.PQuery(
         "SELECT `entry`, `value` "
         "FROM `pomelo_config`;");
@@ -32,27 +33,27 @@ void DBConfigMgr::LoadFromDB()
 		do
 		{
 			Field* field = result->Fetch();
-            map[field[0].GetCppString()] = field[1].GetCppString();
+            m_dbConfig[field[0].GetCppString()] = field[1].GetCppString();
 		} while (result->NextRow());
 	}
 }
 
 uint32 DBConfigMgr::GetUInt32(std::string entry)
 {
-    return StringToType<uint32>(map[entry]);
+    return StringToType<uint32>(m_dbConfig[entry]);
 }
 
 uint64 DBConfigMgr::GetUInt64(std::string entry)
 {
-    return StringToType<uint64>(map[entry]);
+    return StringToType<uint64>(m_dbConfig[entry]);
 }
 
 float DBConfigMgr::GetFloat(std::string entry)
 {
-    return StringToType<float>(map[entry]);
+    return StringToType<float>(m_dbConfig[entry]);
 }
 
 std::string DBConfigMgr::GetString(std::string entry)
 {
-    return map[entry];
+    return m_dbConfig[entry];
 }

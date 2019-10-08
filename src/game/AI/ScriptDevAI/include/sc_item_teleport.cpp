@@ -60,6 +60,8 @@ std::vector<TELE_ITEM> LoadTeleportTemplate()
 
 void Teleport::BuildTeleportMenuMap()
 {
+    map_item.clear();
+    map_order.clear();
 	auto result = LoadTeleportTemplate();
 
 	// Grouping the menu items

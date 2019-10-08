@@ -196,6 +196,10 @@ inline void Cell::VisitWorldObjects(const WorldObject* center_obj, T& visitor, f
 template<class T>
 inline void Cell::VisitAllObjects(const WorldObject* center_obj, T& visitor, float radius, bool dont_load)
 {
+    // Workaround for boss_shirrak
+    if (!center_obj)
+        return;
+
     CellPair p(MaNGOS::ComputeCellPair(center_obj->GetPositionX(), center_obj->GetPositionY()));
     Cell cell(p);
     if (dont_load)

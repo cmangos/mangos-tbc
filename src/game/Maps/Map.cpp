@@ -87,8 +87,8 @@ void Map::LoadMapAndVMap(int gx, int gy)
         m_bLoadedGrids[gx][gy] = true;
 }
 
-Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
-    : i_mapEntry(sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode),
+Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, uint8 PomeloDifficulty)
+    : i_mapEntry(sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode), i_advancedDifficulty(PomeloDifficulty),
       i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
       m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_persistentState(nullptr),
       m_activeNonPlayersIter(m_activeNonPlayers.end()), m_onEventNotifiedIter(m_onEventNotifiedObjects.end()),
@@ -122,7 +122,7 @@ void Map::Initialize(bool loadInstanceData /*= true*/)
 
     CreateInstanceData(loadInstanceData);
 
-    m_persistentState = sMapPersistentStateMgr.AddPersistentState(i_mapEntry, GetInstanceId(), GetDifficulty(), 0, IsDungeon(), false);
+    m_persistentState = sMapPersistentStateMgr.AddPersistentState(i_mapEntry, GetInstanceId(), GetDifficulty(), GetAdvancedDifficulty(), IsDungeon(), false);
     m_persistentState->SetUsedByMapState(this);
     m_persistentState->InitPools();
 
@@ -1413,8 +1413,8 @@ WorldPersistentState* WorldMap::GetPersistanceState() const
 
 /* ******* Dungeon Instance Maps ******* */
 
-DungeonMap::DungeonMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
-    : Map(id, expiry, InstanceId, SpawnMode),
+DungeonMap::DungeonMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode, uint8 PomeloDifficulty)
+    : Map(id, expiry, InstanceId, SpawnMode, PomeloDifficulty),
       m_resetAfterUnload(false), m_unloadWhenEmpty(false), m_team(TEAM_NONE)
 {
     MANGOS_ASSERT(i_mapEntry->IsDungeon());
@@ -1450,7 +1450,7 @@ bool DungeonMap::Add(Player* player)
         return false;
 
     // check for existing instance binds
-    InstancePlayerBind* playerBind = player->GetBoundInstance(GetId(), GetDifficulty());
+    InstancePlayerBind* playerBind = player->GetBoundInstance(GetId(), GetDifficulty(), GetAdvancedDifficulty());
     if (playerBind && playerBind->perm)
     {
         // cannot enter other instances if bound permanently
@@ -1473,7 +1473,7 @@ bool DungeonMap::Add(Player* player)
         if (pGroup)
         {
             // solo saves should be reset when entering a group
-            InstanceGroupBind* groupBind = pGroup->GetBoundInstance(this, GetDifficulty());
+            InstanceGroupBind* groupBind = pGroup->GetBoundInstance(this, GetDifficulty(), GetAdvancedDifficulty());
             if (playerBind)
             {
                 sLog.outError("DungeonMap::Add: %s is being put in instance %d,%d,%d,%d,%d,%d but he is in group (Id: %d) and is bound to instance %d,%d,%d,%d,%d,%d!",
@@ -1490,7 +1490,7 @@ bool DungeonMap::Add(Player* player)
                                   groupBind->state->GetPlayerCount(), groupBind->state->GetGroupCount(), groupBind->state->CanReset());
 
                 // no reason crash if we can fix state
-                player->UnbindInstance(GetId(), GetDifficulty());
+                player->UnbindInstance(GetId(), GetDifficulty(), GetAdvancedDifficulty());
             }
 
             // bind to the group or keep using the group save
@@ -1629,7 +1629,7 @@ void DungeonMap::PermBindAllPlayers(Player* player)
         Player* plr = itr.getSource();
         // players inside an instance cannot be bound to other instances
         // some players may already be permanently bound, in this case nothing happens
-        InstancePlayerBind* bind = plr->GetBoundInstance(GetId(), GetDifficulty());
+        InstancePlayerBind* bind = plr->GetBoundInstance(GetId(), GetDifficulty(), GetAdvancedDifficulty());
         if (!bind || !bind->perm)
         {
             plr->BindToInstance(GetPersistanceState(), true);
@@ -1689,7 +1689,7 @@ DungeonPersistentState* DungeonMap::GetPersistanceState() const
 /* ******* Battleground Instance Maps ******* */
 
 BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId)
-    : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY)
+    : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY, ADVANCED_DIFFICULTY_NORMAL)
 {
     // lets initialize visibility distance for BG/Arenas
     BattleGroundMap::InitVisibilityDistance();

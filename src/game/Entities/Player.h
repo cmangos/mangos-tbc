@@ -1665,7 +1665,9 @@ class Player : public Unit
         static void LeaveAllArenaTeams(ObjectGuid guid);
 
         void SetDifficulty(Difficulty dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
+        void SetAdvancedDifficulty(AdvancedDifficulty dungeon_advanced_difficulty) { m_dungeonPomeloDifficulty = dungeon_advanced_difficulty; }
         Difficulty GetDifficulty() const { return m_dungeonDifficulty; }
+        AdvancedDifficulty GetAdvancedDifficulty() const { return m_dungeonPomeloDifficulty; }
 
         bool CanEnterNewInstance(uint32 instanceId);
         void AddNewInstanceId(uint32 instanceId);
@@ -2185,11 +2187,11 @@ class Player : public Unit
         uint32 m_HomebindTimer;
         bool m_InstanceValid;
         // permanent binds and solo binds by difficulty
-        BoundInstancesMap m_boundInstances[MAX_DIFFICULTY];
-        InstancePlayerBind* GetBoundInstance(uint32 mapid, Difficulty difficulty);
-        BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
-        void UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload = false);
-        void UnbindInstance(BoundInstancesMap::iterator& itr, Difficulty difficulty, bool unload = false);
+        BoundInstancesMap m_boundInstances[MAX_DIFFICULTY][MAX_ADVANCED_DIFFICULTY];
+        InstancePlayerBind* GetBoundInstance(uint32 mapid, Difficulty difficulty, AdvancedDifficulty advDiff);
+        BoundInstancesMap& GetBoundInstances(Difficulty difficulty, AdvancedDifficulty advDiff) { return m_boundInstances[difficulty][advDiff]; }
+        void UnbindInstance(uint32 mapid, Difficulty difficulty, AdvancedDifficulty advDiff, bool unload = false);
+        void UnbindInstance(BoundInstancesMap::iterator& itr, Difficulty difficulty, AdvancedDifficulty advDiff, bool unload = false);
         InstancePlayerBind* BindToInstance(DungeonPersistentState* state, bool permanent, bool load = false);
         void SendRaidInfo();
         void SendSavedInstances();
@@ -2394,6 +2396,7 @@ class Player : public Unit
         time_t m_speakTime;
         uint32 m_speakCount;
         Difficulty m_dungeonDifficulty;
+        AdvancedDifficulty m_dungeonPomeloDifficulty;
 
         uint32 m_atLoginFlags;
 
@@ -2458,6 +2461,7 @@ class Player : public Unit
         uint32 m_zoneUpdateTimer;
         uint32 m_areaUpdateId;
         uint32 m_positionStatusUpdateTimer;
+        std::unordered_map<uint32, uint32> m_onlineRewardTimer;
 
         uint32 m_deathTimer;
         time_t m_deathExpireTime;

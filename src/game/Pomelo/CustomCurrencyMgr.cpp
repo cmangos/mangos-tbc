@@ -57,9 +57,9 @@ bool CustomCurrencyMgr::ModifyAccountCurrency(uint32 accid, uint32 curid, int32 
 	return true;
 }
 
-CustomCurrencyInfo CustomCurrencyMgr::GetCurrencyInfo(uint32 curid)
+CustomCurrencyInfo* CustomCurrencyMgr::GetCurrencyInfo(uint32 curid)
 {
-	return m_currency[curid];
+	return &m_currency[curid];
 }
 
 

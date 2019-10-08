@@ -110,7 +110,7 @@ void GenerateTransmogrificationRestoreModelGossipMenu(Player* pPlayer, ObjectGui
 bool CheckTransmogrificationPermission(Player* pPlayer)
 {
     uint32 permission = sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_PERMISSION);
-    return pPlayer->GetSession()->GetSecurity() >= permission;
+    return pPlayer->GetSession()->GetSecurity() >= (AccountTypes)permission;
 }
 
 bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
@@ -166,7 +166,7 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 			uint32 cost = 0;
 			uint32 balance = 0;
 			uint32 currency_id;
-			CustomCurrencyInfo currency_info;
+			CustomCurrencyInfo* currency_info = nullptr;
 			switch(sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_COST_TYPE))
 			{
 				case TRANSMOG_COST_MONEY:
@@ -190,17 +190,17 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 						pPlayer->GetSession()->SendNotification(
 							LANG_TELE_STORE_NO_CURRENCY_TO_BUY, 
 							cost,
-							currency_info.name,
+							currency_info->name,
 							balance,
-							currency_info.name);
+							currency_info->name);
 						return true;
 					}
 					sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id, -1 * cost);
 					pPlayer->GetSession()->SendNotification(
 						LANG_TELE_STORE_PAID_WITH_CURRENCY, 
-						currency_info.name,
+						currency_info->name,
 						cost,
-						currency_info.name,
+						currency_info->name,
 						balance - cost);
 					break;
 				case TRANSMOG_COST_FREE:

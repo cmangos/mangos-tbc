@@ -16,6 +16,7 @@
 #include "Pomelo/DailySignInRewardMgr.h"
 #include "item_transmogrification.h"
 #include "item_multi_talent.h"
+#include "item_dungeon.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
 #define STORE_ITEM_ENTRY        83501
@@ -181,16 +182,16 @@ bool CheckAndDoCost(Player* pPlayer, TELE_ITEM* pMenu)
 	else if (pMenu->cost_type == TELE_COST::COST_CUSTOM_CURRENCY)
 	{
 		uint32 balance = sCustomCurrencyMgr.GetAccountCurrency(pPlayer->GetSession()->GetAccountId(), pMenu->cost_currency_id);
-		auto currency_info = sCustomCurrencyMgr.GetCurrencyInfo(pMenu->cost_currency_id);
+		const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(pMenu->cost_currency_id)->name.c_str();
 		if (pMenu->cost_amount > balance)
 		{
 			pPlayer->PlayerTalkClass->CloseGossip();
 			pPlayer->GetSession()->SendNotification(
 				LANG_TELE_STORE_NO_CURRENCY_TO_BUY,
 				pMenu->cost_amount,
-				currency_info.name,
+                currency_name,
 				balance,
-				currency_info.name);
+                currency_name);
 			return false;
 		}
 		else
@@ -198,9 +199,9 @@ bool CheckAndDoCost(Player* pPlayer, TELE_ITEM* pMenu)
 			sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), pMenu->cost_currency_id, -1 * pMenu->cost_amount);
             ChatHandler(pPlayer).PSendSysMessage(
 				LANG_TELE_STORE_PAID_WITH_CURRENCY,
-				currency_info.name,
+                currency_name,
 				pMenu->cost_amount,
-				currency_info.name,
+                currency_name,
 				balance - pMenu->cost_amount);
 		}
 	}
@@ -234,6 +235,10 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 		return true;
 	}
 	else if (HandleMultiTalentGossipMenuSelect(pPlayer, pObj, sender, action))
+	{
+		return true;
+	}
+	else if (HandleDungeonGossipMenuSelect(pPlayer, pObj, sender, action))
 	{
 		return true;
 	}
@@ -329,7 +334,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 			{
 				ChatHandler(pPlayer).PSendSysMessage(
 					LANG_TELE_CURR_QUERY_RESULT,
-					sCustomCurrencyMgr.GetCurrencyInfo(currencies[i].curid).name.c_str(),
+					sCustomCurrencyMgr.GetCurrencyInfo(currencies[i].curid)->name.c_str(),
 					currencies[i].amount);
 			}
 		}
@@ -355,7 +360,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
     		uint32 currencyId = sDBConfigMgr.GetUInt32("reward.daily.currency");
 			ChatHandler(pPlayer).PSendSysMessage(
 				LANG_CLAIM_DAILY_REWARD_OK,
-				sCustomCurrencyMgr.GetCurrencyInfo(currencyId).name.c_str(),
+				sCustomCurrencyMgr.GetCurrencyInfo(currencyId)->name.c_str(),
 				amount);
             pPlayer->PlayerTalkClass->CloseGossip();
 		}
@@ -392,6 +397,9 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
         ChatHandler(pPlayer).HandleAddItemSetCommand(t3_itemset[pPlayer->getClass()]);
         pPlayer->PlayerTalkClass->CloseGossip();
         break;
+	case TELE_FUNC::DUNGEON_SETTINGS:
+		GenerateDungeonGossipMenu(pPlayer, pObj->GetObjectGuid());
+		break;
 	default:
 		return false;
 		break;

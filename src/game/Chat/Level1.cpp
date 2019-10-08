@@ -556,7 +556,7 @@ bool ChatHandler::HandleGonameCommand(char* args)
 
             // if the player or the player's group is bound to another instance
             // the player will not be bound to another one
-            InstancePlayerBind* pBind = _player->GetBoundInstance(target->GetMapId(), target->GetDifficulty());
+            InstancePlayerBind* pBind = _player->GetBoundInstance(target->GetMapId(), target->GetDifficulty(), target->GetAdvancedDifficulty());
             if (!pBind)
             {
                 Group* group = _player->GetGroup();

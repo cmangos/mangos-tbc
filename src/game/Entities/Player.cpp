@@ -70,6 +70,8 @@
 #include "Pomelo/DungeonSwitchMgr.h"
 #include "Pomelo/DBConfigMgr.h"
 #include "Pomelo/InitPlayerItemMgr.h"
+#include "Pomelo/VendorItemBlacklistMgr.h"
+#include "Pomelo/OnlineRewardMgr.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -620,6 +622,7 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
     m_HomebindTimer = 0;
     m_InstanceValid = true;
     m_dungeonDifficulty = DUNGEON_DIFFICULTY_NORMAL;
+    m_dungeonPomeloDifficulty = ADVANCED_DIFFICULTY_NORMAL;
 
     for (auto& i : m_auraBaseMod)
     {
@@ -685,9 +688,10 @@ Player::~Player()
         delete x;
 
     // clean up player-instance binds, may unload some instance saves
-    for (auto& m_boundInstance : m_boundInstances)
-        for (BoundInstancesMap::iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
-            itr->second.state->RemovePlayer(this);
+    for (auto& m_boundInstance1 : m_boundInstances)
+        for (auto& m_boundInstance : m_boundInstance1)
+            for (BoundInstancesMap::iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
+                itr->second.state->RemovePlayer(this);
 
 #ifdef BUILD_PLAYERBOT
     if (m_playerbotAI)
@@ -1583,6 +1587,56 @@ void Player::Update(const uint32 diff)
     if (IsHasDelayedTeleport())
         TeleportTo(m_teleport_dest, m_teleport_options);
 
+    // Pomelo online reward
+    for (auto &itr : sOnlineRewardMgr.GetRewardItems())
+    {
+        if (itr.interval <= 0)
+            continue;
+
+        if (m_onlineRewardTimer[itr.entry] > itr.interval * 1000)
+        {
+            if (itr.type == REWARD_TYPE_MONEY)
+            {
+                ModifyMoney(itr.amount);
+            }
+            else if (itr.type == REWARD_TYPE_ITEM)
+            {
+                ItemPosCountVec dest;
+                if (CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itr.index, itr.amount) != EQUIP_ERR_OK)
+                    break;
+                Item* item = StoreNewItem(dest, itr.index, true, Item::GenerateItemRandomPropertyId(itr.index));
+                if (itr.amount > 0 && item)
+                    SendNewItem(item, itr.amount, false, true);
+            }
+            else if (itr.type == REWARD_TYPE_CUSTOM_CURRENCY)
+            {
+                CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(itr.index);
+                sCustomCurrencyMgr.ModifyAccountCurrency(GetSession()->GetAccountId(), itr.index, itr.amount);
+                ChatHandler(this).PSendSysMessage(
+                    LANG_CLAIM_ONLINE_REWARD_CURRENCY,
+                    currency_info->name.c_str(),
+                    itr.amount);
+            }
+            else if (itr.type == REWARD_TYPE_XP)
+            {
+                uint32 curXP = GetUInt32Value(PLAYER_XP);
+                uint32 nextLvlXP = GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
+                uint32 maxXP = nextLvlXP - curXP;
+                uint32 gainXP = nextLvlXP * 0.01 * itr.amount;
+                if (gainXP > maxXP)
+                    gainXP = maxXP;
+                GiveXP(gainXP, nullptr);
+            }
+
+            // Reset timer
+            m_onlineRewardTimer[itr.entry] = 0;
+        }
+        else
+        {
+            m_onlineRewardTimer[itr.entry] += diff;
+        }
+    }
+
 #ifdef BUILD_PLAYERBOT
     if (m_playerbotAI)
         m_playerbotAI->UpdateAI(diff);
@@ -1886,6 +1940,15 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         if (sDungeonSwitchMgr.IsLocked(mapId) && GetSession()->GetSecurity() < SEC_GAMEMASTER)
         {
             lockStatus = AREA_LOCKSTATUS_NOT_ALLOWED;
+            GetSession()->SendNotification(LANG_DUNGEON_NOT_AVAILABLE);
+        }
+
+        MapEntry const* mapEntry = sMapStore.LookupEntry(at->target_mapId);
+        bool isDungeon = mapEntry->IsDungeon() || mapEntry->IsRaid();
+        if (isDungeon && GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS && !sDungeonSwitchMgr.IsSupportTenPlayersDifficulty(mapId))
+        {
+            lockStatus = AREA_LOCKSTATUS_NOT_ALLOWED;
+            GetSession()->SendNotification(LANG_10_PLR_DIFFICULTY_NOT_SUPPORT);
         }
 
         if (lockStatus != AREA_LOCKSTATUS_OK)
@@ -1899,6 +1962,13 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
             SendTransferAbortedByLockStatus(mEntry, at, lockStatus, miscRequirement);
             return false;
+        }
+
+        if (isDungeon && GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS)
+        {
+            // Notify the 10 players rule
+            ChatHandler(this).PSendSysMessage(
+                LANG_10_PLR_DIFFICULTY_WELCOME);
         }
     }
 
@@ -14813,8 +14883,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, dungeon_difficulty,"
     // 39           40                41                42                    43          44          45              46           47              48
     //"arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk,"
-    // 49      50      51      52      53      54      55             56              57      58           59          60                     61
-    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
+    // 49      50      51      52      53      54      55             56              57      58           59          60                     61                 62
+    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate, advanced_difficulty  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult* result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
     if (!result)
@@ -14896,6 +14966,9 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 	// Multi talent
 	m_currentTalentTemplate = fields[60].GetUInt32();
 	m_maxTalentTemplate = fields[61].GetUInt32();
+
+    // Pomelo advanced difficulty
+    m_dungeonPomeloDifficulty = AdvancedDifficulty(fields[62].GetUInt8());
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
     for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
@@ -16117,6 +16190,7 @@ void Player::_LoadGroup(QueryResult* result)
                 // the group leader may change the instance difficulty while the player is offline
                 SetDifficulty(group->GetDifficulty());
             }
+            SetAdvancedDifficulty(group->GetAdvancedDifficulty());
         }
     }
     UpdateGroupLeaderFlag();
@@ -16124,12 +16198,13 @@ void Player::_LoadGroup(QueryResult* result)
 
 void Player::_LoadBoundInstances(QueryResult* result)
 {
-    for (auto& m_boundInstance : m_boundInstances)
-        m_boundInstance.clear();
+    for (auto& m_boundInstance1 : m_boundInstances)
+        for (auto& m_boundInstance : m_boundInstance1)
+            m_boundInstance.clear();
 
     Group* group = GetGroup();
 
-    // QueryResult *result = CharacterDatabase.PQuery("SELECT id, permanent, map, difficulty, resettime FROM character_instance LEFT JOIN instance ON instance = id WHERE guid = '%u'", GUID_LOPART(m_guid));
+    // QueryResult *result = CharacterDatabase.PQuery("SELECT id, permanent, map, difficulty, resettime, advanced_difficulty FROM character_instance LEFT JOIN instance ON instance = id WHERE guid = '%u'", GUID_LOPART(m_guid));
     if (result)
     {
         do
@@ -16141,6 +16216,7 @@ void Player::_LoadBoundInstances(QueryResult* result)
             uint8 difficulty = fields[3].GetUInt8();
 
             time_t resetTime = (time_t)fields[4].GetUInt64();
+            uint8 pomeloDifficulty = fields[5].GetUInt8();
             // the resettime for normal instances is only saved when the InstanceSave is unloaded
             // so the value read from the DB may be wrong here but only if the InstanceSave is loaded
             // and in that case it is not used
@@ -16170,7 +16246,7 @@ void Player::_LoadBoundInstances(QueryResult* result)
             }
 
             // since non permanent binds are always solo bind, they can always be reset
-            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, instanceId, Difficulty(difficulty), resetTime, !perm, true);
+            DungeonPersistentState* state = (DungeonPersistentState*)sMapPersistentStateMgr.AddPersistentState(mapEntry, instanceId, Difficulty(difficulty), AdvancedDifficulty(pomeloDifficulty), resetTime, !perm, true);
             if (state) BindToInstance(state, perm, true);
         }
         while (result->NextRow());
@@ -16178,34 +16254,34 @@ void Player::_LoadBoundInstances(QueryResult* result)
     }
 }
 
-InstancePlayerBind* Player::GetBoundInstance(uint32 mapid, Difficulty difficulty)
+InstancePlayerBind* Player::GetBoundInstance(uint32 mapid, Difficulty difficulty, AdvancedDifficulty advDiff)
 {
     // some instances only have one difficulty
     const MapEntry* entry = sMapStore.LookupEntry(mapid);
     if (!entry || !entry->SupportsHeroicMode())
         difficulty = DUNGEON_DIFFICULTY_NORMAL;
 
-    BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
-    if (itr != m_boundInstances[difficulty].end())
+    BoundInstancesMap::iterator itr = m_boundInstances[difficulty][advDiff].find(mapid);
+    if (itr != m_boundInstances[difficulty][advDiff].end())
         return &itr->second;
     return nullptr;
 }
 
-void Player::UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload)
+void Player::UnbindInstance(uint32 mapid, Difficulty difficulty, AdvancedDifficulty advDiff, bool unload)
 {
-    BoundInstancesMap::iterator itr = m_boundInstances[difficulty].find(mapid);
-    UnbindInstance(itr, difficulty, unload);
+    BoundInstancesMap::iterator itr = m_boundInstances[difficulty][advDiff].find(mapid);
+    UnbindInstance(itr, difficulty, advDiff, unload);
 }
 
-void Player::UnbindInstance(BoundInstancesMap::iterator& itr, Difficulty difficulty, bool unload)
+void Player::UnbindInstance(BoundInstancesMap::iterator& itr, Difficulty difficulty, AdvancedDifficulty advDiff, bool unload)
 {
-    if (itr != m_boundInstances[difficulty].end())
+    if (itr != m_boundInstances[difficulty][advDiff].end())
     {
         if (!unload)
             CharacterDatabase.PExecute("DELETE FROM character_instance WHERE guid = '%u' AND instance = '%u'",
                                        GetGUIDLow(), itr->second.state->GetInstanceId());
         itr->second.state->RemovePlayer(this);              // state can become invalid
-        m_boundInstances[difficulty].erase(itr++);
+        m_boundInstances[difficulty][advDiff].erase(itr++);
     }
 }
 
@@ -16213,7 +16289,7 @@ InstancePlayerBind* Player::BindToInstance(DungeonPersistentState* state, bool p
 {
     if (state)
     {
-        InstancePlayerBind& bind = m_boundInstances[state->GetDifficulty()][state->GetMapId()];
+        InstancePlayerBind& bind = m_boundInstances[state->GetDifficulty()][state->GetAdvancedDifficulty()][state->GetMapId()];
         if (bind.state)
         {
             // update the state when the group kills a boss
@@ -16255,7 +16331,7 @@ DungeonPersistentState* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)
     if (!mapEntry)
         return nullptr;
 
-    InstancePlayerBind* pBind = GetBoundInstance(mapid, GetDifficulty());
+    InstancePlayerBind* pBind = GetBoundInstance(mapid, GetDifficulty(), GetAdvancedDifficulty());
     DungeonPersistentState* state = pBind ? pBind->state : nullptr;
 
     // the player's permanent player bind is taken into consideration first
@@ -16282,18 +16358,21 @@ void Player::SendRaidInfo()
 
     time_t now = time(nullptr);
 
-    for (auto& m_boundInstance : m_boundInstances)
+    for (auto& m_boundInstance1 : m_boundInstances)
     {
-        for (BoundInstancesMap::const_iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
+        for (auto& m_boundInstance : m_boundInstance1)
         {
-            if (itr->second.perm)
+            for (BoundInstancesMap::const_iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
             {
-                DungeonPersistentState* state = itr->second.state;
-                data << uint32(state->GetMapId());          // map id
-                data << uint32(state->GetResetTime() - time(nullptr));
-                data << uint32(state->GetInstanceId());     // instance id
-                data << uint32(counter);
-                counter++;
+                if (itr->second.perm)
+                {
+                    DungeonPersistentState* state = itr->second.state;
+                    data << uint32(state->GetMapId());          // map id
+                    data << uint32(state->GetResetTime() - time(nullptr));
+                    data << uint32(state->GetInstanceId());     // instance id
+                    data << uint32(counter);
+                    counter++;
+                }
             }
         }
     }
@@ -16309,14 +16388,17 @@ void Player::SendSavedInstances()
     bool hasBeenSaved = false;
     WorldPacket data;
 
-    for (auto& m_boundInstance : m_boundInstances)
+    for (auto& m_boundInstance1 : m_boundInstances)
     {
-        for (BoundInstancesMap::const_iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
+        for (auto& m_boundInstance : m_boundInstance1)
         {
-            if (itr->second.perm)                           // only permanent binds are sent
+            for (BoundInstancesMap::const_iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
             {
-                hasBeenSaved = true;
-                break;
+                if (itr->second.perm)                           // only permanent binds are sent
+                {
+                    hasBeenSaved = true;
+                    break;
+                }
             }
         }
     }
@@ -16329,15 +16411,18 @@ void Player::SendSavedInstances()
     if (!hasBeenSaved)
         return;
 
-    for (auto& m_boundInstance : m_boundInstances)
+    for (auto& m_boundInstance1 : m_boundInstances)
     {
-        for (BoundInstancesMap::const_iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
+        for (auto& m_boundInstance : m_boundInstance1)
         {
-            if (itr->second.perm)
+            for (BoundInstancesMap::const_iterator itr = m_boundInstance.begin(); itr != m_boundInstance.end(); ++itr)
             {
-                data.Initialize(SMSG_UPDATE_LAST_INSTANCE);
-                data << uint32(itr->second.state->GetMapId());
-                GetSession()->SendPacket(data);
+                if (itr->second.perm)
+                {
+                    data.Initialize(SMSG_UPDATE_LAST_INSTANCE);
+                    data << uint32(itr->second.state->GetMapId());
+                    GetSession()->SendPacket(data);
+                }
             }
         }
     }
@@ -16365,22 +16450,25 @@ void Player::ConvertInstancesToGroup(Player* player, Group* group, ObjectGuid pl
     {
         for (uint8 i = 0; i < MAX_DIFFICULTY; ++i)
         {
-            for (BoundInstancesMap::iterator itr = player->m_boundInstances[i].begin(); itr != player->m_boundInstances[i].end();)
+            for (uint8 j = 0; j < MAX_ADVANCED_DIFFICULTY; ++j)
             {
-                has_binds = true;
-
-                if (group)
-                    group->BindToInstance(itr->second.state, itr->second.perm, true);
-
-                // permanent binds are not removed
-                if (!itr->second.perm)
+                for (BoundInstancesMap::iterator itr = player->m_boundInstances[i][j].begin(); itr != player->m_boundInstances[i][j].end();)
                 {
-                    // increments itr in call
-                    player->UnbindInstance(itr, Difficulty(i), true);
-                    has_solo = true;
+                    has_binds = true;
+
+                    if (group)
+                        group->BindToInstance(itr->second.state, itr->second.perm, true);
+
+                    // permanent binds are not removed
+                    if (!itr->second.perm)
+                    {
+                        // increments itr in call
+                        player->UnbindInstance(itr, Difficulty(i), AdvancedDifficulty(j), true);
+                        has_solo = true;
+                    }
+                    else
+                        ++itr;
                 }
-                else
-                    ++itr;
             }
         }
     }
@@ -16484,7 +16572,7 @@ void Player::SaveToDB()
                               "trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, "
                               "death_expire_time, taxi_path, arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, "
                               "todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, health, power1, power2, power3, "
-                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate) "
+                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate, advanced_difficulty) "
                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, "
@@ -16492,7 +16580,7 @@ void Player::SaveToDB()
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                              "?, ?, ?, ?, ?, ?, ?, ?, ?) ");
+                              "?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
 
     uberInsert.addUInt32(GetGUIDLow());
     uberInsert.addUInt32(GetSession()->GetAccountId());
@@ -16623,7 +16711,8 @@ void Player::SaveToDB()
 
 	// Multi talent
 	uberInsert.addUInt32(m_currentTalentTemplate);
-	uberInsert.addUInt32(m_maxTalentTemplate);
+    uberInsert.addUInt32(m_maxTalentTemplate);
+    uberInsert.addUInt32(m_dungeonPomeloDifficulty);
 
     uberInsert.Execute();
 
@@ -17342,40 +17431,43 @@ void Player::ResetInstances(InstanceResetMethod method)
     // we assume that when the difficulty changes, all instances that can be reset will be
     Difficulty diff = GetDifficulty();
 
-    for (BoundInstancesMap::iterator itr = m_boundInstances[diff].begin(); itr != m_boundInstances[diff].end();)
+    for (uint8 i = 0; i < MAX_ADVANCED_DIFFICULTY; ++i)
     {
-        DungeonPersistentState* state = itr->second.state;
-        const MapEntry* entry = sMapStore.LookupEntry(itr->first);
-        if (!entry || !state->CanReset())
+        for (BoundInstancesMap::iterator itr = m_boundInstances[diff][i].begin(); itr != m_boundInstances[diff][i].end();)
         {
-            ++itr;
-            continue;
-        }
-
-        if (method == INSTANCE_RESET_ALL)
-        {
-            // the "reset all instances" method can only reset normal maps
-            if (entry->map_type == MAP_RAID || diff == DUNGEON_DIFFICULTY_HEROIC)
+            DungeonPersistentState* state = itr->second.state;
+            const MapEntry* entry = sMapStore.LookupEntry(itr->first);
+            if (!entry || !state->CanReset())
             {
                 ++itr;
                 continue;
             }
+
+            if (method == INSTANCE_RESET_ALL)
+            {
+                // the "reset all instances" method can only reset normal maps
+                if (entry->map_type == MAP_RAID || diff == DUNGEON_DIFFICULTY_HEROIC)
+                {
+                    ++itr;
+                    continue;
+                }
+            }
+
+            // if the map is loaded, reset it
+            if (Map * map = sMapMgr.FindMap(state->GetMapId(), state->GetInstanceId()))
+                if (map->IsDungeon())
+                    ((DungeonMap*)map)->Reset(method);
+
+            // since this is a solo instance there should not be any players inside
+            if (method == INSTANCE_RESET_ALL || method == INSTANCE_RESET_CHANGE_DIFFICULTY)
+                SendResetInstanceSuccess(state->GetMapId());
+
+            state->DeleteFromDB();
+            m_boundInstances[diff][i].erase(itr++);
+
+            // the following should remove the instance save from the manager and delete it as well
+            state->RemovePlayer(this);
         }
-
-        // if the map is loaded, reset it
-        if (Map* map = sMapMgr.FindMap(state->GetMapId(), state->GetInstanceId()))
-            if (map->IsDungeon())
-                ((DungeonMap*)map)->Reset(method);
-
-        // since this is a solo instance there should not be any players inside
-        if (method == INSTANCE_RESET_ALL || method == INSTANCE_RESET_CHANGE_DIFFICULTY)
-            SendResetInstanceSuccess(state->GetMapId());
-
-        state->DeleteFromDB();
-        m_boundInstances[diff].erase(itr++);
-
-        // the following should remove the instance save from the manager and delete it as well
-        state->RemovePlayer(this);
     }
 }
 
@@ -18478,7 +18570,14 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
         return false;
     }
     uint32 itemLevelLimit = sDBConfigMgr.GetUInt32("limit.itemlevel");
-    if (pProto->ItemLevel > itemLevelLimit)
+    if (itemLevelLimit > 0 && pProto->ItemLevel > itemLevelLimit)
+    {
+        SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, item, 0);
+        return false;
+    }
+
+    // Pomelo vendor item blacklist
+    if (sVendorItemBlacklistMgr.IsInBlacklist(pProto->ItemId))
     {
         SendBuyError(BUY_ERR_CANT_FIND_ITEM, nullptr, item, 0);
         return false;
@@ -18538,45 +18637,65 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
         return false;
     }
 
-    if (uint32 extendedCostId = crItem->ExtendedCost)
+    uint32 customCurrencyBalance = 0;
+    uint32 customCurrencyType = 0;
+    uint32 customCurrencyCost = 0;
+
+    if (pProto->CustomCurrency > 0)
     {
-        ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(extendedCostId);
-        if (!iece)
-        {
-            sLog.outError("Item %u have wrong ExtendedCost field value %u", pProto->ItemId, extendedCostId);
-            return false;
-        }
+        customCurrencyType = pProto->CustomCurrency;
+        customCurrencyCost = pProto->BuyPrice;
+        customCurrencyBalance = GetCurrency(customCurrencyType);
+    }
+    else if (crItem->currencyId > 0)
+    {
+        customCurrencyType = crItem->currencyId;
+        customCurrencyCost = crItem->ExtendedCost;
+        customCurrencyBalance = GetCurrency(customCurrencyType);
+    }
 
-        // honor points price
-        if (GetHonorPoints() < (iece->reqhonorpoints * count))
+    if (customCurrencyType == 0)
+    {
+        if (uint32 extendedCostId = crItem->ExtendedCost)
         {
-            SendEquipError(EQUIP_ERR_NOT_ENOUGH_HONOR_POINTS, nullptr, nullptr);
-            return false;
-        }
-
-        // arena points price
-        if (GetArenaPoints() < (iece->reqarenapoints * count))
-        {
-            SendEquipError(EQUIP_ERR_NOT_ENOUGH_ARENA_POINTS, nullptr, nullptr);
-            return false;
-        }
-
-        // item base price
-        for (uint8 i = 0; i < MAX_EXTENDED_COST_ITEMS; ++i)
-        {
-            if (iece->reqitem[i] && !HasItemCount(iece->reqitem[i], iece->reqitemcount[i] * count))
+            ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(extendedCostId);
+            if (!iece)
             {
-                SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, nullptr, nullptr);
+                sLog.outError("Item %u have wrong ExtendedCost field value %u", pProto->ItemId, extendedCostId);
                 return false;
             }
-        }
 
-        // check for personal arena rating requirement
-        if (GetMaxPersonalArenaRatingRequirement() < iece->reqpersonalarenarating)
-        {
-            // probably not the proper equip err
-            SendEquipError(EQUIP_ERR_CANT_EQUIP_RANK, nullptr, nullptr);
-            return false;
+            // honor points price
+            if (GetHonorPoints() < (iece->reqhonorpoints * count))
+            {
+                SendEquipError(EQUIP_ERR_NOT_ENOUGH_HONOR_POINTS, nullptr, nullptr);
+                return false;
+            }
+
+            // arena points price
+            if (GetArenaPoints() < (iece->reqarenapoints * count))
+            {
+                SendEquipError(EQUIP_ERR_NOT_ENOUGH_ARENA_POINTS, nullptr, nullptr);
+                return false;
+            }
+
+            // item base price
+            for (uint8 i = 0; i < MAX_EXTENDED_COST_ITEMS; ++i)
+            {
+                if (iece->reqitem[i] && !HasItemCount(iece->reqitem[i], iece->reqitemcount[i] * count))
+                {
+                    SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, nullptr, nullptr);
+                    return false;
+                }
+            }
+
+            // check for personal arena rating requirement
+            if (GetMaxPersonalArenaRatingRequirement() < iece->reqpersonalarenarating)
+            {
+                // probably not the proper equip err
+                SendEquipError(EQUIP_ERR_CANT_EQUIP_RANK, nullptr, nullptr);
+                return false;
+            }
         }
     }
 
@@ -18590,20 +18709,18 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
     // reputation discount
     price = uint32(floor(price * GetReputationPriceDiscount(pCreature)));
-
-	uint32 customCurrencyBalance;
-
-	if (pProto->CustomCurrency > 0) // Custom currency
+    
+	if (customCurrencyType > 0) // Custom currency
 	{
-		customCurrencyBalance = GetCurrency(pProto->CustomCurrency);
-		if (customCurrencyBalance < pProto->BuyPrice)
+		if (customCurrencyBalance < customCurrencyCost)
 		{
+            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType);
 			GetSession()->SendNotification(
 				GetSession()->GetMangosString(LANG_TELE_STORE_NO_CURRENCY_TO_BUY),
-				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
-				customCurrencyBalance,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str());
+                customCurrencyCost,
+                currency_info->name.c_str(),
+                customCurrencyBalance,
+                currency_info->name.c_str());
 			return false;
 		}
 	}
@@ -18630,20 +18747,21 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
 		if (pProto->CustomCurrency > 0)
 		{
-			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
+			ModifyCurrency(pProto->CustomCurrency, -1 * customCurrencyCost);
+            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType);
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
-				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
-				customCurrencyBalance - pProto->BuyPrice);
+                currency_info->name.c_str(),
+                customCurrencyCost,
+                currency_info->name.c_str(),
+				customCurrencyBalance - customCurrencyCost);
 		}
 		else
 		{
 			ModifyMoney(-int32(price));
 		}
 
-		if (crItem->ExtendedCost)
+		if (crItem->ExtendedCost && customCurrencyType == 0)
 			TakeExtendedCost(crItem->ExtendedCost, count);
 
         pItem = StoreNewItem(dest, item, true);
@@ -18664,22 +18782,23 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
             return false;
         }
 
-		if (pProto->CustomCurrency > 0) // Cost custom currency if using custom currency
+		if (customCurrencyType > 0) // Cost custom currency if using custom currency
 		{
-			ModifyCurrency(pProto->CustomCurrency, -1 * pProto->BuyPrice);
+			ModifyCurrency(customCurrencyType, -1 * customCurrencyCost);
+            const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType)->name.c_str();
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
-				pProto->BuyPrice,
-				sCustomCurrencyMgr.GetCurrencyInfo(pProto->CustomCurrency).name.c_str(),
-				customCurrencyBalance - pProto->BuyPrice);
+                currency_name,
+                customCurrencyCost,
+                currency_name,
+				customCurrencyBalance - customCurrencyCost);
 		}
 		else // Cost money
 		{
 			ModifyMoney(-int32(price));
 		}
 
-		if (crItem->ExtendedCost)
+		if (crItem->ExtendedCost && customCurrencyType == 0)
 			TakeExtendedCost(crItem->ExtendedCost, count);
 
         pItem = EquipNewItem(dest, item, true);
@@ -19491,7 +19610,6 @@ void Player::SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaTrigg
             GetSession()->SendTransferAborted(mapEntry->MapID, TRANSFER_ABORT_TOO_MANY_INSTANCES);
             break;
         case AREA_LOCKSTATUS_NOT_ALLOWED:
-            GetSession()->SendNotification(LANG_DUNGEON_NOT_AVAILABLE);
             break;
         case AREA_LOCKSTATUS_RAID_LOCKED:
         case AREA_LOCKSTATUS_UNKNOWN_ERROR:
@@ -21497,6 +21615,15 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
     // Map's state check
     if (map && map->IsDungeon())
     {
+        // Pomelo 10 players difficulty check
+        if (map->GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS)
+        {
+            if (((DungeonMap*)map)->GetPlayersCountExceptGMs() >= 10)
+            {
+                return AREA_LOCKSTATUS_INSTANCE_IS_FULL;
+            }
+        }
+
         // cannot enter if the instance is full (player cap), GMs don't count, must not check when teleporting around the same map
         if (GetMapId() != at->target_mapId)
             if (((DungeonMap*)map)->GetPlayersCountExceptGMs() >= ((DungeonMap*)map)->GetMaxPlayers())
@@ -21507,7 +21634,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
             return AREA_LOCKSTATUS_ZONE_IN_COMBAT;
 
         // Bind Checks
-        InstancePlayerBind* pBind = GetBoundInstance(at->target_mapId, GetDifficulty());
+        InstancePlayerBind* pBind = GetBoundInstance(at->target_mapId, GetDifficulty(), GetAdvancedDifficulty());
         if (pBind && pBind->perm && pBind->state != state)
             return AREA_LOCKSTATUS_HAS_BIND;
         if (pBind && pBind->perm && pBind->state != map->GetPersistentState())

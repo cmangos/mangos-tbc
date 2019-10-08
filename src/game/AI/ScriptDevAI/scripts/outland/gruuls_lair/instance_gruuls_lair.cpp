@@ -30,7 +30,7 @@ EndScriptData */
 */
 
 instance_gruuls_lair::instance_gruuls_lair(Map* pMap) : ScriptedInstance(pMap),
-    m_uiCouncilMembersDied(0)
+    m_uiCouncilMembersDied(0), m_map(pMap)
 {
     Initialize();
 }
@@ -80,8 +80,7 @@ void instance_gruuls_lair::SetData(uint32 uiType, uint32 uiData)
             if (uiData == SPECIAL)
             {
                 ++m_uiCouncilMembersDied;
-
-                if (m_uiCouncilMembersDied == MAX_COUNCIL)
+                if (m_uiCouncilMembersDied == m_map->GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS ? MAX_COUNCIL_TEN_PLAYERS : MAX_COUNCIL)
                     SetData(TYPE_MAULGAR_EVENT, DONE);
                 // Don't store special data
                 break;

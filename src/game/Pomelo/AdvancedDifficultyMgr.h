@@ -24,7 +24,11 @@ enum AdvancedDifficulty : uint8
 
 class AdvancedDifficultyMgr
 {
-public:
+    public:
+        void LoadFromDB();
+        bool IsGuidBannedInTenPlayersDiff(uint32 guid);
+    private:
+        std::unordered_set<uint32> m_banListTenPlrs;
 };
 
 #define sAdvancedDifficultyMgr MaNGOS::Singleton<AdvancedDifficultyMgr>::Instance()

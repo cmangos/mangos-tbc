@@ -823,6 +823,7 @@ void World::LoadConfigSettings(bool reload)
     sVendorItemBlacklistMgr.LoadFromDB();
     sAnnounceMgr.LoadFromDB();
     sOnlineRewardMgr.LoadFromDB();
+    sAdvancedDifficultyMgr.LoadFromDB();
 
     sLog.outString();
 }

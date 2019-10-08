@@ -412,6 +412,10 @@ bool ChatHandler::HandleReloadAllPomeloCommand(char* /*args*/)
     sOnlineRewardMgr.LoadFromDB();
     sLog.outString("Pomelo online rewards reloaded.");
 
+    sLog.outString("Re-Loading Pomelo 10 players npc ban list...");
+    sAdvancedDifficultyMgr.LoadFromDB();
+    sLog.outString("Pomelo 10 players npc ban list reloaded.");
+
     return true;
 }
 

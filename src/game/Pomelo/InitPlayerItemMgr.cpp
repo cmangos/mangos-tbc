@@ -29,6 +29,8 @@ void InitPlayerItemMgr::LoadFromDB()
             items.push_back(item);
 		} while (result->NextRow());
 	}
+
+    delete result;
 }
 
 std::vector<InitPlayerItem> InitPlayerItemMgr::ListItems()

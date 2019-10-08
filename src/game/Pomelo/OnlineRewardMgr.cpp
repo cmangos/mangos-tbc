@@ -32,6 +32,8 @@ void OnlineRewardMgr::LoadFromDB()
             m_rewardItems.push_back(item);
 		} while (result->NextRow());
 	}
+
+    delete result;
 }
 
 const std::vector<RewardItem> OnlineRewardMgr::GetRewardItems()

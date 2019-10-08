@@ -60,4 +60,6 @@ void MultiTalentMgr::SwichTemplate(Player* pPlayer, uint32 templateId)
 			pPlayer->LearnTalentInternal(id, rank, true);
 		} while (result->NextRow());
 	}
+
+    delete result;
 }

@@ -54,6 +54,9 @@ bool DailySignInRewardMgr::ClaimReward(Player* pPlayer)
     now_tm.tm_mday = now_tm_t->tm_mday;
 
     tm* last_tm = localtime(&last);
+
+    delete result;
+
     if (IsSameDay(&now_tm, last_tm))
     {
         return false;

@@ -27,6 +27,8 @@ void AnnounceMgr::LoadFromDB()
             m_announcements.push_back(field[0].GetCppString());
 		} while (result->NextRow());
 	}
+
+    delete result;
 }
 
 std::string AnnounceMgr::NextAnnouncement()

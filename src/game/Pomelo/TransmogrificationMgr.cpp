@@ -79,6 +79,8 @@ void TransmogrificationMgr::OnLogin(uint32 characterId)
 			transmogid_transmogdata_map[data.entry] = data;
 		} while (result->NextRow());
 	}
+
+    delete result;
 }
 
 void TransmogrificationMgr::OnLogout(uint32 characterId)

@@ -26,6 +26,8 @@ void VendorItemBlacklistMgr::LoadFromDB()
             blacklist.insert(field[0].GetUInt32());
 		} while (result->NextRow());
 	}
+
+    delete result;
 }
 
 bool VendorItemBlacklistMgr::IsInBlacklist(uint32 item)

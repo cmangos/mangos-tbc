@@ -84,5 +84,7 @@ std::vector<CustomCurrencyOwnedPair> CustomCurrencyMgr::GetOwnedCurrencies(uint3
 		} while (result->NextRow());
 	}
 
+    delete result;
+
 	return ret;
 }

@@ -50,6 +50,8 @@ void PetLoyaltyMgr::LoadFromDB()
             ++i;
 		} while (result->NextRow());
 	}
+
+    delete result;
 }
 
 const uint32* PetLoyaltyMgr:: GetLevelUp()

@@ -1610,11 +1610,11 @@ void Player::Update(const uint32 diff)
             }
             else if (itr.type == REWARD_TYPE_CUSTOM_CURRENCY)
             {
-                CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(itr.index);
+                const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(itr.index)->name.c_str();
                 sCustomCurrencyMgr.ModifyAccountCurrency(GetSession()->GetAccountId(), itr.index, itr.amount);
                 ChatHandler(this).PSendSysMessage(
                     LANG_CLAIM_ONLINE_REWARD_CURRENCY,
-                    currency_info->name.c_str(),
+                    currency_name,
                     itr.amount);
             }
             else if (itr.type == REWARD_TYPE_XP)
@@ -18640,18 +18640,21 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
     uint32 customCurrencyBalance = 0;
     uint32 customCurrencyType = 0;
     uint32 customCurrencyCost = 0;
+    const char* customCurrencyName = nullptr;
 
     if (pProto->CustomCurrency > 0)
     {
         customCurrencyType = pProto->CustomCurrency;
         customCurrencyCost = pProto->BuyPrice;
         customCurrencyBalance = GetCurrency(customCurrencyType);
+        customCurrencyName = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType)->name.c_str();
     }
     else if (crItem->currencyId > 0)
     {
         customCurrencyType = crItem->currencyId;
         customCurrencyCost = crItem->ExtendedCost;
         customCurrencyBalance = GetCurrency(customCurrencyType);
+        customCurrencyName = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType)->name.c_str();
     }
 
     if (customCurrencyType == 0)
@@ -18714,13 +18717,12 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 	{
 		if (customCurrencyBalance < customCurrencyCost)
 		{
-            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType);
 			GetSession()->SendNotification(
 				GetSession()->GetMangosString(LANG_TELE_STORE_NO_CURRENCY_TO_BUY),
                 customCurrencyCost,
-                currency_info->name.c_str(),
+                customCurrencyName,
                 customCurrencyBalance,
-                currency_info->name.c_str());
+                customCurrencyName);
 			return false;
 		}
 	}
@@ -18745,15 +18747,14 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
             return false;
         }
 
-		if (pProto->CustomCurrency > 0)
+		if (customCurrencyType > 0)
 		{
 			ModifyCurrency(pProto->CustomCurrency, -1 * customCurrencyCost);
-            CustomCurrencyInfo* currency_info = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType);
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
-                currency_info->name.c_str(),
+                customCurrencyName,
                 customCurrencyCost,
-                currency_info->name.c_str(),
+                customCurrencyName,
 				customCurrencyBalance - customCurrencyCost);
 		}
 		else
@@ -18785,12 +18786,11 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 		if (customCurrencyType > 0) // Cost custom currency if using custom currency
 		{
 			ModifyCurrency(customCurrencyType, -1 * customCurrencyCost);
-            const char* currency_name = sCustomCurrencyMgr.GetCurrencyInfo(customCurrencyType)->name.c_str();
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
-                currency_name,
+                customCurrencyName,
                 customCurrencyCost,
-                currency_name,
+                customCurrencyName,
 				customCurrencyBalance - customCurrencyCost);
 		}
 		else // Cost money

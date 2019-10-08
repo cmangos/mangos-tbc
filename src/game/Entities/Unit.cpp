@@ -4314,7 +4314,7 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed)
         // send autorepeat cancel message for autorepeat spells
         if (spellType == CURRENT_AUTOREPEAT_SPELL)
         {
-            if (GetTypeId() == TYPEID_PLAYER)
+            if (IsPlayer())
                 ((Player*)this)->SendAutoRepeatCancel();
         }
 
@@ -4361,8 +4361,7 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
             bool specialResult = true;
             if (forMovement) // mobs can move during spells without this flag
                 specialResult = genericSpell->m_spellInfo->InterruptFlags & SPELL_INTERRUPT_FLAG_MOVEMENT;
-            bool autoAction = !(genericSpell->m_spellInfo->HasAttribute(SPELL_ATTR_EX2_NOT_RESET_AUTO_ACTIONS));
-            if (autoAction && specialResult && (withDelayed || genericSpell->getState() != SPELL_STATE_TRAVELING))
+            if (specialResult && (withDelayed || genericSpell->getState() != SPELL_STATE_TRAVELING))
                 return true;
         }
     }

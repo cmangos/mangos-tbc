@@ -166,7 +166,7 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 			uint32 cost = 0;
 			uint32 balance = 0;
 			uint32 currency_id;
-			CustomCurrencyInfo* currency_info = nullptr;
+			const char* currency_name = nullptr;
 			switch(sDBConfigMgr.GetUInt32(CONFIG_TRANSMOG_COST_TYPE))
 			{
 				case TRANSMOG_COST_MONEY:
@@ -186,21 +186,21 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 					if (balance < cost)
 					{
 						pPlayer->PlayerTalkClass->CloseGossip();
-						currency_info = sCustomCurrencyMgr.GetCurrencyInfo(currency_id);
+                        currency_name = sCustomCurrencyMgr.GetCurrencyInfo(currency_id)->name.c_str();
 						pPlayer->GetSession()->SendNotification(
 							LANG_TELE_STORE_NO_CURRENCY_TO_BUY, 
 							cost,
-							currency_info->name,
+                            currency_name,
 							balance,
-							currency_info->name);
+                            currency_name);
 						return true;
 					}
 					sCustomCurrencyMgr.ModifyAccountCurrency(pPlayer->GetSession()->GetAccountId(), currency_id, -1 * cost);
 					pPlayer->GetSession()->SendNotification(
 						LANG_TELE_STORE_PAID_WITH_CURRENCY, 
-						currency_info->name,
+                        currency_name,
 						cost,
-						currency_info->name,
+                        currency_name,
 						balance - cost);
 					break;
 				case TRANSMOG_COST_FREE:

@@ -270,9 +270,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	case TELE_FUNC::STORE:
 		Creature* pStoreNpc;
 		pStoreNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-		pStoreNpc->SetObjectScale(0.000001f);
         pPlayer->GetSession()->SendListInventory(pStoreNpc->GetObjectGuid());
-		//npc_container[pObj->GetObjectGuid()] = pStoreNpc;
 		break;
     case TELE_FUNC::TRAIN:
 		// Check level, permission, currencies
@@ -283,10 +281,8 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 
         Creature* pTrainNpc;
         pTrainNpc = pPlayer->SummonCreature(item.trigger_menu, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
-        pTrainNpc->SetObjectScale(0.000001f);
+        LearnAllGreenClassSpells(pPlayer, pTrainNpc);
         pPlayer->PlayerTalkClass->CloseGossip();
-		LearnAllGreenClassSpells(pPlayer, pTrainNpc);
-        //npc_container[pObj->GetObjectGuid()] = pTrainNpc;
         break;
     case TELE_FUNC::TRAIN_CLASS:
 		// Check level, permission, currencies
@@ -306,10 +302,8 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 			npcId = sDBConfigMgr.GetUInt32("stone.trainer.horde." + std::to_string(classId));
 		}
         pTrainClassNpc = pPlayer->SummonCreature(npcId, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
-        pTrainClassNpc->SetObjectScale(0.000001f);
-		pPlayer->PlayerTalkClass->CloseGossip();
-		LearnAllGreenClassSpells(pPlayer, pTrainClassNpc);
-        //npc_container[pObj->GetObjectGuid()] = pTrainClassNpc;
+        LearnAllGreenClassSpells(pPlayer, pTrainClassNpc);
+        pPlayer->PlayerTalkClass->CloseGossip();
         break;
 	case TELE_FUNC::BANK:
 		pPlayer->GetSession()->SendShowBank(pObj->GetObjectGuid());

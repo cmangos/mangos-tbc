@@ -57,14 +57,7 @@ bool IsAlliance(uint8 race)
 
 bool DetectAttacks(Player* pPlayer)
 {
-	if (pPlayer->getAttackers().size() > 0)
-	{
-		pPlayer->GetSession()->SendNotification(LANG_TELE_CANNOT_USE_WHEN_ATTACK);
-		pPlayer->PlayerTalkClass->CloseGossip();
-		return true;
-	}
-
-	return false;
+    return pPlayer->isInCombat();
 }
 
 void GenerateGossipMenu(uint32 menu_id, Player* pPlayer, ObjectGuid guid)

@@ -511,9 +511,7 @@ void CreatureLinkingHolder::ProcessSlaveGuidList(CreatureLinkingEvent eventType,
         if (!pSlave)
         {
             // Remove old guid first
-            // slaveGuidList.erase(slave_itr++);
-            // This remove is written by original author, is really a bad operation
-            // modify the list will cause the iterator broken, so comment the erase
+            slave_itr = slaveGuidList.erase(slave_itr);
             continue;
         }
 

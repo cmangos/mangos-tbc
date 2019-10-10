@@ -52,14 +52,14 @@ bool SupplyItemUse(Player* pPlayer, Item* pItem, SpellCastTargets const& targets
         if (pMember->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, SUPPLY_HEAL_DRUG, 5) != EQUIP_ERR_OK)
             continue;
         std::string command = std::to_string(SUPPLY_HEAL_DRUG) + " 5";
-        ChatHandler(pMember).HandleAddItemCommand((char*)command.c_str());
+        ChatHandler(pMember).HandleAddItemCommandInternal((char*)command.c_str(), true);
 
         if (IsManaClass(pMember->getClass()))
         {
             if (pMember->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, SUPPLY_MANA_DRUG, 5) != EQUIP_ERR_OK)
                 continue;
             command = std::to_string(SUPPLY_MANA_DRUG) + " 5";
-            ChatHandler(pMember).HandleAddItemCommand((char*)command.c_str());
+            ChatHandler(pMember).HandleAddItemCommandInternal((char*)command.c_str(), true);
         }
     }
 

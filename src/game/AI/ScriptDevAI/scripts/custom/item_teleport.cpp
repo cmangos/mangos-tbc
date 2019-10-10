@@ -388,7 +388,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
             return true;
         }
 
-        ChatHandler(pPlayer).HandleAddItemSetCommand(t3_itemset[pPlayer->getClass()]);
+        ChatHandler(pPlayer).HandleAddItemSetCommandInternal(t3_itemset[pPlayer->getClass()], true);
         pPlayer->PlayerTalkClass->CloseGossip();
         break;
 	case TELE_FUNC::DUNGEON_SETTINGS:

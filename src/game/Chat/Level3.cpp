@@ -2354,7 +2354,7 @@ bool ChatHandler::HandleLearnCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleAddItemCommand(char* args)
+bool ChatHandler::HandleAddItemCommandInternal(char* args, bool self)
 {
     char* cId = ExtractKeyFromLink(&args, "Hitem");
     if (!cId)
@@ -2382,7 +2382,7 @@ bool ChatHandler::HandleAddItemCommand(char* args)
 
     Player* pl = m_session->GetPlayer();
     Player* plTarget = getSelectedPlayer();
-    if (!plTarget)
+    if (!plTarget || self)
         plTarget = pl;
 
     DETAIL_LOG(GetMangosString(LANG_ADDITEM), itemId, count);
@@ -2440,7 +2440,12 @@ bool ChatHandler::HandleAddItemCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleAddItemSetCommand(char* args)
+bool ChatHandler::HandleAddItemCommand(char* args)
+{
+    return HandleAddItemCommandInternal(args, false);
+}
+
+bool ChatHandler::HandleAddItemSetCommandInternal(char* args, bool self)
 {
     uint32 itemsetId;
     if (!ExtractUint32KeyFromLink(&args, "Hitemset", itemsetId))
@@ -2456,7 +2461,7 @@ bool ChatHandler::HandleAddItemSetCommand(char* args)
 
     Player* pl = m_session->GetPlayer();
     Player* plTarget = getSelectedPlayer();
-    if (!plTarget || pl->GetSession()->GetSecurity() < SEC_GAMEMASTER) // A workaround avoid buy T3 set for target (Teleport stone)
+    if (!plTarget || self) // A workaround avoid buy T3 set for target (Teleport stone)
         plTarget = pl;
 
     DETAIL_LOG(GetMangosString(LANG_ADDITEMSET), itemsetId);
@@ -2502,6 +2507,11 @@ bool ChatHandler::HandleAddItemSetCommand(char* args)
     }
 
     return true;
+}
+
+bool ChatHandler::HandleAddItemSetCommand(char* args)
+{
+    return HandleAddItemSetCommandInternal(args, false);
 }
 
 bool ChatHandler::HandleListItemCommand(char* args)

@@ -159,6 +159,7 @@ class ChatHandler
         // Make the following funcitons public forcely
         void HandleCharacterLevel(Player* player, ObjectGuid player_guid, uint32 oldlevel, uint32 newlevel);
         bool HandleAddItemSetCommand(char* args);
+        bool HandleAddItemCommand(char* args);
 
         Player* GetPlayer();
     protected:
@@ -654,7 +655,6 @@ class ChatHandler
         bool HandleLevelUpCommand(char* args);
         bool HandleShowAreaCommand(char* args);
         bool HandleHideAreaCommand(char* args);
-        bool HandleAddItemCommand(char* args);
 
         bool HandleBankCommand(char* args);
         bool HandleChangeWeatherCommand(char* args);

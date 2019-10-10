@@ -12,6 +12,7 @@ extern void AddSC_item_teleport();
 extern void AddSC_item_levelup();
 extern void AddSC_item_revive();
 extern void AddSC_item_summon();
+extern void AddSC_item_supply();
 
 // pomelo
 extern void AddSC_quest_brewfest_ram_racing_1();
@@ -367,6 +368,7 @@ void AddScripts()
     AddSC_item_levelup();
     AddSC_item_revive();
     AddSC_item_summon();
+    AddSC_item_supply();
 
     // pomelo
     AddSC_quest_brewfest_ram_racing_1();

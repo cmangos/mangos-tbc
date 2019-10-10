@@ -18750,7 +18750,7 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
 		if (customCurrencyType > 0)
 		{
-			ModifyCurrency(pProto->CustomCurrency, -1 * customCurrencyCost);
+			ModifyCurrency(customCurrencyType, -1 * customCurrencyCost);
 			ChatHandler(this).PSendSysMessage(
 				GetSession()->GetMangosString(LANG_TELE_STORE_PAID_WITH_CURRENCY),
                 customCurrencyName,

@@ -1210,6 +1210,7 @@ void Group::SetAdvancedDifficulty(AdvancedDifficulty difficulty)
     {
         Player* player = itr->getSource();
         player->SetAdvancedDifficulty(difficulty);
+        player->SendDungeonDifficulty(true);
     }
 }
 

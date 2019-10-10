@@ -1666,8 +1666,22 @@ class Player : public Unit
         uint32 GetArenaTeamIdInvited() const { return m_ArenaTeamIdInvited; }
         static void LeaveAllArenaTeams(ObjectGuid guid);
 
-        void SetDifficulty(Difficulty dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
-        void SetAdvancedDifficulty(AdvancedDifficulty dungeon_advanced_difficulty) { m_dungeonPomeloDifficulty = dungeon_advanced_difficulty; }
+        void SetDifficulty(Difficulty dungeon_difficulty) 
+        {
+            m_dungeonDifficulty = dungeon_difficulty; 
+            if (dungeon_difficulty != DUNGEON_DIFFICULTY_NORMAL)
+            {
+                m_dungeonPomeloDifficulty = ADVANCED_DIFFICULTY_NORMAL;
+            }
+        }
+        void SetAdvancedDifficulty(AdvancedDifficulty dungeon_advanced_difficulty) 
+        { 
+            m_dungeonPomeloDifficulty = dungeon_advanced_difficulty; 
+            if (dungeon_advanced_difficulty != ADVANCED_DIFFICULTY_NORMAL)
+            {
+                SetDifficulty(DUNGEON_DIFFICULTY_NORMAL);
+            }
+        }
         Difficulty GetDifficulty() const { return m_dungeonDifficulty; }
         AdvancedDifficulty GetAdvancedDifficulty() const { return m_dungeonPomeloDifficulty; }
 

@@ -61,6 +61,7 @@ bool HandleDungeonGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender,
     else
     {
         pPlayer->SetAdvancedDifficulty(AdvancedDifficulty(action));
+        pPlayer->SendDungeonDifficulty(true);
     }
 
     ChatHandler(pPlayer).PSendSysMessage(

@@ -654,6 +654,9 @@ bool Unit::UpdateMeleeAttackingState()
         player->SwingErrorMsg(swingError);
     }
 
+    if (swingError == 1) // Pomelo: Sight cheat detected
+        StartEvadeTimer();
+
     return swingError != 0;
 }
 

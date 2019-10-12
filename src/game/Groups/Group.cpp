@@ -150,8 +150,8 @@ bool Group::Create(ObjectGuid guid, const char* name)
 
 bool Group::LoadGroupFromDB(Field* fields)
 {
-    //                                          0         1              2           3           4              5      6      7      8      9      10     11     12     13      14          15          16
-    // result = CharacterDatabase.Query("SELECT mainTank, mainAssistant, lootMethod, looterGuid, lootThreshold, icon1, icon2, icon3, icon4, icon5, icon6, icon7, icon8, isRaid, difficulty, leaderGuid, groupId FROM `groups`");
+    //                                          0         1              2           3           4              5      6      7      8      9      10     11     12     13      14          15          16       17
+    // result = CharacterDatabase.Query("SELECT mainTank, mainAssistant, lootMethod, looterGuid, lootThreshold, icon1, icon2, icon3, icon4, icon5, icon6, icon7, icon8, isRaid, difficulty, leaderGuid, groupId, advanced_difficulty FROM `groups`");
 
     m_Id = fields[16].GetUInt32();
     m_leaderGuid = ObjectGuid(HIGHGUID_PLAYER, fields[15].GetUInt32());
@@ -167,11 +167,13 @@ bool Group::LoadGroupFromDB(Field* fields)
     if (m_groupType == GROUPTYPE_RAID)
         _initRaidSubGroupsCounter();
 
-    uint32 diff = fields[14].GetUInt8();
+    uint8 diff = fields[14].GetUInt8();
     if (diff >= MAX_DIFFICULTY)
         diff = DUNGEON_DIFFICULTY_NORMAL;
+    uint8 advDiff = fields[17].GetUInt8();
 
     m_difficulty = Difficulty(diff);
+    m_pomeloDifficulty = AdvancedDifficulty(advDiff);
     m_mainTankGuid = ObjectGuid(HIGHGUID_PLAYER, fields[0].GetUInt32());
     m_mainAssistantGuid = ObjectGuid(HIGHGUID_PLAYER, fields[1].GetUInt32());
     m_lootMethod = LootMethod(fields[2].GetUInt8());
@@ -315,8 +317,9 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
             {
                 player->SetDifficulty(GetDifficulty());
                 player->SendDungeonDifficulty(true);
-                player->SetAdvancedDifficulty(GetAdvancedDifficulty());
             }
+
+            player->SetAdvancedDifficulty(GetAdvancedDifficulty());
         }
         player->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
         UpdatePlayerOutOfRange(player);

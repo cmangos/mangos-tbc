@@ -1355,6 +1355,7 @@ class Unit : public WorldObject
          * @return true if we can reach pVictim with a melee attack
          */
         bool CanReachWithMeleeAttack(Unit const* pVictim, float flat_mod = 0.0f) const;
+        bool DestCanReach(Unit* pVictim, float flat_mod = 0.0f);
         uint32 m_extraAttacks;
         void DoExtraAttacks(Unit* pVictim);
 
@@ -2052,7 +2053,6 @@ class Unit : public WorldObject
         // delayed+channeled spells are always accounted as casted
         // we can skip channeled or delayed checks using flags
         bool IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled = false, bool skipAutorepeat = false, bool forMovement = false) const;
-        bool IsNonMeleeSpellCasting() const;
 
         // set withDelayed to true to interrupt delayed spells too
         // delayed+channeled spells are always interrupted
@@ -2638,7 +2638,6 @@ class Unit : public WorldObject
 
         uint32 m_evadeTimer; // Used for evade during combat when mob is not running home and target isnt reachable
         uint32 m_stopCombatTimer; // Pomelo: anti cheat, sight
-        uint32 m_evadeDelayTimer;
         EvadeState m_evadeMode; // Used for evade during running home
 
         // invisibility data

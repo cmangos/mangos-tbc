@@ -43,6 +43,7 @@
 #include "Grids/GridNotifiersImpl.h"
 #include "Grids/CellImpl.h"
 #include "MotionGenerators/MovementGenerator.h"
+#include "MotionGenerators/TargetedMovementGenerator.h"
 #include "Movement/MoveSplineInit.h"
 #include "Movement/MoveSpline.h"
 #include "Entities/CreatureLinkingMgr.h"
@@ -409,7 +410,6 @@ Unit::Unit() :
     m_baseSpeedRun = 1.f;
 
     m_evadeTimer = 0;
-    m_evadeDelayTimer = 0;
     m_evadeMode = EVADE_NONE;
     m_stopCombatTimer = 0;
 }
@@ -505,19 +505,6 @@ void Unit::Update(const uint32 diff)
 
     if (AI() && isAlive())
         AI()->UpdateAI(diff);   // AI not react good at real update delays (while freeze in non-active part of map)
-
-    if (m_evadeDelayTimer)
-    {
-        if (m_evadeDelayTimer <= diff)
-        {
-            StartEvadeTimer();
-            m_evadeDelayTimer = 0;
-        }
-        else
-        {
-            m_evadeDelayTimer -= diff;
-        }
-    }
 
     if (m_evadeTimer)
     {
@@ -621,11 +608,6 @@ void Unit::StopEvade()
     {
         m_stopCombatTimer = 0;
     }
-
-    if (m_evadeDelayTimer)
-    {
-        m_evadeDelayTimer = 0;
-    }
 }
 
 bool Unit::UpdateMeleeAttackingState()
@@ -698,35 +680,6 @@ bool Unit::UpdateMeleeAttackingState()
         player->SwingErrorMsg(swingError);
     }
 
-    if (sDBConfigMgr.GetUInt32("anticheat.sight")
-        && !IsPlayerOrPlayerOwned()
-        && victim->IsPlayerOrPlayerOwned()
-        && swingError == 1
-        && !IsIncapacitated()
-        && !IsImmobilized()
-        && !IsMoving()
-        && !IsNonMeleeSpellCasting()
-        && GetMotionMaster()->GetCurrent()->GetMovementGeneratorType() == CHASE_MOTION_TYPE)
-    {
-        if (!m_evadeDelayTimer)
-            m_evadeDelayTimer = 2000;
-
-        if (IsInEvadeMode())
-        {
-            if (!m_stopCombatTimer)
-            {
-                m_stopCombatTimer = 10000;
-            }
-        }
-    }
-    else if (swingError != 1)
-    {
-        if (IsInEvadeMode())
-        {
-            StopEvade();
-        }
-    }
-
     return swingError != 0;
 }
 
@@ -742,6 +695,40 @@ void Unit::SendHeartBeat()
 void Unit::resetAttackTimer(WeaponAttackType type)
 {
     m_attackTimer[type] = uint32(GetAttackTime(type) * m_modAttackSpeedPct[type]);
+}
+
+bool Unit::DestCanReach(Unit* pVictim, float flat_mod /*= 0.0f*/)
+{
+    bool ret = true;
+    if (!sDBConfigMgr.GetUInt32("anticheat.sight")) 
+        return ret;
+
+    if (IsCreature() && pVictim->IsPlayerOrPlayerOwned() && GetMotionMaster()->GetCurrent()->GetMovementGeneratorType() == CHASE_MOTION_TYPE)
+    {
+        if (IsIncapacitated() || IsImmobilized()) 
+            return ret;
+
+        Vector3 pos;
+        if (!((ChaseMovementGenerator*)GetMotionMaster()->GetCurrent())->GetActualEndPosition(pos)) 
+            return ret;
+
+        MANGOS_ASSERT(pVictim);
+
+        float reach = GetCombinedCombatReach(pVictim, true, flat_mod);
+
+        if (IsMoving() && !IsWalking() && pVictim->IsMoving() && !pVictim->IsWalking())
+            reach += MELEE_LEEWAY;
+
+        reach += ((ChaseMovementGenerator*)GetMotionMaster()->GetCurrent())->GetOffset();
+
+        // This check is not related to bounding radius
+        float dx = pos.x - pVictim->GetPositionX();
+        float dy = pos.y - pVictim->GetPositionY();
+        float dz = pos.z - pVictim->GetPositionZ();
+
+        ret = dx * dx + dy * dy + dz * dz < reach * reach;
+    }
+    return ret;
 }
 
 bool Unit::CanReachWithMeleeAttack(Unit const* pVictim, float flat_mod /*= 0.0f*/) const
@@ -1566,11 +1553,6 @@ SpellCastResult Unit::CastSpell(float x, float y, float z, SpellEntry const* spe
             originalCaster = triggeredByAura->GetCasterGuid();
 
         triggeredBy = triggeredByAura->GetSpellProto();
-    }
-
-    if (!IsPlayer() && IsInEvadeMode())
-    {
-        StopEvade();
     }
 
     Spell* spell = new Spell(this, spellInfo, triggeredFlags, originalCaster, triggeredBy);
@@ -4464,26 +4446,6 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
     // autorepeat spells may be finished or delayed, but they are still considered casted
     if (!skipAutorepeat && m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
         return true;
-
-    return false;
-}
-
-bool Unit::IsNonMeleeSpellCasting() const
-{
-    if (Spell const* genericSpell = m_currentSpells[CURRENT_GENERIC_SPELL])
-    {
-        return genericSpell->getState() != SPELL_STATE_FINISHED;
-    }
-
-    if (Spell const* channeledSpell = m_currentSpells[CURRENT_CHANNELED_SPELL])
-    {
-        return channeledSpell->getState() != SPELL_STATE_FINISHED;
-    }
-
-    if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
-    {
-        return true;
-    }
 
     return false;
 }
@@ -8262,7 +8224,6 @@ void Unit::ClearInCombat()
 {
     m_CombatTimer = 0;
     m_evadeTimer = 0;
-    m_evadeDelayTimer = 0;
     m_stopCombatTimer = 0;
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
@@ -8864,7 +8825,6 @@ void Unit::SetDeathState(DeathState s)
         i_motionMaster.MoveIdle();
 
         m_evadeTimer = 0;
-        m_evadeDelayTimer = 0;
         m_evadeMode = EVADE_NONE;
         m_stopCombatTimer = 0;
 
@@ -9068,11 +9028,13 @@ bool Unit::SelectHostileTarget()
         // NOTE: path alrteady generated from AttackStart()
         if (AI()->IsCombatMovement())
         {
-            if (!GetMotionMaster()->GetCurrent()->IsReachable() || !target->isInAccessablePlaceFor(this))
+            if (!GetMotionMaster()->GetCurrent()->IsReachable() || !target->isInAccessablePlaceFor(this) || !DestCanReach(target))
             {
                 StartEvadeTimer();
+                if (!m_stopCombatTimer)
+                    m_stopCombatTimer = 10000;
             }
-            else if (IsInEvadeMode() && (target != oldTarget || !target->IsPlayerOrPlayerOwned()))
+            else if (IsInEvadeMode())
                 StopEvade();
         }
         return true;

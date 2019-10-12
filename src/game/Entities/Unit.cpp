@@ -409,6 +409,7 @@ Unit::Unit() :
     m_baseSpeedRun = 1.f;
 
     m_evadeTimer = 0;
+    m_evadeDelayTimer = 0;
     m_evadeMode = EVADE_NONE;
     m_stopCombatTimer = 0;
 }
@@ -504,6 +505,19 @@ void Unit::Update(const uint32 diff)
 
     if (AI() && isAlive())
         AI()->UpdateAI(diff);   // AI not react good at real update delays (while freeze in non-active part of map)
+
+    if (m_evadeDelayTimer)
+    {
+        if (m_evadeDelayTimer <= diff)
+        {
+            StartEvadeTimer();
+            m_evadeDelayTimer = 0;
+        }
+        else
+        {
+            m_evadeDelayTimer -= diff;
+        }
+    }
 
     if (m_evadeTimer)
     {
@@ -607,6 +621,11 @@ void Unit::StopEvade()
     {
         m_stopCombatTimer = 0;
     }
+
+    if (m_evadeDelayTimer)
+    {
+        m_evadeDelayTimer = 0;
+    }
 }
 
 bool Unit::UpdateMeleeAttackingState()
@@ -680,16 +699,24 @@ bool Unit::UpdateMeleeAttackingState()
     }
 
     if (sDBConfigMgr.GetUInt32("anticheat.sight")
-        && !IsPlayer()
+        && !IsPlayerOrPlayerOwned()
+        && victim->IsPlayerOrPlayerOwned()
         && swingError == 1
         && !IsIncapacitated()
+        && !IsImmobilized()
         && !IsMoving()
-        && !IsNonMeleeSpellCasting())
+        && !IsNonMeleeSpellCasting()
+        && GetMotionMaster()->GetCurrent()->GetMovementGeneratorType() == CHASE_MOTION_TYPE)
     {
-        StartEvadeTimer();
-        if (m_stopCombatTimer == 0)
+        if (!m_evadeDelayTimer)
+            m_evadeDelayTimer = 2000;
+
+        if (IsInEvadeMode())
         {
-            m_stopCombatTimer = 10000;
+            if (!m_stopCombatTimer)
+            {
+                m_stopCombatTimer = 10000;
+            }
         }
     }
     else if (swingError != 1)
@@ -8235,6 +8262,7 @@ void Unit::ClearInCombat()
 {
     m_CombatTimer = 0;
     m_evadeTimer = 0;
+    m_evadeDelayTimer = 0;
     m_stopCombatTimer = 0;
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
@@ -8836,6 +8864,7 @@ void Unit::SetDeathState(DeathState s)
         i_motionMaster.MoveIdle();
 
         m_evadeTimer = 0;
+        m_evadeDelayTimer = 0;
         m_evadeMode = EVADE_NONE;
         m_stopCombatTimer = 0;
 
@@ -9043,7 +9072,7 @@ bool Unit::SelectHostileTarget()
             {
                 StartEvadeTimer();
             }
-            else if (IsInEvadeMode() && target != oldTarget)
+            else if (IsInEvadeMode() && (target != oldTarget || !target->IsPlayerOrPlayerOwned()))
                 StopEvade();
         }
         return true;

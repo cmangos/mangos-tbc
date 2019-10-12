@@ -2345,6 +2345,8 @@ class Unit : public WorldObject
         bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
         bool IsIncapacitated() const { return (IsFleeing() || IsConfused() || IsStunned()); }
 
+        bool IsPlayerOrPlayerOwned() { return IsPlayer() || GetOwner() && GetOwner()->IsPlayer(); }
+
         void SetFeared(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 time = 0);
         void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT);
         void SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
@@ -2636,6 +2638,7 @@ class Unit : public WorldObject
 
         uint32 m_evadeTimer; // Used for evade during combat when mob is not running home and target isnt reachable
         uint32 m_stopCombatTimer; // Pomelo: anti cheat, sight
+        uint32 m_evadeDelayTimer;
         EvadeState m_evadeMode; // Used for evade during running home
 
         // invisibility data

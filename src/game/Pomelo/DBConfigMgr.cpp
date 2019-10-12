@@ -11,8 +11,6 @@
 #include <iostream>
 #include <sstream>
 
-std::unordered_map<std::string, std::string> m_dbConfig;
-
 template <class Type> 
 Type StringToType(const std::string& str){ 
     std::istringstream iss(str); 
@@ -23,9 +21,12 @@ Type StringToType(const std::string& str){
 
 void DBConfigMgr::LoadFromDB()
 {
-    m_dbConfig.clear();
+    m_configUInt32.clear();
+    m_configUInt64.clear();
+    m_configString.clear();
+    m_configFloat.clear();
     QueryResult* result = WorldDatabase.PQuery(
-        "SELECT `entry`, `value` "
+        "SELECT `entry`, `value`, `type` "
         "FROM `pomelo_config`;");
 
     if (result)
@@ -33,27 +34,44 @@ void DBConfigMgr::LoadFromDB()
 		do
 		{
 			Field* field = result->Fetch();
-            m_dbConfig[field[0].GetCppString()] = field[1].GetCppString();
+            uint8 type = field[2].GetUInt8();
+            switch (DBConfigType(type))
+            {
+            case DBCONF_TYPE_UINT32:
+                m_configUInt32[field[0].GetCppString()] = StringToType<uint32>(field[1].GetCppString());
+                break;
+            case DBCONF_TYPE_UINT64:
+                m_configUInt64[field[0].GetCppString()] = StringToType<uint64>(field[1].GetCppString());
+                break;
+            case DBCONF_TYPE_STRING:
+                m_configString[field[0].GetCppString()] = field[1].GetCppString();
+                break;
+            case DBCONF_TYPE_FLOAT:
+                m_configFloat[field[0].GetCppString()] = StringToType<float>(field[1].GetCppString());
+                break;
+            default:
+                break;
+            }
 		} while (result->NextRow());
 	}
 }
 
 uint32 DBConfigMgr::GetUInt32(std::string entry)
 {
-    return StringToType<uint32>(m_dbConfig[entry]);
+    return m_configUInt32[entry];
 }
 
 uint64 DBConfigMgr::GetUInt64(std::string entry)
 {
-    return StringToType<uint64>(m_dbConfig[entry]);
+    return m_configUInt64[entry];
 }
 
 float DBConfigMgr::GetFloat(std::string entry)
 {
-    return StringToType<float>(m_dbConfig[entry]);
+    return m_configFloat[entry];
 }
 
 std::string DBConfigMgr::GetString(std::string entry)
 {
-    return m_dbConfig[entry];
+    return m_configString[entry];
 }

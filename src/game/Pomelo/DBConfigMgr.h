@@ -14,6 +14,14 @@
 #include "Platform/Define.h"
 #include <string>
 
+enum DBConfigType
+{
+    DBCONF_TYPE_UINT32,
+    DBCONF_TYPE_UINT64,
+    DBCONF_TYPE_STRING,
+    DBCONF_TYPE_FLOAT
+};
+
 class DBConfigMgr
 {
 public:
@@ -22,6 +30,11 @@ public:
     uint64 GetUInt64(std::string entry);
     std::string GetString(std::string entry);
     float GetFloat(std::string entry);
+private:
+    std::unordered_map<std::string, uint32> m_configUInt32;
+    std::unordered_map<std::string, uint64> m_configUInt64;
+    std::unordered_map<std::string, std::string> m_configString;
+    std::unordered_map<std::string, float> m_configFloat;
 };
 
 #define sDBConfigMgr MaNGOS::Singleton<DBConfigMgr>::Instance()

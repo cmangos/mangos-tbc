@@ -62,11 +62,10 @@ bool HandleDungeonGossipMenuSelect(Player* pPlayer, Object* pObj, uint32 sender,
     {
         pPlayer->SetAdvancedDifficulty(AdvancedDifficulty(action));
         pPlayer->SendDungeonDifficulty(true);
+        ChatHandler(pPlayer).PSendSysMessage(
+            LANG_POMELO_DIFFICULTY_CHANGED,
+            pPlayer->GetSession()->GetMangosString(LANG_POMELO_DIFFICULTY_NORMAL + action));
     }
-
-    ChatHandler(pPlayer).PSendSysMessage(
-        LANG_POMELO_DIFFICULTY_CHANGED,
-        pPlayer->GetSession()->GetMangosString(LANG_POMELO_DIFFICULTY_NORMAL + action));
 
 	pPlayer->PlayerTalkClass->CloseGossip();
     return true;

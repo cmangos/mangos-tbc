@@ -2052,6 +2052,7 @@ class Unit : public WorldObject
         // delayed+channeled spells are always accounted as casted
         // we can skip channeled or delayed checks using flags
         bool IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled = false, bool skipAutorepeat = false, bool forMovement = false) const;
+        bool IsNonMeleeSpellCasting() const;
 
         // set withDelayed to true to interrupt delayed spells too
         // delayed+channeled spells are always interrupted
@@ -2634,6 +2635,7 @@ class Unit : public WorldObject
         bool m_extraAttacksExecuting;
 
         uint32 m_evadeTimer; // Used for evade during combat when mob is not running home and target isnt reachable
+        uint32 m_stopCombatTimer; // Pomelo: anti cheat, sight
         EvadeState m_evadeMode; // Used for evade during running home
 
         // invisibility data

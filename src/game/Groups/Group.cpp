@@ -30,6 +30,7 @@
 #include "Maps/MapManager.h"
 #include "Maps/MapPersistentStateMgr.h"
 #include "Spells/SpellAuras.h"
+#include "Tools/Language.h"
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
 #endif
@@ -111,13 +112,26 @@ bool Group::Create(ObjectGuid guid, const char* name)
 
 
     m_difficulty = DUNGEON_DIFFICULTY_NORMAL;
+    m_pomeloDifficulty = ADVANCED_DIFFICULTY_NORMAL;
     if (!isBattleGroup())
     {
         m_Id = sObjectMgr.GenerateGroupLowGuid();
 
         Player* leader = sObjectMgr.GetPlayer(guid);
         if (leader)
-            m_difficulty = leader->GetDifficulty();
+        {
+            m_pomeloDifficulty = leader->GetAdvancedDifficulty();
+            if (m_pomeloDifficulty != ADVANCED_DIFFICULTY_NORMAL)
+            {
+                m_difficulty = DUNGEON_DIFFICULTY_NORMAL;
+                leader->SetDifficulty(DUNGEON_DIFFICULTY_NORMAL);
+                leader->SendDungeonDifficulty(true);
+            }
+            else
+            {
+                m_difficulty = leader->GetDifficulty();
+            }
+        }
 
         Player::ConvertInstancesToGroup(leader, this, guid);
 
@@ -320,6 +334,9 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
             }
 
             player->SetAdvancedDifficulty(GetAdvancedDifficulty());
+            ChatHandler(player).PSendSysMessage(
+                LANG_POMELO_DIFFICULTY_CHANGED,
+                player->GetSession()->GetMangosString(LANG_POMELO_DIFFICULTY_NORMAL + player->GetAdvancedDifficulty()));
         }
         player->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
         UpdatePlayerOutOfRange(player);
@@ -1214,6 +1231,9 @@ void Group::SetAdvancedDifficulty(AdvancedDifficulty difficulty)
         Player* player = itr->getSource();
         player->SetAdvancedDifficulty(difficulty);
         player->SendDungeonDifficulty(true);
+        ChatHandler(player).PSendSysMessage(
+            LANG_POMELO_DIFFICULTY_CHANGED,
+            player->GetSession()->GetMangosString(LANG_POMELO_DIFFICULTY_NORMAL + player->GetAdvancedDifficulty()));
     }
 }
 

@@ -410,6 +410,7 @@ Unit::Unit() :
 
     m_evadeTimer = 0;
     m_evadeMode = EVADE_NONE;
+    m_stopCombatTimer = 0;
 }
 
 Unit::~Unit()
@@ -512,7 +513,23 @@ void Unit::Update(const uint32 diff)
             m_evadeTimer = 0;
         }
         else
+        {
             m_evadeTimer -= diff;
+        }
+    }
+
+    if (m_stopCombatTimer)
+    {
+        if (m_stopCombatTimer <= diff)
+        {
+            m_stopCombatTimer = 0;
+            CombatStopWithPets();
+            GetMotionMaster()->MoveTargetedHome();
+        }
+        else
+        {
+            m_stopCombatTimer -= diff;
+        }
     }
 
     if (isAlive())
@@ -579,9 +596,17 @@ void Unit::StopEvade()
     if (m_evadeTimer)
     {
         m_evadeTimer = 0;
-        return;
     }
-    SetEvade(EVADE_NONE);
+    else
+    {
+        SetEvade(EVADE_NONE);
+    }
+
+    // Also stop anti cheat timer
+    if (m_stopCombatTimer)
+    {
+        m_stopCombatTimer = 0;
+    }
 }
 
 bool Unit::UpdateMeleeAttackingState()
@@ -654,8 +679,26 @@ bool Unit::UpdateMeleeAttackingState()
         player->SwingErrorMsg(swingError);
     }
 
-    if (swingError == 1) // Pomelo: Sight cheat detected
+    if (sDBConfigMgr.GetUInt32("anticheat.sight")
+        && !IsPlayer()
+        && swingError == 1
+        && !IsIncapacitated()
+        && !IsMoving()
+        && !IsNonMeleeSpellCasting())
+    {
         StartEvadeTimer();
+        if (m_stopCombatTimer == 0)
+        {
+            m_stopCombatTimer = 10000;
+        }
+    }
+    else if (swingError != 1)
+    {
+        if (IsInEvadeMode())
+        {
+            StopEvade();
+        }
+    }
 
     return swingError != 0;
 }
@@ -1496,6 +1539,11 @@ SpellCastResult Unit::CastSpell(float x, float y, float z, SpellEntry const* spe
             originalCaster = triggeredByAura->GetCasterGuid();
 
         triggeredBy = triggeredByAura->GetSpellProto();
+    }
+
+    if (!IsPlayer() && IsInEvadeMode())
+    {
+        StopEvade();
     }
 
     Spell* spell = new Spell(this, spellInfo, triggeredFlags, originalCaster, triggeredBy);
@@ -4389,6 +4437,26 @@ bool Unit::IsNonMeleeSpellCasted(bool withDelayed, bool skipChanneled, bool skip
     // autorepeat spells may be finished or delayed, but they are still considered casted
     if (!skipAutorepeat && m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
         return true;
+
+    return false;
+}
+
+bool Unit::IsNonMeleeSpellCasting() const
+{
+    if (Spell const* genericSpell = m_currentSpells[CURRENT_GENERIC_SPELL])
+    {
+        return genericSpell->getState() != SPELL_STATE_FINISHED;
+    }
+
+    if (Spell const* channeledSpell = m_currentSpells[CURRENT_CHANNELED_SPELL])
+    {
+        return channeledSpell->getState() != SPELL_STATE_FINISHED;
+    }
+
+    if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
+    {
+        return true;
+    }
 
     return false;
 }
@@ -8167,6 +8235,7 @@ void Unit::ClearInCombat()
 {
     m_CombatTimer = 0;
     m_evadeTimer = 0;
+    m_stopCombatTimer = 0;
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
 
@@ -8768,6 +8837,7 @@ void Unit::SetDeathState(DeathState s)
 
         m_evadeTimer = 0;
         m_evadeMode = EVADE_NONE;
+        m_stopCombatTimer = 0;
 
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
@@ -8971,10 +9041,9 @@ bool Unit::SelectHostileTarget()
         {
             if (!GetMotionMaster()->GetCurrent()->IsReachable() || !target->isInAccessablePlaceFor(this))
             {
-                if (!IsInEvadeMode())
-                    StartEvadeTimer();
+                StartEvadeTimer();
             }
-            else if (IsInEvadeMode())
+            else if (IsInEvadeMode() && target != oldTarget)
                 StopEvade();
         }
         return true;

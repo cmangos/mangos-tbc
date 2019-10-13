@@ -32,7 +32,8 @@ namespace Teleport
 		DAILY_REWARD          = 10,
 		INCREASE_WEAPON_SKILL = 11,
         BUY_TIER_THREE        = 12,
-        DUNGEON_SETTINGS      = 13
+        DUNGEON_SETTINGS      = 13,
+        PLAYERBOT             = 14
 	};
 
 	enum TeleportMenuItemFactionOrder

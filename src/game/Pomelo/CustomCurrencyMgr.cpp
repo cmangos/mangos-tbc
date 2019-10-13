@@ -27,6 +27,8 @@ void CustomCurrencyMgr::LoadFromDB()
 		} while (result->NextRow());
 	}
 
+	delete result;
+
 	sLog.outString(">> Loaded %u custom currencies", result->GetRowCount());
 }
 
@@ -41,7 +43,9 @@ uint32 CustomCurrencyMgr::GetAccountCurrency(uint32 accid, uint32 curid)
 	if (!result || result->GetRowCount() != 1) return 0;
 
 	Field* field = result->Fetch();
-	return field[0].GetUInt32();
+	uint32 ret = field[0].GetUInt32();
+	delete result;
+	return ret;
 }
 
 bool CustomCurrencyMgr::ModifyAccountCurrency(uint32 accid, uint32 curid, int32 amount)
@@ -53,8 +57,10 @@ bool CustomCurrencyMgr::ModifyAccountCurrency(uint32 accid, uint32 curid, int32 
 		" ON DUPLICATE KEY UPDATE "
 		" `amount` = `amount` + (%d);",
 		accid, curid, amount, amount);
-	if (!result || result->GetRowCount() == 0) return false;
-	return true;
+	bool ret = true;
+	if (!result || result->GetRowCount() == 0) ret = false;
+	delete result;
+	return ret;
 }
 
 CustomCurrencyInfo* CustomCurrencyMgr::GetCurrencyInfo(uint32 curid)

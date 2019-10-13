@@ -6,9 +6,8 @@
  *
  **/
 
-#include "item_multi_talent.h"
+#include "item_dungeon.h"
 #include "Pomelo/DBConfigMgr.h"
-#include "Pomelo/MultiTalentMgr.h"
 #include "Pomelo/CustomCurrencyMgr.h"
 #include "AI/ScriptDevAI/include/sc_gossip.h"
 #include "AI/ScriptDevAI/include/precompiled.h"

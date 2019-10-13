@@ -37,6 +37,7 @@
 #include "Social/SocialMgr.h"
 #include "Loot/LootMgr.h"
 #include "Pomelo/TransmogrificationMgr.h"
+#include "AI/ScriptDevAI/scripts/custom/item_playerbot.h"
 
 #include <mutex>
 #include <deque>
@@ -493,6 +494,8 @@ void WorldSession::LogoutPlayer(bool Save)
         // Log out all player bots owned by this toon
         if (_player->GetPlayerbotMgr())
             _player->GetPlayerbotMgr()->LogoutAllBots();
+
+        RemovePlayerBotCachedCharacters(_player);
 #endif
 
         sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), GetRemoteAddress().c_str(), _player->GetName(), _player->GetGUIDLow());

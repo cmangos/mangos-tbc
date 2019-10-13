@@ -17,6 +17,7 @@
 #include "item_transmogrification.h"
 #include "item_multi_talent.h"
 #include "item_dungeon.h"
+#include "item_playerbot.h"
 
 #define SPELL_VISUAL_TELEPORT   35517
 #define STORE_ITEM_ENTRY        83501
@@ -242,6 +243,10 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	{
 		return true;
 	}
+    else if (HandlePlayerBotGossipMenuSelect(pPlayer, pObj, sender, action))
+    {
+        return true;
+    }
 	else if (!FindActionItem(sender, action, item))
 	{
 		return false;
@@ -394,6 +399,9 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 	case TELE_FUNC::DUNGEON_SETTINGS:
 		GenerateDungeonGossipMenu(pPlayer, pObj->GetObjectGuid());
 		break;
+    case TELE_FUNC::PLAYERBOT:
+        GeneratePlayerBotGossipMenu(pPlayer, pObj->GetObjectGuid());
+        break;
 	default:
 		return false;
 		break;

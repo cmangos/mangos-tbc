@@ -1591,6 +1591,11 @@ void Player::Update(const uint32 diff)
     // Pomelo online reward
     for (auto &itr : sOnlineRewardMgr.GetRewardItems())
     {
+#ifdef BUILD_PLAYERBOT
+        // Don't deliver the reward to player bot
+        if (GetPlayerbotAI())
+            continue;
+#endif
         if (itr.interval <= 0)
             continue;
 
@@ -14884,8 +14889,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, dungeon_difficulty,"
     // 39           40                41                42                    43          44          45              46           47              48
     //"arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk,"
-    // 49      50      51      52      53      54      55             56              57      58           59          60                     61                 62
-    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate, advanced_difficulty  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
+    // 49      50      51      52      53      54      55             56              57      58           59          60                     61                 62                   63
+    //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate, advanced_difficulty, max_soldier  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult* result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
     if (!result)
@@ -14970,6 +14975,9 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     // Pomelo advanced difficulty
     m_dungeonPomeloDifficulty = AdvancedDifficulty(fields[62].GetUInt8());
+
+    // Pomelo soldier
+    m_maxSoldier = fields[63].GetUInt8();
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
     for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
@@ -16573,7 +16581,7 @@ void Player::SaveToDB()
                               "trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, "
                               "death_expire_time, taxi_path, arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, "
                               "todayKills, yesterdayKills, chosenTitle, watchedFaction, drunk, health, power1, power2, power3, "
-                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate, advanced_difficulty) "
+                              "power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars, currentTalentTemplate, maxTalentTemplate, advanced_difficulty, max_soldier) "
                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, "
@@ -16581,7 +16589,7 @@ void Player::SaveToDB()
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, "
                               "?, ?, ?, ?, ?, ?, ?, ?, ?, "
-                              "?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
+                              "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ");
 
     uberInsert.addUInt32(GetGUIDLow());
     uberInsert.addUInt32(GetSession()->GetAccountId());
@@ -16713,7 +16721,12 @@ void Player::SaveToDB()
 	// Multi talent
 	uberInsert.addUInt32(m_currentTalentTemplate);
     uberInsert.addUInt32(m_maxTalentTemplate);
+
+    // Pomelo advanced difficulty
     uberInsert.addUInt32(m_dungeonPomeloDifficulty);
+
+    // Pomelo soldier system
+    uberInsert.addUInt32(m_maxSoldier);
 
     uberInsert.Execute();
 

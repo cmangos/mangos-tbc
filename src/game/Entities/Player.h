@@ -1418,6 +1418,13 @@ class Player : public Unit
 		uint32 m_maxTalentTemplate = 0;
 
         /*********************************************************/
+        /***                   SOLDIER SYSTEM                  ***/
+        /*********************************************************/
+        uint8 m_maxSoldier = 0;
+        uint8 GetMaxSoldier() const { return m_maxSoldier; }
+        void IncreaseMaxSoldier() { ++m_maxSoldier; }
+
+        /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
         /*********************************************************/
 

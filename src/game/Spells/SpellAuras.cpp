@@ -4147,7 +4147,7 @@ void Aura::HandleModConfuse(bool apply, bool Real)
     if (!apply && GetTarget()->HasAuraType(SPELL_AURA_MOD_CONFUSE))
         return;
 
-    GetTarget()->SetConfused(apply, GetCasterGuid(), GetId(), m_removeMode);
+    GetTarget()->SetConfused(apply, GetCasterGuid(), GetId());
 
     GetTarget()->getHostileRefManager().HandleSuppressed(apply);
 }
@@ -4161,7 +4161,7 @@ void Aura::HandleModFear(bool apply, bool Real)
     if (!apply && GetTarget()->HasAuraType(SPELL_AURA_MOD_FEAR))
         return;
 
-    GetTarget()->SetFeared(apply, GetCasterGuid(), GetId());
+    GetTarget()->SetFleeing(apply, GetCasterGuid(), GetId());
 
     // 2.3.0 - fear no longer applies suppression - in case of uncomment, need to adjust IsSuppressedTarget
     // GetTarget()->getHostileRefManager().HandleSuppressed(apply);
@@ -7096,7 +7096,7 @@ void Aura::PeriodicTick()
                 if (BattleGround* bg = ((Player*)pCaster)->GetBattleGround())
                     bg->UpdatePlayerScore(((Player*)pCaster), SCORE_HEALING_DONE, gain);
 
-            if (pCaster->isInCombat() && !pCaster->IsIncapacitated())
+            if (pCaster->isInCombat() && !pCaster->IsCrowdControlled())
                 target->getHostileRefManager().threatAssist(pCaster, float(gain) * 0.5f * sSpellMgr.GetSpellThreatMultiplier(spellProto), spellProto);
 
             pCaster->ProcDamageAndSpell(ProcSystemArguments(target, procAttacker, procVictim, procEx, gain, BASE_ATTACK, spellProto, nullptr, gain));
@@ -7730,9 +7730,9 @@ void Aura::HandlePreventFleeing(bool apply, bool Real)
     {
         const Aura* first = fearAuras.front();
         if (apply)
-            GetTarget()->SetFeared(false, first->GetCasterGuid());
+            GetTarget()->SetFleeing(false);
         else
-            GetTarget()->SetFeared(true, first->GetCasterGuid(), first->GetId());
+            GetTarget()->SetFleeing(true, first->GetCasterGuid(), first->GetId());
     }
 }
 

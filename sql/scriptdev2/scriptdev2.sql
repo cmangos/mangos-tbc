@@ -51,6 +51,7 @@ INSERT INTO scripted_areatrigger VALUES
 (4052,'at_temple_ahnqiraj'),
 (4112,'at_naxxramas'),
 (4113,'at_naxxramas'),
+(4115,'at_naxxramas'),
 (4156,'at_naxxramas'),
 (4288,'at_dark_portal'),
 (4422,'at_area_52'),

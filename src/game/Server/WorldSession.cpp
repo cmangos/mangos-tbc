@@ -492,10 +492,11 @@ void WorldSession::LogoutPlayer(bool Save)
     {
 #ifdef BUILD_PLAYERBOT
         // Log out all player bots owned by this toon
-        if (_player->GetPlayerbotMgr())
-            _player->GetPlayerbotMgr()->LogoutAllBots();
-
-        RemovePlayerBotCachedCharacters(_player);
+        if (auto mgr = _player->GetPlayerbotMgr())
+        {
+            mgr->LogoutAllBots();
+            RemovePlayerBotCachedCharacters(_player);
+        }
 #endif
 
         sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), GetRemoteAddress().c_str(), _player->GetName(), _player->GetGUIDLow());

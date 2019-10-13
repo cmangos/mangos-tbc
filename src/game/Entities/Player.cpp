@@ -12308,6 +12308,7 @@ void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
                 case GOSSIP_OPTION_BOT:
                 {
 #ifdef BUILD_PLAYERBOT
+                    /*
                     if (botConfig.GetBoolDefault("PlayerbotAI.DisableBots", false) && !pCreature->isInnkeeper())
                     {
                         ChatHandler(this).PSendSysMessage("|cffff0000Playerbot system is currently disabled!");
@@ -12322,6 +12323,7 @@ void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
                         if ((reqQuestIds == "" || requiredQuests(reqQuestIds.c_str())) && !pCreature->isInnkeeper() && this->GetMoney() >= (uint32)cost)
                             pCreature->LoadBotMenu(this);
                     }
+                    */
 #endif
                     hasMenuItem = false;
                     break;

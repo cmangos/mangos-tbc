@@ -226,7 +226,7 @@ struct boss_nightbaneAI : public npc_escortAI
                     SetCombatMovement(true);
                     SetDeathPrevention(false);
                     DoResetThreat();
-                    DoStartMovement(m_creature->getVictim());
+                    AttackClosestEnemy();
                     break;
             }
             PhaseTransitionTimersReset();

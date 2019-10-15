@@ -175,11 +175,11 @@ int main(int argc, char* argv[])
     sLog.outString("<Ctrl-C> to stop.");
     sLog.outString("\n\n"
                    "      _____   _____       ___  ___   _____   _       _____  \n"
-                   "     |  _  \ /  _  \     /   |/   | | ____| | |     /  _  \ \n"
+                   "     |  _  \\ /  _  \\     /   |/   | | ____| | |     /  _  \\ \n"
                    "     | |_| | | | | |    / /|   /| | | |__   | |     | | | | \n"
                    "     |  ___/ | | | |   / / |__/ | | |  __|  | |     | | | | \n"
                    "     | |     | |_| |  / /       | | | |___  | |___  | |_| | \n"
-                   "     |_|     \_____/ /_/        |_| |_____| |_____| \_____/ \n"
+                   "     |_|     \\_____/ /_/        |_| |_____| |_____| \\_____/ \n"
                    "     https://wowtbc.org  QQ Group: 833250014              \n\n");
 
     sLog.outString("Using configuration file %s.", configFile.c_str());

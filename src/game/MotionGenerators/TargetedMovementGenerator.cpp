@@ -48,7 +48,7 @@ const char* ChaseModes[] =
 template<class T, typename D>
 void TargetedMovementGeneratorMedium<T, D>::_setTargetLocation(T& owner, bool updateDestination)
 {
-    if (!i_target.isValid() || !i_target->IsInWorld())
+    if (!i_target.isValid(true) || !i_target->IsInWorld())
         return;
 
     if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))

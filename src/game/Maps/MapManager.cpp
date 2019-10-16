@@ -369,6 +369,10 @@ DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficult
         MANGOS_ASSERT(false);
     }
 
+    // advanced difficulty does not support heroic
+    if (pomeloDifficulty != ADVANCED_DIFFICULTY_NORMAL)
+        difficulty = DUNGEON_DIFFICULTY_NORMAL;
+
     // some instances only have one difficulty
     if (entry && !entry->SupportsHeroicMode())
         difficulty = DUNGEON_DIFFICULTY_NORMAL;

@@ -2344,14 +2344,11 @@ class Unit : public WorldObject
         inline bool IsFleeing() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING); }
         void SetFleeing(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 duration = 0);
 
-<<<<<<< HEAD
         inline bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
-=======
         bool IsPlayerOrPlayerOwned() { return IsPlayer() || GetOwner() && GetOwner()->IsPlayer(); }
 
         void SetFeared(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 time = 0);
         void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT);
->>>>>>> master
         void SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
 
         // Panic: AI reaction script, NPC flees (e.g. at low health)

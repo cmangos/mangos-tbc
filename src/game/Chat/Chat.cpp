@@ -549,6 +549,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "all_quest",      SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReloadAllQuestCommand,      "", nullptr },
         { "all_scripts",    SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReloadAllScriptsCommand,    "", nullptr },
         { "all_spell",      SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReloadAllSpellCommand,      "", nullptr },
+        { "all_pomelo",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReloadAllPomeloCommand,     "", nullptr },
 
         { "config",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleReloadConfigCommand,        "", nullptr },
 
@@ -881,7 +882,9 @@ ChatCommand* ChatHandler::getCommandTable()
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", nullptr },
         { "mmap",           SEC_GAMEMASTER,     false, nullptr,                                        "", mmapCommandTable },
 #ifdef BUILD_PLAYERBOT
+        /*
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
+        */
 #endif
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };

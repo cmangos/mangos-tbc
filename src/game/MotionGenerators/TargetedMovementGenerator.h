@@ -58,6 +58,12 @@ class TargetedMovementGeneratorMedium
         Unit* GetCurrentTarget() const override { return i_target.getTarget(); }
         float GetOffset() const { return i_offset; }
         float GetAngle() const { return i_angle; }
+        bool GetActualEndPosition(Vector3 &pos)
+        { 
+            if (!i_path) return false;
+            pos = i_path->getEndPosition();
+            return true;
+        }
 
         virtual void UnitSpeedChanged() override { i_speedChanged = true; }
 

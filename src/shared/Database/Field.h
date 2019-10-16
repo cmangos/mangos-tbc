@@ -57,6 +57,7 @@ class Field
         uint16 GetUInt16() const { return mValue ? static_cast<uint16>(atol(mValue)) : uint16(0); }
         int16 GetInt16() const { return mValue ? static_cast<int16>(atol(mValue)) : int16(0); }
         uint32 GetUInt32() const { return mValue ? static_cast<uint32>(atoll(mValue)) : uint32(0); }
+        int64 GetInt64() const { return mValue ? atoll(mValue) : int64(0); }
         uint64 GetUInt64() const
         {
             uint64 value = 0;

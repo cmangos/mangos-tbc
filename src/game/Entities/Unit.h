@@ -333,6 +333,7 @@ enum TriggerCastFlags : uint32
     TRIGGERED_DO_NOT_PROC                       = 0x00000040,   // Spells from scripts should not proc - DBScripts for example
     TRIGGERED_PET_CAST                          = 0x00000080,   // Spell that should report error through pet opcode
     TRIGGERED_NORMAL_COMBAT_CAST                = 0x00000100,   // AI needs to be notified about change of target
+    TRIGGERED_IGNORE_GCD                        = 0x00000200,   // Ignores the GCD checks and do not apply GCD
     TRIGGERED_FULL_MASK                         = 0xFFFFFFFF
 };
 
@@ -1356,6 +1357,7 @@ class Unit : public WorldObject
          * @return true if we can reach pVictim with a melee attack
          */
         bool CanReachWithMeleeAttack(Unit const* pVictim, float flat_mod = 0.0f) const;
+        bool DestCanReach(Unit* pVictim, float flat_mod = 0.0f);
         uint32 m_extraAttacks;
         void DoExtraAttacks(Unit* pVictim);
 
@@ -2342,7 +2344,14 @@ class Unit : public WorldObject
         inline bool IsFleeing() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING); }
         void SetFleeing(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 duration = 0);
 
+<<<<<<< HEAD
         inline bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
+=======
+        bool IsPlayerOrPlayerOwned() { return IsPlayer() || GetOwner() && GetOwner()->IsPlayer(); }
+
+        void SetFeared(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 time = 0);
+        void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT);
+>>>>>>> master
         void SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
 
         // Panic: AI reaction script, NPC flees (e.g. at low health)
@@ -2454,6 +2463,7 @@ class Unit : public WorldObject
         void AddDelayedHolderDueToProc(SpellAuraHolder* holder) { m_delayedSpellAuraHolders.push_back(holder); }
 
         void ResetAutoRepeatSpells() { m_AutoRepeatFirstCast = true; }
+        bool IsAutoRepeatFirstCast() { return m_AutoRepeatFirstCast; }
 
         const uint64& GetAuraUpdateMask() const { return m_auraUpdateMask; }
         void SetAuraUpdateMask(uint8 slot) { m_auraUpdateMask |= (uint64(1) << slot); }
@@ -2636,6 +2646,7 @@ class Unit : public WorldObject
         bool m_extraAttacksExecuting;
 
         uint32 m_evadeTimer; // Used for evade during combat when mob is not running home and target isnt reachable
+        uint32 m_stopCombatTimer; // Pomelo: anti cheat, sight
         EvadeState m_evadeMode; // Used for evade during running home
 
         // invisibility data

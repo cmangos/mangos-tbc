@@ -28,7 +28,7 @@ endif()
 project(CMaNGOS_TBC)
 
 # Define here name of the binaries
-set(CMANGOS_BINARY_SERVER_NAME "mangosd")
+set(CMANGOS_BINARY_SERVER_NAME "pomelod")
 set(CMANGOS_BINARY_REALMD_NAME "realmd")
 
 # Function to remove duplicate entries in provided string

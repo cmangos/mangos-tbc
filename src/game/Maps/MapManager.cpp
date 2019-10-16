@@ -331,7 +331,7 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
         map = FindMap(id, NewInstanceId);
         // it is possible that the save exists but the map doesn't
         if (!map)
-            pNewMap = CreateDungeonMap(id, NewInstanceId, pSave->GetDifficulty(), pSave);
+            pNewMap = CreateDungeonMap(id, NewInstanceId, pSave->GetDifficulty(), pSave->GetAdvancedDifficulty(), pSave);
     }
     else
     {
@@ -340,7 +340,8 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
         NewInstanceId = GenerateInstanceId();
 
         Difficulty diff = player->GetGroup() ? player->GetGroup()->GetDifficulty() : player->GetDifficulty();
-        pNewMap = CreateDungeonMap(id, NewInstanceId, diff);
+        AdvancedDifficulty adv_diff = player->GetGroup() ? player->GetGroup()->GetAdvancedDifficulty() : player->GetAdvancedDifficulty();
+        pNewMap = CreateDungeonMap(id, NewInstanceId, diff, adv_diff);
     }
 
     // add a new map object into the registry
@@ -353,7 +354,7 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
     return map;
 }
 
-DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficulty difficulty, DungeonPersistentState* save)
+DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficulty difficulty, AdvancedDifficulty pomeloDifficulty, DungeonPersistentState* save)
 {
     // make sure we have a valid map id
     const MapEntry* entry = sMapStore.LookupEntry(id);
@@ -378,7 +379,7 @@ DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficult
 
     DEBUG_LOG("MapInstanced::CreateDungeonMap: %s map instance %d for %d created with difficulty %d", save ? "" : "new ", InstanceId, id, difficulty);
 
-    DungeonMap* map = new DungeonMap(id, i_gridCleanUpDelay, InstanceId, difficulty);
+    DungeonMap* map = new DungeonMap(id, i_gridCleanUpDelay, InstanceId, difficulty, pomeloDifficulty);
 
     // Dungeons can have saved instance data
     bool load_data = save != nullptr;

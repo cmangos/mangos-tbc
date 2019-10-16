@@ -186,6 +186,26 @@ bool ScriptDevAIMgr::OnGossipSelect(Player* pPlayer, Creature* pCreature, uint32
     return pTempScript->pGossipSelect(pPlayer, pCreature, uiSender, uiAction);
 }
 
+bool ScriptDevAIMgr::OnGossipSelect(Player* pPlayer, Item* pItem, uint32 uiSender, uint32 uiAction, const char* code)
+{
+    // Handle gossip select from an item
+	debug_log("SD2: GO Gossip selection, sender: %u, action: %u", uiSender, uiAction);
+
+	pPlayer->PlayerTalkClass->ClearMenus();
+
+	Script* pTempScript = GetScript(ObjectMgr::GetItemPrototype(pItem->GetEntry())->ScriptId);
+
+	if (!pTempScript)
+		return false;
+
+	if (!pTempScript->pGossipSelectItem)
+		return false;
+
+	pPlayer->PlayerTalkClass->ClearMenus();
+	return pTempScript->pGossipSelectItem(pPlayer, pItem, uiSender, uiAction);
+}
+
+
 bool ScriptDevAIMgr::OnGossipSelect(Player* pPlayer, GameObject* pGo, uint32 uiSender, uint32 uiAction, const char* code)
 {
     debug_log("SD2: GO Gossip selection, sender: %u, action: %u", uiSender, uiAction);

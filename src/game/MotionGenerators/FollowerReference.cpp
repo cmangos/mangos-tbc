@@ -22,15 +22,24 @@
 
 void FollowerReference::targetObjectBuildLink()
 {
-    getTarget()->addFollower(this);
+    if (auto target = getTarget())
+    {
+        target->addFollower(this);
+    }
 }
 
 void FollowerReference::targetObjectDestroyLink()
 {
-    getTarget()->removeFollower(this);
+    if (auto target = getTarget())
+    {
+        target->removeFollower(this);
+    }
 }
 
 void FollowerReference::sourceObjectDestroyLink()
 {
-    getSource()->stopFollowing();
+    if (auto source = getSource())
+    {
+        source->stopFollowing();
+    }
 }

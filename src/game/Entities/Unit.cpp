@@ -705,7 +705,7 @@ bool Unit::DestCanReach(Unit* pVictim, float flat_mod /*= 0.0f*/)
 
     if (IsCreature() && pVictim->IsPlayerOrPlayerOwned() && GetMotionMaster()->GetCurrent()->GetMovementGeneratorType() == CHASE_MOTION_TYPE)
     {
-        if (IsIncapacitated() || IsImmobilized()) 
+        if (IsCrowdControlled() || IsImmobilizedState())
             return ret;
 
         Vector3 pos;

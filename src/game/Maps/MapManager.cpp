@@ -26,6 +26,7 @@
 #include "World/World.h"
 #include "Grids/CellImpl.h"
 #include "Globals/ObjectMgr.h"
+#include "Pomelo/DungeonSwitchMgr.h"
 #include <future>
 
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<MapManager, std::recursive_mutex>
@@ -371,7 +372,12 @@ DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficult
 
     // advanced difficulty does not support heroic
     if (pomeloDifficulty != ADVANCED_DIFFICULTY_NORMAL)
-        difficulty = DUNGEON_DIFFICULTY_NORMAL;
+    {
+        if (sDungeonSwitchMgr.IsSupportTenPlayersDifficulty(id))
+            difficulty = DUNGEON_DIFFICULTY_NORMAL;
+        else
+            pomeloDifficulty = ADVANCED_DIFFICULTY_NORMAL;
+    }
 
     // some instances only have one difficulty
     if (entry && !entry->SupportsHeroicMode())

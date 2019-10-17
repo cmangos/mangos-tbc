@@ -6792,6 +6792,16 @@ bool Player::RewardHonor(Unit* uVictim, uint32 groupsize, float honor)
 
         return true;
     }
+#ifdef BUILD_PLAYERBOT
+    if (uVictim->GetTypeId() == TYPEID_PLAYER)
+    {
+        // Don't reward honor if killed playerbot
+        if (((Player*)uVictim)->GetPlayerbotAI())
+        {
+            return false;
+        }
+    }
+#endif
 
     // 'Inactive' this aura prevents the player from gaining honor points and battleground tokens
     if (GetDummyAura(SPELL_AURA_PLAYER_INACTIVE))

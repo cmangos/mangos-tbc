@@ -6858,6 +6858,11 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     m_caster->SummonCreature(16474, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 30000);
                     return;
                 }
+                case 28732:                                 // Widow Embrace
+                {
+                    m_caster->CastSpell(nullptr, 28748, TRIGGERED_OLD_TRIGGERED);       // Self suicide
+                    return;
+                }
                 case 29379:                                 // Despawn Crypt Guards
                 {
                     if (unitTarget)

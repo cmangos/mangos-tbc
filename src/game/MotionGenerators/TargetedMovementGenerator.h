@@ -130,7 +130,7 @@ class ChaseMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Chas
         bool EnableWalking() const { return m_walk;}
         bool _lostTarget(Unit& u) const;
         void _reachTarget(Unit&);
-        bool GetResetPosition(Unit& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const override { return false; }
+        bool GetResetPosition(Unit& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/, uint32 recursive_deep = 2) const override { return false; }
         void HandleMovementFailure(Unit& owner) override;
 
         ChaseMovementMode GetCurrentMode() const { return m_currentMode; }
@@ -177,6 +177,9 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
         void Finalize(Unit& owner) override;
         void Interrupt(Unit& owner) override;
         void Reset(Unit& owner) override;
+
+        // Add the override here temporary, pending confirm with the GitHub issue: https://github.com/cmangos/issues/issues/2046
+        bool GetResetPosition(Unit& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/, uint32 recursive_deep = 2) const override { return false; }
 
         static void _clearUnitStateMove(Unit& owner);
         static void _addUnitStateMove(Unit& owner);

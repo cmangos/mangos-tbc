@@ -145,7 +145,7 @@ class CharacterHandler
 
             // The bot's WorldSession is owned by the bot's Player object
             // The bot's WorldSession is deleted by PlayerbotMgr::LogoutPlayerBot
-            WorldSession* botSession = new WorldSession(lqh->GetAccountId(), nullptr, SEC_PLAYER, masterSession->Expansion(), 0, LOCALE_enUS);
+            WorldSession* botSession = new WorldSession(lqh->GetAccountId(), nullptr, SEC_PLAYER, masterSession->GetExpansion(), 0, LOCALE_enUS);
             botSession->HandlePlayerLogin(lqh); // will delete lqh
             masterSession->GetPlayer()->GetPlayerbotMgr()->OnBotLogin(botSession->GetPlayer());
         }
@@ -261,10 +261,10 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
     }
 
     // prevent character creating Expansion race without Expansion account
-    if (raceEntry->expansion > Expansion())
+    if (raceEntry->expansion > GetExpansion())
     {
         data << (uint8)CHAR_CREATE_EXPANSION;
-        sLog.outError("Expansion %u account:[%d] tried to Create character with expansion %u race (%u)", Expansion(), GetAccountId(), raceEntry->expansion, race_);
+        sLog.outError("Expansion %u account:[%d] tried to Create character with expansion %u race (%u)", GetExpansion(), GetAccountId(), raceEntry->expansion, race_);
         SendPacket(data, true);
         return;
     }
@@ -676,7 +676,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         MapEntry const* mapEntry = sMapStore.LookupEntry(pCurrChar->GetMapId());
         if (!mapEntry)
             lockStatus = AREA_LOCKSTATUS_UNKNOWN_ERROR;
-        else if (pCurrChar->GetSession()->Expansion() < mapEntry->Expansion())
+        else if (pCurrChar->GetSession()->GetExpansion() < mapEntry->Expansion())
             lockStatus = AREA_LOCKSTATUS_INSUFFICIENT_EXPANSION;
     }
     if (lockStatus != AREA_LOCKSTATUS_OK || !pCurrChar->GetMap()->Add(pCurrChar))

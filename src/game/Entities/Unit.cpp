@@ -6275,6 +6275,8 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
         return false;
 
     m_attacking = victim;
+    if (CanHaveThreatList())
+        getThreatManager().setCurrentVictimByTarget(victim);
 
     if (AI())
     {

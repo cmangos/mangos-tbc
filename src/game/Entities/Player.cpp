@@ -6793,7 +6793,7 @@ bool Player::RewardHonor(Unit* uVictim, uint32 groupsize, float honor)
         return true;
     }
 #ifdef BUILD_PLAYERBOT
-    if (uVictim->GetTypeId() == TYPEID_PLAYER)
+    if (uVictim && uVictim->GetTypeId() == TYPEID_PLAYER)
     {
         // Don't reward honor if killed playerbot
         if (((Player*)uVictim)->GetPlayerbotAI())

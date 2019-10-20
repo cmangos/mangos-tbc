@@ -401,8 +401,8 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
         data << pProto->PageMaterial;
         data << pProto->StartQuest;
         data << pProto->LockID;
-        data << pProto->Material;
-        data << pProto->Sheath;
+        data << (isTransmogrification ? sTransmogrificationMgr.GetMaterial(item) : pProto->Material);
+        data << (isTransmogrification ? sTransmogrificationMgr.GetSheath(item) : pProto->Sheath);
         data << pProto->RandomProperty;
         data << pProto->RandomSuffix;
         data << pProto->Block;

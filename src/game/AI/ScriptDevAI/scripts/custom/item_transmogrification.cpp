@@ -14,6 +14,8 @@
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "Tools/Language.h"
 
+#define MODEL_VENDOR_ID 80036
+
 std::string GetQualityColor(uint32 quality)
 {
     switch(quality)
@@ -51,6 +53,7 @@ void GenerateTransmogrificationGossipMenu(Player* pPlayer, ObjectGuid guid)
 	pPlayer->ADD_GOSSIP_ITEM(0, pPlayer->GetSession()->GetMangosString(LANG_TRANSMOG_UNSELECT_MODEL), 80002, 1);
 	pPlayer->ADD_GOSSIP_ITEM(0, pPlayer->GetSession()->GetMangosString(LANG_TRANSMOG_APPLY), 80002, 2);
 	pPlayer->ADD_GOSSIP_ITEM(0, pPlayer->GetSession()->GetMangosString(LANG_TRANSMOG_REMOVE), 80002, 3);
+    pPlayer->ADD_GOSSIP_ITEM(1, pPlayer->GetSession()->GetMangosString(LANG_TRANSMOG_BUY_WEAPON), 80002, 4);
 	
 	pPlayer->SEND_GOSSIP_MENU(100000 - 1000, guid);
 }
@@ -142,6 +145,11 @@ bool HandleTransmogrificationGossipMenuSelect(Player* pPlayer, Object* pObj, uin
 			case 3:
 				GenerateTransmogrificationRestoreModelGossipMenu(pPlayer, pObj->GetObjectGuid());
 				break;
+            case 4:
+                Creature * pStoreNpc;
+                pStoreNpc = pPlayer->SummonCreature(MODEL_VENDOR_ID, pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
+                pPlayer->GetSession()->SendListInventory(pStoreNpc->GetObjectGuid());
+                break;
 			default:
 				return false;
 		}

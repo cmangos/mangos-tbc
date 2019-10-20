@@ -57,7 +57,8 @@ void TransmogrificationMgr::ApplyTransmogrification(Player* pPlayer)
 void TransmogrificationMgr::OnLogin(uint32 characterId)
 {
 	QueryResult* result = CharacterDatabase.PQuery(
-		"SELECT `entry`, `item_instance_guid`, `model`, `owner_guid`, `item_template_id` "
+		"SELECT `entry`, `item_instance_guid`, `model`, `owner_guid`, "
+        "`item_template_id`, `sheath`, `material` "
 		"FROM `pomelo_transmogrification` "
 		"WHERE `owner_guid` = %u", characterId);
 
@@ -72,6 +73,8 @@ void TransmogrificationMgr::OnLogin(uint32 characterId)
 			data.model = field[2].GetUInt32();
 			data.owner_guid = field[3].GetUInt32();
 			data.item_template_id = field[4].GetUInt32();
+            data.sheath = field[5].GetUInt32();
+            data.material = field[6].GetUInt32();
 
 			itemguid_character_map[data.item_instance_guid] = data.owner_guid;
 			character_itemguid_transmogdata_map[data.owner_guid][data.item_instance_guid] = data;
@@ -112,6 +115,16 @@ bool TransmogrificationMgr::IsFakeEntry(uint32 entry)
 uint32 TransmogrificationMgr::GetModelId(uint32 fakeId)
 {
 	return transmogid_transmogdata_map[ToFakeEntry(fakeId)].model;
+}
+
+uint32 TransmogrificationMgr::GetMaterial(uint32 fakeId)
+{
+    return transmogid_transmogdata_map[ToFakeEntry(fakeId)].material;
+}
+
+uint32 TransmogrificationMgr::GetSheath(uint32 fakeId)
+{
+    return transmogid_transmogdata_map[ToFakeEntry(fakeId)].sheath;
 }
 
 const ItemPrototype* TransmogrificationMgr::GetOriginItemProto(uint32 fakeId)
@@ -158,6 +171,8 @@ void TransmogrificationMgr::StoreDisplay(Player* pPlayer, Item* pItem)
 		info.quality = pProto->Quality;
 		info.item_template_id = pItem->GetEntry();
 		info.slot = (EquipmentSlots)pItem->GetSlot();
+        info.material = pProto->Material;
+        info.sheath = pProto->Sheath;
 		character_slot_display_map[pPlayer->GetGUIDLow()][(EquipmentSlots)pItem->GetSlot()] = info;
 	}
 }
@@ -184,19 +199,19 @@ void TransmogrificationMgr::TransmogrifyItemFromTempStore(Item* pItem, Equipment
 	auto store = character_slot_display_map[pPlayer->GetGUIDLow()][slot];
 	if (store.display)
 	{
-		TransmogrifyItem(pItem, store.display);
+		TransmogrifyItem(pItem, store.display, store.material, store.sheath);
 	}
 }
 
-void TransmogrificationMgr::TransmogrifyItem(Item* pItem, uint32 display)
+void TransmogrificationMgr::TransmogrifyItem(Item* pItem, uint32 display, uint32 material, uint32 sheath)
 {
 	if (pItem)
 	{
 		CharacterDatabase.DirectPExecute(
 			"INSERT INTO `pomelo_transmogrification` "
-			"(`item_instance_guid`, `model`, `owner_guid`, `item_template_id`) "
-			"VALUES (%u, %u, %u, %u);",
-			pItem->GetGUIDLow(), display, pItem->GetOwner()->GetGUIDLow(), pItem->GetEntry());
+			"(`item_instance_guid`, `model`, `owner_guid`, `item_template_id`, `material`, `sheath`) "
+			"VALUES (%u, %u, %u, %u, %u, %u);",
+			pItem->GetGUIDLow(), display, pItem->GetOwner()->GetGUIDLow(), pItem->GetEntry(), material, sheath);
 		
 		// TODO: How to get inserted id in this MySQL client?
 		QueryResult* result = CharacterDatabase.PQuery(
@@ -214,6 +229,8 @@ void TransmogrificationMgr::TransmogrifyItem(Item* pItem, uint32 display)
 			data.model = display;
 			data.owner_guid = pItem->GetOwner()->GetGUIDLow();
 			data.item_template_id = pItem->GetEntry();
+            data.material = material;
+            data.sheath = sheath;
 
 			itemguid_character_map[data.item_instance_guid] = data.owner_guid;
 			character_itemguid_transmogdata_map[data.owner_guid][data.item_instance_guid] = data;
@@ -236,6 +253,8 @@ std::vector<TransmogrificationTempStore> TransmogrificationMgr::GetTransmogrifie
 		data.name = pProto->Name1;
 		data.quality = pProto->Quality;
 		data.item_template_id = i->second.item_instance_guid;
+        data.material = i->second.material;
+        data.sheath = i->second.sheath;
 		ret.push_back(data);
 	}
 	return ret;

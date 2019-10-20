@@ -1081,7 +1081,8 @@ enum MangosStrings
     LANG_PLAYERBOT_RECRUIT              = 80055,
     LANG_PLAYERBOT_EXCEED_CAP           = 80056,
     LANG_PLAYERBOT_INCREASED_CAP        = 80057,
-    LANG_PLAYERBOT_HIRE_EXCEED          = 80058
+    LANG_PLAYERBOT_HIRE_EXCEED          = 80058,
+    LANG_TRANSMOG_BUY_WEAPON            = 80059,
 
     // Use for custom patches             11000-11999
 

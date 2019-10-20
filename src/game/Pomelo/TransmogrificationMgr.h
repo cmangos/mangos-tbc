@@ -23,6 +23,8 @@ struct TransmogrificationData
 	uint32 model;
 	uint32 owner_guid;
 	uint32 item_template_id;
+    uint32 material;
+    uint32 sheath;
 };
 
 struct TransmogrificationTempStore
@@ -32,6 +34,8 @@ struct TransmogrificationTempStore
 	uint32 item_template_id;
 	uint32 quality;
 	EquipmentSlots slot;
+    uint32 material;
+    uint32 sheath;
 };
 
 class TransmogrificationMgr
@@ -42,7 +46,9 @@ public:
 	bool IsFakeEntry(uint32 itemEntry);
 	uint32 ToFakeEntry(uint32 fakeEntry);
 	uint32 ToItemEntry(uint32 fakeEntry);
-	uint32 GetModelId(uint32 fakeEntry);
+    uint32 GetModelId(uint32 fakeEntry);
+    uint32 GetMaterial(uint32 fakeEntry);
+    uint32 GetSheath(uint32 fakeEntry);
 	uint32 GetModelIdByItemInstanceId(uint32 itemGuid);
 	uint32 GetCharacterIdByTransmogrificationId(uint32 transmogId);
 	const ItemPrototype* GetOriginItemProto(uint32 fakeEntry);
@@ -50,7 +56,7 @@ public:
 	void ApplyTransmogrification(Player* pPlayer, EquipmentSlots slot);
 	void ApplyTransmogrification(Player* pPlayer);
 	bool IsTransmogrified(uint32 itemGuid);
-	void TransmogrifyItem(Item* pItem, uint32 display);
+	void TransmogrifyItem(Item* pItem, uint32 display, uint32 material, uint32 sheath);
 	void StoreDisplay(Player* pPlayer, Item* pItem);
 	std::vector<TransmogrificationTempStore> GetStoredDisplays(Player* pPlayer);
 	void ClearStoredDisplays(Player* pPlayer);

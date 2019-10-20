@@ -29,7 +29,7 @@
 
 #define IGNORE_M2 true // simple define for avoiding bugs due to different setting across movechase
 
-// Chase-Movement: These factors depend on combat-reach distance
+ // Chase-Movement: These factors depend on combat-reach distance
 #define CHASE_DEFAULT_RANGE_FACTOR                        0.5f
 #define CHASE_RECHASE_RANGE_FACTOR                        0.75f
 #define CHASE_MOVE_CLOSER_FACTOR                          0.875f
@@ -48,7 +48,7 @@ const char* ChaseModes[] =
 template<class T, typename D>
 void TargetedMovementGeneratorMedium<T, D>::_setTargetLocation(T& owner, bool updateDestination)
 {
-    if (!i_target.isValid(true) || !i_target->IsInWorld())
+    if (!i_target.isValid() || !i_target->IsInWorld())
         return;
 
     if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))
@@ -61,7 +61,7 @@ void TargetedMovementGeneratorMedium<T, D>::_setTargetLocation(T& owner, bool up
     if (updateDestination || !i_path)
     {
         owner.GetPosition(x, y, z);
- 
+
         // prevent redundant micro-movement for pets, other followers.
         if (!RequiresNewPosition(owner, x, y, z))
         {
@@ -98,8 +98,8 @@ void TargetedMovementGeneratorMedium<T, D>::_setTargetLocation(T& owner, bool up
         i_path = new PathFinder(&owner);
 
     // allow pets following their master to cheat while generating paths
-    bool forceDest = (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)&owner)->IsPet()
-                      && owner.hasUnitState(UNIT_STAT_FOLLOW));
+    bool forceDest = (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)& owner)->IsPet()
+        && owner.hasUnitState(UNIT_STAT_FOLLOW));
     i_path->calculate(x, y, z, forceDest);
     if (i_path->getPathType() & PATHFIND_NOPATH)
         return;
@@ -178,7 +178,7 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
 
     HandleTargetedMovement(owner, time_diff);
 
-    if (owner.movespline->Finalized() && !i_targetReached) 
+    if (owner.movespline->Finalized() && !i_targetReached)
         HandleFinalizedMovement(owner);
 
     return true;
@@ -251,7 +251,7 @@ float ChaseMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRang
     if (m_moveFurther)
     {
         if (!forRangeCheck)
-            return this->i_offset + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner, true) ;
+            return this->i_offset + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner, true);
 
         return this->i_offset + CHASE_RECHASE_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner, true);
     }
@@ -395,18 +395,18 @@ void ChaseMovementGenerator::HandleFinalizedMovement(Unit& owner)
     this->i_target->GetPosition(this->i_lastTargetPos.x, this->i_lastTargetPos.y, this->i_lastTargetPos.z);
     switch (m_currentMode)
     {
-        case CHASE_MODE_NORMAL:
-        case CHASE_MODE_BACKPEDAL:
-        case CHASE_MODE_FANNING:
-        {
-            ChaseMovementGenerator::_reachTarget(owner);
-            break;
-        }
-        case CHASE_MODE_DISTANCING:
-        {
-            owner.AI()->DistancingEnded();
-            break;
-        }
+    case CHASE_MODE_NORMAL:
+    case CHASE_MODE_BACKPEDAL:
+    case CHASE_MODE_FANNING:
+    {
+        ChaseMovementGenerator::_reachTarget(owner);
+        break;
+    }
+    case CHASE_MODE_DISTANCING:
+    {
+        owner.AI()->DistancingEnded();
+        break;
+    }
     }
     m_currentMode = CHASE_MODE_NORMAL;
     m_reachable = true; // just to be absolutely sure clear reachability here - if its unreachable it will reset on next update
@@ -461,9 +461,9 @@ void ChaseMovementGenerator::FanOut(Unit& owner)
 {
     Unit* collider = nullptr;
     MaNGOS::AnyUnitFulfillingConditionInRangeCheck collisionCheck(&owner, [&](Unit* unit)->bool
-    {
-        return &owner != unit && unit->getVictim() && unit->getVictim() == this->i_target.getTarget() && !unit->IsMoving() && !unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-    }, fanningRadius * fanningRadius, DIST_CALC_NONE);
+        {
+            return &owner != unit && unit->getVictim() && unit->getVictim() == this->i_target.getTarget() && !unit->IsMoving() && !unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }, fanningRadius * fanningRadius, DIST_CALC_NONE);
     MaNGOS::UnitSearcher<MaNGOS::AnyUnitFulfillingConditionInRangeCheck> checker(collider, collisionCheck);
     Cell::VisitAllObjects(&owner, checker, fanningRadius);
 
@@ -679,6 +679,17 @@ void FollowMovementGenerator::Reset(Unit& owner)
     Initialize(owner);
 }
 
+bool FollowMovementGenerator::GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o, uint32 recursive_deep) const
+{
+    if (!_getLocation(owner, x, y, z))
+        return false;
+
+    if (!_getOrientation(owner, o))
+        o = owner.GetAngle(x, y);
+
+    return true;
+}
+
 bool FollowMovementGenerator::Move(Unit& owner, float x, float y, float z)
 {
     if (!i_path)
@@ -710,13 +721,30 @@ bool FollowMovementGenerator::Unstuck(Unit& owner, float x, float y, float z)
     return false;
 }
 
+bool FollowMovementGenerator::_getOrientation(Unit& owner, float& o) const
+{
+    if (!i_target.isValid())
+        return false;
+
+    o = (i_faceTarget ? owner.GetAngle(i_target.getTarget()) : i_target->GetOrientation());
+    return true;
+}
+
+bool FollowMovementGenerator::_getLocation(Unit& owner, float& x, float& y, float& z) const
+{
+    float angle = (i_target->GetOrientation() + GetAngle(owner));
+    owner.GetPosition(x, y, z);
+    i_target->GetNearPoint(&owner, x, y, z, owner.GetObjectBoundingRadius(), GetDynamicTargetDistance(owner, false), angle);
+    return true;
+}
+
 void FollowMovementGenerator::_setOrientation(Unit& owner)
 {
     // Final facing adjustment once target is reached
-    if (i_target.isValid())
+    float o;
+    if (_getOrientation(owner, o))
     {
         m_targetFaced = true;
-        const float o = (i_faceTarget ? owner.GetAngle(i_target.getTarget()) : i_target->GetOrientation());
         owner.SetOrientation(o);
         owner.SetFacingTo(o);
     }
@@ -736,12 +764,13 @@ void FollowMovementGenerator::_setLocation(Unit& owner, bool updateDestination)
     // Can happen for example if no path was created on MMGen-Initialize because of the owner being stunned
     if (updateDestination || !i_path)
     {
-        float o = (i_target->GetOrientation() + GetAngle(owner));
-        owner.GetPosition(x, y, z);
-        i_target->GetNearPoint(&owner, x, y, z, owner.GetObjectBoundingRadius(), GetDynamicTargetDistance(owner, false), o);
-
-        if (!Move(owner, x, y, z))
-            Unstuck(owner, x, y, z);
+        if (_getLocation(owner, x, y, z))
+        {
+            if (!Move(owner, x, y, z))
+                Unstuck(owner, x, y, z);
+        }
+        else
+            return;
     }
     else    // the destination has not changed, we just need to refresh the path (usually speed change)
         _move(owner, i_path->getPath(), owner.movespline->currentPathIdx());
@@ -775,7 +804,7 @@ bool FollowMovementGenerator::_move(Unit& owner, const Movement::PointsArray& pa
 // This factor defines how much of the follow-distance will be used as sloppyness value (if the above distance is exceeded)
 #define FOLLOW_DIST_RECALCULATE_FACTOR                    1.0f
 
-float FollowMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRangeCheck) const
+float FollowMovementGenerator::GetDynamicTargetDistance(Unit & owner, bool forRangeCheck) const
 {
     if (!forRangeCheck)
         return (GetOffset(owner) + owner.GetObjectBoundingRadius() + i_target->GetObjectBoundingRadius());
@@ -818,7 +847,7 @@ void FollowMovementGenerator::HandleTargetedMovement(Unit& owner, const uint32& 
                 currentTargetPos = i_target->movespline->CurrentDestination();
             else                                    // If moved clientside or some other way
             */
-                i_target->GetPosition(currentTargetPos.x, currentTargetPos.y, currentTargetPos.z);
+            i_target->GetPosition(currentTargetPos.x, currentTargetPos.y, currentTargetPos.z);
 
             targetRelocation = (currentTargetPos != i_lastTargetPos);
             targetOrientation = (!targetRelocation && !m_targetMoving && !m_targetFaced);

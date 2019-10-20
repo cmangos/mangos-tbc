@@ -178,8 +178,7 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
         void Interrupt(Unit& owner) override;
         void Reset(Unit& owner) override;
 
-        // Add the override here temporary, pending confirm with the GitHub issue: https://github.com/cmangos/issues/issues/2046
-        bool GetResetPosition(Unit& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/, uint32 recursive_deep = 2) const override { return false; }
+        bool GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o, uint32 recursive_deep = 2) const override;
 
         static void _clearUnitStateMove(Unit& owner);
         static void _addUnitStateMove(Unit& owner);
@@ -206,8 +205,10 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
         void HandleFinalizedMovement(Unit& owner) override;
 
     private:
-        void _setOrientation(Unit& owner);
-        void _setLocation(Unit& owner, bool updateDestination);
+        virtual bool _getOrientation(Unit& owner, float& o) const;
+        virtual bool _getLocation(Unit& owner, float& x, float& y, float& z) const;
+        virtual void _setOrientation(Unit& owner);
+        virtual void _setLocation(Unit& owner, bool updateDestination);
         bool _move(Unit& owner, const PointsArray& path, int32 offset = 0) const;
 
         bool m_main;

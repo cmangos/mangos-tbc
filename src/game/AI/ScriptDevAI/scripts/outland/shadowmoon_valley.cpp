@@ -1595,10 +1595,8 @@ struct npc_shadowlord_deathwailAI : public ScriptedAI
             for (auto& lOtherChanneler : lOtherChannelers)
                 if (lOtherChanneler->isAlive())
                 {
-                    lOtherChanneler->SetInCombatWith(attacker);
-                    attacker->SetInCombatWith(lOtherChanneler);
+                    lOtherChanneler->AI()->AttackStart(attacker);
                     lOtherChanneler->SetActiveObjectState(true);
-                    lOtherChanneler->AddThreat(attacker);
 
                     // agro on party members
                     if (Player* player = m_creature->GetMap()->GetPlayer(attacker->GetObjectGuid()))
@@ -1607,11 +1605,7 @@ struct npc_shadowlord_deathwailAI : public ScriptedAI
                             {
                                 Player* member = ref->getSource();
                                 if (member && member->isAlive() && m_cHOFVisualTrigger && m_cHOFVisualTrigger->IsWithinDistInMap(member, MAX_PLAYER_DISTANCE))
-                                {
-                                    lOtherChanneler->SetInCombatWith(member);
-                                    member->SetInCombatWith(lOtherChanneler);
-                                    lOtherChanneler->AddThreat(member);
-                                }
+                                    lOtherChanneler->AI()->AttackStart(member);
                             }
 
                     m_lSoulstealers.push_back(lOtherChanneler);
@@ -4972,8 +4966,6 @@ struct npc_bt_battle_sensor : public ScriptedAI
             nearestLightsworn = (distLightsworn < distMagister) ? nearestLightsworn : nearestMagister;
         }
 
-        attacker->SetInCombatWith(nearestLightsworn);
-        attacker->AddThreat(nearestLightsworn);
         attacker->AI()->AttackStart(nearestLightsworn);
     }
 

@@ -230,7 +230,7 @@ struct npc_manaforge_spawnAI : public ScriptedAI
             }
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void UpdateAI(const uint32 /*uiDiff*/) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;
@@ -1760,7 +1760,7 @@ struct npc_drijyaAI : public npc_escortAI
         }
     }
 
-    void AttackedBy(Unit* pWho) override
+    void AttackedBy(Unit* /*pWho*/) override
     {
         if (!m_uiSayCount)
         {
@@ -2435,7 +2435,7 @@ struct npc_salhadaarAI : public ScriptedAI
         }
     }
 
-    void JustDied(Unit* killer) override
+    void JustDied(Unit* /*killer*/) override
     {
         for (const auto& summonedCreature : m_uiSummoned)    // despawn all summoned creatures
             if (Creature* summon = m_creature->GetMap()->GetCreature(summonedCreature))
@@ -2554,7 +2554,7 @@ struct npc_energy_ballAI : public ScriptedAI
             m_creature->CastSpell(nullptr, SPELL_SALAADIN_TESLA, TRIGGERED_NONE);
     }
 
-    void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
     {
         if (pSpell->Id == SPELL_PROTECTORATE_DISRUPTOR) // recast beam after one minute if player doesnt engage mob
         {
@@ -2603,8 +2603,49 @@ UnitAI* GetAI_npc_energy_ball(Creature* pCreature)
 
 enum
 {
-    NPC_NEGATRON = 19851,
+    SPELL_PHASE_DISRUPTOR = 35734,
+};
 
+struct npc_void_conduitAI : public Scripted_NoMovementAI
+{
+    npc_void_conduitAI(Creature* pCreature) : Scripted_NoMovementAI(pCreature) { Reset(); }
+
+    uint32 m_uiEvadeTimer;
+
+    void Reset() override
+    {
+        m_uiEvadeTimer = 0;
+    }
+
+    void SpellHit(Unit* /*pCaster*/, const SpellEntry* pSpell) override
+    {
+        if (pSpell->Id == SPELL_PHASE_DISRUPTOR)
+            m_uiEvadeTimer = 10000; // custom combat timer, to simulate proper leashing of this mob
+    }
+
+    void MoveInLineOfSight(Unit*) override {}
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_uiEvadeTimer)
+        {
+            if (m_uiEvadeTimer <= uiDiff)
+                EnterEvadeMode(); // calls reset
+            else
+                m_uiEvadeTimer -= uiDiff;
+        }
+    }
+};
+
+UnitAI* GetAI_npc_void_conduit(Creature* pCreature)
+{
+    return new npc_void_conduitAI(pCreature);
+}
+
+enum
+{
+    NPC_NEGATRON = 19851,
+    
     SPELL_SCRAP_REAVER = 34630,
 
     SAY_ON_DEATH = -1000472,
@@ -2873,7 +2914,7 @@ struct npc_scrapped_fel_reaverAI : ScriptedAI
         ScriptedAI::JustRespawned();
     }
 
-    void JustDied(Unit* killer) override
+    void JustDied(Unit* /*killer*/) override
     {
         for (uint32 i = 0; i < COUNT_SPAWNING_LOCATIONS; i++)
         {
@@ -3924,6 +3965,11 @@ void AddSC_netherstorm()
     pNewScript = new Script;
     pNewScript->Name = "npc_energy_ball";
     pNewScript->GetAI = &GetAI_npc_energy_ball;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_void_conduit";
+    pNewScript->GetAI = &GetAI_npc_void_conduit;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

@@ -23,6 +23,7 @@
 #include "Dynamic/FactoryHolder.h"
 #include "MotionGenerators/MotionMaster.h"
 #include "Timer.h"
+#include "Globals/SharedDefines.h"
 
 class Unit;
 class Creature;
@@ -51,10 +52,12 @@ class MovementGenerator
         virtual void UnitSpeedChanged() { }
 
         // used by Evade code for select point to evade with expected restart default movement
-        virtual bool GetResetPosition(Unit&, float& /*x*/, float& /*y*/, float& /*z*/, float& o) const { return false; }
+        virtual bool GetResetPosition(Unit&, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const { return false; }
 
         // given destination unreachable? due to pathfinsing or other
         virtual bool IsReachable() const { return true; }
+
+        virtual bool IsRemovedOnDirectExpire() const { return false; }
 
         // used for check from Update call is movegen still be active (top movement generator)
         // after some not safe for this calls

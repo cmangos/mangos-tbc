@@ -83,7 +83,7 @@ PlayerbotMgr::~PlayerbotMgr()
     LogoutAllBots();
 }
 
-void PlayerbotMgr::UpdateAI(const uint32 p_time) {}
+void PlayerbotMgr::UpdateAI(const uint32 /*diff*/) {}
 
 void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
 {
@@ -729,7 +729,7 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
     }
 }
 
-void PlayerbotMgr::HandleMasterOutgoingPacket(const WorldPacket& packet)
+void PlayerbotMgr::HandleMasterOutgoingPacket(const WorldPacket& /*packet*/)
 {
     /*
     switch (packet.GetOpcode())

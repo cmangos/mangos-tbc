@@ -204,6 +204,7 @@ template <class T>
 PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom, MapPersistentState& mapState)
 {
     PoolObject* explicitlyObjFound = nullptr;
+    auto gen = GetRandomGenerator();
 
     if (!ExplicitlyChanced.empty())
     {
@@ -218,7 +219,7 @@ PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom, M
         std::transform(ExplicitlyChanced.begin(), ExplicitlyChanced.end(), std::back_inserter(explicitlyChancedVector), [](PoolObject& objPtr) { return &objPtr; });
 
         // randomize the new vector
-        std::shuffle(explicitlyChancedVector.begin(), explicitlyChancedVector.end(), std::mt19937(std::random_device()()));
+        std::shuffle(explicitlyChancedVector.begin(), explicitlyChancedVector.end(), *gen);
 
         for (auto obj : explicitlyChancedVector)
         {
@@ -251,7 +252,7 @@ PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom, M
         std::transform(EqualChanced.begin(), EqualChanced.end(), std::back_inserter(equalyChancedVector), [](PoolObject& objPtr) { return &objPtr; });
 
         // randomize the new vector
-        std::shuffle(equalyChancedVector.begin(), equalyChancedVector.end(), std::mt19937(std::random_device()()));
+        std::shuffle(equalyChancedVector.begin(), equalyChancedVector.end(), *gen);
 
         for (auto obj : equalyChancedVector)
         {
@@ -536,7 +537,7 @@ void PoolGroup<Pool>::ReSpawn1Object(MapPersistentState& /*mapState*/, PoolObjec
 ////////////////////////////////////////////////////////////
 // Methods of class PoolManager
 
-PoolManager::PoolManager(): max_pool_id(0)
+PoolManager::PoolManager() : max_pool_id(0)
 {
 }
 

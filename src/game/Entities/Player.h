@@ -1034,9 +1034,6 @@ class Player : public Unit
         uint32 GetTotalPlayedTime() { return m_Played_time[PLAYED_TIME_TOTAL]; }
         uint32 GetLevelPlayedTime() { return m_Played_time[PLAYED_TIME_LEVEL]; }
 
-        void ResetTimeSync();
-        void SendTimeSync();
-
         Player* GetSpellModOwner() const override { return const_cast<Player*>(this); }
 
         void SetDeathState(DeathState s) override;          // overwrite Unit::SetDeathState
@@ -1775,7 +1772,6 @@ class Player : public Unit
         void SetCanFly(bool enable) override;
         void SetFeatherFall(bool enable) override;
         void SetHover(bool enable) override;
-        void SetRoot(bool enable) override;
         void SetWaterWalk(bool enable) override;
 
         void JoinedChannel(Channel* c);

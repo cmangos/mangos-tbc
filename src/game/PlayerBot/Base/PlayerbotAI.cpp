@@ -87,14 +87,13 @@ class PlayerbotChatHandler : protected ChatHandler
 };
 
 PlayerbotAI::PlayerbotAI(PlayerbotMgr* const mgr, Player* const bot) :
-    m_mgr(mgr), m_bot(bot), m_classAI(0), m_ignoreAIUpdatesUntilTime(CurrentTime()),
+    m_AutoEquipToggle(false), m_mgr(mgr), m_bot(bot), m_classAI(0), m_ignoreAIUpdatesUntilTime(CurrentTime()),
     m_combatOrder(ORDERS_NONE), m_ScenarioType(SCENARIO_PVE),
     m_CurrentlyCastingSpellId(0), m_CraftSpellId(0), m_spellIdCommand(0),
     m_targetGuidCommand(ObjectGuid()),
     m_taxiMaster(ObjectGuid()),
-    m_AutoEquipToggle(false),
-    m_bDebugCommandChat(false),
-    m_ignoreNeutralizeEffect(false)
+    m_ignoreNeutralizeEffect(false),
+    m_bDebugCommandChat(false)
 {
     // set bot state
     m_botState = BOTSTATE_LOADING;

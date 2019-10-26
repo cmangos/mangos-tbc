@@ -114,7 +114,7 @@ struct npc_dashel_stonefistAI : public ScriptedAI
         m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
     }
 
-    void DamageTaken(Unit* doneBy, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*doneBy*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         if (damage > m_creature->GetHealth() || ((m_creature->GetHealth() - damage) * 100 / m_creature->GetMaxHealth() < 15))
         {
@@ -135,7 +135,7 @@ struct npc_dashel_stonefistAI : public ScriptedAI
     {
         if (m_uiStartEventTimer)
         {
-            if (m_uiStartEventTimer < uiDiff)
+            if (m_uiStartEventTimer <= uiDiff)
             {
                 if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 {
@@ -156,7 +156,7 @@ struct npc_dashel_stonefistAI : public ScriptedAI
 
         if (m_uiEndEventTimer)
         {
-            if (m_uiEndEventTimer < uiDiff)
+            if (m_uiEndEventTimer <= uiDiff)
             {
                 DoScriptText(SAY_STONEFIST_3, m_creature);
 

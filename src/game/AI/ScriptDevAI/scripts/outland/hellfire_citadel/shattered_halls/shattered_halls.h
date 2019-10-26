@@ -7,12 +7,13 @@
 
 enum
 {
-    MAX_ENCOUNTER               = 4,
+    MAX_ENCOUNTER               = 5,
 
     TYPE_NETHEKURSE             = 0,
     TYPE_OMROGG                 = 1,
     TYPE_BLADEFIST              = 2,                        // Note: if players skip Omrogg and go straight to Karagth then Omrogg comes to aid Karagth
     TYPE_EXECUTION              = 3,
+    TYPE_GAUNTLET               = 4,
 
     NPC_NETHEKURSE              = 16807,
     NPC_KARGATH_BLADEFIST       = 16808,
@@ -30,6 +31,18 @@ enum
 
     GO_NETHEKURSE_DOOR          = 182540,
     GO_NETHEKURSE_ENTER_DOOR    = 182539,
+
+    // Gauntlet
+    NPC_GAUNTLET_OF_FIRE        = 17692,
+    NPC_ARCHER                  = 17427,
+    NPC_ZEALOT                  = 17462,
+    NPC_SCOUT                   = 17693,
+    NPC_BLOOD_GUARD             = 17461,
+    NPC_PORUNG                  = 20923,
+
+    GO_BLAZE                    = 181915,
+
+    SPELL_FLAMES                = 30979,
 
     SPELL_KARGATH_EXECUTIONER_1 = 39288,                    // 55 min - first prisoner - officer
     SPELL_KARGATH_EXECUTIONER_2 = 39289,                    // 10 min - second prisoner
@@ -83,17 +96,29 @@ class instance_shattered_halls : public ScriptedInstance
 
         bool CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const override;
 
-        void Update(uint32 uiDiff) override;
+        void Update(const uint32 diff) override;
 
     private:
         void DoCastGroupDebuff(uint32 uiSpellId);
+        void FailGauntlet(Creature* gauntlet);
+        void StopGauntlet(Creature* gauntlet);
+        void EndGauntlet(Creature* gauntlet);
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
 
+        ObjectGuid m_guidGauntletNPC;
+
         uint32 m_uiExecutionTimer;
         uint32 m_uiTeam;
         uint8 m_uiExecutionStage;
+        uint8 m_uiPrisonersLeft;
+
+        std::vector<ObjectGuid> m_vGauntletPermanentGuids;
+        std::vector<ObjectGuid> m_vGauntletTemporaryGuids;
+        std::vector<ObjectGuid> m_vGauntletBossGuids;
+
+        std::vector<std::pair<ObjectGuid, uint32>> m_vBlazeTimers;
 };
 
 #endif

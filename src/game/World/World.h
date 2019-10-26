@@ -28,6 +28,7 @@
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
 
+#include <atomic>
 #include <set>
 #include <list>
 #include <deque>
@@ -185,6 +186,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_FOGOFWAR_STEALTH,
     CONFIG_UINT32_FOGOFWAR_HEALTH,
     CONFIG_UINT32_FOGOFWAR_STATS,
+    CONFIG_UINT32_CREATURE_PICKPOCKET_RESTOCK_DELAY,
     CONFIG_UINT32_AUTOBROADCAST_TIMER,
     CONFIG_UINT32_VALUE_COUNT
 };
@@ -257,7 +259,6 @@ enum eConfigFloatValues
     CONFIG_FLOAT_RATE_LOYALTY,
     CONFIG_FLOAT_RATE_CORPSE_DECAY_LOOTED,
     CONFIG_FLOAT_RATE_INSTANCE_RESET_TIME,
-    CONFIG_FLOAT_RATE_TARGET_POS_RECALCULATION_RANGE,
     CONFIG_FLOAT_RATE_DURABILITY_LOSS_DAMAGE,
     CONFIG_FLOAT_RATE_DURABILITY_LOSS_PARRY,
     CONFIG_FLOAT_RATE_DURABILITY_LOSS_ABSORB,
@@ -653,7 +654,7 @@ class World
         bool configNoReload(bool reload, eConfigFloatValues index, char const* fieldname, float defvalue) const;
         bool configNoReload(bool reload, eConfigBoolValues index, char const* fieldname, bool defvalue) const;
 
-        static volatile bool m_stopEvent;
+        static std::atomic<bool> m_stopEvent;
         static uint8 m_ExitCode;
         uint32 m_ShutdownTimer;
         uint32 m_ShutdownMask;

@@ -995,6 +995,22 @@ bool DynamicObject::IsFriend(Unit const* unit) const
     return false;
 }
 
+/////////////////////////////////////////////////
+/// Group: Extension for creatures, player-controlled defaults to unit, creatures check based on friendliness
+///
+/// @note Relations API Tier 2
+///
+/// No client counterpart, since client only deals with player-controlled entities
+/////////////////////////////////////////////////
+bool Creature::IsInGroup(Unit const* other, bool party/* = false*/, bool ignoreCharms/* = false*/) const
+{
+    if (this->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) || other->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+        return Unit::IsInGroup(other, party, ignoreCharms);
+
+    // Faction-based based on research
+    return this->IsFriend(other);
+}
+
 /*##########################
 ########            ########
 ########   TIER 3   ########
@@ -1148,12 +1164,24 @@ bool Unit::CanAssistSpell(Unit const* target, SpellEntry const* spellInfo) const
 /// @note Relations API Tier 3
 ///
 /// This function is not intented to have client-side counterpart by original design.
-/// It utilizes CanAttack with a small exclusion for Feign-Death targets and a hostile-only check.
 /// Typically used in AIs in MoveInLineOfSight
 /////////////////////////////////////////////////
 bool Unit::CanAttackOnSight(Unit const* target) const
 {
-    return CanAttack(target) && !target->IsFeigningDeathSuccessfully() && target->GetEvade() != EVADE_HOME && IsEnemy(target);
+    // Do not aggro on a unit which is moving home at the moment
+    if (target->GetEvade() == EVADE_HOME)
+        return false;
+
+    // Do not aggro while a successful feign death is active
+    if (target->IsFeigningDeathSuccessfully())
+        return false;
+
+    // Pets in disabled state (e.g. when player is mounted) do not draw aggro on sight
+    // TODO: Fix for temporary pets and charms
+    if (target->GetTypeId() == TYPEID_UNIT && static_cast<Creature const*>(target)->IsPet() && static_cast<Pet const*>(target)->GetModeFlags() & PET_MODE_DISABLE_ACTIONS)
+        return false;
+
+    return (CanAttack(target) && IsEnemy(target));
 }
 
 /////////////////////////////////////////////////

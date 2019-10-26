@@ -23,7 +23,6 @@
 
 #include <boost/asio.hpp>
 
-#include <random>
 #include <chrono>
 #include <cstdarg>
 
@@ -34,6 +33,11 @@ std::mt19937* initRand()
 }
 
 static MaNGOS::thread_local_ptr<std::mt19937> mtRand(&initRand);
+
+std::mt19937* GetRandomGenerator()
+{
+    return mtRand.get();
+}
 
 uint32 WorldTimer::m_iTime = 0;
 uint32 WorldTimer::m_iPrevTime = 0;
@@ -55,8 +59,9 @@ uint32 WorldTimer::tick()
 
 uint32 WorldTimer::getMSTime()
 {
-    static auto const start_time = std::chrono::system_clock::now();
-    return static_cast<uint32>((std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()) - std::chrono::duration_cast<std::chrono::milliseconds>(start_time.time_since_epoch())).count());
+    using namespace std::chrono;
+
+    return static_cast<uint32>((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - duration_cast<milliseconds>(GetApplicationStartTime().time_since_epoch())).count());
 }
 
 //////////////////////////////////////////////////////////////////////////

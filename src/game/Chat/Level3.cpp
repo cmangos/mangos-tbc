@@ -1357,7 +1357,7 @@ bool ChatHandler::HandleUnLearnCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleCooldownListCommand(char* args)
+bool ChatHandler::HandleCooldownListCommand(char* /*args*/)
 {
     Unit* target = getSelectedUnit();
     if (!target)
@@ -3569,7 +3569,7 @@ bool ChatHandler::HandleGetDistanceCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleGetLosCommand(char* args)
+bool ChatHandler::HandleGetLosCommand(char* /*args*/)
 {
     Player* player = m_session->GetPlayer();
     Unit* target = getSelectedUnit();
@@ -5928,11 +5928,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
             }
             case FOLLOW_MOTION_TYPE:
             {
-                Unit* target;
-                if (unit->GetTypeId() == TYPEID_PLAYER)
-                    target = static_cast<FollowMovementGenerator<Player> const*>(*itr)->GetCurrentTarget();
-                else
-                    target = static_cast<FollowMovementGenerator<Creature> const*>(*itr)->GetCurrentTarget();
+                Unit* target = static_cast<FollowMovementGenerator const*>(*itr)->GetCurrentTarget();
 
                 if (!target)
                     SendSysMessage(LANG_MOVEGENS_FOLLOW_NULL);
@@ -5967,7 +5963,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
     return true;
 }
 
-bool ChatHandler::HandleMovespeedShowCommand(char* args)
+bool ChatHandler::HandleMovespeedShowCommand(char* /*args*/)
 {
     Unit* unit = getSelectedUnit();
     if (!unit)
@@ -6820,7 +6816,7 @@ bool ChatHandler::HandleArenaSeasonRewardsCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleArenaDataReset(char* args)
+bool ChatHandler::HandleArenaDataReset(char* /*args*/)
 {
     PSendSysMessage("Resetting all arena data.");
     sBattleGroundMgr.ResetAllArenaData();
@@ -7008,7 +7004,7 @@ bool ChatHandler::HandleMmapTestHeight(char* args)
     return true;
 }
 
-bool ChatHandler::HandleServerResetAllRaidCommand(char* args)
+bool ChatHandler::HandleServerResetAllRaidCommand(char* /*args*/)
 {
     PSendSysMessage("Global raid instances reset, all players in raid instances will be teleported to homebind!");
     sMapPersistentStateMgr.GetScheduler().ResetAllRaid();

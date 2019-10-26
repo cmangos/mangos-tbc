@@ -298,7 +298,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recv_data*/)
         if ((GetPlayer()->GetPositionZ() < height + 0.1f) && !(GetPlayer()->IsInWater()))
             GetPlayer()->SetStandState(UNIT_STAND_STATE_SIT);
 
-        GetPlayer()->SetRoot(true);
+        GetPlayer()->SendMoveRoot(true);
         GetPlayer()->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
     }
 
@@ -327,7 +327,7 @@ void WorldSession::HandleLogoutCancelOpcode(WorldPacket& /*recv_data*/)
     if (GetPlayer()->CanFreeMove())
     {
         //!we can move again
-        GetPlayer()->SetRoot(false);
+        GetPlayer()->SendMoveRoot(false);
 
         //! Stand Up
         GetPlayer()->SetStandState(UNIT_STAND_STATE_STAND);
@@ -889,8 +889,19 @@ void WorldSession::HandleFeatherFallAck(WorldPacket& recv_data)
 
 void WorldSession::HandleMoveUnRootAck(WorldPacket& recv_data)
 {
+    DEBUG_LOG("WORLD: Received opcode CMSG_FORCE_MOVE_UNROOT_ACK");
+    // Pre-Wrath: broadcast unroot
+    ObjectGuid guid;
+    recv_data >> guid;
     // no used
     recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
+
+    Unit* mover = _player->GetMover();
+    if (mover && mover->GetObjectGuid() == guid && mover->m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT))
+    {
+        mover->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
+        mover->SendMoveRoot(false, true);
+    }
     /*
         ObjectGuid guid;
         recv_data >> guid;
@@ -913,8 +924,20 @@ void WorldSession::HandleMoveUnRootAck(WorldPacket& recv_data)
 
 void WorldSession::HandleMoveRootAck(WorldPacket& recv_data)
 {
+    DEBUG_LOG("WORLD: Received opcode CMSG_FORCE_MOVE_ROOT_ACK");
+    // Pre-Wrath: broadcast root
+    ObjectGuid guid;
+    recv_data >> guid;
     // no used
     recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
+
+    Unit* mover = _player->GetMover();
+    if (mover && mover->GetObjectGuid() == guid && !mover->m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT))
+    {
+        mover->m_movementInfo.RemoveMovementFlag(movementFlagsMask);
+        mover->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
+        mover->SendMoveRoot(true, true);
+    }
     /*
         ObjectGuid guid;
         recv_data >> guid;
@@ -1306,24 +1329,6 @@ void WorldSession::HandleSetTitleOpcode(WorldPacket& recv_data)
         title = 0;
 
     GetPlayer()->SetUInt32Value(PLAYER_CHOSEN_TITLE, title);
-}
-
-void WorldSession::HandleTimeSyncResp(WorldPacket& recv_data)
-{
-    uint32 counter, clientTicks;
-    recv_data >> counter >> clientTicks;
-
-    DEBUG_LOG("WORLD: Received opcode CMSG_TIME_SYNC_RESP: counter %u, client ticks %u, time since last sync %u", counter, clientTicks, clientTicks - _player->m_timeSyncClient);
-
-    if (counter != _player->m_timeSyncCounter - 1)
-        DEBUG_LOG(" WORLD: Opcode CMSG_TIME_SYNC_RESP -- Wrong time sync counter from %s (cheater?)", _player->GetGuidStr().c_str());
-
-    uint32 ourTicks = clientTicks + (WorldTimer::getMSTime() - _player->m_timeSyncServer);
-
-    // diff should be small
-    DEBUG_LOG(" WORLD: Opcode CMSG_TIME_SYNC_RESP -- Our ticks: %u, diff %u, latency %u", ourTicks, ourTicks - clientTicks, GetLatency());
-
-    _player->m_timeSyncClient = clientTicks;
 }
 
 void WorldSession::HandleResetInstancesOpcode(WorldPacket& /*recv_data*/)

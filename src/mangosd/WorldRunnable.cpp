@@ -71,8 +71,11 @@ void WorldRunnable::run()
             prevSleepTime = 0;
 
 #ifdef _WIN32
-        if (m_ServiceStatus == 0) World::StopNow(SHUTDOWN_EXIT_CODE);
-        while (m_ServiceStatus == 2) Sleep(1000);
+        if (m_ServiceStatus == 0)
+            World::StopNow(SHUTDOWN_EXIT_CODE);
+
+        while (m_ServiceStatus == 2)
+            Sleep(1000);
 #endif
     }
 

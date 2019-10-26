@@ -52,6 +52,17 @@ enum InstanceConditionIDs                                   // Suggested values 
 
     INSTANCE_CONDITION_ID_SOCRETHAR_GOSSIP  = 8215,
 
+    // Gossip conditions for Hyjal Summit
+    INSTANCE_CONDITION_ID_WINTERCHILL_STARTABLE = 17767,
+    INSTANCE_CONDITION_ID_ANETHERON_STARTABLE = 17808,
+    INSTANCE_CONDITION_ID_ANETHERON_DONE = 17772,
+    INSTANCE_CONDITION_ID_KAZROGAL_STARTABLE = 17888,
+    INSTANCE_CONDITION_ID_AZGALOR_STARTABLE = 17842,
+    INSTANCE_CONDITION_ID_AZGALOR_DONE = 17852,
+    INSTANCE_CONDITION_ID_ARCHIMONDE_STARTABLE = 17968,
+    INSTANCE_CONDITION_ID_ARCHIMONDE_DONE = 17948,
+    INSTANCE_CONDITION_ID_WAVES_INPROGRESS = 17895,
+
     INSTANCE_CONDITION_ID_SAAT_BEACON               = 20201,
 
     INSTANCE_CONDITION_ID_BASHIR_FLYING             = 87361,
@@ -79,7 +90,7 @@ class InstanceData
         void SaveToDB() const;
 
         // Called every map update
-        virtual void Update(uint32 /*diff*/) {}
+        virtual void Update(const uint32 /*diff*/) {}
 
         // This is to prevent players from entering during boss encounters.
         virtual bool IsEncounterInProgress() const { return false; };
@@ -151,8 +162,8 @@ class InstanceData
             ++count;
         }
 
-        virtual void ShowChatCommands(ChatHandler* handler) {}
-        virtual void ExecuteChatCommand(ChatHandler* handler, char* args) {}
+        virtual void ShowChatCommands(ChatHandler* /*handler*/) {}
+        virtual void ExecuteChatCommand(ChatHandler* /*handler*/, char* /*args*/) {}
 };
 
 #endif

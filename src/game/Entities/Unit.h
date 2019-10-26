@@ -423,12 +423,14 @@ enum UnitState
     UNIT_STAT_CHASE_MOVE      = 0x00004000,
     UNIT_STAT_FOLLOW          = 0x00008000,                 // FollowMovementGenerator active
     UNIT_STAT_FOLLOW_MOVE     = 0x00010000,
-    UNIT_STAT_FLEEING         = 0x00020000,                 // FleeMovementGenerator/TimedFleeingMovementGenerator active/onstack
+    UNIT_STAT_FLEEING         = 0x00020000,                 // FleeMovementGenerator/TimedFleeingMovementGenerator active
     UNIT_STAT_FLEEING_MOVE    = 0x00040000,
     UNIT_STAT_SEEKING_ASSISTANCE = 0x00080000,
-    UNIT_STAT_DONT_TURN       = 0x00100000,                 // Creature will not turn and acquire new target
-    UNIT_STAT_CHANNELING      = 0x00200000,
+    UNIT_STAT_CHARGING        = 0x00100000,                 // Creature will not turn and acquire new target
+    UNIT_STAT_PANIC           = 0x00200000,                 // TimedFleeingMovementGenerator active
     // More room for other MMGens
+
+    UNIT_STAT_CHANNELING      = 0x00800000,
 
     // High-Level states (usually only with Creatures)
     UNIT_STAT_NO_COMBAT_MOVEMENT    = 0x01000000,           // Combat Movement for MoveChase stopped
@@ -1554,7 +1556,7 @@ class Unit : public WorldObject
         bool IsFogOfWarVisibleHealth(Unit const* other) const;
         bool IsFogOfWarVisibleStats(Unit const* other) const;
 
-        bool IsInGroup(Unit const* other, bool party = false, bool ignoreCharms = false) const;
+        virtual bool IsInGroup(Unit const* other, bool party = false, bool ignoreCharms = false) const;
         inline bool IsInParty(Unit const* other, bool ignoreCharms = false) const { return IsInGroup(other, true, ignoreCharms); }
         bool IsInGuild(Unit const* other, bool ignoreCharms = false) const;
         bool IsInTeam(Unit const* other, bool ignoreCharms = true) const;
@@ -1636,7 +1638,7 @@ class Unit : public WorldObject
         SpellMissInfo SpellHitResult(Unit* pVictim, SpellEntry const* spell, uint8 effectMask, bool reflectable = false);
 
         bool CanDualWield() const { return m_canDualWield; }
-        void SetCanDualWield(bool value) { m_canDualWield = value; }
+        virtual void SetCanDualWield(bool value) { m_canDualWield = value; }
 
         // Unit Combat reactions API: Dodge/Parry/Block
         bool CanDodge() const { return m_canDodge; }
@@ -1651,7 +1653,7 @@ class Unit : public WorldObject
         void SetCanParry(const bool flag);
         void SetCanBlock(const bool flag);
 
-        bool CanReactInCombat() const { return (isAlive() && !IsIncapacitated() && !IsEvadingHome()); }
+        bool CanReactInCombat() const { return (isAlive() && !IsCrowdControlled() && !IsEvadingHome()); }
         bool CanDodgeInCombat() const;
         bool CanDodgeInCombat(const Unit* attacker) const;
         bool CanParryInCombat() const;
@@ -1876,13 +1878,13 @@ class Unit : public WorldObject
         bool CanInitiateAttack() const;
 
         void NearTeleportTo(float x, float y, float z, float orientation, bool casting = false);
+        // do not use - kept only for cinematics
         void MonsterMoveWithSpeed(float x, float y, float z, float speed, bool generatePath = false, bool forceDestination = false);
-        // recommend use MonsterMove/MonsterMoveWithSpeed for most case that correctly work with movegens
-        // if used additional args in ... part then floats must explicitly casted to double
+        
         void SendHeartBeat();
 
-        bool IsMoving() const { return m_movementInfo->HasMovementFlag(movementFlagsMask); }
-        bool IsMovingForward() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_MASK_MOVING_FORWARD); }
+        void SendMoveRoot(bool state, bool broadcastOnly = false);
+
         bool IsLevitating() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_LEVITATING); }
         bool IsWalking() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_WALK_MODE); }
         bool IsRooted() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT); }
@@ -1892,7 +1894,6 @@ class Unit : public WorldObject
         virtual void SetCanFly(bool /*enabled*/) {}
         virtual void SetFeatherFall(bool /*enabled*/) {}
         virtual void SetHover(bool /*enabled*/) {}
-        virtual void SetRoot(bool /*enabled*/) {}
         virtual void SetWaterWalk(bool /*enabled*/) {}
 
         void SetInFront(Unit const* target);
@@ -2292,12 +2293,12 @@ class Unit : public WorldObject
         SpellAuraProcResult HandleRemoveByDamageChanceProc(ProcExecutionData& data);
         SpellAuraProcResult HandleInvisibilityAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandlePeriodicAuraProc(ProcExecutionData& data);
-        SpellAuraProcResult HandleNULLProc(ProcExecutionData& data)
+        SpellAuraProcResult HandleNULLProc(ProcExecutionData& /*data*/)
         {
             // no proc handler for this aura type
             return SPELL_AURA_PROC_OK;
         }
-        SpellAuraProcResult HandleCantTrigger(ProcExecutionData& data)
+        SpellAuraProcResult HandleCantTrigger(ProcExecutionData& /*data*/)
         {
             // this aura type can't proc
             return SPELL_AURA_PROC_CANT_TRIGGER;
@@ -2348,21 +2349,23 @@ class Unit : public WorldObject
         void InterruptMoving(bool forceSendStop = false);
 
         ///----------Various crowd control methods-----------------
-        bool IsImmobilized() const { return hasUnitState(UNIT_STAT_ROOT | UNIT_STAT_STUNNED); }
-        void SetImmobilizedState(bool apply, bool stun = false);
+        inline bool IsCrowdControlled() const { return HasFlag(UNIT_FIELD_FLAGS, (UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING | UNIT_FLAG_STUNNED)); }
 
-        // These getters operate on unit flags set by IncapacitatedState and are meant for formal usage in conjunction with spell effects only
-        // For actual internal movement states use UnitState flags
-        // TODO: The UnitState thing needs to be rewriten at some point, this kind of duality is bad
-        bool IsFleeing() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING); }
-        bool IsConfused() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED); }
-        bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
-        bool IsIncapacitated() const { return (IsFleeing() || IsConfused() || IsStunned()); }
+        inline bool IsConfused() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED); }
+        void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
 
-        void SetFeared(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 time = 0);
-        void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT);
+        inline bool IsFleeing() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING); }
+        void SetFleeing(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 duration = 0);
+
+        inline bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
         void SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
-        void SetIncapacitatedState(bool apply, uint32 state = 0, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT, uint32 time = 0);
+
+        // Panic: AI reaction script, NPC flees (e.g. at low health)
+        inline bool IsInPanic() const { return hasUnitState(UNIT_STAT_PANIC); }
+        inline void SetInPanic(uint32 duration) { SetFleeing(true, GetObjectGuid(), 0, duration); }
+
+        inline bool IsImmobilizedState() const { return hasUnitState(UNIT_STAT_ROOT | UNIT_STAT_STUNNED); }
+        void SetImmobilizedState(bool apply, bool stun = false);
         ///----------End of crowd control methods----------
 
         bool IsFeigningDeath() const { return HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH); }
@@ -2448,7 +2451,6 @@ class Unit : public WorldObject
         bool CanEnterCombat() { return m_canEnterCombat && !IsEvadingHome(); }
         void SetCanEnterCombat(bool can) { m_canEnterCombat = can; }
 
-        void SetTurningOff(bool apply);
         virtual bool IsIgnoringRangedTargets() { return false; }
 
         float GetAttackDistance(Unit const* pl) const;

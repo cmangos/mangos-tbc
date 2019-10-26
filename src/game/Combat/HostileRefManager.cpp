@@ -47,7 +47,7 @@ void HostileRefManager::threatAssist(Unit* victim, float threat, SpellEntry cons
     while (ref)
     {
         Unit* owner = ref->getSource()->getOwner();
-        if (!owner->IsIncapacitated() && owner != victim && owner->CanAttack(victim))
+        if (!owner->IsCrowdControlled() && owner != victim && owner->CanAttack(victim))
             validRefs.push_back(ref);
         ref = ref->next();
     }
@@ -70,7 +70,7 @@ void HostileRefManager::addThreatPercent(int32 threatPercent)
     }
 }
 
-void HostileRefManager::threatTemporaryFade(Unit* victim, float threat, bool apply)
+void HostileRefManager::threatTemporaryFade(Unit* /*victim*/, float threat, bool apply)
 {
     HostileReference* ref = getFirst();
 

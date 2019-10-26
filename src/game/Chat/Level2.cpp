@@ -2093,7 +2093,7 @@ bool ChatHandler::HandleNpcUnFollowCommand(char* /*args*/)
         return false;
     }
 
-    FollowMovementGenerator<Creature> const* mgen = static_cast<FollowMovementGenerator<Creature> const*>(creatureMotion->top());
+    FollowMovementGenerator const* mgen = static_cast<FollowMovementGenerator const*>(creatureMotion->top());
 
     if (mgen->GetCurrentTarget() != player)
     {
@@ -2164,7 +2164,7 @@ bool ChatHandler::HandleNpcSetDeathStateCommand(char* args)
 }
 
 // set model of creature
-bool ChatHandler::HandleNpcShowLootCommand(char* args)
+bool ChatHandler::HandleNpcShowLootCommand(char* /*args*/)
 {
     Creature* creature = getSelectedCreature();
 

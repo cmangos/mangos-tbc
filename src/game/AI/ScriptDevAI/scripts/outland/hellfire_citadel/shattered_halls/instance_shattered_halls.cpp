@@ -27,7 +27,8 @@ EndScriptData */
 instance_shattered_halls::instance_shattered_halls(Map* pMap) : ScriptedInstance(pMap),
     m_uiExecutionTimer(55 * MINUTE * IN_MILLISECONDS),
     m_uiTeam(0),
-    m_uiExecutionStage(0)
+    m_uiExecutionStage(0),
+    m_uiPrisonersLeft(3)
 {
     Initialize();
 }
@@ -63,7 +64,9 @@ void instance_shattered_halls::OnObjectCreate(GameObject* pGo)
             if (m_auiEncounter[TYPE_NETHEKURSE] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
-
+        case GO_BLAZE:
+            m_vBlazeTimers.push_back({ pGo->GetObjectGuid(), 0 });
+            break;
         default:
             return;
     }
@@ -85,6 +88,21 @@ void instance_shattered_halls::OnCreatureCreate(Creature* pCreature)
         case NPC_SOLDIER_HORDE_3:
         case NPC_OFFICER_HORDE:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            break;
+        case NPC_ZEALOT:
+        case NPC_SCOUT:
+            if (pCreature->IsTemporarySummon())
+                m_vGauntletTemporaryGuids.push_back(pCreature->GetObjectGuid());
+            else
+                m_vGauntletPermanentGuids.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_BLOOD_GUARD:
+        case NPC_PORUNG:
+        case NPC_ARCHER:
+            m_vGauntletBossGuids.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_GAUNTLET_OF_FIRE:
+            m_guidGauntletNPC = pCreature->GetObjectGuid();
             break;
     }
 }
@@ -150,6 +168,25 @@ void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
                 }
             }
             break;
+        case TYPE_GAUNTLET:
+            switch (uiData)
+            {
+                case FAIL: // Called on wipe/players left/Boss Evade
+                    FailGauntlet(instance->GetCreature(m_guidGauntletNPC));
+                    break;
+                case DONE:  // Called on boss kill
+                    EndGauntlet(instance->GetCreature(m_guidGauntletNPC));
+                    break;
+                case SPECIAL: // Called on Boss Aggro
+                    StopGauntlet(instance->GetCreature(m_guidGauntletNPC));
+                    break;
+                default:
+                    break;
+            }
+
+            m_auiEncounter[uiType] = uiData;
+            break;
+
     }
 
     if (uiData == DONE)
@@ -225,7 +262,7 @@ bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* pPlayer,
         case INSTANCE_CONDITION_ID_HARD_MODE:               // One soldier alive
         case INSTANCE_CONDITION_ID_HARD_MODE_2:             // Two soldier alive
         case INSTANCE_CONDITION_ID_HARD_MODE_3:             // Three soldier alive
-            return uiInstanceConditionId == uint32(INSTANCE_CONDITION_ID_HARD_MODE_3 - m_uiExecutionStage);
+            return uiInstanceConditionId == uint32(m_uiPrisonersLeft);
     }
 
     script_error_log("instance_shattered_halls::CheckConditionCriteriaMeet called with unsupported Id %u. Called with param plr %s, src %s, condition source type %u",
@@ -235,6 +272,29 @@ bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* pPlayer,
 
 void instance_shattered_halls::Update(uint32 uiDiff)
 {
+    if (m_auiEncounter[TYPE_GAUNTLET] == IN_PROGRESS)
+    {
+        Creature* gauntlet = instance->GetCreature(m_guidGauntletNPC);
+        if (!gauntlet || !GetPlayerInMap(true))
+        {
+            SetData(TYPE_GAUNTLET, FAIL);
+        }
+        else
+        {
+            for (auto& blaze : m_vBlazeTimers)
+            {
+                if (blaze.second <= uiDiff)
+                {
+                    blaze.second = 2000;
+                    if (GameObject* blazeGo = instance->GetGameObject(blaze.first))
+                        gauntlet->CastSpell(nullptr, SPELL_FLAMES, TRIGGERED_NONE, nullptr, nullptr, blazeGo->GetObjectGuid());
+                }
+                else
+                    blaze.second -= uiDiff;
+            }
+        }
+    }
+
     if (m_auiEncounter[TYPE_EXECUTION] != IN_PROGRESS)
         return;
 
@@ -269,10 +329,47 @@ void instance_shattered_halls::Update(uint32 uiDiff)
                 m_uiExecutionTimer = 0;
                 break;
         }
+        --m_uiPrisonersLeft;
         ++m_uiExecutionStage;
     }
     else
         m_uiExecutionTimer -= uiDiff;
+}
+
+void instance_shattered_halls::FailGauntlet(Creature* gauntlet)
+{
+    // If success despawn all, else respawn permanents
+    for (ObjectGuid& guid : m_vGauntletPermanentGuids)
+        if (Creature* creature = instance->GetCreature(guid))
+            creature->Respawn();
+
+    for (ObjectGuid& guid : m_vGauntletTemporaryGuids)
+        if (Creature* creature = instance->GetCreature(guid))
+            creature->ForcedDespawn();
+
+    for (ObjectGuid& guid : m_vGauntletBossGuids)
+        if (Creature* boss = instance->GetCreature(guid))
+            boss->Respawn();
+
+    for (auto& blaze : m_vBlazeTimers) // despawn blaze GOs from flame arrows
+        if (GameObject* go = instance->GetGameObject(blaze.first))
+            go->AddObjectToRemoveList();
+
+    EndGauntlet(gauntlet);
+}
+
+void instance_shattered_halls::StopGauntlet(Creature* gauntlet)
+{
+    if (gauntlet)
+        gauntlet->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, gauntlet, gauntlet);
+}
+
+void instance_shattered_halls::EndGauntlet(Creature* gauntlet)
+{
+    if (gauntlet)
+        gauntlet->ForcedDespawn();
+
+    m_vGauntletTemporaryGuids.clear();
 }
 
 // Add debuff to all players in the instance
@@ -292,6 +389,445 @@ InstanceData* GetInstanceData_instance_shattered_halls(Map* pMap)
 {
     return new instance_shattered_halls(pMap);
 }
+
+enum {
+    NPC_SHATTERED_HAND_SCOUT  = 17693,
+    NPC_SHATTERED_HAND_ZEALOT = 17462,
+    NPC_SHATTERED_HAND_ARCHER = 17427,
+    NPC_SHATTERED_HAND_BG	  = 17461, // Porung is the heroic entry for this npc
+//	NPC_ARCHER_TARGET		  = 29097, // Might not need? 
+    NPC_GUARD_PORUNG		  = 20923, // not needed
+
+    SCOUT_AGRO_YELL		   = -1540051,
+    PORUNG_FORM_RANKS_YELL = -1540052,
+    PORUNG_READY_YELL	   = -1540053,
+    PORUNG_AIM_YELL		   = -1540054,
+    PORUNG_FIRE_YELL	   = -1540055,
+
+    DELAY_350_MILLI		= 350,
+    PORUNG_YELL_DELAY_1 = 4000,
+    PORUNG_YELL_DELAY_2 = 1200,
+    WAVE_TIMER			= 20000,
+    ARCHER_SHOOT_DELAY  = 15000,
+
+    SHOOT_FLAME_ARROW	= 30952
+};
+
+static float gauntletSpawnCoords[1][3] = 
+{
+    {409.848f, 315.385f, 1.921f}
+};
+
+static float scoutCoords[1][3] =
+{
+    {494.015f, 316.213f, 1.945f}
+};
+
+static float zealotSpawnCoords[3][3] =
+{
+    {519.107f, 273.546f, 1.916f}, // (waves)
+    {504.649f, 302.811f, 1.940f}, // L (first 8 zealots)
+    {506.683f, 329.961f, 2.069f}  // R (first 8 zealots)
+};
+
+static float zealotWaypoints[4][3] =
+{
+    {518.681f, 291.375f, 1.923f}, // 1
+    {504.559f, 315.952f, 1.942f}, // 2
+    {482.445f, 315.779f, 1.939f}, // 3
+    {352.104f, 315.725f, 3.139f}, // 4
+};
+
+static float firstWaveWaypoints[2][3] =
+{
+    {495.646f, 313.251f, 1.945f},
+    {497.516f, 319.176f, 1.945f}
+};
+
+static float zealotDestinations[8][3] =
+{
+    // First Row:
+    {362.577f, 311.449f, 1.918f}, // L
+    {362.592f, 320.969f, 1.918f}, // R
+    // Second Row:		  	 
+    {384.897f, 311.348f, 1.946f}, // L
+    {384.212f, 321.826f, 1.946f}, // R
+    // Third Row:		  	 
+    {422.212f, 310.864f, 1.946f}, // L
+    {419.034f, 319.279f, 1.940f}, // R
+    // Fourth Row:		  	 
+    {463.375f, 310.195f, 1.935f}, // L
+    {458.814f, 321.833f, 1.946f}  // R
+};
+
+/*
+Scout will run to the end of the hall and summon the gauntlet npc. 
+That npc will spawn have the scripting for the event. I Initially thought to just put 
+everything on the scout and have the scout go invisible after he runs down but that 
+puts the player in combat permanently and they should be able to get out of combat during 
+breaks.
+*/
+
+// Gauntlet of Fire scripting
+struct npc_Gauntlet_of_Fire : public ScriptedAI
+{
+    npc_Gauntlet_of_Fire(Creature* pCreature) : ScriptedAI(pCreature)	
+    {
+        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_gauntletStopped = false;
+        SetReactState(REACT_PASSIVE);
+        Reset(); 
+    }
+
+    bool m_bInitialWavesSpawned; // done spawning waves?
+    bool m_bPorungDoneYelling;	 // done yelling?
+    bool m_bZealotOneOrTwo;		 // delay is different whether spawning first or second zealot in wave
+    bool m_gauntletStopped;
+
+    Creature* m_porung;				   // normal or heroic this is him
+    std::list<Creature*> m_lSHArchers; // the two archers
+    ScriptedInstance* m_pInstance;	   // to set gauntlet in progress/not
+
+    uint8 m_uiNumInitialWaves;			 // counter for initial waves spawning
+    uint8 m_uiPorungYellNumber;			 // keeps track of porung as he yells
+    uint32 m_uiInitialWaves_Delay;		 // time between initial waves spawn
+    uint32 m_uiWaveTimer;				 // timer for periodic wave spawns
+    uint32 m_uiPorungYellDelay;			 // delay between READY, AIM, FIRE
+    uint32 m_uiShootFlamingArrowTimer_1; // timer for fire arrow ability (left archer)
+    uint32 m_uiShootFlamingArrowTimer_2; // (right archer)
+    
+    void Reset() override
+    {
+        m_uiNumInitialWaves    = 0;
+        m_uiPorungYellNumber   = 0;
+        m_uiInitialWaves_Delay = 0;
+        m_uiWaveTimer          = WAVE_TIMER / 2; // let the first wave spawn faster than concurrent ones
+        m_uiPorungYellDelay    = 0;
+        m_uiShootFlamingArrowTimer_1 = ARCHER_SHOOT_DELAY;
+        m_uiShootFlamingArrowTimer_2 = ARCHER_SHOOT_DELAY;
+        m_bInitialWavesSpawned = false;
+        m_bPorungDoneYelling   = false;
+        m_bZealotOneOrTwo      = false;
+        m_porung               = nullptr;
+        m_lSHArchers.clear();
+    }
+
+    void DoInitialGets()
+    {
+        m_porung = GetClosestCreatureWithEntry(m_creature, m_creature->GetMap()->IsRegularDifficulty() ? NPC_SHATTERED_HAND_BG : NPC_GUARD_PORUNG, 150.0f);
+        GetCreatureListWithEntryInGrid(m_lSHArchers, m_creature, NPC_SHATTERED_HAND_ARCHER, 150.0f);
+    }
+
+    void DoSummonInitialWave()
+    {
+        if (Creature* pAdd = m_creature->SummonCreature(NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[1][0], zealotSpawnCoords[1][1], zealotSpawnCoords[1][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true))
+        {
+            pAdd->GetMotionMaster()->MovePoint(100 + m_uiNumInitialWaves, firstWaveWaypoints[0][0], firstWaveWaypoints[0][1], firstWaveWaypoints[0][2]);
+        }
+        if (Creature* pAdd = m_creature->SummonCreature(NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[2][0], zealotSpawnCoords[2][1], zealotSpawnCoords[2][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true))
+        {
+            pAdd->GetMotionMaster()->MovePoint(200 + m_uiNumInitialWaves, firstWaveWaypoints[1][0], firstWaveWaypoints[1][1], firstWaveWaypoints[1][2]);
+        }
+    }
+
+    void DoSummonSHZealot()
+    {
+        if (Creature* pAdd = m_creature->SummonCreature(NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[0][0], zealotSpawnCoords[0][1], zealotSpawnCoords[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true))
+        {
+            pAdd->GetMotionMaster()->MovePoint(0, zealotWaypoints[0][0], zealotWaypoints[0][1], zealotWaypoints[0][2]);
+        }
+    }
+
+    void DoBeginArcherAttack(bool leftOrRight)
+    {
+        // Arrow boundaries:
+        //				 x		 y		z
+        // Top Left:  481.519 323.895 1.945
+        // Top Right: 480.630 308.647 1.942
+        // Bot Left:  362.607 323.948 1.918
+        // Bot Right: 360.884 308.777 1.918
+        // This should probably also try to only shoot arrows that will land within
+        // some range of the players (videos from back when seem to show that behavior)
+        // but I'm not sure how best to implement that and this works fine for now
+
+        std::list<Creature*>::iterator itr;
+        if (leftOrRight) // left one shoot
+            itr = m_lSHArchers.begin();
+        else // right one shoot
+        {
+            itr = m_lSHArchers.begin();
+            itr++;
+        }
+
+        if ((*itr))
+        {
+            float xCoord = frand(361.7455f, 481.0745f);
+            float yCoord = frand(308.7120f, 323.9215f);
+            float zCoord = 1.93075f;
+
+            //Creature* pAdd = nullptr;
+            //if (pAdd = m_creature->SummonCreature(NPC_ARCHER_TARGET, xCoord, yCoord, zCoord, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 20000))
+            //{
+                //(*itr)->CastSpell(pAdd, SHOOT_FLAME_ARROW, true);
+            (*itr)->CastSpell(xCoord, yCoord, zCoord, SHOOT_FLAME_ARROW, TRIGGERED_NONE);
+            //}
+        }
+    }
+
+    void JustSummoned(Creature* pSummoned) override
+    {
+        if (pSummoned->GetEntry() == NPC_SHATTERED_HAND_ZEALOT)
+        {
+            pSummoned->HandleEmoteState(EMOTE_STATE_READY1H);
+        }
+    }
+
+    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiData) override
+    {
+        if (pSummoned->GetEntry() == NPC_SHATTERED_HAND_ZEALOT && uiMotionType == POINT_MOTION_TYPE) // sanity check
+        {
+            switch (uiData)
+            {
+                // Below are for the waves
+                case 0: 
+                    pSummoned->GetMotionMaster()->MovePoint(1, zealotWaypoints[1][0], zealotWaypoints[1][1], zealotWaypoints[1][2]);
+                    break;
+                case 1:
+                    pSummoned->GetMotionMaster()->MovePoint(2, zealotWaypoints[2][0], zealotWaypoints[2][1], zealotWaypoints[2][2]);
+                    break;
+                case 2:
+                    pSummoned->GetMotionMaster()->MovePoint(3, zealotWaypoints[3][0], zealotWaypoints[3][1], zealotWaypoints[3][2]);
+                    break;
+                // Rest are the initial spawns
+                // Left
+                case 100:
+                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[0][0], zealotDestinations[0][1], zealotDestinations[0][2]);
+                    break;
+                case 101:
+                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[2][0], zealotDestinations[2][1], zealotDestinations[2][2]);
+                    break;
+                case 102:
+                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[4][0], zealotDestinations[4][1], zealotDestinations[4][2]);
+                    break;
+                case 103:
+                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[6][0], zealotDestinations[6][1], zealotDestinations[6][2]);
+                    break;
+                // Right
+                case 200:
+                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[1][0], zealotDestinations[1][1], zealotDestinations[1][2]);
+                    break;
+                case 201:
+                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[3][0], zealotDestinations[3][1], zealotDestinations[3][2]);
+                    break;
+                case 202:
+                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[5][0], zealotDestinations[5][1], zealotDestinations[5][2]);
+                    break;
+                case 203:
+                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[7][0], zealotDestinations[7][1], zealotDestinations[7][2]);
+                    break;
+                case 98: // turn so not facing at an awkward angle
+                    pSummoned->SetFacingTo(2.8f);
+                    pSummoned->GetMotionMaster()->MoveIdle();
+                    break;
+                case 99:
+                    pSummoned->SetFacingTo(-2.8f);
+                    pSummoned->GetMotionMaster()->MoveIdle();
+                    break;
+                default:
+                    pSummoned->GetMotionMaster()->MoveIdle();
+                    break;
+            }
+        }        
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
+            m_gauntletStopped = true;
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (m_gauntletStopped)
+            return;
+
+        if (m_bInitialWavesSpawned)
+        {
+            if (m_bPorungDoneYelling)
+            {
+                if (m_uiWaveTimer < uiDiff) // Periodic waves
+                {
+                    if (m_bZealotOneOrTwo) // second zealot, long delay
+                    {
+                        DoSummonSHZealot();
+                        m_uiWaveTimer = WAVE_TIMER;
+                        m_bZealotOneOrTwo = false;
+                    }
+                    else // first zealot, short delay
+                    {
+                        DoSummonSHZealot();
+                        m_uiWaveTimer = DELAY_350_MILLI;
+                        m_bZealotOneOrTwo = true;
+                    }
+                }
+                else
+                    m_uiWaveTimer -= uiDiff;
+
+                if (m_uiShootFlamingArrowTimer_1 < uiDiff) // Left Archer
+                {
+                    DoBeginArcherAttack(true);
+                    m_uiShootFlamingArrowTimer_1 = ARCHER_SHOOT_DELAY + urand(0, 2000);
+                }
+                else
+                    m_uiShootFlamingArrowTimer_1 -= uiDiff;
+
+                if (m_uiShootFlamingArrowTimer_2 < uiDiff) // Right Archer
+                {
+                    DoBeginArcherAttack(false);
+                    m_uiShootFlamingArrowTimer_2 = ARCHER_SHOOT_DELAY + urand(0, 2000);
+                }
+                else
+                    m_uiShootFlamingArrowTimer_2 -= uiDiff;
+            }
+            else // Not done yelling
+            {
+                if (m_uiPorungYellDelay < uiDiff)
+                {
+                    switch (m_uiPorungYellNumber)
+                    {
+                        case 0:
+                            DoScriptText(PORUNG_FORM_RANKS_YELL, m_porung);
+                            m_uiPorungYellDelay = PORUNG_YELL_DELAY_1;
+                            m_uiPorungYellNumber += 1;
+                            break;
+                        case 1:
+                            DoScriptText(PORUNG_READY_YELL, m_porung);
+                            DoBeginArcherAttack(true);
+                            DoBeginArcherAttack(false);
+                            m_uiPorungYellDelay = PORUNG_YELL_DELAY_2;
+                            m_uiPorungYellNumber += 1;
+                            break;
+                        case 2:
+                            DoScriptText(PORUNG_AIM_YELL, m_porung);
+                            m_uiPorungYellDelay = PORUNG_YELL_DELAY_2;
+                            m_uiPorungYellNumber += 1;
+                            break;
+                        case 3:
+                            DoScriptText(PORUNG_FIRE_YELL, m_porung);
+                            m_bPorungDoneYelling = true;
+                            break;
+                    }
+                }
+                else
+                    m_uiPorungYellDelay -= uiDiff;
+            }
+        }
+        else // not done spawning first waves
+        {
+            if (m_uiInitialWaves_Delay < uiDiff)
+            {
+                switch (m_uiNumInitialWaves)
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                        DoSummonInitialWave();
+                        m_uiNumInitialWaves++;
+                        m_uiInitialWaves_Delay = DELAY_350_MILLI;
+                        break;
+                    case 3:
+                        DoSummonInitialWave();
+                        m_bInitialWavesSpawned = true;
+                        break;
+                }
+            }
+            else
+                m_uiInitialWaves_Delay -= uiDiff;
+        }
+    }
+};
+
+UnitAI* GetAI_npc_Gauntlet_of_Fire(Creature* pCreature)
+{
+    return new npc_Gauntlet_of_Fire(pCreature);
+}
+
+// Scout scripting
+struct npc_Shattered_Hand_Scout : public ScriptedAI
+{
+    npc_Shattered_Hand_Scout(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    bool m_bRunning;
+
+    void Reset() override
+    {
+        m_bRunning = false;
+    }
+
+    void Aggro(Unit* /*pWho*/) override {}
+
+    void MoveInLineOfSight(Unit* pWho) override
+    {
+        if (pWho->GetTypeId() == TYPEID_PLAYER && pWho->GetDistance(m_creature) <= 40.f)
+            if (!m_bRunning)
+                DoStartRunning();
+    }
+
+    void DoStartRunning()
+    {
+        m_bRunning = true;
+        m_creature->SetWalk(false);
+        m_creature->AI()->SetCombatMovement(false);
+        m_creature->GetMotionMaster()->MovePoint(0, scoutCoords[0][0], scoutCoords[0][1], scoutCoords[0][2]);
+        DoScriptText(SCOUT_AGRO_YELL, m_creature);
+    }
+
+    void DoZealotsEmoteReady()
+    {
+        std::list<Creature*> zealots;
+        GetCreatureListWithEntryInGrid(zealots, m_creature, NPC_SHATTERED_HAND_ZEALOT, 20.0f);
+
+        for (std::list<Creature*>::iterator itr = zealots.begin(); itr != zealots.end(); ++itr)
+        {
+            (*itr)->HandleEmoteState(EMOTE_STATE_READY1H);
+        }
+    }
+
+    void MovementInform(uint32 uiMovementType, uint32 uiData) override
+    {
+        if (uiMovementType == POINT_MOTION_TYPE && m_creature->isAlive())
+        {
+            switch (uiData)
+            {
+                case 0:
+                    DoZealotsEmoteReady();
+
+                    if (Creature* gauntlet = m_creature->SummonCreature(NPC_GAUNTLET_OF_FIRE, gauntletSpawnCoords[0][0], gauntletSpawnCoords[0][1], gauntletSpawnCoords[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 600000))
+                    {
+                        if (npc_Gauntlet_of_Fire* pGauntletAI = dynamic_cast<npc_Gauntlet_of_Fire*>(gauntlet->AI()))
+                        {
+                            pGauntletAI->DoInitialGets();
+                            m_creature->GetMap()->GetInstanceData()->SetData(TYPE_GAUNTLET, IN_PROGRESS);
+                        }
+                    }
+
+                    m_creature->ForcedDespawn();
+                    break;
+            }
+        }
+    }
+
+    void UpdateAI(const uint32 /*uiDiff*/) override
+    {
+        return;
+    }
+};
+
+UnitAI* GetAI_npc_Shattered_Hand_Scout(Creature* pCreature)
+{
+    return new npc_Shattered_Hand_Scout(pCreature);
+}
+
 
 bool AreaTrigger_at_shattered_halls(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
 {
@@ -328,4 +864,15 @@ void AddSC_instance_shattered_halls()
     pNewScript->Name = "at_shattered_halls";
     pNewScript->pAreaTrigger = &AreaTrigger_at_shattered_halls;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_gauntlet_of_fire";
+    pNewScript->GetAI = &GetAI_npc_Gauntlet_of_Fire;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_shattered_hand_scout";
+    pNewScript->GetAI = &GetAI_npc_Shattered_Hand_Scout;
+    pNewScript->RegisterSelf();
+
 }

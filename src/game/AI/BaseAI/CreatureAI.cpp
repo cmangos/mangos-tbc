@@ -63,7 +63,7 @@ void CreatureAI::AttackStart(Unit* who)
     }
 }
 
-void CreatureAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType damageType, SpellEntry const* spellInfo)
+void CreatureAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damageType*/, SpellEntry const* /*spellInfo*/)
 {
     if (m_deathPrevention)
     {
@@ -97,8 +97,11 @@ void CreatureAI::DoFakeDeath(uint32 spellId)
     m_creature->GetMotionMaster()->Clear();
     m_creature->GetMotionMaster()->MoveIdle();
 
-    if (spellId == 0)
-        m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-    else
-        DoCastSpellIfCan(m_creature, spellId, CAST_INTERRUPT_PREVIOUS);
+    if (spellId)
+        DoCastSpellIfCan(nullptr, spellId, CAST_INTERRUPT_PREVIOUS);
+}
+
+void CreatureAI::DoCallForHelp(float radius)
+{
+    m_creature->CallForHelp(radius);
 }

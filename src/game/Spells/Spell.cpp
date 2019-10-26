@@ -1310,7 +1310,7 @@ void Spell::DoAllTargetlessEffects(bool dest)
     uint32 procVictim;
     uint32 procEx = PROC_EX_NONE;
     WorldObject* caster = m_caster; // preparation for GO casting
-    Unit* unitCaster = caster->GetTypeId() == TYPEID_UNIT ? static_cast<Unit*>(caster) : nullptr;
+    Unit* unitCaster = caster->isType(TYPEMASK_UNIT) ? static_cast<Unit*>(caster) : nullptr;
 
     uint32 effectMask;
     if (dest) // can have delay
@@ -1588,7 +1588,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             float dest_x, dest_y, dest_z;
             target->GetNearPoint(nullptr, dest_x, dest_y, dest_z, target->GetObjectBoundingRadius(), radius, angle, target->IsInWater());
             if (m_spellInfo->Id == 41289)
-                dest_z = 342.9485; // confirmed with sniffs
+                dest_z = 342.9485f; // confirmed with sniffs
             m_targets.setDestination(dest_x, dest_y, dest_z);
             break;
         }
@@ -1921,7 +1921,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             // calculate angle variation for roughly equal dimensions of target area
             float max_angle = (max_dis - min_dis) / (max_dis + m_caster->GetObjectBoundingRadius());
             float angle_offset = max_angle * (rand_norm_f() - 0.5f);
-            m_caster->GetNearPoint2D(x, y, dis + m_caster->GetObjectBoundingRadius(), m_caster->GetOrientation() + angle_offset);
+            m_caster->GetNearPoint2d(x, y, dis + m_caster->GetObjectBoundingRadius(), m_caster->GetOrientation() + angle_offset);
 
             GridMapLiquidData liqData;
             if (!m_caster->GetTerrain()->IsInWater(x, y, m_caster->GetPositionZ() + 1.f, &liqData))
@@ -4499,7 +4499,7 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (!m_caster->isAlive() && m_caster->GetTypeId() == TYPEID_PLAYER && !m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD) && !m_spellInfo->HasAttribute(SPELL_ATTR_PASSIVE))
         return SPELL_FAILED_CASTER_DEAD;
 
-    if (!m_caster->IsStandState() && m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && !m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING))
+    if (!m_IsTriggeredSpell && !m_caster->IsStandState() && m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && !m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING))
         return SPELL_FAILED_NOT_STANDING;
 
     // check global cooldown
@@ -4625,7 +4625,8 @@ SpellCastResult Spell::CheckCast(bool strict)
     if (!m_caster->isInCombat() && m_spellInfo->HasAttribute(SPELL_ATTR_STOP_ATTACK_TARGET) && m_spellInfo->HasAttribute(SPELL_ATTR_EX2_UNK26))
         return SPELL_FAILED_CASTER_AURASTATE;
 
-    if (Unit* target = m_targets.getUnitTarget())
+    Unit* target = m_targets.getUnitTarget();
+    if (target)
     {
         // TARGET_UNIT_SCRIPT_NEAR_CASTER fills unit target per client requirement but should not be checked against common things
         // TODO: Find a nicer and more efficient way to check for this
@@ -4696,29 +4697,6 @@ SpellCastResult Spell::CheckCast(bool strict)
             if ((m_targets.m_targetMask == TARGET_FLAG_SELF || m_caster == target) && m_spellInfo->HasAttribute(SPELL_ATTR_EX_CANT_TARGET_SELF))
                 return SPELL_FAILED_BAD_TARGETS;
 
-            // check pet presents
-            for (unsigned int j : m_spellInfo->EffectImplicitTargetA)
-            {
-                if (j == TARGET_UNIT_CASTER_PET)
-                {
-                    Pet* pet = m_caster->GetPet();
-                    if (!pet)
-                    {
-                        if (m_triggeredByAuraSpell)             // not report pet not existence for triggered spells
-                            return SPELL_FAILED_DONT_REPORT;
-                        return SPELL_FAILED_NO_PET;
-                    }
-                    else
-                    {
-                        if (!pet->isAlive())
-                            return SPELL_FAILED_TARGETS_DEAD;
-                        if (!IsIgnoreLosSpellEffect(m_spellInfo, SpellEffectIndex(j)) && !m_caster->IsWithinLOSInMap(pet))
-                            return SPELL_FAILED_LINE_OF_SIGHT;
-                    }
-                    break;
-                }
-            }
-
             // check creature type
             // ignore self casts (including area casts when caster selected as target)
             if (non_caster_target)
@@ -4731,26 +4709,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
             }
 
-            for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-            {
-                uint32 targetType = m_spellInfo->EffectImplicitTargetA[i];
-                if (targetType == TARGET_UNIT_CASTER) // fits the description but should never be checked
-                    continue;
-                auto& data = SpellTargetInfoTable[targetType];
-                if (data.type == TARGET_TYPE_UNIT && (data.enumerator == TARGET_ENUMERATOR_SINGLE || data.enumerator == TARGET_ENUMERATOR_CHAIN))
-                {
-                    switch (data.filter)
-                    {
-                        case TARGET_HARMFUL: if (!m_caster->CanAttackSpell(target, m_spellInfo)) return SPELL_FAILED_BAD_TARGETS; break;
-                        case TARGET_HELPFUL: if (!m_caster->CanAssistSpell(target, m_spellInfo)) return SPELL_FAILED_BAD_TARGETS; break;
-                        case TARGET_PARTY:
-                        case TARGET_GROUP: if (!m_caster->CanAssistSpell(target, m_spellInfo) || !m_caster->IsInGroup(target, targetType == TARGET_UNIT_PARTY)) return SPELL_FAILED_BAD_TARGETS; break;
-                        default: break;
-                    }
-                }
-            }
-
-            if (IsPositiveSpell(m_spellInfo->Id))
+            if (IsPositiveSpell(m_spellInfo->Id) && !m_spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY))
                 if (target->IsImmuneToSpell(m_spellInfo, target == m_caster, 7) && !target->hasUnitState(UNIT_STAT_ISOLATED))
                     return SPELL_FAILED_TARGET_AURASTATE;
 
@@ -4810,10 +4769,47 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_HIGHLEVEL;
         }
     }
-    else // some spells always require targets - generally checked in client - need to check serverside as well
-        for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-            if (IsUnitTargetTarget(m_spellInfo->EffectImplicitTargetA[i]))
-                return SPELL_FAILED_BAD_TARGETS;
+
+    // check targets
+    for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+    {
+        uint32 targetType = m_spellInfo->EffectImplicitTargetA[i];
+        switch (targetType)
+        {
+            case TARGET_UNIT_CASTER: break; // never check anything
+            case TARGET_UNIT_CASTER_PET: // special pet checks
+            {
+                Pet* pet = m_caster->GetPet();
+                if (!pet)
+                    return SPELL_FAILED_NO_PET;
+                else
+                {
+                    if (!pet->isAlive())
+                        return SPELL_FAILED_TARGETS_DEAD;
+                    if (!IsIgnoreLosSpellEffect(m_spellInfo, SpellEffectIndex(i)) && !m_caster->IsWithinLOSInMap(pet))
+                        return SPELL_FAILED_LINE_OF_SIGHT;
+                }
+                break;
+            }
+            default: // needs target
+            {
+                auto& data = SpellTargetInfoTable[targetType];
+                if (data.type == TARGET_TYPE_UNIT && data.filter != TARGET_SCRIPT && (data.enumerator == TARGET_ENUMERATOR_SINGLE || data.enumerator == TARGET_ENUMERATOR_CHAIN))
+                {
+                    if (!target)
+                        return SPELL_FAILED_BAD_TARGETS;
+                    switch (data.filter)
+                    {
+                        case TARGET_HARMFUL: if (!m_caster->CanAttackSpell(target, m_spellInfo)) return SPELL_FAILED_BAD_TARGETS; break;
+                        case TARGET_HELPFUL: if (!m_caster->CanAssistSpell(target, m_spellInfo)) return SPELL_FAILED_BAD_TARGETS; break;
+                        case TARGET_PARTY:
+                        case TARGET_GROUP: if (!m_caster->CanAssistSpell(target, m_spellInfo) || !m_caster->IsInGroup(target, targetType == TARGET_UNIT_PARTY)) return SPELL_FAILED_BAD_TARGETS; break;
+                        default: break;
+                    }
+                }
+            }
+        }
+    }
 
     // zone check
     uint32 zone, area;
@@ -5247,6 +5243,18 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
                 break;
             }
+            case SPELL_EFFECT_PICKPOCKET:
+            {
+                // should always fail above if not exists
+                Unit* target = m_targets.getUnitTarget();
+                if (!target->IsCreature())
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                Creature* creatureTarget = static_cast<Creature*>(target);
+                if (!creatureTarget->GetCreatureInfo()->PickpocketLootId)
+                    return SPELL_FAILED_TARGET_NO_POCKETS;
+                break;
+            }
             case SPELL_EFFECT_SUMMON_DEAD_PET:
             {
                 Creature* pet = m_caster->GetPet();
@@ -5530,14 +5538,9 @@ SpellCastResult Spell::CheckCast(bool strict)
             }
             case SPELL_AURA_PERIODIC_MANA_LEECH:
             {
-                if (!expectedTarget)
-                    return SPELL_FAILED_BAD_IMPLICIT_TARGETS;
-
-                if (m_caster->GetTypeId() != TYPEID_PLAYER || m_CastItem)
-                    break;
-
-                if (expectedTarget->GetPowerType() != POWER_MANA)
-                    return SPELL_FAILED_BAD_TARGETS;
+                if (expectedTarget)
+                    if (expectedTarget->GetPowerType() != POWER_MANA)
+                        return SPELL_FAILED_BAD_TARGETS;
 
                 break;
             }
@@ -6594,7 +6597,7 @@ CurrentSpellTypes Spell::GetCurrentContainer() const
     return (CURRENT_GENERIC_SPELL);
 }
 
-bool Spell::CheckTargetGOScript(GameObject* target, SpellEffectIndex eff) const
+bool Spell::CheckTargetGOScript(GameObject* target, SpellEffectIndex /*eff*/) const
 {
     switch (m_spellInfo->Id)
     {
@@ -7291,7 +7294,18 @@ void Spell::ResetEffectDamageAndHeal()
     m_healing = 0;
 }
 
-// handle SPELL_AURA_ADD_TARGET_TRIGGER auras
+bool Spell::CanExecuteTriggersOnHit(uint8 effMask, SpellEntry const* triggeredByAura) const
+{
+    bool only_on_caster = (triggeredByAura && triggeredByAura->HasAttribute(SPELL_ATTR_EX4_PROC_ONLY_ON_CASTER));
+    // If triggeredByAura has SPELL_ATTR4_PROC_ONLY_ON_CASTER then it can only proc on a cast spell with TARGET_UNIT_CASTER
+    for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
+        if ((effMask & (1 << i)) && (!only_on_caster || (m_spellInfo->EffectImplicitTargetA[i] == TARGET_UNIT_CASTER)))
+            return true;
+
+    return false;
+}
+
+// handle SPELL_AURA_ADD_TARGET_TRIGGER auras - TODO: proc them right on target hit not on end
 void Spell::ProcSpellAuraTriggers()
 {
     Unit::AuraList const& targetTriggers = m_caster->GetAurasByType(SPELL_AURA_ADD_TARGET_TRIGGER);
@@ -7303,22 +7317,19 @@ void Spell::ProcSpellAuraTriggers()
         {
             if (ihit->missCondition == SPELL_MISS_NONE)
             {
-                // check m_caster->GetGUID() let load auras at login and speedup most often case
-                Unit* unit = m_caster->GetObjectGuid() == ihit->targetGUID ? m_caster : ObjectAccessor::GetUnit(*m_caster, ihit->targetGUID);
-                if (unit && unit->isAlive())
-                {
-                    SpellEntry const* auraSpellInfo = targetTrigger->GetSpellProto();
-                    SpellEffectIndex auraSpellIdx = targetTrigger->GetEffIndex();
-                    const uint32 procid = auraSpellInfo->EffectTriggerSpell[auraSpellIdx];
-                    // Quick target mode check for procs and triggers (do not cast at friendly targets stuff against hostiles only)
-                    if (IsPositiveSpellTargetModeForSpecificTarget(m_spellInfo, ihit->effectMask, m_caster, unit) != IsPositiveSpellTargetModeForSpecificTarget(procid, ihit->effectMask, m_caster, unit))
-                        continue;
-                    // Calculate chance at that moment (can be depend for example from combo points)
-                    int32 auraBasePoints = targetTrigger->GetBasePoints();
-                    int32 chance = m_caster->CalculateSpellDamage(unit, auraSpellInfo, auraSpellIdx, &auraBasePoints);
-                    if (roll_chance_i(chance))
-                        m_caster->CastSpell(unit, procid, TRIGGERED_OLD_TRIGGERED, nullptr, targetTrigger);
-                }
+                Unit* target = m_caster->GetObjectGuid() == ihit->targetGUID ? m_caster : ObjectAccessor::GetUnit(*m_caster, ihit->targetGUID);
+                if (!target || !target->isAlive())
+                    continue;
+                SpellEntry const* auraSpellInfo = targetTrigger->GetSpellProto();
+                if (!CanExecuteTriggersOnHit(ihit->effectHitMask, auraSpellInfo))
+                    continue;
+                SpellEffectIndex auraSpellIdx = targetTrigger->GetEffIndex();
+                const uint32 procid = auraSpellInfo->EffectTriggerSpell[auraSpellIdx];
+                int32 auraBasePoints = targetTrigger->GetBasePoints();
+                // Calculate chance at that moment (can be depend for example from combo points)
+                int32 chance = m_caster->CalculateSpellDamage(target, auraSpellInfo, auraSpellIdx, &auraBasePoints);
+                if (roll_chance_i(chance))
+                    m_caster->CastSpell(target, procid, TRIGGERED_OLD_TRIGGERED, nullptr, targetTrigger);
             }
         }
     }
@@ -7425,7 +7436,6 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
         }
     }
 
-
     if (Unit* realCaster = GetAffectiveCaster())
     {
         if (Player* modOwner = realCaster->GetSpellModOwner())
@@ -7452,6 +7462,15 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
                         radius = 0.5f * (60000 - auraHolder->GetAuraDuration()) * 0.001f;
                     break;
                 }
+                case 43486:                                 // Summon Amani'shi Warriors
+                case 43487:                                 // Summon Amani Eagle
+                case 43962:                                 // Summon Amani'shi Hatcher
+                case 45340:
+                {
+                    if (!targetB)
+                        radius = 250.f;
+                    break;
+                }
                 default:
                     break;
             }
@@ -7474,6 +7493,57 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)
 {
     switch (m_spellInfo->Id)
     {
+        case 14297: // Shadow Storm (exclude targets below 25 yards and above 40 yards. Max value is handled by spell effect radius)
+        case 26546:
+        case 26555:
+        {
+            float x, y, z;
+            m_caster->GetPosition(x, y, z);
+            uint8 eligibleTargets = 0;
+            for (auto& unit : filterUnitList)
+            {
+                float dist = unit->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH);
+                if (dist > 25.0f)
+                    ++eligibleTargets;
+            }
+
+            filterUnitList.sort(TargetDistanceOrderFarAway(m_caster));
+            filterUnitList.resize(eligibleTargets);
+            return;
+        }
+        case 26052: // Poison Bolt Volley (spell hits only the 15 closest targets)
+        case 26180: // Wyvern Sting (spell hits only the 10 closest targets)
+        {
+            if (filterUnitList.size() > m_affectedTargetCount)
+            {
+                filterUnitList.sort(TargetDistanceOrderNear(m_caster));
+                filterUnitList.resize(m_affectedTargetCount);
+            }
+            return;
+        }
+        case 28307: // Hateful Strike Primer
+        {
+            // Returns the target with the highest HP in melee range
+            Unit* hatedTarget = nullptr;
+            uint32 maxHP = 0;
+            for (auto& unit : filterUnitList)
+            {
+                if (m_caster->CanReachWithMeleeAttack(unit))
+                {
+                    if (unit->GetHealth() > maxHP)
+                    {
+                        maxHP = unit->GetHealth();
+                        hatedTarget = unit;
+                    }
+                }
+            }
+            if (!hatedTarget)
+                return;
+
+            filterUnitList.clear();
+            filterUnitList.push_back(hatedTarget);
+            return;
+        }
         case 30284: // Change Facing - Chess event - QOL to pick deterministically closest target
         case 37144: // Move - Chess event - same QOL change
         case 37146:
@@ -7515,10 +7585,10 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex)
         }
         case 42005: // Bloodboil (spell hits only the 5 furthest away targets)
         {
-            if (filterUnitList.size() > 5)
+            if (filterUnitList.size() > m_affectedTargetCount)
             {
                 filterUnitList.sort(TargetDistanceOrderFarAway(m_caster));
-                filterUnitList.resize(5);
+                filterUnitList.resize(m_affectedTargetCount);
             }
             return;
         }
@@ -7579,7 +7649,7 @@ void Spell::OnSuccessfulSpellFinish()
     }
 }
 
-SpellCastResult Spell::OnCheckCast(bool strict)
+SpellCastResult Spell::OnCheckCast(bool /*strict*/)
 {
     switch (m_spellInfo->Id)
     {
@@ -7590,6 +7660,14 @@ SpellCastResult Spell::OnCheckCast(bool strict)
             Unit* target = m_targets.getUnitTarget();
             if (!target || target->GetTypeId() == TYPEID_PLAYER)
                 return SPELL_FAILED_BAD_TARGETS;
+            break;
+        }
+        case 7914: // Capture Spirit
+        {
+            if (ObjectGuid target = m_targets.getUnitTargetGuid()) // can be cast only on these targets
+                if (target.GetEntry() != 4663 && target.GetEntry() != 4664 && target.GetEntry() != 4665 && target.GetEntry() != 4666 && target.GetEntry() != 4667
+                    && target.GetEntry() != 4668 && target.GetEntry() != 4705 && target.GetEntry() != 13019)
+                    return SPELL_FAILED_BAD_TARGETS;
             break;
         }
         case 30077: // Carinda's Retribution

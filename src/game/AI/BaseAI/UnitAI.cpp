@@ -51,7 +51,7 @@ UnitAI::~UnitAI()
 
 void UnitAI::MoveInLineOfSight(Unit* who)
 {
-    if (!HasReactState(REACT_AGGRESSIVE))
+    if (GetReactState() < REACT_DEFENSIVE)
         return;
 
     if (!m_unit->CanFly() && m_unit->GetDistanceZ(who) > CREATURE_Z_ATTACK_RANGE)
@@ -65,6 +65,9 @@ void UnitAI::MoveInLineOfSight(Unit* who)
 
     if (who->GetObjectGuid().IsCreature() && who->isInCombat())
         CheckForHelp(who, m_unit, 10.0);
+
+    if (!HasReactState(REACT_AGGRESSIVE)) // mobs who are aggressive can still assist
+        return;
 
     if (!m_unit->CanInitiateAttack())
         return;
@@ -239,7 +242,7 @@ void UnitAI::SetCombatMovement(bool enable, bool stopOrStartMovement /*=false*/)
 
     if (stopOrStartMovement && m_unit->getVictim())     // Only change current movement while in combat
     {
-        if (!m_unit->IsIncapacitated())
+        if (!m_unit->IsCrowdControlled())
         {
             if (enable)
                 DoStartMovement(m_unit->getVictim());
@@ -383,6 +386,9 @@ void UnitAI::CheckForHelp(Unit* who, Unit* me, float distance)
     if (me->isInCombat())
         return;
 
+    if (who->IsFleeing()) // pulling happens once flee ends
+        return;
+
     if (me->GetMap()->Instanceable())
         distance = distance / 2.5f;
 
@@ -430,7 +436,7 @@ void UnitAI::DetectOrAttack(Unit* who)
     }
 }
 
-bool UnitAI::CanTriggerStealthAlert(Unit* who, float attackRadius) const
+bool UnitAI::CanTriggerStealthAlert(Unit* who, float /*attackRadius*/) const
 {
     if (who->GetTypeId() != TYPEID_PLAYER)
         return false;
@@ -564,9 +570,20 @@ Unit* UnitAI::DoSelectLowestHpFriendly(float range, float minMissing, bool perce
     return pUnit;
 }
 
+void UnitAI::DoResetThreat()
+{
+    if (!m_unit->CanHaveThreatList() || m_unit->getThreatManager().isThreatListEmpty())
+    {
+        script_error_log("DoResetThreat called for creature that either cannot have threat list or has empty threat list (m_creature entry = %d)", m_unit->GetEntry());
+        return;
+    }
+
+    m_unit->getThreatManager().modifyAllThreatPercent(-100);
+}
+
 bool UnitAI::CanExecuteCombatAction()
 {
-    return m_unit->CanReactInCombat() && !m_unit->hasUnitState(UNIT_STAT_DONT_TURN | UNIT_STAT_SEEKING_ASSISTANCE | UNIT_STAT_CHANNELING) && !m_unit->IsNonMeleeSpellCasted(false) && !m_combatScriptHappening;
+    return m_unit->CanReactInCombat() && !(m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED) && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED)) && !m_unit->hasUnitState(UNIT_STAT_CHARGING | UNIT_STAT_SEEKING_ASSISTANCE) && !m_unit->IsNonMeleeSpellCasted(false) && !m_combatScriptHappening;
 }
 
 void UnitAI::SetMeleeEnabled(bool state)
@@ -615,7 +632,7 @@ void UnitAI::DoFlee()
         return;
 
     // now we can call the fear method
-    m_unit->SetFeared(true, victim->GetObjectGuid(), 0, sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_FLEE_DELAY));
+    m_unit->SetInPanic(sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_FLEE_DELAY));
 
     // check if fear method succeed
     if (!m_unit->isFeared() && !m_unit->hasUnitState(UNIT_STAT_FLEEING))

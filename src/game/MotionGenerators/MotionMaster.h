@@ -20,6 +20,7 @@
 #define MANGOS_MOTIONMASTER_H
 
 #include "Common.h"
+#include "Globals/SharedDefines.h"
 #include <stack>
 #include <vector>
 
@@ -121,6 +122,7 @@ class MotionMaster : private std::stack<MovementGenerator*>
         void MoveDistract(uint32 timer);
         void MoveFall();
         void MoveFlyOrLand(uint32 id, float x, float y, float z, bool liftOff);
+        void MoveCharge(float x, float y, float z, float speed, uint32 id = EVENT_CHARGE);
 
         MovementGeneratorType GetCurrentMovementGeneratorType() const;
 

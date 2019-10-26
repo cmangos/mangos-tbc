@@ -94,6 +94,7 @@ inline bool IsEventFlagsFitForNormalMap(uint8 eFlags)
 CreatureEventAI::CreatureEventAI(Creature* creature) : CreatureAI(creature),
     m_EventUpdateTime(0),
     m_EventDiff(0),
+    m_depth(0),
     m_Phase(0),
     m_HasOOCLoSEvent(false),
     m_InvinceabilityHpLevel(0),
@@ -102,9 +103,8 @@ CreatureEventAI::CreatureEventAI(Creature* creature) : CreatureAI(creature),
     m_LastSpellMaxRange(0),
     m_rangedMode(false),
     m_rangedModeSetting(TYPE_NONE),
-    m_currentRangedMode(false),
     m_chaseDistance(0.f),
-    m_depth(0),
+    m_currentRangedMode(false),
     m_defaultMovement(IDLE_MOTION_TYPE)
 {
     InitAI();
@@ -296,7 +296,7 @@ void CreatureEventAI::ProcessEvents(Unit* actionInvoker, Unit* AIEventSender)
     --m_depth;
 }
 
-bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvoker, Unit* AIEventSender /*=nullptr*/)
+bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvoker, Unit* /*AIEventSender =nullptr*/)
 {
     if (!holder.enabled || holder.timer || holder.inProgress)
         return false;
@@ -1170,7 +1170,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         }
         case ACTION_T_CALL_FOR_HELP:
         {
-            m_creature->CallForHelp((float)action.call_for_help.radius);
+            DoCallForHelp((float)action.call_for_help.radius);
             break;
         }
         case ACTION_T_SET_SHEATH:
@@ -1665,15 +1665,15 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
 
     Unit* victim = m_creature->getVictim();
     // Melee Auto-Attack
-    if (Combat && victim && CanExecuteCombatAction())
+    if (Combat && victim)
     {
-        if (m_rangedMode)
+        if (m_rangedMode && CanExecuteCombatAction())
         {
             if (m_currentRangedMode && m_rangedModeSetting == TYPE_PROXIMITY && m_creature->CanReachWithMeleeAttack(victim))
                 SetCurrentRangedMode(false);
         }
 
-        if (m_meleeEnabled && !m_currentRangedMode)
+        if (!m_currentRangedMode)
             DoMeleeAttackIfReady();
     }
 }

@@ -31,7 +31,7 @@ EndContentData */
 ## go_molten_core_rune
 ######*/
 
-bool GOUse_go_molten_core_rune(Player* pPlayer, GameObject* pGo)
+bool GOUse_go_molten_core_rune(Player* /*pPlayer*/, GameObject* pGo)
 {
     ScriptedInstance* pInstance = (ScriptedInstance*)pGo->GetInstanceData();
 

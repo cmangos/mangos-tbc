@@ -90,7 +90,6 @@ void MapManager::InitializeVisibilityDistanceInfo()
 
 void MapManager::CreateContinents()
 {
-
     std::vector<std::future<void>> futures;
     uint32 continents[] = { 0, 1, 530 };
     for (auto id : continents)
@@ -400,4 +399,18 @@ BattleGroundMap* MapManager::CreateBattleGroundMap(uint32 id, uint32 InstanceId,
     map->Initialize(false);
 
     return map;
+}
+
+void MapManager::DoForAllMapsWithMapId(uint32 mapId, std::function<void(Map*)> worker)
+{
+    MapMapType::const_iterator start = i_maps.lower_bound(MapID(mapId, 0));
+    MapMapType::const_iterator end = i_maps.lower_bound(MapID(mapId + 1, 0));
+    for (MapMapType::const_iterator itr = start; itr != end; ++itr)
+        worker(itr->second);
+}
+
+void MapManager::DoForAllMaps(const std::function<void(Map*)>& worker)
+{
+    for (MapMapType::const_iterator itr = i_maps.begin(); itr != i_maps.end(); ++itr)
+        worker(itr->second);
 }

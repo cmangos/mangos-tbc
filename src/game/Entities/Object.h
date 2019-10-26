@@ -325,6 +325,7 @@ struct WorldLocation
         : mapid(_mapid), coord_x(_x), coord_y(_y), coord_z(_z), orientation(_o) {}
     WorldLocation(WorldLocation const& loc)
         : mapid(loc.mapid), coord_x(loc.coord_x), coord_y(loc.coord_y), coord_z(loc.coord_z), orientation(loc.orientation) {}
+    WorldLocation(uint32 mapId, Position const& pos) : mapid(mapId), coord_x(pos.x), coord_y(pos.y), coord_z(pos.z), orientation(pos.o) {}
 };
 
 
@@ -672,6 +673,29 @@ class Object
 
 struct WorldObjectChangeAccumulator;
 
+struct TempSpawnSettings
+{
+    WorldObject* spawner = nullptr;
+    uint32 entry;
+    float x, y, z, ori;
+    TempSpawnType spawnType;
+    uint32 despawnTime;
+    uint32 corpseDespawnTime = 0;
+    bool activeObject = false;
+    bool setRun = false;
+    uint32 pathId = 0;
+    uint32 faction = 0;
+    uint32 modelId = 0;
+    bool spawnCounting = false;
+    bool forcedOnTop = false;
+    TempSpawnSettings() {}
+    TempSpawnSettings(WorldObject* spawner, uint32 entry, float x, float y, float z, float ori, TempSpawnType spawnType, uint32 despawnTime, bool activeObject = false, bool setRun = false, uint32 pathId = 0, uint32 faction = 0,
+        uint32 modelId = 0, bool spawnCounting = false, bool forcedOnTop = false) :
+        spawner(spawner), entry(entry), x(x), y(y), z(z), ori(ori), spawnType(spawnType), despawnTime(despawnTime), activeObject(activeObject), setRun(setRun), pathId(pathId), faction(faction), modelId(modelId), spawnCounting(spawnCounting),
+        forcedOnTop(forcedOnTop)
+    {}
+};
+
 class WorldObject : public Object
 {
         friend struct WorldObjectChangeAccumulator;
@@ -702,7 +726,11 @@ class WorldObject : public Object
         float GetOrientation() const { return m_position.o; }
 
         /// Gives a 2d-point in distance distance2d in direction absAngle around the current position (point-to-point)
-        void GetNearPoint2D(float& x, float& y, float distance2d, float absAngle) const;
+        inline void GetNearPoint2d(float& x, float& y, float distance2d, float absAngle) const
+        {
+            return GetNearPoint2dAt(GetPositionX(), GetPositionY(), x, y, distance2d, absAngle);
+        }
+        static void GetNearPoint2dAt(const float posX, const float posY, float& x, float& y, float distance2d, float absAngle);
         /** Gives a "free" spot for searcher in distance distance2d in direction absAngle on "good" height
          * @param searcher          -           for whom a spot is searched for
          * @param x, y, z           -           position for the found spot of the searcher
@@ -710,7 +738,11 @@ class WorldObject : public Object
          * @param distance2d        -           distance between the middle-points
          * @param absAngle          -           angle in which the spot is preferred
          */
-        void GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater = false) const;
+        inline void GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater = false) const
+        {
+            return GetNearPointAt(GetPositionX(), GetPositionY(), GetPositionZ(), searcher, x, y, z, searcher_bounding_radius, distance2d, absAngle, isInWater);
+        }
+        void GetNearPointAt(const float posX, const float posY, const float posZ, WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater = false) const;
         /** Gives a "free" spot for a searcher on the distance (including bounding-radius calculation)
          * @param x, y, z           -           position for the found spot
          * @param bounding_radius   -           radius for the searcher
@@ -718,7 +750,7 @@ class WorldObject : public Object
          * @param angle             -           direction in which to look for a free spot. Default = 0.0f (direction in which 'this' is looking
          * @param obj               -           for whom to look for a spot. Default = nullptr
          */
-        void GetClosePoint(float& x, float& y, float& z, float bounding_radius, float distance2d = 0.0f, float angle = 0.0f, const WorldObject* obj = nullptr) const
+        inline void GetClosePoint(float& x, float& y, float& z, float bounding_radius, float distance2d = 0.0f, float angle = 0.0f, const WorldObject* obj = nullptr) const
         {
             // angle calculated from current orientation
             GetNearPoint(obj, x, y, z, bounding_radius, distance2d + GetObjectBoundingRadius() + bounding_radius, GetOrientation() + angle);
@@ -728,7 +760,7 @@ class WorldObject : public Object
          * @param obj               -           for whom to find a contact position. The position will be searched in direction from 'this' towards 'obj'
          * @param distance2d        -           distance which 'obj' and 'this' should have beetween their bounding radiuses. Default = CONTACT_DISTANCE
          */
-        void GetContactPoint(const WorldObject* obj, float& x, float& y, float& z, float distance2d = CONTACT_DISTANCE) const
+        inline void GetContactPoint(const WorldObject* obj, float& x, float& y, float& z, float distance2d = CONTACT_DISTANCE) const
         {
             // angle to face `obj` to `this` using distance includes size of `obj`
             GetNearPoint(obj, x, y, z, obj->GetObjectBoundingRadius(), distance2d + GetObjectBoundingRadius() + obj->GetObjectBoundingRadius(), GetAngle(obj));
@@ -870,7 +902,8 @@ class WorldObject : public Object
         void AddToClientUpdateList() override;
         void RemoveFromClientUpdateList() override;
         void BuildUpdateData(UpdateDataMapType&) override;
-
+        
+        static Creature* SummonCreature(TempSpawnSettings settings, Map* map);
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject = false, bool setRun = false, uint32 pathId = 0, uint32 faction = 0, uint32 modelId = 0, bool spawnCounting = false, bool forcedOnTop = false);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
@@ -890,7 +923,7 @@ class WorldObject : public Object
 
         // Game Event Notification system
         virtual bool IsNotifyOnEventObject() { return m_isOnEventNotified; }
-        virtual void OnEventHappened(uint16 event_id, bool activate, bool resume) {}
+        virtual void OnEventHappened(uint16 /*event_id*/, bool /*activate*/, bool /*resume*/) {}
         void SetNotifyOnEventState(bool state);
 
         virtual void AddToWorld() override;
@@ -904,7 +937,7 @@ class WorldObject : public Object
         virtual void RemoveSpellCooldown(SpellEntry const& spellEntry, bool updateClient = true);
         void RemoveSpellCooldown(uint32 spellId, bool updateClient = true);
         virtual void RemoveSpellCategoryCooldown(uint32 category, bool updateClient = true);
-        virtual void RemoveAllCooldowns(bool sendOnly = false) { m_GCDCatMap.clear(); m_cooldownMap.clear(); m_lockoutMap.clear(); }
+        virtual void RemoveAllCooldowns(bool /*sendOnly*/ = false) { m_GCDCatMap.clear(); m_cooldownMap.clear(); m_lockoutMap.clear(); }
         bool IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr) const;
         bool IsSpellReady(uint32 spellId, ItemPrototype const* itemProto = nullptr) const;
         virtual void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration);
@@ -912,8 +945,8 @@ class WorldObject : public Object
 
         virtual void InspectingLoot() {}
 
-        virtual bool CanAttackSpell(Unit const* target, SpellEntry const* spellInfo = nullptr, bool isAOE = false) const { return true; }
-        virtual bool CanAssistSpell(Unit const* target, SpellEntry const* spellInfo = nullptr) const { return true; }
+        virtual bool CanAttackSpell(Unit const* /*target*/, SpellEntry const* /*spellInfo*/ = nullptr, bool /*isAOE*/ = false) const { return true; }
+        virtual bool CanAssistSpell(Unit const* /*target*/, SpellEntry const* /*spellInfo*/ = nullptr) const { return true; }
 
     protected:
         explicit WorldObject();

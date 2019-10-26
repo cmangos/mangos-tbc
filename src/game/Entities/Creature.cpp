@@ -138,10 +138,11 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_equipmentId(0), m_AlreadyCallAssistance(false),
     m_AlreadySearchedAssistance(false), m_isDeadByDefault(false),
     m_temporaryFactionFlags(TEMPFACTION_NONE),
-    m_gameEventVendorId(0), m_originalEntry(0), m_ai(nullptr),
-    m_isInvisible(false), m_ignoreMMAP(false), m_forceAttackingCapability(false), m_ignoreRangedTargets(false), m_countSpawns(false),
-    m_creatureInfo(nullptr),
-    m_noXP(false), m_noLoot(false), m_noReputation(false)
+    m_originalEntry(0), m_gameEventVendorId(0), m_ai(nullptr),
+    m_isInvisible(false), m_ignoreMMAP(false), m_forceAttackingCapability(false),
+    m_noXP(false), m_noLoot(false), m_noReputation(false),
+    m_ignoreRangedTargets(false), m_countSpawns(false),
+    m_creatureInfo(nullptr)
 {
     m_regenTimer = 200;
     m_valuesCount = UNIT_END;
@@ -423,7 +424,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
 
     SetCanParry(!(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_PARRY));
     SetCanBlock(!(cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_BLOCK));
-    SetCanDualWield((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_DUAL_WIELD_FORCED) || hasOffhandWeapon());
+    SetCanDualWield((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_DUAL_WIELD_FORCED));
     SetForceAttackingCapability((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_FORCE_ATTACKING_CAPABILITY) != 0);
     SetNoXP((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_XP_AT_KILL) != 0);
     SetNoLoot(false);
@@ -504,6 +505,17 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
     m_isInvisible = (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_INVISIBLE) != 0;
     m_ignoreMMAP = (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_MMAP_FORCE_DISABLE) != 0;
     m_countSpawns = (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_COUNT_SPAWNS) != 0;
+    if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NOT_TAUNTABLE)\
+    {
+        ApplySpellImmune(nullptr, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, true);
+        ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
+    }
+    if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_HASTE_SPELL_IMMUNITY)
+        ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_HASTE_SPELLS, true);
+    if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_POISON_IMMUNITY)
+        ApplySpellImmune(nullptr, IMMUNITY_DISPEL, DISPEL_POISON, true);
+    if (IsWorldBoss())
+        ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE, true);
 
     SetCanModifyStats(true);
     UpdateAllStats();
@@ -817,7 +829,7 @@ void Creature::DoFleeToGetAssistance() // TODO: split this into flee and assista
         UpdateSpeed(MOVE_RUN, false);
 
         if (!pCreature)
-            SetFeared(true, getVictim()->GetObjectGuid(), 0, sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_FLEE_DELAY));
+            SetInPanic(sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_FLEE_DELAY));
         else
         {
             SetTargetGuid(ObjectGuid());        // creature flee loose its target
@@ -1825,38 +1837,6 @@ bool Creature::IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectInd
     if (!castOnSelf && GetCreatureInfo()->MechanicImmuneMask & (1 << (spellInfo->EffectMechanic[index] - 1)))
         return true;
 
-    if (!spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)) // spells like 37017 bypass these invulnerabilities
-    {
-        switch (spellInfo->Effect[index])
-        {
-            case SPELL_EFFECT_APPLY_AURA:
-            {
-                switch (spellInfo->EffectApplyAuraName[index])
-                {
-                    case SPELL_AURA_MOD_TAUNT: // Taunt immunity special flag check
-                        if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NOT_TAUNTABLE)
-                            return true;
-                        break;
-                    case SPELL_AURA_HASTE_SPELLS: // Haste spell aura immunity
-                        if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_HASTE_SPELL_IMMUNITY)
-                            return true;
-                        break;
-                    case SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE:
-                        if (IsWorldBoss()) // All bosses are immune to vindication in 2.4.3, needs to be setting in future
-                            return true;
-                        break;
-                    default: break;
-                }
-                break;
-            }
-            case SPELL_EFFECT_ATTACK_ME: // Taunt immunity special flag check
-                if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NOT_TAUNTABLE)
-                    return true;
-                break;
-            default: break;
-        }
-    }
-
     return Unit::IsImmuneToSpellEffect(spellInfo, index, castOnSelf);
 }
 
@@ -2010,14 +1990,14 @@ void Creature::CallAssistance()
     }
 }
 
-void Creature::CallForHelp(float fRadius)
+void Creature::CallForHelp(float radius)
 {
-    if (fRadius <= 0.0f || !getVictim() || IsPet() || HasCharmer())
+    if (radius <= 0.0f || !getVictim() || IsPet() || HasCharmer())
         return;
 
-    MaNGOS::CallOfHelpCreatureInRangeDo u_do(this, getVictim(), fRadius);
+    MaNGOS::CallOfHelpCreatureInRangeDo u_do(this, getVictim(), radius);
     MaNGOS::CreatureWorker<MaNGOS::CallOfHelpCreatureInRangeDo> worker(this, u_do);
-    Cell::VisitGridObjects(this, worker, fRadius);
+    Cell::VisitGridObjects(this, worker, radius);
 }
 
 /// if enemy provided, check for initial combat help against enemy
@@ -2903,18 +2883,6 @@ void Creature::SetHover(bool enable)
     SendMessageToSet(data, false);
 }
 
-void Creature::SetRoot(bool enable)
-{
-    if (enable)
-        m_movementInfo->AddMovementFlag(MOVEFLAG_ROOT);
-    else
-        m_movementInfo->RemoveMovementFlag(MOVEFLAG_ROOT);
-
-    WorldPacket data(enable ? SMSG_SPLINE_MOVE_ROOT : SMSG_SPLINE_MOVE_UNROOT, 9);
-    data << GetPackGUID();
-    SendMessageToSet(data, true);
-}
-
 void Creature::SetWaterWalk(bool enable)
 {
     if (enable)
@@ -2981,6 +2949,9 @@ void Creature::SetLootStatus(CreatureLootStatus status)
         case CREATURE_LOOT_STATUS_SKIN_AVAILABLE:
             SetFlag(UNIT_FIELD_FLAGS, UNIT_DYNFLAG_LOOTABLE);
             RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
+            break;
+        case CREATURE_LOOT_STATUS_PICKPOCKETED:
+            StartPickpocketRestockTimer();
             break;
         default:
             break;
@@ -3089,4 +3060,20 @@ uint32 Creature::GetCreatureConditionalSpawnEntry(uint32 guidlow, Map* map) cons
     }
 
     return entry;
+}
+
+void Creature::SetCanDualWield(bool state)
+{
+    Unit::SetCanDualWield(state);
+    UpdateDamagePhysical(OFF_ATTACK);
+}
+
+bool Creature::CanRestockPickpocketLoot() const
+{
+    return GetMap()->GetCurrentClockTime() >= m_pickpocketRestockTime;
+}
+
+void Creature::StartPickpocketRestockTimer()
+{
+    m_pickpocketRestockTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(sWorld.getConfig(CONFIG_UINT32_CREATURE_PICKPOCKET_RESTOCK_DELAY) * IN_MILLISECONDS);
 }

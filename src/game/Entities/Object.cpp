@@ -1072,9 +1072,8 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
-    m_currMap(nullptr), m_mapId(0),
-    m_InstanceId(0), m_isActiveObject(false),
-    m_visibilityDistanceOverride(0.f)
+    m_visibilityDistanceOverride(0.f), m_currMap(nullptr), m_mapId(0),
+    m_InstanceId(0), m_isActiveObject(false)
 {
 }
 
@@ -1772,61 +1771,70 @@ void WorldObject::AddObjectToRemoveList()
     GetMap()->AddObjectToRemoveList(this);
 }
 
-Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject, bool setRun, uint32 pathId, uint32 faction, uint32 modelId, bool spawnCounting, bool forcedOnTop)
+Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
 {
-    CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(id);
+    CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(settings.entry);
     if (!cinfo)
     {
-        sLog.outErrorDb("WorldObject::SummonCreature: Creature (Entry: %u) not existed for summoner: %s. ", id, GetGuidStr().c_str());
+        sLog.outErrorDb("WorldObject::SummonCreature: Creature (Entry: %u) not existed for summoner: %s. ", settings.entry, settings.spawner ? settings.spawner->GetGuidStr().c_str() : ObjectGuid().GetString().data());
         return nullptr;
     }
 
-    TemporarySpawn* pCreature = new TemporarySpawn(GetObjectGuid());
+    TemporarySpawn* creature = new TemporarySpawn(settings.spawner ? settings.spawner->GetObjectGuid() : ObjectGuid());
 
-    CreatureCreatePos pos(GetMap(), x, y, z, ang);
+    CreatureCreatePos pos(map, settings.x, settings.y, settings.z, settings.ori);
 
-    if (x == 0.0f && y == 0.0f && z == 0.0f)
+    if (settings.x == 0.0f && settings.y == 0.0f && settings.z == 0.0f && settings.spawner)
     {
-        float dist = forcedOnTop ? 0.0f : CONTACT_DISTANCE;
-        pos = CreatureCreatePos(this, GetOrientation(), dist, ang);
+        float dist = settings.forcedOnTop ? 0.0f : CONTACT_DISTANCE;
+        pos = CreatureCreatePos(settings.spawner, settings.spawner->GetOrientation(), dist, settings.ori);
     }
 
-    if (!pCreature->Create(GetMap()->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo))
+    if (!creature->Create(map->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo))
     {
-        delete pCreature;
+        delete creature;
         return nullptr;
     }
 
-    pCreature->SetRespawnCoord(pos);
+    creature->SetRespawnCoord(pos);
 
     // Set run or walk before any other movement starts
-    pCreature->SetWalk(!setRun);
+    creature->SetWalk(!settings.setRun);
 
     // Active state set before added to map
-    pCreature->SetActiveObjectState(asActiveObject);
+    creature->SetActiveObjectState(settings.activeObject);
 
-    if (faction)
-        pCreature->setFaction(faction);
+    if (settings.faction)
+        creature->setFaction(settings.faction);
 
-    if (modelId)
-        pCreature->SetDisplayId(modelId);
+    if (settings.modelId)
+        creature->SetDisplayId(settings.modelId);
 
-    if (spawnCounting)
-        pCreature->SetSpawnCounting(true);
+    if (settings.spawnCounting)
+        creature->SetSpawnCounting(true);
 
-    pCreature->GetMotionMaster()->SetDefaultPathId(pathId);
+    creature->GetMotionMaster()->SetDefaultPathId(settings.pathId);
 
-    pCreature->Summon(spwtype, despwtime);                  // Also initializes the AI and MMGen
+    creature->Summon(settings.spawnType, settings.despawnTime);                  // Also initializes the AI and MMGen
+    if (settings.corpseDespawnTime)
+        creature->SetCorpseDelay(settings.corpseDespawnTime);
 
-    if (GetTypeId() == TYPEID_UNIT && ((Creature*)this)->AI())
-        ((Creature*)this)->AI()->JustSummoned(pCreature);
+    if (settings.spawner && settings.spawner->GetTypeId() == TYPEID_UNIT)
+        if (Creature* spawnerCreature = static_cast<Creature*>(settings.spawner))
+            if (UnitAI* ai = spawnerCreature->AI())
+                ai->JustSummoned(creature);
 
     // Creature Linking, Initial load is handled like respawn
-    if (pCreature->IsLinkingEventTrigger())
-        GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_RESPAWN, pCreature);
+    if (creature->IsLinkingEventTrigger())
+        map->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_RESPAWN, creature);
 
     // return the creature therewith the summoner has access to it
-    return pCreature;
+    return creature;
+}
+
+Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject, bool setRun, uint32 pathId, uint32 faction, uint32 modelId, bool spawnCounting, bool forcedOnTop)
+{
+    return WorldObject::SummonCreature(TempSpawnSettings(this, id, x, y, z, ang, spwtype, despwtime, asActiveObject, setRun, pathId, faction, modelId, spawnCounting, forcedOnTop), GetMap());
 }
 
 // how much space should be left in front of/ behind a mob that already uses a space
@@ -1911,19 +1919,19 @@ namespace MaNGOS
 
 //===================================================================================================
 
-void WorldObject::GetNearPoint2D(float& x, float& y, float distance2d, float absAngle) const
+void WorldObject::GetNearPoint2dAt(const float posX, const float posY, float& x, float& y, float distance2d, float absAngle)
 {
-    x = GetPositionX() + distance2d * cos(absAngle);
-    y = GetPositionY() + distance2d * sin(absAngle);
+    x = (posX + (distance2d * cosf(absAngle)));
+    y = (posY + (distance2d * sinf(absAngle)));
 
     MaNGOS::NormalizeMapCoord(x);
     MaNGOS::NormalizeMapCoord(y);
 }
 
-void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater) const
+void WorldObject::GetNearPointAt(const float posX, const float posY, const float posZ, WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater) const
 {
-    GetNearPoint2D(x, y, distance2d, absAngle);
-    const float init_z = z = GetPositionZ();
+    GetNearPoint2dAt(posX, posY, x, y, distance2d, absAngle);
+    const float init_z = z = posZ;
 
     // if detection disabled, return first point
     if (!sWorld.getConfig(CONFIG_BOOL_DETECT_POS_COLLISION))
@@ -1943,7 +1951,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     const float dist = distance2d + searcher_bounding_radius + GetObjectBoundingRadius();
 
     // prepare selector for work
-    ObjectPosSelector selector(GetPositionX(), GetPositionY(), distance2d, searcher_bounding_radius, searcher);
+    ObjectPosSelector selector(posX, posY, distance2d, searcher_bounding_radius, searcher);
 
     // adding used positions around object - unused because its not blizzlike
     //{
@@ -1961,7 +1969,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
             return;
 
         first_los_conflict = true;                          // first point have LOS problems
@@ -1975,15 +1983,15 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     // select in positions after current nodes (selection one by one)
     while (selector.NextAngle(angle))                       // angle for free pos
     {
-        GetNearPoint2D(x, y, distance2d, absAngle + angle);
-        z = GetPositionZ();
+        GetNearPoint2dAt(posX, posY, x, y, distance2d, absAngle + angle);
+        z = posZ;
 
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
             return;
     }
 
@@ -2007,15 +2015,15 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     // select in positions after current nodes (selection one by one)
     while (selector.NextUsedAngle(angle))                   // angle for used pos but maybe without LOS problem
     {
-        GetNearPoint2D(x, y, distance2d, absAngle + angle);
-        z = GetPositionZ();
+        GetNearPoint2dAt(posX, posY, x, y, distance2d, absAngle + angle);
+        z = posZ;
 
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
             return;
     }
 
@@ -2245,7 +2253,7 @@ bool WorldObject::HasGCD(SpellEntry const* spellEntry) const
     return !m_GCDCatMap.empty();
 }
 
-void WorldObject::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/, bool permanent /*= false*/, uint32 forcedDuration /*= 0*/)
+void WorldObject::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* /*itemProto = nullptr*/, bool /*permanent = false*/, uint32 forcedDuration /*= 0*/)
 {
     uint32 recTimeDuration = forcedDuration ? forcedDuration : spellEntry.RecoveryTime;
     if (recTimeDuration || spellEntry.CategoryRecoveryTime)
@@ -2372,12 +2380,12 @@ void WorldObject::RemoveSpellCooldown(uint32 spellId, bool updateClient /*= true
     RemoveSpellCooldown(*spellEntry, updateClient);
 }
 
-void WorldObject::RemoveSpellCooldown(SpellEntry const& spellEntry, bool updateClient /*= true*/)
+void WorldObject::RemoveSpellCooldown(SpellEntry const& spellEntry, bool /*updateClient = true*/)
 {
     m_cooldownMap.RemoveBySpellId(spellEntry.Id);
 }
 
-void WorldObject::RemoveSpellCategoryCooldown(uint32 category, bool updateClient /*= true*/)
+void WorldObject::RemoveSpellCategoryCooldown(uint32 category, bool /*updateClient = true*/)
 {
     m_cooldownMap.RemoveByCategory(category);
 }

@@ -48,7 +48,7 @@ const char* ChaseModes[] =
 template<class T, typename D>
 void TargetedMovementGeneratorMedium<T, D>::_setTargetLocation(T& owner, bool updateDestination)
 {
-    if (!i_target.isValid() || !i_target->IsInWorld())
+    if (!i_target.isValid(true) || !i_target->IsInWorld())
         return;
 
     if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))
@@ -804,7 +804,7 @@ bool FollowMovementGenerator::_move(Unit& owner, const Movement::PointsArray& pa
 // This factor defines how much of the follow-distance will be used as sloppyness value (if the above distance is exceeded)
 #define FOLLOW_DIST_RECALCULATE_FACTOR                    1.0f
 
-float FollowMovementGenerator::GetDynamicTargetDistance(Unit & owner, bool forRangeCheck) const
+float FollowMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRangeCheck) const
 {
     if (!forRangeCheck)
         return (GetOffset(owner) + owner.GetObjectBoundingRadius() + i_target->GetObjectBoundingRadius());

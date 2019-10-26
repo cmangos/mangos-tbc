@@ -14,7 +14,7 @@
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "Tools/Language.h"
 
-#define MODEL_VENDOR_ID 80036
+#define MODEL_VENDOR_ID 80037
 
 std::string GetQualityColor(uint32 quality)
 {

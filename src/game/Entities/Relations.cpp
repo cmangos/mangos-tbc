@@ -1168,6 +1168,7 @@ bool Unit::CanAssistSpell(Unit const* target, SpellEntry const* spellInfo) const
 /////////////////////////////////////////////////
 bool Unit::CanAttackOnSight(Unit const* target) const
 {
+    // Check target is not nullptr
     if (!target)
         return false;
 

@@ -51,11 +51,6 @@ void AddFilteredGossipMenuForPlayer(uint32 menu_id, Player* pPlayer, ObjectGuid 
 	}
 }
 
-bool IsAlliance(uint8 race)
-{
-	return race == 1 || race == 3 || race == 4 || race == 7 || race == 11;
-}
-
 bool DetectAttacks(Player* pPlayer)
 {
     if (pPlayer->isInCombat())
@@ -75,7 +70,7 @@ void GenerateGossipMenu(uint32 menu_id, Player* pPlayer, ObjectGuid guid)
 
 	if (map_order[menu_id])
 	{
-		if (IsAlliance(pPlayer->getRace()))
+		if (pPlayer->IsAlliance())
 		{
 			AddFilteredGossipMenuForPlayer(menu_id, pPlayer, guid, TELE_ORDER::ALLIANCE);
 			AddFilteredGossipMenuForPlayer(menu_id, pPlayer, guid, TELE_ORDER::HORDE);
@@ -305,7 +300,7 @@ bool GossipSelect(Player* pPlayer, Object* pObj, uint32 sender, uint32 action)
 
         Creature* pTrainClassNpc;
 		classId = pPlayer->getClass();
-		if (IsAlliance(pPlayer->getRace())) 
+		if (pPlayer->IsAlliance()) 
 		{
 			npcId = sDBConfigMgr.GetUInt32("stone.trainer.alliance." + std::to_string(classId));
 		}

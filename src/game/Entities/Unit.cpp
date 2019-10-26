@@ -692,6 +692,40 @@ void Unit::SendHeartBeat()
     SendMessageToSet(data, true);
 }
 
+void Unit::SendMoveRoot(bool state, bool broadcastOnly)
+{
+    const Player* player = GetClientControlling();
+
+    // Apply flags in-place when unit currently is not controlled by a player
+    if (!player && !broadcastOnly)
+    {
+        if (state)
+        {
+            m_movementInfo.RemoveMovementFlag(movementFlagsMask);
+            m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
+        }
+        else
+            m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
+    }
+
+    const PackedGuid &guid = GetPackGUID();
+    // Pre-Wrath spline root: when unit is currently not controlled by a player, or broadcasting to others
+    if (!player || broadcastOnly)
+    {
+        WorldPacket data(state ? SMSG_SPLINE_MOVE_ROOT : SMSG_SPLINE_MOVE_UNROOT, guid.size());
+        data << guid;
+        SendMessageToSet(data, (!broadcastOnly));
+    }
+    // Pre-Wrath force root: send only to the controlling player
+    else
+    {
+        WorldPacket data(state ? SMSG_FORCE_MOVE_ROOT : SMSG_FORCE_MOVE_UNROOT, guid.size() + 4);
+        data << guid;
+        data << uint32(0);
+        player->GetSession()->SendPacket(data);
+    }
+}
+
 void Unit::resetAttackTimer(WeaponAttackType type)
 {
     m_attackTimer[type] = uint32(GetAttackTime(type) * m_modAttackSpeedPct[type]);
@@ -1367,6 +1401,12 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
                     ((DungeonMap*)m)->PermBindAllPlayers(creditedPlayer);
             }
             ((DungeonMap*)m)->GetPersistanceState()->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, victim->GetEntry());
+
+            // Pomelo: Non-Raid & Non-Heroic should be set resetable when killed creature
+            if (!m->IsRaidOrHeroicDungeon())
+            {
+                ((DungeonMap*)m)->GetPersistanceState()->SetCanReset(true);
+            }
         }
     }
 
@@ -6285,6 +6325,9 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
     {
         if (m_attacking == victim)
         {
+            // need to regenerate target guid after certain scenarios
+            if (AI() && AI()->CanExecuteCombatAction())
+                SetTargetGuid(victim->GetObjectGuid());
             // switch to melee attack from ranged/magic
             if (meleeAttack)
             {
@@ -9002,7 +9045,7 @@ bool Unit::SelectHostileTarget()
         // needs a much better check, seems to cause quite a bit of trouble
         SetInFront(target);
 
-        if (oldTarget != target)
+        if (oldTarget != target || GetTarget() != target)
             AI()->AttackStart(target);
 
         // check if currently selected target is reachable
@@ -10324,12 +10367,6 @@ void Unit::SetStunned(bool apply, ObjectGuid casterGuid, uint32 spellID)
                 // FIXME: TODO
                 SetFacingTo(GetOrientation());
             }
-            // Non-client controlled unit with an AI should have target restored (if exists)
-            else if (isAlive())
-            {
-                if (Unit* victim = getVictim())
-                    SetTargetGuid(victim->GetObjectGuid());  // Restore target
-            }
         }
     }
 
@@ -10339,27 +10376,21 @@ void Unit::SetStunned(bool apply, ObjectGuid casterGuid, uint32 spellID)
 void Unit::SetImmobilizedState(bool apply, bool stun)
 {
     const uint32 state = (stun ? UNIT_STAT_STUNNED : UNIT_STAT_ROOT);
-    const bool player = IsControlledByPlayer();
     if (apply)
     {
         addUnitState(state);
 
-        if (!player)
+        if (!IsClientControlled())
             StopMoving();
-        else
-        {
-            // Clear unit movement flags
-            m_movementInfo.SetMovementFlags(MOVEFLAG_NONE);
-            SetRoot(true);
-        }
+        SendMoveRoot(true);
     }
     else
     {
         clearUnitState(state);
 
         // Prevent giving ability to move if more immobilizers are active
-        if (!IsImmobilizedState() && (player || m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT)))
-            SetRoot(false);
+        if (!IsImmobilizedState())
+            SendMoveRoot(false);
     }
 }
 

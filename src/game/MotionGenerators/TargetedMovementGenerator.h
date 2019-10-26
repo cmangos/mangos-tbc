@@ -184,7 +184,6 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
         static void _addUnitStateMove(Unit& owner);
 
         virtual bool EnableWalking() const;
-
         bool _lostTarget(Unit& owner) const;
         void _reachTarget(Unit& owner);
 

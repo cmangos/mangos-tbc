@@ -1083,6 +1083,9 @@ enum MangosStrings
     LANG_PLAYERBOT_INCREASED_CAP        = 80057,
     LANG_PLAYERBOT_HIRE_EXCEED          = 80058,
     LANG_TRANSMOG_BUY_WEAPON            = 80059,
+    LANG_CURRENCY_GAIN                  = 80060,
+    LANG_ADDITIONAL_TRADE_SKILL         = 80061,
+    LANG_CANNOT_USE_INC_SKILL_ITEM      = 80062
 
     // Use for custom patches             11000-11999
 

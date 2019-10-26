@@ -41,6 +41,10 @@ static const DialogueEntry aNaxxDialogue[] =
     {SAY_ZELI_TAUNT2,       NPC_ZELIEK,         5000},
     {SAY_KORT_TAUNT2,       NPC_THANE,          7000},
     {SAY_MORG_TAUNT2,       NPC_MOGRAINE,       0},
+    {SAY_FAERLINA_INTRO,    NPC_FAERLINA,       10000},
+    {FOLLOWERS_STAND,       0,                  3000},
+    {FOLLOWERS_AURA,        0,                  30000},
+    {FOLLOWERS_KNEEL,       0,                  0}, 
     {0, 0, 0}
 };
 
@@ -53,7 +57,8 @@ instance_naxxramas::instance_naxxramas(Map* pMap) : ScriptedInstance(pMap),
     m_uiHorseMenKilled(0),
     m_uiLivingPoisonTimer(5000),
     m_uiScreamsTimer(2 * MINUTE * IN_MILLISECONDS),
-    m_dialogueHelper(aNaxxDialogue)
+    isFaerlinaIntroDone(false),
+    DialogueHelper(aNaxxDialogue)
 {
     Initialize();
 }
@@ -62,7 +67,56 @@ void instance_naxxramas::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 
-    m_dialogueHelper.InitializeDialogueHelper(this, true);
+    InitializeDialogueHelper(this);
+}
+
+void instance_naxxramas::JustDidDialogueStep(int32 entry)
+{
+    switch (entry)
+    {
+        case FOLLOWERS_STAND:
+        {
+            isFaerlinaIntroDone = true;
+            for (auto& followerGuid : m_lFaerlinaFollowersList)
+            {
+                if (Creature* follower = instance->GetCreature(followerGuid))
+                {
+                    if (follower->isAlive() && !follower->isInCombat())
+                        follower->SetStandState(UNIT_STAND_STATE_STAND);
+                }
+            }
+            break;
+        }
+        case FOLLOWERS_AURA:
+        {
+            for (auto& followerGuid : m_lFaerlinaFollowersList)
+            {
+                if (Creature* follower = instance->GetCreature(followerGuid))
+                {
+                    if (follower->isAlive() && !follower->isInCombat())
+                        follower->CastSpell(follower, SPELL_DARK_CHANNELING, TRIGGERED_OLD_TRIGGERED);
+                }
+            }
+            break;
+        }
+        case FOLLOWERS_KNEEL:
+        {
+            for (auto& followerGuid : m_lFaerlinaFollowersList)
+            {
+                if (Creature* follower = instance->GetCreature(followerGuid))
+                {
+                    if (follower->isAlive() && !follower->isInCombat())
+                    {
+                        follower->RemoveAurasDueToSpell(SPELL_DARK_CHANNELING);
+                        follower->SetStandState(UNIT_STAND_STATE_KNEEL);
+                    }
+                }
+            }
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 void instance_naxxramas::OnPlayerEnter(Player* pPlayer)
@@ -100,6 +154,7 @@ void instance_naxxramas::OnCreatureCreate(Creature* pCreature)
         case NPC_SAPPHIRON:
         case NPC_KELTHUZAD:
         case NPC_THE_LICHKING:
+        case NPC_NAXXRAMAS_TRIGGER:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         case NPC_ZOMBIE_CHOW:
@@ -110,8 +165,14 @@ void instance_naxxramas::OnCreatureCreate(Creature* pCreature)
         }
         case NPC_CORPSE_SCARAB:
         {
-        	pCreature->SetInCombatWithZone();
-        	break;
+            pCreature->SetInCombatWithZone();
+            break;
+        }
+        case NPC_NAXXRAMAS_CULTIST:
+        case NPC_NAXXRAMAS_ACOLYTE:
+        {
+            m_lFaerlinaFollowersList.push_back(pCreature->GetObjectGuid());
+            break;
         }
         case NPC_SUB_BOSS_TRIGGER:  m_lGothTriggerList.push_back(pCreature->GetObjectGuid()); break;
         case NPC_TESLA_COIL:        m_lThadTeslaCoilList.push_back(pCreature->GetObjectGuid()); break;
@@ -376,7 +437,7 @@ void instance_naxxramas::SetData(uint32 uiType, uint32 uiData)
                     DoUseDoorOrButton(GO_MILI_GOTH_EXIT_GATE);
                     DoUseDoorOrButton(GO_MILI_HORSEMEN_DOOR);
 
-                    m_dialogueHelper.StartNextDialogueText(NPC_THANE);
+                    StartNextDialogueText(NPC_THANE);
                     break;
             }
             m_auiEncounter[uiType] = uiData;
@@ -457,7 +518,7 @@ void instance_naxxramas::SetData(uint32 uiType, uint32 uiData)
             if (uiData == DONE)
             {
                 DoUseDoorOrButton(GO_KELTHUZAD_WATERFALL_DOOR);
-                m_dialogueHelper.StartNextDialogueText(NPC_KELTHUZAD);
+                StartNextDialogueText(NPC_KELTHUZAD);
             }
             // Start Sapph summoning process
             if (uiData == SPECIAL)
@@ -538,14 +599,14 @@ void instance_naxxramas::Update(uint32 uiDiff)
     {
         if (m_uiLivingPoisonTimer <= uiDiff)
         {
-            if (Player* pPlayer = GetPlayerInMap())
+            if (Creature* trigger = GetSingleCreatureFromStorage(NPC_NAXXRAMAS_TRIGGER))
             {
                 // Spawn 3 living poisons every 5 secs and make them cross the corridor and then despawn, for ever and ever
                 for (uint8 i = 0; i < 3; i++)
-                    if (Creature* pPoison = pPlayer->SummonCreature(NPC_LIVING_POISON, aLivingPoisonPositions[i].m_fX, aLivingPoisonPositions[i].m_fY, aLivingPoisonPositions[i].m_fZ, aLivingPoisonPositions[i].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0))
+                    if (Creature* poison = trigger->SummonCreature(NPC_LIVING_POISON, aLivingPoisonPositions[i].m_fX, aLivingPoisonPositions[i].m_fY, aLivingPoisonPositions[i].m_fZ, aLivingPoisonPositions[i].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0))
                     {
-                        pPoison->GetMotionMaster()->MovePoint(0, aLivingPoisonPositions[i + 3].m_fX, aLivingPoisonPositions[i + 3].m_fY, aLivingPoisonPositions[i + 3].m_fZ);
-                        pPoison->ForcedDespawn(15000);
+                        poison->GetMotionMaster()->MovePoint(0, aLivingPoisonPositions[i + 3].m_fX, aLivingPoisonPositions[i + 3].m_fY, aLivingPoisonPositions[i + 3].m_fZ);
+                        poison->ForcedDespawn(15000);
                     }
             }
             m_uiLivingPoisonTimer = 5000;
@@ -590,7 +651,7 @@ void instance_naxxramas::Update(uint32 uiDiff)
             m_uiSapphSpawnTimer -= uiDiff;
     }
 
-    m_dialogueHelper.DialogueUpdate(uiDiff);
+    DialogueUpdate(uiDiff);
 }
 
 void instance_naxxramas::SetGothTriggers()
@@ -739,58 +800,63 @@ InstanceData* GetInstanceData_instance_naxxramas(Map* pMap)
     return new instance_naxxramas(pMap);
 }
 
-bool AreaTrigger_at_naxxramas(Player* pPlayer, AreaTriggerEntry const* pAt)
+bool instance_naxxramas::DoHandleAreaTrigger(AreaTriggerEntry const* areaTrigger)
 {
-    if (pAt->id == AREATRIGGER_KELTHUZAD)
+    if (areaTrigger->id == AREATRIGGER_KELTHUZAD)
     {
-        if (pPlayer->isGameMaster() || !pPlayer->isAlive())
-            return false;
+        SetChamberCenterCoords(areaTrigger->x, areaTrigger->y, areaTrigger->z);
 
-        instance_naxxramas* pInstance = (instance_naxxramas*)pPlayer->GetInstanceData();
-
-        if (!pInstance)
-            return false;
-
-        pInstance->SetChamberCenterCoords(pAt->x, pAt->y, pAt->z);
-
-        if (pInstance->GetData(TYPE_KELTHUZAD) == NOT_STARTED)
+        if (GetData(TYPE_KELTHUZAD) == NOT_STARTED)
         {
-            if (Creature* pKelthuzad = pInstance->GetSingleCreatureFromStorage(NPC_KELTHUZAD))
+            if (Creature* kelthuzad = GetSingleCreatureFromStorage(NPC_KELTHUZAD))
             {
-                if (pKelthuzad->isAlive())
+                if (kelthuzad->isAlive())
                 {
-                    pInstance->SetData(TYPE_KELTHUZAD, IN_PROGRESS);
-                    pKelthuzad->SetInCombatWithZone();
+                    SetData(TYPE_KELTHUZAD, IN_PROGRESS);
+                    kelthuzad->SetInCombatWithZone();
                 }
             }
         }
     }
 
-    if (pAt->id == AREATRIGGER_THADDIUS_DOOR)
+    if (areaTrigger->id == AREATRIGGER_FAERLINA_INTRO)
     {
-        if (instance_naxxramas* pInstance = (instance_naxxramas*)pPlayer->GetInstanceData())
+        if (GetData(TYPE_FAERLINA) != NOT_STARTED)
+            return false;
+        if (!isFaerlinaIntroDone)
+            StartNextDialogueText(SAY_FAERLINA_INTRO);
+    }
+
+    if (areaTrigger->id == AREATRIGGER_THADDIUS_DOOR)
+    {
+        if (GetData(TYPE_THADDIUS) == NOT_STARTED)
         {
-            if (pInstance->GetData(TYPE_THADDIUS) == NOT_STARTED)
+            if (Creature* thaddius = GetSingleCreatureFromStorage(NPC_THADDIUS))
             {
-                if (Creature* pThaddius = pInstance->GetSingleCreatureFromStorage(NPC_THADDIUS))
-                {
-                    pInstance->SetData(TYPE_THADDIUS, SPECIAL);
-                    DoScriptText(SAY_THADDIUS_GREET, pThaddius);
-                }
+                SetData(TYPE_THADDIUS, SPECIAL);
+                DoScriptText(SAY_THADDIUS_GREET, thaddius);
             }
         }
     }
 
-    if (pAt->id == AREATRIGGER_FROSTWYRM_TELE)
+    if (areaTrigger->id == AREATRIGGER_FROSTWYRM_TELE)
     {
-        if (instance_naxxramas* pInstance = (instance_naxxramas*)pPlayer->GetInstanceData())
-        {
-            // Area trigger handles teleport in DB. Here we only need to check if all the end wing encounters are done
-            if (pInstance->GetData(TYPE_THADDIUS) != DONE || pInstance->GetData(TYPE_LOATHEB) != DONE || pInstance->GetData(TYPE_MAEXXNA) != DONE ||
-                    pInstance->GetData(TYPE_FOUR_HORSEMEN) != DONE)
-                return true;
-        }
+        // Area trigger handles teleport in DB. Here we only need to check if all the end wing encounters are done
+        if (GetData(TYPE_THADDIUS) != DONE || GetData(TYPE_LOATHEB) != DONE || GetData(TYPE_MAEXXNA) != DONE ||
+                GetData(TYPE_FOUR_HORSEMEN) != DONE)
+            return true;
     }
+
+    return false;
+}
+
+bool AreaTrigger_at_naxxramas(Player* player, AreaTriggerEntry const* areaTrigger)
+{
+    if (player->isGameMaster() || !player->isAlive())
+        return false;
+
+    if (instance_naxxramas* instance = (instance_naxxramas*)player->GetInstanceData())
+        return instance->DoHandleAreaTrigger(areaTrigger);
 
     return false;
 }

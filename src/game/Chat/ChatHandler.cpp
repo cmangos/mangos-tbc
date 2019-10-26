@@ -191,11 +191,18 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             std::string to, msg;
             recv_data >> to;
 
-            // WHISPER channel is available for addons since 2.1.0
-            if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
-            else
-                recv_data >> msg;
+            try 
+            {
+                // WHISPER channel is available for addons since 2.1.0
+                if (lang == LANG_ADDON)
+                    recv_data.read(msg, false);
+                else
+                    recv_data >> msg;
+            }
+            catch (ByteBufferException ex) 
+            {
+                break;
+            }
 
             if (msg.empty())
                 break;

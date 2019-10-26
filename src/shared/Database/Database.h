@@ -180,7 +180,7 @@ class Database
         bool Execute(const char* sql);
         bool PExecute(const char* format, ...) ATTR_PRINTF(2, 3);
 
-        // Writes SQL commands to a LOG file (see mangosd.conf "LogSQL")
+        // Writes SQL commands to a LOG file (see pomelod.conf "LogSQL")
         bool PExecuteLog(const char* format, ...) ATTR_PRINTF(2, 3);
 
         bool BeginTransaction();

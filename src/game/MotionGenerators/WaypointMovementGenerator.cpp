@@ -248,7 +248,7 @@ bool WaypointMovementGenerator<Creature>::CanMove(int32 diff, Creature& u)
     return i_nextMoveTime.Passed() && !u.hasUnitState(UNIT_STAT_WAYPOINT_PAUSED);
 }
 
-bool WaypointMovementGenerator<Creature>::GetResetPosition(Creature&, float& x, float& y, float& z, float& o) const
+bool WaypointMovementGenerator<Creature>::GetResetPosition(Creature&, float& x, float& y, float& z, float& o, uint32 recursive_deep) const
 {
     // prevent a crash at empty waypoint path.
     if (!i_path || i_path->empty())

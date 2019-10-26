@@ -122,12 +122,31 @@ Player* ObjectAccessor::FindPlayerByName(const char* name)
     return nullptr;
 }
 
+void SavePlayerWithRetry(Player* pPlayer, int retryLeft = 3)
+{
+    try
+    {
+        pPlayer->SaveToDB();
+    }
+    catch (...)
+    {
+        if (retryLeft == 0)
+        {
+            outstring_log("%s save to DB failed...", pPlayer->GetName());
+            return;
+        }
+        SavePlayerWithRetry(pPlayer, retryLeft - 1);
+    }
+}
+
 void ObjectAccessor::SaveAllPlayers() const
 {
     HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
     HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
     for (auto& itr : m)
-        itr.second->SaveToDB();
+    {
+        SavePlayerWithRetry(itr.second);
+    }
 }
 
 void ObjectAccessor::ExecuteOnAllPlayers(std::function<void(Player*)> executor)

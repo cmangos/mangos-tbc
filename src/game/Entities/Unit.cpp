@@ -43,10 +43,12 @@
 #include "Grids/GridNotifiersImpl.h"
 #include "Grids/CellImpl.h"
 #include "MotionGenerators/MovementGenerator.h"
+#include "MotionGenerators/TargetedMovementGenerator.h"
 #include "Movement/MoveSplineInit.h"
 #include "Movement/MoveSpline.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Tools/Formulas.h"
+#include "Pomelo/DBConfigMgr.h"
 
 #include <math.h>
 #include <array>
@@ -409,6 +411,7 @@ Unit::Unit() :
 
     m_evadeTimer = 0;
     m_evadeMode = EVADE_NONE;
+    m_stopCombatTimer = 0;
 }
 
 Unit::~Unit()
@@ -511,7 +514,23 @@ void Unit::Update(const uint32 diff)
             m_evadeTimer = 0;
         }
         else
+        {
             m_evadeTimer -= diff;
+        }
+    }
+
+    if (m_stopCombatTimer)
+    {
+        if (m_stopCombatTimer <= diff)
+        {
+            m_stopCombatTimer = 0;
+            CombatStopWithPets();
+            GetMotionMaster()->MoveTargetedHome();
+        }
+        else
+        {
+            m_stopCombatTimer -= diff;
+        }
     }
 
     if (isAlive())
@@ -578,9 +597,17 @@ void Unit::StopEvade()
     if (m_evadeTimer)
     {
         m_evadeTimer = 0;
-        return;
     }
-    SetEvade(EVADE_NONE);
+    else
+    {
+        SetEvade(EVADE_NONE);
+    }
+
+    // Also stop anti cheat timer
+    if (m_stopCombatTimer)
+    {
+        m_stopCombatTimer = 0;
+    }
 }
 
 bool Unit::UpdateMeleeAttackingState()
@@ -702,6 +729,40 @@ void Unit::SendMoveRoot(bool state, bool broadcastOnly)
 void Unit::resetAttackTimer(WeaponAttackType type)
 {
     m_attackTimer[type] = uint32(GetAttackTime(type) * m_modAttackSpeedPct[type]);
+}
+
+bool Unit::DestCanReach(Unit* pVictim, float flat_mod /*= 0.0f*/)
+{
+    bool ret = true;
+    if (!sDBConfigMgr.GetUInt32("anticheat.sight")) 
+        return ret;
+
+    if (IsCreature() && pVictim->IsPlayerOrPlayerOwned() && GetMotionMaster()->GetCurrent()->GetMovementGeneratorType() == CHASE_MOTION_TYPE)
+    {
+        if (IsCrowdControlled() || IsImmobilizedState())
+            return ret;
+
+        Vector3 pos;
+        if (!((ChaseMovementGenerator*)GetMotionMaster()->GetCurrent())->GetActualEndPosition(pos)) 
+            return ret;
+
+        MANGOS_ASSERT(pVictim);
+
+        float reach = GetCombinedCombatReach(pVictim, true, flat_mod);
+
+        if (IsMoving() && !IsWalking() && pVictim->IsMoving() && !pVictim->IsWalking())
+            reach += MELEE_LEEWAY;
+
+        reach += ((ChaseMovementGenerator*)GetMotionMaster()->GetCurrent())->GetOffset();
+
+        // This check is not related to bounding radius
+        float dx = pos.x - pVictim->GetPositionX();
+        float dy = pos.y - pVictim->GetPositionY();
+        float dz = pos.z - pVictim->GetPositionZ();
+
+        ret = dx * dx + dy * dy + dz * dz < reach * reach;
+    }
+    return ret;
 }
 
 bool Unit::CanReachWithMeleeAttack(Unit const* pVictim, float flat_mod /*= 0.0f*/) const
@@ -1112,6 +1173,21 @@ void Unit::HandleDamageDealt(Unit* victim, uint32& damage, CleanDamage const* cl
         !spellProto->HasAttribute(SPELL_ATTR_EX_NO_THREAT))) && CanEnterCombat() && victim->CanEnterCombat())
     {
         float threat = damage * sSpellMgr.GetSpellThreatMultiplier(spellProto);
+
+        // Pomelo enhance tank threat
+        if (this->GetTypeId() == TYPEID_PLAYER)
+        {
+            float tankMultiplier = sDBConfigMgr.GetFloat("tank.threat");
+            if (tankMultiplier < 1) 
+                tankMultiplier = 1;
+            if (this->HasAura(71) // Vanguard
+                || this->HasAura(5487) // Bear Form
+                || this->HasAura(9634) // Dire Bear Form
+                || this->HasAura(25780)) // Righteous Fury
+            {
+                threat = threat * tankMultiplier;
+            }
+        }
         victim->AddThreat(this, threat, (cleanDamage && cleanDamage->hitOutCome == MELEE_HIT_CRIT), damageSchoolMask, spellProto);
         if (damagetype != DOT) // DOTs dont put in combat but still cause threat
         {
@@ -1325,6 +1401,12 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
                     ((DungeonMap*)m)->PermBindAllPlayers(creditedPlayer);
             }
             ((DungeonMap*)m)->GetPersistanceState()->UpdateEncounterState(ENCOUNTER_CREDIT_KILL_CREATURE, victim->GetEntry());
+
+            // Pomelo: Non-Raid & Non-Heroic should be set resetable when killed creature
+            if (!m->IsRaidOrHeroicDungeon())
+            {
+                ((DungeonMap*)m)->GetPersistanceState()->SetCanReset(true);
+            }
         }
     }
 
@@ -4332,7 +4414,7 @@ void Unit::InterruptSpell(CurrentSpellTypes spellType, bool withDelayed)
         // send autorepeat cancel message for autorepeat spells
         if (spellType == CURRENT_AUTOREPEAT_SPELL)
         {
-            if (GetTypeId() == TYPEID_PLAYER)
+            if (IsPlayer())
                 ((Player*)this)->SendAutoRepeatCancel();
         }
 
@@ -8185,6 +8267,7 @@ void Unit::ClearInCombat()
 {
     m_CombatTimer = 0;
     m_evadeTimer = 0;
+    m_stopCombatTimer = 0;
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
 
@@ -8767,6 +8850,7 @@ void Unit::SetDeathState(DeathState s)
 
         m_evadeTimer = 0;
         m_evadeMode = EVADE_NONE;
+        m_stopCombatTimer = 0;
 
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
@@ -8968,10 +9052,11 @@ bool Unit::SelectHostileTarget()
         // NOTE: path alrteady generated from AttackStart()
         if (AI()->IsCombatMovement())
         {
-            if (!GetMotionMaster()->GetCurrent()->IsReachable() || !target->isInAccessablePlaceFor(this))
+            if (!GetMotionMaster()->GetCurrent()->IsReachable() || !target->isInAccessablePlaceFor(this) || !DestCanReach(target))
             {
-                if (!IsInEvadeMode())
-                    StartEvadeTimer();
+                StartEvadeTimer();
+                if (!m_stopCombatTimer)
+                    m_stopCombatTimer = 10000;
             }
             else if (IsInEvadeMode())
                 StopEvade();
@@ -9310,7 +9395,7 @@ bool Unit::IsLeashingTarget(Unit* victim) const
 
     // Use AttackDistance in distance check if threat radius is lower. This prevents creature bounce in and out of combat every update tick.
     // TODO: Implement proper leashing
-    return !victim->IsWithinDist3d(x, y, z, ThreatRadius > AttackDist ? ThreatRadius : AttackDist);
+    return !victim->IsWithinDist3d(x, y, z, ThreatRadius > AttackDist ? ThreatRadius : AttackDist) && !GetMap()->IsDungeon();
 }
 
 uint32 Unit::GetCreatureType() const

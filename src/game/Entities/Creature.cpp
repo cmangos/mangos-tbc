@@ -46,6 +46,7 @@
 #include "Grids/CellImpl.h"
 #include "Movement/MoveSplineInit.h"
 #include "Entities/CreatureLinkingMgr.h"
+#include "Pomelo/DBConfigMgr.h"
 
 // apply implementation of the singletons
 #include "Policies/Singleton.h"
@@ -1379,6 +1380,12 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
     }
 
     health *= _GetHealthMod(rank); // Apply custom config settting
+
+    // Pomelo 10 players raid
+    Map* mMap = this->GetMap();
+    if (mMap->GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS)
+        health *= sDBConfigMgr.GetFloat("pomelo.difficulty.tenplayershp");
+
     if (health < 1)
         health = 1;
 

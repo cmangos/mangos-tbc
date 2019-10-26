@@ -36,7 +36,7 @@ PlayerbotMageAI::PlayerbotMageAI(Player* const master, Player* const bot, Player
     MANA_SHIELD             = m_ai->initSpell(MANA_SHIELD_1);
     CONJURE_WATER           = m_ai->initSpell(CONJURE_WATER_1);
     CONJURE_FOOD            = m_ai->initSpell(CONJURE_FOOD_1);
-    CONJURE_MANA_GEM        = m_ai->initSpell(CONJURE_MANA_GEM_1);
+    //CONJURE_MANA_GEM        = m_ai->initSpell(CONJURE_MANA_GEM_1);
     EVOCATION               = m_ai->initSpell(EVOCATION_1);
     FIREBALL                = m_ai->initSpell(FIREBALL_1);
     FIRE_BLAST              = m_ai->initSpell(FIRE_BLAST_1);
@@ -228,12 +228,12 @@ CombatManeuverReturns PlayerbotMageAI::DoNextCombatManeuverPVE(Unit* pTarget)
     // Mana check and replenishment
     if (EVOCATION && m_ai->GetManaPercent() <= 10 && m_bot->IsSpellReady(EVOCATION) && !newTarget && m_ai->SelfBuff(EVOCATION) == SPELL_CAST_OK)
         return RETURN_CONTINUE;
-    if (m_ai->GetManaPercent() <= 20)
-    {
-        Item* gem = FindManaGem();
-        if (gem)
-            m_ai->UseItem(gem);
-    }
+    //if (m_ai->GetManaPercent() <= 20)
+    //{
+    //    Item* gem = FindManaGem();
+    //    if (gem)
+    //        m_ai->UseItem(gem);
+    //}
 
     // If bot has frost/fire resist order use Frost/Fire Ward when available
     if (m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_FROST && FROST_WARD && m_bot->IsSpellReady(FROST_WARD) && m_ai->SelfBuff(FROST_WARD) == SPELL_CAST_OK)
@@ -479,12 +479,12 @@ void PlayerbotMageAI::DoNonCombatActions()
     else if (Buff(&PlayerbotMageAI::BuffHelper, ARCANE_INTELLECT, JOB_MANAONLY) & RETURN_CONTINUE)
         return;
 
-    Item* gem = FindManaGem();
-    if (!gem && CONJURE_MANA_GEM && m_ai->CastSpell(CONJURE_MANA_GEM, *m_bot) == SPELL_CAST_OK)
-    {
-        m_ai->SetIgnoreUpdateTime(3);
-        return;
-    }
+    //Item* gem = FindManaGem();
+    //if (!gem && CONJURE_MANA_GEM && m_ai->CastSpell(CONJURE_MANA_GEM, *m_bot) == SPELL_CAST_OK)
+    //{
+    //    m_ai->SetIgnoreUpdateTime(3);
+    //    return;
+    //}
 
     // TODO: The beauty of a mage is not only its ability to supply itself with water, but to share its water
     // So, conjure at *least* 1.25 stacks, ready to trade a stack and still have some left for self

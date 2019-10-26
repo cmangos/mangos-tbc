@@ -26,6 +26,7 @@
 #include "World/World.h"
 #include "Grids/CellImpl.h"
 #include "Globals/ObjectMgr.h"
+#include "Pomelo/DungeonSwitchMgr.h"
 #include <future>
 
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<MapManager, std::recursive_mutex>
@@ -331,7 +332,7 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
         map = FindMap(id, NewInstanceId);
         // it is possible that the save exists but the map doesn't
         if (!map)
-            pNewMap = CreateDungeonMap(id, NewInstanceId, pSave->GetDifficulty(), pSave);
+            pNewMap = CreateDungeonMap(id, NewInstanceId, pSave->GetDifficulty(), pSave->GetAdvancedDifficulty(), pSave);
     }
     else
     {
@@ -340,7 +341,8 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
         NewInstanceId = GenerateInstanceId();
 
         Difficulty diff = player->GetGroup() ? player->GetGroup()->GetDifficulty() : player->GetDifficulty();
-        pNewMap = CreateDungeonMap(id, NewInstanceId, diff);
+        AdvancedDifficulty adv_diff = player->GetGroup() ? player->GetGroup()->GetAdvancedDifficulty() : player->GetAdvancedDifficulty();
+        pNewMap = CreateDungeonMap(id, NewInstanceId, diff, adv_diff);
     }
 
     // add a new map object into the registry
@@ -353,7 +355,7 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
     return map;
 }
 
-DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficulty difficulty, DungeonPersistentState* save)
+DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficulty difficulty, AdvancedDifficulty pomeloDifficulty, DungeonPersistentState* save)
 {
     // make sure we have a valid map id
     const MapEntry* entry = sMapStore.LookupEntry(id);
@@ -368,13 +370,22 @@ DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficult
         MANGOS_ASSERT(false);
     }
 
+    // advanced difficulty does not support heroic
+    if (pomeloDifficulty != ADVANCED_DIFFICULTY_NORMAL)
+    {
+        if (sDungeonSwitchMgr.IsSupportTenPlayersDifficulty(id))
+            difficulty = DUNGEON_DIFFICULTY_NORMAL;
+        else
+            pomeloDifficulty = ADVANCED_DIFFICULTY_NORMAL;
+    }
+
     // some instances only have one difficulty
     if (entry && !entry->SupportsHeroicMode())
         difficulty = DUNGEON_DIFFICULTY_NORMAL;
 
     DEBUG_LOG("MapInstanced::CreateDungeonMap: %s map instance %d for %d created with difficulty %d", save ? "" : "new ", InstanceId, id, difficulty);
 
-    DungeonMap* map = new DungeonMap(id, i_gridCleanUpDelay, InstanceId, difficulty);
+    DungeonMap* map = new DungeonMap(id, i_gridCleanUpDelay, InstanceId, difficulty, pomeloDifficulty);
 
     // Dungeons can have saved instance data
     bool load_data = save != nullptr;

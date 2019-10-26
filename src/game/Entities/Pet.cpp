@@ -25,27 +25,9 @@
 #include "Tools/Formulas.h"
 #include "Spells/SpellAuras.h"
 #include "Entities/Unit.h"
+#include "Pomelo/PetLoyaltyMgr.h"
 
 // numbers represent minutes * 100 while happy (you get 100 loyalty points per min while happy)
-uint32 const LevelUpLoyalty[6] =
-{
-    5500,
-    11500,
-    17000,
-    23500,
-    31000,
-    39500,
-};
-
-uint32 const LevelStartLoyalty[6] =
-{
-    2000,
-    4500,
-    7000,
-    10000,
-    13500,
-    17500,
-};
 
 Pet::Pet(PetType type) :
     Creature(CREATURE_SUBTYPE_PET),
@@ -785,16 +767,36 @@ void Pet::SetRequiredXpForNextLoyaltyLevel()
     if (owner)
     {
         uint32 ownerLevel = owner->getLevel();
-        m_xpRequiredForNextLoyaltyLevel = ownerLevel < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) ? sObjectMgr.GetXPForLevel(ownerLevel) * 5 / 100 : sObjectMgr.GetXPForLevel(ownerLevel - 1) * 5 / 100;
+        if (owner->getLevel() == getLevel())
+        {
+            m_xpRequiredForNextLoyaltyLevel = 0;
+        }
+        else
+        {
+            m_xpRequiredForNextLoyaltyLevel = ownerLevel < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) ? sObjectMgr.GetXPForLevel(ownerLevel) * 5 / 100 : sObjectMgr.GetXPForLevel(ownerLevel - 1) * 5 / 100;
+        }
     }
 }
 
 void Pet::UpdateRequireXpForNextLoyaltyLevel(uint32 xp)
 {
     if (xp > m_xpRequiredForNextLoyaltyLevel)
+    {
         m_xpRequiredForNextLoyaltyLevel = 0;
+    }
     else
+    {
         m_xpRequiredForNextLoyaltyLevel -= xp;
+        
+        Unit* owner = GetOwner();
+        if (owner)
+        {
+            if (owner->getLevel() == getLevel())
+            {
+                m_xpRequiredForNextLoyaltyLevel = 0;
+            }
+        }
+    }
 }
 
 void Pet::ModifyLoyalty(int32 addvalue)
@@ -1003,14 +1005,14 @@ uint32 Pet::GetMaxLoyaltyPoints(uint32 level) const
 {
     if (level < 1) level = 1; // prevent SIGSEGV (out of range)
     if (level > 7) level = 7; // prevent SIGSEGV (out of range)
-    return LevelUpLoyalty[level - 1];
+    return sPetLoyaltyMgr.GetLevelUp()[level - 1];
 }
 
 uint32 Pet::GetStartLoyaltyPoints(uint32 level) const
 {
     if (level < 1) level = 1; // prevent SIGSEGV (out of range)
     if (level > 7) level = 7; // prevent SIGSEGV (out of range)
-    return LevelStartLoyalty[level - 1];
+    return sPetLoyaltyMgr.GetLevelStart()[level - 1];
 }
 
 void Pet::SetTP(int32 TP)
@@ -1129,7 +1131,14 @@ void Pet::GivePetXP(uint32 xp)
     if (level >= maxlevel)
         return;
 
-    xp *= sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL);
+    if (level < 60)
+    {
+        xp *= sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL);
+    }
+    else
+    {
+        xp *= sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL_TBC);
+    }
 
     uint32 nextLvlXP = GetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
     uint32 curXP = GetUInt32Value(UNIT_FIELD_PETEXPERIENCE);
@@ -1166,6 +1175,7 @@ void Pet::GivePetLevel(uint32 level)
     }
 
     InitStatsForLevel(level);
+    SetRequiredXpForNextLoyaltyLevel();
     SetTP(m_TrainingPoints + (GetLoyaltyLevel() - 1));
 }
 

@@ -238,7 +238,9 @@ class Group
         void SetTargetIcon(uint8 id, ObjectGuid targetGuid);
 
         void SetDifficulty(Difficulty difficulty);
+        void SetAdvancedDifficulty(AdvancedDifficulty difficulty);
         Difficulty GetDifficulty() const { return m_difficulty; }
+        AdvancedDifficulty GetAdvancedDifficulty() const { return m_pomeloDifficulty; }
         bool InCombatToInstance(uint32 instanceId);
         void ResetInstances(InstanceResetMethod method, Player* SendMsgTo);
 
@@ -269,10 +271,10 @@ class Group
         void DelinkMember(GroupReference* /*pRef*/) const { }
 
         InstanceGroupBind* BindToInstance(DungeonPersistentState* state, bool permanent, bool load = false);
-        void UnbindInstance(uint32 mapid, uint8 difficulty, bool unload = false);
+        void UnbindInstance(uint32 mapid, uint8 difficulty, uint8 advDiff, bool unload = false);
         InstanceGroupBind* GetBoundInstance(uint32 mapid);
-        InstanceGroupBind* GetBoundInstance(Map* aMap, Difficulty difficulty);
-        BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
+        InstanceGroupBind* GetBoundInstance(Map* aMap, Difficulty difficulty, AdvancedDifficulty advDiff);
+        BoundInstancesMap& GetBoundInstances(Difficulty difficulty, AdvancedDifficulty advDiff) { return m_boundInstances[difficulty][advDiff]; }
 
     protected:
         bool _addMember(ObjectGuid guid, const char* name, bool isAssistant = false);
@@ -354,13 +356,14 @@ class Group
         ObjectGuid          m_mainAssistantGuid;
         GroupType           m_groupType;
         Difficulty          m_difficulty;
+        AdvancedDifficulty  m_pomeloDifficulty;
         BattleGround*       m_bgGroup;
         ObjectGuid          m_targetIcons[TARGET_ICON_COUNT];
         LootMethod          m_lootMethod;
         ItemQualities       m_lootThreshold;
         ObjectGuid          m_masterLooterGuid;
         ObjectGuid          m_currentLooterGuid;
-        BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY];
+        BoundInstancesMap   m_boundInstances[MAX_DIFFICULTY][MAX_ADVANCED_DIFFICULTY];
         uint8*              m_subGroupsCounts;
 };
 #endif

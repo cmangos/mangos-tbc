@@ -214,14 +214,22 @@ struct boss_moroesAI : public ScriptedAI, public CombatActions
             for (uint8 i = 0; i < MAX_ACTIVE_GUESTS; ++i)
             {
                 // If we already have the creature on the map, then don't summon it
-                if (Creature* add = m_pInstance->GetSingleCreatureFromStorage(m_vGuestsEntryList[i], true))
+                Creature* add = m_pInstance->GetSingleCreatureFromStorage(m_vGuestsEntryList[i], true);
+                if (add)
                 {
                     if (add->isInCombat())
+                    {
                         add->AI()->EnterEvadeMode();
-                    continue;
-                }
+                    }
 
-                m_creature->SummonCreature(m_vGuestsEntryList[i], guestLocations[i][0], guestLocations[i][1], guestLocations[i][2], guestLocations[i][3], TEMPSPAWN_CORPSE_DESPAWN, 0);
+                    // Move adds back to original positions
+                    add->GetMotionMaster()->MovePoint(1, guestLocations[i][0], guestLocations[i][1], guestLocations[i][2]);
+                    add->SetOrientation(guestLocations[i][3]);
+                }
+                else
+                {
+                    m_creature->SummonCreature(m_vGuestsEntryList[i], guestLocations[i][0], guestLocations[i][1], guestLocations[i][2], guestLocations[i][3], TEMPSPAWN_CORPSE_DESPAWN, 0);
+                }
             }
         }
     }

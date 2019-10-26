@@ -36,6 +36,8 @@
 #include "BattleGround/BattleGroundMgr.h"
 #include "Social/SocialMgr.h"
 #include "Loot/LootMgr.h"
+#include "Pomelo/TransmogrificationMgr.h"
+#include "AI/ScriptDevAI/scripts/custom/item_playerbot.h"
 
 #include <mutex>
 #include <deque>
@@ -490,11 +492,17 @@ void WorldSession::LogoutPlayer(bool Save)
     {
 #ifdef BUILD_PLAYERBOT
         // Log out all player bots owned by this toon
-        if (_player->GetPlayerbotMgr())
-            _player->GetPlayerbotMgr()->LogoutAllBots();
+        if (auto mgr = _player->GetPlayerbotMgr())
+        {
+            mgr->LogoutAllBots();
+            RemovePlayerBotCachedCharacters(_player);
+        }
 #endif
 
         sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), GetRemoteAddress().c_str(), _player->GetName(), _player->GetGUIDLow());
+
+		// Transmogrification
+		sTransmogrificationMgr.OnLogout(_player->GetGUIDLow());
 
         if (Loot* loot = sLootMgr.GetLoot(_player))
             loot->Release(_player);

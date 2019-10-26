@@ -174,13 +174,13 @@ int main(int argc, char* argv[])
     sLog.outString("%s [world-daemon]", _FULLVERSION(REVISION_DATE, REVISION_ID));
     sLog.outString("<Ctrl-C> to stop.");
     sLog.outString("\n\n"
-                   "       _____     __  __       _   _  _____  ____   _____ \n"
-                   "      / ____|   |  \\/  |     | \\ | |/ ____|/ __ \\ / ____|\n"
-                   "     | |        | \\  / |     |  \\| | |  __  |  | | (___  \n"
-                   "     | |ontinued| |\\/| | __ _| . ` | | |_ | |  | |\\___ \\ \n"
-                   "     | |____    | |  | |/ _` | |\\  | |__| | |__| |____) |\n"
-                   "      \\_____|   |_|  |_| (_| |_| \\_|\\_____|\\____/ \\____/ \n"
-                   "      http://cmangos.net\\__,_|     Doing things right!\n\n");
+                   "      _____   _____       ___  ___   _____   _       _____  \n"
+                   "     |  _  \\ /  _  \\     /   |/   | | ____| | |     /  _  \\ \n"
+                   "     | |_| | | | | |    / /|   /| | | |__   | |     | | | | \n"
+                   "     |  ___/ | | | |   / / |__/ | | |  __|  | |     | | | | \n"
+                   "     | |     | |_| |  / /       | | | |___  | |___  | |_| | \n"
+                   "     |_|     \\_____/ /_/        |_| |_____| |_____| \\_____/ \n"
+                   "     https://wowtbc.org  QQ Group: 833250014              \n\n");
 
     sLog.outString("Using configuration file %s.", configFile.c_str());
 

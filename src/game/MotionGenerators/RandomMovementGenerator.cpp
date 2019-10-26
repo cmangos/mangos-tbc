@@ -256,5 +256,5 @@ bool PanicMovementGenerator::Update(Unit& owner, const uint32& diff)
     if (m_fleeingTimer.Passed())
         return false;
 
-    return FleeingMovementGenerator::Update(owner, diff);
+    return FleeingMovementGenerator::Update(owner, diff);、
 }

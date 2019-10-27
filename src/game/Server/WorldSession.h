@@ -775,7 +775,7 @@ class WorldSession
         void HandleGetMirrorimageData(WorldPacket& recv_data);
 
         // Movement
-        void SynchronizeMovement(MovementInfo &movementInfo);
+        void SynchronizeMovement(const MovementInfoPtr& movementInfo);
     private:
         // Additional private opcode handlers
         void HandleComplainMail(WorldPacket& recv_data);

@@ -897,9 +897,9 @@ void WorldSession::HandleMoveUnRootAck(WorldPacket& recv_data)
     recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
 
     Unit* mover = _player->GetMover();
-    if (mover && mover->GetObjectGuid() == guid && mover->m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT))
+    if (mover && mover->GetObjectGuid() == guid && mover->m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT))
     {
-        mover->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
+        mover->m_movementInfo->RemoveMovementFlag(MOVEFLAG_ROOT);
         mover->SendMoveRoot(false, true);
     }
     /*
@@ -932,10 +932,10 @@ void WorldSession::HandleMoveRootAck(WorldPacket& recv_data)
     recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
 
     Unit* mover = _player->GetMover();
-    if (mover && mover->GetObjectGuid() == guid && !mover->m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT))
+    if (mover && mover->GetObjectGuid() == guid && !mover->m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT))
     {
-        mover->m_movementInfo.RemoveMovementFlag(movementFlagsMask);
-        mover->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
+        mover->m_movementInfo->RemoveMovementFlag(movementFlagsMask);
+        mover->m_movementInfo->AddMovementFlag(MOVEFLAG_ROOT);
         mover->SendMoveRoot(true, true);
     }
     /*

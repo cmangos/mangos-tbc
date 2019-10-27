@@ -680,11 +680,11 @@ void Unit::SendMoveRoot(bool state, bool broadcastOnly)
     {
         if (state)
         {
-            m_movementInfo.RemoveMovementFlag(movementFlagsMask);
-            m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
+            m_movementInfo->RemoveMovementFlag(movementFlagsMask);
+            m_movementInfo->AddMovementFlag(MOVEFLAG_ROOT);
         }
         else
-            m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
+            m_movementInfo->RemoveMovementFlag(MOVEFLAG_ROOT);
     }
 
     const PackedGuid &guid = GetPackGUID();

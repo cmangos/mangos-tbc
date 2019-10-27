@@ -568,7 +568,7 @@ void WorldSession::HandleMoverRelocation(const MovementInfoPtr& movementInfo)
         }
 
         plMover->m_movementInfo = movementInfo;
-        plMover->SetPosition(movementInfo.GetPos()->x, movementInfo.GetPos()->y, movementInfo.GetPos()->z, movementInfo.GetPos()->o);
+        plMover->SetPosition(movementInfo->GetPos()->x, movementInfo->GetPos()->y, movementInfo->GetPos()->z, movementInfo->GetPos()->o);
 
         if (movementInfo->GetPos()->z < -500.0f)
         {
@@ -619,7 +619,7 @@ void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recv_data)
     if (mover == nullptr || guid != mover->GetObjectGuid())
         return;
 
-    mover->m_movementInfo.UpdateTime(mover->m_movementInfo.GetTime() + timeSkipped);
+    mover->m_movementInfo->UpdateTime(mover->m_movementInfo->GetTime() + timeSkipped);
 
     // Send to other players
     WorldPacket data(MSG_MOVE_TIME_SKIPPED, 16);

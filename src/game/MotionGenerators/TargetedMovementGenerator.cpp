@@ -628,7 +628,7 @@ float FollowMovementGenerator::GetVelocity(Unit& owner, bool allowCatchup/* = fa
             speed = i_target->movespline->Velocity();
         else
         {
-            MovementFlags movementFlags = i_target->m_movementInfo.GetMovementFlags();
+            MovementFlags movementFlags = i_target->m_movementInfo->GetMovementFlags();
             UnitMoveType movementType = MOVE_RUN;
 
             if (movementFlags & MOVEFLAG_FLYING)
@@ -712,7 +712,7 @@ bool FollowMovementGenerator::Unstuck(Unit& owner, float x, float y, float z)
     if (i_target.isValid() && !owner.isInCombat() && owner.GetOwnerGuid() == i_target->GetObjectGuid())
     {
         // Wait until landing on terrain
-        if (!i_target->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
+        if (!i_target->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
         {
             owner.Relocate(x, y, z);
             return true;
@@ -823,7 +823,7 @@ void FollowMovementGenerator::HandleTargetedMovement(Unit& owner, const uint32& 
 
     const bool targetMovingLast = m_targetMoving;
     // If moving in any direction (not count jumping in place)
-    m_targetMoving = i_target->m_movementInfo.HasMovementFlag(MovementFlags(movementFlagsMask & ~(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)));
+    m_targetMoving = i_target->m_movementInfo->HasMovementFlag(MovementFlags(movementFlagsMask & ~(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)));
     bool targetRelocation = false;
     bool targetOrientation = false;
 

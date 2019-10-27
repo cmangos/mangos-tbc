@@ -1430,7 +1430,7 @@ class Player : public Unit
         uint8 m_addTradeSkills = 0;
         uint8 GetAdditionalTradeSkills() const { return m_addTradeSkills; }
 
-        void LearnSpellsWhenLevelup();
+        void LearnSpellsWhenLevelup(uint32 previousLevel);
         void LearnAllGreenSpells(uint32 trainerId, size_t nonGreenCount = 0);
         bool IsAlliance();
 

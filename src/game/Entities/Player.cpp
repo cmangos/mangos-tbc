@@ -2681,7 +2681,9 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
 // Current player experience not update (must be update by caller)
 void Player::GiveLevel(uint32 level)
 {
-    if (level == getLevel())
+    uint32 previousLevel = getLevel();
+
+    if (level == previousLevel)
         return;
 
     uint32 plClass = getClass();
@@ -2747,7 +2749,7 @@ void Player::GiveLevel(uint32 level)
     SendQuestGiverStatusMultiple();
 
     if (sDBConfigMgr.GetUInt32("autolearnspellonlevelup"))
-        this->LearnSpellsWhenLevelup();
+        this->LearnSpellsWhenLevelup(previousLevel);
 }
 
 void Player::UpdateFreeTalentPoints(bool resetIfNeed)
@@ -22169,7 +22171,7 @@ void Player::LearnAllGreenSpells(uint32 trainerId, size_t nonGreenCount)
         LearnAllGreenSpells(trainerId, non_green);
 }
 
-void Player::LearnSpellsWhenLevelup()
+void Player::LearnSpellsWhenLevelup(uint32 previousLevel)
 {
     uint8 classId = this->getClass();
     uint32 npcId = sDBConfigMgr.GetUInt32("trainer." + std::to_string(classId));
@@ -22179,19 +22181,19 @@ void Player::LearnSpellsWhenLevelup()
     if (classId == 7)
     {
         uint32 level = getLevel();
-        if (level == 5)
+        if (previousLevel < 5 && level >= 5)
         {
             ChatHandler(this).HandleAddItemCommandInternal("5175", true);
         }
-        else if (level == 10)
+        if (previousLevel < 10 && level >= 10)
         {
             ChatHandler(this).HandleAddItemCommandInternal("5176", true);
         }
-        else if (level == 20)
+        if (previousLevel < 20 && level >= 20)
         {
             ChatHandler(this).HandleAddItemCommandInternal("5177", true);
         }
-        else if (level == 30)
+        if (previousLevel < 30 && level >= 30)
         {
             ChatHandler(this).HandleAddItemCommandInternal("5178", true);
         }

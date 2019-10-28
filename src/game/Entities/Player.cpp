@@ -72,6 +72,7 @@
 #include "Pomelo/InitPlayerItemMgr.h"
 #include "Pomelo/VendorItemBlacklistMgr.h"
 #include "Pomelo/OnlineRewardMgr.h"
+#include "Pomelo/AntiCheatMgr.h"
 #include "Globals/ObjectMgr.h"
 
 #ifdef BUILD_PLAYERBOT
@@ -1360,6 +1361,11 @@ SpellAuraHolder const* Player::GetMirrorTimerBuff(MirrorTimer::Type timer) const
 
 void Player::Update(const uint32 diff)
 {
+    if (sAntiCheatMgr.CheckSpeed())
+    {
+        m_anticheatSpeedTimer += diff;
+    }
+
     if (!IsInWorld())
         return;
 
@@ -1902,7 +1908,7 @@ ChatTagFlags Player::GetChatTag() const
     return tag;
 }
 
-bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options /*=0*/, AreaTrigger const* at /*=nullptr*/)
+bool Player::TeleportToInternal(uint32 mapid, float x, float y, float z, float orientation, uint32 options /*=0*/, AreaTrigger const* at /*=nullptr*/)
 {
     // do not let charmed players/creatures teleport
     if (HasCharmer())
@@ -2188,6 +2194,18 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             return false;
     }
     return true;
+}
+
+bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options /*=0*/, AreaTrigger const* at /*=nullptr*/)
+{
+    bool ret = TeleportToInternal(mapid, x, y, z, orientation, options, at);
+
+    if (ret)
+    {
+        m_anticheatTeleported = true;
+    }
+
+    return ret;
 }
 
 bool Player::TeleportToBGEntryPoint()

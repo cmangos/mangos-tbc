@@ -953,6 +953,7 @@ class Player : public Unit
         void AddToWorld() override;
         void RemoveFromWorld() override;
 
+        bool TeleportToInternal(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0, AreaTrigger const* at = nullptr);
         bool TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0, AreaTrigger const* at = nullptr);
 
         bool TeleportTo(WorldLocation const& loc, uint32 options = 0)
@@ -1436,6 +1437,9 @@ class Player : public Unit
 
         bool UpdateSkillProMax(uint16 SkillId);
 
+        bool m_anticheatTeleported = true;
+        uint32 m_anticheatSpeedTimer = 0;
+        float m_anticheatSpeedMovedLength = 0.f;
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
         /*********************************************************/

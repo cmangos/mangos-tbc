@@ -1085,7 +1085,10 @@ enum MangosStrings
     LANG_TRANSMOG_BUY_WEAPON            = 80059,
     LANG_CURRENCY_GAIN                  = 80060,
     LANG_ADDITIONAL_TRADE_SKILL         = 80061,
-    LANG_CANNOT_USE_INC_SKILL_ITEM      = 80062
+    LANG_CANNOT_USE_INC_SKILL_ITEM      = 80062,
+    LANG_CHEATER_KICKED                 = 80063,
+    LANG_CHEATER_DIED                   = 80064,
+    LANG_CHEATER_NO_ACTION              = 80065,
 
     // Use for custom patches             11000-11999
 

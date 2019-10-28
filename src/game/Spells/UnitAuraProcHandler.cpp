@@ -557,7 +557,13 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
         {
             // If last charge dropped add spell to remove list
             if (triggeredByHolder->DropAuraCharge())
-                removedSpells.push_back(triggeredByHolder->GetId());
+            {
+                auto id = triggeredByHolder->GetId();
+                if (id != 12536) // Pomelo: Exception for Clearcasting
+                {
+                    removedSpells.push_back(triggeredByHolder->GetId());
+                }
+            }
         }
     }
 

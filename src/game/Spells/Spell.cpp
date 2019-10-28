@@ -4278,6 +4278,11 @@ void Spell::TakePower()
     // Set the five second timer
     if (powerType == POWER_MANA && m_powerCost > 0)
         m_caster->SetLastManaUse();
+
+    if (m_caster->HasAura(12536) && powerType == POWER_MANA) // Pomelo: Remove Clearcasting aura
+    {
+        m_caster->RemoveAurasDueToSpell(12536);
+    }
 }
 
 void Spell::TakeAmmo() const

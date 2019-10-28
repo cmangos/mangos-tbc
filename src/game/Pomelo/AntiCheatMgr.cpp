@@ -25,20 +25,20 @@ void AntiCheatMgr::TakeActionForCheater(Player* pPlayer, AntiCheatAction action)
     {
     case ANTI_CHEAT_ACTION_KICK:
     {
-        pPlayer->GetSession()->KickPlayer();
         const char* format = pPlayer->GetSession()->GetMangosString(LANG_CHEATER_KICKED);
         char str[2048];
         snprintf(str, 2048, format, pPlayer->GetName());
         sWorld.SendServerMessage(SERVER_MSG_CUSTOM, str);
+        pPlayer->GetSession()->KickPlayer();
         break; 
     }
     case ANTI_CHEAT_ACTION_DIE:
     {
-        pPlayer->KillPlayer();
         const char* format = pPlayer->GetSession()->GetMangosString(LANG_CHEATER_DIED);
         char str[2048];
         snprintf(str, 2048, format, pPlayer->GetName());
         sWorld.SendServerMessage(SERVER_MSG_CUSTOM, str);
+        pPlayer->KillPlayer();
         break; 
     }
     case ANTI_CHEAT_ACTION_NOACTION:

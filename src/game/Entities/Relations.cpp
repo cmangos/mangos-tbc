@@ -420,34 +420,41 @@ bool Unit::CanAttack(const Unit* unit) const
     else if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC))
         return false;
 
+    if (thisPlayerControlled && unitPlayerControlled)
+    {
+        if (IsFriend(unit))
+            return false;
+
+        const Player* thisPlayer = GetControllingPlayer();
+        if (!thisPlayer)
+            return true;
+
+        const Player* unitPlayer = unit->GetControllingPlayer();
+        if (!unitPlayer)
+            return true;
+
+        if (thisPlayer->IsInDuelWith(unitPlayer))
+            return true;
+
+        if (unitPlayer->IsPvP())
+            return true;
+
+        if (thisPlayer->IsPvPFreeForAll() && unitPlayer->IsPvPFreeForAll())
+            return true;
+
+        return false;
+    }
+    else if (!thisPlayerControlled && unitPlayerControlled)
+    {
+        if (!IsEnemy(unit) && !IsAttackedBy((Unit*)unit))
+            return false;
+    }
+
     if (thisPlayerControlled || unitPlayerControlled)
     {
-        if (thisPlayerControlled && unitPlayerControlled)
-        {
-            if (IsFriend(unit))
-                return false;
-
-            const Player* thisPlayer = GetControllingPlayer();
-            if (!thisPlayer)
-                return true;
-
-            const Player* unitPlayer = unit->GetControllingPlayer();
-            if (!unitPlayer)
-                return true;
-
-            if (thisPlayer->IsInDuelWith(unitPlayer))
-                return true;
-
-            if (unitPlayer->IsPvP())
-                return true;
-
-            if (thisPlayer->IsPvPFreeForAll() && unitPlayer->IsPvPFreeForAll())
-                return true;
-
-            return false;
-        }
         return (!IsFriend(unit));
     }
+
     return (IsEnemy(unit) || unit->IsEnemy(this));
 }
 

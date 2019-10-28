@@ -4280,7 +4280,7 @@ void Spell::TakePower()
         m_caster->SetLastManaUse();
 
     // Pomelo: Remove Clearcasting aura
-    if (m_caster->HasAura(12536) && powerType == POWER_MANA)
+    if (m_caster->HasAura(12536) && powerType == POWER_MANA && m_spellInfo->manaCost > 0)
         m_caster->RemoveAurasDueToSpell(12536);
 }
 

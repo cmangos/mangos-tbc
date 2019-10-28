@@ -4279,10 +4279,9 @@ void Spell::TakePower()
     if (powerType == POWER_MANA && m_powerCost > 0)
         m_caster->SetLastManaUse();
 
-    if (m_caster->HasAura(12536) && powerType == POWER_MANA) // Pomelo: Remove Clearcasting aura
-    {
+    // Pomelo: Remove Clearcasting aura
+    if (m_caster->HasAura(12536) && powerType == POWER_MANA)
         m_caster->RemoveAurasDueToSpell(12536);
-    }
 }
 
 void Spell::TakeAmmo() const

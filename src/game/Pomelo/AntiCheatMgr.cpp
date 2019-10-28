@@ -97,7 +97,7 @@ bool AntiCheatMgr::IsSpeedCheat(Player* pPlayer, MovementInfo* pMovement)
     
     float speedRate = pPlayer->GetSpeed(pPlayer->m_movementInfo.GetSpeedType());
 
-    if (dis / diff * 1000.f > speedRate)
+    if (dis / diff * 1000.f > speedRate * 1.05) // Leave 5% buffer for network latency
     {
         const char* format = "%s is making speed cheat: length=%f, capacity=%f, interval=%u ms";
         char detail[2048];

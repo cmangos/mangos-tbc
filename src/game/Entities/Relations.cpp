@@ -1112,34 +1112,41 @@ bool Unit::CanAttackSpell(Unit const* target, SpellEntry const* spellInfo, bool 
 
     if (CanAttack(target))
     {
-        if (isAOE)
+        if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         {
             if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
             {
-                if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+                // PVP-flagged PC units cant *unintentionally* attack PVP-unflagged PC units with AOE (unless in FFA action) and vice versa
+                // Pre-WotLK: Using reverse Unit::CanAttack() checks:
+                if (isAOE)
                 {
-                    const Player* thisPlayer = GetControllingPlayer();
-                    if (!thisPlayer)
-                        return true;
-
-                    const Player* unitPlayer = target->GetControllingPlayer();
-                    if (!unitPlayer)
-                        return true;
-
-                    if (thisPlayer->IsInDuelWith(unitPlayer))
-                        return true;
-
-                    if (unitPlayer->IsPvP() && (!isAOE || thisPlayer->IsPvP()))
-                        return true;
-
-                    if (thisPlayer->IsPvPFreeForAll() && unitPlayer->IsPvPFreeForAll())
-                        return true;
-
-                    return false;
+                    if (const Player* thisPlayer = GetControllingPlayer())
+                    {
+                        if (const Player* unitPlayer = target->GetControllingPlayer())
+                        {
+                            if (!thisPlayer->IsInDuelWith(unitPlayer) && thisPlayer->IsPvP() != unitPlayer->IsPvP())
+                                return (thisPlayer->IsPvPFreeForAll() && unitPlayer->IsPvPFreeForAll());
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // NPC units cant *unintentionally* attack non-hostile PC units which aren't at war with them
+                if (!IsEnemy(target))
+                {
+                    if (const Player* unitPlayer = target->GetControllingPlayer())
+                    {
+                        if (const FactionTemplateEntry* thisFactionTemplate = GetFactionTemplateEntry())
+                        {
+                            const FactionEntry* thisFactionEntry = sFactionStore.LookupEntry<FactionEntry>(thisFactionTemplate->faction);
+                            if (thisFactionEntry && thisFactionEntry->HasReputation())
+                                return unitPlayer->GetReputationMgr().IsAtWar(thisFactionEntry);
+                        }
+                    }
                 }
             }
         }
-
         return true;
     }
     return false;
@@ -1155,7 +1162,7 @@ bool Unit::CanAttackSpell(Unit const* target, SpellEntry const* spellInfo, bool 
 /////////////////////////////////////////////////
 bool Unit::CanAssistSpell(Unit const* target, SpellEntry const* spellInfo) const
 {
-    return CanAssist(target, spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX6_ASSIST_IGNORE_IMMUNE_FLAG));
+    return CanAssist(target, (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX6_ASSIST_IGNORE_IMMUNE_FLAG)));
 }
 
 /////////////////////////////////////////////////

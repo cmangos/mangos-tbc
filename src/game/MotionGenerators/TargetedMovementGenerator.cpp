@@ -219,6 +219,10 @@ void ChaseMovementGenerator::Initialize(Unit& owner)
 {
     owner.addUnitState(UNIT_STAT_CHASE);                    // _MOVE set in _SetTargetLocation after required checks
     _setTargetLocation(owner, true);
+
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
     i_target->GetPosition(i_lastTargetPos.x, i_lastTargetPos.y, i_lastTargetPos.z);
 }
 
@@ -270,6 +274,9 @@ float ChaseMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRang
 
 void ChaseMovementGenerator::HandleTargetedMovement(Unit& owner, const uint32& time_diff)
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
     bool targetMoved = false;
     G3D::Vector3 currentTargetPos;
     this->i_target->GetPosition(currentTargetPos.x, currentTargetPos.y, currentTargetPos.z);
@@ -391,6 +398,9 @@ void ChaseMovementGenerator::HandleMovementFailure(Unit& owner)
 
 void ChaseMovementGenerator::HandleFinalizedMovement(Unit& owner)
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
     this->i_targetReached = true;
     if (!owner.HasInArc(this->i_target.getTarget(), 0.01f))
         owner.SetInFront(this->i_target.getTarget());
@@ -417,6 +427,9 @@ void ChaseMovementGenerator::HandleFinalizedMovement(Unit& owner)
 
 void ChaseMovementGenerator::DistanceYourself(Unit& owner, float distance)
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
     float x, y, z;
     i_target->GetNearPoint(&owner, x, y, z, owner.GetObjectBoundingRadius(), distance, i_target->GetAngle(&owner));
     if (DispatchSplineToPosition(owner, x, y, z, false, false))
@@ -472,6 +485,9 @@ void ChaseMovementGenerator::FanOut(Unit& owner)
 
     if (collider) // position collision found - need to find a new spot
     {
+        if (!i_target.isValid() || !i_target->IsInWorld())
+            return;
+
         int32 direction = irand(0, 1); // blizzlike behaviour
         if (direction == 0) direction = -1;
         float ori = MapManager::NormalizeOrientation(owner.GetOrientation() + M_PI_F + frand(fanAngleMin, fanAngleMax) * direction);
@@ -520,6 +536,10 @@ bool ChaseMovementGenerator::DispatchSplineToPosition(Unit& owner, float x, floa
     init.MovebyPath(path);
     init.SetWalk(walk);
     init.Launch();
+
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return false;
+
     this->i_target->GetPosition(i_lastTargetPos.x, i_lastTargetPos.y, i_lastTargetPos.z);
 
     m_reachable = true;
@@ -530,6 +550,9 @@ void ChaseMovementGenerator::CutPath(Unit& owner, PointsArray& path)
 {
     if (this->i_offset != 0.f) // need to cut path until most distant viable point
     {
+        if (!i_target.isValid() || !i_target->IsInWorld())
+            return;
+
         float distSquared = i_offset * CHASE_MOVE_CLOSER_FACTOR + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner, false);
         distSquared *= distSquared; // squared
         float tarX, tarY, tarZ;
@@ -558,6 +581,9 @@ bool ChaseMovementGenerator::IsReachable() const
 
 bool ChaseMovementGenerator::RequiresNewPosition(Unit& owner, float x, float y, float z) const
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return false;
+
     float dist = this->GetDynamicTargetDistance(owner, true);
     dist *= dist;
     float distanceToCoords = i_target->GetDistance(x, y, z, DIST_CALC_NONE); // raw squared istance

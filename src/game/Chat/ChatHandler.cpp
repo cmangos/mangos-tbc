@@ -190,12 +190,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         {
             std::string to, msg;
             recv_data >> to;
-
-            // WHISPER channel is available for addons since 2.1.0
-            if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
-            else
-                recv_data >> msg;
+            recv_data >> msg;
 
             if (msg.empty())
                 break;
@@ -236,11 +231,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         case CHAT_MSG_PARTY:
         {
             std::string msg;
-
-            if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
-            else
-                recv_data >> msg;
+            recv_data >> msg;
 
             if (msg.empty())
                 break;
@@ -272,11 +263,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         case CHAT_MSG_GUILD:
         {
             std::string msg;
-
-            if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
-            else
-                recv_data >> msg;
+            recv_data >> msg;
 
             if (msg.empty())
                 break;
@@ -299,11 +286,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         case CHAT_MSG_OFFICER:
         {
             std::string msg;
-
-            if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
-            else
-                recv_data >> msg;
+            recv_data >> msg;
 
             if (msg.empty())
                 break;
@@ -326,11 +309,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         case CHAT_MSG_RAID:
         {
             std::string msg;
-
-            if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
-            else
-                recv_data >> msg;
+            recv_data >> msg;
 
             if (msg.empty())
                 break;
@@ -413,11 +392,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         case CHAT_MSG_BATTLEGROUND:
         {
             std::string msg;
-
-            if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
-            else
-                recv_data >> msg;
+            recv_data >> msg;
 
             if (!processChatmessageFurtherAfterSecurityChecks(msg, lang))
                 return;

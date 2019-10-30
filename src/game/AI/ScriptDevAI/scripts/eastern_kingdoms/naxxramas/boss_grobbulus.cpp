@@ -87,7 +87,7 @@ struct boss_grobbulusAI : public ScriptedAI
 
         // Clean-up stage
         DoCastSpellIfCan(m_creature, SPELL_DESPAWN_SUMMONS, CAST_TRIGGERED);
-        
+
         ScriptedAI::EnterEvadeMode();
     }
 

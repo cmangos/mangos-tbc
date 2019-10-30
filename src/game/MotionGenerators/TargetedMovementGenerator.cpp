@@ -193,6 +193,9 @@ bool TargetedMovementGeneratorMedium<T, D>::IsReachable() const
 template<class T, typename D>
 bool TargetedMovementGeneratorMedium<T, D>::RequiresNewPosition(T& owner, float x, float y, float z) const
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return false;
+
     float dist = this->GetDynamicTargetDistance(owner, true);
     // More distance let have better performance, less distance let have more sensitive reaction at target move.
     return i_target->GetDistance(x, y, z, DIST_CALC_NONE) > dist * dist;
@@ -798,6 +801,9 @@ bool FollowMovementGenerator::_move(Unit& owner, const Movement::PointsArray& pa
 
 float FollowMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRangeCheck) const
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return 0.f;
+
     if (!forRangeCheck)
         return (GetOffset(owner) + owner.GetObjectBoundingRadius() + i_target->GetObjectBoundingRadius());
 

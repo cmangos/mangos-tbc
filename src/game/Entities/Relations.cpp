@@ -1174,7 +1174,9 @@ bool Unit::CanAssistSpell(Unit const* target, SpellEntry const* spellInfo) const
 /// Typically used in AIs in MoveInLineOfSight
 /////////////////////////////////////////////////
 bool Unit::CanAttackOnSight(Unit const* target) const
-{
+{   
+    if(!target)
+        return false;
     // Do not aggro on a unit which is moving home at the moment
     if (target->GetEvade() == EVADE_HOME)
         return false;

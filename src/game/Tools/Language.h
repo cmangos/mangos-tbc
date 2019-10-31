@@ -1089,6 +1089,7 @@ enum MangosStrings
     LANG_CHEATER_KICKED                 = 80063,
     LANG_CHEATER_DIED                   = 80064,
     LANG_CHEATER_NO_ACTION              = 80065,
+    LANG_ANNOUNCE_ON_SUPPORT            = 80066,
 
     // Use for custom patches             11000-11999
 

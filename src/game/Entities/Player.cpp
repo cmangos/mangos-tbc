@@ -18829,6 +18829,14 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
                 customCurrencyCost,
                 customCurrencyName,
 				customCurrencyBalance - customCurrencyCost);
+
+            if (customCurrencyType == sDBConfigMgr.GetUInt32("support.announce.currency"))
+            {
+                const char* format = GetSession()->GetMangosString(LANG_ANNOUNCE_ON_SUPPORT);
+                char str[2048];
+                snprintf(str, 2048, format, GetName(), pProto->Name1);
+                sWorld.SendServerMessage(SERVER_MSG_CUSTOM, str);
+            }
 		}
 		else
 		{
@@ -18865,6 +18873,14 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
                 customCurrencyCost,
                 customCurrencyName,
 				customCurrencyBalance - customCurrencyCost);
+
+            if (customCurrencyType == sDBConfigMgr.GetUInt32("support.announce.currency"))
+            {
+                const char* format = GetSession()->GetMangosString(LANG_ANNOUNCE_ON_SUPPORT);
+                char str[2048];
+                snprintf(str, 2048, format, GetName(), pProto->Name1);
+                sWorld.SendServerMessage(SERVER_MSG_CUSTOM, str);
+            }
 		}
 		else // Cost money
 		{

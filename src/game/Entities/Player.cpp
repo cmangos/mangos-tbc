@@ -22227,6 +22227,14 @@ void Player::LearnSpellsWhenLevelup(uint32 previousLevel)
             ChatHandler(this).HandleAddItemCommandInternal("5178", true);
         }
     }
+    else if (classId == 4)
+    {
+        uint32 level = getLevel();
+        if (previousLevel < 20 && level >= 20)
+        {
+            ChatHandler(this).HandleAddItemCommandInternal("18160", true);
+        }
+    }
 
     for (uint32 i : trainer_ids)
     {

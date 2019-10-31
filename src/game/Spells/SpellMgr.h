@@ -1339,6 +1339,7 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo)
                 case 38028:                                 // Watery Grave (SSC, Morogrim Tidewalker)
                 case 46650:                                 // Open Brutallus Back Door (SWP, Felmyst)
                     return 4;
+                case 29232:                                 // Fungal Bloom (Loatheb)
                 case 30843:                                 // Enfeeble (Karazhan, Prince Malchezaar)
                 case 40243:                                 // Crushing Shadows (BT, Teron Gorefiend)
                 case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)

@@ -557,7 +557,13 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
         {
             // If last charge dropped add spell to remove list
             if (triggeredByHolder->DropAuraCharge())
-                removedSpells.push_back(triggeredByHolder->GetId());
+            {
+                auto id = triggeredByHolder->GetId();
+                if (id != 12536) // Pomelo: Exception for Clearcasting
+                {
+                    removedSpells.push_back(triggeredByHolder->GetId());
+                }
+            }
         }
     }
 
@@ -912,6 +918,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 case 36035:
                 {
                     Creature* pCaster = dynamic_cast<Creature*>(triggeredByAura->GetCaster());
+                    if (!pCaster)
+                        return SPELL_AURA_PROC_FAILED;
 
                     // aura only affect the spirit totem, since this is the one that need to be in range.
                     // It is possible though, that player is the one who should actually have the aura

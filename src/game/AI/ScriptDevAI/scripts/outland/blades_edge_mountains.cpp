@@ -1751,12 +1751,17 @@ struct npc_frequency_scanner : public ScriptedAI
 
     void JustSummoned(Creature* creature) override
     {
+        if (!creature)
+            return;
         if (creature->GetEntry() == NPC_TOP_BUNNY)
             creature->CastSpell(nullptr, SPELL_TOP_BUNNY_BEAM, TRIGGERED_NONE);
     }
 
     void JustSummoned(GameObject* go) override
     {
+        if (!go || !go->AI())
+            return;
+
         static_cast<go_aura_generator_000AI*>(go->AI())->m_player = m_creature->GetSpawnerGuid();
     }
 

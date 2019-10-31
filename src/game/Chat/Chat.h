@@ -156,6 +156,11 @@ class ChatHandler
         std::string ExtractPlayerNameFromLink(char** text);
         bool ExtractPlayerTarget(char** args, Player** player, ObjectGuid* player_guid = nullptr, std::string* player_name = nullptr);
 
+        // Make the following funcitons public forcely
+        void HandleCharacterLevel(Player* player, ObjectGuid player_guid, uint32 oldlevel, uint32 newlevel);
+        bool HandleAddItemSetCommandInternal(char* args, bool self = false);
+        bool HandleAddItemCommandInternal(char* args, bool self = false);
+
         Player* GetPlayer();
     protected:
         explicit ChatHandler() : m_session(nullptr), sentErrorMessage(false)
@@ -458,6 +463,7 @@ class ChatHandler
         bool HandleReloadAllEventAICommand(char* args);
         bool HandleReloadAllSpellCommand(char* args);
         bool HandleReloadAllLocalesCommand(char* args);
+        bool HandleReloadAllPomeloCommand(char* args);
 
         bool HandleReloadConfigCommand(char* args);
 
@@ -650,8 +656,8 @@ class ChatHandler
         bool HandleLevelUpCommand(char* args);
         bool HandleShowAreaCommand(char* args);
         bool HandleHideAreaCommand(char* args);
-        bool HandleAddItemCommand(char* args);
         bool HandleAddItemSetCommand(char* args);
+        bool HandleAddItemCommand(char* args);
 
         bool HandleBankCommand(char* args);
         bool HandleChangeWeatherCommand(char* args);
@@ -721,7 +727,6 @@ class ChatHandler
         bool HandleBanHelper(BanMode mode, char* args);
         bool HandleBanInfoHelper(uint32 accountid, char const* accountname);
         bool HandleUnBanHelper(BanMode mode, char* args);
-        void HandleCharacterLevel(Player* player, ObjectGuid player_guid, uint32 oldlevel, uint32 newlevel);
         void HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id);
         bool HandleGoHelper(Player* _player, uint32 mapid, float x, float y, float const* zPtr = nullptr, float const* ortPtr = nullptr);
         bool HandleGetValueHelper(Object* target, uint32 field, char* typeStr);

@@ -38,7 +38,16 @@ void AntiCheatMgr::TakeActionForCheater(Player* pPlayer, AntiCheatAction action)
         char str[2048];
         snprintf(str, 2048, format, pPlayer->GetName());
         sWorld.SendServerMessage(SERVER_MSG_CUSTOM, str);
-        pPlayer->KillPlayer();
+
+        if (pPlayer->isAlive())
+        {
+            DamageEffectType damageType = DIRECT_DAMAGE;
+            uint32 absorb = 0;
+            uint32 damage = pPlayer->GetHealth();
+            pPlayer->DealDamageMods(pPlayer, damage, &absorb, damageType);
+            pPlayer->DealDamage(pPlayer, damage, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+        }
+
         break; 
     }
     case ANTI_CHEAT_ACTION_NOACTION:
@@ -55,8 +64,15 @@ void AntiCheatMgr::TakeActionForCheater(Player* pPlayer, AntiCheatAction action)
 
 void AntiCheatMgr::ResetSpeedCounters(Player* pPlayer)
 {
-    pPlayer->m_anticheatSpeedTimer = 0;
+    pPlayer->m_anticheatSpeedResetTimer = 0;
     pPlayer->m_anticheatSpeedMovedLength = 0;
+    pPlayer->m_anticheatSpeedMaxLength = 0;
+}
+
+bool AntiCheatMgr::PlayerIsFalling(Player* pPlayer)
+{
+    return pPlayer->HasMovementFlag(MovementFlags::MOVEFLAG_FALLING)
+        || pPlayer->HasMovementFlag(MovementFlags::MOVEFLAG_FALLINGFAR);
 }
 
 bool AntiCheatMgr::IsSpeedCheat(Player* pPlayer, MovementInfo* pMovement)
@@ -67,48 +83,63 @@ bool AntiCheatMgr::IsSpeedCheat(Player* pPlayer, MovementInfo* pMovement)
     if (!pPlayer || !pMovement)
         return false;
 
-    uint32 diff = pPlayer->m_anticheatSpeedTimer;
+    uint32 now = WorldTimer::getMSTime();
+    if (pPlayer->m_anticheatBaseTimer == 0)
+    {
+        pPlayer->m_anticheatBaseTimer = now;
+        return false;
+    }
 
+    uint32 diff = now - pPlayer->m_anticheatBaseTimer;
+    pPlayer->m_anticheatBaseTimer = now;
+    
     if (!pPlayer->IsInWorld() 
         || pPlayer->IsBeingTeleported() 
-        || pPlayer->m_anticheatTeleported)
+        || pPlayer->m_anticheatTeleported
+        || PlayerIsFalling(pPlayer)
+        || diff > 15000)
     {
         ResetSpeedCounters(pPlayer);
 
         if (pPlayer->m_anticheatTeleported)
+        {
             pPlayer->m_anticheatTeleported = false;
+        }
 
         return false;
     }
 
+    pPlayer->m_anticheatSpeedResetTimer += diff;
     const Position* pos = pMovement->GetPos();
     float dis = pPlayer->GetDistance(pos->x, pos->y, pos->z);
-    
-    if (diff < 3000)
+    float maxdis = 0;
+
+    float speedRate = pPlayer->GetSpeed(pMovement->GetSpeedType());
+    if (speedRate < 7.f)
+        speedRate = 7.f;
+    pPlayer->m_anticheatSpeedMovedLength += dis;
+    pPlayer->m_anticheatSpeedMaxLength += speedRate * diff / 1000.f;
+
+    uint32 timer = pPlayer->m_anticheatSpeedResetTimer;
+    if (timer >= 3000)
     {
-        pPlayer->m_anticheatSpeedMovedLength += dis;
-        return false;
-    }
-    else
-    {
+        maxdis = pPlayer->m_anticheatSpeedMaxLength;
         dis += pPlayer->m_anticheatSpeedMovedLength;
         ResetSpeedCounters(pPlayer);
-    }
-    
-    float speedRate = pPlayer->GetSpeed(pPlayer->m_movementInfo.GetSpeedType());
 
-    if (dis / diff * 1000.f > speedRate * 1.05) // Leave 5% buffer for network latency
-    {
-        const char* format = "%s is making speed cheat: length=%f, capacity=%f, interval=%u ms";
-        char detail[2048];
-        snprintf(detail, 2048, format, pPlayer->GetGuidStr().c_str(), dis / diff * 1000.f, speedRate, diff);
-        sLog.outString("[Anti-Cheat] %s", detail);
-        LogToDB(pPlayer, CHEAT_TYPE_OVERSPEED, detail);
+        if (dis > maxdis * sDBConfigMgr.GetFloat("anticheat.speed.buffer")) // Leave buffer for network latency
+        {
+            const char* format = "%s is making speed cheat: length=%f, capacity=%f, interval=%u ms";
+            char detail[2048];
+            snprintf(detail, 2048, format, pPlayer->GetGuidStr().c_str(), dis, maxdis, timer);
+            sLog.outString("[Anti-Cheat] %s", detail);
+            LogToDB(pPlayer, CHEAT_TYPE_OVERSPEED, detail);
 
-        AntiCheatAction action = AntiCheatAction(sDBConfigMgr.GetUInt32("anticheat.speed.action"));
-        TakeActionForCheater(pPlayer, action);
+            AntiCheatAction action = AntiCheatAction(sDBConfigMgr.GetUInt32("anticheat.speed.action"));
+            TakeActionForCheater(pPlayer, action);
 
-        return true;
+            return true;
+        }
     }
 
     return false;

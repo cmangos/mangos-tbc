@@ -267,7 +267,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     if (!VerifyMovementInfo(movementInfo))
         return;
 
-    if (sAntiCheatMgr.IsSpeedCheat(_player, &movementInfo))
+    if (sAntiCheatMgr.IsSpeedCheat(_player, &movementInfo) && sDBConfigMgr.GetUInt32("anticheat.speed.action") == ANTI_CHEAT_ACTION_KICK)
         return;
 
     // fall damage generation (ignore in flight case that can be triggered also at lags in moment teleportation to another map).

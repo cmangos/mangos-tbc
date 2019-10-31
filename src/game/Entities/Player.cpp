@@ -1361,11 +1361,6 @@ SpellAuraHolder const* Player::GetMirrorTimerBuff(MirrorTimer::Type timer) const
 
 void Player::Update(const uint32 diff)
 {
-    if (sAntiCheatMgr.CheckSpeed())
-    {
-        m_anticheatSpeedTimer += diff;
-    }
-
     if (!IsInWorld())
         return;
 

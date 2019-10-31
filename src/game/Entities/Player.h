@@ -1438,8 +1438,11 @@ class Player : public Unit
         bool UpdateSkillProMax(uint16 SkillId);
 
         bool m_anticheatTeleported = true;
-        uint32 m_anticheatSpeedTimer = 0;
+        uint32 m_anticheatSpeedResetTimer = 0;
         float m_anticheatSpeedMovedLength = 0.f;
+        float m_anticheatSpeedMaxLength = 0.f;
+        uint32 m_anticheatBaseTimer = 0;
+
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
         /*********************************************************/

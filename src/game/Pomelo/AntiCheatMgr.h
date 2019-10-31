@@ -32,6 +32,7 @@ class AntiCheatMgr
 public:
     void LogToDB(Player* pPlayer, CheatType type, const char* detail);
     void TakeActionForCheater(Player* pPlayer, AntiCheatAction action);
+    bool PlayerIsFalling(Player* pPlayer);
     bool CheckSight() { return sDBConfigMgr.GetUInt32("anticheat.sight"); }
     bool CheckSpeed() { return sDBConfigMgr.GetUInt32("anticheat.speed"); }
     bool IsSpeedCheat(Player* pPlayer, MovementInfo* movement);

@@ -187,11 +187,11 @@ struct boss_alarAI : public ScriptedAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_ALAR, DONE);
 
-        std::list<Player*> playerList;
-        GetPlayerListWithEntryInWorld(playerList, m_creature, 150.0f);
-        for (auto& player : playerList)
-            if (player->GetQuestStatus(QUEST_RUSE_ASHTONGUE) == QUEST_STATUS_INCOMPLETE && player->HasAura(SPELL_ASHTONGUE_RUSE))
-                player->AreaExploredOrEventHappens(QUEST_RUSE_ASHTONGUE);
+        Map::PlayerList const& players = m_pInstance->instance->GetPlayers();
+        for (const auto& player : players)
+            if (Player* pPlayer = player.getSource())
+                if (pPlayer->GetQuestStatus(QUEST_RUSE_ASHTONGUE) == QUEST_STATUS_INCOMPLETE && pPlayer->HasAura(SPELL_ASHTONGUE_RUSE))
+                    pPlayer->AreaExploredOrEventHappens(QUEST_RUSE_ASHTONGUE);
     }
 
     void JustSummoned(Creature* pSummoned) override

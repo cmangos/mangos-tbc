@@ -20,6 +20,8 @@ class DungeonSwitchMgr
         void LoadFromDB();
         bool IsLocked(uint32 mapId);
         bool IsSupportTenPlayersDifficulty(uint32 mapId);
+        float GetDamageRate(uint32 mapId, Difficulty difficulty);
+        float GetHpRate(uint32 mapId, Difficulty difficulty);
 };
 
 #define sDungeonSwitchMgr MaNGOS::Singleton<DungeonSwitchMgr>::Instance()

@@ -47,6 +47,7 @@
 #include "Movement/MoveSplineInit.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Pomelo/DBConfigMgr.h"
+#include "Pomelo/DungeonSwitchMgr.h"
 
 // apply implementation of the singletons
 #include "Policies/Singleton.h"
@@ -1292,6 +1293,10 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
 
     float damageMod = _GetDamageMod(rank);
     float damageMulti = cinfo->DamageMultiplier * damageMod;
+    Map* pMap = GetMap();
+    if (pMap->IsRaidOrHeroicDungeon())
+        damageMulti *= sDungeonSwitchMgr.GetDamageRate(pMap->GetId(), pMap->GetDifficulty());
+
     bool usedDamageMulti = false;
 
     if (CreatureClassLvlStats const* cCLS = sObjectMgr.GetCreatureClassLvlStats(level, cinfo->UnitClass, cinfo->Expansion))
@@ -1385,6 +1390,9 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
     Map* mMap = this->GetMap();
     if (mMap->GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_TEN_PLAYERS)
         health *= sDBConfigMgr.GetFloat("pomelo.difficulty.tenplayershp");
+
+    if (mMap->IsRaidOrHeroicDungeon())
+        health *= sDungeonSwitchMgr.GetHpRate(mMap->GetId(), mMap->GetDifficulty());
 
     if (health < 1)
         health = 1;

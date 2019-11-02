@@ -349,6 +349,7 @@ class WorldSession
 
         void SendAuthOk() const;
         void SendAuthQueued() const;
+        void SendKickReason(uint8 reason, std::string const& string) const;
 
         // opcodes handlers
         void Handle_NULL(WorldPacket& recvPacket);          // not used

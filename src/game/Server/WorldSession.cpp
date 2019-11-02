@@ -962,6 +962,14 @@ void WorldSession::SendAuthQueued() const
     SendPacket(packet, true);
 }
 
+void WorldSession::SendKickReason(uint8 reason, std::string const& string) const
+{
+    WorldPacket packet(SMSG_KICK_REASON, 1);
+    packet << reason;
+    packet << string;
+    SendPacket(packet, true);
+}
+
 void WorldSession::ResetTimeSync()
 {
     m_timeSyncNextCounter = 0;

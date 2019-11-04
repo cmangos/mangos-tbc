@@ -96,6 +96,7 @@ bool AntiCheatMgr::IsSpeedCheat(Player* pPlayer, MovementInfo* pMovement)
     if (!pPlayer->IsInWorld() 
         || pPlayer->IsBeingTeleported() 
         || pPlayer->m_anticheatTeleported
+        || !pPlayer->GetMover()->IsPlayer()
         || PlayerIsFalling(pPlayer)
         || diff > 15000)
     {

@@ -58,7 +58,7 @@ class MapPersistentState
 {
         friend class MapPersistentStateManager;
     protected:
-        MapPersistentState(uint16 MapId, uint32 InstanceId, Difficulty difficulty);
+        MapPersistentState(uint16 MapId, uint32 InstanceId, Difficulty difficulty, AdvancedDifficulty pomeloDifficulty);
 
     public:
 
@@ -77,6 +77,7 @@ class MapPersistentState
         /* currently it is possible to omit this information from this structure
            but that would depend on a lot of things that can easily change in future */
         Difficulty GetDifficulty() const { return m_difficulty; }
+        AdvancedDifficulty GetAdvancedDifficulty() const { return m_pomeloDifficulty; }
 
         bool IsUsedByMap() const { return m_usedByMap != nullptr; }
         Map* GetMap() const { return m_usedByMap; }         // Can be nullptr if map not loaded for persistent state
@@ -130,6 +131,7 @@ class MapPersistentState
         uint32 m_instanceid;
         uint32 m_mapid;
         Difficulty m_difficulty;
+        AdvancedDifficulty m_pomeloDifficulty;              // Pomelo difficulty
         Map* m_usedByMap;                                   // nullptr if map not loaded, non-nullptr lock MapPersistentState from unload
 
         // persistent data
@@ -153,7 +155,7 @@ class WorldPersistentState : public MapPersistentState
            - any new non-instanceable map created
            - respawn data loading for non-instanceable map
         */
-        explicit WorldPersistentState(uint16 MapId) : MapPersistentState(MapId, 0, REGULAR_DIFFICULTY) {}
+        explicit WorldPersistentState(uint16 MapId) : MapPersistentState(MapId, 0, REGULAR_DIFFICULTY, ADVANCED_DIFFICULTY_NORMAL) {}
 
         ~WorldPersistentState() {}
     protected:
@@ -176,7 +178,7 @@ class DungeonPersistentState : public MapPersistentState
            - any new instance is being generated
            - the first time a player bound to InstanceId logs in
            - when a group bound to the instance is loaded */
-        DungeonPersistentState(uint16 MapId, uint32 InstanceId, Difficulty difficulty, time_t resetTime, bool canReset, uint32 completedEncountersMask);
+        DungeonPersistentState(uint16 MapId, uint32 InstanceId, Difficulty difficulty, AdvancedDifficulty pomeloDifficulty, time_t resetTime, bool canReset, uint32 completedEncountersMask);
 
         ~DungeonPersistentState();
 
@@ -247,7 +249,7 @@ class BattleGroundPersistentState : public MapPersistentState
            - any new BG/arena is being generated
         */
         BattleGroundPersistentState(uint16 MapId, uint32 InstanceId, Difficulty difficulty)
-            : MapPersistentState(MapId, InstanceId, difficulty) {}
+            : MapPersistentState(MapId, InstanceId, difficulty, ADVANCED_DIFFICULTY_NORMAL) {}
 
         ~BattleGroundPersistentState() {}
     protected:
@@ -333,7 +335,7 @@ class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateMan
 
         // auto select appropriate MapPersistentState (sub)class by MapEntry, and autoselect appropriate way store (by instance/map id)
         // always return != nullptr
-        MapPersistentState* AddPersistentState(MapEntry const* mapEntry, uint32 instanceId, Difficulty difficulty, time_t resetTime, bool canReset, bool load = false, uint32 completedEncountersMask = 0);
+        MapPersistentState* AddPersistentState(MapEntry const* mapEntry, uint32 instanceId, Difficulty difficulty, AdvancedDifficulty advancedDifficulty, time_t resetTime, bool canReset, bool load = false, uint32 completedEncountersMask = 0);
 
         // search stored state, can be nullptr in result
         MapPersistentState* GetPersistentState(uint32 mapId, uint32 instanceId);

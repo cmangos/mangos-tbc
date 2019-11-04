@@ -58,6 +58,12 @@ class TargetedMovementGeneratorMedium
         Unit* GetCurrentTarget() const override { return i_target.getTarget(); }
         float GetOffset() const { return i_offset; }
         float GetAngle() const { return i_angle; }
+        bool GetActualEndPosition(Vector3 &pos)
+        { 
+            if (!i_path) return false;
+            pos = i_path->getEndPosition();
+            return true;
+        }
 
         virtual void UnitSpeedChanged() override { i_speedChanged = true; }
 
@@ -124,7 +130,7 @@ class ChaseMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Chas
         bool EnableWalking() const { return m_walk;}
         bool _lostTarget(Unit& u) const;
         void _reachTarget(Unit&);
-        bool GetResetPosition(Unit& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const override { return false; }
+        bool GetResetPosition(Unit& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/, uint32 recursive_deep = 2) const override { return false; }
         void HandleMovementFailure(Unit& owner) override;
 
         ChaseMovementMode GetCurrentMode() const { return m_currentMode; }
@@ -172,13 +178,12 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
         void Interrupt(Unit& owner) override;
         void Reset(Unit& owner) override;
 
-        bool GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o) const override;
+        bool GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o, uint32 recursive_deep = 2) const override;
 
         static void _clearUnitStateMove(Unit& owner);
         static void _addUnitStateMove(Unit& owner);
 
         virtual bool EnableWalking() const;
-
         bool _lostTarget(Unit& owner) const;
         void _reachTarget(Unit& owner);
 

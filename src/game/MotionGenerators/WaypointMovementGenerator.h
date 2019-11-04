@@ -76,7 +76,7 @@ class WaypointMovementGenerator<Creature>
 
         MovementGeneratorType GetMovementGeneratorType() const { return WAYPOINT_MOTION_TYPE; }
 
-        bool GetResetPosition(Creature&, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const;
+        bool GetResetPosition(Creature&, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/, uint32 recursive_deep = 2) const;
         uint32 getLastReachedWaypoint() const { return m_lastReachedWaypoint; }
         void GetPathInformation(uint32& pathId, WaypointPathOrigin& wpOrigin) const { pathId = m_pathId; wpOrigin = m_PathOrigin; }
         void GetPathInformation(std::ostringstream& oss) const;

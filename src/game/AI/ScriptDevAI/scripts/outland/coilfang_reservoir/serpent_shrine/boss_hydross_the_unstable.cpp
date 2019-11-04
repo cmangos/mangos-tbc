@@ -56,6 +56,7 @@ enum
     SWITCH_RADIUS               = 20,
     MAX_HYDROSS_ADDS            = 4,
     MAX_HYDROSS_MARKS           = 6,
+    MAX_HYDROSS_ADDS_10_PLAYERS = 4,
 };
 
 static const uint32 aMarkHydross[MAX_HYDROSS_MARKS] = {38215, 38216, 38217, 38218, 38231, 40584};
@@ -133,7 +134,10 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
     void DoSpawnAdds()
     {
         float fX, fY, fZ;
-        for (uint8 i = 0; i < MAX_HYDROSS_ADDS; ++i)
+        uint8 add_count = m_creature->GetMap()->GetAdvancedDifficulty() == ADVANCED_DIFFICULTY_NORMAL 
+            ? MAX_HYDROSS_ADDS 
+            : MAX_HYDROSS_ADDS_10_PLAYERS;
+        for (uint8 i = 0; i < add_count; ++i)
         {
             m_creature->GetNearPoint(m_creature, fX, fY, fZ, 0, 10, M_PI_F / 2 * i);
             m_creature->SummonCreature(m_bCorruptedForm ? NPC_PURE_SPAWN : NPC_TAINTED_SPAWN, fX, fY, fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);

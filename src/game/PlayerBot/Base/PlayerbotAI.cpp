@@ -5489,6 +5489,8 @@ SpellCastResult PlayerbotAI::CastSpell(uint32 spellId, Unit& target)
 {
     ObjectGuid oldSel = m_bot->GetSelectionGuid();
     m_bot->SetSelectionGuid(target.GetObjectGuid());
+    if (&target != m_bot && m_bot->GetMotionMaster()->GetCurrentMovementGeneratorType() != CHASE_MOTION_TYPE)
+        m_bot->SetFacingToObject(&target);
     SpellCastResult rv = CastSpell(spellId);
     m_bot->SetSelectionGuid(oldSel);
     return rv;

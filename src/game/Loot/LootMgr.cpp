@@ -894,6 +894,48 @@ bool Loot::FillLoot(uint32 loot_id, LootStore const& store, Player* lootOwner, b
     m_lootItems.reserve(MAX_NR_LOOT_ITEMS);
 
     tab->Process(*this, lootOwner, store, store.IsRatesAllowed()); // Processing is done there, callback via Loot::AddItem()
+    
+    // Decrease items for 10 players difficulty
+    if (GetLootTarget() && GetLootTarget()->GetMap())
+    {
+        AdvancedDifficulty advDiff = GetLootTarget()->GetMap()->GetAdvancedDifficulty();
+        if (advDiff == ADVANCED_DIFFICULTY_TEN_PLAYERS)
+        {
+            size_t total = 0;
+            std::vector<LootItem*> pos;
+            for (auto itr = m_lootItems.begin(); itr != m_lootItems.end(); ++itr)
+            {
+                auto item = (*itr);
+                if (!item->freeForAll && item->lootItemType == LOOTITEM_TYPE_NORMAL && item->itemProto->Quality >= ITEM_QUALITY_EPIC)
+                {
+                    ++total;
+                    pos.push_back(*itr);
+                }
+            }
+
+            if (total > 1)
+            {
+                size_t newSize = total * 2 / 5;
+                if (newSize < 1)
+                    newSize = 1;
+                size_t cur = total;
+                while (cur > newSize)
+                {
+                    for (auto itr = pos.begin(); itr != pos.end(); ++itr)
+                    {
+                        if (urand(0, 100) >= 50)
+                        {
+                            auto index = find(m_lootItems.begin(), m_lootItems.end(), *itr);
+                            m_lootItems.erase(index);
+                            pos.erase(itr);
+                            --cur;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // fill the loot owners right here so its impossible from this point to change loot result
     Player* masterLooter = nullptr;

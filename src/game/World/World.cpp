@@ -66,6 +66,13 @@
 #include "Weather/Weather.h"
 #include "World/WorldState.h"
 #include "Cinematics/CinematicMgr.h"
+#include "Pomelo/DBConfigMgr.h"
+#include "Pomelo/DungeonSwitchMgr.h"
+#include "Pomelo/InitPlayerItemMgr.h"
+#include "Pomelo/PetLoyaltyMgr.h"
+#include "Pomelo/VendorItemBlacklistMgr.h"
+#include "Pomelo/AnnounceMgr.h"
+#include "Pomelo/OnlineRewardMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -341,7 +348,7 @@ void World::LoadConfigSettings(bool reload)
     if (!confVersion)
     {
         sLog.outError("*****************************************************************************");
-        sLog.outError(" WARNING: mangosd.conf does not include a ConfVersion variable.");
+        sLog.outError(" WARNING: pomelod.conf does not include a ConfVersion variable.");
         sLog.outError("          Your configuration file may be out of date!");
         sLog.outError("*****************************************************************************");
         Log::WaitBeforeContinueIfNeed();
@@ -351,7 +358,7 @@ void World::LoadConfigSettings(bool reload)
         if (confVersion < _MANGOSDCONFVERSION)
         {
             sLog.outError("*****************************************************************************");
-            sLog.outError(" WARNING: Your mangosd.conf version indicates your conf file is out of date!");
+            sLog.outError(" WARNING: Your pomelod.conf version indicates your conf file is out of date!");
             sLog.outError("          Please check for updates, as your current default values may cause");
             sLog.outError("          unexpected behavior.");
             sLog.outError("*****************************************************************************");
@@ -386,6 +393,10 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_XP_KILL,                              "Rate.XP.Kill",                              1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_QUEST,                             "Rate.XP.Quest",                             1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE,                           "Rate.XP.Explore",                           1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL_TBC,                      "Rate.Pet.XP.Kill.TBC",                      1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_KILL_TBC,                          "Rate.XP.Kill.TBC",                          1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_QUEST_TBC,                         "Rate.XP.Quest.TBC",                         1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE_TBC,                       "Rate.XP.Explore.TBC",                       1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_GAIN,                      "Rate.Reputation.Gain",                      1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_KILL,             "Rate.Reputation.LowLevel.Kill",             0.2f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_QUEST,            "Rate.Reputation.LowLevel.Quest",            1.0f);
@@ -438,7 +449,8 @@ void World::LoadConfigSettings(bool reload)
 
     ///- Read other configuration items from the config file
     setConfigMinMax(CONFIG_UINT32_COMPRESSION, "Compression", 1, 1, 9);
-    setConfig(CONFIG_BOOL_ADDON_CHANNEL, "AddonChannel", true);
+	setConfig(CONFIG_BOOL_ADDON_CHANNEL, "AddonChannel", true);
+	setConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL, "OverrideTradeChannelWithGlobalChannel", false);
     setConfig(CONFIG_BOOL_CLEAN_CHARACTER_DB, "CleanCharacterDB", true);
     setConfig(CONFIG_BOOL_GRID_UNLOAD, "GridUnload", true);
     setConfig(CONFIG_UINT32_MAX_WHOLIST_RETURNS, "MaxWhoListReturns", 49);
@@ -770,7 +782,7 @@ void World::LoadConfigSettings(bool reload)
     if (reload)
     {
         if (dataPath != m_dataPath)
-            sLog.outError("DataDir option can't be changed at mangosd.conf reload, using current value (%s).", m_dataPath.c_str());
+            sLog.outError("DataDir option can't be changed at pomelod.conf reload, using current value (%s).", m_dataPath.c_str());
     }
     else
     {
@@ -801,6 +813,16 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
     setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
 
+    // Pomelo advanced features
+    sDBConfigMgr.LoadFromDB();
+    sDungeonSwitchMgr.LoadFromDB();
+    sInitPlayerItemMgr.LoadFromDB();
+    sPetLoyaltyMgr.LoadFromDB();
+    sVendorItemBlacklistMgr.LoadFromDB();
+    sAnnounceMgr.LoadFromDB();
+    sOnlineRewardMgr.LoadFromDB();
+    sAdvancedDifficultyMgr.LoadFromDB();
+
     sLog.outString();
 }
 
@@ -830,7 +852,7 @@ void World::SetInitialWorldSettings()
              (!MapManager::ExistMapAndVMap(530, 10349.6f, -6357.29f) ||             // BloodElf
               !MapManager::ExistMapAndVMap(530, -3961.64f, -13931.2f))))             // Draenei
     {
-        sLog.outError("Correct *.map files not found in path '%smaps' or *.vmtree/*.vmtile files in '%svmaps'. Please place *.map and vmap files in appropriate directories or correct the DataDir value in the mangosd.conf file.", m_dataPath.c_str(), m_dataPath.c_str());
+        sLog.outError("Correct *.map files not found in path '%smaps' or *.vmtree/*.vmtile files in '%svmaps'. Please place *.map and vmap files in appropriate directories or correct the DataDir value in the pomelod.conf file.", m_dataPath.c_str(), m_dataPath.c_str());
         Log::WaitBeforeContinueIfNeed();
         exit(1);
     }
@@ -1340,7 +1362,7 @@ void World::SetInitialWorldSettings()
     PlayerbotMgr::SetInitialWorldSettings();
 #endif
     sLog.outString("---------------------------------------");
-    sLog.outString("      CMANGOS: World initialized       ");
+    sLog.outString("   POMELO MANGOS: World initialized    ");
     sLog.outString("---------------------------------------");
     sLog.outString();
 
@@ -1812,6 +1834,27 @@ void World::_UpdateGameTime()
             m_ShutdownTimer -= elapsed;
 
             ShutdownMsg();
+        }
+    }
+
+    uint32 announce_interval = sDBConfigMgr.GetUInt32("announce.interval");
+    if (announce_interval > 0)
+    {
+        if (m_AnnounceTimer >= announce_interval)
+        {
+            // Send announcements
+            std::string announcement = sAnnounceMgr.NextAnnouncement();
+            if (announcement.size() > 0)
+            {
+                SendServerMessage(SERVER_MSG_CUSTOM, announcement.c_str(), nullptr);
+            }
+
+            // Reset timer
+            m_AnnounceTimer = 0;
+        }
+        else
+        {
+            m_AnnounceTimer += elapsed;
         }
     }
 }
@@ -2364,7 +2407,7 @@ bool World::configNoReload(bool reload, eConfigUInt32Values index, char const* f
 
     uint32 val = sConfig.GetIntDefault(fieldname, defvalue);
     if (val != getConfig(index))
-        sLog.outError("%s option can't be changed at mangosd.conf reload, using current value (%u).", fieldname, getConfig(index));
+        sLog.outError("%s option can't be changed at pomelod.conf reload, using current value (%u).", fieldname, getConfig(index));
 
     return false;
 }
@@ -2376,7 +2419,7 @@ bool World::configNoReload(bool reload, eConfigInt32Values index, char const* fi
 
     int32 val = sConfig.GetIntDefault(fieldname, defvalue);
     if (val != getConfig(index))
-        sLog.outError("%s option can't be changed at mangosd.conf reload, using current value (%i).", fieldname, getConfig(index));
+        sLog.outError("%s option can't be changed at pomelod.conf reload, using current value (%i).", fieldname, getConfig(index));
 
     return false;
 }
@@ -2388,7 +2431,7 @@ bool World::configNoReload(bool reload, eConfigFloatValues index, char const* fi
 
     float val = sConfig.GetFloatDefault(fieldname, defvalue);
     if (val != getConfig(index))
-        sLog.outError("%s option can't be changed at mangosd.conf reload, using current value (%f).", fieldname, getConfig(index));
+        sLog.outError("%s option can't be changed at pomelod.conf reload, using current value (%f).", fieldname, getConfig(index));
 
     return false;
 }
@@ -2400,7 +2443,7 @@ bool World::configNoReload(bool reload, eConfigBoolValues index, char const* fie
 
     bool val = sConfig.GetBoolDefault(fieldname, defvalue);
     if (val != getConfig(index))
-        sLog.outError("%s option can't be changed at mangosd.conf reload, using current value (%s).", fieldname, getConfig(index) ? "'true'" : "'false'");
+        sLog.outError("%s option can't be changed at pomelod.conf reload, using current value (%s).", fieldname, getConfig(index) ? "'true'" : "'false'");
 
     return false;
 }

@@ -52,7 +52,7 @@ class MovementGenerator
         virtual void UnitSpeedChanged() { }
 
         // used by Evade code for select point to evade with expected restart default movement
-        virtual bool GetResetPosition(Unit&, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const { return false; }
+        virtual bool GetResetPosition(Unit&, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/, uint32 recursive_deep = 2) const { return false; }
 
         // given destination unreachable? due to pathfinsing or other
         virtual bool IsReachable() const { return true; }
@@ -93,10 +93,15 @@ class MovementGeneratorMedium : public MovementGenerator
             // u->AssertIsType<T>();
             return (static_cast<D*>(this))->Update(*((T*)&u), time_diff);
         }
-        bool GetResetPosition(Unit& u, float& x, float& y, float& z, float& o) const override
+        bool GetResetPosition(Unit& u, float& x, float& y, float& z, float& o, uint32 recursive_deep = 2) const override
         {
             // u->AssertIsType<T>();
-            return (static_cast<D const*>(this))->GetResetPosition(*((T*)&u), x, y, z, o);
+            
+            // Defense stack overflow
+            if (recursive_deep == 0) 
+                return false;
+
+            return (static_cast<D const*>(this))->GetResetPosition(*((T*)&u), x, y, z, o, recursive_deep - 1);
         }
     public:
         // Will not link if not overridden in the generators - also not generate for T==Unit
@@ -113,7 +118,7 @@ class MovementGeneratorMedium : public MovementGenerator
 
         // not need always overwrites
         template <class U = T, typename std::enable_if<false == std::is_same<U, Unit>::value, U>::type* = nullptr>
-        bool GetResetPosition(U& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const { return false; }
+        bool GetResetPosition(U& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/, uint32 recursive_deep = 2) const { return false; }
 };
 
 struct SelectableMovement : public FactoryHolder<MovementGenerator, MovementGeneratorType>

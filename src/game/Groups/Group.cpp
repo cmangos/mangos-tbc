@@ -1241,7 +1241,7 @@ void Group::SetAdvancedDifficulty(AdvancedDifficulty difficulty)
         player->SendDungeonDifficulty(true);
         ChatHandler(player).PSendSysMessage(
             LANG_POMELO_DIFFICULTY_CHANGED,
-            player->GetSession()->GetMangosString(LANG_POMELO_DIFFICULTY_NORMAL + player->GetDifficulty()));
+            player->GetSession()->GetMangosString(LANG_POMELO_DIFFICULTY_NORMAL + player->GetAdvancedDifficulty()));
     }
 }
 

@@ -409,27 +409,24 @@ enum UnitState
     UNIT_STAT_ISOLATED        = 0x00000020,                 // area auras do not affect other players, Aura::HandleAuraModSchoolImmunity
     UNIT_STAT_POSSESSED       = 0x00000040,                 // Aura::HandleAuraModPossess (duplicates UNIT_FLAG_POSSESSED)
 
-    // persistent movement generator state (all time while movement generator applied to unit (independent from top state of movegen)
-    UNIT_STAT_TAXI_FLIGHT     = 0x00000080,                 // player is in flight mode (in fact interrupted at far teleport until next map telport landing)
-    UNIT_STAT_DISTRACTED      = 0x00000100,                 // DistractedMovementGenerator active
-
-    // persistent movement generator state with non-persistent mirror states for stop support
-    // (can be removed temporary by stop command or another movement generator apply)
-    // not use _MOVE versions for generic movegen state, it can be removed temporary for unit stop and etc
-    UNIT_STAT_CONFUSED        = 0x00000200,                 // ConfusedMovementGenerator active/onstack
-    UNIT_STAT_CONFUSED_MOVE   = 0x00000400,
-    UNIT_STAT_ROAMING         = 0x00000800,                 // RandomMovementGenerator/PointMovementGenerator/WaypointMovementGenerator active (now always set)
-    UNIT_STAT_ROAMING_MOVE    = 0x00001000,
-    UNIT_STAT_CHASE           = 0x00002000,                 // ChaseMovementGenerator active
-    UNIT_STAT_CHASE_MOVE      = 0x00004000,
-    UNIT_STAT_FOLLOW          = 0x00008000,                 // FollowMovementGenerator active
-    UNIT_STAT_FOLLOW_MOVE     = 0x00010000,
-    UNIT_STAT_FLEEING         = 0x00020000,                 // FleeMovementGenerator/TimedFleeingMovementGenerator active
-    UNIT_STAT_FLEEING_MOVE    = 0x00040000,
-    UNIT_STAT_SEEKING_ASSISTANCE = 0x00080000,
-    UNIT_STAT_PROPELLED       = 0x00100000,                 // EffectMovementGenerator
-    UNIT_STAT_PANIC           = 0x00200000,                 // TimedFleeingMovementGenerator active
-    // More room for other MMGens
+    // movement generators begin:
+    UNIT_STAT_TAXI_FLIGHT     = 0x00000080,                 // TaxiMovementGenerator on stack
+    UNIT_STAT_PROPELLED       = 0x00000100,                 // EffectMovementGenerator on stack
+    UNIT_STAT_PANIC           = 0x00000200,                 // PanicMovementGenerator on stack
+    UNIT_STAT_RETREATING      = 0x00000400,                 // RetreatMovementGenerator on stack
+    UNIT_STAT_DISTRACTED      = 0x00000800,                 // DistractedMovementGenerator on stack
+    UNIT_STAT_STAY            = 0x00001000,                 // StayMovementGenerator on stack
+    UNIT_STAT_CONFUSED        = 0x00002000,                 // ConfusedMovementGenerator on stack
+    UNIT_STAT_CONFUSED_MOVE   = 0x00004000,                 // ^ - spline dispatched
+    UNIT_STAT_ROAMING         = 0x00008000,                 // Point/Retreat/Stay/Wander/Waypoint/Effect MovementGenerator on stack
+    UNIT_STAT_ROAMING_MOVE    = 0x00010000,                 // ^ - spline dispatched
+    UNIT_STAT_CHASE           = 0x00020000,                 // ChaseMovementGenerator on stack
+    UNIT_STAT_CHASE_MOVE      = 0x00040000,                 // ^ - spline dispatched
+    UNIT_STAT_FOLLOW          = 0x00080000,                 // FollowMovementGenerator on stack
+    UNIT_STAT_FOLLOW_MOVE     = 0x00100000,                 // ^ - spline dispatched
+    UNIT_STAT_FLEEING         = 0x00200000,                 // FleeingMovementGenerator/PanicMovementGenerator on stack
+    UNIT_STAT_FLEEING_MOVE    = 0x00400000,                 // ^ - spline dispatched
+    // movemement generators end
 
     UNIT_STAT_CHANNELING      = 0x00800000,
 
@@ -456,7 +453,7 @@ enum UnitState
 
     // not react at move in sight or other
     UNIT_STAT_CAN_NOT_REACT   = UNIT_STAT_STUNNED | UNIT_STAT_FEIGN_DEATH |
-                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
+                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_RETREATING,
 
     // AI disabled by some reason
     UNIT_STAT_LOST_CONTROL    = UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_POSSESSED,
@@ -1141,8 +1138,9 @@ struct CharmInfo
         void SetIsRetreating(bool retreating = false) { m_retreating = retreating; }
         bool GetIsRetreating() const { return m_retreating; }
 
-        void SetStayPosition(bool stay = false);
-        bool IsStayPosSet() const { return m_stayPosSet; }
+        void ResetStayPosition();
+        void SetStayPosition();
+        bool UpdateStayPosition();
 
         float GetStayPosX() const { return m_stayPosX; }
         float GetStayPosY() const { return m_stayPosY; }
@@ -2355,19 +2353,19 @@ class Unit : public WorldObject
         inline bool IsCrowdControlled() const { return HasFlag(UNIT_FIELD_FLAGS, (UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING | UNIT_FLAG_STUNNED)); }
 
         inline bool IsConfused() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED); }
-        void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
+        bool SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
 
         inline bool IsFleeing() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING); }
-        void SetFleeing(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 duration = 0);
+        bool SetFleeing(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 duration = 0);
 
         inline bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
-        void SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
+        bool SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
         
         bool IsPlayerOrPlayerOwned() { return IsPlayer() || GetOwner() && GetOwner()->IsPlayer(); }
 
         // Panic: AI reaction script, NPC flees (e.g. at low health)
         inline bool IsInPanic() const { return hasUnitState(UNIT_STAT_PANIC); }
-        inline void SetInPanic(uint32 duration) { SetFleeing(true, GetObjectGuid(), 0, duration); }
+        inline bool SetInPanic(uint32 duration) { return SetFleeing(true, GetObjectGuid(), 0, duration); }
 
         inline bool IsImmobilizedState() const { return hasUnitState(UNIT_STAT_ROOT | UNIT_STAT_STUNNED); }
         void SetImmobilizedState(bool apply, bool stun = false);

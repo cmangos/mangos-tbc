@@ -18036,7 +18036,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
 
     GetSession()->SendActivateTaxiReply(ERR_TAXIOK);
 
-    GetMotionMaster()->MoveTaxiFlight();
+    GetMotionMaster()->MoveTaxi();
 
     return true;
 }
@@ -18065,7 +18065,7 @@ void Player::TaxiFlightResume(bool forceRenewMoveGen /*= false*/)
             return;
     }
 
-    GetMotionMaster()->MoveTaxiFlight();
+    GetMotionMaster()->MoveTaxi();
 }
 
 bool Player::TaxiFlightInterrupt(bool cancel /*= true*/)
@@ -18087,9 +18087,9 @@ const Taxi::Map& Player::GetTaxiPathSpline() const
     return m_taxiTracker.GetMap();
 }
 
-size_t Player::GetTaxiSplinePathOffset() const
+int32 Player::GetTaxiPathSplineOffset() const
 {
-    return m_taxiTracker.GetResumeWaypointIndex();
+    return int32(m_taxiTracker.GetResumeWaypointIndex());
 }
 
 void Player::OnTaxiFlightStart(const TaxiPathEntry* /*path*/)

@@ -126,7 +126,8 @@ struct boss_nightbaneAI : public CombatAI
     void StartIntro()
     {
         m_creature->SetWalk(false);
-        m_creature->GetMotionMaster()->MoveWaypoint(0);
+        auto wpPath = sWaypointMgr.GetPathFromOrigin(m_creature->GetEntry(), m_creature->GetGUIDLow(), 0, PATH_FROM_EXTERNAL);
+        m_creature->GetMotionMaster()->MovePath(*wpPath);
     }
 
     void Aggro(Unit* /*who*/) override
@@ -177,7 +178,7 @@ struct boss_nightbaneAI : public CombatAI
 
     void MovementInform(uint32 motionType, uint32 pointId) override
     {
-        if (motionType == WAYPOINT_MOTION_TYPE)
+        if (motionType == PATH_MOTION_TYPE)
         {
             // Set in combat after the intro is done
             if (pointId == 10)

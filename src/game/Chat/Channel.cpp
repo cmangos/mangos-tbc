@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "Tools/Language.h"
 #include "Chat/Channel.h"
 #include "Globals/ObjectMgr.h"
 #include "World/World.h"
@@ -25,6 +26,8 @@
 Channel::Channel(const std::string& name, uint32 channel_id)
     : m_announce(true), m_moderate(false), m_name(name), m_flags(0), m_channelId(channel_id)
 {
+	m_origin_name = m_name;
+
     // set special flags if built-in channel
     ChatChannelsEntry const* ch = GetChannelEntryFor(channel_id);
     if (ch)                                                 // it's built-in channel
@@ -43,6 +46,13 @@ Channel::Channel(const std::string& name, uint32 channel_id)
             m_flags |= CHANNEL_FLAG_LFG;
         else                                                // for all other channels
             m_flags |= CHANNEL_FLAG_NOT_LFG;
+		
+		// Override trade channel name into global channel
+		if (sWorld.getConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL) && ch->flags & CHANNEL_DBC_FLAG_TRADE)
+		{
+			const char* channel_name = sObjectMgr.GetMangosString(LANG_WORLD_CHANNEL_NAME, 0);
+			m_name = std::string(channel_name);
+		}
     }
     else                                                    // it's custom channel
     {
@@ -585,8 +595,17 @@ void Channel::Say(Player* player, const char* text, uint32 lang)
     if (sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_CHANNEL))
         lang = LANG_UNIVERSAL;
     WorldPacket data;
-    ChatHandler::BuildChatPacket(data, CHAT_MSG_CHANNEL, text, Language(lang), player->GetChatTag(), guid, player->GetName(), ObjectGuid(), "", m_name.c_str());
+
+	const char* channel_name = m_name.c_str();
+    ChatHandler::BuildChatPacket(data, CHAT_MSG_CHANNEL, text, Language(lang), player->GetChatTag(), guid, player->GetName(), ObjectGuid(), "", channel_name);
     SendToAll(data, !m_players[guid].IsModerator() ? guid : ObjectGuid());
+
+	if (IsTrade() && sWorld.getConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL))
+	{
+		channel_name = m_origin_name.c_str();
+		ChatHandler::BuildChatPacket(data, CHAT_MSG_CHANNEL, text, Language(lang), player->GetChatTag(), guid, player->GetName(), ObjectGuid(), "", channel_name);
+		SendToAll(data, !m_players[guid].IsModerator() ? guid : ObjectGuid());
+	}
 }
 
 void Channel::Invite(Player* player, const char* targetName)

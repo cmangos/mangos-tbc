@@ -41,6 +41,7 @@
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 #include "Cinematics/CinematicMgr.h"
+#include "Pomelo/CustomCurrencyMgr.h"
 
 #include<vector>
 
@@ -952,6 +953,7 @@ class Player : public Unit
         void AddToWorld() override;
         void RemoveFromWorld() override;
 
+        bool TeleportToInternal(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0, AreaTrigger const* at = nullptr);
         bool TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0, AreaTrigger const* at = nullptr);
 
         bool TeleportTo(WorldLocation const& loc, uint32 options = 0)
@@ -1183,6 +1185,8 @@ class Player : public Unit
         void RemoveAmmo();
         float GetAmmoDPS() const { return m_ammoDPS; }
         bool CheckAmmoCompatibility(const ItemPrototype* ammo_proto) const;
+        void SetPendingSteadyShot(bool pendingSteadyShot) { m_pendingSteadyShot = pendingSteadyShot; }
+        float IsPendingSteadyShot() const { return m_pendingSteadyShot; }
         void QuickEquipItem(uint16 pos, Item* pItem);
         void VisualizeItem(uint8 slot, Item* pItem);
         void SetVisibleItemSlot(uint8 slot, Item* pItem);
@@ -1400,6 +1404,47 @@ class Player : public Unit
         uint32 GetSpec();
 #endif
 
+		/*********************************************************/
+		/***               CUSTOM CURRENCY SYSTEM              ***/
+		/*********************************************************/
+		uint32 GetCurrency(uint32 curid);
+		bool ModifyCurrency(uint32 curid, int32 amount);
+		std::vector<CustomCurrencyOwnedPair> GetOwnedCustomCurrencies();
+
+		/*********************************************************/
+		/***                 MULTI TALENT SYSTEM               ***/
+		/*********************************************************/
+		uint32 GetCurrentTalentTemplate() { return m_currentTalentTemplate; }
+		uint32 GetMaxTalentTemplate() { return m_maxTalentTemplate; }
+		bool LearnTalentInternal(uint32 talentId, uint32 talentRank, bool force = false);
+		uint32 m_currentTalentTemplate = 0;
+		uint32 m_maxTalentTemplate = 0;
+
+        /*********************************************************/
+        /***                   SOLDIER SYSTEM                  ***/
+        /*********************************************************/
+        uint8 m_maxSoldier = 0;
+        uint8 GetMaxSoldier() const { return m_maxSoldier; }
+        void IncreaseMaxSoldier() { ++m_maxSoldier; }
+        
+        /*********************************************************/
+        /***                   POMELO MISC                     ***/
+        /*********************************************************/
+        uint8 m_addTradeSkills = 0;
+        uint8 GetAdditionalTradeSkills() const { return m_addTradeSkills; }
+
+        void LearnSpellsWhenLevelup(uint32 previousLevel);
+        void LearnAllGreenSpells(uint32 trainerId, size_t nonGreenCount = 0);
+        bool IsAlliance();
+
+        bool UpdateSkillProMax(uint16 SkillId);
+
+        bool m_anticheatTeleported = true;
+        uint32 m_anticheatSpeedResetTimer = 0;
+        float m_anticheatSpeedMovedLength = 0.f;
+        float m_anticheatSpeedMaxLength = 0.f;
+        uint32 m_anticheatBaseTimer = 0;
+
         /*********************************************************/
         /***                   LOAD SYSTEM                     ***/
         /*********************************************************/
@@ -1545,7 +1590,8 @@ class Player : public Unit
         uint32 GetFreeTalentPoints() const { return GetUInt32Value(PLAYER_CHARACTER_POINTS1); }
         void SetFreeTalentPoints(uint32 points) { SetUInt32Value(PLAYER_CHARACTER_POINTS1, points); }
         void UpdateFreeTalentPoints(bool resetIfNeed = true);
-        bool resetTalents(bool no_cost = false);
+		bool resetTalentsInternal(bool no_cost, bool reset_template);
+		bool resetTalents(bool no_cost = false);
         uint32 resetTalentsCost() const;
         void InitTalentForLevel();
         void LearnTalent(uint32 talentId, uint32 talentRank);
@@ -1648,8 +1694,24 @@ class Player : public Unit
         uint32 GetArenaTeamIdInvited() const { return m_ArenaTeamIdInvited; }
         static void LeaveAllArenaTeams(ObjectGuid guid);
 
-        void SetDifficulty(Difficulty dungeon_difficulty) { m_dungeonDifficulty = dungeon_difficulty; }
+        void SetDifficulty(Difficulty dungeon_difficulty) 
+        {
+            m_dungeonDifficulty = dungeon_difficulty; 
+            if (dungeon_difficulty != DUNGEON_DIFFICULTY_NORMAL)
+            {
+                m_dungeonPomeloDifficulty = ADVANCED_DIFFICULTY_NORMAL;
+            }
+        }
+        void SetAdvancedDifficulty(AdvancedDifficulty dungeon_advanced_difficulty) 
+        { 
+            m_dungeonPomeloDifficulty = dungeon_advanced_difficulty; 
+            if (dungeon_advanced_difficulty != ADVANCED_DIFFICULTY_NORMAL)
+            {
+                SetDifficulty(DUNGEON_DIFFICULTY_NORMAL);
+            }
+        }
         Difficulty GetDifficulty() const { return m_dungeonDifficulty; }
+        AdvancedDifficulty GetAdvancedDifficulty() const { return m_dungeonPomeloDifficulty; }
 
         bool CanEnterNewInstance(uint32 instanceId);
         void AddNewInstanceId(uint32 instanceId);
@@ -2168,11 +2230,11 @@ class Player : public Unit
         uint32 m_HomebindTimer;
         bool m_InstanceValid;
         // permanent binds and solo binds by difficulty
-        BoundInstancesMap m_boundInstances[MAX_DIFFICULTY];
-        InstancePlayerBind* GetBoundInstance(uint32 mapid, Difficulty difficulty);
-        BoundInstancesMap& GetBoundInstances(Difficulty difficulty) { return m_boundInstances[difficulty]; }
-        void UnbindInstance(uint32 mapid, Difficulty difficulty, bool unload = false);
-        void UnbindInstance(BoundInstancesMap::iterator& itr, Difficulty difficulty, bool unload = false);
+        BoundInstancesMap m_boundInstances[MAX_DIFFICULTY][MAX_ADVANCED_DIFFICULTY];
+        InstancePlayerBind* GetBoundInstance(uint32 mapid, Difficulty difficulty, AdvancedDifficulty advDiff);
+        BoundInstancesMap& GetBoundInstances(Difficulty difficulty, AdvancedDifficulty advDiff) { return m_boundInstances[difficulty][advDiff]; }
+        void UnbindInstance(uint32 mapid, Difficulty difficulty, AdvancedDifficulty advDiff, bool unload = false);
+        void UnbindInstance(BoundInstancesMap::iterator& itr, Difficulty difficulty, AdvancedDifficulty advDiff, bool unload = false);
         InstancePlayerBind* BindToInstance(DungeonPersistentState* state, bool permanent, bool load = false);
         void SendRaidInfo();
         void SendSavedInstances();
@@ -2377,6 +2439,7 @@ class Player : public Unit
         time_t m_speakTime;
         uint32 m_speakCount;
         Difficulty m_dungeonDifficulty;
+        AdvancedDifficulty m_dungeonPomeloDifficulty;
 
         uint32 m_atLoginFlags;
 
@@ -2441,6 +2504,7 @@ class Player : public Unit
         uint32 m_zoneUpdateTimer;
         uint32 m_areaUpdateId;
         uint32 m_positionStatusUpdateTimer;
+        std::unordered_map<uint32, uint32> m_onlineRewardTimer;
 
         uint32 m_deathTimer;
         time_t m_deathExpireTime;
@@ -2451,6 +2515,7 @@ class Player : public Unit
         uint32 m_ArmorProficiency;
         uint8 m_swingErrorMsg;
         float m_ammoDPS;
+        bool m_pendingSteadyShot;
 
         //////////////////// Rest System/////////////////////
         time_t time_inn_enter;

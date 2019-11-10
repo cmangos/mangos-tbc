@@ -1112,7 +1112,7 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
     {
         Field* fields = resultlvl->Fetch();
         int charlvl = fields[0].GetUInt32();
-        int maxlvl = botConfig.GetIntDefault("PlayerbotAI.RestrictBotLevel", 80);
+        int maxlvl = botConfig.GetIntDefault("PlayerbotAI.RestrictBotLevel", 70);
         uint8 race = fields[2].GetUInt8();
         uint32 team = 0;
 

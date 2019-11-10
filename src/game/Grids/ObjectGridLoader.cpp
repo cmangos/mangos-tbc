@@ -26,6 +26,7 @@
 #include "World/World.h"
 #include "Grids/CellImpl.h"
 #include "Maps/GridDefines.h"
+#include "Pomelo/AdvancedDifficultyMgr.h"
 
 class ObjectGridRespawnMover
 {
@@ -109,11 +110,19 @@ void LoadHelper(CellGuidSet const& guid_set, CellPair& cell, GridRefManager<T>& 
 {
     BattleGround* bg = map->IsBattleGroundOrArena() ? ((BattleGroundMap*)map)->GetBG() : nullptr;
 
+    AdvancedDifficulty advDiff = map->GetAdvancedDifficulty();
     for (uint32 guid : guid_set)
     {
         T* obj = new T;
         // sLog.outString("DEBUG: LoadHelper from table: %s for (guid: %u) Loading",table,guid);
         if (!obj->LoadFromDB(guid, map))
+        {
+            delete obj;
+            continue;
+        }
+
+        // Remove creature if it is in pomelo 10 players mode
+        if (advDiff == ADVANCED_DIFFICULTY_TEN_PLAYERS && sAdvancedDifficultyMgr.IsGuidBannedInTenPlayersDiff(guid))
         {
             delete obj;
             continue;

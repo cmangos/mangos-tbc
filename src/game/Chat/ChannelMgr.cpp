@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "Tools/Language.h"
 #include "Chat/ChannelMgr.h"
 #include "Policies/Singleton.h"
 #include "World/World.h"
@@ -47,12 +48,26 @@ ChannelMgr::~ChannelMgr()
 Channel* ChannelMgr::GetJoinChannel(const std::string& name, uint32 channel_id)
 {
     std::wstring wname;
-    Utf8toWStr(name, wname);
-    wstrToLower(wname);
+    if (sWorld.getConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL) && trade_cid != (uint32)-1 && channel_id == trade_cid)
+    {
+		Utf8toWStr(std::string(sObjectMgr.GetMangosString(LANG_WORLD_CHANNEL_NAME, 0)), wname);
+		wstrToLower(wname);
+    }
+	else
+	{
+		Utf8toWStr(name, wname);
+		wstrToLower(wname);
+	}
 
     if (channels.find(wname) == channels.end())
     {
-        Channel* nchan = new Channel(name, channel_id);
+        Channel* nchan = new Channel(name, channel_id); // The trade channel will be renamed in Channel ctor, so DON'T use wname directly.
+        if (sWorld.getConfig(CONFIG_BOOL_OVERRIDE_TRADE_CHANNEL) && nchan->IsTrade() && trade_cid == (uint32)-1)
+        {
+            trade_cid = channel_id;
+        }
+		Utf8toWStr(nchan->GetName(), wname);
+		wstrToLower(wname);
         channels[wname] = nchan;
         return nchan;
     }

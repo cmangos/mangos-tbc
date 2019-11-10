@@ -26,6 +26,7 @@
 #include "Entities/Item.h"
 #include "Entities/UpdateData.h"
 #include "Chat/Chat.h"
+#include "Pomelo/TransmogrificationMgr.h"
 
 void WorldSession::HandleSplitItemOpcode(WorldPacket& recv_data)
 {
@@ -283,9 +284,15 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
     uint32 item;
     recv_data >> item;
 
+	bool isTransmogrification = false;
+	if (sTransmogrificationMgr.IsFakeEntry(item))
+	{
+		isTransmogrification = true;
+	}
+
     DETAIL_LOG("STORAGE: Item Query = %u", item);
 
-    ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(item);
+    ItemPrototype const* pProto = isTransmogrification ? sTransmogrificationMgr.GetOriginItemProto(item) : ObjectMgr::GetItemPrototype(item);
     if (pProto)
     {
         int loc_idx = GetSessionDbLocaleIndex();
@@ -296,7 +303,7 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
 
         // guess size
         WorldPacket data(SMSG_ITEM_QUERY_SINGLE_RESPONSE, 600);
-        data << pProto->ItemId;
+        data << (isTransmogrification ? item : pProto->ItemId);
         data << pProto->Class;
         data << pProto->SubClass;
         data << uint32(-1);                                 // new 2.0.3, not exist in wdb cache?
@@ -304,7 +311,7 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
         data << uint8(0x00);                                // pProto->Name2; // blizz not send name there, just uint8(0x00); <-- \0 = empty string = empty name...
         data << uint8(0x00);                                // pProto->Name3; // blizz not send name there, just uint8(0x00);
         data << uint8(0x00);                                // pProto->Name4; // blizz not send name there, just uint8(0x00);
-        data << pProto->DisplayInfoID;
+        data << (isTransmogrification ? sTransmogrificationMgr.GetModelId(item) : pProto->DisplayInfoID);
         data << pProto->Quality;
         data << pProto->Flags;
         data << pProto->BuyPrice;
@@ -394,8 +401,8 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket& recv_data)
         data << pProto->PageMaterial;
         data << pProto->StartQuest;
         data << pProto->LockID;
-        data << pProto->Material;
-        data << pProto->Sheath;
+        data << (isTransmogrification ? sTransmogrificationMgr.GetMaterial(item) : pProto->Material);
+        data << (isTransmogrification ? sTransmogrificationMgr.GetSheath(item) : pProto->Sheath);
         data << pProto->RandomProperty;
         data << pProto->RandomSuffix;
         data << pProto->Block;
@@ -775,15 +782,36 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid) const
 
                 // reputation discount
                 uint32 price = uint32(floor(pProto->BuyPrice * discountMod));
+                bool isCustomCurrency = false;
 
                 data << uint32(count);
                 data << uint32(itemId);
                 data << uint32(pProto->DisplayInfoID);
                 data << uint32(crItem->maxcount <= 0 ? 0xFFFFFFFF : pCreature->GetVendorItemCurrentCount(crItem));
-                data << uint32(price);
+				if (pProto->CustomCurrency > 0)
+				{
+                    isCustomCurrency = true;
+					data << uint32(price * 10000); // Display as gold when costs custom currency
+				}
+                else if (crItem->currencyId > 0)
+                {
+                    isCustomCurrency = true;
+                    data << uint32(crItem->ExtendedCost * 10000); // Display as gold when costs custom currency
+                }
+				else
+				{
+					data << uint32(price);
+				}
                 data << uint32(pProto->MaxDurability);
                 data << uint32(pProto->BuyCount);
-                data << uint32(crItem->ExtendedCost);
+                if (!isCustomCurrency)
+                {
+                    data << uint32(crItem->ExtendedCost);
+                }
+                else
+                {
+                    data << uint32(0);
+                }
             }
         }
     }

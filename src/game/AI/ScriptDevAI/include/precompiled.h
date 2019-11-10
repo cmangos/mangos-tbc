@@ -15,6 +15,7 @@
 #include "sc_gossip.h"
 #include "sc_grid_searchers.h"
 #include "sc_instance.h"
+#include "sc_item_teleport.h"
 #include "Spells/SpellAuras.h"
 
 #endif

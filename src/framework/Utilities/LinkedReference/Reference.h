@@ -85,9 +85,12 @@ class Reference : public LinkedListElement
             iRefTo = nullptr;
         }
 
-        bool isValid() const                                // Only check the iRefTo
+        bool isValid(bool checkFrom = false) const                                // Only check the iRefTo
         {
-            return iRefTo != nullptr;
+            if (!checkFrom) 
+                return iRefTo != nullptr;
+            else
+                return iRefTo != nullptr && iRefFrom != nullptr;
         }
 
         Reference<TO, FROM>*       next()       { return ((Reference<TO, FROM>*) LinkedListElement::next()); }

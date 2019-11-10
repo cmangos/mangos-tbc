@@ -43,7 +43,7 @@ const char* ChaseModes[] =
 template<class T, typename D>
 void TargetedMovementGeneratorMedium<T, D>::_setTargetLocation(T& owner, bool updateDestination)
 {
-    if (!i_target.isValid() || !i_target->IsInWorld())
+    if (!i_target.isValid(true) || !i_target->IsInWorld())
         return;
 
     if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))
@@ -167,7 +167,7 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
 
     HandleTargetedMovement(owner, time_diff);
 
-    if (owner.movespline->Finalized() && !i_targetReached) 
+    if (owner.movespline->Finalized() && !i_targetReached)
         HandleFinalizedMovement(owner);
 
     return true;
@@ -182,6 +182,9 @@ bool TargetedMovementGeneratorMedium<T, D>::IsReachable() const
 template<class T, typename D>
 bool TargetedMovementGeneratorMedium<T, D>::RequiresNewPosition(T& owner, float x, float y, float z) const
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return false;
+
     float dist = this->GetDynamicTargetDistance(owner, true);
     // More distance let have better performance, less distance let have more sensitive reaction at target move.
     return i_target->GetDistance(x, y, z, DIST_CALC_NONE) > dist * dist;
@@ -246,7 +249,7 @@ float ChaseMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRang
     if (m_moveFurther)
     {
         if (!forRangeCheck)
-            return this->i_offset + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner, true) ;
+            return this->i_offset + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner, true);
 
         return this->i_offset + CHASE_RECHASE_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner, true);
     }
@@ -262,6 +265,9 @@ float ChaseMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRang
 
 void ChaseMovementGenerator::HandleTargetedMovement(Unit& owner, const uint32& time_diff)
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
     bool targetMoved = false;
     G3D::Vector3 currentTargetPos;
     this->i_target->GetPosition(currentTargetPos.x, currentTargetPos.y, currentTargetPos.z);
@@ -372,6 +378,9 @@ void ChaseMovementGenerator::HandleMovementFailure(Unit& owner)
 
 void ChaseMovementGenerator::HandleFinalizedMovement(Unit& owner)
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
     this->i_targetReached = true;
     if (!owner.HasInArc(this->i_target.getTarget(), 0.01f))
         owner.SetInFront(this->i_target.getTarget());
@@ -379,18 +388,18 @@ void ChaseMovementGenerator::HandleFinalizedMovement(Unit& owner)
     this->i_target->GetPosition(this->i_lastTargetPos.x, this->i_lastTargetPos.y, this->i_lastTargetPos.z);
     switch (m_currentMode)
     {
-        case CHASE_MODE_NORMAL:
-        case CHASE_MODE_BACKPEDAL:
-        case CHASE_MODE_FANNING:
-        {
-            ChaseMovementGenerator::_reachTarget(owner);
-            break;
-        }
-        case CHASE_MODE_DISTANCING:
-        {
-            owner.AI()->DistancingEnded();
-            break;
-        }
+    case CHASE_MODE_NORMAL:
+    case CHASE_MODE_BACKPEDAL:
+    case CHASE_MODE_FANNING:
+    {
+        ChaseMovementGenerator::_reachTarget(owner);
+        break;
+    }
+    case CHASE_MODE_DISTANCING:
+    {
+        owner.AI()->DistancingEnded();
+        break;
+    }
     }
     m_currentMode = CHASE_MODE_NORMAL;
     m_reachable = true; // just to be absolutely sure clear reachability here - if its unreachable it will reset on next update
@@ -398,6 +407,9 @@ void ChaseMovementGenerator::HandleFinalizedMovement(Unit& owner)
 
 void ChaseMovementGenerator::DistanceYourself(Unit& owner, float distance)
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
     float x, y, z;
     i_target->GetNearPoint(&owner, x, y, z, owner.GetObjectBoundingRadius(), distance, i_target->GetAngle(&owner));
     if (DispatchSplineToPosition(owner, x, y, z, false, false))
@@ -445,14 +457,17 @@ void ChaseMovementGenerator::FanOut(Unit& owner)
 {
     Unit* collider = nullptr;
     MaNGOS::AnyUnitFulfillingConditionInRangeCheck collisionCheck(&owner, [&](Unit* unit)->bool
-    {
-        return &owner != unit && unit->getVictim() && unit->getVictim() == this->i_target.getTarget() && !unit->IsMoving() && !unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-    }, fanningRadius * fanningRadius, DIST_CALC_NONE);
+        {
+            return &owner != unit && unit->getVictim() && unit->getVictim() == this->i_target.getTarget() && !unit->IsMoving() && !unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        }, fanningRadius * fanningRadius, DIST_CALC_NONE);
     MaNGOS::UnitSearcher<MaNGOS::AnyUnitFulfillingConditionInRangeCheck> checker(collider, collisionCheck);
     Cell::VisitAllObjects(&owner, checker, fanningRadius);
 
     if (collider) // position collision found - need to find a new spot
     {
+        if (!i_target.isValid() || !i_target->IsInWorld())
+            return;
+
         int32 direction = irand(0, 1); // blizzlike behaviour
         if (direction == 0) direction = -1;
         float ori = MapManager::NormalizeOrientation(owner.GetOrientation() + M_PI_F + frand(fanAngleMin, fanAngleMax) * direction);
@@ -505,6 +520,9 @@ bool ChaseMovementGenerator::DispatchSplineToPosition(Unit& owner, float x, floa
     init.SetWalk(walk);
     init.Launch();
 
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return false;
+
     this->i_target->GetPosition(i_lastTargetPos.x, i_lastTargetPos.y, i_lastTargetPos.z);
 
     m_reachable = true;
@@ -515,6 +533,9 @@ void ChaseMovementGenerator::CutPath(Unit& owner, PointsArray& path)
 {
     if (this->i_offset != 0.f) // need to cut path until most distant viable point
     {
+        if (!i_target.isValid() || !i_target->IsInWorld())
+            return;
+            
         const float dist = (i_offset * CHASE_MOVE_CLOSER_FACTOR) + (this->i_target->GetCombinedCombatReach(&owner, false) * CHASE_DEFAULT_RANGE_FACTOR);
         const float distSquared = (dist * dist);
         float tarX, tarY, tarZ;
@@ -541,6 +562,9 @@ bool ChaseMovementGenerator::IsReachable() const
 
 bool ChaseMovementGenerator::RequiresNewPosition(Unit& owner, float x, float y, float z) const
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return false;
+
     float dist = this->GetDynamicTargetDistance(owner, true);
     dist *= dist;
     float distanceToCoords = i_target->GetDistance(x, y, z, DIST_CALC_NONE); // raw squared istance
@@ -744,7 +768,7 @@ void FollowMovementGenerator::Reset(Unit& owner)
     Initialize(owner);
 }
 
-bool FollowMovementGenerator::GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o) const
+bool FollowMovementGenerator::GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o, uint32 recursive_deep) const
 {
     if (!_getLocation(owner, x, y, z))
         return false;
@@ -859,6 +883,9 @@ void FollowMovementGenerator::_setLocation(Unit& owner, bool catchup)
 
 float FollowMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRangeCheck) const
 {
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return 0.f;
+
     if (!forRangeCheck)
         return (GetOffset(owner) + owner.GetObjectBoundingRadius() + i_target->GetObjectBoundingRadius());
 

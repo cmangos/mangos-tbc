@@ -9,6 +9,7 @@ enum
 {
     MAX_ENCOUNTER                   = 2,
     MAX_COUNCIL                     = 5,
+    MAX_COUNCIL_TEN_PLAYERS         = 3,
 
     // Encounter Status
     TYPE_MAULGAR_EVENT              = 0,
@@ -47,6 +48,7 @@ class instance_gruuls_lair : public ScriptedInstance
         std::string m_strSaveData;
 
         uint8 m_uiCouncilMembersDied;
+        Map* m_map;
 };
 
 #endif

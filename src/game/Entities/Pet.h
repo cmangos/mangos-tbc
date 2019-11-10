@@ -141,9 +141,6 @@ typedef std::vector<uint32> AutoSpellList;
 
 #define HAPPINESS_LEVEL_SIZE        333000
 
-extern const uint32 LevelUpLoyalty[6];
-extern const uint32 LevelStartLoyalty[6];
-
 #define ACTIVE_SPELLS_MAX           4
 
 #define PET_FOLLOW_DIST  1.0f

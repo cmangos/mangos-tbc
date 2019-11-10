@@ -41,6 +41,101 @@ const char* ChaseModes[] =
 
 //-----------------------------------------------//
 template<class T, typename D>
+void TargetedMovementGeneratorMedium<T, D>::_setTargetLocation(T& owner, bool updateDestination)
+{
+    if (!i_target.isValid() || !i_target->IsInWorld())
+        return;
+
+    if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))
+        return;
+
+    float x, y, z;
+
+    // i_path can be nullptr in case this is the first call for this MMGen (via Update)
+    // Can happen for example if no path was created on MMGen-Initialize because of the owner being stunned
+    if (updateDestination || !i_path)
+    {
+        owner.GetPosition(x, y, z);
+
+        // prevent redundant micro-movement for pets, other followers.
+        if (!RequiresNewPosition(owner, x, y, z))
+        {
+            if (!owner.movespline->Finalized())
+                return;
+        }
+        // Chase Movement and angle == 0 case: Chase to current angle
+        else
+        {
+            float ori;
+            if (this->GetMovementGeneratorType() == CHASE_MOTION_TYPE)
+            {
+                if (i_angle == 0.f || i_target->getVictim() && i_target->getVictim() == &owner)
+                    ori = i_target->GetAngle(&owner); // Need to avoid readjustment when target is attacking owner
+                else
+                    ori = i_target->GetOrientation() + i_angle;
+            }
+            else
+                ori = i_target->GetOrientation() + i_angle;
+
+            i_target->GetNearPoint(&owner, x, y, z, owner.GetObjectBoundingRadius(), this->GetDynamicTargetDistance(owner, false), ori);
+        }
+    }
+    else
+    {
+        // the destination has not changed, we just need to refresh the path (usually speed change)
+        G3D::Vector3 end = i_path->getEndPosition();
+        x = end.x;
+        y = end.y;
+        z = end.z;
+    }
+
+    if (!i_path)
+        i_path = new PathFinder(&owner);
+
+    // allow pets following their master to cheat while generating paths
+    bool forceDest = (owner.GetTypeId() == TYPEID_UNIT && ((Creature*)& owner)->IsPet()
+        && owner.hasUnitState(UNIT_STAT_FOLLOW));
+    i_path->calculate(x, y, z, forceDest);
+    if (i_path->getPathType() & PATHFIND_NOPATH)
+        return;
+
+    auto& path = i_path->getPath();
+
+    if (this->GetMovementGeneratorType() == CHASE_MOTION_TYPE)
+    {
+        if (float offset = this->i_offset) // need to cut path until most distant viable point
+        {
+            float dist = this->i_offset * CHASE_MOVE_CLOSER_FACTOR + CHASE_DEFAULT_RANGE_FACTOR * this->i_target->GetCombinedCombatReach(&owner);
+            float tarX, tarY, tarZ;
+            i_target->GetPosition(tarX, tarY, tarZ);
+            auto iter = std::next(path.begin(), 1); // need to start at index 1, index 0 is start position and filled in init.Launch()
+            for (; iter != path.end(); ++iter)
+            {
+                G3D::Vector3 data = (*iter);
+                if (!i_target->IsWithinDist3d(data.x, data.y, data.z, dist))
+                    continue;
+                if (!owner.GetMap()->IsInLineOfSight(tarX, tarY, tarZ + 2.0f, data.x, data.y, data.z + 2.0f, IGNORE_M2))
+                    continue;
+                // both in LOS and in range - advance to next and stop
+                ++iter;
+                break;
+            }
+            if (iter != path.end())
+                path.erase(iter, path.end());
+        }
+    }
+
+    D::_addUnitStateMove(owner);
+    i_targetReached = false;
+    i_speedChanged = false;
+
+    Movement::MoveSplineInit init(owner);
+    init.MovebyPath(path);
+    init.SetWalk(((D*)this)->EnableWalking());
+    init.Launch();
+}
+
+template<class T, typename D>
 bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_diff)
 {
     if (!i_target.isValid() || !i_target->IsInWorld())

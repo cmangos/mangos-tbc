@@ -157,8 +157,10 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         }
     }
 
-    switch (type)
+    try 
     {
+        switch (type)
+        {
         case CHAT_MSG_SAY:
         case CHAT_MSG_EMOTE:
         case CHAT_MSG_YELL:
@@ -193,7 +195,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
 
             // WHISPER channel is available for addons since 2.1.0
             if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
+                recv_data.read(msg, false);
             else
                 recv_data >> msg;
 
@@ -238,7 +240,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             std::string msg;
 
             if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
+                recv_data.read(msg, false);
             else
                 recv_data >> msg;
 
@@ -274,7 +276,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             std::string msg;
 
             if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
+                recv_data.read(msg, false);
             else
                 recv_data >> msg;
 
@@ -291,7 +293,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                 break;
 
             if (GetPlayer()->GetGuildId())
-                if (Guild* guild = sGuildMgr.GetGuildById(GetPlayer()->GetGuildId()))
+                if (Guild * guild = sGuildMgr.GetGuildById(GetPlayer()->GetGuildId()))
                     guild->BroadcastToGuild(this, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
 
             break;
@@ -301,7 +303,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             std::string msg;
 
             if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
+                recv_data.read(msg, false);
             else
                 recv_data >> msg;
 
@@ -318,7 +320,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                 break;
 
             if (GetPlayer()->GetGuildId())
-                if (Guild* guild = sGuildMgr.GetGuildById(GetPlayer()->GetGuildId()))
+                if (Guild * guild = sGuildMgr.GetGuildById(GetPlayer()->GetGuildId()))
                     guild->BroadcastToOfficers(this, msg, lang == LANG_ADDON ? LANG_ADDON : LANG_UNIVERSAL);
 
             break;
@@ -328,7 +330,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             std::string msg;
 
             if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
+                recv_data.read(msg, false);
             else
                 recv_data >> msg;
 
@@ -401,7 +403,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
 
             Group* group = GetPlayer()->GetGroup();
             if (!group || !group->isRaidGroup() ||
-                    !(group->IsLeader(GetPlayer()->GetObjectGuid()) || group->IsAssistant(GetPlayer()->GetObjectGuid())))
+                !(group->IsLeader(GetPlayer()->GetObjectGuid()) || group->IsAssistant(GetPlayer()->GetObjectGuid())))
                 return;
 
             WorldPacket data;
@@ -415,7 +417,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             std::string msg;
 
             if (lang == LANG_ADDON)
-                recv_data.read(msg , false);
+                recv_data.read(msg, false);
             else
                 recv_data >> msg;
 
@@ -468,8 +470,8 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (msg.empty())
                 break;
 
-            if (ChannelMgr* cMgr = channelMgr(_player->GetTeam()))
-                if (Channel* chn = cMgr->GetChannel(channel, _player))
+            if (ChannelMgr * cMgr = channelMgr(_player->GetTeam()))
+                if (Channel * chn = cMgr->GetChannel(channel, _player))
                     chn->Say(_player, msg.c_str(), lang);
         } break;
 
@@ -526,6 +528,10 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
         default:
             sLog.outError("CHAT: unknown message type %u, lang: %u", type, lang);
             break;
+        }
+    }
+    catch(ByteBufferException)
+    {
     }
 }
 

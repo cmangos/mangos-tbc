@@ -83,6 +83,8 @@ void PointMovementGenerator::Reset(Unit& unit)
 
 bool PointMovementGenerator::Update(Unit& unit, const uint32&/* diff*/)
 {
+    MANGOS_ASSERT(unit);
+
     if (unit.hasUnitState(UNIT_STAT_CAN_NOT_MOVE))
     {
         unit.clearUnitState(UNIT_STAT_ROAMING_MOVE);

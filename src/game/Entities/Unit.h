@@ -2359,7 +2359,7 @@ class Unit : public WorldObject
         bool SetFleeing(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 duration = 0);
 
         inline bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
-        void SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
+        bool SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
         
         bool IsPlayerOrPlayerOwned() { return IsPlayer() || GetOwner() && GetOwner()->IsPlayer(); }
 

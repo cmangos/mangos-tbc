@@ -4132,7 +4132,7 @@ void Spell::EffectHealthLeech(SpellEffectIndex eff_idx)
     }
 }
 
-bool Spell::DoCreateItem(SpellEffectIndex /*eff_idx*/, uint32 itemtype)
+bool Spell::DoCreateItem(SpellEffectIndex /*eff_idx*/, uint32 itemtype, bool reportError)
 {
     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
         return false;
@@ -4143,7 +4143,8 @@ bool Spell::DoCreateItem(SpellEffectIndex /*eff_idx*/, uint32 itemtype)
     ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(newitemid);
     if (!pProto)
     {
-        player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
+        if (reportError)
+            player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
         return false;
     }
 
@@ -4212,7 +4213,8 @@ bool Spell::DoCreateItem(SpellEffectIndex /*eff_idx*/, uint32 itemtype)
         }
 
         // if not created by another reason from full inventory or unique items amount limitation
-        player->SendEquipError(msg, nullptr, nullptr, newitemid);
+        if (reportError)
+            player->SendEquipError(msg, nullptr, nullptr, newitemid);
         return false;
     }
 
@@ -4224,7 +4226,8 @@ bool Spell::DoCreateItem(SpellEffectIndex /*eff_idx*/, uint32 itemtype)
         // was it successful? return error if not
         if (!pItem)
         {
-            player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
+            if (reportError)
+                player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
             return false;
         }
 
@@ -4244,7 +4247,7 @@ bool Spell::DoCreateItem(SpellEffectIndex /*eff_idx*/, uint32 itemtype)
 
 void Spell::EffectCreateItem(SpellEffectIndex eff_idx)
 {
-    if (DoCreateItem(eff_idx, m_spellInfo->EffectItemType[eff_idx]))
+    if (DoCreateItem(eff_idx, m_spellInfo->EffectItemType[eff_idx], !m_spellInfo->HasAttribute(SPELL_ATTR_HIDE_IN_COMBAT_LOG)))
         m_spellLog.AddLog(uint32(SPELL_EFFECT_CREATE_ITEM), m_spellInfo->EffectItemType[eff_idx]);
 }
 

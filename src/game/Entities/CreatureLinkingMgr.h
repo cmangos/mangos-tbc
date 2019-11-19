@@ -71,6 +71,7 @@ enum CreatureLinkingFlags
 
     // Dynamic behaviour, out of combat
     FLAG_FOLLOW                     = 0x0200,
+    FLAG_FOLLOW_WITH_ANGLE			= 0x0201,
     FLAG_DESPAWN_ON_DESPAWN         = 0x2000,
 
     // Passive behaviour
@@ -87,7 +88,9 @@ struct CreatureLinkingInfo
     uint32 masterId;
     uint32 masterDBGuid;
     uint16 linkingFlag: 16;
-    uint16 searchRange: 16;
+	uint16 searchRange: 16;
+    float linkingDist;
+    float linkingAngle;	
 };
 
 /**

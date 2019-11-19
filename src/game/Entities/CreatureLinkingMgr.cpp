@@ -71,7 +71,7 @@ void CreatureLinkingMgr::LoadFromDB()
     // Load `creature_linking_template`
     sLog.outString("> Loading table `creature_linking_template`");
     uint32 count = 0;
-    QueryResult* result = WorldDatabase.Query("SELECT entry, map, master_entry, flag, search_range FROM creature_linking_template");
+    QueryResult* result = WorldDatabase.Query("SELECT entry, map, master_entry, flag, search_range, dist, angle FROM creature_linking_template");
     if (!result)
     {
         BarGoLink bar(1);
@@ -94,6 +94,8 @@ void CreatureLinkingMgr::LoadFromDB()
             tmp.masterId            = fields[2].GetUInt32();
             tmp.linkingFlag         = fields[3].GetUInt16();
             tmp.searchRange         = fields[4].GetUInt16();
+            tmp.linkingDist         = fields[3].GetFloat();
+            tmp.linkingAngle        = fields[4].GetFloat();
             tmp.masterDBGuid        = 0;                        // Will be initialized for unique mobs in IsLinkingEntryValid (only for spawning dependend)
 
             if (!IsLinkingEntryValid(entry, &tmp, true))
@@ -118,7 +120,7 @@ void CreatureLinkingMgr::LoadFromDB()
     // Load `creature_linking`
     sLog.outString("> Loading table `creature_linking`");
     count = 0;
-    result = WorldDatabase.Query("SELECT guid, master_guid, flag FROM creature_linking");
+    result = WorldDatabase.Query("SELECT guid, master_guid, flag, dist, angle FROM creature_linking");
     if (!result)
     {
         BarGoLink bar(1);
@@ -142,6 +144,8 @@ void CreatureLinkingMgr::LoadFromDB()
         tmp.mapId               = INVALID_MAP_ID;           // some invalid value, this marks the guid-linking
         tmp.masterId            = fields[1].GetUInt32();
         tmp.linkingFlag         = fields[2].GetUInt16();
+        tmp.linkingDist         = fields[3].GetFloat();
+        tmp.linkingAngle        = fields[4].GetFloat();
         tmp.masterDBGuid        = tmp.masterId;
         tmp.searchRange         = 0;
 
@@ -264,9 +268,9 @@ enum EventMask
 {
     EVENT_MASK_ON_AGGRO     = FLAG_AGGRO_ON_AGGRO,
     EVENT_MASK_ON_EVADE     = FLAG_RESPAWN_ON_EVADE | FLAG_DESPAWN_ON_EVADE,
-    EVENT_MASK_ON_DIE       = FLAG_DESPAWN_ON_DEATH | FLAG_SELFKILL_ON_DEATH | FLAG_RESPAWN_ON_DEATH | FLAG_FOLLOW,
-    EVENT_MASK_ON_RESPAWN   = FLAG_RESPAWN_ON_RESPAWN | FLAG_DESPAWN_ON_RESPAWN | FLAG_FOLLOW,
-    EVENT_MASK_TRIGGER_TO   = FLAG_TO_AGGRO_ON_AGGRO | FLAG_TO_RESPAWN_ON_EVADE | FLAG_FOLLOW,
+    EVENT_MASK_ON_DIE       = FLAG_DESPAWN_ON_DEATH | FLAG_SELFKILL_ON_DEATH | FLAG_RESPAWN_ON_DEATH | FLAG_FOLLOW | FLAG_FOLLOW_WITH_ANGLE,
+    EVENT_MASK_ON_RESPAWN   = FLAG_RESPAWN_ON_RESPAWN | FLAG_DESPAWN_ON_RESPAWN | FLAG_FOLLOW | FLAG_FOLLOW_WITH_ANGLE,
+    EVENT_MASK_TRIGGER_TO   = FLAG_TO_AGGRO_ON_AGGRO | FLAG_TO_RESPAWN_ON_EVADE | FLAG_FOLLOW | FLAG_FOLLOW_WITH_ANGLE,
     EVENT_MASK_ON_DESPAWN   = FLAG_DESPAWN_ON_DESPAWN,
 };
 
@@ -425,7 +429,7 @@ void CreatureLinkingHolder::DoCreatureLinkingEvent(CreatureLinkingEvent eventTyp
         case LINKING_EVENT_AGGRO:   eventFlagFilter = EVENT_MASK_ON_AGGRO;   reverseEventFlagFilter = FLAG_TO_AGGRO_ON_AGGRO;   break;
         case LINKING_EVENT_EVADE:   eventFlagFilter = EVENT_MASK_ON_EVADE;   reverseEventFlagFilter = FLAG_TO_RESPAWN_ON_EVADE; break;
         case LINKING_EVENT_DIE:     eventFlagFilter = EVENT_MASK_ON_DIE;     reverseEventFlagFilter = 0;                        break;
-        case LINKING_EVENT_RESPAWN: eventFlagFilter = EVENT_MASK_ON_RESPAWN; reverseEventFlagFilter = FLAG_FOLLOW;              break;
+        case LINKING_EVENT_RESPAWN: eventFlagFilter = EVENT_MASK_ON_RESPAWN; reverseEventFlagFilter = FLAG_FOLLOW | FLAG_FOLLOW_WITH_ANGLE;              break;
         case LINKING_EVENT_DESPAWN: eventFlagFilter = EVENT_MASK_ON_DESPAWN; reverseEventFlagFilter = 0;                        break;
     }
 
@@ -575,6 +579,9 @@ void CreatureLinkingHolder::ProcessSlave(CreatureLinkingEvent eventType, Creatur
             if (flag & FLAG_FOLLOW && pSlave->isAlive() && !pSlave->isInCombat())
                 SetFollowing(pSlave, pSource);
 
+			if (flag & FLAG_FOLLOW_WITH_ANGLE && pSlave->isAlive() && !pSlave->isInCombat())
+				SetFollowing(pSlave, pSource);
+
             break;
         case LINKING_EVENT_DESPAWN:
             if (flag & FLAG_DESPAWN_ON_DESPAWN && !pSlave->IsDespawned())
@@ -587,26 +594,38 @@ void CreatureLinkingHolder::ProcessSlave(CreatureLinkingEvent eventType, Creatur
 // Helper function to set following
 void CreatureLinkingHolder::SetFollowing(Creature* pWho, Creature* pWhom) const
 {
-    // Do some calculations
-    float sX, sY, sZ, mX, mY, mZ, mO;
-    pWho->GetRespawnCoord(sX, sY, sZ);
-    pWhom->GetRespawnCoord(mX, mY, mZ, &mO);
+    CreatureLinkingInfo const*  pInfo = sCreatureLinkingMgr.GetLinkedTriggerInformation(pWho);
+	
+    float dist;
+    float angle;
 
-    float dx = sX - mX;
-    float dy = sY - mY;
-    float dz = sZ - mZ;
+    if (pInfo->linkingFlag == FLAG_FOLLOW_WITH_ANGLE)
+    {
+		dist = pInfo->linkingDist;
+		angle = pInfo->linkingAngle;
+    }
+    else
+    {
+        // Do some calculations
+        float sX, sY, sZ, mX, mY, mZ, mO;
+        pWho->GetRespawnCoord(sX, sY, sZ);
+        pWhom->GetRespawnCoord(mX, mY, mZ, &mO);
 
-    float dist = sqrt(dx * dx + dy * dy + dz * dz);
-    // REMARK: This code needs the same distance calculation that is used for following
-    // Atm this means we have to subtract the bounding radiuses
-    dist = dist - pWho->GetObjectBoundingRadius() - pWhom->GetObjectBoundingRadius();
-    if (dist < 0.0f)
-        dist = 0.0f;
+        float dx = sX - mX;
+        float dy = sY - mY;
+        float dz = sZ - mZ;		
 
-    // Need to pass the relative angle to following
-    float angle = atan2(dy, dx) - mO;
-    angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
+        dist = sqrt(dx * dx + dy * dy + dz * dz);
+        // REMARK: This code needs the same distance calculation that is used for following
+        // Atm this means we have to subtract the bounding radiuses
+        dist = dist - pWho->GetObjectBoundingRadius() - pWhom->GetObjectBoundingRadius();
+        if (dist < 0.0f)
+            dist = 0.0f;		
 
+        // Need to pass the relative angle to following
+        angle = atan2(dy, dx) - mO;
+        angle = (angle >= 0) ? angle : 2 * M_PI_F + angle;
+    }
     pWho->GetMotionMaster()->MoveFollow(pWhom, dist, angle);
 }
 
@@ -721,7 +740,7 @@ bool CreatureLinkingHolder::CanSpawn(uint32 lowGuid, Map* _map, CreatureLinkingI
 bool CreatureLinkingHolder::TryFollowMaster(Creature* pCreature)
 {
     CreatureLinkingInfo const*  pInfo = sCreatureLinkingMgr.GetLinkedTriggerInformation(pCreature);
-    if (!pInfo || !(pInfo->linkingFlag & FLAG_FOLLOW))
+    if (!pInfo || !(pInfo->linkingFlag & FLAG_FOLLOW | FLAG_FOLLOW_WITH_ANGLE))
         return false;
 
     Creature* pMaster = nullptr;

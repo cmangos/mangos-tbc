@@ -1396,8 +1396,6 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caste
                 case 26457:                                 // Drain Mana (correct number has to be researched)
                 case 26559:
                     return 12;
-                case 26052:                                 // Poison Bolt Volley (AQ40, Princess Huhuran)
-                    return 15;
                 case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)
                     return urand(3, 5);
                 case 42471:                                 // Hatch Eggs
@@ -1416,17 +1414,6 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caste
                 case 23603:                                 // Wild Polymorph (BWL, Nefarian)
                 case 38194:                                 // Blink
                     return 1;
-                default:
-                    break;
-            }
-            break;
-        }
-        case SPELLFAMILY_HUNTER:
-        {
-            switch (spellInfo->Id)
-            {
-                case 26180:                                 // Wyvern Sting (AQ40, Princess Huhuran)
-                    return 10;
                 default:
                     break;
             }

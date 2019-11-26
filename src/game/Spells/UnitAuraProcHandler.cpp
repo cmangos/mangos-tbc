@@ -2515,7 +2515,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
             else if (auraSpellInfo->Id == 40971)
             {
                 // If your target is below $s1% health
-                if (pVictim->GetHealth() > pVictim->GetMaxHealth() * triggerAmount / 100)
+                if (pVictim->GetHealth() - damage > pVictim->GetMaxHealth() * triggerAmount / 100)
                     return SPELL_AURA_PROC_FAILED;
             }
             break;

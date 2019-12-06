@@ -5063,7 +5063,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet->CanTakeMoreActiveSpells(learn_spellproto->Id))
                     return SPELL_FAILED_TOO_MANY_SKILLS;
 
-                if (m_spellInfo->spellLevel > pet->getLevel())
+                if (learn_spellproto->spellLevel > pet->getLevel())
                     return SPELL_FAILED_LOWLEVEL;
 
                 if (!pet->HasTPForSpell(learn_spellproto->Id))
@@ -5086,7 +5086,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet->CanTakeMoreActiveSpells(learn_spellproto->Id))
                     return SPELL_FAILED_TOO_MANY_SKILLS;
 
-                if (m_spellInfo->spellLevel > pet->getLevel())
+                if (learn_spellproto->spellLevel > pet->getLevel())
                     return SPELL_FAILED_LOWLEVEL;
 
                 if (!pet->HasTPForSpell(learn_spellproto->Id))

@@ -558,7 +558,7 @@ float FollowMovementGenerator::GetSpeed(Unit& owner, bool boosted/* = false*/) c
         return 0;
 
     // Followers sync with master's speed when not in combat
-    float speed = i_target->GetSpeed(i_target->m_movementInfo.GetSpeedType());
+    float speed = i_target->GetSpeed(i_target->m_movementInfo->GetSpeedType());
 
     // Sync with spline speed if needed
     if (!i_target->movespline->Finalized())
@@ -595,7 +595,7 @@ bool FollowMovementGenerator::IsBoostAllowed(Unit& owner) const
         return false;
 
     // Do not allow boosting if follower is already in front/back of target:
-    if (i_target->HasInArc(&owner) == !i_target->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_BACKWARD)))
+    if (i_target->HasInArc(&owner) == !i_target->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_BACKWARD)))
         return false;
 
     // Boost speed if follower is too far behind
@@ -609,7 +609,7 @@ bool FollowMovementGenerator::IsUnstuckAllowed(Unit &owner) const
         return false;
 
     // Do not try to unstuck while target has not landed or stabilized on terrain
-    if (i_target->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
+    if (i_target->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
         return false;
 
     // Unstuck should be available only to permanent pets and only when out of combat
@@ -683,7 +683,6 @@ bool FollowMovementGenerator::Move(Unit& owner, float x, float y, float z, bool 
     init.SetVelocity(GetSpeed(owner, catchup));
     init.Launch();
 
-        if (!i_target->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
     return true;
 }
 

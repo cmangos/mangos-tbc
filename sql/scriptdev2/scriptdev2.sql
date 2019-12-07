@@ -831,11 +831,11 @@ UPDATE creature_template SET ScriptName='boss_gluth' WHERE entry=15932;
 UPDATE creature_template SET ScriptName='boss_thaddius' WHERE entry=15928;
 UPDATE creature_template SET ScriptName='boss_stalagg' WHERE entry=15929;
 UPDATE creature_template SET ScriptName='boss_feugen' WHERE entry=15930;
-UPDATE creature_template SET ScriptName='npc_tesla_coil' WHERE entry=16218;
 UPDATE creature_template SET ScriptName='boss_sapphiron' WHERE entry=15989;
 UPDATE gameobject_template SET ScriptName='go_sapphiron_birth' WHERE entry=181356;
 UPDATE gameobject_template SET ScriptName='go_anub_door' WHERE entry=181126;
 UPDATE creature_template SET ScriptName='boss_kelthuzad' WHERE entry=15990;
+UPDATE creature_template SET ScriptName='npc_diseased_maggot' WHERE entry IN (16056, 16057);
 INSERT INTO scripted_event_id VALUES
 (10495,'event_decimate');
 
@@ -3435,7 +3435,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1533045,'Come, Zeliek, do not drive them out. Not before we\'ve had our fun.',8896,6,0,0,'blaumeux SAY_BLAU_TAUNT1'),
 (-1533046,'I do hope they stay alive long enough for me to... introduce myself.',8897,6,0,0,'blaumeux SAY_BLAU_TAUNT2'),
 (-1533047,'The first kill goes to me! Anyone care to wager?',8898,6,0,0,'blaumeux SAY_BLAU_TAUNT3'),
-(-1533048,'Your life is mine!',8895,1,0,0,'blaumeux SAY_BLAU_SPECIAL'),
+(-1533048,'Your life is mine!',8895,0,0,0,'blaumeux SAY_BLAU_SPECIAL'),
 (-1533049,'Who\'s next?',8894,0,0,0,'blaumeux SAY_BLAU_SLAY'),
 (-1533050,'Tou... che!',8893,0,0,0,'blaumeux SAY_BLAU_DEATH'),
 
@@ -3512,7 +3512,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,commen
 (-1533115,'Soon... the world will tremble!',8832,1,0,0,'heigan SAY_TAUNT3'),
 (-1533116,'The end is upon you.',8833,1,0,0,'heigan SAY_CHANNELING'),
 (-1533117,'Hungry worms will feast on your rotten flesh!',8834,1,0,0,'heigan SAY_TAUNT4'),
-(-1533118,'Noo... o...',8828,1,0,0,'heigan SAY_DEATH'),
+(-1533118,'%s takes his last breath.',8828,2,0,0,'heigan EMOTE_DEATH'),
 
 (-1533119,'%s spots a nearby zombie to devour!',0,2,0,0,'gluth EMOTE_ZOMBIE'),
 

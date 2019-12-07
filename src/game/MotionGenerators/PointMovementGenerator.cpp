@@ -21,62 +21,61 @@
 #include "AI/BaseAI/UnitAI.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/World.h"
-#include "Movement/MoveSplineInit.h"
 #include "Movement/MoveSpline.h"
+#include "Movement/MoveSplineInit.h"
 
 //----- Point Movement Generator
-template<class T>
-void PointMovementGenerator<T>::Initialize(T& unit)
+
+void PointMovementGenerator::Initialize(Unit& unit)
 {
-    if (unit.hasUnitState(UNIT_STAT_CAN_NOT_REACT | UNIT_STAT_NOT_MOVE))
+    if (unit.hasUnitState(UNIT_STAT_NO_FREE_MOVE | UNIT_STAT_NOT_MOVE))
         return;
 
-    unit.StopMoving();
+    // Stop any previously dispatched splines no matter the source
+    if (!unit.movespline->Finalized() && !m_speedChanged)
+    {
+        if (unit.IsClientControlled())
+            unit.StopMoving(true);
+        else
+            unit.InterruptMoving();
+    }
 
     unit.addUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
-    if (m_effect)
-        unit.addUnitState(UNIT_STAT_CHARGING);
+
+    Move(unit);
+
     m_speedChanged = false;
-    Movement::MoveSplineInit init(unit);
-    init.MoveTo(i_x, i_y, i_z, m_generatePath);
-    if (m_forcedMovement == FORCED_MOVEMENT_WALK)
-        init.SetWalk(true);
-    if (m_speed > 0.f)
-        init.SetVelocity(m_speed);
-    init.Launch();
 }
 
-template<class T>
-void PointMovementGenerator<T>::Finalize(T& unit)
+void PointMovementGenerator::Finalize(Unit& unit)
 {
     unit.clearUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
-    if (m_effect)
-        unit.clearUnitState(UNIT_STAT_CHARGING);
 
-    if (unit.movespline->Finalized())
+    // Stop any previously dispatched splines no matter the source
+    if (!unit.movespline->Finalized())
+    {
+        if (unit.IsClientControlled())
+            unit.StopMoving(true);
+        else
+            unit.InterruptMoving();
+    }
+    else
         MovementInform(unit);
 }
 
-template<class T>
-void PointMovementGenerator<T>::Interrupt(T& unit)
+void PointMovementGenerator::Interrupt(Unit& unit)
 {
-    unit.InterruptMoving();
     unit.clearUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
-    if (m_effect)
-        unit.clearUnitState(UNIT_STAT_CHARGING);
+    unit.InterruptMoving();
 }
 
-template<class T>
-void PointMovementGenerator<T>::Reset(T& unit)
+void PointMovementGenerator::Reset(Unit& unit)
 {
-    unit.StopMoving();
-    unit.addUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
-    if (m_effect)
-        unit.addUnitState(UNIT_STAT_CHARGING);
+    unit.addUnitState(UNIT_STAT_ROAMING);
+    Initialize(unit);
 }
 
-template<class T>
-bool PointMovementGenerator<T>::Update(T& unit, const uint32& /*diff*/)
+bool PointMovementGenerator::Update(Unit& unit, const uint32&/* diff*/)
 {
     if (unit.hasUnitState(UNIT_STAT_CAN_NOT_MOVE))
     {
@@ -84,94 +83,137 @@ bool PointMovementGenerator<T>::Update(T& unit, const uint32& /*diff*/)
         return true;
     }
 
-    if ((!unit.hasUnitState(UNIT_STAT_ROAMING_MOVE) && unit.movespline->Finalized()) || this->m_speedChanged)
+    if ((!unit.hasUnitState(UNIT_STAT_ROAMING_MOVE) && unit.movespline->Finalized()) || m_speedChanged)
         Initialize(unit);
 
     return !unit.movespline->Finalized();
 }
 
-template<>
-void PointMovementGenerator<Player>::MovementInform(Player&)
+void PointMovementGenerator::Move(Unit& unit)
 {
+    Movement::MoveSplineInit init(unit);
+    init.MoveTo(m_x, m_y, m_z, m_generatePath);
+    if (m_forcedMovement == FORCED_MOVEMENT_WALK)
+        init.SetWalk(true);
+    if (m_o != 0.f)
+        init.SetFacing(m_o);
+    init.SetVelocity(m_speed);
+    init.Launch();
 }
 
-template <>
-void PointMovementGenerator<Creature>::MovementInform(Creature& unit)
+void PointMovementGenerator::MovementInform(Unit& unit)
 {
     MovementGeneratorType const type = GetMovementGeneratorType();
-    if (unit.AI())
-        unit.AI()->MovementInform(type, id);
 
-    if (unit.IsTemporarySummon())
+    if (UnitAI* ai = unit.AI())
+        ai->MovementInform(type, m_id);
+
+    if (unit.GetTypeId() == TYPEID_UNIT && static_cast<Creature&>(unit).IsTemporarySummon())
     {
         if (unit.GetSpawnerGuid().IsCreatureOrPet())
             if (Creature* pSummoner = unit.GetMap()->GetAnyTypeCreature(unit.GetSpawnerGuid()))
-                if (pSummoner->AI())
-                    pSummoner->AI()->SummonedMovementInform(&unit, type, id);
+            {
+                if (UnitAI* ai = pSummoner->AI())
+                    ai->SummonedMovementInform(static_cast<Creature*>(&unit), type, m_id);
+            }
     }
 }
 
-template void PointMovementGenerator<Player>::Initialize(Player&);
-template void PointMovementGenerator<Creature>::Initialize(Creature&);
-template void PointMovementGenerator<Player>::Finalize(Player&);
-template void PointMovementGenerator<Creature>::Finalize(Creature&);
-template void PointMovementGenerator<Player>::Interrupt(Player&);
-template void PointMovementGenerator<Creature>::Interrupt(Creature&);
-template void PointMovementGenerator<Player>::Reset(Player&);
-template void PointMovementGenerator<Creature>::Reset(Creature&);
-template bool PointMovementGenerator<Player>::Update(Player&, const uint32& diff);
-template bool PointMovementGenerator<Creature>::Update(Creature&, const uint32& diff);
-
-void AssistanceMovementGenerator::Initialize(Creature& unit)
+void RetreatMovementGenerator::Initialize(Unit& unit)
 {
-    unit.addUnitState(UNIT_STAT_SEEKING_ASSISTANCE);
+    // Non-client controlled unit with an AI should drop target
+    if (unit.AI() && !unit.IsClientControlled())
+    {
+        unit.SetTarget(nullptr);
+        // FIXME: do we need to send attack stop here? verify protocol if possible
+    }
+
+    unit.addUnitState(UNIT_STAT_RETREATING);
+
+    if (!m_arrived)
+        PointMovementGenerator::Initialize(unit);
+}
+
+void RetreatMovementGenerator::Finalize(Unit& unit)
+{
+    unit.clearUnitState(UNIT_STAT_RETREATING);
+
+    PointMovementGenerator::Finalize(unit);
+
+    if (UnitAI* ai = unit.AI())
+        ai->RetreatingEnded();
+}
+
+void RetreatMovementGenerator::Interrupt(Unit& unit)
+{
+    PointMovementGenerator::Interrupt(unit);
+
+    if (UnitAI* ai = unit.AI())
+        ai->RetreatingEnded();
+}
+
+void RetreatMovementGenerator::Reset(Unit& unit)
+{
+    if (!m_arrived)
+        PointMovementGenerator::Reset(unit);
+}
+
+bool RetreatMovementGenerator::Update(Unit& unit, const uint32& diff)
+{
+    if (!PointMovementGenerator::Update(unit, diff))
+    {
+        if (!m_arrived)
+        {
+            m_arrived = true;
+
+            if (UnitAI* ai = unit.AI())
+                ai->RetreatingArrived();
+        }
+
+        m_delayTimer.Update(diff);
+        return !m_delayTimer.Passed();
+    }
+
+    return true;
+}
+
+void StayMovementGenerator::Initialize(Unit &unit)
+{
+    unit.addUnitState(UNIT_STAT_STAY);
     PointMovementGenerator::Initialize(unit);
 }
 
-void AssistanceMovementGenerator::Finalize(Unit& unit)
+void StayMovementGenerator::Finalize(Unit &unit)
 {
-    unit.clearUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE | UNIT_STAT_SEEKING_ASSISTANCE);
-
-    ((Creature*)&unit)->SetNoCallAssistance(false);
-    ((Creature*)&unit)->CallAssistance();
-    if (unit.isAlive())
-        unit.GetMotionMaster()->MoveSeekAssistanceDistract(sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY));
+    unit.clearUnitState(UNIT_STAT_STAY);
+    PointMovementGenerator::Finalize(unit);
 }
 
-bool EffectMovementGenerator::Update(Unit& unit, const uint32&)
+void StayMovementGenerator::Interrupt(Unit& unit)
 {
-    return !unit.movespline->Finalized();
+    m_arrived = false;
+    PointMovementGenerator::Interrupt(unit);
 }
 
-void EffectMovementGenerator::Finalize(Unit& unit)
+bool StayMovementGenerator::Update(Unit& unit, const uint32& diff)
 {
-    if (unit.GetTypeId() != TYPEID_UNIT)
-        return;
-
-    if (unit.AI() && unit.movespline->Finalized())
-        unit.AI()->MovementInform(EFFECT_MOTION_TYPE, m_Id);
-    // Need restore previous movement since we have no proper states system
-    if (unit.isAlive() && !unit.hasUnitState(UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_NO_COMBAT_MOVEMENT))
+    if (!m_arrived && !PointMovementGenerator::Update(unit, diff))
     {
-        if (Unit* victim = unit.getVictim())
-            unit.GetMotionMaster()->MoveChase(victim);
-        else
-            unit.GetMotionMaster()->Initialize();
+        unit.clearUnitState(UNIT_STAT_ROAMING_MOVE);
+        m_arrived = true;
     }
+    return true;
 }
 
-void FlyOrLandMovementGenerator::Initialize(Unit& unit)
+void PointTOLMovementGenerator::Move(Unit& unit)
 {
-    if (unit.hasUnitState(UNIT_STAT_CAN_NOT_REACT | UNIT_STAT_NOT_MOVE))
-        return;
-
-    unit.StopMoving();
-
-    float x, y, z;
-    GetDestination(x, y, z);
-    unit.addUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
     Movement::MoveSplineInit init(unit);
+    init.MoveTo(m_x, m_y, m_z, false);
+    if (m_forcedMovement == FORCED_MOVEMENT_WALK)
+        init.SetWalk(true);
+    if (m_o != 0.f)
+        init.SetFacing(m_o);
+    init.SetVelocity(m_speed);
     init.SetFly();
-    init.MoveTo(x, y, z, false);
     init.Launch();
 }

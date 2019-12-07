@@ -62,13 +62,16 @@ class TargetedMovementGeneratorMedium
         virtual void UnitSpeedChanged() override { i_speedChanged = true; }
 
     protected:
-        void _setTargetLocation(T&, bool updateDestination);
         virtual bool RequiresNewPosition(T& owner, float x, float y, float z) const;
         virtual float GetDynamicTargetDistance(T& /*owner*/, bool /*forRangeCheck*/) const { return i_offset; }
         virtual bool ShouldFaceTarget() const { return i_faceTarget; }
         virtual void HandleTargetedMovement(T& owner, const uint32& time_diff) = 0;
         virtual void HandleFinalizedMovement(T& owner) = 0;
         virtual void HandleMovementFailure(T& owner) = 0;
+
+        virtual bool _hasUnitStateNotMove(Unit& owner) = 0;
+        virtual void _clearUnitStateMove(Unit& owner) = 0;
+        virtual void _addUnitStateMove(Unit& owner) = 0;
 
         ShortTimeTracker i_recheckDistance;
         float i_offset;
@@ -119,8 +122,6 @@ class ChaseMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Chas
         void DistanceYourself(Unit& owner, float distance);
         void FanOut(Unit& owner);
 
-        static void _clearUnitStateMove(Unit& u);
-        static void _addUnitStateMove(Unit& u);
         bool EnableWalking() const { return m_walk;}
         bool _lostTarget(Unit& u) const;
         void _reachTarget(Unit&);
@@ -138,7 +139,14 @@ class ChaseMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Chas
         void HandleFinalizedMovement(Unit& owner) override;
         bool RequiresNewPosition(Unit& owner, float x, float y, float z) const override;
 
+        bool _hasUnitStateNotMove(Unit& u) override;
+        void _clearUnitStateMove(Unit& u) override;
+        void _addUnitStateMove(Unit& u) override;
+
     private:
+        virtual bool _getLocation(Unit& owner, float& x, float& y, float& z) const;
+        virtual void _setLocation(Unit& owner);
+
         bool DispatchSplineToPosition(Unit& owner, float x, float y, float z, bool walk, bool cutPath);
         void CutPath(Unit& owner, PointsArray& path);
         void Backpedal(Unit& owner);
@@ -174,9 +182,6 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
 
         bool GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o) const override;
 
-        static void _clearUnitStateMove(Unit& owner);
-        static void _addUnitStateMove(Unit& owner);
-
         virtual bool EnableWalking() const;
 
         bool _lostTarget(Unit& owner) const;
@@ -188,22 +193,27 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
 
     protected:
         virtual float GetAngle(Unit& owner) const;
-        virtual float GetOffset(Unit &owner) const;
-        virtual float GetVelocity(Unit& owner, bool allowCatchup = false) const;
+        virtual float GetOffset(Unit& owner) const;
+        virtual float GetSpeed(Unit& owner, bool boosted = false) const;
 
-        virtual bool Move(Unit& owner, float x, float y, float z);
-        virtual bool Unstuck(Unit& owner, float x, float y, float z);
+        virtual bool IsBoostAllowed(Unit& owner) const;
+        virtual bool IsUnstuckAllowed(Unit& owner) const;
+
+        virtual bool Move(Unit& owner, float x, float y, float z, bool catchup);
 
         float GetDynamicTargetDistance(Unit& owner, bool forRangeCheck) const override;
         void HandleTargetedMovement(Unit& owner, const uint32& time_diff) override;
         void HandleFinalizedMovement(Unit& owner) override;
 
+        bool _hasUnitStateNotMove(Unit& owner) override;
+        void _clearUnitStateMove(Unit& owner) override;
+        void _addUnitStateMove(Unit& owner) override;
+
     private:
         virtual bool _getOrientation(Unit& owner, float& o) const;
         virtual bool _getLocation(Unit& owner, float& x, float& y, float& z) const;
         virtual void _setOrientation(Unit& owner);
-        virtual void _setLocation(Unit& owner, bool updateDestination);
-        bool _move(Unit& owner, const PointsArray& path, int32 offset = 0) const;
+        virtual void _setLocation(Unit& owner, bool catchup);
 
         bool m_main;
         bool m_targetMoving;

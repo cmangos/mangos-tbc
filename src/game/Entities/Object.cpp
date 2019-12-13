@@ -640,17 +640,21 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                     uint32 value = m_uint32Values[index];
 
                     // [XFACTION]: Alter faction if detected crossfaction group interaction when updating faction field:
-                    if (this != target && GetTypeId() == TYPEID_PLAYER && sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP))
+                    if (this != target && GetTypeId() == TYPEID_PLAYER)
                     {
                         Player const* thisPlayer = static_cast<Player const*>(this);
-                        const uint32 targetTeam = target->GetTeam();
 
-                        if (thisPlayer->GetTeam() != targetTeam && !thisPlayer->HasCharmer() && target->IsInGroup(thisPlayer))
+                        if (sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP) && target->IsInGroup(thisPlayer))
                         {
-                            switch (targetTeam)
+                            const uint32 targetTeam = target->GetTeam();
+
+                            if (thisPlayer->GetTeam() != targetTeam && value == Player::getFactionForRace(thisPlayer->getRace()))
                             {
-                                case ALLIANCE:  value = 1054;   break;  // "Alliance Generic"
-                                case HORDE:     value = 1495;   break;  // "Horde Generic"
+                                switch (targetTeam)
+                                {
+                                    case ALLIANCE:  value = 1054;   break;  // "Alliance Generic"
+                                    case HORDE:     value = 1495;   break;  // "Horde Generic"
+                                }
                             }
                         }
                     }
@@ -662,6 +666,39 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                     // send in current format (float as float, uint32 as uint32)
                     *data << m_uint32Values[index];
                 }
+            }
+        }
+    }
+    else if (isType(TYPEMASK_CORPSE))                       // corpse case
+    {
+        for (uint16 index = 0; index < m_valuesCount; ++index)
+        {
+            if (updateMask->GetBit(index))
+            {
+                if (index == CORPSE_FIELD_BYTES_1)
+                {
+                    uint32 value = m_uint32Values[index];
+
+                    // [XFACTION]: Alter race field if detected crossfaction group interaction:
+                    if (sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP))
+                    {
+                        Corpse const* thisCorpse = static_cast<Corpse const*>(this);
+                        ObjectGuid const& ownerGuid = thisCorpse->GetOwnerGuid();
+                        Group const* targetGroup = target->GetGroup();
+
+                        if (ownerGuid != target->GetObjectGuid() && targetGroup && targetGroup->IsMember(ownerGuid))
+                        {
+                            const uint8 targetRace = target->getRace();
+
+                            if (Player::TeamForRace(thisCorpse->getRace()) != Player::TeamForRace(targetRace))
+                                value = ((value &~ uint32(0xFF << 8)) | (uint32(targetRace) << 8));
+                        }
+                    }
+
+                    *data << value;
+                }
+                else
+                    *data << m_uint32Values[index];         // other cases
             }
         }
     }
@@ -1911,19 +1948,19 @@ namespace MaNGOS
 
 //===================================================================================================
 
-void WorldObject::GetNearPoint2D(float& x, float& y, float distance2d, float absAngle) const
+void WorldObject::GetNearPoint2dAt(const float posX, const float posY, float& x, float& y, float distance2d, float absAngle)
 {
-    x = GetPositionX() + distance2d * cos(absAngle);
-    y = GetPositionY() + distance2d * sin(absAngle);
+    x = (posX + (distance2d * cosf(absAngle)));
+    y = (posY + (distance2d * sinf(absAngle)));
 
     MaNGOS::NormalizeMapCoord(x);
     MaNGOS::NormalizeMapCoord(y);
 }
 
-void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater) const
+void WorldObject::GetNearPointAt(const float posX, const float posY, const float posZ, WorldObject const* searcher, float& x, float& y, float& z, float searcher_bounding_radius, float distance2d, float absAngle, bool isInWater) const
 {
-    GetNearPoint2D(x, y, distance2d, absAngle);
-    const float init_z = z = GetPositionZ();
+    GetNearPoint2dAt(posX, posY, x, y, distance2d, absAngle);
+    const float init_z = z = posZ;
 
     // if detection disabled, return first point
     if (!sWorld.getConfig(CONFIG_BOOL_DETECT_POS_COLLISION))
@@ -1943,7 +1980,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     const float dist = distance2d + searcher_bounding_radius + GetObjectBoundingRadius();
 
     // prepare selector for work
-    ObjectPosSelector selector(GetPositionX(), GetPositionY(), distance2d, searcher_bounding_radius, searcher);
+    ObjectPosSelector selector(posX, posY, distance2d, searcher_bounding_radius, searcher);
 
     // adding used positions around object - unused because its not blizzlike
     //{
@@ -1961,7 +1998,7 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
             return;
 
         first_los_conflict = true;                          // first point have LOS problems
@@ -1975,15 +2012,15 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     // select in positions after current nodes (selection one by one)
     while (selector.NextAngle(angle))                       // angle for free pos
     {
-        GetNearPoint2D(x, y, distance2d, absAngle + angle);
-        z = GetPositionZ();
+        GetNearPoint2dAt(posX, posY, x, y, distance2d, absAngle + angle);
+        z = posZ;
 
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
             return;
     }
 
@@ -2007,15 +2044,15 @@ void WorldObject::GetNearPoint(WorldObject const* searcher, float& x, float& y, 
     // select in positions after current nodes (selection one by one)
     while (selector.NextUsedAngle(angle))                   // angle for used pos but maybe without LOS problem
     {
-        GetNearPoint2D(x, y, distance2d, absAngle + angle);
-        z = GetPositionZ();
+        GetNearPoint2dAt(posX, posY, x, y, distance2d, absAngle + angle);
+        z = posZ;
 
         if (searcher)
             searcher->UpdateAllowedPositionZ(x, y, z, GetMap()); // update to LOS height if available
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (fabs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
             return;
     }
 

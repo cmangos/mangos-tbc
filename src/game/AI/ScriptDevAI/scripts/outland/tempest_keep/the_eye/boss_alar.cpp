@@ -185,13 +185,15 @@ struct boss_alarAI : public ScriptedAI
     void JustDied(Unit* /*pKiller*/) override
     {
         if (m_pInstance)
+        {
             m_pInstance->SetData(TYPE_ALAR, DONE);
 
-        std::list<Player*> playerList;
-        GetPlayerListWithEntryInWorld(playerList, m_creature, 150.0f);
-        for (auto& player : playerList)
-            if (player->GetQuestStatus(QUEST_RUSE_ASHTONGUE) == QUEST_STATUS_INCOMPLETE && player->HasAura(SPELL_ASHTONGUE_RUSE))
-                player->AreaExploredOrEventHappens(QUEST_RUSE_ASHTONGUE);
+            Map::PlayerList const& players = m_pInstance->instance->GetPlayers();
+            for (const auto& playerRef : players)
+                if (Player* player = playerRef.getSource())
+                    if (player->GetQuestStatus(QUEST_RUSE_ASHTONGUE) == QUEST_STATUS_INCOMPLETE && player->HasAura(SPELL_ASHTONGUE_RUSE))
+                        player->AreaExploredOrEventHappens(QUEST_RUSE_ASHTONGUE);
+        }
     }
 
     void JustSummoned(Creature* pSummoned) override

@@ -408,27 +408,26 @@ enum UnitState
     UNIT_STAT_ISOLATED        = 0x00000020,                 // area auras do not affect other players, Aura::HandleAuraModSchoolImmunity
     UNIT_STAT_POSSESSED       = 0x00000040,                 // Aura::HandleAuraModPossess (duplicates UNIT_FLAG_POSSESSED)
 
-    // persistent movement generator state (all time while movement generator applied to unit (independent from top state of movegen)
-    UNIT_STAT_TAXI_FLIGHT     = 0x00000080,                 // player is in flight mode (in fact interrupted at far teleport until next map telport landing)
-    UNIT_STAT_DISTRACTED      = 0x00000100,                 // DistractedMovementGenerator active
+    // movement generators begin:
+    UNIT_STAT_TAXI_FLIGHT     = 0x00000080,                 // TaxiMovementGenerator on stack
+    UNIT_STAT_PROPELLED       = 0x00000100,                 // EffectMovementGenerator on stack
+    UNIT_STAT_PANIC           = 0x00000200,                 // PanicMovementGenerator on stack
+    UNIT_STAT_RETREATING      = 0x00000400,                 // RetreatMovementGenerator on stack
+    UNIT_STAT_DISTRACTED      = 0x00000800,                 // DistractedMovementGenerator on stack
+    UNIT_STAT_STAY            = 0x00001000,                 // StayMovementGenerator on stack
+    UNIT_STAT_CONFUSED        = 0x00002000,                 // ConfusedMovementGenerator on stack
+    UNIT_STAT_CONFUSED_MOVE   = 0x00004000,                 // ^ - spline dispatched
+    UNIT_STAT_ROAMING         = 0x00008000,                 // Point/Retreat/Stay/Wander/Waypoint/Effect MovementGenerator on stack
+    UNIT_STAT_ROAMING_MOVE    = 0x00010000,                 // ^ - spline dispatched
+    UNIT_STAT_CHASE           = 0x00020000,                 // ChaseMovementGenerator on stack
+    UNIT_STAT_CHASE_MOVE      = 0x00040000,                 // ^ - spline dispatched
+    UNIT_STAT_FOLLOW          = 0x00080000,                 // FollowMovementGenerator on stack
+    UNIT_STAT_FOLLOW_MOVE     = 0x00100000,                 // ^ - spline dispatched
+    UNIT_STAT_FLEEING         = 0x00200000,                 // FleeingMovementGenerator/PanicMovementGenerator on stack
+    UNIT_STAT_FLEEING_MOVE    = 0x00400000,                 // ^ - spline dispatched
+    // movemement generators end
 
-    // persistent movement generator state with non-persistent mirror states for stop support
-    // (can be removed temporary by stop command or another movement generator apply)
-    // not use _MOVE versions for generic movegen state, it can be removed temporary for unit stop and etc
-    UNIT_STAT_CONFUSED        = 0x00000200,                 // ConfusedMovementGenerator active/onstack
-    UNIT_STAT_CONFUSED_MOVE   = 0x00000400,
-    UNIT_STAT_ROAMING         = 0x00000800,                 // RandomMovementGenerator/PointMovementGenerator/WaypointMovementGenerator active (now always set)
-    UNIT_STAT_ROAMING_MOVE    = 0x00001000,
-    UNIT_STAT_CHASE           = 0x00002000,                 // ChaseMovementGenerator active
-    UNIT_STAT_CHASE_MOVE      = 0x00004000,
-    UNIT_STAT_FOLLOW          = 0x00008000,                 // FollowMovementGenerator active
-    UNIT_STAT_FOLLOW_MOVE     = 0x00010000,
-    UNIT_STAT_FLEEING         = 0x00020000,                 // FleeMovementGenerator/TimedFleeingMovementGenerator active/onstack
-    UNIT_STAT_FLEEING_MOVE    = 0x00040000,
-    UNIT_STAT_SEEKING_ASSISTANCE = 0x00080000,
-    UNIT_STAT_CHARGING        = 0x00100000,                 // Creature will not turn and acquire new target
-    UNIT_STAT_CHANNELING      = 0x00200000,
-    // More room for other MMGens
+    UNIT_STAT_CHANNELING      = 0x00800000,
 
     // High-Level states (usually only with Creatures)
     UNIT_STAT_NO_COMBAT_MOVEMENT    = 0x01000000,           // Combat Movement for MoveChase stopped
@@ -449,11 +448,11 @@ enum UnitState
     // stay or scripted movement for effect( = in player case you can't move by client command)
     UNIT_STAT_NO_FREE_MOVE    = UNIT_STAT_ROOT | UNIT_STAT_STUNNED | UNIT_STAT_FEIGN_DEATH |
                                 UNIT_STAT_TAXI_FLIGHT |
-                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
+                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_PROPELLED,
 
     // not react at move in sight or other
     UNIT_STAT_CAN_NOT_REACT   = UNIT_STAT_STUNNED | UNIT_STAT_FEIGN_DEATH |
-                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING,
+                                UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_RETREATING,
 
     // AI disabled by some reason
     UNIT_STAT_LOST_CONTROL    = UNIT_STAT_CONFUSED | UNIT_STAT_FLEEING | UNIT_STAT_POSSESSED,
@@ -679,6 +678,21 @@ class MovementInfo
         bool HasMovementFlag(MovementFlags f) const { return (moveFlags & f) != 0; }
         MovementFlags GetMovementFlags() const { return MovementFlags(moveFlags); }
         void SetMovementFlags(MovementFlags f) { moveFlags = f; }
+
+        // Deduce speed type by current movement flags:
+        inline UnitMoveType GetSpeedType() { return GetSpeedType(MovementFlags(moveFlags)); }
+        static inline UnitMoveType GetSpeedType(MovementFlags f)
+        {
+            if (f & MOVEFLAG_FLYING)
+                return (f & MOVEFLAG_BACKWARD ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
+            else if (f & MOVEFLAG_SWIMMING)
+                return (f & MOVEFLAG_BACKWARD ? MOVE_SWIM_BACK : MOVE_SWIM);
+            else if (f & MOVEFLAG_WALK_MODE)
+                return MOVE_WALK;
+            else if (f & MOVEFLAG_BACKWARD)
+                return MOVE_RUN_BACK;
+            return MOVE_RUN;
+        }
 
         // Position manipulations
         Position const* GetPos() const { return &pos; }
@@ -1123,8 +1137,9 @@ struct CharmInfo
         void SetIsRetreating(bool retreating = false) { m_retreating = retreating; }
         bool GetIsRetreating() const { return m_retreating; }
 
-        void SetStayPosition(bool stay = false);
-        bool IsStayPosSet() const { return m_stayPosSet; }
+        void ResetStayPosition();
+        void SetStayPosition();
+        bool UpdateStayPosition();
 
         float GetStayPosX() const { return m_stayPosX; }
         float GetStayPosY() const { return m_stayPosY; }
@@ -1635,7 +1650,7 @@ class Unit : public WorldObject
         void SetCanParry(const bool flag);
         void SetCanBlock(const bool flag);
 
-        bool CanReactInCombat() const { return (isAlive() && !IsIncapacitated() && !IsEvadingHome()); }
+        bool CanReactInCombat() const { return (isAlive() && !IsCrowdControlled() && !IsEvadingHome()); }
         bool CanDodgeInCombat() const;
         bool CanDodgeInCombat(const Unit* attacker) const;
         bool CanParryInCombat() const;
@@ -1865,6 +1880,8 @@ class Unit : public WorldObject
         
         void SendHeartBeat();
 
+        void SendMoveRoot(bool state, bool broadcastOnly = false);
+
         bool IsMoving() const { return m_movementInfo.HasMovementFlag(movementFlagsMask); }
         bool IsMovingForward() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_MASK_MOVING_FORWARD); }
         bool IsLevitating() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_LEVITATING); }
@@ -1876,7 +1893,6 @@ class Unit : public WorldObject
         virtual void SetCanFly(bool /*enabled*/) {}
         virtual void SetFeatherFall(bool /*enabled*/) {}
         virtual void SetHover(bool /*enabled*/) {}
-        virtual void SetRoot(bool /*enabled*/) {}
         virtual void SetWaterWalk(bool /*enabled*/) {}
 
         void SetInFront(Unit const* target);
@@ -2332,21 +2348,23 @@ class Unit : public WorldObject
         void InterruptMoving(bool forceSendStop = false);
 
         ///----------Various crowd control methods-----------------
-        bool IsImmobilized() const { return hasUnitState(UNIT_STAT_ROOT | UNIT_STAT_STUNNED); }
+        inline bool IsCrowdControlled() const { return HasFlag(UNIT_FIELD_FLAGS, (UNIT_FLAG_CONFUSED | UNIT_FLAG_FLEEING | UNIT_FLAG_STUNNED)); }
+
+        inline bool IsConfused() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED); }
+        bool SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
+
+        inline bool IsFleeing() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING); }
+        bool SetFleeing(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 duration = 0);
+
+        inline bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
+        bool SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
+
+        // Panic: AI reaction script, NPC flees (e.g. at low health)
+        inline bool IsInPanic() const { return hasUnitState(UNIT_STAT_PANIC); }
+        inline bool SetInPanic(uint32 duration) { return SetFleeing(true, GetObjectGuid(), 0, duration); }
+
+        inline bool IsImmobilizedState() const { return hasUnitState(UNIT_STAT_ROOT | UNIT_STAT_STUNNED); }
         void SetImmobilizedState(bool apply, bool stun = false);
-
-        // These getters operate on unit flags set by IncapacitatedState and are meant for formal usage in conjunction with spell effects only
-        // For actual internal movement states use UnitState flags
-        // TODO: The UnitState thing needs to be rewriten at some point, this kind of duality is bad
-        bool IsFleeing() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_FLEEING); }
-        bool IsConfused() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_CONFUSED); }
-        bool IsStunned() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED); }
-        bool IsIncapacitated() const { return (IsFleeing() || IsConfused() || IsStunned()); }
-
-        void SetFeared(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, uint32 time = 0);
-        void SetConfused(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT);
-        void SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0);
-        void SetIncapacitatedState(bool apply, uint32 state = 0, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, AuraRemoveMode removeMode = AURA_REMOVE_BY_DEFAULT, uint32 time = 0);
         ///----------End of crowd control methods----------
 
         bool IsFeigningDeath() const { return HasFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH); }

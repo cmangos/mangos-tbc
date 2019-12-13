@@ -1531,6 +1531,36 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
+                case 28098:                                 // Stalagg Tesla Effect
+                case 28110:                                 // Feugen Tesla Effect
+                {
+                    if (unitTarget && unitTarget->GetTypeId() == TYPEID_UNIT && unitTarget->isAlive())
+                    {
+                        if (!m_caster->hasUnitState(UNIT_STAT_ROOT))    // This state is found in sniffs and is probably caused by another aura like 23973
+                            m_caster->addUnitState(UNIT_STAT_ROOT);     // but as we are not sure (the aura does not show up in sniffs), we handle the state here
+
+                        // Cast chain (Stalagg Chain or Feugen Chain)
+                        uint32 chainSpellId = m_spellInfo->Id == 28098 ? 28096 : 28111;
+                        // Only cast if not already present and in range
+                        if (!unitTarget->HasAura(chainSpellId) && m_caster->IsWithinDistInMap(unitTarget, 60.0f))
+                        {
+                            if (!m_caster->IsImmuneToPlayer())
+                                m_caster->SetImmuneToPlayer(true);
+                            m_caster->CastSpell(unitTarget, chainSpellId, TRIGGERED_OLD_TRIGGERED);
+                        }
+                        // Not in range and fight in progress: remove aura and cast Shock onto players
+                        else if (!m_caster->IsWithinDistInMap(unitTarget, 60.0f) && m_caster)
+                        {
+                            unitTarget->RemoveAurasDueToSpell(chainSpellId);
+                            m_caster->SetImmuneToPlayer(false);
+
+                            if (Unit* target = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                                m_caster->CastSpell(target, 28099, TRIGGERED_NONE);
+                        }
+                        // else: in range and already have aura: do nothing
+                    }
+                    return;
+                }
                 case 28238:                                 // Zombie Chow Search
                 {
                     m_caster->SetHealth(m_caster->GetHealth() + m_caster->GetMaxHealth() * 0.05f); // Gain 5% heal
@@ -1540,6 +1570,15 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     // Target is filtered in Spell::FilterTargetMap
                     m_caster->CastSpell(unitTarget, 28308, TRIGGERED_NONE); // Hateful Strike
+                    return;
+                }
+                case 28359:                                 // Trigger Teslas
+                {
+                    if (unitTarget)
+                    {
+                        unitTarget->RemoveAllAuras();
+                        unitTarget->CastSpell(unitTarget, 28159, TRIGGERED_NONE);   // Shock
+                    }
                     return;
                 }
                 case 28414:                                 // Call of the Ashbringer
@@ -6828,6 +6867,17 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         DoScriptText(-1533119, m_caster, unitTarget);
                     return;
                 }
+                case 28338:                                 // Magnetic Pull
+                case 28339:                                 // Magnetic Pull
+                {
+                    if (unitTarget && m_caster->getVictim())
+                        unitTarget->CastSpell(m_caster->getVictim(), 28337, TRIGGERED_OLD_TRIGGERED);   // target cast actual Magnetic Pull on caster's victim
+                        // ToDo research if target should also get the threat of the caster for caster's victim.
+                        // This is the case in WotLK version but we have no proof of this in Classic/TBC
+                        // and it was common at these times to let players manage threat and tank transitions by themselves
+                    return;
+                }
+
                 case 28352:                                 // Breath of Sargeras
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
@@ -6858,7 +6908,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     m_caster->SummonCreature(16474, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 30000);
                     return;
                 }
+                case 28732:                                 // Widow Embrace
+                {
+                    m_caster->CastSpell(nullptr, 28748, TRIGGERED_OLD_TRIGGERED);       // Self suicide
+                    return;
+                }
                 case 29379:                                 // Despawn Crypt Guards
+                case 30134:                                 // Despawn Boss Adds
+                case 30228:                                 // Despawn Summons
                 {
                     if (unitTarget)
                         ((Creature*)unitTarget)->ForcedDespawn();
@@ -8882,9 +8939,6 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     if (!unitTarget || !m_caster)
         return;
 
-    WorldLocation pos;
-    unitTarget->GetFirstCollisionPosition(pos, unitTarget->GetCombatReach(), unitTarget->GetAngle(m_caster));
-
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
         ((Creature*)unitTarget)->StopMoving();
 
@@ -8892,9 +8946,9 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
         static_cast<Player*>(m_caster)->SetFallInformation(0, m_caster->GetPositionZ());
 
-    float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
+    const float speed = (m_spellInfo->speed != 0.f ? m_spellInfo->speed : BASE_CHARGE_SPEED);
 
-    m_caster->GetMotionMaster()->MoveCharge(pos.coord_x, pos.coord_y, pos.coord_z, speed, m_spellInfo->Id);
+    m_caster->GetMotionMaster()->MoveCharge(*unitTarget, speed, m_spellInfo->Id);
 }
 
 void Spell::EffectChargeDest(SpellEffectIndex /*eff_idx*/)
@@ -9241,7 +9295,7 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
             // calculate angle variation for roughly equal dimensions of target area
             float max_angle = (max_dis - min_dis) / (max_dis + m_caster->GetObjectBoundingRadius());
             float angle_offset = max_angle * (rand_norm_f() - 0.5f);
-            m_caster->GetNearPoint2D(fx, fy, dis + m_caster->GetObjectBoundingRadius(), m_caster->GetOrientation() + angle_offset);
+            m_caster->GetNearPoint2d(fx, fy, dis + m_caster->GetObjectBoundingRadius(), m_caster->GetOrientation() + angle_offset);
 
             GridMapLiquidData liqData;
             if (!m_caster->GetTerrain()->IsInWater(fx, fy, m_caster->GetPositionZ() + 1.f, &liqData))

@@ -1578,6 +1578,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     if (unitTarget)
                     {
+                        DoScriptText(-1533150, unitTarget, unitTarget);
                         unitTarget->RemoveAllAuras();
                         unitTarget->CastSpell(unitTarget, 28159, TRIGGERED_NONE);   // Shock
                     }
@@ -4653,16 +4654,31 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 
     // Expected Level
     Unit* petInvoker = responsibleCaster ? responsibleCaster : m_caster;
-    uint32 level = petInvoker->getLevel();
+    uint32 level;
+    // Everything considered as guardian or critter pets uses its creature template level by default (may change depending on SpellEffect params)
+    if (summon_prop->Title == UNITNAME_SUMMON_TITLE_GUARDIAN || summon_prop->Title == UNITNAME_SUMMON_TITLE_COMPANION)
+    {
+        if (CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(m_spellInfo->EffectMiscValue[eff_idx]))
+            level = urand(0, 1) ? cInfo->MinLevel : cInfo->MaxLevel;
+        else
+        {
+            sLog.outError("Spell Effect EFFECT_SUMMON (%u) - no creature template found for summoned NPC %u (spell id %u, effIndex %u)", m_spellInfo->Effect[eff_idx], m_spellInfo->EffectMiscValue[eff_idx], m_spellInfo->Id, eff_idx);
+            return;
+        }
+    }
+    else    // Use invoker level in all other cases (to be confirmed)
+        level = petInvoker->getLevel();
     if (petInvoker->GetTypeId() != TYPEID_PLAYER)
     {
-        // pet players do not need this
-        // TODO :: Totem, Pet and Critter may not use this. This is probably wrongly used and need more research.
-        uint32 resultLevel = level + std::max(m_spellInfo->EffectMultipleValue[eff_idx], .0f);
+        // If EffectMultipleValue <= 0, pets have their calculated level modified by EffectMultipleValue
+        if (m_spellInfo->EffectMultipleValue[eff_idx] <= 0)
+        {
+            uint32 resultLevel = std::max(petInvoker->getLevel() + m_spellInfo->EffectMultipleValue[eff_idx], 0.0f);
 
-        // result level should be a possible level for creatures
-        if (resultLevel > 0 && resultLevel <= DEFAULT_MAX_CREATURE_LEVEL)
-            level = resultLevel;
+            // Result level should be a valid level for creatures
+            if (resultLevel > 0 && resultLevel <= DEFAULT_MAX_CREATURE_LEVEL)
+                level = resultLevel;
+        }
     }
     // level of creature summoned using engineering item based at engineering skill level
     else if (m_CastItem)
@@ -4676,13 +4692,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                 amount = 1;                                 // TODO HACK (needs a neat way of doing)
             }
         }
-        else if (CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(m_spellInfo->EffectMiscValue[eff_idx]))
-        {
-            if (level >= cInfo->MaxLevel)
-                level = cInfo->MaxLevel;
-            else if (level <= cInfo->MinLevel)
-                level = cInfo->MinLevel;
-        }
+        // other cases are covered above by using level from template
     }
 
     CreatureSummonPositions summonPositions;
@@ -8941,9 +8951,6 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     if (!unitTarget || !m_caster)
         return;
 
-    WorldLocation pos;
-    unitTarget->GetFirstCollisionPosition(pos, unitTarget->GetCombatReach(), unitTarget->GetAngle(m_caster));
-
     if (unitTarget->GetTypeId() != TYPEID_PLAYER)
         ((Creature*)unitTarget)->StopMoving();
 
@@ -8951,9 +8958,14 @@ void Spell::EffectCharge(SpellEffectIndex /*eff_idx*/)
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
         static_cast<Player*>(m_caster)->SetFallInformation(0, m_caster->GetPositionZ());
 
-    float speed = m_spellInfo->speed ? m_spellInfo->speed : BASE_CHARGE_SPEED;
+    const float speed = (m_spellInfo->speed != 0.f ? m_spellInfo->speed : BASE_CHARGE_SPEED);
 
-    m_caster->GetMotionMaster()->MoveCharge(pos.coord_x, pos.coord_y, pos.coord_z, speed, m_spellInfo->Id);
+    m_caster->GetMotionMaster()->MoveCharge(*unitTarget, speed, m_spellInfo->Id);
+
+    // Players: charge against hostiles initiates auto-attack
+    // TODO: This is executed after spell effects. Verify if this should be executed before spell effects
+    if (m_caster->IsClientControlled() && m_caster->CanAttackNow(unitTarget) && m_caster->CanAttackSpell(unitTarget, m_spellInfo))
+        m_caster->Attack(unitTarget, !m_spellInfo->HasAttribute(SPELL_ATTR_RANGED));
 }
 
 void Spell::EffectChargeDest(SpellEffectIndex /*eff_idx*/)

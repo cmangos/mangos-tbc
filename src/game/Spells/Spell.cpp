@@ -76,7 +76,7 @@ SpellCastTargets::SpellCastTargets()
     m_targetMask = 0;
 
     m_destOri = 0.f;
-    m_mapId = 0;
+    m_mapId = UINT32_MAX;
 }
 
 SpellCastTargets::~SpellCastTargets()

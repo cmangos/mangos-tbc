@@ -382,6 +382,7 @@ enum SelectFlags
     SELECT_FLAG_POWER_NOT_MANA      = 0x1000,               // Used in some dungeon encounters
     SELECT_FLAG_USE_EFFECT_RADIUS   = 0x2000,               // For AOE targeted abilities which have correct data in effect index 0
     SELECT_FLAG_SKIP_TANK           = 0x4000,               // Not getVictim - tank is not always top threat
+    SELECT_FLAG_SKIP_CUSTOM         =0x10000,               // skips custom target
 };
 
 enum RegenStatsFlags
@@ -477,7 +478,8 @@ struct TrainerSpellData
 };
 
 // max different by z coordinate for creature aggro reaction
-#define CREATURE_Z_ATTACK_RANGE 3
+#define CREATURE_Z_ATTACK_RANGE_MELEE  3
+#define CREATURE_Z_ATTACK_RANGE_RANGED 15
 
 #define MAX_VENDOR_ITEMS 255                                // Limitation in item count field size in SMSG_LIST_INVENTORY
 
@@ -558,6 +560,10 @@ struct SelectAttackingTargetParams
         } range;
         struct
         {
+            uint64 guid;
+        } skip;
+        struct
+        {
             uint32 params[2];
         } raw;
     };
@@ -603,7 +609,7 @@ class Creature : public Unit
 
         bool IsCorpse() const { return getDeathState() ==  CORPSE; }
         bool IsDespawned() const { return getDeathState() ==  DEAD; }
-        void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; }
+        void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; } // in seconds
         void ReduceCorpseDecayTimer();
         TimePoint GetCorpseDecayTimer() const { return m_corpseExpirationTime; }
         bool CanRestockPickpocketLoot() const;
@@ -617,7 +623,7 @@ class Creature : public Unit
         bool CanSwim() const { return (GetCreatureInfo()->InhabitType & INHABIT_WATER) != 0; }
         bool IsSwimming() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_SWIMMING); }
         bool CanFly() const override { return (GetCreatureInfo()->InhabitType & INHABIT_AIR) || m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_LEVITATING | MOVEFLAG_HOVER | MOVEFLAG_CAN_FLY)); }
-        bool IsFlying() const { return m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_FLYING | MOVEFLAG_HOVER | MOVEFLAG_LEVITATING)); }
+        bool IsFlying() const override { return m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_FLYING | MOVEFLAG_HOVER | MOVEFLAG_LEVITATING)); }
         bool IsTrainerOf(Player* pPlayer, bool msg) const;
         bool CanInteractWithBattleMaster(Player* pPlayer, bool msg) const;
         bool CanTrainAndResetTalentsOf(Player* pPlayer) const;

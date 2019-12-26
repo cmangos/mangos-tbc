@@ -473,6 +473,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 39311:         // Scrapped Fel Reaver transform aura that is never removed even on evade
         case 39918:         // Soulgrinder Ritual Visual ( in progress)
         case 39920:         // Soulgrinder Ritual Visual ( beam)
+        case 40816:         // Saber Lash - Mother Shahraz
         case 41634:         // Invisibility and Stealth Detection
         case 44537:         // Fel Lightning
         case 44604:         // Enchantment of Spell Haste
@@ -541,6 +542,7 @@ inline bool IsSpellEffectDamage(SpellEntry const& spellInfo, SpellEffectIndex i)
             case SPELL_AURA_PERIODIC_DAMAGE:
             case SPELL_AURA_PERIODIC_LEECH:
             //   SPELL_AURA_POWER_BURN_MANA: deals damage for power burned, but not really a DoT?
+            case SPELL_AURA_PERIODIC_MANA_LEECH: // confirmed via 31447
             case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
                 return true;
         }
@@ -590,7 +592,7 @@ inline bool IsBinarySpell(SpellEntry const& spellInfo, uint8 effectMask = EFFECT
     uint8 auramask = 0;     // A bitmask of aura effcts: set bits are auras
     for (uint32 i = EFFECT_INDEX_0; i < MAX_EFFECT_INDEX; ++i)
     {
-        const uint8 thisMask = uint8(1 << (i - 1));
+        const uint8 thisMask = uint8(1 << i);
 
         if (!spellInfo.Effect[i] || !(effectMask & thisMask))
             continue;
@@ -1242,7 +1244,7 @@ inline void GetChainJumpRange(SpellEntry const* spellInfo, SpellEffectIndex effI
         case 40861:
             minSearchRangeCaster = 0.f;
             maxSearchRangeTarget = 150.f;
-            jumpRadius = 100.f;
+            jumpRadius = 25.f;
             break;
         default:   // default jump radius
             break;
@@ -1719,6 +1721,8 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
                 case SPELLFAMILY_GENERIC:
                     if (entry->SpellIconID == 92 && entry->SpellVisual == 99 && icon && visual)
                         return false; // Soulstone Resurrection
+                    if (entry->Id == 31944) // Archimonde - Doomfire
+                        return false;
                     break;
                 case SPELLFAMILY_SHAMAN:
                     if (entry->IsFitToFamilyMask(uint64(0x200)) && multirank)

@@ -1554,8 +1554,8 @@ uint32 BattleGroundMgr::CreateBattleGround(BattleGroundTypeId bgTypeId, bool IsA
 void BattleGroundMgr::CreateInitialBattleGrounds()
 {
     uint32 count = 0;
-    //                                                0   1                 2                 3      4      5                6              7             8           9
-    QueryResult* result = WorldDatabase.Query("SELECT id, MinPlayersPerTeam,MaxPlayersPerTeam,MinLvl,MaxLvl,AllianceStartLoc,AllianceStartO,HordeStartLoc,HordeStartO,StartMaxDist FROM battleground_template");
+    //                                                0   1                 2                 3      4      5                6             7 
+    QueryResult* result = WorldDatabase.Query("SELECT id, MinPlayersPerTeam,MaxPlayersPerTeam,MinLvl,MaxLvl,AllianceStartLoc,HordeStartLoc,StartMaxDist FROM battleground_template");
 
     if (!result)
     {
@@ -1614,7 +1614,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
             AStartLoc[0] = start->x;
             AStartLoc[1] = start->y;
             AStartLoc[2] = start->z;
-            AStartLoc[3] = fields[6].GetFloat();
+            AStartLoc[3] = sObjectMgr.GetWorldSafeLocFacing(start->ID);
         }
         else if (bgTypeID == BATTLEGROUND_AA)
         {
@@ -1629,7 +1629,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
             continue;
         }
 
-        uint32 start2 = fields[7].GetUInt32();
+        uint32 start2 = fields[6].GetUInt32();
 
         start = sWorldSafeLocsStore.LookupEntry(start2);
         if (start)
@@ -1637,7 +1637,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
             HStartLoc[0] = start->x;
             HStartLoc[1] = start->y;
             HStartLoc[2] = start->z;
-            HStartLoc[3] = fields[8].GetFloat();
+            HStartLoc[3] = sObjectMgr.GetWorldSafeLocFacing(start->ID);
         }
         else if (bgTypeID == BATTLEGROUND_AA)
         {
@@ -1652,7 +1652,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
             continue;
         }
 
-        float startMaxDist = fields[9].GetFloat();
+        float startMaxDist = fields[7].GetFloat();
 
         // sLog.outDetail("Creating battleground %s, %u-%u", bl->name[sWorld.GetDBClang()], MinLvl, MaxLvl);
         if (!CreateBattleGround(bgTypeID, IsArena, MinPlayersPerTeam, MaxPlayersPerTeam, MinLvl, MaxLvl, bl->name[sWorld.GetDefaultDbcLocale()], bl->mapid[0], AStartLoc[0], AStartLoc[1], AStartLoc[2], AStartLoc[3], HStartLoc[0], HStartLoc[1], HStartLoc[2], HStartLoc[3], startMaxDist))

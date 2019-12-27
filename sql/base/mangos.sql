@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2397_01_mangos_broadcast_text` bit(1) DEFAULT NULL
+  `required_s2398_01_mangos_world_safe_locs_facing` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -337,9 +337,7 @@ CREATE TABLE `battleground_template` (
   `MinLvl` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `MaxLvl` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `AllianceStartLoc` mediumint(8) unsigned NOT NULL,
-  `AllianceStartO` float NOT NULL,
   `HordeStartLoc` mediumint(8) unsigned NOT NULL,
-  `HordeStartO` float NOT NULL,
   `StartMaxDist` float NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
@@ -351,14 +349,14 @@ CREATE TABLE `battleground_template` (
 LOCK TABLES `battleground_template` WRITE;
 /*!40000 ALTER TABLE `battleground_template` DISABLE KEYS */;
 INSERT INTO `battleground_template` VALUES
-(1,0,0,0,0,611,2.72532,610,2.27452,100),
-(2,0,0,0,0,769,3.14159,770,3.14159,75),
-(3,0,0,0,0,890,3.40156,889,0.263892,75),
-(4,0,2,10,70,929,0,936,3.14159,0),
-(5,0,2,10,70,939,0,940,3.14159,0),
-(6,0,2,10,70,0,0,0,0,0),
-(7,0,0,0,0,1103,3.40156,1104,0.263892,75),
-(8,0,2,10,70,1258,0,1259,3.14159,0);
+(1,0,0,0,0,611,610,100),
+(2,0,0,0,0,769,770,75),
+(3,0,0,0,0,890,889,75),
+(4,0,2,10,70,929,936,0),
+(5,0,2,10,70,939,940,0),
+(6,0,2,10,70,0,0,0),
+(7,0,0,0,0,1103,1104,75),
+(8,0,2,10,70,1258,1259,0);
 /*!40000 ALTER TABLE `battleground_template` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -16873,6 +16871,22 @@ LOCK TABLES `transports` WRITE;
 /*!40000 ALTER TABLE `transports` DISABLE KEYS */;
 /*!40000 ALTER TABLE `transports` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `world_safe_locs`
+--
+
+DROP TABLE IF EXISTS `world_safe_locs`;
+CREATE TABLE `world_safe_locs` (
+   `id` int(11) unsigned NOT NULL,
+   `map` int(10) unsigned NOT NULL DEFAULT '0',
+   `x` float NOT NULL DEFAULT '0',
+   `y` float NOT NULL DEFAULT '0',
+   `z` float NOT NULL DEFAULT '0',
+   `o` float NOT NULL DEFAULT '0',
+   `name` varchar(50) NOT NULL DEFAULT '',
+   PRIMARY KEY (`id`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `world_template`

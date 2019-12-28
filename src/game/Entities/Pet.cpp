@@ -1417,7 +1417,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
         case GUARDIAN_PET:
         {
             SelectLevel(petlevel);  // guardians reuse CLS function SelectLevel, so we stop here
-            return;
+            break;
         }
         default:
             sLog.outError("Pet have incorrect type (%u) for level handling.", getPetType());

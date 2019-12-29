@@ -190,14 +190,12 @@ InstanceData* GetInstanceData_instance_shadow_labyrinth(Map* pMap)
     return new instance_shadow_labyrinth(pMap);
 }
 
-
 struct go_screaming_hall_door : public GameObjectAI
 {
-    go_screaming_hall_door(GameObject* go) : GameObjectAI(go)
-    {
-        m_doorCheckNearbyPlayersTimer = 1000;
-        m_doorOpen = false;
-    }
+    go_screaming_hall_door(GameObject* go) : GameObjectAI(go), 
+        m_doorCheckNearbyPlayersTimer(1000), 
+        m_doorOpen(false)
+    {}
 
     uint32 m_doorCheckNearbyPlayersTimer;
     bool m_doorOpen;
@@ -216,7 +214,6 @@ struct go_screaming_hall_door : public GameObjectAI
                 {
                     m_go->Use(player);
                     m_doorOpen = true;
-
                 });
             }
             m_doorCheckNearbyPlayersTimer = 1000;

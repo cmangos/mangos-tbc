@@ -6946,6 +6946,16 @@ int32 Unit::SpellBonusWithCoeffs(SpellEntry const* spellProto, int32 total, int3
     if (GetTypeId() == TYPEID_UNIT && !((Creature*)this)->IsPet())
         coeff = 1.0f;
     // Check for table values
+    else if(spellProto->SpellVisual == 7986)
+    {
+        Item* item = ((Player*)this)->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND);
+        float speed = (item ? item->GetProto()->Delay : BASE_ATTACK_TIME) / 1000.0f;
+
+        if (item && item->GetProto()->InventoryType == INVTYPE_2HWEAPON)
+            coeff = .108f * speed;
+        else
+            coeff = .092f * speed;
+    }
     else if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
     {
         coeff = damagetype == DOT ? bonus->dot_damage : bonus->direct_damage;

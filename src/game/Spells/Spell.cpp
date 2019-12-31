@@ -7517,10 +7517,6 @@ SpellCastResult Spell::OnCheckCast(bool strict)
                 if (target.GetEntry() != 22181)
                     return SPELL_FAILED_BAD_TARGETS;
             break;
-        case 37390: // Oscillating Frequency Scanner
-            if (m_caster->HasAura(37407))
-                return SPELL_FAILED_NOT_HERE;
-            break;
         case 27230: // Health Stone
         case 11730:
         case 11729:

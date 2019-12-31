@@ -6116,6 +6116,7 @@ void Aura::HandleAuraModIncreaseHealthPercent(bool apply, bool /*Real*/)
 
     switch (GetId())
     {
+        case 802:                           // Mutate Bug
         case 40851:                         // Disgruntled
         {
             if (apply)

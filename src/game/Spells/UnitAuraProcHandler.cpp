@@ -1300,7 +1300,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     RemoveAurasDueToSpell(triggeredByAura->GetId());
 
                     // Cast finish spell (triggeredByAura already not exist!)
-                    CastSpell(this, 27285, TRIGGERED_OLD_TRIGGERED, castItem, nullptr, casterGuid);
+                    if (Unit* caster = triggeredByAura->GetCaster())
+                        caster->CastSpell(this, 27285, TRIGGERED_OLD_TRIGGERED, castItem);
                     return SPELL_AURA_PROC_OK;              // no hidden cooldown
                 }
 

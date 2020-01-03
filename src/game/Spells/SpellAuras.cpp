@@ -2698,7 +2698,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             case 27243:                                     // Seed of Corruption
             {
                 if (m_removeMode == AURA_REMOVE_BY_DEATH)
-                    target->CastSpell(target, 27285, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetCasterGuid());
+                    if (Unit* caster = GetCaster())
+                        caster->CastSpell(target, 27285, TRIGGERED_OLD_TRIGGERED);
                 return;
             }
             case 28169:                                     // Mutating Injection

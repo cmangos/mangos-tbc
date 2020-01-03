@@ -7597,6 +7597,10 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
             if (target->GetTypeId() == TYPEID_PLAYER && target == m_caster->getVictim())
                 return false;
             break;
+        case 27285:                                         // Seed of Corruption - damage spell
+            if (target->GetObjectGuid() == m_targets.getUnitTargetGuid()) // in TBC skip target of initial aura
+                return false;
+            break;
         case 30469:                                         // Nether Beam - Netherspite - special include only players and boss
             if (target->GetTypeId() == TYPEID_UNIT && target->GetEntry() != 15689)
                 return false;

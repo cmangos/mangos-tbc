@@ -3988,7 +3988,10 @@ void Spell::EffectHeal(SpellEffectIndex eff_idx)
             int32 tickcount = GetSpellDuration(targetAura->GetSpellProto()) / targetAura->GetSpellProto()->EffectAmplitude[idx];
 
             unitTarget->RemoveAurasByCasterSpell(targetAura->GetId(), targetAura->GetCasterGuid());
-
+            
+            if(unitTarget->HasAura(34123)) //Tree Of Life Bonus Heal Passive
+                addhealth += int32(m_caster->GetStat(STAT_SPIRIT) / 4);
+            
             addhealth += tickheal * tickcount;
         }
         else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_POTION)

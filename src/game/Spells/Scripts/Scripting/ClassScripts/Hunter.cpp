@@ -26,8 +26,8 @@ struct HuntersMark : public AuraScript
         if (aura->GetEffIndex() == EFFECT_INDEX_2)
         {
             int32 auraValue = 0;
-            if (Aura* aura = aura->GetHolder()->m_auras[EFFECT_INDEX_1])
-                auraValue = aura->GetAmount(); // fetch ranged aura AP
+            if (Aura* otherAura = aura->GetHolder()->m_auras[EFFECT_INDEX_1])
+                auraValue = otherAura->GetAmount(); // fetch ranged aura AP
 
             if (Unit* caster = aura->GetCaster())
             {

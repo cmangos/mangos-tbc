@@ -2989,25 +2989,6 @@ SpellAuraProcResult Unit::HandleAttackPowerAttackerBonusAuraProc(ProcExecutionDa
     Unit* pVictim = data.victim; uint32 damage = data.damage; Aura* triggeredByAura = data.triggeredByAura; SpellEntry const* procSpell = data.procSpell; uint32 procFlags = data.procFlags; uint32 procEx = data.procExtra; uint32 cooldown = data.cooldown;
     SpellEntry const* dummySpell = triggeredByAura->GetSpellProto();
 
-    switch (dummySpell->SpellFamilyName)
-    {
-        case SPELLFAMILY_HUNTER:
-        {
-            // Hunter's Mark (1-4 Ranks)
-            if (dummySpell->SpellFamilyFlags & uint64(0x0000000000000400))
-            {
-                int32 basevalue = triggeredByAura->GetBasePoints();
-
-                triggeredByAura->GetModifier()->m_amount += basevalue / 10;
-                if (triggeredByAura->GetModifier()->m_amount > basevalue * 4)
-                    triggeredByAura->GetModifier()->m_amount = basevalue * 4;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
     return SPELL_AURA_PROC_OK;
 }
 

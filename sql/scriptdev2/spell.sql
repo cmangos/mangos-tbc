@@ -40,6 +40,13 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 -- Wotlk
 
 
+-- Hunter
+INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(1130,'spell_hunters_mark'),
+(14323,'spell_hunters_mark'),
+(14324,'spell_hunters_mark'),
+(14325,'spell_hunters_mark');
+
 -- Priest
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (32676,'spell_consume_magic');

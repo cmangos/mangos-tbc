@@ -3180,32 +3180,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                 return;
             }
-            // Kill command
-            if (m_spellInfo->SpellFamilyFlags & uint64(0x00080000000000))
-            {
-                if (m_caster->getClass() != CLASS_HUNTER)
-                    return;
-
-                // clear hunter crit aura state
-                m_caster->ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, false);
-
-                // additional damage from pet to pet target
-                Pet* pet = m_caster->GetPet();
-                if (!pet || !pet->getVictim())
-                    return;
-
-                uint32 spell_id = 0;
-                switch (m_spellInfo->Id)
-                {
-                    case 34026: spell_id = 34027; break;    // rank 1
-                    default:
-                        sLog.outError("Spell::EffectDummy: Spell %u not handled in KC", m_spellInfo->Id);
-                        return;
-                }
-
-                pet->CastSpell(pet->getVictim(), spell_id, TRIGGERED_OLD_TRIGGERED);
-                return;
-            }
 
             switch (m_spellInfo->Id)
             {

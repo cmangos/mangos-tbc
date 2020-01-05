@@ -3167,16 +3167,6 @@ void Spell::cast(bool skipCheck)
             }
             break;
         }
-        case SPELLFAMILY_HUNTER:
-        {
-            // Kill Command
-            if (m_spellInfo->Id == 34026)
-            {
-                if (m_caster->HasAura(37483))               // Improved Kill Command - Item set bonus
-                    m_caster->CastSpell(m_caster, 37482, TRIGGERED_OLD_TRIGGERED);// Exploited Weakness
-            }
-            break;
-        }
         case SPELLFAMILY_PALADIN:
         {
             // Divine Shield, Divine Protection, Blessing of Protection or Avenging Wrath

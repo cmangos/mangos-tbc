@@ -63,7 +63,41 @@ struct HuntersMark : public AuraScript
     }
 };
 
+struct KillCommand : public SpellScript
+{
+    void OnHit(Spell* spell) const override
+    {
+        if (spell->GetCaster()->HasAura(37483)) // Improved Kill Command - Item set bonus
+            spell->GetCaster()->CastSpell(nullptr, 37482, TRIGGERED_OLD_TRIGGERED);// Exploited Weakness
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_1 || !spell->GetUnitTarget() || spell->GetCaster()->getClass() != CLASS_HUNTER)
+            return;
+
+        // clear hunter crit aura state
+        spell->GetCaster()->ModifyAuraState(AURA_STATE_HUNTER_CRIT_STRIKE, false);
+
+        // additional damage from pet to pet target
+        Pet* pet = static_cast<Pet*>(spell->GetUnitTarget()); // guaranteed by spell targeting
+        if (!pet->getVictim())
+            return;
+
+        uint32 spell_id = 0;
+        switch (spell->m_spellInfo->Id)
+        {
+            case 34026: spell_id = 34027; break;    // rank 1
+            default: sLog.outError("KillCommand: Spell %u not handled", spell->m_spellInfo->Id); return;
+        }
+
+        pet->CastSpell(pet->getVictim(), spell_id, TRIGGERED_OLD_TRIGGERED);
+        return;
+    }
+};
+
 void LoadHunterScripts()
 {
     RegisterAuraScript<HuntersMark>("spell_hunters_mark");
+    RegisterSpellScript<KillCommand>("spell_kill_command")
 }

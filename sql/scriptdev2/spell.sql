@@ -45,7 +45,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (1130,'spell_hunters_mark'),
 (14323,'spell_hunters_mark'),
 (14324,'spell_hunters_mark'),
-(14325,'spell_hunters_mark');
+(14325,'spell_hunters_mark'),
+(34026,'spell_kill_command');
 
 -- Priest
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

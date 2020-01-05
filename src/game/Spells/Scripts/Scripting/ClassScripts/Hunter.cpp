@@ -99,5 +99,5 @@ struct KillCommand : public SpellScript
 void LoadHunterScripts()
 {
     RegisterAuraScript<HuntersMark>("spell_hunters_mark");
-    RegisterSpellScript<KillCommand>("spell_kill_command")
+    RegisterSpellScript<KillCommand>("spell_kill_command");
 }

@@ -3150,9 +3150,6 @@ void Spell::cast(bool skipCheck)
             // Power Word: Shield
             if (m_spellInfo->CasterAuraStateNot == AURA_STATE_WEAKENED_SOUL || m_spellInfo->TargetAuraStateNot == AURA_STATE_WEAKENED_SOUL)
                 AddPrecastSpell(6788);                      // Weakened Soul
-            // Prayer of Mending (jump animation), we need formal caster instead original for correct animation
-            else if (m_spellInfo->SpellFamilyFlags & uint64(0x0000002000000000))
-                AddTriggeredSpell(41637);
 
             switch (m_spellInfo->Id)
             {

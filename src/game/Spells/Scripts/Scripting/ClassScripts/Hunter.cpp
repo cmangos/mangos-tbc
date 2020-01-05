@@ -21,7 +21,7 @@
 
 struct HuntersMark : public AuraScript
 {
-    int32 OnDamageCalculate(Aura* aura, Unit* caster, int32 damage) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 damage) const override
     {
         if (aura->GetEffIndex() == EFFECT_INDEX_2)
         {

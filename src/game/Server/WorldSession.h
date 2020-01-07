@@ -185,6 +185,7 @@ class WorldSession
         void SendPacket(WorldPacket const& packet, bool forcedSend = false) const;
         void SendExpectedSpamRecords();
         void SendMotd();
+        void SendOfflineNameQueryResponses();
         void SendNotification(const char* format, ...) const ATTR_PRINTF(2, 3);
         void SendNotification(int32 string_id, ...) const;
         void SendPetNameInvalid(uint32 error, const std::string& name, DeclinedName* declinedName) const;
@@ -823,6 +824,9 @@ class WorldSession
         std::map<uint32, uint32> m_pendingTimeSyncRequests; // key: counter. value: server time when packet with that counter was sent.
         uint32 m_timeSyncNextCounter;
         uint32 m_timeSyncTimer;
+
+        std::set<ObjectGuid> m_offlineNameQueries; // for name queires made when not logged in (character selection screen)
+        std::deque<CharacterNameQueryResponse> m_offlineNameResponses; // for responses to name queries made when not logged in
 
         std::mutex m_recvQueueLock;
         std::deque<std::unique_ptr<WorldPacket>> m_recvQueue;

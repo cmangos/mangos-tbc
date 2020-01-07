@@ -1352,7 +1352,7 @@ void World::SetInitialWorldSettings()
     Player::DeleteOldCharacters();
 
     sLog.outString("Initialize AuctionHouseBot...");
-    sAuctionBot.Initialize();
+    sAuctionHouseBot.Initialize();
     sLog.outString();
 
     sLog.outString("Loading WorldState");
@@ -1472,7 +1472,7 @@ void World::Update(uint32 diff)
     /// <li> Handle AHBot operations
     if (m_timers[WUPDATE_AHBOT].Passed())
     {
-        sAuctionBot.Update();
+        sAuctionHouseBot.Update();
         m_timers[WUPDATE_AHBOT].Reset();
     }
 

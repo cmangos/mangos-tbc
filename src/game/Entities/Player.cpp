@@ -645,6 +645,8 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
     m_createdInstanceClearTimer = MINUTE * IN_MILLISECONDS;
 
     m_cinematicMgr = nullptr;
+
+    m_energyRegenRate = 1.f;
 }
 
 Player::~Player()
@@ -1004,11 +1006,11 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
 
     DamageEffectType damageType = SELF_DAMAGE;
 
-    DealDamageMods(this, damage, &absorb, damageType);
+    Unit::DealDamageMods(this, this, damage, &absorb, damageType);
 
     SendEnvironmentalDamageLog(type, damage, absorb, resist);
 
-    uint32 final_damage = DealDamage(this, damage, nullptr, damageType, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+    uint32 final_damage = Unit::DealDamage(this, this, damage, nullptr, damageType, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
 
     if (type == DAMAGE_FALL && !isAlive())                  // DealDamage not apply item durability loss at self damage
     {
@@ -1053,9 +1055,11 @@ void Player::SetDrunkValue(uint16 newDrunkenValue, uint32 itemId)
 
     // special drunk invisibility detection
     if (newDrunkenState >= DRUNKEN_DRUNK)
-        SetInvisibilityDetectMask(6, true);
+        GetVisibilityData().SetInvisibilityDetectMask(INVISIBILITY_DRUNK, true);
     else
-        SetInvisibilityDetectMask(6, false);
+        GetVisibilityData().SetInvisibilityDetectMask(INVISIBILITY_DRUNK, false);
+
+    GetVisibilityData().SetInvisibilityValue(6, m_drunk);
 
     if (newDrunkenState == oldDrunkenState)
         return;
@@ -1491,9 +1495,8 @@ void Player::Update(const uint32 diff)
     }
 
     if (isAlive())
-    {
-        RegenerateAll();
-    }
+        if (m_regenTimer == 0)
+            RegenerateAll();
 
     if (m_deathState == JUST_DIED)
         KillPlayer();
@@ -1939,11 +1942,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         SetSemaphoreTeleportNear(true);
         // near teleport, triggering send MSG_MOVE_TELEPORT_ACK from client at landing
         if (!GetSession()->PlayerLogout())
-        {
-            WorldPacket data;
-            BuildTeleportAckMsg(data, x, y, z, orientation);
-            GetSession()->SendPacket(data);
-        }
+            SendTeleportPacket(x, y, z, orientation);
     }
     else
     {
@@ -2167,32 +2166,31 @@ void Player::RewardRage(uint32 damage, uint32 weaponSpeedHitFactor, bool attacke
 
 void Player::RegenerateAll()
 {
-    if (m_regenTimer != 0)
-        return;
-
+    uint32 regenDiff = REGEN_TIME_FULL - m_regenTimer;
     // Not in combat or they have regeneration
     if (!isInCombat() || HasAuraType(SPELL_AURA_MOD_REGEN_DURING_COMBAT) ||
             HasAuraType(SPELL_AURA_MOD_HEALTH_REGEN_IN_COMBAT))
     {
-        RegenerateHealth();
+        RegenerateHealth(regenDiff);
         if (!isInCombat() && !HasAuraType(SPELL_AURA_INTERRUPT_REGEN))
-            Regenerate(POWER_RAGE);
+            Regenerate(POWER_RAGE, regenDiff);
     }
 
-    Regenerate(POWER_ENERGY);
+    Regenerate(POWER_ENERGY, regenDiff);
 
-    Regenerate(POWER_MANA);
+    Regenerate(POWER_MANA, regenDiff);
 
     m_regenTimer = REGEN_TIME_FULL;
 }
 
-void Player::Regenerate(Powers power)
+void Player::Regenerate(Powers power, uint32 diff)
 {
     uint32 curValue = GetPower(power);
     uint32 maxValue = GetMaxPower(power);
 
     float addvalue = 0.0f;
 
+    // all powers are precalculated for 2 seconds
     switch (power)
     {
         case POWER_MANA:
@@ -2202,33 +2200,33 @@ void Player::Regenerate(Powers power)
             if (recentCast)
             {
                 // Mangos Updates Mana in intervals of 2s, which is correct
-                addvalue = GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN_INTERRUPT) *  ManaIncreaseRate * 2.00f;
+                addvalue = GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN_INTERRUPT) *  ManaIncreaseRate * uint32(float(diff) / 1000);
             }
             else
             {
-                addvalue = GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN) * ManaIncreaseRate * 2.00f;
+                addvalue = GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN) * ManaIncreaseRate * uint32(float(diff) / 1000);
             }
         }   break;
         case POWER_RAGE:                                    // Regenerate rage
         {
             float RageDecreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_RAGE_LOSS);
-            addvalue = 20 * RageDecreaseRate;               // 2 rage by tick (= 2 seconds => 1 rage/sec)
+            addvalue = uint32(float(diff) / 100) * RageDecreaseRate; // 2 rage by tick (= 2 seconds => 1 rage/sec)
         }   break;
         case POWER_ENERGY:                                  // Regenerate energy
         {
             float EnergyRate = sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_ENERGY);
-            addvalue = 20 * EnergyRate;
+            addvalue = uint32(float(diff) / 100) * EnergyRate * m_energyRegenRate;
             break;
         }
         case POWER_FOCUS:
         case POWER_HAPPINESS:
         case POWER_HEALTH:
-            break;
+            return;
     }
 
     // Mana regen calculated in Player::UpdateManaRegen()
     // Exist only for POWER_MANA, POWER_ENERGY, POWER_FOCUS auras
-    if (power != POWER_MANA)
+    if (power == POWER_RAGE)
     {
         AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
         for (auto ModPowerRegenPCTAura : ModPowerRegenPCTAuras)
@@ -2252,7 +2250,7 @@ void Player::Regenerate(Powers power)
     SetPower(power, curValue);
 }
 
-void Player::RegenerateHealth()
+void Player::RegenerateHealth(uint32 diff)
 {
     uint32 curValue = GetHealth();
     uint32 maxValue = GetMaxHealth();
@@ -2286,7 +2284,7 @@ void Player::RegenerateHealth()
     if (addvalue < 0)
         addvalue = 0;
 
-    ModifyHealth(int32(addvalue * 2));
+    ModifyHealth(int32(addvalue * uint32(float(diff) / 1000)));
 }
 
 Creature* Player::GetNPCIfCanInteractWith(ObjectGuid guid, uint32 npcflagmask)
@@ -2347,12 +2345,11 @@ GameObject* Player::GetGameObjectIfCanInteractWith(ObjectGuid guid, uint32 gameo
     {
         if (uint32(go->GetGoType()) == gameobject_type || gameobject_type == MAX_GAMEOBJECT_TYPE)
         {
-            float maxdist = go->GetInteractionDistance();
-            if (go->IsWithinDistInMap(this, maxdist) && go->IsSpawned())
+            if (go->IsAtInteractDistance(this) && go->IsSpawned())
                 return go;
 
-            sLog.outError("GetGameObjectIfCanInteractWith: GameObject '%s' [GUID: %u] is too far away from player %s [GUID: %u] to be used by him (distance=%f, maximal %f is allowed)",
-                          go->GetGOInfo()->name,  go->GetGUIDLow(), GetName(), GetGUIDLow(), go->GetDistance(this), maxdist);
+            sLog.outError("GetGameObjectIfCanInteractWith: GameObject '%s' [GUID: %u] is too far away from player %s [GUID: %u] to be used by him",
+                          go->GetGOInfo()->name,  go->GetGUIDLow(), GetName(), GetGUIDLow());
         }
     }
     return nullptr;
@@ -2529,7 +2526,7 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     uint32 level = getLevel();
 
     // XP to money conversion processed in Player::RewardQuest
-    if (level >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+    if (level >= GetMaxAttainableLevel())
         return;
 
     // handle SPELL_AURA_MOD_XP_PCT auras
@@ -2546,11 +2543,11 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     uint32 nextLvlXP = GetUInt32Value(PLAYER_NEXT_LEVEL_XP);
     uint32 newXP = curXP + xp + rested_bonus_xp;
 
-    while (newXP >= nextLvlXP && level < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+    while (newXP >= nextLvlXP && level < GetMaxAttainableLevel())
     {
         newXP -= nextLvlXP;
 
-        if (level < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+        if (level < GetMaxAttainableLevel())
             GiveLevel(level + 1);
 
         level = getLevel();
@@ -2591,7 +2588,7 @@ void Player::GiveLevel(uint32 level)
 
     GetSession()->SendPacket(data);
 
-    SetUInt32Value(PLAYER_NEXT_LEVEL_XP, sObjectMgr.GetXPForLevel(level));
+    SetUInt32Value(PLAYER_NEXT_LEVEL_XP, GetMaxAttainableLevel() <= level ? 0 : sObjectMgr.GetXPForLevel(level));
 
     // update level, max level of skills
     if (getLevel() != level)
@@ -2681,8 +2678,8 @@ void Player::InitStatsForLevel(bool reapplyMods)
     PlayerLevelInfo info;
     sObjectMgr.GetPlayerLevelInfo(getRace(), plClass, level, &info);
 
-    SetUInt32Value(PLAYER_FIELD_MAX_LEVEL, sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL));
-    SetUInt32Value(PLAYER_NEXT_LEVEL_XP, sObjectMgr.GetXPForLevel(level));
+    SetUInt32Value(PLAYER_FIELD_MAX_LEVEL, sObjectMgr.GetMaxLevelForExpansion(GetSession()->GetExpansion()));
+    SetUInt32Value(PLAYER_NEXT_LEVEL_XP, GetMaxAttainableLevel() <= level ? 0 : sObjectMgr.GetXPForLevel(level));
 
     // reset before any aura state sources (health set/aura apply)
     SetUInt32Value(UNIT_FIELD_AURASTATE, 0);
@@ -2818,6 +2815,12 @@ void Player::InitStatsForLevel(bool reapplyMods)
     // update level to hunter/summon pet
     if (Pet* pet = GetPet())
         pet->SynchronizeLevelWithOwner();
+}
+
+void Player::OnExpansionChange(uint32 expansion)
+{
+    SetUInt32Value(PLAYER_FIELD_MAX_LEVEL, sObjectMgr.GetMaxLevelForExpansion(GetSession()->GetExpansion()));
+    SetUInt32Value(PLAYER_NEXT_LEVEL_XP, GetMaxAttainableLevel() <= getLevel() ? 0 : sObjectMgr.GetXPForLevel(getLevel()));
 }
 
 void Player::SendInitialSpells() const
@@ -6343,7 +6346,7 @@ void Player::CheckAreaExploreAndOutdoor()
         else if (p->area_level > 0)
         {
             uint32 area = p->ID;
-            if (getLevel() >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+            if (getLevel() >= GetMaxAttainableLevel())
             {
                 SendExplorationExperience(area, 0);
             }
@@ -7730,7 +7733,7 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets& targets, uint8 cast_
             return;
         }
 
-        Spell* spell = new Spell(this, spellInfo, false);
+        Spell* spell = new Spell(this, spellInfo, TRIGGERED_NONE);
         spell->m_CastItem = item;
         spell->m_cast_count = cast_count;                   // set count of casts
         spell->m_currentBasePoints[EFFECT_INDEX_0] = learning_spell_id;
@@ -7961,7 +7964,7 @@ void Player::RemovedInsignia(Player* looterPlr)
     // We retrieve this information at Player::SendLoot()
     bones->lootRecipient = looterPlr;
 
-    Loot*& bonesLoot = bones->loot;
+    Loot*& bonesLoot = bones->m_loot;
     if (!bonesLoot)
         bonesLoot = new Loot(looterPlr, bones, LOOT_INSIGNIA);
     else
@@ -11705,13 +11708,8 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                 case ITEM_ENCHANTMENT_TYPE_NONE:
                     break;
                 case ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL:
-                    if (SpellModifier* mod = item->GetEnchantmentModifier())
-                    {
-                        if (!apply)
-                            item->SetEnchantmentModifier(nullptr);
-                        else
-                            AddSpellMod(mod, apply);
-                    }
+                    if (!apply) // clear modifier set by some spells
+                        item->SetEnchantmentModifier(0);
                     // processed in Player::CastItemCombatSpell
                     break;
                 case ITEM_ENCHANTMENT_TYPE_DAMAGE:
@@ -12203,17 +12201,33 @@ void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
 
             int loc_idx = GetSession()->GetSessionDbLocaleIndex();
 
-            if (loc_idx >= 0)
+            if (gossipMenu.option_broadcast_text || gossipMenu.box_broadcast_text)
             {
-                uint32 idxEntry = MAKE_PAIR32(menuId, gossipMenu.id);
-
-                if (GossipMenuItemsLocale const* no = sObjectMgr.GetGossipMenuItemsLocale(idxEntry))
+                if (gossipMenu.option_broadcast_text)
                 {
-                    if (no->OptionText.size() > (size_t)loc_idx && !no->OptionText[loc_idx].empty())
-                        strOptionText = no->OptionText[loc_idx];
+                    BroadcastText const* bct = sObjectMgr.GetBroadcastText(gossipMenu.option_broadcast_text);
+                    strOptionText = bct->GetText(loc_idx);
+                }
+                if (gossipMenu.box_broadcast_text)
+                {
+                    BroadcastText const* bct = sObjectMgr.GetBroadcastText(gossipMenu.box_broadcast_text);
+                    strBoxText = bct->GetText(loc_idx);
+                }
+            }
+            else
+            {
+                if (loc_idx >= 0)
+                {
+                    uint32 idxEntry = MAKE_PAIR32(menuId, gossipMenu.id);
 
-                    if (no->BoxText.size() > (size_t)loc_idx && !no->BoxText[loc_idx].empty())
-                        strBoxText = no->BoxText[loc_idx];
+                    if (GossipMenuItemsLocale const* no = sObjectMgr.GetGossipMenuItemsLocale(idxEntry))
+                    {
+                        if (no->OptionText.size() > (size_t)loc_idx && !no->OptionText[loc_idx].empty())
+                            strOptionText = no->OptionText[loc_idx];
+
+                        if (no->BoxText.size() > (size_t)loc_idx && !no->BoxText[loc_idx].empty())
+                            strBoxText = no->BoxText[loc_idx];
+                    }
                 }
             }
 
@@ -12688,11 +12702,18 @@ void Player::SendPreparedQuest(ObjectGuid guid) const
 
                     int loc_idx = GetSession()->GetSessionDbLocaleIndex();
 
-                    std::string title0 = gossiptext->Options[0].Text_0;
-                    std::string title1 = gossiptext->Options[0].Text_1;
-                    sObjectMgr.GetNpcTextLocaleStrings0(textid, loc_idx, &title0, &title1);
-
-                    title = !title0.empty() ? title0 : title1;
+                    if (gossiptext->Options[0].broadcastTextId)
+                    {
+                        BroadcastText const* bct = sObjectMgr.GetBroadcastText(gossiptext->Options[0].broadcastTextId);
+                        title = bct->GetText(loc_idx, pCreature->getGender());
+                    }
+                    else
+                    {
+                        std::string title0 = gossiptext->Options[0].Text_0;
+                        std::string title1 = gossiptext->Options[0].Text_1;
+                        sObjectMgr.GetNpcTextLocaleStrings0(textid, loc_idx, &title0, &title1);
+                        title = !title0.empty() ? title0 : title1;
+                    }
                 }
             }
             PlayerTalkClass->SendQuestGiverQuestList(qe, title, guid);
@@ -13191,7 +13212,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     // Used for client inform but rewarded only in case not max level
     uint32 xp = uint32(pQuest->XPValue(this) * sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST));
 
-    if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+    if (getLevel() < GetMaxAttainableLevel())
         GiveXP(xp, nullptr);
     else
         ModifyMoney(int32(pQuest->GetRewMoneyMaxLevel() * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY)));
@@ -14419,7 +14440,7 @@ void Player::SendQuestReward(Quest const* pQuest, uint32 XP, uint32 honor) const
     data << uint32(questid);
     data << uint32(0x03);
 
-    if (getLevel() < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+    if (getLevel() < GetMaxAttainableLevel())
     {
         data << uint32(XP);
         data << uint32(pQuest->GetRewOrReqMoney());
@@ -14967,7 +14988,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
             {
                 MapEntry const* transMapEntry = sMapStore.LookupEntry((*iter)->GetMapId());
                 // client without expansion support
-                if (GetSession()->Expansion() < transMapEntry->Expansion())
+                if (GetSession()->GetExpansion() < transMapEntry->Expansion())
                 {
                     DEBUG_LOG("Player %s using client without required expansion tried login at transport at non accessible map %u", GetName(), (*iter)->GetMapId());
                     break;
@@ -14994,7 +15015,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     {
         MapEntry const* mapEntry = sMapStore.LookupEntry(GetMapId());
         // client without expansion support
-        if (GetSession()->Expansion() < mapEntry->Expansion())
+        if (GetSession()->GetExpansion() < mapEntry->Expansion())
         {
             DEBUG_LOG("Player %s using client without required expansion tried login at non accessible map %u", GetName(), GetMapId());
             RelocateToHomebind();
@@ -15644,8 +15665,8 @@ void Player::_LoadItemLoot(QueryResult* result)
                 continue;
             }
 
-            if (!item->loot)
-                item->loot = new Loot(this, item);
+            if (!item->m_loot)
+                item->m_loot = new Loot(this, item);
 
             item->LoadLootFromDB(fields);
         }
@@ -16327,7 +16348,7 @@ bool Player::_LoadHomeBind(QueryResult* result)
 
         // accept saved data only for valid position (and non instanceable), and accessable
         if (MapManager::IsValidMapCoord(m_homebindMapId, m_homebindX, m_homebindY, m_homebindZ) &&
-                !bindMapEntry->Instanceable() && GetSession()->Expansion() >= bindMapEntry->Expansion())
+                !bindMapEntry->Instanceable() && GetSession()->GetExpansion() >= bindMapEntry->Expansion())
         {
             ok = true;
         }
@@ -17742,6 +17763,14 @@ void Player::SetSpellClass(uint8 playerClass)
     m_spellClassName = name;
 }
 
+void Player::SendMessageToPlayer(std::string const& message) const
+{
+    WorldPacket data;
+    ChatHandler::BuildChatPacket(data, CHAT_MSG_SYSTEM, message.data(), LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid());
+    if (WorldSession* session = GetSession())
+        session->SendPacket(data);
+}
+
 // send Proficiency
 void Player::SendProficiency(ItemClass itemClass, uint32 itemSubclassMask) const
 {
@@ -17820,7 +17849,7 @@ void Player::LeaveAllArenaTeams(ObjectGuid guid)
 void Player::SetRestBonus(float rest_bonus_new)
 {
     // Prevent resting on max level
-    if (getLevel() >= sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL))
+    if (getLevel() >= GetMaxAttainableLevel())
         rest_bonus_new = 0;
 
     if (rest_bonus_new < 0)
@@ -19005,6 +19034,8 @@ inline void BeforeVisibilityDestroy(T* /*t*/, Player* /*p*/)
 template<>
 inline void BeforeVisibilityDestroy<Creature>(Creature* t, Player* p)
 {
+    if (!t->GetMap()->IsDungeon() && t->isInCombat() && p->isInCombat() && t->getThreatManager().HasThreat(p, true))
+        p->getHostileRefManager().deleteReference(t);
     if (p->GetPetGuid() == t->GetObjectGuid() && ((Creature*)t)->IsPet())
         ((Pet*)t)->Unsummon(PET_SAVE_REAGENTS);
 }
@@ -19773,20 +19804,18 @@ void Player::UpdateForQuestWorldObjects()
     if (m_clientGUIDs.empty())
         return;
 
-    UpdateData updateData;
+    UpdateData udata;
+    WorldPacket packet;
     for (auto m_clientGUID : m_clientGUIDs)
     {
         if (m_clientGUID.IsGameObject())
         {
             if (GameObject* obj = GetMap()->GetGameObject(m_clientGUID))
-                obj->BuildValuesUpdateBlockForPlayer(&updateData, this);
+                obj->BuildValuesUpdateBlockForPlayer(&udata, this);
         }
     }
-    for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
-    {
-        WorldPacket packet = updateData.BuildPacket(i);
-        GetSession()->SendPacket(packet);
-    }
+    udata.BuildPacket(packet);
+    GetSession()->SendPacket(packet);
 }
 
 void Player::UpdateEverything()
@@ -19794,15 +19823,24 @@ void Player::UpdateEverything()
     if (m_clientGUIDs.empty())
         return;
 
-    UpdateData updateData;
-    for (const auto guid : m_clientGUIDs)
-        if (WorldObject* obj = GetMap()->GetWorldObject(guid))
-            obj->BuildForcedValuesUpdateBlockForPlayer(&updateData, this);
-    for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
+    UpdateData updateDataCreature;
+    UpdateData updateDataRest;
+    WorldPacket packet;
+    for (GuidSet::const_iterator itr = m_clientGUIDs.begin(); itr != m_clientGUIDs.end(); ++itr)
     {
-        WorldPacket packet = updateData.BuildPacket(i);
-        GetSession()->SendPacket(packet);
+        if (WorldObject* obj = GetMap()->GetWorldObject(*itr))
+        {
+            if (obj->GetTypeId() == TYPEID_UNIT)
+                obj->BuildForcedValuesUpdateBlockForPlayer(&updateDataCreature, this);
+            else
+                obj->BuildValuesUpdateBlockForPlayer(&updateDataRest, this);
+        }
     }
+    updateDataCreature.BuildPacket(packet); // protection against too big packets - TODO: extend to all
+    GetSession()->SendPacket(packet);
+    packet.clear();
+    updateDataRest.BuildPacket(packet);
+    GetSession()->SendPacket(packet);
 }
 
 void Player::SummonIfPossible(bool agree)
@@ -21102,17 +21140,6 @@ void Player::SendClearCooldown(uint32 spell_id, Unit* target) const
     SendDirectMessage(data);
 }
 
-void Player::BuildTeleportAckMsg(WorldPacket& data, float x, float y, float z, float ang) const
-{
-    MovementInfo mi = m_movementInfo;
-    mi.ChangePosition(x, y, z, ang);
-
-    data.Initialize(MSG_MOVE_TELEPORT_ACK, 41);
-    data << GetPackGUID();
-    data << uint32(0);                                      // this value increments every time
-    data << mi;
-}
-
 bool Player::HasMovementFlag(MovementFlags f) const
 {
     return m_movementInfo.HasMovementFlag(f);
@@ -21246,7 +21273,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
         return AREA_LOCKSTATUS_MISSING_DIFFICULTY;
 
     // Expansion requirement
-    if (GetSession()->Expansion() < mapEntry->Expansion())
+    if (GetSession()->GetExpansion() < mapEntry->Expansion())
     {
         miscRequirement = mapEntry->Expansion();
         return AREA_LOCKSTATUS_INSUFFICIENT_EXPANSION;

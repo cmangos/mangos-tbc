@@ -180,6 +180,7 @@ extern void AddSC_undercity();
 extern void AddSC_western_plaguelands();
 extern void AddSC_westfall();
 extern void AddSC_wetlands();
+extern void AddSC_world_eastern_kingdoms();
 
 // kalimdor
 extern void AddSC_instance_blackfathom_deeps();             // blackfathom_deeps
@@ -254,6 +255,7 @@ extern void AddSC_thousand_needles();
 extern void AddSC_thunder_bluff();
 extern void AddSC_ungoro_crater();
 extern void AddSC_winterspring();
+extern void AddSC_world_kalimdor();
 
 // northrend
 // removed
@@ -348,6 +350,7 @@ extern void AddSC_shadowmoon_valley();
 extern void AddSC_shattrath_city();
 extern void AddSC_terokkar_forest();
 extern void AddSC_boss_terokk();
+extern void AddSC_OutlandWorldScript();
 extern void AddSC_zangarmarsh();
 
 void AddScripts()
@@ -528,6 +531,7 @@ void AddScripts()
     AddSC_western_plaguelands();
     AddSC_westfall();
     AddSC_wetlands();
+    AddSC_world_eastern_kingdoms();
 
     // kalimdor
     AddSC_instance_blackfathom_deeps();                     // blackfathom deeps
@@ -602,6 +606,7 @@ void AddScripts()
     AddSC_thunder_bluff();
     AddSC_ungoro_crater();
     AddSC_winterspring();
+    AddSC_world_kalimdor();
 
     // northrend
     // removed
@@ -696,5 +701,6 @@ void AddScripts()
     AddSC_shattrath_city();
     AddSC_terokkar_forest();
     AddSC_boss_terokk();
+    AddSC_OutlandWorldScript();
     AddSC_zangarmarsh();
 }

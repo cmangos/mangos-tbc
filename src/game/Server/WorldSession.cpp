@@ -169,6 +169,14 @@ char const* WorldSession::GetPlayerName() const
     return GetPlayer() ? GetPlayer()->GetName() : "<none>";
 }
 
+void WorldSession::SetExpansion(uint8 expansion)
+{
+    m_expansion = expansion;
+    if (_player)
+        _player->OnExpansionChange(expansion);
+    SendAuthOk(); // this is a hack but does what we need - resets expansion setting in client
+}
+
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket const& packet, bool forcedSend /*= false*/) const
 {
@@ -693,6 +701,16 @@ void WorldSession::SendMotd()
     DEBUG_LOG("WORLD: Sent motd (SMSG_MOTD)");
 }
 
+void WorldSession::SendOfflineNameQueryResponses()
+{
+    m_offlineNameQueries.clear();
+
+    for (auto& response : m_offlineNameResponses)
+        SendNameQueryResponse(response);
+
+    m_offlineNameResponses.clear();
+}
+
 void WorldSession::SendAreaTriggerMessage(const char* Text, ...) const
 {
     va_list ap;
@@ -937,7 +955,7 @@ void WorldSession::SendAuthOk() const
     packet << uint32(0);                                    // BillingTimeRemaining
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint32(0);                                    // BillingTimeRested
-    packet << uint8(Expansion());                        // 0 - normal, 1 - TBC. Must be set in database manually for each account.
+    packet << uint8(GetExpansion());                        // 0 - normal, 1 - TBC. Must be set in database manually for each account.
     SendPacket(packet, true);
 }
 
@@ -949,8 +967,16 @@ void WorldSession::SendAuthQueued() const
     packet << uint32(0);                                    // BillingTimeRemaining
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint32(0);                                    // BillingTimeRested
-    packet << uint8(Expansion());                     // 0 - normal, 1 - TBC, must be set in database manually for each account
-    packet << uint32(sWorld.GetQueuedSessionPos(this));            // position in queue
+    packet << uint8(GetExpansion());                        // 0 - normal, 1 - TBC, must be set in database manually for each account
+    packet << uint32(sWorld.GetQueuedSessionPos(this));     // position in queue
+    SendPacket(packet, true);
+}
+
+void WorldSession::SendKickReason(uint8 reason, std::string const& string) const
+{
+    WorldPacket packet(SMSG_KICK_REASON, 1);
+    packet << reason;
+    packet << string;
     SendPacket(packet, true);
 }
 

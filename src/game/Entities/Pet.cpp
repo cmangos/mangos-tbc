@@ -367,19 +367,14 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
     savedhealth = savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth;
     savedpower = savedpower > GetMaxPower(powerType) ? GetMaxPower(powerType) : savedpower;
 
-    if (getPetType() == SUMMON_PET)
-    {
-        savedhealth = GetMaxHealth();
-        savedpower = GetMaxPower(powerType);
-    }
-    else if (!savedhealth)
+    if (!savedhealth)
     {
         if (getPetType() == HUNTER_PET && healthPercentage)
         {
             savedhealth = GetMaxHealth() * (float(healthPercentage) / 100);
             savedpower = 0;
         }
-        else
+        else if (getPetType() != SUMMON_PET)
             return false;
     }
 
@@ -1416,39 +1411,36 @@ void Pet::InitStatsForLevel(uint32 petlevel)
         }
         case GUARDIAN_PET:
         {
-            SelectLevel(petlevel);
-            break;
+            SelectLevel(petlevel);  // guardians reuse CLS function SelectLevel, so we stop here
+            return;
         }
         default:
             sLog.outError("Pet have incorrect type (%u) for level handling.", getPetType());
     }
 
-    if (getPetType() != GUARDIAN_PET) // guardians reuse CLS function SelectLevel
+    // Hunter's pets' should NOT use creature's original modifiers/multipliers
+    if (getPetType() != HUNTER_PET)
     {
-        // Hunter's pets' should NOT use creature's original modifiers/multipliers
-        if (getPetType() != HUNTER_PET)
-        {
-            health *= cInfo->HealthMultiplier;
+        health *= cInfo->HealthMultiplier;
 
-            if (mana > 0)
-                mana *= cInfo->PowerMultiplier;
+        if (mana > 0)
+            mana *= cInfo->PowerMultiplier;
 
-            armor *= cInfo->ArmorMultiplier;
-        }
-
-        // Apply custom health setting (from config)
-        health *= _GetHealthMod(cInfo->Rank);
-
-        // A pet cannot not have health
-        if (health < 1)
-            health = 1;
-
-        // Set base Health and Mana
-        SetCreateHealth(health);
-        SetCreateMana(mana);
-        // Set base Armor
-        SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, armor);
+        armor *= cInfo->ArmorMultiplier;
     }
+
+    // Apply custom health setting (from config)
+    health *= _GetHealthMod(cInfo->Rank);
+
+    // A pet cannot not have health
+    if (health < 1)
+        health = 1;
+
+    // Set base Health and Mana
+    SetCreateHealth(health);
+    SetCreateMana(mana);
+    // Set base Armor
+    SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, armor);
 
     InitPetScalingAuras();
 

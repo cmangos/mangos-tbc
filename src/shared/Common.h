@@ -135,7 +135,7 @@ enum RealmFlags
     REALM_FLAG_FULL         = 0x80
 };
 
-enum LocaleConstant
+enum LocaleConstant : uint8
 {
     LOCALE_enUS = 0,                                        // also enGB
     LOCALE_koKR = 1,
@@ -147,6 +147,8 @@ enum LocaleConstant
     LOCALE_esMX = 7,
     LOCALE_ruRU = 8
 };
+
+#define DEFAULT_LOCALE LOCALE_enUS
 
 #define MAX_LOCALE 9
 

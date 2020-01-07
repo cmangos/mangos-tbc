@@ -1514,3 +1514,36 @@ bool ChatHandler::HandleDebugChatFreezeCommand(char* /*args*/)
 
     return true;
 }
+
+bool ChatHandler::HandleDebugFlyCommand(char* args)
+{
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        return false;
+    }
+
+    uint32 value;
+    if (!ExtractUInt32(&args, value))
+        return false;
+
+    uint32 apply;
+    if (!ExtractUInt32(&args, apply))
+        return false;
+
+    switch (value)
+    {
+        case 0: target->SetHover(bool(apply)); break;
+        case 1: target->SetLevitate(bool(apply)); break;
+        case 2: target->SetCanFly(bool(apply)); break;
+        case 3:
+            if (apply)
+                target->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+            else
+                target->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+            break;
+    }
+
+    return true;
+}

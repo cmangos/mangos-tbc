@@ -683,6 +683,7 @@ enum
     SPELL_GHOST_SPAWN_IN   = 17321,
     SPELL_BLUE_AURA        = 17327,
     SPELL_GREEN_AURA       = 18951,
+    SPELL_CHILLING_TOUCH   = 18146,
 
     FACTION_HOSTILE        = 16,
 
@@ -703,8 +704,9 @@ struct npc_magrami_spectre : public ScriptedAI
 
     void JustRespawned() override
     {
-        m_creature->CastSpell(m_creature, SPELL_GHOST_SPAWN_IN, TRIGGERED_NONE);
-        m_creature->CastSpell(m_creature, SPELL_BLUE_AURA, TRIGGERED_NONE);
+        m_creature->CastSpell(nullptr, SPELL_GHOST_SPAWN_IN, TRIGGERED_NONE);
+        m_creature->CastSpell(nullptr, SPELL_BLUE_AURA, TRIGGERED_NONE);
+        m_creature->CastSpell(nullptr, SPELL_CHILLING_TOUCH, TRIGGERED_NONE);
 
         switch (urand(0, 1))
         {

@@ -43,11 +43,12 @@ npc_evergrove_druid
 EndContentData */
 
 #include "AI/ScriptDevAI/include/precompiled.h"
-#include "AI/ScriptDevAI/scripts/world/world_map_scripts.h"
+#include "AI/ScriptDevAI/scripts/outland/world_outland.h"
 #include "Entities/TemporarySpawn.h"
 #include "Reputation/ReputationMgr.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "Spells/Spell.h"
+#include "Spells/Scripts/SpellScript.h"
 
 /*######
 ## mobs_nether_drake
@@ -1678,10 +1679,11 @@ enum
 // This is a first attempt to implement GO type 30 behaviour
 struct go_aura_generator_000AI : public GameObjectAI
 {
-    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000) {}
+    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000), m_spellInfo(sSpellTemplate.LookupEntry<SpellEntry>(SPELL_OSCILLATING_FREQUENCY_SCANNER)) {}
 
     uint32 m_auraSearchTimer;
     ObjectGuid m_player;
+    SpellEntry const* m_spellInfo;
 
     void UpdateAI(const uint32 diff) override
     {
@@ -1692,7 +1694,7 @@ struct go_aura_generator_000AI : public GameObjectAI
             {
                 float x, y, z;
                 m_go->GetPosition(x, y, z);
-                auto bounds = player->GetSpellAuraHolderBounds(37407);
+                auto bounds = player->GetSpellAuraHolderBounds(m_spellInfo->Id);
                 SpellAuraHolder* myHolder = nullptr;
                 for (auto itr = bounds.first; itr != bounds.second; ++itr)
                 {
@@ -1703,14 +1705,13 @@ struct go_aura_generator_000AI : public GameObjectAI
                         break;
                     }
                 }
-                bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < 25.f; // value comes from spell and go template
+                bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0]));
                 if (!myHolder)
                 {
                     if (isCloseEnough)
                     {
-                        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_OSCILLATING_FREQUENCY_SCANNER);
-                        myHolder = CreateSpellAuraHolder(spellInfo, player, m_go);
-                        GameObjectAura* Aur = new GameObjectAura(spellInfo, EFFECT_INDEX_0, nullptr, nullptr, myHolder, player, m_go);
+                        myHolder = CreateSpellAuraHolder(m_spellInfo, player, m_go);
+                        GameObjectAura* Aur = new GameObjectAura(m_spellInfo, EFFECT_INDEX_0, nullptr, nullptr, myHolder, player, m_go);
                         myHolder->AddAura(Aur, EFFECT_INDEX_0);
                         if (!player->AddSpellAuraHolder(myHolder))
                             delete myHolder;
@@ -1884,6 +1885,8 @@ struct npc_fel_cannon : public Scripted_NoMovementAI
             }
 
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
+
+            m_creature->GetCombatManager().SetLeashingDisable(true);
         }
     }
 
@@ -3989,6 +3992,14 @@ UnitAI* GetAI_npc_grand_collector(Creature* creature)
     return new npc_grand_collectorAI(creature);
 }
 
+struct EtherealRingSignalFlare : public SpellScript
+{
+    void OnDestTarget(Spell* spell) const override
+    {
+        spell->m_targets.m_destZ = 342.9485f; // confirmed with sniffs
+    }
+};
+
 void AddSC_blades_edge_mountains()
 {
     Script* pNewScript = new Script;
@@ -4149,4 +4160,6 @@ void AddSC_blades_edge_mountains()
     pNewScript->Name = "npc_grand_collector";
     pNewScript->GetAI = &GetAI_npc_grand_collector;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<EtherealRingSignalFlare>("spell_ethereal_ring_signal_flare");
 }

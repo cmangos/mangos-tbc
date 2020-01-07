@@ -1031,24 +1031,38 @@ void instance_mount_hyjal::OnCreatureDeath(Creature* creature)
 {
     switch (creature->GetEntry())
     {
-        case NPC_WINTERCHILL: SetData(TYPE_WINTERCHILL, DONE); break;
+        case NPC_WINTERCHILL:
+            SetData(TYPE_WINTERCHILL, DONE);
+            m_waveSpawns.erase(std::remove(m_waveSpawns.begin(), m_waveSpawns.end(), creature->GetObjectGuid()), m_waveSpawns.end());
+            break;
         case NPC_ANETHERON:
         {
             SetData(TYPE_ANETHERON, DONE);
             if (GameObject* orcGate = GetSingleGameObjectFromStorage(GO_HORDE_ENCAMPMENT_PORTAL))
                 orcGate->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
             if (Creature* jaina = GetSingleCreatureFromStorage(NPC_JAINA))
+            {
+                jaina->AI()->SendAIEvent(AI_EVENT_CUSTOM_D, jaina, jaina);
                 jaina->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+            }
+            m_waveSpawns.erase(std::remove(m_waveSpawns.begin(), m_waveSpawns.end(), creature->GetObjectGuid()), m_waveSpawns.end());
             break;
         }
-        case NPC_KAZROGAL:    SetData(TYPE_KAZROGAL, DONE);    break;
+        case NPC_KAZROGAL:
+            SetData(TYPE_KAZROGAL, DONE);
+            m_waveSpawns.erase(std::remove(m_waveSpawns.begin(), m_waveSpawns.end(), creature->GetObjectGuid()), m_waveSpawns.end());
+            break;
         case NPC_AZGALOR:
         {
             SetData(TYPE_AZGALOR, DONE);
             if (GameObject* nelfGate = GetSingleGameObjectFromStorage(GO_NIGHT_ELF_VILLAGE_PORTAL))
                 nelfGate->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
             if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+            {
+                thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_D, thrall, thrall);
                 thrall->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+            }
+            m_waveSpawns.erase(std::remove(m_waveSpawns.begin(), m_waveSpawns.end(), creature->GetObjectGuid()), m_waveSpawns.end());
             break;
         }
         case NPC_ARCHIMONDE:  SetData(TYPE_ARCHIMONDE, DONE);  break;
@@ -1067,7 +1081,10 @@ void instance_mount_hyjal::OnCreatureDeath(Creature* creature)
             if (creature->IsTemporarySummon()) // only for non-static spawns
             {
                 if (m_hyjalEnemyCount)
+                {
+                    m_waveSpawns.erase(std::remove(m_waveSpawns.begin(), m_waveSpawns.end(), creature->GetObjectGuid()), m_waveSpawns.end());
                     DoUpdateWorldState(WORLD_STATE_MOUNT_HYJAL_ENEMYCOUNT, m_hyjalEnemyCount - 1);
+                }
                 if (m_nextWaveTimer && m_hyjalEnemyCount == 0)
                     SpawnNextWave();
             }
@@ -1457,6 +1474,7 @@ void instance_mount_hyjal::DespawnWaveSpawns()
     for (ObjectGuid& guid : m_waveSpawns)
         if (Creature* spawn = instance->GetCreature(guid))
             spawn->ForcedDespawn();
+    m_waveSpawns.clear();
 }
 
 void instance_mount_hyjal::DespawnBase(BaseArea index)

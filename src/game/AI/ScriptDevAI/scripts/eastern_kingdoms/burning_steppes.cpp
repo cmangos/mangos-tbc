@@ -221,7 +221,7 @@ struct npc_grark_lorkrubAI : public npc_escortAI, private DialogueHelper
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_PRECARIOUS_PREDICAMENT, m_creature);
                 // Kill self
-                m_creature->DealDamage(m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, nullptr, false);
+                m_creature->Suicide();
                 break;
         }
     }
@@ -463,11 +463,7 @@ struct npc_klinfranAI : public ScriptedAI
                     if (Unit* pUnit = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                     {
                         if (pUnit->isAlive())
-                        {
-                            pCleaner->SetInCombatWith(pUnit);
-                            pCleaner->AddThreat(pUnit);
                             pCleaner->AI()->AttackStart(pUnit);
-                        }
                     }
                 }
             }

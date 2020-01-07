@@ -101,6 +101,8 @@ struct boss_alythessAI : public ScriptedAI
     boss_alythessAI(Creature* pCreature) : ScriptedAI(pCreature),
         m_introDialogue(aIntroDialogue)
     {
+        m_meleeEnabled = false;
+        m_attackDistance = 10.f;
         m_pInstance = ((instance_sunwell_plateau*)pCreature->GetInstanceData());
         m_introDialogue.InitializeDialogueHelper(m_pInstance);
         Reset();
@@ -149,19 +151,6 @@ struct boss_alythessAI : public ScriptedAI
         {
             if (m_pInstance->GetData(TYPE_EREDAR_TWINS) != IN_PROGRESS)
                 m_pInstance->SetData(TYPE_EREDAR_TWINS, IN_PROGRESS);
-        }
-    }
-
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, false))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-
-            // Only range attack
-            m_creature->GetMotionMaster()->MoveChase(pWho, 10.0f);
         }
     }
 
@@ -496,7 +485,7 @@ struct npc_shadow_imageAI : public ScriptedAI
             if (m_uiSuicideTimer <= uiDiff)
             {
                 // confirmed suicide like this
-                m_creature->DealDamage(m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+                m_creature->Suicide();
             }
             else
                 m_uiSuicideTimer -= uiDiff;

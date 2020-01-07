@@ -340,6 +340,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_VMAP_INDOOR_CHECK,
     CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,
     CONFIG_BOOL_PET_ATTACK_FROM_BEHIND,
+    CONFIG_BOOL_AUTO_DOWNRANK,
     CONFIG_BOOL_MMAP_ENABLED,
     CONFIG_BOOL_PLAYER_COMMANDS,
     CONFIG_BOOL_PATH_FIND_OPTIMIZE,
@@ -514,6 +515,7 @@ class World
         void SendServerMessage(ServerMessageType type, const char* text = "", Player* player = nullptr) const;
         void SendZoneUnderAttackMessage(uint32 zoneId, Team team);
         void SendDefenseMessage(uint32 zoneId, int32 textId);
+        void SendDefenseMessageBroadcastText(uint32 zoneId, uint32 textId);
 
         /// Are we in the middle of a shutdown?
         bool IsShutdowning() const { return m_ShutdownTimer > 0; }
@@ -557,8 +559,10 @@ class World
 
         void KickAll();
         void KickAllLess(AccountTypes sec);
+        void WarnAccount(uint32 accountId, std::string from, std::string reason, const char* type = "WARNING");
         BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, const std::string& author);
-        bool RemoveBanAccount(BanMode mode, std::string nameOrIP);
+        BanReturn BanAccount(WorldSession *session, uint32 duration_secs, const std::string& reason, const std::string& author);
+        bool RemoveBanAccount(BanMode mode, const std::string& source, const std::string& message, std::string nameOrIP);
 
         // for max speed access
         static float GetMaxVisibleDistanceOnContinents()    { return m_MaxVisibleDistanceOnContinents; }
@@ -603,6 +607,8 @@ class World
         static uint32 GetCurrentMSTime() { return m_currentMSTime; }
         static TimePoint GetCurrentClockTime() { return m_currentTime; }
         static uint32 GetCurrentDiff() { return m_currentDiff; }
+
+        void UpdateSessionExpansion(uint8 expansion);
 
     protected:
         void _UpdateGameTime();

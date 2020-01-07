@@ -32,6 +32,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/precompiled.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "shadowfang_keep.h"
+#include "Spells/Scripts/SpellScript.h"
 
 /*######
 ## npc_shadowfang_prisoner
@@ -839,12 +840,6 @@ struct npc_deathstalker_vincentAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        if (pDoneBy)
-        {
-            m_creature->SetInCombatWith(pDoneBy);
-            pDoneBy->SetInCombatWith(m_creature);
-        }
-
         if (m_creature->getStandState())
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
 
@@ -870,6 +865,32 @@ UnitAI* GetAI_npc_deathstalker_vincent(Creature* pCreature)
 {
     return new npc_deathstalker_vincentAI(pCreature);
 }
+
+struct ForsakenSkill : public AuraScript
+{
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        // Possibly need cast one of them (but
+        // 7038 Forsaken Skill: Swords
+        // 7039 Forsaken Skill: Axes
+        // 7040 Forsaken Skill: Daggers
+        // 7041 Forsaken Skill: Maces
+        // 7042 Forsaken Skill: Staves
+        // 7043 Forsaken Skill: Bows
+        // 7044 Forsaken Skill: Guns
+        // 7045 Forsaken Skill: 2H Axes
+        // 7046 Forsaken Skill: 2H Maces
+        // 7047 Forsaken Skill: 2H Swords
+        // 7048 Forsaken Skill: Defense
+        // 7049 Forsaken Skill: Fire
+        // 7050 Forsaken Skill: Frost
+        // 7051 Forsaken Skill: Holy
+        // 7053 Forsaken Skill: Shadow
+        static uint32 forsakenSpells[] = { 7038,7039,7040,7041,7042,7043,7044,7045,7046,7047,7048,7049,7050,7051,7053 };
+        if (urand(0, 99) == 0)
+            aura->GetTarget()->CastSpell(nullptr, forsakenSpells[urand(0, 14)], TRIGGERED_OLD_TRIGGERED);
+    }
+};
 
 void AddSC_shadowfang_keep()
 {
@@ -899,4 +920,6 @@ void AddSC_shadowfang_keep()
     pNewScript->Name = "npc_deathstalker_vincent";
     pNewScript->GetAI = &GetAI_npc_deathstalker_vincent;
     pNewScript->RegisterSelf();
+
+    RegisterAuraScript<ForsakenSkill>("spell_forsaken_skill");
 }

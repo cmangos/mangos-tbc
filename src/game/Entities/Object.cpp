@@ -41,16 +41,6 @@
 #include "Loot/LootMgr.h"
 #include "Spells/SpellMgr.h"
 
-constexpr float VisibilityDistances[AsUnderlyingType(VisibilityDistanceType::Max)] =
-{
-    DEFAULT_VISIBILITY_DISTANCE,
-    VISIBILITY_DISTANCE_TINY,
-    VISIBILITY_DISTANCE_SMALL,
-    VISIBILITY_DISTANCE_LARGE,
-    VISIBILITY_DISTANCE_GIGANTIC,
-    MAX_VISIBILITY_DISTANCE
-};
-
 Object::Object(): m_updateFlag(0), m_itsNewObject(false)
 {
     m_objectTypeId      = TYPEID_OBJECT;
@@ -61,7 +51,7 @@ Object::Object(): m_updateFlag(0), m_itsNewObject(false)
 
     m_inWorld           = false;
     m_objectUpdated     = false;
-    loot              = nullptr;
+    m_loot              = nullptr;
 }
 
 Object::~Object()
@@ -81,7 +71,7 @@ Object::~Object()
 
     delete[] m_uint32Values;
 
-    delete loot;
+    delete m_loot;
 }
 
 void Object::_InitValues()
@@ -120,14 +110,12 @@ void Object::SendForcedObjectUpdate()
     BuildUpdateData(update_players);
     RemoveFromClientUpdateList();
 
-    // here we allocate a std::vector with a size of 0x10000
+    WorldPacket packet;                                     // here we allocate a std::vector with a size of 0x10000
     for (auto& update_player : update_players)
     {
-        for (size_t i = 0; i < update_player.second.GetPacketCount(); ++i)
-        {
-            WorldPacket packet = update_player.second.BuildPacket(i);
-            update_player.first->GetSession()->SendPacket(packet);
-        }
+        update_player.second.BuildPacket(packet);
+        update_player.first->GetSession()->SendPacket(packet);
+        packet.clear();                                     // clean the string
     }
 }
 
@@ -197,14 +185,12 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
 void Object::SendCreateUpdateToPlayer(Player* player) const
 {
     // send create update to player
-    UpdateData updateData;
-    BuildCreateUpdateBlockForPlayer(&updateData, player);
+    UpdateData upd;
+    WorldPacket packet;
 
-    for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
-    {
-        WorldPacket packet = updateData.BuildPacket(i);
-        player->GetSession()->SendPacket(packet);
-    }
+    BuildCreateUpdateBlockForPlayer(&upd, player);
+    upd.BuildPacket(packet);
+    player->GetSession()->SendPacket(packet);
 }
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
@@ -590,8 +576,8 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                         }
                         else
                         {
-                            // check loot flag
-                            if (creature->loot && creature->loot->CanLoot(target))
+                            // check m_loot flag
+                            if (creature->m_loot && creature->m_loot->CanLoot(target))
                             {
                                 // creature is dead and this player can loot it
                                 dynflagsValue = dynflagsValue | UNIT_DYNFLAG_LOOTABLE;
@@ -1107,8 +1093,8 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
-    m_visibilityDistanceOverride(0.f), m_currMap(nullptr), m_mapId(0),
-    m_InstanceId(0), m_isActiveObject(false)
+    m_currMap(nullptr), m_mapId(0),
+    m_InstanceId(0), m_isActiveObject(false), m_visibilityData(this)
 {
 }
 
@@ -1300,16 +1286,23 @@ bool WorldObject::_IsWithinCombatDist(WorldObject const* obj, float dist2compare
 bool WorldObject::IsWithinLOSInMap(const WorldObject* obj, bool ignoreM2Model) const
 {
     if (!IsInMap(obj)) return false;
-    float ox, oy, oz;
-    obj->GetPosition(ox, oy, oz);
-    return IsWithinLOS(ox, oy, oz, ignoreM2Model);
+    float x, y, z;
+    obj->GetPosition(x, y, z);
+    return IsWithinLOS(x, y, z + obj->GetCollisionHeight(), ignoreM2Model);
 }
 
 bool WorldObject::IsWithinLOS(float ox, float oy, float oz, bool ignoreM2Model) const
 {
     float x, y, z;
     GetPosition(x, y, z);
-    return GetMap()->IsInLineOfSight(x, y, z + 2.0f, ox, oy, oz + 2.0f, ignoreM2Model);
+    return GetMap()->IsInLineOfSight(x, y, z + GetCollisionHeight(), ox, oy, oz, ignoreM2Model);
+}
+
+bool WorldObject::IsWithinLOSForMe(float ox, float oy, float oz, float collisionHeight, bool ignoreM2Model) const
+{
+    float x, y, z;
+    GetPosition(x, y, z);
+    return GetMap()->IsInLineOfSight(x, y, z + collisionHeight, ox, oy, oz + collisionHeight, ignoreM2Model);
 }
 
 bool WorldObject::GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D /* = true */, DistanceCalculation distcalc /* = NONE */) const
@@ -1641,11 +1634,16 @@ namespace MaNGOS
                 : i_object(obj), i_msgtype(msgtype), i_textData(textData), i_language(language), i_target(target) {}
             void operator()(WorldPacket& data, int32 loc_idx)
             {
-                char const* text;
-                if ((int32)i_textData->Content.size() > loc_idx + 1 && !i_textData->Content[loc_idx + 1].empty())
-                    text = i_textData->Content[loc_idx + 1].c_str();
+                char const* text = nullptr;
+                if (BroadcastText const* bct = i_textData->broadcastText)
+                    text = bct->GetText(loc_idx).data();
                 else
-                    text = i_textData->Content[0].c_str();
+                {
+                    if ((int32)i_textData->Content.size() > loc_idx + 1 && !i_textData->Content[loc_idx + 1].empty())
+                        text = i_textData->Content[loc_idx + 1].c_str();
+                    else
+                        text = i_textData->Content[0].c_str();
+                }
 
                 ChatHandler::BuildChatPacket(data, i_msgtype, text, i_language, CHAT_TAG_NONE, i_object.GetObjectGuid(), i_object.GetNameForLocaleIdx(loc_idx),
                                              i_target ? i_target->GetObjectGuid() : ObjectGuid(), i_target ? i_target->GetNameForLocaleIdx(loc_idx) : "");
@@ -1674,13 +1672,15 @@ void WorldObject::MonsterText(MangosStringLocale const* textData, Unit const* ta
 {
     MANGOS_ASSERT(textData);
 
+    Language languageId = textData->broadcastText ? textData->broadcastText->languageId : textData->LanguageId;
+
     switch (textData->Type)
     {
         case CHAT_TYPE_SAY:
-            _DoLocalizedTextAround(this, textData, CHAT_MSG_MONSTER_SAY, textData->LanguageId, target, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY));
+            _DoLocalizedTextAround(this, textData, CHAT_MSG_MONSTER_SAY, languageId, target, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY));
             break;
         case CHAT_TYPE_YELL:
-            _DoLocalizedTextAround(this, textData, CHAT_MSG_MONSTER_YELL, textData->LanguageId, target, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL));
+            _DoLocalizedTextAround(this, textData, CHAT_MSG_MONSTER_YELL, languageId, target, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL));
             break;
         case CHAT_TYPE_TEXT_EMOTE:
             _DoLocalizedTextAround(this, textData, CHAT_MSG_MONSTER_EMOTE, LANG_UNIVERSAL, target, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_TEXTEMOTE));
@@ -1708,7 +1708,7 @@ void WorldObject::MonsterText(MangosStringLocale const* textData, Unit const* ta
         }
         case CHAT_TYPE_ZONE_YELL:
         {
-            MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_MONSTER_YELL, textData, textData->LanguageId, target);
+            MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_MONSTER_YELL, textData, languageId, target);
             MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> say_do(say_build);
             uint32 zoneId = GetZoneId();
             GetMap()->ExecuteMapWorkerZone(zoneId, std::bind(&MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder>::operator(), &say_do, std::placeholders::_1));
@@ -1716,7 +1716,7 @@ void WorldObject::MonsterText(MangosStringLocale const* textData, Unit const* ta
         }
         case CHAT_TYPE_ZONE_EMOTE:
         {
-            MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_MONSTER_EMOTE, textData, textData->LanguageId, target);
+            MaNGOS::MonsterChatBuilder say_build(*this, CHAT_MSG_MONSTER_EMOTE, textData, languageId, target);
             MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder> say_do(say_build);
             uint32 zoneId = GetZoneId();
             GetMap()->ExecuteMapWorkerZone(zoneId, std::bind(&MaNGOS::LocalizedPacketDo<MaNGOS::MonsterChatBuilder>::operator(), &say_do, std::placeholders::_1));
@@ -1847,6 +1847,9 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
     creature->Summon(settings.spawnType, settings.despawnTime);                  // Also initializes the AI and MMGen
     if (settings.corpseDespawnTime)
         creature->SetCorpseDelay(settings.corpseDespawnTime);
+
+    if (settings.spellId)
+        creature->SetUInt32Value(UNIT_CREATED_BY_SPELL, settings.spellId);
 
     if (settings.spawner && settings.spawner->GetTypeId() == TYPEID_UNIT)
         if (Creature* spawnerCreature = static_cast<Creature*>(settings.spawner))
@@ -1991,6 +1994,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
     //}
 
     // maybe can just place in primary position
+    float collisionHeight = GetCollisionHeight();
     if (selector.CheckOriginalAngle())
     {
         if (searcher)
@@ -1998,7 +2002,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (fabs(init_z - z) < dist && IsWithinLOSForMe(x, y, z, collisionHeight))
             return;
 
         first_los_conflict = true;                          // first point have LOS problems
@@ -2020,7 +2024,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (fabs(init_z - z) < dist && IsWithinLOSForMe(x, y, z, collisionHeight))
             return;
     }
 
@@ -2052,7 +2056,7 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         else if (!isInWater)
             UpdateGroundPositionZ(x, y, z);
 
-        if (std::abs(init_z - z) < dist && IsWithinLOS(x, y, z))
+        if (fabs(init_z - z) < dist && IsWithinLOSForMe(x, y, z, collisionHeight))
             return;
     }
 
@@ -2175,7 +2179,7 @@ struct WorldObjectChangeAccumulator
 void WorldObject::BuildUpdateData(UpdateDataMapType& update_players)
 {
     WorldObjectChangeAccumulator notifier(*this, update_players);
-    Cell::VisitWorldObjects(this, notifier, GetMap()->GetVisibilityDistance());
+    Cell::VisitWorldObjects(this, notifier, GetVisibilityData().GetVisibilityDistance());
 
     ClearUpdateMask(false);
 }
@@ -2219,31 +2223,6 @@ void WorldObject::SetActiveObjectState(bool active)
             GetMap()->AddToActive(this);
     }
     m_isActiveObject = active;
-}
-
-void WorldObject::SetVisibilityDistanceOverride(VisibilityDistanceType type)
-{
-    MANGOS_ASSERT(type < VisibilityDistanceType::Max);
-    if (GetTypeId() == TYPEID_PLAYER)
-        return;
-
-    m_visibilityDistanceOverride = VisibilityDistances[AsUnderlyingType(type)];
-}
-
-float WorldObject::GetVisibilityDistance() const
-{
-    if (IsVisibilityOverridden())
-        return m_visibilityDistanceOverride;
-    else
-        return GetMap()->GetVisibilityDistance();
-}
-
-float WorldObject::GetVisibilityDistanceFor(WorldObject* obj) const
-{
-    if (IsVisibilityOverridden() && obj->GetTypeId() == TYPEID_PLAYER)
-        return m_visibilityDistanceOverride;
-    else
-        return obj->GetVisibilityDistance();
 }
 
 void WorldObject::SetNotifyOnEventState(bool state)
@@ -2533,4 +2512,125 @@ void WorldObject::PrintCooldownList(ChatHandler& chat) const
 
     chat.PSendSysMessage("Found %u cooldown%s.", cdCount, (cdCount > 1) ? "s" : "");
     chat.PSendSysMessage("Found %u permanent cooldown%s.", permCDCount, (permCDCount > 1) ? "s" : "");
+}
+
+int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry const* spellProto, SpellEffectIndex effect_index, int32 const* effBasePoints) const
+{
+    Unit const* unitCaster = dynamic_cast<Unit const*>(this);
+    Player const* unitPlayer = (GetTypeId() == TYPEID_PLAYER) ? static_cast<Player const*>(this) : nullptr;
+
+    uint8 comboPoints = unitPlayer ? unitPlayer->GetComboPoints() : 0;
+
+    int32 baseDice = int32(spellProto->EffectBaseDice[effect_index]);
+    float basePointsPerLevel = spellProto->EffectRealPointsPerLevel[effect_index];
+    float randomPointsPerLevel = spellProto->EffectDicePerLevel[effect_index];
+    int32 basePoints = effBasePoints
+        ? *effBasePoints - baseDice
+        : spellProto->EffectBasePoints[effect_index];
+
+    float comboDamage = spellProto->EffectPointsPerComboPoint[effect_index];
+    int32 randomPoints = spellProto->EffectDieSides[effect_index];
+    if (unitCaster && basePointsPerLevel != 0.f)
+    {
+        int32 level = int32(unitCaster->getLevel());
+        if (level > (int32)spellProto->maxLevel && spellProto->maxLevel > 0)
+            level = (int32)spellProto->maxLevel;
+        else if (level < (int32)spellProto->baseLevel)
+            level = (int32)spellProto->baseLevel;
+        level -= (int32)spellProto->spellLevel;
+        basePoints += int32(level * basePointsPerLevel);
+        randomPoints += int32(level * randomPointsPerLevel);
+    }
+
+    switch (randomPoints)
+    {
+        case 0:
+        case 1: basePoints += baseDice; break;              // range 1..1
+        default:
+        {
+            // range can have positive (1..rand) and negative (rand..1) values, so order its for irand
+            int32 randvalue = baseDice >= randomPoints
+                ? irand(randomPoints, baseDice)
+                : irand(baseDice, randomPoints);
+
+            basePoints += randvalue;
+            break;
+        }
+    }
+
+    int32 value = basePoints;
+
+    // random damage
+    if (comboDamage != 0.0f && unitPlayer && target && (target->GetObjectGuid() == unitPlayer->GetComboTargetGuid() || IsOnlySelfTargeting(spellProto)))
+        value += (int32)(comboDamage * comboPoints);
+
+    if (unitCaster)
+    {
+        if (Player * modOwner = unitCaster->GetSpellModOwner())
+        {
+            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value);
+
+            switch (effect_index)
+            {
+                case EFFECT_INDEX_0:
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT1, value);
+                    break;
+                case EFFECT_INDEX_1:
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT2, value);
+                    break;
+                case EFFECT_INDEX_2:
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT3, value);
+                    break;
+            }
+        }
+    }
+
+    if (unitCaster && spellProto->HasAttribute(SPELL_ATTR_LEVEL_DAMAGE_CALCULATION) && spellProto->spellLevel)
+    {
+        // TODO: Drastically beter than before, but still needs some additional aura scaling research
+        bool damage = false;
+        if (uint32 aura = spellProto->EffectApplyAuraName[effect_index])
+        {
+            // TODO: to be incorporated into the main per level calculation after research
+            value += int32(std::max(0, int32(unitCaster->getLevel() - spellProto->maxLevel)) * basePointsPerLevel);
+
+            switch (aura)
+            {
+                case SPELL_AURA_PERIODIC_DAMAGE:
+                case SPELL_AURA_PERIODIC_LEECH:
+                    //   SPELL_AURA_PERIODIC_DAMAGE_PERCENT: excluded, abs values only
+                case SPELL_AURA_POWER_BURN_MANA:
+                    damage = true;
+            }
+        }
+        else if (uint32 effect = spellProto->Effect[effect_index])
+        {
+            switch (effect)
+            {
+                case SPELL_EFFECT_SCHOOL_DAMAGE:
+                case SPELL_EFFECT_POWER_DRAIN:
+                case SPELL_EFFECT_ENVIRONMENTAL_DAMAGE:
+                case SPELL_EFFECT_HEALTH_LEECH:
+                case SPELL_EFFECT_HEAL:
+                case SPELL_EFFECT_SUMMON:
+                case SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL:
+                    //   SPELL_EFFECT_WEAPON_PERCENT_DAMAGE: excluded, abs values only
+                case SPELL_EFFECT_WEAPON_DAMAGE:
+                case SPELL_EFFECT_POWER_BURN:
+                case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
+                case SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE:
+                    damage = true;
+            }
+        }
+
+        if (damage)
+        {
+            GtNPCManaCostScalerEntry const* spellScaler = sGtNPCManaCostScalerStore.LookupEntry(spellProto->spellLevel - 1);
+            GtNPCManaCostScalerEntry const* casterScaler = sGtNPCManaCostScalerStore.LookupEntry(unitCaster->getLevel() - 1);
+            if (spellScaler && casterScaler)
+                value *= casterScaler->ratio / spellScaler->ratio;
+        }
+    }
+
+    return value;
 }

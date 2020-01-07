@@ -361,7 +361,7 @@ struct boss_kaelthasAI : public ScriptedAI
         DoDespawnSummons();
 
         m_rangeMode = true;
-        m_meleeEnabled = false;
+        SetMeleeEnabled(true);
 
         for (uint32 i = 0; i < KAEL_ACTION_MAX; ++i)
             m_actionReadyStatus[i] = false;
@@ -423,8 +423,9 @@ struct boss_kaelthasAI : public ScriptedAI
             m_uiPhase = PHASE_1_ADVISOR;
 
             // Set the player in combat with the boss
-            pWho->SetInCombatWith(m_creature);
-            m_creature->AddThreat(pWho);
+            SetCombatMovement(false);
+            SetCombatScriptStatus(true);
+            m_creature->SetInCombatWithZone();
 
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
@@ -591,7 +592,7 @@ struct boss_kaelthasAI : public ScriptedAI
             {
                 m_creature->SetLevitate(false);
                 m_creature->SetHover(false);
-                m_combatScriptHappening = false;
+                SetCombatScriptStatus(false);
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 m_creature->RemoveAurasDueToSpell(SPELL_KAEL_FULL_POWER);
                 m_uiPhase = PHASE_5_GRAVITY;
@@ -600,8 +601,6 @@ struct boss_kaelthasAI : public ScriptedAI
                 if (Unit* victim = m_creature->getVictim())
                 {
                     m_creature->SetTarget(victim);
-                    if (!m_rangeMode)
-                        SetMeleeEnabled(false);
                     DoStartMovement(victim);
                 }
                 break;
@@ -631,7 +630,7 @@ struct boss_kaelthasAI : public ScriptedAI
         {
             if (m_actionReadyStatus[i])
             {
-                if (m_combatScriptHappening)
+                if (GetCombatScriptStatus())
                 {
                     switch (i)
                     {
@@ -651,10 +650,8 @@ struct boss_kaelthasAI : public ScriptedAI
                         {
                             // ToDo: should he cast something here?
                             m_creature->InterruptNonMeleeSpells(false);
-                            if (m_meleeEnabled)
-                                SetMeleeEnabled(false);
                             m_creature->SetTarget(nullptr);
-                            m_combatScriptHappening = true;
+                            SetCombatScriptStatus(true);
                             SetCombatMovement(false);
 
                             m_creature->GetMotionMaster()->MovePoint(POINT_ID_CENTER, aCenterPos[0], aCenterPos[1], aCenterPos[2]);
@@ -807,7 +804,6 @@ struct boss_kaelthasAI : public ScriptedAI
                             m_rangeMode = false;
                             m_attackDistance = 0.0f;
                             //m_creature->SetSheath(SHEATH_STATE_MELEE);
-                            m_meleeEnabled = true;
                             m_creature->MeleeAttackStart(m_creature->getVictim());
                             DoStartMovement(m_creature->getVictim());
                         }
@@ -819,7 +815,6 @@ struct boss_kaelthasAI : public ScriptedAI
                         {
                             m_attackDistance = 0.0f;                            
                             m_rangeMode = false;
-                            SetMeleeEnabled(true);
                             DoStartMovement(m_creature->getVictim());
                             return;
                         }
@@ -992,7 +987,7 @@ struct boss_kaelthasAI : public ScriptedAI
                             DoScriptText(SAY_PHASE4_INTRO2, m_creature);
                             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                             DoResetThreat();
-                            m_creature->SetInCombatWithZone();
+                            SetCombatScriptStatus(false);
                             m_uiPhase = PHASE_4_SOLO;
                             m_uiPhaseTimer = 30000;
                             m_uiPhaseSubphase = 0;
@@ -1053,6 +1048,7 @@ struct boss_kaelthasAI : public ScriptedAI
                     {
                         SetCombatScriptStatus(false);
                         SetCombatMovement(true);
+                        SetMeleeEnabled(true);
                         m_uiGravityExpireTimer = 0;
                         for (ObjectGuid guid : m_netherVapor)
                             if (Creature* vapor = m_creature->GetMap()->GetCreature(guid))

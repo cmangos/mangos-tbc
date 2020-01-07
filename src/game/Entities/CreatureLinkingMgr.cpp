@@ -477,11 +477,12 @@ void CreatureLinkingHolder::DoCreatureLinkingEvent(CreatureLinkingEvent eventTyp
                         if (pMaster->IsControlledByPlayer())
                             return;
 
-                        if (pMaster->isInCombat())
+                        if (pMaster->isInCombat()) // TODO: Add group leashing
                         {
                             pMaster->AddThreat(pEnemy);
                             pEnemy->AddThreat(pMaster);
                             pEnemy->SetInCombatWith(pMaster);
+                            pEnemy->GetCombatManager().TriggerCombatTimer(pMaster);
                         }                            
                         else
                             pMaster->AI()->AttackStart(pEnemy);
@@ -515,7 +516,7 @@ void CreatureLinkingHolder::ProcessSlaveGuidList(CreatureLinkingEvent eventType,
         if (!pSlave)
         {
             // Remove old guid first
-            slaveGuidList.erase(slave_itr++);
+            slave_itr = slaveGuidList.erase(slave_itr);
             continue;
         }
 
@@ -547,6 +548,7 @@ void CreatureLinkingHolder::ProcessSlave(CreatureLinkingEvent eventType, Creatur
                     pSlave->AddThreat(pEnemy);
                     pEnemy->AddThreat(pSlave);
                     pEnemy->SetInCombatWith(pSlave);
+                    pEnemy->GetCombatManager().TriggerCombatTimer(pSlave);
                 }
                 else
                     pSlave->AI()->AttackStart(pEnemy);
@@ -560,7 +562,7 @@ void CreatureLinkingHolder::ProcessSlave(CreatureLinkingEvent eventType, Creatur
             break;
         case LINKING_EVENT_DIE:
             if (flag & FLAG_SELFKILL_ON_DEATH && pSlave->isAlive())
-                pSlave->DealDamage(pSlave, pSlave->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+                pSlave->Suicide();
             if (flag & FLAG_DESPAWN_ON_DEATH && pSlave->isAlive())
                 pSlave->ForcedDespawn();
             if (flag & FLAG_RESPAWN_ON_DEATH && !pSlave->isAlive())

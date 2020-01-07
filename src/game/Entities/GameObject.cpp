@@ -41,6 +41,25 @@
 #include "vmap/GameObjectModel.h"
 #include "Server/SQLStorages.h"
 #include "World/WorldState.h"
+#include <G3D/Box.h>
+#include <G3D/CoordinateFrame.h>
+#include <G3D/Quat.h>
+
+bool QuaternionData::isUnit() const
+{
+    return fabs(x * x + y * y + z * z + w * w - 1.0f) < 1e-5f;
+}
+
+void QuaternionData::toEulerAnglesZYX(float& Z, float& Y, float& X) const
+{
+    G3D::Matrix3(G3D::Quat(x, y, z, w)).toEulerAnglesZYX(Z, Y, X);
+}
+
+QuaternionData QuaternionData::fromEulerAnglesZYX(float Z, float Y, float X)
+{
+    G3D::Quat quat(G3D::Matrix3::fromEulerAnglesZYX(Z, Y, X));
+    return QuaternionData(quat.x, quat.y, quat.z, quat.w);
+}
 
 GameObject::GameObject() : WorldObject(),
     m_model(nullptr),
@@ -56,8 +75,13 @@ GameObject::GameObject() : WorldObject(),
     m_updateFlag = (UPDATEFLAG_LOWGUID | UPDATEFLAG_HIGHGUID | UPDATEFLAG_HAS_POSITION);
 
     m_valuesCount = GAMEOBJECT_END;
+
     m_respawnTime = 0;
-    m_respawnDelayTime = 25;
+    m_respawnDelay = 25;
+    m_respawnOverriden = false;
+    m_respawnOverrideOnce = false;
+    m_forcedDespawn = false;
+
     m_lootState = GO_READY;
     m_spawnedByDefault = true;
     m_useTimes = 0;
@@ -195,6 +219,17 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
     switch (GetGoType())
     {
         case GAMEOBJECT_TYPE_TRAP:
+            // values from rogue detect traps aura
+            if (goinfo->trap.stealthed)
+            {
+                GetVisibilityData().SetStealthMask(STEALTH_TRAP, true);
+                GetVisibilityData().AddStealthStrength(STEALTH_TRAP, 70);
+            }
+            if (goinfo->trap.invisible)
+            {
+                GetVisibilityData().SetInvisibilityMask(INVISIBILITY_TRAP, true);
+                GetVisibilityData().AddInvisibilityValue(INVISIBILITY_TRAP, 300);
+            }
         case GAMEOBJECT_TYPE_FISHINGNODE:
             m_lootState = GO_NOT_READY;                     // Initialize Traps and Fishingnode delayed in ::Update
             break;
@@ -216,7 +251,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
 
     // Check if GameObject is Large
     if (GetGOInfo()->IsLargeGameObject())
-        SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
+        GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
 
     return true;
 }
@@ -275,8 +310,8 @@ void GameObject::Update(const uint32 diff)
                             {
                                 m_reStockTimer = 0;
                                 m_lootState = GO_READY;
-                                delete loot;
-                                loot = nullptr;
+                                delete m_loot;
+                                m_loot = nullptr;
                                 ForceValuesUpdateAtIndex(GAMEOBJECT_DYN_FLAGS);
                             }
                         }
@@ -436,14 +471,14 @@ void GameObject::Update(const uint32 diff)
                         ResetDoorOrButton();
                     break;
                 case GAMEOBJECT_TYPE_CHEST:
-                    if (loot)
+                    if (m_loot)
                     {
-                        if (loot->IsChanged())
+                        if (m_loot->IsChanged())
                             m_despawnTimer = time(nullptr) + 5 * MINUTE; // TODO:: need to add a define?
                         else if (m_despawnTimer != 0 && m_despawnTimer <= time(nullptr))
                             m_lootState = GO_JUST_DEACTIVATED;
 
-                        loot->Update();
+                        m_loot->Update();
                     }
                     break;
                 case GAMEOBJECT_TYPE_TRAP:
@@ -529,7 +564,7 @@ void GameObject::Update(const uint32 diff)
                     if (m_goInfo->chest.chestRestockTime)
                     {
                         m_reStockTimer = time(nullptr) + m_goInfo->chest.chestRestockTime;
-                        m_lootState = GO_NOT_READY;
+                        SetLootState(GO_NOT_READY);
                         ForceValuesUpdateAtIndex(GAMEOBJECT_DYN_FLAGS);
                         return;
                     }
@@ -539,7 +574,7 @@ void GameObject::Update(const uint32 diff)
             }
 
             // Remove wild summoned after use
-            if (!HasStaticDBSpawnData() && (!GetSpellId() || GetGOInfo()->GetDespawnPossibility() || GetGOInfo()->IsDespawnAtAction()))
+            if (!HasStaticDBSpawnData() && (!GetSpellId() || GetGOInfo()->GetDespawnPossibility() || GetGOInfo()->IsDespawnAtAction() || m_forcedDespawn))
             {
                 if (Unit* owner = GetOwner())
                     owner->RemoveGameObject(this, false);
@@ -562,22 +597,41 @@ void GameObject::Update(const uint32 diff)
                     SetUInt32Value(GAMEOBJECT_FLAGS, GetGOInfo()->flags);
             }
 
-            delete loot;
-            loot = nullptr;
+            delete m_loot;
+            m_loot = nullptr;
             SetLootRecipient(nullptr);
             SetLootState(GO_READY);
 
-            if (!m_respawnDelayTime)
+            // non-consumable chests and goobers should never despawn
+            if ((GetGoType() == GAMEOBJECT_TYPE_CHEST || GetGoType() == GAMEOBJECT_TYPE_GOOBER) && !GetGOInfo()->IsDespawnAtAction() && !m_forcedDespawn)
                 return;
+
+            if (!m_respawnDelay)
+                return;
+
+            m_forcedDespawn = false;
 
             if (AI())
                 AI()->JustDespawned();
 
-            // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
-            if (GameObjectData const* data = sObjectMgr.GetGOData(GetObjectGuid().GetCounter()))
-                m_respawnDelayTime = data->GetRandomRespawnTime();
+            if (!m_respawnOverriden)
+            {
+                // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
+                if (GameObjectData const* data = sObjectMgr.GetGOData(GetObjectGuid().GetCounter()))
+                    m_respawnDelay = data->GetRandomRespawnTime();
+            }
+            else if (m_respawnOverrideOnce)
+                m_respawnOverriden = false;
 
-            m_respawnTime = m_spawnedByDefault ? time(nullptr) + m_respawnDelayTime : 0;
+            switch (GetGoType()) // TODO: check, very experimental
+            {
+                case GAMEOBJECT_TYPE_BUTTON: // if button and not spawned by default, do not despawn
+                    m_respawnTime = time(nullptr) + m_respawnDelay;
+                    break;
+                default: // Old logic, if !m_spawnedByDefault despawn on first usage
+                    m_respawnTime = m_spawnedByDefault ? time(nullptr) + m_respawnDelay : 0;
+                    break;
+            }
 
             // if option not set then object will be saved at grid unload
             if (sWorld.getConfig(CONFIG_BOOL_SAVE_RESPAWN_TIME_IMMEDIATELY))
@@ -687,8 +741,8 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask) const
     data.rotation1 = GetFloatValue(GAMEOBJECT_ROTATION + 1);
     data.rotation2 = GetFloatValue(GAMEOBJECT_ROTATION + 2);
     data.rotation3 = GetFloatValue(GAMEOBJECT_ROTATION + 3);
-    data.spawntimesecsmin = m_spawnedByDefault ? (int32)m_respawnDelayTime : -(int32)m_respawnDelayTime;
-    data.spawntimesecsmax = m_spawnedByDefault ? (int32)m_respawnDelayTime : -(int32)m_respawnDelayTime;
+    data.spawntimesecsmin = m_spawnedByDefault ? (int32)m_respawnDelay : -(int32)m_respawnDelay;
+    data.spawntimesecsmax = m_spawnedByDefault ? (int32)m_respawnDelay : -(int32)m_respawnDelay;
     data.animprogress = GetGoAnimProgress();
     data.go_state = GetGoState();
     data.spawnMask = spawnMask;
@@ -708,8 +762,8 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask) const
        << GetFloatValue(GAMEOBJECT_ROTATION + 1) << ", "
        << GetFloatValue(GAMEOBJECT_ROTATION + 2) << ", "
        << GetFloatValue(GAMEOBJECT_ROTATION + 3) << ", "
-       << m_respawnDelayTime << ", "
-       << m_respawnDelayTime << ", " // TODO: Add variance
+       << m_respawnDelay << ", "
+       << m_respawnDelay << ", " // TODO: Add variance
        << uint32(GetGoAnimProgress()) << ", "
        << uint32(GetGoState()) << ")";
 
@@ -751,7 +805,7 @@ bool GameObject::LoadFromDB(uint32 guid, Map* map)
     {
         SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NODESPAWN);
         m_spawnedByDefault = true;
-        m_respawnDelayTime = 0;
+        m_respawnDelay = 0;
         m_respawnTime = 0;
     }
     else
@@ -759,7 +813,7 @@ bool GameObject::LoadFromDB(uint32 guid, Map* map)
         if (data->spawntimesecsmin >= 0)
         {
             m_spawnedByDefault = true;
-            m_respawnDelayTime = data->GetRandomRespawnTime();
+            m_respawnDelay = data->GetRandomRespawnTime();
 
             m_respawnTime  = map->GetPersistentState()->GetGORespawnTime(GetGUIDLow());
 
@@ -773,7 +827,7 @@ bool GameObject::LoadFromDB(uint32 guid, Map* map)
         else
         {
             m_spawnedByDefault = false;
-            m_respawnDelayTime = -data->spawntimesecsmin;
+            m_respawnDelay = -data->spawntimesecsmin;
             m_respawnTime = 0;
         }
     }
@@ -890,7 +944,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
         {
             case GAMEOBJECT_TYPE_TRAP:
             {
-                if (GetGOInfo()->trap.stealthed == 0)
+                if (GetGOInfo()->trap.stealthed == 0 || GetGOInfo()->trap.invisible == 0)
                     break;
 
                 bool trapNotVisible = false;
@@ -921,10 +975,15 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
                         trapNotVisible = true;
                 }
 
-                // only rogue have skill for traps detection
-                if (Aura* aura = ((Player*)u)->GetAura(2836, EFFECT_INDEX_0))
+                if (GetGOInfo()->trap.invisible) // invisible traps
+                    if (u->GetVisibilityData().CanDetectInvisibilityOf(this))
+                        return true;
+
+                if (GetGOInfo()->trap.stealthed) // stealthed traps
                 {
-                    if (roll_chance_i(aura->GetModifier()->m_amount) && u->isInFront(this, 15.0f))
+                    float visibleDistance = GetVisibilityData().GetStealthVisibilityDistance(u);
+                    // recheck new distance
+                    if (GetDistance(viewPoint, true, DIST_CALC_NONE) < visibleDistance * visibleDistance && u->HasInArc(this))
                         return true;
                 }
 
@@ -943,12 +1002,12 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
         }
 
         // Smuggled Mana Cell required 10 invisibility type detection/state
-        if (GetEntry() == 187039 && ((u->GetInvisibilityDetectMask() | u->GetInvisibilityMask()) & (1 << 10)) == 0)
+        if (GetEntry() == 187039 && ((u->GetVisibilityData().GetInvisibilityDetectMask() | u->GetVisibilityData().GetInvisibilityMask()) & (1 << 10)) == 0)
             return false;
     }
 
     // check distance
-    return IsWithinDistInMap(viewPoint, GetVisibilityDistance(), false);
+    return IsWithinDistInMap(viewPoint, GetVisibilityData().GetVisibilityDistance(), false);
 }
 
 void GameObject::Respawn()
@@ -1055,7 +1114,7 @@ GameObject* GameObject::SummonLinkedTrapIfAny() const
         return nullptr;
     }
 
-    linkedGO->m_respawnDelayTime = 0;
+    linkedGO->m_respawnDelay = 0;
     linkedGO->SetSpellId(GetSpellId());
 
     if (GetOwnerGuid())
@@ -1176,6 +1235,10 @@ void GameObject::Use(Unit* user)
     uint32 spellId = 0;
     uint32 triggeredFlags = 0;
     bool originalCaster = true;
+
+    if (user->IsPlayer())
+        if (!m_goInfo->IsUsableMounted())
+            user->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
 
     // test only for exist cooldown data (cooldown timer used for door/buttons reset that not have use cooldown)
     if (uint32 cooldown = GetGOInfo()->GetCooldown())
@@ -1375,6 +1438,8 @@ void GameObject::Use(Unit* user)
                     outdoorPvP->HandleGameObjectUse(player, this);
             }
 
+            // exception - 180619 - ossirian crystal - supposed to be kept from despawning by a pending spellcast - to be implemented, done in db for now
+
             GameObjectInfo const* info = GetGOInfo();
 
             TriggerLinkedGameObject(user);
@@ -1535,9 +1600,9 @@ void GameObject::Use(Unit* user)
                         }
                         else
                         {
-                            delete loot;
-                            loot = new Loot(player, this, success ? LOOT_FISHING : LOOT_FISHING_FAIL);
-                            loot->ShowContentTo(player);
+                            delete m_loot;
+                            m_loot = new Loot(player, this, success ? LOOT_FISHING : LOOT_FISHING_FAIL);
+                            m_loot->ShowContentTo(player);
                         }
                     }
                     else
@@ -1712,9 +1777,9 @@ void GameObject::Use(Unit* user)
 
             Player* player = (Player*)user;
             
-            delete loot;
-            loot = new Loot(player, this, LOOT_FISHINGHOLE);
-            loot->ShowContentTo(player);
+            delete m_loot;
+            m_loot = new Loot(player, this, LOOT_FISHINGHOLE);
+            m_loot->ShowContentTo(player);
 
             return;
         }
@@ -1921,23 +1986,6 @@ void GameObject::SetLootRecipient(Unit* pUnit)
 GameObject* GameObject::GetLinkedTrap()
 {
     return GetMap()->GetGameObject(m_linkedTrap);
-}
-
-float GameObject::GetObjectBoundingRadius() const
-{
-    // FIXME:
-    // 1. This is clearly hack way because we usually need this to check range, but a box just is no ball
-    // 2. In some cases this must be only interactive size, not GO size, current way can affect creature target point auto-selection in strange ways for big underground/virtual GOs
-    if (m_displayInfo)
-    {
-        float dx = m_displayInfo->geoBoxMaxX - m_displayInfo->geoBoxMinX;
-        float dy = m_displayInfo->geoBoxMaxY - m_displayInfo->geoBoxMinY;
-        float dz = m_displayInfo->geoBoxMaxZ - m_displayInfo->geoBoxMinZ;
-
-        return (std::abs(dx) + std::abs(dy) + std::abs(dz)) / 2 * GetObjectScale();
-    }
-
-    return DEFAULT_WORLD_OBJECT_SIZE;
 }
 
 bool GameObject::IsInSkillupList(Player* player) const
@@ -2220,14 +2268,35 @@ float GameObject::GetInteractionDistance() const
 {
     switch (GetGoType())
     {
-        // TODO: find out how the client calculates the maximal usage distance to spellless working
-        // gameobjects like guildbanks and mailboxes - 10.0 is a just an abitrary chosen number
+        case GAMEOBJECT_TYPE_AREADAMAGE:
+            return 0.0f;
+        case GAMEOBJECT_TYPE_QUESTGIVER:
+        case GAMEOBJECT_TYPE_TEXT:
+        case GAMEOBJECT_TYPE_FLAGSTAND:
+        case GAMEOBJECT_TYPE_FLAGDROP:
+        case GAMEOBJECT_TYPE_MINI_GAME:
+            return 5.5555553f;
+        case GAMEOBJECT_TYPE_BINDER:
+            return 10.0f;
+        case GAMEOBJECT_TYPE_CHAIR:
+        case GAMEOBJECT_TYPE_BARBER_CHAIR:
+            return 3.0f;
+        case GAMEOBJECT_TYPE_FISHINGNODE:
+            return 100.0f;
+        case GAMEOBJECT_TYPE_FISHINGHOLE:
+            return 20.0f + CONTACT_DISTANCE; // max spell range
+        case GAMEOBJECT_TYPE_CAMERA:
+        case GAMEOBJECT_TYPE_MAP_OBJECT:
+        case GAMEOBJECT_TYPE_DUNGEON_DIFFICULTY:
+        case GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING:
+        case GAMEOBJECT_TYPE_DOOR:
+            return 5.0f;
+            // Following values are not blizzlike
         case GAMEOBJECT_TYPE_GUILD_BANK:
         case GAMEOBJECT_TYPE_MAILBOX:
-            return 10.0f;
-        case GAMEOBJECT_TYPE_FISHINGHOLE:
-        case GAMEOBJECT_TYPE_FISHINGNODE:
-            return 20.0f + CONTACT_DISTANCE; // max spell range
+            // Successful mailbox interaction is rather critical to the client, failing it will start a minute-long cooldown until the next mail query may be executed.
+            // And since movement info update is not sent with mailbox interaction query, server may find the player outside of interaction range. Thus we increase it.
+            return 10.0f; // 5.0f is blizzlike
         default:
             return INTERACTION_DISTANCE;
     }
@@ -2301,4 +2370,107 @@ uint32 GameObject::GetScriptId() const
 void GameObject::AIM_Initialize()
 {
     m_AI.reset(sScriptDevAIMgr.GetGameObjectAI(this));
+}
+
+bool GameObject::IsAtInteractDistance(Player const* player, uint32 maxRange) const
+{
+    SpellEntry const* spellInfo;
+    if (maxRange || (spellInfo = GetSpellForLock(player)))
+    {
+        if (maxRange == 0.f)
+        {
+            SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
+            maxRange = GetSpellMaxRange(srange);
+        }
+
+        if (GetGoType() == GAMEOBJECT_TYPE_SPELL_FOCUS)
+            return maxRange * maxRange >= GetDistance(player, true, DIST_CALC_NONE);
+
+        if (sGameObjectDisplayInfoStore.LookupEntry(GetGOInfo()->displayId))
+            return IsAtInteractDistance(player->GetPosition(), maxRange);
+    }
+
+    return IsAtInteractDistance(player->GetPosition(), GetInteractionDistance());
+}
+
+bool GameObject::IsAtInteractDistance(Position const& pos, float radius) const
+{
+    if (GameObjectDisplayInfoEntry const* displayInfo = m_displayInfo)
+    {
+        float scale = GetObjectScale();
+
+        float minX = displayInfo->minX * scale - radius;
+        float minY = displayInfo->minY * scale - radius;
+        float minZ = displayInfo->minZ * scale - radius;
+        float maxX = displayInfo->maxX * scale + radius;
+        float maxY = displayInfo->maxY * scale + radius;
+        float maxZ = displayInfo->maxZ * scale + radius;
+
+        QuaternionData worldRotation = GetWorldRotation();
+        G3D::Quat worldRotationQuat(worldRotation.x, worldRotation.y, worldRotation.z, worldRotation.w);
+
+        return G3D::CoordinateFrame{ { worldRotationQuat }, { GetPositionX(), GetPositionY(), GetPositionZ() } }
+            .toWorldSpace(G3D::Box{ { minX, minY, minZ }, { maxX, maxY, maxZ } })
+            .contains({ pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ() });
+    }
+
+    return GetDistance(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), DIST_CALC_NONE) <= (radius * radius);
+}
+
+SpellEntry const* GameObject::GetSpellForLock(Player const* player) const
+{
+    if (!player)
+        return nullptr;
+
+    uint32 lockId = GetGOInfo()->GetLockId();
+    if (!lockId)
+        return nullptr;
+
+    LockEntry const* lock = sLockStore.LookupEntry(lockId);
+    if (!lock)
+        return nullptr;
+
+    for (uint8 i = 0; i < MAX_LOCK_CASE; ++i)
+    {
+        if (!lock->Type[i])
+            continue;
+
+        if (lock->Type[i] == LOCK_KEY_SPELL)
+            if (SpellEntry const* spell = sSpellTemplate.LookupEntry<SpellEntry>(lock->Index[i]))
+                return spell;
+
+        if (lock->Type[i] != LOCK_KEY_SKILL)
+            break;
+
+        for (auto&& playerSpell : player->GetSpellMap())
+            if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(playerSpell.first))
+                for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
+                    if (spellInfo->Effect[i] == SPELL_EFFECT_OPEN_LOCK && ((uint32)spellInfo->EffectMiscValue[i]) == lock->Index[i])
+                        if (player->CalculateSpellEffectValue(nullptr, spellInfo, SpellEffectIndex(i), nullptr) >= int32(lock->Skill[i]))
+                            return spellInfo;
+    }
+
+    return nullptr;
+}
+
+QuaternionData GameObject::GetWorldRotation() const
+{
+    QuaternionData localRotation = GetLocalRotation();
+    //if (Transport * transport = GetTransport()) - for wotlk
+    //{
+    //    QuaternionData worldRotation = transport->GetWorldRotation();
+
+    //    G3D::Quat worldRotationQuat(worldRotation.x, worldRotation.y, worldRotation.z, worldRotation.w);
+    //    G3D::Quat localRotationQuat(localRotation.x, localRotation.y, localRotation.z, localRotation.w);
+
+    //    G3D::Quat resultRotation = localRotationQuat * worldRotationQuat;
+
+    //    return QuaternionData(resultRotation.x, resultRotation.y, resultRotation.z, resultRotation.w);
+    //}
+    return localRotation;
+}
+
+const QuaternionData GameObject::GetLocalRotation() const
+{
+    return QuaternionData(GetFloatValue(GAMEOBJECT_ROTATION), GetFloatValue(GAMEOBJECT_ROTATION + 1), GetFloatValue(GAMEOBJECT_ROTATION + 2), GetFloatValue(GAMEOBJECT_ROTATION + 3));
 }

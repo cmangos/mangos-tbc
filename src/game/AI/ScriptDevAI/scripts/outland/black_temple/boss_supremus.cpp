@@ -99,9 +99,10 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
         {
             SetCombatScriptStatus(false);
             SetCombatMovement(true);
+            SetMeleeEnabled(true);
             if (!m_bTankPhase)
                 ResetTimer(SUPREMUS_ACTION_SWITCH_TARGET, 0); // switch target immediately
-            DoStartMovement(m_creature->getVictim());
+            AttackStart(m_creature->getVictim());
         });
         Reset();
     }
@@ -261,7 +262,8 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
                             ResetTimer(SUPREMUS_ACTION_VOLCANIC_ERUPTION, GetInitialActionTimer(SUPREMUS_ACTION_VOLCANIC_ERUPTION));
                             SetCombatScriptStatus(true);
                             SetCombatMovement(false, true);
-                            m_creature->AttackStop(true);
+                            SetMeleeEnabled(false);
+                            m_creature->SetTarget(nullptr);
                             ResetTimer(SUPREMUS_ACTION_DELAY, 1500);
                         }
                         else
@@ -278,7 +280,8 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
                             ResetTimer(SUPREMUS_ACTION_HATEFUL_STRIKE, GetInitialActionTimer(SUPREMUS_ACTION_HATEFUL_STRIKE));
                             SetCombatScriptStatus(true);
                             SetCombatMovement(false, true);
-                            m_creature->AttackStop(true);
+                            SetMeleeEnabled(false);
+                            m_creature->SetTarget(nullptr);
                             ResetTimer(SUPREMUS_ACTION_DELAY, 1500);
                         }
 

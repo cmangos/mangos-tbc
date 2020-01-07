@@ -337,7 +337,6 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
         case SPELL_DAMAGE_CLASS_RANGED:
             return RANGED_ATTACK;
         default:
-            // Wands
         {
             // Wands
             if (spellInfo->HasAttribute(SPELL_ATTR_EX2_AUTOREPEAT_FLAG))
@@ -1407,21 +1406,25 @@ SpellEntry const* SpellMgr::SelectAuraRankForLevel(SpellEntry const* spellInfo, 
     if (!needRankSelection || GetSpellRank(spellInfo->Id) == 0)
         return spellInfo;
 
-    for (uint32 nextSpellId = spellInfo->Id; nextSpellId != 0; nextSpellId = GetPrevSpellInChain(nextSpellId))
+    // Check for lower rank of same spell if config is set to auto downrank
+    if (sWorld.getConfig(CONFIG_BOOL_AUTO_DOWNRANK))
     {
-        SpellEntry const* nextSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(nextSpellId);
-        if (!nextSpellInfo)
-            break;
+        for (uint32 nextSpellId = spellInfo->Id; nextSpellId != 0; nextSpellId = GetPrevSpellInChain(nextSpellId))
+        {
+            SpellEntry const* nextSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(nextSpellId);
+            if (!nextSpellInfo)
+                break;
 
-        // if found appropriate level
+            // if found appropriate level
         // partial Playerbot mod: fix for core bug (commit 073cdd0e...)
-        if (level + 10 >= nextSpellInfo->spellLevel)
-            return nextSpellInfo;
+            if (level + 10 >= nextSpellInfo->spellLevel)
+                return nextSpellInfo;
 
-        // one rank less then
+            // one rank less then
+        }
     }
 
-    // not found
+    // Recipient is too low level
     return nullptr;
 }
 

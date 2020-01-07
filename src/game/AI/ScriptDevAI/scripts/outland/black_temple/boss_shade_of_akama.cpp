@@ -293,8 +293,8 @@ struct npc_akamaAI : public ScriptedAI, public CombatActions, private DialogueHe
             if (m_instance)
             {
                 // Reset the shade
-                if (Creature* pShade = m_instance->GetSingleCreatureFromStorage(NPC_SHADE_OF_AKAMA))
-                    pShade->ForcedDespawn();
+                if (Creature* shade = m_instance->GetSingleCreatureFromStorage(NPC_SHADE_OF_AKAMA))
+                    shade->ForcedDespawn();
             }
         }
     }
@@ -547,7 +547,7 @@ struct boss_shade_of_akamaAI : public ScriptedAI
 
     void CorpseRemoved(uint32& respawnDelay) override
     {
-        // Resapwn after 5 min
+        // Respawn after 5 min
         if (m_instance->GetData(TYPE_SHADE) == FAIL)
             respawnDelay = 5 * MINUTE;
     }
@@ -778,11 +778,7 @@ struct npc_creature_generatorAI : public ScriptedAI, public TimerManager
             default:
                 summoned->SetInCombatWithZone();
                 if (Creature* akama = m_instance->GetSingleCreatureFromStorage(NPC_AKAMA_SHADE))
-                {
-                    m_creature->AddThreat(akama);
-                    m_creature->SetInCombatWith(akama);
-                    akama->SetInCombatWith(m_creature);
-                }
+                    summoned->AI()->AttackStart(akama);
                 break;
         }
     }
@@ -799,11 +795,7 @@ struct npc_creature_generatorAI : public ScriptedAI, public TimerManager
                 summoned->AI()->SetReactState(REACT_AGGRESSIVE);
                 summoned->SetInCombatWithZone();
                 if (Creature* akama = m_instance->GetSingleCreatureFromStorage(NPC_AKAMA_SHADE))
-                {
-                    m_creature->AddThreat(akama);
-                    m_creature->SetInCombatWith(akama);
-                    akama->SetInCombatWith(m_creature);
-                }
+                    summoned->AI()->AttackStart(akama);
                 break;
             }
         }

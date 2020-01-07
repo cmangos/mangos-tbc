@@ -215,6 +215,8 @@ class ChatHandler
         bool HandleAuctionItemCommand(char* args);
         bool HandleAuctionCommand(char* args);
 
+        bool HandleWarnCharacterCommand(char* args);
+        bool HandleAddCharacterNoteCommand(char* args);
         bool HandleBanAccountCommand(char* args);
         bool HandleBanCharacterCommand(char* args);
         bool HandleBanIPCommand(char* args);
@@ -293,6 +295,8 @@ class ChatHandler
         bool HandleDebugSendSpellFailCommand(char* args);
         bool HandleDebugSendWorldState(char* args);
 
+        bool HandleDebugFlyCommand(char* args);
+
         bool HandleSD2HelpCommand(char* args);
         bool HandleSD2ScriptCommand(char* args);
 
@@ -310,6 +314,7 @@ class ChatHandler
         bool HandleGameObjectTargetCommand(char* args);
         bool HandleGameObjectTurnCommand(char* args);
         bool HandleGameObjectActivateCommand(char* args);
+        bool HandleGameObjectRespawnCommand(char* args);
 
         bool HandleGMCommand(char* args);
         bool HandleGMChatCommand(char* args);
@@ -688,6 +693,8 @@ class ChatHandler
         bool HandleLinkEditCommand(char* args);
         bool HandleLinkToggleCommand(char* args);
         bool HandleLinkCheckCommand(char* args);
+
+        bool HandleExpansionRelease(char* args);
 
         //! Development Commands
         bool HandleSaveAllCommand(char* args);

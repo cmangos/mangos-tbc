@@ -28,6 +28,8 @@
 #include "Globals/SharedDefines.h"
 #include "Camera.h"
 #include "Server/DBCStructure.h"
+#include "PlayerDefines.h"
+#include "Entities/ObjectVisibility.h"
 
 #include <set>
 
@@ -52,21 +54,10 @@
 
 #define DEFAULT_WORLD_OBJECT_SIZE       0.388999998569489f      // currently used (correctly?) for any non Unit world objects. This is actually the bounding_radius, like player/creature from creature_model_data
 #define DEFAULT_OBJECT_SCALE            1.0f                    // player/item scale as default, npc/go from database, pets from dbc
+float const DEFAULT_COLLISION_HEIGHT = 2.03128f; // Most common value in dbc
 
 #define MAX_STEALTH_DETECT_RANGE        45.0f
 #define GRID_ACTIVATION_RANGE           45.0f
-
-enum class VisibilityDistanceType : uint32
-{
-    Normal = 0,
-    Tiny = 1,
-    Small = 2,
-    Large = 3,
-    Gigantic = 4,
-    Infinite = 5,
-
-    Max
-};
 
 enum TempSpawnType
 {
@@ -142,6 +133,7 @@ class Loot;
 struct ItemPrototype;
 class ChatHandler;
 struct SpellEntry;
+class Spell;
 
 typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
 
@@ -312,6 +304,10 @@ struct Position
     Position() : x(0.0f), y(0.0f), z(0.0f), o(0.0f) {}
     Position(float _x, float _y, float _z, float _o) : x(_x), y(_y), z(_z), o(_o) {}
     float x, y, z, o;
+    float GetPositionX() const { return x; }
+    float GetPositionY() const { return y; }
+    float GetPositionZ() const { return z; }
+    float GetPositionO() const { return o; }
 };
 
 struct WorldLocation
@@ -326,6 +322,7 @@ struct WorldLocation
     WorldLocation(WorldLocation const& loc)
         : mapid(loc.mapid), coord_x(loc.coord_x), coord_y(loc.coord_y), coord_z(loc.coord_z), orientation(loc.orientation) {}
     WorldLocation(uint32 mapId, Position const& pos) : mapid(mapId), coord_x(pos.x), coord_y(pos.y), coord_z(pos.z), orientation(pos.o) {}
+    void GetPosition(float& x, float& y, float& z) { x = coord_x; y = coord_y; z = coord_z; }
 };
 
 
@@ -592,7 +589,7 @@ class Object
         virtual bool HasInvolvedQuest(uint32 /* quest_id */) const { return false; }
         void SetItsNewObject(bool enable) { m_itsNewObject = enable; }
 
-        Loot* loot;
+        Loot* m_loot;
 
         inline bool IsPlayer() const { return GetTypeId() == TYPEID_PLAYER; }
         inline bool IsCreature() const { return GetTypeId() == TYPEID_UNIT; }
@@ -664,11 +661,12 @@ struct TempSpawnSettings
     uint32 modelId = 0;
     bool spawnCounting = false;
     bool forcedOnTop = false;
+    bool spellId = 0;
     TempSpawnSettings() {}
     TempSpawnSettings(WorldObject* spawner, uint32 entry, float x, float y, float z, float ori, TempSpawnType spawnType, uint32 despawnTime, bool activeObject = false, bool setRun = false, uint32 pathId = 0, uint32 faction = 0,
-        uint32 modelId = 0, bool spawnCounting = false, bool forcedOnTop = false) :
+        uint32 modelId = 0, bool spawnCounting = false, bool forcedOnTop = false, bool spellId = 0) :
         spawner(spawner), entry(entry), x(x), y(y), z(z), ori(ori), spawnType(spawnType), despawnTime(despawnTime), activeObject(activeObject), setRun(setRun), pathId(pathId), faction(faction), modelId(modelId), spawnCounting(spawnCounting),
-        forcedOnTop(forcedOnTop)
+        forcedOnTop(forcedOnTop), spellId(spellId)
     {}
 };
 
@@ -699,6 +697,7 @@ class WorldObject : public Object
         { x = m_position.x; y = m_position.y; z = m_position.z; }
         void GetPosition(WorldLocation& loc) const
         { loc.mapid = m_mapId; GetPosition(loc.coord_x, loc.coord_y, loc.coord_z); loc.orientation = GetOrientation(); }
+        Position const& GetPosition() const { return m_position; }
         float GetOrientation() const { return m_position.o; }
 
         /// Gives a 2d-point in distance distance2d in direction absAngle around the current position (point-to-point)
@@ -742,6 +741,9 @@ class WorldObject : public Object
             GetNearPoint(obj, x, y, z, obj->GetObjectBoundingRadius(), distance2d + GetObjectBoundingRadius() + obj->GetObjectBoundingRadius(), GetAngle(obj));
         }
 
+        bool GetFanningPoint(const Unit* mover, float& x, float& y, float& z, float dist, float angle) const;
+
+        virtual float GetCollisionHeight() const { return 0.f; }
         virtual float GetObjectBoundingRadius() const { return DEFAULT_WORLD_OBJECT_SIZE; }
         virtual float GetCombatReach() const { return 0.f; }
         float GetCombinedCombatReach(WorldObject const* pVictim, bool forMeleeRange = true, float flat_mod = 0.0f) const;
@@ -808,6 +810,7 @@ class WorldObject : public Object
             return obj && IsInMap(obj) && _IsWithinDist(obj, dist2compare, is3D);
         }
         bool IsWithinLOS(float ox, float oy, float oz, bool ignoreM2Model = false) const;
+        bool IsWithinLOSForMe(float x, float y, float z, float collisionHeight, bool ignoreM2Model = false) const;
         bool IsWithinLOSInMap(const WorldObject* obj, bool ignoreM2Model = false) const;
         bool GetDistanceOrder(WorldObject const* obj1, WorldObject const* obj2, bool is3D = true, DistanceCalculation distcalc = DIST_CALC_NONE) const;
         bool IsInRange(WorldObject const* obj, float minRange, float maxRange, bool is3D = true, bool combat = false) const;
@@ -885,13 +888,6 @@ class WorldObject : public Object
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
         void SetActiveObjectState(bool active);
 
-        // Visibility stuff
-        bool IsVisibilityOverridden() const { return m_visibilityDistanceOverride != 0.f; }
-        void SetVisibilityDistanceOverride(VisibilityDistanceType type);
-
-        float GetVisibilityDistance() const;
-        float GetVisibilityDistanceFor(WorldObject* obj) const;
-
         ViewPoint& GetViewPoint() { return m_viewPoint; }
 
         // ASSERT print helper
@@ -924,6 +920,11 @@ class WorldObject : public Object
         virtual bool CanAttackSpell(Unit const* /*target*/, SpellEntry const* /*spellInfo*/ = nullptr, bool /*isAOE*/ = false) const { return true; }
         virtual bool CanAssistSpell(Unit const* /*target*/, SpellEntry const* /*spellInfo*/ = nullptr) const { return true; }
 
+        int32 CalculateSpellEffectValue(Unit const* target, SpellEntry const* spellProto, SpellEffectIndex effect_index, int32 const* basePoints = nullptr) const;
+
+        VisibilityData const& GetVisibilityData() const { return m_visibilityData; }
+        VisibilityData& GetVisibilityData() { return m_visibilityData; }
+
     protected:
         explicit WorldObject();
 
@@ -948,7 +949,7 @@ class WorldObject : public Object
 
         bool m_isOnEventNotified;
 
-        float m_visibilityDistanceOverride;
+        VisibilityData m_visibilityData;
 
     private:
         Map* m_currMap;                                     // current object's Map location

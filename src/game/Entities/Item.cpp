@@ -242,18 +242,12 @@ Item::Item()
     m_container = nullptr;
     mb_in_trade = false;
     m_lootState = ITEM_LOOT_NONE;
-    m_enchantEffectModifier = nullptr;
+    m_enchantmentModifier = 0;
 }
 
 Item::~Item()
 {
-    if (m_enchantEffectModifier)
-    {
-        if (Player* owner = GetOwner())
-            owner->AddSpellMod(m_enchantEffectModifier, false);
-        else
-            delete m_enchantEffectModifier; // on logout/DC player is mid deletion and will be nullptr
-    }
+
 }
 
 bool Item::Create(uint32 guidlow, uint32 itemid, Player const* owner)
@@ -381,7 +375,7 @@ void Item::SaveToDB()
         stmt.PExecute(GetGUIDLow());
     }
 
-    if (loot && (m_lootState == ITEM_LOOT_NEW || m_lootState == ITEM_LOOT_CHANGED))
+    if (m_loot && (m_lootState == ITEM_LOOT_NEW || m_lootState == ITEM_LOOT_CHANGED))
     {
         if (Player* owner = GetOwner())
         {
@@ -389,17 +383,17 @@ void Item::SaveToDB()
             static SqlStatementID saveLoot ;
 
             // save money as 0 itemid data
-            if (loot->GetGoldAmount())
+            if (m_loot->GetGoldAmount())
             {
                 SqlStatement stmt = CharacterDatabase.CreateStatement(saveGold, "INSERT INTO item_loot (guid,owner_guid,itemid,amount,suffix,property) VALUES (?, ?, 0, ?, 0, 0)");
-                stmt.PExecute(GetGUIDLow(), owner->GetGUIDLow(), loot->GetGoldAmount());
+                stmt.PExecute(GetGUIDLow(), owner->GetGUIDLow(), m_loot->GetGoldAmount());
             }
 
             SqlStatement stmt = CharacterDatabase.CreateStatement(saveLoot, "INSERT INTO item_loot (guid,owner_guid,itemid,amount,suffix,property) VALUES (?, ?, ?, ?, ?, ?)");
 
             // save items and quest items (at load its all will added as normal, but this not important for item loot case)
             LootItemList lootList;
-            loot->GetLootItemsListFor(owner, lootList);
+            m_loot->GetLootItemsListFor(owner, lootList);
             for (LootItemList::const_iterator lootItr = lootList.begin(); lootItr != lootList.end(); ++lootItr)
             {
                 LootItem* lootItem = *lootItr;
@@ -531,7 +525,7 @@ void Item::LoadLootFromDB(Field* fields)
     // money value special case
     if (item_id == 0)
     {
-        loot->SetGoldAmount(item_amount);
+        m_loot->SetGoldAmount(item_amount);
         SetLootState(ITEM_LOOT_UNCHANGED);
         return;
     }
@@ -546,7 +540,7 @@ void Item::LoadLootFromDB(Field* fields)
         return;
     }
 
-    loot->AddItem(item_id, item_amount, item_suffix, item_propid);
+    m_loot->AddItem(item_id, item_amount, item_suffix, item_propid);
 
     SetLootState(ITEM_LOOT_UNCHANGED);
 }
@@ -1038,13 +1032,6 @@ bool Item::IsLimitedToAnotherMapOrZone(uint32 cur_mapId, uint32 cur_zoneId) cons
 {
     ItemPrototype const* proto = GetProto();
     return proto && ((proto->Map && proto->Map != cur_mapId) || (proto->Area && proto->Area != cur_zoneId));
-}
-
-void Item::SetEnchantmentModifier(SpellModifier* mod)
-{
-    if (m_enchantEffectModifier)
-        GetOwner()->AddSpellMod(m_enchantEffectModifier, false);
-    m_enchantEffectModifier = mod;
 }
 
 // Though the client has the information in the item's data field,

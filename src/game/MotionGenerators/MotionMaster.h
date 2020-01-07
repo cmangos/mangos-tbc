@@ -30,6 +30,9 @@ class Unit;
 // Creature Entry ID used for waypoints show, visible only for GMs
 #define VISUAL_WAYPOINT 1
 
+#define PET_FOLLOW_DIST  1.0f
+#define PET_FOLLOW_ANGLE (M_PI_F / 2.0f)
+
 // values 0 ... MAX_DB_MOTION_TYPE-1 used in DB
 enum MovementGeneratorType
 {
@@ -69,6 +72,7 @@ enum ForcedMovement
 {
     FORCED_MOVEMENT_NONE,
     FORCED_MOVEMENT_WALK,
+    FORCED_MOVEMENT_FLIGHT,
 };
 
 class MotionMaster : private std::stack<MovementGenerator*>
@@ -78,7 +82,7 @@ class MotionMaster : private std::stack<MovementGenerator*>
         typedef std::vector<MovementGenerator*> ExpireList;
 
     public:
-        explicit MotionMaster(Unit* unit) : m_owner(unit), m_expList(nullptr), m_cleanFlag(MMCF_NONE), m_defaultPathId(0) {}
+        explicit MotionMaster(Unit* unit) : m_owner(unit), m_expList(nullptr), m_cleanFlag(MMCF_NONE), m_defaultPathId(0), m_currentPathId(0) {}
         ~MotionMaster();
 
         void Initialize();
@@ -125,6 +129,7 @@ class MotionMaster : private std::stack<MovementGenerator*>
         void MoveTaxiFlight();
         void MoveDistract(uint32 timer);
         void MoveCharge(float x, float y, float z, float speed, uint32 id = EVENT_CHARGE);
+        void MoveCharge(Unit& target, float speed, uint32 id = EVENT_CHARGE);
         void MoveFall();
 
         MovementGeneratorType GetCurrentMovementGeneratorType() const;

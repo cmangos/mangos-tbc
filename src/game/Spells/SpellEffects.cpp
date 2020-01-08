@@ -8404,7 +8404,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
                     gameObjTarget->SendGameObjectCustomAnim(gameObjTarget->GetObjectGuid());
                     break;
                 case 38054:
-                    gameObjTarget->Use(m_caster);
+                    gameObjTarget->Use(m_caster->GetCharmer());
                     break;
                 default:
                 {

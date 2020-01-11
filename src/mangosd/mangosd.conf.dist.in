@@ -3,7 +3,7 @@
 #####################################
 
 [MangosdConf]
-ConfVersion=2020011901
+ConfVersion=2020021601
 
 ###################################################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -1170,6 +1170,11 @@ Channel.SilentlyGMJoin = 0
 #        Default: 37800 (50% Transparency)
 #                 0 (Disabled)
 #
+#    GM.TicketsQueueStatus
+#        GM tickets queue status on startup, when disabled server will not accept any GM tickets from players
+#        Default: 1 (Enabled)
+#                 0 (Disabled)
+#
 ###################################################################################################################
 
 GM.LoginState            = 2
@@ -1183,6 +1188,7 @@ GM.LogTrade              = 1
 GM.StartLevel            = 1
 GM.LowerSecurity         = 0
 GM.InvisibleAura         = 37800
+GM.TicketsQueueStatus    = 1
 
 ###################################################################################################################
 # VISIBILITY AND RADIUSES

@@ -266,14 +266,16 @@ struct boss_moroesAI : public ScriptedAI, public CombatActions
                             break;
                         target->CastSpell(nullptr, SPELL_TAUNT, TRIGGERED_OLD_TRIGGERED); // TODO: Needs to send both packets
                         m_creature->SelectHostileTarget(); // apply taunt before vanish
-                        DoCastSpellIfCan(nullptr, SPELL_VANISH);
-                        SetCombatScriptStatus(true);
-                        SetMeleeEnabled(false);
-                        m_attackAngle = M_PI_F;
-                        DoStartMovement(m_creature->getVictim());
-                        ResetTimer(i, GetSubsequentActionTimer(i));
-                        SetActionReadyStatus(i, false);
-                        ResetTimer(MOROES_ACTION_GAROTTE, 9500);
+                        if (DoCastSpellIfCan(m_creature, SPELL_VANISH, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                        {
+                            SetCombatScriptStatus(true);
+                            SetMeleeEnabled(false);
+                            m_attackAngle = M_PI_F;
+                            DoStartMovement(m_creature->getVictim());
+                            ResetTimer(i, GetSubsequentActionTimer(i));
+                            SetActionReadyStatus(i, false);
+                            ResetTimer(MOROES_ACTION_GAROTTE, 9500);
+                        }
                         break;
                     }
                     case MOROES_ACTION_BLIND:

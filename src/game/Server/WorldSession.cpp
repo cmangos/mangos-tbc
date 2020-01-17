@@ -960,6 +960,14 @@ void WorldSession::SynchronizeMovement(MovementInfo &movementInfo)
         movementInfo.UpdateTime((uint32)movementTime);
 }
 
+std::deque<uint32> WorldSession::GetOpcodeHistory()
+{
+    if (m_Socket)
+        return m_Socket->GetOpcodeHistory();
+    else
+        return std::deque<uint32>();
+}
+
 void WorldSession::SendAuthOk() const
 {
     WorldPacket packet(SMSG_AUTH_RESPONSE, 1 + 4 + 1 + 4 + 1);

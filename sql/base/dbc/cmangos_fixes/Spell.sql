@@ -1815,3 +1815,6 @@ INSERT INTO `spell_template` (`Id`, `Attributes`, `CastingTimeIndex`, `ProcChanc
 (15185, 64, 1, 101, 1, 21, -1, 6, 49, 0, 'Custom QA Mod Dodge Chance'),
 (15186, 64, 1, 101, 1, 21, -1, 6, 51, 0, 'Custom QA Mod Block Chance');
 
+-- Fix duration of spell 28561 (Summon Blizzard): NPC should despawn after 30 seconds, not 5 minutes
+UPDATE spell_template SET DurationIndex=9 WHERE id=28561;
+

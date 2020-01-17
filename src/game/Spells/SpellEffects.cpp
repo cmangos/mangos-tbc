@@ -1732,6 +1732,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 28526:                                 // Icebolt
+                {
+                    if (!m_caster || m_caster->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    if (Unit* target = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 31800, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_AURA))
+                        m_caster->CastSpell(target, 28522, TRIGGERED_NONE); // Icebolt
+
+                    return;
+                }
                 case 29969:                                 // Summon Blizzard
                 {
                     if (unitTarget)

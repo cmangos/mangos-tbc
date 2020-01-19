@@ -435,7 +435,7 @@ namespace MMAP
         fclose(file);
         if (m_debug)
         {
-            iv.generateObjFile(m_workdir, modelName, meshData);
+            iv.generateObjFile(modelName, meshData);
             // Write navmesh data
             std::string fname = "meshes/" + modelName + ".nav";
             FILE* file = fopen(fname.c_str(), "wb");
@@ -735,7 +735,7 @@ namespace MMAP
         sprintf(tileString, "[Map %03i] [%02i,%02i]: ", mapID, tileX, tileY);
         printf("%s Building movemap tiles...                          \r", tileString);
 
-        IntermediateValues iv;
+        IntermediateValues iv(m_workdir);
 
         float* tVerts = meshData.solidVerts.getCArray();
         int tVertCount = meshData.solidVerts.size() / 3;
@@ -985,8 +985,8 @@ namespace MMAP
                 v[2] += (unsigned short)config.borderSize;
             }
 
-            iv.generateObjFile(m_workdir, mapID, tileX, tileY, meshData);
-            iv.writeIV(m_workdir, mapID, tileX, tileY);
+            iv.generateObjFile(mapID, tileX, tileY, meshData);
+            iv.writeIV(mapID, tileX, tileY);
         }
     }
 

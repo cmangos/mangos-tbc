@@ -64,7 +64,7 @@ class GameObjectAI
         /*
         * Enables generic receiving of events
         */
-        virtual void ReceiveAIEvent(AIEventType /*eventType*/, uint32 miscValue = 0) {}
+        virtual void ReceiveAIEvent(AIEventType /*eventType*/, uint32 /*miscValue*/ = 0) {}
 
     protected:
         GameObject* m_go;

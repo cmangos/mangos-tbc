@@ -11886,7 +11886,7 @@ float Unit::GetCollisionHeight() const
     return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
 }
 
-Player* Unit::GetNextRandomRaidMember(float radius, AuraType noAuraType)
+Player* Unit::GetNextRandomRaidMember(float radius, AuraType /*noAuraType*/)
 {
     if (GetTypeId() != TYPEID_PLAYER)
         return nullptr;

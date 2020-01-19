@@ -50,7 +50,7 @@ struct boss_nethermancer_sepethreaAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* unit, float x, float y, float z)->bool
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float x, float /*y*/, float /*z*/)->bool
         {
             return x < 266.0f;
         });

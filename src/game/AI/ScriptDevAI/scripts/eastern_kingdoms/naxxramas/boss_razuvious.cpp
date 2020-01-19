@@ -70,7 +70,7 @@ struct boss_razuviousAI : public ScriptedAI
         DoScriptText(SAY_SLAY, m_creature);
     }
 
-    void SpellHit(Unit* caster, const SpellEntry* spell) override
+    void SpellHit(Unit* /*caster*/, const SpellEntry* spell) override
     {
         // Every time a Deathknight Understudy taunts Razuvious, he will yell its disappointment
         if (spell->Id == SPELL_TAUNT)

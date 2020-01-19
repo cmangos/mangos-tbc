@@ -433,7 +433,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
         SetDeathPrevention(true);
         if (m_instance)
         {
-            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float x, float y, float z)
+            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
             {
                 return static_cast<ScriptedInstance*>(unit->GetInstanceData())->GetPlayerInMap(true, false) == nullptr;
             });
@@ -640,7 +640,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
         }
     }
 
-    void JustPreventedDeath(Unit* attacker) override
+    void JustPreventedDeath(Unit* /*attacker*/) override
     {
         if (m_phase == PHASE_4_DEMON)
             HandlePhaseBehaviour();
@@ -1121,7 +1121,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
         }
     }
 
-    void SummonedMovementInform(Creature* summoned, uint32 moveType, uint32 pointId) override
+    void SummonedMovementInform(Creature* summoned, uint32 /*moveType*/, uint32 pointId) override
     {
         if (summoned->GetEntry() == NPC_ILLIDAN_TARGET)
         {
@@ -1813,7 +1813,7 @@ struct boss_maievAI : public CombatAI, private DialogueHelper
         }
     }
 
-    void JustPreventedDeath(Unit* attacker) override
+    void JustPreventedDeath(Unit* /*attacker*/) override
     {
         if (m_outro)
             return;
@@ -1920,7 +1920,7 @@ struct npc_cage_trap_triggerAI : public ScriptedAI
 
     void AttackStart(Unit* /*who*/) override { }
 
-    void CorpseRemoved(uint32& delay) override
+    void CorpseRemoved(uint32& /*delay*/) override
     {
         if (GameObject* trap = GetClosestGameObjectWithEntry(m_creature, GO_CAGE_TRAP, 3.f))
         {
@@ -1929,7 +1929,7 @@ struct npc_cage_trap_triggerAI : public ScriptedAI
         }
     }
 
-    void MoveInLineOfSight(Unit* who) override
+    void MoveInLineOfSight(Unit* /*who*/) override
     {
         if (!m_activated)
             return;
@@ -2267,7 +2267,7 @@ struct npc_parasitic_shadowfiendAI : public ScriptedAI, public TimerManager
     }
 };
 
-bool GOUse_go_cage_trap(Player* player, GameObject* go)
+bool GOUse_go_cage_trap(Player* /*player*/, GameObject* go)
 {
     Creature* trapTrigger = GetClosestCreatureWithEntry(go, NPC_CAGE_TRAP_DISTURB_TRIGGER, 3.f);
     if (trapTrigger)

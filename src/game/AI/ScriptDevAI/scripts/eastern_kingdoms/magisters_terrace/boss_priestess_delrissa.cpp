@@ -127,7 +127,7 @@ struct boss_priestess_delrissaAI : public CombatAI
             m_instance->SetData(TYPE_DELRISSA, IN_PROGRESS);
     }
 
-    void JustPreventedDeath(Unit* attacker) override
+    void JustPreventedDeath(Unit* /*attacker*/) override
     {
         DoFakeDeath(SPELL_PERMANENT_FEIGN_DEATH);
         if (m_summonsKilled >= 4)
@@ -187,7 +187,7 @@ struct boss_priestess_delrissaAI : public CombatAI
             m_playersKilled = 0;
     }
 
-    void SummonedCreatureJustDied(Creature* summoned) override
+    void SummonedCreatureJustDied(Creature* /*summoned*/) override
     {
         ++m_summonsKilled;
         if (m_summonsKilled >= 4)

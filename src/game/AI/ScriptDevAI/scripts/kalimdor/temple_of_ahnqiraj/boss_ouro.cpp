@@ -358,7 +358,7 @@ struct npc_ouro_moundAI : public ScriptedAI, public TimerManager
         m_creature->ForcedDespawn(1000); // despawn on wipe
     }
 
-    void JustSummoned(Creature* summoned) override
+    void JustSummoned(Creature* /*summoned*/) override
     {
         m_creature->ForcedDespawn(1);
     }
@@ -426,7 +426,7 @@ struct OuroScarab : public CombatAI
         m_creature->ForcedDespawn(1000); // despawn on wipe
     }
 
-    void ExecuteAction(uint32 action) override
+    void ExecuteAction(uint32 /*action*/) override
     {
     }
 };

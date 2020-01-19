@@ -298,7 +298,7 @@ struct essence_base_AI : public ScriptedAI, public CombatActions
         m_creature->ForcedDespawn();
     }
 
-    void JustPreventedDeath(Unit* attacker) override
+    void JustPreventedDeath(Unit* /*attacker*/) override
     {
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->StopMoving();
@@ -387,7 +387,7 @@ struct boss_essence_of_sufferingAI : public essence_base_AI
         }
     }
 
-    void Aggro(Unit* enemy) override
+    void Aggro(Unit* /*enemy*/) override
     {
         DoScriptText(SUFF_SAY_FREED, m_creature);
         DoCastSpellIfCan(nullptr, SPELL_AURA_OF_SUFFERING, CAST_TRIGGERED);
@@ -494,7 +494,7 @@ struct boss_essence_of_desireAI : public essence_base_AI
         }
     }
 
-    void Aggro(Unit* enemy) override
+    void Aggro(Unit* /*enemy*/) override
     {
         DoScriptText(DESI_SAY_FREED, m_creature);
         DoCastSpellIfCan(nullptr, SPELL_AURA_OF_DESIRE);
@@ -627,7 +627,7 @@ struct boss_essence_of_angerAI : public ScriptedAI, public CombatActions
         }
     }
 
-    void Aggro(Unit* enemy) override
+    void Aggro(Unit* /*enemy*/) override
     {
         DoScriptText(ANGER_SAY_FREED, m_creature);
         DoCastSpellIfCan(nullptr, SPELL_AURA_OF_ANGER);

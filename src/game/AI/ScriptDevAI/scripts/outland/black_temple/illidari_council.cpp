@@ -588,13 +588,13 @@ struct boss_lady_malandeAI : public boss_illidari_councilAI
         boss_illidari_councilAI::JustDied(killer);
     }
 
-    void OnSpellInterrupt(SpellEntry const* spellInfo) override
+    void OnSpellInterrupt(SpellEntry const* /*spellInfo*/) override
     {
         m_attackDistance = 0.f;
         DoStartMovement(m_creature->getVictim());
     }
 
-    void OnSpellCooldownAdded(SpellEntry const* spellInfo) override
+    void OnSpellCooldownAdded(SpellEntry const* /*spellInfo*/) override
     {
         m_attackDistance = 20.0f;
         DoStartMovement(m_creature->getVictim());

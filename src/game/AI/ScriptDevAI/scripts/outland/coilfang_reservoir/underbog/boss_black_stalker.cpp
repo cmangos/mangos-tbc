@@ -50,7 +50,7 @@ struct boss_black_stalkerAI : public ScriptedAI, public CombatActions
         AddCombatAction(BLACK_STALKER_ACTION_STATIC_CHARGE, 0u);
         AddCombatAction(BLACK_STALKER_ACTION_CHAIN_LIGHTNING, 0u);
         AddCombatAction(BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER, 0u);
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* unit, float x, float y, float z)->bool
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float x, float y, float /*z*/)->bool
         {
             return x < 100.0f || y < -30.0f;
         });

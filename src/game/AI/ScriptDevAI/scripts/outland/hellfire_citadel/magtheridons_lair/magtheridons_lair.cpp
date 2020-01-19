@@ -242,7 +242,7 @@ void instance_magtheridons_lair::Update(uint32 uiDiff)
 
 struct MentalInterferenceSpellScript : public SpellScript
 {
-    SpellCastResult OnCheckCast(Spell* spell, bool strict) const override
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
     {
         if (ObjectGuid target = spell->m_targets.getUnitTargetGuid())
             if (target.GetEntry() != 16943 && target.GetEntry() != 20928)  // Mental Interference can be cast only on these two targets

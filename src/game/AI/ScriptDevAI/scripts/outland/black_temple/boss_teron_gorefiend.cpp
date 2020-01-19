@@ -415,7 +415,7 @@ bool AreaTrigger_at_teron_gorefiend(Player* player, AreaTriggerEntry const* /*at
 
 struct ShadowOfDeath : public AuraScript
 {
-    void OnAbsorb(Aura* aura, int32& currentAbsorb, uint32& reflectedSpellId, int32& reflectDamage, bool& preventedDeath) const override
+    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& preventedDeath) const override
     {
         preventedDeath = true;
         currentAbsorb = 0;
@@ -452,7 +452,7 @@ struct ShadowOfDeath : public AuraScript
 
 struct ShadowOfDeathRemove : public AuraScript
 {
-    void OnApply(Aura* aura, bool apply) const override
+    void OnApply(Aura* aura, bool /*apply*/) const override
     {
         aura->GetTarget()->RemoveAurasDueToSpell(SPELL_SHADOW_OF_DEATH); // Remove Shadow of Death
     }

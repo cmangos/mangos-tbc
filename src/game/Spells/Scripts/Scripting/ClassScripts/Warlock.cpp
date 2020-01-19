@@ -26,7 +26,7 @@ enum
 
 struct UnstableAffliction : public AuraScript
 {
-    void OnDispel(SpellAuraHolder* holder, Unit* dispeller, uint32 dispellingSpellId, uint32 originalStacks) const override
+    void OnDispel(SpellAuraHolder* holder, Unit* dispeller, uint32 /*dispellingSpellId*/, uint32 /*originalStacks*/) const override
     {
         // use clean value for initial damage
         int32 damage = holder->m_auras[EFFECT_INDEX_0]->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_0);

@@ -197,7 +197,7 @@ struct boss_felblood_kaelthasAI : public CombatAI
             m_instance->SetData(TYPE_KAELTHAS, FAIL);
     }
 
-    void JustPreventedDeath(Unit* attacker) override
+    void JustPreventedDeath(Unit* /*attacker*/) override
     {
         m_creature->HandleEmote(EMOTE_STATE_TALK);
         DoFakeDeath();

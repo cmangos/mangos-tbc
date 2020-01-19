@@ -105,7 +105,7 @@ struct boss_buruAI : public CombatAI
             ScheduleNewTarget();
     }
 
-    void SpellHitTarget(Unit* target, const SpellEntry* spellInfo, SpellMissInfo /*missInfo*/) override
+    void SpellHitTarget(Unit* /*target*/, const SpellEntry* spellInfo, SpellMissInfo /*missInfo*/) override
     {
         if (spellInfo->Id == SPELL_CREATURE_SPECIAL)
             DoAttackNewTarget();

@@ -21,7 +21,7 @@
 
 struct HuntersMark : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 damage) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 damage) const override
     {
         if (aura->GetEffIndex() == EFFECT_INDEX_2)
         {
@@ -50,7 +50,7 @@ struct HuntersMark : public AuraScript
         return damage;
     }
 
-    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& /*procData*/) const override
     {
         if (aura->GetEffIndex() != EFFECT_INDEX_0) // increases debuff strength on every hit up to 4th
         {

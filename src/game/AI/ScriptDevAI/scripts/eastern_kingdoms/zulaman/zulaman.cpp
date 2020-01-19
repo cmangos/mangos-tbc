@@ -550,7 +550,7 @@ uint32 instance_zulaman::GetData(uint32 type) const
     }
 }
 
-void instance_zulaman::SendNextBearWave(Unit* target)
+void instance_zulaman::SendNextBearWave(Unit* /*target*/)
 {
     Creature* mainGuy = nullptr;
     std::vector<Creature*> followers;

@@ -58,7 +58,7 @@ void PlayerAI::JustGotCharmed(Unit* charmer)
     AttackClosestEnemy();
 }
 
-void PlayerAI::UpdateAI(const uint32 diff)
+void PlayerAI::UpdateAI(const uint32 /*diff*/)
 {
     // Check if we have a current target
     if (!m_player->SelectHostileTarget() || !m_player->getVictim())

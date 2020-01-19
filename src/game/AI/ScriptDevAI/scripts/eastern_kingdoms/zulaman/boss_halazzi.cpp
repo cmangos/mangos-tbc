@@ -380,7 +380,7 @@ struct npc_corrupted_lightning_totemAI : public ScriptedAI
         m_creature->AddCooldown(*spellInfo);
 	}
 
-	void UpdateAI(const uint32 diff) override
+	void UpdateAI(const uint32 /*diff*/) override
 	{
 		if (m_creature->IsSpellReady(SPELL_LIGHTNING))
 			if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_LIGHTNING, SELECT_FLAG_PLAYER))

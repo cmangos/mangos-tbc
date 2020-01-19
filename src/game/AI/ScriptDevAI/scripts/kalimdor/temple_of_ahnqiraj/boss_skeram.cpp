@@ -329,7 +329,7 @@ struct TrueFulfillment : public AuraScript
 
 struct InitializeImages : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* unitTarget = spell->GetUnitTarget())
         {
@@ -343,7 +343,7 @@ struct InitializeImages : public SpellScript
 
 struct InitializeImage : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* unitTarget = spell->GetUnitTarget())
         {
@@ -364,7 +364,7 @@ struct InitializeImage : public SpellScript
         }
     }
 
-    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex eff) const
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const
     {
         if (target->GetSpawnerGuid()) // only original spawn can be hit by this
             return false;
@@ -375,7 +375,7 @@ struct InitializeImage : public SpellScript
 
 struct TeleportImage : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* target = spell->GetUnitTarget())
             if (boss_skeramAI* skeramAI = dynamic_cast<boss_skeramAI*>(target->AI()))

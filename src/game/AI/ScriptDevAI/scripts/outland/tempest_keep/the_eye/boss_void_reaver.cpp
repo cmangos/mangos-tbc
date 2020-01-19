@@ -61,7 +61,7 @@ struct boss_void_reaverAI : public CombatAI
         AddCombatAction(VOID_REAVER_POUNDING, 12000u);
         AddCombatAction(VOID_REAVER_ARCANE_ORB, 3000u);
         AddCombatAction(VOID_REAVER_KNOCK_AWAY, 30000u);
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* unit, float x, float y, float z)->bool
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/)->bool
         {
             return m_creature->GetDistance2d(432.59f, 371.93f) > 105.0f;
         });

@@ -122,7 +122,7 @@ struct boss_vaelastraszAI : public CombatAI
             m_instance->SetData(TYPE_VAELASTRASZ, SPECIAL);
     }
 
-    void BeginSpeech(Player* target)
+    void BeginSpeech(Player* /*target*/)
     {
         // 10 seconds
         DoScriptText(SAY_LINE_1, m_creature);

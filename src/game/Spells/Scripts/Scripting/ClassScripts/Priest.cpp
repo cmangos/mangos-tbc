@@ -52,7 +52,7 @@ struct ConsumeMagicSpellScript : public SpellScript
             return SPELL_CAST_OK;
     }
 
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         spell->GetCaster()->RemoveAurasDueToSpell(spell->GetScriptValue());
     }

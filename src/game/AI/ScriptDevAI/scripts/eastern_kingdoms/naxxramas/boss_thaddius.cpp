@@ -317,7 +317,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         return otherAdd;
     }
 
-    void Aggro(Unit* who) override
+    void Aggro(Unit* /*who*/) override
     {
         if (!m_instance)
             return;

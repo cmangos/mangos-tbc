@@ -4515,12 +4515,12 @@ void Aura::HandleModStealth(bool apply, bool Real)
     }
 }
 
-void Aura::HandleModStealthDetect(bool apply, bool Real)
+void Aura::HandleModStealthDetect(bool apply, bool /*Real*/)
 {
     GetTarget()->GetVisibilityData().AddStealthDetectionStrength(StealthType(m_modifier.m_miscvalue), apply ? m_modifier.m_amount : -m_modifier.m_amount);
 }
 
-void Aura::HandleModStealthLevel(bool apply, bool Real)
+void Aura::HandleModStealthLevel(bool apply, bool /*Real*/)
 {
     GetTarget()->GetVisibilityData().AddStealthStrength(StealthType(m_modifier.m_miscvalue), apply ? m_modifier.m_amount : -m_modifier.m_amount);
 }
@@ -5972,7 +5972,7 @@ void Aura::HandleModPowerRegenPCT(bool /*apply*/, bool Real)
         static_cast<Player*>(GetTarget())->UpdateEnergyRegen();
 }
 
-void Aura::HandleModHealingPCT(bool apply, bool real)
+void Aura::HandleModHealingPCT(bool apply, bool /*real*/)
 {
     switch (GetId())
     {
@@ -8011,7 +8011,7 @@ void Aura::HandleFactionOverride(bool apply, bool Real)
         target->RestoreOriginalFaction();
 }
 
-void Aura::HandleOverrideClassScript(bool apply, bool real)
+void Aura::HandleOverrideClassScript(bool apply, bool /*real*/)
 {
     GetTarget()->RegisterOverrideScriptAura(this, m_modifier.m_miscvalue, apply);
 }

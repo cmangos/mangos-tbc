@@ -78,7 +78,7 @@ struct boss_silithidRoyaltyAI : public CombatAI
     boss_silithidRoyaltyAI(Creature* creature, uint32 actionCount) : CombatAI(creature, actionCount), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         AddCustomAction(ROYALTY_DEVOUR_DELAY, true, [&]() { HandleDevourDelay(); });
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* unit, float x, float y, float z) -> bool
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/) -> bool
         {
             return m_creature->GetDistance(resetPoint.m_fX, resetPoint.m_fY, resetPoint.m_fZ, DIST_CALC_COMBAT_REACH) < 10.0f;
         });
@@ -111,7 +111,7 @@ struct boss_silithidRoyaltyAI : public CombatAI
     }
 
     // Handle damage to trigger consume when the two bosses that are killed first
-    void JustPreventedDeath(Unit* attacker)
+    void JustPreventedDeath(Unit* /*attacker*/)
     {
         if (!m_instance)
             return;

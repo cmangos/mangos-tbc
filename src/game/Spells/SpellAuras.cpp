@@ -1300,20 +1300,6 @@ void Aura::TriggerSpell()
 //                    case 28114: break;
 //                    // Communique Timer, camp
 //                    case 28346: break;
-                    // Icebolt
-                    case 28522:
-                    {
-                        if (target && target->isAlive() && !target->HasAura(31800))
-                        {
-                            target->CastSpell(target, 31800, TRIGGERED_OLD_TRIGGERED); // Icebolt which causes immunity to frost dmg
-                            trigger_spell_id = 28535; // summon ice block
-                            break;
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
                     case 29351:                             // Plague Wave Controller (Slow)
                     case 30114:                             // Plague Wave Controller (Fast)
                     {

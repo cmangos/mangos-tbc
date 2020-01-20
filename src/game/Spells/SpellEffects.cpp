@@ -1732,16 +1732,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
-                case 28526:                                 // Icebolt
-                {
-                    if (!m_caster || m_caster->GetTypeId() != TYPEID_UNIT)
-                        return;
-
-                    if (Unit* target = ((Creature*)m_caster)->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, 31800, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_AURA))
-                        m_caster->CastSpell(target, 28522, TRIGGERED_NONE); // Icebolt
-
-                    return;
-                }
                 case 29969:                                 // Summon Blizzard
                 {
                     if (unitTarget)
@@ -6902,14 +6892,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         m_caster->CastCustomSpell(unitTarget, 28375, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
-                case 28560:                                 // Summon Blizzard
-                {
-                    if (!unitTarget)
-                        return;
-
-                    m_caster->SummonCreature(16474, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_DESPAWN, 30000);
-                    return;
-                }
                 case 28617:                                 // Web Wrap (Maexxna: pull spell initialiser)
                 {
                     if (!m_originalCaster)
@@ -6995,16 +6977,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         DoCreateItem(eff_idx, item);
 
                     break;
-                }
-                case 30132:                                 // Despawn Ice Block
-                {
-                    if (unitTarget && unitTarget->GetTypeId() == TYPEID_PLAYER)
-                    {
-                        unitTarget->RemoveAurasDueToSpell(31800);                           // Icebolt immunity spell
-                        unitTarget->RemoveAurasDueToSpell(28522);                           // Icebolt stun/damage spell
-                        unitTarget->CastSpell(nullptr, 28523, TRIGGERED_OLD_TRIGGERED);     // Despawn Ice Block (targets Ice Block GOs)
-                    }
-                    return;
                 }
                 case 30541:                                 // Blaze
                 {

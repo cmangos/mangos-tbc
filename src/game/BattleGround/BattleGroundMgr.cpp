@@ -1621,7 +1621,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
             AStartLoc[0] = 0;
             AStartLoc[1] = 0;
             AStartLoc[2] = 0;
-            AStartLoc[3] = fields[6].GetFloat();
+            AStartLoc[3] = 0;
         }
         else
         {
@@ -1644,7 +1644,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
             HStartLoc[0] = 0;
             HStartLoc[1] = 0;
             HStartLoc[2] = 0;
-            HStartLoc[3] = fields[8].GetFloat();
+            HStartLoc[3] = 0;
         }
         else
         {

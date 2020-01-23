@@ -1831,3 +1831,11 @@ INSERT INTO `spell_template` (`Id`, `Category`, `Dispel`, `Mechanic`, `Attribute
 -- Fix duration of spell 28561 (Summon Blizzard): NPC should despawn after 30 seconds, not 5 minutes
 UPDATE spell_template SET DurationIndex=9 WHERE id=28561;
 
+-- Classic section
+
+-- TBC section
+-- Freezing circle should not be removed by damage
+UPDATE spell_template SET ProcFlags=0 WHERE Id IN(34779);
+
+-- WOTLK section
+

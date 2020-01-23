@@ -462,6 +462,7 @@ class Aura
         bool IsPeriodic() const { return m_isPeriodic; }
 
         void ApplyModifier(bool apply, bool Real = false);
+        void UpdateAuraScaling();
 
         void UpdateAura(uint32 diff) { Update(diff); }
 

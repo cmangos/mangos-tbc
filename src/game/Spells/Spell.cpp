@@ -7070,6 +7070,7 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex,
             filterUnitList.sort(TargetDistanceOrderNear(unitTarget));
             Unit* prev = unitTarget;
             UnitList::iterator next = filterUnitList.begin();
+            chainTargetCount -= 1; // unit target is one
 
             while (chainTargetCount && next != filterUnitList.end())
             {
@@ -7103,6 +7104,7 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex,
             filterUnitList.sort(LowestHPNearestOrder(unitTarget, DIST_CALC_COMBAT_REACH));
             Unit* prev = unitTarget;
             UnitList::iterator next = filterUnitList.begin();
+            chainTargetCount -= 1; // unit target is one
 
             while (chainTargetCount && next != filterUnitList.end())
             {

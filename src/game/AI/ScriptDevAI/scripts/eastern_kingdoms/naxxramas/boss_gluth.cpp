@@ -23,7 +23,7 @@ SDComment: Though gameplay is Blizzlike, logic in Zombie Chow Search and Call Al
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum

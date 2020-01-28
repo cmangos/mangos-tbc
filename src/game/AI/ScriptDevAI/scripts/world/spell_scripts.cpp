@@ -36,7 +36,7 @@ spell 45109
 spell 45111
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 /* When you make a spell effect:
 - always check spell id and effect index

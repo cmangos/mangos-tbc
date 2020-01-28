@@ -5,18 +5,6 @@
 #ifndef SC_PRECOMPILED_H
 #define SC_PRECOMPILED_H
 
-#include "pchdef.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
-#include "Entities/Object.h"
-#include "Entities/Unit.h"
-#include "Entities/Creature.h"
-#include "AI/BaseAI/CreatureAI.h"
-#include "Entities/GameObject.h"
-#include "sc_creature.h"
-#include "sc_gossip.h"
-#include "sc_grid_searchers.h"
-#include "sc_instance.h"
-#include "Spells/SpellAuras.h"
 #include "AI/ScriptDevAI/include/sc_creature.h"
 #include "AI/ScriptDevAI/include/sc_gossip.h"
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"

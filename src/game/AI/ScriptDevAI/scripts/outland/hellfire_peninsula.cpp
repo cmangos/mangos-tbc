@@ -1490,10 +1490,15 @@ enum
 
     MAX_SEARCH_DIST = 2170,
 
-    OBJECT_MAGTHERIDONS_HEAD = 184640
+    OBJECT_MAGTHERIDONS_HEAD = 184640,
 
     //	NPC_DANATH_TROLLBANE = 16819,
     //	NPC_NAZGREL = 3230
+
+    // More Danath Trollbane Quest Scripts
+    QUEST_FORCE_COMMANDER_DANATH = 10254,
+    SAY_TROLLBANE_1 = -1999930,
+    SPELL_SALUTE = 6245
 };
 
 // 16819/force-commander-danath-trollbane
@@ -1552,6 +1557,7 @@ struct npc_danath_trollbaneAI : public ScriptedAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*miscValue*/) override
     {
+        // Quest Magtheridon
         if (eventType == AI_EVENT_START_EVENT && pSender == m_creature) // sanity check
             if (!m_bYelling) // don't override anything if yelling already...
             {
@@ -1560,6 +1566,13 @@ struct npc_danath_trollbaneAI : public ScriptedAI
                 m_guidInvoker = pInvoker->GetObjectGuid();
                 m_bYelling = true;
             }
+
+        // Quest Force Commander Danath
+        if (eventType == AI_EVENT_CUSTOM_A && pSender == m_creature) // sanity check
+        {
+            DoScriptText(SAY_TROLLBANE_1, m_creature, pInvoker);
+            DoCastSpellIfCan(m_creature, SPELL_SALUTE);
+        }
     }
 };
 
@@ -1569,6 +1582,11 @@ bool QuestComplete_npc_trollbane(Player* pPlayer, Creature* pCreature, const Que
     {
         // And trigger yelling
         pCreature->AI()->SendAIEvent(AI_EVENT_START_EVENT, pPlayer, pCreature);
+    }
+
+    if (pQuest->GetQuestId() == QUEST_FORCE_COMMANDER_DANATH)
+    {
+        pCreature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pPlayer, pCreature);
     }
 
     return true;

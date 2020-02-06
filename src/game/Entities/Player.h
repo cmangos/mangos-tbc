@@ -391,6 +391,9 @@ enum PlayerFlags
     PLAYER_FLAGS_TAXI_BENCHMARK         = 0x00020000,       // taxi benchmark mode (on/off) (2.0.1)
     PLAYER_FLAGS_PVP_TIMER              = 0x00040000,       // 3.0.2, pvp timer active (after you disable pvp manually)
     PLAYER_FLAGS_COMMENTATOR            = 0x00080000,       // first appeared in TBC
+    PLAYER_FLAGS_UNK21                  = 0x00100000,
+    PLAYER_FLAGS_UNK22                  = 0x00200000,
+    PLAYER_FLAGS_COMMENTATOR_UBER       = 0x00400000,       // something like COMMENTATOR_CAN_USE_INSTANCE_COMMAND
 };
 
 #define MAX_TITLE_INDEX     64                              // 1 uint64 field

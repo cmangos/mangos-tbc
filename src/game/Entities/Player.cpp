@@ -14804,6 +14804,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     //"health, power1, power2, power3, power4, power5, exploredZones, equipmentCache, ammoId, knownTitles, actionBars  FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult* result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
+    Object::_Create(guid.GetCounter(), 0, HIGHGUID_PLAYER);
+
     if (!result)
     {
         sLog.outError("%s not found in table `characters`, can't load. ", guid.GetString().c_str());
@@ -14823,8 +14825,6 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
         delete result;
         return false;
     }
-
-    Object::_Create(guid.GetCounter(), 0, HIGHGUID_PLAYER);
 
     m_name = fields[2].GetCppString();
 

@@ -9059,6 +9059,13 @@ void Aura::OnPeriodicCalculateAmount(uint32& amount)
         script->OnPeriodicCalculateAmount(this, amount);
 }
 
+void Aura::ForcePeriodicity(uint32 periodicTime)
+{
+    m_isPeriodic = true;
+    m_modifier.periodictime = periodicTime;
+    m_periodicTimer = periodicTime;
+}
+
 void Aura::OnPeriodicTrigger(PeriodicTriggerData& data)
 {
     if (AuraScript* script = GetAuraScript())

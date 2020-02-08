@@ -364,12 +364,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                         damage = (20 - m_caster->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH))*(damage / 20);
                         break;
                     }
-                    // percent max target health
-                    case 35139:                             // Throw Boom's Doom
-                    {
-                        damage = damage * unitTarget->GetMaxHealth() / 100;
-                        break;
-                    }
                     // Lightning Strike
                     case 37841:
                         if (unitTarget->GetTypeId() == TYPEID_PLAYER && unitTarget->HasAura(37830)) // Repolarized Magneto Sphere

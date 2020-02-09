@@ -210,7 +210,7 @@ pEffect SpellEffects[MAX_SPELL_EFFECTS] =
     &Spell::EffectUnused,                                   //150 SPELL_EFFECT_150                      unused
     &Spell::EffectTriggerRitualOfSummoning,                 //151 SPELL_EFFECT_TRIGGER_SPELL_2
     &Spell::EffectNULL,                                     //152 SPELL_EFFECT_SUMMON_RAF_FRIEND                      summon Refer-a-Friend
-    &Spell::EffectNULL,                                     //153 SPELL_EFFECT_CREATE_PET               misc value is creature entry
+    &Spell::EffectCreateTamedPet,                           //153 SPELL_EFFECT_CREATE_PET               misc value is creature entry
 };
 
 void Spell::EffectEmpty(SpellEffectIndex /*eff_idx*/)
@@ -9636,6 +9636,88 @@ void Spell::EffectKnockBackFromPosition(SpellEffectIndex eff_idx)
     float horizontalSpeed = m_spellInfo->EffectMiscValue[eff_idx] * 0.1f;
     float verticalSpeed = damage * 0.1f;
     ((Player*)unitTarget)->GetSession()->SendKnockBack(angle, horizontalSpeed, verticalSpeed);
+}
+
+void Spell::EffectCreateTamedPet(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->getClass() != CLASS_HUNTER)
+        return;
+
+    uint32 creatureEntry = m_spellInfo->EffectMiscValue[eff_idx];
+
+    CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(creatureEntry);
+    if (creatureEntry && !cInfo)
+    {
+        sLog.outErrorDb("EffectCreateTamedPet: Creature entry %u not found for spell %u.", creatureEntry, m_spellInfo->Id);
+        return;
+    }
+
+    Pet* newTamedPet = new Pet(HUNTER_PET);
+    CreatureCreatePos pos(unitTarget, unitTarget->GetOrientation());
+
+    Map* map = unitTarget->GetMap();
+    uint32 petNumber = sObjectMgr.GeneratePetNumber();
+    if (!newTamedPet->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, cInfo, petNumber))
+    {
+        delete newTamedPet;
+        return;
+    }
+
+    newTamedPet->SetLoading(true);
+
+    newTamedPet->SetRespawnCoord(pos);
+
+    newTamedPet->SetOwnerGuid(unitTarget->GetObjectGuid());
+    newTamedPet->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
+    newTamedPet->setFaction(unitTarget->getFaction());
+    newTamedPet->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, uint32(time(nullptr)));
+    newTamedPet->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
+
+    newTamedPet->GetCharmInfo()->SetPetNumber(petNumber, true);
+
+    if (unitTarget->IsPvP())
+        newTamedPet->SetPvP(true);
+
+    if (unitTarget->IsPvPFreeForAll())
+        newTamedPet->SetPvPFreeForAll(true);
+
+    if (unitTarget->IsPvPSanctuary())
+        newTamedPet->SetPvPSanctuary(true);
+
+    newTamedPet->SetCanModifyStats(true);
+
+    map->Add((Creature*)newTamedPet);
+
+    newTamedPet->InitStatsForLevel(unitTarget->getLevel());
+    newTamedPet->InitPetCreateSpells();
+
+    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED);
+    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_ABANDONED);
+
+    if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    {
+        newTamedPet->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+    }
+    else
+        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+
+    newTamedPet->AIM_Initialize();
+
+    float x, y, z;
+    unitTarget->GetClosePoint(x, y, z, newTamedPet->GetObjectBoundingRadius());
+    newTamedPet->Relocate(x, y, z, unitTarget->GetOrientation());
+
+    m_caster->SetPet(newTamedPet);
+
+    newTamedPet->SetLoading(false);
+
+    Player* _player = static_cast<Player*>(unitTarget);
+    if (_player)
+    {
+        newTamedPet->SavePetToDB(PET_SAVE_AS_CURRENT, _player);
+        _player->PetSpellInitialize();
+    }
 }
 
 void Spell::EffectTeleportGraveyard(SpellEffectIndex eff_idx)

@@ -44,6 +44,8 @@ autom4te.cache
 *.patch
 callgrind.out.*
 nbproject/
+.idea/
+cmake-build-*/
 
 #
 # Git stuff

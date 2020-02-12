@@ -115,7 +115,7 @@ void Map::Initialize(bool loadInstanceData /*= true*/)
     }
 
     // lets initialize visibility distance for map
-    Map::InitVisibilityDistance();
+    InitVisibilityDistance();
 
     // add reference for TerrainData object
     m_TerrainData->AddRef();
@@ -1413,9 +1413,6 @@ DungeonMap::DungeonMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnM
 {
     MANGOS_ASSERT(i_mapEntry->IsDungeon());
 
-    // lets initialize visibility distance for dungeons
-    DungeonMap::InitVisibilityDistance();
-
     // the timer is started by default, and stopped when the first player joins
     // this make sure it gets unloaded if for some reason no player joins
     m_unloadTimer = std::max(sWorld.getConfig(CONFIG_UINT32_INSTANCE_UNLOAD_DELAY), (uint32)MIN_UNLOAD_DELAY);
@@ -1685,8 +1682,6 @@ DungeonPersistentState* DungeonMap::GetPersistanceState() const
 BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId)
     : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY)
 {
-    // lets initialize visibility distance for BG/Arenas
-    BattleGroundMap::InitVisibilityDistance();
 }
 
 BattleGroundMap::~BattleGroundMap()

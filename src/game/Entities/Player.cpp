@@ -8108,6 +8108,8 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid) const
     if (InstanceData* instanceData = GetMap()->GetInstanceData())
         instanceData->FillInitialWorldStates(data, count, zoneid, areaid);
 
+    sWorldState.FillInitialWorldStates(data, count, zoneid, areaid);
+
     data.put<uint16>(count_pos, count);                     // set actual world state amount
 
     GetSession()->SendPacket(data);

@@ -8290,6 +8290,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
         case 2:                     // unk - 2 spells
         case 4:                     // unk - 1 spell
         case 5:                     // GO trap usage
+        case 6:                     // unk - 1 spell (Close Control Console - Tonk Control Console)
         case 7:                     // unk - 2 spells
         case 8:                     // GO usage with TargetB = none or random
         case 10:                    // unk - 2 spells
@@ -8311,6 +8312,9 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
                     break;
                 case 38054:
                     gameObjTarget->Use(m_caster);
+                    break;
+                case 24938:         // Close Control Console
+                    gameObjTarget->ResetDoorOrButton(); // TODO: this is wrong - the object should not despawn and instead should have a closing animation
                     break;
                 default:
                 {

@@ -1602,9 +1602,9 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    m_caster->CastSpell(unitTarget, 25099, TRIGGERED_OLD_TRIGGERED);    // Detonation
+                    m_caster->CastSpell(nullptr, 25099, TRIGGERED_OLD_TRIGGERED);       // Detonation
                     m_caster->RemoveAurasDueToSpell(27999);                             // Land Mine Periodic
-                    ((Creature*)m_caster)->ForcedDespawn(2000);
+                    static_cast<Creature*>(m_caster)->ForcedDespawn(2000);
                     return;
                 }
                 case 28006:                                 // Arcane Cloaking
@@ -6789,8 +6789,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    unitTarget->CastSpell(unitTarget, 24936, TRIGGERED_OLD_TRIGGERED);  // RC Tank Control
-                    unitTarget->CastSpell(unitTarget, 27747, TRIGGERED_OLD_TRIGGERED);  // Steam Tank Passive
+                    unitTarget->CastSpell(nullptr, 24936, TRIGGERED_OLD_TRIGGERED);  // RC Tank Control
+                    unitTarget->CastSpell(nullptr, 27747, TRIGGERED_OLD_TRIGGERED);  // Steam Tank Passive
                     return;
                 }
                 case 28236:                                 // Zombie Chow Search
@@ -8290,10 +8290,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
         case 2:                     // unk - 2 spells
         case 4:                     // unk - 1 spell
         case 5:                     // GO trap usage
-        case 6:                     // unk - 1 spell (Close Control Console - Tonk Control Console)
-        case 7:                     // unk - 2 spells
         case 8:                     // GO usage with TargetB = none or random
-        case 10:                    // unk - 2 spells
         case 19:                    // unk - 1 spell
         case 20:                    // unk - 2 spells
         {
@@ -8302,7 +8299,6 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
             {
                 case 17731:         // Onyxia - Eruption
                 case 24731:
-                case 24934:         // Summon RC Tank
                 case 40964:         // Fel Crystalforge: Create 1 Flask
                 case 40965:         // Fel Crystalforge: Create 5 Flasks
                 case 40968:         // Bash'ir Crystalforge: Create 1 Flask
@@ -8312,9 +8308,6 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
                     break;
                 case 38054:
                     gameObjTarget->Use(m_caster);
-                    break;
-                case 24938:         // Close Control Console
-                    gameObjTarget->ResetDoorOrButton(); // TODO: this is wrong - the object should not despawn and instead should have a closing animation
                     break;
                 default:
                 {
@@ -8326,6 +8319,17 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
                     break;
                 }
             }
+            break;
+        }
+        case 7:                     // unk - 2 spells
+        {
+            gameObjTarget->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+            break;
+        }
+        case 10:                    // unk - 2 spells
+        {
+            gameObjTarget->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+            gameObjTarget->ResetDoorOrButton();
             break;
         }
         case 12:                    // GO state active alternative - found mostly in Simon Game spells

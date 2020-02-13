@@ -6511,6 +6511,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, roll_chance_i(50) ? 24714 : 24715, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 24935:                                 // Summon RC Tank
+                {
+                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, 24934, TRIGGERED_OLD_TRIGGERED); // Summon RC Tank
+                    return;
+                }
                 case 25140:                                 // Orb teleport spells
                 case 25143:
                 case 25650:
@@ -8274,6 +8282,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
             {
                 case 17731:         // Onyxia - Eruption
                 case 24731:
+                case 24934:         // Summon RC Tank
                 case 40964:         // Fel Crystalforge: Create 1 Flask
                 case 40965:         // Fel Crystalforge: Create 5 Flasks
                 case 40968:         // Bash'ir Crystalforge: Create 1 Flask

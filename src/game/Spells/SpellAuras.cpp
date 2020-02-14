@@ -4073,7 +4073,7 @@ void Aura::HandleAuraModScale(bool apply, bool /*Real*/)
         else
             otherValue -= m_modifier.m_amount;
     }
-    float scale = std::max(0.1f, (float(100 + value) * otherValue) / 100.f);
+    float scale = std::max(0.1f, float(100 + value) / 100.f * float(100 + otherValue) / 100.f);
     GetTarget()->SetObjectScale(scale);
     GetTarget()->UpdateModelData();
 }

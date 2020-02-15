@@ -7032,6 +7032,13 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
                         radius = 0.3f * (60000 - auraHolder->GetAuraDuration()) * 0.001f;
                     break;
                 }
+                case 30915:                                 // Poison - Broggok
+                case 38463:
+                {
+                    if (SpellAuraHolder* auraHolder = m_caster->GetSpellAuraHolder(GetTriggeredByAuraSpellInfo()->Id))
+                        radius = (60000 - auraHolder->GetAuraDuration()) * 0.0002f;
+                    break;
+                }
                 case 43486:                                 // Summon Amani'shi Warriors
                 case 43487:                                 // Summon Amani Eagle
                 case 43962:                                 // Summon Amani'shi Hatcher

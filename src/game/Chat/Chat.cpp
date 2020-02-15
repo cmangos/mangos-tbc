@@ -3517,11 +3517,12 @@ void ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const
         case CHAT_MSG_MONSTER_EMOTE:
         case CHAT_MSG_RAID_BOSS_WHISPER:
         case CHAT_MSG_RAID_BOSS_EMOTE:
+        case CHAT_MSG_WHISPER_FOREIGN:
             MANGOS_ASSERT(senderName);
             data << uint32(strlen(senderName) + 1);
             data << senderName;
             data << ObjectGuid(targetGuid);                         // Unit Target
-            if (targetGuid && !targetGuid.IsPlayer() && !targetGuid.IsPet())
+            if (targetGuid && !targetGuid.IsPlayer() && !targetGuid.IsPet() && (msgtype != CHAT_MSG_WHISPER_FOREIGN))
             {
                 data << uint32(strlen(targetName) + 1);             // target name length
                 data << targetName;                                 // target name

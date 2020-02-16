@@ -125,10 +125,13 @@ struct boss_black_stalkerAI : public ScriptedAI, public CombatActions
                 {
                     case BLACK_STALKER_ACTION_LEVITATE:
                     {
-                        if (DoCastSpellIfCan(nullptr, SPELL_LEVITATE) == CAST_OK)
+                        if (m_creature->getThreatManager().getThreatList().size() > 1)
                         {
-                            ResetTimer(i, GetSubsequentActionTimer(i));
-                            SetActionReadyStatus(i, false);
+                            if (DoCastSpellIfCan(nullptr, SPELL_LEVITATE) == CAST_OK)
+                            {
+                                ResetTimer(i, GetSubsequentActionTimer(i));
+                                SetActionReadyStatus(i, false);
+                            }
                         }
                         break;
                     }
@@ -193,6 +196,19 @@ UnitAI* GetAI_boss_black_stalker(Creature* pCreature)
 
 struct Levitate : public SpellScript
 {
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (spell->GetCaster()->getVictim() == target || target->GetTypeId() != TYPEID_PLAYER) // skip tank and non-player
+            return false;
+
+        return true;
+    }
+
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
         if (effIdx != EFFECT_INDEX_1)
@@ -207,6 +223,11 @@ struct Levitate : public SpellScript
 
 struct SomeoneGrabMe : public SpellScript
 {
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
         if (Unit* unitTarget = spell->GetUnitTarget())
@@ -227,8 +248,6 @@ struct MagneticPull : public SpellScript
         {
             if (unitTarget->GetTypeId() == TYPEID_PLAYER)
             {
-                //((Player*)unitTarget)->KnockBackFrom(spell->GetCaster(), 30.f, frand(28.58f, 30.65f));
-
                 if (ScriptedInstance* pInstance = static_cast<ScriptedInstance*>(unitTarget->GetInstanceData()))
                 {
                     if (Creature* boss = pInstance->GetSingleCreatureFromStorage(NPC_BLACK_STALKER))

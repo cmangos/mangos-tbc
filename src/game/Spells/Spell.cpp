@@ -7034,6 +7034,12 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
                         radius = 0.3f * (60000 - auraHolder->GetAuraDuration()) * 0.001f;
                     break;
                 }
+                case 36374:                                 // Summon Smoke Beacon
+                {
+                    if (effIndex == EFFECT_INDEX_0)
+                        radius = INTERACTION_DISTANCE;
+                    break;
+                }
                 case 30915:                                 // Poison - Broggok
                 case 38463:
                 {

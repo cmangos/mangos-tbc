@@ -2066,6 +2066,12 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                     target = this;
                     break;
                 }
+                case 31073:                                // Conflagrate Self Proc
+                {
+                    if (procSpell->SchoolMask != SPELL_SCHOOL_MASK_FIRE)
+                        return SPELL_AURA_PROC_FAILED;
+                    break;
+                }
                 // case 24949: break;                       // Defensive State 2 (DND)
                 case 27522:                                 // Mana Drain Trigger
                 case 40336:                                 // Mana Drain Trigger

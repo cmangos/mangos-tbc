@@ -1700,6 +1700,11 @@ inline Unit* CreatureEventAI::GetTargetByType(uint32 target, Unit* actionInvoker
             if (!resTarget)
                 isError = true;
             return resTarget;
+        case TARGET_T_HOSTILE_RANDOM_CASTING:
+            resTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, forSpellId, SELECT_FLAG_PLAYER_CASTING | selectFlags);
+            if (!resTarget)
+                isError = true;
+            return resTarget;
         case TARGET_T_ACTION_INVOKER:
             if (!actionInvoker)
                 isError = true;

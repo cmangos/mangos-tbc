@@ -181,6 +181,7 @@ enum Target
     TARGET_T_HOSTILE_RANDOM_MANA            = 16,           // Random target with mana
     TARGET_T_NEAREST_AOE_TARGET             = 17,           // Nearest target for aoe
     TARGET_T_HOSTILE_FARTHEST_AWAY          = 18,           // Farthest away target, excluding melee range
+    TARGET_T_HOSTILE_RANDOM_CASTING         = 19,           // Casting Target
 };
 
 enum EventFlags : uint32

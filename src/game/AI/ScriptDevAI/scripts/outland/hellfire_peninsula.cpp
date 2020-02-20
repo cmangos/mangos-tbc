@@ -120,8 +120,11 @@ enum
     SAY_WOLF_WELCOME                = -1000498,
 
     SPELL_ANCESTRAL_WOLF_BUFF       = 29981,
+    SPELL_SELF_SNARE                = 30011, // Quest - Ancestral Spirit Wolf Self Snare, casted on self shortly after spawn (purpose unknown)
 
-    NPC_RYGA                        = 17123
+    NPC_RYGA                        = 17123,
+
+    SOUND_HOWL                      = 1018,
 };
 
 struct npc_ancestral_wolfAI : public npc_escortAI
@@ -133,6 +136,7 @@ struct npc_ancestral_wolfAI : public npc_escortAI
         else
             script_error_log("npc_ancestral_wolf can not obtain owner or owner is not a player.");
 
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
@@ -156,6 +160,7 @@ struct npc_ancestral_wolfAI : public npc_escortAI
                 DoScriptText(EMOTE_WOLF_HOWL, m_creature);
                 break;
             case 51:
+                m_creature->PlayDistanceSound(SOUND_HOWL);
                 Creature* pRyga = GetClosestCreatureWithEntry(m_creature, NPC_RYGA, 30.0f);
                 if (pRyga && pRyga->IsAlive() && !pRyga->IsInCombat())
                     DoScriptText(SAY_WOLF_WELCOME, pRyga);

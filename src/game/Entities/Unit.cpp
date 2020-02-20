@@ -6318,11 +6318,7 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
         MeleeAttackStart(m_attacking);
 
     if (AI())
-    {
         SendAIReaction(AI_REACTION_HOSTILE);
-        if (GetTypeId() == TYPEID_UNIT)
-            ((Creature*)this)->CallAssistance();
-    }
 
     return true;
 }

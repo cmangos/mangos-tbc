@@ -33,6 +33,7 @@ instance_dark_portal::instance_dark_portal(Map* pMap) : ScriptedInstance(pMap),
     m_uiMedivhYellCount(1),
     m_uiNextPortalTimer(0),
     m_uiSummonCrystalTimer(0),
+    m_uiSummonBeamStalkerTimer(0),
     m_uiCurrentRiftId(0),
     m_uiPostEventTimer(0),
     m_uiPostEventStep(0)
@@ -57,6 +58,7 @@ void instance_dark_portal::DoResetEvent()
     m_uiNextPortalTimer  = 0;
     m_uiMedivhYellCount  = 1;
     m_uiSummonCrystalTimer = 0;
+    m_uiSummonBeamStalkerTimer = 0;
 }
 
 void instance_dark_portal::UpdateWorldState(bool bEnable)
@@ -137,12 +139,10 @@ void instance_dark_portal::SetData(uint32 uiType, uint32 uiData)
                         return;
                 }
 
-                // ToDo:
-                // Start summoning the Dark Portal Beams
-
                 UpdateWorldState();
                 m_uiNextPortalTimer = 3000;
                 m_uiSummonCrystalTimer = 1000;
+                m_uiSummonBeamStalkerTimer = 1000;
             }
             if (uiData == DONE)
             {
@@ -533,6 +533,20 @@ void instance_dark_portal::Update(uint32 uiDiff)
         }
         else
             m_uiSummonCrystalTimer -= uiDiff;
+    }
+
+    if (m_uiSummonBeamStalkerTimer)
+    {
+        if (m_uiSummonBeamStalkerTimer <= uiDiff)
+        {
+            if (Creature* pDarkPortalDummy = GetSingleCreatureFromStorage(NPC_DARK_PORTAL_DUMMY))
+            {
+                pDarkPortalDummy->CastSpell(pDarkPortalDummy, SPELL_PORTAL_BEAM, TRIGGERED_OLD_TRIGGERED);
+                m_uiSummonBeamStalkerTimer = urand(1000, 2000);
+            }
+        }
+        else
+            m_uiSummonBeamStalkerTimer -= uiDiff;
     }
 }
 

@@ -1176,6 +1176,9 @@ bool GameObject::IsCollisionEnabled() const
     if (!IsSpawned())
         return false;
 
+    if (GetGOInfo()->IsServerOnly()) // serverside GOs do not have LOS
+        return false;
+
     // TODO: Possible that this function must consider multiple checks
     switch (GetGoType())
     {

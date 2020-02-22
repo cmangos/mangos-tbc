@@ -5,6 +5,8 @@
 #ifndef DEF_SERPENT_SHRINE_H
 #define DEF_SERPENT_SHRINE_H
 
+#include "Chat/Chat.h"
+
 enum
 {
     MAX_ENCOUNTER                   = 7,
@@ -32,6 +34,7 @@ enum
     NPC_TINY_TRIGGER                = 21987,
     NPC_WORLD_TRIGGER               = 21252,
     NPC_SEER_OLUM                   = 22820,
+    NPC_LURKER_BELOW                = 21217,
 
     // waterstate event related
     NPC_COILFANG_PRIESTESS          = 21220,
@@ -88,6 +91,9 @@ class instance_serpentshrine_cavern : public ScriptedInstance
 
         const char* Save() const override { return m_strInstData.c_str(); }
         void Load(const char* chrIn) override;
+
+        void ShowChatCommands(ChatHandler* handler) override;
+        void ExecuteChatCommand(ChatHandler* handler, char* args) override;
 
     private:
         void SpawnFishCorpses();

@@ -38,7 +38,6 @@ enum
     SPELL_SUBMERGE                  = 28819,
     SPELL_CLEAR_ALL_DEBUFFS         = 34098,
 
-    NPC_LURKER_BELOW                = 21217,
     NPC_COILFANG_AMBUSHER           = 21865,
     NPC_COILFANG_GUARDIAN           = 21873,
 
@@ -72,8 +71,6 @@ static const AddsLocations aLurkerLoc[MAX_SUBMERGE_ADDS] =
     {NPC_COILFANG_GUARDIAN, 65.17899f, -340.6617f, -21.5217f, 1,},
     {NPC_COILFANG_GUARDIAN, -49.6826f, -414.9719f, -20.54604f, 2},
 };
-
-static const float afLurkerSpawnPos[4] = {40.4058f, -417.108f, -21.5911f, 3.03312f};
 
 struct boss_the_lurker_belowAI : public Scripted_NoMovementAI
 {
@@ -356,8 +353,7 @@ bool GOUse_go_strange_pool(Player* player, GameObject* go)
         {
             if (pInstance->GetData(TYPE_THELURKER_EVENT) == NOT_STARTED || pInstance->GetData(TYPE_THELURKER_EVENT) == FAIL)
             {
-                player->SummonCreature(NPC_LURKER_BELOW, afLurkerSpawnPos[0], afLurkerSpawnPos[1], afLurkerSpawnPos[2], afLurkerSpawnPos[3], TEMPSPAWN_DEAD_DESPAWN, 0);
-                pInstance->SetData(TYPE_THELURKER_EVENT, IN_PROGRESS);
+                pInstance->SetData(TYPE_THELURKER_EVENT, IN_PROGRESS);          
                 go->SetRespawnTime(7 * DAY); // dont respawn until reset
                 return true;
             }

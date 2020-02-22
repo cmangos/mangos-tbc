@@ -133,6 +133,8 @@ void instance_serpentshrine_cavern::OnPlayerResurrect(Player * player)
     }
 }
 
+static const float afLurkerSpawnPos[4] = { 40.4058f, -417.108f, -21.5911f, 3.03312f };
+
 void instance_serpentshrine_cavern::SetData(uint32 uiType, uint32 uiData)
 {
     switch (uiType)
@@ -140,6 +142,9 @@ void instance_serpentshrine_cavern::SetData(uint32 uiType, uint32 uiData)
         case TYPE_THELURKER_EVENT:
             switch (uiData)
             {
+                case IN_PROGRESS:
+                    WorldObject::SummonCreature(TempSpawnSettings(nullptr, NPC_LURKER_BELOW, afLurkerSpawnPos[0], afLurkerSpawnPos[1], afLurkerSpawnPos[2], afLurkerSpawnPos[3], TEMPSPAWN_DEAD_DESPAWN, 0), instance);
+                    break;
                 case DONE:
                     if (Creature* pWorldTrigger = GetSingleCreatureFromStorage(NPC_WORLD_TRIGGER))
                         pWorldTrigger->ForcedDespawn();
@@ -414,6 +419,21 @@ struct npc_serpentshrine_parasiteAI : public ScriptedAI
             m_creature->FixateTarget(pTarget);
     }
 };
+
+void instance_serpentshrine_cavern::ShowChatCommands(ChatHandler* handler)
+{
+    handler->SendSysMessage("This instance supports the following commands: spawnlurker");
+}
+
+void instance_serpentshrine_cavern::ExecuteChatCommand(ChatHandler* handler, char* args)
+{
+    char* result = handler->ExtractLiteralArg(&args);
+    if (!result)
+        return;
+    std::string val = result;
+    if (val == "spawnlurker")
+        SetData(TYPE_THELURKER_EVENT, IN_PROGRESS);
+}
 
 UnitAI* GetAI_npc_serpentshrine_parasite(Creature* pCreature)
 {

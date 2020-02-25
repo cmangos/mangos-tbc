@@ -18,7 +18,7 @@
 
 #include "Spells/Spell.h"
 #include "Database/DatabaseEnv.h"
-#include "WorldPacket.h
+#include "WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "Grids/GridNotifiers.h"
 #include "Grids/GridNotifiersImpl.h"

@@ -384,10 +384,13 @@ bool ChatHandler::HandleDebugGetLootRecipientCommand(char* /*args*/)
     if (!target->HasLootRecipient())
         SendSysMessage("loot recipient: no loot recipient");
     else if (Player* recipient = target->GetLootRecipient())
+    {
+        std::string targetLootRecipientGuidString = target->GetLootRecipientGuid().GetString();
         PSendSysMessage("loot recipient: %s with raw data %s from group %u",
-                        recipient->GetGuidStr().c_str(),
-                        target->GetLootRecipientGuid().GetString().c_str(),
-                        target->GetLootGroupRecipientId());
+            recipient->GetGuidStr().c_str(),
+            targetLootRecipientGuidString.c_str(),
+            target->GetLootGroupRecipientId());
+    }
     else
         SendSysMessage("loot recipient: offline ");
 
@@ -454,9 +457,12 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
             if (!item) continue;
             if (!item->IsBag())
             {
-                if (item->GetState() == state)
+                if (item->GetState() == state) 
+                {
+                    std::string itemOwnerGuidString = item->GetOwnerGuid().GetString();
                     PSendSysMessage("%s bag: 255 slot: %u owner: %s",
-                                    item->GetGuidStr().c_str(),  uint32(item->GetSlot()), item->GetOwnerGuid().GetString().c_str());
+                        item->GetGuidStr().c_str(), uint32(item->GetSlot()), itemOwnerGuidString.c_str());
+                }
             }
             else
             {
@@ -464,10 +470,13 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
                 for (uint8 j = 0; j < bag->GetBagSize(); ++j)
                 {
                     Item* item2 = bag->GetItemByPos(j);
-                    if (item2 && item2->GetState() == state)
+                    if (item2 && item2->GetState() == state) 
+                    {
+                        std::string item2OwnerGuidString = item2->GetOwnerGuid().GetString();
                         PSendSysMessage("%s bag: %u slot: %u owner: %s",
-                                        item2->GetGuidStr().c_str(), uint32(item2->GetBagSlot()), uint32(item2->GetSlot()),
-                                        item2->GetOwnerGuid().GetString().c_str());
+                            item2->GetGuidStr().c_str(), uint32(item2->GetBagSlot()), uint32(item2->GetSlot()),
+                            item2OwnerGuidString.c_str());
+                    }
                 }
             }
         }
@@ -520,9 +529,10 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
 
             if (item->GetOwnerGuid() != player->GetObjectGuid())
             {
+                std::string itemOwnerGuidString = item->GetOwnerGuid().GetString();
                 PSendSysMessage("%s at slot %u owner (%s) and inventory owner (%s) don't match!",
                                 item->GetGuidStr().c_str(), uint32(item->GetSlot()),
-                                item->GetOwnerGuid().GetString().c_str(), player->GetGuidStr().c_str());
+                                itemOwnerGuidString.c_str(), player->GetGuidStr().c_str());
                 error = true; continue;
             }
 
@@ -583,9 +593,10 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
 
                     if (item2->GetOwnerGuid() != player->GetObjectGuid())
                     {
+                        std::string item2GuidString = item2->GetOwnerGuid().GetString();
                         PSendSysMessage("%s in bag %u at slot %u owner (%s) and inventory owner (%s) don't match!",
                                         item2->GetGuidStr().c_str(), uint32(bag->GetSlot()), uint32(item2->GetSlot()),
-                                        item2->GetOwnerGuid().GetString().c_str(), player->GetGuidStr().c_str());
+                                        item2GuidString.c_str(), player->GetGuidStr().c_str());
                         error = true; continue;
                     }
 
@@ -647,9 +658,10 @@ bool ChatHandler::HandleDebugGetItemStateCommand(char* args)
 
             if (item->GetOwnerGuid() != player->GetObjectGuid())
             {
+                std::string itemOwnerGuidString = item->GetOwnerGuid().GetString();
                 PSendSysMessage("queue(" SIZEFMTD "): %s has the owner (%s) and inventory owner (%s) don't match!",
                                 i, item->GetGuidStr().c_str(),
-                                item->GetOwnerGuid().GetString().c_str(), player->GetGuidStr().c_str());
+                                itemOwnerGuidString.c_str(), player->GetGuidStr().c_str());
                 error = true; continue;
             }
 
@@ -759,7 +771,8 @@ bool ChatHandler::HandleSetValueHelper(Object* target, uint32 field, char* typeS
     // not allow access to nonexistent or critical for work field
     if (field >= target->GetValuesCount() || field <= OBJECT_FIELD_ENTRY)
     {
-        PSendSysMessage(LANG_TOO_BIG_INDEX, field, guid.GetString().c_str(), uint32(target->GetValuesCount()));
+        std::string guidString = guid.GetString();
+        PSendSysMessage(LANG_TOO_BIG_INDEX, field, guidString.c_str(), uint32(target->GetValuesCount()));
         return false;
     }
 
@@ -777,15 +790,17 @@ bool ChatHandler::HandleSetValueHelper(Object* target, uint32 field, char* typeS
     else
         return false;
 
+    std::string guidString = guid.GetString();
+
     if (base)
     {
         uint32 iValue;
         if (!ExtractUInt32Base(&valStr, iValue, base))
             return false;
 
-        DEBUG_LOG(GetMangosString(LANG_SET_UINT), guid.GetString().c_str(), field, iValue);
+        DEBUG_LOG(GetMangosString(LANG_SET_UINT), guidString.c_str(), field, iValue);
         target->SetUInt32Value(field, iValue);
-        PSendSysMessage(LANG_SET_UINT_FIELD, guid.GetString().c_str(), field, iValue);
+        PSendSysMessage(LANG_SET_UINT_FIELD, guidString.c_str(), field, iValue);
     }
     else
     {
@@ -793,9 +808,9 @@ bool ChatHandler::HandleSetValueHelper(Object* target, uint32 field, char* typeS
         if (!ExtractFloat(&valStr, fValue))
             return false;
 
-        DEBUG_LOG(GetMangosString(LANG_SET_FLOAT), guid.GetString().c_str(), field, fValue);
+        DEBUG_LOG(GetMangosString(LANG_SET_FLOAT), guidString.c_str(), field, fValue);
         target->SetFloatValue(field, fValue);
-        PSendSysMessage(LANG_SET_FLOAT_FIELD, guid.GetString().c_str(), field, fValue);
+        PSendSysMessage(LANG_SET_FLOAT_FIELD, guidString.c_str(), field, fValue);
     }
 
     return true;
@@ -857,7 +872,8 @@ bool ChatHandler::HandleGetValueHelper(Object* target, uint32 field, char* typeS
 
     if (field >= target->GetValuesCount())
     {
-        PSendSysMessage(LANG_TOO_BIG_INDEX, field, guid.GetString().c_str(), target->GetValuesCount());
+        std::string guidString = guid.GetString();
+        PSendSysMessage(LANG_TOO_BIG_INDEX, field, guidString.c_str(), target->GetValuesCount());
         return false;
     }
 
@@ -875,6 +891,8 @@ bool ChatHandler::HandleGetValueHelper(Object* target, uint32 field, char* typeS
     else
         return false;
 
+    std::string guidString = guid.GetString();
+
     if (base)
     {
         uint32 iValue = target->GetUInt32Value(field);
@@ -889,25 +907,26 @@ bool ChatHandler::HandleGetValueHelper(Object* target, uint32 field, char* typeS
                 res = iValue & (1 << (32 - 1)) ? "0" : " ";
                 for (int i = 32; i > 0; --i)
                     res += iValue & (1 << (i - 1)) ? "1" : "0";
-                DEBUG_LOG(GetMangosString(LANG_GET_BITSTR), guid.GetString().c_str(), field, res.c_str());
-                PSendSysMessage(LANG_GET_BITSTR_FIELD, guid.GetString().c_str(), field, res.c_str());
+                DEBUG_LOG(GetMangosString(LANG_GET_BITSTR), guidString.c_str(), field, res.c_str());
+                PSendSysMessage(LANG_GET_BITSTR_FIELD, guidString.c_str(), field, res.c_str());
                 break;
             }
             case 16:
-                DEBUG_LOG(GetMangosString(LANG_GET_HEX), guid.GetString().c_str(), field, iValue);
-                PSendSysMessage(LANG_GET_HEX_FIELD, guid.GetString().c_str(), field, iValue);
+                DEBUG_LOG(GetMangosString(LANG_GET_HEX), guidString.c_str(), field, iValue);
+                PSendSysMessage(LANG_GET_HEX_FIELD, guidString.c_str(), field, iValue);
                 break;
             case 10:
             default:
-                DEBUG_LOG(GetMangosString(LANG_GET_UINT), guid.GetString().c_str(), field, iValue);
-                PSendSysMessage(LANG_GET_UINT_FIELD, guid.GetString().c_str(), field, iValue);
+                DEBUG_LOG(GetMangosString(LANG_GET_UINT), guidString.c_str(), field, iValue);
+                PSendSysMessage(LANG_GET_UINT_FIELD, guidString.c_str(), field, iValue);
         }
     }
     else
     {
         float fValue = target->GetFloatValue(field);
-        DEBUG_LOG(GetMangosString(LANG_GET_FLOAT), guid.GetString().c_str(), field, fValue);
-        PSendSysMessage(LANG_GET_FLOAT_FIELD, guid.GetString().c_str(), field, fValue);
+
+        DEBUG_LOG(GetMangosString(LANG_GET_FLOAT), guidString.c_str(), field, fValue);
+        PSendSysMessage(LANG_GET_FLOAT_FIELD, guidString.c_str(), field, fValue);
     }
 
     return true;
@@ -962,7 +981,8 @@ bool ChatHandler::HandlerDebugModValueHelper(Object* target, uint32 field, char*
     // not allow access to nonexistent or critical for work field
     if (field >= target->GetValuesCount() || field <= OBJECT_FIELD_ENTRY)
     {
-        PSendSysMessage(LANG_TOO_BIG_INDEX, field, guid.GetString().c_str(), uint32(target->GetValuesCount()));
+        std::string guidString = guid.GetString();
+        PSendSysMessage(LANG_TOO_BIG_INDEX, field, guidString.c_str(), uint32(target->GetValuesCount()));
         return false;
     }
 
@@ -987,30 +1007,30 @@ bool ChatHandler::HandlerDebugModValueHelper(Object* target, uint32 field, char*
             return false;
 
         uint32 value = target->GetUInt32Value(field);
-        const char* guidString = guid.GetString().c_str();
+        std::string guidString = guid.GetString();
 
         switch (type)
         {
             default:
             case 1:                                         // int +
                 value = uint32(int32(value) + int32(iValue));
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_INT32), guidString, field, iValue, value, value);
-                PSendSysMessage(LANG_CHANGE_INT32_FIELD, guidString, field, iValue, value, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_INT32), guidString.c_str(), field, iValue, value, value);
+                PSendSysMessage(LANG_CHANGE_INT32_FIELD, guidString.c_str(), field, iValue, value, value);
                 break;
             case 2:                                         // |= bit or
                 value |= iValue;
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString, field, typeStr, iValue, value);
-                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString, field, typeStr, iValue, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString.c_str(), field, typeStr, iValue, value);
+                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString.c_str(), field, typeStr, iValue, value);
                 break;
             case 3:                                         // &= bit and
                 value &= iValue;
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString, field, typeStr, iValue, value);
-                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString, field, typeStr, iValue, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString.c_str(), field, typeStr, iValue, value);
+                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString.c_str(), field, typeStr, iValue, value);
                 break;
             case 4:                                         // &=~ bit and not
                 value &= ~iValue;
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString, field, typeStr, iValue, value);
-                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString, field, typeStr, iValue, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString.c_str(), field, typeStr, iValue, value);
+                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString.c_str(), field, typeStr, iValue, value);
                 break;
         }
 
@@ -1026,8 +1046,9 @@ bool ChatHandler::HandlerDebugModValueHelper(Object* target, uint32 field, char*
 
         value += fValue;
 
-        DEBUG_LOG(GetMangosString(LANG_CHANGE_FLOAT), guid.GetString().c_str(), field, fValue, value);
-        PSendSysMessage(LANG_CHANGE_FLOAT_FIELD, guid.GetString().c_str(), field, fValue, value);
+        std::string guidString = guid.GetString();
+        DEBUG_LOG(GetMangosString(LANG_CHANGE_FLOAT), guidString.c_str(), field, fValue, value);
+        PSendSysMessage(LANG_CHANGE_FLOAT_FIELD, guidString.c_str(), field, fValue, value);
 
         target->SetFloatValue(field, value);
     }

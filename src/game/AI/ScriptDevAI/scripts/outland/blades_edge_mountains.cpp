@@ -4198,4 +4198,5 @@ void AddSC_blades_edge_mountains()
 
     RegisterSpellScript<EtherealRingSignalFlare>("spell_ethereal_ring_signal_flare");
     RegisterSpellScript<ExorcismFeather>("spell_exorcism_feather");
+    RegisterSpellScript<KoiKoiDeath>("spell_koi_koi_death");
 }

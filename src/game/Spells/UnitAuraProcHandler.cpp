@@ -449,7 +449,7 @@ void Unit::ProcDamageAndSpell(ProcSystemArguments&& data)
     if (data.attacker)
     {
 		// trigger weapon enchants for weapon based spells; exclude spells that stop attack, because may break CC
-		if (data.attacker->GetTypeId() == TYPEID_PLAYER && (data.procExtra & (PROC_EX_NORMAL_HIT | PROC_EX_CRITICAL_HIT)) != 0 && (data.procFlagsAttacker == PROC_FLAG_SUCCESSFUL_MELEE_HIT || data.attType == OFF_ATTACK))
+		if (data.attacker->GetTypeId() == TYPEID_PLAYER && (data.procExtra & (PROC_EX_NORMAL_HIT | PROC_EX_CRITICAL_HIT)) != 0 && data.procFlagsAttacker != PROC_FLAG_ON_DO_PERIODIC)
 			if (!data.procSpell || (data.procSpell->EquippedItemClass == ITEM_CLASS_WEAPON && !data.procSpell->HasAttribute(SPELL_ATTR_STOP_ATTACK_TARGET)))
 				static_cast<Player*>(data.attacker)->CastItemCombatSpell(data.victim, data.attType, data.procSpell ? !IsNextMeleeSwingSpell(data.procSpell) : false);
         data.attacker->m_spellProcsHappening = false;

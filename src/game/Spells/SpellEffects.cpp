@@ -7053,7 +7053,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget)
                         return;
 
-                    unitTarget->CastSpell(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), 30953, TRIGGERED_NONE); // cast explosion
+                    unitTarget->CastSpell(nullptr, 30953, TRIGGERED_NONE); // cast explosion
                     break;
                 }
                 case 37142:                                 // Karazhan - Chess NPC Action: Melee Attack: Conjured Water Elemental

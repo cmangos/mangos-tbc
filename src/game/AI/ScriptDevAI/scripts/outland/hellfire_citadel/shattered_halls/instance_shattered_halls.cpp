@@ -560,18 +560,7 @@ struct npc_Gauntlet_of_Fire : public ScriptedAI
         }
 
         if ((*itr))
-        {
-            float xCoord = frand(361.7455f, 481.0745f);
-            float yCoord = frand(308.7120f, 323.9215f);
-            float zCoord = 1.93075f;
-
-            //Creature* pAdd = nullptr;
-            //if (pAdd = m_creature->SummonCreature(NPC_ARCHER_TARGET, xCoord, yCoord, zCoord, 0.0f, TEMPSUMMON_TIMED_OOC_OR_DEAD_DESPAWN, 20000))
-            //{
-                //(*itr)->CastSpell(pAdd, SHOOT_FLAME_ARROW, true);
-            (*itr)->CastSpell(xCoord, yCoord, zCoord, SHOOT_FLAME_ARROW, TRIGGERED_NONE);
-            //}
-        }
+            (*itr)->CastSpell(nullptr, SHOOT_FLAME_ARROW, TRIGGERED_NONE);
     }
 
     void JustSummoned(Creature* pSummoned) override

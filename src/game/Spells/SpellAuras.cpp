@@ -8197,6 +8197,7 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
         case 26464:                                         // Mercurial Shield
         case 32065:                                         // Fungal Decay
         case 36659:                                         // Tail Sting
+        case 37589:                                         // Shriveling Gaze
         case 40157:                                         // Spirit Lance
             m_stackAmount = m_spellProto->StackAmount;
             break;

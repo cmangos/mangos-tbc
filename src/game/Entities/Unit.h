@@ -2501,6 +2501,9 @@ class Unit : public WorldObject
         void RegisterScalingAura(Aura* aura, bool apply);
         void UpdateScalingAuras();
 
+        uint32 GetDamageDoneByOthers() { return m_damageByOthers; }
+        uint32 GetModifierXpBasedOnDamageReceived(uint32 xp);
+
     protected:
 
         struct WeaponDamageInfo
@@ -2679,6 +2682,8 @@ class Unit : public WorldObject
 
         ObjectGuid m_comboTargetGuid;
         int8 m_comboPoints;
+
+        uint32 m_damageByOthers;
 
     private:                                                // Error traps for some wrong args using
         // this will catch and prevent build for any cases when all optional args skipped and instead triggered used non boolean type

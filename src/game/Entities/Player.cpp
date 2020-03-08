@@ -17449,7 +17449,10 @@ void Player::RemovePet(PetSaveMode mode)
         // TODO: Only edit pet in DB and reward reagent if necessary
         Pet* NewPet = new Pet;
         if (!NewPet->LoadPetFromDB(this, 0, m_temporaryUnsummonedPetNumber, true, 0, false, true))
+        {
             delete NewPet;
+            NewPet = nullptr;
+        }
 
         m_temporaryUnsummonedPetNumber = 0;
         if (NewPet)

@@ -205,6 +205,7 @@ class ChatHandler
         bool HandleAHBotRebuildCommand(char* args);
         bool HandleAHBotReloadCommand(char* args);
         bool HandleAHBotStatusCommand(char* args);
+        bool HandleAHBotItemCommand(char* args);
 #endif
 
         bool HandleAuctionAllianceCommand(char* args);

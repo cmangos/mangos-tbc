@@ -772,7 +772,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
         m_creature->AI()->SetCombatMovement(false);
         m_creature->GetMotionMaster()->MovePoint(0, scoutCoords[0][0], scoutCoords[0][1], scoutCoords[0][2]);
         CreatureList guards;
-        GetClosestCreatureWithEntry(m_creature, NPC_SHATTERED_HAND_ZEALOT, 15.f);
+        GetCreatureListWithEntryInGrid(guards, m_creature, NPC_SHATTERED_HAND_ZEALOT, 15.f);
         for (Creature* creature : guards)
         {
             creature->SetInCombatWithZone();

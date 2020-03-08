@@ -74,9 +74,9 @@ void instance_shattered_halls::OnObjectCreate(GameObject* pGo)
     m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
-void instance_shattered_halls::OnCreatureCreate(Creature* pCreature)
+void instance_shattered_halls::OnCreatureCreate(Creature* creature)
 {
-    switch (pCreature->GetEntry())
+    switch (creature->GetEntry())
     {
         case NPC_NETHEKURSE:
         case NPC_KARGATH_BLADEFIST:
@@ -87,24 +87,30 @@ void instance_shattered_halls::OnCreatureCreate(Creature* pCreature)
         case NPC_SOLDIER_HORDE_2:
         case NPC_SOLDIER_HORDE_3:
         case NPC_OFFICER_HORDE:
-            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            m_npcEntryGuidStore[creature->GetEntry()] = creature->GetObjectGuid();
             break;
         case NPC_ZEALOT:
         case NPC_SCOUT:
-            if (pCreature->IsTemporarySummon())
-                m_vGauntletTemporaryGuids.push_back(pCreature->GetObjectGuid());
+            if (creature->IsTemporarySummon())
+                m_vGauntletTemporaryGuids.push_back(creature->GetObjectGuid());
             else
-                m_vGauntletPermanentGuids.push_back(pCreature->GetObjectGuid());
+                m_vGauntletPermanentGuids.push_back(creature->GetObjectGuid());
             break;
         case NPC_BLOOD_GUARD:
         case NPC_PORUNG:
         case NPC_ARCHER:
-            m_vGauntletBossGuids.push_back(pCreature->GetObjectGuid());
+            m_vGauntletBossGuids.push_back(creature->GetObjectGuid());
             break;
         case NPC_GAUNTLET_OF_FIRE:
-            m_guidGauntletNPC = pCreature->GetObjectGuid();
+            m_guidGauntletNPC = creature->GetObjectGuid();
             break;
     }
+}
+
+void instance_shattered_halls::OnCreatureRespawn(Creature* creature)
+{
+    if (creature->GetRespawnDelay() == 5)
+        creature->SetNoRewards();
 }
 
 void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
@@ -233,24 +239,24 @@ uint32 instance_shattered_halls::GetData(uint32 uiType) const
     return 0;
 }
 
-void instance_shattered_halls::OnCreatureDeath(Creature* pCreature)
+void instance_shattered_halls::OnCreatureDeath(Creature* creature)
 {
-    if (pCreature->GetEntry() == NPC_EXECUTIONER)
+    if (creature->GetEntry() == NPC_EXECUTIONER)
         SetData(TYPE_EXECUTION, DONE);
 }
 
-void instance_shattered_halls::OnCreatureEnterCombat(Creature* pCreature)
+void instance_shattered_halls::OnCreatureEnterCombat(Creature* creature)
 {
     // Set data to special in order to pause the event timer
     // This is according to the blizz comments which say that it is possible to complete the event if you engage the npc while you have only a few seconds left
-    if (pCreature->GetEntry() == NPC_EXECUTIONER)
+    if (creature->GetEntry() == NPC_EXECUTIONER)
         SetData(TYPE_EXECUTION, SPECIAL);
 }
 
-void instance_shattered_halls::OnCreatureEvade(Creature* pCreature)
+void instance_shattered_halls::OnCreatureEvade(Creature* creature)
 {
     // If npc evades continue the counting
-    if (pCreature->GetEntry() == NPC_EXECUTIONER)
+    if (creature->GetEntry() == NPC_EXECUTIONER)
         SetData(TYPE_EXECUTION, IN_PROGRESS);
 }
 
@@ -468,12 +474,12 @@ puts the player in combat permanently and they should be able to get out of comb
 breaks.
 */
 
-// Gauntlet of Fire scripting
+// Gauntlet of Fire scripting - TODO: Remove this once GO casting is possible
 struct npc_Gauntlet_of_Fire : public ScriptedAI
 {
-    npc_Gauntlet_of_Fire(Creature* pCreature) : ScriptedAI(pCreature)	
+    npc_Gauntlet_of_Fire(Creature* creature) : ScriptedAI(creature)	
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_pInstance = (ScriptedInstance*)creature->GetInstanceData();
         m_gauntletStopped = false;
         SetReactState(REACT_PASSIVE);
         Reset(); 
@@ -624,6 +630,8 @@ struct npc_Gauntlet_of_Fire : public ScriptedAI
                     break;
                 default:
                     pSummoned->GetMotionMaster()->MoveIdle();
+                    if (m_pInstance)
+                        m_pInstance->SetData(TYPE_GAUNTLET, FAIL);
                     break;
             }
         }        
@@ -736,15 +744,10 @@ struct npc_Gauntlet_of_Fire : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_npc_Gauntlet_of_Fire(Creature* pCreature)
-{
-    return new npc_Gauntlet_of_Fire(pCreature);
-}
-
 // Scout scripting
 struct npc_Shattered_Hand_Scout : public ScriptedAI
 {
-    npc_Shattered_Hand_Scout(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+    npc_Shattered_Hand_Scout(Creature* creature) : ScriptedAI(creature) { Reset(); }
 
     bool m_bRunning;
 
@@ -757,7 +760,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (pWho->GetTypeId() == TYPEID_PLAYER && pWho->GetDistance(m_creature) <= 40.f)
+        if (pWho->GetTypeId() == TYPEID_PLAYER && !static_cast<Player*>(pWho)->isGameMaster() && pWho->GetDistance(m_creature) <= 50.f)
             if (!m_bRunning)
                 DoStartRunning();
     }
@@ -768,6 +771,13 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
         m_creature->SetWalk(false);
         m_creature->AI()->SetCombatMovement(false);
         m_creature->GetMotionMaster()->MovePoint(0, scoutCoords[0][0], scoutCoords[0][1], scoutCoords[0][2]);
+        CreatureList guards;
+        GetClosestCreatureWithEntry(m_creature, NPC_SHATTERED_HAND_ZEALOT, 15.f);
+        for (Creature* creature : guards)
+        {
+            creature->SetInCombatWithZone();
+            creature->AI()->AttackClosestEnemy();
+        }
         DoScriptText(SCOUT_AGRO_YELL, m_creature);
     }
 
@@ -812,12 +822,6 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_npc_Shattered_Hand_Scout(Creature* pCreature)
-{
-    return new npc_Shattered_Hand_Scout(pCreature);
-}
-
-
 bool AreaTrigger_at_shattered_halls(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
 {
     if (pPlayer->isGameMaster() || !pPlayer->IsAlive())
@@ -856,12 +860,12 @@ void AddSC_instance_shattered_halls()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_gauntlet_of_fire";
-    pNewScript->GetAI = &GetAI_npc_Gauntlet_of_Fire;
+    pNewScript->GetAI = &GetNewAIInstance<npc_Gauntlet_of_Fire>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_shattered_hand_scout";
-    pNewScript->GetAI = &GetAI_npc_Shattered_Hand_Scout;
+    pNewScript->GetAI = &GetNewAIInstance<npc_Shattered_Hand_Scout>;
     pNewScript->RegisterSelf();
 
 }

@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s2401_01_characters_new_ticket_system` bit(1) DEFAULT NULL
+  `required_s2402_01_characters_new_ticket_system_sql_std` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Last applied sql update to DB';
 
 --
@@ -931,15 +931,15 @@ CREATE TABLE `gm_tickets` (
   `z` float NOT NULL DEFAULT '0' COMMENT 'Character\'s z coordinate on submission',
   `o` float NOT NULL DEFAULT '0' COMMENT 'Character\'s orientation angle on submission',
   `text` text NOT NULL COMMENT 'Ticket\'s message',
-  `created` bigint(40) unsigned NOT NULL DEFAULT UNIX_TIMESTAMP() COMMENT 'Timestamp: ticket created by a player',
-  `updated` bigint(40) unsigned NOT NULL DEFAULT '0' COMMENT 'Timestamp: ticket text\'s last update',
-  `seen` bigint(40) unsigned NOT NULL DEFAULT '0' COMMENT 'Timestamp: ticket\'s last time opened by a GM',
-  `answered` bigint(40) unsigned NOT NULL DEFAULT '0' COMMENT 'Timestamp: ticket\'s last time answered by a GM',
-  `closed` bigint(40) unsigned NOT NULL DEFAULT '0' COMMENT 'Timestamp: ticket closed by a GM',
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Timestamp: ticket created by a player',
+  `updated` timestamp NOT NULL DEFAULT 0 COMMENT 'Timestamp: ticket text\'s last update',
+  `seen` timestamp NOT NULL DEFAULT 0 COMMENT 'Timestamp: ticket\'s last time opened by a GM',
+  `answered` timestamp NOT NULL DEFAULT 0 COMMENT 'Timestamp: ticket\'s last time answered by a GM',
+  `closed` timestamp NOT NULL DEFAULT 0 COMMENT 'Timestamp: ticket closed by a GM',
   `assignee_guid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Assignee\'s character\'s Global Unique Identifier',
   `assignee_name` varchar(12) NOT NULL DEFAULT '' COMMENT 'Assignee\'s character\'s name',
-  `conclusion` text NOT NULL DEFAULT '' COMMENT 'Assignee\'s final conclusion on this ticket',
-  `notes` text NOT NULL DEFAULT '' COMMENT 'Additional notes for GMs',
+  `conclusion` varchar(255) NOT NULL DEFAULT '' COMMENT 'Assignee\'s final conclusion on this ticket',
+  `notes` varchar(10000) NOT NULL DEFAULT '' COMMENT 'Additional notes for GMs',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='GM Tickets System';
 

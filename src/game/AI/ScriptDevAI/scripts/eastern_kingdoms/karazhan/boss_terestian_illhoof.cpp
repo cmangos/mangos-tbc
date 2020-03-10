@@ -235,6 +235,7 @@ struct boss_terestianAI : public ScriptedAI, public CombatActions
                 m_kilrekGuid = pSummoned->GetObjectGuid();
                 if (m_creature->isInCombat())
                     pSummoned->SetInCombatWithZone();
+                m_creature->RemoveAurasDueToSpell(SPELL_BROKEN_PACT);
                 break;
             case NPC_DEMONCHAINS:
                 pSummoned->CastSpell(pSummoned, SPELL_DEMON_CHAINS, TRIGGERED_NONE);

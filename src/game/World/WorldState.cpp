@@ -941,7 +941,11 @@ bool WorldState::SetExpansion(uint8 expansion)
         sGameEventMgr.StartEvent(GAME_EVENT_BEFORE_THE_STORM);
     else
         sGameEventMgr.StopEvent(GAME_EVENT_BEFORE_THE_STORM);
-    sWorld.UpdateSessionExpansion(expansion);
+    sWorld.ExecuteForAllSessions([expansion](auto& data)
+    {
+        if (data.second->GetSecurity() < SEC_GAMEMASTER)
+            data.second->SetExpansion(expansion);
+    });
     Save(SAVE_ID_EXPANSION_RELEASE); // save to DB right away
     return true;
 }

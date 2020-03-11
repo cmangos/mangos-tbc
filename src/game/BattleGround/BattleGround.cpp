@@ -1550,13 +1550,18 @@ void BattleGround::SpawnBGObject(ObjectGuid guid, uint32 respawntime)
         return;
     if (respawntime == 0)
     {
-        // we need to change state from GO_JUST_DEACTIVATED to GO_READY in case battleground is starting again
+        obj->Respawn(); // respawn => SetRespawnTime(0);
+        if (obj->GetGoType() == GAMEOBJECT_TYPE_BUTTON)
+            obj->SetInUse(false);   // GO_STATE_READY
         if (obj->GetLootState() == GO_JUST_DEACTIVATED)
             obj->SetLootState(GO_READY);
-        obj->Respawn();
-    }
-    else
-    {
+    } else {
+        // flags are buttons (except neutral flags) : need to force state update to clients
+        if (obj->GetGoType() == GAMEOBJECT_TYPE_BUTTON)
+        {
+            obj->SetInUse(true);    // GO_STATE_ACTIVE
+            obj->SendForcedObjectUpdate();
+        }
         obj->SetLootState(GO_JUST_DEACTIVATED);
         obj->SetRespawnDelay(respawntime);
         obj->SetForcedDespawn();

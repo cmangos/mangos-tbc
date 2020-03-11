@@ -5,11 +5,10 @@ ALTER TABLE character_db_version CHANGE COLUMN required_s2401_01_characters_new_
 --
 
 ALTER TABLE `gm_tickets` MODIFY COLUMN `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE `gm_tickets` MODIFY COLUMN `updated` timestamp NOT NULL DEFAULT 0;
-ALTER TABLE `gm_tickets` MODIFY COLUMN `seen` timestamp NOT NULL DEFAULT 0;
-ALTER TABLE `gm_tickets` MODIFY COLUMN `answered` timestamp NOT NULL DEFAULT 0;
-ALTER TABLE `gm_tickets` MODIFY COLUMN `closed` timestamp NOT NULL DEFAULT 0;
-ALTER TABLE `gm_tickets` MODIFY COLUMN `closed` timestamp NOT NULL DEFAULT 0;
+ALTER TABLE `gm_tickets` MODIFY COLUMN `updated` bigint(40) unsigned NOT NULL DEFAULT 0;
+ALTER TABLE `gm_tickets` MODIFY COLUMN `seen` bigint(40) unsigned NOT NULL DEFAULT 0;
+ALTER TABLE `gm_tickets` MODIFY COLUMN `answered` bigint(40) unsigned NOT NULL DEFAULT 0;
+ALTER TABLE `gm_tickets` MODIFY COLUMN `closed` bigint(40) unsigned NOT NULL DEFAULT 0;
 ALTER TABLE `gm_tickets` MODIFY COLUMN `conclusion` varchar(255) NOT NULL DEFAULT '';
 ALTER TABLE `gm_tickets` MODIFY COLUMN `notes` varchar(10000) NOT NULL DEFAULT '';
 

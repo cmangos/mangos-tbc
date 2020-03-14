@@ -630,7 +630,7 @@ struct npc_Gauntlet_of_Fire : public ScriptedAI
                     break;
                 default:
                     pSummoned->GetMotionMaster()->MoveIdle();
-                    if (m_pInstance)
+                    if (m_pInstance && pSummoned->GetHealth() > 0)
                         m_pInstance->SetData(TYPE_GAUNTLET, FAIL);
                     break;
             }

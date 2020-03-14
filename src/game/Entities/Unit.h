@@ -1011,6 +1011,7 @@ struct ProcExecutionData
     // Scripting data
     uint32 triggeredSpellId;
     std::array<int32, MAX_EFFECT_INDEX> basepoints = { 0, 0, 0 };
+    bool procOnce;
 
     ProcExecutionData(ProcSystemArguments& data, bool isVictim);
 };

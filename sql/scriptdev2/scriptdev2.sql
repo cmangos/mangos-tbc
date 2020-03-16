@@ -173,6 +173,7 @@ UPDATE creature_template SET ScriptName='npc_shade_of_the_horseman' WHERE entry=
 UPDATE creature_template SET ScriptName='npc_headless_horseman_fire' WHERE entry=23537;
 UPDATE creature_template SET ScriptName='npc_child_tbc' WHERE entry IN(22817,22818);
 UPDATE creature_template SET ScriptName='npc_imp_in_a_ball' WHERE entry IN (23224,23229);
+UPDATE creature_template SET ScriptName='npc_advanced_target_dummy' WHERE entry IN (2674); -- Advanced Target Dummy
 
 /*Quest (quest scripts which are not in one zone)*/
 UPDATE creature_template SET ScriptName='npc_quest_attunement' WHERE entry IN(22421,18528,19935);

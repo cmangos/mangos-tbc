@@ -28,6 +28,8 @@ EndScriptData
 #include "GameEvents/GameEventMgr.h"
 #include "Entities/TemporarySpawn.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
+#include "World/WorldState.h"
+#include "AI/ScriptDevAI/base/TimerAI.h"
 
 /* ContentData
 npc_air_force_bots       80%    support for misc (invisible) guard bots in areas where player allowed to fly. Summon guards after a preset time if tagged by spell
@@ -42,6 +44,7 @@ npc_redemption_target   100%    Used for the paladin quests: 1779,1781,9600,9685
 npc_burster_worm        100%    Used for the crust burster worms in Outland. Npc entries: 16844, 16857, 16968, 17075, 18678, 21380, 21849, 22038, 22466, 22482, 23285
 npc_aoe_damage_trigger 75% Used for passive aoe damage triggers in various encounters with overlapping usage of entries: 16697, 17471, 20570, 18370, 20598
 npc_mojo
+npc_advanced_target_dummy
 EndContentData */
 
 /*########
@@ -2302,6 +2305,51 @@ struct ImpInABottleSay : public SpellScript
     }
 };
 
+/*######
+## npc_advanced_target_dummy
+######*/
+
+enum
+{
+    SUICIDE                     = 7,
+    TARGET_DUMMY_SPAWN_EFFECT   = 4507
+};
+
+struct npc_advanced_target_dummyAI : public ScriptedAI, public TimerManager
+{
+    npc_advanced_target_dummyAI(Creature* creature) : ScriptedAI(creature), m_dieTimer(15000)
+    {
+        DoCastSpellIfCan(nullptr, TARGET_DUMMY_SPAWN_EFFECT);
+        SetReactState(REACT_PASSIVE);
+        Reset();
+    }
+
+    void Reset() override {}
+
+    uint32 m_dieTimer;
+
+    void JustRespawned() override
+    {
+        if (!m_creature->GetSpawner())
+            return;
+
+        m_creature->SetLootRecipient(m_creature->GetSpawner());
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (m_dieTimer)
+        {
+            if (m_dieTimer <= diff)
+            {
+                DoCastSpellIfCan(m_creature, SUICIDE);
+            }
+            else
+                m_dieTimer -= diff;
+        }
+    }
+};
+
 void AddSC_npcs_special()
 {
     Script* pNewScript = new Script;
@@ -2400,6 +2448,11 @@ void AddSC_npcs_special()
     pNewScript = new Script;
     pNewScript->Name = "mob_phoenix";
     pNewScript->GetAI = &GetNewAIInstance<mob_phoenix_tkAI>;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_advanced_target_dummy";
+    pNewScript->GetAI = &GetNewAIInstance<npc_advanced_target_dummyAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

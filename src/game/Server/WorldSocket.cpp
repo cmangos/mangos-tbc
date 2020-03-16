@@ -475,6 +475,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
         if (!(m_session = new WorldSession(id, this, AccountTypes(security), expansion, mutetime, locale)))
             return false;
 
+        m_session->LoadGlobalAccountData();
         m_session->LoadTutorialsData();
 
         sWorld.AddSession(m_session);

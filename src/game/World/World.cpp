@@ -820,6 +820,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PATH_FIND_OPTIMIZE, "PathFinder.OptimizePath", true);
     setConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z, "PathFinder.NormalizeZ", false);
 
+    setConfig(CONFIG_BOOL_ACCOUNT_DATA, "AccountData", false);
+
     sLog.outString();
 }
 

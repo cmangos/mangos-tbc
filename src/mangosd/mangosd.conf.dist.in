@@ -220,6 +220,9 @@ SD2ErrorLogFile = "SD2Errors.log"
 #        Set the max number of players returned in the /who list and interface (0 means unlimited)
 #        Default:     49 - (stable)
 #
+#    AccountData
+#        Set 1 if you want account data saving to DB
+#
 ###################################################################################################################
 
 UseProcessors = 0
@@ -251,6 +254,7 @@ MaxCoreStuckTime = 0
 AddonChannel = 1
 CleanCharacterDB = 1
 MaxWhoListReturns = 49
+AccountData = 0
 
 ###################################################################################################################
 # SERVER LOGGING

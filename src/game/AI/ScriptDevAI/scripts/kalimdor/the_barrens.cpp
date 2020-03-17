@@ -1161,7 +1161,7 @@ bool ProcessEventId_event_covertops_detonate(uint32 eventId, Object* pSource, Ob
 
                     wagon->Use(caster);
 
-                    focus->SetRespawnDelay(60);
+                    // focus->SetRespawnDelay(60);
                     focus->SetLootState(GO_JUST_DEACTIVATED);
                     focus->SetForcedDespawn(); // remove the banana (this is what Explosives (items) are looking for)
 
@@ -1190,24 +1190,28 @@ bool ProcessEventId_event_covertops_charge(uint32 eventId, Object* pSource, Obje
         if (GameObject* NG5 = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectExplosives[tIndex], ATTACK_DISTANCE))
             NG5->Delete();
 
-        if (const GameObjectInfo* gInfo = ObjectMgr::GetGameObjectInfo(m_auiCovertOpsGameObjectExplosives[tIndex]))
+        float pos_x = aGameObjectExplosivesLocaitons[tIndex].x;
+        float pos_y = aGameObjectExplosivesLocaitons[tIndex].y;
+        float pos_z = aGameObjectExplosivesLocaitons[tIndex].z;
+
+        uint32 db_lowGUID = sObjectMgr.GenerateStaticGameObjectLowGuid();
+        
+        GameObject* pGameObj = new GameObject;
+        if (!pGameObj->Create(db_lowGUID, m_auiCovertOpsGameObjectExplosives[tIndex], caster->GetMap(), pos_x, pos_y, pos_z, 0.0f))
         {
-            GameObject* pGameObj = new GameObject;
-
-            float pos_x = aGameObjectExplosivesLocaitons[tIndex].x;
-            float pos_y = aGameObjectExplosivesLocaitons[tIndex].y;
-            float pos_z = aGameObjectExplosivesLocaitons[tIndex].z;
-
-            if (pGameObj->Create(m_auiCovertOpsGameObjectExplosives[tIndex], gInfo->id, caster->GetMap(), pos_x, pos_y, pos_z, 0.0f))
-            {
-                if (GameObject* trap = GetClosestGameObjectWithEntry(caster, VENTURE_WAGON_TRAP, DEFAULT_VISIBILITY_DISTANCE))
-                    trap->SetOwnerGuid(caster->GetObjectGuid());
-
-                caster->GetMap()->Add(pGameObj);
-                pGameObj->SetOwnerGuid(caster->GetObjectGuid());
-                return true;
-            }
+            delete pGameObj;
+            return false;
         }
+
+        pGameObj->SetRespawnTime(0);
+        pGameObj->AIM_Initialize();
+
+        if (GameObject* trap = GetClosestGameObjectWithEntry(caster, VENTURE_WAGON_TRAP, DEFAULT_VISIBILITY_DISTANCE))
+            trap->SetOwnerGuid(caster->GetObjectGuid());
+
+        caster->GetMap()->Add(pGameObj);
+        pGameObj->SetOwnerGuid(caster->GetObjectGuid());
+        return true;
     }
 
     return false;

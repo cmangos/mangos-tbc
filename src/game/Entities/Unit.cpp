@@ -8126,7 +8126,8 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
     if (!IsAlive())
         return;
 
-    bool creatureNotInCombat = GetTypeId() == TYPEID_UNIT && !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
+    bool notInCombat = !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
+    bool creatureNotInCombat = GetTypeId() == TYPEID_UNIT && notInCombat;
 
     // For player itself and his pet during pvp combat enable own combat timer
     if (PvP || creatureNotInCombat)
@@ -8137,7 +8138,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
     if (HasCharmer() || !GetOwnerGuid().IsEmpty())
     {
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
-        if (enemy)
+        if (enemy && notInCombat)
         {
             // TODO: Unify this combat propagation with linking combat propagation in threat system
             Unit* controller = GetMaster();

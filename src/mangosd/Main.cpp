@@ -28,6 +28,7 @@
 #include "Master.h"
 #include "SystemConfig.h"
 #include "AuctionHouseBot/AuctionHouseBot.h"
+#include "PlayerBot/config.h"
 
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
@@ -84,12 +85,15 @@ void usage(const char* prog)
 /// Launch the mangos server
 int main(int argc, char* argv[])
 {
-    std::string auctionBotConfig, configFile, serviceParameter;
+    std::string auctionBotConfig, configFile, playerBotConfig, serviceParameter;
 
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
     ("ahbot,a", boost::program_options::value<std::string>(&auctionBotConfig), "ahbot configuration file")
     ("config,c", boost::program_options::value<std::string>(&configFile)->default_value(_MANGOSD_CONFIG), "configuration file")
+#ifdef BUILD_PLAYERBOT
+    ("playerbot,p", boost::program_options::value<std::string>(&playerBotConfig)->default_value(_D_PLAYERBOT_CONFIG), "playerbot configuration file")
+#endif
     ("help,h", "prints usage")
     ("version,v", "print version and exit")
 #ifdef _WIN32
@@ -128,6 +132,10 @@ int main(int argc, char* argv[])
 
     if (vm.count("ahbot"))
         sAuctionBotConfig.SetConfigFileName(auctionBotConfig);
+#ifdef BUILD_PLAYERBOT
+    if (vm.count("playerbot"))
+        _PLAYERBOT_CONFIG = playerBotConfig;
+#endif
 
 #ifdef _WIN32                                                // windows service command need execute before config read
     if (vm.count("s"))

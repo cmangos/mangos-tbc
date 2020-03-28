@@ -21101,6 +21101,9 @@ bool Player::IsPetNeedBeTemporaryUnsummoned(Pet* pet) const
     {
         if (pet)
         {
+            if (!pet->isAlive())
+                return false;
+
             if (pet->isControlled() && (!(pet->isTemporarySummoned() || InArena()) || sWorld.getConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT)))
                 return true;
         }

@@ -303,9 +303,9 @@ typedef std::list<Item*> ItemDurationList;
 
 struct LookingForGroupSlot
 {
-    LookingForGroupSlot() : entry(0), type(0) {}
-    bool Empty() const { return !entry && !type; }
-    void Clear() { entry = 0; type = 0; }
+    LookingForGroupSlot() : entry(0), type(LFG_TYPE_DUNGEON) {}
+    bool Empty() const { return (!type || !entry); }
+    void Clear() { entry = 0; }
     void Set(uint32 _entry, uint32 _type) { entry = _entry; type = _type; }
     bool Is(uint32 _entry, uint32 _type) const { return entry == _entry && type == _type; }
     bool canAutoJoin() const { return entry && (type == LFG_TYPE_DUNGEON || type == LFG_TYPE_HEROIC_DUNGEON); }

@@ -37,8 +37,8 @@ static void AttemptJoin(Player* _player)
         if (!plr || plr == _player || plr->GetTeam() != _player->GetTeam())
             continue;
 
-        // skip players not in world
-        if (!plr->IsInWorld())
+        // skip players not in world or reconnecting
+        if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
             continue;
 
         // skip not auto add, not group leader cases
@@ -97,7 +97,8 @@ static void AttemptAddMore(Player* _player)
         if (!plr || plr == _player || plr->GetTeam() != _player->GetTeam())
             continue;
 
-        if (!plr->IsInWorld())
+        // skip players not in world or reconnecting
+        if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
             continue;
 
         // skip not auto join or in group

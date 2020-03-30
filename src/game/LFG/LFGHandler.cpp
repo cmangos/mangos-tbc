@@ -203,6 +203,29 @@ void WorldSession::HandleLfgClearOpcode(WorldPacket& /*recv_data */)
         _player->LeaveLFGChannel();
 }
 
+void WorldSession::HandleSetLfgOpcode(WorldPacket& recv_data)
+{
+    DEBUG_LOG("CMSG_SET_LOOKING_FOR_GROUP");
+
+    uint32 slot, temp;
+
+    recv_data >> slot >> temp;
+
+    uint32 entry = (temp & 0xFFFF);
+    uint32 type = ((temp >> 24) & 0xFFFF);
+
+    if (slot >= MAX_LOOKING_FOR_GROUP_SLOT)
+        return;
+
+    _player->m_lookingForGroup.slots[slot].Set(entry, type);
+    DEBUG_LOG("LFG set: looknumber %u, temp %X, type %u, entry %u", slot, temp, type, entry);
+
+    if (LookingForGroup_auto_join)
+        AttemptJoin(_player);
+
+    SendLfgResult(LfgType(type), entry, LFG_MODE);
+}
+
 void WorldSession::HandleLfmClearOpcode(WorldPacket& /*recv_data */)
 {
     // empty packet
@@ -347,27 +370,4 @@ void WorldSession::SendLFGUpdateLFM()
         data << uint32(_player->m_lookingForGroup.more.entry | (_player->m_lookingForGroup.more.type << 24));
     }
     SendPacket(data);
-}
-
-void WorldSession::HandleSetLfgOpcode(WorldPacket& recv_data)
-{
-    DEBUG_LOG("CMSG_SET_LOOKING_FOR_GROUP");
-
-    uint32 slot, temp;
-
-    recv_data >> slot >> temp;
-
-    uint32 entry = (temp & 0xFFFF);
-    uint32 type = ((temp >> 24) & 0xFFFF);
-
-    if (slot >= MAX_LOOKING_FOR_GROUP_SLOT)
-        return;
-
-    _player->m_lookingForGroup.slots[slot].Set(entry, type);
-    DEBUG_LOG("LFG set: looknumber %u, temp %X, type %u, entry %u", slot, temp, type, entry);
-
-    if (LookingForGroup_auto_join)
-        AttemptJoin(_player);
-
-    SendLfgResult(LfgType(type), entry, LFG_MODE);
 }

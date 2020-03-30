@@ -223,7 +223,7 @@ void WorldSession::HandleSetLfgOpcode(WorldPacket& recv_data)
     if (LookingForGroup_auto_join)
         AttemptJoin(_player);
 
-    SendLfgResult(LfgType(type), entry, LFG_MODE);
+    SendLFGListQueryResponse(LfgType(type), entry);
 }
 
 void WorldSession::HandleLfmClearOpcode(WorldPacket& /*recv_data */)
@@ -251,7 +251,7 @@ void WorldSession::HandleSetLfmOpcode(WorldPacket& recv_data)
     if (LookingForGroup_auto_add)
         AttemptAddMore(_player);
 
-    SendLfgResult(LfgType(type), entry, LFM_MODE);
+    SendLFGListQueryResponse(LfgType(type), entry);
 }
 
 void WorldSession::HandleSetLfgCommentOpcode(WorldPacket& recv_data)
@@ -266,7 +266,7 @@ void WorldSession::HandleSetLfgCommentOpcode(WorldPacket& recv_data)
     _player->m_lookingForGroup.comment = comment;
 }
 
-void WorldSession::HandleLookingForGroup(WorldPacket& recv_data)
+void WorldSession::HandleLFGListQuery(WorldPacket& recv_data)
 {
     DEBUG_LOG("MSG_LOOKING_FOR_GROUP");
     // recv_data.hexlike();
@@ -281,10 +281,10 @@ void WorldSession::HandleLookingForGroup(WorldPacket& recv_data)
     if (LookingForGroup_auto_join)
         AttemptJoin(_player);
 
-    SendLfgResult(LfgType(type), entry, LFG_MODE);
+    SendLFGListQueryResponse(LfgType(type), entry);
 }
 
-void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
+void WorldSession::SendLFGListQueryResponse(LfgType type, uint32 entry)
 {
     uint32 number = 0;
 
@@ -297,9 +297,9 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
 
     // TODO: Guard Player map
     HashMapHolder<Player>::MapType const& players = sObjectAccessor.GetPlayers();
-    for (const auto& player : players)
+    for (const auto& i : players)
     {
-        Player* plr = player.second;
+        Player* plr = i.second;
 
         if (!plr || plr->GetTeam() != _player->GetTeam())
             continue;
@@ -307,51 +307,55 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
         if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
             continue;
 
+        if (!plr->m_lookingForGroup.HaveInSlot(entry, type) && !plr->m_lookingForGroup.more.Is(entry, type))
+            continue;
+
         const Group* grp = plr->GetGroup();
 
         if (grp && (grp->isBattleGroup() || grp->IsFull() || !grp->IsLeader(plr->GetObjectGuid())))
             continue;
 
-        if (!plr->m_lookingForGroup.HaveInSlot(entry, type))
-            continue;
+        const bool lfm = plr->m_lookingForGroup.more.Is(entry, type);
 
         ++number;
 
-        data << plr->GetObjectGuid().WriteAsPacked();       // packed guid
+        data << plr->GetPackGUID();                         // packed guid
         data << uint32(plr->getLevel());                    // level
         data << uint32(plr->GetZoneId());                   // current zone
-        data << uint8(lfg_mode);                            // 0x00 - LFG, 0x01 - LFM
+        data << uint8(lfm);                                 // 0x00 - LFG, 0x01 - LFM
 
         for (uint8 j = 0; j < MAX_LOOKING_FOR_GROUP_SLOT; ++j)
         {
-            data << uint32(plr->m_lookingForGroup.slots[j].entry | (plr->m_lookingForGroup.slots[j].type << 24));
+            // FIXME: Incorrect for LFM, but avoids weird client lua erros for now...
+            if (lfm)
+                data << uint32(plr->m_lookingForGroup.more.entry | (plr->m_lookingForGroup.more.type << 24));
+            else
+                data << uint32(plr->m_lookingForGroup.slots[j].entry | (plr->m_lookingForGroup.slots[j].type << 24));
         }
 
         data << plr->m_lookingForGroup.comment;
 
+        data << uint32(0);                                  // other group members count, placeholder
+
         if (grp)
         {
-            data << uint32(grp->GetMembersCount() - 1);
+            const size_t offset = (data.wpos() - 4);        // other group members count, offset
+            uint32 count = 0;                               // other group members count
 
-            for (const auto& slot : grp->GetMemberSlots())
+            for (const GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
             {
-                if (slot.guid == plr->GetObjectGuid())
-                    continue;
-
-                uint32 level = 0;
-
-                for (const GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
-                    if (const Player* member = itr->getSource())
-                        if (member->GetObjectGuid() == slot.guid)
-                            level = member->getLevel();
-
-                data << PackedGuid(slot.guid);          // packed guid
-                data << uint32(level);                  // player level
+                if (const Player* member = itr->getSource())
+                {
+                    if (member->GetObjectGuid() != plr->GetObjectGuid())
+                    {
+                        data << member->GetPackGUID();      // packed guid
+                        data << uint32(member->getLevel()); // player level
+                        ++count;
+                    }
+                }
             }
-        }
-        else
-        {
-            data << uint32(0x00);
+
+            data.put<uint32>(offset, count);            // other group members count, fill the placeholder
         }
     }
 

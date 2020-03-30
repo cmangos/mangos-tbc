@@ -81,12 +81,6 @@ enum PartyResult
     ERR_INVITE_RESTRICTED               = 13,
 };
 
-enum LfgMode
-{
-    LFG_MODE                = 0,
-    LFM_MODE                = 1,
-};
-
 enum LfgType
 {
     LFG_TYPE_NONE           = 0,
@@ -344,7 +338,7 @@ class WorldSession
         // TRUE values set by client sending CMSG_LFG_SET_AUTOJOIN and CMSG_LFM_CLEAR_AUTOFILL before player login
         bool LookingForGroup_auto_join;
         bool LookingForGroup_auto_add;
-        void SendLfgResult(LfgType type, uint32 entry, LfgMode mode);
+        void SendLFGListQueryResponse(LfgType type, uint32 entry);
         void SendLFGUpdateLFG();
         void SendLFGUpdateLFM();
 
@@ -396,7 +390,6 @@ class WorldSession
         // new
         void HandleMoveUnRootAck(WorldPacket& recvPacket);
         void HandleMoveRootAck(WorldPacket& recvPacket);
-        void HandleLookingForGroup(WorldPacket& recvPacket);
 
         // new inspect
         void HandleInspectOpcode(WorldPacket& recvPacket);
@@ -749,6 +742,7 @@ class WorldSession
         void HandleLfmClearOpcode(WorldPacket& recv_data);
         void HandleSetLfmOpcode(WorldPacket& recv_data);
         void HandleSetLfgCommentOpcode(WorldPacket& recv_data);
+        void HandleLFGListQuery(WorldPacket& recvPacket);
         void HandleSetTitleOpcode(WorldPacket& recv_data);
         void HandleRealmSplitOpcode(WorldPacket& recv_data);
         void HandleTimeSyncResp(WorldPacket& recv_data);

@@ -206,7 +206,6 @@ class WorldSession
         void SendNotification(const char* format, ...) const ATTR_PRINTF(2, 3);
         void SendNotification(int32 string_id, ...) const;
         void SendPetNameInvalid(uint32 error, const std::string& name, DeclinedName* declinedName) const;
-        void SendLfgResult(LfgType type, uint32 entry, LfgMode mode);
         void SendPartyResult(PartyOperation operation, const std::string& member, PartyResult res) const;
         void SendAreaTriggerMessage(const char* Text, ...) const ATTR_PRINTF(2, 3);
         void SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg = 0) const;
@@ -345,6 +344,8 @@ class WorldSession
         // TRUE values set by client sending CMSG_LFG_SET_AUTOJOIN and CMSG_LFM_CLEAR_AUTOFILL before player login
         bool LookingForGroup_auto_join;
         bool LookingForGroup_auto_add;
+        void SendLfgResult(LfgType type, uint32 entry, LfgMode mode);
+        void SendLFGUpdateLFG();
 
         static void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data);
 

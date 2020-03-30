@@ -315,6 +315,14 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
     SendPacket(data);
 }
 
+void WorldSession::SendLFGUpdateLFG()
+{
+    WorldPacket data(SMSG_LFG_UPDATE_LFG, (4 * MAX_LOOKING_FOR_GROUP_SLOT));
+    for (uint8 i = 0; i < MAX_LOOKING_FOR_GROUP_SLOT; ++i)
+        data << uint32(_player->m_lookingForGroup.slots[i].entry | (_player->m_lookingForGroup.slots[i].type << 24));
+    SendPacket(data);
+}
+
 void WorldSession::HandleSetLfgOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("CMSG_SET_LOOKING_FOR_GROUP");

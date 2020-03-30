@@ -893,6 +893,9 @@ void WorldSession::HandlePlayerReconnect()
     // GM ticket notifications
     sTicketMgr.OnPlayerOnlineState(*_player, true);
 
+    // Send current LFG preferences on reconnect
+    _player->GetSession()->SendLFGUpdateLFG();
+
     // show time before shutdown if shutdown planned.
     if (sWorld.IsShutdowning())
         sWorld.ShutdownMsg(true, _player);

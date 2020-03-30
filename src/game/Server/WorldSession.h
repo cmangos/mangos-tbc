@@ -409,11 +409,14 @@ class WorldSession
 
         // Looking For Group
         // TRUE values set by client sending CMSG_LFG_SET_AUTOJOIN and CMSG_LFM_CLEAR_AUTOFILL before player login
-        bool LookingForGroup_auto_join;
-        bool LookingForGroup_auto_add;
+        bool LookingForGroup_auto_join = false;
+        bool LookingForGroup_auto_add = false;
+        bool LookingForGroup_queue_lfg = false;
+        bool LookingForGroup_queue_lfm = false;
         void SendLFGListQueryResponse(LfgType type, uint32 entry);
         void SendLFGUpdateLFG();
         void SendLFGUpdateLFM();
+        void SendLFGUpdateQueued();
 
         static void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data);
 

@@ -940,6 +940,7 @@ void WorldSession::HandlePlayerReconnect()
     // Send current LFG preferences on reconnect
     _player->GetSession()->SendLFGUpdateLFM();
     _player->GetSession()->SendLFGUpdateLFG();
+    _player->GetSession()->SendLFGUpdateQueued();
 
     // show time before shutdown if shutdown planned.
     if (sWorld.IsShutdowning())

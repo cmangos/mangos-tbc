@@ -298,10 +298,28 @@ UnitAI* GetAI_boss_murmur(Creature* pCreature)
     return new boss_murmurAI(pCreature);
 }
 
+struct SuppressionBlast : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(5);
+    }
+
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (target->isInCombat())
+            return false;
+
+        return true;
+    }
+};
+
 void AddSC_boss_murmur()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_murmur";
     pNewScript->GetAI = &GetAI_boss_murmur;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<SuppressionBlast>("spell_suppression_blast");
 }

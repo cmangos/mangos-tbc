@@ -894,6 +894,7 @@ void WorldSession::HandlePlayerReconnect()
     sTicketMgr.OnPlayerOnlineState(*_player, true);
 
     // Send current LFG preferences on reconnect
+    _player->GetSession()->SendLFGUpdateLFM();
     _player->GetSession()->SendLFGUpdateLFG();
 
     // show time before shutdown if shutdown planned.

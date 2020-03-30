@@ -346,6 +346,7 @@ class WorldSession
         bool LookingForGroup_auto_add;
         void SendLfgResult(LfgType type, uint32 entry, LfgMode mode);
         void SendLFGUpdateLFG();
+        void SendLFGUpdateLFM();
 
         static void BuildPartyMemberStatsChangedPacket(Player* player, WorldPacket& data);
 

@@ -337,6 +337,19 @@ void WorldSession::SendLFGUpdateLFG()
     SendPacket(data);
 }
 
+void WorldSession::SendLFGUpdateLFM()
+{
+    WorldPacket data(SMSG_LFG_UPDATE_LFM);
+    if (_player->m_lookingForGroup.more.Empty())
+        data << uint8(0);
+    else
+    {
+        data << uint8(1);
+        data << uint32(_player->m_lookingForGroup.more.entry | (_player->m_lookingForGroup.more.type << 24));
+    }
+    SendPacket(data);
+}
+
 void WorldSession::HandleSetLfgOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("CMSG_SET_LOOKING_FOR_GROUP");

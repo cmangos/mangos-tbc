@@ -41,24 +41,25 @@ static void AttemptJoin(Player* _player)
         if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
             continue;
 
-        Group* grp = plr->GetGroup();
-
-        // skip players in a battleground
-        if (grp->isBattleGroup())
-            return;
-
-        // skip not auto add, not group leader cases
-        if (!plr->GetSession()->LookingForGroup_auto_add || (grp && grp->GetLeaderGuid() != plr->GetObjectGuid()))
+        // skip not auto add
+        if (!plr->GetSession()->LookingForGroup_auto_add)
             continue;
 
         // skip non auto-join or empty slots, or non compatible slots
         if (!plr->m_lookingForGroup.more.canAutoJoin() || !_player->m_lookingForGroup.HaveInSlot(plr->m_lookingForGroup.more))
             continue;
 
+        Group* grp = plr->GetGroup();
+
+        // skip player in a battleground, not group leader, group is full cases
+        if (grp && (grp->isBattleGroup() || grp->IsFull() || grp->GetLeaderGuid() != plr->GetObjectGuid()))
+            continue;
+
         // attempt create group, or skip
         if (!grp)
         {
             Group* group = new Group;
+
             if (!group->Create(plr->GetObjectGuid(), plr->GetName()))
             {
                 delete group;
@@ -86,16 +87,14 @@ static void AttemptJoin(Player* _player)
 
 static void AttemptAddMore(Player* _player)
 {
-    // skip not group leader case or players in a battleground
-    if (Group* group = _player->GetGroup())
-    {
-        if (group->isBattleGroup() || group->GetLeaderGuid() != _player->GetObjectGuid())
-            return;
-    }
-    else
+    // skip non auto-join slot
+    if (!_player->m_lookingForGroup.more.canAutoJoin())
         return;
 
-    if (!_player->m_lookingForGroup.more.canAutoJoin())
+    // skip player in a battleground, not group leader, group is full cases
+    Group* _group = _player->GetGroup();
+
+    if (_group && (_group->isBattleGroup() || _group->IsFull() || _group->GetLeaderGuid() != _player->GetObjectGuid()))
         return;
 
     // TODO: Guard Player map
@@ -112,19 +111,19 @@ static void AttemptAddMore(Player* _player)
         if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
             continue;
 
-        Group* grp = plr->GetGroup();
-
-        // skip not auto join or in group
-        if (!plr->GetSession()->LookingForGroup_auto_join || grp)
+        // skip non auto-join or empty slots, or non compatible slots
+        if (!plr->GetSession()->LookingForGroup_auto_join || !plr->m_lookingForGroup.HaveInSlot(_player->m_lookingForGroup.more))
             continue;
 
-        if (!plr->m_lookingForGroup.HaveInSlot(_player->m_lookingForGroup.more))
+        // skip players in groups
+        if (plr->GetGroup())
             continue;
 
-        // attempt create group if need, or stop attempts
-        if (!grp)
+        // attempt create group if needed, or stop attempts
+        if (!_group)
         {
             Group* group = new Group;
+
             if (!group->Create(_player->GetObjectGuid(), _player->GetName()))
             {
                 delete group;

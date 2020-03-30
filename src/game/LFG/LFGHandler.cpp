@@ -41,8 +41,14 @@ static void AttemptJoin(Player* _player)
         if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
             continue;
 
+        Group* grp = plr->GetGroup();
+
+        // skip players in a battleground
+        if (grp->isBattleGroup())
+            return;
+
         // skip not auto add, not group leader cases
-        if (!plr->GetSession()->LookingForGroup_auto_add || (plr->GetGroup() && plr->GetGroup()->GetLeaderGuid() != plr->GetObjectGuid()))
+        if (!plr->GetSession()->LookingForGroup_auto_add || (grp && grp->GetLeaderGuid() != plr->GetObjectGuid()))
             continue;
 
         // skip non auto-join or empty slots, or non compatible slots
@@ -50,7 +56,7 @@ static void AttemptJoin(Player* _player)
             continue;
 
         // attempt create group, or skip
-        if (!plr->GetGroup())
+        if (!grp)
         {
             Group* group = new Group;
             if (!group->Create(plr->GetObjectGuid(), plr->GetName()))
@@ -80,8 +86,13 @@ static void AttemptJoin(Player* _player)
 
 static void AttemptAddMore(Player* _player)
 {
-    // skip not group leader case
-    if (_player->GetGroup() && _player->GetGroup()->GetLeaderGuid() != _player->GetObjectGuid())
+    // skip not group leader case or players in a battleground
+    if (Group* group = _player->GetGroup())
+    {
+        if (group->isBattleGroup() || group->GetLeaderGuid() != _player->GetObjectGuid())
+            return;
+    }
+    else
         return;
 
     if (!_player->m_lookingForGroup.more.canAutoJoin())
@@ -101,15 +112,17 @@ static void AttemptAddMore(Player* _player)
         if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
             continue;
 
+        Group* grp = plr->GetGroup();
+
         // skip not auto join or in group
-        if (!plr->GetSession()->LookingForGroup_auto_join || plr->GetGroup())
+        if (!plr->GetSession()->LookingForGroup_auto_join || grp)
             continue;
 
         if (!plr->m_lookingForGroup.HaveInSlot(_player->m_lookingForGroup.more))
             continue;
 
         // attempt create group if need, or stop attempts
-        if (!_player->GetGroup())
+        if (!grp)
         {
             Group* group = new Group;
             if (!group->Create(_player->GetObjectGuid(), _player->GetName()))

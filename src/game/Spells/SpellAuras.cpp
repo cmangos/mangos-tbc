@@ -7888,9 +7888,11 @@ void Aura::PeriodicDummyTick()
                     // Should be manauser
                     if (target->GetPowerType() != POWER_MANA)
                         return;
+                    if (target->GetPowerPercent() == 100.f)
+                        return;
                     // Regen amount is max (100% from spell) on 21% or less mana and min on 92.5% or greater mana (20% from spell)
-                    int mana = target->GetPower(POWER_MANA);
-                    int max_mana = target->GetMaxPower(POWER_MANA);
+                    int32 mana = target->GetPower(POWER_MANA);
+                    int32 max_mana = target->GetMaxPower(POWER_MANA);
                     int32 intelectPercent = 10 + int32((100.f - target->GetPowerPercent()) / 100 * 45.f);
                     if (target->HasAura(38390)) // Improved Aspect of the Viper
                         intelectPercent += 5;

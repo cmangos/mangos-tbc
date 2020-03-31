@@ -379,9 +379,33 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     if (HasMissingTargetFromClient(spellInfo))
         targets.setUnitTarget(mover->GetTarget());
 
+    if (_player->HasQueuedSpell())
+        return;
+
+    bool handled = false;
     Spell* spell = new Spell(mover, spellInfo, TRIGGERED_NONE);
     spell->m_cast_count = cast_count;                       // set count of casts
-    spell->SpellStart(&targets);
+    if (mover->HasGCD(spellInfo) || !mover->IsSpellReady(*spellInfo))
+    {
+        if (mover->HasGCDOrCooldownWithinMargin(*spellInfo))
+        {
+            handled = true;
+            _player->SetQueuedSpell(spell);
+            GetMessager().AddMessage([guid = mover->GetObjectGuid(), targets = targets](WorldSession* session) mutable
+            {
+                if (session->GetPlayer()) // in case of logout
+                {
+                    if (session->GetPlayer()->GetMover()->GetObjectGuid() == guid) // in case of mind control end
+                        session->GetPlayer()->CastQueuedSpell(targets);
+                    else
+                        session->GetPlayer()->ClearQueuedSpell();
+                }
+            });
+        }
+    }
+
+    if (!handled)
+        spell->SpellStart(&targets);
 }
 
 void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)

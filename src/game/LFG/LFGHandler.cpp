@@ -304,7 +304,12 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
         if (!plr || plr->GetTeam() != _player->GetTeam())
             continue;
 
-        if (!plr->IsInWorld())
+        if (!plr->IsInWorld() || plr->GetSession()->IsOffline())
+            continue;
+
+        const Group* grp = plr->GetGroup();
+
+        if (grp && (grp->isBattleGroup() || grp->IsFull() || !grp->IsLeader(plr->GetObjectGuid())))
             continue;
 
         if (!plr->m_lookingForGroup.HaveInSlot(entry, type))
@@ -323,8 +328,6 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
         }
 
         data << plr->m_lookingForGroup.comment;
-
-        Group* grp = plr->GetGroup();
 
         if (grp)
         {

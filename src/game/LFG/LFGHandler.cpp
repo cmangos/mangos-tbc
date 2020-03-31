@@ -324,18 +324,26 @@ void WorldSession::SendLfgResult(LfgType type, uint32 entry, LfgMode lfg_mode)
 
         data << plr->m_lookingForGroup.comment;
 
-        Group* group = plr->GetGroup();
-        if (group)
+        Group* grp = plr->GetGroup();
+
+        if (grp)
         {
-            data << uint32(group->GetMembersCount() - 1);   // count of group members without group leader
-            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            data << uint32(grp->GetMembersCount() - 1);
+
+            for (const auto& slot : grp->GetMemberSlots())
             {
-                Player* member = itr->getSource();
-                if (member && member->GetObjectGuid() != plr->GetObjectGuid())
-                {
-                    data << member->GetPackGUID();          // packed guid
-                    data << uint32(member->getLevel());     // player level
-                }
+                if (slot.guid == plr->GetObjectGuid())
+                    continue;
+
+                uint32 level = 0;
+
+                for (const GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
+                    if (const Player* member = itr->getSource())
+                        if (member->GetObjectGuid() == slot.guid)
+                            level = member->getLevel();
+
+                data << PackedGuid(slot.guid);          // packed guid
+                data << uint32(level);                  // player level
             }
         }
         else

@@ -108,7 +108,7 @@ bool handleArgs(int argc, char** argv,
 
     for (int i = 1; i < argc; ++i)
     {
-        if (strcmp(argv[i], "--maxAngle") == 0)
+        if (strcmp(argv[i], "--maxAngle") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -120,7 +120,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--maxAngle', using default\n");
         }
-        else if (strcmp(argv[i], "--tile") == 0)
+        else if (strcmp(argv[i], "--tile") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -142,7 +142,7 @@ bool handleArgs(int argc, char** argv,
                 return false;
             }
         }
-        else if (strcmp(argv[i], "--skipLiquid") == 0)
+        else if (strcmp(argv[i], "--skipLiquid") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -155,7 +155,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipLiquid', using default\n");
         }
-        else if (strcmp(argv[i], "--skipContinents") == 0)
+        else if (strcmp(argv[i], "--skipContinents") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -168,7 +168,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipContinents', using default\n");
         }
-        else if (strcmp(argv[i], "--skipJunkMaps") == 0)
+        else if (strcmp(argv[i], "--skipJunkMaps") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -181,7 +181,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipJunkMaps', using default\n");
         }
-        else if (strcmp(argv[i], "--skipBattlegrounds") == 0)
+        else if (strcmp(argv[i], "--skipBattlegrounds") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -194,7 +194,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipBattlegrounds', using default\n");
         }
-        else if (strcmp(argv[i], "--debugOutput") == 0)
+        else if (strcmp(argv[i], "--debugOutput") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -207,11 +207,11 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--debugOutput', using default true\n");
         }
-        else if (strcmp(argv[i], "--silent") == 0)
+        else if (strcmp(argv[i], "--silent") == 0 && i + 1 < argc)
         {
             silent = true;
         }
-        else if (strcmp(argv[i], "--bigBaseUnit") == 0)
+        else if (strcmp(argv[i], "--bigBaseUnit") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -224,7 +224,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--bigBaseUnit', using default false\n");
         }
-        else if (strcmp(argv[i], "--offMeshInput") == 0)
+        else if (strcmp(argv[i], "--offMeshInput") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -232,7 +232,7 @@ bool handleArgs(int argc, char** argv,
 
             offMeshInputPath = param;
         }
-        else if (strcmp(argv[i], "--workdir") == 0)
+        else if (strcmp(argv[i], "--workdir") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)

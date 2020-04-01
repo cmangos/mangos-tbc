@@ -1441,15 +1441,16 @@ struct npc_vengeful_harbinger : public ScriptedAI
             {
                 if (eventResetTimer <= uiDiff)
                 {
-                    if (Creature* tombGuardian = GetClosestCreatureWithEntry(m_creature, NPC_DRAENEI_TOMB_GUARDIAN, 15))
+                    if (Unit* tombGuardian = m_creature->GetSpawner())
                     {
                         m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, m_creature, tombGuardian);
                         eventResetTimer = 0;
-                    }
-                    else
-                    {
-                        sLog.outCustomLog("Vengeful Harbinger found out of combat in a strange place. This should never happen!");
-                        m_creature->ForcedDespawn();
+
+                        if (!m_creature->IsWithinDist(tombGuardian, 25.f))
+                        {
+                            sLog.outCustomLog("Vengeful Harbinger found out of combat in a strange place. This should never happen!");
+                            m_creature->ForcedDespawn();
+                        }
                     }
                 }
                 else

@@ -2454,6 +2454,7 @@ void Player::SetGameMaster(bool on)
         SetPvPFreeForAll(false);
         UpdatePvPContested(false, true);
 
+        AttackStop();
         CombatStopWithPets();
     }
     else

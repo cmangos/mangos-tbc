@@ -112,7 +112,7 @@ bool handleArgs(int argc, char** argv,
 
     for (int i = 1; i < argc; ++i)
     {
-        if (strcmp(argv[i], "--tile") == 0)
+        if (strcmp(argv[i], "--tile") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -163,7 +163,7 @@ bool handleArgs(int argc, char** argv,
         {
             buildGameObjects = true;
         }
-        else if (strcmp(argv[i], "--offMeshInput") == 0)
+        else if (strcmp(argv[i], "--offMeshInput") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -171,7 +171,7 @@ bool handleArgs(int argc, char** argv,
 
             offMeshInputPath = param;
         }
-        else if (strcmp(argv[i], "--configInputPath") == 0)
+        else if (strcmp(argv[i], "--configInputPath") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -179,7 +179,7 @@ bool handleArgs(int argc, char** argv,
 
             configInputPath = param;
         }
-        else if (strcmp(argv[i], "--threads") == 0)
+        else if (strcmp(argv[i], "--threads") == 0 && i + 1 < argc))
         {
             param = argv[++i];
             if (!param)
@@ -198,7 +198,7 @@ bool handleArgs(int argc, char** argv,
                 return false;
             }
         }
-        else if (strcmp(argv[i], "--workdir") == 0)
+        else if (strcmp(argv[i], "--workdir") == 0 && i + 1 < argc))
         {
             param = argv[++i];
             if (!param)

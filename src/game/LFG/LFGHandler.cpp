@@ -286,14 +286,15 @@ void WorldSession::HandleLFGListQuery(WorldPacket& recv_data)
 
 void WorldSession::SendLFGListQueryResponse(LfgType type, uint32 entry)
 {
-    uint32 number = 0;
-
-    // start prepare packet;
+    // start prepare packet
     WorldPacket data(MSG_LOOKING_FOR_GROUP);
     data << uint32(type);                                   // type
     data << uint32(entry);                                  // entry from LFGDungeons.dbc
-    data << uint32(0);                                      // count, placeholder
-    data << uint32(0);                                      // count again, strange, placeholder
+    data << uint32(0);                                      // displayed players count, placeholder
+    data << uint32(0);                                      // found players count, placeholder
+
+    uint32 displayed = 0;
+    uint32 found = 0;
 
     // TODO: Guard Player map
     HashMapHolder<Player>::MapType const& players = sObjectAccessor.GetPlayers();
@@ -315,21 +316,30 @@ void WorldSession::SendLFGListQueryResponse(LfgType type, uint32 entry)
         if (grp && (grp->isBattleGroup() || grp->IsFull() || !grp->IsLeader(plr->GetObjectGuid())))
             continue;
 
-        const bool lfm = plr->m_lookingForGroup.more.Is(entry, type);
+        ++found;
 
-        ++number;
+        // Client hardcoded limitation on amount of players sent in the packet handler and UI:
+        if (found > 50)
+            continue;
+
+        ++displayed;
+
+        const bool lfm = plr->m_lookingForGroup.more.Is(entry, type);
 
         data << plr->GetPackGUID();                         // packed guid
         data << uint32(plr->getLevel());                    // level
         data << uint32(plr->GetZoneId());                   // current zone
         data << uint8(lfm);                                 // 0x00 - LFG, 0x01 - LFM
 
-        for (uint8 j = 0; j < MAX_LOOKING_FOR_GROUP_SLOT; ++j)
+        if (lfm)
         {
-            // FIXME: Incorrect for LFM, but avoids weird client lua erros for now...
-            if (lfm)
-                data << uint32(plr->m_lookingForGroup.more.entry | (plr->m_lookingForGroup.more.type << 24));
-            else
+            data << uint32(plr->m_lookingForGroup.more.entry | (plr->m_lookingForGroup.more.type << 24));
+            data << uint32(0x1000000);
+            data << uint32(0x1000000);
+        }
+        else
+        {
+            for (uint8 j = 0; j < MAX_LOOKING_FOR_GROUP_SLOT; ++j)
                 data << uint32(plr->m_lookingForGroup.slots[j].entry | (plr->m_lookingForGroup.slots[j].type << 24));
         }
 
@@ -360,8 +370,8 @@ void WorldSession::SendLFGListQueryResponse(LfgType type, uint32 entry)
     }
 
     // fill count placeholders
-    data.put<uint32>(4 + 4,  number);
-    data.put<uint32>(4 + 4 + 4, number);
+    data.put<uint32>(4 + 4,  displayed);
+    data.put<uint32>(4 + 4 + 4, found);
 
     SendPacket(data);
 }

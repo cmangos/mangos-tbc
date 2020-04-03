@@ -19,6 +19,12 @@
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellAuras.h"
 
+enum
+{
+    SPELL_PET_RESISTANCE = 37386,
+    SPELL_INCREASED_ATTACK_POWER = 38297,
+};
+
 struct HunterPetScaling1 : public AuraScript
 {
     int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
@@ -27,11 +33,19 @@ struct HunterPetScaling1 : public AuraScript
         {
             case EFFECT_INDEX_0: // stamina
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
+                    if (owner->HasAura(SPELL_INCREASED_ATTACK_POWER))
+                        value += 52;
+                }
                 break;
             case EFFECT_INDEX_1: // attack power
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.25f;
+                    if (owner->HasAura(SPELL_INCREASED_ATTACK_POWER))
+                        value += 70;
+                }
                 break;
             case EFFECT_INDEX_2: // spell power
                 if (Unit* owner = caster->GetOwner())
@@ -81,7 +95,11 @@ struct HunterPetScaling3 : public AuraScript
                 break;
             case EFFECT_INDEX_2: // armor
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = owner->GetArmor() * 0.35f;
+                    if (owner->HasAura(SPELL_INCREASED_ATTACK_POWER))
+                        value += 490;
+                }
                 break;
         }
         return value;
@@ -147,7 +165,11 @@ struct WarlockPetScaling2 : public AuraScript
                 break;
             case EFFECT_INDEX_2: // resistance
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = (owner->GetResistance(SPELL_SCHOOL_FIRE) * 0.4f);
+                    if (owner->HasAura(SPELL_PET_RESISTANCE))
+                        value += 130;
+                }
                 break;
         }
         return value;
@@ -162,15 +184,27 @@ struct WarlockPetScaling3 : public AuraScript
         {
             case EFFECT_INDEX_0: // resistance
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = (owner->GetResistance(SPELL_SCHOOL_FROST) * 0.4f);
+                    if (owner->HasAura(SPELL_PET_RESISTANCE))
+                        value += 130;
+                }
                 break;
             case EFFECT_INDEX_1: // resistance
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = (owner->GetResistance(SPELL_SCHOOL_ARCANE) * 0.4f);
+                    if (owner->HasAura(SPELL_PET_RESISTANCE))
+                        value += 130;
+                }
                 break;
             case EFFECT_INDEX_2: // resistance
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = (owner->GetResistance(SPELL_SCHOOL_NATURE) * 0.4f);
+                    if (owner->HasAura(SPELL_PET_RESISTANCE))
+                        value += 130;
+                }
                 break;
         }
         return value;
@@ -185,7 +219,11 @@ struct WarlockPetScaling4 : public AuraScript
         {
             case EFFECT_INDEX_0: // resistance
                 if (Unit* owner = caster->GetOwner())
+                {
                     value = (owner->GetResistance(SPELL_SCHOOL_SHADOW) * 0.4f);
+                    if (owner->HasAura(SPELL_PET_RESISTANCE))
+                        value += 130;
+                }
                 break;
             case EFFECT_INDEX_1: // mana regen
                 if (Unit* owner = caster->GetOwner())

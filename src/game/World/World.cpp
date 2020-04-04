@@ -2039,10 +2039,8 @@ void World::UpdateSessions(uint32 diff)
     {
         ///- and remove not active sessions from the list
         WorldSession* pSession = itr->second;
-        WorldSessionFilter updater(pSession);
 
-        // if WorldSession::Update fails, it means that the session should be destroyed
-        if (!pSession->Update(diff, updater))
+        if (!pSession->Update(diff))
         {
             RemoveQueuedSession(pSession);
             itr = m_sessions.erase(itr);

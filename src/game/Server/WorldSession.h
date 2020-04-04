@@ -277,7 +277,8 @@ class WorldSession
 
         void QueuePacket(std::unique_ptr<WorldPacket> new_packet);
 
-        bool Update(uint32 diff, PacketFilter& updater);
+        bool Update(uint32 diff);
+        void UpdateMap(uint32 diff);
 
         /// Handle the authentication waiting queue (to be completed)
         void SendAuthWaitQue(uint32 position) const;
@@ -855,6 +856,8 @@ class WorldSession
         void LogUnexpectedOpcode(WorldPacket const& packet, const char* reason) const;
         void LogUnprocessedTail(WorldPacket const& packet) const;
 
+        void ProcessByteBufferException(WorldPacket const& packet);
+
         uint32 m_GUIDLow;                                   // set logged or recently logout player (while m_playerRecentlyLogout set)
         Player* _player;
         std::shared_ptr<WorldSocket> m_Socket;              // socket pointer is owned by the network thread which created it
@@ -893,7 +896,9 @@ class WorldSession
         bool m_initialZoneUpdated = false;
 
         std::mutex m_recvQueueLock;
+        std::mutex m_recvQueueMapLock;
         std::deque<std::unique_ptr<WorldPacket>> m_recvQueue;
+        std::deque<std::unique_ptr<WorldPacket>> m_recvQueueMap;
 
         Messager<WorldSession> m_messager;
 };

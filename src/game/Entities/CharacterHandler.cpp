@@ -754,6 +754,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     // GM ticket notifications
     sTicketMgr.OnPlayerOnlineState(*pCurrChar, true);
 
+    // Send LFG update on login
+    _player->GetSession()->SendLFGUpdate();
+
     // Place character in world (and load zone) before some object loading
     pCurrChar->LoadCorpse();
 
@@ -938,9 +941,11 @@ void WorldSession::HandlePlayerReconnect()
     sTicketMgr.OnPlayerOnlineState(*_player, true);
 
     // Send current LFG preferences on reconnect
-    _player->GetSession()->SendLFGUpdateLFM();
     _player->GetSession()->SendLFGUpdateLFG();
-    _player->GetSession()->SendLFGUpdateQueued();
+    _player->GetSession()->SendLFGUpdateLFM();
+
+    // Send LFG update on login
+    _player->GetSession()->SendLFGUpdate();
 
     // show time before shutdown if shutdown planned.
     if (sWorld.IsShutdowning())

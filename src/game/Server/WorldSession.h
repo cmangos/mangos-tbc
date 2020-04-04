@@ -206,6 +206,7 @@ class WorldSession
         // Set this session have no attached socket but keep it alive for short period of time to permit a possible reconnection
         void SetOffline();
         void SetOnline();
+        void SetInCharSelection();
 
         // Request set offline, close socket and put session offline
         bool RequestNewSocket(WorldSocket* socket);
@@ -865,6 +866,7 @@ class WorldSession
         uint8 m_expansion;
 
         time_t _logoutTime;                                 // when logout will be processed after a logout request
+        time_t m_kickTime;
         bool m_playerSave;                                  // should we have to save the player after logout request
         bool m_inQueue;                                     // session wait in auth.queue
         bool m_playerLoading;                               // code processed in LoginPlayer

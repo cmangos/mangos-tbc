@@ -67,6 +67,10 @@ struct mob_unkor_the_ruthlessAI : public ScriptedAI
         m_uiFriendlyTimer   = 0;
         m_uiPulverizeTimer  = 3000;
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
+        {
+            return y > 4428.f;
+        });
     }
 
     void DoNice()

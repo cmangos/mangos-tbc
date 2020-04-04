@@ -53,6 +53,8 @@ enum
     SAY_KARGATH_EXECUTE_HORDE   = -1540050,
 
     // AT_NETHEKURSE               = 4524,                  // Area trigger used for the execution event
+
+    NPC_FLAME_ARROW             = 17687,
 };
 
 struct SpawnLocation

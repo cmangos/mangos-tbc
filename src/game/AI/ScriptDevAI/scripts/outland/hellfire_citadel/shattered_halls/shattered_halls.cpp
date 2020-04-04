@@ -109,6 +109,8 @@ void instance_shattered_halls::OnCreatureCreate(Creature* creature)
 
 void instance_shattered_halls::OnCreatureRespawn(Creature* creature)
 {
+    if (creature->GetEntry() == NPC_FLAME_ARROW)
+        creature->SetCanEnterCombat(false);
     if (creature->GetRespawnDelay() == 5)
         creature->SetNoRewards();
 }

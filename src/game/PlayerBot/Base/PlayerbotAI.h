@@ -460,7 +460,7 @@ class PlayerbotAI
         void findNearbyCreature();
         // finds nearby corpse that is lootable
         void findNearbyCorpse();
-        bool IsElite(Unit* pTarget, bool isWorldBoss = false) const;
+        bool IsElite(Unit* target, bool isWorldBoss = false) const;
         // Used by bots to check if their target is neutralized (polymorph, shackle or the like). Useful to avoid breaking crowd control
         bool IsNeutralized(Unit* pTarget);
         // Make the bots face their target

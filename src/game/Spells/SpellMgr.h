@@ -1323,6 +1323,7 @@ inline bool IsGOCastSpell(SpellEntry const* spellInfo)
 {
     switch (spellInfo->Id)
     {
+        case 6636: // Wagon Explode
         case 30979:  // Flames
             return true;
         default:

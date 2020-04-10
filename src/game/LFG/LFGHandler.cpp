@@ -72,14 +72,14 @@ static void AttemptJoin(Player* _player)
         // stop at success join
         if (plr->GetGroup()->AddMember(_player->GetObjectGuid(), _player->GetName()))
         {
-            if (sWorld.getConfig(CONFIG_BOOL_RESTRICTED_LFG_CHANNEL) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
+            if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
                 _player->LeaveLFGChannel();
             break;
         }
         // full
         else
         {
-            if (sWorld.getConfig(CONFIG_BOOL_RESTRICTED_LFG_CHANNEL) && plr->GetSession()->GetSecurity() == SEC_PLAYER)
+            if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && plr->GetSession()->GetSecurity() == SEC_PLAYER)
                 plr->LeaveLFGChannel();
         }
     }
@@ -136,20 +136,20 @@ static void AttemptAddMore(Player* _player)
         // stop at join fail (full)
         if (!_player->GetGroup()->AddMember(plr->GetObjectGuid(), plr->GetName()))
         {
-            if (sWorld.getConfig(CONFIG_BOOL_RESTRICTED_LFG_CHANNEL) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
+            if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
                 _player->LeaveLFGChannel();
 
             break;
         }
 
         // joined
-        if (sWorld.getConfig(CONFIG_BOOL_RESTRICTED_LFG_CHANNEL) && plr->GetSession()->GetSecurity() == SEC_PLAYER)
+        if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && plr->GetSession()->GetSecurity() == SEC_PLAYER)
             plr->LeaveLFGChannel();
 
         // and group full
         if (_player->GetGroup()->IsFull())
         {
-            if (sWorld.getConfig(CONFIG_BOOL_RESTRICTED_LFG_CHANNEL) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
+            if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
                 _player->LeaveLFGChannel();
 
             break;
@@ -199,7 +199,7 @@ void WorldSession::HandleLfgClearOpcode(WorldPacket& /*recv_data */)
     for (int i = 0; i < MAX_LOOKING_FOR_GROUP_SLOT; ++i)
         _player->m_lookingForGroup.slots[i].Clear();
 
-    if (sWorld.getConfig(CONFIG_BOOL_RESTRICTED_LFG_CHANNEL) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
+    if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && _player->GetSession()->GetSecurity() == SEC_PLAYER)
         _player->LeaveLFGChannel();
 }
 

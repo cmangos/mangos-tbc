@@ -1129,16 +1129,6 @@ static const uint32 m_auiCovertOpsGameObjectFocus[] = { GO_SPELLFOCUS_RED, GO_SP
 static const uint32 m_auiCovertOpsGameObjectExplosives[] = { GO_NG_5_EXPLOSIVES_RED, GO_NG_5_EXPLOSIVES_BLUE };
 static const uint32 m_auiCovertOpsGameObjectWagons[] = { VENTURE_WAGON_RED, VENTURE_WAGON_BLUE };
 
-struct ExplosivesLocation
-{
-    float x, y, z;
-};
-static const ExplosivesLocation aGameObjectExplosivesLocaitons[2] =
-{
-    {1049.00f, -442.11, 4.34f}, // guessed
-    {1168.25f, 50.75f, 0.0f} // guessed
-};
-
 bool ProcessEventId_event_covertops_detonate(uint32 eventId, Object* pSource, Object* pTarget, bool isStart)
 {
     if (!pSource || pSource->GetTypeId() != TYPEID_PLAYER)
@@ -1157,9 +1147,10 @@ bool ProcessEventId_event_covertops_detonate(uint32 eventId, Object* pSource, Ob
             if (GameObject* wagon = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectWagons[tIndex], DEFAULT_VISIBILITY_DISTANCE))
                 if (GameObject* NG5 = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectExplosives[tIndex], DEFAULT_VISIBILITY_DISTANCE))
                 {
-                    NG5->Delete();
+                    NG5->SetLootState(GO_JUST_DEACTIVATED);
+                    NG5->SetForcedDespawn();
 
-                    wagon->Use(caster);
+                    wagon->Use(caster); // remove the explosive
 
                     // focus->SetRespawnDelay(60);
                     focus->SetLootState(GO_JUST_DEACTIVATED);
@@ -1186,31 +1177,18 @@ bool ProcessEventId_event_covertops_charge(uint32 eventId, Object* pSource, Obje
 
     if (Unit* caster = ((Unit*)pSource))
     {
-        // delete NG5 if already exist
-        if (GameObject* NG5 = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectExplosives[tIndex], ATTACK_DISTANCE))
-            NG5->Delete();
-
-        float pos_x = aGameObjectExplosivesLocaitons[tIndex].x;
-        float pos_y = aGameObjectExplosivesLocaitons[tIndex].y;
-        float pos_z = aGameObjectExplosivesLocaitons[tIndex].z;
-
-        uint32 db_lowGUID = sObjectMgr.GenerateStaticGameObjectLowGuid();
-        
-        GameObject* pGameObj = new GameObject;
-        if (!pGameObj->Create(db_lowGUID, m_auiCovertOpsGameObjectExplosives[tIndex], caster->GetMap(), pos_x, pos_y, pos_z, 0.0f))
+        if (GameObject* pGameObj = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectExplosives[tIndex], DEFAULT_VISIBILITY_DISTANCE))
         {
-            delete pGameObj;
-            return false;
+            pGameObj->SetRespawnTime(9000);
+            pGameObj->Refresh();
+            pGameObj->SetOwnerGuid(caster->GetObjectGuid());
+
+            if (GameObject* trap = GetClosestGameObjectWithEntry(caster, VENTURE_WAGON_TRAP, DEFAULT_VISIBILITY_DISTANCE))
+                trap->SetOwnerGuid(caster->GetObjectGuid());
         }
+        else
+            return false;
 
-        pGameObj->SetRespawnTime(0);
-        pGameObj->AIM_Initialize();
-
-        if (GameObject* trap = GetClosestGameObjectWithEntry(caster, VENTURE_WAGON_TRAP, DEFAULT_VISIBILITY_DISTANCE))
-            trap->SetOwnerGuid(caster->GetObjectGuid());
-
-        caster->GetMap()->Add(pGameObj);
-        pGameObj->SetOwnerGuid(caster->GetObjectGuid());
         return true;
     }
 
@@ -1258,7 +1236,10 @@ struct go_covertopsAI : public GameObjectAI
                 {
                     trap->PlayDirectSound(1399);
                     if (Unit* owner = trap->GetMap()->GetPlayer(trap->GetOwnerGuid()))
-                        trap->Use(owner); // owner->CastSpell(owner, SPELL_WAGON_KNOCKBACK, true);
+                    {
+                        trap->Use(owner);
+                        trap->CastSpell(owner, SPELL_WAGON_KNOCKBACK, TRIGGERED_OLD_TRIGGERED);
+                    }
                 }
 
                 GO_EXPLODED = true;
@@ -1285,13 +1266,13 @@ struct go_covertopsAI : public GameObjectAI
                     if (!creature || !creature->isAlive())
                         continue;
 
-                    float x, y, z;
-                    float angle = 2.0f * M_PI_F * rand_norm_f();
-                    m_go->GetClosePoint(x, y, z, 0.0f, ATTACK_DISTANCE, angle);
+                    float fX, fY, fZ;
+                    m_go->GetNearPoint(m_go, fX, fY, fZ, 0, frand(25.0f, 40.0f), frand(0, 2 * M_PI_F));
 
                     creature->SetWaterWalk(true); // so they don't get stuck on nearby shores
                     creature->SetWalk(false); // so they run ?
-                    creature->GetMotionMaster()->MovePoint(0, x, y, z, true, FORCED_MOVEMENT_NONE);
+                    creature->GetMotionMaster()->MovePoint(0, fX, fY, fZ, true, FORCED_MOVEMENT_NONE);
+                    creature->GetMotionMaster()->MoveRandomAroundPoint(fX, fY, fZ, 20.0f, timer_c_return);
                 }
 
                 GO_CALLED = true;

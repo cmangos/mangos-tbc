@@ -59,7 +59,7 @@ void HomeMovementGenerator<Creature>::_setTargetLocation(Creature& owner)
     init.SetWalk(!runHome);
     init.SetFacing(o);
     if (path.getPathType() & (PATHFIND_NOPATH | PATHFIND_SHORTCUT))
-        init.SetVelocity(FLT_EPSILON);
+        init.SetVelocity(400.f);
     init.Launch();
 
     arrived = false;

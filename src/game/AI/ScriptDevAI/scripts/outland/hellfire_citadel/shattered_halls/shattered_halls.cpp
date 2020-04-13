@@ -177,6 +177,9 @@ void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
             }
             break;
         case TYPE_GAUNTLET:
+            if (m_auiEncounter[uiType] == DONE) // do not allow any exploits
+                return;
+
             switch (uiData)
             {
                 case FAIL: // Called on wipe/players left/Boss Evade
@@ -260,6 +263,8 @@ void instance_shattered_halls::OnCreatureEvade(Creature* creature)
     // If npc evades continue the counting
     if (creature->GetEntry() == NPC_EXECUTIONER)
         SetData(TYPE_EXECUTION, IN_PROGRESS);
+    else if (creature->GetEntry() == NPC_SHATTERED_HAND_ZEALOT)
+        SetData(TYPE_GAUNTLET, FAIL);
 }
 
 bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const
@@ -633,7 +638,13 @@ struct npc_Gauntlet_of_Fire : public ScriptedAI
                 default:
                     pSummoned->GetMotionMaster()->MoveIdle();
                     if (m_pInstance && pSummoned->GetHealth() > 0)
-                        m_pInstance->SetData(TYPE_GAUNTLET, FAIL);
+                    {
+                        pSummoned->SetInCombatWithZone();
+                        if (!pSummoned->IsInCombat())
+                            m_pInstance->SetData(TYPE_GAUNTLET, FAIL);
+                        else
+                            pSummoned->AI()->AttackClosestEnemy();
+                    }
                     break;
             }
         }        

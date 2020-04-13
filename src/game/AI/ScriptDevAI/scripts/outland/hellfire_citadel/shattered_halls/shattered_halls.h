@@ -55,6 +55,8 @@ enum
     // AT_NETHEKURSE               = 4524,                  // Area trigger used for the execution event
 
     NPC_FLAME_ARROW             = 17687,
+
+    NPC_SHATTERED_HAND_ZEALOT = 17462,
 };
 
 struct SpawnLocation

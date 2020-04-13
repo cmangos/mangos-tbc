@@ -403,9 +403,9 @@ InstanceData* GetInstanceData_instance_shattered_halls(Map* pMap)
     return new instance_shattered_halls(pMap);
 }
 
-enum {
+enum
+{
     NPC_SHATTERED_HAND_SCOUT  = 17693,
-    NPC_SHATTERED_HAND_ZEALOT = 17462,
     NPC_SHATTERED_HAND_ARCHER = 17427,
     NPC_SHATTERED_HAND_BG	  = 17461, // Porung is the heroic entry for this npc
 //	NPC_ARCHER_TARGET		  = 29097, // Might not need? 

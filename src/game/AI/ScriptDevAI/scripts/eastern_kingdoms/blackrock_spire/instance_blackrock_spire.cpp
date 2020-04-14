@@ -971,7 +971,7 @@ struct npc_rookery_hatcherAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff) override
     {
         // Return since we have no target or are disturbing an egg
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || m_bIsMovementActive)
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim() || m_bIsMovementActive)
             return;
 
         if (uiWaitTimer)
@@ -979,7 +979,7 @@ struct npc_rookery_hatcherAI : public ScriptedAI
             if (uiWaitTimer < uiDiff)
             {
                 uiWaitTimer = 0;
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
             }
             else
                 uiWaitTimer -= uiDiff;
@@ -988,7 +988,7 @@ struct npc_rookery_hatcherAI : public ScriptedAI
         //  Strike Timer
         if (uiStrikeTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STRIKE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_STRIKE) == CAST_OK)
                 uiStrikeTimer = urand(4000, 6000);
         }
         else
@@ -997,7 +997,7 @@ struct npc_rookery_hatcherAI : public ScriptedAI
         // Sunder Armor timer
         if (uiSunderArmorTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDER_ARMOR) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SUNDER_ARMOR) == CAST_OK)
                 uiSunderArmorTimer = 5000;
         }
         else

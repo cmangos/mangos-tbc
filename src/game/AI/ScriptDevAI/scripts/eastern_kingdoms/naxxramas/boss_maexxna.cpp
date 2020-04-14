@@ -194,7 +194,7 @@ struct boss_maexxnaAI : public ScriptedAI
     void UpdateAI(const uint32 diff) override
     {
         // Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Web Wrap
@@ -247,7 +247,7 @@ struct boss_maexxnaAI : public ScriptedAI
         // Poison Shock
         if (m_poisonShockTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_POISONSHOCK) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_POISONSHOCK) == CAST_OK)
                 m_poisonShockTimer = urand(10, 20) * IN_MILLISECONDS;
         }
         else
@@ -256,7 +256,7 @@ struct boss_maexxnaAI : public ScriptedAI
         // Necrotic Poison
         if (m_necroticPoisonTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_NECROTICPOISON) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_NECROTICPOISON) == CAST_OK)
                 m_necroticPoisonTimer = urand(20, 30) * IN_MILLISECONDS;
         }
         else

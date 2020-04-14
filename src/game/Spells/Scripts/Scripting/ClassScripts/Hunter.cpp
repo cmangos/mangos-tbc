@@ -81,7 +81,7 @@ struct KillCommand : public SpellScript
 
         // additional damage from pet to pet target
         Pet* pet = static_cast<Pet*>(spell->GetUnitTarget()); // guaranteed by spell targeting
-        if (!pet->getVictim())
+        if (!pet->GetVictim())
             return;
 
         uint32 spell_id = 0;
@@ -91,7 +91,7 @@ struct KillCommand : public SpellScript
             default: sLog.outError("KillCommand: Spell %u not handled", spell->m_spellInfo->Id); return;
         }
 
-        pet->CastSpell(pet->getVictim(), spell_id, TRIGGERED_OLD_TRIGGERED);
+        pet->CastSpell(pet->GetVictim(), spell_id, TRIGGERED_OLD_TRIGGERED);
         return;
     }
 };

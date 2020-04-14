@@ -3225,7 +3225,7 @@ void Spell::_handle_finish_phase()
 
     if (m_caster->m_extraAttacks && IsSpellHaveEffect(m_spellInfo, SPELL_EFFECT_ADD_EXTRA_ATTACKS))
     {
-        if (Unit* target = m_caster->getVictim())
+        if (Unit* target = m_caster->GetVictim())
             m_caster->DoExtraAttacks(target);
         else
             m_caster->m_extraAttacks = 0;
@@ -7496,7 +7496,7 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
                 return false;
             break;
         case 29511:
-            if (target->GetTypeId() == TYPEID_PLAYER && target == m_caster->getVictim())
+            if (target->GetTypeId() == TYPEID_PLAYER && target == m_caster->GetVictim())
                 return false;
             break;
         case 27285:                                         // Seed of Corruption - damage spell
@@ -7548,7 +7548,7 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
                 return false;
             break;
         case 36819:                                         // Always should hit main tank, no clue why rigged as AOE
-            if (m_caster->getVictim() && target != m_caster->getVictim())
+            if (m_caster->GetVictim() && target != m_caster->GetVictim())
                 return false;
             break;
         case 37144:                                         // Move - Chess event
@@ -7594,7 +7594,7 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
                 return false;
             break;
         case 39095:                                         // Amplify Damage - weird logic confirmed on retail
-            if (m_caster->getThreatManager().getThreatList().size() >= 2 && target == m_caster->getVictim())
+            if (m_caster->getThreatManager().getThreatList().size() >= 2 && target == m_caster->GetVictim())
                 return false;
             break;
         case 39365:                                         // Thundering Storm - only hits 25-100yd range targets
@@ -7673,7 +7673,7 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
         case 40243:                             // Crushing Shadows - Teron Gorefiend
         case 41376:                             // Spite
         case 43550:                             // Mind Control - Malacrass
-            if (m_caster->getVictim() == target)
+            if (m_caster->GetVictim() == target)
                 return false;
             break;
         case 40175:                             // Spirit Chains - Teron Gorefiend
@@ -7714,7 +7714,7 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
                 return false;
             break;
         case 37676:                             // Insidious Whisper
-            if (m_caster->getVictim() == target) // skips tank
+            if (m_caster->GetVictim() == target) // skips tank
                 return false;
 
             if (!target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED)) // not MCed

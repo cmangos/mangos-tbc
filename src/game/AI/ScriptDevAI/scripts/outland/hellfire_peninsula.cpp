@@ -157,7 +157,7 @@ struct npc_ancestral_wolfAI : public npc_escortAI
                 break;
             case 50:
                 Creature* pRyga = GetClosestCreatureWithEntry(m_creature, NPC_RYGA, 30.0f);
-                if (pRyga && pRyga->IsAlive() && !pRyga->isInCombat())
+                if (pRyga && pRyga->IsAlive() && !pRyga->IsInCombat())
                     DoScriptText(SAY_WOLF_WELCOME, pRyga);
                 break;
         }
@@ -283,7 +283,7 @@ struct npc_demoniac_scryerAI : public ScriptedAI
             {
                 m_creature->CastSpell(m_creature, SPELL_SUCKER_DESPAWN_MOB, TRIGGERED_NONE);
 
-                if (m_creature->isInCombat())
+                if (m_creature->IsInCombat())
                 {
                     m_creature->CombatStop();
                 }
@@ -1939,7 +1939,7 @@ struct npc_vindicator_sedaiAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
         if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
             return;

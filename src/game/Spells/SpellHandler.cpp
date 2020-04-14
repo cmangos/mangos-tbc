@@ -108,7 +108,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (pUser->isInCombat())
+    if (pUser->IsInCombat())
     {
         for (const auto& Spell : proto->Spells)
         {

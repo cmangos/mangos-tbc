@@ -801,7 +801,7 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return *i_obj; }
             bool operator()(Unit* u)
             {
-                if (!u->IsAlive() || (i_onlyInCombat && !u->isInCombat()))
+                if (!u->IsAlive() || (i_onlyInCombat && !u->IsInCombat()))
                     return false;
 
                 if (!i_targetSelf && u == i_obj)
@@ -832,7 +832,7 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return *i_obj; }
             bool operator()(Unit* u)
             {
-                if (!u->IsAlive() || (i_onlyInCombat && !u->isInCombat()))
+                if (!u->IsAlive() || (i_onlyInCombat && !u->IsInCombat()))
                     return false;
 
                 if (!i_targetSelf && u == i_obj)
@@ -863,7 +863,7 @@ namespace MaNGOS
             Unit const& GetFocusObject() const { return *i_obj; }
             bool operator()(Unit* u)
             {
-                return u->IsAlive() && u->isInCombat() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && (u->IsImmobilizedState() || u->GetMaxNegativeAuraModifier(SPELL_AURA_MOD_DECREASE_SPEED) || u->isFrozen() || u->IsCrowdControlled());
+                return u->IsAlive() && u->IsInCombat() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && (u->IsImmobilizedState() || u->GetMaxNegativeAuraModifier(SPELL_AURA_MOD_DECREASE_SPEED) || u->isFrozen() || u->IsCrowdControlled());
             }
         private:
             Unit const* i_obj;
@@ -877,7 +877,7 @@ namespace MaNGOS
             Unit const& GetFocusObject() const { return *i_obj; }
             bool operator()(Unit* u)
             {
-                return u->IsAlive() && u->isInCombat() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && !(u->HasAura(i_spell, EFFECT_INDEX_0) || u->HasAura(i_spell, EFFECT_INDEX_1) || u->HasAura(i_spell, EFFECT_INDEX_2));
+                return u->IsAlive() && u->IsInCombat() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && !(u->HasAura(i_spell, EFFECT_INDEX_0) || u->HasAura(i_spell, EFFECT_INDEX_1) || u->HasAura(i_spell, EFFECT_INDEX_2));
             }
         private:
             Unit const* i_obj;
@@ -1127,7 +1127,7 @@ namespace MaNGOS
             WorldObject const& GetFocusObject() const { return *i_obj; }
             bool operator()(Creature* u)
             {
-                if (u == i_obj || u->isDead() || u->isInCombat())
+                if (u == i_obj || u->isDead() || u->IsInCombat())
                     return false;
 
                 if (!u->CanAssist(i_obj) || !u->CanAttack(i_enemy))

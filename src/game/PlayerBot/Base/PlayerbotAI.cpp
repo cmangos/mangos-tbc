@@ -2347,7 +2347,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         // if someone tries to resurrect, then accept
         case SMSG_RESURRECT_REQUEST:
         {
-            if (!m_bot->isAlive())
+            if (!m_bot->IsAlive())
             {
                 WorldPacket p(packet);
                 ObjectGuid guid;
@@ -3412,7 +3412,7 @@ void PlayerbotAI::DoCombatMovement()
 bool PlayerbotAI::IsGroupReady()
 {
     if (!m_bot) return true;
-    if (!m_bot->isAlive() || m_bot->IsInDuel()) return false; // Let's just say you're otherwise occupied
+    if (!m_bot->IsAlive() || m_bot->IsInDuel()) return false; // Let's just say you're otherwise occupied
     if (m_bot->isInCombat()) return false;
 
     if (m_bot->GetGroup())
@@ -3421,7 +3421,7 @@ bool PlayerbotAI::IsGroupReady()
         for (Group::member_citerator itr = groupSlot.begin(); itr != groupSlot.end(); itr++)
         {
             Player* groupMember = sObjectMgr.GetPlayer(itr->guid);
-            if (groupMember && groupMember->isAlive())
+            if (groupMember && groupMember->IsAlive())
             {
                 if (groupMember->IsInDuel() || groupMember->isInCombat())            // all occupied in some way
                     return false;
@@ -4855,7 +4855,7 @@ void PlayerbotAI::MovementReset()
             return;
         }
 
-        if (m_bot->isAlive() && !m_bot->IsBeingTeleported())
+        if (m_bot->IsAlive() && !m_bot->IsBeingTeleported())
         {
             if (DistOverRide != 0)
             {
@@ -5109,7 +5109,7 @@ void PlayerbotAI::UpdateAI(const uint32 /*p_time*/)
         SetMovementOrder(MOVEMENT_FOLLOW, GetMaster());
     }
 
-    if (!m_bot->isAlive())
+    if (!m_bot->IsAlive())
     {
         if (m_botState == BOTSTATE_DEAD)
         {

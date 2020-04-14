@@ -129,7 +129,7 @@ struct boss_gothikAI : public ScriptedAI
         {
             if (Player* player = playerGuid.getSource())
             {
-                if (!m_instance->IsInRightSideGothikArea(player) && player->isAlive())
+                if (!m_instance->IsInRightSideGothikArea(player) && player->IsAlive())
                     return true;
             }
         }
@@ -470,7 +470,7 @@ struct CheckGothikSide : public SpellScript
                     {
                         if (Player* player = playerInList.getSource())
                         {
-                            if (!player->isAlive())
+                            if (!player->IsAlive())
                                 return;
 
                             if (spell->m_spellInfo->Id == SPELL_CHECK_UNRELENTING_SIDE && instance->IsInRightSideGothikArea(player))

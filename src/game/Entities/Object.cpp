@@ -535,7 +535,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                     uint32 dynflagsValue = m_uint32Values[index];
 
                     // Checking SPELL_AURA_EMPATHY and caster
-                    if (dynflagsValue & UNIT_DYNFLAG_SPECIALINFO && ((Unit*)this)->isAlive())
+                    if (dynflagsValue & UNIT_DYNFLAG_SPECIALINFO && ((Unit*) this)->IsAlive())
                     {
                         bool bIsEmpathy = false;
                         bool bIsCaster = false;
@@ -557,7 +557,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                         Creature* creature = (Creature*)this;
                         bool setTapFlags = false;
 
-                        if (creature->isAlive())
+                        if (creature->IsAlive())
                         {
                             // creature is alive so, not lootable
                             dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;

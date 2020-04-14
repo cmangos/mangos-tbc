@@ -82,7 +82,7 @@ void instance_naxxramas::JustDidDialogueStep(int32 entry)
             {
                 if (Creature* follower = instance->GetCreature(followerGuid))
                 {
-                    if (follower->isAlive() && !follower->isInCombat())
+                    if (follower->IsAlive() && !follower->isInCombat())
                         follower->SetStandState(UNIT_STAND_STATE_STAND);
                 }
             }
@@ -94,7 +94,7 @@ void instance_naxxramas::JustDidDialogueStep(int32 entry)
             {
                 if (Creature* follower = instance->GetCreature(followerGuid))
                 {
-                    if (follower->isAlive() && !follower->isInCombat())
+                    if (follower->IsAlive() && !follower->isInCombat())
                         follower->CastSpell(follower, SPELL_DARK_CHANNELING, TRIGGERED_OLD_TRIGGERED);
                 }
             }
@@ -106,7 +106,7 @@ void instance_naxxramas::JustDidDialogueStep(int32 entry)
             {
                 if (Creature* follower = instance->GetCreature(followerGuid))
                 {
-                    if (follower->isAlive() && !follower->isInCombat())
+                    if (follower->IsAlive() && !follower->isInCombat())
                     {
                         follower->RemoveAurasDueToSpell(SPELL_DARK_CHANNELING);
                         follower->SetStandState(UNIT_STAND_STATE_KNEEL);
@@ -631,7 +631,7 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
             {
                 if (Creature* kelthuzad = GetSingleCreatureFromStorage(NPC_KELTHUZAD))
                 {
-                    if (kelthuzad->isAlive())
+                    if (kelthuzad->IsAlive())
                         kelthuzad->CastSpell(kelthuzad, SPELL_CHANNEL_VISUAL, TRIGGERED_OLD_TRIGGERED);
                 }
                 DoUseDoorOrButton(GO_KELTHUZAD_TRIGGER);
@@ -1008,7 +1008,7 @@ bool instance_naxxramas::DoHandleEvent(uint32 eventId)
                 {
                     if (Creature* zombie = instance->GetCreature(zombieGuid))
                     {
-                        if (zombie->isAlive())
+                        if (zombie->IsAlive())
                         {
                             zombie->AI()->SetReactState(REACT_PASSIVE);
                             zombie->AttackStop();
@@ -1081,7 +1081,7 @@ bool instance_naxxramas::DoHandleAreaTrigger(AreaTriggerEntry const* areaTrigger
 
 bool AreaTrigger_at_naxxramas(Player* player, AreaTriggerEntry const* areaTrigger)
 {
-    if (player->isGameMaster() || !player->isAlive())
+    if (player->isGameMaster() || !player->IsAlive())
         return false;
 
     if (auto* instance = (instance_naxxramas*)player->GetInstanceData())

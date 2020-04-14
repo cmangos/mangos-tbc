@@ -795,7 +795,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
 
     void MovementInform(uint32 uiMovementType, uint32 uiData) override
     {
-        if (uiMovementType == POINT_MOTION_TYPE && m_creature->isAlive())
+        if (uiMovementType == POINT_MOTION_TYPE && m_creature->IsAlive())
         {
             switch (uiData)
             {
@@ -831,7 +831,7 @@ UnitAI* GetAI_npc_Shattered_Hand_Scout(Creature* pCreature)
 
 bool AreaTrigger_at_shattered_halls(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
 {
-    if (pPlayer->isGameMaster() || !pPlayer->isAlive())
+    if (pPlayer->isGameMaster() || !pPlayer->IsAlive())
         return false;
 
     instance_shattered_halls* pInstance = (instance_shattered_halls*)pPlayer->GetInstanceData();

@@ -69,8 +69,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 
 -- Priest
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(10060,'spell_stacking_rules_override'),
 (32676,'spell_consume_magic');
-
 
 -- Warlock
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

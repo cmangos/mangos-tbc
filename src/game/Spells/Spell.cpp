@@ -7137,12 +7137,6 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex,
                     continue;
                 }
 
-                if ((*next)->GetHealth() == (*next)->GetMaxHealth())
-                {
-                    next = filterUnitList.erase(next);
-                    continue;
-                }
-
                 prev = *next;
                 newList.push_back(prev);
                 filterUnitList.erase(next);

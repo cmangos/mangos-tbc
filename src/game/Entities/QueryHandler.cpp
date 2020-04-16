@@ -202,8 +202,8 @@ void WorldSession::HandleCreatureQueryOpcode(WorldPacket& recv_data)
         data << uint32(0);                                  // unknown        wdbFeild11
         data << uint32(ci->PetSpellDataId);                 // Id from CreatureSpellData.dbc    wdbField12
 
-        for (unsigned int i : ci->ModelId)
-            data << uint32(i);
+        for (uint32 i : ci->ModelId)
+            data << i;
 
         data << float(ci->HealthMultiplier);                 // health multiplier
         data << float(ci->PowerMultiplier);                   // mana multiplier

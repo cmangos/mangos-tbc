@@ -2693,6 +2693,7 @@ void Player::GiveLevel(uint32 level)
         MailDraft(mailReward->mailTemplateId).SendMailTo(this, MailSender(MAIL_CREATURE, mailReward->senderEntry));
 
     // resend quests status directly
+    GetSession()->SetCurrentPlayerLevel(level);
     SendQuestGiverStatusMultiple();
 }
 

@@ -1049,7 +1049,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
         Unit::DealDamageMods(caster, damageInfo.target, damageInfo.damage, &damageInfo.absorb, SPELL_DIRECT_DAMAGE, m_spellInfo);
 
         // Send log damage message to client
-        
+
         if (reflectTarget)
             reflectTarget->SendSpellNonMeleeDamageLog(&damageInfo);
         else
@@ -2399,6 +2399,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             if (!m_caster->CanAssistSpell(unitTarget, m_spellInfo))
                 break;
 
+            // if we have a target, always push it into final list
+            tempUnitList.push_back(unitTarget);
+
             if (targetingData.chainTargetCount[effIndex] <= 1)
                 tempUnitList.push_back(unitTarget);
             else
@@ -2437,17 +2440,49 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                                 break;
                             }
                         }
-
                     }
                 }
-             
+
                 UnitList tempAoeList;
-                MaNGOS::AnyFriendlyOrGroupMemberUnitInUnitRangeCheck u_check(m_caster, group, m_spellInfo, max_range);
-                MaNGOS::UnitListSearcher<MaNGOS::AnyFriendlyOrGroupMemberUnitInUnitRangeCheck> searcher(tempAoeList, u_check);
-                Cell::VisitAllObjects(m_caster, searcher, max_range);
+                // Getting spell casting distance
+                float minRadiusCaster = 0, maxRadiusTarget = 0;
+                GetChainJumpRange(m_spellInfo, effIndex, minRadiusCaster, maxRadiusTarget);
+
+                // if we have a group, we don't care about other units around
+                if (group) {
+                    for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+                    {
+                        Player* member = itr->getSource();
+                        tempAoeList.push_back(member);
+                    }
+                } else {
+                    // Filling target map
+                    SpellNotifyPushType pushType = PUSH_TARGET_CENTER;
+                    FillAreaTargets(tempAoeList, maxRadiusTarget, cone, pushType, SPELL_TARGETS_ASSISTABLE);
+                }
+
+                // No targets. No need to process.
+                if (tempAoeList.empty())
+                    break;
+
+                // Allways remove currentTarget cause we already have it into tempUnitList
                 tempAoeList.erase(std::remove(tempAoeList.begin(), tempAoeList.end(), unitTarget), tempAoeList.end());
-                if (!tempAoeList.empty())
-                    tempUnitList.splice(tempUnitList.end(), tempAoeList);
+
+                if (minRadiusCaster)
+                {
+                    float x, y, z;
+                    m_caster->GetPosition(x, y, z);
+                    auto itr = tempAoeList.begin();
+                    ++itr; // start from 2nd
+                    for (; itr != tempAoeList.end();)
+                    {
+                        if ((*itr)->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < minRadiusCaster)
+                            itr = tempAoeList.erase(itr);
+                        else
+                            ++itr;
+                    }
+                }
+                tempUnitList.splice(tempUnitList.end(), tempAoeList);
             }
             break;
         }
@@ -7134,12 +7169,6 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex,
                 if (!prev->IsWithinLOSInMap(*next, true))
                 {
                     ++next;
-                    continue;
-                }
-
-                if ((*next)->GetHealth() == (*next)->GetMaxHealth())
-                {
-                    next = filterUnitList.erase(next);
                     continue;
                 }
 

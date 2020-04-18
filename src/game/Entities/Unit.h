@@ -1899,6 +1899,9 @@ class Unit : public WorldObject
         bool IsJumping() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_JUMPING); }
         bool IsFalling() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FALLING); }
 
+        bool IsDebuggingMovement() const { return m_debuggingMovement; }
+        void SetDebuggingMovement(bool state) { m_debuggingMovement = state; }
+
         virtual void SetLevitate(bool /*enabled*/) {}
         virtual void SetSwim(bool /*enabled*/) {}
         virtual void SetCanFly(bool /*enabled*/) {}
@@ -2678,6 +2681,7 @@ class Unit : public WorldObject
         bool m_noThreat;
         bool m_supportThreatOnly;
         bool m_ignoreRangedTargets;                         // Ignores ranged targets when picking someone to attack
+        bool m_debuggingMovement;
 
         // guard to prevent chaining extra attacks
         bool m_extraAttacksExecuting;

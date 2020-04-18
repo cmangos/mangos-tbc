@@ -24,6 +24,8 @@
 
 namespace Movement
 {
+    static thread_local uint32 splineCounter = 1;
+
     int32 MoveSplineInit::Launch()
     {
         MoveSpline& move_spline = *unit.movespline;
@@ -61,6 +63,8 @@ namespace Movement
 
         if (!args.Validate(&unit))
             return 0;
+
+        args.splineId = splineCounter++;
 
         unit.m_movementInfo.SetMovementFlags(MovementFlags(moveFlags));
         move_spline.Initialize(args);

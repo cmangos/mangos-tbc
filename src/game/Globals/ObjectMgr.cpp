@@ -8396,6 +8396,20 @@ bool ObjectMgr::IsConditionSatisfied(uint32 conditionId, WorldObject const* targ
     return false;
 }
 
+bool ObjectMgr::CheckDeclinedNames(const std::wstring& mainpart, DeclinedName const& names)
+{
+    for (int i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
+    {
+        std::wstring wname;
+        if (!Utf8toWStr(names.name[i], wname))
+            return false;
+
+        if (mainpart != GetMainPartOfName(wname, i + 1))
+            return false;
+    }
+    return true;
+}
+
 SkillRangeType GetSkillRangeType(SkillLineEntry const* pSkill, bool racial)
 {
     switch (pSkill->categoryId)

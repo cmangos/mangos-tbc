@@ -149,8 +149,6 @@ CombatManeuverReturns PlayerbotDruidAI::DoFirstCombatManeuver(Unit* pTarget)
         default:
             return DoFirstCombatManeuverPVE(pTarget);
     }
-
-    return RETURN_NO_ACTION_ERROR;
 }
 
 CombatManeuverReturns PlayerbotDruidAI::DoFirstCombatManeuverPVE(Unit* /*pTarget*/)
@@ -179,8 +177,6 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuver(Unit* pTarget)
         default:
             return DoNextCombatManeuverPVE(pTarget);
     }
-
-    return RETURN_NO_ACTION_ERROR;
 }
 
 CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
@@ -229,7 +225,7 @@ CombatManeuverReturns PlayerbotDruidAI::DoNextCombatManeuverPVE(Unit* pTarget)
 
     //Used to determine if this bot is highest on threat
     Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE)(PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-    if (newTarget && !(m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK) && !m_ai->IsNeutralized(newTarget)) // TODO: && party has a tank
+    if (newTarget && !(m_ai->GetCombatOrder() & PlayerbotAI::ORDERS_TANK) && !PlayerbotAI::IsNeutralized(newTarget)) // TODO: && party has a tank
     {
         if (HealPlayer(m_bot) == RETURN_CONTINUE)
             return RETURN_CONTINUE;
@@ -761,10 +757,7 @@ bool PlayerbotDruidAI::BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit* target)
     if (pet && !pet->HasAuraType(SPELL_AURA_MOD_UNATTACKABLE) && ai->Buff(spellId, pet, &(PlayerbotDruidAI::GoBuffForm)) == SPELL_CAST_OK)
         return true;
 
-    if (ai->Buff(spellId, target, &(PlayerbotDruidAI::GoBuffForm)) == SPELL_CAST_OK)
-        return true;
-
-    return false;
+    return ai->Buff(spellId, target, &(PlayerbotDruidAI::GoBuffForm)) == SPELL_CAST_OK;
 }
 
 void PlayerbotDruidAI::GoBuffForm(Player* self)
@@ -786,19 +779,13 @@ void PlayerbotDruidAI::GoBuffForm(Player* self)
 // Match up with "Pull()" below
 bool PlayerbotDruidAI::CanPull()
 {
-    if (BEAR_FORM > 0 && FAERIE_FIRE_FERAL)
-        return true;
-
-    return false;
+    return BEAR_FORM > 0 && FAERIE_FIRE_FERAL;
 }
 
 // Match up with "CanPull()" above
 bool PlayerbotDruidAI::Pull()
 {
-    if (BEAR_FORM > 0 && (CastSpell(FAERIE_FIRE_FERAL) & RETURN_CONTINUE))
-        return true;
-
-    return false;
+    return BEAR_FORM > 0 && (CastSpell(FAERIE_FIRE_FERAL) & RETURN_CONTINUE);
 }
 
 bool PlayerbotDruidAI::CastHoTOnTank()
@@ -831,6 +818,4 @@ uint32 PlayerbotDruidAI::Neutralize(uint8 creatureType)
         return HIBERNATE;
     else
         return 0;
-
-    return 0;
 }

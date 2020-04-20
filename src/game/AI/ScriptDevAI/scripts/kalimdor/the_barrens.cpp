@@ -1091,6 +1091,237 @@ bool GossipSelect_npc_regthar_deathgate(Player* player, Creature* creature, uint
     return true;
 }
 
+/*
+ * Covert Ops: Alpha/Beta
+ */
+
+enum CovertOpsAlphaBetaMisc
+{
+    // Spells
+    SPELL_SET_NG_5_CHARGE_RED = 6630,
+    SPELL_SET_NG_5_CHARGE_BLUE = 6626,
+    SPELL_REMOTE_DETONATOR_RED = 6627,
+    SPELL_REMOTE_DETONATOR_BLUE = 6656,
+    SPELL_WAGON_EXLODE = 6636,
+    SPELL_WAGON_KNOCKBACK = 10689,
+
+    // Gameobjects
+    GO_NG_5_EXPLOSIVES_RED = 19592,
+    GO_NG_5_EXPLOSIVES_BLUE = 19601,
+    GO_SPELLFOCUS_RED = 19600,
+    GO_SPELLFOCUS_BLUE = 19591,
+    VENTURE_WAGON_RED = 20899,
+    VENTURE_WAGON_BLUE = 19547,
+    VENTURE_WAGON_TRAP = 19590,
+
+    // Creatures
+    VENTURE_DEFORESTER = 3991,
+    VENTURE_LOGGER = 3989,
+    VENTURE_DIGGER = 3999,
+    VENTURE_OVERLORD = 4004,
+    VENTURE_OPERATOR = 3988,
+
+    // Timers
+    TIMER_VENTURE_WAGON = 600,
+};
+
+static const uint32 m_auiCovertOpsGameObjectFocus[] = { GO_SPELLFOCUS_RED, GO_SPELLFOCUS_BLUE };
+static const uint32 m_auiCovertOpsGameObjectExplosives[] = { GO_NG_5_EXPLOSIVES_RED, GO_NG_5_EXPLOSIVES_BLUE };
+static const uint32 m_auiCovertOpsGameObjectWagons[] = { VENTURE_WAGON_RED, VENTURE_WAGON_BLUE };
+
+bool ProcessEventId_event_covertops_detonate(uint32 eventId, Object* pSource, Object* pTarget, bool isStart)
+{
+    if (!pSource || pSource->GetTypeId() != TYPEID_PLAYER)
+        return true;
+
+    uint8 tIndex = 0;
+
+    switch (eventId)
+    {
+    case 691: tIndex = 0; break; // RED
+    case 692: tIndex = 1; break; // BLUE
+    }
+
+    if (Unit* caster = ((Unit*)pSource))
+        if (GameObject* focus = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectFocus[tIndex], DEFAULT_VISIBILITY_DISTANCE))
+            if (GameObject* wagon = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectWagons[tIndex], DEFAULT_VISIBILITY_DISTANCE))
+                if (GameObject* NG5 = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectExplosives[tIndex], DEFAULT_VISIBILITY_DISTANCE))
+                {
+                    NG5->SetLootState(GO_JUST_DEACTIVATED);
+                    NG5->SetForcedDespawn();
+
+                    wagon->Use(caster); // remove the explosive
+
+                    // focus->SetRespawnDelay(60);
+                    focus->SetLootState(GO_JUST_DEACTIVATED);
+                    focus->SetForcedDespawn(); // remove the banana (this is what Explosives (items) are looking for)
+
+                    return true;
+                }
+
+    return false;
+}
+
+bool ProcessEventId_event_covertops_charge(uint32 eventId, Object* pSource, Object* pTarget, bool isStart)
+{
+    if (!pSource || pSource->GetTypeId() != TYPEID_PLAYER)
+        return true;
+
+    uint8 tIndex = 0;
+
+    switch (eventId)
+    {
+    case 693: tIndex = 0; break; // RED
+    case 694: tIndex = 1; break; // BLUE
+    }
+
+    if (Unit* caster = ((Unit*)pSource))
+    {
+        if (GameObject* pGameObj = GetClosestGameObjectWithEntry(caster, m_auiCovertOpsGameObjectExplosives[tIndex], DEFAULT_VISIBILITY_DISTANCE))
+        {
+            pGameObj->SetRespawnTime(9000);
+            pGameObj->Refresh();
+            pGameObj->SetOwnerGuid(caster->GetObjectGuid());
+
+            if (GameObject* trap = GetClosestGameObjectWithEntry(caster, VENTURE_WAGON_TRAP, DEFAULT_VISIBILITY_DISTANCE))
+                trap->SetOwnerGuid(caster->GetObjectGuid());
+        }
+        else
+            return false;
+
+        return true;
+    }
+
+    return false;
+}
+
+struct go_covertopsAI : public GameObjectAI
+{
+    go_covertopsAI(GameObject* pGo) : GameObjectAI(pGo)
+    {
+        Reset();
+    }
+
+    uint32 timer_c_call;		// call them to wagon
+    uint32 timer_c_return;		// call them back to spawn points
+    uint32 timer_c_respawn;     // called on respawn
+    bool GO_EXPLODED;
+    bool GO_CALLED;
+
+    std::list<Creature*> VENTURE_LIST;
+
+    void Reset()
+    {
+        GO_EXPLODED = false;
+        GO_CALLED = false;
+
+        timer_c_call = 2000;
+        timer_c_return = 890 * IN_MILLISECONDS;
+        timer_c_respawn = 900 * IN_MILLISECONDS;
+
+        // wagon respawn time should be equal to banana respawn time - timer_c_return !
+
+        m_go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE);
+        m_go->SetGoState(GO_STATE_READY);
+        m_go->SetLootState(GO_READY);
+    }
+
+    void UpdateAI(const uint32 uiDiff)
+    {
+        if (m_go->GetGoState() == GO_STATE_ACTIVE && !GO_EXPLODED)
+        {
+            if (timer_c_call < uiDiff)
+            {
+                if (GameObject* trap = GetClosestGameObjectWithEntry(m_go, VENTURE_WAGON_TRAP, ATTACK_DISTANCE))
+                {
+                    trap->PlayDirectSound(1399);
+                    if (Unit* owner = trap->GetMap()->GetPlayer(trap->GetOwnerGuid()))
+                    {
+                        trap->Use(owner);
+                        trap->CastSpell(owner, SPELL_WAGON_KNOCKBACK, TRIGGERED_OLD_TRIGGERED);
+                    }
+                }
+
+                GO_EXPLODED = true;
+            }
+            else
+                timer_c_call -= uiDiff;
+        }
+
+        if (m_go->GetGoState() == GO_STATE_ACTIVE && GO_EXPLODED)
+        {
+            if (!GO_CALLED)
+            {
+                // We should probably pick creatures using guids here. Need recordings.
+                GetCreatureListWithEntryInGrid(VENTURE_LIST, m_go, VENTURE_DEFORESTER, DEFAULT_VISIBILITY_DISTANCE);
+                GetCreatureListWithEntryInGrid(VENTURE_LIST, m_go, VENTURE_LOGGER, DEFAULT_VISIBILITY_DISTANCE);
+                GetCreatureListWithEntryInGrid(VENTURE_LIST, m_go, VENTURE_DIGGER, DEFAULT_VISIBILITY_DISTANCE);
+                GetCreatureListWithEntryInGrid(VENTURE_LIST, m_go, VENTURE_OVERLORD, DEFAULT_VISIBILITY_DISTANCE);
+                GetCreatureListWithEntryInGrid(VENTURE_LIST, m_go, VENTURE_OPERATOR, DEFAULT_VISIBILITY_DISTANCE);
+
+                for (std::list<Creature*>::iterator it = VENTURE_LIST.begin(); it != VENTURE_LIST.end(); ++it)
+                {
+                    Creature* creature = (*it);
+
+                    if (!creature || !creature->IsAlive())
+                        continue;
+
+                    float fX, fY, fZ;
+                    m_go->GetNearPoint(m_go, fX, fY, fZ, 0, frand(25.0f, 40.0f), frand(0, 2 * M_PI_F));
+
+                    creature->SetWaterWalk(true); // so they don't get stuck on nearby shores
+                    creature->SetWalk(false); // so they run ?
+                    creature->GetMotionMaster()->MovePoint(0, fX, fY, fZ, true, FORCED_MOVEMENT_NONE);
+                    creature->GetMotionMaster()->MoveRandomAroundPoint(fX, fY, fZ, 20.0f, timer_c_return);
+                }
+
+                GO_CALLED = true;
+            }
+            else
+            {
+                if (timer_c_return < uiDiff)
+                {
+                    for (std::list<Creature*>::iterator it = VENTURE_LIST.begin(); it != VENTURE_LIST.end(); ++it)
+                    {
+                        Creature* creature = (*it);
+
+                        if (!creature || !creature->IsAlive())
+                            continue;
+
+                        CreatureData const* data = sObjectMgr.GetCreatureData(creature->GetGUIDLow());
+
+                        if (!data)
+                            continue;
+
+                        creature->SetWalk(true);
+                        creature->GetMotionMaster()->MovePoint(0, data->posX, data->posY, data->posZ, true, FORCED_MOVEMENT_WALK);
+                    }
+                }
+                else
+                    timer_c_return -= uiDiff;
+
+                if (timer_c_respawn < uiDiff)
+                    Reset(); // reset the wagon
+                else
+                    timer_c_respawn -= uiDiff;
+            }
+        }
+    }
+};
+
+GameObjectAI* GetAIgo_covertops(GameObject* pGo)
+{
+    return new go_covertopsAI(pGo);
+}
+
+bool GOHello_go_covertops(Player* pPlayer, GameObject* pGo)
+{
+    if (go_covertopsAI* pMarkAI = dynamic_cast<go_covertopsAI*>(pGo->AI()))
+        return true;
+
+    return false;
+}
+
 void AddSC_the_barrens()
 {
     Script* pNewScript = new Script;
@@ -1141,5 +1372,21 @@ void AddSC_the_barrens()
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_regthar_deathgate;
     pNewScript->pGossipSelect = &GossipSelect_npc_regthar_deathgate;
     pNewScript->GetAI = &GetAI_npc_regthar_deathgate;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "event_covertops_detonate";
+    pNewScript->pProcessEventId = &ProcessEventId_event_covertops_detonate;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "event_covertops_charge";
+    pNewScript->pProcessEventId = &ProcessEventId_event_covertops_charge;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_covertops";
+    pNewScript->GetGameObjectAI = &GetAIgo_covertops;
+    pNewScript->pGossipHelloGO = &GOHello_go_covertops;
     pNewScript->RegisterSelf();
 }

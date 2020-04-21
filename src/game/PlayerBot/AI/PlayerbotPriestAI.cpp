@@ -434,7 +434,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
     if (hp < 50 && GREATER_HEAL > 0 && m_ai->In_Reach(target, GREATER_HEAL) && m_ai->CastSpell(GREATER_HEAL, *target) == SPELL_CAST_OK)
         return RETURN_CONTINUE;
     // Heals target AND self for equal amount
-    if (hp < 60 && hpSelf < 80 && BINDING_HEAL > 0 && m_ai->In_Reach(target, BINDING_HEAL) && m_ai->CastSpell(BINDING_HEAL, *target) == SPELL_CAST_OK)
+    if (hp < 60 && m_ai->GetHealthPercent() < 80 && BINDING_HEAL > 0 && m_ai->In_Reach(target, BINDING_HEAL) && m_ai->CastSpell(BINDING_HEAL, *target) == SPELL_CAST_OK)
         return RETURN_CONTINUE;
     if (hp < 60 && PRAYER_OF_MENDING > 0 && m_ai->In_Reach(target, PRAYER_OF_MENDING) && !target->HasAura(PRAYER_OF_MENDING, EFFECT_INDEX_0) && CastSpell(PRAYER_OF_MENDING, target))
         return RETURN_FINISHED_FIRST_MOVES;

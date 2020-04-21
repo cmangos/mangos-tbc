@@ -1820,7 +1820,7 @@ bool Player::isAcceptTickets() const
 {
     AccountTypes level = GetSession()->GetSecurity();
 
-    if (level > SEC_PLAYER && level >= sWorld.getConfig(CONFIG_UINT32_GM_LEVEL_ACCEPT_TICKETS))
+    if (level > SEC_PLAYER && level >= static_cast<int>(sWorld.getConfig(CONFIG_UINT32_GM_LEVEL_ACCEPT_TICKETS)))
         return (m_ExtraFlags & PLAYER_EXTRA_GM_ACCEPT_TICKETS);
 
     return false;
@@ -1830,7 +1830,7 @@ bool Player::isGMChat() const
 {
     AccountTypes level = GetSession()->GetSecurity();
 
-    if (level > SEC_PLAYER && level >= sWorld.getConfig(CONFIG_UINT32_GM_LEVEL_CHAT))
+    if (level > SEC_PLAYER && level >= static_cast<int>(sWorld.getConfig(CONFIG_UINT32_GM_LEVEL_CHAT)))
         return (m_ExtraFlags & PLAYER_EXTRA_GM_CHAT);
 
     return false;

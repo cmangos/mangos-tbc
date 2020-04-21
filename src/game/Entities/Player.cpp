@@ -19748,7 +19748,7 @@ uint32 Player::GetMaxLevelForBattleGroundBracketId(BattleGroundBracketId bracket
         return 255;                                         // hardcoded max level
 
     // for example EOTS - min level 61 but max level for bracket 69
-    return (GetMinLevelForBattleGroundBracketId(bracket_id, bgTypeId) / 10 * 10) + 10;
+    return (GetMinLevelForBattleGroundBracketId(bracket_id, bgTypeId) / 10 * 10) + 9;
 }
 
 BattleGroundBracketId Player::GetBattleGroundBracketIdFromLevel(BattleGroundTypeId bgTypeId) const

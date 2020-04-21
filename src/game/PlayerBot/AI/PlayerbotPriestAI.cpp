@@ -405,6 +405,7 @@ CombatManeuverReturns PlayerbotPriestAI::HealPlayer(Player* target)
         return r;
 
     uint8 hp = target->GetHealthPercent();
+    uint8 hpSelf = m_ai->GetHealthPercent();
 
     if (hp >= 90)
         return RETURN_NO_ACTION_OK;

@@ -308,8 +308,17 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit* pTarget)
     else if (BLOODRAGE > 0 && m_ai->GetRageAmount() <= 10)
         m_ai->CastSpell(BLOODRAGE);
 
-    // Prevent low health humanoid from fleeing with Hamstring
-    if (pCreature && (m_bot->HasAura(BATTLE_STANCE, EFFECT_INDEX_0) || m_bot->HasAura(BERSERKER_STANCE, EFFECT_INDEX_0)) && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID && pTarget->GetHealthPercent() < 20 && !pCreature->IsWorldBoss())
+    // Prevent low health humanoid or player from fleeing with Hamstring
+    bool canBeSlowed = false;
+    if (pTarget->GetTypeId() == TYPEID_PLAYER)
+        canBeSlowed = true;
+    else
+    {
+        auto* creature = (Creature*) pTarget;
+        if (creature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID && !creature->IsWorldBoss())
+            canBeSlowed = true;
+    }
+    if (canBeSlowed && (m_bot->HasAura(BATTLE_STANCE, EFFECT_INDEX_0) || m_bot->HasAura(BERSERKER_STANCE, EFFECT_INDEX_0)) && pTarget->GetHealthPercent() < 20)
     {
         if (HAMSTRING > 0 && !pTarget->HasAura(HAMSTRING, EFFECT_INDEX_0) && m_ai->CastSpell(HAMSTRING, *pTarget) == SPELL_CAST_OK)
             return RETURN_CONTINUE;

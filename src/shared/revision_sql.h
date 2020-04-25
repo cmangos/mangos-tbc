@@ -2,5 +2,5 @@
 #define __REVISION_SQL_H__
  #define REVISION_DB_REALMD "required_s2398_01_realmd_banning"
  #define REVISION_DB_CHARACTERS "required_s2404_01_characters_new_ticket_system_sql_created"
- #define REVISION_DB_MANGOS "required_s2409_01_mangos_conditions_upgrade"
+ #define REVISION_DB_MANGOS "required_s2410_01_mangos_gameobject_template"
 #endif // __REVISION_SQL_H__

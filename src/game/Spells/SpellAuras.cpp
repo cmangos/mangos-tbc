@@ -2561,6 +2561,16 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 }
                 break;
             }
+            case SPELLFAMILY_HUNTER:
+            {
+                switch (GetId())
+                {
+                    case 35079:                             // Misdirection, triggered buff
+                        target->RemoveAurasDueToSpell(35079, GetHolder(), AURA_REMOVE_BY_STACK);
+                        return;
+                }
+                break;
+            }
             //case SPELLFAMILY_PALADIN:
             //{
             //    break;

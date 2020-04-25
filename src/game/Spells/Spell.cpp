@@ -4533,10 +4533,6 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
             }
 
-            // Misdirection 2.3.0+ style non-stackable (tempopary hack, requires trigger effects check cast interaction)
-            if (m_spellInfo->Id == 34477 && target->HasAura(35079))
-                return SPELL_FAILED_AURA_BOUNCED;
-
             if (m_spellInfo->MaxTargetLevel && target->getLevel() > m_spellInfo->MaxTargetLevel)
                 return SPELL_FAILED_HIGHLEVEL;
         }

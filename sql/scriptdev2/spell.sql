@@ -65,7 +65,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (14323,'spell_hunters_mark'),
 (14324,'spell_hunters_mark'),
 (14325,'spell_hunters_mark'),
-(34026,'spell_kill_command');
+(34026,'spell_kill_command'),
+(34477,'spell_stacking_rules_override');
 
 -- Priest
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

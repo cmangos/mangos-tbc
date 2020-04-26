@@ -1969,12 +1969,12 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 35598:                                 // Wrath of Socrethar (pretend to kill Ishanah)
                 {
-                    unitTarget->CastSpell(unitTarget, 29266, TRIGGERED_NONE); // Permanent Feign Death
+                    unitTarget->CastSpell(unitTarget, 29266, TRIGGERED_IGNORE_CURRENT_CASTED_SPELL); // Permanent Feign Death
                     return;
                 }
                 case 35600:                                 // Wrath of Socrethar (Kill Kaylaan)
                 {
-                    unitTarget->CastSpell(unitTarget, 29266, TRIGGERED_NONE); // Permanent Feign Death
+                    unitTarget->CastSpell(unitTarget, 29266, TRIGGERED_IGNORE_CURRENT_CASTED_SPELL); // Permanent Feign Death
                     return;
                 }
                 case 35683:                                 // Placing Protectorate Disruptor
@@ -2484,7 +2484,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             targets.push_back(ihit->targetGUID);
 
                     ObjectGuid guid = targets[urand(0, targets.size() - 1)];
-                    if (Unit * target = m_caster->GetMap()->GetUnit(guid))
+                    if (Unit* target = m_caster->GetMap()->GetUnit(guid))
                         m_caster->CastSpell(target, 43153, TRIGGERED_NONE);
                     return;
                 }
@@ -7140,7 +7140,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         return;
 
                     unitTarget->RemoveAurasDueToSpell(36904);
-                    unitTarget->CastSpell(unitTarget, 37013, TRIGGERED_NONE);
+                    unitTarget->CastSpell(nullptr, 37013, TRIGGERED_NONE);
                     return;
                 }
                 case 37431:                                 // Spout
@@ -7325,7 +7325,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 39835:                                 // Needle Spine - Najentus
                 {
-                    unitTarget->CastSpell(nullptr, 39968, TRIGGERED_NONE);
+                    unitTarget->CastSpell(nullptr, 39968, TRIGGERED_IGNORE_CURRENT_CASTED_SPELL);
                     return;
                 }
                 case 40022:                                 // Four Dragons: Aggro Check

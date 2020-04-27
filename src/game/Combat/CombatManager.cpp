@@ -20,6 +20,7 @@
 
 #include "Entities/Pet.h"
 #include "Maps/Map.h"
+#include "World/World.h"
 
 CombatManager::CombatManager(Unit* owner) : m_owner(owner), m_evadeTimer(0), m_evadeState(EVADE_NONE), m_combatTimer(0), m_leashingDisabled(false), m_leashingCheck(nullptr)
 {
@@ -87,7 +88,7 @@ void CombatManager::Update(const uint32 diff)
                         float x, y, z, o;
                         creatureOwner->GetCombatStartPosition(x, y, z, o);
                         // homebox not confirmed on classic
-                        if (creatureOwner->GetDistance2d(x, y) > 30.0f)
+                        if (creatureOwner->GetDistance2d(x, y) > sWorld.getConfig(CONFIG_FLOAT_THREAT_RADIUS))
                             creatureOwner->HandleExitCombat();
                     }
                 }

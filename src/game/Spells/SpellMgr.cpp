@@ -2924,6 +2924,12 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             if (spellproto->Mechanic == MECHANIC_TURN)
                 return DIMINISHING_NONE;
             break;
+        case SPELLFAMILY_MAGE:
+        {
+            if (spellproto->IsFitToFamilyMask(uint64(0x000800000)))
+                return DIMINISHING_DRAGONS_BREATH;
+            break;
+        }
         case SPELLFAMILY_ROGUE:
         {
             // Kidney Shot
@@ -2949,6 +2955,10 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(uint64(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
+            /* Unstable Affliction Dispel Silence
+            // ToDo: Fix diminishing returns aspect for this spell 5 2.5 1.25 0
+            else if (spellproto->Id == 31117)
+                return DIMINISHING_UNSTABLE_AFFLICTION_SILENCE;*/
             break;
         }
         case SPELLFAMILY_DRUID:
@@ -2956,6 +2966,12 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Cyclone
             if (spellproto->IsFitToFamilyMask(uint64(0x02000000000)))
                 return DIMINISHING_BLIND_CYCLONE;
+            // Nature's Grasp Triggered Root
+            else if (spellproto->SpellFamilyFlags & 0x00000000200LL && spellproto->Attributes == 0x49010000)
+                return DIMINISHING_CONTROL_ROOT;
+            // Feral Charge Root Effect
+            else if (spellproto->Id == 45334)
+                return DIMINISHING_NONE;
             break;
         }
         case SPELLFAMILY_WARRIOR:
@@ -2963,6 +2979,15 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Hamstring - limit duration to 10s in PvP
             if (spellproto->IsFitToFamilyMask(uint64(0x00000000002)))
                 return DIMINISHING_LIMITONLY;
+            break;
+        }
+        case SPELLFAMILY_PALADIN:
+        {
+            // ToDo: Fix  diminishing returns aspect of this spell, currently limited to 10secs in pvp only as setting DIMINISHING_FEAR to DRTYPE_ALL messes with PvE
+            // Turn Evil - Turn Undead(Rank 3):This spell has been reworked and has been renamed to "Turn Evil".
+            // It will now work on Demons in addition to Undead. Turn Evil is subject to diminishing returns, and lasts 10 seconds in PvP. - https://wowwiki.fandom.com/wiki/Patch_2.4.0
+            if (spellproto->IsFitToFamilyMask(uint64(0x0000400000000000)) && spellproto->Attributes == 0x40010000)
+                return DIMINISHING_FEAR;
             break;
         }
         default:
@@ -2979,7 +3004,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
     if (mechanic & (1 << (MECHANIC_SLEEP - 1)))
         return DIMINISHING_SLEEP;
     if (mechanic & ((1 << (MECHANIC_KNOCKOUT - 1)) | (1 << (MECHANIC_SAPPED - 1)) | (1 << (MECHANIC_POLYMORPH - 1))))
-        return DIMINISHING_POLYMORPH_KNOCKOUT;
+        return DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED;
     if (mechanic & (1 << (MECHANIC_ROOT - 1)))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
     if (mechanic & (1 << (MECHANIC_FEAR - 1)))
@@ -3012,11 +3037,12 @@ bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
         case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH_KNOCKOUT:
+        case DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED:
         case DIMINISHING_FREEZE:
         case DIMINISHING_BLIND_CYCLONE:
         case DIMINISHING_BANISH:
         case DIMINISHING_LIMITONLY:
+        case DIMINISHING_DRAGONS_BREATH:
             return true;
         default:
             return false;
@@ -3048,12 +3074,13 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
         case DIMINISHING_CONTROL_ROOT:
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
-        case DIMINISHING_POLYMORPH_KNOCKOUT:
+        case DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED:
         case DIMINISHING_SILENCE:
         case DIMINISHING_DISARM:
         case DIMINISHING_DEATHCOIL:
         case DIMINISHING_FREEZE:
         case DIMINISHING_BANISH:
+        case DIMINISHING_DRAGONS_BREATH:
             return DRTYPE_PLAYER;
         default:
             break;

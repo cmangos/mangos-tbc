@@ -2923,6 +2923,9 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // some generic arena related spells have by some strange reason MECHANIC_TURN
             if (spellproto->Mechanic == MECHANIC_TURN)
                 return DIMINISHING_NONE;
+            // Hunter Pet Intimidation
+            else if (spellproto->Id == 24394)
+                return DIMINISHING_CONTROL_STUN;
             break;
         case SPELLFAMILY_MAGE:
         {

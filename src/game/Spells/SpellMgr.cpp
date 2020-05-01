@@ -2953,6 +2953,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         case SPELLFAMILY_WARLOCK:
         {
             // Seduction
+            // ToDo: Fix  diminishing returns aspect of this spell, currently limited to 10secs in pvp only as setting DIMINISHING_FEAR to DRTYPE_ALL messes with PvE
             if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)))
                 return DIMINISHING_FEAR;
             // Curses/etc
@@ -3072,6 +3073,7 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
         case DIMINISHING_TRIGGER_STUN:
         case DIMINISHING_KIDNEYSHOT:
         case DIMINISHING_CHARM:
+        //case DIMINISHING_FEAR: Fix PvE no DR vs PvP DR
             return DRTYPE_ALL;
         case DIMINISHING_SLEEP:
         case DIMINISHING_CONTROL_ROOT:

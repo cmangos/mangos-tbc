@@ -61,7 +61,7 @@ uint32 WorldTimer::getMSTime()
 {
     using namespace std::chrono;
 
-    return static_cast<uint32>((duration_cast<milliseconds>(system_clock::now().time_since_epoch()) - duration_cast<milliseconds>(GetApplicationStartTime().time_since_epoch())).count());
+    return static_cast<uint32>(duration_cast<milliseconds>(steady_clock::now().time_since_epoch() - GetApplicationStartTime().time_since_epoch()).count());
 }
 
 //////////////////////////////////////////////////////////////////////////

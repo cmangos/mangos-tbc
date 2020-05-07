@@ -140,6 +140,7 @@ enum EventAI_ActionType
     ACTION_T_SET_RANGED_MODE            = 57,               // type of ranged mode, distance to chase at
     ACTION_T_SET_WALK                   = 58,               // type of walking, unused, unused
     ACTION_T_SET_FACING                 = 59,               // Target, 0 - set, 1 - reset
+    ACTION_T_SEND_AI_TO_MASTER          = 60,               // Sending custom AI event to master of the linking
 
     ACTION_T_END,
 };
@@ -537,6 +538,11 @@ struct CreatureEventAI_Action
             uint32 target;                                  // Target
             uint32 reset;                                   // 0 - set, 1 - reset
         } setFacing;
+        // ACTION_T_SEND_AI_TO_MASTER
+        struct
+        {
+            uint32 eventType;
+        } sendEvent;
         // RAW
         struct
         {

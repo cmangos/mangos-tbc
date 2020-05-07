@@ -1073,6 +1073,8 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         }
                         IsValidTargetType(temp.event_type, action.type, action.setFacing.target, i, j + 1);
                         break;
+                    case ACTION_T_SEND_AI_TO_MASTER:
+                        break;
                     default:
                         sLog.outErrorEventAI("Event %u Action %u have currently not checked at load action type (%u). Need check code update?", i, j + 1, temp.action[j].type);
                         break;

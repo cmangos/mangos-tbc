@@ -2193,6 +2193,9 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
         if ((selectFlags & SELECT_FLAG_IN_LOS) && !IsWithinLOSInMap(pTarget))
             return false;
 
+        if ((selectFlags & SELECT_FLAG_PLAYER_CASTING) && !pTarget->IsNonMeleeSpellCasted(false))
+            return false;
+
         if (!pTarget->IsAlive())
             return false;
 

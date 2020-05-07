@@ -1745,6 +1745,11 @@ inline Unit* CreatureEventAI::GetTargetByType(uint32 target, Unit* actionInvoker
 
             return m_creature->GetLootRecipient();
         }
+        case TARGET_T_HOSTILE_RANDOM_CASTING:
+            resTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, forSpellId, SELECT_FLAG_PLAYER_CASTING | selectFlags);
+            if (!resTarget)
+                isError = true;
+            return resTarget;
         case TARGET_T_NONE:
             return nullptr;
         default:

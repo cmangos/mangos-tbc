@@ -7143,14 +7143,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(nullptr, 37013, TRIGGERED_NONE);
                     return;
                 }
-                case 37431:                                 // Spout
-                {
-                    if (!unitTarget)
-                        return;
-
-                    unitTarget->CastSpell(nullptr, urand(0, 1) ? 37429 : 37430, TRIGGERED_OLD_TRIGGERED);
-                    return;
-                }
                 case 37641:                                 // Whirlwind
                 {
                     UnitAI* ai = m_caster->AI();

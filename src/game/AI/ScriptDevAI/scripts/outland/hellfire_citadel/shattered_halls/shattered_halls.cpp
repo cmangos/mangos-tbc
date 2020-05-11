@@ -30,6 +30,8 @@ enum
     MOB_FEL_ORC             = 17083
 };
 
+static const int32 aRandomReinf[] = { -1540056, -1540057, -1540058, -1540059, -1540060, -1540061, -1540062, 1540063, 1540064, 1540065 };
+
 struct mob_shattered_hand_legionnairAI : public ScriptedAI
 {
     mob_shattered_hand_legionnairAI(Creature* pCreature) : ScriptedAI(pCreature) 
@@ -50,8 +52,11 @@ struct mob_shattered_hand_legionnairAI : public ScriptedAI
     void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*miscValue*/) override
     {
         // Nearby creatue died
-        if (eventType == AI_EVENT_CUSTOM_EVENTAI_B)         
-            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);           
+        if (eventType == AI_EVENT_CUSTOM_EVENTAI_B)
+        {
+            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);
+            DoScriptText(aRandomReinf[urand(0, 10)], m_creature);
+        }
     }   
 
     void UpdateAI(const uint32 uiDiff) override

@@ -342,6 +342,18 @@ CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 spellId)
     return creatureList;
 }
 
+CreatureList ScriptedAI::DoFindFriendlyMissingBuffNoCombat(float range, uint32 spellId)
+{
+    CreatureList creatureList;
+
+    MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck u_check(m_creature, range, spellId);
+    MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck> searcher(creatureList, u_check);
+
+    Cell::VisitGridObjects(m_creature, searcher, range);
+
+    return creatureList;
+}
+
 Player* ScriptedAI::GetPlayerAtMinimumRange(float minimumRange) const
 {
     Player* player = nullptr;

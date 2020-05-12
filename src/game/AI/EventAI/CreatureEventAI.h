@@ -74,6 +74,7 @@ enum EventAI_Type
     EVENT_T_FACING_TARGET           = 33,                   // Position, unused, RepeatMin, RepeatMax
     EVENT_T_SPELLHIT_TARGET         = 34,                   // SpellID, School, RepeatMin, RepeatMax
     EVENT_T_DEATH_PREVENTED         = 35,                   //
+    EVENT_T_FRIENDLY_MISSING_BUFF_NOCOMBAT = 36,                   //
 
     EVENT_T_END,
 };
@@ -842,6 +843,7 @@ class CreatureEventAI : public CreatureAI
         bool SpawnedEventConditionsCheck(CreatureEventAI_Event const& event) const;
 
         void DoFindFriendlyMissingBuff(CreatureList& list, float range, uint32 spellId) const;
+        void DoFindFriendlyMissingBuffNoCombat(CreatureList& list, float range, uint32 spellId) const;
         void DoFindFriendlyCC(CreatureList& list, float range) const;
 
         void SetRangedMode(bool state, float distance, RangeModeType type);

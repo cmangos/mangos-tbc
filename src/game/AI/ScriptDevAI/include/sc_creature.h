@@ -192,6 +192,9 @@ struct ScriptedAI : public CreatureAI
         // Returns a list of all friendly units missing a specific buff within range
         CreatureList DoFindFriendlyMissingBuff(float range, uint32 spellId);
 
+        // Returns a list of all friendly units missing a specific buff within range but without Combat
+        CreatureList DoFindFriendlyMissingBuffNoCombat(float range, uint32 spellId);
+
         // Return a player with at least minimumRange from m_creature
         Player* GetPlayerAtMinimumRange(float minimumRange) const;
 

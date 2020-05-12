@@ -14,4 +14,7 @@ INSERT INTO `script_texts` (`entry`, `content_default`, `content_loc1`, `content
 ('-1540062', 'Look Alive!', null, null, null, null, null, null, null, null, '10177', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
 ('-1540063', 'Engage the enemy!', null, null, null, null, null, null, null, null, '10178', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
 ('-1540064', 'Attack!', null, null, null, null, null, null, null, null, '10179', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
-('-1540065', 'Fall in! Mok-thora ka!', null, null, null, null, null, null, null, null, '10175', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements');
+('-1540065', 'Fall in! Mok-thora ka!', null, null, null, null, null, null, null, null, '10175', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540066', '%s goes into a rage after seeing a friend fall in battle!', null, null, null, null, null, null, null, null, '0', '2', '0', '0', '0', 'Shattered Hand Legionnaire - Call for Reinforcements');
+
+

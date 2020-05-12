@@ -27,26 +27,51 @@ enum
     SPELL_PUMMEL            = 15615,
     SPELL_ENRAGE            = 30485,
 
+    EMOTE_ENRAGE            = -1540066,
+
     MOB_FEL_ORC             = 17083
+};
+
+static float FelOrcCoords[][4] =    // Coords needed for spawns and waypoints
+{
+    { 69.774910f, 46.661671f, -13.211f, 3.127f}, // Waypoint 
+    { 81.417f, 113.488f, -13.223f, 3.127f } // Spawn 1
+};
+
+enum LegionnaireGUIDS
+{
+    FIRST_LEGIONNAIRE_GUID = 5400077,
+    DEFAULT_LEGIONNAIRE = 1
 };
 
 static const int32 aRandomReinf[] = { -1540056, -1540057, -1540058, -1540059, -1540060, -1540061, -1540062, 1540063, 1540064, 1540065 };
 
-struct mob_shattered_hand_legionnairAI : public ScriptedAI
+struct mob_shattered_hand_legionnaireAI : public ScriptedAI
 {
-    mob_shattered_hand_legionnairAI(Creature* pCreature) : ScriptedAI(pCreature) 
+    mob_shattered_hand_legionnaireAI(Creature* pCreature) : ScriptedAI(pCreature) 
     {
         Reset();
+        uint32 guid = m_creature->GetGUIDLow();
+
+        if (guid == FIRST_LEGIONNAIRE_GUID)
+            legionnaireGuid = 1;
+        else
+            legionnaireGuid = DEFAULT_LEGIONNAIRE;
     }
 
     uint32 m_uiPummelTimmer;
     uint32 m_uiAuraTimer;
+    uint32 m_uiMinionSpawnTimmer;
+    uint32 legionnaireGuid;
+    bool nearbyFriendDied;
 
     void Reset() override
     {
-        // m_creature->CastSpell(m_creature, SPELL_AURA_OF_DISCIPLIN, TRIGGERED_NONE);
-        m_uiPummelTimmer = 15000;
+        // m_creature->CastSpell(m_creature, SPELL_AURA_OF_DISCIPLIN, TRIGGERED_NONE); not sure about this
+        m_uiPummelTimmer = urand(10000, 15000);
         m_uiAuraTimer = 15000;
+        nearbyFriendDied = false;
+        m_uiMinionSpawnTimmer = 0;
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* pSender, Unit* pInvoker, uint32 /*miscValue*/) override
@@ -54,13 +79,45 @@ struct mob_shattered_hand_legionnairAI : public ScriptedAI
         // Nearby creatue died
         if (eventType == AI_EVENT_CUSTOM_EVENTAI_B)
         {
-            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);
-            DoScriptText(aRandomReinf[urand(0, 10)], m_creature);
+            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);            
+            DoScriptText(EMOTE_ENRAGE, m_creature);      
+            nearbyFriendDied = true;
         }
     }   
 
+    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiPointId) override
+    {
+        // When last waypoint reached, search for players.
+        if (pSummoned->GetEntry() == MOB_FEL_ORC && uiPointId == 100)
+        {
+            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);
+            pSummoned->GetMotionMaster()->MoveIdle();
+            pSummoned->SetInCombatWithZone();
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                pSummoned->AI()->AttackStart(pTarget);
+        }
+    }
+
     void UpdateAI(const uint32 uiDiff) override
     {
+        if (nearbyFriendDied)
+        {
+            // It seems that it has a small cooldown, if 2 friends die in range only 1 gets spawned.
+            if (m_uiMinionSpawnTimmer < uiDiff)
+            {
+                if (Creature *felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcCoords[legionnaireGuid][0], FelOrcCoords[legionnaireGuid][1], FelOrcCoords[legionnaireGuid][2], FelOrcCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 100000, true, true))
+                {
+                    felorc->GetMotionMaster()->MovePoint(100, FelOrcCoords[0][0], FelOrcCoords[0][1], FelOrcCoords[0][2]);
+                    felorc->SetInCombatWithZone();
+                }
+                DoScriptText(aRandomReinf[urand(0, 10)], m_creature);
+                nearbyFriendDied = false;
+                m_uiMinionSpawnTimmer = 5000;
+            }
+            else
+                m_uiMinionSpawnTimmer -= uiDiff;
+        }
+
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
@@ -90,16 +147,16 @@ struct mob_shattered_hand_legionnairAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_mob_shattered_hand_legionnair(Creature* pCreature)
+UnitAI* GetAI_mob_shattered_hand_legionnaire(Creature* pCreature)
 {
-    return new mob_shattered_hand_legionnairAI(pCreature);
+    return new mob_shattered_hand_legionnaireAI(pCreature);
 }
 
 void AddSC_shattered_halls()
 {
     Script* pNewScript = new Script;
     pNewScript = new Script;
-    pNewScript->Name = "mob_shattered_hand_legionnair";
-    pNewScript->GetAI = &GetAI_mob_shattered_hand_legionnair;
+    pNewScript->Name = "mob_shattered_hand_legionnaire";
+    pNewScript->GetAI = &GetAI_mob_shattered_hand_legionnaire;
     pNewScript->RegisterSelf();
 }

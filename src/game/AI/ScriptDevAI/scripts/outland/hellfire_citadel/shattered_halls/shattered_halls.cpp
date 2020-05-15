@@ -78,9 +78,7 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
     {
         // Nearby creatue died
         if (eventType == AI_EVENT_CUSTOM_EVENTAI_B)
-        {
-            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);            
-            DoScriptText(EMOTE_ENRAGE, m_creature);      
+        {                 
             nearbyFriendDied = true;
         }
     }   
@@ -105,6 +103,9 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
             // It seems that it has a small cooldown, if 2 friends die in range only 1 gets spawned.
             if (m_uiMinionSpawnTimmer < uiDiff)
             {
+                m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);
+                DoScriptText(EMOTE_ENRAGE, m_creature);
+
                 if (Creature *felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcCoords[legionnaireGuid][0], FelOrcCoords[legionnaireGuid][1], FelOrcCoords[legionnaireGuid][2], FelOrcCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 100000, true, true))
                 {
                     felorc->GetMotionMaster()->MovePoint(100, FelOrcCoords[0][0], FelOrcCoords[0][1], FelOrcCoords[0][2]);

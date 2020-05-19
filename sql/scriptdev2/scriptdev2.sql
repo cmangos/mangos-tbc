@@ -659,6 +659,7 @@ UPDATE instance_template SET ScriptName='instance_ramparts' WHERE map=543;
 
 /* SHATTERED HALLS */
 /* Nethekurse and his spawned shadowfissure */
+UPDATE creature_template SET AIName="",  ScriptName = "mob_shattered_hand_legionnair" WHERE Entry="16700";
 UPDATE creature_template SET ScriptName='boss_grand_warlock_nethekurse' WHERE entry=16807;
 UPDATE creature_template SET ScriptName='boss_warbringer_omrogg' WHERE entry=16809;
 UPDATE creature_template SET ScriptName='mob_fel_orc_convert' WHERE entry=17083;
@@ -3743,7 +3744,19 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1540052','Archers, form ranks! On my mark!','10156','6','0','0','0','Gauntlet of fire yell 2'),
 ('-1540053','Ready!','10157','6','0','0','0','Gauntlet of fire yell 3'),
 ('-1540054','Aim!','10158','6','0','0','0','Gauntlet of fire yell 4'),
-('-1540055','Fire!','10159','6','0','0','0','Gauntlet of fire yell 5');
+('-1540055','Fire!','10159','6','0','0','0','Gauntlet of fire yell 5'),
+
+('-1540056', 'Join the fight! Agrama-ka!', '10181', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540057', 'Next warrior, now!', '10174', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540058', 'Next warrior, step up!', '10180', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540059', 'Fighter down!', '10172', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540060', 'Where\'s my support?', '10176', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540061', 'Replacement, quickly!', '10173', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540062', 'Look Alive!', '10177', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540063', 'Engage the enemy!', '10178', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540064', 'Attack!', '10179', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540065', 'Fall in! Mok-thora ka!', '10175', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
+('-1540066', '%s goes into a rage after seeing a friend fall in battle!', '0', '2', '0', '0', '0', 'Shattered Hand Legionnaire - Call for Reinforcements');
 
 -- -1 542 000 BLOOD FURNACE
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES

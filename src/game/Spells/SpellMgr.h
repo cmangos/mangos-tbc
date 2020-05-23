@@ -1421,7 +1421,6 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caste
                 case 41376:                                 // Spite (BT, Reliquary of Souls)
                     return 3;
                 case 37676:                                 // Insidious Whisper (SSC, Leotheras the Blind)
-                case 38028:                                 // Watery Grave (SSC, Morogrim Tidewalker)
                 case 46650:                                 // Open Brutallus Back Door (SWP, Felmyst)
                     return 4;
                 case 29232:                                 // Fungal Bloom (Loatheb)

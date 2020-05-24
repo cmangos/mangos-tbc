@@ -115,7 +115,7 @@ enum TimeConstants
     IN_MILLISECONDS = 1000
 };
 
-enum AccountTypes
+enum AccountTypes : uint32
 {
     SEC_PLAYER         = 0,
     SEC_MODERATOR      = 1,

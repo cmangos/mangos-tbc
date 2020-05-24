@@ -327,6 +327,7 @@ class ChatHandler
         bool HandleGMFlyCommand(char* args);
         bool HandleGMListFullCommand(char* args);
         bool HandleGMListIngameCommand(char* args);
+        bool HandleGMMountUpCommand(char* args);
         bool HandleGMVisibleCommand(char* args);
 
         bool HandleGoCommand(char* args);
@@ -434,6 +435,7 @@ class ChatHandler
         bool HandleModifyBlockCommand(char* args);
         bool HandleModifyDodgeCommand(char* args);
         bool HandleModifyParryCommand(char* args);
+        bool ModifyMountCommandHelper(Player* target, char* args);
         bool ModifyStatCommandHelper(char* args, char const* statName, uint32 spellId);
 
         //-----------------------Npc Commands-----------------------

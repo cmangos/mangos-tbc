@@ -412,7 +412,7 @@ enum
 //	NPC_ARCHER_TARGET		  = 29097, // Might not need? 
     NPC_GUARD_PORUNG		  = 20923, // not needed
 
-    SCOUT_AGRO_YELL		   = -1540051,
+    SCOUT_AGGRO_YELL		   = -1540051,
     PORUNG_FORM_RANKS_YELL = -1540052,
     PORUNG_READY_YELL	   = -1540053,
     PORUNG_AIM_YELL		   = -1540054,
@@ -775,7 +775,12 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
         m_bRunning = false;
     }
 
-    void Aggro(Unit* /*pWho*/) override {}
+    void Aggro(Unit* pWho) override
+    {
+        // Abuse Prevention for when people revive mid gauntlet and continue onward instead of starting the gauntlet
+        if (!m_bRunning)
+            DoStartRunning();
+    }
 
     void MoveInLineOfSight(Unit* pWho) override
     {
@@ -797,7 +802,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
             creature->SetInCombatWithZone();
             creature->AI()->AttackClosestEnemy();
         }
-        DoScriptText(SCOUT_AGRO_YELL, m_creature);
+        DoScriptText(SCOUT_AGGRO_YELL, m_creature);
     }
 
     void DoZealotsEmoteReady()

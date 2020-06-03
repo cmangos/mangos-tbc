@@ -155,6 +155,7 @@ struct boss_alarAI : public CombatAI
         m_firstPlatform = true;
 
         SetDeathPrevention(true);
+        SetMeleeEnabled(true);
 
         m_creature->SetIgnoreRangedTargets(true);
 
@@ -408,6 +409,7 @@ struct boss_alarAI : public CombatAI
                 m_creature->SetHover(false);
                 m_creature->SetLevitate(false);
                 SetCombatMovement(true, true);
+                SetMeleeEnabled(true);
                 SetDeathPrevention(false);
                 break;
             }
@@ -477,11 +479,12 @@ struct boss_alarAI : public CombatAI
             {
                 ResetCombatAction(ALAR_CHARGE, urand(25000, 30000));
                 SetCombatMovement(false);
+                SetMeleeEnabled(false);
                 m_creature->SetHover(true);
                 m_creature->SetLevitate(true);
                 m_creature->GetMotionMaster()->MovePoint(POINT_ID_DIVE_BOMB, aCenterLocation[2].m_fX, aCenterLocation[2].m_fY, aCenterLocation[2].m_fZ);
                 SetDeathPrevention(true);
-                ResetCombatAction(action, 40000);
+                ResetCombatAction(action, urand(50000, 60000));
                 break;
             }
             case ALAR_FLAME_PATCH:

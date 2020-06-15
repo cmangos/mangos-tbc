@@ -2361,7 +2361,7 @@ UPDATE spell_template SET InterruptFlags=InterruptFlags|0x08 WHERE Id IN(33387);
 UPDATE spell_template SET AttributesEx=AttributesEx|0x00000400 WHERE id IN(39497);
 
 -- WOTA Old - DOT should stack with arcane damage taken
-UPDATE spell_template SET AttributesEx3=AttributesEx3&~0x20000000 WHERE Id IN(33045);
+UPDATE spell_template SET AttributesEx3=0,AttributesEx4=0,DmgClass=1 WHERE Id IN(33045);
 
 -- ============================================================
 -- WOTLK section

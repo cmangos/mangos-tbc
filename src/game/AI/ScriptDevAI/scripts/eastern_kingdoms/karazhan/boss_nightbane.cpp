@@ -56,8 +56,8 @@ enum
     PHASE_TRANSITION            = 3,
 
     // These points are a placeholder for the air phase movement. The dragon should do some circles around the area before landing again
-    POINT_ID_AIR                = 1,
-    POINT_ID_GROUND             = 2,
+    POINT_ID_AIR                = 2,
+    POINT_ID_GROUND             = 3,
 };
 
 enum NightbaneActions
@@ -183,7 +183,7 @@ struct boss_nightbaneAI : public CombatAI
         if (motionType == PATH_MOTION_TYPE)
         {
             // Set in combat after the intro is done
-            if (pointId == 10)
+            if (pointId == 11)
             {
                 m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveIdle();

@@ -1941,7 +1941,8 @@ void CreatureEventAI::SetCurrentRangedMode(bool state)
         m_meleeEnabled = false;
         m_attackDistance = m_chaseDistance;
         m_creature->MeleeAttackStop(m_creature->GetVictim());
-        DoStartMovement(m_creature->GetVictim());
+        SetMeleeEnabled(false);
+        SetCombatMovement(false);
     }
     else
     {
@@ -1951,6 +1952,8 @@ void CreatureEventAI::SetCurrentRangedMode(bool state)
         m_currentRangedMode = false;
         m_meleeEnabled = true;
         m_attackDistance = 0.f;
+        SetMeleeEnabled(true);
+        SetCombatMovement(true);
         m_creature->MeleeAttackStart(m_creature->GetVictim());
         DoStartMovement(m_creature->GetVictim());
     }

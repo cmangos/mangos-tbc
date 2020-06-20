@@ -199,6 +199,23 @@ bool CanSpawnDueToLinking(uint32 lowGuid, MapPersistentState& mapState)
     return true;
 }
 
+bool CanSpawnDueToSpawnMask(uint32 lowGuid, MapPersistentState& mapState)
+{
+    if (Map* map = mapState.GetMap())
+        if (map->IsDungeon())
+            if (map->IsRaidOrHeroicDungeon())
+            {
+                if (CreatureData const* data = sObjectMgr.GetCreatureData(lowGuid))
+                    if (data->spawnMask == 1)
+                        return false;
+            }
+            else if (!map->IsRaidOrHeroicDungeon())
+                if (CreatureData const* data = sObjectMgr.GetCreatureData(lowGuid))
+                    if (data->spawnMask == 2)
+                        return false;
+    return true;
+}
+
 template <class T>
 PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom, MapPersistentState& mapState)
 {
@@ -226,6 +243,9 @@ PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom, M
                 continue;
 
             if (!CanSpawnDueToLinking(obj->guid, mapState))
+                continue;
+
+            if (!CanSpawnDueToSpawnMask(obj->guid, mapState))
                 continue;
 
             if (obj->guid != triggerFrom && spawns.IsSpawnedObject<T>(obj->guid))
@@ -259,6 +279,9 @@ PoolObject* PoolGroup<T>::RollOne(SpawnedPoolData& spawns, uint32 triggerFrom, M
                 continue;
 
             if (!CanSpawnDueToLinking(obj->guid, mapState))
+                continue;
+
+            if (!CanSpawnDueToSpawnMask(obj->guid, mapState))
                 continue;
 
             if (obj->guid != triggerFrom && spawns.IsSpawnedObject<T>(obj->guid))

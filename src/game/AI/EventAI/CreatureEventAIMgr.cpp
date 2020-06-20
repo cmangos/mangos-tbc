@@ -220,10 +220,11 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 case EVENT_T_OOC_LOS:
                 case EVENT_T_FRIENDLY_HP:
                 case EVENT_T_FRIENDLY_IS_CC:
-                case EVENT_T_FRIENDLY_MISSING_BUFF:
+                case EVENT_T_FRIENDLY_MISSING_BUFF_INCOMBAT:
                 case EVENT_T_RECEIVE_EMOTE:
                 case EVENT_T_RECEIVE_AI_EVENT:
                 case EVENT_T_SPELLHIT_TARGET:
+                case EVENT_T_FRIENDLY_MISSING_BUFF_NOCOMBAT:
                     return true;
                 default:
                     sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type %u for event-type %u", eventId, action, targetType, eventType);
@@ -404,7 +405,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                     if (temp.friendly_is_cc.repeatMax < temp.friendly_is_cc.repeatMin)
                         sLog.outErrorEventAI("Creature %u are using repeatable event(%u) with param4 < param3 (RepeatMax < RepeatMin). Event will never repeat.", temp.creature_id, i);
                     break;
-                case EVENT_T_FRIENDLY_MISSING_BUFF:
+                case EVENT_T_FRIENDLY_MISSING_BUFF_INCOMBAT:
                 {
                     SpellEntry const* pSpell = sSpellTemplate.LookupEntry<SpellEntry>(temp.friendly_buff.spellId);
                     if (!pSpell)

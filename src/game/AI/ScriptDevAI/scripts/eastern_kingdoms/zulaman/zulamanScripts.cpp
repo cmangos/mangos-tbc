@@ -1174,16 +1174,16 @@ struct npc_tanzarAI : public ScriptedAI
 
                 switch (m_uiHelpShoutCounter)
                 {
-                    case 0:
+                    case 1:
                         DoScriptText(SAY_TANZAR_HELP_1, m_creature);
                         break;
-                    case 1:
+                    case 2:
                         DoScriptText(SAY_TANZAR_HELP_2, m_creature);
                         break;
-                    case 2:
+                    case 3:
                         DoScriptText(SAY_TANZAR_HELP_3, m_creature);
                         break;
-                    case 3:
+                    case 4:
                         DoScriptText(SAY_TANZAR_HELP_4, m_creature);
                         m_uiHelpShoutTimer = 0;
                         break;

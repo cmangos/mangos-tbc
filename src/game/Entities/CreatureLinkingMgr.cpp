@@ -656,6 +656,16 @@ bool CreatureLinkingHolder::CanSpawn(Creature* pCreature) const
     if (!pInfo)
         return true;
 
+    if (pInfo->linkingFlag & FLAG_CANT_SPAWN_IF_BOSS_ISINCOMBAT)
+    {
+        CreatureData const* masterData = sObjectMgr.GetCreatureData(pInfo->masterDBGuid);
+        CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(masterData->id);
+        Creature* pMaster = nullptr;
+        if (pMaster = pCreature->GetMap()->GetCreature(ObjectGuid(cInfo->GetHighGuid(), cInfo->Entry, pInfo->masterDBGuid)))
+            if (pMaster->IsInCombat() | !pMaster->IsAlive())
+                return false;
+    }
+
     float sx, sy, sz;
     pCreature->GetRespawnCoord(sx, sy, sz);
     return CanSpawn(0, pCreature->GetMap(), pInfo, sx, sy);

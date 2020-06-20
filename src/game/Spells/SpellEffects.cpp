@@ -4967,7 +4967,10 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
             dispelList.push_back(std::pair<SpellAuraHolder*, uint32>(holder, holder->GetStackAmount()));
         }
     }
-    ProcessDispelList(dispelList);
+    std::list<std::pair<SpellAuraHolder*, uint32> > successList;
+    std::list <uint32> failList;
+    ProcessDispelList(dispelList, successList, failList);
+    EvaluateResultLists(successList, failList);
 }
 
 void Spell::EffectDispelMechanic(SpellEffectIndex eff_idx)
@@ -4987,17 +4990,17 @@ void Spell::EffectDispelMechanic(SpellEffectIndex eff_idx)
         if (iter->second->HasMechanic(mechanic))
             dispelList.push_back(std::pair<SpellAuraHolder*, uint32>(iter->second, iter->second->GetStackAmount()));
     }
-    ProcessDispelList(dispelList);
+    std::list<std::pair<SpellAuraHolder*, uint32> > successList;
+    std::list <uint32> failList;
+    ProcessDispelList(dispelList, successList, failList);
+    EvaluateResultLists(successList, failList);
 }
 
-void Spell::ProcessDispelList(std::list <std::pair<SpellAuraHolder*, uint32> >& dispelList)
+void Spell::ProcessDispelList(std::list <std::pair<SpellAuraHolder*, uint32> >& dispelList, std::list<std::pair<SpellAuraHolder*, uint32> >& successList, std::list <uint32>& failList)
 {
     // Ok if exist some buffs for dispel try dispel it
     if (!dispelList.empty())
     {
-        std::list<std::pair<SpellAuraHolder*, uint32> > success_list;  // (spell_id,casterGuid)
-        std::list < uint32 > fail_list;                     // spell_id
-
         // some spells have effect value = 0 and all from its by meaning expect 1
         if (!damage)
             damage = 1;
@@ -5030,11 +5033,11 @@ void Spell::ProcessDispelList(std::list <std::pair<SpellAuraHolder*, uint32> >& 
             }
             // Try dispel
             if (roll_chance_i(miss_chance))
-                fail_list.push_back(spellInfo->Id);
+                failList.push_back(spellInfo->Id);
             else
             {
                 bool foundDispelled = false;
-                for (std::list<std::pair<SpellAuraHolder*, uint32> >::iterator success_iter = success_list.begin(); success_iter != success_list.end(); ++success_iter)
+                for (std::list<std::pair<SpellAuraHolder*, uint32> >::iterator success_iter = successList.begin(); success_iter != successList.end(); ++success_iter)
                 {
                     if (success_iter->first->GetId() == holder->GetId() && success_iter->first->GetCasterGuid() == holder->GetCasterGuid())
                     {
@@ -5044,61 +5047,65 @@ void Spell::ProcessDispelList(std::list <std::pair<SpellAuraHolder*, uint32> >& 
                     }
                 }
                 if (!foundDispelled)
-                    success_list.push_back(std::pair<SpellAuraHolder*, uint32>(holder, 1));
+                    successList.push_back(std::pair<SpellAuraHolder*, uint32>(holder, 1));
             }
         }
-        // Send success log and really remove auras
-        if (!success_list.empty())
-        {
-            int32 count = success_list.size();
-            WorldPacket data(SMSG_SPELLDISPELLOG, 8 + 8 + 4 + 1 + 4 + count * 5);
-            data << unitTarget->GetPackGUID();              // Victim GUID
-            data << m_caster->GetPackGUID();                // Caster GUID
-            data << uint32(m_spellInfo->Id);                // Dispel spell id
-            data << uint8(0);                               // not used
-            data << uint32(count);                          // count
-            for (std::list<std::pair<SpellAuraHolder*, uint32> >::iterator j = success_list.begin(); j != success_list.end(); ++j)
-            {
-                SpellAuraHolder* dispelledHolder = j->first;
-                data << uint32(dispelledHolder->GetId());   // Spell Id
-                data << uint8(0);                           // 0 - dispelled !=0 cleansed
-                unitTarget->RemoveAuraHolderDueToSpellByDispel(dispelledHolder->GetId(), m_spellInfo->Id, j->second, dispelledHolder->GetCasterGuid(), m_caster);
-            }
-            m_caster->SendMessageToSet(data, true);
+    }
+}
 
-            // On success dispel
-            // Devour Magic
-            if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->Category == SPELLCATEGORY_DEVOUR_MAGIC)
-            {
-                uint32 heal_spell = 0;
-                switch (m_spellInfo->Id)
-                {
-                    case 19505: heal_spell = 19658; break;
-                    case 19731: heal_spell = 19732; break;
-                    case 19734: heal_spell = 19733; break;
-                    case 19736: heal_spell = 19735; break;
-                    case 27276: heal_spell = 27278; break;
-                    case 27277: heal_spell = 27279; break;
-                    default:
-                        DEBUG_LOG("Spell for Devour Magic %d not handled in Spell::EffectDispel", m_spellInfo->Id);
-                        break;
-                }
-                if (heal_spell)
-                    m_caster->CastSpell(m_caster, heal_spell, TRIGGERED_OLD_TRIGGERED);
-            }
-        }
-        // Send fail log to client
-        if (!fail_list.empty())
+void Spell::EvaluateResultLists(std::list<std::pair<SpellAuraHolder*, uint32> >& successList, std::list <uint32>& failList)
+{
+    // Send success log and really remove auras
+    if (!successList.empty())
+    {
+        int32 count = successList.size();
+        WorldPacket data(SMSG_SPELLDISPELLOG, 8 + 8 + 4 + 1 + 4 + count * 5);
+        data << unitTarget->GetPackGUID();              // Victim GUID
+        data << m_caster->GetPackGUID();                // Caster GUID
+        data << uint32(m_spellInfo->Id);                // Dispel spell id
+        data << uint8(0);                               // not used
+        data << uint32(count);                          // count
+        for (std::list<std::pair<SpellAuraHolder*, uint32> >::iterator j = successList.begin(); j != successList.end(); ++j)
         {
-            // Failed to dispel
-            WorldPacket data(SMSG_DISPEL_FAILED, 8 + 8 + 4 + 4 * fail_list.size());
-            data << m_caster->GetObjectGuid();              // Caster GUID
-            data << unitTarget->GetObjectGuid();            // Victim GUID
-            data << uint32(m_spellInfo->Id);                // Dispel spell id
-            for (std::list< uint32 >::iterator j = fail_list.begin(); j != fail_list.end(); ++j)
-                data << uint32(*j);                         // Spell Id
-            m_caster->SendMessageToSet(data, true);
+            SpellAuraHolder* dispelledHolder = j->first;
+            data << uint32(dispelledHolder->GetId());   // Spell Id
+            data << uint8(0);                           // 0 - dispelled !=0 cleansed
+            unitTarget->RemoveAuraHolderDueToSpellByDispel(dispelledHolder->GetId(), m_spellInfo->Id, j->second, dispelledHolder->GetCasterGuid(), m_caster);
         }
+        m_caster->SendMessageToSet(data, true);
+
+        // On success dispel
+        // Devour Magic
+        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARLOCK && m_spellInfo->Category == SPELLCATEGORY_DEVOUR_MAGIC)
+        {
+            uint32 heal_spell = 0;
+            switch (m_spellInfo->Id)
+            {
+                case 19505: heal_spell = 19658; break;
+                case 19731: heal_spell = 19732; break;
+                case 19734: heal_spell = 19733; break;
+                case 19736: heal_spell = 19735; break;
+                case 27276: heal_spell = 27278; break;
+                case 27277: heal_spell = 27279; break;
+                default:
+                    DEBUG_LOG("Spell for Devour Magic %d not handled in Spell::EffectDispel", m_spellInfo->Id);
+                    break;
+            }
+            if (heal_spell)
+                m_caster->CastSpell(m_caster, heal_spell, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+    // Send fail log to client
+    if (!failList.empty())
+    {
+        // Failed to dispel
+        WorldPacket data(SMSG_DISPEL_FAILED, 8 + 8 + 4 + 4 * failList.size());
+        data << m_caster->GetObjectGuid();              // Caster GUID
+        data << unitTarget->GetObjectGuid();            // Victim GUID
+        data << uint32(m_spellInfo->Id);                // Dispel spell id
+        for (std::list< uint32 >::iterator j = failList.begin(); j != failList.end(); ++j)
+            data << uint32(*j);                         // Spell Id
+        m_caster->SendMessageToSet(data, true);
     }
 }
 
@@ -9452,8 +9459,7 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
     if (!unitTarget || unitTarget == m_caster)              // can't steal from self
         return;
 
-    typedef std::vector<SpellAuraHolder*> StealList;
-    StealList steal_list;
+    std::list <std::pair<SpellAuraHolder*, uint32> > dispelList;
     // Create dispel mask by dispel type
     uint32 dispelMask  = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[eff_idx]));
     Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
@@ -9464,56 +9470,43 @@ void Spell::EffectStealBeneficialBuff(SpellEffectIndex eff_idx)
         {
             // Need check for passive? this
             if (holder->IsPositive() && !holder->IsPassive() && !holder->GetSpellProto()->HasAttribute(SPELL_ATTR_EX4_NOT_STEALABLE))
-                steal_list.push_back(holder);
+                dispelList.emplace_back(holder, holder->GetStackAmount());
         }
     }
+    std::list<std::pair<SpellAuraHolder*, uint32> > successList;
+    std::list <uint32> failList;
+    ProcessDispelList(dispelList, successList, failList);
     // Ok if exist some buffs for dispel try dispel it
-    if (!steal_list.empty())
+    // Really try steal and send log
+    if (!successList.empty())
     {
-        typedef std::list < std::pair<uint32, ObjectGuid> > SuccessList;
-        SuccessList success_list;
-        int32 list_size = steal_list.size();
-        // Dispell N = damage buffs (or while exist buffs for dispel)
-        for (int32 count = 0; count < damage && list_size > 0; ++count)
+        int32 count = successList.size();
+        WorldPacket data(SMSG_SPELLSTEALLOG, 8 + 8 + 4 + 1 + 4 + count * 5);
+        data << unitTarget->GetPackGUID();       // Victim GUID
+        data << m_caster->GetPackGUID();         // Caster GUID
+        data << uint32(m_spellInfo->Id);         // Dispell spell id
+        data << uint8(0);                        // not used
+        data << uint32(count);                   // count
+        for (auto& spellstealSpell : successList)
         {
-            // Random select buff for dispel
-            SpellAuraHolder* holder = steal_list[urand(0, list_size - 1)];
-            // Not use chance for steal
-            // TODO possible need do it
-            success_list.push_back(SuccessList::value_type(holder->GetId(), holder->GetCasterGuid()));
-
-            // Remove buff from list for prevent doubles
-            for (StealList::iterator j = steal_list.begin(); j != steal_list.end();)
-            {
-                SpellAuraHolder* stealed = *j;
-                if (stealed->GetId() == holder->GetId() && stealed->GetCasterGuid() == holder->GetCasterGuid())
-                {
-                    j = steal_list.erase(j);
-                    --list_size;
-                }
-                else
-                    ++j;
-            }
+            SpellEntry const* spellInfo = spellstealSpell.first->GetSpellProto();
+            data << uint32(spellInfo->Id);       // Spell Id
+            data << uint8(0);                    // 0 - steals !=0 transfers
+            unitTarget->RemoveAurasDueToSpellBySteal(spellstealSpell.first, m_caster);
         }
-        // Really try steal and send log
-        if (!success_list.empty())
-        {
-            int32 count = success_list.size();
-            WorldPacket data(SMSG_SPELLSTEALLOG, 8 + 8 + 4 + 1 + 4 + count * 5);
-            data << unitTarget->GetPackGUID();       // Victim GUID
-            data << m_caster->GetPackGUID();         // Caster GUID
-            data << uint32(m_spellInfo->Id);         // Dispell spell id
-            data << uint8(0);                        // not used
-            data << uint32(count);                   // count
-            for (auto& j : success_list)
-            {
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(j.first);
-                data << uint32(spellInfo->Id);       // Spell Id
-                data << uint8(0);                    // 0 - steals !=0 transfers
-                unitTarget->RemoveAurasDueToSpellBySteal(spellInfo->Id, j.second, m_caster);
-            }
-            m_caster->SendMessageToSet(data, true);
-        }
+        m_caster->SendMessageToSet(data, true);
+    }
+    // Send fail log to client
+    if (!failList.empty())
+    {
+        // Failed to dispel
+        WorldPacket data(SMSG_DISPEL_FAILED, 8 + 8 + 4 + 4 * failList.size());
+        data << m_caster->GetObjectGuid();              // Caster GUID
+        data << unitTarget->GetObjectGuid();            // Victim GUID
+        data << uint32(m_spellInfo->Id);                // Dispel spell id
+        for (std::list< uint32 >::iterator j = failList.begin(); j != failList.end(); ++j)
+            data << uint32(*j);                         // Spell Id
+        m_caster->SendMessageToSet(data, true);
     }
 }
 

@@ -37,7 +37,6 @@ const char InstanceTemplatedstfmt[] = "iiiiiiil";
 const char WorldTemplatesrcfmt[] = "is";
 const char WorldTemplatedstfmt[] = "ii";
 const char ConditionsFmt[] = "iiiiiiix";
-const char CreatureTemplateSpellsFmt[] = "iiiiiiiii";
 const char SpellScriptTargetFmt[] = "iiii";
 const char SpellEntryfmt[] = "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiifffiiiissssssssssssssssssssssssssssssssiiiiiLiiiifffiiiiiiiii";
 const char SpellConefmt[] = "ii";
@@ -64,7 +63,6 @@ SQLStorage sCreatureConditionalSpawnStore(CreatureConditionalSpawnSrcFmt, Creatu
 SQLStorage sWorldSafeLocsStore(WorldSafeLocsFmt, "id", "world_safe_locs");
 
 SQLHashStorage sGOStorage(GameObjectInfosrcfmt, GameObjectInfodstfmt, "entry", "gameobject_template");
-SQLHashStorage sCreatureTemplateSpellsStorage(CreatureTemplateSpellsFmt, "entry", "creature_template_spells");
 
 SQLMultiStorage sSpellScriptTargetStorage(SpellScriptTargetFmt, "entry", "spell_script_target");
 

@@ -1824,6 +1824,8 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
         case SPELL_AURA_PERIODIC_DAMAGE:
         case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
         case SPELL_AURA_POWER_BURN_MANA:
+            if (entry->Id == 38575) // Vashj - Toxic Spores
+                return false;
             return true;
             break;
         // HoT

@@ -9687,6 +9687,11 @@ void ObjectMgr::LoadCreatureCooldowns()
     sLog.outString();
 }
 
+void ObjectMgr::AddCreatureCooldown(uint32 entry, uint32 spellId, uint32 min, uint32 max)
+{
+    m_creatureCooldownMap[entry].emplace(spellId, std::make_pair(min, max));
+}
+
 SimpleFactionsList const* GetFactionTeamList(uint32 faction)
 {
     FactionTeamMap::const_iterator itr = sFactionTeamMap.find(faction);

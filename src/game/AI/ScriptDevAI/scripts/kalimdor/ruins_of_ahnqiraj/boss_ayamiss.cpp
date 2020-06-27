@@ -192,7 +192,7 @@ struct boss_ayamissAI : public CombatAI
 
     void StartLanding()
     {
-        m_creature->GetMotionMaster()->MoveWaypoint(0);
+        m_creature->GetMotionMaster()->MoveWaypoint(1);
     }
 
     void ExecuteAction(uint32 action) override

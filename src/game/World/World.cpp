@@ -2273,7 +2273,7 @@ void World::ResetDailyQuests()
 void World::ResetWeeklyQuests()
 {
     DETAIL_LOG("Weekly quests reset for all characters.");
-    CharacterDatabase.Execute("DElETE FROMcharacter_queststatus_weekly");
+    CharacterDatabase.Execute("DElETE FROM character_queststatus_weekly");
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (itr->second->GetPlayer())
             itr->second->GetPlayer()->ResetWeeklyQuestStatus();

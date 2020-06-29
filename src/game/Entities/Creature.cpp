@@ -3076,6 +3076,11 @@ void Creature::RegisterHitBySpell(uint32 spellId)
     m_hitBySpells.insert(spellId);
 }
 
+void Creature::UnregisterHitBySpell(uint32 spellId)
+{
+    m_hitBySpells.erase(spellId);
+}
+
 void Creature::ResetSpellHitCounter()
 {
     m_hitBySpells.clear();

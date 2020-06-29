@@ -5268,7 +5268,7 @@ UnitAI* GetAI_npc_bt_battle_sensor(Creature* pCreature)
     return new npc_bt_battle_sensor(pCreature);
 }
 
-struct TagGreaterFelfireDiemetradon : public SpellScript
+struct TagGreaterFelfireDiemetradon : public SpellScript, public AuraScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
     {
@@ -5283,6 +5283,12 @@ struct TagGreaterFelfireDiemetradon : public SpellScript
         Unit* target = spell->m_targets.getUnitTarget(); // no need to check for creature, done above
         if (target)
             static_cast<Creature*>(target)->RegisterHitBySpell(spell->m_spellInfo->Id);
+    }
+
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            static_cast<Creature*>(aura->GetTarget())->UnregisterHitBySpell(aura->GetSpellProto()->Id);
     }
 };
 
@@ -5431,5 +5437,5 @@ void AddSC_shadowmoon_valley()
     pNewScript->GetAI = &GetAI_npc_bt_battle_sensor;
     pNewScript->RegisterSelf();
 
-    RegisterSpellScript<TagGreaterFelfireDiemetradon>("spell_tag_for_single_use");
+    RegisterScript<TagGreaterFelfireDiemetradon>("spell_tag_for_single_use");
 }

@@ -9017,10 +9017,10 @@ void Aura::OnApply(bool apply)
         script->OnApply(this, apply);
 }
 
-bool Aura::OnCheckProc()
+bool Aura::OnCheckProc(ProcExecutionData& data)
 {
     if (AuraScript* script = GetAuraScript())
-        script->OnCheckProc(this);
+        return script->OnCheckProc(this, data);
     return true;
 }
 

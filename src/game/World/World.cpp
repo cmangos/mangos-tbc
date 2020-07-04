@@ -71,6 +71,7 @@
 #endif
 
 #include "Metric/Metric.h"
+#include "Maps/TransportMgr.h"
 
 #include <algorithm>
 #include <mutex>
@@ -940,6 +941,9 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading GameObject models...");
     LoadGameObjectModelList();
     sLog.outString();
+
+    // loads GO data
+    sTransportMgr.LoadTransportAnimationAndRotation();
 
     sLog.outString("Loading Spell Chain Data...");
     sSpellMgr.LoadSpellChains();

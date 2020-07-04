@@ -652,6 +652,7 @@ enum GameobjectExtraFlags
 class Unit;
 class GameObjectModel;
 struct GameObjectDisplayInfoEntry;
+struct TransportAnimation;
 
 struct QuaternionData
 {
@@ -685,6 +686,7 @@ class GameObject : public WorldObject
         GameObjectInfo const* GetGOInfo() const;
 
         bool IsTransport() const;
+        bool IsMoTransport() const;
 
         bool HasStaticDBSpawnData() const;                  // listed in `gameobject` table and have fixed in DB guid
 
@@ -837,10 +839,15 @@ class GameObject : public WorldObject
 
         bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const override;
 
-        bool IsAtInteractDistance(Position const& pos, float radius) const;
+        bool IsAtInteractDistance(Position const& pos, float radius, bool is3D = true) const;
         bool IsAtInteractDistance(Player const* player, uint32 maxRange = 0) const;
 
         SpellEntry const* GetSpellForLock(Player const* player) const;
+
+        float GetStationaryX() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionX(); return 0.f; }
+        float GetStationaryY() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionY(); return 0.f; }
+        float GetStationaryZ() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionZ(); return 0.f; }
+        float GetStationaryO() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionO(); return GetOrientation(); }
 
     protected:
         uint32      m_spellId;
@@ -869,6 +876,8 @@ class GameObject : public WorldObject
         GameObjectInfo const* m_goInfo;
         GameObjectDisplayInfoEntry const* m_displayInfo;
 
+        Position m_stationaryPosition;
+
         // Loot System
         ObjectGuid m_lootRecipientGuid;                     // player who will have rights for looting if m_lootGroupRecipient==0 or group disbanded
         uint32 m_lootGroupRecipientId;                      // group who will have rights for looting if set and exist
@@ -891,6 +900,11 @@ class GameObject : public WorldObject
         ObjectGuid m_linkedTrap;
 
         std::unique_ptr<GameObjectAI> m_AI;
+
+        // transport only
+        uint32 m_pathProgress;
+        TransportAnimation const* m_animationInfo;
+        uint32 m_currentSeg;
 
     private:
         void SwitchDoorOrButton(bool activate, bool alternative = false);

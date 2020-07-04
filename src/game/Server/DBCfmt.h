@@ -98,6 +98,7 @@ const char TalentTabEntryfmt[] = "nxxxxxxxxxxxxxxxxxxxiix";
 const char TaxiNodesEntryfmt[] = "nifffssssssssssssssssxii";
 const char TaxiPathEntryfmt[] = "niii";
 const char TaxiPathNodeEntryfmt[] = "diiifffiiii";
+const char TransportAnimationfmt[] = "diifffx";
 const char TotemCategoryEntryfmt[] = "nxxxxxxxxxxxxxxxxxii";
 const char WMOAreaTableEntryfmt[] = "niiixxxxxiixxxxxxxxxxxxxxxxx";
 const char WorldMapAreaEntryfmt[] = "xinxffffi";

@@ -2419,8 +2419,8 @@ class Unit : public WorldObject
         void RemovePetAura(PetAura const* petSpell);
 
         // Transports
-        Transport* GetTransport() const { return m_transport; }
-        void SetTransport(Transport* t) { m_transport = t; }
+        GenericTransport* GetTransport() const { return m_transport; }
+        void SetTransport(GenericTransport* t) { m_transport = t; }
 
         float GetTransOffsetX() const { return m_movementInfo.GetTransportPos()->x; }
         float GetTransOffsetY() const { return m_movementInfo.GetTransportPos()->y; }
@@ -2430,7 +2430,7 @@ class Unit : public WorldObject
 
         // Movement info
         MovementInfo m_movementInfo;
-        Transport* m_transport;
+        GenericTransport* m_transport;
         Movement::MoveSpline* movespline;
 
         void ScheduleAINotify(uint32 delay, bool forced = false);

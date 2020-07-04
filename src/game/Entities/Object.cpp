@@ -27,6 +27,7 @@
 #include "Globals/ObjectMgr.h"
 #include "Entities/ObjectGuid.h"
 #include "Entities/UpdateData.h"
+#include "Entities/Transports.h"
 #include "UpdateMask.h"
 #include "Util.h"
 #include "Grids/CellImpl.h"
@@ -360,7 +361,11 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
     // 0x2
     if (updateFlags & UPDATEFLAG_TRANSPORT)
     {
-        *data << uint32(WorldTimer::getMSTime());           // ms time
+        GameObject const* go = static_cast<GameObject const*>(this);
+        if (go && go->IsTransport())
+            *data << uint32(static_cast<Transport const*>(go)->GetPathProgress());
+        else
+            *data << uint32(WorldTimer::getMSTime());
     }
 }
 

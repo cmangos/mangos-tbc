@@ -1154,16 +1154,16 @@ void WorldSession::SendPlaySpellVisual(ObjectGuid guid, uint32 spellArtKit) cons
     SendPacket(data);
 }
 
-void WorldSession::SynchronizeMovement(MovementInfo &movementInfo)
+void WorldSession::SynchronizeMovement(MovementInfo& movementInfo)
 {
-    int64 movementTime = (int64)movementInfo.GetTime() + m_timeSyncClockDelta;
+    int64 movementTime = (int64)movementInfo.ctime + m_timeSyncClockDelta;
     if (m_timeSyncClockDelta == 0 || movementTime < 0 || movementTime > 0xFFFFFFFF)
     {
         DETAIL_LOG("The computed movement time using clockDelta is erronous. Using fallback instead");
-        movementInfo.UpdateTime(World::GetCurrentMSTime());
+        movementInfo.stime = World::GetCurrentMSTime();
     }
     else
-        movementInfo.UpdateTime((uint32)movementTime);
+        movementInfo.stime = movementTime;
 }
 
 std::deque<uint32> WorldSession::GetOpcodeHistory()

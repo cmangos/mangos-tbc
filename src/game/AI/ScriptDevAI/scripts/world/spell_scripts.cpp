@@ -640,6 +640,21 @@ struct GettingSleepyAura : public AuraScript
     }
 };
 
+struct AllergiesAura : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            aura->ForcePeriodicity(10 * IN_MILLISECONDS);
+    }
+
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        if (urand(0, 2) > 0)
+            aura->GetTarget()->CastSpell(nullptr, 31428, TRIGGERED_OLD_TRIGGERED); // Sneeze
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -660,6 +675,7 @@ void AddSC_spell_scripts()
     RegisterSpellScript<FelInfusion>("spell_fel_infusion");
     RegisterAuraScript<AuchenaiPossess>("spell_auchenai_possess");
     RegisterAuraScript<GettingSleepyAura>("spell_getting_sleepy_aura");
+    RegisterAuraScript<AllergiesAura>("spell_allergies");
     RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");
     RegisterSpellScript<spell_outdoor_pvp_banner_trigger>("spell_outdoor_pvp_banner_trigger");
 }

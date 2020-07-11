@@ -34,6 +34,7 @@ set(EXECUTABLE_SRCS
     soapH.h
     soapServer.cpp
     soapStub.h
+    ${sources_Debugging}
    )
 
 if(WIN32)

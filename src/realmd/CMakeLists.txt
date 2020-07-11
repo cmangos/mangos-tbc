@@ -25,6 +25,7 @@ set(EXECUTABLE_SRCS
     Main.cpp
     RealmList.cpp
     RealmList.h
+    ${sources_Debugging}
    )
 
 if(WIN32)

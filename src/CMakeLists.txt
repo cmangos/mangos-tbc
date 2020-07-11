@@ -22,6 +22,12 @@ if(BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS)
 endif()
 
 if(BUILD_GAME_SERVER)
+  if (WIN32)
+      set(sources_Debugging
+        ${CMAKE_SOURCE_DIR}/src/shared/Debugging/WheatyExceptionReport.cpp
+        ${CMAKE_SOURCE_DIR}/src/shared/Debugging/WheatyExceptionReport.h
+      )
+  endif(WIN32)
   add_subdirectory(game)
   add_subdirectory(mangosd)
 endif()

@@ -2021,12 +2021,29 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             if (!newUnitTarget)
                 break;
 
-            if (m_caster->CanAssistSpell(newUnitTarget, m_spellInfo))
-                tempUnitList.push_back(newUnitTarget);
-            else
+            if (!m_caster->CanAssistSpell(newUnitTarget, m_spellInfo))
             {
-                if (!CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetB, targetingData))
-                    tempUnitList.push_back(newUnitTarget);
+                if (CheckAndAddMagnetTarget(newUnitTarget, effIndex, targetB, targetingData))
+                    break;
+            }
+
+            tempUnitList.push_back(newUnitTarget);
+
+            // More than one target
+            if (targetingData.chainTargetCount[effIndex] > 1)
+            {
+                // Getting spell casting distance
+                float minRadiusCaster = 0, maxRadiusTarget = 0;
+                GetChainJumpRange(m_spellInfo, effIndex, minRadiusCaster, maxRadiusTarget);
+
+                // Filling target map
+                UnitList tempAoeList;
+                {
+                    FillAreaTargets(tempAoeList, maxRadiusTarget, cone, PUSH_TARGET_CENTER, SPELL_TARGETS_ALL);
+                    tempAoeList.erase(std::remove(tempAoeList.begin(), tempAoeList.end(), newUnitTarget), tempAoeList.end());
+                }
+
+                tempUnitList.splice(tempUnitList.end(), tempAoeList);
             }
             break;
         }
@@ -7304,6 +7321,24 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
             filterUnitList.push_back(hatedTarget);
             break;
         }
+        case SCHEME_RANDOM_CHAIN:
+        {
+            Unit* unitTarget = m_targets.getUnitTarget();
+            if (filterUnitList.empty() || filterUnitList.front() != unitTarget)
+                break;
+            if (chainTargetCount > 1 && filterUnitList.size() > chainTargetCount)
+            {
+                // remove random units from the map
+                while (filterUnitList.size() > chainTargetCount)
+                {
+                    uint32 poz = urand(1, filterUnitList.size() - 1);
+                    auto itr = filterUnitList.begin();
+                    std::advance(itr, poz);
+                    itr = filterUnitList.erase(itr);
+                }
+            }
+            break;
+        }
         case SCHEME_CLOSEST_CHAIN:
         {
             Unit* unitTarget = m_targets.getUnitTarget();
@@ -7335,7 +7370,7 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
 
                 --chainTargetCount;
             }
-            filterUnitList = newList;
+            std::swap(filterUnitList, newList);
             break;
         }
         case SCHEME_LOWEST_HP_CHAIN:
@@ -7380,7 +7415,7 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
 
                 --chainTargetCount;
             }
-            filterUnitList = newList;
+            std::swap(filterUnitList, newList);
             break;
         }
     }

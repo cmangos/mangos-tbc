@@ -776,13 +776,13 @@ bool PlayerbotPaladinAI::BuffHelper(PlayerbotAI* ai, uint32 spellId, Unit* targe
 }
 
 // Match up with "Pull()" below
-bool PlayerbotPaladinAI::CanPull()
+bool PlayerbotPaladinAI::CanPull() override
 {
     return EXORCISM > 0 && m_bot->IsSpellReady(EXORCISM);
 }
 
 // Match up with "CanPull()" above
-bool PlayerbotPaladinAI::Pull()
+bool PlayerbotPaladinAI::Pull() override
 {
     return EXORCISM > 0 && m_ai->CastSpell(EXORCISM) == SPELL_CAST_OK;
 }

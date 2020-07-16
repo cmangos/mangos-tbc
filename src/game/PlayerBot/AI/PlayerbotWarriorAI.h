@@ -92,6 +92,7 @@ class PlayerbotWarriorAI : PlayerbotClassAI
         // all combat actions go here
         CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
         CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+        bool CanPull();
         bool Pull();
 
         // all non combat actions go here, ex buffs, heals, rezzes
@@ -99,9 +100,6 @@ class PlayerbotWarriorAI : PlayerbotClassAI
 
         //Buff/rebuff shouts
         void CheckShouts();
-
-        // Utility Functions
-        bool CanPull();
 
     private:
         CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget);

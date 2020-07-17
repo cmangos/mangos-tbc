@@ -37,6 +37,7 @@
 #include <functional>
 #include <utility>
 #include <vector>
+#include <array>
 
 class Object;
 class ObjectGuid;

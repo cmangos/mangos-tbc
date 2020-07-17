@@ -112,7 +112,7 @@ class PlayerbotMageAI : PlayerbotClassAI
         // all combat actions go here
         CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
         CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
-        uint32 Neutralize(uint8 creatureType);
+        virtual uint32 Neutralize(uint8 creatureType) override;
 
         // all non combat actions go here, ex buffs, heals, rezzes
         void DoNonCombatActions();

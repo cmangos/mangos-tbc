@@ -439,7 +439,7 @@ enum SpellAttributesEx4
     SPELL_ATTR_EX4_CAST_ONLY_IN_OUTLAND        = 0x04000000,// 26 Can only be used in Outland.
     SPELL_ATTR_EX4_UNK27                       = 0x08000000,// 27
     SPELL_ATTR_EX4_UNK28                       = 0x10000000,// 28
-    SPELL_ATTR_EX4_UNK29                       = 0x20000000,// 29
+    SPELL_ATTR_EX4_UNK29                       = 0x20000000,// 29 Related to client selfcheck about dispel in 2.4.3 client but no spells, CC seems to have them
     SPELL_ATTR_EX4_UNK30                       = 0x40000000,// 30
     SPELL_ATTR_EX4_UNK31                       = 0x80000000,// 31
 };
@@ -750,8 +750,8 @@ enum SpellCastResult
     SPELL_FAILED_TARGET_NOT_IN_INSTANCE         = 0x84,
     SPELL_FAILED_NOT_WHILE_TRADING              = 0x85,
     SPELL_FAILED_TARGET_NOT_IN_RAID             = 0x86,
-    SPELL_FAILED_DISENCHANT_WHILE_LOOTING       = 0x87,
-    SPELL_FAILED_PROSPECT_WHILE_LOOTING         = 0x88,
+    SPELL_FAILED_DISENCHANT_WHILE_LOOTING       = 0x87, // TODO: add
+    SPELL_FAILED_PROSPECT_WHILE_LOOTING         = 0x88, // TODO: add
     SPELL_FAILED_PROSPECT_NEED_MORE             = 0x89,
     SPELL_FAILED_TARGET_FREEFORALL              = 0x8A,
     SPELL_FAILED_NO_EDIBLE_CORPSES              = 0x8B,

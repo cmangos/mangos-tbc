@@ -1402,7 +1402,6 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caste
                 case 28542:                                 // Life Drain (Naxx, Sapphiron)
                     return 2;
                 case 30004:                                 // Flame Wreath (Karazhan, Shade of Aran)
-                case 31298:                                 // Sleep (Hyjal Summit, Anetheron)
                 case 39341:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Horde
                 case 39344:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Alliance
                 case 39992:                                 // Needle Spine Targeting (BT, Warlord Najentus)

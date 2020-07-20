@@ -59,7 +59,11 @@ enum
     NPC_FLAME_PATCH         = 20602,        // summoned by spell 29218
     SPELL_FLAME_PATCH       = 35380,
 
+#ifdef PRENERF_2_0_3
     MAX_PLATFORMS           = 6,
+#elif
+    MAX_PLATFORMS           = 4,
+#endif
 
     POINT_ID_RESSURRECT     = 0,            // center of the hall
     POINT_ID_PLATFORM       = 1,            // platform points
@@ -87,8 +91,10 @@ static const EventLocation aPlatformLocation[MAX_PLATFORMS] =
     {387.8628f, 32.18992f, 20.23814f},
     {388.777f, -32.10653f, 20.26319f},
     {333.6099f,-60.69928f, 18.01521f},
+#ifdef PRENERF_2_0_3
     {264.36f, 40.78f, 20.21f},
     {268.38f,-49.80f, 20.38f}
+#endif
 };
 
 static const EventLocation aCenterLocation[] =
@@ -152,7 +158,12 @@ struct boss_alarAI : public CombatAI
         SetCombatScriptStatus(false);
 
         m_rangeCheckState       = -1;
-        m_uiFuturePlatformId    = urand(1, MAX_PLATFORMS - 1);
+
+#ifdef PRENERF_2_0_3
+        m_uiFuturePlatformId = urand(1, MAX_PLATFORMS - 1);
+#elif
+        m_uiFuturePlatformId = 1;
+#endif
 
         m_firstPlatform = true;
 
@@ -211,19 +222,21 @@ struct boss_alarAI : public CombatAI
         }
     }
     
+#ifndef PRENERF_2_0_3
     // UNCOMMENT THIS AREA WHEN PATCH 2.1 HITS - should be done through serverside 41910
-    /* void SummonedCreatureJustDied(Creature* pSummoned) override
+    void SummonedCreatureJustDied(Creature* pSummoned) override
     {
         // drain 2% of boss health when the ember dies
         if (pSummoned->GetEntry() == NPC_EMBER_OF_ALAR)
         {
             // Check first if we have enough health to drain
-            if (m_creature->GetHealth() <= m_creature->GetMaxHealth()*.02f)
-                m_creature->DealDamage(m_creature, m_creature->GetMaxHealth()*.02f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+            if (m_creature->GetHealth() <= m_creature->GetMaxHealth() * .02f)
+                Unit::DealDamage(m_creature, m_creature, m_creature->GetMaxHealth() * .02f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
             else
-                m_creature->DealDamage(m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+                Unit::DealDamage(m_creature, m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
         }
-    } */
+    }
+#endif
 
     void EnterEvadeMode() override
     {
@@ -263,21 +276,29 @@ struct boss_alarAI : public CombatAI
     {
         if (summon)
         {
-            // m_creature->CastSpell(nullptr, SPELL_SUMMON_PHOENIX_ADDS, TRIGGERED_OLD_TRIGGERED); - post 2.1
+#ifdef PRENERF_2_0_3
             if (m_firstPlatform || urand(0, 3) == 0) // pre 2.1
             {
                 m_firstPlatform = false;
                 m_creature->CastSpell(nullptr, SPELL_SUMMON_PHOENIX_ADDS_PRENERF, TRIGGERED_OLD_TRIGGERED);
             }
+#elif
+            m_creature->CastSpell(nullptr, SPELL_SUMMON_PHOENIX_ADDS, TRIGGERED_OLD_TRIGGERED); // post 2.1
+#endif
         }
         m_creature->GetMotionMaster()->MovePoint(POINT_ID_PLATFORM, aPlatformLocation[m_uiFuturePlatformId].m_fX, aPlatformLocation[m_uiFuturePlatformId].m_fY, aPlatformLocation[m_uiFuturePlatformId].m_fZ);
 
+#ifdef PRENERF_2_0_3
         // plan next platform
         m_uiCurrentPlatformId = m_uiFuturePlatformId;
         m_uiFuturePlatformId = urand(0, MAX_PLATFORMS - 1);
 
         if (m_uiFuturePlatformId == m_uiCurrentPlatformId)
             m_uiFuturePlatformId = (m_uiFuturePlatformId + 1) % MAX_PLATFORMS;
+#elif
+        m_uiCurrentPlatformId = m_uiFuturePlatformId;
+        m_uiFuturePlatformId = (m_uiFuturePlatformId + 1) % MAX_PLATFORMS;
+#endif
 
         SetCombatScriptStatus(true);
         m_creature->SetTarget(nullptr);

@@ -450,7 +450,9 @@ struct boss_lady_vashjAI : public RangedCombatAI
             m_creature->PlaySpellVisual(SPELL_VISUAL_KIT);
 
             DisableCombatAction(VASHJ_ACTION_FORKED_LIGHTNING);
+#ifdef PRENERF_2_0_3
             ResetCombatAction(VASHJ_ACTION_PERSUASION, 30000);
+#endif
             ResetCombatAction(VASHJ_ACTION_SHOCK_BLAST, urand(1000, 60000));
             ResetCombatAction(VASHJ_ACTION_STATIC_CHARGE, urand(10000, 25000));
             ResetCombatAction(VASHJ_ACTION_ENTANGLE, 30000);

@@ -61,7 +61,7 @@ enum
 
 #ifdef PRENERF_2_0_3
     MAX_PLATFORMS           = 6,
-#elif
+#else
     MAX_PLATFORMS           = 4,
 #endif
 
@@ -161,7 +161,7 @@ struct boss_alarAI : public CombatAI
 
 #ifdef PRENERF_2_0_3
         m_uiFuturePlatformId = urand(1, MAX_PLATFORMS - 1);
-#elif
+#else
         m_uiFuturePlatformId = 1;
 #endif
 
@@ -282,7 +282,7 @@ struct boss_alarAI : public CombatAI
                 m_firstPlatform = false;
                 m_creature->CastSpell(nullptr, SPELL_SUMMON_PHOENIX_ADDS_PRENERF, TRIGGERED_OLD_TRIGGERED);
             }
-#elif
+#else
             m_creature->CastSpell(nullptr, SPELL_SUMMON_PHOENIX_ADDS, TRIGGERED_OLD_TRIGGERED); // post 2.1
 #endif
         }
@@ -295,7 +295,7 @@ struct boss_alarAI : public CombatAI
 
         if (m_uiFuturePlatformId == m_uiCurrentPlatformId)
             m_uiFuturePlatformId = (m_uiFuturePlatformId + 1) % MAX_PLATFORMS;
-#elif
+#else
         m_uiCurrentPlatformId = m_uiFuturePlatformId;
         m_uiFuturePlatformId = (m_uiFuturePlatformId + 1) % MAX_PLATFORMS;
 #endif

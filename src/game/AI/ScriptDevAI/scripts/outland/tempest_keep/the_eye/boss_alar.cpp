@@ -230,7 +230,7 @@ struct boss_alarAI : public CombatAI
         if (pSummoned->GetEntry() == NPC_EMBER_OF_ALAR)
         {
             // Check first if we have enough health to drain
-            if (m_creature->GetHealth() <= m_creature->GetMaxHealth() * .02f)
+            if (m_creature->GetHealth() > m_creature->GetMaxHealth() * .02f)
                 Unit::DealDamage(m_creature, m_creature, m_creature->GetMaxHealth() * .02f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
             else
                 Unit::DealDamage(m_creature, m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);

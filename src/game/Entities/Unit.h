@@ -2322,6 +2322,8 @@ class Unit : public WorldObject
 
         uint32 GetDamageDoneByOthers() { return m_damageByOthers; }
         uint32 GetModifierXpBasedOnDamageReceived(uint32 xp);
+        
+        void OverrideMountDisplayId(uint32 newDisplayId);
 
         void UpdateSplinePosition();
     protected:
@@ -2505,6 +2507,9 @@ class Unit : public WorldObject
         int8 m_comboPoints;
 
         uint32 m_damageByOthers;
+
+        bool m_isMountOverriden;
+        uint32 m_overridenMountId;
 
     private:                                                // Error traps for some wrong args using
         // this will catch and prevent build for any cases when all optional args skipped and instead triggered used non boolean type

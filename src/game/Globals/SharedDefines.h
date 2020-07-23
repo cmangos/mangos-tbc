@@ -519,6 +519,7 @@ enum SpellAttributesEx6
 enum SpellAttributesServerside
 {
     SPELL_ATTR_SS_PREVENT_INVIS                = 0x00000001,
+    SPELL_ATTR_AOE_CAP                         = 0x00000002,
 };
 
 enum SheathTypes

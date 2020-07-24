@@ -271,7 +271,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (20662,'spell_warrior_execute'),
 (25234,'spell_warrior_execute'),
 (25236,'spell_warrior_execute'),
-(20647,'spell_warrior_execute_damage');
+(20647,'spell_warrior_execute_damage'),
+(34428,'spell_warrior_victory_rush');
 
 -- Mage
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

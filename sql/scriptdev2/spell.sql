@@ -174,6 +174,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (35865,'spell_nether_vapor_summon_parent'),
 (45960,'spell_nether_vapor_lightning'),
 (31298,'spell_anetheron_sleep'),
+(41910,'spell_alar_phoenix_ember_blast'),
 (34630,'spell_scrap_reaver_spell'),
 (34800,'spell_getting_sleepy_aura'),
 (43364,'spell_getting_sleepy_aura');

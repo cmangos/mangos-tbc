@@ -32,6 +32,7 @@ Patches
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "the_eye.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
+#include "Spells/Scripts/SpellScript.h"
 
 enum
 {
@@ -221,22 +222,6 @@ struct boss_alarAI : public CombatAI
             m_spawns.push_back(summoned->GetObjectGuid());
         }
     }
-    
-#ifndef PRENERF_2_0_3
-    // UNCOMMENT THIS AREA WHEN PATCH 2.1 HITS - should be done through serverside 41910
-    void SummonedCreatureJustDied(Creature* pSummoned) override
-    {
-        // drain 2% of boss health when the ember dies
-        if (pSummoned->GetEntry() == NPC_EMBER_OF_ALAR)
-        {
-            // Check first if we have enough health to drain
-            if (m_creature->GetHealth() > m_creature->GetMaxHealth() * .02f)
-                Unit::DealDamage(m_creature, m_creature, m_creature->GetMaxHealth() * .02f, nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
-            else
-                Unit::DealDamage(m_creature, m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
-        }
-    }
-#endif
 
     void EnterEvadeMode() override
     {
@@ -376,7 +361,7 @@ struct boss_alarAI : public CombatAI
         {
             m_creature->CastSpell(nullptr, SPELL_FLIGHT_MODE, TRIGGERED_OLD_TRIGGERED);
             // Move to the center of the hall and ressurrect
-            m_creature->GetMotionMaster()->MovePoint(POINT_ID_RESSURRECT, aCenterLocation[1].m_fX, aCenterLocation[1].m_fY, aCenterLocation[1].m_fZ);
+            m_creature->GetMotionMaster()->MovePoint(POINT_ID_RESSURRECT, aCenterLocation[1].m_fX, aCenterLocation[1].m_fY, aCenterLocation[1].m_fZ, FORCED_MOVEMENT_WALK);
         }
     }
 
@@ -539,15 +524,23 @@ struct boss_alarAI : public CombatAI
     }
 };
 
-UnitAI* GetAI_boss_alar(Creature* creature)
+struct EmberBlast : public SpellScript
 {
-    return new boss_alarAI(creature);
-}
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (!spell->GetUnitTarget())
+            return;
+
+        spell->SetDamage(spell->GetUnitTarget()->GetMaxHealth() * .02f);
+    }
+};
 
 void AddSC_boss_alar()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_alar";
-    pNewScript->GetAI = &GetAI_boss_alar;
+    pNewScript->GetAI = &GetNewAIInstance<boss_alarAI>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<EmberBlast>("spell_alar_phoenix_ember_blast");
 }

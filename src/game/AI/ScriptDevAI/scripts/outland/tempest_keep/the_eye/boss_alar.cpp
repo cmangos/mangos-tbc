@@ -177,7 +177,12 @@ struct boss_alarAI : public CombatAI
 
         m_uiCurrentPlatformId   = 0;
 
+        m_creature->RemoveAurasDueToSpell(SPELL_FLIGHT_MODE);
+
         DespawnGuids(m_spawns);
+
+        m_creature->SetWalk(false);
+        m_creature->SetHover(true);
     }
 
     void Aggro(Unit* /*who*/) override
@@ -185,7 +190,8 @@ struct boss_alarAI : public CombatAI
         if (m_instance)
             m_instance->SetData(TYPE_ALAR, IN_PROGRESS);
 
-        m_creature->SetWalk(false);
+        SetCombatScriptStatus(true);
+        m_creature->CastSpell(nullptr, SPELL_FLIGHT_MODE, TRIGGERED_OLD_TRIGGERED);
 
         // The boss will always move to the first platform from the left side; also set the movement to idle to stop the DB movement
         m_creature->GetMotionMaster()->MoveIdle();
@@ -196,8 +202,6 @@ struct boss_alarAI : public CombatAI
     {
         if (m_instance)
             m_instance->SetData(TYPE_ALAR, FAIL);
-
-        m_creature->SetWalk(true);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -298,8 +302,7 @@ struct boss_alarAI : public CombatAI
         switch (pointId)
         {
             case POINT_ID_QUILLS:
-                if (m_phase == PHASE_ONE)
-                    DoCastSpellIfCan(nullptr, SPELL_FLAME_QUILLS);
+				DoCastSpellIfCan(nullptr, SPELL_FLAME_QUILLS);
                 break;
             case POINT_ID_PLATFORM:
                 // When we reach the platform we start the range check and we can summon the embers
@@ -309,12 +312,8 @@ struct boss_alarAI : public CombatAI
                 m_creature->SetLevitate(false);
                 break;
             case POINT_ID_RESSURRECT:
-                // remove the invisibility aura
-                if (m_creature->HasAura(SPELL_EMBER_BLAST))
-                    m_creature->RemoveAurasDueToSpell(SPELL_EMBER_BLAST);
-
                 m_rebirthState = 0;
-                ResetTimer(ALAR_REBIRTH, 1000);
+                ResetTimer(ALAR_REBIRTH, 10000);
                 break;
             case POINT_ID_DIVE_BOMB:
                 if (DoCastSpellIfCan(m_creature, SPELL_DIVE_BOMB_VISUAL) == CAST_OK)
@@ -332,6 +331,7 @@ struct boss_alarAI : public CombatAI
         if (m_phase != PHASE_ONE)
             return;
 
+        m_phase = PHASE_TWO;
         SetActionReadyStatus(ALAR_PHASE_2, true);
     }
 
@@ -359,9 +359,8 @@ struct boss_alarAI : public CombatAI
 
         if (DoCastSpellIfCan(nullptr, SPELL_EMBER_BLAST) == CAST_OK)
         {
-            m_creature->CastSpell(nullptr, SPELL_FLIGHT_MODE, TRIGGERED_OLD_TRIGGERED);
             // Move to the center of the hall and ressurrect
-            m_creature->GetMotionMaster()->MovePoint(POINT_ID_RESSURRECT, aCenterLocation[1].m_fX, aCenterLocation[1].m_fY, aCenterLocation[1].m_fZ, FORCED_MOVEMENT_WALK);
+            m_creature->GetMotionMaster()->MovePoint(POINT_ID_RESSURRECT, aCenterLocation[1].m_fX, aCenterLocation[1].m_fY, aCenterLocation[1].m_fZ, FORCED_MOVEMENT_RUN);
         }
     }
 
@@ -369,10 +368,16 @@ struct boss_alarAI : public CombatAI
     {
         if (m_rebirthState == 0)
         {
-            SetCombatScriptStatus(false);
+            // remove the invisibility aura
+            if (m_creature->HasAura(SPELL_EMBER_BLAST))
+                m_creature->RemoveAurasDueToSpell(SPELL_EMBER_BLAST);
+
+            ResetTimer(ALAR_REBIRTH, 1000);
+        }
+        else if (m_rebirthState == 1)
+        {
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-            m_creature->RemoveAurasDueToSpell(SPELL_FLIGHT_MODE);
 
             // cast rebirth and remove fake death
             m_creature->CastSpell(nullptr, SPELL_REBIRTH, TRIGGERED_NONE);
@@ -386,7 +391,7 @@ struct boss_alarAI : public CombatAI
             SetDeathPrevention(false);
             SetCombatMovement(true, true);
             SetCombatScriptStatus(false);
-            m_phase = PHASE_TWO;
+            AttackClosestEnemy();
         }
         ++m_rebirthState;
     }

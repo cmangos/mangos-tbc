@@ -826,6 +826,43 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
             victim->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
+    if (dealer)
+    {
+        // Rage from Damage made (only from direct weapon damage)
+        if (cleanDamage && damagetype == DIRECT_DAMAGE && dealer != victim && dealer->GetTypeId() == TYPEID_PLAYER && (dealer->GetPowerType() == POWER_RAGE))
+        {
+            uint32 weaponSpeedHitFactor;
+
+            switch (cleanDamage->attackType)
+            {
+                case BASE_ATTACK:
+                {
+                    if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 7);
+                    else
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
+
+                    static_cast<Player*>(dealer)->RewardRage(cleanDamage->damage, weaponSpeedHitFactor, true);
+
+                    break;
+                }
+                case OFF_ATTACK:
+                {
+                    if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
+                    else
+                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 1.75f);
+
+                    static_cast<Player*>(dealer)->RewardRage(cleanDamage->damage, weaponSpeedHitFactor, true);
+
+                    break;
+                }
+                case RANGED_ATTACK:
+                    break;
+            }
+        }
+    }
+ 
     if (!damage)
     {
         // Rage from physical damage received - extend to all units
@@ -844,40 +881,6 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
     bool duel_hasEnded = false;
     if (dealer)
     {
-        // Rage from Damage made (only from direct weapon damage)
-        if (cleanDamage && damagetype == DIRECT_DAMAGE && dealer != victim && dealer->GetTypeId() == TYPEID_PLAYER && (dealer->GetPowerType() == POWER_RAGE))
-        {
-            uint32 weaponSpeedHitFactor;
-
-            switch (cleanDamage->attackType)
-            {
-                case BASE_ATTACK:
-                {
-                    if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
-                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 7);
-                    else
-                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
-
-                    static_cast<Player*>(dealer)->RewardRage(damage, weaponSpeedHitFactor, true);
-
-                    break;
-                }
-                case OFF_ATTACK:
-                {
-                    if (cleanDamage->hitOutCome == MELEE_HIT_CRIT)
-                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 3.5f);
-                    else
-                        weaponSpeedHitFactor = uint32(dealer->GetAttackTime(cleanDamage->attackType) / 1000.0f * 1.75f);
-
-                    static_cast<Player*>(dealer)->RewardRage(damage, weaponSpeedHitFactor, true);
-
-                    break;
-                }
-                case RANGED_ATTACK:
-                    break;
-            }
-        }
-
         if (dealer->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && victim->GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(victim)->duel && damage >= (health - 1))
         {
             // prevent kill only if killed in duel and killed by opponent or opponent controlled creature

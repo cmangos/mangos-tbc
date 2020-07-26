@@ -683,6 +683,23 @@ struct UseCorpse : public SpellScript
     }
 };
 
+struct SplitDamage : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (spell->m_spellInfo->Effect[effIdx] != SPELL_EFFECT_SCHOOL_DAMAGE)
+            return;
+
+        uint32 count = 0;
+        auto& targetList = spell->GetTargetList();
+        for (Spell::TargetList::const_iterator ihit = targetList.begin(); ihit != targetList.end(); ++ihit)
+            if (ihit->effectHitMask & (1 << effIdx))
+                ++count;
+
+        spell->SetDamage(spell->GetDamage() / count); // divide to all targets
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -706,6 +723,7 @@ void AddSC_spell_scripts()
     RegisterAuraScript<AllergiesAura>("spell_allergies");
     RegisterSpellScript<UseCorpse>("spell_use_corpse");
     RegisterSpellScript<RaiseDead>("spell_raise_dead");
+    RegisterSpellScript<SplitDamage>("spell_split_damage");
     RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");
     RegisterSpellScript<spell_outdoor_pvp_banner_trigger>("spell_outdoor_pvp_banner_trigger");
 }

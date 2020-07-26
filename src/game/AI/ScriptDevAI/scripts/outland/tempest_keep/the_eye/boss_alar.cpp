@@ -183,6 +183,7 @@ struct boss_alarAI : public CombatAI
 
         m_creature->SetWalk(false);
         m_creature->SetHover(true);
+        SetReactState(REACT_AGGRESSIVE);
     }
 
     void Aggro(Unit* /*who*/) override
@@ -337,7 +338,7 @@ struct boss_alarAI : public CombatAI
 
     void StartPhaseTransition()
     {
-        m_creature->AttackStop();
+        m_creature->AttackStop(true);
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->RemoveAurasDueToSpell(SPELL_FLAME_QUILLS);
         // We set the health to 1 in order to avoid the forced death stand flag - this way we can have the ressurrect animation
@@ -354,6 +355,7 @@ struct boss_alarAI : public CombatAI
 
         m_creature->SetIgnoreRangedTargets(false); // TODO: Use root for this
         SetCombatScriptStatus(true);
+        SetReactState(REACT_PASSIVE);
 
         m_creature->CastSpell(nullptr, SPELL_CLEAR_ALL_DEBUFFS, TRIGGERED_OLD_TRIGGERED);
 
@@ -389,6 +391,7 @@ struct boss_alarAI : public CombatAI
             DoResetThreat();
             HandlePhaseTransition();
             SetDeathPrevention(false);
+            SetReactState(REACT_AGGRESSIVE);
             SetCombatMovement(true, true);
             SetCombatScriptStatus(false);
             AttackClosestEnemy();

@@ -391,10 +391,6 @@ enum
     NPC_TALON_KING_IKISS        = 18473,
     NPC_KARGATH_BLADEFIST       = 16808,
 
-    // Black Temple
-    NPC_HIGH_WARLORD_NAJENTUS   = 22887,
-    NPC_GURTOGG_BLOODBOIL       = 22948,
-
     // Zul'Aman
     NPC_AKILZON                 = 23574,
     NPC_NALORAKK                = 23576,
@@ -435,14 +431,6 @@ bool ScriptedAI::EnterEvadeIfOutOfCombatArea(const uint32 diff)
         }
         case NPC_KARGATH_BLADEFIST:
             if (x < 270.0f && x > 185.0f)
-                return false;
-            break;
-        case NPC_HIGH_WARLORD_NAJENTUS:
-            if (x > 300.f)
-                return false;
-            break;
-        case NPC_GURTOGG_BLOODBOIL:
-            if (y > 140.f)
                 return false;
             break;
         case NPC_AKILZON:

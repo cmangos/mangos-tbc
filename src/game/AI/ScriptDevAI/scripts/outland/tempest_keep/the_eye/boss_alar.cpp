@@ -354,6 +354,8 @@ struct boss_alarAI : public CombatAI
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
 
         m_creature->SetIgnoreRangedTargets(false); // TODO: Use root for this
+        m_creature->SetTarget(nullptr);
+        SetMeleeEnabled(false);
         SetCombatScriptStatus(true);
         SetReactState(REACT_PASSIVE);
 
@@ -383,7 +385,7 @@ struct boss_alarAI : public CombatAI
 
             // cast rebirth and remove fake death
             m_creature->CastSpell(nullptr, SPELL_REBIRTH, TRIGGERED_NONE);
-            ResetTimer(ALAR_REBIRTH, 3500);
+            ResetTimer(ALAR_REBIRTH, 4000);
         }
         else
         {
@@ -392,6 +394,7 @@ struct boss_alarAI : public CombatAI
             HandlePhaseTransition();
             SetDeathPrevention(false);
             SetReactState(REACT_AGGRESSIVE);
+            SetMeleeEnabled(true);
             SetCombatMovement(true, true);
             SetCombatScriptStatus(false);
             AttackClosestEnemy();
@@ -411,7 +414,7 @@ struct boss_alarAI : public CombatAI
                     {
                         m_creature->RemoveAurasDueToSpell(SPELL_DIVE_BOMB_VISUAL);
                         m_creature->NearTeleportTo(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), target->GetOrientation());
-                        ResetTimer(ALAR_DIVE_BOMB_TIMER, 3500);
+                        ResetTimer(ALAR_DIVE_BOMB_TIMER, 3000);
                     }
                 }
                 break;
@@ -421,7 +424,7 @@ struct boss_alarAI : public CombatAI
                 if (DoCastSpellIfCan(nullptr, SPELL_BOMB_REBIRTH) == CAST_OK)
                 {
                     m_creature->SetDisplayId(m_creature->GetNativeDisplayId());
-                    ResetTimer(ALAR_DIVE_BOMB_TIMER, 500);
+                    ResetTimer(ALAR_DIVE_BOMB_TIMER, 4000);
                 }
                 break;
             }
@@ -429,6 +432,7 @@ struct boss_alarAI : public CombatAI
             {
                 m_creature->SetHover(false);
                 m_creature->SetLevitate(false);
+                SetCombatScriptStatus(false);
                 SetCombatMovement(true, true);
                 SetMeleeEnabled(true);
                 SetDeathPrevention(false);
@@ -501,6 +505,8 @@ struct boss_alarAI : public CombatAI
                 ResetCombatAction(ALAR_CHARGE, urand(25000, 30000));
                 SetCombatMovement(false);
                 SetMeleeEnabled(false);
+                SetCombatScriptStatus(true);
+                m_creature->SetTarget(nullptr);
                 m_creature->SetHover(true);
                 m_creature->SetLevitate(true);
                 m_creature->GetMotionMaster()->MovePoint(POINT_ID_DIVE_BOMB, aCenterLocation[2].m_fX, aCenterLocation[2].m_fY, aCenterLocation[2].m_fZ);

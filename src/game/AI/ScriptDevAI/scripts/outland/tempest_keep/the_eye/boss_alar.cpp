@@ -549,6 +549,31 @@ struct EmberBlast : public SpellScript
     }
 };
 
+struct DiveBomb : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (!spell->GetUnitTarget())
+            return;
+
+        uint32 count = 0;
+        auto& targets = spell->GetTargetList();
+        for (Spell::TargetList::const_iterator ihit = targets.begin(); ihit != targets.end(); ++ihit)
+            if (ihit->effectHitMask & (1 << effIdx))
+                ++count;
+
+        spell->SetDamage(spell->GetDamage() / count); // divide to all targets              
+    }
+
+    void OnAfterHit(Spell* spell) const override
+    {
+        if (!spell->GetUnitTarget())
+            return;
+
+        spell->GetUnitTarget()->CastSpell(nullptr, 39110, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void AddSC_boss_alar()
 {
     Script* pNewScript = new Script;
@@ -557,4 +582,5 @@ void AddSC_boss_alar()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<EmberBlast>("spell_alar_phoenix_ember_blast");
+    RegisterSpellScript<DiveBomb>("spell_dive_bomb");
 }

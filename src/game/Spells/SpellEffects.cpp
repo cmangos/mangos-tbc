@@ -302,10 +302,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
 
                 switch (m_spellInfo->Id)                    // better way to check unknown
                 {
-                    case 35181:                             // Al'ar - Dive Bomb
-                        if (unitTarget->GetObjectGuid() == m_targets.getUnitTargetGuid()) // summons two adds
-                            unitTarget->CastSpell(nullptr, 39110, TRIGGERED_OLD_TRIGGERED);
-                    // [[fallthrough]]
                     // Meteor like spells (divided damage to targets)
                     case 24340: case 26558: case 28884:     // Meteor
                     case 36837: case 38903: case 41276:     // Meteor

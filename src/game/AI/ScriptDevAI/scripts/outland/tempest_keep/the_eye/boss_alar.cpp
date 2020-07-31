@@ -570,6 +570,9 @@ struct DiveBomb : public SpellScript
         if (!spell->GetUnitTarget())
             return;
 
+        if (spell->GetUnitTarget()->GetObjectGuid() != spell->m_targets.getUnitTargetGuid())
+            return;
+
         spell->GetUnitTarget()->CastSpell(nullptr, 39110, TRIGGERED_OLD_TRIGGERED);
     }
 };

@@ -3004,6 +3004,7 @@ struct npc_commanderAI : public CombatAI
         ResetTimer(COMMANDER_ACTION_START_QUEST_FLAGS, 1000);
         ResetTimer(COMMANDER_ACTION_START_QUEST_TEXT, 2000);
         ResetTimer(COMMANDER_ACTION_START_QUEST_MOVEMENT, 4500);
+        m_creature->SetActiveObjectState(true);
     }
 
     virtual void FinishedWaypointMovement()
@@ -3043,6 +3044,8 @@ struct npc_commanderAI : public CombatAI
         m_startingPlayer = ObjectGuid();
         m_creature->SetSheath(SHEATH_STATE_MELEE);
         DisableTimer(COMMANDER_ACTION_FAIL_EVENT);
+        m_creature->HandleEmote(0);
+        m_creature->SetActiveObjectState(false);
     }
 
     void JustDied(Unit* killer) override
@@ -3143,16 +3146,6 @@ struct npc_commander_arcusAI : public npc_commanderAI
         npc_commanderAI::StartAttackingEvent();
     }
 };
-
-UnitAI* GetAI_npc_commander_hobb(Creature* pCreature)
-{
-    return new npc_commander_hobbAI(pCreature);
-}
-
-UnitAI* GetAI_npc_commander_arcus(Creature* pCreature)
-{
-    return new npc_commander_arcusAI(pCreature);
-}
 
 bool QuestAccept_npc_commander(Player* player, Creature* questgiver, Quest const* quest)
 {
@@ -5362,13 +5355,13 @@ void AddSC_shadowmoon_valley()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_commander_hobb";
-    pNewScript->GetAI = &GetAI_npc_commander_hobb;
+    pNewScript->GetAI = &GetNewAIInstance<npc_commander_hobbAI>;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_commander;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_commander_arcus";
-    pNewScript->GetAI = &GetAI_npc_commander_arcus;
+    pNewScript->GetAI = &GetNewAIInstance<npc_commander_arcusAI>;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_commander;
     pNewScript->RegisterSelf();
 

@@ -408,24 +408,21 @@ struct boss_alarAI : public CombatAI
         {
             case 0:
             {
+
                 if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER))
                 {
-                    if (DoCastSpellIfCan(target, SPELL_DIVE_BOMB) == CAST_OK)
-                    {
-                        m_creature->RemoveAurasDueToSpell(SPELL_DIVE_BOMB_VISUAL);
-                        m_creature->NearTeleportTo(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), target->GetOrientation());
-                        ResetTimer(ALAR_DIVE_BOMB_TIMER, 3000);
-                    }
+                    DoCastSpellIfCan(target, SPELL_DIVE_BOMB);
+                    m_creature->NearTeleportTo(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), target->GetOrientation());
                 }
+                m_creature->RemoveAurasDueToSpell(SPELL_DIVE_BOMB_VISUAL);
+                ResetTimer(ALAR_DIVE_BOMB_TIMER, 3000);
                 break;
             }
             case 1:
             {
-                if (DoCastSpellIfCan(nullptr, SPELL_BOMB_REBIRTH) == CAST_OK)
-                {
-                    m_creature->SetDisplayId(m_creature->GetNativeDisplayId());
-                    ResetTimer(ALAR_DIVE_BOMB_TIMER, 4000);
-                }
+                DoCastSpellIfCan(nullptr, SPELL_BOMB_REBIRTH);
+                m_creature->SetDisplayId(m_creature->GetNativeDisplayId());
+                ResetTimer(ALAR_DIVE_BOMB_TIMER, 4000);
                 break;
             }
             case 2:

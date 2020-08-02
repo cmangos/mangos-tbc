@@ -999,6 +999,11 @@ struct npc_obelisk_triggerAI : public ScriptedAI
                 (*itr)->ResetDoorOrButton();
             }
         }
+        
+        std::list<Creature*> lBunny;
+        GetCreatureListWithEntryInGrid(lBunny, m_creature, NPC_TRIGGER, 100.0f);
+        for (std::list<Creature*>::iterator itr = lBunny.begin(); itr != lBunny.end(); ++itr)
+            (*itr)->RemoveAllAuras();
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -1036,11 +1041,6 @@ struct npc_obelisk_triggerAI : public ScriptedAI
                     if (m_uiDoomcryer)
                         m_uiDoomcryer->GetMotionMaster()->MovePoint(1, 2882.60f, 4818.73f, 282.0f);
 
-                    std::list<Creature*> lBunny;
-                    GetCreatureListWithEntryInGrid(lBunny, m_creature, NPC_TRIGGER, 100.0f);
-                    for (std::list<Creature*>::iterator itr = lBunny.begin(); itr != lBunny.end(); ++itr)
-                        (*itr)->RemoveAllAuras();
-
                     m_uiSpawnBoss = true;
                     m_uiMarkForReset = true;
                 }
@@ -1058,7 +1058,7 @@ struct npc_obelisk_triggerAI : public ScriptedAI
                                 for (uint8 i = 0; i < countof(aObeliskEntries); ++i)
                                     GetGameObjectListWithEntryInGrid(lObelisk, (*itr), aObeliskEntries[i], 1.0f);
 
-                                if (!(*itr)->HasAura(SPELL_GREEN_BEAM) && lObelisk.begin() != lObelisk.end())
+                                if (!(*itr)->HasAura(SPELL_GREEN_BEAM) && lBunny.begin() != lBunny.end())
                                 {
                                     (*itr)->CastSpell(m_creature, SPELL_GREEN_BEAM, TRIGGERED_OLD_TRIGGERED);
                                     break;
@@ -1085,9 +1085,15 @@ struct npc_obelisk_triggerAI : public ScriptedAI
             }
             else
                 m_uiResetTimer -= uiDiff;
+        }  
+    }
 
-        }
-
+    void SummonedCreatureJustDied(Creature* /*pSummoned*/) override
+    {
+        std::list<Creature*> lBunny;
+        GetCreatureListWithEntryInGrid(lBunny, m_creature, NPC_TRIGGER, 100.0f);
+        for (std::list<Creature*>::iterator itr = lBunny.begin(); itr != lBunny.end(); ++itr)
+            (*itr)->RemoveAllAuras();
     }
 };
 

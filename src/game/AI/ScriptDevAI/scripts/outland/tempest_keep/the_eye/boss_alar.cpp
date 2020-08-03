@@ -178,6 +178,7 @@ struct boss_alarAI : public CombatAI
         m_uiCurrentPlatformId   = 0;
 
         m_creature->RemoveAurasDueToSpell(SPELL_FLIGHT_MODE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
         DespawnGuids(m_spawns);
 
@@ -323,6 +324,7 @@ struct boss_alarAI : public CombatAI
                 if (DoCastSpellIfCan(m_creature, SPELL_DIVE_BOMB_VISUAL) == CAST_OK)
                 {
                     m_diveBombState = 0;
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                     ResetTimer(ALAR_DIVE_BOMB_TIMER, 5000);
                 }
                 break;
@@ -425,11 +427,12 @@ struct boss_alarAI : public CombatAI
             {
                 DoCastSpellIfCan(nullptr, SPELL_BOMB_REBIRTH);
                 m_creature->SetDisplayId(m_creature->GetNativeDisplayId());
-                ResetTimer(ALAR_DIVE_BOMB_TIMER, 4000);
+                ResetTimer(ALAR_DIVE_BOMB_TIMER, 2500);
                 break;
             }
             case 2:
             {
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                 m_creature->SetHover(false);
                 m_creature->SetLevitate(false);
                 SetCombatScriptStatus(false);

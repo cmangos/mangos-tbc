@@ -6961,7 +6961,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (unitTarget->GetTypeId() == TYPEID_PLAYER)
                     {
                         float angle = frand(0,M_PI_F*2);
-                        ((Player*)unitTarget)->GetSession()->SendKnockBack(angle, 15.f, urand(15, 24));
+                        ((Player*)unitTarget)->GetSession()->SendKnockBack(unitTarget, angle, 15.f, urand(15, 24));
                     }
                     return;
                 }
@@ -8746,13 +8746,23 @@ void Spell::EffectLeapForward(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectLeapBack(SpellEffectIndex eff_idx)
 {
-    if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
+    if (!m_caster)
         return;
 
     if (unitTarget->IsTaxiFlying())
         return;
 
-    ((Player*)m_caster)->KnockBackFrom(unitTarget, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
+    Player* caster = nullptr;
+    if (m_caster->IsPlayer())
+        caster = static_cast<Player*>(caster);
+    else if (Unit* charmer = m_caster->GetCharmer())
+    {
+        if (charmer->IsPlayer())
+            caster = static_cast<Player*>(charmer);
+    }
+
+    if (caster)
+        caster->KnockBackFrom(m_caster, unitTarget, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
 }
 
 void Spell::EffectReputation(SpellEffectIndex eff_idx)
@@ -8976,8 +8986,17 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
 
 void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
 {
-    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+    if (!unitTarget)
         return;
+
+    Player* target = nullptr;
+    if (unitTarget->IsPlayer())
+        target = static_cast<Player*>(target);
+    else if (Unit* charmer = unitTarget->GetCharmer())
+    {
+        if (charmer->IsPlayer())
+            target = static_cast<Player*>(charmer);
+    }
 
     switch (m_spellInfo->Id)
     {
@@ -8993,7 +9012,7 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
             break;
     }
 
-    ((Player*)unitTarget)->KnockBackFrom(m_caster, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
+    target->KnockBackFrom(unitTarget, m_caster, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
 }
 
 void Spell::EffectSendTaxi(SpellEffectIndex eff_idx)
@@ -9006,8 +9025,17 @@ void Spell::EffectSendTaxi(SpellEffectIndex eff_idx)
 
 void Spell::EffectPullTowards(SpellEffectIndex eff_idx)
 {
-    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+    if (!unitTarget)
         return;
+
+    Player* target = nullptr;
+    if (unitTarget->IsPlayer())
+        target = static_cast<Player*>(target);
+    else if (Unit* charmer = unitTarget->GetCharmer())
+    {
+        if (charmer->IsPlayer())
+            target = static_cast<Player*>(charmer);
+    }
 
     float x, y, z, dist;
 
@@ -9033,7 +9061,7 @@ void Spell::EffectPullTowards(SpellEffectIndex eff_idx)
     float time = dist / speedXY;
     float speedZ = ((z - unitTarget->GetPositionZ()) + 0.5f * time * time * Movement::gravity) / time;
 
-    ((Player*)unitTarget)->KnockBackFrom(m_caster, -speedXY, speedZ);
+    target->KnockBackFrom(unitTarget, m_caster, -speedXY, speedZ);
 }
 
 void Spell::EffectSummonDeadPet(SpellEffectIndex /*eff_idx*/)
@@ -9528,8 +9556,17 @@ void Spell::EffectRedirectThreat(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectKnockBackFromPosition(SpellEffectIndex eff_idx)
 {
-    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+    if (!unitTarget)
         return;
+
+    Player* target = nullptr;
+    if (unitTarget->IsPlayer())
+        target = static_cast<Player*>(target);
+    else if (Unit* charmer = unitTarget->GetCharmer())
+    {
+        if (charmer->IsPlayer())
+            target = static_cast<Player*>(charmer);
+    }
 
     float x, y, z;
     if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
@@ -9540,7 +9577,7 @@ void Spell::EffectKnockBackFromPosition(SpellEffectIndex eff_idx)
     float angle = unitTarget->GetAngle(x, y) + M_PI_F;
     float horizontalSpeed = m_spellInfo->EffectMiscValue[eff_idx] * 0.1f;
     float verticalSpeed = damage * 0.1f;
-    ((Player*)unitTarget)->GetSession()->SendKnockBack(angle, horizontalSpeed, verticalSpeed);
+    target->GetSession()->SendKnockBack(unitTarget, angle, horizontalSpeed, verticalSpeed);
 }
 
 void Spell::EffectCreateTamedPet(SpellEffectIndex eff_idx)

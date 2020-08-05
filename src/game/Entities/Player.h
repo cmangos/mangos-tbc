@@ -1494,7 +1494,7 @@ class Player : public Unit
         bool IsNeedCastPassiveLikeSpellAtLearn(SpellEntry const* spellInfo) const;
         bool IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index, bool castOnSelf) const override;
 
-        void KnockBackFrom(Unit* target, float horizontalSpeed, float verticalSpeed);
+        void KnockBackFrom(Unit* source, Unit* target, float horizontalSpeed, float verticalSpeed);
 
         void SendProficiency(ItemClass itemClass, uint32 itemSubclassMask) const;
         void SendInitialSpells() const;
@@ -1774,6 +1774,9 @@ class Player : public Unit
         void LearnDefaultSkills();
 
         virtual uint32 GetSpellRank(SpellEntry const* spellInfo) override;
+
+        bool IsLaunched() const { return m_launched; }
+        void SetLaunched(bool apply) { m_launched = apply; }
 
         WorldLocation& GetTeleportDest() { return m_teleport_dest; }
         bool IsBeingTeleported() const { return m_semaphoreTeleport_Near || m_semaphoreTeleport_Far; }
@@ -2552,6 +2555,8 @@ class Player : public Unit
         uint32 m_timeSyncServer;
 
         float m_energyRegenRate;
+
+        bool m_launched;
 
         std::unique_ptr<Spell> m_queuedSpell;
 

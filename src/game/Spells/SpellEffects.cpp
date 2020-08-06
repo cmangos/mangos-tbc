@@ -8754,7 +8754,7 @@ void Spell::EffectLeapBack(SpellEffectIndex eff_idx)
 
     Player* caster = nullptr;
     if (m_caster->IsPlayer())
-        caster = static_cast<Player*>(caster);
+        caster = static_cast<Player*>(m_caster);
     else if (Unit* charmer = m_caster->GetCharmer())
     {
         if (charmer->IsPlayer())
@@ -8991,7 +8991,7 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
 
     Player* target = nullptr;
     if (unitTarget->IsPlayer())
-        target = static_cast<Player*>(target);
+        target = static_cast<Player*>(unitTarget);
     else if (Unit* charmer = unitTarget->GetCharmer())
     {
         if (charmer->IsPlayer())
@@ -9033,7 +9033,7 @@ void Spell::EffectPullTowards(SpellEffectIndex eff_idx)
 
     Player* target = nullptr;
     if (unitTarget->IsPlayer())
-        target = static_cast<Player*>(target);
+        target = static_cast<Player*>(unitTarget);
     else if (Unit* charmer = unitTarget->GetCharmer())
     {
         if (charmer->IsPlayer())
@@ -9567,7 +9567,7 @@ void Spell::EffectKnockBackFromPosition(SpellEffectIndex eff_idx)
 
     Player* target = nullptr;
     if (unitTarget->IsPlayer())
-        target = static_cast<Player*>(target);
+        target = static_cast<Player*>(unitTarget);
     else if (Unit* charmer = unitTarget->GetCharmer())
     {
         if (charmer->IsPlayer())

@@ -211,6 +211,11 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 -- Priest
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (10060,'spell_stacking_rules_override'),
+(15268,'spell_blackout'),
+(15323,'spell_blackout'),
+(15324,'spell_blackout'),
+(15325,'spell_blackout'),
+(15326,'spell_blackout'),
 (27827,'spell_spirit_of_redemption_heal'),
 (32676,'spell_consume_magic');
 

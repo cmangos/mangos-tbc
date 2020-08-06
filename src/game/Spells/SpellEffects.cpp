@@ -8998,6 +8998,9 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
             target = static_cast<Player*>(charmer);
     }
 
+    if (!target)
+        return;
+
     switch (m_spellInfo->Id)
     {
         case 36812:                                     // Soaring - Test Flight quests
@@ -9036,6 +9039,9 @@ void Spell::EffectPullTowards(SpellEffectIndex eff_idx)
         if (charmer->IsPlayer())
             target = static_cast<Player*>(charmer);
     }
+
+    if (!target)
+        return;
 
     float x, y, z, dist;
 
@@ -9567,6 +9573,9 @@ void Spell::EffectKnockBackFromPosition(SpellEffectIndex eff_idx)
         if (charmer->IsPlayer())
             target = static_cast<Player*>(charmer);
     }
+
+    if (!target)
+        return;
 
     float x, y, z;
     if (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)

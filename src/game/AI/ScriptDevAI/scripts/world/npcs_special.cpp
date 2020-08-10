@@ -2163,7 +2163,7 @@ struct mob_phoenix_tkAI : public CombatAI
 
     void JustRespawned() override
     {
-        DoCastSpellIfCan(nullptr, m_rebirthSpawnSpellId);
+        // DoCastSpellIfCan(nullptr, m_rebirthSpawnSpellId);
     }
 
     void JustSummoned(Creature* summoned) override

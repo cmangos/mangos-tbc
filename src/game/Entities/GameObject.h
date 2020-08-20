@@ -764,7 +764,7 @@ class GameObject : public WorldObject
         uint32 GetDisplayId() const { return GetUInt32Value(GAMEOBJECT_DISPLAYID); }
         void SetDisplayId(uint32 modelId);
 
-        void Use(Unit* user);
+        void Use(Unit* user, SpellEntry const* spellInfo = nullptr);
 
         LootState GetLootState() const { return m_lootState; }
         void SetLootState(LootState state);

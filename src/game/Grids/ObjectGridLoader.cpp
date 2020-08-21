@@ -134,9 +134,6 @@ void LoadHelper(CellGuidSet const& guid_set, CellPair& cell, GridRefManager<T>& 
             continue;
         }
 
-        grid.AddGridObject(obj);
-
-        addUnitState(obj, cell);
         obj->SetMap(map);
         obj->AddToWorld();
         if (obj->isActiveObject())

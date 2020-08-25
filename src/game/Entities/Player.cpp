@@ -19439,8 +19439,6 @@ void Player::SendInitialPacketsAfterAddToMap()
     GetSession()->ResetTimeSync();
     GetSession()->SendTimeSync();
 
-    CastSpell(this, 836, TRIGGERED_OLD_TRIGGERED);                             // LOGINEFFECT
-
     // set some aura effects that send packet to player client after add player to map
     // SendMessageToSet not send it to player not it map, only for aura that not changed anything at re-apply
     // same auras state lost at far teleport, send it one more time in this case also
@@ -19458,8 +19456,14 @@ void Player::SendInitialPacketsAfterAddToMap()
             auraList.front()->ApplyModifier(true, true);
     }
 
+    SendAuraDurationsOnLogin(true);
+
     SendEnchantmentDurations();                             // must be after add to map
     SendItemDurations();                                    // must be after add to map
+
+    CastSpell(this, 836, TRIGGERED_OLD_TRIGGERED);          // LOGINEFFECT
+
+    SendAuraDurationsOnLogin(false);
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()
@@ -19736,6 +19740,38 @@ void Player::SendAuraDurationsForTarget(Unit* target)
             continue;
 
         holder->SendAuraDurationForCaster(this);
+    }
+}
+
+void Player::SendAuraDurationsOnLogin(bool visible)
+{
+    if (!visible)
+    {
+        WorldPacket data(SMSG_SET_EXTRA_AURA_INFO, 8);
+        data << GetPackGUID();
+        SendDirectMessage(data);
+    }
+
+    uint32 counter = MAX_AURAS;
+    SpellAuraHolderMap const& auraHolders = GetSpellAuraHolderMap();
+    for (SpellAuraHolderMap::const_iterator itr = auraHolders.begin(); itr != auraHolders.end(); ++itr)
+    {
+        SpellAuraHolder* holder = itr->second;
+
+        if (visible && holder->GetAuraSlot() >= MAX_AURAS) // passive auras are not visible
+            continue;
+        if (!visible)
+        {
+            if (holder->GetAuraSlot() < MAX_AURAS)
+                continue;
+
+            // TODO: Send racials - atm sending procs and quiver aura per sniff
+            if (!holder->HasAuraType(SPELL_AURA_PROC_TRIGGER_SPELL) && !holder->HasAuraType(SPELL_AURA_MOD_RANGED_AMMO_HASTE))
+                continue;
+        }
+
+        holder->SendAuraDurationForTarget(!visible ? counter : MAX_AURAS);
+        ++counter;
     }
 }
 

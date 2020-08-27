@@ -6035,7 +6035,8 @@ void Player::UpdateSpellTrainedSkills(uint32 spellId, bool apply)
                     continue;
 
                 // Check if obtainable
-                if (!GetSkillInfo(skillId))
+                auto entry = GetSkillInfo(skillId);
+                if (!entry)
                     continue;
 
                 switch (GetSkillRangeType(pSkill, info->racemask != 0))
@@ -6047,7 +6048,10 @@ void Player::UpdateSpellTrainedSkills(uint32 spellId, bool apply)
                         SetSkill(skillId, 1, GetSkillMaxForLevel());
                         break;
                     case SKILL_RANGE_MONO:
-                        SetSkill(skillId, 1, 1);
+                        if (entry->flags & SKILL_FLAG_MAXIMIZED)
+                            SetSkill(skillId, GetSkillMaxForLevel(), GetSkillMaxForLevel());
+                        else
+                            SetSkill(skillId, 1, 1);
                         break;
                     default:
                         break;
@@ -6097,13 +6101,11 @@ void Player::LearnDefaultSkills()
                 case SKILL_RANGE_LANGUAGE:
                     value = max = 300;
                     break;
-                case SKILL_RANGE_MONO:
-                    value = max = 1;
-                    break;
                 case SKILL_RANGE_LEVEL:
                     value = 1;
                     max = GetSkillMaxForLevel();
                     break;
+                case SKILL_RANGE_MONO:
                 case SKILL_RANGE_RANK:
                 {
                     const bool predefined = (tskill.Step != 0);
@@ -20968,6 +20970,9 @@ void Player::_LoadSkills(QueryResult* result)
 
                 if (!(entry->classMask & classMask))
                     continue;
+
+                if (entry->flags & SKILL_FLAG_MAXIMIZED)
+                    value = max = GetSkillMaxForLevel();
 
                 if (SkillTiersEntry const* steps = sSkillTiersStore.LookupEntry(entry->skillTierId))
                 {

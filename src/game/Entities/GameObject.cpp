@@ -1031,8 +1031,8 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
             }
         }
 
-        // Smuggled Mana Cell required 10 invisibility type detection/state
-        if (GetEntry() == 187039 && ((u->GetVisibilityData().GetInvisibilityDetectMask() | u->GetVisibilityData().GetInvisibilityMask()) & (1 << 10)) == 0)
+        // Smuggled Mana Cell required 10 invisibility type detection/state - hack for nonexistant phasing tech
+        if ((GetEntry() == 187039) == (((u->GetVisibilityData().GetInvisibilityDetectMask() | u->GetVisibilityData().GetInvisibilityMask()) & (1 << 10)) == 0))
             return false;
     }
 

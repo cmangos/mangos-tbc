@@ -545,7 +545,7 @@ struct boss_alarAI : public CombatAI
     }
 };
 
-struct EmberBlast : public SpellScript
+struct AlarEmberBlast : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
@@ -591,6 +591,6 @@ void AddSC_boss_alar()
     pNewScript->GetAI = &GetNewAIInstance<boss_alarAI>;
     pNewScript->RegisterSelf();
 
-    RegisterSpellScript<EmberBlast>("spell_alar_phoenix_ember_blast");
+    RegisterSpellScript<AlarEmberBlast>("spell_alar_phoenix_ember_blast");
     RegisterSpellScript<DiveBomb>("spell_dive_bomb");
 }

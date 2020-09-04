@@ -33,7 +33,7 @@ enum
     SPELL_PLAYER_CONSUME_MAGIC = 32676,
 };
 
-struct ConsumeMagicSpellScript : public SpellScript
+struct ConsumeMagic : public SpellScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool strict) const override
     {
@@ -88,7 +88,7 @@ struct Blackout : public AuraScript
 
 void LoadPriestScripts()
 {
-    RegisterSpellScript<ConsumeMagicSpellScript>("spell_consume_magic");
+    RegisterSpellScript<ConsumeMagic>("spell_consume_magic");
     RegisterSpellScript<ShadowWordDeath>("spell_shadow_word_death");
     RegisterSpellScript<SpiritOfRedemptionHeal>("spell_spirit_of_redemption_heal");
     RegisterAuraScript<Blackout>("spell_blackout");

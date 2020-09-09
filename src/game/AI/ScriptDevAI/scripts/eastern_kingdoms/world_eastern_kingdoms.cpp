@@ -384,7 +384,7 @@ struct npc_agent_proudwell : public ScriptedAI
         if (pInstance)
             pInstance->_spawnSupport.erase(pSummoned->GetObjectGuid());
 
-        if (despawnScriptTextId && pSummoned->isAlive())
+        if (despawnScriptTextId && pSummoned->IsAlive())
             DoScriptText(despawnScriptTextId, pSummoned);
     }
 };

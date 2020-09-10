@@ -754,7 +754,7 @@ enum MangosStrings
     LANG_DIST_ARENA_POINTS_END          = 746,
     LANG_DIST_ARENA_REWARDS_START       = 747,
     LANG_DIST_ARENA_REWARDS_END         = 748,
-//                                      = 749, not used
+    LANG_BG_GROUP_MEMBER_IN_ARENA       = 749,
     LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING      = 750,  // "Not enough players. This game will close in %u mins."
     LANG_BATTLEGROUND_PREMATURE_FINISH_WARNING_SECS = 751,  // "Not enough players. This game will close in %u seconds."
     LANG_BATTLEGROUND_ONLY_ALLIANCE_USE = 752,              // "Only The Alliance can use that portal"

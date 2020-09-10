@@ -1189,6 +1189,8 @@ uint32 Group::CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, BattleGround
         // check if member can join any more battleground queues
         if (!member->HasFreeBattleGroundQueueId())
             return BG_JOIN_ERR_ALL_QUEUES_USED;
+        if (member->InArena())
+            return BG_JOIN_ERR_GROUP_IN_ARENA;
     }
     return BG_JOIN_ERR_OK;
 }

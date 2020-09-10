@@ -848,6 +848,9 @@ void WorldSession::SendBattleGroundOrArenaJoinError(uint8 err) const
         case BG_JOIN_ERR_ALL_QUEUES_USED:
             msg = LANG_BG_GROUP_MEMBER_NO_FREE_QUEUE_SLOTS;
             break;
+        case BG_JOIN_ERR_GROUP_IN_ARENA:
+            msg = LANG_BG_GROUP_MEMBER_IN_ARENA;
+            break;
         case BG_JOIN_ERR_GROUP_NOT_ENOUGH:
         case BG_JOIN_ERR_MIXED_ARENATEAM:
         default:

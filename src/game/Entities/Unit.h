@@ -975,6 +975,8 @@ struct CharmInfo
         void SetWalk(bool walk) { m_walk = walk; }
         bool GetWalk() const { return m_walk; }
 
+        Unit* GetUnit() { return m_unit; }
+
     private:
         Unit*               m_unit;
         UnitAI*             m_ai;
@@ -997,6 +999,8 @@ struct CharmInfo
 
         Position            m_charmStartPosition;
         bool                m_walk;
+
+        bool                m_deleted;
 };
 
 // used in CallForAllControlledUnits/CheckAllControlledUnits

@@ -204,6 +204,8 @@ class ArenaTeam
 
         void FinishSeason();
 
+        void SetRatingForAll(uint32 rating);
+
     protected:
 
         uint32 m_TeamId;

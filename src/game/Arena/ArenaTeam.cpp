@@ -780,3 +780,10 @@ void ArenaTeam::FinishSeason()
         itr->personal_rating = 1500;
     }
 }
+
+void ArenaTeam::SetRatingForAll(uint32 rating)
+{
+    m_stats.rating = rating;
+    for (auto& memberData : m_members)
+        memberData.personal_rating = rating;
+}

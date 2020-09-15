@@ -1683,7 +1683,7 @@ void Creature::DeleteFromDB(uint32 lowguid, CreatureData const* data)
     WorldDatabase.CommitTransaction();
 }
 
-void Creature::SetDeathState(DeathState s)
+void Creature::SetDeathState(DeathState s, bool falling)
 {
     if ((s == JUST_DIED && !m_isDeadByDefault) || (s == JUST_ALIVED && m_isDeadByDefault))
     {
@@ -1710,7 +1710,7 @@ void Creature::SetDeathState(DeathState s)
         SetTargetGuid(ObjectGuid());                        // remove target selection in any cases (can be set at aura remove in Unit::SetDeathState)
         SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
 
-        if (CanFly())
+        if (falling && CanFly())
             i_motionMaster.MoveFall();
 
         Unit::SetDeathState(CORPSE);
@@ -1775,7 +1775,7 @@ void Creature::ForcedDespawn(uint32 timeMSToDespawn, bool onlyAlive)
         return;
 
     if (IsAlive())
-        SetDeathState(JUST_DIED);
+        SetDeathState(JUST_DIED, false);
 
     RemoveCorpse(true);                                     // force corpse removal in the same grid
 

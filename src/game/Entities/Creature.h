@@ -721,7 +721,7 @@ class Creature : public Unit
         // overwrite WorldObject function for proper name localization
         const char* GetNameForLocaleIdx(int32 loc_idx) const override;
 
-        void SetDeathState(DeathState s) override;          // overwrite virtual Unit::SetDeathState
+        void SetDeathState(DeathState s, bool falling = true);          // overwrites Unit::SetDeathState no more
 
         bool LoadFromDB(uint32 guidlow, Map* map);
         virtual void SaveToDB();

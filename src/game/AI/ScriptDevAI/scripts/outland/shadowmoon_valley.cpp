@@ -1445,6 +1445,8 @@ struct npc_shadowlord_deathwailAI : public ScriptedAI
         m_uiPlayerCheckTimer		= PLAYER_CHECK_CD;
         m_uiPeriodicWaveTimer		= RETAINER_WAVE_CD;
         m_uiDeathwailDespawnTimer	= DEATHWAIL_DESPAWN_TIME;
+
+        SetDeathPrevention(true);
     }
 
     void JustRespawned() override
@@ -1499,6 +1501,7 @@ struct npc_shadowlord_deathwailAI : public ScriptedAI
         m_bDeathwailGrounded = true;
         m_creature->GetMotionMaster()->MovePoint(0, DeathwailDescentCoords[0].xCoord, DeathwailDescentCoords[0].yCoord, DeathwailDescentCoords[0].zCoord);
         DoScriptText(SAY_BEGIN_DESCENT, m_creature);
+        SetDeathPrevention(false);
     }
 
     void MovementInform(uint32 motionType, uint32 pointId) override

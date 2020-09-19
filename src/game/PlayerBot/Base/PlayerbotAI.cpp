@@ -86,7 +86,7 @@ class PlayerbotChatHandler : protected ChatHandler
         bool dropQuest(char* str) { return HandleQuestRemoveCommand(str); }
 };
 
-PlayerbotAI::PlayerbotAI(PlayerbotMgr* const mgr, Player* const bot) :
+PlayerbotAI::PlayerbotAI(PlayerbotMgr &mgr, Player* const bot) :
     m_AutoEquipToggle(false), m_mgr(mgr), m_bot(bot), m_classAI(0), m_ignoreAIUpdatesUntilTime(CurrentTime()),
     m_combatOrder(ORDERS_NONE), m_ScenarioType(SCENARIO_PVE),
     m_CurrentlyCastingSpellId(0), m_CraftSpellId(0), m_spellIdCommand(0),
@@ -107,18 +107,18 @@ PlayerbotAI::PlayerbotAI(PlayerbotMgr* const mgr, Player* const bot) :
 
     // set collection options
     m_collectionFlags = 0;
-    m_collectDist = m_mgr->m_confCollectDistance;
-    if (m_mgr->m_confCollectCombat)
+    m_collectDist = m_mgr.m_confCollectDistance;
+    if (m_mgr.m_confCollectCombat)
         SetCollectFlag(COLLECT_FLAG_COMBAT);
-    if (m_mgr->m_confCollectQuest)
+    if (m_mgr.m_confCollectQuest)
         SetCollectFlag(COLLECT_FLAG_QUEST);
-    if (m_mgr->m_confCollectProfession)
+    if (m_mgr.m_confCollectProfession)
         SetCollectFlag(COLLECT_FLAG_PROFESSION);
-    if (m_mgr->m_confCollectLoot)
+    if (m_mgr.m_confCollectLoot)
         SetCollectFlag(COLLECT_FLAG_LOOT);
-    if (m_mgr->m_confCollectSkin && m_bot->HasSkill(SKILL_SKINNING))
+    if (m_mgr.m_confCollectSkin && m_bot->HasSkill(SKILL_SKINNING))
         SetCollectFlag(COLLECT_FLAG_SKIN);
-    if (m_mgr->m_confCollectObjects)
+    if (m_mgr.m_confCollectObjects)
         SetCollectFlag(COLLECT_FLAG_NEAROBJECT);
 
     // set needed item list
@@ -146,7 +146,7 @@ PlayerbotAI::~PlayerbotAI()
 
 Player* PlayerbotAI::GetMaster() const
 {
-    return m_mgr->GetMaster();
+    return m_mgr.GetMaster();
 }
 
 bool PlayerbotAI::CanReachWithSpellAttack(Unit* target)
@@ -1496,7 +1496,7 @@ void PlayerbotAI::SendOrders(Player& /*player*/)
     }
     out << ".";
 
-    if (m_mgr->m_confDebugWhisper)
+    if (m_mgr.m_confDebugWhisper)
     {
         out << " " << (IsInCombat() ? "I'm in COMBAT! " : "Not in combat. ");
         out << "Current state is ";
@@ -2414,13 +2414,13 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                     ItemPosCountVec dest;
                     if (m_bot->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemid, itemcount) == EQUIP_ERR_INVENTORY_FULL)
                     {
-                        if (GetManager()->m_confDebugWhisper)
+                        if (GetManager().m_confDebugWhisper)
                             TellMaster("I can't take %; my inventory is full.", pProto->Name1);
                         m_inventory_full = true;
                         continue;
                     }
 
-                    if (GetManager()->m_confDebugWhisper)
+                    if (GetManager().m_confDebugWhisper)
                         TellMaster("Store loot item %s", pProto->Name1);
 
                     WorldPacket* const packet = new WorldPacket(CMSG_AUTOSTORE_LOOT_ITEM, 1);
@@ -2429,12 +2429,12 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                 }
                 else
                 {
-                    if (GetManager()->m_confDebugWhisper)
+                    if (GetManager().m_confDebugWhisper)
                         TellMaster("Skipping loot item %s", pProto->Name1);
                 }
             }
 
-            if (GetManager()->m_confDebugWhisper)
+            if (GetManager().m_confDebugWhisper)
                 TellMaster("Releasing loot");
             // release loot
             m_lootPrev = m_lootCurrent;
@@ -2471,7 +2471,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
                         if (skillValue >= reqSkillValue)
                         {
                             m_lootCurrent = m_lootPrev;
-                            if (GetManager()->m_confDebugWhisper)
+                            if (GetManager().m_confDebugWhisper)
                                 TellMaster("I will try to skin next loot attempt.");
 
                             SetIgnoreUpdateTime(1);
@@ -2595,7 +2595,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
             MovementInfo mi;
             rp >> mi;
 
-            if (GetManager()->m_confDebugWhisper)
+            if (GetManager().m_confDebugWhisper)
                 TellMaster("Preparing to teleport");
 
             if (m_bot->IsBeingTeleportedNear())
@@ -2624,7 +2624,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
         case SMSG_TRANSFER_PENDING:
         {
-            if (GetManager()->m_confDebugWhisper)
+            if (GetManager().m_confDebugWhisper)
                 TellMaster("World transfer is pending");
             SetState(BOTSTATE_LOADING);
             SetIgnoreUpdateTime(1);
@@ -2633,7 +2633,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(const WorldPacket& packet)
         }
         case SMSG_NEW_WORLD:
         {
-            if (GetManager()->m_confDebugWhisper)
+            if (GetManager().m_confDebugWhisper)
                 TellMaster("Preparing to teleport far");
 
             if (m_bot->IsBeingTeleportedFar())
@@ -3199,7 +3199,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
         {
             forcedTarget = candidateTarget;
             m_targetType = TARGET_THREATEN;
-            if (m_mgr->m_confDebugWhisper)
+            if (m_mgr.m_confDebugWhisper)
                 TellMaster("Changing target to %s to protect %s", forcedTarget->GetName(), m_targetProtect->GetName());
         }
     }
@@ -3211,7 +3211,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
         if (forcedTarget && forcedTarget == m_targetCombat)
             return;
 
-        if (m_mgr->m_confDebugWhisper)
+        if (m_mgr.m_confDebugWhisper)
             TellMaster("Changing target to %s by force!", forcedTarget->GetName());
         m_targetCombat = forcedTarget;
         m_ignoreNeutralizeEffect = true;    // Bypass IsNeutralized() checks on next updates
@@ -3246,7 +3246,7 @@ void PlayerbotAI::GetCombatTarget(Unit* forcedTarget)
         if (candidateTarget && !IsNeutralized(candidateTarget))
         {
             m_targetCombat = candidateTarget;
-            if (m_mgr->m_confDebugWhisper)
+            if (m_mgr.m_confDebugWhisper)
                 TellMaster("Attacking %s to assist %s", m_targetCombat->GetName(), m_targetAssist->GetName());
             m_targetType = (m_combatOrder & (ORDERS_TANK | ORDERS_MAIN_TANK) ? TARGET_THREATEN : TARGET_NORMAL);
             m_targetChanged = true;
@@ -3846,10 +3846,10 @@ void PlayerbotAI::DoLoot()
     WorldObject* wo = m_bot->GetMap()->GetWorldObject(m_lootCurrent);
 
     // clear invalid object or object that is too far from master
-    if (!wo || GetMaster()->GetDistance(wo) > float(m_mgr->m_confCollectDistanceMax))
+    if (!wo || GetMaster()->GetDistance(wo) > float(m_mgr.m_confCollectDistanceMax))
     {
         m_lootCurrent = ObjectGuid();
-        if (GetManager()->m_confDebugWhisper)
+        if (GetManager().m_confDebugWhisper)
             TellMaster("Object is too far away.");
         return;
     }
@@ -3865,7 +3865,7 @@ void PlayerbotAI::DoLoot()
     if ((c && c->IsDespawned()) || (go && !go->IsSpawned()) || (!c && !go))
     {
         m_lootCurrent = ObjectGuid();
-        if (GetManager()->m_confDebugWhisper)
+        if (GetManager().m_confDebugWhisper)
             TellMaster("Object is not spawned.");
         return;
     }
@@ -3890,7 +3890,7 @@ void PlayerbotAI::DoLoot()
         }
         else if (c->m_loot && !c->m_loot->CanLoot(m_bot) && !c->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE))
         {
-            if (GetManager()->m_confDebugWhisper)
+            if (GetManager().m_confDebugWhisper)
                 TellMaster("%s is not lootable by me.", wo->GetName());
             m_lootCurrent = ObjectGuid();
             // clear movement target, take next target on next update
@@ -3905,7 +3905,7 @@ void PlayerbotAI::DoLoot()
         m_bot->GetMotionMaster()->MovePoint(wo->GetMapId(), wo->GetPositionX(), wo->GetPositionY(), wo->GetPositionZ());
         // give time to move to point before trying again
         SetIgnoreUpdateTime(1);
-        if (GetManager()->m_confDebugWhisper)
+        if (GetManager().m_confDebugWhisper)
             TellMaster("Moving to loot %s", go ? go->GetName() : wo->GetName());
     }
 
@@ -3917,7 +3917,7 @@ void PlayerbotAI::DoLoot()
         bool skillFailed = false;
         bool forceFailed = false;
 
-        if (GetManager()->m_confDebugWhisper)
+        if (GetManager().m_confDebugWhisper)
             TellMaster("Beginning to loot %s", go ? go->GetName() : wo->GetName());
 
         if (c)  // creature
@@ -4894,7 +4894,7 @@ void PlayerbotAI::MovementReset()
                     m_FollowAutoGo = FOLLOWAUTOGO_INIT;
                 }
             }
-            float dist = rand_float(m_mgr->m_confFollowDistance[0], m_mgr->m_confFollowDistance[1]);
+            float dist = rand_float(m_mgr.m_confFollowDistance[0], m_mgr.m_confFollowDistance[1]);
             float bdist = rand_float(gDist[0], gDist[1]);
             float angle = rand_float(0, M_PI_F);
             float bangle = rand_float(2.8f, 3.6f); // angle is based on radians
@@ -6043,7 +6043,7 @@ bool PlayerbotAI::PickPocket(Unit* pTarget)
         {
             m_bot->ModifyMoney(loot->GetGoldAmount());
 
-            if (m_mgr->m_confDebugWhisper)
+            if (m_mgr.m_confDebugWhisper)
             {
                 std::ostringstream out;
 
@@ -6694,7 +6694,7 @@ void PlayerbotAI::findNearbyGO()
 void PlayerbotAI::findNearbyCorpse()
 {
     UnitList corpseList;
-    float radius = float(m_mgr->m_confCollectDistance);
+    float radius = float(m_mgr.m_confCollectDistance);
     MaNGOS::AnyDeadUnitCheck corpse_check(m_bot);
     MaNGOS::UnitListSearcher<MaNGOS::AnyDeadUnitCheck> reaper(corpseList, corpse_check);
     Cell::VisitAllObjects(m_bot, reaper, radius);
@@ -7445,14 +7445,14 @@ void PlayerbotAI::_doSellItem(Item* const item, std::ostringstream& report, std:
         // We'll check to make sure its not a tradeskill tool, quest item etc, things that we don't want to lose.
         if (pProto->SellPrice > 0 && (pProto->Quality == ITEM_QUALITY_NORMAL || pProto->Quality == ITEM_QUALITY_UNCOMMON) && pProto->SubClass != ITEM_SUBCLASS_QUEST)
         {
-            if (pProto->RequiredLevel < (m_bot->getLevel() - m_mgr->gConfigSellLevelDiff) && pProto->SubClass != ITEM_SUBCLASS_WEAPON_MISC && pProto->FoodType == 0)
+            if (pProto->RequiredLevel < (m_bot->getLevel() - m_mgr.gConfigSellLevelDiff) && pProto->SubClass != ITEM_SUBCLASS_WEAPON_MISC && pProto->FoodType == 0)
             {
                 if (pProto->Class == ITEM_CLASS_WEAPON)
                     autosell = 1;
                 if (pProto->Class == ITEM_CLASS_ARMOR)
                     autosell = 1;
             }
-            if (pProto->SubClass == ITEM_SUBCLASS_FOOD && (pProto->RequiredLevel < (m_bot->getLevel() - m_mgr->gConfigSellLevelDiff)))
+            if (pProto->SubClass == ITEM_SUBCLASS_FOOD && (pProto->RequiredLevel < (m_bot->getLevel() - m_mgr.gConfigSellLevelDiff)))
             {
                 autosell = 1;
             }
@@ -8278,12 +8278,12 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
     else if (text == "debug")
     {
         TellMaster("Debugging is on. Type 'no debug' to disable.");
-        GetManager()->m_confDebugWhisper = true;
+        GetManager().m_confDebugWhisper = true;
     }
     else if (text == "no debug")
     {
         TellMaster("Debugging is off.");
-        GetManager()->m_confDebugWhisper = false;
+        GetManager().m_confDebugWhisper = false;
     }
 
     else if (fromPlayer.GetSession()->GetSecurity() > SEC_PLAYER && ExtractCommand("gm", input))
@@ -9880,7 +9880,7 @@ void PlayerbotAI::_HandleCommandCollect(std::string& text, Player& fromPlayer)
         {
             uint32 distance;
             sscanf(text.c_str(), "distance:%u", &distance);
-            if (distance > 0 && distance <= m_mgr->m_confCollectDistanceMax)
+            if (distance > 0 && distance <= m_mgr.m_confCollectDistanceMax)
             {
                 m_collectDist = distance;
                 std::ostringstream oss;
@@ -9889,9 +9889,9 @@ void PlayerbotAI::_HandleCommandCollect(std::string& text, Player& fromPlayer)
             }
             else
             {
-                m_collectDist = m_mgr->m_confCollectDistanceMax;
+                m_collectDist = m_mgr.m_confCollectDistanceMax;
                 std::stringstream oss;
-                oss << "I will now collect items within " << m_mgr->m_confCollectDistanceMax << " yards. " << distance << " yards is just too far away.",
+                oss << "I will now collect items within " << m_mgr.m_confCollectDistanceMax << " yards. " << distance << " yards is just too far away.",
                     SendWhisper(oss.str(), fromPlayer);
             }
         }
@@ -9904,7 +9904,7 @@ void PlayerbotAI::_HandleCommandCollect(std::string& text, Player& fromPlayer)
         else
         {
             std::ostringstream oss;
-            oss << "Collect <collectable(s)>: none | distance:<1-" << m_mgr->m_confCollectDistanceMax << ">, combat, loot, quest, profession, objects";
+            oss << "Collect <collectable(s)>: none | distance:<1-" << m_mgr.m_confCollectDistanceMax << ">, combat, loot, quest, profession, objects";
             if (m_bot->HasSkill(SKILL_SKINNING))
                 oss << ", skin";
             // TODO: perhaps change the command syntax, this way may be lacking in ease of use

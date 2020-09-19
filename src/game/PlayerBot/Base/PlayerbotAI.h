@@ -390,7 +390,7 @@ class PlayerbotAI
         };
 
     public:
-        PlayerbotAI(PlayerbotMgr& mgr, Player* const bot);
+        PlayerbotAI(PlayerbotMgr& mgr, Player* const bot, bool debugWhisper);
         virtual ~PlayerbotAI();
 
         // This is called from Unit.cpp and is called every second (I think)
@@ -412,7 +412,6 @@ class PlayerbotAI
         void SetCombatStyle(CombatStyle cs) { m_combatStyle = cs; }
 
         PlayerbotClassAI* GetClassAI() { return m_classAI; }
-        PlayerbotMgr& GetManager() { return m_mgr; }
         void ReloadAI();
 
         // finds spell ID for matching substring args
@@ -800,6 +799,7 @@ class PlayerbotAI
 
         bool m_bDebugCommandChat;
 
+        bool m_debugWhisper = false;
 };
 
 #endif

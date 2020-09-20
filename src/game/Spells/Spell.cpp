@@ -4517,7 +4517,12 @@ SpellCastResult Spell::CheckCast(bool strict)
                     const SpellAuraHolder* existing = pair.second;
                     const SpellEntry* existingSpell = existing->GetSpellProto();
 
-                    if (m_caster->GetObjectGuid() != existing->GetCasterGuid() && sSpellMgr.IsSpellStackableWithSpellForDifferentCasters(m_spellInfo, existingSpell))
+                    if (m_caster->GetObjectGuid() != existing->GetCasterGuid())
+                    {
+                        if (sSpellMgr.IsSpellStackableWithSpellForDifferentCasters(m_spellInfo, existingSpell))
+                            continue;
+                    }
+                    else if (sSpellMgr.IsSpellStackableWithSpell(m_spellInfo, existingSpell))
                         continue;
 
                     bool bounce = false;

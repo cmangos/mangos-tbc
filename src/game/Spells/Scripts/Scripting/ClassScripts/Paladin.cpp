@@ -34,12 +34,12 @@ struct IncreasedHolyLightHealing : public AuraScript
 
 struct RighteousDefense : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
-        if (!target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
-            return false;
+        if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) || spell->GetCaster()->CanAssistSpell(target, spell->m_spellInfo))
+            return true;
 
-        return true;
+        return false;
     }
 
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override

@@ -21,15 +21,15 @@
 
 struct HuntersMark : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 damage) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        if (aura->GetEffIndex() == EFFECT_INDEX_2)
+        if (data.effIdx == EFFECT_INDEX_2 && data.aura)
         {
             int32 auraValue = 0;
-            if (Aura* otherAura = aura->GetHolder()->m_auras[EFFECT_INDEX_1])
+            if (Aura* otherAura = data.aura->GetHolder()->m_auras[EFFECT_INDEX_1])
                 auraValue = otherAura->GetAmount(); // fetch ranged aura AP
 
-            if (Unit* caster = aura->GetCaster())
+            if (Unit* caster = data.caster)
             {
                 Unit::AuraList const& mclassScritAuras = caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
                 for (Unit::AuraList::const_iterator j = mclassScritAuras.begin(); j != mclassScritAuras.end(); ++j)
@@ -41,13 +41,13 @@ struct HuntersMark : public AuraScript
                         case 5238:
                         case 5239:
                         case 5240:
-                            damage = std::min((*j)->GetModifier()->m_amount, auraValue); // use lower, so that talent doesnt make low lvls OP
+                            value = std::min((*j)->GetModifier()->m_amount, auraValue); // use lower, so that talent doesnt make low lvls OP
                             break;
                     }
                 }
             }
         }
-        return damage;
+        return value;
     }
 
     SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& /*procData*/) const override

@@ -363,6 +363,12 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (9858,'spell_regrowth'),
 (26980,'spell_regrowth');
 
+-- Shaman
+INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(974,'spell_earth_shield'),
+(32593,'spell_earth_shield'),
+(32594,'spell_earth_shield');
+
 -- Battleground and Outdoor PvP
 -- Alterac Valley
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

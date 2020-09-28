@@ -17,8 +17,23 @@
 */
 
 #include "Spells/Scripts/SpellScript.h"
+#include "Spells/SpellAuras.h"
+
+struct EarthShield : public AuraScript
+{
+    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (Unit* caster = aura->GetCaster())
+        {
+            value = caster->SpellHealingBonusDone(target, aura->GetSpellProto(), value, SPELL_DIRECT_DAMAGE);
+            value = target->SpellHealingBonusTaken(caster, aura->GetSpellProto(), value, SPELL_DIRECT_DAMAGE);
+        }
+        return value;
+    }
+};
 
 void LoadShamanScripts()
 {
-
+    RegisterAuraScript<EarthShield>("spell_earth_shield");
 }

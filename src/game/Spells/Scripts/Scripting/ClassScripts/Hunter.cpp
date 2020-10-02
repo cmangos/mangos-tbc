@@ -23,25 +23,30 @@ struct HuntersMark : public AuraScript
 {
     int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        if (data.effIdx == EFFECT_INDEX_2 && data.aura)
+        if (data.effIdx == EFFECT_INDEX_2)
         {
             int32 auraValue = 0;
-            if (Aura* otherAura = data.aura->GetHolder()->m_auras[EFFECT_INDEX_1])
-                auraValue = otherAura->GetAmount(); // fetch ranged aura AP
+            if (data.aura)
+            {
+                if (Aura* otherAura = data.aura->GetHolder()->m_auras[EFFECT_INDEX_1])
+                    auraValue = otherAura->GetAmount(); // fetch ranged aura AP
+            }
+            else if (data.caster) // or newly calculate it
+                auraValue = data.caster->CalculateSpellEffectValue(data.target, data.spellProto, EFFECT_INDEX_1, nullptr, true, false);
 
             if (Unit* caster = data.caster)
             {
-                Unit::AuraList const& mclassScritAuras = caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
-                for (Unit::AuraList::const_iterator j = mclassScritAuras.begin(); j != mclassScritAuras.end(); ++j)
+                Unit::AuraList const& classScriptAuras = caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+                for (auto& aura : classScriptAuras)
                 {
-                    switch ((*j)->GetModifier()->m_miscvalue)
+                    switch (aura->GetModifier()->m_miscvalue)
                     {
                         case 5236:
                         case 5237:
                         case 5238:
                         case 5239:
                         case 5240:
-                            value = std::min((*j)->GetModifier()->m_amount, auraValue); // use lower, so that talent doesnt make low lvls OP
+                            value = aura->GetModifier()->m_amount * auraValue / 100;
                             break;
                     }
                 }

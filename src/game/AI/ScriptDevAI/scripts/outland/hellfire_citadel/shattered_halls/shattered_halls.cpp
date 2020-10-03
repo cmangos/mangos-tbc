@@ -302,7 +302,7 @@ void instance_shattered_halls::Update(uint32 uiDiff)
                 {
                     blaze.second = 2000;
                     if (GameObject* blazeGo = instance->GetGameObject(blaze.first))
-                        gauntlet->CastSpell(nullptr, SPELL_FLAMES, TRIGGERED_NONE, nullptr, nullptr, blazeGo->GetObjectGuid());
+                        blazeGo->CastSpell(gauntlet, nullptr, SPELL_FLAMES, TRIGGERED_NONE, nullptr, nullptr, blazeGo->GetObjectGuid());
                 }
                 else
                     blaze.second -= uiDiff;

@@ -1426,7 +1426,7 @@ SpellCastResult Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint3
         if (WorldObject* caster = spell->GetCastingObject())
             targets.setSource(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
 
-    spell->m_CastItem = castItem;
+    spell->SetCastItem(castItem);
     return spell->SpellStart(&targets, triggeredByAura);
 }
 
@@ -1481,7 +1481,7 @@ SpellCastResult Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo,
 
     SpellCastTargets targets;
     targets.setUnitTarget(Victim);
-    spell->m_CastItem = castItem;
+    spell->SetCastItem(castItem);
 
     if (spellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
         targets.setDestination(Victim->GetPositionX(), Victim->GetPositionY(), Victim->GetPositionZ());
@@ -1545,7 +1545,7 @@ SpellCastResult Unit::CastSpell(float x, float y, float z, SpellEntry const* spe
     if (!(targets.m_targetMask & (TARGET_FLAG_DEST_LOCATION | TARGET_FLAG_SOURCE_LOCATION)))
         targets.setDestination(x, y, z);
 
-    spell->m_CastItem = castItem;
+    spell->SetCastItem(castItem);
     return spell->SpellStart(&targets, triggeredByAura);
 }
 
@@ -1573,7 +1573,7 @@ SpellCastResult Unit::CastSpell(SpellCastTargets& targets, SpellEntry const* spe
 
     Spell* spell = new Spell(this, spellInfo, triggeredFlags, originalCaster, triggeredBy);
 
-    spell->m_CastItem = castItem;
+    spell->SetCastItem(castItem);
     return spell->SpellStart(&targets, triggeredByAura);
 }
 
@@ -1610,7 +1610,7 @@ SpellCastResult Unit::CastCustomSpell(SpellCastTargets& targets, SpellEntry cons
     if (bp2)
         spell->m_currentBasePoints[EFFECT_INDEX_2] = *bp2;
 
-    spell->m_CastItem = castItem;
+    spell->SetCastItem(castItem);
     return spell->SpellStart(&targets, triggeredByAura);
 }
 

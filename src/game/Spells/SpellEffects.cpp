@@ -40,8 +40,6 @@
 #include "AI/BaseAI/CreatureAI.h"
 #include "BattleGround/BattleGroundMgr.h"
 #include "BattleGround/BattleGround.h"
-#include "BattleGround/BattleGroundEY.h"
-#include "BattleGround/BattleGroundWS.h"
 #include "Tools/Language.h"
 #include "Social/SocialMgr.h"
 #include "Util.h"
@@ -2789,7 +2787,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
 
                     if (BattleGround* bg = ((Player*)m_caster)->GetBattleGround())
-                        bg->EventPlayerDroppedFlag((Player*)m_caster);
+                        bg->HandlePlayerDroppedFlag((Player*)m_caster);
 
                     m_caster->CastSpell(m_caster, 30452, TRIGGERED_OLD_TRIGGERED, nullptr);
                     return;
@@ -4325,6 +4323,7 @@ void Spell::SendLoot(ObjectGuid guid, LootType loottype, LockType lockType)
                     case GAMEOBJECT_TYPE_QUESTGIVER:
                     case GAMEOBJECT_TYPE_SPELL_FOCUS:
                     case GAMEOBJECT_TYPE_GOOBER:
+                    case GAMEOBJECT_TYPE_FLAGSTAND:
                         gameObjTarget->Use(m_caster);
                         return;
 
@@ -4402,33 +4401,7 @@ void Spell::EffectOpenLock(SpellEffectIndex eff_idx)
     // Get lockId
     if (gameObjTarget)
     {
-        GameObjectInfo const* goInfo = gameObjTarget->GetGOInfo();
-        // Arathi Basin banner opening !
-        if ((goInfo->type == GAMEOBJECT_TYPE_BUTTON && goInfo->button.noDamageImmune) ||
-                (goInfo->type == GAMEOBJECT_TYPE_GOOBER && goInfo->goober.losOK))
-        {
-            // CanUseBattleGroundObject() already called in CheckCast()
-            // in battleground check
-            if (BattleGround* bg = player->GetBattleGround())
-            {
-                // check if it's correct bg
-                if (bg->GetTypeId() == BATTLEGROUND_AB || bg->GetTypeId() == BATTLEGROUND_AV)
-                    bg->EventPlayerClickedOnFlag(player, gameObjTarget);
-                return;
-            }
-        }
-        else if (goInfo->type == GAMEOBJECT_TYPE_FLAGSTAND)
-        {
-            // CanUseBattleGroundObject() already called in CheckCast()
-            // in battleground check
-            if (BattleGround* bg = player->GetBattleGround())
-            {
-                if (bg->GetTypeId() == BATTLEGROUND_EY)
-                    bg->EventPlayerClickedOnFlag(player, gameObjTarget);
-                return;
-            }
-        }
-        lockId = goInfo->GetLockId();
+        lockId = gameObjTarget->GetGOInfo()->GetLockId();
     }
     else if (itemTarget)
     {
@@ -6237,34 +6210,6 @@ void Spell::EffectSummonObjectWild(SpellEffectIndex eff_idx)
     // Wild object not have owner and check clickable by players
     map->Add(pGameObj);
     pGameObj->AIM_Initialize();
-
-    if (pGameObj->GetGoType() == GAMEOBJECT_TYPE_FLAGDROP && m_caster->GetTypeId() == TYPEID_PLAYER)
-    {
-        Player* pl = (Player*)m_caster;
-        BattleGround* bg = ((Player*)m_caster)->GetBattleGround();
-
-        switch (pGameObj->GetMapId())
-        {
-            case 489:                                       // WS
-            {
-                if (bg && bg->GetTypeId() == BATTLEGROUND_WS && bg->GetStatus() == STATUS_IN_PROGRESS)
-                {
-                    Team team = pl->GetTeam() == ALLIANCE ? HORDE : ALLIANCE;
-
-                    ((BattleGroundWS*)bg)->SetDroppedFlagGuid(pGameObj->GetObjectGuid(), team);
-                }
-                break;
-            }
-            case 566:                                       // EY
-            {
-                if (bg && bg->GetTypeId() == BATTLEGROUND_EY && bg->GetStatus() == STATUS_IN_PROGRESS)
-                {
-                    ((BattleGroundEY*)bg)->SetDroppedFlagGuid(pGameObj->GetObjectGuid());
-                }
-                break;
-            }
-        }
-    }
 
     // Notify Summoner
     if (m_originalCaster && (m_originalCaster != m_caster) && (m_originalCaster->AI()))

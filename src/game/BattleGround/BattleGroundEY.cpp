@@ -160,6 +160,8 @@ void BattleGroundEY::RemovePlayer(Player* player, ObjectGuid guid)
                 HandlePlayerDroppedFlag(player);
             else
             {
+                sLog.outError("BattleGroundEY: Removing offline player who unexpectendly carries the flag!");
+
                 ClearFlagCarrier();
                 RespawnFlagAtCenter(false);
             }
@@ -203,6 +205,8 @@ bool BattleGroundEY::HandleEvent(uint32 eventId, GameObject* go, Unit* invoker)
     // event called when player picks up a dropped flag
     if (eventId == EVENT_NETHERSTORM_FLAG_PICKUP && invoker->GetTypeId() == TYPEID_PLAYER)
     {
+        DEBUG_LOG("BattleGroundEY: Handle flag pickup event id %u", eventId);
+
         HandlePlayerClickedOnFlag((Player*)invoker, go);
         return true;
     }
@@ -233,6 +237,8 @@ bool BattleGroundEY::HandleEvent(uint32 eventId, GameObject* go, Unit* invoker)
 // Method that handles the capture point capture events
 void BattleGroundEY::ProcessCaptureEvent(GameObject* go, uint32 towerId, Team team, uint32 newWorldState, uint32 message)
 {
+    DEBUG_LOG("BattleGroundEY: Process capture point event from gameobject entry %u, captured by team %u", go->GetEntry(), team);
+
     if (team == ALLIANCE)
     {
         // update counter
@@ -373,6 +379,8 @@ void BattleGroundEY::Reset()
 // Method that resets main flag at the center
 void BattleGroundEY::RespawnFlagAtCenter(bool wasCaptured)
 {
+    DEBUG_LOG("BattleGroundEY: Respawn flag at the center of the battleground.");
+
     m_flagState = EY_FLAG_STATE_ON_BASE;
 
     // will despawn captured flags at the node and spawn in center
@@ -419,6 +427,8 @@ void BattleGroundEY::HandlePlayerDroppedFlag(Player* source)
     if (GetFlagCarrierGuid() != source->GetObjectGuid())
         return;
 
+    DEBUG_LOG("BattleGroundEY: Team %u has dropped the flag.", source->GetTeam());
+
     ClearFlagCarrier();
     source->RemoveAurasDueToSpell(EY_SPELL_NETHERSTORM_FLAG);
 
@@ -443,6 +453,8 @@ void BattleGroundEY::HandlePlayerClickedOnFlag(Player* source, GameObject* go)
 {
     if (GetStatus() != STATUS_IN_PROGRESS || IsFlagPickedUp() || !source->IsWithinDistInMap(go, 10))
         return;
+
+    DEBUG_LOG("BattleGroundEY: Team %u has taken the flag, gameobject entry.", source->GetTeam(), go->GetEntry());
 
     // remove world state for base flag
     if (m_flagState == EY_FLAG_STATE_ON_BASE)
@@ -481,6 +493,8 @@ void BattleGroundEY::ProcessPlayerFlagScoreEvent(Player* source, EYNodes node)
 {
     if (GetStatus() != STATUS_IN_PROGRESS || GetFlagCarrierGuid() != source->GetObjectGuid())
         return;
+
+    DEBUG_LOG("BattleGroundEY: Team %u has successfully delivered the flag to the node id %u", source->GetTeam(), node);
 
     ClearFlagCarrier();
 

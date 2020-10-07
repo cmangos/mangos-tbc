@@ -239,7 +239,7 @@ uint32 WaypointMovementGenerator<Creature>::BuildIntPath(PointsArray& path, Crea
     Vector3 startPos = path.back();
     uint32 travelTime = 0;
 
-    auto speedType = MovementInfo::GetSpeedType(creature.m_movementInfo.GetMovementFlags());
+    auto speedType = MovementInfo::GetSpeedType(creature.m_movementInfo->GetMovementFlags());
     float creatureSpeed = creature.GetSpeed(speedType);
 
     bool onTheGround = !creature.IsFlying() && !creature.IsSwimming();
@@ -472,7 +472,7 @@ void WaypointMovementGenerator<Creature>::SendNextWayPointPath(Creature& creatur
             wpCreature->SetObjectScale(0.2f);
             wpCreature->SetRespawnCoord(pos);
             wpCreature->SetLevel(ptIdx);
-            wpCreature->m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
+            wpCreature->m_movementInfo->AddMovementFlag(MOVEFLAG_FLYING);
             wpCreature->SetActiveObjectState(true);
 
             wpCreature->Summon(TEMPSPAWN_TIMED_DESPAWN, 10 * IN_MILLISECONDS); // Also initializes the AI and MMGen

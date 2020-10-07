@@ -2433,7 +2433,7 @@ class Unit : public WorldObject
         virtual bool CanSwim() const = 0;
         virtual bool CanFly() const = 0;
         virtual bool CanWalk() const = 0;
-        virtual bool IsFlying() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FLYING); }
+        virtual bool IsFlying() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_FLYING); }
 
         // Take possession of an unit (pet, creature, ...)
         bool TakePossessOf(Unit* possessed);

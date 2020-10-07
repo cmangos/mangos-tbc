@@ -560,7 +560,7 @@ bool FollowMovementGenerator::EnableWalking() const
 
 float FollowMovementGenerator::GetSpeed(Unit& owner) const
 {
-    const UnitMoveType type = i_target->m_movementInfo.GetSpeedType();
+    const UnitMoveType type = i_target->m_movementInfo->GetSpeedType();
     float speed = owner.GetSpeed(type);
 
     if (owner.IsInCombat() || !i_target.isValid())
@@ -612,7 +612,7 @@ bool FollowMovementGenerator::IsBoostAllowed(Unit& owner) const
         return true;
 
     // Do not allow boosting if follower is already in front/back of target:
-    return (i_target->HasInArc(&owner) != !i_target->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_BACKWARD)));
+    return (i_target->HasInArc(&owner) != !i_target->m_movementInfo->HasMovementFlag(MovementFlags(MOVEFLAG_BACKWARD)));
 }
 
 bool FollowMovementGenerator::IsUnstuckAllowed(Unit &owner) const
@@ -783,7 +783,7 @@ bool FollowMovementGenerator::_getLocation(Unit& owner, float& x, float& y, floa
     else if (movingNow)
     {
         const float speed = i_target->GetSpeedInMotion();
-        const float to = i_target->m_movementInfo.GetOrientationInMotion(i_target->GetOrientation());
+        const float to = i_target->m_movementInfo->GetOrientationInMotion(i_target->GetOrientation());
 
         float dx = (speed * cos(to)), dy = (speed * sin(to));
 
@@ -886,8 +886,8 @@ void FollowMovementGenerator::HandleTargetedMovement(Unit& owner, const uint32& 
 
     // Detect target movement and relocation (ignore jumping in place and long falls)
     const bool targetMovingLast = m_targetMoving;
-    const bool targetIgnore = i_target->m_movementInfo.HasMovementFlag(ignored);
-    m_targetMoving = (!targetIgnore && i_target->m_movementInfo.HasMovementFlag(detected));
+    const bool targetIgnore = i_target->m_movementInfo->HasMovementFlag(ignored);
+    m_targetMoving = (!targetIgnore && i_target->m_movementInfo->HasMovementFlag(detected));
     bool targetRelocation = false;
     bool targetOrientation = false;
     bool targetSpeedChanged = (i_speedChanged && m_targetMoving && targetMovingLast);

@@ -182,7 +182,7 @@ GroupQueueInfo* BattleGroundQueue::AddGroup(Player* leader, Group* group, Battle
     queueInfo->groupTeam                 = leader->GetTeam();
     queueInfo->arenaTeamRating           = arenaRating;
     queueInfo->opponentsTeamRating       = 0;
-    ginfo->OGroupTeam				 = ginfo->GroupTeam;
+    queueInfo->OGroupTeam                = queueInfo->groupTeam;
 
     queueInfo->players.clear();
 
@@ -584,7 +584,7 @@ bool BattleGroundQueue::InviteGroupToBg(GroupQueueInfo* queueInfo, BattleGround*
 */
 void BattleGroundQueue::FillPlayersToBg(BattleGround* bg, BattleGroundBracketId bracketId)
 {
-    if (MixPlayersToBG(bg, bracket_id))
+    if (MixPlayersToBG(bg, bracketId))
         return;
 
     int32 hordeFree = bg->GetFreeSlotsForTeam(HORDE);
@@ -741,7 +741,7 @@ bool BattleGroundQueue::CheckPremadeMatch(BattleGroundBracketId bracketId, uint3
 */
 bool BattleGroundQueue::CheckNormalMatch(BattleGround* bgTemplate, BattleGroundBracketId bracketId, uint32 minPlayers, uint32 maxPlayers)
 {
-    if (CheckMixedMatch(bg_template, bracket_id, minPlayers, maxPlayers))
+    if (CheckMixedMatch(bgTemplate, bracketId, minPlayers, maxPlayers))
         return true;
 
     GroupsQueueType::const_iterator itr_team[PVP_TEAM_COUNT];
@@ -2693,7 +2693,7 @@ void BattleGroundMgr::LoadBattleEventIndexes()
 class GroupQueueInfoComparator {
 public:
     bool operator()(const GroupQueueInfo* first, const GroupQueueInfo* second) const {
-        return first->JoinTime < second->JoinTime;
+        return first->joinTime < second->joinTime;
     }
 };
 
@@ -2724,7 +2724,7 @@ bool BattleGroundQueue::MixPlayersToBG(BattleGround* bg, BattleGroundBracketId b
 
 bool BattleGroundQueue::CFBGGroupInserter(BattleGround* bg, BattleGroundBracketId bracket_id, uint32 AllyFree, uint32 HordeFree, uint32 MinPlayers)
 {
-    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg->isBattleGround())
+    if (!sWorld.getConfig(CONFIG_BOOL_CFBG_ENABLED) || !bg->IsBattleGround())
         return false;
 
     // MinPlayers is only 0 when we're filling an existing BG.
@@ -2735,41 +2735,41 @@ bool BattleGroundQueue::CFBGGroupInserter(BattleGround* bg, BattleGroundBracketI
 
     //if (!Filling)
     //{
-        m_SelectionPools[TEAM_INDEX_ALLIANCE].Init();
-        m_SelectionPools[TEAM_INDEX_HORDE].Init();
+        m_selectionPools[TEAM_INDEX_ALLIANCE].Init();
+        m_selectionPools[TEAM_INDEX_HORDE].Init();
     //}
 
     // If players on different factions queue at the same second it'll be random who gets added first
     bool AllyFirst = urand(0, 1);
     auto Groups = GroupList();
 
-    Groups.AddGroups(m_QueuedGroups[bracket_id][AllyFirst ? BG_QUEUE_NORMAL_ALLIANCE : BG_QUEUE_NORMAL_HORDE]);
-    Groups.AddGroups(m_QueuedGroups[bracket_id][AllyFirst ? BG_QUEUE_NORMAL_HORDE : BG_QUEUE_NORMAL_ALLIANCE]);
+    Groups.AddGroups(m_queuedGroups[bracket_id][AllyFirst ? BG_QUEUE_NORMAL_ALLIANCE : BG_QUEUE_NORMAL_HORDE]);
+    Groups.AddGroups(m_queuedGroups[bracket_id][AllyFirst ? BG_QUEUE_NORMAL_HORDE : BG_QUEUE_NORMAL_ALLIANCE]);
     Groups.SortByJoinTime();
 
     for (auto& ginfo : Groups)
     {
-        if (!ginfo->IsInvitedToBGInstanceGUID)
+        if (!ginfo->isInvitedToBgInstanceGuid)
         {
             bool AddAsAlly = AllyFree == HordeFree ? ginfo->OGroupTeam == ALLIANCE : AllyFree > HordeFree;
 
-            ginfo->GroupTeam = AddAsAlly ? ALLIANCE : HORDE;
+            ginfo->groupTeam = AddAsAlly ? ALLIANCE : HORDE;
 
-            if (m_SelectionPools[AddAsAlly ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, AddAsAlly ? MaxAlly : MaxHorde))
-                AddAsAlly ? AllyFree -= ginfo->Players.size() : HordeFree -= ginfo->Players.size();
+            if (m_selectionPools[AddAsAlly ? TEAM_INDEX_ALLIANCE : TEAM_INDEX_HORDE].AddGroup(ginfo, AddAsAlly ? MaxAlly : MaxHorde))
+                AddAsAlly ? AllyFree -= ginfo->players.size() : HordeFree -= ginfo->players.size();
             else if (!Filling)
                 break;
 
             // Return when we're ready to start a BG, if we're in startup process
-            if (m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() >= MinPlayers &&
-                m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() >= MinPlayers &&
+            if (m_selectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() >= MinPlayers &&
+                m_selectionPools[TEAM_INDEX_HORDE].GetPlayerCount() >= MinPlayers &&
                 !Filling)
                 return true;
         }
     }
 
     // If we're in BG testing one player is enough
-    if (sBattleGroundMgr.isTesting() && m_SelectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() + m_SelectionPools[TEAM_INDEX_HORDE].GetPlayerCount() > 0)
+    if (sBattleGroundMgr.IsTesting() && m_selectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() + m_selectionPools[TEAM_INDEX_HORDE].GetPlayerCount() > 0)
         return true;
 
     // Filling always returns true unless we're not actually having CFBG enabled

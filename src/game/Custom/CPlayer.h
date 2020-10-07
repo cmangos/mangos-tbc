@@ -86,7 +86,7 @@ public:
 public:
     Team GetTeam() const
     {
-        if (GetBattleGround() && GetBattleGround()->isBattleGround())
+        if (GetBattleGround() && GetBattleGround()->IsBattleGround())
             return m_bgData.bgTeam ? m_bgData.bgTeam : GetOTeam();
 
         return GetOTeam();

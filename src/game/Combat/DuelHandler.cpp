@@ -67,7 +67,7 @@ void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
         // Also fill pets up if they're alive
         for (size_t i = 0; i < UnitsToReset.size(); ++i)
             if (Pet* pet = UnitsToReset[i]->GetPet())
-                if (pet->isAlive())
+                if (pet->IsAlive())
                     UnitsToReset.push_back(pet);
 
         for (auto& i : UnitsToReset)

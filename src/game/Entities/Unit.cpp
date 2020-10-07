@@ -8645,7 +8645,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
 
 float Unit::GetSpeedInMotion() const
 {
-    return (movespline->Finalized() ? GetSpeed(m_movementInfo.GetSpeedType()) : movespline->Speed());
+    return (movespline->Finalized() ? GetSpeed(m_movementInfo->GetSpeedType()) : movespline->Speed());
 }
 
 float Unit::GetSpeed(UnitMoveType mtype) const
@@ -8655,7 +8655,7 @@ float Unit::GetSpeed(UnitMoveType mtype) const
 
 float Unit::GetSpeedRateInMotion() const
 {
-    const UnitMoveType type = m_movementInfo.GetSpeedType();
+    const UnitMoveType type = m_movementInfo->GetSpeedType();
     return (movespline->Finalized() ? GetSpeedRate(type) : (movespline->Speed() / GetSpeed(type)));
 }
 
@@ -10188,7 +10188,7 @@ bool Unit::SetStunnedByLogout(bool apply)
         {
             if (IsStandState())
             {
-                if (!m_movementInfo.HasMovementFlag(MovementFlags(movementFlagsMask | MOVEFLAG_SWIMMING | MOVEFLAG_SPLINE_ENABLED)))
+                if (!m_movementInfo->HasMovementFlag(MovementFlags(movementFlagsMask | MOVEFLAG_SWIMMING | MOVEFLAG_SPLINE_ENABLED)))
                     SetStandState(UNIT_STAND_STATE_SIT);
             }
         }
@@ -10750,8 +10750,8 @@ void Unit::NearTeleportTo(float x, float y, float z, float orientation, bool cas
 
 void Unit::SendTeleportPacket(float x, float y, float z, float ori)
 {
-    MovementInfo teleportMovementInfo = m_movementInfo;
-    teleportMovementInfo.ChangePosition(x, y, z, ori);
+    MovementInfoPtr teleportMovementInfo = m_movementInfo;
+    teleportMovementInfo->ChangePosition(x, y, z, ori);
 
     if (GetTypeId() == TYPEID_PLAYER)
     {
@@ -10766,7 +10766,7 @@ void Unit::SendTeleportPacket(float x, float y, float z, float ori)
 
     WorldPacket moveUpdateTeleport(MSG_MOVE_TELEPORT, 38);
     moveUpdateTeleport << GetPackGUID();
-    teleportMovementInfo.Write(moveUpdateTeleport);
+    teleportMovementInfo->Write(moveUpdateTeleport);
     SendMessageToSet(moveUpdateTeleport, false);
 }
 

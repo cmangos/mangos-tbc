@@ -650,7 +650,7 @@ struct npc_colonel_julesAI : public ScriptedAI
 
         if (m_bReturnHome)
         {
-            if (uiPointId == 6)
+            if (uiPointId == 7)
             {
                 m_creature->SetLevitate(false);
                 m_creature->GetMotionMaster()->Clear();
@@ -661,8 +661,8 @@ struct npc_colonel_julesAI : public ScriptedAI
                 EndEvent();
             }
         }
-        else if (uiPointId == 4)
-            m_creature->GetMotionMaster()->SetNextWaypoint(0);
+        else if (uiPointId == 5)
+            m_creature->GetMotionMaster()->SetNextWaypoint(1);
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -854,7 +854,7 @@ struct npc_anchorite_baradaAI : public ScriptedAI, private DialogueHelper
 
         switch (uiPointId)
         {
-            case 1:
+            case 2:
                 // pause wp and resume dialogue
                 m_creature->addUnitState(UNIT_STAT_WAYPOINT_PAUSED);
 
@@ -866,7 +866,7 @@ struct npc_anchorite_baradaAI : public ScriptedAI, private DialogueHelper
 
                 StartNextDialogueText(TEXT_ID_POSSESSED);
                 break;
-            case 3:
+            case 4:
                 // event completed - wait for player to get quest credit by gossip
                 if (Creature* pColonel = m_creature->GetMap()->GetCreature(m_colonelGuid))
                     m_creature->SetFacingToObject(pColonel);

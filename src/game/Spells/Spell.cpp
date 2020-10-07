@@ -3716,15 +3716,13 @@ void Spell::SendSpellStart() const
     WorldPacket data(SMSG_SPELL_START, (8 + 8 + 4 + 4 + 2));
     if (m_CastItem)
         data << m_CastItem->GetPackGUID();
-    if (m_CastItem)
-        data << m_CastItem->GetPackGUID();
     else
         data << m_trueCaster->GetPackGUID();
 
     if (m_trueCaster->IsGameObject()) // write empty guid if GO
         data << ObjectGuid().WriteAsPacked();
     else
-        data << m_caster->GetObjectGuid();
+        data << m_caster->GetPackGUID();
     data << uint32(m_spellInfo->Id);;                       // spellId
     data << uint8(m_cast_count);                            // pending spell cast?
     data << uint16(castFlags);                              // cast flags
@@ -3769,7 +3767,7 @@ void Spell::SendSpellGo()
     if (m_trueCaster->IsGameObject()) // write empty guid if GO
         data << ObjectGuid().WriteAsPacked();
     else
-        data << m_caster->GetObjectGuid();
+        data << m_caster->GetPackGUID();
     data << uint32(m_spellInfo->Id);                        // spellId
     data << uint16(castFlags);                              // cast flags
     data << uint32(m_caster->GetMap()->GetCurrentMSTime());                // timestamp
